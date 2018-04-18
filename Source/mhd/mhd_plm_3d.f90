@@ -7,7 +7,7 @@ module mhd_plm_module
   use meth_params_module
   implicit none
 
-  private vanleer, lvecx, lvecy, lvecz, rvecx, rvecy, rvecz, evals
+  private centerdif,vanleer, lvecx, lvecy, lvecz, rvecx, rvecy, rvecz, evals, slope
 
   public plm
 
@@ -444,7 +444,7 @@ contains
              do ii = 1,7
                 dL = dot_product(leig(ii,:),dQL)
                 dR = dot_product(leig(ii,:),dQR)
-                call vanleer(dW,dL,dR)
+                call slope(dW,dL,dR)
                 summ(:) = summ(:) + (1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
              enddo
              Ip(i,j,k,QRHO,1) = temp(i,j,k,1) + 0.5d0*summ(1) + 0.5d0*dt_over_a*smhd(1)
@@ -460,7 +460,7 @@ contains
              do ii = QFS, QFS+nspec-1  
                dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i-1,j,k,ii-QFS+1)
                dR = temp_s(i+1,j,k,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
-               call vanleer(dW,dL,dR)
+               call slope(dW,dL,dR)
                Ip(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*(1-dt_over_a/dx*s(i,j,k,QU))*dW
              enddo 
 
@@ -476,7 +476,7 @@ contains
              do ii = 1,7
                 dL = dot_product(leig(ii,:),dQL)
                 dR = dot_product(leig(ii,:),dQR)
-                call vanleer(dW,dL,dR)
+                call slope(dW,dL,dR)
                 summ(:) = summ(:) + (- 1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
              enddo
              Im(i,j,k,QRHO,1) = temp(i,j,k,1) +0.5d0*summ(1) + 0.5d0*dt_over_a*smhd(1)
@@ -491,7 +491,7 @@ contains
              do ii = QFS, QFS+nspec-1  
                dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i-1,j,k,ii-QFS+1)
                dR = temp_s(i+1,j,k,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
-               call vanleer(dW,dL,dR)
+               call slope(dW,dL,dR)
                Im(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*(- 1 - dt_over_a/dx*s(i,j,k,QU))*dW
              enddo 
 
@@ -531,7 +531,7 @@ contains
              do ii = 1,7
                 dL = dot_product(leig(ii,:),dQL)
                 dR = dot_product(leig(ii,:),dQR)
-                call vanleer(dW,dL,dR)
+                call slope(dW,dL,dR)
                 summ(:) = summ(:) + (1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
              enddo
              !MHD Source Terms
@@ -560,7 +560,7 @@ contains
              do ii = QFS, QFS+nspec-1  
                dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i,j-1,k,ii-QFS+1)
                dR = temp_s(i,j+1,k,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
-               call vanleer(dW,dL,dR)
+               call slope(dW,dL,dR)
                Ip(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*(1-dt_over_a/dy*s(i,j,k,QV))*dW
              enddo
 
@@ -578,7 +578,7 @@ contains
              do ii = 1,7
                 dL = dot_product(leig(ii,:),dQL)
                 dR = dot_product(leig(ii,:),dQR)
-                call vanleer(dW,dL,dR)
+                call slope(dW,dL,dR)
                 summ(:) = summ(:) + (- 1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
              enddo
              Im(i,j,k,QRHO,2) = temp(i,j,k,1) + 0.5d0*summ(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
@@ -595,7 +595,7 @@ contains
              do ii = QFS, QFS+nspec-1  
                dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i,j-1,k,ii-QFS+1)
                dR = temp_s(i,j+1,k,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
-               call vanleer(dW,dL,dR)
+               call slope(dW,dL,dR)
                Im(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*(-1 - dt_over_a/dy*s(i,j,k,QV))*dW
              enddo
 
@@ -634,7 +634,7 @@ contains
              do ii = 1,7
                 dL = dot_product(leig(ii,:),dQL)
                 dR = dot_product(leig(ii,:),dQR)
-                call vanleer(dW,dL,dR)
+                call slope(dW,dL,dR)
                 summ(:) = summ(:) + (1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
              enddo
              !MHD Source Terms
@@ -660,7 +660,7 @@ contains
              do ii = QFS, QFS+nspec-1  
                dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i,j,k-1,ii-QFS+1)
                dR = temp_s(i,j,k+1,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
-               call vanleer(dW,dL,dR)
+               call slope(dW,dL,dR)
                Ip(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*(1 - dt_over_a/dz*s(i,j,k,QW))*dW
              enddo
      
@@ -676,7 +676,7 @@ contains
              do ii = 1,7
                 dL = dot_product(leig(ii,:),dQL)
                 dR = dot_product(leig(ii,:),dQR)
-                call vanleer(dW,dL,dR)
+                call slope(dW,dL,dR)
                 summ(:) = summ(:) + (- 1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
              enddo
              Im(i,j,k,QRHO,3) = temp(i,j,k,1) + 0.5d0*summ(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
@@ -692,7 +692,7 @@ contains
              do ii = QFS, QFS+nspec-1  
                dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i,j,k-1,ii-QFS+1)
                dR = temp_s(i,j,k+1,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
-               call vanleer(dW,dL,dR)
+               call slope(dW,dL,dR)
                Im(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*(-1 - dt_over_a/dz*s(i,j,k,QW))*dW
              enddo
 
@@ -751,6 +751,36 @@ contains
 
   end subroutine vanleer
 
+  !========================================== centered difference ===========================================
+  subroutine centerdif(dW, WR, WL)
+
+    use amrex_fort_module, only : rt => amrex_real
+
+    implicit none
+
+    real(rt), intent(in )    :: WR, WL
+    real(rt), intent(out)    :: dW
+    
+    dW = (WR+WL)/2.0d0
+
+
+  end subroutine centerdif
+
+  !================================================================
+  subroutine slope(dW, WR, WL)
+    use amrex_fort_module, only : rt => amrex_real
+
+    implicit none
+    real(rt), intent(in )    :: WR, WL
+    real(rt), intent(out)    :: dW
+
+    if (mhd_plm_slope == 1) then 
+       call vanleer(dW,WR,WL)
+    elseif (mhd_plm_slope == 2) then 
+       call centerdif(dW,WR,WL)
+    endif         
+             
+  end subroutine slope        
 
   !=========================================== Evals =========================================================
 

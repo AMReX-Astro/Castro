@@ -76,13 +76,17 @@ hybrid_hydro                 int           0                  y
 # 2: extrema-preserving ppm
 ppm_type                     int           1                  y
 
-#Lupe adding for MHD thing
+#MHD 
 ppm_reference                int           1                  y             MHD
 ppm_flatten_before_integrals int           1                  y             MHD
-
+# plm slopes:
+# 0 zero slope
+# 1 vanleer
+# 2 centered, no limit
+mhd_plm_slope                int           1                  y             MHD 
 # various methods of giving temperature a larger role in the
 # reconstruction---see Zingale \& Katz 2015
-ppm_temp_fix                 int           0                  y
+ppm_temp_fix                 int           0                  y 
 
 # do we construct $\gamma_e = p/(\rho e) + 1$ and bring it
 # to the interfaces for additional thermodynamic information
