@@ -19,7 +19,7 @@ contains
                     dqx, dqy, dqz, qpd_lo, qpd_hi, &
                     ilo1, ilo2, ihi1, ihi2, kc, k3d)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only: NQ, plm_iorder
     use bl_constants_module, only: ZERO, HALF, ONE, TWO, FOUR3RD, FOURTH, SIXTH
 
@@ -199,7 +199,7 @@ contains
                     src, src_lo, src_hi, &
                     ilo1, ilo2, ihi1, ihi2, kc, k3d, dx)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : QRHO, QPRES, QU, QV, QW, NQ, QVAR, plm_iorder
     use bl_constants_module, only : ZERO, FOURTH, FOUR3RD, HALF, TWO, ONE, SIXTH
 

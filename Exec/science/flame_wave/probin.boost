@@ -43,8 +43,8 @@
 
 &extern
 
-  rtol_spec = 1.d-10
-  atol_spec = 1.d-10
+  rtol_spec = 1.d-8
+  atol_spec = 1.d-8
 
   react_boost = 10.0
 

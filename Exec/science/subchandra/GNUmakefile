@@ -1,3 +1,5 @@
+CASTRO_HOME := ../../..
+
 PRECISION  = DOUBLE
 PROFILE    = FALSE
 
@@ -12,19 +14,13 @@ USE_MPI    = TRUE
 USE_GRAV   = TRUE
 USE_REACT  = TRUE
 
-USE_ROTATION  = TRUE
-USE_DIFFUSION = TRUE
-
-# define the location of the CASTRO top directory
-CASTRO_HOME  := ../../..
-
 ifdef MICROPHYSICS_HOME
 
   # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
   EOS_DIR     := helmholtz
 
   # This sets the network directory in $(MICROPHYSICS_HOME)/networks
-  NETWORK_DIR := triple_alpha_plus_cago
+  NETWORK_DIR := subch
 
   INTEGRATOR_DIR := VODE
 else
@@ -32,8 +28,6 @@ else
   $(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_HOME appropriately)
 
 endif
-
-CONDUCTIVITY_DIR := stellar
 
 Bpack   := ./Make.package
 Blocs   := .

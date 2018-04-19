@@ -53,7 +53,7 @@ contains
                    vol, vol_lo, vol_hi, &
                    domlo, domhi)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : QVAR, NQ, NVAR, QPRES, QRHO, QU, QW, &
                                    QFS, QFX, QTEMP, QREINT, &
                                    QC, QGAMC, NQAUX, &
@@ -942,7 +942,7 @@ contains
                     eden_lost, xang_lost, yang_lost, zang_lost, &
                     verbose)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UTEMP, NGDNV, NQ, &
 #ifdef RADIATION

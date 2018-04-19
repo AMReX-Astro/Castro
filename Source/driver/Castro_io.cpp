@@ -371,7 +371,7 @@ Castro::restart (Amr&     papa,
 
            if (! orig_domain.contains(bx)) {
 
-#ifdef DIMENSION_AGNOSTIC
+#ifdef AMREX_DIMENSION_AGNOSTIC
               BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
                 (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), ns,
 		 BL_TO_FORTRAN_3D(S_new[mfi]), ZFILL(dx),
@@ -508,7 +508,7 @@ Castro::checkPoint(const std::string& dir,
   }
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
   ParticleCheckPoint(dir);
 #endif
 
@@ -879,7 +879,7 @@ Castro::writeJobInfo (const std::string& dir)
   jobInfoFile << PrettyLine;
 
 #include "castro_job_info_tests.H"
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
 #include "particles_job_info_tests.H"
 #endif
 
@@ -918,7 +918,7 @@ Castro::plotFileOutput(const std::string& dir,
                        VisMF::How how,
                        const int is_small)
 {
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
   ParticlePlotFile(dir);
 #endif
 
@@ -947,7 +947,7 @@ Castro::plotFileOutput(const std::string& dir,
         if ((parent->isDerivePlotVar(it->name()) && is_small == 0) || 
             (parent->isDeriveSmallPlotVar(it->name()) && is_small == 1))
         {
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
             if (it->name() == "particle_count" ||
                 it->name() == "total_particle_count")
             {

@@ -59,8 +59,13 @@ endif
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
 
-all: $(executable)
+all: build_status $(executable)
 	@echo SUCCESS
+
+build_status:
+	$(AMREX_HOME)/Tools/C_scripts/describe_sources.py \
+          --git_names "Castro AMReX Microphysics" \
+          --git_dirs "$(TOP) $(AMREX_HOME) $(MICROPHYSICS_HOME)"
 
 # Castro uses a coarse grained OMP approach
 DEFINES += -DCRSEGRNDOMP

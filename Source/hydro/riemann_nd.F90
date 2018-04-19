@@ -43,7 +43,7 @@ contains
                     shk, s_lo, s_hi, &
                     idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, domlo, domhi)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use network, only: nspec, naux
@@ -286,7 +286,7 @@ contains
                            idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, domlo, domhi)
 
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use network, only: nspec, naux
@@ -455,7 +455,7 @@ contains
     ! this version is dimension agnostic -- for 1- and 2-d, set kc,
     ! kflux, and k3d to 0
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, &
                                    Symmetry, SlipWall, NoSlipWall, &
                                    mom_flux_has_p
@@ -1048,7 +1048,7 @@ contains
                        idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
                        domlo, domhi)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, &
                                    Symmetry, SlipWall, NoSlipWall, &
                                    mom_flux_has_p
@@ -1574,7 +1574,7 @@ contains
     ! need to know the pressure and velocity on the interface for the
     ! pdV term in the internal energy update.
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, &
                                    Symmetry, SlipWall, NoSlipWall
 

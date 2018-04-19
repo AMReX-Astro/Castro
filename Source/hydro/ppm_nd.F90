@@ -118,7 +118,7 @@ contains
                        sd_lo, sd_hi, &
                        ilo1, ilo2, ihi1, ihi2, dx, k3d, kc)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : ppm_type
 
     use amrex_fort_module, only : rt => amrex_real
@@ -423,7 +423,7 @@ contains
                        sd_lo, sd_hi, &
                        ilo1, ilo2, ihi1, ihi2, dx, k3d, kc)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : ppm_type
 
     use amrex_fort_module, only : rt => amrex_real
