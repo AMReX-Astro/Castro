@@ -1,6 +1,6 @@
 module fourth_order
 
-  use bl_constants_module
+  use bl_constants_module, only : ZERO, TWO, ONE
   use prob_params_module, only : dg
 
   use amrex_fort_module, only : rt => amrex_real
@@ -494,7 +494,7 @@ contains
                                      q, q_lo, q_hi, nc) &
                                      bind(C, name="ca_make_fourth_in_place")
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
 
     ! this takes the cell-center q and makes it a cell-average q, in
     ! place (e.g. q is overwritten by its average).  Note: this

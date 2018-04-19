@@ -799,7 +799,7 @@ Castro::variableSetUp ()
   derive_lst.addComponent("maggrav",desc_lst,Gravity_Type,0,3);
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
   //
   // We want a derived type that corresponds to the number of particles
   // in each cell.  We only intend to use it in plotfiles for debugging

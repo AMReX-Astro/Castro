@@ -1,6 +1,6 @@
 module flatten_module
 
-  use mempool_module, only : bl_allocate, bl_deallocate
+  use amrex_mempool_module, only : bl_allocate, bl_deallocate
   use bl_constants_module, only : ZERO
 
   use amrex_fort_module, only : rt => amrex_real

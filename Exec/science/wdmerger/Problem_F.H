@@ -97,7 +97,7 @@ extern "C"
                           amrex::Real* fpx, amrex::Real* fpy, amrex::Real* fpz,
                           amrex::Real* fsx, amrex::Real* fsy, amrex::Real* fsz);
 
-  void get_inertial_velocity(const Real* loc, const Real* vel, const Real* time, const Real* inertial_vel);
+  void get_inertial_velocity(const amrex::Real* loc, const amrex::Real* vel, const amrex::Real* time, const amrex::Real* inertial_vel);
 
   void get_axes(int& axis_1, int& axis_2, int& axis_3);
 

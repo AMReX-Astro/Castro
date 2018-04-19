@@ -1,13 +1,13 @@
 module bc_ext_fill_module
 
-  use bl_constants_module
+  use bl_constants_module, only: ZERO, HALF
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
                                  UEDEN, UEINT, UFS, UTEMP, const_grav, &
                                  hse_zero_vels, hse_interp_temp, hse_reflect_vels, &
                                  xl_ext, xr_ext, yl_ext, yr_ext, zl_ext,zr_ext,EXT_HSE, EXT_INTERP
-  use interpolate_module
-
+  use interpolate_module, only: interpolate
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
   include 'AMReX_bc_types.fi'
@@ -32,7 +32,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec
-    use model_parser_module
+    use model_parser_module, only: model_r, model_state, npts_model, idens_model, itemp_model, ispec_model
 
     use amrex_fort_module, only : rt => amrex_real
     integer adv_l1, adv_h1,adv_l2,adv_h2,adv_l3,adv_h3
