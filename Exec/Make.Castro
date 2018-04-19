@@ -188,6 +188,9 @@ ifeq ($(USE_PARTICLES), TRUE)
 endif
 
 ifeq ($(USE_THORNADO), TRUE)
+
+  EXTERN_CORE += $(TOP)/Util/LAPACK
+
   Bdirs  += Source/two_moment
   Thdirs := thornado_r721/SandBox/Interface_CASTRO
   Thdirs += thornado_r721/Modules/Numbers
