@@ -76,7 +76,7 @@ contains
   end subroutine single_zone_react_source
 
 
-  subroutine single_zone_jac(burn_state, dRdw)
+  subroutine single_zone_jac(state, burn_state, dRdw)
 
     ! we assume that we are coming in with a valid burn_state, e.g., as called
     ! from single_zone_react_source
@@ -87,33 +87,72 @@ contains
                                    dual_energy_eta3
     use bl_constants_module, only : ZERO, HALF, ONE
     use actual_rhs_module
-    use actual_jac_module
 
     implicit none
 
-    type(burn_t), intent(in) :: burn_state
-    real(rt), intent(out) :: dRdw(nspec+2, nspec+2)
+    real(rt), intent(in) :: state(NVAR)
+    type(burn_t), intent(inout) :: burn_state
+    real(rt), intent(out) :: dRdw(0:nspec+1, 0:nspec+1)
+
+    integer :: m, n
 
     call actual_jac(burn_state)
 
-    ! We integrate X, not Y
+    if (nspec /= nspec_evolve) then
+       call bl_error("SDC doesn't support nspec != nspec_evolve yet")
+    endif
+
+    ! The Jacobian from the nets is in terms of dYdot/dY, but we want
+    ! it was dXdot/dX, so convert here.
     do n = 1, nspec_evolve
-       state % jac(n,:) = state % jac(n,:) * aion(n)
-       state % jac(:,n) = state % jac(:,n) * aion_inv(n)
+       burn_state % jac(n,:) = burn_state % jac(n,:) * aion(n)
+       burn_state % jac(:,n) = burn_state % jac(:,n) * aion_inv(n)
     enddo
 
-    ! store the instantaneous R
+    ! Our jacobian, dR/dw has the form:
+    !
+    !  /      0               0               0                    0       \
+    !  | d(rho X1)/drho  d(rho X1)/dX1   d(rho X1)/dX2   ...  d(rho X1)/dT |
+    !  | d(rho X1)/drho  d(rho X1)/dX1   d(rho X1)/dX2   ...  d(rho X1)/dT |
+    !  |   ...                                                             |
+    !  \ d(rho E)/drho   d(rho E)/dX1    d(rho E)/dX2    ...  d(rho E)/dT  /
+
     dRdw(:,:) = ZERO
 
     ! now perturb density and call the RHS to compute the derivative wrt rho
-
     ! species rates come back in terms of molar fractions
-    R(UFS:UFS-1+nspec_evolve) = &
-         state(URHO) * aion(1:nspec_evolve) * burn_state % ydot(1:nspec_evolve)
 
-    R(UEDEN) = state(URHO) * burn_state % ydot(net_ienuc)
-    R(UEINT) = state(URHO) * burn_state % ydot(net_ienuc)
 
-  end subroutine single_zone_react_source
+
+
+    ! fill the columns of dRdw corresponding to each derivative
+    ! with respect to species mass fraction
+    do n = 1, nspec
+       dRdw(0, n) = ZERO  ! density source
+
+       do m = 1, nspec
+          ! d( d(rho X_m)/dt)/dX_n
+          dRdw(m, n) = state(URHO) * aion(m) * burn_state % jac(m, n)
+       enddo
+
+       ! d( d(rho E)/dt)/dX_n
+       dRdw(nspec+1, n) = state(URHO) * burn_state % jac(net_ienuc, n)
+
+    enddo
+
+    ! now fill the column corresponding to derivatives with respect to
+    ! temperature -- this column is nspec+1
+    dRdw(0, nspec+1) = ZERO
+
+    ! d( d(rho X_m)/dt)/dT
+    do m = 1, nspec
+       dRdw(m, nspec+1) = state(URHO) * burn_state % jac(m, net_itemp)
+    enddo
+
+    ! d( d(rho E)/dt)/dT
+    dRdw(nspec+1, nspec+1) = state(URHO) * burn_state % jac(net_ienuc, net_itemp)
+
+
+  end subroutine single_zone_jac
 
 end module react_util_module

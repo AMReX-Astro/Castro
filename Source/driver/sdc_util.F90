@@ -40,6 +40,8 @@ contains
 
     integer :: i, j, k
 
+    print *, "shouldn't be here"
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -138,7 +140,7 @@ contains
     ! update k_m to k_n via advection -- this is a second-order accurate update
 
     use meth_params_module, only : NVAR, UEDEN, URHO, UFS
-    use bl_constants_module, only : HALF
+    use bl_constants_module, only : HALF, ONE
     use burn_type_module, only : burn_t
     use network, only : nspec
 
@@ -172,8 +174,12 @@ contains
 
     real(rt) :: err, tol
     real(rt) :: C(nvar), R_full(nvar)
-    real(rt) :: U_react(nspec+2), C_react(nspec+2), U_new(nspec+2), R_react(nspec+2)
+    real(rt) :: U_react(0:nspec+1), C_react(0:nspec+1), U_new(0:nspec+1), R_react(0:nspec+1)
 
+    integer :: m
+    real(rt) :: Jac(0:nspec+1, 0:nspec+1)
+
+    print *, "here"
 
     ! for those variables without reactive sources, we can do the
     ! explicit update -- we'll do that here for everything, and then
@@ -192,10 +198,10 @@ contains
           do i = lo(1), hi(1)
 
              U_react(1:nspec) = k_m(i,j,k,UFS:UFS-1+nspec)
-             U_react(nspec+1) = k_m(i,j,k,URHO)
+             U_react(0) = k_m(i,j,k,URHO)
 
              ! we have a choice of which energy variable to update
-             U_react(nspec+2) = k_m(i,j,k,UEDEN)
+             U_react(nspec+1) = k_m(i,j,k,UEDEN)
 
              ! construct the source term to the update
              ! for 2nd order, there is no advective correction, and we have
@@ -206,8 +212,8 @@ contains
 
              ! now only save the subset
              C_react(1:nspec) = C(1:nspec)
-             C_react(nspec+1) = C(URHO)
-             C_react(nspec+2) = C(UEDEN)  ! need to consider which energy
+             C_react(0) = C(URHO)
+             C_react(nspec+1) = C(UEDEN)  ! need to consider which energy
 
              ! set the initial guess
              U_new(:) = U_react(:)
@@ -217,15 +223,15 @@ contains
 
                 ! get R for the new guess
                 call single_zone_react_source(U_new, R_full, i,j,k)
-                R_react(URHO) = R_full(URHO)
-                R_react(UFS:UFS-1+nspec) = R_full(UFS:UFS-1+nspec)
-                R_react(UEDEN) = R_full(UEDEN)
+                R_react(0) = R_full(URHO)
+                R_react(1:nspec) = R_full(UFS:UFS-1+nspec)
+                R_react(nspec+1) = R_full(UEDEN)
 
                 ! construct the Jacobian -- we can get most of the
                 ! terms from the network itself, but we do not rely on
                 ! it having derivative wrt density
-                do m = 1, nspec+2
-                   J(m, m) = ONE
+                do m = 0, nspec+1
+                   Jac(m, m) = ONE
                 enddo
 
                 ! solve the linear system
