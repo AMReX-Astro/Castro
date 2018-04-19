@@ -5,7 +5,7 @@ module react_util_module
 
 contains
 
-  subroutine single_zone_react_source(state, R, i, j, k)
+  subroutine single_zone_react_source(state, R, i, j, k, burn_state)
 
     use burn_type_module, only : burn_t
     use network, only : NSPEC
@@ -21,8 +21,8 @@ contains
     integer, intent(in) :: i, j, k
     real(rt), intent(in) :: state(NVAR)
     real(rt), intent(out) :: R(NVAR)
+    type(burn_t), intent(inout) :: burn_state
 
-    type(burn_t) :: burn_state
     type(eos_t) :: eos_state
     real(rt) :: rhoInv, rho_e_K
     integer :: n

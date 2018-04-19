@@ -143,6 +143,7 @@ contains
     use bl_constants_module, only : HALF, ONE
     use burn_type_module, only : burn_t
     use network, only : nspec
+    use react_util_module
 
     implicit none
 
@@ -173,8 +174,8 @@ contains
     type(burn_t) :: burn_state
 
     real(rt) :: err, tol
-    real(rt) :: C(nvar), R_full(nvar)
-    real(rt) :: U_react(0:nspec+1), C_react(0:nspec+1), U_new(0:nspec+1), R_react(0:nspec+1)
+    real(rt) :: U_new(NVAR), C(NVAR), R_full(NVAR)
+    real(rt) :: U_react(0:nspec+1), C_react(0:nspec+1), R_react(0:nspec+1)
     real(rt) :: dU_react(0:nspec+1), f(0:nspec+1)
 
     integer :: m
@@ -182,54 +183,48 @@ contains
 
     print *, "here"
 
-    ! for those variables without reactive sources, we can do the
-    ! explicit update -- we'll do that here for everything, and then
-    ! overwrite the reacting ones
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             k_n(i,j,k,:) = k_m(i,j,k,:) + HALF * dt_m * (A_0_old(i,j,k,:) + A_1_old(i,j,k,:))
-          enddo
-       enddo
-    enddo
-
     ! now consider the reacting system
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             U_react(0) = k_m(i,j,k,URHO)
-             U_react(1:nspec) = k_m(i,j,k,UFS:UFS-1+nspec)
-
-             ! we have a choice of which energy variable to update
-             U_react(nspec+1) = k_m(i,j,k,UEDEN)
+             ! this is the full state -- this will be updates as we
+             ! solve the nonlinear system
+             U_new(:) = k_m(i,j,k,:)
 
              ! construct the source term to the update
              ! for 2nd order, there is no advective correction, and we have
              ! C = U^{m,(k+1)} - dt * R(U^{m+1,k}) + I_m^{m+1}
-             C(:) = U_react(:) - dt_m * R_1_old(i,j,k,:) + &
+             C(:) = U_new(:) - dt_m * R_1_old(i,j,k,:) + &
                   HALF * dt_m * (A_0_old(i,j,k,:) + A_1_old(i,j,k,:)) + &
                   HALF * dt_m * (R_0_old(i,j,k,:) + R_1_old(i,j,k,:))
 
-             ! now only save the subset
+             ! update the momenta for this zone -- this never gets updated again
+
+             ! now only save the subset that participates in the nonlinear solve
              C_react(0) = C(URHO)
              C_react(1:nspec) = C(1:nspec)
              C_react(nspec+1) = C(UEDEN)  ! need to consider which energy
 
-             ! set the initial guess
-             U_new(:) = U_react(:)
-
              ! iterative loop
              do while (err > tol)
 
+                ! compute the temperature
+
                 ! get R for the new guess
-                call single_zone_react_source(U_new, R_full, i,j,k)
+                call single_zone_react_source(U_new, R_full, i,j,k, burn_state)
+
+                ! store the subset for the nonlinear solve
+                U_react(0) = U_new(URHO)
+                U_react(1:nspec) = U_new(UFS:UFS-1+nspec)
+                U_react(nspec+1) = U_new(UEDEN)  ! we have a choice of which energy variable to update
 
                 R_react(0) = R_full(URHO)
                 R_react(1:nspec) = R_full(UFS:UFS-1+nspec)
                 R_react(nspec+1) = R_full(UEDEN)
 
                 ! get dRdw
+                call single_zone_jac(U_new, burn_state, dRdw)
 
                 ! construct dwdU
 
@@ -240,24 +235,26 @@ contains
                    Jac(m, m) = ONE
                 enddo
 
-                Jac(:,:) = Jac(:,:) - dt * matmul(dRdw, dwdU)
+                Jac(:,:) = Jac(:,:) - dt_m * matmul(dRdw, dwdU)
 
                 ! compute the RHS of the linear system, f
-                f(:) = U_new(:) - dt * R_react(:) - C(:)
+                f(:) = U_react(:) - dt_m * R_react(:) - C_react(:)
 
                 ! solve the linear system: Jac dU_react = -f
 
-                ! correct
-                U_new(:) = U_new(:) + dU_react(:)
+                ! correct the full state
+                U_new(URHO) = U_new(URHO) + dU_react(0)
+                U_new(UFS:UFS-1+nspec) = U_new(UFS:UFS-1+nspec) + dU_react(1:nspec)
+                U_new(UEDEN) = U_new(UEDEN) + dU_react(nspec+1)
 
-                ! construct the norm
+                ! if we updated total energy, then correct internal, or vice versa
+
+                ! construct the norm of the correction
                 err = norm2(dU_react)
 
              enddo
 
-             ! if we updated total energy, then correct internal, or vice versa
 
-             ! update the momenta
 
              ! copy back to k_n
 
@@ -290,6 +287,7 @@ contains
     real(rt), intent(inout) :: R_source(r_lo(1):r_hi(1), r_lo(2):r_hi(2), r_lo(3):r_hi(3), NVAR)
 
     integer :: i, j, k
+    type(burn_t) :: burn_state
 
     ! convert from cons to prim -- show this be here or in C++-land?
     ! or should I do things like we do in burn_state and convert it manually?
@@ -298,7 +296,7 @@ contains
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-             call single_zone_react_source(state(i,j,k,:), R_source(i,j,k,:), i,j,k)
+             call single_zone_react_source(state(i,j,k,:), R_source(i,j,k,:), i,j,k, burn_state)
           enddo
        enddo
     enddo
