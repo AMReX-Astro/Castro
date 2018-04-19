@@ -200,6 +200,7 @@ contains
                   HALF * dt_m * (R_0_old(i,j,k,:) + R_1_old(i,j,k,:))
 
              ! update the momenta for this zone -- this never gets updated again
+             U_new(UMX:UMZ) = U_new(UMX:UMZ) + C(UMX:UMZ)
 
              ! now only save the subset that participates in the nonlinear solve
              C_react(0) = C(URHO)
@@ -228,9 +229,32 @@ contains
 
                 ! construct dwdU
 
+                dwdU(:, :) = ZERO
+
+                ! the density row
+                dwdU(0, 0) = ONE
+
+                ! the X_k rows
+                do n = 1, nspec
+                   dwdU(n,0) = -U_react(n)/U_react(0)**2
+                   dwdU(n,n) = ONE/U_react(0)
+                enddo
+
+                ! now the T row
+                denom = ONE/(eos_state % rho * eos_state % dedT)
+                dwdU(nspec+1,0) = denom*(sum(eos_state % xn(:) * eos_state % dedX(:)) - &
+                                         eos_state % rho * eos_state % dedr - eos_state % e + &
+                                         HALF*sum(U_new(UMX:UMZ)**2)/eos_state % rho)
+                do m = 1, nspec
+                   dwdU(nspec+1,m) = -denom * eos_state % dedX(m)
+                enddo
+
+                dwdU(nspec+1, nspec+1) = denom
+
                 ! construct the Jacobian -- we can get most of the
                 ! terms from the network itself, but we do not rely on
                 ! it having derivative wrt density
+                Jac(:, :) = ZERO
                 do m = 0, nspec+1
                    Jac(m, m) = ONE
                 enddo
