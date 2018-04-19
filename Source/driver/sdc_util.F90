@@ -211,6 +211,11 @@ contains
              do while (err > tol)
 
                 ! compute the temperature
+                eos_state % rho = U_new(URHO)
+                eos_state % xn(:) = U_new(UFS:UFS-1+nspec)/U_new(URHO)
+                eos_state % e = (U_new(UEDEN) - HALF*sum(U_new(UMX:UMZ))/U_new(URHO))/U_new(URHO)
+
+                call eos(eos_input_re, eos_state)
 
                 ! get R for the new guess
                 call single_zone_react_source(U_new, R_full, i,j,k, burn_state)
@@ -228,7 +233,6 @@ contains
                 call single_zone_jac(U_new, burn_state, dRdw)
 
                 ! construct dwdU
-
                 dwdU(:, :) = ZERO
 
                 ! the density row
@@ -278,9 +282,8 @@ contains
 
              enddo
 
-
-
              ! copy back to k_n
+             k_n(i,j,k,:) = U_new(:)
 
           enddo
        enddo
