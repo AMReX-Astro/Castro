@@ -175,9 +175,10 @@ contains
     real(rt) :: err, tol
     real(rt) :: C(nvar), R_full(nvar)
     real(rt) :: U_react(0:nspec+1), C_react(0:nspec+1), U_new(0:nspec+1), R_react(0:nspec+1)
+    real(rt) :: dU_react(0:nspec+1), f(0:nspec+1)
 
     integer :: m
-    real(rt) :: Jac(0:nspec+1, 0:nspec+1)
+    real(rt) :: Jac(0:nspec+1, 0:nspec+1), dRdw(0:nspec+1, 0:nspec+1), dwdU(0:nspec+1, 0:nspec+1)
 
     print *, "here"
 
@@ -197,8 +198,8 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             U_react(1:nspec) = k_m(i,j,k,UFS:UFS-1+nspec)
              U_react(0) = k_m(i,j,k,URHO)
+             U_react(1:nspec) = k_m(i,j,k,UFS:UFS-1+nspec)
 
              ! we have a choice of which energy variable to update
              U_react(nspec+1) = k_m(i,j,k,UEDEN)
@@ -211,8 +212,8 @@ contains
                   HALF * dt_m * (R_0_old(i,j,k,:) + R_1_old(i,j,k,:))
 
              ! now only save the subset
-             C_react(1:nspec) = C(1:nspec)
              C_react(0) = C(URHO)
+             C_react(1:nspec) = C(1:nspec)
              C_react(nspec+1) = C(UEDEN)  ! need to consider which energy
 
              ! set the initial guess
@@ -223,9 +224,14 @@ contains
 
                 ! get R for the new guess
                 call single_zone_react_source(U_new, R_full, i,j,k)
+
                 R_react(0) = R_full(URHO)
                 R_react(1:nspec) = R_full(UFS:UFS-1+nspec)
                 R_react(nspec+1) = R_full(UEDEN)
+
+                ! get dRdw
+
+                ! construct dwdU
 
                 ! construct the Jacobian -- we can get most of the
                 ! terms from the network itself, but we do not rely on
@@ -234,15 +240,24 @@ contains
                    Jac(m, m) = ONE
                 enddo
 
-                ! solve the linear system
+                Jac(:,:) = Jac(:,:) - dt * matmul(dRdw, dwdU)
+
+                ! compute the RHS of the linear system, f
+                f(:) = U_new(:) - dt * R_react(:) - C(:)
+
+                ! solve the linear system: Jac dU_react = -f
 
                 ! correct
+                U_new(:) = U_new(:) + dU_react(:)
 
                 ! construct the norm
+                err = norm2(dU_react)
 
              enddo
 
              ! if we updated total energy, then correct internal, or vice versa
+
+             ! update the momenta
 
              ! copy back to k_n
 
