@@ -3,11 +3,8 @@
 
 # These live here
 
-CEXE_sources += Castro_twomoment.cpp
-
-ca_f90EXE_sources += ThornadoInitializationModule.f90
-
-FEXE_headers += TwoMoment_F.H
+CEXE_sources      += Castro_twomoment.cpp
+FEXE_headers      += TwoMoment_F.H
 ca_F90EXE_sources += two_moment_nd.F90
 
 #  These live in the thornado repo itself
@@ -34,9 +31,15 @@ ca_F90EXE_sources += two_moment_nd.F90
 # In Modules/Geometry
   ca_f90EXE_sources += GeometryFieldsModuleE.f90	    
   ca_f90EXE_sources += GeometryFieldsModule.f90	   
+  ca_f90EXE_sources += GeometryComputationModuleE.f90
 
 # In Modules/Fields
   ca_f90EXE_sources += FluidFieldsModule.f90
   ca_f90EXE_sources += RadiationFieldsModule.f90
 
+# In Modules/TwoMoment
+  ca_F90EXE_sources += TwoMoment_ClosureModule.F90
+  ca_f90EXE_sources += TwoMoment_PositivityLimiterModule.f90
+
 # In SandBox/Interface_CASTRO
+  ca_f90EXE_sources += ThornadoInitializationModule.f90
