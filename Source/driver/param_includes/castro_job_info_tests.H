@@ -6,7 +6,7 @@ jobInfoFile << (Castro::diffuse_vel == 0 ? "    " : "[*] ") << "castro.diffuse_v
 jobInfoFile << (Castro::diffuse_cutoff_density == -1.e200 ? "    " : "[*] ") << "castro.diffuse_cutoff_density = " << Castro::diffuse_cutoff_density << std::endl;
 jobInfoFile << (Castro::diffuse_cond_scale_fac == 1.0 ? "    " : "[*] ") << "castro.diffuse_cond_scale_fac = " << Castro::diffuse_cond_scale_fac << std::endl;
 #endif
-#ifdef AMREX_PARTICLES
+#ifdef PARTICLES
 jobInfoFile << (Castro::do_tracer_particles == 0 ? "    " : "[*] ") << "castro.do_tracer_particles = " << Castro::do_tracer_particles << std::endl;
 #endif
 #ifdef ROTATION
@@ -37,7 +37,7 @@ jobInfoFile << (Castro::small_temp == -1.e200 ? "    " : "[*] ") << "castro.smal
 jobInfoFile << (Castro::small_pres == -1.e200 ? "    " : "[*] ") << "castro.small_pres = " << Castro::small_pres << std::endl;
 jobInfoFile << (Castro::small_ener == -1.e200 ? "    " : "[*] ") << "castro.small_ener = " << Castro::small_ener << std::endl;
 jobInfoFile << (Castro::do_hydro == -1 ? "    " : "[*] ") << "castro.do_hydro = " << Castro::do_hydro << std::endl;
-jobInfoFile << (Castro::do_ctu == 1 ? "    " : "[*] ") << "castro.do_ctu = " << Castro::do_ctu << std::endl;
+jobInfoFile << (Castro::time_integration_method == 0 ? "    " : "[*] ") << "castro.time_integration_method = " << Castro::time_integration_method << std::endl;
 jobInfoFile << (Castro::fourth_order == 0 ? "    " : "[*] ") << "castro.fourth_order = " << Castro::fourth_order << std::endl;
 jobInfoFile << (Castro::add_ext_src == 0 ? "    " : "[*] ") << "castro.add_ext_src = " << Castro::add_ext_src << std::endl;
 jobInfoFile << (Castro::hybrid_hydro == 0 ? "    " : "[*] ") << "castro.hybrid_hydro = " << Castro::hybrid_hydro << std::endl;
@@ -80,6 +80,7 @@ jobInfoFile << (Castro::hse_zero_vels == 0 ? "    " : "[*] ") << "castro.hse_zer
 jobInfoFile << (Castro::hse_interp_temp == 0 ? "    " : "[*] ") << "castro.hse_interp_temp = " << Castro::hse_interp_temp << std::endl;
 jobInfoFile << (Castro::hse_reflect_vels == 0 ? "    " : "[*] ") << "castro.hse_reflect_vels = " << Castro::hse_reflect_vels << std::endl;
 jobInfoFile << (Castro::mol_order == 2 ? "    " : "[*] ") << "castro.mol_order = " << Castro::mol_order << std::endl;
+jobInfoFile << (Castro::sdc_order == 2 ? "    " : "[*] ") << "castro.sdc_order = " << Castro::sdc_order << std::endl;
 jobInfoFile << (Castro::fixed_dt == -1.0 ? "    " : "[*] ") << "castro.fixed_dt = " << Castro::fixed_dt << std::endl;
 jobInfoFile << (Castro::initial_dt == -1.0 ? "    " : "[*] ") << "castro.initial_dt = " << Castro::initial_dt << std::endl;
 jobInfoFile << (Castro::dt_cutoff == 0.0 ? "    " : "[*] ") << "castro.dt_cutoff = " << Castro::dt_cutoff << std::endl;
