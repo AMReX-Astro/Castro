@@ -303,6 +303,10 @@ endif
 Bpack += $(foreach dir, $(EXTERN_CORE), $(dir)/Make.package)
 Blocs += $(foreach dir, $(EXTERN_CORE), $(dir))
 
+ifeq ($(USE_EXTRA_THERMO), TRUE)
+   DEFINES += -DEXTRA_THERMO
+endif
+
 
 #------------------------------------------------------------------------------
 # external libraries

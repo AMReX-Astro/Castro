@@ -139,9 +139,11 @@ contains
 
     ! update k_m to k_n via advection -- this is a second-order accurate update
 
-    use meth_params_module, only : NVAR, UEDEN, URHO, UFS
-    use bl_constants_module, only : HALF, ONE
+    use meth_params_module, only : NVAR, UEDEN, URHO, UFS, UMX, UMZ
+    use bl_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
+    use eos_type_module, only : eos_t, eos_input_re
+    use eos_module
     use network, only : nspec
     use react_util_module
 
@@ -172,14 +174,17 @@ contains
     integer :: i, j, k
 
     type(burn_t) :: burn_state
+    type(eos_t) :: eos_state
 
     real(rt) :: err, tol
     real(rt) :: U_new(NVAR), C(NVAR), R_full(NVAR)
     real(rt) :: U_react(0:nspec+1), C_react(0:nspec+1), R_react(0:nspec+1)
     real(rt) :: dU_react(0:nspec+1), f(0:nspec+1)
 
-    integer :: m
+    integer :: m, n
     real(rt) :: Jac(0:nspec+1, 0:nspec+1), dRdw(0:nspec+1, 0:nspec+1), dwdU(0:nspec+1, 0:nspec+1)
+
+    real(rt) :: denom
 
     print *, "here"
 
@@ -298,7 +303,6 @@ contains
 
     use bl_constants_module, only : ZERO
     use burn_type_module
-    use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : NVAR, NQ, NQAUX, QFS, QRHO, QTEMP, UFS, UEDEN, UEINT
     use network, only : nspec, aion
     use react_util_module
