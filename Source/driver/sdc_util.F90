@@ -139,7 +139,7 @@ contains
 
     ! update k_m to k_n via advection -- this is a second-order accurate update
 
-    use meth_params_module, only : NVAR, UEDEN, URHO, UFS, UMX, UMZ
+    use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ
     use bl_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
     use eos_type_module, only : eos_t, eos_input_re
@@ -176,7 +176,9 @@ contains
     type(burn_t) :: burn_state
     type(eos_t) :: eos_state
 
-    real(rt) :: err, tol
+    real(rt) :: err
+    real(rt), parameter :: tol = 1.e-8_rt
+
     real(rt) :: U_new(NVAR), C(NVAR), R_full(NVAR)
     real(rt) :: U_react(0:nspec+1), C_react(0:nspec+1), R_react(0:nspec+1)
     real(rt) :: dU_react(0:nspec+1), f(0:nspec+1)
@@ -185,6 +187,9 @@ contains
     real(rt) :: Jac(0:nspec+1, 0:nspec+1), dRdw(0:nspec+1, 0:nspec+1), dwdU(0:nspec+1, 0:nspec+1)
 
     real(rt) :: denom
+
+    integer :: ipvt(nspec+2)
+    integer :: info
 
     print *, "here"
 
@@ -271,9 +276,17 @@ contains
                 Jac(:,:) = Jac(:,:) - dt_m * matmul(dRdw, dwdU)
 
                 ! compute the RHS of the linear system, f
-                f(:) = U_react(:) - dt_m * R_react(:) - C_react(:)
+                f(:) = -U_react(:) + dt_m * R_react(:) + C_react(:)
 
-                ! solve the linear system: Jac dU_react = -f
+                ! solve the linear system: Jac dU_react = f
+                call dgefa(Jac, nspec+2, nspec+2, ipvt, info)
+                if (info /= 0) then
+                   call bl_error("singular matrix")
+                endif
+
+                call dgesl(Jac, nspec+2, nspec+2, ipvt, f, 0)
+
+                dU_react(:) = f(:)
 
                 ! correct the full state
                 U_new(URHO) = U_new(URHO) + dU_react(0)
@@ -281,6 +294,7 @@ contains
                 U_new(UEDEN) = U_new(UEDEN) + dU_react(nspec+1)
 
                 ! if we updated total energy, then correct internal, or vice versa
+                U_new(UEINT) = U_new(UEDEN) - HALF*(sum(U_new(UMX:UMZ)**2)/U_new(URHO))
 
                 ! construct the norm of the correction
                 err = norm2(dU_react)
