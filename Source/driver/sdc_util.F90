@@ -210,7 +210,7 @@ contains
                   HALF * dt_m * (R_0_old(i,j,k,:) + R_1_old(i,j,k,:))
 
              ! update the momenta for this zone -- this never gets updated again
-             U_new(UMX:UMZ) = U_new(UMX:UMZ) + C(UMX:UMZ)
+             U_new(UMX:UMZ) = C(UMX:UMZ)
 
              ! now only save the subset that participates in the nonlinear solve
              C_react(0) = C(URHO)
