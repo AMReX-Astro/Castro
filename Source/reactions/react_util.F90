@@ -61,6 +61,8 @@ contains
     burn_state % j = j
     burn_state % k = k
 
+    burn_state % self_heat = .false.
+
     call actual_rhs(burn_state)
 
     ! store the instantaneous R

@@ -139,7 +139,7 @@ contains
 
     ! update k_m to k_n via advection -- this is a second-order accurate update
 
-    use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ
+    use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ, UTEMP
     use bl_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
     use eos_type_module, only : eos_t, eos_input_re
@@ -226,6 +226,8 @@ contains
                 eos_state % e = (U_new(UEDEN) - HALF*sum(U_new(UMX:UMZ))/U_new(URHO))/U_new(URHO)
 
                 call eos(eos_input_re, eos_state)
+
+                U_new(UTEMP) = eos_state % T
 
                 ! get R for the new guess
                 call single_zone_react_source(U_new, R_full, i,j,k, burn_state)
