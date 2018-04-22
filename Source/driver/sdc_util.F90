@@ -217,6 +217,8 @@ contains
              C_react(1:nspec) = C(1:nspec)
              C_react(nspec+1) = C(UEDEN)  ! need to consider which energy
 
+             err = 1.e30_rt
+
              ! iterative loop
              do while (err > tol)
 
@@ -299,8 +301,8 @@ contains
                 U_new(UEINT) = U_new(UEDEN) - HALF*(sum(U_new(UMX:UMZ)**2)/U_new(URHO))
 
                 ! construct the norm of the correction
-                err = norm2(dU_react)
-
+                err = norm2(dU_react)/norm2(U_react)
+                print *, err
              enddo
 
              ! copy back to k_n
