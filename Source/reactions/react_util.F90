@@ -8,7 +8,7 @@ contains
   subroutine single_zone_react_source(state, R, i, j, k, burn_state)
 
     use burn_type_module, only : burn_t
-    use network, only : NSPEC
+    use network, only : nspec
     use eos_module, only : eos
     use eos_type_module, only: eos_t, eos_input_re
     use meth_params_module, only : NVAR, URHO, UTEMP, UEDEN, UEINT, UMX, UMZ, UFS, UFX, &
@@ -84,7 +84,7 @@ contains
     ! from single_zone_react_source
 
     use burn_type_module, only : burn_t
-    use network, only : nspec
+    use network, only : nspec, nspec_evolve
     use meth_params_module, only : NVAR, URHO, UTEMP, UEDEN, UEINT, UMX, UMZ, UFS, UFX, &
                                    dual_energy_eta3
     use bl_constants_module, only : ZERO, HALF, ONE
@@ -94,15 +94,11 @@ contains
 
     real(rt), intent(in) :: state(NVAR)
     type(burn_t), intent(inout) :: burn_state
-    real(rt), intent(out) :: dRdw(0:nspec+1, 0:nspec+1)
+    real(rt), intent(out) :: dRdw(0:nspec_evolve+1, 0:nspec_evolve+1)
 
     integer :: m, n
 
     call actual_jac(burn_state)
-
-    if (nspec /= nspec_evolve) then
-       call bl_error("SDC doesn't support nspec != nspec_evolve yet")
-    endif
 
     ! The Jacobian from the nets is in terms of dYdot/dY, but we want
     ! it was dXdot/dX, so convert here.
@@ -129,30 +125,30 @@ contains
 
     ! fill the columns of dRdw corresponding to each derivative
     ! with respect to species mass fraction
-    do n = 1, nspec
+    do n = 1, nspec_evolve
        dRdw(0, n) = ZERO  ! density source
 
-       do m = 1, nspec
+       do m = 1, nspec_evolve
           ! d( d(rho X_m)/dt)/dX_n
           dRdw(m, n) = state(URHO) * aion(m) * burn_state % jac(m, n)
        enddo
 
        ! d( d(rho E)/dt)/dX_n
-       dRdw(nspec+1, n) = state(URHO) * burn_state % jac(net_ienuc, n)
+       dRdw(nspec_evolve+1, n) = state(URHO) * burn_state % jac(net_ienuc, n)
 
     enddo
 
     ! now fill the column corresponding to derivatives with respect to
-    ! temperature -- this column is nspec+1
-    dRdw(0, nspec+1) = ZERO
+    ! temperature -- this column is nspec_evolve+1
+    dRdw(0, nspec_evolve+1) = ZERO
 
     ! d( d(rho X_m)/dt)/dT
-    do m = 1, nspec
-       dRdw(m, nspec+1) = state(URHO) * burn_state % jac(m, net_itemp)
+    do m = 1, nspec_evolve
+       dRdw(m, nspec_evolve+1) = state(URHO) * burn_state % jac(m, net_itemp)
     enddo
 
     ! d( d(rho E)/dt)/dT
-    dRdw(nspec+1, nspec+1) = state(URHO) * burn_state % jac(net_ienuc, net_itemp)
+    dRdw(nspec_evolve+1, nspec_evolve+1) = state(URHO) * burn_state % jac(net_ienuc, net_itemp)
 
 
   end subroutine single_zone_jac

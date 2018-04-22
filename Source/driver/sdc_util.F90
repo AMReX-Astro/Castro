@@ -144,7 +144,7 @@ contains
     use burn_type_module, only : burn_t
     use eos_type_module, only : eos_t, eos_input_re
     use eos_module
-    use network, only : nspec
+    use network, only : nspec, nspec_evolve
     use react_util_module
 
     implicit none
@@ -180,15 +180,23 @@ contains
     real(rt), parameter :: tol = 1.e-8_rt
 
     real(rt) :: U_new(NVAR), C(NVAR), R_full(NVAR)
-    real(rt) :: U_react(0:nspec+1), C_react(0:nspec+1), R_react(0:nspec+1)
-    real(rt) :: dU_react(0:nspec+1), f(0:nspec+1)
+
+    ! we will do the implicit update of only the terms that have reactive sources
+    !
+    !   0               : rho
+    !   1:nspec_evolve  : species
+    !   nspec_evolve+1  : rho E
+
+    real(rt) :: U_react(0:nspec_evolve+1), C_react(0:nspec_evolve+1), R_react(0:nspec_evolve+1)
+    real(rt) :: dU_react(0:nspec_evolve+1), f(0:nspec_evolve+1)
 
     integer :: m, n
-    real(rt) :: Jac(0:nspec+1, 0:nspec+1), dRdw(0:nspec+1, 0:nspec+1), dwdU(0:nspec+1, 0:nspec+1)
+    real(rt) :: Jac(0:nspec_evolve+1, 0:nspec_evolve+1)
+    real(rt) :: dRdw(0:nspec_evolve+1, 0:nspec_evolve+1), dwdU(0:nspec_evolve+1, 0:nspec_evolve+1)
 
     real(rt) :: denom
 
-    integer :: ipvt(nspec+2)
+    integer :: ipvt(nspec_evolve+2)
     integer :: info
 
     print *, "here"
@@ -212,10 +220,13 @@ contains
              ! update the momenta for this zone -- this never gets updated again
              U_new(UMX:UMZ) = C(UMX:UMZ)
 
+             ! update the non-reacting species
+             U_new(UFS-1+nspec_evolve:UFS-1+nspec) = C(UFS-1+nspec_evolve:UFS-1+nspec)
+
              ! now only save the subset that participates in the nonlinear solve
              C_react(0) = C(URHO)
-             C_react(1:nspec) = C(1:nspec)
-             C_react(nspec+1) = C(UEDEN)  ! need to consider which energy
+             C_react(1:nspec_evolve) = C(UFS:UFS-1+nspec_evolve)
+             C_react(nspec_evolve+1) = C(UEDEN)  ! need to consider which energy
 
              err = 1.e30_rt
 
@@ -236,12 +247,12 @@ contains
 
                 ! store the subset for the nonlinear solve
                 U_react(0) = U_new(URHO)
-                U_react(1:nspec) = U_new(UFS:UFS-1+nspec)
-                U_react(nspec+1) = U_new(UEDEN)  ! we have a choice of which energy variable to update
+                U_react(1:nspec_evolve) = U_new(UFS:UFS-1+nspec_evolve)
+                U_react(nspec_evolve+1) = U_new(UEDEN)  ! we have a choice of which energy variable to update
 
                 R_react(0) = R_full(URHO)
-                R_react(1:nspec) = R_full(UFS:UFS-1+nspec)
-                R_react(nspec+1) = R_full(UEDEN)
+                R_react(1:nspec_evolve) = R_full(UFS:UFS-1+nspec_evolve)
+                R_react(nspec_evolve+1) = R_full(UEDEN)
 
                 ! get dRdw
                 call single_zone_jac(U_new, burn_state, dRdw)
@@ -253,27 +264,27 @@ contains
                 dwdU(0, 0) = ONE
 
                 ! the X_k rows
-                do n = 1, nspec
+                do n = 1, nspec_evolve
                    dwdU(n,0) = -U_react(n)/U_react(0)**2
                    dwdU(n,n) = ONE/U_react(0)
                 enddo
 
                 ! now the T row
                 denom = ONE/(eos_state % rho * eos_state % dedT)
-                dwdU(nspec+1,0) = denom*(sum(eos_state % xn(:) * eos_state % dedX(:)) - &
-                                         eos_state % rho * eos_state % dedr - eos_state % e + &
-                                         HALF*sum(U_new(UMX:UMZ)**2)/eos_state % rho)
-                do m = 1, nspec
-                   dwdU(nspec+1,m) = -denom * eos_state % dedX(m)
+                dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(:) * eos_state % dedX(:)) - &
+                                                eos_state % rho * eos_state % dedr - eos_state % e + &
+                                                HALF*sum(U_new(UMX:UMZ)**2)/eos_state % rho)
+                do m = 1, nspec_evolve
+                   dwdU(nspec_evolve+1,m) = -denom * eos_state % dedX(m)
                 enddo
 
-                dwdU(nspec+1, nspec+1) = denom
+                dwdU(nspec_evolve+1, nspec_evolve+1) = denom
 
                 ! construct the Jacobian -- we can get most of the
                 ! terms from the network itself, but we do not rely on
                 ! it having derivative wrt density
                 Jac(:, :) = ZERO
-                do m = 0, nspec+1
+                do m = 0, nspec_evolve+1
                    Jac(m, m) = ONE
                 enddo
 
@@ -283,19 +294,19 @@ contains
                 f(:) = -U_react(:) + dt_m * R_react(:) + C_react(:)
 
                 ! solve the linear system: Jac dU_react = f
-                call dgefa(Jac, nspec+2, nspec+2, ipvt, info)
+                call dgefa(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, info)
                 if (info /= 0) then
                    call bl_error("singular matrix")
                 endif
 
-                call dgesl(Jac, nspec+2, nspec+2, ipvt, f, 0)
+                call dgesl(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, f, 0)
 
                 dU_react(:) = f(:)
 
                 ! correct the full state
                 U_new(URHO) = U_new(URHO) + dU_react(0)
-                U_new(UFS:UFS-1+nspec) = U_new(UFS:UFS-1+nspec) + dU_react(1:nspec)
-                U_new(UEDEN) = U_new(UEDEN) + dU_react(nspec+1)
+                U_new(UFS:UFS-1+nspec_evolve) = U_new(UFS:UFS-1+nspec_evolve) + dU_react(1:nspec_evolve)
+                U_new(UEDEN) = U_new(UEDEN) + dU_react(nspec_evolve+1)
 
                 ! if we updated total energy, then correct internal, or vice versa
                 U_new(UEINT) = U_new(UEDEN) - HALF*(sum(U_new(UMX:UMZ)**2)/U_new(URHO))
@@ -322,7 +333,7 @@ contains
     use bl_constants_module, only : ZERO
     use burn_type_module
     use meth_params_module, only : NVAR, NQ, NQAUX, QFS, QRHO, QTEMP, UFS, UEDEN, UEINT
-    use network, only : nspec, aion
+    use network, only : nspec, nspec_evolve, aion
     use react_util_module
 
 
