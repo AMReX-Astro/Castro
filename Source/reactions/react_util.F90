@@ -95,6 +95,10 @@ contains
     real(rt), intent(out) :: dRdw(0:nspec+1, 0:nspec+1)
 
     integer :: m, n
+    type(burn_t) :: burn_state_pert
+
+    ! for computing a numerical derivative
+    real(rt) :: eps = 1.e-8_dp_t
 
     call actual_jac(burn_state)
 
@@ -121,9 +125,28 @@ contains
 
     ! now perturb density and call the RHS to compute the derivative wrt rho
     ! species rates come back in terms of molar fractions
+    burn_state_pert % rho = burn_state % rho * (ONE + eps)
+    burn_state_pert % T = burn_state % T
+    burn_state_pert % e = burn_state % e
+    burn_state_pert % xn(:) = burn_state % xn(:)
 
+    burn_state_pert % i = burn_state % i
+    burn_state_pert % j = burn_state % j
+    burn_state_pert % k = burn_state % k
 
+    call actual_rhs(burn_state_pert)
 
+    ! fill the column of dRdw corresponding to the derivative
+    ! with respect to rho
+    do m = 1, nspec
+       ! d( d(rho X_m)/dt)/drho
+       dRdw(m, 0) = burn_state % ydot(m) + &
+            state(URHO) * (burn_state_pert % ydot(m) - burn_state % ydot(m))/(eps * burn_state % rho)
+    enddo
+
+    ! d( d(rho E)/dt)/drho
+    dRdw(nspec+1, 0) = burn_state % ydot(net_ienuc) + &
+         state(URHO) * (burn_state_pert % ydot(net_ienuc) - burn_state % ydot(net_ienuc))/(eps * burn_state % rho)
 
     ! fill the columns of dRdw corresponding to each derivative
     ! with respect to species mass fraction
