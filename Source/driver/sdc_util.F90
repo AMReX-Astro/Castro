@@ -40,8 +40,6 @@ contains
 
     integer :: i, j, k
 
-    print *, "shouldn't be here"
-
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -199,8 +197,6 @@ contains
     integer :: ipvt(nspec_evolve+2)
     integer :: info
 
-    print *, "here"
-
     ! now consider the reacting system
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -235,6 +231,7 @@ contains
 
                 ! compute the temperature
                 eos_state % rho = U_new(URHO)
+                eos_state % T = 1.e6_rt   ! initial guess
                 eos_state % xn(:) = U_new(UFS:UFS-1+nspec)/U_new(URHO)
                 eos_state % e = (U_new(UEDEN) - HALF*sum(U_new(UMX:UMZ))/U_new(URHO))/U_new(URHO)
 
@@ -313,7 +310,6 @@ contains
 
                 ! construct the norm of the correction
                 err = norm2(dU_react)/norm2(U_react)
-                print *, err
              enddo
 
              ! copy back to k_n
