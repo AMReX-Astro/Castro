@@ -132,6 +132,8 @@ contains
     burn_state_pert % j = burn_state % j
     burn_state_pert % k = burn_state % k
 
+    burn_state_pert % self_heat = .false.
+
     call actual_rhs(burn_state_pert)
 
     ! fill the column of dRdw corresponding to the derivative
