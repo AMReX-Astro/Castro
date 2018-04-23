@@ -17,10 +17,6 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
   // If we do advection only, then the update is explicit.  If we do
   // reactions, then the update is implicit within a zone.
 
-#ifdef REACTIONS
-  amrex::Abort("SDC update not implemented with reactions");
-#endif
-
   for (MFIter mfi(*k_new[0]); mfi.isValid(); ++mfi) {
 
     const Box& bx = mfi.tilebox();
@@ -34,6 +30,8 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
                        BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
                        BL_TO_FORTRAN_3D((*A_old[0])[mfi]),
                        BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
+                       BL_TO_FORTRAN_3D((*R_old[0])[mfi]),
+                       BL_TO_FORTRAN_3D((*R_old[1])[mfi]),
                        &m_start);
     } else {
       amrex::Abort("sdc_order != 2 not implemented");
