@@ -124,6 +124,7 @@ Castro::advance (Real time,
       MultiFab& S_new = get_new_data(State_Type);
       MultiFab::Copy(S_new, *(k_new[SDC_NODES-1]), 0, 0, S_new.nComp(), 0);
 
+#ifdef REACTIONS
       // store the reaction information as well -- note: this will be
       // the instantaneous reactive source.  In the future, we might
       // want to do a quadrature over R_new[]
@@ -139,6 +140,7 @@ Castro::advance (Real time,
                                 BL_TO_FORTRAN_3D(R_new[mfi]));
 
       }
+#endif
 
     }
 
