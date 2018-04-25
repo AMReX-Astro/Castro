@@ -18,6 +18,9 @@ amr.n_cell           = 128     128
 castro.lo_bc       =  0   1
 castro.hi_bc       =  0   1
 
+# this is here just for test suite coverage
+castro.state_nghost = 1
+
 # WHICH PHYSICS
 castro.do_hydro = 1
 castro.do_react = 1
