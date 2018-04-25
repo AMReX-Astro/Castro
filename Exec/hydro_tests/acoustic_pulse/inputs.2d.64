@@ -49,7 +49,7 @@ amr.check_int       = 100       # number of timesteps between checkpoints
 # PLOTFILES
 amr.plot_file       = acoustic_pulse_64_plt
 amr.plot_int        = -1
-amr.plot_per        = 0.03
+amr.plot_per        = 0.24
 amr.derive_plot_vars=ALL
 
 # PROBIN FILENAME
