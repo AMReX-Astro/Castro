@@ -128,7 +128,18 @@ Castro::advance (Real time,
       // the instantaneous reactive source.  In the future, we might
       // want to do a quadrature over R_new[]
       MultiFab& R_new = get_new_data(Reactions_Type);
-      // TODO
+
+      for (MFIter mfi(R_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.tilebox();
+        const int idx = mfi.tileIndex();
+
+        ca_store_reaction_state(BL_TO_FORTRAN_BOX(bx),
+                                BL_TO_FORTRAN_3D((*R_old[SDC_NODES-1])[mfi]),
+                                BL_TO_FORTRAN_3D(S_new[mfi]),
+                                BL_TO_FORTRAN_3D(R_new[mfi]));
+
+      }
+
     }
 
     // Optionally kill the job at this point, if we've detected a violation.
