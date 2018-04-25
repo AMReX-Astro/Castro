@@ -124,6 +124,11 @@ Castro::advance (Real time,
       MultiFab& S_new = get_new_data(State_Type);
       MultiFab::Copy(S_new, *(k_new[SDC_NODES-1]), 0, 0, S_new.nComp(), 0);
 
+      // store the reaction information as well -- note: this will be
+      // the instantaneous reactive source.  In the future, we might
+      // want to do a quadrature over R_new[]
+      MultiFab& R_new = get_new_data(Reactions_Type);
+      // TODO
     }
 
     // Optionally kill the job at this point, if we've detected a violation.
@@ -674,8 +679,7 @@ Castro::do_advance_sdc (Real time,
 
 #ifdef REACTIONS
     // if this is the first node of a new iteration, then we need
-    // to compute and store the old reactive source -- we don't
-    // save this, to save memory
+    // to compute and store the old reactive source
     if (m == 0) {
       construct_old_react_source();
     }
@@ -696,6 +700,12 @@ Castro::do_advance_sdc (Real time,
   for (int n=1; n < SDC_NODES; n++) {
     MultiFab::Copy(*(A_old[n]), *(A_new[n]), 0, 0, NUM_STATE, 0);
   }
+
+#ifdef REACTIONS
+  // we just did the update, so now recompute the "old" reactive source
+  // for the next SDC iteration
+  construct_old_react_source();
+#endif
 
 
   // I think this bit only needs to be done for the last iteration...
