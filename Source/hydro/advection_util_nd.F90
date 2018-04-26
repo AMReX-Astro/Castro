@@ -6,7 +6,7 @@ module advection_util_module
   private
 
   public enforce_minimum_density, ca_compute_cfl, ctoprim, srctoprim, dflux, &
-         limit_hydro_fluxes_on_small_dens, shock, divu, calc_pdivu, normalize_species_fluxes
+         limit_hydro_fluxes_on_small_dens, shock, divu, calc_pdivu, normalize_species_fluxes, avisc
 
 contains
 
@@ -1667,9 +1667,9 @@ contains
 
     integer :: i, j, k
 
-    do k = lo(3)-dg(3), hi(3)+dg(3)
-       do j = lo(2)-dg(2), hi(2)+dg(2)
-          do i = lo(1)-1, hi(1)+1
+    do k = lo(3), hi(3)+dg(3)
+       do j = lo(2), hi(2)+dg(2)
+          do i = lo(1), hi(1)+1
 
              if (idir == 1) then
 
