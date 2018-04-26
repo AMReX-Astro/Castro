@@ -656,6 +656,54 @@ contains
 
   end subroutine ca_dersoundspeed
 
+  subroutine ca_dergamma1(g1,g1_lo,g1_hi,ncomp_g1, &
+                          u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
+                          domhi,dx,xlo,time,dt,bc,level,grid_no) &
+                          bind(C, name="ca_dergamma1")
+
+    use network, only: nspec, naux
+    use eos_module, only: eos
+    use eos_type_module, only: eos_t, eos_input_re
+    use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
+    use bl_constants_module, only : ONE
+    use amrex_fort_module, only : rt => amrex_real
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: g1_lo(3), g1_hi(3), ncomp_g1
+    integer, intent(in) :: u_lo(3), u_hi(3), ncomp_u
+    integer, intent(in) :: domlo(3), domhi(3)
+    real(rt), intent(inout) :: g1(g1_lo(1):g1_hi(1),g1_lo(2):g1_hi(2),g1_lo(3):g1_hi(3),ncomp_g1)
+    real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+    real(rt), intent(in) :: dx(3), xlo(3), time, dt
+    integer, intent(in) :: bc(3,2,ncomp_u), level, grid_no
+
+    real(rt)         :: rhoInv
+    integer          :: i, j, k
+
+    type (eos_t) :: eos_state
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             rhoInv = ONE / u(i,j,k,URHO)
+
+             eos_state % rho  = u(i,j,k,URHO)
+             eos_state % T    = u(i,j,k,UTEMP)
+             eos_state % e    = u(i,j,k,UEINT) * rhoInv
+             eos_state % xn = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+             eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
+
+             call eos(eos_input_re, eos_state)
+
+             g1(i,j,k,1) = eos_state % gam1
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_dergamma1
+
 
 
   subroutine ca_dermachnumber(mach,m_lo,m_hi,ncomp_mach, &
