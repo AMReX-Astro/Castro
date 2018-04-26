@@ -774,7 +774,9 @@ contains
     real(rt), intent(in )    :: WR, WL
     real(rt), intent(out)    :: dW
 
-    if (mhd_plm_slope == 1) then 
+    if  (mhd_plm_slope == 0)  then
+       dW = 0.0
+    elseif (mhd_plm_slope == 1) then 
        call vanleer(dW,WR,WL)
     elseif (mhd_plm_slope == 2) then 
        call centerdif(dW,WR,WL)
