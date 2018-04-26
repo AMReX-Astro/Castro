@@ -7,8 +7,8 @@ contains
 
   subroutine single_zone_react_source(state, R, i, j, k, burn_state)
 
-    use burn_type_module, only : burn_t
-    use network, only : nspec
+    use burn_type_module, only : burn_t, net_ienuc
+    use network, only : nspec, nspec_evolve, aion
     use eos_module, only : eos
     use eos_type_module, only: eos_t, eos_input_re
     use meth_params_module, only : NVAR, URHO, UTEMP, UEDEN, UEINT, UMX, UMZ, UFS, UFX, &
@@ -83,8 +83,8 @@ contains
     ! we assume that we are coming in with a valid burn_state, e.g., as called
     ! from single_zone_react_source
 
-    use burn_type_module, only : burn_t
-    use network, only : nspec, nspec_evolve
+    use burn_type_module, only : burn_t, net_ienuc, net_itemp
+    use network, only : nspec, nspec_evolve, aion, aion_inv
     use meth_params_module, only : NVAR, URHO, UTEMP, UEDEN, UEINT, UMX, UMZ, UFS, UFX, &
                                    dual_energy_eta3
     use bl_constants_module, only : ZERO, HALF, ONE
@@ -100,7 +100,7 @@ contains
     type(burn_t) :: burn_state_pert
 
     ! for computing a numerical derivative
-    real(rt) :: eps = 1.e-8_dp_t
+    real(rt) :: eps = 1.e-8_rt
 
     call actual_jac(burn_state)
 
