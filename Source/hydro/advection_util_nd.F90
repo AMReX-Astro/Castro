@@ -1636,6 +1636,110 @@ contains
   end subroutine divu
 
 
+  subroutine avisc(lo, hi, &
+                   q, q_lo, q_hi, &
+                   qaux, qa_lo, qa_hi, &
+                   dx, avis, a_lo, a_hi, idir)
+
+    ! this computes the *face-centered* artifical viscosity using the
+    ! 4th order expression from McCorquodale & Colella (Eq. 35)
+
+    use meth_params_module, only : QU, QV, QW, QC, NQ, NQAUX
+    use bl_constants_module, only : HALF, FOURTH, ONE, ZERO
+    use prob_params_module, only : dg, coord_type, problo
+    use amrex_fort_module, only : rt => amrex_real
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
+    integer, intent(in) :: a_lo(3), a_hi(3)
+    integer, intent(in) :: idir
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt), intent(inout) :: avis(a_lo(1):a_hi(1),a_lo(2):a_hi(2),a_lo(3):a_hi(3))
+
+    real(rt) :: coeff, cmin
+
+    real(rt), parameter :: beta = 0.3_rt
+
+    integer :: i, j, k
+
+    do k = lo(3)-dg(3), hi(3)+dg(3)
+       do j = lo(2)-dg(2), hi(2)+dg(2)
+          do i = lo(1)-1, hi(1)+1
+
+             if (idir == 1) then
+
+                ! normal direction
+                avis(i,j,k) = (q(i,j,k,QU) - q(i-1,j,k,QU))/dx(1)
+#if BL_SPACEDIM >= 2
+                avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
+                     q(i,j+1,k,QV) + q(i,j-1,k,QV) + &
+                     q(i-1,j+1,k,QV) + q(i-1,j-1,k,QV))/dx(2)
+#endif
+#if BL_SPACEDIM >= 3
+                avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
+                     q(i,j,k+1,QW) + q(i,j,k-1,QW) + &
+                     q(i-1,j,k+1,QW) + q(i-1,j,k-1,QW))/dx(3)
+#endif
+
+                cmin = min(qaux(i,j,k,QC), qaux(i-1,j,k,QC))
+
+             else if (idir == 2) then
+
+                ! normal direction
+                avis(i,j,k) = (q(i,j,k,QV) - q(i,j-1,k,QV))/dx(2)
+
+                avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
+                     q(i+1,j,k,QU) + q(i-1,j,k,QU) + &
+                     q(i+1,j-1,k,QU) + q(i-1,j-1,k,QU))/dx(1)
+
+#if BL_SPACEDIM >= 3
+                avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
+                     q(i,j,k+1,QW) + q(i,j,k-1,QW) + &
+                     q(i-1,j,k+1,QW) + q(i-1,j,k-1,QW))/dx(3)
+#endif
+
+                cmin = min(qaux(i,j,k,QC), qaux(i,j-1,k,QC))
+
+             else
+
+                ! normal direction
+                avis(i,j,k) = (q(i,j,k,QW) - q(i,j,k-1,QW))/dx(1)
+
+                avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
+                     q(i,j+1,k,QV) + q(i,j-1,k,QV) + &
+                     q(i-1,j+1,k,QV) + q(i-1,j-1,k,QV))/dx(2)
+
+                avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
+                     q(i,j,k+1,QW) + q(i,j,k-1,QW) + &
+                     q(i-1,j,k+1,QW) + q(i-1,j,k-1,QW))/dx(3)
+
+                cmin = min(qaux(i,j,k,QC), qaux(i,j,k-1,QC))
+
+             endif
+
+             ! MC Eq. 36
+             coeff = min(ONE, (dx(idir)*avis(i,j,k))**2/(beta * cmin**2))
+
+             if (avis(i,j,k) < ZERO) then
+                avis(i,j,k) = dx(idir)*avis(i,j,k)*coeff
+             else
+                avis(i,j,k) = ZERO
+             endif
+
+          enddo
+       enddo
+    enddo
+
+
+
+
+  end subroutine avisc
+
 ! :::
 ! ::: ------------------------------------------------------------------
 ! :::
