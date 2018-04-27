@@ -138,14 +138,14 @@ contains
 
     ! fill the column of dRdw corresponding to the derivative
     ! with respect to rho
-    do m = 1, nspec
+    do m = 1, nspec_evolve
        ! d( d(rho X_m)/dt)/drho
        dRdw(m, 0) = burn_state % ydot(m) + &
             state(URHO) * (burn_state_pert % ydot(m) - burn_state % ydot(m))/(eps * burn_state % rho)
     enddo
 
     ! d( d(rho E)/dt)/drho
-    dRdw(nspec+1, 0) = burn_state % ydot(net_ienuc) + &
+    dRdw(nspec_evolve+1, 0) = burn_state % ydot(net_ienuc) + &
          state(URHO) * (burn_state_pert % ydot(net_ienuc) - burn_state % ydot(net_ienuc))/(eps * burn_state % rho)
 
     ! fill the columns of dRdw corresponding to each derivative
