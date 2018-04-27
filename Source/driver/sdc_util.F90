@@ -309,7 +309,7 @@ contains
                 U_new(UEINT) = U_new(UEDEN) - HALF*(sum(U_new(UMX:UMZ)**2)/U_new(URHO))
 
                 ! construct the norm of the correction
-                err = norm2(dU_react)/norm2(U_react)
+                err = sum(dU_react**2)/sum(U_react**2)
              enddo
 
              ! copy back to k_n
