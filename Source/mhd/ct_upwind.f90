@@ -513,13 +513,12 @@ subroutine ConsToPrim(q, u, q_l1 ,q_l2 ,q_l3 ,q_h1 ,q_h2 ,q_h3)
           q(i,j,k,QW)    = u(i,j,k,UMZ)/q(i,j,k,QRHO)
           q(i,j,k,QREINT) = u(i,j,k,UEDEN) - 0.5d0*q(i,j,k,QRHO)*dot_product(q(i,j,k,QU:QW),q(i,j,k,QU:QW)) &
                - 0.5d0*dot_product(u(i,j,k,UMAGX:UMAGZ), u(i,j,k,UMAGX:UMAGZ)) !NVAR+1->UMAGX
-          q(i,j,k,QREINT) = q(i,j,k,QREINT)/q(i,j,k,QRHO)
 
           ! species
           q(i,j,k,QFS:QFS-1+nspec) = u(i,j,k,UFS:UFS-1+nspec)/u(i,j,k,URHO)
 
           eos_state % rho = q(i, j, k, QRHO)
-          eos_state % e   = q(i, j, k, QREINT) 
+          eos_state % e   = q(i, j, k, QREINT)/eos_state % rho 
           eos_state % xn  = q(i, j, k, QFS:QFS+nspec-1)
           eos_state % T   = 100.d0  ! initial guess
 
