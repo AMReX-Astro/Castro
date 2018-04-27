@@ -1,12 +1,12 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 500
-stop_time = 0.24
+max_step = 50000
+stop_time = 0.04
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic =  1 1
 geometry.coord_sys   =  0       # 0 => cart
 geometry.prob_lo     =  0    0
-geometry.prob_hi     =  1    1
+geometry.prob_hi     =  1.e8    1.e8
 amr.n_cell           = 256 256
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -27,7 +27,7 @@ castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
 castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 0.01    # scale back initial timestep
 castro.change_max     = 1.1     # maximum increase in dt over successive steps
-castro.fixed_dt = 7.5e-4
+castro.fixed_dt = 0.5e-4
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
