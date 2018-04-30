@@ -574,13 +574,6 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
            ! Convert "e" back to "rho e"
            q(i,j,k,QREINT) = q(i,j,k,QREINT)*q(i,j,k,QRHO)
 
-           ! Pressure = (gamma - 1) * rho * e + 0.5 B dot B
-           eos_state % rho = q(i, j, k,QRHO)
-           eos_state % e = q(i,j,k,QREINT) / eos_state % rho
-           eos_state % T = uin(i,j,k,UTEMP)   ! initial guess
-           eos_state % xn = q(i,j,k,QFS:QFS+nspec-1)
-
-           call eos(eos_input_re, eos_state)
 
            ! Set csmal based on small_pres and small_dens 
            ! TODO: this is a small sound speed -- we should do this how we do in hydro
@@ -594,8 +587,6 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
      end do
   end do
 
-  !a_half = HALF * (a_old + a_new)
-  !a_dot   = (a_new - a_old) / dt
 
   ! Make sure these are initialized to zero.
   srcQ = ZERO

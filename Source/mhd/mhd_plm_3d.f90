@@ -453,7 +453,7 @@ contains
              Ip(i,j,k,QW,1) = temp(i,j,k,4) + 0.5d0*summ(4) + 0.5d0*dt_over_a*smhd(4)
              Ip(i,j,k,QPRES,1) = temp(i,j,k,5) + 0.5d0*summ(5) + 0.5d0*dt_over_a*smhd(5)
 
-             Ip(i,j,k,QMAGX,1) = temp(i+1,j,k,ibx) !! Bx stuff
+             Ip(i,j,k,QMAGX,1) = tbx(i+1,j,k) !! Bx stuff
              Ip(i,j,k,QMAGY:QMAGZ,1)  = temp(i,j,k,iby:ibz) + 0.5d0*summ(6:7) + 0.5d0*dt_over_a*smhd(6:7)
             
              !species
@@ -485,7 +485,7 @@ contains
              Im(i,j,k,QW,1) = temp(i,j,k,4) +0.5d0*summ(4) + 0.5d0*dt_over_a*smhd(4)
              Im(i,j,k,QPRES,1) = temp(i,j,k,5) +0.5d0*summ(5) + 0.5d0*dt_over_a*smhd(5)
 
-             Im(i,j,k,QMAGX,1)  = temp(i-1,j,k,ibx) !! Bx stuff
+             Im(i,j,k,QMAGX,1)  = tbx(i,j,k) !! Bx stuff
              Im(i,j,k,QMAGY:QMAGZ,1)  = temp(i,j,k,iby:ibz) +0.5d0*summ(6:7) + 0.5d0*dt_over_a*smhd(6:7)
              !species
              do ii = QFS, QFS+nspec-1  
@@ -553,7 +553,7 @@ contains
              Ip(i,j,k,QPRES,2) = temp(i,j,k,5) +0.5d0*summ(5) + 0.5d0*dt_over_a*smhd(5)
 
              Ip(i,j,k,QMAGX,2)  = temp(i,j,k,ibx) + 0.5d0*summ(6) + 0.5d0*dt_over_a*smhd(6)
-             Ip(i,j,k,QMAGY,2)  = temp(i,j+1,k,iby) !! By stuff
+             Ip(i,j,k,QMAGY,2)  = tby(i,j+1,k) !! By stuff
              Ip(i,j,k,QMAGZ,2)  = temp(i,j,k,ibz) + 0.5d0*summ(7) + 0.5d0*dt_over_a*smhd(7)
              
              !species
@@ -588,7 +588,7 @@ contains
              Im(i,j,k,QPRES,2) = temp(i,j,k,5) + 0.5d0*summ(5) + 0.5d0*dt_over_a*smhd(5)
 
              Im(i,j,k,QMAGX,2) = temp(i,j,k,ibx) + 0.5d0*summ(6) + 0.5d0*dt_over_a*smhd(6)
-             Im(i,j,k,QMAGY,2) = temp(i,j-1,k,iby) !! By stuff
+             Im(i,j,k,QMAGY,2) = tby(i,j,k) !! By stuff
              Im(i,j,k,QMAGZ,2) = temp(i,j,k,ibz) + 0.5d0*summ(7) + 0.5d0*dt_over_a*smhd(7)
 
              !species
@@ -654,7 +654,7 @@ contains
              Ip(i,j,k,QPRES,3) = temp(i,j,k,5) + 0.5d0*summ(5) + 0.5d0*dt_over_a*smhd(5)
 
              Ip(i,j,k,QMAGX:QMAGY,3)	= temp(i,j,k,ibx:iby) + 0.5d0*summ(6:7) + 0.5d0*dt_over_a*smhd(6:7)
-             Ip(i,j,k,QMAGZ,3) 		= temp(i,j,k+1,ibz) !! Bz stuff
+             Ip(i,j,k,QMAGZ,3) 		= tbz(i,j,k+1) !! Bz stuff
 
              !species
              do ii = QFS, QFS+nspec-1  
@@ -686,7 +686,7 @@ contains
              Im(i,j,k,QPRES,3) = temp(i,j,k,5) + 0.5d0*summ(5) + 0.5d0*dt_over_a*smhd(5)
 
              Im(i,j,k,QMAGX:QMAGY,3) = temp(i,j,k,ibx:iby) + 0.5d0*summ(6:7) + 0.5d0*dt_over_a*smhd(6:7)
-             Im(i,j,k,QMAGZ,3)		= temp(i,j,k-1,ibz) !! Bz stuff
+             Im(i,j,k,QMAGZ,3)		= tbz(i,j,k) !! Bz stuff
 
              !species
              do ii = QFS, QFS+nspec-1  
