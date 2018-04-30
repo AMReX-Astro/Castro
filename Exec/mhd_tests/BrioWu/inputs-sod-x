@@ -1,5 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 1
+max_step = 10000
 stop_time =  0.18
 
 # PROBLEM SIZE & GEOMETRY
@@ -22,6 +22,10 @@ castro.do_hydro = 1
 castro.do_react = 0
 castro.ppm_type = 0
 castro.allow_negative_energy = 0
+castro.mhd_plm_slope = 1
+
+castro.small_temp = 1.e-10
+castro.small_dens = 1.e-5
 
 # TIME STEP CONTROL
 castro.cfl            = 0.9     # cfl number for hyperbolic system

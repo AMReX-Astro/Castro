@@ -73,7 +73,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   call eos(eos_input_rp, eos_state)
 
   rhoe_l = rho_l*eos_state%e
-  !   T_l = eos_state%T
+  T_l = eos_state%T
 
   eos_state%rho = rho_r
   eos_state%p = p_r
@@ -83,7 +83,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   call eos(eos_input_rp, eos_state)
 
   rhoe_r = rho_r*eos_state%e
-  !T_r = eos_state%T
+  T_r = eos_state%T
 
   end subroutine amrex_probinit
 
@@ -114,7 +114,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        delta,xlo,xhi)
 
   use probdata_module
-  use meth_params_module , only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS
+  use meth_params_module , only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
   use prob_params_module, only : center
   use amrex_fort_module, only : rt => amrex_real
   use network, only : nspec
@@ -150,7 +150,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                  state(i,j,k,UMZ) = 0.e0_rt
                  state(i,j,k,UEDEN) = rhoe_l + 0.5e0_rt*rho_l*u_l*u_l + 0.5e0_rt * (B_x_l**2 + B_y_l**2 + B_z_l**2)
                  state(i,j,k,UEINT) = rhoe_l
-            !     state(i,j,k,UTEMP) = T_l
+                 state(i,j,k,UTEMP) = T_l
               else
                  state(i,j,k,URHO) = rho_r
                  state(i,j,k,UMX) = rho_r*u_r
@@ -158,7 +158,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                  state(i,j,k,UMZ) = 0.e0_rt
                  state(i,j,k,UEDEN) = rhoe_r + 0.5e0_rt*rho_r*u_r*u_r + 0.5e0_rt *(B_x_r**2 + B_y_r**2 + B_z_r**2)
                  state(i,j,k,UEINT) = rhoe_r
-           !      state(i,j,k,UTEMP) = T_r
+                 state(i,j,k,UTEMP) = T_r
               endif
            endif
 
@@ -171,7 +171,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                  state(i,j,k,UMZ) = 0.e0_rt
                  state(i,j,k,UEDEN) = rhoe_l + 0.5e0_rt*rho_l*u_l*u_l + 0.5e0_rt * (B_x_l**2 + B_y_l**2 + B_z_l**2)
                  state(i,j,k,UEINT) = rhoe_l
-            !     state(i,j,k,UTEMP) = T_l
+                 state(i,j,k,UTEMP) = T_l
               else
                  state(i,j,k,URHO) = rho_r
                  state(i,j,k,UMX) = 0.e0_rt
@@ -179,7 +179,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                  state(i,j,k,UMZ) = 0.e0_rt
                  state(i,j,k,UEDEN) = rhoe_r + 0.5e0_rt*rho_r*u_r*u_r + 0.5e0_rt *(B_x_r**2 + B_y_r**2 + B_z_r**2)
                  state(i,j,k,UEINT) = rhoe_r
-           !      state(i,j,k,UTEMP) = T_r
+                 state(i,j,k,UTEMP) = T_r
               endif
            endif
 
@@ -192,7 +192,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                  state(i,j,k,UMZ) = rho_l*u_l
                  state(i,j,k,UEDEN) = rhoe_l + 0.5e0_rt*rho_l*u_l*u_l + 0.5e0_rt * (B_x_l**2 + B_y_l**2 + B_z_l**2)
                  state(i,j,k,UEINT) = rhoe_l
-            !     state(i,j,k,UTEMP) = T_l
+                 state(i,j,k,UTEMP) = T_l
               else
                  state(i,j,k,URHO) = rho_r
                  state(i,j,k,UMX) = 0.e0_rt
@@ -200,7 +200,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                  state(i,j,k,UMZ) = rho_r*u_r
                  state(i,j,k,UEDEN) = rhoe_r + 0.5e0_rt*rho_r*u_r*u_r + 0.5e0_rt *(B_x_r**2 + B_y_r**2 + B_z_r**2)
                  state(i,j,k,UEINT) = rhoe_r
-           !      state(i,j,k,UTEMP) = T_r
+                 state(i,j,k,UTEMP) = T_r
               endif
            endif
 !              state(i,j,k,UFS:UFS-1+nspec) = 0.0e0_rt
