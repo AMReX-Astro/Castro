@@ -233,7 +233,7 @@ contains
                    u(i,j,k,UEDEN) = u(i,j,k,UEINT) + u(i,j,k,URHO) * ke
 #ifdef MHD
                    u(i,j,k,UEDEN) = u(i,j,k,UEDEN) +&
-                                    HALF * (bx(i,j,k)**2+by(i,j,k)**2+bz(i,j,k)**2)
+                                    HALF * (bx_cell_c**2+by_cell_c**2+bz_cell_c**2)
 #endif
                 else
 
