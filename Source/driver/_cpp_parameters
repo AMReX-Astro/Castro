@@ -518,7 +518,7 @@ reset_checkpoint_step        int           -1
 #-----------------------------------------------------------------------------
 
 # permits tracer particle calculation to be turned on and off
-do_tracer_particles          int           0       n      PARTICLES
+do_tracer_particles          int           0       n      AMREX_PARTICLES
 
 
 @namespace: particles Castro static
