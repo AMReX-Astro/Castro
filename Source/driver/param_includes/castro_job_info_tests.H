@@ -6,7 +6,7 @@ jobInfoFile << (Castro::diffuse_vel == 0 ? "    " : "[*] ") << "castro.diffuse_v
 jobInfoFile << (Castro::diffuse_cutoff_density == -1.e200 ? "    " : "[*] ") << "castro.diffuse_cutoff_density = " << Castro::diffuse_cutoff_density << std::endl;
 jobInfoFile << (Castro::diffuse_cond_scale_fac == 1.0 ? "    " : "[*] ") << "castro.diffuse_cond_scale_fac = " << Castro::diffuse_cond_scale_fac << std::endl;
 #endif
-#ifdef AMREX_PARTICLES
+#ifdef PARTICLES
 jobInfoFile << (Castro::do_tracer_particles == 0 ? "    " : "[*] ") << "castro.do_tracer_particles = " << Castro::do_tracer_particles << std::endl;
 #endif
 #ifdef ROTATION

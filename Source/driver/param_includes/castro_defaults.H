@@ -11,7 +11,7 @@ int         Castro::diffuse_vel = 0;
 amrex::Real Castro::diffuse_cutoff_density = -1.e200;
 amrex::Real Castro::diffuse_cond_scale_fac = 1.0;
 #endif
-#ifdef AMREX_PARTICLES
+#ifdef PARTICLES
 int         Castro::do_tracer_particles = 0;
 #endif
 #ifdef ROTATION
