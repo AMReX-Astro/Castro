@@ -1,9 +1,9 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 10000
-stop_time =  0.18
+stop_time =  0.1
 
 # PROBLEM SIZE & GEOMETRY
-geometry.is_periodic = 0 0 0
+geometry.is_periodic = 0  1  1 
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     =  0      0      0
 geometry.prob_hi     =  1     0.015625  0.015625
@@ -14,8 +14,8 @@ amr.n_cell           =  256      4     4
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  2   4   4
-castro.hi_bc       =  2   4   4
+castro.lo_bc       =  2   0   0 
+castro.hi_bc       =  2   0   0 
 
 # WHICH PHYSICS
 castro.do_hydro = 1
@@ -24,8 +24,9 @@ castro.ppm_type = 0
 castro.allow_negative_energy = 0
 castro.mhd_plm_slope = 1
 
-castro.small_temp = 1.e-10
-castro.small_dens = 1.e-5
+castro.small_temp = 1.e-5
+castro.small_dens = 1.e-6
+castro.small_pres = 1.e-10
 
 # TIME STEP CONTROL
 castro.cfl            = 0.9     # cfl number for hyperbolic system
