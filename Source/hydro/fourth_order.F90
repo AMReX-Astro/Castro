@@ -450,6 +450,55 @@ contains
 
   end subroutine ca_make_cell_center
 
+  subroutine ca_make_cell_center_in_place(lo, hi, &
+                                          U, U_lo, U_hi, nc) &
+                                          bind(C, name="ca_make_cell_center_in_place")
+
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: U_lo(3), U_hi(3)
+    integer, intent(in) :: nc
+    real(rt), intent(inout) :: U(U_lo(1):U_hi(1), U_lo(2):U_hi(2), U_lo(3):U_hi(3), nc)
+
+    integer :: i, j, k, n
+
+    real(rt), pointer :: lap(:,:,:,:)
+
+    call bl_allocate(lap, lo, hi, nc)
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             do n = 1, nc
+                lap(i,j,k,n) = U(i+1,j,k,n) - TWO*U(i,j,k,n) + U(i-1,j,k,n)
+#if BL_SPACEDIM >= 2
+                lap(i,j,k,n) = lap(i,j,k,n) + U(i,j+1,k,n) - TWO*U(i,j,k,n) + U(i,j-1,k,n)
+#endif
+#if BL_SPACEDIM == 3
+                lap(i,j,k,n) = lap(i,j,k,n) + U(i,j,k+1,n) - TWO*U(i,j,k,n) + U(i,j,k-1,n)
+#endif
+             enddo
+          enddo
+       enddo
+    enddo
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             do n = 1, nc
+                U(i,j,k,n) = U(i,j,k,n) - TWENTYFOURTH * lap(i,j,k,n)
+             enddo
+          enddo
+       enddo
+    enddo
+
+    call bl_deallocate(lap)
+
+  end subroutine ca_make_cell_center_in_place
+
   subroutine ca_make_fourth_average(lo, hi, &
                                     q, q_lo, q_hi, nc, &
                                     q_bar, q_bar_lo, q_bar_hi, nc_bar) &

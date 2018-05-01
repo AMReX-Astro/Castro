@@ -879,7 +879,7 @@ Castro::initData ()
           // Verify that the sum of (rho X)_i = rho at every cell
 	  const int idx = mfi.tileIndex();
 
-          ca_check_initial_species(ARLIM_3D(lo), ARLIM_3D(hi), 
+          ca_check_initial_species(ARLIM_3D(lo), ARLIM_3D(hi),
 				   BL_TO_FORTRAN_3D(S_new[mfi]), &idx);
        }
        enforce_consistent_e(S_new);
@@ -1138,7 +1138,7 @@ Castro::estTimeStep (Real dt_old)
 	  // Compute hydro-limited timestep.
 	if (do_hydro)
 	  {
-            
+
 #ifdef _OPENMP
 #pragma omp parallel reduction(min:estdt_hydro)
 #endif
@@ -1186,7 +1186,7 @@ Castro::estTimeStep (Real dt_old)
 #endif
           {
             Real dt = max_dt / cfl;
-              
+
             for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
               {
                 const Box& box = mfi.tilebox();
@@ -1232,11 +1232,11 @@ Castro::estTimeStep (Real dt_old)
 #endif
       {
         Real dt = max_dt;
-        
+
         for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
           {
             const Box& box = mfi.validbox();
-            
+
             if (state[State_Type].hasOldData() && state[Reactions_Type].hasOldData()) {
 
               MultiFab& S_old = get_old_data(State_Type);
@@ -1248,9 +1248,9 @@ Castro::estTimeStep (Real dt_old)
                                BL_TO_FORTRAN_3D(R_old[mfi]),
                                BL_TO_FORTRAN_3D(R_new[mfi]),
                                ZFILL(dx),&dt_old,&dt);
-              
+
             } else {
-              
+
               ca_estdt_burning(ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
                                BL_TO_FORTRAN_3D(S_new[mfi]),
                                BL_TO_FORTRAN_3D(S_new[mfi]),
@@ -2296,7 +2296,7 @@ Castro::reflux(int crse_level, int fine_level)
 	if (update_sources_after_reflux) {
 
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
-		temp_fluxes[i].reset(new MultiFab(crse_lev.fluxes[i]->boxArray(), 
+		temp_fluxes[i].reset(new MultiFab(crse_lev.fluxes[i]->boxArray(),
 						  crse_lev.fluxes[i]->DistributionMap(),
 						  crse_lev.fluxes[i]->nComp(), crse_lev.fluxes[i]->nGrow()));
 		temp_fluxes[i]->setVal(0.0);
@@ -2332,12 +2332,12 @@ Castro::reflux(int crse_level, int fine_level)
 
 	    if (update_sources_after_reflux) {
 
-		temp_fluxes[0].reset(new MultiFab(crse_lev.P_radial.boxArray(), 
+		temp_fluxes[0].reset(new MultiFab(crse_lev.P_radial.boxArray(),
 						  crse_lev.P_radial.DistributionMap(),
 						  crse_lev.P_radial.nComp(), crse_lev.P_radial.nGrow()));
 		temp_fluxes[0]->setVal(0.0);
 
-                for (OrientationIter fi; fi; ++fi) 
+                for (OrientationIter fi; fi; ++fi)
 		{
 		    const FabSet& fs = (*reg)[fi()];
 		    int idir = fi().coordDir();
@@ -2371,7 +2371,7 @@ Castro::reflux(int crse_level, int fine_level)
 	    if (update_sources_after_reflux) {
 
 		for (int i = 0; i < BL_SPACEDIM; ++i) {
-		    temp_fluxes[i].reset(new MultiFab(crse_lev.rad_fluxes[i]->boxArray(), 
+		    temp_fluxes[i].reset(new MultiFab(crse_lev.rad_fluxes[i]->boxArray(),
 						      crse_lev.rad_fluxes[i]->DistributionMap(),
 						      crse_lev.rad_fluxes[i]->nComp(), crse_lev.rad_fluxes[i]->nGrow()));
 		    temp_fluxes[i]->setVal(0.0);
@@ -2392,7 +2392,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 	}
 
-#endif	
+#endif
 
 #ifdef SELF_GRAVITY
 	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
@@ -2591,7 +2591,7 @@ Castro::normalize_species (MultiFab& S_new)
        const Box& bx = mfi.growntilebox(ng);
        const int idx = mfi.tileIndex();
 
-       ca_normalize_species(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), 
+       ca_normalize_species(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
                                      BL_TO_FORTRAN_3D(S_new[mfi]), &idx);
     }
 }
@@ -2653,7 +2653,7 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 	FArrayBox& statenew = S_new[mfi];
 	const FArrayBox& vol      = volume[mfi];
 	const int idx = mfi.tileIndex();
-	
+
 	ca_enforce_minimum_density(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
                                    stateold.dataPtr(), ARLIM_3D(stateold.loVect()), ARLIM_3D(stateold.hiVect()),
 				   statenew.dataPtr(), ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
@@ -3061,34 +3061,100 @@ Castro::computeTemp(MultiFab& State)
   FArrayBox temp;
 #endif
 
+  const Real  cur_time = state[State_Type].curTime();
+
+  if (fourth_order) {
+
+    // we need to make the data live at cell-centers first
+
+    // fill Sborder with S_new -- TODO: we might consider using
+    // NUM_GROW+1 ghost cells, as I think we can eliminate a ghost
+    // cell fill at the end this way
+    Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
+    expand_state(Sborder, cur_time, Sborder.nGrow());
+
+    // convert to cell centers -- this will result in Sborder being
+    // cell centered only on NUM_GROW-1 ghost cells
+    for (MFIter mfi(Sborder); mfi.isValid(); ++mfi) {
+      const Box& bx = mfi.growntilebox(NUM_GROW-1);
+      const int idx = mfi.tileIndex();
+      ca_make_cell_center_in_place(BL_TO_FORTRAN_BOX(bx),
+                                   BL_TO_FORTRAN_FAB(Sborder[mfi]));
+
+    }
+
+  }
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
   for (MFIter mfi(State,true); mfi.isValid(); ++mfi)
     {
       const Box& bx = mfi.growntilebox();
-      
+
 #ifdef RADIATION
       if (Radiation::do_real_eos == 0) {
 	temp.resize(bx);
 	temp.copy(State[mfi],bx,Eint,bx,0,1);
-	
+
 	ca_compute_temp_given_cv
-	  (bx.loVect(), bx.hiVect(), 
-	   BL_TO_FORTRAN(temp), 
+	  (bx.loVect(), bx.hiVect(),
+	   BL_TO_FORTRAN(temp),
 	   BL_TO_FORTRAN(State[mfi]),
 	   &Radiation::const_c_v, &Radiation::c_v_exp_m, &Radiation::c_v_exp_n);
-	
+
 	State[mfi].copy(temp,bx,0,bx,Temp,1);
       } else {
 #endif
+
+        // general EOS version
+
 	const int idx = mfi.tileIndex();
-	ca_compute_temp(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-			BL_TO_FORTRAN_3D(State[mfi]), &idx);
+        if (fourth_order) {
+          // note, this is working on a growntilebox, but we will not have 
+          // valid cell-centers in the very last ghost cell
+          ca_compute_temp(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+                          BL_TO_FORTRAN_3D(Sborder[mfi]), &idx);
+        } else {
+          ca_compute_temp(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+                          BL_TO_FORTRAN_3D(State[mfi]), &idx);
+        }
+
 #ifdef RADIATION
       }
 #endif
     }
+
+  if (fourth_order) {
+
+    // we need to copy back from Sborder into S_new, making it cell-average
+    // in the process
+
+    for (MFIter mfi(Sborder); mfi.isValid(); ++mfi) {
+
+      // we'll only make the interior valid
+      const Box& bx = mfi.tilebox();
+      const int idx = mfi.tileIndex();
+      ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
+                              BL_TO_FORTRAN_FAB(Sborder[mfi]));
+
+    }
+
+
+    // copy back UTEMP and UEINT -- those are the only things that
+    // should have changed.
+    MultiFab& S_new = get_new_data(State_Type);
+
+    MultiFab::Copy(S_new, Sborder, Temp, Temp, 1, 0);
+    MultiFab::Copy(S_new, Sborder, Eint, Eint, 1, 0);
+
+    // now that we redid these, redo the ghost fill -- technically,
+    // only need this for UTEMP and UEINT
+    AmrLevel::FillPatch(*this, S_new, S_new.nGrow(), cur_time, State_Type, 0, NUM_STATE);
+
+    Sborder.clear();
+  }
+
 }
 
 
@@ -3455,7 +3521,7 @@ Castro::check_for_nan(MultiFab& state, int check_ghost)
   if (check_ghost == 1) {
     ng = state.nComp();
   }
-  
+
   if (state.contains_nan(Density,state.nComp(),ng,true))
     {
       for (int i = 0; i < state.nComp(); i++)

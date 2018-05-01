@@ -559,6 +559,9 @@ extern "C"
                            const BL_FORT_FAB_ARG_3D(U), const int* nc,
                            BL_FORT_FAB_ARG_3D(U_cc), const int* nc_cc);
 
+  void ca_make_cell_center_in_place(const int lo[], const int hi[],
+                                    BL_FORT_FAB_ARG_3D(q), const int* nc);
+
   void ca_mol_single_stage
     (const int    lo[], const int    hi[],
      const amrex::Real* time,
