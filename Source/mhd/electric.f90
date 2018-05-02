@@ -191,7 +191,7 @@ subroutine electric_edge_y(work_lo, work_hi, &
            !dEy/dz i-1/2,j, k-3/4
            call electric(q(i-1,j,k-1,:),Ecen,2)
            a = 2.d0*( -flxz(i-1,j,k,UMAGX) - Ecen )   !(Ecen + flxy(i,j,k-1,QMAGZ))
-           call electric(q(i,j-1,k,:),Ecen,2)
+           call electric(q(i,j,k-1,:),Ecen,2)
            b = 2.d0*( -flxz(i,j,k,UMAGX) - Ecen )  !(Ecen + flxy(i,j,k,QMAGZ))
         
            !Upwind in the x direction to get dEy/dz i-1/2, j, k-3/4
