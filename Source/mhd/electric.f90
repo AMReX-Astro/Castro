@@ -309,7 +309,7 @@ subroutine electric_edge_z(work_lo, work_hi, &
            !-------------------X derivatives -----------------
            !dEz/dx i-3/4 ,j-1/2, k
            call electric(q(i-1,j-1,k,:),Ecen,3)
-           a = 2.d0*( -flxx(i-1,j,k,UMAGY) - Ecen )   !(Ecen + flxy(i,j,k-1,QMAGZ))
+           a = 2.d0*( -flxx(i,j-1,k,UMAGY) - Ecen )   !(Ecen + flxy(i,j,k-1,QMAGZ))
            call electric(q(i-1,j,k,:),Ecen,3)
            b = 2.d0*( -flxx(i,j,k,UMAGY) - Ecen )  !(Ecen + flxy(i,j,k,QMAGZ))
         
