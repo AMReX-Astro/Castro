@@ -68,5 +68,5 @@ if __name__ == "__main__":
 
     prefix = args.plotfiles[0].split("plt")[0] + "plt"
     plot_nums = sorted([p.split("plt")[1] for p in args.plotfiles], key=int)
-    print(plot_nums)
+
     doit(prefix, plot_nums, args.skip)
