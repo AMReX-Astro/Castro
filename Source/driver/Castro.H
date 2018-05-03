@@ -761,9 +761,10 @@ protected:
 
     amrex::Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new);
 
-    amrex::Real clean_state (amrex::MultiFab& state);
+    amrex::Real clean_state (int is_new, amrex::MultiFab& state);
+    amrex::Real clean_state (int is_new);
 
-    amrex::Real clean_state (amrex::MultiFab& state, amrex::MultiFab& state_old);
+    amrex::Real clean_state (amrex::MultiFab& state);
 
     void avgDown ();
 
