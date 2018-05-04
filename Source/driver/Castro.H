@@ -576,7 +576,7 @@ public:
 
     void apply_source_to_state (amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng = 0);
 
-    void expand_state(amrex::MultiFab& S, amrex::Real time, int ng);
+    void expand_state(amrex::MultiFab& S, amrex::Real time, int iclean, int ng);
 
 #ifdef SELF_GRAVITY
     void make_radial_data (int is_new);
@@ -802,9 +802,10 @@ protected:
 
     amrex::Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new);
 
-    amrex::Real clean_state (amrex::MultiFab& state);
+    amrex::Real clean_state (int is_new, amrex::MultiFab& state);
+    amrex::Real clean_state (int is_new);
 
-    amrex::Real clean_state (amrex::MultiFab& state, amrex::MultiFab& state_old);
+    amrex::Real clean_state (amrex::MultiFab& state);
 
     void avgDown ();
 

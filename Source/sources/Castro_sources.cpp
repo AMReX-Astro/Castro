@@ -14,8 +14,6 @@ Castro::apply_source_to_state(MultiFab& state, MultiFab& source, Real dt, int ng
     AMREX_ASSERT(state.nGrow() >= ng);
 
     MultiFab::Saxpy(state, dt, source, 0, 0, NUM_STATE, ng);
-
-    clean_state(state);
 }
 
 void

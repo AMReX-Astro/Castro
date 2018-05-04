@@ -42,15 +42,18 @@ def doit(pprefix, nums, skip):
 
         time, x, T, enuc = get_Te_profile(pfile)
 
-        ax_T.plot(x, T, label="t = {:6.4g} s".format(time))
+        ax_T.plot(x, T, 'rx', label="t = {:6.4g} s".format(time))
         ax_e.plot(x, enuc)
         
     ax_T.legend(frameon=False)
     ax_T.set_ylabel("T (K)")
+    ax_T.set_xlim(22000, 28000)
 
     ax_e.set_yscale("log")
     ax_e.set_ylabel(r"$S_\mathrm{nuc}$ (erg/g/s)")
     ax_e.set_xlabel("x (cm)")
+
+    ax_e.set_xlim(22000, 28000)
 
     f.savefig("flame.png")
     
@@ -68,5 +71,5 @@ if __name__ == "__main__":
 
     prefix = args.plotfiles[0].split("plt")[0] + "plt"
     plot_nums = sorted([p.split("plt")[1] for p in args.plotfiles], key=int)
-
+    print(plot_nums)
     doit(prefix, plot_nums, args.skip)
