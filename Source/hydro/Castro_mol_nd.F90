@@ -32,7 +32,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
                                vol, vol_lo, vol_hi, &
                                verbose) bind(C, name="ca_mol_single_stage")
 
-  use mempool_module, only : bl_allocate, bl_deallocate
+  use amrex_mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, GDPRES, &
                                  UTEMP, UEINT, USHK, GDU, GDV, GDW, UMX, &
                                  use_flattening, QPRES, NQAUX, &

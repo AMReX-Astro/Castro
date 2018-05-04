@@ -163,7 +163,7 @@ Castro::advance (Real time,
     final_radiation_call(S_new, amr_iteration, amr_ncycle);
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
     advance_particles(amr_iteration, time, dt);
 #endif
 
@@ -442,8 +442,7 @@ Castro::do_advance_mol (Real time,
         const int idx = mfi.tileIndex();
         ca_make_cell_center(BL_TO_FORTRAN_BOX(bx),
                             BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                            BL_TO_FORTRAN_FAB(sources_for_hydro[mfi]),
-                            &idx);
+                            BL_TO_FORTRAN_FAB(sources_for_hydro[mfi]));
 
       }
     }
@@ -458,8 +457,7 @@ Castro::do_advance_mol (Real time,
         const Box& bx = mfi.tilebox();
         const int idx = mfi.tileIndex();
         ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
-                                BL_TO_FORTRAN_FAB(old_source[mfi]),
-                                &idx);
+                                BL_TO_FORTRAN_FAB(old_source[mfi]));
 
       }
 

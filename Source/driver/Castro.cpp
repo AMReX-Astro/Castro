@@ -28,7 +28,7 @@
 #include "RAD_F.H"
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
 #include <AMReX_Particles_F.H>
 #endif
 
@@ -181,7 +181,7 @@ Castro::variableCleanUp ()
   }
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
   delete TracerPC;
   TracerPC = 0;
 #endif
@@ -359,7 +359,7 @@ Castro::read_params ()
 	amrex::Error();
       }
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
     read_particle_params();
 #endif
 
@@ -901,7 +901,7 @@ Castro::initData ()
           const int* lo      = box.loVect();
           const int* hi      = box.hiVect();
 
-#ifdef DIMENSION_AGNOSTIC
+#ifdef AMREX_DIMENSION_AGNOSTIC
           BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
           (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), ns,
   	   BL_TO_FORTRAN_3D(S_new[mfi]), ZFILL(dx),
@@ -949,8 +949,7 @@ Castro::initData ()
              const int idx = mfi.tileIndex();
 
              ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
-                                     BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                                     &idx);
+                                     BL_TO_FORTRAN_FAB(Sborder[mfi]));
            }
 
          // now copy back the averages
@@ -1036,7 +1035,7 @@ Castro::initData ()
     phirot_new.setVal(0.);
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
     if (level == 0)
 	init_particles();
 #endif
@@ -1699,7 +1698,7 @@ Castro::post_timestep (int iteration)
       do_energy_diagnostics();
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
     if (TracerPC)
     {
 	const int ncycle = parent->nCycle(level);
@@ -1725,7 +1724,7 @@ Castro::post_restart ()
 
    Real cur_time = state[State_Type].curTime();
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
    ParticlePostRestart(parent->theRestartFile());
 #endif
 
@@ -1930,7 +1929,7 @@ Castro::post_regrid (int lbase,
 {
     fine_mask.clear();
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
     if (TracerPC && level == lbase) {
 	TracerPC->Redistribute(lbase);
     }
@@ -2905,7 +2904,7 @@ Castro::apply_problem_tags (TagBoxArray& tags,
 	    const int*  tlo     = tilebx.loVect();
 	    const int*  thi     = tilebx.hiVect();
 
-#ifdef DIMENSION_AGNOSTIC
+#ifdef AMREX_DIMENSION_AGNOSTIC
 	    set_problem_tags(ARLIM_3D(tilebx.loVect()), ARLIM_3D(tilebx.hiVect()),
                              tptr, ARLIM_3D(tlo), ARLIM_3D(thi),
 			     BL_TO_FORTRAN_3D(S_new[mfi]),
@@ -3019,7 +3018,7 @@ Castro::derive (const std::string& name,
   }
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
   return ParticleDerive(name,time,ngrow);
 #else
    return AmrLevel::derive(name,time,ngrow);

@@ -1,6 +1,6 @@
 module fourth_order
 
-  use bl_constants_module
+  use bl_constants_module, only : ZERO, TWO, ONE
   use prob_params_module, only : dg
 
   use amrex_fort_module, only : rt => amrex_real
@@ -433,12 +433,12 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
              do n = 1, nc
-                lap = HALF*(U(i+1,j,k,n) - TWO*U(i,j,k,n) + U(i-1,j,k,n))
+                lap = U(i+1,j,k,n) - TWO*U(i,j,k,n) + U(i-1,j,k,n)
 #if BL_SPACEDIM >= 2
-                lap = lap + HALF*(U(i,j+1,k,n) - TWO*U(i,j,k,n) + U(i,j-1,k,n))
+                lap = lap + U(i,j+1,k,n) - TWO*U(i,j,k,n) + U(i,j-1,k,n)
 #endif
 #if BL_SPACEDIM == 3
-                lap = lap + HALF*(U(i,j,k+1,n) - TWO*U(i,j,k,n) + U(i,j,k-1,n))
+                lap = lap + U(i,j,k+1,n) - TWO*U(i,j,k,n) + U(i,j,k-1,n)
 #endif
 
                 U_cc(i,j,k,n) = U(i,j,k,n) - TWENTYFOURTH * lap
@@ -473,12 +473,12 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
              do n = 1, nc
-                lap = HALF*(q_bar(i+1,j,k,n) - TWO*q_bar(i,j,k,n) + q_bar(i-1,j,k,n))
+                lap = q_bar(i+1,j,k,n) - TWO*q_bar(i,j,k,n) + q_bar(i-1,j,k,n)
 #if BL_SPACEDIM >= 2
-                lap = lap + HALF*(q_bar(i,j+1,k,n) - TWO*q_bar(i,j,k,n) + q_bar(i,j-1,k,n))
+                lap = lap + q_bar(i,j+1,k,n) - TWO*q_bar(i,j,k,n) + q_bar(i,j-1,k,n)
 #endif
 #if BL_SPACEDIM == 3
-                lap = lap + HALF*(q_bar(i,j,k+1,n) - TWO*q_bar(i,j,k,n) + q_bar(i,j,k-1,n))
+                lap = lap + q_bar(i,j,k+1,n) - TWO*q_bar(i,j,k,n) + q_bar(i,j,k-1,n)
 #endif
 
                 q(i,j,k,n) = q(i,j,k,n) + TWENTYFOURTH * lap
@@ -494,7 +494,7 @@ contains
                                      q, q_lo, q_hi, nc) &
                                      bind(C, name="ca_make_fourth_in_place")
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
 
     ! this takes the cell-center q and makes it a cell-average q, in
     ! place (e.g. q is overwritten by its average).  Note: this
@@ -514,12 +514,12 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
              do n = 1, nc
-                lap(i,j,k,n) = HALF*(q(i+1,j,k,n) - TWO*q(i,j,k,n) + q(i-1,j,k,n))
+                lap(i,j,k,n) = q(i+1,j,k,n) - TWO*q(i,j,k,n) + q(i-1,j,k,n)
 #if BL_SPACEDIM >= 2
-                lap(i,j,k,n) = lap(i,j,k,n) + HALF*(q(i,j+1,k,n) - TWO*q(i,j,k,n) + q(i,j-1,k,n))
+                lap(i,j,k,n) = lap(i,j,k,n) + q(i,j+1,k,n) - TWO*q(i,j,k,n) + q(i,j-1,k,n)
 #endif
 #if BL_SPACEDIM == 3
-                lap(i,j,k,n) = lap(i,j,k,n) + HALF*(q(i,j,k+1,n) - TWO*q(i,j,k,n) + q(i,j,k-1,n))
+                lap(i,j,k,n) = lap(i,j,k,n) + q(i,j,k+1,n) - TWO*q(i,j,k,n) + q(i,j,k-1,n)
 #endif
              enddo
           enddo
@@ -530,7 +530,6 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
              do n = 1, nc
-
                 q(i,j,k,n) = q(i,j,k,n) + TWENTYFOURTH * lap(i,j,k,n)
 
              enddo

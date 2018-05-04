@@ -435,7 +435,7 @@ contains
                      q,     q_lo,   q_hi, &
                      qaux, qa_lo,  qa_hi)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use actual_network, only : nspec, naux
     use eos_module, only : eos
     use eos_type_module, only : eos_t, eos_input_re
@@ -495,6 +495,7 @@ contains
 #ifdef RADIATION
     real(rt)         :: ptot, ctot, gamc_tot
 #endif
+
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -626,7 +627,7 @@ contains
                        src, src_lo, src_hi, &
                        srcQ,srQ_lo, srQ_hi)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use actual_network, only : nspec, naux
     use eos_module, only : eos
     use eos_type_module, only : eos_t, eos_input_re
@@ -791,7 +792,7 @@ contains
     use bl_constants_module, only: ZERO, HALF, ONE, TWO
     use meth_params_module, only: NVAR, NQ, URHO, small_dens, cfl
     use prob_params_module, only: dim, dg
-    use mempool_module, only: bl_allocate, bl_deallocate
+    use amrex_mempool_module, only: bl_allocate, bl_deallocate
 
     implicit none
 
@@ -1247,7 +1248,7 @@ contains
 
     use meth_params_module, only : QPRES, QU, QV, QW, NQ
     use prob_params_module, only : coord_type, dg
-    use bl_constants_module
+    use bl_constants_module, only: ZERO, HALF, ONE
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -1420,7 +1421,7 @@ contains
 
     use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UFS
-    use bl_constants_module
+    use bl_constants_module, only : ZERO, ONE
     use prob_params_module, only : dg
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -1515,7 +1516,7 @@ contains
     ! this computes the *node-centered* divergence
 
     use meth_params_module, only : QU, QV, QW, NQ
-    use bl_constants_module
+    use bl_constants_module, only : HALF, FOURTH, ONE, ZERO
     use prob_params_module, only : dg, coord_type, problo
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -1656,7 +1657,7 @@ contains
     ! this computes the *node-centered* divergence
 
     use meth_params_module, only : QU, QV, QW, NQ, GDPRES, GDU, GDV, GDW
-    use bl_constants_module
+    use bl_constants_module, only : HALF
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 

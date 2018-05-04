@@ -253,6 +253,13 @@ Gravity::read_params ()
     }
 }
 
+void 
+Gravity::output_job_info_params(std::ostream& jobInfoFile)
+{
+#include "gravity_job_info_tests.H"
+}
+
+
 void
 Gravity::set_numpts_in_gravity (int numpts)
 {
@@ -2085,8 +2092,9 @@ Gravity::make_mg_bc ()
     }
 
     // Set Neumann bc at r=0.
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
+    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
         mg_bc[0] = MGT_BC_NEU;
+    }
 
 #ifdef CASTRO_MLMG
     for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
@@ -2930,10 +2938,6 @@ Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
     {
         mlpoisson.setLevelBC(ilev, phi[ilev]);
     }
-
-#if (AMREX_SPACEDIM == 1)
-    static_assert(false, "solve_phi_with_mlmg: 1d not supported yet");
-#endif
 
     MLMG mlmg(mlpoisson);
     mlmg.setVerbose(verbose);

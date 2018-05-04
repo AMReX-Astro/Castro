@@ -220,7 +220,7 @@ extern "C"
      const amrex::Real* dx, const amrex::Real* glo, 
      const amrex::Real* time, const int* bc);
 
-#ifdef DIMENSION_AGNOSTIC
+#ifdef AMREX_DIMENSION_AGNOSTIC
 
   void ca_hypfill
     (BL_FORT_FAB_ARG_3D(state),
@@ -594,16 +594,14 @@ extern "C"
 
   void ca_make_fourth_average(const int lo[], const int hi[],
                               BL_FORT_FAB_ARG_3D(q), const int* nc,
-                              BL_FORT_FAB_ARG_3D(q_bar), const int* nc_bar, const int* idx);
+                              BL_FORT_FAB_ARG_3D(q_bar), const int* nc_bar);
 
   void ca_make_fourth_in_place(const int lo[], const int hi[],
-                               BL_FORT_FAB_ARG_3D(q), const int* nc,
-                               const int* idx);
-
+                               BL_FORT_FAB_ARG_3D(q), const int* nc);
 
   void ca_make_cell_center(const int lo[], const int hi[],
                            const BL_FORT_FAB_ARG_3D(U), const int* nc,
-                           BL_FORT_FAB_ARG_3D(U_cc), const int* nc_cc, const int* idx);
+                           BL_FORT_FAB_ARG_3D(U_cc), const int* nc_cc);
 
   void ca_mol_single_stage
     (const int    lo[], const int    hi[],
@@ -925,7 +923,7 @@ extern "C"
 }
 #endif
 
-#ifdef DIMENSION_AGNOSTIC
+#ifdef AMREX_DIMENSION_AGNOSTIC
 
 BL_FORT_PROC_DECL(CA_INITDATA,ca_initdata)
     (const int& level, const amrex::Real& time,
@@ -985,7 +983,7 @@ BL_FORT_PROC_DECL(CA_INITMAG,ca_initmag)
    const amrex::Real dx[], const amrex::Real xlo[], const amrex::Real xhi[]);
 #endif
 
-#ifdef DIMENSION_AGNOSTIC
+#ifdef AMREX_DIMENSION_AGNOSTIC
 BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(old_state),

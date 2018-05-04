@@ -29,7 +29,7 @@ subroutine ca_advance_mhd(time, lo, hi, &
 
   !--------------------- Dependencies ------------------------------------------------
   use amrex_fort_module, only : rt => amrex_real
-  use mempool_module, only : bl_allocate, bl_deallocate
+  use amrex_mempool_module, only : bl_allocate, bl_deallocate
   use ct_upwind, only : corner_transport, checkisnan
   use mhd_plm_module, only : plm
   use meth_params_module!, only : QVAR, NTHERM, NHYP, normalize_species, NVAR, URHO, UEDEN

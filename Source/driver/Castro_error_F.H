@@ -143,7 +143,7 @@ extern "C"
      const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* problo,
      const amrex::Real* time, const int* level);
 
-#ifdef DIMENSION_AGNOSTIC
+#ifdef AMREX_DIMENSION_AGNOSTIC
   void set_problem_tags
     (const int* lo, const int* hi,
      int* tag, const int* tag_lo, const int* tag_hi,
