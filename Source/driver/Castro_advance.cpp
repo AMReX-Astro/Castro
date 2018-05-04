@@ -281,7 +281,7 @@ Castro::do_advance (Real time,
     // since the hydro source only works on the valid zones.
 
     if (S_new.nGrow() > 0) {
-      expand_state(S_new, cur_time, S_new.nGrow());
+      expand_state(S_new, cur_time, 1, S_new.nGrow());
     }
 
     // Check for NaN's.
@@ -517,7 +517,7 @@ Castro::do_advance_mol (Real time,
   // since the hydro source only works on the valid zones.
 
   if (S_new.nGrow() > 0) {
-    expand_state(S_new, cur_time, S_new.nGrow());
+    expand_state(S_new, cur_time, 1, S_new.nGrow());
   }
 
   // Check for NaN's.
@@ -532,10 +532,10 @@ Castro::do_advance_mol (Real time,
   // note: we need to have ghost cells here cause some sources (in
   // particular pdivU) need them.  Perhaps it would be easier to just
   // always require State_Type to have 1 ghost cell?
-  expand_state(Sborder, prev_time, Sborder.nGrow());
+  expand_state(Sborder, prev_time, 0, Sborder.nGrow());
   do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
 
-  expand_state(Sborder, cur_time, Sborder.nGrow());
+  expand_state(Sborder, cur_time, 1, Sborder.nGrow());
   do_old_sources(new_source, Sborder, cur_time, dt, amr_iteration, amr_ncycle);
 
   // Do the second half of the reactions.
@@ -612,7 +612,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
       // for the CTU unsplit method, we always start with the old state
       Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
       const Real prev_time = state[State_Type].prevTime();
-      expand_state(Sborder, prev_time, NUM_GROW);
+      expand_state(Sborder, prev_time, 0, NUM_GROW);
 
     } else {
       // for Method of lines, our initialization of Sborder depends on
@@ -623,7 +623,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 	// first MOL stage
 	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
 	const Real prev_time = state[State_Type].prevTime();
-	expand_state(Sborder, prev_time, NUM_GROW);
+	expand_state(Sborder, prev_time, 0, NUM_GROW);
 
       } else {
 
@@ -647,7 +647,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 
 	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
 	const Real new_time = state[State_Type].curTime();
-	expand_state(Sborder, new_time, NUM_GROW);
+	expand_state(Sborder, new_time, 1, NUM_GROW);
 
       }
     }

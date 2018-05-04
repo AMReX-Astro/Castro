@@ -3440,13 +3440,29 @@ Castro::build_interior_boundary_mask (int ng)
 // Fill a version of the state with ng ghost zones from the state data.
 
 void
-Castro::expand_state(MultiFab& S, Real time, int ng)
+Castro::expand_state(MultiFab& S, Real time, int iclean, int ng)
 {
-    BL_ASSERT(S.nGrow() >= ng);
 
-    AmrLevel::FillPatch(*this,S,ng,time,State_Type,0,NUM_STATE);
+  // S is the multifab we are filling with State_Type StateData,
+  // including a ghost cell fill at the end.  Before we do the fill,
+  // we do a clean_state on the State_Type data.  iclean = 0 means
+  // clean the "old" time data, iclean = 1 means clean the "new time
+  // data", and iclean = 2 means clean both the old and new time data
+  // (in case we are interpolating in time).  For any other value, no
+  // cleaning is done
 
-    clean_state(S);
+  if (iclean == 0) {
+    clean_state(iclean);
+  } else if (iclean == 1) {
+    clean_state(iclean);
+  } else if (iclean == 2) {
+    clean_state(0);
+    clean_state(1);
+  }
+
+  BL_ASSERT(S.nGrow() >= ng);
+
+  AmrLevel::FillPatch(*this, S, ng, time, State_Type, 0, NUM_STATE);
 }
 
 

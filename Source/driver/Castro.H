@@ -564,7 +564,7 @@ public:
 
     void apply_source_to_state (amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng = 0);
 
-    void expand_state(amrex::MultiFab& S, amrex::Real time, int ng);
+    void expand_state(amrex::MultiFab& S, amrex::Real time, int iclean, int ng);
 
 #ifdef SELF_GRAVITY
     void make_radial_data (int is_new);
