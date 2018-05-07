@@ -98,16 +98,7 @@ Castro::advance (Real time,
 
     if (do_ctu) {
 
-        if (do_subcycle) {
-
-            dt_new = std::min(dt_new, subcycle_advance(time, dt, amr_iteration, amr_ncycle));
-
-        }
-        else {
-
-            dt_new = do_advance(time, dt, amr_iteration, amr_ncycle);
-
-        }
+        dt_new = std::min(dt_new, subcycle_advance(time, dt, amr_iteration, amr_ncycle));
 
     } else {
       for (int iter = 0; iter < MOL_STAGES; ++iter) {
@@ -125,12 +116,6 @@ Castro::advance (Real time,
 
     cfl_violation = 0;
 
-    // Check to see if this advance violated certain stability criteria.
-    // If so, get a new timestep and do subcycled advances until we reach
-    // t = time + dt.
-
-    if (use_retry)
-        dt_new = std::min(dt_new, retry_advance(time, dt, amr_iteration, amr_ncycle));
 #endif
 
     if (use_post_step_regrid)
@@ -934,7 +919,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 
 
-Real
+bool
 Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
 
@@ -951,133 +936,121 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     const Real* dx = geom.CellSize();
 
-    Real cur_time = time;
-    Real end_time = time + dt;
+    bool do_retry = false;
 
-    Real cur_dt = dt;
-
-    while (cur_time < end_time) {
-
-        // By default, we don't do a retry unless the criteria are violated.
-
-        cur_time += cur_dt;
+    // By default, we don't do a retry unless the criteria are violated.
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(min:dt_sub)
 #endif
-        for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
 
-            const Box& bx = mfi.tilebox();
+        const Box& bx = mfi.tilebox();
 
-            const int* lo = bx.loVect();
-            const int* hi = bx.hiVect();
+        const int* lo = bx.loVect();
+        const int* hi = bx.hiVect();
 
-            ca_check_timestep(ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_3D(S_old[mfi]),
-                              BL_TO_FORTRAN_3D(S_new[mfi]),
+        ca_check_timestep(ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_3D(S_old[mfi]),
+                          BL_TO_FORTRAN_3D(S_new[mfi]),
 #ifdef REACTIONS
-                              BL_TO_FORTRAN_3D(R_old[mfi]),
-                              BL_TO_FORTRAN_3D(R_new[mfi]),
+                          BL_TO_FORTRAN_3D(R_old[mfi]),
+                          BL_TO_FORTRAN_3D(R_new[mfi]),
 #endif
-                              ZFILL(dx),
-                              &cur_dt, &dt_sub);
-
-        }
-
-        if (retry_neg_dens_factor > 0.0) {
-
-            // Negative density criterion
-            // Reset so that the desired maximum fractional change in density
-            // is not larger than retry_neg_dens_factor.
-
-            ParallelDescriptor::ReduceRealMin(frac_change);
-
-            if (frac_change < 0.0)
-                dt_sub = std::min(dt_sub, cur_dt * -(retry_neg_dens_factor / frac_change));
-
-        }
-
-        ParallelDescriptor::ReduceRealMin(dt_sub);
-
-        // Do the retry if the suggested timestep is smaller than the actual one.
-        // A user-specified tolerance parameter can be used here to prevent
-        // retries that are caused by small differences.
-
-        if (dt_sub * (1.0 + retry_tolerance) < std::min(cur_dt, dt_subcycle)) {
-
-            cur_time -= cur_dt;
-
-            dt_subcycle = std::min(cur_dt, dt_subcycle) * retry_subcycle_factor;
-
-            if (verbose && ParallelDescriptor::IOProcessor()) {
-                std::cout << std::endl;
-                std::cout << "  Timestep " << cur_dt << " rejected at level " << level << "." << std::endl;
-                std::cout << "  Performing a retry, with subcycled timesteps of maximum length dt = " << dt_subcycle << std::endl;
-                std::cout << std::endl;
-            }
-
-            // Restore the original values of the state data.
-
-            for (int k = 0; k < num_state_type; k++) {
-
-                if (prev_state[k]->hasOldData())
-                    state[k].copyOld(*prev_state[k]);
-
-                if (prev_state[k]->hasNewData())
-                    state[k].copyNew(*prev_state[k]);
-
-            }
-
-            // Reset the source term predictor.
-
-            sources_for_hydro.setVal(0.0, NUM_GROW);
-
-#ifndef SDC
-            if (source_term_predictor == 1) {
-
-                // Normally the source term predictor is done before the swap,
-                // but the prev_state data is saved after the initial swap had
-                // been done. So we will temporarily swap the state data back,
-                // and reset the time levels.
-
-                // Note that unlike the initial application of the source term
-                // predictor before the swap, the old data will have already
-                // been allocated when we get to this point. So we want to skip
-                // this step if we didn't have old data initially.
-
-                if (prev_state_had_old_data) {
-
-                    swap_state_time_levels(0.0);
-
-                    const Real dt_old = prev_state_new_time - prev_state_old_time;
-
-                    for (int k = 0; k < num_state_type; k++)
-                        state[k].setTimeLevel(prev_state_new_time, dt_old, 0.0);
-
-                    apply_source_term_predictor();
-
-                    swap_state_time_levels(0.0);
-
-                    for (int k = 0; k < num_state_type; k++)
-                        state[k].setTimeLevel(cur_time + dt_subcycle, dt_subcycle, 0.0);
-
-                }
-
-            }
-#endif
-
-
-            if (track_grid_losses)
-                for (int i = 0; i < n_lost; i++)
-                    material_lost_through_boundary_temp[i] = 0.0;
-
-            if (cur_time < end_time)
-                dt_new = std::min(dt_new, subcycle_advance(cur_time, cur_dt, amr_iteration, amr_ncycle));
-
-        }
+                          ZFILL(dx),
+                          &dt, &dt_sub);
 
     }
 
-    return dt_new;
+    if (retry_neg_dens_factor > 0.0) {
+
+        // Negative density criterion
+        // Reset so that the desired maximum fractional change in density
+        // is not larger than retry_neg_dens_factor.
+
+        ParallelDescriptor::ReduceRealMin(frac_change);
+
+        if (frac_change < 0.0)
+            dt_sub = std::min(dt_sub, dt * -(retry_neg_dens_factor / frac_change));
+
+    }
+
+    ParallelDescriptor::ReduceRealMin(dt_sub);
+
+    // Do the retry if the suggested timestep is smaller than the actual one.
+    // A user-specified tolerance parameter can be used here to prevent
+    // retries that are caused by small differences.
+
+    if (dt_sub * (1.0 + retry_tolerance) < std::min(dt, dt_subcycle)) {
+
+        do_retry = true;
+
+        dt_subcycle = std::min(dt, dt_subcycle) * retry_subcycle_factor;
+
+        if (verbose && ParallelDescriptor::IOProcessor()) {
+            std::cout << std::endl;
+            std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
+            std::cout << "  Performing a retry, with subcycled timesteps of maximum length dt = " << dt_subcycle << std::endl;
+            std::cout << std::endl;
+        }
+
+        // Restore the original values of the state data.        
+
+        for (int k = 0; k < num_state_type; k++) {
+
+            if (prev_state[k]->hasOldData())
+                state[k].copyOld(*prev_state[k]);
+
+            if (prev_state[k]->hasNewData())
+                state[k].copyNew(*prev_state[k]);
+
+        }
+
+        // Reset the source term predictor.
+
+        sources_for_hydro.setVal(0.0, NUM_GROW);
+
+#ifndef SDC
+        if (source_term_predictor == 1) {
+
+            // Normally the source term predictor is done before the swap,
+            // but the prev_state data is saved after the initial swap had
+            // been done. So we will temporarily swap the state data back,
+            // and reset the time levels.
+
+            // Note that unlike the initial application of the source term
+            // predictor before the swap, the old data will have already
+            // been allocated when we get to this point. So we want to skip
+            // this step if we didn't have old data initially.
+
+            if (prev_state_had_old_data) {
+
+                swap_state_time_levels(0.0);
+
+                const Real dt_old = prev_state_new_time - prev_state_old_time;
+
+                for (int k = 0; k < num_state_type; k++)
+                    state[k].setTimeLevel(prev_state_new_time, dt_old, 0.0);
+
+                apply_source_term_predictor();
+
+                swap_state_time_levels(0.0);
+
+                for (int k = 0; k < num_state_type; k++)
+                    state[k].setTimeLevel(time + dt_subcycle, dt_subcycle, 0.0);
+
+            }
+
+        }
+#endif
+
+
+        if (track_grid_losses)
+            for (int i = 0; i < n_lost; i++)
+                material_lost_through_boundary_temp[i] = 0.0;
+
+    }
+
+    return do_retry;
 
 }
 
@@ -1087,63 +1060,15 @@ Real
 Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int amr_ncycle)
 {
 
-    // Check the input number of subcycles against various safety conditions.
+    Real t = time;
+    dt_subcycle = dt;
 
-    // Do a basic sanity check to make sure we're not about to overflow.
+    Real subcycle_time = time;
+    dt_subcycle = dt;
 
-    if (dt_subcycle * INT_MAX < dt) {
-        if (ParallelDescriptor::IOProcessor()) {
-	    std::cout << std::endl;
-	    std::cout << "  The subcycle mechanism requested subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
-                      << "  but this would imply a number of timesteps that overflows an integer." << std::endl;
-	    std::cout << "  The code will abort. Consider using a stronger stability criterion" << std::endl
-                      << "  to avoid unstable timesteps." << std::endl;
-        }
-        amrex::Abort("Error: integer overflow in subcycling.");
-    }
+    Real dt_new = 1.e200;
 
-    sub_ncycle = ceil(dt / dt_subcycle);
-
-    // Abort if we would take more subcycled timesteps than the user has permitted.
-
-    if (max_subcycles > 0 && sub_ncycle > max_subcycles) {
-        if (clamp_subcycles) {
-            if (ParallelDescriptor::IOProcessor()) {
-                std::cout << std::endl;
-                std::cout << "  The subcycle mechanism requested " << sub_ncycle << " subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
-                          << "  but this is more than the maximum number of permitted subcycles, " << max_subcycles << "." << std::endl;
-                std::cout << "  The code will decrease the number of subcycles to this maximum, and the subcycled timestep" << std::endl
-                          << "  will be updated to dt = " << dt / max_subcycles << "." << std::endl;
-                std::cout << "  If you want more subcycles you can update the max_subcycles parameter." << std::endl;
-                std::cout << "  If you would prefer the simulation to stop when this maximum number is" << std::endl
-                          << "  exceeded, set castro.clamp_subcycles = 0." << std::endl;
-            }
-
-            sub_ncycle = max_subcycles;
-        } else {
-            if (ParallelDescriptor::IOProcessor()) {
-                std::cout << std::endl;
-                std::cout << "  The subcycle mechanism requested " << sub_ncycle << " subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
-                          << "  but this is more than the maximum number of permitted subcycles, " << max_subcycles << "." << std::endl;
-                std::cout << "  The code will abort. Consider using a stronger stability criterion" << std::endl
-                          << "  to avoid unstable timesteps, or consider increasing the parameter " << std::endl
-                          << "  castro.max_subcycles to permit more subcycled timesteps." << std::endl;
-            }
-            amrex::Abort("Error: too many subcycled timesteps.");
-        }
-    }
-
-    // Abort if our subcycled timestep would be shorter than the minimum permitted timestep.
-
-    if (dt_subcycle < dt_cutoff) {
-        if (ParallelDescriptor::IOProcessor()) {
-	    std::cout << std::endl;
-	    std::cout << "  The subcycle mechanism requested " << sub_ncycle << " subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
-                      << "  but this timestep is shorter than the user-defined minimum, " << std::endl
-                      << "  castro.dt_cutoff = " << dt_cutoff << ". Aborting." << std::endl;
-	  }
-	  amrex::Abort("Error: subcycled timesteps too short.");
-    }
+    sub_iteration = 0;
 
     // Subcycle until we've reached the target time.
     // Compare against a slightly smaller number to
@@ -1151,27 +1076,30 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
 
     Real eps = 1.0e-14;
 
-    Real subcycle_time = time;
-    dt_subcycle = dt / sub_ncycle;
-    dt_advance = dt_subcycle;
-
-    Real dt_new = 1.e200;
-
-    sub_iteration = 1;
-
     while (subcycle_time < (1.0 - eps) * (time + dt)) {
+
+        sub_iteration += 1;
+
+        if (dt_subcycle < dt_cutoff) {
+            if (ParallelDescriptor::IOProcessor()) {
+                std::cout << std::endl;
+                std::cout << "  The subcycle mechanism requested subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
+                          << "  but this timestep is shorter than the user-defined minimum, " << std::endl
+                          << "  castro.dt_cutoff = " << dt_cutoff << ". Aborting." << std::endl;
+            }
+            amrex::Abort("Error: subcycled timesteps too short.");
+        }
 
         // Shorten the last timestep so that we don't overshoot
         // the ending time.
 
-        if (subcycle_time + dt_advance > (time + dt))
-            dt_advance = (time + dt) - subcycle_time;
+        if (subcycle_time + dt_subcycle > (time + dt))
+            dt_subcycle = (time + dt) - subcycle_time;
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << std::endl;
-            std::cout << "  Beginning subcycle " << sub_iteration << " of " << sub_ncycle
-                      << ", starting at time " << subcycle_time
-                      << " with dt = " << dt_advance << std::endl << std::endl;
+            std::cout << "  Beginning subcycle starting at time " << subcycle_time
+                      << " with dt = " << dt_subcycle << std::endl << std::endl;
         }
 
         // Swap the time levels. Only do this after the first iteration;
@@ -1206,56 +1134,73 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
         // Set the relevant time levels.
 
         for (int k = 0; k < num_state_type; k++)
-            state[k].setTimeLevel(subcycle_time + dt_advance, dt_advance, 0.0);
+            state[k].setTimeLevel(subcycle_time + dt_subcycle, dt_subcycle, 0.0);
 
-        do_advance(subcycle_time, dt_advance, amr_iteration, amr_ncycle);
+        do_advance(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle);
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << std::endl;
-            std::cout << "  Subcycle " << sub_iteration << " of " << sub_ncycle << " completed" << std::endl;
+            std::cout << "  Subcycle completed" << std::endl;
             std::cout << std::endl;
         }
 
-        subcycle_time += dt_advance;
-        sub_iteration += 1;
+        subcycle_time += dt_subcycle;
 
         // If we have hit a CFL violation during this subcycle, we must abort.
 
         if (cfl_violation && hard_cfl_limit)
             amrex::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
 
+        // If we're allowing for retries, check for that here.
+
+        if (use_retry) {
+
+            // If we hit a retry, signal that we want to try again by subtracting the
+            // time from our counter; the retry function will handle resetting the state,
+            // and updating dt_subcycle.
+
+            if (retry_advance(time, dt, amr_iteration, amr_ncycle)) {
+                subcycle_time -= dt_subcycle;
+            }
+
+        }
+
     }
 
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "  Subcycling complete" << std::endl << std::endl;
 
-    // Finally, copy the original data back to the old state
-    // data so that externally it appears like we took only
-    // a single timestep. We'll do this as a swap so that
-    // we still have the last iteration's old data if we need
-    // it later.
+    if (sub_iteration > 1) {
 
-    for (int k = 0; k < num_state_type; k++) {
+        // Finally, copy the original data back to the old state
+        // data so that externally it appears like we took only
+        // a single timestep. We'll do this as a swap so that
+        // we still have the last iteration's old data if we need
+        // it later.
 
-        if (prev_state[k]->hasOldData())
-            state[k].replaceOldData(*prev_state[k]);
+        for (int k = 0; k < num_state_type; k++) {
 
-        state[k].setTimeLevel(time + dt, dt, 0.0);
-        prev_state[k]->setTimeLevel(time + dt, dt_advance, 0.0);
+            if (prev_state[k]->hasOldData())
+                state[k].replaceOldData(*prev_state[k]);
 
-    }
+            state[k].setTimeLevel(time + dt, dt, 0.0);
+            prev_state[k]->setTimeLevel(time + dt, dt_subcycle, 0.0);
 
-    // If we took more than one step and are going to do a reflux,
-    // keep the data past the end of the step.
+        }
 
-    if (sub_iteration > 2 && do_reflux && update_sources_after_reflux) {
+        // If we took more than one step and are going to do a reflux,
+        // keep the data past the end of the step.
 
-        // Note that since we only want to do this if there's actually a
-        // reflux immediately following this, skip this if we're on the
-        // finest level and this is not the last iteration.
+        if (do_reflux && update_sources_after_reflux) {
 
-        if (!(amr_iteration < amr_ncycle && level == parent->finestLevel()))
-            keep_prev_state = true;
+            // Note that since we only want to do this if there's actually a
+            // reflux immediately following this, skip this if we're on the
+            // finest level and this is not the last iteration.
+
+            if (!(amr_iteration < amr_ncycle && level == parent->finestLevel()))
+                keep_prev_state = true;
+
+        }
 
     }
 
