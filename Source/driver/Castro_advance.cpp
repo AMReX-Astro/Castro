@@ -951,113 +951,129 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     const Real* dx = geom.CellSize();
 
+    Real cur_time = time;
+    Real end_time = time + dt;
+
+    Real cur_dt = dt;
+
+    while (cur_time < end_time) {
+
+        // By default, we don't do a retry unless the criteria are violated.
+
+        cur_time += cur_dt;
+
 #ifdef _OPENMP
 #pragma omp parallel reduction(min:dt_sub)
 #endif
-    for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
+        for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
 
-        const Box& bx = mfi.tilebox();
+            const Box& bx = mfi.tilebox();
 
-	const int* lo = bx.loVect();
-	const int* hi = bx.hiVect();
+            const int* lo = bx.loVect();
+            const int* hi = bx.hiVect();
 
-	ca_check_timestep(ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_3D(S_old[mfi]),
-			  BL_TO_FORTRAN_3D(S_new[mfi]),
+            ca_check_timestep(ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_3D(S_old[mfi]),
+                              BL_TO_FORTRAN_3D(S_new[mfi]),
 #ifdef REACTIONS
-			  BL_TO_FORTRAN_3D(R_old[mfi]),
-			  BL_TO_FORTRAN_3D(R_new[mfi]),
+                              BL_TO_FORTRAN_3D(R_old[mfi]),
+                              BL_TO_FORTRAN_3D(R_new[mfi]),
 #endif
-			  ZFILL(dx),
-			  &dt, &dt_sub);
+                              ZFILL(dx),
+                              &cur_dt, &dt_sub);
 
-    }
+        }
 
-    if (retry_neg_dens_factor > 0.0) {
+        if (retry_neg_dens_factor > 0.0) {
 
-        // Negative density criterion
-	// Reset so that the desired maximum fractional change in density
-	// is not larger than retry_neg_dens_factor.
+            // Negative density criterion
+            // Reset so that the desired maximum fractional change in density
+            // is not larger than retry_neg_dens_factor.
 
-        ParallelDescriptor::ReduceRealMin(frac_change);
+            ParallelDescriptor::ReduceRealMin(frac_change);
 
-	if (frac_change < 0.0)
-	  dt_sub = std::min(dt_sub, dt * -(retry_neg_dens_factor / frac_change));
+            if (frac_change < 0.0)
+                dt_sub = std::min(dt_sub, cur_dt * -(retry_neg_dens_factor / frac_change));
 
-    }
+        }
 
-    ParallelDescriptor::ReduceRealMin(dt_sub);
+        ParallelDescriptor::ReduceRealMin(dt_sub);
 
-    // Do the retry if the suggested timestep is smaller than the actual one.
-    // A user-specified tolerance parameter can be used here to prevent
-    // retries that are caused by small differences.
+        // Do the retry if the suggested timestep is smaller than the actual one.
+        // A user-specified tolerance parameter can be used here to prevent
+        // retries that are caused by small differences.
 
-    if (dt_sub * (1.0 + retry_tolerance) < std::min(dt, dt_subcycle)) {
+        if (dt_sub * (1.0 + retry_tolerance) < std::min(cur_dt, dt_subcycle)) {
 
-        dt_subcycle = dt_sub;
+            cur_time -= cur_dt;
 
-	if (verbose && ParallelDescriptor::IOProcessor()) {
-	  std::cout << std::endl;
-	  std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
-	  std::cout << "  Performing a retry, with subcycled timesteps of maximum length dt = " << dt_subcycle << std::endl;
-	  std::cout << std::endl;
-	}
+            dt_subcycle = std::min(cur_dt, dt_subcycle) * retry_subcycle_factor;
 
-	// Restore the original values of the state data.
+            if (verbose && ParallelDescriptor::IOProcessor()) {
+                std::cout << std::endl;
+                std::cout << "  Timestep " << cur_dt << " rejected at level " << level << "." << std::endl;
+                std::cout << "  Performing a retry, with subcycled timesteps of maximum length dt = " << dt_subcycle << std::endl;
+                std::cout << std::endl;
+            }
 
-	for (int k = 0; k < num_state_type; k++) {
+            // Restore the original values of the state data.
 
-	  if (prev_state[k]->hasOldData())
-	      state[k].copyOld(*prev_state[k]);
+            for (int k = 0; k < num_state_type; k++) {
 
-	  if (prev_state[k]->hasNewData())
-	      state[k].copyNew(*prev_state[k]);
+                if (prev_state[k]->hasOldData())
+                    state[k].copyOld(*prev_state[k]);
 
-	}
-
-        // Reset the source term predictor.
-
-        sources_for_hydro.setVal(0.0, NUM_GROW);
-
-#ifndef SDC
-        if (source_term_predictor == 1) {
-
-            // Normally the source term predictor is done before the swap,
-            // but the prev_state data is saved after the initial swap had
-            // been done. So we will temporarily swap the state data back,
-            // and reset the time levels.
-
-            // Note that unlike the initial application of the source term
-            // predictor before the swap, the old data will have already
-            // been allocated when we get to this point. So we want to skip
-            // this step if we didn't have old data initially.
-
-            if (prev_state_had_old_data) {
-
-                swap_state_time_levels(0.0);
-
-                const Real dt_old = prev_state_new_time - prev_state_old_time;
-
-                for (int k = 0; k < num_state_type; k++)
-                    state[k].setTimeLevel(prev_state_new_time, dt_old, 0.0);
-
-                apply_source_term_predictor();
-
-                swap_state_time_levels(0.0);
-
-                for (int k = 0; k < num_state_type; k++)
-                    state[k].setTimeLevel(time + dt, dt, 0.0);
+                if (prev_state[k]->hasNewData())
+                    state[k].copyNew(*prev_state[k]);
 
             }
 
-        }
+            // Reset the source term predictor.
+
+            sources_for_hydro.setVal(0.0, NUM_GROW);
+
+#ifndef SDC
+            if (source_term_predictor == 1) {
+
+                // Normally the source term predictor is done before the swap,
+                // but the prev_state data is saved after the initial swap had
+                // been done. So we will temporarily swap the state data back,
+                // and reset the time levels.
+
+                // Note that unlike the initial application of the source term
+                // predictor before the swap, the old data will have already
+                // been allocated when we get to this point. So we want to skip
+                // this step if we didn't have old data initially.
+
+                if (prev_state_had_old_data) {
+
+                    swap_state_time_levels(0.0);
+
+                    const Real dt_old = prev_state_new_time - prev_state_old_time;
+
+                    for (int k = 0; k < num_state_type; k++)
+                        state[k].setTimeLevel(prev_state_new_time, dt_old, 0.0);
+
+                    apply_source_term_predictor();
+
+                    swap_state_time_levels(0.0);
+
+                    for (int k = 0; k < num_state_type; k++)
+                        state[k].setTimeLevel(cur_time + dt_subcycle, dt_subcycle, 0.0);
+
+                }
+
+            }
 #endif
 
 
-	if (track_grid_losses)
-	  for (int i = 0; i < n_lost; i++)
-	    material_lost_through_boundary_temp[i] = 0.0;
+            if (track_grid_losses)
+                for (int i = 0; i < n_lost; i++)
+                    material_lost_through_boundary_temp[i] = 0.0;
 
-        dt_new = std::min(dt_new, subcycle_advance(time, dt, amr_iteration, amr_ncycle));
+            if (cur_time < end_time)
+                dt_new = std::min(dt_new, subcycle_advance(cur_time, cur_dt, amr_iteration, amr_ncycle));
+
+        }
 
     }
 
