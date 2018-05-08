@@ -1,3 +1,9 @@
+changes since last release
+
+  -- The new multilevel multigrid solvers (MLMG) in the AMReX
+     framework are now the default for self-gravity and constructing
+     the operator for explicit diffusion.
+
 # 18.05
 
   -- Gamma_1 is now a derived variable
