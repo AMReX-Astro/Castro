@@ -6,8 +6,8 @@ stop_time =  3.0
 geometry.is_periodic = 0       0
 geometry.coord_sys   = 1                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0       0
-geometry.prob_hi     = 76800     23040
-amr.n_cell           = 320       96
+geometry.prob_hi     = 8.192e4     2.048e4
+amr.n_cell           = 256         64
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -41,7 +41,7 @@ castro.grav_source_type = 2
 castro.allow_negative_energy = 0
 
 gravity.gravity_type = ConstantGrav
-gravity.const_grav   = -2.0e14
+gravity.const_grav   = -1.5e14
 
 castro.rotational_period = 0.0005
 castro.rotation_include_centrifugal = 0
@@ -77,7 +77,7 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
 amr.check_file      = chk        # root name of checkpoint file
-amr.check_int       = 400        # number of timesteps between checkpoints
+amr.check_int       = 500        # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file        = plt        # root name of plotfile
@@ -85,4 +85,4 @@ amr.plot_per         = 5.e-5      # number of seconds between plotfiles
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
-amr.probin_file = probin.boost.base
+amr.probin_file = probin.boost

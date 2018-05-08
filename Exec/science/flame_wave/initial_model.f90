@@ -275,6 +275,7 @@ contains
 
           entropy_base = eos_state % s
 
+          print *, "base density = ", eos_state % rho, eos_state % T
        endif
 
        delx = gen_model_r(i,model_num) - gen_model_r(i-1,model_num)
