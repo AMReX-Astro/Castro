@@ -225,5 +225,67 @@ contains
 
   end subroutine ca_radfill
 #endif
-  
+
+#ifdef MHD
+  subroutine ca_face_fillx(var, var_lo, var_hi, domlo, domhi, delta, xlo, time, bc) &
+                        bind(C, name="ca_face_fillx")
+    use amrex_fort_module, only : rt => amrex_real
+    use fc_fill_module
+
+    implicit none
+
+    integer,  intent(in   ) :: var_lo(3), var_hi(3)
+    integer,  intent(in   ) :: bc(dim,2,*)
+    integer,  intent(in   ) :: domlo(3), domhi(3)
+    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    real(rt), intent(inout) :: var(var_lo(1):var_hi(1), var_lo(2):var_hi(2), var_lo(3):var_hi(3))
+    integer dir
+
+    dir = 1
+
+    call filfc(var,var_lo(1),var_lo(2),var_lo(3),var_hi(1),var_hi(2),var_hi(3),domlo,domhi,delta,xlo,bc,dir)
+
+  end subroutine ca_face_fillx
+
+  subroutine ca_face_filly(var, var_lo, var_hi, domlo, domhi, delta, xlo, time, bc) &
+                        bind(C, name="ca_face_filly")
+    use amrex_fort_module, only : rt => amrex_real
+    use fc_fill_module
+
+    implicit none
+
+    integer,  intent(in   ) :: var_lo(3), var_hi(3)
+    integer,  intent(in   ) :: bc(dim,2,*)
+    integer,  intent(in   ) :: domlo(3), domhi(3)
+    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    real(rt), intent(inout) :: var(var_lo(1):var_hi(1), var_lo(2):var_hi(2), var_lo(3):var_hi(3))
+    integer dir
+
+    dir = 2
+
+    call filfc(var,var_lo(1),var_lo(2),var_lo(3),var_hi(1),var_hi(2),var_hi(3),domlo,domhi,delta,xlo,bc,dir)
+
+  end subroutine ca_face_filly
+
+  subroutine ca_face_fillz(var, var_lo, var_hi, domlo, domhi, delta, xlo, time, bc) &
+                        bind(C, name="ca_face_fillz")
+    use amrex_fort_module, only : rt => amrex_real
+    use fc_fill_module
+
+    implicit none
+
+    integer,  intent(in   ) :: var_lo(3), var_hi(3)
+    integer,  intent(in   ) :: bc(dim,2,*)
+    integer,  intent(in   ) :: domlo(3), domhi(3)
+    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    real(rt), intent(inout) :: var(var_lo(1):var_hi(1), var_lo(2):var_hi(2), var_lo(3):var_hi(3))
+    integer dir
+
+    dir = 3
+
+    call filfc(var,var_lo(1),var_lo(2),var_lo(3),var_hi(1),var_hi(2),var_hi(3),domlo,domhi,delta,xlo,bc,dir)
+
+  end subroutine ca_face_fillz
+#endif
+
 end module bc_fill_module
