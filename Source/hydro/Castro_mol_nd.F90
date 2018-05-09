@@ -32,7 +32,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
                                vol, vol_lo, vol_hi, &
                                verbose) bind(C, name="ca_mol_single_stage")
 
-  use mempool_module, only : bl_allocate, bl_deallocate
+  use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
   use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, GDPRES, &
                                  UTEMP, UEINT, USHK, GDU, GDV, GDW, UMX, &
                                  use_flattening, QPRES, NQAUX, &
@@ -41,7 +41,8 @@ subroutine ca_mol_single_stage(lo, hi, time, &
                                  limit_fluxes_on_small_dens, ppm_type, ppm_temp_fix
   use advection_util_module, only : limit_hydro_fluxes_on_small_dens, shock, &
                                     divu, normalize_species_fluxes, calc_pdivu
-  use bl_constants_module, only : ZERO, HALF, ONE, FOURTH
+  use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
+  use amrex_error_module
   use flatten_module, only: uflatten
   use riemann_module, only: cmpflx
   use ppm_module, only : ppm_reconstruct
@@ -158,51 +159,51 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   shk_lo(:) = lo(:) - dg(:)
   shk_hi(:) = hi(:) + dg(:)
 
-  call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+dg(2), lo(3), hi(3)+dg(3))
+  call amrex_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+dg(2), lo(3), hi(3)+dg(3))
 
-  call bl_allocate(q1, flux1_lo, flux1_hi, NGDNV)
+  call amrex_allocate(q1, flux1_lo, flux1_hi, NGDNV)
 #if BL_SPACEDIM >= 2
-  call bl_allocate(q2, flux2_lo, flux2_hi, NGDNV)
+  call amrex_allocate(q2, flux2_lo, flux2_hi, NGDNV)
 #endif
 #if BL_SPACEDIM == 3
-  call bl_allocate(q3, flux3_lo, flux3_hi, NGDNV)
+  call amrex_allocate(q3, flux3_lo, flux3_hi, NGDNV)
 #endif
 
 #ifdef RADIATION
   ! when we do radiation, these would be passed out
-  call bl_allocate(rflx, flux1_lo, flux1_hi, ngroups)
+  call amrex_allocate(rflx, flux1_lo, flux1_hi, ngroups)
 #if BL_SPACEDIM >= 2
-  call bl_allocate(rfly, flux2_lo, flux2_hi, ngroups)
+  call amrex_allocate(rfly, flux2_lo, flux2_hi, ngroups)
 #endif
 #if BL_SPACEDIM == 3
-  call bl_allocate(rflz, flux3_lo, flux3_hi, ngroups)
+  call amrex_allocate(rflz, flux3_lo, flux3_hi, ngroups)
 #endif
 #endif
 
-  call bl_allocate(sxm, st_lo, st_hi)
-  call bl_allocate(sxp, st_lo, st_hi)
-  call bl_allocate(qxm, It_lo, It_hi, NQ)
-  call bl_allocate(qxp, It_lo, It_hi, NQ)
+  call amrex_allocate(sxm, st_lo, st_hi)
+  call amrex_allocate(sxp, st_lo, st_hi)
+  call amrex_allocate(qxm, It_lo, It_hi, NQ)
+  call amrex_allocate(qxp, It_lo, It_hi, NQ)
 
 #if BL_SPACEDIM >= 2
-  call bl_allocate(sym, st_lo, st_hi)
-  call bl_allocate(syp, st_lo, st_hi)
-  call bl_allocate(qym, It_lo, It_hi, NQ)
-  call bl_allocate(qyp, It_lo, It_hi, NQ)
+  call amrex_allocate(sym, st_lo, st_hi)
+  call amrex_allocate(syp, st_lo, st_hi)
+  call amrex_allocate(qym, It_lo, It_hi, NQ)
+  call amrex_allocate(qyp, It_lo, It_hi, NQ)
 #endif
 #if BL_SPACEDIM == 3
-  call bl_allocate(szm, st_lo, st_hi)
-  call bl_allocate(szp, st_lo, st_hi)
-  call bl_allocate(qzm, It_lo, It_hi, NQ)
-  call bl_allocate(qzp, It_lo, It_hi, NQ)
+  call amrex_allocate(szm, st_lo, st_hi)
+  call amrex_allocate(szp, st_lo, st_hi)
+  call amrex_allocate(qzm, It_lo, It_hi, NQ)
+  call amrex_allocate(qzp, It_lo, It_hi, NQ)
 #endif
 
-  call bl_allocate(qint, It_lo, It_hi, NGDNV)
+  call amrex_allocate(qint, It_lo, It_hi, NGDNV)
 
-  call bl_allocate(shk, shk_lo, shk_hi)
+  call amrex_allocate(shk, shk_lo, shk_hi)
 
   if (ppm_type == 0) then
-     call bl_error("ERROR: method of lines integration does not support ppm_type = 0")
+     call amrex_error("ERROR: method of lines integration does not support ppm_type = 0")
   endif
   
 #ifdef SHOCK_VAR
@@ -236,7 +237,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #endif
 
   ! Compute flattening coefficient for slope calculations.
-  call bl_allocate(flatn, q_lo, q_hi)
+  call amrex_allocate(flatn, q_lo, q_hi)
 
   if (first_order_hydro == 1) then
      flatn = ZERO
@@ -474,29 +475,29 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   enddo
 
-  call bl_deallocate(flatn)
+  call amrex_deallocate(flatn)
 
-  call bl_deallocate(sxm)
-  call bl_deallocate(sxp)
-  call bl_deallocate(qxm)
-  call bl_deallocate(qxp)
+  call amrex_deallocate(sxm)
+  call amrex_deallocate(sxp)
+  call amrex_deallocate(qxm)
+  call amrex_deallocate(qxp)
 
 #if BL_SPACEDIM >= 2
-  call bl_deallocate(sym)
-  call bl_deallocate(syp)
-  call bl_deallocate(qym)
-  call bl_deallocate(qyp)
+  call amrex_deallocate(sym)
+  call amrex_deallocate(syp)
+  call amrex_deallocate(qym)
+  call amrex_deallocate(qyp)
 #endif
 
 #if BL_SPACEDIM == 3
-  call bl_deallocate(szm)
-  call bl_deallocate(szp)
-  call bl_deallocate(qzm)
-  call bl_deallocate(qzp)
+  call amrex_deallocate(szm)
+  call amrex_deallocate(szp)
+  call amrex_deallocate(qzm)
+  call amrex_deallocate(qzp)
 #endif
 
-  call bl_deallocate(qint)
-  call bl_deallocate(shk)
+  call amrex_deallocate(qint)
+  call amrex_deallocate(shk)
 
 
   ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
@@ -710,23 +711,23 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   end if
 #endif
 
-  call bl_deallocate(   div)
+  call amrex_deallocate(   div)
 
-  call bl_deallocate(q1)
+  call amrex_deallocate(q1)
 #if BL_SPACEDIM >= 2
-  call bl_deallocate(q2)
+  call amrex_deallocate(q2)
 #endif
 #if BL_SPACEDIM == 3
-  call bl_deallocate(q3)
+  call amrex_deallocate(q3)
 #endif
 
 #ifdef RADIATION
-  call bl_deallocate(rflx)
+  call amrex_deallocate(rflx)
 #if BL_SPACEDIM >= 2
-  call bl_deallocate(rfly)
+  call amrex_deallocate(rfly)
 #endif
 #if BL_SPACEDIM == 3
-  call bl_deallocate(rflz)
+  call amrex_deallocate(rflz)
 #endif
 #endif
 

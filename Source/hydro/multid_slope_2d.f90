@@ -19,7 +19,7 @@ contains
                           dx, dy, &
                           ilo, jlo, ihi, jhi)
 
-    use bl_constants_module
+    use amrex_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none

@@ -4,7 +4,8 @@ module ppm_module
   ! this does the parabolic reconstruction on a variable and the (optional)
   ! integration under the characteristic domain of the parabola
 
-  use bl_constants_module
+  use amrex_constants_module
+  use amrex_error_module
   use prob_params_module, only : dg
 
   use amrex_fort_module, only : rt => amrex_real
@@ -116,7 +117,7 @@ contains
                        sd_lo, sd_hi, &
                        ilo1, ilo2, ihi1, ihi2, dx, k3d, kc)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
     use meth_params_module, only : ppm_type
 
     use amrex_fort_module, only : rt => amrex_real
@@ -159,23 +160,23 @@ contains
     real(rt)        , pointer :: sedge(:,:)
 
     if (ppm_type .ne. 1) &
-         call bl_error("Should have ppm_type = 1 in ppm_type1")
+         call amrex_error("Should have ppm_type = 1 in ppm_type1")
 
     if (s_lo(1) .gt. ilo1-3 .or. s_hi(1) .lt. ihi1+3) then 
-         call bl_error("Need more ghost cells on array in ppm_type1")
+         call amrex_error("Need more ghost cells on array in ppm_type1")
     end if
 
 #if (BL_SPACEDIM >= 2)
     if (s_lo(2) .gt. ilo2-3 .or. s_hi(2) .lt. ihi2+3) then
-         call bl_error("Need more ghost cells on array in ppm_type1")
+         call amrex_error("Need more ghost cells on array in ppm_type1")
     end if
 #endif
 
     ! cell-centered indexing w/extra ghost cell
-    call bl_allocate(dsvl, ilo1-2, ihi1+2, ilo2-2*dg(2), ihi2+2*dg(2))
+    call amrex_allocate(dsvl, ilo1-2, ihi1+2, ilo2-2*dg(2), ihi2+2*dg(2))
 
     ! edge-centered indexing
-    call bl_allocate(sedge, ilo1-1, ihi1+2, ilo2-dg(2), ihi2+2*dg(2))
+    call amrex_allocate(sedge, ilo1-1, ihi1+2, ilo2-dg(2), ihi2+2*dg(2))
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! x-direction
@@ -400,8 +401,8 @@ contains
     end do
 #endif
 
-    call bl_deallocate(dsvl)
-    call bl_deallocate(sedge)
+    call amrex_deallocate(dsvl)
+    call amrex_deallocate(sedge)
 
   end subroutine ppm_type1
 
@@ -421,9 +422,9 @@ contains
                        sd_lo, sd_hi, &
                        ilo1, ilo2, ihi1, ihi2, dx, k3d, kc)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
     use meth_params_module, only : ppm_type
-    use bl_constants_module
+    use amrex_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -474,21 +475,21 @@ contains
     real(rt), parameter :: SMALL = 1.e-10_rt
 
     if (ppm_type .ne. 2) &
-         call bl_error("Should have ppm_type = 2 in ppm_type2")
+         call amrex_error("Should have ppm_type = 2 in ppm_type2")
 
     if (s_lo(1) .gt. ilo1-3 .or. s_hi(1) .lt. ihi1+3) then 
-         call bl_error("Need more ghost cells on array in ppm_type1")
+         call amrex_error("Need more ghost cells on array in ppm_type1")
     end if
 
 #if (BL_SPACEDIM >= 2)
     if (s_lo(2) .gt. ilo2-3 .or. s_hi(2) .lt. ihi2+3) then
-         call bl_error("Need more ghost cells on array in ppm_type1")
+         call amrex_error("Need more ghost cells on array in ppm_type1")
     end if
 #endif
 
     ! edge-centered indexing
-    call bl_allocate(sedge, ilo1-2, ihi1+3, ilo2-2*dg(2), ihi2+3*dg(2))
-    call bl_allocate(sedgez,ilo1-1, ihi1+1, ilo2-dg(2), ihi2+dg(2), k3d-dg(2),k3d+2*dg(2))
+    call amrex_allocate(sedge, ilo1-2, ihi1+3, ilo2-2*dg(2), ihi2+3*dg(2))
+    call amrex_allocate(sedgez,ilo1-1, ihi1+1, ilo2-dg(2), ihi2+dg(2), k3d-dg(2),k3d+2*dg(2))
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! x-direction
@@ -835,8 +836,8 @@ contains
     end do
 #endif
 
-    call bl_deallocate(sedge)
-    call bl_deallocate(sedgez)
+    call amrex_deallocate(sedge)
+    call amrex_deallocate(sedgez)
 
   end subroutine ppm_type2
 
