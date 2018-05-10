@@ -16,7 +16,6 @@ subroutine ca_advance_mhd(time, lo, hi, &
                           ugdnvy, ugdnvy_lo, ugdnvy_hi, &
                           ugdnvz, ugdnvz_lo, ugdnvz_hi, &
                           src, src_lo, src_hi, &
-                          grav, gv_lo, gv_hi, &
                           delta, dt, &
                           flux1, flux1_lo, flux1_hi, &
                           flux2, flux2_lo, flux2_hi, &
@@ -53,7 +52,6 @@ subroutine ca_advance_mhd(time, lo, hi, &
   integer , intent(in   ) :: ugdnvy_lo(3), ugdnvy_hi(3)
   integer , intent(in   ) :: ugdnvz_lo(3), ugdnvz_hi(3)
   integer , intent(in   ) :: src_lo(3), src_hi(3)
-  integer , intent(in   ) :: gv_lo(3), gv_hi(3)
   integer , intent(in   ) :: flux1_lo(3), flux1_hi(3)
   integer , intent(in   ) :: flux2_lo(3), flux2_hi(3)
   integer , intent(in   ) :: flux3_lo(3), flux3_hi(3)
@@ -77,7 +75,6 @@ subroutine ca_advance_mhd(time, lo, hi, &
   real(rt), intent(in   ) :: ugdnvz(ugdnvz_lo(1):ugdnvz_hi(1), ugdnvz_lo(2):ugdnvz_hi(2), ugdnvz_lo(3):ugdnvz_hi(3))
 
   real(rt), intent(in   ) :: src(src_lo(1):src_hi(1), src_lo(2):src_hi(2), src_lo(3):src_hi(3), NVAR)
-  real(rt), intent(in   ) :: grav(gv_lo(1):gv_hi(1), gv_lo(2):gv_hi(2), gv_lo(3):gv_hi(3),3)
 
   real(rt), intent(inout) :: flux1(flux1_lo(1):flux1_hi(1), flux1_lo(2):flux1_hi(2), flux1_lo(3):flux1_hi(3), NVAR)
   real(rt), intent(inout) :: flux2(flux2_lo(1):flux2_hi(1), flux2_lo(2):flux2_hi(2), flux2_lo(3):flux2_hi(3), NVAR)
@@ -220,7 +217,6 @@ subroutine ca_advance_mhd(time, lo, hi, &
                q , cx,cy,cz , csml, flatn,  q_l1,  q_l2,  q_l3,  q_h1,  q_h2,  q_h3, &
                src,  src_lo, src_hi, &
                srcQ, srcq_l1,srcq_l2,srcq_l3,srcq_h1,srcq_h2,srcq_h3, &
-               grav,gv_lo, gv_hi, &
                courno,dx,dy,dz,dt,ngq,ngf)
 
 
@@ -344,13 +340,6 @@ subroutine ca_advance_mhd(time, lo, hi, &
 !                               bzout, bzout_lo, bzout_hi, &
 !                               lo,hi,print_fortran_warnings)
 
-  if (do_grav .gt. 0)  then
-     call add_grav_source(uin,uin_lo, uin_hi, &
-                          uout,uout_lo, uout_hi, &
-                          grav, gv_lo, gv_hi, &
-                          lo,hi,dx,dy,dz,dt,e_added,ke_added)
-  endif
-
 
 
 end subroutine ca_advance_mhd
@@ -369,7 +358,6 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
                    q,cx, cy, cz,csml,flatn,  q_l1,  q_l2,  q_l3,  q_h1,  q_h2,  q_h3, &
                    src,  src_lo, src_hi, &
                    srcQ,srcq_l1,srcq_l2,srcq_l3,srcq_h1,srcq_h2,srcq_h3, &
-                   grav,gv_lo, gv_hi, &
                    courno,dx,dy,dz,dt,ngp,ngf)
   !
   !     Will give primitive variables on lo-ngp:hi+ngp, and flatn on lo-ngf:hi+ngf
@@ -405,7 +393,6 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
   integer bzin_lo(3), bzin_hi(3)
   integer    q_l1,   q_l2,   q_l3,   q_h1,   q_h2,   q_h3
   integer bcc_l1, bcc_l2, bcc_l3, bcc_h1, bcc_h2, bcc_h3
-  integer   gv_lo(3),  gv_hi(3)
   integer  src_lo(3),  src_hi(3)
   integer srcq_l1,srcq_l2,srcq_l3,srcq_h1,srcq_h2,srcq_h3
 
@@ -423,7 +410,6 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
   real(rt) :: flatn(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
   real(rt) :: src( src_lo(1): src_hi(1), src_lo(2): src_hi(2), src_lo(3): src_hi(3),NVAR)
   real(rt) :: srcQ(srcq_l1:srcq_h1,srcq_l2:srcq_h2,srcq_l3:srcq_h3,QVAR)
-  real(rt) :: grav( gv_lo(1): gv_hi(1), gv_lo(2): gv_hi(2), gv_lo(3): gv_hi(3),3)
   real(rt) :: dx, dy, dz, dt, courno
   real(rt) :: dpdr, dpde
 

@@ -887,7 +887,6 @@ extern "C"
             const BL_FORT_FAB_ARG_3D(ugdnvy),
             const BL_FORT_FAB_ARG_3D(ugdnvz)),
      const BL_FORT_FAB_ARG_3D(src),
-     const BL_FORT_FAB_ARG_3D(grav),
      const amrex::Real dx[], const amrex::Real* dt,
      D_DECL(BL_FORT_FAB_ARG_3D(xflux),
             BL_FORT_FAB_ARG_3D(yflux),

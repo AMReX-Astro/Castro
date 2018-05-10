@@ -11,8 +11,6 @@ Castro::just_the_mhd(Real time, Real dt)
 
       hydro_source.setVal(0.0);
 
-      AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
-
       const int finest_level = parent->finestLevel();
 
       const Real *dx = geom.CellSize();
@@ -23,9 +21,6 @@ Castro::just_the_mhd(Real time, Real dt)
       MultiFab& By_new= get_new_data(Mag_Type_y);
       MultiFab& Bz_new= get_new_data(Mag_Type_z);
 
-
-      MultiFab grav_vector(grids, dmap, BL_SPACEDIM, 3);
-      grav_vector.setVal(0.);
 
       MultiFab fluxes[BL_SPACEDIM];
       MultiFab electric[BL_SPACEDIM];
@@ -103,7 +98,6 @@ Castro::just_the_mhd(Real time, Real dt)
              BL_TO_FORTRAN_3D(u_gdnv[1]),
              BL_TO_FORTRAN_3D(u_gdnv[2]),
              BL_TO_FORTRAN_3D(sources_for_hydro[mfi]),
-             BL_TO_FORTRAN_3D(grav_vector[mfi]),
              dx, &dt,
              D_DECL(BL_TO_FORTRAN_3D(flux[0]),
              BL_TO_FORTRAN_3D(flux[1]),
