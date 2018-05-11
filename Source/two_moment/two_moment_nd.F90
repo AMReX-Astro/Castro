@@ -5,14 +5,11 @@
                               n_rad_dof, n_moments) &
                               bind(C, name="call_to_thornado")
 
-    use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : URHO,UMX,UMY,UMZ,UEINT,UEDEN,UFX
-    use FluidFieldsModule, only : uCF, iCF_D, iCF_S1, iCF_S2, iCF_S3, iCF_E, iCF_Ne, nCF
+    use FluidFieldsModule, only : uCF, iCF_D, iCF_S1, iCF_S2, iCF_S3, iCF_E, iCF_Ne
     use RadiationFieldsModule, only : uCR
-    use ProgramHeaderModule, only : iZ_B0, iZ_B1, iZ_E0, iZ_E1
-    use ProgramHeaderModule, only : iZ_B0, iZ_B1, iZ_E0, iZ_E1
-    use TimeSteppingModule_Castro , only : update_IMEX_PC2
+    use TimeSteppingModule_Castro, only : Update_IMEX_PC2
 
     implicit none
     integer, intent(in) :: lo(3), hi(3)
@@ -38,11 +35,8 @@
     integer  :: ii,id,ie,im,is
     integer  :: ng
 
-    real(rt), pointer :: dU_F_thor(:,:,:,:,:)
-
     ! Sanity check on size of arrays
     ! Note that we have set ngrow_thornado = ngrow_state in Castro_setup.cpp
-    !! KS: do we want a sanity check against uCF and uCR too?
     if (U_R_lo(1) .ne. S_lo(1) .or.  U_R_hi(1) .ne. S_hi(1) .or. &
         U_R_lo(2) .ne. S_lo(2) .or.  U_R_hi(2) .ne. S_hi(2) .or. &
         U_R_lo(3) .ne. S_lo(3) .or.  U_R_hi(3) .ne. S_hi(3)) then
@@ -53,7 +47,6 @@
 
     !! KS: Do the corner ghost cells get passed too?
     ng = 2 ! 2 ghost zones for both fluid and radiation
-    call amrex_allocate(dU_F_thor, 1, n_fluid_dof, lo(1)-ng, hi(1)+ng, lo(2)-ng, hi(2)+ng, lo(3)-ng, hi(3)+ng, 1, nCF)
 
     ! ************************************************************************************
     ! Copy from the Castro arrays into thornado arrays from InitThornado_Patch
@@ -88,7 +81,7 @@
     ! ************************************************************************************
     ! Call the Fortran interface that lives in the thornado repo
     ! ************************************************************************************
-    call update_IMEX_PC2(dt, uCF, uCR)
+    call Update_IMEX_PC2(dt, uCF, uCR)
 
     ! ************************************************************************************
     ! Copy back from the thornado arrays into Castro arrays
@@ -100,17 +93,16 @@
          !! KS: need unit conversion from thornado variables to castro variables
          !! KS: if we fill UEINT, need the final fluid state from ComputeIncrement; is that uCF at this point?
          ! We store dS as a source term which we can add to S outside of this routine
-         ! dU_F_thor returned from ComputeIncrement has dt divided out,
-         !  so it needs to be multiplied by dt to have the right units
-         ! dU_F_thor returned as a cell-averaged quantity so all components are the same,
+         ! uCF returned as a cell-averaged quantity so all components are the same,
          !  can just use the first component
-         ! dS(i,j,k,URHO ) = dU_F_thor(1,i,j,k,iCF_D)*dt
-         ! dS(i,j,k,UMX  ) = dU_F_thor(1,i,j,k,iCF_S1)*dt
-         ! dS(i,j,k,UMY  ) = dU_F_thor(1,i,j,k,iCF_S2)*dt
-         ! dS(i,j,k,UMZ  ) = dU_F_thor(1,i,j,k,iCF_S3)*dt
-         ! dS(i,j,k,UEDEN) = dU_F_thor(1,i,j,k,iCF_E)*dt
-         !  dS(i,j,k,UEINT) = ?
-         ! dS(i,j,k,UFX  ) = dU_F_thor(1,i,j,k,iCF_Ne)*dt
+         ! Update_IMEX_PC2 doesn't currently change the fluid state
+!         dS(i,j,k,URHO ) = uCF(1,i,j,k,iCF_D) - S(i,j,k,URHO)
+!         dS(i,j,k,UMX  ) = uCF(1,i,j,k,iCF_S1) - S(i,j,k,UMX)
+!         dS(i,j,k,UMY  ) = uCF(1,i,j,k,iCF_S2) - S(i,j,k,UMY)
+!         dS(i,j,k,UMZ  ) = uCF(1,i,j,k,iCF_S3) - S(i,j,k,UMZ)
+!         dS(i,j,k,UEDEN) = uCF(1,i,j,k,iCF_E) - S(i,j,k,UEDEN)
+!         dS(i,j,k,UEINT) = ?
+!         dS(i,j,k,UFX  ) = uCF(1,i,j,k,iCF_Ne) - S(i,j,k,UFX)
 
          do is = 1, n_species
          do im = 1, n_moments
@@ -126,7 +118,5 @@
     end do
     end do
     end do
-
-    call amrex_deallocate(dU_F_thor)
 
   end subroutine call_to_thornado
