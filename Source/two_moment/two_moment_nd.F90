@@ -5,14 +5,14 @@
                               n_rad_dof, n_moments) &
                               bind(C, name="call_to_thornado")
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : URHO,UMX,UMY,UMZ,UEINT,UEDEN,UFX
-    use GeometryFieldsModuleE, only : uGE
-    use GeometryFieldsModule, only : uGF
     use FluidFieldsModule, only : uCF, iCF_D, iCF_S1, iCF_S2, iCF_S3, iCF_E, iCF_Ne, nCF
     use RadiationFieldsModule, only : uCR
     use ProgramHeaderModule, only : iZ_B0, iZ_B1, iZ_E0, iZ_E1
+    use ProgramHeaderModule, only : iZ_B0, iZ_B1, iZ_E0, iZ_E1
+    use TimeSteppingModule_Castro , only : update_IMEX_PC2
 
     implicit none
     integer, intent(in) :: lo(3), hi(3)
@@ -53,7 +53,7 @@
 
     !! KS: Do the corner ghost cells get passed too?
     ng = 2 ! 2 ghost zones for both fluid and radiation
-    call bl_allocate(dU_F_thor, 1, n_fluid_dof, lo(1)-ng, hi(1)+ng, lo(2)-ng, hi(2)+ng, lo(3)-ng, hi(3)+ng, 1, nCF)
+    call amrex_allocate(dU_F_thor, 1, n_fluid_dof, lo(1)-ng, hi(1)+ng, lo(2)-ng, hi(2)+ng, lo(3)-ng, hi(3)+ng, 1, nCF)
 
     ! ************************************************************************************
     ! Copy from the Castro arrays into thornado arrays from InitThornado_Patch
@@ -88,9 +88,7 @@
     ! ************************************************************************************
     ! Call the Fortran interface that lives in the thornado repo
     ! ************************************************************************************
-    ! call ComputeIncrement(iZ_B0, iZ_E0, iZ_B1, iZ_E1, &
-    !                       uGFE, uGF, &
-    !                       uCF, uCR, dU_F_thor)
+    call update_IMEX_PC2(dt, uCF, uCR)
 
     ! ************************************************************************************
     ! Copy back from the thornado arrays into Castro arrays
@@ -99,7 +97,6 @@
     do j = lo(2),hi(2)
     do i = lo(1),hi(1)
 
-
          !! KS: need unit conversion from thornado variables to castro variables
          !! KS: if we fill UEINT, need the final fluid state from ComputeIncrement; is that uCF at this point?
          ! We store dS as a source term which we can add to S outside of this routine
@@ -107,13 +104,13 @@
          !  so it needs to be multiplied by dt to have the right units
          ! dU_F_thor returned as a cell-averaged quantity so all components are the same,
          !  can just use the first component
-         dS(i,j,k,URHO ) = dU_F_thor(1,i,j,k,iCF_D)*dt
-         dS(i,j,k,UMX  ) = dU_F_thor(1,i,j,k,iCF_S1)*dt
-         dS(i,j,k,UMY  ) = dU_F_thor(1,i,j,k,iCF_S2)*dt
-         dS(i,j,k,UMZ  ) = dU_F_thor(1,i,j,k,iCF_S3)*dt
-         dS(i,j,k,UEDEN) = dU_F_thor(1,i,j,k,iCF_E)*dt
-!         dS(i,j,k,UEINT) = ?
-         dS(i,j,k,UFX  ) = dU_F_thor(1,i,j,k,iCF_Ne)*dt
+         ! dS(i,j,k,URHO ) = dU_F_thor(1,i,j,k,iCF_D)*dt
+         ! dS(i,j,k,UMX  ) = dU_F_thor(1,i,j,k,iCF_S1)*dt
+         ! dS(i,j,k,UMY  ) = dU_F_thor(1,i,j,k,iCF_S2)*dt
+         ! dS(i,j,k,UMZ  ) = dU_F_thor(1,i,j,k,iCF_S3)*dt
+         ! dS(i,j,k,UEDEN) = dU_F_thor(1,i,j,k,iCF_E)*dt
+         !  dS(i,j,k,UEINT) = ?
+         ! dS(i,j,k,UFX  ) = dU_F_thor(1,i,j,k,iCF_Ne)*dt
 
          do is = 1, n_species
          do im = 1, n_moments
@@ -130,6 +127,6 @@
     end do
     end do
 
-    call bl_deallocate(dU_F_thor)
+    call amrex_deallocate(dU_F_thor)
 
   end subroutine call_to_thornado

@@ -1,6 +1,6 @@
 module ctu_advection_module
 
-  use bl_constants_module
+  use amrex_constants_module
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -53,7 +53,7 @@ contains
                    vol, vol_lo, vol_hi, &
                    domlo, domhi)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
     use meth_params_module, only : QVAR, NQ, NVAR, QPRES, QRHO, QU, QW, &
                                    QFS, QFX, QTEMP, QREINT, &
                                    QC, QGAMC, NQAUX, &
@@ -71,7 +71,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use riemann_module, only: cmpflx
-    use bl_constants_module
+    use amrex_constants_module
 #ifdef RADIATION
     use rad_params_module, only : ngroups
     use trace_ppm_rad_module, only : tracexy_ppm_rad, tracez_ppm_rad
@@ -212,98 +212,98 @@ contains
     fz_lo = [lo(1) - 1, lo(2) - 1, 1]
     fz_hi = [hi(1) + 1, hi(2) + 1, 2]
 
-    call bl_allocate (     qgdnvx, qt_lo, qt_hi, NGDNV)
-    call bl_allocate (    qgdnvxf, qt_lo, qt_hi, NGDNV)
-    call bl_allocate (  qgdnvtmpx, qt_lo, qt_hi, NGDNV)
+    call amrex_allocate (     qgdnvx, qt_lo, qt_hi, NGDNV)
+    call amrex_allocate (    qgdnvxf, qt_lo, qt_hi, NGDNV)
+    call amrex_allocate (  qgdnvtmpx, qt_lo, qt_hi, NGDNV)
 
-    call bl_allocate (     qgdnvy, qt_lo, qt_hi, NGDNV)
-    call bl_allocate (    qgdnvyf, qt_lo, qt_hi, NGDNV)
-    call bl_allocate (  qgdnvtmpy, qt_lo, qt_hi, NGDNV)
+    call amrex_allocate (     qgdnvy, qt_lo, qt_hi, NGDNV)
+    call amrex_allocate (    qgdnvyf, qt_lo, qt_hi, NGDNV)
+    call amrex_allocate (  qgdnvtmpy, qt_lo, qt_hi, NGDNV)
 
-    call bl_allocate (     qgdnvz, qt_lo, qt_hi, NGDNV)
-    call bl_allocate (    qgdnvzf, qt_lo, qt_hi, NGDNV)
-    call bl_allocate ( qgdnvtmpz1, qt_lo, qt_hi, NGDNV)
-    call bl_allocate ( qgdnvtmpz2, qt_lo, qt_hi, NGDNV)
+    call amrex_allocate (     qgdnvz, qt_lo, qt_hi, NGDNV)
+    call amrex_allocate (    qgdnvzf, qt_lo, qt_hi, NGDNV)
+    call amrex_allocate ( qgdnvtmpz1, qt_lo, qt_hi, NGDNV)
+    call amrex_allocate ( qgdnvtmpz2, qt_lo, qt_hi, NGDNV)
 
-    call bl_allocate ( qxm, qt_lo, qt_hi, NQ)
-    call bl_allocate ( qxp, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qxm, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qxp, qt_lo, qt_hi, NQ)
 
-    call bl_allocate ( qmxy, qt_lo, qt_hi, NQ)
-    call bl_allocate ( qpxy, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qmxy, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qpxy, qt_lo, qt_hi, NQ)
 
-    call bl_allocate ( qmxz, qt_lo, qt_hi, NQ)
-    call bl_allocate ( qpxz, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qmxz, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qpxz, qt_lo, qt_hi, NQ)
 
-    call bl_allocate ( qym, qt_lo, qt_hi, NQ)
-    call bl_allocate ( qyp, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qym, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qyp, qt_lo, qt_hi, NQ)
 
-    call bl_allocate ( qmyx, qt_lo, qt_hi, NQ)
-    call bl_allocate ( qpyx, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qmyx, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qpyx, qt_lo, qt_hi, NQ)
 
-    call bl_allocate ( qmyz, qt_lo, qt_hi, NQ)
-    call bl_allocate ( qpyz, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qmyz, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qpyz, qt_lo, qt_hi, NQ)
 
-    call bl_allocate ( qzm, qt_lo, qt_hi, NQ)
-    call bl_allocate ( qzp, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qzm, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qzp, qt_lo, qt_hi, NQ)
 
-    call bl_allocate ( qxl, qt_lo, qt_hi, NQ)
-    call bl_allocate ( qxr, qt_lo, qt_hi, NQ)
-    call bl_allocate ( qyl, qt_lo, qt_hi, NQ)
-    call bl_allocate ( qyr, qt_lo, qt_hi, NQ)
-    call bl_allocate ( qzl, qt_lo, qt_hi, NQ)
-    call bl_allocate ( qzr, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qxl, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qxr, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qyl, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qyr, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qzl, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qzr, qt_lo, qt_hi, NQ)
 
-    call bl_allocate ( qmzx, qt_lo, qt_hi, NQ)
-    call bl_allocate ( qpzx, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qmzx, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qpzx, qt_lo, qt_hi, NQ)
 
-    call bl_allocate ( qmzy, qt_lo, qt_hi, NQ)
-    call bl_allocate ( qpzy, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qmzy, qt_lo, qt_hi, NQ)
+    call amrex_allocate ( qpzy, qt_lo, qt_hi, NQ)
 
-    call bl_allocate ( fx, fx_lo, fx_hi, NVAR)
-    call bl_allocate ( fy, fy_lo, fy_hi, NVAR)
-    call bl_allocate ( fz, fz_lo, fz_hi, NVAR)
+    call amrex_allocate ( fx, fx_lo, fx_hi, NVAR)
+    call amrex_allocate ( fy, fy_lo, fy_hi, NVAR)
+    call amrex_allocate ( fz, fz_lo, fz_hi, NVAR)
 
-    call bl_allocate ( fxy, fx_lo, fx_hi, NVAR)
-    call bl_allocate ( fxz, fx_lo, fx_hi, NVAR)
+    call amrex_allocate ( fxy, fx_lo, fx_hi, NVAR)
+    call amrex_allocate ( fxz, fx_lo, fx_hi, NVAR)
 
-    call bl_allocate ( fyx, fy_lo, fy_hi, NVAR)
-    call bl_allocate ( fyz, fy_lo, fy_hi, NVAR)
+    call amrex_allocate ( fyx, fy_lo, fy_hi, NVAR)
+    call amrex_allocate ( fyz, fy_lo, fy_hi, NVAR)
 
-    call bl_allocate ( fzx, fz_lo, fz_hi, NVAR)
-    call bl_allocate ( fzy, fz_lo, fz_hi, NVAR)
+    call amrex_allocate ( fzx, fz_lo, fz_hi, NVAR)
+    call amrex_allocate ( fzy, fz_lo, fz_hi, NVAR)
 
 #ifdef RADIATION
-    call bl_allocate (rfx, fx_lo(1), fx_hi(1), fx_lo(2), fx_hi(2), fx_lo(3), fx_hi(3), 0, ngroups-1)
-    call bl_allocate (rfy, fy_lo(1), fy_hi(1), fy_lo(2), fy_hi(2), fy_lo(3), fy_hi(3), 0, ngroups-1)
-    call bl_allocate (rfz, fz_lo(1), fz_hi(1), fz_lo(2), fz_hi(2), fz_lo(3), fz_hi(3), 0, ngroups-1)
-    call bl_allocate (rfxy, fx_lo(1), fx_hi(1), fx_lo(2), fx_hi(2), fx_lo(3), fx_hi(3), 0, ngroups-1)
-    call bl_allocate (rfxz, fx_lo(1), fx_hi(1), fx_lo(2), fx_hi(2), fx_lo(3), fx_hi(3), 0, ngroups-1)
-    call bl_allocate (rfyx, fy_lo(1), fy_hi(1), fy_lo(2), fy_hi(2), fy_lo(3), fy_hi(3), 0, ngroups-1)
-    call bl_allocate (rfyz, fy_lo(1), fy_hi(1), fy_lo(2), fy_hi(2), fy_lo(3), fy_hi(3), 0, ngroups-1)
-    call bl_allocate (rfzx, fz_lo(1), fz_hi(1), fz_lo(2), fz_hi(2), fz_lo(3), fz_hi(3), 0, ngroups-1)
-    call bl_allocate (rfzy, fz_lo(1), fz_hi(1), fz_lo(2), fz_hi(2), fz_lo(3), fz_hi(3), 0, ngroups-1)
+    call amrex_allocate (rfx, fx_lo(1), fx_hi(1), fx_lo(2), fx_hi(2), fx_lo(3), fx_hi(3), 0, ngroups-1)
+    call amrex_allocate (rfy, fy_lo(1), fy_hi(1), fy_lo(2), fy_hi(2), fy_lo(3), fy_hi(3), 0, ngroups-1)
+    call amrex_allocate (rfz, fz_lo(1), fz_hi(1), fz_lo(2), fz_hi(2), fz_lo(3), fz_hi(3), 0, ngroups-1)
+    call amrex_allocate (rfxy, fx_lo(1), fx_hi(1), fx_lo(2), fx_hi(2), fx_lo(3), fx_hi(3), 0, ngroups-1)
+    call amrex_allocate (rfxz, fx_lo(1), fx_hi(1), fx_lo(2), fx_hi(2), fx_lo(3), fx_hi(3), 0, ngroups-1)
+    call amrex_allocate (rfyx, fy_lo(1), fy_hi(1), fy_lo(2), fy_hi(2), fy_lo(3), fy_hi(3), 0, ngroups-1)
+    call amrex_allocate (rfyz, fy_lo(1), fy_hi(1), fy_lo(2), fy_hi(2), fy_lo(3), fy_hi(3), 0, ngroups-1)
+    call amrex_allocate (rfzx, fz_lo(1), fz_hi(1), fz_lo(2), fz_hi(2), fz_lo(3), fz_hi(3), 0, ngroups-1)
+    call amrex_allocate (rfzy, fz_lo(1), fz_hi(1), fz_lo(2), fz_hi(2), fz_lo(3), fz_hi(3), 0, ngroups-1)
 #endif
 
     if (ppm_type .gt. 0) then
        ! x-index, y-index, z-index, dim, characteristics, variables
-       call bl_allocate ( Ip, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,NQ)
-       call bl_allocate ( Im, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,NQ)
+       call amrex_allocate ( Ip, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,NQ)
+       call amrex_allocate ( Im, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,NQ)
 
        ! for source terms
-       call bl_allocate ( Ip_src, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,NQ)
-       call bl_allocate ( Im_src, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,NQ)
+       call amrex_allocate ( Ip_src, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,NQ)
+       call amrex_allocate ( Im_src, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,NQ)
 
        ! for gamc -- needed for the reference state in eigenvectors
-       call bl_allocate ( Ip_gc, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,1)
-       call bl_allocate ( Im_gc, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,1)
+       call amrex_allocate ( Ip_gc, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,1)
+       call amrex_allocate ( Im_gc, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,1)
     else
-       call bl_allocate ( dqx, qt_lo, qt_hi, NQ)
-       call bl_allocate ( dqy, qt_lo, qt_hi, NQ)
-       call bl_allocate ( dqz, qt_lo, qt_hi, NQ)
+       call amrex_allocate ( dqx, qt_lo, qt_hi, NQ)
+       call amrex_allocate ( dqy, qt_lo, qt_hi, NQ)
+       call amrex_allocate ( dqz, qt_lo, qt_hi, NQ)
     end if
 
     ! for the hybrid Riemann solver
-    call bl_allocate(shk, shk_lo, shk_hi)
+    call amrex_allocate(shk, shk_lo, shk_hi)
 
     ! Local constants
     dxinv = ONE/dx(1)
@@ -369,12 +369,12 @@ contains
     km = 2
 
 
-    call bl_allocate(sxm, It_lo, It_hi)
-    call bl_allocate(sxp, It_lo, It_hi)
-    call bl_allocate(sym, It_lo, It_hi)
-    call bl_allocate(syp, It_lo, It_hi)
-    call bl_allocate(szm, It_lo, It_hi)
-    call bl_allocate(szp, It_lo, It_hi)
+    call amrex_allocate(sxm, It_lo, It_hi)
+    call amrex_allocate(sxp, It_lo, It_hi)
+    call amrex_allocate(sym, It_lo, It_hi)
+    call amrex_allocate(syp, It_lo, It_hi)
+    call amrex_allocate(szm, It_lo, It_hi)
+    call amrex_allocate(szp, It_lo, It_hi)
 
     do k3d = lo(3)-1, hi(3)+1
 
@@ -490,7 +490,7 @@ contains
        else
 
 #ifdef RADIATION
-          call bl_error("ppm_type <=0 is not supported in with radiation")
+          call amrex_error("ppm_type <=0 is not supported in with radiation")
 #endif
 
           ! Compute all slopes at kc (k3d)
@@ -810,104 +810,104 @@ contains
     enddo
 
     ! Deallocate arrays
-    call bl_deallocate(sxm)
-    call bl_deallocate(sxp)
-    call bl_deallocate(sym)
-    call bl_deallocate(syp)
-    call bl_deallocate(szm)
-    call bl_deallocate(szp)
+    call amrex_deallocate(sxm)
+    call amrex_deallocate(sxp)
+    call amrex_deallocate(sym)
+    call amrex_deallocate(syp)
+    call amrex_deallocate(szm)
+    call amrex_deallocate(szp)
 
-    call bl_deallocate ( qgdnvx)
-    call bl_deallocate ( qgdnvxf)
-    call bl_deallocate ( qgdnvtmpx)
+    call amrex_deallocate ( qgdnvx)
+    call amrex_deallocate ( qgdnvxf)
+    call amrex_deallocate ( qgdnvtmpx)
 
-    call bl_deallocate ( qgdnvy)
-    call bl_deallocate ( qgdnvyf)
-    call bl_deallocate ( qgdnvtmpy)
+    call amrex_deallocate ( qgdnvy)
+    call amrex_deallocate ( qgdnvyf)
+    call amrex_deallocate ( qgdnvtmpy)
 
-    call bl_deallocate ( qgdnvz)
-    call bl_deallocate ( qgdnvzf)
-    call bl_deallocate ( qgdnvtmpz1)
-    call bl_deallocate ( qgdnvtmpz2)
+    call amrex_deallocate ( qgdnvz)
+    call amrex_deallocate ( qgdnvzf)
+    call amrex_deallocate ( qgdnvtmpz1)
+    call amrex_deallocate ( qgdnvtmpz2)
 
-    call bl_deallocate ( qxm)
-    call bl_deallocate ( qxp)
+    call amrex_deallocate ( qxm)
+    call amrex_deallocate ( qxp)
 
-    call bl_deallocate ( qmxy)
-    call bl_deallocate ( qpxy)
+    call amrex_deallocate ( qmxy)
+    call amrex_deallocate ( qpxy)
 
-    call bl_deallocate ( qmxz)
-    call bl_deallocate ( qpxz)
+    call amrex_deallocate ( qmxz)
+    call amrex_deallocate ( qpxz)
 
-    call bl_deallocate ( qym)
-    call bl_deallocate ( qyp)
+    call amrex_deallocate ( qym)
+    call amrex_deallocate ( qyp)
 
-    call bl_deallocate ( qmyx)
-    call bl_deallocate ( qpyx)
+    call amrex_deallocate ( qmyx)
+    call amrex_deallocate ( qpyx)
 
-    call bl_deallocate ( qmyz)
-    call bl_deallocate ( qpyz)
+    call amrex_deallocate ( qmyz)
+    call amrex_deallocate ( qpyz)
 
-    call bl_deallocate ( qzm)
-    call bl_deallocate ( qzp)
+    call amrex_deallocate ( qzm)
+    call amrex_deallocate ( qzp)
 
-    call bl_deallocate ( qxl)
-    call bl_deallocate ( qxr)
-    call bl_deallocate ( qyl)
-    call bl_deallocate ( qyr)
-    call bl_deallocate ( qzl)
-    call bl_deallocate ( qzr)
+    call amrex_deallocate ( qxl)
+    call amrex_deallocate ( qxr)
+    call amrex_deallocate ( qyl)
+    call amrex_deallocate ( qyr)
+    call amrex_deallocate ( qzl)
+    call amrex_deallocate ( qzr)
 
-    call bl_deallocate ( qmzx)
-    call bl_deallocate ( qpzx)
+    call amrex_deallocate ( qmzx)
+    call amrex_deallocate ( qpzx)
 
-    call bl_deallocate ( qmzy)
-    call bl_deallocate ( qpzy)
+    call amrex_deallocate ( qmzy)
+    call amrex_deallocate ( qpzy)
 
-    call bl_deallocate ( fx)
-    call bl_deallocate ( fy)
-    call bl_deallocate ( fz)
+    call amrex_deallocate ( fx)
+    call amrex_deallocate ( fy)
+    call amrex_deallocate ( fz)
 
-    call bl_deallocate ( fxy)
-    call bl_deallocate ( fxz)
+    call amrex_deallocate ( fxy)
+    call amrex_deallocate ( fxz)
 
-    call bl_deallocate ( fyx)
-    call bl_deallocate ( fyz)
+    call amrex_deallocate ( fyx)
+    call amrex_deallocate ( fyz)
 
-    call bl_deallocate ( fzx)
-    call bl_deallocate ( fzy)
+    call amrex_deallocate ( fzx)
+    call amrex_deallocate ( fzy)
 
 #ifdef RADIATION
-    call bl_deallocate (rfx)
-    call bl_deallocate (rfy)
-    call bl_deallocate (rfz)
+    call amrex_deallocate (rfx)
+    call amrex_deallocate (rfy)
+    call amrex_deallocate (rfz)
 
-    call bl_deallocate(rfxy)
-    call bl_deallocate(rfxz)
+    call amrex_deallocate(rfxy)
+    call amrex_deallocate(rfxz)
 
-    call bl_deallocate(rfyx)
-    call bl_deallocate(rfyz)
+    call amrex_deallocate(rfyx)
+    call amrex_deallocate(rfyz)
 
-    call bl_deallocate(rfzx)
-    call bl_deallocate(rfxy)
+    call amrex_deallocate(rfzx)
+    call amrex_deallocate(rfxy)
 #endif
 
     if (ppm_type .gt. 0) then
-       call bl_deallocate ( Ip)
-       call bl_deallocate ( Im)
+       call amrex_deallocate ( Ip)
+       call amrex_deallocate ( Im)
 
-       call bl_deallocate ( Ip_src)
-       call bl_deallocate ( Im_src)
+       call amrex_deallocate ( Ip_src)
+       call amrex_deallocate ( Im_src)
 
-       call bl_deallocate ( Ip_gc)
-       call bl_deallocate ( Im_gc)
+       call amrex_deallocate ( Ip_gc)
+       call amrex_deallocate ( Im_gc)
     else
-       call bl_deallocate ( dqx)
-       call bl_deallocate ( dqy)
-       call bl_deallocate ( dqz)
+       call amrex_deallocate ( dqx)
+       call amrex_deallocate ( dqy)
+       call amrex_deallocate ( dqz)
     end if
 
-    call bl_deallocate(shk)
+    call amrex_deallocate(shk)
 
   end subroutine umeth
 
@@ -942,7 +942,7 @@ contains
                     eden_lost, xang_lost, yang_lost, zang_lost, &
                     verbose)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UTEMP, NGDNV, NQ, &
 #ifdef RADIATION
@@ -1053,7 +1053,7 @@ contains
     end if
 #endif
 
-    call bl_allocate(pdivu, lo, hi)
+    call amrex_allocate(pdivu, lo, hi)
 
     call calc_pdivu(lo, hi, &
                     qx, qx_lo, qx_hi, &
@@ -1591,7 +1591,7 @@ contains
 
     endif
 
-    call bl_deallocate(pdivu)
+    call amrex_deallocate(pdivu)
 
   end subroutine consup
 

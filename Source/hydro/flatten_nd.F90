@@ -1,7 +1,7 @@
 module flatten_module
 
-  use mempool_module, only : bl_allocate, bl_deallocate
-  use bl_constants_module, only : ZERO
+  use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
+  use amrex_constants_module, only : ZERO
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -25,7 +25,7 @@ contains
     ! passing it in allows
     use meth_params_module, only : small_pres, QU, QV, QW, NQ
     use prob_params_module, only : dg
-    use bl_constants_module
+    use amrex_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -47,9 +47,9 @@ contains
     ! Knobs for detection of strong shock
     real(rt)        , parameter :: shktst = 0.33e0_rt, zcut1 = 0.75e0_rt, zcut2 = 0.85e0_rt, dzcut = ONE/(zcut2-zcut1)
 
-    call bl_allocate(dp ,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
-    call bl_allocate(z  ,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
-    call bl_allocate(chi,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
+    call amrex_allocate(dp ,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
+    call amrex_allocate(z  ,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
+    call amrex_allocate(chi,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
 
     ! x-direction flattening coef
     do k = lo(3), hi(3)
@@ -161,9 +161,9 @@ contains
        enddo
     enddo
 
-    call bl_deallocate(dp )
-    call bl_deallocate(z  )
-    call bl_deallocate(chi)
+    call amrex_deallocate(dp )
+    call amrex_deallocate(z  )
+    call amrex_deallocate(chi)
 
   end subroutine uflatten
 
@@ -187,7 +187,7 @@ contains
 
     call uflatten(lo, hi, q, flatn, q_lo, q_hi, QPTOT)
 
-    call bl_allocate(flatg, q_lo(1), q_hi(1), q_lo(2), q_hi(2), q_lo(3), q_hi(3))
+    call amrex_allocate(flatg, q_lo(1), q_hi(1), q_lo(2), q_hi(2), q_lo(3), q_hi(3))
     call uflatten(lo, hi, q, flatg, q_lo, q_hi, QPRES)
 
     do k = lo(3), hi(3)
@@ -211,7 +211,7 @@ contains
        end do
     end do
 
-    call bl_deallocate(flatg)
+    call amrex_deallocate(flatg)
 
   end subroutine rad_flatten
 #endif

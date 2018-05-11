@@ -19,9 +19,9 @@ contains
                     dqx, dqy, dqz, qpd_lo, qpd_hi, &
                     ilo1, ilo2, ihi1, ihi2, kc, k3d)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
     use meth_params_module
-    use bl_constants_module
+    use amrex_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -48,10 +48,10 @@ contains
     ilo = min(ilo1, ilo2)
     ihi = max(ihi1, ihi2)
 
-    call bl_allocate(dsgn, ilo-2, ihi+2, ilo-2*dg(2), ihi+2*dg(2))
-    call bl_allocate(dlim, ilo-2, ihi+2, ilo-2*dg(2), ihi+2*dg(2))
-    call bl_allocate(  df, ilo-2, ihi+2, ilo-2*dg(2), ihi+2*dg(2))
-    call bl_allocate(dcen, ilo-2, ihi+2, ilo-2*dg(2), ihi+2*dg(2))
+    call amrex_allocate(dsgn, ilo-2, ihi+2, ilo-2*dg(2), ihi+2*dg(2))
+    call amrex_allocate(dlim, ilo-2, ihi+2, ilo-2*dg(2), ihi+2*dg(2))
+    call amrex_allocate(  df, ilo-2, ihi+2, ilo-2*dg(2), ihi+2*dg(2))
+    call amrex_allocate(dcen, ilo-2, ihi+2, ilo-2*dg(2), ihi+2*dg(2))
 
     if (plm_iorder == 1) then
 
@@ -183,10 +183,10 @@ contains
 
     endif
 
-    call bl_deallocate(dsgn)
-    call bl_deallocate(dlim)
-    call bl_deallocate(  df)
-    call bl_deallocate(dcen)
+    call amrex_deallocate(dsgn)
+    call amrex_deallocate(dlim)
+    call amrex_deallocate(  df)
+    call amrex_deallocate(dcen)
 
   end subroutine uslope
 
@@ -199,9 +199,9 @@ contains
                     src, src_lo, src_hi, &
                     ilo1, ilo2, ihi1, ihi2, kc, k3d, dx)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
     use meth_params_module, only : QRHO, QPRES, QU, QV, QW, NQ, QVAR, plm_iorder
-    use bl_constants_module
+    use amrex_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -232,10 +232,10 @@ contains
     ilo = min(ilo1,ilo2)
     ihi = max(ihi1,ihi2)
 
-    call bl_allocate(dsgn, ilo-2,ihi+2,ilo-2,ihi+2)
-    call bl_allocate(dlim, ilo-2,ihi+2,ilo-2,ihi+2)
-    call bl_allocate(  df, ilo-2,ihi+2,ilo-2,ihi+2)
-    call bl_allocate(dcen, ilo-2,ihi+2,ilo-2,ihi+2)
+    call amrex_allocate(dsgn, ilo-2,ihi+2,ilo-2,ihi+2)
+    call amrex_allocate(dlim, ilo-2,ihi+2,ilo-2,ihi+2)
+    call amrex_allocate(  df, ilo-2,ihi+2,ilo-2,ihi+2)
+    call amrex_allocate(dcen, ilo-2,ihi+2,ilo-2,ihi+2)
 
     if (plm_iorder == 1) then
 
@@ -384,10 +384,10 @@ contains
 
     endif
 
-    call bl_deallocate(dsgn)
-    call bl_deallocate(dlim)
-    call bl_deallocate(  df)
-    call bl_deallocate(dcen)
+    call amrex_deallocate(dsgn)
+    call amrex_deallocate(dlim)
+    call amrex_deallocate(  df)
+    call amrex_deallocate(dcen)
 
   end subroutine pslope
 

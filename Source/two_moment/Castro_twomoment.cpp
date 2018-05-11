@@ -20,25 +20,25 @@ Castro::create_thornado_source(Real dt)
 
     int my_ncomp = BL_SPACEDIM+3;  // rho, rho*u, rho*v, rho*w, rho*E, Y_e
     int my_ngrow = 2;  // two fluid ghost cells
-    // Create a temporary so it has the right order of the right variables and no ghost cells
+
+    // This fills the ghost cells of the MultiFab which we will then copy into U_F
+    MultiFab S_with_ghost_cells(grids, dmap, NUM_STATE, my_ngrow);
+    const Real  cur_time = state[State_Type].curTime();
+    AmrLevel::FillPatch(*this, S_with_ghost_cells, my_ngrow, cur_time, State_Type, 0, NUM_STATE);
+
+    // Create U_F to hold the right order of the right variables
     MultiFab U_F(grids, dmap, my_ncomp, my_ngrow);
 
-    // Copy the current state S_new into U_F
-    // Note that the first five components get copied as is
-    int src_comp = 0;
-    int dst_comp = 0;
-    int   n_comp = 5;
+    // Copy into U_F just these variables: rho, rho*u, rho*v, rho*w, rho*E, rho*ne
     int      cnt = 0;
-
-    // rho, rho*u, rho*v, rho*w, rho*E
-    MultiFab::Copy(U_F, S_new, Density , cnt, 1, my_ngrow); cnt++;
-    MultiFab::Copy(U_F, S_new, Xmom    , cnt, 1, my_ngrow); cnt++;
-    MultiFab::Copy(U_F, S_new, Ymom    , cnt, 1, my_ngrow); cnt++;
+    MultiFab::Copy(U_F, S_with_ghost_cells, Density , cnt, 1, my_ngrow); cnt++;
+    MultiFab::Copy(U_F, S_with_ghost_cells, Xmom    , cnt, 1, my_ngrow); cnt++;
+    MultiFab::Copy(U_F, S_with_ghost_cells, Ymom    , cnt, 1, my_ngrow); cnt++;
 #if (BL_SPACEDIM == 3)
-    MultiFab::Copy(U_F, S_new, Zmom    , cnt, 1, my_ngrow); cnt++;
+    MultiFab::Copy(U_F, S_with_ghost_cells, Zmom    , cnt, 1, my_ngrow); cnt++;
 #endif
-    MultiFab::Copy(U_F, S_new, Eden    , cnt, 1, my_ngrow); cnt++;
-    MultiFab::Copy(U_F, S_new, FirstAux, cnt, 1, my_ngrow); 
+    MultiFab::Copy(U_F, S_with_ghost_cells, Eden    , cnt, 1, my_ngrow); cnt++;
+    MultiFab::Copy(U_F, S_with_ghost_cells, FirstAux, cnt, 1, my_ngrow); 
 
     MultiFab& U_R_old = get_old_data(Thornado_Type);
     MultiFab& U_R_new = get_new_data(Thornado_Type);

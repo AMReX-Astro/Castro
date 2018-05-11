@@ -187,16 +187,20 @@ ifeq ($(USE_PARTICLES), TRUE)
   Bdirs += Source/particles
 endif
 
-  Bdirs  += Source/two_moment
-  Thdirs := thornado/SandBox/Interface_CASTRO
-  Thdirs += thornado/Modules/Numbers
-  Thdirs += thornado/Modules/ProgramHeader
-  Thdirs += thornado/Modules/Library
-  Thdirs += thornado/Modules/Mesh
-  Thdirs += thornado/Modules/Fields
-  Thdirs += thornado/Modules/Geometry
-  Blocs += $(foreach dir, $(Thdirs), $(TOP)/$(dir))
 ifeq ($(USE_THORNADO), TRUE)
+
+  EXTERN_CORE += $(TOP)/Util/LAPACK
+
+  Bdirs  += Source/two_moment
+  Thdirs := thornado_r721/SandBox/Interface_CASTRO
+  Thdirs += thornado_r721/Modules/Numbers
+  Thdirs += thornado_r721/Modules/ProgramHeader
+  Thdirs += thornado_r721/Modules/Library
+  Thdirs += thornado_r721/Modules/Mesh
+  Thdirs += thornado_r721/Modules/Fields
+  Thdirs += thornado_r721/Modules/Geometry
+  Thdirs += thornado_r721/Modules/TwoMoment
+  Blocs += $(foreach dir, $(Thdirs), $(TOP)/$(dir))
 endif
 
 Bpack += $(foreach dir, $(Bdirs), $(TOP)/$(dir)/Make.package)

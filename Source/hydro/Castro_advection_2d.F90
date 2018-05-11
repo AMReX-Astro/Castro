@@ -1,6 +1,6 @@
 module ctu_advection_module
 
-  use bl_constants_module, only : ZERO, HALF, ONE, FOURTH, TWO
+  use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH, TWO
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -288,7 +288,7 @@ contains
           enddo
 
        else
-          call bl_error("ERROR: invalid value of islope")
+          call amrex_error("ERROR: invalid value of islope")
           
        endif       
 
@@ -384,7 +384,7 @@ contains
     ! and  qym and qyp will be the states on either side of the y interfaces
     if (ppm_type .eq. 0) then
 #ifdef RADIATION
-       call bl_error("ppm_type <=0 is not supported in umeth for radiation")
+       call amrex_error("ppm_type <=0 is not supported in umeth for radiation")
 #else
        call tracexy(q, q_lo, q_hi, &
                     qaux, qa_lo, qa_hi, &
@@ -551,7 +551,7 @@ contains
 
                                    limit_fluxes_on_small_dens, NQ
     use prob_params_module, only : mom_flux_has_p, domlo_level, domhi_level, center
-    use bl_constants_module, only : ZERO, HALF
+    use amrex_constants_module, only : ZERO, HALF
     use advection_util_module, only: limit_hydro_fluxes_on_small_dens, normalize_species_fluxes, calc_pdivu
     use castro_util_module, only : position, linear_to_angular_momentum
     use amrinfo_module, only : amr_level
