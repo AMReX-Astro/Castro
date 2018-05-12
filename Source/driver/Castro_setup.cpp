@@ -319,6 +319,20 @@ Castro::variableSetUp ()
 			 StateDescriptor::Point, ngrow_thornado, THORNADO_RAD_NCOMP,
 			 &cell_cons_interp, state_data_extrap,
 			 store_in_checkpoint);
+
+  set_scalar_bc(bc,phys_bc);
+  desc_lst.setComponent(Thornado_Type,0,"J",bc,
+                        BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
+
+  desc_lst.setComponent(Thornado_type,1,"H_x",bc,
+                        BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
+
+  desc_lst.setComponent(Thornado_type,2,"H_y",bc,
+                        BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
+
+  desc_lst.setComponent(Thornado_type,3,"H_z",bc,
+                        BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
+
 #endif
 
 #ifdef SELF_GRAVITY
