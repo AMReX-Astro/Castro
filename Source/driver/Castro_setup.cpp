@@ -333,6 +333,18 @@ Castro::variableSetUp ()
   desc_lst.setComponent(Thornado_type,3,"H_z",bc,
                         BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
 
+  derive_lst.add("J_avg",IndexType::TheCellType(),1,ca_der_J,the_same_box);
+  derive_lst.addComponent("J_avg",desc_lst,Thornado_Type,0,THORNADO_RAD_NCOMP);
+
+  derive_lst.add("Hx_avg",IndexType::TheCellType(),1,ca_der_Hx,the_same_box);
+  derive_lst.addComponent("Hx_avg",desc_lst,Thornado_Type,0,THORNADO_RAD_NCOMP);
+
+  derive_lst.add("Hy_avg",IndexType::TheCellType(),1,ca_der_Hy,the_same_box);
+  derive_lst.addComponent("Hy_avg",desc_lst,Thornado_Type,0,THORNADO_RAD_NCOMP);
+
+  derive_lst.add("Hz_avg",IndexType::TheCellType(),1,ca_der_Hz,the_same_box);
+  derive_lst.addComponent("Hz_avg",desc_lst,Thornado_Type,0,THORNADO_RAD_NCOMP);
+
 #endif
 
 #ifdef SELF_GRAVITY

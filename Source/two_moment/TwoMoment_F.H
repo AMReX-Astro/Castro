@@ -26,6 +26,15 @@ extern "C"
                         int* n_fluid_dof, int* n_energy, int* n_species, 
                         int* n_rad_dof, int* n_moments);
 
+  void ca_der_J
+    (BL_FORT_FAB_ARG_3D(J),const int* nvar,
+     const BL_FORT_FAB_ARG_3D(U_R),const int* ncomp,
+     const int* lo, const int* hi,
+     const int* domain_lo, const int* domain_hi,
+     const amrex::Real* delta, const amrex::Real* xlo,
+     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
+     const int* level, const int* grid_no);
+
 #ifdef __cplusplus
 }
 #endif
