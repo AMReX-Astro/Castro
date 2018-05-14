@@ -1,3 +1,9 @@
+# When copied into a directory with plotfiles, this code makes slices of those
+# plotfiles at specified times and plots them on top of one another.
+# Ideally this shows the movement of a flame front.
+#
+# Written by Blaire Ness
+
 from __future__ import print_function
 
 import os
@@ -97,7 +103,6 @@ for pfile in os.listdir("."):
 
         x, y = numpy.loadtxt(pfile, unpack="True")
         plt.plot(x,y, label=time)
-#plt.legend(bbox_to_anchor=(1.1, .75), loc=1, borderaxespad=0)
 plt.xlim([0,30])
 plt.show()
 plt.savefig("flamefronts.png")
