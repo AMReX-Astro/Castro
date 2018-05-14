@@ -26,4 +26,7 @@ module probdata_module
 
   logical, save :: index_base_from_temp
 
+  integer, save :: max_hse_tagging_level
+  real (rt), save :: burn_tagging_min, burn_tagging_max
+
 end module probdata_module
