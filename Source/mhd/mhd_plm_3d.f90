@@ -24,7 +24,9 @@ contains
                  bx, bxlo, bxhi, &
                  by, bylo, byhi, &
                  bz, bzlo, bzhi, &
-                 Ip,Im, ilo1,ilo2,ilo3,ihi1,ihi2,ihi3,dx,dy,dz,dt)
+                 Ip,Im, ilo1,ilo2,ilo3,ihi1,ihi2,ihi3, &
+                 srcQ, srcq_l1, srcq_l2, srcq_l3, srcq_h1, srcq_h2, srcq_h3, &
+                 dx,dy,dz,dt)
 
 
     use network, only: nspec
@@ -38,11 +40,13 @@ contains
     integer , intent(in   ) ::  bxlo(3), bxhi(3)
     integer , intent(in   ) ::  bylo(3), byhi(3)
     integer , intent(in   ) ::  bzlo(3), bzhi(3)
+    integer , intent(in   ) ::  srcq_l1, srcq_l2, srcq_l3, srcq_h1, srcq_h2, srcq_h3
 
     real(rt), intent(in   ) ::  s(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QVAR) !Primitive Vars
     real(rt), intent(in   ) ::  bx(bxlo(1):bxhi(1), bxlo(2):bxhi(2), bxlo(3):bxhi(3))!Face Centered Magnetic Fields
     real(rt), intent(in   ) ::  by(bylo(1):byhi(1), bylo(2):byhi(2), bylo(3):byhi(3))
     real(rt), intent(in   ) ::  bz(bzlo(1):bzhi(1), bzlo(2):bzhi(2), bzlo(3):bzhi(3))
+    real(rt), intent(in   ) ::  srcQ(srcq_l1:srcq_h1, srcq_l2:srcq_h2, srcq_l3:srcq_h3,QVAR)
 
     real(rt), intent(out) :: Ip(ilo1:ihi1,ilo2:ihi2,ilo3:ihi3,QVAR,3)
     real(rt), intent(out) :: Im(ilo1:ihi1,ilo2:ihi2,ilo3:ihi3,QVAR,3)

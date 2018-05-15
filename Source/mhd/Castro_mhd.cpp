@@ -16,6 +16,10 @@ Castro::just_the_mhd(Real time, Real dt)
       const Real *dx = geom.CellSize();
       Real courno = -1.0e+200;
 
+      const int*  domain_lo = geom.Domain().loVect();
+      const int*  domain_hi = geom.Domain().hiVect();
+
+
       MultiFab& S_new = get_new_data(State_Type);
       MultiFab& Bx_new= get_new_data(Mag_Type_x);
       MultiFab& By_new= get_new_data(Mag_Type_y);
@@ -47,9 +51,6 @@ Castro::just_the_mhd(Real time, Real dt)
 
         Real cflLoc = -1.0e+200;
         int is_finest_level = (level == finest_level) ? 1 : 0;
-        const int*  domain_lo = geom.Domain().loVect();
-        const int*  domain_hi = geom.Domain().hiVect();
-
         for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
 	{
 	   const Box& bx = mfi.tilebox();

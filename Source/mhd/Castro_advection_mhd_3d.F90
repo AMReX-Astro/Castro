@@ -225,7 +225,9 @@ subroutine ca_advance_mhd(time, lo, hi, &
            bxin, bxin_lo, bxin_hi, &
            byin, byin_lo, byin_hi, &
            bzin, bzin_lo, bzin_hi, &
-           qp, qm, q_l1, q_l2, q_l3, q_h1, q_h2, q_h3, dx, dy, dz, dt)
+           qp, qm, q_l1, q_l2, q_l3, q_h1, q_h2, q_h3, &
+           srcQ, srcq_l1, srcq_l2, srcq_l3, srcq_h1, srcq_h2, srcq_h3, &
+           dx, dy, dz, dt)
 
   flxx = 0.d0
   flxy = 0.d0
@@ -375,8 +377,8 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
   use bl_constants_module
   use meth_params_module, only : URHO, UMX, UMY, UMZ, NVAR,&
                                  UEDEN, UEINT, UFA, UFS, UTEMP, &
-                                 QVAR, QRHO, QU, QV, QW, QC, &
-                                 QREINT, QPRES, QFA, QFS, QTEMP, &
+                                 QVAR, QRHO, QU, QV, QW, QC, NQAUX,&
+                                 QREINT, QPRES, QFA, QFS, QTEMP, QDPDE, QDPDR,&
                                  QMAGX,  QMAGY, QMAGZ, &
                                  nadv, small_dens, small_pres, &
                                  npassive, upass_map, qpass_map, &
@@ -410,6 +412,7 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
   real(rt) :: flatn(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
   real(rt) :: src( src_lo(1): src_hi(1), src_lo(2): src_hi(2), src_lo(3): src_hi(3),NVAR)
   real(rt) :: srcQ(srcq_l1:srcq_h1,srcq_l2:srcq_h2,srcq_l3:srcq_h3,QVAR)
+  real(rt) :: qaux(q_l1:q_h1, q_l2:q_h2, q_l3:q_h3, NQAUX)
   real(rt) :: dx, dy, dz, dt, courno
   real(rt) :: dpdr, dpde
 
@@ -503,7 +506,8 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
 
   small_pres_over_dens = small_pres / small_dens
 
-
+ 
+  qaux = 0.0
   ! Get p, T, c, csml using q state
   do k = loq(3), hiq(3)
      do j = loq(2), hiq(2)
@@ -569,6 +573,10 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
 
            q(i,j,k,QTEMP) = eos_state % T
 
+           !for the src 
+           qaux(i,j,k,QDPDR) = eos_state % dpdr_e
+           qaux(i,j,k,QDPDE) = eos_state % dpde
+           
         end do
      end do
   end do
@@ -581,28 +589,20 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
   !        IF NOT THEN THE FORMULAE BELOW ARE INCOMPLETE.
 
   ! compute srcQ terms
-  !    do k = lo(3)-1, hi(3)+1
-  !       do j = lo(2)-1, hi(2)+1
-  !          do i = lo(1)-1, hi(1)+1
+  do k = lo(3)-1, hi(3)+1
+     do j = lo(2)-1, hi(2)+1
+        do i = lo(1)-1, hi(1)+1
 
-  !             rhoInv = ONE/q(i,j,k,QRHO)
+             rhoInv = ONE/q(i,j,k,QRHO)
 
-  !            srcQ(i,j,k,QRHO  ) = src(i,j,k,URHO)
-  !             srcQ(i,j,k,QU    ) = src(i,j,k,UMX) * rhoInv - a_dot * q(i,j,k,QU) + &
-  !                                  grav(i,j,k,1)
-  !             srcQ(i,j,k,QV    ) = src(i,j,k,UMY) * rhoInv - a_dot * q(i,j,k,QV) + &
-  !                                  grav(i,j,k,2)
-  !             srcQ(i,j,k,QW    ) = src(i,j,k,UMZ) * rhoInv - a_dot * q(i,j,k,QW) + &
-  !                                  grav(i,j,k,3)
-  !             srcQ(i,j,k,QREINT) = src(i,j,k,UEDEN) - q(i,j,k,QU)*src(i,j,k,UMX) - &
-  !                                                     q(i,j,k,QV)*src(i,j,k,UMY) - &
-  !                                                     q(i,j,k,QW)*src(i,j,k,UMZ) - &
-  !                                                     a_dot * THREE * gamma_minus_1 * q(i,j,k,QREINT)
-
-  !            dpde = gamma_minus_1 * q(i,j,k,QRHO)
-  !            dpdr = gamma_minus_1 * q(i,j,k,QREINT)/q(i,j,k,QRHO)
-  !            srcQ(i,j,k,QPRES ) = dpde * srcQ(i,j,k,QREINT) * rhoInv &
-  !                               + dpdr * srcQ(i,j,k,QRHO)
+             srcQ(i,j,k,QRHO  ) = src(i,j,k,URHO)
+             srcQ(i,j,k,QU    ) = (src(i,j,k,UMX) - q(i,j,k,QU) * srcQ(i,j,k,QRHO)) * rhoInv
+             srcQ(i,j,k,QV    ) = (src(i,j,k,UMY) - q(i,j,k,QV) * srcQ(i,j,k,QRHO)) * rhoInv
+             srcQ(i,j,k,QW    ) = (src(i,j,k,UMZ) - q(i,j,k,QW) * srcQ(i,j,k,QRHO)) * rhoInv
+             srcQ(i,j,k,QREINT) = src(i,j,k,UEINT)
+             srcQ(i,j,k,QPRES ) = qaux(i,j,k,QDPDE)*(srcQ(i,j,k,QREINT) - &
+                                  q(i,j,k,QREINT)*srcQ(i,j,k,QRHO)*rhoinv) * rhoInv + &
+                                  qaux(i,j,k,QDPDR) * srcQ(i,j,k,QRHO)  
 
   !            if (UFS .gt. 0) then
   !               do ispec = 1,nspec+naux
@@ -614,9 +614,9 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
   !               srcQ(i,j,k,QFA+iadv-1) = src(i,j,k,UFA+iadv-1)*rhoInv
   !            enddo
 
-  !         enddo
-  !      enddo
-  !   enddo
+        enddo
+     enddo
+  enddo
 
   ! Compute running max of Courant number over grids
   courmx = courno
