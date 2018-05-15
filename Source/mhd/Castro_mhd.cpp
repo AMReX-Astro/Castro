@@ -26,12 +26,9 @@ Castro::just_the_mhd(Real time, Real dt)
       MultiFab& Bz_new= get_new_data(Mag_Type_z);
 
 
-      MultiFab fluxes[BL_SPACEDIM];
       MultiFab electric[BL_SPACEDIM];
       for (int j = 0; j < BL_SPACEDIM; j++)
       {
-        fluxes[j].define(getEdgeBoxArray(j), dmap, NUM_STATE, 0);
-	fluxes[j].setVal(0,0);
 	electric[j].define(getEdgeBoxArray(j), dmap, 1, 0);
 	electric[j].setVal(0.0);
       }
@@ -109,8 +106,10 @@ Castro::just_the_mhd(Real time, Real dt)
              &cflLoc, &se, &ske, &print_fortran_warnings);
 
            for (int i = 0; i < BL_SPACEDIM; i++){
-	     fluxes[i][mfi].copy(flux[i], mfi.nodaltilebox(i));
-	     electric[i][mfi].copy(E[i], mfi.nodaltilebox(i));
+	     (*fluxes[i])[mfi].plus(flux[i], mfi.nodaltilebox(i),0,0,NUM_STATE);
+             
+	     (*mass_fluxes[i])[mfi].copy(flux[i],mfi.nodaltilebox(i),Density,mfi.nodaltilebox(i),0,1);
+             electric[i][mfi].copy(E[i], mfi.nodaltilebox(i));
 	   }
 
 
