@@ -53,7 +53,7 @@ contains
 
     real(rt), intent(in   ) :: dx,dy,dz,dt
 
-    real(rt) :: dQL(7), dQR(7), dW, dL, dR, leig(7,7), reig(7,7), lam(7), summ(7)
+    real(rt) :: dQL(7), dQR(7), dW, dL, dR, leig(7,7), reig(7,7), lam(7), summ_p(7), summ_m(7)
     real(rt) :: temp(s_l1-1:s_h1+1,s_l2-1:s_h2+1,s_l3-1:s_h3+1,8), smhd(7)
     real(rt) :: temp_s(s_l1-1:s_h1+1,s_l2-1:s_h2+1,s_l3-1:s_h3+1,nspec)!store species with lo-1 and hi+1
     real(rt) :: tbx(s_l1-1:s_h1+1,s_l2-1:s_h2+1,s_l3-1:s_h3+1)
@@ -414,7 +414,8 @@ contains
           do i = s_l1, s_h1
 
              !=========================== X Direction ========================
-             summ = 0.d0
+             summ_p = 0.d0
+             summ_m = 0.d0
              smhd = 0.d0
              dQL = 0.d0
              dQR = 0.d0
@@ -449,16 +450,17 @@ contains
                 dL = dot_product(leig(ii,:),dQL)
                 dR = dot_product(leig(ii,:),dQR)
                 call slope(dW,dL,dR)
-                summ(:) = summ(:) + (1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
+                summ_p(:) = summ_p(:) + (1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
+                summ_m(:) = summ_m(:) + (- 1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
              enddo
-             Ip(i,j,k,QRHO,1) = temp(i,j,k,1) + 0.5d0*summ(1) + 0.5d0*dt_over_a*smhd(1)
-             Ip(i,j,k,QU,1) = temp(i,j,k,2) + 0.5d0*summ(2) + 0.5d0*dt_over_a*smhd(2)
-             Ip(i,j,k,QV,1) = temp(i,j,k,3) + 0.5d0*summ(3) + 0.5d0*dt_over_a*smhd(3)
-             Ip(i,j,k,QW,1) = temp(i,j,k,4) + 0.5d0*summ(4) + 0.5d0*dt_over_a*smhd(4)
-             Ip(i,j,k,QPRES,1) = temp(i,j,k,5) + 0.5d0*summ(5) + 0.5d0*dt_over_a*smhd(5)
+             Ip(i,j,k,QRHO,1) = temp(i,j,k,1) + 0.5d0*summ_p(1) + 0.5d0*dt_over_a*smhd(1)
+             Ip(i,j,k,QU,1) = temp(i,j,k,2) + 0.5d0*summ_p(2) + 0.5d0*dt_over_a*smhd(2)
+             Ip(i,j,k,QV,1) = temp(i,j,k,3) + 0.5d0*summ_p(3) + 0.5d0*dt_over_a*smhd(3)
+             Ip(i,j,k,QW,1) = temp(i,j,k,4) + 0.5d0*summ_p(4) + 0.5d0*dt_over_a*smhd(4)
+             Ip(i,j,k,QPRES,1) = temp(i,j,k,5) + 0.5d0*summ_p(5) + 0.5d0*dt_over_a*smhd(5)
 
              Ip(i,j,k,QMAGX,1) = tbx(i+1,j,k) !! Bx stuff
-             Ip(i,j,k,QMAGY:QMAGZ,1)  = temp(i,j,k,iby:ibz) + 0.5d0*summ(6:7) + 0.5d0*dt_over_a*smhd(6:7)
+             Ip(i,j,k,QMAGY:QMAGZ,1)  = temp(i,j,k,iby:ibz) + 0.5d0*summ_p(6:7) + 0.5d0*dt_over_a*smhd(6:7)
             
              !species
              do ii = QFS, QFS+nspec-1  
@@ -466,6 +468,7 @@ contains
                dR = temp_s(i+1,j,k,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
                call slope(dW,dL,dR)
                Ip(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*(1-dt_over_a/dx*s(i,j,k,QU))*dW
+               Im(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*(- 1 - dt_over_a/dx*s(i,j,k,QU))*dW
              enddo 
 
              eos_state % rho = Ip(i,j,k,QRHO,1)
@@ -476,29 +479,15 @@ contains
              Ip(i,j,k,QREINT,1) = eos_state % e * eos_state % rho
 
              !Minus
-             summ = 0.d0
-             do ii = 1,7
-                dL = dot_product(leig(ii,:),dQL)
-                dR = dot_product(leig(ii,:),dQR)
-                call slope(dW,dL,dR)
-                summ(:) = summ(:) + (- 1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
-             enddo
-             Im(i,j,k,QRHO,1) = temp(i,j,k,1) +0.5d0*summ(1) + 0.5d0*dt_over_a*smhd(1)
-             Im(i,j,k,QU,1) = temp(i,j,k,2) +0.5d0*summ(2) + 0.5d0*dt_over_a*smhd(2)
-             Im(i,j,k,QV,1) = temp(i,j,k,3) +0.5d0*summ(3) + 0.5d0*dt_over_a*smhd(3)
-             Im(i,j,k,QW,1) = temp(i,j,k,4) +0.5d0*summ(4) + 0.5d0*dt_over_a*smhd(4)
-             Im(i,j,k,QPRES,1) = temp(i,j,k,5) +0.5d0*summ(5) + 0.5d0*dt_over_a*smhd(5)
+             Im(i,j,k,QRHO,1) = temp(i,j,k,1) +0.5d0*summ_m(1) + 0.5d0*dt_over_a*smhd(1)
+             Im(i,j,k,QU,1) = temp(i,j,k,2) +0.5d0*summ_m(2) + 0.5d0*dt_over_a*smhd(2)
+             Im(i,j,k,QV,1) = temp(i,j,k,3) +0.5d0*summ_m(3) + 0.5d0*dt_over_a*smhd(3)
+             Im(i,j,k,QW,1) = temp(i,j,k,4) +0.5d0*summ_m(4) + 0.5d0*dt_over_a*smhd(4)
+             Im(i,j,k,QPRES,1) = temp(i,j,k,5) +0.5d0*summ_m(5) + 0.5d0*dt_over_a*smhd(5)
 
              Im(i,j,k,QMAGX,1)  = tbx(i,j,k) !! Bx stuff
-             Im(i,j,k,QMAGY:QMAGZ,1)  = temp(i,j,k,iby:ibz) +0.5d0*summ(6:7) + 0.5d0*dt_over_a*smhd(6:7)
-             !species
-             do ii = QFS, QFS+nspec-1  
-               dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i-1,j,k,ii-QFS+1)
-               dR = temp_s(i+1,j,k,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
-               call slope(dW,dL,dR)
-               Im(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*(- 1 - dt_over_a/dx*s(i,j,k,QU))*dW
-             enddo 
-
+             Im(i,j,k,QMAGY:QMAGZ,1)  = temp(i,j,k,iby:ibz) +0.5d0*summ_m(6:7) + 0.5d0*dt_over_a*smhd(6:7)
+             
              !update this, when species work is done
              eos_state % rho = Im(i,j,k,QRHO,1)
              eos_state % p   = Im(i,j,k,QPRES,1)
@@ -511,7 +500,8 @@ contains
 
              !======================== Y Direction ===========================
 
-             summ = 0.d0
+             summ_p = 0.d0
+             summ_m = 0.d0
              smhd = 0.d0
              dQL = 0.d0
              dQR = 0.d0
@@ -524,10 +514,7 @@ contains
              dQL(7) = temp(i,j,k,8) - temp(i,j-1,k,iby+1)		!bz
              dQR(1:6) = temp(i,j+1,k,1:ibx) - temp(i,j,k,1:ibx)
              dQR(7) = temp(i,j+1,k,ibz) - temp(i,j,k,ibz)
-             !do ii = 1,7
-             !	!call vanleer(dW(ii),dQL(ii),dQR(ii)) !!slope limiting
-             !	call minmod(dW(ii),dQL(ii),dQR(ii)) !!slope limiting
-             !enddo
+
              call evals(lam, s(i,j,k,:), 2) !!Y dir eigenvalues
              call lvecy(leig,s(i,j,k,:))    !!left eigenvectors
              call rvecy(reig,s(i,j,k,:))    !!right eigenvectors
@@ -536,7 +523,8 @@ contains
                 dL = dot_product(leig(ii,:),dQL)
                 dR = dot_product(leig(ii,:),dQR)
                 call slope(dW,dL,dR)
-                summ(:) = summ(:) + (1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
+                summ_p(:) = summ_p(:) + (1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
+                summ_m(:) = summ_m(:) + (- 1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
              enddo
              !MHD Source Terms
              smhd(2) = temp(i,j,k,ibx)/temp(i,j,k,1)
@@ -550,15 +538,15 @@ contains
 
 
              !Interpolate
-             Ip(i,j,k,QRHO,2) = temp(i,j,k,1) +0.5d0*summ(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
-             Ip(i,j,k,QU,2)   = temp(i,j,k,2) +0.5d0*summ(2) + 0.5d0*dt_over_a*smhd(2)
-             Ip(i,j,k,QV,2) = temp(i,j,k,3) +0.5d0*summ(3) + 0.5d0*dt_over_a*smhd(3)
-             Ip(i,j,k,QW,2) = temp(i,j,k,4) +0.5d0*summ(4) + 0.5d0*dt_over_a*smhd(4)
-             Ip(i,j,k,QPRES,2) = temp(i,j,k,5) +0.5d0*summ(5) + 0.5d0*dt_over_a*smhd(5)
+             Ip(i,j,k,QRHO,2) = temp(i,j,k,1) +0.5d0*summ_p(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
+             Ip(i,j,k,QU,2)   = temp(i,j,k,2) +0.5d0*summ_p(2) + 0.5d0*dt_over_a*smhd(2)
+             Ip(i,j,k,QV,2) = temp(i,j,k,3) +0.5d0*summ_p(3) + 0.5d0*dt_over_a*smhd(3)
+             Ip(i,j,k,QW,2) = temp(i,j,k,4) +0.5d0*summ_p(4) + 0.5d0*dt_over_a*smhd(4)
+             Ip(i,j,k,QPRES,2) = temp(i,j,k,5) +0.5d0*summ_p(5) + 0.5d0*dt_over_a*smhd(5)
 
-             Ip(i,j,k,QMAGX,2)  = temp(i,j,k,ibx) + 0.5d0*summ(6) + 0.5d0*dt_over_a*smhd(6)
+             Ip(i,j,k,QMAGX,2)  = temp(i,j,k,ibx) + 0.5d0*summ_p(6) + 0.5d0*dt_over_a*smhd(6)
              Ip(i,j,k,QMAGY,2)  = tby(i,j+1,k) !! By stuff
-             Ip(i,j,k,QMAGZ,2)  = temp(i,j,k,ibz) + 0.5d0*summ(7) + 0.5d0*dt_over_a*smhd(7)
+             Ip(i,j,k,QMAGZ,2)  = temp(i,j,k,ibz) + 0.5d0*summ_p(7) + 0.5d0*dt_over_a*smhd(7)
              
              !species
              do ii = QFS, QFS+nspec-1  
@@ -566,6 +554,7 @@ contains
                dR = temp_s(i,j+1,k,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
                call slope(dW,dL,dR)
                Ip(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*(1-dt_over_a/dy*s(i,j,k,QV))*dW
+               Im(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*(-1 - dt_over_a/dy*s(i,j,k,QV))*dW
              enddo
 
              !update this, when species work is done
@@ -577,31 +566,15 @@ contains
              Ip(i,j,k,QREINT,2) = eos_state % e * eos_state % rho
 
 
+             Im(i,j,k,QRHO,2) = temp(i,j,k,1) + 0.5d0*summ_m(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
+             Im(i,j,k,QU,2)   = temp(i,j,k,2) + 0.5d0*summ_m(2) + 0.5d0*dt_over_a*smhd(2)
+             Im(i,j,k,QV,2)   = temp(i,j,k,3) + 0.5d0*summ_m(3) + 0.5d0*dt_over_a*smhd(3)
+             Im(i,j,k,QW,2) = temp(i,j,k,4) + 0.5d0*summ_m(4) + 0.5d0*dt_over_a*smhd(4)
+             Im(i,j,k,QPRES,2) = temp(i,j,k,5) + 0.5d0*summ_m(5) + 0.5d0*dt_over_a*smhd(5)
 
-             summ = 0.d0
-             do ii = 1,7
-                dL = dot_product(leig(ii,:),dQL)
-                dR = dot_product(leig(ii,:),dQR)
-                call slope(dW,dL,dR)
-                summ(:) = summ(:) + (- 1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
-             enddo
-             Im(i,j,k,QRHO,2) = temp(i,j,k,1) + 0.5d0*summ(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
-             Im(i,j,k,QU,2)   = temp(i,j,k,2) + 0.5d0*summ(2) + 0.5d0*dt_over_a*smhd(2)
-             Im(i,j,k,QV,2)   = temp(i,j,k,3) + 0.5d0*summ(3) + 0.5d0*dt_over_a*smhd(3)
-             Im(i,j,k,QW,2) = temp(i,j,k,4) + 0.5d0*summ(4) + 0.5d0*dt_over_a*smhd(4)
-             Im(i,j,k,QPRES,2) = temp(i,j,k,5) + 0.5d0*summ(5) + 0.5d0*dt_over_a*smhd(5)
-
-             Im(i,j,k,QMAGX,2) = temp(i,j,k,ibx) + 0.5d0*summ(6) + 0.5d0*dt_over_a*smhd(6)
+             Im(i,j,k,QMAGX,2) = temp(i,j,k,ibx) + 0.5d0*summ_m(6) + 0.5d0*dt_over_a*smhd(6)
              Im(i,j,k,QMAGY,2) = tby(i,j,k) !! By stuff
-             Im(i,j,k,QMAGZ,2) = temp(i,j,k,ibz) + 0.5d0*summ(7) + 0.5d0*dt_over_a*smhd(7)
-
-             !species
-             do ii = QFS, QFS+nspec-1  
-               dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i,j-1,k,ii-QFS+1)
-               dR = temp_s(i,j+1,k,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
-               call slope(dW,dL,dR)
-               Im(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*(-1 - dt_over_a/dy*s(i,j,k,QV))*dW
-             enddo
+             Im(i,j,k,QMAGZ,2) = temp(i,j,k,ibz) + 0.5d0*summ_m(7) + 0.5d0*dt_over_a*smhd(7)
 
 
              !update this, when species work is done
@@ -615,7 +588,8 @@ contains
 
 
              !======================= Z Direction ============================
-             summ = 0.d0
+             summ_p = 0.d0
+             summ_m = 0.d0
              smhd = 0.d0
              dQL = 0.d0
              dQR = 0.d0
@@ -626,10 +600,7 @@ contains
              !Skip Bz
              dQL(1:7) = 	temp(i,j,k,1:iby) - temp(i,j,k-1,1:iby)
              dQR(1:7) = 	temp(i,j,k+1,1:iby) - temp(i,j,k,1:iby)
-             !			do ii = 1,7
-             !call vanleer(dW(ii),dQL(ii),dQR(ii)) !!slope limiting
-             !				call minmod(dW(ii), dQL(ii), dQR(ii))
-             !			enddo
+                        
              call evals(lam, s(i,j,k,:), 3) !!Z dir eigenvalues
              call lvecz(leig,s(i,j,k,:))    !!left eigenvectors
              call rvecz(reig,s(i,j,k,:))    !!right eigenvectors
@@ -639,7 +610,8 @@ contains
                 dL = dot_product(leig(ii,:),dQL)
                 dR = dot_product(leig(ii,:),dQR)
                 call slope(dW,dL,dR)
-                summ(:) = summ(:) + (1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
+                summ_p(:) = summ_p(:) + (1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
+                summ_m(:) = summ_m(:) + (- 1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
              enddo
              !MHD Source Terms
              smhd(2) = temp(i,j,k,ibx)/temp(i,j,k,1)
@@ -651,13 +623,13 @@ contains
              smhd 	= smhd*(tbz(i,j,k+1) - tbz(i,j,k))/dz !cross-talk of normal magnetic field direction
 
              !Interpolate
-             Ip(i,j,k,QRHO,3) = temp(i,j,k,1) + 0.5d0*summ(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
-             Ip(i,j,k,QU,3)   = temp(i,j,k,2) + 0.5d0*summ(2) + 0.5d0*dt_over_a*smhd(2)
-             Ip(i,j,k,QV,3)   = temp(i,j,k,3) + 0.5d0*summ(3) + 0.5d0*dt_over_a*smhd(3)
-             Ip(i,j,k,QW,3)   = temp(i,j,k,4) + 0.5d0*summ(4) + 0.5d0*dt_over_a*smhd(4)
-             Ip(i,j,k,QPRES,3) = temp(i,j,k,5) + 0.5d0*summ(5) + 0.5d0*dt_over_a*smhd(5)
+             Ip(i,j,k,QRHO,3) = temp(i,j,k,1) + 0.5d0*summ_p(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
+             Ip(i,j,k,QU,3)   = temp(i,j,k,2) + 0.5d0*summ_p(2) + 0.5d0*dt_over_a*smhd(2)
+             Ip(i,j,k,QV,3)   = temp(i,j,k,3) + 0.5d0*summ_p(3) + 0.5d0*dt_over_a*smhd(3)
+             Ip(i,j,k,QW,3)   = temp(i,j,k,4) + 0.5d0*summ_p(4) + 0.5d0*dt_over_a*smhd(4)
+             Ip(i,j,k,QPRES,3) = temp(i,j,k,5) + 0.5d0*summ_p(5) + 0.5d0*dt_over_a*smhd(5)
 
-             Ip(i,j,k,QMAGX:QMAGY,3)	= temp(i,j,k,ibx:iby) + 0.5d0*summ(6:7) + 0.5d0*dt_over_a*smhd(6:7)
+             Ip(i,j,k,QMAGX:QMAGY,3)	= temp(i,j,k,ibx:iby) + 0.5d0*summ_p(6:7) + 0.5d0*dt_over_a*smhd(6:7)
              Ip(i,j,k,QMAGZ,3) 		= tbz(i,j,k+1) !! Bz stuff
 
              !species
@@ -666,6 +638,7 @@ contains
                dR = temp_s(i,j,k+1,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
                call slope(dW,dL,dR)
                Ip(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*(1 - dt_over_a/dz*s(i,j,k,QW))*dW
+               Im(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*(-1 - dt_over_a/dz*s(i,j,k,QW))*dW
              enddo
      
              eos_state % rho = Ip(i,j,k,QRHO,3)
@@ -676,30 +649,16 @@ contains
              Ip(i,j,k,QREINT,3) = eos_state % e * eos_state % rho
 
 
-             summ = 0.d0
-             do ii = 1,7
-                dL = dot_product(leig(ii,:),dQL)
-                dR = dot_product(leig(ii,:),dQR)
-                call slope(dW,dL,dR)
-                summ(:) = summ(:) + (- 1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
-             enddo
-             Im(i,j,k,QRHO,3) = temp(i,j,k,1) + 0.5d0*summ(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
-             Im(i,j,k,QU,3)   = temp(i,j,k,2) + 0.5d0*summ(2) + 0.5d0*dt_over_a*smhd(2)
-             Im(i,j,k,QV,3)   = temp(i,j,k,3) + 0.5d0*summ(3) + 0.5d0*dt_over_a*smhd(3)
-             Im(i,j,k,QW,3)   = temp(i,j,k,4) + 0.5d0*summ(4) + 0.5d0*dt_over_a*smhd(4)
-             Im(i,j,k,QPRES,3) = temp(i,j,k,5) + 0.5d0*summ(5) + 0.5d0*dt_over_a*smhd(5)
+             Im(i,j,k,QRHO,3) = temp(i,j,k,1) + 0.5d0*summ_m(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
+             Im(i,j,k,QU,3)   = temp(i,j,k,2) + 0.5d0*summ_m(2) + 0.5d0*dt_over_a*smhd(2)
+             Im(i,j,k,QV,3)   = temp(i,j,k,3) + 0.5d0*summ_m(3) + 0.5d0*dt_over_a*smhd(3)
+             Im(i,j,k,QW,3)   = temp(i,j,k,4) + 0.5d0*summ_m(4) + 0.5d0*dt_over_a*smhd(4)
+             Im(i,j,k,QPRES,3) = temp(i,j,k,5) + 0.5d0*summ_m(5) + 0.5d0*dt_over_a*smhd(5)
 
-             Im(i,j,k,QMAGX:QMAGY,3) = temp(i,j,k,ibx:iby) + 0.5d0*summ(6:7) + 0.5d0*dt_over_a*smhd(6:7)
+             Im(i,j,k,QMAGX:QMAGY,3) = temp(i,j,k,ibx:iby) + 0.5d0*summ_m(6:7) + 0.5d0*dt_over_a*smhd(6:7)
              Im(i,j,k,QMAGZ,3)		= tbz(i,j,k) !! Bz stuff
 
-             !species
-             do ii = QFS, QFS+nspec-1  
-               dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i,j,k-1,ii-QFS+1)
-               dR = temp_s(i,j,k+1,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
-               call slope(dW,dL,dR)
-               Im(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*(-1 - dt_over_a/dz*s(i,j,k,QW))*dW
-             enddo
-
+             
              !update this, when species work is done
              eos_state % rho = Im(i,j,k,QRHO,3)
              eos_state % p   = Im(i,j,k,QPRES,3)
