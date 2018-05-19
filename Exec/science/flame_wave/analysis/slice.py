@@ -42,6 +42,8 @@ for f in fields:
         sp.annotate_contour("density", ncont=2, clim=(1.e2, 2.e6),
                             plot_args={"colors": "0.5", "linewidths": 1, "linestyle": ":"})
 
+    sp.set_axes_unit("cm")
+
     sp.annotate_text((0.05, 0.05), "{:8.5f} s".format(float(ds.current_time.in_cgs())),
                      coord_system="figure", text_args={"color": "black"})
 
