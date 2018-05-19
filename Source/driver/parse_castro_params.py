@@ -1,69 +1,71 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+"""
+This script parses the list of C++ runtime parameters and writes the
+necessary header files and Fortran routines to make them available
+in Castro's C++ routines and (optionally) the Fortran routines
+through meth_params_module.
 
-# This script parses the list of C++ runtime parameters and writes the
-# necessary header files and Fortran routines to make them available
-# in Castro's C++ routines and (optionally) the Fortran routines
-# through meth_params_module.
-#
-# parameters have the format:
-#
-#   name  type  default  need-in-fortran?  ifdef fortran-name  fortran-type
-#
-# the first three (name, type, default) are mandatory:
-#
-#   name: the name of the parameter.  This will be the same name as the
-#     variable in C++ unless a pair is specified as (name, cpp_name)
-#
-#   type: the C++ data type (int, Real, string)
-#
-#   default: the default value.  If specified as a pair, (a, b), then
-#     the first value is the normal default and the second is for
-#     debug mode (#ifdef AMREX_DEBUG)
-#
-# the next are optional:
-#
-#    need-in-fortran: if "y" then we do a pp.query() in meth_params.F90
-#
-#    ifdef: only define this parameter if the name provided is #ifdef-ed
-#
-#    fortran-name: if a different variable name in Fortran, specify here
-#
-#    fortran-type: if a different data type in Fortran, specify here
-#
-# Any line beginning with a "#" is ignored
-#
-# Commands begin with a "@":
-#
-#    @namespace: sets the namespace that these will be under (see below)
-#      it also gives the C++ class name.
-#      if we include the keyword "static" after the name, then the parameters
-#      will be defined as static member variables in C++
-#
-#      e.g. @namespace castro Castro static
-#
-# Note: categories listed in the input file aren't used for code generation
-# but are used for the documentation generation
-#
-#
-# For a namespace, name, we write out:
-#
-#   -- name_params.H  (for castro, included in Castro.H):
-#      declares the static variables of the Castro class
-#
-#   -- name_defaults.H  (for castro, included in Castro.cpp):
-#      sets the defaults of the runtime parameters
-#
-#   -- name_queries.H  (for castro, included in Castro.cpp):
-#      does the parmparse query to override the default in C++
-#
-# we write out a single copy of:
-#
-#   -- meth_params.F90
-#      does the parmparse query to override the default in Fortran,
-#      and sets a number of other parameters specific to the F90 routinse
-#
+parameters have the format:
+
+  name  type  default  need-in-fortran?  ifdef fortran-name  fortran-type
+
+the first three (name, type, default) are mandatory:
+
+  name: the name of the parameter.  This will be the same name as the
+    variable in C++ unless a pair is specified as (name, cpp_name)
+
+  type: the C++ data type (int, Real, string)
+
+  default: the default value.  If specified as a pair, (a, b), then
+    the first value is the normal default and the second is for
+    debug mode (#ifdef AMREX_DEBUG)
+
+the next are optional:
+
+   need-in-fortran: if "y" then we do a pp.query() in meth_params.F90
+
+   ifdef: only define this parameter if the name provided is #ifdef-ed
+
+   fortran-name: if a different variable name in Fortran, specify here
+
+   fortran-type: if a different data type in Fortran, specify here
+
+Any line beginning with a "#" is ignored
+
+Commands begin with a "@":
+
+   @namespace: sets the namespace that these will be under (see below)
+     it also gives the C++ class name.
+     if we include the keyword "static" after the name, then the parameters
+     will be defined as static member variables in C++
+
+     e.g. @namespace castro Castro static
+
+Note: categories listed in the input file aren't used for code generation
+but are used for the documentation generation
+
+
+For a namespace, name, we write out:
+
+  -- name_params.H  (for castro, included in Castro.H):
+     declares the static variables of the Castro class
+
+  -- name_defaults.H  (for castro, included in Castro.cpp):
+     sets the defaults of the runtime parameters
+
+  -- name_queries.H  (for castro, included in Castro.cpp):
+     does the parmparse query to override the default in C++
+
+we write out a single copy of:
+
+  -- meth_params.F90
+     does the parmparse query to override the default in Fortran,
+     and sets a number of other parameters specific to the F90 routinse
+
+"""
+
+from __future__ import print_function
 
 import argparse
 import re
@@ -228,12 +230,12 @@ class Param(object):
         # this is the output in C++ in the job_info writing
 
         ostr = 'jobInfoFile << ({}::{} == {} ? "    " : "[*] ") << "{}.{} = " << {}::{} << std::endl;\n'.format(
-            self.cpp_class, self.cpp_var_name, self.default_format(), 
+            self.cpp_class, self.cpp_var_name, self.default_format(),
             self.namespace, self.cpp_var_name,
             self.cpp_class, self.cpp_var_name)
 
         return ostr
-        
+
 
     def get_decl_string(self):
         # this is the line that goes into castro_params.H included
@@ -283,12 +285,14 @@ def write_meth_module(plist, meth_template):
        place
     """
 
-    try: mt = open(meth_template, "r")
-    except:
+    try:
+        mt = open(meth_template, "r")
+    except IOError:
         sys.exit("invalid template file")
 
-    try: mo = open("meth_params.F90", "w")
-    except:
+    try:
+        mo = open("meth_params.F90", "w")
+    except IOError:
         sys.exit("unable to open meth_params.F90 for writing")
 
 
@@ -313,7 +317,7 @@ def write_meth_module(plist, meth_template):
             mo.write("  !$acc create(")
 
             for n, p in enumerate(params):
-                if p.f90_dtype == "string": 
+                if p.f90_dtype == "string":
                     print("warning: string parameter {} will not be available on the GPU".format(p.name),
                           file=sys.stderr)
                     continue
@@ -361,7 +365,7 @@ def write_meth_module(plist, meth_template):
                         mo.write("#endif\n")
 
                 mo.write('    call amrex_parmparse_destroy(pp)\n')
-                
+
                 mo.write("\n\n")
 
             # Now do the OpenACC device updates
@@ -390,7 +394,7 @@ def write_meth_module(plist, meth_template):
                 mo.write("    if (allocated({})) then\n".format(p.f90_name))
                 mo.write("        deallocate({})\n".format(p.f90_name))
                 mo.write("    end if\n")
-                
+
             mo.write("\n\n")
 
 
@@ -409,8 +413,9 @@ def parse_params(infile, meth_template):
     cpp_class = None
     static = None
 
-    try: f = open(infile)
-    except:
+    try:
+        f = open(infile)
+    except IOError:
         sys.exit("error openning the input file")
 
 
@@ -429,8 +434,10 @@ def parse_params(infile, meth_template):
                 namespace = fields[0]
                 cpp_class = fields[1]
 
-                try: static = fields[2]
-                except: static = ""
+                try:
+                    static = fields[2]
+                except IndexError:
+                    static = ""
 
                 # do we have the static keyword?
                 if "static" in static:
@@ -461,22 +468,30 @@ def parse_params(infile, meth_template):
         else:
             debug_default = None
 
-        try: in_fortran_string = fields[3]
-        except: in_fortran = 0
+        try:
+            in_fortran_string = fields[3]
+        except IndexError:
+            in_fortran = 0
         else:
             if in_fortran_string.lower().strip() == "y":
                 in_fortran = 1
             else:
                 in_fortran = 0
 
-        try: ifdef = fields[4]
-        except: ifdef = None
+        try:
+            ifdef = fields[4]
+        except IndexError:
+            ifdef = None
 
-        try: f90_name = fields[5]
-        except: f90_name = None
+        try:
+            f90_name = fields[5]
+        except IndexError:
+            f90_name = None
 
-        try: f90_dtype = fields[6]
-        except: f90_dtype = None
+        try:
+            f90_dtype = fields[6]
+        except IndexError:
+            f90_dtype = None
 
         if namespace is None:
             sys.exit("namespace not set")
@@ -503,8 +518,9 @@ def parse_params(infile, meth_template):
         ifdefs = list(set([q.ifdef for q in params_nm]))
 
         # write name_defaults.H
-        try: cd = open("{}/{}_defaults.H".format(param_include_dir, nm), "w")
-        except:
+        try:
+            cd = open("{}/{}_defaults.H".format(param_include_dir, nm), "w")
+        except IOError:
             sys.exit("unable to open {}_defaults.H for writing".format(nm))
 
         cd.write(CWARNING)
@@ -522,8 +538,9 @@ def parse_params(infile, meth_template):
         cd.close()
 
         # write name_params.H
-        try: cp = open("{}/{}_params.H".format(param_include_dir, nm), "w")
-        except:
+        try:
+            cp = open("{}/{}_params.H".format(param_include_dir, nm), "w")
+        except IOError:
             sys.exit("unable to open {}_params.H for writing".format(nm))
 
         cp.write(CWARNING)
@@ -541,8 +558,9 @@ def parse_params(infile, meth_template):
         cp.close()
 
         # write castro_queries.H
-        try: cq = open("{}/{}_queries.H".format(param_include_dir, nm), "w")
-        except:
+        try:
+            cq = open("{}/{}_queries.H".format(param_include_dir, nm), "w")
+        except IOError:
             sys.exit("unable to open {}_queries.H for writing".format(nm))
 
         cq.write(CWARNING)
