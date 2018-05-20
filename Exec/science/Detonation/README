@@ -1,9 +1,9 @@
-A simply C detonation.  The reaction network should be set through the
+A simple carbon detonation.  The reaction network should be set through the
 GNUmakefile.
 
 This sets up a domain with a uniform density (dens).  A large
 temperature (T_l) is placed in the left side of the domain, and an
-ambient temperature (T_r) is in the right).  The parameter ftac
+ambient temperature (T_r) is in the right.  The parameter frac
 specifies where, as a fraction of the domain length, to put the
 interface.  Finally, the parameter cfrac is the initial C12 fraction
 (the remaining material is O16).
