@@ -113,7 +113,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   real(rt), intent(in   ) :: xlo(2), xhi(2)
 
   real(rt) :: sigma, width, c_T
-  real(rt) :: xcen, ycen
+  real(rt) :: xcen
   integer  :: i, j
 
   type (eos_t) :: eos_state
@@ -122,8 +122,6 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   c_T = problo(1) + center_T * (probhi(1) - problo(1))
 
   do j = lo(2), hi(2)
-     ycen = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5e0_rt)
-
      do i = lo(1), hi(1)
         xcen = xlo(1) + delta(1)*(dble(i-lo(1)) + 0.5e0_rt)
 
@@ -143,9 +141,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         state(i,j,UMX  ) = 0.e0_rt
         state(i,j,UMY  ) = 0.e0_rt
-        state(i,j,UEDEN) = state(i,j,URHO)*eos_state%e
-        state(i,j,UEINT) = state(i,j,URHO)*eos_state%e
-
+        state(i,j,UEINT) = state(i,j,URHO) * eos_state%e
+        state(i,j,UEDEN) = state(i,j,UEINT) + 0.5e0_rt * sum(state(i,j,UMX:UMY)**2) / state(i,j,URHO)
      enddo
   enddo
 

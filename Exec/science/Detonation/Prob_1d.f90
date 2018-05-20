@@ -138,9 +138,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      call eos(eos_input_rt, eos_state)
 
      state(i,UMX  ) = 0.e0_rt
-     state(i,UEDEN) = state(i,URHO)*eos_state%e  ! if vel /= 0, then KE needs to be added
-     state(i,UEINT) = state(i,URHO)*eos_state%e
-
+     state(i,UEINT) = state(i,URHO) * eos_state%e
+     state(i,UEDEN) = state(i,UEINT) + 0.5e0_rt * state(i,UMX)**2 / state(i,URHO)
   enddo
 
 end subroutine ca_initdata

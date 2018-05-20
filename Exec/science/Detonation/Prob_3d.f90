@@ -99,7 +99,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use eos_module, only: eos
   use eos_type_module, only: eos_t, eos_input_rt
   use probdata_module, only: T_l, T_r, center_T, w_T, dens, xn
-  use meth_params_module, only: NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
+  use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
   use amrex_fort_module, only: rt => amrex_real
   use prob_params_module, only: problo, probhi
 
@@ -142,8 +142,9 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
            state(i,j,k,UMX  ) = 0.e0_rt
            state(i,j,k,UMY  ) = 0.e0_rt
-           state(i,j,k,UEDEN) = state(i,j,k,URHO)*eos_state%e
-           state(i,j,k,UEINT) = state(i,j,k,URHO)*eos_state%e
+           state(i,j,k,UMZ  ) = 0.e0_rt
+           state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state%e
+           state(i,j,k,UEDEN) = state(i,j,k,UEINT) + 0.5e0_rt * sum(state(i,j,k,UMX:UMZ)**2) / state(i,j,k,URHO)
         enddo
      enddo
   enddo
