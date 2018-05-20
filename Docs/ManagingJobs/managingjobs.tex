@@ -29,30 +29,8 @@ Note, you will need to swap the default PGI environment to use Cray:
 module swap PrgEnv-pgi PrgEnv-cray
 \end{verbatim}
 
-Current status of Cray compilers:
-\begin{itemize}
-\item CCE/8.5.7 fail with OpenMP in {\tt AMReX\_BoxArray.cpp}.  This is a known compiler bug
-  (and also appears at NERSC).
-\item CCE/8.6.1 need newer versions of the PE to be loaded.  It is suggested to do:
-\begin{verbatim}
-module swap PrgEnv-{pgi,cray}
-module swap cce/8.6.1
-module load cray-mpich-compat/v7
-module swap craype/2.5.12
-\end{verbatim}
-  However, unfortunately the same compiler bug as above appears.
-
-\item It seems that setting
-\begin{verbatim}
-IPA_DISABLE_DISCARDING=1
-\end{verbatim}
-when compiling, it will work around the bug.
-\end{itemize}
-
-%To compile and link we need to use the CCE/8.5.7 compilers and 
-%{\tt cray-mpich/7.5.2}.  Note that {\tt cray-mpich/7.6.0} does not
-%work.
-
+cce/8.5.7 through 8.6.3 fail to compile AMReX. The default version at OLCF as of May 2018,
+cce/8.6.4, resolves this issue.
 
 \subsection{PGI}
 
@@ -126,8 +104,8 @@ See the \maestro\ User's Guide
 
   \begin{itemize}
 
-    \item The Cray compilers from versions 8.5.7 to 8.6.4 have issues compiling AMReX. This
-    can be resolved by loading version 8.6.5 or later. As of May 2018, you can do
+    \item The Cray compilers from versions 8.5.7 to 8.6.3 have issues compiling AMReX. This
+    can be resolved by loading version 8.6.4 or later. As of May 2018, you can do
     \begin{verbatim}
       module swap cce cce/8.6.5
     \end{verbatim}
