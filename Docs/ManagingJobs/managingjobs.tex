@@ -125,15 +125,12 @@ See the \maestro\ User's Guide
 \item Cray compilers
 
   \begin{itemize}
-    \item The Cray compilers (CCE 8.6.1) fail to link the code.  This
-      is likely an issue interacting with the GCC headers
 
-    \item We can compile and link with CCE 8.5.7 by doing:
-      \begin{verbatim}
-module swap cce{,/8.5.7}
-module swap cray-mpich{,/7.5.5}
-module swap cray-libsci{,/16.11.1}
-      \end{verbatim}
+    \item The Cray compilers from versions 8.5.7 to 8.6.4 have issues compiling AMReX. This
+    can be resolved by loading version 8.6.5 or later. As of May 2018, you can do
+    \begin{verbatim}
+      module swap cce cce/8.6.5
+    \end{verbatim}
    \end{itemize}
 \item GNU
 
