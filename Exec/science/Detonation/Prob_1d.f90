@@ -1,6 +1,6 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
-  use probdata_module, only: T_l, T_r, dens, cfrac, frac, idir, w_T, center_T, &
+  use probdata_module, only: T_l, T_r, dens, cfrac, idir, w_T, center_T, &
                              xn, ihe4, ic12, io16, smallx
   use network, only: network_species_index, nspec
   use bl_error_module, only: bl_error
@@ -14,7 +14,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   integer :: untin,i
 
-  namelist /fortin/ T_l, T_r, dens, cfrac, frac, idir, w_T, center_T, smallx
+  namelist /fortin/ T_l, T_r, dens, cfrac, idir, w_T, center_T, smallx
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
 
@@ -35,7 +35,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   smallx = 1.e-12_rt
 
   idir = 1                ! direction across which to jump
-  frac = 0.5              ! fraction of the domain for the interface
   cfrac = 0.5
 
   w_T = 5.e-4_rt          ! ratio of the width of temperature transition zone to the full domain
