@@ -216,6 +216,16 @@ Castro::do_advance (Real time,
 
     MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, S_new.nGrow());
 
+#ifdef REACTIONS
+#ifndef SDC
+    // Do this for the reactions as well, in case we cut the timestep
+    // short due to it being rejected.
+
+    MultiFab& R_old = get_old_data(Reactions_Type);
+    MultiFab& R_new = get_new_data(Reactions_Type);
+    MultiFab::Copy(R_new, R_old, 0, 0, R_new.nComp(), R_new.nGrow());
+#endif
+#endif
 
     // Construct the old-time sources from Sborder.  This will already
     // be applied to S_new (with full dt weighting), to be correctly
