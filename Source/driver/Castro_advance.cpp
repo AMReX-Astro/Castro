@@ -816,6 +816,12 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     clean_state(get_old_data(State_Type));
 
+    // Initialize the previous state data container now, so that we can
+    // always ask if it has valid data.
+
+    for (int k = 0; k < num_state_type; ++k)
+        prev_state[k].reset(new StateData());
+
     // Make a copy of the MultiFabs in the old and new state data in case we may do a retry.
 
     if (use_retry) {
@@ -823,8 +829,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
       // Store the old and new time levels.
 
       for (int k = 0; k < num_state_type; k++) {
-
-	prev_state[k].reset(new StateData());
 
 	StateData::Initialize(*prev_state[k], state[k]);
 
