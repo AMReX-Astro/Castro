@@ -753,10 +753,11 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     }
 #endif
 
-    // If we're going to do a retry, save the simulation times of the
+    // If we're going to do a retry, or more generally if we're about to
+    // subcycle the advance, save the simulation times of the
     // previous state data. This must happen before the swap.
 
-    if (use_retry) {
+    if (use_retry || do_subcycle) {
 
         prev_state_old_time = get_state_data(State_Type).prevTime();
         prev_state_new_time = get_state_data(State_Type).curTime();
@@ -824,7 +825,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     // Make a copy of the MultiFabs in the old and new state data in case we may do a retry.
 
-    if (use_retry) {
+    if (use_retry || do_subcycle) {
 
       // Store the old and new time levels.
 
