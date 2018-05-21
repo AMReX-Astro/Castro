@@ -10,6 +10,9 @@ amr.n_cell           = 256
 
 amr.subcycling_mode = None
 
+castro.use_retry = 1
+castro.hard_cfl_limit = 0
+
 castro.lo_bc = 2
 castro.hi_bc = 2
 
