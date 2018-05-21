@@ -9,6 +9,9 @@ interface, while width_T determines how wide the transition region is,
 as a fraction of the domain length. Finally, the parameter cfrac is
 the initial C12 fraction (the remaining material is O16).
 
+The left side and right side can optionally approach each other with a
+non-zero infall velocity, vel.
+
 When run, the large temperature in the left side instantly flashes the
 C fuel, generating a lot of energy and a large overpressure.  The
 signature of a propagating detonation is that a narrow energy
