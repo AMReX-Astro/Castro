@@ -8,7 +8,7 @@ geometry.prob_lo     = -8.192e8
 geometry.prob_hi     =  8.192e8
 amr.n_cell           = 256
 
-amr.subcycling_mode = None
+amr.subcycling_mode = Auto
 
 castro.use_retry = 1
 castro.hard_cfl_limit = 0
