@@ -1,6 +1,6 @@
 
 max_step = 100000
-stop_time = 0.1
+stop_time = 0.005
 
 geometry.is_periodic = 0
 geometry.coord_sys   = 0
