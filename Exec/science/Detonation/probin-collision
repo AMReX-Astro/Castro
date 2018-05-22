@@ -2,7 +2,7 @@
   T_l = 1.d7
   T_r = 1.d7
 
-  dens = 2.d7
+  dens = 1.d9
   cfrac = 0.5d0
 
   smallx = 1.e-12
