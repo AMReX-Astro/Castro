@@ -47,3 +47,8 @@ amr.plot_per        = 1.e-4
 amr.derive_plot_vars = ALL
 
 amr.probin_file = probin-collision
+
+amr.message_int = 1
+castro.use_stopping_criterion = 1
+castro.T_stopping_criterion = 1.e200
+castro.ts_te_stopping_criterion = 1.e200
