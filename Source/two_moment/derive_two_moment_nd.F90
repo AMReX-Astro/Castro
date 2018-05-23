@@ -1,6 +1,9 @@
 module derive_thornado_module
 
   use amrex_fort_module, only : rt => amrex_real
+  use UnitsModule, only : Gram, Centimeter, Second
+  use RadiationFieldsModule, only : nSpecies
+  use ProgramHeaderModule, only : nE, nDOF
 
   implicit none
 
@@ -11,6 +14,7 @@ contains
 ! All subroutines in this file must be threadsafe because they are called
 ! inside OpenMP parallel regions.
 
+!! KS: Are these moments per energy bin, in which case averaging is not right?
   subroutine ca_der_J(J_avg,j_lo,j_hi,nv, &
                       U_R,d_lo,d_hi,nc,lo,hi,domlo, &
                       domhi,delta,xlo,time,dt,bc,level,grid_no) &
@@ -28,28 +32,177 @@ contains
     real(rt), intent(in)    :: U_R(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
     integer, intent(in)     :: level, grid_no
 
-    integer          :: i, j, k, ii
+    integer          :: i, j, k, is, ie, id, im, ii, icount, n_moments = 4
 
+    J_avg(:,:,:,:) = 0.0e0_rt  ! zero it out
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-!            do is = 1, n_species
-!            do im = 1, n_moments
-!            do ie = 1, n_energy
-!            do id = 1, n_rad_dof
-!               U_R(i,j,k,ii) = uCR(id,ie,i,j,k,im,is)  ! This is just here to see the ordering
-!               ii = (is-1)*(n_moments*n_energy*n_rad_dof) + &
-!                    (im-1)*(n_energy*n_rad_dof) + &
-!                    (ie-1)*n_rad_dof + (id-1)
-!               J_avg(i,j,k,1) = some average over some number of the components
-!            end do
-!            end do
-!            end do
-!            end do
+
+            icount = 0
+            do is = 1, nSpecies
+            do ie = 1, nE
+            do id = 1, nDOF ! radiation degrees of freedom
+              im = 1  ! J is first moment
+              ii = (is-1)*(n_moments*nE*nDOF) + &
+                   (im-1)*(nE*nDOF) + &
+                   (ie-1)*nDOF + (id-1)
+              icount = icount + 1  ! for averaging
+              ! Thornado uses units where c = G = k = 1, Meter = 1, so we need to add units back in
+              J_avg(i,j,k,:) = J_avg(i,j,k,:) + U_R(i,j,k,ii) / ( Gram / Centimeter / Second**2 )
+            end do
+            end do
+            end do
+            J_avg(i,j,k,:) = J_avg(i,j,k,:) / icount  ! average
+
           end do
        end do
     end do
 
   end subroutine ca_der_J
+
+
+
+  subroutine ca_der_Hx(Hx_avg,hx_lo,hx_hi,nv, &
+                      U_R,d_lo,d_hi,nc,lo,hi,domlo, &
+                      domhi,delta,xlo,time,dt,bc,level,grid_no) &
+                      bind(C, name="ca_der_Hx")
+
+    implicit none 
+
+    integer, intent(in)     :: lo(3), hi(3)
+    integer, intent(in)     :: hx_lo(3), hx_hi(3), nv
+    integer, intent(in)     :: d_lo(3), d_hi(3), nc
+    integer, intent(in)     :: domlo(3), domhi(3)
+    integer, intent(in)     :: bc(3,2,nc)
+    real(rt), intent(in)    :: delta(3), xlo(3), time, dt
+    real(rt), intent(inout) :: Hx_avg(hx_lo(1):hx_hi(1),hx_lo(2):hx_hi(2),hx_lo(3):hx_hi(3),nv)
+    real(rt), intent(in)    :: U_R(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer, intent(in)     :: level, grid_no
+
+    integer          :: i, j, k, is, ie, id, im, ii, icount, n_moments = 4
+
+    Hx_avg(:,:,:,:) = 0.0e0_rt  ! zero it out
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+            icount = 0
+            do is = 1, nSpecies
+            do ie = 1, nE
+            do id = 1, nDOF
+              im = 2  ! Hx is second moment
+              ii = (is-1)*(n_moments*nE*nDOF) + &
+                   (im-1)*(nE*nDOF) + &
+                   (ie-1)*nDOF + (id-1)
+              icount = icount + 1  ! for averaging
+              ! Thornado uses units where c = G = k = 1, Meter = 1, so we need to add units back in
+              Hx_avg(i,j,k,:) = Hx_avg(i,j,k,:) + U_R(i,j,k,ii) / ( Gram / Second**3 )
+            end do
+            end do
+            end do
+            Hx_avg(i,j,k,:) = Hx_avg(i,j,k,:) / icount  ! average
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_der_Hx
+
+
+
+  subroutine ca_der_Hy(Hy_avg,hy_lo,hy_hi,nv, &
+                      U_R,d_lo,d_hi,nc,lo,hi,domlo, &
+                      domhi,delta,xlo,time,dt,bc,level,grid_no) &
+                      bind(C, name="ca_der_Hy")
+
+    implicit none 
+
+    integer, intent(in)     :: lo(3), hi(3)
+    integer, intent(in)     :: hy_lo(3), hy_hi(3), nv
+    integer, intent(in)     :: d_lo(3), d_hi(3), nc
+    integer, intent(in)     :: domlo(3), domhi(3)
+    integer, intent(in)     :: bc(3,2,nc)
+    real(rt), intent(in)    :: delta(3), xlo(3), time, dt
+    real(rt), intent(inout) :: Hy_avg(hy_lo(1):hy_hi(1),hy_lo(2):hy_hi(2),hy_lo(3):hy_hi(3),nv)
+    real(rt), intent(in)    :: U_R(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer, intent(in)     :: level, grid_no
+
+    integer          :: i, j, k, is, ie, id, im, ii, icount, n_moments = 4
+
+    Hy_avg(:,:,:,:) = 0.0e0_rt  ! zero it out
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+            icount = 0
+            do is = 1, nSpecies
+            do ie = 1, nE
+            do id = 1, nDOF
+              im = 3  ! Hy is third moment
+              ii = (is-1)*(n_moments*nE*nDOF) + &
+                   (im-1)*(nE*nDOF) + &
+                   (ie-1)*nDOF + (id-1)
+              icount = icount + 1  ! for averaging
+              ! Thornado uses units where c = G = k = 1, Meter = 1, so we need to add units back in
+              Hy_avg(i,j,k,:) = Hy_avg(i,j,k,:) + U_R(i,j,k,ii) / ( Gram / Second**3 )
+            end do
+            end do
+            end do
+            Hy_avg(i,j,k,:) = Hy_avg(i,j,k,:) / icount  ! average
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_der_Hy
+
+
+
+  subroutine ca_der_Hz(Hz_avg,hz_lo,hz_hi,nv, &
+                      U_R,d_lo,d_hi,nc,lo,hi,domlo, &
+                      domhi,delta,xlo,time,dt,bc,level,grid_no) &
+                      bind(C, name="ca_der_Hz")
+
+    implicit none 
+
+    integer, intent(in)     :: lo(3), hi(3)
+    integer, intent(in)     :: hz_lo(3), hz_hi(3), nv
+    integer, intent(in)     :: d_lo(3), d_hi(3), nc
+    integer, intent(in)     :: domlo(3), domhi(3)
+    integer, intent(in)     :: bc(3,2,nc)
+    real(rt), intent(in)    :: delta(3), xlo(3), time, dt
+    real(rt), intent(inout) :: Hz_avg(hz_lo(1):hz_hi(1),hz_lo(2):hz_hi(2),hz_lo(3):hz_hi(3),nv)
+    real(rt), intent(in)    :: U_R(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer, intent(in)     :: level, grid_no
+
+    integer          :: i, j, k, is, ie, id, im, ii, icount, n_moments = 4
+
+    Hz_avg(:,:,:,:) = 0.0e0_rt  ! zero it out
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+            icount = 0
+            do is = 1, nSpecies
+            do ie = 1, nE
+            do id = 1, nDOF
+              im = 4  ! Hz is fourth moment
+              ii = (is-1)*(n_moments*nE*nDOF) + &
+                   (im-1)*(nE*nDOF) + &
+                   (ie-1)*nDOF + (id-1)
+              icount = icount + 1  ! for averaging
+              ! Thornado uses units where c = G = k = 1, Meter = 1, so we need to add units back in
+              Hz_avg(i,j,k,:) = Hz_avg(i,j,k,:) + U_R(i,j,k,ii) / ( Gram / Second**3 )
+            end do
+            end do
+            end do
+            Hz_avg(i,j,k,:) = Hz_avg(i,j,k,:) / icount  ! average
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_der_Hz
 
 end module derive_thornado_module

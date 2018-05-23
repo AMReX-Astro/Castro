@@ -10,6 +10,7 @@
     use FluidFieldsModule, only : uCF, iCF_D, iCF_S1, iCF_S2, iCF_S3, iCF_E, iCF_Ne
     use RadiationFieldsModule, only : uCR
     use TimeSteppingModule_Castro, only : Update_IMEX_PC2
+    use UnitsModule, only : Gram, Centimeter, Second
 
     implicit none
     integer, intent(in) :: lo(3), hi(3)
@@ -48,20 +49,23 @@
     !! KS: Do the corner ghost cells get passed too?
     ng = 2 ! 2 ghost zones for both fluid and radiation
 
+    ! Zero out dS
+    dS = 0.0e0
+
     ! ************************************************************************************
-    ! Copy from the Castro arrays into thornado arrays from InitThornado_Patch
+    ! Copy from the Castro arrays into Thornado arrays from InitThornado_Patch
     ! ************************************************************************************
     do k = lo(3)-ng,hi(3)+ng
     do j = lo(2)-ng,hi(2)+ng
     do i = lo(1)-ng,hi(1)+ng
 
-         !! KS: need unit conversion from thornado variables to castro variables
-         uCF(1:n_fluid_dof,i,j,k,iCF_D) = S(i,j,k,URHO)
-         uCF(1:n_fluid_dof,i,j,k,iCF_S1) = S(i,j,k,UMX)
-         uCF(1:n_fluid_dof,i,j,k,iCF_S2) = S(i,j,k,UMY)
-         uCF(1:n_fluid_dof,i,j,k,iCF_S3) = S(i,j,k,UMZ)
-         uCF(1:n_fluid_dof,i,j,k,iCF_E) = S(i,j,k,UEDEN)
-         uCF(1:n_fluid_dof,i,j,k,iCF_Ne) = S(i,j,k,UFX) !! KS: Make sure that Ne is filled at some point and maintained
+         ! Thornado uses units where c = G = k = 1, Meter = 1
+         uCF(1:n_fluid_dof,i,j,k,iCF_D)  = S(i,j,k,URHO) * Gram / Centimeter**3
+         uCF(1:n_fluid_dof,i,j,k,iCF_S1) = S(i,j,k,UMX) * Gram / Centimeter**2 / Second
+         uCF(1:n_fluid_dof,i,j,k,iCF_S2) = S(i,j,k,UMY) * Gram / Centimeter**2 / Second
+         uCF(1:n_fluid_dof,i,j,k,iCF_S3) = S(i,j,k,UMZ) * Gram / Centimeter**2 / Second
+         uCF(1:n_fluid_dof,i,j,k,iCF_E)  = S(i,j,k,UEDEN) * Gram / Centimeter / Second**2
+         uCF(1:n_fluid_dof,i,j,k,iCF_Ne) = S(i,j,k,UFX) / Centimeter**3 !! KS: Make sure that Ne is filled at some point and maintained
 
          do is = 1, n_species
          do im = 1, n_moments
@@ -90,7 +94,6 @@
     do j = lo(2),hi(2)
     do i = lo(1),hi(1)
 
-         !! KS: need unit conversion from thornado variables to castro variables
          !! KS: if we fill UEINT, need the final fluid state from ComputeIncrement; is that uCF at this point?
          ! We store dS as a source term which we can add to S outside of this routine
          ! uCF returned as a cell-averaged quantity so all components are the same,
