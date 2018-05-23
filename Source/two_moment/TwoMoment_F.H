@@ -35,6 +35,33 @@ extern "C"
      const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
      const int* level, const int* grid_no);
 
+  void ca_der_Hx
+    (BL_FORT_FAB_ARG_3D(H_x),const int* nvar,
+     const BL_FORT_FAB_ARG_3D(U_R),const int* ncomp,
+     const int* lo, const int* hi,
+     const int* domain_lo, const int* domain_hi,
+     const amrex::Real* delta, const amrex::Real* xlo,
+     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
+     const int* level, const int* grid_no);
+
+  void ca_der_Hy
+    (BL_FORT_FAB_ARG_3D(H_y),const int* nvar,
+     const BL_FORT_FAB_ARG_3D(U_R),const int* ncomp,
+     const int* lo, const int* hi,
+     const int* domain_lo, const int* domain_hi,
+     const amrex::Real* delta, const amrex::Real* xlo,
+     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
+     const int* level, const int* grid_no);
+
+  void ca_der_Hz
+    (BL_FORT_FAB_ARG_3D(H_z),const int* nvar,
+     const BL_FORT_FAB_ARG_3D(U_R),const int* ncomp,
+     const int* lo, const int* hi,
+     const int* domain_lo, const int* domain_hi,
+     const amrex::Real* delta, const amrex::Real* xlo,
+     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
+     const int* level, const int* grid_no);
+
 #ifdef __cplusplus
 }
 #endif

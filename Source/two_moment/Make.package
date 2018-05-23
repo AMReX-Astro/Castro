@@ -52,6 +52,10 @@ ca_F90EXE_sources += derive_two_moment_nd.F90
   ca_f90EXE_sources += TwoMoment_BoundaryConditionsModule.f90
   ca_f90EXE_sources += TwoMoment_UtilitiesModule.f90
 
+# In Modules/Units
+  ca_f90EXE_sources += PhysicalConstantsModule.f90
+  ca_f90EXE_sources += UnitsModule.f90
+
 # In SandBox/Interface_CASTRO
   ca_f90EXE_sources += ThornadoInitializationModule.f90
   ca_f90EXE_sources += TimeSteppingModule_Castro.f90
