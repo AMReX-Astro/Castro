@@ -200,6 +200,7 @@ ifeq ($(USE_THORNADO), TRUE)
   Thdirs += thornado_r721/Modules/Fields
   Thdirs += thornado_r721/Modules/Geometry
   Thdirs += thornado_r721/Modules/TwoMoment
+  Thdirs += thornado_r721/Modules/Units
   Blocs += $(foreach dir, $(Thdirs), $(TOP)/$(dir))
 endif
 
