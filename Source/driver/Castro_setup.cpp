@@ -678,6 +678,12 @@ Castro::variableSetUp ()
   derive_lst.addComponent("soundspeed",desc_lst,State_Type,Density,NUM_STATE);
 
   //
+  // Gamma_1
+  //
+  derive_lst.add("Gamma_1",IndexType::TheCellType(),1,ca_dergamma1,the_same_box);
+  derive_lst.addComponent("Gamma_1",desc_lst,State_Type,Density,NUM_STATE);
+
+  //
   // Mach number(M)
   //
   derive_lst.add("MachNumber",IndexType::TheCellType(),1,ca_dermachnumber,the_same_box);
@@ -842,7 +848,7 @@ Castro::variableSetUp ()
   derive_lst.addComponent("maggrav",desc_lst,Gravity_Type,0,3);
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
   //
   // We want a derived type that corresponds to the number of particles
   // in each cell.  We only intend to use it in plotfiles for debugging

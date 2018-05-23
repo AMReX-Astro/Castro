@@ -180,7 +180,7 @@ contains
 
     use amrex_fort_module, only: rt => amrex_real
     use bl_constants_module, only: ZERO, HALF, ONE, TWO
-    use mempool_module, only: bl_allocate, bl_deallocate
+    use amrex_mempool_module, only: bl_allocate, bl_deallocate
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, &
                                   grav_source_type, gravity_type, get_g_from_phi
     use prob_params_module, only: dg, center, physbc_lo, physbc_hi, Symmetry

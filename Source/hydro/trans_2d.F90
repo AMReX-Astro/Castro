@@ -1,6 +1,6 @@
 module transverse_module
 
-  use amrex_constants_module
+  use bl_constants_module
   use network, only : nspec, naux
   use meth_params_module, only : NQ, QVAR, NQAUX, &
                                  NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QGAME, &

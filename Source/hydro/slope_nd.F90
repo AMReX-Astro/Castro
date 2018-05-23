@@ -11,17 +11,17 @@ module slope_module
 
 contains
 
-  ! ::: 
+  ! :::
   ! ::: ------------------------------------------------------------------
-  ! ::: 
+  ! :::
 
   subroutine uslope(q, flatn, qd_lo, qd_hi, &
                     dqx, dqy, dqz, qpd_lo, qpd_hi, &
                     ilo1, ilo2, ihi1, ihi2, kc, k3d)
 
-    use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
-    use meth_params_module
-    use amrex_constants_module
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
+    use meth_params_module, only: NQ, plm_iorder
+    use bl_constants_module, only: ZERO, HALF, ONE, TWO, FOUR3RD, FOURTH, SIXTH
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -41,17 +41,17 @@ contains
     real(rt) :: dlft, drgt, slop, dq1
     real(rt) :: dm, dp, dc, ds, sl, dl, dfm, dfp
 
-    integer :: ilo, ihi      
+    integer :: ilo, ihi
 
     real(rt), pointer::dsgn(:,:),dlim(:,:),df(:,:),dcen(:,:)
 
     ilo = min(ilo1, ilo2)
     ihi = max(ihi1, ihi2)
 
-    call amrex_allocate(dsgn, ilo-2, ihi+2, ilo-2*dg(2), ihi+2*dg(2))
-    call amrex_allocate(dlim, ilo-2, ihi+2, ilo-2*dg(2), ihi+2*dg(2))
-    call amrex_allocate(  df, ilo-2, ihi+2, ilo-2*dg(2), ihi+2*dg(2))
-    call amrex_allocate(dcen, ilo-2, ihi+2, ilo-2*dg(2), ihi+2*dg(2))
+    call bl_allocate(dsgn, ilo-2, ihi+2, ilo-2*dg(2), ihi+2*dg(2))
+    call bl_allocate(dlim, ilo-2, ihi+2, ilo-2*dg(2), ihi+2*dg(2))
+    call bl_allocate(  df, ilo-2, ihi+2, ilo-2*dg(2), ihi+2*dg(2))
+    call bl_allocate(dcen, ilo-2, ihi+2, ilo-2*dg(2), ihi+2*dg(2))
 
     if (plm_iorder == 1) then
 
@@ -71,7 +71,7 @@ contains
 
     else
 
-       do n = 1, NQ 
+       do n = 1, NQ
 
 
           ! Compute slopes in first coordinate direction
@@ -178,30 +178,30 @@ contains
              enddo
           enddo
 #endif
-          
+
        enddo  ! component loop
 
     endif
 
-    call amrex_deallocate(dsgn)
-    call amrex_deallocate(dlim)
-    call amrex_deallocate(  df)
-    call amrex_deallocate(dcen)
+    call bl_deallocate(dsgn)
+    call bl_deallocate(dlim)
+    call bl_deallocate(  df)
+    call bl_deallocate(dcen)
 
   end subroutine uslope
 
-  ! ::: 
+  ! :::
   ! ::: ------------------------------------------------------------------
-  ! ::: 
+  ! :::
 
   subroutine pslope(q, flatn, q_lo, q_hi, &
                     dqx, dqy, dqz, qpd_lo, qpd_hi, &
                     src, src_lo, src_hi, &
                     ilo1, ilo2, ihi1, ihi2, kc, k3d, dx)
 
-    use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : QRHO, QPRES, QU, QV, QW, NQ, QVAR, plm_iorder
-    use amrex_constants_module
+    use bl_constants_module, only : ZERO, FOURTH, FOUR3RD, HALF, TWO, ONE, SIXTH
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -221,7 +221,7 @@ contains
 
     integer :: i, j, k
 
-    integer :: ilo, ihi        
+    integer :: ilo, ihi
 
     real(rt) :: dlft, drgt, dp1
     real(rt) :: dm, dp, dc, dl, dfm, dfp, ds
@@ -232,10 +232,10 @@ contains
     ilo = min(ilo1,ilo2)
     ihi = max(ihi1,ihi2)
 
-    call amrex_allocate(dsgn, ilo-2,ihi+2,ilo-2,ihi+2)
-    call amrex_allocate(dlim, ilo-2,ihi+2,ilo-2,ihi+2)
-    call amrex_allocate(  df, ilo-2,ihi+2,ilo-2,ihi+2)
-    call amrex_allocate(dcen, ilo-2,ihi+2,ilo-2,ihi+2)
+    call bl_allocate(dsgn, ilo-2,ihi+2,ilo-2,ihi+2)
+    call bl_allocate(dlim, ilo-2,ihi+2,ilo-2,ihi+2)
+    call bl_allocate(  df, ilo-2,ihi+2,ilo-2,ihi+2)
+    call bl_allocate(dcen, ilo-2,ihi+2,ilo-2,ihi+2)
 
     if (plm_iorder == 1) then
 
@@ -384,10 +384,10 @@ contains
 
     endif
 
-    call amrex_deallocate(dsgn)
-    call amrex_deallocate(dlim)
-    call amrex_deallocate(  df)
-    call amrex_deallocate(dcen)
+    call bl_deallocate(dsgn)
+    call bl_deallocate(dlim)
+    call bl_deallocate(  df)
+    call bl_deallocate(dcen)
 
   end subroutine pslope
 

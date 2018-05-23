@@ -1,3 +1,24 @@
+changes since last release
+
+  -- The new multilevel multigrid solvers (MLMG) in the AMReX
+     framework are now the default for self-gravity and constructing
+     the operator for explicit diffusion.
+
+# 18.05
+
+  -- Gamma_1 is now a derived variable
+
+  -- a new diffusion solver is implemented that uses the new muligrid
+     framework in AMReX to compute the diffusive operator.  This can be
+     enabled with diffusion.use_mlmg_solver = 1.
+
+# 18.04
+
+  -- The job_info file now indicates which runtime parameters were
+     changed from their default value (#314)
+
+  -- Improvements made to the 4th order hydro solver for single-level
+
 # 18.03
 
   -- The option ppm_trace_sources has been removed -- we now

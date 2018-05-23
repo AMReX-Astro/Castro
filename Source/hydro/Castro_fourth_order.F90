@@ -32,7 +32,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
                                   vol, vol_lo, vol_hi, &
                                   verbose) bind(C, name="ca_fourth_single_stage")
 
-  use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
+  use amrex_mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, NQAUX, GDPRES, &
                                  UTEMP, UEINT, USHK, GDU, GDV, GDW, UMX, &
                                  use_flattening, QPRES, NQAUX, &
@@ -41,8 +41,8 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
                                  limit_fluxes_on_small_dens, ppm_temp_fix
   use advection_util_module, only : limit_hydro_fluxes_on_small_dens, shock, &
                                     divu, normalize_species_fluxes, calc_pdivu
-  use amrex_error_module
-  use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
+  use bl_error_module
+  use bl_constants_module, only : ZERO, HALF, ONE, FOURTH
   use flatten_module, only: uflatten
   use riemann_module, only: riemann_state
   use riemann_util_module, only: compute_flux_q
@@ -156,7 +156,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   ! to do 4th order for axisymmetry, we need to derive the transformations between
   ! averages and cell-centers with the correct volume terms in the integral.
   if (coord_type > 0) then
-     call amrex_error("Error: fourth order not implemented for axisymmetric")
+     call bl_error("Error: fourth order not implemented for axisymmetric")
   endif
 
   ngf = 1
@@ -167,41 +167,41 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   shk_lo(:) = lo(:) - dg(:)
   shk_hi(:) = hi(:) + dg(:)
 
-  call amrex_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+dg(2), lo(3), hi(3)+dg(3))
+  call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+dg(2), lo(3), hi(3)+dg(3))
 
-  call amrex_allocate(qx_avg, q_lo, q_hi, NQ)
-  call amrex_allocate(qx_fc, q_lo, q_hi, NQ)
-  call amrex_allocate(qgdnvx, flx_lo, flx_hi, NGDNV)
-  call amrex_allocate(qgdnvx_avg, q_lo, q_hi, NGDNV)
-  call amrex_allocate(flx_avg, q_lo, q_hi, NVAR)
+  call bl_allocate(qx_avg, q_lo, q_hi, NQ)
+  call bl_allocate(qx_fc, q_lo, q_hi, NQ)
+  call bl_allocate(qgdnvx, flx_lo, flx_hi, NGDNV)
+  call bl_allocate(qgdnvx_avg, q_lo, q_hi, NGDNV)
+  call bl_allocate(flx_avg, q_lo, q_hi, NVAR)
 #if BL_SPACEDIM >= 2
-  call amrex_allocate(qy_avg, q_lo, q_hi, NQ)
-  call amrex_allocate(qy_fc, q_lo, q_hi, NQ)
-  call amrex_allocate(qgdnvy, fly_lo, fly_hi, NGDNV)
-  call amrex_allocate(qgdnvy_avg, q_lo, q_hi, NGDNV)
-  call amrex_allocate(fly_avg, q_lo, q_hi, NVAR)
+  call bl_allocate(qy_avg, q_lo, q_hi, NQ)
+  call bl_allocate(qy_fc, q_lo, q_hi, NQ)
+  call bl_allocate(qgdnvy, fly_lo, fly_hi, NGDNV)
+  call bl_allocate(qgdnvy_avg, q_lo, q_hi, NGDNV)
+  call bl_allocate(fly_avg, q_lo, q_hi, NVAR)
 #endif
 #if BL_SPACEDIM == 3
-  call amrex_allocate(qz_avg, q_lo, q_hi, NQ)
-  call amrex_allocate(qz_fc, q_lo, q_hi, NQ)
-  call amrex_allocate(qgdnvz, flz_lo, flz_hi, NGDNV)
-  call amrex_allocate(qgdnvz_avg, q_lo, q_hi, NGDNV)
-  call amrex_allocate(flz_avg, q_lo, q_hi, NVAR)
+  call bl_allocate(qz_avg, q_lo, q_hi, NQ)
+  call bl_allocate(qz_fc, q_lo, q_hi, NQ)
+  call bl_allocate(qgdnvz, flz_lo, flz_hi, NGDNV)
+  call bl_allocate(qgdnvz_avg, q_lo, q_hi, NGDNV)
+  call bl_allocate(flz_avg, q_lo, q_hi, NVAR)
 #endif
 
-  call amrex_allocate(qxm, q_lo, q_hi, NQ)
-  call amrex_allocate(qxp, q_lo, q_hi, NQ)
+  call bl_allocate(qxm, q_lo, q_hi, NQ)
+  call bl_allocate(qxp, q_lo, q_hi, NQ)
 
 #if BL_SPACEDIM >= 2
-  call amrex_allocate(qym, q_lo, q_hi, NQ)
-  call amrex_allocate(qyp, q_lo, q_hi, NQ)
+  call bl_allocate(qym, q_lo, q_hi, NQ)
+  call bl_allocate(qyp, q_lo, q_hi, NQ)
 #endif
 #if BL_SPACEDIM == 3
-  call amrex_allocate(qzm, q_lo, q_hi, NQ)
-  call amrex_allocate(qzp, q_lo, q_hi, NQ)
+  call bl_allocate(qzm, q_lo, q_hi, NQ)
+  call bl_allocate(qzp, q_lo, q_hi, NQ)
 #endif
 
-  call amrex_allocate(shk, shk_lo, shk_hi)
+  call bl_allocate(shk, shk_lo, shk_hi)
 
 #ifdef SHOCK_VAR
   uout(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), USHK) = ZERO
@@ -235,7 +235,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
   ! Compute flattening coefficient for slope calculations -- we do
   ! this with q_bar, since we need all of the ghost cells
-  call amrex_allocate(flatn, q_bar_lo, q_bar_hi)
+  call bl_allocate(flatn, q_bar_lo, q_bar_hi)
 
   if (use_flattening == 1) then
      call uflatten(lo - ngf*dg, hi + ngf*dg, &
@@ -336,22 +336,22 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 #endif
 
 
-  call amrex_deallocate(flatn)
+  call bl_deallocate(flatn)
 
-  call amrex_deallocate(qxm)
-  call amrex_deallocate(qxp)
+  call bl_deallocate(qxm)
+  call bl_deallocate(qxp)
 
 #if BL_SPACEDIM >= 2
-  call amrex_deallocate(qym)
-  call amrex_deallocate(qyp)
+  call bl_deallocate(qym)
+  call bl_deallocate(qyp)
 #endif
 
 #if BL_SPACEDIM == 3
-  call amrex_deallocate(qzm)
-  call amrex_deallocate(qzp)
+  call bl_deallocate(qzm)
+  call bl_deallocate(qzp)
 #endif
 
-  call amrex_deallocate(shk)
+  call bl_deallocate(shk)
 
   ! we now have the face-average interface states and fluxes evaluated with these
   ! for 1-d, we are done
@@ -572,6 +572,8 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
      else
         ! do the artificial viscosity
+        continue
+#ifdef THIS_IS_NOT_FOURTH_ORDER_ACCURATE
         do k = lo(3), hi(3)
            do j = lo(2), hi(2)
               do i = lo(1), hi(1)+1
@@ -613,6 +615,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
            enddo
         enddo
 #endif
+#endif  
      endif
 
   enddo
@@ -737,29 +740,29 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   end if
 #endif
 
-  call amrex_deallocate(   div)
+  call bl_deallocate(   div)
 
-  call amrex_deallocate(qx_avg)
-  call amrex_deallocate(qx_fc)
-  call amrex_deallocate(qgdnvx)
-  call amrex_deallocate(qgdnvx_avg)
-  call amrex_deallocate(flx_avg)
+  call bl_deallocate(qx_avg)
+  call bl_deallocate(qx_fc)
+  call bl_deallocate(qgdnvx)
+  call bl_deallocate(qgdnvx_avg)
+  call bl_deallocate(flx_avg)
 #if BL_SPACEDIM >= 2
-  call amrex_deallocate(qy_avg)
-  call amrex_deallocate(qy_fc)
-  call amrex_deallocate(qgdnvy)
-  call amrex_deallocate(qgdnvy_avg)
-  call amrex_deallocate(fly_avg)
+  call bl_deallocate(qy_avg)
+  call bl_deallocate(qy_fc)
+  call bl_deallocate(qgdnvy)
+  call bl_deallocate(qgdnvy_avg)
+  call bl_deallocate(fly_avg)
 #endif
 #if BL_SPACEDIM == 3
-  call amrex_deallocate(qz_avg)
-  call amrex_deallocate(qz_fc)
-  call amrex_deallocate(qgdnvz)
-  call amrex_deallocate(qgdnvz_avg)
-  call amrex_deallocate(flz_avg)
+  call bl_deallocate(qz_avg)
+  call bl_deallocate(qz_fc)
+  call bl_deallocate(qgdnvz)
+  call bl_deallocate(qgdnvz_avg)
+  call bl_deallocate(flz_avg)
 #endif
 #else
   ! RADIATION check
-  call amrex_error("ERROR: ca_fourth_single_stage does not support radiation")
+  call bl_error("ERROR: ca_fourth_single_stage does not support radiation")
 #endif
 end subroutine ca_fourth_single_stage

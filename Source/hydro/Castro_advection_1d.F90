@@ -1,6 +1,6 @@
 module ctu_advection_module
 
-  use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
+  use bl_constants_module, only : ZERO, HALF, ONE, FOURTH
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -310,7 +310,7 @@ contains
 #endif
     else
 #ifdef RADIATION
-       call amrex_error("ppm_type <=0 is not supported in umeth with radiation")
+       call bl_error("ppm_type <=0 is not supported in umeth with radiation")
 #else
 
        call tracexy(q, q_lo, q_hi, &

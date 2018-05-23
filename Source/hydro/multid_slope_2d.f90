@@ -1,6 +1,8 @@
 module multid_slope_module
 
   use amrex_fort_module, only : rt => amrex_real
+  use bl_constants_module, only : HALF
+
   implicit none
 
   private
@@ -18,8 +20,6 @@ contains
                           dqx, dqy, qpd_lo, qpd_hi, &
                           dx, dy, &
                           ilo, jlo, ihi, jhi)
-
-    use amrex_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none

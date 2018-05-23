@@ -83,9 +83,19 @@ switching to a rotating reference frame.
 
 
 \section{Coordinate transformation to rotating frame}
-Consider an intertial reference frame \(C\) and a non-inertial
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.5\linewidth]{tframes}
+\caption{\label{fig:sec:rot:frames} Inertial frame $C$ and
+non-inertial frame $\tilde{C}$.  We consider a fluid element
+$P$, whose distance in the two frames is related by 
+${\bf r} = \tilde{\bf{r}} + {\bf l}$}
+\end{figure}
+
+Consider an inertial reference frame \(C\) and a non-inertial
 reference frame \(\widetilde{C}\) whose origins are separated by the
-vector \(\boldsymbol{l}\).  The non-inertial frame is rotating about the axis
+vector \(\boldsymbol{l}\) (see Figure~\ref{fig:sec:rot:frames}).  The non-inertial frame is rotating about the axis
 \(\ob\) with a \emph{constant} angular velocity \(\omega\);
 furthermore, we assume the \emph{direction} of the rotational axis is
 fixed.  Consider a fluid element at the point \(P\) whose location is
@@ -121,7 +131,7 @@ vector notation, we have
     \frac{D\rb}{Dt} = \frac{D\rbt}{Dt} + \ob\times\rbt + \frac{D\boldsymbol{l}}{Dt}.
   \end{equation}
 The left hand side of \ref{eq:r-dot} is interpretted as the velocity
-of the fluid element as seen in the intertial frame; the first term on the
+of the fluid element as seen in the inertial frame; the first term on the
 right hand side is the velocity of the fluid element as seen by a
 stationary observer in the rotating frame \(\widetilde{C}\).  The second
 and third terms on the right hand side of \ref{eq:r-dot} describe the

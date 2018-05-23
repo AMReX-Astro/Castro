@@ -4,7 +4,6 @@
 module trace_ppm_module
 
   use prob_params_module, only : dg
-  use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -33,7 +32,7 @@ contains
                                    ppm_reference_eigenvectors, ppm_predict_gammae, &
                                    npassive, qpass_map, ppm_temp_fix, &
                                    fix_mass_flux
-    use amrex_constants_module
+    use bl_constants_module, only : ZERO, HALF, ONE
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
@@ -124,7 +123,7 @@ contains
 
     if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
-       call amrex_error("Error:: trace_ppm_nd.f90 :: tracexy_ppm")
+       call bl_error("Error:: trace_ppm_nd.f90 :: tracexy_ppm")
     end if
 
     hdt = HALF * dt
@@ -1302,7 +1301,7 @@ contains
                                    ppm_reference_eigenvectors, ppm_predict_gammae, &
                                    ppm_temp_fix, &
                                    npassive, qpass_map
-    use amrex_constants_module
+    use bl_constants_module, only : ZERO, HALF, ONE
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
     use amrex_fort_module, only : rt => amrex_real
@@ -1385,7 +1384,7 @@ contains
 
     if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in tracez_ppm with ppm_type = 0'
-       call amrex_error("Error:: trace_ppm_3d.f90 :: tracez_ppm")
+       call bl_error("Error:: trace_ppm_3d.f90 :: tracez_ppm")
     end if
 
     !=========================================================================
