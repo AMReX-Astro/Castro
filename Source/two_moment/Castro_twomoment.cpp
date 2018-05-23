@@ -14,6 +14,29 @@ Castro::init_thornado()
 }
 
 void
+Castro::init_thornado_data()
+{
+    MultiFab& Thor_new = get_new_data(Thornado_Type);
+
+    int nrad = THORNADO_NMOMENTS;
+    const Real* dx = geom.CellSize();
+    const Real  cur_time = state[Thornado_Type].curTime();
+
+    for (MFIter mfi(Thor_new); mfi.isValid(); ++mfi)
+    {
+       RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
+       const Box& box     = mfi.validbox();
+       const int* lo      = box.loVect();
+       const int* hi      = box.hiVect();
+  
+        ca_init_thornado_data
+	  (level, cur_time, lo, hi, nrad,
+           BL_TO_FORTRAN(Thor_new[mfi]), dx,
+           gridloc.lo(), gridloc.hi());
+    }
+}
+
+void
 Castro::create_thornado_source(Real dt)
 {
     MultiFab& S_new = get_new_data(State_Type);
@@ -72,7 +95,6 @@ Castro::create_thornado_source(Real dt)
     swX[2] = 1;
 
     int * boxlen = new int[3];
-    int nr_comp = U_R_new.nComp();
 
     for (int i = 0; i < n_sub; i++)
     {

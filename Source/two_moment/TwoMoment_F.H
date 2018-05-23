@@ -8,6 +8,13 @@ extern "C"
 #endif
   void InitThornado(const int* nDimsX, const int* nDimsE);
 
+  void ca_init_thornado_data(
+     const int& level, const amrex::Real& time,
+     const int* lo, const int* hi,
+     const int& n_moments,
+     BL_FORT_FAB_ARG(thornado_data),
+     const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* xhi);
+
   void InitThornado_Patch(const int* len, int* swX,
                           const amrex::Real* grid_lo, const amrex::Real* grid_hi, 
                           const int* n_energy, 

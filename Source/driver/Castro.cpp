@@ -883,9 +883,8 @@ Castro::initData ()
   	   gridloc.lo(), gridloc.hi());
 #endif
 
-	  // Generate the initial hybrid momenta based on this user data.
-
 #ifdef HYBRID_MOMENTUM
+	  // Generate the initial hybrid momenta based on this user data.
 	  ca_init_hybrid_momentum(lo, hi, BL_TO_FORTRAN_3D(S_new[mfi]));
 #endif
 
@@ -908,8 +907,6 @@ Castro::initData ()
          for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
            {
              const Box& box     = mfi.validbox();
-             const int* lo      = box.loVect();
-             const int* hi      = box.hiVect();
 
              const int idx = mfi.tileIndex();
 
@@ -929,6 +926,11 @@ Castro::initData ()
 
        if (ng > 0)
 	   AmrLevel::FillPatch(*this, S_new, ng, cur_time, State_Type, 0, S_new.nComp());
+
+#ifdef THORNADO
+	  // Generate the initial thornado radiation data
+          init_thornado_data();
+#endif
     }
 
 #ifdef RADIATION

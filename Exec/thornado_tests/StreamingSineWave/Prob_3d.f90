@@ -124,18 +124,12 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
 end subroutine ca_initdata
 
-
-
-
-
-
-
 ! hardwired assuming 4 moments
 ! streaming sine wave, J = H_x = 1 + sin(2*pi*x)
-subroutine ca_initrad(level,time,lo,hi,nrad_comp, &
-     rad_state,rad_state_l1, rad_state_l2,rad_state_l3, &
-     rad_state_h1, rad_state_h2,rad_state_h3, &
-     delta,xlo,xhi)
+subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
+                                 rad_state_l1,rad_state_l2,rad_state_l3, &
+                                 rad_state_h1,rad_state_h2,rad_state_h3, &
+                                 delta,xlo,xhi) bind(C,name="ca_init_thornado_data")
 
   use probdata_module
   use RadiationFieldsModule, only : nSpecies
@@ -145,15 +139,14 @@ subroutine ca_initrad(level,time,lo,hi,nrad_comp, &
 
   implicit none
 
-  integer, intent(in) :: level, nrad_comp
-  integer, intent(in) :: lo(3), hi(3)
-  integer, intent(in) :: rad_state_l1,rad_state_h1
-  integer, intent(in) :: rad_state_l2,rad_state_h2
-  integer, intent(in) :: rad_state_l3,rad_state_h3
+  integer , intent(in) :: level, nrad_comp
+  integer , intent(in) :: lo(3), hi(3)
+  integer , intent(in) :: rad_state_l1,rad_state_h1
+  integer , intent(in) :: rad_state_l2,rad_state_h2
+  integer , intent(in) :: rad_state_l3,rad_state_h3
   real(rt), intent(in) :: xlo(3), xhi(3), time, delta(3)
   real(rt), intent(inout) ::  rad_state(rad_state_l1:rad_state_h1,rad_state_l2:rad_state_h2,&
-                   rad_state_l3:rad_state_h3,nrad_comp)
-
+                                        rad_state_l3:rad_state_h3,nrad_comp)
 
   ! local variables
   integer :: i,j,k,is,im,ie,id,ii,ixnode,iynode,iznode,ienode, n_moments = 4
@@ -214,14 +207,6 @@ subroutine ca_initrad(level,time,lo,hi,nrad_comp, &
      enddo
   enddo
 
-
-
-
-
-
-
-
-
-end subroutine ca_initrad
+end subroutine ca_init_thornado_data
 
 
