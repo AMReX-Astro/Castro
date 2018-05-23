@@ -5,12 +5,18 @@
 using std::string;
 using namespace amrex;
 
-void
+int
 Castro::init_thornado()
 {
     int nDimsX = THORNADO_NDIMS_X;
     int nDimsE = THORNADO_NDIMS_E;
     InitThornado(&nDimsX, &nDimsE);
+   
+    int ncomp_thornado;
+
+    ca_get_rad_ncomp(&ncomp_thornado);
+
+    return ncomp_thornado;
 }
 
 void
@@ -18,7 +24,7 @@ Castro::init_thornado_data()
 {
     MultiFab& Thor_new = get_new_data(Thornado_Type);
 
-    int nrad = THORNADO_NMOMENTS;
+    int nc = Thor_new.nComp();
     const Real* dx = geom.CellSize();
     const Real  cur_time = state[Thornado_Type].curTime();
 
@@ -30,7 +36,7 @@ Castro::init_thornado_data()
        const int* hi      = box.hiVect();
   
         ca_init_thornado_data
-	  (level, cur_time, lo, hi, nrad,
+	  (level, cur_time, lo, hi, nc,
            BL_TO_FORTRAN(Thor_new[mfi]), dx,
            gridloc.lo(), gridloc.hi());
     }
@@ -77,8 +83,6 @@ Castro::create_thornado_source(Real dt)
 
     int n_fluid_dof = THORNADO_FLUID_NDOF;
     int n_rad_dof   = THORNADO_RAD_NDOF;
-    int n_energy    = THORNADO_NENERGY;
-    int n_species   = THORNADO_NSPECIES;
     int n_moments   = THORNADO_NMOMENTS;
 
     // For right now create a temporary holder for the source term -- we'll incorporate it 
@@ -125,22 +129,15 @@ Castro::create_thornado_source(Real dt)
   
            InitThornado_Patch(boxlen, swX,
                grid_lo.dataPtr(), grid_hi.dataPtr(),
-               &n_energy, &swE, &eL, &eR, &n_species);
+               &swE, &eL, &eR);
         }
-
-        // n_fluid_dof = THORNADO_FLUID_NDOF;
-        // n_rad_dof   = THORNADO_RAD_NDOF;
-        // n_energy    = THORNADO_NENERGY;
-        // n_species   = THORNADO_NSPECIES;
-        // n_moments   = THORNADO_NMOMENTS;
 
         call_to_thornado(BL_TO_FORTRAN_BOX(bx), &dt_sub,
                          S_new[mfi].dataPtr(),
                          BL_TO_FORTRAN_FAB(dS[mfi]),
                          U_R_old[mfi].dataPtr(),
                          BL_TO_FORTRAN_FAB(U_R_new[mfi]), 
-                         &n_fluid_dof, &n_energy, &n_species, 
-                         &n_rad_dof, &n_moments);
+                         &n_fluid_dof, &n_rad_dof, &n_moments);
 
         // Add the source term to all components even though there should
         //     only be non-zero source terms for (Rho, Xmom, Ymom, Zmom, RhoE, UFX)

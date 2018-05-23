@@ -125,6 +125,19 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 end subroutine ca_initdata
 
 ! hardwired assuming 4 moments
+subroutine get_rad_ncomp(rad_ncomp) bind(C,name="ca_get_rad_ncomp")
+
+  use RadiationFieldsModule, only : nSpecies
+  use ProgramHeaderModule, only : nE, nDOF, nNodesX, nNodesE
+
+  integer :: rad_ncomp
+  integer :: n_moments = 4
+
+  rad_ncomp =  nSpecies * n_moments * nE * nNodesX(1) *  nNodesX(2) *  nNodesX(3) * nNodesE
+
+end subroutine get_rad_ncomp
+
+! hardwired assuming 4 moments
 ! streaming sine wave, J = H_x = 1 + sin(2*pi*x)
 subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
                                  rad_state_l1,rad_state_l2,rad_state_l3, &
@@ -146,7 +159,7 @@ subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
   integer , intent(in) :: rad_state_l3,rad_state_h3
   real(rt), intent(in) :: xlo(3), xhi(3), time, delta(3)
   real(rt), intent(inout) ::  rad_state(rad_state_l1:rad_state_h1,rad_state_l2:rad_state_h2,&
-                                        rad_state_l3:rad_state_h3,nrad_comp)
+                                        rad_state_l3:rad_state_h3,0:nrad_comp-1)
 
   ! local variables
   integer :: i,j,k,is,im,ie,id,ii,ixnode,iynode,iznode,ienode, n_moments = 4
@@ -154,6 +167,14 @@ subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
 
   ! zero it out, just in case
   rad_state = 0.0e0_rt
+
+  print *,'nrad_comp ',nrad_comp
+  print *,'nsPeci    ',nSpecies
+  print *,'nmom      ',n_moments
+  print *,'nE        ',nE
+  print *,'nNodesX   ',nNodesX(:)
+  print *,'nNodesE   ',nNodesE
+  print *,'MULT ', nSpecies * n_moments * nE * nNodesX(1) *  nNodesX(2) *  nNodesX(3) * nNodesE
 
   do k = lo(3), hi(3)
      zcen = xlo(3) + delta(3)*(float(k-lo(3)) + 0.5e0_rt)

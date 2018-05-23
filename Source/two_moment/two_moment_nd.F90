@@ -1,14 +1,14 @@
   subroutine call_to_thornado(lo, hi, dt, &
                               S, dS, s_lo, s_hi, n_fluid_comp, &
                               U_R_o, U_R_n, U_R_lo, U_R_hi, n_rad_comp, &
-                              n_fluid_dof, n_energy, n_species, &
-                              n_rad_dof, n_moments) &
+                              n_fluid_dof, n_rad_dof, n_moments) &
                               bind(C, name="call_to_thornado")
 
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : URHO,UMX,UMY,UMZ,UEINT,UEDEN,UFX
+    use ProgramHeaderModule, only : nE, nDOF, nNodesX, nNodesE
     use FluidFieldsModule, only : uCF, iCF_D, iCF_S1, iCF_S2, iCF_S3, iCF_E, iCF_Ne
-    use RadiationFieldsModule, only : uCR
+    use RadiationFieldsModule, only : nSpecies, uCR
     use TimeSteppingModule_Castro, only : Update_IMEX_PC2
     use UnitsModule, only : Gram, Centimeter, Second
 
@@ -17,7 +17,7 @@
     integer, intent(in) ::  s_lo(3),  s_hi(3)
     integer, intent(in) ::  U_R_lo(3),  U_R_hi(3)
     integer, intent(in) ::  n_fluid_comp, n_rad_comp
-    integer, intent(in) ::  n_fluid_dof, n_energy, n_species, n_rad_dof, n_moments
+    integer, intent(in) ::  n_fluid_dof, n_rad_dof, n_moments
     real(rt), intent(in) :: dt
 
     ! Here we expect  n_rad_comp = 20 x 16 x 6 x 4 (energy x dof x species x moments)
@@ -31,7 +31,6 @@
     real(rt), intent(inout) ::  U_R_n(U_R_lo(1): U_R_hi(1),  U_R_lo(2): U_R_hi(2),   U_R_lo(3): U_R_hi(3), n_rad_comp) 
 
     ! Temporary variables
-    integer  :: ne,nn,ns,nm
     integer  :: i,j,k
     integer  :: ii,id,ie,im,is
     integer  :: ng
@@ -67,11 +66,11 @@
          uCF(1:n_fluid_dof,i,j,k,iCF_E)  = S(i,j,k,UEDEN) * Gram / Centimeter / Second**2
          uCF(1:n_fluid_dof,i,j,k,iCF_Ne) = S(i,j,k,UFX) / Centimeter**3 !! KS: Make sure that Ne is filled at some point and maintained
 
-         do is = 1, n_species
+         do is = 1, nSpecies
          do im = 1, n_moments
-         do ie = 1, n_energy
+         do ie = 1, nE
          do id = 1, n_rad_dof
-            ii = (is-1)*(n_moments*n_energy*n_rad_dof) + (im-1)*(n_energy*n_rad_dof) + (ie-1)*n_rad_dof + (id-1)
+            ii = (is-1)*(n_moments*nE*n_rad_dof) + (im-1)*(nE*n_rad_dof) + (ie-1)*n_rad_dof + (id-1)
             uCR(id,ie,i,j,k,im,is) = U_R_o(i,j,k,ii)
          end do
          end do
@@ -107,11 +106,11 @@
 !         dS(i,j,k,UEINT) = ?
 !         dS(i,j,k,UFX  ) = uCF(1,i,j,k,iCF_Ne) - S(i,j,k,UFX)
 
-         do is = 1, n_species
+         do is = 1, nSpecies
          do im = 1, n_moments
-         do ie = 1, n_energy
+         do ie = 1, nE
          do id = 1, n_rad_dof
-            ii = (is-1)*(n_moments*n_energy*n_rad_dof) + (im-1)*(n_energy*n_rad_dof) + (ie-1)*n_rad_dof + (id-1)
+            ii = (is-1)*(n_moments*nE*n_rad_dof) + (im-1)*(nE*n_rad_dof) + (ie-1)*n_rad_dof + (id-1)
             U_R_n(i,j,k,ii) = uCR(id,ie,i,j,k,im,is) 
          end do
          end do

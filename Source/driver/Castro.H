@@ -197,7 +197,7 @@ public:
 #endif
 
 #ifdef THORNADO
-    void init_thornado();
+    static int init_thornado();
     void init_thornado_data ();
     void init_thornado_on_patch();
     void create_thornado_source(amrex::Real dt);
@@ -836,13 +836,10 @@ protected:
 #ifdef THORNADO
     static int THORNADO_NNODES;
     static int THORNADO_NMOMENTS;
-    static int THORNADO_NENERGY;
-    static int THORNADO_NSPECIES;
     static int THORNADO_NDIMS_X;
     static int THORNADO_NDIMS_E;
     static int THORNADO_FLUID_NDOF;
     static int THORNADO_RAD_NDOF;
-    static int THORNADO_RAD_NCOMP;
 #endif
 
     static int         lastDtPlotLimited;

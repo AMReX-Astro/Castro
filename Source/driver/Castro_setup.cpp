@@ -491,10 +491,14 @@ Castro::variableSetUp ()
 #endif
 
 #ifdef THORNADO
+
+  // We need to call this here so we know how many components to allocate 
+  int ncomp_thornado = Castro::init_thornado();
+
   store_in_checkpoint = true;
   int ngrow_thornado = ngrow_state;
   desc_lst.addDescriptor(Thornado_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point, ngrow_thornado, THORNADO_RAD_NCOMP,
+			 StateDescriptor::Point, ngrow_thornado, ncomp_thornado,
 			 &cell_cons_interp, state_data_extrap,
 			 store_in_checkpoint);
 
@@ -512,16 +516,16 @@ Castro::variableSetUp ()
                         BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
 
   derive_lst.add("J_avg",IndexType::TheCellType(),1,ca_der_J,the_same_box);
-  derive_lst.addComponent("J_avg",desc_lst,Thornado_Type,0,THORNADO_RAD_NCOMP);
+  derive_lst.addComponent("J_avg",desc_lst,Thornado_Type,0,ncomp_thornado);
 
   derive_lst.add("Hx_avg",IndexType::TheCellType(),1,ca_der_Hx,the_same_box);
-  derive_lst.addComponent("Hx_avg",desc_lst,Thornado_Type,0,THORNADO_RAD_NCOMP);
+  derive_lst.addComponent("Hx_avg",desc_lst,Thornado_Type,0,ncomp_thornado);
 
   derive_lst.add("Hy_avg",IndexType::TheCellType(),1,ca_der_Hy,the_same_box);
-  derive_lst.addComponent("Hy_avg",desc_lst,Thornado_Type,0,THORNADO_RAD_NCOMP);
+  derive_lst.addComponent("Hy_avg",desc_lst,Thornado_Type,0,ncomp_thornado);
 
   derive_lst.add("Hz_avg",IndexType::TheCellType(),1,ca_der_Hz,the_same_box);
-  derive_lst.addComponent("Hz_avg",desc_lst,Thornado_Type,0,THORNADO_RAD_NCOMP);
+  derive_lst.addComponent("Hz_avg",desc_lst,Thornado_Type,0,ncomp_thornado);
 
 #endif
 
