@@ -7,6 +7,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use probdata_module
 
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
   integer, intent(in) :: init, namlen
@@ -140,6 +141,7 @@ subroutine ca_initrad(level,time,lo,hi,nrad_comp, &
   use RadiationFieldsModule, only : nSpecies
   use ProgramHeaderModule, only : nE, nDOF, nNodesX, nNodesE
   use amrex_fort_module, only : rt => amrex_real
+  use amrex_constants_module, only : M_PI
 
   implicit none
 
@@ -188,10 +190,10 @@ subroutine ca_initrad(level,time,lo,hi,nrad_comp, &
               znode = zcen + ( float(iznode)-1.5e0_rt )*delta(3)/sqrt(3.0e0_rt)
 
               ! J moment, im = 1
-              if (im .eq. 1) rad_state(i,j,k,ii) = 1.0e0_rt + sin(2.0e0_rt*3.14159e0_rt*xnode)
+              if (im .eq. 1) rad_state(i,j,k,ii) = 1.0e0_rt + sin(2.0e0_rt*M_PI*xnode)
 
               ! H_x moment, im = 2
-              if (im .eq. 2) rad_state(i,j,k,ii) = 1.0e0_rt + sin(2.0e0_rt*3.14159e0_rt*xnode)
+              if (im .eq. 2) rad_state(i,j,k,ii) = 1.0e0_rt + sin(2.0e0_rt*M_PI*xnode)
 
               ! H_y moment, im = 3
               if (im .eq. 3) rad_state(i,j,k,ii) = 0.0e0_rt
