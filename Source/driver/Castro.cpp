@@ -94,12 +94,11 @@ int          Castro::NQAUX         = -1;
 int          Castro::NQ            = -1;
 
 #ifdef THORNADO
+int          Castro::THORNADO_NSPECIES   = 1;
 int          Castro::THORNADO_NNODES     = 2;
 int          Castro::THORNADO_NMOMENTS   = 4;
-int          Castro::THORNADO_NDIMS_X    = BL_SPACEDIM;
-int          Castro::THORNADO_NDIMS_E    = 1;
-int          Castro::THORNADO_FLUID_NDOF = std::pow(THORNADO_NNODES, THORNADO_NDIMS_X                    );   // =  8 for 3D
-int          Castro::THORNADO_RAD_NDOF   = std::pow(THORNADO_NNODES,(THORNADO_NDIMS_X + THORNADO_NDIMS_E));   // = 16 for 3D and 1 energy
+int          Castro::THORNADO_FLUID_NDOF = std::pow(THORNADO_NNODES, BL_SPACEDIM     );   // =  8 for 3D
+int          Castro::THORNADO_RAD_NDOF   = std::pow(THORNADO_NNODES,(BL_SPACEDIM + 1));   // = 16 for 3D and 1 energy
 #endif
 
 Vector<std::string> Castro::source_names;

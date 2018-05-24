@@ -6,7 +6,7 @@
 extern "C"
 {
 #endif
-  void InitThornado(const int* nDimsX, const int* nDimsE);
+  void InitThornado(const int* nDimsX, const int* nDimsE, const int* nSpecies);
 
   void ca_get_rad_ncomp(int* rad_ncomp);
 
@@ -30,8 +30,7 @@ extern "C"
                         BL_FORT_FAB_ARG_3D(dU_F  ), const int* nds,
                         BL_FORT_FAB_ARG_3D( U_R_o), const int* n_uro,
                         BL_FORT_FAB_ARG_3D( U_R_n), const int* n_urn,
-                        int* n_fluid_dof, int* n_rad_dof, int* n_moments,
-                        int* my_ngrow);
+                        int* n_fluid_dof, int* n_moments, int* my_ngrow);
 
   void ca_der_J
     (BL_FORT_FAB_ARG_3D(J),const int* nvar,

@@ -8,9 +8,11 @@ using namespace amrex;
 int
 Castro::init_thornado()
 {
-    int nDimsX = THORNADO_NDIMS_X;
-    int nDimsE = THORNADO_NDIMS_E;
-    InitThornado(&nDimsX, &nDimsE);
+    int nDimsX   = BL_SPACEDIM;
+    int nDimsE   = 1;
+    int nSpecies = THORNADO_NSPECIES;
+
+    InitThornado(&nDimsX, &nDimsE, &nSpecies);
    
     int ncomp_thornado;
 
@@ -50,7 +52,6 @@ Castro::create_thornado_source(Real dt)
     MultiFab& U_R_old = get_old_data(Thornado_Type);
     MultiFab& U_R_new = get_new_data(Thornado_Type);
 
-    int my_ncomp = BL_SPACEDIM+3;  // rho, rho*u, rho*v, rho*w, rho*E, Y_e
     int my_ngrow = 2;  // two fluid ghost cells
 
     // This fills the ghost cells of the fluid MultiFab which we will pass into Thornado
@@ -72,7 +73,6 @@ Castro::create_thornado_source(Real dt)
     const Real* dx = geom.CellSize();
 
     int n_fluid_dof = THORNADO_FLUID_NDOF;
-    int n_rad_dof   = THORNADO_RAD_NDOF;
     int n_moments   = THORNADO_NMOMENTS;
 
     // For right now create a temporary holder for the source term -- we'll incorporate it 
@@ -127,7 +127,7 @@ Castro::create_thornado_source(Real dt)
                          BL_TO_FORTRAN_FAB(dS[mfi]),
                          BL_TO_FORTRAN_FAB(R_border[mfi]),
                          BL_TO_FORTRAN_FAB(U_R_new[mfi]), 
-                         &n_fluid_dof, &n_rad_dof, &n_moments, &my_ngrow);
+                         &n_fluid_dof, &n_moments, &my_ngrow);
 
         // Add the source term to all components even though there should
         //     only be non-zero source terms for (Rho, Xmom, Ymom, Zmom, RhoE, UFX)

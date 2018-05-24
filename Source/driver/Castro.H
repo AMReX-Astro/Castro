@@ -834,10 +834,9 @@ protected:
     static int       NUM_GROW;
 
 #ifdef THORNADO
+    static int THORNADO_NSPECIES;
     static int THORNADO_NNODES;
     static int THORNADO_NMOMENTS;
-    static int THORNADO_NDIMS_X;
-    static int THORNADO_NDIMS_E;
     static int THORNADO_FLUID_NDOF;
     static int THORNADO_RAD_NDOF;
 #endif

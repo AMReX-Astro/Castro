@@ -3,7 +3,7 @@
                               dS, d_lo, d_hi, nds, &
                               U_R_o, U_R_o_lo, U_R_o_hi, n_uro, &
                               U_R_n, U_R_n_lo, U_R_n_hi, n_urn, &
-                              n_fluid_dof, n_rad_dof, n_moments, ng) &
+                              n_fluid_dof, n_moments, ng) &
                               bind(C, name="call_to_thornado")
 
     use amrex_fort_module, only : rt => amrex_real
@@ -22,7 +22,7 @@
     integer, intent(in) ::  U_R_o_lo(3),  U_R_o_hi(3)
     integer, intent(in) ::  U_R_n_lo(3),  U_R_n_hi(3)
     integer, intent(in) ::  ns, nds, n_uro, n_urn
-    integer, intent(in) ::  n_fluid_dof, n_rad_dof, n_moments
+    integer, intent(in) ::  n_fluid_dof, n_moments
     integer, intent(in) :: ng
     real(rt), intent(in) :: dt
 
@@ -107,7 +107,7 @@
          do im = 1, n_moments
          do ie = 1, nE
          do id = 1, nDOF
-            ii = (is-1)*(n_moments*nE*n_rad_dof) + (im-1)*(nE*n_rad_dof) + (ie-1)*n_rad_dof + (id-1)
+            ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
             uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,kc,ii)
          end do
          end do
@@ -146,8 +146,8 @@
          do is = 1, nSpecies
          do im = 1, n_moments
          do ie = 1, nE
-         do id = 1, n_rad_dof
-            ii = (is-1)*(n_moments*nE*n_rad_dof) + (im-1)*(nE*n_rad_dof) + (ie-1)*n_rad_dof + (id-1)
+         do id = 1, nDOF
+            ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
             U_R_n(i,j,k,ii) = uCR(id,ie,i,j,k,im,is) 
          end do
          end do
