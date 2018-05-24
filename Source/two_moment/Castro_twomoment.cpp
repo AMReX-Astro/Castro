@@ -47,30 +47,20 @@ Castro::create_thornado_source(Real dt)
 {
     MultiFab& S_new = get_new_data(State_Type);
 
+    MultiFab& U_R_old = get_old_data(Thornado_Type);
+    MultiFab& U_R_new = get_new_data(Thornado_Type);
+
     int my_ncomp = BL_SPACEDIM+3;  // rho, rho*u, rho*v, rho*w, rho*E, Y_e
     int my_ngrow = 2;  // two fluid ghost cells
 
-    // This fills the ghost cells of the MultiFab which we will then copy into U_F
-    MultiFab S_with_ghost_cells(grids, dmap, NUM_STATE, my_ngrow);
+    // This fills the ghost cells of the fluid MultiFab which we will pass into Thornado
+    MultiFab S_border(grids, dmap, NUM_STATE, my_ngrow);
     const Real  cur_time = state[State_Type].curTime();
-    AmrLevel::FillPatch(*this, S_with_ghost_cells, my_ngrow, cur_time, State_Type, 0, NUM_STATE);
+    AmrLevel::FillPatch(*this, S_border, my_ngrow, cur_time, State_Type, 0, NUM_STATE);
 
-    // Create U_F to hold the right order of the right variables
-    MultiFab U_F(grids, dmap, my_ncomp, my_ngrow);
-
-    // Copy into U_F just these variables: rho, rho*u, rho*v, rho*w, rho*E, rho*ne
-    int      cnt = 0;
-    MultiFab::Copy(U_F, S_with_ghost_cells, Density , cnt, 1, my_ngrow); cnt++;
-    MultiFab::Copy(U_F, S_with_ghost_cells, Xmom    , cnt, 1, my_ngrow); cnt++;
-    MultiFab::Copy(U_F, S_with_ghost_cells, Ymom    , cnt, 1, my_ngrow); cnt++;
-#if (BL_SPACEDIM == 3)
-    MultiFab::Copy(U_F, S_with_ghost_cells, Zmom    , cnt, 1, my_ngrow); cnt++;
-#endif
-    MultiFab::Copy(U_F, S_with_ghost_cells, Eden    , cnt, 1, my_ngrow); cnt++;
-    MultiFab::Copy(U_F, S_with_ghost_cells, FirstAux, cnt, 1, my_ngrow); 
-
-    MultiFab& U_R_old = get_old_data(Thornado_Type);
-    MultiFab& U_R_new = get_new_data(Thornado_Type);
+    // This fills the ghost cells of the radiation MultiFab which we will pass into Thornado
+    MultiFab R_border(grids, dmap, U_R_old.nComp(), my_ngrow);
+    AmrLevel::FillPatch(*this, R_border, my_ngrow, cur_time, Thornado_Type, 0, U_R_old.nComp());
 
     // int n_sub = GetNSteps(dt); // From thornado
     int n_sub = 1; // THIS IS JUST A HACK TO MAKE IT COMPILE 
@@ -94,9 +84,9 @@ Castro::create_thornado_source(Real dt)
     Real eR = 0.;
 
     int swX[3];
-    swX[0] = 1;
-    swX[1] = 1;
-    swX[2] = 1;
+    swX[0] = my_ngrow;
+    swX[1] = my_ngrow;
+    swX[2] = my_ngrow;
 
     int * boxlen = new int[3];
 
@@ -110,7 +100,7 @@ Castro::create_thornado_source(Real dt)
       dS.setVal(0.);
 
       // For now we will not allowing logical tiling
-      for (MFIter mfi(U_F, false); mfi.isValid(); ++mfi) 
+      for (MFIter mfi(S_border, false); mfi.isValid(); ++mfi) 
       {
         Box bx = mfi.validbox();
 
@@ -133,11 +123,11 @@ Castro::create_thornado_source(Real dt)
         }
 
         call_to_thornado(BL_TO_FORTRAN_BOX(bx), &dt_sub,
-                         S_new[mfi].dataPtr(),
+                         BL_TO_FORTRAN_FAB(S_border[mfi]),
                          BL_TO_FORTRAN_FAB(dS[mfi]),
-                         U_R_old[mfi].dataPtr(),
+                         BL_TO_FORTRAN_FAB(R_border[mfi]),
                          BL_TO_FORTRAN_FAB(U_R_new[mfi]), 
-                         &n_fluid_dof, &n_rad_dof, &n_moments);
+                         &n_fluid_dof, &n_rad_dof, &n_moments, &my_ngrow);
 
         // Add the source term to all components even though there should
         //     only be non-zero source terms for (Rho, Xmom, Ymom, Zmom, RhoE, UFX)
@@ -145,7 +135,7 @@ Castro::create_thornado_source(Real dt)
 
         if (i == (n_sub-1)) FreeThornado_Patch();
       }
-      U_F.FillBoundary();
+      S_border.FillBoundary();
     }
     delete boxlen;
 }

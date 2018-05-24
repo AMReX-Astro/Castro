@@ -26,11 +26,12 @@ extern "C"
   void FreeThornado_Patch();
 
   void call_to_thornado(const int lo[], const int hi[], amrex::Real* dt_sub,
-                        amrex::Real* U_F, 
-                        BL_FORT_FAB_ARG_3D(dU_F), const int* nc,
-                        amrex::Real* U_R_o, 
-                        BL_FORT_FAB_ARG_3D( U_R_n), const int* nr,
-                        int* n_fluid_dof, int* n_rad_dof, int* n_moments);
+                        BL_FORT_FAB_ARG_3D( U_F  ), const int* ns,
+                        BL_FORT_FAB_ARG_3D(dU_F  ), const int* nds,
+                        BL_FORT_FAB_ARG_3D( U_R_o), const int* n_uro,
+                        BL_FORT_FAB_ARG_3D( U_R_n), const int* n_urn,
+                        int* n_fluid_dof, int* n_rad_dof, int* n_moments,
+                        int* my_ngrow);
 
   void ca_der_J
     (BL_FORT_FAB_ARG_3D(J),const int* nvar,

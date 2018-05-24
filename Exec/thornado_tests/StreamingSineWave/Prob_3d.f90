@@ -87,10 +87,11 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3, &
                        delta,xlo,xhi)
 
+  use amrex_error_module
+  use amrex_fort_module, only : rt => amrex_real
   use network, only: nspec
   use probdata_module
-  use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS
-  use amrex_fort_module, only : rt => amrex_real
+  use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS, UFX
   implicit none
 
   integer, intent(in) :: level, nscal
@@ -101,6 +102,9 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                          state_l3:state_h3,NVAR)
 
   integer :: i,j,k
+
+  if (UFX .lt. 0.d0) &
+     call amrex_abort("Must have UFX defined to run this problem!")
 
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
@@ -117,6 +121,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            state(i,j,k,UFS:UFS-1+nspec) = 0.0e0_rt
            state(i,j,k,UFS  ) = state(i,j,k,URHO)
 
+           ! This is Ne
+           state(i,j,k,UFX  ) = 0.d0
            
         enddo
      enddo
@@ -169,8 +175,8 @@ subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
   rad_state = 0.0e0_rt
 
   print *,'nrad_comp ',nrad_comp
-  print *,'nsPeci    ',nSpecies
-  print *,'nmom      ',n_moments
+  print *,'nSpecies  ',nSpecies
+  print *,'n_moments ',n_moments
   print *,'nE        ',nE
   print *,'nNodesX   ',nNodesX(:)
   print *,'nNodesE   ',nNodesE
