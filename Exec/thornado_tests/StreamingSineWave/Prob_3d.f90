@@ -2,7 +2,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use eos_module
   use eos_type_module
-  use bl_error_module 
+  use amrex_error_module 
   use network
   use probdata_module
 
@@ -27,7 +27,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   character probin*(maxlen)
 
   if (namlen .gt. maxlen) then
-     call bl_error("probin file name too long")
+     call amrex_error("probin file name too long")
   end if
 
   do i = 1, namlen
@@ -154,6 +154,7 @@ subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
   use RadiationFieldsModule, only : nSpecies
   use ProgramHeaderModule, only : nE, nDOF, nNodesX, nNodesE
   use amrex_fort_module, only : rt => amrex_real
+  use amrex_error_module
   use amrex_constants_module, only : M_PI
 
   implicit none
@@ -167,8 +168,13 @@ subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
   real(rt), intent(inout) ::  rad_state(rad_state_l1:rad_state_h1,rad_state_l2:rad_state_h2,&
                                         rad_state_l3:rad_state_h3,0:nrad_comp-1)
 
+  ! Local parameter
+  integer, parameter :: n_moments = 4
+
   ! local variables
-  integer :: i,j,k,is,im,ie,id,ii,ixnode,iynode,iznode,ienode, n_moments = 4
+  integer :: i,j,k,ixnode,iynode,iznode,ienode
+  integer :: ii,ii_0,is,im,ie,id
+  integer :: nx,ny,nz
   real(rt) :: xcen, ycen, zcen, xnode, ynode, znode
 
   ! zero it out, just in case
@@ -181,6 +187,15 @@ subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
   print *,'nNodesX   ',nNodesX(:)
   print *,'nNodesE   ',nNodesE
   print *,'MULT ', nSpecies * n_moments * nE * nNodesX(1) *  nNodesX(2) *  nNodesX(3) * nNodesE
+
+  print *,'nDOF      ',nDOF
+
+  nz = nNodesE*nNodesX(1)*nNodesX(2)
+  ny = nNodesE*nNodesX(1)
+  nx = nNodesE
+
+  if (nDOF .ne. nz*nNodesX(3)) &
+     call amrex_abort("nDOE ne nNodesX(1)*nNodesX(2)*nNodesX(3)*nNodesE")
 
   do k = lo(3), hi(3)
      zcen = xlo(3) + delta(3)*(float(k-lo(3)) + 0.5e0_rt)
@@ -195,14 +210,18 @@ subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
            do im = 1, n_moments
            do ie = 1, nE
 
+           ii_0 = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF
+
            do iznode = 1, nNodesX(3)
            do iynode = 1, nNodesX(2)
            do ixnode = 1, nNodesX(1)
            do ienode = 1, nNodesE
  
               ! calculate the indices
-              id = ienode + 2*(ixnode-1) + 4*(iynode-1) + 8*(iznode-1)
-              ii = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
+              id = (ienode-1) + nx*(ixnode-1) + ny*(iynode-1) + nz*(iznode-1)
+              ii = ii_0 + id
+
+              if (i.eq.0.and.j.eq.0.and.k.eq.0) print *,'IS IM IE ID ',is,im,ie,id,ii
 
               ! calculate actual positions of the nodes used for the gaussian quadrature
               xnode = xcen + ( float(ixnode)-1.5e0_rt )*delta(1)/sqrt(3.0e0_rt)
