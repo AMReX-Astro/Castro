@@ -221,8 +221,6 @@ subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
               id = (ienode-1) + nx*(ixnode-1) + ny*(iynode-1) + nz*(iznode-1)
               ii = ii_0 + id
 
-              if (i.eq.0.and.j.eq.0.and.k.eq.0) print *,'IS IM IE ID ',is,im,ie,id,ii
-
               ! calculate actual positions of the nodes used for the gaussian quadrature
               xnode = xcen + ( float(ixnode)-1.5e0_rt )*delta(1)/sqrt(3.0e0_rt)
               ynode = ycen + ( float(iynode)-1.5e0_rt )*delta(2)/sqrt(3.0e0_rt)
