@@ -30,7 +30,7 @@
 
     ! Conserved fluid state (rho, rho u, rho v, rho w, rho E, rho e...)
     real(rt), intent(inout) ::  S(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),ns) 
-    real(rt), intent(inout) :: dS(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),nds)
+    real(rt), intent(inout) :: dS(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nds)
 
     ! Old and new radiation state
     real(rt), intent(inout) ::  U_R_o(U_R_o_lo(1): U_R_o_hi(1),  U_R_o_lo(2): U_R_o_hi(2),   U_R_o_lo(3): U_R_o_hi(3), 0:n_uro-1) 
