@@ -29,7 +29,7 @@ contains
     integer, intent(in)     :: bc(3,2,nc)
     real(rt), intent(in)    :: delta(3), xlo(3), time, dt
     real(rt), intent(inout) :: J_avg(j_lo(1):j_hi(1),j_lo(2):j_hi(2),j_lo(3):j_hi(3),nv)
-    real(rt), intent(in)    :: U_R(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    real(rt), intent(in)    :: U_R(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),0:nc)
     integer, intent(in)     :: level, grid_no
 
     integer          :: i, j, k, is, ie, id, im, ii, icount, n_moments = 4
@@ -77,7 +77,7 @@ contains
     integer, intent(in)     :: bc(3,2,nc)
     real(rt), intent(in)    :: delta(3), xlo(3), time, dt
     real(rt), intent(inout) :: Hx_avg(hx_lo(1):hx_hi(1),hx_lo(2):hx_hi(2),hx_lo(3):hx_hi(3),nv)
-    real(rt), intent(in)    :: U_R(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    real(rt), intent(in)    :: U_R(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),0:nc)
     integer, intent(in)     :: level, grid_no
 
     integer          :: i, j, k, is, ie, id, im, ii, icount, n_moments = 4
@@ -125,7 +125,7 @@ contains
     integer, intent(in)     :: bc(3,2,nc)
     real(rt), intent(in)    :: delta(3), xlo(3), time, dt
     real(rt), intent(inout) :: Hy_avg(hy_lo(1):hy_hi(1),hy_lo(2):hy_hi(2),hy_lo(3):hy_hi(3),nv)
-    real(rt), intent(in)    :: U_R(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    real(rt), intent(in)    :: U_R(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),0:nc)
     integer, intent(in)     :: level, grid_no
 
     integer          :: i, j, k, is, ie, id, im, ii, icount, n_moments = 4
@@ -173,7 +173,7 @@ contains
     integer, intent(in)     :: bc(3,2,nc)
     real(rt), intent(in)    :: delta(3), xlo(3), time, dt
     real(rt), intent(inout) :: Hz_avg(hz_lo(1):hz_hi(1),hz_lo(2):hz_hi(2),hz_lo(3):hz_hi(3),nv)
-    real(rt), intent(in)    :: U_R(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    real(rt), intent(in)    :: U_R(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),0:nc)
     integer, intent(in)     :: level, grid_no
 
     integer          :: i, j, k, is, ie, id, im, ii, icount, n_moments = 4
