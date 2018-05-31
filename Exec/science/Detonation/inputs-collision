@@ -11,8 +11,8 @@ amr.n_cell           = 256
 amr.subcycling_mode = Auto
 
 castro.use_retry = 1
-castro.hard_cfl_limit = 0
 castro.use_post_step_regrid = 1
+castro.max_subcycles = 100
 
 castro.lo_bc = 3
 castro.hi_bc = 2
