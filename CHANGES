@@ -7,6 +7,9 @@ changes since last release
   -- A new test problem, the classic double Mach reflection, was
      added.
 
+  -- fix an issue in the retry logic that could sometimes result in
+     an overflow of the estimated number of subcycle steps.
+
 # 18.05
 
   -- Gamma_1 is now a derived variable
