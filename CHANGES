@@ -4,6 +4,12 @@ changes since last release
      framework are now the default for self-gravity and constructing
      the operator for explicit diffusion.
 
+  -- A new test problem, the classic double Mach reflection, was
+     added.
+
+  -- fix an issue in the retry logic that could sometimes result in
+     an overflow of the estimated number of subcycle steps.
+
 # 18.05
 
   -- Gamma_1 is now a derived variable
