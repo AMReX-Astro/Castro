@@ -1,7 +1,7 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
-  use probdata_module, only: T_l, T_r, dens, cfrac, frac, idir, w_T, center_T, &
-                             xn, ihe4, ic12, io16, smallx
+  use probdata_module, only: T_l, T_r, dens, cfrac, idir, w_T, center_T, &
+                             xn, ihe4, ic12, io16, smallx, vel
   use network, only: network_species_index, nspec
   use bl_error_module, only: bl_error
   use amrex_fort_module, only: rt => amrex_real
@@ -14,7 +14,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   integer :: untin,i
 
-  namelist /fortin/ T_l, T_r, dens, cfrac, frac, idir, w_T, center_T, smallx
+  namelist /fortin/ T_l, T_r, dens, cfrac, idir, w_T, center_T, smallx, vel
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
 
@@ -35,11 +35,12 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   smallx = 1.e-12_rt
 
   idir = 1                ! direction across which to jump
-  frac = 0.5              ! fraction of the domain for the interface
   cfrac = 0.5
 
   w_T = 5.e-4_rt           ! ratio of the width of temperature transition zone to the full domain
   center_T = 3.e-1_rt      ! central position parameter of teperature profile transition zone
+
+  vel = 0.e0_rt           ! infall velocity towards the transition point
 
   ! Read namelists
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
@@ -99,8 +100,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use network, only: nspec
   use eos_module, only: eos
   use eos_type_module, only: eos_t, eos_input_rt
-  use probdata_module, only: T_l, T_r, center_T, w_T, dens, xn
-  use meth_params_module, only: NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
+  use probdata_module, only: T_l, T_r, center_T, w_T, dens, vel, xn
+  use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
   use amrex_fort_module, only: rt => amrex_real
   use prob_params_module, only: problo, probhi
 
@@ -141,10 +142,11 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
            call eos(eos_input_rt, eos_state)
 
-           state(i,j,k,UMX  ) = 0.e0_rt
+           state(i,j,k,UMX  ) = state(i,URHO) * (vel - 2 * vel * (1.0e0_rt - sigma))
            state(i,j,k,UMY  ) = 0.e0_rt
-           state(i,j,k,UEDEN) = state(i,j,k,URHO)*eos_state%e
-           state(i,j,k,UEINT) = state(i,j,k,URHO)*eos_state%e
+           state(i,j,k,UMZ  ) = 0.e0_rt
+           state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state%e
+           state(i,j,k,UEDEN) = state(i,j,k,UEINT) + 0.5e0_rt * sum(state(i,j,k,UMX:UMZ)**2) / state(i,j,k,URHO)
         enddo
      enddo
   enddo
