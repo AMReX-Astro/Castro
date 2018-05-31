@@ -1,8 +1,8 @@
 &fortin
-  T_l = 1.d8
-  T_r = 1.d8
+  T_l = 1.d7
+  T_r = 1.d7
 
-  dens = 2.d7
+  dens = 5.d6
   cfrac = 0.5d0
 
   smallx = 1.e-12
@@ -10,9 +10,9 @@
   idir = 1
 
   w_T = 0.d0
-  center_T = 5.d-1
+  center_T = 0.d0
 
-  vel = 1.0d8
+  vel = 0.d0
 /
 
 &tagging
