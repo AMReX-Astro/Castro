@@ -7,7 +7,6 @@
   cfrac = 0.d0
 
   idir = 1
-  frac = 0.333d0
 /
 
 &tagging
