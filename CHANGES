@@ -1,4 +1,4 @@
-changes since last release
+# 18.06
 
   -- The new multilevel multigrid solvers (MLMG) in the AMReX
      framework are now the default for self-gravity and constructing
