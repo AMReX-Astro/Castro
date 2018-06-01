@@ -10,6 +10,9 @@ changes since last release
   -- fix an issue in the retry logic that could sometimes result in
      an overflow of the estimated number of subcycle steps.
 
+  -- Improved the behavior of retries when they hit CFL violations
+     (#334, #335).
+
 # 18.05
 
   -- Gamma_1 is now a derived variable
