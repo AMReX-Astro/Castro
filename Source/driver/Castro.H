@@ -491,7 +491,7 @@ public:
 
     void reset_internal_energy (amrex::MultiFab& State);
 
-    void computeTemp (amrex::MultiFab& State);
+    void computeTemp (amrex::MultiFab& State, int ng);
 
     void apply_source_term_predictor();
 
@@ -755,14 +755,14 @@ protected:
 
     void reflux (int crse_level, int fine_level);
 
-    void normalize_species (amrex::MultiFab& S_new);
+    void normalize_species (amrex::MultiFab& S_new, int ng);
 
     void enforce_consistent_e (amrex::MultiFab& S);
 
-    amrex::Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new);
+    amrex::Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new, int ng);
 
-    amrex::Real clean_state (int is_new, amrex::MultiFab& state);
-    amrex::Real clean_state (int is_new);
+    amrex::Real clean_state (int is_new, amrex::MultiFab& state, int ng);
+    amrex::Real clean_state (int is_new, int ng);
 
     amrex::Real clean_state (amrex::MultiFab& state);
 

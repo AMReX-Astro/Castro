@@ -75,7 +75,7 @@ Castro::advance (Real time,
 	    MultiFab& S_new = get_new_data(State_Type);
 
             int is_new=1;
-	    clean_state(is_new);
+	    clean_state(is_new, S_new.nGrow());
 
 	    // Compute the reactive source term for use in the next iteration.
 
@@ -246,7 +246,7 @@ Castro::do_advance (Real time,
 
       apply_source_to_state(S_new, old_source, dt, S_new.nGrow());
       int is_new=1;
-      clean_state(is_new);
+      clean_state(is_new, S_new.nGrow());
 
       // Apply the old sources to the sources for the hydro.
       // Note that we are doing an add here, not a copy,
@@ -279,13 +279,13 @@ Castro::do_advance (Real time,
       construct_hydro_source(time, dt);
       apply_source_to_state(S_new, hydro_source, dt);
       int is_new=1;
-      clean_state(is_new);
+      clean_state(is_new, S_new.nGrow());
     }
 
 
     // Sync up state after old sources and hydro source.
     int is_new=1;
-    frac_change = clean_state(is_new, Sborder);
+    frac_change = clean_state(is_new, Sborder, S_new.nGrow());
 
     // If the state has ghost zones, sync them up now
     // since the hydro source only works on the valid zones.
@@ -334,7 +334,7 @@ Castro::do_advance (Real time,
 
       apply_source_to_state(S_new, new_source, dt, S_new.nGrow());
       int is_new=1;
-      clean_state(is_new);
+      clean_state(is_new, S_new.nGrow());
 
     } else {
 
@@ -521,7 +521,7 @@ Castro::do_advance_mol (Real time,
 
   // define the temperature now
   int is_new=1;
-  clean_state(is_new);
+  clean_state(is_new, S_new.nGrow());
 
   // If the state has ghost zones, sync them up now
   // since the hydro source only works on the valid zones.
@@ -653,7 +653,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 
         // not sure if this is needed
         int is_new=1;
-        clean_state(is_new);
+        clean_state(is_new, S_new.nGrow());
 
 	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
 	const Real new_time = state[State_Type].curTime();
@@ -834,7 +834,8 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // (e.g. UEINT and UEDEN) that we demand in every zone.
 
     int is_new=0;
-    clean_state(is_new);
+    MultiFab& S_old = get_old_data(State_Type);
+    clean_state(is_new, S_old.nGrow());
 
     // Initialize the previous state data container now, so that we can
     // always ask if it has valid data.
