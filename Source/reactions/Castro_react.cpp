@@ -229,7 +229,7 @@ Castro::strang_react_second_half(Real time, Real dt)
     }
 
     int is_new = 1;
-    clean_state(is_new);
+    clean_state(is_new, state.nGrow());
 
 }
 
