@@ -965,7 +965,8 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
         const int* lo = bx.loVect();
         const int* hi = bx.hiVect();
 
-        ca_check_timestep(ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_3D(S_old[mfi]),
+        ca_check_timestep(ARLIM_3D(lo), ARLIM_3D(hi),
+                          BL_TO_FORTRAN_3D(S_old[mfi]),
                           BL_TO_FORTRAN_3D(S_new[mfi]),
 #ifdef REACTIONS
                           BL_TO_FORTRAN_3D(R_old[mfi]),
@@ -1020,6 +1021,8 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
         }
 
+        swap_state_time_levels(0.0);
+
         // Reset the source term predictor.
 
         sources_for_hydro.setVal(0.0, NUM_GROW);
@@ -1057,7 +1060,6 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
         }
 #endif
-
 
         if (track_grid_losses)
             for (int i = 0; i < n_lost; i++)
