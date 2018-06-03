@@ -118,6 +118,7 @@ contains
     use network, only : nspec, network_species_index, spec_names
     use fundamental_constants_module, only: Gconst
     use meth_params_module, only : const_grav
+    use parallel, only: parallel_IOProcessor
 
     implicit none
 
@@ -275,6 +276,10 @@ contains
 
           entropy_base = eos_state % s
 
+
+          if (parallel_IOProcessor()) then
+             print *, "base density = ", eos_state % rho, eos_state % T
+          endif
        endif
 
        delx = gen_model_r(i,model_num) - gen_model_r(i-1,model_num)

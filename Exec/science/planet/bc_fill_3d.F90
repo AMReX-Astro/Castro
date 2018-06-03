@@ -172,7 +172,7 @@ contains
              adv(i,j,k,URHO) = dens_zone
              adv(i,j,k,UEINT) = dens_zone*eos_state%e
              adv(i,j,k,UEDEN) = dens_zone*eos_state%e + &
-                  HALF*(adv(i,j,k,UMX)**2.0_rt+adv(i,j,k,UMY)**2.0_rt+adv(i,j,k,UMZ)**2.0_rt)/dens_zone
+                  HALF*(adv(i,j,k,UMX)**2+adv(i,j,k,UMY)**2+adv(i,j,k,UMZ)**2)/dens_zone
              adv(i,j,k,UTEMP) = eos_state%T
              adv(i,j,k,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
              
@@ -231,7 +231,7 @@ contains
                 adv(i,j,k,URHO) = dens_zone
                 adv(i,j,k,UEINT) = dens_zone*eos_state%e
                 adv(i,j,k,UEDEN) = dens_zone*eos_state%e + &
-                        HALF*(adv(i,j,k,UMX)**2.0_rt+adv(i,j,k,UMY)**2.0_rt+adv(i,j,k,UMZ)**2.0_rt)/dens_zone
+                        HALF*(adv(i,j,k,UMX)**2+adv(i,j,k,UMY)**2+adv(i,j,k,UMZ)**2)/dens_zone
                 adv(i,j,k,UTEMP) = temp_zone
                 adv(i,j,k,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
                

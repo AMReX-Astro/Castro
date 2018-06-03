@@ -109,7 +109,7 @@ Castro::advance (Real time,
 
     // Optionally kill the job at this point, if we've detected a violation.
 
-    if (cfl_violation && hard_cfl_limit)
+    if (cfl_violation && hard_cfl_limit && !use_retry)
         amrex::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
 
     // If we didn't kill the job, reset the violation counter.
@@ -201,6 +201,16 @@ Castro::do_advance (Real time,
 
     MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, S_new.nGrow());
 
+#ifdef REACTIONS
+#ifndef SDC
+    // Do this for the reactions as well, in case we cut the timestep
+    // short due to it being rejected.
+
+    MultiFab& R_old = get_old_data(Reactions_Type);
+    MultiFab& R_new = get_new_data(Reactions_Type);
+    MultiFab::Copy(R_new, R_old, 0, 0, R_new.nComp(), R_new.nGrow());
+#endif
+#endif
 
     // Construct the old-time sources from Sborder.  This will already
     // be applied to S_new (with full dt weighting), to be correctly
@@ -245,7 +255,7 @@ Castro::do_advance (Real time,
       check_for_cfl_violation(dt);
 
       // If we detect one, return immediately.
-      if (cfl_violation)
+      if (cfl_violation && hard_cfl_limit)
           return dt;
 
       construct_hydro_source(time, dt);
@@ -738,10 +748,11 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     }
 #endif
 
-    // If we're going to do a retry, save the simulation times of the
+    // If we're going to do a retry, or more generally if we're about to
+    // subcycle the advance, save the simulation times of the
     // previous state data. This must happen before the swap.
 
-    if (use_retry) {
+    if (use_retry || do_subcycle) {
 
         prev_state_old_time = get_state_data(State_Type).prevTime();
         prev_state_new_time = get_state_data(State_Type).curTime();
@@ -801,15 +812,19 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     clean_state(get_old_data(State_Type));
 
+    // Initialize the previous state data container now, so that we can
+    // always ask if it has valid data.
+
+    for (int k = 0; k < num_state_type; ++k)
+        prev_state[k].reset(new StateData());
+
     // Make a copy of the MultiFabs in the old and new state data in case we may do a retry.
 
-    if (use_retry) {
+    if (use_retry || do_subcycle) {
 
       // Store the old and new time levels.
 
       for (int k = 0; k < num_state_type; k++) {
-
-	prev_state[k].reset(new StateData());
 
 	StateData::Initialize(*prev_state[k], state[k]);
 
@@ -1149,7 +1164,7 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
         // If we have hit a CFL violation during this subcycle, we must abort.
 
         if (cfl_violation && hard_cfl_limit)
-            amrex::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
+            amrex::Abort("CFL is too high at this level, and we are already inside a retry -- go back to a checkpoint and restart with lower cfl number");
 
         // If we're allowing for retries, check for that here.
 

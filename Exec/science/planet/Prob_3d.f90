@@ -17,10 +17,10 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   real(rt) :: offset
   integer untin,i
 
-  namelist /fortin/ model_name, apply_vel_field, &
+  namelist /fortin/ model_name, apply_vel_field,shear_vel_field, &
        velpert_scale, velpert_amplitude, velpert_height_loc, num_vortices, &
-       shear_height_loc, shear_amplitude, &
-       cutoff_density, interp_BC, zero_vels
+       shear_height_loc, shear_amplitude, shear_height, shear_width_x,&
+       shear_width_y,cutoff_density, interp_BC, zero_vels
 
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
@@ -40,6 +40,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   ! Namelist defaults
   apply_vel_field = .false.
+  shear_vel_field = .false.
   velpert_scale = 1.0e2_rt
   velpert_amplitude = 1.0e2_rt
   velpert_height_loc = 6.5e3_rt
@@ -47,8 +48,10 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   cutoff_density = 50.e0_rt
   interp_BC = .false.
   zero_vels = .false.
-  shear_height_loc = 0.0d0
-
+  shear_height_loc = 0.0_rt
+  shear_height     = 0.0_rt
+  shear_width_x    = 0.0_rt
+  shear_width_y    = 0.0_rt
   ! Read namelists
   untin = 9
   open(untin,file=probin(1:namlen),form='formatted',status='old')
@@ -141,10 +144,18 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   real(rt) :: xlo(3), xhi(3), time, delta(3)
   real(rt) :: state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,NVAR)
 
-  real(rt) :: xdist,ydist,zdist,x,y,z,r,upert(3)
-  integer i,j,k,n,vortex
+  real(rt) :: xdist,ydist,zdist,x,y,z,r,upert(2),shear_height_r,velocity_gradient
+  integer i,j,k,n,vortex,int_shear_width_x,int_shear_width_y,shear_bottom_index
 
   type (eos_t) :: eos_state
+
+  shear_height_r = shear_height * delta(3)
+
+  int_shear_width_x=int(shear_width_x)
+  int_shear_width_y=int(shear_width_y)
+  velocity_gradient=shear_amplitude/shear_height
+
+  shear_bottom_index=int((shear_height_loc)/delta(3))-shear_height
 
   do k = lo(3), hi(3)
      z = xlo(3) + delta(3)*(dble(k-lo(3)) + HALF)
@@ -172,13 +183,12 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         end do
      end do
   end do
-
   ! switch to conserved quantities
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
 
-           state(i,j,k,UEDEN) = state(i,j,k,URHO) * state(i,j,k,UEINT)
+           state(i,j,k,UEDEN) = state(i,j,k,URHO) * state(i,j,k,UEDEN)
            state(i,j,k,UEINT) = state(i,j,k,URHO) * state(i,j,k,UEINT)
 
            do n = 1,nspec
@@ -191,48 +201,79 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   ! Initial velocities
   state(:,:,:,UMX:UMZ) = ZERO
+  if (shear_vel_field)then
+  ! First give shear velocity at h>=shear_height_loc - shear_height/2
+
+
+    do k= lo(3),hi(3)
+      z = xlo(3) + delta(3)*(dble(k-lo(3)) + HALF)
+
+      if(k > shear_bottom_index .and. k <= shear_bottom_index + shear_height)then
+        state(:,:,k,UMX) = state(:,:,k,URHO)*velocity_gradient*abs(k-shear_bottom_index)
+      elseif (k> shear_bottom_index + shear_height)then
+        state(:,:,k,UMX) = state(:,:,k,URHO) * shear_amplitude
+      end if
+    end do
+
+
+    do k= lo(3),hi(3)
+      z = xlo(3) + delta(3)*(dble(k-lo(3)) + HALF)
+      if(int_shear_width_y>2)then
+        do j = lo(2),hi(2)
+          if (k > shear_bottom_index .and. k <= shear_bottom_index + shear_height .and. mod(j,int_shear_width_y)<=4) then
+            state(:,j,k,UMX:UMZ) = ZERO
+          end if
+        end do
+      end if
+      if(int_shear_width_x>2)then
+          do i = lo(1),hi(1)
+            if (k > shear_bottom_index .and. k <= shear_bottom_index + shear_height  .and. mod(i,int_shear_width_x)<=4) then
+              state(i,:,k,UMX:UMZ) = ZERO
+            endif
+          end do
+        end if
+    end do
+  end if
 
   ! Now add the velocity perturbation (update the kinetic energy too)
   if (apply_vel_field) then
      do k = lo(3), hi(3)
-        z = xlo(3) + delta(3)*(dble(j-lo(3)) + HALF)
+        z = xlo(3) + delta(3)*(dble(k-lo(3)) + HALF)
         zdist = z - velpert_height_loc
         do i = lo(1), hi(1)
            x = xlo(1) + delta(1)*(dble(i-lo(1)) + HALF)
 
-           if (z >= shear_height_loc) then
-              state(:,:,:,UMX) = state(:,:,:,URHO)*shear_amplitude
-              state(:,:,:,UMY) = ZERO
-              state(:,:,:,UMZ) = ZERO
-           endif
-
            upert = ZERO
 
            ! loop over each vortex
+           if(velpert_height_loc>ZERO .and. velpert_scale>ZERO .and. velpert_amplitude>ZERO &
+             .and. num_vortices>0) then
            do vortex = 1, num_vortices
 
               xdist = x - xloc_vortices(vortex)
               r = sqrt(xdist**2 + zdist**2)
 
               upert(1) = upert(1) - (zdist/velpert_scale) * &
-                   velpert_amplitude * exp( -r**2/(TWO*velpert_scale**2)) &
+                   velpert_amplitude * exp(-r**2/(TWO*velpert_scale**2)) &
                    * (-ONE)**vortex
 
-              upert(3) = upert(3) + (xdist/velpert_scale) * &
+              upert(2) = upert(2) + (xdist/velpert_scale) * &
                    velpert_amplitude * exp(-r**2/(TWO*velpert_scale**2)) &
                    * (-ONE)**vortex
            enddo
-           do j = lo(1), hi(1)
-              if (mod(j, int(abs(xhi(2)-xlo(2)/delta(2))/4.0_rt)) == 0) then
-                 state(i,j,k,UMX) = state(i,j,k,UMX) + state(i,j,k,URHO) * upert(1)
-                 state(i,j,k,UMZ) = state(i,j,k,UMZ) + state(i,j,k,URHO) * upert(3)
-                 state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + HALF*sum(state(i,j,k,UMX:UMZ)**2)/state(i,j,k,URHO)
-              end if
-           end do
+           else
+            upert=ZERO
+           end if
 
+           do j = lo(2), hi(2)
+             state(i,j,k,UMX) = state(i,j,k,UMX) + state(i,j,k,URHO) * upert(1)
+             state(i,j,k,UMZ) = state(i,j,k,UMZ) + state(i,j,k,URHO) * upert(2)
+             state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + HALF*sum(state(i,j,k,UMX:UMZ)**2)/state(i,j,k,URHO)
+           end do
         end do
      end do
   endif
+
 
 
 end subroutine ca_initdata

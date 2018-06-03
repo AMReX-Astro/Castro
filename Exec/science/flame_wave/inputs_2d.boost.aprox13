@@ -47,14 +47,19 @@ castro.rotational_period = 0.0005
 castro.rotation_include_centrifugal = 0
 
 castro.diffuse_temp = 1
-castro.diffuse_cutoff_density = 1.e4
+castro.diffuse_cutoff_density = 5.e4
 castro.diffuse_cond_scale_fac = 10.0
 
-diffusion.use_mlmg_solver=1 
+diffusion.use_mlmg_solver=1
+
+castro.react_rho_min = 1.e2
+castro.react_rho_max = 5.e7
+
+castro.react_T_min = 6.e7
 
 
 # TIME STEP CONTROL
-castro.cfl            = 0.8     # cfl number for hyperbolic system
+castro.cfl            = 0.7     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
 castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
@@ -85,4 +90,4 @@ amr.plot_per         = 5.e-5      # number of seconds between plotfiles
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
-amr.probin_file = probin.boost
+amr.probin_file = probin.boost.aprox13
