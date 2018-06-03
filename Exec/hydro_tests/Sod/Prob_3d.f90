@@ -139,12 +139,10 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3, &
                        delta,xlo,xhi)
 
-  use amrex_error_module
-  use amrex_fort_module, only : rt => amrex_real
-
   use network, only: nspec
   use probdata_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer level, nscal
@@ -224,7 +222,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
               endif
               
            else
-              call amrex_abort('invalid idir')
+              call amrex_Abort('invalid idir')
            endif
  
            state(i,j,k,UFS:UFS-1+nspec) = 0.0e0_rt
