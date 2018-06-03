@@ -1082,10 +1082,16 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
 {
 
     Real t = time;
-    dt_subcycle = dt;
+
+    // Start the subcycle time off with the main dt,
+    // unless we already came in here with an estimate
+    // that is different from the initial value we assigned,
+    // for example from the post-step regrid algorithm.
+
+    if (dt_subcycle == 1.e200)
+        dt_subcycle = dt;
 
     Real subcycle_time = time;
-    dt_subcycle = dt;
 
     Real dt_new = 1.e200;
 
