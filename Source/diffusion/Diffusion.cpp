@@ -11,8 +11,6 @@
 
 using namespace amrex;
 
-int  Diffusion::stencil_type = CC_CROSS_STENCIL;
- 
 Diffusion::Diffusion(Amr* Parent, BCRec* _phys_bc)
   : 
     parent(Parent),
@@ -159,49 +157,6 @@ void
 Diffusion::make_mg_bc ()
 {
     const Geometry& geom = parent->Geom(0);
-    for ( int dir = 0; dir < BL_SPACEDIM; ++dir )
-    {
-        if ( geom.isPeriodic(dir) )
-        {
-            mg_bc[2*dir + 0] = 0;
-            mg_bc[2*dir + 1] = 0;
-        }
-        else
-        {
-            if (phys_bc->lo(dir) == Symmetry   || 
-                phys_bc->lo(dir) == SlipWall   || 
-                phys_bc->lo(dir) == NoSlipWall || 
-                phys_bc->lo(dir) == Outflow)   
-            { 
-              mg_bc[2*dir + 0] = MGT_BC_NEU;
-            }
-            else if (phys_bc->lo(dir) ==  Inflow)
-            { 
-              mg_bc[2*dir + 0] = MGT_BC_DIR;
-            } else {
-              amrex::Error("Failed to set lo mg_bc in Diffusion::make_mg_bc" );
-            }
-
-            if (phys_bc->hi(dir) == Symmetry   || 
-                phys_bc->hi(dir) == SlipWall   || 
-                phys_bc->hi(dir) == NoSlipWall || 
-                phys_bc->hi(dir) == Outflow)   
-            {
-              mg_bc[2*dir + 1] = MGT_BC_NEU;
-            } 
-            else if (phys_bc->hi(dir) ==  Inflow)
-            { 
-              mg_bc[2*dir + 0] = MGT_BC_DIR;
-            } else {
-              amrex::Error("Failed to set hi mg_bc in Diffusion::make_mg_bc" );
-            }
-        }
-    }
-
-    // Set Neumann bc at r=0.
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
-        mg_bc[0] = MGT_BC_NEU;
-    }
 
     for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
         if (geom.isPeriodic(idim)) {
