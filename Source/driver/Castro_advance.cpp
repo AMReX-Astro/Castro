@@ -1169,7 +1169,7 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
 
         // If we have hit a CFL violation during this subcycle, we must abort.
 
-        if (cfl_violation && hard_cfl_limit)
+        if (cfl_violation && hard_cfl_limit && !use_retry)
             amrex::Abort("CFL is too high at this level, and we are already inside a retry -- go back to a checkpoint and restart with lower cfl number");
 
         // If we're allowing for retries, check for that here.
