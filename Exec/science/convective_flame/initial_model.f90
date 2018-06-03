@@ -135,7 +135,7 @@ subroutine init_1d_tanh(nx, xmin, xmax)
   if (.not. species_defined) then
      print *, ifuel1, ifuel2, ifuel3
      print *, iash1, iash2, iash3
-     call bl_error("ERROR: species not defined")
+     call amrex_error("ERROR: species not defined")
   endif
 
 
@@ -154,11 +154,11 @@ subroutine init_1d_tanh(nx, xmin, xmax)
 
   ! check if they sum to 1
   if (abs(sum(xn_star) - ONE) > nspec*smallx) then
-     call bl_error("ERROR: ash mass fractions don't sum to 1")
+     call amrex_error("ERROR: ash mass fractions don't sum to 1")
   endif
 
   if (abs(sum(xn_base) - ONE) > nspec*smallx) then
-     call bl_error("ERROR: fuel mass fractions don't sum to 1")
+     call amrex_error("ERROR: fuel mass fractions don't sum to 1")
   endif
 
 
@@ -192,7 +192,7 @@ subroutine init_1d_tanh(nx, xmin, xmax)
 
   if (index_base == -1) then
      print *, 'ERROR: base_height not found on grid'
-     call bl_error('ERROR: invalid base_height')
+     call amrex_error('ERROR: invalid base_height')
   endif
 
 
@@ -254,7 +254,7 @@ subroutine init_1d_tanh(nx, xmin, xmax)
 
      if (index_base == -1) then
         print *, 'ERROR: base_height not found on grid'
-        call bl_error('ERROR: invalid base_height')
+        call amrex_error('ERROR: invalid base_height')
      endif
   endif
 
@@ -358,11 +358,11 @@ subroutine init_1d_tanh(nx, xmin, xmax)
 
               drho = (A - dpt*dtemp)/(dpd - 0.5*delx*const_grav)
 
-              dens_zone = max(0.9_dp_t*dens_zone, &
-                   min(dens_zone + drho, 1.1_dp_t*dens_zone))
+              dens_zone = max(0.9_rt*dens_zone, &
+                   min(dens_zone + drho, 1.1_rt*dens_zone))
 
-              temp_zone = max(0.9_dp_t*temp_zone, &
-                   min(temp_zone + dtemp, 1.1_dp_t*temp_zone))
+              temp_zone = max(0.9_rt*temp_zone, &
+                   min(temp_zone + dtemp, 1.1_rt*temp_zone))
 
 
               ! check if the density falls below our minimum cut-off --
@@ -441,7 +441,7 @@ subroutine init_1d_tanh(nx, xmin, xmax)
            print *, dens_zone, temp_zone
            print *, p_want, entropy_base, entropy
            print *, drho, dtemp
-           call bl_error('Error: HSE non-convergence')
+           call amrex_error('Error: HSE non-convergence')
 
         endif
 
@@ -528,8 +528,8 @@ subroutine init_1d_tanh(nx, xmin, xmax)
 
         drho = A/(dpd + 0.5*delx*const_grav)
 
-        dens_zone = max(0.9_dp_t*dens_zone, &
-             min(dens_zone + drho, 1.1_dp_t*dens_zone))
+        dens_zone = max(0.9_rt*dens_zone, &
+             min(dens_zone + drho, 1.1_rt*dens_zone))
 
 
         if (abs(drho) < TOL*dens_zone) then
@@ -546,7 +546,7 @@ subroutine init_1d_tanh(nx, xmin, xmax)
         print *, dens_zone, temp_zone
         print *, p_want
         print *, drho
-        call bl_error('Error: HSE non-convergence')
+        call amrex_error('Error: HSE non-convergence')
 
      endif
 
