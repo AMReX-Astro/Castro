@@ -45,9 +45,9 @@
 
 subroutine init_1d_tanh(nx, xmin, xmax)
 
-  use bl_types
-  use bl_constants_module
-  use bl_error_module
+  use amrex_constants_module
+  use amrex_fort_module, only : rt => amrex_real
+  use amrex_error_module
   use eos_module, only: eos
   use eos_type_module, only: eos_t, eos_input_rt
   use network, only : nspec, network_species_index, spec_names
@@ -59,14 +59,14 @@ subroutine init_1d_tanh(nx, xmin, xmax)
   implicit none
 
   integer, intent(in) :: nx
-  real(kind=dp_t) :: xmin, xmax
+  real(rt) :: xmin, xmax
 
   integer :: i, n
 
-  real (kind=dp_t) :: slope_T, slope_xn(nspec)
+  real (rt) :: slope_T, slope_xn(nspec)
 
-  real (kind=dp_t) :: pres_base, entropy_base
-  real (kind=dp_t), DIMENSION(nspec) :: xn_base, xn_star
+  real (rt) :: pres_base, entropy_base
+  real (rt), DIMENSION(nspec) :: xn_base, xn_star
 
   real :: A, B
 
@@ -76,14 +76,14 @@ subroutine init_1d_tanh(nx, xmin, xmax)
   integer :: iash1, iash2, iash3
   logical :: species_defined
 
-  real (kind=dp_t) :: dCoord
+  real (rt) :: dCoord
 
-  real (kind=dp_t) :: dens_zone, temp_zone, pres_zone, entropy
-  real (kind=dp_t) :: dpd, dpt, dsd, dst
+  real (rt) :: dens_zone, temp_zone, pres_zone, entropy
+  real (rt) :: dpd, dpt, dsd, dst
 
-  real (kind=dp_t) :: p_want, drho, dtemp, delx
+  real (rt) :: p_want, drho, dtemp, delx
 
-  real (kind=dp_t), parameter :: TOL = 1.e-10
+  real (rt), parameter :: TOL = 1.e-10
 
   integer, parameter :: MAX_ITER = 250
 
@@ -91,7 +91,7 @@ subroutine init_1d_tanh(nx, xmin, xmax)
 
   logical :: converged_hse, fluff
 
-  real (kind=dp_t), dimension(nspec) :: xn
+  real (rt), dimension(nspec) :: xn
 
   integer :: index_base
 
@@ -101,7 +101,7 @@ subroutine init_1d_tanh(nx, xmin, xmax)
 
   type (eos_t) :: eos_state
 
-  real(kind=dp_t) :: sumX
+  real(rt) :: sumX
 
   ! get the species indices
   species_defined = .true.

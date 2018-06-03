@@ -10,8 +10,8 @@ subroutine riemann_sample(rho_l, u_l, p_l, &
                           x, xjump, time, &
                           rho, u, p, xn)
 
-  use bl_types
-  use bl_constants_module
+  use amrex_fort_module, only : rt => amrex_real
+  use amrex_constants_module
   use eos_module
   use eos_type_module
   use network, only: nspec
@@ -19,27 +19,26 @@ subroutine riemann_sample(rho_l, u_l, p_l, &
 
   implicit none
 
-  real (kind=dp_t), intent(in) :: rho_l, u_l, p_l
-  real (kind=dp_t), intent(in) :: rho_r, u_r, p_r
-  real (kind=dp_t), intent(in) :: xn_l(nspec), xn_r(nspec)
-  real (kind=dp_t), intent(in) :: ustar, pstar
-  real (kind=dp_t), intent(in) :: W_l, W_r
-  real (kind=dp_t), intent(in) :: x, xjump, time
-  real (kind=dp_t), intent(out) :: rho, u, p, xn(nspec)
+  real (rt), intent(in) :: rho_l, u_l, p_l
+  real (rt), intent(in) :: rho_r, u_r, p_r
+  real (rt), intent(in) :: xn_l(nspec), xn_r(nspec)
+  real (rt), intent(in) :: ustar, pstar
+  real (rt), intent(in) :: W_l, W_r
+  real (rt), intent(in) :: x, xjump, time
+  real (rt), intent(out) :: rho, u, p, xn(nspec)
 
-  real (kind=dp_t) :: cs_l, cs_r
+  real (rt) :: cs_l, cs_r
 
-  real (kind=dp_t) :: W_temp, Z_temp
+  real (rt) :: W_temp, Z_temp
 
   type (eos_t) :: eos_state
 
-  real (kind=dp_t) :: xi, chi
-  real (kind=dp_t) :: rhostar
-  real (kind=dp_t) :: xihat, uhat_s, uhat_star
-  real (kind=dp_t) :: lambdahat_s, lambdahat_star
-  real (kind=dp_t) :: cs_star
-  real (kind=dp_t) :: rho_s, p_s, u_s, W_s, cs_s
-
+  real (rt) :: xi, chi
+  real (rt) :: rhostar
+  real (rt) :: xihat, uhat_s, uhat_star
+  real (rt) :: lambdahat_s, lambdahat_star
+  real (rt) :: cs_star
+  real (rt) :: rho_s, p_s, u_s, W_s, cs_s
 
   ! get the initial sound speeds
   eos_state%rho = rho_l
@@ -106,7 +105,7 @@ subroutine riemann_sample(rho_l, u_l, p_l, &
 
   else
      ! we should average in this case
-     call bl_error("Not implemented")
+     call amrex_error("Not implemented")
 
   endif
 

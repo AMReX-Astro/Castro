@@ -1,7 +1,7 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
-  use bl_error_module
-  use bl_constants_module
+  use amrex_error_module
+  use amrex_constants_module
   use probdata_module
   use actual_eos_module, only : gamma_const
 
@@ -20,7 +20,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
 
-  if (namlen .gt. maxlen) call bl_error("probin file name too long")
+  if (namlen .gt. maxlen) call amrex_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -98,7 +98,7 @@ end subroutine amrex_probinit
 subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state,state_l1,state_l2,state_h1,state_h2, &
                        delta,xlo,xhi)
-  use bl_constants_module
+  use amrex_constants_module
   use probdata_module
   use actual_eos_module, only : gamma_const
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS

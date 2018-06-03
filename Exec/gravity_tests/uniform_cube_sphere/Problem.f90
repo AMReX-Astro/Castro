@@ -87,7 +87,7 @@ subroutine update_density(lo, hi, dx, &
                           state, s_lo, s_hi, &
                           update_factor) bind(C, name='update_density')
 
-  use bl_constants_module, only: HALF
+  use amrex_constants_module, only: HALF
   use network, only: nspec
   use meth_params_module, only: NVAR, URHO, UFS
   use prob_params_module, only: problo, center

@@ -1,6 +1,6 @@
 module viscosity_module
 
-  use bl_types
+  use amrex_fort_module, only : rt => amrex_real
   use network
   use eos_type_module
   use eos_module
@@ -14,7 +14,7 @@ contains
     use extern_probin_module, only: const_viscosity
 
     type (eos_t), intent(in) :: eos_state
-    real (kind=dp_t), intent(inout) :: visc_coeff
+    real (rt), intent(inout) :: visc_coeff
 
     visc_coeff = const_viscosity
     

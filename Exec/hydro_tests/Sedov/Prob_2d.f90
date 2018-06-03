@@ -1,9 +1,9 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
-  use bl_constants_module
+  use amrex_constants_module
   use probdata_module
   use prob_params_module, only : center
-  use bl_error_module
+  use amrex_error_module
   use eos_type_module, only : eos_t, eos_input_rt, eos_input_rp
   use eos_module, only : eos
   use amrex_fort_module, only : rt => amrex_real
@@ -26,7 +26,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   character :: probin*(maxlen)
 
   if (namlen .gt. maxlen) then
-     call bl_error('probin file name too long')
+     call amrex_error('probin file name too long')
   end if
 
   do i = 1, namlen
@@ -107,7 +107,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        delta,xlo,xhi)
 
   use probdata_module
-  use bl_constants_module, only: M_PI, FOUR3RD, ZERO, ONE
+  use amrex_constants_module, only: M_PI, FOUR3RD, ZERO, ONE
   use meth_params_module , only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UTEMP
   use prob_params_module, only : center, coord_type
   use amrex_fort_module, only : rt => amrex_real
@@ -284,7 +284,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      enddo
 
   else
-     call bl_abort('Dont know this geometry')
+     call amrex_abort('Dont know this geometry')
   end if
 
 end subroutine ca_initdata
