@@ -639,7 +639,7 @@ Castro::check_for_cfl_violation(const Real dt)
         ca_compute_cfl(BL_TO_FORTRAN_BOX(bx),
                        BL_TO_FORTRAN_ANYD(q[mfi]),
                        BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                       &dt, dx, &courno);
+                       &dt, dx, &courno, &print_fortran_warnings);
 
     }
 

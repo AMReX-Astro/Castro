@@ -166,7 +166,7 @@ extern "C"
                       const BL_FORT_FAB_ARG_ANYD(q),
                       const BL_FORT_FAB_ARG_ANYD(qaux),
                       const amrex::Real* dt, const amrex::Real* dx,
-                      amrex::Real* courno);
+                      amrex::Real* courno, const int* verbose);
 
   void ca_check_initial_species
     (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(state), const int* idx);
