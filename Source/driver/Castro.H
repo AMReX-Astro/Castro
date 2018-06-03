@@ -242,7 +242,7 @@ public:
                      int  amr_iteration,
                      int  amr_ncycle);
 
-    bool retry_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+    bool retry_advance (amrex::Real& time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
     amrex::Real subcycle_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 

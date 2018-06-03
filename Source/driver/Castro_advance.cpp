@@ -935,7 +935,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 
 bool
-Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::retry_advance(Real& time, Real dt, int amr_iteration, int amr_ncycle)
 {
 
     Real dt_new = 1.e200;
@@ -999,6 +999,10 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     if (dt_sub * (1.0 + retry_tolerance) < std::min(dt, dt_subcycle)) {
 
         do_retry = true;
+
+        // Subtract off the timestep taken.
+
+        time -= dt;
 
         dt_subcycle = std::min(dt, dt_subcycle) * retry_subcycle_factor;
 
@@ -1176,9 +1180,7 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
             // time from our counter; the retry function will handle resetting the state,
             // and updating dt_subcycle.
 
-            if (retry_advance(time, dt, amr_iteration, amr_ncycle)) {
-                subcycle_time -= dt_subcycle;
-            }
+            retry_advance(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle);
 
         }
 
