@@ -35,7 +35,7 @@ subroutine ca_initdata(level,time,lo,hi,nvar, &
                        state,state_l1,state_l2,state_h1,state_h2, &
                        dx,xlo,xhi)
 
-  use amrex_error_module
+  use bl_error_module
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -49,7 +49,7 @@ subroutine ca_initdata(level,time,lo,hi,nvar, &
   ! Remove this call if you're defining your own problem; it is here to 
   ! ensure that you cannot run Castro if you haven't got your own copy of this function.
 
-  call amrex_error("Prob_2d.f90 has not been defined for this problem!")
+  call bl_error("Prob_2d.f90 has not been defined for this problem!")
 
 end subroutine ca_initdata
 

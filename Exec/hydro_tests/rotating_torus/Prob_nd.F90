@@ -1,6 +1,6 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
-  use amrex_constants_module
+  use bl_constants_module
   use fundamental_constants_module, only: Gconst
   use actual_eos_module, only: K_const, gamma_const, polytrope_index
   use probdata_module
@@ -57,7 +57,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state,state_lo,state_hi, &
                        dx,xlo,xhi)
 
-  use amrex_constants_module
+  use bl_constants_module
   use fundamental_constants_module, only: Gconst
   use probdata_module
   use eos_module, only: eos

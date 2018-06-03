@@ -16,8 +16,7 @@ contains
                      dx,dt,time) bind(C, name="ca_gsrc")
 
     use amrex_fort_module, only: rt => amrex_real
-    use amrex_constants_module, only: ZERO, HALF, ONE
-    use amrex_error_module
+    use bl_constants_module, only: ZERO, HALF, ONE
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type
     use math_module, only: cross_product
     use castro_util_module, only: position
@@ -141,7 +140,7 @@ contains
 
              else
 
-                call amrex_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
+                call bl_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
 
              end if
 
@@ -180,8 +179,7 @@ contains
                          dx,dt,time) bind(C, name="ca_corrgsrc")
 
     use amrex_fort_module, only: rt => amrex_real
-    use amrex_error_module
-    use amrex_constants_module, only: ZERO, HALF, ONE, TWO
+    use bl_constants_module, only: ZERO, HALF, ONE, TWO
     use amrex_mempool_module, only: bl_allocate, bl_deallocate
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, &
                                   grav_source_type, gravity_type, get_g_from_phi
@@ -528,7 +526,7 @@ contains
 #endif
 
              else
-                call amrex_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
+                call bl_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
              end if
 
              src(UEDEN) = SrEcorr

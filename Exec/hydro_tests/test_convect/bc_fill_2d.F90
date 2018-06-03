@@ -1,6 +1,5 @@
 module bc_fill_module
 
-  use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -54,7 +53,7 @@ contains
        if ( bc(1,1,n).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
 
           ! we are periodic in x -- we should never get here
-          call amrex_error("ERROR: invalid BC in Prob_2d.f90")
+          call bl_error("ERROR: invalid BC in Prob_2d.f90")
 
        end if
 
@@ -62,7 +61,7 @@ contains
        if ( bc(1,2,n).eq.EXT_DIR .and. adv_h1.gt.domhi(1)) then
 
           ! we are periodic in x -- we should never get here
-          call amrex_error("ERROR: invalid BC in Prob_2d.f90")
+          call bl_error("ERROR: invalid BC in Prob_2d.f90")
 
        end if
 
@@ -148,7 +147,7 @@ contains
 
                       enddo
 
-                      if (.not. converged_hse) call amrex_error("ERROR: failure to converge in -Y BC")
+                      if (.not. converged_hse) call bl_error("ERROR: failure to converge in -Y BC")
 
                    endif
 
@@ -257,7 +256,7 @@ contains
     use probdata_module
     use interpolate_module
     use model_parser_module
-    use amrex_error_module
+    use bl_error_module
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -283,12 +282,12 @@ contains
 
     !     XLO
     if ( bc(1,1,1).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
-       call amrex_error("We shoundn't be here (xlo denfill)")
+       call bl_error("We shoundn't be here (xlo denfill)")
     end if
 
     !     XHI
     if ( bc(1,2,1).eq.EXT_DIR .and. adv_h1.gt.domhi(1)) then
-       call amrex_error("We shoundn't be here (xlo denfill)")
+       call bl_error("We shoundn't be here (xlo denfill)")
     endif
 
 

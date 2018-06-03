@@ -50,7 +50,7 @@ subroutine flame_width_temp(temp, t_lo, t_hi, &
                             lo, hi, dx, time, &
                             T_max, T_min, grad_T_max) bind(C)
 
-  use amrex_constants_module
+  use bl_constants_module
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -107,7 +107,7 @@ subroutine flame_speed_data(omegadot, od_lo, od_hi, &
                             lo, hi, dx, &
                             rho_X_dot) bind(C)
 
-  use amrex_constants_module
+  use bl_constants_module
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none

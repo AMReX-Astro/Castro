@@ -1,8 +1,7 @@
 program riemann_exact
 
-  use amrex_fort_module, only : rt => amrex_real
-  use amrex_constants_module
-
+  use bl_types
+  use bl_constants_module
   use eos_module
   use eos_type_module
   use network, only: nspec
@@ -16,17 +15,17 @@ program riemann_exact
 
   implicit none
 
-  real (rt) :: xn(nspec)
+  real (kind=dp_t) :: xn(nspec)
 
-  real (rt) :: pstar, ustar
-  real (rt) :: W_avg
+  real (kind=dp_t) :: pstar, ustar
+  real (kind=dp_t) :: W_avg
 
-  real (rt) :: W_l, W_r
+  real (kind=dp_t) :: W_l, W_r
 
   type (eos_t) :: eos_state
 
-  real (rt) :: x, dx
-  real (rt) :: rho, u, p, xn_s(nspec)
+  real (kind=dp_t) :: x, dx
+  real (kind=dp_t) :: rho, u, p, xn_s(nspec)
 
   integer :: i, lun
 

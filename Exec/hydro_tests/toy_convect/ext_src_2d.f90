@@ -3,11 +3,12 @@ subroutine ca_ext_src(lo,hi, &
                       new_state,new_state_l1,new_state_l2,new_state_h1,new_state_h2,&
                       src,src_l1,src_l2,src_h1,src_h2,problo,dx,time,dt)
 
-  use amrex_constants_module, only: THIRD
+  use bl_types, only: dp_t
+  use bl_constants_module, only: THIRD
   use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UTEMP, UFS
   use network, only: network_species_index
-  use amrex_fort_module, only : rt => amrex_real
 
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   integer         , intent(in   ) :: lo(2),hi(2)
   integer         , intent(in   ) :: old_state_l1,old_state_l2,old_state_h1,old_state_h2
@@ -60,7 +61,7 @@ subroutine ca_ext_src(lo,hi, &
 
         ! CNO heating from Kippenhahn & Weigert, Eq. 18.65                                                                            
         g14 = 1.0_rt + 2.7e-3_rt*T613 - 7.78e-3_rt*T613**2 - 1.49e-4_rt*T6
-        eps_CNO = 8.67e27_rt * g14 * X_CNO * X_1 * rho * exp(-152.28_rt/T613) / T613**2
+        eps_CNO = 8.67e27_rt * g14 * X_CNO * X_1 * rho * exp(-152.28_dp_t/T613) / T613**2
 
         ! source terms
         src(i,j,UEDEN) = rho*eps_CNO

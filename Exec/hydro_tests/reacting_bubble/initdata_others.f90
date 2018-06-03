@@ -386,7 +386,7 @@ subroutine ca_initdata_makemodel(model,model_size,MAESTRO_npts_model, &
            print *, dens_zone, temp_zone
            print *, p_want, entropy_want, entropy
            print *, drho, dtemp
-           call amrex_error('Error: HSE non-convergence')
+           call bl_error('Error: HSE non-convergence')
 
         endif
 

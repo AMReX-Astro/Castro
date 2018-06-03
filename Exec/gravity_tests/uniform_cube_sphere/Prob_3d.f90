@@ -1,8 +1,7 @@
    subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
      use probdata_module
-     use amrex_constants_module
-     use amrex_error_module
+     use bl_constants_module
      use fundamental_constants_module
      use eos_module
 
@@ -25,7 +24,7 @@
 
      ! Build "probin" filename -- the name of file containing fortin namelist.
      if (namlen .gt. maxlen) then
-        call amrex_error("ERROR: probin file name too long")
+        call bl_error("ERROR: probin file name too long")
      end if
 
      do i = 1, namlen
@@ -74,16 +73,14 @@
                           state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3, &
                           delta,xlo,xhi)
 
-     use amrex_constants_module
-     use amrex_error_module
-     use amrex_fort_module, only : rt => amrex_real
-
      use probdata_module
      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, &
           UEDEN, UEINT, UFS, UFA
      use network, only : nspec
+     use bl_constants_module
      use prob_params_module, only: problo, probhi, center
 
+     use amrex_fort_module, only : rt => amrex_real
      implicit none
 
      integer :: level, nscal
@@ -126,7 +123,7 @@
 
               else
 
-                 call amrex_error("Problem not defined.")
+                 call bl_error("Problem not defined.")
 
               endif
 

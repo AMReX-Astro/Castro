@@ -2,7 +2,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use prob_params_module, only: center
   use probdata_module
-  use amrex_error_module
+  use bl_error_module
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -27,7 +27,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   single = .false.
 
   if (namlen .gt. maxlen) then
-     call amrex_error("probin file name too long")
+     call bl_error("probin file name too long")
   end if
 
   do i = 1, namlen

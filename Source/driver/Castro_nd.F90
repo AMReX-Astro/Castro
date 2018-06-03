@@ -329,7 +329,6 @@ subroutine swap_outflow_data() bind(C, name="swap_outflow_data")
 
   use meth_params_module, only: outflow_data_new, outflow_data_new_time, &
                                 outflow_data_old, outflow_data_old_time
-  use amrex_error_module
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
@@ -347,7 +346,7 @@ subroutine swap_outflow_data() bind(C, name="swap_outflow_data")
 
   if (size(outflow_data_old,dim=2) .ne. size(outflow_data_new,dim=2)) then
      print *,'size of old and new dont match in swap_outflow_data '
-     call amrex_error("Error:: Castro_nd.f90 :: swap_outflow_data")
+     call bl_error("Error:: Castro_nd.f90 :: swap_outflow_data")
   end if
 
   outflow_data_old(1:nc,1:np) = outflow_data_new(1:nc,1:np)
@@ -381,7 +380,7 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
   use network, only : nspec, naux
   use eos_module, only: eos_init
   use eos_type_module, only: eos_get_small_dens, eos_get_small_temp
-  use amrex_constants_module, only : ZERO, ONE
+  use bl_constants_module, only : ZERO, ONE
   use amrex_fort_module, only: rt => amrex_real
 #ifdef RADIATION
   use rad_params_module, only: ngroups
@@ -556,7 +555,6 @@ end subroutine ca_set_method_params
 
 subroutine ca_init_godunov_indices() bind(C, name="ca_init_godunov_indices")
 
-  use amrex_error_module
   use meth_params_module, only: GDRHO, GDU, GDV, GDW, GDPRES, GDGAME, NGDNV, &
 #ifdef RADIATION
                                 GDLAMS, GDERADS, &
@@ -588,7 +586,7 @@ subroutine ca_init_godunov_indices() bind(C, name="ca_init_godunov_indices")
 
   ! sanity check
   if ((QU /= GDU) .or. (QV /= GDV) .or. (QW /= GDW)) then
-     call amrex_error("ERROR: velocity components for godunov and primitive state are not aligned")
+     call bl_error("ERROR: velocity components for godunov and primitive state are not aligned")
   endif
 
 end subroutine ca_init_godunov_indices
@@ -606,8 +604,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
 
   ! Passing data from C++ into f90
 
-  use amrex_constants_module, only: ZERO
-  use amrex_error_module
+  use bl_constants_module, only: ZERO
   use prob_params_module
   use meth_params_module, only: UMX, UMY, UMZ
 #ifdef ROTATION
@@ -664,7 +661,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
 
   ! sanity check on our allocations
   if (UMZ > MAX_MOM_INDEX) then
-     call amrex_error("ERROR: not enough space in comp in mom_flux_has_p")
+     call bl_error("ERROR: not enough space in comp in mom_flux_has_p")
   endif
 
   ! keep track of which components of the momentum flux have pressure
@@ -766,7 +763,6 @@ subroutine ca_get_tagging_params(name, namlen) &
   ! Initialize the tagging parameters
 
   use tagging_module
-  use amrex_error_module
   use amrex_fort_module, only: rt => amrex_real
 
   integer, intent(in) :: namlen
@@ -818,7 +814,7 @@ subroutine ca_get_tagging_params(name, namlen) &
 
   ! create the filename
   if (namlen > maxlen) then
-     call amrex_error('probin file name too long')
+     call bl_error('probin file name too long')
   endif
 
   do i = 1, namlen
@@ -836,7 +832,7 @@ subroutine ca_get_tagging_params(name, namlen) &
 
   else if (status > 0) then
      ! some problem in the namelist
-     call amrex_error('ERROR: problem in the tagging namelist')
+     call bl_error('ERROR: problem in the tagging namelist')
   endif
 
   close (unit=un)
@@ -853,7 +849,6 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   ! Initialize the sponge parameters
 
   use sponge_module
-  use amrex_error_module
   use amrex_fort_module, only: rt => amrex_real
 
   integer, intent(in) :: namlen
@@ -900,7 +895,7 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
 
   ! create the filename
   if (namlen > maxlen) then
-     call amrex_error('probin file name too long')
+     call bl_error('probin file name too long')
   endif
 
   do i = 1, namlen
@@ -918,7 +913,7 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
 
   else if (status > 0) then
      ! some problem in the namelist
-     call amrex_error('ERROR: problem in the sponge namelist')
+     call bl_error('ERROR: problem in the sponge namelist')
   endif
 
   close (unit=un)
@@ -930,11 +925,11 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   ! Sanity check
 
   if (sponge_lower_factor < 0.e0_rt .or. sponge_lower_factor > 1.e0_rt) then
-     call amrex_error('ERROR: sponge_lower_factor cannot be outside of [0, 1].')
+     call bl_error('ERROR: sponge_lower_factor cannot be outside of [0, 1].')
   endif
 
   if (sponge_upper_factor < 0.e0_rt .or. sponge_upper_factor > 1.e0_rt) then
-     call amrex_error('ERROR: sponge_upper_factor cannot be outside of [0, 1].')
+     call bl_error('ERROR: sponge_upper_factor cannot be outside of [0, 1].')
   endif
 
 end subroutine ca_get_sponge_params

@@ -1,9 +1,9 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
-  use amrex_constants_module
+  use bl_constants_module
   use probdata_module
   use prob_params_module, only : center
-  use amrex_error_module
+  use bl_error_module
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -21,7 +21,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   character :: probin*(maxlen)
 
   if (namlen .gt. maxlen) then
-     call amrex_error('probin file name too long')
+     call bl_error('probin file name too long')
   end if
 
   do i = 1, namlen
@@ -74,7 +74,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        delta,xlo,xhi)
 
   use probdata_module
-  use amrex_constants_module, only: M_PI, FOUR3RD, ZERO, HALF, ONE
+  use bl_constants_module, only: M_PI, FOUR3RD, ZERO, HALF, ONE
   use meth_params_module , only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS
   use prob_params_module, only : center, coord_type
   use amrex_fort_module, only : rt => amrex_real

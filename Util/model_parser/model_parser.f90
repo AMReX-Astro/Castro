@@ -22,9 +22,9 @@ module model_parser_module
   !
   ! composition is assumed to be in terms of mass fractions     
 
-  use amrex_paralleldescriptor_module, only: amrex_pd_ioprocessor
+  use parallel, only: parallel_IOProcessor
   use network
-  use amrex_fort_module, only : rt => amrex_real
+  use bl_types
 
   implicit none
 
@@ -39,8 +39,8 @@ module model_parser_module
   integer, save :: npts_model
 
   ! arrays for storing the model data
-  real (rt), allocatable, save :: model_state(:,:)
-  real (rt), allocatable, save :: model_r(:)
+  real (kind=dp_t), allocatable, save :: model_state(:,:)
+  real (kind=dp_t), allocatable, save :: model_r(:)
 
   ! model_initialized will be .true. once the model is read in and the
   ! model data arrays are initialized and filled
@@ -54,8 +54,8 @@ contains
 
   subroutine read_model_file(model_file)
 
-    use amrex_constants_module
-    use amrex_error_module
+    use bl_constants_module
+    use bl_error_module
 
     character(len=*), intent(in   ) :: model_file
 
@@ -65,7 +65,7 @@ contains
 
     integer :: i, j, comp
 
-    real(rt), allocatable :: vars_stored(:)
+    real(kind=dp_t), allocatable :: vars_stored(:)
     character(len=MAX_VARNAME_LENGTH), allocatable :: varnames_stored(:)
     logical :: found_model, found_dens, found_temp, found_pres
     logical :: found_spec(nspec)
@@ -78,7 +78,7 @@ contains
 
     if (ierr .ne. 0) then
        print *,'Couldnt open model_file: ',model_file
-       call amrex_error('Aborting now -- please supply model_file')
+       call bl_error('Aborting now -- please supply model_file')
     end if
 
     ! the first line has the number of points in the model
@@ -108,7 +108,7 @@ contains
 887 format(78('-'))
 889 format(a60)
 
-    if ( amrex_pd_ioprocessor() ) then
+    if ( parallel_IOProcessor()) then
        write (*,889) ' '
        write (*,887)
        write (*,*)   'reading initial model'
@@ -166,7 +166,7 @@ contains
           ! is the current variable from the model file one that we
           ! care about?
           if (.NOT. found_model .and. i == 1) then
-             if ( amrex_pd_ioprocessor() ) then
+             if ( parallel_IOProcessor() ) then
                 print *, 'WARNING: variable not found: ', &
                      trim(varnames_stored(j))
              end if
@@ -177,26 +177,26 @@ contains
        ! were all the variables we care about provided?
        if (i == 1) then
           if (.not. found_dens) then
-             if ( amrex_pd_ioprocessor() ) then
+             if ( parallel_IOProcessor() ) then
                 print *, 'WARNING: density not provided in inputs file'
              end if
           endif
 
           if (.not. found_temp) then
-             if ( amrex_pd_ioprocessor() ) then
+             if ( parallel_IOProcessor() ) then
                 print *, 'WARNING: temperature not provided in inputs file'
              end if
           endif
 
           if (.not. found_pres) then
-             if ( amrex_pd_ioprocessor() ) then
+             if ( parallel_IOProcessor() ) then
                 print *, 'WARNING: pressure not provided in inputs file'
              end if
           endif
 
           do comp = 1, nspec
              if (.not. found_spec(comp)) then
-                if ( amrex_pd_ioprocessor() ) then
+                if ( parallel_IOProcessor() ) then
                    print *, 'WARNING: ', trim(spec_names(comp)), &
                         ' not provided in inputs file'
                 end if

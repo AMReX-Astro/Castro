@@ -2,7 +2,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use eos_module
   use eos_type_module
-  use amrex_error_module
+  use bl_error_module
   use network
   use probdata_module
 
@@ -29,7 +29,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   character probin*(maxlen)
 
   if (namlen .gt. maxlen) then
-     call amrex_error("probin file name too long")
+     call bl_error("probin file name too long")
   end if
 
   do i = 1, namlen

@@ -1,8 +1,7 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
    use probdata_module
-   use amrex_constants_module
-   use amrex_error_module
+   use bl_constants_module
    use fundamental_constants_module
    use meth_params_module, only: small_temp, small_pres, small_dens
    
@@ -26,9 +25,14 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
    ! Temporary storage variables in case we need to switch the primary and secondary.
 
+   integer :: ioproc
+
+   ! For outputting -- determine if we are the IO processor
+   call bl_pd_is_ioproc(ioproc)
+
    ! Build "probin" filename -- the name of file containing fortin namelist.
    if (namlen .gt. maxlen) then
-      call amrex_error("ERROR: probin file name too long")
+      call bl_error("ERROR: probin file name too long")
    end if
 
    do i = 1, namlen
@@ -86,17 +90,14 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state,state_lo,state_hi, &
                        delta,xlo,xhi)
 
-   use amrex_constants_module
-   use amrex_error_module
-
-   use eos_module, only : eos
-   use eos_type_module, only: eos_t, eos_input_rp
-   use network, only : nspec
-
-   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, &
+  use probdata_module
+  use eos_module, only : eos
+  use eos_type_module, only: eos_t, eos_input_rp
+  use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, &
        UEDEN, UEINT, UFS, UFA
-   use probdata_module
-   use prob_params_module, only: problo, center, probhi
+  use network, only : nspec
+  use bl_constants_module
+  use prob_params_module, only: problo, center, probhi
   
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -218,7 +219,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
               
            else
 
-              call amrex_error("Error: This problem choice is undefined.")
+              call bl_error("Error: This problem choice is undefined.")
 
            endif
 

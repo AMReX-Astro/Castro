@@ -25,7 +25,7 @@
                         new_state_h1,new_state_h2,new_state_h3,&
                         src,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,problo,dx,time,dt)
 
-    use amrex_constants_module, only: ZERO
+    use bl_constants_module, only: ZERO
     use meth_params_module, only : NVAR
 
     use amrex_fort_module, only : rt => amrex_real

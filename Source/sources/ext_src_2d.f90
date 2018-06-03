@@ -24,7 +24,7 @@
                         src,src_l1,src_l2,src_h1,src_h2,problo,dx,time,dt)
 
     use meth_params_module, only : NVAR
-    use amrex_constants_module
+    use bl_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none

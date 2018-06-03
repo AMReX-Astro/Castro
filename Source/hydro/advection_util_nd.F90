@@ -17,8 +17,8 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UEINT, UEDEN, small_dens, density_reset_method
-    use amrex_constants_module, only : ZERO
-    use amrex_error_module
+    use bl_constants_module, only : ZERO
+
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -71,7 +71,7 @@ contains
 
                 print *,'DENSITY EXACTLY ZERO AT CELL ',i,j,k
                 print *,'  in grid ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-                call amrex_error("Error:: advection_util_nd.f90 :: ca_enforce_minimum_density")
+                call bl_error("Error:: advection_util_nd.f90 :: ca_enforce_minimum_density")
 
              else if (uout(i,j,k,URHO) < small_dens) then
 
@@ -177,7 +177,7 @@ contains
 
                 else
 
-                   call amrex_error("Unknown density_reset_method in subroutine ca_enforce_minimum_density.")
+                   call bl_error("Unknown density_reset_method in subroutine ca_enforce_minimum_density.")
 
                 endif
 
@@ -197,7 +197,7 @@ contains
 
   subroutine reset_to_small_state(old_state, new_state, idx, lo, hi, verbose)
 
-    use amrex_constants_module, only: ZERO
+    use bl_constants_module, only: ZERO
     use network, only: nspec, naux
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEINT, UEDEN, UFS, small_temp, small_dens, npassive, upass_map
     use eos_type_module, only: eos_t, eos_input_rt
@@ -272,7 +272,7 @@ contains
 
   subroutine reset_to_zone_state(old_state, new_state, input_state, idx, lo, hi, verbose)
 
-    use amrex_constants_module, only: ZERO
+    use bl_constants_module, only: ZERO
     use meth_params_module, only: NVAR, URHO
 
     use amrex_fort_module, only : rt => amrex_real
@@ -311,7 +311,7 @@ contains
                             dt, dx, courno) &
                             bind(C, name = "ca_compute_cfl")
 
-    use amrex_constants_module, only: ZERO, ONE
+    use bl_constants_module, only: ZERO, ONE
     use meth_params_module, only: NQ, QRHO, QU, QV, QW, QC, NQAUX, do_ctu
     use prob_params_module, only: dim
     use amrex_fort_module, only : rt => amrex_real
@@ -450,8 +450,7 @@ contains
 #endif
                                    npassive, upass_map, qpass_map, dual_energy_eta1, &
                                    small_dens
-    use amrex_constants_module, only: ZERO, HALF, ONE
-    use amrex_error_module
+    use bl_constants_module, only: ZERO, HALF, ONE
     use castro_util_module, only: position
 #ifdef ROTATION
     use meth_params_module, only: do_rotation, state_in_rotating_frame
@@ -506,12 +505,12 @@ contains
                 print *,'   '
                 print *,'>>> Error: advection_util_nd.F90::ctoprim ',i, j, k
                 print *,'>>> ... negative density ', uin(i,j,k,URHO)
-                call amrex_error("Error:: advection_util_nd.f90 :: ctoprim")
+                call bl_error("Error:: advection_util_nd.f90 :: ctoprim")
              else if (uin(i,j,k,URHO) .lt. small_dens) then
                 print *,'   '
                 print *,'>>> Error: advection_util_nd.F90::ctoprim ',i, j, k
                 print *,'>>> ... small density ', uin(i,j,k,URHO)
-                call amrex_error("Error:: advection_util_nd.f90 :: ctoprim")
+                call bl_error("Error:: advection_util_nd.f90 :: ctoprim")
              endif
           end do
 
@@ -636,7 +635,7 @@ contains
                                    QVAR, QRHO, QU, QV, QW, NQ, &
                                    QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
                                    npassive, upass_map, qpass_map
-    use amrex_constants_module, only: ZERO, HALF, ONE
+    use bl_constants_module, only: ZERO, HALF, ONE
     use castro_util_module, only: position
 
     use amrex_fort_module, only : rt => amrex_real
@@ -703,7 +702,7 @@ contains
 
   function dflux(u, q, dir, idx) result(flux)
 
-    use amrex_constants_module, only: ZERO
+    use bl_constants_module, only: ZERO
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, &
                                   NQ, QU, QPRES, &
                                   npassive, upass_map
@@ -790,7 +789,7 @@ contains
                                               lo,hi,dt,dx)
 
     use amrex_fort_module, only: rt => amrex_real
-    use amrex_constants_module, only: ZERO, HALF, ONE, TWO
+    use bl_constants_module, only: ZERO, HALF, ONE, TWO
     use meth_params_module, only: NVAR, NQ, URHO, small_dens, cfl
     use prob_params_module, only: dim, dg
     use amrex_mempool_module, only: bl_allocate, bl_deallocate
@@ -1249,8 +1248,7 @@ contains
 
     use meth_params_module, only : QPRES, QU, QV, QW, NQ
     use prob_params_module, only : coord_type, dg
-    use amrex_constants_module, only: ZERO, HALF, ONE
-    use amrex_error_module
+    use bl_constants_module, only: ZERO, HALF, ONE
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -1287,7 +1285,7 @@ contains
     dzinv = ONE/dx(3)
 
     if (coord_type /= 0) then
-       call amrex_error("ERROR: invalid geometry in shock()")
+       call bl_error("ERROR: invalid geometry in shock()")
     endif
 
     do k = lo(3)-dg(3), hi(3)+dg(3)
@@ -1327,7 +1325,7 @@ contains
                 divU = HALF*(rp**2*q(i+1,j,k,QU) - rm**2*q(i-1,j,k,QU))/(rc**2*dx(1))
 
              else
-                call amrex_error("ERROR: invalid coord_type in shock")
+                call bl_error("ERROR: invalid coord_type in shock")
              endif
 
 
@@ -1423,7 +1421,7 @@ contains
 
     use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UFS
-    use amrex_constants_module, only : ZERO, ONE
+    use bl_constants_module, only : ZERO, ONE
     use prob_params_module, only : dg
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -1518,7 +1516,7 @@ contains
     ! this computes the *node-centered* divergence
 
     use meth_params_module, only : QU, QV, QW, NQ
-    use amrex_constants_module, only : HALF, FOURTH, ONE, ZERO
+    use bl_constants_module, only : HALF, FOURTH, ONE, ZERO
     use prob_params_module, only : dg, coord_type, problo
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -1659,7 +1657,7 @@ contains
     ! this computes the *node-centered* divergence
 
     use meth_params_module, only : QU, QV, QW, NQ, GDPRES, GDU, GDV, GDW
-    use amrex_constants_module, only : HALF
+    use bl_constants_module, only : HALF
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 

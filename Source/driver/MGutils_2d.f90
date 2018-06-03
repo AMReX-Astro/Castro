@@ -1,6 +1,5 @@
 module MGutils_2D_module
 
-  use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -61,7 +60,7 @@ contains
 
     else 
        print *,'Bogus coord_type in apply_metric ' ,coord_type
-       call amrex_error("Error:: MGutils_2d.f90 :: ca_apply_metric")
+       call bl_error("Error:: MGutils_2d.f90 :: ca_apply_metric")
     end if
 
   end subroutine ca_apply_metric
@@ -97,7 +96,7 @@ contains
 
     else 
        print *,'Bogus coord_type in weight_cc ' ,coord_type
-       call amrex_error("Error:: MGutils_2d.f90 :: ca_weight_cc")
+       call bl_error("Error:: MGutils_2d.f90 :: ca_weight_cc")
     end if
 
   end subroutine ca_weight_cc
@@ -133,7 +132,7 @@ contains
 
     else 
        print *,'Bogus coord_type in unweight_cc ' ,coord_type
-       call amrex_error("Error:: MGutils_2d.f90 :: ca_unweight_cc")
+       call bl_error("Error:: MGutils_2d.f90 :: ca_unweight_cc")
     end if
 
   end subroutine ca_unweight_cc
@@ -181,7 +180,7 @@ contains
 
     else 
        print *,'Bogus coord_type in unweight_edges ' ,coord_type
-       call amrex_error("Error:: MGutils_2d.f90 :: ca_unweight_edges")
+       call bl_error("Error:: MGutils_2d.f90 :: ca_unweight_edges")
     end if
 
   end subroutine ca_unweight_edges

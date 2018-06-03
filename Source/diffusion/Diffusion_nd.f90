@@ -205,7 +205,7 @@ contains
        coefz,cz_lo,cz_hi) &
        bind(C, name="ca_fill_spec_coeff")
 
-    use amrex_constants_module
+    use bl_constants_module
     use network, only: nspec, naux
     use meth_params_module, only : NVAR, URHO, UTEMP, UEINT, UFS, UFX, diffuse_cutoff_density
     use prob_params_module, only : dg
@@ -292,7 +292,7 @@ contains
        coefz,cz_lo,cz_hi) &
        bind(C, name="ca_fill_temp_cond")
 
-    use amrex_constants_module
+    use bl_constants_module
     use network, only: nspec, naux
     use meth_params_module, only : NVAR, URHO, UTEMP, UEINt, UFS, UFX, &
          diffuse_cutoff_density, diffuse_cond_scale_fac, small_temp
@@ -386,7 +386,7 @@ contains
        coefz,cz_lo,cz_hi) &
        bind(C, name="ca_fill_enth_cond")
 
-    use amrex_constants_module
+    use bl_constants_module
     use network, only: nspec, naux
     use meth_params_module, only : NVAR, URHO, UTEMP, UEINT, UFS, UFX, diffuse_cutoff_density
     use prob_params_module, only : dg
@@ -473,7 +473,7 @@ contains
        coefy,cy_lo,cy_hi, &
        coefz,cz_lo,cz_hi) bind(C, name="ca_fill_first_visc_coeff")
 
-    use amrex_constants_module
+    use bl_constants_module
     use network, only: nspec, naux
     use meth_params_module, only : NVAR, URHO, UTEMP, UFS, UFX, diffuse_cutoff_density
     use prob_params_module, only : dg
@@ -553,7 +553,7 @@ contains
        coefy,cy_lo,cy_hi, &
        coefz,cz_lo,cz_hi) bind(C, name="ca_fill_secnd_visc_coeff")
 
-    use amrex_constants_module
+    use bl_constants_module
     use network, only: nspec, naux
     use meth_params_module, only : NVAR, URHO, UTEMP, UFS, UFX, diffuse_cutoff_density
     use prob_params_module, only : dg
@@ -637,7 +637,7 @@ contains
        div_tau_u,d_lo,d_hi, &
        state,s_lo,s_hi,dx,coord_type) bind(C, name="ca_compute_div_tau_u")
 
-    use amrex_constants_module
+    use bl_constants_module
     use network, only: nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UTEMP, UFS, UFX
     use viscosity_module

@@ -11,8 +11,7 @@
       use eos_module, only : eos
       use eos_type_module, only : eos_input_re, eos_t
       use network, only : nspec, naux
-      use amrex_constants_module, only: HALF, FOUR3RD, M_PI
-      use amrex_error_module
+      use bl_constants_module, only: HALF, FOUR3RD, M_PI
 
       use amrex_fort_module, only : rt => amrex_real
       implicit none
@@ -36,11 +35,11 @@
       type (eos_t) :: eos_state
 
       if (physbc_lo(1) .ne. Symmetry) then
-         call amrex_error("Error: GR_Gravity_1d.f90 :: 1D gravity assumes symmetric lower boundary.")
+         call bl_error("Error: GR_Gravity_1d.f90 :: 1D gravity assumes symmetric lower boundary.")
       endif
 
       if (coord_type .ne. 2) then
-         call amrex_error("Error: GR_Gravity_1d.f90 :: 1D gravity assumes spherical coordinates.")
+         call bl_error("Error: GR_Gravity_1d.f90 :: 1D gravity assumes spherical coordinates.")
       endif
 
       fac  = dble(drdxfac)
@@ -60,7 +59,7 @@
                print *,'>>> ... index too big: ', index,' > ',n1d-1
                print *,'>>> ... at i     : ',i
                print *,'    '
-               call amrex_error("Error:: GR_Gravity_1d.f90 :: ca_compute_avgpres")
+               call bl_error("Error:: GR_Gravity_1d.f90 :: ca_compute_avgpres")
             end if
 
          else

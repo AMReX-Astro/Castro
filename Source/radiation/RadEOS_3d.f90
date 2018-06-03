@@ -240,7 +240,7 @@ subroutine ca_compute_temp_given_reye(lo, hi, &
 
               if(temp(i,j,k).lt.0.e0_rt) then
                  print*,'negative temp in compute_temp_given_reye ', temp(i,j,k)
-                 call amrex_error("Error:: ca_compute_temp_given_reye")
+                 call bl_error("Error:: ca_compute_temp_given_reye")
               endif
    
            end if

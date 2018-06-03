@@ -4,7 +4,9 @@
 program fdustcollapse1d
 
   use f2kcli
-  use amrex_error_module
+  use bl_space
+  use bl_error_module
+  use bl_IO_module
   use plotfile_module
   use sort_d_module
 
@@ -20,13 +22,13 @@ program fdustcollapse1d
   integer :: cnt
   integer :: max_points
 
-  real(rt) :: dx(MAX_SPACEDIM)
+  real(kind=dp_t) :: dx(MAX_SPACEDIM)
 
   integer :: index
 
-  real(rt), pointer :: p(:,:,:,:)
+  real(kind=dp_t), pointer :: p(:,:,:,:)
 
-  real(rt), allocatable :: rcoord(:), dens(:)
+  real(kind=dp_t), allocatable :: rcoord(:), dens(:)
   integer, allocatable :: isort(:)
 
   integer :: dens_comp
@@ -35,9 +37,9 @@ program fdustcollapse1d
   integer :: lo(MAX_SPACEDIM), hi(MAX_SPACEDIM)
   integer :: flo(MAX_SPACEDIM), fhi(MAX_SPACEDIM)
 
-  real(rt) :: rmin
-  real(rt) :: max_dens
-  real(rt) :: rho_lo,rho_hi,x,r_interface
+  real(kind=dp_t) :: rmin
+  real(kind=dp_t) :: max_dens
+  real(kind=dp_t) :: rho_lo,rho_hi,x,r_interface
 
   integer :: narg, farg
   character(len=256) :: fname

@@ -10,8 +10,7 @@
       use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, UFX
       use eos_module
       use network, only : nspec, naux
-      use amrex_constants_module
-      use amrex_error_module
+      use bl_constants_module
 
       use amrex_fort_module, only : rt => amrex_real
       implicit none
@@ -55,7 +54,7 @@
                   print *,'>>> ... index too big: ', index,' > ',n1d-1
                   print *,'>>> ... at (i,j)     : ',i,j
                   print *,'    '
-                  call amrex_error("Error:: Gravity_2d.f90 :: ca_compute_avgpres")
+                  call bl_error("Error:: Gravity_2d.f90 :: ca_compute_avgpres")
                end if
 
             else

@@ -1,10 +1,11 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
+  use parallel
   use probdata_module
   use model_parser_module
-  use amrex_error_module
+  use bl_error_module
+
   use amrex_fort_module, only : rt => amrex_real
-  use amrex_paralleldescriptor_module, only: parallel_IOProcessor => amrex_pd_ioprocessor
   implicit none
 
   integer init, namlen
@@ -24,7 +25,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   ! Build "probin" filename from C++ land --
   ! the name of file containing fortin namelist.
 
-  if (namlen .gt. maxlen) call amrex_error("probin file name too long")
+  if (namlen .gt. maxlen) call bl_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -106,7 +107,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
   use network, only: nspec
   use model_parser_module
-  use amrex_constants_module, only : ZERO, HALF
+  use bl_constants_module, only : ZERO, HALF
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 

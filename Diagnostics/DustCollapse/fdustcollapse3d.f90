@@ -9,7 +9,9 @@
 program fdustcollapse3d
 
   use f2kcli
-  use amrex_error_module
+  use bl_space
+  use bl_error_module
+  use bl_IO_module
   use plotfile_module
 
   implicit none
@@ -19,29 +21,29 @@ program fdustcollapse3d
   integer :: i, j, ii, jj, kk
   integer :: f
 
-  real(rt) :: xx, yy, zz
+  real(kind=dp_t) :: xx, yy, zz
   integer :: rr, r1
 
   integer :: nbins
-  real(rt), allocatable :: r(:)
-  real(rt) :: maxdist, x_maxdist, y_maxdist, z_maxdist
-  real(rt) :: xctr, yctr, zctr
+  real(kind=dp_t), allocatable :: r(:)
+  real(kind=dp_t) :: maxdist, x_maxdist, y_maxdist, z_maxdist
+  real(kind=dp_t) :: xctr, yctr, zctr
 
-  real(rt) :: dx(MAX_SPACEDIM)
-  real(rt) :: dx_fine
+  real(kind=dp_t) :: dx(MAX_SPACEDIM)
+  real(kind=dp_t) :: dx_fine
 
-  real(rt) :: r_zone
+  real(kind=dp_t) :: r_zone
   integer :: index_r
 
-  real(rt), pointer :: p(:,:,:,:)
+  real(kind=dp_t), pointer :: p(:,:,:,:)
 
   integer, allocatable :: ncount(:)
-  real(rt), allocatable :: dens_bin(:)
+  real(kind=dp_t), allocatable :: dens_bin(:)
 
   integer :: dens_comp
 
-  real(rt) :: max_dens
-  real(rt) :: rho_lo,rho_hi,x,r_interface
+  real(kind=dp_t) :: max_dens
+  real(kind=dp_t) :: rho_lo,rho_hi,x,r_interface
 
   logical, allocatable :: imask(:,:,:)
   integer :: lo(MAX_SPACEDIM), hi(MAX_SPACEDIM)

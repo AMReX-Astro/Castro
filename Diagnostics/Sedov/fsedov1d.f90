@@ -4,9 +4,10 @@
 program fextract1d
 
   use f2kcli
-  use amrex_fort_module, only : rt => amrex_real
-  use amrex_error_module
-  use amrex_constants_module
+  use bl_space
+  use bl_error_module
+  use bl_constants_module
+  use bl_IO_module
   use plotfile_module
 
   implicit none
@@ -18,17 +19,17 @@ program fextract1d
   integer :: uno
 
   integer :: nbins
-  real(rt), allocatable :: r(:)
-  real(rt) :: maxdist
+  real(kind=dp_t), allocatable :: r(:)
+  real(kind=dp_t) :: maxdist
 
-  real(rt) :: dx(MAX_SPACEDIM)
-  real(rt) :: dx_fine
+  real(kind=dp_t) :: dx(MAX_SPACEDIM)
+  real(kind=dp_t) :: dx_fine
 
   integer :: index
 
-  real(rt), pointer :: p(:,:,:,:)
+  real(kind=dp_t), pointer :: p(:,:,:,:)
 
-  real(rt), allocatable :: dens_bin(:), vel_bin(:), pres_bin(:), e_bin(:)
+  real(kind=dp_t), allocatable :: dens_bin(:), vel_bin(:), pres_bin(:), e_bin(:)
 
   integer :: dens_comp, xmom_comp, pres_comp, rhoe_comp
 

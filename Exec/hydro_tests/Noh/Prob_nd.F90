@@ -40,7 +40,7 @@
      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, &
                                     UEDEN, UEINT, UFS
      use network, only : nspec
-     use amrex_constants_module, only: ZERO, HALF, ONE, TWO, M_PI
+     use bl_constants_module, only: ZERO, HALF, ONE, TWO, M_PI
      use fundamental_constants_module, only: Gconst, M_solar
      use prob_params_module, only: center, dim
 

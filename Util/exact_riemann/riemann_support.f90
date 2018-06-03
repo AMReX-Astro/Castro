@@ -1,9 +1,8 @@
 module riemann_support
 
-  use amrex_constants_module
-  use amrex_error_module
-  use amrex_fort_module, only : rt => amrex_real
-
+  use bl_constants_module
+  use bl_error_module
+  use bl_types
   use eos_type_module
   use eos_module
   use network
@@ -11,9 +10,9 @@ module riemann_support
 
   implicit none
 
-  real (rt), parameter :: smallrho = 1.d-5
+  real (kind=dp_t), parameter :: smallrho = 1.d-5
   integer, parameter :: max_iters = 100
-  real (rt) :: tol = 1.e-6_rt
+  real (kind=dp_t) :: tol = 1.e-6_dp_t
 
   private tol, max_iters, smallrho
 
@@ -23,33 +22,33 @@ contains
                    gammaE_bar, gammaC_bar, Z_s, W_s, &
                    verbose_in)
 
-    real (rt), intent(in) :: pstar, rho_s, u_s, p_s, gammaE_bar, gammaC_bar
-    real (rt), intent(in) :: xn(nspec)
-    real (rt), intent(out) :: Z_s, W_s
+    real (kind=dp_t), intent(in) :: pstar, rho_s, u_s, p_s, gammaE_bar, gammaC_bar
+    real (kind=dp_t), intent(in) :: xn(nspec)
+    real (kind=dp_t), intent(out) :: Z_s, W_s
     logical, optional, intent(in) :: verbose_in
 
-    real (rt) :: e_s
+    real (kind=dp_t) :: e_s
 
     type (eos_t) :: eos_state
     
-    real (rt) :: rhostar_s, taustar_s
-    real (rt) :: dW2dpstar, dWdpstar
-    real (rt) :: C
-    real (rt) :: f, fprime, dW
+    real (kind=dp_t) :: rhostar_s, taustar_s
+    real (kind=dp_t) :: dW2dpstar, dWdpstar
+    real (kind=dp_t) :: C
+    real (kind=dp_t) :: f, fprime, dW
 
-    real (rt) :: W1, W2, Wm, f1, f2, fm
-    real (rt) :: W_s_guess
+    real (kind=dp_t) :: W1, W2, Wm, f1, f2, fm
+    real (kind=dp_t) :: W_s_guess
 
     logical :: found
     
-    real (rt) :: p_e, p_rho, p_tau
-    real (rt) :: gammaE_s, gammaE_star
+    real (kind=dp_t) :: p_e, p_rho, p_tau
+    real (kind=dp_t) :: gammaE_s, gammaE_star
 
-    real (rt), parameter :: tol_p = 1.e-6_rt
+    real (kind=dp_t), parameter :: tol_p = 1.e-6_dp_t
     
     integer :: iter, i
 
-    real (rt) :: rhostar_hist(max_iters), Ws_hist(max_iters)
+    real (kind=dp_t) :: rhostar_hist(max_iters), Ws_hist(max_iters)
 
     logical :: converged
 
@@ -174,15 +173,15 @@ contains
 
     use eos_type_module
 
-    real (rt), intent(in) :: pstar, rho_s, p_s, e_s, xn(nspec)
+    real (kind=dp_t), intent(in) :: pstar, rho_s, p_s, e_s, xn(nspec)
     logical,          intent(out) :: converged
-    real (rt), intent(inout) :: W_s
+    real (kind=dp_t), intent(inout) :: W_s
     type (eos_t),     intent(inout) :: eos_state
-    real (rt) :: rhostar_hist(max_iters), Ws_hist(max_iters)
+    real (kind=dp_t) :: rhostar_hist(max_iters), Ws_hist(max_iters)
 
     integer :: iter
 
-    real (rt) :: rhostar_s, dW, f, fprime
+    real (kind=dp_t) :: rhostar_s, dW, f, fprime
 
 
     ! Newton iterations -- we are zeroing the energy R-H jump condition
@@ -221,20 +220,20 @@ contains
 
     use eos_type_module
 
-    real (rt), intent(in) :: pstar, rho_s, p_s, e_s, xn(nspec)
+    real (kind=dp_t), intent(in) :: pstar, rho_s, p_s, e_s, xn(nspec)
     logical,          intent(out) :: converged
-    real (rt), intent(inout) :: W_s
+    real (kind=dp_t), intent(inout) :: W_s
     type (eos_t),     intent(inout) :: eos_state
-    real (rt) :: rhostar_hist(max_iters), Ws_hist(max_iters)
+    real (kind=dp_t) :: rhostar_hist(max_iters), Ws_hist(max_iters)
 
     integer :: iter
 
-    real (rt) :: f1, f2, fprime, fm, fp
-    real (rt) :: W1, W2, dW, Wm, W1_try
+    real (kind=dp_t) :: f1, f2, fprime, fm, fp
+    real (kind=dp_t) :: W1, W2, dW, Wm, W1_try
     logical :: contained
-    real (rt) :: rhostar_s, taustar_s
+    real (kind=dp_t) :: rhostar_s, taustar_s
 
-    real (rt), parameter :: eps = 1.d-8
+    real (kind=dp_t), parameter :: eps = 1.d-8
 
     
     ! try some bisection -- sometimes we hit a Newton cycle
@@ -251,7 +250,7 @@ contains
     ! we need to find the range of W that brackets the root
     contained = .false.
 
-    W1 = 0.5_rt*W_s
+    W1 = 0.5_dp_t*W_s
 
     ! make sure it's ok
     taustar_s = (ONE/rho_s) - (pstar - p_s)/W1**2
@@ -263,7 +262,7 @@ contains
     call W_s_shock(W1, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, &
                    f1, fprime)
 
-    W2 = 4.0_rt*W1
+    W2 = 4.0_dp_t*W1
 
     call W_s_shock(W2, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, &
                    f2, fprime)
@@ -273,32 +272,32 @@ contains
 
        print *, W1, W2, W_s
 
-       if (f2*f1 < 0.0_rt) then
+       if (f2*f1 < 0.0_dp_t) then
           contained = .true.       
        else
           ! adjust upper limit
-          W2 = 1.2_rt*W2
+          W2 = 1.2_dp_t*W2
 
           call W_s_shock(W2, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, &
                          f2, fprime)
 
-          if (f2*f1 < 0.0_rt) then
+          if (f2*f1 < 0.0_dp_t) then
              contained = .true.
           else
              ! adjust lower limit
-             W1_try = 0.8_rt*W1
+             W1_try = 0.8_dp_t*W1
 
              ! make sure it's ok
              taustar_s = (ONE/rho_s) - (pstar - p_s)/W1_try**2
 
-             if (taustar_s > 0.0_rt) then
+             if (taustar_s > 0.0_dp_t) then
                 W1 = W1_try
              endif
 
              call W_s_shock(W1, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, &
                             f1, fprime)
              
-             if (f2*f1 < 0.0_rt) contained = .true.
+             if (f2*f1 < 0.0_dp_t) contained = .true.
 
           endif
        endif
@@ -338,19 +337,19 @@ contains
        call bl_error('unable to bracket the root')
     endif
 
-    if (converged) W_s = 0.5_rt*(W1 + W2)
+    if (converged) W_s = 0.5_dp_t*(W1 + W2)
     
   end subroutine bisect_shock
 
 
   subroutine W_s_shock(W_s, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state, f, fprime)
 
-    real (rt), intent(in) :: W_s, pstar, rho_s, p_s, e_s, xn(nspec)
-    real (rt), intent(out) :: rhostar_s, f, fprime
+    real (kind=dp_t), intent(in) :: W_s, pstar, rho_s, p_s, e_s, xn(nspec)
+    real (kind=dp_t), intent(out) :: rhostar_s, f, fprime
     type (eos_t), intent(inout) :: eos_state
 
-    real (rt) :: taustar_s
-    real (rt) :: dedrho_p
+    real (kind=dp_t) :: taustar_s
+    real (kind=dp_t) :: dedrho_p
 
     ! we need rhostar -- get it from the R-H conditions
     taustar_s = (ONE/rho_s) - (pstar - p_s)/W_s**2
@@ -376,16 +375,16 @@ contains
 
   subroutine rarefaction(pstar, rho_s, u_s, p_s, xn, iwave, Z_s, W_s, rhostar)
 
-    real (rt), intent(in) :: pstar, rho_s, u_s, p_s
-    real (rt), intent(in) :: xn(nspec)
+    real (kind=dp_t), intent(in) :: pstar, rho_s, u_s, p_s
+    real (kind=dp_t), intent(in) :: xn(nspec)
     integer, intent(in) :: iwave
-    real (rt), intent(out) :: Z_s, W_s
-    real (rt), intent(out), optional :: rhostar
+    real (kind=dp_t), intent(out) :: Z_s, W_s
+    real (kind=dp_t), intent(out), optional :: rhostar
 
-    real (rt) :: dp, dp2
-    real (rt) :: p, u, tau
-    real (rt) :: dtaudp1, dtaudp2, dtaudp3, dtaudp4
-    real (rt) :: dudp1, dudp2, dudp3, dudp4
+    real (kind=dp_t) :: dp, dp2
+    real (kind=dp_t) :: p, u, tau
+    real (kind=dp_t) :: dtaudp1, dtaudp2, dtaudp3, dtaudp4
+    real (kind=dp_t) :: dudp1, dudp2, dudp3, dudp4
 
     integer, parameter :: npts = 1000
 
@@ -455,18 +454,18 @@ contains
   subroutine rarefaction_to_u(rho_s, u_s, p_s, xn, iwave, xi, rho, p, u, &
                               verbose_in)
 
-    real (rt), intent(in) :: rho_s, u_s, p_s, xi
-    real (rt), intent(in) :: xn(nspec)
+    real (kind=dp_t), intent(in) :: rho_s, u_s, p_s, xi
+    real (kind=dp_t), intent(in) :: xn(nspec)
     integer, intent(in) :: iwave
-    real (rt), intent(out) :: rho, p, u
+    real (kind=dp_t), intent(out) :: rho, p, u
     logical, optional, intent(in) :: verbose_in
 
-    real (rt) :: du, du2
-    real (rt) :: tau
-    real (rt) :: dtaudu1, dtaudu2, dtaudu3, dtaudu4
-    real (rt) :: dpdu1, dpdu2, dpdu3, dpdu4
+    real (kind=dp_t) :: du, du2
+    real (kind=dp_t) :: tau
+    real (kind=dp_t) :: dtaudu1, dtaudu2, dtaudu3, dtaudu4
+    real (kind=dp_t) :: dpdu1, dpdu2, dpdu3, dpdu4
 
-    real (rt) :: ustop, c
+    real (kind=dp_t) :: ustop, c
 
     logical :: finished 
 
@@ -598,12 +597,12 @@ contains
     ! dependent variables.  We return the derivatives of these
     ! wrt p for integration.
 
-    real (rt), intent(in) :: tau, u, p, xn(nspec)
-    real (rt), intent(out) :: dtaudp, dudp
+    real (kind=dp_t), intent(in) :: tau, u, p, xn(nspec)
+    real (kind=dp_t), intent(out) :: dtaudp, dudp
     integer, intent(in) :: iwave
 
     type (eos_t) :: eos_state
-    real (rt) :: C
+    real (kind=dp_t) :: C
 
     ! get the thermodynamics
     eos_state%rho = ONE/tau
@@ -632,12 +631,12 @@ contains
     ! dependent variables.  We return the derivatives of these
     ! wrt u for integration.
 
-    real (rt), intent(in) :: tau, u, p, xn(nspec)
-    real (rt), intent(out) :: dtaudu, dpdu
+    real (kind=dp_t), intent(in) :: tau, u, p, xn(nspec)
+    real (kind=dp_t), intent(out) :: dtaudu, dpdu
     integer, intent(in) :: iwave
 
     type (eos_t) :: eos_state
-    real (rt) :: C
+    real (kind=dp_t) :: C
 
     ! get the thermodynamics
     eos_state%rho = ONE/tau

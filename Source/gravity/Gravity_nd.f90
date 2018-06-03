@@ -1,6 +1,5 @@
 module gravity_module
 
-  use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -52,7 +51,7 @@ contains
        bind(C, name="ca_integrate_grav")
 
     use fundamental_constants_module, only : Gconst
-    use amrex_constants_module
+    use bl_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -208,7 +207,7 @@ contains
        bind(C, name="ca_integrate_gr_grav")
 
     use fundamental_constants_module, only : Gconst, c_light
-    use amrex_constants_module
+    use bl_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -297,7 +296,7 @@ contains
 
   subroutine init_multipole_gravity(lnum, lo_bc, hi_bc) bind(C,name="init_multipole_gravity")
 
-    use amrex_constants_module
+    use bl_constants_module
     use prob_params_module, only: coord_type, Symmetry, problo, probhi, center, dim
 
     use amrex_fort_module, only : rt => amrex_real
@@ -429,9 +428,9 @@ contains
 
     use prob_params_module, only: problo, center, dim, coord_type
     use fundamental_constants_module, only: Gconst
-    use amrex_constants_module
-    use amrex_fort_module, only : rt => amrex_real
+    use bl_constants_module
 
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer , intent(in   ) :: lo(3), hi(3)
@@ -461,7 +460,7 @@ contains
     endif
 
     if (lnum > lnum_max) then
-       call amrex_error("Error: ca_compute_multipole_moments: requested more multipole moments than we allocated data for.")
+       call bl_error("Error: ca_compute_multipole_moments: requested more multipole moments than we allocated data for.")
     endif
 
     do k = lo(3), hi(3)
@@ -579,7 +578,7 @@ contains
                                            bind(C, name="ca_compute_multipole_moments")
 
     use prob_params_module, only: problo, center, probhi, dim, coord_type
-    use amrex_constants_module
+    use bl_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -618,7 +617,7 @@ contains
     ! Sanity check
 
     if (lnum > lnum_max) then
-       call amrex_error("Error: ca_compute_multipole_moments: requested more multipole moments than we allocated data for.")
+       call bl_error("Error: ca_compute_multipole_moments: requested more multipole moments than we allocated data for.")
     endif
 
     do k = lo(3), hi(3)
@@ -670,7 +669,7 @@ contains
 
   function factorial(n)
 
-    use amrex_constants_module
+    use bl_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -690,7 +689,7 @@ contains
 
   subroutine fill_legendre_arrays(legPolyArr, assocLegPolyArr, x, lnum)
 
-    use amrex_constants_module
+    use bl_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -780,7 +779,7 @@ contains
                                      lnum, npts, nlo, index)
 
     use prob_params_module, only: center
-    use amrex_constants_module
+    use bl_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -888,7 +887,7 @@ contains
                            qL0, qLC, qLS, qU0, qUC, qUS, &
                            lnum, npts, nlo, index, do_parity)
 
-    use amrex_constants_module, only: ONE
+    use bl_constants_module, only: ONE
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none

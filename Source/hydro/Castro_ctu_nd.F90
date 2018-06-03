@@ -56,7 +56,7 @@ subroutine ca_ctu_update(lo, hi, is_finest_level, time, &
                                  use_flattening, &
                                  first_order_hydro
   use advection_util_module, only : divu
-  use amrex_constants_module, only : ZERO, ONE
+  use bl_constants_module, only : ZERO, ONE
   use flatten_module, only: uflatten
   use prob_params_module, only : mom_flux_has_p, dg, coord_type
 #ifdef RADIATION

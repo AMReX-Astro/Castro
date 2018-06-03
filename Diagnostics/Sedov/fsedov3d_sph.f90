@@ -4,8 +4,10 @@
 program fextract3d
 
   use f2kcli
-  use amrex_error_module
-  use amrex_constants_module
+  use bl_space
+  use bl_error_module
+  use bl_constants_module
+  use bl_IO_module
   use plotfile_module
 
   implicit none
@@ -13,25 +15,25 @@ program fextract3d
   type(plotfile) pf
   integer :: unit
   integer :: i, j, ii, jj, kk
-  real(rt) :: xx, yy, zz
+  real(kind=dp_t) :: xx, yy, zz
   integer :: rr, r1
   integer :: uno
 
   integer :: nbins
-  real(rt), allocatable :: r(:)
-  real(rt) :: maxdist, x_maxdist, y_maxdist, z_maxdist
-  real(rt) :: xctr, yctr, zctr
+  real(kind=dp_t), allocatable :: r(:)
+  real(kind=dp_t) :: maxdist, x_maxdist, y_maxdist, z_maxdist
+  real(kind=dp_t) :: xctr, yctr, zctr
 
-  real(rt) :: dx(MAX_SPACEDIM)
-  real(rt) :: dx_fine
+  real(kind=dp_t) :: dx(MAX_SPACEDIM)
+  real(kind=dp_t) :: dx_fine
 
-  real(rt) :: r_zone
+  real(kind=dp_t) :: r_zone
   integer :: index
 
-  real(rt), pointer :: p(:,:,:,:)
+  real(kind=dp_t), pointer :: p(:,:,:,:)
 
   integer, allocatable :: ncount(:)
-  real(rt), allocatable :: dens_bin(:), vel_bin(:), pres_bin(:), e_bin(:)
+  real(kind=dp_t), allocatable :: dens_bin(:), vel_bin(:), pres_bin(:), e_bin(:)
 
   integer :: dens_comp, xmom_comp, ymom_comp, zmom_comp, pres_comp, rhoe_comp
 

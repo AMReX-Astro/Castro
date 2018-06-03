@@ -85,8 +85,8 @@ module interpolate_module
                                model_x, model_y, model_z, model_var, &
                                interp_var, derivs, error)
 
-      use amrex_error_module
-      use amrex_constants_module, only: ONE
+      use bl_error_module
+      use bl_constants_module, only: ONE
 
       ! tri-linear interpolation; useful for EOS tables
       ! this is stricly interpolation, so if the point (x,y,z) is outside

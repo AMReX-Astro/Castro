@@ -8,14 +8,14 @@
 
 subroutine check_equal(index1, index2)
 
-  use amrex_error_module
+  use bl_error_module
 
   implicit none
 
   integer, intent(in) :: index1, index2
 
   if (index1 /= index2) then
-    call amrex_error("ERROR: mismatch of indices")
+    call bl_error("ERROR: mismatch of indices")
   endif
 
 end subroutine check_equal

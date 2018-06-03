@@ -10,7 +10,7 @@ contains
   subroutine ca_hypfill(adv,adv_l1,adv_h1, &
                         domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_hypfill")
 
-    use amrex_constants_module
+    use bl_constants_module
     use meth_params_module, only : NVAR, URHO, UEDEN, UMX, UMY, UMZ, UTEMP, UEINT, UFS
     use probdata_module, only: hse_rho_top, hse_t_top, hse_X_top, &
          hse_eint_top, hse_p_top

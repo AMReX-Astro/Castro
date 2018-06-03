@@ -1,7 +1,7 @@
 module actual_burner_module
 
-  use amrex_fort_module, only : rt => amrex_real
-  use amrex_constants_module
+  use bl_types
+  use bl_constants_module
   use network
   use burn_type_module
 

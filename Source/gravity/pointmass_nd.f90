@@ -7,7 +7,7 @@
                                  problo,dx) &
                                  bind(C, name="pm_add_to_grav")
 
-       use amrex_constants_module      , only : HALF
+       use bl_constants_module         , only : HALF
        use fundamental_constants_module, only : Gconst
        use prob_params_module          , only : center
 

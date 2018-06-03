@@ -17,7 +17,7 @@ contains
     !$acc routine seq
 
     use burn_type_module, only: burn_t
-    use amrex_constants_module, only: ZERO
+    use bl_constants_module, only: ZERO
 
     implicit none
 
@@ -36,7 +36,7 @@ contains
     !$acc routine seq
 
     use burn_type_module, only: burn_t
-    use amrex_constants_module, only: ZERO
+    use bl_constants_module, only: ZERO
 
     implicit none
 

@@ -30,7 +30,7 @@ contains
                                    QREINT, QPRES, &
                                    npassive, qpass_map, small_dens, small_pres, &
                                    ppm_type, fix_mass_flux
-    use amrex_constants_module
+    use bl_constants_module
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
     use amrex_fort_module, only : rt => amrex_real
     use ppm_module, only : ppm_reconstruct, ppm_int_profile
@@ -457,7 +457,7 @@ contains
     use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, QC, &
                                    QREINT, QPRES, &
                                    npassive, qpass_map, small_dens, small_pres, ppm_type
-    use amrex_constants_module
+    use bl_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none

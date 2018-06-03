@@ -1,7 +1,7 @@
 module flatten_module
 
   use amrex_mempool_module, only : bl_allocate, bl_deallocate
-  use amrex_constants_module, only : ZERO
+  use bl_constants_module, only : ZERO
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -25,7 +25,7 @@ contains
     ! passing it in allows
     use meth_params_module, only : small_pres, QU, QV, QW, NQ
     use prob_params_module, only : dg
-    use amrex_constants_module
+    use bl_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none

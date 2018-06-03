@@ -21,7 +21,7 @@ contains
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only: NQ, plm_iorder
-    use amrex_constants_module, only: ZERO, HALF, ONE, TWO, FOUR3RD, FOURTH, SIXTH
+    use bl_constants_module, only: ZERO, HALF, ONE, TWO, FOUR3RD, FOURTH, SIXTH
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -201,7 +201,7 @@ contains
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : QRHO, QPRES, QU, QV, QW, NQ, QVAR, plm_iorder
-    use amrex_constants_module, only : ZERO, FOURTH, FOUR3RD, HALF, TWO, ONE, SIXTH
+    use bl_constants_module, only : ZERO, FOURTH, FOUR3RD, HALF, TWO, ONE, SIXTH
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none

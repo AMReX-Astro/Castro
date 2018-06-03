@@ -1,11 +1,11 @@
 module rad_util_module
 
-  use amrex_error_module
-  use amrex_constants_module
-  use amrex_fort_module, only : rt => amrex_real
-
+  use bl_types
+  use bl_error_module
   use rad_params_module, only : ngroups
+  use bl_constants_module
 
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
 contains
@@ -84,7 +84,7 @@ contains
        end if
 
     else
-       call amrex_error("Unknown limiter ", limiter)
+       call bl_error("Unknown limiter ", limiter)
     endif
   end function FLDlambda
 

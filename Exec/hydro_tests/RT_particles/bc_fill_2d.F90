@@ -1,6 +1,5 @@
 module bc_fill_module
 
-  use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -37,12 +36,12 @@ contains
     do n=1,NVAR
        !        XLO
        if ( bc(1,1,n).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
-          call amrex_error('SHOULD NEVER GET HERE bc(1,1,n) .eq. EXT_DIR) ')
+          call bl_error('SHOULD NEVER GET HERE bc(1,1,n) .eq. EXT_DIR) ')
        end if
 
        !        XHI
        if ( bc(1,2,n).eq.EXT_DIR .and. adv_h1.gt.domhi(1)) then
-          call amrex_error('SHOULD NEVER GET HERE bc(1,2,n) .eq. EXT_DIR) ')
+          call bl_error('SHOULD NEVER GET HERE bc(1,2,n) .eq. EXT_DIR) ')
        end if
 
        !        YLO
@@ -66,7 +65,7 @@ contains
 
        !        YHI
        if ( bc(2,2,n).eq.EXT_DIR .and. adv_h2.gt.domhi(2)) then
-          call amrex_error('SHOULD NEVER GET HERE bc(2,2,n) .eq. EXT_DIR) ')
+          call bl_error('SHOULD NEVER GET HERE bc(2,2,n) .eq. EXT_DIR) ')
        end if
 
     end do
@@ -98,22 +97,22 @@ contains
 
     ! XLO
     if ( bc(1,1,1).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
-       call amrex_error('SHOULD NEVER GET HERE bc(1,1,1) .eq. EXT_DIR) ')
+       call bl_error('SHOULD NEVER GET HERE bc(1,1,1) .eq. EXT_DIR) ')
     end if
 
     ! XHI
     if ( bc(1,2,1).eq.EXT_DIR .and. adv_h1.lt.domhi(1)) then
-       call amrex_error('SHOULD NEVER GET HERE bc(1,2,1) .eq. EXT_DIR) ')
+       call bl_error('SHOULD NEVER GET HERE bc(1,2,1) .eq. EXT_DIR) ')
     end if
 
     ! YLO
     if ( bc(2,1,1).eq.EXT_DIR .and. adv_l2.lt.domlo(2)) then
-       call amrex_error('SHOULD NEVER GET HERE bc(2,1,1) .eq. EXT_DIR) ')
+       call bl_error('SHOULD NEVER GET HERE bc(2,1,1) .eq. EXT_DIR) ')
     end if
 
     ! YHI
     if ( bc(2,2,1).eq.EXT_DIR .and. adv_h2.gt.domhi(2)) then
-       call amrex_error('SHOULD NEVER GET HERE bc(2,2,1) .eq. EXT_DIR) ')
+       call bl_error('SHOULD NEVER GET HERE bc(2,2,1) .eq. EXT_DIR) ')
     end if
 
   end subroutine ca_denfill

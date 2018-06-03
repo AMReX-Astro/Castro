@@ -1,7 +1,7 @@
 module multid_slope_module
 
   use amrex_fort_module, only : rt => amrex_real
-  use amrex_constants_module, only : HALF
+  use bl_constants_module, only : HALF
 
   implicit none
 
