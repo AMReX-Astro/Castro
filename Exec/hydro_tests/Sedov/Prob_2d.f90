@@ -106,14 +106,17 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state,state_l1,state_l2,state_h1,state_h2, &
                        delta,xlo,xhi)
 
-  use probdata_module
   use amrex_constants_module, only: M_PI, FOUR3RD, ZERO, ONE
-  use meth_params_module , only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UTEMP
-  use prob_params_module, only : center, coord_type
+  use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
-  use network, only : nspec
+
   use eos_module, only : eos
   use eos_type_module, only : eos_t, eos_input_rp, eos_input_re, eos_input_rt
+  use network, only : nspec
+
+  use meth_params_module , only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UTEMP
+  use prob_params_module, only : center, coord_type
+  use probdata_module
 
   implicit none
 
