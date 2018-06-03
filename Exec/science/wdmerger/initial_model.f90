@@ -4,8 +4,9 @@
 
 module initial_model_module
 
-  use amrex_constants_module
-  use amrex_error_module, only: amrex_error
+  use bl_types
+  use bl_constants_module
+  use bl_error_module, only: bl_error
   use eos_module, only: eos
   use eos_type_module, only: eos_t, eos_input_rt
   use network, only: nspec
@@ -107,7 +108,7 @@ contains
     ! Check to make sure we've specified at least one of them.
 
     if (model % mass < ZERO .and. model % central_density < ZERO) then
-       call amrex_error('Error: Must specify either mass or central density in the initial model generator.')
+       call bl_error('Error: Must specify either mass or central density in the initial model generator.')
     endif
 
     ! If we are specifying the mass, then we don't know what WD central density 
@@ -138,7 +139,7 @@ contains
     ! Check to make sure the initial temperature makes sense.
 
     if (model % central_temp < small_temp) then
-       call amrex_error("Error: WD central temperature is less than small_temp. Aborting.")
+       call bl_error("Error: WD central temperature is less than small_temp. Aborting.")
     endif
 
     mass_converged = .false.
@@ -233,7 +234,7 @@ contains
              print *, model % state(i) % rho, model % state (i) % T
              print *, p_want, model % state(i) % p
              print *, drho, model % hse_tol * model % state(i) % rho
-             call amrex_error('Error: HSE non-convergence.')
+             call bl_error('Error: HSE non-convergence.')
 
           endif
 
@@ -283,7 +284,7 @@ contains
     enddo  ! End mass constraint loop
 
     if (.not. mass_converged .and. max_mass_iter .gt. 1) then
-       call amrex_error("ERROR: WD mass did not converge.")
+       call bl_error("ERROR: WD mass did not converge.")
     endif
 
     model % central_density = model % state(1) % rho

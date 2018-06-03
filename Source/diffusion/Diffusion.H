@@ -44,6 +44,8 @@ protected:
   amrex::Vector<amrex::MultiFab*> volume;
   amrex::Vector<amrex::MultiFab*> area;
 
+  int mg_bc[2*BL_SPACEDIM];
+
   amrex::BCRec*       phys_bc;
 
   std::array<amrex::MLLinOp::BCType,AMREX_SPACEDIM> mlmg_lobc;

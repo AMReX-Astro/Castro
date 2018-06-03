@@ -3,7 +3,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use probdata_module, only: T_l, T_r, dens, cfrac, idir, w_T, center_T, &
                              xn, ihe4, ic12, io16, smallx, vel
   use network, only: network_species_index, nspec
-  use amrex_error_module, only: amrex_error
+  use bl_error_module, only: bl_error
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
@@ -21,7 +21,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer, parameter :: maxlen = 256
   character :: probin*(maxlen)
 
-  if (namlen .gt. maxlen) call amrex_error("probin file name too long")
+  if (namlen .gt. maxlen) call bl_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -54,12 +54,12 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   io16 = network_species_index("oxygen-16")
 
   if (ihe4 < 0 .or. ic12 < 0 .or. io16 < 0) then
-     call amrex_error("ERROR: species indices not found")
+     call bl_error("ERROR: species indices not found")
   endif
 
   ! make sure that the carbon fraction falls between 0 and 1
   if (cfrac > 1.e0_rt .or. cfrac < 0.e0_rt) then
-     call amrex_error("ERROR: cfrac must fall between 0 and 1")
+     call bl_error("ERROR: cfrac must fall between 0 and 1")
   endif
 
   ! set the default mass fractions
@@ -141,7 +141,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         call eos(eos_input_rt, eos_state)
 
-        state(i,j,UMX  ) = state(i,j,URHO) * (vel - 2 * vel * (1.0e0_rt - sigma))
+        state(i,j,UMX  ) = state(i,URHO) * (vel - 2 * vel * (1.0e0_rt - sigma))
         state(i,j,UMY  ) = 0.e0_rt
         state(i,j,UEINT) = state(i,j,URHO) * eos_state%e
         state(i,j,UEDEN) = state(i,j,UEINT) + 0.5e0_rt * sum(state(i,j,UMX:UMY)**2) / state(i,j,URHO)

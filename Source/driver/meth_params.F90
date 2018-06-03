@@ -12,6 +12,8 @@
 
 module meth_params_module
 
+  use amrex_error_module
+
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -534,7 +536,6 @@ contains
 
     use rad_params_module, only : ngroups
 
-    use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none

@@ -11,7 +11,7 @@ contains
   function get_omega(time) result(omega)
 
     use meth_params_module, only: rot_period, rot_axis
-    use amrex_constants_module, only: ZERO, TWO, M_PI
+    use bl_constants_module, only: ZERO, TWO, M_PI
     use fundamental_constants_module, only: Gconst
 
     implicit none
@@ -33,7 +33,7 @@ contains
 
   function get_domegadt(time) result(domegadt)
 
-    use amrex_constants_module, only: ZERO
+    use bl_constants_module, only: ZERO
 
     implicit none
 

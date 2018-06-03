@@ -1,10 +1,11 @@
 module hse_bc_module
 
-  use amrex_error_module
+  use bl_types
+  use bl_error_module
   use prob_params_module
   use eos_module, only : eos
   use eos_type_module, only : eos_t, eos_input_rt
-  use amrex_constants_module, only : ZERO, HALF
+  use bl_constants_module, only : ZERO, HALF
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -124,7 +125,7 @@ contains
 
              enddo
 
-             if (.not. converged_hse) call amrex_error("ERROR: failure to converge in -Z BC")
+             if (.not. converged_hse) call bl_error("ERROR: failure to converge in -Z BC")
 
              ! velocity
              if (zero_vels) then

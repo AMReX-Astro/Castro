@@ -47,7 +47,7 @@
      use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, &
                                    UEDEN, UEINT, UFS, do_rotation, state_in_rotating_frame
      use network, only: nspec
-     use amrex_constants_module
+     use bl_constants_module
      use model_parser_module, only: idens_model, itemp_model, ipres_model, ispec_model
      use initial_model_module, only: interpolate_3d_from_1d
      use math_module, only: cross_product
