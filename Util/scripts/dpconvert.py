@@ -68,10 +68,7 @@ def main():
     # match declarations like "real*8"
     r4 = re.compile(r"(real\*8)", re.IGNORECASE|re.DOTALL)
 
-    # match declarations like "real (rt)"
-    r5 = re.compile(r"(real)\s*(\(\s*rt\s*\))", re.IGNORECASE|re.DOTALL)
-
-    regexs = [r1, r2, r3, r4, r5]
+    regexs = [r1, r2, r3, r4]
 
 
     # also we want to convert numeric constants that are of the form X.Y_dp_t, etc.
