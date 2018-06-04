@@ -22,9 +22,10 @@ yctr = 0.5*(ymin + ymax)
 L_y = ymax - ymin
 
 
-fields = ["Temp", "enuc"] #, "density"]
+fields = ["Temp", "enuc", "z_velocity"] #, "density"]
 
 for f in fields:
+
     sp = yt.SlicePlot(ds, "theta", f, center=[xctr, yctr, 0.0], width=[L_x, L_y, 0.0])
     if f == "Temp":
         sp.set_zlim(f, 1.e7, 1.e9)
@@ -32,11 +33,16 @@ for f in fields:
         sp.set_zlim(f, 5.e17, 1.e19)
     elif f == "density":
         sp.set_zlim(f, 1.e-3, 5.e8)
+    elif f == "z_velocity":
+        sp.set_zlim(f, -2.e8, 2.e8)
+        sp.set_log(f, False)
 
     if f != "density":
         # now do a contour of density
-        sp.annotate_contour("density", ncont=2, clim=(1.e4, 2.e6),
+        sp.annotate_contour("density", ncont=2, clim=(1.e2, 2.e6),
                             plot_args={"colors": "0.5", "linewidths": 1, "linestyle": ":"})
+
+    sp.set_axes_unit("cm")
 
     sp.annotate_text((0.05, 0.05), "{:8.5f} s".format(float(ds.current_time.in_cgs())),
                      coord_system="figure", text_args={"color": "black"})

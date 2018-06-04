@@ -10,7 +10,7 @@ contains
   subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
                         domlo,domhi,delta,xlo,time,bc) bind(C,name="ca_hypfill")
 
-    use bl_error_module
+    use amrex_error_module
     use meth_params_module, only : NVAR,UMX,UMY,UMZ
     use prob_params_module, only : center
 
@@ -47,7 +47,7 @@ contains
     if ( (bc(1,1,1).eq. EXT_DIR .or. bc(1,2,1).eq. EXT_DIR) .or.  &
          (bc(2,1,1).eq. EXT_DIR .or. bc(2,2,1).eq. EXT_DIR) .or. &
          (bc(3,1,1).eq. EXT_DIR .or. bc(3,2,1).eq. EXT_DIR) ) then
-       call bl_error("NOT SET UP FOR EXT_DIR BCs IN HYPFILL")
+       call amrex_error("NOT SET UP FOR EXT_DIR BCs IN HYPFILL")
     end if
 
     ! XLO

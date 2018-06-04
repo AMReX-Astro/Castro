@@ -1,8 +1,8 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module
-  use bl_error_module
-  use bl_constants_module
+  use amrex_error_module
+  use amrex_constants_module
   use actual_riemann_module
   use meth_params_module
 
@@ -33,7 +33,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   character :: probin*(maxlen)
 
   if (namlen .gt. maxlen) then
-     call bl_error('probin file name too long')
+     call amrex_error('probin file name too long')
   end if
 
   do i = 1, namlen
@@ -124,7 +124,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
                  [ilo-1, jlo-1, 0], [ihi+1, jhi+1, 0])
 
   ! we're done -- abort the code
-  call bl_error("done with Riemann")
+  call amrex_error("done with Riemann")
 
 end subroutine amrex_probinit
 
@@ -155,7 +155,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        delta,xlo,xhi)
 
   use probdata_module
-  use bl_constants_module, only: M_PI, FOUR3RD
+  use amrex_constants_module, only: M_PI, FOUR3RD
   use meth_params_module , only: NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS
   use prob_params_module, only : center
   use amrex_fort_module, only : rt => amrex_real

@@ -21,17 +21,15 @@
 
 module network
 
-  use bl_types, only : dp_t
+  use amrex_fort_module, only : rt => amrex_real
   use actual_network
 
   implicit none
 
-  private :: dp_t
-
   logical :: network_initialized = .false.
 
   ! this will be computed here, not in the actual network
-  real(kind=dp_t) :: aion_inv(nspec)
+  real(rt) :: aion_inv(nspec)
 
   !$acc declare create(aion_inv)
 
@@ -39,8 +37,8 @@ contains
 
   subroutine network_init()
 
-    use bl_error_module, only : bl_error
-    use bl_constants_module, only : ONE
+    use amrex_error_module, only : amrex_error
+    use amrex_constants_module, only : ONE
 
     implicit none
 
@@ -55,11 +53,11 @@ contains
     ! Check to make sure, and if not, throw an error.
 
     if ( nspec .le. 0 ) then
-       call bl_error("Network cannot have a negative number of species.")
+       call amrex_error("Network cannot have a negative number of species.")
     endif
 
     if ( naux .lt. 0 ) then
-       call bl_error("Network cannot have a negative number of auxiliary variables.")
+       call amrex_error("Network cannot have a negative number of auxiliary variables.")
     endif
 
     aion_inv(:) = ONE/aion(:)
