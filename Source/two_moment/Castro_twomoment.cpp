@@ -56,12 +56,12 @@ Castro::create_thornado_source(Real dt)
 
     // This fills the ghost cells of the fluid MultiFab which we will pass into Thornado
     MultiFab S_border(grids, dmap, NUM_STATE, my_ngrow);
-    const Real  cur_time = state[State_Type].curTime();
-    AmrLevel::FillPatch(*this, S_border, my_ngrow, cur_time, State_Type, 0, NUM_STATE);
+    const Real  prev_time = state[State_Type].prevTime();
+    AmrLevel::FillPatch(*this, S_border, my_ngrow, prev_time, State_Type, 0, NUM_STATE);
 
     // This fills the ghost cells of the radiation MultiFab which we will pass into Thornado
     MultiFab R_border(grids, dmap, U_R_old.nComp(), my_ngrow);
-    AmrLevel::FillPatch(*this, R_border, my_ngrow, cur_time, Thornado_Type, 0, U_R_old.nComp());
+    AmrLevel::FillPatch(*this, R_border, my_ngrow, prev_time, Thornado_Type, 0, U_R_old.nComp());
 
     // int n_sub = GetNSteps(dt); // From thornado
     int n_sub = 1; // THIS IS JUST A HACK TO MAKE IT COMPILE 
