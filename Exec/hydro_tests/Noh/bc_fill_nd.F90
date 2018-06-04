@@ -12,7 +12,7 @@ contains
   
   subroutine ca_hypfill(adv,adv_lo,adv_hi,domlo,domhi,delta,xlo,time,bc) bind(C)
 
-    use bl_constants_module, only: ONE, TWO
+    use amrex_constants_module, only: ONE, TWO
     use meth_params_module, only: NVAR, URHO, UTEMP, UMX, UMZ, UEDEN, UEINT, UFS
     use prob_params_module, only: dim
     use castro_util_module, only: position

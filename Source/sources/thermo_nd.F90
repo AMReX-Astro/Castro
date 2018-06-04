@@ -12,7 +12,7 @@ contains
                            new_state, ns_lo, ns_hi,&
                            src, src_lo, src_hi, problo, dx, time, dt) bind(C, name="ca_thermo_src")
 
-    use bl_constants_module, only: ZERO, HALF, FOURTH
+    use amrex_constants_module, only: ZERO, HALF, FOURTH
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UFS, UEINT
 
     use amrex_fort_module, only : rt => amrex_real

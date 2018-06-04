@@ -3,8 +3,6 @@
 
 module rad_module
 
-  use bl_types
-
   use meth_params_module, only : URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS, UFX, NVAR
 
   use rad_util_module, only : FLDlambda

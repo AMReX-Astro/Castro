@@ -14,7 +14,7 @@ contains
                            enth ,e_lo,e_hi) &
                            bind(C, name="make_enthalpy")
     
-    use bl_constants_module
+    use amrex_constants_module
     use network, only: nspec, naux
     use meth_params_module, only : NVAR, URHO, UTEMP, UEINT, UFS, UFX, diffuse_cutoff_density
     use eos_type_module
