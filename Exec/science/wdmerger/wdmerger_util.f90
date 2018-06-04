@@ -566,8 +566,8 @@ contains
 
        else
 
-          call amrex_error("If we are doing a binary calculation, we must specify either a ", &
-                        "positive secondary mass or a positive secondary central density.")
+          call amrex_error("If we are doing a binary calculation, we must specify either a " // &
+                           "positive secondary mass or a positive secondary central density.")
 
        endif
 
