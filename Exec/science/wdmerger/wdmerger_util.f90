@@ -44,6 +44,7 @@ contains
     use meth_params_module
     use prob_params_module, only: dim, coord_type
     use problem_io_module, only: probin
+    use amrex_error_module, only: amrex_error
 
     implicit none
 
@@ -230,6 +231,7 @@ contains
 
     use extern_probin_module, only: small_x
     use network, only: network_species_index
+    use amrex_error_module, only: amrex_error
 
     implicit none
 
@@ -817,6 +819,7 @@ contains
     use sponge_module, only: sponge_lower_radius
     use meth_params_module, only: do_sponge
     use fundamental_constants_module, only: Gconst
+    use amrex_error_module, only: amrex_error
 
     implicit none
 

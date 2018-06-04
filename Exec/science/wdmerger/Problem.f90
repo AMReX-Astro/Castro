@@ -4,7 +4,8 @@ subroutine problem_checkpoint(int_dir_name, len) bind(C, name="problem_checkpoin
 
   ! called by the IO processor during checkpoint
 
-  use bl_IO_module
+  use amrex_IO_module
+  use amrex_error_module, only: amrex_error
   use probdata_module, only: com_P, com_S, vel_P, vel_S, mass_P, mass_S, t_ff_P, t_ff_S, &
                              T_global_max, rho_global_max, ts_te_global_max
   use prob_params_module, only: center
@@ -110,7 +111,7 @@ subroutine problem_restart(int_dir_name, len) bind(C, name="problem_restart")
 
   ! called by ALL processors during restart 
 
-  use bl_IO_module
+  use amrex_IO_module
   use probdata_module, only: com_P, com_S, vel_P, vel_S, mass_P, mass_S, t_ff_P, t_ff_S, problem, &
                              T_global_max, rho_global_max, ts_te_global_max, &
                              jobIsDone, num_previous_ener_timesteps, total_ener_array, &
@@ -119,6 +120,7 @@ subroutine problem_restart(int_dir_name, len) bind(C, name="problem_restart")
   use problem_io_module, only: ioproc
   use prob_params_module, only: center
   use meth_params_module, only: rot_period
+  use amrex_error_module, only: amrex_error
 
   implicit none
 
@@ -810,6 +812,7 @@ end subroutine gw_strain_tensor
 subroutine update_center(time) bind(C,name='update_center')
 
   use amrex_constants_module, only: ZERO
+  use amrex_error_module, only: amrex_error
   use probdata_module, only: bulk_velx, bulk_vely, bulk_velz, &
                              center_fracx, center_fracy, center_fracz
   use prob_params_module, only: center, problo, probhi, dim

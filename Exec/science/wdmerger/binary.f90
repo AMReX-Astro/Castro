@@ -115,6 +115,7 @@ contains
   subroutine lagrange_iterate(r, mass_1, mass_2, r1, r2, a, r_min, r_max)
 
     use amrex_constants_module, only: ZERO, HALF
+    use amrex_error_module, only: amrex_error
     
     implicit none
 
