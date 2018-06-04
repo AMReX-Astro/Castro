@@ -5,8 +5,9 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use amrex_error_module 
   use network
   use probdata_module
-
   use amrex_fort_module, only : rt => amrex_real
+  use amrex_error_module, only: amrex_error
+
   implicit none
 
   integer init, namlen
@@ -141,6 +142,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use probdata_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS
   use amrex_fort_module, only : rt => amrex_real
+  use amrex_error_module, only: amrex_abort
+
   implicit none
 
   integer level, nscal

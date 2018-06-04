@@ -5,8 +5,9 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use amrex_error_module
   use network
   use probdata_module
-
   use amrex_fort_module, only : rt => amrex_real
+  use amrex_error_module, only: amrex_error
+
   implicit none
 
   integer init, namlen

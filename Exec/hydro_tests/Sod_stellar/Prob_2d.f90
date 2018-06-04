@@ -141,8 +141,9 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use network, only: nspec
   use probdata_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP, UFS
-
   use amrex_fort_module, only : rt => amrex_real
+  use amrex_error_module, only: amrex_abort
+
   implicit none
 
   integer level, nscal
