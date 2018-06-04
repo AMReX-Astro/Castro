@@ -2,6 +2,7 @@ module ctu_advection_module
 
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
 
+  use amrex_error_module, only : amrex_error
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 

@@ -5,6 +5,7 @@ module trace_ppm_rad_module
 
   use prob_params_module, only : dg
   use amrex_fort_module, only : rt => amrex_real
+  use amrex_error_module, only : amrex_error
 
   implicit none
 
