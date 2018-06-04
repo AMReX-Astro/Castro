@@ -174,6 +174,7 @@ subroutine ca_compute_temp_given_reye(lo, hi, &
   use meth_params_module, only : NVAR, URHO, UFS, UFX, &
        small_temp, allow_negative_energy
   
+  use amrex_error_module, only : amrex_error
   use amrex_fort_module, only : rt => amrex_real
   implicit none
   integer         , intent(in) :: lo(1), hi(1)
