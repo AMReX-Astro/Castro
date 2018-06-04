@@ -460,7 +460,8 @@ implicit none
           u(i,j,k,UMZ)    = q(i,j,k,QRHO)*q(i,j,k,QW)
   
           eos_state % rho = q(i, j, k, QRHO)
-          eos_state % p   = q(i, j, k, QPRES) 
+          eos_state % p   = q(i, j, k, QPRES)
+          eos_state % T   = 100.d0 !dummy initial g.  
           eos_state % xn  = q(i, j, k, QFS:QFS+nspec-1)
 
           call eos(eos_input_rp, eos_state)
@@ -1263,7 +1264,8 @@ subroutine qflux(qflx,flx,q)
         qflx(QFS:QFS+nspec-1)  = ( flx(UFS:UFS+nspec-1) - flx(URHO) * q(QFS:QFS+nspec-1) )/q(QRHO)
             
         eos_state % rho = q(QRHO)
-        eos_state % p   = q(QPRES) 
+        eos_state % p   = q(QPRES)
+        eos_state % T   = 100.d0 !dummy initial guess 
         eos_state % xn  = q(QFS:QFS+nspec-1)
 
         call eos(eos_input_rp, eos_state)

@@ -473,7 +473,8 @@ contains
 
              eos_state % rho = Ip(i,j,k,QRHO,1)
              eos_state % p   = Ip(i,j,k,QPRES,1)
-             eos_state % xn  = Ip(i,j,k,QFS:QFS+nspec-1,1)
+             eos_state % T   = s(i,j,k,QTEMP) !some initial guess?
+             eos_state % xn  = Ip(i,j,k,QFS:QFS+nspec-1,1)             
 
              call eos(eos_input_rp, eos_state)
              Ip(i,j,k,QREINT,1) = eos_state % e * eos_state % rho
@@ -818,6 +819,7 @@ contains
     eos_state % rho = Q(QRHO)
     eos_state % p   = Q(QPRES) 
     eos_state % xn  = Q(QFS:QFS+nspec-1)
+    eos_state % T   = Q(QTEMP)
 
     call eos(eos_input_rp, eos_state)
 
@@ -887,7 +889,8 @@ contains
 
     !Speeeeeeeedssssss
     eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES) 
+    eos_state % p   = Q(QPRES)
+    eos_state % T   = Q(QTEMP)
     eos_state % xn  = Q(QFS:QFS+nspec-1)
 
     call eos(eos_input_rp, eos_state)
@@ -954,7 +957,8 @@ contains
  
     !Speeeeeeeedssssss
     eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES) 
+    eos_state % p   = Q(QPRES)
+    eos_state % T   = Q(QTEMP)
     eos_state % xn  = Q(QFS:QFS+nspec-1)
 
     call eos(eos_input_rp, eos_state)
@@ -1022,7 +1026,8 @@ contains
     !Speeeeeeeedssssss
 
     eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES) 
+    eos_state % p   = Q(QPRES)
+    eos_state % T   = Q(QTEMP)
     eos_state % xn  = Q(QFS:QFS+nspec-1)
 
     call eos(eos_input_rp, eos_state)
@@ -1088,6 +1093,7 @@ contains
     !Speeeeeeeedssssss
     eos_state % rho = Q(QRHO)
     eos_state % p   = Q(QPRES)
+    eos_state % T   = Q(QTEMP)
     eos_state % xn  = Q(QFS:QFS+nspec-1)
 
     call eos(eos_input_rp, eos_state)
@@ -1153,7 +1159,8 @@ contains
 
     !Speeeeeeeedssssss
     eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES) 
+    eos_state % p   = Q(QPRES)
+    eos_state % T   = Q(QTEMP)
     eos_state % xn  = Q(QFS:QFS+nspec-1)
 
     call eos(eos_input_rp, eos_state)
@@ -1219,7 +1226,8 @@ contains
 
     !Speeeeeeeedssssss
     eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES) 
+    eos_state % p   = Q(QPRES)
+    eos_state % T   = Q(QTEMP)
     eos_state % xn  = Q(QFS:QFS+nspec-1)
 
     call eos(eos_input_rp, eos_state)

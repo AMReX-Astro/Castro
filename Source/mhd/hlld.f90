@@ -119,7 +119,8 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       call PToC(qR, uR)
       ! Note this is actually (rho e)
       eos_state % rho = qL(QRHO)
-      eos_state % p   = qL(QPRES) 
+      eos_state % p   = qL(QPRES)
+      eos_state % T   = 100.0 !dummy initial guess 
       eos_state % xn  = qL(QFS:QFS+nspec-1)
 
       call eos(eos_input_rp, eos_state)
@@ -142,7 +143,8 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       FL(UFS:UFS+nspec-1) = qL(QRHO)*qL(QVELN)*qL(QFS:QFS+nspec-1) 
 
       eos_state % rho = qR(QRHO)
-      eos_state % p   = qR(QPRES) 
+      eos_state % p   = qR(QPRES)
+      eos_state % T   = 100.0 ! dummy initial guess?  
       eos_state % xn  = qR(QFS:QFS+nspec-1)
 
       call eos(eos_input_rp, eos_state)
