@@ -252,7 +252,12 @@ subroutine ca_advance_mhd(time, lo, hi, &
               flxy,flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3, &
               flxz,flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3, &
               lo ,hi ,dx ,dy ,dz ,dt)
-  
+ 
+  !maybe this will help?
+  bxout = 0.0
+  byout = 0.0
+  bzout = 0.0
+
   !Step Five Magnetic Update
   call magup(bxin, bxin_lo, bxin_hi, &
              byin, byin_lo, byin_hi, &
@@ -864,9 +869,9 @@ subroutine enercorr(bcc, bcc_l1, bcc_l2, bcc_l3, bcc_h1, bcc_h2, bcc_h3, &
   integer, intent(in)   :: lo(3), hi(3)
 
   real(rt), intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2), uout_lo(3):uout_hi(3),NVAR)
-  real(rt), intent(out) :: bxout(bxout_lo(1):bxout_hi(1), bxout_lo(2):bxout_hi(2), bxout_lo(3):bxout_hi(3))
-  real(rt), intent(out) :: byout(byout_lo(1):byout_hi(1), byout_lo(2):byout_hi(2), byout_lo(3):byout_hi(3))
-  real(rt), intent(out) :: bzout(bzout_lo(1):bzout_hi(1), bzout_lo(2):bzout_hi(2), bzout_lo(3):bzout_hi(3))
+  real(rt), intent(in) :: bxout(bxout_lo(1):bxout_hi(1), bxout_lo(2):bxout_hi(2), bxout_lo(3):bxout_hi(3))
+  real(rt), intent(in) :: byout(byout_lo(1):byout_hi(1), byout_lo(2):byout_hi(2), byout_lo(3):byout_hi(3))
+  real(rt), intent(in) :: bzout(bzout_lo(1):bzout_hi(1), bzout_lo(2):bzout_hi(2), bzout_lo(3):bzout_hi(3))
   real(rt), intent(in)  :: bcc(bcc_l1:bcc_h1, bcc_l2:bcc_h2, bcc_l3:bcc_h3, 3)
 
   real(rt) :: bx, by, bz, u, v, w, e
