@@ -79,9 +79,8 @@ Castro::create_thornado_source(Real dt)
     //    more permanently later.  
     MultiFab dS(grids, dmap, S_new.nComp(), S_new.nGrow());
 
-    // ASA -- WE NEED TO SET THESE FOR REAL
     Real eL = 0.;
-    Real eR = 0.;
+    Real eR = 1.;
 
     int swX[3];
     swX[0] = my_ngrow;

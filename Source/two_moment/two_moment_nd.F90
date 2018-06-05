@@ -149,7 +149,6 @@
          do id = 1, nDOF
             ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
             U_R_n(i,j,k,ii) = uCR(id,ie,i,j,k,im,is) 
-            print *,'URNEW / UROLD ',i,j,k,ii,U_r_n(i,j,k,ii), U_R_o(i,j,k,ii)
          end do
          end do
          end do
@@ -158,6 +157,5 @@
     end do
     end do
     end do
-    stop
 
   end subroutine call_to_thornado

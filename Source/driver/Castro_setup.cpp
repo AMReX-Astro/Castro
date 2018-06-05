@@ -495,6 +495,24 @@ Castro::variableSetUp ()
   // We need to call this here so we know how many components to allocate 
   int ncomp_thornado = Castro::init_thornado();
 
+  Vector<BCRec>       thornado_bcs(ncomp_thornado);
+  Vector<std::string> thornado_names(ncomp_thornado);
+
+  for (int i=0; i<ncomp_thornado; ++i)
+    {
+      char buf[64];
+      sprintf(buf, "thor_%d", i);
+      thornado_names[i] = string(buf);
+      std::cout << "Making " << thornado_names[i] << std::endl;
+    }
+
+  for (int i=0; i<ncomp_thornado; ++i)
+    {
+      cnt++;
+      set_scalar_bc(bc,phys_bc);
+      thornado_bcs[i] = bc;
+    }
+
   store_in_checkpoint = true;
   int ngrow_thornado = ngrow_state;
   desc_lst.addDescriptor(Thornado_Type, IndexType::TheCellType(),
@@ -502,17 +520,10 @@ Castro::variableSetUp ()
 			 &cell_cons_interp, state_data_extrap,
 			 store_in_checkpoint);
 
-  set_scalar_bc(bc,phys_bc);
-  desc_lst.setComponent(Thornado_Type,0,"J",bc,
-                        BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
-
-  desc_lst.setComponent(Thornado_Type,1,"H_x",bc,
-                        BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
-
-  desc_lst.setComponent(Thornado_Type,2,"H_y",bc,
-                        BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
-
-  desc_lst.setComponent(Thornado_Type,3,"H_z",bc,
+  desc_lst.setComponent(Thornado_Type,
+			0,
+			thornado_names,
+			thornado_bcs,
                         BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
 
   derive_lst.add("J_avg",IndexType::TheCellType(),1,ca_der_J,the_same_box);
