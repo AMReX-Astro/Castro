@@ -1,5 +1,6 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 10000
+max_step = 1
 stop_time =  10.e0
 
 # PROBLEM SIZE & GEOMETRY
@@ -8,6 +9,10 @@ geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     =  0     0     0
 geometry.prob_hi     = 1.e0    1.e0    1.e0
 amr.n_cell           = 128     128      128
+amr.n_cell           = 16 16 16
+
+amr.max_grid_size   = 64
+fabarray.mfiter_tile_size = 1024 1024 1024
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -49,7 +54,6 @@ amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
 amr.blocking_factor = 4       # block factor in grid generation
-amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
@@ -60,6 +64,7 @@ amr.check_int       = 200         # number of timesteps between checkpoints
 amr.plot_file       = thorn_plt  # root name of plotfile
 amr.plot_int        = 200          # number of timesteps between plotfiles
 amr.derive_plot_vars = density xmom ymom zmom eden Temp pressure  # these variables appear in the plotfile
+amr.derive_plot_vars = pressure J_avg Hx_avg Hy_avg Hz_avg
 
 #PROBIN FILENAME
 amr.probin_file = probin-thorn
