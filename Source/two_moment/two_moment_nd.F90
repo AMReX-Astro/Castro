@@ -40,7 +40,7 @@
     integer  :: i,j,k
     integer  :: ic,jc,kc
     integer  :: ii,id,ie,im,is
-    real(rt) :: conv_dens, conv_mom, conv_enr, conv_ne
+    real(rt) :: conv_dens, conv_mom, conv_enr, conv_ne, conv_J, conv_H
 
     ! Sanity check on size of arrays
     ! Note that we have set ngrow_thornado = ngrow_state in Castro_setup.cpp
@@ -66,6 +66,8 @@
     conv_mom  = Gram / Centimeter**2 / Second
     conv_enr  = Gram / Centimeter / Second**2
     conv_ne   = 1.d0 / Centimeter**3
+    conv_J    = Gram/Second**2/Centimeter
+    conv_H    = Gram/Second**3
 
     ! ************************************************************************************
     ! Copy from the Castro arrays into Thornado arrays from InitThornado_Patch
@@ -94,7 +96,7 @@
          uCF(1:n_fluid_dof,i,j,k,iCF_E)  = S(ic,jc,kc,UEDEN) * conv_enr
          uCF(1:n_fluid_dof,i,j,k,iCF_Ne) = S(ic,jc,kc,UFX)   * conv_ne
 
-         ! The uCF array was allocated in CreatRadiationdFields_Conserved with 
+         ! The uCF array was allocated in CreateRadiationdFields_Conserved with 
          ! ALLOCATE &
          !   ( uCR(1:nDOF, &
          !         1-swE:nE+swE, &
@@ -109,6 +111,8 @@
          do id = 1, nDOF
             ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
             uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,kc,ii)
+            if (im .eq. 1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,kc,ii)*conv_J
+            if (im > 1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,kc,ii)*conv_H
          end do
          end do
          end do
@@ -148,7 +152,8 @@
          do ie = 1, nE
          do id = 1, nDOF
             ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
-            U_R_n(i,j,k,ii) = uCR(id,ie,i,j,k,im,is) 
+            if (im .eq. 1) U_R_n(i,j,k,ii) = uCR(id,ie,i,j,k,im,is)/conv_J
+            if (im > 1) U_R_n(i,j,k,ii) = uCR(id,ie,i,j,k,im,is)/conv_H
          end do
          end do
          end do

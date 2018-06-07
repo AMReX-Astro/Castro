@@ -1,7 +1,6 @@
 module derive_thornado_module
 
   use amrex_fort_module, only : rt => amrex_real
-  use UnitsModule, only : Gram, Centimeter, Second
   use RadiationFieldsModule, only : nSpecies
   use ProgramHeaderModule, only : nE, nDOF
 
@@ -48,8 +47,7 @@ contains
                    (im-1)*(nE*nDOF) + &
                    (ie-1)*nDOF + (id-1)
               icount = icount + 1  ! for averaging
-              ! Thornado uses units where c = G = k = 1, Meter = 1, so we need to add units back in
-              J_avg(i,j,k,:) = J_avg(i,j,k,:) + U_R(i,j,k,ii) / ( Gram / Centimeter / Second**2 )
+              J_avg(i,j,k,:) = J_avg(i,j,k,:) + U_R(i,j,k,ii)
             end do
             end do
             end do
@@ -96,8 +94,7 @@ contains
                    (im-1)*(nE*nDOF) + &
                    (ie-1)*nDOF + (id-1)
               icount = icount + 1  ! for averaging
-              ! Thornado uses units where c = G = k = 1, Meter = 1, so we need to add units back in
-              Hx_avg(i,j,k,:) = Hx_avg(i,j,k,:) + U_R(i,j,k,ii) / ( Gram / Second**3 )
+              Hx_avg(i,j,k,:) = Hx_avg(i,j,k,:) + U_R(i,j,k,ii)
             end do
             end do
             end do
@@ -144,8 +141,7 @@ contains
                    (im-1)*(nE*nDOF) + &
                    (ie-1)*nDOF + (id-1)
               icount = icount + 1  ! for averaging
-              ! Thornado uses units where c = G = k = 1, Meter = 1, so we need to add units back in
-              Hy_avg(i,j,k,:) = Hy_avg(i,j,k,:) + U_R(i,j,k,ii) / ( Gram / Second**3 )
+              Hy_avg(i,j,k,:) = Hy_avg(i,j,k,:) + U_R(i,j,k,ii)
             end do
             end do
             end do
@@ -192,8 +188,7 @@ contains
                    (im-1)*(nE*nDOF) + &
                    (ie-1)*nDOF + (id-1)
               icount = icount + 1  ! for averaging
-              ! Thornado uses units where c = G = k = 1, Meter = 1, so we need to add units back in
-              Hz_avg(i,j,k,:) = Hz_avg(i,j,k,:) + U_R(i,j,k,ii) / ( Gram / Second**3 )
+              Hz_avg(i,j,k,:) = Hz_avg(i,j,k,:) + U_R(i,j,k,ii)
             end do
             end do
             end do
