@@ -12,13 +12,8 @@
 #include <Castro_F.H>
 
 #include <AMReX_FillPatchUtil.H>
-
-#include <AMReX_FMultiGrid.H>
-
-#ifdef CASTRO_MLMG
 #include <AMReX_MLMG.H>
 #include <AMReX_MLPoisson.H>
-#endif
 
 #define MAX_LEV 15
 
@@ -33,7 +28,6 @@ int Gravity::test_solves  = 0;
 #endif
 Real Gravity::max_radius_all_in_domain =  0.0;
 Real Gravity::mass_offset    =  0.0;
-int  Gravity::stencil_type   = CC_CROSS_STENCIL;
 
 // ************************************************************************************** //
 
@@ -253,6 +247,13 @@ Gravity::read_params ()
     }
 }
 
+void 
+Gravity::output_job_info_params(std::ostream& jobInfoFile)
+{
+#include "gravity_job_info_tests.H"
+}
+
+
 void
 Gravity::set_numpts_in_gravity (int numpts)
 {
@@ -423,26 +424,12 @@ Gravity::solve_for_phi (int               level,
 
     Vector<MultiFab*> res_null;
 
-#ifdef CASTRO_MLMG
-    if (use_mlmg_solver)
-    {
-        level_solver_resnorm[level] = solve_phi_with_mlmg(level, level,
-                                                          phi_p,
-                                                          amrex::GetVecOfPtrs(rhs),
-                                                          grad_phi_p,
-                                                          res_null,
-                                                          time);
-    }
-    else
-#endif
-    {
-        level_solver_resnorm[level] = solve_phi_with_fmg(level, level,
-                                                         phi_p,
-                                                         amrex::GetVecOfPtrs(rhs),
-                                                         grad_phi_p,
-                                                         res_null,
-                                                         time);
-    }
+    level_solver_resnorm[level] = solve_phi_with_mlmg(level, level,
+                                                      phi_p,
+                                                      amrex::GetVecOfPtrs(rhs),
+                                                      grad_phi_p,
+                                                      res_null,
+                                                      time);
 
     if (verbose)
     {
@@ -459,110 +446,6 @@ Gravity::solve_for_phi (int               level,
 	});
 #endif
     }
-}
-
-void
-Gravity::solve_for_delta_phi (int                        crse_level,
-                              int                        fine_level,
-			      const Vector<MultiFab*>&          rhs,
-                              const Vector<MultiFab*>&          delta_phi,
-                              const Vector<Vector<MultiFab*> >&  grad_delta_phi)
-{
-    BL_PROFILE("Gravity::solve_for_delta_phi()");
-
-#ifdef CASTRO_MLMG
-    if (use_mlmg_solver)
-    {
-        solve_for_delta_phi_with_mlmg(crse_level, fine_level, rhs, delta_phi, grad_delta_phi);
-    }
-    else
-#endif
-    {
-        solve_for_delta_phi_with_fmg(crse_level, fine_level, rhs, delta_phi, grad_delta_phi);
-    }
-}
-
-void
-Gravity::solve_for_delta_phi_with_fmg (int                        crse_level,
-                                       int                        fine_level,
-                                       const Vector<MultiFab*>&          rhs,
-                                       const Vector<MultiFab*>&          delta_phi,
-                                       const Vector<Vector<MultiFab*> >&  grad_delta_phi)
-{
-    int nlevs = fine_level - crse_level + 1;
-
-    BL_ASSERT(grad_delta_phi.size() == nlevs);
-    BL_ASSERT(delta_phi.size() == nlevs);
-
-    if (verbose && ParallelDescriptor::IOProcessor()) {
-      std::cout << "... solving for delta_phi at crse_level = " << crse_level << std::endl;
-      std::cout << "...                    up to fine_level = " << fine_level << std::endl;
-    }
-
-    Vector<Geometry> geom(nlevs);
-
-    for (int ilev = 0; ilev < nlevs; ++ilev) {
-	int amr_lev = ilev + crse_level;
-	geom[ilev] = parent->Geom(amr_lev);
-    }
-
-    IntVect crse_ratio = crse_level > 0 ? parent->refRatio(crse_level-1)
-                                        : IntVect::TheZeroVector();
-
-    FMultiGrid fmg(geom, crse_level, crse_ratio);
-
-    if (crse_level == 0 && !Geometry::isAllPeriodic()) {
-	fmg.set_bc(mg_bc, *delta_phi[0]);
-    } else {
-	fmg.set_bc(mg_bc);
-    }
-
-    Vector<Vector<std::unique_ptr<MultiFab> > > coeffs(nlevs);
-#if (BL_SPACEDIM < 3)
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
-    {
-	for (int ilev = 0; ilev < nlevs; ++ilev) {
-	    int amr_lev = ilev + crse_level;
-	    coeffs[ilev].resize(BL_SPACEDIM);
-	    for (int i = 0; i < BL_SPACEDIM ; i++) {
-		coeffs[ilev][i].reset(new MultiFab(amrex::convert(grids[amr_lev],
-                                                                  IntVect::TheDimensionVector(i)),
-                                                   dmap[amr_lev], 1, 0));
-						   
-		coeffs[ilev][i]->setVal(1.0);
-	    }
-
-	    applyMetricTerms(amr_lev, *rhs[ilev], amrex::GetVecOfPtrs(coeffs[ilev]));
-	}
-
-	fmg.set_gravity_coeffs(amrex::GetVecOfVecOfPtrs(coeffs));
-    }
-    else
-#endif
-    {
-	fmg.set_const_gravity_coeffs();
-    }
-
-    Real rel_eps = 0.0;
-    Real abs_eps = level_solver_resnorm[crse_level];
-    for (int lev = crse_level+1; lev <= fine_level; lev++)
-	abs_eps = std::max(abs_eps,level_solver_resnorm[lev]);
-
-    int need_grad_phi = 1;
-    int always_use_bnorm = (Geometry::isAllPeriodic()) ? 0 : 1;
-    fmg.solve(delta_phi, rhs, rel_eps, abs_eps, always_use_bnorm, need_grad_phi);
-
-    fmg.get_fluxes(grad_delta_phi);
-
-#if (BL_SPACEDIM < 3)
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
-	for (int ilev = 0; ilev < nlevs; ++ilev)
-	{
-	    int amr_lev = ilev + crse_level;
-	    unweight_edges(amr_lev, grad_delta_phi[ilev]);
-	}
-    }
-#endif
 }
 
 void
@@ -847,20 +730,9 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level,
     }
 
     Vector<MultiFab*> res_null;
-#ifdef CASTRO_MLMG
-    if (use_mlmg_solver)
-    {
-        solve_phi_with_mlmg(crse_level, finest_level,
-                            phi_p, amrex::GetVecOfPtrs(rhs), grad_phi_p, res_null,
-                            time);
-    }
-    else
-#endif
-    {
-        solve_phi_with_fmg(crse_level, finest_level,
-                           phi_p, amrex::GetVecOfPtrs(rhs), grad_phi_p, res_null,
-                           time);
-    }
+    solve_phi_with_mlmg(crse_level, finest_level,
+                        phi_p, amrex::GetVecOfPtrs(rhs), grad_phi_p, res_null,
+                        time);
 
     // Average phi from fine to coarse level
     for (int amr_lev = finest_level; amr_lev > crse_level; amr_lev--)
@@ -1274,26 +1146,12 @@ Gravity::test_composite_phi (int crse_level)
     Real time = LevelData[crse_level]->get_state_data(PhiGrav_Type).curTime();
 
     Vector< Vector<MultiFab*> > grad_phi_null;
-#ifdef CASTRO_MLMG
-    if (use_mlmg_solver)
-    {
-        solve_phi_with_mlmg(crse_level, finest_level,
-                            amrex::GetVecOfPtrs(phi),
-                            amrex::GetVecOfPtrs(rhs),
-                            grad_phi_null,
-                            amrex::GetVecOfPtrs(res),
-                            time);        
-    }
-    else
-#endif
-    {
-        solve_phi_with_fmg(crse_level, finest_level,
-                           amrex::GetVecOfPtrs(phi),
-                           amrex::GetVecOfPtrs(rhs),
-                           grad_phi_null,
-                           amrex::GetVecOfPtrs(res),
-                           time);
-    }
+    solve_phi_with_mlmg(crse_level, finest_level,
+                        amrex::GetVecOfPtrs(phi),
+                        amrex::GetVecOfPtrs(rhs),
+                        grad_phi_null,
+                        amrex::GetVecOfPtrs(res),
+                        time);        
 
     // Average residual from fine to coarse level before printing the norm
     for (int amr_lev = finest_level-1; amr_lev >= 0; --amr_lev)
@@ -2058,37 +1916,7 @@ void
 Gravity::make_mg_bc ()
 {
     const Geometry& geom = parent->Geom(0);
-    for ( int dir = 0; dir < BL_SPACEDIM; ++dir )
-    {
-        if ( geom.isPeriodic(dir) )
-        {
-            mg_bc[2*dir + 0] = 0;
-            mg_bc[2*dir + 1] = 0;
-        }
-        else
-        {
-            if (phys_bc->lo(dir) == Symmetry) {
-              mg_bc[2*dir + 0] = MGT_BC_NEU;
-            } else if (phys_bc->lo(dir) == Outflow) {
-              mg_bc[2*dir + 0] = MGT_BC_DIR;
-            } else {
-              amrex::Abort("Unknown lo bc in make_mg_bc");
-            }
-            if (phys_bc->hi(dir) == Symmetry) {
-              mg_bc[2*dir + 1] = MGT_BC_NEU;
-            } else if (phys_bc->hi(dir) == Outflow) {
-              mg_bc[2*dir + 1] = MGT_BC_DIR;
-            } else {
-              amrex::Abort("Unknown hi bc in make_mg_bc");
-            }
-        }
-    }
 
-    // Set Neumann bc at r=0.
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
-        mg_bc[0] = MGT_BC_NEU;
-
-#ifdef CASTRO_MLMG
     for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
         if (geom.isPeriodic(idim)) {
             mlmg_lobc[idim] = MLLinOp::BCType::Periodic;
@@ -2111,7 +1939,6 @@ Gravity::make_mg_bc ()
     if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
         mlmg_lobc[0] = MLLinOp::BCType::Neumann;
     }
-#endif
 }
 
 void
@@ -2508,160 +2335,6 @@ Gravity::make_radial_gravity(int level, Real time, Vector<Real>& radial_grav)
     }
 }
 
-Real
-Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
-			     const Vector<MultiFab*>& phi,
-			     const Vector<MultiFab*>& rhs,
-			     const Vector<Vector<MultiFab*> >& grad_phi,
-			     const Vector<MultiFab*>& res,
-			     Real time)
-{
-    BL_PROFILE("Gravity::solve_phi_with_fmg()");
-
-    int nlevs = fine_level-crse_level+1;
-
-    if (crse_level == 0 && !Geometry::isAllPeriodic())
-    {
-        if (verbose && ParallelDescriptor::IOProcessor())
-	    std::cout << " ... Making bc's for phi at level 0 " << std::endl;
-
-#if (BL_SPACEDIM == 3)
-	if ( direct_sum_bcs ) {
-	    fill_direct_sum_BCs(crse_level, fine_level, rhs, *phi[0]);
-        } else {
-	    fill_multipole_BCs(crse_level, fine_level, rhs, *phi[0]);
-	}
-#elif (BL_SPACEDIM == 2)
-	if (lnum > 0) {
-	  fill_multipole_BCs(crse_level, fine_level, rhs, *phi[0]);
-	} else {
-	  int fill_interior = 0;
-	  make_radial_phi(crse_level, *rhs[0], *phi[0], fill_interior);
-	}
-#else
-	int fill_interior = 0;
-	make_radial_phi(crse_level, *rhs[0], *phi[0], fill_interior);
-#endif
-    }
-
-#if (BL_SPACEDIM == 3)
-    if ( Geometry::isAllPeriodic() )
-    {
-	if (verbose && ParallelDescriptor::IOProcessor()) {
-	    std::cout << " ... subtracting average density " << mass_offset
-		      << " from RHS in solve at levels "
-		      << crse_level << " to " << fine_level << std::endl;
-	}
-	for (int ilev = 0; ilev < nlevs; ++ilev) {
-	    rhs[ilev]->plus(-mass_offset,0,1,0);
-	}
-    }
-#endif
-
-    for (int ilev = 0; ilev < nlevs; ++ilev)
-    {
-        rhs[ilev]->mult(Ggravity);
-    }
-
-    Vector<Geometry> geom(nlevs);
-    for (int ilev = 0; ilev < nlevs; ++ilev) {
-	int amr_lev = ilev + crse_level;
-	geom[ilev] = parent->Geom(amr_lev);
-    }
-
-    IntVect crse_ratio = crse_level > 0 ? parent->refRatio(crse_level-1)
-                                        : IntVect::TheZeroVector();
-
-    FMultiGrid fmg(geom, crse_level, crse_ratio);
-
-    MultiFab CPhi;  // need to be here so that it is still alive when solve is called.
-    if (crse_level == 0) {
-	fmg.set_bc(mg_bc, *phi[0]);
-    } else {
-        GetCrsePhi(crse_level, CPhi, time);
-	fmg.set_bc(mg_bc, CPhi, *phi[0]);
-    }
-
-    Vector<Vector<std::unique_ptr<MultiFab> > > coeffs(nlevs);
-#if (BL_SPACEDIM < 3)
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
-    {
-	for (int ilev = 0; ilev < nlevs; ++ilev) {
-	    int amr_lev = ilev + crse_level;
-	    coeffs[ilev].resize(BL_SPACEDIM);
-	    for (int i = 0; i < BL_SPACEDIM ; i++) {
-                coeffs[ilev][i].reset(new MultiFab(amrex::convert(grids[amr_lev],
-                                                                  IntVect::TheDimensionVector(i)),
-                                                   dmap[amr_lev], 1, 0));
-						   
-		coeffs[ilev][i]->setVal(1.0);
-	    }
-
-	    applyMetricTerms(amr_lev, *rhs[ilev], amrex::GetVecOfPtrs(coeffs[ilev]));
-	}
-
-	fmg.set_gravity_coeffs(amrex::GetVecOfVecOfPtrs(coeffs));
-    }
-    else
-#endif
-    {
-	fmg.set_const_gravity_coeffs();
-    }
-
-    Real final_resnorm = -1.0;
-
-    if (grad_phi.size() > 0)
-    {
-	Real rel_eps = rel_tol[fine_level];
-
-	// The absolute tolerance is determined by the error tolerance
-	// chosen by the user (tol) multiplied by the maximum value of
-	// the RHS (4 * pi * G * rho). If we're doing periodic BCs, we
-	// subtract off the mass_offset corresponding to the average
-	// density on the domain. This will automatically be zero for
-	// non-periodic BCs. And this also accounts for the metric
-	// terms that are applied in non-Cartesian coordinates.
-
-	Real abs_eps = abs_tol[fine_level] * max_rhs;
-
-	int need_grad_phi = 1;
-	int always_use_bnorm = (Geometry::isAllPeriodic()) ? 0 : 1;
-	final_resnorm = fmg.solve(phi, rhs, rel_eps, abs_eps,
-				  always_use_bnorm, need_grad_phi);
-
-	fmg.get_fluxes(grad_phi);
-
-#if (BL_SPACEDIM < 3)
-	if (Geometry::IsSPHERICAL() || Geometry::IsRZ()) {
-	    for (int ilev = 0; ilev < nlevs; ++ilev)
-	    {
-		int amr_lev = ilev + crse_level;
-		//    Need to un-weight the fluxes
-		unweight_edges(amr_lev, grad_phi[ilev]);
-	    }
-	}
-#endif
-    }
-
-    if (res.size() > 0)
-    {
-	fmg.compute_residual(phi, rhs, res);
-
-#if (BL_SPACEDIM < 3)
-	// unweight the residual
-	if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
-	    for (int ilev = 0; ilev < nlevs; ++ilev)
-	    {
-		int amr_level = ilev + crse_level;
-		unweight_cc(amr_level, *res[ilev]);
-	    }
-	}
-#endif
-    }
-
-    return final_resnorm;
-}
-
 Vector<std::unique_ptr<MultiFab> >
 Gravity::get_rhs (int crse_level, int nlevs, int is_new)
 {
@@ -2783,7 +2456,6 @@ Gravity::update_max_rhs()
 
 }
 
-#ifdef CASTRO_MLMG
 Real
 Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
                               const Vector<MultiFab*>& phi,
@@ -2857,12 +2529,12 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
 }
 
 void
-Gravity::solve_for_delta_phi_with_mlmg (int crse_level, int fine_level,
-                                        const Vector<MultiFab*>& rhs,
-                                        const Vector<MultiFab*>& delta_phi,
-                                        const Vector<Vector<MultiFab*> >&  grad_delta_phi)
+Gravity::solve_for_delta_phi(int crse_level, int fine_level,
+                             const Vector<MultiFab*>& rhs,
+                             const Vector<MultiFab*>& delta_phi,
+                             const Vector<Vector<MultiFab*> >&  grad_delta_phi)
 {
-    BL_PROFILE("Gravity::solve_for_delta_phi_with_mlmg");
+    BL_PROFILE("Gravity::solve_for_delta_phi");
 
     int nlevs = fine_level - crse_level + 1;
 
@@ -2931,10 +2603,6 @@ Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
         mlpoisson.setLevelBC(ilev, phi[ilev]);
     }
 
-#if (AMREX_SPACEDIM == 1)
-    static_assert(false, "solve_phi_with_mlmg: 1d not supported yet");
-#endif
-
     MLMG mlmg(mlpoisson);
     mlmg.setVerbose(verbose);
     if (crse_level == 0) {
@@ -2962,5 +2630,3 @@ Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
 
     return final_resnorm;
 }
-
-#endif

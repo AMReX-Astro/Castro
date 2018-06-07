@@ -1,7 +1,6 @@
 module riemann_module
 
   use amrex_fort_module, only : rt => amrex_real
-  use amrex_error_module
   use amrex_constants_module
   use meth_params_module, only : NQ, NVAR, NQAUX, &
                                  URHO, UMX, UMY, UMZ, &
@@ -44,10 +43,11 @@ contains
                     shk, s_lo, s_hi, &
                     idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, domlo, domhi)
 
-    use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use network, only: nspec, naux
+    use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver
 
@@ -175,9 +175,9 @@ contains
     if (riemann_solver == 0) then
        ! Colella, Glaz, & Ferguson solver
 
-       call amrex_allocate(qint, q_lo, q_hi, NQ)
+       call bl_allocate(qint, q_lo, q_hi, NQ)
 #ifdef RADIATION
-       call amrex_allocate(lambda_int, q_lo, q_hi, ngroups)
+       call bl_allocate(lambda_int, q_lo, q_hi, ngroups)
 #endif
 
        call riemannus(qm, qp, qpd_lo, qpd_hi, &
@@ -198,16 +198,16 @@ contains
                            qgdnv, q_lo, q_hi, &
                            ilo, ihi, jlo, jhi, kc, kflux, k3d)
 
-       call amrex_deallocate(qint)
+       call bl_deallocate(qint)
 #ifdef RADIATION
-       call amrex_deallocate(lambda_int)
+       call bl_deallocate(lambda_int)
 #endif
 
     elseif (riemann_solver == 1) then
        ! Colella & Glaz solver
 
 #ifndef RADIATION
-       call amrex_allocate(qint, q_lo, q_hi, NQ)
+       call bl_allocate(qint, q_lo, q_hi, NQ)
 
        call riemanncg(qm, qp, qpd_lo, qpd_hi, &
                       qaux, qa_lo, qa_hi, &
@@ -220,7 +220,7 @@ contains
                            qgdnv, q_lo, q_hi, &
                            ilo, ihi, jlo, jhi, kc, kflux, k3d)
 
-       call amrex_deallocate(qint)
+       call bl_deallocate(qint)
 #else
        call amrex_error("ERROR: CG solver does not support radiaiton")
 #endif
@@ -287,10 +287,11 @@ contains
                            idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, domlo, domhi)
 
 
-    use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use network, only: nspec, naux
+    use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver
 
@@ -407,7 +408,7 @@ contains
        ! Colella, Glaz, & Ferguson solver
 
 #ifdef RADIATION
-       call amrex_allocate(lambda_int, q_lo, q_hi, ngroups)
+       call bl_allocate(lambda_int, q_lo, q_hi, ngroups)
 #endif
 
        call riemannus(qm, qp, qpd_lo, qpd_hi, &
@@ -420,7 +421,7 @@ contains
                       domlo, domhi)
 
 #ifdef RADIATION
-       call amrex_deallocate(lambda_int)
+       call bl_deallocate(lambda_int)
 #endif
 
     elseif (riemann_solver == 1) then
@@ -456,7 +457,8 @@ contains
     ! this version is dimension agnostic -- for 1- and 2-d, set kc,
     ! kflux, and k3d to 0
 
-    use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
+    use amrex_error_module
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, &
                                    Symmetry, SlipWall, NoSlipWall, &
                                    mom_flux_has_p
@@ -608,9 +610,9 @@ contains
     tol = cg_tol
     iter_max = cg_maxiter
 
-    call amrex_allocate(pstar_hist, 1,iter_max)
-    call amrex_allocate(pstar_hist_extra, 1,2*iter_max)
-    call amrex_allocate(us1d, ilo,ihi)
+    call bl_allocate(pstar_hist, 1,iter_max)
+    call bl_allocate(pstar_hist_extra, 1,2*iter_max)
+    call bl_allocate(us1d, ilo,ihi)
 
     do j = jlo, jhi
 
@@ -1026,9 +1028,9 @@ contains
        enddo
     enddo
 
-    call amrex_deallocate(pstar_hist)
-    call amrex_deallocate(pstar_hist_extra)
-    call amrex_deallocate(us1d)
+    call bl_deallocate(pstar_hist)
+    call bl_deallocate(pstar_hist_extra)
+    call bl_deallocate(us1d)
 
   end subroutine riemanncg
 
@@ -1049,7 +1051,7 @@ contains
                        idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
                        domlo, domhi)
 
-    use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, &
                                    Symmetry, SlipWall, NoSlipWall, &
                                    mom_flux_has_p
@@ -1126,7 +1128,7 @@ contains
     type(eos_t) :: eos_state
     real(rt), dimension(nspec) :: xn
 
-    call amrex_allocate(us1d,ilo,ihi)
+    call bl_allocate(us1d,ilo,ihi)
 
     ! set integer pointers for the normal and transverse velocity and
     ! momentum
@@ -1555,7 +1557,7 @@ contains
        enddo
     enddo
 
-    call amrex_deallocate(us1d)
+    call bl_deallocate(us1d)
 
   end subroutine riemannus
 
@@ -1575,7 +1577,7 @@ contains
     ! need to know the pressure and velocity on the interface for the
     ! pdV term in the internal energy update.
 
-    use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, &
                                    Symmetry, SlipWall, NoSlipWall
 

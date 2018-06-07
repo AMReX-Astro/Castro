@@ -1,5 +1,6 @@
 module rotation_sources_module
 
+  use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -14,7 +15,7 @@ contains
 
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_source_type
     use prob_params_module, only: center
-    use bl_constants_module
+    use amrex_constants_module
     use castro_util_module, only: position
 #ifdef HYBRID_MOMENTUM
     use meth_params_module, only: UMR, UMP, state_in_rotating_frame
@@ -107,7 +108,7 @@ contains
                 SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
 
              else
-                call bl_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
+                call amrex_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
              end if
 
              src(UEDEN) = src(UEDEN) + SrE
@@ -146,11 +147,11 @@ contains
     ! exists outside of the Fortran module above because it needs to
     ! be called directly from C++.
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_source_type, &
                                   implicit_rotation_update, rotation_include_coriolis, state_in_rotating_frame
     use prob_params_module, only: center, dg
-    use bl_constants_module
+    use amrex_constants_module
     use math_module, only: cross_product
     use rotation_module, only: rotational_acceleration
     use rotation_frequency_module, only: get_omega, get_domegadt
@@ -458,7 +459,7 @@ contains
                 SrEcorr = SrEcorr + HALF * (dot_product(vold, Sr_old) + dot_product(vnew, Sr_new))
 
              else
-                call bl_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
+                call amrex_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
              end if
 
              src(UEDEN) = SrEcorr

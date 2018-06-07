@@ -48,7 +48,7 @@ subroutine ca_ctu_update(lo, hi, is_finest_level, time, &
                          mass_lost, xmom_lost, ymom_lost, zmom_lost, &
                          eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_ctu_update")
 
-  use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
+  use amrex_mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : NQ, QVAR, QPRES, NQAUX, NVAR, NHYP, NGDNV, UMX, GDPRES, &
 #ifdef RADIATION
                                  QPTOT, &
@@ -175,7 +175,7 @@ subroutine ca_ctu_update(lo, hi, is_finest_level, time, &
 
   ngf = 1
 
-  call amrex_allocate(   div, lo, hi+dg)
+  call bl_allocate(   div, lo, hi+dg)
 
   q1_lo = flux1_lo - dg
   q1_hi = flux1_hi + dg
@@ -188,16 +188,16 @@ subroutine ca_ctu_update(lo, hi, is_finest_level, time, &
   q3_hi = flux3_hi + dg
 #endif
 
-  call amrex_allocate(q1, q1_lo, q1_hi, NGDNV)
+  call bl_allocate(q1, q1_lo, q1_hi, NGDNV)
 #if BL_SPACEDIM >= 2
-  call amrex_allocate(q2, q2_lo, q2_hi, NGDNV)
+  call bl_allocate(q2, q2_lo, q2_hi, NGDNV)
 #endif
 #if BL_SPACEDIM == 3
-  call amrex_allocate(q3, q3_lo, q3_hi, NGDNV)
+  call bl_allocate(q3, q3_lo, q3_hi, NGDNV)
 #endif
 
   ! Compute flattening coefficient for slope calculations.
-  call amrex_allocate( flatn, q_lo, q_hi)
+  call bl_allocate( flatn, q_lo, q_hi)
 
   if (first_order_hydro == 1) then
      flatn = ZERO
@@ -257,7 +257,7 @@ subroutine ca_ctu_update(lo, hi, is_finest_level, time, &
               domlo, domhi)
 
 
-  call amrex_deallocate( flatn)
+  call bl_deallocate( flatn)
 
   ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
   call divu(lo, hi, q, q_lo, q_hi, delta, div, lo, hi+dg)
@@ -318,14 +318,14 @@ subroutine ca_ctu_update(lo, hi, is_finest_level, time, &
   end if
 #endif
 
-  call amrex_deallocate(   div)
+  call bl_deallocate(   div)
 
-  call amrex_deallocate(    q1)
+  call bl_deallocate(    q1)
 #if BL_SPACEDIM >= 2
-  call amrex_deallocate(    q2)
+  call bl_deallocate(    q2)
 #endif
 #if BL_SPACEDIM == 3
-  call amrex_deallocate(    q3)
+  call bl_deallocate(    q3)
 #endif
 
 end subroutine ca_ctu_update

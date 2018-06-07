@@ -1,13 +1,14 @@
 module bc_ext_fill_module
 
-  use bl_constants_module
+  use amrex_constants_module, only: ZERO, HALF
+  use amrex_error_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
                                  UEDEN, UEINT, UFS, UTEMP, const_grav, &
                                  hse_zero_vels, hse_interp_temp, hse_reflect_vels, &
                                  xl_ext, xr_ext, yl_ext, yr_ext, zl_ext,zr_ext,EXT_HSE, EXT_INTERP
-  use interpolate_module
-
+  use interpolate_module, only: interpolate
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
   include 'AMReX_bc_types.fi'
@@ -32,7 +33,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec
-    use model_parser_module
+    use model_parser_module, only: model_r, model_state, npts_model, idens_model, itemp_model, ispec_model
 
     use amrex_fort_module, only : rt => amrex_real
     integer adv_l1, adv_h1,adv_l2,adv_h2,adv_l3,adv_h3
@@ -56,21 +57,21 @@ contains
     do n = 1, NVAR
        !XLO
        if (bc(1,1,n) == EXT_DIR .and. xl_ext == EXT_HSE .and. adv_l1 < domlo(1)) then
-          call bl_error("ERROR: HSE boundaries not implemented for -X")
+          call amrex_error("ERROR: HSE boundaries not implemented for -X")
        end if
 
        !YLO
        if (bc(2,1,n) == EXT_DIR .and. yl_ext == EXT_HSE .and. adv_l2 < domlo(2)) then
-          call bl_error("ERROR: HSE boundaries not implemented for -Y")
+          call amrex_error("ERROR: HSE boundaries not implemented for -Y")
        end if
 
        ! XHI
        if (bc(1,2,n) == EXT_DIR .and. xr_ext == EXT_HSE .and. adv_h1 > domhi(1)) then
-          call bl_error("ERROR: HSE boundaries not implemented for +X")
+          call amrex_error("ERROR: HSE boundaries not implemented for +X")
        end if
        ! YHI
       if (bc(2,2,n) == EXT_DIR .and. yr_ext == EXT_HSE .and. adv_h2 > domhi(2)) then
-          call bl_error("ERROR: HSE boundaries not implemented for +Y")
+          call amrex_error("ERROR: HSE boundaries not implemented for +Y")
        end if
 
        ! ZLO
@@ -185,7 +186,7 @@ contains
                          print *, "   dens: ", adv(i,j,k:domlo(3),URHO)
                          print *, "   temp: ", adv(i,j,k:domlo(3),UTEMP)
                          print *, "pressure: ", (7.0_rt/5.0_rt-1_rt)*adv(i,j,k:domlo(3),UEINT)
-                         call bl_error("ERROR in bc_ext_fill_1d: failure to converge in -Z BC")
+                         call amrex_error("ERROR in bc_ext_fill_1d: failure to converge in -Z BC")
                       endif
 
 
@@ -289,7 +290,7 @@ contains
        if (bc(3,2,n) == EXT_DIR .and. adv_h3 > domhi(3)) then
 
           if (zr_ext == EXT_HSE) then
-             call bl_error("ERROR: HSE boundaries not implemented for +Z")
+             call amrex_error("ERROR: HSE boundaries not implemented for +Z")
 
           elseif (zr_ext == EXT_INTERP) then
              ! interpolate thermodynamics from initial model
@@ -355,7 +356,7 @@ subroutine ext_denfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2, adv_h3,&
     use prob_params_module, only : problo
     use interpolate_module
     use model_parser_module
-    use bl_error_module
+    use amrex_error_module
 
     use amrex_fort_module, only : rt => amrex_real
     integer adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3
@@ -376,23 +377,23 @@ subroutine ext_denfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2, adv_h3,&
     call filcc(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3,domlo,domhi,delta,xlo,bc)
     ! XLO
     if ( bc(1,1,1) == EXT_DIR .and. adv_l1 < domlo(1)) then
-       call bl_error("We shoundn't be here (xlo denfill)")
+       call amrex_error("We shoundn't be here (xlo denfill)")
     end if
 
 
     ! YLO
     if ( bc(2,1,1) == EXT_DIR .and. adv_l2 < domlo(2)) then
-       call bl_error("We shoundn't be here (ylo denfill)")
+       call amrex_error("We shoundn't be here (ylo denfill)")
     end if
 
     ! XHI
     if ( bc(1,2,1) == EXT_DIR .and. adv_h1 > domhi(1)) then
-       call bl_error("We shoundn't be here (xhi denfill)")
+       call amrex_error("We shoundn't be here (xhi denfill)")
     endif
 
     ! YHI
     if ( bc(2,2,1) == EXT_DIR .and. adv_h2 > domhi(2)) then
-       call bl_error("We shoundn't be here (yhi denfill)")
+       call amrex_error("We shoundn't be here (yhi denfill)")
     endif
 
   end subroutine ext_denfill

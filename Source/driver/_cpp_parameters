@@ -518,7 +518,7 @@ reset_checkpoint_step        int           -1
 #-----------------------------------------------------------------------------
 
 # permits tracer particle calculation to be turned on and off
-do_tracer_particles          int           0       n      PARTICLES
+do_tracer_particles          int           0       n      AMREX_PARTICLES
 
 
 @namespace: particles Castro static
@@ -591,7 +591,7 @@ do_composite_phi_correction int            1
 get_g_from_phi              int            0                  y
 
 # Use C++ MLMG linear solver for self gravity
-use_mlmg_solver              int           0                  n
+use_mlmg_solver              int           1                  n
 
 # how many FMG cycles?
 mlmg_max_fmg_iter            int           0                  n
@@ -609,3 +609,6 @@ mlmg_nsolve                  int           0                  n
 # more output)
 (v, verbose)                int            0                
 
+# Use MLMG as the operator
+use_mlmg_solver              int           1                  n
+mlmg_maxorder                int           4                  n

@@ -1,13 +1,14 @@
 module bc_ext_fill_module
 
-  use bl_constants_module
+  use amrex_constants_module, only: ZERO, HALF
+  use amrex_error_module
+  use amrex_fort_module, only: rt => amrex_real
+  use amrex_filcc_module, only: filccn
+  use interpolate_module, only: interpolate
   use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, &
                                 UEDEN, UEINT, UFS, UTEMP, const_grav, &
                                 hse_zero_vels, hse_interp_temp, hse_reflect_vels, &
                                 xl_ext, xr_ext, EXT_HSE, EXT_INTERP
-  use interpolate_module
-  use amrex_fort_module, only: rt => amrex_real
-  use amrex_filcc_module, only: filccn
 
   implicit none
 
@@ -33,7 +34,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec
-    use model_parser_module
+    use model_parser_module, only: model_r, model_state, npts_model, idens_model, itemp_model, ispec_model
 
     integer,  intent(in   ) :: adv_l1, adv_h1
     integer,  intent(in   ) :: bc(1,2,NVAR)
@@ -165,7 +166,7 @@ contains
                          print *, "column info: "
                          print *, "   dens: ", adv(j:domlo(1),URHO)
                          print *, "   temp: ", adv(j:domlo(1),UTEMP)
-                         call bl_error("ERROR in bc_ext_fill_1d: failure to converge in -X BC")
+                         call amrex_error("ERROR in bc_ext_fill_1d: failure to converge in -X BC")
                       endif
 
 
@@ -258,7 +259,7 @@ contains
        if (bc(1,2,n) == EXT_DIR .and. adv_h1 > domhi(1)) then
 
           if (xr_ext == EXT_HSE) then
-             call bl_error("ERROR: HSE boundaries not implemented for +X")
+             call amrex_error("ERROR: HSE boundaries not implemented for +X")
 
           elseif (xr_ext == EXT_INTERP) then
              ! interpolate thermodynamics from initial model
@@ -319,7 +320,7 @@ contains
     use prob_params_module, only: problo
     use interpolate_module
     use model_parser_module
-    use bl_error_module
+    use amrex_error_module
 
     implicit none
 

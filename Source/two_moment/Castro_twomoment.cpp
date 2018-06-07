@@ -5,12 +5,43 @@
 using std::string;
 using namespace amrex;
 
-void
+int
 Castro::init_thornado()
 {
-    int nDimsX = THORNADO_NDIMS_X;
-    int nDimsE = THORNADO_NDIMS_E;
-    InitThornado(&nDimsX, &nDimsE);
+    int nDimsX   = BL_SPACEDIM;
+    int nDimsE   = 1;
+    int nSpecies = THORNADO_NSPECIES;
+
+    InitThornado(&nDimsX, &nDimsE, &nSpecies);
+   
+    int ncomp_thornado;
+
+    ca_get_rad_ncomp(&ncomp_thornado);
+
+    return ncomp_thornado;
+}
+
+void
+Castro::init_thornado_data()
+{
+    MultiFab& Thor_new = get_new_data(Thornado_Type);
+
+    int nc = Thor_new.nComp();
+    const Real* dx = geom.CellSize();
+    const Real  cur_time = state[Thornado_Type].curTime();
+
+    for (MFIter mfi(Thor_new); mfi.isValid(); ++mfi)
+    {
+       RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
+       const Box& box     = mfi.validbox();
+       const int* lo      = box.loVect();
+       const int* hi      = box.hiVect();
+  
+        ca_init_thornado_data
+	  (level, cur_time, lo, hi, nc,
+           BL_TO_FORTRAN(Thor_new[mfi]), dx,
+           gridloc.lo(), gridloc.hi());
+    }
 }
 
 void
@@ -18,30 +49,19 @@ Castro::create_thornado_source(Real dt)
 {
     MultiFab& S_new = get_new_data(State_Type);
 
-    int my_ncomp = BL_SPACEDIM+3;  // rho, rho*u, rho*v, rho*w, rho*E, Y_e
-    int my_ngrow = 2;  // two fluid ghost cells
-
-    // This fills the ghost cells of the MultiFab which we will then copy into U_F
-    MultiFab S_with_ghost_cells(grids, dmap, NUM_STATE, my_ngrow);
-    const Real  cur_time = state[State_Type].curTime();
-    AmrLevel::FillPatch(*this, S_with_ghost_cells, my_ngrow, cur_time, State_Type, 0, NUM_STATE);
-
-    // Create U_F to hold the right order of the right variables
-    MultiFab U_F(grids, dmap, my_ncomp, my_ngrow);
-
-    // Copy into U_F just these variables: rho, rho*u, rho*v, rho*w, rho*E, rho*ne
-    int      cnt = 0;
-    MultiFab::Copy(U_F, S_with_ghost_cells, Density , cnt, 1, my_ngrow); cnt++;
-    MultiFab::Copy(U_F, S_with_ghost_cells, Xmom    , cnt, 1, my_ngrow); cnt++;
-    MultiFab::Copy(U_F, S_with_ghost_cells, Ymom    , cnt, 1, my_ngrow); cnt++;
-#if (BL_SPACEDIM == 3)
-    MultiFab::Copy(U_F, S_with_ghost_cells, Zmom    , cnt, 1, my_ngrow); cnt++;
-#endif
-    MultiFab::Copy(U_F, S_with_ghost_cells, Eden    , cnt, 1, my_ngrow); cnt++;
-    MultiFab::Copy(U_F, S_with_ghost_cells, FirstAux, cnt, 1, my_ngrow); 
-
     MultiFab& U_R_old = get_old_data(Thornado_Type);
     MultiFab& U_R_new = get_new_data(Thornado_Type);
+
+    int my_ngrow = 2;  // two fluid ghost cells
+
+    // This fills the ghost cells of the fluid MultiFab which we will pass into Thornado
+    MultiFab S_border(grids, dmap, NUM_STATE, my_ngrow);
+    const Real  prev_time = state[State_Type].prevTime();
+    AmrLevel::FillPatch(*this, S_border, my_ngrow, prev_time, State_Type, 0, NUM_STATE);
+
+    // This fills the ghost cells of the radiation MultiFab which we will pass into Thornado
+    MultiFab R_border(grids, dmap, U_R_old.nComp(), my_ngrow);
+    AmrLevel::FillPatch(*this, R_border, my_ngrow, prev_time, Thornado_Type, 0, U_R_old.nComp());
 
     // int n_sub = GetNSteps(dt); // From thornado
     int n_sub = 1; // THIS IS JUST A HACK TO MAKE IT COMPILE 
@@ -53,26 +73,21 @@ Castro::create_thornado_source(Real dt)
     const Real* dx = geom.CellSize();
 
     int n_fluid_dof = THORNADO_FLUID_NDOF;
-    int n_rad_dof   = THORNADO_RAD_NDOF;
-    int n_energy    = THORNADO_NENERGY;
-    int n_species   = THORNADO_NSPECIES;
     int n_moments   = THORNADO_NMOMENTS;
 
     // For right now create a temporary holder for the source term -- we'll incorporate it 
     //    more permanently later.  
     MultiFab dS(grids, dmap, S_new.nComp(), S_new.nGrow());
 
-    // ASA -- WE NEED TO SET THESE FOR REAL
     Real eL = 0.;
-    Real eR = 0.;
+    Real eR = 1.;
 
     int swX[3];
-    swX[0] = 1;
-    swX[1] = 1;
-    swX[2] = 1;
+    swX[0] = my_ngrow;
+    swX[1] = my_ngrow;
+    swX[2] = my_ngrow;
 
     int * boxlen = new int[3];
-    int nr_comp = U_R_new.nComp();
 
     for (int i = 0; i < n_sub; i++)
     {
@@ -84,7 +99,7 @@ Castro::create_thornado_source(Real dt)
       dS.setVal(0.);
 
       // For now we will not allowing logical tiling
-      for (MFIter mfi(U_F, false); mfi.isValid(); ++mfi) 
+      for (MFIter mfi(S_border, false); mfi.isValid(); ++mfi) 
       {
         Box bx = mfi.validbox();
 
@@ -103,22 +118,15 @@ Castro::create_thornado_source(Real dt)
   
            InitThornado_Patch(boxlen, swX,
                grid_lo.dataPtr(), grid_hi.dataPtr(),
-               &n_energy, &swE, &eL, &eR, &n_species);
+               &swE, &eL, &eR);
         }
 
-        // n_fluid_dof = THORNADO_FLUID_NDOF;
-        // n_rad_dof   = THORNADO_RAD_NDOF;
-        // n_energy    = THORNADO_NENERGY;
-        // n_species   = THORNADO_NSPECIES;
-        // n_moments   = THORNADO_NMOMENTS;
-
         call_to_thornado(BL_TO_FORTRAN_BOX(bx), &dt_sub,
-                         S_new[mfi].dataPtr(),
+                         BL_TO_FORTRAN_FAB(S_border[mfi]),
                          BL_TO_FORTRAN_FAB(dS[mfi]),
-                         U_R_old[mfi].dataPtr(),
+                         BL_TO_FORTRAN_FAB(R_border[mfi]),
                          BL_TO_FORTRAN_FAB(U_R_new[mfi]), 
-                         &n_fluid_dof, &n_energy, &n_species, 
-                         &n_rad_dof, &n_moments);
+                         &n_fluid_dof, &n_moments, &my_ngrow);
 
         // Add the source term to all components even though there should
         //     only be non-zero source terms for (Rho, Xmom, Ymom, Zmom, RhoE, UFX)
@@ -126,7 +134,7 @@ Castro::create_thornado_source(Real dt)
 
         if (i == (n_sub-1)) FreeThornado_Patch();
       }
-      U_F.FillBoundary();
+      S_border.FillBoundary();
     }
     delete boxlen;
 }

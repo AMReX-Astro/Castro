@@ -12,7 +12,7 @@
 #include <AMReX_Lazy.H>
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
 #include "AMReX_AmrParticles.H"
 #endif
 
@@ -154,7 +154,7 @@ public:
     //
     virtual void initData () override;
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
     //
     // Read particle-related inputs
     //
@@ -197,7 +197,8 @@ public:
 #endif
 
 #ifdef THORNADO
-    void init_thornado();
+    static int init_thornado();
+    void init_thornado_data ();
     void init_thornado_on_patch();
     void create_thornado_source(amrex::Real dt);
 #endif
@@ -583,7 +584,7 @@ public:
     void advance_aux(amrex::Real time, amrex::Real dt);
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
     static amrex::AmrTracerParticleContainer* theTracerPC () { return TracerPC; }
 #endif
 
@@ -819,7 +820,7 @@ protected:
     //
 #include <castro_params.H>
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
 #include "particles_params.H"
 #endif
 
@@ -833,15 +834,11 @@ protected:
     static int       NUM_GROW;
 
 #ifdef THORNADO
+    static int THORNADO_NSPECIES;
     static int THORNADO_NNODES;
     static int THORNADO_NMOMENTS;
-    static int THORNADO_NENERGY;
-    static int THORNADO_NSPECIES;
-    static int THORNADO_NDIMS_X;
-    static int THORNADO_NDIMS_E;
     static int THORNADO_FLUID_NDOF;
     static int THORNADO_RAD_NDOF;
-    static int THORNADO_RAD_NCOMP;
 #endif
 
     static int         lastDtPlotLimited;
@@ -881,7 +878,7 @@ protected:
     friend class Radiation;
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
     static amrex::AmrTracerParticleContainer* TracerPC;
 #endif
 

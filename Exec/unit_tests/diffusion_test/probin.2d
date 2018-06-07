@@ -5,15 +5,10 @@
 /
 
 &tagging
-  denerr = 3
-  dengrad = 0.01
-  max_denerr_lev = 3
-  max_dengrad_lev = 3
-
-  presserr = 3
-  pressgrad = 0.01
-  max_presserr_lev = 3
-  max_pressgrad_lev = 3
+  temperr = 1.1
+  tempgrad = 0.1
+  max_temperr_lev = 3
+  max_tempgrad_lev = 3
 /
 
 

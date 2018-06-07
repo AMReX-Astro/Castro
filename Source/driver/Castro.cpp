@@ -28,7 +28,7 @@
 #include "RAD_F.H"
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
 #include <AMReX_Particles_F.H>
 #endif
 
@@ -94,15 +94,11 @@ int          Castro::NQAUX         = -1;
 int          Castro::NQ            = -1;
 
 #ifdef THORNADO
+int          Castro::THORNADO_NSPECIES   = 1;
 int          Castro::THORNADO_NNODES     = 2;
-int          Castro::THORNADO_NENERGY    = 20;
-int          Castro::THORNADO_NSPECIES   = 6;
 int          Castro::THORNADO_NMOMENTS   = 4;
-int          Castro::THORNADO_NDIMS_X    = BL_SPACEDIM;
-int          Castro::THORNADO_NDIMS_E    = 1;
-int          Castro::THORNADO_FLUID_NDOF = std::pow(THORNADO_NNODES, THORNADO_NDIMS_X                    );   // =  8 for 3D
-int          Castro::THORNADO_RAD_NDOF   = std::pow(THORNADO_NNODES,(THORNADO_NDIMS_X + THORNADO_NDIMS_E));   // = 16 for 3D and 1 energy
-int          Castro::THORNADO_RAD_NCOMP  = THORNADO_RAD_NDOF * THORNADO_NENERGY * THORNADO_NSPECIES *THORNADO_NMOMENTS;
+int          Castro::THORNADO_FLUID_NDOF = std::pow(THORNADO_NNODES, BL_SPACEDIM     );   // =  8 for 3D
+int          Castro::THORNADO_RAD_NDOF   = std::pow(THORNADO_NNODES,(BL_SPACEDIM + 1));   // = 16 for 3D and 1 energy
 #endif
 
 Vector<std::string> Castro::source_names;
@@ -193,7 +189,7 @@ Castro::variableCleanUp ()
   }
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
   delete TracerPC;
   TracerPC = 0;
 #endif
@@ -371,7 +367,7 @@ Castro::read_params ()
 	amrex::Error();
       }
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
     read_particle_params();
 #endif
 
@@ -871,7 +867,7 @@ Castro::initData ()
           const int* lo      = box.loVect();
           const int* hi      = box.hiVect();
 
-#ifdef DIMENSION_AGNOSTIC
+#ifdef AMREX_DIMENSION_AGNOSTIC
           BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
           (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), ns,
   	   BL_TO_FORTRAN_3D(S_new[mfi]), ZFILL(dx),
@@ -883,9 +879,8 @@ Castro::initData ()
   	   gridloc.lo(), gridloc.hi());
 #endif
 
-	  // Generate the initial hybrid momenta based on this user data.
-
 #ifdef HYBRID_MOMENTUM
+	  // Generate the initial hybrid momenta based on this user data.
 	  ca_init_hybrid_momentum(lo, hi, BL_TO_FORTRAN_3D(S_new[mfi]));
 #endif
 
@@ -908,14 +903,11 @@ Castro::initData ()
          for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
            {
              const Box& box     = mfi.validbox();
-             const int* lo      = box.loVect();
-             const int* hi      = box.hiVect();
 
              const int idx = mfi.tileIndex();
 
              ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
-                                     BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                                     &idx);
+                                     BL_TO_FORTRAN_FAB(Sborder[mfi]));
            }
 
          // now copy back the averages
@@ -929,6 +921,11 @@ Castro::initData ()
 
        if (ng > 0)
 	   AmrLevel::FillPatch(*this, S_new, ng, cur_time, State_Type, 0, S_new.nComp());
+
+#ifdef THORNADO
+	  // Generate the initial thornado radiation data
+          init_thornado_data();
+#endif
     }
 
 #ifdef RADIATION
@@ -1001,14 +998,9 @@ Castro::initData ()
     phirot_new.setVal(0.);
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
     if (level == 0)
 	init_particles();
-#endif
-
-#ifdef THORNADO
-    if (level == 0)
-	init_thornado();
 #endif
 
     if (verbose && ParallelDescriptor::IOProcessor())
@@ -1645,7 +1637,7 @@ Castro::post_timestep (int iteration)
       do_energy_diagnostics();
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
     if (TracerPC)
     {
 	const int ncycle = parent->nCycle(level);
@@ -1671,7 +1663,7 @@ Castro::post_restart ()
 
    Real cur_time = state[State_Type].curTime();
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
    ParticlePostRestart(parent->theRestartFile());
 #endif
 
@@ -1876,7 +1868,7 @@ Castro::post_regrid (int lbase,
 {
     fine_mask.clear();
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
     if (TracerPC && level == lbase) {
 	TracerPC->Redistribute(lbase);
     }
@@ -2797,8 +2789,6 @@ Castro::apply_problem_tags (TagBoxArray& tags,
                             Real         time)
 {
 
-    const int*  domain_lo = geom.Domain().loVect();
-    const int*  domain_hi = geom.Domain().hiVect();
     const Real* dx        = geom.CellSize();
     const Real* prob_lo   = geom.ProbLo();
 
@@ -2826,7 +2816,7 @@ Castro::apply_problem_tags (TagBoxArray& tags,
 	    const int*  tlo     = tilebx.loVect();
 	    const int*  thi     = tilebx.hiVect();
 
-#ifdef DIMENSION_AGNOSTIC
+#ifdef AMREX_DIMENSION_AGNOSTIC
 	    set_problem_tags(ARLIM_3D(tilebx.loVect()), ARLIM_3D(tilebx.hiVect()),
                              tptr, ARLIM_3D(tlo), ARLIM_3D(thi),
 			     BL_TO_FORTRAN_3D(S_new[mfi]),
@@ -2940,7 +2930,7 @@ Castro::derive (const std::string& name,
   }
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
   return ParticleDerive(name,time,ngrow);
 #else
    return AmrLevel::derive(name,time,ngrow);

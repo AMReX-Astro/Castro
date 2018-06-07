@@ -4,8 +4,9 @@ module ppm_module
   ! this does the parabolic reconstruction on a variable and the (optional)
   ! integration under the characteristic domain of the parabola
 
-  use amrex_constants_module
-  use amrex_error_module
+  use amrex_constants_module, only: ZERO, HALF, ONE, TWO, SIXTH, &
+                                    TWO3RD, THREE, SIX, SEVEN12TH, TWELFTH
+
   use prob_params_module, only : dg
 
   use amrex_fort_module, only : rt => amrex_real
@@ -117,9 +118,10 @@ contains
                        sd_lo, sd_hi, &
                        ilo1, ilo2, ihi1, ihi2, dx, k3d, kc)
 
-    use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : ppm_type
 
+    use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
@@ -173,10 +175,10 @@ contains
 #endif
 
     ! cell-centered indexing w/extra ghost cell
-    call amrex_allocate(dsvl, ilo1-2, ihi1+2, ilo2-2*dg(2), ihi2+2*dg(2))
+    call bl_allocate(dsvl, ilo1-2, ihi1+2, ilo2-2*dg(2), ihi2+2*dg(2))
 
     ! edge-centered indexing
-    call amrex_allocate(sedge, ilo1-1, ihi1+2, ilo2-dg(2), ihi2+2*dg(2))
+    call bl_allocate(sedge, ilo1-1, ihi1+2, ilo2-dg(2), ihi2+2*dg(2))
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! x-direction
@@ -401,8 +403,8 @@ contains
     end do
 #endif
 
-    call amrex_deallocate(dsvl)
-    call amrex_deallocate(sedge)
+    call bl_deallocate(dsvl)
+    call bl_deallocate(sedge)
 
   end subroutine ppm_type1
 
@@ -422,10 +424,10 @@ contains
                        sd_lo, sd_hi, &
                        ilo1, ilo2, ihi1, ihi2, dx, k3d, kc)
 
-    use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : ppm_type
-    use amrex_constants_module
 
+    use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
@@ -488,8 +490,8 @@ contains
 #endif
 
     ! edge-centered indexing
-    call amrex_allocate(sedge, ilo1-2, ihi1+3, ilo2-2*dg(2), ihi2+3*dg(2))
-    call amrex_allocate(sedgez,ilo1-1, ihi1+1, ilo2-dg(2), ihi2+dg(2), k3d-dg(2),k3d+2*dg(2))
+    call bl_allocate(sedge, ilo1-2, ihi1+3, ilo2-2*dg(2), ihi2+3*dg(2))
+    call bl_allocate(sedgez,ilo1-1, ihi1+1, ilo2-dg(2), ihi2+dg(2), k3d-dg(2),k3d+2*dg(2))
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! x-direction
@@ -836,8 +838,8 @@ contains
     end do
 #endif
 
-    call amrex_deallocate(sedge)
-    call amrex_deallocate(sedgez)
+    call bl_deallocate(sedge)
+    call bl_deallocate(sedgez)
 
   end subroutine ppm_type2
 

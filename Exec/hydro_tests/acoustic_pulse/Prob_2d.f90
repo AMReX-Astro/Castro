@@ -1,9 +1,9 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
-  use bl_constants_module
+  use amrex_constants_module
   use probdata_module
   use prob_params_module, only : center
-  use bl_error_module
+  use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -21,7 +21,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   character :: probin*(maxlen)
 
   if (namlen .gt. maxlen) then
-     call bl_error('probin file name too long')
+     call amrex_error('probin file name too long')
   end if
 
   do i = 1, namlen
@@ -30,8 +30,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   ! Set namelist defaults
 
-  rho0 = 1.4
-  drho0 = 0.14
+  rho0 = 1.4_rt
+  drho0 = 0.14_rt
 
   ! Read namelists
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
@@ -74,7 +74,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        delta,xlo,xhi)
 
   use probdata_module
-  use bl_constants_module, only: M_PI, FOUR3RD, ZERO, HALF, ONE
+  use amrex_constants_module, only: M_PI, FOUR3RD, ZERO, HALF, ONE
   use meth_params_module , only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS
   use prob_params_module, only : center, coord_type
   use amrex_fort_module, only : rt => amrex_real
@@ -105,7 +105,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         dist = sqrt((center(1)-xx)**2 + (center(2)-yy)**2)
 
         if (dist <= HALF) then
-           state(i,j,URHO) = rho0 + drho0*exp(-16*dist**2) * cos(M_PI*dist)**6
+           state(i,j,URHO) = rho0 + drho0*exp(-16.d0*dist**2) * cos(M_PI*dist)**6
         else
            state(i,j,URHO) = rho0
         endif

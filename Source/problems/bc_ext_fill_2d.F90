@@ -1,13 +1,14 @@
 module bc_ext_fill_module
 
-  use bl_constants_module
+  use amrex_constants_module, only: ZERO, HALF
+  use amrex_error_module
+  use amrex_fort_module, only: rt => amrex_real
+  use amrex_filcc_module, only: filccn
+  use interpolate_module, only: interpolate
   use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, &
                                 UEDEN, UEINT, UFS, UTEMP, const_grav, &
                                 hse_zero_vels, hse_interp_temp, hse_reflect_vels, &
                                 xl_ext, xr_ext, yl_ext, yr_ext, EXT_HSE, EXT_INTERP
-  use interpolate_module
-  use amrex_fort_module, only: rt => amrex_real
-  use amrex_filcc_module, only: filccn
 
   implicit none
 
@@ -33,7 +34,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec
-    use model_parser_module
+    use model_parser_module, only: model_r, model_state, npts_model, idens_model, itemp_model, ispec_model
 
     integer,  intent(in   ) :: adv_l1, adv_l2, adv_h1, adv_h2
     integer,  intent(in   ) :: bc(2,2,NVAR)
@@ -41,7 +42,7 @@ contains
     real(rt), intent(in   ) :: delta(2), xlo(2), time
     real(rt), intent(inout) :: adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
 
-    integer  :: i, j, q, n, iter, m
+    integer  :: i, j, q, n, iter, m, joff
     real(rt) :: y
     real(rt) :: dens_above, dens_base, temp_above
     real(rt) :: pres_above, p_want, pres_zone, A
@@ -57,12 +58,12 @@ contains
 
        ! XLO
        if (bc(1,1,n) == EXT_DIR .and. xl_ext == EXT_HSE .and. adv_l1 < domlo(1)) then
-          call bl_error("ERROR: HSE boundaries not implemented for -X")
+          call amrex_error("ERROR: HSE boundaries not implemented for -X")
        end if
 
        ! XHI
        if (bc(1,2,n) == EXT_DIR .and. xr_ext == EXT_HSE .and. adv_h1 > domhi(1)) then
-          call bl_error("ERROR: HSE boundaries not implemented for +X")
+          call amrex_error("ERROR: HSE boundaries not implemented for +X")
        end if
 
        ! YLO
@@ -74,7 +75,7 @@ contains
              if (n == URHO) then
 
                 do i = adv_l1, adv_h1
-                   
+
                    ! we are integrating along a column at constant i.
                    ! Make sure that our starting state is well-defined
                    dens_above = adv(i,domlo(2),URHO)
@@ -177,7 +178,7 @@ contains
                          print *, "column info: "
                          print *, "   dens: ", adv(i,j:domlo(2),URHO)
                          print *, "   temp: ", adv(i,j:domlo(2),UTEMP)
-                         call bl_error("ERROR in bc_ext_fill_2d: failure to converge in -Y BC")
+                         call amrex_error("ERROR in bc_ext_fill_2d: failure to converge in -Y BC")
                       endif
 
 
@@ -193,10 +194,16 @@ contains
                       else
 
                          if (hse_reflect_vels == 1) then
-                            adv(i,j,UMX) = -dens_zone*(adv(i,domlo(2),UMX)/dens_base)
-                            adv(i,j,UMY) = -dens_zone*(adv(i,domlo(2),UMY)/dens_base)
-                            adv(i,j,UMZ) = -dens_zone*(adv(i,domlo(2),UMZ)/dens_base)
+                            ! reflect normal, zero gradient for transverse
+                            ! note: we need to match the corresponding
+                            ! zone on the other side of the interface
+                            joff = domlo(2)-j-1
+                            adv(i,j,UMY) = -dens_zone*(adv(i,domlo(2)+joff,UMY)/adv(i,domlo(2)+joff,URHO))
+
+                            adv(i,j,UMX) = dens_zone*(adv(i,domlo(2),UMX)/dens_base)
+                            adv(i,j,UMZ) = dens_zone*(adv(i,domlo(2),UMZ)/dens_base)
                          else
+                            ! zero gradient
                             adv(i,j,UMX) = dens_zone*(adv(i,domlo(2),UMX)/dens_base)
                             adv(i,j,UMY) = dens_zone*(adv(i,domlo(2),UMY)/dens_base)
                             adv(i,j,UMZ) = dens_zone*(adv(i,domlo(2),UMZ)/dens_base)
@@ -206,7 +213,7 @@ contains
                       eos_state%rho = dens_zone
                       eos_state%T = temp_zone
                       eos_state%xn(:) = X_zone
-                      
+
                       call eos(eos_input_rt, eos_state)
 
                       pres_zone = eos_state%p
@@ -286,7 +293,7 @@ contains
        if (bc(2,2,n) == EXT_DIR .and. adv_h2 > domhi(2)) then
 
           if (yr_ext == EXT_HSE) then
-             call bl_error("ERROR: HSE boundaries not implemented for +Y")
+             call amrex_error("ERROR: HSE boundaries not implemented for +Y")
 
           elseif (yr_ext == EXT_INTERP) then
              ! interpolate thermodynamics from initial model
@@ -354,7 +361,7 @@ contains
     use prob_params_module, only: problo
     use interpolate_module
     use model_parser_module
-    use bl_error_module
+    use amrex_error_module
 
     implicit none
 
@@ -382,12 +389,12 @@ contains
 
     ! XLO
     if ( bc(1,1) == EXT_DIR .and. adv_l1 < domlo(1)) then
-       call bl_error("We shoundn't be here (xlo denfill)")
+       call amrex_error("We shoundn't be here (xlo denfill)")
     end if
 
     ! XHI
     if ( bc(1,2) == EXT_DIR .and. adv_h1 > domhi(1)) then
-       call bl_error("We shoundn't be here (xlo denfill)")
+       call amrex_error("We shoundn't be here (xlo denfill)")
     endif
 
     ! YLO

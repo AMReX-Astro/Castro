@@ -5,6 +5,7 @@ module rotation_module
   use meth_params_module, only: rotation_include_centrifugal, rotation_include_coriolis, &
                                 rotation_include_domegadt
 
+  use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -40,7 +41,7 @@ contains
        else if (idir .eq. 3) then
           loc = position(idx(1),idx(2),idx(3),ccz=.false.) - center
        else
-          call bl_error("Error: unknown direction in inertial_to_rotational_velocity.")
+          call amrex_error("Error: unknown direction in inertial_to_rotational_velocity.")
        endif
     else
        loc = position(idx(1),idx(2),idx(3)) - center
@@ -62,7 +63,7 @@ contains
 
   function rotational_acceleration(r, v, time, centrifugal, coriolis, domegadt) result(Sr)
 
-    use bl_constants_module, only: ZERO, TWO
+    use amrex_constants_module, only: ZERO, TWO
     use meth_params_module, only: state_in_rotating_frame
 
     use amrex_fort_module, only : rt => amrex_real
@@ -174,7 +175,7 @@ contains
 
   function rotational_potential(r, time) result(phi)
 
-    use bl_constants_module, only: ZERO, HALF
+    use amrex_constants_module, only: ZERO, HALF
     use meth_params_module, only: state_in_rotating_frame, rotation_include_centrifugal
 
     use amrex_fort_module, only : rt => amrex_real
@@ -213,7 +214,7 @@ contains
        bind(C, name="ca_fill_rotational_potential")
 
     use prob_params_module, only: problo, center
-    use bl_constants_module, only: HALF
+    use amrex_constants_module, only: HALF
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -251,7 +252,7 @@ contains
 
     use meth_params_module, only: NVAR, URHO, UMX, UMZ
     use prob_params_module, only: problo, center
-    use bl_constants_module, only: HALF
+    use amrex_constants_module, only: HALF
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none

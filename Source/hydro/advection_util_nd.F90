@@ -1,7 +1,6 @@
 module advection_util_module
 
   use amrex_fort_module, only : rt => amrex_real
-  use amrex_error_module
   implicit none
 
   private
@@ -19,7 +18,7 @@ contains
     use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UEINT, UEDEN, small_dens, density_reset_method
     use amrex_constants_module, only : ZERO
-
+    use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -309,7 +308,7 @@ contains
   subroutine ca_compute_cfl(lo, hi, &
                             q, q_lo, q_hi, &
                             qaux, qa_lo, qa_hi, &
-                            dt, dx, courno) &
+                            dt, dx, courno, verbose) &
                             bind(C, name = "ca_compute_cfl")
 
     use amrex_constants_module, only: ZERO, ONE
@@ -327,6 +326,7 @@ contains
     real(rt), intent(in   ) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(in   ) :: dt, dx(3)
     real(rt), intent(inout) :: courno
+    integer,  intent(in   ) :: verbose
 
     real(rt) :: courx, coury, courz, courmx, courmy, courmz, courtmp
     real(rt) :: dtdx, dtdy, dtdz
@@ -365,34 +365,40 @@ contains
              courmz = max( courmz, courz )
 
              if (do_ctu == 1) then
+
                 ! CTU integration constraint
 
-                if (courx .gt. ONE) then
-                   print *,'   '
-                   call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
-                   print *,'>>> ... (u+c) * dt / dx > 1 ', courx
-                   print *,'>>> ... at cell (i,j,k)   : ', i, j, k
-                   print *,'>>> ... u, c                ', q(i,j,k,QU), qaux(i,j,k,QC)
-                   print *,'>>> ... density             ', q(i,j,k,QRHO)
+                if (verbose == 1) then
+
+                   if (courx .gt. ONE) then
+                      print *,'   '
+                      call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
+                      print *,'>>> ... (u+c) * dt / dx > 1 ', courx
+                      print *,'>>> ... at cell (i,j,k)   : ', i, j, k
+                      print *,'>>> ... u, c                ', q(i,j,k,QU), qaux(i,j,k,QC)
+                      print *,'>>> ... density             ', q(i,j,k,QRHO)
+                   end if
+
+                   if (coury .gt. ONE) then
+                      print *,'   '
+                      call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
+                      print *,'>>> ... (v+c) * dt / dx > 1 ', coury
+                      print *,'>>> ... at cell (i,j,k)   : ', i,j,k
+                      print *,'>>> ... v, c                ', q(i,j,k,QV), qaux(i,j,k,QC)
+                      print *,'>>> ... density             ', q(i,j,k,QRHO)
+                   end if
+
+                   if (courz .gt. ONE) then
+                      print *,'   '
+                      call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
+                      print *,'>>> ... (w+c) * dt / dx > 1 ', courz
+                      print *,'>>> ... at cell (i,j,k)   : ', i, j, k
+                      print *,'>>> ... w, c                ', q(i,j,k,QW), qaux(i,j,k,QC)
+                      print *,'>>> ... density             ', q(i,j,k,QRHO)
+                   end if
+
                 end if
 
-                if (coury .gt. ONE) then
-                   print *,'   '
-                   call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
-                   print *,'>>> ... (v+c) * dt / dx > 1 ', coury
-                   print *,'>>> ... at cell (i,j,k)   : ', i,j,k
-                   print *,'>>> ... v, c                ', q(i,j,k,QV), qaux(i,j,k,QC)
-                   print *,'>>> ... density             ', q(i,j,k,QRHO)
-                end if
-
-                if (courz .gt. ONE) then
-                   print *,'   '
-                   call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
-                   print *,'>>> ... (w+c) * dt / dx > 1 ', courz
-                   print *,'>>> ... at cell (i,j,k)   : ', i, j, k
-                   print *,'>>> ... w, c                ', q(i,j,k,QW), qaux(i,j,k,QC)
-                   print *,'>>> ... density             ', q(i,j,k,QRHO)
-                end if
              else
 
                 ! method-of-lines constraint
@@ -404,14 +410,18 @@ contains
                    courtmp = courtmp + courz
                 endif
 
-                ! note: it might not be 1 for all RK integrators
-                if (courtmp > ONE) then
-                   print *,'   '
-                   call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
-                   print *,'>>> ... at cell (i,j,k)   : ', i, j, k
-                   print *,'>>> ... u,v,w, c            ', q(i,j,k,QU), q(i,j,k,QV), q(i,j,k,QW), qaux(i,j,k,QC)
-                   print *,'>>> ... density             ', q(i,j,k,QRHO)
-                endif
+                if (verbose == 1) then
+
+                   ! note: it might not be 1 for all RK integrators
+                   if (courtmp > ONE) then
+                      print *,'   '
+                      call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
+                      print *,'>>> ... at cell (i,j,k)   : ', i, j, k
+                      print *,'>>> ... u,v,w, c            ', q(i,j,k,QU), q(i,j,k,QV), q(i,j,k,QW), qaux(i,j,k,QC)
+                      print *,'>>> ... density             ', q(i,j,k,QRHO)
+                   endif
+
+                end if
 
                 courno = max(courno, courtmp)
              endif
@@ -436,7 +446,7 @@ contains
                      q,     q_lo,   q_hi, &
                      qaux, qa_lo,  qa_hi)
 
-    use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use actual_network, only : nspec, naux
     use eos_module, only : eos
     use eos_type_module, only : eos_t, eos_input_re
@@ -452,6 +462,7 @@ contains
                                    npassive, upass_map, qpass_map, dual_energy_eta1, &
                                    small_dens
     use amrex_constants_module, only: ZERO, HALF, ONE
+    use amrex_error_module
     use castro_util_module, only: position
 #ifdef ROTATION
     use meth_params_module, only: do_rotation, state_in_rotating_frame
@@ -496,6 +507,7 @@ contains
 #ifdef RADIATION
     real(rt)         :: ptot, ctot, gamc_tot
 #endif
+
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -627,7 +639,7 @@ contains
                        src, src_lo, src_hi, &
                        srcQ,srQ_lo, srQ_hi)
 
-    use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use actual_network, only : nspec, naux
     use eos_module, only : eos
     use eos_type_module, only : eos_t, eos_input_re
@@ -792,7 +804,7 @@ contains
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
     use meth_params_module, only: NVAR, NQ, URHO, small_dens, cfl
     use prob_params_module, only: dim, dg
-    use amrex_mempool_module, only : amrex_allocate, amrex_deallocate
+    use amrex_mempool_module, only: bl_allocate, bl_deallocate
 
     implicit none
 
@@ -850,8 +862,8 @@ contains
 
     ! We implement the flux limiter on a dimension-by-dimension basis, starting with the x-direction.
 
-    call amrex_allocate(thetap,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
-    call amrex_allocate(thetam,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
+    call bl_allocate(thetap,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
+    call bl_allocate(thetam,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
 
     thetap(:,:,:) = ONE
     thetam(:,:,:) = ONE
@@ -1238,8 +1250,8 @@ contains
 
 #endif
 
-    call amrex_deallocate(thetap)
-    call amrex_deallocate(thetam)
+    call bl_deallocate(thetap)
+    call bl_deallocate(thetam)
 
   end subroutine limit_hydro_fluxes_on_small_dens
 
@@ -1248,7 +1260,8 @@ contains
 
     use meth_params_module, only : QPRES, QU, QV, QW, NQ
     use prob_params_module, only : coord_type, dg
-    use amrex_constants_module
+    use amrex_constants_module, only: ZERO, HALF, ONE
+    use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -1421,7 +1434,7 @@ contains
 
     use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UFS
-    use amrex_constants_module
+    use amrex_constants_module, only : ZERO, ONE
     use prob_params_module, only : dg
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -1516,7 +1529,7 @@ contains
     ! this computes the *node-centered* divergence
 
     use meth_params_module, only : QU, QV, QW, NQ
-    use amrex_constants_module
+    use amrex_constants_module, only : HALF, FOURTH, ONE, ZERO
     use prob_params_module, only : dg, coord_type, problo
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -1657,7 +1670,7 @@ contains
     ! this computes the *node-centered* divergence
 
     use meth_params_module, only : QU, QV, QW, NQ, GDPRES, GDU, GDV, GDW
-    use amrex_constants_module
+    use amrex_constants_module, only : HALF
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
