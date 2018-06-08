@@ -32,7 +32,7 @@ subroutine ca_advance_mhd(time, lo, hi, &
   use ct_upwind, only : corner_transport, checkisnan
   use mhd_plm_module, only : plm
   use meth_params_module!, only : QVAR, NTHERM, NHYP, normalize_species, NVAR, URHO, UEDEN
-  use bl_constants_module
+  use amrex_constants_module
   use network, only: nspec
 
   implicit none
@@ -379,7 +379,8 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
   use eos_module
   use eos_type_module, only : eos_t, eos_input_re 
   !      use flatten_module
-  use bl_constants_module
+  use amrex_constants_module
+  use amrex_error_module
   use meth_params_module, only : URHO, UMX, UMY, UMZ, NVAR,&
                                  UEDEN, UEINT, UFA, UFS, UTEMP, &
                                  QVAR, QRHO, QU, QV, QW, QC, NQAUX,&
@@ -479,7 +480,7 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
               print *,'   '
               print *,'>>> Error: Nyx_advection_3d::ctoprim ',i,j,k
               print *,'>>> ... negative density ',uin(i,j,k,URHO)
-              call bl_error("Error:: Nyx_advection_3d.f90 :: ctoprim")
+              call amrex_error("Error:: Nyx_advection_3d.f90 :: ctoprim")
            end if
 
            rhoInv = ONE/uin(i,j,k,URHO)
@@ -533,7 +534,7 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
                  print *,'>>> Error: Nyx_advection_3d::ctoprim ',i,j,k
                  print *,'>>> ... new e from eos_given_RT call is negative ',q(i,j,k,QREINT)
                  print *,'    '
-                 call bl_error("Error:: Nyx_advection_3d.f90 :: ctoprim")
+                 call amrex_error("Error:: Nyx_advection_3d.f90 :: ctoprim")
               end if
            end if
 
@@ -657,7 +658,7 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
               print *,'>>> ... Internal e          ',q(i,j,k,QREINT)
               print *,'>>> ... pressure            ',q(i,j,k,QPRES)
               print *,'>>> ... density             ',q(i,j,k,QRHO)
-              call bl_error("Error:: Nyx_advection_3d.f90 :: CFL violation in x-dir in ctoprim")
+              call amrex_error("Error:: Nyx_advection_3d.f90 :: CFL violation in x-dir in ctoprim")
            end if
 
            if (coury .gt. ONE) then
@@ -671,7 +672,7 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
               print *,'>>> ... B                   ',q(i,j,k,QMAGX:QMAGZ)
               print *,'>>> ... pressure            ',q(i,j,k,QPRES)
               print *,'>>> ... density             ',q(i,j,k,QRHO)
-              call bl_error("Error:: Nyx_advection_3d.f90 :: CFL violation in y-dir in ctoprim")
+              call amrex_error("Error:: Nyx_advection_3d.f90 :: CFL violation in y-dir in ctoprim")
            end if
 
            if (courz .gt. ONE) then
@@ -685,7 +686,7 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
               print *,'>>> ... B                   ',q(i,j,k,QMAGX:QMAGZ)
               print *,'>>> ... pressure            ',q(i,j,k,QPRES)
               print *,'>>> ... density             ',q(i,j,k,QRHO)
-              call bl_error("Error:: Nyx_advection_3d.f90 :: CFL violation in z-dir in ctoprim")
+              call amrex_error("Error:: Nyx_advection_3d.f90 :: CFL violation in z-dir in ctoprim")
            end if
 
         enddo

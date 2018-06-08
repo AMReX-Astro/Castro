@@ -27,7 +27,7 @@ contains
     use eos_module, only: eos
     use network, only: nspec
 
-    use bl_constants_module
+    use amrex_constants_module
 
     implicit none
 
@@ -80,7 +80,7 @@ contains
 
     if (ppm_type .eq. 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
-       call bl_error("Error:: trace_ppm_3d.f90 :: tracexy_ppm")
+       call amrex_error("Error:: trace_ppm_3d.f90 :: tracexy_ppm")
     end if
 
     halfdt = HALF * dt
@@ -888,7 +888,7 @@ contains
     use eos_type_module, only: eos_t, eos_input_rp
     use network, only: nspec
 
-    use bl_constants_module
+    use amrex_constants_module
 
     implicit none
 
@@ -938,7 +938,7 @@ contains
 
     if (ppm_type .eq. 0) then
        print *,'Oops -- shouldnt be in tracez_ppm with ppm_type = 0'
-       call bl_error("Error:: trace_ppm_3d.f90 :: tracez_ppm")
+       call amrex_error("Error:: trace_ppm_3d.f90 :: tracez_ppm")
     end if
 
     halfdt = HALF * dt

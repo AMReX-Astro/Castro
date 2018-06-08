@@ -16,8 +16,8 @@ contains
 
     use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UEINT, UEDEN, small_dens, density_reset_method
-    use bl_constants_module, only : ZERO
-
+    use amrex_constants_module, only : ZERO
+    use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -70,7 +70,7 @@ contains
 
                 print *,'DENSITY EXACTLY ZERO AT CELL ',i,j,k
                 print *,'  in grid ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-                call bl_error("Error:: advection_util_nd.f90 :: ca_enforce_minimum_density")
+                call amrex_error("Error:: advection_util_nd.f90 :: ca_enforce_minimum_density")
 
              else if (uout(i,j,k,URHO) < small_dens) then
 
@@ -176,7 +176,7 @@ contains
 
                 else
 
-                   call bl_error("Unknown density_reset_method in subroutine ca_enforce_minimum_density.")
+                   call amrex_error("Unknown density_reset_method in subroutine ca_enforce_minimum_density.")
 
                 endif
 
@@ -196,7 +196,7 @@ contains
 
   subroutine reset_to_small_state(old_state, new_state, idx, lo, hi, verbose)
 
-    use bl_constants_module, only: ZERO
+    use amrex_constants_module, only: ZERO
     use network, only: nspec, naux
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEINT, UEDEN, UFS, UFX, small_temp, small_dens, npassive, upass_map
     use eos_type_module, only: eos_t, eos_input_rt
@@ -271,7 +271,7 @@ contains
 
   subroutine reset_to_zone_state(old_state, new_state, input_state, idx, lo, hi, verbose)
 
-    use bl_constants_module, only: ZERO
+    use amrex_constants_module, only: ZERO
     use meth_params_module, only: NVAR, URHO
 
     use amrex_fort_module, only : rt => amrex_real
