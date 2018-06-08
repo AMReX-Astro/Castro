@@ -122,7 +122,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            state(i,j,k,UFS  ) = state(i,j,k,URHO)
 
            ! This is Ne
-           state(i,j,k,UFX  ) = 0.d0
+           state(i,j,k,UFX  ) = 1.d0
            
         enddo
      enddo
@@ -230,7 +230,8 @@ subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
               if (im .eq. 1) rad_state(i,j,k,ii) = 1.0e0_rt + 0.9999e0_rt*sin(2.0e0_rt*M_PI*xnode)
 
               ! H_x moment, im = 2
-              if (im .eq. 2) rad_state(i,j,k,ii) = 0.9999e0_rt*(1.0e0_rt + 0.9999e0_rt*sin(2.0e0_rt*M_PI*xnode))
+              if (im .eq. 2) rad_state(i,j,k,ii) = 3.0e10_rt*0.9999e0_rt &
+                              *(1.0e0_rt + 0.9999e0_rt*sin(2.0e0_rt*M_PI*xnode))
 
               ! H_y moment, im = 3
               if (im .eq. 3) rad_state(i,j,k,ii) = 0.0e0_rt
