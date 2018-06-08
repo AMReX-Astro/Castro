@@ -12,8 +12,6 @@
 
 module meth_params_module
 
-  use bl_error_module
-
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -558,6 +556,7 @@ contains
 
     use rad_params_module, only : ngroups
 
+    use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -573,7 +572,7 @@ contains
     end if
     
     if (fsp_type_in .ne. 1 .and. fsp_type_in .ne. 2) then
-       call bl_error("Unknown fspace_type", fspace_type)
+       call amrex_error("Unknown fspace_type", fspace_type)
     end if
     
     do_inelastic_scattering = (do_is_in .ne. 0)
@@ -583,7 +582,7 @@ contains
     else if (com_in .eq. 0) then
        comoving = .false.
     else
-       call bl_error("Wrong value for comoving", fspace_type)
+       call amrex_error("Wrong value for comoving", fspace_type)
     end if
     
     flatten_pp_threshold = fppt

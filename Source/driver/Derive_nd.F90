@@ -1,5 +1,6 @@
 module derive_module
 
+  use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -36,7 +37,7 @@ contains
 
     if (nv .ne. 3) then
        print *,'... confusion in derstate ... nv should be 3 but is ',nv
-       call bl_error('Error:: Derive_nd.f90 :: ca_derstate')
+       call amrex_error('Error:: Derive_nd.f90 :: ca_derstate')
     end if
 
     do k = lo(3), hi(3)
@@ -105,7 +106,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_input_re, eos_t
     use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX
-    use bl_constants_module, only : ONE
+    use amrex_constants_module, only : ONE
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -156,7 +157,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_input_re, eos_t
     use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX
-    use bl_constants_module, only : ONE
+    use amrex_constants_module, only : ONE
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -279,7 +280,7 @@ contains
     !
     ! This routine will derive the radial velocity.
     !
-    use bl_constants_module, only : HALF
+    use amrex_constants_module, only : HALF
     use prob_params_module, only: center
 
     use amrex_fort_module, only : rt => amrex_real
@@ -356,7 +357,7 @@ contains
                            dx,xlo,time,dt,bc,level,grid_no) &
                            bind(C, name="ca_derangmomx")
 
-    use bl_constants_module, only: HALF
+    use amrex_constants_module, only: HALF
     use math_module, only: cross_product
 
     use amrex_fort_module, only : rt => amrex_real
@@ -400,7 +401,7 @@ contains
                            dx,xlo,time,dt,bc,level,grid_no) &
                            bind(C, name="ca_derangmomy")
 
-    use bl_constants_module, only: HALF
+    use amrex_constants_module, only: HALF
     use math_module, only: cross_product
 
     use amrex_fort_module, only : rt => amrex_real
@@ -444,7 +445,7 @@ contains
                            dx,xlo,time,dt,bc,level,grid_no) &
                            bind(C, name="ca_derangmomz")
 
-    use bl_constants_module, only: HALF
+    use amrex_constants_module, only: HALF
     use math_module, only: cross_product
 
     use amrex_fort_module, only : rt => amrex_real
@@ -491,7 +492,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
-    use bl_constants_module, only : ONE
+    use amrex_constants_module, only : ONE
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -537,7 +538,7 @@ contains
                          domhi,dx,xlo,time,dt,bc,level,grid_no) &
                          bind(C, name="ca_dereint1")
 
-    use bl_constants_module, only : ONE, HALF
+    use amrex_constants_module, only : ONE, HALF
     use meth_params_module, only: URHO, UMX, UMY, UMZ, UEDEN 
     use amrex_fort_module, only : rt => amrex_real
 
@@ -617,7 +618,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
-    use bl_constants_module, only : ONE
+    use amrex_constants_module, only : ONE
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -665,7 +666,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
-    use bl_constants_module, only : ONE
+    use amrex_constants_module, only : ONE
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -715,7 +716,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_input_re, eos_t
     use meth_params_module, only: URHO, UMX, UMZ, UEINT, UTEMP, UFS, UFX
-    use bl_constants_module, only : ONE
+    use amrex_constants_module, only : ONE
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -765,7 +766,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_input_re, eos_t
     use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
-    use bl_constants_module, only : ONE
+    use amrex_constants_module, only : ONE
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -811,7 +812,7 @@ contains
                                  domhi,dx,xlo,time,dt,bc,level,grid_no) &
                                  bind(C, name="ca_derenuctimescale")
 
-    use bl_constants_module, only: ZERO, ONE
+    use amrex_constants_module, only: ZERO, ONE
     use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
     use network, only: nspec, naux
     use prob_params_module, only: dim
@@ -953,7 +954,7 @@ contains
     ! This routine will calculate vorticity
     !     
 
-    use bl_constants_module, only : ZERO, HALF
+    use amrex_constants_module, only : ZERO, HALF
     use prob_params_module, only: dg
 
     use amrex_fort_module, only : rt => amrex_real
@@ -1035,7 +1036,7 @@ contains
     ! This routine will calculate the divergence of velocity.
     !
 
-    use bl_constants_module, only : ZERO, HALF
+    use amrex_constants_module, only : ZERO, HALF
     use prob_params_module, only: dg
 
     use amrex_fort_module, only : rt => amrex_real
@@ -1087,7 +1088,7 @@ contains
     ! This routine will derive kinetic energy = 1/2 rho (u^2 + v^2 + w^2)
     !
 
-    use bl_constants_module, only : HALF
+    use amrex_constants_module, only : HALF
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -1152,7 +1153,7 @@ contains
     ! This routine will calculate the thermal conductivity
     !
 
-    use bl_constants_module, only : ZERO
+    use amrex_constants_module, only : ZERO
     use meth_params_module, only: diffuse_cutoff_density, &
                                   URHO, UEINT, UTEMP, UFS, UFX
     use eos_type_module, only: eos_input_re, eos_t
@@ -1212,7 +1213,7 @@ contains
     ! This routine will calculate the thermal conductivity
     !
 
-    use bl_constants_module, only : ZERO
+    use amrex_constants_module, only : ZERO
     use meth_params_module, only: diffuse_cutoff_density, &
                                   URHO, UEINT, UTEMP, UFS, UFX
     use eos_type_module, only: eos_input_re, eos_t

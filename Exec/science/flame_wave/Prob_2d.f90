@@ -32,7 +32,8 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
                     ash1_name, ash2_name, ash3_name, &
                     fuel1_frac, fuel2_frac, fuel3_frac, &
                     ash1_frac, ash2_frac, ash3_frac, &
-                    low_density_cutoff, index_base_from_temp, smallx
+                    low_density_cutoff, index_base_from_temp, smallx, &
+                    max_hse_tagging_level, burn_tagging_min, burn_tagging_max
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 256
@@ -93,6 +94,10 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   low_density_cutoff = 1.d-4
 
   smallx = 1.d-10
+
+  max_hse_tagging_level = 2
+  burn_tagging_min = 1.e4_dp_t
+  burn_tagging_max = 4.e6_dp_t
 
   open(newunit=untin,file=probin(1:namlen),form='formatted',status='old')
   read(untin,fortin)

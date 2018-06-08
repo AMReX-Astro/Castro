@@ -111,8 +111,10 @@ contains
 
   subroutine init_1d_tanh(nx, xmin, xmax, model_params, model_num)
 
-    use bl_constants_module
-    use bl_error_module
+    use amrex_constants_module
+    use amrex_error_module
+    use amrex_fort_module, only : rt => amrex_real
+
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only : nspec, network_species_index, spec_names
@@ -188,7 +190,7 @@ contains
 
     if (index_base == -1) then
        print *, 'ERROR: base_height not found on grid'
-       call bl_error('ERROR: invalid base_height')
+       call amrex_error('ERROR: invalid base_height')
     endif
 
 
@@ -275,6 +277,10 @@ contains
 
           entropy_base = eos_state % s
 
+
+          if (parallel_IOProcessor()) then
+             print *, "base density = ", eos_state % rho, eos_state % T
+          endif
        endif
 
        delx = gen_model_r(i,model_num) - gen_model_r(i-1,model_num)
@@ -348,11 +354,11 @@ contains
 
                 drho = (A - dpt*dtemp)/(dpd - 0.5*delx*const_grav)
 
-                dens_zone = max(0.9_dp_t*dens_zone, &
-                     min(dens_zone + drho, 1.1_dp_t*dens_zone))
+                dens_zone = max(0.9_rt*dens_zone, &
+                     min(dens_zone + drho, 1.1_rt*dens_zone))
 
-                temp_zone = max(0.9_dp_t*temp_zone, &
-                     min(temp_zone + dtemp, 1.1_dp_t*temp_zone))
+                temp_zone = max(0.9_rt*temp_zone, &
+                     min(temp_zone + dtemp, 1.1_rt*temp_zone))
 
 
                 ! check if the density falls below our minimum cut-off --
@@ -433,7 +439,7 @@ contains
              print *, dens_zone, temp_zone
              print *, p_want, entropy_base, entropy
              print *, drho, dtemp
-             call bl_error('Error: HSE non-convergence')
+             call amrex_error('Error: HSE non-convergence')
 
           endif
 
@@ -520,8 +526,8 @@ contains
 
           drho = A/(dpd + 0.5*delx*const_grav)
 
-          dens_zone = max(0.9_dp_t*dens_zone, &
-               min(dens_zone + drho, 1.1_dp_t*dens_zone))
+          dens_zone = max(0.9_rt*dens_zone, &
+               min(dens_zone + drho, 1.1_rt*dens_zone))
 
 
           if (abs(drho) < TOL*dens_zone) then
@@ -538,7 +544,7 @@ contains
           print *, dens_zone, temp_zone
           print *, p_want
           print *, drho
-          call bl_error('Error: HSE non-convergence')
+          call amrex_error('Error: HSE non-convergence')
 
        endif
 
