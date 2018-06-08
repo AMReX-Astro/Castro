@@ -42,10 +42,6 @@
     integer  :: ii,id,ie,im,is
     real(rt) :: conv_dens, conv_mom, conv_enr, conv_ne, conv_J, conv_H, testdt
 
-    write (*,*) lbound(U_R_o), ubound(U_R_o)
-    write (*,*) lbound(U_R_n), ubound(U_R_n)
-    write (*,*) lbound(uCR), ubound(uCR)
-
     ! Sanity check on size of arrays
     ! Note that we have set ngrow_thornado = ngrow_state in Castro_setup.cpp
     if (U_R_o_lo(1) .ne. S_lo(1) .or.  U_R_o_hi(1) .ne. S_hi(1) .or. &
