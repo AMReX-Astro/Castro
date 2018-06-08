@@ -40,7 +40,11 @@
     integer  :: i,j,k
     integer  :: ic,jc,kc
     integer  :: ii,id,ie,im,is
-    real(rt) :: conv_dens, conv_mom, conv_enr, conv_ne, conv_J, conv_H
+    real(rt) :: conv_dens, conv_mom, conv_enr, conv_ne, conv_J, conv_H, testdt
+
+    write (*,*) lbound(U_R_o), ubound(U_R_o)
+    write (*,*) lbound(U_R_n), ubound(U_R_n)
+    write (*,*) lbound(uCR), ubound(uCR)
 
     ! Sanity check on size of arrays
     ! Note that we have set ngrow_thornado = ngrow_state in Castro_setup.cpp
@@ -84,6 +88,8 @@
          !       1-swX(3):nX(3)+swX(3), &
          !       1:nCF) )
 
+         ! U_R_o spatial indices start at lo - 2, accounting for 2 ghost zones
+         ! uCR spatial indices start at lo - 1, accounting for 2 ghost zones
          i = ic+1
          j = jc+1
          k = kc+1
@@ -110,7 +116,6 @@
          do ie = 1, nE
          do id = 1, nDOF
             ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
-            uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,kc,ii)
             if (im .eq. 1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,kc,ii)*conv_J
             if (im > 1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,kc,ii)*conv_H
          end do
@@ -125,7 +130,7 @@
     ! ************************************************************************************
     ! Call the Fortran interface that lives in the thornado repo
     ! ************************************************************************************
-    call Update_IMEX_PC2(dt, uCF, uCR)
+    call Update_IMEX_PC2(dt*Second, uCF, uCR)
 
     ! ************************************************************************************
     ! Copy back from the thornado arrays into Castro arrays
@@ -147,13 +152,19 @@
 !         dS(i,j,k,UEINT) = ?
 !         dS(i,j,k,UFX  ) = uCF(1,i,j,k,iCF_Ne) - S(i,j,k,UFX)
 
+         ! uCR spatial indices start at lo - 1, accounting for 2 ghost zones
+         ! U_R_n spatial indices start at lo
+         ic = i+1
+         jc = j+1
+         kc = k+1
+
          do is = 1, nSpecies
          do im = 1, n_moments
          do ie = 1, nE
          do id = 1, nDOF
             ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
-            if (im .eq. 1) U_R_n(i,j,k,ii) = uCR(id,ie,i,j,k,im,is)/conv_J
-            if (im > 1) U_R_n(i,j,k,ii) = uCR(id,ie,i,j,k,im,is)/conv_H
+            if (im .eq. 1) U_R_n(i,j,k,ii) = uCR(id,ie,ic,jc,kc,im,is)/conv_J
+            if (im > 1) U_R_n(i,j,k,ii)    = uCR(id,ie,ic,jc,kc,im,is)/conv_H
          end do
          end do
          end do
