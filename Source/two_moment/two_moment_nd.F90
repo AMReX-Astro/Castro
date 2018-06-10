@@ -82,9 +82,9 @@
          !       1-swX(3):nX(3)+swX(3), &
          !       1:nCF) )
 
-         i = ic+1
-         j = jc+1
-         k = kc+1
+         i = ic - lo(1) + 1
+         j = jc - lo(2) + 1
+         k = kc - lo(3) + 1
 
          ! Thornado uses units where c = G = k = 1, Meter = 1
          uCF(1:n_fluid_dof,i,j,k,iCF_D)  = S(ic,jc,kc,URHO)  * conv_dens
@@ -126,29 +126,34 @@
     ! ************************************************************************************
     ! Copy back from the thornado arrays into Castro arrays
     ! ************************************************************************************
-    do k = lo(3),hi(3)
-    do j = lo(2),hi(2)
-    do i = lo(1),hi(1)
+    do kc = lo(3),hi(3)
+    do jc = lo(2),hi(2)
+    do ic = lo(1),hi(1)
+
+         i = ic - lo(1) + 1
+         j = jc - lo(2) + 1
+         k = kc - lo(3) + 1
 
          !! KS: if we fill UEINT, need the final fluid state from ComputeIncrement; is that uCF at this point?
          ! We store dS as a source term which we can add to S outside of this routine
          ! uCF returned as a cell-averaged quantity so all components are the same,
          !  can just use the first component
          ! Update_IMEX_PC2 doesn't currently change the fluid state
-!         dS(i,j,k,URHO ) = uCF(1,i,j,k,iCF_D) - S(i,j,k,URHO)
-!         dS(i,j,k,UMX  ) = uCF(1,i,j,k,iCF_S1) - S(i,j,k,UMX)
-!         dS(i,j,k,UMY  ) = uCF(1,i,j,k,iCF_S2) - S(i,j,k,UMY)
-!         dS(i,j,k,UMZ  ) = uCF(1,i,j,k,iCF_S3) - S(i,j,k,UMZ)
-!         dS(i,j,k,UEDEN) = uCF(1,i,j,k,iCF_E) - S(i,j,k,UEDEN)
-!         dS(i,j,k,UEINT) = ?
-!         dS(i,j,k,UFX  ) = uCF(1,i,j,k,iCF_Ne) - S(i,j,k,UFX)
+
+!         dS(ic,jc,kc,URHO ) = uCF(1,i,j,k,iCF_D) - S(i,j,k,URHO)
+!         dS(ic,jc,kc,UMX  ) = uCF(1,i,j,k,iCF_S1) - S(i,j,k,UMX)
+!         dS(ic,jc,kc,UMY  ) = uCF(1,i,j,k,iCF_S2) - S(i,j,k,UMY)
+!         dS(ic,jc,kc,UMZ  ) = uCF(1,i,j,k,iCF_S3) - S(i,j,k,UMZ)
+!         dS(ic,jc,kc,UEDEN) = uCF(1,i,j,k,iCF_E) - S(i,j,k,UEDEN)
+!         dS(ic,jc,kc,UEINT) = ?
+!         dS(ic,jc,kc,UFX  ) = uCF(1,i,j,k,iCF_Ne) - S(i,j,k,UFX)
 
          do is = 1, nSpecies
          do im = 1, n_moments
          do ie = 1, nE
          do id = 1, nDOF
             ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
-            U_R_n(i,j,k,ii) = uCR(id,ie,i,j,k,im,is) 
+            U_R_n(ic,jc,kc,ii) = uCR(id,ie,i,j,k,im,is) 
          end do
          end do
          end do
