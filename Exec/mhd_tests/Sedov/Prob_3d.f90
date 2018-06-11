@@ -257,12 +257,26 @@ subroutine ca_initmag(level, time, lo, hi, &
         do j = lo(2), hi(2)
            do i = lo(1), hi(1)+1
                  mag_x(i,j,k,1) = B_x
-                 mag_y(i,j,k,1) = B_y
-                 mag_z(i,j,k,1) = B_z
            enddo
         enddo
      enddo
 
+   do k = lo(3), hi(3)
+        do j = lo(2), hi(2)+1
+           do i = lo(1), hi(1)
+              mag_y(i,j,k,1) = B_y
+           enddo
+        enddo
+     enddo
+
+    do k = lo(3), hi(3)+1
+        do j = lo(2), hi(2)
+           do i = lo(1), hi(1)
+              mag_z(i,j,k,1) = B_z
+           enddo
+        enddo
+    enddo
+   
 
   end subroutine ca_initmag
 
