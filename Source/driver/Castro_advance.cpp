@@ -558,6 +558,10 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 
     frac_change = 1.e0;
 
+    // Reset the CFL violation flag.
+
+    cfl_violation = 0;
+
     // Reset the burn success flag.
 
     burn_success = 1;
@@ -688,8 +692,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     dt_advance = dt;
 
     keep_prev_state = false;
-
-    cfl_violation = 0;
 
     if (use_post_step_regrid && level > 0) {
 
