@@ -1194,7 +1194,7 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
         if (cfl_violation && hard_cfl_limit && !use_retry)
             amrex::Abort("CFL is too high at this level, and we are already inside a retry -- go back to a checkpoint and restart with lower cfl number");
 
-        if (burn_success && !use_retry)
+        if (burn_success != 1 && !use_retry)
             amrex::Abort("Burn was unsuccessful");
 
         // If we're allowing for retries, check for that here.
