@@ -209,6 +209,11 @@ Castro::do_advance (Real time,
     MultiFab& R_old = get_old_data(Reactions_Type);
     MultiFab& R_new = get_new_data(Reactions_Type);
     MultiFab::Copy(R_new, R_old, 0, 0, R_new.nComp(), R_new.nGrow());
+
+    // Skip the rest of the advance if the burn was unsuccessful.
+
+    if (burn_success != 1)
+        return dt;
 #endif
 #endif
 
@@ -325,6 +330,11 @@ Castro::do_advance (Real time,
 #ifdef REACTIONS
 #ifndef SDC
     strang_react_second_half(cur_time - 0.5 * dt, 0.5 * dt);
+
+    // Skip the rest of the advance if the burn was unsuccessful.
+
+    if (burn_success != 1)
+        return dt;
 #endif
 #endif
 
@@ -547,6 +557,10 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     // Reset the change from density resets
 
     frac_change = 1.e0;
+
+    // Reset the burn success flag.
+
+    burn_success = 1;
 
     int finest_level = parent->finestLevel();
 
@@ -996,7 +1010,7 @@ Castro::retry_advance(Real& time, Real dt, int amr_iteration, int amr_ncycle)
     // A user-specified tolerance parameter can be used here to prevent
     // retries that are caused by small differences.
 
-    if (dt_sub * (1.0 + retry_tolerance) < std::min(dt, dt_subcycle)) {
+    if (dt_sub * (1.0 + retry_tolerance) < std::min(dt, dt_subcycle) || burn_success != 1) {
 
         do_retry = true;
 
@@ -1177,6 +1191,9 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
 
         if (cfl_violation && hard_cfl_limit && !use_retry)
             amrex::Abort("CFL is too high at this level, and we are already inside a retry -- go back to a checkpoint and restart with lower cfl number");
+
+        if (burn_success && !use_retry)
+            amrex::Abort("Burn was unsuccessful");
 
         // If we're allowing for retries, check for that here.
 

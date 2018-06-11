@@ -707,6 +707,11 @@ protected:
     int cfl_violation;
 
     //
+    // Did we have a successful burn?
+    //
+    int burn_success;
+
+    //
     // State data to hold if we want to do a retry.
     //
     amrex::Vector<std::unique_ptr<amrex::StateData> > prev_state;
