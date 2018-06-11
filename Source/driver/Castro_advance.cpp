@@ -1041,8 +1041,6 @@ Castro::retry_advance(Real& time, Real dt, int amr_iteration, int amr_ncycle)
 
         }
 
-        swap_state_time_levels(0.0);
-
         // Reset the source term predictor.
 
         sources_for_hydro.setVal(0.0, NUM_GROW);
@@ -1119,6 +1117,8 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
 
     Real eps = 1.0e-14;
 
+    bool do_swap = false;
+
     while (subcycle_time < (1.0 - eps) * (time + dt)) {
 
         sub_iteration += 1;
@@ -1145,14 +1145,10 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
                       << " with dt = " << dt_subcycle << std::endl << std::endl;
         }
 
-        // Swap the time levels. Only do this after the first iteration;
-        // we assume that the values coming into this routine are
-        // consistent in the sense that the "old" data is really the time
-        // level n data. For a normal advance this is guaranteed by the
-        // swap in initialize_advance and for a retry this is done prior
-        // to entering this routine.
+        // Swap the time levels. Only do this after the first iteration,
+        // and when we are not doing a retry (which handles the swap).
 
-        if (sub_iteration > 1) {
+        if (do_swap) {
 
             // Reset the source term predictor.
             // This must come before the swap.
@@ -1173,6 +1169,11 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
 #endif
 
         }
+
+        // Assume we want to do a swap in the next iteration,
+        // unless the retry tells us otherwise.
+
+        do_swap = true;
 
         // Set the relevant time levels.
 
@@ -1205,7 +1206,10 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
             // time from our counter; the retry function will handle resetting the state,
             // and updating dt_subcycle.
 
-            retry_advance(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle);
+            if (retry_advance(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle)) {
+                do_swap = false;
+                sub_iteration -= 1;
+            }
 
         }
 
