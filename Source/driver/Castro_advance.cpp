@@ -1147,7 +1147,8 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << std::endl;
             std::cout << "  Beginning subcycle " << sub_iteration << " starting at time " << subcycle_time
-                      << " with dt = " << dt_subcycle << std::endl << std::endl;
+                      << " with dt = " << dt_subcycle << std::endl;
+            std::cout << "  Estimated number of subcycles remaining: " << int(round(((time + dt) - subcycle_time) / dt_subcycle)) << std::endl << std::endl;
         }
 
         // Swap the time levels. Only do this after the first iteration,
