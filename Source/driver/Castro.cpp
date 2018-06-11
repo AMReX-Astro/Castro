@@ -1368,6 +1368,23 @@ Castro::computeNewDt (int                   finest_level,
     }
 
     //
+    // If we limited the last step by a retry,
+    // apply that here if the retry-recommended
+    // timestep is smaller than what we calculated.
+    //
+    for (int i = 0; i <= finest_level; ++i) {
+        if (getLevel(i).lastDtRetryLimited == 1) {
+            if (getLevel(i).lastDtFromRetry < dt_min[i]) {
+                if (verbose && ParallelDescriptor::IOProcessor()) {
+                    std::cout << " ... limiting dt at level " << i << " to: "
+                              << getLevel(i).lastDtFromRetry << " = retry-limited timestep\n";
+                }
+                dt_min[i] = getLevel(i).lastDtFromRetry;
+            }
+        }
+    }
+
+    //
     // Find the minimum over all levels
     //
     for (i = 0; i <= finest_level; i++)

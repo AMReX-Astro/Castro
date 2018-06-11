@@ -831,6 +831,9 @@ protected:
     static int         lastDtPlotLimited;
     static amrex::Real lastDtBeforePlotLimiting;
 
+    int lastDtRetryLimited;
+    amrex::Real lastDtFromRetry;
+
     // for keeping track of mass changes from negative density resets
     static amrex::Real      frac_change;
 

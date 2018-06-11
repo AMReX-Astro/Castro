@@ -693,6 +693,11 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     keep_prev_state = false;
 
+    // Reset the retry timestep information.
+
+    lastDtRetryLimited = 0;
+    lastDtFromRetry = 1.e200;
+
     if (use_post_step_regrid && level > 0) {
 
 	if (getLevel(level-1).post_step_regrid && amr_iteration == 1) {
@@ -1209,6 +1214,8 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
             if (retry_advance(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle)) {
                 do_swap = false;
                 sub_iteration -= 1;
+                lastDtRetryLimited = true;
+                lastDtFromRetry = dt_subcycle;
             }
 
         }
