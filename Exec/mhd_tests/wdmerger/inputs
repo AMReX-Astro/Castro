@@ -28,7 +28,7 @@ castro.hi_bc = 2 2 2
 # Timestepping
 ############################################################################################
 # Maximum coarse timestep
-max_step = 10000000
+max_step = 1  #10000000
 # Simulation time to stop at
 stop_time = 100.0
 # Whether to use our custom stopping criteria
