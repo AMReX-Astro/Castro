@@ -71,6 +71,10 @@ module burn_type_module
 
     real(rt) :: time
 
+    ! Was the burn successful?
+
+    logical :: success
+
   end type burn_t
 
 contains
