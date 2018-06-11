@@ -1,6 +1,6 @@
 module burn_type_module
 
-  use bl_types, only: dp_t
+  use amrex_fort_module, only : rt => amrex_real
   use actual_network, only: nspec, nspec_evolve, naux
 
   implicit none
@@ -20,29 +20,29 @@ module burn_type_module
 
   type :: burn_t
 
-    real(dp_t) :: rho
-    real(dp_t) :: T
-    real(dp_t) :: e
-    real(dp_t) :: xn(nspec)
+    real(rt) :: rho
+    real(rt) :: T
+    real(rt) :: e
+    real(rt) :: xn(nspec)
 #if naux > 0
-    real(dp_t) :: aux(naux)
+    real(rt) :: aux(naux)
 #endif
 
-    real(dp_t) :: cv
-    real(dp_t) :: cp
-    real(dp_t) :: y_e
-    real(dp_t) :: eta
-    real(dp_t) :: cs
-    real(dp_t) :: dx
-    real(dp_t) :: abar
-    real(dp_t) :: zbar
+    real(rt) :: cv
+    real(rt) :: cp
+    real(rt) :: y_e
+    real(rt) :: eta
+    real(rt) :: cs
+    real(rt) :: dx
+    real(rt) :: abar
+    real(rt) :: zbar
 
     ! Last temperature we evaluated the EOS at
-    real(dp_t) :: T_old
+    real(rt) :: T_old
 
     ! Temperature derivatives of specific heat
-    real(dp_t) :: dcvdT
-    real(dp_t) :: dcpdT
+    real(rt) :: dcvdT
+    real(rt) :: dcpdT
 
     ! The following are the actual integration data.
     ! To avoid potential incompatibilities we won't
@@ -50,8 +50,8 @@ module burn_type_module
     ! It can be reconstructed from all of the above
     ! data, particularly xn, e, and T.
 
-    real(dp_t) :: ydot(neqs)
-    real(dp_t) :: jac(neqs, neqs)
+    real(rt) :: ydot(neqs)
+    real(rt) :: jac(neqs, neqs)
 
     ! Whether we are self-heating or not.
 
@@ -69,7 +69,7 @@ module burn_type_module
 
     ! Integration time.
 
-    real(dp_t) :: time
+    real(rt) :: time
 
   end type burn_t
 
@@ -142,7 +142,7 @@ contains
 
     !$acc routine seq
 
-    use bl_constants_module, only: ONE
+    use amrex_constants_module, only: ONE
     use extern_probin_module, only: small_x
 
     implicit none

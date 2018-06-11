@@ -3,8 +3,7 @@ subroutine ca_ext_src(lo,hi, &
                       new_state,new_state_l1,new_state_l2,new_state_h1,new_state_h2,&
                       src,src_l1,src_l2,src_h1,src_h2,problo,dx,time,dt)
 
-  use bl_types, only: dp_t
-  use bl_constants_module, only: THIRD
+  use amrex_constants_module, only: THIRD
   use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UTEMP, UFS
   use network, only: network_species_index
 

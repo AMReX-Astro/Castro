@@ -10,7 +10,7 @@ contains
   subroutine ca_summass(lo,hi,rho,r_lo,r_hi,dx,&
                         vol,v_lo,v_hi,mass) bind(C, name="ca_summass")
 
-    use bl_constants_module, only : ZERO
+    use amrex_constants_module, only : ZERO
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -42,7 +42,7 @@ contains
   subroutine ca_sumsquared(lo,hi,rho,r_lo,r_hi,dx,&
                            vol,v_lo,v_hi,mass) bind(C, name="ca_sumsquared")
 
-    use bl_constants_module, only : ZERO
+    use amrex_constants_module, only : ZERO
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -74,7 +74,7 @@ contains
                            vol,v_lo,v_hi,mass,idir) bind(C, name="ca_sumlocmass")
 
     use prob_params_module, only: problo, center, probhi, dim, physbc_lo, physbc_hi, Symmetry
-    use bl_constants_module, only : ZERO, HALF
+    use amrex_constants_module, only : ZERO, HALF
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -155,7 +155,7 @@ contains
                              vol,v_lo,v_hi,mass,idir1,idir2) bind(C, name="ca_sumlocmass2d")
 
     use prob_params_module, only: problo, center, probhi, dim, physbc_lo, physbc_hi, Symmetry
-    use bl_constants_module, only : ZERO, HALF
+    use amrex_constants_module, only : ZERO, HALF
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -328,7 +328,7 @@ contains
                                   vol,v_lo,v_hi,mass,idir) bind(C, name="ca_sumlocsquaredmass")
 
     use prob_params_module, only: problo, center, dim
-    use bl_constants_module, only : ZERO, HALF
+    use amrex_constants_module, only : ZERO, HALF
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -383,7 +383,7 @@ contains
   subroutine ca_sumproduct(lo,hi,f1,f1_lo,f1_hi,f2,f2_lo,f2_hi,dx,&
                            vol,v_lo,v_hi,product) bind(C, name="ca_sumproduct")
 
-    use bl_constants_module, only : ZERO
+    use amrex_constants_module, only : ZERO
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none

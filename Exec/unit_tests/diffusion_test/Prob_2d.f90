@@ -1,16 +1,16 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
-  use bl_types
-  use bl_constants_module, only: ZERO, HALF
+  use amrex_constants_module, only: ZERO, HALF
+  use amrex_error_module
+  use amrex_fort_module, only : rt => amrex_real
+
   use prob_params_module, only: center, coord_type
   use probdata_module
-  use bl_error_module
   use eos_type_module, only: eos_t, eos_input_rt
   use eos_module, only : eos
   use network, only : nspec
   use extern_probin_module, only: const_conductivity
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer init, namlen
@@ -29,7 +29,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   type (eos_t) :: eos_state
 
-  if (namlen .gt. maxlen) call bl_error("probin file name too long")
+  if (namlen .gt. maxlen) call amrex_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -112,7 +112,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
   use prob_params_module, only : problo
   use prob_util_module, only : analytic
-  use bl_constants_module, only : ZERO, HALF
+  use amrex_constants_module, only : ZERO, HALF
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none

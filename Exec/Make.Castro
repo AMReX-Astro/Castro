@@ -96,7 +96,7 @@ Bdirs := Source/driver Source/driver/param_includes \
 ifeq ($(USE_GRAV), TRUE)
   Bdirs += Source/gravity
   DEFINES += -DGRAVITY
-  USE_MG = TRUE
+  USE_MLMG = TRUE
 
   ifndef USE_SELF_GRAV
     USE_SELF_GRAV = TRUE
@@ -127,7 +127,7 @@ endif
 ifeq ($(USE_DIFFUSION), TRUE)
   Bdirs += Source/diffusion
   DEFINES += -DDIFFUSION
-  USE_MG = TRUE
+  USE_MLMG = TRUE
 endif
 
 ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
@@ -216,12 +216,6 @@ ifeq ($(USE_MLMG), TRUE)
 endif
 
 Bpack	+= $(foreach dir, $(Pdirs), $(AMREX_HOME)/Src/$(dir)/Make.package)
-
-ifeq ($(USE_MG), TRUE)
-   include $(AMREX_HOME)/Src/LinearSolvers/C_to_F_MG/Make.package
-   include $(AMREX_HOME)/Src/LinearSolvers/F_MG/FParallelMG.mak
-endif
-
 
 #------------------------------------------------------------------------------
 # microphysics 
@@ -346,9 +340,6 @@ mega_f.F90: $(ca_F90EXE_sources) $(ca_f90EXE_sources)
 
 INCLUDE_LOCATIONS += $(Blocs)
 VPATH_LOCATIONS   += $(Blocs)
-
-
-include $(AMREX_HOME)/Src/F_BaseLib/FParallelMG.mak
 
 #------------------------------------------------------------------------------
 # runtime parameters

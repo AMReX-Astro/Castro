@@ -41,8 +41,8 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
                                  limit_fluxes_on_small_dens, ppm_temp_fix
   use advection_util_module, only : limit_hydro_fluxes_on_small_dens, shock, &
                                     divu, normalize_species_fluxes, calc_pdivu
-  use bl_error_module
-  use bl_constants_module, only : ZERO, HALF, ONE, FOURTH
+  use amrex_error_module
+  use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
   use flatten_module, only: uflatten
   use riemann_module, only: riemann_state
   use riemann_util_module, only: compute_flux_q
@@ -156,7 +156,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   ! to do 4th order for axisymmetry, we need to derive the transformations between
   ! averages and cell-centers with the correct volume terms in the integral.
   if (coord_type > 0) then
-     call bl_error("Error: fourth order not implemented for axisymmetric")
+     call amrex_error("Error: fourth order not implemented for axisymmetric")
   endif
 
   ngf = 1
@@ -763,6 +763,6 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 #endif
 #else
   ! RADIATION check
-  call bl_error("ERROR: ca_fourth_single_stage does not support radiation")
+  call amrex_error("ERROR: ca_fourth_single_stage does not support radiation")
 #endif
 end subroutine ca_fourth_single_stage
