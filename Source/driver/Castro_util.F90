@@ -81,7 +81,7 @@ contains
 
 
 
-  subroutine enforce_consistent_e(lo,hi,state,s_lo,s_hi)
+  subroutine ca_enforce_consistent_e(lo,hi,state,s_lo,s_hi) bind(c,name='ca_enforce_consistent_e')
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT
     use amrex_constants_module, only: HALF, ONE
@@ -116,11 +116,11 @@ contains
        end do
     end do
 
-  end subroutine enforce_consistent_e
+  end subroutine ca_enforce_consistent_e
 
 
 
-  subroutine reset_internal_e(lo,hi,u,u_lo,u_hi,verbose)
+  subroutine ca_reset_internal_e(lo,hi,u,u_lo,u_hi,verbose) bind(c,name='ca_reset_internal_e')
 
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
@@ -323,11 +323,11 @@ contains
 
     endif
 
-  end subroutine reset_internal_e
+  end subroutine ca_reset_internal_e
 
 
 
-  subroutine compute_temp(lo,hi,state,s_lo,s_hi)
+  subroutine ca_compute_temp(lo,hi,state,s_lo,s_hi) bind(c,name='ca_compute_temp')
 
     use network, only: nspec, naux
     use eos_module, only: eos
@@ -403,11 +403,11 @@ contains
        enddo
     enddo
 
-  end subroutine compute_temp
+  end subroutine ca_compute_temp
   
 
 
-  subroutine check_initial_species(lo, hi, state, state_lo, state_hi)
+  subroutine ca_check_initial_species(lo, hi, state, state_lo, state_hi) bind(c,name='ca_check_initial_species')
 
     use network           , only: nspec
     use meth_params_module, only: NVAR, URHO, UFS
@@ -441,11 +441,11 @@ contains
        enddo
     enddo
 
-  end subroutine check_initial_species
+  end subroutine ca_check_initial_species
 
 
 
-  subroutine normalize_species(u, u_lo, u_hi, lo, hi)
+  subroutine ca_normalize_species(lo, hi, u, u_lo, u_hi) bind(c,name='ca_normalize_species')
 
     use network, only: nspec
     use meth_params_module, only: NVAR, URHO, UFS
@@ -479,7 +479,7 @@ contains
        enddo
     enddo
 
-  end subroutine normalize_species
+  end subroutine ca_normalize_species
 
 
 
