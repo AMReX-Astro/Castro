@@ -8,10 +8,7 @@ contains
   subroutine ca_prescribe_phi (lo,hi,phi,p_lo,p_hi,dx) &
        bind(C, name="ca_prescribe_phi")
 
-    use bl_constants_module, only: ZERO
-    ! use bl_constants_module, only: HALF
-    ! use fundamental_constants_module, only: Gconst
-    ! use prob_params_module, only: problo, center, dim
+    use amrex_constants_module, only: ZERO
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none

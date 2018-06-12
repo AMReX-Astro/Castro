@@ -23,7 +23,7 @@ contains
 
     use prob_params_module,   only: problo, center
     use meth_params_module,   only: URHO, UMX, UMZ, UEDEN, NVAR
-    use bl_constants_module,  only: ZERO, HALF, ONE
+    use amrex_constants_module,  only: ZERO, HALF, ONE
 #ifdef HYBRID_MOMENTUM
     use meth_params_module,   only: UMR, UMP
     use hybrid_advection_module, only: add_hybrid_momentum_source
@@ -95,7 +95,7 @@ contains
 
   real(rt) function update_factor(r, state, dt)
 
-    use bl_constants_module, only: ZERO, HALF, ONE, M_PI
+    use amrex_constants_module, only: ZERO, HALF, ONE, M_PI
     use meth_params_module, only: sponge_implicit, NVAR, URHO, UTEMP, UFS, UFX
     use actual_network, only: nspec, naux
     use eos_type_module, only: eos_t, eos_input_rt

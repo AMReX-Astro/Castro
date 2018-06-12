@@ -1,6 +1,6 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
-  use bl_error_module
+  use amrex_error_module
   use probdata_module
   use prob_params_module, only: center
   use eos_module
@@ -32,7 +32,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   character probin*(maxlen)
   character (len=256) :: header_line
 
-  if (namlen .gt. maxlen) call bl_error("probin file name too long")
+  if (namlen .gt. maxlen) call amrex_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -75,7 +75,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   xmin = problo(1)
   if (xmin /= 0.e0_rt) then
-     call bl_error("ERROR: xmin should be 0!")
+     call amrex_error("ERROR: xmin should be 0!")
   endif
 
   xmax = probhi(1)
