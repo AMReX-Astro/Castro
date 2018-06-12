@@ -96,7 +96,7 @@ Bdirs := Source/driver Source/driver/param_includes \
 ifeq ($(USE_GRAV), TRUE)
   Bdirs += Source/gravity
   DEFINES += -DGRAVITY
-  USE_MLMG = TRUE
+  USE_MG = TRUE
 
   ifndef USE_SELF_GRAV
     USE_SELF_GRAV = TRUE
@@ -127,7 +127,7 @@ endif
 ifeq ($(USE_DIFFUSION), TRUE)
   Bdirs += Source/diffusion
   DEFINES += -DDIFFUSION
-  USE_MLMG = TRUE
+  USE_MG = TRUE
 endif
 
 ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
@@ -216,6 +216,12 @@ ifeq ($(USE_MLMG), TRUE)
 endif
 
 Bpack	+= $(foreach dir, $(Pdirs), $(AMREX_HOME)/Src/$(dir)/Make.package)
+
+ifeq ($(USE_MG), TRUE)
+   include $(AMREX_HOME)/Src/LinearSolvers/C_to_F_MG/Make.package
+   include $(AMREX_HOME)/Src/LinearSolvers/F_MG/FParallelMG.mak
+endif
+
 
 #------------------------------------------------------------------------------
 # microphysics 
@@ -341,12 +347,15 @@ mega_f.F90: $(ca_F90EXE_sources) $(ca_f90EXE_sources)
 INCLUDE_LOCATIONS += $(Blocs)
 VPATH_LOCATIONS   += $(Blocs)
 
+
+include $(AMREX_HOME)/Src/F_BaseLib/FParallelMG.mak
+
 #------------------------------------------------------------------------------
 # runtime parameters
 #------------------------------------------------------------------------------
 
 # runtime parameter support for extern/ routines
-f90EXE_sources += extern.f90
+F90EXE_sources += extern.F90
 
 EXTERN_TEMPLATE := $(TOP)/Source/driver/extern_probin.template
 
@@ -358,10 +367,17 @@ endif
 
 EXTERN_PARAMETERS := $(shell $(AMREX_HOME)/Tools/F_scripts/findparams.py $(EXTERN_SEARCH))
 
-extern.f90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
+MANAGED_PROBIN_FLAG :=
+ifdef USE_CUDA
+  ifeq ($(USE_CUDA), TRUE)
+    MANAGED_PROBIN_FLAG := --managed
+  endif
+endif
+
+extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
 	$(AMREX_HOME)/Tools/F_scripts/write_probin.py \
-           -t $(EXTERN_TEMPLATE) -o extern.f90 -n extern \
-           --pa "$(EXTERN_PARAMETERS)"
+           -t $(EXTERN_TEMPLATE) -o extern.F90 -n extern \
+           --pa "$(EXTERN_PARAMETERS)" $(MANAGED_PROBIN_FLAG)
 
 #------------------------------------------------------------------------------
 # build info
@@ -419,7 +435,7 @@ $(objEXETempDir)/AMReX_buildInfo.o: .FORCE
 include $(AMREX_HOME)/Tools/GNUMake/Make.rules
 
 clean::
-	$(SILENT) $(RM) extern.f90
+	$(SILENT) $(RM) extern.F90
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
 
 # Older versions of CASTRO generated a "network.f90" file when using
