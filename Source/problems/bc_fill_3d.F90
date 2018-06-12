@@ -134,7 +134,7 @@ contains
 
 #ifdef GRAVITY
   AMREX_LAUNCH subroutine phigravfill(phi, phi_l1, phi_l2, phi_l3, phi_h1, phi_h2, phi_h3, &
-                                      domlo, domhi, delta, xlo, bc)
+                                      domlo, domhi, delta, xlo, time, bc)
 
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
     use amrex_filcc_module, only: amrex_filccn
@@ -146,7 +146,7 @@ contains
     integer,  intent(in   ) :: phi_l1, phi_l2, phi_l3, phi_h1, phi_h2, phi_h3
     integer,  intent(in   ) :: bc(3,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3)
+    real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: phi(phi_l1:phi_h1,phi_l2:phi_h2,phi_l3:phi_h3)
 
     integer :: blo(3), bhi(3), lo(3), hi(3)
@@ -179,7 +179,7 @@ contains
     real(rt), intent(inout) :: phi(phi_l1:phi_h1,phi_l2:phi_h2,phi_l3:phi_h3)
 
 #ifdef CUDA
-    attributes(device) :: phi, phi_l1, phi_l2, phi_l3, phi_h1, phi_h2, phi_h3, bc, domlo, domhi, delta, xlo
+    attributes(device) :: phi, phi_l1, phi_l2, phi_l3, phi_h1, phi_h2, phi_h3, bc, domlo, domhi, delta, xlo, time
 #endif
 
     call phigravfill &
@@ -187,13 +187,13 @@ contains
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (phi, phi_l1, phi_l2, phi_l3, phi_h1, phi_h2, phi_h3, &
-         domlo, domhi, delta, xlo, bc)
+         domlo, domhi, delta, xlo, time, bc)
 
   end subroutine ca_phigravfill
 
 
   AMREX_LAUNCH subroutine gravxfill(grav, grav_l1, grav_l2, grav_l3, grav_h1, grav_h2, grav_h3, &
-                                      domlo, domhi, delta, xlo, bc)
+                                      domlo, domhi, delta, xlo, time, bc)
 
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
     use amrex_filcc_module, only: amrex_filccn
@@ -205,7 +205,7 @@ contains
     integer,  intent(in   ) :: grav_l1, grav_l2, grav_l3, grav_h1, grav_h2, grav_h3
     integer,  intent(in   ) :: bc(3,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3)
+    real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
 
     integer :: blo(3), bhi(3), lo(3), hi(3)
@@ -237,7 +237,8 @@ contains
     real(rt), intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
 
 #ifdef CUDA
-    attributes(device) :: grav, grav_l1, grav_l2, grav_l3, grav_h1, grav_h2, grav_h3, bc, domlo, domhi, delta, xlo
+    attributes(device) :: grav, grav_l1, grav_l2, grav_l3, grav_h1, grav_h2, grav_h3, bc
+    attributes(device) :: domlo, domhi, delta, xlo, time
 #endif
 
     call gravxfill &
@@ -245,13 +246,13 @@ contains
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (grav, grav_l1, grav_l2, grav_l3, grav_h1, grav_h2, grav_h3, &
-         domlo, domhi, delta, xlo, bc)
+         domlo, domhi, delta, xlo, time, bc)
 
   end subroutine ca_gravxfill
 
 
   AMREX_LAUNCH subroutine gravyfill(grav, grav_l1, grav_l2, grav_l3, grav_h1, grav_h2, grav_h3, &
-                                    domlo, domhi, delta, xlo, bc)
+                                    domlo, domhi, delta, xlo, time, bc)
 
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
     use amrex_filcc_module, only: amrex_filccn
@@ -263,7 +264,7 @@ contains
     integer,  intent(in   ) :: grav_l1, grav_l2, grav_l3, grav_h1, grav_h2, grav_h3
     integer,  intent(in   ) :: bc(3,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3)
+    real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
 
     integer :: blo(3), bhi(3), lo(3), hi(3)
@@ -297,7 +298,8 @@ contains
     integer :: grav_lo(3), grav_hi(3)
 
 #ifdef CUDA
-    attributes(device) :: grav, grav_l1, grav_l2, grav_l3, grav_h1, grav_h2, grav_h3, bc, domlo, domhi, delta, xlo
+    attributes(device) :: grav, grav_l1, grav_l2, grav_l3, grav_h1, grav_h2, grav_h3, bc
+    attributes(device) :: domlo, domhi, delta, xlo, time
 #endif
 
     call gravyfill &
@@ -305,13 +307,13 @@ contains
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (grav, grav_l1, grav_l2, grav_l3, grav_h1, grav_h2, grav_h3, &
-         domlo, domhi, delta, xlo, bc)
+         domlo, domhi, delta, xlo, time, bc)
 
   end subroutine ca_gravyfill
 
 
   AMREX_LAUNCH subroutine gravzfill(grav, grav_l1, grav_l2, grav_l3, grav_h1, grav_h2, grav_h3, &
-                                    domlo, domhi, delta, xlo, bc)
+                                    domlo, domhi, delta, xlo, time, bc)
 
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
     use amrex_filcc_module, only: amrex_filccn
@@ -323,7 +325,7 @@ contains
     integer,  intent(in   ) :: grav_l1, grav_l2, grav_l3, grav_h1, grav_h2, grav_h3
     integer,  intent(in   ) :: bc(3,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3)
+    real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
 
     integer :: blo(3), bhi(3), lo(3), hi(3)
@@ -355,7 +357,8 @@ contains
     real(rt), intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
 
 #ifdef CUDA
-    attributes(device) :: grav, grav_l1, grav_l2, grav_l3, grav_h1, grav_h2, grav_h3, bc, domlo, domhi, delta, xlo
+    attributes(device) :: grav, grav_l1, grav_l2, grav_l3, grav_h1, grav_h2, grav_h3, bc
+    attributes(device) :: domlo, domhi, delta, xlo, time
 #endif
 
     call gravzfill &
@@ -363,7 +366,7 @@ contains
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (grav, grav_l1, grav_l2, grav_l3, grav_h1, grav_h2, grav_h3, &
-         domlo, domhi, delta, xlo, bc)
+         domlo, domhi, delta, xlo, time, bc)
 
   end subroutine ca_gravzfill
 #endif
@@ -372,7 +375,7 @@ contains
 
 #ifdef ROTATION
   AMREX_LAUNCH subroutine phirotfill(phi, phi_l1, phi_l2, phi_l3, phi_h1, phi_h2, phi_h3, &
-                                    domlo, domhi, delta, xlo, bc)
+                                    domlo, domhi, delta, xlo, time, bc)
 
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
     use amrex_filcc_module, only: amrex_filccn
@@ -384,7 +387,7 @@ contains
     integer,  intent(in   ) :: phi_l1, phi_l2, phi_l3, phi_h1, phi_h2, phi_h3
     integer,  intent(in   ) :: bc(3,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3)
+    real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: phi(phi_l1:phi_h1,phi_l2:phi_h2,phi_l3:phi_h3)
 
     integer :: blo(3), bhi(3), lo(3), hi(3)
@@ -416,7 +419,7 @@ contains
     real(rt), intent(inout) :: phi(phi_l1:phi_h1,phi_l2:phi_h2,phi_l3:phi_h3)
 
 #ifdef CUDA
-    attributes(device) :: phi, phi_l1, phi_l2, phi_l3, phi_h1, phi_h2, phi_h3, bc, domlo, domhi, delta, xlo
+    attributes(device) :: phi, phi_l1, phi_l2, phi_l3, phi_h1, phi_h2, phi_h3, bc, domlo, domhi, delta, xlo, time
 #endif
 
     call phirotfill &
@@ -424,13 +427,13 @@ contains
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (phi, phi_l1, phi_l2, phi_l3, phi_h1, phi_h2, phi_h3, &
-         domlo, domhi, delta, xlo, bc)
+         domlo, domhi, delta, xlo, time, bc)
 
   end subroutine ca_phirotfill
 
 
   AMREX_LAUNCH subroutine rotxfill(rot, rot_l1, rot_l2, rot_l3, rot_h1, rot_h2, rot_h3, &
-                                    domlo, domhi, delta, xlo, bc)
+                                    domlo, domhi, delta, xlo, time, bc)
 
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
     use amrex_filcc_module, only: amrex_filccn
@@ -442,7 +445,7 @@ contains
     integer,  intent(in   ) :: rot_l1, rot_l2, rot_l3, rot_h1, rot_h2, rot_h3
     integer,  intent(in   ) :: bc(3,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3)
+    real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2,rot_l3:rot_h3)
 
     integer :: blo(3), bhi(3), lo(3), hi(3)
@@ -474,7 +477,7 @@ contains
     real(rt), intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2,rot_l3:rot_h3)
 
 #ifdef CUDA
-    attributes(device) :: rot, rot_l1, rot_l2, rot_l3, rot_h1, rot_h2, rot_h3, bc, domlo, domhi, delta, xlo
+    attributes(device) :: rot, rot_l1, rot_l2, rot_l3, rot_h1, rot_h2, rot_h3, bc, domlo, domhi, delta, xlo, time
 #endif
 
     call rotxfill &
@@ -482,13 +485,13 @@ contains
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (rot, rot_l1, rot_l2, rot_l3, rot_h1, rot_h2, rot_h3, &
-         domlo, domhi, delta, xlo, bc)
+         domlo, domhi, delta, xlo, time, bc)
 
   end subroutine ca_rotxfill
 
 
   AMREX_LAUNCH subroutine rotyfill(rot, rot_l1, rot_l2, rot_l3, rot_h1, rot_h2, rot_h3, &
-                                    domlo, domhi, delta, xlo, bc)
+                                    domlo, domhi, delta, xlo, time, bc)
 
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
     use amrex_filcc_module, only: amrex_filccn
@@ -500,7 +503,7 @@ contains
     integer,  intent(in   ) :: rot_l1, rot_l2, rot_l3, rot_h1, rot_h2, rot_h3
     integer,  intent(in   ) :: bc(3,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3)
+    real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2,rot_l3:rot_h3)
 
     integer :: blo(3), bhi(3), lo(3), hi(3)
@@ -532,7 +535,7 @@ contains
     real(rt), intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2,rot_l3:rot_h3)
 
 #ifdef CUDA
-    attributes(device) :: rot, rot_l1, rot_l2, rot_l3, rot_h1, rot_h2, rot_h3, bc, domlo, domhi, delta, xlo
+    attributes(device) :: rot, rot_l1, rot_l2, rot_l3, rot_h1, rot_h2, rot_h3, bc, domlo, domhi, delta, xlo, time
 #endif
 
     call rotyfill &
@@ -540,13 +543,13 @@ contains
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (rot, rot_l1, rot_l2, rot_l3, rot_h1, rot_h2, rot_h3, &
-         domlo, domhi, delta, xlo, bc)
+         domlo, domhi, delta, xlo, time, bc)
 
   end subroutine ca_rotyfill
 
 
   AMREX_LAUNCH subroutine rotzfill(rot, rot_l1, rot_l2, rot_l3, rot_h1, rot_h2, rot_h3, &
-                                   domlo, domhi, delta, xlo, bc)
+                                   domlo, domhi, delta, xlo, time, bc)
 
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
     use amrex_filcc_module, only: amrex_filccn
@@ -558,7 +561,7 @@ contains
     integer,  intent(in   ) :: rot_l1, rot_l2, rot_l3, rot_h1, rot_h2, rot_h3
     integer,  intent(in   ) :: bc(3,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3)
+    real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2,rot_l3:rot_h3)
 
     integer :: blo(3), bhi(3), lo(3), hi(3)
@@ -590,7 +593,7 @@ contains
     real(rt), intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2,rot_l3:rot_h3)
 
 #ifdef CUDA
-    attributes(device) :: rot, rot_l1, rot_l2, rot_l3, rot_h1, rot_h2, rot_h3, bc, domlo, domhi, delta, xlo
+    attributes(device) :: rot, rot_l1, rot_l2, rot_l3, rot_h1, rot_h2, rot_h3, bc, domlo, domhi, delta, xlo, time
 #endif
 
     call rotzfill &
@@ -598,7 +601,7 @@ contains
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (rot, rot_l1, rot_l2, rot_l3, rot_h1, rot_h2, rot_h3, &
-         domlo, domhi, delta, xlo, bc)
+         domlo, domhi, delta, xlo, time, bc)
 
   end subroutine ca_rotzfill
 #endif
@@ -607,7 +610,7 @@ contains
 
 #ifdef REACTIONS
   AMREX_LAUNCH subroutine reactfill(react, react_l1, react_l2, react_l3, react_h1, react_h2, react_h3, &
-                                    domlo, domhi, delta, xlo, bc)
+                                    domlo, domhi, delta, xlo, time, bc)
 
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
     use amrex_filcc_module, only: amrex_filccn
@@ -619,7 +622,7 @@ contains
     integer,  intent(in   ) :: react_l1, react_l2, react_l3, react_h1, react_h2, react_h3
     integer,  intent(in   ) :: bc(3,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3)
+    real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: react(react_l1:react_h1,react_l2:react_h2,react_l3:react_h3)
 
     integer :: blo(3), bhi(3), lo(3), hi(3)
@@ -651,7 +654,7 @@ contains
     real(rt), intent(inout) :: react(react_l1:react_h1,react_l2:react_h2,react_l3:react_h3)
 
 #ifdef CUDA
-    attributes(device) :: react, react_l1, react_l2, react_l3, react_h1, react_h2, react_h3, bc, domlo, domhi, delta, xlo
+    attributes(device) :: react, react_l1, react_l2, react_l3, react_h1, react_h2, react_h3, bc, domlo, domhi, delta, xlo, time
 #endif
 
     call reactfill &
@@ -659,7 +662,7 @@ contains
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (react, react_l1, react_l2, react_l3, react_h1, react_h2, react_h3, &
-         domlo, domhi, delta, xlo, bc)
+         domlo, domhi, delta, xlo, time, bc)
 
   end subroutine ca_reactfill
 #endif
@@ -668,7 +671,7 @@ contains
 
 #ifdef RADIATION
   AMREX_LAUNCH subroutine radfill(rad, rad_l1, rad_l2, rad_l3, rad_h1, rad_h2, rad_h3, &
-                                  domlo, domhi, delta, xlo, bc)
+                                  domlo, domhi, delta, xlo, time, bc)
 
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
     use amrex_filcc_module, only: amrex_filccn
@@ -680,7 +683,7 @@ contains
     integer,  intent(in   ) :: rad_l1, rad_l2, rad_l3, rad_h1, rad_h2, rad_h3
     integer,  intent(in   ) :: bc(3,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3)
+    real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: rad(rad_l1:rad_h1,rad_l2:rad_h2,rad_l3:rad_h3)
 
     integer :: blo(3), bhi(3), lo(3), hi(3)
@@ -694,7 +697,7 @@ contains
 
     call get_loop_bounds(blo, bhi, lo, hi)
 
-    call amrex_filccn(blo, bhi, rad, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(blo, bhi, rad, lo, hi, 1, domlo, domhi, delta, xlo, time, bc)
 
   end subroutine radfill
 
@@ -712,7 +715,7 @@ contains
     real(rt), intent(inout) :: rad(rad_l1:rad_h1,rad_l2:rad_h2,rad_l3:rad_h3)
 
 #ifdef CUDA
-    attributes(device) :: rad, rad_l1, rad_l2, rad_l3, rad_h1, rad_h2, rad_h3, bc, domlo, domhi, delta, xlo
+    attributes(device) :: rad, rad_l1, rad_l2, rad_l3, rad_h1, rad_h2, rad_h3, bc, domlo, domhi, delta, xlo, time
 #endif
 
     call radfill &
@@ -720,7 +723,7 @@ contains
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (rad, rad_l1, rad_l2, rad_l3, rad_h1, rad_h2, rad_h3, &
-         domlo, domhi, delta, xlo, bc)
+         domlo, domhi, delta, xlo, time, bc)
 
   end subroutine ca_radfill
 #endif
