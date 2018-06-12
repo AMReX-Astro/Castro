@@ -146,6 +146,7 @@
          ! uCF returned as a cell-averaged quantity so all components are the same,
          !  can just use the first component
          ! Update_IMEX_PC2 doesn't currently change the fluid state
+
 !         dS(ic,jc,kc,URHO ) = uCF(1,i,j,k,iCF_D) - S(i,j,k,URHO)
 !         dS(ic,jc,kc,UMX  ) = uCF(1,i,j,k,iCF_S1) - S(i,j,k,UMX)
 !         dS(ic,jc,kc,UMY  ) = uCF(1,i,j,k,iCF_S2) - S(i,j,k,UMY)
@@ -159,8 +160,10 @@
          do ie = 1, nE
          do id = 1, nDOF
             ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
+
             if (im .eq. 1) U_R_n(ic,jc,kc,ii) = uCR(id,ie,i,j,k,im,is)/conv_J
             if (im > 1) U_R_n(ic,jc,kc,ii)    = uCR(id,ie,i,j,k,im,is)/conv_H
+
          end do
          end do
          end do
