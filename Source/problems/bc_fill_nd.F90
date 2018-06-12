@@ -18,7 +18,7 @@ contains
   ! All subroutines in this file must be threadsafe because they are called
   ! inside OpenMP parallel regions.
 
-  AMREX_LAUNCH subroutine hypfill(adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, bc)
+  AMREX_LAUNCH subroutine hypfill(adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
 
     use meth_params_module, only: NVAR
     use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
@@ -31,7 +31,7 @@ contains
     integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
     integer,  intent(in   ) :: bc(3,2,NVAR)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3)
+    real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3),NVAR)
 
     integer  :: blo(3), bhi(3)
@@ -57,14 +57,14 @@ contains
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3),NVAR)
 
 #ifdef CUDA
-    attributes(device) :: adv, adv_lo, adv_hi, bc, delta, xlo, domlo, domhi
+    attributes(device) :: adv, adv_lo, adv_hi, bc, delta, xlo, domlo, domhi, time
 #endif
 
     call hypfill &
 #ifdef CUDA
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
-         (adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, bc)
+         (adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
 
   end subroutine ca_hypfill
 
