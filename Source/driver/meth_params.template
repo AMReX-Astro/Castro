@@ -8,17 +8,17 @@
 module meth_params_module
 
   use amrex_error_module
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   ! number of ghost cells for the hyperbolic solver
   integer, parameter     :: NHYP    = 4
 
   ! conservative variables
-  integer, save :: NVAR
-  integer, save :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
-  integer, save :: USHK
+  integer, allocatable, save :: NVAR
+  integer, allocatable, save :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
+  integer, allocatable, save :: USHK
 
   ! primitive variables
   integer, save :: QVAR
@@ -75,6 +75,12 @@ module meth_params_module
   ! Create versions of these variables on the GPU
   ! the device update is then done in Castro_nd.f90
 
+#ifdef CUDA
+  attributes(managed) :: NVAR
+  attributes(managed) :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
+  attributes(managed) :: USHK
+#endif
+
   !$acc declare &
   !$acc create(NVAR) &
   !$acc create(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS,UFX) &
@@ -110,6 +116,10 @@ contains
 
     type (amrex_parmparse) :: pp
 
+
+    allocate(NVAR)
+    allocate(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX)
+    allocate(USHK)
 
     @@set_castro_params@@
 
@@ -177,6 +187,10 @@ contains
 
   subroutine ca_finalize_meth_params() bind(C, name="ca_finalize_meth_params")
     implicit none
+
+    deallocate(NVAR)
+    deallocate(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX)
+    deallocate(USHK)
 
     @@free_castro_params@@
     
