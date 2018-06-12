@@ -623,11 +623,27 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   integer,  intent(in) :: coord_type_in
   real(rt), intent(in) :: problo_in(dm), probhi_in(dm), center_in(dm)
 
+  allocate(dim)
+
   dim = dm
+
+  allocate(physbc_lo(3))
+  allocate(physbc_hi(3))
 
   physbc_lo(1:dm) = physbc_lo_in(1:dm)
   physbc_hi(1:dm) = physbc_hi_in(1:dm)
 
+  allocate(Interior)
+  allocate(Inflow)
+  allocate(Outflow)
+  allocate(Symmetry)
+  allocate(SlipWall)
+  allocate(NoSlipWall)
+
+  allocate(center(3))
+  allocate(problo(3))
+  allocate(probhi(3))
+  
   Interior   = Interior_in
   Inflow     = Inflow_in
   Outflow    = Outflow_in
@@ -644,6 +660,8 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   problo(1:dm) = problo_in(1:dm)
   probhi(1:dm) = probhi_in(1:dm)
   center(1:dm) = center_in(1:dm)
+
+  allocate(dg(3))
 
   dg(:) = 1
 
