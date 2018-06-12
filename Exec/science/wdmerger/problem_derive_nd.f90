@@ -6,7 +6,7 @@ subroutine ca_derinertialmomentumx(p,p_lo,p_hi,ncomp_p, &
                                    dx,xlo,time,dt,bc,level,grid_no) &
                                    bind(C,name='ca_derinertialmomentumx')
 
-  use bl_constants_module, only: HALF
+  use amrex_constants_module, only: HALF
   use wdmerger_util_module, only: inertial_velocity
   use prob_params_module, only: center
 
@@ -51,7 +51,7 @@ subroutine ca_derinertialmomentumy(p,p_lo,p_hi,ncomp_p, &
                                    dx,xlo,time,dt,bc,level,grid_no) &
                                    bind(C,name='ca_derinertialmomentumy')
 
-  use bl_constants_module, only: HALF
+  use amrex_constants_module, only: HALF
   use wdmerger_util_module, only: inertial_velocity
   use prob_params_module, only: center
 
@@ -96,7 +96,7 @@ subroutine ca_derinertialmomentumz(p,p_lo,p_hi,ncomp_p, &
                                    dx,xlo,time,dt,bc,level,grid_no) &
                                    bind(C,name='ca_derinertialmomentumz')
 
-  use bl_constants_module, only: HALF
+  use amrex_constants_module, only: HALF
   use wdmerger_util_module, only: inertial_velocity
   use prob_params_module, only: center
 
@@ -141,7 +141,7 @@ subroutine ca_derinertialangmomx(L,L_lo,L_hi,ncomp_L, &
                                  dx,xlo,time,dt,bc,level,grid_no) &
                                  bind(C,name='ca_derinertialangmomx')
 
-  use bl_constants_module, only: HALF
+  use amrex_constants_module, only: HALF
   use math_module, only: cross_product
   use wdmerger_util_module, only: inertial_velocity
   use prob_params_module, only: center
@@ -186,7 +186,7 @@ subroutine ca_derinertialangmomy(L,L_lo,L_hi,ncomp_L, &
                                  dx,xlo,time,dt,bc,level,grid_no) &
                                  bind(C,name='ca_derinertialangmomy')
 
-  use bl_constants_module, only: HALF
+  use amrex_constants_module, only: HALF
   use math_module, only: cross_product
   use wdmerger_util_module, only: inertial_velocity
   use prob_params_module, only: center
@@ -231,7 +231,7 @@ subroutine ca_derinertialangmomz(L,L_lo,L_hi,ncomp_L, &
                                  dx,xlo,time,dt,bc,level,grid_no) &
                                  bind(C,name='ca_derinertialangmomz')
 
-  use bl_constants_module, only: HALF
+  use amrex_constants_module, only: HALF
   use math_module, only: cross_product
   use wdmerger_util_module, only: inertial_velocity
   use prob_params_module, only: center
@@ -278,7 +278,7 @@ subroutine ca_derinertialradmomx(R,R_lo,R_hi,ncomp_R, &
                                  dx,xlo,time,dt,bc,level,grid_no) &
                                  bind(C,name='ca_derinertialradmomx')
 
-  use bl_constants_module, only: HALF, ONE
+  use amrex_constants_module, only: HALF, ONE
   use wdmerger_util_module, only: inertial_velocity
   use prob_params_module, only: center
 
@@ -322,7 +322,7 @@ subroutine ca_derinertialradmomy(R,R_lo,R_hi,ncomp_R, &
                                  dx,xlo,time,dt,bc,level,grid_no) &
                                  bind(C,name='ca_derinertialradmomy')
 
-  use bl_constants_module, only: HALF, ONE
+  use amrex_constants_module, only: HALF, ONE
   use wdmerger_util_module, only: inertial_velocity
   use prob_params_module, only: center
 
@@ -366,7 +366,7 @@ subroutine ca_derinertialradmomz(R,R_lo,R_hi,ncomp_R, &
                                  dx,xlo,time,dt,bc,level,grid_no) &
                                  bind(C,name='ca_derinertialradmomz')
 
-  use bl_constants_module, only: HALF, ONE
+  use amrex_constants_module, only: HALF, ONE
   use wdmerger_util_module, only: inertial_velocity
   use prob_params_module, only: center
 
@@ -447,7 +447,7 @@ subroutine ca_derphieffpm_p(phi,phi_lo,phi_hi,ncomp_phi, &
                             lo,hi,domlo,domhi, &
                             dx,xlo,time,dt,bc,level,grid_no) bind(C,name='ca_derphieffpm_p')
 
-  use bl_constants_module, only: ZERO, HALF
+  use amrex_constants_module, only: ZERO, HALF
   use probdata_module, only: mass_P, com_P
   use fundamental_constants_module, only: Gconst
 
@@ -496,7 +496,7 @@ subroutine ca_derphieffpm_s(phi,phi_lo,phi_hi,ncomp_phi, &
                             lo,hi,domlo,domhi, &
                             dx,xlo,time,dt,bc,level,grid_no) bind(C,name='ca_derphieffpm_s')
 
-  use bl_constants_module, only: ZERO, HALF
+  use amrex_constants_module, only: ZERO, HALF
   use probdata_module, only: mass_S, com_S
   use fundamental_constants_module, only: Gconst
 
@@ -614,7 +614,7 @@ subroutine ca_derprimarymask(mask,mask_lo,mask_hi,ncomp_mask, &
                              lo,hi,domlo,domhi, &
                              dx,xlo,time,dt,bc,level,grid_no) bind(C,name='ca_derprimarymask')
 
-  use bl_constants_module, only: ZERO, HALF, ONE
+  use amrex_constants_module, only: ZERO, HALF, ONE
   use probdata_module, only: mass_P, com_P, mass_S, com_S, stellar_density_threshold
   use fundamental_constants_module, only: Gconst
 
@@ -675,7 +675,7 @@ subroutine ca_dersecondarymask(mask,mask_lo,mask_hi,ncomp_mask, &
                                lo,hi,domlo,domhi, &
                                dx,xlo,time,dt,bc,level,grid_no) bind(C,name='ca_dersecondarymask')
 
-  use bl_constants_module, only: ZERO, HALF, ONE
+  use amrex_constants_module, only: ZERO, HALF, ONE
   use probdata_module, only: mass_P, com_P, mass_S, com_S, stellar_density_threshold
   use fundamental_constants_module, only: Gconst
 

@@ -2,12 +2,12 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use eos_module, only: eos
   use eos_type_module, only: eos_t, eos_input_rt
-  use bl_error_module, only: bl_error
+  use amrex_error_module
   use network, only: nspec
   use probdata_module
   use extern_probin_module
   use amrex_fort_module, only : rt => amrex_real
-  use bl_constants_module, only: ZERO, ONE
+  use amrex_constants_module, only: ZERO, ONE
 
   implicit none
 
@@ -30,7 +30,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   character probin*(maxlen)
 
   if (namlen .gt. maxlen) then
-     call bl_error("probin file name too long")
+     call amrex_error("probin file name too long")
   end if
 
   do i = 1, namlen
@@ -100,7 +100,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
   use eos_module, only: eos
   use amrex_fort_module, only : rt => amrex_real
-  use bl_constants_module, only: ZERO, ONE
+  use amrex_constants_module, only: ZERO, ONE
 
   implicit none
 

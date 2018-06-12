@@ -1,5 +1,6 @@
 module rotation_frequency_module
 
+  use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -13,7 +14,7 @@ contains
 
     use prob_params_module, only: coord_type
     use meth_params_module, only: rot_period, rot_period_dot, rot_axis
-    use bl_constants_module, only: ZERO, TWO, M_PI
+    use amrex_constants_module, only: ZERO, TWO, M_PI
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -45,7 +46,7 @@ contains
 
     else
 
-       call bl_error("Error:: rotation_nd.f90 :: invalid coord_type")
+       call amrex_error("Error:: rotation_nd.f90 :: invalid coord_type")
 
     endif
 
@@ -57,7 +58,7 @@ contains
 
     use prob_params_module, only: coord_type
     use meth_params_module, only: rot_period, rot_period_dot, rot_axis
-    use bl_constants_module, only: ZERO, TWO, M_PI
+    use amrex_constants_module, only: ZERO, TWO, M_PI
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -85,7 +86,7 @@ contains
 
     else
 
-       call bl_error("Error:: rotation_nd.f90 :: unknown coord_type")
+       call amrex_error("Error:: rotation_nd.f90 :: unknown coord_type")
 
     endif
 

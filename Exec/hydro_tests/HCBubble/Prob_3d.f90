@@ -2,7 +2,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use eos_module
   use eos_type_module
-  use bl_error_module 
+  use amrex_error_module 
   use network
   use probdata_module
 
@@ -30,7 +30,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   character probin*(maxlen)
 
   if (namlen .gt. maxlen) then
-     call bl_error("probin file name too long")
+     call amrex_error("probin file name too long")
   end if
 
   do i = 1, namlen
@@ -143,10 +143,12 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3, &
                        delta,xlo,xhi)
 
+  use amrex_error_module 
+  use amrex_fort_module, only : rt => amrex_real
+
   use network, only: nspec
   use probdata_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer level, nscal
@@ -211,7 +213,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
               endif
               
            else
-              call bl_abort('invalid idir')
+              call amrex_abort('invalid idir')
            endif
  
            state(i,j,k,UFS:UFS-1+nspec) = 0.0e0_rt

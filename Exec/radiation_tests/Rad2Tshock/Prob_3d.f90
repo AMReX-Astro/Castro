@@ -2,8 +2,9 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   use probdata_module
   use network, only : network_init
-
   use amrex_fort_module, only : rt => amrex_real
+  use amrex_error_module, only: amrex_error
+
   implicit none
 
   integer init, namlen
@@ -16,8 +17,8 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   integer, parameter ::  maxlen = 256
   character probin*(maxlen)
 
-  if (namlen > maxlen) call bl_error("probin file name too long")
-    
+  if (namlen > maxlen) call amrex_error("probin file name too long")
+
   do i = 1, namlen
      probin(i:i) = char(name(i))
   end do

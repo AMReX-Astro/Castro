@@ -1,5 +1,6 @@
 module gravity_3D_module
 
+  use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -53,7 +54,7 @@ contains
        radial_mass,radial_vol,problo,&
        n1d,drdxfac,level) bind(C, name="ca_compute_radial_mass")
 
-    use bl_constants_module
+    use amrex_constants_module
     use prob_params_module, only: center
     use meth_params_module, only: NVAR, URHO
 
@@ -117,7 +118,7 @@ contains
                    print *,'>>> Error: Gravity_3d::ca_compute_radial_mass ',i,j,k
                    print *,'>>> ... index too big: ', index,' > ',n1d-1
                    print *,'>>> ... at (i,j,k)   : ',i,j,k
-                   call bl_error("Error:: Gravity_3d.f90 :: ca_compute_radial_mass")
+                   call amrex_error("Error:: Gravity_3d.f90 :: ca_compute_radial_mass")
                 end if
 
              else
@@ -156,7 +157,7 @@ contains
        grav,g_l1,g_l2,g_l3,g_h1,g_h2,g_h3, &
        radial_grav,problo,n1d,level) bind(C, name="ca_put_radial_grav")
 
-    use bl_constants_module
+    use amrex_constants_module
     use prob_params_module, only: center
 
     use amrex_fort_module, only : rt => amrex_real
@@ -211,7 +212,7 @@ contains
                    print *,'AT (i,j,k) ',i,j,k
                    print *,'X Y Z ',x,y,z
                    print *,'R / DR ',r,dr
-                   call bl_error("Error:: Gravity_3d.f90 :: ca_put_radial_grav")
+                   call amrex_error("Error:: Gravity_3d.f90 :: ca_put_radial_grav")
                 else
                    ! NOTE: we don't do anything to this point if it's outside the
                    !       radial grid and level > 0
@@ -253,7 +254,7 @@ contains
        radial_phi,problo,&
        numpts_1d,fill_interior) bind(C, name="ca_put_radial_phi")
 
-    use bl_constants_module
+    use amrex_constants_module
     use prob_params_module, only: center
 
     use amrex_fort_module, only : rt => amrex_real
@@ -312,7 +313,7 @@ contains
                 print *,'PUT_RADIAL_PHI: INDEX TOO BIG ',index,' > ',numpts_1d-1
                 print *,'AT (i,j) ',i,j,k
                 print *,'R / DR IS ',r,dr
-                call bl_error("Error:: Gravity_3d.f90 :: ca_put_radial_phi")
+                call amrex_error("Error:: Gravity_3d.f90 :: ca_put_radial_phi")
              end if
 
              if ( (fill_interior .eq. 1) .or. &
@@ -369,7 +370,7 @@ contains
                                        bclo, bchi, bcdx) bind(C, name="ca_compute_direct_sum_bc")
 
     use fundamental_constants_module, only: Gconst
-    use bl_constants_module
+    use amrex_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -707,7 +708,7 @@ contains
        rho,dV,doSymmetricAddLo,doSymmetricAddHi) result(bcTerm)
 
     use fundamental_constants_module, only: Gconst
-    use bl_constants_module
+    use amrex_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none

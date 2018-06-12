@@ -25,9 +25,6 @@ FEXE_headers += Derive_F.H
 ca_F90EXE_sources += generic_fill.F90
 
 ca_F90EXE_sources += castro_c_interfaces_nd.F90
-ifeq ($(USE_CUDA), TRUE)
-  ca_F90EXE_sources += castro_cuda_interfaces_nd.F90
-endif
 
 ca_F90EXE_sources += Castro_nd.F90
 ca_F90EXE_sources += Castro_util.F90
@@ -57,7 +54,7 @@ ifdef NEED_MGUTIL
   endif
 endif
 
-ca_f90EXE_sources += prob_params.f90
+ca_F90EXE_sources += prob_params.F90
 ca_f90EXE_sources += sums_nd.f90
 ca_f90EXE_sources += Tagging_nd.f90
 ca_F90EXE_sources += timestep.F90

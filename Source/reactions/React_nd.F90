@@ -32,7 +32,7 @@ contains
     use amrinfo_module, only : amr_level
     use burner_module
     use burn_type_module
-    use bl_constants_module
+    use amrex_constants_module
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use amrex_fort_module, only : rt => amrex_real
@@ -229,7 +229,7 @@ contains
     use meth_params_module, only : USHK, disable_shock_burning
 #endif
     use integrator_module, only : integrator
-    use bl_constants_module, only : ZERO, HALF, ONE
+    use amrex_constants_module, only : ZERO, HALF, ONE
     use sdc_type_module, only : sdc_t, SRHO, SMX, SMZ, SEDEN, SEINT, SFS
 
     use amrex_fort_module, only : rt => amrex_real

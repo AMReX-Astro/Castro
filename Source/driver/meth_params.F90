@@ -12,18 +12,18 @@
 
 module meth_params_module
 
-  use bl_error_module
+  use amrex_error_module
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   ! number of ghost cells for the hyperbolic solver
   integer, parameter     :: NHYP    = 4
 
   ! conservative variables
-  integer, save :: NVAR
-  integer, save :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
-  integer, save :: USHK
+  integer, allocatable, save :: NVAR
+  integer, allocatable, save :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
+  integer, allocatable, save :: USHK
 
   ! primitive variables
   integer, save :: QVAR
@@ -79,6 +79,12 @@ module meth_params_module
 
   ! Create versions of these variables on the GPU
   ! the device update is then done in Castro_nd.f90
+
+#ifdef CUDA
+  attributes(managed) :: NVAR
+  attributes(managed) :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
+  attributes(managed) :: USHK
+#endif
 
   !$acc declare &
   !$acc create(NVAR) &
@@ -223,6 +229,10 @@ contains
     type (amrex_parmparse) :: pp
 
 
+    allocate(NVAR)
+    allocate(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX)
+    allocate(USHK)
+
     const_grav = 0.0d0;
     get_g_from_phi = 0;
 
@@ -232,26 +242,6 @@ contains
     call amrex_parmparse_destroy(pp)
 
 
-#ifdef DIFFUSION
-    diffuse_cutoff_density = -1.d200;
-    diffuse_cond_scale_fac = 1.0d0;
-#endif
-#ifdef ROTATION
-    rot_period = -1.d200;
-    rot_period_dot = 0.0d0;
-    rotation_include_centrifugal = 1;
-    rotation_include_coriolis = 1;
-    rotation_include_domegadt = 1;
-    state_in_rotating_frame = 1;
-    rot_source_type = 4;
-    implicit_rotation_update = 1;
-    rot_axis = 3;
-#endif
-#ifdef POINTMASS
-    use_point_mass = 1;
-    point_mass = 0.0d0;
-    point_mass_fix_solution = 0;
-#endif
     difmag = 0.1d0;
     small_dens = -1.d200;
     small_temp = -1.d200;
@@ -323,28 +313,28 @@ contains
     do_acc = -1;
     grown_factor = 1;
     track_grid_losses = 0;
-
-    call amrex_parmparse_build(pp, "castro")
 #ifdef DIFFUSION
-    call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
-    call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
+    diffuse_cutoff_density = -1.d200;
+    diffuse_cond_scale_fac = 1.0d0;
 #endif
 #ifdef ROTATION
-    call pp%query("rotational_period", rot_period)
-    call pp%query("rotational_dPdt", rot_period_dot)
-    call pp%query("rotation_include_centrifugal", rotation_include_centrifugal)
-    call pp%query("rotation_include_coriolis", rotation_include_coriolis)
-    call pp%query("rotation_include_domegadt", rotation_include_domegadt)
-    call pp%query("state_in_rotating_frame", state_in_rotating_frame)
-    call pp%query("rot_source_type", rot_source_type)
-    call pp%query("implicit_rotation_update", implicit_rotation_update)
-    call pp%query("rot_axis", rot_axis)
+    rot_period = -1.d200;
+    rot_period_dot = 0.0d0;
+    rotation_include_centrifugal = 1;
+    rotation_include_coriolis = 1;
+    rotation_include_domegadt = 1;
+    state_in_rotating_frame = 1;
+    rot_source_type = 4;
+    implicit_rotation_update = 1;
+    rot_axis = 3;
 #endif
 #ifdef POINTMASS
-    call pp%query("use_point_mass", use_point_mass)
-    call pp%query("point_mass", point_mass)
-    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
+    use_point_mass = 1;
+    point_mass = 0.0d0;
+    point_mass_fix_solution = 0;
 #endif
+
+    call amrex_parmparse_build(pp, "castro")
     call pp%query("difmag", difmag)
     call pp%query("small_dens", small_dens)
     call pp%query("small_temp", small_temp)
@@ -410,6 +400,26 @@ contains
     call pp%query("do_acc", do_acc)
     call pp%query("grown_factor", grown_factor)
     call pp%query("track_grid_losses", track_grid_losses)
+#ifdef DIFFUSION
+    call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
+    call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
+#endif
+#ifdef ROTATION
+    call pp%query("rotational_period", rot_period)
+    call pp%query("rotational_dPdt", rot_period_dot)
+    call pp%query("rotation_include_centrifugal", rotation_include_centrifugal)
+    call pp%query("rotation_include_coriolis", rotation_include_coriolis)
+    call pp%query("rotation_include_domegadt", rotation_include_domegadt)
+    call pp%query("state_in_rotating_frame", state_in_rotating_frame)
+    call pp%query("rot_source_type", rot_source_type)
+    call pp%query("implicit_rotation_update", implicit_rotation_update)
+    call pp%query("rot_axis", rot_axis)
+#endif
+#ifdef POINTMASS
+    call pp%query("use_point_mass", use_point_mass)
+    call pp%query("point_mass", point_mass)
+    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
+#endif
     call amrex_parmparse_destroy(pp)
 
 
@@ -506,6 +516,10 @@ contains
   subroutine ca_finalize_meth_params() bind(C, name="ca_finalize_meth_params")
     implicit none
 
+    deallocate(NVAR)
+    deallocate(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX)
+    deallocate(USHK)
+
     if (allocated(xl_ext_bc_type)) then
         deallocate(xl_ext_bc_type)
     end if
@@ -551,7 +565,7 @@ contains
     end if
     
     if (fsp_type_in .ne. 1 .and. fsp_type_in .ne. 2) then
-       call bl_error("Unknown fspace_type", fspace_type)
+       call amrex_error("Unknown fspace_type", fspace_type)
     end if
     
     do_inelastic_scattering = (do_is_in .ne. 0)
@@ -561,7 +575,7 @@ contains
     else if (com_in .eq. 0) then
        comoving = .false.
     else
-       call bl_error("Wrong value for comoving", fspace_type)
+       call amrex_error("Wrong value for comoving", fspace_type)
     end if
     
     flatten_pp_threshold = fppt

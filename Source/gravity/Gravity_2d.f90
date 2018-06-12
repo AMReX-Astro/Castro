@@ -1,5 +1,6 @@
 module gravity_2D_module
 
+  use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -13,7 +14,7 @@ contains
        ecy, ecyl1, ecyl2, ecyh1, ecyh2, &
        dx,problo,coord_type) bind(C, name="ca_test_residual")
 
-    use bl_constants_module
+    use amrex_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -65,7 +66,7 @@ contains
     else
 
        print *,'Bogus coord_type in test_residual ' ,coord_type
-       call bl_error("Error:: Gravity_2d.f90 :: ca_test_residual")
+       call amrex_error("Error:: Gravity_2d.f90 :: ca_test_residual")
 
     end if
 
@@ -78,7 +79,7 @@ contains
        radial_mass,radial_vol,problo, &
        n1d,drdxfac,level) bind(C, name="ca_compute_radial_mass")
     
-    use bl_constants_module
+    use amrex_constants_module
     use prob_params_module, only: center
     use meth_params_module, only: NVAR, URHO
 
@@ -131,7 +132,7 @@ contains
                 print *,'>>> ... index too big: ', index,' > ',n1d-1
                 print *,'>>> ... at (i,j)     : ',i,j
                 print *,'    ' 
-                call bl_error("Error:: Gravity_2d.f90 :: ca_compute_radial_mass")
+                call amrex_error("Error:: Gravity_2d.f90 :: ca_compute_radial_mass")
              end if
 
           else
@@ -169,7 +170,7 @@ contains
        radial_grav,problo,n1d,level) bind(C, name="ca_put_radial_grav")
 
     use prob_params_module, only: center
-    use bl_constants_module
+    use amrex_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -212,7 +213,7 @@ contains
                 print *,'PUT_RADIAL_GRAV: INDEX TOO BIG ',index,' > ',n1d-1
                 print *,'AT (i,j) ',i,j
                 print *,'R / DR IS ',r,dr
-                call bl_error("Error:: Gravity_2d.f90 :: ca_put_radial_grav")
+                call amrex_error("Error:: Gravity_2d.f90 :: ca_put_radial_grav")
              else 
                 ! NOTE: we don't do anything to this point if it's outside the
                 !       radial grid and level > 0
@@ -250,7 +251,7 @@ contains
        numpts_1d,fill_interior) bind(C, name="ca_put_radial_phi")
 
     use prob_params_module, only: center
-    use bl_constants_module
+    use amrex_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -295,7 +296,7 @@ contains
              print *,'PUT_RADIAL_PHI: INDEX TOO BIG ',index,' > ',numpts_1d-1
              print *,'AT (i,j) ',i,j
              print *,'R / DR IS ',r,dr
-             call bl_error("Error:: Gravity_2d.f90 :: ca_put_radial_phi")
+             call amrex_error("Error:: Gravity_2d.f90 :: ca_put_radial_phi")
           end if
 
           if (  (fill_interior .eq. 1) .or. &

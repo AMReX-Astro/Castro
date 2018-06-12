@@ -119,7 +119,7 @@ Castro::advance (Real time,
 
     // Optionally kill the job at this point, if we've detected a violation.
 
-    if (cfl_violation && hard_cfl_limit)
+    if (cfl_violation && hard_cfl_limit && !use_retry)
         amrex::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
 
     // If we didn't kill the job, reset the violation counter.
@@ -273,7 +273,7 @@ Castro::do_advance (Real time,
       check_for_cfl_violation(dt);
 
       // If we detect one, return immediately.
-      if (cfl_violation)
+      if (cfl_violation && hard_cfl_limit)
           return dt;
 
       construct_hydro_source(time, dt);
@@ -1231,7 +1231,7 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
         // If we have hit a CFL violation during this subcycle, we must abort.
 
         if (cfl_violation && hard_cfl_limit)
-            amrex::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
+            amrex::Abort("CFL is too high at this level, and we are already inside a retry -- go back to a checkpoint and restart with lower cfl number");
 
     }
 

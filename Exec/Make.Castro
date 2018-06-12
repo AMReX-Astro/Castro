@@ -355,7 +355,7 @@ include $(AMREX_HOME)/Src/F_BaseLib/FParallelMG.mak
 #------------------------------------------------------------------------------
 
 # runtime parameter support for extern/ routines
-f90EXE_sources += extern.f90
+F90EXE_sources += extern.F90
 
 EXTERN_TEMPLATE := $(TOP)/Source/driver/extern_probin.template
 
@@ -367,10 +367,17 @@ endif
 
 EXTERN_PARAMETERS := $(shell $(AMREX_HOME)/Tools/F_scripts/findparams.py $(EXTERN_SEARCH))
 
-extern.f90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
+MANAGED_PROBIN_FLAG :=
+ifdef USE_CUDA
+  ifeq ($(USE_CUDA), TRUE)
+    MANAGED_PROBIN_FLAG := --managed
+  endif
+endif
+
+extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
 	$(AMREX_HOME)/Tools/F_scripts/write_probin.py \
-           -t $(EXTERN_TEMPLATE) -o extern.f90 -n extern \
-           --pa "$(EXTERN_PARAMETERS)"
+           -t $(EXTERN_TEMPLATE) -o extern.F90 -n extern \
+           --pa "$(EXTERN_PARAMETERS)" $(MANAGED_PROBIN_FLAG)
 
 #------------------------------------------------------------------------------
 # build info
@@ -428,16 +435,18 @@ $(objEXETempDir)/AMReX_buildInfo.o: .FORCE
 include $(AMREX_HOME)/Tools/GNUMake/Make.rules
 
 clean::
-	$(SILENT) $(RM) extern.f90
+	$(SILENT) $(RM) extern.F90
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
 
 # Older versions of CASTRO generated a "network.f90" file when using
 # the general_null network, which conflicts with our generalized
 # network.f90 file.  So we should delete the local copy if we are
 # trying to rebuild from an old directory.
+# The same is true for "extern.f90".
 
 clean::
 	$(RM) network.f90
+	$(RM) extern.f90
 	@if [ -L helm_table.dat ]; then rm -f helm_table.dat; fi
 
 

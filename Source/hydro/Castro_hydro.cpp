@@ -480,7 +480,6 @@ Castro::cons_to_prim(const Real time)
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
         const Box& qbx = mfi.growntilebox(NUM_GROW);
-        const int idx = mfi.tileIndex();
 
         // Convert the conservative state to the primitive variable state.
         // This fills both q and qaux.
@@ -492,8 +491,7 @@ Castro::cons_to_prim(const Real time)
                    BL_TO_FORTRAN_ANYD(lamborder[mfi]),
 #endif
                    BL_TO_FORTRAN_ANYD(q[mfi]),
-                   BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                   &idx);
+                   BL_TO_FORTRAN_ANYD(qaux[mfi]));
 
         // Convert the source terms expressed as sources to the conserved state to those
         // expressed as sources for the primitive state.
@@ -502,8 +500,7 @@ Castro::cons_to_prim(const Real time)
                        BL_TO_FORTRAN_ANYD(q[mfi]),
                        BL_TO_FORTRAN_ANYD(qaux[mfi]),
                        BL_TO_FORTRAN_ANYD(sources_for_hydro[mfi]),
-                       BL_TO_FORTRAN_ANYD(src_q[mfi]),
-                       &idx);
+                       BL_TO_FORTRAN_ANYD(src_q[mfi]));
         }
 
 #ifndef RADIATION
@@ -547,7 +544,6 @@ Castro::cons_to_prim_fourth(const Real time)
 
       const Box& qbx = mfi.growntilebox(NUM_GROW);
       const Box& qbxm1 = mfi.growntilebox(NUM_GROW-1);
-      const int idx = mfi.tileIndex();
 
       // note: these conversions are using a growntilebox, so it
       // will include ghost cells
@@ -570,8 +566,7 @@ Castro::cons_to_prim_fourth(const Real time)
       ca_ctoprim(BL_TO_FORTRAN_BOX(qbx),
                  BL_TO_FORTRAN_ANYD(Sborder[mfi]),
                  BL_TO_FORTRAN_ANYD(q_bar[mfi]),
-                 BL_TO_FORTRAN_ANYD(qaux_bar),
-                 &idx);
+                 BL_TO_FORTRAN_ANYD(qaux_bar));
 
       // this is what we should construct the flattening coefficient
       // from
@@ -582,8 +577,7 @@ Castro::cons_to_prim_fourth(const Real time)
       ca_ctoprim(BL_TO_FORTRAN_BOX(qbxm1),
                  BL_TO_FORTRAN_ANYD(U_cc),
                  BL_TO_FORTRAN_ANYD(q[mfi]),
-                 BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                 &idx);
+                 BL_TO_FORTRAN_ANYD(qaux[mfi]));
     }
 
 
@@ -598,7 +592,6 @@ Castro::cons_to_prim_fourth(const Real time)
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       const Box& qbxm1 = mfi.growntilebox(NUM_GROW-1);
-      const int idx = mfi.tileIndex();
 
       // now convert q, qaux into 4th order accurate averages
       // this will create q, qaux in NUM_GROW-1 ghost cells, but that's
@@ -639,7 +632,7 @@ Castro::check_for_cfl_violation(const Real dt)
         ca_compute_cfl(BL_TO_FORTRAN_BOX(bx),
                        BL_TO_FORTRAN_ANYD(q[mfi]),
                        BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                       &dt, dx, &courno);
+                       &dt, dx, &courno, &print_fortran_warnings);
 
     }
 

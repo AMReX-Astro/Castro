@@ -1,6 +1,7 @@
 module ctu_advection_module
 
-  use bl_constants_module
+  use amrex_constants_module
+  use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -71,7 +72,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use riemann_module, only: cmpflx
-    use bl_constants_module
+    use amrex_constants_module
 #ifdef RADIATION
     use rad_params_module, only : ngroups
     use trace_ppm_rad_module, only : tracexy_ppm_rad, tracez_ppm_rad
@@ -490,7 +491,7 @@ contains
        else
 
 #ifdef RADIATION
-          call bl_error("ppm_type <=0 is not supported in with radiation")
+          call amrex_error("ppm_type <=0 is not supported in with radiation")
 #endif
 
           ! Compute all slopes at kc (k3d)
