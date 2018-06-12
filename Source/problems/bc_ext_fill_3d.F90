@@ -352,7 +352,6 @@ subroutine ext_denfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2, adv_h3,&
                        domlo,domhi,delta,xlo,time,bc) &
                        bind(C, name="ext_denfill")
 
-
     use prob_params_module, only : problo
     use interpolate_module
     use model_parser_module
@@ -368,13 +367,22 @@ subroutine ext_denfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2, adv_h3,&
     integer i,j,k
     real(rt)         y,z
 
+    integer :: adv_lo(3), adv_hi(3)
+
+    adv_lo(1) = adv_l1
+    adv_lo(2) = adv_l2
+    adv_lo(3) = adv_l3
+    adv_hi(1) = adv_h1
+    adv_hi(2) = adv_h2
+    adv_hi(3) = adv_h3
+
     ! Note: this function should not be needed, technically, but is
     ! provided to filpatch because there are many times in the algorithm
     ! when just the density is needed.  We try to rig up the filling so
     ! that the same function is called here and in hypfill where all the
     ! states are filled.
 
-    call filcc(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3,domlo,domhi,delta,xlo,bc)
+    call filcc_nd(adv,adv_lo,adv_hi,domlo,domhi,delta,xlo,bc)
     ! XLO
     if ( bc(1,1,1) == EXT_DIR .and. adv_l1 < domlo(1)) then
        call amrex_error("We shoundn't be here (xlo denfill)")
