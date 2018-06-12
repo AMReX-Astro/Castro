@@ -40,7 +40,7 @@
     integer  :: i,j,k
     integer  :: ic,jc,kc
     integer  :: ii,id,ie,im,is
-    real(rt) :: conv_dens, conv_mom, conv_enr, conv_ne
+    real(rt) :: conv_dens, conv_mom, conv_enr, conv_ne, conv_J, conv_H, testdt
 
     ! Sanity check on size of arrays
     ! Note that we have set ngrow_thornado = ngrow_state in Castro_setup.cpp
@@ -66,6 +66,8 @@
     conv_mom  = Gram / Centimeter**2 / Second
     conv_enr  = Gram / Centimeter / Second**2
     conv_ne   = 1.d0 / Centimeter**3
+    conv_J    = Gram/Second**2/Centimeter
+    conv_H    = Gram/Second**3
 
     ! ************************************************************************************
     ! Copy from the Castro arrays into Thornado arrays from InitThornado_Patch
@@ -82,6 +84,8 @@
          !       1-swX(3):nX(3)+swX(3), &
          !       1:nCF) )
 
+         ! U_R_o spatial indices start at lo - (number of ghost zones)
+         ! uCR spatial indices start at 1 - (number of ghost zones)
          i = ic - lo(1) + 1
          j = jc - lo(2) + 1
          k = kc - lo(3) + 1
@@ -94,7 +98,7 @@
          uCF(1:n_fluid_dof,i,j,k,iCF_E)  = S(ic,jc,kc,UEDEN) * conv_enr
          uCF(1:n_fluid_dof,i,j,k,iCF_Ne) = S(ic,jc,kc,UFX)   * conv_ne
 
-         ! The uCF array was allocated in CreatRadiationdFields_Conserved with 
+         ! The uCF array was allocated in CreateRadiationdFields_Conserved with 
          ! ALLOCATE &
          !   ( uCR(1:nDOF, &
          !         1-swE:nE+swE, &
@@ -108,7 +112,8 @@
          do ie = 1, nE
          do id = 1, nDOF
             ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
-            uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,kc,ii)
+            if (im .eq. 1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,kc,ii)*conv_J
+            if (im > 1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,kc,ii)*conv_H
          end do
          end do
          end do
@@ -121,7 +126,7 @@
     ! ************************************************************************************
     ! Call the Fortran interface that lives in the thornado repo
     ! ************************************************************************************
-    call Update_IMEX_PC2(dt, uCF, uCR)
+    call Update_IMEX_PC2(dt*Second, uCF, uCR)
 
     ! ************************************************************************************
     ! Copy back from the thornado arrays into Castro arrays
@@ -130,6 +135,8 @@
     do jc = lo(2),hi(2)
     do ic = lo(1),hi(1)
 
+         ! uCR spatial indices start at 1 - ng
+         ! U_R_n spatial indices start at lo
          i = ic - lo(1) + 1
          j = jc - lo(2) + 1
          k = kc - lo(3) + 1
@@ -153,7 +160,10 @@
          do ie = 1, nE
          do id = 1, nDOF
             ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
-            U_R_n(ic,jc,kc,ii) = uCR(id,ie,i,j,k,im,is) 
+
+            if (im .eq. 1) U_R_n(ic,jc,kc,ii) = uCR(id,ie,i,j,k,im,is)/conv_J
+            if (im > 1) U_R_n(ic,jc,kc,ii)    = uCR(id,ie,i,j,k,im,is)/conv_H
+
          end do
          end do
          end do
