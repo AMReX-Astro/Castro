@@ -105,12 +105,12 @@ Castro::create_thornado_source(Real dt)
 
         if (i == 0) 
         {
-           grid_lo[0] =  bx.smallEnd(0)  * dx[0];
-           grid_lo[1] =  bx.smallEnd(1)  * dx[1];
-           grid_lo[2] =  bx.smallEnd(2)  * dx[2];
-           grid_hi[0] = (bx.bigEnd(0)+1) * dx[0];
-           grid_hi[1] = (bx.bigEnd(1)+1) * dx[1];
-           grid_hi[2] = (bx.bigEnd(2)+1) * dx[2];
+           grid_lo[0] =  bx.smallEnd(0)  * dx[0] / 100.0; // Factor of 100 because Thornado uses m, not cm
+           grid_lo[1] =  bx.smallEnd(1)  * dx[1] / 100.0;
+           grid_lo[2] =  bx.smallEnd(2)  * dx[2] / 100.0;
+           grid_hi[0] = (bx.bigEnd(0)+1) * dx[0] / 100.0;
+           grid_hi[1] = (bx.bigEnd(1)+1) * dx[1] / 100.0;
+           grid_hi[2] = (bx.bigEnd(2)+1) * dx[2] / 100.0;
 
            boxlen[0] = bx.length(0);
            boxlen[1] = bx.length(1);
