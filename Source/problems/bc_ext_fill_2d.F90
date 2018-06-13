@@ -395,7 +395,7 @@ contains
     ! that the same function is called here and in hypfill where all the
     ! states are filled.
 
-    call filccn(adv_lo, adv_hi, adv, adv_lo, adv_hi, 1, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(adv_lo, adv_hi, adv, lo, hi, 1, domlo, domhi, delta, xlo, bc)
 
 #ifndef AMREX_USE_CUDA
     ! XLO
