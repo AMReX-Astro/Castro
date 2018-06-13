@@ -96,6 +96,7 @@ Castro::advance (Real time,
 #else
     // no SDC
 
+#ifndef AMREX_USE_CUDA
     if (do_ctu) {
 
         if (do_subcycle) {
@@ -110,11 +111,14 @@ Castro::advance (Real time,
         }
 
     } else {
+#endif
       for (int iter = 0; iter < MOL_STAGES; ++iter) {
 	mol_iteration = iter;
 	dt_new = do_advance_mol(time + c_mol[iter]*dt, dt, amr_iteration, amr_ncycle);
       }
+#ifndef AMREX_USE_CUDA
     }
+#endif
 
     // Optionally kill the job at this point, if we've detected a violation.
 
