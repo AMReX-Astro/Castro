@@ -82,7 +82,7 @@ module interpolate_module
     end function interpolate
 
 
-    AMREX_DEVICE subroutine interpolate_sub(r, npts_model, model_r, model_var, iloc, var_r)
+    AMREX_DEVICE subroutine interpolate_sub(r, npts_model, model_r, model_var, iloc, interpolate)
       
 !     given the array of model coordinates (model_r), and variable (model_var),
 !     find the value of model_var at point r (var_r) using linear interpolation.
@@ -93,7 +93,7 @@ module interpolate_module
       integer         , intent(in   ) :: npts_model
       real(rt)        , intent(in   ) :: model_r(npts_model), model_var(npts_model)
       integer, intent(in), optional   :: iloc
-      real(rt)                        :: interpolate
+      real(rt)        , intent(  out) :: interpolate
 
       ! Local variables
       integer                         :: id
