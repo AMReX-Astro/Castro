@@ -491,7 +491,9 @@ contains
        else
 
 #ifdef RADIATION
+#ifndef AMREX_USE_CUDA
           call amrex_error("ppm_type <=0 is not supported in with radiation")
+#endif          
 #endif
 
           ! Compute all slopes at kc (k3d)

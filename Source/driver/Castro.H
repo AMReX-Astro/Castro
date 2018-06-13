@@ -589,6 +589,7 @@ public:
     static int       QVAR;
     static int       NQAUX;
     static int       NQ;
+    static int       NGDNV;
 
     static int       FirstAdv,  NumAdv;
     static int       FirstSpec, NumSpec;
