@@ -176,6 +176,7 @@ Castro::advance (Real time,
 
 
 
+#ifndef AMREX_USE_CUDA
 Real
 Castro::do_advance (Real time,
                     Real dt,
@@ -351,6 +352,7 @@ Castro::do_advance (Real time,
 
     return dt;
 }
+#endif
 
 
 Real

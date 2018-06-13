@@ -232,10 +232,12 @@ public:
                           int  iteration,
                           int  ncycle) override;
 
+#ifndef AMREX_USE_CUDA
     amrex::Real do_advance (amrex::Real time,
                      amrex::Real dt,
                      int  amr_iteration,
                      int  amr_ncycle);
+#endif
 
     amrex::Real do_advance_mol (amrex::Real time,
                      amrex::Real dt,
@@ -260,7 +262,9 @@ public:
 
     void check_for_cfl_violation(const amrex::Real dt);
 
+#ifndef AMREX_USE_CUDA
     void construct_hydro_source(amrex::Real time, amrex::Real dt);
+#endif
 
     void construct_mol_hydro_source(amrex::Real time, amrex::Real dt);
 
