@@ -75,15 +75,15 @@ contains
                    if (dens_above == ZERO) then
                       x = problo(1) + delta(1)*(dble(domlo(1)) + HALF)
 
-                      call interpolate_sub(x,npts_model,model_r, &
-                                           model_state(:,idens_model), dens_above)
+                      call interpolate_sub(dens_above, x,npts_model,model_r, &
+                                           model_state(:,idens_model))
 
-                      call interpolate_sub(x,npts_model,model_r, &
-                                           model_state(:,itemp_model), temp_above)
+                      call interpolate_sub(temp_above, x,npts_model,model_r, &
+                                           model_state(:,itemp_model))
 
                       do m = 1, nspec
-                         call interpolate_sub(x,npts_model,model_r, &
-                                              model_state(:,ispec_model-1+m), X_zone(m))
+                         call interpolate_sub(X_zone(m), x,npts_model,model_r, &
+                                              model_state(:,ispec_model-1+m))
                       enddo
 
                    else
@@ -115,8 +115,8 @@ contains
 
                       ! temperature and species held constant in BCs
                       if (hse_interp_temp == 1) then
-                         call interpolate_sub(x,npts_model,model_r, &
-                                              model_state(:,itemp_model), temp_zone)
+                         call interpolate_sub(temp_zone, x,npts_model,model_r, &
+                                              model_state(:,itemp_model))
                       else
                          temp_zone = temp_above
                       endif
@@ -218,15 +218,15 @@ contains
                    ! set all the variables even though we're testing on URHO
                    if (n == URHO) then
 
-                      call interpolate_sub(x,npts_model,model_r, &
-                                           model_state(:,idens_model), dens_zone)
+                      call interpolate_sub(dens_zone, x,npts_model,model_r, &
+                                           model_state(:,idens_model))
 
-                      call interpolate_sub(x,npts_model,model_r, &
-                                           model_state(:,itemp_model), temp_zone)
+                      call interpolate_sub(temp_zone, x,npts_model,model_r, &
+                                           model_state(:,itemp_model))
 
                       do q = 1, nspec
-                         call interpolate_sub(x,npts_model,model_r, &
-                                              model_state(:,ispec_model-1+q), X_zone(q))
+                         call interpolate_sub(X_zone(q), x,npts_model,model_r, &
+                                              model_state(:,ispec_model-1+q))
                       enddo
 
                       ! extrap normal momentum
@@ -272,15 +272,15 @@ contains
                    ! set all the variables even though we're testing on URHO
                    if (n == URHO) then
 
-                      call interpolate_sub(x,npts_model,model_r, &
-                                           model_state(:,idens_model), dens_zone)
+                      call interpolate_sub(dens_zone, x,npts_model,model_r, &
+                                           model_state(:,idens_model))
 
-                      call interpolate_sub(x,npts_model,model_r, &
-                                           model_state(:,itemp_model), temp_zone)
+                      call interpolate_sub(temp_zone, x,npts_model,model_r, &
+                                           model_state(:,itemp_model))
 
                       do q = 1, nspec
-                         call interpolate_sub(x,npts_model,model_r, &
-                                              model_state(:,ispec_model-1+q), X_zone(q))
+                         call interpolate_sub(X_zone(q), x,npts_model,model_r, &
+                                              model_state(:,ispec_model-1+q))
                       enddo
 
 
@@ -352,7 +352,7 @@ contains
     if ( bc(1,1) == EXT_DIR .and. adv_l1 < domlo(1)) then
        do j = adv_l1, domlo(1)-1
           x = problo(1) + delta(1)*(dble(j) + HALF)
-          call interpolate_sub(x,npts_model,model_r,model_state(:,idens_model), adv(j))
+          call interpolate_sub(adv(j), x,npts_model,model_r,model_state(:,idens_model))
        end do
     end if
 
@@ -360,7 +360,7 @@ contains
     if ( bc(1,2) == EXT_DIR .and. adv_h1 > domhi(1)) then
        do j = domhi(1)+1, adv_h1
           x = problo(1) + delta(1)*(dble(j)+ HALF)
-          call interpolate_sub(x,npts_model,model_r,model_state(:,idens_model), adv(j))
+          call interpolate_sub(adv(j), x,npts_model,model_r,model_state(:,idens_model))
        end do
     end if
 
