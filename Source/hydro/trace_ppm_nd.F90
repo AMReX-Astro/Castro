@@ -122,10 +122,12 @@ contains
 
     logical :: fix_mass_flux_lo, fix_mass_flux_hi
 
+#ifndef AMREX_USE_CUDA    
     if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
        call amrex_error("Error:: trace_ppm_nd.f90 :: tracexy_ppm")
     end if
+#endif
 
     hdt = HALF * dt
 
@@ -1383,10 +1385,12 @@ contains
 
     hdt = HALF * dt
 
+#ifndef AMREX_USE_CUDA    
     if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in tracez_ppm with ppm_type = 0'
        call amrex_error("Error:: trace_ppm_3d.f90 :: tracez_ppm")
     end if
+#endif
 
     !=========================================================================
     ! PPM CODE
