@@ -188,6 +188,18 @@ subroutine ca_get_nqaux(nqaux_in) bind(C, name="ca_get_nqaux")
 
 end subroutine ca_get_nqaux
 
+subroutine ca_get_ngdnv(ngdnv_in) bind(C, name="ca_get_ngdnv")
+
+  use meth_params_module, only: NGDNV
+
+  implicit none
+
+  integer, intent(inout) :: ngdnv_in
+
+  ngdnv_in = NGDNV
+
+end subroutine ca_get_ngdnv
+
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
