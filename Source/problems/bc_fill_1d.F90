@@ -78,7 +78,7 @@ contains
     include 'AMReX_bc_types.fi'
 
     integer,  intent(in   ) :: adv_l1, adv_h1
-    integer,  intent(in   ) :: bc(1,2,1)
+    integer,  intent(in   ) :: bc(1,2)
     integer,  intent(in   ) :: domlo(1), domhi(1)
     real(rt), intent(in   ) :: delta(1), xlo(1), time
     real(rt), intent(inout) :: adv(adv_l1:adv_h1)
@@ -108,7 +108,7 @@ contains
     include 'AMReX_bc_types.fi'
 
     integer,  intent(in   ) :: adv_l1, adv_h1
-    integer,  intent(in   ) :: bc(1,2,1)
+    integer,  intent(in   ) :: bc(1,2)
     integer,  intent(in   ) :: domlo(1), domhi(1)
     real(rt), intent(in   ) :: delta(1), xlo(1), time
     real(rt), intent(inout) :: adv(adv_l1:adv_h1)
