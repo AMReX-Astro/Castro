@@ -433,24 +433,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 #endif
   for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
-      const Box& qbx = mfi.growntilebox(NUM_GROW);
-
-      // Convert the conservative state to the primitive variable state.
-      // This fills both q and qaux.
-
-#pragma gpu
-      ca_ctoprim(AMREX_ARLIM_ARG(qbx.loVect()), AMREX_ARLIM_ARG(qbx.hiVect()),
-                 BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-                 BL_TO_FORTRAN_ANYD(q[mfi]),
-                 BL_TO_FORTRAN_ANYD(qaux[mfi]));
-
-  } // MFIter loop
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
-
       const Box& obx = mfi.growntilebox(1);
 
       // Compute divergence of velocity field.
