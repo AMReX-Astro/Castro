@@ -178,7 +178,7 @@ extern "C"
      const amrex::Real* S_old, const int* s_old_lo, const int* s_old_hi,
            amrex::Real* S_new, const int* s_new_lo, const int* s_new_hi,
      const amrex::Real* vol, const int* vol_lo, const int* vol_hi,
-           amrex::Real* frac_change, const int* verbose);
+           amrex::Real* frac_change, const int verbose);
 
   void ca_normalize_species
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new));

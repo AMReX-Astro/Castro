@@ -6,10 +6,11 @@ module advection_util_module
 
 contains
 
-  AMREX_DEVICE subroutine ca_enforce_minimum_density(uin,uin_lo,uin_hi, &
+  AMREX_DEVICE subroutine ca_enforce_minimum_density(lo,hi, &
+                                                     uin,uin_lo,uin_hi, &
                                                      uout,uout_lo,uout_hi, &
                                                      vol,vol_lo,vol_hi, &
-                                                     lo,hi,frac_change,verbose) &
+                                                     frac_change,verbose) &
                                                      bind(c,name='ca_enforce_minimum_density')
 
     use network, only: nspec, naux
