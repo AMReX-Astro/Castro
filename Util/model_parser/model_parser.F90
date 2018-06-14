@@ -36,11 +36,15 @@ module model_parser_module
   integer, parameter :: ispec_model = 4
 
   ! number of points in the model file
-  integer, save :: npts_model
+  integer,   allocatable, save :: npts_model
 
   ! arrays for storing the model data
   real (rt), allocatable, save :: model_state(:,:)
   real (rt), allocatable, save :: model_r(:)
+
+#ifdef CUDA
+  attributes(managed) :: model_state, model_r, npts_model
+#endif
 
   ! model_initialized will be .true. once the model is read in and the
   ! model data arrays are initialized and filled
@@ -72,6 +76,7 @@ contains
     integer :: ipos
     character (len=256) :: header_line
 
+    allocate(npts_model)
 
     ! open the model file
     open(99,file=trim(model_file),status='old',iostat=ierr)
@@ -243,6 +248,7 @@ contains
     if (model_initialized) then
        deallocate(model_r)
        deallocate(model_state)
+       deallocate(npts_model)
        npts_model = -1
        model_initialized = .false.
     endif

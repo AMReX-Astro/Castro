@@ -646,6 +646,9 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   allocate(physbc_lo(3))
   allocate(physbc_hi(3))
 
+  physbc_lo(:) = 0
+  physbc_hi(:) = 0
+
   physbc_lo(1:dm) = physbc_lo_in(1:dm)
   physbc_hi(1:dm) = physbc_hi_in(1:dm)
 
