@@ -76,7 +76,7 @@ contains
 
     call get_loop_bounds(blo, bhi, s_lo, s_hi)
 
-    call amrex_filccn(blo, bhi, state, s_lo, s_hi, 1, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(blo, bhi, state, s_lo, s_hi, NVAR, domlo, domhi, delta, xlo, bc)
 
   end subroutine generic_multi_fill
 
