@@ -782,7 +782,7 @@ contains
     
     call get_loop_bounds(blo, bhi, lo, hi)
 
-    call amrex_filccn(blo, bhi, rad, lo, hi, 1, domlo, domhi, delta, xlo, time, bc_temp)
+    call amrex_filccn(blo, bhi, rad, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
   end subroutine radfill
 
