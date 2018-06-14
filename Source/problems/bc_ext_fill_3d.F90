@@ -368,7 +368,7 @@ contains
     use model_parser_module
     use amrex_error_module
 
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only : rt => amrex_real, get_loop_bounds
     integer adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3
     integer bc(3,2,*)
     integer domlo(3), domhi(3)
