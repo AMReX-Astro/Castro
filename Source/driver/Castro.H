@@ -244,9 +244,11 @@ public:
                      int  amr_iteration,
                      int  amr_ncycle);
 
+#ifndef AMREX_USE_CUDA
     amrex::Real retry_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
     amrex::Real subcycle_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+#endif
 
     void initialize_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 

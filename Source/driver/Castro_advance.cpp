@@ -133,8 +133,10 @@ Castro::advance (Real time,
     // If so, get a new timestep and do subcycled advances until we reach
     // t = time + dt.
 
+#ifndef AMREX_USE_CUDA
     if (use_retry)
         dt_new = std::min(dt_new, retry_advance(time, dt, amr_iteration, amr_ncycle));
+#endif
 #endif
 
     if (use_post_step_regrid)
@@ -955,6 +957,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 
 
+#ifndef AMREX_USE_CUDA
 Real
 Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
@@ -1271,3 +1274,4 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
     return dt_new;
 
 }
+#endif
