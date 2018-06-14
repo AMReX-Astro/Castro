@@ -428,6 +428,32 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
   // CUDA version
 
+  MultiFab q;
+  q.define(grids, dmap, NQ, NUM_GROW);
+
+  MultiFab qaux;
+  qaux.define(grids, dmap, NQAUX, NUM_GROW);
+
+  MultiFab flatn;
+  flatn.define(grids, dmap, 1, 1);
+
+  MultiFab div;
+  div.define(grids, dmap, 1, 1);
+
+  MultiFab qm;
+  qm.define(grids, dmap, 3*NQ, 2);
+
+  MultiFab qp;
+  qp.define(grids, dmap, 3*NQ, 2);
+
+  MultiFab flux[BL_SPACEDIM];
+  MultiFab qe[BL_SPACEDIM];
+
+  for (int i = 0; i < BL_SPACEDIM; ++i) {
+      flux[i].define(getEdgeBoxArray(i), dmap, NUM_STATE, 0);
+      qe[i].define(getEdgeBoxArray(i), dmap, NGDNV, 0);
+  }
+  
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
