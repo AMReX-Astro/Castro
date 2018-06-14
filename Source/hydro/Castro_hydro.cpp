@@ -517,7 +517,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
           // Store the fluxes from this advance -- we weight them by the
           // integrator weight for this stage
-          (*fluxes[idir])[mfi].saxpy(b_mol[istage], flux[idir][mfi], ebx, ebx, 0, 0, NUM_STATE);
+          (*fluxes[idir])[mfi].saxpy(b_mol[mol_iteration], flux[idir][mfi], ebx, ebx, 0, 0, NUM_STATE);
 
       }
 
@@ -535,7 +535,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
       ca_construct_hydro_update
           (AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
            dx, dt,
-           b_mol[istage],
+           b_mol[mol_iteration],
            BL_TO_FORTRAN_ANYD(qe[0][mfi]),
            BL_TO_FORTRAN_ANYD(qe[1][mfi]),
            BL_TO_FORTRAN_ANYD(qe[2][mfi]),
