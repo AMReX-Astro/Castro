@@ -104,6 +104,7 @@ contains
     type (eos_t) :: eos_state
 
 #ifdef RADIATION
+#ifndef AMREX_USE_CUDA
     if (hybrid_riemann == 1) then
        call amrex_error("ERROR: hybrid Riemann not supported for radiation")
     endif
@@ -112,11 +113,14 @@ contains
        call amrex_error("ERROR: only the CGF Riemann solver is supported for radiation")
     endif
 #endif
+#endif
 
 #if BL_SPACEDIM == 1
+#ifndef AMREX_USE_CUDA
     if (riemann_solver > 1) then
        call amrex_error("ERROR: HLLC not implemented for 1-d")
     endif
+#endif    
 #endif
 
     if (ppm_temp_fix == 2) then
@@ -222,7 +226,9 @@ contains
 
        call bl_deallocate(qint)
 #else
+#ifndef AMREX_USE_CUDA
        call amrex_error("ERROR: CG solver does not support radiaiton")
+#endif
 #endif
 
     elseif (riemann_solver == 2) then
@@ -233,9 +239,10 @@ contains
                  qgdnv, q_lo, q_hi, &
                  idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
                  domlo, domhi)
-
+#ifndef AMREX_USE_CUDA
     else
        call amrex_error("ERROR: invalid value of riemann_solver")
+#endif
     endif
 
 
@@ -336,6 +343,7 @@ contains
     type (eos_t) :: eos_state
 
 #ifdef RADIATION
+#ifndef AMREX_USE_CUDA
     if (hybrid_riemann == 1) then
        call amrex_error("ERROR: hybrid Riemann not supported for radiation")
     endif
@@ -344,11 +352,14 @@ contains
        call amrex_error("ERROR: only the CGF Riemann solver is supported for radiation")
     endif
 #endif
+#endif
 
 #if BL_SPACEDIM == 1
+#ifndef AMREX_USE_CUDA
     if (riemann_solver > 1) then
        call amrex_error("ERROR: HLLC not implemented for 1-d")
     endif
+#endif
 #endif
 
     if (ppm_temp_fix == 2) then
@@ -434,11 +445,15 @@ contains
                       idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
                       domlo, domhi)
 #else
+#ifndef AMREX_USE_CUDA
        call amrex_error("ERROR: CG solver does not support radiaiton")
 #endif
+#endif
 
+#ifndef AMREX_USE_CUDA
     else
        call amrex_error("ERROR: invalid value of riemann_solver")
+#endif
     endif
 
   end subroutine riemann_state
@@ -544,12 +559,13 @@ contains
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
     real(rt) :: bnd_fac_x, bnd_fac_y, bnd_fac_z
 
-
+#ifndef AMREX_USE_CUDA 
     if (cg_blend == 2 .and. cg_maxiter < 5) then
 
        call amrex_error("Error: need cg_maxiter >= 5 to do a bisection search on secant iteration failure.")
 
     endif
+#endif
 
     if (idir == 1) then
        iu = QU
@@ -642,7 +658,9 @@ contains
           ! note: reset both in either case, to remain thermo
           ! consistent
           if (rel <= ZERO .or. pl < small_pres) then
+#ifndef AMREX_USE_CUDA                  
              print *, "WARNING: (rho e)_l < 0 or pl < small_pres in Riemann: ", rel, pl, small_pres
+#endif
 
              eos_state % T   = small_temp
              eos_state % rho = rl
@@ -669,7 +687,9 @@ contains
           gcr = qaux(i,j,k3d,QGAMC)
 
           if (rer <= ZERO .or. pr < small_pres) then
+#ifndef AMREX_USE_CUDA
              print *, "WARNING: (rho e)_r < 0 or pr < small_pres in Riemann: ", rer, pr, small_pres
+#endif
 
              eos_state % T   = small_temp
              eos_state % rho = rr
@@ -807,7 +827,8 @@ contains
           if (.not. converged) then
 
              if (cg_blend == 0) then
-
+                     
+#ifndef AMREX_USE_CUDA
                 print *, 'pstar history: '
                 do iter = 1, iter_max
                    print *, iter, pstar_hist(iter)
@@ -818,7 +839,7 @@ contains
                 print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
                 print *, 'cavg, smallc:', cavg, csmall
                 call amrex_error("ERROR: non-convergence in the Riemann solver")
-
+#endif
              else if (cg_blend == 1) then
 
                 pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr)
@@ -836,7 +857,8 @@ contains
                                      pstar, gamstar, converged, pstar_hist_extra)
 
                 if (.not. converged) then
-
+                        
+#ifndef AMREX_USE_CUDA
                    print *, 'pstar history: '
                    do iter = 1, iter_max
                       print *, iter, pstar_hist(iter)
@@ -850,13 +872,14 @@ contains
                    print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
                    print *, 'cavg, smallc:', cavg, csmall
                    call amrex_error("ERROR: non-convergence in the Riemann solver")
-
+#endif
                 endif
 
              else
 
+#ifndef AMREX_USE_CUDA
                 call amrex_error("ERROR: unrecognized cg_blend option.")
-
+#endif
              endif
 
           endif

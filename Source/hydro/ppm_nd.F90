@@ -161,6 +161,7 @@ contains
     ! s_{i+\half}^{H.O.}
     real(rt)        , pointer :: sedge(:,:)
 
+#ifndef AMREX_USE_CUDA    
     if (ppm_type .ne. 1) &
          call amrex_error("Should have ppm_type = 1 in ppm_type1")
 
@@ -173,7 +174,7 @@ contains
          call amrex_error("Need more ghost cells on array in ppm_type1")
     end if
 #endif
-
+#endif
     ! cell-centered indexing w/extra ghost cell
     call bl_allocate(dsvl, ilo1-2, ihi1+2, ilo2-2*dg(2), ihi2+2*dg(2))
 
@@ -476,6 +477,7 @@ contains
     ! a constant used for testing extrema
     real(rt), parameter :: SMALL = 1.e-10_rt
 
+#ifndef AMREX_USE_CUDA    
     if (ppm_type .ne. 2) &
          call amrex_error("Should have ppm_type = 2 in ppm_type2")
 
@@ -487,6 +489,7 @@ contains
     if (s_lo(2) .gt. ilo2-3 .or. s_hi(2) .lt. ihi2+3) then
          call amrex_error("Need more ghost cells on array in ppm_type1")
     end if
+#endif
 #endif
 
     ! edge-centered indexing

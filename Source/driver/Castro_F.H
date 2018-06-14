@@ -32,6 +32,8 @@ extern "C"
 
   void ca_get_nqaux(int* nqaux);
 
+  void ca_get_ngdnv(int* ngdnv);
+
   void ca_set_amr_info(const int& level, const int& iteration, const int& ncycle,
 		       const amrex::Real& time, const amrex::Real& dt);
 

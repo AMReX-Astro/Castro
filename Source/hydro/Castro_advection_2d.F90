@@ -287,10 +287,10 @@ contains
                                dx(1), dx(2), &
                                lo(1), lo(2), hi(1), hi(2))
           enddo
-
+#ifndef AMREX_USE_CUDA
        else
           call amrex_error("ERROR: invalid value of islope")
-          
+#endif          
        endif       
 
     else
@@ -385,7 +385,9 @@ contains
     ! and  qym and qyp will be the states on either side of the y interfaces
     if (ppm_type .eq. 0) then
 #ifdef RADIATION
+#ifndef AMREX_USE_CUDA
        call amrex_error("ppm_type <=0 is not supported in umeth for radiation")
+#endif
 #else
        call tracexy(q, q_lo, q_hi, &
                     qaux, qa_lo, qa_hi, &

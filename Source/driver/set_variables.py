@@ -30,9 +30,11 @@ subroutine check_equal(index1, index2)
 
   integer, intent(in) :: index1, index2
 
+#ifndef AMREX_USE_CUDA
   if (index1 /= index2) then
     call amrex_error("ERROR: mismatch of indices")
   endif
+#endif
 
 end subroutine check_equal
 

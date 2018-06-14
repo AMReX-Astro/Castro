@@ -957,10 +957,12 @@ contains
     else
        fspace_type = fsp_type_in
     end if
-    
+
+#ifndef AMREX_USE_CUDA    
     if (fsp_type_in .ne. 1 .and. fsp_type_in .ne. 2) then
        call amrex_error("Unknown fspace_type", fspace_type)
     end if
+#endif
     
     do_inelastic_scattering = (do_is_in .ne. 0)
     
@@ -969,7 +971,9 @@ contains
     else if (com_in .eq. 0) then
        comoving = .false.
     else
+#ifndef AMREX_USE_CUDA
        call amrex_error("Wrong value for comoving", fspace_type)
+#endif
     end if
     
     flatten_pp_threshold = fppt

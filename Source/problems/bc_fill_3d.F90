@@ -295,8 +295,6 @@ contains
     real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
 
-    integer :: grav_lo(3), grav_hi(3)
-
 #ifdef CUDA
     attributes(device) :: grav, grav_l1, grav_l2, grav_l3, grav_h1, grav_h2, grav_h3, bc
     attributes(device) :: domlo, domhi, delta, xlo, time
@@ -697,7 +695,7 @@ contains
 
     call get_loop_bounds(blo, bhi, lo, hi)
 
-    call amrex_filccn(blo, bhi, rad, lo, hi, 1, domlo, domhi, delta, xlo, time, bc)
+    call amrex_filccn(blo, bhi, rad, lo, hi, 1, domlo, domhi, delta, xlo, bc)
 
   end subroutine radfill
 
