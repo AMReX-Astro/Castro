@@ -47,10 +47,10 @@ endif
 
 ifdef NEED_MGUTIL
   ifeq ($(DIM), 1)
-    ca_f90EXE_sources += MGutils_1d.f90
+    ca_F90EXE_sources += MGutils_1d.F90
   endif
   ifeq ($(DIM), 2)
-    ca_f90EXE_sources += MGutils_2d.f90
+    ca_F90EXE_sources += MGutils_2d.F90
   endif
 endif
 
