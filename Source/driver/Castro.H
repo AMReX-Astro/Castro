@@ -260,7 +260,9 @@ public:
 
     void cons_to_prim(const amrex::Real time);
 
+#ifndef AMREX_USE_CUDA
     void cons_to_prim_fourth(const amrex::Real time);
+#endif
 
     void check_for_cfl_violation(const amrex::Real dt);
 

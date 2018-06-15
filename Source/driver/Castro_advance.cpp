@@ -485,7 +485,9 @@ Castro::do_advance_mol (Real time,
     {
       // Construct the primitive variables.
       if (fourth_order) {
+#ifndef AMREX_USE_CUDA
         cons_to_prim_fourth(time);
+#endif
       } else {
         cons_to_prim(time);
       }
