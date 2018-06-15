@@ -3012,9 +3012,10 @@ Castro::reset_internal_energy(MultiFab& S_new)
     {
         const Box& bx = mfi.growntilebox(ng);
 
-        ca_reset_internal_e(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+#pragma gpu
+        ca_reset_internal_e(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
 			    BL_TO_FORTRAN_3D(S_new[mfi]),
-			    &print_fortran_warnings);
+			    print_fortran_warnings);
     }
 
     // Flush Fortran output
@@ -3085,7 +3086,8 @@ Castro::computeTemp(MultiFab& State)
 	State[mfi].copy(temp,bx,0,bx,Temp,1);
       } else {
 #endif
-	ca_compute_temp(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+#pragma gpu
+	ca_compute_temp(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
 			BL_TO_FORTRAN_3D(State[mfi]));
 #ifdef RADIATION
       }

@@ -196,7 +196,7 @@ extern "C"
 
   void ca_reset_internal_e
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new),
-     const int* verbose);
+     const int verbose);
 
   void ca_generic_single_fill
     (BL_FORT_FAB_ARG_3D(state),
