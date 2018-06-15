@@ -424,6 +424,7 @@ Castro::do_advance_mol (Real time,
 
   if (apply_sources()) {
 
+#ifndef AMREX_USE_CUDA
     if (fourth_order) {
       // if we are 4th order, convert to cell-center Sborder -> Sborder_cc
       // we'll reuse sources_for_hydro for this memory buffer at the moment
@@ -458,6 +459,7 @@ Castro::do_advance_mol (Real time,
     } else {
       do_old_sources(old_source, Sborder, time, dt, amr_iteration, amr_ncycle);
     }
+#endif
 
     // hack: copy the source to the new data too, so fillpatch doesn't have to 
     // worry about time
