@@ -345,8 +345,8 @@ contains
     allocate(NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME)
 #ifdef RADIATION
     allocate(GDLAMS, GDERADS)
-    allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 #endif
+    allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
     allocate(const_grav)
     const_grav = 0.0d0;
