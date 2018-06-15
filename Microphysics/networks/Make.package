@@ -1,4 +1,4 @@
-f90EXE_sources += network.f90
+F90EXE_sources += network.F90
 
 ifeq ($(USE_REACT),TRUE)
 F90EXE_sources += burner.F90
