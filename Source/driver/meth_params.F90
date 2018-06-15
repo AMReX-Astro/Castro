@@ -75,7 +75,7 @@ module meth_params_module
   integer, parameter :: EXT_HSE = 1
   integer, parameter :: EXT_INTERP = 2 
   
-  integer, save :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
+  integer, allocatable, save :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 
   ! Create versions of these variables on the GPU
   ! the device update is then done in Castro_nd.f90
@@ -99,6 +99,7 @@ module meth_params_module
 #ifdef RADIATION
   attributes(managed) :: GDLAMS, GDERADS
 #endif
+  attributes(managed) :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 #endif
 
   !$acc declare &
@@ -344,6 +345,7 @@ contains
     allocate(NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME)
 #ifdef RADIATION
     allocate(GDLAMS, GDERADS)
+    allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 #endif
 
     allocate(const_grav)
@@ -720,6 +722,7 @@ contains
     deallocate(NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME)
 #ifdef RADIATION
     deallocate(GDLAMS, GDERADS)
+    deallocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 #endif
 
     if (allocated(difmag)) then
