@@ -411,7 +411,7 @@ contains
   
 
 
-  subroutine ca_check_initial_species(lo, hi, state, state_lo, state_hi) bind(c,name='ca_check_initial_species')
+  AMREX_DEVICE subroutine ca_check_initial_species(lo, hi, state, state_lo, state_hi) bind(c,name='ca_check_initial_species')
 
     use network           , only: nspec
     use meth_params_module, only: NVAR, URHO, UFS
@@ -451,7 +451,7 @@ contains
 
 
 
-  subroutine ca_normalize_species(lo, hi, u, u_lo, u_hi) bind(c,name='ca_normalize_species')
+  AMREX_DEVICE subroutine ca_normalize_species(lo, hi, u, u_lo, u_hi) bind(c,name='ca_normalize_species')
 
     use network, only: nspec
     use meth_params_module, only: NVAR, URHO, UFS

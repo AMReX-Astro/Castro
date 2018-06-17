@@ -880,7 +880,8 @@ Castro::initData ()
 
           // Verify that the sum of (rho X)_i = rho at every cell
 
-          ca_check_initial_species(ARLIM_3D(lo), ARLIM_3D(hi), 
+#pragma gpu
+          ca_check_initial_species(AMREX_ARLIM_ARG(lo), AMREX_ARLIM_ARG(hi), 
 				   BL_TO_FORTRAN_3D(S_new[mfi]));
        }
        enforce_consistent_e(S_new);
@@ -2591,7 +2592,8 @@ Castro::normalize_species (MultiFab& S_new)
     {
        const Box& bx = mfi.growntilebox(ng);
 
-       ca_normalize_species(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), 
+#pragma gpu
+       ca_normalize_species(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_3D(bx.hiVect()), 
                                      BL_TO_FORTRAN_3D(S_new[mfi]));
     }
 }
