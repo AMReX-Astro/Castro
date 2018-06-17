@@ -7,6 +7,7 @@
 
 using namespace amrex;
 
+#ifndef AMREX_USE_CUDA
 void
 Castro::construct_hydro_source(Real time, Real dt)
 {
@@ -246,6 +247,7 @@ Castro::construct_hydro_source(Real time, Real dt)
         std::cout << std::endl << "... Leaving hydro advance" << std::endl << std::endl;
 
 }
+#endif
 
 
 
@@ -495,6 +497,7 @@ Castro::cons_to_prim(const Real time)
 
         // Convert the source terms expressed as sources to the conserved state to those
         // expressed as sources for the primitive state.
+#ifndef AMREX_USE_CUDA
         if (do_ctu) {
           ca_srctoprim(BL_TO_FORTRAN_BOX(qbx),
                        BL_TO_FORTRAN_ANYD(q[mfi]),
@@ -502,6 +505,7 @@ Castro::cons_to_prim(const Real time)
                        BL_TO_FORTRAN_ANYD(sources_for_hydro[mfi]),
                        BL_TO_FORTRAN_ANYD(src_q[mfi]));
         }
+#endif
 
 #ifndef RADIATION
 
@@ -522,6 +526,7 @@ Castro::cons_to_prim(const Real time)
 }
 
 
+#ifndef AMREX_USE_CUDA
 void
 Castro::cons_to_prim_fourth(const Real time)
 {
@@ -609,6 +614,7 @@ Castro::cons_to_prim_fourth(const Real time)
     check_for_nan(q_bar);
 #endif // RADIATION
 }
+#endif
 
 
 
@@ -622,6 +628,7 @@ Castro::check_for_cfl_violation(const Real dt)
 
     MultiFab& S_new = get_new_data(State_Type);
 
+#ifndef AMREX_USE_CUDA
 #ifdef _OPENMP
 #pragma omp parallel reduction(max:courno)
 #endif
@@ -635,6 +642,7 @@ Castro::check_for_cfl_violation(const Real dt)
                        &dt, dx, &courno, &print_fortran_warnings);
 
     }
+#endif
 
     ParallelDescriptor::ReduceRealMax(courno);
 

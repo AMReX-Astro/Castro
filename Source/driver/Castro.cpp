@@ -888,6 +888,7 @@ Castro::initData ()
        // thus far, we assume that all initialization has worked on cell-centers
        // (to second-order, these are cell-averages, so we're done in that case).
        // For fourth-order, we need to convert to cell-averages now.
+#ifndef AMREX_USE_CUDA
        if (fourth_order) {
          Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
          AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
@@ -907,6 +908,7 @@ Castro::initData ()
          MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, 0);
          Sborder.clear();
        }
+#endif
 
        // Do a FillPatch so that we can get the ghost zones filled.
 

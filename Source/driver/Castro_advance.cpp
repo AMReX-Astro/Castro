@@ -96,6 +96,7 @@ Castro::advance (Real time,
 #else
     // no SDC
 
+#ifndef AMREX_USE_CUDA
     if (do_ctu) {
 
         if (do_subcycle) {
@@ -110,11 +111,14 @@ Castro::advance (Real time,
         }
 
     } else {
+#endif
       for (int iter = 0; iter < MOL_STAGES; ++iter) {
 	mol_iteration = iter;
 	dt_new = do_advance_mol(time + c_mol[iter]*dt, dt, amr_iteration, amr_ncycle);
       }
+#ifndef AMREX_USE_CUDA
     }
+#endif
 
     // Optionally kill the job at this point, if we've detected a violation.
 
@@ -129,8 +133,10 @@ Castro::advance (Real time,
     // If so, get a new timestep and do subcycled advances until we reach
     // t = time + dt.
 
+#ifndef AMREX_USE_CUDA
     if (use_retry)
         dt_new = std::min(dt_new, retry_advance(time, dt, amr_iteration, amr_ncycle));
+#endif
 #endif
 
     if (use_post_step_regrid)
@@ -172,6 +178,7 @@ Castro::advance (Real time,
 
 
 
+#ifndef AMREX_USE_CUDA
 Real
 Castro::do_advance (Real time,
                     Real dt,
@@ -347,6 +354,7 @@ Castro::do_advance (Real time,
 
     return dt;
 }
+#endif
 
 
 Real
@@ -416,6 +424,7 @@ Castro::do_advance_mol (Real time,
 
   if (apply_sources()) {
 
+#ifndef AMREX_USE_CUDA
     if (fourth_order) {
       // if we are 4th order, convert to cell-center Sborder -> Sborder_cc
       // we'll reuse sources_for_hydro for this memory buffer at the moment
@@ -450,6 +459,7 @@ Castro::do_advance_mol (Real time,
     } else {
       do_old_sources(old_source, Sborder, time, dt, amr_iteration, amr_ncycle);
     }
+#endif
 
     // hack: copy the source to the new data too, so fillpatch doesn't have to 
     // worry about time
@@ -477,7 +487,9 @@ Castro::do_advance_mol (Real time,
     {
       // Construct the primitive variables.
       if (fourth_order) {
+#ifndef AMREX_USE_CUDA
         cons_to_prim_fourth(time);
+#endif
       } else {
         cons_to_prim(time);
       }
@@ -949,6 +961,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 
 
+#ifndef AMREX_USE_CUDA
 Real
 Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
@@ -1265,3 +1278,4 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
     return dt_new;
 
 }
+#endif
