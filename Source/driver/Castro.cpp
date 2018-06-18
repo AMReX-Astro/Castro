@@ -2653,12 +2653,20 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 	const FArrayBox& stateold = S_old[mfi];
 	FArrayBox& statenew = S_new[mfi];
 	const FArrayBox& vol      = volume[mfi];
-	
-	ca_enforce_minimum_density(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                                   stateold.dataPtr(), ARLIM_3D(stateold.loVect()), ARLIM_3D(stateold.hiVect()),
-				   statenew.dataPtr(), ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
-				   vol.dataPtr(), ARLIM_3D(vol.loVect()), ARLIM_3D(vol.hiVect()),
-				   &dens_change, &verbose);
+
+#ifdef CUDA
+        Real* dens_change_f = mfi.add_reduce_value(&dens_change, MFIter::MIN);
+#else
+        Real* dens_change_f = &dens_change;
+#endif
+
+#pragma gpu
+	ca_enforce_minimum_density
+            (AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
+             BL_TO_FORTRAN_ANYD(stateold),
+             BL_TO_FORTRAN_ANYD(statenew),
+             BL_TO_FORTRAN_ANYD(vol),
+             dens_change_f, verbose);
 
     }
 
@@ -3008,9 +3016,10 @@ Castro::reset_internal_energy(MultiFab& S_new)
     {
         const Box& bx = mfi.growntilebox(ng);
 
-        ca_reset_internal_e(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+#pragma gpu
+        ca_reset_internal_e(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
 			    BL_TO_FORTRAN_3D(S_new[mfi]),
-			    &print_fortran_warnings);
+			    print_fortran_warnings);
     }
 
     // Flush Fortran output
@@ -3081,7 +3090,8 @@ Castro::computeTemp(MultiFab& State)
 	State[mfi].copy(temp,bx,0,bx,Temp,1);
       } else {
 #endif
-	ca_compute_temp(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+#pragma gpu
+	ca_compute_temp(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
 			BL_TO_FORTRAN_3D(State[mfi]));
 #ifdef RADIATION
       }

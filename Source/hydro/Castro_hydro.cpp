@@ -428,24 +428,32 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
   // CUDA version
 
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+  MultiFab q;
+  q.define(grids, dmap, NQ, NUM_GROW);
 
-      const Box& qbx = mfi.growntilebox(NUM_GROW);
+  MultiFab qaux;
+  qaux.define(grids, dmap, NQAUX, NUM_GROW);
 
-      // Convert the conservative state to the primitive variable state.
-      // This fills both q and qaux.
+  MultiFab flatn;
+  flatn.define(grids, dmap, 1, 1);
 
-#pragma gpu
-      ca_ctoprim(AMREX_ARLIM_ARG(qbx.loVect()), AMREX_ARLIM_ARG(qbx.hiVect()),
-                 BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-                 BL_TO_FORTRAN_ANYD(q[mfi]),
-                 BL_TO_FORTRAN_ANYD(qaux[mfi]));
+  MultiFab div;
+  div.define(grids, dmap, 1, 1);
 
-  } // MFIter loop
+  MultiFab qm;
+  qm.define(grids, dmap, 3*NQ, 2);
 
+  MultiFab qp;
+  qp.define(grids, dmap, 3*NQ, 2);
+
+  MultiFab flux[BL_SPACEDIM];
+  MultiFab qe[BL_SPACEDIM];
+
+  for (int i = 0; i < BL_SPACEDIM; ++i) {
+      flux[i].define(getEdgeBoxArray(i), dmap, NUM_STATE, 0);
+      qe[i].define(getEdgeBoxArray(i), dmap, NGDNV, 0);
+  }
+  
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -509,7 +517,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
           // Store the fluxes from this advance -- we weight them by the
           // integrator weight for this stage
-          (*fluxes[idir])[mfi].saxpy(b_mol[istage], flux[idir][mfi], ebx, ebx, 0, 0, NUM_STATE);
+          (*fluxes[idir])[mfi].saxpy(b_mol[mol_iteration], flux[idir][mfi], ebx, ebx, 0, 0, NUM_STATE);
 
       }
 
@@ -527,7 +535,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
       ca_construct_hydro_update
           (AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
            dx, dt,
-           b_mol[istage],
+           b_mol[mol_iteration],
            BL_TO_FORTRAN_ANYD(qe[0][mfi]),
            BL_TO_FORTRAN_ANYD(qe[1][mfi]),
            BL_TO_FORTRAN_ANYD(qe[2][mfi]),
@@ -608,7 +616,8 @@ Castro::cons_to_prim(const Real time)
         // Convert the conservative state to the primitive variable state.
         // This fills both q and qaux.
 
-        ca_ctoprim(BL_TO_FORTRAN_BOX(qbx),
+#pragma gpu
+        ca_ctoprim(AMREX_ARLIM_ARG(qbx.loVect()), AMREX_ARLIM_ARG(qbx.hiVect()),
                    BL_TO_FORTRAN_ANYD(Sborder[mfi]),
 #ifdef RADIATION
                    BL_TO_FORTRAN_ANYD(Erborder[mfi]),
