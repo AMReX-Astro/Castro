@@ -386,9 +386,11 @@ Castro::do_advance_mol (Real time,
 
   initialize_do_advance(time, dt, amr_iteration, amr_ncycle);
 
+#ifndef AMREX_USE_CUDA
   // Check for NaN's.
 
   check_for_nan(S_old);
+#endif
 
   // Since we are Strang splitting the reactions, do them now (only
   // for first stage of MOL)
@@ -534,8 +536,10 @@ Castro::do_advance_mol (Real time,
     expand_state(S_new, cur_time, S_new.nGrow());
   }
 
+#ifndef AMREX_USE_CUDA
   // Check for NaN's.
   check_for_nan(S_new);
+#endif
 
   // We need to make source_old and source_new be the source terms at
   // the old and new time.  we never actually evaluate the sources
