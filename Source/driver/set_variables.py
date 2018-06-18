@@ -1,16 +1,22 @@
 # parse the _variables file and write the set of functions that will
-# define the indices
+# define the indices.  We write two files with the following functions:
 #
-# ca_set_conserved_indices: the conserved state
+# 1. set_indices.F90:
 #
-# ca_set_primitive_indices: the primitive variable state
+#    * ca_set_auxiliary_indices: the auxiliary state information
 #
-# ca_set_godunov_indices: the interface state
+#    * ca_set_conserved_indices: the conserved state
 #
-# ca_set_auxiliary_indices: the auxiliary state information
+#    * ca_set_godunov_indices: the interface state
+#
+#    * ca_set_primitive_indices: the primitive variable state
+#
+# 2. set_conserved.H
+#
+#    This simply sets the C++ indices
+#
 
 import re
-
 
 HEADER = """
 ! DO NOT EDIT!!!
