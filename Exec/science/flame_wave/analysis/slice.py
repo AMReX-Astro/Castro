@@ -28,9 +28,9 @@ for f in fields:
 
     sp = yt.SlicePlot(ds, "theta", f, center=[xctr, yctr, 0.0], width=[L_x, L_y, 0.0])
     if f == "Temp":
-        sp.set_zlim(f, 1.e7, 1.e9)
+        sp.set_zlim(f, 5.e7, 1.5e9)
     elif f == "enuc":
-        sp.set_zlim(f, 5.e17, 1.e19)
+        sp.set_zlim(f, 1.e18, 1.e20)
     elif f == "density":
         sp.set_zlim(f, 1.e-3, 5.e8)
     elif f == "z_velocity":

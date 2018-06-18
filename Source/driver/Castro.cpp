@@ -880,7 +880,8 @@ Castro::initData ()
 
           // Verify that the sum of (rho X)_i = rho at every cell
 
-          ca_check_initial_species(ARLIM_3D(lo), ARLIM_3D(hi), 
+#pragma gpu
+          ca_check_initial_species(AMREX_ARLIM_ARG(lo), AMREX_ARLIM_ARG(hi), 
 				   BL_TO_FORTRAN_3D(S_new[mfi]));
        }
        enforce_consistent_e(S_new);
@@ -888,6 +889,7 @@ Castro::initData ()
        // thus far, we assume that all initialization has worked on cell-centers
        // (to second-order, these are cell-averages, so we're done in that case).
        // For fourth-order, we need to convert to cell-averages now.
+#ifndef AMREX_USE_CUDA
        if (fourth_order) {
          Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
          AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
@@ -907,6 +909,7 @@ Castro::initData ()
          MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, 0);
          Sborder.clear();
        }
+#endif
 
        // Do a FillPatch so that we can get the ghost zones filled.
 
@@ -2589,7 +2592,8 @@ Castro::normalize_species (MultiFab& S_new)
     {
        const Box& bx = mfi.growntilebox(ng);
 
-       ca_normalize_species(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), 
+#pragma gpu
+       ca_normalize_species(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()), 
                                      BL_TO_FORTRAN_3D(S_new[mfi]));
     }
 }

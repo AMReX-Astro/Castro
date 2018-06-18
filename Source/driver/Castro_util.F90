@@ -280,6 +280,7 @@ contains
 
                       eint_new = eos_state % e
 
+#ifndef AMREX_USE_CUDA                      
                       if (verbose .gt. 0) then
                          print *,'   '
                          print *,'>>> Warning: Castro_util.F90::reset_internal_energy  ',i,j,k
@@ -287,6 +288,7 @@ contains
                          print *,'>>> ... from ',u(i,j,k,UEINT)/u(i,j,k,URHO),' to ', eint_new
                          print *,'    '
                       end if
+#endif
 
                       if (dual_energy_update_E_from_e == 1) then
                          u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + (u(i,j,k,URHO) * eint_new - u(i,j,k,UEINT))
@@ -351,6 +353,7 @@ contains
 
     ! First check the inputs for validity.
 
+#ifndef AMREX_USE_CUDA    
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
@@ -374,6 +377,7 @@ contains
           enddo
        enddo
     enddo
+#endif
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -407,7 +411,7 @@ contains
   
 
 
-  subroutine ca_check_initial_species(lo, hi, state, state_lo, state_hi) bind(c,name='ca_check_initial_species')
+  AMREX_DEVICE subroutine ca_check_initial_species(lo, hi, state, state_lo, state_hi) bind(c,name='ca_check_initial_species')
 
     use network           , only: nspec
     use meth_params_module, only: NVAR, URHO, UFS
@@ -430,12 +434,14 @@ contains
 
              spec_sum = sum(state(i,j,k,UFS:UFS+nspec-1))
 
+#ifndef AMREX_USE_CUDA             
              if (abs(state(i,j,k,URHO)-spec_sum) .gt. 1.e-8_rt * state(i,j,k,URHO)) then
 
                 print *,'Sum of (rho X)_i vs rho at (i,j,k): ',i,j,k,spec_sum,state(i,j,k,URHO)
                 call amrex_error("Error:: Failed check of initial species summing to 1")
 
              end if
+#endif
 
           enddo
        enddo
@@ -445,7 +451,7 @@ contains
 
 
 
-  subroutine ca_normalize_species(lo, hi, u, u_lo, u_hi) bind(c,name='ca_normalize_species')
+  AMREX_DEVICE subroutine ca_normalize_species(lo, hi, u, u_lo, u_hi) bind(c,name='ca_normalize_species')
 
     use network, only: nspec
     use meth_params_module, only: NVAR, URHO, UFS
@@ -599,9 +605,11 @@ contains
 
           end select
 
+#ifndef AMREX_USE_CUDA
        else
 
           call amrex_error("Cylindrical coordinates only supported in 2D.")
+#endif
 
        endif
 
@@ -624,9 +632,11 @@ contains
 
           end select
 
+#ifndef AMREX_USE_CUDA
        else
 
           call amrex_error("Spherical coordinates only supported in 1D.")
+#endif
 
        endif
 
@@ -689,10 +699,12 @@ contains
        if (dim .eq. 2) then
 
           volume = TWO * M_PI * (HALF * (loc_l(1) + loc_r(1))) * dx(1) * dx(2)
-
+          
+#ifndef AMREX_USE_CUDA
        else
 
           call amrex_error("Cylindrical coordinates only supported in 2D.")
+#endif
 
        endif
 
@@ -708,10 +720,12 @@ contains
        if (dim .eq. 1) then
 
           volume = FOUR3RD * M_PI * (loc_r(1)**3 - loc_l(1)**3)
-
+          
+#ifndef AMREX_USE_CUDA
        else
 
           call amrex_error("Spherical coordinates only supported in 1D.")
+#endif
 
        endif
 
@@ -882,7 +896,9 @@ contains
     real(rt) :: x,y,z,r
     real(rt) :: x_mom,y_mom,z_mom,radial_mom
 
+#ifndef AMREX_USE_CUDA    
     if (dim .eq. 1) call amrex_error("Error: cannot do ca_compute_avgstate in 1D.")
+#endif
 
     !
     ! Do not OMP this.
@@ -895,12 +911,14 @@ contains
              x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
              r = sqrt(x**2 + y**2 + z**2)
              index = int(r/dr)
+#ifndef AMREX_USE_CUDA
              if (index .gt. numpts_1d-1) then
                 print *,'COMPUTE_AVGSTATE: INDEX TOO BIG ',index,' > ',numpts_1d-1
                 print *,'AT (i,j,k) ',i,j,k
                 print *,'R / DR ',r,dr
                 call amrex_error("Error:: Castro_util.F90 :: ca_compute_avgstate")
              end if
+#endif
              radial_state(URHO,index) = radial_state(URHO,index) &
                                       + vol(i,j,k)*state(i,j,k,URHO)
              !
