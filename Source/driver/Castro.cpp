@@ -1151,9 +1151,16 @@ Castro::estTimeStep (Real dt_old)
 		{
 		  const Box& box = mfi.tilebox();
 
-		  ca_estdt(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
+#ifdef CUDA
+            Real* dt_f = mfi.add_reduce_value(&dt, MFIter::MIN);
+#else
+            Real* dt_f = &dt;
+#endif
+
+#pragma gpu
+		  ca_estdt(AMREX_ARLIM_ARG(box.loVect()), AMREX_ARLIM_ARG(box.hiVect()),
 			   BL_TO_FORTRAN_3D(stateMF[mfi]),
-			   ZFILL(dx),&dt);
+			   ZFILL(dx),dt_f);
 		}
               estdt_hydro = std::min(estdt_hydro, dt);
             }
