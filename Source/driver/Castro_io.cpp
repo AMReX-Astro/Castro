@@ -377,10 +377,11 @@ Castro::restart (Amr&     papa,
 		 BL_TO_FORTRAN_3D(S_new[mfi]), ZFILL(dx),
 		 ZFILL(geom.ProbLo()), ZFILL(geom.ProbHi()));
 #else
-	      BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
-		(level, cur_time, lo, hi, ns,
-		 BL_TO_FORTRAN(S_new[mfi]), dx,
-		 geom.ProbLo(), geom.ProbHi());
+#pragma gpu
+              ca_initdata
+                  (AMREX_ARLIM_ARG(lo), AMREX_ARLIM_ARG(hi),
+                   BL_TO_FORTRAN_3D(S_new[mfi]),
+                   ZFILL(dx), ZFILL(geom.ProbLo()), AMREX_ARLIM_3D(geom.Domain().loVect()));
 #endif
 
            }

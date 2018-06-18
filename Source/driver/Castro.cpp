@@ -866,10 +866,11 @@ Castro::initData ()
   	   BL_TO_FORTRAN_3D(S_new[mfi]), ZFILL(dx),
   	   ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
 #else
-          BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
-  	  (level, cur_time, lo, hi, ns,
-  	   BL_TO_FORTRAN(S_new[mfi]), dx,
-  	   gridloc.lo(), gridloc.hi());
+#pragma gpu
+          ca_initdata
+              (AMREX_ARLIM_ARG(lo), AMREX_ARLIM_ARG(hi),
+               BL_TO_FORTRAN_3D(S_new[mfi]),
+               ZFILL(dx), ZFILL(geom.ProbLo()), AMREX_ARLIM_3D(geom.Domain().loVect()));
 #endif
 
 	  // Generate the initial hybrid momenta based on this user data.
