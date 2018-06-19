@@ -168,7 +168,7 @@ class Counter(object):
         return "integer, parameter :: {} = {}".format(self.name, self.get_value(offset=self.starting_val))
 
 
-def doit(defines):
+def doit(defines, nadv):
 
     # read the file and create a list of indices
     indices = []
@@ -328,7 +328,9 @@ def doit(defines):
     # write the module containing the size of the sets
     with open("state_sizes.f90", "w") as ss:
         ss.write("module state_sizes_module\n")
+        ss.write("   use network, only : nspec, naux\n")
         ss.write("   implicit none\n")
+        ss.write("   integer, parameter :: nadv = {}\n".format(nadv))
         for ac in all_counters:
             ss.write("   {}\n".format(ac.get_set_string()))
         ss.write("end module state_sizes_module\n")
@@ -353,7 +355,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--defines", type=str, default="",
                         help="preprocessor defines to interpret")
+    parser.add_argument("--nadv", type=int, default=0,
+                        help="the number of pure advected quantities")
 
     args = parser.parse_args()
 
-    doit(args.defines)
+    doit(args.defines, args.nadv)
