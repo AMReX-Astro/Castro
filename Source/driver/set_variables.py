@@ -48,7 +48,6 @@ end subroutine check_equal
 
 """
 
-
 class Index(object):
     """an index that we want to set"""
     def __init__(self, name, f90_var, default_group=None, iset=None,
@@ -83,26 +82,26 @@ class Index(object):
     def __str__(self):
         return self.f90_var
 
-    def get_set_string(self, set_default=None):
-        """return the Fortran code that sets this variable index and increments
-        the appropriate counters"""
+    def get_set_string(self, val, set_default=None):
+        """return the Fortran code that sets this variable index (to val).
+        Here set_default is a value to set the key to in the case that
+        a string value (like nspec) is 0
+
+        """
         sstr = ""
         if self.ifdef is not None:
             sstr += "#ifdef {}\n".format(self.ifdef)
 
         if set_default is not None and self.count != "1":
+            # this adds a test that the count is greater than 0
             sstr += "  if ({} > 0) then\n".format(self.count)
-            sstr += "    {} = {}\n".format(self.f90_var, self.default_group)
-            sstr += "    {} = {} + {}\n".format(self.default_group, self.default_group, self.count)
+            sstr += "    {} = {}\n".format(self.f90_var, val)
             sstr += "  else\n"
             sstr += "    {} = {}\n".format(self.f90_var, set_default)
             sstr += "  endif\n"
         else:
-            sstr += "  {} = {}\n".format(self.f90_var, self.default_group)
-            sstr += "  {} = {} + {}\n".format(self.default_group, self.default_group, self.count)
+            sstr += "  {} = {}\n".format(self.f90_var, val)
 
-        if self.adds_to is not None:
-            sstr += "  {} = {} + {}\n".format(self.adds_to, self.adds_to, self.count)
         if self.cxx_var is not None:
             sstr += "  call check_equal({},{}+1)\n".format(self.f90_var, self.cxx_var)
         if self.ifdef is not None:
@@ -130,6 +129,40 @@ class Index(object):
             sstr += "#endif\n"
         sstr += "\n"
         return sstr
+
+
+class Counter(object):
+    """a simple object to keep track of how many variables there are in a
+    set"""
+
+    def __init__(self, name):
+        """name: the name of that counter (this will be used in Fortran)"""
+
+        self.name = name
+        self.numeric = 0
+        self.strings = []
+
+    def increment(self, value):
+        try:
+            i = int(value)
+        except ValueError:
+            self.string.append(value.strip())
+        else:
+            self.numeric += i
+
+    def get_value(self):
+        """return the current value of the counter"""
+        if len(self.strings) != 0:
+            val = "{} + {}".format(self.numeric, " + ".join(self.strings))
+        else:
+            val = "{} = {}".format(self.numeric)
+
+        return val
+
+    def get_set_string(self):
+        """return the Fortran needed to set this as a parameter"""
+        return "integer, parameter :: {} = {}".format(self.name, self.get_value())
+
 
 def doit(defines):
 
@@ -173,15 +206,18 @@ def doit(defines):
     # find the set of set names
     unique_sets = set([q.iset for q in indices])
 
+    # we'll keep track of all the counters across all the sets.  This
+    # will be used later to write a module that sets parameters with
+    # the size of each set
+    all_counters = []
+
     # all these routines will live in a single file
     with open("set_indices.F90", "w") as f:
 
         f.write(HEADER)
-
-        # loop over sets and create the function
-        # arg list will be C++ names to compare to
         f.write(CHECK_EQUAL)
 
+        # loop over sets and create the functions
         for s in sorted(unique_sets):
             subname = "ca_set_{}_indices".format(s)
 
@@ -196,7 +232,7 @@ def doit(defines):
             # write the function heading
             sub = ""
 
-            # create the subroutine + arguments
+            # arg list will be C++ names to compare to (if any)
             if not cxx_names:
                 sub += "subroutine {}()\n".format(subname)
             else:
@@ -220,13 +256,14 @@ def doit(defines):
 
                 sub += "           {})\n".format(" "*len(subname))
 
+            # done with the subroutine interface, now include the modules we need
             sub += "\n\n"
             sub += "  use meth_params_module\n"
             sub += "  use network, only: naux, nspec\n"
             sub += "#ifdef RADIATION\n  use rad_params_module, only : ngroups\n#endif\n"
             sub += "  implicit none\n"
 
-            # declare the arguments 
+            # declare the arguments
             for i in set_indices:
                 if i.cxx_var is None:
                     continue
@@ -238,27 +275,38 @@ def doit(defines):
             sub += "\n"
 
             # initialize the counters
-            sub += "  {} = 1\n\n".format(default_set[s])
+            counter_main = Counter(default_set[s])
+            counter_adds = []
             for a in adds_to:
-                sub += "  {} = 1\n\n".format(a)
+                counter_adds.append(Counter(a))
 
             # write the lines to set the indices
-            # first do those without an ifex
             for i in set_indices:
-                if s == "conserved":
-                    sub += i.get_set_string(set_default=0)
-                else:
-                    sub += i.get_set_string()
 
-            # finalize the counters
-            sub += "  {} = {} - 1\n".format(default_set[s], default_set[s])
-            for a in adds_to:
-                if a is None:
-                    continue
-                sub += "  {} = {} - 1\n".format(a, a)
+                # increment the counters
+                counter_main.increment(i.count)
+                if i.adds_to is not None:
+                    for ca in counter_adds:
+                        if ca.name == i.adds_to:
+                            ca.increment(i.count)
+
+                # get the index value for the main counter
+                val = counter_main.get_value()
+
+                # for variables in the "conserved" set, it may be
+                # the case that the variable that defines the count is 0.
+                # We need to initialize it specially then.
+                if s == "conserved":
+                    sub += i.get_set_string(val, set_default=0)
+                else:
+                    sub += i.get_set_string(val)
 
             # end the function
             sub += "end subroutine {}\n\n".format(subname)
+
+            # store the counters for later writing
+            all_counters += [counter_main]
+            all_counters += counter_adds
 
             f.write(sub)
 
