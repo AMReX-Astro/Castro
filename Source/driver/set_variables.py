@@ -16,6 +16,7 @@
 #    This simply sets the C++ indices
 #
 
+import argparse
 import re
 
 HEADER = """
@@ -130,7 +131,7 @@ class Index(object):
         sstr += "\n"
         return sstr
 
-def doit():
+def doit(defines):
 
     # read the file and create a list of indices
     indices = []
@@ -195,6 +196,7 @@ def doit():
             # write the function heading
             sub = ""
 
+            # create the subroutine + arguments
             if not cxx_names:
                 sub += "subroutine {}()\n".format(subname)
             else:
@@ -224,6 +226,7 @@ def doit():
             sub += "#ifdef RADIATION\n  use rad_params_module, only : ngroups\n#endif\n"
             sub += "  implicit none\n"
 
+            # declare the arguments 
             for i in set_indices:
                 if i.cxx_var is None:
                     continue
@@ -269,4 +272,11 @@ def doit():
 
 
 if __name__ == "__main__":
-    doit()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--defines", type=str, default="",
+                        help="preprocessor defines to interpret")
+
+    args = parser.parse_args()
+
+    doit(args.defines)
