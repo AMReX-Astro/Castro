@@ -1,3 +1,5 @@
+#!/bin/env python3
+
 # parse the _variables file and write the set of functions that will
 # define the indices.  We write two files with the following functions:
 #
@@ -135,33 +137,35 @@ class Counter(object):
     """a simple object to keep track of how many variables there are in a
     set"""
 
-    def __init__(self, name):
+    def __init__(self, name, starting_val=1):
         """name: the name of that counter (this will be used in Fortran)"""
 
         self.name = name
-        self.numeric = 0
+        self.numeric = starting_val
         self.strings = []
+
+        self.starting_val = starting_val
 
     def increment(self, value):
         try:
             i = int(value)
         except ValueError:
-            self.string.append(value.strip())
+            self.strings.append(value.strip())
         else:
             self.numeric += i
 
-    def get_value(self):
+    def get_value(self, offset=0):
         """return the current value of the counter"""
         if len(self.strings) != 0:
-            val = "{} + {}".format(self.numeric, " + ".join(self.strings))
+            val = "{} + {}".format(self.numeric-offset, " + ".join(self.strings))
         else:
-            val = "{} = {}".format(self.numeric)
+            val = "{}".format(self.numeric-offset)
 
         return val
 
     def get_set_string(self):
         """return the Fortran needed to set this as a parameter"""
-        return "integer, parameter :: {} = {}".format(self.name, self.get_value())
+        return "integer, parameter :: {} = {}".format(self.name, self.get_value(offset=self.starting_val))
 
 
 def doit(defines):
@@ -283,6 +287,9 @@ def doit(defines):
             # write the lines to set the indices
             for i in set_indices:
 
+                # get the index value for the main counter
+                val = counter_main.get_value()
+
                 # increment the counters
                 counter_main.increment(i.count)
                 if i.adds_to is not None:
@@ -290,8 +297,6 @@ def doit(defines):
                         if ca.name == i.adds_to:
                             ca.increment(i.count)
 
-                # get the index value for the main counter
-                val = counter_main.get_value()
 
                 # for variables in the "conserved" set, it may be
                 # the case that the variable that defines the count is 0.
@@ -309,6 +314,16 @@ def doit(defines):
             all_counters += counter_adds
 
             f.write(sub)
+
+
+    # write the module containing the size of the sets
+    with open("state_sizes.f90", "w") as ss:
+        ss.write("module state_sizes_module\n")
+        ss.write("   implicit none\n")
+        for ac in all_counters:
+            ss.write("   {}\n".format(ac.get_set_string()))
+        ss.write("end module state_sizes_module\n")
+
 
     # write the C++ include
     conserved_indices = [q for q in indices if q.iset == "conserved" and q.cxx_var is not None]
