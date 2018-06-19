@@ -167,11 +167,6 @@ subroutine ca_set_conserved_indices( &
   endif
   call check_equal(UFX,FirstAux+1)
 
-#ifdef SHOCK_VAR
-  USHK = 11 + nadv + nspec + naux
-  call check_equal(USHK,Shock+1)
-#endif
-
 end subroutine ca_set_conserved_indices
 
 subroutine ca_set_godunov_indices()
@@ -230,36 +225,24 @@ subroutine ca_set_primitive_indices()
 
   QREINT = 7
 
-#ifdef MHD
-  QMAGX = 8
-#endif
+  QTEMP = 8
 
-#ifdef MHD
-  QMAGY = 9
-#endif
+  QFA = 9
 
-#ifdef MHD
-  QMAGZ = 10
-#endif
+  QFS = 9 + nadv
 
-  QTEMP = 11
-
-  QFA = 12
-
-  QFS = 12 + nadv
-
-  QFX = 12 + nadv + nspec
+  QFX = 9 + nadv + nspec
 
 #ifdef RADIATION
-  QPTOT = 12 + nadv + nspec + naux
+  QPTOT = 9 + nadv + nspec + naux
 #endif
 
 #ifdef RADIATION
-  QREITOT = 13 + nadv + nspec + naux
+  QREITOT = 10 + nadv + nspec + naux
 #endif
 
 #ifdef RADIATION
-  QRAD = 14 + nadv + nspec + naux
+  QRAD = 11 + nadv + nspec + naux
 #endif
 
 end subroutine ca_set_primitive_indices

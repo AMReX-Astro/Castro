@@ -243,6 +243,9 @@ def doit(defines):
                 sub += "subroutine {}( &\n".format(subname)
                 # we need to put all of the arguments that are ifdef-ed up front
                 # so we can properly close the argument list (no hanging commas)
+                # note: the argument list will always include the ifdefs, so we have
+                # a consistent interface we can call.  Below we will only set those
+                # variables that have an ifdef in defines
                 cxx_with_ifdef = [q for q in set_indices if q.cxx_var is not None and q.ifdef is not None]
                 cxx_wo_ifdef = [q for q in set_indices if q.cxx_var is not None and q.ifdef is None]
 
@@ -286,6 +289,12 @@ def doit(defines):
 
             # write the lines to set the indices
             for i in set_indices:
+
+                # if this variable has an ifdef, make sure it is in
+                # defines, otherwise skip
+                if i.ifdef is not None:
+                    if i.ifdef not in defines:
+                        continue
 
                 # get the index value for the main counter
                 val = counter_main.get_value()
@@ -335,6 +344,11 @@ def doit(defines):
 
 
 if __name__ == "__main__":
+
+    # note: you need to put a space at the start of the string
+    # that gives defines so that the '-' is not interpreted as
+    # an option itself
+    # https://stackoverflow.com/questions/16174992/cant-get-argparse-to-read-quoted-string-with-dashes-in-it
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--defines", type=str, default="",
