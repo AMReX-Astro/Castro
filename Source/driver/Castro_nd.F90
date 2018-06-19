@@ -57,10 +57,6 @@ subroutine ca_get_num_spec(nspec_out) bind(C, name="ca_get_num_spec")
 
 end subroutine ca_get_num_spec
 
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
 subroutine ca_get_num_aux(naux_out) bind(C, name="ca_get_num_aux")
 
   use network, only: naux
@@ -73,6 +69,19 @@ subroutine ca_get_num_aux(naux_out) bind(C, name="ca_get_num_aux")
   naux_out = naux
 
 end subroutine ca_get_num_aux
+
+subroutine ca_get_num_adv(nadv_out) bind(C, name="ca_get_num_adv")
+
+  use meth_params_module, only: nadv
+  use amrex_fort_module, only: rt => amrex_real
+
+  implicit none
+
+  integer, intent(out) :: nadv_out
+
+  nadv_out = nadv
+
+end subroutine ca_get_num_adv
 
 ! :::
 ! ::: ----------------------------------------------------------------
@@ -357,7 +366,7 @@ subroutine swap_outflow_data() bind(C, name="swap_outflow_data")
      allocate(outflow_data_old(nc,np))
   end if
 
-#ifndef AMREX_USE_CUDA  
+#ifndef AMREX_USE_CUDA
   if (size(outflow_data_old,dim=2) .ne. size(outflow_data_new,dim=2)) then
      print *,'size of old and new dont match in swap_outflow_data '
      call amrex_error("Error:: Castro_nd.f90 :: swap_outflow_data")
@@ -381,7 +390,7 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
                                 Rmom, &
 #endif
                                 Eden, Eint, Temp, &
-                                FirstAdv, FirstSpec, FirstAux, numadv, &
+                                FirstAdv, FirstSpec, FirstAux, &
 #ifdef SHOCK_VAR
                                 Shock, &
 #endif
@@ -406,7 +415,6 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
   integer, intent(in) :: dm
   integer, intent(in) :: Density, Xmom, Eden, Eint, Temp, &
                          FirstAdv, FirstSpec, FirstAux
-  integer, intent(in) :: numadv
 #ifdef SHOCK_VAR
   integer, intent(in) :: Shock
 #endif
@@ -428,10 +436,6 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
   ngroups = ngroups_in
 #endif
 
-  ! the number of advected varaibles comes from Castro C++, this is not
-  ! a network thing
-  nadv = numadv
-
   !---------------------------------------------------------------------
   ! set integer keys to index states
   !---------------------------------------------------------------------
@@ -452,6 +456,13 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
   call ca_set_auxiliary_indices()
 
   call ca_set_primitive_indices()
+
+  ! sanity check
+#ifndef AMREX_USE_CUDA
+  if ((QU /= GDU) .or. (QV /= GDV) .or. (QW /= GDW)) then
+     call amrex_error("ERROR: velocity components for godunov and primitive state are not aligned")
+  endif
+#endif
 
   ! easy indexing for the passively advected quantities.  This
   ! lets us loop over all groups (advected, species, aux)
@@ -569,47 +580,6 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
 end subroutine ca_set_method_params
 
 
-subroutine ca_init_godunov_indices() bind(C, name="ca_init_godunov_indices")
-
-  use amrex_error_module
-  use meth_params_module, only: GDRHO, GDU, GDV, GDW, GDPRES, GDGAME, NGDNV, &
-#ifdef RADIATION
-                                GDLAMS, GDERADS, &
-#endif
-                                QU, QV, QW
-
-  use amrex_fort_module, only: rt => amrex_real
-#ifdef RADIATION
-  use rad_params_module, only : ngroups
-#endif
-
-  implicit none
-
-  NGDNV = 6
-#if RADIATION
-  NGDNV = NGDNV + 2*ngroups
-#endif
-
-  GDRHO = 1
-  GDU = 2
-  GDV = 3
-  GDW = 4
-  GDPRES = 5
-  GDGAME = 6
-#ifdef RADIATION
-  GDLAMS = GDGAME+1            ! starting index for rad lambda
-  GDERADS = GDLAMS + ngroups   ! starting index for rad energy
-#endif
-
-  ! sanity check
-#ifndef AMREX_USE_CUDA  
-  if ((QU /= GDU) .or. (QV /= GDV) .or. (QW /= GDW)) then
-     call amrex_error("ERROR: velocity components for godunov and primitive state are not aligned")
-  endif
-#endif  
-
-end subroutine ca_init_godunov_indices
-
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
@@ -663,7 +633,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   allocate(center(3))
   allocate(problo(3))
   allocate(probhi(3))
-  
+
   Interior   = Interior_in
   Inflow     = Inflow_in
   Outflow    = Outflow_in
@@ -857,7 +827,7 @@ subroutine ca_get_tagging_params(name, namlen) &
   max_radgrad_lev = -1
 
   ! create the filename
-#ifndef AMREX_USE_CUDA  
+#ifndef AMREX_USE_CUDA
   if (namlen > maxlen) then
      call amrex_error('probin file name too long')
   endif
@@ -875,10 +845,10 @@ subroutine ca_get_tagging_params(name, namlen) &
   if (status < 0) then
      ! the namelist does not exist, so we just go with the defaults
      continue
-     
+
   else if (status > 0) then
      ! some problem in the namelist
-#ifndef AMREX_USE_CUDA     
+#ifndef AMREX_USE_CUDA
      call amrex_error('ERROR: problem in the tagging namelist')
 #endif
   endif
@@ -943,7 +913,7 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   sponge_timescale    = -1.e0_rt
 
   ! create the filename
-#ifndef AMREX_USE_CUDA 
+#ifndef AMREX_USE_CUDA
   if (namlen > maxlen) then
      call amrex_error('probin file name too long')
   endif
@@ -977,7 +947,7 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
 
   ! Sanity check
 
-#ifndef AMREX_USE_CUDA  
+#ifndef AMREX_USE_CUDA
   if (sponge_lower_factor < 0.e0_rt .or. sponge_lower_factor > 1.e0_rt) then
      call amrex_error('ERROR: sponge_lower_factor cannot be outside of [0, 1].')
   endif

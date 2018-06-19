@@ -14,6 +14,7 @@ module meth_params_module
 
   use amrex_error_module
   use amrex_fort_module, only: rt => amrex_real
+  use state_sizes_module, only : nadv, NQAUX, NVAR, NGDNV, NQ, QVAR
 
   implicit none
 
@@ -21,23 +22,16 @@ module meth_params_module
   integer, parameter     :: NHYP    = 4
 
   ! conservative variables
-  integer, allocatable, save :: NVAR
   integer, allocatable, save :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
   integer, allocatable, save :: USHK
 
   ! primitive variables
-  integer, allocatable, save :: QVAR
   integer, allocatable, save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
-  integer, allocatable, save :: NQAUX, QGAMC, QC, QDPDR, QDPDE
+  integer, allocatable, save :: QGAMC, QC, QDPDR, QDPDE
 #ifdef RADIATION
   integer, allocatable, save :: QGAMCG, QCG, QLAMS
 #endif
   integer, allocatable, save :: QFA, QFS, QFX
-
-  integer, allocatable, save :: nadv
-
-  ! NQ will be the total number of primitive variables, hydro + radiation
-  integer, allocatable, save :: NQ         
 
 #ifdef RADIATION
   integer, save :: QRAD, QRADHI, QPTOT, QREITOT
@@ -54,7 +48,7 @@ module meth_params_module
   ! These are used for the Godunov state
   ! Note that the velocity indices here are picked to be the same value
   ! as in the primitive variable array
-  integer, save, allocatable :: NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
+  integer, save, allocatable :: GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
 #ifdef RADIATION
   integer, save, allocatable :: GDLAMS, GDERADS
 #endif
@@ -81,21 +75,17 @@ module meth_params_module
   ! the device update is then done in Castro_nd.f90
 
 #ifdef CUDA
-  attributes(managed) :: NVAR
   attributes(managed) :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
   attributes(managed) :: USHK
-  attributes(managed) :: QVAR
   attributes(managed) :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
-  attributes(managed) :: NQAUX, QGAMC, QC, QDPDR, QDPDE
+  attributes(managed) :: QGAMC, QC, QDPDR, QDPDE
 #ifdef RADIATION
   attributes(managed) :: QGAMCG, QCG, QLAMS
 #endif
   attributes(managed) :: QFA, QFS, QFX
-  attributes(managed) :: nadv
-  attributes(managed) :: NQ
   attributes(managed) :: npassive
   attributes(managed) :: qpass_map, upass_map
-  attributes(managed) :: NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
+  attributes(managed) :: GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
 #ifdef RADIATION
   attributes(managed) :: GDLAMS, GDERADS
 #endif
@@ -103,13 +93,10 @@ module meth_params_module
 #endif
 
   !$acc declare &
-  !$acc create(NVAR) &
   !$acc create(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS,UFX) &
   !$acc create(USHK) &
-  !$acc create(QVAR) &
   !$acc create(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP) &
   !$acc create(QC, QDPDR, QDPDE, QGAMC, QGAME) &
-  !$acc create(NQ) &
 #ifdef RADIATION
   !$acc create(QGAMCG, QCG, QLAMS) &
   !$acc create(QRAD, QRADHI, QPTOT, QREITOT) &
@@ -329,20 +316,16 @@ contains
     type (amrex_parmparse) :: pp
 
 
-    allocate(NVAR)
     allocate(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX)
     allocate(USHK)
-    allocate(QVAR)
     allocate(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME)
-    allocate(NQAUX, QGAMC, QC, QDPDR, QDPDE)
+    allocate(QGAMC, QC, QDPDR, QDPDE)
 #ifdef RADIATION
     allocate(QGAMCG, QCG, QLAMS)
 #endif
     allocate(QFA, QFS, QFX)
-    allocate(nadv)
-    allocate(NQ)
     allocate(npassive)
-    allocate(NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME)
+    allocate(GDRHO, GDU, GDV, GDW, GDPRES, GDGAME)
 #ifdef RADIATION
     allocate(GDLAMS, GDERADS)
 #endif
@@ -364,6 +347,34 @@ contains
     diffuse_cutoff_density = -1.d200;
     allocate(diffuse_cond_scale_fac)
     diffuse_cond_scale_fac = 1.0d0;
+#endif
+#ifdef ROTATION
+    allocate(rot_period)
+    rot_period = -1.d200;
+    allocate(rot_period_dot)
+    rot_period_dot = 0.0d0;
+    allocate(rotation_include_centrifugal)
+    rotation_include_centrifugal = 1;
+    allocate(rotation_include_coriolis)
+    rotation_include_coriolis = 1;
+    allocate(rotation_include_domegadt)
+    rotation_include_domegadt = 1;
+    allocate(state_in_rotating_frame)
+    state_in_rotating_frame = 1;
+    allocate(rot_source_type)
+    rot_source_type = 4;
+    allocate(implicit_rotation_update)
+    implicit_rotation_update = 1;
+    allocate(rot_axis)
+    rot_axis = 3;
+#endif
+#ifdef POINTMASS
+    allocate(use_point_mass)
+    use_point_mass = 1;
+    allocate(point_mass)
+    point_mass = 0.0d0;
+    allocate(point_mass_fix_solution)
+    point_mass_fix_solution = 0;
 #endif
     allocate(difmag)
     difmag = 0.1d0;
@@ -495,39 +506,27 @@ contains
     grown_factor = 1;
     allocate(track_grid_losses)
     track_grid_losses = 0;
-#ifdef POINTMASS
-    allocate(use_point_mass)
-    use_point_mass = 1;
-    allocate(point_mass)
-    point_mass = 0.0d0;
-    allocate(point_mass_fix_solution)
-    point_mass_fix_solution = 0;
-#endif
-#ifdef ROTATION
-    allocate(rot_period)
-    rot_period = -1.d200;
-    allocate(rot_period_dot)
-    rot_period_dot = 0.0d0;
-    allocate(rotation_include_centrifugal)
-    rotation_include_centrifugal = 1;
-    allocate(rotation_include_coriolis)
-    rotation_include_coriolis = 1;
-    allocate(rotation_include_domegadt)
-    rotation_include_domegadt = 1;
-    allocate(state_in_rotating_frame)
-    state_in_rotating_frame = 1;
-    allocate(rot_source_type)
-    rot_source_type = 4;
-    allocate(implicit_rotation_update)
-    implicit_rotation_update = 1;
-    allocate(rot_axis)
-    rot_axis = 3;
-#endif
 
     call amrex_parmparse_build(pp, "castro")
 #ifdef DIFFUSION
     call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
     call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
+#endif
+#ifdef ROTATION
+    call pp%query("rotational_period", rot_period)
+    call pp%query("rotational_dPdt", rot_period_dot)
+    call pp%query("rotation_include_centrifugal", rotation_include_centrifugal)
+    call pp%query("rotation_include_coriolis", rotation_include_coriolis)
+    call pp%query("rotation_include_domegadt", rotation_include_domegadt)
+    call pp%query("state_in_rotating_frame", state_in_rotating_frame)
+    call pp%query("rot_source_type", rot_source_type)
+    call pp%query("implicit_rotation_update", implicit_rotation_update)
+    call pp%query("rot_axis", rot_axis)
+#endif
+#ifdef POINTMASS
+    call pp%query("use_point_mass", use_point_mass)
+    call pp%query("point_mass", point_mass)
+    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
 #endif
     call pp%query("difmag", difmag)
     call pp%query("small_dens", small_dens)
@@ -594,22 +593,6 @@ contains
     call pp%query("do_acc", do_acc)
     call pp%query("grown_factor", grown_factor)
     call pp%query("track_grid_losses", track_grid_losses)
-#ifdef POINTMASS
-    call pp%query("use_point_mass", use_point_mass)
-    call pp%query("point_mass", point_mass)
-    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
-#endif
-#ifdef ROTATION
-    call pp%query("rotational_period", rot_period)
-    call pp%query("rotational_dPdt", rot_period_dot)
-    call pp%query("rotation_include_centrifugal", rotation_include_centrifugal)
-    call pp%query("rotation_include_coriolis", rotation_include_coriolis)
-    call pp%query("rotation_include_domegadt", rotation_include_domegadt)
-    call pp%query("state_in_rotating_frame", state_in_rotating_frame)
-    call pp%query("rot_source_type", rot_source_type)
-    call pp%query("implicit_rotation_update", implicit_rotation_update)
-    call pp%query("rot_axis", rot_axis)
-#endif
     call amrex_parmparse_destroy(pp)
 
 
@@ -706,20 +689,16 @@ contains
   subroutine ca_finalize_meth_params() bind(C, name="ca_finalize_meth_params")
     implicit none
 
-    deallocate(NVAR)
     deallocate(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX)
     deallocate(USHK)
-    deallocate(QVAR)
     deallocate(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME)
-    deallocate(NQAUX, QGAMC, QC, QDPDR, QDPDE)
+    deallocate(QGAMC, QC, QDPDR, QDPDE)
 #ifdef RADIATION
     deallocate(QGAMCG, QCG, QLAMS)
 #endif
     deallocate(QFA, QFS, QFX)
-    deallocate(nadv)
-    deallocate(NQ)
     deallocate(npassive)
-    deallocate(NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME)
+    deallocate(GDRHO, GDU, GDV, GDW, GDPRES, GDGAME)
 #ifdef RADIATION
     deallocate(GDLAMS, GDERADS)
     deallocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
@@ -1015,7 +994,6 @@ contains
     flatten_pp_threshold = fppt
     
     !$acc update &
-    !$acc device(NQ,NQAUX) &
     !$acc device(QRAD, QRADHI, QPTOT, QREITOT) &
     !$acc device(fspace_type) &
     !$acc device(do_inelastic_scattering) &
