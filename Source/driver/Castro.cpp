@@ -126,13 +126,25 @@ std::string  Castro::probin_file = "probin";
 
 
 #if BL_SPACEDIM == 1
+#ifndef AMREX_USE_CUDA
 IntVect      Castro::hydro_tile_size(1024);
+#else
+IntVect      Castro::hydro_tile_size(1024);
+#endif
 IntVect      Castro::no_tile_size(1024);
 #elif BL_SPACEDIM == 2
+#ifndef AMREX_USE_CUDA
 IntVect      Castro::hydro_tile_size(1024,16);
+#else
+IntVect      Castro::hydro_tile_size(1024,1024);
+#endif
 IntVect      Castro::no_tile_size(1024,1024);
 #else
+#ifndef AMREX_USE_CUDA
 IntVect      Castro::hydro_tile_size(1024,16,16);
+#else
+IntVect      Castro::hydro_tile_size(1024,1024,1024);
+#endif
 IntVect      Castro::no_tile_size(1024,1024,1024);
 #endif
 
@@ -3527,7 +3539,11 @@ Castro::clean_state(MultiFab& state) {
 
     MultiFab::Copy(temp_state, state, 0, 0, state.nComp(), state.nGrow());
 
+#ifndef AMREX_USE_CUDA
     Real frac_change = enforce_min_density(temp_state, state);
+#else
+    Real frac_change = 1.e200;
+#endif
 
     // Ensure all species are normalized.
 
@@ -3555,7 +3571,11 @@ Castro::clean_state(MultiFab& state, MultiFab& state_old) {
 
     // Enforce a minimum density.
 
+#ifndef AMREX_USE_CUDA
     Real frac_change = enforce_min_density(state_old, state);
+#else
+    Real frac_change = 1.e200;
+#endif
 
     // Ensure all species are normalized.
 
