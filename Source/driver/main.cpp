@@ -181,6 +181,13 @@ main (int   argc,
 
     }
 
+    // Start calculating the figure of merit for this run: average number of zones
+    // advanced per microsecond. This must be done before we delete the Amr
+    // object because we need to scale it by the number of zones on the coarse grid.
+
+    long numPtsCoarseGrid = amrptr->getLevel(0).boxArray().numPts();
+    Real fom = Castro::num_zones_advanced * numPtsCoarseGrid;
+
     time(&time_type);
 
     time_pointer = gmtime(&time_type);
@@ -211,7 +218,17 @@ main (int   argc,
     if (ParallelDescriptor::IOProcessor())
     {
         std::cout << "Run time = " << runtime_total << std::endl;
-        std::cout << "Run time w/o init = " << runtime_timestep << std::endl;
+        std::cout << "Run time without initialization = " << runtime_timestep << std::endl;
+
+	int nProcs = ParallelDescriptor::NProcs();
+#ifdef _OPENMP
+	nProcs *= omp_get_max_threads();
+#endif
+	fom = fom / runtime_timestep / 1.e6;
+
+	std::cout << "\n";
+	std::cout << "  Average number of zones advanced per microsecond: " << std::fixed << std::setprecision(3) << fom << "\n";
+	std::cout << "\n";
     }
 
     if (CArena* arena = dynamic_cast<CArena*>(amrex::The_Arena()))
