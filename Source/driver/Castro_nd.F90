@@ -421,15 +421,16 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
 
   integer :: iadv, ispec
 
-  integer :: QLAST
-  integer :: NTHERM, QTHERM
-
   integer :: i
   integer :: ioproc
 
 #ifdef RADIATION
   ngroups = ngroups_in
 #endif
+
+  ! the number of advected varaibles comes from Castro C++, this is not
+  ! a network thing
+  nadv = numadv
 
   !---------------------------------------------------------------------
   ! set integer keys to index states

@@ -92,7 +92,10 @@ int          Castro::Shock         = -1;
 int          Castro::QVAR          = -1;
 int          Castro::NQAUX         = -1;
 int          Castro::NQ            = -1;
+
 int          Castro::NGDNV         = -1;
+
+Real         Castro::num_zones_advanced = 0.0;
 
 Vector<std::string> Castro::source_names;
 
@@ -126,13 +129,25 @@ std::string  Castro::probin_file = "probin";
 
 
 #if BL_SPACEDIM == 1
+#ifndef AMREX_USE_CUDA
 IntVect      Castro::hydro_tile_size(1024);
+#else
+IntVect      Castro::hydro_tile_size(1024);
+#endif
 IntVect      Castro::no_tile_size(1024);
 #elif BL_SPACEDIM == 2
+#ifndef AMREX_USE_CUDA
 IntVect      Castro::hydro_tile_size(1024,16);
+#else
+IntVect      Castro::hydro_tile_size(1024,1024);
+#endif
 IntVect      Castro::no_tile_size(1024,1024);
 #else
+#ifndef AMREX_USE_CUDA
 IntVect      Castro::hydro_tile_size(1024,16,16);
+#else
+IntVect      Castro::hydro_tile_size(1024,1024,1024);
+#endif
 IntVect      Castro::no_tile_size(1024,1024,1024);
 #endif
 
@@ -880,7 +895,8 @@ Castro::initData ()
 
           // Verify that the sum of (rho X)_i = rho at every cell
 
-          ca_check_initial_species(ARLIM_3D(lo), ARLIM_3D(hi), 
+#pragma gpu
+          ca_check_initial_species(AMREX_ARLIM_ARG(lo), AMREX_ARLIM_ARG(hi), 
 				   BL_TO_FORTRAN_3D(S_new[mfi]));
        }
        enforce_consistent_e(S_new);
@@ -888,6 +904,7 @@ Castro::initData ()
        // thus far, we assume that all initialization has worked on cell-centers
        // (to second-order, these are cell-averages, so we're done in that case).
        // For fourth-order, we need to convert to cell-averages now.
+#ifndef AMREX_USE_CUDA
        if (fourth_order) {
          Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
          AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
@@ -907,6 +924,7 @@ Castro::initData ()
          MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, 0);
          Sborder.clear();
        }
+#endif
 
        // Do a FillPatch so that we can get the ghost zones filled.
 
@@ -1148,9 +1166,16 @@ Castro::estTimeStep (Real dt_old)
 		{
 		  const Box& box = mfi.tilebox();
 
-		  ca_estdt(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
+#ifdef CUDA
+            Real* dt_f = mfi.add_reduce_value(&dt, MFIter::MIN);
+#else
+            Real* dt_f = &dt;
+#endif
+
+#pragma gpu
+		  ca_estdt(AMREX_ARLIM_ARG(box.loVect()), AMREX_ARLIM_ARG(box.hiVect()),
 			   BL_TO_FORTRAN_3D(stateMF[mfi]),
-			   ZFILL(dx),&dt);
+			   ZFILL(dx),dt_f);
 		}
               estdt_hydro = std::min(estdt_hydro, dt);
             }
@@ -2589,7 +2614,8 @@ Castro::normalize_species (MultiFab& S_new)
     {
        const Box& bx = mfi.growntilebox(ng);
 
-       ca_normalize_species(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), 
+#pragma gpu
+       ca_normalize_species(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()), 
                                      BL_TO_FORTRAN_3D(S_new[mfi]));
     }
 }
@@ -2649,12 +2675,20 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 	const FArrayBox& stateold = S_old[mfi];
 	FArrayBox& statenew = S_new[mfi];
 	const FArrayBox& vol      = volume[mfi];
-	
-	ca_enforce_minimum_density(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                                   stateold.dataPtr(), ARLIM_3D(stateold.loVect()), ARLIM_3D(stateold.hiVect()),
-				   statenew.dataPtr(), ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
-				   vol.dataPtr(), ARLIM_3D(vol.loVect()), ARLIM_3D(vol.hiVect()),
-				   &dens_change, &verbose);
+
+#ifdef CUDA
+        Real* dens_change_f = mfi.add_reduce_value(&dens_change, MFIter::MIN);
+#else
+        Real* dens_change_f = &dens_change;
+#endif
+
+#pragma gpu
+	ca_enforce_minimum_density
+            (AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
+             BL_TO_FORTRAN_ANYD(stateold),
+             BL_TO_FORTRAN_ANYD(statenew),
+             BL_TO_FORTRAN_ANYD(vol),
+             dens_change_f, verbose);
 
     }
 
@@ -3004,9 +3038,10 @@ Castro::reset_internal_energy(MultiFab& S_new)
     {
         const Box& bx = mfi.growntilebox(ng);
 
-        ca_reset_internal_e(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+#pragma gpu
+        ca_reset_internal_e(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
 			    BL_TO_FORTRAN_3D(S_new[mfi]),
-			    &print_fortran_warnings);
+			    print_fortran_warnings);
     }
 
     // Flush Fortran output
@@ -3077,7 +3112,8 @@ Castro::computeTemp(MultiFab& State)
 	State[mfi].copy(temp,bx,0,bx,Temp,1);
       } else {
 #endif
-	ca_compute_temp(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+#pragma gpu
+	ca_compute_temp(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
 			BL_TO_FORTRAN_3D(State[mfi]));
 #ifdef RADIATION
       }
@@ -3506,7 +3542,11 @@ Castro::clean_state(MultiFab& state) {
 
     MultiFab::Copy(temp_state, state, 0, 0, state.nComp(), state.nGrow());
 
+#ifndef AMREX_USE_CUDA
     Real frac_change = enforce_min_density(temp_state, state);
+#else
+    Real frac_change = 1.e200;
+#endif
 
     // Ensure all species are normalized.
 
@@ -3534,7 +3574,11 @@ Castro::clean_state(MultiFab& state, MultiFab& state_old) {
 
     // Enforce a minimum density.
 
+#ifndef AMREX_USE_CUDA
     Real frac_change = enforce_min_density(state_old, state);
+#else
+    Real frac_change = 1.e200;
+#endif
 
     // Ensure all species are normalized.
 

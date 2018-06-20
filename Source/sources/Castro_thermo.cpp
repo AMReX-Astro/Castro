@@ -49,10 +49,11 @@ Castro::fill_thermo_source (Real time, Real dt,
 
       const Box& bx = mfi.tilebox();
 
-      ca_thermo_src(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+#pragma gpu
+      ca_thermo_src(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
                     BL_TO_FORTRAN_3D(state_old[mfi]),
                     BL_TO_FORTRAN_3D(state_new[mfi]),
                     BL_TO_FORTRAN_3D(thermo_src[mfi]),
-                    ZFILL(prob_lo),ZFILL(dx),&time,&dt);
+                    ZFILL(prob_lo),ZFILL(dx),time,dt);
     }
 }
