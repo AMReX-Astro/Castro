@@ -155,9 +155,11 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
   ! to do 4th order for axisymmetry, we need to derive the transformations between
   ! averages and cell-centers with the correct volume terms in the integral.
+#ifndef AMREX_USE_CUDA
   if (coord_type > 0) then
      call amrex_error("Error: fourth order not implemented for axisymmetric")
   endif
+#endif
 
   ngf = 1
 
@@ -762,7 +764,9 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   call bl_deallocate(flz_avg)
 #endif
 #else
+#ifndef AMREX_USE_CUDA
   ! RADIATION check
   call amrex_error("ERROR: ca_fourth_single_stage does not support radiation")
+#endif
 #endif
 end subroutine ca_fourth_single_stage

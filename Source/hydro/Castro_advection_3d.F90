@@ -1,6 +1,7 @@
 module ctu_advection_module
 
   use amrex_constants_module
+  use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -490,7 +491,9 @@ contains
        else
 
 #ifdef RADIATION
+#ifndef AMREX_USE_CUDA
           call amrex_error("ppm_type <=0 is not supported in with radiation")
+#endif          
 #endif
 
           ! Compute all slopes at kc (k3d)

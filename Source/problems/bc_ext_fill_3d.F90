@@ -2,11 +2,12 @@ module bc_ext_fill_module
 
   use amrex_constants_module, only: ZERO, HALF
   use amrex_error_module
+  use amrex_filcc_module, only: amrex_filccn
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
                                  UEDEN, UEINT, UFS, UTEMP, const_grav, &
                                  hse_zero_vels, hse_interp_temp, hse_reflect_vels, &
                                  xl_ext, xr_ext, yl_ext, yr_ext, zl_ext,zr_ext,EXT_HSE, EXT_INTERP
-  use interpolate_module, only: interpolate
+  use interpolate_module, only: interpolate_sub
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -25,9 +26,9 @@ contains
   ! NOTE: the hydrostatic boundary conditions here rely on
   ! constant gravity
 
-  subroutine ext_fill(adv, adv_l1, adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
-                      domlo, domhi, delta, xlo, time, bc) &
-                      bind(C, name="ext_fill")
+  AMREX_LAUNCH subroutine ext_fill(adv, adv_l1, adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
+                                   domlo, domhi, delta, xlo, time, bc) &
+                                   bind(C, name="ext_fill")
 
     use prob_params_module, only : problo
     use eos_module, only: eos
@@ -57,22 +58,30 @@ contains
     do n = 1, NVAR
        !XLO
        if (bc(1,1,n) == EXT_DIR .and. xl_ext == EXT_HSE .and. adv_l1 < domlo(1)) then
+#ifndef AMREX_USE_CUDA          
           call amrex_error("ERROR: HSE boundaries not implemented for -X")
+#endif
        end if
 
        !YLO
        if (bc(2,1,n) == EXT_DIR .and. yl_ext == EXT_HSE .and. adv_l2 < domlo(2)) then
+#ifndef AMREX_USE_CUDA
           call amrex_error("ERROR: HSE boundaries not implemented for -Y")
+#endif
        end if
 
        ! XHI
        if (bc(1,2,n) == EXT_DIR .and. xr_ext == EXT_HSE .and. adv_h1 > domhi(1)) then
+#ifndef AMREX_USE_CUDA
           call amrex_error("ERROR: HSE boundaries not implemented for +X")
+#endif
        end if
        ! YHI
       if (bc(2,2,n) == EXT_DIR .and. yr_ext == EXT_HSE .and. adv_h2 > domhi(2)) then
-          call amrex_error("ERROR: HSE boundaries not implemented for +Y")
-       end if
+#ifndef AMREX_USE_CUDA
+         call amrex_error("ERROR: HSE boundaries not implemented for +Y")
+#endif
+      end if
 
        ! ZLO
        if (bc(3,1,n) == EXT_DIR .and. adv_l3 < domlo(3)) then
@@ -94,15 +103,15 @@ contains
                     if (dens_above == ZERO) then
                       z = problo(3) + delta(3)*(dble(domlo(3)) + HALF)
 
-                      dens_above = interpolate(z,npts_model,model_r, &
-                                            model_state(:,idens_model))
+                      call interpolate_sub(dens_above, z,npts_model,model_r, &
+                                           model_state(:,idens_model))
 
-                      temp_above = interpolate(z,npts_model,model_r, &
-                                            model_state(:,itemp_model))
+                      call interpolate_sub(temp_above, z,npts_model,model_r, &
+                                           model_state(:,itemp_model))
 
                       do m = 1, nspec
-                         X_zone(m) = interpolate(z,npts_model,model_r, &
-                                            model_state(:,ispec_model-1+m))
+                         call interpolate_sub(X_zone(m), z,npts_model,model_r, &
+                                              model_state(:,ispec_model-1+m))
                       enddo
 
                     else
@@ -134,8 +143,8 @@ contains
 
                       ! temperature and species held constant in BCs
                       if (hse_interp_temp == 1) then
-                         temp_zone = interpolate(z,npts_model,model_r, &
-                                                 model_state(:,itemp_model))
+                         call interpolate_sub(temp_zone, z,npts_model,model_r, &
+                                              model_state(:,itemp_model))
                       else
                          temp_zone = temp_above
                       endif
@@ -175,6 +184,7 @@ contains
 
                       enddo
 
+#ifndef AMREX_USE_CUDA
                       if (.not. converged_hse) then
                          print *, "i, j, k,domlo(3): ", i, j,k, domlo(3)
                          print *, "p_want:    ", p_want
@@ -188,7 +198,7 @@ contains
                          print *, "pressure: ", (7.0_rt/5.0_rt-1_rt)*adv(i,j,k:domlo(3),UEINT)
                          call amrex_error("ERROR in bc_ext_fill_1d: failure to converge in -Z BC")
                       endif
-
+#endif
 
                       ! velocity
                       if (hse_zero_vels == 1) then
@@ -245,15 +255,15 @@ contains
                    ! set all the variables even though we're testing on URHO
                   if (n == URHO) then
 
-                    dens_zone = interpolate(z,npts_model,model_r, &
-                                              model_state(:,idens_model))
+                     call interpolate_sub(dens_zone, z,npts_model,model_r, &
+                                          model_state(:,idens_model))
 
-                    temp_zone = interpolate(z,npts_model,model_r, &
-                                              model_state(:,itemp_model))
+                     call interpolate_sub(temp_zone, z,npts_model,model_r, &
+                                          model_state(:,itemp_model))
 
                     do q = 1, nspec
-                      X_zone(q) = interpolate(z,npts_model,model_r, &
-                                                 model_state(:,ispec_model-1+q))
+                       call interpolate_sub(X_zone(q), z,npts_model,model_r, &
+                                            model_state(:,ispec_model-1+q))
                     enddo
                     adv(i,j,k,UMZ) = min(ZERO, adv(i,j,domlo(3),UMZ))
 
@@ -290,7 +300,9 @@ contains
        if (bc(3,2,n) == EXT_DIR .and. adv_h3 > domhi(3)) then
 
           if (zr_ext == EXT_HSE) then
+#ifndef AMREX_USE_CUDA
              call amrex_error("ERROR: HSE boundaries not implemented for +Z")
+#endif
 
           elseif (zr_ext == EXT_INTERP) then
              ! interpolate thermodynamics from initial model
@@ -301,15 +313,15 @@ contains
 
                    ! set all the variables even though we're testing on URHO
                   if (n == URHO) then
-                    dens_zone = interpolate(z,npts_model,model_r, &
-                                              model_state(:,idens_model))
+                     call interpolate_sub(dens_zone, z,npts_model,model_r, &
+                                          model_state(:,idens_model))
 
-                    temp_zone = interpolate(z,npts_model,model_r, &
-                                              model_state(:,itemp_model))
+                     call interpolate_sub(temp_zone, z,npts_model,model_r, &
+                                          model_state(:,itemp_model))
 
                     do q = 1, nspec
-                      X_zone(q) = interpolate(z,npts_model,model_r, &
-                                                 model_state(:,ispec_model-1+q))
+                       call interpolate_sub(X_zone(q), z,npts_model,model_r, &
+                                            model_state(:,ispec_model-1+q))
                     enddo
 
 
@@ -348,17 +360,15 @@ contains
   end subroutine ext_fill
 
 
-subroutine ext_denfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2, adv_h3,&
-                       domlo,domhi,delta,xlo,time,bc) &
-                       bind(C, name="ext_denfill")
-
+  AMREX_LAUNCH subroutine ext_denfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2, adv_h3,&
+                                      domlo,domhi,delta,xlo,time,bc) &
+                                      bind(C, name="ext_denfill")
 
     use prob_params_module, only : problo
-    use interpolate_module
     use model_parser_module
     use amrex_error_module
 
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only : rt => amrex_real, get_loop_bounds
     integer adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3
     integer bc(3,2,*)
     integer domlo(3), domhi(3)
@@ -368,32 +378,52 @@ subroutine ext_denfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2, adv_h3,&
     integer i,j,k
     real(rt)         y,z
 
+    integer :: adv_lo(3), adv_hi(3), lo(3), hi(3)
+
+    lo(1) = adv_l1
+    lo(2) = adv_l2
+    lo(3) = adv_l3
+    hi(1) = adv_h1
+    hi(2) = adv_h2
+    hi(3) = adv_h3
+
+    call get_loop_bounds(adv_lo, adv_hi, lo, hi)
+    
     ! Note: this function should not be needed, technically, but is
     ! provided to filpatch because there are many times in the algorithm
     ! when just the density is needed.  We try to rig up the filling so
     ! that the same function is called here and in hypfill where all the
     ! states are filled.
 
-    call filcc(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3,domlo,domhi,delta,xlo,bc)
+    call amrex_filccn(adv_lo, adv_hi, adv, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+
     ! XLO
     if ( bc(1,1,1) == EXT_DIR .and. adv_l1 < domlo(1)) then
+#ifndef AMREX_USE_CUDA
        call amrex_error("We shoundn't be here (xlo denfill)")
+#endif
     end if
 
 
     ! YLO
     if ( bc(2,1,1) == EXT_DIR .and. adv_l2 < domlo(2)) then
+#ifndef AMREX_USE_CUDA
        call amrex_error("We shoundn't be here (ylo denfill)")
+#endif
     end if
 
     ! XHI
     if ( bc(1,2,1) == EXT_DIR .and. adv_h1 > domhi(1)) then
+#ifndef AMREX_USE_CUDA
        call amrex_error("We shoundn't be here (xhi denfill)")
+#endif
     endif
 
     ! YHI
     if ( bc(2,2,1) == EXT_DIR .and. adv_h2 > domhi(2)) then
+#ifndef AMREX_USE_CUDA
        call amrex_error("We shoundn't be here (yhi denfill)")
+#endif
     endif
 
   end subroutine ext_denfill

@@ -121,6 +121,8 @@ contains
     use fundamental_constants_module, only: Gconst
     use meth_params_module, only : const_grav
 
+    use parallel, only : parallel_IOProcessor
+
     implicit none
 
     integer, intent(in) :: nx

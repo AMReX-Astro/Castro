@@ -228,6 +228,7 @@ Castro::variableSetUp ()
 
   // initialize the Godunov state array used in hydro 
   ca_init_godunov_indices();
+  ca_get_ngdnv(&NGDNV);
 
   // NQ will be used to dimension the primitive variable state
   // vector it will include the "pure" hydrodynamical variables +

@@ -7,6 +7,7 @@
 module probin_module
 
   use bl_types
+  use amrex_fort_module, only: rt => amrex_real
 
   implicit none
 
@@ -21,6 +22,7 @@ end module probin_module
 module extern_probin_module
 
   use bl_types
+  use amrex_fort_module, only: rt => amrex_real
 
   implicit none
 
@@ -37,6 +39,7 @@ module runtime_init_module
   use bl_types
   use probin_module
   use extern_probin_module
+  use amrex_fort_module, only: rt => amrex_real
 
   implicit none
 
