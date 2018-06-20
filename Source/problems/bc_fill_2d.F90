@@ -1,6 +1,8 @@
 module bc_fill_module
 
+#ifndef AMREX_USE_CUDA
   use bc_ext_fill_module
+#endif
   use amrex_fort_module, only: rt => amrex_real
 #ifdef CUDA
   use cuda_module, only: numBlocks, numThreads, cuda_stream
@@ -70,12 +72,14 @@ contains
 #endif
          (adv, adv_l1, adv_l2, adv_h1, adv_h2, domlo, domhi, delta, xlo, time, bc)
 
+#ifndef AMREX_USE_CUdA
     ! process the external BCs here
     call ext_fill &
 #ifdef CUDA
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (adv,adv_l1,adv_l2,adv_h1,adv_h2,domlo,domhi,delta,xlo,time,bc)
+#endif
     
   end subroutine ca_hypfill
 
@@ -137,12 +141,14 @@ contains
 #endif
          (adv, adv_l1, adv_l2, adv_h1, adv_h2, domlo, domhi, delta, xlo, time, bc)
 
+#ifndef AMREX_USE_CUDA
     ! process the external BCs here
     call ext_denfill &
 #ifdef CUDA
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (adv,adv_l1,adv_l2,adv_h1,adv_h2,domlo,domhi,delta,xlo,time,bc)
+#endif
     
   end subroutine ca_denfill
 

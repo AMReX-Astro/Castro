@@ -178,7 +178,7 @@ extern "C"
      const amrex::Real* S_old, const int* s_old_lo, const int* s_old_hi,
            amrex::Real* S_new, const int* s_new_lo, const int* s_new_hi,
      const amrex::Real* vol, const int* vol_lo, const int* vol_hi,
-           amrex::Real* frac_change, const int* verbose);
+           amrex::Real* frac_change, const int verbose);
 
   void ca_normalize_species
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new));
@@ -196,7 +196,7 @@ extern "C"
 
   void ca_reset_internal_e
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new),
-     const int* verbose);
+     const int verbose);
 
   void ca_generic_single_fill
     (BL_FORT_FAB_ARG_3D(state),
@@ -501,6 +501,56 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(reactions_new),
 #endif
      const amrex::Real* dx, const amrex::Real* dt_old, amrex::Real* dt);
+
+#ifdef AMREX_USE_CUDA
+  void ca_divu
+    (const int* lo, const int* hi,
+     const amrex::Real* dx,
+     BL_FORT_FAB_ARG_3D(q),
+     BL_FORT_FAB_ARG_3D(div));
+
+  void ca_uflaten
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(q),
+     BL_FORT_FAB_ARG_3D(flatn));
+
+  void ca_ppm_reconstruct
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(q),
+     BL_FORT_FAB_ARG_3D(flatn),
+     BL_FORT_FAB_ARG_3D(qm),
+     BL_FORT_FAB_ARG_3D(qp));
+
+  void ca_construct_flux
+    (const int* lo, const int* hi,
+     const int* domlo, const int* domhi,
+     const amrex::Real* dx, const amrex::Real dt,
+     const int idir,
+     const BL_FORT_FAB_ARG_3D(statein),
+     BL_FORT_FAB_ARG_3D(div),
+     BL_FORT_FAB_ARG_3D(qaux),
+     BL_FORT_FAB_ARG_3D(qm),
+     BL_FORT_FAB_ARG_3D(qp),
+     BL_FORT_FAB_ARG_3D(qe),
+     BL_FORT_FAB_ARG_3D(flux),
+     BL_FORT_FAB_ARG_3D(area));
+
+  void ca_construct_hydro_update
+    (const int* lo, const int* hi,
+     const amrex::Real* dx, const amrex::Real dt,
+     const amrex::Real stage_weight,
+     BL_FORT_FAB_ARG_3D(qx),
+     BL_FORT_FAB_ARG_3D(qy),
+     BL_FORT_FAB_ARG_3D(qz),
+     BL_FORT_FAB_ARG_3D(xflux),
+     BL_FORT_FAB_ARG_3D(yflux),
+     BL_FORT_FAB_ARG_3D(zflux),
+     BL_FORT_FAB_ARG_3D(xarea),
+     BL_FORT_FAB_ARG_3D(yarea),
+     BL_FORT_FAB_ARG_3D(zarea),
+     const BL_FORT_FAB_ARG_3D(volume),
+     BL_FORT_FAB_ARG_3D(update));
+#endif
 
   void ca_ctu_update
     (const int    lo[], const int    hi[],
@@ -877,12 +927,12 @@ extern "C"
      const amrex::Real* dx, const int* coord_type);
 
   void ca_thermo_src
-    (const int*lo, const int* hi,
+    (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state_old),
      const BL_FORT_FAB_ARG_3D(state_new),
      BL_FORT_FAB_ARG_3D(thermo_src),
      const amrex::Real* prob_lo, const amrex::Real* dx, 
-     const amrex::Real* time, const amrex::Real* dt);
+     const amrex::Real time, const amrex::Real dt);
 
 #ifdef AUX_UPDATE
   void ca_auxupdate

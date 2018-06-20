@@ -24,7 +24,8 @@ contains
 
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3), verbose
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in), value :: verbose
     integer, intent(in) ::  uin_lo(3),  uin_hi(3)
     integer, intent(in) :: uout_lo(3), uout_hi(3)
     integer, intent(in) ::  vol_lo(3),  vol_hi(3)

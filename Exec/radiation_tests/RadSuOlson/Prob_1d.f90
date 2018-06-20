@@ -2,7 +2,6 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module
-  use network, only : network_init
   use actual_eos_module, only : gamma_const
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -21,8 +20,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer maxlen
   parameter (maxlen=256)
   character probin*(maxlen)
-  
-  call network_init()
   
   if (namlen .gt. maxlen) then
      write(6,*) 'probin file name too long'

@@ -139,7 +139,7 @@ contains
        enddo
        
        !print *, 'did we try to bisect? ', found
-       call bl_error("ERROR: shock did not converge")
+       call amrex_error("ERROR: shock did not converge")
     endif
     
 
@@ -335,7 +335,7 @@ contains
        enddo
        
     else
-       call bl_error('unable to bracket the root')
+       call amrex_error('unable to bracket the root')
     endif
 
     if (converged) W_s = 0.5_rt*(W1 + W2)

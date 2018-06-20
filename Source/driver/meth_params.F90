@@ -26,18 +26,18 @@ module meth_params_module
   integer, allocatable, save :: USHK
 
   ! primitive variables
-  integer, save :: QVAR
-  integer, save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
-  integer, save :: NQAUX, QGAMC, QC, QDPDR, QDPDE
+  integer, allocatable, save :: QVAR
+  integer, allocatable, save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
+  integer, allocatable, save :: NQAUX, QGAMC, QC, QDPDR, QDPDE
 #ifdef RADIATION
-  integer, save :: QGAMCG, QCG, QLAMS
+  integer, allocatable, save :: QGAMCG, QCG, QLAMS
 #endif
-  integer, save :: QFA, QFS, QFX
+  integer, allocatable, save :: QFA, QFS, QFX
 
-  integer, save :: nadv
+  integer, allocatable, save :: nadv
 
   ! NQ will be the total number of primitive variables, hydro + radiation
-  integer, save :: NQ         
+  integer, allocatable, save :: NQ         
 
 #ifdef RADIATION
   integer, save :: QRAD, QRADHI, QPTOT, QREITOT
@@ -48,15 +48,15 @@ module meth_params_module
   real(rt)        , save :: flatten_pp_threshold = -1.e0_rt
 #endif
 
-  integer, save :: npassive
+  integer, save, allocatable :: npassive
   integer, save, allocatable :: qpass_map(:), upass_map(:)
 
   ! These are used for the Godunov state
   ! Note that the velocity indices here are picked to be the same value
   ! as in the primitive variable array
-  integer, save :: NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
+  integer, save, allocatable :: NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
 #ifdef RADIATION
-  integer, save :: GDLAMS, GDERADS
+  integer, save, allocatable :: GDLAMS, GDERADS
 #endif
 
   integer         , save :: numpts_1d
@@ -75,7 +75,7 @@ module meth_params_module
   integer, parameter :: EXT_HSE = 1
   integer, parameter :: EXT_INTERP = 2 
   
-  integer, save :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
+  integer, allocatable, save :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 
   ! Create versions of these variables on the GPU
   ! the device update is then done in Castro_nd.f90
@@ -84,6 +84,22 @@ module meth_params_module
   attributes(managed) :: NVAR
   attributes(managed) :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
   attributes(managed) :: USHK
+  attributes(managed) :: QVAR
+  attributes(managed) :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
+  attributes(managed) :: NQAUX, QGAMC, QC, QDPDR, QDPDE
+#ifdef RADIATION
+  attributes(managed) :: QGAMCG, QCG, QLAMS
+#endif
+  attributes(managed) :: QFA, QFS, QFX
+  attributes(managed) :: nadv
+  attributes(managed) :: NQ
+  attributes(managed) :: npassive
+  attributes(managed) :: qpass_map, upass_map
+  attributes(managed) :: NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
+#ifdef RADIATION
+  attributes(managed) :: GDLAMS, GDERADS
+#endif
+  attributes(managed) :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 #endif
 
   !$acc declare &
@@ -319,6 +335,21 @@ contains
     allocate(NVAR)
     allocate(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX)
     allocate(USHK)
+    allocate(QVAR)
+    allocate(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME)
+    allocate(NQAUX, QGAMC, QC, QDPDR, QDPDE)
+#ifdef RADIATION
+    allocate(QGAMCG, QCG, QLAMS)
+#endif
+    allocate(QFA, QFS, QFX)
+    allocate(nadv)
+    allocate(NQ)
+    allocate(npassive)
+    allocate(NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME)
+#ifdef RADIATION
+    allocate(GDLAMS, GDERADS)
+#endif
+    allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
     allocate(const_grav)
     const_grav = 0.0d0;
@@ -685,6 +716,21 @@ contains
     deallocate(NVAR)
     deallocate(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX)
     deallocate(USHK)
+    deallocate(QVAR)
+    deallocate(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME)
+    deallocate(NQAUX, QGAMC, QC, QDPDR, QDPDE)
+#ifdef RADIATION
+    deallocate(QGAMCG, QCG, QLAMS)
+#endif
+    deallocate(QFA, QFS, QFX)
+    deallocate(nadv)
+    deallocate(NQ)
+    deallocate(npassive)
+    deallocate(NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME)
+#ifdef RADIATION
+    deallocate(GDLAMS, GDERADS)
+    deallocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
+#endif
 
     if (allocated(difmag)) then
         deallocate(difmag)
