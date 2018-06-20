@@ -546,7 +546,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
            BL_TO_FORTRAN_ANYD(area[1][mfi]),
            BL_TO_FORTRAN_ANYD(area[2][mfi]),
            BL_TO_FORTRAN_ANYD(volume[mfi]),
-           BL_TO_FORTRAN_ANYD(hydro_source[mfi]));
+           BL_TO_FORTRAN_ANYD(k_stage[mfi]));
 
   } // MFIter loop
 
