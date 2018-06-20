@@ -6,7 +6,7 @@ module riemann_module
                                 QFX, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, &
                                 UFS, UFX, &
                                 NGDNV, GDRHO, GDPRES, GDGAME, &
-                                QC, QCSML, QGAMC, &
+                                QC, QGAMC, &
                                 small_dens, small_temp, &
                                 npassive, upass_map, qpass_map
 
@@ -133,17 +133,17 @@ contains
           do i = lo(1), hi(1)
 
              if (idir == 1) then
-                smallc = max( qaux(i,j,k,QCSML), qaux(i-1,j,k,QCSML) )
+                smallc = max( small, max( small*qaux(i,j,k,QC), small * qaux(i-1,j,k,QC)) )
                 cavg   = HALF*( qaux(i,j,k,QC) + qaux(i-1,j,k,QC) )
                 gamcm  = qaux(i-1,j,k,QGAMC)
                 gamcp  = qaux(i,j,k,QGAMC)
              elseif (idir == 2) then
-                smallc = max( qaux(i,j,k,QCSML), qaux(i,j-1,k,QCSML) )
+                smallc = max( small, max( small*qaux(i,j,k,QC), small * qaux(i,j-1,k,QC)) )
                 cavg   = HALF*( qaux(i,j,k,QC) + qaux(i,j-1,k,QC) )
                 gamcm  = qaux(i,j-1,k,QGAMC)
                 gamcp  = qaux(i,j,k,QGAMC)
              else
-                smallc = max( qaux(i,j,k,QCSML), qaux(i,j,k-1,QCSML) )
+                smallc = max( small, max( small*qaux(i,j,k,QC), small * qaux(i,j,k-1,QC)) )
                 cavg   = HALF*( qaux(i,j,k,QC) + qaux(i,j,k-1,QC) )
                 gamcm  = qaux(i,j,k-1,QGAMC)
                 gamcp  = qaux(i,j,k,QGAMC)
