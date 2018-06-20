@@ -535,7 +535,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
       ca_construct_hydro_update
           (AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
            dx, dt,
-           b_mol[mol_iteration],
            BL_TO_FORTRAN_ANYD(qe[0][mfi]),
            BL_TO_FORTRAN_ANYD(qe[1][mfi]),
            BL_TO_FORTRAN_ANYD(qe[2][mfi]),
