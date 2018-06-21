@@ -320,6 +320,6 @@ make CUDA_VERSION=cc60 COMPILE_CUDA_PATH=/usr/local/cuda-9.2 USE_CUDA=TRUE COMP=
 
 To run the CUDA code path without device launching, do:
 \begin{verbatim}
-make -j4 COMP=PGI USE_CUDA=TRUE USE_MPI=TRUE DEBUG=TRUE NO_DEVICE_LAUNCH=TRUE
+make -j4 COMP=PGI USE_CUDA=TRUE USE_MPI=FALSE DEBUG=TRUE NO_DEVICE_LAUNCH=TRUE CUDA_VERSION=cc60 COMPILE_CUDA_PATH=/usr/local/cuda-9.2
 \end{verbatim}
 
