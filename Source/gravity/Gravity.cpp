@@ -21,7 +21,7 @@
 
 using namespace amrex;
 
-#ifndef NDEBUG
+#ifdef AMREX_DEBUG
 int Gravity::test_solves  = 1;
 #else
 int Gravity::test_solves  = 0;
