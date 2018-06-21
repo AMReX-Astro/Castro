@@ -548,6 +548,7 @@ extern "C"
      BL_FORT_FAB_ARG_3D(yarea),
      BL_FORT_FAB_ARG_3D(zarea),
      const BL_FORT_FAB_ARG_3D(volume),
+     const BL_FORT_FAB_ARG_3D(srcU),
      BL_FORT_FAB_ARG_3D(update));
 #endif
 
