@@ -308,3 +308,18 @@ Needs to be updated
 
 \end{enumerate}
 
+
+
+\section{GPUs}
+
+\section{Bender}
+Compile as:
+\begin{verbatim}
+make CUDA_VERSION=cc60 COMPILE_CUDA_PATH=/usr/local/cuda-9.2 USE_CUDA=TRUE COMP=PGI -j 4
+\end{verbatim}
+
+To run the CUDA code path without device launching, do:
+\begin{verbatim}
+make -j4 COMP=PGI USE_CUDA=TRUE USE_MPI=TRUE DEBUG=TRUE NO_DEVICE_LAUNCH=TRUE
+\end{verbatim}
+
