@@ -659,6 +659,9 @@ contains
     real(rt), intent(inout) :: update(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
 
     integer  :: i, j, k, n
+    real(rt) :: dtinv
+
+    dtinv = ONE / dt
 
     do n = 1, NVAR
        do k = lo(3), hi(3)
@@ -666,10 +669,12 @@ contains
              do i = lo(1), hi(1)
 
                 ! Note that the fluxes have already been scaled by dt * dA.
+                ! We unscale by dt here, because the dt will be reapplied
+                ! when the update is actually applied to the state.
 
-                update(i,j,k,n) = update(i,j,k,n) + (f1(i,j,k,n) - f1(i+1,j,k,n) + &
-                                                     f2(i,j,k,n) - f2(i,j+1,k,n) + &
-                                                     f3(i,j,k,n) - f3(i,j,k+1,n) ) / vol(i,j,k)
+                update(i,j,k,n) = update(i,j,k,n) + dtinv * (f1(i,j,k,n) - f1(i+1,j,k,n) + &
+                                                             f2(i,j,k,n) - f2(i,j+1,k,n) + &
+                                                             f3(i,j,k,n) - f3(i,j,k+1,n) ) / vol(i,j,k)
 
                 update(i,j,k,n) = update(i,j,k,n) + srcU(i,j,k,n)
 
