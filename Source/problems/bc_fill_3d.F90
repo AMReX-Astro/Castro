@@ -1,7 +1,7 @@
 module bc_fill_module
 
   use amrex_fort_module, only: rt => amrex_real
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
   use cuda_module, only: numBlocks, numThreads, cuda_stream
 #endif
 
@@ -59,12 +59,12 @@ contains
     real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3,NVAR)
 
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
     attributes(device) :: adv, adv_l1, adv_l2, adv_l3, adv_h1, adv_h2, adv_h3, bc, delta, xlo, time, domlo, domhi
 #endif
 
     call hypfill &
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (adv, adv_l1, adv_l2, adv_l3, adv_h1, adv_h2, adv_h3, domlo, domhi, delta, xlo, time, bc)
@@ -119,12 +119,12 @@ contains
     real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3)
 
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
     attributes(device) :: adv, adv_l1, adv_l2, adv_l3, adv_h1, adv_h2, adv_h3, bc, delta, xlo, time, domlo, domhi
 #endif
 
     call denfill &
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (adv, adv_l1, adv_l2, adv_l3, adv_h1, adv_h2, adv_h3, domlo, domhi, delta, xlo, time, bc)
@@ -178,12 +178,12 @@ contains
     real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: phi(phi_l1:phi_h1,phi_l2:phi_h2,phi_l3:phi_h3)
 
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
     attributes(device) :: phi, phi_l1, phi_l2, phi_l3, phi_h1, phi_h2, phi_h3, bc, domlo, domhi, delta, xlo, time
 #endif
 
     call phigravfill &
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (phi, phi_l1, phi_l2, phi_l3, phi_h1, phi_h2, phi_h3, &
@@ -236,13 +236,13 @@ contains
     real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
 
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
     attributes(device) :: grav, grav_l1, grav_l2, grav_l3, grav_h1, grav_h2, grav_h3, bc
     attributes(device) :: domlo, domhi, delta, xlo, time
 #endif
 
     call gravxfill &
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (grav, grav_l1, grav_l2, grav_l3, grav_h1, grav_h2, grav_h3, &
@@ -295,13 +295,13 @@ contains
     real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
 
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
     attributes(device) :: grav, grav_l1, grav_l2, grav_l3, grav_h1, grav_h2, grav_h3, bc
     attributes(device) :: domlo, domhi, delta, xlo, time
 #endif
 
     call gravyfill &
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (grav, grav_l1, grav_l2, grav_l3, grav_h1, grav_h2, grav_h3, &
@@ -354,13 +354,13 @@ contains
     real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
 
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
     attributes(device) :: grav, grav_l1, grav_l2, grav_l3, grav_h1, grav_h2, grav_h3, bc
     attributes(device) :: domlo, domhi, delta, xlo, time
 #endif
 
     call gravzfill &
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (grav, grav_l1, grav_l2, grav_l3, grav_h1, grav_h2, grav_h3, &
@@ -416,12 +416,12 @@ contains
     real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: phi(phi_l1:phi_h1,phi_l2:phi_h2,phi_l3:phi_h3)
 
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
     attributes(device) :: phi, phi_l1, phi_l2, phi_l3, phi_h1, phi_h2, phi_h3, bc, domlo, domhi, delta, xlo, time
 #endif
 
     call phirotfill &
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (phi, phi_l1, phi_l2, phi_l3, phi_h1, phi_h2, phi_h3, &
@@ -474,12 +474,12 @@ contains
     real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2,rot_l3:rot_h3)
 
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
     attributes(device) :: rot, rot_l1, rot_l2, rot_l3, rot_h1, rot_h2, rot_h3, bc, domlo, domhi, delta, xlo, time
 #endif
 
     call rotxfill &
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (rot, rot_l1, rot_l2, rot_l3, rot_h1, rot_h2, rot_h3, &
@@ -532,12 +532,12 @@ contains
     real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2,rot_l3:rot_h3)
 
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
     attributes(device) :: rot, rot_l1, rot_l2, rot_l3, rot_h1, rot_h2, rot_h3, bc, domlo, domhi, delta, xlo, time
 #endif
 
     call rotyfill &
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (rot, rot_l1, rot_l2, rot_l3, rot_h1, rot_h2, rot_h3, &
@@ -590,12 +590,12 @@ contains
     real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2,rot_l3:rot_h3)
 
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
     attributes(device) :: rot, rot_l1, rot_l2, rot_l3, rot_h1, rot_h2, rot_h3, bc, domlo, domhi, delta, xlo, time
 #endif
 
     call rotzfill &
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (rot, rot_l1, rot_l2, rot_l3, rot_h1, rot_h2, rot_h3, &
@@ -651,12 +651,12 @@ contains
     real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: react(react_l1:react_h1,react_l2:react_h2,react_l3:react_h3)
 
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
     attributes(device) :: react, react_l1, react_l2, react_l3, react_h1, react_h2, react_h3, bc, domlo, domhi, delta, xlo, time
 #endif
 
     call reactfill &
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (react, react_l1, react_l2, react_l3, react_h1, react_h2, react_h3, &
@@ -712,12 +712,12 @@ contains
     real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: rad(rad_l1:rad_h1,rad_l2:rad_h2,rad_l3:rad_h3)
 
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
     attributes(device) :: rad, rad_l1, rad_l2, rad_l3, rad_h1, rad_h2, rad_h3, bc, domlo, domhi, delta, xlo, time
 #endif
 
     call radfill &
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (rad, rad_l1, rad_l2, rad_l3, rad_h1, rad_h2, rad_h3, &
