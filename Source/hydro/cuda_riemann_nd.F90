@@ -158,6 +158,8 @@ contains
 
              pl  = max(qm(i,j,k,QPRES ,idir), small_pres)
              rel =     qm(i,j,k,QREINT,idir)
+
+
              rr  = max(qp(i,j,k,QRHO,idir), small_dens)
 
              ! pick right velocities based on direction
