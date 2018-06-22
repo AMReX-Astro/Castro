@@ -41,26 +41,45 @@ module eos_type_module
 
   ! Minimum and maximum thermodynamic quantities permitted by the EOS.
 
-  real(rt), save :: mintemp = 1.d-200
-  real(rt), save :: maxtemp = 1.d200
-  real(rt), save :: mindens = 1.d-200
-  real(rt), save :: maxdens = 1.d200
-  real(rt), save :: minx    = 1.d-200
-  real(rt), save :: maxx    = 1.d0 + 1.d-12
-  real(rt), save :: minye   = 1.d-200
-  real(rt), save :: maxye   = 1.d0 + 1.d-12
-  real(rt), save :: mine    = 1.d-200
-  real(rt), save :: maxe    = 1.d200
-  real(rt), save :: minp    = 1.d-200
-  real(rt), save :: maxp    = 1.d200
-  real(rt), save :: mins    = 1.d-200
-  real(rt), save :: maxs    = 1.d200
-  real(rt), save :: minh    = 1.d-200
-  real(rt), save :: maxh    = 1.d200
+  real(rt), allocatable :: mintemp
+  real(rt), allocatable :: maxtemp
+  real(rt), allocatable :: mindens
+  real(rt), allocatable :: maxdens
+  real(rt), allocatable :: minx
+  real(rt), allocatable :: maxx
+  real(rt), allocatable :: minye
+  real(rt), allocatable :: maxye
+  real(rt), allocatable :: mine
+  real(rt), allocatable :: maxe
+  real(rt), allocatable :: minp
+  real(rt), allocatable :: maxp
+  real(rt), allocatable :: mins
+  real(rt), allocatable :: maxs
+  real(rt), allocatable :: minh
+  real(rt), allocatable :: maxh
 
   !$acc declare &
   !$acc create(mintemp, maxtemp, mindens, maxdens, minx, maxx, minye, maxye) &
   !$acc create(mine, maxe, minp, maxp, mins, maxs, minh, maxh)
+
+#ifdef CUDA
+  attributes(managed) :: mintemp
+  attributes(managed) :: maxtemp
+  attributes(managed) :: mindens
+  attributes(managed) :: maxdens
+  attributes(managed) :: minx
+  attributes(managed) :: maxx
+  attributes(managed) :: minye
+  attributes(managed) :: maxye
+  attributes(managed) :: mine
+  attributes(managed) :: maxe
+  attributes(managed) :: minp
+  attributes(managed) :: maxp
+  attributes(managed) :: mins
+  attributes(managed) :: maxs
+  attributes(managed) :: minh
+  attributes(managed) :: maxh
+#endif
 
   ! A generic structure holding thermodynamic quantities and their derivatives,
   ! plus some other quantities of interest.
@@ -160,7 +179,7 @@ contains
   ! Given a set of mass fractions, calculate quantities that depend
   ! on the composition like abar and zbar.
 
-  subroutine composition(state)
+  AMREX_DEVICE subroutine composition(state)
 
     !$acc routine seq
 
@@ -188,7 +207,7 @@ contains
 #ifdef EXTRA_THERMO
   ! Compute thermodynamic derivatives with respect to xn(:)
 
-  subroutine composition_derivatives(state)
+  AMREX_DEVICE subroutine composition_derivatives(state)
 
     !$acc routine seq
 
@@ -224,7 +243,7 @@ contains
   ! Normalize the mass fractions: they must be individually positive
   ! and less than one, and they must all sum to unity.
 
-  subroutine normalize_abundances(state)
+  AMREX_DEVICE subroutine normalize_abundances(state)
 
     !$acc routine seq
 
@@ -245,7 +264,7 @@ contains
 
   ! Ensure that inputs are within reasonable limits.
 
-  subroutine clean_state(state)
+  AMREX_DEVICE subroutine clean_state(state)
 
     !$acc routine seq
 
@@ -277,7 +296,7 @@ contains
 
 
 
-  subroutine eos_get_small_temp(small_temp_out)
+  AMREX_DEVICE subroutine eos_get_small_temp(small_temp_out)
 
     !$acc routine seq
 
@@ -291,7 +310,7 @@ contains
 
 
 
-  subroutine eos_get_small_dens(small_dens_out)
+  AMREX_DEVICE subroutine eos_get_small_dens(small_dens_out)
 
     !$acc routine seq
 
@@ -305,7 +324,7 @@ contains
 
 
 
-  subroutine eos_get_max_temp(max_temp_out)
+  AMREX_DEVICE subroutine eos_get_max_temp(max_temp_out)
 
     !$acc routine seq
 
@@ -319,7 +338,7 @@ contains
 
 
 
-  subroutine eos_get_max_dens(max_dens_out)
+  AMREX_DEVICE subroutine eos_get_max_dens(max_dens_out)
 
     !$acc routine seq
 

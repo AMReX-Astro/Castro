@@ -2,7 +2,7 @@ module generic_fill_module
 
   use amrex_fort_module, only: rt => amrex_real
   use prob_params_module, only: dim
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
   use cuda_module, only: numBlocks, numThreads, cuda_stream
 #endif
 
@@ -45,12 +45,12 @@ contains
     real(rt), intent(in   ) :: delta(dim), xlo(dim), time
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
 
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
     attributes(device) :: state, s_lo, s_hi, bc, domlo, domhi, delta, xlo
 #endif
 
     call generic_single_fill &
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (s_lo, s_hi, state, domlo, domhi, delta, xlo, bc)
@@ -76,7 +76,7 @@ contains
 
     call get_loop_bounds(blo, bhi, s_lo, s_hi)
 
-    call amrex_filccn(blo, bhi, state, s_lo, s_hi, 1, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(blo, bhi, state, s_lo, s_hi, NVAR, domlo, domhi, delta, xlo, bc)
 
   end subroutine generic_multi_fill
 
@@ -95,12 +95,12 @@ contains
     real(rt), intent(in   ) :: delta(dim), xlo(dim), time
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
     attributes(device) :: state, s_lo, s_hi, bc, domlo, domhi, delta, xlo
 #endif
 
     call generic_multi_fill &
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
          <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
          (s_lo, s_hi, state, domlo, domhi, delta, xlo, bc)

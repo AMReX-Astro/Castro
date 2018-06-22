@@ -1,7 +1,6 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module
-  use network, only : network_init
   use eos_module
   use eos_type_module, only : eos_t, eos_input_rt
   use network, only : nspec
@@ -23,8 +22,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
-
-  call network_init()
 
   if (namlen .gt. maxlen) then
      call bl_error("probin file name too long")

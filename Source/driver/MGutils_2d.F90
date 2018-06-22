@@ -58,10 +58,12 @@ contains
              ecy(i,j) = ecy(i,j) * r
           enddo
        enddo
-
+       
+#ifndef AMREX_USE_CUDA
     else 
        print *,'Bogus coord_type in apply_metric ' ,coord_type
        call amrex_error("Error:: MGutils_2d.f90 :: ca_apply_metric")
+#endif
     end if
 
   end subroutine ca_apply_metric
@@ -94,10 +96,12 @@ contains
              cc(i,j) = cc(i,j) * r
           enddo
        enddo
-
+       
+#ifndef AMREX_USE_CUDA
     else 
        print *,'Bogus coord_type in weight_cc ' ,coord_type
        call amrex_error("Error:: MGutils_2d.f90 :: ca_weight_cc")
+#endif
     end if
 
   end subroutine ca_weight_cc
@@ -131,9 +135,11 @@ contains
           enddo
        enddo
 
+#ifndef AMREX_USE_CUDA       
     else 
        print *,'Bogus coord_type in unweight_cc ' ,coord_type
        call amrex_error("Error:: MGutils_2d.f90 :: ca_unweight_cc")
+#endif
     end if
 
   end subroutine ca_unweight_cc
@@ -178,10 +184,12 @@ contains
              enddo
           enddo
        end if
-
+       
+#ifndef AMREX_USE_CUDA
     else 
        print *,'Bogus coord_type in unweight_edges ' ,coord_type
        call amrex_error("Error:: MGutils_2d.f90 :: ca_unweight_edges")
+#endif
     end if
 
   end subroutine ca_unweight_edges

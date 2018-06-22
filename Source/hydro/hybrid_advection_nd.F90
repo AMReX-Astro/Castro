@@ -226,8 +226,10 @@ contains
     else if (idir .eq. 3) then
        loc = position(idx(1),idx(2),idx(3),ccz=cc) - center
        u_adv = state(GDW)
+#ifndef AMREX_USE_CUDA
     else
        call amrex_error("Error: unknown direction in compute_hybrid_flux.")
+#endif
     endif
 
     R = sqrt(loc(1)**2 + loc(2)**2)
@@ -253,11 +255,12 @@ contains
        flux(UMR) = hybrid_mom(1) * u_adv
        flux(UML) = hybrid_mom(2) * u_adv
        flux(UMP) = hybrid_mom(3) * u_adv + state(GDPRES)
-
+       
+#ifndef AMREX_USE_CUDA
     else
 
        call amrex_error("Error: unknown direction in compute_hybrid_flux.")
-
+#endif
     endif
 
   end subroutine compute_hybrid_flux
