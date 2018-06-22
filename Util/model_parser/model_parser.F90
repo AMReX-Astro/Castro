@@ -42,13 +42,13 @@ module model_parser_module
   real (rt), allocatable, save :: model_state(:,:)
   real (rt), allocatable, save :: model_r(:)
 
-#ifdef CUDA
-  attributes(managed) :: model_state, model_r, npts_model
-#endif
-
   ! model_initialized will be .true. once the model is read in and the
   ! model data arrays are initialized and filled
-  logical, save :: model_initialized = .false.
+  logical, allocatable, save :: model_initialized
+
+#ifdef CUDA
+  attributes(managed) :: model_state, model_r, npts_model, model_initialized
+#endif
 
   integer, parameter :: MAX_VARNAME_LENGTH=80
 
@@ -77,6 +77,9 @@ contains
     character (len=256) :: header_line
 
     allocate(npts_model)
+    allocate(model_initialized)
+
+    model_initialized = .false.
 
     ! open the model file
     open(99,file=trim(model_file),status='old',iostat=ierr)
