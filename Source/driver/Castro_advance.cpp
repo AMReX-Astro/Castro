@@ -1200,7 +1200,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
       k_mol.clear();
       Sburn.clear();
     }
-    
+
     if (time_integration_method == SDC) {
       k_new.clear();
       A_new.clear();
@@ -1209,6 +1209,11 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
       R_old.clear();
 #endif
     }
+
+    // Record how many zones we have advanced.
+
+    num_zones_advanced += grids.numPts() / getLevel(0).grids.numPts();
+
 }
 
 

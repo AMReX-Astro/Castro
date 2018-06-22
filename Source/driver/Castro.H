@@ -633,6 +633,15 @@ public:
     amrex::MultiFab fine_mask;
     amrex::MultiFab& build_fine_mask();
 
+    //
+    // A record of how many cells we have advanced throughout the simulation.
+    // This is saved as a real because we will be storing the number of zones
+    // advanced as a ratio with the number of zones on the coarse grid (to
+    // help prevent the number from getting too large), and that may be a
+    // non-integer number.    
+    //
+    static amrex::Real num_zones_advanced;
+
 protected:
 
     //

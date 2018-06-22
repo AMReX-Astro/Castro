@@ -538,7 +538,6 @@ extern "C"
   void ca_construct_hydro_update
     (const int* lo, const int* hi,
      const amrex::Real* dx, const amrex::Real dt,
-     const amrex::Real stage_weight,
      BL_FORT_FAB_ARG_3D(qx),
      BL_FORT_FAB_ARG_3D(qy),
      BL_FORT_FAB_ARG_3D(qz),
@@ -549,6 +548,7 @@ extern "C"
      BL_FORT_FAB_ARG_3D(yarea),
      BL_FORT_FAB_ARG_3D(zarea),
      const BL_FORT_FAB_ARG_3D(volume),
+     const BL_FORT_FAB_ARG_3D(srcU),
      BL_FORT_FAB_ARG_3D(update));
 #endif
 

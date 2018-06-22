@@ -92,7 +92,10 @@ int          Castro::Shock         = -1;
 int          Castro::QVAR          = -1;
 int          Castro::NQAUX         = -1;
 int          Castro::NQ            = -1;
+
 int          Castro::NGDNV         = -1;
+
+Real         Castro::num_zones_advanced = 0.0;
 
 Vector<std::string> Castro::source_names;
 
@@ -1162,7 +1165,7 @@ Castro::estTimeStep (Real dt_old)
 		{
 		  const Box& box = mfi.tilebox();
 
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
             Real* dt_f = mfi.add_reduce_value(&dt, MFIter::MIN);
 #else
             Real* dt_f = &dt;
@@ -2672,7 +2675,7 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 	FArrayBox& statenew = S_new[mfi];
 	const FArrayBox& vol      = volume[mfi];
 
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
         Real* dens_change_f = mfi.add_reduce_value(&dens_change, MFIter::MIN);
 #else
         Real* dens_change_f = &dens_change;

@@ -8,7 +8,7 @@ module eos_module
 
   interface eos
      module procedure eos_doit
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
      module procedure eos_host
 #endif
   end interface eos
@@ -124,7 +124,7 @@ contains
 #endif
     use actual_eos_module, only: actual_eos
     use eos_override_module, only: eos_override
-#if (!(defined(CUDA) || defined(ACC)))
+#if (!(defined(AMREX_USE_CUDA) || defined(ACC)))
     use amrex_error_module, only: amrex_error
 #endif
 
@@ -139,7 +139,7 @@ contains
 
     ! Local variables
 
-#if (!(defined(CUDA) || defined(ACC)))
+#if (!(defined(AMREX_USE_CUDA) || defined(ACC)))
     if (.not. initialized) call amrex_error('EOS: not initialized')
 #endif
 
@@ -377,7 +377,7 @@ contains
 
 
 
-#if (!(defined(CUDA) || defined(ACC)))
+#if (!(defined(AMREX_USE_CUDA) || defined(ACC)))
   subroutine check_inputs(input, state)
 
     !$acc routine seq
@@ -599,7 +599,7 @@ contains
 #endif
 
   
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
   subroutine eos_host(input, state)
 
     use eos_type_module, only: eos_t

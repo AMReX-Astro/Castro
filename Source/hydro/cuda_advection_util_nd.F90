@@ -609,7 +609,7 @@ contains
 
 
 
-  AMREX_DEVICE subroutine ca_construct_hydro_update(lo, hi, dx, dt, stage_weight, &
+  AMREX_DEVICE subroutine ca_construct_hydro_update(lo, hi, dx, dt, &
                                                     q1, q1_lo, q1_hi, &
                                                     q2, q2_lo, q2_hi, &
                                                     q3, q3_lo, q3_hi, &
@@ -620,6 +620,7 @@ contains
                                                     a2, a2_lo, a2_hi, &
                                                     a3, a3_lo, a3_hi, &
                                                     vol, vol_lo, vol_hi, &
+                                                    srcU, srcU_lo, srcU_hi, &
                                                     update, u_lo, u_hi) &
                                                     bind(c,name='ca_construct_hydro_update')
 
@@ -639,9 +640,10 @@ contains
     integer,  intent(in   ) :: a2_lo(3), a2_hi(3)
     integer,  intent(in   ) :: a3_lo(3), a3_hi(3)
     integer,  intent(in   ) :: vol_lo(3), vol_hi(3)
+    integer,  intent(in   ) :: srcU_lo(3), srcU_hi(3)
     integer,  intent(in   ) :: u_lo(3), u_hi(3)
     real(rt), intent(in   ) :: dx(3)
-    real(rt), intent(in   ), value :: dt, stage_weight
+    real(rt), intent(in   ), value :: dt
 
     real(rt), intent(in   ) :: q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NGDNV)
     real(rt), intent(in   ) :: q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NGDNV)
@@ -653,13 +655,13 @@ contains
     real(rt), intent(in   ) :: a2(a2_lo(1):a2_hi(1),a2_lo(2):a2_hi(2),a2_lo(3):a2_hi(3))
     real(rt), intent(in   ) :: a3(a3_lo(1):a3_hi(1),a3_lo(2):a3_hi(2),a3_lo(3):a3_hi(3))
     real(rt), intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+    real(rt), intent(in   ) :: srcU(srcU_lo(1):srcU_hi(1),srcU_lo(2):srcU_hi(2),srcU_lo(3):srcU_hi(3),NVAR)
     real(rt), intent(inout) :: update(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
 
     integer  :: i, j, k, n
-    real(rt) :: pdivu, dxinv(3), dtinv
+    real(rt) :: dtinv
 
     dtinv = ONE / dt
-    dxinv = ONE / dx
 
     do n = 1, NVAR
        do k = lo(3), hi(3)
@@ -667,24 +669,14 @@ contains
              do i = lo(1), hi(1)
 
                 ! Note that the fluxes have already been scaled by dt * dA.
+                ! We unscale by dt here, because the dt will be reapplied
+                ! when the update is actually applied to the state.
 
-                update(i,j,k,n) = update(i,j,k,n) + stage_weight * dtinv * (f1(i,j,k,n) - f1(i+1,j,k,n) + &
-                                                                            f2(i,j,k,n) - f2(i,j+1,k,n) + &
-                                                                            f3(i,j,k,n) - f3(i,j,k+1,n) ) / vol(i,j,k)
+                update(i,j,k,n) = update(i,j,k,n) + dtinv * (f1(i,j,k,n) - f1(i+1,j,k,n) + &
+                                                             f2(i,j,k,n) - f2(i,j+1,k,n) + &
+                                                             f3(i,j,k,n) - f3(i,j,k+1,n) ) / vol(i,j,k)
 
-                ! Add the p div(u) source term to (rho e).
-                if (n .eq. UEINT) then
-
-                   pdivu = HALF * (q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES)) * &
-                                  (q1(i+1,j,k,GDU) - q1(i,j,k,GDU)) * dxinv(1) + &
-                           HALF * (q2(i,j+1,k,GDPRES) + q2(i,j,k,GDPRES)) * &
-                                  (q2(i,j+1,k,GDV) - q2(i,j,k,GDV)) * dxinv(2) + &
-                           HALF * (q3(i,j,k+1,GDPRES) + q3(i,j,k,GDPRES)) * &
-                                  (q3(i,j,k+1,GDW) - q3(i,j,k,GDW)) * dxinv(3)
-
-                   update(i,j,k,n) = update(i,j,k,n) - stage_weight * pdivu
-
-                endif
+                update(i,j,k,n) = update(i,j,k,n) + srcU(i,j,k,n)
 
              enddo
           enddo
