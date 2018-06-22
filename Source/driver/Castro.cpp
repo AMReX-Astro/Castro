@@ -2638,7 +2638,7 @@ Castro::enforce_consistent_e (MultiFab& S)
         const int* hi      = box.hiVect();
 
 #pragma gpu
-        ca_enforce_consistent_e(ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_3D(S[mfi]));
+        ca_enforce_consistent_e(AMREX_ARLIM_ARG(lo), AMREX_ARLIM_ARG(hi), BL_TO_FORTRAN_3D(S[mfi]));
 
     }
 }
