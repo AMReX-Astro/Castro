@@ -215,6 +215,10 @@ subroutine ca_set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in) &
   integer,  intent(in) :: level_in, iteration_in, ncycle_in
   real(rt), intent(in) :: time_in, dt_in
 
+  if (.not. allocated(amr_level)) then
+     allocate(amr_level)
+  endif
+
   if (level_in .ge. 0) then
      amr_level = level_in
   endif
