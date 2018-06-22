@@ -79,9 +79,55 @@ module burn_type_module
 
 contains
 
+  ! Provides a copy subroutine for the burn_t type to
+  ! avoid derived type assignment (OpenACC and CUDA can't handle that)
+  AMREX_DEVICE subroutine copy_burn_t(to_burn, from_burn)
+
+    implicit none
+
+    type(burn_t) :: to_burn, from_burn
+
+    to_burn % rho = from_burn % rho
+    to_burn % T = from_burn % T
+    to_burn % e = from_burn % e
+    to_burn % xn(1:nspec) = from_burn % xn(1:nspec)
+
+#if naux > 0
+    to_burn % aux(1:naux) = from_burn % aux(1:naux)
+#endif
+
+    to_burn % cv = from_burn % cv
+    to_burn % cp = from_burn % cp
+    to_burn % y_e = from_burn % y_e
+    to_burn % eta = from_burn % eta
+    to_burn % cs = from_burn % cs
+    to_burn % dx = from_burn % dx
+    to_burn % abar = from_burn % abar
+    to_burn % zbar = from_burn % zbar
+
+    to_burn % T_old = from_burn % T_old
+    to_burn % dcvdT = from_burn % dcvdT
+    to_burn % dcpdT = from_burn % dcpdT
+
+    to_burn % ydot(1:neqs) = from_burn % ydot(1:neqs)
+    to_burn % jac(1:neqs, 1:neqs) = from_burn % jac(1:neqs, 1:neqs)
+
+    to_burn % self_heat = from_burn % self_heat
+
+    to_burn % i = from_burn % i
+    to_burn % j = from_burn % j
+    to_burn % k = from_burn % k
+
+    to_burn % n_rhs = from_burn % n_rhs
+    to_burn % n_jac = from_burn % n_jac
+
+    to_burn % time = from_burn % time
+
+  end subroutine copy_burn_t
+
   ! Given an eos type, copy the data relevant to the burn type.
 
-  subroutine eos_to_burn(eos_state, burn_state)
+  AMREX_DEVICE subroutine eos_to_burn(eos_state, burn_state)
 
     !$acc routine seq
 
@@ -113,7 +159,7 @@ contains
 
   ! Given a burn type, copy the data relevant to the eos type.
 
-  subroutine burn_to_eos(burn_state, eos_state)
+  AMREX_DEVICE subroutine burn_to_eos(burn_state, eos_state)
 
     !$acc routine seq
 
@@ -142,7 +188,7 @@ contains
   end subroutine burn_to_eos
 
 
-  subroutine normalize_abundances_burn(state)
+  AMREX_DEVICE subroutine normalize_abundances_burn(state)
 
     !$acc routine seq
 
