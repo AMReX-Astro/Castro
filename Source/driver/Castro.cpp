@@ -1267,7 +1267,8 @@ Castro::estTimeStep (Real dt_old)
               MultiFab& R_old = get_old_data(Reactions_Type);
 
 #pragma gpu
-              ca_estdt_burning(ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
+              ca_estdt_burning(AMREX_ARLIM_ARG(box.loVect()),
+			       AMREX_ARLIM_ARG(box.hiVect()),
                                BL_TO_FORTRAN_3D(S_old[mfi]),
                                BL_TO_FORTRAN_3D(S_new[mfi]),
                                BL_TO_FORTRAN_3D(R_old[mfi]),
@@ -1277,7 +1278,8 @@ Castro::estTimeStep (Real dt_old)
             } else {
 
 #pragma gpu
-              ca_estdt_burning(ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
+              ca_estdt_burning(AMREX_ARLIM_ARG(box.loVect()),
+			       AMREX_ARLIM_ARG(box.hiVect()),
                                BL_TO_FORTRAN_3D(S_new[mfi]),
                                BL_TO_FORTRAN_3D(S_new[mfi]),
                                BL_TO_FORTRAN_3D(R_new[mfi]),
