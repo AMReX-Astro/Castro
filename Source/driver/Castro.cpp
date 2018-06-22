@@ -1266,6 +1266,7 @@ Castro::estTimeStep (Real dt_old)
               MultiFab& S_old = get_old_data(State_Type);
               MultiFab& R_old = get_old_data(Reactions_Type);
 
+#pragma gpu
               ca_estdt_burning(ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
                                BL_TO_FORTRAN_3D(S_old[mfi]),
                                BL_TO_FORTRAN_3D(S_new[mfi]),
@@ -1274,7 +1275,8 @@ Castro::estTimeStep (Real dt_old)
                                ZFILL(dx),&dt_old,&dt);
               
             } else {
-              
+
+#pragma gpu
               ca_estdt_burning(ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
                                BL_TO_FORTRAN_3D(S_new[mfi]),
                                BL_TO_FORTRAN_3D(S_new[mfi]),
@@ -2633,7 +2635,9 @@ Castro::enforce_consistent_e (MultiFab& S)
         const int* lo      = box.loVect();
         const int* hi      = box.hiVect();
 
+#pragma gpu
         ca_enforce_consistent_e(ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_3D(S[mfi]));
+
     }
 }
 
