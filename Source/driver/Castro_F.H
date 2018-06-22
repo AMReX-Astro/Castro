@@ -914,12 +914,10 @@ BL_FORT_PROC_DECL(CA_INITDATA,ca_initdata)
 
 #else
 
-BL_FORT_PROC_DECL(CA_INITDATA,ca_initdata)
-    (const int& level, const amrex::Real& time,
-     const int* lo, const int* hi,
-     const int& num_state,
-     BL_FORT_FAB_ARG(state),
-     const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* xhi);
+void ca_initdata
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(state),
+     const amrex::Real* dx, const amrex::Real* problo, const int* domlo);
 
 #endif
 
