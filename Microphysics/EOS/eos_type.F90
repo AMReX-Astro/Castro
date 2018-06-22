@@ -40,7 +40,6 @@ module eos_type_module
   integer, parameter :: ierr_not_implemented = 12
 
   ! Minimum and maximum thermodynamic quantities permitted by the EOS.
-
   real(rt), allocatable :: mintemp
   real(rt), allocatable :: maxtemp
   real(rt), allocatable :: mindens
@@ -119,8 +118,6 @@ module eos_type_module
   ! dpdZ     -- d pressure/ d zbar
   ! dedA     -- d energy/ d abar
   ! dedZ     -- d energy/ d zbar
-  ! dpde     -- d pressure / d energy |_rho
-  ! dpdr_e   -- d pressure / d rho |_energy
 
   type :: eos_t
 
@@ -176,6 +173,63 @@ module eos_type_module
 
 contains
 
+  ! Provides a copy subroutine for the eos_t type to
+  ! avoid derived type assignment (OpenACC and CUDA can't handle that)
+  AMREX_DEVICE subroutine copy_eos_t(to_eos, from_eos)
+
+    implicit none
+
+    type(eos_t) :: to_eos, from_eos
+
+    to_eos % rho = from_eos % rho
+    to_eos % T = from_eos % T
+    to_eos % p = from_eos % p
+    to_eos % e = from_eos % e
+    to_eos % h = from_eos % h
+    to_eos % s = from_eos % s
+    to_eos % xn(:) = from_eos % xn(:)
+    to_eos % aux(:) = from_eos % aux(:)
+
+    to_eos % dpdT = from_eos % dpdT
+    to_eos % dpdr = from_eos % dpdr
+    to_eos % dedT = from_eos % dedT
+    to_eos % dedr = from_eos % dedr
+    to_eos % dhdT = from_eos % dhdT
+    to_eos % dhdr = from_eos % dhdr
+    to_eos % dsdT = from_eos % dsdT
+    to_eos % dsdr = from_eos % dsdr
+    to_eos % dpde = from_eos % dpde
+    to_eos % dpdr_e = from_eos % dpdr_e
+
+    to_eos % cv = from_eos % cv
+    to_eos % cp = from_eos % cp
+    to_eos % xne = from_eos % xne
+    to_eos % xnp = from_eos % xnp
+    to_eos % eta = from_eos % eta
+    to_eos % pele = from_eos % pele
+    to_eos % ppos = from_eos % ppos
+    to_eos % mu = from_eos % mu
+    to_eos % mu_e = from_eos % mu_e
+    to_eos % y_e = from_eos % y_e
+#ifdef EXTRA_THERMO
+    to_eos % dedX(:) = from_eos % dedX(:)
+    to_eos % dpdX(:) = from_eos % dpdX(:)
+    to_eos % dhdX(:) = from_eos % dhdX(:)
+#endif
+    to_eos % gam1 = from_eos % gam1
+    to_eos % cs = from_eos % cs
+
+    to_eos % abar = from_eos % abar
+    to_eos % zbar = from_eos % zbar
+
+#ifdef EXTRA_THERMO
+    to_eos % dpdA = from_eos % dpdA
+    to_eos % dpdZ = from_eos % dpdZ
+    to_eos % dedA = from_eos % dedA
+    to_eos % dedZ = from_eos % dedZ
+#endif
+  end subroutine copy_eos_t
+
   ! Given a set of mass fractions, calculate quantities that depend
   ! on the composition like abar and zbar.
 
@@ -187,6 +241,8 @@ contains
     use network, only: aion, aion_inv, zion
 
     implicit none
+
+    !$acc routine seq
 
     type (eos_t), intent(inout) :: state
 
@@ -203,6 +259,7 @@ contains
     state % zbar = state % abar / state % mu_e
 
   end subroutine composition
+
 
 #ifdef EXTRA_THERMO
   ! Compute thermodynamic derivatives with respect to xn(:)
@@ -252,6 +309,8 @@ contains
 
     implicit none
 
+    !$acc routine seq
+
     type (eos_t), intent(inout) :: state
 
     state % xn = max(small_x, min(ONE, state % xn))
@@ -269,6 +328,8 @@ contains
     !$acc routine seq
 
     implicit none
+
+    !$acc routine seq
 
     type (eos_t), intent(inout) :: state
 
@@ -295,12 +356,11 @@ contains
   end subroutine print_state
 
 
-
   AMREX_DEVICE subroutine eos_get_small_temp(small_temp_out)
 
-    !$acc routine seq
-
     implicit none
+
+    !$acc routine seq
 
     real(rt), intent(out) :: small_temp_out
 
@@ -309,12 +369,11 @@ contains
   end subroutine eos_get_small_temp
 
 
-
   AMREX_DEVICE subroutine eos_get_small_dens(small_dens_out)
 
-    !$acc routine seq
-
     implicit none
+
+    !$acc routine seq
 
     real(rt), intent(out) :: small_dens_out
 
@@ -330,6 +389,8 @@ contains
 
     implicit none
 
+    !$acc routine seq
+
     real(rt), intent(out) :: max_temp_out
 
     max_temp_out = maxtemp
@@ -343,6 +404,8 @@ contains
     !$acc routine seq
 
     implicit none
+
+    !$acc routine seq
 
     real(rt), intent(out) :: max_dens_out
 
