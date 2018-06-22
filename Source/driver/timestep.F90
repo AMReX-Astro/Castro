@@ -110,12 +110,12 @@ contains
   ! Reactions-limited timestep
 
 #ifdef REACTIONS
-  subroutine ca_estdt_burning(lo, hi, sold, so_lo, so_hi, &
-                              snew, sn_lo, sn_hi, &
-                              rold, ro_lo, ro_hi, &
-                              rnew, rn_lo, rn_hi, &
-                              dx, dt_old, dt) &
-                              bind(C, name="ca_estdt_burning")
+  AMREX_DEVICE subroutine ca_estdt_burning(lo, hi, sold, so_lo, so_hi, &
+                                           snew, sn_lo, sn_hi, &
+                                           rold, ro_lo, ro_hi, &
+                                           rnew, rn_lo, rn_hi, &
+                                           dx, dt_old, dt) &
+                                           bind(C, name="ca_estdt_burning")
 
     use amrex_constants_module, only: HALF, ONE
     use network, only: nspec, naux, aion
