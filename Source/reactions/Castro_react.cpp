@@ -256,12 +256,13 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 
 	// Note that box is *not* necessarily just the valid region!
 #pragma gpu
-	ca_react_state(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				   BL_TO_FORTRAN_3D(s[mfi]),
-				   BL_TO_FORTRAN_3D(r[mfi]),
-				   BL_TO_FORTRAN_3D(w[mfi]),
-				   BL_TO_FORTRAN_3D(mask[mfi]),
-				   &time, &dt_react, &strang_half);
+	ca_react_state(AMREX_ARLIM_ARG(bx.loVect()),
+		       AMREX_ARLIM_ARG(bx.hiVect()),
+		       BL_TO_FORTRAN_3D(s[mfi]),
+		       BL_TO_FORTRAN_3D(r[mfi]),
+		       BL_TO_FORTRAN_3D(w[mfi]),
+		       BL_TO_FORTRAN_3D(mask[mfi]),
+		       &time, &dt_react, &strang_half);
 
     }
 
