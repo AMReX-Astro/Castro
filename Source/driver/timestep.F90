@@ -154,6 +154,8 @@ contains
     type (eos_t)  :: eos_state
     real(rt)      :: rhooinv, rhoninv
 
+    logical       :: can_burn
+
     ! Set a floor on the minimum size of a derivative. This floor
     ! is small enough such that it will result in no timestep limiting.
 
@@ -207,7 +209,8 @@ contains
              state_new % aux = snew(i,j,k,UFX:UFX+naux-1) * rhoninv
 #endif
 
-             if (.not. ok_to_burn(state_new)) cycle
+             call ok_to_burn(state_new, can_burn)
+             if (.not. can_burn) cycle
 
              e    = state_new % e
              X    = max(state_new % xn, small_x)

@@ -31,7 +31,7 @@ contains
 
 
 
-  function ok_to_burn(state)
+  AMREX_DEVICE subroutine ok_to_burn(state, do_burn)
 
     !$acc routine seq
 
@@ -39,24 +39,24 @@ contains
 
     implicit none
 
-    logical       :: ok_to_burn
-    type (burn_t) :: state
+    logical,       intent(inout) :: do_burn
+    type (burn_t), intent(in)    :: state
 
-    ok_to_burn = .true.
+    do_burn = .true.
 
     if (state % T < react_T_min .or. state % T > react_T_max .or. &
         state % rho < react_rho_min .or. state % rho > react_rho_max) then
 
-       ok_to_burn = .false.
+       do_burn = .false.
 
     endif
 
-  end function ok_to_burn
+  end subroutine ok_to_burn
 
 
 
 #ifndef SDC
-  subroutine burner(state_in, state_out, dt, time)
+  AMREX_DEVICE subroutine burner(state_in, state_out, dt, time)
 
     !$acc routine seq
 
@@ -68,9 +68,11 @@ contains
     type (burn_t), intent(inout) :: state_out
     double precision, intent(in) :: dt, time
 
+    logical :: do_burn = .true.
+
     ! Make sure the network and burner have been initialized.
 
-#ifndef ACC
+#if !(defined(ACC) || defined(CUDA))
     if (.NOT. network_initialized) then
        call amrex_error("ERROR in burner: must initialize network first.")
     endif
@@ -81,12 +83,12 @@ contains
 #endif
 
     ! Initialize the final state by assuming it does not change.
-
-    state_out = state_in
+    call copy_burn_t(state_out, state_in)
 
     ! Do the burning.
+    call ok_to_burn(state_in, do_burn)
 
-    if (ok_to_burn(state_in)) then
+    if (do_burn) then
        call actual_burner(state_in, state_out, dt, time)
     endif
 
