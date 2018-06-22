@@ -73,7 +73,7 @@ Castro::volWgtSum (const std::string& name,
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
         Real* s_f = mfi.add_reduce_value(&sum, MFIter::SUM);
 #else
         Real* s_f = &sum;
@@ -264,7 +264,7 @@ Castro::volWgtSumMF (const MultiFab& mf, int comp, bool local)
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
         Real* s_f = mfi.add_reduce_value(&sum, MFIter::SUM);
 #else
         Real* s_f = &sum;
@@ -366,7 +366,7 @@ Castro::volWgtSumOneSide (const std::string& name,
 
         if ( doSum ) {
 
-#ifdef CUDA
+#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
         Real* s_f = mfi.add_reduce_value(&sum, MFIter::SUM);
 #else
         Real* s_f = &sum;
