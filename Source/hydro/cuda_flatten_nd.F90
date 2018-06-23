@@ -6,7 +6,7 @@ contains
 
   AMREX_DEVICE subroutine ca_uflaten(lo, hi, q, q_lo, q_hi, flatn, f_lo, f_hi) bind(c,name='ca_uflaten')
 
-    use bl_constants_module, only: ZERO, ONE
+    use amrex_constants_module, only: ZERO, ONE
     use amrex_fort_module, only: rt => amrex_real
     use prob_params_module, only: dg
     use meth_params_module, only: NQ, QU, QV, QW, QPRES

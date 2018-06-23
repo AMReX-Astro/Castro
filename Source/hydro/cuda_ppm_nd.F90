@@ -3,7 +3,8 @@ module ppm_module
   ! this does the parabolic reconstruction on a variable and the (optional)
   ! integration under the characteristic domain of the parabola
 
-  use bl_constants_module, only: ZERO, SIXTH, HALF, ONE, TWO, THREE
+  use amrex_constants_module, only: ZERO, SIXTH, HALF, ONE, TWO, THREE
+  use amrex_error_module
   use amrex_fort_module, only: rt => amrex_real
   use meth_params_module, only: NQ
 
@@ -44,13 +45,13 @@ contains
     if (s_lo(1) .gt. lo(1)-3 .or. s_lo(2) .gt. lo(2)-3 .or. s_lo(3) .gt. lo(3)-3) then
          print *,'Low bounds of array: ',s_lo(1), s_lo(2),s_lo(3)
          print *,'Low bounds of  loop: ',lo(1),lo(2),lo(3)
-         call bl_error("Need more ghost cells on array in ppm_type1")
+         call amrex_error("Need more ghost cells on array in ppm_type1")
     end if
 
     if (s_hi(1) .lt. hi(1)+3 .or. s_hi(2) .lt. hi(2)+3 .or. s_hi(3) .lt. hi(3)+3) then
          print *,'Hi  bounds of array: ',s_hi(1), s_hi(2), s_hi(3)
          print *,'Hi  bounds of  loop: ',hi(1),hi(2),hi(3)
-         call bl_error("Need more ghost cells on array in ppm_type1")
+         call amrex_error("Need more ghost cells on array in ppm_type1")
       end if
 #endif
 

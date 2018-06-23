@@ -14,7 +14,7 @@ contains
                                                      bind(c,name='ca_enforce_minimum_density')
 
     use network, only: nspec, naux
-    use bl_constants_module, only: ZERO
+    use amrex_constants_module, only: ZERO
     use amrex_fort_module, only: rt => amrex_real, amrex_min
     use meth_params_module, only: NVAR, URHO, UEINT, UEDEN, small_dens
 
@@ -116,7 +116,7 @@ contains
 
   AMREX_DEVICE subroutine reset_to_small_state(old_state, new_state, idx, lo, hi, verbose)
 
-    use bl_constants_module, only: ZERO
+    use amrex_constants_module, only: ZERO
     use network, only: nspec, naux
     use eos_type_module, only: eos_t, eos_input_rt
     use eos_module, only: eos
@@ -180,7 +180,7 @@ contains
 
   AMREX_DEVICE subroutine reset_to_zone_state(old_state, new_state, input_state, idx, lo, hi, verbose)
 
-    use bl_constants_module, only: ZERO
+    use amrex_constants_module, only: ZERO
     use amrex_fort_module, only: rt => amrex_real
     use meth_params_module, only: NVAR, URHO
 
@@ -221,7 +221,7 @@ contains
                                       qaux, qa_lo, qa_hi) &
                                       bind(C, name = "compute_cfl")
 
-    use bl_constants_module, only: ZERO, ONE
+    use amrex_constants_module, only: ZERO, ONE
     use amrex_fort_module, only: rt => amrex_real, amrex_max
     use meth_params_module, only: NQ, QRHO, QU, QV, QW, QC, NQAUX
     use prob_params_module, only: dim
@@ -311,7 +311,7 @@ contains
     use actual_network, only: nspec, naux
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
-    use bl_constants_module, only: ZERO, HALF, ONE
+    use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_fort_module, only: rt => amrex_real
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, &
                                   UEDEN, UEINT, UTEMP, &
@@ -441,7 +441,7 @@ contains
     ! defined in Plewa & Muller, 1999, A&A, 342, 179.
 
     use network, only: nspec
-    use bl_constants_module, only: ZERO, ONE
+    use amrex_constants_module, only: ZERO, ONE
     use amrex_fort_module, only: rt => amrex_real
     use meth_params_module, only: NVAR, URHO, UFS
 
@@ -487,7 +487,7 @@ contains
 
   AMREX_DEVICE subroutine ca_divu(lo, hi, dx, q, q_lo, q_hi, div, d_lo, d_hi) bind(c,name='ca_divu')
 
-    use bl_constants_module, only: FOURTH, ONE
+    use amrex_constants_module, only: FOURTH, ONE
     use amrex_fort_module, only: rt => amrex_real
     use meth_params_module, only: QU, QV, QW, NQ
 
@@ -544,7 +544,7 @@ contains
                                    uin, uin_lo, uin_hi, &
                                    flux, f_lo, f_hi)
 
-    use bl_constants_module, only: ZERO, FOURTH
+    use amrex_constants_module, only: ZERO, FOURTH
     use meth_params_module, only: NVAR, UTEMP
 
     implicit none
@@ -624,7 +624,7 @@ contains
                                                     update, u_lo, u_hi) &
                                                     bind(c,name='ca_construct_hydro_update')
 
-    use bl_constants_module, only: HALF, ONE
+    use amrex_constants_module, only: HALF, ONE
     use meth_params_module, only: NVAR, UEINT, NGDNV, GDPRES, GDU, GDV, GDW
 
     implicit none
