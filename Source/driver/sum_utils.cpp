@@ -73,12 +73,6 @@ Castro::volWgtSum (const std::string& name,
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-        Real* s_f = mfi.add_reduce_value(&sum, MFIter::SUM);
-#else
-        Real* s_f = &sum;
-#endif
-
         //
         // Note that this routine will do a volume weighted sum of
         // whatever quantity is passed in, not strictly the "mass".
@@ -88,7 +82,8 @@ Castro::volWgtSum (const std::string& name,
 	ca_summass(AMREX_ARLIM_ARG(lo), AMREX_ARLIM_ARG(hi),
                    BL_TO_FORTRAN_3D(fab),
 		   ZFILL(dx),
-                   BL_TO_FORTRAN_3D(volume[mfi]), s_f);
+                   BL_TO_FORTRAN_3D(volume[mfi]),
+                   AMREX_MFITER_REDUCE_SUM(&sum));
 
     }
 
@@ -264,12 +259,6 @@ Castro::volWgtSumMF (const MultiFab& mf, int comp, bool local)
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-        Real* s_f = mfi.add_reduce_value(&sum, MFIter::SUM);
-#else
-        Real* s_f = &sum;
-#endif
-
         //
         // Note that this routine will do a volume weighted sum of
         // whatever quantity is passed in, not strictly the "mass".
@@ -277,7 +266,8 @@ Castro::volWgtSumMF (const MultiFab& mf, int comp, bool local)
 
 #pragma gpu
 	ca_summass(AMREX_ARLIM_ARG(lo),AMREX_ARLIM_ARG(hi),BL_TO_FORTRAN_N_3D(fab,comp),
-		   ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),s_f);
+		   ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),
+                   AMREX_MFITER_REDUCE_SUM(&sum));
     }
 
     if (!local)
@@ -366,15 +356,10 @@ Castro::volWgtSumOneSide (const std::string& name,
 
         if ( doSum ) {
 
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-        Real* s_f = mfi.add_reduce_value(&sum, MFIter::SUM);
-#else
-        Real* s_f = &sum;
-#endif
-
 #pragma gpu
           ca_summass(AMREX_ARLIM_ARG(loFinal),AMREX_ARLIM_ARG(hiFinal),BL_TO_FORTRAN_3D(fab),
-		     ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),s_f);
+		     ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),
+                     AMREX_MFITER_REDUCE_SUM(&sum));
 
         }
 		
