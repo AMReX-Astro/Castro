@@ -45,7 +45,9 @@ amr.max_grid_size   = 32
 
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 0
-amr.plot_files_output = 0
+amr.plot_files_output = 1
+
+amr.plot_int=10
 
 # PROBIN FILENAME
 amr.probin_file = probin.starlord
