@@ -1,7 +1,7 @@
 !AUG10
 module bc_fill_module
   use bc_ext_fill_module
-  use bl_constants_module
+  use amrex_constants_module
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -23,7 +23,7 @@ contains
     use eos_module
     use network, only: nspec
     use model_parser_module
-    use bl_error_module
+    use amrex_error_module
     use eos_type_module
 
     include 'AMReX_bc_types.fi'
@@ -53,7 +53,7 @@ contains
        if ( bc(1,1,n).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
 
           ! we are periodic in x -- we should never get here
-          call bl_error("ERROR: invalid BC in Prob_2d.f90")
+          call amrex_error("ERROR: invalid BC in Prob_2d.f90")
         
        end if
      
@@ -61,13 +61,13 @@ contains
        if ( bc(1,2,n).eq.EXT_DIR .and. adv_h1.gt.domhi(1)) then
           
           ! we are periodic in x -- we should never get here
-          call bl_error("ERROR: invalid BC in Prob_2d.f90")
+          call amrex_error("ERROR: invalid BC in Prob_2d.f90")
         
        end if
 
         if (xr_ext == EXT_HSE .or. xl_ext == EXT_HSE .or. xr_ext == EXT_INTERP .or. &
         xl_ext == EXT_INTERP) then
-        call bl_error("ERROR: HSE boundaries not implemented for +,- X")
+        call amrex_error("ERROR: HSE boundaries not implemented for +,- X")
         end if
 
 
@@ -159,7 +159,7 @@ contains
        if ( bc(2,2,URHO).eq.EXT_DIR .and. adv_h2.gt.domhi(2)) then
 
         if (yr_ext == EXT_HSE) then
-        call bl_error("ERROR: HSE boundaries not implemented for +Y")
+        call amrex_error("ERROR: HSE boundaries not implemented for +Y")
         elseif (yr_ext == EXT_INTERP) then
           call ext_fill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
                         domlo,domhi,delta,xlo,time,bc)
@@ -215,7 +215,7 @@ contains
     use probdata_module
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, &
          UFS, UTEMP, const_grav
-    use bl_error_module
+    use amrex_error_module
     use interpolate_module
     use model_parser_module
 
@@ -242,12 +242,12 @@ contains
 
     !     XLO
     if ( bc(1,1,1).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
-       call bl_error("We shoundn't be here (xlo denfill)")
+       call amrex_error("We shoundn't be here (xlo denfill)")
     end if
 
     !     XHI
     if ( bc(1,2,1).eq.EXT_DIR .and. adv_h1.gt.domhi(1)) then
-       call bl_error("We shoundn't be here (xlo denfill)")
+       call amrex_error("We shoundn't be here (xlo denfill)")
     endif
 
 
