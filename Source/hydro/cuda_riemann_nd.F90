@@ -25,7 +25,7 @@ contains
 
     use network, only: nspec, naux
     use amrex_fort_module, only: rt => amrex_real
-    use bl_constants_module, only: ZERO, HALF, ONE
+    use amrex_constants_module, only: ZERO, HALF, ONE
     use prob_params_module, only: physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
 
     integer,  intent(in   ) :: qm_lo(3), qm_hi(3)
