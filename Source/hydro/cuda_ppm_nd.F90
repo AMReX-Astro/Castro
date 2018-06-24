@@ -41,7 +41,7 @@ contains
     ! s_{\ib,+}, s_{\ib,-}
     real(rt) :: sm, sp
 
-#ifndef CUDA
+#ifndef AMREX_USE_GPU
     if (s_lo(1) .gt. lo(1)-3 .or. s_lo(2) .gt. lo(2)-3 .or. s_lo(3) .gt. lo(3)-3) then
          print *,'Low bounds of array: ',s_lo(1), s_lo(2),s_lo(3)
          print *,'Low bounds of  loop: ',lo(1),lo(2),lo(3)

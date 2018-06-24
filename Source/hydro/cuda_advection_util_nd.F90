@@ -47,10 +47,10 @@ contains
 
              if (uout(i,j,k,URHO) .eq. ZERO) then
 
-#ifndef CUDA
+#ifndef AMREX_USE_GPU
                 print *,'DENSITY EXACTLY ZERO AT CELL ',i,j,k
                 print *,'  in grid ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-                call bl_error("Error:: advection_util_nd.F90 :: ca_enforce_minimum_density")
+                call amrex_error("Error:: advection_util_nd.F90 :: ca_enforce_minimum_density")
 #endif
              else if (uout(i,j,k,URHO) < small_dens) then
 
@@ -137,7 +137,7 @@ contains
     ! equal to small_temp. We set the velocities to zero,
     ! though any choice here would be arbitrary.
 
-#ifndef CUDA
+#ifndef AMREX_USE_GPU
     if (verbose .gt. 0) then
        print *,'   '
        if (new_state(URHO) < ZERO) then
@@ -190,7 +190,7 @@ contains
     real(rt), intent(inout) :: new_state(NVAR)
     integer,  intent(in   ) :: idx(3), lo(3), hi(3), verbose
 
-#ifndef CUDA
+#ifndef AMREX_USE_GPU
     if (verbose .gt. 0) then
        if (new_state(URHO) < ZERO) then
           print *,'   '
@@ -282,7 +282,7 @@ contains
                 courtmp = courtmp + courz
              endif
 
-#ifndef CUDA
+#ifndef AMREX_USE_GPU
              ! note: it might not be 1 for all RK integrators
              if (courtmp > ONE) then
                 print *,'   '
@@ -345,7 +345,7 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-#ifndef CUDA
+#ifndef AMREX_USE_GPU
              if (uin(i,j,k,URHO) .le. ZERO) then
                 print *,'   '
                 print *,'>>> Error: advection_util_nd.F90::ctoprim ',i, j, k

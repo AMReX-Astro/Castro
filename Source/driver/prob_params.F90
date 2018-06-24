@@ -49,7 +49,7 @@ module prob_params_module
   ! one component for each coordinate direction flux
   type (momflux_t), save :: mom_flux_has_p(3)
 
-#ifdef CUDA
+#ifdef AMREX_USE_CUDA
   attributes(managed) :: physbc_lo, physbc_hi
   attributes(managed) :: Interior, Inflow, Outflow, Symmetry, Slipwall, NoSlipWall
   attributes(managed) :: dim
