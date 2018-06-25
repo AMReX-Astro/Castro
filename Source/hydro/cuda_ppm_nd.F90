@@ -12,11 +12,11 @@ module ppm_module
 
 contains
 
-  AMREX_DEVICE subroutine ca_ppm_reconstruct(lo, hi, &
-                                             s, s_lo, s_hi, &
-                                             flatn, f_lo, f_hi, &
-                                             qm, qm_lo, qm_hi, &
-                                             qp, qp_lo, qp_hi) bind(c,name='ca_ppm_reconstruct')
+  subroutine ca_ppm_reconstruct(lo, hi, &
+                                s, s_lo, s_hi, &
+                                flatn, f_lo, f_hi, &
+                                qm, qm_lo, qm_hi, &
+                                qp, qp_lo, qp_hi) bind(c,name='ca_ppm_reconstruct')
 
     implicit none
 
@@ -40,6 +40,8 @@ contains
 
     ! s_{\ib,+}, s_{\ib,-}
     real(rt) :: sm, sp
+
+    !$gpu
 
 #ifndef AMREX_USE_GPU
     if (s_lo(1) .gt. lo(1)-3 .or. s_lo(2) .gt. lo(2)-3 .or. s_lo(3) .gt. lo(3)-3) then

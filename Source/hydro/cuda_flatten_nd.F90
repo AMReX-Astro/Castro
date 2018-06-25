@@ -4,7 +4,7 @@ module flatten_module
 
 contains
 
-  AMREX_DEVICE subroutine ca_uflaten(lo, hi, q, q_lo, q_hi, flatn, f_lo, f_hi) bind(c,name='ca_uflaten')
+  subroutine ca_uflaten(lo, hi, q, q_lo, q_hi, flatn, f_lo, f_hi) bind(c,name='ca_uflaten')
 
     use amrex_constants_module, only: ZERO, ONE
     use amrex_fort_module, only: rt => amrex_real
@@ -28,6 +28,8 @@ contains
 
     ! Knobs for detection of strong shock
     real(rt), parameter :: shktst = 0.33e0_rt, zcut1 = 0.75e0_rt, zcut2 = 0.85e0_rt, dzcut = ONE/(zcut2-zcut1)
+
+    !$gpu
 
     ! x-direction flattening coef
     do k = lo(3), hi(3)

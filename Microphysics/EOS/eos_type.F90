@@ -179,7 +179,7 @@ contains
   ! Given a set of mass fractions, calculate quantities that depend
   ! on the composition like abar and zbar.
 
-  AMREX_DEVICE subroutine composition(state)
+  subroutine composition(state)
 
     !$acc routine seq
 
@@ -189,6 +189,8 @@ contains
     implicit none
 
     type (eos_t), intent(inout) :: state
+
+    !$gpu
 
     ! Calculate abar, the mean nucleon number,
     ! zbar, the mean proton number,
@@ -207,7 +209,7 @@ contains
 #ifdef EXTRA_THERMO
   ! Compute thermodynamic derivatives with respect to xn(:)
 
-  AMREX_DEVICE subroutine composition_derivatives(state)
+  subroutine composition_derivatives(state)
 
     !$acc routine seq
 
@@ -217,6 +219,8 @@ contains
     implicit none
 
     type (eos_t), intent(inout) :: state
+
+    !$gpu
 
     state % dpdX(:) = state % dpdA * (state % abar * aion_inv(:))   &
                                    * (aion(:) - state % abar) &
@@ -243,7 +247,7 @@ contains
   ! Normalize the mass fractions: they must be individually positive
   ! and less than one, and they must all sum to unity.
 
-  AMREX_DEVICE subroutine normalize_abundances(state)
+  subroutine normalize_abundances(state)
 
     !$acc routine seq
 
@@ -253,6 +257,8 @@ contains
     implicit none
 
     type (eos_t), intent(inout) :: state
+
+    !$gpu
 
     state % xn = max(small_x, min(ONE, state % xn))
 
@@ -264,13 +270,15 @@ contains
 
   ! Ensure that inputs are within reasonable limits.
 
-  AMREX_DEVICE subroutine clean_state(state)
+  subroutine clean_state(state)
 
     !$acc routine seq
 
     implicit none
 
     type (eos_t), intent(inout) :: state
+
+    !$gpu
 
     state % T = min(maxtemp, max(mintemp, state % T))
     state % rho = min(maxdens, max(mindens, state % rho))
@@ -296,7 +304,7 @@ contains
 
 
 
-  AMREX_DEVICE subroutine eos_get_small_temp(small_temp_out)
+  subroutine eos_get_small_temp(small_temp_out)
 
     !$acc routine seq
 
@@ -304,13 +312,15 @@ contains
 
     real(rt), intent(out) :: small_temp_out
 
+    !$gpu
+
     small_temp_out = mintemp
 
   end subroutine eos_get_small_temp
 
 
 
-  AMREX_DEVICE subroutine eos_get_small_dens(small_dens_out)
+  subroutine eos_get_small_dens(small_dens_out)
 
     !$acc routine seq
 
@@ -318,13 +328,15 @@ contains
 
     real(rt), intent(out) :: small_dens_out
 
+    !$gpu
+
     small_dens_out = mindens
 
   end subroutine eos_get_small_dens
 
 
 
-  AMREX_DEVICE subroutine eos_get_max_temp(max_temp_out)
+  subroutine eos_get_max_temp(max_temp_out)
 
     !$acc routine seq
 
@@ -332,19 +344,23 @@ contains
 
     real(rt), intent(out) :: max_temp_out
 
+    !$gpu
+
     max_temp_out = maxtemp
 
   end subroutine eos_get_max_temp
 
 
 
-  AMREX_DEVICE subroutine eos_get_max_dens(max_dens_out)
+  subroutine eos_get_max_dens(max_dens_out)
 
     !$acc routine seq
 
     implicit none
 
     real(rt), intent(out) :: max_dens_out
+
+    !$gpu
 
     max_dens_out = maxdens
 

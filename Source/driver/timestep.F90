@@ -10,7 +10,7 @@ contains
 
   ! Courant-condition limited timestep
 
-  AMREX_DEVICE subroutine ca_estdt(lo,hi,u,u_lo,u_hi,dx,dt) bind(C, name="ca_estdt")
+  subroutine ca_estdt(lo,hi,u,u_lo,u_hi,dx,dt) bind(C, name="ca_estdt")
 
     use network, only: nspec, naux
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, do_ctu
@@ -41,6 +41,8 @@ contains
 #ifdef ROTATION
     real(rt)         :: vel(3)
 #endif
+
+    !$gpu
 
     ! Call EOS for the purpose of computing sound speed
 

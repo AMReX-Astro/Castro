@@ -81,12 +81,14 @@ contains
 
   ! Implement a manual copy routine since CUDA Fortran doesn't
   ! (yet) support derived type copying on the device.
-  AMREX_DEVICE subroutine copy_burn_t(to_state, from_state)
+  subroutine copy_burn_t(to_state, from_state)
 
     implicit none
 
     type (burn_t), intent(in   ) :: from_state
     type (burn_t), intent(  out) :: to_state
+
+    !$gpu
 
     to_state % rho = from_state % rho
     to_state % T   = from_state % T

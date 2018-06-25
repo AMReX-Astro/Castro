@@ -120,7 +120,7 @@ contains
 
 
 
-  AMREX_DEVICE subroutine ca_reset_internal_e(lo,hi,u,u_lo,u_hi,verbose) bind(c,name='ca_reset_internal_e')
+  subroutine ca_reset_internal_e(lo,hi,u,u_lo,u_hi,verbose) bind(c,name='ca_reset_internal_e')
 
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
@@ -143,6 +143,8 @@ contains
     real(rt) :: Up, Vp, Wp, ke, rho_eint, eden, small_e, eint_new, rhoInv
 
     type (eos_t) :: eos_state
+
+    !$gpu
 
     ! Reset internal energy
 
@@ -330,7 +332,7 @@ contains
 
 
 
-  AMREX_DEVICE subroutine ca_compute_temp(lo,hi,state,s_lo,s_hi) bind(c,name='ca_compute_temp')
+  subroutine ca_compute_temp(lo,hi,state,s_lo,s_hi) bind(c,name='ca_compute_temp')
 
     use network, only: nspec, naux
     use eos_module, only: eos
@@ -351,6 +353,8 @@ contains
     real(rt) :: rhoInv
 
     type (eos_t) :: eos_state
+
+    !$gpu
 
     ! First check the inputs for validity.
 
@@ -412,7 +416,7 @@ contains
   
 
 
-  AMREX_DEVICE subroutine ca_check_initial_species(lo, hi, state, state_lo, state_hi) bind(c,name='ca_check_initial_species')
+  subroutine ca_check_initial_species(lo, hi, state, state_lo, state_hi) bind(c,name='ca_check_initial_species')
 
     use network           , only: nspec
     use meth_params_module, only: NVAR, URHO, UFS
@@ -428,6 +432,8 @@ contains
     ! Local variables
     integer  :: i, j, k
     real(rt) :: spec_sum
+
+    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -452,7 +458,7 @@ contains
 
 
 
-  AMREX_DEVICE subroutine ca_normalize_species(lo, hi, u, u_lo, u_hi) bind(c,name='ca_normalize_species')
+  subroutine ca_normalize_species(lo, hi, u, u_lo, u_hi) bind(c,name='ca_normalize_species')
 
     use network, only: nspec
     use meth_params_module, only: NVAR, URHO, UFS
@@ -469,6 +475,8 @@ contains
     ! Local variables
     integer  :: i, j, k
     real(rt) :: xn(nspec)
+
+    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
