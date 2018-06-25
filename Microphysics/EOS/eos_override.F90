@@ -8,7 +8,7 @@ contains
 
   ! This is a user hook to override the details of the EOS state.
 
-  AMREX_DEVICE subroutine eos_override(state)
+  subroutine eos_override(state)
 
     !$acc routine seq
 
@@ -17,6 +17,8 @@ contains
     implicit none
 
     type (eos_t) :: state
+
+    !$gpu
 
   end subroutine eos_override
 

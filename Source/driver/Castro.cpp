@@ -1166,16 +1166,11 @@ Castro::estTimeStep (Real dt_old)
 		{
 		  const Box& box = mfi.tilebox();
 
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-            Real* dt_f = mfi.add_reduce_value(&dt, MFIter::MIN);
-#else
-            Real* dt_f = &dt;
-#endif
-
 #pragma gpu
 		  ca_estdt(AMREX_ARLIM_ARG(box.loVect()), AMREX_ARLIM_ARG(box.hiVect()),
 			   BL_TO_FORTRAN_3D(stateMF[mfi]),
-			   ZFILL(dx),dt_f);
+			   ZFILL(dx),
+                           AMREX_MFITER_REDUCE_MIN(&dt));
 		}
               estdt_hydro = std::min(estdt_hydro, dt);
             }
@@ -2676,19 +2671,14 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 	FArrayBox& statenew = S_new[mfi];
 	const FArrayBox& vol      = volume[mfi];
 
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-        Real* dens_change_f = mfi.add_reduce_value(&dens_change, MFIter::MIN);
-#else
-        Real* dens_change_f = &dens_change;
-#endif
-
 #pragma gpu
 	ca_enforce_minimum_density
             (AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
              BL_TO_FORTRAN_ANYD(stateold),
              BL_TO_FORTRAN_ANYD(statenew),
              BL_TO_FORTRAN_ANYD(vol),
-             dens_change_f, verbose);
+             AMREX_MFITER_REDUCE_MIN(&dens_change),
+             verbose);
 
     }
 

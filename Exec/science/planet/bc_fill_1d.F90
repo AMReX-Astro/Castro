@@ -1,7 +1,7 @@
 !Aug25
 module bc_fill_module
   use bc_ext_fill_module
-  use bl_constants_module
+  use amrex_constants_module
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -23,7 +23,7 @@ contains
     use eos_module
     use network, only: nspec
     use model_parser_module
-    use bl_error_module
+    use amrex_error_module
     use eos_type_module
 
     include 'AMReX_bc_types.fi'
@@ -121,7 +121,7 @@ contains
     ! XHI
        if ( bc(1,2,1).eq.EXT_DIR .and. adv_h1.gt.domhi(1)) then
         if (xr_ext == EXT_HSE) then
-        call bl_error("ERROR: HSE boundaries not implemented for +X")
+        call amrex_error("ERROR: HSE boundaries not implemented for +X")
         elseif (xr_ext == EXT_INTERP) then
           call ext_fill(adv,adv_l1,adv_h1, &
           domlo,domhi,delta,xlo,time,bc)
@@ -168,7 +168,7 @@ contains
     use probdata_module
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, &
          UFS, UTEMP, const_grav
-    use bl_error_module
+    use amrex_error_module
     use interpolate_module
     use model_parser_module
 

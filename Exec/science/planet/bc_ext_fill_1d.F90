@@ -1,6 +1,6 @@
 module bc_ext_fill_module
 
-  use bl_constants_module
+  use amrex_constants_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
                                  UEDEN, UEINT, UFS, UTEMP, const_grav, &
                                  hse_zero_vels, hse_interp_temp, hse_reflect_vels, &
@@ -167,7 +167,7 @@ contains
                          print *, "column info: "
                          print *, "   dens: ", adv(j:domlo(1),URHO)
                          print *, "   temp: ", adv(j:domlo(1),UTEMP)
-                         call bl_error("ERROR in bc_ext_fill_1d: failure to converge in -X BC")
+                         call amrex_error("ERROR in bc_ext_fill_1d: failure to converge in -X BC")
                       endif
 
 
@@ -260,7 +260,7 @@ contains
        if (bc(2,n) == EXT_DIR .and. adv_h1 > domhi(1)) then
 
           if (xr_ext == EXT_HSE) then
-             call bl_error("ERROR: HSE boundaries not implemented for +X")
+             call amrex_error("ERROR: HSE boundaries not implemented for +X")
 
           elseif (xr_ext == EXT_INTERP) then
              ! interpolate thermodynamics from initial model
@@ -321,7 +321,7 @@ contains
     use prob_params_module, only : problo
     use interpolate_module
     use model_parser_module
-    use bl_error_module
+    use amrex_error_module
 
     use amrex_fort_module, only : rt => amrex_real
     integer adv_l1,adv_h1

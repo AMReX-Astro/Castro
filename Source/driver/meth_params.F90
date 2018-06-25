@@ -74,7 +74,7 @@ module meth_params_module
   ! Create versions of these variables on the GPU
   ! the device update is then done in Castro_nd.f90
 
-#ifdef CUDA
+#ifdef AMREX_USE_CUDA
   attributes(managed) :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
   attributes(managed) :: USHK
   attributes(managed) :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
@@ -189,7 +189,7 @@ module meth_params_module
   real(rt), allocatable, save :: const_grav
   integer,  allocatable, save :: get_g_from_phi
 
-#ifdef CUDA
+#ifdef AMREX_USE_CUDA
   attributes(managed) :: difmag
   attributes(managed) :: small_dens
   attributes(managed) :: small_temp
@@ -973,7 +973,7 @@ contains
        fspace_type = fsp_type_in
     end if
 
-#ifndef AMREX_USE_CUDA    
+#ifndef AMREX_USE_GPU
     if (fsp_type_in .ne. 1 .and. fsp_type_in .ne. 2) then
        call amrex_error("Unknown fspace_type", fspace_type)
     end if
@@ -986,7 +986,7 @@ contains
     else if (com_in .eq. 0) then
        comoving = .false.
     else
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
        call amrex_error("Wrong value for comoving", fspace_type)
 #endif
     end if
