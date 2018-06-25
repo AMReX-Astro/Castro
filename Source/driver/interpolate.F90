@@ -82,7 +82,7 @@ module interpolate_module
     end function interpolate
 
 
-    AMREX_DEVICE subroutine interpolate_sub(interpolate, r, npts_model, model_r, model_var, iloc)
+    subroutine interpolate_sub(interpolate, r, npts_model, model_r, model_var, iloc)
       
 !     given the array of model coordinates (model_r), and variable (model_var),
 !     find the value of model_var at point r (var_r) using linear interpolation.
@@ -98,6 +98,8 @@ module interpolate_module
       ! Local variables
       integer                         :: id
       real(rt)                        :: slope,minvar,maxvar
+
+      !$gpu
       
 !     find the location in the coordinate array where we want to interpolate
       if (present(iloc)) then
@@ -271,13 +273,15 @@ module interpolate_module
     end function locate
 
 
-    AMREX_DEVICE subroutine locate_sub(x, n, xs, loc)
+    subroutine locate_sub(x, n, xs, loc)
       use amrex_fort_module, only : rt => amrex_real
       integer,  intent(in   ) :: n
       real(rt), intent(in   ) :: x, xs(n)
       integer,  intent(  out) :: loc
 
       integer :: ilo, ihi, imid
+
+      !$gpu
 
       if (x .le. xs(1)) then
          loc = 1

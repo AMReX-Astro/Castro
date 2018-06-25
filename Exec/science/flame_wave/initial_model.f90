@@ -121,7 +121,7 @@ contains
     use fundamental_constants_module, only: Gconst
     use meth_params_module, only : const_grav
 
-    use parallel, only : parallel_IOProcessor
+    use amrex_paralleldescriptor_module, only: parallel_IOProcessor => amrex_pd_ioprocessor
 
     implicit none
 

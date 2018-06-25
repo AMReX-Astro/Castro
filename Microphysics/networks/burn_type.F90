@@ -79,6 +79,60 @@ module burn_type_module
 
 contains
 
+  ! Implement a manual copy routine since CUDA Fortran doesn't
+  ! (yet) support derived type copying on the device.
+  subroutine copy_burn_t(to_state, from_state)
+
+    implicit none
+
+    type (burn_t), intent(in   ) :: from_state
+    type (burn_t), intent(  out) :: to_state
+
+    !$gpu
+
+    to_state % rho = from_state % rho
+    to_state % T   = from_state % T
+    to_state % e   = from_state % e
+    to_state % xn(1:nspec) = from_state % xn(1:nspec)
+
+#if naux > 0
+    to_state % aux(1:naux) = from_state % aux(1:naux)
+#endif
+
+    to_state % cv  = from_state % cv
+    to_state % cp  = from_state % cp
+    to_state % y_e = from_state % y_e
+    to_state % eta = from_state % eta
+    to_state % cs  = from_state % cs
+    to_state % dx  = from_state % dx
+
+    to_state % abar = from_state % abar
+    to_state % zbar = from_state % zbar
+
+    to_state % T_old = from_state % T_old
+
+    to_state % dcvdT = from_state % dcvdT
+    to_state % dcpdT = from_state % dcpdT
+
+    to_state % ydot(1:neqs) = from_state % ydot(1:neqs)
+    to_state % jac(1:neqs, 1:neqs) = from_state % jac(1:neqs, 1:neqs)
+
+    to_state % self_heat = from_state % self_heat
+
+    to_state % i = from_state % i
+    to_state % j = from_state % j
+    to_state % k = from_state % k
+
+    to_state % n_rhs = from_state % n_rhs
+    to_state % n_jac = from_state % n_jac
+
+    to_state % time = from_state % time
+
+    to_state % success = from_state % success
+
+  end subroutine copy_burn_t
+
+
   ! Given an eos type, copy the data relevant to the burn type.
 
   subroutine eos_to_burn(eos_state, burn_state)

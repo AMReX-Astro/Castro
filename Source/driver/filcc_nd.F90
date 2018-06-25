@@ -24,7 +24,7 @@ subroutine filcc_nd(adv,adv_lo,adv_hi,domlo,domhi,delta,xlo,bc)
 
   use prob_params_module, only: dim
   use amrex_fort_module, only: rt => amrex_real
-#ifdef CUDA
+#ifdef AMREX_USE_CUDA
   use cuda_module, only: numBlocks, numThreads, cuda_stream
 #endif
 
@@ -36,12 +36,12 @@ subroutine filcc_nd(adv,adv_lo,adv_hi,domlo,domhi,delta,xlo,bc)
   real(rt), intent(in   ) :: delta(3), xlo(3)
   real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3))
 
-#ifdef CUDA
+#ifdef AMREX_USE_CUDA
   attributes(device) :: adv, adv_lo, adv_hi, bc, domlo, domhi, delta, xlo
 #endif
 
   call filcc_nd_wrapper &
-#ifdef CUDA
+#ifdef AMREX_USE_CUDA
        <<<numBlocks, numThreads, 0, cuda_stream>>> &
 #endif
        (adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, bc)
