@@ -3608,12 +3608,11 @@ Castro::clean_state(int is_new, MultiFab& state_old, int ng) {
 
   // Enforce a minimum density.
 #ifndef AMREX_USE_CUDA
-    Real frac_change = enforce_min_density(state_old, state);
+    Real frac_change = enforce_min_density(state_old, state, ng);
 #else
     Real frac_change = 1.e200;
 #endif
 
-  Real frac_change = enforce_min_density(state_old, state, ng);
 
   // Ensure all species are normalized.
   normalize_species(state, ng);
