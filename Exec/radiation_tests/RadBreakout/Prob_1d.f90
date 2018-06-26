@@ -2,8 +2,7 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module
-  use network, only : network_init
-  use bl_error_module
+  use amrex_error_module
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -25,10 +24,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   parameter (maxlen=256)
   character probin*(maxlen)
   
-  call network_init()
-  
   if (namlen .gt. maxlen) then
-     call bl_error('probin file name too long')
+     call amrex_error('probin file name too long')
   end if
   
   do i = 1, namlen
@@ -62,7 +59,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   read(untin,*) npts_model
   read(untin,*) dummy
   if (npts_model > npts_max) then
-     call bl_error('npts_max in probdata.f90 is too small')
+     call amrex_error('npts_max in probdata.f90 is too small')
   end if
 
   do i = 1, npts_model

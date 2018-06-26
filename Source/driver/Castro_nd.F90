@@ -188,6 +188,18 @@ subroutine ca_get_nqaux(nqaux_in) bind(C, name="ca_get_nqaux")
 
 end subroutine ca_get_nqaux
 
+subroutine ca_get_ngdnv(ngdnv_in) bind(C, name="ca_get_ngdnv")
+
+  use meth_params_module, only: NGDNV
+
+  implicit none
+
+  integer, intent(inout) :: ngdnv_in
+
+  ngdnv_in = NGDNV
+
+end subroutine ca_get_ngdnv
+
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
@@ -345,10 +357,12 @@ subroutine swap_outflow_data() bind(C, name="swap_outflow_data")
      allocate(outflow_data_old(nc,np))
   end if
 
+#ifndef AMREX_USE_CUDA  
   if (size(outflow_data_old,dim=2) .ne. size(outflow_data_new,dim=2)) then
      print *,'size of old and new dont match in swap_outflow_data '
      call amrex_error("Error:: Castro_nd.f90 :: swap_outflow_data")
   end if
+#endif
 
   outflow_data_old(1:nc,1:np) = outflow_data_new(1:nc,1:np)
 
@@ -407,15 +421,16 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
 
   integer :: iadv, ispec
 
-  integer :: QLAST
-  integer :: NTHERM, QTHERM
-
   integer :: i
   integer :: ioproc
 
 #ifdef RADIATION
   ngroups = ngroups_in
 #endif
+
+  ! the number of advected varaibles comes from Castro C++, this is not
+  ! a network thing
+  nadv = numadv
 
   !---------------------------------------------------------------------
   ! set integer keys to index states
@@ -587,9 +602,11 @@ subroutine ca_init_godunov_indices() bind(C, name="ca_init_godunov_indices")
 #endif
 
   ! sanity check
+#ifndef AMREX_USE_CUDA  
   if ((QU /= GDU) .or. (QV /= GDV) .or. (QW /= GDW)) then
      call amrex_error("ERROR: velocity components for godunov and primitive state are not aligned")
   endif
+#endif  
 
 end subroutine ca_init_godunov_indices
 
@@ -623,11 +640,30 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   integer,  intent(in) :: coord_type_in
   real(rt), intent(in) :: problo_in(dm), probhi_in(dm), center_in(dm)
 
+  allocate(dim)
+
   dim = dm
+
+  allocate(physbc_lo(3))
+  allocate(physbc_hi(3))
+
+  physbc_lo(:) = 0
+  physbc_hi(:) = 0
 
   physbc_lo(1:dm) = physbc_lo_in(1:dm)
   physbc_hi(1:dm) = physbc_hi_in(1:dm)
 
+  allocate(Interior)
+  allocate(Inflow)
+  allocate(Outflow)
+  allocate(Symmetry)
+  allocate(SlipWall)
+  allocate(NoSlipWall)
+
+  allocate(center(3))
+  allocate(problo(3))
+  allocate(probhi(3))
+  
   Interior   = Interior_in
   Inflow     = Inflow_in
   Outflow    = Outflow_in
@@ -644,6 +680,8 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   problo(1:dm) = problo_in(1:dm)
   probhi(1:dm) = probhi_in(1:dm)
   center(1:dm) = center_in(1:dm)
+
+  allocate(dg(3))
 
   dg(:) = 1
 
@@ -663,9 +701,11 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
 
 
   ! sanity check on our allocations
+#ifndef AMREX_USE_CUDA
   if (UMZ > MAX_MOM_INDEX) then
      call amrex_error("ERROR: not enough space in comp in mom_flux_has_p")
   endif
+#endif
 
   ! keep track of which components of the momentum flux have pressure
   if (dim == 1 .or. (dim == 2 .and. coord_type == 1)) then
@@ -817,9 +857,11 @@ subroutine ca_get_tagging_params(name, namlen) &
   max_radgrad_lev = -1
 
   ! create the filename
+#ifndef AMREX_USE_CUDA  
   if (namlen > maxlen) then
      call amrex_error('probin file name too long')
   endif
+#endif
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -833,10 +875,12 @@ subroutine ca_get_tagging_params(name, namlen) &
   if (status < 0) then
      ! the namelist does not exist, so we just go with the defaults
      continue
-
+     
   else if (status > 0) then
      ! some problem in the namelist
+#ifndef AMREX_USE_CUDA     
      call amrex_error('ERROR: problem in the tagging namelist')
+#endif
   endif
 
   close (unit=un)
@@ -899,9 +943,11 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   sponge_timescale    = -1.e0_rt
 
   ! create the filename
+#ifndef AMREX_USE_CUDA 
   if (namlen > maxlen) then
      call amrex_error('probin file name too long')
   endif
+#endif
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -918,7 +964,9 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
 
   else if (status > 0) then
      ! some problem in the namelist
+#ifndef AMREX_USE_CUDA
      call amrex_error('ERROR: problem in the sponge namelist')
+#endif
   endif
 
   close (unit=un)
@@ -929,6 +977,7 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
 
   ! Sanity check
 
+#ifndef AMREX_USE_CUDA  
   if (sponge_lower_factor < 0.e0_rt .or. sponge_lower_factor > 1.e0_rt) then
      call amrex_error('ERROR: sponge_lower_factor cannot be outside of [0, 1].')
   endif
@@ -936,6 +985,7 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   if (sponge_upper_factor < 0.e0_rt .or. sponge_upper_factor > 1.e0_rt) then
      call amrex_error('ERROR: sponge_upper_factor cannot be outside of [0, 1].')
   endif
+#endif
 
 end subroutine ca_get_sponge_params
 #endif

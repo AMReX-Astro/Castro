@@ -8,10 +8,10 @@ COMP := gfortran
 CASTRO_HOME = ../../
 
 # include the main Makefile stuff
-include $(AMREX_HOME)/Tools/F_mk/GMakedefs.mak
+include $(FBOXLIB_HOME)/Tools/F_mk/GMakedefs.mak
 
 # core BoxLib directories
-BOXLIB_CORE := Src/F_BaseLib
+BOXLIB_CORE := Src/BaseLib
 
 # other packages needed for data_processing
 Fmdirs :=
@@ -65,8 +65,8 @@ Fmpack := $(foreach dir, $(Fmdirs), $(CASTRO_HOME)/$(dir)/GPackage.mak)
 Fmlocs := $(foreach dir, $(Fmdirs), $(CASTRO_HOME)/$(dir))
 
 # BoxLib stuff
-Fmpack += $(foreach dir, $(BOXLIB_CORE), $(AMREX_HOME)/$(dir)/GPackage.mak)
-Fmlocs += $(foreach dir, $(BOXLIB_CORE), $(AMREX_HOME)/$(dir))
+Fmpack += $(foreach dir, $(BOXLIB_CORE), $(FBOXLIB_HOME)/$(dir)/GPackage.mak)
+Fmlocs += $(foreach dir, $(BOXLIB_CORE), $(FBOXLIB_HOME)/$(dir))
 
 # EOS/Network
 Fmpack += $(foreach dir, $(MICROPHYS_CORE), $(MICROPHYSICS_HOME)/$(dir)/GPackage.mak)
@@ -75,7 +75,7 @@ Fmlocs += $(foreach dir, $(MICROPHYS_CORE), $(MICROPHYSICS_HOME)/$(dir))
 # CASTRO-specific stuff that the Microphysics directories rely on
 Fmlocs += $(MICROPHYSICS_HOME)/unit_test/ $(MICROPHYSICS_HOME)/interfaces/
 F90sources += eos.F90
-f90sources += eos_type.f90
+F90sources += eos_type.F90
 f90sources += network.f90
 
 Fmlocs += $(CASTRO_HOME)/constants

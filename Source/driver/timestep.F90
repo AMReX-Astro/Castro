@@ -42,6 +42,8 @@ contains
     real(rt)         :: vel(3)
 #endif
 
+    !$gpu
+
     ! Call EOS for the purpose of computing sound speed
 
     do k = lo(3), hi(3)

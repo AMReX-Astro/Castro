@@ -41,26 +41,45 @@ module eos_type_module
 
   ! Minimum and maximum thermodynamic quantities permitted by the EOS.
 
-  real(rt), save :: mintemp = 1.d-200
-  real(rt), save :: maxtemp = 1.d200
-  real(rt), save :: mindens = 1.d-200
-  real(rt), save :: maxdens = 1.d200
-  real(rt), save :: minx    = 1.d-200
-  real(rt), save :: maxx    = 1.d0 + 1.d-12
-  real(rt), save :: minye   = 1.d-200
-  real(rt), save :: maxye   = 1.d0 + 1.d-12
-  real(rt), save :: mine    = 1.d-200
-  real(rt), save :: maxe    = 1.d200
-  real(rt), save :: minp    = 1.d-200
-  real(rt), save :: maxp    = 1.d200
-  real(rt), save :: mins    = 1.d-200
-  real(rt), save :: maxs    = 1.d200
-  real(rt), save :: minh    = 1.d-200
-  real(rt), save :: maxh    = 1.d200
+  real(rt), allocatable :: mintemp
+  real(rt), allocatable :: maxtemp
+  real(rt), allocatable :: mindens
+  real(rt), allocatable :: maxdens
+  real(rt), allocatable :: minx
+  real(rt), allocatable :: maxx
+  real(rt), allocatable :: minye
+  real(rt), allocatable :: maxye
+  real(rt), allocatable :: mine
+  real(rt), allocatable :: maxe
+  real(rt), allocatable :: minp
+  real(rt), allocatable :: maxp
+  real(rt), allocatable :: mins
+  real(rt), allocatable :: maxs
+  real(rt), allocatable :: minh
+  real(rt), allocatable :: maxh
 
   !$acc declare &
   !$acc create(mintemp, maxtemp, mindens, maxdens, minx, maxx, minye, maxye) &
   !$acc create(mine, maxe, minp, maxp, mins, maxs, minh, maxh)
+
+#ifdef CUDA
+  attributes(managed) :: mintemp
+  attributes(managed) :: maxtemp
+  attributes(managed) :: mindens
+  attributes(managed) :: maxdens
+  attributes(managed) :: minx
+  attributes(managed) :: maxx
+  attributes(managed) :: minye
+  attributes(managed) :: maxye
+  attributes(managed) :: mine
+  attributes(managed) :: maxe
+  attributes(managed) :: minp
+  attributes(managed) :: maxp
+  attributes(managed) :: mins
+  attributes(managed) :: maxs
+  attributes(managed) :: minh
+  attributes(managed) :: maxh
+#endif
 
   ! A generic structure holding thermodynamic quantities and their derivatives,
   ! plus some other quantities of interest.
@@ -171,6 +190,8 @@ contains
 
     type (eos_t), intent(inout) :: state
 
+    !$gpu
+
     ! Calculate abar, the mean nucleon number,
     ! zbar, the mean proton number,
     ! mu, the mean molecular weight,
@@ -198,6 +219,8 @@ contains
     implicit none
 
     type (eos_t), intent(inout) :: state
+
+    !$gpu
 
     state % dpdX(:) = state % dpdA * (state % abar * aion_inv(:))   &
                                    * (aion(:) - state % abar) &
@@ -235,6 +258,8 @@ contains
 
     type (eos_t), intent(inout) :: state
 
+    !$gpu
+
     state % xn = max(small_x, min(ONE, state % xn))
 
     state % xn = state % xn / sum(state % xn)
@@ -252,6 +277,8 @@ contains
     implicit none
 
     type (eos_t), intent(inout) :: state
+
+    !$gpu
 
     state % T = min(maxtemp, max(mintemp, state % T))
     state % rho = min(maxdens, max(mindens, state % rho))
@@ -285,6 +312,8 @@ contains
 
     real(rt), intent(out) :: small_temp_out
 
+    !$gpu
+
     small_temp_out = mintemp
 
   end subroutine eos_get_small_temp
@@ -298,6 +327,8 @@ contains
     implicit none
 
     real(rt), intent(out) :: small_dens_out
+
+    !$gpu
 
     small_dens_out = mindens
 
@@ -313,6 +344,8 @@ contains
 
     real(rt), intent(out) :: max_temp_out
 
+    !$gpu
+
     max_temp_out = maxtemp
 
   end subroutine eos_get_max_temp
@@ -326,6 +359,8 @@ contains
     implicit none
 
     real(rt), intent(out) :: max_dens_out
+
+    !$gpu
 
     max_dens_out = maxdens
 

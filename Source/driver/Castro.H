@@ -232,19 +232,23 @@ public:
                           int  iteration,
                           int  ncycle) override;
 
+#ifndef AMREX_USE_CUDA
     amrex::Real do_advance (amrex::Real time,
                      amrex::Real dt,
                      int  amr_iteration,
                      int  amr_ncycle);
+#endif
 
     amrex::Real do_advance_mol (amrex::Real time,
                      amrex::Real dt,
                      int  amr_iteration,
                      int  amr_ncycle);
 
+#ifndef AMREX_USE_CUDA
     bool retry_advance (amrex::Real& time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
     amrex::Real subcycle_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+#endif
 
     void initialize_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
@@ -256,11 +260,15 @@ public:
 
     void cons_to_prim(const amrex::Real time);
 
+#ifndef AMREX_USE_CUDA
     void cons_to_prim_fourth(const amrex::Real time);
+#endif
 
     void check_for_cfl_violation(const amrex::Real dt);
 
+#ifndef AMREX_USE_CUDA
     void construct_hydro_source(amrex::Real time, amrex::Real dt);
+#endif
 
     void construct_mol_hydro_source(amrex::Real time, amrex::Real dt);
 
@@ -589,6 +597,7 @@ public:
     static int       QVAR;
     static int       NQAUX;
     static int       NQ;
+    static int       NGDNV;
 
     static int       FirstAdv,  NumAdv;
     static int       FirstSpec, NumSpec;
@@ -604,6 +613,15 @@ public:
     //
     amrex::MultiFab fine_mask;
     amrex::MultiFab& build_fine_mask();
+
+    //
+    // A record of how many cells we have advanced throughout the simulation.
+    // This is saved as a real because we will be storing the number of zones
+    // advanced as a ratio with the number of zones on the coarse grid (to
+    // help prevent the number from getting too large), and that may be a
+    // non-integer number.    
+    //
+    static amrex::Real num_zones_advanced;
 
 protected:
 

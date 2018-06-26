@@ -16,6 +16,16 @@
      logic that most burn failures come from taking too large of
      a hydrodynamic timestep for the burner to be able to keep up).
 
+  -- A new GPU (CUDA) hydrodynamics solver (based on the
+     method-of-lines solver) has been added, based on the work
+     initially done in StarLord.  This is a work in progress, and
+     requires the "gpu" branch of AMReX. The official release
+     of this solver, and a description of how to run on GPU-based
+     compute resources, will be in a near-future release.
+
+  -- We removed all dependencies on the AMReX F_BoxLib source, in
+     preparation for this source being removed in the future.
+
 # 18.06
 
   -- The new multilevel multigrid solvers (MLMG) in the AMReX

@@ -16,13 +16,51 @@ contains
     use amrex_fort_module, only: rt => amrex_real
     use amrex_error_module
     use amrex_paralleldescriptor_module, only : amrex_pd_ioprocessor
-    use eos_type_module, only: mintemp, mindens
+    use eos_type_module, only: mintemp, mindens, maxtemp, maxdens, &
+                               minx, maxx, minye, maxye, mine, maxe, &
+                               minp, maxp, mins, maxs, minh, maxh
     use actual_eos_module, only: actual_eos_init
 
     implicit none
 
     real(rt), optional :: small_temp
     real(rt), optional :: small_dens
+
+    ! Allocate and set default values
+
+    allocate(mintemp)
+    allocate(maxtemp)
+    allocate(mindens)
+    allocate(maxdens)
+    allocate(minx)
+    allocate(maxx)
+    allocate(minye)
+    allocate(maxye)
+    allocate(mine)
+    allocate(maxe)
+    allocate(minp)
+    allocate(maxp)
+    allocate(mins)
+    allocate(maxs)
+    allocate(minh)
+    allocate(maxh)
+
+    mintemp = 1.d-200
+    maxtemp = 1.d200
+    mindens = 1.d-200
+    maxdens = 1.d200
+    minx    = 1.d-200
+    maxx    = 1.d0 + 1.d-12
+    minye   = 1.d-200
+    maxye   = 1.d0 + 1.d-12
+    mine    = 1.d-200
+    maxe    = 1.d200
+    minp    = 1.d-200
+    maxp    = 1.d200
+    mins    = 1.d-200
+    maxs    = 1.d200
+    minh    = 1.d-200
+    maxh    = 1.d200
 
     ! Set up any specific parameters or initialization steps required by the EOS we are using.
 
@@ -79,7 +117,7 @@ contains
 #endif
     use actual_eos_module, only: actual_eos
     use eos_override_module, only: eos_override
-#ifndef ACC
+#if (!(defined(AMREX_USE_CUDA) || defined(ACC)))
     use amrex_error_module, only: amrex_error
 #endif
 
@@ -92,9 +130,11 @@ contains
 
     logical :: has_been_reset
 
+    !$gpu
+
     ! Local variables
 
-#ifndef ACC
+#if (!(defined(AMREX_USE_CUDA) || defined(ACC)))
     if (.not. initialized) call amrex_error('EOS: not initialized')
 #endif
 
@@ -142,6 +182,8 @@ contains
     integer,      intent(in   ) :: input
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
+
+    !$gpu
 
     ! Reset the input quantities to valid values. For inputs other than rho and T,
     ! this will evolve an EOS call, which will negate the need to do the main EOS call.
@@ -205,6 +247,8 @@ contains
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
 
+    !$gpu
+
     state % rho = min(maxdens, max(mindens, state % rho))
 
   end subroutine reset_rho
@@ -224,6 +268,8 @@ contains
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
 
+    !$gpu
+
     state % T = min(maxtemp, max(mintemp, state % T))
 
   end subroutine reset_T
@@ -240,6 +286,8 @@ contains
 
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
+
+    !$gpu
 
     if (state % e .lt. mine .or. state % e .gt. maxe) then
        call eos_reset(state, has_been_reset)
@@ -260,6 +308,8 @@ contains
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
 
+    !$gpu
+
     if (state % h .lt. minh .or. state % h .gt. maxh) then
        call eos_reset(state, has_been_reset)
     endif
@@ -279,6 +329,8 @@ contains
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
 
+    !$gpu
+
     if (state % s .lt. mins .or. state % s .gt. maxs) then
        call eos_reset(state, has_been_reset)
     endif
@@ -297,6 +349,8 @@ contains
 
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
+
+    !$gpu
 
     if (state % p .lt. minp .or. state % p .gt. maxp) then
        call eos_reset(state, has_been_reset)
@@ -321,6 +375,8 @@ contains
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
 
+    !$gpu
+
     state % T = min(maxtemp, max(mintemp, state % T))
     state % rho = min(maxdens, max(mindens, state % rho))
 
@@ -332,7 +388,7 @@ contains
 
 
 
-#ifndef ACC
+#if (!(defined(AMREX_USE_CUDA) || defined(ACC)))
   subroutine check_inputs(input, state)
 
     !$acc routine seq

@@ -26,7 +26,7 @@ contains
 #ifdef SHOCK_VAR
     use meth_params_module, only : USHK, disable_shock_burning
 #endif
-#ifdef ACC
+#ifdef AMREX_USE_ACC
     use meth_params_module, only : do_acc
 #endif
     use prob_params_module, only : dx_level, dim

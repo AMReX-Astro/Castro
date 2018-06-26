@@ -5,15 +5,16 @@ module advection_util_module
 
   private
 
-  public enforce_minimum_density, ca_compute_cfl, ctoprim, srctoprim, dflux, &
+  public ca_enforce_minimum_density, ca_compute_cfl, ca_ctoprim, ca_srctoprim, dflux, &
          limit_hydro_fluxes_on_small_dens, shock, divu, calc_pdivu, normalize_species_fluxes
 
 contains
 
-  subroutine enforce_minimum_density(uin,uin_lo,uin_hi, &
-                                     uout,uout_lo,uout_hi, &
-                                     vol,vol_lo,vol_hi, &
-                                     lo,hi,frac_change,verbose)
+  subroutine ca_enforce_minimum_density(lo,hi, &
+                                        uin,uin_lo,uin_hi, &
+                                        uout,uout_lo,uout_hi, &
+                                        vol,vol_lo,vol_hi, &
+                                        frac_change,verbose) bind(c,name='ca_enforce_minimum_density')
 
     use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UEINT, UEDEN, small_dens, density_reset_method
@@ -23,7 +24,8 @@ contains
 
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3), verbose
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in), value :: verbose
     integer, intent(in) ::  uin_lo(3),  uin_hi(3)
     integer, intent(in) :: uout_lo(3), uout_hi(3)
     integer, intent(in) ::  vol_lo(3),  vol_hi(3)
@@ -69,10 +71,11 @@ contains
 
              if (uout(i,j,k,URHO) .eq. ZERO) then
 
+#ifndef AMREX_USE_CUDA                     
                 print *,'DENSITY EXACTLY ZERO AT CELL ',i,j,k
                 print *,'  in grid ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
                 call amrex_error("Error:: advection_util_nd.f90 :: ca_enforce_minimum_density")
-
+#endif
              else if (uout(i,j,k,URHO) < small_dens) then
 
                 have_reset = .true.
@@ -175,10 +178,11 @@ contains
 
                    endif
 
+#ifndef AMREX_USE_CUDA
                 else
 
                    call amrex_error("Unknown density_reset_method in subroutine ca_enforce_minimum_density.")
-
+#endif
                 endif
 
              end if
@@ -191,7 +195,7 @@ contains
        enddo
     enddo
 
-  end subroutine enforce_minimum_density
+  end subroutine ca_enforce_minimum_density
 
 
 
@@ -226,6 +230,7 @@ contains
     ! equal to small_temp. We set the velocities to zero,
     ! though any choice here would be arbitrary.
 
+#ifndef AMREX_USE_CUDA    
     if (verbose .gt. 0) then
        print *,'   '
        if (new_state(URHO) < ZERO) then
@@ -238,6 +243,7 @@ contains
        print *,'>>> ORIGINAL DENSITY FOR OLD STATE WAS ',old_state(URHO)
        print *,'   '
     end if
+#endif
 
     do ipassive = 1, npassive
        n = upass_map(ipassive)
@@ -281,6 +287,7 @@ contains
     real(rt)         :: old_state(NVAR), new_state(NVAR), input_state(NVAR)
     integer          :: idx(3), lo(3), hi(3), verbose
 
+#ifndef AMREX_USE_CUDA    
     if (verbose .gt. 0) then
        if (new_state(URHO) < ZERO) then
           print *,'   '
@@ -298,6 +305,7 @@ contains
           print *,'   '
        end if
     end if
+#endif
 
     new_state(:) = input_state(:)
 
@@ -368,6 +376,7 @@ contains
 
                 ! CTU integration constraint
 
+#ifndef AMREX_USE_CUDA                
                 if (verbose == 1) then
 
                    if (courx .gt. ONE) then
@@ -398,6 +407,7 @@ contains
                    end if
 
                 end if
+#endif
 
              else
 
@@ -410,6 +420,7 @@ contains
                    courtmp = courtmp + courz
                 endif
 
+#ifndef AMREX_USE_CUDA                
                 if (verbose == 1) then
 
                    ! note: it might not be 1 for all RK integrators
@@ -422,6 +433,7 @@ contains
                    endif
 
                 end if
+#endif
 
                 courno = max(courno, courtmp)
              endif
@@ -437,14 +449,14 @@ contains
 
 
 
-  subroutine ctoprim(lo, hi, &
-                     uin, uin_lo, uin_hi, &
+  subroutine ca_ctoprim(lo, hi, &
+                        uin, uin_lo, uin_hi, &
 #ifdef RADIATION
-                     Erin, Erin_lo, Erin_hi, &
-                     lam, lam_lo, lam_hi, &
+                        Erin, Erin_lo, Erin_hi, &
+                        lam, lam_lo, lam_hi, &
 #endif
-                     q,     q_lo,   q_hi, &
-                     qaux, qa_lo,  qa_hi)
+                        q,     q_lo,   q_hi, &
+                        qaux, qa_lo,  qa_hi) bind(c,name='ca_ctoprim')
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use actual_network, only : nspec, naux
@@ -512,6 +524,7 @@ contains
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
 
+#ifndef AMREX_USE_CUDA       
           do i = lo(1), hi(1)
              if (uin(i,j,k,URHO) .le. ZERO) then
                 print *,'   '
@@ -525,7 +538,7 @@ contains
                 call amrex_error("Error:: advection_util_nd.f90 :: ctoprim")
              endif
           end do
-
+#endif
           do i = lo(1), hi(1)
 
              q(i,j,k,QRHO) = uin(i,j,k,URHO)
@@ -629,15 +642,15 @@ contains
        enddo
     enddo
 
-  end subroutine ctoprim
+  end subroutine ca_ctoprim
 
 
 
-  subroutine srctoprim(lo, hi, &
-                       q,     q_lo,   q_hi, &
-                       qaux, qa_lo,  qa_hi, &
-                       src, src_lo, src_hi, &
-                       srcQ,srQ_lo, srQ_hi)
+  subroutine ca_srctoprim(lo, hi, &
+                          q,     q_lo,   q_hi, &
+                          qaux, qa_lo,  qa_hi, &
+                          src, src_lo, src_hi, &
+                          srcQ,srQ_lo, srQ_hi) bind(c,name='ca_srctoprim')
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use actual_network, only : nspec, naux
@@ -705,7 +718,7 @@ contains
 
     enddo
 
-  end subroutine srctoprim
+  end subroutine ca_srctoprim
 
 
 
@@ -1297,9 +1310,11 @@ contains
     dyinv = ONE/dx(2)
     dzinv = ONE/dx(3)
 
+#ifndef AMREX_USE_CUDA    
     if (coord_type /= 0) then
        call amrex_error("ERROR: invalid geometry in shock()")
     endif
+#endif
 
     do k = lo(3)-dg(3), hi(3)+dg(3)
        do j = lo(2)-dg(2), hi(2)+dg(2)
@@ -1336,9 +1351,11 @@ contains
                 rp = dble(i + 1 + HALF)*dx(1)
 
                 divU = HALF*(rp**2*q(i+1,j,k,QU) - rm**2*q(i-1,j,k,QU))/(rc**2*dx(1))
-
+                
+#ifndef AMREX_USE_CUDA
              else
                 call amrex_error("ERROR: invalid coord_type in shock")
+#endif
              endif
 
 

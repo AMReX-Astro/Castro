@@ -14,9 +14,13 @@ module actual_eos_module
 
   character (len=64) :: eos_name = "gamma_law"
 
-  double precision, save :: gamma_const
+  double precision, allocatable, save :: gamma_const
 
-  logical, save :: assume_neutral
+  logical, allocatable, save :: assume_neutral
+
+#ifdef CUDA
+  attributes(managed) :: gamma_const, assume_neutral
+#endif
 
 contains
 
@@ -25,6 +29,9 @@ contains
     use extern_probin_module, only: eos_gamma, eos_assume_neutral
 
     implicit none
+
+    allocate(gamma_const)
+    allocate(assume_neutral)
 
     ! constant ratio of specific heats
     if (eos_gamma .gt. 0.d0) then
@@ -53,6 +60,8 @@ contains
 
     double precision :: poverrho
 
+    !$gpu
+
     ! Calculate mu.
 
     if (assume_neutral) then
@@ -75,7 +84,7 @@ contains
 
        ! dens, enthalpy, and xmass are inputs
 
-#ifndef ACC
+#if (!(defined(ACC) || defined(CUDA)))
        call amrex_error('EOS: eos_input_rh is not supported in this EOS.')
 #endif
 
@@ -83,7 +92,7 @@ contains
 
        ! temp, pres, and xmass are inputs
 
-#ifndef ACC
+#if (!(defined(ACC) || defined(CUDA)))
        call amrex_error('EOS: eos_input_tp is not supported in this EOS.')
 #endif
 
@@ -120,7 +129,7 @@ contains
 
        ! pressure entropy, and xmass are inputs
 
-#ifndef ACC
+#if (!(defined(ACC) || defined(CUDA)))
        call amrex_error('EOS: eos_input_ps is not supported in this EOS.')
 #endif
 
@@ -128,7 +137,7 @@ contains
 
        ! pressure, enthalpy and xmass are inputs
 
-#ifndef ACC
+#if (!(defined(ACC) || defined(CUDA)))
        call amrex_error('EOS: eos_input_ph is not supported in this EOS.')
 #endif
 
@@ -138,13 +147,13 @@ contains
 
        ! This system is underconstrained.
 
-#ifndef ACC
+#if (!(defined(ACC) || defined(CUDA)))
        call amrex_error('EOS: eos_input_th is not a valid input for the gamma law EOS.')
 #endif
 
     case default
 
-#ifndef ACC
+#if (!(defined(ACC) || defined(CUDA)))
        call amrex_error('EOS: invalid input.')
 #endif
 

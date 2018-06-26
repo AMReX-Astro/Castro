@@ -18,6 +18,8 @@ contains
 
     type (eos_t) :: state
 
+    !$gpu
+
   end subroutine eos_override
 
 end module eos_override_module

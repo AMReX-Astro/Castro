@@ -81,7 +81,7 @@ contains
 
 
 
-  subroutine enforce_consistent_e(lo,hi,state,s_lo,s_hi)
+  subroutine ca_enforce_consistent_e(lo,hi,state,s_lo,s_hi) bind(c,name='ca_enforce_consistent_e')
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT
     use amrex_constants_module, only: HALF, ONE
@@ -116,11 +116,11 @@ contains
        end do
     end do
 
-  end subroutine enforce_consistent_e
+  end subroutine ca_enforce_consistent_e
 
 
 
-  subroutine reset_internal_e(lo,hi,u,u_lo,u_hi,verbose)
+  subroutine ca_reset_internal_e(lo,hi,u,u_lo,u_hi,verbose) bind(c,name='ca_reset_internal_e')
 
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
@@ -133,7 +133,8 @@ contains
 
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3), verbose
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in), value :: verbose
     integer, intent(in) :: u_lo(3), u_hi(3)
     real(rt), intent(inout) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
 
@@ -142,6 +143,8 @@ contains
     real(rt) :: Up, Vp, Wp, ke, rho_eint, eden, small_e, eint_new, rhoInv
 
     type (eos_t) :: eos_state
+
+    !$gpu
 
     ! Reset internal energy
 
@@ -280,6 +283,7 @@ contains
 
                       eint_new = eos_state % e
 
+#ifndef AMREX_USE_CUDA                      
                       if (verbose .gt. 0) then
                          print *,'   '
                          print *,'>>> Warning: Castro_util.F90::reset_internal_energy  ',i,j,k
@@ -287,6 +291,7 @@ contains
                          print *,'>>> ... from ',u(i,j,k,UEINT)/u(i,j,k,URHO),' to ', eint_new
                          print *,'    '
                       end if
+#endif
 
                       if (dual_energy_update_E_from_e == 1) then
                          u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + (u(i,j,k,URHO) * eint_new - u(i,j,k,UEINT))
@@ -323,11 +328,11 @@ contains
 
     endif
 
-  end subroutine reset_internal_e
+  end subroutine ca_reset_internal_e
 
 
 
-  subroutine compute_temp(lo,hi,state,s_lo,s_hi)
+  subroutine ca_compute_temp(lo,hi,state,s_lo,s_hi) bind(c,name='ca_compute_temp')
 
     use network, only: nspec, naux
     use eos_module, only: eos
@@ -349,8 +354,11 @@ contains
 
     type (eos_t) :: eos_state
 
+    !$gpu
+
     ! First check the inputs for validity.
 
+#ifndef AMREX_USE_CUDA    
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
@@ -374,6 +382,7 @@ contains
           enddo
        enddo
     enddo
+#endif
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -403,11 +412,11 @@ contains
        enddo
     enddo
 
-  end subroutine compute_temp
+  end subroutine ca_compute_temp
   
 
 
-  subroutine check_initial_species(lo, hi, state, state_lo, state_hi)
+  subroutine ca_check_initial_species(lo, hi, state, state_lo, state_hi) bind(c,name='ca_check_initial_species')
 
     use network           , only: nspec
     use meth_params_module, only: NVAR, URHO, UFS
@@ -424,28 +433,32 @@ contains
     integer  :: i, j, k
     real(rt) :: spec_sum
 
+    !$gpu
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
              spec_sum = sum(state(i,j,k,UFS:UFS+nspec-1))
 
+#ifndef AMREX_USE_CUDA             
              if (abs(state(i,j,k,URHO)-spec_sum) .gt. 1.e-8_rt * state(i,j,k,URHO)) then
 
                 print *,'Sum of (rho X)_i vs rho at (i,j,k): ',i,j,k,spec_sum,state(i,j,k,URHO)
                 call amrex_error("Error:: Failed check of initial species summing to 1")
 
              end if
+#endif
 
           enddo
        enddo
     enddo
 
-  end subroutine check_initial_species
+  end subroutine ca_check_initial_species
 
 
 
-  subroutine normalize_species(u, u_lo, u_hi, lo, hi)
+  subroutine ca_normalize_species(lo, hi, u, u_lo, u_hi) bind(c,name='ca_normalize_species')
 
     use network, only: nspec
     use meth_params_module, only: NVAR, URHO, UFS
@@ -463,6 +476,8 @@ contains
     integer  :: i, j, k
     real(rt) :: xn(nspec)
 
+    !$gpu
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -479,7 +494,7 @@ contains
        enddo
     enddo
 
-  end subroutine normalize_species
+  end subroutine ca_normalize_species
 
 
 
@@ -599,9 +614,11 @@ contains
 
           end select
 
+#ifndef AMREX_USE_CUDA
        else
 
           call amrex_error("Cylindrical coordinates only supported in 2D.")
+#endif
 
        endif
 
@@ -624,9 +641,11 @@ contains
 
           end select
 
+#ifndef AMREX_USE_CUDA
        else
 
           call amrex_error("Spherical coordinates only supported in 1D.")
+#endif
 
        endif
 
@@ -689,10 +708,12 @@ contains
        if (dim .eq. 2) then
 
           volume = TWO * M_PI * (HALF * (loc_l(1) + loc_r(1))) * dx(1) * dx(2)
-
+          
+#ifndef AMREX_USE_CUDA
        else
 
           call amrex_error("Cylindrical coordinates only supported in 2D.")
+#endif
 
        endif
 
@@ -708,10 +729,12 @@ contains
        if (dim .eq. 1) then
 
           volume = FOUR3RD * M_PI * (loc_r(1)**3 - loc_l(1)**3)
-
+          
+#ifndef AMREX_USE_CUDA
        else
 
           call amrex_error("Spherical coordinates only supported in 1D.")
+#endif
 
        endif
 
@@ -882,7 +905,9 @@ contains
     real(rt) :: x,y,z,r
     real(rt) :: x_mom,y_mom,z_mom,radial_mom
 
+#ifndef AMREX_USE_CUDA    
     if (dim .eq. 1) call amrex_error("Error: cannot do ca_compute_avgstate in 1D.")
+#endif
 
     !
     ! Do not OMP this.
@@ -895,12 +920,14 @@ contains
              x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
              r = sqrt(x**2 + y**2 + z**2)
              index = int(r/dr)
+#ifndef AMREX_USE_CUDA
              if (index .gt. numpts_1d-1) then
                 print *,'COMPUTE_AVGSTATE: INDEX TOO BIG ',index,' > ',numpts_1d-1
                 print *,'AT (i,j,k) ',i,j,k
                 print *,'R / DR ',r,dr
                 call amrex_error("Error:: Castro_util.F90 :: ca_compute_avgstate")
              end if
+#endif
              radial_state(URHO,index) = radial_state(URHO,index) &
                                       + vol(i,j,k)*state(i,j,k,URHO)
              !
