@@ -3588,12 +3588,7 @@ Castro::clean_state(int is_new, int ng) {
   // is_new=1 means the new data is used.
 
 
-#ifndef AMREX_USE_CUDA
-    MultiFab& state = is_new == 1 ? get_new_data(State_Type) : get_old_data(State_Type);
-    Real frac_change = enforce_min_density(state_old, state);
-#else
-    Real frac_change = 1.e200;
-#endif
+  MultiFab& state = is_new == 1 ? get_new_data(State_Type) : get_old_data(State_Type);
 
   MultiFab temp_state(state.boxArray(), state.DistributionMap(), state.nComp(), ng);
 
@@ -3612,6 +3607,12 @@ Castro::clean_state(int is_new, MultiFab& state_old, int ng) {
   MultiFab& state = is_new == 1 ? get_new_data(State_Type) : get_old_data(State_Type);
 
   // Enforce a minimum density.
+#ifndef AMREX_USE_CUDA
+    Real frac_change = enforce_min_density(state_old, state);
+#else
+    Real frac_change = 1.e200;
+#endif
+
   Real frac_change = enforce_min_density(state_old, state, ng);
 
   // Ensure all species are normalized.
