@@ -1,4 +1,4 @@
-program riemann_exact
+subroutine riemann_exact() bind(C, name="riemann_exact")
 
   use amrex_fort_module, only : rt => amrex_real
   use amrex_constants_module
@@ -6,11 +6,10 @@ program riemann_exact
   use eos_module
   use eos_type_module
   use network, only: nspec
-  use probin_module, only: rho_l, u_l, p_l, T_l, rho_r, u_r, p_r, T_r, &
-                           xmin, xmax, xjump, t, npts, use_Tinit, &
-                           co_moving_frame
+  use extern_probin_module, only: rho_l, u_l, p_l, T_l, rho_r, u_r, p_r, T_r, &
+                                  xmin, xmax, xjump, t, npts, use_Tinit, &
+                                  co_moving_frame
   use riemann_support
-  use runtime_init_module
   use riemann_sample_module
   use riemann_star_module
 
@@ -98,7 +97,7 @@ program riemann_exact
 
      ! compute xi = x/t -- this is the similarity variable for the
      ! solution
-     x  = xmin + (dble(i) - HALF)*dx 
+     x  = xmin + (dble(i) - HALF)*dx
      !if (co_moving_frame) then
      !   x = x + W_avg*t
      !endif
@@ -120,7 +119,7 @@ program riemann_exact
      eos_state%T = initial_temp_guess
 
      call eos(eos_input_rp, eos_state)
-        
+
      if (i == 1) then
         write (unit=lun, fmt="(a1, a3, 8(1x, a25))") &
              "#", "i", "x", "rho", "u", "p", "T", "e", "gamma_1"
@@ -135,5 +134,4 @@ program riemann_exact
 
   call runtime_close()
 
-end program riemann_exact
-
+end subroutine riemann_exact
