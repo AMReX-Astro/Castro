@@ -21,6 +21,14 @@ subroutine ca_network_finalize() bind(C, name="ca_network_finalize")
 
 end subroutine ca_network_finalize
 
+subroutine ca_eos_finalize() bind(C, name="ca_eos_finalize")
+
+  use eos_module, only: eos_finalize
+
+  call eos_finalize()
+
+end subroutine ca_eos_finalize
+
 
 ! :::
 ! ::: ----------------------------------------------------------------

@@ -44,7 +44,11 @@ contains
 
   end subroutine actual_eos_init
 
+  subroutine actual_eos_finalize()
 
+    implicit none
+
+  end subroutine actual_eos_finalize
 
   subroutine actual_eos(input, state)
 
