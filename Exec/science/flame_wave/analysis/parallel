@@ -21,6 +21,9 @@ pidfile=process.pid
 # set the prefix of the datafile to process
 data_prefix=plt
 
+# check suffix -- if this exists, skip the processing for this file
+chk_suff=_enuc_slice.png
+
 # set the full name of the analysis routines (must be in the path)
 analysis=slice.py
 
@@ -59,13 +62,14 @@ function process_files
 
     if [ -d $1 ]; then
 
-        # do processing
-        ${analysis} $1
+        if [ ! -f $1$chk_suff ]; then
+            # do processing
+            ${analysis} $1
 
-        # this sleep line is not necessary if the analysis takes any
-	# measurable amount of time
-	sleep 1
-
+            # this sleep line is not necessary if the analysis takes any
+    	    # measurable amount of time
+	    #sleep 1
+        fi
     fi   # end test of whether datafile is a file (as it should be)
 
     rm -f _process.$root
@@ -102,8 +106,8 @@ function freecpus
 # if you don't want to wait for new files to appear, get rid of the
 # outer loop.
 
-while true
-do
+#while true
+#do
 
   if [ ! -f $pidfile ]; then
     echo "process: $pidfile has been removed, exiting"
@@ -126,11 +130,11 @@ do
 
       process_files ${file} &
 
-      sleep 5
+      sleep 1
   done
 
 
   # we've processed all of the files.  Sleep a bit and repeat on any
   # newly written files.
   sleep $N
-done
+#done

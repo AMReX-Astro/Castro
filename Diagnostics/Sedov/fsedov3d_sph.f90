@@ -4,7 +4,9 @@
 program fextract3d
 
   use f2kcli
-  use amrex_error_module
+  use bl_error_module
+  use bl_IO_module
+  use amrex_fort_module, only : rt => amrex_real
   use amrex_constants_module
   use plotfile_module
 

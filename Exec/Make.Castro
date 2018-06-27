@@ -16,6 +16,12 @@ NETWORK_HOME ?= $(TOP)/Microphysics/networks
 COND_HOME ?= $(TOP)/Microphysics/conductivity
 VISC_HOME ?= $(TOP)/Microphysics/viscosity
 
+# this can be turned off for unit tests, etc., and not
+# the entire Castro build
+USE_ALL_CASTRO ?= TRUE
+
+USE_AMR_CORE ?= TRUE
+
 # backwards compatibility
 ifdef Network_dir
   ifndef NETWORK_DIR
@@ -78,25 +84,25 @@ ifeq ($(USE_ACC), TRUE)
   DEFINES += -DACC
 endif
 
-USE_MG = FALSE
-
-ifndef USE_MLMG
-  USE_MLMG = TRUE
-endif
+USE_MLMG = FALSE
 
 #------------------------------------------------------------------------------
 # Castro directories
 #------------------------------------------------------------------------------
 
-Bdirs := Source/driver Source/driver/param_includes \
-         Source/hydro Source/problems Source/sources \
-         constants Util/model_parser
+ifeq ($(USE_ALL_CASTRO), TRUE)
+  Bdirs := Source/driver Source/driver/param_includes \
+           Source/hydro Source/problems Source/sources \
+           constants Util/model_parser
+else
+  Bdirs := constants
+endif
 
 # add / define any special physics we need
 ifeq ($(USE_GRAV), TRUE)
   Bdirs += Source/gravity
   DEFINES += -DGRAVITY
-  USE_MG = TRUE
+  USE_MLMG = TRUE
 
   ifndef USE_SELF_GRAV
     USE_SELF_GRAV = TRUE
@@ -127,7 +133,7 @@ endif
 ifeq ($(USE_DIFFUSION), TRUE)
   Bdirs += Source/diffusion
   DEFINES += -DDIFFUSION
-  USE_MG = TRUE
+  USE_MLMG = TRUE
 endif
 
 ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
@@ -196,7 +202,11 @@ Blocs += $(foreach dir, $(Bdirs), $(TOP)/$(dir))
 # directories into VPATH_LOCATIONS and INCLUDE_LOCATIONS for us, so we
 # don't need to do it here
 
-Pdirs 	:= Base AmrCore Amr Boundary
+ifeq ($(USE_AMR_CORE), TRUE)
+  Pdirs	:= Base AmrCore Amr Boundary
+else
+  Pdirs := Base
+endif
 
 ifeq ($(USE_PARTICLES), TRUE)
  Pdirs += Particle
@@ -216,11 +226,6 @@ ifeq ($(USE_MLMG), TRUE)
 endif
 
 Bpack	+= $(foreach dir, $(Pdirs), $(AMREX_HOME)/Src/$(dir)/Make.package)
-
-ifeq ($(USE_MG), TRUE)
-   include $(AMREX_HOME)/Src/LinearSolvers/C_to_F_MG/Make.package
-   include $(AMREX_HOME)/Src/LinearSolvers/F_MG/FParallelMG.mak
-endif
 
 
 #------------------------------------------------------------------------------
@@ -352,7 +357,7 @@ INCLUDE_LOCATIONS += $(Blocs)
 VPATH_LOCATIONS   += $(Blocs)
 
 
-include $(AMREX_HOME)/Src/F_BaseLib/FParallelMG.mak
+#include $(AMREX_HOME)/Src/F_BaseLib/FParallelMG.mak
 
 #------------------------------------------------------------------------------
 # runtime parameters
