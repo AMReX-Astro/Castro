@@ -132,6 +132,4 @@ subroutine riemann_exact() bind(C, name="riemann_exact")
 
   close (unit=lun)
 
-  call runtime_close()
-
 end subroutine riemann_exact

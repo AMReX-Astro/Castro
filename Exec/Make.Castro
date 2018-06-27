@@ -20,6 +20,8 @@ VISC_HOME ?= $(TOP)/Microphysics/viscosity
 # the entire Castro build
 USE_ALL_CASTRO ?= TRUE
 
+USE_AMREX_CORE ?= TRUE
+
 # backwards compatibility
 ifdef Network_dir
   ifndef NETWORK_DIR
@@ -200,7 +202,11 @@ Blocs += $(foreach dir, $(Bdirs), $(TOP)/$(dir))
 # directories into VPATH_LOCATIONS and INCLUDE_LOCATIONS for us, so we
 # don't need to do it here
 
-Pdirs 	:= Base AmrCore Amr Boundary
+ifeq ($(USE_AMR_CORE), TRUE)
+  Pdirs	:= Base AmrCore Amr Boundary
+else
+  Pdirs := Base
+endif
 
 ifeq ($(USE_PARTICLES), TRUE)
  Pdirs += Particle
