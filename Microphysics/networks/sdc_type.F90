@@ -1,7 +1,7 @@
 module sdc_type_module
 
+  use amrex_fort_module, only : rt => amrex_real
   use actual_network, only: nspec
-  use bl_types, only: dp_t
 
   implicit none
 
@@ -25,8 +25,8 @@ module sdc_type_module
 
   type :: sdc_t
 
-     real(dp_t) :: y(SVAR)
-     real(dp_t) :: ydot_a(SVAR)
+     real(rt) :: y(SVAR)
+     real(rt) :: ydot_a(SVAR)
 
      logical :: T_from_eden
 

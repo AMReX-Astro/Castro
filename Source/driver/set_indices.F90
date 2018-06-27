@@ -8,15 +8,17 @@
 
 subroutine check_equal(index1, index2)
 
-  use bl_error_module
+  use amrex_error_module
 
   implicit none
 
   integer, intent(in) :: index1, index2
 
+#ifndef AMREX_USE_CUDA
   if (index1 /= index2) then
-    call bl_error("ERROR: mismatch of indices")
+    call amrex_error("ERROR: mismatch of indices")
   endif
+#endif
 
 end subroutine check_equal
 

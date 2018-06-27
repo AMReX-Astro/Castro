@@ -30,7 +30,7 @@ contains
                                    QREINT, QPRES, &
                                    npassive, qpass_map, small_dens, small_pres, &
                                    ppm_type, fix_mass_flux
-    use bl_constants_module
+    use amrex_constants_module
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
     use amrex_fort_module, only : rt => amrex_real
     use ppm_module, only : ppm_reconstruct, ppm_int_profile
@@ -95,10 +95,12 @@ contains
     dtdy = dt/dx(2)
 #endif
 
+#ifndef AMREX_USE_CUDA
     if (ppm_type .ne. 0) then
        print *,'Oops -- shouldnt be in tracexy with ppm_type != 0'
        call amrex_error("Error:: trace_3d.f90 :: tracexy")
     end if
+#endif
 
     fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
          .and. (ilo1 == domlo(1))
@@ -457,7 +459,7 @@ contains
     use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, QC, &
                                    QREINT, QPRES, &
                                    npassive, qpass_map, small_dens, small_pres, ppm_type
-    use bl_constants_module
+    use amrex_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none

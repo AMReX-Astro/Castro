@@ -5,18 +5,22 @@
 
 module actual_eos_module
 
-  use bl_types
-  use bl_error_module
-  use bl_constants_module
+  use amrex_fort_module, only : rt => amrex_real
+  use amrex_error_module
+  use amrex_constants_module
   use eos_type_module
 
   implicit none
 
   character (len=64) :: eos_name = "gamma_law"
 
-  double precision, save :: gamma_const
+  double precision, allocatable, save :: gamma_const
 
-  logical, save :: assume_neutral
+  logical, allocatable, save :: assume_neutral
+
+#ifdef CUDA
+  attributes(managed) :: gamma_const, assume_neutral
+#endif
 
 contains
 
@@ -26,11 +30,14 @@ contains
 
     implicit none
 
+    allocate(gamma_const)
+    allocate(assume_neutral)
+
     ! constant ratio of specific heats
     if (eos_gamma .gt. 0.d0) then
        gamma_const = eos_gamma
     else
-       call bl_error("gamma_const cannot be < 0")
+       call amrex_error("gamma_const cannot be < 0")
     end if
 
     assume_neutral = eos_assume_neutral
@@ -39,7 +46,7 @@ contains
 
 
 
-  subroutine actual_eos(input, state)
+  AMREX_DEVICE subroutine actual_eos(input, state)
 
     use fundamental_constants_module, only: k_B, n_A
     use network, only: aion, zion
@@ -75,16 +82,16 @@ contains
 
        ! dens, enthalpy, and xmass are inputs
 
-#ifndef ACC
-       call bl_error('EOS: eos_input_rh is not supported in this EOS.')
+#if (!(defined(ACC) || defined(CUDA)))
+       call amrex_error('EOS: eos_input_rh is not supported in this EOS.')
 #endif
 
     case (eos_input_tp)
 
        ! temp, pres, and xmass are inputs
 
-#ifndef ACC
-       call bl_error('EOS: eos_input_tp is not supported in this EOS.')
+#if (!(defined(ACC) || defined(CUDA)))
+       call amrex_error('EOS: eos_input_tp is not supported in this EOS.')
 #endif
 
     case (eos_input_rp)
@@ -120,16 +127,16 @@ contains
 
        ! pressure entropy, and xmass are inputs
 
-#ifndef ACC
-       call bl_error('EOS: eos_input_ps is not supported in this EOS.')
+#if (!(defined(ACC) || defined(CUDA)))
+       call amrex_error('EOS: eos_input_ps is not supported in this EOS.')
 #endif
 
     case (eos_input_ph)
 
        ! pressure, enthalpy and xmass are inputs
 
-#ifndef ACC
-       call bl_error('EOS: eos_input_ph is not supported in this EOS.')
+#if (!(defined(ACC) || defined(CUDA)))
+       call amrex_error('EOS: eos_input_ph is not supported in this EOS.')
 #endif
 
     case (eos_input_th)
@@ -138,14 +145,14 @@ contains
 
        ! This system is underconstrained.
 
-#ifndef ACC
-       call bl_error('EOS: eos_input_th is not a valid input for the gamma law EOS.')
+#if (!(defined(ACC) || defined(CUDA)))
+       call amrex_error('EOS: eos_input_th is not a valid input for the gamma law EOS.')
 #endif
 
     case default
 
-#ifndef ACC
-       call bl_error('EOS: invalid input.')
+#if (!(defined(ACC) || defined(CUDA)))
+       call amrex_error('EOS: invalid input.')
 #endif
 
     end select

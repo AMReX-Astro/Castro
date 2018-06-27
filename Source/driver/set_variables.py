@@ -1,16 +1,22 @@
 # parse the _variables file and write the set of functions that will
-# define the indices
+# define the indices.  We write two files with the following functions:
 #
-# ca_set_conserved_indices: the conserved state
+# 1. set_indices.F90:
 #
-# ca_set_primitive_indices: the primitive variable state
+#    * ca_set_auxiliary_indices: the auxiliary state information
 #
-# ca_set_godunov_indices: the interface state
+#    * ca_set_conserved_indices: the conserved state
 #
-# ca_set_auxiliary_indices: the auxiliary state information
+#    * ca_set_godunov_indices: the interface state
+#
+#    * ca_set_primitive_indices: the primitive variable state
+#
+# 2. set_conserved.H
+#
+#    This simply sets the C++ indices
+#
 
 import re
-
 
 HEADER = """
 ! DO NOT EDIT!!!
@@ -24,15 +30,17 @@ HEADER = """
 CHECK_EQUAL = """
 subroutine check_equal(index1, index2)
 
-  use bl_error_module
+  use amrex_error_module
 
   implicit none
 
   integer, intent(in) :: index1, index2
 
+#ifndef AMREX_USE_CUDA
   if (index1 /= index2) then
-    call bl_error("ERROR: mismatch of indices")
+    call amrex_error("ERROR: mismatch of indices")
   endif
+#endif
 
 end subroutine check_equal
 
@@ -44,6 +52,17 @@ class Index(object):
     """an index that we want to set"""
     def __init__(self, name, f90_var, default_group=None, iset=None,
                  also_adds_to=None, count=1, cxx_var=None, ifdef=None):
+        """ parameters:
+               name: a descriptive name for the quantity
+               f90_var: name of the variable in Fortran
+               default_group: the name of a counter that we increment (e.g., NVAR)
+               iset: a descriptive name for the set of the variables this belongs to
+                     (e.g., conserved)
+               also_adds_to: any other counters that we increment
+               count: the number of variables in this group
+               cxx_var: the name of the variable in C++
+               ifdef: any ifdef that wraps this variable
+        """
         self.name = name
         self.cxx_var = cxx_var
         self.f90_var = f90_var
@@ -64,6 +83,8 @@ class Index(object):
         return self.f90_var
 
     def get_set_string(self, set_default=None):
+        """return the Fortran code that sets this variable index and increments
+        the appropriate counters"""
         sstr = ""
         if self.ifdef is not None:
             sstr += "#ifdef {}\n".format(self.ifdef)
@@ -89,6 +110,8 @@ class Index(object):
         return sstr
 
     def get_cxx_set_string(self):
+        """get the C++ code that sets the variable index and increments the
+        counters"""
         sstr = ""
         if self.ifdef is not None:
             sstr += "#ifdef {}\n".format(self.ifdef)
@@ -131,7 +154,7 @@ def doit():
                 cxx_var = fields[1]
                 f90_var = fields[2]
                 adds_to = fields[3]
-                count = fields[4].replace(" ","").strip()
+                count = fields[4].replace(" ", "").strip()
                 ifdef = fields[5]
 
                 if adds_to == "None":

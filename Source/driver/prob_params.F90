@@ -4,27 +4,27 @@
 
 module prob_params_module
 
-  use meth_params_module, only : UMX, UMZ
+  use meth_params_module, only: UMX, UMZ
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   ! boundary condition information
-  integer, save :: physbc_lo(3)
-  integer, save :: physbc_hi(3)
-  integer, save :: Interior, Inflow, Outflow, Symmetry, SlipWall, NoSlipWall
+  integer, allocatable :: physbc_lo(:)
+  integer, allocatable :: physbc_hi(:)
+  integer, allocatable :: Interior, Inflow, Outflow, Symmetry, SlipWall, NoSlipWall
 
   ! geometry information
-  integer         , save :: coord_type
-  real(rt)        , save :: center(3), problo(3), probhi(3)
+  integer,  save :: coord_type
+  real(rt), allocatable :: center(:), problo(:), probhi(:)
 
   ! dimension information
-  integer         , save :: dim
+  integer, save, allocatable :: dim
 
   ! indices that we use for dimension agnostic routines 
   ! to ensure we don't illegally access non-existent ghost cells
   ! the format is dg(1:dim) = 1, dg(dim+1:3) = 0
-  integer         , save :: dg(3)
+  integer, save, allocatable :: dg(:)
 
   ! grid information
   integer         , save              :: max_level
@@ -36,6 +36,7 @@ module prob_params_module
   integer         , save, allocatable :: blocking_factor(:)
 
   integer, parameter :: MAX_MOM_INDEX = 5
+
   type momflux_t
      ! we want this to be able to use UMX, UMY, and UMZ to index here, but
      ! we can't use those to allocate, since they are not know until runtime.
@@ -47,5 +48,14 @@ module prob_params_module
 
   ! one component for each coordinate direction flux
   type (momflux_t), save :: mom_flux_has_p(3)
+
+#ifdef CUDA
+  attributes(managed) :: physbc_lo, physbc_hi
+  attributes(managed) :: Interior, Inflow, Outflow, Symmetry, Slipwall, NoSlipWall
+  attributes(managed) :: dim
+  attributes(managed) :: dg
+  attributes(managed) :: center, problo, probhi
+  attributes(managed) :: domlo_level, domhi_level
+#endif
   
 end module prob_params_module

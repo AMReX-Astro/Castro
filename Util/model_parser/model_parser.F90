@@ -22,9 +22,9 @@ module model_parser_module
   !
   ! composition is assumed to be in terms of mass fractions     
 
-  use parallel, only: parallel_IOProcessor
+  use amrex_paralleldescriptor_module, only: amrex_pd_ioprocessor
   use network
-  use bl_types
+  use amrex_fort_module, only : rt => amrex_real
 
   implicit none
 
@@ -36,11 +36,15 @@ module model_parser_module
   integer, parameter :: ispec_model = 4
 
   ! number of points in the model file
-  integer, save :: npts_model
+  integer,   allocatable, save :: npts_model
 
   ! arrays for storing the model data
-  real (kind=dp_t), allocatable, save :: model_state(:,:)
-  real (kind=dp_t), allocatable, save :: model_r(:)
+  real (rt), allocatable, save :: model_state(:,:)
+  real (rt), allocatable, save :: model_r(:)
+
+#ifdef CUDA
+  attributes(managed) :: model_state, model_r, npts_model
+#endif
 
   ! model_initialized will be .true. once the model is read in and the
   ! model data arrays are initialized and filled
@@ -54,8 +58,8 @@ contains
 
   subroutine read_model_file(model_file)
 
-    use bl_constants_module
-    use bl_error_module
+    use amrex_constants_module
+    use amrex_error_module
 
     character(len=*), intent(in   ) :: model_file
 
@@ -65,20 +69,21 @@ contains
 
     integer :: i, j, comp
 
-    real(kind=dp_t), allocatable :: vars_stored(:)
+    real(rt), allocatable :: vars_stored(:)
     character(len=MAX_VARNAME_LENGTH), allocatable :: varnames_stored(:)
     logical :: found_model, found_dens, found_temp, found_pres
     logical :: found_spec(nspec)
     integer :: ipos
     character (len=256) :: header_line
 
+    allocate(npts_model)
 
     ! open the model file
     open(99,file=trim(model_file),status='old',iostat=ierr)
 
     if (ierr .ne. 0) then
        print *,'Couldnt open model_file: ',model_file
-       call bl_error('Aborting now -- please supply model_file')
+       call amrex_error('Aborting now -- please supply model_file')
     end if
 
     ! the first line has the number of points in the model
@@ -108,7 +113,7 @@ contains
 887 format(78('-'))
 889 format(a60)
 
-    if ( parallel_IOProcessor()) then
+    if ( amrex_pd_ioprocessor() ) then
        write (*,889) ' '
        write (*,887)
        write (*,*)   'reading initial model'
@@ -166,7 +171,7 @@ contains
           ! is the current variable from the model file one that we
           ! care about?
           if (.NOT. found_model .and. i == 1) then
-             if ( parallel_IOProcessor() ) then
+             if ( amrex_pd_ioprocessor() ) then
                 print *, 'WARNING: variable not found: ', &
                      trim(varnames_stored(j))
              end if
@@ -177,26 +182,26 @@ contains
        ! were all the variables we care about provided?
        if (i == 1) then
           if (.not. found_dens) then
-             if ( parallel_IOProcessor() ) then
+             if ( amrex_pd_ioprocessor() ) then
                 print *, 'WARNING: density not provided in inputs file'
              end if
           endif
 
           if (.not. found_temp) then
-             if ( parallel_IOProcessor() ) then
+             if ( amrex_pd_ioprocessor() ) then
                 print *, 'WARNING: temperature not provided in inputs file'
              end if
           endif
 
           if (.not. found_pres) then
-             if ( parallel_IOProcessor() ) then
+             if ( amrex_pd_ioprocessor() ) then
                 print *, 'WARNING: pressure not provided in inputs file'
              end if
           endif
 
           do comp = 1, nspec
              if (.not. found_spec(comp)) then
-                if ( parallel_IOProcessor() ) then
+                if ( amrex_pd_ioprocessor() ) then
                    print *, 'WARNING: ', trim(spec_names(comp)), &
                         ' not provided in inputs file'
                 end if
@@ -243,6 +248,7 @@ contains
     if (model_initialized) then
        deallocate(model_r)
        deallocate(model_state)
+       deallocate(npts_model)
        npts_model = -1
        model_initialized = .false.
     endif

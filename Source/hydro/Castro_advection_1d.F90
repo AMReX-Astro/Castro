@@ -1,7 +1,8 @@
 module ctu_advection_module
 
-  use bl_constants_module, only : ZERO, HALF, ONE, FOURTH
+  use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
 
+  use amrex_error_module, only : amrex_error
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -310,7 +311,9 @@ contains
 #endif
     else
 #ifdef RADIATION
-       call bl_error("ppm_type <=0 is not supported in umeth with radiation")
+#ifndef AMREX_USE_CUDA
+       call amrex_error("ppm_type <=0 is not supported in umeth with radiation")
+#endif
 #else
 
        call tracexy(q, q_lo, q_hi, &

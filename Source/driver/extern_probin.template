@@ -5,12 +5,17 @@ module extern_probin_module
 
   use bl_types
   use bl_space
+  use amrex_fort_module, only: rt => amrex_real
 
   implicit none
 
   private
 
   @@declarationsA@@
+
+#ifdef CUDA
+  @@cudaattributesA@@
+#endif
 
 end module extern_probin_module
 
@@ -31,14 +36,18 @@ subroutine runtime_init(name,namlen)
 
   @@namelist@@
 
+  @@allocations@@
+
   @@defaults@@
 
 
   ! create the filename
+#ifndef AMREX_USE_CUDA
   if (namlen > maxlen) then
      print *, 'probin file name too long'
      stop
   endif
+#endif
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -56,7 +65,9 @@ subroutine runtime_init(name,namlen)
 
   else if (status > 0) then
      ! some problem in the namelist
+#ifndef AMREX_USE_CUDA 
      print *, 'ERROR: problem in the extern namelist'
+#endif
      stop
   endif
 

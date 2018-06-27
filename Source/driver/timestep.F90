@@ -10,14 +10,14 @@ contains
 
   ! Courant-condition limited timestep
 
-  subroutine ca_estdt(lo,hi,u,u_lo,u_hi,dx,dt) bind(C, name="ca_estdt")
+  AMREX_DEVICE subroutine ca_estdt(lo,hi,u,u_lo,u_hi,dx,dt) bind(C, name="ca_estdt")
 
     use network, only: nspec, naux
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, time_integration_method
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use prob_params_module, only: dim
-    use bl_constants_module, ONLY : ONE
+    use amrex_constants_module, ONLY : ONE
 #ifdef ROTATION
     use meth_params_module, only: do_rotation, state_in_rotating_frame
     use rotation_module, only: inertial_to_rotational_velocity
@@ -117,7 +117,7 @@ contains
                               dx, dt_old, dt) &
                               bind(C, name="ca_estdt_burning")
 
-    use bl_constants_module, only: HALF, ONE
+    use amrex_constants_module, only: HALF, ONE
     use network, only: nspec, naux, aion
     use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, dtnuc_e, dtnuc_X, dtnuc_X_threshold
     use prob_params_module, only : dim
@@ -261,7 +261,7 @@ contains
     use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, UFS, UFX, &
          diffuse_cutoff_density
     use prob_params_module, only: dim
-    use bl_constants_module, only : ONE, HALF
+    use amrex_constants_module, only : ONE, HALF
     use conductivity_module, only : conductivity
     use amrex_fort_module, only : rt => amrex_real
 
@@ -339,7 +339,7 @@ contains
     use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, UFS, UFX, &
          diffuse_cutoff_density
     use prob_params_module, only: dim
-    use bl_constants_module, only : HALF, ONE
+    use amrex_constants_module, only : HALF, ONE
     use conductivity_module, only : conductivity
     use amrex_fort_module, only : rt => amrex_real
 
@@ -421,7 +421,7 @@ contains
                                dx, dt_old, dt_new) &
                                bind(C, name="ca_check_timestep")
 
-    use bl_constants_module, only: HALF, ONE
+    use amrex_constants_module, only: HALF, ONE
     use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, UFS, UFX, UMX, UMZ, &
                                   cfl, do_hydro
 #ifdef REACTIONS
