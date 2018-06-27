@@ -11,7 +11,7 @@ USE_MPI    = FALSE
 USE_OMP    = FALSE
 
 USE_ALL_CASTRO = FALSE
-USE_AMREX_CORE = FALSE
+USE_AMR_CORE = FALSE
 
 # define the location of the CASTRO top directory
 CASTRO_HOME  := ../..

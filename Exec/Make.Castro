@@ -20,7 +20,7 @@ VISC_HOME ?= $(TOP)/Microphysics/viscosity
 # the entire Castro build
 USE_ALL_CASTRO ?= TRUE
 
-USE_AMREX_CORE ?= TRUE
+USE_AMR_CORE ?= TRUE
 
 # backwards compatibility
 ifdef Network_dir
