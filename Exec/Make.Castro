@@ -16,6 +16,12 @@ NETWORK_HOME ?= $(TOP)/Microphysics/networks
 COND_HOME ?= $(TOP)/Microphysics/conductivity
 VISC_HOME ?= $(TOP)/Microphysics/viscosity
 
+# this can be turned off for unit tests, etc., and not
+# the entire Castro build
+USE_ALL_CASTRO ?= TRUE
+
+USE_AMR_CORE ?= TRUE
+
 # backwards compatibility
 ifdef Network_dir
   ifndef NETWORK_DIR
@@ -84,9 +90,13 @@ USE_MLMG = FALSE
 # Castro directories
 #------------------------------------------------------------------------------
 
-Bdirs := Source/driver Source/driver/param_includes \
-         Source/hydro Source/problems Source/sources \
-         constants Util/model_parser
+ifeq ($(USE_ALL_CASTRO), TRUE)
+  Bdirs := Source/driver Source/driver/param_includes \
+           Source/hydro Source/problems Source/sources \
+           constants Util/model_parser
+else
+  Bdirs := constants
+endif
 
 # add / define any special physics we need
 ifeq ($(USE_GRAV), TRUE)
@@ -192,7 +202,11 @@ Blocs += $(foreach dir, $(Bdirs), $(TOP)/$(dir))
 # directories into VPATH_LOCATIONS and INCLUDE_LOCATIONS for us, so we
 # don't need to do it here
 
-Pdirs 	:= Base AmrCore Amr Boundary
+ifeq ($(USE_AMR_CORE), TRUE)
+  Pdirs	:= Base AmrCore Amr Boundary
+else
+  Pdirs := Base
+endif
 
 ifeq ($(USE_PARTICLES), TRUE)
  Pdirs += Particle
