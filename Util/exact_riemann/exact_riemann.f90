@@ -1,3 +1,18 @@
+subroutine ca_extern_init(name,namlen) bind(C, name="ca_extern_init")
+
+  ! initialize the external runtime parameters in
+  ! extern_probin_module
+
+  use amrex_fort_module, only: rt => amrex_real
+
+  integer, intent(in) :: namlen
+  integer, intent(in) :: name(namlen)
+
+  call runtime_init(name,namlen)
+
+end subroutine ca_extern_init
+
+
 subroutine riemann_exact() bind(C, name="riemann_exact")
 
   use amrex_fort_module, only : rt => amrex_real
@@ -28,9 +43,6 @@ subroutine riemann_exact() bind(C, name="riemann_exact")
   real (rt) :: rho, u, p, xn_s(nspec)
 
   integer :: i, lun
-
-  ! general Maestro initializations
-  call runtime_init()
 
   ! microphysics
   call network_init()
