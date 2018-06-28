@@ -12,6 +12,8 @@ extern "C"
 
   void ca_network_finalize();
 
+  void ca_eos_finalize();
+
   void burner_init();
 
   void ca_extern_init(const int* name, const int* namlen);
