@@ -401,9 +401,5 @@ if __name__ == "__main__":
 
 # todo:
 #
-#   we need to write a C++ header that sets the neutrino stuff and the
-#   number of groups and include this in Radiation.cpp.  Alternately, we
-#   can do this via preprocessor directives.
-#
-#   we need to remove the option to do photon radiation when neutrinos
-#   are compiled in
+# we need to set the Fortran version of ngroups correctly -- it should
+# be the sum of the neutrino groups, if we are neutrinoing

@@ -6,6 +6,20 @@
   -- We removed all dependencies on the AMReX F_BoxLib source, in
      preparation for this source being removed in the future.
 
+  -- we now set the number of variables at compile time, by parsing
+     the _variables file and interpreting which options are set in the
+     preprocessor.  Note that a side effect of this change is that the
+     number of radiation groups is now set at compile time instead of
+     at runtime.  This change is needed for the GPU port.
+
+     To set the number of radiation groups, set NGROUPS=4, e.g. for
+     4 groups, in your problem's GNUmakefile.  Similar options exist
+     for neutrinos.
+
+     A related change is that it is not possible to set the number
+     of advected quantities (that are not species or EOS auxillary
+     fields) via NUMADV in your GNUmakefile.
+
 # 18.06
 
   -- The new multilevel multigrid solvers (MLMG) in the AMReX
