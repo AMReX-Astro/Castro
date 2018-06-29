@@ -19,6 +19,16 @@ VISC_HOME ?= $(TOP)/Microphysics/viscosity
 # number of passively advected quantities that are not species or auxillary
 NUMADV ?= 0
 
+# number of radiation groups
+NGROUPS ?= 1
+
+# neutrino radiation info -- for each species (up to 3) we specify the
+# number of groups
+N_NEUTRINO_SPECIES ?= 3
+N_NEUTRINO_GROUPS_1 ?= 1
+N_NEUTRINO_GROUPS_2 ?= 1
+N_NEUTRINO_GROUPS_3 ?= 1
+
 # this can be turned off for unit tests, etc., and not
 # the entire Castro build
 USE_ALL_CASTRO ?= TRUE
@@ -400,6 +410,7 @@ state_sizes.f90:
 	$(CASTRO_HOME)/Source/driver/set_variables.py \
            --defines "$(DEFINES)" \
            --nadv $(NUMADV) \
+           --ngroups $(NGROUPS) \
            $(CASTRO_HOME)/Source/driver/_variables
 
 #------------------------------------------------------------------------------

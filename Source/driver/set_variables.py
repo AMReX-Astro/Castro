@@ -365,8 +365,19 @@ if __name__ == "__main__":
                         help="the number of pure advected quantities")
     parser.add_argument("--ngroups", type=int, default=1,
                         help="the number of radiation groups")
+    parser.add_argument("--n_neutrino_species", type=int, default=1,
+                        help="the number of neutrino species")
+    parser.add_argument("--n_neutrino_groups", type=str, default="1",
+                        help="the number of neutrino groups for each species (space separated)")
     parser.add_argument("variables_file", type=str, nargs=1,
                         help="input variable definition file")
     args = parser.parse_args()
 
-    doit(args.variables_file[0], args.defines, args.nadv, args.ngroups)
+    neutrino_groups = args.n_neutrino_groups.split()
+    if len(neutrino_groups) < args.n_neutrino_species:
+        print("ERROR: need to specify the number of neutrino groups for each species")
+        sys.exit()
+
+    doit(args.variables_file[0], args.defines, args.nadv,
+         args.ngroups,
+         args.n_neutrino_species, neutrino_groups)
