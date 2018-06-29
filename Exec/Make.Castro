@@ -16,6 +16,25 @@ NETWORK_HOME ?= $(TOP)/Microphysics/networks
 COND_HOME ?= $(TOP)/Microphysics/conductivity
 VISC_HOME ?= $(TOP)/Microphysics/viscosity
 
+# number of passively advected quantities that are not species or auxillary
+NUMADV ?= 0
+
+# number of radiation groups
+NGROUPS ?= 1
+
+# neutrino radiation info -- for each species (up to 3) we specify the
+# number of groups
+N_NEUTRINO_SPECIES ?= 3
+N_NEUTRINO_GROUPS_1 ?= 1
+N_NEUTRINO_GROUPS_2 ?= 1
+N_NEUTRINO_GROUPS_3 ?= 1
+
+# this can be turned off for unit tests, etc., and not
+# the entire Castro build
+USE_ALL_CASTRO ?= TRUE
+
+USE_AMR_CORE ?= TRUE
+
 # backwards compatibility
 ifdef Network_dir
   ifndef NETWORK_DIR
@@ -84,9 +103,13 @@ USE_MLMG = FALSE
 # Castro directories
 #------------------------------------------------------------------------------
 
-Bdirs := Source/driver Source/driver/param_includes \
-         Source/hydro Source/problems Source/sources \
-         constants Util/model_parser
+ifeq ($(USE_ALL_CASTRO), TRUE)
+  Bdirs := Source/driver Source/driver/param_includes \
+           Source/hydro Source/problems Source/sources \
+           constants Util/model_parser
+else
+  Bdirs := constants
+endif
 
 # add / define any special physics we need
 ifeq ($(USE_GRAV), TRUE)
@@ -152,10 +175,17 @@ ifeq ($(USE_RAD), TRUE)
   DEFINES += -DRAD_INTERP
   USE_HYPRE := TRUE
 
+  DEFINES += -DNGROUPS=$(NGROUPS)
+
   EXTERN_CORE += $(TOP)/Util/LAPACK
 
   ifeq ($(USE_NEUTRINO), TRUE)
     DEFINES += -DNEUTRINO
+    DEFINES += -DN_NEUTRINO_SPECIES=$(N_NEUTRINO_SPECIES)
+    DEFINES += -DN_NEUTRINO_GROUPS_1=$(N_NEUTRINO_GROUPS_1)
+    DEFINES += -DN_NEUTRINO_GROUPS_2=$(N_NEUTRINO_GROUPS_2)
+    DEFINES += -DN_NEUTRINO_GROUPS_3=$(N_NEUTRINO_GROUPS_3)
+
     ifeq ($(USE_DUMPMODEL), TRUE)
       DEFINES += -DHAS_DUMPMODEL
     endif
@@ -192,7 +222,11 @@ Blocs += $(foreach dir, $(Bdirs), $(TOP)/$(dir))
 # directories into VPATH_LOCATIONS and INCLUDE_LOCATIONS for us, so we
 # don't need to do it here
 
-Pdirs 	:= Base AmrCore Amr Boundary
+ifeq ($(USE_AMR_CORE), TRUE)
+  Pdirs	:= Base AmrCore Amr Boundary
+else
+  Pdirs := Base
+endif
 
 ifeq ($(USE_PARTICLES), TRUE)
  Pdirs += Particle
@@ -371,6 +405,24 @@ extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
            --pa "$(EXTERN_PARAMETERS)" $(MANAGED_PROBIN_FLAG)
 
 #------------------------------------------------------------------------------
+# state variable info
+#-------------------------------------------------------------------------------
+set_conserved.H: set_indices.F90
+	echo "set_conserved.H will be generated at the same time as set_indices/F90"
+
+state_sizes.f90: set_indices.F90
+	echo "state_sizes.f90 will be generated at the same time as set_indices.F90"
+
+set_indices.F90:
+	$(CASTRO_HOME)/Source/driver/set_variables.py \
+           --defines "$(DEFINES)" \
+           --nadv $(NUMADV) \
+           --ngroups $(NGROUPS) \
+           --n_neutrino_species $(N_NEUTRINO_SPECIES) \
+           --n_neutrino_groups "$(N_NEUTRINO_GROUPS_1) $(N_NEUTRINO_GROUPS_2) $(N_NEUTRINO_GROUPS_3)" \
+           $(CASTRO_HOME)/Source/driver/_variables
+
+#------------------------------------------------------------------------------
 # build info
 #------------------------------------------------------------------------------
 
@@ -428,6 +480,7 @@ include $(AMREX_HOME)/Tools/GNUMake/Make.rules
 clean::
 	$(SILENT) $(RM) extern.F90
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
+	$(RM) set_conserved.H set_indices.F90 state_sizes.f90
 
 # Older versions of CASTRO generated a "network.f90" file when using
 # the general_null network, which conflicts with our generalized

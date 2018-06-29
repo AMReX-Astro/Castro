@@ -764,6 +764,8 @@ protected:
 
     static void network_finalize ();
 
+    static void eos_finalize ();
+
     static void read_params ();
 
     Castro& getLevel (int lev);

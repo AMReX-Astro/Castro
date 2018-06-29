@@ -14,7 +14,7 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
   use eos_type_module
   use network, only: nspec
   use riemann_support
-  use probin_module, only: riemann_max_iter
+  use extern_probin_module, only: riemann_max_iter
 
   implicit none
 

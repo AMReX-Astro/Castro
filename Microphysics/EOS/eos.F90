@@ -106,6 +106,16 @@ contains
   end subroutine eos_init
 
 
+  subroutine eos_finalize()
+
+    use actual_eos_module, only: actual_eos_finalize
+
+    implicit none
+
+    call actual_eos_finalize()
+
+  end subroutine eos_finalize
+
 
   subroutine eos(input, state)
 
