@@ -231,6 +231,8 @@ Castro::variableSetUp ()
   // any radiation variables
   ca_get_nq(&NQ);
 
+  // NSRC is the number of conserved source terms, which is <= NUM_STATE
+  // NQSRC is the number of primitive source terms, which is <= QVAR
 
   Real run_stop = ParallelDescriptor::second() - run_strt;
 
@@ -332,7 +334,7 @@ Castro::variableSetUp ()
 
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point, do_ctu ? NUM_GROW : 1, NUM_STATE,
+			 StateDescriptor::Point, do_ctu ? NUM_GROW : 1, NSRC,
 			 &cell_cons_interp, state_data_extrap, store_in_checkpoint);
 
 #ifdef ROTATION
@@ -489,10 +491,10 @@ Castro::variableSetUp ()
 
   // Source term array will use standard hyperbolic fill.
 
-  Vector<BCRec> source_bcs(NUM_STATE);
-  Vector<std::string> state_type_source_names(NUM_STATE);
+  Vector<BCRec> source_bcs(NSRC);
+  Vector<std::string> state_type_source_names(NSRC);
 
-  for (int i = 0; i < NUM_STATE; ++i) {
+  for (int i = 0; i < NSRC; ++i) {
     state_type_source_names[i] = name[i] + "_source";
     source_bcs[i] = bcs[i];
 
