@@ -168,11 +168,20 @@ class Counter(object):
         return "integer, parameter :: {} = {}".format(self.name, self.get_value(offset=self.starting_val))
 
 
-def doit(variables_file, defines, nadv, ngroups):
+def doit(variables_file, defines, nadv,
+         ngroups,
+         n_neutrino_species, neutrino_groups):
 
     # are we doing radiation?
     if not "RADIATION" in defines:
         ngroups = None
+
+    # if we are doing neutrino radiation, then the number of groups is
+    # the sum of the number of groups for each neutrino type
+    if "NEUTRINO" in defines:
+        ngroups = 0
+        for n in range(n_neutrino_species):
+            ngroups += neutrino_groups[n]
 
     # read the file and create a list of indices
     indices = []
@@ -373,11 +382,28 @@ if __name__ == "__main__":
                         help="input variable definition file")
     args = parser.parse_args()
 
-    neutrino_groups = args.n_neutrino_groups.split()
+    neutrino_groups = [int(q) for q in args.n_neutrino_groups.split()]
+
     if len(neutrino_groups) < args.n_neutrino_species:
         print("ERROR: need to specify the number of neutrino groups for each species")
         sys.exit()
 
+    # need to zero out any groups for excess species
+    if len(neutrino_groups) > args.n_neutrino_species:
+        for i in range(args.n_neutrino_species, len(neutrino_groups)+1):
+            neutrino_groups[i] = 0
+
     doit(args.variables_file[0], args.defines, args.nadv,
          args.ngroups,
          args.n_neutrino_species, neutrino_groups)
+
+
+
+# todo:
+#
+#   we need to write a C++ header that sets the neutrino stuff and the
+#   number of groups and include this in Radiation.cpp.  Alternately, we
+#   can do this via preprocessor directives.
+#
+#   we need to remove the option to do photon radiation when neutrinos
+#   are compiled in
