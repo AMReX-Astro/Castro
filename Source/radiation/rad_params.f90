@@ -8,7 +8,9 @@ module rad_params_module
 
   ! radiation energy group information
   use amrex_fort_module, only : rt => amrex_real
-  integer         , save :: ngroups, current_group, ng0, ng1, nnuspec
+  use state_sizes_module, only : ngroups
+
+  integer         , save :: current_group, ng0, ng1, nnuspec
   integer, save :: nradspec = 1
   real(rt)        , save, allocatable :: nugroup(:), dnugroup(:), xnu(:), dlognu(:), &
        erg2rhoYe(:), lognugroup(:)
