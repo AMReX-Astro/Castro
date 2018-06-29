@@ -406,14 +406,14 @@ extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
 
 #------------------------------------------------------------------------------
 # state variable info
-#------------------------------------------------------------------------------
-set_conserved.H: state_sizes.f90
-	echo "set_conserved.H will be generated at the same time as state_sizes.f90"
+#-------------------------------------------------------------------------------
+set_conserved.H: set_indices.F90
+	echo "set_conserved.H will be generated at the same time as set_indices/F90"
 
-set_indices.F90: state_sizes.f90
-	echo "set_indices.F90 will be generated at the same time as state_sizes.f90"
+state_sizes.f90: set_indices.F90
+	echo "state_sizes.f90 will be generated at the same time as set_indices.F90"
 
-state_sizes.f90:
+set_indices.F90:
 	$(CASTRO_HOME)/Source/driver/set_variables.py \
            --defines "$(DEFINES)" \
            --nadv $(NUMADV) \
