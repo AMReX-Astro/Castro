@@ -16,7 +16,7 @@
      4 groups, in your problem's GNUmakefile.  Similar options exist
      for neutrinos.
 
-     A related change is that it is not possible to set the number
+     A related change is that it is now possible to set the number
      of advected quantities (that are not species or EOS auxillary
      fields) via NUMADV in your GNUmakefile.
 
