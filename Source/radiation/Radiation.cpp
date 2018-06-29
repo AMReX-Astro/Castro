@@ -39,9 +39,8 @@ Real Radiation::Etorad = 0.;
 Real Radiation::radfluxtoF = 0.;
 
 int Radiation::do_multigroup = 0;
-int Radiation::nGroups = 1;
-int Radiation::nNeutrinoSpecies = 0;
-Vector<int> Radiation::nNeutrinoGroups(0);
+int Radiation::nGroups = NGROUPS;
+int Radiation::nNeutrinoSpecies = N_NEUTRINO_SPECIES;
 int Radiation::plot_neutrino_group_energies_per_MeV = 1;
 int Radiation::plot_neutrino_group_energies_total   = 0;
 int Radiation::accelerate = 1;
@@ -213,30 +212,35 @@ void Radiation::read_static_params()
     }
 
     if (radiation_type == Neutrino) {
-      pp.get("nNeutrinoSpecies", Radiation::nNeutrinoSpecies);
-      BL_ASSERT(Radiation::nNeutrinoSpecies > 0);
-      
-      Radiation::nNeutrinoGroups.resize(Radiation::nNeutrinoSpecies);
-      pp.getarr("nNeutrinoGroups", Radiation::nNeutrinoGroups,
-		0, Radiation::nNeutrinoSpecies);
-      
+
       Radiation::nGroups = 0;
-      for (int n = 0; n < Radiation::nNeutrinoSpecies; n++) {
-	Radiation::nGroups += Radiation::nNeutrinoGroups[n];
-      }
-      
+#if (N_NEUTRINO_SPECIES >= 1)
+      Radiation::nGroups += N_NEUTRINO_GROUPS_1;
+#endif
+#if (N_NEUTRINO_SPECIES >= 2)
+      Radiation::nGroups += N_NEUTRINO_GROUPS_2;
+#endif
+#if (N_NEUTRINO_SPECIES == 3)
+      Radiation::nGroups += N_NEUTRINO_GROUPS_3;
+#endif
+
       pp.query("plot_neutrino_group_energies_per_MeV",
 	       Radiation::plot_neutrino_group_energies_per_MeV);
       pp.query("plot_neutrino_group_energies_total",
 	       Radiation::plot_neutrino_group_energies_total);    
     }
     else {
-      pp.query("nGroups", Radiation::nGroups);
-      BL_ASSERT(Radiation::nGroups > 1); 
+
+      // if we are here, we are wanting to do photon radiation with
+      // Neutrino compiled -- we no longer support this
+      amrex::Error("We do not support photon radiation when compiled for neutrinos");
     }
-#else
+#else 
+    // photon radiation
     radiation_type = Photon;
-    pp.query("nGroups", Radiation::nGroups);
+    Radiation::nGroups = NGROUPS;
+
+    //pp.query("nGroups", Radiation::nGroups);
     //    BL_ASSERT(Radiation::nGroups > 1); 
 #endif
   }
