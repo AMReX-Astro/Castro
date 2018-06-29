@@ -215,9 +215,6 @@ Castro::variableSetUp ()
 #ifdef SHOCK_VAR
 		       Shock,
 #endif
-#ifdef RADIATION
-                       Radiation::nGroups,
-#endif
 		       gravity_type_name.dataPtr(), gravity_type_length);
 
   // Get the number of primitive variables from Fortran.

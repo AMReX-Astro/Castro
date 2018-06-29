@@ -402,9 +402,6 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
 #ifdef SHOCK_VAR
                                 Shock, &
 #endif
-#ifdef RADIATION
-                                ngroups_in, &
-#endif
                                 gravity_type_in, gravity_type_len) &
                                 bind(C, name="ca_set_method_params")
 
@@ -414,9 +411,6 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
   use eos_type_module, only: eos_get_small_dens, eos_get_small_temp
   use amrex_constants_module, only : ZERO, ONE
   use amrex_fort_module, only: rt => amrex_real
-#ifdef RADIATION
-  use rad_params_module, only: ngroups
-#endif
 
   implicit none
 
@@ -428,9 +422,6 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
 #endif
   integer, intent(in) :: gravity_type_len
   integer, intent(in) :: gravity_type_in(gravity_type_len)
-#ifdef RADIATION
-  integer, intent(in) :: ngroups_in
-#endif
 #ifdef HYBRID_MOMENTUM
   integer, intent(in) :: Rmom
 #endif
@@ -440,9 +431,6 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
   integer :: i
   integer :: ioproc
 
-#ifdef RADIATION
-  ngroups = ngroups_in
-#endif
 
   !---------------------------------------------------------------------
   ! set integer keys to index states

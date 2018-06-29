@@ -168,7 +168,11 @@ class Counter(object):
         return "integer, parameter :: {} = {}".format(self.name, self.get_value(offset=self.starting_val))
 
 
-def doit(variables_file, defines, nadv):
+def doit(variables_file, defines, nadv, ngroups):
+
+    # are we doing radiation?
+    if not "RADIATION" in defines:
+        ngroups = None
 
     # read the file and create a list of indices
     indices = []
@@ -331,6 +335,8 @@ def doit(variables_file, defines, nadv):
         ss.write("   use network, only : nspec, naux\n")
         ss.write("   implicit none\n")
         ss.write("   integer, parameter :: nadv = {}\n".format(nadv))
+        if ngroups is not None:
+            ss.write("   integer, parameter :: ngroups = {}\n".format(ngroups))
         for ac in all_counters:
             ss.write("   {}\n".format(ac.get_set_string()))
         ss.write("end module state_sizes_module\n")
@@ -357,8 +363,10 @@ if __name__ == "__main__":
                         help="preprocessor defines to interpret")
     parser.add_argument("--nadv", type=int, default=0,
                         help="the number of pure advected quantities")
+    parser.add_argument("--ngroups", type=int, default=1,
+                        help="the number of radiation groups")
     parser.add_argument("variables_file", type=str, nargs=1,
                         help="input variable definition file")
     args = parser.parse_args()
 
-    doit(args.variables_file[0], args.defines, args.nadv)
+    doit(args.variables_file[0], args.defines, args.nadv, args.ngroups)
