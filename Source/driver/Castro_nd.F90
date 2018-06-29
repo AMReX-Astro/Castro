@@ -411,7 +411,7 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
   use eos_type_module, only: eos_get_small_dens, eos_get_small_temp
   use amrex_constants_module, only : ZERO, ONE
   use amrex_fort_module, only: rt => amrex_real
-
+  use state_sizes_module, only : ngroups
   implicit none
 
   integer, intent(in) :: dm

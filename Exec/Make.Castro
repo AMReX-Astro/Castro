@@ -418,6 +418,8 @@ state_sizes.f90:
            --defines "$(DEFINES)" \
            --nadv $(NUMADV) \
            --ngroups $(NGROUPS) \
+           --n_neutrino_species $(N_NEUTRINO_SPECIES) \
+           --n_neutrino_groups "$(N_NEUTRINO_GROUPS_1) $(N_NEUTRINO_GROUPS_2) $(N_NEUTRINO_GROUPS_3)" \
            $(CASTRO_HOME)/Source/driver/_variables
 
 #------------------------------------------------------------------------------

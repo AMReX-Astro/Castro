@@ -390,7 +390,7 @@ if __name__ == "__main__":
 
     # need to zero out any groups for excess species
     if len(neutrino_groups) > args.n_neutrino_species:
-        for i in range(args.n_neutrino_species, len(neutrino_groups)+1):
+        for i in range(args.n_neutrino_species, len(neutrino_groups)):
             neutrino_groups[i] = 0
 
     doit(args.variables_file[0], args.defines, args.nadv,
@@ -398,8 +398,3 @@ if __name__ == "__main__":
          args.n_neutrino_species, neutrino_groups)
 
 
-
-# todo:
-#
-# we need to set the Fortran version of ngroups correctly -- it should
-# be the sum of the neutrino groups, if we are neutrinoing
