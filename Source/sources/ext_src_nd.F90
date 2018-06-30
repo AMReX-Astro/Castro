@@ -23,7 +23,7 @@
                         src,src_lo,src_hi,problo,dx,time,dt)
 
     use amrex_constants_module, only: ZERO
-    use meth_params_module, only : NVAR
+    use meth_params_module, only : NVAR, NSRC
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -34,7 +34,7 @@
     integer          :: src_lo(3),src_hi(3)
     real(rt)         :: old_state(os_lo(1):os_hi(1),os_lo(2):os_hi(2),os_lo(3):os_hi(3),NVAR)
     real(rt)         :: new_state(ns_lo(1):ns_hi(1),ns_lo(2):ns_hi(2),ns_lo(3):ns_hi(3),NVAR)
-    real(rt)         :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+    real(rt)         :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NSRC)
     real(rt)         :: problo(3),dx(3),time,dt
 
     ! lo and hi specify work region
