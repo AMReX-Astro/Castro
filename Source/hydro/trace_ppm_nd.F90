@@ -32,7 +32,7 @@ contains
                                    ppm_type, &
                                    ppm_reference_eigenvectors, ppm_predict_gammae, &
                                    npassive, qpass_map, ppm_temp_fix, &
-                                   fix_mass_flux
+                                   fix_mass_flux, NQSRC
     use amrex_constants_module, only : ZERO, HALF, ONE
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
@@ -1303,7 +1303,7 @@ contains
                                    ppm_type, &
                                    ppm_reference_eigenvectors, ppm_predict_gammae, &
                                    ppm_temp_fix, &
-                                   npassive, qpass_map
+                                   npassive, qpass_map, NQSRC
     use amrex_constants_module, only : ZERO, HALF, ONE
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos

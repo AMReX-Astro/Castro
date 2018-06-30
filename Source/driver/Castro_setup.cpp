@@ -233,6 +233,8 @@ Castro::variableSetUp ()
 
   // NSRC is the number of conserved source terms, which is <= NUM_STATE
   // NQSRC is the number of primitive source terms, which is <= QVAR
+  ca_get_nsrc(&NSRC);
+  ca_get_nqsrc(&NQSRC);
 
   Real run_stop = ParallelDescriptor::second() - run_strt;
 

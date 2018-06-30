@@ -200,7 +200,7 @@ contains
                     ilo1, ilo2, ihi1, ihi2, kc, k3d, dx)
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : QRHO, QPRES, QU, QV, QW, NQ, QVAR, plm_iorder
+    use meth_params_module, only : QRHO, QPRES, QU, QV, QW, NQ, QVAR, plm_iorder, NQSRC
     use amrex_constants_module, only : ZERO, FOURTH, FOUR3RD, HALF, TWO, ONE, SIXTH
 
     use amrex_fort_module, only : rt => amrex_real

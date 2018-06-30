@@ -54,7 +54,7 @@ subroutine ca_ctu_update(lo, hi, is_finest_level, time, &
                                  QPTOT, &
 #endif
                                  use_flattening, &
-                                 first_order_hydro
+                                 first_order_hydro, NQSRC
   use advection_util_module, only : divu
   use amrex_constants_module, only : ZERO, ONE
   use flatten_module, only: uflatten

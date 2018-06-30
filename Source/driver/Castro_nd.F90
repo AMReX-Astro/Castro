@@ -217,6 +217,31 @@ subroutine ca_get_ngdnv(ngdnv_in) bind(C, name="ca_get_ngdnv")
 
 end subroutine ca_get_ngdnv
 
+subroutine ca_get_nqsrc(nqsrc_in) bind(C, name="ca_get_nqsrc")
+
+  use meth_params_module, only: NQSRC
+
+  implicit none
+
+  integer, intent(inout) :: nqsrc_in
+
+  nqsrc_in = NQSRC
+
+end subroutine ca_get_nqsrc
+
+subroutine ca_get_nsrc(nsrc_in) bind(C, name="ca_get_nsrc")
+
+  use meth_params_module, only: NSRC
+
+  implicit none
+
+  integer, intent(inout) :: nsrc_in
+
+  nsrc_in = NSRC
+
+end subroutine ca_get_nsrc
+
+
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
@@ -562,7 +587,7 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
   ! Update device variables
 
   !$acc update &
-  !$acc device(NVAR) &
+  !$acc device(NVAR, NSRC, NQSRC) &
   !$acc device(NQ) &
   !$acc device(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX) &
   !$acc device(USHK) &

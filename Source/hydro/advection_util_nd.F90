@@ -657,7 +657,7 @@ contains
     use eos_module, only : eos
     use eos_type_module, only : eos_t, eos_input_re
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, &
-                                   QVAR, QRHO, QU, QV, QW, NQ, &
+                                   QVAR, QRHO, QU, QV, QW, NQ, NSRC, NQSRC, &
                                    QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
                                    npassive, upass_map, qpass_map
     use amrex_constants_module, only: ZERO, HALF, ONE

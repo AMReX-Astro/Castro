@@ -6,7 +6,7 @@ module transverse_module
                                  NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QGAME, &
                                  URHO, UMX, UMY, UEDEN, UEINT, QFS, QFX, &
                                  GDU, GDV, GDPRES, GDGAME, &
-                                 NGDNV, QGAMC, &
+                                 NGDNV, QGAMC, NQSRC, &
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, &
                                  GDERADS, QGAMCG, QLAMS, &

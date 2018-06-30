@@ -52,7 +52,7 @@ contains
     use meth_params_module, only : NQ, QVAR, NVAR, ppm_type, hybrid_riemann, &
                                    QC, QFS, QFX, QGAMC, QU, QV, QRHO, QTEMP, QPRES, QREINT, &
                                    GDU, GDV, GDPRES, NGDNV, NQ, &
-                                   NQAUX, &
+                                   NQAUX, NQSRC, &
                                    ppm_type, &
                                    use_pslope, plm_iorder, ppm_temp_fix
     use trace_module, only : tracexy

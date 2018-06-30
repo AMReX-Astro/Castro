@@ -38,7 +38,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
                                  use_flattening, QPRES, NQAUX, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
                                  first_order_hydro, difmag, hybrid_riemann, &
-                                 limit_fluxes_on_small_dens, ppm_temp_fix
+                                 limit_fluxes_on_small_dens, ppm_temp_fix, NSRC
   use advection_util_module, only : limit_hydro_fluxes_on_small_dens, shock, &
                                     divu, normalize_species_fluxes, calc_pdivu
   use amrex_error_module

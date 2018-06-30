@@ -39,7 +39,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
                                  use_flattening, QPRES, NQAUX, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
                                  first_order_hydro, difmag, hybrid_riemann, &
-                                 limit_fluxes_on_small_dens, ppm_type, ppm_temp_fix
+                                 limit_fluxes_on_small_dens, ppm_type, ppm_temp_fix, NSRC
   use advection_util_module, only : limit_hydro_fluxes_on_small_dens, shock, &
                                     divu, normalize_species_fluxes, calc_pdivu
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH

@@ -261,7 +261,7 @@ contains
 
     real(rt) :: hdtInv
 
-    real(rt) :: src(NVAR)
+    real(rt) :: src(NSRC)
 
     ! Temporary array for seeing what the new state would be if the update were applied here.
 
