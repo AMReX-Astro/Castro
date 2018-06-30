@@ -352,11 +352,11 @@ def doit(variables_file, defines, nadv,
         # the number of source term components depends on whether we
         # have SPECIES_HAVE_SOURCES
         if "SPECIES_HAVE_SOURCES" in defines or "SDC" in defines:
-            ss.write("  integer, parameter :: nsrc = nvar\n")
-            ss.write("  integer, parameter :: nqsrc = qvar\n")
+            ss.write("   integer, parameter :: NSRC = NVAR\n")
+            ss.write("   integer, parameter :: NQSRC = QVAR\n")
         else:
-            ss.write("  integer, parameter :: nsrc = nvar - nspec - nadv - naux\n")
-            ss.write("  integer, parameter :: nqsrc = qvar - nspec - nadv - naux\n")
+            ss.write("   integer, parameter :: NSRC = NVAR - nspec - nadv - naux\n")
+            ss.write("   integer, parameter :: NQSRC = QVAR - nspec - nadv - naux\n")
 
         ss.write("end module state_sizes_module\n")
 
