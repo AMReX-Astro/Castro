@@ -351,7 +351,7 @@ def doit(variables_file, defines, nadv,
 
         # the number of source term components depends on whether we
         # have SPECIES_HAVE_SOURCES
-        if "SPECIES_HAVE_SOURCES" in defines:
+        if "SPECIES_HAVE_SOURCES" in defines or "SDC" in defines:
             ss.write("  integer, parameter :: nsrc = nvar\n")
             ss.write("  integer, parameter :: nqsrc = qvar\n")
         else:
