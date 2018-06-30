@@ -44,9 +44,13 @@ contains
 
   end subroutine actual_eos_init
 
+  subroutine actual_eos_finalize()
 
+    implicit none
 
-  AMREX_DEVICE subroutine actual_eos(input, state)
+  end subroutine actual_eos_finalize
+
+  subroutine actual_eos(input, state)
 
     use fundamental_constants_module, only: k_B, n_A
     use network, only: aion, zion
@@ -59,6 +63,8 @@ contains
     double precision, parameter :: R = k_B*n_A
 
     double precision :: poverrho
+
+    !$gpu
 
     ! Calculate mu.
 

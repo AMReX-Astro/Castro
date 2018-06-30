@@ -8,16 +8,16 @@ module mol_module
 
 contains
 
-  AMREX_DEVICE subroutine ca_construct_flux(lo, hi, domlo, domhi, dx, dt, idir, &
-                                            uin, uin_lo, uin_hi, &
-                                            div, div_lo, div_hi, &
-                                            qaux, qa_lo, qa_hi, &
-                                            qm, qm_lo, qm_hi, &
-                                            qp, qp_lo, qp_hi, &
-                                            qint, qe_lo, qe_hi, &
-                                            flux, f_lo, f_hi, &
-                                            area, a_lo, a_hi) &
-                                            bind(c,name='ca_construct_flux')
+  subroutine ca_construct_flux(lo, hi, domlo, domhi, dx, dt, idir, &
+                               uin, uin_lo, uin_hi, &
+                               div, div_lo, div_hi, &
+                               qaux, qa_lo, qa_hi, &
+                               qm, qm_lo, qm_hi, &
+                               qp, qp_lo, qp_hi, &
+                               qint, qe_lo, qe_hi, &
+                               flux, f_lo, f_hi, &
+                               area, a_lo, a_hi) &
+                               bind(c,name='ca_construct_flux')
 
     use amrex_fort_module, only: rt => amrex_real
     use meth_params_module, only: NVAR, NGDNV, NQAUX, NQ
@@ -48,6 +48,8 @@ contains
     real(rt), intent(in   ) :: area(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3))
     real(rt), intent(in   ) :: dx(3)
     real(rt), intent(in   ), value :: dt
+
+    !$gpu
 
     call cmpflx(lo, hi, domlo, domhi, idir, qm, qm_lo, qm_hi, qp, qp_lo, qp_hi, &
                 qint, qe_lo, qe_hi, flux, f_lo, f_hi, qaux, qa_lo, qa_hi)

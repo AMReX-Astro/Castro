@@ -174,6 +174,9 @@ Castro::variableSetUp ()
   // Get the number of auxiliary quantities from the network model.
   ca_get_num_aux(&NumAux);
 
+  // Get the number of advected quantities -- set at compile time
+  ca_get_num_adv(&NumAdv);
+
 
 #include "set_conserved.H"
 
@@ -203,17 +206,14 @@ Castro::variableSetUp ()
   // Read in the input values to Fortran.
   ca_set_castro_method_params();
 
+  // set the conserved, primitive, aux, and godunov indices in Fortran
   ca_set_method_params(dm, Density, Xmom, 
 #ifdef HYBRID_MOMENTUM
                        Rmom,
 #endif
                        Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux,
-		       NumAdv,
 #ifdef SHOCK_VAR
 		       Shock,
-#endif
-#ifdef RADIATION
-                       Radiation::nGroups,
 #endif
 		       gravity_type_name.dataPtr(), gravity_type_length);
 
@@ -224,7 +224,6 @@ Castro::variableSetUp ()
   ca_get_nqaux(&NQAUX);
 
   // initialize the Godunov state array used in hydro 
-  ca_init_godunov_indices();
   ca_get_ngdnv(&NGDNV);
 
   // NQ will be used to dimension the primitive variable state

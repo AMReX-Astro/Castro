@@ -6,13 +6,6 @@ module eos_module
 
   logical, save :: initialized = .false.  
 
-  interface eos
-     module procedure eos_doit
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-     module procedure eos_host
-#endif
-  end interface eos
-
 contains
 
   ! EOS initialization routine: read in general EOS parameters, then 
@@ -113,8 +106,18 @@ contains
   end subroutine eos_init
 
 
+  subroutine eos_finalize()
 
-  AMREX_DEVICE subroutine eos_doit(input, state)
+    use actual_eos_module, only: actual_eos_finalize
+
+    implicit none
+
+    call actual_eos_finalize()
+
+  end subroutine eos_finalize
+
+
+  subroutine eos(input, state)
 
     !$acc routine seq
 
@@ -136,6 +139,8 @@ contains
     type (eos_t), intent(inout) :: state
 
     logical :: has_been_reset
+
+    !$gpu
 
     ! Local variables
 
@@ -170,11 +175,11 @@ contains
     call composition_derivatives(state)
 #endif
 
-  end subroutine eos_doit
+  end subroutine eos
 
 
 
-  AMREX_DEVICE subroutine reset_inputs(input, state, has_been_reset)
+  subroutine reset_inputs(input, state, has_been_reset)
 
     !$acc routine seq
 
@@ -187,6 +192,8 @@ contains
     integer,      intent(in   ) :: input
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
+
+    !$gpu
 
     ! Reset the input quantities to valid values. For inputs other than rho and T,
     ! this will evolve an EOS call, which will negate the need to do the main EOS call.
@@ -239,7 +246,7 @@ contains
 
   ! For density, just ensure that it is within mindens and maxdens.
 
-  AMREX_DEVICE subroutine reset_rho(state, has_been_reset)
+  subroutine reset_rho(state, has_been_reset)
 
     !$acc routine seq
 
@@ -250,6 +257,8 @@ contains
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
 
+    !$gpu
+
     state % rho = min(maxdens, max(mindens, state % rho))
 
   end subroutine reset_rho
@@ -258,7 +267,7 @@ contains
 
   ! For temperature, just ensure that it is within mintemp and maxtemp.
 
-  AMREX_DEVICE subroutine reset_T(state, has_been_reset)
+  subroutine reset_T(state, has_been_reset)
 
     !$acc routine seq
 
@@ -269,13 +278,15 @@ contains
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
 
+    !$gpu
+
     state % T = min(maxtemp, max(mintemp, state % T))
 
   end subroutine reset_T
 
 
 
-  AMREX_DEVICE subroutine reset_e(state, has_been_reset)
+  subroutine reset_e(state, has_been_reset)
 
     !$acc routine seq
 
@@ -286,6 +297,8 @@ contains
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
 
+    !$gpu
+
     if (state % e .lt. mine .or. state % e .gt. maxe) then
        call eos_reset(state, has_been_reset)
     endif
@@ -294,7 +307,7 @@ contains
 
 
 
-  AMREX_DEVICE subroutine reset_h(state, has_been_reset)
+  subroutine reset_h(state, has_been_reset)
 
     !$acc routine seq
 
@@ -305,6 +318,8 @@ contains
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
 
+    !$gpu
+
     if (state % h .lt. minh .or. state % h .gt. maxh) then
        call eos_reset(state, has_been_reset)
     endif
@@ -313,7 +328,7 @@ contains
 
 
 
-  AMREX_DEVICE subroutine reset_s(state, has_been_reset)
+  subroutine reset_s(state, has_been_reset)
 
     !$acc routine seq
 
@@ -324,6 +339,8 @@ contains
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
 
+    !$gpu
+
     if (state % s .lt. mins .or. state % s .gt. maxs) then
        call eos_reset(state, has_been_reset)
     endif
@@ -332,7 +349,7 @@ contains
 
 
 
-  AMREX_DEVICE subroutine reset_p(state, has_been_reset)
+  subroutine reset_p(state, has_been_reset)
 
     !$acc routine seq
 
@@ -342,6 +359,8 @@ contains
 
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
+
+    !$gpu
 
     if (state % p .lt. minp .or. state % p .gt. maxp) then
        call eos_reset(state, has_been_reset)
@@ -354,7 +373,7 @@ contains
   ! Given an EOS state, ensure that rho and T are
   ! valid, then call with eos_input_rt.
 
-  AMREX_DEVICE subroutine eos_reset(state, has_been_reset)
+  subroutine eos_reset(state, has_been_reset)
 
     !$acc routine seq
 
@@ -365,6 +384,8 @@ contains
 
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
+
+    !$gpu
 
     state % T = min(maxtemp, max(mintemp, state % T))
     state % rho = min(maxdens, max(mindens, state % rho))
@@ -596,48 +617,6 @@ contains
     endif
 
   end subroutine check_p
-#endif
-
-  
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-  subroutine eos_host(input, state)
-
-    use eos_type_module, only: eos_t
-    use cuda_module, only: gpu_synchronize
-
-    implicit none
-
-    ! Input arguments
-
-    integer,      intent(in   ) :: input
-    type (eos_t), intent(inout) :: state
-
-    integer,      device :: input_d
-    type (eos_t), device :: state_d
-
-    double precision :: e, rho, T
-
-    input_d = input
-    state_d = state
-
-    call eos_kernel_launch<<<1,1>>>(input_d, state_d)
-
-    state = state_d
-
-  end subroutine eos_host
-
-  AMREX_LAUNCH subroutine eos_kernel_launch(input, state)
-
-    use eos_type_module, only: eos_t
-
-    implicit none
-
-    type(eos_t) :: state
-    integer :: input
-
-    call eos_doit(input, state)
-
-  end subroutine eos_kernel_launch
 #endif
 
 end module eos_module

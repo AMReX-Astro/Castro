@@ -14,6 +14,7 @@ module meth_params_module
 
   use amrex_error_module
   use amrex_fort_module, only: rt => amrex_real
+  use state_sizes_module, only : nadv, NQAUX, NVAR, NGDNV, NQ, QVAR
 
   implicit none
 
@@ -21,23 +22,16 @@ module meth_params_module
   integer, parameter     :: NHYP    = 4
 
   ! conservative variables
-  integer, allocatable, save :: NVAR
   integer, allocatable, save :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
   integer, allocatable, save :: USHK
 
   ! primitive variables
-  integer, allocatable, save :: QVAR
   integer, allocatable, save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
-  integer, allocatable, save :: NQAUX, QGAMC, QC, QDPDR, QDPDE
+  integer, allocatable, save :: QGAMC, QC, QDPDR, QDPDE
 #ifdef RADIATION
   integer, allocatable, save :: QGAMCG, QCG, QLAMS
 #endif
   integer, allocatable, save :: QFA, QFS, QFX
-
-  integer, allocatable, save :: nadv
-
-  ! NQ will be the total number of primitive variables, hydro + radiation
-  integer, allocatable, save :: NQ         
 
 #ifdef RADIATION
   integer, save :: QRAD, QRADHI, QPTOT, QREITOT
@@ -54,7 +48,7 @@ module meth_params_module
   ! These are used for the Godunov state
   ! Note that the velocity indices here are picked to be the same value
   ! as in the primitive variable array
-  integer, save, allocatable :: NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
+  integer, save, allocatable :: GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
 #ifdef RADIATION
   integer, save, allocatable :: GDLAMS, GDERADS
 #endif
@@ -80,22 +74,18 @@ module meth_params_module
   ! Create versions of these variables on the GPU
   ! the device update is then done in Castro_nd.f90
 
-#ifdef CUDA
-  attributes(managed) :: NVAR
+#ifdef AMREX_USE_CUDA
   attributes(managed) :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
   attributes(managed) :: USHK
-  attributes(managed) :: QVAR
   attributes(managed) :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
-  attributes(managed) :: NQAUX, QGAMC, QC, QDPDR, QDPDE
+  attributes(managed) :: QGAMC, QC, QDPDR, QDPDE
 #ifdef RADIATION
   attributes(managed) :: QGAMCG, QCG, QLAMS
 #endif
   attributes(managed) :: QFA, QFS, QFX
-  attributes(managed) :: nadv
-  attributes(managed) :: NQ
   attributes(managed) :: npassive
   attributes(managed) :: qpass_map, upass_map
-  attributes(managed) :: NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
+  attributes(managed) :: GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
 #ifdef RADIATION
   attributes(managed) :: GDLAMS, GDERADS
 #endif
@@ -103,13 +93,10 @@ module meth_params_module
 #endif
 
   !$acc declare &
-  !$acc create(NVAR) &
   !$acc create(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS,UFX) &
   !$acc create(USHK) &
-  !$acc create(QVAR) &
   !$acc create(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP) &
   !$acc create(QC, QDPDR, QDPDE, QGAMC, QGAME) &
-  !$acc create(NQ) &
 #ifdef RADIATION
   !$acc create(QGAMCG, QCG, QLAMS) &
   !$acc create(QRAD, QRADHI, QPTOT, QREITOT) &
@@ -203,7 +190,7 @@ module meth_params_module
   real(rt), allocatable, save :: const_grav
   integer,  allocatable, save :: get_g_from_phi
 
-#ifdef CUDA
+#ifdef AMREX_USE_CUDA
   attributes(managed) :: difmag
   attributes(managed) :: small_dens
   attributes(managed) :: small_temp
@@ -332,20 +319,16 @@ contains
     type (amrex_parmparse) :: pp
 
 
-    allocate(NVAR)
     allocate(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX)
     allocate(USHK)
-    allocate(QVAR)
     allocate(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME)
-    allocate(NQAUX, QGAMC, QC, QDPDR, QDPDE)
+    allocate(QGAMC, QC, QDPDR, QDPDE)
 #ifdef RADIATION
     allocate(QGAMCG, QCG, QLAMS)
 #endif
     allocate(QFA, QFS, QFX)
-    allocate(nadv)
-    allocate(NQ)
     allocate(npassive)
-    allocate(NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME)
+    allocate(GDRHO, GDU, GDV, GDW, GDPRES, GDGAME)
 #ifdef RADIATION
     allocate(GDLAMS, GDERADS)
 #endif
@@ -713,20 +696,16 @@ contains
   subroutine ca_finalize_meth_params() bind(C, name="ca_finalize_meth_params")
     implicit none
 
-    deallocate(NVAR)
     deallocate(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX)
     deallocate(USHK)
-    deallocate(QVAR)
     deallocate(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME)
-    deallocate(NQAUX, QGAMC, QC, QDPDR, QDPDE)
+    deallocate(QGAMC, QC, QDPDR, QDPDE)
 #ifdef RADIATION
     deallocate(QGAMCG, QCG, QLAMS)
 #endif
     deallocate(QFA, QFS, QFX)
-    deallocate(nadv)
-    deallocate(NQ)
     deallocate(npassive)
-    deallocate(NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME)
+    deallocate(GDRHO, GDU, GDV, GDW, GDPRES, GDGAME)
 #ifdef RADIATION
     deallocate(GDLAMS, GDERADS)
     deallocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
@@ -1004,7 +983,7 @@ contains
        fspace_type = fsp_type_in
     end if
 
-#ifndef AMREX_USE_CUDA    
+#ifndef AMREX_USE_GPU
     if (fsp_type_in .ne. 1 .and. fsp_type_in .ne. 2) then
        call amrex_error("Unknown fspace_type", fspace_type)
     end if
@@ -1017,7 +996,7 @@ contains
     else if (com_in .eq. 0) then
        comoving = .false.
     else
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
        call amrex_error("Wrong value for comoving", fspace_type)
 #endif
     end if
@@ -1025,7 +1004,6 @@ contains
     flatten_pp_threshold = fppt
     
     !$acc update &
-    !$acc device(NQ,NQAUX) &
     !$acc device(QRAD, QRADHI, QPTOT, QREITOT) &
     !$acc device(fspace_type) &
     !$acc device(do_inelastic_scattering) &

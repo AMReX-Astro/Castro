@@ -12,6 +12,8 @@ extern "C"
 
   void ca_network_finalize();
 
+  void ca_eos_finalize();
+
   void burner_init();
 
   void ca_extern_init(const int* name, const int* namlen);
@@ -19,6 +21,8 @@ extern "C"
   void ca_get_num_spec(int* nspec);
 
   void ca_get_num_aux(int* naux);
+
+  void ca_get_num_adv(int* nadv);
 
   void ca_get_spec_names(int* spec_names, const int* ispec, int* len);
 
@@ -61,12 +65,8 @@ extern "C"
      const int& Eden,    const int& Eint, 
      const int& Temp     , const int& FirstAdv, 
      const int& FirstSpec, const int& FirstAux, 
-     const int& NumAdv,
 #ifdef SHOCK_VAR
      const int& Shock,
-#endif
-#ifdef RADIATION
-     const int& ngroups,
 #endif
      const int* gravity_type, const int& gravity_type_len);
 

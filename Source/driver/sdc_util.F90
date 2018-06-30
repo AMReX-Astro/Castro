@@ -1,6 +1,7 @@
 module sdc_util
 
   use amrex_fort_module, only : rt => amrex_real
+  use amrex_error_module, only : amrex_error
 
   implicit none
 
@@ -17,7 +18,7 @@ contains
     ! update k_m to k_n via advection -- this is a second-order accurate update
 
     use meth_params_module, only : NVAR
-    use bl_constants_module, only : HALF
+    use amrex_constants_module, only : HALF
 
     implicit none
 
@@ -64,7 +65,7 @@ contains
     ! dt is the total timestep from n to n+1
 
     use meth_params_module, only : NVAR
-    use bl_constants_module, only : HALF, TWO, FIVE, EIGHT
+    use amrex_constants_module, only : HALF, TWO, FIVE, EIGHT
 
     implicit none
 
@@ -118,7 +119,7 @@ contains
        enddo
 
     else
-       call bl_error("error in ca_sdc_update_advection_o4 -- shouldn't be here")
+       call amrex_error("error in ca_sdc_update_advection_o4 -- shouldn't be here")
     endif
 
   end subroutine ca_sdc_update_advection_o4
@@ -138,7 +139,7 @@ contains
     ! update k_m to k_n via advection -- this is a second-order accurate update
 
     use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ, UTEMP
-    use bl_constants_module, only : ZERO, HALF, ONE
+    use amrex_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
     use eos_type_module, only : eos_t, eos_input_re
     use eos_module
@@ -293,7 +294,7 @@ contains
                 ! solve the linear system: Jac dU_react = f
                 call dgefa(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, info)
                 if (info /= 0) then
-                   call bl_error("singular matrix")
+                   call amrex_error("singular matrix")
                 endif
 
                 call dgesl(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, f, 0)
@@ -326,7 +327,7 @@ contains
                                     R_source, r_lo, r_hi) &
                                     bind(C, name="ca_instantaneous_react")
 
-    use bl_constants_module, only : ZERO
+    use amrex_constants_module, only : ZERO
     use burn_type_module
     use meth_params_module, only : NVAR, NQ, NQAUX, QFS, QRHO, QTEMP, UFS, UEDEN, UEINT
     use network, only : nspec, nspec_evolve, aion

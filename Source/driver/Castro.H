@@ -512,7 +512,7 @@ public:
 
     void reset_internal_energy (amrex::MultiFab& State);
 
-    void computeTemp (amrex::MultiFab& State);
+    void computeTemp (amrex::MultiFab& State, int ng);
 
     void apply_source_term_predictor();
 
@@ -583,7 +583,7 @@ public:
 
     void add_force_to_sources (amrex::MultiFab& force, amrex::MultiFab& sources, amrex::MultiFab& state);
 
-    void apply_source_to_state (amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng = 0);
+    void apply_source_to_state (int is_new, amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng = 0);
 
     void expand_state(amrex::MultiFab& S, amrex::Real time, int iclean, int ng);
 
@@ -806,6 +806,8 @@ protected:
 
     static void network_finalize ();
 
+    static void eos_finalize ();
+
     static void read_params ();
 
     Castro& getLevel (int lev);
@@ -815,14 +817,14 @@ protected:
 
     void reflux (int crse_level, int fine_level);
 
-    void normalize_species (amrex::MultiFab& S_new);
+    void normalize_species (amrex::MultiFab& S_new, int ng);
 
     void enforce_consistent_e (amrex::MultiFab& S);
 
-    amrex::Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new);
+    amrex::Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new, int ng);
 
-    amrex::Real clean_state (int is_new, amrex::MultiFab& state);
-    amrex::Real clean_state (int is_new);
+    amrex::Real clean_state (int is_new, amrex::MultiFab& state, int ng);
+    amrex::Real clean_state (int is_new, int ng);
 
     amrex::Real clean_state (amrex::MultiFab& state);
 
