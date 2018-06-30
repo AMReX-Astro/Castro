@@ -94,7 +94,7 @@ contains
 #ifdef RADIATION
     real(rt)        , intent(inout) :: rflux(rfd_lo(1):rfd_hi(1),0:ngroups-1)
 #endif
-    real(rt)        , intent(in) :: srcQ(src_lo(1)  :src_hi(1),QVAR)
+    real(rt)        , intent(in) :: srcQ(src_lo(1)  :src_hi(1),NQSRC)
     real(rt)        , intent(inout) :: q1(q1_lo(1):q1_hi(1),NGDNV)
     real(rt)        , intent(in) :: dloga(dloga_lo(1):dloga_hi(1))
     real(rt)        , intent(in) :: area1(area1_lo(1):area1_hi(1))
@@ -141,8 +141,8 @@ contains
        allocate(Ip(I_lo(1):I_hi(1), 3, NQ))
        allocate(Im(I_lo(1):I_hi(1), 3, NQ))
 
-       allocate(Ip_src(I_lo(1):I_hi(1), 3, QVAR))
-       allocate(Im_src(I_lo(1):I_hi(1), 3, QVAR))
+       allocate(Ip_src(I_lo(1):I_hi(1), 3, NQSRC))
+       allocate(Im_src(I_lo(1):I_hi(1), 3, NQSRC))
 
        allocate(Ip_gc(I_lo(1):I_hi(1), 3, 1))
        allocate(Im_gc(I_lo(1):I_hi(1), 3, 1))
@@ -273,17 +273,17 @@ contains
                                lo(1), 0, hi(1), 0, dx, dt, 0, 0)
        endif
 
-       do n = 1, QVAR
-          call ppm_reconstruct(srcQ, src_lo, src_hi, QVAR, n, &
+       do n = 1, NQSRC
+          call ppm_reconstruct(srcQ, src_lo, src_hi, NQSRC, n, &
                                flatn, q_lo, q_hi, &
                                sxm, sxp, q_lo, q_hi, &
                                lo(1), 0, hi(1), 0, dx, 0, 0)
 
-          call ppm_int_profile(srcQ, src_lo, src_hi, QVAR, n, &
+          call ppm_int_profile(srcQ, src_lo, src_hi, NQSRC, n, &
                                q, q_lo, q_hi, &
                                qaux, qa_lo, qa_hi, &
                                sxm, sxp, q_lo, q_hi, &
-                               Ip_src, Im_src, I_lo, I_hi, QVAR, n, &
+                               Ip_src, Im_src, I_lo, I_hi, NQSRC, n, &
                                lo(1), 0, hi(1), 0, dx, dt, 0, 0)
        enddo
 
