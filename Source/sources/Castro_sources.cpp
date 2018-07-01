@@ -289,7 +289,7 @@ void
 Castro::print_source_change(Vector<Real> update)
 {
 
-  BL_ASSERT(update.size() == NUM_STATE);
+  BL_ASSERT(update.size() >= NSRC);
 
   if (ParallelDescriptor::IOProcessor()) {
 

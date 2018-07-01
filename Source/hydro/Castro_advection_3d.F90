@@ -57,7 +57,7 @@ contains
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : QVAR, NQ, NVAR, QPRES, QRHO, QU, QW, &
                                    QFS, QFX, QTEMP, QREINT, &
-                                   QC, QGAMC, NQAUX, &
+                                   QC, QGAMC, NQAUX, NQSRC, &
                                    NGDNV, GDU, GDV, GDW, GDPRES, &
                                    ppm_type, &
                                    use_pslope, ppm_temp_fix, &
