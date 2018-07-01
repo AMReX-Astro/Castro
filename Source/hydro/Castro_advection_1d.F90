@@ -42,7 +42,7 @@ contains
                    dloga, dloga_lo, dloga_hi, &
                    domlo, domhi)
 
-    use meth_params_module, only : QVAR, NQ, NVAR, &
+    use meth_params_module, only : QVAR, NQ, NVAR, NQSRC, &
                                    QC, QFS, QFX, QGAMC, QU, QRHO, QTEMP, QPRES, QREINT, &
                                    NQAUX, NGDNV, &
                                    ppm_type, hybrid_riemann, &
