@@ -13,6 +13,8 @@
   center_T = 0.d0
 
   vel = 0.d0
+
+  fill_ambient_bc = T
 /
 
 &tagging
