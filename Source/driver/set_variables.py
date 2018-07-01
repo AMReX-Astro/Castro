@@ -1,4 +1,4 @@
-#!/bin/env python3
+#!/usr/bin/env python3
 
 # parse the _variables file and write the set of functions that will
 # define the indices.  We write two files with the following functions:
