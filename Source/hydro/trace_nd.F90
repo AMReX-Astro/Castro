@@ -27,7 +27,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, QC, &
-                                   QREINT, QPRES, &
+                                   QREINT, QPRES, NQSRC, &
                                    npassive, qpass_map, small_dens, small_pres, &
                                    ppm_type, fix_mass_flux
     use amrex_constants_module
