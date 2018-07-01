@@ -37,7 +37,9 @@ contains
 
     ! Override the generic routine at the physical boundaries by
     ! setting the material to the ambient state. Note that we
-    ! don't want to do this for interior/periodic boundaries, which have bc == 0.
+    ! don't want to do this for interior/periodic boundaries,
+    ! which have bc == 0, or for reflecting boundaries, which have
+    ! bc == -1 or bc == 1.
 
     if (fill_ambient_bc) then
 
@@ -47,25 +49,25 @@ contains
                 x = xlo(1) + dble(i - adv_lo(1) + HALF)*delta(1)
 
                 if (dim .ge. 1) then
-                   if (i .lt. domlo(1) .and. bc(1,1,1) .ne. 0) then
+                   if (i .lt. domlo(1) .and. (bc(1,1,1) .ne. -1 .and. bc(1,1,1) .ne. 0 .and. bc(1,1,1) .ne. 1)) then
                       call fill_ambient(adv(i,j,k,:), x, time)
-                   else if (i .gt. domhi(1) .and. bc(1,2,1) .ne. 0) then
+                   else if (i .gt. domhi(1) .and. (bc(1,2,1) .ne. -1 .and. bc(1,2,1) .ne. 0 .and. bc(1,2,1) .ne. 1)) then
                       call fill_ambient(adv(i,j,k,:), x, time)
                    end if
                 end if
 
                 if (dim .ge. 2) then
-                   if (j .lt. domlo(2) .and. bc(2,1,1) .ne. 0) then
+                   if (j .lt. domlo(2) .and. (bc(2,1,1) .ne. -1 .and. bc(2,1,1) .ne. 0 .and. bc(2,1,1) .ne. 1)) then
                       call fill_ambient(adv(i,j,k,:), x, time)
-                   else if (j .gt. domhi(2) .and. bc(2,2,1) .ne. 0) then
+                   else if (j .gt. domhi(2) .and. (bc(2,2,1) .ne. -1 .and. bc(2,2,1) .ne. 0 .and. bc(2,2,1) .ne. 1)) then
                       call fill_ambient(adv(i,j,k,:), x, time)
                    end if
                 end if
                 
                 if (dim .eq. 3) then
-                   if (k .lt. domlo(3) .and. bc(3,1,1) .ne. 0) then
+                   if (k .lt. domlo(3) .and. (bc(3,1,1) .ne. -1 .and. bc(3,1,1) .ne. 0 .and. bc(3,1,1) .ne. 1)) then
                       call fill_ambient(adv(i,j,k,:), x, time)
-                   else if (k .gt. domhi(3) .and. bc(3,2,1) .ne. 0) then
+                   else if (k .gt. domhi(3) .and. (bc(3,2,1) .ne. -1 .and. bc(3,2,1) .ne. 0 .and. bc(3,2,1) .ne. 1)) then
                       call fill_ambient(adv(i,j,k,:), x, time)
                    endif
                 endif
