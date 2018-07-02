@@ -3098,8 +3098,14 @@ Castro::reset_internal_energy(MultiFab& S_new)
 }
 
 void
-Castro::computeTemp(MultiFab& State, int ng)
+Castro::computeTemp(int is_new, int ng)
 {
+
+  // this is the "preferred" computeTemp interface -- it will work
+  // directly on StateData.  is_new=0 means the old data is used,
+  // is_new=1 means the new data is used.
+
+  MultiFab& State = is_new == 1 ? get_new_data(State_Type) : get_old_data(State_Type);
 
   reset_internal_energy(State);
 
@@ -3107,7 +3113,13 @@ Castro::computeTemp(MultiFab& State, int ng)
   FArrayBox temp;
 #endif
 
-  const Real  cur_time = state[State_Type].curTime();
+  Real time = 0.0;
+
+  if (is_new == 0) {
+    time = state[State_Type].prevTime();
+  } else {
+    time = state[State_Type].curTime();
+  }
 
   if (fourth_order) {
 
@@ -3122,7 +3134,7 @@ Castro::computeTemp(MultiFab& State, int ng)
     // NUM_GROW+1 ghost cells, as I think we can eliminate a ghost
     // cell fill at the end this way
     Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
-    expand_state(Sborder, cur_time, -1, Sborder.nGrow());
+    expand_state(Sborder, time, -1, Sborder.nGrow());
 
     // convert to cell centers -- this will result in Sborder being
     // cell centered only on NUM_GROW-1 ghost cells
@@ -3200,20 +3212,64 @@ Castro::computeTemp(MultiFab& State, int ng)
 
     // copy back UTEMP and UEINT -- those are the only things that
     // should have changed.
-    MultiFab& S_new = get_new_data(State_Type);
-
-    MultiFab::Copy(S_new, Sborder, Temp, Temp, 1, 0);
-    MultiFab::Copy(S_new, Sborder, Eint, Eint, 1, 0);
+    MultiFab::Copy(State, Sborder, Temp, Temp, 1, 0);
+    MultiFab::Copy(State, Sborder, Eint, Eint, 1, 0);
 
     // now that we redid these, redo the ghost fill -- technically,
     // only need this for UTEMP and UEINT
-    AmrLevel::FillPatch(*this, S_new, S_new.nGrow(), cur_time, State_Type, 0, NUM_STATE);
+    AmrLevel::FillPatch(*this, State, State.nGrow(), time, State_Type, 0, NUM_STATE);
 
     Sborder.clear();
   }
 
 }
 
+
+void
+Castro::computeTemp(MultiFab& State, int ng)
+{
+
+  // this is the old version of computeTemp that works for an
+  // arbitrary MF.  This will not work for 4th order hydr
+  if (fourth_order) {
+    amrex::Error("this version of computeTemp does not work for 4th order -- you shouldn't have gotten here");
+  }
+
+  reset_internal_energy(State);
+
+#ifdef RADIATION
+  FArrayBox temp;
+#endif
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(State,true); mfi.isValid(); ++mfi)
+    {
+      const Box& bx = mfi.growntilebox(ng);
+      
+#ifdef RADIATION
+      if (Radiation::do_real_eos == 0) {
+	temp.resize(bx);
+	temp.copy(State[mfi],bx,Eint,bx,0,1);
+	
+	ca_compute_temp_given_cv
+	  (bx.loVect(), bx.hiVect(), 
+	   BL_TO_FORTRAN(temp), 
+	   BL_TO_FORTRAN(State[mfi]),
+	   &Radiation::const_c_v, &Radiation::c_v_exp_m, &Radiation::c_v_exp_n);
+	
+	State[mfi].copy(temp,bx,0,bx,Temp,1);
+      } else {
+#endif
+#pragma gpu
+	ca_compute_temp(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
+			BL_TO_FORTRAN_3D(State[mfi]));
+#ifdef RADIATION
+      }
+#endif
+    }
+}
 
 
 void
@@ -3723,7 +3779,7 @@ Castro::clean_state(int is_new, MultiFab& state_old, int ng) {
 
   // Compute the temperature (note that this will also reset
   // the internal energy for consistency with the total energy).
-  computeTemp(state, ng);
+  computeTemp(is_new, ng);
 
   return frac_change;
 

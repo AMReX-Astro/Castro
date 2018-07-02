@@ -512,6 +512,8 @@ public:
 
     void reset_internal_energy (amrex::MultiFab& State);
 
+    void computeTemp (int is_new, int ng);
+
     void computeTemp (amrex::MultiFab& State, int ng);
 
     void apply_source_term_predictor();
