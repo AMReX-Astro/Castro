@@ -98,6 +98,7 @@ static int small_plot_per_is_exact;
 static int use_retry;
 static amrex::Real retry_tolerance;
 static amrex::Real retry_neg_dens_factor;
+static amrex::Real retry_subcycle_factor;
 static int use_post_step_regrid;
 static int max_subcycles;
 static int clamp_subcycles;

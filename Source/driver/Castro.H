@@ -258,7 +258,7 @@ public:
                      int  amr_ncycle);
 
 #ifndef AMREX_USE_CUDA
-    amrex::Real retry_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+    bool retry_advance (amrex::Real& time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
     amrex::Real subcycle_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 #endif
@@ -744,6 +744,11 @@ protected:
     int cfl_violation;
 
     //
+    // Did we have a successful burn?
+    //
+    int burn_success;
+
+    //
     // State data to hold if we want to do a retry.
     //
     amrex::Vector<std::unique_ptr<amrex::StateData> > prev_state;
@@ -888,6 +893,9 @@ protected:
 
     static int         lastDtPlotLimited;
     static amrex::Real lastDtBeforePlotLimiting;
+
+    int lastDtRetryLimited;
+    amrex::Real lastDtFromRetry;
 
     // for keeping track of mass changes from negative density resets
     static amrex::Real      frac_change;

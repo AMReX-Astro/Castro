@@ -875,7 +875,8 @@ extern "C"
      BL_FORT_FAB_ARG_3D(reactions),
      BL_FORT_FAB_ARG_3D(weights),
      const BL_FORT_IFAB_ARG_3D(mask),
-     const amrex::Real& time, const amrex::Real& dt_react, const int& strang_half);
+     const amrex::Real& time, const amrex::Real& dt_react, const int& strang_half,
+     int* burn_success);
 #endif
 #endif
 
