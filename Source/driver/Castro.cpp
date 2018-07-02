@@ -3124,7 +3124,13 @@ Castro::computeTemp(MultiFab& State, int ng)
 #endif
   for (MFIter mfi(State,true); mfi.isValid(); ++mfi)
     {
-      const Box& bx = mfi.growntilebox(ng);
+
+      int num_ghost = ng;
+      if (fourth_order) {
+        num_ghost = ng-1;
+      }
+
+      const Box& bx = mfi.growntilebox(num_ghost);
 
 #ifdef RADIATION
       if (Radiation::do_real_eos == 0) {
