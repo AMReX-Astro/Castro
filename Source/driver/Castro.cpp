@@ -3096,11 +3096,16 @@ Castro::computeTemp(MultiFab& State, int ng)
 
     // we need to make the data live at cell-centers first
 
-    // fill Sborder with S_new -- TODO: we might consider using
+    // fill Sborder with S_new.  Note, expand_state can call
+    // clean_state, which in turn calls computeTemp, and we'd be
+    // circular, so we ensure that we skip the clean state by passing
+    // -1 in for the "iclean" flag.
+
+    // TODO: we might consider using
     // NUM_GROW+1 ghost cells, as I think we can eliminate a ghost
     // cell fill at the end this way
     Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
-    expand_state(Sborder, cur_time, Sborder.nGrow());
+    expand_state(Sborder, cur_time, -1, Sborder.nGrow());
 
     // convert to cell centers -- this will result in Sborder being
     // cell centered only on NUM_GROW-1 ghost cells
@@ -3141,11 +3146,11 @@ Castro::computeTemp(MultiFab& State, int ng)
         if (fourth_order) {
           // note, this is working on a growntilebox, but we will not have 
           // valid cell-centers in the very last ghost cell
-          ca_compute_temp(ARLIM_ARLIM_ARG(bx.loVect()), ARLIM_ARLIM_ARG(bx.hiVect()),
+          ca_compute_temp(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
                           BL_TO_FORTRAN_3D(Sborder[mfi]));
         } else {
 #pragma gpu
-          ca_compute_temp(ARLIM_ARLIM_ARG(bx.loVect()), ARLIM_ARLIM_ARG(bx.hiVect()),
+          ca_compute_temp(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
                           BL_TO_FORTRAN_3D(State[mfi]));
         }
 
