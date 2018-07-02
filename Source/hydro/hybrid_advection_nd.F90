@@ -45,7 +45,7 @@ contains
   subroutine ca_hybrid_hydro_source(lo, hi, state, s_lo, s_hi, ext_src, e_lo, e_hi, mult_factor) bind(C,name='ca_hybrid_hydro_source')
 
     use amrex_constants_module, only: ONE
-    use meth_params_module, only: NVAR, URHO, UMR, UML
+    use meth_params_module, only: NVAR, URHO, UMR, UML, NSRC
     use prob_params_module, only: center
     use castro_util_module, only: position
     use network, only: nspec, naux
