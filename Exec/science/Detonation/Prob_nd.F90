@@ -1,20 +1,25 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module, only: T_l, T_r, dens, cfrac, idir, w_T, center_T, &
-                             xn, ihe4, ic12, io16, smallx, vel
+                             xn, ihe4, ic12, io16, smallx, vel, fill_ambient_bc, &
+                             ambient_dens, ambient_temp, ambient_comp, ambient_e_l, ambient_e_r
   use network, only: network_species_index, nspec
   use amrex_error_module, only: amrex_error
   use amrex_fort_module, only: rt => amrex_real
+  use eos_type_module, only: eos_t, eos_input_rt
+  use eos_module, only: eos
 
   implicit none
 
   integer,  intent(in) :: init, namlen
   integer,  intent(in) :: name(namlen)
-  real(rt), intent(in) :: problo(1), probhi(1)
+  real(rt), intent(in) :: problo(3), probhi(3)
+
+  type(eos_t) :: eos_state
 
   integer :: untin,i
 
-  namelist /fortin/ T_l, T_r, dens, cfrac, idir, w_T, center_T, smallx, vel
+  namelist /fortin/ T_l, T_r, dens, cfrac, idir, w_T, center_T, smallx, vel, fill_ambient_bc
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
 
@@ -37,15 +42,16 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   idir = 1                ! direction across which to jump
   cfrac = 0.5
 
-  w_T = 5.e-4_rt          ! ratio of the width of temperature transition zone to the full domain
-  center_T = 3.e-1_rt     ! central position parameter of teperature profile transition zone
+  w_T = 5.e-4_rt           ! ratio of the width of temperature transition zone to the full domain
+  center_T = 3.e-1_rt      ! central position parameter of teperature profile transition zone
 
   vel = 0.e0_rt           ! infall velocity towards the transition point
 
+  fill_ambient_bc = .false.
+
   ! Read namelists
-  untin = 9
-  open(untin,file=probin(1:namlen),form='formatted',status='old')
-  read(untin,fortin)
+  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
+  read(untin, fortin)
   close(unit=untin)
 
   ! get the species indices
@@ -68,6 +74,27 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   xn(:) = smallx
   xn(ic12) = cfrac
   xn(ihe4) = 1.e0_rt - cfrac - (nspec - 1)*smallx
+
+  ! Set the ambient material
+  allocate(ambient_comp(nspec))
+
+  ambient_dens = dens
+  ambient_comp = xn
+
+  eos_state % rho = ambient_dens
+  eos_state % xn  = ambient_comp
+
+  eos_state % T   = T_l
+
+  call eos(eos_input_rt, eos_state)
+
+  ambient_e_l = eos_state % e
+
+  eos_state % T   = T_r
+
+  call eos(eos_input_rt, eos_state)
+
+  ambient_e_r = eos_state % e
 
 end subroutine amrex_probinit
 
@@ -94,54 +121,61 @@ end subroutine amrex_probinit
 ! :::		   ghost region).
 ! ::: -----------------------------------------------------------
 subroutine ca_initdata(level,time,lo,hi,nscal, &
-                       state,state_l1,state_h1,delta,xlo,xhi)
+                       state,state_lo,state_hi, &
+                       delta,xlo,xhi)
 
   use network, only: nspec
   use eos_module, only: eos
   use eos_type_module, only: eos_t, eos_input_rt
   use probdata_module, only: T_l, T_r, center_T, w_T, dens, vel, xn
-  use meth_params_module, only: NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, UFS
+  use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
   use amrex_fort_module, only: rt => amrex_real
   use prob_params_module, only: problo, probhi
 
   implicit none
 
   integer,  intent(in   ) :: level, nscal
-  integer,  intent(in   ) :: lo(1), hi(1)
-  integer,  intent(in   ) :: state_l1,state_h1
-  real(rt), intent(inout) :: state(state_l1:state_h1,NVAR)
-  real(rt), intent(in   ) :: time, delta(1)
-  real(rt), intent(in   ) :: xlo(1), xhi(1)
+  integer,  intent(in   ) :: lo(3), hi(3)
+  integer,  intent(in   ) :: state_lo(3), state_hi(3)
+  real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+  real(rt), intent(in   ) :: time, delta(3)
+  real(rt), intent(in   ) :: xlo(3), xhi(3)
 
   real(rt) :: sigma, width, c_T
   real(rt) :: xcen
-  integer  :: i
+  integer  :: i, j, k
 
   type (eos_t) :: eos_state
-
+  
   width = w_T * (probhi(1) - problo(1))
   c_T = problo(1) + center_T * (probhi(1) - problo(1))
 
-  do i = lo(1), hi(1)
-     xcen = xlo(1) + delta(1)*(dble(i-lo(1)) + 0.5e0_rt)
+  do k = lo(3), hi(3)
+     do j = lo(2), hi(2)
+        do i = lo(1), hi(1)
+           xcen = xlo(1) + delta(1)*(dble(i-lo(1)) + 0.5e0_rt)
 
-     state(i,URHO ) = dens
+           state(i,j,k,URHO ) = dens
 
-     sigma = 1.0 / (1.0 + exp(-(c_T - xcen)/ width))
+           sigma = 1.0 / (1.0 + exp(-(c_T - xcen)/ width))
 
-     state(i,UTEMP) = T_l + (T_r - T_l) * (1 - sigma)
+           state(i,j,k,UTEMP) = T_l + (T_r - T_l) * (1 - sigma)
 
-     state(i,UFS:UFS-1+nspec) = state(i,URHO)*xn(1:nspec)
+           state(i,j,k,UFS:UFS-1+nspec) = state(i,j,k,URHO)*xn(1:nspec)
 
-     eos_state%rho = state(i,URHO)
-     eos_state%T = state(i,UTEMP)
-     eos_state%xn(:) = xn
+           eos_state%rho = state(i,j,k,URHO)
+           eos_state%T = state(i,j,k,UTEMP)
+           eos_state%xn(:) = xn
 
-     call eos(eos_input_rt, eos_state)
+           call eos(eos_input_rt, eos_state)
 
-     state(i,UMX  ) = state(i,URHO) * (vel - 2 * vel * (1.0e0_rt - sigma))
-     state(i,UEINT) = state(i,URHO) * eos_state%e
-     state(i,UEDEN) = state(i,UEINT) + 0.5e0_rt * state(i,UMX)**2 / state(i,URHO)
+           state(i,j,k,UMX  ) = state(i,j,k,URHO) * (vel - 2 * vel * (1.0e0_rt - sigma))
+           state(i,j,k,UMY  ) = 0.e0_rt
+           state(i,j,k,UMZ  ) = 0.e0_rt
+           state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state%e
+           state(i,j,k,UEDEN) = state(i,j,k,UEINT) + 0.5e0_rt * sum(state(i,j,k,UMX:UMZ)**2) / state(i,j,k,URHO)
+        enddo
+     enddo
   enddo
 
 end subroutine ca_initdata
