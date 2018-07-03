@@ -3121,28 +3121,30 @@ Castro::computeTemp(int is_new, int ng)
     time = state[State_Type].curTime();
   }
 
+  MultiFab Stemp;
+
   if (fourth_order) {
 
     // we need to make the data live at cell-centers first
 
-    // fill Sborder with S_new.  Note, expand_state can call
+    // fill Stemp with S_new.  Note, expand_state can call
     // clean_state, which in turn calls computeTemp, and we'd be
     // circular, so we ensure that we skip the clean state by passing
     // -1 in for the "iclean" flag.
 
-    // TODO: we might consider using
-    // NUM_GROW+1 ghost cells, as I think we can eliminate a ghost
-    // cell fill at the end this way
-    Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
-    expand_state(Sborder, time, -1, Sborder.nGrow());
+    // we only need 2 ghost cells here, then the make_cell_center
+    // makes 1 ghost cell a valid center, we compute its temp, and
+    // then the final average results only in interior temps valid
+    Stemp.define(State.boxArray(), State.DistributionMap(), NUM_STATE, 2);
+    expand_state(Stemp, time, -1, Stemp.nGrow());
 
-    // convert to cell centers -- this will result in Sborder being
-    // cell centered only on NUM_GROW-1 ghost cells
-    for (MFIter mfi(Sborder); mfi.isValid(); ++mfi) {
-      const Box& bx = mfi.growntilebox(NUM_GROW-1);
+    // convert to cell centers -- this will result in Stemp being
+    // cell centered only on 1 ghost cells
+    for (MFIter mfi(Stemp); mfi.isValid(); ++mfi) {
+      const Box& bx = mfi.growntilebox(1);
       const int idx = mfi.tileIndex();
       ca_make_cell_center_in_place(BL_TO_FORTRAN_BOX(bx),
-                                   BL_TO_FORTRAN_FAB(Sborder[mfi]));
+                                   BL_TO_FORTRAN_FAB(Stemp[mfi]));
 
     }
 
@@ -3156,7 +3158,8 @@ Castro::computeTemp(int is_new, int ng)
 
       int num_ghost = ng;
       if (fourth_order) {
-        num_ghost = ng-1;
+        // only one ghost cell is at cell-centers
+        num_ghost = 1;
       }
 
       const Box& bx = mfi.growntilebox(num_ghost);
@@ -3182,7 +3185,7 @@ Castro::computeTemp(int is_new, int ng)
           // note, this is working on a growntilebox, but we will not have 
           // valid cell-centers in the very last ghost cell
           ca_compute_temp(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
-                          BL_TO_FORTRAN_3D(Sborder[mfi]));
+                          BL_TO_FORTRAN_3D(Stemp[mfi]));
         } else {
 #pragma gpu
           ca_compute_temp(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
@@ -3196,30 +3199,32 @@ Castro::computeTemp(int is_new, int ng)
 
   if (fourth_order) {
 
-    // we need to copy back from Sborder into S_new, making it cell-average
+    // we need to copy back from Stemp into S_new, making it cell-average
     // in the process
 
-    for (MFIter mfi(Sborder); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(Stemp); mfi.isValid(); ++mfi) {
 
       // we'll only make the interior valid
       const Box& bx = mfi.tilebox();
       const int idx = mfi.tileIndex();
       ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
-                              BL_TO_FORTRAN_FAB(Sborder[mfi]));
+                              BL_TO_FORTRAN_FAB(Stemp[mfi]));
 
     }
 
 
     // copy back UTEMP and UEINT -- those are the only things that
     // should have changed.
-    MultiFab::Copy(State, Sborder, Temp, Temp, 1, 0);
-    MultiFab::Copy(State, Sborder, Eint, Eint, 1, 0);
+    MultiFab::Copy(State, Stemp, Temp, Temp, 1, 0);
+    MultiFab::Copy(State, Stemp, Eint, Eint, 1, 0);
 
     // now that we redid these, redo the ghost fill -- technically,
-    // only need this for UTEMP and UEINT
-    AmrLevel::FillPatch(*this, State, State.nGrow(), time, State_Type, 0, NUM_STATE);
+    // only need this for UTEMP and UEINT, and only if ng > 0
+    if (ng > 0) {
+      AmrLevel::FillPatch(*this, State, State.nGrow(), time, State_Type, 0, NUM_STATE);
+    }
 
-    Sborder.clear();
+    Stemp.clear();
   }
 
 }
@@ -3751,6 +3756,8 @@ Castro::clean_state(int is_new, int ng) {
   MultiFab::Copy(temp_state, state, 0, 0, state.nComp(), ng);
 
   Real frac_change = clean_state(is_new, temp_state, ng);
+
+  temp_state.clear();
 
   return frac_change;
 
