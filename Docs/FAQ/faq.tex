@@ -213,6 +213,17 @@ the existence of these files is checked; by default it is 10, so the
 check will be done at the end of every timestep that is a multiple of 10.
 Set that to 1 in your inputs file if you'd like it to check every timestep.
 
+
+\item {\em How can I output plotfiles in single precision?}
+
+The \amrex\ runtime parameter:
+\begin{verbatim}
+fab.format = NATIVE_32
+\end{verbatim}
+controls this (put this in your inputs file).  Note: checkpoint files are unaffected 
+by this and will always be written out in the native precision (the `fab.format` parameter
+is overridden in the checkpoint code in \amrex).
+
 \end{enumerate}
 
 \section{Visualization}

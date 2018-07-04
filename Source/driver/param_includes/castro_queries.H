@@ -97,6 +97,7 @@ pp.query("small_plot_per_is_exact", small_plot_per_is_exact);
 pp.query("use_retry", use_retry);
 pp.query("retry_tolerance", retry_tolerance);
 pp.query("retry_neg_dens_factor", retry_neg_dens_factor);
+pp.query("retry_subcycle_factor", retry_subcycle_factor);
 pp.query("use_post_step_regrid", use_post_step_regrid);
 pp.query("max_subcycles", max_subcycles);
 pp.query("clamp_subcycles", clamp_subcycles);
