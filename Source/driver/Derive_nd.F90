@@ -35,10 +35,12 @@ contains
 
     integer          :: i, j, k
 
+#ifndef AMREX_USE_CUDA    
     if (nv .ne. 3) then
        print *,'... confusion in derstate ... nv should be 3 but is ',nv
        call amrex_error('Error:: Derive_nd.f90 :: ca_derstate')
     end if
+#endif
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)

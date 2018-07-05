@@ -2,7 +2,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module
   use model_parser_module
-  use bl_error_module
+  use amrex_error_module
   use prob_params_module, only : center
 
   use amrex_fort_module, only : rt => amrex_real
@@ -24,7 +24,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   character model*(maxlen)
   integer ipp, ierr, ipp1
 
-  if (namlen .gt. maxlen) call bl_error("probin file name too long")
+  if (namlen .gt. maxlen) call amrex_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -84,7 +84,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use prob_params_module, only : center, problo, probhi
   use eos_type_module
   use eos_module
-  use bl_constants_module, only : ZERO, HALF
+  use amrex_constants_module, only : ZERO, HALF
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none

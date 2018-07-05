@@ -70,6 +70,7 @@ int         Castro::small_plot_per_is_exact = 0;
 int         Castro::use_retry = 0;
 amrex::Real Castro::retry_tolerance = 0.02;
 amrex::Real Castro::retry_neg_dens_factor = 1.e-1;
+amrex::Real Castro::retry_subcycle_factor = 0.5;
 int         Castro::use_post_step_regrid = 0;
 int         Castro::max_subcycles = 10;
 int         Castro::clamp_subcycles = 1;

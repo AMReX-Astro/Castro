@@ -7,16 +7,15 @@ module thermo_sources
   implicit none
 
 contains
-  subroutine ca_thermo_src(lo, hi,&
-                           old_state, os_lo, os_hi,&
-                           new_state, ns_lo, ns_hi,&
+
+  subroutine ca_thermo_src(lo, hi, &
+                           old_state, os_lo, os_hi, &
+                           new_state, ns_lo, ns_hi, &
                            src, src_lo, src_hi, problo, dx, time, dt) bind(C, name="ca_thermo_src")
 
     use amrex_constants_module, only: ZERO, HALF, FOURTH
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UFS, UEINT
-
     use amrex_fort_module, only : rt => amrex_real
-
     use network, only : nspec
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
@@ -30,11 +29,14 @@ contains
     real(rt), intent(in) :: old_state(os_lo(1):os_hi(1),os_lo(2):os_hi(2),os_lo(3):os_hi(3),NVAR)
     real(rt), intent(in) :: new_state(ns_lo(1):ns_hi(1),ns_lo(2):ns_hi(2),ns_lo(3):ns_hi(3),NVAR)
     real(rt), intent(inout) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
-    real(rt), intent(in) :: problo(3),dx(3),time,dt
+    real(rt), intent(in) :: problo(3),dx(3)
+    real(rt), intent(in), value :: time,dt
 
     integer :: i, j, k
 
     type(eos_t) :: eos_state_old, eos_state_new
+
+    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)

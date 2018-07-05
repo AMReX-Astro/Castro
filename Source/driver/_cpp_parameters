@@ -291,6 +291,10 @@ retry_tolerance              Real          0.02
 # number then it will disable retries using this criterion.
 retry_neg_dens_factor        Real          1.e-1
 
+# When performing a retry, the factor to multiply the current
+# timestep by when trying again.
+retry_subcycle_factor        Real          0.5
+
 # Check for a possible post-timestep regrid if certain stability
 # criteria were violated.
 use_post_step_regrid         int           0

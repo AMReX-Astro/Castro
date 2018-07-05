@@ -14,7 +14,7 @@ Castro::apply_source_to_state(
 			      MultiFab& by,
 			      MultiFab& bz,
 #endif
-                              MultiFab& state, MultiFab& source, Real dt, int ng)
+                              int is_new, MultiFab& state, MultiFab& source, Real dt, int ng)
 {
     AMREX_ASSERT(source.nGrow() >= ng);
     AMREX_ASSERT(state.nGrow() >= ng);
@@ -25,7 +25,7 @@ Castro::apply_source_to_state(
 #ifdef MHD
                 bx, by, bz,
 #endif
-                state);
+                is_new, state.nGrow());
 }
 
 void
