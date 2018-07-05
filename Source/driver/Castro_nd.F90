@@ -41,6 +41,8 @@ subroutine ca_extern_init(name,namlen) bind(C, name="ca_extern_init")
 
   use amrex_fort_module, only: rt => amrex_real
 
+  implicit none
+
   integer, intent(in) :: namlen
   integer, intent(in) :: name(namlen)
 
@@ -777,6 +779,8 @@ subroutine ca_get_tagging_params(name, namlen) &
   use amrex_error_module
   use amrex_fort_module, only: rt => amrex_real
 
+  implicit none
+
   integer, intent(in) :: namlen
   integer, intent(in) :: name(namlen)
 
@@ -867,6 +871,8 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   use sponge_module
   use amrex_error_module
   use amrex_fort_module, only: rt => amrex_real
+
+  implicit none
 
   integer, intent(in) :: namlen
   integer, intent(in) :: name(namlen)
