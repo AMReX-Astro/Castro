@@ -208,7 +208,7 @@ extern "C"
      BL_FORT_FAB_ARG_3D(bz),
 #endif
      BL_FORT_FAB_ARG_3D(S_new),
-     const int* verbose);
+     const int verbose);
 
   void ca_generic_single_fill
     (BL_FORT_FAB_ARG_3D(state),

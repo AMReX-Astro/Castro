@@ -605,7 +605,7 @@ public:
 		      amrex::MultiFab& By,
 		      amrex::MultiFab& Bz,
 #endif
-                      int is_new, amrex::MultiFab& S, amrex::Real time, int clean, int ng);
+                      amrex::MultiFab& S, amrex::Real time, int clean, int ng);
 
 #ifdef SELF_GRAVITY
     void make_radial_data (int is_new);
