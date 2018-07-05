@@ -18,6 +18,11 @@
 /
 
 &tagging
+  temperr = 2.d8
+  max_temperr_lev = 20
+
+  tempgrad_rel = 0.5
+  max_tempgrad_rel_lev = 20
 /
 
 &extern
