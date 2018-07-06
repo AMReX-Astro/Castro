@@ -1071,6 +1071,25 @@ Castro::retry_advance(Real& time, Real dt, int amr_iteration, int amr_ncycle)
 
         sources_for_hydro.setVal(0.0, NUM_GROW);
 
+        // Clear the contribution to the fluxes from this step.
+
+        for (int dir = 0; dir < 3; ++dir)
+            fluxes[dir]->setVal(0.0);
+
+        for (int dir = 0; dir < 3; ++dir)
+            mass_fluxes[dir]->setVal(0.0);
+
+#if (BL_SPACEDIM <= 2)
+        if (!Geometry::IsCartesian())
+            P_radial.setVal(0.0);
+#endif
+
+#ifdef RADIATION
+        if (Radiation::rad_hydro_combined)
+            for (int dir = 0; dir < BL_SPACEDIM; ++dir)
+                rad_fluxes[dir]->setVal(0.0);
+#endif
+
 #ifndef SDC
         if (source_term_predictor == 1) {
 
