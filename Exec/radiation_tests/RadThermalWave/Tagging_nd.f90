@@ -3,18 +3,18 @@ module tagging_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  real(rt)        , save ::    denerr,   dengrad
-  real(rt)        , save ::    enterr,   entgrad
-  real(rt)        , save ::    velerr,   velgrad
-  real(rt)        , save ::   temperr,  tempgrad
-  real(rt)        , save ::  presserr, pressgrad
-  real(rt)        , save ::    raderr,   radgrad
-  integer         , save ::  max_denerr_lev,   max_dengrad_lev
-  integer         , save ::  max_enterr_lev,   max_entgrad_lev
-  integer         , save ::  max_velerr_lev,   max_velgrad_lev
-  integer         , save ::  max_temperr_lev,  max_tempgrad_lev
-  integer         , save ::  max_presserr_lev, max_pressgrad_lev
-  integer         , save ::  max_raderr_lev,   max_radgrad_lev
+  real(rt)        , save ::    denerr,   dengrad, dengrad_rel
+  real(rt)        , save ::    enterr,   entgrad, entgrad_rel
+  real(rt)        , save ::    velerr,   velgrad, velgrad_rel
+  real(rt)        , save ::   temperr,  tempgrad, tempgrad_rel
+  real(rt)        , save ::  presserr, pressgrad, pressgrad_rel
+  real(rt)        , save ::    raderr,   radgrad, radgrad_rel
+  integer         , save ::  max_denerr_lev,   max_dengrad_lev, max_dengrad_rel_lev
+  integer         , save ::  max_enterr_lev,   max_entgrad_lev, max_entgrad_rel_lev
+  integer         , save ::  max_velerr_lev,   max_velgrad_lev, max_velgrad_rel_lev
+  integer         , save ::  max_temperr_lev,  max_tempgrad_lev, max_tempgrad_rel_lev
+  integer         , save ::  max_presserr_lev, max_pressgrad_lev, max_pressgrad_rel_lev
+  integer         , save ::  max_raderr_lev,   max_radgrad_lev, max_radgrad_rel_lev
 
   public
 
@@ -51,8 +51,8 @@ contains
        delta,xlo,problo,time,level) bind(C, name="ca_temperror")
 
     use prob_params_module, only: dim
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer          :: set, clear, np, level
