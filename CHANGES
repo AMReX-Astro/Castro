@@ -4,6 +4,9 @@
      the middle of a group of subcycles, rather than at the
      beginning of the advance (#358).
 
+  -- A bug with the logic of refluxing when using retries was
+     fixed (#357).
+
   -- Tagging can now be done on relative gradients, in addition
      to the existing capability for absolute gradients (#354).
      For example, tempgrad_rel is a relative gradient criterion
