@@ -62,7 +62,7 @@ castro.use_stopping_criterion = 1
 castro.T_stopping_criterion = 5.e9
 castro.ts_te_stopping_criterion = 1.e200
 
-amr.compute_new_dt_on_regrid = 1
+amr.compute_new_dt_on_regrid = 0
 
 castro.state_interp_order = 0
 castro.lin_limit_state_interp = 1
