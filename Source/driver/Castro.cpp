@@ -3629,12 +3629,28 @@ Castro::expand_state(
   // right afterwards
 
   if (iclean == 0) {
-    clean_state(iclean, 0);
+    clean_state(
+#ifdef MHD
+                Bx, By, Bz,
+#endif
+		iclean, 0);
   } else if (iclean == 1) {
-    clean_state(iclean, 0);
+    clean_state(
+#ifdef MHD
+                Bx, By, Bz,
+#endif
+		iclean, 0);
   } else if (iclean == 2) {
-    clean_state(0, 0);
-    clean_state(1, 0);
+    clean_state(
+#ifdef MHD
+                Bx, By, Bz,
+#endif
+		0, 0);
+    clean_state(
+#ifdef MHD
+                Bx, By, Bz,
+#endif
+		1, 0);
   }
 
   BL_ASSERT(S.nGrow() >= ng);
@@ -3765,7 +3781,11 @@ Castro::clean_state(
 
   MultiFab::Copy(temp_state, state, 0, 0, state.nComp(), ng);
 
-  Real frac_change = clean_state(is_new, temp_state, ng);
+  Real frac_change = clean_state(
+#ifdef MHD
+                                 bx, by, bz,
+#endif
+		                 is_new, temp_state, ng);
 
   return frac_change;
 
@@ -3773,7 +3793,13 @@ Castro::clean_state(
 
 
 Real
-Castro::clean_state(int is_new, MultiFab& state_old, int ng) {
+Castro::clean_state(
+#ifdef MHD
+                    MultiFab& bx, 
+		    MultiFab& by,
+		    MultiFab& bz,
+#endif 
+		    int is_new, MultiFab& state_old, int ng) {
 
   MultiFab& state = is_new == 1 ? get_new_data(State_Type) : get_old_data(State_Type);
 
@@ -3795,7 +3821,11 @@ Castro::clean_state(int is_new, MultiFab& state_old, int ng) {
 
   // Compute the temperature (note that this will also reset
   // the internal energy for consistency with the total energy).
-  computeTemp(state, ng);
+  computeTemp(
+#ifdef MHD
+              bx, by, bz,
+#endif
+	      state, ng);
 
   return frac_change;
 
