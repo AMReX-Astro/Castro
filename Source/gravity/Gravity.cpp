@@ -15,7 +15,7 @@
 #include <AMReX_MLMG.H>
 #include <AMReX_MLPoisson.H>
 
-#define MAX_LEV 15
+#define MAX_LEV 30
 
 #include "gravity_defaults.H"
 
