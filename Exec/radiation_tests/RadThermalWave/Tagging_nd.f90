@@ -114,7 +114,7 @@ contains
                    ax = MAX(ax,ABS(temp(i,j,k,1) - temp(i-1,j,k,1)))
                    ay = MAX(ay,ABS(temp(i,j,k,1) - temp(i,j-1,k,1)))
                    az = MAX(az,ABS(temp(i,j,k,1) - temp(i,j,k-1,1)))
-                   gradT = sqrt(ax**2 + ay**2 + az*82)
+                   gradT = sqrt(ax**2 + ay**2 + az**2)
                    if (gradT / temp(i,j,k,1) .ge. tempgrad .and. &
                         temp(i,j,k,1) .ge. temperr) then
                       tag(i,j,k) = set
