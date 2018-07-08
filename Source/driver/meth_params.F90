@@ -160,6 +160,7 @@ module meth_params_module
   real(rt), allocatable, save :: dtnuc_X_threshold
   real(rt), allocatable, save :: dxnuc
   real(rt), allocatable, save :: dxnuc_max
+  integer,  allocatable, save :: max_dxnuc_lev
   integer,  allocatable, save :: do_react
   real(rt), allocatable, save :: react_T_min
   real(rt), allocatable, save :: react_T_max
@@ -243,6 +244,7 @@ module meth_params_module
   attributes(managed) :: dtnuc_X_threshold
   attributes(managed) :: dxnuc
   attributes(managed) :: dxnuc_max
+  attributes(managed) :: max_dxnuc_lev
   attributes(managed) :: do_react
   attributes(managed) :: react_T_min
   attributes(managed) :: react_T_max
@@ -289,16 +291,17 @@ module meth_params_module
   !$acc create(first_order_hydro, hse_zero_vels, hse_interp_temp) &
   !$acc create(hse_reflect_vels, mol_order, cfl) &
   !$acc create(dtnuc_e, dtnuc_X, dtnuc_X_threshold) &
-  !$acc create(dxnuc, dxnuc_max, do_react) &
-  !$acc create(react_T_min, react_T_max, react_rho_min) &
-  !$acc create(react_rho_max, disable_shock_burning, diffuse_cutoff_density) &
-  !$acc create(diffuse_cond_scale_fac, do_grav, grav_source_type) &
-  !$acc create(do_rotation, rot_period, rot_period_dot) &
-  !$acc create(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
-  !$acc create(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
-  !$acc create(rot_axis, use_point_mass, point_mass) &
-  !$acc create(point_mass_fix_solution, do_acc, grown_factor) &
-  !$acc create(track_grid_losses, const_grav, get_g_from_phi)
+  !$acc create(dxnuc, dxnuc_max, max_dxnuc_lev) &
+  !$acc create(do_react, react_T_min, react_T_max) &
+  !$acc create(react_rho_min, react_rho_max, disable_shock_burning) &
+  !$acc create(diffuse_cutoff_density, diffuse_cond_scale_fac, do_grav) &
+  !$acc create(grav_source_type, do_rotation, rot_period) &
+  !$acc create(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
+  !$acc create(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
+  !$acc create(implicit_rotation_update, rot_axis, use_point_mass) &
+  !$acc create(point_mass, point_mass_fix_solution, do_acc) &
+  !$acc create(grown_factor, track_grid_losses, const_grav) &
+  !$acc create(get_g_from_phi)
 
   ! End the declarations of the ParmParse parameters
 
@@ -482,6 +485,8 @@ contains
     dxnuc = 1.d200;
     allocate(dxnuc_max)
     dxnuc_max = 1.d200;
+    allocate(max_dxnuc_lev)
+    max_dxnuc_lev = 30;
     allocate(do_react)
     do_react = -1;
     allocate(react_T_min)
@@ -581,6 +586,7 @@ contains
     call pp%query("dtnuc_X_threshold", dtnuc_X_threshold)
     call pp%query("dxnuc", dxnuc)
     call pp%query("dxnuc_max", dxnuc_max)
+    call pp%query("max_dxnuc_lev", max_dxnuc_lev)
     call pp%query("do_react", do_react)
     call pp%query("react_T_min", react_T_min)
     call pp%query("react_T_max", react_T_max)
@@ -613,16 +619,17 @@ contains
     !$acc device(first_order_hydro, hse_zero_vels, hse_interp_temp) &
     !$acc device(hse_reflect_vels, mol_order, cfl) &
     !$acc device(dtnuc_e, dtnuc_X, dtnuc_X_threshold) &
-    !$acc device(dxnuc, dxnuc_max, do_react) &
-    !$acc device(react_T_min, react_T_max, react_rho_min) &
-    !$acc device(react_rho_max, disable_shock_burning, diffuse_cutoff_density) &
-    !$acc device(diffuse_cond_scale_fac, do_grav, grav_source_type) &
-    !$acc device(do_rotation, rot_period, rot_period_dot) &
-    !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
-    !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
-    !$acc device(rot_axis, use_point_mass, point_mass) &
-    !$acc device(point_mass_fix_solution, do_acc, grown_factor) &
-    !$acc device(track_grid_losses, const_grav, get_g_from_phi)
+    !$acc device(dxnuc, dxnuc_max, max_dxnuc_lev) &
+    !$acc device(do_react, react_T_min, react_T_max) &
+    !$acc device(react_rho_min, react_rho_max, disable_shock_burning) &
+    !$acc device(diffuse_cutoff_density, diffuse_cond_scale_fac, do_grav) &
+    !$acc device(grav_source_type, do_rotation, rot_period) &
+    !$acc device(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
+    !$acc device(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
+    !$acc device(implicit_rotation_update, rot_axis, use_point_mass) &
+    !$acc device(point_mass, point_mass_fix_solution, do_acc) &
+    !$acc device(grown_factor, track_grid_losses, const_grav) &
+    !$acc device(get_g_from_phi)
 
 
     ! now set the external BC flags
@@ -862,6 +869,9 @@ contains
     end if
     if (allocated(dxnuc_max)) then
         deallocate(dxnuc_max)
+    end if
+    if (allocated(max_dxnuc_lev)) then
+        deallocate(max_dxnuc_lev)
     end if
     if (allocated(do_react)) then
         deallocate(do_react)

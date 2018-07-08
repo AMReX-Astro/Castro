@@ -558,7 +558,7 @@ contains
                          delta,xlo,problo,time,level) &
                          bind(C, name="ca_nucerror")
 
-    use meth_params_module, only: dxnuc, dxnuc_max
+    use meth_params_module, only: dxnuc, dxnuc_max, max_dxnuc_lev
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -577,19 +577,23 @@ contains
 
     if (dxnuc > 1.e199_rt) return
 
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
+    if (level .lt. max_dxnuc_lev) then
 
-             if (t(i,j,k,1) > dxnuc .and. t(i,j,k,1) < dxnuc_max) then
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
-                tag(i,j,k) = set
+                if (t(i,j,k,1) > dxnuc .and. t(i,j,k,1) < dxnuc_max) then
 
-             endif
+                   tag(i,j,k) = set
 
+                endif
+
+             enddo
           enddo
        enddo
-    enddo
+
+    end if
 
   end subroutine ca_nucerror
 
