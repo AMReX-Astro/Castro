@@ -1,5 +1,9 @@
 # changes since the last release
 
+  -- The functionality that checks for a regrid at the end of
+     the timestep will now apply all tagging criteria, not
+     just the t_sound / t_enuc criterion.
+
   -- A bug was fixed that occurred when a retry was triggered in
      the middle of a group of subcycles, rather than at the
      beginning of the advance (#358).
