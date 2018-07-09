@@ -1793,9 +1793,7 @@ void
 Castro::check_for_post_regrid (Real time)
 {
 
-#ifdef REACTIONS
-    // Check whether we violated the burning stability criterion. This
-    // will manifest as any zones at this time signifying that they
+    // Check whether we have any zones at this time signifying that they
     // need to be tagged that do not have corresponding zones on the
     // fine level.
 
@@ -1807,22 +1805,7 @@ Castro::check_for_post_regrid (Real time)
 
 	int err_idx = -1;
 
-	for (int i = 0; i < err_list.size(); ++i) {
-	    if (err_list[i].name() == "t_sound_t_enuc") {
-		err_idx = i;
-		break;
-	    }
-	}
-
-	if (err_idx < 0) {
-	    amrex::Abort("Error: t_sound_t_enuc error function not found.");
-	}
-
-	apply_tagging_func(tags, TagBox::CLEAR, TagBox::SET, time, err_idx);
-
-        // Apply all user-specified tagging routines in case the user desires to override this.
-
-        for (int i = num_err_list_default; i < err_list.size(); ++i)
+	for (int i = 0; i < err_list.size(); ++i)
             apply_tagging_func(tags, TagBox::CLEAR, TagBox::SET, time, i);
 
         apply_problem_tags(tags, TagBox::CLEAR, TagBox::SET, time);
@@ -1884,7 +1867,6 @@ Castro::check_for_post_regrid (Real time)
 	}
 
     }
-#endif
 
 }
 

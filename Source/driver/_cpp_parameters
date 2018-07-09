@@ -336,6 +336,9 @@ dxnuc                        Real          1.e200             y
 # have already ignited or are about to ignite to be de-refined.
 dxnuc_max                    Real          1.e200             y
 
+# Disable limiting based on dxnuc above this AMR level.
+max_dxnuc_lev                int           30                 y
+
 # permits reactions to be turned on and off -- mostly for efficiency's sake
 do_react                     int          -1                  y
 

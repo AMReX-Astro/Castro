@@ -108,6 +108,7 @@ amrex::Real Castro::dtnuc_X = 1.e200;
 amrex::Real Castro::dtnuc_X_threshold = 1.e-3;
 amrex::Real Castro::dxnuc = 1.e200;
 amrex::Real Castro::dxnuc_max = 1.e200;
+int         Castro::max_dxnuc_lev = 30;
 int         Castro::do_react = -1;
 amrex::Real Castro::react_T_min = 0.0;
 amrex::Real Castro::react_T_max = 1.e200;
