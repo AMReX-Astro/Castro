@@ -4,6 +4,7 @@
 
   dens = 5.d6
   cfrac = 0.5d0
+  ofrac = 0.5d0
 
   smallx = 1.e-12
 
