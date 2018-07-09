@@ -308,7 +308,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      call riemann_state(qxm, qxp, q_lo, q_hi, &
                         qx_avg, q_lo, q_hi, &
                         qaux, qa_lo, qa_hi, &
-                        1, lo(1), hi(1)+1, lo(2)-dg(2), hi(2)+dg(2), k, k, k, domlo, domhi)
+                        1, lo(1), hi(1)+1, lo(2)-dg(2), hi(2)+dg(2), k, k, k, domlo, domhi, .true.)
 
      call compute_flux_q(1, qx_avg, q_lo, q_hi, &
                          flx_avg, q_lo, q_hi, &
@@ -322,7 +322,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      call riemann_state(qym, qyp, q_lo, q_hi, &
                         qy_avg, q_lo, q_hi, &
                         qaux, qa_lo, qa_hi, &
-                        2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, k, k, k, domlo, domhi)
+                        2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, k, k, k, domlo, domhi, .true.)
 
      call compute_flux_q(2, qy_avg, q_lo, q_hi, &
                          fly_avg, q_lo, q_hi, &
@@ -337,7 +337,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      call riemann_state(qzm, qzp, q_lo, q_hi, &
                         qz_avg, q_lo, q_hi, &
                         qaux, qa_lo, qa_hi, &
-                        3, lo(1)-1, hi(1)+1, lo(2)-1, hi(2)+1, k, k, k, domlo, domhi)
+                        3, lo(1)-1, hi(1)+1, lo(2)-1, hi(2)+1, k, k, k, domlo, domhi, .true.)
 
      call compute_flux_q(3, qz_avg, q_lo, q_hi, &
                          flz_avg, q_lo, q_hi, &

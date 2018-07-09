@@ -191,7 +191,7 @@ contains
                       lambda_int, q_lo, q_hi, &
 #endif
                       idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
-                      domlo, domhi)
+                      domlo, domhi, .false.)
 
        call compute_flux_q(idir, qint, q_lo, q_hi, &
                            flx, flx_lo, flx_hi, &
@@ -291,7 +291,7 @@ contains
   subroutine riemann_state(qm, qp, qpd_lo, qpd_hi, &
                            qint, q_lo, q_hi, &
                            qaux, qa_lo, qa_hi, &
-                           idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, domlo, domhi)
+                           idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, domlo, domhi, compute_gammas)
 
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
@@ -315,6 +315,8 @@ contains
     ! over which to solve the Riemann problems
     integer, intent(in) :: ilo, ihi, jlo, jhi, kc, kflux, k3d
     integer, intent(in) :: domlo(3),domhi(3)
+
+    logical, intent(in), optional :: compute_gammas
 
     ! note: qm, qp, q may come in as planes (all of x,y
     ! zones but only 2 elements in the z dir) instead of being
@@ -341,6 +343,14 @@ contains
 
     real(rt) :: cl, cr
     type (eos_t) :: eos_state
+
+    logical :: compute_interface_gamma
+
+    if (present(compute_gammas)) then
+       compute_interface_gamma = compute_gammas
+    else
+       compute_interface_gamma = .false.
+    endif
 
 #ifdef RADIATION
 #ifndef AMREX_USE_CUDA
@@ -429,7 +439,7 @@ contains
                       lambda_int, q_lo, q_hi, &
 #endif
                       idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
-                      domlo, domhi)
+                      domlo, domhi, compute_interface_gamma)
 
 #ifdef RADIATION
        call bl_deallocate(lambda_int)
@@ -1072,7 +1082,7 @@ contains
                        lambda_int, l_lo, l_hi, &
 #endif
                        idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
-                       domlo, domhi)
+                       domlo, domhi, compute_interface_gamma)
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, &
@@ -1093,6 +1103,8 @@ contains
 #ifdef RADIATION
     integer, intent(in) :: l_lo(3), l_hi(3)
 #endif
+
+    logical, intent(in) :: compute_interface_gamma
 
     real(rt), intent(in) :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
     real(rt), intent(in) :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
@@ -1275,11 +1287,43 @@ contains
 
           csmall = max( small, max( small * qaux(i,j,k3d,QC) , small * qaux(i-sx,j-sy,k3d-sz,QC))  )
           cavg = HALF*(qaux(i,j,k3d,QC) + qaux(i-sx,j-sy,k3d-sz,QC))
-          gamcl = qaux(i-sx,j-sy,k3d-sz,QGAMC)
-          gamcr = qaux(i,j,k3d,QGAMC)
+
+#ifndef RADIATION
+          if (compute_interface_gamma) then
+
+             ! we come in with a good p, rho, and X on the interfaces
+             ! -- use this to find the gamma used in the sound speed
+             eos_state % p = pl
+             eos_state % rho = rl
+             eos_state % xn(:) = ql(i,j,kc,QFS:QFS-1+nspec)
+             eos_state % T = 100.0 ! initial guess
+
+             call eos(eos_input_rp, eos_state)
+
+             gamcl = eos_state % gam1
+
+
+             eos_state % p = pr
+             eos_state % rho = rr
+             eos_state % xn(:) = qr(i,j,kc,QFS:QFS-1+nspec)
+             eos_state % T = 100.0 ! initial guess
+
+             call eos(eos_input_rp, eos_state)
+
+             gamcr = eos_state % gam1
+
+          else
+#endif
+
+             gamcl = qaux(i-sx,j-sy,k3d-sz,QGAMC)
+             gamcr = qaux(i,j,k3d,QGAMC)
 #ifdef RADIATION
-          gamcgl = qaux(i-sx,j-sy,k3d-sz,QGAMCG)
-          gamcgr = qaux(i,j,k3d,QGAMCG)
+             gamcgl = qaux(i-sx,j-sy,k3d-sz,QGAMCG)
+             gamcgr = qaux(i,j,k3d,QGAMCG)
+#endif
+
+#ifndef RADIATION
+          endif
 #endif
 
           wsmall = small_dens*csmall
