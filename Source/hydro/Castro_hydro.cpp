@@ -703,13 +703,10 @@ Castro::cons_to_prim_fourth(const Real time)
 
       // convert U_avg to q_bar -- this will be done on all NUM_GROW
       // ghost cells.
-      FArrayBox qaux_bar;
-      qaux_bar.resize(qbx, NQAUX);
-
       ca_ctoprim(BL_TO_FORTRAN_BOX(qbx),
                  BL_TO_FORTRAN_ANYD(Sborder[mfi]),
                  BL_TO_FORTRAN_ANYD(q_bar[mfi]),
-                 BL_TO_FORTRAN_ANYD(qaux_bar));
+                 BL_TO_FORTRAN_ANYD(qaux_bar[mfi]));
 
       // this is what we should construct the flattening coefficient
       // from
@@ -746,6 +743,9 @@ Castro::cons_to_prim_fourth(const Real time)
 
       // not sure if we need to convert qaux this way, or if we can
       // just evaluate it (we may not need qaux at all actually)
+      ca_make_fourth_average(BL_TO_FORTRAN_BOX(qbxm1),
+                             BL_TO_FORTRAN_FAB(qaux[mfi]),
+                             BL_TO_FORTRAN_FAB(qaux_bar[mfi]));
 
     }
 

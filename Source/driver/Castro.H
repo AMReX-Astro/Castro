@@ -690,6 +690,7 @@ protected:
     // The auxiliary primitive variable state array.
     //
     amrex::MultiFab qaux;
+    amrex::MultiFab qaux_bar;
 
     //
     // The source terms in primitive form.
