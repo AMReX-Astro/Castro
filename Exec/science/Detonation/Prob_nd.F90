@@ -1,6 +1,6 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
-  use probdata_module, only: T_l, T_r, dens, cfrac, idir, w_T, center_T, &
+  use probdata_module, only: T_l, T_r, dens, cfrac, ofrac, idir, w_T, center_T, &
                              xn, ihe4, ic12, io16, smallx, vel, fill_ambient_bc, &
                              ambient_dens, ambient_temp, ambient_comp, ambient_e_l, ambient_e_r
   use network, only: network_species_index, nspec
@@ -19,7 +19,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   integer :: untin,i
 
-  namelist /fortin/ T_l, T_r, dens, cfrac, idir, w_T, center_T, smallx, vel, fill_ambient_bc
+  namelist /fortin/ T_l, T_r, dens, cfrac, ofrac, idir, w_T, center_T, smallx, vel, fill_ambient_bc
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
 
@@ -41,6 +41,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   idir = 1                ! direction across which to jump
   cfrac = 0.5
+  ofrac = smallx
 
   w_T = 5.e-4_rt           ! ratio of the width of temperature transition zone to the full domain
   center_T = 3.e-1_rt      ! central position parameter of teperature profile transition zone
@@ -68,12 +69,23 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
      call amrex_error("ERROR: cfrac must fall between 0 and 1")
   endif
 
+  ! make sure that the oxygen fraction falls between 0 and 1
+  if (ofrac > 1.e0_rt .or. cfrac < 0.e0_rt) then
+     call amrex_error("ERROR: ofrac must fall between 0 and 1")
+  endif
+
+  ! make sure that the C/O fraction sums to no more than 1
+  if (cfrac + ofrac > 1.e0_rt) then
+     call amrex_error("ERROR: cfrac + ofrac cannot exceed 1.")
+  end if
+
   ! set the default mass fractions
   allocate(xn(nspec))
 
   xn(:) = smallx
   xn(ic12) = cfrac
-  xn(ihe4) = 1.e0_rt - cfrac - (nspec - 1)*smallx
+  xn(io16) = ofrac
+  xn(ihe4) = 1.e0_rt - cfrac - ofrac - (nspec - 2) * smallx
 
   ! Set the ambient material
   allocate(ambient_comp(nspec))
