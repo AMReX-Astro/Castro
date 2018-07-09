@@ -1102,6 +1102,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
       src_q.define(grids, dmap, QVAR, NUM_GROW);
     if (fourth_order)
       q_bar.define(grids, dmap, NQ, NUM_GROW);
+      qaux_bar.define(grids, dmap, NQAUX, NUM_GROW);
 
     if (time_integration_method == MOL) {
       // if we are not doing CTU advection, then we are doing a method
@@ -1199,8 +1200,10 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     qaux.clear();
     if (time_integration_method == CTU)
       src_q.clear();
-    if (fourth_order)
+    if (fourth_order) {
       q_bar.clear();
+      qaux_bar.clear();
+    }
 
 #ifdef RADIATION
     Erborder.clear();

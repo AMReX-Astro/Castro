@@ -46,8 +46,14 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   close(unit=untin)
 
   ! set explosion center
+  center(:) = ZERO
   center(1) = HALF*(problo(1) + probhi(1))
+#if BL_SPACEDIM >= 2
   center(2) = HALF*(problo(2) + probhi(2))
+#endif
+#if BL_SPACEDIM == 3
+  center(3) = HALF*(problo(3) + probhi(3))
+#endif
 
   xn_zone(:) = ZERO
   xn_zone(1) = ONE
@@ -86,7 +92,7 @@ end subroutine amrex_probinit
 ! :::		   ghost region).
 ! ::: -----------------------------------------------------------
 subroutine ca_initdata(level,time,lo,hi,nscal, &
-                       state,state_l1,state_l2,state_h1,state_h2, &
+                       state,state_lo,state_hi, &
                        delta,xlo,xhi)
 
   use probdata_module
@@ -100,53 +106,56 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   
   implicit none
 
-  integer :: level, nscal
-  integer :: lo(2), hi(2)
-  integer :: state_l1,state_l2,state_h1,state_h2
-  real(rt) :: xlo(2), xhi(2), time, delta(2)
-  real(rt) :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
+  integer, intent(in) :: level, nscal
+  integer, intent(in) :: lo(3), hi(3)
+  integer, intent(in) :: state_lo(3), state_hi(3)
+  real(rt), intent(in) :: xlo(3), xhi(3), time, delta(3)
+  real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR) 
 
-  real(rt) :: xmin,ymin
-  real(rt) :: xx, yy
+  real(rt) :: xx, yy, zz
   real(rt) :: dist, p, eint
 
-  integer :: i,j
+  integer :: i,j, k
 
   type(eos_t) :: eos_state
 
-  do j = lo(2), hi(2)
-     yy = xlo(2) + delta(2)*dble(j-lo(2) + HALF)
+  do k = lo(3), hi(3)
+     zz = xlo(3) + delta(3)*dble(k-lo(3) + HALF)
 
-     do i = lo(1), hi(1)
-        xx = xlo(1) + delta(1)*dble(i-lo(1) + HALF)
+     do j = lo(2), hi(2)
+        yy = xlo(2) + delta(2)*dble(j-lo(2) + HALF)
 
-        dist = sqrt((center(1)-xx)**2 + (center(2)-yy)**2)
+        do i = lo(1), hi(1)
+           xx = xlo(1) + delta(1)*dble(i-lo(1) + HALF)
 
-        if (dist <= center(1)) then
-           p = p0*(ONE + dp_fact*exp(-(dist/L_pert)**2) * cos(M_PI*(dist/(probhi(1)-problo(1))))**6)
-        else
-           p = p0
-        endif
+           dist = sqrt((center(1)-xx)**2 + (center(2)-yy)**2 + (center(3)-zz)**2)
 
-        state(i,j,UMX:UMZ) = 0.e0_rt
+           if (dist <= center(1)) then
+              p = p0*(ONE + dp_fact*exp(-(dist/L_pert)**2) * cos(M_PI*(dist/(probhi(1)-problo(1))))**6)
+           else
+              p = p0
+           endif
 
-        ! we are isentropic, so find rho
-        eos_state % p =  p
-        eos_state % T = 1.e4_rt ! initial guess
-        eos_state % rho = rho0  ! initial guess
-        eos_state % s = s0
-        eos_state % xn(:) = xn_zone(:)
+           state(i,j,k,UMX:UMZ) = 0.e0_rt
 
-        call eos(eos_input_ps, eos_state)
+           ! we are isentropic, so find rho
+           eos_state % p =  p
+           eos_state % T = 1.e4_rt ! initial guess
+           eos_state % rho = rho0  ! initial guess
+           eos_state % s = s0
+           eos_state % xn(:) = xn_zone(:)
 
-        state(i,j,URHO) = eos_state % rho
+           call eos(eos_input_ps, eos_state)
 
-        state(i,j,UEDEN) = eos_state % rho * eos_state % e
-        state(i,j,UEINT) = eos_state % rho * eos_state % e
+           state(i,j,k,URHO) = eos_state % rho
 
-        state(i,j,UFS:UFS-1+nspec) = state(i,j,URHO)*xn_zone(:)
+           state(i,j,k,UEDEN) = eos_state % rho * eos_state % e
+           state(i,j,k,UEINT) = eos_state % rho * eos_state % e
 
-        state(i,j,UTEMP) = eos_state % T
+           state(i,j,k,UFS:UFS-1+nspec) = state(i,j,k,URHO)*xn_zone(:)
+
+           state(i,j,k,UTEMP) = eos_state % T
+        enddo
      enddo
   enddo
 
