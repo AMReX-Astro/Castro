@@ -151,7 +151,7 @@ contains
 
              ! Assume we will be successful, to start.
 
-             burn_state_out % success = .true.
+             burn_state_in % success = .true.
 
              call burner(burn_state_in, burn_state_out, dt_react, time)
 
