@@ -21,6 +21,7 @@ contains
   !===========================================================================
 
   subroutine plm(lo, hi, s,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3,&
+                 flatn, & 
                  bx, bxlo, bxhi, &
                  by, bylo, byhi, &
                  bz, bzlo, bzhi, &
@@ -47,6 +48,7 @@ contains
     real(rt), intent(in   ) ::  by(bylo(1):byhi(1), bylo(2):byhi(2), bylo(3):byhi(3))
     real(rt), intent(in   ) ::  bz(bzlo(1):bzhi(1), bzlo(2):bzhi(2), bzlo(3):bzhi(3))
     real(rt), intent(in   ) ::  srcQ(srcq_l1:srcq_h1, srcq_l2:srcq_h2, srcq_l3:srcq_h3,QVAR)
+    real(rt), intent(in   ) ::  flatn(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3)
 
     real(rt), intent(out) :: Ip(ilo1:ihi1,ilo2:ihi2,ilo3:ihi3,QVAR,3)
     real(rt), intent(out) :: Im(ilo1:ihi1,ilo2:ihi2,ilo3:ihi3,QVAR,3)

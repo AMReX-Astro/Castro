@@ -31,9 +31,11 @@ subroutine ca_advance_mhd(time, lo, hi, &
   use amrex_mempool_module, only : bl_allocate, bl_deallocate
   use ct_upwind, only : corner_transport, checkisnan
   use mhd_plm_module, only : plm
+  use flatten_module_mhd, only : uflatten
   use meth_params_module!, only : QVAR, NTHERM, NHYP, normalize_species, NVAR, URHO, UEDEN
+  use prob_params_module, only : dg
   use amrex_constants_module
-  use network, only: nspec
+  use network, only: nspec  
 
   implicit none
 
@@ -220,8 +222,12 @@ subroutine ca_advance_mhd(time, lo, hi, &
                courno,dx,dy,dz,dt,ngq,ngf)
 
 
+  call uflatten(lo-dg*ngf, hi+dg*ngf, &
+                q, flatn,lo-NHYP, hi+NHYP,QPRES)
+ 
   !Step Two, Interpolate Cell centered values to faces
   call plm(lo, hi, q, q_l1, q_l2, q_l3, q_h1, q_h2, q_h3,&
+           flatn, &
            bxin, bxin_lo, bxin_hi, &
            byin, byin_lo, byin_hi, &
            bzin, bzin_lo, bzin_hi, &
