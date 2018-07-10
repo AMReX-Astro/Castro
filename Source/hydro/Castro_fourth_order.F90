@@ -431,7 +431,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      call compute_flux_q(1, qx_fc, q_lo, q_hi, &
                          flx, flx_lo, flx_hi, &
                          qgdnvx, flx_lo, flx_hi, &
-                         lo(1), hi(1)+1, lo(2), hi(2), k, k, k)
+                         lo(1), hi(1)+1, lo(2), hi(2), k, k, k) !, .true.)
   enddo
 
 #if BL_SPACEDIM >= 2
@@ -439,7 +439,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      call compute_flux_q(2, qy_fc, q_lo, q_hi, &
                          fly, fly_lo, fly_hi, &
                          qgdnvy, fly_lo, fly_hi, &
-                         lo(1), hi(1), lo(2), hi(2)+1, k, k, k)
+                         lo(1), hi(1), lo(2), hi(2)+1, k, k, k) !, .true.)
   enddo
 #endif
 
@@ -448,7 +448,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      call compute_flux_q(3, qz_fc, q_lo, q_hi, &
                          flz, flz_lo, flz_hi, &
                          qgdnvz, flz_lo, flz_hi, &
-                         lo(1), hi(1), lo(2), hi(2), k, k, k)
+                         lo(1), hi(1), lo(2), hi(2), k, k, k) !, .true.)
   enddo
 #endif
 
