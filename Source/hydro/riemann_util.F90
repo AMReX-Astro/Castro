@@ -443,7 +443,7 @@ contains
                             rF, rF_lo, rF_hi, &
 #endif
                             qgdnv, qg_lo, qg_hi, &
-                            ilo, ihi, jlo, jhi, kc, kflux, k3d)
+                            ilo, ihi, jlo, jhi, kc, kflux, k3d, enforce_eos)
 
     ! given a primitive state, compute the flux in direction idir
 
@@ -468,6 +468,9 @@ contains
 #ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only : compute_hybrid_flux
 #endif
+    use eos_type_module, only : eos_t, eos_input_rp
+    use eos_module, only : eos
+    use network, only : nspec
 
     integer, intent(in) :: idir
     integer, intent(in) :: q_lo(3), q_hi(3)
@@ -478,7 +481,7 @@ contains
 #endif
     integer, intent(in) :: qg_lo(3), qg_hi(3)
 
-    real(rt), intent(in) :: qint(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
+    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
     real(rt), intent(inout) :: qgdnv(qg_lo(1):qg_hi(1), qg_lo(2):qg_hi(2), qg_lo(3):qg_hi(3), NGDNV)
     real(rt), intent(out) :: F(F_lo(1):F_hi(1), F_lo(2):F_hi(2), F_lo(3):F_hi(3), NVAR)
 #ifdef RADIATION
@@ -486,6 +489,7 @@ contains
     real(rt), intent(out) :: rF(rF_lo(1):rF_hi(1), rF_lo(2):rF_hi(2), rF_lo(3):rF_hi(3), 0:ngroups-1)
 #endif
     integer, intent(in) :: ilo, ihi, jlo, jhi, kc, kflux, k3d
+    logical, intent(in), optional :: enforce_eos
 
     integer :: iu, iv1, iv2, im1, im2, im3
     integer :: g, n, ipassive, nqp
@@ -494,6 +498,15 @@ contains
     integer :: i, j
 
     real(rt) :: F_zone(NVAR), qgdnv_zone(NGDNV)
+
+    logical :: do_eos
+    type(eos_t) :: eos_state
+
+    if (present(enforce_eos)) then
+       do_eos = enforce_eos
+    else
+       do_eos = .false.
+    endif
 
     if (idir == 1) then
        iu = QU
@@ -522,6 +535,17 @@ contains
        do i = ilo, ihi
 
           u_adv = qint(i,j,kc,iu)
+
+          ! if we are enforcing the EOS, then take rho, p, and X, and
+          ! compute rhoe
+          if (do_eos) then
+             eos_state % rho = qint(i,j,kc,QRHO)
+             eos_state % p = qint(i,j,kc,QPRES)
+             eos_state % xn(:) = qint(i,j,kc,QFS:QFS-1+nspec)
+             eos_state % T = 100.0  ! initial guess
+             call eos(eos_input_rp, eos_state)
+             qint(i,j,kc,QREINT) = qint(i,j,kc,QRHO) * eos_state % e
+          endif
 
           ! Compute fluxes, order as conserved state (not q)
           F(i,j,kflux,URHO) = qint(i,j,kc,QRHO)*u_adv
