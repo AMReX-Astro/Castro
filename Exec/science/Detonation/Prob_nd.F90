@@ -40,8 +40,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   smallx = 1.e-12_rt
 
   idir = 1                ! direction across which to jump
-  cfrac = 0.5
-  ofrac = smallx
+  cfrac = 0.5e0_rt
+  ofrac = 0.0e0_rt
 
   w_T = 5.e-4_rt           ! ratio of the width of temperature transition zone to the full domain
   center_T = 3.e-1_rt      ! central position parameter of teperature profile transition zone
@@ -83,8 +83,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   allocate(xn(nspec))
 
   xn(:) = smallx
-  xn(ic12) = cfrac
-  xn(io16) = ofrac
+  xn(ic12) = max(cfrac, smallx)
+  xn(io16) = max(ofrac, smallx)
   xn(ihe4) = 1.e0_rt - cfrac - ofrac - (nspec - 2) * smallx
 
   ! Set the ambient material
