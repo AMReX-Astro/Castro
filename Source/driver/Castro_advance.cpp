@@ -1182,11 +1182,24 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
         if (subcycle_time + dt_subcycle > (time + dt))
             dt_subcycle = (time + dt) - subcycle_time;
 
+        // Check on whether we are going to take too many subcycles.
+
+        int num_subcycles_remaining = int(round(((time + dt) - subcycle_time) / dt_subcycle));
+
+        if (num_subcycles_remaining > max_subcycles) {
+            amrex::Print() << std::endl
+                           << "  The subcycle mechanism requested " << num_subcycles_remaining << " subcycled timesteps, which is larger than the maximum of " << max_subcycles << "." << std::endl
+                           << "  If you would like to override this, increase the parameter castro.max_subcycles." << std::endl;
+            amrex::Abort("Error: too many subcycles.");
+        }
+
+        // If we get to this point, we survived the sanity checks. Print out the current subcycle iteration.
+
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << std::endl;
             std::cout << "  Beginning subcycle " << sub_iteration << " starting at time " << subcycle_time
                       << " with dt = " << dt_subcycle << std::endl;
-            std::cout << "  Estimated number of subcycles remaining: " << int(round(((time + dt) - subcycle_time) / dt_subcycle)) << std::endl << std::endl;
+            std::cout << "  Estimated number of subcycles remaining: " << num_subcycles_remaining << std::endl << std::endl;
         }
 
         // Swap the time levels. Only do this after the first iteration,
