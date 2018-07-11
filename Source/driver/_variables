@@ -29,6 +29,7 @@
    y-velocity             None         QV        QVAR             1      None
    z-velocity             None         QW        QVAR             1      None
    gamma_e                None         QGAME     QVAR             1      None
+   gamma_c                None         QGC       QVAR             1      None
    pressure               None         QPRES     QVAR             1      None
    rho-e                  None         QREINT    QVAR             1      None
    B-x                    None         QMAGX     QVAR             1      MHD
