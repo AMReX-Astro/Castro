@@ -251,6 +251,9 @@ def parse_urlfile(url_file):
             for line in raw_bibtex_html:
                 bibtex_string += "{}\n".format(line.decode("utf8"))
 
+            print(bibtex_string)
+
+            continue
             # strip off any header and just leave the bibtex
             found_start = False
             bibtex = ""
@@ -260,8 +263,20 @@ def parse_urlfile(url_file):
                 if found_start:
                     bibtex += line
 
+            print(bibtex)
             # parse the bibtex string
-            bib_database = bibtexparser.loads(bibtex, parser=parser)
+            # we need to ensure that the month string is quoted
+            new_str = u""
+            for line in bibtex.splitlines():
+                if line.strip().startswith("month"):
+                    fields = line.strip().split("=")
+                    new_str += "month = '{}',\n".format(fields[-1].strip().replace(",",""))
+                else:
+                    new_str += line + "\n"
+
+            print(new_str)
+
+            bib_database = bibtexparser.loads(new_str, parser=parser)
 
             for e in bib_database.entries:
                 p = extract_paper_info(e)

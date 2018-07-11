@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import parser
 
-papers = parser.parse_urlfile("castro-papers.txt")
+papers = parser.parse_bibfile("papers.bib")
 
 
 # sorted by topic
@@ -12,6 +12,7 @@ tf = open("papers.template", "r")
 dh = open("papers.html", "w")
 
 subs = list(set([p.subject for p in papers]))
+print(subs)
 subs.sort(key=str.lower)
 
 papers_by_subj = {}

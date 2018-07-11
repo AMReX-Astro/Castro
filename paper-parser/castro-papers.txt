@@ -1,61 +1,3 @@
-# PPM temp
-algorithm: http://adsabs.harvard.edu/abs/2015ApJS..216...31Z
-
-
-core-collapse supernovae: http://adsabs.harvard.edu/abs/2015ApJ...800...10D
-
-
-pop III supernovae: http://adsabs.harvard.edu/abs/2014ApJ...792...44C
-
-
-pop III supernovae: http://adsabs.harvard.edu/abs/2014ApJ...790..162C
-
-
-Type Ia supernovae&mdash;Chandra model: http://adsabs.harvard.edu/abs/2014ApJ...782...11M
-
-
-pop III supernovae: http://adsabs.harvard.edu/abs/2013ApJ...778...17W
-
-
-Type Ia supernovae&mdash;sub-Chandra model: http://adsabs.harvard.edu/abs/2013ApJ...774..137M
-
-
-Type Ia supernovae&mdash;Chandra model: http://adsabs.harvard.edu/abs/2013ApJ...771...58M
-
-
-core-collapse supernovae: http://adsabs.harvard.edu/abs/2013ApJ...771...52M
-
-
-core-collapse supernovae: http://adsabs.harvard.edu/abs/2013ApJ...769..109L
-
-
-pop III supernovae: http://adsabs.harvard.edu/abs/2013ApJ...768...95W
-
-
-core-collapse supernovae: http://adsabs.harvard.edu/abs/2013ApJ...765..110D
-
-
-algorithm: http://adsabs.harvard.edu/abs/2013ApJS..204....7Z
-
-
-core-collapse supernovae: http://adsabs.harvard.edu/abs/2012ApJ...759....5B
-
-
-core-collapse supernovae: http://adsabs.harvard.edu/abs/2012MNRAS.423.1805N
-
-
-algorithm: http://adsabs.harvard.edu/abs/2011ApJS..196...20Z
-
-
-core-collapse supernovae: http://adsabs.harvard.edu/abs/2011CoPhC.182.1764B
-
-
-Type Ia supernovae&mdash;Chandra model: http://adsabs.harvard.edu/abs/2011ApJ...738...94A
-
-
-core-collapse supernovae: http://adsabs.harvard.edu/abs/2011ApJ...732...57R
-
-
 pop III supernovae: http://adsabs.harvard.edu/abs/2011ApJ...728..129J
 
 
@@ -120,3 +62,7 @@ magnetar supernovae: http://adsabs.harvard.edu/abs/2017JPhCS.837a2006C
 magnetar supernovae: http://adsabs.harvard.edu/abs/2017ApJ...839...85C
 
 algorithm: http://adsabs.harvard.edu/abs/2017arXiv171106203Z
+
+core-collapse supernovae: http://adsabs.harvard.edu/abs/2017ApJ...845..103L
+
+exoplanets: http://adsabs.harvard.edu/abs/2018arXiv180607890R
