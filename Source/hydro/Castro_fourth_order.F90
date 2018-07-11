@@ -155,6 +155,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
   ! artifical viscosity strength
   real(rt), parameter :: alpha = 0.3_rt
+  real(rt) :: avisc_coeff
 
   ! to do 4th order for axisymmetry, we need to derive the transformations between
   ! averages and cell-centers with the correct volume terms in the integral.
@@ -308,7 +309,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      call riemann_state(qxm, qxp, q_lo, q_hi, &
                         qx_avg, q_lo, q_hi, &
                         qaux, qa_lo, qa_hi, &
-                        1, lo(1), hi(1)+1, lo(2)-dg(2), hi(2)+dg(2), k, k, k, domlo, domhi, .true.)
+                        1, lo(1), hi(1)+1, lo(2)-dg(2), hi(2)+dg(2), k, k, k, domlo, domhi) !, .true.)
 
      call compute_flux_q(1, qx_avg, q_lo, q_hi, &
                          flx_avg, q_lo, q_hi, &
@@ -322,7 +323,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      call riemann_state(qym, qyp, q_lo, q_hi, &
                         qy_avg, q_lo, q_hi, &
                         qaux, qa_lo, qa_hi, &
-                        2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, k, k, k, domlo, domhi, .true.)
+                        2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, k, k, k, domlo, domhi) !, .true.)
 
      call compute_flux_q(2, qy_avg, q_lo, q_hi, &
                          fly_avg, q_lo, q_hi, &
@@ -337,7 +338,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      call riemann_state(qzm, qzp, q_lo, q_hi, &
                         qz_avg, q_lo, q_hi, &
                         qaux, qa_lo, qa_hi, &
-                        3, lo(1)-1, hi(1)+1, lo(2)-1, hi(2)+1, k, k, k, domlo, domhi, .true.)
+                        3, lo(1)-1, hi(1)+1, lo(2)-1, hi(2)+1, k, k, k, domlo, domhi) !, .true.)
 
      call compute_flux_q(3, qz_avg, q_lo, q_hi, &
                          flz_avg, q_lo, q_hi, &
@@ -576,6 +577,12 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
              dx, avisz, lo, hi+dg, 3)
 #endif
 
+  ! avisc_coefficient is the coefficent we use.  The McCorquodale &
+  ! Colella paper suggest alpha = 0.3, but our other hydro solvers use
+  ! a coefficient on the divergence that defaults to 0.1, so we
+  ! normalize to that value, to allow for adjustments
+  avisc_coeff = alpha * (difmag / 0.1_rt)
+
   do n = 1, NVAR
 
      if ( n == UTEMP ) then
@@ -605,7 +612,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
               do i = lo(1), hi(1)+1
 
                  flx(i,j,k,n) = flx(i,j,k,n) + &
-                      alpha * avisx(i,j,k) * (uin(i,j,k,n) - uin(i-1,j,k,n))
+                      avisc_coeff * avisx(i,j,k) * (uin(i,j,k,n) - uin(i-1,j,k,n))
               enddo
            enddo
         enddo
@@ -615,7 +622,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
               do i = lo(1), hi(1)
 
                  fly(i,j,k,n) = fly(i,j,k,n) + &
-                      alpha * avisy(i,j,k) * (uin(i,j,k,n) - uin(i,j-1,k,n))
+                      avisc_coeff * avisy(i,j,k) * (uin(i,j,k,n) - uin(i,j-1,k,n))
               enddo
            enddo
         enddo
@@ -626,7 +633,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
               do i = lo(1), hi(1)
 
                  flz(i,j,k,n) = flz(i,j,k,n) + &
-                      alpha * avisz(i,j,k) * (uin(i,j,k,n) - uin(i,j,k-1,n))
+                      avisc_coeff * avisz(i,j,k) * (uin(i,j,k,n) - uin(i,j,k-1,n))
               enddo
            enddo
         enddo
