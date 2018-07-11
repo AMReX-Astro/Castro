@@ -22,7 +22,7 @@ module meth_params_module
 
   ! primitive variables
   integer, allocatable, save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
-  integer, allocatable, save :: QGAMC, QC, QDPDR, QDPDE
+  integer, allocatable, save :: QGAMC, QC, QDPDR, QDPDE, QGC
 #ifdef RADIATION
   integer, allocatable, save :: QGAMCG, QCG, QLAMS
 #endif

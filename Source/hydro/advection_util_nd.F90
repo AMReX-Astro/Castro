@@ -466,7 +466,7 @@ contains
                                    UEDEN, UEINT, UTEMP, &
                                    QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
-                                   NQ, QC, QGAMC, QDPDR, QDPDE, NQAUX, &
+                                   NQ, QC, QGAMC, QGC, QDPDR, QDPDE, NQAUX, &
 #ifdef RADIATION
                                    QCG, QGAMCG, QLAMS, &
                                    QPTOT, QRAD, QRADHI, QREITOT, &

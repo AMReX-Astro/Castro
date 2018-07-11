@@ -65,6 +65,11 @@ fourth_order                 int           0                  y
 # do we use a limiter with the fourth-order accurate reconstruction?
 limit_fourth_order           int           1                  y
 
+# should we use a reconstructed version of Gamma_1 in the Riemann
+# solver? or the default zone average (requires SDC or MOL
+# integration, since we do not trace)
+use_reconstructed_gamma1     int           0                  y
+
 # if true, define an additional source term
 add_ext_src                  int           0
 

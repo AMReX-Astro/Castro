@@ -27,7 +27,7 @@ module meth_params_module
 
   ! primitive variables
   integer, allocatable, save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
-  integer, allocatable, save :: QGAMC, QC, QDPDR, QDPDE
+  integer, allocatable, save :: QGAMC, QC, QDPDR, QDPDE, QGC
 #ifdef RADIATION
   integer, allocatable, save :: QGAMCG, QCG, QLAMS
 #endif
@@ -116,6 +116,7 @@ module meth_params_module
   integer,  allocatable, save :: time_integration_method
   integer,  allocatable, save :: fourth_order
   integer,  allocatable, save :: limit_fourth_order
+  integer,  allocatable, save :: use_reconstructed_gamma1
   integer,  allocatable, save :: hybrid_hydro
   integer,  allocatable, save :: ppm_type
   integer,  allocatable, save :: ppm_temp_fix
@@ -202,6 +203,7 @@ module meth_params_module
   attributes(managed) :: time_integration_method
   attributes(managed) :: fourth_order
   attributes(managed) :: limit_fourth_order
+  attributes(managed) :: use_reconstructed_gamma1
   attributes(managed) :: hybrid_hydro
   attributes(managed) :: ppm_type
   attributes(managed) :: ppm_temp_fix
@@ -283,29 +285,30 @@ module meth_params_module
   !$acc create(difmag, small_dens, small_temp) &
   !$acc create(small_pres, small_ener, do_hydro) &
   !$acc create(time_integration_method, fourth_order, limit_fourth_order) &
-  !$acc create(hybrid_hydro, ppm_type, ppm_temp_fix) &
-  !$acc create(ppm_predict_gammae, ppm_reference_eigenvectors, plm_iorder) &
-  !$acc create(hybrid_riemann, riemann_solver, cg_maxiter) &
-  !$acc create(cg_tol, cg_blend, use_eos_in_riemann) &
-  !$acc create(use_flattening, transverse_use_eos, transverse_reset_density) &
-  !$acc create(transverse_reset_rhoe, dual_energy_update_E_from_e, dual_energy_eta1) &
-  !$acc create(dual_energy_eta2, dual_energy_eta3, use_pslope) &
-  !$acc create(fix_mass_flux, limit_fluxes_on_small_dens, density_reset_method) &
-  !$acc create(allow_negative_energy, allow_small_energy, do_sponge) &
-  !$acc create(sponge_implicit, first_order_hydro, hse_zero_vels) &
-  !$acc create(hse_interp_temp, hse_reflect_vels, mol_order) &
-  !$acc create(sdc_order, cfl, dtnuc_e) &
-  !$acc create(dtnuc_X, dtnuc_X_threshold, dxnuc) &
-  !$acc create(dxnuc_max, max_dxnuc_lev, do_react) &
-  !$acc create(react_T_min, react_T_max, react_rho_min) &
-  !$acc create(react_rho_max, disable_shock_burning, diffuse_cutoff_density) &
-  !$acc create(diffuse_cond_scale_fac, do_grav, grav_source_type) &
-  !$acc create(do_rotation, rot_period, rot_period_dot) &
-  !$acc create(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
-  !$acc create(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
-  !$acc create(rot_axis, use_point_mass, point_mass) &
-  !$acc create(point_mass_fix_solution, do_acc, grown_factor) &
-  !$acc create(track_grid_losses, const_grav, get_g_from_phi)
+  !$acc create(use_reconstructed_gamma1, hybrid_hydro, ppm_type) &
+  !$acc create(ppm_temp_fix, ppm_predict_gammae, ppm_reference_eigenvectors) &
+  !$acc create(plm_iorder, hybrid_riemann, riemann_solver) &
+  !$acc create(cg_maxiter, cg_tol, cg_blend) &
+  !$acc create(use_eos_in_riemann, use_flattening, transverse_use_eos) &
+  !$acc create(transverse_reset_density, transverse_reset_rhoe, dual_energy_update_E_from_e) &
+  !$acc create(dual_energy_eta1, dual_energy_eta2, dual_energy_eta3) &
+  !$acc create(use_pslope, fix_mass_flux, limit_fluxes_on_small_dens) &
+  !$acc create(density_reset_method, allow_negative_energy, allow_small_energy) &
+  !$acc create(do_sponge, sponge_implicit, first_order_hydro) &
+  !$acc create(hse_zero_vels, hse_interp_temp, hse_reflect_vels) &
+  !$acc create(mol_order, sdc_order, cfl) &
+  !$acc create(dtnuc_e, dtnuc_X, dtnuc_X_threshold) &
+  !$acc create(dxnuc, dxnuc_max, max_dxnuc_lev) &
+  !$acc create(do_react, react_T_min, react_T_max) &
+  !$acc create(react_rho_min, react_rho_max, disable_shock_burning) &
+  !$acc create(diffuse_cutoff_density, diffuse_cond_scale_fac, do_grav) &
+  !$acc create(grav_source_type, do_rotation, rot_period) &
+  !$acc create(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
+  !$acc create(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
+  !$acc create(implicit_rotation_update, rot_axis, use_point_mass) &
+  !$acc create(point_mass, point_mass_fix_solution, do_acc) &
+  !$acc create(grown_factor, track_grid_losses, const_grav) &
+  !$acc create(get_g_from_phi)
 
   ! End the declarations of the ParmParse parameters
 
@@ -401,6 +404,8 @@ contains
     fourth_order = 0;
     allocate(limit_fourth_order)
     limit_fourth_order = 1;
+    allocate(use_reconstructed_gamma1)
+    use_reconstructed_gamma1 = 0;
     allocate(hybrid_hydro)
     hybrid_hydro = 0;
     allocate(ppm_type)
@@ -550,6 +555,7 @@ contains
     call pp%query("time_integration_method", time_integration_method)
     call pp%query("fourth_order", fourth_order)
     call pp%query("limit_fourth_order", limit_fourth_order)
+    call pp%query("use_reconstructed_gamma1", use_reconstructed_gamma1)
     call pp%query("hybrid_hydro", hybrid_hydro)
     call pp%query("ppm_type", ppm_type)
     call pp%query("ppm_temp_fix", ppm_temp_fix)
@@ -617,29 +623,30 @@ contains
     !$acc device(difmag, small_dens, small_temp) &
     !$acc device(small_pres, small_ener, do_hydro) &
     !$acc device(time_integration_method, fourth_order, limit_fourth_order) &
-    !$acc device(hybrid_hydro, ppm_type, ppm_temp_fix) &
-    !$acc device(ppm_predict_gammae, ppm_reference_eigenvectors, plm_iorder) &
-    !$acc device(hybrid_riemann, riemann_solver, cg_maxiter) &
-    !$acc device(cg_tol, cg_blend, use_eos_in_riemann) &
-    !$acc device(use_flattening, transverse_use_eos, transverse_reset_density) &
-    !$acc device(transverse_reset_rhoe, dual_energy_update_E_from_e, dual_energy_eta1) &
-    !$acc device(dual_energy_eta2, dual_energy_eta3, use_pslope) &
-    !$acc device(fix_mass_flux, limit_fluxes_on_small_dens, density_reset_method) &
-    !$acc device(allow_negative_energy, allow_small_energy, do_sponge) &
-    !$acc device(sponge_implicit, first_order_hydro, hse_zero_vels) &
-    !$acc device(hse_interp_temp, hse_reflect_vels, mol_order) &
-    !$acc device(sdc_order, cfl, dtnuc_e) &
-    !$acc device(dtnuc_X, dtnuc_X_threshold, dxnuc) &
-    !$acc device(dxnuc_max, max_dxnuc_lev, do_react) &
-    !$acc device(react_T_min, react_T_max, react_rho_min) &
-    !$acc device(react_rho_max, disable_shock_burning, diffuse_cutoff_density) &
-    !$acc device(diffuse_cond_scale_fac, do_grav, grav_source_type) &
-    !$acc device(do_rotation, rot_period, rot_period_dot) &
-    !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
-    !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
-    !$acc device(rot_axis, use_point_mass, point_mass) &
-    !$acc device(point_mass_fix_solution, do_acc, grown_factor) &
-    !$acc device(track_grid_losses, const_grav, get_g_from_phi)
+    !$acc device(use_reconstructed_gamma1, hybrid_hydro, ppm_type) &
+    !$acc device(ppm_temp_fix, ppm_predict_gammae, ppm_reference_eigenvectors) &
+    !$acc device(plm_iorder, hybrid_riemann, riemann_solver) &
+    !$acc device(cg_maxiter, cg_tol, cg_blend) &
+    !$acc device(use_eos_in_riemann, use_flattening, transverse_use_eos) &
+    !$acc device(transverse_reset_density, transverse_reset_rhoe, dual_energy_update_E_from_e) &
+    !$acc device(dual_energy_eta1, dual_energy_eta2, dual_energy_eta3) &
+    !$acc device(use_pslope, fix_mass_flux, limit_fluxes_on_small_dens) &
+    !$acc device(density_reset_method, allow_negative_energy, allow_small_energy) &
+    !$acc device(do_sponge, sponge_implicit, first_order_hydro) &
+    !$acc device(hse_zero_vels, hse_interp_temp, hse_reflect_vels) &
+    !$acc device(mol_order, sdc_order, cfl) &
+    !$acc device(dtnuc_e, dtnuc_X, dtnuc_X_threshold) &
+    !$acc device(dxnuc, dxnuc_max, max_dxnuc_lev) &
+    !$acc device(do_react, react_T_min, react_T_max) &
+    !$acc device(react_rho_min, react_rho_max, disable_shock_burning) &
+    !$acc device(diffuse_cutoff_density, diffuse_cond_scale_fac, do_grav) &
+    !$acc device(grav_source_type, do_rotation, rot_period) &
+    !$acc device(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
+    !$acc device(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
+    !$acc device(implicit_rotation_update, rot_axis, use_point_mass) &
+    !$acc device(point_mass, point_mass_fix_solution, do_acc) &
+    !$acc device(grown_factor, track_grid_losses, const_grav) &
+    !$acc device(get_g_from_phi)
 
 
     ! now set the external BC flags
@@ -747,6 +754,9 @@ contains
     end if
     if (allocated(limit_fourth_order)) then
         deallocate(limit_fourth_order)
+    end if
+    if (allocated(use_reconstructed_gamma1)) then
+        deallocate(use_reconstructed_gamma1)
     end if
     if (allocated(hybrid_hydro)) then
         deallocate(hybrid_hydro)

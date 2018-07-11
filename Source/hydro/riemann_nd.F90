@@ -7,7 +7,7 @@ module riemann_module
                                  UEDEN, UEINT, UFS, UFX, &
                                  QRHO, QU, QV, QW, &
                                  QPRES, QGAME, QREINT, QFS, QFX, &
-                                 QC, QGAMC, &
+                                 QC, QGAMC, QGC, &
                                  NGDNV, GDRHO, GDPRES, GDGAME, &
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, &
@@ -15,7 +15,7 @@ module riemann_module
 #endif
                                  npassive, upass_map, qpass_map, &
                                  small_dens, small_pres, small_temp, &
-                                 use_eos_in_riemann
+                                 use_eos_in_riemann, use_reconstructed_gamma1
   use riemann_util_module
 
 #ifdef RADIATION
@@ -662,7 +662,11 @@ contains
 
           pl  = ql(i,j,kc,QPRES)
           rel = ql(i,j,kc,QREINT)
-          gcl = qaux(i-sx,j-sy,k3d-sz,QGAMC)
+          if (use_reconstructed_gamma1 == 1) then
+             gcl = ql(i,j,kc,QGC)
+          else
+             gcl = qaux(i-sx,j-sy,k3d-sz,QGAMC)
+          endif
 
           ! sometime we come in here with negative energy or pressure
           ! note: reset both in either case, to remain thermo
@@ -694,7 +698,11 @@ contains
 
           pr  = qr(i,j,kc,QPRES)
           rer = qr(i,j,kc,QREINT)
-          gcr = qaux(i,j,k3d,QGAMC)
+          if (use_reconstructed_gamma1 == 1) then
+             gcr = qr(i,j,kc,QGC)
+          else
+             gcr = qaux(i,j,k3d,QGAMC)
+          endif
 
           if (rer <= ZERO .or. pr < small_pres) then
 #ifndef AMREX_USE_CUDA
@@ -1289,40 +1297,43 @@ contains
           cavg = HALF*(qaux(i,j,k3d,QC) + qaux(i-sx,j-sy,k3d-sz,QC))
 
 #ifndef RADIATION
-          if (compute_interface_gamma) then
-
-             ! we come in with a good p, rho, and X on the interfaces
-             ! -- use this to find the gamma used in the sound speed
-             eos_state % p = pl
-             eos_state % rho = rl
-             eos_state % xn(:) = ql(i,j,kc,QFS:QFS-1+nspec)
-             eos_state % T = 100.0 ! initial guess
-
-             call eos(eos_input_rp, eos_state)
-
-             gamcl = eos_state % gam1
-
-
-             eos_state % p = pr
-             eos_state % rho = rr
-             eos_state % xn(:) = qr(i,j,kc,QFS:QFS-1+nspec)
-             eos_state % T = 100.0 ! initial guess
-
-             call eos(eos_input_rp, eos_state)
-
-             gamcr = eos_state % gam1
-
+          if (use_reconstructed_gamma1 == 1) then
+             gamcl = ql(i,j,kc,QGC)
+             gamcr = qr(i,j,kc,QGC)
           else
+             if (compute_interface_gamma) then
+
+                ! we come in with a good p, rho, and X on the interfaces
+                ! -- use this to find the gamma used in the sound speed
+                eos_state % p = pl
+                eos_state % rho = rl
+                eos_state % xn(:) = ql(i,j,kc,QFS:QFS-1+nspec)
+                eos_state % T = 100.0 ! initial guess
+
+                call eos(eos_input_rp, eos_state)
+
+                gamcl = eos_state % gam1
+
+                eos_state % p = pr
+                eos_state % rho = rr
+                eos_state % xn(:) = qr(i,j,kc,QFS:QFS-1+nspec)
+                eos_state % T = 100.0 ! initial guess
+
+                call eos(eos_input_rp, eos_state)
+
+                gamcr = eos_state % gam1
+             else
 #endif
 
-             gamcl = qaux(i-sx,j-sy,k3d-sz,QGAMC)
-             gamcr = qaux(i,j,k3d,QGAMC)
+                gamcl = qaux(i-sx,j-sy,k3d-sz,QGAMC)
+                gamcr = qaux(i,j,k3d,QGAMC)
 #ifdef RADIATION
-             gamcgl = qaux(i-sx,j-sy,k3d-sz,QGAMCG)
-             gamcgr = qaux(i,j,k3d,QGAMCG)
+                gamcgl = qaux(i-sx,j-sy,k3d-sz,QGAMCG)
+                gamcgr = qaux(i,j,k3d,QGAMCG)
 #endif
 
 #ifndef RADIATION
+             endif
           endif
 #endif
 
@@ -1785,8 +1796,14 @@ contains
           ! interface, but we won't use these in any flux construction.
           csmall = max( small, max(small * qaux(i,j,k3d,QC) , small * qaux(i-sx,j-sy,k3d-sz,QC)) )
           cavg = HALF*(qaux(i,j,k3d,QC) + qaux(i-sx,j-sy,k3d-sz,QC))
-          gamcl = qaux(i-sx,j-sy,k3d-sz,QGAMC)
-          gamcr = qaux(i,j,k3d,QGAMC)
+
+          if (use_reconstructed_gamma1 == 1) then
+             gamcl = ql(i,j,kc,QGC)
+             gamcr = qr(i,j,kc,QGC)
+          else
+             gamcl = qaux(i-sx,j-sy,k3d-sz,QGAMC)
+             gamcr = qaux(i,j,k3d,QGAMC)
+          endif
 
           wsmall = small_dens*csmall
           wl = max(wsmall, sqrt(abs(gamcl*pl*rl)))
