@@ -221,7 +221,7 @@ subroutine ca_advance_mhd(time, lo, hi, &
                srcQ, srcq_l1,srcq_l2,srcq_l3,srcq_h1,srcq_h2,srcq_h3, &
                courno,dx,dy,dz,dt,ngq,ngf)
 
-
+  flatn(:,:,:) = 0.0
   call uflatten(lo-dg*ngf, hi+dg*ngf, &
                 q, flatn,lo-NHYP, hi+NHYP,QPRES)
  

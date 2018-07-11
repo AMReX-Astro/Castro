@@ -430,10 +430,7 @@ contains
              dQL(6:7) = 	temp(i,j,k,ibx+1:8) - temp(i-1,j,k,ibx+1:8)	!mag
              dQR(1:5) = 	temp(i+1,j,k,1:ibx-1) - temp(i,j,k,1:ibx-1)
              dQR(6:7) = 	temp(i+1,j,k,ibx+1:8) - temp(i,j,k,ibx+1:8)
-             !			do ii = 1,7
-             !				!call vanleer(dW(ii),dQL(ii),dQR(ii)) !!slope limiting
-             !				call minmod(dW(ii),dQL(ii),dQR(ii)) !!slope limiting
-             !			enddo
+
              call evals(lam, s(i,j,k,:), 1) !!X dir eigenvalues
              call lvecx(leig,s(i,j,k,:))    !!left eigenvectors
              call rvecx(reig,s(i,j,k,:))    !!right eigenvectors
@@ -451,7 +448,7 @@ contains
              do ii = 1,7
                 dL = dot_product(leig(ii,:),dQL)
                 dR = dot_product(leig(ii,:),dQR)
-                call slope(dW,dL,dR)
+                call slope(dW,dL,dR, flatn(i,j,k))
                 summ_p(:) = summ_p(:) + (1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
                 summ_m(:) = summ_m(:) + (- 1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
              enddo
@@ -468,7 +465,7 @@ contains
              do ii = QFS, QFS+nspec-1  
                dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i-1,j,k,ii-QFS+1)
                dR = temp_s(i+1,j,k,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
-               call slope(dW,dL,dR)
+               call slope(dW,dL,dR, flatn(i,j,k))
                Ip(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*(1-dt_over_a/dx*s(i,j,k,QU))*dW
                Im(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*(- 1 - dt_over_a/dx*s(i,j,k,QU))*dW
              enddo 
@@ -514,7 +511,7 @@ contains
              lam = 0.d0
              !Skip By
              dQL(1:6) = temp(i,j,k,1:ibx) - temp(i,j-1,k,1:ibx) !gas + bx
-             dQL(7) = temp(i,j,k,8) - temp(i,j-1,k,iby+1)		!bz
+             dQL(7) = temp(i,j,k,8) - temp(i,j-1,k,iby+1) !bz
              dQR(1:6) = temp(i,j+1,k,1:ibx) - temp(i,j,k,1:ibx)
              dQR(7) = temp(i,j+1,k,ibz) - temp(i,j,k,ibz)
 
@@ -525,7 +522,7 @@ contains
              do ii = 1,7
                 dL = dot_product(leig(ii,:),dQL)
                 dR = dot_product(leig(ii,:),dQR)
-                call slope(dW,dL,dR)
+                call slope(dW,dL,dR,flatn(i,j,k))
                 summ_p(:) = summ_p(:) + (1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
                 summ_m(:) = summ_m(:) + (- 1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
              enddo
@@ -555,7 +552,7 @@ contains
              do ii = QFS, QFS+nspec-1  
                dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i,j-1,k,ii-QFS+1)
                dR = temp_s(i,j+1,k,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
-               call slope(dW,dL,dR)
+               call slope(dW,dL,dR, flatn(i,j,k))
                Ip(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*(1-dt_over_a/dy*s(i,j,k,QV))*dW
                Im(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*(-1 - dt_over_a/dy*s(i,j,k,QV))*dW
              enddo
@@ -612,7 +609,7 @@ contains
              do ii = 1,7
                 dL = dot_product(leig(ii,:),dQL)
                 dR = dot_product(leig(ii,:),dQR)
-                call slope(dW,dL,dR)
+                call slope(dW,dL,dR, flatn(i,j,k))
                 summ_p(:) = summ_p(:) + (1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
                 summ_m(:) = summ_m(:) + (- 1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
              enddo
@@ -639,7 +636,7 @@ contains
              do ii = QFS, QFS+nspec-1  
                dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i,j,k-1,ii-QFS+1)
                dR = temp_s(i,j,k+1,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
-               call slope(dW,dL,dR)
+               call slope(dW,dL,dR,flatn(i,j,k))
                Ip(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*(1 - dt_over_a/dz*s(i,j,k,QW))*dW
                Im(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*(-1 - dt_over_a/dz*s(i,j,k,QW))*dW
              enddo
@@ -782,10 +779,11 @@ contains
   end subroutine centerdif
 
   !================================================================
-  subroutine slope(dW, WR, WL)
+  subroutine slope(dW, WR, WL, flat)
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
+    real(rt), intent(in )    :: flat 
     real(rt), intent(in )    :: WR, WL
     real(rt), intent(out)    :: dW
 
@@ -795,7 +793,11 @@ contains
        call vanleer(dW,WR,WL)
     elseif (mhd_plm_slope == 2) then 
        call centerdif(dW,WR,WL)
-    endif         
+    endif  
+
+    if (use_flattening == 1) then
+        dW = flat * dW
+    endif    
              
   end subroutine slope        
 
