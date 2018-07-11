@@ -370,6 +370,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
              BL_TO_FORTRAN_3D(q[mfi]),
              BL_TO_FORTRAN_3D(q_bar[mfi]),
              BL_TO_FORTRAN_3D(qaux[mfi]),
+             BL_TO_FORTRAN_3D(qaux_bar[mfi]),
              BL_TO_FORTRAN_3D(source_in),
              BL_TO_FORTRAN_3D(source_out),
              BL_TO_FORTRAN_3D(source_hydro_only),

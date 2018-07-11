@@ -7,6 +7,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
                                   q, q_lo, q_hi, &
                                   q_bar, q_bar_lo, q_bar_hi, &
                                   qaux, qa_lo, qa_hi, &
+                                  qaux_bar, qa_bar_lo, qa_bar_hi, &
                                   srcU, srU_lo, srU_hi, &
                                   update, updt_lo, updt_hi, &
                                   update_flux, uf_lo, uf_hi, &
@@ -67,6 +68,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   integer, intent(in) :: q_lo(3), q_hi(3)
   integer, intent(in) :: q_bar_lo(3), q_bar_hi(3)
   integer, intent(in) :: qa_lo(3), qa_hi(3)
+  integer, intent(in) :: qa_bar_lo(3), qa_bar_hi(3)
   integer, intent(in) :: srU_lo(3), srU_hi(3)
   integer, intent(in) :: updt_lo(3), updt_hi(3)
   integer, intent(in) :: uf_lo(3), uf_hi(3)
@@ -91,6 +93,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
   real(rt), intent(inout) :: q_bar(q_bar_lo(1):q_bar_hi(1), q_bar_lo(2):q_bar_hi(2), q_bar_lo(3):q_bar_hi(3), NQ)
   real(rt), intent(inout) :: qaux(qa_lo(1):qa_hi(1), qa_lo(2):qa_hi(2), qa_lo(3):qa_hi(3), NQAUX)
+  real(rt), intent(inout) :: qaux_bar(qa_bar_lo(1):qa_bar_hi(1), qa_bar_lo(2):qa_bar_hi(2), qa_bar_lo(3):qa_bar_hi(3), NQAUX)
   real(rt), intent(in) :: srcU(srU_lo(1):srU_hi(1), srU_lo(2):srU_hi(2), srU_lo(3):srU_hi(3), NVAR)
   real(rt), intent(inout) :: update(updt_lo(1):updt_hi(1), updt_lo(2):updt_hi(2), updt_lo(3):updt_hi(3), NVAR)
   real(rt), intent(inout) :: update_flux(uf_lo(1):uf_hi(1), uf_lo(2):uf_hi(2), uf_lo(3):uf_hi(3), NVAR)
@@ -559,21 +562,21 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
   ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
   call avisc(lo, hi, &
-             q, q_lo, q_hi, &
-             qaux, qa_lo, qa_hi, &
+             q_bar, q_bar_lo, q_bar_hi, &
+             qaux_bar, qa_bar_lo, qa_bar_hi, &
              dx, avisx, lo, hi+dg, 1)
 
 #if BL_SPACEDIM >= 2
   call avisc(lo, hi, &
-             q, q_lo, q_hi, &
-             qaux, qa_lo, qa_hi, &
+             q_bar, q_bar_lo, q_bar_hi, &
+             qaux_bar, qa_bar_lo, qa_bar_hi, &
              dx, avisy, lo, hi+dg, 2)
 #endif
 
 #if BL_SPACEDIM == 3
   call avisc(lo, hi, &
-             q, q_lo, q_hi, &
-             qaux, qa_lo, qa_hi, &
+             q_bar, q_bar_lo, q_bar_hi, &
+             qaux_bar, qa_bar_lo, qa_bar_hi, &
              dx, avisz, lo, hi+dg, 3)
 #endif
 
