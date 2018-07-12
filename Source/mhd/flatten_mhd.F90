@@ -12,7 +12,9 @@ module flatten_module_mhd
 #ifdef RADIATION
   public :: rad_flatten
 #endif
-
+#ifdef MHD
+  public :: mhd_flatten 
+#endif
 contains
 
 ! :::
@@ -34,7 +36,7 @@ contains
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: ipres
 
-    real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
+    real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR+1)
     real(rt)        , intent(inout) :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
 
     integer :: i, j, k, ishft
@@ -215,5 +217,63 @@ contains
 
   end subroutine rad_flatten
 #endif
+
+#ifdef MHD
+  subroutine mhd_flatten(lo, hi, q, flatn, q_lo, q_hi)
+
+    use meth_params_module, only : QPRES, QU, QV, QW, NQ, QMAGX, QMAGY, QMAGZ
+
+    use amrex_fort_module, only : rt => amrex_real
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+
+    real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt)        , intent(inout) :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+
+    integer :: i, j, k, QPTOT
+
+    real(rt)        :: q2(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ+1)
+    real(rt)        , pointer :: flatg(:,:,:)
+
+
+    QPTOT = NQ+1
+    
+    q2(:,:,:,1:NQ) = q(:,:,:,:)
+    q2(:,:,:,QPTOT) = q(:,:,:,QPRES) + 0.5d0 * ( q(:,:,:,QMAGX)**2 + q(:,:,:,QMAGY)**2 + q(:,:,:,QMAGZ)**2 )
+
+    call uflatten(lo, hi, q2, flatn, q_lo, q_hi, QPTOT)
+
+    call bl_allocate(flatg, q_lo(1), q_hi(1), q_lo(2), q_hi(2), q_lo(3), q_hi(3))
+    call uflatten(lo, hi, q2, flatg, q_lo, q_hi, QPRES)
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             flatn(i,j,k) = flatn(i,j,k) * flatg(i,j,k)
+
+!             if (flatten_pp_threshold > ZERO) then
+!                if ( q(i-1,j,k,QU) + q(i,j-1,k,QV) + q(i,j,k-1,QW) > &
+!                     q(i+1,j,k,QU) + q(i,j+1,k,QV) + q(i,j,k+1,QW) ) then
+
+!                   if (q(i,j,k,QPRES) < flatten_pp_threshold * q(i,j,k,QPTOT)) then
+!                      flatn(i,j,k) = ZERO
+!                   end if
+
+!                end if
+!             endif
+
+          end do
+       end do
+    end do
+
+    call bl_deallocate(flatg)
+
+  end subroutine mhd_flatten
+#endif
+
+
 
 end module flatten_module_mhd
