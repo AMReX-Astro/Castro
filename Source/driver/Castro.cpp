@@ -3751,11 +3751,11 @@ Castro::clean_state(int is_new, MultiFab& state_old, int ng) {
   MultiFab& state = is_new == 1 ? get_new_data(State_Type) : get_old_data(State_Type);
 
   // Enforce a minimum density.
-//#ifndef AMREX_USE_CUDA
-//    Real frac_change = enforce_min_density(state_old, state, ng);
-//#else
-//  Real frac_change = 1.e200;
-//#endif
+#ifndef AMREX_USE_CUDA
+    Real frac_change = enforce_min_density(state_old, state, ng);
+#else
+  Real frac_change = 1.e200;
+#endif
 
   // Ensure all species are normalized.
   normalize_species(state, ng);
