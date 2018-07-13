@@ -439,10 +439,11 @@ contains
     integer :: i, j, k, n
     real(rt) :: lap
 
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             do n = 1, nc
+    do n = 1, nc
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
                 lap = U(i+1,j,k,n) - TWO*U(i,j,k,n) + U(i-1,j,k,n)
 #if BL_SPACEDIM >= 2
                 lap = lap + U(i,j+1,k,n) - TWO*U(i,j,k,n) + U(i,j-1,k,n)
@@ -479,10 +480,10 @@ contains
 
     call bl_allocate(lap, lo, hi, nc)
 
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             do n = 1, nc
+    do n = 1, nc
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
                 lap(i,j,k,n) = U(i+1,j,k,n) - TWO*U(i,j,k,n) + U(i-1,j,k,n)
 #if BL_SPACEDIM >= 2
                 lap(i,j,k,n) = lap(i,j,k,n) + U(i,j+1,k,n) - TWO*U(i,j,k,n) + U(i,j-1,k,n)
@@ -495,10 +496,10 @@ contains
        enddo
     enddo
 
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             do n = 1, nc
+    do n = 1, nc
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
                 U(i,j,k,n) = U(i,j,k,n) - TWENTYFOURTH * lap(i,j,k,n)
              enddo
           enddo
@@ -569,10 +570,10 @@ contains
     integer :: i, j, k, n
     real(rt) :: lap
 
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             do n = 1, nc
+    do n = 1, nc
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
                 lap = q_bar(i+1,j,k,n) - TWO*q_bar(i,j,k,n) + q_bar(i-1,j,k,n)
 #if BL_SPACEDIM >= 2
                 lap = lap + q_bar(i,j+1,k,n) - TWO*q_bar(i,j,k,n) + q_bar(i,j-1,k,n)
@@ -650,10 +651,10 @@ contains
 
     call bl_allocate(lap, lo, hi, nc)
 
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             do n = 1, nc
+    do n = 1, nc
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
                 lap(i,j,k,n) = q(i+1,j,k,n) - TWO*q(i,j,k,n) + q(i-1,j,k,n)
 #if BL_SPACEDIM >= 2
                 lap(i,j,k,n) = lap(i,j,k,n) + q(i,j+1,k,n) - TWO*q(i,j,k,n) + q(i,j-1,k,n)
@@ -666,12 +667,11 @@ contains
        enddo
     enddo
 
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             do n = 1, nc
+    do n = 1, nc
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
                 q(i,j,k,n) = q(i,j,k,n) + TWENTYFOURTH * lap(i,j,k,n)
-
              enddo
           enddo
        enddo
