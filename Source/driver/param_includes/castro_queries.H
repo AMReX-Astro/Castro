@@ -61,7 +61,6 @@ pp.query("use_flattening", use_flattening);
 pp.query("transverse_use_eos", transverse_use_eos);
 pp.query("transverse_reset_density", transverse_reset_density);
 pp.query("transverse_reset_rhoe", transverse_reset_rhoe);
-pp.query("dual_energy_update_E_from_e", dual_energy_update_E_from_e);
 pp.query("dual_energy_eta1", dual_energy_eta1);
 pp.query("dual_energy_eta2", dual_energy_eta2);
 pp.query("dual_energy_eta3", dual_energy_eta3);

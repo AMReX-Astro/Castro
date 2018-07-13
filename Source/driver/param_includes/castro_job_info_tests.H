@@ -56,7 +56,6 @@ jobInfoFile << (Castro::use_flattening == 1 ? "    " : "[*] ") << "castro.use_fl
 jobInfoFile << (Castro::transverse_use_eos == 0 ? "    " : "[*] ") << "castro.transverse_use_eos = " << Castro::transverse_use_eos << std::endl;
 jobInfoFile << (Castro::transverse_reset_density == 1 ? "    " : "[*] ") << "castro.transverse_reset_density = " << Castro::transverse_reset_density << std::endl;
 jobInfoFile << (Castro::transverse_reset_rhoe == 0 ? "    " : "[*] ") << "castro.transverse_reset_rhoe = " << Castro::transverse_reset_rhoe << std::endl;
-jobInfoFile << (Castro::dual_energy_update_E_from_e == 1 ? "    " : "[*] ") << "castro.dual_energy_update_E_from_e = " << Castro::dual_energy_update_E_from_e << std::endl;
 jobInfoFile << (Castro::dual_energy_eta1 == 1.0e0 ? "    " : "[*] ") << "castro.dual_energy_eta1 = " << Castro::dual_energy_eta1 << std::endl;
 jobInfoFile << (Castro::dual_energy_eta2 == 1.0e-4 ? "    " : "[*] ") << "castro.dual_energy_eta2 = " << Castro::dual_energy_eta2 << std::endl;
 jobInfoFile << (Castro::dual_energy_eta3 == 1.0e0 ? "    " : "[*] ") << "castro.dual_energy_eta3 = " << Castro::dual_energy_eta3 << std::endl;
