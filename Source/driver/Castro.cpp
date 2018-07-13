@@ -3198,7 +3198,7 @@ Castro::computeTemp(int is_new, int ng)
     // copy back UTEMP and UEINT -- those are the only things that
     // should have changed.
     MultiFab::Copy(State, Stemp, Temp, Temp, 1, 0);
-    //MultiFab::Copy(State, Stemp, Eint, Eint, 1, 0);
+    MultiFab::Copy(State, Stemp, Eint, Eint, 1, 0);
 
     // now that we redid these, redo the ghost fill -- technically,
     // only need this for UTEMP and UEINT, and only if ng > 0
