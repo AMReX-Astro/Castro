@@ -1708,13 +1708,13 @@ contains
                 avis(i,j,k) = (q(i,j,k,QU) - q(i-1,j,k,QU))/dx(1)
 #if BL_SPACEDIM >= 2
                 avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
-                     q(i,j+1,k,QV) + q(i,j-1,k,QV) + &
-                     q(i-1,j+1,k,QV) + q(i-1,j-1,k,QV))/dx(2)
+                     q(i,j+1,k,QV) - q(i,j-1,k,QV) + &
+                     q(i-1,j+1,k,QV) - q(i-1,j-1,k,QV))/dx(2)
 #endif
 #if BL_SPACEDIM >= 3
                 avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
-                     q(i,j,k+1,QW) + q(i,j,k-1,QW) + &
-                     q(i-1,j,k+1,QW) + q(i-1,j,k-1,QW))/dx(3)
+                     q(i,j,k+1,QW) - q(i,j,k-1,QW) + &
+                     q(i-1,j,k+1,QW) - q(i-1,j,k-1,QW))/dx(3)
 #endif
 
                 cmin = min(qaux(i,j,k,QC), qaux(i-1,j,k,QC))
@@ -1725,13 +1725,13 @@ contains
                 avis(i,j,k) = (q(i,j,k,QV) - q(i,j-1,k,QV))/dx(2)
 
                 avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
-                     q(i+1,j,k,QU) + q(i-1,j,k,QU) + &
-                     q(i+1,j-1,k,QU) + q(i-1,j-1,k,QU))/dx(1)
+                     q(i+1,j,k,QU) - q(i-1,j,k,QU) + &
+                     q(i+1,j-1,k,QU) - q(i-1,j-1,k,QU))/dx(1)
 
 #if BL_SPACEDIM >= 3
                 avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
-                     q(i,j,k+1,QW) + q(i,j,k-1,QW) + &
-                     q(i-1,j,k+1,QW) + q(i-1,j,k-1,QW))/dx(3)
+                     q(i,j,k+1,QW) - q(i,j,k-1,QW) + &
+                     q(i-1,j,k+1,QW) - q(i-1,j,k-1,QW))/dx(3)
 #endif
 
                 cmin = min(qaux(i,j,k,QC), qaux(i,j-1,k,QC))
@@ -1742,12 +1742,12 @@ contains
                 avis(i,j,k) = (q(i,j,k,QW) - q(i,j,k-1,QW))/dx(1)
 
                 avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
-                     q(i,j+1,k,QV) + q(i,j-1,k,QV) + &
-                     q(i-1,j+1,k,QV) + q(i-1,j-1,k,QV))/dx(2)
+                     q(i,j+1,k,QV) - q(i,j-1,k,QV) + &
+                     q(i-1,j+1,k,QV) - q(i-1,j-1,k,QV))/dx(2)
 
                 avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
-                     q(i,j,k+1,QW) + q(i,j,k-1,QW) + &
-                     q(i-1,j,k+1,QW) + q(i-1,j,k-1,QW))/dx(3)
+                     q(i,j,k+1,QW) - q(i,j,k-1,QW) + &
+                     q(i-1,j,k+1,QW) - q(i-1,j,k-1,QW))/dx(3)
 
                 cmin = min(qaux(i,j,k,QC), qaux(i,j,k-1,QC))
 
