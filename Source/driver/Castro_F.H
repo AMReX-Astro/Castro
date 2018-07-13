@@ -602,10 +602,21 @@ extern "C"
 
   void ca_make_fourth_average(const int lo[], const int hi[],
                               BL_FORT_FAB_ARG_3D(q), const int* nc,
-                              BL_FORT_FAB_ARG_3D(q_bar), const int* nc_bar);
+                              const BL_FORT_FAB_ARG_3D(q_bar), const int* nc_bar);
+
+  void ca_make_fourth_average_n(const int lo[], const int hi[],
+                                BL_FORT_FAB_ARG_3D(q), const int* nc,
+                                const BL_FORT_FAB_ARG_3D(q_bar), const int* nc_bar, const int* ncomp);
 
   void ca_make_fourth_in_place(const int lo[], const int hi[],
                                BL_FORT_FAB_ARG_3D(q), const int* nc);
+
+  void ca_make_fourth_in_place_n(const int lo[], const int hi[],
+                                 BL_FORT_FAB_ARG_3D(q), const int* nc, const int* ncomp);
+
+  void ca_compute_lap_term(const int lo[], const int hi[],
+                           const BL_FORT_FAB_ARG_3D(U), const int* nc,
+                           BL_FORT_FAB_ARG_ANYD(lap), const int* ncomp);
 
   void ca_make_cell_center(const int lo[], const int hi[],
                            const BL_FORT_FAB_ARG_3D(U), const int* nc,

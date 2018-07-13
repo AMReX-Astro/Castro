@@ -3105,6 +3105,15 @@ Castro::computeTemp(int is_new, int ng)
 
   MultiFab Stemp;
 
+  // for 4th order, the only variables that may change here are Temp
+  // and Eint.  To ensure that we don't modify values unless there is
+  // a reset for Eint, we want to store the Laplacian that we use for
+  // the cell-average -> cell-center conversion so we can use the same
+  // Laplacian to convert back, resulting only in roundoff changes if
+  // Eint is not modified.  We have to store it here, since we
+  // overwrite the grown state as we work.
+  MultiFab Eint_lap;
+
   if (fourth_order) {
 
     // we need to make the data live at cell-centers first
@@ -3120,11 +3129,20 @@ Castro::computeTemp(int is_new, int ng)
     Stemp.define(State.boxArray(), State.DistributionMap(), NUM_STATE, 2);
     expand_state(Stemp, time, -1, Stemp.nGrow());
 
+    // store the Laplacian term for the internal energy
+    Eint_lap.define(State.boxArray(), State.DistributionMap(), 1, 0);
+
     // convert to cell centers -- this will result in Stemp being
     // cell centered only on 1 ghost cells
     for (MFIter mfi(Stemp); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.growntilebox(1);
+      const Box& bx0 = mfi.tilebox();
       const int idx = mfi.tileIndex();
+
+      ca_compute_lap_term(BL_TO_FORTRAN_BOX(bx0),
+                          BL_TO_FORTRAN_FAB(Stemp[mfi]),
+                          BL_TO_FORTRAN_ANYD(Eint_lap[mfi]), &Eint);
+
       ca_make_cell_center_in_place(BL_TO_FORTRAN_BOX(bx),
                                    BL_TO_FORTRAN_FAB(Stemp[mfi]));
 
@@ -3181,26 +3199,29 @@ Castro::computeTemp(int is_new, int ng)
 
   if (fourth_order) {
 
-    // we need to copy back from Stemp into S_new, making it cell-average
-    // in the process
+    // we need to copy back from Stemp into S_new, making it
+    // cell-average in the process.  For temperature, we will
+    // construct the Laplacian from the new state and use for the
+    // correction, since the temperature was just updated.  For the
+    // internal energy, most zones will not have been reset, so we
+    // don't want to modify them from what they were before, therefore
+    // we use the stored Laplacian computed above to convert back to
+    // cell-averages -- this is 4th-order and will be a no-op for
+    // those zones where e wasn't changed.
 
     for (MFIter mfi(Stemp); mfi.isValid(); ++mfi) {
 
-      // we'll only make the interior valid -- note: we use the
-      // original average State to construct the Laplacian.  This is
-      // important, because for zones that did not change, this
-      // results in only roundoff level diffs (since the exact same
-      // Laplacian was subtracted and then added).
-
-      // TODO : we only need to do this for TEMP and EINT
       const Box& bx = mfi.tilebox();
       const int idx = mfi.tileIndex();
-      ca_make_fourth_average(BL_TO_FORTRAN_BOX(bx),
-                             BL_TO_FORTRAN_FAB(Stemp[mfi]),
-                             BL_TO_FORTRAN_FAB(State[mfi]);
+
+      // only temperature
+      ca_make_fourth_in_place_n(BL_TO_FORTRAN_BOX(bx),
+                                BL_TO_FORTRAN_FAB(Stemp[mfi]), &Temp);
 
     }
 
+    // correct UEINT
+    MultiFab::Add(Stemp, Eint_lap, 0, Eint, 1, 0);
 
     // copy back UTEMP and UEINT -- those are the only things that
     // should have changed.

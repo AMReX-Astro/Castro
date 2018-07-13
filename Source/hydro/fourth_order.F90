@@ -420,6 +420,8 @@ contains
   end subroutine states
 
 
+  ! Note: pretty much all of these routines below assume that dx(1) = dx(2) = dx(3)
+
   subroutine ca_make_cell_center(lo, hi, &
                                  U, U_lo, U_hi, nc, &
                                  U_cc, U_cc_lo, U_cc_hi, nc_cc) &
@@ -507,6 +509,47 @@ contains
 
   end subroutine ca_make_cell_center_in_place
 
+  subroutine ca_compute_lap_term(lo, hi, &
+                                 U, U_lo, U_hi, nc, &
+                                 lap, lap_lo, lap_hi, ncomp) &
+                                 bind(C, name="ca_compute_lap_term")
+
+    ! this computes the h**2/24 L U term that is used in correcting
+    ! cell-center to averages
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: U_lo(3), U_hi(3)
+    integer, intent(in) :: lap_lo(3), lap_hi(3)
+    integer, intent(in) :: nc
+    real(rt), intent(in) :: U(U_lo(1):U_hi(1), U_lo(2):U_hi(2), U_lo(3):U_hi(3), nc)
+    real(rt), intent(inout) :: lap(lap_lo(1):lap_hi(1), lap_lo(2):lap_hi(2), lap_lo(3):lap_hi(3))
+    integer, intent(in) :: ncomp
+
+    ! note: ncomp is C++ index (0-based)
+
+    integer :: i, j, k, n
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             lap(i,j,k) = U(i+1,j,k,ncomp+1) - TWO*U(i,j,k,ncomp+1) + U(i-1,j,k,ncomp+1)
+#if BL_SPACEDIM >= 2
+             lap(i,j,k) = lap(i,j,k) + U(i,j+1,k,ncomp+1) - TWO*U(i,j,k,ncomp+1) + U(i,j-1,k,ncomp+1)
+#endif
+#if BL_SPACEDIM == 3
+             lap(i,j,k) = lap(i,j,k) + U(i,j,k+1,ncomp+1) - TWO*U(i,j,k,ncomp+1) + U(i,j,k-1,ncomp+1)
+#endif
+          enddo
+       enddo
+    enddo
+
+    lap(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3)) = &
+         TWENTYFOURTH * lap(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3))
+
+  end subroutine ca_compute_lap_term
+
   subroutine ca_make_fourth_average(lo, hi, &
                                     q, q_lo, q_hi, nc, &
                                     q_bar, q_bar_lo, q_bar_hi, nc_bar) &
@@ -546,6 +589,46 @@ contains
     enddo
 
   end subroutine ca_make_fourth_average
+
+  subroutine ca_make_fourth_average_n(lo, hi, &
+                                      q, q_lo, q_hi, nc, &
+                                      q_bar, q_bar_lo, q_bar_hi, nc_bar, ncomp) &
+                                      bind(C, name="ca_make_fourth_average_n")
+
+    ! this takes the cell-center q and the q constructed from the
+    ! cell-average U (q_bar) and replaces the cell-center q with a
+    ! proper 4th-order accurate cell-average
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: q_bar_lo(3), q_bar_hi(3)
+    integer, intent(in) :: nc, nc_bar
+    integer, intent(in) :: ncomp
+    real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), nc)
+    real(rt), intent(in) :: q_bar(q_bar_lo(1):q_bar_hi(1), q_bar_lo(2):q_bar_hi(2), q_bar_lo(3):q_bar_hi(3), nc_bar)
+
+    integer :: i, j, k
+    real(rt) :: lap
+
+    ! note: ncomp is the C++ index, indexed from 0, so we add 1 to it here
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             lap = q_bar(i+1,j,k,ncomp+1) - TWO*q_bar(i,j,k,ncomp+1) + q_bar(i-1,j,k,ncomp+1)
+#if BL_SPACEDIM >= 2
+             lap = lap + q_bar(i,j+1,k,ncomp+1) - TWO*q_bar(i,j,k,ncomp+1) + q_bar(i,j-1,k,ncomp+1)
+#endif
+#if BL_SPACEDIM == 3
+             lap = lap + q_bar(i,j,k+1,ncomp+1) - TWO*q_bar(i,j,k,ncomp+1) + q_bar(i,j,k-1,ncomp+1)
+#endif
+
+             q(i,j,k,ncomp+1) = q(i,j,k,ncomp+1) + TWENTYFOURTH * lap
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_make_fourth_average_n
 
   subroutine ca_make_fourth_in_place(lo, hi, &
                                      q, q_lo, q_hi, nc) &
@@ -597,6 +680,55 @@ contains
     call bl_deallocate(lap)
 
   end subroutine ca_make_fourth_in_place
+
+  subroutine ca_make_fourth_in_place_n(lo, hi, &
+                                       q, q_lo, q_hi, nc, ncomp) &
+                                       bind(C, name="ca_make_fourth_in_place_n")
+
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
+
+    ! this takes the cell-center q and makes it a cell-average q, in
+    ! place (e.g. q is overwritten by its average).  Note: this
+    ! routine is not tile safe.
+
+    ! here ncomp is the component to update -- we expect this to come
+    ! in 0-based from C++, so we add 1
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: nc, ncomp
+    real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), nc)
+
+    integer :: i, j, k, n
+    real(rt), pointer :: lap(:,:,:)
+
+    call bl_allocate(lap, lo, hi)
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             lap(i,j,k) = q(i+1,j,k,ncomp+1) - TWO*q(i,j,k,ncomp+1) + q(i-1,j,k,ncomp+1)
+#if BL_SPACEDIM >= 2
+             lap(i,j,k) = lap(i,j,k) + q(i,j+1,k,ncomp+1) - TWO*q(i,j,k,ncomp+1) + q(i,j-1,k,ncomp+1)
+#endif
+#if BL_SPACEDIM == 3
+             lap(i,j,k) = lap(i,j,k) + q(i,j,k+1,ncomp+1) - TWO*q(i,j,k,ncomp+1) + q(i,j,k-1,ncomp+1)
+#endif
+          enddo
+       enddo
+    enddo
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             q(i,j,k,ncomp+1) = q(i,j,k,ncomp+1) + TWENTYFOURTH * lap(i,j,k)
+          enddo
+       enddo
+    enddo
+
+    call bl_deallocate(lap)
+
+  end subroutine ca_make_fourth_in_place_n
 
 
 end module fourth_order
