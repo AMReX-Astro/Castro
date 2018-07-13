@@ -3186,11 +3186,18 @@ Castro::computeTemp(int is_new, int ng)
 
     for (MFIter mfi(Stemp); mfi.isValid(); ++mfi) {
 
-      // we'll only make the interior valid
+      // we'll only make the interior valid -- note: we use the
+      // original average State to construct the Laplacian.  This is
+      // important, because for zones that did not change, this
+      // results in only roundoff level diffs (since the exact same
+      // Laplacian was subtracted and then added).
+
+      // TODO : we only need to do this for TEMP and EINT
       const Box& bx = mfi.tilebox();
       const int idx = mfi.tileIndex();
-      ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
-                              BL_TO_FORTRAN_FAB(Stemp[mfi]));
+      ca_make_fourth_average(BL_TO_FORTRAN_BOX(bx),
+                             BL_TO_FORTRAN_FAB(Stemp[mfi]),
+                             BL_TO_FORTRAN_FAB(State[mfi]);
 
     }
 
