@@ -3089,8 +3089,6 @@ Castro::computeTemp(int is_new, int ng)
 
   MultiFab& State = is_new == 1 ? get_new_data(State_Type) : get_old_data(State_Type);
 
-  //reset_internal_energy(State);
-
 #ifdef RADIATION
   FArrayBox temp;
 #endif
@@ -3149,6 +3147,13 @@ Castro::computeTemp(int is_new, int ng)
     }
 
   }
+
+  if (fourth_order) {
+    reset_internal_energy(Stemp);
+  } else {
+    reset_internal_energy(State);
+  }
+
 
 #ifdef _OPENMP
 #pragma omp parallel
