@@ -1,5 +1,15 @@
 # changes since the last release
 
+  -- The runtime parameter castro.do_ctu was replaced by
+     castro.time_integration_method.  The allowed values are
+     0 (CTU integration), 1 (MOL), or 2 (SDC)
+
+  -- The 4th order hydro was extended to support general equations
+     of state (it is still single level only)
+
+  -- A framework for a new spectral deferred corrections method
+     was added.  This will allow for higher-order time integration.
+
   -- The functionality that checks for a regrid at the end of
      the timestep will now apply all tagging criteria, not
      just the t_sound / t_enuc criterion.
