@@ -12,7 +12,7 @@ amr.subcycling_mode = None
 
 castro.use_retry = 1
 castro.use_post_step_regrid = 1
-castro.max_subcycles = 100
+castro.max_subcycles = 1000
 
 castro.lo_bc = 3
 castro.hi_bc = 2

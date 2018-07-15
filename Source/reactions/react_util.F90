@@ -13,7 +13,7 @@ contains
     use eos_type_module, only: eos_t, eos_input_re
     use meth_params_module, only : NVAR, URHO, UTEMP, UEDEN, UEINT, UMX, UMZ, UFS, UFX, &
                                    dual_energy_eta3
-    use bl_constants_module, only : ZERO, HALF, ONE
+    use amrex_constants_module, only : ZERO, HALF, ONE
     use actual_rhs_module
 
     implicit none
@@ -87,7 +87,7 @@ contains
     use network, only : nspec, nspec_evolve, aion, aion_inv
     use meth_params_module, only : NVAR, URHO, UTEMP, UEDEN, UEINT, UMX, UMZ, UFS, UFX, &
                                    dual_energy_eta3
-    use bl_constants_module, only : ZERO, HALF, ONE
+    use amrex_constants_module, only : ZERO, HALF, ONE
     use actual_rhs_module
 
     implicit none
