@@ -8,7 +8,7 @@ extern "C" {
 
   void problem_restart(int * int_dir_name, int * len);
 
-  void check_stopping_criteria(int* lo, int* hi,
+  void check_stopping_criteria(const int* lo, const int* hi,
                                const amrex::Real* v, const int* v_lo, const int* v_hi,
                                const amrex::Real* T, const int* t_lo, const int* t_hi,
                                const amrex::Real* ts_te, const int* s_lo, const int* s_hi,
