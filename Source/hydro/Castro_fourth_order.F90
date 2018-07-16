@@ -303,10 +303,6 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   ! note that the Riemann solver is written to work in slabs, so we
   ! need to pass the k index for both the state and flux separately.
 
-  ! TODO: we should explicitly compute a gamma with this state, since
-  ! we cannot get away with the first-order construction that we pull
-  ! from qaux in the Riemann solver
-
   do k = lo(3)-dg(3), hi(3)+dg(3)
 
      call riemann_state(qxm, qxp, q_lo, q_hi, &
