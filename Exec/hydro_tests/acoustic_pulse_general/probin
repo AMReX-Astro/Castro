@@ -2,7 +2,7 @@
 
  rho0 = 5.e4
  T0 = 5.e8
- dp_fact = 2.0
+ dp_fact = 10.0
  L_pert = 2.e7
 
 /
