@@ -3,12 +3,10 @@ module rpar_sdc_module
   use network, only : nspec, nspec_evolve
   implicit none
 
-  integer, parameter :: irp_C_dens = 0
-  integer, parameter :: irp_C_spec = 1  ! nspec_evolve components
-  integer, parameter :: irp_C_eden = irp_C_spec + nspec_evolve
-  integer, parameter :: irp_dt = irp_C_eden + 1
+  integer, parameter :: irp_C_react = 0  ! nspec_evolve + 2 components
+  integer, parameter :: irp_dt = irp_C_react + nspec_evolve + 2
   integer, parameter :: irp_mom = irp_dt + 1    ! 3 components
-  integer, parameter :: irp_spec = irp_mom + 3
+  integer, parameter :: irp_spec = irp_mom + 3  ! nspec - nspec_evolve components
   integer, parameter :: n_rpar = nspec_evolve + 6 + (nspec - nspec_evolve)
 
 end module rpar_sdc_module
@@ -63,7 +61,7 @@ contains
     R_react(nspec_evolve+1) = R_full(UEDEN)
 
     dt_m = rpar(irp_dt)
-    C_react(:) = rpar(irp_C_dens:irp_C_dens+nspec_evolve+1)
+    C_react(:) = rpar(irp_C_react:irp_C_react-1+nspec_evolve+2)
 
     f(:) = -U(:) + dt_m * R_react(:) + C_react(:)
 
@@ -201,13 +199,15 @@ contains
 
     ! update k_m to k_n via advection -- this is a second-order accurate update
 
-    use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ, UTEMP
+    use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ, UTEMP, sdc_solver
     use amrex_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
     use eos_type_module, only : eos_t, eos_input_re
     use eos_module
     use network, only : nspec, nspec_evolve
     use react_util_module
+    use minpack_module, only : hybrd1
+    use rpar_sdc_module
 
     implicit none
 
@@ -257,6 +257,7 @@ contains
     real(rt) :: dRdw(0:nspec_evolve+1, 0:nspec_evolve+1), dwdU(0:nspec_evolve+1, 0:nspec_evolve+1)
 
     real(rt) :: denom
+    real(rt) :: rpar(0:n_rpar-1)
 
     integer :: ipvt(nspec_evolve+2)
     integer :: info
@@ -382,7 +383,32 @@ contains
                 enddo
 
              else if (sdc_solver == 2) then
-                continue
+
+                ! use the Powell hybrid solver -- here, f_sdc will be
+                ! the function that it zeros
+
+                ! create the reaction state that is the initial guess
+                U_react(0) = U_new(URHO)
+                U_react(1:nspec_evolve) = U_new(UFS:UFS-1+nspec_evolve)
+                U_react(nspec_evolve+1) = U_new(UEDEN)
+
+                ! load rpar
+                rpar(irp_C_react:irp_C_react-1+nspec_evolve+2) = C_react(:)
+                rpar(irp_dt) = dt_m
+                rpar(irp_mom:irp_mom-1+3) = U_new(UMX:UMZ)
+                rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve)) = U_new(UFS+nspec_evolve:UFS-1+nspec)
+
+                ! call the powell solver
+                call hybrd1(f_sdc, nspec_evolve+2, U_react, f, 1.e-10_rt, info, n_rpar, rpar)
+
+                ! update the full U_new
+                U_new(URHO) = U_react(0)
+                U_new(UFS:UFS-1+nspec_evolve) = U_react(1:nspec_evolve)
+                U_new(UEDEN) = U_react(nspec_evolve+1)
+
+                ! if we updated total energy, then correct internal, or vice versa
+                U_new(UEINT) = U_new(UEDEN) - HALF*(sum(U_new(UMX:UMZ)**2)/U_new(URHO))
+
              endif
 
              ! copy back to k_n
