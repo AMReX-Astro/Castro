@@ -199,7 +199,7 @@ contains
 
     ! update k_m to k_n via advection -- this is a second-order accurate update
 
-    use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ, UTEMP, sdc_solver
+    use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ, UTEMP, sdc_solver, sdc_solver_tol
     use amrex_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
     use eos_type_module, only : eos_t, eos_input_re
@@ -399,7 +399,7 @@ contains
                 rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve)) = U_new(UFS+nspec_evolve:UFS-1+nspec)
 
                 ! call the powell solver
-                call hybrd1(f_sdc, nspec_evolve+2, U_react, f, 1.e-10_rt, info, n_rpar, rpar)
+                call hybrd1(f_sdc, nspec_evolve+2, U_react, f, sdc_solver_tol, info, n_rpar, rpar)
 
                 ! update the full U_new
                 U_new(URHO) = U_react(0)

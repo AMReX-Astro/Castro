@@ -89,6 +89,7 @@ static int hse_reflect_vels;
 static int mol_order;
 static int sdc_order;
 static int sdc_solver;
+static amrex::Real sdc_solver_tol;
 static amrex::Real fixed_dt;
 static amrex::Real initial_dt;
 static amrex::Real dt_cutoff;

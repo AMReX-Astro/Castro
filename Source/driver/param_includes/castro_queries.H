@@ -89,6 +89,7 @@ pp.query("hse_reflect_vels", hse_reflect_vels);
 pp.query("mol_order", mol_order);
 pp.query("sdc_order", sdc_order);
 pp.query("sdc_solver", sdc_solver);
+pp.query("sdc_solver_tol", sdc_solver_tol);
 pp.query("fixed_dt", fixed_dt);
 pp.query("initial_dt", initial_dt);
 pp.query("dt_cutoff", dt_cutoff);
