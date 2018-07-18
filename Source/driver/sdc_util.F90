@@ -293,8 +293,10 @@ contains
              ! iterative loop
              do while (err > tol)
 
-                ! compute the temperature -- this may not be needed -- it looks like it 
-                ! is overwritten in single_zone_react_source
+                ! compute the temperature and species derivatives --
+                ! maybe this should be done using the burn_state
+                ! returned by single_zone_react_source, since it is
+                ! more consistent T from e
                 eos_state % rho = U_new(URHO)
                 eos_state % T = 1.e6_rt   ! initial guess
                 eos_state % xn(:) = U_new(UFS:UFS-1+nspec)/U_new(URHO)
