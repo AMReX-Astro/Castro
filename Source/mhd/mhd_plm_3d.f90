@@ -778,6 +778,32 @@ contains
 
   end subroutine centerdif
 
+  !================================== second order MC ==============================
+  subroutine secondMC(dW, WR, WL)
+
+    use amrex_fort_module, only : rt => amrex_real
+    use amrex_constants_module, only : ZERO, HALF, ONE, TWO
+
+    implicit none
+
+    real(rt), intent(in  )    :: WR, WL
+    real(rt), intent(out )    :: dW
+
+    real(rt)  :: dlim
+
+    if (WR * WL .ge. ZERO) then
+       dlim = TWO * min(abs(WR),abs(WL))
+    else
+       dlim = ZERO
+    endif
+
+    dW = min(HALF * abs(WR + WL), dlim ) * sign(ONE, WR + WL)
+
+
+  end subroutine secondMC
+
+
+
   !================================================================
   subroutine slope(dW, WR, WL, flat)
     use amrex_fort_module, only : rt => amrex_real
@@ -793,6 +819,8 @@ contains
        call vanleer(dW,WR,WL)
     elseif (mhd_plm_slope == 2) then 
        call centerdif(dW,WR,WL)
+    elseif (mhd_plm_slope == 3) then
+       call secondMC(dW,WR,WL)
     endif  
 
     if (use_flattening == 1) then
