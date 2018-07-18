@@ -523,8 +523,8 @@ contains
                 dL = dot_product(leig(ii,:),dQL)
                 dR = dot_product(leig(ii,:),dQR)
                 call slope(dW,dL,dR,flatn(i,j,k))
-                summ_p(:) = summ_p(:) + (1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
-                summ_m(:) = summ_m(:) + (- 1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
+                summ_p(:) = summ_p(:) + (1 - dt_over_a/dy*lam(ii))*dW*reig(:,ii)
+                summ_m(:) = summ_m(:) + (- 1 - dt_over_a/dy*lam(ii))*dW*reig(:,ii)
              enddo
              !MHD Source Terms
              smhd(2) = temp(i,j,k,ibx)/temp(i,j,k,1)
@@ -610,8 +610,8 @@ contains
                 dL = dot_product(leig(ii,:),dQL)
                 dR = dot_product(leig(ii,:),dQR)
                 call slope(dW,dL,dR, flatn(i,j,k))
-                summ_p(:) = summ_p(:) + (1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
-                summ_m(:) = summ_m(:) + (- 1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
+                summ_p(:) = summ_p(:) + (1 - dt_over_a/dz*lam(ii))*dW*reig(:,ii)
+                summ_m(:) = summ_m(:) + (- 1 - dt_over_a/dz*lam(ii))*dW*reig(:,ii)
              enddo
              !MHD Source Terms
              smhd(2) = temp(i,j,k,ibx)/temp(i,j,k,1)
