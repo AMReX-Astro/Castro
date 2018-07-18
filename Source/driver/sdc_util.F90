@@ -266,7 +266,7 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             ! this is the full state -- this will be updates as we
+             ! this is the full state -- this will be updated as we
              ! solve the nonlinear system
              U_new(:) = k_m(i,j,k,:)
 
@@ -288,96 +288,102 @@ contains
              C_react(1:nspec_evolve) = C(UFS:UFS-1+nspec_evolve)
              C_react(nspec_evolve+1) = C(UEDEN)  ! need to consider which energy
 
-             err = 1.e30_rt
+             if (sdc_solver == 1) then
+                ! do a simple Newton solve
+                err = 1.e30_rt
 
-             ! iterative loop
-             do while (err > tol)
+                ! iterative loop
+                do while (err > tol)
 
-                ! compute the temperature and species derivatives --
-                ! maybe this should be done using the burn_state
-                ! returned by single_zone_react_source, since it is
-                ! more consistent T from e
-                eos_state % rho = U_new(URHO)
-                eos_state % T = 1.e6_rt   ! initial guess
-                eos_state % xn(:) = U_new(UFS:UFS-1+nspec)/U_new(URHO)
-                eos_state % e = (U_new(UEDEN) - HALF*sum(U_new(UMX:UMZ))/U_new(URHO))/U_new(URHO)
+                   ! compute the temperature and species derivatives --
+                   ! maybe this should be done using the burn_state
+                   ! returned by single_zone_react_source, since it is
+                   ! more consistent T from e
+                   eos_state % rho = U_new(URHO)
+                   eos_state % T = 1.e6_rt   ! initial guess
+                   eos_state % xn(:) = U_new(UFS:UFS-1+nspec)/U_new(URHO)
+                   eos_state % e = (U_new(UEDEN) - HALF*sum(U_new(UMX:UMZ))/U_new(URHO))/U_new(URHO)
 
-                call eos(eos_input_re, eos_state)
+                   call eos(eos_input_re, eos_state)
 
-                U_new(UTEMP) = eos_state % T
+                   U_new(UTEMP) = eos_state % T
 
-                ! get R for the new guess
-                call single_zone_react_source(U_new, R_full, i,j,k, burn_state)
+                   ! get R for the new guess
+                   call single_zone_react_source(U_new, R_full, i,j,k, burn_state)
 
-                ! store the subset for the nonlinear solve
-                U_react(0) = U_new(URHO)
-                U_react(1:nspec_evolve) = U_new(UFS:UFS-1+nspec_evolve)
-                U_react(nspec_evolve+1) = U_new(UEDEN)  ! we have a choice of which energy variable to update
+                   ! store the subset for the nonlinear solve
+                   U_react(0) = U_new(URHO)
+                   U_react(1:nspec_evolve) = U_new(UFS:UFS-1+nspec_evolve)
+                   U_react(nspec_evolve+1) = U_new(UEDEN)  ! we have a choice of which energy variable to update
 
-                R_react(0) = R_full(URHO)
-                R_react(1:nspec_evolve) = R_full(UFS:UFS-1+nspec_evolve)
-                R_react(nspec_evolve+1) = R_full(UEDEN)
+                   R_react(0) = R_full(URHO)
+                   R_react(1:nspec_evolve) = R_full(UFS:UFS-1+nspec_evolve)
+                   R_react(nspec_evolve+1) = R_full(UEDEN)
 
-                ! get dRdw
-                call single_zone_jac(U_new, burn_state, dRdw)
+                   ! get dRdw
+                   call single_zone_jac(U_new, burn_state, dRdw)
 
-                ! construct dwdU
-                dwdU(:, :) = ZERO
+                   ! construct dwdU
+                   dwdU(:, :) = ZERO
 
-                ! the density row
-                dwdU(0, 0) = ONE
+                   ! the density row
+                   dwdU(0, 0) = ONE
 
-                ! the X_k rows
-                do n = 1, nspec_evolve
-                   dwdU(n,0) = -U_react(n)/U_react(0)**2
-                   dwdU(n,n) = ONE/U_react(0)
+                   ! the X_k rows
+                   do n = 1, nspec_evolve
+                      dwdU(n,0) = -U_react(n)/U_react(0)**2
+                      dwdU(n,n) = ONE/U_react(0)
+                   enddo
+
+                   ! now the T row
+                   denom = ONE/(eos_state % rho * eos_state % dedT)
+                   dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(:) * eos_state % dedX(:)) - &
+                                                   eos_state % rho * eos_state % dedr - eos_state % e + &
+                                                   HALF*sum(U_new(UMX:UMZ)**2)/eos_state % rho)
+                   do m = 1, nspec_evolve
+                      dwdU(nspec_evolve+1,m) = -denom * eos_state % dedX(m)
+                   enddo
+
+                   dwdU(nspec_evolve+1, nspec_evolve+1) = denom
+
+                   ! construct the Jacobian -- we can get most of the
+                   ! terms from the network itself, but we do not rely on
+                   ! it having derivative wrt density
+                   Jac(:, :) = ZERO
+                   do m = 0, nspec_evolve+1
+                      Jac(m, m) = ONE
+                   enddo
+
+                   Jac(:,:) = Jac(:,:) - dt_m * matmul(dRdw, dwdU)
+
+                   ! compute the RHS of the linear system, f
+                   f(:) = -U_react(:) + dt_m * R_react(:) + C_react(:)
+
+                   ! solve the linear system: Jac dU_react = f
+                   call dgefa(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, info)
+                   if (info /= 0) then
+                      call amrex_error("singular matrix")
+                   endif
+
+                   call dgesl(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, f, 0)
+
+                   dU_react(:) = f(:)
+
+                   ! correct the full state
+                   U_new(URHO) = U_new(URHO) + dU_react(0)
+                   U_new(UFS:UFS-1+nspec_evolve) = U_new(UFS:UFS-1+nspec_evolve) + dU_react(1:nspec_evolve)
+                   U_new(UEDEN) = U_new(UEDEN) + dU_react(nspec_evolve+1)
+
+                   ! if we updated total energy, then correct internal, or vice versa
+                   U_new(UEINT) = U_new(UEDEN) - HALF*(sum(U_new(UMX:UMZ)**2)/U_new(URHO))
+
+                   ! construct the norm of the correction
+                   err = sum(dU_react**2)/sum(U_react**2)
                 enddo
 
-                ! now the T row
-                denom = ONE/(eos_state % rho * eos_state % dedT)
-                dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(:) * eos_state % dedX(:)) - &
-                                                eos_state % rho * eos_state % dedr - eos_state % e + &
-                                                HALF*sum(U_new(UMX:UMZ)**2)/eos_state % rho)
-                do m = 1, nspec_evolve
-                   dwdU(nspec_evolve+1,m) = -denom * eos_state % dedX(m)
-                enddo
-
-                dwdU(nspec_evolve+1, nspec_evolve+1) = denom
-
-                ! construct the Jacobian -- we can get most of the
-                ! terms from the network itself, but we do not rely on
-                ! it having derivative wrt density
-                Jac(:, :) = ZERO
-                do m = 0, nspec_evolve+1
-                   Jac(m, m) = ONE
-                enddo
-
-                Jac(:,:) = Jac(:,:) - dt_m * matmul(dRdw, dwdU)
-
-                ! compute the RHS of the linear system, f
-                f(:) = -U_react(:) + dt_m * R_react(:) + C_react(:)
-
-                ! solve the linear system: Jac dU_react = f
-                call dgefa(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, info)
-                if (info /= 0) then
-                   call amrex_error("singular matrix")
-                endif
-
-                call dgesl(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, f, 0)
-
-                dU_react(:) = f(:)
-
-                ! correct the full state
-                U_new(URHO) = U_new(URHO) + dU_react(0)
-                U_new(UFS:UFS-1+nspec_evolve) = U_new(UFS:UFS-1+nspec_evolve) + dU_react(1:nspec_evolve)
-                U_new(UEDEN) = U_new(UEDEN) + dU_react(nspec_evolve+1)
-
-                ! if we updated total energy, then correct internal, or vice versa
-                U_new(UEINT) = U_new(UEDEN) - HALF*(sum(U_new(UMX:UMZ)**2)/U_new(URHO))
-
-                ! construct the norm of the correction
-                err = sum(dU_react**2)/sum(U_react**2)
-             enddo
+             else if (sdc_solver == 2) then
+                continue
+             endif
 
              ! copy back to k_n
              k_n(i,j,k,:) = U_new(:)
