@@ -1,3 +1,19 @@
+module rpar_sdc_module
+
+  use network, only : nspec, nspec_evolve
+  implicit none
+
+  integer, parameter :: irp_C_dens = 0
+  integer, parameter :: irp_C_spec = 1  ! nspec_evolve components
+  integer, parameter :: irp_C_eden = irp_C_spec + nspec_evolve
+  integer, parameter :: irp_dt = irp_C_eden + 1
+  integer, parameter :: irp_mom = irp_dt + 1    ! 3 components
+  integer, parameter :: irp_spec = irp_mom + 3
+  integer, parameter :: n_rpar = nspec_evolve + 6 + (nspec - nspec_evolve)
+
+end module rpar_sdc_module
+
+
 module sdc_util
 
   use amrex_fort_module, only : rt => amrex_real
@@ -6,6 +22,53 @@ module sdc_util
   implicit none
 
 contains
+
+  subroutine f_sdc(n, U, f, iflag, npar, rpar)
+
+    use rpar_sdc_module
+    use meth_params_module, only : nvar, URHO, UFS, UEDEN, UMX, UMZ
+    use network, only : nspec, nspec_evolve
+    use burn_type_module
+    use react_util_module
+
+    ! this computes the function we need to zero for the SDC update
+    implicit none
+
+    integer,intent(in) :: n
+    real(rt), intent(in)  :: U(0:n-1)
+    real(rt), intent(out) :: f(0:n-1)
+    integer, intent(inout) :: iflag  !! leave this untouched
+    integer, intent(in) :: npar
+    real(rt), intent(in) :: rpar(0:npar-1)
+
+    real(rt) :: U_full(nvar),  R_full(nvar)
+    real(rt) :: R_react(0:n-1), C_react(0:n-1)
+    type(burn_t) :: burn_state
+
+    real(rt) :: dt_m
+
+    ! we are not solving the momentum equations
+    ! create a full state -- we need this for some interfaces
+    U_full(URHO) = U(0)
+    U_full(UFS:UFS-1+nspec_evolve) = U(1:nspec_evolve)
+    U_full(UEDEN) = U(nspec_evolve+1)
+
+    U_full(UMX:UMZ) = rpar(irp_mom:irp_mom+2)
+    U_full(UFS+nspec_evolve:UFS-1+nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))
+
+    call single_zone_react_source(U_full, R_full, 0,0,0, burn_state)
+
+    R_react(0) = R_full(URHO)
+    R_react(1:nspec_evolve) = R_full(UFS:UFS-1+nspec_evolve)
+    R_react(nspec_evolve+1) = R_full(UEDEN)
+
+    dt_m = rpar(irp_dt)
+    C_react(:) = rpar(irp_C_dens:irp_C_dens+nspec_evolve+1)
+
+    f(:) = -U(:) + dt_m * R_react(:) + C_react(:)
+
+  end subroutine f_sdc
+
 
   subroutine ca_sdc_update_advection_o2(lo, hi, dt_m, &
                                         k_m, kmlo, kmhi, &
@@ -230,7 +293,8 @@ contains
              ! iterative loop
              do while (err > tol)
 
-                ! compute the temperature
+                ! compute the temperature -- this may not be needed -- it looks like it 
+                ! is overwritten in single_zone_react_source
                 eos_state % rho = U_new(URHO)
                 eos_state % T = 1.e6_rt   ! initial guess
                 eos_state % xn(:) = U_new(UFS:UFS-1+nspec)/U_new(URHO)
