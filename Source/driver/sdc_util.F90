@@ -6,8 +6,10 @@ module rpar_sdc_module
   integer, parameter :: irp_C_react = 0  ! nspec_evolve + 2 components
   integer, parameter :: irp_dt = irp_C_react + nspec_evolve + 2
   integer, parameter :: irp_mom = irp_dt + 1    ! 3 components
-  integer, parameter :: irp_spec = irp_mom + 3  ! nspec - nspec_evolve components
-  integer, parameter :: n_rpar = nspec_evolve + 6 + (nspec - nspec_evolve)
+  integer, parameter :: irp_eint = irp_mom + 3
+  integer, parameter :: irp_spec = irp_eint + 1  ! nspec - nspec_evolve components
+
+  integer, parameter :: n_rpar = nspec_evolve + 7 + (nspec - nspec_evolve)
 
 end module rpar_sdc_module
 
@@ -66,6 +68,113 @@ contains
     f(:) = -U(:) + dt_m * R_react(:) + C_react(:)
 
   end subroutine f_sdc
+
+
+  subroutine f_sdc_jac(n, U, f, Jac, ldjac, iflag, npar, rpar)
+
+    use rpar_sdc_module
+    use meth_params_module, only : nvar, URHO, UFS, UEINT, UEDEN, UMX, UMZ, UTEMP
+    use network, only : nspec, nspec_evolve
+    use burn_type_module
+    use react_util_module
+    use eos_type_module, only : eos_t, eos_input_re
+    use eos_module, only : eos
+    use amrex_constants_module, only : ZERO, HALF, ONE
+
+    ! this computes the function we need to zero for the SDC update
+    implicit none
+
+    integer,intent(in) :: n, ldjac
+    real(rt), intent(in)  :: U(0:n-1)
+    real(rt), intent(out) :: f(0:n-1)
+    real(rt), intent(out) :: Jac(0:ldjac-1,0:n-1)
+    integer, intent(inout) :: iflag  !! leave this untouched
+    integer, intent(in) :: npar
+    real(rt), intent(in) :: rpar(0:npar-1)
+
+    real(rt) :: U_full(nvar),  R_full(nvar)
+    real(rt) :: R_react(0:n-1), C_react(0:n-1)
+    type(burn_t) :: burn_state
+    type(eos_t) :: eos_state
+    real(rt) :: dt_m
+
+    real(rt) :: denom
+    real(rt) :: dRdw(0:nspec_evolve+1, 0:nspec_evolve+1), dwdU(0:nspec_evolve+1, 0:nspec_evolve+1)
+    integer :: m
+
+    ! we are not solving the momentum equations
+    ! create a full state -- we need this for some interfaces
+    U_full(URHO) = U(0)
+    U_full(UFS:UFS-1+nspec_evolve) = U(1:nspec_evolve)
+    U_full(UEDEN) = U(nspec_evolve+1)
+
+    U_full(UMX:UMZ) = rpar(irp_mom:irp_mom+2)
+    U_full(UEINT) = rpar(irp_eint)
+    U_full(UFS+nspec_evolve:UFS-1+nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))
+
+    ! compute the temperature and species derivatives --
+    ! maybe this should be done using the burn_state
+    ! returned by single_zone_react_source, since it is
+    ! more consistent T from e
+    eos_state % rho = U_full(URHO)
+    eos_state % T = 1.e6_rt   ! initial guess
+    eos_state % xn(:) = U_full(UFS:UFS-1+nspec)/U_full(URHO)
+    eos_state % e = (U_full(UEDEN) - HALF*sum(U_full(UMX:UMZ))/U_full(URHO))/U_full(URHO)
+
+    call eos(eos_input_re, eos_state)
+
+    U_full(UTEMP) = eos_state % T
+
+    call single_zone_react_source(U_full, R_full, 0,0,0, burn_state)
+
+    ! store the subset of R used in the Jacobian
+    R_react(0) = R_full(URHO)
+    R_react(1:nspec_evolve) = R_full(UFS:UFS-1+nspec_evolve)
+    R_react(nspec_evolve+1) = R_full(UEDEN)
+
+    ! get dRdw
+    call single_zone_jac(U_full, burn_state, dRdw)
+
+    ! construct dwdU
+    dwdU(:, :) = ZERO
+
+    ! the density row
+    dwdU(0, 0) = ONE
+
+    ! the X_k rows
+    do m = 1, nspec_evolve
+       dwdU(m,0) = -U(m)/U(0)**2
+       dwdU(m,m) = ONE/U(0)
+    enddo
+
+    ! now the T row
+    denom = ONE/(eos_state % rho * eos_state % dedT)
+    dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(:) * eos_state % dedX(:)) - &
+                                    eos_state % rho * eos_state % dedr - eos_state % e + &
+                                    HALF*sum(U_full(UMX:UMZ)**2)/eos_state % rho)
+    do m = 1, nspec_evolve
+       dwdU(nspec_evolve+1,m) = -denom * eos_state % dedX(m)
+    enddo
+
+    dwdU(nspec_evolve+1, nspec_evolve+1) = denom
+
+    ! construct the Jacobian -- we can get most of the
+    ! terms from the network itself, but we do not rely on
+    ! it having derivative wrt density
+    Jac(:, :) = ZERO
+    do m = 0, nspec_evolve+1
+       Jac(m, m) = ONE
+    enddo
+
+    Jac(:,:) = Jac(:,:) - dt_m * matmul(dRdw, dwdU)
+
+    ! unpack rpar
+    dt_m = rpar(irp_dt)
+    C_react(:) = rpar(irp_C_react:irp_C_react-1+nspec_evolve+2)
+
+    f(:) = -U(:) + dt_m * R_react(:) + C_react(:)
+
+  end subroutine f_sdc_jac
 
 
   subroutine ca_sdc_update_advection_o2(lo, hi, dt_m, &
@@ -254,9 +363,7 @@ contains
 
     integer :: m, n
     real(rt) :: Jac(0:nspec_evolve+1, 0:nspec_evolve+1)
-    real(rt) :: dRdw(0:nspec_evolve+1, 0:nspec_evolve+1), dwdU(0:nspec_evolve+1, 0:nspec_evolve+1)
 
-    real(rt) :: denom
     real(rt) :: rpar(0:n_rpar-1)
 
     integer :: ipvt(nspec_evolve+2)
@@ -289,6 +396,18 @@ contains
              C_react(1:nspec_evolve) = C(UFS:UFS-1+nspec_evolve)
              C_react(nspec_evolve+1) = C(UEDEN)  ! need to consider which energy
 
+             ! load rpar
+             rpar(irp_C_react:irp_C_react-1+nspec_evolve+2) = C_react(:)
+             rpar(irp_dt) = dt_m
+             rpar(irp_mom:irp_mom-1+3) = U_new(UMX:UMZ)
+             rpar(irp_eint) = U_new(UEINT)
+             rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve)) = U_new(UFS+nspec_evolve:UFS-1+nspec)
+
+             ! store the subset for the nonlinear solve
+             U_react(0) = U_new(URHO)
+             U_react(1:nspec_evolve) = U_new(UFS:UFS-1+nspec_evolve)
+             U_react(nspec_evolve+1) = U_new(UEDEN)  ! we have a choice of which energy variable to update
+
              if (sdc_solver == 1) then
                 ! do a simple Newton solve
                 err = 1.e30_rt
@@ -296,69 +415,7 @@ contains
                 ! iterative loop
                 do while (err > tol)
 
-                   ! compute the temperature and species derivatives --
-                   ! maybe this should be done using the burn_state
-                   ! returned by single_zone_react_source, since it is
-                   ! more consistent T from e
-                   eos_state % rho = U_new(URHO)
-                   eos_state % T = 1.e6_rt   ! initial guess
-                   eos_state % xn(:) = U_new(UFS:UFS-1+nspec)/U_new(URHO)
-                   eos_state % e = (U_new(UEDEN) - HALF*sum(U_new(UMX:UMZ))/U_new(URHO))/U_new(URHO)
-
-                   call eos(eos_input_re, eos_state)
-
-                   U_new(UTEMP) = eos_state % T
-
-                   ! get R for the new guess
-                   call single_zone_react_source(U_new, R_full, i,j,k, burn_state)
-
-                   ! store the subset for the nonlinear solve
-                   U_react(0) = U_new(URHO)
-                   U_react(1:nspec_evolve) = U_new(UFS:UFS-1+nspec_evolve)
-                   U_react(nspec_evolve+1) = U_new(UEDEN)  ! we have a choice of which energy variable to update
-
-                   R_react(0) = R_full(URHO)
-                   R_react(1:nspec_evolve) = R_full(UFS:UFS-1+nspec_evolve)
-                   R_react(nspec_evolve+1) = R_full(UEDEN)
-
-                   ! get dRdw
-                   call single_zone_jac(U_new, burn_state, dRdw)
-
-                   ! construct dwdU
-                   dwdU(:, :) = ZERO
-
-                   ! the density row
-                   dwdU(0, 0) = ONE
-
-                   ! the X_k rows
-                   do n = 1, nspec_evolve
-                      dwdU(n,0) = -U_react(n)/U_react(0)**2
-                      dwdU(n,n) = ONE/U_react(0)
-                   enddo
-
-                   ! now the T row
-                   denom = ONE/(eos_state % rho * eos_state % dedT)
-                   dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(:) * eos_state % dedX(:)) - &
-                                                   eos_state % rho * eos_state % dedr - eos_state % e + &
-                                                   HALF*sum(U_new(UMX:UMZ)**2)/eos_state % rho)
-                   do m = 1, nspec_evolve
-                      dwdU(nspec_evolve+1,m) = -denom * eos_state % dedX(m)
-                   enddo
-
-                   dwdU(nspec_evolve+1, nspec_evolve+1) = denom
-
-                   ! construct the Jacobian -- we can get most of the
-                   ! terms from the network itself, but we do not rely on
-                   ! it having derivative wrt density
-                   Jac(:, :) = ZERO
-                   do m = 0, nspec_evolve+1
-                      Jac(m, m) = ONE
-                   enddo
-
-                   Jac(:,:) = Jac(:,:) - dt_m * matmul(dRdw, dwdU)
-
-                   ! compute the RHS of the linear system, f
-                   f(:) = -U_react(:) + dt_m * R_react(:) + C_react(:)
+                   call f_sdc_jac(nspec_evolve+2, U_react, f, Jac, nspec_evolve+2, info, n_rpar, rpar)
 
                    ! solve the linear system: Jac dU_react = f
                    call dgefa(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, info)
@@ -370,13 +427,7 @@ contains
 
                    dU_react(:) = f(:)
 
-                   ! correct the full state
-                   U_new(URHO) = U_new(URHO) + dU_react(0)
-                   U_new(UFS:UFS-1+nspec_evolve) = U_new(UFS:UFS-1+nspec_evolve) + dU_react(1:nspec_evolve)
-                   U_new(UEDEN) = U_new(UEDEN) + dU_react(nspec_evolve+1)
-
-                   ! if we updated total energy, then correct internal, or vice versa
-                   U_new(UEINT) = U_new(UEDEN) - HALF*(sum(U_new(UMX:UMZ)**2)/U_new(URHO))
+                   U_react(:) = U_react(:) + dU_react(:)
 
                    ! construct the norm of the correction
                    err = sum(dU_react**2)/sum(U_react**2)
@@ -387,29 +438,22 @@ contains
                 ! use the Powell hybrid solver -- here, f_sdc will be
                 ! the function that it zeros
 
-                ! create the reaction state that is the initial guess
-                U_react(0) = U_new(URHO)
-                U_react(1:nspec_evolve) = U_new(UFS:UFS-1+nspec_evolve)
-                U_react(nspec_evolve+1) = U_new(UEDEN)
-
-                ! load rpar
-                rpar(irp_C_react:irp_C_react-1+nspec_evolve+2) = C_react(:)
-                rpar(irp_dt) = dt_m
-                rpar(irp_mom:irp_mom-1+3) = U_new(UMX:UMZ)
-                rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve)) = U_new(UFS+nspec_evolve:UFS-1+nspec)
-
                 ! call the powell solver
                 call hybrd1(f_sdc, nspec_evolve+2, U_react, f, sdc_solver_tol, info, n_rpar, rpar)
 
-                ! update the full U_new
-                U_new(URHO) = U_react(0)
-                U_new(UFS:UFS-1+nspec_evolve) = U_react(1:nspec_evolve)
-                U_new(UEDEN) = U_react(nspec_evolve+1)
-
-                ! if we updated total energy, then correct internal, or vice versa
-                U_new(UEINT) = U_new(UEDEN) - HALF*(sum(U_new(UMX:UMZ)**2)/U_new(URHO))
+                if (info /= 1) then
+                   call amrex_error("minpack termination poorly, info = ", info)
+                endif
 
              endif
+
+             ! update the full U_new
+             U_new(URHO) = U_react(0)
+             U_new(UFS:UFS-1+nspec_evolve) = U_react(1:nspec_evolve)
+             U_new(UEDEN) = U_react(nspec_evolve+1)
+
+             ! if we updated total energy, then correct internal, or vice versa
+             U_new(UEINT) = U_new(UEDEN) - HALF*(sum(U_new(UMX:UMZ)**2)/U_new(URHO))
 
              ! copy back to k_n
              k_n(i,j,k,:) = U_new(:)
