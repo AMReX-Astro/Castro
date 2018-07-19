@@ -10,11 +10,12 @@ contains
     use burn_type_module, only : burn_t, net_ienuc
     use network, only : nspec, nspec_evolve, aion
     use eos_module, only : eos
-    use eos_type_module, only: eos_t, eos_input_re
+    use eos_type_module, only: eos_t, eos_input_re, eos_get_small_temp
     use meth_params_module, only : NVAR, URHO, UTEMP, UEDEN, UEINT, UMX, UMZ, UFS, UFX, &
                                    dual_energy_eta3
     use amrex_constants_module, only : ZERO, HALF, ONE
     use actual_rhs_module
+    use extern_probin_module, only : SMALL_X_SAFE, MAX_TEMP
 
     implicit none
 
@@ -26,6 +27,7 @@ contains
     type(eos_t) :: eos_state
     real(rt) :: rhoInv, rho_e_K
     integer :: n
+    real(rt) :: small_temp
 
     rhoInv = ONE / state(URHO)
 
@@ -46,6 +48,8 @@ contains
        burn_state % xn(n) = state(UFS+n-1) * rhoInv
     enddo
 
+    burn_state % xn(1:nspec_evolve) = max(min(burn_state % xn(1:nspec_evolve), ONE), SMALL_X_SAFE) 
+
 #if naux > 0
     do n = 1, naux
        burn_state % aux(n) = state(UFX+n-1) * rhoInv
@@ -56,6 +60,9 @@ contains
     call burn_to_eos(burn_state, eos_state)
     call eos(eos_input_re, eos_state)
     call eos_to_burn(eos_state, burn_state)
+
+    call eos_get_small_temp(small_temp)
+    burn_state % T = min(MAX_TEMP, max(burn_state % T, small_temp))
 
     burn_state % i = i
     burn_state % j = j
