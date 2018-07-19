@@ -113,6 +113,10 @@ contains
     U_full(UEINT) = rpar(irp_eint)
     U_full(UFS+nspec_evolve:UFS-1+nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))
 
+    ! unpack rpar
+    dt_m = rpar(irp_dt)
+    C_react(:) = rpar(irp_C_react:irp_C_react-1+nspec_evolve+2)
+
     ! compute the temperature and species derivatives --
     ! maybe this should be done using the burn_state
     ! returned by single_zone_react_source, since it is
@@ -169,11 +173,7 @@ contains
 
     Jac(:,:) = Jac(:,:) - dt_m * matmul(dRdw, dwdU)
 
-    ! unpack rpar
-    dt_m = rpar(irp_dt)
-    C_react(:) = rpar(irp_C_react:irp_C_react-1+nspec_evolve+2)
-
-    f(:) = -U(:) + dt_m * R_react(:) + C_react(:)
+    f(:) = U(:) - dt_m * R_react(:) - C_react(:)
 
   end subroutine f_sdc_jac
 
