@@ -54,6 +54,7 @@ contains
     U_full(UEDEN) = U(nspec_evolve+1)
 
     U_full(UMX:UMZ) = rpar(irp_mom:irp_mom+2)
+    U_full(UEINT) = rpar(irp_eint)
     U_full(UFS+nspec_evolve:UFS-1+nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))
 
     call single_zone_react_source(U_full, R_full, 0,0,0, burn_state)
