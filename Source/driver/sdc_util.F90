@@ -26,7 +26,7 @@ contains
   subroutine f_sdc(n, U, f, iflag, npar, rpar)
 
     use rpar_sdc_module
-    use meth_params_module, only : nvar, URHO, UFS, UEDEN, UMX, UMZ
+    use meth_params_module, only : nvar, URHO, UFS, UEDEN, UMX, UMZ, UEINT
     use network, only : nspec, nspec_evolve
     use burn_type_module
     use react_util_module
