@@ -154,9 +154,9 @@ contains
 
     ! now the T row
     denom = ONE/(eos_state % rho * eos_state % dedT)
-    dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(:) * eos_state % dedX(:)) - &
+    dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(1:nspec_evolve) * eos_state % dedX(1:nspec_evolve)) - &
                                     eos_state % rho * eos_state % dedr - eos_state % e + &
-                                    HALF*sum(U_full(UMX:UMZ)**2)/eos_state % rho)
+                                    HALF*sum(U_full(UMX:UMZ)**2)/eos_state % rho**2)
     do m = 1, nspec_evolve
        dwdU(nspec_evolve+1,m) = -denom * eos_state % dedX(m)
     enddo
@@ -362,7 +362,7 @@ contains
     !   nspec_evolve+1  : rho E
 
     real(rt) :: U_react(0:nspec_evolve+1), C_react(0:nspec_evolve+1), R_react(0:nspec_evolve+1)
-    real(rt) :: dU_react(0:nspec_evolve+1), f(0:nspec_evolve+1)
+    real(rt) :: dU_react(0:nspec_evolve+1), f(0:nspec_evolve+1), f_rhs(0:nspec_evolve+1)
 
     integer :: m, n
     real(rt) :: Jac(0:nspec_evolve+1, 0:nspec_evolve+1)
@@ -424,15 +424,16 @@ contains
 
                    call f_sdc_jac(nspec_evolve+2, U_react, f, Jac, nspec_evolve+2, info, n_rpar, rpar)
 
-                   ! solve the linear system: Jac dU_react = f
+                   ! solve the linear system: Jac dU_react = -f
                    call dgefa(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, info)
                    if (info /= 0) then
                       call amrex_error("singular matrix")
                    endif
 
-                   call dgesl(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, f, 0)
+                   f_rhs(:) = -f(:)
+                   call dgesl(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, f_rhs, 0)
 
-                   dU_react(:) = f(:)
+                   dU_react(:) = f_rhs(:)
 
                    U_react(:) = U_react(:) + dU_react(:)
 
