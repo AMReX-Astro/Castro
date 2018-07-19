@@ -316,7 +316,7 @@ contains
     use eos_module
     use network, only : nspec, nspec_evolve
     use react_util_module
-    use minpack_module, only : hybrd1
+    use minpack_module, only : hybrd1, hybrj1
     use rpar_sdc_module
 
     implicit none
@@ -350,6 +350,8 @@ contains
 
     real(rt) :: err
     real(rt), parameter :: tol = 1.e-8_rt
+    integer, parameter :: MAX_ITER = 100
+    integer :: iter
 
     real(rt) :: U_new(NVAR), C(NVAR), R_full(NVAR)
 
@@ -369,6 +371,9 @@ contains
 
     integer :: ipvt(nspec_evolve+2)
     integer :: info
+
+    integer, parameter :: lwa = (nspec_evolve+2)*(nspec_evolve+2+13)/2
+    real(rt) :: wa(lwa)
 
     ! now consider the reacting system
     do k = lo(3), hi(3)
@@ -414,7 +419,8 @@ contains
                 err = 1.e30_rt
 
                 ! iterative loop
-                do while (err > tol)
+                iter = 0
+                do while (err > tol .and. iter < MAX_ITER)
 
                    call f_sdc_jac(nspec_evolve+2, U_react, f, Jac, nspec_evolve+2, info, n_rpar, rpar)
 
@@ -432,6 +438,8 @@ contains
 
                    ! construct the norm of the correction
                    err = sum(dU_react**2)/sum(U_react**2)
+
+                   iter = iter + 1
                 enddo
 
              else if (sdc_solver == 2) then
@@ -440,7 +448,8 @@ contains
                 ! the function that it zeros
 
                 ! call the powell solver
-                call hybrd1(f_sdc, nspec_evolve+2, U_react, f, sdc_solver_tol, info, n_rpar, rpar)
+                call hybrj1(f_sdc_jac, nspec_evolve+2, U_react, f, Jac, nspec_evolve+2, &
+                            sdc_solver_tol, info, wa, lwa, n_rpar, rpar)
 
                 if (info /= 1) then
                    call amrex_error("minpack termination poorly, info = ", info)
