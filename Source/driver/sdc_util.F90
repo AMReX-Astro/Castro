@@ -157,6 +157,7 @@ contains
     dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(1:nspec_evolve) * eos_state % dedX(1:nspec_evolve)) - &
                                     eos_state % rho * eos_state % dedr - eos_state % e + &
                                     HALF*sum(U_full(UMX:UMZ)**2)/eos_state % rho**2)
+
     do m = 1, nspec_evolve
        dwdU(nspec_evolve+1,m) = -denom * eos_state % dedX(m)
     enddo
@@ -439,7 +440,8 @@ contains
                    U_react(:) = U_react(:) + dU_react(:)
 
                    ! construct the norm of the correction
-                   err = sqrt(sum(dU_react(1:nspec_evolve)**2))/sqrt(sum((U_react(1:nspec_evolve) + SMALL_X_SAFE)**2))
+                   !err = sqrt(sum(dU_react(1:nspec_evolve)**2))/sqrt(sum((U_react(1:nspec_evolve) + SMALL_X_SAFE)**2))
+                   err = sqrt(sum((dU_react(1:nspec_evolve)/(U_react(1:nspec_evolve) + SMALL_X_SAFE))**2))
 
                    iter = iter + 1
                 enddo
@@ -473,6 +475,8 @@ contains
 
              ! redo the update of the momenta to reduce accumulation of roundoff
              U_new(:) = dt_m * R_full(:) + C(:)
+
+             ! do we need to do any cleaning? here?
 
              ! copy back to k_n
              k_n(i,j,k,:) = U_new(:)
