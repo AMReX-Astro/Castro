@@ -318,6 +318,7 @@ contains
     use react_util_module
     use minpack_module, only : hybrd1, hybrj1
     use rpar_sdc_module
+    use extern_probin_module, only : SMALL_X_SAFE
 
     implicit none
 
@@ -349,7 +350,7 @@ contains
     type(eos_t) :: eos_state
 
     real(rt) :: err
-    real(rt), parameter :: tol = 1.e-8_rt
+    real(rt), parameter :: tol = 1.e-5_rt
     integer, parameter :: MAX_ITER = 100
     integer :: iter
 
@@ -438,7 +439,7 @@ contains
                    U_react(:) = U_react(:) + dU_react(:)
 
                    ! construct the norm of the correction
-                   err = sum(dU_react**2)/sum(U_react**2)
+                   err = sqrt(sum(dU_react(1:nspec_evolve)**2))/sqrt(sum((U_react(1:nspec_evolve) + SMALL_X_SAFE)**2))
 
                    iter = iter + 1
                 enddo
@@ -465,6 +466,13 @@ contains
 
              ! if we updated total energy, then correct internal, or vice versa
              U_new(UEINT) = U_new(UEDEN) - HALF*(sum(U_new(UMX:UMZ)**2)/U_new(URHO))
+
+             ! we solved our system to some tolerance, but let's be sure we are conservative by
+             ! reevaluating the reactions and then doing the full step update
+             call single_zone_react_source(U_new, R_full, i, j, k, burn_state)
+
+             ! redo the update of the momenta to reduce accumulation of roundoff
+             U_new(:) = dt_m * R_full(:) + C(:)
 
              ! copy back to k_n
              k_n(i,j,k,:) = U_new(:)
