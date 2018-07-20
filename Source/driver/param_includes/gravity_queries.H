@@ -13,7 +13,6 @@ pp.query("no_sync", no_sync);
 pp.query("no_composite", no_composite);
 pp.query("do_composite_phi_correction", do_composite_phi_correction);
 pp.query("get_g_from_phi", get_g_from_phi);
-pp.query("use_mlmg_solver", use_mlmg_solver);
 pp.query("mlmg_max_fmg_iter", mlmg_max_fmg_iter);
 pp.query("mlmg_agglomeration", mlmg_agglomeration);
 pp.query("mlmg_consolidation", mlmg_consolidation);
