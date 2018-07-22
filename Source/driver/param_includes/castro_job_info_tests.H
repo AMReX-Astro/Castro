@@ -85,6 +85,7 @@ jobInfoFile << (Castro::mol_order == 2 ? "    " : "[*] ") << "castro.mol_order =
 jobInfoFile << (Castro::sdc_order == 2 ? "    " : "[*] ") << "castro.sdc_order = " << Castro::sdc_order << std::endl;
 jobInfoFile << (Castro::sdc_solver == 1 ? "    " : "[*] ") << "castro.sdc_solver = " << Castro::sdc_solver << std::endl;
 jobInfoFile << (Castro::sdc_solver_tol == 1.e-12 ? "    " : "[*] ") << "castro.sdc_solver_tol = " << Castro::sdc_solver_tol << std::endl;
+jobInfoFile << (Castro::sdc_solve_for_rhoe == 1 ? "    " : "[*] ") << "castro.sdc_solve_for_rhoe = " << Castro::sdc_solve_for_rhoe << std::endl;
 jobInfoFile << (Castro::fixed_dt == -1.0 ? "    " : "[*] ") << "castro.fixed_dt = " << Castro::fixed_dt << std::endl;
 jobInfoFile << (Castro::initial_dt == -1.0 ? "    " : "[*] ") << "castro.initial_dt = " << Castro::initial_dt << std::endl;
 jobInfoFile << (Castro::dt_cutoff == 0.0 ? "    " : "[*] ") << "castro.dt_cutoff = " << Castro::dt_cutoff << std::endl;

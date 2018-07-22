@@ -90,6 +90,7 @@ int         Castro::mol_order = 2;
 int         Castro::sdc_order = 2;
 int         Castro::sdc_solver = 1;
 amrex::Real Castro::sdc_solver_tol = 1.e-12;
+int         Castro::sdc_solve_for_rhoe = 1;
 amrex::Real Castro::fixed_dt = -1.0;
 amrex::Real Castro::initial_dt = -1.0;
 amrex::Real Castro::dt_cutoff = 0.0;
