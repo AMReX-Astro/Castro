@@ -615,9 +615,6 @@ do_composite_phi_correction int            1
 # constructing it directly?
 get_g_from_phi              int            0                  y
 
-# Use C++ MLMG linear solver for self gravity
-use_mlmg_solver              int           1                  n
-
 # how many FMG cycles?
 mlmg_max_fmg_iter            int           0                  n
 
@@ -635,5 +632,4 @@ mlmg_nsolve                  int           0                  n
 (v, verbose)                int            0                
 
 # Use MLMG as the operator
-use_mlmg_solver              int           1                  n
 mlmg_maxorder                int           4                  n
