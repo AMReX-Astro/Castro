@@ -329,6 +329,7 @@ contains
                               A_1_old, A1lo, A1hi, &
                               R_0_old, R0lo, R0hi, &
                               R_1_old, R1lo, R1hi, &
+                              sdc_iteration, &
                               m_start) bind(C, name="ca_sdc_update_o2")
 
     ! update k_m to k_n via advection -- this is a second-order accurate update
@@ -356,7 +357,7 @@ contains
     integer, intent(in) :: A1lo(3), A1hi(3)
     integer, intent(in) :: R0lo(3), R0hi(3)
     integer, intent(in) :: R1lo(3), R1hi(3)
-    integer, intent(in) :: m_start
+    integer, intent(in) :: sdc_iteration, m_start
 
 
     real(rt), intent(in) :: k_m(kmlo(1):kmhi(1), kmlo(2):kmhi(2), kmlo(3):kmhi(3), NVAR)
@@ -379,7 +380,7 @@ contains
     integer, parameter :: MAX_ITER = 100
     integer :: iter
 
-    real(rt) :: U_new(NVAR), C(NVAR), R_full(NVAR)
+    real(rt) :: U_old(NVAR), U_new(NVAR), C(NVAR), R_full(NVAR)
 
     ! we will do the implicit update of only the terms that have reactive sources
     !
@@ -406,14 +407,24 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
+             U_old(:) = k_m(i,j,k,:)
+
              ! this is the full state -- this will be updated as we
-             ! solve the nonlinear system
-             U_new(:) = k_m(i,j,k,:)
+             ! solve the nonlinear system.  We want to start with a
+             ! good initial guess.  For later iterations, we should
+             ! begin with the result from the previous iteration.  For
+             ! the first iteration, let's try to extrapolate forward
+             ! in time.
+             if (sdc_iteration == 0) then
+                U_new(:) = U_old(:) + dt_m * A_m(i,j,k,:) + dt_m * R_0_old(i,j,k,:)
+             else
+                U_new(:) = k_n(i,j,k,:)
+             endif
 
              ! construct the source term to the update
              ! for 2nd order, there is no advective correction, and we have
              ! C = U^{m,(k+1)} - dt * R(U^{m+1,k}) + I_m^{m+1}
-             C(:) = U_new(:) - dt_m * R_1_old(i,j,k,:) + &
+             C(:) = U_old(:) - dt_m * R_1_old(i,j,k,:) + &
                   HALF * dt_m * (A_0_old(i,j,k,:) + A_1_old(i,j,k,:)) + &
                   HALF * dt_m * (R_0_old(i,j,k,:) + R_1_old(i,j,k,:))
 
@@ -421,7 +432,7 @@ contains
              U_new(UMX:UMZ) = C(UMX:UMZ)
 
              ! update the non-reacting species
-             U_new(UFS-1+nspec_evolve:UFS-1+nspec) = C(UFS-1+nspec_evolve:UFS-1+nspec)
+             U_new(UFS+nspec_evolve:UFS-1+nspec) = C(UFS+nspec_evolve:UFS-1+nspec)
 
              ! now only save the subset that participates in the nonlinear solve
              C_react(0) = C(URHO)
@@ -512,7 +523,6 @@ contains
                 U_new(UEDEN) = U_react(nspec_evolve+1)
                 U_new(UEINT) = U_new(UEDEN) - HALF*sum(U_new(UMX:UMZ)**2)/U_new(URHO)
              endif
-
 
 
              ! we solved our system to some tolerance, but let's be sure we are conservative by

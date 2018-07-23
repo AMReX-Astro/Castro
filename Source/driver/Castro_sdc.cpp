@@ -32,6 +32,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
                        BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
                        BL_TO_FORTRAN_3D((*R_old[0])[mfi]),
                        BL_TO_FORTRAN_3D((*R_old[1])[mfi]),
+                       &sdc_iteration,
                        &m_start);
     } else {
       amrex::Abort("sdc_order != 2 not implemented");
