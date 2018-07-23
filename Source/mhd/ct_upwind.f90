@@ -1118,7 +1118,7 @@ implicit none
 				uL(i,j,k,UMAGX,3) = um(i,j,k,UMAGX,3) - 0.5d0*dt/dz*((Ez(i+1,j+1,k) - Ez(i+1,j,k)) &
 								                   + (Ez(i  ,j+1,k) - Ez(i  ,j,k)) &
                                                                                    - (Ey(i+1,j,k+1) - Ey(i+1,j,k)) &
-									           - (Ey(i  ,j+1,k) - Ey(i  ,j,k)))
+									           - (Ey(i  ,j,k+1) - Ey(i  ,j,k)))
 				!By
 				uL(i,j,k,UMAGY,3) = um(i,j,k,UMAGY,3) + 0.5d0*dt/dz*((Ez(i+1,j+1,k  ) - Ez(i,j+1,k)) &
 								                    +(Ez(i+1,j  ,k  ) - Ez(i,j  ,k)) &
