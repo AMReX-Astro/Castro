@@ -401,6 +401,7 @@ contains
 
     integer, parameter :: lwa = (nspec_evolve+2)*(nspec_evolve+2+13)/2
     real(rt) :: wa(lwa)
+    logical :: converged
 
     ! now consider the reacting system
     do k = lo(3), hi(3)
@@ -475,7 +476,8 @@ contains
 
                 ! iterative loop
                 iter = 0
-                do while (err > tol .and. iter < MAX_ITER)
+                converged = .false.
+                do while (.not. converged .and. iter < MAX_ITER)
 
                    call f_sdc_jac(nspec_evolve+2, U_react, f, Jac, nspec_evolve+2, info, n_rpar, rpar)
 
@@ -495,9 +497,16 @@ contains
                    ! construct the norm of the correction
                    !err = sqrt(sum(dU_react(1:nspec_evolve)**2))/sqrt(sum((U_react(1:nspec_evolve) + SMALL_X_SAFE)**2))
                    err = sqrt(sum((dU_react(1:nspec_evolve)/(U_react(1:nspec_evolve) + SMALL_X_SAFE))**2))
+                   if (err < tol) then
+                      converged = .true.
+                   endif
 
                    iter = iter + 1
                 enddo
+
+                if (.not. converged) then
+                   call amrex_error("did not converge in SDC")
+                endif
 
              else if (sdc_solver == 2) then
 
