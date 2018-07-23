@@ -6,8 +6,8 @@ module rpar_sdc_module
   integer, parameter :: irp_C_react = 0  ! nspec_evolve + 2 components
   integer, parameter :: irp_dt = irp_C_react + nspec_evolve + 2
   integer, parameter :: irp_mom = irp_dt + 1    ! 3 components
-  integer, parameter :: irp_eint = irp_mom + 3
-  integer, parameter :: irp_spec = irp_eint + 1  ! nspec - nspec_evolve components
+  integer, parameter :: irp_evar = irp_mom + 3
+  integer, parameter :: irp_spec = irp_evar + 1  ! nspec - nspec_evolve components
 
   integer, parameter :: n_rpar = nspec_evolve + 7 + (nspec - nspec_evolve)
 
@@ -26,7 +26,7 @@ contains
   subroutine f_sdc(n, U, f, iflag, npar, rpar)
 
     use rpar_sdc_module
-    use meth_params_module, only : nvar, URHO, UFS, UEDEN, UMX, UMZ, UEINT
+    use meth_params_module, only : nvar, URHO, UFS, UEDEN, UMX, UMZ, UEINT, sdc_solve_for_rhoe
     use network, only : nspec, nspec_evolve
     use burn_type_module
     use react_util_module
@@ -51,17 +51,26 @@ contains
     ! create a full state -- we need this for some interfaces
     U_full(URHO) = U(0)
     U_full(UFS:UFS-1+nspec_evolve) = U(1:nspec_evolve)
-    U_full(UEDEN) = U(nspec_evolve+1)
+    if (sdc_solve_for_rhoe == 1) then
+       U_full(UEINT) = U(nspec_evolve+1)
+       U_full(UEDEN) = rpar(irp_evar)
+    else
+       U_full(UEDEN) = U(nspec_evolve+1)
+       U_full(UEINT) = rpar(irp_evar)
+    endif
 
     U_full(UMX:UMZ) = rpar(irp_mom:irp_mom+2)
-    U_full(UEINT) = rpar(irp_eint)
     U_full(UFS+nspec_evolve:UFS-1+nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))
 
     call single_zone_react_source(U_full, R_full, 0,0,0, burn_state)
 
     R_react(0) = R_full(URHO)
     R_react(1:nspec_evolve) = R_full(UFS:UFS-1+nspec_evolve)
-    R_react(nspec_evolve+1) = R_full(UEDEN)
+    if (sdc_solve_for_rhoe == 1) then
+       R_react(nspec_evolve+1) = R_full(UEINT)
+    else
+       R_react(nspec_evolve+1) = R_full(UEDEN)
+    endif
 
     dt_m = rpar(irp_dt)
     C_react(:) = rpar(irp_C_react:irp_C_react-1+nspec_evolve+2)
@@ -74,7 +83,7 @@ contains
   subroutine f_sdc_jac(n, U, f, Jac, ldjac, iflag, npar, rpar)
 
     use rpar_sdc_module
-    use meth_params_module, only : nvar, URHO, UFS, UEINT, UEDEN, UMX, UMZ, UTEMP
+    use meth_params_module, only : nvar, URHO, UFS, UEINT, UEDEN, UMX, UMZ, UTEMP, sdc_solve_for_rhoe
     use network, only : nspec, nspec_evolve
     use burn_type_module
     use react_util_module
@@ -107,10 +116,15 @@ contains
     ! create a full state -- we need this for some interfaces
     U_full(URHO) = U(0)
     U_full(UFS:UFS-1+nspec_evolve) = U(1:nspec_evolve)
-    U_full(UEDEN) = U(nspec_evolve+1)
+    if (sdc_solve_for_rhoe == 1) then
+       U_full(UEINT) = U(nspec_evolve+1)
+       U_full(UEDEN) = rpar(irp_evar)
+    else
+       U_full(UEDEN) = U(nspec_evolve+1)
+       U_full(UEINT) = rpar(irp_evar)
+    endif
 
     U_full(UMX:UMZ) = rpar(irp_mom:irp_mom+2)
-    U_full(UEINT) = rpar(irp_eint)
     U_full(UFS+nspec_evolve:UFS-1+nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))
 
     ! unpack rpar
@@ -124,7 +138,7 @@ contains
     eos_state % rho = U_full(URHO)
     eos_state % T = 1.e6_rt   ! initial guess
     eos_state % xn(:) = U_full(UFS:UFS-1+nspec)/U_full(URHO)
-    eos_state % e = (U_full(UEDEN) - HALF*sum(U_full(UMX:UMZ))/U_full(URHO))/U_full(URHO)
+    eos_state % e = U_full(UEINT)/U_full(URHO)  !(U_full(UEDEN) - HALF*sum(U_full(UMX:UMZ))/U_full(URHO))/U_full(URHO)
 
     call eos(eos_input_re, eos_state)
 
@@ -135,7 +149,11 @@ contains
     ! store the subset of R used in the Jacobian
     R_react(0) = R_full(URHO)
     R_react(1:nspec_evolve) = R_full(UFS:UFS-1+nspec_evolve)
-    R_react(nspec_evolve+1) = R_full(UEDEN)
+    if (sdc_solve_for_rhoe == 1) then
+       R_react(nspec_evolve+1) = R_full(UEINT)
+    else
+       R_react(nspec_evolve+1) = R_full(UEDEN)
+    endif
 
     ! get dRdw
     call single_zone_jac(U_full, burn_state, dRdw)
@@ -152,11 +170,16 @@ contains
        dwdU(m,m) = ONE/U(0)
     enddo
 
-    ! now the T row
+    ! now the T row -- this depends on whether we are evolving (rho E) or (rho e)
     denom = ONE/(eos_state % rho * eos_state % dedT)
-    dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(1:nspec_evolve) * eos_state % dedX(1:nspec_evolve)) - &
-                                    eos_state % rho * eos_state % dedr - eos_state % e + &
-                                    HALF*sum(U_full(UMX:UMZ)**2)/eos_state % rho**2)
+    if (sdc_solve_for_rhoe == 1) then
+       dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(1:nspec_evolve) * eos_state % dedX(1:nspec_evolve)) - &
+                                       eos_state % rho * eos_state % dedr - eos_state % e)
+    else
+       dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(1:nspec_evolve) * eos_state % dedX(1:nspec_evolve)) - &
+                                       eos_state % rho * eos_state % dedr - eos_state % e + &
+                                       HALF*sum(U_full(UMX:UMZ)**2)/eos_state % rho**2)
+    endif
 
     do m = 1, nspec_evolve
        dwdU(nspec_evolve+1,m) = -denom * eos_state % dedX(m)
@@ -310,7 +333,8 @@ contains
 
     ! update k_m to k_n via advection -- this is a second-order accurate update
 
-    use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ, UTEMP, sdc_solver, sdc_solver_tol
+    use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ, UTEMP, &
+         sdc_solver, sdc_solver_tol, sdc_solve_for_rhoe
     use amrex_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
     use eos_type_module, only : eos_t, eos_input_re
@@ -361,7 +385,7 @@ contains
     !
     !   0               : rho
     !   1:nspec_evolve  : species
-    !   nspec_evolve+1  : rho E
+    !   nspec_evolve+1  : (rho E) or (rho e)
 
     real(rt) :: U_react(0:nspec_evolve+1), C_react(0:nspec_evolve+1), R_react(0:nspec_evolve+1)
     real(rt) :: dU_react(0:nspec_evolve+1), f(0:nspec_evolve+1), f_rhs(0:nspec_evolve+1)
@@ -402,19 +426,35 @@ contains
              ! now only save the subset that participates in the nonlinear solve
              C_react(0) = C(URHO)
              C_react(1:nspec_evolve) = C(UFS:UFS-1+nspec_evolve)
-             C_react(nspec_evolve+1) = C(UEDEN)  ! need to consider which energy
+             if (sdc_solve_for_rhoe == 1) then
+                C_react(nspec_evolve+1) = C(UEINT)
+             else
+                C_react(nspec_evolve+1) = C(UEDEN)
+             endif
 
              ! load rpar
              rpar(irp_C_react:irp_C_react-1+nspec_evolve+2) = C_react(:)
              rpar(irp_dt) = dt_m
              rpar(irp_mom:irp_mom-1+3) = U_new(UMX:UMZ)
-             rpar(irp_eint) = U_new(UEINT)
-             rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve)) = U_new(UFS+nspec_evolve:UFS-1+nspec)
+
+             ! we should be able to do an update for this somehow?
+             if (sdc_solve_for_rhoe == 1) then
+                rpar(irp_evar) = U_new(UEDEN)
+             else
+                rpar(irp_evar) = U_new(UEINT)
+             endif
+
+             rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve)) = &
+                  U_new(UFS+nspec_evolve:UFS-1+nspec)
 
              ! store the subset for the nonlinear solve
              U_react(0) = U_new(URHO)
              U_react(1:nspec_evolve) = U_new(UFS:UFS-1+nspec_evolve)
-             U_react(nspec_evolve+1) = U_new(UEDEN)  ! we have a choice of which energy variable to update
+             if (sdc_solve_for_rhoe == 1) then
+                U_react(nspec_evolve+1) = U_new(UEINT)
+             else
+                U_react(nspec_evolve+1) = U_new(UEDEN)
+             endif
 
              if (sdc_solver == 1) then
                 ! do a simple Newton solve
@@ -462,12 +502,18 @@ contains
              endif
 
              ! update the full U_new
+             ! if we updated total energy, then correct internal, or vice versa
              U_new(URHO) = U_react(0)
              U_new(UFS:UFS-1+nspec_evolve) = U_react(1:nspec_evolve)
-             U_new(UEDEN) = U_react(nspec_evolve+1)
+             if (sdc_solve_for_rhoe == 1) then
+                U_new(UEINT) = U_react(nspec_evolve+1)
+                U_new(UEDEN) = U_new(UEINT) + HALF*sum(U_new(UMX:UMZ)**2)/U_new(URHO)
+             else
+                U_new(UEDEN) = U_react(nspec_evolve+1)
+                U_new(UEINT) = U_new(UEDEN) - HALF*sum(U_new(UMX:UMZ)**2)/U_new(URHO)
+             endif
 
-             ! if we updated total energy, then correct internal, or vice versa
-             U_new(UEINT) = U_new(UEDEN) - HALF*(sum(U_new(UMX:UMZ)**2)/U_new(URHO))
+
 
              ! we solved our system to some tolerance, but let's be sure we are conservative by
              ! reevaluating the reactions and then doing the full step update
