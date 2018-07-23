@@ -75,7 +75,7 @@ contains
     dt_m = rpar(irp_dt)
     C_react(:) = rpar(irp_C_react:irp_C_react-1+nspec_evolve+2)
 
-    f(:) = -U(:) + dt_m * R_react(:) + C_react(:)
+    f(:) = U(:) - dt_m * R_react(:) - C_react(:)
 
   end subroutine f_sdc
 
@@ -423,24 +423,26 @@ contains
 
              ! construct the source term to the update
              ! for 2nd order, there is no advective correction, and we have
-             ! C = U^{m,(k+1)} - dt * R(U^{m+1,k}) + I_m^{m+1}
-             C(:) = U_old(:) - dt_m * R_1_old(i,j,k,:) + &
+             ! C = - dt * R(U^{m+1,k}) + I_m^{m+1}
+             C(:) = - dt_m * R_1_old(i,j,k,:) + &
                   HALF * dt_m * (A_0_old(i,j,k,:) + A_1_old(i,j,k,:)) + &
                   HALF * dt_m * (R_0_old(i,j,k,:) + R_1_old(i,j,k,:))
 
              ! update the momenta for this zone -- this never gets updated again
-             U_new(UMX:UMZ) = C(UMX:UMZ)
+             U_new(UMX:UMZ) = U_old(UMX:UMZ) + C(UMX:UMZ)
 
              ! update the non-reacting species
-             U_new(UFS+nspec_evolve:UFS-1+nspec) = C(UFS+nspec_evolve:UFS-1+nspec)
+             U_new(UFS+nspec_evolve:UFS-1+nspec) = U_old(UFS+nspec_evolve:UFS-1+nspec) + C(UFS+nspec_evolve:UFS-1+nspec)
 
-             ! now only save the subset that participates in the nonlinear solve
-             C_react(0) = C(URHO)
-             C_react(1:nspec_evolve) = C(UFS:UFS-1+nspec_evolve)
+             ! now only save the subset that participates in the
+             ! nonlinear solve -- note: we include the old state in
+             ! C_react
+             C_react(0) = U_old(URHO) + C(URHO)
+             C_react(1:nspec_evolve) = U_old(UFS:UFS-1+nspec_evolve) + C(UFS:UFS-1+nspec_evolve)
              if (sdc_solve_for_rhoe == 1) then
-                C_react(nspec_evolve+1) = C(UEINT)
+                C_react(nspec_evolve+1) = U_old(UEINT) + C(UEINT)
              else
-                C_react(nspec_evolve+1) = C(UEDEN)
+                C_react(nspec_evolve+1) = U_old(UEINT) + C(UEDEN)
              endif
 
              ! load rpar
@@ -530,7 +532,7 @@ contains
              call single_zone_react_source(U_new, R_full, i, j, k, burn_state)
 
              ! redo the update of the momenta to reduce accumulation of roundoff
-             U_new(:) = dt_m * R_full(:) + C(:)
+             U_new(:) = U_old(:) + dt_m * R_full(:) + C(:)
 
              ! do we need to do any cleaning? here?
 
