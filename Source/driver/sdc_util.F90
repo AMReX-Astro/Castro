@@ -3,8 +3,8 @@ module rpar_sdc_module
   use network, only : nspec, nspec_evolve
   implicit none
 
-  integer, parameter :: irp_C_react = 0  ! nspec_evolve + 2 components
-  integer, parameter :: irp_dt = irp_C_react + nspec_evolve + 2
+  integer, parameter :: irp_f_source = 0  ! nspec_evolve + 2 components
+  integer, parameter :: irp_dt = irp_f_source + nspec_evolve + 2
   integer, parameter :: irp_mom = irp_dt + 1    ! 3 components
   integer, parameter :: irp_evar = irp_mom + 3
   integer, parameter :: irp_spec = irp_evar + 1  ! nspec - nspec_evolve components
@@ -42,7 +42,7 @@ contains
     real(rt), intent(in) :: rpar(0:npar-1)
 
     real(rt) :: U_full(nvar),  R_full(nvar)
-    real(rt) :: R_react(0:n-1), C_react(0:n-1)
+    real(rt) :: R_react(0:n-1), f_source(0:n-1)
     type(burn_t) :: burn_state
 
     real(rt) :: dt_m
@@ -73,9 +73,9 @@ contains
     endif
 
     dt_m = rpar(irp_dt)
-    C_react(:) = rpar(irp_C_react:irp_C_react-1+nspec_evolve+2)
+    f_source(:) = rpar(irp_f_source:irp_f_source-1+nspec_evolve+2)
 
-    f(:) = U(:) - dt_m * R_react(:) - C_react(:)
+    f(:) = U(:) - dt_m * R_react(:) - f_source(:)
 
   end subroutine f_sdc
 
@@ -103,7 +103,7 @@ contains
     real(rt), intent(in) :: rpar(0:npar-1)
 
     real(rt) :: U_full(nvar),  R_full(nvar)
-    real(rt) :: R_react(0:n-1), C_react(0:n-1)
+    real(rt) :: R_react(0:n-1), f_source(0:n-1)
     type(burn_t) :: burn_state
     type(eos_t) :: eos_state
     real(rt) :: dt_m
@@ -129,7 +129,7 @@ contains
 
     ! unpack rpar
     dt_m = rpar(irp_dt)
-    C_react(:) = rpar(irp_C_react:irp_C_react-1+nspec_evolve+2)
+    f_source(:) = rpar(irp_f_source:irp_f_source-1+nspec_evolve+2)
 
     ! compute the temperature and species derivatives --
     ! maybe this should be done using the burn_state
@@ -197,7 +197,7 @@ contains
 
     Jac(:,:) = Jac(:,:) - dt_m * matmul(dRdw, dwdU)
 
-    f(:) = U(:) - dt_m * R_react(:) - C_react(:)
+    f(:) = U(:) - dt_m * R_react(:) - f_source(:)
 
   end subroutine f_sdc_jac
 
@@ -388,11 +388,12 @@ contains
     !   1:nspec_evolve  : species
     !   nspec_evolve+1  : (rho E) or (rho e)
 
-    real(rt) :: U_react(0:nspec_evolve+1), C_react(0:nspec_evolve+1), R_react(0:nspec_evolve+1)
+    real(rt) :: U_react(0:nspec_evolve+1), f_source(0:nspec_evolve+1), R_react(0:nspec_evolve+1)
     real(rt) :: dU_react(0:nspec_evolve+1), f(0:nspec_evolve+1), f_rhs(0:nspec_evolve+1)
 
     integer :: m, n
     real(rt) :: Jac(0:nspec_evolve+1, 0:nspec_evolve+1)
+    real(rt) :: w(0:nspec_evolve+1)
 
     real(rt) :: rpar(0:n_rpar-1)
 
@@ -410,6 +411,13 @@ contains
 
              U_old(:) = k_m(i,j,k,:)
 
+             ! construct the source term to the update
+             ! for 2nd order, there is no advective correction, and we have
+             ! C = - R(U^{m+1,k}) + I_m^{m+1}/dt
+             C(:) = -R_1_old(i,j,k,:) + &
+                  HALF * (A_0_old(i,j,k,:) + A_1_old(i,j,k,:)) + &
+                  HALF * (R_0_old(i,j,k,:) + R_1_old(i,j,k,:))
+
              ! this is the full state -- this will be updated as we
              ! solve the nonlinear system.  We want to start with a
              ! good initial guess.  For later iterations, we should
@@ -422,32 +430,27 @@ contains
                 U_new(:) = k_n(i,j,k,:)
              endif
 
-             ! construct the source term to the update
-             ! for 2nd order, there is no advective correction, and we have
-             ! C = - dt * R(U^{m+1,k}) + I_m^{m+1}
-             C(:) = - dt_m * R_1_old(i,j,k,:) + &
-                  HALF * dt_m * (A_0_old(i,j,k,:) + A_1_old(i,j,k,:)) + &
-                  HALF * dt_m * (R_0_old(i,j,k,:) + R_1_old(i,j,k,:))
 
-             ! update the momenta for this zone -- this never gets updated again
-             U_new(UMX:UMZ) = U_old(UMX:UMZ) + C(UMX:UMZ)
+             ! update the momenta for this zone -- they don't react
+             U_new(UMX:UMZ) = U_old(UMX:UMZ) + dt_m * C(UMX:UMZ)
 
              ! update the non-reacting species
-             U_new(UFS+nspec_evolve:UFS-1+nspec) = U_old(UFS+nspec_evolve:UFS-1+nspec) + C(UFS+nspec_evolve:UFS-1+nspec)
+             U_new(UFS+nspec_evolve:UFS-1+nspec) = U_old(UFS+nspec_evolve:UFS-1+nspec) + &
+                  dt_m * C(UFS+nspec_evolve:UFS-1+nspec)
 
              ! now only save the subset that participates in the
              ! nonlinear solve -- note: we include the old state in
-             ! C_react
-             C_react(0) = U_old(URHO) + C(URHO)
-             C_react(1:nspec_evolve) = U_old(UFS:UFS-1+nspec_evolve) + C(UFS:UFS-1+nspec_evolve)
+             ! f_source
+             f_source(0) = U_old(URHO) + dt_m * C(URHO)
+             f_source(1:nspec_evolve) = U_old(UFS:UFS-1+nspec_evolve) + dt_m * C(UFS:UFS-1+nspec_evolve)
              if (sdc_solve_for_rhoe == 1) then
-                C_react(nspec_evolve+1) = U_old(UEINT) + C(UEINT)
+                f_source(nspec_evolve+1) = U_old(UEINT) + dt_m * C(UEINT)
              else
-                C_react(nspec_evolve+1) = U_old(UEDEN) + C(UEDEN)
+                f_source(nspec_evolve+1) = U_old(UEDEN) + dt_m * C(UEDEN)
              endif
 
              ! load rpar
-             rpar(irp_C_react:irp_C_react-1+nspec_evolve+2) = C_react(:)
+             rpar(irp_f_source:irp_f_source-1+nspec_evolve+2) = f_source(:)
              rpar(irp_dt) = dt_m
              rpar(irp_mom:irp_mom-1+3) = U_new(UMX:UMZ)
 
@@ -494,9 +497,13 @@ contains
 
                    U_react(:) = U_react(:) + dU_react(:)
 
-                   ! construct the norm of the correction
-                   !err = sqrt(sum(dU_react(1:nspec_evolve)**2))/sqrt(sum((U_react(1:nspec_evolve) + SMALL_X_SAFE)**2))
-                   err = sqrt(sum((dU_react(1:nspec_evolve)/(U_react(1:nspec_evolve) + SMALL_X_SAFE))**2))
+                   ! construct the norm of the correction -- only
+                   ! worry about species here, and use some
+                   ! protection against divide by 0
+                   w(:) = abs(dU_react(:)/(U_react(:) + SMALL_X_SAFE))
+
+                   err = sqrt(sum(w(1:nspec_evolve)**2))
+
                    if (err < tol) then
                       converged = .true.
                    endif
@@ -541,9 +548,7 @@ contains
              call single_zone_react_source(U_new, R_full, i, j, k, burn_state)
 
              ! redo the update of the momenta to reduce accumulation of roundoff
-             U_new(:) = U_old(:) + dt_m * R_full(:) + C(:)
-
-             ! do we need to do any cleaning? here?
+             U_new(:) = U_old(:) + dt_m * R_full(:) + dt_m * C(:)
 
              ! copy back to k_n
              k_n(i,j,k,:) = U_new(:)
