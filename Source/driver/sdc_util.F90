@@ -443,7 +443,7 @@ contains
              if (sdc_solve_for_rhoe == 1) then
                 C_react(nspec_evolve+1) = U_old(UEINT) + C(UEINT)
              else
-                C_react(nspec_evolve+1) = U_old(UEINT) + C(UEDEN)
+                C_react(nspec_evolve+1) = U_old(UEDEN) + C(UEDEN)
              endif
 
              ! load rpar
