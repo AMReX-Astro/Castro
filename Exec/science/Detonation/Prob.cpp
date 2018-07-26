@@ -2,6 +2,8 @@
 
 #include "AMReX_ParmParse.H"
 
+#include "Problem_F.H"
+
 #include <fstream>
 
 using namespace amrex;
@@ -23,52 +25,56 @@ Castro::problem_post_timestep()
 
     int jobDoneStatus = 0;
 
+    // Note that due to the velocity criterion,
+    // this stopping criterion does not make any
+    // sense for the non-collision inputs.
+
+#ifdef REACTIONS
     if (use_stopping_criterion) {
 
-        // Compute extrema
-
-        bool local_flag = true;
-
-        Real T_max     = 0.0;
-        Real ts_te_max = 0.0;
+        int to_stop = 0;
 
         for (int lev = 0; lev <= finest_level; lev++) {
 
-            MultiFab& S_new = parent->getLevel(lev).get_new_data(State_Type);
+            std::unique_ptr<MultiFab> v = parent->getLevel(lev).derive("x_velocity", time, 0);
+            std::unique_ptr<MultiFab> T = parent->getLevel(lev).derive("Temp", time, 0);
+            std::unique_ptr<MultiFab> ts_te = parent->getLevel(lev).derive("t_sound_t_enuc", time, 0);
 
-            T_max = std::max(T_max, S_new.max(Temp, 0, local_flag));
+            if (lev < finest_level) {
+                const MultiFab& mask = getLevel(lev+1).build_fine_mask();
+                MultiFab::Multiply(*v, mask, 0, 0, 1, 0);
+                MultiFab::Multiply(*T, mask, 0, 0, 1, 0);
+                MultiFab::Multiply(*ts_te, mask, 0, 0, 1, 0);
+            }
 
-#ifdef REACTIONS
-            if (lev == finest_level) {
+            for (MFIter mfi(*v, true); mfi.isValid(); ++mfi) {
 
-                auto ts_te_MF = parent->getLevel(lev).derive("t_sound_t_enuc", time, 0);
-                ts_te_max = std::max(ts_te_max, ts_te_MF->max(0,0,local_flag));
+                const Box& bx = mfi.tilebox();
+
+                check_stopping_criteria(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+                                        BL_TO_FORTRAN_3D((*v)[mfi]),
+                                        BL_TO_FORTRAN_3D((*T)[mfi]),
+                                        BL_TO_FORTRAN_3D((*ts_te)[mfi]),
+                                        T_stopping_criterion, ts_te_stopping_criterion, &to_stop);
 
             }
-#endif
+
+            v.reset();
+            T.reset();
+            ts_te.reset();
 
         }
 
-        // Max reductions
+        // Reduction
 
-        amrex::ParallelDescriptor::ReduceRealMax({T_max, ts_te_max});
+        amrex::ParallelDescriptor::ReduceIntMax(to_stop);
 
-        if (ts_te_max >= ts_te_stopping_criterion) {
+        if (to_stop > 0) {
 
             jobDoneStatus = 1;
 
             amrex::Print() << std::endl
-                           << "Ending simulation because we are above the threshold for unstable burning."
-                           << std::endl;
-
-        }
-
-        if (T_max >= T_stopping_criterion) {
-
-            jobDoneStatus = 1;
-
-            amrex::Print() << std::endl
-                           << "Ending simulation because we are above the temperature threshold."
+                           << "Ending simulation because we are above the set threshold."
                            << std::endl;
 
         }
@@ -93,7 +99,7 @@ Castro::problem_post_timestep()
         }
 
     }
-
+#endif
 }
 #endif
 

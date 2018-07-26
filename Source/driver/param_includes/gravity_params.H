@@ -13,7 +13,6 @@ static int no_sync;
 static int no_composite;
 static int do_composite_phi_correction;
 static int get_g_from_phi;
-static int use_mlmg_solver;
 static int mlmg_max_fmg_iter;
 static int mlmg_agglomeration;
 static int mlmg_consolidation;
