@@ -4,6 +4,7 @@
 
   dens = 5.d6
   cfrac = 0.5d0
+  ofrac = 0.5d0
 
   smallx = 1.e-12
 
@@ -12,12 +13,17 @@
   w_T = 0.d0
   center_T = 0.d0
 
-  vel = 0.d0
+  vel = 1.0d8
 
   fill_ambient_bc = T
 /
 
 &tagging
+  temperr = 1.0d20
+  max_temperr_lev = 0
+
+  tempgrad_rel = 0.5
+  max_tempgrad_rel_lev = 20
 /
 
 &extern

@@ -1046,10 +1046,6 @@ Castro::retry_advance(Real& time, Real dt, int amr_iteration, int amr_ncycle)
 
         do_retry = true;
 
-        // Subtract off the timestep taken.
-
-        time -= dt;
-
         dt_subcycle = std::min(dt, dt_subcycle) * retry_subcycle_factor;
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
@@ -1074,6 +1070,25 @@ Castro::retry_advance(Real& time, Real dt, int amr_iteration, int amr_ncycle)
         // Reset the source term predictor.
 
         sources_for_hydro.setVal(0.0, NUM_GROW);
+
+        // Clear the contribution to the fluxes from this step.
+
+        for (int dir = 0; dir < 3; ++dir)
+            fluxes[dir]->setVal(0.0);
+
+        for (int dir = 0; dir < 3; ++dir)
+            mass_fluxes[dir]->setVal(0.0);
+
+#if (BL_SPACEDIM <= 2)
+        if (!Geometry::IsCartesian())
+            P_radial.setVal(0.0);
+#endif
+
+#ifdef RADIATION
+        if (Radiation::rad_hydro_combined)
+            for (int dir = 0; dir < BL_SPACEDIM; ++dir)
+                rad_fluxes[dir]->setVal(0.0);
+#endif
 
 #ifndef SDC
         if (source_term_predictor == 1) {
@@ -1125,8 +1140,6 @@ Real
 Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int amr_ncycle)
 {
 
-    Real t = time;
-
     // Start the subcycle time off with the main dt,
     // unless we already came in here with an estimate
     // that is different from the initial value we assigned,
@@ -1169,11 +1182,24 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
         if (subcycle_time + dt_subcycle > (time + dt))
             dt_subcycle = (time + dt) - subcycle_time;
 
+        // Check on whether we are going to take too many subcycles.
+
+        int num_subcycles_remaining = int(round(((time + dt) - subcycle_time) / dt_subcycle));
+
+        if (num_subcycles_remaining > max_subcycles) {
+            amrex::Print() << std::endl
+                           << "  The subcycle mechanism requested " << num_subcycles_remaining << " subcycled timesteps, which is larger than the maximum of " << max_subcycles << "." << std::endl
+                           << "  If you would like to override this, increase the parameter castro.max_subcycles." << std::endl;
+            amrex::Abort("Error: too many subcycles.");
+        }
+
+        // If we get to this point, we survived the sanity checks. Print out the current subcycle iteration.
+
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << std::endl;
             std::cout << "  Beginning subcycle " << sub_iteration << " starting at time " << subcycle_time
                       << " with dt = " << dt_subcycle << std::endl;
-            std::cout << "  Estimated number of subcycles remaining: " << int(round(((time + dt) - subcycle_time) / dt_subcycle)) << std::endl << std::endl;
+            std::cout << "  Estimated number of subcycles remaining: " << num_subcycles_remaining << std::endl << std::endl;
         }
 
         // Swap the time levels. Only do this after the first iteration,
@@ -1233,13 +1259,14 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
 
         if (use_retry) {
 
-            // If we hit a retry, signal that we want to try again by subtracting the
-            // time from our counter; the retry function will handle resetting the state,
+            // If we hit a retry, signal that we want to try again.
+            // The retry function will handle resetting the state,
             // and updating dt_subcycle.
 
             if (retry_advance(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle)) {
                 do_swap = false;
-                sub_iteration -= 1;
+                sub_iteration = 0;
+                subcycle_time = time;
                 lastDtRetryLimited = true;
                 lastDtFromRetry = dt_subcycle;
             }

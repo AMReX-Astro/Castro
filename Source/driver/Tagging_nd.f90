@@ -3,18 +3,18 @@ module tagging_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  real(rt)        , save ::    denerr,   dengrad
-  real(rt)        , save ::    enterr,   entgrad
-  real(rt)        , save ::    velerr,   velgrad
-  real(rt)        , save ::   temperr,  tempgrad
-  real(rt)        , save ::  presserr, pressgrad
-  real(rt)        , save ::    raderr,   radgrad
-  integer         , save ::  max_denerr_lev,   max_dengrad_lev
-  integer         , save ::  max_enterr_lev,   max_entgrad_lev
-  integer         , save ::  max_velerr_lev,   max_velgrad_lev
-  integer         , save ::  max_temperr_lev,  max_tempgrad_lev
-  integer         , save ::  max_presserr_lev, max_pressgrad_lev
-  integer         , save ::  max_raderr_lev,   max_radgrad_lev
+  real(rt)        , save ::    denerr,   dengrad, dengrad_rel
+  real(rt)        , save ::    enterr,   entgrad, entgrad_rel
+  real(rt)        , save ::    velerr,   velgrad, velgrad_rel
+  real(rt)        , save ::   temperr,  tempgrad, tempgrad_rel
+  real(rt)        , save ::  presserr, pressgrad, pressgrad_rel
+  real(rt)        , save ::    raderr,   radgrad, radgrad_rel
+  integer         , save ::  max_denerr_lev,   max_dengrad_lev, max_dengrad_rel_lev
+  integer         , save ::  max_enterr_lev,   max_entgrad_lev, max_entgrad_rel_lev
+  integer         , save ::  max_velerr_lev,   max_velgrad_lev, max_velgrad_rel_lev
+  integer         , save ::  max_temperr_lev,  max_tempgrad_lev, max_tempgrad_rel_lev
+  integer         , save ::  max_presserr_lev, max_pressgrad_lev, max_pressgrad_rel_lev
+  integer         , save ::  max_raderr_lev,   max_radgrad_lev, max_radgrad_rel_lev
 
   public
 
@@ -53,8 +53,8 @@ contains
                              bind(C, name="ca_laplac_error")
 
     use prob_params_module, only: dg, dim
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer,    intent(in) :: set, clear, nd, level
@@ -190,8 +190,8 @@ contains
                          bind(C, name="ca_denerror")
 
     use prob_params_module, only: dg
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer, intent(in) :: set, clear, nd, level
@@ -219,7 +219,7 @@ contains
     endif
 
     !     Tag on regions of high density gradient
-    if (level .lt. max_dengrad_lev) then
+    if (level .lt. max_dengrad_lev .or. level .lt. max_dengrad_rel_lev) then
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
@@ -229,7 +229,7 @@ contains
                 ax = MAX(ax,ABS(den(i,j,k,1) - den(i-1*dg(1),j,k,1)))
                 ay = MAX(ay,ABS(den(i,j,k,1) - den(i,j-1*dg(2),k,1)))
                 az = MAX(az,ABS(den(i,j,k,1) - den(i,j,k-1*dg(3),1)))
-                if ( MAX(ax,ay,az) .ge. dengrad) then
+                if (MAX(ax,ay,az) .ge. dengrad .or. MAX(ax,ay,az) .ge. ABS(dengrad_rel * den(i,j,k,1))) then
                    tag(i,j,k) = set
                 endif
              enddo
@@ -251,8 +251,8 @@ contains
                           bind(C, name="ca_temperror")
 
     use prob_params_module, only: dg
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer, intent(in) :: set, clear, np, level
@@ -280,7 +280,7 @@ contains
     endif
 
     !     Tag on regions of high temperature gradient
-    if (level .lt. max_tempgrad_lev) then
+    if (level .lt. max_tempgrad_lev .or. level .lt. max_tempgrad_rel_lev) then
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
@@ -290,7 +290,7 @@ contains
                 ax = MAX(ax,ABS(temp(i,j,k,1) - temp(i-1*dg(1),j,k,1)))
                 ay = MAX(ay,ABS(temp(i,j,k,1) - temp(i,j-1*dg(2),k,1)))
                 az = MAX(az,ABS(temp(i,j,k,1) - temp(i,j,k-1*dg(3),1)))
-                if ( MAX(ax,ay,az) .ge. tempgrad) then
+                if (MAX(ax,ay,az) .ge. tempgrad .or. MAX(ax,ay,az) .ge. ABS(tempgrad_rel * temp(i,j,k,1))) then
                    tag(i,j,k) = set
                 endif
              enddo
@@ -312,8 +312,8 @@ contains
                            bind(C, name="ca_presserror")
 
     use prob_params_module, only: dg
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer, intent(in) :: set, clear, np, level
@@ -341,7 +341,7 @@ contains
     endif
 
     !     Tag on regions of high pressure gradient
-    if (level .lt. max_pressgrad_lev) then
+    if (level .lt. max_pressgrad_lev .or. level .lt. max_pressgrad_rel_lev) then
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
@@ -351,7 +351,7 @@ contains
                 ax = MAX(ax,ABS(press(i,j,k,1) - press(i-1*dg(1),j,k,1)))
                 ay = MAX(ay,ABS(press(i,j,k,1) - press(i,j-1*dg(2),k,1)))
                 az = MAX(az,ABS(press(i,j,k,1) - press(i,j,k-1*dg(3),1)))
-                if ( MAX(ax,ay,az) .ge. pressgrad) then
+                if (MAX(ax,ay,az) .ge. pressgrad .or. MAX(ax,ay,az) .ge. ABS(pressgrad_rel * press(i,j,k,1))) then
                    tag(i,j,k) = set
                 endif
              enddo
@@ -373,8 +373,8 @@ contains
                          bind(C, name="ca_velerror")
 
     use prob_params_module, only: dg
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer, intent(in) :: set, clear, nv, level
@@ -402,7 +402,7 @@ contains
     endif
 
     !     Tag on regions of high velocity gradient
-    if (level .lt. max_velgrad_lev) then
+    if (level .lt. max_velgrad_lev .or. level .lt. max_velgrad_rel_lev) then
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
@@ -412,7 +412,7 @@ contains
                 ax = MAX(ax,ABS(vel(i,j,k,1) - vel(i-1*dg(1),j,k,1)))
                 ay = MAX(ay,ABS(vel(i,j,k,1) - vel(i,j-1*dg(2),k,1)))
                 az = MAX(az,ABS(vel(i,j,k,1) - vel(i,j,k-1*dg(3),1)))
-                if ( MAX(ax,ay,az) .ge. velgrad) then
+                if (MAX(ax,ay,az) .ge. velgrad .or. MAX(ax,ay,az) .ge. ABS(velgrad_rel * vel(i,j,k,1))) then
                    tag(i,j,k) = set
                 endif
              enddo
@@ -434,8 +434,8 @@ contains
                          bind(C, name="ca_raderror")
 
     use prob_params_module, only: dg
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer, intent(in) :: set, clear, nr, level
@@ -463,7 +463,7 @@ contains
     endif
 
     !     Tag on regions of high radiation gradient
-    if (level .lt. max_radgrad_lev) then
+    if (level .lt. max_radgrad_lev .or. level .lt. max_radgrad_rel_lev) then
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
@@ -473,7 +473,7 @@ contains
                 ax = MAX(ax,ABS(rad(i,j,k,1) - rad(i-1*dg(1),j,k,1)))
                 ay = MAX(ay,ABS(rad(i,j,k,1) - rad(i,j-1*dg(2),k,1)))
                 az = MAX(az,ABS(rad(i,j,k,1) - rad(i,j,k-1*dg(3),1)))
-                if ( MAX(ax,ay,az) .ge. radgrad) then
+                if (MAX(ax,ay,az) .ge. radgrad .or. MAX(ax,ay,az) .ge. ABS(radgrad_rel * rad(i,j,k,1))) then
                    tag(i,j,k) = set
                 endif
              enddo
@@ -495,8 +495,8 @@ contains
                          bind(C, name="ca_enterror")
 
     use prob_params_module, only: dg
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer, intent(in) :: set, clear, nr, level
@@ -524,7 +524,7 @@ contains
     endif
 
     !     Tag on regions of high radiation gradient
-    if (level .lt. max_entgrad_lev) then
+    if (level .lt. max_entgrad_lev .or. level .lt. max_entgrad_rel_lev) then
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
@@ -534,7 +534,7 @@ contains
                 ax = MAX(ax,ABS(ent(i,j,k,1) - ent(i-1*dg(1),j,k,1)))
                 ay = MAX(ay,ABS(ent(i,j,k,1) - ent(i,j-1*dg(2),k,1)))
                 az = MAX(az,ABS(ent(i,j,k,1) - ent(i,j,k-1*dg(3),1)))
-                if ( MAX(ax,ay,az) .ge. entgrad) then
+                if (MAX(ax,ay,az) .ge. entgrad .or. MAX(ax,ay,az) .ge. ABS(entgrad_rel * ent(i,j,k,1))) then
                    tag(i,j,k) = set
                 endif
              enddo
@@ -558,9 +558,9 @@ contains
                          delta,xlo,problo,time,level) &
                          bind(C, name="ca_nucerror")
 
-    use meth_params_module, only: dxnuc, dxnuc_max
-
+    use meth_params_module, only: dxnuc, dxnuc_max, max_dxnuc_lev
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer, intent(in) :: set, clear, nr, level
@@ -577,19 +577,23 @@ contains
 
     if (dxnuc > 1.e199_rt) return
 
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
+    if (level .lt. max_dxnuc_lev) then
 
-             if (t(i,j,k,1) > dxnuc .and. t(i,j,k,1) < dxnuc_max) then
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
-                tag(i,j,k) = set
+                if (t(i,j,k,1) > dxnuc .and. t(i,j,k,1) < dxnuc_max) then
 
-             endif
+                   tag(i,j,k) = set
 
+                endif
+
+             enddo
           enddo
        enddo
-    enddo
+
+    end if
 
   end subroutine ca_nucerror
 

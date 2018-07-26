@@ -102,6 +102,7 @@ jobInfoFile << (Castro::dtnuc_X == 1.e200 ? "    " : "[*] ") << "castro.dtnuc_X 
 jobInfoFile << (Castro::dtnuc_X_threshold == 1.e-3 ? "    " : "[*] ") << "castro.dtnuc_X_threshold = " << Castro::dtnuc_X_threshold << std::endl;
 jobInfoFile << (Castro::dxnuc == 1.e200 ? "    " : "[*] ") << "castro.dxnuc = " << Castro::dxnuc << std::endl;
 jobInfoFile << (Castro::dxnuc_max == 1.e200 ? "    " : "[*] ") << "castro.dxnuc_max = " << Castro::dxnuc_max << std::endl;
+jobInfoFile << (Castro::max_dxnuc_lev == 30 ? "    " : "[*] ") << "castro.max_dxnuc_lev = " << Castro::max_dxnuc_lev << std::endl;
 jobInfoFile << (Castro::do_react == -1 ? "    " : "[*] ") << "castro.do_react = " << Castro::do_react << std::endl;
 jobInfoFile << (Castro::react_T_min == 0.0 ? "    " : "[*] ") << "castro.react_T_min = " << Castro::react_T_min << std::endl;
 jobInfoFile << (Castro::react_T_max == 1.e200 ? "    " : "[*] ") << "castro.react_T_max = " << Castro::react_T_max << std::endl;

@@ -1,5 +1,25 @@
 # changes since the last release
 
+  -- The functionality that checks for a regrid at the end of
+     the timestep will now apply all tagging criteria, not
+     just the t_sound / t_enuc criterion.
+
+  -- A bug was fixed that occurred when a retry was triggered in
+     the middle of a group of subcycles, rather than at the
+     beginning of the advance (#358).
+
+  -- A bug with the logic of refluxing when using retries was
+     fixed (#357).
+
+  -- Tagging can now be done on relative gradients, in addition
+     to the existing capability for absolute gradients (#354).
+     For example, tempgrad_rel is a relative gradient criterion
+     that will tag a zone with temperature T if any adjacent zone
+     has a temperature that is different by more than tempgrad_rel * T.
+     The tagging is enabled up to a given level with the parameter
+     max_tempgrad_rel_lev. The corresponding new tagging criteria
+     for other fields are named similarly.
+
   -- Retries can now be done in a dynamic fashion (#179). An
      advance is itself a subcycled advance always, and we keep
      subcycling until we are done with the step. By default we

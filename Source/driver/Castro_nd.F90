@@ -41,6 +41,8 @@ subroutine ca_extern_init(name,namlen) bind(C, name="ca_extern_init")
 
   use amrex_fort_module, only: rt => amrex_real
 
+  implicit none
+
   integer, intent(in) :: namlen
   integer, intent(in) :: name(namlen)
 
@@ -802,6 +804,8 @@ subroutine ca_get_tagging_params(name, namlen) &
   use amrex_error_module
   use amrex_fort_module, only: rt => amrex_real
 
+  implicit none
+
   integer, intent(in) :: namlen
   integer, intent(in) :: name(namlen)
 
@@ -811,43 +815,61 @@ subroutine ca_get_tagging_params(name, namlen) &
   character (len=maxlen) :: probin
 
   namelist /tagging/ &
-       denerr,     dengrad,   max_denerr_lev,   max_dengrad_lev, &
-       enterr,     entgrad,   max_enterr_lev,   max_entgrad_lev, &
-       velerr,     velgrad,   max_velerr_lev,   max_velgrad_lev, &
-       presserr, pressgrad, max_presserr_lev, max_pressgrad_lev, &
-       temperr,   tempgrad,  max_temperr_lev,  max_tempgrad_lev, &
-       raderr,     radgrad,   max_raderr_lev,   max_radgrad_lev
+       denerr, dengrad, dengrad_rel, &
+       max_denerr_lev, max_dengrad_lev, max_dengrad_rel_lev, &
+       enterr, entgrad, entgrad_rel, &
+       max_enterr_lev, max_entgrad_lev, max_entgrad_rel_lev, &
+       velerr, velgrad, velgrad_rel, &
+       max_velerr_lev, max_velgrad_lev, max_velgrad_rel_lev, &
+       presserr, pressgrad, pressgrad_rel, &
+       max_presserr_lev, max_pressgrad_lev, max_pressgrad_rel_lev, &
+       temperr, tempgrad, tempgrad_rel, &
+       max_temperr_lev, max_tempgrad_lev, max_tempgrad_rel_lev, &
+       raderr, radgrad, radgrad_rel, &
+       max_raderr_lev, max_radgrad_lev, max_radgrad_rel_lev
 
   ! Set namelist defaults
   denerr = 1.e20_rt
   dengrad = 1.e20_rt
+  dengrad_rel = 1.e20_rt
   max_denerr_lev = 10
   max_dengrad_lev = 10
+  max_dengrad_rel_lev = -1
 
   enterr = 1.e20_rt
   entgrad = 1.e20_rt
+  entgrad_rel = 1.e20_rt
   max_enterr_lev = -1
   max_entgrad_lev = -1
+  max_entgrad_rel_lev = -1
 
   presserr = 1.e20_rt
   pressgrad = 1.e20_rt
+  pressgrad_rel = 1.e20_rt
   max_presserr_lev = -1
   max_pressgrad_lev = -1
+  max_pressgrad_rel_lev = -1
 
   velerr  = 1.e20_rt
   velgrad = 1.e20_rt
+  velgrad_rel = 1.e20_rt
   max_velerr_lev = -1
   max_velgrad_lev = -1
+  max_velgrad_rel_lev = -1
 
   temperr  = 1.e20_rt
   tempgrad = 1.e20_rt
+  tempgrad_rel = 1.e20_rt
   max_temperr_lev = -1
   max_tempgrad_lev = -1
+  max_tempgrad_rel_lev = -1
 
   raderr  = 1.e20_rt
   radgrad = 1.e20_rt
+  radgrad_rel = 1.e20_rt
   max_raderr_lev = -1
   max_radgrad_lev = -1
+  max_radgrad_rel_lev = -1
 
   ! create the filename
 #ifndef AMREX_USE_CUDA
@@ -892,6 +914,8 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   use sponge_module
   use amrex_error_module
   use amrex_fort_module, only: rt => amrex_real
+
+  implicit none
 
   integer, intent(in) :: namlen
   integer, intent(in) :: name(namlen)
