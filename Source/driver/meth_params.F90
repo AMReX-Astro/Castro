@@ -496,7 +496,7 @@ contains
     allocate(sdc_solver)
     sdc_solver = 1;
     allocate(sdc_solver_tol)
-    sdc_solver_tol = 1.d-12;
+    sdc_solver_tol = 1.d-6;
     allocate(sdc_solve_for_rhoe)
     sdc_solve_for_rhoe = 1;
     allocate(cfl)

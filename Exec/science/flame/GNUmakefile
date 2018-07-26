@@ -1,7 +1,7 @@
 PRECISION  = DOUBLE
 PROFILE    = FALSE
 
-DEBUG      = FALSE
+DEBUG      = TRUE
 
 DIM        = 1
 
@@ -21,7 +21,8 @@ ifdef MICROPHYSICS_HOME
   EOS_DIR     := helmholtz
 
   # This sets the network directory in $(MICROPHYSICS_HOME)/networks
-  NETWORK_DIR := aprox13
+  #NETWORK_DIR := aprox13
+  NETWORK_DIR := triple_alpha_plus_cago
 
 else
 

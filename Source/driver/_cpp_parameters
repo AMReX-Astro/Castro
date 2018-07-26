@@ -241,11 +241,11 @@ mol_order                    int           2                  y
 # valid options are 2 and 4
 sdc_order                    int           2                  y
 
-# which SDC nonlinear solver to use?  1 = Newton, 2 = Powell
+# which SDC nonlinear solver to use?  1 = Newton, 2 = VODE
 sdc_solver                   int           1                  y
 
 # which SDC nonlinear solver to use?  1 = Newton, 2 = Powell
-sdc_solver_tol               Real          1.e-12             y
+sdc_solver_tol               Real          1.e-6             y
 
 # do we solve for (rho e) or (rho E) in the SDC nonlinear solve?
 sdc_solve_for_rhoe           int           1                  y

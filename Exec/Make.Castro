@@ -1,8 +1,6 @@
 AMREX_HOME ?= /path/to/amrex
 CASTRO_HOME ?= /path/to/Castro
 
-USE_FAT_SOLVER ?= TRUE
-
 # radiation needs hypre
 HYPRE_DIR ?= /path/to/Hypre
 HYPRE_OMP_DIR ?= /path/to/Hypre--with-openmp
@@ -327,10 +325,6 @@ endif
 ifeq ($(USE_RAD), TRUE)
    OPAC_PATH := $(TOP)/Microphysics/opacity/$(Opacity_dir)
    EXTERN_CORE += $(OPAC_PATH)
-endif
-
-ifeq ($(USE_FAT_SOLVER), TRUE)
-   EXTERN_CORE += $(MICROPHYSICS_HOME)/util/FAT
 endif
 
 Bpack += $(foreach dir, $(EXTERN_CORE), $(dir)/Make.package)

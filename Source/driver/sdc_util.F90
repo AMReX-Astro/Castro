@@ -23,7 +23,65 @@ module sdc_util
 
 contains
 
-  subroutine f_sdc(n, U, f, iflag, npar, rpar)
+  subroutine f_ode(n, t, U, dUdt, rpar, ipar)
+
+    use meth_params_module, only : nvar, URHO, UFS, UEDEN, UTEMP, UMX, UMZ, UEINT, sdc_solve_for_rhoe
+    use burn_type_module
+    use rpar_sdc_module
+    use react_util_module
+
+    implicit none
+
+    integer, intent(in) :: n
+    real(rt), intent(in) :: t
+    real(rt), intent(in) :: U(0:n-1)
+    real(rt), intent(out) :: dUdt(0:n-1)
+    real(rt), intent(in) :: rpar(0:n_rpar-1)
+    integer, intent(in) :: ipar
+
+    real(rt) :: U_full(nvar),  R_full(nvar)
+    real(rt) :: R_react(0:n-1), C_react(0:n-1)
+    type(burn_t) :: burn_state
+
+    ! evaluate R
+
+    ! we are not solving the momentum equations
+    ! create a full state -- we need this for some interfaces
+    U_full(URHO) = U(0)
+    U_full(UFS:UFS-1+nspec_evolve) = U(1:nspec_evolve)
+    if (sdc_solve_for_rhoe == 1) then
+       U_full(UEINT) = U(nspec_evolve+1)
+       U_full(UEDEN) = rpar(irp_evar)
+    else
+       U_full(UEDEN) = U(nspec_evolve+1)
+       U_full(UEINT) = rpar(irp_evar)
+    endif
+
+    U_full(UMX:UMZ) = rpar(irp_mom:irp_mom+2)
+    U_full(UFS+nspec_evolve:UFS-1+nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))
+
+    ! we'll get the temperature here, so just initialize it to something
+    U_full(UTEMP) = 1.e4_rt
+
+    call single_zone_react_source(U_full, R_full, 0,0,0, burn_state)
+
+    R_react(0) = R_full(URHO)
+    R_react(1:nspec_evolve) = R_full(UFS:UFS-1+nspec_evolve)
+    if (sdc_solve_for_rhoe == 1) then
+       R_react(nspec_evolve+1) = R_full(UEINT)
+    else
+       R_react(nspec_evolve+1) = R_full(UEDEN)
+    endif
+
+    ! C comes in through rpar
+    C_react(:) = rpar(irp_f_source:irp_f_source-1+nspec_evolve+2)
+
+    ! create the RHS
+    dUdt(:) = R_react(:) + C_react(:)
+
+  end subroutine f_ode
+
+  subroutine f_sdc(n, U, f, iflag, rpar)
 
     use rpar_sdc_module
     use meth_params_module, only : nvar, URHO, UFS, UEDEN, UMX, UMZ, UEINT, sdc_solve_for_rhoe
@@ -34,12 +92,11 @@ contains
     ! this computes the function we need to zero for the SDC update
     implicit none
 
-    integer,intent(in) :: n
+    integer, intent(in) :: n
     real(rt), intent(in)  :: U(0:n-1)
     real(rt), intent(out) :: f(0:n-1)
     integer, intent(inout) :: iflag  !! leave this untouched
-    integer, intent(in) :: npar
-    real(rt), intent(in) :: rpar(0:npar-1)
+    real(rt), intent(in) :: rpar(0:n_rpar-1)
 
     real(rt) :: U_full(nvar),  R_full(nvar)
     real(rt) :: R_react(0:n-1), f_source(0:n-1)
@@ -80,7 +137,7 @@ contains
   end subroutine f_sdc
 
 
-  subroutine f_sdc_jac(n, U, f, Jac, ldjac, iflag, npar, rpar)
+  subroutine f_sdc_jac(n, U, f, Jac, ldjac, iflag, rpar)
 
     use rpar_sdc_module
     use meth_params_module, only : nvar, URHO, UFS, UEINT, UEDEN, UMX, UMZ, UTEMP, sdc_solve_for_rhoe
@@ -99,8 +156,7 @@ contains
     real(rt), intent(out) :: f(0:n-1)
     real(rt), intent(out) :: Jac(0:ldjac-1,0:n-1)
     integer, intent(inout) :: iflag  !! leave this untouched
-    integer, intent(in) :: npar
-    real(rt), intent(in) :: rpar(0:npar-1)
+    real(rt), intent(in) :: rpar(0:n_rpar-1)
 
     real(rt) :: U_full(nvar),  R_full(nvar)
     real(rt) :: R_react(0:n-1), f_source(0:n-1)
@@ -342,7 +398,6 @@ contains
     use eos_module
     use network, only : nspec, nspec_evolve
     use react_util_module
-    use minpack_module, only : hybrd1, hybrj1
     use rpar_sdc_module
     use extern_probin_module, only : SMALL_X_SAFE
 
@@ -388,7 +443,7 @@ contains
     !   1:nspec_evolve  : species
     !   nspec_evolve+1  : (rho E) or (rho e)
 
-    real(rt) :: U_react(0:nspec_evolve+1), f_source(0:nspec_evolve+1), R_react(0:nspec_evolve+1)
+    real(rt) :: U_react(0:nspec_evolve+1), f_source(0:nspec_evolve+1), R_react(0:nspec_evolve+1), C_react(0:nspec_evolve+1)
     real(rt) :: dU_react(0:nspec_evolve+1), f(0:nspec_evolve+1), f_rhs(0:nspec_evolve+1)
 
     integer :: m, n
@@ -396,13 +451,18 @@ contains
     real(rt) :: w(0:nspec_evolve+1)
 
     real(rt) :: rpar(0:n_rpar-1)
+    integer :: ipar
 
     integer :: ipvt(nspec_evolve+2)
-    integer :: info
+    integer :: info, istate, iopt
 
-    integer, parameter :: lwa = (nspec_evolve+2)*(nspec_evolve+2+13)/2
-    real(rt) :: wa(lwa)
     logical :: converged
+
+    integer, parameter :: lrw = 22 + 9*(nspec_evolve+2) + 2*(nspec_evolve+2)**2
+    integer, parameter :: liw = 30 + nspec_evolve + 2
+
+    real(rt) :: rwork(lrw)
+    integer :: iwork(liw)
 
     ! now consider the reacting system
     do k = lo(3), hi(3)
@@ -450,9 +510,19 @@ contains
              endif
 
              ! load rpar
-             rpar(irp_f_source:irp_f_source-1+nspec_evolve+2) = f_source(:)
-             rpar(irp_dt) = dt_m
-             rpar(irp_mom:irp_mom-1+3) = U_new(UMX:UMZ)
+             if (sdc_solver == 1) then
+                rpar(irp_f_source:irp_f_source-1+nspec_evolve+2) = f_source(:)
+                rpar(irp_dt) = dt_m
+                rpar(irp_mom:irp_mom-1+3) = U_new(UMX:UMZ)
+             else
+                C_react(0) = C(URHO)
+                C_react(1:nspec_evolve) = C(UFS:UFS-1+nspec_evolve)
+                C_react(nspec_evolve+1) = C(UEINT)
+
+                rpar(irp_f_source:irp_f_source-1+nspec_evolve+2) = C_react(:)
+                rpar(irp_dt) = dt_m
+                rpar(irp_mom:irp_mom-1+3) = U_new(UMX:UMZ)
+             endif
 
              ! we should be able to do an update for this somehow?
              if (sdc_solve_for_rhoe == 1) then
@@ -465,12 +535,18 @@ contains
                   U_new(UFS+nspec_evolve:UFS-1+nspec)
 
              ! store the subset for the nonlinear solve
-             U_react(0) = U_new(URHO)
-             U_react(1:nspec_evolve) = U_new(UFS:UFS-1+nspec_evolve)
-             if (sdc_solve_for_rhoe == 1) then
-                U_react(nspec_evolve+1) = U_new(UEINT)
+             if (sdc_solver == 1) then
+                U_react(0) = U_new(URHO)
+                U_react(1:nspec_evolve) = U_new(UFS:UFS-1+nspec_evolve)
+                if (sdc_solve_for_rhoe == 1) then
+                   U_react(nspec_evolve+1) = U_new(UEINT)
+                else
+                   U_react(nspec_evolve+1) = U_new(UEDEN)
+                endif
              else
-                U_react(nspec_evolve+1) = U_new(UEDEN)
+                U_react(0) = U_old(URHO)
+                U_react(1:nspec_evolve) = U_old(UFS:UFS-1+nspec_evolve)
+                U_react(nspec_evolve+1) = U_old(UEINT)
              endif
 
              if (sdc_solver == 1) then
@@ -482,7 +558,7 @@ contains
                 converged = .false.
                 do while (.not. converged .and. iter < MAX_ITER)
 
-                   call f_sdc_jac(nspec_evolve+2, U_react, f, Jac, nspec_evolve+2, info, n_rpar, rpar)
+                   call f_sdc_jac(nspec_evolve+2, U_react, f, Jac, nspec_evolve+2, info, rpar)
 
                    ! solve the linear system: Jac dU_react = -f
                    call dgefa(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, info)
@@ -517,15 +593,17 @@ contains
 
              else if (sdc_solver == 2) then
 
-                ! use the Powell hybrid solver -- here, f_sdc will be
-                ! the function that it zeros
+                ! use VODE to do the solve
+                istate = 1
+                iopt = 0
+                iwork(:) = 0
+                rwork(:) = ZERO
+                call dvode(f_ode, nspec_evolve+2, U_react, ZERO, dt_m, &
+                           1, sdc_solver_tol, 1.e-100_rt, &
+                           1, istate, iopt, rwork, lrw, iwork, liw, f_ode, 22, rpar, ipar)
 
-                ! call the powell solver
-                call hybrj1(f_sdc_jac, nspec_evolve+2, U_react, f, Jac, nspec_evolve+2, &
-                            sdc_solver_tol, info, wa, lwa, n_rpar, rpar)
-
-                if (info /= 1) then
-                   call amrex_error("minpack termination poorly, info = ", info)
+                if (istate < 0) then
+                   call amrex_error("vode termination poorly, istate = ", istate)
                 endif
 
              endif
