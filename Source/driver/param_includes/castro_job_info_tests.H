@@ -92,6 +92,7 @@ jobInfoFile << (Castro::small_plot_per_is_exact == 0 ? "    " : "[*] ") << "cast
 jobInfoFile << (Castro::use_retry == 0 ? "    " : "[*] ") << "castro.use_retry = " << Castro::use_retry << std::endl;
 jobInfoFile << (Castro::retry_tolerance == 0.02 ? "    " : "[*] ") << "castro.retry_tolerance = " << Castro::retry_tolerance << std::endl;
 jobInfoFile << (Castro::retry_neg_dens_factor == 1.e-1 ? "    " : "[*] ") << "castro.retry_neg_dens_factor = " << Castro::retry_neg_dens_factor << std::endl;
+jobInfoFile << (Castro::retry_subcycle_factor == 0.5 ? "    " : "[*] ") << "castro.retry_subcycle_factor = " << Castro::retry_subcycle_factor << std::endl;
 jobInfoFile << (Castro::use_post_step_regrid == 0 ? "    " : "[*] ") << "castro.use_post_step_regrid = " << Castro::use_post_step_regrid << std::endl;
 jobInfoFile << (Castro::max_subcycles == 10 ? "    " : "[*] ") << "castro.max_subcycles = " << Castro::max_subcycles << std::endl;
 jobInfoFile << (Castro::clamp_subcycles == 1 ? "    " : "[*] ") << "castro.clamp_subcycles = " << Castro::clamp_subcycles << std::endl;

@@ -45,18 +45,15 @@ amr.regrid_int      = 1
 amr.blocking_factor = 8
 amr.max_grid_size   = 64
 
-# Use n_error_buf = 3 here. The reasoning is that
-# for strict stability, we always want refinement
-# to cover any zone that violates the stability
-# criterion. For a given ref_ratio and blocking_factor,
-# the smallest chunk of zones on the coarse grid
-# that can trigger refinement on the fine grid
-# is given by blocking_factor / ref_ratio. So for
-# blocking_factor of 8 and ref_ratio of 2, then
-# we need to ensure that at least 4 zones are tagged
-# if one violates the stability criterion. By adding 3
-# we guarantee that this is always satisfied.
-amr.n_error_buf     = 3
+# Use n_error_buf = 4 here. We want to guarantee
+# strict stability, so we want to ensure that we
+# have enough buffer zones. Strict stability is
+# not theoretically guaranteed even with post-step
+# grids, because proper nesting requires that zones
+# on the edge of the level boundary cannot be refined.
+# Using a sufficiently large buffer helps avoid this
+# in most realistic cases.
+amr.n_error_buf     = 4
 
 amr.check_file      = det_x_chk
 amr.check_per       = 1.e-2

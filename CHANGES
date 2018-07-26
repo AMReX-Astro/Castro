@@ -1,3 +1,21 @@
+# changes since the last release
+
+  -- Retries can now be done in a dynamic fashion (#179). An
+     advance is itself a subcycled advance always, and we keep
+     subcycling until we are done with the step. By default we
+     still do only a single timestep when use_retry is not
+     enabled, but this helps in cases where we have to reject
+     the timestep for (say) a CFL violation, and then during
+     the retry the CFL criterion is violated again. In the past,
+     we would simply have to abort the run if this happened. Now
+     we can cut the timestep again and keep going. Additionally,
+     if you set abort_on_false to F in your probin file's extern
+     parameters, then a burn in Microphysics will not cause an
+     abort of the run, and Castro now knows how to deal with that
+     by doing a retry and taking a shorter timestep (under the
+     logic that most burn failures come from taking too large of
+     a hydrodynamic timestep for the burner to be able to keep up).
+
 # 18.07
 
   -- A new GPU (CUDA) hydrodynamics solver (based on the
