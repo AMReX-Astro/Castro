@@ -81,6 +81,17 @@ contains
 
   end subroutine f_ode
 
+  subroutine jac_ode(neq, time, U, ml, mu, pd, nrowpd, rpar, ipar)
+
+    use rpar_sdc_module
+    implicit none
+
+    integer   , intent(IN   ) :: neq, ml, mu, nrowpd, ipar
+    real(rt), intent(INOUT) :: U(neq), rpar(n_rpar), time
+    real(rt), intent(  OUT) :: pd(neq,neq)
+
+  end subroutine jac_ode
+
   subroutine f_sdc(n, U, f, iflag, rpar)
 
     use rpar_sdc_module
@@ -600,7 +611,7 @@ contains
                 rwork(:) = ZERO
                 call dvode(f_ode, nspec_evolve+2, U_react, ZERO, dt_m, &
                            1, sdc_solver_tol, 1.e-100_rt, &
-                           1, istate, iopt, rwork, lrw, iwork, liw, f_ode, 22, rpar, ipar)
+                           1, istate, iopt, rwork, lrw, iwork, liw, jac_ode, 22, rpar, ipar)
 
                 if (istate < 0) then
                    call amrex_error("vode termination poorly, istate = ", istate)
