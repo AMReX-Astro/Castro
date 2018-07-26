@@ -64,10 +64,9 @@ args = parser.parse_args(sys.argv[1:])
 
 coloropts = ['field_color', 'cmap', 'display_threshold', 'cbar']
 ColorOpt = namedtuple('ColorOpt', field_names=coloropts)
-optdict = {'field_color': None, 'display_threshold': None, 'cmap': None, 'cbar': False}
+optdict = dict(field_color=None, display_threshold=None, cmap=None, cbar=False)
 
 contour_opt = {}
-color_opt = None
 
 if args.quiver is not None:
 
@@ -83,7 +82,7 @@ if args.flame_wave:
     args.time = 4
     args.quiver = None
     args.stream = ['x_velocity', 'y_velocity', 16]
-    color_opt = ColorOpt(field_color='transvel', cmap='kamae', display_threshold=1.5e7, cbar=True)
+    optdict = dict(field_color='transvel', cmap='kamae', display_threshold=1.5e7, cbar=False)
     args.contour = 'enuc'
     contour_opt = {'ncont': 3, 'clim': (1e16, 1e20), 'plot_args': {"colors": "0.7", "linewidths": 1}}
     args.ylim = (0.375e4, 1.5e4)
@@ -102,7 +101,7 @@ if args.stream_color is not None:
     if optdict['display_threshold'] is not None:
         optdict['display_threshold'] = float(optdict['display_threshold'])
 
-if color_opt is None: color_opt = ColorOpt(**optdict)
+color_opt = ColorOpt(**optdict)
 
 # Make output directory
 if not args.out:
@@ -204,7 +203,9 @@ for ds in ts:
 
     if args.bounds is not None:
         plot.set_zlim(field, *args.bounds)
+
     plot.set_log(field, args.log)
+
     if args.time > 0:
         plot.annotate_timestamp(corner='upper_left', time_format='t = {{time:.{}f}}{{units}}'.format(args.time),
                 time_unit='s', draw_inset_box=True, inset_box_args={'alpha': 0.0})
@@ -217,10 +218,11 @@ for ds in ts:
 
     if args.stream is not None:
 
+        kw = {'field_color': color_opt.field_color, 'display_threshold': color_opt.display_threshold}
+        if color_opt.cbar: kw['add_colorbar'] = color_opt.cbar
+
         plot.annotate_streamlines(args.stream[0], args.stream[1], factor=args.stream[2],
-                field_color=color_opt.field_color, add_colorbar=color_opt.cbar,
-                display_threshold=color_opt.display_threshold,
-                plot_args={'cmap': color_opt.cmap, 'arrowstyle': '->'})
+                plot_args={'cmap': color_opt.cmap, 'arrowstyle': '->'}, **kw)
 
     suffix = args.func.replace('Plot', '').lower()
     plot.save(os.path.join(args.out, '{}_{}_{}.{}'.format(ds, field, suffix, args.ext)))
