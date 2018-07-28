@@ -474,6 +474,7 @@ contains
 
     real(rt) :: rwork(lrw)
     integer :: iwork(liw)
+    real(rt) :: time
 
     ! now consider the reacting system
     do k = lo(3), hi(3)
@@ -609,7 +610,8 @@ contains
                 iopt = 0
                 iwork(:) = 0
                 rwork(:) = ZERO
-                call dvode(f_ode, nspec_evolve+2, U_react, ZERO, dt_m, &
+                time = ZERO
+                call dvode(f_ode, nspec_evolve+2, U_react, time, dt_m, &
                            1, sdc_solver_tol, 1.e-100_rt, &
                            1, istate, iopt, rwork, lrw, iwork, liw, jac_ode, 22, rpar, ipar)
 
