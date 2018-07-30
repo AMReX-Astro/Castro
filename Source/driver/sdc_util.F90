@@ -23,6 +23,210 @@ module sdc_util
 
 contains
 
+  subroutine sdc_solve(dt_m, U_old, U_new, C)
+
+    ! the purpose of this function is to solve the system
+    ! U - dt R(U) = U_old + dt C
+
+    ! here, U_new should come in as a guess for the new U (for
+    ! sdc_solver = 1) and will be returned with the value that
+    ! satisfies the nonlinear function
+
+    use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ, UTEMP, &
+         sdc_solver, sdc_solver_tol, sdc_solve_for_rhoe
+    use amrex_constants_module, only : ZERO, HALF, ONE
+    use burn_type_module, only : burn_t
+    use network, only : nspec, nspec_evolve
+    use react_util_module
+    use rpar_sdc_module
+    use extern_probin_module, only : SMALL_X_SAFE
+
+    implicit none
+
+    real(rt), intent(in) :: dt_m
+    real(rt), intent(in) :: U_old(NVAR)
+    real(rt), intent(inout) :: U_new(NVAR)
+    real(rt), intent(in) :: C(NVAR)
+
+    real(rt) :: Jac(0:nspec_evolve+1, 0:nspec_evolve+1)
+    real(rt) :: w(0:nspec_evolve+1)
+
+    real(rt) :: rpar(0:n_rpar-1)
+    integer :: ipar
+
+    integer :: ipvt(nspec_evolve+2)
+    integer :: info, istate, iopt
+
+    logical :: converged
+
+    integer, parameter :: lrw = 22 + 9*(nspec_evolve+2) + 2*(nspec_evolve+2)**2
+    integer, parameter :: liw = 30 + nspec_evolve + 2
+
+    real(rt) :: rwork(lrw)
+    integer :: iwork(liw)
+    real(rt) :: time
+
+    ! we will do the implicit update of only the terms that have reactive sources
+    !
+    !   0               : rho
+    !   1:nspec_evolve  : species
+    !   nspec_evolve+1  : (rho E) or (rho e)
+
+    real(rt) :: U_react(0:nspec_evolve+1), f_source(0:nspec_evolve+1), R_react(0:nspec_evolve+1), C_react(0:nspec_evolve+1)
+    real(rt) :: dU_react(0:nspec_evolve+1), f(0:nspec_evolve+1), f_rhs(0:nspec_evolve+1)
+
+    integer :: m, n
+
+    real(rt) :: err
+    real(rt), parameter :: tol = 1.e-5_rt
+    integer, parameter :: MAX_ITER = 100
+    integer :: iter
+
+    ! update the momenta for this zone -- they don't react
+    U_new(UMX:UMZ) = U_old(UMX:UMZ) + dt_m * C(UMX:UMZ)
+
+    ! update the non-reacting species
+    U_new(UFS+nspec_evolve:UFS-1+nspec) = U_old(UFS+nspec_evolve:UFS-1+nspec) + &
+         dt_m * C(UFS+nspec_evolve:UFS-1+nspec)
+
+    ! now only save the subset that participates in the nonlinear
+    ! solve -- note: we include the old state in f_source
+
+    ! load rpar
+    if (sdc_solver == 1) then
+
+       ! for the Jacobian solve, we are solving
+       !   f(U) = U - dt R(U) - U_old - dt C = 0
+       ! we define f_source = U_old + dt C so we are solving
+       !   f(U) = U - dt R(U) - f_source = 0
+
+       f_source(0) = U_old(URHO) + dt_m * C(URHO)
+       f_source(1:nspec_evolve) = U_old(UFS:UFS-1+nspec_evolve) + dt_m * C(UFS:UFS-1+nspec_evolve)
+       if (sdc_solve_for_rhoe == 1) then
+          f_source(nspec_evolve+1) = U_old(UEINT) + dt_m * C(UEINT)
+       else
+          f_source(nspec_evolve+1) = U_old(UEDEN) + dt_m * C(UEDEN)
+       endif
+
+       rpar(irp_f_source:irp_f_source-1+nspec_evolve+2) = f_source(:)
+       rpar(irp_dt) = dt_m
+       rpar(irp_mom:irp_mom-1+3) = U_new(UMX:UMZ)
+    else
+
+       ! if we are solving the system as an ODE, then we
+       ! are solving
+       !    dU/dt = R(U) + C
+       ! so we simply pass in C
+       C_react(0) = C(URHO)
+       C_react(1:nspec_evolve) = C(UFS:UFS-1+nspec_evolve)
+       C_react(nspec_evolve+1) = C(UEINT)
+
+       rpar(irp_f_source:irp_f_source-1+nspec_evolve+2) = C_react(:)
+       rpar(irp_dt) = dt_m
+       rpar(irp_mom:irp_mom-1+3) = U_new(UMX:UMZ)
+    endif
+
+    ! we should be able to do an update for this somehow?
+    if (sdc_solve_for_rhoe == 1) then
+       rpar(irp_evar) = U_new(UEDEN)
+    else
+       rpar(irp_evar) = U_new(UEINT)
+    endif
+
+    rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve)) = &
+         U_new(UFS+nspec_evolve:UFS-1+nspec)
+
+    ! store the subset for the nonlinear solve
+    if (sdc_solver == 1) then
+       U_react(0) = U_new(URHO)
+       U_react(1:nspec_evolve) = U_new(UFS:UFS-1+nspec_evolve)
+       if (sdc_solve_for_rhoe == 1) then
+          U_react(nspec_evolve+1) = U_new(UEINT)
+       else
+          U_react(nspec_evolve+1) = U_new(UEDEN)
+       endif
+    else
+       U_react(0) = U_old(URHO)
+       U_react(1:nspec_evolve) = U_old(UFS:UFS-1+nspec_evolve)
+       U_react(nspec_evolve+1) = U_old(UEINT)
+    endif
+
+    if (sdc_solver == 1) then
+       ! do a simple Newton solve
+
+       err = 1.e30_rt
+
+       ! iterative loop
+       iter = 0
+       converged = .false.
+       do while (.not. converged .and. iter < MAX_ITER)
+
+          call f_sdc_jac(nspec_evolve+2, U_react, f, Jac, nspec_evolve+2, info, rpar)
+
+          ! solve the linear system: Jac dU_react = -f
+          call dgefa(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, info)
+          if (info /= 0) then
+             call amrex_error("singular matrix")
+          endif
+
+          f_rhs(:) = -f(:)
+          call dgesl(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, f_rhs, 0)
+
+          dU_react(:) = f_rhs(:)
+
+          U_react(:) = U_react(:) + dU_react(:)
+
+          ! construct the norm of the correction -- only worry about
+          ! species here, and use some protection against divide by 0
+          w(:) = abs(dU_react(:)/(U_react(:) + SMALL_X_SAFE))
+
+          err = sqrt(sum(w(1:nspec_evolve)**2))
+
+          if (err < tol) then
+             converged = .true.
+          endif
+
+          iter = iter + 1
+       enddo
+
+       if (.not. converged) then
+          call amrex_error("did not converge in SDC")
+       endif
+
+    else if (sdc_solver == 2) then
+
+       ! use VODE to do the solve
+
+       istate = 1
+       iopt = 0
+       iwork(:) = 0
+       rwork(:) = ZERO
+       time = ZERO
+       call dvode(f_ode, nspec_evolve+2, U_react, time, dt_m, &
+                  1, sdc_solver_tol, 1.e-100_rt, &
+                  1, istate, iopt, rwork, lrw, iwork, liw, jac_ode, 22, rpar, ipar)
+
+       if (istate < 0) then
+          call amrex_error("vode termination poorly, istate = ", istate)
+       endif
+
+    endif
+
+    ! update the full U_new
+    ! if we updated total energy, then correct internal, or vice versa
+    U_new(URHO) = U_react(0)
+    U_new(UFS:UFS-1+nspec_evolve) = U_react(1:nspec_evolve)
+    if (sdc_solve_for_rhoe == 1) then
+       U_new(UEINT) = U_react(nspec_evolve+1)
+       U_new(UEDEN) = U_new(UEINT) + HALF*sum(U_new(UMX:UMZ)**2)/U_new(URHO)
+    else
+       U_new(UEDEN) = U_react(nspec_evolve+1)
+       U_new(UEINT) = U_new(UEDEN) - HALF*sum(U_new(UMX:UMZ)**2)/U_new(URHO)
+    endif
+
+  end subroutine sdc_solve
+
+
   subroutine f_ode(n, t, U, dUdt, rpar, ipar)
 
     use meth_params_module, only : nvar, URHO, UFS, UEDEN, UTEMP, UMX, UMZ, UEINT, sdc_solve_for_rhoe
@@ -90,63 +294,9 @@ contains
     real(rt), intent(INOUT) :: U(neq), rpar(n_rpar), time
     real(rt), intent(  OUT) :: pd(neq,neq)
 
+    ! this is a stub -- we are using a numerical Jacobian at the moment
+
   end subroutine jac_ode
-
-  subroutine f_sdc(n, U, f, iflag, rpar)
-
-    use rpar_sdc_module
-    use meth_params_module, only : nvar, URHO, UFS, UEDEN, UMX, UMZ, UEINT, sdc_solve_for_rhoe
-    use network, only : nspec, nspec_evolve
-    use burn_type_module
-    use react_util_module
-
-    ! this computes the function we need to zero for the SDC update
-    implicit none
-
-    integer, intent(in) :: n
-    real(rt), intent(in)  :: U(0:n-1)
-    real(rt), intent(out) :: f(0:n-1)
-    integer, intent(inout) :: iflag  !! leave this untouched
-    real(rt), intent(in) :: rpar(0:n_rpar-1)
-
-    real(rt) :: U_full(nvar),  R_full(nvar)
-    real(rt) :: R_react(0:n-1), f_source(0:n-1)
-    type(burn_t) :: burn_state
-
-    real(rt) :: dt_m
-
-    ! we are not solving the momentum equations
-    ! create a full state -- we need this for some interfaces
-    U_full(URHO) = U(0)
-    U_full(UFS:UFS-1+nspec_evolve) = U(1:nspec_evolve)
-    if (sdc_solve_for_rhoe == 1) then
-       U_full(UEINT) = U(nspec_evolve+1)
-       U_full(UEDEN) = rpar(irp_evar)
-    else
-       U_full(UEDEN) = U(nspec_evolve+1)
-       U_full(UEINT) = rpar(irp_evar)
-    endif
-
-    U_full(UMX:UMZ) = rpar(irp_mom:irp_mom+2)
-    U_full(UFS+nspec_evolve:UFS-1+nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))
-
-    call single_zone_react_source(U_full, R_full, 0,0,0, burn_state)
-
-    R_react(0) = R_full(URHO)
-    R_react(1:nspec_evolve) = R_full(UFS:UFS-1+nspec_evolve)
-    if (sdc_solve_for_rhoe == 1) then
-       R_react(nspec_evolve+1) = R_full(UEINT)
-    else
-       R_react(nspec_evolve+1) = R_full(UEDEN)
-    endif
-
-    dt_m = rpar(irp_dt)
-    f_source(:) = rpar(irp_f_source:irp_f_source-1+nspec_evolve+2)
-
-    f(:) = U(:) - dt_m * R_react(:) - f_source(:)
-
-  end subroutine f_sdc
-
 
   subroutine f_sdc_jac(n, U, f, Jac, ldjac, iflag, rpar)
 
@@ -401,16 +551,11 @@ contains
 
     ! update k_m to k_n via advection -- this is a second-order accurate update
 
-    use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ, UTEMP, &
-         sdc_solver, sdc_solver_tol, sdc_solve_for_rhoe
-    use amrex_constants_module, only : ZERO, HALF, ONE
+    use meth_params_module, only : NVAR
+    use amrex_constants_module, only : HALF
     use burn_type_module, only : burn_t
-    use eos_type_module, only : eos_t, eos_input_re
-    use eos_module
     use network, only : nspec, nspec_evolve
     use react_util_module
-    use rpar_sdc_module
-    use extern_probin_module, only : SMALL_X_SAFE
 
     implicit none
 
@@ -439,42 +584,9 @@ contains
     integer :: i, j, k
 
     type(burn_t) :: burn_state
-    type(eos_t) :: eos_state
-
-    real(rt) :: err
-    real(rt), parameter :: tol = 1.e-5_rt
-    integer, parameter :: MAX_ITER = 100
-    integer :: iter
 
     real(rt) :: U_old(NVAR), U_new(NVAR), C(NVAR), R_full(NVAR)
 
-    ! we will do the implicit update of only the terms that have reactive sources
-    !
-    !   0               : rho
-    !   1:nspec_evolve  : species
-    !   nspec_evolve+1  : (rho E) or (rho e)
-
-    real(rt) :: U_react(0:nspec_evolve+1), f_source(0:nspec_evolve+1), R_react(0:nspec_evolve+1), C_react(0:nspec_evolve+1)
-    real(rt) :: dU_react(0:nspec_evolve+1), f(0:nspec_evolve+1), f_rhs(0:nspec_evolve+1)
-
-    integer :: m, n
-    real(rt) :: Jac(0:nspec_evolve+1, 0:nspec_evolve+1)
-    real(rt) :: w(0:nspec_evolve+1)
-
-    real(rt) :: rpar(0:n_rpar-1)
-    integer :: ipar
-
-    integer :: ipvt(nspec_evolve+2)
-    integer :: info, istate, iopt
-
-    logical :: converged
-
-    integer, parameter :: lrw = 22 + 9*(nspec_evolve+2) + 2*(nspec_evolve+2)**2
-    integer, parameter :: liw = 30 + nspec_evolve + 2
-
-    real(rt) :: rwork(lrw)
-    integer :: iwork(liw)
-    real(rt) :: time
 
     ! now consider the reacting system
     do k = lo(3), hi(3)
@@ -502,137 +614,7 @@ contains
                 U_new(:) = k_n(i,j,k,:)
              endif
 
-
-             ! update the momenta for this zone -- they don't react
-             U_new(UMX:UMZ) = U_old(UMX:UMZ) + dt_m * C(UMX:UMZ)
-
-             ! update the non-reacting species
-             U_new(UFS+nspec_evolve:UFS-1+nspec) = U_old(UFS+nspec_evolve:UFS-1+nspec) + &
-                  dt_m * C(UFS+nspec_evolve:UFS-1+nspec)
-
-             ! now only save the subset that participates in the
-             ! nonlinear solve -- note: we include the old state in
-             ! f_source
-             f_source(0) = U_old(URHO) + dt_m * C(URHO)
-             f_source(1:nspec_evolve) = U_old(UFS:UFS-1+nspec_evolve) + dt_m * C(UFS:UFS-1+nspec_evolve)
-             if (sdc_solve_for_rhoe == 1) then
-                f_source(nspec_evolve+1) = U_old(UEINT) + dt_m * C(UEINT)
-             else
-                f_source(nspec_evolve+1) = U_old(UEDEN) + dt_m * C(UEDEN)
-             endif
-
-             ! load rpar
-             if (sdc_solver == 1) then
-                rpar(irp_f_source:irp_f_source-1+nspec_evolve+2) = f_source(:)
-                rpar(irp_dt) = dt_m
-                rpar(irp_mom:irp_mom-1+3) = U_new(UMX:UMZ)
-             else
-                C_react(0) = C(URHO)
-                C_react(1:nspec_evolve) = C(UFS:UFS-1+nspec_evolve)
-                C_react(nspec_evolve+1) = C(UEINT)
-
-                rpar(irp_f_source:irp_f_source-1+nspec_evolve+2) = C_react(:)
-                rpar(irp_dt) = dt_m
-                rpar(irp_mom:irp_mom-1+3) = U_new(UMX:UMZ)
-             endif
-
-             ! we should be able to do an update for this somehow?
-             if (sdc_solve_for_rhoe == 1) then
-                rpar(irp_evar) = U_new(UEDEN)
-             else
-                rpar(irp_evar) = U_new(UEINT)
-             endif
-
-             rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve)) = &
-                  U_new(UFS+nspec_evolve:UFS-1+nspec)
-
-             ! store the subset for the nonlinear solve
-             if (sdc_solver == 1) then
-                U_react(0) = U_new(URHO)
-                U_react(1:nspec_evolve) = U_new(UFS:UFS-1+nspec_evolve)
-                if (sdc_solve_for_rhoe == 1) then
-                   U_react(nspec_evolve+1) = U_new(UEINT)
-                else
-                   U_react(nspec_evolve+1) = U_new(UEDEN)
-                endif
-             else
-                U_react(0) = U_old(URHO)
-                U_react(1:nspec_evolve) = U_old(UFS:UFS-1+nspec_evolve)
-                U_react(nspec_evolve+1) = U_old(UEINT)
-             endif
-
-             if (sdc_solver == 1) then
-                ! do a simple Newton solve
-                err = 1.e30_rt
-
-                ! iterative loop
-                iter = 0
-                converged = .false.
-                do while (.not. converged .and. iter < MAX_ITER)
-
-                   call f_sdc_jac(nspec_evolve+2, U_react, f, Jac, nspec_evolve+2, info, rpar)
-
-                   ! solve the linear system: Jac dU_react = -f
-                   call dgefa(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, info)
-                   if (info /= 0) then
-                      call amrex_error("singular matrix")
-                   endif
-
-                   f_rhs(:) = -f(:)
-                   call dgesl(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, f_rhs, 0)
-
-                   dU_react(:) = f_rhs(:)
-
-                   U_react(:) = U_react(:) + dU_react(:)
-
-                   ! construct the norm of the correction -- only
-                   ! worry about species here, and use some
-                   ! protection against divide by 0
-                   w(:) = abs(dU_react(:)/(U_react(:) + SMALL_X_SAFE))
-
-                   err = sqrt(sum(w(1:nspec_evolve)**2))
-
-                   if (err < tol) then
-                      converged = .true.
-                   endif
-
-                   iter = iter + 1
-                enddo
-
-                if (.not. converged) then
-                   call amrex_error("did not converge in SDC")
-                endif
-
-             else if (sdc_solver == 2) then
-
-                ! use VODE to do the solve
-                istate = 1
-                iopt = 0
-                iwork(:) = 0
-                rwork(:) = ZERO
-                time = ZERO
-                call dvode(f_ode, nspec_evolve+2, U_react, time, dt_m, &
-                           1, sdc_solver_tol, 1.e-100_rt, &
-                           1, istate, iopt, rwork, lrw, iwork, liw, jac_ode, 22, rpar, ipar)
-
-                if (istate < 0) then
-                   call amrex_error("vode termination poorly, istate = ", istate)
-                endif
-
-             endif
-
-             ! update the full U_new
-             ! if we updated total energy, then correct internal, or vice versa
-             U_new(URHO) = U_react(0)
-             U_new(UFS:UFS-1+nspec_evolve) = U_react(1:nspec_evolve)
-             if (sdc_solve_for_rhoe == 1) then
-                U_new(UEINT) = U_react(nspec_evolve+1)
-                U_new(UEDEN) = U_new(UEINT) + HALF*sum(U_new(UMX:UMZ)**2)/U_new(URHO)
-             else
-                U_new(UEDEN) = U_react(nspec_evolve+1)
-                U_new(UEINT) = U_new(UEDEN) - HALF*sum(U_new(UMX:UMZ)**2)/U_new(URHO)
-             endif
-
+             call sdc_solve(dt_m, U_old, U_new, C)
 
              ! we solved our system to some tolerance, but let's be sure we are conservative by
              ! reevaluating the reactions and then doing the full step update
