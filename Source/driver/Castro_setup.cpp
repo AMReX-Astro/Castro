@@ -602,14 +602,37 @@ Castro::variableSetUp ()
   }
 #endif
 
+  // some optional State_Type's -- since these depend on the value of
+  // runtime parameters, we don't add these to the enum, but instead
+  // add them to the count of State_Type's if we will use them
+
   if (use_custom_knapsack_weights) {
       Knapsack_Weight_Type = desc_lst.size();
-      desc_lst.addDescriptor(Knapsack_Weight_Type, IndexType::TheCellType(), StateDescriptor::Point,
+      desc_lst.addDescriptor(Knapsack_Weight_Type, IndexType::TheCellType(),
+                             StateDescriptor::Point,
 			     0, 1, &pc_interp);
       // Because we use piecewise constant interpolation, we do not use bc and BndryFunc.
       desc_lst.setComponent(Knapsack_Weight_Type, 0, "KnapsackWeight",
 			    bc, BndryFunc(ca_nullfill));
   }
+
+
+#ifdef REACTIONS
+  if (time_integration_method == SDC && fourth_order == 1) {
+
+    // we are doing 4th order reactive SDC.  We need 2 ghost cells here
+    SDC_Source_Type = desc_lst.size();
+
+    store_in_checkpoint = false;
+    desc_lst.addDescriptor(SDC_Source_Type, IndexType::TheCellType(),
+                           StateDescriptor::Point, 2, NUM_STATE,
+                           interp, state_data_extrap, store_in_checkpoint);
+
+    // this is the same thing we do for the sources
+    desc_lst.setComponent(SDC_Source_Type, Density, state_type_source_names, source_bcs,
+                          BndryFunc(ca_generic_single_fill, ca_generic_multi_fill));
+  }
+#endif
 
   num_state_type = desc_lst.size();
 

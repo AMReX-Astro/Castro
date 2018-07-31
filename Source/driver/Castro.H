@@ -945,6 +945,7 @@ protected:
     static amrex::IntVect no_tile_size;
 
     static int Knapsack_Weight_Type;
+    static int SDC_Source_Type;
     static int num_state_type;
 
 
