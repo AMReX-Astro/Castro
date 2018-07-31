@@ -537,6 +537,7 @@ contains
   end subroutine ca_sdc_update_advection_o4
 
 
+#ifdef REACTIONS
   subroutine ca_sdc_compute_C4(lo, hi, &
                                A_m, Amlo, Amhi, &
                                A_0_old, A0lo, A0hi, &
@@ -608,7 +609,6 @@ contains
   end subroutine ca_sdc_compute_C4
 
 
-#ifdef REACTIONS
   subroutine ca_sdc_update_o2(lo, hi, dt_m, &
                               k_m, kmlo, kmhi, &
                               k_n, knlo, knhi, &
