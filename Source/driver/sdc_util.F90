@@ -537,6 +537,77 @@ contains
   end subroutine ca_sdc_update_advection_o4
 
 
+  subroutine ca_sdc_compute_C4(lo, hi, &
+                               A_m, Amlo, Amhi, &
+                               A_0_old, A0lo, A0hi, &
+                               A_1_old, A1lo, A1hi, &
+                               A_2_old, A2lo, A2hi, &
+                               R_0_old, R0lo, R0hi, &
+                               R_1_old, R1lo, R1hi, &
+                               R_2_old, R2lo, R2hi, &
+                               C, Clo, Chi, &
+                               m_start) bind(C, name="ca_sdc_compute_C4")
+
+    ! compute the 'C' term for the 4th-order solve with reactions
+
+    use meth_params_module, only : NVAR
+    use amrex_constants_module, only : HALF, TWO, FIVE, EIGHT, TWELFTH
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: Amlo(3), Amhi(3)
+    integer, intent(in) :: A0lo(3), A0hi(3)
+    integer, intent(in) :: A1lo(3), A1hi(3)
+    integer, intent(in) :: A2lo(3), A2hi(3)
+    integer, intent(in) :: R0lo(3), R0hi(3)
+    integer, intent(in) :: R1lo(3), R1hi(3)
+    integer, intent(in) :: R2lo(3), R2hi(3)
+    integer, intent(in) :: Clo(3), Chi(3)
+    integer, intent(in) :: m_start
+
+    real(rt), intent(in) :: A_m(Amlo(1):Amhi(1), Amlo(2):Amhi(2), Amlo(3):Amhi(3), NVAR)
+    real(rt), intent(in) :: A_0_old(A0lo(1):A0hi(1), A0lo(2):A0hi(2), A0lo(3):A0hi(3), NVAR)
+    real(rt), intent(in) :: A_1_old(A1lo(1):A1hi(1), A1lo(2):A1hi(2), A1lo(3):A1hi(3), NVAR)
+    real(rt), intent(in) :: A_2_old(A2lo(1):A2hi(1), A2lo(2):A2hi(2), A2lo(3):A2hi(3), NVAR)
+    real(rt), intent(in) :: R_0_old(R0lo(1):R0hi(1), R0lo(2):R0hi(2), R0lo(3):R0hi(3), NVAR)
+    real(rt), intent(in) :: R_1_old(R1lo(1):R1hi(1), R1lo(2):R1hi(2), R1lo(3):R1hi(3), NVAR)
+    real(rt), intent(in) :: R_2_old(R2lo(1):R2hi(1), R2lo(2):R2hi(2), R2lo(3):R2hi(3), NVAR)
+    real(rt), intent(out) :: C(Clo(1):Chi(1), Clo(2):Chi(2), Clo(3):Chi(3), NVAR)
+
+    integer :: i, j, k
+    real(rt) :: integral(NVAR)
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             ! compute the integral (without the dt)
+             if (m_start == 0) then
+                integral(:) = TWELFTH * (FIVE*(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
+                                         EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) - &
+                                         (A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
+
+                C(i,j,k,:) = (A_m(i,j,k,:) - A_0_old(i,j,k,:)) - R_1_old(i,j,k,:) + integral
+
+             else if (m_start == 1) then
+                integral(:) = TWELFTH * (-(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
+                                         EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) + &
+                                         FIVE*(A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
+
+                C(i,j,k,:) = (A_m(i,j,k,:) - A_1_old(i,j,k,:)) - R_2_old(i,j,k,:) + integral
+
+             else
+                call amrex_error("error in ca_sdc_compute_C4 -- shouldn't be here")
+             endif
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_sdc_compute_C4
+
+
 #ifdef REACTIONS
   subroutine ca_sdc_update_o2(lo, hi, dt_m, &
                               k_m, kmlo, kmhi, &
