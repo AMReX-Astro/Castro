@@ -1,4 +1,8 @@
-# changes since the last release
+# 18.08
+
+  -- the old use_mlmg_solver parameters were removed -- this
+     has been the only multigrid solver in Castro for some time,
+     so the parameters had no effect.
 
   -- The functionality that checks for a regrid at the end of
      the timestep will now apply all tagging criteria, not
