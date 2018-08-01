@@ -23,7 +23,7 @@ module sdc_util
 
 contains
 
-  subroutine sdc_solve(dt_m, U_old, U_new, C)
+  subroutine sdc_solve(dt_m, U_old, U_new, C, sdc_iteration)
 
     ! the purpose of this function is to solve the system
     ! U - dt R(U) = U_old + dt C
@@ -47,6 +47,7 @@ contains
     real(rt), intent(in) :: U_old(NVAR)
     real(rt), intent(inout) :: U_new(NVAR)
     real(rt), intent(in) :: C(NVAR)
+    integer, intent(in) :: sdc_iteration
 
     real(rt) :: Jac(0:nspec_evolve+1, 0:nspec_evolve+1)
     real(rt) :: w(0:nspec_evolve+1)
@@ -82,6 +83,24 @@ contains
     integer, parameter :: MAX_ITER = 100
     integer :: iter
 
+    integer, parameter :: NEWTON_SOLVE = 1
+    integer, parameter :: VODE_SOLVE = 2
+    integer :: solver
+
+    if (sdc_solver == 1) then
+       solver = NEWTON_SOLVE
+    else if (sdc_solver == 2) then
+       solver = VODE_SOLVE
+    else if (sdc_solver == 3) then
+       if (sdc_iteration == 0) then
+          solver = VODE_SOLVE
+       else
+          solver = NEWTON_SOLVE
+       endif
+    else
+       call amrex_error("invalid sdc_solver")
+    endif
+
     ! update the momenta for this zone -- they don't react
     U_new(UMX:UMZ) = U_old(UMX:UMZ) + dt_m * C(UMX:UMZ)
 
@@ -93,7 +112,7 @@ contains
     ! solve -- note: we include the old state in f_source
 
     ! load rpar
-    if (sdc_solver == 1) then
+    if (solver == NEWTON_SOLVE) then
 
        ! for the Jacobian solve, we are solving
        !   f(U) = U - dt R(U) - U_old - dt C = 0
@@ -137,7 +156,7 @@ contains
          U_new(UFS+nspec_evolve:UFS-1+nspec)
 
     ! store the subset for the nonlinear solve
-    if (sdc_solver == 1) then
+    if (sdc_solver == NEWTON_SOLVE) then
 
        ! Newton solve -- we use an initial guess if possible
        U_react(0) = U_new(URHO)
@@ -155,7 +174,7 @@ contains
        U_react(nspec_evolve+1) = U_old(UEINT)
     endif
 
-    if (sdc_solver == 1) then
+    if (sdc_solver == NEWTON_SOLVE) then
        ! do a simple Newton solve
 
        err = 1.e30_rt
@@ -197,7 +216,7 @@ contains
           call amrex_error("did not converge in SDC")
        endif
 
-    else if (sdc_solver == 2) then
+    else if (sdc_solver == VODE_SOLVE) then
 
        ! use VODE to do the solve
 
@@ -683,7 +702,7 @@ contains
                 U_new(:) = k_n(i,j,k,:)
              endif
 
-             call sdc_solve(dt_m, U_old, U_new, C)
+             call sdc_solve(dt_m, U_old, U_new, C, sdc_iteration)
 
              ! we solved our system to some tolerance, but let's be sure we are conservative by
              ! reevaluating the reactions and then doing the full step update
