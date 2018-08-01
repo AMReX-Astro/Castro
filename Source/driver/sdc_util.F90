@@ -156,7 +156,7 @@ contains
          U_new(UFS+nspec_evolve:UFS-1+nspec)
 
     ! store the subset for the nonlinear solve
-    if (sdc_solver == NEWTON_SOLVE) then
+    if (solver == NEWTON_SOLVE) then
 
        ! Newton solve -- we use an initial guess if possible
        U_react(0) = U_new(URHO)
@@ -174,7 +174,7 @@ contains
        U_react(nspec_evolve+1) = U_old(UEINT)
     endif
 
-    if (sdc_solver == NEWTON_SOLVE) then
+    if (solver == NEWTON_SOLVE) then
        ! do a simple Newton solve
 
        err = 1.e30_rt
@@ -216,7 +216,7 @@ contains
           call amrex_error("did not converge in SDC")
        endif
 
-    else if (sdc_solver == VODE_SOLVE) then
+    else if (solver == VODE_SOLVE) then
 
        ! use VODE to do the solve
 
