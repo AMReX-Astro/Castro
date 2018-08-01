@@ -159,6 +159,7 @@ Real         Castro::previousCPUTimeUsed = 0.0;
 Real         Castro::startCPUTime = 0.0;
 
 int          Castro::Knapsack_Weight_Type = -1;
+int          Castro::SDC_Source_Type = -1;
 int          Castro::num_state_type = 0;
 
 // Note: Castro::variableSetUp is in Castro_setup.cpp
@@ -3351,6 +3352,10 @@ Castro::swap_state_time_levels(const Real dt)
 #endif
 #endif
 
+#ifdef REACTIONS
+        if (time_integration_method == SDC && fourth_order == 1)
+            state[k].swapTimeLevels(0.0);
+#endif
         state[k].allocOldData();
 
         state[k].swapTimeLevels(dt);

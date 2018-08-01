@@ -717,8 +717,19 @@ extern "C"
      BL_FORT_FAB_ARG_3D(A_1_old),
      BL_FORT_FAB_ARG_3D(R_0_old),
      BL_FORT_FAB_ARG_3D(R_1_old),
-     const int* sdc_iteration, 
+     const int* sdc_iteration,
      const int* m_start);
+
+  void ca_sdc_compute_C4(const int lo[], const int hi[],
+                         const BL_FORT_FAB_ARG_3D(A_m),
+                         const BL_FORT_FAB_ARG_3D(A_0),
+                         const BL_FORT_FAB_ARG_3D(A_1),
+                         const BL_FORT_FAB_ARG_3D(A_2),
+                         const BL_FORT_FAB_ARG_3D(R_0),
+                         const BL_FORT_FAB_ARG_3D(R_1),
+                         const BL_FORT_FAB_ARG_3D(R_2),
+                         BL_FORT_FAB_ARG_3D(C),
+                         const int* m_start);
 
   void ca_instantaneous_react
     (const int lo[], const int hi[],
