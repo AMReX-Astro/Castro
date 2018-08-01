@@ -138,6 +138,8 @@ contains
 
     ! store the subset for the nonlinear solve
     if (sdc_solver == 1) then
+
+       ! Newton solve -- we use an initial guess if possible
        U_react(0) = U_new(URHO)
        U_react(1:nspec_evolve) = U_new(UFS:UFS-1+nspec_evolve)
        if (sdc_solve_for_rhoe == 1) then
@@ -146,6 +148,8 @@ contains
           U_react(nspec_evolve+1) = U_new(UEDEN)
        endif
     else
+
+       ! VODE ODE solve -- we only consider (rho e), not (rho E)
        U_react(0) = U_old(URHO)
        U_react(1:nspec_evolve) = U_old(UFS:UFS-1+nspec_evolve)
        U_react(nspec_evolve+1) = U_old(UEINT)
@@ -229,7 +233,10 @@ contains
 
   subroutine f_ode(n, t, U, dUdt, rpar, ipar)
 
-    use meth_params_module, only : nvar, URHO, UFS, UEDEN, UTEMP, UMX, UMZ, UEINT, sdc_solve_for_rhoe
+    ! this is the righthand side for the ODE system that we will use
+    ! with VODE
+
+    use meth_params_module, only : nvar, URHO, UFS, UEDEN, UTEMP, UMX, UMZ, UEINT
     use burn_type_module
     use rpar_sdc_module
     use react_util_module
@@ -253,13 +260,8 @@ contains
     ! create a full state -- we need this for some interfaces
     U_full(URHO) = U(0)
     U_full(UFS:UFS-1+nspec_evolve) = U(1:nspec_evolve)
-    if (sdc_solve_for_rhoe == 1) then
-       U_full(UEINT) = U(nspec_evolve+1)
-       U_full(UEDEN) = rpar(irp_evar)
-    else
-       U_full(UEDEN) = U(nspec_evolve+1)
-       U_full(UEINT) = rpar(irp_evar)
-    endif
+    U_full(UEINT) = U(nspec_evolve+1)
+    U_full(UEDEN) = rpar(irp_evar)
 
     U_full(UMX:UMZ) = rpar(irp_mom:irp_mom+2)
     U_full(UFS+nspec_evolve:UFS-1+nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))
@@ -271,11 +273,7 @@ contains
 
     R_react(0) = R_full(URHO)
     R_react(1:nspec_evolve) = R_full(UFS:UFS-1+nspec_evolve)
-    if (sdc_solve_for_rhoe == 1) then
-       R_react(nspec_evolve+1) = R_full(UEINT)
-    else
-       R_react(nspec_evolve+1) = R_full(UEDEN)
-    endif
+    R_react(nspec_evolve+1) = R_full(UEINT)
 
     ! C comes in through rpar
     C_react(:) = rpar(irp_f_source:irp_f_source-1+nspec_evolve+2)
