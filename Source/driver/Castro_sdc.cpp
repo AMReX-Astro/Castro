@@ -17,6 +17,9 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
   // If we do advection only, then the update is explicit.  If we do
   // reactions, then the update is implicit within a zone.
 
+  // for 4th order reactive SDC, we need to first compute the source, C
+  // and do a ghost cell fill on it
+
   for (MFIter mfi(*k_new[0]); mfi.isValid(); ++mfi) {
 
     const Box& bx = mfi.tilebox();
@@ -36,6 +39,17 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
                        &m_start);
     } else {
       amrex::Abort("sdc_order != 2 not implemented");
+
+      // convert the starting U to cell-centered on a fab-by-fab basis
+      // -- including one ghost cell
+
+      // solve for the cell-center U using our cell-centered C -- we
+      // need to do this with one ghost cell
+
+      // do the conservative correction -- we need to compute <R>
+      // first, then get <U>.  We'll also need to pass in <C> too
+
+
     }
 #else
     // pure advection
