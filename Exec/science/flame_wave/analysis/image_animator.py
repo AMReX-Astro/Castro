@@ -21,13 +21,12 @@ sort_help = """A floating point number specifying the digits to sort file names 
 
 # Construct parser and parse
 parser = argparse.ArgumentParser(description=description)
-parser.add_argument('__name__', help=name_help)
 parser.add_argument('images', nargs='*', help=images_help)
 parser.add_argument('-o', '--out', default='movie.mp4', help=out_help)
 parser.add_argument('-d', '--dpi', type=int, default=256, help=dpi_help)
 parser.add_argument('-s', '--sort', type=float, help=sort_help)
 
-args = parser.parse_args(sys.argv)
+args = parser.parse_args(sys.argv[1:])
 images = args.images
 
 if not images:

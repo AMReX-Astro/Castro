@@ -23,7 +23,6 @@ sort_help = """A floating point number specifying the digits to sort file names 
 
 # Construct parser and parse
 parser = argparse.ArgumentParser(description=description)
-parser.add_argument('__name__', help=name_help)
 parser.add_argument('datasets', nargs='*', help=datasets_help)
 parser.add_argument('-o', '--out', default='.', help=out_help)
 parser.add_argument('-v', '--var', default='density', help=var_help)
@@ -31,7 +30,7 @@ parser.add_argument('-b', '--bounds', nargs=2, type=float, metavar=('UPPER', 'LO
 parser.add_argument('-e', '--ext', type=lambda s: s.lower(), default='png', help=ext_help)
 parser.add_argument('-s', '--sort', type=float, default=3.0, help=sort_help)
 
-args = parser.parse_args(sys.argv)
+args = parser.parse_args(sys.argv[1:])
 
 # Make output directory
 if not os.path.exists(args.out):
