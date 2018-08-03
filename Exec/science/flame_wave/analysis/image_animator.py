@@ -14,24 +14,50 @@ name_help = "The name of the main module."
 images_help = "The images to be animated. Must be supplied in order if sort option is not specified."
 out_help = "The name of the output file. movie.mp4 by default."
 dpi_help = """The desired dpi for the animation. The default is 256. Beware that larger numbers may cause memory errors
-    on certain systems."""
+        on certain systems."""
+stack_help = """Create a single plot with multiple stacked subplots. The first argument is the number of subplots, and
+        the second determines how they are grouped (set to 1 to stack each NSUBPLOTS images, and 0 to split the image
+        list into NSUBPLOTS parts, and cycle through them in parallel). The input will be sorted prior to splitting the
+        the list in the first case, and afterward in the latter one."""
 sort_help = """A floating point number specifying the digits to sort file names by. Digits preceding the decimal point
     give the starting index, digits following the decimal point give the number of characters. Make negative for
     descending order."""
 
 # Construct parser and parse
 parser = argparse.ArgumentParser(description=description)
-parser.add_argument('__name__', help=name_help)
 parser.add_argument('images', nargs='*', help=images_help)
 parser.add_argument('-o', '--out', default='movie.mp4', help=out_help)
 parser.add_argument('-d', '--dpi', type=int, default=256, help=dpi_help)
+parser.add_argument('--stack', nargs=2, type=int, metavar=('NSUBPLOTS', 'GROUPMODE'), help=stack_help)
 parser.add_argument('-s', '--sort', type=float, help=sort_help)
 
-args = parser.parse_args(sys.argv)
+args = parser.parse_args(sys.argv[1:])
 images = args.images
 
 if not images:
     sys.exit("No images supplied for animation.")
+
+if args.stack is not None:
+    
+    nsubplots = args.stack[0]
+    groupmode = args.stack[1]
+    
+else:
+    
+    nsubplots = 1
+    groupmode = 0
+    
+sublist_size = len(images) // nsubplots
+    
+if nsubplots > 1 and groupmode == 0:
+    
+    step = sublist_size
+    indices = range(step, len(images) + 1, step)
+    sublists = [images[i-step:i] for i in indices]
+    
+else:
+    
+    sublists = [images]
 
 # Sort if necessary
 if args.sort is not None:
@@ -46,27 +72,48 @@ if args.sort is not None:
         key = lambda img: img[start:]
     else:
         key = lambda img: img[start:start + nchars]
-    images.sort(key=key, reverse=desc)
+    for imlist in sublists:
+        imlist.sort(key=key, reverse=desc)
+        
+if nsubplots > 1 and groupmode == 1:
+    
+    sublists = [images[i::nsubplots] for i in range(nsubplots)]
 
 # Load images and animate
 print("Reading...")
-images = list(map(imread, images))
+sublists = [list(map(imread, images)) for images in sublists]
 
 print("Animating...")
-fig = plt.figure()
-ax = plt.gca()
-ax.set_axis_off()
 
-imobj = ax.imshow(np.zeros(images[0].shape), origin='lower', alpha=1.0, zorder=1, aspect=1)
+if nsubplots == 1:
+    
+    fig = plt.figure()
+    axes = [plt.gca()]
+    
+else:
+    
+    fig, axes = plt.subplots(nsubplots)
+
+imobj = []
+
+for ax, sub in zip(axes, sublists):
+    
+    ax.set_axis_off()
+    zeros = np.zeros(sub[0].shape)
+    imobj.append(ax.imshow(zeros, origin='lower', alpha=1.0, zorder=1, aspect=1))
 
 def init():
-    imobj.set_data(np.zeros(images[0].shape))
+    
+    for im, sub in zip(imobj, sublists):
+        im.set_data(np.zeros(sub[0].shape))
     return imobj,
 
 def animate(i):
-    imobj.set_data(images[i][-1::-1])
+    
+    for im, sub in zip(imobj, sublists):
+        im.set_data(sub[i][-1::-1])
     return imobj
 
-anim = animation.FuncAnimation(fig, animate, init_func=init, frames=len(images))
+anim = animation.FuncAnimation(fig, animate, init_func=init, frames=sublist_size)
 print("Saving...")
 anim.save(args.out, dpi=args.dpi)
