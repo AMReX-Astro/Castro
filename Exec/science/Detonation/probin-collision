@@ -22,8 +22,14 @@
   temperr = 1.0d20
   max_temperr_lev = 0
 
+  denerr = 1.0d20
+  max_denerr_lev = 0
+
   tempgrad_rel = 0.5
-  max_tempgrad_rel_lev = 20
+  max_tempgrad_rel_lev = 0
+
+  dengrad_rel = 0.5
+  max_dengrad_rel_lev = 0
 /
 
 &extern

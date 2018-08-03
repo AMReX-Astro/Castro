@@ -722,6 +722,9 @@ Castro::initMFs()
 
     post_step_regrid = 0;
 
+    lastDtRetryLimited = false;
+    lastDtFromRetry = 1.e200;
+
 }
 
 void
