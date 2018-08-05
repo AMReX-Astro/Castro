@@ -7,7 +7,7 @@ geometry.is_periodic = 0 0 0
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0     0     0
 geometry.prob_hi     = 4.e4  2500  2500
-amr.n_cell           = 256   16    16
+amr.n_cell           = 512   16    16
 
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -25,6 +25,7 @@ castro.do_react = 1
 castro.time_integration_method = 2
 castro.sdc_order = 2
 castro.sdc_solver = 2
+sdc_solver_tol = 1.e-6
 
 castro.ppm_type = 1
 castro.ppm_reference_eigenvectors = 1
