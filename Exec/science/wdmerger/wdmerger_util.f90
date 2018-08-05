@@ -640,7 +640,7 @@ contains
           collision_offset = collision_impact_parameter * model_P % radius
 
           center_P_initial(axis_2) = center_P_initial(axis_2) - collision_offset
-          center_S_initial(axis_2) = center_S_initial(axis_2) + collision_offset                  
+          center_S_initial(axis_2) = center_S_initial(axis_2) + collision_offset
 
        else if (problem == 1 .or. problem == 2 .or. problem == 3) then
 
@@ -769,17 +769,28 @@ contains
 
     ! Safety check: make sure the stars are actually inside the computational domain.
 
-    if ( (HALF * (probhi(1) - problo(1)) < model_P % radius) .or. &
-         (HALF * (probhi(2) - problo(2)) < model_P % radius) .or. &
-         (HALF * (probhi(3) - problo(3)) < model_P % radius .and. dim .eq. 3) ) then
-       call bl_error("Primary does not fit inside the domain.")
-    endif
+    if (.not. (dim .eq. 2 .and. physbc_lo(2) .eq. Symmetry)) then
 
-    if ( (HALF * (probhi(1) - problo(1)) < model_S % radius) .or. &
-         (HALF * (probhi(2) - problo(2)) < model_S % radius) .or. &
-         (HALF * (probhi(3) - problo(3)) < model_S % radius .and. dim .eq. 3) ) then
-       call bl_error("Secondary does not fit inside the domain.")
-    endif
+       if ( (HALF * (probhi(1) - problo(1)) < model_P % radius) .or. &
+            (HALF * (probhi(2) - problo(2)) < model_P % radius) .or. &
+            (HALF * (probhi(3) - problo(3)) < model_P % radius .and. dim .eq. 3) ) then
+          call bl_error("Primary does not fit inside the domain.")
+       endif
+
+       if ( (HALF * (probhi(1) - problo(1)) < model_S % radius) .or. &
+            (HALF * (probhi(2) - problo(2)) < model_S % radius) .or. &
+            (HALF * (probhi(3) - problo(3)) < model_S % radius .and. dim .eq. 3) ) then
+          call bl_error("Secondary does not fit inside the domain.")
+       endif
+
+    else
+
+       if ( (probhi(1) - problo(1) < model_S % radius) .or. &
+            (probhi(2) - problo(2) < model_S % radius) ) then
+          call bl_error("Secondary does not fit inside the domain.")
+       end if
+
+    end if
 
   end subroutine binary_setup
 
@@ -793,7 +804,7 @@ contains
   subroutine kepler_third_law(radius_1, mass_1, radius_2, mass_2, period, eccentricity, phi, a, r_1, r_2, v_1r, v_2r, v_1p, v_2p)
 
     use amrex_constants_module
-    use prob_params_module, only: problo, probhi
+    use prob_params_module, only: problo, probhi, physbc_lo, Symmetry
     use sponge_module, only: sponge_lower_radius
     use meth_params_module, only: do_sponge
     use fundamental_constants_module, only: Gconst
@@ -858,7 +869,16 @@ contains
 
     ! Make sure the domain is big enough to hold stars in an orbit this size.
 
-    length = (r_2 - r_1) + radius_1 + radius_2
+    if (physbc_lo(axis_1) .eq. Symmetry) then
+
+       ! In this case we're only modelling the secondary.
+       length = r_2 + radius_2
+
+    else
+
+       length = (r_2 - r_1) + radius_1 + radius_2
+
+    end if
 
     if (length > (probhi(axis_1)-problo(axis_1))) then
        call amrex_error("ERROR: The domain width is too small to include the binary orbit.")
