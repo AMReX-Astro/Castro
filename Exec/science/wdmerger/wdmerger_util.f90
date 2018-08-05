@@ -245,12 +245,6 @@ contains
     iNe20 = network_species_index("neon-20")
     iMg24 = network_species_index("magnesium-24")
 
-    if (iHe4 < 0) call amrex_error("Must have He4 in the nuclear network.")
-    if (iC12 < 0) call amrex_error("Must have C12 in the nuclear network.")
-    if (iO16 < 0) call amrex_error("Must have O16 in the nuclear network.")
-    if (iNe20 < 0) call amrex_error("Must have Ne20 in the nuclear network.")
-    if (iMg24 < 0) call amrex_error("Must have Mg24 in the nuclear network.")
-
     model % core_comp = small_x
     model % envelope_comp = small_x
 
@@ -260,11 +254,16 @@ contains
 
     if (model % mass > ZERO .and. model % mass < max_he_wd_mass) then
 
+       if (iHe4 < 0) call amrex_error("Must have He4 in the nuclear network.")
+
        model % core_comp(iHe4) = ONE
 
        model % envelope_comp = model % core_comp
 
     else if (model % mass >= max_he_wd_mass .and. model % mass < max_hybrid_wd_mass) then
+
+       if (iC12 < 0) call amrex_error("Must have C12 in the nuclear network.")
+       if (iO16 < 0) call amrex_error("Must have O16 in the nuclear network.")
 
        model % core_comp(iC12) = hybrid_wd_c_frac
        model % core_comp(iO16) = hybrid_wd_o_frac
@@ -272,6 +271,7 @@ contains
        model % envelope_mass = hybrid_wd_he_shell_mass
 
        if (model % envelope_mass > ZERO) then
+          if (iHe4 < 0) call amrex_error("Must have He4 in the nuclear network.")
           model % envelope_comp(iHe4) = ONE
        else
           model % envelope_comp = model % core_comp
@@ -279,18 +279,26 @@ contains
 
     else if (model % mass >= max_hybrid_wd_mass .and. model % mass < max_co_wd_mass) then
 
+       if (iC12 < 0) call amrex_error("Must have C12 in the nuclear network.")
+       if (iO16 < 0) call amrex_error("Must have O16 in the nuclear network.")
+
        model % core_comp(iC12) = co_wd_c_frac
        model % core_comp(iO16) = co_wd_o_frac
 
        model % envelope_mass = co_wd_he_shell_mass
 
        if (model % envelope_mass > ZERO) then
+          if (iHe4 < 0) call amrex_error("Must have He4 in the nuclear network.")
           model % envelope_comp(iHe4) = ONE
        else
           model % envelope_comp = model % core_comp
        endif
 
     else if (model % mass > max_co_wd_mass) then
+
+       if (iO16 < 0) call amrex_error("Must have O16 in the nuclear network.")
+       if (iNe20 < 0) call amrex_error("Must have Ne20 in the nuclear network.")
+       if (iMg24 < 0) call amrex_error("Must have Mg24 in the nuclear network.")
 
        model % core_comp(iO16)  = onemg_wd_o_frac
        model % core_comp(iNe20) = onemg_wd_ne_frac
