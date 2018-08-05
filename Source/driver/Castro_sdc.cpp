@@ -20,30 +20,33 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
   // for 4th order reactive SDC, we need to first compute the source, C
   // and do a ghost cell fill on it
 
-  MultiFab& C_source = get_new_data(SDC_Source_Type);
+  if (fourth_order == 1) {
+    MultiFab& C_source = get_new_data(SDC_Source_Type);
 
-  for (MFIter mfi(*k_new[0]); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(*k_new[0]); mfi.isValid(); ++mfi) {
 
-    const Box& bx = mfi.tilebox();
+      const Box& bx = mfi.tilebox();
 
-    ca_sdc_compute_C4(BL_TO_FORTRAN_BOX(bx),
-                      BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
-                      BL_TO_FORTRAN_3D((*A_old[0])[mfi]),
-                      BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
-                      BL_TO_FORTRAN_3D((*A_old[2])[mfi]),
-                      BL_TO_FORTRAN_3D((*R_old[0])[mfi]),
-                      BL_TO_FORTRAN_3D((*R_old[1])[mfi]),
-                      BL_TO_FORTRAN_3D((*R_old[2])[mfi]),
-                      BL_TO_FORTRAN_3D(C_source[mfi]),
-                      &m_start);
+      ca_sdc_compute_C4(BL_TO_FORTRAN_BOX(bx),
+                        BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
+                        BL_TO_FORTRAN_3D((*A_old[0])[mfi]),
+                        BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
+                        BL_TO_FORTRAN_3D((*A_old[2])[mfi]),
+                        BL_TO_FORTRAN_3D((*R_old[0])[mfi]),
+                        BL_TO_FORTRAN_3D((*R_old[1])[mfi]),
+                        BL_TO_FORTRAN_3D((*R_old[2])[mfi]),
+                        BL_TO_FORTRAN_3D(C_source[mfi]),
+                        &m_start);
+    }
+
+    // need to construct the time for this stage -- but it is not really
+    // at a single instance in time.  For single level this does not matter, 
+    Real time = state[SDC_Source_Type].curTime();
+    AmrLevel::FillPatch(*this, C_source, C_source.nGrow(), time,
+                        SDC_Source_Type, 0, NUM_STATE);
+
   }
 
-
-  // need to construct the time for this stage -- but it is not really
-  // at a single instance in time.  For single level this does not matter, 
-  Real time = state[SDC_Source_Type].curTime();
-  AmrLevel::FillPatch(*this, C_source, C_source.nGrow(), time,
-                      SDC_Source_Type, 0, NUM_STATE);
 
   for (MFIter mfi(*k_new[0]); mfi.isValid(); ++mfi) {
 
