@@ -25,7 +25,7 @@ castro.do_react = 1
 castro.time_integration_method = 2
 castro.sdc_order = 2
 castro.sdc_solver = 2
-sdc_solver_tol = 1.e-6
+castro.sdc_solver_tol = 1.e-6
 
 castro.ppm_type = 1
 castro.ppm_reference_eigenvectors = 1
