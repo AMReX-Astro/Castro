@@ -160,6 +160,7 @@ module meth_params_module
   integer,  allocatable, save :: sdc_solver
   real(rt), allocatable, save :: sdc_solver_tol
   integer,  allocatable, save :: sdc_solve_for_rhoe
+  integer,  allocatable, save :: sdc_use_analytic_jac
   real(rt), allocatable, save :: cfl
   real(rt), allocatable, save :: dtnuc_e
   real(rt), allocatable, save :: dtnuc_X
@@ -250,6 +251,7 @@ module meth_params_module
   attributes(managed) :: sdc_solver
   attributes(managed) :: sdc_solver_tol
   attributes(managed) :: sdc_solve_for_rhoe
+  attributes(managed) :: sdc_use_analytic_jac
   attributes(managed) :: cfl
   attributes(managed) :: dtnuc_e
   attributes(managed) :: dtnuc_X
@@ -303,19 +305,19 @@ module meth_params_module
   !$acc create(do_sponge, sponge_implicit, first_order_hydro) &
   !$acc create(hse_zero_vels, hse_interp_temp, hse_reflect_vels) &
   !$acc create(mol_order, sdc_order, sdc_solver) &
-  !$acc create(sdc_solver_tol, sdc_solve_for_rhoe, cfl) &
-  !$acc create(dtnuc_e, dtnuc_X, dtnuc_X_threshold) &
-  !$acc create(dxnuc, dxnuc_max, max_dxnuc_lev) &
-  !$acc create(do_react, react_T_min, react_T_max) &
-  !$acc create(react_rho_min, react_rho_max, disable_shock_burning) &
-  !$acc create(diffuse_cutoff_density, diffuse_cond_scale_fac, do_grav) &
-  !$acc create(grav_source_type, do_rotation, rot_period) &
-  !$acc create(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
-  !$acc create(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
-  !$acc create(implicit_rotation_update, rot_axis, use_point_mass) &
-  !$acc create(point_mass, point_mass_fix_solution, do_acc) &
-  !$acc create(grown_factor, track_grid_losses, const_grav) &
-  !$acc create(get_g_from_phi)
+  !$acc create(sdc_solver_tol, sdc_solve_for_rhoe, sdc_use_analytic_jac) &
+  !$acc create(cfl, dtnuc_e, dtnuc_X) &
+  !$acc create(dtnuc_X_threshold, dxnuc, dxnuc_max) &
+  !$acc create(max_dxnuc_lev, do_react, react_T_min) &
+  !$acc create(react_T_max, react_rho_min, react_rho_max) &
+  !$acc create(disable_shock_burning, diffuse_cutoff_density, diffuse_cond_scale_fac) &
+  !$acc create(do_grav, grav_source_type, do_rotation) &
+  !$acc create(rot_period, rot_period_dot, rotation_include_centrifugal) &
+  !$acc create(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
+  !$acc create(rot_source_type, implicit_rotation_update, rot_axis) &
+  !$acc create(use_point_mass, point_mass, point_mass_fix_solution) &
+  !$acc create(do_acc, grown_factor, track_grid_losses) &
+  !$acc create(const_grav, get_g_from_phi)
 
   ! End the declarations of the ParmParse parameters
 
@@ -499,6 +501,8 @@ contains
     sdc_solver_tol = 1.d-6;
     allocate(sdc_solve_for_rhoe)
     sdc_solve_for_rhoe = 1;
+    allocate(sdc_use_analytic_jac)
+    sdc_use_analytic_jac = 1;
     allocate(cfl)
     cfl = 0.8d0;
     allocate(dtnuc_e)
@@ -612,6 +616,7 @@ contains
     call pp%query("sdc_solver", sdc_solver)
     call pp%query("sdc_solver_tol", sdc_solver_tol)
     call pp%query("sdc_solve_for_rhoe", sdc_solve_for_rhoe)
+    call pp%query("sdc_use_analytic_jac", sdc_use_analytic_jac)
     call pp%query("cfl", cfl)
     call pp%query("dtnuc_e", dtnuc_e)
     call pp%query("dtnuc_X", dtnuc_X)
@@ -651,19 +656,19 @@ contains
     !$acc device(do_sponge, sponge_implicit, first_order_hydro) &
     !$acc device(hse_zero_vels, hse_interp_temp, hse_reflect_vels) &
     !$acc device(mol_order, sdc_order, sdc_solver) &
-    !$acc device(sdc_solver_tol, sdc_solve_for_rhoe, cfl) &
-    !$acc device(dtnuc_e, dtnuc_X, dtnuc_X_threshold) &
-    !$acc device(dxnuc, dxnuc_max, max_dxnuc_lev) &
-    !$acc device(do_react, react_T_min, react_T_max) &
-    !$acc device(react_rho_min, react_rho_max, disable_shock_burning) &
-    !$acc device(diffuse_cutoff_density, diffuse_cond_scale_fac, do_grav) &
-    !$acc device(grav_source_type, do_rotation, rot_period) &
-    !$acc device(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
-    !$acc device(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
-    !$acc device(implicit_rotation_update, rot_axis, use_point_mass) &
-    !$acc device(point_mass, point_mass_fix_solution, do_acc) &
-    !$acc device(grown_factor, track_grid_losses, const_grav) &
-    !$acc device(get_g_from_phi)
+    !$acc device(sdc_solver_tol, sdc_solve_for_rhoe, sdc_use_analytic_jac) &
+    !$acc device(cfl, dtnuc_e, dtnuc_X) &
+    !$acc device(dtnuc_X_threshold, dxnuc, dxnuc_max) &
+    !$acc device(max_dxnuc_lev, do_react, react_T_min) &
+    !$acc device(react_T_max, react_rho_min, react_rho_max) &
+    !$acc device(disable_shock_burning, diffuse_cutoff_density, diffuse_cond_scale_fac) &
+    !$acc device(do_grav, grav_source_type, do_rotation) &
+    !$acc device(rot_period, rot_period_dot, rotation_include_centrifugal) &
+    !$acc device(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
+    !$acc device(rot_source_type, implicit_rotation_update, rot_axis) &
+    !$acc device(use_point_mass, point_mass, point_mass_fix_solution) &
+    !$acc device(do_acc, grown_factor, track_grid_losses) &
+    !$acc device(const_grav, get_g_from_phi)
 
 
     ! now set the external BC flags
@@ -903,6 +908,9 @@ contains
     end if
     if (allocated(sdc_solve_for_rhoe)) then
         deallocate(sdc_solve_for_rhoe)
+    end if
+    if (allocated(sdc_use_analytic_jac)) then
+        deallocate(sdc_use_analytic_jac)
     end if
     if (allocated(cfl)) then
         deallocate(cfl)

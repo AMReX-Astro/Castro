@@ -91,6 +91,7 @@ static int sdc_order;
 static int sdc_solver;
 static amrex::Real sdc_solver_tol;
 static int sdc_solve_for_rhoe;
+static int sdc_use_analytic_jac;
 static amrex::Real fixed_dt;
 static amrex::Real initial_dt;
 static amrex::Real dt_cutoff;

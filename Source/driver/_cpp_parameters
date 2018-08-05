@@ -250,6 +250,8 @@ sdc_solver_tol               Real          1.e-6             y
 # do we solve for (rho e) or (rho E) in the SDC nonlinear solve?
 sdc_solve_for_rhoe           int           1                  y
 
+# do we use the analytic or numerical Jacobian?
+sdc_use_analytic_jac         int           1                  y
 
 #-----------------------------------------------------------------------------
 # category: timestep control
