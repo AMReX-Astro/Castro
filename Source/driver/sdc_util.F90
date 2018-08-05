@@ -221,8 +221,13 @@ contains
        ! use VODE to do the solve
 
        istate = 1
-       iopt = 0
+       iopt = 1
+
        iwork(:) = 0
+
+       ! set the maximum number of steps allowed -- the VODE default is 500
+       iwork(6) = 25000
+
        rwork(:) = ZERO
        time = ZERO
        call dvode(f_ode, nspec_evolve+2, U_react, time, dt_m, &
