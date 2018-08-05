@@ -10,9 +10,7 @@
 program fdustcollapse2d
 
   use f2kcli
-  use bl_space
-  use bl_error_module
-  use bl_IO_module
+  use amrex_error_module
   use plotfile_module
 
   implicit none
@@ -22,28 +20,28 @@ program fdustcollapse2d
   integer :: i, j, ii, jj
   integer :: f
 
-  real(kind=dp_t) :: xx, yy, xl, yl, xr, yr
+  real(rt) :: xx, yy, xl, yl, xr, yr
 
   integer :: rr, r1
 
   integer :: nbins
-  real(kind=dp_t), allocatable :: r(:), rl(:)
-  real(kind=dp_t) :: maxdist, x_maxdist, y_maxdist
-  real(kind=dp_t) :: yctr
+  real(rt), allocatable :: r(:), rl(:)
+  real(rt) :: maxdist, x_maxdist, y_maxdist
+  real(rt) :: yctr
 
-  real(kind=dp_t) :: dx(MAX_SPACEDIM)
-  real(kind=dp_t) :: dx_fine
+  real(rt) :: dx(MAX_SPACEDIM)
+  real(rt) :: dx_fine
 
-  real(kind=dp_t) :: r_zone, vol
-  real(kind=dp_t) :: max_dens
-  real(kind=dp_t) :: rho_lo,rho_hi,x,r_interface
+  real(rt) :: r_zone, vol
+  real(rt) :: max_dens
+  real(rt) :: rho_lo,rho_hi,x,r_interface
 
   integer :: index_r
 
-  real(kind=dp_t), pointer :: p(:,:,:,:)
+  real(rt), pointer :: p(:,:,:,:)
 
-  real(kind=dp_t), allocatable :: volcount(:)
-  real(kind=dp_t), allocatable :: dens_bin(:)
+  real(rt), allocatable :: volcount(:)
+  real(rt), allocatable :: dens_bin(:)
 
   integer :: dens_comp
 

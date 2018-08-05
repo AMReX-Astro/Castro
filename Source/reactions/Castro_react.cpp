@@ -228,7 +228,8 @@ Castro::strang_react_second_half(Real time, Real dt)
 
     }
 
-    clean_state(state);
+    int is_new = 1;
+    clean_state(is_new, state.nGrow());
 
 }
 
@@ -246,6 +247,10 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 
     w.setVal(1.0);
 
+    // Start off assuming a successful burn.
+
+    burn_success = 1;
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -260,9 +265,12 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 		       BL_TO_FORTRAN_3D(r[mfi]),
 		       BL_TO_FORTRAN_3D(w[mfi]),
 		       BL_TO_FORTRAN_3D(mask[mfi]),
-		       time, dt_react, strang_half);
+		       time, dt_react, strang_half,
+                       &burn_success);
 
     }
+
+    ParallelDescriptor::ReduceIntMin(burn_success);
 
     if (verbose) {
 

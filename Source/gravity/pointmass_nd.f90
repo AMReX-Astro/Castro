@@ -1,13 +1,13 @@
 ! ::
 ! :: ----------------------------------------------------------
 ! ::
-       subroutine pm_add_to_grav(point_mass,&
+       subroutine pm_add_to_grav(lo, hi, point_mass,&
                                  phi,phi_lo,phi_hi, &
                                  grav,grav_lo,grav_hi, &
-                                 problo,dx,lo,hi) &
+                                 problo,dx) &
                                  bind(C, name="pm_add_to_grav")
 
-       use bl_constants_module         , only : HALF
+       use amrex_constants_module      , only : HALF
        use fundamental_constants_module, only : Gconst
        use prob_params_module          , only : center
 
@@ -63,7 +63,7 @@
 ! ::: ------------------------------------------------------------------
 ! :::
 
-      subroutine pm_compute_delta_mass(delta_mass,lo,hi,&
+      subroutine pm_compute_delta_mass(lo, hi, delta_mass, &
                                        uin, uin_lo, uin_hi, &
                                        uout, uout_lo, uout_hi, &
                                        vol,  vol_lo, vol_hi, &

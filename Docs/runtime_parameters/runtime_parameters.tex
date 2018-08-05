@@ -238,7 +238,7 @@
 \runparamNS{implicit\_rotation\_update}{castro} &  we can do a implicit solution of the rotation update to allow for better coupling of the Coriolis terms & 1 \\
 \rowcolor{tableShade}
 \runparamNS{moving\_center}{castro} &  to we recompute the center used for the multipole gravity solve each step? & 0 \\
-\runparamNS{point\_mass}{castro} &  include a central point mass & 0.0 \\
+\runparamNS{point\_mass}{castro} &  mass of the point mass & 0.0 \\
 \rowcolor{tableShade}
 \runparamNS{point\_mass\_fix\_solution}{castro} &  if we have a central point mass, we can prevent mass from building up in the zones adjacent to it by keeping their density constant and adding their mass to the point mass object & 0 \\
 \runparamNS{rot\_axis}{castro} &  the coordinate axis ($x=1$, $y=2$, $z=3$) for the rotation vector & 3 \\
@@ -253,6 +253,7 @@
 \runparamNS{rotational\_period}{castro} &  the rotation period for the corotating frame & -1.e200 \\
 \rowcolor{tableShade}
 \runparamNS{state\_in\_rotating\_frame}{castro} &  Which reference frame to measure the state variables with respect to. The standard in the literature when using a rotating reference frame is to measure the state variables with respect to an observer fixed in that rotating frame. If this option is disabled by setting it to 0, the state variables will be measured with respect to an observer fixed in the inertial frame (but the frame will still rotate). & 1 \\
+\runparamNS{use\_point\_mass}{castro} &  include a central point mass & 1 \\
 
 
 \end{longtable}
@@ -317,40 +318,40 @@
 \runparamNS{first\_order\_hydro}{castro} &  set the flattening parameter to zero to force the reconstructed profiles to be flat, resulting in a first-order method & 0 \\
 \rowcolor{tableShade}
 \runparamNS{fix\_mass\_flux}{castro} &  & 0 \\
+\runparamNS{fourth\_order}{castro} &  do we do fourth-order accurate MOL hydro? & 0 \\
+\rowcolor{tableShade}
 \runparamNS{hse\_interp\_temp}{castro} &  if we are doing HSE boundary conditions, should we get the temperature via interpolation (using model\_parser) or hold it constant? & 0 \\
-\rowcolor{tableShade}
 \runparamNS{hse\_reflect\_vels}{castro} &  if we are doing HSE boundary conditions, how do we treat the velocity? reflect? or outflow? & 0 \\
+\rowcolor{tableShade}
 \runparamNS{hse\_zero\_vels}{castro} &  if we are doing HSE boundary conditions, do we zero the velocity? & 0 \\
-\rowcolor{tableShade}
 \runparamNS{hybrid\_hydro}{castro} &  whether to use the hybrid advection scheme that updates z-angular momentum, cylindrical momentum, and azimuthal momentum (3D only) & 0 \\
-\runparamNS{hybrid\_riemann}{castro} &  do we drop from our regular Riemann solver to HLL when we are in shocks to avoid the odd-even decoupling instability? & 0 \\
 \rowcolor{tableShade}
+\runparamNS{hybrid\_riemann}{castro} &  do we drop from our regular Riemann solver to HLL when we are in shocks to avoid the odd-even decoupling instability? & 0 \\
 \runparamNS{limit\_fluxes\_on\_small\_dens}{castro} &  Should we limit the density fluxes so that we do not create small densities? & 0 \\
+\rowcolor{tableShade}
+\runparamNS{mol\_order}{castro} &  integration order for MOL integration 1 = first order, 2 = second order TVD, 3 = 3rd order TVD, 4 = 4th order RK & 2 \\
 \runparamNS{plm\_iorder}{castro} &  for piecewise linear, reconstruction order to use & 2 \\
 \rowcolor{tableShade}
 \runparamNS{ppm\_predict\_gammae}{castro} &  do we construct $\gamma_e = p/(\rho e) + 1$ and bring it to the interfaces for additional thermodynamic information (this is the Colella \& Glaz technique) or do we use $(\rho e)$ (the classic \castro\ behavior).  Note this also uses $\tau = 1/\rho$ instead of $\rho$. & 0 \\
 \runparamNS{ppm\_reference\_eigenvectors}{castro} &  do we use the reference state in evaluating the eigenvectors? & 0 \\
 \rowcolor{tableShade}
 \runparamNS{ppm\_temp\_fix}{castro} &  various methods of giving temperature a larger role in the reconstruction---see Zingale \& Katz 2015 & 0 \\
-\runparamNS{ppm\_trace\_sources}{castro} &  to we reconstruct and trace under the parabolas of the source terms to the velocity (gravity and rotation) & 1 \\
-\rowcolor{tableShade}
 \runparamNS{ppm\_type}{castro} &  reconstruction type: 0: piecewise linear; 1: classic Colella \& Woodward ppm; 2: extrema-preserving ppm & 1 \\
+\rowcolor{tableShade}
 \runparamNS{riemann\_solver}{castro} &  which Riemann solver do we use: 0: Colella, Glaz, \& Ferguson (a two-shock solver); 1: Colella \& Glaz (a two-shock solver) 2: HLLC & 0 \\
-\rowcolor{tableShade}
 \runparamNS{small\_dens}{castro} &  the small density cutoff.  Densities below this value will be reset & -1.e200 \\
+\rowcolor{tableShade}
 \runparamNS{small\_ener}{castro} &  the small specific internal energy cutoff.  Internal energies below this value will be reset & -1.e200 \\
-\rowcolor{tableShade}
 \runparamNS{small\_pres}{castro} &  the small pressure cutoff.  Pressures below this value will be reset & -1.e200 \\
+\rowcolor{tableShade}
 \runparamNS{small\_temp}{castro} &  the small temperature cutoff.  Temperatures below this value will be reset & -1.e200 \\
-\rowcolor{tableShade}
 \runparamNS{source\_term\_predictor}{castro} &  extrapolate the source terms (gravity and rotation) to $n+1/2$ timelevel for use in the interface state prediction & 0 \\
+\rowcolor{tableShade}
 \runparamNS{sponge\_implicit}{castro} &  if we are using the sponge, whether to use the implicit solve for it & 1 \\
-\rowcolor{tableShade}
 \runparamNS{transverse\_reset\_density}{castro} &  if the transverse interface state correction, if the new density is negative, then replace all of the interface quantities with their values without the transverse correction. & 1 \\
-\runparamNS{transverse\_reset\_rhoe}{castro} &  if the interface state for $(\rho e)$ is negative after we add the transverse terms, then replace the interface value of $(\rho e)$ with a value constructed from the $(\rho e)$ evolution equation & 0 \\
 \rowcolor{tableShade}
+\runparamNS{transverse\_reset\_rhoe}{castro} &  if the interface state for $(\rho e)$ is negative after we add the transverse terms, then replace the interface value of $(\rho e)$ with a value constructed from the $(\rho e)$ evolution equation & 0 \\
 \runparamNS{transverse\_use\_eos}{castro} &  after we add the transverse correction to the interface states, replace the predicted pressure with an EOS call (using $e$ and $\rho$). & 0 \\
-\runparamNS{use\_colglaz}{castro} &  this is deprecated---use {\tt riemann\_solver} instead & -1 \\
 \rowcolor{tableShade}
 \runparamNS{use\_eos\_in\_riemann}{castro} &  should we use the EOS in the Riemann solver to ensure thermodynamic consistency? & 0 \\
 \runparamNS{use\_flattening}{castro} &  flatten the reconstructed profiles around shocks to prevent them from becoming too thin & 1 \\
@@ -492,10 +493,10 @@
 \runparamNS{dtnuc\_X\_threshold}{castro} &  If we are using the timestep limiter based on changes in $X$, set a threshold on the species abundance below which the limiter is not applied. This helps prevent the timestep from becoming very small due to changes in trace species. & 1.e-3 \\
 \rowcolor{tableShade}
 \runparamNS{dtnuc\_e}{castro} &  Limit the timestep based on how much the burning can change the internal energy of a zone. The timestep is equal to {\tt dtnuc}  $\cdot\,(e / \dot{e})$. & 1.e200 \\
-\runparamNS{dtnuc\_mode}{castro} &  If we are doing burning timestep limiting, choose the method for estimating $\dot{e}$ and $\dot{X}$. 1 == call the burner's RHS for an instantaneous calculation 2 == use the second-half burning from the last timestep 3 == use both the first- and the second-half burning from the last timestep 4 == use the change in the full state over the last timestep & 1 \\
-\rowcolor{tableShade}
 \runparamNS{dxnuc}{castro} &  limit the zone size based on how much the burning can change the internal energy of a zone. The zone size on the finest level must be smaller than {\tt dxnuc} $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the sound speed. This ensures that the sound-crossing time is smaller than the nuclear energy injection timescale. & 1.e200 \\
+\rowcolor{tableShade}
 \runparamNS{dxnuc\_max}{castro} &  Disable limiting based on dxnuc above this threshold. This allows zones that have already ignited or are about to ignite to be de-refined. & 1.e200 \\
+\runparamNS{max\_dxnuc\_lev}{castro} &  Disable limiting based on dxnuc above this AMR level. & 30 \\
 \rowcolor{tableShade}
 \runparamNS{react\_T\_max}{castro} &  maximum temperature for allowing reactions to occur in a zone & 1.e200 \\
 \runparamNS{react\_T\_min}{castro} &  minimum temperature for allowing reactions to occur in a zone & 0.0 \\
@@ -598,12 +599,14 @@
 \runparamNS{plot\_per\_is\_exact}{castro} &  enforce that the AMR plot interval must be hit exactly & 0 \\
 \rowcolor{tableShade}
 \runparamNS{retry\_neg\_dens\_factor}{castro} &  If we're doing retries, set the target threshold for changes in density if a retry is triggered by a negative density. If this is set to a negative number then it will disable retries using this criterion. & 1.e-1 \\
+\runparamNS{retry\_subcycle\_factor}{castro} &  When performing a retry, the factor to multiply the current timestep by when trying again. & 0.5 \\
+\rowcolor{tableShade}
 \runparamNS{retry\_tolerance}{castro} &  Tolerance to use when evaluating whether to do a retry. The timestep suggested by the retry will be multiplied by (1 + this factor) before comparing the actual timestep to it. If set to some number slightly larger than zero, then this prevents retries that are caused by small numerical differences. & 0.02 \\
-\rowcolor{tableShade}
 \runparamNS{sdc\_iters}{castro} &  Number of iterations for the SDC advance. & 2 \\
-\runparamNS{small\_plot\_per\_is\_exact}{castro} &  enforce that the AMR small plot interval must be hit exactly & 0 \\
 \rowcolor{tableShade}
+\runparamNS{small\_plot\_per\_is\_exact}{castro} &  enforce that the AMR small plot interval must be hit exactly & 0 \\
 \runparamNS{use\_post\_step\_regrid}{castro} &  Check for a possible post-timestep regrid if certain stability criteria were violated. & 0 \\
+\rowcolor{tableShade}
 \runparamNS{use\_retry}{castro} &  Retry a timestep if it violated the timestep-limiting criteria over the course of an advance. The criteria will suggest a new timestep that satisfies the criteria, and we will do subcycled timesteps on the same level until we reach the original target time. & 0 \\
 
 
@@ -658,6 +661,7 @@
 
 
 \rowcolor{tableShade}
+\runparamNS{mlmg\_maxorder}{diffusion} &  Use MLMG as the operator & 4 \\
 \runparamNS{v}{diffusion} &  the level of verbosity for the diffusion solve (higher number means more output) & 0 \\
 
 
@@ -727,10 +731,10 @@
 \runparamNS{mlmg\_consolidation}{gravity} &  & 1 \\
 \runparamNS{mlmg\_max\_fmg\_iter}{gravity} &  how many FMG cycles? & 0 \\
 \rowcolor{tableShade}
+\runparamNS{mlmg\_nsolve}{gravity} &  Do N-Solve? & 0 \\
 \runparamNS{no\_composite}{gravity} &  do we do a composite solve? & 0 \\
-\runparamNS{no\_sync}{gravity} &  do we perform the synchronization at coarse-fine interfaces? & 0 \\
 \rowcolor{tableShade}
-\runparamNS{use\_mlmg\_solver}{gravity} &  Use C++ MLMG linear solver for self gravity & 0 \\
+\runparamNS{no\_sync}{gravity} &  do we perform the synchronization at coarse-fine interfaces? & 0 \\
 \runparamNS{v}{gravity} &  the level of verbosity for the gravity solve (higher number means more output on the status of the solve / multigrid & 0 \\
 
 

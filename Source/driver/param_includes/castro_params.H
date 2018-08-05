@@ -3,6 +3,33 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
+#ifdef DIFFUSION
+static int diffuse_temp;
+static int diffuse_enth;
+static int diffuse_spec;
+static int diffuse_vel;
+static amrex::Real diffuse_cutoff_density;
+static amrex::Real diffuse_cond_scale_fac;
+#endif
+#ifdef AMREX_PARTICLES
+static int do_tracer_particles;
+#endif
+#ifdef ROTATION
+static amrex::Real rotational_period;
+static amrex::Real rotational_dPdt;
+static int rotation_include_centrifugal;
+static int rotation_include_coriolis;
+static int rotation_include_domegadt;
+static int state_in_rotating_frame;
+static int rot_source_type;
+static int implicit_rotation_update;
+static int rot_axis;
+#endif
+#ifdef POINTMASS
+static int use_point_mass;
+static amrex::Real point_mass;
+static int point_mass_fix_solution;
+#endif
 static int state_interp_order;
 static int lin_limit_state_interp;
 static int state_nghost;
@@ -16,16 +43,15 @@ static amrex::Real small_pres;
 static amrex::Real small_ener;
 static int do_hydro;
 static int do_ctu;
+static int fourth_order;
 static int add_ext_src;
 static int hybrid_hydro;
 static int ppm_type;
-static int ppm_trace_sources;
 static int ppm_temp_fix;
 static int ppm_predict_gammae;
 static int ppm_reference_eigenvectors;
 static int plm_iorder;
 static int hybrid_riemann;
-static int use_colglaz;
 static int riemann_solver;
 static int cg_maxiter;
 static amrex::Real cg_tol;
@@ -58,6 +84,7 @@ static std::string zr_ext_bc_type;
 static int hse_zero_vels;
 static int hse_interp_temp;
 static int hse_reflect_vels;
+static int mol_order;
 static amrex::Real fixed_dt;
 static amrex::Real initial_dt;
 static amrex::Real dt_cutoff;
@@ -70,6 +97,7 @@ static int small_plot_per_is_exact;
 static int use_retry;
 static amrex::Real retry_tolerance;
 static amrex::Real retry_neg_dens_factor;
+static amrex::Real retry_subcycle_factor;
 static int use_post_step_regrid;
 static int max_subcycles;
 static int clamp_subcycles;
@@ -77,70 +105,19 @@ static int sdc_iters;
 static amrex::Real dtnuc_e;
 static amrex::Real dtnuc_X;
 static amrex::Real dtnuc_X_threshold;
-static int dtnuc_mode;
 static amrex::Real dxnuc;
 static amrex::Real dxnuc_max;
+static int max_dxnuc_lev;
 static int do_react;
 static amrex::Real react_T_min;
 static amrex::Real react_T_max;
 static amrex::Real react_rho_min;
 static amrex::Real react_rho_max;
 static int disable_shock_burning;
-#ifdef DIFFUSION
-static int diffuse_temp;
-#endif
-#ifdef DIFFUSION
-static int diffuse_enth;
-#endif
-#ifdef DIFFUSION
-static int diffuse_spec;
-#endif
-#ifdef DIFFUSION
-static int diffuse_vel;
-#endif
-#ifdef DIFFUSION
-static amrex::Real diffuse_cutoff_density;
-#endif
-#ifdef DIFFUSION
-static amrex::Real diffuse_cond_scale_fac;
-#endif
 static int do_grav;
 static int moving_center;
 static int grav_source_type;
 static int do_rotation;
-#ifdef ROTATION
-static amrex::Real rotational_period;
-#endif
-#ifdef ROTATION
-static amrex::Real rotational_dPdt;
-#endif
-#ifdef ROTATION
-static int rotation_include_centrifugal;
-#endif
-#ifdef ROTATION
-static int rotation_include_coriolis;
-#endif
-#ifdef ROTATION
-static int rotation_include_domegadt;
-#endif
-#ifdef ROTATION
-static int state_in_rotating_frame;
-#endif
-#ifdef ROTATION
-static int rot_source_type;
-#endif
-#ifdef ROTATION
-static int implicit_rotation_update;
-#endif
-#ifdef ROTATION
-static int rot_axis;
-#endif
-#ifdef POINTMASS
-static amrex::Real point_mass;
-#endif
-#ifdef POINTMASS
-static int point_mass_fix_solution;
-#endif
 static int do_acc;
 static int bndry_func_thread_safe;
 static int grown_factor;
@@ -158,6 +135,3 @@ static std::string job_name;
 static int output_at_completion;
 static amrex::Real reset_checkpoint_time;
 static int reset_checkpoint_step;
-#ifdef PARTICLES
-static int do_tracer_particles;
-#endif

@@ -1,7 +1,7 @@
 ! advection routines in support of method of lines integration
 
-subroutine ca_mol_single_stage(time, &
-                               lo, hi, domlo, domhi, &
+subroutine ca_mol_single_stage(lo, hi, time, &
+                               domlo, domhi, &
                                stage_weight, &
                                uin, uin_lo, uin_hi, &
                                uout, uout_lo, uout_hi, &
@@ -30,18 +30,19 @@ subroutine ca_mol_single_stage(time, &
                                dloga, dloga_lo, dloga_hi, &
 #endif
                                vol, vol_lo, vol_hi, &
-                               courno, verbose) bind(C, name="ca_mol_single_stage")
+                               verbose) bind(C, name="ca_mol_single_stage")
 
-  use mempool_module, only : bl_allocate, bl_deallocate
+  use amrex_error_module
+  use amrex_mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, GDPRES, &
                                  UTEMP, UEINT, USHK, GDU, GDV, GDW, UMX, &
                                  use_flattening, QPRES, NQAUX, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
                                  first_order_hydro, difmag, hybrid_riemann, &
                                  limit_fluxes_on_small_dens, ppm_type, ppm_temp_fix
-  use advection_util_module, only : compute_cfl, limit_hydro_fluxes_on_small_dens, shock, &
+  use advection_util_module, only : limit_hydro_fluxes_on_small_dens, shock, &
                                     divu, normalize_species_fluxes, calc_pdivu
-  use bl_constants_module, only : ZERO, HALF, ONE, FOURTH
+  use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
   use flatten_module, only: uflatten
   use riemann_module, only: cmpflx
   use ppm_module, only : ppm_reconstruct
@@ -109,12 +110,10 @@ subroutine ca_mol_single_stage(time, &
 #endif
   real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1), vol_lo(2):vol_hi(2), vol_lo(3):vol_hi(3))
   real(rt), intent(in) :: dx(3), dt, time
-  real(rt), intent(inout) :: courno
 
   ! Automatic arrays for workspace
   real(rt)        , pointer:: flatn(:,:,:)
   real(rt)        , pointer:: div(:,:,:)
-  real(rt)        , pointer:: pdivu(:,:,:)
 
   ! Edge-centered primitive variables (Riemann state)
   real(rt)        , pointer:: q1(:,:,:,:)
@@ -161,7 +160,6 @@ subroutine ca_mol_single_stage(time, &
   shk_hi(:) = hi(:) + dg(:)
 
   call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+dg(2), lo(3), hi(3)+dg(3))
-  call bl_allocate( pdivu, lo(1), hi(1)  , lo(2), hi(2)      , lo(3), hi(3)  )
 
   call bl_allocate(q1, flux1_lo, flux1_hi, NGDNV)
 #if BL_SPACEDIM >= 2
@@ -204,10 +202,12 @@ subroutine ca_mol_single_stage(time, &
 
   call bl_allocate(shk, shk_lo, shk_hi)
 
+#ifndef AMREX_USE_CUDA  
   if (ppm_type == 0) then
-     call bl_error("ERROR: method of lines integration does not support ppm_type = 0")
+     call amrex_error("ERROR: method of lines integration does not support ppm_type = 0")
   endif
-  
+#endif
+
 #ifdef SHOCK_VAR
     uout(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), USHK) = ZERO
 
@@ -237,11 +237,6 @@ subroutine ca_mol_single_stage(time, &
        shk(:,:,:) = ZERO
     endif
 #endif
-
-  ! Check if we have violated the CFL criterion.
-  call compute_cfl(q, q_lo, q_hi, &
-                   qaux, qa_lo, qa_hi, &
-                   lo, hi, dt, dx, courno)
 
   ! Compute flattening coefficient for slope calculations.
   call bl_allocate(flatn, q_lo, q_hi)
@@ -287,7 +282,7 @@ subroutine ca_mol_single_stage(time, &
 #endif
 
      do n = 1, NQ
-        call ppm_reconstruct(q(:,:,:,n  ), q_lo, q_hi, &
+        call ppm_reconstruct(q, q_lo, q_hi, NQ, n, &
                              flatn, q_lo, q_hi, &
                              sxm, sxp, &
 #if BL_SPACEDIM >= 2
@@ -511,20 +506,6 @@ subroutine ca_mol_single_stage(time, &
   call divu(lo, hi, q, q_lo, q_hi, &
             dx, div, lo, hi+dg)
 
-  call calc_pdivu(lo, hi, &
-                  q1, flux1_lo, flux1_hi, &
-                  area1, area1_lo, area1_hi, &
-#if BL_SPACEDIM >= 2
-                  q2, flux2_lo, flux2_hi, &
-                  area2, area2_lo, area2_hi, &
-#endif
-#if BL_SPACEDIM == 3
-                  q3, flux3_lo, flux3_hi, &
-                  area3, area3_lo, area3_hi, &
-#endif
-                  vol, vol_lo, vol_hi, &
-                  dx, pdivu, lo, hi)
-
   do n = 1, NVAR
 
      if ( n == UTEMP ) then
@@ -644,10 +625,6 @@ subroutine ca_mol_single_stage(time, &
                     flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) + &
                     flux3(i,j,k,n) * area3(i,j,k) - flux3(i,j,k+1,n) * area3(i,j,k+1) ) / vol(i,j,k)
 #endif
-              ! Add the p div(u) source term to (rho e).
-              if (n .eq. UEINT) then
-                 update(i,j,k,n) = update(i,j,k,n) - pdivu(i,j,k)
-              endif
 
 #if BL_SPACEDIM == 1
               if (n == UMX) then
@@ -737,7 +714,6 @@ subroutine ca_mol_single_stage(time, &
 #endif
 
   call bl_deallocate(   div)
-  call bl_deallocate( pdivu)
 
   call bl_deallocate(q1)
 #if BL_SPACEDIM >= 2

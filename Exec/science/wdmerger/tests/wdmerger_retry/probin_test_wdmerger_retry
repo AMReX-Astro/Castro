@@ -17,13 +17,6 @@
 
   interp_temp = T
 
-  relaxation_damping_timescale = -1.0d0
-  relaxation_density_cutoff = 1.0d3
-  relaxation_implicit = F
-
-  radial_damping_factor = -1.0d2
-  initial_radial_velocity_factor = -1.0d-3
-
   ambient_density = 1.0d-4
 
   stellar_temp = 1.0d7

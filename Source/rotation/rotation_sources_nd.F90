@@ -1,5 +1,6 @@
 module rotation_sources_module
 
+  use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -14,7 +15,7 @@ contains
 
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_source_type
     use prob_params_module, only: center
-    use bl_constants_module
+    use amrex_constants_module
     use castro_util_module, only: position
 #ifdef HYBRID_MOMENTUM
     use meth_params_module, only: UMR, UMP, state_in_rotating_frame
@@ -107,7 +108,7 @@ contains
                 SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
 
              else
-                call bl_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
+                call amrex_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
              end if
 
              src(UEDEN) = src(UEDEN) + SrE
@@ -146,11 +147,11 @@ contains
     ! exists outside of the Fortran module above because it needs to
     ! be called directly from C++.
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_source_type, &
                                   implicit_rotation_update, rotation_include_coriolis, state_in_rotating_frame
     use prob_params_module, only: center, dg
-    use bl_constants_module
+    use amrex_constants_module
     use math_module, only: cross_product
     use rotation_module, only: rotational_acceleration
     use rotation_frequency_module, only: get_omega, get_domegadt
@@ -197,11 +198,11 @@ contains
 
     real(rt)         :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NVAR)
 
-    ! Hydrodynamics fluxes
+    ! Hydrodynamical mass fluxes
 
-    real(rt)         :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3),NVAR)
-    real(rt)         :: flux2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3),NVAR)
-    real(rt)         :: flux3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3),NVAR)
+    real(rt)         :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3))
+    real(rt)         :: flux2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3))
+    real(rt)         :: flux3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3))
 
     real(rt)         :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
 
@@ -438,12 +439,12 @@ contains
                 ! so that we get the source term and not the actual update, which will
                 ! be applied later by multiplying by dt.
 
-                SrEcorr = SrEcorr - (HALF / dt) * ( flux1(i        ,j,k,URHO) * (phi(i,j,k) - phi(i-1,j,k)) - &
-                                                    flux1(i+1*dg(1),j,k,URHO) * (phi(i,j,k) - phi(i+1,j,k)) + &
-                                                    flux2(i,j        ,k,URHO) * (phi(i,j,k) - phi(i,j-1,k)) - &
-                                                    flux2(i,j+1*dg(2),k,URHO) * (phi(i,j,k) - phi(i,j+1,k)) + &
-                                                    flux3(i,j,k        ,URHO) * (phi(i,j,k) - phi(i,j,k-1)) - &
-                                                    flux3(i,j,k+1*dg(3),URHO) * (phi(i,j,k) - phi(i,j,k+1)) ) / vol(i,j,k)
+                SrEcorr = SrEcorr - (HALF / dt) * ( flux1(i        ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
+                                                    flux1(i+1*dg(1),j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &
+                                                    flux2(i,j        ,k) * (phi(i,j,k) - phi(i,j-1,k)) - &
+                                                    flux2(i,j+1*dg(2),k) * (phi(i,j,k) - phi(i,j+1,k)) + &
+                                                    flux3(i,j,k        ) * (phi(i,j,k) - phi(i,j,k-1)) - &
+                                                    flux3(i,j,k+1*dg(3)) * (phi(i,j,k) - phi(i,j,k+1)) ) / vol(i,j,k)
 
                 ! Correct for the time rate of change of the potential, which acts
                 ! purely as a source term. This is only necessary for this source type;
@@ -458,7 +459,7 @@ contains
                 SrEcorr = SrEcorr + HALF * (dot_product(vold, Sr_old) + dot_product(vnew, Sr_new))
 
              else
-                call bl_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
+                call amrex_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
              end if
 
              src(UEDEN) = SrEcorr

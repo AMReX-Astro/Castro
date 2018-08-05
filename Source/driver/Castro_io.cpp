@@ -48,11 +48,12 @@ using namespace amrex;
 // 3: A ReactHeader file was generated and the maximum de/dt was stored there
 // 4: Reactions_Type added to checkpoint; ReactHeader functionality deprecated
 // 5: SDC_Source_Type and SDC_React_Type added to checkpoint
+// 6: SDC_Source_Type removed from Castro
 
 namespace
 {
     int input_version = -1;
-    int current_version = 5;
+    int current_version = 6;
 }
 
 // I/O routines for Castro
@@ -130,8 +131,8 @@ Castro::restart (Amr&     papa,
 #endif
 
 #ifdef SDC
-    if (input_version < 5) { // old checkpoint without SDC_Source_Type
-      state[SDC_Source_Type].restart(desc_lst[SDC_Source_Type], state[State_Type]);
+    if (input_version < 6) { // old checkpoint with SDC_Source_Type
+        amrex::Abort("Cannot restart from this checkpoint when using SDC.");
     }
 #ifdef REACTIONS
     if (input_version < 5) { // old checkpoint without SDC_React_Type
@@ -370,7 +371,7 @@ Castro::restart (Amr&     papa,
 
            if (! orig_domain.contains(bx)) {
 
-#ifdef DIMENSION_AGNOSTIC
+#ifdef AMREX_DIMENSION_AGNOSTIC
               BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
                 (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), ns,
 		 BL_TO_FORTRAN_3D(S_new[mfi]), ZFILL(dx),
@@ -483,10 +484,6 @@ Castro::set_state_in_checkpoint (Vector<int>& state_in_checkpoint)
     }
 #endif
 #ifdef SDC
-    if (input_version < 5 && i == SDC_Source_Type) {
-      // We are reading an old checkpoint with no SDC_Source_Type
-      state_in_checkpoint[i] = 0;
-    }
 #ifdef REACTIONS
     if (input_version < 5 && i == SDC_React_Type) {
       // We are reading an old checkpoint with no SDC_React_Type
@@ -511,7 +508,7 @@ Castro::checkPoint(const std::string& dir,
   }
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
   ParticleCheckPoint(dir);
 #endif
 
@@ -626,8 +623,6 @@ Castro::setPlotVariables ()
       parent->deleteStatePlotVar(desc_lst[Source_Type].name(i));
 
 #ifdef SDC
-  for (int i = 0; i < desc_lst[SDC_Source_Type].nComp(); i++)
-      parent->deleteStatePlotVar(desc_lst[SDC_Source_Type].name(i));
 #ifdef REACTIONS
   for (int i = 0; i < desc_lst[SDC_React_Type].nComp(); i++)
       parent->deleteStatePlotVar(desc_lst[SDC_React_Type].name(i));
@@ -883,9 +878,19 @@ Castro::writeJobInfo (const std::string& dir)
   jobInfoFile << " Inputs File Parameters\n";
   jobInfoFile << PrettyLine;
 
-  ParmParse::dumpTable(jobInfoFile, true);
+#include "castro_job_info_tests.H"
+#ifdef AMREX_PARTICLES
+#include "particles_job_info_tests.H"
+#endif
 
-  jobInfoFile.close();
+#ifdef GRAVITY
+  gravity->output_job_info_params(jobInfoFile);
+#endif
+#ifdef DIFFUSION
+  diffusion->output_job_info_params(jobInfoFile);
+#endif
+
+jobInfoFile.close();
 
 }
 
@@ -913,7 +918,7 @@ Castro::plotFileOutput(const std::string& dir,
                        VisMF::How how,
                        const int is_small)
 {
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
   ParticlePlotFile(dir);
 #endif
 
@@ -942,7 +947,7 @@ Castro::plotFileOutput(const std::string& dir,
         if ((parent->isDerivePlotVar(it->name()) && is_small == 0) || 
             (parent->isDeriveSmallPlotVar(it->name()) && is_small == 1))
         {
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
             if (it->name() == "particle_count" ||
                 it->name() == "total_particle_count")
             {

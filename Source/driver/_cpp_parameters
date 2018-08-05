@@ -59,6 +59,9 @@ do_hydro                     int          -1                  y
 # do we do the CTU unsplit method or a method-of-lines approach?
 do_ctu                       int           1                  y
 
+# do we do fourth-order accurate MOL hydro?
+fourth_order                 int           0                  y
+
 # if true, define an additional source term
 add_ext_src                  int           0
 
@@ -72,10 +75,6 @@ hybrid_hydro                 int           0                  y
 # 1: classic Colella \& Woodward ppm;
 # 2: extrema-preserving ppm
 ppm_type                     int           1                  y
-
-# to we reconstruct and trace under the parabolas of the source
-# terms to the velocity (gravity and rotation)
-ppm_trace_sources            int           1                  y
 
 # various methods of giving temperature a larger role in the
 # reconstruction---see Zingale \& Katz 2015
@@ -97,9 +96,6 @@ plm_iorder                   int           2                  y
 # do we drop from our regular Riemann solver to HLL when we
 # are in shocks to avoid the odd-even decoupling instability?
 hybrid_riemann               int           0                  y
-
-# this is deprecated---use {\tt riemann\_solver} instead
-use_colglaz                  int           -1
 
 # which Riemann solver do we use:
 # 0: Colella, Glaz, \& Ferguson (a two-shock solver);
@@ -228,6 +224,12 @@ hse_interp_temp              int           0                  y
 # reflect? or outflow?
 hse_reflect_vels             int           0                  y
 
+
+# integration order for MOL integration
+# 1 = first order, 2 = second order TVD, 3 = 3rd order TVD, 4 = 4th order RK
+mol_order                    int           2                  y
+
+
 #-----------------------------------------------------------------------------
 # category: timestep control
 #-----------------------------------------------------------------------------
@@ -281,6 +283,10 @@ retry_tolerance              Real          0.02
 # number then it will disable retries using this criterion.
 retry_neg_dens_factor        Real          1.e-1
 
+# When performing a retry, the factor to multiply the current
+# timestep by when trying again.
+retry_subcycle_factor        Real          0.5
+
 # Check for a possible post-timestep regrid if certain stability
 # criteria were violated.
 use_post_step_regrid         int           0
@@ -316,14 +322,6 @@ dtnuc_X                      Real          1.e200             y
 # prevent the timestep from becoming very small due to changes in trace species.
 dtnuc_X_threshold            Real          1.e-3              y
 
-# If we are doing burning timestep limiting, choose the method for
-# estimating $\dot{e}$ and $\dot{X}$.
-# 1 == call the burner's RHS for an instantaneous calculation
-# 2 == use the second-half burning from the last timestep
-# 3 == use both the first- and the second-half burning from the last timestep
-# 4 == use the change in the full state over the last timestep
-dtnuc_mode                   int           1                  y
-
 # limit the zone size based on how much the burning can change the internal
 # energy of a zone. The zone size on the finest level must be smaller than
 # {\tt dxnuc} $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the sound speed.
@@ -334,6 +332,9 @@ dxnuc                        Real          1.e200             y
 # Disable limiting based on dxnuc above this threshold. This allows zones that
 # have already ignited or are about to ignite to be de-refined.
 dxnuc_max                    Real          1.e200             y
+
+# Disable limiting based on dxnuc above this AMR level.
+max_dxnuc_lev                int           30                 y
 
 # permits reactions to be turned on and off -- mostly for efficiency's sake
 do_react                     int          -1                  y
@@ -430,6 +431,9 @@ implicit_rotation_update     int           1                  y        ROTATION
 rot_axis                     int           3                  y        ROTATION
 
 # include a central point mass
+use_point_mass               int           1                  y        POINTMASS
+
+# mass of the point mass
 point_mass                   Real          0.0                y        POINTMASS
 
 # if we have a central point mass, we can prevent mass from building
@@ -521,7 +525,7 @@ reset_checkpoint_step        int           -1
 #-----------------------------------------------------------------------------
 
 # permits tracer particle calculation to be turned on and off
-do_tracer_particles          int           0       n      PARTICLES
+do_tracer_particles          int           0       n      AMREX_PARTICLES
 
 
 @namespace: particles Castro static
@@ -593,9 +597,6 @@ do_composite_phi_correction int            1
 # constructing it directly?
 get_g_from_phi              int            0                  y
 
-# Use C++ MLMG linear solver for self gravity
-use_mlmg_solver              int           0                  n
-
 # how many FMG cycles?
 mlmg_max_fmg_iter            int           0                  n
 
@@ -603,9 +604,14 @@ mlmg_max_fmg_iter            int           0                  n
 mlmg_agglomeration           int           1                  n
 mlmg_consolidation           int           1                  n
 
+# Do N-Solve?
+mlmg_nsolve                  int           0                  n
+
 @namespace: diffusion Diffusion static
 
 # the level of verbosity for the diffusion solve (higher number means
 # more output)
 (v, verbose)                int            0                
 
+# Use MLMG as the operator
+mlmg_maxorder                int           4                  n

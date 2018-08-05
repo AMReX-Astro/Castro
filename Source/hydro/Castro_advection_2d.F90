@@ -1,60 +1,60 @@
 module ctu_advection_module
 
-  use bl_constants_module, only : ZERO, HALF, ONE, FOURTH, TWO
+  use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH, TWO
+  use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
 
   private
 
-  public umeth2d, consup
+  public umeth, consup
 
 contains
 
 ! ::: ---------------------------------------------------------------
-! ::: :: UMETH2D     Compute hyperbolic fluxes using unsplit second
-! ::: ::               order Godunov integrator.
+! ::: :: UMETH     Compute hyperbolic fluxes using unsplit second
+! ::: ::            order Godunov integrator.
 ! ::: ::
 ! ::: :: inputs/outputs
 ! ::: :: q           => (const)  input state, primitives
-! ::: :: qaux        => (const)  auxillary hydro info
+! ::: :: qaux        => (const)  auxiliary hydro info
 ! ::: :: flatn       => (const)  flattening parameter
 ! ::: :: srcQ        => (const)  primitive variable source
 ! ::: :: nx          => (const)  number of cells in X direction
 ! ::: :: ny          => (const)  number of cells in Y direction
-! ::: :: dx          => (const)  grid spacing in X direction
-! ::: :: dy          => (const)  grid spacing in Y direction
+! ::: :: dx          => (const)  grid spacing in all 3 directions (array)
 ! ::: :: dt          => (const)  time stepsize
 ! ::: :: flux1      <=  (modify) flux in X direction on X edges
 ! ::: :: flux2      <=  (modify) flux in Y direction on Y edges
 ! ::: ----------------------------------------------------------------
 
-  subroutine umeth2d(q, q_lo, q_hi, &
-                     flatn, &
-                     qaux, qa_lo, qa_hi, &
-                     srcQ, src_lo, src_hi, &
-                     lo, hi, dx, dy, dt, &
-                     uout, uout_lo, uout_hi, &
-                     flux1, fd1_lo, fd1_hi, &
-                     flux2, fd2_lo, fd2_hi, &
+  subroutine umeth(q, q_lo, q_hi, &
+                   flatn, &
+                   qaux, qa_lo, qa_hi, &
+                   srcQ, src_lo, src_hi, &
+                   lo, hi, dx, dt, &
+                   uout, uout_lo, uout_hi, &
+                   flux1, fd1_lo, fd1_hi, &
+                   flux2, fd2_lo, fd2_hi, &
 #ifdef RADIATION
-                     rflux1, rfd1_lo, rfd1_hi, &
-                     rflux2, rfd2_lo, rfd2_hi, &
+                   rflux1, rfd1_lo, rfd1_hi, &
+                   rflux2, rfd2_lo, rfd2_hi, &
 #endif
-                     q1, q1_lo, q1_hi, &
-                     q2, q2_lo, q2_hi, &
-                     area1, area1_lo, area1_hi, &
-                     area2, area2_lo, area2_hi, &
-                     vol, vol_lo, vol_hi, &
-                     dloga, dloga_lo, dloga_hi, &
-                     domlo, domhi)
+                   q1, q1_lo, q1_hi, &
+                   q2, q2_lo, q2_hi, &
+                   area1, area1_lo, area1_hi, &
+                   area2, area2_lo, area2_hi, &
+                   vol, vol_lo, vol_hi, &
+                   dloga, dloga_lo, dloga_hi, &
+                   domlo, domhi)
 
     use meth_params_module, only : NQ, QVAR, NVAR, ppm_type, hybrid_riemann, &
                                    QC, QFS, QFX, QGAMC, QU, QV, QRHO, QTEMP, QPRES, QREINT, &
                                    GDU, GDV, GDPRES, NGDNV, NQ, &
                                    NQAUX, &
                                    ppm_type, &
-                                   use_pslope, plm_iorder, ppm_temp_fix, ppm_trace_sources
+                                   use_pslope, plm_iorder, ppm_temp_fix
     use trace_module, only : tracexy
 #ifdef RADIATION
     use rad_params_module, only : ngroups
@@ -94,10 +94,10 @@ contains
     integer, intent(in) :: area1_lo(3), area1_hi(3)
     integer, intent(in) :: area2_lo(3), area2_hi(3)
     integer, intent(in) :: vol_lo(3), vol_hi(3)
-    integer, intent(in) :: lo(2), hi(2)
-    integer, intent(in) :: domlo(2), domhi(2)
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: domlo(3), domhi(3)
 
-    real(rt)        , intent(in) :: dx, dy, dt
+    real(rt)        , intent(in) :: dx(3), dt
     real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),NQ)
     real(rt)        , intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),NQAUX)
     real(rt)        , intent(in) :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2))
@@ -154,7 +154,7 @@ contains
     real(rt), allocatable :: sxm(:,:), sxp(:,:), sym(:,:), syp(:,:)
 
     real(rt)        , allocatable :: dqx(:,:,:), dqy(:,:,:)
-    
+
     integer :: I_lo(3), I_hi(3)
 
     type(eos_t) :: eos_state
@@ -179,11 +179,9 @@ contains
        ! indices: (x, y, dimension, wave, variable)
        allocate(Ip(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, NQ))
        allocate(Im(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, NQ))
-       
-       if (ppm_trace_sources == 1) then
-          allocate(Ip_src(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, QVAR))
-          allocate(Im_src(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, QVAR))
-       endif
+
+       allocate(Ip_src(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, QVAR))
+       allocate(Im_src(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, QVAR))
 
        allocate(Ip_gc(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, 1))
        allocate(Im_gc(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, 1))
@@ -214,9 +212,9 @@ contains
 
 
     ! Local constants
-    dtdx = dt/dx
+    dtdx = dt/dx(1)
     hdtdx = HALF*dtdx
-    hdtdy = HALF*dt/dy
+    hdtdy = HALF*dt/dx(2)
     hdt = HALF*dt
 
     ! multidimensional shock detection
@@ -226,7 +224,7 @@ contains
 
     call shock(q, q_lo, q_hi, &
                shk, shk_lo, shk_hi, &
-               [lo(1), lo(2), 0], [hi(1), hi(2), 0], [dx, dy, ZERO])
+               lo, hi, dx)
 
     ! Store the shock data for future use in the burning step.
 
@@ -247,7 +245,7 @@ contains
     if (hybrid_riemann == 1) then
        call shock(q, q_lo, q_hi, &
                   shk, shk_lo, shk_hi, &
-                  [lo(1), lo(2), 0], [hi(1), hi(2), 0], [dx, dy, ZERO])
+                  lo, hi, dx)
     else
        shk(:,:) = ZERO
     endif
@@ -274,7 +272,7 @@ contains
              call pslope(q, flatn, q_lo, q_hi, &
                          dqx, dqy, dqx, q_lo, q_hi, &  ! second dqx is dummy
                          srcQ, src_lo, src_hi, &
-                         lo(1), lo(2), hi(1), hi(2), 0, 0, [dx, dy, ZERO])
+                         lo(1), lo(2), hi(1), hi(2), 0, 0, dx)
 
           endif
 
@@ -283,15 +281,16 @@ contains
           ! reconstruction based on the BDS advection method to construct
           ! the x- and y-slopes together
           do n = 1, NQ
-             call multid_slope(q(:,:,n), flatn, q_lo, q_hi, &
-                               dqx(:,:,n), dqy(:,:,n), q_lo, q_hi, &
-                               dx, dy, &
+             call multid_slope(q, q_lo, q_hi, NQ, n, &
+                               flatn, &
+                               dqx, dqy, q_lo, q_hi, &
+                               dx(1), dx(2), &
                                lo(1), lo(2), hi(1), hi(2))
           enddo
-
+#ifndef AMREX_USE_CUDA
        else
-          call bl_error("ERROR: invalid value of islope")
-          
+          call amrex_error("ERROR: invalid value of islope")
+#endif          
        endif       
 
     else
@@ -300,17 +299,17 @@ contains
        ! limiting, and returns the integral of each profile under each
        ! wave to each interface
        do n = 1, NQ
-          call ppm_reconstruct(q(:,:,n), q_lo, q_hi, &
+          call ppm_reconstruct(q, q_lo, q_hi, NQ, n, &
                                flatn, q_lo, q_hi, &
                                sxm, sxp, sym, syp, q_lo, q_hi, &
-                               lo(1), lo(2), hi(1), hi(2), [dx, dy, ZERO], 0, 0)
+                               lo(1), lo(2), hi(1), hi(2), dx, 0, 0)
 
-          call ppm_int_profile(q(:,:,n), q_lo, q_hi, &
-                               q(:,:,QU:QV), q_lo, q_hi, &
-                               qaux(:,:,QC), qa_lo, qa_hi, &
+          call ppm_int_profile(q, q_lo, q_hi, NQ, n, &
+                               q, q_lo, q_hi, &
+                               qaux, qa_lo, qa_hi, &
                                sxm, sxp, sym, syp, q_lo, q_hi, &
-                               Ip(:,:,:,:,n), Im(:,:,:,:,n), I_lo, I_hi, &
-                               lo(1), lo(2), hi(1), hi(2), [dx, dy, ZERO], dt, 0, 0)
+                               Ip, Im, I_lo, I_hi, NQ, n, &
+                               lo(1), lo(2), hi(1), hi(2), dx, dt, 0, 0)
        end do
 
        ! temperature-based PPM -- if desired, take the Ip(T)/Im(T)
@@ -351,34 +350,32 @@ contains
        ! get an edge-based gam1 here if we didn't get it from the EOS
        ! call above (for ppm_temp_fix = 1)
        if (ppm_temp_fix /= 1) then
-          call ppm_reconstruct(qaux(:,:,QGAMC), qa_lo, qa_hi, &
+          call ppm_reconstruct(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
                                flatn, q_lo, q_hi, &
                                sxm, sxp, sym, syp, q_lo, q_hi, &
-                               lo(1), lo(2), hi(1), hi(2), [dx, dy, ZERO], 0, 0)
+                               lo(1), lo(2), hi(1), hi(2), dx, 0, 0)
           
-          call ppm_int_profile(qaux(:,:,QGAMC), qa_lo, qa_hi, &
-                               q(:,:,QU:QV), q_lo, q_hi, &
-                               qaux(:,:,QC), qa_lo, qa_hi, &
+          call ppm_int_profile(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
+                               q, q_lo, q_hi, &
+                               qaux, qa_lo, qa_hi, &
                                sxm, sxp, sym, syp, q_lo, q_hi, &
-                               Ip_gc(:,:,:,:,1), Im_gc(:,:,:,:,1), I_lo, I_hi, &
-                               lo(1), lo(2), hi(1), hi(2), [dx, dy, ZERO], dt, 0, 0)
+                               Ip_gc, Im_gc, I_lo, I_hi, 1, 1, &
+                               lo(1), lo(2), hi(1), hi(2), dx, dt, 0, 0)
        endif
 
-       if (ppm_trace_sources == 1) then
-          do n = 1, QVAR
-             call ppm_reconstruct(srcQ(:,:,n), src_lo, src_hi, &
-                                  flatn, q_lo, q_hi, &
-                                  sxm, sxp, sym, syp, q_lo, q_hi, &
-                                  lo(1), lo(2), hi(1), hi(2), [dx, dy, ZERO], 0, 0)
+       do n = 1, QVAR
+          call ppm_reconstruct(srcQ, src_lo, src_hi, QVAR, n, &
+                               flatn, q_lo, q_hi, &
+                               sxm, sxp, sym, syp, q_lo, q_hi, &
+                               lo(1), lo(2), hi(1), hi(2), dx, 0, 0)
 
-             call ppm_int_profile(srcQ(:,:,n), src_lo, src_hi, &
-                                  q(:,:,QU:QV), q_lo, q_hi, &
-                                  qaux(:,:,QC), qa_lo, qa_hi, &
-                                  sxm, sxp, sym, syp, q_lo, q_hi, &
-                                  Ip_src(:,:,:,:,n), Im_src(:,:,:,:,n), I_lo, I_hi, &
-                                  lo(1), lo(2), hi(1), hi(2), [dx, dy, ZERO], dt, 0, 0)
-          enddo
-       endif
+          call ppm_int_profile(srcQ, src_lo, src_hi, QVAR, n, &
+                               q, q_lo, q_hi, &
+                               qaux, qa_lo, qa_hi, &
+                               sxm, sxp, sym, syp, q_lo, q_hi, &
+                               Ip_src, Im_src, I_lo, I_hi, QVAR, n, &
+                               lo(1), lo(2), hi(1), hi(2), dx, dt, 0, 0)
+       enddo
 
        deallocate(sxm, sxp, sym, syp)
     endif
@@ -388,15 +385,17 @@ contains
     ! and  qym and qyp will be the states on either side of the y interfaces
     if (ppm_type .eq. 0) then
 #ifdef RADIATION
-       call bl_error("ppm_type <=0 is not supported in umeth1d_rad")
+#ifndef AMREX_USE_CUDA
+       call amrex_error("ppm_type <=0 is not supported in umeth for radiation")
+#endif
 #else
        call tracexy(q, q_lo, q_hi, &
                     qaux, qa_lo, qa_hi, &
                     dqx, dqy, q_lo, q_hi, &
                     qxm, qxp, qym, qyp, qp_lo, qp_hi, &
                     dloga, dloga_lo, dloga_hi, &
-                    lo(1), lo(2), hi(1), hi(2), [domlo(1), domlo(2), 0], [domhi(1), domhi(2), 0], &
-                    [dx, dy, ZERO], dt, 0, 0)
+                    lo(1), lo(2), hi(1), hi(2), domlo, domhi, &
+                    dx, dt, 0, 0)
 #endif
     else
 #ifdef RADIATION
@@ -405,24 +404,22 @@ contains
                             Ip, Im, Ip_src, Im_src, I_lo, I_hi, &            
                             qxm, qxp, qym, qyp, qp_lo, qp_hi, &
                             dloga, dloga_lo, dloga_hi, &
-                            lo(1), lo(2), hi(1), hi(2), [domlo(1), domlo(2), 0], [domhi(1), domhi(2), 0], &
-                            [dx, dy, ZERO], dt, 0, 0)
+                            lo(1), lo(2), hi(1), hi(2), domlo, domhi, &
+                            dx, dt, 0, 0)
 #else
        call tracexy_ppm(q, q_lo, q_hi, &
                         qaux, qa_lo, qa_hi, &
                         Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
                         qxm, qxp, qym, qyp, qp_lo, qp_hi, &
                         dloga, dloga_lo, dloga_hi, &
-                        lo(1), lo(2), hi(1), hi(2), [domlo(1), domlo(2), 0], [domhi(1), domhi(2), 0], &
-                        [dx, dy, ZERO], dt, 0, 0)
+                        lo(1), lo(2), hi(1), hi(2), domlo, domhi, &
+                        dx, dt, 0, 0)
 #endif
 
 
        deallocate(Ip,Im)
        deallocate(Ip_gc,Im_gc)
-       if (ppm_trace_sources == 1) then
-          deallocate(Ip_src,Im_src)
-       endif
+       deallocate(Ip_src,Im_src)
 
     end if
 
@@ -437,7 +434,7 @@ contains
                 qaux, qa_lo, qa_hi, &
                 shk, shk_lo, shk_hi, &
                 1, lo(1), hi(1)+1, lo(2)-1, hi(2)+1, 0, 0, 0, &
-                [domlo(1), domlo(2), 0], [domhi(1), domhi(2), 0])
+                domlo, domhi)
 
     ! Solve the Riemann problem in the y-direction using these first
     ! guesses for the y-interface states.  This produces the flux fy
@@ -450,7 +447,7 @@ contains
                 qaux, qa_lo, qa_hi, &
                 shk, shk_lo, shk_hi, &
                 2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, 0, 0, 0, &
-                [domlo(1), domlo(2), 0], [domhi(1), domhi(2), 0])
+                domlo, domhi)
 
     ! Correct the x-interface states (qxm, qxp) by adding the
     ! transverse flux difference in the y-direction to the x-interface
@@ -478,7 +475,7 @@ contains
                 qaux, qa_lo, qa_hi, &
                 shk, shk_lo, shk_hi, &
                 1, lo(1), hi(1)+1, lo(2), hi(2), 0, 0, 0, &
-                [domlo(1), domlo(2), 0], [domhi(1), domhi(2), 0])
+                domlo, domhi)
 
     ! Correct the y-interface states (qym, qyp) by adding the
     ! transverse flux difference in the x-direction to the y-interface
@@ -508,7 +505,7 @@ contains
                 qaux, qa_lo, qa_hi, &
                 shk, shk_lo, shk_hi, &
                 2, lo(1), hi(1), lo(2), hi(2)+1, 0, 0, 0, &
-                [domlo(1), domlo(2), 0], [domhi(1), domhi(2), 0])
+                domlo, domhi)
 
     deallocate(qm,qp,qxm,qxp,qym,qyp)
     deallocate(fx,fy)
@@ -518,34 +515,34 @@ contains
     deallocate(shk)
     deallocate(qgdxtmp)
 
-  end subroutine umeth2d
+  end subroutine umeth
 
 ! :::
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine consup( uin, uin_lo, uin_hi, &
-                     q, q_lo, q_hi, &
-                     uout, uout_lo, uout_hi, &
-                     update, updt_lo, updt_hi, &
-                     q1, q1_lo, q1_hi, &
-                     q2, q2_lo, q2_hi, &
-                     flux1, flux1_lo, flux1_hi, &
-                     flux2, flux2_lo, flux2_hi, &
+  subroutine consup(uin, uin_lo, uin_hi, &
+                    q, q_lo, q_hi, &
+                    uout, uout_lo, uout_hi, &
+                    update, updt_lo, updt_hi, &
+                    flux1, flux1_lo, flux1_hi, &
+                    flux2, flux2_lo, flux2_hi, &
 #ifdef RADIATION
-                     Erin, Erin_lo, Erin_hi, &
-                     Erout, Erout_lo, Erout_hi, &
-                     rflux1, rflux1_lo, rflux1_hi, &
-                     rflux2, rflux2_lo, rflux2_hi, &
-                     nstep_fsp, &
+                    Erin, Erin_lo, Erin_hi, &
+                    Erout, Erout_lo, Erout_hi, &
+                    rflux1, rflux1_lo, rflux1_hi, &
+                    rflux2, rflux2_lo, rflux2_hi, &
+                    nstep_fsp, &
 #endif
-                     area1, area1_lo, area1_hi, &
-                     area2, area2_lo, area2_hi, &
-                     vol, vol_lo, vol_hi, &
-                     div, lo,hi,dx,dy,dt, &
-                     mass_lost,xmom_lost,ymom_lost,zmom_lost, &
-                     eden_lost,xang_lost,yang_lost,zang_lost, &
-                     verbose)
+                    q1, q1_lo, q1_hi, &
+                    q2, q2_lo, q2_hi, &
+                    area1, area1_lo, area1_hi, &
+                    area2, area2_lo, area2_hi, &
+                    vol, vol_lo, vol_hi, &
+                    div, lo,hi, dx, dt, &
+                    mass_lost,xmom_lost,ymom_lost,zmom_lost, &
+                    eden_lost,xang_lost,yang_lost,zang_lost, &
+                    verbose)
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
 #ifdef RADIATION
@@ -557,7 +554,7 @@ contains
 
                                    limit_fluxes_on_small_dens, NQ
     use prob_params_module, only : mom_flux_has_p, domlo_level, domhi_level, center
-    use bl_constants_module, only : ZERO, HALF
+    use amrex_constants_module, only : ZERO, HALF
     use advection_util_module, only: limit_hydro_fluxes_on_small_dens, normalize_species_fluxes, calc_pdivu
     use castro_util_module, only : position, linear_to_angular_momentum
     use amrinfo_module, only : amr_level
@@ -571,7 +568,7 @@ contains
 #endif
 
     use amrex_fort_module, only : rt => amrex_real
-    integer, intent(in) :: lo(2), hi(2)
+    integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: uin_lo(3), uin_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: uout_lo(3), uout_hi(3)
@@ -611,7 +608,7 @@ contains
     real(rt)        , intent(in) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2))
     real(rt)        , intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2))
     real(rt)        , intent(in) :: div(lo(1):hi(1)+1,lo(2):hi(2)+1)
-    real(rt)        , intent(in) :: dx, dy, dt
+    real(rt)        , intent(in) :: dx(3), dt
     real(rt)        , intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
     real(rt)        , intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
 
@@ -647,7 +644,7 @@ contains
                     q2, q2_lo, q2_hi, &
                     area2, area2_lo, area2_hi, &
                     vol, vol_lo, vol_hi, &
-                    [dx, dy, ZERO], pdivu, [lo(1), lo(2), 0], [hi(1), hi(2), 0])
+                    dx, pdivu, [lo(1), lo(2), 0], [hi(1), hi(2), 0])
 
 #ifdef RADIATION
     if (ngroups .gt. 1) then
@@ -677,7 +674,7 @@ contains
                 div1 = difmag*min(ZERO, div1)
 
                 flux1(i,j,n) = flux1(i,j,n) + &
-                     dx*div1*(uin(i,j,n) - uin(i-1,j,n))
+                     dx(1)*div1*(uin(i,j,n) - uin(i-1,j,n))
              enddo
           enddo
 
@@ -687,7 +684,7 @@ contains
                 div1 = difmag*min(ZERO,div1)
 
                 flux2(i,j,n) = flux2(i,j,n) + &
-                     dy*div1*(uin(i,j,n) - uin(i,j-1,n))
+                     dx(2)*div1*(uin(i,j,n) - uin(i,j-1,n))
              enddo
           enddo
 
@@ -702,14 +699,14 @@ contains
                                              area1, area1_lo, area1_hi, &
                                              flux2, flux2_lo, flux2_hi, &
                                              area2, area2_lo, area2_hi, &
-                                             [lo(1), lo(2), 0], [hi(1), hi(2), 0], dt, [dx, dy, ZERO])
+                                             lo, hi, dt, dx)
     endif
 
     ! Normalize the species fluxes.
 
     call normalize_species_fluxes(flux1, flux1_lo, flux1_hi, &
                                   flux2, flux2_lo, flux2_hi, &
-                                  [lo(1), lo(2), 0], [hi(1), hi(2), 0])
+                                  lo, hi)
 
 #ifdef RADIATION
     do g = 0, ngroups-1
@@ -719,7 +716,7 @@ contains
              div1 = difmag*min(ZERO, div1)
 
              rflux1(i,j,g) = rflux1(i,j,g) &
-                  + dx*div1*(Erin(i,j,g) - Erin(i-1,j,g))
+                  + dx(1)*div1*(Erin(i,j,g) - Erin(i-1,j,g))
           enddo
        enddo
     enddo
@@ -731,7 +728,7 @@ contains
              div1 = difmag*min(ZERO, div1)
 
              rflux2(i,j,g) = rflux2(i,j,g) &
-                  + dy*div1*(Erin(i,j,g) - Erin(i,j-1,g))
+                  + dx(2)*div1*(Erin(i,j,g) - Erin(i,j-1,g))
           enddo
        enddo
     enddo
@@ -767,7 +764,7 @@ contains
     if (.not. mom_flux_has_p(1)%comp(UMX)) then
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-             update(i,j,UMX) = update(i,j,UMX) - (q1(i+1,j,GDPRES) - q1(i,j,GDPRES)) / dx
+             update(i,j,UMX) = update(i,j,UMX) - (q1(i+1,j,GDPRES) - q1(i,j,GDPRES)) / dx(1)
              !update(i,j,UMY) = update(i,j,UMY) - (pgdy(i,j+1)-pgdy(i,j)) / dy
           enddo
        enddo
@@ -800,7 +797,7 @@ contains
           ! the gas pressure in the momentum flux for all Cartesian coordinate
           ! directions
           if (.not. mom_flux_has_p(1)%comp(UMX)) then
-             dpdx = ( q1(i+1,j,GDPRES) - q1(i,j,GDPRES))/ dx
+             dpdx = ( q1(i+1,j,GDPRES) - q1(i,j,GDPRES))/ dx(1)
           else
              dpdx = ZERO
           endif
@@ -815,8 +812,8 @@ contains
           do g= 0, ngroups-1
              lamc = FOURTH*(q1(i,j,GDLAMS+g) + q1(i+1,j,GDLAMS+g) + &
                             q2(i,j,GDLAMS+g) + q2(i,j+1,GDLAMS+g))
-             dprdx = dprdx + lamc*(q1(i+1,j,GDERADS+g) - q1(i,j,GDERADS+g))/dx
-             dprdy = dprdy + lamc*(q2(i,j+1,GDERADS+g) - q2(i,j,GDERADS+g))/dy
+             dprdx = dprdx + lamc*(q1(i+1,j,GDERADS+g) - q1(i,j,GDERADS+g))/dx(1)
+             dprdy = dprdy + lamc*(q2(i,j+1,GDERADS+g) - q2(i,j,GDERADS+g))/dx(2)
           end do
 
           ! we now want to compute the change in kinetic energy -- we
@@ -868,17 +865,17 @@ contains
              divu = (q1(i+1,j,GDU)*area1(i+1,j) - q1(i,j,GDU)*area1(i,j) + &
                      q2(i,j+1,GDV)*area2(i,j+1) - q2(i,j,GDV)*area2(i,j)) / vol(i,j)
 
-             dudx(1) = (q1(i+1,j,GDU) - q1(i,j,GDU))/dx
-             dudx(2) = (q1(i+1,j,GDV) - q1(i,j,GDV))/dx
+             dudx(1) = (q1(i+1,j,GDU) - q1(i,j,GDU))/dx(1)
+             dudx(2) = (q1(i+1,j,GDV) - q1(i,j,GDV))/dx(1)
 
-             dudy(1) = (q2(i,j+1,GDU) - q2(i,j,GDU))/dy
-             dudy(2) = (q2(i,j+1,GDV) - q2(i,j,GDV))/dy
+             dudy(1) = (q2(i,j+1,GDU) - q2(i,j,GDU))/dx(2)
+             dudy(2) = (q2(i,j+1,GDV) - q2(i,j,GDV))/dx(2)
 
              ! Note that for single group, fspace_type is always 1
              do g=0, ngroups-1
 
-                nhat(1) = (q1(i+1,j,GDERADS+g) - q1(i,j,GDERADS+g))/dx
-                nhat(2) = (q2(i,j+1,GDERADS+g) - q2(i,j,GDERADS+g))/dy
+                nhat(1) = (q1(i+1,j,GDERADS+g) - q1(i,j,GDERADS+g))/dx(1)
+                nhat(2) = (q2(i,j+1,GDERADS+g) - q2(i,j,GDERADS+g))/dx(2)
 
                 GnDotu(1) = dot_product(nhat, dudx)
                 GnDotu(2) = dot_product(nhat, dudy)
@@ -903,8 +900,8 @@ contains
                    f1yp = HALF*(ONE-Eddfyp)
                    f1ym = HALF*(ONE-Eddfym)
 
-                   Gf1E(1) = (f1xp*q1(i+1,j,GDERADS+g) - f1xm*q1(i,j,GDERADS+g)) / dx
-                   Gf1E(2) = (f1yp*q2(i,j+1,GDERADS+g) - f1ym*q2(i,j,GDERADS+g)) / dy
+                   Gf1E(1) = (f1xp*q1(i+1,j,GDERADS+g) - f1xm*q1(i,j,GDERADS+g)) / dx(1)
+                   Gf1E(2) = (f1yp*q2(i,j+1,GDERADS+g) - f1ym*q2(i,j,GDERADS+g)) / dx(2)
 
                    Egdc = 0.25e0_rt*(q1(i,j,GDERADS+g) + q1(i+1,j,GDERADS+g) + &
                                   q2(i,j,GDERADS+g) + q2(i,j+1,GDERADS+g))

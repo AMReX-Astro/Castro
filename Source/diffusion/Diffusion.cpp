@@ -2,7 +2,8 @@
 #include "Diffusion.H"
 #include "Castro.H"
 #include "Castro_F.H"
-#include <AMReX_FMultiGrid.H>
+#include <AMReX_MLABecLaplacian.H>
+#include <AMReX_MLMG.H>
 
 #define MAX_LEV 15
 
@@ -10,8 +11,6 @@
 
 using namespace amrex;
 
-int  Diffusion::stencil_type = CC_CROSS_STENCIL;
- 
 Diffusion::Diffusion(Amr* Parent, BCRec* _phys_bc)
   : 
     parent(Parent),
@@ -42,6 +41,14 @@ Diffusion::read_params ()
     }
 }
 
+
+void 
+Diffusion::output_job_info_params(std::ostream& jobInfoFile)
+{
+#include "diffusion_job_info_tests.H"
+}
+
+
 void
 Diffusion::install_level (int                   level,
                           AmrLevel*             level_data,
@@ -66,52 +73,9 @@ Diffusion::applyop (int level, MultiFab& Temperature,
                     MultiFab& CrseTemp, MultiFab& DiffTerm, 
                     Vector<std::unique_ptr<MultiFab> >& temp_cond_coef)
 {
-    if (verbose && ParallelDescriptor::IOProcessor()) {
-        std::cout << "   " << '\n';
-        std::cout << "... compute diffusive term at level " << level << '\n';
-    }
-
-    Vector<std::unique_ptr<MultiFab> > coeffs_curv;
-#if (BL_SPACEDIM < 3)
-    // NOTE: we just pass DiffTerm here to use in the MFIter loop...
-    if (Geometry::IsRZ() || Geometry::IsSPHERICAL())
-    {
-	coeffs_curv.resize(BL_SPACEDIM);
-
-	for (int i = 0; i< BL_SPACEDIM; ++i) {
-	    coeffs_curv[i].reset(new MultiFab(temp_cond_coef[i]->boxArray(),
-					      temp_cond_coef[i]->DistributionMap(),
-					      1, 0));
-	    MultiFab::Copy(*coeffs_curv[i], *temp_cond_coef[i], 0, 0, 1, 0);
-	}
-
-	applyMetricTerms(0, DiffTerm, coeffs_curv);
-    }
-#endif
-
-    auto & coeffs = (coeffs_curv.size() > 0) ? coeffs_curv : temp_cond_coef;
-
-    IntVect crse_ratio = level > 0 ? parent->refRatio(level-1)
-                                   : IntVect::TheZeroVector();
-
-    FMultiGrid fmg(parent->Geom(level), level, crse_ratio);
-
-    if (level == 0) {
-	fmg.set_bc(mg_bc, Temperature);
-    } else {
-	fmg.set_bc(mg_bc, CrseTemp, Temperature);
-    }
-
-    fmg.set_diffusion_coeffs(amrex::GetVecOfPtrs(coeffs));
-
-    fmg.applyop(Temperature, DiffTerm);
-
-#if (BL_SPACEDIM < 3)
-    // Do this to unweight Res
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
-	unweight_cc(level, DiffTerm);
-#endif
+    applyop_mlmg(level, Temperature, CrseTemp, DiffTerm, temp_cond_coef);
 }
+
 
 #if (BL_SPACEDIM == 1)
 void
@@ -119,39 +83,7 @@ Diffusion::applyViscOp (int level, MultiFab& Vel,
                         MultiFab& CrseVel, MultiFab& ViscTerm, 
                         Vector<std::unique_ptr<MultiFab> >& visc_coeff)
 {
-    if (verbose && ParallelDescriptor::IOProcessor()) {
-        std::cout << "   " << '\n';
-        std::cout << "... compute second part of viscous term at level " << level << '\n';
-    }
-
-    IntVect crse_ratio = level > 0 ? parent->refRatio(level-1)
-                                   : IntVect::TheZeroVector();
-
-    FMultiGrid fmg(parent->Geom(level), level, crse_ratio);
-
-    if (level == 0) {
-	fmg.set_bc(mg_bc, Vel);
-    } else {
-	fmg.set_bc(mg_bc, CrseVel, Vel);
-    }
-
-    // Here we DO NOT multiply the coefficients by (1/r^2) for spherical coefficients
-    // because we are computing (1/r^2) d/dr (const * d/dr(r^2 u))
-    fmg.set_diffusion_coeffs(amrex::GetVecOfPtrs(visc_coeff));
-
-#if (BL_SPACEDIM < 3)
-    // Here we weight the Vel going into the FMG applyop
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
-	weight_cc(level, Vel);
-#endif
-
-    fmg.applyop(Vel, ViscTerm);
-
-#if (BL_SPACEDIM < 3)
-    // Do this to unweight Res
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
-	unweight_cc(level, ViscTerm);
-#endif
+    applyViscOp_mlmg(level, Vel, CrseVel, ViscTerm, visc_coeff);
 }
 #endif
 
@@ -225,47 +157,119 @@ void
 Diffusion::make_mg_bc ()
 {
     const Geometry& geom = parent->Geom(0);
-    for ( int dir = 0; dir < BL_SPACEDIM; ++dir )
-    {
-        if ( geom.isPeriodic(dir) )
-        {
-            mg_bc[2*dir + 0] = 0;
-            mg_bc[2*dir + 1] = 0;
-        }
-        else
-        {
-            if (phys_bc->lo(dir) == Symmetry   || 
-                phys_bc->lo(dir) == SlipWall   || 
-                phys_bc->lo(dir) == NoSlipWall || 
-                phys_bc->lo(dir) == Outflow)   
-            { 
-              mg_bc[2*dir + 0] = MGT_BC_NEU;
-            }
-            else if (phys_bc->lo(dir) ==  Inflow)
-            { 
-              mg_bc[2*dir + 0] = MGT_BC_DIR;
-            } else {
-              amrex::Error("Failed to set lo mg_bc in Diffusion::make_mg_bc" );
-            }
 
-            if (phys_bc->hi(dir) == Symmetry   || 
-                phys_bc->hi(dir) == SlipWall   || 
-                phys_bc->hi(dir) == NoSlipWall || 
-                phys_bc->hi(dir) == Outflow)   
-            {
-              mg_bc[2*dir + 1] = MGT_BC_NEU;
-            } 
-            else if (phys_bc->hi(dir) ==  Inflow)
-            { 
-              mg_bc[2*dir + 0] = MGT_BC_DIR;
+    for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
+        if (geom.isPeriodic(idim)) {
+            mlmg_lobc[idim] = MLLinOp::BCType::Periodic;
+            mlmg_hibc[idim] = MLLinOp::BCType::Periodic;
+        } else {
+            if (phys_bc->lo(idim) == Inflow) {
+                mlmg_lobc[idim] = MLLinOp::BCType::Dirichlet;
             } else {
-              amrex::Error("Failed to set hi mg_bc in Diffusion::make_mg_bc" );
+                mlmg_lobc[idim] = MLLinOp::BCType::Neumann;
+            }
+            if (phys_bc->hi(idim) == Symmetry) {
+                mlmg_hibc[idim] = MLLinOp::BCType::Dirichlet;
+            } else {
+                mlmg_hibc[idim] = MLLinOp::BCType::Neumann;
             }
         }
     }
 
     // Set Neumann bc at r=0.
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
-        mg_bc[0] = MGT_BC_NEU;
+    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
+        mlmg_lobc[0] = MLLinOp::BCType::Neumann;
+    }
+
 }
 
+void
+Diffusion::applyop_mlmg (int level, MultiFab& Temperature, 
+                         MultiFab& CrseTemp, MultiFab& DiffTerm, 
+                         Vector<std::unique_ptr<MultiFab> >& temp_cond_coef)
+{
+    if (verbose && ParallelDescriptor::IOProcessor()) {
+        std::cout << "   " << '\n';
+        std::cout << "... compute diffusive term at level " << level << '\n';
+    }
+
+    const Geometry& geom = parent->Geom(level);
+    const BoxArray& ba = Temperature.boxArray();
+    const DistributionMapping& dm = Temperature.DistributionMap();
+    
+    MLABecLaplacian mlabec({geom}, {ba}, {dm},
+                           LPInfo().setMetricTerm(true).setMaxCoarseningLevel(0));
+    mlabec.setMaxOrder(mlmg_maxorder);
+
+    mlabec.setDomainBC(mlmg_lobc, mlmg_hibc);
+
+    if (level > 0) {
+        const auto& rr = parent->refRatio(level-1);
+        mlabec.setCoarseFineBC(&CrseTemp, rr[0]);
+    }
+    mlabec.setLevelBC(0, &Temperature);
+
+    mlabec.setScalars(0.0, -1.0);
+    mlabec.setBCoeffs(0, {AMREX_D_DECL(temp_cond_coef[0].get(),
+                                       temp_cond_coef[1].get(),
+                                       temp_cond_coef[2].get())});
+
+    MLMG mlmg(mlabec);
+    mlmg.setVerbose(verbose);
+    mlmg.apply({&DiffTerm}, {&Temperature});
+}
+
+void
+Diffusion::applyViscOp_mlmg (int level, MultiFab& Vel, 
+                            MultiFab& CrseVel, MultiFab& ViscTerm, 
+                            Vector<std::unique_ptr<MultiFab> >& visc_coeff)
+{
+    if (verbose && ParallelDescriptor::IOProcessor()) {
+        std::cout << "   " << '\n';
+        std::cout << "... compute second part of viscous term at level " << level << '\n';
+    }
+
+    const Geometry& geom = parent->Geom(level);
+    const BoxArray& ba = Vel.boxArray();
+    const DistributionMapping& dm = Vel.DistributionMap();
+    
+    MLABecLaplacian mlabec({geom}, {ba}, {dm},
+                           LPInfo().setMetricTerm(false).setMaxCoarseningLevel(0));
+    mlabec.setMaxOrder(mlmg_maxorder);
+
+    mlabec.setDomainBC(mlmg_lobc, mlmg_hibc);
+
+    // Here are computing (1/r^2) d/dr (const * d/dr(r^2 u))
+
+#if (BL_SPACEDIM < 3)
+    // Here we weight the Vel going into the FMG applyop
+    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
+	weight_cc(level, Vel);
+        if (level > 0) {
+            weight_cc(level, CrseVel);
+        }
+    }
+#endif
+
+    if (level > 0) {
+        const auto& rr = parent->refRatio(level-1);
+        mlabec.setCoarseFineBC(&CrseVel, rr[0]);
+    }
+    mlabec.setLevelBC(0, &Vel);
+
+    mlabec.setScalars(0.0, -1.0);
+    mlabec.setBCoeffs(0, {AMREX_D_DECL(visc_coeff[0].get(),
+                                       visc_coeff[1].get(),
+                                       visc_coeff[2].get())});
+
+    MLMG mlmg(mlabec);
+    mlmg.setVerbose(verbose);
+    mlmg.apply({&ViscTerm}, {&Vel});
+
+#if (BL_SPACEDIM < 3)
+    // Do this to unweight Res
+    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
+	unweight_cc(level, ViscTerm);
+    }
+#endif
+}

@@ -7,10 +7,9 @@ module problem_tagging_module
 
 contains
 
-  subroutine set_problem_tags(tag,tagl1,tagl2,tagh1,tagh2, &
+  subroutine set_problem_tags(lo, hi, tag,tagl1,tagl2,tagh1,tagh2, &
                               state,state_l1,state_l2,state_h1,state_h2,&
                               set,clear,&
-                              lo,hi,&
                               dx,problo,time,level) bind(C, name="set_problem_tags")
 
     use meth_params_module, only: URHO, NVAR, UFS

@@ -1,23 +1,24 @@
 module ctu_advection_module
 
-  use bl_constants_module
+  use amrex_constants_module
+  use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
 
   private
 
-  public umeth3d, consup
+  public umeth, consup
 
 contains
 
 ! ::: ---------------------------------------------------------------
-! ::: :: UMETH3D     Compute hyperbolic fluxes using unsplit second
-! ::: ::               order Godunov integrator.
+! ::: :: UMETH     Compute hyperbolic fluxes using unsplit second
+! ::: ::           order Godunov integrator.
 ! ::: ::
 ! ::: :: inputs/outputs
 ! ::: :: q           => (const)  input state, primitives
-! ::: :: qaux        => (const)  auxillary hydro data
+! ::: :: qaux        => (const)  auxiliary hydro data
 ! ::: :: flatn       => (const)  flattening parameter
 ! ::: :: src         => (const)  source
 ! ::: :: nx          => (const)  number of cells in X direction
@@ -30,32 +31,36 @@ contains
 ! ::: :: flux3      <=  (modify) flux in Z direction on Z edges
 ! ::: ----------------------------------------------------------------
 
-  subroutine umeth3d(q, qd_lo, qd_hi, &
-                     flatn, &
-                     qaux, qa_lo, qa_hi, &
-                     srcQ, src_lo, src_hi, &
-                     lo, hi, dx, dt, &
-                     uout, uout_lo, uout_hi, &
-                     flux1, fd1_lo, fd1_hi, &
-                     flux2, fd2_lo, fd2_hi, &
-                     flux3, fd3_lo, fd3_hi, &
+  subroutine umeth(q, qd_lo, qd_hi, &
+                   flatn, &
+                   qaux, qa_lo, qa_hi, &
+                   srcQ, src_lo, src_hi, &
+                   lo, hi, dx, dt, &
+                   uout, uout_lo, uout_hi, &
+                   flux1, fd1_lo, fd1_hi, &
+                   flux2, fd2_lo, fd2_hi, &
+                   flux3, fd3_lo, fd3_hi, &
 #ifdef RADIATION
-                     rflux1, rfd1_lo, rfd1_hi, &
-                     rflux2, rfd2_lo, rfd2_hi, &
-                     rflux3, rfd3_lo, rfd3_hi, &
+                   rflux1, rfd1_lo, rfd1_hi, &
+                   rflux2, rfd2_lo, rfd2_hi, &
+                   rflux3, rfd3_lo, rfd3_hi, &
 #endif
-                     q1, q1_lo, q1_hi, &
-                     q2, q2_lo, q2_hi, &
-                     q3, q3_lo, q3_hi, &
-                     domlo, domhi)
+                   q1, q1_lo, q1_hi, &
+                   q2, q2_lo, q2_hi, &
+                   q3, q3_lo, q3_hi, &
+                   area1, area1_lo, area1_hi, &
+                   area2, area2_lo, area2_hi, &
+                   area3, area3_lo, area3_hi, &
+                   vol, vol_lo, vol_hi, &
+                   domlo, domhi)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : QVAR, NQ, NVAR, QPRES, QRHO, QU, QW, &
                                    QFS, QFX, QTEMP, QREINT, &
                                    QC, QGAMC, NQAUX, &
                                    NGDNV, GDU, GDV, GDW, GDPRES, &
                                    ppm_type, &
-                                   use_pslope, ppm_trace_sources, ppm_temp_fix, &
+                                   use_pslope, ppm_temp_fix, &
                                    hybrid_riemann
     use trace_ppm_module, only : tracexy_ppm, tracez_ppm
     use trace_module, only : tracexy, tracez
@@ -67,7 +72,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use riemann_module, only: cmpflx
-    use bl_constants_module
+    use amrex_constants_module
 #ifdef RADIATION
     use rad_params_module, only : ngroups
     use trace_ppm_rad_module, only : tracexy_ppm_rad, tracez_ppm_rad
@@ -92,6 +97,10 @@ contains
     integer, intent(in) :: q1_lo(3), q1_hi(3)
     integer, intent(in) :: q2_lo(3), q2_hi(3)
     integer, intent(in) :: q3_lo(3), q3_hi(3)
+    integer, intent(in) :: area1_lo(3), area1_hi(3)
+    integer, intent(in) :: area2_lo(3), area2_hi(3)
+    integer, intent(in) :: area3_lo(3), area3_hi(3)
+    integer, intent(in) ::   vol_lo(3),   vol_hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
 #ifdef RADIATION
     integer, intent(in) :: rfd1_lo(3), rfd1_hi(3)
@@ -111,6 +120,11 @@ contains
     real(rt)        , intent(inout) ::    q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NGDNV)
     real(rt)        , intent(inout) ::    q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NGDNV)
     real(rt)        , intent(inout) ::    q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NGDNV)
+    real(rt)        , intent(in) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
+    real(rt)        , intent(in) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2),area2_lo(3):area2_hi(3))
+    real(rt)        , intent(in) :: area3(area3_lo(1):area3_hi(1),area3_lo(2):area3_hi(2),area3_lo(3):area3_hi(3))
+    real(rt)        , intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+
     real(rt)        , intent(in) :: dx(3), dt
 
 #ifdef RADIATION
@@ -373,47 +387,46 @@ contains
        if (ppm_type .gt. 0) then
 
           do n = 1, NQ
-             call ppm_reconstruct(q(:,:,:,n  ), qd_lo, qd_hi, &
+             call ppm_reconstruct(q, qd_lo, qd_hi, NQ, n, &
                                   flatn, qd_lo, qd_hi, &
                                   sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
                                   lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
 
-             call ppm_int_profile(q(:,:,:,n  ), qd_lo, qd_hi, &
-                                  q(:,:,:,QU:QW), qd_lo, qd_hi, &
-                                  qaux(:,:,:,QC), qa_lo, qa_hi, &
+             call ppm_int_profile(q, qd_lo, qd_hi, NQ, n, &
+                                  q, qd_lo, qd_hi, &
+                                  qaux, qa_lo, qa_hi, &
                                   sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
-                                  Ip(:,:,:,:,:,n), Im(:,:,:,:,:,n), It_lo, It_hi, &
+                                  Ip, Im, It_lo, It_hi, NQ, n, &
                                   lo(1), lo(2), hi(1), hi(2), dx, dt, k3d, kc)
           end do
 
-          if (ppm_trace_sources .eq. 1) then
-             do n=1,QVAR
-                call ppm_reconstruct(srcQ(:,:,:,n), src_lo, src_hi, &
-                                     flatn, qd_lo, qd_hi, &
-                                     sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
-                                     lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
-
-                call ppm_int_profile(srcQ(:,:,:,n), src_lo, src_hi, &
-                                     q(:,:,:,QU:QW), qd_lo, qd_hi, &
-                                     qaux(:,:,:,QC), qa_lo, qa_hi, &
-                                     sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
-                                     Ip_src(:,:,:,:,:,n), Im_src(:,:,:,:,:,n), It_lo, It_hi, &
-                                     lo(1), lo(2), hi(1), hi(2), dx, dt, k3d, kc)
-             enddo
-          endif
-
-          ! this probably doesn't support radiation
-          if (ppm_temp_fix /= 1) then
-             call ppm_reconstruct(qaux(:,:,:,QGAMC), qa_lo, qa_hi, &
+          ! source terms
+          do n = 1, QVAR
+             call ppm_reconstruct(srcQ, src_lo, src_hi, QVAR, n, &
                                   flatn, qd_lo, qd_hi, &
                                   sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
                                   lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
 
-             call ppm_int_profile(qaux(:,:,:,QGAMC), qa_lo, qa_hi, &
-                                  q(:,:,:,QU:QW), qd_lo, qd_hi, &
-                                  qaux(:,:,:,QC), qa_lo, qa_hi, &
+             call ppm_int_profile(srcQ, src_lo, src_hi, QVAR, n, &
+                                  q, qd_lo, qd_hi, &
+                                  qaux, qa_lo, qa_hi, &
                                   sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
-                                  Ip_gc(:,:,:,:,:,1), Im_gc(:,:,:,:,:,1), It_lo, It_hi, &
+                                  Ip_src, Im_src, It_lo, It_hi, QVAR, n, &
+                                  lo(1), lo(2), hi(1), hi(2), dx, dt, k3d, kc)
+          enddo
+
+          ! this probably doesn't support radiation
+          if (ppm_temp_fix /= 1) then
+             call ppm_reconstruct(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
+                                  flatn, qd_lo, qd_hi, &
+                                  sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
+                                  lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
+
+             call ppm_int_profile(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
+                                  q, qd_lo, qd_hi, &
+                                  qaux, qa_lo, qa_hi, &
+                                  sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
+                                  Ip_gc, Im_gc, It_lo, It_hi, 1, 1, &
                                   lo(1), lo(2), hi(1), hi(2), dx, dt, k3d, kc)
           else
 
@@ -478,7 +491,9 @@ contains
        else
 
 #ifdef RADIATION
-          call bl_error("ppm_type <=0 is not supported in with radiation")
+#ifndef AMREX_USE_CUDA
+          call amrex_error("ppm_type <=0 is not supported in with radiation")
+#endif          
 #endif
 
           ! Compute all slopes at kc (k3d)
@@ -897,7 +912,7 @@ contains
 
     call bl_deallocate(shk)
 
-  end subroutine umeth3d
+  end subroutine umeth
 
 ! :::
 ! ::: ------------------------------------------------------------------
@@ -930,7 +945,7 @@ contains
                     eden_lost, xang_lost, yang_lost, zang_lost, &
                     verbose)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UTEMP, NGDNV, NQ, &
 #ifdef RADIATION

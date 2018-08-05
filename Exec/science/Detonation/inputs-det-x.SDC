@@ -1,4 +1,4 @@
-# ------------------  INPUTSg TO MAIN PROGRAM  -------------------
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 10000
 stop_time =  2.e-4
 

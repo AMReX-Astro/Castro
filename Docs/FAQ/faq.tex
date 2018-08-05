@@ -75,7 +75,14 @@ make help
   (defaults to {\tt -lopenblas}).
 
 
+\item {\em How can I check to make sure the function signatures defined
+ in \cpp\ are consistent with their implementations in Fortran?}
 
+Use:
+\begin{verbatim}
+make typecheck
+\end{verbatim}
+This will compile the code and report on any mismatched function signatures.
 
 \end{enumerate}
 
@@ -146,6 +153,17 @@ make help
   space.  Note that since a multifab exists only on a single level, the
   integer indices here refer to the global index space on that level.
 
+
+\item {\em What if I want to see all the data in a \farraybox?}
+
+  You can simply output a FAB to {\tt std::cout}.  Imagine that you
+  are in an \mfiter\ loop, with a \multifab\ {\tt mf}:
+\begin{verbatim}
+    S = FArrayBox& mf[mfi];
+    std::cout << S << std::endl;
+\end{verbatim}
+  This will output the contents on the FAB, one zone per line.
+
 \end{enumerate}
 
 
@@ -194,6 +212,17 @@ Note that the parameter \runparam{amr.message\_int} controls how often
 the existence of these files is checked; by default it is 10, so the
 check will be done at the end of every timestep that is a multiple of 10.
 Set that to 1 in your inputs file if you'd like it to check every timestep.
+
+
+\item {\em How can I output plotfiles in single precision?}
+
+The \amrex\ runtime parameter:
+\begin{verbatim}
+fab.format = NATIVE_32
+\end{verbatim}
+controls this (put this in your inputs file).  Note: checkpoint files are unaffected 
+by this and will always be written out in the native precision (the `fab.format` parameter
+is overridden in the checkpoint code in \amrex).
 
 \end{enumerate}
 

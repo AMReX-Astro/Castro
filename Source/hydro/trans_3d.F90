@@ -1,6 +1,6 @@
 module transverse_module
 
-  use bl_constants_module
+  use amrex_constants_module, only : ZERO, ONE, HALF
 
   use network, only : nspec, naux
   use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
@@ -16,7 +16,7 @@ module transverse_module
                                  NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
                                  small_pres, small_temp, &
                                  npassive, upass_map, qpass_map, &
-                                 ppm_predict_gammae, ppm_trace_sources, ppm_type, &
+                                 ppm_predict_gammae, ppm_type, &
                                  transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
 #ifdef RADIATION
   use rad_params_module, only : ngroups
@@ -2444,20 +2444,24 @@ contains
           endif
 
           ! Convert back to primitive form
-          qpo(i,j,kc,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
+          qpo(i,j,kc,QRHO  ) = rrnewr        
           qpo(i,j,kc,QU    ) = runewr/rrnewr
           qpo(i,j,kc,QV    ) = rvnewr/rrnewr
           qpo(i,j,kc,QW    ) = rwnewr/rrnewr
 
-          ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
+          ! for ppm_type > 0 we already added the piecewise parabolic traced
           ! source terms to the normal edge states.
-          if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+          if (ppm_type == 0) then
+             qpo(i,j,kc,QRHO  ) = qpo(i,j,kc,QRHO  ) + hdt*srcQ(i,j,k3d,QRHO)
              qpo(i,j,kc,QU:QW) = qpo(i,j,kc,QU:QW) + hdt * srcQ(i,j,k3d,QU:QW)
           endif
 
           ! note: we run the risk of (rho e) being negative here
           rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
-          qpo(i,j,kc,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
+          qpo(i,j,kc,QREINT) = renewr - rhoekenr
+          if (ppm_type == 0) then
+             qpo(i,j,kc,QREINT) = qpo(i,j,kc,QREINT) + hdt*srcQ(i,j,k3d,QREINT)
+          endif
 
           if (.not. reset_state) then
              if (transverse_reset_rhoe == 1 .and. qpo(i,j,kc,QREINT) <= ZERO) then
@@ -2465,8 +2469,11 @@ contains
                 ! expression for updating (rho e).
                 qpo(i,j,kc,QREINT) = qp(i,j,kc,QREINT) &
                      - cdtdx*(fxy(i+1,j,kc,UEINT) - fxy(i,j,kc,UEINT) + pxav*dux) &
-                     - cdtdy*(fyx(i,j+1,kc,UEINT) - fyx(i,j,kc,UEINT) + pyav*duy) &
-                     + hdt*srcQ(i,j,k3d,QREINT)
+                     - cdtdy*(fyx(i,j+1,kc,UEINT) - fyx(i,j,kc,UEINT) + pyav*duy) 
+             endif
+
+             if (ppm_type == 0) then
+                qpo(i,j,kc,QREINT) = qpo(i,j,kc,QREINT) + hdt*srcQ(i,j,k3d,QREINT)
              endif
 
              ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
@@ -2475,7 +2482,10 @@ contains
              if (ppm_predict_gammae == 0) then
                 ! add the transverse term to the p evolution eq here
                 pnewr = qp(i,j,kc,QPRES) - pxnew - pynew
-                qpo(i,j,kc,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
+                qpo(i,j,kc,QPRES) = pnewr
+                if (ppm_type == 0) then
+                   qpo(i,j,kc,QPRES) = qpo(i,j,kc,QPRES) + hdt*srcQ(i,j,k3d,QPRES)
+                endif
              else
                 ! Update gammae with its transverse terms
                 qpo(i,j,kc,QGAME) = qp(i,j,kc,QGAME) + gexnew + geynew
@@ -2484,7 +2494,10 @@ contains
                 qpo(i,j,kc,QPRES) = qpo(i,j,kc,QREINT)*(qpo(i,j,kc,QGAME)-ONE)
              endif
           else
-             qpo(i,j,kc,QPRES) = qp(i,j,kc,QPRES) + hdt*srcQ(i,j,k3d,QPRES)
+             qpo(i,j,kc,QPRES) = qp(i,j,kc,QPRES)
+             if (ppm_type == 0) then
+                qpo(i,j,kc,QPRES) = qpo(i,j,kc,QPRES) + hdt*srcQ(i,j,k3d,QPRES)
+             endif
              qpo(i,j,kc,QGAME) = qp(i,j,kc,QGAME)
           endif
 
@@ -2574,20 +2587,24 @@ contains
              reset_state = .true.
           endif
 
-          qmo(i,j,kc,QRHO  ) = rrnewl        + hdt*srcQ(i,j,k3d-1,QRHO)
+          qmo(i,j,kc,QRHO  ) = rrnewl       
           qmo(i,j,kc,QU    ) = runewl/rrnewl
           qmo(i,j,kc,QV    ) = rvnewl/rrnewl
           qmo(i,j,kc,QW    ) = rwnewl/rrnewl
 
-          ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
+          ! for ppm_type > 0 we already added the piecewise parabolic traced
           ! source terms to the normal edge states.
-          if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+          if (ppm_type == 0) then
+             qmo(i,j,kc,QRHO  ) = qmo(i,j,kc,QRHO  ) + hdt*srcQ(i,j,k3d-1,QRHO)
              qmo(i,j,kc,QU:QW) = qmo(i,j,kc,QU:QW) + hdt * srcQ(i,j,k3d-1,QU:QW)
           endif
 
           ! note: we run the risk of (rho e) being negative here
           rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
-          qmo(i,j,kc,QREINT) = renewl - rhoekenl + hdt*srcQ(i,j,k3d-1,QREINT)
+          qmo(i,j,kc,QREINT) = renewl - rhoekenl
+          if (ppm_type == 0) then
+             qmo(i,j,kc,QREINT) = qmo(i,j,kc,QREINT) + hdt*srcQ(i,j,k3d-1,QREINT)
+          endif
 
           if (.not. reset_state) then
              if (transverse_reset_rhoe == 1 .and. qmo(i,j,kc,QREINT) <= ZERO) then
@@ -2595,8 +2612,10 @@ contains
                 ! expression for updating (rho e).
                 qmo(i,j,kc,QREINT) = qm(i,j,kc,QREINT) &
                      - cdtdx*(fxy(i+1,j,km,UEINT) - fxy(i,j,km,UEINT) + pxavm*duxm) &
-                     - cdtdy*(fyx(i,j+1,km,UEINT) - fyx(i,j,km,UEINT) + pyavm*duym) &
-                     + hdt*srcQ(i,j,k3d-1,QREINT)
+                     - cdtdy*(fyx(i,j+1,km,UEINT) - fyx(i,j,km,UEINT) + pyavm*duym)
+                if (ppm_type == 0) then
+                   qmo(i,j,kc,QREINT) = qmo(i,j,kc,QREINT) + hdt*srcQ(i,j,k3d-1,QREINT)
+                endif
              endif
 
              ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
@@ -2605,7 +2624,10 @@ contains
              if (ppm_predict_gammae == 0) then
                 ! add the transverse term to the p evolution eq here
                 pnewl = qm(i,j,kc,QPRES) - pxnewm - pynewm
-                qmo(i,j,kc,QPRES) = pnewl + hdt*srcQ(i,j,k3d-1,QPRES)
+                qmo(i,j,kc,QPRES) = pnewl
+                if (ppm_type == 0) then
+                   qmo(i,j,kc,QPRES) = qmo(i,j,kc,QPRES) + hdt*srcQ(i,j,k3d-1,QPRES)
+                endif
              else
                 ! Update gammae with its transverse terms
                 qmo(i,j,kc,QGAME) = qm(i,j,kc,QGAME) + gexnewm + geynewm
@@ -2614,7 +2636,10 @@ contains
                 qmo(i,j,kc,QPRES) = qmo(i,j,kc,QREINT)*(qmo(i,j,kc,QGAME)-ONE)
              endif
           else
-             qmo(i,j,kc,QPRES) = qm(i,j,kc,QPRES) + hdt*srcQ(i,j,k3d-1,QPRES)
+             qmo(i,j,kc,QPRES) = qm(i,j,kc,QPRES)
+             if (ppm_type == 0) then
+                qmo(i,j,kc,QPRES) = qmo(i,j,kc,QPRES) + hdt*srcQ(i,j,k3d-1,QPRES)
+             endif
              qmo(i,j,kc,QGAME) = qm(i,j,kc,QGAME)
           endif
 
@@ -2643,16 +2668,16 @@ contains
 #ifdef RADIATION
                      rfxz, &
 #endif
-                     fx_lo,fx_hi, &
+                     fx_lo, fx_hi, &
                      fzx, &
 #ifdef RADIATION
                      rfzx, &
 #endif
-                     fz_lo,fz_hi, &
-                     qx,qx_lo,qx_hi, &
-                     qz,qz_lo,qz_hi, &
-                     srcQ,src_lo,src_hi, &
-                     hdt,cdtdx,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
+                     fz_lo, fz_hi, &
+                     qx, qx_lo, qx_hi, &
+                     qz, qz_lo, qz_hi, &
+                     srcQ, src_lo, src_hi, &
+                     hdt, cdtdx, cdtdz, ilo, ihi, jlo, jhi, km, kc, k3d)
 
     use amrex_fort_module, only : rt => amrex_real
     integer :: qd_lo(3),qd_hi(3)
@@ -2885,27 +2910,33 @@ contains
                 reset_state = .true.
              endif
 
-             qpo(i,j,km,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
+             qpo(i,j,km,QRHO  ) = rrnewr       
              qpo(i,j,km,QU    ) = runewr/rrnewr
              qpo(i,j,km,QV    ) = rvnewr/rrnewr
              qpo(i,j,km,QW    ) = rwnewr/rrnewr
 
-             ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
+             ! for ppm_type > 0 we already added the piecewise parabolic traced
              ! source terms to the normal edge states.
-             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+             if (ppm_type == 0) then
+                qpo(i,j,km,QRHO  ) = qpo(i,j,km,QRHO  ) + hdt*srcQ(i,j,k3d,QRHO)
                 qpo(i,j,km,QU:QW) = qpo(i,j,km,QU:QW) + hdt * srcQ(i,j,k3d,QU:QW)
              endif
 
              ! note: we run the risk of (rho e) being negative here
              rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
-             qpo(i,j,km,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
+             qpo(i,j,km,QREINT) = renewr - rhoekenr
+             if (ppm_type == 0) then
+                qpo(i,j,km,QREINT) = qpo(i,j,km,QREINT) + hdt*srcQ(i,j,k3d,QREINT)
+             endif
 
              if (.not. reset_state) then
                 if (transverse_reset_rhoe == 1 .and. qpo(i,j,km,QREINT) <= ZERO) then
                    qpo(i,j,km,QREINT) = qp(i,j,km,QREINT) &
                         - cdtdx*(fxz(i+1,j,km,UEINT) - fxz(i,j,km,UEINT) + pxav*dux) &
-                        - cdtdz*(fzx(i  ,j,kc,UEINT) - fzx(i,j,km,UEINT) + pzav*duz) &
-                        + hdt*srcQ(i,j,k3d,QREINT)
+                        - cdtdz*(fzx(i  ,j,kc,UEINT) - fzx(i,j,km,UEINT) + pzav*duz)
+                   if (ppm_type == 0) then
+                      qpo(i,j,km,QREINT) = qpo(i,j,km,QREINT) + hdt*srcQ(i,j,k3d,QREINT)
+                   endif
                 endif
 
                 ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
@@ -2914,7 +2945,10 @@ contains
                 if (ppm_predict_gammae == 0) then
                    ! add the transverse term to the p evolution eq here
                    pnewr = qp(i,j,km,QPRES) - pxnew - pznew
-                   qpo(i,j,km,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
+                   qpo(i,j,km,QPRES) = pnewr
+                   if (ppm_type == 0) then
+                      qpo(i,j,km,QPRES) = qpo(i,j,km,QPRES) + hdt*srcQ(i,j,k3d,QPRES)
+                   endif
                 else
                    ! Update gammae with its transverse terms
                    qpo(i,j,km,QGAME) = qp(i,j,km,QGAME) + gexnew + geznew
@@ -2923,7 +2957,10 @@ contains
                    qpo(i,j,km,QPRES) = qpo(i,j,km,QREINT)*(qpo(i,j,km,QGAME)-ONE)
                 endif
              else
-                qpo(i,j,km,QPRES) = qp(i,j,km,QPRES) + hdt*srcQ(i,j,k3d,QPRES)
+                qpo(i,j,km,QPRES) = qp(i,j,km,QPRES)
+                if (ppm_type == 0) then
+                   qpo(i,j,km,QPRES) = qpo(i,j,km,QPRES) + hdt*srcQ(i,j,k3d,QPRES)
+                endif
                 qpo(i,j,km,QGAME) = qp(i,j,km,QGAME)
              endif
 
@@ -2989,20 +3026,24 @@ contains
                 reset_state = .true.
              endif
 
-             qmo(i,j+1,km,QRHO  ) = rrnewl        + hdt*srcQ(i,j,k3d,QRHO)
+             qmo(i,j+1,km,QRHO  ) = rrnewl        
              qmo(i,j+1,km,QU    ) = runewl/rrnewl
              qmo(i,j+1,km,QV    ) = rvnewl/rrnewl
              qmo(i,j+1,km,QW    ) = rwnewl/rrnewl
 
-             ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
+             ! for ppm_type > 0 we already added the piecewise parabolic traced
              ! source terms to the normal edge states.
-             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+             if (ppm_type == 0) then
+                qmo(i,j+1,km,QRHO  ) = qmo(i,j+1,km,QRHO  ) + hdt*srcQ(i,j,k3d,QRHO)
                 qmo(i,j+1,km,QU:QW) = qmo(i,j+1,km,QU:QW) + hdt * srcQ(i,j,k3d,QU:QW)
              endif
 
              ! note: we run the risk of (rho e) being negative here
              rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
-             qmo(i,j+1,km,QREINT) = renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
+             qmo(i,j+1,km,QREINT) = renewl - rhoekenl
+             if (ppm_type == 0) then
+                qmo(i,j+1,km,QREINT) = qmo(i,j+1,km,QREINT) + hdt*srcQ(i,j,k3d,QREINT)
+             endif
 
              if (.not. reset_state) then
                 if (transverse_reset_rhoe == 1 .and. qmo(i,j+1,km,QREINT) <= ZERO) then
@@ -3010,8 +3051,10 @@ contains
                    ! expression for updating (rho e).
                    qmo(i,j+1,km,QREINT) = qm(i,j+1,km,QREINT) &
                         - cdtdx*(fxz(i+1,j,km,UEINT) - fxz(i,j,km,UEINT) + pxav*dux) &
-                        - cdtdz*(fzx(i,j,kc,UEINT) - fzx(i,j,km,UEINT) + pzav*duz) &
-                        + hdt*srcQ(i,j,k3d,QREINT)
+                        - cdtdz*(fzx(i,j,kc,UEINT) - fzx(i,j,km,UEINT) + pzav*duz)
+                   if (ppm_type == 0) then
+                      qmo(i,j+1,km,QREINT) = qmo(i,j+1,km,QREINT) + hdt*srcQ(i,j,k3d,QREINT)
+                   endif
                 endif
 
                 ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
@@ -3020,7 +3063,10 @@ contains
                 if (ppm_predict_gammae == 0) then
                    ! add the transverse term to the p evolution eq here
                    pnewl = qm(i,j+1,km,QPRES) - pxnew - pznew
-                   qmo(i,j+1,km,QPRES) = pnewl + hdt*srcQ(i,j,k3d,QPRES)
+                   qmo(i,j+1,km,QPRES) = pnewl
+                   if (ppm_type == 0) then
+                      qmo(i,j+1,km,QPRES) = qmo(i,j+1,km,QPRES) + hdt*srcQ(i,j,k3d,QPRES)
+                   endif
                 else
                    ! Update gammae with its transverse terms
                    qmo(i,j+1,km,QGAME) = qm(i,j+1,km,QGAME) + gexnew + geznew
@@ -3029,7 +3075,10 @@ contains
                    qmo(i,j+1,km,QPRES) = qmo(i,j+1,km,QREINT)*(qmo(i,j+1,km,QGAME)-ONE)
                 endif
              else
-                qmo(i,j+1,km,QPRES) = qm(i,j+1,km,QPRES) + hdt*srcQ(i,j,k3d,QPRES)
+                qmo(i,j+1,km,QPRES) = qm(i,j+1,km,QPRES)
+                if (ppm_type == 0) then
+                   qmo(i,j+1,km,QPRES) = qmo(i,j+1,km,QPRES) + hdt*srcQ(i,j,k3d,QPRES)
+                endif
                 qmo(i,j+1,km,QGAME) = qm(i,j+1,km,QGAME)
              endif
 
@@ -3065,11 +3114,11 @@ contains
 #ifdef RADIATION
                      rfzy, &
 #endif
-                     fz_lo,fz_hi, &
-                     qy,qy_lo,qy_hi, &
-                     qz,qz_lo,qz_hi, &
-                     srcQ,src_lo,src_hi, &
-                     hdt,cdtdy,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
+                     fz_lo, fz_hi, &
+                     qy, qy_lo, qy_hi, &
+                     qz, qz_lo, qz_hi, &
+                     srcQ, src_lo, src_hi, &
+                     hdt, cdtdy, cdtdz, ilo, ihi, jlo, jhi, km, kc, k3d)
 
     use amrex_fort_module, only : rt => amrex_real
     integer :: qd_lo(3),qd_hi(3)
@@ -3078,7 +3127,7 @@ contains
     integer :: fz_lo(3),fz_hi(3)
     integer :: qy_lo(3),qy_hi(3)
     integer :: qz_lo(3),qz_hi(3)
-     integer :: src_lo(3),src_hi(3)
+    integer :: src_lo(3),src_hi(3)
     integer ilo,ihi,jlo,jhi,km,kc,k3d
 
 #ifdef RADIATION
@@ -3303,20 +3352,24 @@ contains
                 reset_state = .true.
              end if
 
-             qpo(i,j,km,QRHO  ) = rrnewr        + hdt*srcQ(i,j,k3d,QRHO)
+             qpo(i,j,km,QRHO  ) = rrnewr        
              qpo(i,j,km,QU    ) = runewr/rrnewr
              qpo(i,j,km,QV    ) = rvnewr/rrnewr
              qpo(i,j,km,QW    ) = rwnewr/rrnewr
 
-             ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
+             ! for ppm_type > 0 we already added the piecewise parabolic traced
              ! source terms to the normal edge states.
-             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+             if (ppm_type == 0) then
+                qpo(i,j,km,QRHO  ) = qpo(i,j,km,QRHO  ) + hdt*srcQ(i,j,k3d,QRHO)
                 qpo(i,j,km,QU:QW) = qpo(i,j,km,QU:QW) + hdt * srcQ(i,j,k3d,QU:QW)
              endif
 
              ! note: we run the risk of (rho e) being negative here
              rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
-             qpo(i,j,km,QREINT) = renewr - rhoekenr + hdt*srcQ(i,j,k3d,QREINT)
+             qpo(i,j,km,QREINT) = renewr - rhoekenr
+             if (ppm_type == 0) then
+                qpo(i,j,km,QREINT) = qpo(i,j,km,QREINT) + hdt*srcQ(i,j,k3d,QREINT)
+             endif
 
              if (.not. reset_state) then
                 if (transverse_reset_rhoe == 1 .and. qpo(i,j,km,QREINT) <= ZERO) then
@@ -3324,8 +3377,10 @@ contains
                    ! expression for updating (rho e).
                    qpo(i,j,km,QREINT) = qp(i,j,km,QREINT) &
                         - cdtdy*(fyz(i,j+1,km,UEINT) - fyz(i,j,km,UEINT) + pyav*duy) &
-                        - cdtdz*(fzy(i,j  ,kc,UEINT) - fzy(i,j,km,UEINT) + pzav*duz) &
-                        + hdt*srcQ(i,j,k3d,QREINT)
+                        - cdtdz*(fzy(i,j  ,kc,UEINT) - fzy(i,j,km,UEINT) + pzav*duz)
+                   if (ppm_type == 0) then
+                      qpo(i,j,km,QREINT) = qpo(i,j,km,QREINT) + hdt*srcQ(i,j,k3d,QREINT)
+                   endif
                 endif
 
                 ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
@@ -3334,7 +3389,10 @@ contains
                 if (ppm_predict_gammae == 0) then
                    ! add the transverse term to the p evolution eq here
                    pnewr = qp(i,j,km,QPRES) - pynew - pznew
-                   qpo(i,j,km,QPRES) = pnewr + hdt*srcQ(i,j,k3d,QPRES)
+                   qpo(i,j,km,QPRES) = pnewr
+                   if (ppm_type == 0) then
+                      qpo(i,j,km,QPRES) = qpo(i,j,km,QPRES) + hdt*srcQ(i,j,k3d,QPRES)
+                   endif
                 else
                    ! Update gammae with its transverse terms
                    qpo(i,j,km,QGAME) = qp(i,j,km,QGAME) + geynew + geznew
@@ -3343,7 +3401,10 @@ contains
                    qpo(i,j,km,QPRES) = qpo(i,j,km,QREINT)*(qpo(i,j,km,QGAME)-ONE)
                 end if
              else
-                qpo(i,j,km,QPRES) = qp(i,j,km,QPRES) + hdt*srcQ(i,j,k3d,QPRES)
+                qpo(i,j,km,QPRES) = qp(i,j,km,QPRES)
+                if (ppm_type == 0) then
+                   qpo(i,j,km,QPRES) = qpo(i,j,km,QPRES) + hdt*srcQ(i,j,k3d,QPRES)
+                endif
                 qpo(i,j,km,QGAME) = qp(i,j,km,QGAME)
              endif
 
@@ -3410,20 +3471,24 @@ contains
                 reset_state = .true.
              endif
 
-             qmo(i+1,j,km,QRHO   ) = rrnewl        + hdt*srcQ(i,j,k3d,QRHO)
+             qmo(i+1,j,km,QRHO   ) = rrnewl       
              qmo(i+1,j,km,QU     ) = runewl/rrnewl
              qmo(i+1,j,km,QV     ) = rvnewl/rrnewl
              qmo(i+1,j,km,QW     ) = rwnewl/rrnewl
 
-             ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
+             ! for ppm_type > 0 we already added the piecewise parabolic traced
              ! source terms to the normal edge states.
-             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+             if (ppm_type == 0) then
+                qmo(i+1,j,km,QRHO   ) = qmo(i+1,j,km,QRHO   ) + hdt*srcQ(i,j,k3d,QRHO)
                 qmo(i+1,j,km,QU:QW) = qmo(i+1,j,km,QU:QW) + hdt * srcQ(i,j,k3d,QU:QW)
              endif
 
              ! note: we run the risk of (rho e) being negative here
              rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
-             qmo(i+1,j,km,QREINT ) = renewl - rhoekenl + hdt*srcQ(i,j,k3d,QREINT)
+             qmo(i+1,j,km,QREINT ) = renewl - rhoekenl
+             if (ppm_type == 0) then
+                qmo(i+1,j,km,QREINT ) = qmo(i+1,j,km,QREINT ) + hdt*srcQ(i,j,k3d,QREINT)
+             endif
 
              if (.not. reset_state) then
                 if (transverse_reset_rhoe == 1 .and. qmo(i+1,j,km,QREINT) <= ZERO) then
@@ -3431,8 +3496,10 @@ contains
                    ! expression for updating (rho e).
                    qmo(i+1,j,km,QREINT ) = qm(i+1,j,km,QREINT) &
                         - cdtdy*(fyz(i,j+1,km,UEINT) - fyz(i,j,km,UEINT) + pyav*duy) &
-                        - cdtdz*(fzy(i,j  ,kc,UEINT) - fzy(i,j,km,UEINT) + pzav*duz) &
-                        + hdt*srcQ(i,j,k3d,QREINT)
+                        - cdtdz*(fzy(i,j  ,kc,UEINT) - fzy(i,j,km,UEINT) + pzav*duz)
+                   if (ppm_type == 0) then
+                      qmo(i+1,j,km,QREINT ) = qmo(i+1,j,km,QREINT ) + hdt*srcQ(i,j,k3d,QREINT)
+                   endif
                 endif
 
                 ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
@@ -3441,7 +3508,10 @@ contains
                 if (ppm_predict_gammae == 0) then
                    ! add the transverse term to the p evolution eq here
                    pnewl = qm(i+1,j,km,QPRES) - pynew - pznew
-                   qmo(i+1,j,km,QPRES  ) = pnewl + hdt*srcQ(i,j,k3d,QPRES)
+                   qmo(i+1,j,km,QPRES  ) = pnewl
+                   if (ppm_type == 0) then
+                      qmo(i+1,j,km,QPRES  ) = qmo(i+1,j,km,QPRES  ) + hdt*srcQ(i,j,k3d,QPRES)
+                   endif
                 else
                    ! Update gammae with its transverse terms
                    qmo(i+1,j,km,QGAME) = qm(i+1,j,km,QGAME) + geynew + geznew
@@ -3450,7 +3520,10 @@ contains
                    qmo(i+1,j,km,QPRES) = qmo(i+1,j,km,QREINT)*(qmo(i+1,j,km,QGAME)-ONE)
                 end if
              else
-                qmo(i+1,j,km,QPRES  ) = qm(i+1,j,km,QPRES) + hdt*srcQ(i,j,k3d,QPRES)
+                qmo(i+1,j,km,QPRES  ) = qm(i+1,j,km,QPRES)
+                if (ppm_type == 0) then 
+                   qmo(i+1,j,km,QPRES  ) = qmo(i+1,j,km,QPRES  ) + hdt*srcQ(i,j,k3d,QPRES)
+                endif
                 qmo(i+1,j,km,QGAME) = qm(i+1,j,km,QGAME)
              endif
 

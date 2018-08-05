@@ -6,13 +6,12 @@ module problem_tagging_module
 
 contains
 
-  subroutine set_problem_tags(tag,tag_lo,tag_hi, &
+  subroutine set_problem_tags(lo, hi, tag,tag_lo,tag_hi, &
                               state,state_lo,state_hi, &
                               set,clear,&
-                              lo,hi,&
                               dx,problo,time,level) bind(C,name='set_problem_tags')
 
-    use bl_constants_module, only: ZERO, HALF, TWO
+    use amrex_constants_module, only: ZERO, HALF, TWO
     use meth_params_module, only: NVAR, URHO, UTEMP
     use prob_params_module, only: center, probhi, dim, Symmetry, physbc_lo, physbc_hi, &
                                   n_error_buf, ref_ratio, blocking_factor, domlo_level, domhi_level
@@ -56,9 +55,9 @@ contains
 
              if (level < max_stellar_tagging_level) then
 
-                if (problem .eq. 0 .or. problem .eq. 4) then
+                if (problem .eq. 0 .or. problem .eq. 4 .or. problem .eq. 5) then
 
-                   ! For the collision and free-fall problems, we just want to tag every
+                   ! For the collision, free-fall, and TDE problems, we just want to tag every
                    ! zone that meets the density criterion; we don't want to bother with
                    ! the Roche lobe radius as that doesn't mean much in these cases.
 

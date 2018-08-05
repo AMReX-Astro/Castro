@@ -14,7 +14,8 @@ contains
                             reactions, r_lo, r_hi, &
                             weights, w_lo, w_hi, &
                             mask, m_lo, m_hi, &
-                            time, dt_react, strang_half) bind(C, name="ca_react_state")
+                            time, dt_react, strang_half, &
+                            success) bind(C, name="ca_react_state")
 
     use network           , only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, &
@@ -25,14 +26,14 @@ contains
 #ifdef SHOCK_VAR
     use meth_params_module, only : USHK, disable_shock_burning
 #endif
-#ifdef ACC
+#ifdef AMREX_USE_ACC
     use meth_params_module, only : do_acc
 #endif
     use prob_params_module, only : dx_level, dim
     use amrinfo_module, only : amr_level
     use burner_module
     use burn_type_module
-    use bl_constants_module
+    use amrex_constants_module
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use amrex_fort_module, only : rt => amrex_real
@@ -49,6 +50,7 @@ contains
     real(rt), intent(inout) :: weights(w_lo(1):w_hi(1),w_lo(2):w_hi(2),w_lo(3):w_hi(3))
     integer , intent(in   ) :: mask(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
     real(rt), intent(in   ) :: time, dt_react
+    integer , intent(inout) :: success
 
     integer          :: i, j, k, n
     real(rt)         :: rhoInv, rho_e_K, delta_e, delta_rho_e, dx_min
@@ -114,7 +116,6 @@ contains
 
              ! Ensure that the temperature going in is consistent with the internal energy.
 
-
              call burn_to_eos(burn_state_in, eos_state_in)
              call eos(eos_input_re, eos_state_in)
              call eos_to_burn(eos_state_in, burn_state_in)
@@ -148,7 +149,20 @@ contains
              burn_state_in % n_rhs = 0
              burn_state_in % n_jac = 0
 
+             ! Assume we will be successful, to start.
+
+             burn_state_in % success = .true.
+
              call burner(burn_state_in, burn_state_out, dt_react, time)
+
+             ! If we were unsuccessful, update the success flag and exit.
+
+             if (.not. burn_state_out % success) then
+
+                success = 0
+                return
+
+             end if
 
              ! Note that we want to update the total energy by taking
              ! the difference of the old rho*e and the new rho*e. If
@@ -229,7 +243,7 @@ contains
     use meth_params_module, only : USHK, disable_shock_burning
 #endif
     use integrator_module, only : integrator
-    use bl_constants_module, only : ZERO, HALF, ONE
+    use amrex_constants_module, only : ZERO, HALF, ONE
     use sdc_type_module, only : sdc_t, SRHO, SMX, SMZ, SEDEN, SEINT, SFS
 
     use amrex_fort_module, only : rt => amrex_real

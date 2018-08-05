@@ -284,8 +284,9 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
   Vector<Real> r;
   Real foo=1.e200;
 
-  Real *mat, *vec;
+  Real *vec;
   FArrayBox fnew;
+  FArrayBox matfab;
   for (MFIter vi(vector); vi.isValid(); ++vi) {
     i = vi.index();
     const Box &reg = grids[i];
@@ -314,7 +315,8 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
     vec = product[vi].dataPtr();
 
     int volume = reg.numPts();
-    mat = hypre_CTAlloc(double, size*volume);
+    matfab.resize(reg,size);
+    Real* mat = matfab.dataPtr();
 
     // build matrix interior
 
@@ -403,8 +405,6 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
 
     HYPRE_StructMatrixSetBoxValues(A0, loV(reg), hiV(reg),
 				   size, stencil_indices, mat);
-
-    hypre_TFree(mat);
   }
 
   HYPRE_StructMatrixAssemble(A0);
@@ -560,13 +560,13 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
   Vector<Real> r;
   Real foo=1.e200;
 
-  Real *mat;
+  FArrayBox matfab;
   for (MFIter ai(*acoefs); ai.isValid(); ++ai) {
     i = ai.index();
     const Box &reg = grids[i];
 
-    int volume = reg.numPts();
-    mat = hypre_CTAlloc(double, size*volume);
+    matfab.resize(reg,size);
+    Real* mat = matfab.dataPtr();
 
     // build matrix interior
 
@@ -634,8 +634,6 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 
     HYPRE_StructMatrixSetBoxValues(A, loV(reg), hiV(reg),
 				   size, stencil_indices, mat);
-
-    hypre_TFree(mat);
   }
 
   HYPRE_StructMatrixAssemble(A);

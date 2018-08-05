@@ -161,59 +161,24 @@ Castro::variableSetUp ()
   burner_init();
 #endif
 
+  const int dm = BL_SPACEDIM;
+
+
   //
   // Set number of state variables and pointers to components
   //
 
-  int cnt = 0;
-  Density = cnt++;
-  Xmom = cnt++;
-  Ymom = cnt++;
-  Zmom = cnt++;
-#ifdef HYBRID_MOMENTUM
-  Rmom = cnt++;
-  Lmom = cnt++;
-  Pmom = cnt++;
-#endif
-  Eden = cnt++;
-  Eint = cnt++;
-  Temp = cnt++;
-
-#ifdef NUM_ADV
-  NumAdv = NUM_ADV;
-#else
-  NumAdv = 0;
-#endif
-
-  if (NumAdv > 0)
-    {
-      FirstAdv = cnt;
-      cnt += NumAdv;
-    }
-
-  const int dm = BL_SPACEDIM;
-
   // Get the number of species from the network model.
   ca_get_num_spec(&NumSpec);
-
-  if (NumSpec > 0)
-    {
-      FirstSpec = cnt;
-      cnt += NumSpec;
-    }
 
   // Get the number of auxiliary quantities from the network model.
   ca_get_num_aux(&NumAux);
 
-  if (NumAux > 0)
-    {
-      FirstAux = cnt;
-      cnt += NumAux;
-    }
+  // Get the number of advected quantities -- set at compile time
+  ca_get_num_adv(&NumAdv);
 
-#ifdef SHOCK_VAR
-  Shock = cnt++;
-#endif
+
+#include "set_conserved.H"
 
   NUM_STATE = cnt;
 
@@ -239,20 +204,33 @@ Castro::variableSetUp ()
 
 
   // Read in the input values to Fortran.
-
   ca_set_castro_method_params();
 
-  ca_set_method_params(dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux,
-		       NumAdv,
+  // set the conserved, primitive, aux, and godunov indices in Fortran
+  ca_set_method_params(dm, Density, Xmom, 
+#ifdef HYBRID_MOMENTUM
+                       Rmom,
+#endif
+                       Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux,
 #ifdef SHOCK_VAR
 		       Shock,
 #endif
 		       gravity_type_name.dataPtr(), gravity_type_length);
 
   // Get the number of primitive variables from Fortran.
-
   ca_get_qvar(&QVAR);
+
+  // and the auxiliary variables
   ca_get_nqaux(&NQAUX);
+
+  // initialize the Godunov state array used in hydro 
+  ca_get_ngdnv(&NGDNV);
+
+  // NQ will be used to dimension the primitive variable state
+  // vector it will include the "pure" hydrodynamical variables +
+  // any radiation variables
+  ca_get_nq(&NQ);
+
 
   Real run_stop = ParallelDescriptor::second() - run_strt;
 
@@ -347,12 +325,15 @@ Castro::variableSetUp ()
 			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
-  // Source terms.
+  // Source terms -- for the CTU method, because we do characteristic
+  // tracing on the source terms, we need NUM_GROW ghost cells to do
+  // the reconstruction.  For MOL, on the otherhand, we only need 1
+  // (for the fourth-order stuff).
 
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point,NUM_GROW,NUM_STATE,
-			 &cell_cons_interp, state_data_extrap,store_in_checkpoint);
+			 StateDescriptor::Point, do_ctu ? NUM_GROW : 1, NUM_STATE,
+			 &cell_cons_interp, state_data_extrap, store_in_checkpoint);
 
 #ifdef ROTATION
   store_in_checkpoint = false;
@@ -379,16 +360,9 @@ Castro::variableSetUp ()
 #endif
 
 #ifdef SDC
-  // For SDC we want to store the source terms.
-
-  store_in_checkpoint = true;
-  desc_lst.addDescriptor(SDC_Source_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point,NUM_GROW,NUM_STATE,
-			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
-
-  // We also want to store the reactions source.
-
 #ifdef REACTIONS
+  // For SDC, we want to store the reactions source.
+
   store_in_checkpoint = true;
   desc_lst.addDescriptor(SDC_React_Type, IndexType::TheCellType(),
 			 StateDescriptor::Point,NUM_GROW,QVAR,
@@ -549,10 +523,6 @@ Castro::variableSetUp ()
 #endif
 
 #ifdef SDC
-  for (int i = 0; i < NUM_STATE; ++i)
-      state_type_source_names[i] = "sdc_sources_" + name[i];
-  desc_lst.setComponent(SDC_Source_Type,Density,state_type_source_names,source_bcs,
-                        BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
 #ifdef REACTIONS
   for (int i = 0; i < QVAR; ++i) {
       char buf[64];
@@ -663,6 +633,12 @@ Castro::variableSetUp ()
   //
   derive_lst.add("soundspeed",IndexType::TheCellType(),1,ca_dersoundspeed,the_same_box);
   derive_lst.addComponent("soundspeed",desc_lst,State_Type,Density,NUM_STATE);
+
+  //
+  // Gamma_1
+  //
+  derive_lst.add("Gamma_1",IndexType::TheCellType(),1,ca_dergamma1,the_same_box);
+  derive_lst.addComponent("Gamma_1",desc_lst,State_Type,Density,NUM_STATE);
 
   //
   // Mach number(M)
@@ -829,7 +805,7 @@ Castro::variableSetUp ()
   derive_lst.addComponent("maggrav",desc_lst,Gravity_Type,0,3);
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
   //
   // We want a derived type that corresponds to the number of particles
   // in each cell.  We only intend to use it in plotfiles for debugging
@@ -945,7 +921,7 @@ Castro::variableSetUp ()
     source_names[n] = "";
 
   source_names[ext_src] = "user-defined external";
-
+  source_names[thermo_src] = "pdivU source";
 #ifdef SPONGE
   source_names[sponge_src] = "sponge";
 #endif
@@ -967,82 +943,73 @@ Castro::variableSetUp ()
 #endif
 
 
-
   // method of lines Butcher tableau
-#define SECONDORDER_TVD
+  if (mol_order == 1) {
 
-#ifdef THIRDORDER
-  MOL_STAGES = 3;
+      // first order Euler
+      MOL_STAGES = 1;
 
-  a_mol.resize(MOL_STAGES);
-  for (int n = 0; n < MOL_STAGES; ++n)
-    a_mol[n].resize(MOL_STAGES);
+      a_mol.resize(MOL_STAGES);
+      for (int n = 0; n < MOL_STAGES; ++n)
+        a_mol[n].resize(MOL_STAGES);
 
-  a_mol[0] = {0,   0, 0};
-  a_mol[1] = {0.5, 0, 0};
-  a_mol[2] = {-1,  2, 0};
+      a_mol[0] = {1};
+      b_mol = {1.0};
+      c_mol = {0.0};
 
-  b_mol = {1./6., 2./3., 1./6.};
+  } else if (mol_order == 2) {
 
-  c_mol = {0.0, 0.5, 1};
-#endif
+    // second order TVD
+    MOL_STAGES = 2;
 
-#ifdef THIRDORDER_TVD
-  MOL_STAGES = 3;
+    a_mol.resize(MOL_STAGES);
+    for (int n = 0; n < MOL_STAGES; ++n)
+      a_mol[n].resize(MOL_STAGES);
 
-  a_mol.resize(MOL_STAGES);
-  for (int n = 0; n < MOL_STAGES; ++n)
-    a_mol[n].resize(MOL_STAGES);
+    a_mol[0] = {0,   0,};
+    a_mol[1] = {1.0, 0,};
 
-  a_mol[0] = {0.0,  0.0,  0.0};
-  a_mol[1] = {1.0,  0.0,  0.0};
-  a_mol[2] = {0.25, 0.25, 0.0};
+    b_mol = {0.5, 0.5};
 
-  b_mol = {1./6., 1./6., 2./3.};
+    c_mol = {0.0, 1.0};
 
-  c_mol = {0.0, 1.0, 0.5};
-#endif
+  } else if (mol_order == 3) {
 
-#ifdef SECONDORDER
-  MOL_STAGES = 2;
+    // third order TVD
+    MOL_STAGES = 3;
 
-  a_mol.resize(MOL_STAGES);
-  for (int n = 0; n < MOL_STAGES; ++n)
-    a_mol[n].resize(MOL_STAGES);
+    a_mol.resize(MOL_STAGES);
+    for (int n = 0; n < MOL_STAGES; ++n)
+      a_mol[n].resize(MOL_STAGES);
 
-  a_mol[0] = {0,   0,};
-  a_mol[1] = {0.5, 0,};
+    a_mol[0] = {0.0,  0.0,  0.0};
+    a_mol[1] = {1.0,  0.0,  0.0};
+    a_mol[2] = {0.25, 0.25, 0.0};
 
-  b_mol = {0.0, 1.0};
+    b_mol = {1./6., 1./6., 2./3.};
 
-  c_mol = {0.0, 0.5};
-#endif
+    c_mol = {0.0, 1.0, 0.5};
 
-#ifdef SECONDORDER_TVD
-  MOL_STAGES = 2;
+  } else if (mol_order == 4) {
 
-  a_mol.resize(MOL_STAGES);
-  for (int n = 0; n < MOL_STAGES; ++n)
-    a_mol[n].resize(MOL_STAGES);
+    // fourth order TVD
+    MOL_STAGES = 4;
 
-  a_mol[0] = {0,   0,};
-  a_mol[1] = {1.0, 0,};
+    a_mol.resize(MOL_STAGES);
+    for (int n = 0; n < MOL_STAGES; ++n)
+      a_mol[n].resize(MOL_STAGES);
 
-  b_mol = {0.5, 0.5};
+    a_mol[0] = {0.0,  0.0,  0.0,  0.0};
+    a_mol[1] = {0.5,  0.0,  0.0,  0.0};
+    a_mol[2] = {0.0,  0.5,  0.0,  0.0};
+    a_mol[3] = {0.0,  0.0,  1.0,  0.0};
 
-  c_mol = {0.0, 1.0};
-#endif
+    b_mol = {1./6., 1./3., 1./3., 1./6.};
 
-#ifdef FIRSTORDER
-  MOL_STAGES = 1;
+    c_mol = {0.0, 0.5, 0.5, 1.0};
 
-  a_mol.resize(MOL_STAGES);
-  for (int n = 0; n < MOL_STAGES; ++n)
-    a_mol[n].resize(MOL_STAGES);
-
-  a_mol[0] = {1};
-  b_mol = {1.0};
-  c_mol = {0.0};
-#endif
+  } else {
+    amrex::Error("invalid value of mol_order\n");
+  }
 
 }

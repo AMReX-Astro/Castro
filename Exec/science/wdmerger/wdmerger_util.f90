@@ -11,7 +11,7 @@ contains
 
   subroutine initialize_problem(init_in)
 
-    use bl_error_module, only: bl_error
+    use amrex_error_module, only: amrex_error
     use prob_params_module, only: dim
 
     implicit none
@@ -40,10 +40,11 @@ contains
 
   subroutine read_namelist
 
-    use bl_constants_module, only: ZERO
+    use amrex_constants_module, only: ZERO
     use meth_params_module
     use prob_params_module, only: dim, coord_type
     use problem_io_module, only: probin
+    use amrex_error_module, only: amrex_error
 
     implicit none
 
@@ -80,7 +81,7 @@ contains
     if (dim .eq. 2) then
 
        if (coord_type .ne. 1) then
-          call bl_error("We only support cylindrical coordinates in two dimensions. Set coord_type == 1.")
+          call amrex_error("We only support cylindrical coordinates in two dimensions. Set coord_type == 1.")
        endif
 
        axis_1 = 2
@@ -92,58 +93,86 @@ contains
     ! Make sure we have a sensible collision impact parameter.
 
     if (collision_impact_parameter > 1.0) then
-       call bl_error("Impact parameter must be less than one in our specified units.")
+       call amrex_error("Impact parameter must be less than one in our specified units.")
     endif
 
     ! Safety check: we can't run most problems in one dimension.
 
     if (dim .eq. 1 .and. (.not. (problem .eq. 0 .or. problem .eq. 4))) then
-       call bl_error("Can only run a collision or freefall in 1D. Exiting.")
+       call amrex_error("Can only run a collision or freefall in 1D. Exiting.")
     endif
 
-    ! Don't do a collision or a free-fall in a rotating reference frame.
+    ! Don't do a collision, free-fall, or TDE in a rotating reference frame.
 
     if (problem .eq. 0 .and. do_rotation .eq. 1) then
-       call bl_error("The collision problem does not make sense in a rotating reference frame.")
+       call amrex_error("The collision problem does not make sense in a rotating reference frame.")
     endif
 
     if (problem .eq. 4 .and. do_rotation .eq. 1) then
-       call bl_error("The free-fall problem does not make sense in a rotating reference frame.")
+       call amrex_error("The free-fall problem does not make sense in a rotating reference frame.")
     endif
+
+    if (problem .eq. 5 .and. do_rotation .eq. 1) then
+       call amrex_error("The TDE problem does not make sense in a rotating reference frame.")
+    end if
 
     ! Make sure we have a sensible eccentricity.
 
     if (orbital_eccentricity >= 1.0) then
-       call bl_error("Orbital eccentricity cannot be larger than one.")
+       call amrex_error("Orbital eccentricity cannot be larger than one.")
     endif
 
     ! Make sure we have a sensible angle. Then convert it to radians.
 
     if (orbital_angle < 0.0 .or. orbital_angle > 360.0) then
-       call bl_error("Orbital angle must be between 0 and 360 degrees.")
+       call amrex_error("Orbital angle must be between 0 and 360 degrees.")
     endif
 
     orbital_angle = orbital_angle * M_PI / 180.0
-
-    ! If we're doing problem 3, which has an initial relaxation, ensure
-    ! that the damping timescale is positive. Be aware that this safety
-    ! check implies that relaxation_damping_timescale must be positive even
-    ! if we're restarting from a checkpoint that indicates that the relaxation
-    ! has already completed. There's no way for us to test that here because
-    ! the checkpoint is read after the namelist initialization step we are
-    ! currently in. If the checkpoint does indicate that, the relaxation
-    ! damping timescale will just be set negative, effectively disabling
-    ! relaxation, at the time the checkpoint is read.
-
-    if (problem .eq. 3 .and. relaxation_damping_timescale <= ZERO) then
-       call bl_error("The relaxation step requires a positive relaxation_damping_timescale.")
-    endif
 
     ! Disable the Coriolis term if we're doing a relaxation.
 
     if (problem .eq. 3) then
        rotation_include_coriolis = 0
     endif
+
+    ! TDE sanity checks
+
+    if (problem .eq. 5) then
+
+       ! We must have a BH point mass defined.
+
+       if (point_mass <= ZERO) then
+
+          call amrex_error("No point mass specified for the TDE problem.")
+
+       end if
+
+       ! This problem cannot have a secondary WD.
+
+       if (mass_S >= ZERO) then
+
+          call amrex_error("TDE problem cannot have a secondary WD.")
+
+       end if
+
+       ! Beta parameter must be positive.
+
+       if (tde_beta <= ZERO) then
+
+          call amrex_error("TDE beta must be positive.")
+
+       end if
+
+       ! Initial distance must be positive.
+
+       if (tde_separation <= ZERO) then
+
+          call amrex_error("TDE separation must be positive.")
+
+       end if
+
+    end if
 
   end subroutine read_namelist
 
@@ -202,6 +231,7 @@ contains
 
     use extern_probin_module, only: small_x
     use network, only: network_species_index
+    use amrex_error_module, only: amrex_error
 
     implicit none
 
@@ -215,11 +245,11 @@ contains
     iNe20 = network_species_index("neon-20")
     iMg24 = network_species_index("magnesium-24")
 
-    if (iHe4 < 0) call bl_error("Must have He4 in the nuclear network.")
-    if (iC12 < 0) call bl_error("Must have C12 in the nuclear network.")
-    if (iO16 < 0) call bl_error("Must have O16 in the nuclear network.")
-    if (iNe20 < 0) call bl_error("Must have Ne20 in the nuclear network.")
-    if (iMg24 < 0) call bl_error("Must have Mg24 in the nuclear network.")
+    if (iHe4 < 0) call amrex_error("Must have He4 in the nuclear network.")
+    if (iC12 < 0) call amrex_error("Must have C12 in the nuclear network.")
+    if (iO16 < 0) call amrex_error("Must have O16 in the nuclear network.")
+    if (iNe20 < 0) call amrex_error("Must have Ne20 in the nuclear network.")
+    if (iMg24 < 0) call amrex_error("Must have Mg24 in the nuclear network.")
 
     model % core_comp = small_x
     model % envelope_comp = small_x
@@ -340,7 +370,7 @@ contains
 
   subroutine set_star_data(P_com, S_com, P_vel, S_vel, P_mass, S_mass, P_t_ff, S_t_ff) bind(C,name='set_star_data')
 
-    use bl_constants_module, only: TENTH, ZERO
+    use amrex_constants_module, only: TENTH, ZERO
     use prob_params_module, only: center
     use binary_module, only: get_roche_radii
 
@@ -409,19 +439,22 @@ contains
 
   subroutine binary_setup
 
-    use meth_params_module, only: rot_period
+    use meth_params_module, only: rot_period, point_mass
     use initial_model_module, only: initialize_model, establish_hse
-    use prob_params_module, only: center, problo, probhi, dim, physbc_lo, Symmetry
+    use prob_params_module, only: center, problo, probhi, dim, max_level, dx_level, physbc_lo, Symmetry
     use rotation_frequency_module, only: get_omega
     use math_module, only: cross_product
     use binary_module, only: get_roche_radii
     use problem_io_module, only: ioproc
-    use bl_error_module, only: bl_error
+    use amrex_error_module, only: amrex_error
+    use fundamental_constants_module, only: Gconst, c_light
 
     implicit none
 
     double precision :: v_ff, collision_offset
     double precision :: omega(3)
+
+    integer :: lev
 
     omega = get_omega(ZERO)
 
@@ -491,7 +524,7 @@ contains
 
     else
 
-       call bl_error("Must specify either a positive primary mass or a positive primary central density.")
+       call amrex_error("Must specify either a positive primary mass or a positive primary central density.")
 
     endif
 
@@ -519,8 +552,8 @@ contains
 
        else
 
-          call bl_error("If we are doing a binary calculation, we must specify either a ", &
-                        "positive secondary mass or a positive secondary central density.")
+          call amrex_error("If we are doing a binary calculation, we must specify either a " // &
+                           "positive secondary mass or a positive secondary central density.")
 
        endif
 
@@ -660,7 +693,7 @@ contains
 
        else
 
-          call bl_error("Error: Unknown problem choice.")
+          call amrex_error("Error: Unknown problem choice.")
 
        endif
 
@@ -668,6 +701,60 @@ contains
 
        roche_rad_P = roche_rad_P * a
        roche_rad_S = roche_rad_S * a
+
+    else
+
+       if (problem == 5) then
+
+          ! The tidal radius is given by (M_BH / M_WD)^(1/3) * R_WD.
+
+          tde_tidal_radius = (point_mass / mass_P)**THIRD * model_P % radius
+
+          ! The usual definition for the Schwarzschild radius.
+
+          tde_schwarzschild_radius = TWO * Gconst * point_mass / c_light**TWO
+
+          ! The pericenter radius is the distance of closest approach,
+          ! for a point mass on a parabolic orbit.
+
+          tde_pericenter_radius = tde_tidal_radius / tde_beta
+
+          ! Given the pericenter distance, we can calculate the parameters of
+          ! the parabolic orbit. A parabolic orbit has E = 0, so KE = PE,
+          ! or (1/2) M_WD v**2 = G * M_WD * M_BH / r. This simplifies to
+          ! v = sqrt(2 * G * M_BH / r). The initial distance is set at runtime.
+
+          r_P_initial = tde_separation * tde_tidal_radius
+
+          v_P = sqrt(TWO * Gconst * point_mass / r_P_initial)
+
+          ! Now we need to convert this into angular and radial components. To
+          ! do this, we need the orbital angle, which comes from the orbit equation,
+          ! r = r_0 / (1 - eccentricity * cos(phi)), where for a parabolic orbit,
+          ! r_0 is twice the pericenter distance.
+
+          orbital_eccentricity = ONE
+          orbital_angle = acos(ONE - (TWO * tde_pericenter_radius) / r_P_initial)
+
+          ! Now set the x and y components of the position and velocity. The position is
+          ! straightforward: the orbital angle is the usual angle phi such that x = r cos(phi)
+          ! and y = r sin(phi). The velocity is a little more involved and depends on the orbit
+          ! equation. The Cartesian form of the parabolic orbit equation is x = y**2 / (2 * r_0) + r_0 / 2,
+          ! so dx/dt = (y / r_0) * dy/dt. Given that v**2 = v_x**2 + v_y**2, we have
+          ! v_x = v / sqrt( 1 + (r_0 / (r * sin(phi))) )**2 , and
+          ! v_y = v / sqrt( 1 + (r * sin(phi) / r_0)**2 ).
+
+          center_P_initial(axis_1) = center_P_initial(axis_1) - r_P_initial * cos(orbital_angle)
+          center_P_initial(axis_2) = center_P_initial(axis_2) - r_P_initial * sin(orbital_angle)
+
+          if (tde_initial_velocity == 1) then
+
+             vel_P(axis_1) = v_P / sqrt(ONE + (TWO * tde_pericenter_radius / (r_P_initial * sin(orbital_angle)))**2)
+             vel_P(axis_2) = v_P / sqrt(ONE + (r_P_initial * sin(orbital_angle) / (TWO * tde_pericenter_radius))**2)
+
+          end if
+
+       end if
 
     endif
 
@@ -705,11 +792,12 @@ contains
 
   subroutine kepler_third_law(radius_1, mass_1, radius_2, mass_2, period, eccentricity, phi, a, r_1, r_2, v_1r, v_2r, v_1p, v_2p)
 
-    use bl_constants_module
+    use amrex_constants_module
     use prob_params_module, only: problo, probhi
     use sponge_module, only: sponge_lower_radius
     use meth_params_module, only: do_sponge
     use fundamental_constants_module, only: Gconst
+    use amrex_error_module, only: amrex_error
 
     implicit none
 
@@ -743,7 +831,7 @@ contains
 
     else
 
-       call bl_error("Error: overspecified Kepler's third law calculation.")
+       call amrex_error("Error: overspecified Kepler's third law calculation.")
 
     endif
 
@@ -773,7 +861,7 @@ contains
     length = (r_2 - r_1) + radius_1 + radius_2
 
     if (length > (probhi(axis_1)-problo(axis_1))) then
-       call bl_error("ERROR: The domain width is too small to include the binary orbit.")
+       call amrex_error("ERROR: The domain width is too small to include the binary orbit.")
     endif
 
     ! We want to do a similar check to make sure that no part of the stars
@@ -782,18 +870,18 @@ contains
     if (do_sponge .eq. 1 .and. sponge_lower_radius > ZERO) then
 
        if (abs(r_1) + radius_1 .ge. sponge_lower_radius) then
-          call bl_error("ERROR: Primary contains material inside the sponge region.")
+          call amrex_error("ERROR: Primary contains material inside the sponge region.")
        endif
 
        if (abs(r_2) + radius_2 .ge. sponge_lower_radius) then
-          call bl_error("ERROR: Secondary contains material inside the sponge region.")
+          call amrex_error("ERROR: Secondary contains material inside the sponge region.")
        endif
 
     endif
 
     ! Make sure the stars are not touching.
     if (radius_1 + radius_2 > a) then
-       call bl_error("ERROR: Stars are touching!")
+       call amrex_error("ERROR: Stars are touching!")
     endif
 
   end subroutine kepler_third_law
@@ -807,7 +895,7 @@ contains
 
   subroutine freefall_velocity(mass, distance, vel)
 
-    use bl_constants_module, only: HALF, TWO
+    use amrex_constants_module, only: HALF, TWO
     use fundamental_constants_module, only: Gconst
 
     implicit none
@@ -825,7 +913,7 @@ contains
 
   subroutine fill_ambient(state, loc, time)
 
-    use bl_constants_module, only: ZERO
+    use amrex_constants_module, only: ZERO
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UTEMP, UEINT, UEDEN, UFS, do_rotation
     use network, only: nspec
     use rotation_frequency_module, only: get_omega
@@ -873,7 +961,7 @@ contains
 
   function inertial_rotation(vec, time) result(vec_i)
 
-    use bl_constants_module, only: ZERO
+    use amrex_constants_module, only: ZERO
     use rotation_frequency_module, only: get_omega
     use meth_params_module, only: do_rotation, rot_period, rot_period_dot
 
@@ -1031,7 +1119,7 @@ contains
 
   ! This routine is called when we've satisfied our criterion
   ! for disabling the initial relaxation phase. We set the
-  ! relaxation timescale to a negative number, which disables
+  ! relaxation damping factor to a negative number, which disables
   ! the damping, and we set the sponge timescale to a negative
   ! number, which disables the sponging.
 
@@ -1045,7 +1133,7 @@ contains
 
     double precision :: time
 
-    relaxation_damping_timescale = -ONE
+    relaxation_damping_factor = -ONE
     sponge_timescale = -ONE
     rotation_include_coriolis = 1
 
@@ -1116,7 +1204,7 @@ contains
                                 fpx, fpy, fpz, fsx, fsy, fsz) &
                                 bind(C,name='sum_force_on_stars')
 
-    use bl_constants_module, only: ZERO, TWO
+    use amrex_constants_module, only: ZERO, TWO
     use prob_params_module, only: center, physbc_lo, Symmetry, coord_type
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ
     use castro_util_module, only: position

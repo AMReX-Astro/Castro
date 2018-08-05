@@ -69,7 +69,6 @@ Castro::volWgtSum (const std::string& name,
     {
         FArrayBox& fab = (*mf)[mfi];
 
-	Real s = 0.0;
         const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
@@ -79,10 +78,13 @@ Castro::volWgtSum (const std::string& name,
         // whatever quantity is passed in, not strictly the "mass".
         //
 
-	ca_summass(ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab),
-		   ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s);
+#pragma gpu
+	ca_summass(AMREX_ARLIM_ARG(lo), AMREX_ARLIM_ARG(hi),
+                   BL_TO_FORTRAN_3D(fab),
+		   ZFILL(dx),
+                   BL_TO_FORTRAN_3D(volume[mfi]),
+                   AMREX_MFITER_REDUCE_SUM(&sum));
 
-        sum += s;
     }
 
     if (!local)
@@ -253,7 +255,6 @@ Castro::volWgtSumMF (const MultiFab& mf, int comp, bool local)
     {
         const FArrayBox& fab = mf[mfi];
 
-        Real s = 0.0;
         const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
@@ -263,10 +264,10 @@ Castro::volWgtSumMF (const MultiFab& mf, int comp, bool local)
         // whatever quantity is passed in, not strictly the "mass".
         //
 
-	ca_summass(ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_N_3D(fab,comp),
-		   ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s);
-
-        sum += s;
+#pragma gpu
+	ca_summass(AMREX_ARLIM_ARG(lo),AMREX_ARLIM_ARG(hi),BL_TO_FORTRAN_N_3D(fab,comp),
+		   ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),
+                   AMREX_MFITER_REDUCE_SUM(&sum));
     }
 
     if (!local)
@@ -309,7 +310,6 @@ Castro::volWgtSumOneSide (const std::string& name,
     {
         FArrayBox& fab = (*mf)[mfi];
     
-        Real s = 0.0;
         const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
@@ -356,12 +356,12 @@ Castro::volWgtSumOneSide (const std::string& name,
 
         if ( doSum ) {
 
-          ca_summass(ARLIM_3D(loFinal),ARLIM_3D(hiFinal),BL_TO_FORTRAN_3D(fab),
-		     ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),&s);
+#pragma gpu
+          ca_summass(AMREX_ARLIM_ARG(loFinal),AMREX_ARLIM_ARG(hiFinal),BL_TO_FORTRAN_3D(fab),
+		     ZFILL(dx),BL_TO_FORTRAN_3D(volume[mfi]),
+                     AMREX_MFITER_REDUCE_SUM(&sum));
 
         }
-        
-        sum += s;
 		
     }
 

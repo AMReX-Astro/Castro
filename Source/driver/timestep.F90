@@ -17,7 +17,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use prob_params_module, only: dim
-    use bl_constants_module
+    use amrex_constants_module, ONLY : ONE
 #ifdef ROTATION
     use meth_params_module, only: do_rotation, state_in_rotating_frame
     use rotation_module, only: inertial_to_rotational_velocity
@@ -41,6 +41,8 @@ contains
 #ifdef ROTATION
     real(rt)         :: vel(3)
 #endif
+
+    !$gpu
 
     ! Call EOS for the purpose of computing sound speed
 
@@ -110,16 +112,16 @@ contains
   ! Reactions-limited timestep
 
 #ifdef REACTIONS
-  subroutine ca_estdt_burning(sold, so_lo, so_hi, &
+  subroutine ca_estdt_burning(lo, hi, sold, so_lo, so_hi, &
                               snew, sn_lo, sn_hi, &
                               rold, ro_lo, ro_hi, &
                               rnew, rn_lo, rn_hi, &
-                              lo, hi, dx, dt_old, dt) &
+                              dx, dt_old, dt) &
                               bind(C, name="ca_estdt_burning")
 
-    use bl_constants_module, only: HALF, ONE
+    use amrex_constants_module, only: HALF, ONE
     use network, only: nspec, naux, aion
-    use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, dtnuc_e, dtnuc_X, dtnuc_X_threshold, dtnuc_mode
+    use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, dtnuc_e, dtnuc_X, dtnuc_X_threshold
     use prob_params_module, only : dim
 #if naux > 0
     use meth_params_module, only : UFX
@@ -128,8 +130,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use burner_module, only: ok_to_burn
-    use burn_type_module
-    use eos_type_module
+    use burn_type_module, only : burn_t, net_ienuc, burn_to_eos, eos_to_burn
     use amrex_fort_module, only : rt => amrex_real
     use extern_probin_module, only: small_x
 
@@ -213,39 +214,16 @@ contains
              e    = state_new % e
              X    = max(state_new % xn, small_x)
 
-             if (dtnuc_mode == 1) then
+             call burn_to_eos(state_new, eos_state)
+             call eos(eos_input_rt, eos_state)
+             call eos_to_burn(eos_state, state_new)
 
-                call burn_to_eos(state_new, eos_state)
-                call eos(eos_input_rt, eos_state)
-                call eos_to_burn(eos_state, state_new)
+             state_new % dx = minval(dx(1:dim))
 
-                state_new % dx = minval(dx(1:dim))
+             call actual_rhs(state_new)
 
-                call actual_rhs(state_new)
-
-                dedt = state_new % ydot(net_ienuc)
-                dXdt = state_new % ydot(1:nspec) * aion
-
-             else if (dtnuc_mode == 2) then
-
-                dedt = rnew(i,j,k,nspec+1)
-                dXdt = rnew(i,j,k,1:nspec)
-
-             else if (dtnuc_mode == 3) then
-
-                dedt = HALF * (rold(i,j,k,nspec+1) + rnew(i,j,k,nspec+1))
-                dXdt = HALF * (rold(i,j,k,1:nspec) + rnew(i,j,k,1:nspec))
-
-             else if (dtnuc_mode == 4) then
-
-                dedt = (state_new % e - state_old % e) / dt_old
-                dXdt = (state_new % xn - state_old % xn) / dt_old
-
-             else
-
-                call bl_error("Error: unrecognized burning timestep limiter mode in timestep.F90.")
-
-             endif
+             dedt = state_new % ydot(net_ienuc)
+             dXdt = state_new % ydot(1:nspec) * aion
 
              ! Apply a floor to the derivatives. This ensures that we don't
              ! divide by zero; it also gives us a quick method to disable
@@ -285,8 +263,8 @@ contains
     use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, UFS, UFX, &
          diffuse_cutoff_density
     use prob_params_module, only: dim
-    use bl_constants_module
-    use conductivity_module
+    use amrex_constants_module, only : ONE, HALF
+    use conductivity_module, only : conductivity
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -363,8 +341,8 @@ contains
     use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, UFS, UFX, &
          diffuse_cutoff_density
     use prob_params_module, only: dim
-    use bl_constants_module
-    use conductivity_module
+    use amrex_constants_module, only : HALF, ONE
+    use conductivity_module, only : conductivity
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -436,17 +414,16 @@ contains
   ! Check whether the last timestep violated any of our stability criteria.
   ! If so, suggest a new timestep which would not.
 
-  subroutine ca_check_timestep(s_old, so_lo, so_hi, &
+  subroutine ca_check_timestep(lo, hi, s_old, so_lo, so_hi, &
                                s_new, sn_lo, sn_hi, &
 #ifdef REACTIONS
                                r_old, ro_lo, ro_hi, &
                                r_new, rn_lo, rn_hi, &
 #endif
-                               lo, hi, &
                                dx, dt_old, dt_new) &
                                bind(C, name="ca_check_timestep")
 
-    use bl_constants_module, only: HALF, ONE
+    use amrex_constants_module, only: HALF, ONE
     use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, UFS, UFX, UMX, UMZ, &
                                   cfl, do_hydro
 #ifdef REACTIONS

@@ -8,8 +8,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module
   use prob_params_module, only : center
-  use bl_constants_module
-  use bl_error_module
+  use amrex_constants_module
+  use amrex_error_module
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -27,7 +27,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   character :: probin*(maxlen)
 
   if (namlen .gt. maxlen) then
-     call bl_error('probin file name too long')
+     call amrex_error('probin file name too long')
   end if
 
   do i = 1, namlen
@@ -84,7 +84,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   use probdata_module
   use actual_eos_module, only : gamma_const
-  use bl_constants_module
+  use amrex_constants_module
   use meth_params_module , only: NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS
   use prob_params_module, only : center, problo
   use network, only: nspec
@@ -129,7 +129,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
               else if (r < 0.4_rt) then
                  u_phi = TWO - FIVE*r
-                 p = p0 + 12.5_rt*r**2 + FOUR*(ONE - FIVE*r - log(0.2_dp_t) + log(r))
+                 p = p0 + 12.5_rt*r**2 + FOUR*(ONE - FIVE*r - log(0.2_rt) + log(r))
 
               else
                  u_phi = ZERO

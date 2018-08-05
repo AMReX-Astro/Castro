@@ -4,7 +4,8 @@ subroutine problem_checkpoint(int_dir_name, len) bind(C, name="problem_checkpoin
 
   ! called by the IO processor during checkpoint
 
-  use bl_IO_module
+  use amrex_IO_module
+  use amrex_error_module, only: amrex_error
   use probdata_module, only: com_P, com_S, vel_P, vel_S, mass_P, mass_S, t_ff_P, t_ff_S, &
                              T_global_max, rho_global_max, ts_te_global_max
   use prob_params_module, only: center
@@ -110,7 +111,7 @@ subroutine problem_restart(int_dir_name, len) bind(C, name="problem_restart")
 
   ! called by ALL processors during restart 
 
-  use bl_IO_module
+  use amrex_IO_module
   use probdata_module, only: com_P, com_S, vel_P, vel_S, mass_P, mass_S, t_ff_P, t_ff_S, problem, &
                              T_global_max, rho_global_max, ts_te_global_max, &
                              jobIsDone, num_previous_ener_timesteps, total_ener_array, &
@@ -119,6 +120,7 @@ subroutine problem_restart(int_dir_name, len) bind(C, name="problem_restart")
   use problem_io_module, only: ioproc
   use prob_params_module, only: center
   use meth_params_module, only: rot_period
+  use amrex_error_module, only: amrex_error
 
   implicit none
 
@@ -234,7 +236,7 @@ subroutine problem_restart(int_dir_name, len) bind(C, name="problem_restart")
   else
 
      if (problem == 3) then
-        call bl_error("Error: no Relaxation file found in the checkpoint.")
+        call amrex_error("Error: no Relaxation file found in the checkpoint.")
      endif
 
   endif
@@ -295,7 +297,7 @@ subroutine wdcom(rho,  r_lo, r_hi, &
                  vel_s_x, vel_s_y, vel_s_z, &
                  m_p, m_s) bind(C,name='wdcom')
 
-  use bl_constants_module, only: HALF, ZERO, ONE, TWO
+  use amrex_constants_module, only: HALF, ZERO, ONE, TWO
   use prob_params_module, only: problo, probhi, physbc_lo, physbc_hi, Symmetry, coord_type
   use castro_util_module, only: position
 
@@ -428,7 +430,7 @@ subroutine ca_volumeindensityboundary(rho,r_lo,r_hi, &
                                       volp,vols,rho_cutoff) &
                                       bind(C,name='ca_volumeindensityboundary')
 
-  use bl_constants_module
+  use amrex_constants_module
 
   implicit none
 
@@ -481,7 +483,7 @@ end subroutine ca_volumeindensityboundary
 subroutine get_critical_roche_potential(phiEff,p_lo,p_hi,lo,hi,L1,potential) &
                                         bind(C,name='get_critical_roche_potential')
 
-  use bl_constants_module, only: ZERO, HALF, ONE
+  use amrex_constants_module, only: ZERO, HALF, ONE
   use castro_util_module, only: position
   use prob_params_module, only: dim, dx_level
   use amrinfo_module, only: amr_level
@@ -574,7 +576,7 @@ subroutine quadrupole_tensor_double_dot(rho, r_lo, r_hi, &
                                         vol, vo_lo, vo_hi, &
                                         lo, hi, dx, time, Qtt) bind(C,name='quadrupole_tensor_double_dot')
 
-  use bl_constants_module, only: ZERO, THIRD, HALF, ONE, TWO, M_PI
+  use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO, M_PI
   use prob_params_module, only: center, dim
   use wdmerger_util_module, only: inertial_rotation, inertial_velocity
   use castro_util_module, only: position
@@ -710,7 +712,7 @@ end subroutine quadrupole_tensor_double_dot
 subroutine gw_strain_tensor(h_plus_1, h_cross_1, h_plus_2, h_cross_2, h_plus_3, h_cross_3, Qtt, time) &
                             bind(C,name='gw_strain_tensor')
 
-  use bl_constants_module, only: ZERO, HALF, ONE, TWO
+  use amrex_constants_module, only: ZERO, HALF, ONE, TWO
   use fundamental_constants_module, only: Gconst, c_light, parsec
   use probdata_module, only: gw_dist, axis_1, axis_2, axis_3
   use prob_params_module, only: dim
@@ -836,7 +838,8 @@ end subroutine gw_strain_tensor
 
 subroutine update_center(time) bind(C,name='update_center')
 
-  use bl_constants_module, only: ZERO
+  use amrex_constants_module, only: ZERO
+  use amrex_error_module, only: amrex_error
   use probdata_module, only: bulk_velx, bulk_vely, bulk_velz, &
                              center_fracx, center_fracy, center_fracz
   use prob_params_module, only: center, problo, probhi, dim
@@ -867,7 +870,7 @@ subroutine update_center(time) bind(C,name='update_center')
 
   else
 
-     call bl_error("Error: unknown dim in subroutine update_center.")
+     call amrex_error("Error: unknown dim in subroutine update_center.")
 
   endif
 

@@ -47,7 +47,7 @@
      use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, &
                                    UEDEN, UEINT, UFS, do_rotation, state_in_rotating_frame
      use network, only: nspec
-     use bl_constants_module
+     use amrex_constants_module
      use model_parser_module, only: idens_model, itemp_model, ipres_model, ispec_model
      use initial_model_module, only: interpolate_3d_from_1d
      use math_module, only: cross_product
@@ -97,7 +97,7 @@
 
      r_P = model_P % r
      r_S = model_S % r
-     
+
      !$OMP PARALLEL DO PRIVATE(i, j, k, loc) &
      !$OMP PRIVATE(dist_P, dist_S, zone_state)
      do k = lo(3), hi(3)
@@ -108,10 +108,22 @@
               dist_P = sum((loc - center_P_initial)**2)**HALF
               dist_S = sum((loc - center_S_initial)**2)**HALF
 
-              if (dist_P < model_P % radius) then
-                 call interpolate_3d_from_1d(rho_P, T_P, xn_P, r_P, model_P % npts, loc - center_P_initial, dx, zone_state, nsub)
-              else if (dist_S < model_S % radius) then
-                 call interpolate_3d_from_1d(rho_S, T_S, xn_S, r_S, model_S % npts, loc - center_S_initial, dx, zone_state, nsub)
+              ! If the zone size is smaller than the stellar radius,
+              ! then use interpolation from the 1D model. If the zone
+              ! size is larger than the stellar radius, which can happen
+              ! on the coarsest levels on large grids, we need to ensure
+              ! that some mass gets loaded onto the grid so that we can
+              ! refine in the appropriate place. This does not need to be
+              ! accurate, as the average down from the fine levels will get
+              ! things right on the coarse levels. So we can still use the
+              ! interpolation scheme, because it handles this special case
+              ! for us by simply using the central zone of the model; we
+              ! just need to make sure we catch it.
+
+              if (mass_P > ZERO .and. (dist_P < model_P % radius .or. (model_P % radius <= maxval(dx) .and. dist_P < maxval(dx)))) then
+                 call interpolate_3d_from_1d(rho_P, T_P, xn_P, r_P, model_P % npts, loc - center_P_initial, model_P % radius, dx, zone_state, nsub)
+              else if (mass_S > ZERO .and. (dist_S < model_S % radius .or. (model_S % radius <= maxval(dx) .and. dist_S < maxval(dx)))) then
+                 call interpolate_3d_from_1d(rho_S, T_S, xn_S, r_S, model_S % npts, loc - center_S_initial, model_S % radius, dx, zone_state, nsub)
               else
                  zone_state = ambient_state
               endif

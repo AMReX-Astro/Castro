@@ -1,6 +1,6 @@
 module transverse_module
 
-  use bl_constants_module
+  use amrex_constants_module
   use network, only : nspec, naux
   use meth_params_module, only : NQ, QVAR, NQAUX, &
                                  NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QGAME, &
@@ -14,7 +14,7 @@ module transverse_module
 #endif
                                  small_pres, small_temp, &
                                  npassive, qpass_map, upass_map, &
-                                 transverse_use_eos, ppm_type, ppm_trace_sources, &
+                                 transverse_use_eos, ppm_type, &
                                  transverse_reset_density, transverse_reset_rhoe, &
                                  ppm_predict_gammae
   use prob_params_module, only : mom_flux_has_p
@@ -260,20 +260,24 @@ contains
 
              ! Convert back to primitive form
              rhotmp = rrnewr
-             qpo(i,j,QRHO) = rhotmp        + hdt*srcQ(i,j,QRHO)
+             qpo(i,j,QRHO) = rhotmp
              qpo(i,j,QU  ) = runewr/rhotmp
              qpo(i,j,QV  ) = rvnewr/rhotmp
 
-             ! if ppm_trace_sources == 1, then we already added the
-             ! piecewise parabolic traced source terms to the normal edge
-             ! states
-             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+             ! for ppm_type > 0 we already added the piecewise
+             ! parabolic traced source terms to the normal edge states
+             if (ppm_type == 0) then
+                qpo(i,j,QRHO) = qpo(i,j,QRHO) + hdt*srcQ(i,j,QRHO)
                 qpo(i,j,QU:QV) = qpo(i,j,QU:QV) + hdt*srcQ(i,j,QU:QV)
              endif
 
              ! note: we run the risk of (rho e) being negative here
              rhoekinr = HALF*(runewr**2+rvnewr**2+(rhotmp*qpo(i,j,QW))**2)/rhotmp
-             qpo(i,j,QREINT) = renewr - rhoekinr + hdt*srcQ(i,j,QREINT)
+             qpo(i,j,QREINT) = renewr - rhoekinr
+
+             if (ppm_type == 0) then
+                qpo(i,j,QREINT) = qpo(i,j,QREINT) + hdt*srcQ(i,j,QREINT)
+             endif
 
              if (.not. reset_state) then
                 if (transverse_reset_rhoe == 1 .and. qpo(i,j,QREINT) <= ZERO) then
@@ -319,7 +323,10 @@ contains
                       ! The transverse term is d(up)/dx + (gamma_1 - 1)p du/dx,
                       ! but these are divergences, so we need area factors
                       pnewr = qp(i,j,QPRES) - hdt*(dAup + pav*dAu*(gamc - ONE))/vol(i,j)
-                      qpo(i,j,QPRES) = pnewr + hdt*srcQ(i,j,QPRES)
+                      qpo(i,j,QPRES) = pnewr
+                      if (ppm_type == 0) then
+                         qpo(i,j,QPRES) = qpo(i,j,QPRES) + hdt*srcQ(i,j,QPRES)
+                      endif
                    endif
 
                    qpo(i,j,QPRES) = max(qpo(i,j,QPRES),small_pres)
@@ -335,7 +342,10 @@ contains
 
                 endif
              else
-                qpo(i,j,QPRES) = qp(i,j,QPRES) + hdt*srcQ(i,j,QPRES)
+                qpo(i,j,QPRES) = qp(i,j,QPRES)
+                if (ppm_type == 0) then
+                   qpo(i,j,QPRES) = qpo(i,j,QPRES) + hdt*srcQ(i,j,QPRES)
+                endif
                 qpo(i,j,QGAME) = qp(i,j,QGAME)
              endif
 
@@ -397,19 +407,23 @@ contains
 
              ! Convert back to primitive form
              rhotmp = rrnewl
-             qmo(i,j+1,QRHO) = rhotmp         + hdt*srcQ(i,j,QRHO)
+             qmo(i,j+1,QRHO) = rhotmp
              qmo(i,j+1,QU  ) = runewl/rhotmp
              qmo(i,j+1,QV  ) = rvnewl/rhotmp
 
-             ! if ppm_trace_sources == 1, then we already added the
-             ! piecewise parabolic traced source terms to the normal edge
-             ! states
-             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+             ! for ppm_type > 0 we already added the piecewise
+             ! parabolic traced source terms to the normal edge states
+             if (ppm_type == 0) then
+                qmo(i,j+1,QRHO)  = qmo(i,j+1,QRHO) + hdt*srcQ(i,j,QRHO)
                 qmo(i,j+1,QU:QV) = qmo(i,j+1,QU:QV) + hdt*srcQ(i,j,QU:QV)
              endif
 
              rhoekinl = HALF*(runewl**2+rvnewl**2+(rhotmp*qmo(i,j+1,QW))**2)/rhotmp
-             qmo(i,j+1,QREINT)= renewl - rhoekinl +hdt*srcQ(i,j,QREINT)
+             qmo(i,j+1,QREINT) = renewl - rhoekinl
+             if (ppm_type == 0) then
+                qmo(i,j+1,QREINT) = qmo(i,j+1,QREINT) + hdt*srcQ(i,j,QREINT)
+             endif
+
 
              if (.not. reset_state) then
                 if (transverse_reset_rhoe == 1 .and. qmo(i,j+1,QREINT) <= ZERO) then
@@ -456,7 +470,10 @@ contains
                       ! The transverse term is d(up)/dx + (gamma_1 - 1)p du/dx,
                       ! but these are divergences, so we need area factors
                       pnewl = qm(i,j+1,QPRES) - hdt*(dAup + pav*dAu*(gamc - ONE))/vol(i,j)
-                      qmo(i,j+1,QPRES) = pnewl + hdt*srcQ(i,j,QPRES)
+                      qmo(i,j+1,QPRES) = pnewl
+                      if (ppm_type == 0) then
+                         qmo(i,j+1,QPRES) = qmo(i,j+1,QPRES) + hdt*srcQ(i,j,QPRES)
+                      endif
                    endif
 
                    qmo(i,j+1,QPRES) = max(qmo(i,j+1,QPRES),small_pres)
@@ -472,7 +489,10 @@ contains
 
                 endif
              else
-                qmo(i,j+1,QPRES) = qm(i,j+1,QPRES) + hdt*srcQ(i,j,QPRES)
+                qmo(i,j+1,QPRES) = qm(i,j+1,QPRES)
+                if (ppm_type == 0) then
+                   qmo(i,j+1,QPRES) = qmo(i,j+1,QPRES) + hdt*srcQ(i,j,QPRES)
+                endif
                 qmo(i,j+1,QGAME) = qm(i,j+1,QGAME)
              endif
 
@@ -687,19 +707,22 @@ contains
 
              ! convert back to non-conservation form
              rhotmp =  rrnewr
-             qpo(i,j,QRHO  ) = rhotmp           + hdt*srcQ(i,j,QRHO)
+             qpo(i,j,QRHO  ) = rhotmp
              qpo(i,j,QU    ) = runewr/rhotmp
              qpo(i,j,QV    ) = rvnewr/rhotmp
 
-             ! if ppm_trace_sources == 1, then we already added the
-             ! piecewise parabolic traced source terms to the normal edge
-             ! states
-             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+             ! for ppm_type > 0 we already added the piecewise
+             ! parabolic traced source terms to the normal edge states
+             if (ppm_type == 0) then
+                qpo(i,j,QRHO  ) = qpo(i,j,QRHO  ) + hdt*srcQ(i,j,QRHO)
                 qpo(i,j,QU:QV) = qpo(i,j,QU:QV) + hdt*srcQ(i,j,QU:QV)
              endif
 
              rhoekinr = HALF*(runewr**2+rvnewr**2+(rhotmp*qpo(i,j,QW))**2)/rhotmp
-             qpo(i,j,QREINT) = renewr - rhoekinr + hdt*srcQ(i,j,QREINT)
+             qpo(i,j,QREINT) = renewr - rhoekinr
+             if (ppm_type == 0) then
+                qpo(i,j,QREINT) = qpo(i,j,QREINT) + hdt*srcQ(i,j,QREINT)
+             endif
 
              if (.not. reset_state) then
                 if (transverse_reset_rhoe == 1 .and. qpo(i,j,QREINT) <= ZERO) then
@@ -738,7 +761,10 @@ contains
                       qpo(i,j,QREINT) = eos_state % e * eos_state % rho
                    else
                       pnewr = qp(i  ,j,QPRES)-cdtdy*(dup + pav*du*(gamc - ONE))
-                      qpo(i,j,QPRES) = pnewr + hdt*srcQ(i,j,QPRES)
+                      qpo(i,j,QPRES) = pnewr
+                      if (ppm_type == 0) then
+                         qpo(i,j,QPRES) = qpo(i,j,QPRES) + hdt*srcQ(i,j,QPRES)
+                      endif
                    endif
 
                    qpo(i,j,QPRES) = max(qpo(i,j,QPRES),small_pres)
@@ -754,7 +780,10 @@ contains
 
                 endif
              else
-                qpo(i,j,QPRES) = qp(i,j,QPRES) + hdt*srcQ(i,j,QPRES)
+                qpo(i,j,QPRES) = qp(i,j,QPRES)
+                if (ppm_type == 0) then
+                   qpo(i,j,QPRES) = qpo(i,j,QPRES) + hdt*srcQ(i,j,QPRES)
+                endif
                 qpo(i,j,QGAME) = qp(i,j,QGAME)
              endif
 
@@ -807,19 +836,22 @@ contains
              endif
 
              rhotmp =  rrnewl
-             qmo(i+1,j,QRHO  ) = rhotmp            + hdt*srcQ(i,j,QRHO)
+             qmo(i+1,j,QRHO  ) = rhotmp            
              qmo(i+1,j,QU    ) = runewl/rhotmp
              qmo(i+1,j,QV    ) = rvnewl/rhotmp
 
-             ! if ppm_trace_sources == 1, then we already added the
-             ! piecewise parabolic traced source terms to the normal edge
-             ! states
-             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+             ! for ppm_type > 0 we already added the piecewise
+             ! parabolic traced source terms to the normal edge states
+             if (ppm_type == 0) then
+                qmo(i+1,j,QRHO  ) = qmo(i+1,j,QRHO  ) + hdt*srcQ(i,j,QRHO)
                 qmo(i+1,j,QU:QV) = qmo(i+1,j,QU:QV) + hdt*srcQ(i,j,QU:QV)
              endif
 
              rhoekinl = HALF*(runewl**2+rvnewl**2+(rhotmp*qmo(i+1,j,QW))**2)/rhotmp
-             qmo(i+1,j,QREINT) = renewl - rhoekinl + hdt*srcQ(i,j,QREINT)
+             qmo(i+1,j,QREINT) = renewl - rhoekinl
+             if (ppm_type == 0) then
+                qmo(i+1,j,QREINT) = qmo(i+1,j,QREINT) + hdt*srcQ(i,j,QREINT)
+             endif
 
              if (.not. reset_state) then
                 if (transverse_reset_rhoe == 1 .and. qmo(i+1,j,QREINT) <= ZERO) then
@@ -861,7 +893,10 @@ contains
                       qmo(i+1,j,QREINT) = eos_state % e * eos_state % rho
                    else
                       pnewl = qm(i+1,j,QPRES)-cdtdy*(dup + pav*du*(gamc - ONE))
-                      qmo(i+1,j,QPRES) = pnewl + hdt*srcQ(i,j,QPRES)
+                      qmo(i+1,j,QPRES) = pnewl
+                      if (ppm_type == 0) then
+                         qmo(i+1,j,QPRES) = qmo(i+1,j,QPRES) + hdt*srcQ(i,j,QPRES)
+                      endif
                    endif
 
                    qmo(i+1,j,QPRES) = max(qmo(i+1,j,QPRES),small_pres)
@@ -877,7 +912,10 @@ contains
 
                 endif
              else
-                qmo(i+1,j,QPRES) = qm(i+1,j,QPRES) + hdt*srcQ(i,j,QPRES)
+                qmo(i+1,j,QPRES) = qm(i+1,j,QPRES)
+                if (ppm_type == 0) then
+                   qmo(i+1,j,QPRES) = qmo(i+1,j,QPRES) + hdt*srcQ(i,j,QPRES)
+                endif
                 qmo(i+1,j,QGAME) = qm(i+1,j,QGAME)
              endif
 

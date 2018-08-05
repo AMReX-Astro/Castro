@@ -1,13 +1,14 @@
 module bc_ext_fill_module
 
-  use bl_constants_module
+  use amrex_constants_module, only: ZERO, HALF
+  use amrex_error_module
+  use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
+  use amrex_filcc_module, only: amrex_filccn
+  use interpolate_module, only: interpolate_sub
   use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, &
                                 UEDEN, UEINT, UFS, UTEMP, const_grav, &
                                 hse_zero_vels, hse_interp_temp, hse_reflect_vels, &
                                 xl_ext, xr_ext, yl_ext, yr_ext, EXT_HSE, EXT_INTERP
-  use interpolate_module
-  use amrex_fort_module, only: rt => amrex_real
-  use amrex_filcc_module, only: filccn
 
   implicit none
 
@@ -25,15 +26,15 @@ contains
   ! NOTE: the hydrostatic boundary conditions here rely on
   ! constant gravity
 
-  subroutine ext_fill(adv, adv_l1, adv_l2, adv_h1, adv_h2, &
-                      domlo, domhi, delta, xlo, time, bc) &
-                      bind(C, name="ext_fill")
+  AMREX_LAUNCH subroutine ext_fill(adv, adv_l1, adv_l2, adv_h1, adv_h2, &
+                                   domlo, domhi, delta, xlo, time, bc) &
+                                   bind(C, name="ext_fill")
 
     use prob_params_module, only: problo
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec
-    use model_parser_module
+    use model_parser_module, only: model_r, model_state, npts_model, idens_model, itemp_model, ispec_model
 
     integer,  intent(in   ) :: adv_l1, adv_l2, adv_h1, adv_h2
     integer,  intent(in   ) :: bc(2,2,NVAR)
@@ -41,7 +42,7 @@ contains
     real(rt), intent(in   ) :: delta(2), xlo(2), time
     real(rt), intent(inout) :: adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
 
-    integer  :: i, j, q, n, iter, m
+    integer  :: i, j, q, n, iter, m, joff
     real(rt) :: y
     real(rt) :: dens_above, dens_base, temp_above
     real(rt) :: pres_above, p_want, pres_zone, A
@@ -55,15 +56,17 @@ contains
 
     do n = 1, NVAR
 
+#ifndef AMREX_USE_CUDA
        ! XLO
        if (bc(1,1,n) == EXT_DIR .and. xl_ext == EXT_HSE .and. adv_l1 < domlo(1)) then
-          call bl_error("ERROR: HSE boundaries not implemented for -X")
+          call amrex_error("ERROR: HSE boundaries not implemented for -X")
        end if
 
        ! XHI
        if (bc(1,2,n) == EXT_DIR .and. xr_ext == EXT_HSE .and. adv_h1 > domhi(1)) then
-          call bl_error("ERROR: HSE boundaries not implemented for +X")
+          call amrex_error("ERROR: HSE boundaries not implemented for +X")
        end if
+#endif
 
        ! YLO
        if (bc(2,1,n) == EXT_DIR .and. adv_l2 < domlo(2)) then
@@ -74,7 +77,7 @@ contains
              if (n == URHO) then
 
                 do i = adv_l1, adv_h1
-                   
+
                    ! we are integrating along a column at constant i.
                    ! Make sure that our starting state is well-defined
                    dens_above = adv(i,domlo(2),URHO)
@@ -86,15 +89,15 @@ contains
                    if (dens_above == ZERO) then
                       y = problo(2) + delta(2)*(dble(domlo(2)) + HALF)
 
-                      dens_above = interpolate(y,npts_model,model_r, &
-                                               model_state(:,idens_model))
+                      call interpolate_sub(dens_above, y,npts_model,model_r, &
+                                           model_state(:,idens_model))
 
-                      temp_above = interpolate(y,npts_model,model_r, &
-                                              model_state(:,itemp_model))
+                      call interpolate_sub(temp_above, y,npts_model,model_r, &
+                                           model_state(:,itemp_model))
 
                       do m = 1, nspec
-                         X_zone(m) = interpolate(y,npts_model,model_r, &
-                                                 model_state(:,ispec_model-1+m))
+                         call interpolate_sub(X_zone(m), y,npts_model,model_r, &
+                                              model_state(:,ispec_model-1+m))
                       enddo
 
                    else
@@ -126,8 +129,8 @@ contains
 
                       ! temperature and species held constant in BCs
                       if (hse_interp_temp == 1) then
-                         temp_zone = interpolate(y,npts_model,model_r, &
-                                                 model_state(:,itemp_model))
+                         call interpolate_sub(temp_zone, y,npts_model,model_r, &
+                                              model_state(:,itemp_model))
                       else
                          temp_zone = temp_above
                       endif
@@ -167,6 +170,7 @@ contains
 
                       enddo
 
+#ifndef AMREX_USE_CUDA
                       if (.not. converged_hse) then
                          print *, "i, j, domlo(2): ", i, j, domlo(2)
                          print *, "p_want:    ", p_want
@@ -177,9 +181,9 @@ contains
                          print *, "column info: "
                          print *, "   dens: ", adv(i,j:domlo(2),URHO)
                          print *, "   temp: ", adv(i,j:domlo(2),UTEMP)
-                         call bl_error("ERROR in bc_ext_fill_2d: failure to converge in -Y BC")
+                         call amrex_error("ERROR in bc_ext_fill_2d: failure to converge in -Y BC")
                       endif
-
+#endif
 
                       ! velocity
                       if (hse_zero_vels == 1) then
@@ -193,10 +197,16 @@ contains
                       else
 
                          if (hse_reflect_vels == 1) then
-                            adv(i,j,UMX) = -dens_zone*(adv(i,domlo(2),UMX)/dens_base)
-                            adv(i,j,UMY) = -dens_zone*(adv(i,domlo(2),UMY)/dens_base)
-                            adv(i,j,UMZ) = -dens_zone*(adv(i,domlo(2),UMZ)/dens_base)
+                            ! reflect normal, zero gradient for transverse
+                            ! note: we need to match the corresponding
+                            ! zone on the other side of the interface
+                            joff = domlo(2)-j-1
+                            adv(i,j,UMY) = -dens_zone*(adv(i,domlo(2)+joff,UMY)/adv(i,domlo(2)+joff,URHO))
+
+                            adv(i,j,UMX) = dens_zone*(adv(i,domlo(2),UMX)/dens_base)
+                            adv(i,j,UMZ) = dens_zone*(adv(i,domlo(2),UMZ)/dens_base)
                          else
+                            ! zero gradient
                             adv(i,j,UMX) = dens_zone*(adv(i,domlo(2),UMX)/dens_base)
                             adv(i,j,UMY) = dens_zone*(adv(i,domlo(2),UMY)/dens_base)
                             adv(i,j,UMZ) = dens_zone*(adv(i,domlo(2),UMZ)/dens_base)
@@ -206,7 +216,7 @@ contains
                       eos_state%rho = dens_zone
                       eos_state%T = temp_zone
                       eos_state%xn(:) = X_zone
-                      
+
                       call eos(eos_input_rt, eos_state)
 
                       pres_zone = eos_state%p
@@ -239,15 +249,15 @@ contains
                    ! set all the variables even though we're testing on URHO
                    if (n == URHO) then
 
-                      dens_zone = interpolate(y,npts_model,model_r, &
-                                              model_state(:,idens_model))
+                      call interpolate_sub(dens_zone, y,npts_model,model_r, &
+                                           model_state(:,idens_model))
 
-                      temp_zone = interpolate(y,npts_model,model_r, &
-                                              model_state(:,itemp_model))
+                      call interpolate_sub(temp_zone, y,npts_model,model_r, &
+                                           model_state(:,itemp_model))
 
                       do q = 1, nspec
-                         X_zone(q) = interpolate(y,npts_model,model_r, &
-                                                 model_state(:,ispec_model-1+q))
+                         call interpolate_sub(X_zone(q), y,npts_model,model_r, &
+                                              model_state(:,ispec_model-1+q))
                       enddo
 
                       ! extrap normal momentum
@@ -284,10 +294,11 @@ contains
 
        ! YHI
        if (bc(2,2,n) == EXT_DIR .and. adv_h2 > domhi(2)) then
-
+          
           if (yr_ext == EXT_HSE) then
-             call bl_error("ERROR: HSE boundaries not implemented for +Y")
-
+#ifndef AMREX_USE_CUDA
+             call amrex_error("ERROR: HSE boundaries not implemented for +Y")
+#endif
           elseif (yr_ext == EXT_INTERP) then
              ! interpolate thermodynamics from initial model
 
@@ -299,15 +310,15 @@ contains
                    ! set all the variables even though we're testing on URHO
                    if (n == URHO) then
 
-                      dens_zone = interpolate(y,npts_model,model_r, &
-                                              model_state(:,idens_model))
+                      call interpolate_sub(dens_zone, y,npts_model,model_r, &
+                                           model_state(:,idens_model))
 
-                      temp_zone = interpolate(y,npts_model,model_r, &
-                                              model_state(:,itemp_model))
+                      call interpolate_sub(temp_zone, y,npts_model,model_r, &
+                                           model_state(:,itemp_model))
 
                       do q = 1, nspec
-                         X_zone(q) = interpolate(y,npts_model,model_r, &
-                                                 model_state(:,ispec_model-1+q))
+                         call interpolate_sub(X_zone(q), y,npts_model,model_r, &
+                                              model_state(:,ispec_model-1+q))
                       enddo
 
 
@@ -347,14 +358,14 @@ contains
   end subroutine ext_fill
 
 
-  subroutine ext_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
-                         domlo,domhi,delta,xlo,time,bc) &
-                         bind(C, name="ext_denfill")
+  AMREX_LAUNCH subroutine ext_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
+                                      domlo,domhi,delta,xlo,time,bc) &
+                                      bind(C, name="ext_denfill")
 
     use prob_params_module, only: problo
     use interpolate_module
     use model_parser_module
-    use bl_error_module
+    use amrex_error_module
 
     implicit none
 
@@ -367,35 +378,43 @@ contains
     integer  :: i, j
     real(rt) :: y
 
-    integer :: adv_lo(3), adv_hi(3)
+    integer :: adv_lo(3), adv_hi(3), lo(3), hi(3)
 
-    adv_lo = [adv_l1, adv_l2, 0]
-    adv_hi = [adv_h1, adv_h2, 0]
+    lo(1) = adv_l1
+    lo(2) = adv_l2
+    lo(3) = 0
+    hi(1) = adv_h1
+    hi(2) = adv_h2
+    hi(3) = 0
 
+    call get_loop_bounds(adv_lo, adv_hi, lo, hi)
+    
     ! Note: this function should not be needed, technically, but is
     ! provided to filpatch because there are many times in the algorithm
     ! when just the density is needed.  We try to rig up the filling so
     ! that the same function is called here and in hypfill where all the
     ! states are filled.
 
-    call filccn(adv_lo, adv_hi, adv, adv_lo, adv_hi, 1, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(adv_lo, adv_hi, adv, lo, hi, 1, domlo, domhi, delta, xlo, bc)
 
+#ifndef AMREX_USE_CUDA
     ! XLO
     if ( bc(1,1) == EXT_DIR .and. adv_l1 < domlo(1)) then
-       call bl_error("We shoundn't be here (xlo denfill)")
+       call amrex_error("We shoundn't be here (xlo denfill)")
     end if
 
     ! XHI
     if ( bc(1,2) == EXT_DIR .and. adv_h1 > domhi(1)) then
-       call bl_error("We shoundn't be here (xlo denfill)")
+       call amrex_error("We shoundn't be here (xlo denfill)")
     endif
+#endif
 
     ! YLO
     if ( bc(2,1) == EXT_DIR .and. adv_l2 < domlo(2)) then
        do j = adv_l2, domlo(2)-1
           y = problo(2) + delta(2)*(dble(j) + HALF)
           do i = adv_l1, adv_h1
-             adv(i,j) = interpolate(y,npts_model,model_r,model_state(:,idens_model))
+             call interpolate_sub(adv(i,j), y,npts_model,model_r,model_state(:,idens_model))
           end do
        end do
     end if
@@ -405,7 +424,7 @@ contains
        do j = domhi(2)+1, adv_h2
           y = problo(2) + delta(2)*(dble(j)+ HALF)
           do i = adv_l1, adv_h1
-             adv(i,j) = interpolate(y,npts_model,model_r,model_state(:,idens_model))
+             call interpolate_sub(adv(i,j), y,npts_model,model_r,model_state(:,idens_model))
           end do
        end do
     end if

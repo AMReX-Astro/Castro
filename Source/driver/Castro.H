@@ -12,7 +12,7 @@
 #include <AMReX_Lazy.H>
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
 #include "AMReX_AmrParticles.H"
 #endif
 
@@ -40,7 +40,6 @@ enum StateType { State_Type = 0,
                  Reactions_Type,
 #endif
 #ifdef SDC
-		 SDC_Source_Type,
 #ifdef REACTIONS
 		 SDC_React_Type
 #endif
@@ -50,6 +49,7 @@ enum StateType { State_Type = 0,
 // Create storage for all source terms.
 
 enum sources { ext_src = 0,
+               thermo_src,
 #ifdef SPONGE
                sponge_src,
 #endif
@@ -151,7 +151,7 @@ public:
     //
     virtual void initData () override;
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
     //
     // Read particle-related inputs
     //
@@ -232,14 +232,23 @@ public:
                           int  iteration,
                           int  ncycle) override;
 
+#ifndef AMREX_USE_CUDA
     amrex::Real do_advance (amrex::Real time,
                      amrex::Real dt,
                      int  amr_iteration,
                      int  amr_ncycle);
+#endif
 
-    amrex::Real retry_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+    amrex::Real do_advance_mol (amrex::Real time,
+                     amrex::Real dt,
+                     int  amr_iteration,
+                     int  amr_ncycle);
+
+#ifndef AMREX_USE_CUDA
+    bool retry_advance (amrex::Real& time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
     amrex::Real subcycle_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+#endif
 
     void initialize_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
@@ -249,7 +258,17 @@ public:
 
     void finalize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
+    void cons_to_prim(const amrex::Real time);
+
+#ifndef AMREX_USE_CUDA
+    void cons_to_prim_fourth(const amrex::Real time);
+#endif
+
+    void check_for_cfl_violation(const amrex::Real dt);
+
+#ifndef AMREX_USE_CUDA
     void construct_hydro_source(amrex::Real time, amrex::Real dt);
+#endif
 
     void construct_mol_hydro_source(amrex::Real time, amrex::Real dt);
 
@@ -261,15 +280,17 @@ public:
 
     bool source_flag(int src);
 
+    bool apply_sources();
+
     static int get_output_at_completion();
 
-    void do_old_sources(amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
+    void do_old_sources(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
 
-    void construct_old_source(int src, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
+    void construct_old_source(int src, amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
 
-    void do_new_sources(amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
+    void do_new_sources(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
 
-    void construct_new_source(int src, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
+    void construct_new_source(int src, amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
 
     amrex::Vector<amrex::Real> evaluate_source_change(amrex::MultiFab& update, amrex::Real dt, bool local = false);
 
@@ -285,16 +306,26 @@ public:
 				   amrex::Real dt = 1.0);
 
 #ifdef SPONGE
-    void construct_old_sponge_source(amrex::Real time, amrex::Real dt);
+    void construct_old_sponge_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
 
-    void construct_new_sponge_source(amrex::Real time, amrex::Real dt);
+    void construct_new_sponge_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 #endif
 
-    void construct_old_ext_source(amrex::Real time, amrex::Real dt);
+    void construct_old_ext_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
 
-    void construct_new_ext_source(amrex::Real time, amrex::Real dt);
+    void construct_new_ext_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
     void fill_ext_source(amrex::Real time, amrex::Real dt, amrex::MultiFab& S_old, amrex::MultiFab& S_new, amrex::MultiFab& ext_src);
+
+    void construct_old_thermo_source(amrex::MultiFab& source, amrex::MultiFab& state,
+                                     amrex::Real time, amrex::Real dt);
+
+    void construct_new_thermo_source(amrex::MultiFab& source, amrex::MultiFab& state_old,
+                                     amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
+
+    void fill_thermo_source(amrex::Real time, amrex::Real dt,
+                            amrex::MultiFab& S_old, amrex::MultiFab& S_new,
+                            amrex::MultiFab& ext_src);
 
 #ifdef GRAVITY
 #ifdef SELF_GRAVITY
@@ -304,9 +335,9 @@ public:
     void construct_new_gravity(int amr_iteration, int amr_ncycle,
 			       amrex::Real time);
 #endif
-    void construct_old_gravity_source(amrex::Real time, amrex::Real dt);
+    void construct_old_gravity_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
 
-    void construct_new_gravity_source(amrex::Real time, amrex::Real dt);
+    void construct_new_gravity_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 #endif
 
     //
@@ -453,13 +484,9 @@ public:
 #endif
 
 #ifdef ROTATION
-    void construct_old_rotation(int amr_iteration, int amr_ncycle, amrex::Real time);
+    void construct_old_rotation_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
 
-    void construct_new_rotation(int amr_iteration, int amr_ncycle, amrex::Real time);
-
-    void construct_old_rotation_source(amrex::Real time, amrex::Real dt);
-
-    void construct_new_rotation_source(amrex::Real time, amrex::Real dt);
+    void construct_new_rotation_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
     void fill_rotation_field(amrex::MultiFab& phi, amrex::MultiFab& rot, amrex::MultiFab& state, amrex::Real time);
 #endif
@@ -472,30 +499,34 @@ public:
 
     void reset_internal_energy (amrex::MultiFab& State);
 
-    void computeTemp (amrex::MultiFab& State);
+    void computeTemp (amrex::MultiFab& State, int ng);
+
+    void apply_source_term_predictor();
+
+    void swap_state_time_levels (const amrex::Real dt);
 
 #ifdef DIFFUSION
-    void construct_old_diff_source(amrex::Real time, amrex::Real dt);
-    void construct_new_diff_source(amrex::Real time, amrex::Real dt);
+    void construct_old_diff_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
+    void construct_new_diff_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
-    void getTempDiffusionTerm (amrex::Real time, amrex::MultiFab& DiffTerm, int is_old);
-    void getEnthDiffusionTerm (amrex::Real time, amrex::MultiFab& DiffTerm, int is_old);
+    void getTempDiffusionTerm (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& DiffTerm);
+    void getEnthDiffusionTerm (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& DiffTerm);
 #if (BL_SPACEDIM == 1)
-    void getSpecDiffusionTerm (amrex::Real time, amrex::MultiFab& DiffTerm, int is_old);
+    void getSpecDiffusionTerm (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& DiffTerm);
 #endif
 #if (BL_SPACEDIM == 1)
-    void getViscousTerm (amrex::Real time, amrex::MultiFab& ViscousTermforMomentum, amrex::MultiFab& ViscousTermforEnergy);
-    void getFirstViscousTerm (amrex::Real time, amrex::MultiFab& ViscousTerm);
-    void getSecndViscousTerm (amrex::Real time, amrex::MultiFab& ViscousTerm);
-    void getViscousTermForEnergy (amrex::Real time, amrex::MultiFab& ViscousTermforEnergy);
+    void getViscousTerm (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& ViscousTermforMomentum, amrex::MultiFab& ViscousTermforEnergy);
+    void getFirstViscousTerm (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& ViscousTerm);
+    void getSecndViscousTerm (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& ViscousTerm);
+    void getViscousTermForEnergy (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& ViscousTermforEnergy);
 #endif
-    void add_temp_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& DiffTerm, amrex::Real t, int is_old, Real mult_factor = 1.0);
+    void add_temp_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& source, amrex::MultiFab& DiffTerm, amrex::Real t, amrex::Real mult_factor = 1.0);
 #if (BL_SPACEDIM == 1)
-    void add_spec_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& DiffTerm, amrex::Real t, int is_old, Real mult_factor = 1.0);
+    void add_spec_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& source, amrex::MultiFab& DiffTerm, amrex::Real t, amrex::Real mult_factor = 1.0);
 #endif
 #if (BL_SPACEDIM == 1)
-    void add_viscous_term_to_source   (amrex::MultiFab& ext_src, amrex::MultiFab& ViscousTermforMomentum, 
-                                       amrex::MultiFab& ViscousTermforEnergy, amrex::Real t, Real mult_factor = 1.0);
+    void add_viscous_term_to_source   (amrex::MultiFab& ext_src, amrex::MultiFab& state, amrex::MultiFab& ViscousTermforMomentum, 
+                                       amrex::MultiFab& ViscousTermforEnergy, amrex::Real t, amrex::Real mult_factor = 1.0);
 #endif
 #endif
 
@@ -522,12 +553,15 @@ public:
 
     amrex::Real locSquaredSum (const std::string& name, amrex::Real time, int idir, bool local=false);
 
+#ifdef POINTMASS
+    int using_point_mass ();
     amrex::Real get_point_mass ();
+#endif
 
 #ifdef HYBRID_MOMENTUM
-    void construct_old_hybrid_source(amrex::Real time, amrex::Real dt);
+    void construct_old_hybrid_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
 
-    void construct_new_hybrid_source(amrex::Real time, amrex::Real dt);
+    void construct_new_hybrid_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
     void fill_hybrid_hydro_source(amrex::MultiFab& state, amrex::MultiFab& source, const amrex::Real mult_factor);
 
@@ -536,9 +570,9 @@ public:
 
     void add_force_to_sources (amrex::MultiFab& force, amrex::MultiFab& sources, amrex::MultiFab& state);
 
-    void apply_source_to_state (amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt);
+    void apply_source_to_state (int is_new, amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng = 0);
 
-    void expand_state(amrex::MultiFab& S, amrex::Real time, int ng);
+    void expand_state(amrex::MultiFab& S, amrex::Real time, int iclean, int ng);
 
 #ifdef SELF_GRAVITY
     void make_radial_data (int is_new);
@@ -548,7 +582,7 @@ public:
     void advance_aux(amrex::Real time, amrex::Real dt);
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
     static amrex::AmrTracerParticleContainer* theTracerPC () { return TracerPC; }
 #endif
 
@@ -561,9 +595,9 @@ public:
     static int       Shock;
 #endif
     static int       QVAR;
-    static int       QRADVAR;
     static int       NQAUX;
     static int       NQ;
+    static int       NGDNV;
 
     static int       FirstAdv,  NumAdv;
     static int       FirstSpec, NumSpec;
@@ -579,6 +613,15 @@ public:
     //
     amrex::MultiFab fine_mask;
     amrex::MultiFab& build_fine_mask();
+
+    //
+    // A record of how many cells we have advanced throughout the simulation.
+    // This is saved as a real because we will be storing the number of zones
+    // advanced as a ratio with the number of zones on the coarse grid (to
+    // help prevent the number from getting too large), and that may be a
+    // non-integer number.    
+    //
+    static amrex::Real num_zones_advanced;
 
 protected:
 
@@ -604,10 +647,33 @@ protected:
     //
     amrex::MultiFab Sborder;
 
+#ifdef RADIATION
+    amrex::MultiFab Erborder;
+    amrex::MultiFab lamborder;
+#endif
+
     //
     // A state array for the post burn state to be used in MOL integration
     //
     amrex::MultiFab Sburn;
+
+    //
+    // The primitive variable state array.
+    //
+    amrex::MultiFab q;
+
+    // we need a second version when doing fourth order
+    amrex::MultiFab q_bar;
+
+    //
+    // The auxiliary primitive variable state array.
+    //
+    amrex::MultiFab qaux;
+
+    //
+    // The source terms in primitive form.
+    //
+    amrex::MultiFab src_q;
 
     //
     // Source terms to the hydrodynamics solve.
@@ -654,9 +720,31 @@ protected:
 #endif
 
     //
+    // Did we trigger a CFL violation?
+    //
+    int cfl_violation;
+
+    //
+    // Did we have a successful burn?
+    //
+    int burn_success;
+
+    //
     // State data to hold if we want to do a retry.
     //
     amrex::Vector<std::unique_ptr<amrex::StateData> > prev_state;
+
+    //
+    // Save the simulation time of the prev_state.
+    //
+    amrex::Real prev_state_old_time;
+    amrex::Real prev_state_new_time;
+    bool prev_state_had_old_data;
+
+    //
+    // Flag for indicating that we want to save prev_state until the reflux.
+    //
+    bool keep_prev_state;
 
     //
     // Storage for the method of lines stages
@@ -669,6 +757,9 @@ protected:
     static amrex::Vector<amrex::Real> b_mol;
     static amrex::Vector<amrex::Real> c_mol;
 
+    // Wall time that we started the timestep
+    amrex::Real wall_time_start;
+
     //
     //  Call extern/networks/.../network.f90::network_init()
     //
@@ -677,6 +768,8 @@ protected:
     static void network_init ();
 
     static void network_finalize ();
+
+    static void eos_finalize ();
 
     static void read_params ();
 
@@ -687,15 +780,16 @@ protected:
 
     void reflux (int crse_level, int fine_level);
 
-    void normalize_species (amrex::MultiFab& S_new);
+    void normalize_species (amrex::MultiFab& S_new, int ng);
 
     void enforce_consistent_e (amrex::MultiFab& S);
 
-    amrex::Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new);
+    amrex::Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new, int ng);
+
+    amrex::Real clean_state (int is_new, amrex::MultiFab& state, int ng);
+    amrex::Real clean_state (int is_new, int ng);
 
     amrex::Real clean_state (amrex::MultiFab& state);
-
-    amrex::Real clean_state (amrex::MultiFab& state, amrex::MultiFab& state_old);
 
     void avgDown ();
 
@@ -742,7 +836,7 @@ protected:
     //
 #include <castro_params.H>
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
 #include "particles_params.H"
 #endif
 
@@ -757,6 +851,9 @@ protected:
 
     static int         lastDtPlotLimited;
     static amrex::Real lastDtBeforePlotLimiting;
+
+    int lastDtRetryLimited;
+    amrex::Real lastDtFromRetry;
 
     // for keeping track of mass changes from negative density resets
     static amrex::Real      frac_change;
@@ -792,7 +889,7 @@ protected:
     friend class Radiation;
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
     static amrex::AmrTracerParticleContainer* TracerPC;
 #endif
 
@@ -800,6 +897,7 @@ protected:
     static std::string probin_file;
 
     static amrex::IntVect hydro_tile_size;
+    static amrex::IntVect no_tile_size;
 
     static int Knapsack_Weight_Type;
     static int num_state_type;
@@ -812,6 +910,7 @@ protected:
     int sub_ncycle;
     bool do_subcycle;
     amrex::Real dt_subcycle;
+    amrex::Real dt_advance;
   
     // sdc
     int sdc_iteration;
@@ -885,6 +984,13 @@ amrex::Real
 Castro::get_point_mass ()
 {
     return point_mass;
+}
+
+inline
+int
+Castro::using_point_mass ()
+{
+    return use_point_mass;
 }
 #endif
 

@@ -6,9 +6,9 @@
 
        use meth_params_module,  only: NVAR, URHO, UMX, UMZ, UEDEN
        use prob_params_module,  only: center
-       use bl_constants_module, only: ZERO, HALF, ONE, TWO
-       use probdata_module,     only: problem, relaxation_damping_timescale, radial_damping_factor, &
-                                      t_ff_P, t_ff_S, axis_1, axis_2, axis_3, relaxation_implicit
+       use amrex_constants_module, only: ZERO, HALF, ONE, TWO
+       use probdata_module,     only: problem, relaxation_damping_factor, radial_damping_factor, &
+                                      t_ff_P, t_ff_S, axis_1, axis_2, axis_3
        use castro_util_module,  only: position
        use wdmerger_util_module, only: inertial_velocity
 #ifdef HYBRID_MOMENTUM
@@ -29,7 +29,7 @@
 
        ! Local variables
 
-       double precision :: radial_damping_timescale
+       double precision :: relaxation_damping_timescale, radial_damping_timescale
        double precision :: dynamical_timescale, damping_factor
        double precision :: loc(3), R_prp, sinTheta, cosTheta, v_rad, Sr(3)
        integer          :: i, j, k
@@ -40,24 +40,30 @@
 
        src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO
 
-       ! The relevant dynamical timescale for determining our source term timescales should be
-       ! the larger of the two WD timescales. Generally this should be the secondary, but we'll
-       ! be careful just in case.
-
-       dynamical_timescale = max(t_ff_P, t_ff_S)
-
        ! First do any relaxation source terms.
 
-       if (problem == 3 .and. relaxation_damping_timescale > ZERO) then
+       if (problem == 3 .and. relaxation_damping_factor > ZERO) then
 
-          ! For the logic explaining implicit versus explicit,
-          ! see Castro/Source/Src_nd/sponge_nd.F90.
+          ! The relevant dynamical timescale for determining this source term timescale should be
+          ! the smaller of the two WD timescales. Generally this should be the primary, but we'll
+          ! be careful just in case.
 
-          if (relaxation_implicit) then
-             damping_factor = -(ONE - ONE / (ONE + dt / relaxation_damping_timescale)) / dt
-          else
-             damping_factor = -ONE / relaxation_damping_timescale
-          endif
+          dynamical_timescale = min(t_ff_P, t_ff_S)
+
+          ! The relaxation damping factor should be less than unity, so that the damping
+          ! timescale is less than the dynamical timescale. This ensures that the stars
+          ! are always responding to the damping with quasistatic motion; if the stars
+          ! could respond too quickly, they might expand and make contact too early.
+
+          relaxation_damping_timescale = relaxation_damping_factor * dynamical_timescale
+
+          ! Note that we are applying this update implicitly. The implicit and
+          ! explicit methods agree in the limit where the damping timescale is
+          ! much larger than dt, but the implicit method helps avoid numerical
+          ! problems when the damping timescale is shorter than the timestep.
+          ! For further information, see Source/sources/sponge_nd.F90.
+
+          damping_factor = -(ONE - ONE / (ONE + dt / relaxation_damping_timescale)) / dt
 
           do k = lo(3), hi(3)
              do j = lo(2), hi(2)
@@ -93,9 +99,15 @@
 
        if (problem == 3 .and. radial_damping_factor > ZERO) then
 
+          ! For this source term, the relevant dynamical timescale is the larger of the two.
+
+          dynamical_timescale = max(t_ff_P, t_ff_S)
+
           radial_damping_timescale = radial_damping_factor * dynamical_timescale
 
-          damping_factor = ONE / radial_damping_timescale
+          ! Use an implicit damping, with the same logic as the damping.
+
+          damping_factor = -(ONE - ONE / (ONE + dt / radial_damping_timescale)) / dt
 
           do k = lo(3), hi(3)
              do j = lo(2), hi(2)
@@ -118,12 +130,12 @@
                    ! in approximate dynamical equilibrium at all times before significant mass
                    ! transfer begins. So, if we write the force as
                    ! d(v_rad) / dt = -|v_phi| / tau,
-                   ! where tau is the timescale and |v_phi| is the magnitude of the azimuthal velocity,
-                   ! tau = radial_damping_factor * dynamical_timescale,
-                   ! where radial_damping_factor should be much greater than unity.
+                   ! where tau = radial_damping_factor * dynamical_timescale is the timescale
+                   ! and |v_phi| is the magnitude of the azimuthal velocity, then
+                   ! radial_damping_factor should be much greater than unity.
 
-                   Sr(axis_1) = -cosTheta * abs(v_rad) * damping_factor
-                   Sr(axis_2) = -sinTheta * abs(v_rad) * damping_factor
+                   Sr(axis_1) = cosTheta * abs(v_rad) * damping_factor
+                   Sr(axis_2) = sinTheta * abs(v_rad) * damping_factor
                    Sr(axis_3) = ZERO
 
                    src(i,j,k,UMX:UMZ) = src(i,j,k,UMX:UMZ) + Sr

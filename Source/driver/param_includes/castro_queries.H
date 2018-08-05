@@ -3,6 +3,33 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
+#ifdef DIFFUSION
+pp.query("diffuse_temp", diffuse_temp);
+pp.query("diffuse_enth", diffuse_enth);
+pp.query("diffuse_spec", diffuse_spec);
+pp.query("diffuse_vel", diffuse_vel);
+pp.query("diffuse_cutoff_density", diffuse_cutoff_density);
+pp.query("diffuse_cond_scale_fac", diffuse_cond_scale_fac);
+#endif
+#ifdef AMREX_PARTICLES
+pp.query("do_tracer_particles", do_tracer_particles);
+#endif
+#ifdef ROTATION
+pp.query("rotational_period", rotational_period);
+pp.query("rotational_dPdt", rotational_dPdt);
+pp.query("rotation_include_centrifugal", rotation_include_centrifugal);
+pp.query("rotation_include_coriolis", rotation_include_coriolis);
+pp.query("rotation_include_domegadt", rotation_include_domegadt);
+pp.query("state_in_rotating_frame", state_in_rotating_frame);
+pp.query("rot_source_type", rot_source_type);
+pp.query("implicit_rotation_update", implicit_rotation_update);
+pp.query("rot_axis", rot_axis);
+#endif
+#ifdef POINTMASS
+pp.query("use_point_mass", use_point_mass);
+pp.query("point_mass", point_mass);
+pp.query("point_mass_fix_solution", point_mass_fix_solution);
+#endif
 pp.query("state_interp_order", state_interp_order);
 pp.query("lin_limit_state_interp", lin_limit_state_interp);
 pp.query("state_nghost", state_nghost);
@@ -16,16 +43,15 @@ pp.query("small_pres", small_pres);
 pp.query("small_ener", small_ener);
 pp.query("do_hydro", do_hydro);
 pp.query("do_ctu", do_ctu);
+pp.query("fourth_order", fourth_order);
 pp.query("add_ext_src", add_ext_src);
 pp.query("hybrid_hydro", hybrid_hydro);
 pp.query("ppm_type", ppm_type);
-pp.query("ppm_trace_sources", ppm_trace_sources);
 pp.query("ppm_temp_fix", ppm_temp_fix);
 pp.query("ppm_predict_gammae", ppm_predict_gammae);
 pp.query("ppm_reference_eigenvectors", ppm_reference_eigenvectors);
 pp.query("plm_iorder", plm_iorder);
 pp.query("hybrid_riemann", hybrid_riemann);
-pp.query("use_colglaz", use_colglaz);
 pp.query("riemann_solver", riemann_solver);
 pp.query("cg_maxiter", cg_maxiter);
 pp.query("cg_tol", cg_tol);
@@ -58,6 +84,7 @@ pp.query("zr_ext_bc_type", zr_ext_bc_type);
 pp.query("hse_zero_vels", hse_zero_vels);
 pp.query("hse_interp_temp", hse_interp_temp);
 pp.query("hse_reflect_vels", hse_reflect_vels);
+pp.query("mol_order", mol_order);
 pp.query("fixed_dt", fixed_dt);
 pp.query("initial_dt", initial_dt);
 pp.query("dt_cutoff", dt_cutoff);
@@ -70,6 +97,7 @@ pp.query("small_plot_per_is_exact", small_plot_per_is_exact);
 pp.query("use_retry", use_retry);
 pp.query("retry_tolerance", retry_tolerance);
 pp.query("retry_neg_dens_factor", retry_neg_dens_factor);
+pp.query("retry_subcycle_factor", retry_subcycle_factor);
 pp.query("use_post_step_regrid", use_post_step_regrid);
 pp.query("max_subcycles", max_subcycles);
 pp.query("clamp_subcycles", clamp_subcycles);
@@ -77,70 +105,19 @@ pp.query("sdc_iters", sdc_iters);
 pp.query("dtnuc_e", dtnuc_e);
 pp.query("dtnuc_X", dtnuc_X);
 pp.query("dtnuc_X_threshold", dtnuc_X_threshold);
-pp.query("dtnuc_mode", dtnuc_mode);
 pp.query("dxnuc", dxnuc);
 pp.query("dxnuc_max", dxnuc_max);
+pp.query("max_dxnuc_lev", max_dxnuc_lev);
 pp.query("do_react", do_react);
 pp.query("react_T_min", react_T_min);
 pp.query("react_T_max", react_T_max);
 pp.query("react_rho_min", react_rho_min);
 pp.query("react_rho_max", react_rho_max);
 pp.query("disable_shock_burning", disable_shock_burning);
-#ifdef DIFFUSION
-pp.query("diffuse_temp", diffuse_temp);
-#endif
-#ifdef DIFFUSION
-pp.query("diffuse_enth", diffuse_enth);
-#endif
-#ifdef DIFFUSION
-pp.query("diffuse_spec", diffuse_spec);
-#endif
-#ifdef DIFFUSION
-pp.query("diffuse_vel", diffuse_vel);
-#endif
-#ifdef DIFFUSION
-pp.query("diffuse_cutoff_density", diffuse_cutoff_density);
-#endif
-#ifdef DIFFUSION
-pp.query("diffuse_cond_scale_fac", diffuse_cond_scale_fac);
-#endif
 pp.query("do_grav", do_grav);
 pp.query("moving_center", moving_center);
 pp.query("grav_source_type", grav_source_type);
 pp.query("do_rotation", do_rotation);
-#ifdef ROTATION
-pp.query("rotational_period", rotational_period);
-#endif
-#ifdef ROTATION
-pp.query("rotational_dPdt", rotational_dPdt);
-#endif
-#ifdef ROTATION
-pp.query("rotation_include_centrifugal", rotation_include_centrifugal);
-#endif
-#ifdef ROTATION
-pp.query("rotation_include_coriolis", rotation_include_coriolis);
-#endif
-#ifdef ROTATION
-pp.query("rotation_include_domegadt", rotation_include_domegadt);
-#endif
-#ifdef ROTATION
-pp.query("state_in_rotating_frame", state_in_rotating_frame);
-#endif
-#ifdef ROTATION
-pp.query("rot_source_type", rot_source_type);
-#endif
-#ifdef ROTATION
-pp.query("implicit_rotation_update", implicit_rotation_update);
-#endif
-#ifdef ROTATION
-pp.query("rot_axis", rot_axis);
-#endif
-#ifdef POINTMASS
-pp.query("point_mass", point_mass);
-#endif
-#ifdef POINTMASS
-pp.query("point_mass_fix_solution", point_mass_fix_solution);
-#endif
 pp.query("do_acc", do_acc);
 pp.query("bndry_func_thread_safe", bndry_func_thread_safe);
 pp.query("grown_factor", grown_factor);
@@ -158,6 +135,3 @@ pp.query("job_name", job_name);
 pp.query("output_at_completion", output_at_completion);
 pp.query("reset_checkpoint_time", reset_checkpoint_time);
 pp.query("reset_checkpoint_step", reset_checkpoint_step);
-#ifdef PARTICLES
-pp.query("do_tracer_particles", do_tracer_particles);
-#endif

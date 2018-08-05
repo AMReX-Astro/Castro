@@ -24,5 +24,7 @@ ca_f90EXE_sources += problem_derive_nd.f90
 ca_f90EXE_sources += Problem.f90
 
 ifneq ($(DIMENSION_AGNOSTIC), TRUE)
+ifneq ($(USE_CUDA), TRUE)
     ca_F90EXE_sources += bc_ext_fill_$(DIM)d.F90
+endif
 endif

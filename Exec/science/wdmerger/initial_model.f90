@@ -4,9 +4,8 @@
 
 module initial_model_module
 
-  use bl_types
-  use bl_constants_module
-  use bl_error_module, only: bl_error
+  use amrex_constants_module
+  use amrex_error_module, only: amrex_error
   use eos_module, only: eos
   use eos_type_module, only: eos_t, eos_input_rt
   use network, only: nspec
@@ -108,7 +107,7 @@ contains
     ! Check to make sure we've specified at least one of them.
 
     if (model % mass < ZERO .and. model % central_density < ZERO) then
-       call bl_error('Error: Must specify either mass or central density in the initial model generator.')
+       call amrex_error('Error: Must specify either mass or central density in the initial model generator.')
     endif
 
     ! If we are specifying the mass, then we don't know what WD central density 
@@ -139,7 +138,7 @@ contains
     ! Check to make sure the initial temperature makes sense.
 
     if (model % central_temp < small_temp) then
-       call bl_error("Error: WD central temperature is less than small_temp. Aborting.")
+       call amrex_error("Error: WD central temperature is less than small_temp. Aborting.")
     endif
 
     mass_converged = .false.
@@ -234,7 +233,7 @@ contains
              print *, model % state(i) % rho, model % state (i) % T
              print *, p_want, model % state(i) % p
              print *, drho, model % hse_tol * model % state(i) % rho
-             call bl_error('Error: HSE non-convergence.')
+             call amrex_error('Error: HSE non-convergence.')
 
           endif
 
@@ -284,7 +283,7 @@ contains
     enddo  ! End mass constraint loop
 
     if (.not. mass_converged .and. max_mass_iter .gt. 1) then
-       call bl_error("ERROR: WD mass did not converge.")
+       call amrex_error("ERROR: WD mass did not converge.")
     endif
 
     model % central_density = model % state(1) % rho
@@ -299,14 +298,14 @@ contains
   ! 3D Cartesian grid space. Optionally does a sub-grid-scale interpolation
   ! if nsub > 1 (set in the probin file).
 
-  subroutine interpolate_3d_from_1d(rho, T, xn, r, npts, loc, dx, state, nsub_in)
+  subroutine interpolate_3d_from_1d(rho, T, xn, r, npts, loc, star_radius, dx, state, nsub_in)
 
     implicit none
 
     double precision,  intent(in   ) :: rho(npts)
     double precision,  intent(in   ) :: T(npts)
     double precision,  intent(in   ) :: xn(npts, nspec)
-    double precision,  intent(in   ) :: r(npts)
+    double precision,  intent(in   ) :: r(npts), star_radius
     integer,           intent(in   ) :: npts
     double precision,  intent(in   ) :: loc(3), dx(3)
     type (eos_t),      intent(inout) :: state
@@ -327,41 +326,57 @@ contains
     state % T   = ZERO
     state % xn  = ZERO
 
-    ! We perform a sub-grid-scale interpolation, where 
-    ! nsub determines the number of intervals we split the zone into.
-    ! If nsub = 1, we simply interpolate using the cell-center location.
-    ! As an example, if nsub = 3, then the sampled locations will be
-    ! k = 0 --> z = loc(3) - dx(3) / 3   (1/6 of way from left edge of zone)
-    ! k = 1 --> z = loc(3)               (halfway between left and right edge)
-    ! k = 2 --> z = loc(3) + dx(3) / 3   (1/6 of way from right edge of zone)
+    ! If the model radius is smaller than the zone size, just use the center of the model.
 
-    do k = 0, nsub-1
-       z = loc(3) + dble(k + HALF * (1 - nsub)) * dx(3) / nsub
+    dist = (loc(1)**2 + loc(2)**2 + loc(3)**2)**HALF
 
-       do j = 0, nsub-1
-          y = loc(2) + dble(j + HALF * (1 - nsub)) * dx(2) / nsub
+    if (star_radius <= maxval(dx) .and. dist < maxval(dx)) then
 
-          do i = 0, nsub-1
-             x = loc(1) + dble(i + HALF * (1 - nsub)) * dx(1) / nsub
+       state % rho = rho(1)
+       state % T   = T(1)
+       state % xn  = xn(1,:)
 
-             dist = (x**2 + y**2 + z**2)**HALF
+    else
 
-             state % rho = state % rho + interpolate(dist, npts, r, rho)
-             state % T   = state % T   + interpolate(dist, npts, r, T)
+       ! We perform a sub-grid-scale interpolation, where
+       ! nsub determines the number of intervals we split the zone into.
+       ! If nsub = 1, we simply interpolate using the cell-center location.
+       ! As an example, if nsub = 3, then the sampled locations will be
+       ! k = 0 --> z = loc(3) - dx(3) / 3   (1/6 of way from left edge of zone)
+       ! k = 1 --> z = loc(3)               (halfway between left and right edge)
+       ! k = 2 --> z = loc(3) + dx(3) / 3   (1/6 of way from right edge of zone)
 
-             do n = 1, nspec
-                state % xn(n) = state % xn(n) + interpolate(dist, npts, r, xn(:,n))
+       do k = 0, nsub-1
+          z = loc(3) + dble(k + HALF * (1 - nsub)) * dx(3) / nsub
+
+          do j = 0, nsub-1
+             y = loc(2) + dble(j + HALF * (1 - nsub)) * dx(2) / nsub
+
+             do i = 0, nsub-1
+                x = loc(1) + dble(i + HALF * (1 - nsub)) * dx(1) / nsub
+
+                dist = (x**2 + y**2 + z**2)**HALF
+
+                state % rho = state % rho + interpolate(dist, npts, r, rho)
+                state % T   = state % T   + interpolate(dist, npts, r, T)
+
+                do n = 1, nspec
+                   state % xn(n) = state % xn(n) + interpolate(dist, npts, r, xn(:,n))
+                enddo
+
              enddo
-
           enddo
        enddo
-    enddo
 
-    ! Now normalize by the number of intervals, and complete the thermodynamics.
+       ! Now normalize by the number of intervals.
 
-    state % rho = state % rho / (nsub**3)
-    state % T   = state % T   / (nsub**3)
-    state % xn  = state % xn  / (nsub**3)
+       state % rho = state % rho / (nsub**3)
+       state % T   = state % T   / (nsub**3)
+       state % xn  = state % xn  / (nsub**3)
+
+    end if
+
+    ! Complete the thermodynamics.
 
     call eos(eos_input_rt, state)
                     
