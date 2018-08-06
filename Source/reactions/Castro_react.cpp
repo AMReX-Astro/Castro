@@ -497,13 +497,10 @@ Castro::valid_zones_to_burn(MultiFab& State)
     // Finally check on whether min <= rho <= max
     // and min <= T <= max. The defaults are small
     // and large respectively, so if the limiters
-    // are not on,  these checks will not be triggered.
+    // are not on, these checks will not be triggered.
 
-    if (large_dens >= react_rho_min && small_dens <= react_rho_max) {
-        return true;
-    }
-
-    if (large_T >= react_T_min && small_T <= react_T_max) {
+    if (large_dens >= react_rho_min && small_dens <= react_rho_max &&
+        large_T >= react_T_min && small_T <= react_T_max) {
         return true;
     }
 
