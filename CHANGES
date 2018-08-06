@@ -1,5 +1,13 @@
 # changes since the last release
 
+  -- The parameter dual_energy_eta3 was removed. This had been
+     introduced mostly for testing purposes and ended up being
+     unnecessary. Also, the EOS call at the beginning of the
+     burn was removed; this should provide a modest computational
+     gain. Answers may change at the level of the EOS tolerance.
+
+# 18.08
+
   -- The functionality that checks for a regrid at the end of
      the timestep will now apply all tagging criteria, not
      just the t_sound / t_enuc criterion.
