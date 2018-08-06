@@ -53,7 +53,7 @@ contains
     integer , intent(inout) :: success
 
     integer          :: i, j, k, n
-    real(rt)         :: rhoInv, rho_e_K, delta_e, delta_rho_e, dx_min
+    real(rt)         :: rhoInv, delta_e, delta_rho_e, dx_min
     integer, intent(in) :: strang_half
 
     type (burn_t) :: burn_state_in, burn_state_out
@@ -71,7 +71,7 @@ contains
     !$acc parallel if(do_acc == 1)
 
     !$acc loop gang vector collapse(3) &
-    !$acc private(rhoInv, rho_e_K, delta_e, delta_rho_e) &
+    !$acc private(rhoInv, delta_e, delta_rho_e) &
     !$acc private(eos_state_in, eos_state_out, burn_state_in, burn_state_out) &
     !$acc private(i,j,k)
 
@@ -218,7 +218,7 @@ contains
 
     use network           , only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, &
-                                   UFS, UFX, dual_energy_eta3, &
+                                   UFS, UFX, &
                                    react_T_min, react_T_max, react_rho_min, react_rho_max
 #ifdef SHOCK_VAR
     use meth_params_module, only : USHK, disable_shock_burning
@@ -245,7 +245,7 @@ contains
     integer , intent(in   ) :: sdc_iter
 
     integer          :: i, j, k, n
-    real(rt)         :: rhooInv, rhonInv, rho_e_K, delta_e, delta_rho_e
+    real(rt)         :: rhooInv, rhonInv, delta_e, delta_rho_e
 
     type (sdc_t) :: burn_state_in, burn_state_out
 
@@ -290,13 +290,7 @@ contains
 
              rhooInv = ONE / uold(i,j,k,URHO)
 
-             rho_e_K = uold(i,j,k,UEDEN) - HALF * rhooInv * sum(uold(i,j,k,UMX:UMZ)**2)
-
-             if ( rho_e_K / uold(i,j,k,UEDEN) .gt. dual_energy_eta3 .and. rho_e_K .gt. ZERO ) then
-                burn_state_in % T_from_eden = .true.
-             else
-                burn_state_in % T_from_eden = .false.
-             endif
+             burn_state_in % T_from_eden = .true.
 
              if (i >= lo(1) .and. i <= hi(1)) then
                 burn_state_in % i = i
