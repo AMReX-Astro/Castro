@@ -23,6 +23,7 @@ module sdc_util
 
 contains
 
+#ifdef REACTIONS
   subroutine sdc_solve(dt_m, U_old, U_new, C, sdc_iteration)
 
     ! the purpose of this function is to solve the system
@@ -36,10 +37,11 @@ contains
          sdc_solver, sdc_solver_tol, sdc_solve_for_rhoe
     use amrex_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
-    use network, only : nspec, nspec_evolve
     use react_util_module
-    use rpar_sdc_module
     use extern_probin_module, only : SMALL_X_SAFE
+    use network, only : nspec, nspec_evolve
+    use rpar_sdc_module
+
 
     implicit none
 
@@ -73,7 +75,8 @@ contains
     !   1:nspec_evolve  : species
     !   nspec_evolve+1  : (rho E) or (rho e)
 
-    real(rt) :: U_react(0:nspec_evolve+1), f_source(0:nspec_evolve+1), R_react(0:nspec_evolve+1), C_react(0:nspec_evolve+1)
+    real(rt) :: U_react(0:nspec_evolve+1), f_source(0:nspec_evolve+1), &
+                R_react(0:nspec_evolve+1), C_react(0:nspec_evolve+1)
     real(rt) :: dU_react(0:nspec_evolve+1), f(0:nspec_evolve+1), f_rhs(0:nspec_evolve+1)
 
     integer :: m, n
@@ -522,7 +525,7 @@ contains
     f(:) = U(:) - dt_m * R_react(:) - f_source(:)
 
   end subroutine f_sdc_jac
-
+#endif
 
   subroutine ca_sdc_update_advection_o2(lo, hi, dt_m, &
                                         k_m, kmlo, kmhi, &

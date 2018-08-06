@@ -46,8 +46,9 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   use flatten_module, only: uflatten
   use riemann_module, only: cmpflx
   use ppm_module, only : ppm_reconstruct
+  use slope_module, only : uslope
   use amrex_fort_module, only : rt => amrex_real
-#ifdef RADIATION  
+#ifdef RADIATION
   use rad_params_module, only : ngroups
 #endif
 #ifdef HYBRID_MOMENTUM
@@ -58,7 +59,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   use network, only : nspec, naux
   use prob_params_module, only : dg, coord_type
 
-    
+
   implicit none
 
   integer, intent(in) :: lo(3), hi(3), verbose
@@ -137,6 +138,8 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   real(rt)        , pointer :: qxm(:,:,:,:), qym(:,:,:,:), qzm(:,:,:,:)
   real(rt)        , pointer :: qxp(:,:,:,:), qyp(:,:,:,:), qzp(:,:,:,:)
 
+  real(rt)        , pointer :: dqx(:,:,:,:), dqy(:,:,:,:), dqz(:,:,:,:)
+
   integer :: ngf
   integer :: It_lo(3), It_hi(3)
   integer :: st_lo(3), st_hi(3)
@@ -147,7 +150,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   integer :: kc, km, kt, k3d
 
   type (eos_t) :: eos_state
-  
+
   ngf = 1
 
   It_lo = [lo(1) - 1, lo(2) - dg(2), dg(3)]
@@ -180,20 +183,32 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #endif
 #endif
 
-  call bl_allocate(sxm, st_lo, st_hi)
-  call bl_allocate(sxp, st_lo, st_hi)
+  if (ppm_type == 0) then
+     call bl_allocate(dqx, st_lo, st_hi, NQ)
+  else
+     call bl_allocate(sxm, st_lo, st_hi)
+     call bl_allocate(sxp, st_lo, st_hi)
+  endif
   call bl_allocate(qxm, It_lo, It_hi, NQ)
   call bl_allocate(qxp, It_lo, It_hi, NQ)
 
 #if BL_SPACEDIM >= 2
-  call bl_allocate(sym, st_lo, st_hi)
-  call bl_allocate(syp, st_lo, st_hi)
+  if (ppm_type == 0) then
+     call bl_allocate(dqy, st_lo, st_hi, NQ)
+  else
+     call bl_allocate(sym, st_lo, st_hi)
+     call bl_allocate(syp, st_lo, st_hi)
+  endif
   call bl_allocate(qym, It_lo, It_hi, NQ)
   call bl_allocate(qyp, It_lo, It_hi, NQ)
 #endif
 #if BL_SPACEDIM == 3
-  call bl_allocate(szm, st_lo, st_hi)
-  call bl_allocate(szp, st_lo, st_hi)
+  if (ppm_type == 0) then
+     call bl_allocate(dqz, st_lo, st_hi, NQ)
+  else
+     call bl_allocate(szm, st_lo, st_hi)
+     call bl_allocate(szp, st_lo, st_hi)
+  endif
   call bl_allocate(qzm, It_lo, It_hi, NQ)
   call bl_allocate(qzp, It_lo, It_hi, NQ)
 #endif
@@ -202,11 +217,6 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   call bl_allocate(shk, shk_lo, shk_hi)
 
-#ifndef AMREX_USE_CUDA  
-  if (ppm_type == 0) then
-     call amrex_error("ERROR: method of lines integration does not support ppm_type = 0")
-  endif
-#endif
 
 #ifdef SHOCK_VAR
     uout(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), USHK) = ZERO
@@ -281,35 +291,35 @@ subroutine ca_mol_single_stage(lo, hi, time, &
      kc = kt
 #endif
 
+     if (ppm_type == 0)  then
+        ! piecewise linear slopes
+        call uslope(q, flatn, q_lo, q_hi, &
+                    dqx, dqy, dqz, st_lo, st_hi, &
+                    lo(1), lo(2), hi(1), hi(2), kc, k3d)
+     endif
+
      do n = 1, NQ
 
         if (ppm_type == 0) then
-
-           ! piecewise linear slopes
-           call uslope(q, flatn, qd_lo, qd_hi, &
-                       dqx, dqy, dqz, qt_lo, qt_hi, &
-                       lo(1), lo(2), hi(1), hi(2), kc, k3d)
-
-           ! get the slopes
 
            ! extrapolate to the two edges for each zone
            do j = lo(2)-dg(2), hi(2)+dg(2)
               do i = lo(1)-1, hi(1)+1
 
                  ! left state at i-1/2 interface
-                 qxm(i,j,kc,n) = q(i-1,j,k3d,n) + HALF*dqx(i-1,j,kc)
+                 qxm(i,j,kc,n) = q(i-1,j,k3d,n) + HALF*dqx(i-1,j,kc,n)
 
                  ! right state at i-1/2 interface
-                 qxp(i,j,kc,n) = q(i,j,k3d,n) - HALF*dqx(i,j,kc)
+                 qxp(i,j,kc,n) = q(i,j,k3d,n) - HALF*dqx(i,j,kc,n)
 
 #if BL_SPACEDIM >= 2
                  ! y-edges
 
                  ! left state at j-1/2 interface
-                 qym(i,j,kc,n) = q(i,j-1,k3d,n) + HALF*dqy(i,j-1,kc)
+                 qym(i,j,kc,n) = q(i,j-1,k3d,n) + HALF*dqy(i,j-1,kc,n)
 
                  ! right state at j-1/2 interface
-                 qyp(i,j,kc,n) = q(i,j,k3d,n) - HALF*dqy(i,j,kc)
+                 qyp(i,j,kc,n) = q(i,j,k3d,n) - HALF*dqy(i,j,kc,n)
 #endif
 
 #if BL_SPACEDIM == 3
@@ -321,10 +331,10 @@ subroutine ca_mol_single_stage(lo, hi, time, &
                  ! we are relying on the coming swap to make the
                  ! states align.  This also means that the first pass
                  ! through the k loop we do nothing.
-                 qzm(i,j,km,n) = q(i,j,k3d,n) + HALF*dqz(i,j,kc)
+                 qzm(i,j,km,n) = q(i,j,k3d,n) + HALF*dqz(i,j,kc,n)
 
                  ! right state at k3d-1/2 interface
-                 qzp(i,j,kc,n) = q(i,j,k3d,n) - HALF*dqz(i,j,kc)
+                 qzp(i,j,kc,n) = q(i,j,k3d,n) - HALF*dqz(i,j,kc,n)
 #endif
 
               enddo
@@ -533,21 +543,33 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   call bl_deallocate(flatn)
 
-  call bl_deallocate(sxm)
-  call bl_deallocate(sxp)
+  if (ppm_type == 0) then
+     call bl_deallocate(dqx)
+  else
+     call bl_deallocate(sxm)
+     call bl_deallocate(sxp)
+  endif
   call bl_deallocate(qxm)
   call bl_deallocate(qxp)
 
 #if BL_SPACEDIM >= 2
-  call bl_deallocate(sym)
-  call bl_deallocate(syp)
+  if (ppm_type == 0) then
+     call bl_deallocate(dqy)
+  else
+     call bl_deallocate(sym)
+     call bl_deallocate(syp)
+  endif
   call bl_deallocate(qym)
   call bl_deallocate(qyp)
 #endif
 
 #if BL_SPACEDIM == 3
-  call bl_deallocate(szm)
-  call bl_deallocate(szp)
+  if (ppm_type == 0) then
+     call bl_deallocate(dqz)
+  else
+     call bl_deallocate(szm)
+     call bl_deallocate(szp)
+  endif
   call bl_deallocate(qzm)
   call bl_deallocate(qzp)
 #endif
