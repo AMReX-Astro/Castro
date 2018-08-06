@@ -282,54 +282,108 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #endif
 
      do n = 1, NQ
-        call ppm_reconstruct(q, q_lo, q_hi, NQ, n, &
-                             flatn, q_lo, q_hi, &
-                             sxm, sxp, &
-#if BL_SPACEDIM >= 2
-                             sym, syp, &
-#endif
-#if BL_SPACEDIM == 3
-                             szm, szp, &
-#endif
-                             st_lo, st_hi, &
-                             lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
 
-        ! Construct the interface states -- this is essentially just a
-        ! reshuffling of interface states from zone-center indexing to
-        ! edge-centered indexing
-        do j = lo(2)-dg(2), hi(2)+dg(2)
-           do i = lo(1)-1, hi(1)+1
+        if (ppm_type == 0) then
 
-              ! x-edges
+           ! piecewise linear slopes
+           call uslope(q, flatn, qd_lo, qd_hi, &
+                       dqx, dqy, dqz, qt_lo, qt_hi, &
+                       lo(1), lo(2), hi(1), hi(2), kc, k3d)
 
-              ! left state at i-1/2 interface
-              qxm(i,j,kc,n) = sxp(i-1,j,kc)
+           ! get the slopes
 
-              ! right state at i-1/2 interface
-              qxp(i,j,kc,n) = sxm(i,j,kc)
+           ! extrapolate to the two edges for each zone
+           do j = lo(2)-dg(2), hi(2)+dg(2)
+              do i = lo(1)-1, hi(1)+1
+
+                 ! left state at i-1/2 interface
+                 qxm(i,j,kc,n) = q(i-1,j,k3d,n) + HALF*dqx(i-1,j,kc)
+
+                 ! right state at i-1/2 interface
+                 qxp(i,j,kc,n) = q(i,j,k3d,n) - HALF*dqx(i,j,kc)
 
 #if BL_SPACEDIM >= 2
-              ! y-edges
+                 ! y-edges
 
-              ! left state at j-1/2 interface
-              qym(i,j,kc,n) = syp(i,j-1,kc)
+                 ! left state at j-1/2 interface
+                 qym(i,j,kc,n) = q(i,j-1,k3d,n) + HALF*dqy(i,j-1,kc)
 
-              ! right state at j-1/2 interface
-              qyp(i,j,kc,n) = sym(i,j,kc)
+                 ! right state at j-1/2 interface
+                 qyp(i,j,kc,n) = q(i,j,k3d,n) - HALF*dqy(i,j,kc)
 #endif
 
 #if BL_SPACEDIM == 3
-              ! z-edges
+                 ! z-edges
 
-              ! left state at k3d-1/2 interface
-              qzm(i,j,km,n) = szp(i,j,kc)
+                 ! left state.  We are filling the km slot here.  In
+                 ! the next k iteration, we will have swapped km and
+                 ! kc, so this will then be the left state for kc.  So
+                 ! we are relying on the coming swap to make the
+                 ! states align.  This also means that the first pass
+                 ! through the k loop we do nothing.
+                 qzm(i,j,km,n) = q(i,j,k3d,n) + HALF*dqz(i,j,kc)
 
-              ! right state at k3d-1/2 interface
-              qzp(i,j,kc,n) = szm(i,j,kc)
+                 ! right state at k3d-1/2 interface
+                 qzp(i,j,kc,n) = q(i,j,k3d,n) - HALF*dqz(i,j,kc)
 #endif
 
+              enddo
            enddo
-        enddo
+
+        else
+
+           ! parabolic reconstruction
+
+           call ppm_reconstruct(q, q_lo, q_hi, NQ, n, &
+                                flatn, q_lo, q_hi, &
+                                sxm, sxp, &
+#if BL_SPACEDIM >= 2
+                                sym, syp, &
+#endif
+#if BL_SPACEDIM == 3
+                                szm, szp, &
+#endif
+                                st_lo, st_hi, &
+                                lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
+
+           ! Construct the interface states -- this is essentially just a
+           ! reshuffling of interface states from zone-center indexing to
+           ! edge-centered indexing
+           do j = lo(2)-dg(2), hi(2)+dg(2)
+              do i = lo(1)-1, hi(1)+1
+
+                 ! x-edges
+
+                 ! left state at i-1/2 interface
+                 qxm(i,j,kc,n) = sxp(i-1,j,kc)
+
+                 ! right state at i-1/2 interface
+                 qxp(i,j,kc,n) = sxm(i,j,kc)
+
+#if BL_SPACEDIM >= 2
+                 ! y-edges
+
+                 ! left state at j-1/2 interface
+                 qym(i,j,kc,n) = syp(i,j-1,kc)
+
+                 ! right state at j-1/2 interface
+                 qyp(i,j,kc,n) = sym(i,j,kc)
+#endif
+
+#if BL_SPACEDIM == 3
+                 ! z-edges
+
+                 ! left state at k3d-1/2 interface
+                 qzm(i,j,km,n) = szp(i,j,kc)
+
+                 ! right state at k3d-1/2 interface
+                 qzp(i,j,kc,n) = szm(i,j,kc)
+#endif
+
+              enddo
+           enddo
+
+        endif
 
      enddo
 
