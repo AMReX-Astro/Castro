@@ -22,6 +22,7 @@ public:
                       amrex::MultiFab*             area);
 
   std::string get_gravity_type ();
+  int get_max_solve_level();
   int NoSync();
   int NoComposite();
   int DoCompositeCorrection();
