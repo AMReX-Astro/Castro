@@ -3584,7 +3584,7 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux)
 Real
 Castro::clean_state(MultiFab& state) {
 
-    BL_PROFILE("Castro::clean_state()");
+    BL_PROFILE("Castro::clean_state(state)");
 
     // Enforce a minimum density.
 
@@ -3622,7 +3622,7 @@ Castro::clean_state(MultiFab& state) {
 Real
 Castro::clean_state(int is_new, int ng) {
 
-  BL_PROFILE("Castro::clean_state()");
+  BL_PROFILE("Castro::clean_state(is_new, ng)");
 
   // this is the "preferred" clean_state interface -- it will work
   // directly on the StateData.  is_new=0 means the old data is used,
@@ -3645,7 +3645,7 @@ Castro::clean_state(int is_new, int ng) {
 Real
 Castro::clean_state(int is_new, MultiFab& state_old, int ng) {
 
-    BL_PROFILE("Castro::clean_state()");
+    BL_PROFILE("Castro::clean_state(is_new, state_old, ng)");
 
   MultiFab& state = is_new == 1 ? get_new_data(State_Type) : get_old_data(State_Type);
 
