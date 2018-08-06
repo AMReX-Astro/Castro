@@ -290,7 +290,7 @@ contains
 
              rhooInv = ONE / uold(i,j,k,URHO)
 
-             burn_state_in % T_from_eden = .true.
+             burn_state_in % T_from_eden = .false.
 
              if (i >= lo(1) .and. i <= hi(1)) then
                 burn_state_in % i = i
