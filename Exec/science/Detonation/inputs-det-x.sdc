@@ -25,12 +25,10 @@ castro.do_react = 1
 castro.time_integration_method = 2
 castro.sdc_order = 2
 castro.sdc_solver = 2
-castro.sdc_solver_tol = 1.e-6
+castro.sdc_solver_tol = 1.e-5
+castro.sdc_use_analytic_jac=0
 
-castro.ppm_type = 1
-castro.ppm_reference_eigenvectors = 1
-
-castro.transverse_reset_density = 1
+castro.ppm_type = 0
 
 castro.use_flattening = 1
 
