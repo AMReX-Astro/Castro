@@ -481,6 +481,8 @@ public:
                       amrex::MultiFab&  react_mf,
                       amrex::Real       time,
                       amrex::Real       dt);
+
+    bool valid_zones_to_burn(amrex::MultiFab& State);
 #endif
 
 #ifdef ROTATION
