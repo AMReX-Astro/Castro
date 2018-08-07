@@ -407,6 +407,8 @@ contains
 
   subroutine f_sdc(n, U, f, iflag, rpar)
 
+    ! this is used by the Newton solve to compute the Jacobian via differencing
+
     use rpar_sdc_module
     use meth_params_module, only : nvar, URHO, UFS, UEDEN, UMX, UMZ, UEINT, sdc_solve_for_rhoe
     use network, only : nspec, nspec_evolve
@@ -462,6 +464,8 @@ contains
   end subroutine f_sdc
 
   subroutine f_sdc_jac(n, U, f, Jac, ldjac, iflag, rpar)
+
+    ! this is used with the Newton solve and returns f and the Jacobian
 
     use rpar_sdc_module
     use meth_params_module, only : nvar, URHO, UFS, UEINT, UEDEN, UMX, UMZ, UTEMP, &
