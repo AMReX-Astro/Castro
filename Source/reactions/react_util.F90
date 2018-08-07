@@ -11,8 +11,7 @@ contains
     use network, only : nspec, nspec_evolve, aion
     use eos_module, only : eos
     use eos_type_module, only: eos_t, eos_input_re, eos_get_small_temp
-    use meth_params_module, only : NVAR, URHO, UTEMP, UEDEN, UEINT, UMX, UMZ, UFS, UFX, &
-                                   dual_energy_eta3
+    use meth_params_module, only : NVAR, URHO, UTEMP, UEDEN, UEINT, UMX, UMZ, UFS, UFX
     use amrex_constants_module, only : ZERO, HALF, ONE
     use actual_rhs_module
     use extern_probin_module, only : SMALL_X_SAFE, MAX_TEMP
@@ -33,16 +32,7 @@ contains
 
     burn_state % rho = state(URHO)
     burn_state % T   = state(UTEMP)
-
-    rho_e_K = state(UEDEN) - HALF * rhoInv * sum(state(UMX:UMZ)**2)
-
-    ! Dual energy formalism: switch between e and (E - K) depending on (E - K) / E.
-
-    if ( rho_e_K / state(UEDEN) .gt. dual_energy_eta3 .and. rho_e_K .gt. ZERO ) then
-       burn_state % e = rho_E_K * rhoInv
-    else
-       burn_state % e = state(UEINT) * rhoInv
-    endif
+    burn_state % e = state(UEINT) * rhoInv
 
     do n = 1, nspec
        burn_state % xn(n) = state(UFS+n-1) * rhoInv
@@ -92,8 +82,7 @@ contains
 
     use burn_type_module, only : burn_t, net_ienuc, net_itemp
     use network, only : nspec, nspec_evolve, aion, aion_inv
-    use meth_params_module, only : NVAR, URHO, UTEMP, UEDEN, UEINT, UMX, UMZ, UFS, UFX, &
-                                   dual_energy_eta3
+    use meth_params_module, only : NVAR, URHO, UTEMP, UEDEN, UEINT, UMX, UMZ, UFS, UFX
     use amrex_constants_module, only : ZERO, HALF, ONE
     use actual_rhs_module
 

@@ -34,7 +34,7 @@ contains
     ! satisfies the nonlinear function
 
     use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ, UTEMP, &
-         sdc_solver, sdc_solver_tol, sdc_solve_for_rhoe
+         sdc_solver, sdc_solver_tol, sdc_solve_for_rhoe, sdc_use_analytic_jac
     use amrex_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
     use react_util_module
@@ -89,6 +89,9 @@ contains
     integer, parameter :: NEWTON_SOLVE = 1
     integer, parameter :: VODE_SOLVE = 2
     integer :: solver
+
+    integer, parameter :: MF_ANALYTIC_JAC = 21, MF_NUMERICAL_JAC = 22
+    integer :: imode
 
     if (sdc_solver == 1) then
        solver = NEWTON_SOLVE
@@ -233,9 +236,16 @@ contains
 
        rwork(:) = ZERO
        time = ZERO
+
+       if (sdc_use_analytic_jac == 1) then
+          imode = MF_ANALYTIC_JAC
+       else
+          imode = MF_NUMERICAL_JAC
+       endif
+
        call dvode(f_ode, nspec_evolve+2, U_react, time, dt_m, &
                   1, sdc_solver_tol, 1.e-100_rt, &
-                  1, istate, iopt, rwork, lrw, iwork, liw, jac_ode, 22, rpar, ipar)
+                  1, istate, iopt, rwork, lrw, iwork, liw, jac_ode, imode, rpar, ipar)
 
        if (istate < 0) then
           call amrex_error("vode termination poorly, istate = ", istate)
