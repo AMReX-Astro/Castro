@@ -63,7 +63,6 @@ pp.query("transverse_reset_density", transverse_reset_density);
 pp.query("transverse_reset_rhoe", transverse_reset_rhoe);
 pp.query("dual_energy_eta1", dual_energy_eta1);
 pp.query("dual_energy_eta2", dual_energy_eta2);
-pp.query("dual_energy_eta3", dual_energy_eta3);
 pp.query("use_pslope", use_pslope);
 pp.query("fix_mass_flux", fix_mass_flux);
 pp.query("limit_fluxes_on_small_dens", limit_fluxes_on_small_dens);

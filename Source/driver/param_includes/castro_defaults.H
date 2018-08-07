@@ -63,7 +63,6 @@ int         Castro::transverse_reset_density = 1;
 int         Castro::transverse_reset_rhoe = 0;
 amrex::Real Castro::dual_energy_eta1 = 1.0e0;
 amrex::Real Castro::dual_energy_eta2 = 1.0e-4;
-amrex::Real Castro::dual_energy_eta3 = 1.0e0;
 int         Castro::use_pslope = 1;
 int         Castro::fix_mass_flux = 0;
 int         Castro::limit_fluxes_on_small_dens = 0;

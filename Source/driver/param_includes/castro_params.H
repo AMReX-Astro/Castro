@@ -63,7 +63,6 @@ static int transverse_reset_density;
 static int transverse_reset_rhoe;
 static amrex::Real dual_energy_eta1;
 static amrex::Real dual_energy_eta2;
-static amrex::Real dual_energy_eta3;
 static int use_pslope;
 static int fix_mass_flux;
 static int limit_fluxes_on_small_dens;

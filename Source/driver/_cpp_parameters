@@ -150,10 +150,6 @@ dual_energy_eta1             Real          1.0e0              y
 # remains unchanged.
 dual_energy_eta2             Real          1.0e-4             y
 
-# Threshold value of (E - K) / E such that above eta3, the temperature used
-# in the burning module is derived from E-K; otherwise, we use UEINT.
-dual_energy_eta3             Real          1.0e0              y
-
 # for the piecewise linear reconstruction, do we subtract off $(\rho g)$
 # from the pressure before limiting?
 use_pslope                   int           1                  y
@@ -586,6 +582,11 @@ no_composite                int            0
 # resulting fine grid calculation slightly more accurate,
 # at the cost of an additional Poisson solve per timestep.
 do_composite_phi_correction int            1
+
+# For all gravity types, we can choose a maximum level for explicitly
+# calculating the gravity and associated potential. Above that level,
+# we interpolate from coarser levels.
+max_solve_level              int           MAX_LEV-1
 
 # For non-Poisson gravity, do we want to construct the gravitational
 # acceleration by taking the gradient of the potential, rather than
