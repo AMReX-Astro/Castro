@@ -119,16 +119,12 @@ contains
 
     ! now perturb density and call the RHS to compute the derivative wrt rho
     ! species rates come back in terms of molar fractions
+    call copy_burn_t(burn_state_pert, burn_state)
     burn_state_pert % rho = burn_state % rho * (ONE + eps)
-    burn_state_pert % T = burn_state % T
-    burn_state_pert % e = burn_state % e
-    burn_state_pert % xn(:) = burn_state % xn(:)
 
     burn_state_pert % i = burn_state % i
     burn_state_pert % j = burn_state % j
     burn_state_pert % k = burn_state % k
-
-    burn_state_pert % self_heat = .false.
 
     call actual_rhs(burn_state_pert)
 
