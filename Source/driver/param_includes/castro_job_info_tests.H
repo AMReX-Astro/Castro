@@ -61,7 +61,6 @@ jobInfoFile << (Castro::transverse_reset_rhoe == 0 ? "    " : "[*] ") << "castro
 jobInfoFile << (Castro::dual_energy_update_E_from_e == 1 ? "    " : "[*] ") << "castro.dual_energy_update_E_from_e = " << Castro::dual_energy_update_E_from_e << std::endl;
 jobInfoFile << (Castro::dual_energy_eta1 == 1.0e0 ? "    " : "[*] ") << "castro.dual_energy_eta1 = " << Castro::dual_energy_eta1 << std::endl;
 jobInfoFile << (Castro::dual_energy_eta2 == 1.0e-4 ? "    " : "[*] ") << "castro.dual_energy_eta2 = " << Castro::dual_energy_eta2 << std::endl;
-jobInfoFile << (Castro::dual_energy_eta3 == 1.0e0 ? "    " : "[*] ") << "castro.dual_energy_eta3 = " << Castro::dual_energy_eta3 << std::endl;
 jobInfoFile << (Castro::use_pslope == 1 ? "    " : "[*] ") << "castro.use_pslope = " << Castro::use_pslope << std::endl;
 jobInfoFile << (Castro::fix_mass_flux == 0 ? "    " : "[*] ") << "castro.fix_mass_flux = " << Castro::fix_mass_flux << std::endl;
 jobInfoFile << (Castro::limit_fluxes_on_small_dens == 0 ? "    " : "[*] ") << "castro.limit_fluxes_on_small_dens = " << Castro::limit_fluxes_on_small_dens << std::endl;

@@ -20,6 +20,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
   // for 4th order reactive SDC, we need to first compute the source, C
   // and do a ghost cell fill on it
 
+#ifdef REACTIONS
   if (fourth_order == 1) {
     MultiFab& C_source = get_new_data(SDC_Source_Type);
 
@@ -46,7 +47,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
                         SDC_Source_Type, 0, NUM_STATE);
 
   }
-
+#endif
 
   for (MFIter mfi(*k_new[0]); mfi.isValid(); ++mfi) {
 

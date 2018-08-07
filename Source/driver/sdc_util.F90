@@ -23,6 +23,7 @@ module sdc_util
 
 contains
 
+#ifdef REACTIONS
   subroutine sdc_solve(dt_m, U_old, U_new, C, sdc_iteration)
 
     ! the purpose of this function is to solve the system
@@ -33,13 +34,14 @@ contains
     ! satisfies the nonlinear function
 
     use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ, UTEMP, &
-         sdc_solver, sdc_solver_tol, sdc_solve_for_rhoe
+         sdc_solver, sdc_solver_tol, sdc_solve_for_rhoe, sdc_use_analytic_jac
     use amrex_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
-    use network, only : nspec, nspec_evolve
     use react_util_module
-    use rpar_sdc_module
     use extern_probin_module, only : SMALL_X_SAFE
+    use network, only : nspec, nspec_evolve
+    use rpar_sdc_module
+
 
     implicit none
 
@@ -73,7 +75,8 @@ contains
     !   1:nspec_evolve  : species
     !   nspec_evolve+1  : (rho E) or (rho e)
 
-    real(rt) :: U_react(0:nspec_evolve+1), f_source(0:nspec_evolve+1), R_react(0:nspec_evolve+1), C_react(0:nspec_evolve+1)
+    real(rt) :: U_react(0:nspec_evolve+1), f_source(0:nspec_evolve+1), &
+                R_react(0:nspec_evolve+1), C_react(0:nspec_evolve+1)
     real(rt) :: dU_react(0:nspec_evolve+1), f(0:nspec_evolve+1), f_rhs(0:nspec_evolve+1)
 
     integer :: m, n
@@ -86,6 +89,9 @@ contains
     integer, parameter :: NEWTON_SOLVE = 1
     integer, parameter :: VODE_SOLVE = 2
     integer :: solver
+
+    integer, parameter :: MF_ANALYTIC_JAC = 21, MF_NUMERICAL_JAC = 22
+    integer :: imode
 
     if (sdc_solver == 1) then
        solver = NEWTON_SOLVE
@@ -230,9 +236,16 @@ contains
 
        rwork(:) = ZERO
        time = ZERO
+
+       if (sdc_use_analytic_jac == 1) then
+          imode = MF_ANALYTIC_JAC
+       else
+          imode = MF_NUMERICAL_JAC
+       endif
+
        call dvode(f_ode, nspec_evolve+2, U_react, time, dt_m, &
                   1, sdc_solver_tol, 1.e-100_rt, &
-                  1, istate, iopt, rwork, lrw, iwork, liw, jac_ode, 22, rpar, ipar)
+                  1, istate, iopt, rwork, lrw, iwork, liw, jac_ode, imode, rpar, ipar)
 
        if (istate < 0) then
           call amrex_error("vode termination poorly, istate = ", istate)
@@ -307,16 +320,88 @@ contains
 
   end subroutine f_ode
 
-  subroutine jac_ode(neq, time, U, ml, mu, pd, nrowpd, rpar, ipar)
+  subroutine jac_ode(n, time, U, ml, mu, Jac, nrowpd, rpar, ipar)
 
+    ! this is the Jacobian function for use with VODE
+
+    use amrex_constants_module, only : ZERO, ONE
+    use meth_params_module, only : nvar, URHO, UFS, UEDEN, UTEMP, UMX, UMZ, UEINT
+    use burn_type_module
+    use eos_type_module, only : eos_t, eos_input_re
+    use eos_module, only : eos
     use rpar_sdc_module
+    use react_util_module
+
     implicit none
 
-    integer   , intent(IN   ) :: neq, ml, mu, nrowpd, ipar
-    real(rt), intent(INOUT) :: U(neq), rpar(n_rpar), time
-    real(rt), intent(  OUT) :: pd(neq,neq)
+    integer   , intent(IN   ) :: n, ml, mu, nrowpd, ipar
+    real(rt), intent(INOUT) :: U(0:n-1), rpar(0:n_rpar-1), time
+    real(rt), intent(  OUT) :: Jac(0:n-1, 0:n-1)
 
-    ! this is a stub -- we are using a numerical Jacobian at the moment
+    type(burn_t) :: burn_state
+    type(eos_t) :: eos_state
+
+    real(rt) :: U_full(nvar),  R_full(nvar)
+
+    real(rt) :: denom
+    real(rt) :: dRdw(0:nspec_evolve+1, 0:nspec_evolve+1), dwdU(0:nspec_evolve+1, 0:nspec_evolve+1)
+
+    integer :: m
+
+    ! we are not solving the momentum equations
+    ! create a full state -- we need this for some interfaces
+    U_full(URHO) = U(0)
+    U_full(UFS:UFS-1+nspec_evolve) = U(1:nspec_evolve)
+    U_full(UEINT) = U(nspec_evolve+1)
+    U_full(UEDEN) = rpar(irp_evar)
+
+    U_full(UMX:UMZ) = rpar(irp_mom:irp_mom+2)
+    U_full(UFS+nspec_evolve:UFS-1+nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))
+
+    ! compute the temperature and species derivatives --
+    ! maybe this should be done using the burn_state
+    ! returned by single_zone_react_source, since it is
+    ! more consistent T from e
+    eos_state % rho = U_full(URHO)
+    eos_state % T = 1.e6_rt   ! initial guess
+    eos_state % xn(:) = U_full(UFS:UFS-1+nspec)/U_full(URHO)
+    eos_state % e = U_full(UEINT)/U_full(URHO)  !(U_full(UEDEN) - HALF*sum(U_full(UMX:UMZ))/U_full(URHO))/U_full(URHO)
+
+    call eos(eos_input_re, eos_state)
+
+    U_full(UTEMP) = eos_state % T
+
+    call single_zone_react_source(U_full, R_full, 0,0,0, burn_state)
+
+    call single_zone_jac(U_full, burn_state, dRdw)
+
+    ! construct dwdU
+    dwdU(:, :) = ZERO
+
+    ! the density row
+    dwdU(0, 0) = ONE
+
+    ! the X_k rows
+    do m = 1, nspec_evolve
+       dwdU(m,0) = -U(m)/U(0)**2
+       dwdU(m,m) = ONE/U(0)
+    enddo
+
+    ! now the T row -- this depends on whether we are evolving (rho E) or (rho e)
+    denom = ONE/(eos_state % rho * eos_state % dedT)
+    dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(1:nspec_evolve) * eos_state % dedX(1:nspec_evolve)) - &
+                                    eos_state % rho * eos_state % dedr - eos_state % e)
+
+    do m = 1, nspec_evolve
+       dwdU(nspec_evolve+1,m) = -denom * eos_state % dedX(m)
+    enddo
+
+    dwdU(nspec_evolve+1, nspec_evolve+1) = denom
+
+    ! construct the Jacobian -- we can get most of the
+    ! terms from the network itself, but we do not rely on
+    ! it having derivative wrt density
+    Jac(:,:) = matmul(dRdw, dwdU)
 
   end subroutine jac_ode
 
@@ -526,7 +611,7 @@ contains
     f(:) = U(:) - dt_m * R_react(:) - f_source(:)
 
   end subroutine f_sdc_jac
-
+#endif
 
   subroutine ca_sdc_update_advection_o2(lo, hi, dt_m, &
                                         k_m, kmlo, kmhi, &

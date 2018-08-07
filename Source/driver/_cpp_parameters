@@ -163,10 +163,6 @@ dual_energy_eta1             Real          1.0e0              y
 # remains unchanged.
 dual_energy_eta2             Real          1.0e-4             y
 
-# Threshold value of (E - K) / E such that above eta3, the temperature used
-# in the burning module is derived from E-K; otherwise, we use UEINT.
-dual_energy_eta3             Real          1.0e0              y
-
 # for the piecewise linear reconstruction, do we subtract off $(\rho g)$
 # from the pressure before limiting?
 use_pslope                   int           1                  y
