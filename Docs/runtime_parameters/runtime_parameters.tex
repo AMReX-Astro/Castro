@@ -312,59 +312,57 @@
 \runparamNS{dual\_energy\_eta1}{castro} &  Threshold value of (E - K) / E such that above eta1, the hydrodynamic pressure is derived from E - K; otherwise, we use the internal energy variable UEINT. & 1.0e0 \\
 \rowcolor{tableShade}
 \runparamNS{dual\_energy\_eta2}{castro} &  Threshold value of (E - K) / E such that above eta2, we update the internal energy variable UEINT to match E - K. Below this, UEINT remains unchanged. & 1.0e-4 \\
-\runparamNS{dual\_energy\_eta3}{castro} &  Threshold value of (E - K) / E such that above eta3, the temperature used in the burning module is derived from E-K; otherwise, we use UEINT. & 1.0e0 \\
-\rowcolor{tableShade}
 \runparamNS{dual\_energy\_update\_E\_from\_e}{castro} &  Allow internal energy resets and temperature flooring to change the total energy variable UEDEN in addition to the internal energy variable UEINT. & 1 \\
+\rowcolor{tableShade}
 \runparamNS{first\_order\_hydro}{castro} &  set the flattening parameter to zero to force the reconstructed profiles to be flat, resulting in a first-order method & 0 \\
-\rowcolor{tableShade}
 \runparamNS{fix\_mass\_flux}{castro} &  & 0 \\
+\rowcolor{tableShade}
 \runparamNS{fourth\_order}{castro} &  do we do fourth-order accurate MOL hydro? & 0 \\
-\rowcolor{tableShade}
 \runparamNS{hse\_interp\_temp}{castro} &  if we are doing HSE boundary conditions, should we get the temperature via interpolation (using model\_parser) or hold it constant? & 0 \\
+\rowcolor{tableShade}
 \runparamNS{hse\_reflect\_vels}{castro} &  if we are doing HSE boundary conditions, how do we treat the velocity? reflect? or outflow? & 0 \\
-\rowcolor{tableShade}
 \runparamNS{hse\_zero\_vels}{castro} &  if we are doing HSE boundary conditions, do we zero the velocity? & 0 \\
+\rowcolor{tableShade}
 \runparamNS{hybrid\_hydro}{castro} &  whether to use the hybrid advection scheme that updates z-angular momentum, cylindrical momentum, and azimuthal momentum (3D only) & 0 \\
-\rowcolor{tableShade}
 \runparamNS{hybrid\_riemann}{castro} &  do we drop from our regular Riemann solver to HLL when we are in shocks to avoid the odd-even decoupling instability? & 0 \\
+\rowcolor{tableShade}
 \runparamNS{limit\_fluxes\_on\_small\_dens}{castro} &  Should we limit the density fluxes so that we do not create small densities? & 0 \\
-\rowcolor{tableShade}
 \runparamNS{mol\_order}{castro} &  integration order for MOL integration 1 = first order, 2 = second order TVD, 3 = 3rd order TVD, 4 = 4th order RK & 2 \\
+\rowcolor{tableShade}
 \runparamNS{plm\_iorder}{castro} &  for piecewise linear, reconstruction order to use & 2 \\
-\rowcolor{tableShade}
 \runparamNS{ppm\_predict\_gammae}{castro} &  do we construct $\gamma_e = p/(\rho e) + 1$ and bring it to the interfaces for additional thermodynamic information (this is the Colella \& Glaz technique) or do we use $(\rho e)$ (the classic \castro\ behavior).  Note this also uses $\tau = 1/\rho$ instead of $\rho$. & 0 \\
+\rowcolor{tableShade}
 \runparamNS{ppm\_reference\_eigenvectors}{castro} &  do we use the reference state in evaluating the eigenvectors? & 0 \\
-\rowcolor{tableShade}
 \runparamNS{ppm\_temp\_fix}{castro} &  various methods of giving temperature a larger role in the reconstruction---see Zingale \& Katz 2015 & 0 \\
+\rowcolor{tableShade}
 \runparamNS{ppm\_type}{castro} &  reconstruction type: 0: piecewise linear; 1: classic Colella \& Woodward ppm; 2: extrema-preserving ppm & 1 \\
-\rowcolor{tableShade}
 \runparamNS{riemann\_solver}{castro} &  which Riemann solver do we use: 0: Colella, Glaz, \& Ferguson (a two-shock solver); 1: Colella \& Glaz (a two-shock solver) 2: HLLC & 0 \\
+\rowcolor{tableShade}
 \runparamNS{small\_dens}{castro} &  the small density cutoff.  Densities below this value will be reset & -1.e200 \\
-\rowcolor{tableShade}
 \runparamNS{small\_ener}{castro} &  the small specific internal energy cutoff.  Internal energies below this value will be reset & -1.e200 \\
+\rowcolor{tableShade}
 \runparamNS{small\_pres}{castro} &  the small pressure cutoff.  Pressures below this value will be reset & -1.e200 \\
-\rowcolor{tableShade}
 \runparamNS{small\_temp}{castro} &  the small temperature cutoff.  Temperatures below this value will be reset & -1.e200 \\
+\rowcolor{tableShade}
 \runparamNS{source\_term\_predictor}{castro} &  extrapolate the source terms (gravity and rotation) to $n+1/2$ timelevel for use in the interface state prediction & 0 \\
-\rowcolor{tableShade}
 \runparamNS{sponge\_implicit}{castro} &  if we are using the sponge, whether to use the implicit solve for it & 1 \\
+\rowcolor{tableShade}
 \runparamNS{transverse\_reset\_density}{castro} &  if the transverse interface state correction, if the new density is negative, then replace all of the interface quantities with their values without the transverse correction. & 1 \\
-\rowcolor{tableShade}
 \runparamNS{transverse\_reset\_rhoe}{castro} &  if the interface state for $(\rho e)$ is negative after we add the transverse terms, then replace the interface value of $(\rho e)$ with a value constructed from the $(\rho e)$ evolution equation & 0 \\
+\rowcolor{tableShade}
 \runparamNS{transverse\_use\_eos}{castro} &  after we add the transverse correction to the interface states, replace the predicted pressure with an EOS call (using $e$ and $\rho$). & 0 \\
-\rowcolor{tableShade}
 \runparamNS{use\_eos\_in\_riemann}{castro} &  should we use the EOS in the Riemann solver to ensure thermodynamic consistency? & 0 \\
+\rowcolor{tableShade}
 \runparamNS{use\_flattening}{castro} &  flatten the reconstructed profiles around shocks to prevent them from becoming too thin & 1 \\
-\rowcolor{tableShade}
 \runparamNS{use\_pslope}{castro} &  for the piecewise linear reconstruction, do we subtract off $(\rho g)$ from the pressure before limiting? & 1 \\
+\rowcolor{tableShade}
 \runparamNS{xl\_ext\_bc\_type}{castro} &  if we are doing an external -x boundary condition, who do we interpret it? & "" \\
-\rowcolor{tableShade}
 \runparamNS{xr\_ext\_bc\_type}{castro} &  if we are doing an external +x boundary condition, who do we interpret it? & "" \\
+\rowcolor{tableShade}
 \runparamNS{yl\_ext\_bc\_type}{castro} &  if we are doing an external -y boundary condition, who do we interpret it? & "" \\
-\rowcolor{tableShade}
 \runparamNS{yr\_ext\_bc\_type}{castro} &  if we are doing an external +y boundary condition, who do we interpret it? & "" \\
-\runparamNS{zl\_ext\_bc\_type}{castro} &  if we are doing an external -z boundary condition, who do we interpret it? & "" \\
 \rowcolor{tableShade}
+\runparamNS{zl\_ext\_bc\_type}{castro} &  if we are doing an external -z boundary condition, who do we interpret it? & "" \\
 \runparamNS{zr\_ext\_bc\_type}{castro} &  if we are doing an external +z boundary condition, who do we interpret it? & "" \\
 
 
