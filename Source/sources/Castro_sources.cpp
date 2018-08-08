@@ -13,7 +13,7 @@ Castro::apply_source_to_state(int is_new, MultiFab& state, MultiFab& source, Rea
     AMREX_ASSERT(source.nGrow() >= ng);
     AMREX_ASSERT(state.nGrow() >= ng);
 
-    MultiFab::Saxpy(state, dt, source, 0, 0, NUM_STATE, ng);
+    MultiFab::Saxpy(state, dt, source, 0, 0, NSRC, ng);
 
     clean_state(is_new, state.nGrow());
 }
@@ -94,7 +94,7 @@ Castro::do_old_sources(MultiFab& source, MultiFab& state, Real time, Real dt, in
     // The individual source terms only calculate the source on the valid domain.
     // FillPatch to get valid data in the ghost zones.
 
-    AmrLevel::FillPatch(*this, source, source.nGrow(), time, Source_Type, 0, NUM_STATE);
+    AmrLevel::FillPatch(*this, source, source.nGrow(), time, Source_Type, 0, NSRC);
 
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
@@ -120,7 +120,7 @@ Castro::do_new_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
     // The individual source terms only calculate the source on the valid domain.
     // FillPatch to get valid data in the ghost zones.
 
-    AmrLevel::FillPatch(*this, source, NUM_GROW, time, Source_Type, 0, NUM_STATE);
+    AmrLevel::FillPatch(*this, source, NUM_GROW, time, Source_Type, 0, NSRC);
 
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
@@ -289,7 +289,7 @@ void
 Castro::print_source_change(Vector<Real> update)
 {
 
-  BL_ASSERT(update.size() == NUM_STATE);
+  BL_ASSERT(update.size() >= NSRC);
 
   if (ParallelDescriptor::IOProcessor()) {
 
@@ -330,7 +330,7 @@ Castro::print_all_source_changes(Real dt, bool is_new)
   Lazy::QueueReduction( [=] () mutable {
 #endif
 
-      ParallelDescriptor::ReduceRealSum(summed_updates.dataPtr(), NUM_STATE, ParallelDescriptor::IOProcessorNumber());
+      ParallelDescriptor::ReduceRealSum(summed_updates.dataPtr(), NSRC, ParallelDescriptor::IOProcessorNumber());
 
       std::string time = is_new ? "new" : "old";
 
@@ -365,11 +365,11 @@ Castro::sum_of_sources(MultiFab& source)
   MultiFab& old_sources = get_old_data(Source_Type);
   MultiFab& new_sources = get_new_data(Source_Type);
 
-  MultiFab::Add(source, old_sources, 0, 0, NUM_STATE, ng);
+  MultiFab::Add(source, old_sources, 0, 0, NSRC, ng);
 
   MultiFab::Add(source, hydro_source, 0, 0, NUM_STATE, ng);
 
-  MultiFab::Add(source, new_sources, 0, 0, NUM_STATE, ng);
+  MultiFab::Add(source, new_sources, 0, 0, NSRC, ng);
 
 }
 

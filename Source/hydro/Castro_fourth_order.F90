@@ -38,7 +38,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
                                  use_flattening, QPRES, NQAUX, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
                                  first_order_hydro, difmag, hybrid_riemann, &
-                                 limit_fluxes_on_small_dens, ppm_temp_fix
+                                 limit_fluxes_on_small_dens, ppm_temp_fix, NSRC
   use advection_util_module, only : limit_hydro_fluxes_on_small_dens, shock, &
                                     divu, normalize_species_fluxes, calc_pdivu
   use amrex_error_module
@@ -90,7 +90,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
   real(rt), intent(inout) :: q_bar(q_bar_lo(1):q_bar_hi(1), q_bar_lo(2):q_bar_hi(2), q_bar_lo(3):q_bar_hi(3), NQ)
   real(rt), intent(inout) :: qaux(qa_lo(1):qa_hi(1), qa_lo(2):qa_hi(2), qa_lo(3):qa_hi(3), NQAUX)
-  real(rt), intent(in) :: srcU(srU_lo(1):srU_hi(1), srU_lo(2):srU_hi(2), srU_lo(3):srU_hi(3), NVAR)
+  real(rt), intent(in) :: srcU(srU_lo(1):srU_hi(1), srU_lo(2):srU_hi(2), srU_lo(3):srU_hi(3), NSRC)
   real(rt), intent(inout) :: update(updt_lo(1):updt_hi(1), updt_lo(2):updt_hi(2), updt_lo(3):updt_hi(3), NVAR)
   real(rt), intent(inout) :: update_flux(uf_lo(1):uf_hi(1), uf_lo(2):uf_hi(2), uf_lo(3):uf_hi(3), NVAR)
   real(rt), intent(inout) :: flx(flx_lo(1):flx_hi(1), flx_lo(2):flx_hi(2), flx_lo(3):flx_hi(3), NVAR)
@@ -674,7 +674,9 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
               update_flux(i,j,k,n) = update_flux(i,j,k,n) + &
                    stage_weight * update(i,j,k,n)
 
-              update(i,j,k,n) = update(i,j,k,n) + srcU(i,j,k,n)
+              if (n <= NSRC) then 
+                 update(i,j,k,n) = update(i,j,k,n) + srcU(i,j,k,n)
+              endif
 
            enddo
         enddo

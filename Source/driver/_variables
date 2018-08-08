@@ -2,6 +2,10 @@
 # accessing various state arrays.  We will keep them in the order that
 # they are specified here.
 
+# IMPORTANT: for the state variables, we need the species (and advected, etc.)
+# variables to come at the end.  This is because we optionally do not include them
+# in the source terms
+
 #  descriptive-name     C++-name   Fortran-name  also-adds-to    count   if-def
 
 # the conserved variable state
@@ -16,10 +20,10 @@
    energy-density         Eden         UEDEN     None             1                None
    internal-energy        Eint         UEINT     None             1                None
    temperature            Temp         UTEMP     None             1                None
+   shock                  Shock        USHK      None             1                SHOCK_VAR
    advected               FirstAdv     UFA       None           (nadv, NumAdv)     None
    species                FirstSpec    UFS       None           (nspec, NumSpec)   None
    auxiliary              FirstAux     UFX       None           (naux, NumAux)     None
-   shock                  Shock        USHK      None             1                SHOCK_VAR
 
 
 # the primitive variable state
@@ -35,12 +39,12 @@
    B-y                    None         QMAGY     QVAR             1      MHD
    B-z                    None         QMAGZ     QVAR             1      MHD
    temperature            None         QTEMP     QVAR             1      None
-   advected               None         QFA       QVAR           nadv     None
-   species                None         QFS       QVAR           nspec    None
-   auxiliary              None         QFX       QVAR           naux     None
    total-pressure         None         QPTOT     None             1      RADIATION
    total-reint            None         QREITOT   None             1      RADIATION
    radiation              None         QRAD      None           ngroups  RADIATION
+   advected               None         QFA       QVAR           nadv     None
+   species                None         QFS       QVAR           nspec    None
+   auxiliary              None         QFX       QVAR           naux     None
 
 
 # the auxiliary quantities

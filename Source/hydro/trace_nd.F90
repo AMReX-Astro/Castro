@@ -27,7 +27,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, QC, &
-                                   QREINT, QPRES, &
+                                   QREINT, QPRES, NQSRC, &
                                    npassive, qpass_map, small_dens, small_pres, &
                                    ppm_type, fix_mass_flux
     use amrex_constants_module
@@ -66,7 +66,7 @@ contains
     real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 #endif
 #if (BL_SPACEDIM == 1)
-    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)    
+    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)
 #endif
     real(rt), intent(in) :: dx(3), dt
 

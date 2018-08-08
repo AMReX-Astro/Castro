@@ -4,7 +4,7 @@
                         new_state,new_state_l1,new_state_h1, &
                         src,src_l1,src_h1,problo,dx,time,dt)
 
-    use meth_params_module, only : NVAR, URHO, UEDEN, UEINT, UFS
+    use meth_params_module, only : NVAR, URHO, UEDEN, UEINT, UFS, NSRC
     use probdata_module   , only : xmin, &
                                    heating_time, heating_rad, &
                                    heating_peak, heating_sigma, prob_type
@@ -19,7 +19,7 @@
     integer         ,intent(in   ) :: src_l1,src_h1
     real(rt)        ,intent(in   ) :: old_state(old_state_l1:old_state_h1,NVAR)
     real(rt)        ,intent(in   ) :: new_state(new_state_l1:new_state_h1,NVAR)
-    real(rt)        ,intent(  out) :: src(src_l1:src_h1,NVAR)
+    real(rt)        ,intent(  out) :: src(src_l1:src_h1,NSRC)
     real(rt)        ,intent(in   ) :: problo(1),dx(1),time,dt
     
     integer          :: i

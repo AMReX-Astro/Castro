@@ -247,7 +247,7 @@ Castro::do_advance (Real time,
       // in case we have already started with some source
       // terms (e.g. the source term predictor, or the SDC source).
 
-      AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
+      AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NSRC);
 
     } else {
       old_source.setVal(0.0, NUM_GROW);
@@ -453,7 +453,7 @@ Castro::do_advance_mol (Real time,
       }
 
       // now that we redid these, redo the ghost fill
-      AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), time, Source_Type, 0, NUM_STATE);
+      AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), time, Source_Type, 0, NSRC);
 
     } else {
       do_old_sources(old_source, Sborder, time, dt, amr_iteration, amr_ncycle);
@@ -462,7 +462,7 @@ Castro::do_advance_mol (Real time,
 
     // hack: copy the source to the new data too, so fillpatch doesn't have to 
     // worry about time
-    MultiFab::Copy(new_source, old_source, 0, 0, NUM_STATE, 0);
+    MultiFab::Copy(new_source, old_source, 0, 0, NSRC, 0);
 
     // Apply the old sources to the sources for the hydro.  Note that
     // we are doing an fill here, not an add (like we do for CTU --
@@ -472,7 +472,7 @@ Castro::do_advance_mol (Real time,
     // we only need a fill here if sources_for_hydro has more ghost
     // cells than Source_Type, because otherwise, do_old_sources
     // already did the fill for us
-    AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
+    AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NSRC);
 
   } else {
     old_source.setVal(0.0, old_source.nGrow());
@@ -807,7 +807,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // the new-time sources, so that we can compute the time
     // derivative of the source terms.
 
-    sources_for_hydro.define(grids, dmap, NUM_STATE, NUM_GROW);
+    sources_for_hydro.define(grids, dmap, NSRC, NUM_GROW);
     sources_for_hydro.setVal(0.0, NUM_GROW);
 
 #ifndef SDC
@@ -830,7 +830,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // value of the "new-time" sources to the old-time sources to get a
     // time-centered value.
 
-    AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
+    AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NSRC);
 
 #endif
 
@@ -886,7 +886,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     q.setVal(0.0);
     qaux.define(grids, dmap, NQAUX, NUM_GROW);
     if (do_ctu)
-      src_q.define(grids, dmap, QVAR, NUM_GROW);
+      src_q.define(grids, dmap, NQSRC, NUM_GROW);
     if (fourth_order) 
       q_bar.define(grids, dmap, NQ, NUM_GROW);
 

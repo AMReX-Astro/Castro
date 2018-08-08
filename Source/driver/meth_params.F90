@@ -14,7 +14,7 @@ module meth_params_module
 
   use amrex_error_module
   use amrex_fort_module, only: rt => amrex_real
-  use state_sizes_module, only : nadv, NQAUX, NVAR, NGDNV, NQ, QVAR
+  use state_sizes_module, only : nadv, NQAUX, NVAR, NGDNV, NQ, QVAR, NQSRC, NSRC
 
   implicit none
 

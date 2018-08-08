@@ -26,7 +26,7 @@
                         src,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3,problo,dx,time,dt)
 
     use amrex_constants_module, only: ZERO
-    use meth_params_module, only : NVAR
+    use meth_params_module, only : NVAR, NSRC
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -45,7 +45,7 @@
          new_state_l3:new_state_h3,NVAR)
     real(rt)        ,intent(  out) :: src(src_l1:src_h1, &
          src_l2:src_h2, &
-         src_l3:src_h3,NVAR)
+         src_l3:src_h3,NSRC)
     real(rt)        ,intent(in   ) :: problo(3),dx(3),time,dt
 
     ! lo and hi specify work region

@@ -671,7 +671,7 @@ contains
     real(rt), intent(in   ) :: a2(a2_lo(1):a2_hi(1),a2_lo(2):a2_hi(2),a2_lo(3):a2_hi(3))
     real(rt), intent(in   ) :: a3(a3_lo(1):a3_hi(1),a3_lo(2):a3_hi(2),a3_lo(3):a3_hi(3))
     real(rt), intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    real(rt), intent(in   ) :: srcU(srcU_lo(1):srcU_hi(1),srcU_lo(2):srcU_hi(2),srcU_lo(3):srcU_hi(3),NVAR)
+    real(rt), intent(in   ) :: srcU(srcU_lo(1):srcU_hi(1),srcU_lo(2):srcU_hi(2),srcU_lo(3):srcU_hi(3),NSRC)
     real(rt), intent(inout) :: update(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
 
     integer  :: i, j, k, n
@@ -694,8 +694,9 @@ contains
                                                              f2(i,j,k,n) - f2(i,j+1,k,n) + &
                                                              f3(i,j,k,n) - f3(i,j,k+1,n) ) / vol(i,j,k)
 
-                update(i,j,k,n) = update(i,j,k,n) + srcU(i,j,k,n)
-
+                if (n <= NSRC) then
+                   update(i,j,k,n) = update(i,j,k,n) + srcU(i,j,k,n)
+                endif
              enddo
           enddo
        enddo

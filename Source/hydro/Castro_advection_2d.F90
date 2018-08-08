@@ -52,7 +52,7 @@ contains
     use meth_params_module, only : NQ, QVAR, NVAR, ppm_type, hybrid_riemann, &
                                    QC, QFS, QFX, QGAMC, QU, QV, QRHO, QTEMP, QPRES, QREINT, &
                                    GDU, GDV, GDPRES, NGDNV, NQ, &
-                                   NQAUX, &
+                                   NQAUX, NQSRC, &
                                    ppm_type, &
                                    use_pslope, plm_iorder, ppm_temp_fix
     use trace_module, only : tracexy
@@ -101,7 +101,7 @@ contains
     real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),NQ)
     real(rt)        , intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),NQAUX)
     real(rt)        , intent(in) :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2))
-    real(rt)        , intent(in) :: srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),QVAR)
+    real(rt)        , intent(in) :: srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),NQSRC)
     real(rt)        , intent(in) :: dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2))
     real(rt)        , intent(inout) :: q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),NGDNV)
     real(rt)        , intent(inout) :: q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),NGDNV)
@@ -180,8 +180,8 @@ contains
        allocate(Ip(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, NQ))
        allocate(Im(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, NQ))
 
-       allocate(Ip_src(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, QVAR))
-       allocate(Im_src(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, QVAR))
+       allocate(Ip_src(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, NQSRC))
+       allocate(Im_src(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, NQSRC))
 
        allocate(Ip_gc(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, 1))
        allocate(Im_gc(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, 1))
@@ -363,17 +363,17 @@ contains
                                lo(1), lo(2), hi(1), hi(2), dx, dt, 0, 0)
        endif
 
-       do n = 1, QVAR
-          call ppm_reconstruct(srcQ, src_lo, src_hi, QVAR, n, &
+       do n = 1, NQSRC
+          call ppm_reconstruct(srcQ, src_lo, src_hi, NQSRC, n, &
                                flatn, q_lo, q_hi, &
                                sxm, sxp, sym, syp, q_lo, q_hi, &
                                lo(1), lo(2), hi(1), hi(2), dx, 0, 0)
 
-          call ppm_int_profile(srcQ, src_lo, src_hi, QVAR, n, &
+          call ppm_int_profile(srcQ, src_lo, src_hi, NQSRC, n, &
                                q, q_lo, q_hi, &
                                qaux, qa_lo, qa_hi, &
                                sxm, sxp, sym, syp, q_lo, q_hi, &
-                               Ip_src, Im_src, I_lo, I_hi, QVAR, n, &
+                               Ip_src, Im_src, I_lo, I_hi, NQSRC, n, &
                                lo(1), lo(2), hi(1), hi(2), dx, dt, 0, 0)
        enddo
 

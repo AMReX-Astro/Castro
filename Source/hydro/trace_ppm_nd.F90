@@ -32,7 +32,7 @@ contains
                                    ppm_type, &
                                    ppm_reference_eigenvectors, ppm_predict_gammae, &
                                    npassive, qpass_map, ppm_temp_fix, &
-                                   fix_mass_flux
+                                   fix_mass_flux, NQSRC
     use amrex_constants_module, only : ZERO, HALF, ONE
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
@@ -58,8 +58,8 @@ contains
     real(rt), intent(in) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3,NQ)
     real(rt), intent(in) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3,NQ)
 
-    real(rt), intent(in) :: Ip_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3,QVAR)
-    real(rt), intent(in) :: Im_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3,QVAR)
+    real(rt), intent(in) :: Ip_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3,NQSRC)
+    real(rt), intent(in) :: Im_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3,NQSRC)
 
     real(rt), intent(in) :: Ip_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3,1)
     real(rt), intent(in) :: Im_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3,1)
@@ -1303,7 +1303,7 @@ contains
                                    ppm_type, &
                                    ppm_reference_eigenvectors, ppm_predict_gammae, &
                                    ppm_temp_fix, &
-                                   npassive, qpass_map
+                                   npassive, qpass_map, NQSRC
     use amrex_constants_module, only : ZERO, HALF, ONE
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
@@ -1325,8 +1325,8 @@ contains
     real(rt), intent(in) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,NQ)
     real(rt), intent(in) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,NQ)
 
-    real(rt), intent(in) :: Ip_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,QVAR)
-    real(rt), intent(in) :: Im_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,QVAR)
+    real(rt), intent(in) :: Ip_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,NQSRC)
+    real(rt), intent(in) :: Im_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,NQSRC)
 
     real(rt), intent(in) :: Ip_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,1)
     real(rt), intent(in) :: Im_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,1)

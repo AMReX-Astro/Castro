@@ -598,6 +598,8 @@ public:
 #endif
     static int       QVAR;
     static int       NQAUX;
+    static int       NQSRC;
+    static int       NSRC;
     static int       NQ;
     static int       NGDNV;
 

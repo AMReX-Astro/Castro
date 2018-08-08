@@ -23,7 +23,7 @@
                         new_state,new_state_l1,new_state_l2,new_state_h1,new_state_h2,&
                         src,src_l1,src_l2,src_h1,src_h2,problo,dx,time,dt)
 
-    use meth_params_module, only : NVAR
+    use meth_params_module, only : NVAR, NSRC
     use amrex_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
@@ -34,7 +34,7 @@
     integer         , intent(in   ) :: src_l1,src_l2,src_h1,src_h2
     real(rt)        , intent(in   ) :: old_state(old_state_l1:old_state_h1,old_state_l2:old_state_h2,NVAR)
     real(rt)        , intent(in   ) :: new_state(new_state_l1:new_state_h1,new_state_l2:new_state_h2,NVAR)
-    real(rt)        , intent(  out) :: src(    src_l1:  src_h1,  src_l2:src_h2  ,NVAR)
+    real(rt)        , intent(  out) :: src(    src_l1:  src_h1,  src_l2:src_h2  ,NSRC)
     real(rt)        , intent(in   ) :: problo(2),dx(2),time,dt
 
     integer          :: i,j

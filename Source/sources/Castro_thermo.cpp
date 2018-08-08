@@ -9,7 +9,7 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state, Real time
   // we only include p divU in method of lines integration
   if (do_ctu) return;
 
-  MultiFab thermo_src(grids, dmap, NUM_STATE, 0);
+  MultiFab thermo_src(grids, dmap, NSRC, 0);
 
   thermo_src.setVal(0.0);
 
@@ -17,7 +17,7 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state, Real time
 
   Real mult_factor = 1.0;
 
-  MultiFab::Saxpy(source, mult_factor, thermo_src, 0, 0, NUM_STATE, 0);
+  MultiFab::Saxpy(source, mult_factor, thermo_src, 0, 0, NSRC, 0);
 }
 
 

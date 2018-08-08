@@ -18,7 +18,7 @@ contains
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_error_module
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type, NSRC
     use math_module, only: cross_product
     use castro_util_module, only: position
     use prob_params_module, only: center
@@ -47,7 +47,7 @@ contains
     real(rt), intent(in)    :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
     real(rt), intent(in)    :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3),3)
 #endif
-    real(rt), intent(inout) :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+    real(rt), intent(inout) :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NSRC)
     real(rt), intent(in)    :: dx(3), dt, time
 
     real(rt) :: rho, rhoInv
@@ -59,7 +59,7 @@ contains
 
     ! Temporary array for holding the update to the state.
     
-    real(rt) :: src(NVAR)
+    real(rt) :: src(NSRC)
 
     ! Temporary array for seeing what the new state would be if the update were applied here.
 
@@ -183,7 +183,7 @@ contains
     use amrex_error_module
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
     use amrex_mempool_module, only: bl_allocate, bl_deallocate
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, &
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, NSRC, &
                                   grav_source_type, gravity_type, get_g_from_phi
     use prob_params_module, only: dg, center, physbc_lo, physbc_hi, Symmetry
     use fundamental_constants_module, only: Gconst
@@ -245,7 +245,7 @@ contains
 
     ! The source term to send back
 
-    real(rt), intent(inout) :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NVAR)
+    real(rt), intent(inout) :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NSRC)
 
     real(rt), intent(in)    :: dx(3), dt, time
 
@@ -261,7 +261,7 @@ contains
 
     real(rt) :: hdtInv
 
-    real(rt) :: src(NVAR)
+    real(rt) :: src(NSRC)
 
     ! Temporary array for seeing what the new state would be if the update were applied here.
 

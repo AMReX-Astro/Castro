@@ -348,6 +348,16 @@ def doit(variables_file, defines, nadv,
             ss.write("   integer, parameter :: ngroups = {}\n".format(ngroups))
         for ac in all_counters:
             ss.write("   {}\n".format(ac.get_set_string()))
+
+        # the number of source term components depends on whether we
+        # have SPECIES_HAVE_SOURCES
+        if "SPECIES_HAVE_SOURCES" in defines or "SDC" in defines:
+            ss.write("   integer, parameter :: NSRC = NVAR\n")
+            ss.write("   integer, parameter :: NQSRC = QVAR\n")
+        else:
+            ss.write("   integer, parameter :: NSRC = NVAR - nspec - nadv - naux\n")
+            ss.write("   integer, parameter :: NQSRC = QVAR - nspec - nadv - naux\n")
+
         ss.write("end module state_sizes_module\n")
 
 

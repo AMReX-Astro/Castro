@@ -169,6 +169,10 @@ ifeq ($(USE_POST_SIM), TRUE)
   DEFINES += -DDO_PROBLEM_POST_SIMULATION
 endif
 
+ifeq ($(USE_SPECIES_SOURCES), TRUE)
+  DEFINES += -DSPECIES_HAVE_SOURCES
+endif
+
 ifeq ($(USE_RAD), TRUE)
   Bdirs += Source/radiation Source/radiation/_interpbndry
   DEFINES += -DRADIATION

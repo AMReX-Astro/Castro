@@ -3,7 +3,7 @@ module transverse_module
   use amrex_constants_module, only : ZERO, ONE, HALF
 
   use network, only : nspec, naux
-  use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
+  use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, NQSRC, QRHO, QU, QV, QW, &
                                  QPRES, QREINT, QGAME, QFS, QFX, &
                                  QC, QGAMC, &
 #ifdef RADIATION
@@ -2198,7 +2198,7 @@ contains
     real(rt)         fyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
     real(rt)          qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
     real(rt)          qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
-    real(rt)         srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
+    real(rt)         srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)
     real(rt)         hdt,cdtdx,cdtdy
 
     integer i, j, n, nqp, ipassive
@@ -2253,9 +2253,13 @@ contains
              compnl = compl - cdtdx*(fxy(i+1,j,km,n) - fxy(i,j,km,n)) &
                             - cdtdy*(fyx(i,j+1,km,n) - fyx(i,j,km,n))
 
-             qpo(i,j,kc,nqp) = compnr/rrnewr + hdt*srcQ(i,j,k3d  ,nqp)
-             qmo(i,j,kc,nqp) = compnl/rrnewl + hdt*srcQ(i,j,k3d-1,nqp)
+             qpo(i,j,kc,nqp) = compnr/rrnewr
+             qmo(i,j,kc,nqp) = compnl/rrnewl
 
+#ifdef SPECIES_HAVE_SOURCES
+             qpo(i,j,kc,nqp) = qpo(i,j,kc,nqp) + hdt*srcQ(i,j,k3d  ,nqp)
+             qmo(i,j,kc,nqp) = qmo(i,j,kc,nqp) + hdt*srcQ(i,j,k3d-1,nqp)
+#endif
           enddo
        enddo
     enddo
@@ -2705,7 +2709,7 @@ contains
     real(rt)         fzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
     real(rt)          qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
     real(rt)          qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
-    real(rt)         srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
+    real(rt)         srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)
     real(rt)         hdt,cdtdx,cdtdz
 
     integer i, j, n, nqp, ipassive
@@ -2753,7 +2757,10 @@ contains
                 rrnewr = rrr + drr
                 compnr = compr + dcompn
 
-                qpo(i,j  ,km,nqp) = compnr/rrnewr + hdt*srcQ(i,j,k3d,nqp)
+                qpo(i,j  ,km,nqp) = compnr/rrnewr
+#ifdef SPECIES_HAVE_SOURCES
+                qpo(i,j  ,km,nqp) = qpo(i,j  ,km,nqp) + hdt*srcQ(i,j,k3d,nqp)
+#endif
              end if
 
              if (j <= jhi-1) then
@@ -2763,7 +2770,10 @@ contains
                 rrnewl = rrl + drr
                 compnl = compl + dcompn
 
-                qmo(i,j+1,km,nqp) = compnl/rrnewl + hdt*srcQ(i,j,k3d,nqp)
+                qmo(i,j+1,km,nqp) = compnl/rrnewl
+#ifdef SPECIES_HAVE_SOURCES
+                qmo(i,j+1,km,nqp) = qmo(i,j+1,km,nqp) + hdt*srcQ(i,j,k3d,nqp)
+#endif
              end if
 
           enddo
@@ -3146,7 +3156,7 @@ contains
     real(rt)         fzy(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
     real(rt)          qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
     real(rt)          qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
-    real(rt)         srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
+    real(rt)         srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)
     real(rt)         hdt,cdtdy,cdtdz
 
     integer i, j, n, nqp, ipassive
@@ -3195,7 +3205,10 @@ contains
                 rrnewr = rrr +drr
                 compnr = compr +dcompn
 
-                qpo(i  ,j,km,nqp) = compnr/rrnewr + hdt*srcQ(i,j,k3d,nqp)
+                qpo(i  ,j,km,nqp) = compnr/rrnewr
+#ifdef SPECIES_HAVE_SOURCE
+                qpo(i  ,j,km,nqp) = qpo(i  ,j,km,nqp) + hdt*srcQ(i,j,k3d,nqp)
+#endif
              end if
 
              if (i <= ihi-1) then
@@ -3205,7 +3218,10 @@ contains
                 rrnewl = rrl + drr
                 compnl = compl +dcompn
 
-                qmo(i+1,j,km,nqp) = compnl/rrnewl + hdt*srcQ(i,j,k3d,nqp)
+                qmo(i+1,j,km,nqp) = compnl/rrnewl
+#ifdef SPECIES_HAVE_SOURCES
+                qmo(i+1,j,km,nqp) = qmo(i+1,j,km,nqp) + hdt*srcQ(i,j,k3d,nqp)
+#endif
              end if
           enddo
        enddo

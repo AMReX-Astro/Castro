@@ -6,7 +6,7 @@ module transverse_module
                                  NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QGAME, &
                                  URHO, UMX, UMY, UEDEN, UEINT, QFS, QFX, &
                                  GDU, GDV, GDPRES, GDGAME, &
-                                 NGDNV, QGAMC, &
+                                 NGDNV, QGAMC, NQSRC, &
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, &
                                  GDERADS, QGAMCG, QLAMS, &
@@ -71,7 +71,7 @@ contains
 
     real(rt)         fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),NVAR)
     real(rt)         qgdx(qgdx_lo(1):qgdx_hi(1),qgdx_lo(2):qgdx_hi(2),NGDNV)
-    real(rt)         srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),QVAR)
+    real(rt)         srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),NQSRC)
     real(rt)         area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2))
     real(rt)         vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2))
 
@@ -125,7 +125,10 @@ contains
                 rrnew = rr - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
                                   area1(i  ,j)*fx(i  ,j,URHO))/vol(i,j)
                 compo = rr*qp(i,j,nqp) - compn
-                qpo(i,j,nqp) = compo/rrnew + hdt*srcQ(i,j,nqp)
+                qpo(i,j,nqp) = compo/rrnew
+#ifdef SPECIES_HAVE_SOURCES
+                qpo(i,j,nqp) = qpo(i,j,nqp) + hdt*srcQ(i,j,nqp)
+#endif
              end if
 
              if (j <= jhi-1) then
@@ -133,7 +136,10 @@ contains
                 rrnew = rr - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
                                   area1(i  ,j)*fx(i  ,j,URHO))/vol(i,j)
                 compo = rr*qm(i,j+1,nqp) - compn
-                qmo(i,j+1,nqp) = compo/rrnew + hdt*srcQ(i,j,nqp)
+                qmo(i,j+1,nqp) = compo/rrnew
+#ifdef SPECIES_HAVE_SOURCES
+                qmo(i,j+1,nqp) = qmo(i,j+1,nqp) + hdt*srcQ(i,j,nqp)
+#endif
              end if
           enddo
        enddo
@@ -542,7 +548,7 @@ contains
 
     real(rt)         fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),NVAR)
     real(rt)         qgdy(qgdy_lo(1):qgdy_hi(1),qgdy_lo(2):qgdy_hi(2),NGDNV)
-    real(rt)         srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),QVAR)
+    real(rt)         srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),NQSRC)
 
     real(rt)         hdt, cdtdy
 
@@ -589,14 +595,20 @@ contains
                 rr = qp(i,j,QRHO)
                 rrnew = rr - cdtdy*(fy(i,j+1,URHO)-fy(i,j,URHO))
                 compo = rr*qp(i,j,nqp) - compn
-                qpo(i,j,nqp) = compo/rrnew + hdt*srcQ(i,j,nqp)
+                qpo(i,j,nqp) = compo/rrnew
+#ifdef SPECIES_HAVE_SOURCES
+                qpo(i,j,nqp) = qpo(i,j,nqp) + hdt*srcQ(i,j,nqp)
+#endif
              end if
 
              if (i <= ihi-1) then
                 rr = qm(i+1,j,QRHO)
                 rrnew = rr - cdtdy*(fy(i,j+1,URHO)-fy(i,j,URHO))
                 compo = rr*qm(i+1,j,nqp) - compn
-                qmo(i+1,j,nqp) = compo/rrnew + hdt*srcQ(i,j,nqp)
+                qmo(i+1,j,nqp) = compo/rrnew
+#ifdef SPECIES_HAVE_SOURCES
+                qmo(i+1,j,nqp) = qmo(i+1,j,nqp) + hdt*srcQ(i,j,nqp)
+#endif
              end if
           enddo
        enddo
