@@ -2257,7 +2257,7 @@ contains
              qmo(i,j,kc,nqp) = compnl/rrnewl
 
 #ifdef SPECIES_HAVE_SOURCES
-             qpo(i,j,kc,nqp) = qpo(i,j,kv,nqp) + hdt*srcQ(i,j,k3d  ,nqp)
+             qpo(i,j,kc,nqp) = qpo(i,j,kc,nqp) + hdt*srcQ(i,j,k3d  ,nqp)
              qmo(i,j,kc,nqp) = qmo(i,j,kc,nqp) + hdt*srcQ(i,j,k3d-1,nqp)
 #endif
           enddo
