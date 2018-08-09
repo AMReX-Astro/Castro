@@ -159,6 +159,8 @@ contains
 
     type(eos_t) :: eos_state
 
+    logical :: source_nonzero(QVAR)
+
     tflx_lo = [lo(1), lo(2)-1, 0]
     tflx_hi = [hi(1)+1, hi(2)+1, 0]
 
@@ -295,6 +297,17 @@ contains
 
     else
 
+       ! preprocess the sources -- we don't want to trace under a source that is empty
+       do n = 1, QVAR
+          if (minval(srcQ(lo(1):hi(1),lo(2):hi(2),n)) == ZERO .and. &
+              maxval(srcQ(lo(1):hi(1),lo(2):hi(2),n)) == ZERO) then
+             source_nonzero(n) = .false.
+          else
+             source_nonzero(n) = .true.
+          endif
+       enddo
+
+
        ! Compute Ip and Im -- this does the parabolic reconstruction,
        ! limiting, and returns the integral of each profile under each
        ! wave to each interface
@@ -364,17 +377,22 @@ contains
        endif
 
        do n = 1, QVAR
-          call ppm_reconstruct(srcQ, src_lo, src_hi, QVAR, n, &
-                               flatn, q_lo, q_hi, &
-                               sxm, sxp, sym, syp, q_lo, q_hi, &
-                               lo(1), lo(2), hi(1), hi(2), dx, 0, 0)
+          if (source_nonzero(n)) then
+             call ppm_reconstruct(srcQ, src_lo, src_hi, QVAR, n, &
+                                  flatn, q_lo, q_hi, &
+                                  sxm, sxp, sym, syp, q_lo, q_hi, &
+                                  lo(1), lo(2), hi(1), hi(2), dx, 0, 0)
 
-          call ppm_int_profile(srcQ, src_lo, src_hi, QVAR, n, &
-                               q, q_lo, q_hi, &
-                               qaux, qa_lo, qa_hi, &
-                               sxm, sxp, sym, syp, q_lo, q_hi, &
-                               Ip_src, Im_src, I_lo, I_hi, QVAR, n, &
-                               lo(1), lo(2), hi(1), hi(2), dx, dt, 0, 0)
+             call ppm_int_profile(srcQ, src_lo, src_hi, QVAR, n, &
+                                  q, q_lo, q_hi, &
+                                  qaux, qa_lo, qa_hi, &
+                                  sxm, sxp, sym, syp, q_lo, q_hi, &
+                                  Ip_src, Im_src, I_lo, I_hi, QVAR, n, &
+                                  lo(1), lo(2), hi(1), hi(2), dx, dt, 0, 0)
+          else
+             Ip_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),:,:,n) = ZERO
+             Im_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),:,:,n) = ZERO
+          endif
        enddo
 
        deallocate(sxm, sxp, sym, syp)

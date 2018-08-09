@@ -380,14 +380,16 @@ contains
     call bl_allocate(szp, It_lo, It_hi)
 
     ! preprocess the sources -- we don't want to trace under a source that is empty
-    do n = 1, QVAR
-       if (minval(srcQ(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),n)) == ZERO .and. &
-           maxval(srcQ(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),n)) == ZERO) then
-          source_nonzero(n) = .false.
-       else
-          source_nonzero(n) = .true.
-       endif
-    enddo
+    if (ppm_type > 0) then
+       do n = 1, QVAR
+          if (minval(srcQ(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),n)) == ZERO .and. &
+              maxval(srcQ(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),n)) == ZERO) then
+             source_nonzero(n) = .false.
+          else
+             source_nonzero(n) = .true.
+          endif
+       enddo
+    endif
 
     do k3d = lo(3)-1, hi(3)+1
 
@@ -396,7 +398,7 @@ contains
        km = kc
        kc = kt
 
-       if (ppm_type .gt. 0) then
+       if (ppm_type > 0) then
 
           do n = 1, NQ
              call ppm_reconstruct(q, qd_lo, qd_hi, NQ, n, &
