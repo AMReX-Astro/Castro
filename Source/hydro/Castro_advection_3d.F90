@@ -195,6 +195,8 @@ contains
     integer :: fy_lo(3), fy_hi(3)
     integer :: fz_lo(3), fz_hi(3)
 
+    logical :: source_nonzero(QVAR)
+
     qt_lo = [lo(1) - 1, lo(2) - 1, 1]
     qt_hi = [hi(1) + 2, hi(2) + 2, 2]
 
@@ -377,6 +379,16 @@ contains
     call bl_allocate(szm, It_lo, It_hi)
     call bl_allocate(szp, It_lo, It_hi)
 
+    ! preprocess the sources -- we don't want to trace under a source that is empty
+    do n = 1, QVAR
+       if (minval(srcQ(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),n)) == ZERO .and. &
+           maxval(srcQ(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),n)) == ZERO) then
+          source_nonzero(n) = .false.
+       else
+          source_nonzero(n) = .true.
+       endif
+    enddo
+
     do k3d = lo(3)-1, hi(3)+1
 
        ! Swap pointers to levels
@@ -402,17 +414,23 @@ contains
 
           ! source terms
           do n = 1, QVAR
-             call ppm_reconstruct(srcQ, src_lo, src_hi, QVAR, n, &
-                                  flatn, qd_lo, qd_hi, &
-                                  sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
-                                  lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
+             if (source_nonzero(n)) then
+                call ppm_reconstruct(srcQ, src_lo, src_hi, QVAR, n, &
+                                     flatn, qd_lo, qd_hi, &
+                                     sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
+                                     lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
 
-             call ppm_int_profile(srcQ, src_lo, src_hi, QVAR, n, &
-                                  q, qd_lo, qd_hi, &
-                                  qaux, qa_lo, qa_hi, &
-                                  sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
-                                  Ip_src, Im_src, It_lo, It_hi, QVAR, n, &
-                                  lo(1), lo(2), hi(1), hi(2), dx, dt, k3d, kc)
+                call ppm_int_profile(srcQ, src_lo, src_hi, QVAR, n, &
+                                     q, qd_lo, qd_hi, &
+                                     qaux, qa_lo, qa_hi, &
+                                     sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
+                                     Ip_src, Im_src, It_lo, It_hi, QVAR, n, &
+                                     lo(1), lo(2), hi(1), hi(2), dx, dt, k3d, kc)
+             else
+                Ip_src(It_lo(1):It_hi(1),It_lo(2):It_hi(2),kc,:,:,n) = ZERO
+                Im_src(It_lo(1):It_hi(1),It_lo(2):It_hi(2),kc,:,:,n) = ZERO
+             endif
+
           enddo
 
           ! this probably doesn't support radiation
