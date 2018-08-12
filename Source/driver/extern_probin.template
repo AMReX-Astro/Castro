@@ -102,7 +102,7 @@ subroutine runtime_pretty_print(name, namlen) bind(C, name="runtime_pretty_print
   end do
 
   ! open the job info file in Fortran
-  open(newunit=unit, file=probin(1:namlen), status="old", access="append")
+  open(newunit=unit, file=probin(1:namlen), status="old", position="append")
 
   @@printing@@
 
