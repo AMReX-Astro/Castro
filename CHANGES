@@ -1,3 +1,16 @@
+# changes since last release
+
+  -- The parameter dual_energy_update_E_from_e has been removed,
+     and the default behavior is now that the total energy (E)
+     will not be changed when we reset the internal energy (e).
+     This will cause changes in simulation output. (#368)
+
+  -- The probin parameter eos_input_is_constant is now true by
+     default. This means that when calling the EOS in the mode
+     eos_input_re, the energy will not be updated after the EOS
+     call (e.g. by the Newton iteration scheme in Helmholtz).
+     This will cause changes in simulation output. (#368)
+
 # 18.08
 
   -- the old use_mlmg_solver parameters were removed -- this
