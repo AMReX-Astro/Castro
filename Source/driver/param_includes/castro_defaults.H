@@ -61,7 +61,6 @@ int         Castro::use_flattening = 1;
 int         Castro::transverse_use_eos = 0;
 int         Castro::transverse_reset_density = 1;
 int         Castro::transverse_reset_rhoe = 0;
-int         Castro::dual_energy_update_E_from_e = 1;
 amrex::Real Castro::dual_energy_eta1 = 1.0e0;
 amrex::Real Castro::dual_energy_eta2 = 1.0e-4;
 int         Castro::use_pslope = 1;
