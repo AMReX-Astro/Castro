@@ -883,6 +883,8 @@ void Castro::check_to_stop(Real time) {
 
     if (jobDoneStatus == 1) {
 
+      signalStopJob = true;
+
       // Write out a checkpoint. Note that this will
       // only happen if you have amr.message_int = 1.
 
@@ -890,6 +892,12 @@ void Castro::check_to_stop(Real time) {
 	std::ofstream dump_file;
 	dump_file.open("dump_and_stop", std::ofstream::out);
 	dump_file.close();
+
+        // Also write out a file signifying that we're done with the simulation.
+
+        std::ofstream jobDoneFile;
+        jobDoneFile.open("jobIsDone", std::ofstream::out);
+        jobDoneFile.close();
       }
 
     }

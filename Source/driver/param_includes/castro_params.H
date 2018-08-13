@@ -61,7 +61,6 @@ static int use_flattening;
 static int transverse_use_eos;
 static int transverse_reset_density;
 static int transverse_reset_rhoe;
-static int dual_energy_update_E_from_e;
 static amrex::Real dual_energy_eta1;
 static amrex::Real dual_energy_eta2;
 static int use_pslope;

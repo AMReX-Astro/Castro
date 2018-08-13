@@ -132,8 +132,7 @@ contains
 
              ! Clear all tagging that occurs outside the radius set by max_tagging_radius.
 
-             if (r .gt. max_tagging_radius * maxval(abs(problo-center)) .or. &
-                 r .gt. max_tagging_radius * maxval(abs(probhi-center)) ) then
+             if (r .gt. max_tagging_radius * max(maxval(abs(problo-center)), maxval(abs(probhi-center)))) then
 
                 tag(i,j,k) = clear
 
