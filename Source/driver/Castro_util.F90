@@ -215,6 +215,7 @@ contains
                       call eos(eos_input_rt, eos_state)
 
                       u(i,j,k,UEINT) = u(i,j,k,URHO) * eos_state % e
+                      u(i,j,k,UTEMP) = eos_state % T
 
                    endif
 
@@ -285,6 +286,7 @@ contains
 #endif
 
                       u(i,j,k,UEINT) = u(i,j,k,URHO) * eint_new
+                      u(i,j,k,UTEMP) = eos_state % T
 
                    endif
 
