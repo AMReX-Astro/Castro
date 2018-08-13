@@ -23,8 +23,6 @@
      removed; this should provide a modest computational gain. Answers
      may change at the level of the EOS tolerance (#377).
 
-# 18.08
-
   -- The functionality that checks for a regrid at the end of
      the timestep will now apply all tagging criteria, not
      just the t_sound / t_enuc criterion.
