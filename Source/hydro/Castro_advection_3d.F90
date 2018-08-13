@@ -382,8 +382,8 @@ contains
     ! preprocess the sources -- we don't want to trace under a source that is empty
     if (ppm_type > 0) then
        do n = 1, QVAR
-          if (minval(srcQ(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),n)) == ZERO .and. &
-              maxval(srcQ(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),n)) == ZERO) then
+          if (minval(srcQ(lo(1)-2:hi(1)+2,lo(2)-2:hi(2)+2,lo(3)-2:hi(3)+2,n)) == ZERO .and. &
+              maxval(srcQ(lo(1)-2:hi(1)+2,lo(2)-2:hi(2)+2,lo(3)-2:hi(3)+2,n)) == ZERO) then
              source_nonzero(n) = .false.
           else
              source_nonzero(n) = .true.

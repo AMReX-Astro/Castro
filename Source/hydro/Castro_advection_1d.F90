@@ -211,8 +211,8 @@ contains
     else
 
        do n = 1, QVAR
-          if (minval(srcQ(lo(1):hi(1),n)) == ZERO .and. &
-              maxval(srcQ(lo(1):hi(1),n)) == ZERO) then
+          if (minval(srcQ(lo(1)-2:hi(1)+2,n)) == ZERO .and. &
+              maxval(srcQ(lo(1)-2:hi(1)+2,n)) == ZERO) then
              source_nonzero(n) = .false.
           else
              source_nonzero(n) = .true.
