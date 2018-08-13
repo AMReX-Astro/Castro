@@ -1,16 +1,18 @@
-# 18.08
+# changes since last release
 
-  -- the old use_mlmg_solver parameters were removed -- this
-     has been the only multigrid solver in Castro for some time,
-     so the parameters had no effect.
+  -- we now only trace under sources that are non-zero, to save
+     computational expense.  #381
 
-  -- The parameter dual_energy_eta3 was removed. This had been
-     introduced mostly for testing purposes and ended up being
-     unnecessary. Also, the EOS call at the beginning of the burn was
-     removed; this should provide a modest computational gain. Answers
-     may change at the level of the EOS tolerance (#377).
+  -- The parameter dual_energy_update_E_from_e has been removed,
+     and the default behavior is now that the total energy (E)
+     will not be changed when we reset the internal energy (e).
+     This will cause changes in simulation output. (#368)
 
-# 18.08
+  -- The probin parameter eos_input_is_constant is now true by
+     default. This means that when calling the EOS in the mode
+     eos_input_re, the energy will not be updated after the EOS
+     call (e.g. by the Newton iteration scheme in Helmholtz).
+     This will cause changes in simulation output. (#368)
 
   -- The runtime parameter castro.do_ctu was replaced by
      castro.time_integration_method.  The allowed values are
@@ -22,6 +24,19 @@
 
   -- A framework for a new spectral deferred corrections method
      was added.  This will allow for higher-order time integration.
+
+
+18.08
+
+  -- the old use_mlmg_solver parameters were removed -- this
+     has been the only multigrid solver in Castro for some time,
+     so the parameters had no effect.
+
+  -- The parameter dual_energy_eta3 was removed. This had been
+     introduced mostly for testing purposes and ended up being
+     unnecessary. Also, the EOS call at the beginning of the burn was
+     removed; this should provide a modest computational gain. Answers
+     may change at the level of the EOS tolerance (#377).
 
   -- The functionality that checks for a regrid at the end of
      the timestep will now apply all tagging criteria, not

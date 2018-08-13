@@ -794,7 +794,7 @@ contains
     else
 
        if ( (probhi(1) - problo(1) < model_S % radius) .or. &
-            (probhi(2) - problo(2) < model_S % radius) ) then
+            (probhi(2) - problo(2) < 2 * model_S % radius) ) then
           call bl_error("Secondary does not fit inside the domain.")
        end if
 

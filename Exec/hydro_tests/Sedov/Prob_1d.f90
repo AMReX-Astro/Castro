@@ -106,6 +106,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        delta,xlo,xhi)
 
   use probdata_module
+  use amrex_error_module
   use amrex_constants_module, only: M_PI, FOUR3RD, ZERO, ONE
   use meth_params_module , only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS
   use amrex_fort_module, only : rt => amrex_real
