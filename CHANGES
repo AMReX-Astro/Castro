@@ -1,5 +1,8 @@
 # changes since last release
 
+  -- we now only trace under sources that are non-zero, to save
+     computational expense.  #381
+
   -- The parameter dual_energy_update_E_from_e has been removed,
      and the default behavior is now that the total energy (E)
      will not be changed when we reset the internal energy (e).
