@@ -153,7 +153,7 @@ contains
     use network, only: nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, &
          UTEMP, small_temp, allow_negative_energy, allow_small_energy, &
-         dual_energy_eta2, dual_energy_update_E_from_e
+         dual_energy_eta2
     use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_fort_module, only : rt => amrex_real
 
@@ -259,12 +259,8 @@ contains
 
                       call eos(eos_input_rt, eos_state)
 
-                      
-                      if (dual_energy_update_E_from_e == 1) then
-                         u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + (u(i,j,k,URHO) * eos_state % e - u(i,j,k,UEINT))
-                      endif
-
                       u(i,j,k,UEINT) = u(i,j,k,URHO) * eos_state % e
+                      u(i,j,k,UTEMP) = eos_state % T
 
                    endif
 
@@ -326,16 +322,6 @@ contains
 
                       u(i,j,k,UEINT) = rho_eint
 
-                      ! If (e from E) < 0 or (e from E) < .0001*E but (e from e) > 0.
-                   else if (u(i,j,k,UEINT) .gt. ZERO .and. dual_energy_update_E_from_e == 1) then
-
-                      
-                      u(i,j,k,UEDEN) = u(i,j,k,UEINT) + u(i,j,k,URHO) * ke
-#ifdef MHD
-                      u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + &
-                                       HALF * (bx_cell_c**2+by_cell_c**2+bz_cell_c**2)
-#endif
-
                       ! If not resetting and little e is negative ...
                    else if (u(i,j,k,UEINT) .le. ZERO) then
 
@@ -358,12 +344,8 @@ contains
                       end if
 #endif
 
-                      if (dual_energy_update_E_from_e == 1) then
-                         
-                         u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + (u(i,j,k,URHO) * eint_new - u(i,j,k,UEINT))
-                      endif
-
-                      u(i,j,k,UEINT) = u(i,j,k,URHO) * eint_new
+                     u(i,j,k,UEINT) = u(i,j,k,URHO) * eint_new
+                     u(i,j,k,UTEMP) = eos_state % T
 
                    endif
 
@@ -411,7 +393,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_input_re, eos_t
     use meth_params_module, only: NVAR, URHO, UEDEN, UEINT, UTEMP, &
-         UFS, UFX, allow_negative_energy, dual_energy_update_E_from_e
+         UFS, UFX, allow_negative_energy
     use amrex_constants_module, only: ZERO, ONE
     use amrex_error_module
     use amrex_fort_module, only: rt => amrex_real
@@ -472,14 +454,6 @@ contains
              call eos(eos_input_re, eos_state)
 
              state(i,j,k,UTEMP) = eos_state % T
-
-             ! In case we've floored, or otherwise allowed the energy to change, update the energy accordingly.
-
-             if (dual_energy_update_E_from_e == 1) then
-                state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + (state(i,j,k,URHO) * eos_state % e - state(i,j,k,UEINT))
-             endif
-
-             state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e
 
           enddo
        enddo

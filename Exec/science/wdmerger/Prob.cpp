@@ -883,6 +883,8 @@ void Castro::check_to_stop(Real time) {
 
     if (jobDoneStatus == 1) {
 
+      signalStopJob = true;
+
       // Write out a checkpoint. Note that this will
       // only happen if you have amr.message_int = 1.
 
@@ -890,6 +892,12 @@ void Castro::check_to_stop(Real time) {
 	std::ofstream dump_file;
 	dump_file.open("dump_and_stop", std::ofstream::out);
 	dump_file.close();
+
+        // Also write out a file signifying that we're done with the simulation.
+
+        std::ofstream jobDoneFile;
+        jobDoneFile.open("jobIsDone", std::ofstream::out);
+        jobDoneFile.close();
       }
 
     }
@@ -912,18 +920,26 @@ void Castro::update_extrema(Real time) {
 
     for (int lev = 0; lev <= finest_level; lev++) {
 
-      MultiFab& S_new = parent->getLevel(lev).get_new_data(State_Type);
+      auto T = parent->getLevel(lev).derive("Temp", time, 0);
+      auto rho = parent->getLevel(lev).derive("density", time, 0);
+#ifdef REACTIONS
+      auto ts_te = parent->getLevel(lev).derive("t_sound_t_enuc", time, 0);
+#endif
 
-      T_curr_max = std::max(T_curr_max, S_new.max(Temp, 0, local_flag));
-      rho_curr_max = std::max(rho_curr_max, S_new.max(Density, 0, local_flag));
+      if (lev < finest_level) {
+          const MultiFab& mask = getLevel(lev+1).build_fine_mask();
+          MultiFab::Multiply(*T, mask, 0, 0, 1, 0);
+          MultiFab::Multiply(*rho, mask, 0, 0, 1, 0);
+#ifdef REACTIONS
+          MultiFab::Multiply(*ts_te, mask, 0, 0, 1, 0);
+#endif
+      }
+
+      T_curr_max = std::max(T_curr_max, T->max(0, 0, local_flag));
+      rho_curr_max = std::max(rho_curr_max, rho->max(0, 0, local_flag));
 
 #ifdef REACTIONS
-      if (lev == finest_level) {
-
-        auto ts_te_MF = parent->getLevel(lev).derive("t_sound_t_enuc", time, 0);
-	ts_te_curr_max = std::max(ts_te_curr_max, ts_te_MF->max(0,0,local_flag));
-
-      }
+      ts_te_curr_max = std::max(ts_te_curr_max, ts_te->max(0, 0, local_flag));
 #endif
 
     }

@@ -43,6 +43,8 @@ extern "C"
 
   void ca_get_method_params(int* HYP_GROW);
 
+  void runtime_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
+
 #ifdef SELF_GRAVITY
 #if (BL_SPACEDIM > 1)
   void get_numpts_1d(int* numpts_1d);

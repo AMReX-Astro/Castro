@@ -721,6 +721,9 @@ Castro::initMFs()
 
     post_step_regrid = 0;
 
+    lastDtRetryLimited = false;
+    lastDtFromRetry = 1.e200;
+
 }
 
 void
@@ -1873,9 +1876,9 @@ void
 Castro::check_for_post_regrid (Real time)
 {
 
-#ifdef REACTIONS
-    // Check whether we violated the burning stability criterion. This
-    // will manifest as any zones at this time signifying that they
+    BL_PROFILE("Castro::check_for_post_regrid()");
+
+    // Check whether we have any zones at this time signifying that they
     // need to be tagged that do not have corresponding zones on the
     // fine level.
 
@@ -1887,22 +1890,7 @@ Castro::check_for_post_regrid (Real time)
 
 	int err_idx = -1;
 
-	for (int i = 0; i < err_list.size(); ++i) {
-	    if (err_list[i].name() == "t_sound_t_enuc") {
-		err_idx = i;
-		break;
-	    }
-	}
-
-	if (err_idx < 0) {
-	    amrex::Abort("Error: t_sound_t_enuc error function not found.");
-	}
-
-	apply_tagging_func(tags, TagBox::CLEAR, TagBox::SET, time, err_idx);
-
-        // Apply all user-specified tagging routines in case the user desires to override this.
-
-        for (int i = num_err_list_default; i < err_list.size(); ++i)
+	for (int i = 0; i < err_list.size(); ++i)
             apply_tagging_func(tags, TagBox::CLEAR, TagBox::SET, time, i);
 
         apply_problem_tags(tags, TagBox::CLEAR, TagBox::SET, time);
@@ -1964,7 +1952,6 @@ Castro::check_for_post_regrid (Real time)
 	}
 
     }
-#endif
 
 }
 
@@ -2714,6 +2701,8 @@ void
 Castro::normalize_species (MultiFab& S_new, int ng)
 {
 
+    BL_PROFILE("Castro::normalize_species()");
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -2737,6 +2726,8 @@ Castro::enforce_consistent_e (
                               MultiFab& S)
 {
 
+    BL_PROFILE("Castro::enforce_consistent_e()");
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -2759,6 +2750,8 @@ Castro::enforce_consistent_e (
 Real
 Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new, int ng)
 {
+
+    BL_PROFILE("Castro::enforce_min_density()");
 
     // This routine sets the density in S_new to be larger than the density floor.
     // Note that it will operate everywhere on S_new, including ghost zones.
@@ -2922,6 +2915,8 @@ Castro::apply_problem_tags (TagBoxArray& tags,
                             Real         time)
 {
 
+    BL_PROFILE("Castro::apply_problem_tags()");
+
     const int*  domain_lo = geom.Domain().loVect();
     const int*  domain_hi = geom.Domain().hiVect();
     const Real* dx        = geom.CellSize();
@@ -2979,6 +2974,8 @@ Castro::apply_problem_tags (TagBoxArray& tags,
 void
 Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real time, int j)
 {
+
+    BL_PROFILE("Castro::apply_tagging_func()");
 
     const int*  domain_lo = geom.Domain().loVect();
     const int*  domain_hi = geom.Domain().hiVect();
@@ -3144,6 +3141,8 @@ Castro::reset_internal_energy(
                               MultiFab& S_new)
 {
 
+    BL_PROFILE("Castro::reset_internal_energy()");
+
     MultiFab old_state;
 
     // Make a copy of the state so we can evaluate how much changed.
@@ -3222,6 +3221,9 @@ Castro::computeTemp(
                     MultiFab& State, int ng)
 {
 
+  	
+  BL_PROFILE("Castro::computeTemp()");
+
   reset_internal_energy(
 #ifdef MHD
                          Bx, By, Bz,
@@ -3267,6 +3269,8 @@ Castro::computeTemp(
 void
 Castro::apply_source_term_predictor()
 {
+
+    BL_PROFILE("Castro::apply_source_term_predictor()");
 
     // Optionally predict the source terms to t + dt/2,
     // which is the time-level n+1/2 value, To do this we use a
@@ -3365,6 +3369,8 @@ void
 Castro::make_radial_data(int is_new)
 {
 #if (BL_SPACEDIM > 1)
+
+   BL_PROFILE("Castro::make_radial_data()");
 
  // We only call this for level = 0
    BL_ASSERT(level == 0);
@@ -3466,6 +3472,8 @@ Castro::make_radial_data(int is_new)
 void
 Castro::define_new_center(MultiFab& S, Real time)
 {
+    BL_PROFILE("Castro::define_new_center()");
+
     Real center[3];
     const Real* dx = geom.CellSize();
 
@@ -3551,6 +3559,8 @@ Castro::getCPUTime()
 MultiFab&
 Castro::build_fine_mask()
 {
+    BL_PROFILE("Castro::build_fine_mask()");
+
     BL_ASSERT(level > 0); // because we are building a mask for the coarser level
 
     if (!fine_mask.empty()) return fine_mask;
@@ -3584,6 +3594,8 @@ Castro::build_fine_mask()
 iMultiFab&
 Castro::build_interior_boundary_mask (int ng)
 {
+    BL_PROFILE("Castro::build_interior_boundary_mask()");
+
     for (int i = 0; i < ib_mask.size(); ++i)
     {
 	if (ib_mask[i]->nGrow() == ng) {
@@ -3616,6 +3628,7 @@ Castro::expand_state(
 #endif
                      MultiFab& S, Real time, int iclean, int ng)
 {
+  BL_PROFILE("Castro::expand_state()");
 
   // S is the multifab we are filling with State_Type StateData,
   // including a ghost cell fill at the end.  Before we do the fill,
@@ -3662,6 +3675,7 @@ Castro::expand_state(
 void
 Castro::check_for_nan(MultiFab& state, int check_ghost)
 {
+  BL_PROFILE("Castro::check_for_nan()");
 
   int ng = 0;
   if (check_ghost == 1) {
@@ -3686,6 +3700,8 @@ Castro::check_for_nan(MultiFab& state, int check_ghost)
 void
 Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux)
 {
+
+    BL_PROFILE("Castro::cons_to_prim()");
 
     BL_ASSERT(u.nComp() == NUM_STATE);
     BL_ASSERT(q.nComp() == QVAR);
@@ -3723,6 +3739,8 @@ Castro::clean_state(
 		    MultiFab& bz,
 #endif
                     MultiFab& state) {
+
+    BL_PROFILE("Castro::clean_state(state)");
 
     // Enforce a minimum density.
 
@@ -3770,6 +3788,8 @@ Castro::clean_state(
 #endif
                     int is_new, int ng) {
 
+  BL_PROFILE("Castro::clean_state(is_new, ng)");
+
   // this is the "preferred" clean_state interface -- it will work
   // directly on the StateData.  is_new=0 means the old data is used,
   // is_new=1 means the new data is used.
@@ -3800,6 +3820,8 @@ Castro::clean_state(
 		    MultiFab& bz,
 #endif 
 		    int is_new, MultiFab& state_old, int ng) {
+
+    BL_PROFILE("Castro::clean_state(is_new, state_old, ng)");
 
   MultiFab& state = is_new == 1 ? get_new_data(State_Type) : get_old_data(State_Type);
 

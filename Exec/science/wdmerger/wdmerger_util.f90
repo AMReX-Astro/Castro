@@ -245,12 +245,6 @@ contains
     iNe20 = network_species_index("neon-20")
     iMg24 = network_species_index("magnesium-24")
 
-    if (iHe4 < 0) call amrex_error("Must have He4 in the nuclear network.")
-    if (iC12 < 0) call amrex_error("Must have C12 in the nuclear network.")
-    if (iO16 < 0) call amrex_error("Must have O16 in the nuclear network.")
-    if (iNe20 < 0) call amrex_error("Must have Ne20 in the nuclear network.")
-    if (iMg24 < 0) call amrex_error("Must have Mg24 in the nuclear network.")
-
     model % core_comp = small_x
     model % envelope_comp = small_x
 
@@ -260,11 +254,16 @@ contains
 
     if (model % mass > ZERO .and. model % mass < max_he_wd_mass) then
 
+       if (iHe4 < 0) call amrex_error("Must have He4 in the nuclear network.")
+
        model % core_comp(iHe4) = ONE
 
        model % envelope_comp = model % core_comp
 
     else if (model % mass >= max_he_wd_mass .and. model % mass < max_hybrid_wd_mass) then
+
+       if (iC12 < 0) call amrex_error("Must have C12 in the nuclear network.")
+       if (iO16 < 0) call amrex_error("Must have O16 in the nuclear network.")
 
        model % core_comp(iC12) = hybrid_wd_c_frac
        model % core_comp(iO16) = hybrid_wd_o_frac
@@ -272,6 +271,7 @@ contains
        model % envelope_mass = hybrid_wd_he_shell_mass
 
        if (model % envelope_mass > ZERO) then
+          if (iHe4 < 0) call amrex_error("Must have He4 in the nuclear network.")
           model % envelope_comp(iHe4) = ONE
        else
           model % envelope_comp = model % core_comp
@@ -279,18 +279,26 @@ contains
 
     else if (model % mass >= max_hybrid_wd_mass .and. model % mass < max_co_wd_mass) then
 
+       if (iC12 < 0) call amrex_error("Must have C12 in the nuclear network.")
+       if (iO16 < 0) call amrex_error("Must have O16 in the nuclear network.")
+
        model % core_comp(iC12) = co_wd_c_frac
        model % core_comp(iO16) = co_wd_o_frac
 
        model % envelope_mass = co_wd_he_shell_mass
 
        if (model % envelope_mass > ZERO) then
+          if (iHe4 < 0) call amrex_error("Must have He4 in the nuclear network.")
           model % envelope_comp(iHe4) = ONE
        else
           model % envelope_comp = model % core_comp
        endif
 
     else if (model % mass > max_co_wd_mass) then
+
+       if (iO16 < 0) call amrex_error("Must have O16 in the nuclear network.")
+       if (iNe20 < 0) call amrex_error("Must have Ne20 in the nuclear network.")
+       if (iMg24 < 0) call amrex_error("Must have Mg24 in the nuclear network.")
 
        model % core_comp(iO16)  = onemg_wd_o_frac
        model % core_comp(iNe20) = onemg_wd_ne_frac
@@ -441,7 +449,7 @@ contains
 
     use meth_params_module, only: rot_period, point_mass
     use initial_model_module, only: initialize_model, establish_hse
-    use prob_params_module, only: center, problo, probhi, dim, max_level, dx_level
+    use prob_params_module, only: center, problo, probhi, dim, max_level, dx_level, physbc_lo, Symmetry
     use rotation_frequency_module, only: get_omega
     use math_module, only: cross_product
     use binary_module, only: get_roche_radii
@@ -458,36 +466,20 @@ contains
 
     omega = get_omega(ZERO)
 
-    ! Set up the center variable. We want it to be at 
-    ! problo + center_frac * domain_width in each direction.
-    ! center_frac is 1/2 by default, so the problem
-    ! would be set up exactly in the center of the domain.
-    ! Note that we override this for 2D axisymmetric, as the
-    ! radial coordinate must be centered at zero for the problem to make sense.
+    ! Safety check: ensure that if we have a symmetric lower boundary, that the
+    ! domain center (and thus the stars) are on that boundary.
 
-    if (dim .eq. 3) then
+    if (physbc_lo(1) .eq. Symmetry .and. center(1) .ne. problo(1)) then
+       call bl_error("Symmetric lower x-boundary but the center is not on this boundary.")
+    end if
 
-       center(1) = problo(1) + center_fracx * (probhi(1) - problo(1))
-       center(2) = problo(2) + center_fracy * (probhi(2) - problo(2))
-       center(3) = problo(3) + center_fracz * (probhi(3) - problo(3))
+    if (physbc_lo(2) .eq. Symmetry .and. center(2) .ne. problo(2)) then
+       call bl_error("Symmetric lower y-boundary but the center is not on this boundary.")
+    end if
 
-    else if (dim .eq. 2) then
-
-       center(1) = problo(1)
-       center(2) = problo(2) + center_fracz * (probhi(2) - problo(2))
-       center(3) = ZERO
-
-    else if (dim .eq. 1) then
-
-       center(1) = problo(1) + center_fracx * (probhi(1) - problo(1))
-       center(2) = ZERO
-       center(3) = ZERO
-
-    else
-
-       call amrex_error("Error: unknown value for dim in subroutine binary_setup.")
-
-    endif
+    if (physbc_lo(3) .eq. Symmetry .and. center(3) .ne. problo(3)) then
+       call bl_error("Symmetric lower z-boundary but the center is not on this boundary.")
+    end if
 
     ! Set some default values for these quantities;
     ! we'll update them soon.
@@ -656,7 +648,7 @@ contains
           collision_offset = collision_impact_parameter * model_P % radius
 
           center_P_initial(axis_2) = center_P_initial(axis_2) - collision_offset
-          center_S_initial(axis_2) = center_S_initial(axis_2) + collision_offset                  
+          center_S_initial(axis_2) = center_S_initial(axis_2) + collision_offset
 
        else if (problem == 1 .or. problem == 2 .or. problem == 3) then
 
@@ -785,23 +777,28 @@ contains
 
     ! Safety check: make sure the stars are actually inside the computational domain.
 
-    if ( ( center_P_initial(1) - model_P % radius .lt. problo(1) .and. dim .ne. 2 ) .or. &
-         center_P_initial(1) + model_P % radius .gt. probhi(1) .or. &
-         ( center_P_initial(2) - model_P % radius .lt. problo(2) .and. dim .ge. 2 ) .or. &
-         ( center_P_initial(2) + model_P % radius .gt. probhi(2) .and. dim .ge. 2 ) .or. &
-         ( center_P_initial(3) - model_P % radius .lt. problo(3) .and. dim .eq. 3 ) .or. &
-         ( center_P_initial(3) + model_P % radius .gt. probhi(3) .and. dim .eq. 3 ) ) then
-       call amrex_error("Primary does not fit inside the domain.")
-    endif
+    if (.not. (dim .eq. 2 .and. physbc_lo(2) .eq. Symmetry)) then
 
-    if ( ( center_S_initial(1) - model_S % radius .lt. problo(1) .and. dim .ne. 2 ) .or. &
-         center_S_initial(1) + model_S % radius .gt. probhi(1) .or. &
-         ( center_S_initial(2) - model_S % radius .lt. problo(2) .and. dim .ge. 2 ) .or. &
-         ( center_S_initial(2) + model_S % radius .gt. probhi(2) .and. dim .ge. 2 ) .or. &
-         ( center_S_initial(3) - model_S % radius .lt. problo(3) .and. dim .eq. 3 ) .or. &
-         ( center_S_initial(3) + model_S % radius .gt. probhi(3) .and. dim .eq. 3 ) ) then
-       call amrex_error("Secondary does not fit inside the domain.")
-    endif
+       if ( (HALF * (probhi(1) - problo(1)) < model_P % radius) .or. &
+            (HALF * (probhi(2) - problo(2)) < model_P % radius) .or. &
+            (HALF * (probhi(3) - problo(3)) < model_P % radius .and. dim .eq. 3) ) then
+          call bl_error("Primary does not fit inside the domain.")
+       endif
+
+       if ( (HALF * (probhi(1) - problo(1)) < model_S % radius) .or. &
+            (HALF * (probhi(2) - problo(2)) < model_S % radius) .or. &
+            (HALF * (probhi(3) - problo(3)) < model_S % radius .and. dim .eq. 3) ) then
+          call bl_error("Secondary does not fit inside the domain.")
+       endif
+
+    else
+
+       if ( (probhi(1) - problo(1) < model_S % radius) .or. &
+            (probhi(2) - problo(2) < 2 * model_S % radius) ) then
+          call bl_error("Secondary does not fit inside the domain.")
+       end if
+
+    end if
 
   end subroutine binary_setup
 
@@ -815,7 +812,7 @@ contains
   subroutine kepler_third_law(radius_1, mass_1, radius_2, mass_2, period, eccentricity, phi, a, r_1, r_2, v_1r, v_2r, v_1p, v_2p)
 
     use amrex_constants_module
-    use prob_params_module, only: problo, probhi
+    use prob_params_module, only: problo, probhi, physbc_lo, Symmetry
     use sponge_module, only: sponge_lower_radius
     use meth_params_module, only: do_sponge
     use fundamental_constants_module, only: Gconst
@@ -880,7 +877,16 @@ contains
 
     ! Make sure the domain is big enough to hold stars in an orbit this size.
 
-    length = (r_2 - r_1) + radius_1 + radius_2
+    if (physbc_lo(axis_1) .eq. Symmetry) then
+
+       ! In this case we're only modelling the secondary.
+       length = r_2 + radius_2
+
+    else
+
+       length = (r_2 - r_1) + radius_1 + radius_2
+
+    end if
 
     if (length > (probhi(axis_1)-problo(axis_1))) then
        call amrex_error("ERROR: The domain width is too small to include the binary orbit.")
@@ -1226,8 +1232,8 @@ contains
                                 fpx, fpy, fpz, fsx, fsy, fsz) &
                                 bind(C,name='sum_force_on_stars')
 
-    use amrex_constants_module, only: ZERO
-    use prob_params_module, only: center
+    use amrex_constants_module, only: ZERO, TWO
+    use prob_params_module, only: center, physbc_lo, Symmetry, coord_type
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ
     use castro_util_module, only: position
 
@@ -1246,7 +1252,7 @@ contains
     double precision :: pmask(pm_lo(1):pm_hi(1),pm_lo(2):pm_hi(2),pm_lo(3):pm_hi(3))
     double precision :: smask(sm_lo(1):sm_hi(1),sm_lo(2):sm_hi(2),sm_lo(3):sm_hi(3))
 
-    double precision :: fpx, fpy, fpz, fsx, fsy, fsz
+    double precision :: fpx, fpy, fpz, fsx, fsy, fsz, dF(3)
     double precision :: dt
 
     integer :: i, j, k
@@ -1255,17 +1261,48 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
+             dF(:) = vol(i,j,k) * force(i,j,k,UMX:UMZ)
+
+             ! In the following we'll account for symmetry boundaries
+             ! by assuming they're on the lower boundary if they do exist.
+             ! In that case, assume the star's center is on the lower boundary.
+             ! Then we need to double the value of the force in the other dimensions,
+             ! and cancel out the force in that dimension.
+             ! We assume here that only one dimension at most has a symmetry boundary.
+
+             if (coord_type .eq. 0) then
+
+                if (physbc_lo(1) .eq. Symmetry) then
+                   dF(1) = ZERO
+                   dF(2) = TWO * dF(2)
+                   dF(3) = TWO * dF(3)
+                end if
+
+                if (physbc_lo(2) .eq. Symmetry) then
+                   dF(1) = TWO * dF(1)
+                   dF(2) = ZERO
+                   dF(3) = TWO * dF(3)
+                end if
+
+                if (physbc_lo(3) .eq. Symmetry) then
+                   dF(1) = TWO * dF(1)
+                   dF(2) = TWO * dF(2)
+                   dF(3) = ZERO
+                end if
+
+             end if
+
              if (pmask(i,j,k) > ZERO) then
 
-                fpx = fpx + vol(i,j,k) * force(i,j,k,UMX)
-                fpy = fpy + vol(i,j,k) * force(i,j,k,UMY)
-                fpz = fpz + vol(i,j,k) * force(i,j,k,UMZ)
+                fpx = fpx + dF(1)
+                fpy = fpy + dF(2)
+                fpz = fpz + dF(3)
 
              else if (smask(i,j,k) > ZERO) then
 
-                fsx = fsx + vol(i,j,k) * force(i,j,k,UMX)
-                fsy = fsy + vol(i,j,k) * force(i,j,k,UMY)
-                fsz = fsz + vol(i,j,k) * force(i,j,k,UMZ)
+                fsx = fsx + dF(1)
+                fsy = fsy + dF(2)
+                fsz = fsz + dF(3)
 
              endif
 

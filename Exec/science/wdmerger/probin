@@ -126,7 +126,8 @@
   rtol_enuc = 1.d-6
   atol_enuc = 1.d-6
 
-  retry_burn = T
+  abort_on_failure = F
+  retry_burn = F
 
   renormalize_abundances = T
 

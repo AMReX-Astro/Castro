@@ -297,8 +297,8 @@ subroutine wdcom(rho,  r_lo, r_hi, &
                  vel_s_x, vel_s_y, vel_s_z, &
                  m_p, m_s) bind(C,name='wdcom')
 
-  use amrex_constants_module, only: HALF, ZERO, ONE
-  use prob_params_module, only: problo, probhi, physbc_lo, physbc_hi, Symmetry
+  use amrex_constants_module, only: HALF, ZERO, ONE, TWO
+  use prob_params_module, only: problo, probhi, physbc_lo, physbc_hi, Symmetry, coord_type
   use castro_util_module, only: position
 
   implicit none
@@ -328,7 +328,7 @@ subroutine wdcom(rho,  r_lo, r_hi, &
   double precision, intent(inout) :: m_p, m_s
 
   integer          :: i, j, k
-  double precision :: r(3), dm
+  double precision :: r(3), rSymmetric(3), dm, dmSymmetric, momSymmetric(3)
 
   ! Add to the COM locations and velocities of the primary and secondary
   ! depending on which potential dominates, ignoring unbound material.
@@ -348,36 +348,63 @@ subroutine wdcom(rho,  r_lo, r_hi, &
 
            ! We account for symmetric boundaries in this sum as usual,
            ! by adding to the position the locations that would exist
-           ! on the opposite side of the symmetric boundary.
+           ! on the opposite side of the symmetric boundary. Note that
+           ! in axisymmetric coordinates, some of this work is already
+           ! done for us in the definition of the zone volume.
 
-           r = merge(r + (problo - r), r, physbc_lo(:) .eq. Symmetry)
-           r = merge(r + (r - probhi), r, physbc_hi(:) .eq. Symmetry)
+           rSymmetric = r
+           rSymmetric = merge(rSymmetric + (problo - rSymmetric), rSymmetric, physbc_lo(:) .eq. Symmetry)
+           rSymmetric = merge(rSymmetric + (rSymmetric - probhi), rSymmetric, physbc_hi(:) .eq. Symmetry)
 
            dm = rho(i,j,k) * vol(i,j,k)
 
+           dmSymmetric = dm
+           momSymmetric(1) = xmom(i,j,k)
+           momSymmetric(2) = ymom(i,j,k)
+           momSymmetric(3) = zmom(i,j,k)
+
+           if (coord_type .eq. 0) then
+
+              if (physbc_lo(1) .eq. Symmetry) then
+                 dmSymmetric = TWO * dmSymmetric
+                 momSymmetric = TWO * momSymmetric
+              end if
+
+              if (physbc_lo(2) .eq. Symmetry) then
+                 dmSymmetric = TWO * dmSymmetric
+                 momSymmetric = TWO * momSymmetric
+              end if
+
+              if (physbc_lo(3) .eq. Symmetry) then
+                 dmSymmetric = TWO * dmSymmetric
+                 momSymmetric = TWO * momSymmetric
+              end if              
+
+           end if
+
            if (pmask(i,j,k) > ZERO) then
 
-              m_p = m_p + dm
+              m_p = m_p + dmSymmetric
 
-              com_p_x = com_p_x + dm * r(1)
-              com_p_y = com_p_y + dm * r(2)
-              com_p_z = com_p_z + dm * r(3)
+              com_p_x = com_p_x + dmSymmetric * rSymmetric(1)
+              com_p_y = com_p_y + dmSymmetric * rSymmetric(2)
+              com_p_z = com_p_z + dmSymmetric * rSymmetric(3)
 
-              vel_p_x = vel_p_x + xmom(i,j,k) * vol(i,j,k)
-              vel_p_y = vel_p_y + ymom(i,j,k) * vol(i,j,k)
-              vel_p_z = vel_p_z + zmom(i,j,k) * vol(i,j,k)
+              vel_p_x = vel_p_x + momSymmetric(1) * vol(i,j,k)
+              vel_p_y = vel_p_y + momSymmetric(2) * vol(i,j,k)
+              vel_p_z = vel_p_z + momSymmetric(3) * vol(i,j,k)
 
            else if (smask(i,j,k) > ZERO) then
 
-              m_s = m_s + dm
+              m_s = m_s + dmSymmetric
 
-              com_s_x = com_s_x + dm * r(1)
-              com_s_y = com_s_y + dm * r(2)
-              com_s_z = com_s_z + dm * r(3)
+              com_s_x = com_s_x + dmSymmetric * rSymmetric(1)
+              com_s_y = com_s_y + dmSymmetric * rSymmetric(2)
+              com_s_z = com_s_z + dmSymmetric * rSymmetric(3)
 
-              vel_s_x = vel_s_x + xmom(i,j,k) * vol(i,j,k)
-              vel_s_y = vel_s_y + ymom(i,j,k) * vol(i,j,k)
-              vel_s_z = vel_s_z + zmom(i,j,k) * vol(i,j,k)
+              vel_s_x = vel_s_x + momSymmetric(1) * vol(i,j,k)
+              vel_s_y = vel_s_y + momSymmetric(2) * vol(i,j,k)
+              vel_s_z = vel_s_z + momSymmetric(3) * vol(i,j,k)
 
            endif
 
