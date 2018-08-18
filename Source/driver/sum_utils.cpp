@@ -265,7 +265,7 @@ Castro::volWgtSumMF (const MultiFab& mf, int comp, bool local)
         //
 
 #pragma gpu
-	ca_summass(AMREX_INT_ANYD(lo),AMREX_INT_ANYD(hi),BL_TO_FORTRAN_N_3D(fab,comp),
+	ca_summass(AMREX_INT_ANYD(lo),AMREX_INT_ANYD(hi),BL_TO_FORTRAN_N_ANYD(fab,comp),
 		   ZFILL(dx),BL_TO_FORTRAN_ANYD(volume[mfi]),
                    AMREX_MFITER_REDUCE_SUM(&sum));
     }
