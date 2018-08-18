@@ -374,25 +374,55 @@ Castro::variableSetUp ()
   Vector<std::string> name(NUM_STATE);
 
   BCRec bc;
-  cnt = 0;
-  set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "density";
-  cnt++; set_x_vel_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "xmom";
-  cnt++; set_y_vel_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "ymom";
-  cnt++; set_z_vel_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "zmom";
+  set_scalar_bc(bc, phys_bc);
+  bcs[Density] = bc;
+  name[Density] = "density";
+
+  set_x_vel_bc(bc, phys_bc);
+  bcs[Xmom] = bc;
+  name[Xmom] = "xmom";
+
+  set_y_vel_bc(bc, phys_bc);
+  bcs[Ymom] = bc;
+  name[Ymom] = "ymom";
+
+  set_z_vel_bc(bc, phys_bc);
+  bcs[Zmom] = bc;
+  name[Zmom] = "zmom";
+
 #ifdef HYBRID_MOMENTUM
-  cnt++; set_scalar_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "rmom";
-  cnt++; set_scalar_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "lmom";
-  cnt++; set_scalar_bc(bc,phys_bc);  bcs[cnt] = bc; name[cnt] = "pmom";
+  set_scalar_bc(bc, phys_bc);
+  bcs[Rmom] = bc;
+  name[Rmom] = "rmom";
+
+  set_scalar_bc(bc, phys_bc);
+  bcs[Lmom] = bc;
+  name[Lmom] = "lmom";
+
+  set_scalar_bc(bc, phys_bc);
+  bcs[Pmom] = bc;
+  name[Pmom] = "pmom";
+
 #endif
-  cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "rho_E";
-  cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "rho_e";
-  cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "Temp";
+  set_scalar_bc(bc, phys_bc);
+  bcs[Eden] = bc;
+  name[Eden] = "rho_E";
+
+  set_scalar_bc(bc, phys_bc);
+  bcs[Eint] = bc;
+  name[Eint] = "rho_e";
+
+  set_scalar_bc(bc, phys_bc);
+  bcs[Temp] = bc;
+  name[Temp] = "Temp";
 
   for (int i=0; i<NumAdv; ++i)
     {
       char buf[64];
       sprintf(buf, "adv_%d", i);
-      cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = string(buf);
+      set_scalar_bc(bc, phys_bc);
+      bcs[FirstAdv+i] = bc;
+      name[FirstAdv+i] = string(buf);
     }
 
   // Get the species names from the network model.
@@ -419,10 +449,9 @@ Castro::variableSetUp ()
 
   for (int i=0; i<NumSpec; ++i)
     {
-      cnt++;
-      set_scalar_bc(bc,phys_bc);
-      bcs[cnt] = bc;
-      name[cnt] = "rho_" + spec_names[i];
+      set_scalar_bc(bc, phys_bc);
+      bcs[FirstSpec+i] = bc;
+      name[FirstSpec+i] = "rho_" + spec_names[i];
     }
 
   // Get the auxiliary names from the network model.
@@ -449,14 +478,15 @@ Castro::variableSetUp ()
 
   for (int i=0; i<NumAux; ++i)
     {
-      cnt++;
-      set_scalar_bc(bc,phys_bc);
-      bcs[cnt] = bc;
-      name[cnt] = "rho_" + aux_names[i];
+      set_scalar_bc(bc, phys_bc);
+      bcs[FirstAux+i] = bc;
+      name[FirstAux+i] = "rho_" + aux_names[i];
     }
 
 #ifdef SHOCK_VAR
-  cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "Shock";
+  set_scalar_bc(bc, phys_bc);
+  bcs[Shock] = bc;
+  name[Shock] = "Shock";
 #endif
 
   desc_lst.setComponent(State_Type,
