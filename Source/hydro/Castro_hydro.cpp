@@ -458,7 +458,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
       // Compute divergence of velocity field.
 
 #pragma gpu
-      ca_divu(AMREX_ARLIM_ARG(obx.loVect()), AMREX_ARLIM_ARG(obx.hiVect()),
+      ca_divu(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
               dx,
               BL_TO_FORTRAN_ANYD(q[mfi]),
               BL_TO_FORTRAN_ANYD(div[mfi]));
@@ -466,14 +466,14 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
       // Compute flattening coefficient for slope calculations.
 #pragma gpu
       ca_uflaten
-          (AMREX_ARLIM_ARG(obx.loVect()), AMREX_ARLIM_ARG(obx.hiVect()),
+          (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
            BL_TO_FORTRAN_ANYD(q[mfi]),
            BL_TO_FORTRAN_ANYD(flatn[mfi]));
 
       // Do PPM reconstruction to the zone edges.
 #pragma gpu
       ca_ppm_reconstruct
-          (AMREX_ARLIM_ARG(obx.loVect()), AMREX_ARLIM_ARG(obx.hiVect()),
+          (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
            BL_TO_FORTRAN_ANYD(q[mfi]),
            BL_TO_FORTRAN_ANYD(flatn[mfi]),
            BL_TO_FORTRAN_ANYD(qm[mfi]),
@@ -496,7 +496,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
 #pragma gpu
           ca_construct_flux
-              (AMREX_ARLIM_ARG(ebx.loVect()), AMREX_ARLIM_ARG(ebx.hiVect()),
+              (AMREX_INT_ANYD(ebx.loVect()), AMREX_INT_ANYD(ebx.hiVect()),
                domain_lo, domain_hi,
                dx, dt,
                idir_f,
@@ -527,7 +527,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
 #pragma gpu
       ca_construct_hydro_update
-          (AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
+          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
            dx, dt,
            BL_TO_FORTRAN_ANYD(qe[0][mfi]),
            BL_TO_FORTRAN_ANYD(qe[1][mfi]),
@@ -611,7 +611,7 @@ Castro::cons_to_prim(const Real time)
         // This fills both q and qaux.
 
 #pragma gpu
-        ca_ctoprim(AMREX_ARLIM_ARG(qbx.loVect()), AMREX_ARLIM_ARG(qbx.hiVect()),
+        ca_ctoprim(AMREX_INT_ANYD(qbx.loVect()), AMREX_INT_ANYD(qbx.hiVect()),
                    BL_TO_FORTRAN_ANYD(Sborder[mfi]),
 #ifdef RADIATION
                    BL_TO_FORTRAN_ANYD(Erborder[mfi]),

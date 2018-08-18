@@ -900,7 +900,7 @@ Castro::initData ()
           // Verify that the sum of (rho X)_i = rho at every cell
 
 #pragma gpu
-          ca_check_initial_species(AMREX_ARLIM_ARG(lo), AMREX_ARLIM_ARG(hi), 
+          ca_check_initial_species(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
 				   BL_TO_FORTRAN_ANYD(S_new[mfi]));
        }
        enforce_consistent_e(S_new);
@@ -1171,7 +1171,7 @@ Castro::estTimeStep (Real dt_old)
 		  const Box& box = mfi.tilebox();
 
 #pragma gpu
-		  ca_estdt(AMREX_ARLIM_ARG(box.loVect()), AMREX_ARLIM_ARG(box.hiVect()),
+		  ca_estdt(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
 			   BL_TO_FORTRAN_ANYD(stateMF[mfi]),
 			   ZFILL(dx),
                            AMREX_MFITER_REDUCE_MIN(&dt));
@@ -2617,8 +2617,8 @@ Castro::normalize_species (MultiFab& S_new, int ng)
        const Box& bx = mfi.growntilebox(ng);
 
 #pragma gpu
-       ca_normalize_species(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()), 
-                                     BL_TO_FORTRAN_ANYD(S_new[mfi]));
+       ca_normalize_species(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), 
+                            BL_TO_FORTRAN_ANYD(S_new[mfi]));
     }
 }
 
@@ -2684,7 +2684,7 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new, int ng)
 
 #pragma gpu
 	ca_enforce_minimum_density
-            (AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
+            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
              BL_TO_FORTRAN_ANYD(stateold),
              BL_TO_FORTRAN_ANYD(statenew),
              BL_TO_FORTRAN_ANYD(vol),
@@ -3052,7 +3052,7 @@ Castro::reset_internal_energy(MultiFab& S_new)
         const Box& bx = mfi.growntilebox(ng);
 
 #pragma gpu
-        ca_reset_internal_e(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
+        ca_reset_internal_e(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 			    BL_TO_FORTRAN_ANYD(S_new[mfi]),
 			    print_fortran_warnings);
     }
@@ -3128,7 +3128,7 @@ Castro::computeTemp(MultiFab& State, int ng)
       } else {
 #endif
 #pragma gpu
-	ca_compute_temp(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
+	ca_compute_temp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 			BL_TO_FORTRAN_ANYD(State[mfi]));
 #ifdef RADIATION
       }
