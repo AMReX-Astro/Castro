@@ -53,7 +53,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   xn_zone(:) = ZERO
   xn_zone(1) = ONE
 
-  ! override the pressure iwth the temperature
+  ! override the pressure with the temperature
   if (temp_ambient > ZERO) then
 
      eos_state % rho = dens_ambient
@@ -70,7 +70,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   eos_state % rho = dens_ambient
   eos_state % p   = p_ambient
-  eos_state % T   = 1.d5 ! Initial guess for iterations
+  eos_state % T   = 1.d9 ! Initial guess for iterations
   eos_state % xn  = xn_zone
 
   call eos(eos_input_rp, eos_state)
@@ -148,7 +148,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      eos_state % e = e_zone
      eos_state % rho = dens_ambient
      eos_state % xn(:) = xn_zone(:)
-     eos_state % T = 100.0  ! initial guess
+     eos_state % T = 1.d9  ! initial guess
 
      call eos(eos_input_re, eos_state)
 
@@ -173,6 +173,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         eos_state % p = p_zone
         eos_state % rho = dens_ambient
         eos_state % xn(:) = xn_zone(:)
+        eos_state % T = 1.d9
 
         call eos(eos_input_rp, eos_state)
 
@@ -180,6 +181,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         state(i,URHO) = dens_ambient
         state(i,UMX:UMZ) = 0.e0_rt
+
+        state(i,UTEMP) = eos_state % T
 
         state(i,UEDEN) = eint + 0.5e0_rt * state(i,UMX)**2 / state(i,URHO)
         state(i,UEINT) = eint
@@ -200,7 +203,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      eos_state % e = e_zone
      eos_state % rho = dens_ambient
      eos_state % xn(:) = xn_zone(:)
-     eos_state % T = 100.0  ! initial guess
+     eos_state % T = 1.d9  ! initial guess
 
      call eos(eos_input_re, eos_state)
 
@@ -230,6 +233,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         eos_state % p = p_zone
         eos_state % rho = dens_ambient
         eos_state % xn(:) = xn_zone(:)
+        eos_state % T = 1.d9
 
         call eos(eos_input_rp, eos_state)
 
@@ -237,6 +241,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         state(i,URHO) = dens_ambient
         state(i,UMX:UMZ) = 0.e0_rt
+
+        state(i,UTEMP) = eos_state % T
 
         state(i,UEDEN) = eint + 0.5e0_rt * state(i,UMX)**2 / state(i,URHO)
         state(i,UEINT) = eint

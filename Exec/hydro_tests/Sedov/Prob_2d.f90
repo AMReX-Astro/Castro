@@ -54,7 +54,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   xn_zone(:) = ZERO
   xn_zone(1) = ONE
 
-  ! override the pressure iwth the temperature
+  ! override the pressure with the temperature
   if (temp_ambient > ZERO) then
 
      eos_state % rho = dens_ambient
@@ -150,7 +150,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      eos_state % e = e_zone
      eos_state % rho = dens_ambient
      eos_state % xn(:) = xn_zone(:)
-     eos_state % T = 1000.00 ! initial guess
+     eos_state % T = 1.d9 ! initial guess
 
      call eos(eos_input_re, eos_state)
 
@@ -187,7 +187,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            eos_state % p = p_zone
            eos_state % rho = dens_ambient
            eos_state % xn(:) = xn_zone(:)
-           eos_state % T = 1000.0   ! initial guess
+           eos_state % T = 1.d9   ! initial guess
 
            call eos(eos_input_rp, eos_state)
 
@@ -221,7 +221,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      eos_state % e = e_zone
      eos_state % rho = dens_ambient
      eos_state % xn(:) = xn_zone(:)
-     eos_state % T = 1000.0  ! initial guess
+     eos_state % T = 1.d9  ! initial guess
 
      call eos(eos_input_re, eos_state)
 
@@ -266,6 +266,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            eos_state % p = p_zone
            eos_state % rho = dens_ambient
            eos_state % xn(:) = xn_zone(:)
+           eos_state % T = 1.d9
 
            call eos(eos_input_rp, eos_state)
 

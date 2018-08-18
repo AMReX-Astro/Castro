@@ -55,7 +55,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   xn_zone(:) = ZERO
   xn_zone(1) = ONE
 
-  ! override the pressure iwth the temperature
+  ! override the pressure with the temperature
   if (temp_ambient > ZERO) then
 
      eos_state % rho = dens_ambient
