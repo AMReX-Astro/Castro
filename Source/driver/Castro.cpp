@@ -2618,13 +2618,8 @@ Castro::normalize_species (MultiFab& S_new, int ng)
        const Box& bx = mfi.growntilebox(ng);
 
 #pragma gpu
-       ca_normalize_species(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()), 
-<<<<<<< HEAD
-                                     BL_TO_FORTRAN_3D(S_new[mfi]));
-
-=======
-                                     BL_TO_FORTRAN_ANYD(S_new[mfi]));
->>>>>>> development
+       ca_normalize_species(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
+                            BL_TO_FORTRAN_ANYD(S_new[mfi]));
     }
 }
 
