@@ -28,7 +28,7 @@ Castro::flame_width_properties (Real time, Real& T_max, Real& T_min, Real& grad_
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 
-	flame_width_temp(BL_TO_FORTRAN_3D(fab),
+	flame_width_temp(BL_TO_FORTRAN_ANYD(fab),
 			 ARLIM_3D(lo),ARLIM_3D(hi),
 			 ZFILL(dx),&time,
 			 &T_max, &T_min, &grad_T_max);
@@ -86,7 +86,7 @@ Castro::flame_speed_properties (Real time, Real& rho_fuel_dot)
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 
-	flame_speed_data(BL_TO_FORTRAN_3D(fab),
+	flame_speed_data(BL_TO_FORTRAN_ANYD(fab),
 			 ARLIM_3D(lo),ARLIM_3D(hi),
 			 ZFILL(dx),
 			 &rho_fuel_dot_temp);

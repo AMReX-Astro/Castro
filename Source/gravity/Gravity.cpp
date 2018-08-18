@@ -1289,7 +1289,7 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector, Multi
     {
        const Box& bx = mfi.growntilebox();
        ca_prescribe_phi(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		        BL_TO_FORTRAN_3D(phi[mfi]),dx);
+		        BL_TO_FORTRAN_ANYD(phi[mfi]),dx);
     }
 
 #ifdef _OPENMP
@@ -1299,7 +1299,7 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector, Multi
     {
        const Box& bx = mfi.growntilebox();
        ca_prescribe_grav(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-			 BL_TO_FORTRAN_3D(grav_vector[mfi]),dx);
+			 BL_TO_FORTRAN_ANYD(grav_vector[mfi]),dx);
     }
 
     if (verbose)
@@ -1581,8 +1581,8 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 
 		ca_compute_multipole_moments(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		                             ARLIM_3D(domain.loVect()), ARLIM_3D(domain.hiVect()),
-					     ZFILL(dx),BL_TO_FORTRAN_3D(source[mfi]),
-					     BL_TO_FORTRAN_3D((*volume[lev])[mfi]),
+					     ZFILL(dx),BL_TO_FORTRAN_ANYD(source[mfi]),
+					     BL_TO_FORTRAN_ANYD((*volume[lev])[mfi]),
 					     &lnum,
 #ifdef _OPENMP
 					     priv_qL0[tid]->dataPtr(),
@@ -1688,7 +1688,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
         const Box& bx = mfi.growntilebox();
         ca_put_multipole_phi(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			     ARLIM_3D(domain.loVect()), ARLIM_3D(domain.hiVect()),
-			     ZFILL(dx), BL_TO_FORTRAN_3D(phi[mfi]),
+			     ZFILL(dx), BL_TO_FORTRAN_ANYD(phi[mfi]),
 			     &lnum,
 			     qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
 			     qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
@@ -2100,8 +2100,8 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vect
        const Box& bx = mfi.growntilebox();
 
        pm_add_to_grav(ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()),
-                      &point_mass,BL_TO_FORTRAN_3D(phi[mfi]),
-		      BL_TO_FORTRAN_3D(grav_vector[mfi]),
+                      &point_mass,BL_TO_FORTRAN_ANYD(phi[mfi]),
+		      BL_TO_FORTRAN_ANYD(grav_vector[mfi]),
                       ZFILL(problo),ZFILL(dx));
    }
 }
@@ -2143,8 +2143,8 @@ Gravity::computeAvg (int level, MultiFab* mf, bool mask)
         // Note that this routine will do a volume weighted sum of
         // whatever quantity is passed in, not strictly the "mass".
         //
-	ca_summass(ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_3D(fab),
-		   dx,BL_TO_FORTRAN_3D((*volume[level])[mfi]),&s);
+	ca_summass(ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_ANYD(fab),
+		   dx,BL_TO_FORTRAN_ANYD((*volume[level])[mfi]),&s);
         sum += s;
     }
 
