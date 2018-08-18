@@ -72,7 +72,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   eos_state % rho = dens_ambient
   eos_state % p   = p_ambient
-  eos_state % T   = 1.d5 ! Initial guess for iterations
+  eos_state % T   = 1.d9 ! Initial guess for iterations
   eos_state % xn  = xn_zone
 
   call eos(eos_input_rp, eos_state)
@@ -109,7 +109,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   use probdata_module
   use amrex_constants_module, only: M_PI, FOUR3RD, ZERO, ONE
-  use meth_params_module , only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS
+  use meth_params_module , only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS
   use prob_params_module, only : center
   use amrex_fort_module, only : rt => amrex_real
   use network, only : nspec
@@ -146,7 +146,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   eos_state % e = e_zone
   eos_state % rho = dens_ambient
   eos_state % xn(:) = xn_zone(:)
-  eos_state % T = 100.0  ! initial guess
+  eos_state % T = 1.d9  ! initial guess
 
   call eos(eos_input_re, eos_state)
 
@@ -191,6 +191,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            eos_state % p = p_zone
            eos_state % rho = dens_ambient
            eos_state % xn(:) = xn_zone(:)
+           eos_state % T = 1.d9
 
            call eos(eos_input_rp, eos_state)
 
@@ -200,6 +201,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            state(i,j,k,UMX) = 0.e0_rt
            state(i,j,k,UMY) = 0.e0_rt
            state(i,j,k,UMZ) = 0.e0_rt
+
+           state(i,j,k,UTEMP) = eos_state % T
 
            state(i,j,k,UEDEN) = eint + &
                 0.5e0_rt*(state(i,j,k,UMX)**2/state(i,j,k,URHO) + &
