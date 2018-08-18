@@ -744,6 +744,7 @@ contains
                                m_start) bind(C, name="ca_sdc_compute_C4")
 
     ! compute the 'C' term for the 4th-order solve with reactions
+    ! note: this 'C' is cell-averages
 
     use meth_params_module, only : NVAR
     use amrex_constants_module, only : HALF, TWO, FIVE, EIGHT, TWELFTH

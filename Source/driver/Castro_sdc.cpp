@@ -21,9 +21,15 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
   // and do a ghost cell fill on it
 
 #ifdef REACTIONS
-  if (fourth_order == 1) {
-    MultiFab& C_source = get_new_data(SDC_Source_Type);
+  // SDC_Source_Type is only defined for 4th order
+  MultiFab tmp;
+  MultiFab& C_source = (fourth_order == 1) ? get_new_data(SDC_Source_Type) : tmp;
 
+  if (fourth_order == 1) {
+
+    // for 4th order reacting flow, we need to create the "source" C
+    // as averages and then convert it to cell centers.  The cell-center
+    // version needs to have 2 ghost cells
     for (MFIter mfi(*k_new[0]); mfi.isValid(); ++mfi) {
 
       const Box& bx = mfi.tilebox();
@@ -49,9 +55,16 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
   }
 #endif
 
+  // main update loop -- we are updating k_new[m_start] to
+  // k_new[m_end]
+
+  FArrayBox U_center;
+  FArrayBox C_center;
+
   for (MFIter mfi(*k_new[0]); mfi.isValid(); ++mfi) {
 
     const Box& bx = mfi.tilebox();
+    const Box& bx1 = mfi.growntilebox(1);
 
 #ifdef REACTIONS
     // advection + reactions
@@ -67,16 +80,27 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
                        &sdc_iteration,
                        &m_start);
     } else {
-      amrex::Abort("sdc_order != 2 not implemented");
 
       // convert the starting U to cell-centered on a fab-by-fab basis
       // -- including one ghost cell
+      U_center.resize(bx1);
+      ca_make_cell_center(BL_TO_FORTRAN_BOX(bx1),
+                          BL_TO_FORTRAN_FAB((*k_new[m_start])[mfi]),
+                          BL_TO_FORTRAN_FAB(U_center));
+
+      // convert the C source to cell-centers
+      C_center.resize(bx1);
+      ca_make_cell_center(BL_TO_FORTRAN_BOX(bx1),
+                          BL_TO_FORTRAN_FAB(C_source[mfi]),
+                          BL_TO_FORTRAN_FAB(C_center));
 
       // solve for the cell-center U using our cell-centered C -- we
       // need to do this with one ghost cell
 
-      // do the conservative correction -- we need to compute <R>
-      // first, then get <U>.  We'll also need to pass in <C> too
+      // compute R_i and in 1 ghost cell and then convert to <R>
+
+      // now do the conservative update using this <R> to get <U>
+      // We'll also need to pass in <C>
 
 
     }
