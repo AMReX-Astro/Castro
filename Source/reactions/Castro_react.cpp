@@ -269,10 +269,10 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 
 	// Note that box is *not* necessarily just the valid region!
 	ca_react_state(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		       BL_TO_FORTRAN_3D(s[mfi]),
-		       BL_TO_FORTRAN_3D(r[mfi]),
-		       BL_TO_FORTRAN_3D(w[mfi]),
-		       BL_TO_FORTRAN_3D(mask[mfi]),
+		       BL_TO_FORTRAN_ANYD(s[mfi]),
+		       BL_TO_FORTRAN_ANYD(r[mfi]),
+		       BL_TO_FORTRAN_ANYD(w[mfi]),
+		       BL_TO_FORTRAN_ANYD(mask[mfi]),
 		       time, dt_react, strang_half,
                        &burn_success);
 

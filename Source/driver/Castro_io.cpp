@@ -374,7 +374,7 @@ Castro::restart (Amr&     papa,
 #ifdef AMREX_DIMENSION_AGNOSTIC
               BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
                 (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), ns,
-		 BL_TO_FORTRAN_3D(S_new[mfi]), ZFILL(dx),
+		 BL_TO_FORTRAN_ANYD(S_new[mfi]), ZFILL(dx),
 		 ZFILL(geom.ProbLo()), ZFILL(geom.ProbHi()));
 #else
 	      BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)

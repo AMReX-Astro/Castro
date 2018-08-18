@@ -24,9 +24,9 @@ Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state, Real time
 	const Box& bx = mfi.tilebox();
 
 	ca_sponge(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		  BL_TO_FORTRAN_3D(state[mfi]),
-		  BL_TO_FORTRAN_3D(source[mfi]),
-		  BL_TO_FORTRAN_3D(volume[mfi]),
+		  BL_TO_FORTRAN_ANYD(state[mfi]),
+		  BL_TO_FORTRAN_ANYD(source[mfi]),
+		  BL_TO_FORTRAN_ANYD(volume[mfi]),
 		  ZFILL(dx), dt, time, mult_factor);
 
     }
@@ -56,9 +56,9 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
         const Box& bx = mfi.tilebox();
 
         ca_sponge(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                  BL_TO_FORTRAN_3D(state_old[mfi]),
-                  BL_TO_FORTRAN_3D(source[mfi]),
-                  BL_TO_FORTRAN_3D(volume[mfi]),
+                  BL_TO_FORTRAN_ANYD(state_old[mfi]),
+                  BL_TO_FORTRAN_ANYD(source[mfi]),
+                  BL_TO_FORTRAN_ANYD(volume[mfi]),
                   ZFILL(dx), dt, time, mult_factor_old);
 
     }
@@ -76,9 +76,9 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
 	const Box& bx = mfi.tilebox();
 
 	ca_sponge(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                  BL_TO_FORTRAN_3D(state_new[mfi]),
-		  BL_TO_FORTRAN_3D(source[mfi]),
-		  BL_TO_FORTRAN_3D(volume[mfi]),
+                  BL_TO_FORTRAN_ANYD(state_new[mfi]),
+		  BL_TO_FORTRAN_ANYD(source[mfi]),
+		  BL_TO_FORTRAN_ANYD(volume[mfi]),
 		  ZFILL(dx), dt, time, mult_factor_new);
 
     }
