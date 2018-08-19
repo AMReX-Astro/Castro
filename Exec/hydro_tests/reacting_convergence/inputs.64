@@ -27,7 +27,7 @@ castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
 castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 0.01    # scale back initial timestep
 castro.change_max     = 1.1     # maximum increase in dt over successive steps
-#castro.fixed_dt = 2.e-4
+castro.fixed_dt = 2.e-4
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
@@ -43,11 +43,11 @@ amr.blocking_factor = 4       # block factor in grid generation
 amr.max_grid_size   = 256
 
 # CHECKPOINT FILES
-amr.check_file      = acoustic_pulse_64_chk   # root name of checkpoint file
+amr.check_file      = react_converge_64_chk   # root name of checkpoint file
 amr.check_int       = 100       # number of timesteps between checkpoints
 
 # PLOTFILES
-amr.plot_file       = acoustic_pulse_64_plt
+amr.plot_file       = react_converge_64_plt
 amr.plot_int        = -1
 amr.plot_per        = 0.24
 amr.derive_plot_vars=ALL
