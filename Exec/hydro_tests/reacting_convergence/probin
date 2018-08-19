@@ -1,8 +1,8 @@
 &fortin
 
- rho0 = 5.e6
+ rho0 = 5.e5
  T0 = 3.e8
- dp_fact = 15.0
+ dp_fact = 4.0
  L_pert = 2.e7
 
 /
