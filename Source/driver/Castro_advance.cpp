@@ -127,6 +127,8 @@ Castro::advance (Real time,
       // store the reaction information as well -- note: this will be
       // the instantaneous reactive source.  In the future, we might
       // want to do a quadrature over R_new[]
+
+      // this is done only for the plotfile
       MultiFab& R_new = get_new_data(Reactions_Type);
 
       for (MFIter mfi(R_new, hydro_tile_size); mfi.isValid(); ++mfi) {

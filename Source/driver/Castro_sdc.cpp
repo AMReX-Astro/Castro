@@ -60,6 +60,8 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
 
   FArrayBox U_center;
   FArrayBox C_center;
+  FArrayBox U_new_center;
+  FArrayBox R_new;
 
   for (MFIter mfi(*k_new[0]); mfi.isValid(); ++mfi) {
 
@@ -83,21 +85,29 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
 
       // convert the starting U to cell-centered on a fab-by-fab basis
       // -- including one ghost cell
-      U_center.resize(bx1);
+      U_center.resize(bx1, NUM_STATE);
       ca_make_cell_center(BL_TO_FORTRAN_BOX(bx1),
                           BL_TO_FORTRAN_FAB((*k_new[m_start])[mfi]),
                           BL_TO_FORTRAN_FAB(U_center));
 
       // convert the C source to cell-centers
-      C_center.resize(bx1);
+      C_center.resize(bx1, NUM_STATE);
       ca_make_cell_center(BL_TO_FORTRAN_BOX(bx1),
                           BL_TO_FORTRAN_FAB(C_source[mfi]),
                           BL_TO_FORTRAN_FAB(C_center));
 
-      // solve for the cell-center U using our cell-centered C -- we
+      // solve for the updated cell-center U using our cell-centered C -- we
       // need to do this with one ghost cell
+      U_new_center.resize(bx1, NUM_STATE);
+      ca_sdc_update_centers_o4(BL_TO_FORTRAN_BOX(bx1), &dt_m, 
+                               BL_TO_FORTRAN_3D(U_center),
+                               BL_TO_FORTRAN_3D(U_new_center), 
+                               BL_TO_FORTRAN_3D(C_center),
+                               &sdc_iteration);
 
-      // compute R_i and in 1 ghost cell and then convert to <R>
+      // compute R_i and in 1 ghost cell and then convert to <R> in place
+      R_new.resize(bx1, NUM_STATE);
+      ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx1),
 
       // now do the conservative update using this <R> to get <U>
       // We'll also need to pass in <C>

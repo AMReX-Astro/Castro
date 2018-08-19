@@ -722,6 +722,14 @@ extern "C"
      const int* sdc_iteration,
      const int* m_start);
 
+  void ca_sdc_update_centers_o4
+    (const int lo[], const int hi[],
+     const amrex::Real* time,
+     const BL_FORT_FAB_ARG_3D(U_center),
+     BL_FORT_FAB_ARG_3D(U_new_center),
+     const BL_FORT_FAB_ARG_3D(C_center),
+     const int* sdc_iteration);
+
   void ca_sdc_compute_C4(const int lo[], const int hi[],
                          const BL_FORT_FAB_ARG_3D(A_m),
                          const BL_FORT_FAB_ARG_3D(A_0),

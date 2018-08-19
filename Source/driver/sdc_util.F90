@@ -898,6 +898,51 @@ contains
 
   end subroutine ca_sdc_update_o2
 
+
+  subroutine ca_sdc_update_centers_o4(lo, hi, dt_m, &
+                                      U_old, Uo_lo, Uo_hi, &
+                                      U_new, Un_lo, Un_hi, &
+                                      C, C_lo, C_hi, &
+                                      sdc_iteration) &
+                                      bind(C, name="ca_sdc_update_centers_o4")
+
+    ! update k_m to k_n via advection -- this is a second-order accurate update
+
+    use meth_params_module, only : NVAR
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    real(rt), intent(in) :: dt_m
+    integer, intent(in) :: Uo_lo(3), Uo_hi(3)
+    integer, intent(in) :: Un_lo(3), Un_hi(3)
+    integer, intent(in) :: C_lo(3), C_hi(3)
+    integer, intent(in) :: sdc_iteration
+
+    real(rt), intent(in) :: U_old(Uo_lo(1):Uo_hi(1), Uo_lo(2):Uo_hi(2), Uo_lo(3):Uo_hi(3), NVAR)
+    real(rt), intent(out) :: U_new(Un_lo(1):Un_hi(1), Un_lo(2):Un_hi(2), Un_lo(3):Un_hi(3), NVAR)
+    real(rt), intent(in) :: C(C_lo(1):C_hi(1), C_lo(2):C_hi(2), C_lo(3):C_hi(3), NVAR)
+
+    integer :: i, j, k
+
+    ! now consider the reacting system
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             ! TODO: we should do a more smart initial guess (for the
+             ! Newton case) -- see the second-order version
+
+             U_new(i,j,k,:) = U_old(i,j,k,:)
+
+             call sdc_solve(dt_m, U_old(i,j,k,:), U_new(i,j,k,:), C(i,j,k,:), sdc_iteration)
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_sdc_update_centers_o4
+
   subroutine ca_instantaneous_react(lo, hi, &
                                     state, s_lo, s_hi, &
                                     R_source, r_lo, r_hi) &
