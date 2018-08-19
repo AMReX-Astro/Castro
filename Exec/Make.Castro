@@ -399,12 +399,7 @@ endif
 
 EXTERN_PARAMETERS := $(shell $(AMREX_HOME)/Tools/F_scripts/findparams.py $(EXTERN_SEARCH))
 
-MANAGED_PROBIN_FLAG :=
-ifdef USE_CUDA
-  ifeq ($(USE_CUDA), TRUE)
-    MANAGED_PROBIN_FLAG := --managed
-  endif
-endif
+MANAGED_PROBIN_FLAG := --managed
 
 extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
 	$(AMREX_HOME)/Tools/F_scripts/write_probin.py \

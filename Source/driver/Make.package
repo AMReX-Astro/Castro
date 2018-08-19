@@ -25,8 +25,6 @@ FEXE_headers += Derive_F.H
 
 ca_F90EXE_sources += generic_fill.F90
 
-ca_F90EXE_sources += castro_c_interfaces_nd.F90
-
 ca_F90EXE_sources += Castro_nd.F90
 ca_F90EXE_sources += Castro_util.F90
 ca_F90EXE_sources += Derive_nd.F90
