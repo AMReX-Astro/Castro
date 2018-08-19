@@ -47,7 +47,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
     }
 
     // need to construct the time for this stage -- but it is not really
-    // at a single instance in time.  For single level this does not matter, 
+    // at a single instance in time.  For single level this does not matter,
     Real time = state[SDC_Source_Type].curTime();
     AmrLevel::FillPatch(*this, C_source, C_source.nGrow(), time,
                         SDC_Source_Type, 0, NUM_STATE);
@@ -99,19 +99,29 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
       // solve for the updated cell-center U using our cell-centered C -- we
       // need to do this with one ghost cell
       U_new_center.resize(bx1, NUM_STATE);
-      ca_sdc_update_centers_o4(BL_TO_FORTRAN_BOX(bx1), &dt_m, 
+      ca_sdc_update_centers_o4(BL_TO_FORTRAN_BOX(bx1), &dt_m,
                                BL_TO_FORTRAN_3D(U_center),
-                               BL_TO_FORTRAN_3D(U_new_center), 
+                               BL_TO_FORTRAN_3D(U_new_center),
                                BL_TO_FORTRAN_3D(C_center),
                                &sdc_iteration);
 
-      // compute R_i and in 1 ghost cell and then convert to <R> in place
+      // compute R_i and in 1 ghost cell and then convert to <R> in
+      // place (only for the interior)
       R_new.resize(bx1, NUM_STATE);
       ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx1),
+                             BL_TO_FORTRAN_3D(U_new_center),
+                             BL_TO_FORTRAN_3D(R_new));
+
+      ca_make_cell_center_in_place(BL_TO_FORTRAN_BOX(bx),
+                                   BL_TO_FORTRAN_FAB(R_new));
 
       // now do the conservative update using this <R> to get <U>
       // We'll also need to pass in <C>
-
+      ca_sdc_conservative_update(BL_TO_FORTRAN_BOX(bx), &dt_m,
+                                 BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
+                                 BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
+                                 BL_TO_FORTRAN_3D(C_source[mfi]),
+                                 BL_TO_FORTRAN_3D(R_new));
 
     }
 #else

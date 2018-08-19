@@ -3,7 +3,7 @@ max_step = 10000
 stop_time = 1.0e-2
 
 # PROBLEM SIZE & GEOMETRY
-geometry.is_periodic =  0      0      0
+geometry.is_periodic =  1      1      1
 geometry.coord_sys   =  0
 geometry.prob_lo     =  0      0      0
 geometry.prob_hi     =  1.0e9  1.0e9  1.0e9
@@ -14,11 +14,8 @@ amr.n_cell           =  128    128    128
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-#castro.lo_bc       =  2   2   2
-#castro.hi_bc       =  2   2   2
-castro.lo_bc = 0 0 0
-castro.hi_bc = 0 0 0
-geometry.is_periodic = 1 1 1
+castro.lo_bc       =  0   0   0
+castro.hi_bc       =  0   0   0
 
 # WHICH PHYSICS
 castro.do_hydro = 1

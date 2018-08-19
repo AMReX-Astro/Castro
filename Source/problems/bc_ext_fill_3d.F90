@@ -26,17 +26,17 @@ contains
   ! NOTE: the hydrostatic boundary conditions here rely on
   ! constant gravity
 
-  AMREX_LAUNCH subroutine ext_fill(adv, adv_l1, adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
-                                   domlo, domhi, delta, xlo, time, bc) &
-                                   bind(C, name="ext_fill")
+  subroutine ext_fill(adv, adv_l1, adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
+                      domlo, domhi, delta, xlo, time, bc) &
+                      bind(C, name="ext_fill")
 
     use prob_params_module, only : problo
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec
     use model_parser_module, only: model_r, model_state, npts_model, idens_model, itemp_model, ispec_model
-
     use amrex_fort_module, only : rt => amrex_real
+
     integer adv_l1, adv_h1,adv_l2,adv_h2,adv_l3,adv_h3
     integer bc(3,2,*)
     integer domlo(3), domhi(3)
@@ -360,15 +360,15 @@ contains
   end subroutine ext_fill
 
 
-  AMREX_LAUNCH subroutine ext_denfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2, adv_h3,&
-                                      domlo,domhi,delta,xlo,time,bc) &
-                                      bind(C, name="ext_denfill")
+  subroutine ext_denfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2, adv_h3,&
+                         domlo,domhi,delta,xlo,time,bc) &
+                         bind(C, name="ext_denfill")
 
     use prob_params_module, only : problo
     use model_parser_module
     use amrex_error_module
+    use amrex_fort_module, only : rt => amrex_real
 
-    use amrex_fort_module, only : rt => amrex_real, get_loop_bounds
     integer adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3
     integer bc(3,2,*)
     integer domlo(3), domhi(3)
@@ -378,7 +378,7 @@ contains
     integer i,j,k
     real(rt)         y,z
 
-    integer :: adv_lo(3), adv_hi(3), lo(3), hi(3)
+    integer :: lo(3), hi(3)
 
     lo(1) = adv_l1
     lo(2) = adv_l2
@@ -387,15 +387,13 @@ contains
     hi(2) = adv_h2
     hi(3) = adv_h3
 
-    call get_loop_bounds(adv_lo, adv_hi, lo, hi)
-    
     ! Note: this function should not be needed, technically, but is
     ! provided to filpatch because there are many times in the algorithm
     ! when just the density is needed.  We try to rig up the filling so
     ! that the same function is called here and in hypfill where all the
     ! states are filled.
 
-    call amrex_filccn(adv_lo, adv_hi, adv, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(lo, hi, adv, lo, hi, 1, domlo, domhi, delta, xlo, bc)
 
     ! XLO
     if ( bc(1,1,1) == EXT_DIR .and. adv_l1 < domlo(1)) then

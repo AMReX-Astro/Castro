@@ -730,6 +730,14 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(C_center),
      const int* sdc_iteration);
 
+  void ca_sdc_conservative_update
+    (const int lo[], const int hi[],
+     const amrex::Real* time,
+     const BL_FORT_FAB_ARG_3D(U_old),
+     BL_FORT_FAB_ARG_3D(U_new),
+     const BL_FORT_FAB_ARG_3D(C),
+     const BL_FORT_FAB_ARG_3D(R_new));
+
   void ca_sdc_compute_C4(const int lo[], const int hi[],
                          const BL_FORT_FAB_ARG_3D(A_m),
                          const BL_FORT_FAB_ARG_3D(A_0),

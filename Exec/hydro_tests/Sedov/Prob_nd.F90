@@ -55,7 +55,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   xn_zone(:) = ZERO
   xn_zone(1) = ONE
 
-  ! override the pressure iwth the temperature
+  ! override the pressure with the temperature
   if (temp_ambient > ZERO) then
 
      eos_state % rho = dens_ambient
@@ -72,7 +72,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   eos_state % rho = dens_ambient
   eos_state % p   = p_ambient
-  eos_state % T   = 1.d5 ! Initial guess for iterations
+  eos_state % T   = 1.d9 ! Initial guess for iterations
   eos_state % xn  = xn_zone
 
   call eos(eos_input_rp, eos_state)
@@ -104,27 +104,28 @@ end subroutine amrex_probinit
 ! :::		   ghost region).
 ! ::: -----------------------------------------------------------
 subroutine ca_initdata(level,time,lo,hi,nscal, &
-                       state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3, &
+                       state,state_lo,state_hi, &
                        delta,xlo,xhi)
 
   use probdata_module
   use amrex_constants_module, only: M_PI, FOUR3RD, ZERO, ONE
-  use meth_params_module , only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS
-  use prob_params_module, only : center
+  use meth_params_module , only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS
+  use prob_params_module, only : center, coord_type, dim
   use amrex_fort_module, only : rt => amrex_real
   use network, only : nspec
   use eos_module, only : eos
   use eos_type_module, only : eos_t, eos_input_rp, eos_input_re
+  use amrex_error_module, only: amrex_error
 
   implicit none
 
   integer :: level, nscal
   integer :: lo(3), hi(3)
-  integer :: state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
+  integer :: state_lo(3), state_hi(3)
   real(rt) :: xlo(3), xhi(3), time, delta(3)
-  real(rt) :: state(state_l1:state_h1, &
-                    state_l2:state_h2, &
-                    state_l3:state_h3,NVAR)
+  real(rt) :: state(state_lo(1):state_hi(1), &
+                    state_lo(2):state_hi(2), &
+                    state_lo(3):state_hi(3),NVAR)
 
   real(rt) :: xmin,ymin,zmin
   real(rt) :: xx, yy, zz
@@ -139,14 +140,61 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   ! set explosion pressure -- we will convert the point-explosion energy into
   ! a corresponding pressure distributed throughout the perturbed volume
-  vctr  = FOUR3RD*M_PI*r_init**3
+
+  if (coord_type == 0) then
+
+     if (dim == 1) then
+
+#ifndef AMREX_USE_CUDA
+        call amrex_error("Sedov problem unsupported in 1D Cartesian geometry.")
+#endif
+
+     else if (dim == 2) then
+
+        ! Cylindrical problem in Cartesian coordinates
+
+        vctr = M_PI*r_init**2
+
+     else
+
+        ! Spherical problem in Cartesian coordinates
+
+        vctr = FOUR3RD*M_PI*r_init**3
+
+     end if
+
+  else if (coord_type == 1) then
+
+     if (dim == 1) then
+
+        vctr = M_PI*r_init**2
+
+     else if (dim == 2) then
+
+        vctr = FOUR3RD*M_PI*r_init**3
+
+     else
+
+#ifndef AMREX_USE_CUDA
+        call amrex_error("Sedov problem unsupported in 3D axisymmetric geometry.")
+#endif
+
+     end if
+
+  else if (coord_type == 2) then
+
+     ! Must have dim == 1 for this coord_type.
+
+     vctr = FOUR3RD*M_PI*r_init**3
+
+  end if
 
   e_zone = exp_energy/vctr/dens_ambient
 
   eos_state % e = e_zone
   eos_state % rho = dens_ambient
   eos_state % xn(:) = xn_zone(:)
-  eos_state % T = 100.0  ! initial guess
+  eos_state % T = 1.d9  ! initial guess
 
   call eos(eos_input_re, eos_state)
 
@@ -191,6 +239,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            eos_state % p = p_zone
            eos_state % rho = dens_ambient
            eos_state % xn(:) = xn_zone(:)
+           eos_state % T = 1.d9
 
            call eos(eos_input_rp, eos_state)
 
@@ -200,6 +249,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            state(i,j,k,UMX) = 0.e0_rt
            state(i,j,k,UMY) = 0.e0_rt
            state(i,j,k,UMZ) = 0.e0_rt
+
+           state(i,j,k,UTEMP) = eos_state % T
 
            state(i,j,k,UEDEN) = eint + &
                 0.5e0_rt*(state(i,j,k,UMX)**2/state(i,j,k,URHO) + &
