@@ -10,6 +10,8 @@ COMP	   = gnu
 USE_MPI    = TRUE
 USE_OMP    = FALSE
 
+USE_REACT = TRUE
+
 DIMENSION_AGNOSTIC = TRUE
 
 # define the location of the CASTRO top directory
@@ -19,8 +21,7 @@ CASTRO_HOME  := ../../..
 EOS_DIR     := helmholtz
 
 # This sets the network directory in Castro/Networks
-NETWORK_DIR := general_null
-GENERAL_NET_INPUTS = $(CASTRO_HOME)/Microphysics/networks/$(NETWORK_DIR)/gammalaw.net
+NETWORK_DIR := triple_alpha_plus_cago
 
 Bpack   := ./Make.package
 Blocs   := .

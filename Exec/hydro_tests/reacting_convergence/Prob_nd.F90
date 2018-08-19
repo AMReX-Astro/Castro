@@ -103,14 +103,14 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use network, only : nspec
   use eos_type_module, only : eos_t, eos_input_ps
   use eos_module, only : eos
-  
+
   implicit none
 
   integer, intent(in) :: level, nscal
   integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) :: state_lo(3), state_hi(3)
   real(rt), intent(in) :: xlo(3), xhi(3), time, delta(3)
-  real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR) 
+  real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
 
   real(rt) :: xx, yy, zz
   real(rt) :: dist, p, eint
