@@ -3372,7 +3372,7 @@ Castro::swap_state_time_levels(const Real dt)
 #endif
 
 #ifdef REACTIONS
-        if (time_integration_method == SDC && fourth_order == 1)
+        if (time_integration_method == SDC && fourth_order == 1 && k == SDC_Source_Type)
             state[k].swapTimeLevels(0.0);
 #endif
         state[k].allocOldData();
