@@ -439,6 +439,12 @@ contains
     integer :: i, j, k, n
     real(rt) :: lap
 
+    if (U_lo(1) > lo(1)-1 .or. U_hi(1) < hi(1)+1 .or. &
+        (BL_SPACEDIM >= 2 .and. (U_lo(2) > lo(2)-1 .or. U_hi(2) < hi(2)+1)) .or. &
+        (BL_SPACEDIM == 3 .and. (U_lo(3) > lo(3)-1 .or. U_hi(3) < hi(3)+1))) then
+       call bl_error("insufficient ghostcells in ca_make_cell_center")
+    endif
+
     do n = 1, nc
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
