@@ -206,7 +206,10 @@ ifeq ($(USE_THORNADO), TRUE)
 endif
 
 Bpack += $(foreach dir, $(Bdirs), $(TOP)/$(dir)/Make.package)
+
+ifeq ($(USE_THORNADO), TRUE)
 Bpack += $(TOP)/Source/two_moment/Make.package
+endif
 
 Blocs += $(foreach dir, $(Bdirs), $(TOP)/$(dir))
 
