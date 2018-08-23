@@ -67,8 +67,8 @@ Castro::create_thornado_source(Real dt)
     int n_sub = 1; // THIS IS JUST A HACK TO MAKE IT COMPILE 
 
     int swE = 0; // stencil for energy array; no energy ghost cells needed
-    Vector<Real> grid_lo(BL_SPACEDIM);
-    Vector<Real> grid_hi(BL_SPACEDIM);
+    Vector<Real> grid_lo(3);
+    Vector<Real> grid_hi(3);
 
     const Real* dx = geom.CellSize();
 
@@ -82,14 +82,16 @@ Castro::create_thornado_source(Real dt)
     Real eL = 0.;
     Real eR = 1.;
 
-    int swX[BL_SPACEDIM];
-    swX[BL_SPACEDIM] = my_ngrow;
-    swX[BL_SPACEDIM] = my_ngrow;
+    int swX[3];
+    swX[0] = my_ngrow;
+    swX[1] = my_ngrow;
 #if (BL_SPACEDIM > 2)
     swX[2] = my_ngrow;
+#else
+    swX[2] = 0;
 #endif
 
-    int * boxlen = new int[BL_SPACEDIM];
+    int * boxlen = new int[3];
 
     const Real* prob_lo   = geom.ProbLo();
 
@@ -121,6 +123,10 @@ Castro::create_thornado_source(Real dt)
            grid_lo[2] = prob_lo[2] +  bx.smallEnd(2)  * dx[2] / 100.0;
            grid_hi[2] = prob_lo[2] + (bx.bigEnd(2)+1) * dx[2] / 100.0;
            boxlen[2] = bx.length(2);
+#else
+           grid_lo[2] = 0.;
+           grid_hi[2] = 1.;
+           boxlen[2]  = 1;
 #endif
 
            InitThornado_Patch(boxlen, swX,

@@ -188,8 +188,11 @@ subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
   ny = nNodesE*nNodesX(1)
   nx = nNodesE
 
-  if (nDOF .ne. ny*nNodesX(2)) &
-     call amrex_abort("nDOE ne nNodesX(1)*nNodesX(2)*nNodesE")
+  if (nDOF .ne. ny*nNodesX(2)) then
+     print *,'nDOF is ', nDOF
+     print *,'nNodesX(1)*nNodesX(2)*nNodesE is ', nNodesX(1)*nNodesX(2)*nNodesE
+     call amrex_abort("nDOF ne nNodesX(1)*nNodesX(2)*nNodesE")
+  end if
      
   do j = lo(2), hi(2)
      ycen = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5e0_rt)

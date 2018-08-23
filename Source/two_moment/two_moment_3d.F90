@@ -162,7 +162,7 @@
             ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
 
             if (im .eq. 1) U_R_n(ic,jc,kc,ii) = uCR(id,ie,i,j,k,im,is)/conv_J
-            if (im > 1) U_R_n(ic,jc,kc,ii)    = uCR(id,ie,i,j,k,im,is)/conv_H
+            if (im   >  1) U_R_n(ic,jc,kc,ii) = uCR(id,ie,i,j,k,im,is)/conv_H
 
          end do
          end do

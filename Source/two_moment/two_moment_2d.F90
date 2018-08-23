@@ -79,19 +79,21 @@
          !      (1:nDOFX, &
          !       1-swX(1):nX(1)+swX(1), &
          !       1-swX(2):nX(2)+swX(2), &
+         !       1-swX(3):nX(3)+swX(3), &
          !       1:nCF) )
 
          ! U_R_o spatial indices start at lo - (number of ghost zones)
          ! uCR spatial indices start at 1 - (number of ghost zones)
          i = ic - lo(1) + 1
          j = jc - lo(2) + 1
+         k = 1
 
          ! Thornado uses units where c = G = k = 1, Meter = 1
-         uCF(1:n_fluid_dof,i,j,iCF_D)  = S(ic,jc,URHO)  * conv_dens
-         uCF(1:n_fluid_dof,i,j,iCF_S1) = S(ic,jc,UMX)   * conv_mom
-         uCF(1:n_fluid_dof,i,j,iCF_S2) = S(ic,jc,UMY)   * conv_mom
-         uCF(1:n_fluid_dof,i,j,iCF_E)  = S(ic,jc,UEDEN) * conv_enr
-         uCF(1:n_fluid_dof,i,j,iCF_Ne) = S(ic,jc,UFX)   * conv_ne
+         uCF(1:n_fluid_dof,i,j,k,iCF_D)  = S(ic,jc,URHO)  * conv_dens
+         uCF(1:n_fluid_dof,i,j,k,iCF_S1) = S(ic,jc,UMX)   * conv_mom
+         uCF(1:n_fluid_dof,i,j,k,iCF_S2) = S(ic,jc,UMY)   * conv_mom
+         uCF(1:n_fluid_dof,i,j,k,iCF_E)  = S(ic,jc,UEDEN) * conv_enr
+         uCF(1:n_fluid_dof,i,j,k,iCF_Ne) = S(ic,jc,UFX)   * conv_ne
 
          ! The uCF array was allocated in CreateRadiationdFields_Conserved with 
          ! ALLOCATE &
@@ -106,8 +108,8 @@
          do ie = 1, nE
          do id = 1, nDOF
             ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
-            if (im .eq. 1) uCR(id,ie,i,j,im,is) = U_R_o(ic,jc,ii)*conv_J
-            if (im   >  1) uCR(id,ie,i,j,im,is) = U_R_o(ic,jc,ii)*conv_H
+            if (im .eq. 1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,ii)*conv_J
+            if (im   >  1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,ii)*conv_H
          end do
          end do
          end do
@@ -131,6 +133,7 @@
          ! U_R_n spatial indices start at lo
          i = ic - lo(1) + 1
          j = jc - lo(2) + 1
+         k = 1
 
          !! KS: if we fill UEINT, need the final fluid state from ComputeIncrement; is that uCF at this point?
          ! We store dS as a source term which we can add to S outside of this routine
@@ -138,12 +141,12 @@
          !  can just use the first component
          ! Update_IMEX_PC2 doesn't currently change the fluid state
 
-!         dS(ic,jc,URHO ) = uCF(1,i,j,iCF_D) - S(i,j,URHO)
-!         dS(ic,jc,UMX  ) = uCF(1,i,j,iCF_S1) - S(i,j,UMX)
-!         dS(ic,jc,UMY  ) = uCF(1,i,j,iCF_S2) - S(i,j,UMY)
-!         dS(ic,jc,UEDEN) = uCF(1,i,j,iCF_E) - S(i,j,UEDEN)
+!         dS(ic,jc,URHO ) = uCF(1,i,j,k,iCF_D) - S(i,j,URHO)
+!         dS(ic,jc,UMX  ) = uCF(1,i,j,k,iCF_S1) - S(i,j,UMX)
+!         dS(ic,jc,UMY  ) = uCF(1,i,j,k,iCF_S2) - S(i,j,UMY)
+!         dS(ic,jc,UEDEN) = uCF(1,i,j,k,iCF_E) - S(i,j,UEDEN)
 !         dS(ic,jc,UEINT) = ?
-!         dS(ic,jc,UFX  ) = uCF(1,i,j,iCF_Ne) - S(i,j,UFX)
+!         dS(ic,jc,UFX  ) = uCF(1,i,j,k,iCF_Ne) - S(i,j,UFX)
 
          do is = 1, nSpecies
          do im = 1, n_moments
@@ -151,8 +154,8 @@
          do id = 1, nDOF
             ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
 
-            if (im .eq. 1) U_R_n(ic,jc,ii) = uCR(id,ie,i,j,im,is)/conv_J
-            if (im   >  1) U_R_n(ic,jc,ii) = uCR(id,ie,i,j,im,is)/conv_H
+            if (im .eq. 1) U_R_n(ic,jc,ii) = uCR(id,ie,i,j,k,im,is)/conv_J
+            if (im   >  1) U_R_n(ic,jc,ii) = uCR(id,ie,i,j,k,im,is)/conv_H
 
          end do
          end do
