@@ -937,6 +937,9 @@ Castro::initData ()
 	   AmrLevel::FillPatch(*this, S_new, ng, cur_time, State_Type, 0, S_new.nComp());
     }
 
+    int is_new = 1;
+    clean_state(is_new, S_new.nGrow());
+
 #ifdef RADIATION
     if (do_radiation) {
       for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
