@@ -21,6 +21,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   namelist /fortin/ p_ambient, dens_ambient, exp_energy, &
        r_init, nsub, temp_ambient
 
+  real(rt) :: vctr
+
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 256
   character :: probin*(maxlen)
@@ -81,6 +83,59 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   e_ambient = eos_state % e
 
+  ! set explosion pressure -- we will convert the point-explosion energy into
+  ! a corresponding pressure distributed throughout the perturbed volume
+
+  if (coord_type == 0) then
+
+#if AMREX_SPACEDIM == 1
+
+#ifndef AMREX_USE_CUDA
+     call amrex_error("Sedov problem unsupported in 1D Cartesian geometry.")
+#endif
+
+#elif AMREX_SPACEDIM == 2
+
+     ! Cylindrical problem in Cartesian coordinates
+
+     vctr = M_PI*r_init**2
+
+#else
+
+     ! Spherical problem in Cartesian coordinates
+
+     vctr = FOUR3RD*M_PI*r_init**3
+
+#endif
+
+  else if (coord_type == 1) then
+
+#if AMREX_SPACEDIM == 1
+
+     vctr = M_PI*r_init**2
+
+#elif AMREX_SPACEDIM == 2
+
+     vctr = FOUR3RD*M_PI*r_init**3
+
+#else
+
+#ifndef AMREX_USE_CUDA
+     call amrex_error("Sedov problem unsupported in 3D axisymmetric geometry.")
+#endif
+
+#endif
+
+  else if (coord_type == 2) then
+
+     ! Must have AMREX_SPACEDIM == 1 for this coord_type.
+
+     vctr = FOUR3RD*M_PI*r_init**3
+
+  end if
+
+  e_exp = exp_energy/vctr/dens_ambient
+
 end subroutine amrex_probinit
 
 
@@ -131,11 +186,9 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   real(rt) :: xmin,ymin,zmin
   real(rt) :: xx, yy, zz
   real(rt) :: dist
-  real(rt) :: eint, p_zone
-  real(rt) :: vctr, p_exp
+  real(rt) :: eint, e_zone
 
   integer :: i,j,k, ii, jj, kk
-  real(rt) :: e_zone
   type(eos_t) :: eos_state
   integer :: nsubx, nsuby, nsubz
   real(rt) :: ds(3), xl, xr
@@ -159,68 +212,6 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   ds(1) = delta(1) / nsubx
   ds(2) = delta(2) / nsuby
   ds(3) = delta(3) / nsubz
-
-  ! set explosion pressure -- we will convert the point-explosion energy into
-  ! a corresponding pressure distributed throughout the perturbed volume
-
-  if (coord_type == 0) then
-
-     if (dim == 1) then
-
-#ifndef AMREX_USE_CUDA
-        call amrex_error("Sedov problem unsupported in 1D Cartesian geometry.")
-#endif
-
-     else if (dim == 2) then
-
-        ! Cylindrical problem in Cartesian coordinates
-
-        vctr = M_PI*r_init**2
-
-     else
-
-        ! Spherical problem in Cartesian coordinates
-
-        vctr = FOUR3RD*M_PI*r_init**3
-
-     end if
-
-  else if (coord_type == 1) then
-
-     if (dim == 1) then
-
-        vctr = M_PI*r_init**2
-
-     else if (dim == 2) then
-
-        vctr = FOUR3RD*M_PI*r_init**3
-
-     else
-
-#ifndef AMREX_USE_CUDA
-        call amrex_error("Sedov problem unsupported in 3D axisymmetric geometry.")
-#endif
-
-     end if
-
-  else if (coord_type == 2) then
-
-     ! Must have dim == 1 for this coord_type.
-
-     vctr = FOUR3RD*M_PI*r_init**3
-
-  end if
-
-  e_zone = exp_energy/vctr/dens_ambient
-
-  eos_state % e = e_zone
-  eos_state % rho = dens_ambient
-  eos_state % xn(:) = xn_zone(:)
-  eos_state % T = 1.d9  ! initial guess
-
-  call eos(eos_input_re, eos_state)
-
-  p_exp = eos_state % p
 
   do k = lo(3), hi(3)
      zmin = xlo(3) + delta(3)*dble(k-lo(3))
@@ -300,23 +291,14 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
               enddo
            enddo
 
-           p_zone = (vol_pert * p_exp + vol_ambient * p_ambient) / (vol_pert + vol_ambient)
+           e_zone = (vol_pert * e_exp + vol_ambient * e_ambient) / (vol_pert + vol_ambient)
 
-           eos_state % p = p_zone
-           eos_state % rho = dens_ambient
-           eos_state % xn(:) = xn_zone(:)
-           eos_state % T = 1.d9
-
-           call eos(eos_input_rp, eos_state)
-
-           eint = dens_ambient * eos_state % e
+           eint = dens_ambient * e_zone
 
            state(i,j,k,URHO) = dens_ambient
            state(i,j,k,UMX) = 0.e0_rt
            state(i,j,k,UMY) = 0.e0_rt
            state(i,j,k,UMZ) = 0.e0_rt
-
-           state(i,j,k,UTEMP) = eos_state % T
 
            state(i,j,k,UEDEN) = eint + &
                 0.5e0_rt*(state(i,j,k,UMX)**2/state(i,j,k,URHO) + &
@@ -324,6 +306,10 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                           state(i,j,k,UMZ)**2/state(i,j,k,URHO))
 
            state(i,j,k,UEINT) = eint
+
+           ! The temperature initialization will be done later
+           ! in the call to clean_state. We want to avoid
+           ! EOS calls in ca_initdata.
 
            state(i,j,k,UFS) = state(i,j,k,URHO)
 
