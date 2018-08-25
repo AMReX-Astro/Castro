@@ -899,8 +899,7 @@ Castro::initData ()
 
           // Verify that the sum of (rho X)_i = rho at every cell
 
-#pragma gpu
-          ca_check_initial_species(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+          ca_check_initial_species(AMREX_ARLIM_3D(lo), AMREX_ARLIM_3D(hi),
 				   BL_TO_FORTRAN_ANYD(S_new[mfi]));
        }
        enforce_consistent_e(S_new);
