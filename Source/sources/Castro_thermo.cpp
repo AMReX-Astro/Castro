@@ -54,6 +54,6 @@ Castro::fill_thermo_source (Real time, Real dt,
                     BL_TO_FORTRAN_ANYD(state_old[mfi]),
                     BL_TO_FORTRAN_ANYD(state_new[mfi]),
                     BL_TO_FORTRAN_ANYD(thermo_src[mfi]),
-                    ZFILL(prob_lo),ZFILL(dx),time,dt);
+                    AMREX_REAL_ANYD(prob_lo),AMREX_REAL_ANYD(dx),time,dt);
     }
 }

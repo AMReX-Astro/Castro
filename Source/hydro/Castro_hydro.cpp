@@ -459,7 +459,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
 #pragma gpu
       ca_divu(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-              dx,
+              AMREX_REAL_ANYD(dx),
               BL_TO_FORTRAN_ANYD(q[mfi]),
               BL_TO_FORTRAN_ANYD(div[mfi]));
 
@@ -498,7 +498,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
           ca_construct_flux
               (AMREX_INT_ANYD(ebx.loVect()), AMREX_INT_ANYD(ebx.hiVect()),
                domain_lo, domain_hi,
-               dx, dt,
+               AMREX_REAL_ANYD(dx), dt,
                idir_f,
                BL_TO_FORTRAN_ANYD(Sborder[mfi]),
                BL_TO_FORTRAN_ANYD(div[mfi]),
@@ -528,7 +528,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 #pragma gpu
       ca_construct_hydro_update
           (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-           dx, dt,
+           AMREX_REAL_ANYD(dx), dt,
            BL_TO_FORTRAN_ANYD(qe[0][mfi]),
            BL_TO_FORTRAN_ANYD(qe[1][mfi]),
            BL_TO_FORTRAN_ANYD(qe[2][mfi]),

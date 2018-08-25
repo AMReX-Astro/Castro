@@ -81,7 +81,7 @@ Castro::volWgtSum (const std::string& name,
 #pragma gpu
 	ca_summass(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                    BL_TO_FORTRAN_ANYD(fab),
-		   ZFILL(dx),
+		   AMREX_REAL_ANYD(dx),
                    BL_TO_FORTRAN_ANYD(volume[mfi]),
                    AMREX_MFITER_REDUCE_SUM(&sum));
 
@@ -266,7 +266,7 @@ Castro::volWgtSumMF (const MultiFab& mf, int comp, bool local)
 
 #pragma gpu
 	ca_summass(AMREX_INT_ANYD(lo),AMREX_INT_ANYD(hi),BL_TO_FORTRAN_N_ANYD(fab,comp),
-		   ZFILL(dx),BL_TO_FORTRAN_ANYD(volume[mfi]),
+		   AMREX_REAL_ANYD(dx),BL_TO_FORTRAN_ANYD(volume[mfi]),
                    AMREX_MFITER_REDUCE_SUM(&sum));
     }
 
@@ -358,7 +358,7 @@ Castro::volWgtSumOneSide (const std::string& name,
 
 #pragma gpu
           ca_summass(AMREX_INT_ANYD(loFinal),AMREX_INT_ANYD(hiFinal),BL_TO_FORTRAN_ANYD(fab),
-		     ZFILL(dx),BL_TO_FORTRAN_ANYD(volume[mfi]),
+		     AMREX_REAL_ANYD(dx),BL_TO_FORTRAN_ANYD(volume[mfi]),
                      AMREX_MFITER_REDUCE_SUM(&sum));
 
         }
