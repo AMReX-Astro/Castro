@@ -807,8 +807,8 @@ subroutine ca_get_tagging_params(name, namlen) &
   denerr = 1.e20_rt
   dengrad = 1.e20_rt
   dengrad_rel = 1.e20_rt
-  max_denerr_lev = 10
-  max_dengrad_lev = 10
+  max_denerr_lev = -1
+  max_dengrad_lev = -1
   max_dengrad_rel_lev = -1
 
   enterr = 1.e20_rt

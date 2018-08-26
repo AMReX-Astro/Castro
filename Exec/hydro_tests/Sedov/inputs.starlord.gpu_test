@@ -14,8 +14,6 @@ amr.n_cell           =  64 64 64
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-#castro.lo_bc       =  2   2   2
-#castro.hi_bc       =  2   2   2
 castro.lo_bc = 0 0 0
 castro.hi_bc = 0 0 0
 geometry.is_periodic = 1 1 1
