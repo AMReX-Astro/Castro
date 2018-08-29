@@ -374,17 +374,14 @@ ifeq ($(USE_HYPRE), TRUE)
   LIBRARIES += -lHYPRE
 endif
 
-# INCLUDE_LOCATIONS += $(HDF5_DIR)/include
-# INCLUDE_LOCATIONS += $(HDF5_INCL)
-# LIBRARY_LOCATIONS += $(HDF5_DIR)/lib
-# LIBRARIES += -lhdf5 -lhdf5_fortran -lhdf5 -lz
-
 ifeq ($(USE_HDF5), TRUE)
   DEFINES += -DBL_HDF5
   INCLUDE_LOCATIONS += $(HDF5_HOME)/include 
-  LIBRARIES         += -L$(HDF5_HOME)/lib -lhdf5_fortran -lhdf5 -lgfortran
+  LIBRARIES         += -L$(HDF5_HOME)/lib -lhdf5_fortran -lhdf5
+  ifeq ($(HOST), manda)
+    LIBRARIES         += -L$(HDF5_HOME)/lib -lhdf5_fortran -lhdf5 /home/almgren/bin/miniconda2/lib/libgfortran.so.4
+  endif
 endif
-
 
 #------------------------------------------------------------------------------
 # include all of the necessary directories

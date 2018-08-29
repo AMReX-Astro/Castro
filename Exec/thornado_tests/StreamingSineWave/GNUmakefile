@@ -24,9 +24,9 @@ WEAKLIB_HOME  := $(CASTRO_HOME)/weaklib
 
 MICROPHYSICS_HOME := ../../../../Microphysics
 
-#HDF5_HOME   = /home/almgren/bin/hdf5-1.8.3/hdf5
-#HDF5_HOME   = /home/almgren/bin/hdf5
-HDF5_HOME   = /home/almgren/bin/miniconda2
+ifeq ($(HOST),manda)
+  HDF5_HOME := /home/almgren/bin/miniconda2
+endif
 
 ifdef MICROPHYSICS_HOME
 
