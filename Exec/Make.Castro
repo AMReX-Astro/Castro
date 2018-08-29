@@ -192,29 +192,29 @@ ifeq ($(USE_THORNADO), TRUE)
 
   EXTERN_CORE += $(TOP)/Util/LAPACK
 
+  Thdirs := $(THORNADO_HOME)/SandBox/Interface_CASTRO
+  Thdirs += $(THORNADO_HOME)/Modules/Numbers
+  Thdirs += $(THORNADO_HOME)/Modules/ProgramHeader
+  Thdirs += $(THORNADO_HOME)/Modules/Library
+  Thdirs += $(THORNADO_HOME)/Modules/Mesh
+  Thdirs += $(THORNADO_HOME)/Modules/Fields
+  Thdirs += $(THORNADO_HOME)/Modules/Geometry
+  Thdirs += $(THORNADO_HOME)/Modules/TwoMoment
+  Thdirs += $(THORNADO_HOME)/Modules/Units
+  Thdirs += $(THORNADO_HOME)/Modules/EquationOfState 
+  Thdirs += $(THORNADO_HOME)/Modules/Opacities 
+  Thdirs += $(WEAKLIB_HOME)/Distributions/Library
+  Thdirs += $(WEAKLIB_HOME)/Distributions/EOSSource
+  Thdirs += $(WEAKLIB_HOME)/Distributions/OpacitySource
+
+  Blocs += $(foreach dir, $(Thdirs), $(dir))
+# Bpack += $(foreach dir, $(Thdirs), $(dir)/Make.package)
+
   Bdirs  += Source/two_moment
-  Thdirs := thornado/SandBox/Interface_CASTRO
-  Thdirs += thornado/Modules/Numbers
-  Thdirs += thornado/Modules/ProgramHeader
-  Thdirs += thornado/Modules/Library
-  Thdirs += thornado/Modules/Mesh
-  Thdirs += thornado/Modules/Fields
-  Thdirs += thornado/Modules/Geometry
-  Thdirs += thornado/Modules/TwoMoment
-  Thdirs += thornado/Modules/Units
-  Thdirs += thornado/Modules/EquationOfState 
-  Thdirs += thornado/Modules/Opacities 
-  Thdirs += weaklib/Distributions/Library
-  Thdirs += weaklib/Distributions/EOSSource
-  Thdirs += weaklib/Distributions/OpacitySource
-  Blocs += $(foreach dir, $(Thdirs), $(TOP)/$(dir))
+# Bpack += $(TOP)/Source/two_moment/Make.package
 endif
 
 Bpack += $(foreach dir, $(Bdirs), $(TOP)/$(dir)/Make.package)
-
-ifeq ($(USE_THORNADO), TRUE)
-Bpack += $(TOP)/Source/two_moment/Make.package
-endif
 
 Blocs += $(foreach dir, $(Bdirs), $(TOP)/$(dir))
 
@@ -247,12 +247,6 @@ ifeq ($(USE_MLMG), TRUE)
 endif
 
 Bpack	+= $(foreach dir, $(Pdirs), $(AMREX_HOME)/Src/$(dir)/Make.package)
-
-ifeq ($(USE_MG), TRUE)
-   include $(AMREX_HOME)/Src/LinearSolvers/C_to_F_MG/Make.package
-   include $(AMREX_HOME)/Src/LinearSolvers/F_MG/FParallelMG.mak
-endif
-
 
 #------------------------------------------------------------------------------
 # microphysics 
@@ -381,9 +375,6 @@ mega_f.F90: $(ca_F90EXE_sources) $(ca_f90EXE_sources)
 
 INCLUDE_LOCATIONS += $(Blocs)
 VPATH_LOCATIONS   += $(Blocs)
-
-
-include $(AMREX_HOME)/Src/F_BaseLib/FParallelMG.mak
 
 #------------------------------------------------------------------------------
 # runtime parameters

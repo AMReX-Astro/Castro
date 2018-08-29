@@ -18,8 +18,9 @@ USE_THORNADO = TRUE
 DEFINES += -DMOMENT_CLOSURE_MINERBO
 
 # define the location of the CASTRO top directory
-CASTRO_HOME := ../../..
-THORNADO_HOME := ../../../../thornado
+CASTRO_HOME   := ../../..
+THORNADO_HOME := $(CASTRO_HOME)/thornado
+WEAKLIB_HOME  := $(CASTRO_HOME)/weaklib
 
 MICROPHYSICS_HOME := ../../../../Microphysics
 
