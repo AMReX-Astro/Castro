@@ -15,13 +15,13 @@
 #include <AMReX_MLMG.H>
 #include <AMReX_MLPoisson.H>
 
-#define MAX_LEV 15
+#define MAX_LEV 30
 
 #include "gravity_defaults.H"
 
 using namespace amrex;
 
-#ifndef NDEBUG
+#ifdef AMREX_DEBUG
 int Gravity::test_solves  = 1;
 #else
 int Gravity::test_solves  = 0;

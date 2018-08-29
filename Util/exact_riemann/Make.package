@@ -1,3 +1,7 @@
+CEXE_sources += main.cpp
+
+f90EXE_sources += exact_riemann.f90
 f90EXE_sources += riemann_star_state.f90
 f90EXE_sources += riemann_sample.f90
 f90EXE_sources += riemann_support.f90
+F90EXE_sources += extern.F90

@@ -330,7 +330,7 @@ def write_meth_module(plist, meth_template):
             # Do the CUDA managed declarations
 
             mo.write("\n")
-            mo.write("#ifdef CUDA\n")
+            mo.write("#ifdef AMREX_USE_CUDA\n")
             mo.write(cuda_managed_string)
             mo.write("#endif\n")
 

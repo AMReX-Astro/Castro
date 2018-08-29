@@ -428,12 +428,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
   // CUDA version
 
-  MultiFab q;
-  q.define(grids, dmap, NQ, NUM_GROW);
-
-  MultiFab qaux;
-  qaux.define(grids, dmap, NQAUX, NUM_GROW);
-
   MultiFab flatn;
   flatn.define(grids, dmap, 1, 1);
 
@@ -545,6 +539,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
            BL_TO_FORTRAN_ANYD(area[1][mfi]),
            BL_TO_FORTRAN_ANYD(area[2][mfi]),
            BL_TO_FORTRAN_ANYD(volume[mfi]),
+           BL_TO_FORTRAN_ANYD(sources_for_hydro[mfi]),
            BL_TO_FORTRAN_ANYD(k_stage[mfi]));
 
   } // MFIter loop

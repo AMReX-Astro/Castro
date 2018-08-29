@@ -7,8 +7,8 @@ module castro_sums_module
 
 contains
 
-  AMREX_DEVICE subroutine ca_summass(lo,hi,rho,r_lo,r_hi,dx, &
-                                     vol,v_lo,v_hi,mass) bind(c,name='ca_summass')
+  subroutine ca_summass(lo,hi,rho,r_lo,r_hi,dx, &
+                        vol,v_lo,v_hi,mass) bind(c,name='ca_summass')
 
     use amrex_fort_module, only: rt => amrex_real, amrex_add
 
@@ -24,6 +24,8 @@ contains
 
     integer  :: i, j, k
     real(rt) :: dm
+
+    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)

@@ -11,6 +11,25 @@ pp.query("diffuse_vel", diffuse_vel);
 pp.query("diffuse_cutoff_density", diffuse_cutoff_density);
 pp.query("diffuse_cond_scale_fac", diffuse_cond_scale_fac);
 #endif
+#ifdef AMREX_PARTICLES
+pp.query("do_tracer_particles", do_tracer_particles);
+#endif
+#ifdef ROTATION
+pp.query("rotational_period", rotational_period);
+pp.query("rotational_dPdt", rotational_dPdt);
+pp.query("rotation_include_centrifugal", rotation_include_centrifugal);
+pp.query("rotation_include_coriolis", rotation_include_coriolis);
+pp.query("rotation_include_domegadt", rotation_include_domegadt);
+pp.query("state_in_rotating_frame", state_in_rotating_frame);
+pp.query("rot_source_type", rot_source_type);
+pp.query("implicit_rotation_update", implicit_rotation_update);
+pp.query("rot_axis", rot_axis);
+#endif
+#ifdef POINTMASS
+pp.query("use_point_mass", use_point_mass);
+pp.query("point_mass", point_mass);
+pp.query("point_mass_fix_solution", point_mass_fix_solution);
+#endif
 pp.query("state_interp_order", state_interp_order);
 pp.query("lin_limit_state_interp", lin_limit_state_interp);
 pp.query("state_nghost", state_nghost);
@@ -78,6 +97,7 @@ pp.query("small_plot_per_is_exact", small_plot_per_is_exact);
 pp.query("use_retry", use_retry);
 pp.query("retry_tolerance", retry_tolerance);
 pp.query("retry_neg_dens_factor", retry_neg_dens_factor);
+pp.query("retry_subcycle_factor", retry_subcycle_factor);
 pp.query("use_post_step_regrid", use_post_step_regrid);
 pp.query("max_subcycles", max_subcycles);
 pp.query("clamp_subcycles", clamp_subcycles);
@@ -87,6 +107,7 @@ pp.query("dtnuc_X", dtnuc_X);
 pp.query("dtnuc_X_threshold", dtnuc_X_threshold);
 pp.query("dxnuc", dxnuc);
 pp.query("dxnuc_max", dxnuc_max);
+pp.query("max_dxnuc_lev", max_dxnuc_lev);
 pp.query("do_react", do_react);
 pp.query("react_T_min", react_T_min);
 pp.query("react_T_max", react_T_max);
@@ -114,22 +135,3 @@ pp.query("job_name", job_name);
 pp.query("output_at_completion", output_at_completion);
 pp.query("reset_checkpoint_time", reset_checkpoint_time);
 pp.query("reset_checkpoint_step", reset_checkpoint_step);
-#ifdef POINTMASS
-pp.query("use_point_mass", use_point_mass);
-pp.query("point_mass", point_mass);
-pp.query("point_mass_fix_solution", point_mass_fix_solution);
-#endif
-#ifdef AMREX_PARTICLES
-pp.query("do_tracer_particles", do_tracer_particles);
-#endif
-#ifdef ROTATION
-pp.query("rotational_period", rotational_period);
-pp.query("rotational_dPdt", rotational_dPdt);
-pp.query("rotation_include_centrifugal", rotation_include_centrifugal);
-pp.query("rotation_include_coriolis", rotation_include_coriolis);
-pp.query("rotation_include_domegadt", rotation_include_domegadt);
-pp.query("state_in_rotating_frame", state_in_rotating_frame);
-pp.query("rot_source_type", rot_source_type);
-pp.query("implicit_rotation_update", implicit_rotation_update);
-pp.query("rot_axis", rot_axis);
-#endif

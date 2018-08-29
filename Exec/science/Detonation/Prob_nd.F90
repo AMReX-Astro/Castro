@@ -1,10 +1,13 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
-  use probdata_module, only: T_l, T_r, dens, cfrac, idir, w_T, center_T, &
-                             xn, ihe4, ic12, io16, smallx, vel
+  use probdata_module, only: T_l, T_r, dens, cfrac, ofrac, idir, w_T, center_T, &
+                             xn, ihe4, ic12, io16, smallx, vel, fill_ambient_bc, &
+                             ambient_dens, ambient_temp, ambient_comp, ambient_e_l, ambient_e_r
   use network, only: network_species_index, nspec
   use amrex_error_module, only: amrex_error
   use amrex_fort_module, only: rt => amrex_real
+  use eos_type_module, only: eos_t, eos_input_rt
+  use eos_module, only: eos
 
   implicit none
 
@@ -12,9 +15,11 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer,  intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
+  type(eos_t) :: eos_state
+
   integer :: untin,i
 
-  namelist /fortin/ T_l, T_r, dens, cfrac, idir, w_T, center_T, smallx, vel
+  namelist /fortin/ T_l, T_r, dens, cfrac, ofrac, idir, w_T, center_T, smallx, vel, fill_ambient_bc
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
 
@@ -35,12 +40,15 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   smallx = 1.e-12_rt
 
   idir = 1                ! direction across which to jump
-  cfrac = 0.5
+  cfrac = 0.5e0_rt
+  ofrac = 0.0e0_rt
 
   w_T = 5.e-4_rt           ! ratio of the width of temperature transition zone to the full domain
   center_T = 3.e-1_rt      ! central position parameter of teperature profile transition zone
 
   vel = 0.e0_rt           ! infall velocity towards the transition point
+
+  fill_ambient_bc = .false.
 
   ! Read namelists
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
@@ -61,13 +69,44 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
      call amrex_error("ERROR: cfrac must fall between 0 and 1")
   endif
 
+  ! make sure that the oxygen fraction falls between 0 and 1
+  if (ofrac > 1.e0_rt .or. cfrac < 0.e0_rt) then
+     call amrex_error("ERROR: ofrac must fall between 0 and 1")
+  endif
+
+  ! make sure that the C/O fraction sums to no more than 1
+  if (cfrac + ofrac > 1.e0_rt) then
+     call amrex_error("ERROR: cfrac + ofrac cannot exceed 1.")
+  end if
+
   ! set the default mass fractions
   allocate(xn(nspec))
 
   xn(:) = smallx
-  xn(ic12) = cfrac
-  xn(ihe4) = 1.e0_rt - cfrac - (nspec - 1)*smallx
+  xn(ic12) = max(cfrac, smallx)
+  xn(io16) = max(ofrac, smallx)
+  xn(ihe4) = 1.e0_rt - cfrac - ofrac - (nspec - 2) * smallx
 
+  ! Set the ambient material
+  allocate(ambient_comp(nspec))
+
+  ambient_dens = dens
+  ambient_comp = xn
+
+  eos_state % rho = ambient_dens
+  eos_state % xn  = ambient_comp
+
+  eos_state % T   = T_l
+
+  call eos(eos_input_rt, eos_state)
+
+  ambient_e_l = eos_state % e
+
+  eos_state % T   = T_r
+
+  call eos(eos_input_rt, eos_state)
+
+  ambient_e_r = eos_state % e
 
 end subroutine amrex_probinit
 
@@ -94,7 +133,7 @@ end subroutine amrex_probinit
 ! :::		   ghost region).
 ! ::: -----------------------------------------------------------
 subroutine ca_initdata(level,time,lo,hi,nscal, &
-                       state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3, &
+                       state,state_lo,state_hi, &
                        delta,xlo,xhi)
 
   use network, only: nspec
@@ -109,8 +148,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   integer,  intent(in   ) :: level, nscal
   integer,  intent(in   ) :: lo(3), hi(3)
-  integer,  intent(in   ) :: state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
-  real(rt), intent(inout) :: state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,NVAR)
+  integer,  intent(in   ) :: state_lo(3), state_hi(3)
+  real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
   real(rt), intent(in   ) :: time, delta(3)
   real(rt), intent(in   ) :: xlo(3), xhi(3)
 

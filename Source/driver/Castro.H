@@ -255,7 +255,7 @@ public:
                      int  amr_ncycle);
 
 #ifndef AMREX_USE_CUDA
-    amrex::Real retry_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+    bool retry_advance (amrex::Real& time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
     amrex::Real subcycle_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 #endif
@@ -509,7 +509,7 @@ public:
 
     void reset_internal_energy (amrex::MultiFab& State);
 
-    void computeTemp (amrex::MultiFab& State);
+    void computeTemp (amrex::MultiFab& State, int ng);
 
     void apply_source_term_predictor();
 
@@ -580,9 +580,9 @@ public:
 
     void add_force_to_sources (amrex::MultiFab& force, amrex::MultiFab& sources, amrex::MultiFab& state);
 
-    void apply_source_to_state (amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng = 0);
+    void apply_source_to_state (int is_new, amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng = 0);
 
-    void expand_state(amrex::MultiFab& S, amrex::Real time, int ng);
+    void expand_state(amrex::MultiFab& S, amrex::Real time, int iclean, int ng);
 
 #ifdef SELF_GRAVITY
     void make_radial_data (int is_new);
@@ -735,6 +735,11 @@ protected:
     int cfl_violation;
 
     //
+    // Did we have a successful burn?
+    //
+    int burn_success;
+
+    //
     // State data to hold if we want to do a retry.
     //
     amrex::Vector<std::unique_ptr<amrex::StateData> > prev_state;
@@ -774,6 +779,8 @@ protected:
 
     static void network_finalize ();
 
+    static void eos_finalize ();
+
     static void read_params ();
 
     Castro& getLevel (int lev);
@@ -783,15 +790,16 @@ protected:
 
     void reflux (int crse_level, int fine_level);
 
-    void normalize_species (amrex::MultiFab& S_new);
+    void normalize_species (amrex::MultiFab& S_new, int ng);
 
     void enforce_consistent_e (amrex::MultiFab& S);
 
-    amrex::Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new);
+    amrex::Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new, int ng);
+
+    amrex::Real clean_state (int is_new, amrex::MultiFab& state, int ng);
+    amrex::Real clean_state (int is_new, int ng);
 
     amrex::Real clean_state (amrex::MultiFab& state);
-
-    amrex::Real clean_state (amrex::MultiFab& state, amrex::MultiFab& state_old);
 
     void avgDown ();
 
@@ -861,6 +869,9 @@ protected:
 
     static int         lastDtPlotLimited;
     static amrex::Real lastDtBeforePlotLimiting;
+
+    int lastDtRetryLimited;
+    amrex::Real lastDtFromRetry;
 
     // for keeping track of mass changes from negative density resets
     static amrex::Real      frac_change;

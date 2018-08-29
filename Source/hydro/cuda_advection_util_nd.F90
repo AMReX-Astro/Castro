@@ -6,15 +6,15 @@ module advection_util_module
 
 contains
 
-  AMREX_DEVICE subroutine ca_enforce_minimum_density(lo,hi, &
-                                                     uin,uin_lo,uin_hi, &
-                                                     uout,uout_lo,uout_hi, &
-                                                     vol,vol_lo,vol_hi, &
-                                                     frac_change,verbose) &
-                                                     bind(c,name='ca_enforce_minimum_density')
+  subroutine ca_enforce_minimum_density(lo,hi, &
+                                        uin,uin_lo,uin_hi, &
+                                        uout,uout_lo,uout_hi, &
+                                        vol,vol_lo,vol_hi, &
+                                        frac_change,verbose) &
+                                        bind(c,name='ca_enforce_minimum_density')
 
     use network, only: nspec, naux
-    use bl_constants_module, only: ZERO
+    use amrex_constants_module, only: ZERO
     use amrex_fort_module, only: rt => amrex_real, amrex_min
     use meth_params_module, only: NVAR, URHO, UEINT, UEDEN, small_dens
 
@@ -39,6 +39,8 @@ contains
     real(rt) :: old_state(NVAR), new_state(NVAR), unew(NVAR)
     integer  :: num_positive_zones
 
+    !$gpu
+
     max_dens = ZERO
 
     do k = lo(3), hi(3)
@@ -47,10 +49,10 @@ contains
 
              if (uout(i,j,k,URHO) .eq. ZERO) then
 
-#ifndef CUDA
+#ifndef AMREX_USE_GPU
                 print *,'DENSITY EXACTLY ZERO AT CELL ',i,j,k
                 print *,'  in grid ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-                call bl_error("Error:: advection_util_nd.F90 :: ca_enforce_minimum_density")
+                call amrex_error("Error:: advection_util_nd.F90 :: ca_enforce_minimum_density")
 #endif
              else if (uout(i,j,k,URHO) < small_dens) then
 
@@ -114,9 +116,9 @@ contains
 
 
 
-  AMREX_DEVICE subroutine reset_to_small_state(old_state, new_state, idx, lo, hi, verbose)
+  subroutine reset_to_small_state(old_state, new_state, idx, lo, hi, verbose)
 
-    use bl_constants_module, only: ZERO
+    use amrex_constants_module, only: ZERO
     use network, only: nspec, naux
     use eos_type_module, only: eos_t, eos_input_rt
     use eos_module, only: eos
@@ -132,12 +134,14 @@ contains
     integer      :: n, ipassive
     type (eos_t) :: eos_state
 
+    !$gpu
+
     ! If no neighboring zones are above small_dens, our only recourse
     ! is to set the density equal to small_dens, and the temperature
     ! equal to small_temp. We set the velocities to zero,
     ! though any choice here would be arbitrary.
 
-#ifndef CUDA
+#ifndef AMREX_USE_GPU
     if (verbose .gt. 0) then
        print *,'   '
        if (new_state(URHO) < ZERO) then
@@ -178,9 +182,9 @@ contains
 
 
 
-  AMREX_DEVICE subroutine reset_to_zone_state(old_state, new_state, input_state, idx, lo, hi, verbose)
+  subroutine reset_to_zone_state(old_state, new_state, input_state, idx, lo, hi, verbose)
 
-    use bl_constants_module, only: ZERO
+    use amrex_constants_module, only: ZERO
     use amrex_fort_module, only: rt => amrex_real
     use meth_params_module, only: NVAR, URHO
 
@@ -190,7 +194,9 @@ contains
     real(rt), intent(inout) :: new_state(NVAR)
     integer,  intent(in   ) :: idx(3), lo(3), hi(3), verbose
 
-#ifndef CUDA
+    !$gpu
+
+#ifndef AMREX_USE_GPU
     if (verbose .gt. 0) then
        if (new_state(URHO) < ZERO) then
           print *,'   '
@@ -216,12 +222,12 @@ contains
 
 
 
-  AMREX_DEVICE subroutine compute_cfl(lo, hi, dt, dx, courno, &
+  subroutine compute_cfl(lo, hi, dt, dx, courno, &
                                       q, q_lo, q_hi, &
                                       qaux, qa_lo, qa_hi) &
                                       bind(C, name = "compute_cfl")
 
-    use bl_constants_module, only: ZERO, ONE
+    use amrex_constants_module, only: ZERO, ONE
     use amrex_fort_module, only: rt => amrex_real, amrex_max
     use meth_params_module, only: NQ, QRHO, QU, QV, QW, QC, NQAUX
     use prob_params_module, only: dim
@@ -240,6 +246,8 @@ contains
     real(rt) :: courx, coury, courz, courmx, courmy, courmz, courtmp
     real(rt) :: dtdx, dtdy, dtdz
     integer  :: i, j, k
+
+    !$gpu
 
     ! Compute running max of Courant number over grids
 
@@ -282,7 +290,7 @@ contains
                 courtmp = courtmp + courz
              endif
 
-#ifndef CUDA
+#ifndef AMREX_USE_GPU
              ! note: it might not be 1 for all RK integrators
              if (courtmp > ONE) then
                 print *,'   '
@@ -303,15 +311,15 @@ contains
 
 
 
-  AMREX_DEVICE subroutine ca_ctoprim(lo, hi, &
-                                     uin, uin_lo, uin_hi, &
-                                     q,     q_lo,   q_hi, &
-                                     qaux, qa_lo,  qa_hi) bind(c,name='ca_ctoprim')
+  subroutine ca_ctoprim(lo, hi, &
+                        uin, uin_lo, uin_hi, &
+                        q,     q_lo,   q_hi, &
+                        qaux, qa_lo,  qa_hi) bind(c,name='ca_ctoprim')
 
     use actual_network, only: nspec, naux
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
-    use bl_constants_module, only: ZERO, HALF, ONE
+    use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_fort_module, only: rt => amrex_real
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, &
                                   UEDEN, UEINT, UTEMP, &
@@ -341,11 +349,13 @@ contains
 
     type (eos_t) :: eos_state
 
+    !$gpu
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-#ifndef CUDA
+#ifndef AMREX_USE_GPU
              if (uin(i,j,k,URHO) .le. ZERO) then
                 print *,'   '
                 print *,'>>> Error: advection_util_nd.F90::ctoprim ',i, j, k
@@ -434,14 +444,14 @@ contains
 
 
 
-  AMREX_DEVICE subroutine normalize_species_fluxes(lo, hi, flux, f_lo, f_hi)
+  subroutine normalize_species_fluxes(lo, hi, flux, f_lo, f_hi)
 
     ! Normalize the fluxes of the mass fractions so that
     ! they sum to 0.  This is essentially the CMA procedure that is
     ! defined in Plewa & Muller, 1999, A&A, 342, 179.
 
     use network, only: nspec
-    use bl_constants_module, only: ZERO, ONE
+    use amrex_constants_module, only: ZERO, ONE
     use amrex_fort_module, only: rt => amrex_real
     use meth_params_module, only: NVAR, URHO, UFS
 
@@ -454,6 +464,8 @@ contains
     ! Local variables
     integer  :: i, j, k, n
     real(rt) :: sum, fac
+
+    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -485,9 +497,9 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  AMREX_DEVICE subroutine ca_divu(lo, hi, dx, q, q_lo, q_hi, div, d_lo, d_hi) bind(c,name='ca_divu')
+  subroutine ca_divu(lo, hi, dx, q, q_lo, q_hi, div, d_lo, d_hi) bind(c,name='ca_divu')
 
-    use bl_constants_module, only: FOURTH, ONE
+    use amrex_constants_module, only: FOURTH, ONE
     use amrex_fort_module, only: rt => amrex_real
     use meth_params_module, only: QU, QV, QW, NQ
 
@@ -502,6 +514,8 @@ contains
 
     integer  :: i, j, k
     real(rt) :: ux, vy, wz, dxinv, dyinv, dzinv
+
+    !$gpu
 
     dxinv = ONE/dx(1)
     dyinv = ONE/dx(2)
@@ -539,12 +553,12 @@ contains
 
 
 
-  AMREX_DEVICE subroutine apply_av(lo, hi, idir, dx, &
-                                   div, div_lo, div_hi, &
-                                   uin, uin_lo, uin_hi, &
-                                   flux, f_lo, f_hi)
+  subroutine apply_av(lo, hi, idir, dx, &
+                      div, div_lo, div_hi, &
+                      uin, uin_lo, uin_hi, &
+                      flux, f_lo, f_hi)
 
-    use bl_constants_module, only: ZERO, FOURTH
+    use amrex_constants_module, only: ZERO, FOURTH
     use meth_params_module, only: NVAR, UTEMP
 
     implicit none
@@ -565,6 +579,8 @@ contains
     real(rt) :: div1
 
     real(rt), parameter :: difmag = 0.1d0
+
+    !$gpu
 
     do n = 1, NVAR
 
@@ -609,21 +625,22 @@ contains
 
 
 
-  AMREX_DEVICE subroutine ca_construct_hydro_update(lo, hi, dx, dt, &
-                                                    q1, q1_lo, q1_hi, &
-                                                    q2, q2_lo, q2_hi, &
-                                                    q3, q3_lo, q3_hi, &
-                                                    f1, f1_lo, f1_hi, &
-                                                    f2, f2_lo, f2_hi, &
-                                                    f3, f3_lo, f3_hi, &
-                                                    a1, a1_lo, a1_hi, &
-                                                    a2, a2_lo, a2_hi, &
-                                                    a3, a3_lo, a3_hi, &
-                                                    vol, vol_lo, vol_hi, &
-                                                    update, u_lo, u_hi) &
-                                                    bind(c,name='ca_construct_hydro_update')
+  subroutine ca_construct_hydro_update(lo, hi, dx, dt, &
+                                       q1, q1_lo, q1_hi, &
+                                       q2, q2_lo, q2_hi, &
+                                       q3, q3_lo, q3_hi, &
+                                       f1, f1_lo, f1_hi, &
+                                       f2, f2_lo, f2_hi, &
+                                       f3, f3_lo, f3_hi, &
+                                       a1, a1_lo, a1_hi, &
+                                       a2, a2_lo, a2_hi, &
+                                       a3, a3_lo, a3_hi, &
+                                       vol, vol_lo, vol_hi, &
+                                       srcU, srcU_lo, srcU_hi, &
+                                       update, u_lo, u_hi) &
+                                       bind(c,name='ca_construct_hydro_update')
 
-    use bl_constants_module, only: HALF, ONE
+    use amrex_constants_module, only: HALF, ONE
     use meth_params_module, only: NVAR, UEINT, NGDNV, GDPRES, GDU, GDV, GDW
 
     implicit none
@@ -639,6 +656,7 @@ contains
     integer,  intent(in   ) :: a2_lo(3), a2_hi(3)
     integer,  intent(in   ) :: a3_lo(3), a3_hi(3)
     integer,  intent(in   ) :: vol_lo(3), vol_hi(3)
+    integer,  intent(in   ) :: srcU_lo(3), srcU_hi(3)
     integer,  intent(in   ) :: u_lo(3), u_hi(3)
     real(rt), intent(in   ) :: dx(3)
     real(rt), intent(in   ), value :: dt
@@ -653,10 +671,13 @@ contains
     real(rt), intent(in   ) :: a2(a2_lo(1):a2_hi(1),a2_lo(2):a2_hi(2),a2_lo(3):a2_hi(3))
     real(rt), intent(in   ) :: a3(a3_lo(1):a3_hi(1),a3_lo(2):a3_hi(2),a3_lo(3):a3_hi(3))
     real(rt), intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+    real(rt), intent(in   ) :: srcU(srcU_lo(1):srcU_hi(1),srcU_lo(2):srcU_hi(2),srcU_lo(3):srcU_hi(3),NVAR)
     real(rt), intent(inout) :: update(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
 
     integer  :: i, j, k, n
     real(rt) :: dtinv
+
+    !$gpu
 
     dtinv = ONE / dt
 
@@ -666,10 +687,14 @@ contains
              do i = lo(1), hi(1)
 
                 ! Note that the fluxes have already been scaled by dt * dA.
+                ! We unscale by dt here, because the dt will be reapplied
+                ! when the update is actually applied to the state.
 
                 update(i,j,k,n) = update(i,j,k,n) + dtinv * (f1(i,j,k,n) - f1(i+1,j,k,n) + &
                                                              f2(i,j,k,n) - f2(i,j+1,k,n) + &
                                                              f3(i,j,k,n) - f3(i,j,k+1,n) ) / vol(i,j,k)
+
+                update(i,j,k,n) = update(i,j,k,n) + srcU(i,j,k,n)
 
              enddo
           enddo
@@ -680,7 +705,7 @@ contains
 
 
 
-  AMREX_DEVICE subroutine scale_flux(lo, hi, flux, f_lo, f_hi, area, a_lo, a_hi, dt)
+  subroutine scale_flux(lo, hi, flux, f_lo, f_hi, area, a_lo, a_hi, dt)
 
     use meth_params_module, only: NVAR
 
@@ -695,6 +720,8 @@ contains
     real(rt), intent(in   ) :: area(a_lo(1):a_hi(1),a_lo(2):a_hi(2),a_lo(3):a_hi(3))
 
     integer :: i, j, k, n
+
+    !$gpu
 
     do n = 1, NVAR
        do k = lo(3), hi(3)

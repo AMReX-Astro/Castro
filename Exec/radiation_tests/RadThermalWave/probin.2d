@@ -8,7 +8,7 @@
 
 &tagging
   max_tempgrad_lev = 4
-  tempgrad = 0.2
+  tempgrad_rel = 0.2
 /
 
 
