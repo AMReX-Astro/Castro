@@ -193,15 +193,20 @@ ifeq ($(USE_THORNADO), TRUE)
   EXTERN_CORE += $(TOP)/Util/LAPACK
 
   Bdirs  += Source/two_moment
-  Thdirs := thornado_r721/SandBox/Interface_CASTRO
-  Thdirs += thornado_r721/Modules/Numbers
-  Thdirs += thornado_r721/Modules/ProgramHeader
-  Thdirs += thornado_r721/Modules/Library
-  Thdirs += thornado_r721/Modules/Mesh
-  Thdirs += thornado_r721/Modules/Fields
-  Thdirs += thornado_r721/Modules/Geometry
-  Thdirs += thornado_r721/Modules/TwoMoment
-  Thdirs += thornado_r721/Modules/Units
+  Thdirs := thornado/SandBox/Interface_CASTRO
+  Thdirs += thornado/Modules/Numbers
+  Thdirs += thornado/Modules/ProgramHeader
+  Thdirs += thornado/Modules/Library
+  Thdirs += thornado/Modules/Mesh
+  Thdirs += thornado/Modules/Fields
+  Thdirs += thornado/Modules/Geometry
+  Thdirs += thornado/Modules/TwoMoment
+  Thdirs += thornado/Modules/Units
+  Thdirs += thornado/Modules/EquationOfState 
+  Thdirs += thornado/Modules/Opacities 
+  Thdirs += weaklib/Distributions/Library
+  Thdirs += weaklib/Distributions/EOSSource
+  Thdirs += weaklib/Distributions/OpacitySource
   Blocs += $(foreach dir, $(Thdirs), $(TOP)/$(dir))
 endif
 
@@ -345,11 +350,15 @@ ifeq ($(USE_HYPRE), TRUE)
   LIBRARIES += -lHYPRE
 endif
 
+# INCLUDE_LOCATIONS += $(HDF5_DIR)/include
+# INCLUDE_LOCATIONS += $(HDF5_INCL)
+# LIBRARY_LOCATIONS += $(HDF5_DIR)/lib
+# LIBRARIES += -lhdf5 -lhdf5_fortran -lhdf5 -lz
+
 ifeq ($(USE_HDF5), TRUE)
-  INCLUDE_LOCATIONS += $(HDF5_DIR)/include
-  INCLUDE_LOCATIONS += $(HDF5_INCL)
-  LIBRARY_LOCATIONS += $(HDF5_DIR)/lib
-  LIBRARIES += -lhdf5 -lhdf5_fortran -lhdf5 -lz
+  DEFINES += -DBL_HDF5
+  INCLUDE_LOCATIONS += $(HDF5_HOME)/include 
+  LIBRARIES         += -L$(HDF5_HOME)/lib -lhdf5_fortran -lhdf5 -lgfortran
 endif
 
 

@@ -4,11 +4,14 @@ PROFILE    = FALSE
 DEBUG      = FALSE
 
 DIM        = 3
+DIM        = 2
 
 COMP	   = gnu
 
 USE_MPI    = TRUE
 USE_OMP    = FALSE
+
+USE_HDF5   = TRUE
 
 USE_THORNADO = TRUE
 
@@ -16,8 +19,13 @@ DEFINES += -DMOMENT_CLOSURE_MINERBO
 
 # define the location of the CASTRO top directory
 CASTRO_HOME := ../../..
+THORNADO_HOME := ../../../../thornado
 
 MICROPHYSICS_HOME := ../../../../Microphysics
+
+#HDF5_HOME   = /home/almgren/bin/hdf5-1.8.3/hdf5
+#HDF5_HOME   = /home/almgren/bin/hdf5
+HDF5_HOME   = /home/almgren/bin/miniconda2
 
 ifdef MICROPHYSICS_HOME
 

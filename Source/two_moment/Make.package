@@ -60,3 +60,26 @@ ca_F90EXE_sources += derive_two_moment_nd.F90
   ca_f90EXE_sources += ThornadoInitializationModule.f90
   ca_f90EXE_sources += TimeSteppingModule_Castro.f90
   ca_f90EXE_sources += DiscretizationModule_Dummy.f90
+
+# In Modules/EquationOfState
+  ca_F90EXE_sources += EquationOfStateModule_TABLE.F90
+
+# In Modules/Opacities
+  ca_F90EXE_sources += OpacityModule_TABLE.F90
+
+# In weaklib/Distributions/Library
+  ca_f90EXE_sources += wlKindModule.f90
+  ca_f90EXE_sources += wlGridModule.f90
+  ca_f90EXE_sources += wlThermoStateModule.f90
+  ca_f90EXE_sources += wlDependentVariablesModule.f90
+  ca_f90EXE_sources += wlInterpolationModule.f90
+  ca_f90EXE_sources += wlIOModuleHDF.f90
+
+# In weaklib/Distributions/EOSSource
+  ca_f90EXE_sources += wlEquationOfStateTableModule.f90
+  ca_f90EXE_sources += wlEOSIOModuleHDF.f90
+
+# In weaklib/Distributions/OpacitySource
+  ca_f90EXE_sources += wlOpacityFieldsModule.f90
+  ca_f90EXE_sources += wlOpacityTableModule.f90
+  ca_f90EXE_sources += wlOpacityTableIOModuleHDF.f90
