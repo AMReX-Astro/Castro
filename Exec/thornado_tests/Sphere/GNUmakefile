@@ -3,7 +3,6 @@ PROFILE    = FALSE
 
 DEBUG      = FALSE
 
-DIM        = 3
 DIM        = 2
 
 COMP	   = gnu
@@ -12,6 +11,7 @@ USE_MPI    = TRUE
 USE_OMP    = FALSE
 
 USE_HDF5   = TRUE
+HDF5_HOME    = /usr/local/Cellar/hdf5/1.10.3
 
 USE_THORNADO = TRUE
 

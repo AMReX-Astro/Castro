@@ -4,6 +4,6 @@ module probdata_module
       use network, only: nspec
 
       real(rt), save :: xn(nspec)
-      real(rt), save :: rho_i, T_i, rhoe_i, p_i
+      real(rt), save :: rho_i, T_i, Ye_i, rhoe_i, p_i
 
 end module probdata_module

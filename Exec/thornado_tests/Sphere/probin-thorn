@@ -2,6 +2,7 @@
 
   T_i = 1.d6
   rho_i = 1.d6
+  Ye_i = 0.5d0
   rhoe_i = 1.d0
   p_i = 1.d0
 
