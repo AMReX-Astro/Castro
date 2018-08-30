@@ -1,12 +1,13 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 10000
+max_step = 0
 stop_time =  10.e0
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 1 1 1
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     =  0     0     0
-geometry.prob_hi     = 1.e0    1.e0    1.e0
+geometry.prob_hi     = 1.e8    1.e8    1.e8
 amr.n_cell           = 128     128      128
 amr.n_cell           = 16 16 16
 

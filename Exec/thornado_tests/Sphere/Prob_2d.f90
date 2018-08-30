@@ -88,6 +88,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state,state_l1,state_l2,state_h1,state_h2, &
                        delta,xlo,xhi)
 
+  use amrex_constants_module, only: half, one
   use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
   use network, only: nspec
@@ -106,7 +107,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   real(rt), allocatable :: rho_in(:), T_in(:), Ye_in(:), Epervol_out(:), Epermass_out(:), Ne_out(:)
   integer  :: i,j
-  real :: rho_min,rho_max,r_rho,H_rho,T_min,T_max,r_T,H_T,Ye_min,Ye_max,r_Ye,H_Ye,radius,x,y
+  real(rt) :: rho_min,rho_max,r_rho,H_rho,T_min,T_max,r_T,H_T,Ye_min,Ye_max,r_Ye,H_Ye,radius,x,y
+  real(rt) :: tanh_r, tanh_t, tanh_y
 
   allocate(rho_in(lo(1):hi(1)))
   allocate(  T_in(lo(1):hi(1)))
@@ -118,44 +120,54 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   if (UFX .lt. 0.d0) &
      call amrex_abort("Must have UFX defined to run this problem!")
 
+  ! ************************ Min and max values of rho, T, Ye ************************
+  rho_min = 1.0e9
+  rho_max = 4.0e14
+
+  T_min = 5.0e9
+  T_max = 2.6e11
+
+  Ye_min = 0.4
+  Ye_max = 0.46
+
+  ! ************************ Radii and widths for rho, T, Ye ************************
+  r_rho = 2.0e7
+  H_rho = 1.0e7
+
+  r_T = 2.5e7
+  H_T = 2.0e7
+
+  r_Ye = 4.5e7
+  H_Ye = 1.0e7
+
+  ! ************************ ************************ ************************
+
   do j = lo(2), hi(2)
      do i = lo(1), hi(1)
 
-        rho_min = 1.0e9
-        rho_max = 4.0e14
-        r_rho = 2.0e7
-        H_rho = 1.0e7
-        T_min = 5.0e9
-        T_max = 2.6e11
-        r_T = 2.5e7
-        H_T = 2.0e7
-        Ye_min = 0.4
-        Ye_max = 0.46
-        r_Ye = 4.5e7
-        H_Ye = 1.0e7
         x = xlo(1)+ delta(1)*i
         y = xlo(2)+ delta(2)*j
+
         radius = sqrt(x*x+y*y)
+ 
+        ! These go from near-zero at radius = 0 to near-one at large radius
+        tanh_r = half * (one + tanh((radius - r_rho)/H_rho))
+        tanh_t = half * (one + tanh((radius - r_T  )/H_T))
+        tanh_y = half * (one + tanh((radius - r_Ye )/H_Ye))
 
-        rho_i = 0.5 * rho_max * (1.0e0-tanh((radius-r_rho)/H_rho)) + rho_min * (1.0e0-tanh((r_rho-radius)/H_rho))
-        T_i = 0.5 * T_max * (1.0e0-tanh((radius-r_T)/H_T)) + T_min * (1.0e0-tanh((r_T-radius)/H_T))
-        Ye_i = 0.5 * Ye_max * (1.0e0-tanh((radius-r_Ye)/H_Ye)) + Ye_min * (1.0e0-tanh((r_Ye-radius)/H_Ye))
+        ! The profile has max values at radius = 0 and min values at large radius
+        rho_in(i) = rho_max - (rho_max - rho_min) * tanh_r
+          T_in(i) =   T_max - (  T_max -   T_min) * tanh_t
+         Ye_in(i) =  Ye_max - ( Ye_max -  Ye_min) * tanh_y
 
-        state(i,j,URHO) = rho_i
-        state(i,j,UTEMP) = T_i
+        state(i,j,URHO ) = rho_in(i)
+        state(i,j,UTEMP) =   T_in(i)
 
         state(i,j,UMX) = 0.e0_rt
         state(i,j,UMY) = 0.e0_rt
 
         state(i,j,UFS:UFS-1+nspec) = 0.0e0_rt
-        state(i,j,UFS  ) = state(i,j,URHO)
-
-        ! This is Ne
-        state(i,j,UFX  ) = 1.d0
-
-        rho_in(i) = state(i,j,URHO) 
-          T_in(i) = state(i,j,UTEMP) 
-         Ye_in(i) = 0. ! This is just a placeholder
+        state(i,j,UFS            ) = state(i,j,URHO)
            
      enddo
 
