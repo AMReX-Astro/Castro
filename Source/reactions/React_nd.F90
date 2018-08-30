@@ -59,6 +59,8 @@ contains
     type (burn_t) :: burn_state_in, burn_state_out
     type (eos_t) :: eos_state_in, eos_state_out
 
+    integer :: lun
+
     ! Minimum zone width
 
     dx_min = minval(dx_level(1:dim, amr_level))
@@ -74,6 +76,16 @@ contains
     !$acc private(rhoInv, delta_e, delta_rho_e) &
     !$acc private(eos_state_in, eos_state_out, burn_state_in, burn_state_out) &
     !$acc private(i,j,k)
+
+    if (strang_half == 1) then
+       open (newunit=lun, file="strang_diag.out", status="unknown", position="append")
+       write(lun, *) "# start of step, t = ", time
+       close (unit=lun)
+    else
+       open (newunit=lun, file="strang_diag.out", status="unknown", position="append")
+       write(lun, *) "# second half of strang, t = ", time
+       close (unit=lun)
+    endif
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -249,6 +261,11 @@ contains
 
     type (sdc_t) :: burn_state_in, burn_state_out
 
+    integer :: lun
+
+    open (newunit=lun, file="sdc_diag.out", status="unknown", position="append")
+    write(lun, *) "# start of sdc integration, sdc_iter = ", sdc_iter
+    close(unit=lun)
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
