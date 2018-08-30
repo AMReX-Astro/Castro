@@ -167,7 +167,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         state(i,j,k,UMX:UMZ) = zero
 
         state(i,j,k,UFS:UFS-1+nspec) = 0.0e0_rt
-        state(i,j,UFS            ) = state(i,j,URHO)
+        state(i,j,k,UFS            ) = state(i,j,k,URHO)
 
         rho_in(i) = state(i,j,k,URHO) * (Gram/Centimeter**3)
           T_in(i) = state(i,j,k,UTEMP) * Kelvin
