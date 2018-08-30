@@ -88,13 +88,14 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state,state_l1,state_l2,state_h1,state_h2, &
                        delta,xlo,xhi)
 
-  use amrex_constants_module, only: half, one
+  use amrex_constants_module, only: zero, half, one
   use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
   use network, only: nspec
   use probdata_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP, UFS, UFX
   
+  use UnitsModule
   use EquationOfStateModule_TABLE, only: ComputeThermodynamicStates_Primitive_TABLE
 
   implicit none
@@ -106,9 +107,11 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   real(rt), intent(inout) :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
 
   real(rt), allocatable :: rho_in(:), T_in(:), Ye_in(:), Epervol_out(:), Epermass_out(:), Ne_out(:)
-  integer  :: i,j
-  real(rt) :: rho_min,rho_max,r_rho,H_rho,T_min,T_max,r_T,H_T,Ye_min,Ye_max,r_Ye,H_Ye,radius,x,y
+
+  real(rt) :: x,y,radius
+  real(rt) :: rho_min,rho_max,r_rho,H_rho,T_min,T_max,r_T,H_T,Ye_min,Ye_max,r_Ye,H_Ye
   real(rt) :: tanh_r, tanh_t, tanh_y
+  integer  :: i,j
 
   allocate(rho_in(lo(1):hi(1)))
   allocate(  T_in(lo(1):hi(1)))
@@ -121,10 +124,10 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      call amrex_abort("Must have UFX defined to run this problem!")
 
   ! ************************ Min and max values of rho, T, Ye ************************
-  rho_min = 1.0e9
+  rho_min = 1.0e8 
   rho_max = 4.0e14
 
-  T_min = 5.0e9
+  T_min = 5.0e9 
   T_max = 2.6e11
 
   Ye_min = 0.4
@@ -145,8 +148,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   do j = lo(2), hi(2)
      do i = lo(1), hi(1)
 
-        x = xlo(1)+ delta(1)*i
-        y = xlo(2)+ delta(2)*j
+        x = xlo(1) + delta(1)*(dble(i)+half)
+        y = xlo(2) + delta(2)*(dble(j)+half)
 
         radius = sqrt(x*x+y*y)
  
@@ -156,18 +159,18 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         tanh_y = half * (one + tanh((radius - r_Ye )/H_Ye))
 
         ! The profile has max values at radius = 0 and min values at large radius
-        rho_in(i) = rho_max - (rho_max - rho_min) * tanh_r
-          T_in(i) =   T_max - (  T_max -   T_min) * tanh_t
-         Ye_in(i) =  Ye_max - ( Ye_max -  Ye_min) * tanh_y
+        state(i,j,URHO ) = ( rho_max - (rho_max - rho_min) * tanh_r )
+        state(i,j,UTEMP) = (   T_max - (  T_max -   T_min) * tanh_t )
 
-        state(i,j,URHO ) = rho_in(i)
-        state(i,j,UTEMP) =   T_in(i)
-
-        state(i,j,UMX) = 0.e0_rt
-        state(i,j,UMY) = 0.e0_rt
+        state(i,j,UMX:UMY) = zero
 
         state(i,j,UFS:UFS-1+nspec) = 0.0e0_rt
         state(i,j,UFS            ) = state(i,j,URHO)
+
+        rho_in(i) = state(i,j,URHO) * (Gram/Centimeter**3)
+          T_in(i) = state(i,j,UTEMP) * Kelvin
+
+         Ye_in(i) = (  Ye_max - ( Ye_max -  Ye_min) * tanh_y )
            
      enddo
 
@@ -175,9 +178,9 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
      do i = lo(1), hi(1)
 
-        state(i,j,UEINT) =  Epervol_out(i)     ! UEINT = (rho e) 
+        state(i,j,UEINT) =  Epervol_out(i) / (Erg/Centimeter**3)    ! UEINT = (rho e) 
         state(i,j,UEDEN) =  state(i,j,UEINT)   ! (rho E) = (rho e) since momentum = 0
-        state(i,j,UFX  ) =  Ne_out(i)          !
+        state(i,j,UFX  ) =  Ne_out(i) * Centimeter**3
 
      enddo
 

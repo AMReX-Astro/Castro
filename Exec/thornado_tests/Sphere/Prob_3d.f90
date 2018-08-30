@@ -87,12 +87,14 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3, &
                        delta,xlo,xhi)
 
+  use amrex_constants_module, only: zero, half, one
   use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
   use network, only: nspec
   use probdata_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS, UFX
 
+  use UnitsModule
   use EquationOfStateModule_TABLE, only: ComputeThermodynamicStates_Primitive_TABLE
 
   implicit none
@@ -105,6 +107,10 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                          state_l3:state_h3,NVAR)
 
   real(rt), allocatable :: rho_in(:), T_in(:), Ye_in(:), Epervol_out(:), Epermass_out(:), Ne_out(:)
+
+  real(rt) :: x,y,z,radius
+  real(rt) :: rho_min,rho_max,r_rho,H_rho,T_min,T_max,r_T,H_T,Ye_min,Ye_max,r_Ye,H_Ye
+  real(rt) :: tanh_r, tanh_t, tanh_y
   integer :: i,j,k
 
   allocate(rho_in(lo(1):hi(1)))
@@ -117,36 +123,70 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   if (UFX .lt. 0.d0) &
      call amrex_abort("Must have UFX defined to run this problem!")
 
+  ! ************************ Min and max values of rho, T, Ye ************************
+  rho_min = 1.0e8 
+  rho_max = 4.0e14
+
+  T_min = 5.0e9 
+  T_max = 2.6e11
+
+  Ye_min = 0.4
+  Ye_max = 0.46
+
+  ! ************************ Radii and widths for rho, T, Ye ************************
+  r_rho = 2.0e7
+  H_rho = 1.0e7
+
+  r_T = 2.5e7
+  H_T = 2.0e7
+
+  r_Ye = 4.5e7
+  H_Ye = 1.0e7
+
+  ! ************************ ************************ ************************
+
   do k = lo(3), hi(3)
-     do j = lo(2), hi(2)
-        do i = lo(1), hi(1)
+  do j = lo(2), hi(2)
+     do i = lo(1), hi(1)
 
-           state(i,j,k,URHO) = rho_i
-           state(i,j,k,UMX) = 0.e0_rt
-           state(i,j,k,UMY) = 0.e0_rt
-           state(i,j,k,UMZ) = 0.e0_rt
-           state(i,j,k,UTEMP) = T_i
+        x = xlo(1) + delta(1)*(dble(i)+half)
+        y = xlo(2) + delta(2)*(dble(j)+half)
+        z = xlo(3) + delta(3)*(dble(k)+half)
 
-           state(i,j,k,UFS:UFS-1+nspec) = 0.0e0_rt
-           state(i,j,k,UFS  ) = state(i,j,k,URHO)
+        radius = sqrt(x*x+y*y+z*z)
+ 
+        ! These go from near-zero at radius = 0 to near-one at large radius
+        tanh_r = half * (one + tanh((radius - r_rho)/H_rho))
+        tanh_t = half * (one + tanh((radius - r_T  )/H_T))
+        tanh_y = half * (one + tanh((radius - r_Ye )/H_Ye))
 
-           rho_in(i) = state(i,j,k,URHO)
-             T_in(i) = state(i,j,k,UTEMP)
-            Ye_in(i) = 0. ! This is just a placeholder
+        ! The profile has max values at radius = 0 and min values at large radius
+        state(i,j,k,URHO ) = ( rho_max - (rho_max - rho_min) * tanh_r )
+        state(i,j,k,UTEMP) = (   T_max - (  T_max -   T_min) * tanh_t )
 
-        enddo
+        state(i,j,k,UMX:UMZ) = zero
 
-        call ComputeThermodynamicStates_Primitive_TABLE(rho_in, T_in, Ye_in, &
-                                                        Epervol_out, Epermass_out, Ne_out )
+        state(i,j,k,UFS:UFS-1+nspec) = 0.0e0_rt
+        state(i,j,UFS            ) = state(i,j,URHO)
 
-        do i = lo(1), hi(1)
+        rho_in(i) = state(i,j,k,URHO) * (Gram/Centimeter**3)
+          T_in(i) = state(i,j,k,UTEMP) * Kelvin
 
-           state(i,j,k,UEDEN) = Epervol_out(i)      ! UEINT = (rho e)
-           state(i,j,k,UEINT) = state(i,j,k,UEINT)  ! (rho E) = (rho e) since momentum = 0
-           state(i,j,k,UFX  ) = Ne_out(i)
-
-        enddo
+         Ye_in(i) = (  Ye_max - ( Ye_max -  Ye_min) * tanh_y )
+           
      enddo
+
+     call ComputeThermodynamicStates_Primitive_TABLE(rho_in, T_in, Ye_in, Epervol_out, Epermass_out, Ne_out )
+
+     do i = lo(1), hi(1)
+
+        state(i,j,k,UEINT) =  Epervol_out(i) / (Erg/Centimeter**3)    ! UEINT = (rho e) 
+        state(i,j,k,UEDEN) =  state(i,j,k,UEINT)   ! (rho E) = (rho e) since momentum = 0
+        state(i,j,k,UFX  ) =  Ne_out(i) * Centimeter**3
+
+     enddo
+
+  enddo
   enddo
 
 end subroutine ca_initdata
