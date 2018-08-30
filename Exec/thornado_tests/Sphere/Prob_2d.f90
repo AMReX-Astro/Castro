@@ -130,7 +130,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   T_min = 5.0e9 
   T_max = 2.6e11
 
-  Ye_min = 0.4
+  Ye_min = 0.3
   Ye_max = 0.46
 
   ! ************************ Radii and widths for rho, T, Ye ************************
