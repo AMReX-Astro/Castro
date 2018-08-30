@@ -135,18 +135,17 @@
          j = jc - lo(2) + 1
          k = 1
 
-         !! KS: if we fill UEINT, need the final fluid state from ComputeIncrement; is that uCF at this point?
          ! We store dS as a source term which we can add to S outside of this routine
          ! uCF returned as a cell-averaged quantity so all components are the same,
          !  can just use the first component
-         ! Update_IMEX_PC2 doesn't currently change the fluid state
+         ! Update_IMEX_PC2 doesn't currently change the fluid density or momentum
 
-!         dS(ic,jc,URHO ) = uCF(1,i,j,k,iCF_D) - S(i,j,URHO)
-!         dS(ic,jc,UMX  ) = uCF(1,i,j,k,iCF_S1) - S(i,j,UMX)
-!         dS(ic,jc,UMY  ) = uCF(1,i,j,k,iCF_S2) - S(i,j,UMY)
-!         dS(ic,jc,UEDEN) = uCF(1,i,j,k,iCF_E) - S(i,j,UEDEN)
-!         dS(ic,jc,UEINT) = ?
-!         dS(ic,jc,UFX  ) = uCF(1,i,j,k,iCF_Ne) - S(i,j,UFX)
+!         dS(ic,jc,URHO ) = uCF(1,i,j,k,iCF_D)  / conv_dens - S(i,j,URHO)
+!         dS(ic,jc,UMX  ) = uCF(1,i,j,k,iCF_S1) / conv_mom  - S(i,j,UMX)
+!         dS(ic,jc,UMY  ) = uCF(1,i,j,k,iCF_S2) / conv_mom  - S(i,j,UMY)
+          dS(ic,jc,UEDEN) = uCF(1,i,j,k,iCF_E)  / conv_enr  - S(i,j,UEDEN)
+          dS(ic,jc,UEINT) = dS(ic,jc,UEDEN)     ! TRUE IFF NO MOMENTUM SOURCE TERMS
+          dS(ic,jc,UFX  ) = uCF(1,i,j,k,iCF_Ne) / conv_ne   - S(i,j,UFX)
 
          do is = 1, nSpecies
          do im = 1, n_moments
