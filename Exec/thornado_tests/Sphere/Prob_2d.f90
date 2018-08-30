@@ -209,6 +209,7 @@ end subroutine get_rad_ncomp
 subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
                                  rad_state_l1,rad_state_l2, &
                                  rad_state_h1,rad_state_h2, &
+                                 state,state_l1,state_l2,state_h1,state_h2, &
                                  delta,xlo,xhi) bind(C,name="ca_init_thornado_data")
 
   use probdata_module
@@ -217,6 +218,10 @@ subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
   use amrex_fort_module, only : rt => amrex_real
   use amrex_error_module
   use amrex_constants_module, only : M_PI
+  use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP, UFS, UFX
+  use MeshModule, only: MeshE, MeshX, NodeCoordinate
+  use UnitsModule
+  use EquationOfStateModule_TABLE, only: ComputeThermodynamicStates_Auxiliary_TABLE, ComputeElectronChemicalPotential_TABLE, ComputeProtonChemicalPotential_TABLE, ComputeNeutronChemicalPotential_TABLE 
 
   implicit none
 
@@ -224,9 +229,11 @@ subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
   integer , intent(in) :: lo(2), hi(2)
   integer , intent(in) :: rad_state_l1,rad_state_h1
   integer , intent(in) :: rad_state_l2,rad_state_h2
+  integer, intent(in) :: state_l1,state_l2,state_h1,state_h2
   real(rt), intent(in) :: xlo(2), xhi(2), time, delta(2)
   real(rt), intent(inout) ::  rad_state(rad_state_l1:rad_state_h1,rad_state_l2:rad_state_h2,&
                                         0:nrad_comp-1)
+  real(rt), intent(inout) :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
 
   ! Local parameter
   integer, parameter :: n_moments = 4
@@ -236,7 +243,7 @@ subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
   integer :: ii,ii_0,is,im,ie,id
   integer :: nx,ny
   real(rt) :: xcen, ycen, xnode, ynode
-
+  real(rt) :: rho_in(1), T_in(1), Ye_in(1), Evol(1), Ne_loc(1), Em_in(1), M_e(1), M_p(1), M_n(1), M_nu(1), E(1)
   ! zero it out, just in case
   rad_state = 0.0e0_rt
 
@@ -263,7 +270,22 @@ subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
      ycen = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5e0_rt)
 
      do i = lo(1), hi(1)
+
         xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5e0_rt)
+        
+        ! get Castro fluid variables unit convert to thornado units
+        rho_in = state(i,j,URHO) * Gram / Centimeter**3
+        T_in = state(i,j,UTEMP) * Kelvin
+        Evol = state(i,j,UEINT) * (Erg/Centimeter**3)
+        Ne_loc = state(i,j,UFX) / Centimeter**3  
+        
+        ! calculate chemical potentials via thornado subroutines
+        call ComputeThermodynamicStates_Auxiliary_TABLE( rho_in, Evol, Ne_loc, T_in, Em_in, Ye_in) 
+        call ComputeElectronChemicalPotential_TABLE(rho_in,T_in,Ye_in,M_e)        
+        call ComputeProtonChemicalPotential_TABLE(rho_in,T_in,Ye_in,M_p)        
+        call ComputeNeutronChemicalPotential_TABLE(rho_in,T_in,Ye_in,M_n)        
+
+        M_nu = M_e + M_p - M_n
 
         do is = 1, nSpecies
         do im = 1, n_moments
@@ -283,13 +305,15 @@ subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
               xnode = xcen + ( float(ixnode)-1.5e0_rt )*delta(1)/sqrt(3.0e0_rt)
               ynode = ycen + ( float(iynode)-1.5e0_rt )*delta(2)/sqrt(3.0e0_rt)
 
+              ! get energy at given node coordinate via thornado subroutine
+              E = NodeCoordinate( MeshE, ie, ienode)
+
               ! J moment, im = 1
-              if (im .eq. 1) rad_state(i,j,ii) = 1.0e0_rt + 0.9999e0_rt*sin(2.0e0_rt*M_PI*xnode)
+              if (im .eq. 1) rad_state(i,j,ii) = 1.0e0_rt / (exp( (E(1)-M_nu(1)) / T_in(1))  + 1.0e0_rt)
    
               ! H_x moment, im = 2
-              if (im .eq. 2) rad_state(i,j,ii) = 3.0e10_rt*0.9999e0_rt &
-                              *(1.0e0_rt + 0.9999e0_rt*sin(2.0e0_rt*M_PI*xnode))
-   
+              if (im .eq. 2) rad_state(i,j,ii) = 0.0e0_rt  
+
               ! H_y moment, im = 3
               if (im .eq. 3) rad_state(i,j,ii) = 0.0e0_rt
    
