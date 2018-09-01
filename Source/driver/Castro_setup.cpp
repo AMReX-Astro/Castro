@@ -332,7 +332,7 @@ Castro::variableSetUp ()
 
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point, time_integration_method == CTU ? NUM_GROW : 1, NUM_STATE,
+			 StateDescriptor::Point, time_integration_method == CornerTransportUpwind ? NUM_GROW : 1, NUM_STATE,
 			 &cell_cons_interp, state_data_extrap, store_in_checkpoint);
 
 #ifdef ROTATION
@@ -648,7 +648,7 @@ Castro::variableSetUp ()
 
 
 #ifdef REACTIONS
-  if (time_integration_method == SDC && fourth_order == 1) {
+  if (time_integration_method == SpectralDeferredCorrections && fourth_order == 1) {
 
     // we are doing 4th order reactive SDC.  We need 2 ghost cells here
     SDC_Source_Type = desc_lst.size();

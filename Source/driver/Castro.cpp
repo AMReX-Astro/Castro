@@ -344,11 +344,11 @@ Castro::read_params ()
 
     // The timestep retry mechanism is currently incompatible with MOL.
 
-    if (time_integration_method != CTU && use_retry)
+    if (time_integration_method != CornerTransportUpwind && use_retry)
         amrex::Error("Method of lines integration is incompatible with the timestep retry mechanism.");
 
     // fourth order implies MOL or SDC
-    if (fourth_order == 1 && time_integration_method == CTU)
+    if (fourth_order == 1 && time_integration_method == CornerTransportUpwind)
       {
         amrex::Error("WARNING: fourth_order requires a different time_integration_method.");
       }
@@ -3374,7 +3374,8 @@ Castro::swap_state_time_levels(const Real dt)
 #endif
 
 #ifdef REACTIONS
-        if (time_integration_method == SDC && fourth_order == 1 && k == SDC_Source_Type)
+        if (time_integration_method == SpectralDeferredCorrections &&
+            fourth_order == 1 && k == SDC_Source_Type)
             state[k].swapTimeLevels(0.0);
 #endif
         state[k].allocOldData();

@@ -99,11 +99,11 @@ Castro::advance (Real time,
     // we are either CTU, MOL, or the new SDC
 
 #ifndef AMREX_USE_CUDA
-    if (time_integration_method == CTU) {
+    if (time_integration_method == CornerTransportUpwind) {
 
         dt_new = std::min(dt_new, subcycle_advance(time, dt, amr_iteration, amr_ncycle));
 
-    } else if (time_integration_method == MOL) {
+    } else if (time_integration_method == MethodOfLines) {
 #endif
 
       for (int iter = 0; iter < MOL_STAGES; ++iter) {
@@ -112,7 +112,7 @@ Castro::advance (Real time,
       }
 
 #ifndef AMREX_USE_CUDA
-    } else if (time_integration_method == SDC) {
+    } else if (time_integration_method == SpectralDeferredCorrections) {
 
       for (int iter = 0; iter < sdc_order; ++iter) {
 	sdc_iteration = iter;
@@ -830,7 +830,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     // Scale the source term predictor by the current timestep.
 
 #ifndef SDC
-    if (time_integration_method == CTU && source_term_predictor == 1) {
+    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
         sources_for_hydro.mult(0.5 * dt, NUM_GROW);
     }
 #endif
@@ -840,13 +840,13 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     // zones. So we use a FillPatch using the state data to give us
     // Sborder, which does have ghost zones.
 
-    if (time_integration_method == CTU) {
+    if (time_integration_method == CornerTransportUpwind) {
       // for the CTU unsplit method, we always start with the old state
       Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
       const Real prev_time = state[State_Type].prevTime();
       expand_state(Sborder, prev_time, 0, NUM_GROW);
 
-    } else if (time_integration_method == MOL)  {
+    } else if (time_integration_method == MethodOfLines)  {
       // for Method of lines, our initialization of Sborder depends on
       // which stage in the RK update we are working on
 
@@ -883,7 +883,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 
       }
 
-    } else if (time_integration_method == SDC) {
+    } else if (time_integration_method == SpectralDeferredCorrections) {
 
       // we'll handle the filling inside of do_advance_sdc 
       Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
@@ -1032,7 +1032,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // Add the source term predictor.
     // This must happen before the swap.
 
-    if (time_integration_method == CTU && source_term_predictor == 1) {
+    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
         apply_source_term_predictor();
     }
 
@@ -1100,13 +1100,13 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     q.define(grids, dmap, NQ, NUM_GROW);
     q.setVal(0.0);
     qaux.define(grids, dmap, NQAUX, NUM_GROW);
-    if (time_integration_method == CTU)
+    if (time_integration_method == CornerTransportUpwind)
       src_q.define(grids, dmap, QVAR, NUM_GROW);
     if (fourth_order)
       q_bar.define(grids, dmap, NQ, NUM_GROW);
       qaux_bar.define(grids, dmap, NQAUX, NUM_GROW);
 
-    if (time_integration_method == MOL) {
+    if (time_integration_method == MethodOfLines) {
       // if we are not doing CTU advection, then we are doing a method
       // of lines, and need storage for hte intermediate stages
       k_mol.resize(MOL_STAGES);
@@ -1119,7 +1119,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
       Sburn.define(grids, dmap, NUM_STATE, 0);
     }
 
-    if (time_integration_method == SDC) {
+    if (time_integration_method == SpectralDeferredCorrections) {
 
       MultiFab& S_old = get_old_data(State_Type);
       k_new.resize(SDC_NODES);
@@ -1200,7 +1200,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     q.clear();
     qaux.clear();
-    if (time_integration_method == CTU)
+    if (time_integration_method == CornerTransportUpwind)
       src_q.clear();
     if (fourth_order) {
       q_bar.clear();
@@ -1217,12 +1217,12 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     if (!keep_prev_state)
         amrex::FillNull(prev_state);
 
-    if (time_integration_method == MOL) {
+    if (time_integration_method == MethodOfLines) {
       k_mol.clear();
       Sburn.clear();
     }
 
-    if (time_integration_method == SDC) {
+    if (time_integration_method == SpectralDeferredCorrections) {
       k_new.clear();
       A_new.clear();
       A_old.clear();

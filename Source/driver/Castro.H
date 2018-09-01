@@ -70,9 +70,9 @@ enum sources { ext_src = 0,
 
 // time integration method
 
-enum int_method { CTU = 0,
-                  MOL,
-                  SDC };
+enum int_method { CornerTransportUpwind = 0,
+                  MethodOfLines,
+                  SpectralDeferredCorrections };
 
 //
 // AmrLevel-derived class for hyperbolic conservation equations for stellar media

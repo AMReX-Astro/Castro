@@ -261,17 +261,17 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
   // passed in
 
   if (verbose && ParallelDescriptor::IOProcessor()) {
-    if (time_integration_method == MOL) {
+    if (time_integration_method == MethodOfLines) {
       std::cout << "... hydro MOL stage " << mol_iteration << std::endl;
-    } else if (time_integration_method == SDC) {
+    } else if (time_integration_method == SpectralDeferredCorrections) {
       std::cout << "... SDC iteration: " << sdc_iteration << "; current node: " << current_sdc_node << std::endl;
     }
   }
 
   // we'll add each stage's contribution to -div{F(U)} as we compute them
   // (I don't think we need hydro_source anymore)
-  if ((time_integration_method == MOL && mol_iteration == 0) ||
-      (time_integration_method == SDC && current_sdc_node == 0)) {
+  if ((time_integration_method == MethodOfLines && mol_iteration == 0) ||
+      (time_integration_method == SpectralDeferredCorrections && current_sdc_node == 0)) {
     hydro_source.setVal(0.0);
   }
 
@@ -343,7 +343,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
         Real stage_weight = 1.0;
 
-        if (time_integration_method == MOL) {
+        if (time_integration_method == MethodOfLines) {
           stage_weight = b_mol[mol_iteration];
         } 
 
@@ -637,7 +637,7 @@ Castro::cons_to_prim(const Real time)
         // Convert the source terms expressed as sources to the conserved state to those
         // expressed as sources for the primitive state.
 #ifndef AMREX_USE_CUDA
-        if (time_integration_method == CTU) {
+        if (time_integration_method == CornerTransportUpwind) {
           ca_srctoprim(BL_TO_FORTRAN_BOX(qbx),
                        BL_TO_FORTRAN_ANYD(q[mfi]),
                        BL_TO_FORTRAN_ANYD(qaux[mfi]),
