@@ -2,6 +2,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use eos_module
   use eos_type_module
+  use amrex_constants_module, only: half
   use amrex_error_module 
   use network
   use probdata_module
@@ -18,7 +19,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   type (eos_t) :: eos_state
 
-  namelist /fortin/ rho_i, T_i, Ye_i, rhoe_i, p_i
+  namelist /fortin/ rho_i, T_i, Ye_i, rhoe_i, p_i, centx, centy
 
   !
   !     Build "probin" filename -- the name of file containing fortin namelist.
@@ -59,6 +60,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   rhoe_i = rho_i*eos_state%e
   p_i = eos_state%p
 
+  centx = half * (problo(1)+probhi(1))
+  centy = half * (problo(2)+probhi(2))
 
 end subroutine amrex_probinit
 
@@ -148,8 +151,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   do j = lo(2), hi(2)
      do i = lo(1), hi(1)
 
-        x = xlo(1) + delta(1)*(dble(i)+half)
-        y = xlo(2) + delta(2)*(dble(j)+half)
+        x = xlo(1) + delta(1)*(dble(i)+half) - centx
+        y = xlo(2) + delta(2)*(dble(j)+half) - centy
 
         radius = sqrt(x*x+y*y)
  
@@ -268,11 +271,11 @@ subroutine ca_init_thornado_data(level,time,lo,hi, &
   end if
      
   do j = lo(2), hi(2)
-     ycen = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5e0_rt)
+     ycen = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5e0_rt) - centy
 
      do i = lo(1), hi(1)
 
-        xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5e0_rt)
+        xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5e0_rt) - centx
         
         ! get Castro fluid variables unit convert to thornado units
         rho_in(1) = state(i,j,URHO) * Gram / Centimeter**3
@@ -308,8 +311,6 @@ subroutine ca_init_thornado_data(level,time,lo,hi, &
 
               ! Get energy at given node coordinate via thornado subroutine
               E = NodeCoordinate( MeshE, ie, ienode)
-
-              if (j.eq.0) print *,'INIT I,J ',i,j,' WITH T/M_nu/E ', T_in(1), M_nu(1), E(1)
 
               ! J moment, im = 1
               if (im .eq. 1) rad_state(i,j,ii) = 1.0e0_rt / (exp( (E(1)-M_nu(1)) / T_in(1))  + 1.0e0_rt)
