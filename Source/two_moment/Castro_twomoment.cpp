@@ -42,7 +42,7 @@ Castro::init_thornado_data()
     const Real* prob_lo   = geom.ProbLo();
 
     Real eL = 0.;
-    Real eR = 1.;
+    Real eR = 20.;
 
     int swX[3];
     swX[0] = my_ngrow;
