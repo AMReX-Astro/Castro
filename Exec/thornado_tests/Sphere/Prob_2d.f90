@@ -206,7 +206,8 @@ end subroutine get_rad_ncomp
 
 ! hardwired assuming 4 moments
 ! streaming sine wave, J = H_x = 1 + sin(2*pi*x)
-subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
+subroutine ca_init_thornado_data(level,time,lo,hi, &
+                                 nrad_comp,rad_state, &
                                  rad_state_l1,rad_state_l2, &
                                  rad_state_h1,rad_state_h2, &
                                  state,state_l1,state_l2,state_h1,state_h2, &
@@ -274,10 +275,10 @@ subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
         xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5e0_rt)
         
         ! get Castro fluid variables unit convert to thornado units
-        rho_in = state(i,j,URHO) * Gram / Centimeter**3
-        T_in = state(i,j,UTEMP) * Kelvin
-        Evol = state(i,j,UEINT) * (Erg/Centimeter**3)
-        Ne_loc = state(i,j,UFX) / Centimeter**3  
+        rho_in(1) = state(i,j,URHO) * Gram / Centimeter**3
+        T_in(1) = state(i,j,UTEMP) * Kelvin
+        Evol(1) = state(i,j,UEINT) * (Erg/Centimeter**3)
+        Ne_loc(1) = state(i,j,UFX) / Centimeter**3  
         
         ! calculate chemical potentials via thornado subroutines
         call ComputeThermodynamicStates_Auxiliary_TABLE( rho_in, Evol, Ne_loc, T_in, Em_in, Ye_in) 
@@ -301,12 +302,14 @@ subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
               id = (ienode-1) + nx*(ixnode-1) + ny*(iynode-1)
               ii = ii_0 + id
 
-              ! calculate actual positions of the nodes used for the gaussian quadrature
+              ! Calculate actual positions of the nodes used for the gaussian quadrature
               xnode = xcen + ( float(ixnode)-1.5e0_rt )*delta(1)/sqrt(3.0e0_rt)
               ynode = ycen + ( float(iynode)-1.5e0_rt )*delta(2)/sqrt(3.0e0_rt)
 
-              ! get energy at given node coordinate via thornado subroutine
+              ! Get energy at given node coordinate via thornado subroutine
               E = NodeCoordinate( MeshE, ie, ienode)
+
+              if (j.eq.0) print *,'INIT I,J ',i,j,' WITH T/M_nu/E ', T_in(1), M_nu(1), E(1)
 
               ! J moment, im = 1
               if (im .eq. 1) rad_state(i,j,ii) = 1.0e0_rt / (exp( (E(1)-M_nu(1)) / T_in(1))  + 1.0e0_rt)
