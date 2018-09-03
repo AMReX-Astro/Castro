@@ -1,19 +1,5 @@
 # changes since last release
 
-  -- we now only trace under sources that are non-zero, to save
-     computational expense.  #381
-
-  -- The parameter dual_energy_update_E_from_e has been removed,
-     and the default behavior is now that the total energy (E)
-     will not be changed when we reset the internal energy (e).
-     This will cause changes in simulation output. (#368)
-
-  -- The probin parameter eos_input_is_constant is now true by
-     default. This means that when calling the EOS in the mode
-     eos_input_re, the energy will not be updated after the EOS
-     call (e.g. by the Newton iteration scheme in Helmholtz).
-     This will cause changes in simulation output. (#368)
-
   -- The runtime parameter castro.do_ctu was replaced by
      castro.time_integration_method.  The allowed values are
      0 (CTU integration), 1 (MOL), or 2 (SDC)
@@ -26,7 +12,34 @@
      was added.  This will allow for higher-order time integration.
 
 
-18.08
+# 18.09
+
+  -- we now only trace under sources that are non-zero, to save
+     computational expense.  (#381)
+
+  -- we now update T for consistency when we reset a small internal
+     energy, e (#384)
+
+  -- The parameter dual_energy_update_E_from_e has been removed,
+     and the default behavior is now that the total energy (E)
+     will not be changed when we reset the internal energy (e).
+     This will cause changes in simulation output. (#368)
+
+  -- The probin parameter eos_input_is_constant is now true by
+     default. This means that when calling the EOS in the mode
+     eos_input_re, the energy will not be updated after the EOS
+     call (e.g. by the Newton iteration scheme in Helmholtz).
+     This will cause changes in simulation output. (#368)
+
+  -- the problem-specific runtime parameters (probin) are now
+     written to the job_info file (#380)
+
+  -- we now skip the initial EOS call prior to the burn -- this
+     was redundant because we already did a clean_state (#377)
+
+  -- we now support recent versions of hypre (#373)
+
+# 18.08
 
   -- the old use_mlmg_solver parameters were removed -- this
      has been the only multigrid solver in Castro for some time,
