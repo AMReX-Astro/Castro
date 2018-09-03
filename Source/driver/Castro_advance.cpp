@@ -720,7 +720,7 @@ Castro::do_advance_sdc (Real time,
 #ifdef REACTIONS
     // if this is the first node of a new iteration, then we need
     // to compute and store the old reactive source
-    if (m == 0) {
+    if (m == 0 && sdc_iteration == 0) {
       construct_old_react_source(Sborder, *(R_old[0]));
 
       // copy to the other notes
