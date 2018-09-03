@@ -602,7 +602,7 @@ public:
     void do_sdc_update(int m1, int m2, amrex::Real dt);
 
 #ifdef REACTIONS
-    void construct_old_react_source();
+    void construct_old_react_source(amrex::MultiFab& U_state, amrex::MultiFab& R_source);
 #endif
 
 #ifdef AMREX_PARTICLES

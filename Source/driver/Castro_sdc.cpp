@@ -152,44 +152,23 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
 
 #ifdef REACTIONS
 void
-Castro::construct_old_react_source() {
+Castro::construct_old_react_source(amrex::MultiFab& U_state,
+                                   amrex::MultiFab& R_source) {
 
-  // this routine simply fills R_old with the old-iteration reactive
-  // source
+  // this routine simply fills R_source with the reactive source from
+  // state U_state.  Note: it is required that U_state have atleast 2
+  // valid ghost cells for 4th order.
 
   // at this point, k_new has not yet been updated, so it represents
   // the state at the SDC nodes from the previous iteration
-  for (MFIter mfi(*k_new[0]); mfi.isValid(); ++mfi) {
+  for (MFIter mfi(U_state); mfi.isValid(); ++mfi) {
 
     const Box& bx = mfi.tilebox();
 
-    for (int m=0; m < SDC_NODES; m++) {
-
-      // if we are not the first iteration, then we don't need to
-      // recompute the reactive source at the first node -- this is
-      // the old time, and hence doesn't change from one iteration to
-      // the next.
-      if (sdc_iteration > 0 && m == 0)
-        continue;
-
-      // construct the reactive source term
-      ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx),
-                             BL_TO_FORTRAN_3D((*k_new[m])[mfi]),
-                             BL_TO_FORTRAN_3D((*R_old[m])[mfi]));
-
-      // if we are the very first iteration, then there is no old state
-      // at all the time nodes, so we just copy R_old[0] into the other
-      // nodes
-      if (sdc_iteration == 0) {
-
-        for (int n=1; n < SDC_NODES; n++) {
-          MultiFab::Copy(*(R_old[n]), *(R_old[0]), 0, 0, R_old[0]->nComp(), 0);
-        }
-
-        break;
-      }
-
-    }
+    // construct the reactive source term
+    ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx),
+                           BL_TO_FORTRAN_3D(U_state[mfi]),
+                           BL_TO_FORTRAN_3D(R_source[mfi]));
 
   }
 }
