@@ -12,7 +12,7 @@
     use ProgramHeaderModule, only : nE, nDOF, nNodesX, nNodesE
     use FluidFieldsModule, only : uCF, iCF_D, iCF_S1, iCF_S2, iCF_E, iCF_Ne
     use RadiationFieldsModule, only : nSpecies, uCR
-    use TimeSteppingModule_Castro, only : Update_IMEX_PC2
+    use TimeSteppingModule_Castro, only : Update_IMEX_PDARS
     use UnitsModule, only : Gram, Centimeter, Second
 
     implicit none
@@ -65,7 +65,7 @@
     conv_mom  = Gram / Centimeter**2 / Second
     conv_enr  = Gram / Centimeter / Second**2
     conv_ne   = 1.d0 / Centimeter**3
-    conv_J    = Gram/Second**2/Centimeter
+    conv_J    = Gram/Second**2/Centimeter ! check that this is correct
     conv_H    = Gram/Second**3
 
     ! ************************************************************************************
@@ -108,8 +108,11 @@
          do ie = 1, nE
          do id = 1, nDOF
             ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
-            if (im .eq. 1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,ii)*conv_J
-            if (im   >  1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,ii)*conv_H
+!            if (im .eq. 1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,ii)*conv_J
+            if (im .eq. 1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,ii)
+!            if (im   >  1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,ii)*conv_H
+            if (im   >  1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,ii)
+            write(*,*) 'jc,ic,is,im,ie,id,uCR=',jc,ic,is,im,ie,id,uCR(id,ie,i,j,k,im,is)
          end do
          end do
          end do
@@ -121,7 +124,7 @@
     ! ************************************************************************************
     ! Call the Fortran interface that lives in the thornado repo
     ! ************************************************************************************
-    call Update_IMEX_PC2(dt*Second, uCF, uCR)
+    call Update_IMEX_PDARS(dt*Second, uCF, uCR)
 
     ! ************************************************************************************
     ! Copy back from the thornado arrays into Castro arrays
@@ -153,8 +156,10 @@
          do id = 1, nDOF
             ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
 
-            if (im .eq. 1) U_R_n(ic,jc,ii) = uCR(id,ie,i,j,k,im,is)/conv_J
-            if (im   >  1) U_R_n(ic,jc,ii) = uCR(id,ie,i,j,k,im,is)/conv_H
+!            if (im .eq. 1) U_R_n(ic,jc,ii) = uCR(id,ie,i,j,k,im,is)/conv_J
+!            if (im   >  1) U_R_n(ic,jc,ii) = uCR(id,ie,i,j,k,im,is)/conv_H
+            if (im .eq. 1) U_R_n(ic,jc,ii) = uCR(id,ie,i,j,k,im,is)
+            if (im   >  1) U_R_n(ic,jc,ii) = uCR(id,ie,i,j,k,im,is)
 
          end do
          end do

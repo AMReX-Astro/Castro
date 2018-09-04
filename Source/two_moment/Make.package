@@ -51,6 +51,7 @@ ca_F90EXE_sources += derive_two_moment_nd.F90
   ca_f90EXE_sources += TwoMoment_DiscretizationModule_Streaming.f90
   ca_f90EXE_sources += TwoMoment_BoundaryConditionsModule.f90
   ca_f90EXE_sources += TwoMoment_UtilitiesModule.f90
+  ca_f90EXE_sources += TwoMoment_DiscretizationModule_Collisions_Neutrinos.f90
 
 # In Modules/Units
   ca_f90EXE_sources += PhysicalConstantsModule.f90
@@ -66,6 +67,8 @@ ca_F90EXE_sources += derive_two_moment_nd.F90
 
 # In Modules/Opacities
   ca_F90EXE_sources += OpacityModule_TABLE.F90
+  ca_f90EXE_sources += NeutrinoOpacitiesModule.f90
+  ca_F90EXE_sources += NeutrinoOpacitiesComputationModule.F90
 
 # In weaklib/Distributions/Library
   ca_f90EXE_sources += wlKindModule.f90

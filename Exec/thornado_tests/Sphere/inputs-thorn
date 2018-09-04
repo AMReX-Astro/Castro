@@ -1,15 +1,16 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 10000
-max_step = 0
+max_step = 10
 stop_time =  10.e0
 
 # PROBLEM SIZE & GEOMETRY
-geometry.is_periodic = 1 1 1
+geometry.is_periodic = 0 0 0
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
-geometry.prob_lo     =  0     0     0
-geometry.prob_hi     = 1.e8    1.e8    1.e8
-amr.n_cell           = 128     128      128
-amr.n_cell           = 64 64 64
+geometry.prob_lo     =  -1.e7     -1.e7     -1.e7
+geometry.prob_hi     = 1.e7    1.e7    1.e7 # 100km
+#amr.n_cell           = 128     128      128
+#amr.n_cell           = 64 64 64
+amr.n_cell           = 16 16 16
 
 amr.max_grid_size   = 64
 fabarray.mfiter_tile_size = 1024 1024 1024
@@ -19,8 +20,8 @@ fabarray.mfiter_tile_size = 1024 1024 1024
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  0   0   0
-castro.hi_bc       =  0   0   0
+castro.lo_bc       =  2   2   2
+castro.hi_bc       =  2   2   2
 
 # WHICH PHYSICS
 castro.do_hydro = 1

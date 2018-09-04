@@ -9,7 +9,7 @@ int
 Castro::init_thornado()
 {
     int nDimsX   = BL_SPACEDIM;
-    int nDimsE   = 1;
+    int nDimsE   = 1; // this specifies the number of energy groups in thornado, maybe change name?
     int nSpecies = THORNADO_NSPECIES;
 
     amrex::Print() << "*****Calling InitThornado " << std::endl; 
