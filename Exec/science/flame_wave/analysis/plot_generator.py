@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
 import yt
-from yt.units import cm
-from yt import derived_field
+from yt.units import amu, cm
 
 import os
 import sys
@@ -11,16 +10,17 @@ import argparse
 import numpy as np
 
 from collections import namedtuple
+from functools import reduce
 
 # Argument information
 description = """Generates plots of datasets using a specified yt plot function. Works with any slice or projection
         plot, as well as ParticlePlot."""
-name_help = "The name of the main module."
 datasets_help = "A list of datasets to be loaded by yt. Will be sorted by plot number by default."
 func_help = "The plotting function to use. SlicePlot by default."
 out_help = "The desired output directory for the image files."
 var_help = "The variable to plot. Set to 'Temp' by default."
 bounds_help = "The bounds for the colorbar."
+cmap_help = "The colormap for the variable to plot."
 log_help = "If provided, sets the plot to a logarithmic scale."
 time_help = "If provided, adds a timestamp to each plot with the given precision."
 ext_help = "The extension of the file format to save to. PNG by default."
@@ -29,7 +29,8 @@ sort_help = """A floating point number specifying the digits to sort file names 
         descending order."""
 quiver_help = """Overplots a vector field on each generated plot, taking the x and y components, the number of
         points to skip, and a scale factor for the arrows."""
-contour_help = "Adds a contour map to the plot."
+contour_help = "Adds a contour map to the plot, with NCONT contours and limits specified by CLIM_LOW and CLIM_HI."
+contour_opt_help = "Plot args to supply to the matplotlib contour function. Takes colors and linewidths."
 xlim_help = "The x-axis limits."
 ylim_help = "The y-axis limits."
 stream_help = "Adds streamlines to the plot, showing the given vector field and a number of points to skip."
@@ -47,13 +48,16 @@ parser.add_argument('-f', '--func', default='SlicePlot', help=func_help)
 parser.add_argument('-o', '--out', default='', help=out_help)
 parser.add_argument('-v', '--var', default='Temp', help=var_help)
 parser.add_argument('-b', '--bounds', nargs=2, type=float, metavar=('LOWER', 'UPPER'), help=bounds_help)
+parser.add_argument('-c', '--cmap', metavar=('NAME',), help=cmap_help)
 parser.add_argument('--log', action='store_true', help=log_help)
-parser.add_argument('-t', '--time', type=int, default=-1, metavar=('PRECISION',), help=time_help)
+parser.add_argument('-t', '--time', type=int, metavar=('PRECISION',), help=time_help)
 parser.add_argument('-e', '--ext', type=lambda s: s.lower(), default='png', help=ext_help)
 parser.add_argument('-s', '--sort', type=float, default=0.0, help=sort_help)
 parser.add_argument('-q', '--quiver', nargs=4, metavar=('XFIELD', 'YFIELD', 'FACTOR', 'SCALE'),
         help=quiver_help)
-parser.add_argument('-c', '--contour', metavar=('FIELD',), help=contour_help)
+parser.add_argument('-C', '--contour', nargs=4, metavar=('FIELD', 'NCONT', 'CLIM_LOW', 'CLIM_HI'), help=contour_help)
+parser.add_argument('-Co', '--contour_opt', nargs=2, metavar=('COLORS', 'LINEWIDTHS'),
+        help=contour_opt_help)
 parser.add_argument('-x', '--xlim', nargs=2, type=float, metavar=('UPPER', 'LOWER'), help=xlim_help)
 parser.add_argument('-y', '--ylim', nargs=2, type=float, metavar=('UPPER', 'LOWER'), help=ylim_help)
 parser.add_argument('-S', '--stream', nargs=3, metavar=('XFIELD', 'YFIELD', 'FACTOR'))
@@ -66,8 +70,6 @@ coloropts = ['field_color', 'cmap', 'display_threshold', 'cbar']
 ColorOpt = namedtuple('ColorOpt', field_names=coloropts)
 optdict = dict(field_color=None, display_threshold=None, cmap=None, cbar=False)
 
-contour_opt = {}
-
 if args.quiver is not None:
 
     args.quiver[2] = int(args.quiver[2])
@@ -76,6 +78,18 @@ if args.quiver is not None:
 if args.stream is not None:
 
     args.stream[2] = int(args.stream[2])
+    
+if args.contour is not None:
+    
+    args.contour[1:] = list(map(float, args.contour[1:]))
+    
+    if args.contour_opt is not None:
+        
+        contour_opt = {'plot_args': {'colors': args.contour_opt[0], 'linewidths': int(args.contour_opt[1])}}
+
+else:
+    
+    contour_opt = {}
 
 if args.flame_wave:
 
@@ -83,8 +97,8 @@ if args.flame_wave:
     args.quiver = None
     args.stream = ['x_velocity', 'y_velocity', 16]
     optdict = dict(field_color='transvel', cmap='kamae', display_threshold=1.5e7, cbar=False)
-    args.contour = 'enuc'
-    contour_opt = {'ncont': 3, 'clim': (1e16, 1e20), 'plot_args': {"colors": "0.7", "linewidths": 1}}
+    args.contour = ['enuc', 3, 1e16, 1e20]
+    contour_opt = {'plot_args': {'colors': '0.7', 'linewidths': 1}}
     args.ylim = (0.375e4, 1.5e4)
     args.xlim = (0.0, 5e4)
 
@@ -181,16 +195,52 @@ def get_center(ds, xlim=None, ylim=None, zlim=None):
 
     return xctr, yctr, zctr
 
-@derived_field(name='transvel', units='cm/s', sampling_type='cell')
+# Derived fields
 def _transvel(field, data):
     """ Transverse velocity """
 
     return np.sqrt(data['x_velocity']**2 + data['y_velocity']**2)
+    
+# Get mass fraction fields and atomic masses, assuming an identical field list for each dataset.
+xfilt = lambda f: f.startswith("X(") and f.endswith(")")
+fields = map(lambda f: f[1], ts[0].field_list)
+mfrac_fields = np.array(list(filter(xfilt, fields)))
+
+def to_atomic_mass(mfrac_field):
+    """Conversion function from field names to atomic masses."""
+    
+    numeric = filter(lambda char: char.isnumeric(), mfrac_field)
+    return int(reduce(lambda a, b: a + b, numeric))
+
+atomic_masses = np.array(list(map(to_atomic_mass, mfrac_fields)))
+indices = np.argsort(atomic_masses)
+
+mfrac_fields = mfrac_fields[indices]
+atomic_masses = atomic_masses[indices]
+
+# Define Abar
+def _Abar(field, data):
+    """ Mean atomic mass. """
+   
+    sum = None
+
+    for i, f in enumerate(mfrac_fields):
+       
+       mfracs = data[f]
+       A = atomic_masses[i]
+       
+       if sum is None: sum = mfracs / A
+       else: sum += mfracs / A
+       
+    return 1 / sum * amu
 
 print("Generating...")
 
 # Loop and generate
 for ds in ts:
+    
+    ds.add_field(("gas", "transvel"), function=_transvel, units="cm/s", sampling_type="cell")
+    ds.add_field(("gas", "Abar"), function=_Abar, units="amu", sampling_type="cell")
 
     settings = {}
     settings['center'] = get_center(ds, args.xlim, args.ylim)
@@ -200,21 +250,25 @@ for ds in ts:
         settings['origin'] = 'native'
 
     plot = func(ds, fields=field, **settings)
+    if args.cmap: plot.set_cmap(field=field, cmap=args.cmap)
 
     if args.bounds is not None:
         plot.set_zlim(field, *args.bounds)
 
     plot.set_log(field, args.log)
 
-    if args.time > 0:
-        plot.annotate_timestamp(corner='upper_left', time_format='t = {{time:.{}f}}{{units}}'.format(args.time),
+    if args.time:
+        
+        time_format = 't = {{time:.{}f}}{{units}}'.format(args.time)
+        
+        plot.annotate_timestamp(corner='upper_left', time_format=time_format,
                 time_unit='s', draw_inset_box=True, inset_box_args={'alpha': 0.0})
 
     if args.quiver is not None:
         plot.annotate_quiver(*args.quiver)
 
     if args.contour is not None:
-        plot.annotate_contour(args.contour, **contour_opt)
+        plot.annotate_contour(args.contour[0], ncont=args.contour[1], clim=args.contour[2:], **contour_opt)
 
     if args.stream is not None:
 
