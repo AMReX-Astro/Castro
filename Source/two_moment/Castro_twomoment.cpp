@@ -41,6 +41,8 @@ Castro::init_thornado_data()
     int * boxlen = new int[3];
     const Real* prob_lo   = geom.ProbLo();
 
+    // Note these are in units of MeV; we will convert to thornado units inside
+    //      InitThornado_Patch
     Real eL = 0.;
     Real eR = 20.;
 
