@@ -167,7 +167,9 @@ Castro::create_thornado_source(Real dt)
         //     only be non-zero source terms for (Rho, Xmom, Ymom, Zmom, RhoE, UFX)
         MultiFab::Add(S_new, dS, Density, 0, S_new.nComp(), 0);
 
-        if (i == (n_sub-1)) FreeThornado_Patch();
+//      Note we can't call FreeThornado_Patch here because it is only initialized 
+//        at the begining of the run, not every timestep
+//      if (i == (n_sub-1)) FreeThornado_Patch();
       }
       S_border.FillBoundary();
     }
