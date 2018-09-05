@@ -315,7 +315,6 @@ subroutine ca_init_thornado_data(level,time,lo,hi, &
               ! J moment, im = 1
               if (im .eq. 1) then 
                       rad_state(i,j,ii) = 1.0e0_rt / (exp( (E(1)-M_nu(1)) / T_in(1))  + 1.0e0_rt)
-                      write(*,*)'J=',rad_state(i,j,ii)
               endif 
               ! H_x moment, im = 2
               if (im .eq. 2) rad_state(i,j,ii) = 0.0e0_rt  

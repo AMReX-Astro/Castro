@@ -95,6 +95,7 @@
          uCF(1:n_fluid_dof,i,j,k,iCF_E)  = S(ic,jc,UEDEN) * conv_enr
          uCF(1:n_fluid_dof,i,j,k,iCF_Ne) = S(ic,jc,UFX)   * conv_ne
 
+         WRITE(*,*), "uCF1=", i,j,k,uCF(1,i,j,k,iCF_E),uCF(1,i,j,k,iCF_Ne) 
          ! The uCF array was allocated in CreateRadiationdFields_Conserved with 
          ! ALLOCATE &
          !   ( uCR(1:nDOF, &
@@ -108,11 +109,8 @@
          do ie = 1, nE
          do id = 1, nDOF
             ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
-!            if (im .eq. 1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,ii)*conv_J
             if (im .eq. 1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,ii)
-!            if (im   >  1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,ii)*conv_H
             if (im   >  1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,ii)
-            write(*,*) 'jc,ic,is,im,ie,id,uCR=',jc,ic,is,im,ie,id,uCR(id,ie,i,j,k,im,is)
          end do
          end do
          end do
@@ -124,6 +122,7 @@
     ! ************************************************************************************
     ! Call the Fortran interface that lives in the thornado repo
     ! ************************************************************************************
+
     call Update_IMEX_PDARS(dt*Second, uCF, uCR)
 
     ! ************************************************************************************
@@ -143,21 +142,17 @@
          !  can just use the first component
          ! Update_IMEX_PC2 doesn't currently change the fluid density or momentum
 
-!         dS(ic,jc,URHO ) = uCF(1,i,j,k,iCF_D)  / conv_dens - S(i,j,URHO)
-!         dS(ic,jc,UMX  ) = uCF(1,i,j,k,iCF_S1) / conv_mom  - S(i,j,UMX)
-!         dS(ic,jc,UMY  ) = uCF(1,i,j,k,iCF_S2) / conv_mom  - S(i,j,UMY)
-          dS(ic,jc,UEDEN) = uCF(1,i,j,k,iCF_E)  / conv_enr  - S(i,j,UEDEN)
+!         dS(ic,jc,URHO ) = uCF(1,i,j,k,iCF_D)  / conv_dens - S(ic,jc,URHO)
+!         dS(ic,jc,UMX  ) = uCF(1,i,j,k,iCF_S1) / conv_mom  - S(ic,jc,UMX)
+!         dS(ic,jc,UMY  ) = uCF(1,i,j,k,iCF_S2) / conv_mom  - S(ic,jc,UMY)
+          dS(ic,jc,UEDEN) = uCF(1,i,j,k,iCF_E)  / conv_enr  - S(ic,jc,UEDEN)
           dS(ic,jc,UEINT) = dS(ic,jc,UEDEN)     ! TRUE IFF NO MOMENTUM SOURCE TERMS
-          dS(ic,jc,UFX  ) = uCF(1,i,j,k,iCF_Ne) / conv_ne   - S(i,j,UFX)
-
+          dS(ic,jc,UFX  ) = uCF(1,i,j,k,iCF_Ne) / conv_ne   - S(ic,jc,UFX)
          do is = 1, nSpecies
          do im = 1, n_moments
          do ie = 1, nE
          do id = 1, nDOF
             ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
-
-!            if (im .eq. 1) U_R_n(ic,jc,ii) = uCR(id,ie,i,j,k,im,is)/conv_J
-!            if (im   >  1) U_R_n(ic,jc,ii) = uCR(id,ie,i,j,k,im,is)/conv_H
             if (im .eq. 1) U_R_n(ic,jc,ii) = uCR(id,ie,i,j,k,im,is)
             if (im   >  1) U_R_n(ic,jc,ii) = uCR(id,ie,i,j,k,im,is)
 
