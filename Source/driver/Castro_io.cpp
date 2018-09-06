@@ -374,7 +374,7 @@ Castro::restart (Amr&     papa,
 #ifdef AMREX_DIMENSION_AGNOSTIC
               BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
                 (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), ns,
-		 BL_TO_FORTRAN_3D(S_new[mfi]), ZFILL(dx),
+		 BL_TO_FORTRAN_ANYD(S_new[mfi]), ZFILL(dx),
 		 ZFILL(geom.ProbLo()), ZFILL(geom.ProbHi()));
 #else
 	      BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
@@ -890,7 +890,17 @@ Castro::writeJobInfo (const std::string& dir)
   diffusion->output_job_info_params(jobInfoFile);
 #endif
 
-jobInfoFile.close();
+  jobInfoFile.close();
+
+  // now the external parameters
+  const int jobinfo_file_length = FullPathJobInfoFile.length();
+  Vector<int> jobinfo_file_name(jobinfo_file_length);
+
+  for (int i = 0; i < jobinfo_file_length; i++)
+    jobinfo_file_name[i] = FullPathJobInfoFile[i];
+
+  runtime_pretty_print(jobinfo_file_name.dataPtr(), &jobinfo_file_length);
+
 
 }
 

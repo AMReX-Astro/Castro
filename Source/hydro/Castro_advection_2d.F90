@@ -1,6 +1,7 @@
 module ctu_advection_module
 
-  use bl_constants_module, only : ZERO, HALF, ONE, FOURTH, TWO
+  use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH, TWO
+  use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -158,6 +159,8 @@ contains
 
     type(eos_t) :: eos_state
 
+    logical :: source_nonzero(QVAR)
+
     tflx_lo = [lo(1), lo(2)-1, 0]
     tflx_hi = [hi(1)+1, hi(2)+1, 0]
 
@@ -286,13 +289,24 @@ contains
                                dx(1), dx(2), &
                                lo(1), lo(2), hi(1), hi(2))
           enddo
-
+#ifndef AMREX_USE_CUDA
        else
-          call bl_error("ERROR: invalid value of islope")
-          
+          call amrex_error("ERROR: invalid value of islope")
+#endif          
        endif       
 
     else
+
+       ! preprocess the sources -- we don't want to trace under a source that is empty
+       do n = 1, QVAR
+          if (minval(srcQ(lo(1)-2:hi(1)+2,lo(2)-2:hi(2)+2,n)) == ZERO .and. &
+              maxval(srcQ(lo(1)-2:hi(1)+2,lo(2)-2:hi(2)+2,n)) == ZERO) then
+             source_nonzero(n) = .false.
+          else
+             source_nonzero(n) = .true.
+          endif
+       enddo
+
 
        ! Compute Ip and Im -- this does the parabolic reconstruction,
        ! limiting, and returns the integral of each profile under each
@@ -363,17 +377,22 @@ contains
        endif
 
        do n = 1, QVAR
-          call ppm_reconstruct(srcQ, src_lo, src_hi, QVAR, n, &
-                               flatn, q_lo, q_hi, &
-                               sxm, sxp, sym, syp, q_lo, q_hi, &
-                               lo(1), lo(2), hi(1), hi(2), dx, 0, 0)
+          if (source_nonzero(n)) then
+             call ppm_reconstruct(srcQ, src_lo, src_hi, QVAR, n, &
+                                  flatn, q_lo, q_hi, &
+                                  sxm, sxp, sym, syp, q_lo, q_hi, &
+                                  lo(1), lo(2), hi(1), hi(2), dx, 0, 0)
 
-          call ppm_int_profile(srcQ, src_lo, src_hi, QVAR, n, &
-                               q, q_lo, q_hi, &
-                               qaux, qa_lo, qa_hi, &
-                               sxm, sxp, sym, syp, q_lo, q_hi, &
-                               Ip_src, Im_src, I_lo, I_hi, QVAR, n, &
-                               lo(1), lo(2), hi(1), hi(2), dx, dt, 0, 0)
+             call ppm_int_profile(srcQ, src_lo, src_hi, QVAR, n, &
+                                  q, q_lo, q_hi, &
+                                  qaux, qa_lo, qa_hi, &
+                                  sxm, sxp, sym, syp, q_lo, q_hi, &
+                                  Ip_src, Im_src, I_lo, I_hi, QVAR, n, &
+                                  lo(1), lo(2), hi(1), hi(2), dx, dt, 0, 0)
+          else
+             Ip_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),:,:,n) = ZERO
+             Im_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),:,:,n) = ZERO
+          endif
        enddo
 
        deallocate(sxm, sxp, sym, syp)
@@ -384,7 +403,9 @@ contains
     ! and  qym and qyp will be the states on either side of the y interfaces
     if (ppm_type .eq. 0) then
 #ifdef RADIATION
-       call bl_error("ppm_type <=0 is not supported in umeth for radiation")
+#ifndef AMREX_USE_CUDA
+       call amrex_error("ppm_type <=0 is not supported in umeth for radiation")
+#endif
 #else
        call tracexy(q, q_lo, q_hi, &
                     qaux, qa_lo, qa_hi, &
@@ -551,7 +572,7 @@ contains
 
                                    limit_fluxes_on_small_dens, NQ
     use prob_params_module, only : mom_flux_has_p, domlo_level, domhi_level, center
-    use bl_constants_module, only : ZERO, HALF
+    use amrex_constants_module, only : ZERO, HALF
     use advection_util_module, only: limit_hydro_fluxes_on_small_dens, normalize_species_fluxes, calc_pdivu
     use castro_util_module, only : position, linear_to_angular_momentum
     use amrinfo_module, only : amr_level

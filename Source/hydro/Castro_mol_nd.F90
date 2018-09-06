@@ -32,6 +32,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
                                vol, vol_lo, vol_hi, &
                                verbose) bind(C, name="ca_mol_single_stage")
 
+  use amrex_error_module
   use amrex_mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, GDPRES, &
                                  UTEMP, UEINT, USHK, GDU, GDV, GDW, UMX, &
@@ -41,7 +42,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
                                  limit_fluxes_on_small_dens, ppm_type, ppm_temp_fix
   use advection_util_module, only : limit_hydro_fluxes_on_small_dens, shock, &
                                     divu, normalize_species_fluxes, calc_pdivu
-  use bl_constants_module, only : ZERO, HALF, ONE, FOURTH
+  use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
   use flatten_module, only: uflatten
   use riemann_module, only: cmpflx
   use ppm_module, only : ppm_reconstruct
@@ -201,10 +202,12 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   call bl_allocate(shk, shk_lo, shk_hi)
 
+#ifndef AMREX_USE_CUDA  
   if (ppm_type == 0) then
-     call bl_error("ERROR: method of lines integration does not support ppm_type = 0")
+     call amrex_error("ERROR: method of lines integration does not support ppm_type = 0")
   endif
-  
+#endif
+
 #ifdef SHOCK_VAR
     uout(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), USHK) = ZERO
 

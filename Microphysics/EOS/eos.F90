@@ -14,15 +14,53 @@ contains
   subroutine eos_init(small_temp, small_dens)
 
     use amrex_fort_module, only: rt => amrex_real
-    use parallel, only: parallel_IOProcessor
-    use bl_error_module, only: bl_warn
-    use eos_type_module, only: mintemp, mindens
+    use amrex_error_module
+    use amrex_paralleldescriptor_module, only : amrex_pd_ioprocessor
+    use eos_type_module, only: mintemp, mindens, maxtemp, maxdens, &
+                               minx, maxx, minye, maxye, mine, maxe, &
+                               minp, maxp, mins, maxs, minh, maxh
     use actual_eos_module, only: actual_eos_init
 
     implicit none
 
     real(rt), optional :: small_temp
     real(rt), optional :: small_dens
+
+    ! Allocate and set default values
+
+    allocate(mintemp)
+    allocate(maxtemp)
+    allocate(mindens)
+    allocate(maxdens)
+    allocate(minx)
+    allocate(maxx)
+    allocate(minye)
+    allocate(maxye)
+    allocate(mine)
+    allocate(maxe)
+    allocate(minp)
+    allocate(maxp)
+    allocate(mins)
+    allocate(maxs)
+    allocate(minh)
+    allocate(maxh)
+
+    mintemp = 1.d-200
+    maxtemp = 1.d200
+    mindens = 1.d-200
+    maxdens = 1.d200
+    minx    = 1.d-200
+    maxx    = 1.d0 + 1.d-12
+    minye   = 1.d-200
+    maxye   = 1.d0 + 1.d-12
+    mine    = 1.d-200
+    maxe    = 1.d200
+    minp    = 1.d-200
+    maxp    = 1.d200
+    mins    = 1.d-200
+    maxs    = 1.d200
+    minh    = 1.d-200
+    maxh    = 1.d200
 
     ! Set up any specific parameters or initialization steps required by the EOS we are using.
 
@@ -39,8 +77,8 @@ contains
 
     if (present(small_temp)) then
        if (small_temp < mintemp) then
-          if (parallel_IOProcessor()) then
-             call bl_warn('EOS: small_temp cannot be less than the mintemp allowed by the EOS. Resetting small_temp to mintemp.')
+          if (amrex_pd_ioprocessor()) then
+             call bl_warning('EOS: small_temp cannot be less than the mintemp allowed by the EOS. Resetting small_temp to mintemp.')
           endif
           small_temp = mintemp
        else
@@ -50,8 +88,8 @@ contains
 
     if (present(small_dens)) then
        if (small_dens < mindens) then
-          if (parallel_IOProcessor()) then
-             call bl_warn('EOS: small_dens cannot be less than the mindens allowed by the EOS. Resetting small_dens to mindens.')
+          if (amrex_pd_ioprocessor()) then
+             call bl_warning('EOS: small_dens cannot be less than the mindens allowed by the EOS. Resetting small_dens to mindens.')
           endif
           small_dens = mindens
        else
@@ -68,6 +106,16 @@ contains
   end subroutine eos_init
 
 
+  subroutine eos_finalize()
+
+    use actual_eos_module, only: actual_eos_finalize
+
+    implicit none
+
+    call actual_eos_finalize()
+
+  end subroutine eos_finalize
+
 
   subroutine eos(input, state)
 
@@ -79,8 +127,8 @@ contains
 #endif
     use actual_eos_module, only: actual_eos
     use eos_override_module, only: eos_override
-#ifndef ACC
-    use bl_error_module, only: bl_error
+#if (!(defined(AMREX_USE_CUDA) || defined(ACC)))
+    use amrex_error_module, only: amrex_error
 #endif
 
     implicit none
@@ -92,10 +140,12 @@ contains
 
     logical :: has_been_reset
 
+    !$gpu
+
     ! Local variables
 
-#ifndef ACC
-    if (.not. initialized) call bl_error('EOS: not initialized')
+#if (!(defined(AMREX_USE_CUDA) || defined(ACC)))
+    if (.not. initialized) call amrex_error('EOS: not initialized')
 #endif
 
     ! Get abar, zbar, etc.
@@ -142,6 +192,8 @@ contains
     integer,      intent(in   ) :: input
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
+
+    !$gpu
 
     ! Reset the input quantities to valid values. For inputs other than rho and T,
     ! this will evolve an EOS call, which will negate the need to do the main EOS call.
@@ -205,6 +257,8 @@ contains
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
 
+    !$gpu
+
     state % rho = min(maxdens, max(mindens, state % rho))
 
   end subroutine reset_rho
@@ -224,6 +278,8 @@ contains
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
 
+    !$gpu
+
     state % T = min(maxtemp, max(mintemp, state % T))
 
   end subroutine reset_T
@@ -240,6 +296,8 @@ contains
 
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
+
+    !$gpu
 
     if (state % e .lt. mine .or. state % e .gt. maxe) then
        call eos_reset(state, has_been_reset)
@@ -260,6 +318,8 @@ contains
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
 
+    !$gpu
+
     if (state % h .lt. minh .or. state % h .gt. maxh) then
        call eos_reset(state, has_been_reset)
     endif
@@ -279,6 +339,8 @@ contains
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
 
+    !$gpu
+
     if (state % s .lt. mins .or. state % s .gt. maxs) then
        call eos_reset(state, has_been_reset)
     endif
@@ -297,6 +359,8 @@ contains
 
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
+
+    !$gpu
 
     if (state % p .lt. minp .or. state % p .gt. maxp) then
        call eos_reset(state, has_been_reset)
@@ -321,6 +385,8 @@ contains
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
 
+    !$gpu
+
     state % T = min(maxtemp, max(mintemp, state % T))
     state % rho = min(maxdens, max(mindens, state % rho))
 
@@ -332,11 +398,12 @@ contains
 
 
 
-#ifndef ACC
+#if (!(defined(AMREX_USE_CUDA) || defined(ACC)))
   subroutine check_inputs(input, state)
 
     !$acc routine seq
 
+    use amrex_error_module
     use network, only: nspec
     use eos_type_module, only: eos_t, print_state, minx, maxx, minye, maxye, &
                                eos_input_rt, eos_input_re, eos_input_rp, eos_input_rh, &
@@ -354,19 +421,19 @@ contains
     do n = 1, nspec
        if (state % xn(n) .lt. minx) then
           call print_state(state)
-          call bl_error('EOS: mass fraction less than minimum possible mass fraction.')
+          call amrex_error('EOS: mass fraction less than minimum possible mass fraction.')
        else if (state % xn(n) .gt. maxx) then
           call print_state(state)
-          call bl_error('EOS: mass fraction more than maximum possible mass fraction.')
+          call amrex_error('EOS: mass fraction more than maximum possible mass fraction.')
        endif
     enddo
 
     if (state % y_e .lt. minye) then
        call print_state(state)
-       call bl_error('EOS: y_e less than minimum possible electron fraction.')
+       call amrex_error('EOS: y_e less than minimum possible electron fraction.')
     else if (state % y_e .gt. maxye) then
        call print_state(state)
-       call bl_error('EOS: y_e greater than maximum possible electron fraction.')
+       call amrex_error('EOS: y_e greater than maximum possible electron fraction.')
     endif
 
     if (input .eq. eos_input_rt) then
@@ -419,6 +486,7 @@ contains
 
     !$acc routine seq
 
+    use amrex_error_module
     use eos_type_module, only: eos_t, mindens, maxdens, print_state
 
     implicit none
@@ -427,10 +495,10 @@ contains
 
     if (state % rho .lt. mindens) then
        call print_state(state)
-       call bl_error('EOS: rho smaller than mindens.')
+       call amrex_error('EOS: rho smaller than mindens.')
     else if (state % rho .gt. maxdens) then
        call print_state(state)
-       call bl_error('EOS: rho greater than maxdens.')
+       call amrex_error('EOS: rho greater than maxdens.')
     endif
 
   end subroutine check_rho
@@ -441,6 +509,7 @@ contains
 
     !$acc routine seq
 
+    use amrex_error_module
     use eos_type_module, only: eos_t, mintemp, maxtemp, print_state
 
     implicit none
@@ -449,10 +518,10 @@ contains
 
     if (state % T .lt. mintemp) then
        call print_state(state)
-       call bl_error('EOS: T smaller than mintemp.')
+       call amrex_error('EOS: T smaller than mintemp.')
     else if (state % T .gt. maxtemp) then
        call print_state(state)
-       call bl_error('EOS: T greater than maxtemp.')
+       call amrex_error('EOS: T greater than maxtemp.')
     endif
 
   end subroutine check_T
@@ -463,6 +532,7 @@ contains
 
     !$acc routine seq
 
+    use amrex_error_module
     use eos_type_module, only: eos_t, mine, maxe, print_state
 
     implicit none
@@ -471,10 +541,10 @@ contains
 
     if (state % e .lt. mine) then
        call print_state(state)
-       call bl_error('EOS: e smaller than mine.')
+       call amrex_error('EOS: e smaller than mine.')
     else if (state % e .gt. maxe) then
        call print_state(state)
-       call bl_error('EOS: e greater than maxe.')
+       call amrex_error('EOS: e greater than maxe.')
     endif
 
   end subroutine check_e
@@ -485,6 +555,7 @@ contains
 
     !$acc routine seq
 
+    use amrex_error_module
     use eos_type_module, only: eos_t, minh, maxh, print_state
 
     implicit none
@@ -493,10 +564,10 @@ contains
 
     if (state % h .lt. minh) then
        call print_state(state)
-       call bl_error('EOS: h smaller than minh.')
+       call amrex_error('EOS: h smaller than minh.')
     else if (state % h .gt. maxh) then
        call print_state(state)
-       call bl_error('EOS: h greater than maxh.')
+       call amrex_error('EOS: h greater than maxh.')
     endif
 
   end subroutine check_h
@@ -507,6 +578,7 @@ contains
 
     !$acc routine seq
 
+    use amrex_error_module
     use eos_type_module, only: eos_t, mins, maxs, print_state
 
     implicit none
@@ -515,10 +587,10 @@ contains
 
     if (state % s .lt. mins) then
        call print_state(state)
-       call bl_error('EOS: s smaller than mins.')
+       call amrex_error('EOS: s smaller than mins.')
     else if (state % s .gt. maxs) then
        call print_state(state)
-       call bl_error('EOS: s greater than maxs.')
+       call amrex_error('EOS: s greater than maxs.')
     endif
 
   end subroutine check_s
@@ -529,6 +601,7 @@ contains
 
     !$acc routine seq
 
+    use amrex_error_module
     use eos_type_module, only: eos_t, minp, maxp, print_state
 
     implicit none
@@ -537,10 +610,10 @@ contains
 
     if (state % p .lt. minp) then
        call print_state(state)
-       call bl_error('EOS: p smaller than minp.')
+       call amrex_error('EOS: p smaller than minp.')
     else if (state % p .gt. maxp) then
        call print_state(state)
-       call bl_error('EOS: p greater than maxp.')
+       call amrex_error('EOS: p greater than maxp.')
     endif
 
   end subroutine check_p

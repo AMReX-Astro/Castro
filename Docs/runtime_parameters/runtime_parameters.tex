@@ -312,9 +312,6 @@
 \runparamNS{dual\_energy\_eta1}{castro} &  Threshold value of (E - K) / E such that above eta1, the hydrodynamic pressure is derived from E - K; otherwise, we use the internal energy variable UEINT. & 1.0e0 \\
 \rowcolor{tableShade}
 \runparamNS{dual\_energy\_eta2}{castro} &  Threshold value of (E - K) / E such that above eta2, we update the internal energy variable UEINT to match E - K. Below this, UEINT remains unchanged. & 1.0e-4 \\
-\runparamNS{dual\_energy\_eta3}{castro} &  Threshold value of (E - K) / E such that above eta3, the temperature used in the burning module is derived from E-K; otherwise, we use UEINT. & 1.0e0 \\
-\rowcolor{tableShade}
-\runparamNS{dual\_energy\_update\_E\_from\_e}{castro} &  Allow internal energy resets and temperature flooring to change the total energy variable UEDEN in addition to the internal energy variable UEINT. & 1 \\
 \runparamNS{first\_order\_hydro}{castro} &  set the flattening parameter to zero to force the reconstructed profiles to be flat, resulting in a first-order method & 0 \\
 \rowcolor{tableShade}
 \runparamNS{fix\_mass\_flux}{castro} &  & 0 \\
@@ -496,11 +493,12 @@
 \runparamNS{dxnuc}{castro} &  limit the zone size based on how much the burning can change the internal energy of a zone. The zone size on the finest level must be smaller than {\tt dxnuc} $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the sound speed. This ensures that the sound-crossing time is smaller than the nuclear energy injection timescale. & 1.e200 \\
 \rowcolor{tableShade}
 \runparamNS{dxnuc\_max}{castro} &  Disable limiting based on dxnuc above this threshold. This allows zones that have already ignited or are about to ignite to be de-refined. & 1.e200 \\
+\runparamNS{max\_dxnuc\_lev}{castro} &  Disable limiting based on dxnuc above this AMR level. & -1 \\
+\rowcolor{tableShade}
 \runparamNS{react\_T\_max}{castro} &  maximum temperature for allowing reactions to occur in a zone & 1.e200 \\
-\rowcolor{tableShade}
 \runparamNS{react\_T\_min}{castro} &  minimum temperature for allowing reactions to occur in a zone & 0.0 \\
-\runparamNS{react\_rho\_max}{castro} &  maximum density for allowing reactions to occur in a zone & 1.e200 \\
 \rowcolor{tableShade}
+\runparamNS{react\_rho\_max}{castro} &  maximum density for allowing reactions to occur in a zone & 1.e200 \\
 \runparamNS{react\_rho\_min}{castro} &  minimum density for allowing reactions to occur in a zone & 0.0 \\
 
 
@@ -598,12 +596,14 @@
 \runparamNS{plot\_per\_is\_exact}{castro} &  enforce that the AMR plot interval must be hit exactly & 0 \\
 \rowcolor{tableShade}
 \runparamNS{retry\_neg\_dens\_factor}{castro} &  If we're doing retries, set the target threshold for changes in density if a retry is triggered by a negative density. If this is set to a negative number then it will disable retries using this criterion. & 1.e-1 \\
+\runparamNS{retry\_subcycle\_factor}{castro} &  When performing a retry, the factor to multiply the current timestep by when trying again. & 0.5 \\
+\rowcolor{tableShade}
 \runparamNS{retry\_tolerance}{castro} &  Tolerance to use when evaluating whether to do a retry. The timestep suggested by the retry will be multiplied by (1 + this factor) before comparing the actual timestep to it. If set to some number slightly larger than zero, then this prevents retries that are caused by small numerical differences. & 0.02 \\
-\rowcolor{tableShade}
 \runparamNS{sdc\_iters}{castro} &  Number of iterations for the SDC advance. & 2 \\
-\runparamNS{small\_plot\_per\_is\_exact}{castro} &  enforce that the AMR small plot interval must be hit exactly & 0 \\
 \rowcolor{tableShade}
+\runparamNS{small\_plot\_per\_is\_exact}{castro} &  enforce that the AMR small plot interval must be hit exactly & 0 \\
 \runparamNS{use\_post\_step\_regrid}{castro} &  Check for a possible post-timestep regrid if certain stability criteria were violated. & 0 \\
+\rowcolor{tableShade}
 \runparamNS{use\_retry}{castro} &  Retry a timestep if it violated the timestep-limiting criteria over the course of an advance. The criteria will suggest a new timestep that satisfies the criteria, and we will do subcycled timesteps on the same level until we reach the original target time. & 0 \\
 
 
@@ -658,9 +658,7 @@
 
 
 \rowcolor{tableShade}
-\runparamNS{mlmg\_maxorder}{diffusion} &  & 4 \\
-\runparamNS{use\_mlmg\_solver}{diffusion} &  Use MLMG as the operator & 1 \\
-\rowcolor{tableShade}
+\runparamNS{mlmg\_maxorder}{diffusion} &  Use MLMG as the operator & 4 \\
 \runparamNS{v}{diffusion} &  the level of verbosity for the diffusion solve (higher number means more output) & 0 \\
 
 
@@ -725,16 +723,16 @@
 \runparamNS{gravity\_type}{gravity} &  what type & "fillme" \\
 \rowcolor{tableShade}
 \runparamNS{max\_multipole\_order}{gravity} &  the maximum mulitpole order to use for multipole BCs when doing Poisson gravity & 0 \\
+\runparamNS{max\_solve\_level}{gravity} &  For all gravity types, we can choose a maximum level for explicitly calculating the gravity and associated potential. Above that level, we interpolate from coarser levels. & MAX\_LEV-1 \\
+\rowcolor{tableShade}
 \runparamNS{mlmg\_agglomeration}{gravity} &  Do agglomeration? & 1 \\
-\rowcolor{tableShade}
 \runparamNS{mlmg\_consolidation}{gravity} &  & 1 \\
+\rowcolor{tableShade}
 \runparamNS{mlmg\_max\_fmg\_iter}{gravity} &  how many FMG cycles? & 0 \\
-\rowcolor{tableShade}
 \runparamNS{mlmg\_nsolve}{gravity} &  Do N-Solve? & 0 \\
-\runparamNS{no\_composite}{gravity} &  do we do a composite solve? & 0 \\
 \rowcolor{tableShade}
+\runparamNS{no\_composite}{gravity} &  do we do a composite solve? & 0 \\
 \runparamNS{no\_sync}{gravity} &  do we perform the synchronization at coarse-fine interfaces? & 0 \\
-\runparamNS{use\_mlmg\_solver}{gravity} &  Use C++ MLMG linear solver for self gravity & 1 \\
 \rowcolor{tableShade}
 \runparamNS{v}{gravity} &  the level of verbosity for the gravity solve (higher number means more output on the status of the solve / multigrid & 0 \\
 

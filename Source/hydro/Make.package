@@ -6,6 +6,18 @@ ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
   ca_F90EXE_sources += hybrid_advection_nd.F90
 endif
 
+ifeq ($(USE_CUDA),TRUE)
+
+ca_F90EXE_sources += cuda_advection_util_nd.F90
+ca_F90EXE_sources += cuda_flatten_nd.F90
+
+ca_F90EXE_sources += cuda_ppm_nd.F90
+ca_F90EXE_sources += cuda_riemann_nd.F90
+
+ca_F90EXE_sources += cuda_Castro_mol_nd.F90
+
+else
+
 ca_F90EXE_sources += advection_util_nd.F90
 ca_F90EXE_sources += flatten_nd.F90
 
@@ -29,4 +41,6 @@ endif
 
 ifeq ($(DIM), 3)
   ca_F90EXE_sources += trans_$(DIM)d.F90
+endif
+
 endif

@@ -1,8 +1,118 @@
-changes since last release
+# changes since last release
+
+# 18.09
+
+  -- we now only trace under sources that are non-zero, to save
+     computational expense.  (#381)
+
+  -- we now update T for consistency when we reset a small internal
+     energy, e (#384)
+
+  -- The parameter dual_energy_update_E_from_e has been removed,
+     and the default behavior is now that the total energy (E)
+     will not be changed when we reset the internal energy (e).
+     This will cause changes in simulation output. (#368)
+
+  -- The probin parameter eos_input_is_constant is now true by
+     default. This means that when calling the EOS in the mode
+     eos_input_re, the energy will not be updated after the EOS
+     call (e.g. by the Newton iteration scheme in Helmholtz).
+     This will cause changes in simulation output. (#368)
+
+  -- the problem-specific runtime parameters (probin) are now
+     written to the job_info file (#380)
+
+  -- we now skip the initial EOS call prior to the burn -- this
+     was redundant because we already did a clean_state (#377)
+
+  -- we now support recent versions of hypre (#373)
+
+# 18.08
+
+  -- the old use_mlmg_solver parameters were removed -- this
+     has been the only multigrid solver in Castro for some time,
+     so the parameters had no effect.
+
+  -- The parameter dual_energy_eta3 was removed. This had been
+     introduced mostly for testing purposes and ended up being
+     unnecessary. Also, the EOS call at the beginning of the burn was
+     removed; this should provide a modest computational gain. Answers
+     may change at the level of the EOS tolerance (#377).
+
+  -- The functionality that checks for a regrid at the end of
+     the timestep will now apply all tagging criteria, not
+     just the t_sound / t_enuc criterion.
+
+  -- A bug was fixed that occurred when a retry was triggered in
+     the middle of a group of subcycles, rather than at the
+     beginning of the advance (#358).
+
+  -- A bug with the logic of refluxing when using retries was
+     fixed (#357).
+
+  -- Tagging can now be done on relative gradients, in addition
+     to the existing capability for absolute gradients (#354).
+     For example, tempgrad_rel is a relative gradient criterion
+     that will tag a zone with temperature T if any adjacent zone
+     has a temperature that is different by more than tempgrad_rel * T.
+     The tagging is enabled up to a given level with the parameter
+     max_tempgrad_rel_lev. The corresponding new tagging criteria
+     for other fields are named similarly.
+
+  -- Retries can now be done in a dynamic fashion (#179). An
+     advance is itself a subcycled advance always, and we keep
+     subcycling until we are done with the step. By default we
+     still do only a single timestep when use_retry is not
+     enabled, but this helps in cases where we have to reject
+     the timestep for (say) a CFL violation, and then during
+     the retry the CFL criterion is violated again. In the past,
+     we would simply have to abort the run if this happened. Now
+     we can cut the timestep again and keep going. Additionally,
+     if you set abort_on_false to F in your probin file's extern
+     parameters, then a burn in Microphysics will not cause an
+     abort of the run, and Castro now knows how to deal with that
+     by doing a retry and taking a shorter timestep (under the
+     logic that most burn failures come from taking too large of
+     a hydrodynamic timestep for the burner to be able to keep up).
+
+# 18.07
+
+  -- A new GPU (CUDA) hydrodynamics solver (based on the
+     method-of-lines solver) has been added, based on the work
+     initially done in StarLord.  This is a work in progress, and
+     requires the "gpu" branch of AMReX.
+
+  -- We removed all dependencies on the AMReX F_BoxLib source, in
+     preparation for this source being removed in the future.
+
+  -- we now set the number of variables at compile time, by parsing
+     the _variables file and interpreting which options are set in the
+     preprocessor.  Note that a side effect of this change is that the
+     number of radiation groups is now set at compile time instead of
+     at runtime.  This change is needed for the GPU port.
+
+     To set the number of radiation groups, set NGROUPS=4, e.g. for
+     4 groups, in your problem's GNUmakefile.  Similar options exist
+     for neutrinos.
+
+     A related change is that it is now possible to set the number
+     of advected quantities (that are not species or EOS auxillary
+     fields) via NUMADV in your GNUmakefile.
+
+# 18.06
 
   -- The new multilevel multigrid solvers (MLMG) in the AMReX
      framework are now the default for self-gravity and constructing
      the operator for explicit diffusion.
+
+  -- A new test problem, the classic double Mach reflection, was
+     added.
+
+  -- fix an issue in the retry logic that could sometimes result in
+     an overflow of the estimated number of subcycle steps.
+
+  -- Improved the behavior of retries when they hit CFL violations
+     (#334, #335).
 
 # 18.05
 

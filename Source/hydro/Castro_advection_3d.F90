@@ -1,6 +1,7 @@
 module ctu_advection_module
 
-  use bl_constants_module
+  use amrex_constants_module
+  use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -71,7 +72,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use riemann_module, only: cmpflx
-    use bl_constants_module
+    use amrex_constants_module
 #ifdef RADIATION
     use rad_params_module, only : ngroups
     use trace_ppm_rad_module, only : tracexy_ppm_rad, tracez_ppm_rad
@@ -193,6 +194,8 @@ contains
     integer :: fx_lo(3), fx_hi(3)
     integer :: fy_lo(3), fy_hi(3)
     integer :: fz_lo(3), fz_hi(3)
+
+    logical :: source_nonzero(QVAR)
 
     qt_lo = [lo(1) - 1, lo(2) - 1, 1]
     qt_hi = [hi(1) + 2, hi(2) + 2, 2]
@@ -376,6 +379,18 @@ contains
     call bl_allocate(szm, It_lo, It_hi)
     call bl_allocate(szp, It_lo, It_hi)
 
+    ! preprocess the sources -- we don't want to trace under a source that is empty
+    if (ppm_type > 0) then
+       do n = 1, QVAR
+          if (minval(srcQ(lo(1)-2:hi(1)+2,lo(2)-2:hi(2)+2,lo(3)-2:hi(3)+2,n)) == ZERO .and. &
+              maxval(srcQ(lo(1)-2:hi(1)+2,lo(2)-2:hi(2)+2,lo(3)-2:hi(3)+2,n)) == ZERO) then
+             source_nonzero(n) = .false.
+          else
+             source_nonzero(n) = .true.
+          endif
+       enddo
+    endif
+
     do k3d = lo(3)-1, hi(3)+1
 
        ! Swap pointers to levels
@@ -383,7 +398,7 @@ contains
        km = kc
        kc = kt
 
-       if (ppm_type .gt. 0) then
+       if (ppm_type > 0) then
 
           do n = 1, NQ
              call ppm_reconstruct(q, qd_lo, qd_hi, NQ, n, &
@@ -401,17 +416,23 @@ contains
 
           ! source terms
           do n = 1, QVAR
-             call ppm_reconstruct(srcQ, src_lo, src_hi, QVAR, n, &
-                                  flatn, qd_lo, qd_hi, &
-                                  sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
-                                  lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
+             if (source_nonzero(n)) then
+                call ppm_reconstruct(srcQ, src_lo, src_hi, QVAR, n, &
+                                     flatn, qd_lo, qd_hi, &
+                                     sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
+                                     lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
 
-             call ppm_int_profile(srcQ, src_lo, src_hi, QVAR, n, &
-                                  q, qd_lo, qd_hi, &
-                                  qaux, qa_lo, qa_hi, &
-                                  sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
-                                  Ip_src, Im_src, It_lo, It_hi, QVAR, n, &
-                                  lo(1), lo(2), hi(1), hi(2), dx, dt, k3d, kc)
+                call ppm_int_profile(srcQ, src_lo, src_hi, QVAR, n, &
+                                     q, qd_lo, qd_hi, &
+                                     qaux, qa_lo, qa_hi, &
+                                     sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
+                                     Ip_src, Im_src, It_lo, It_hi, QVAR, n, &
+                                     lo(1), lo(2), hi(1), hi(2), dx, dt, k3d, kc)
+             else
+                Ip_src(It_lo(1):It_hi(1),It_lo(2):It_hi(2),kc,:,:,n) = ZERO
+                Im_src(It_lo(1):It_hi(1),It_lo(2):It_hi(2),kc,:,:,n) = ZERO
+             endif
+
           enddo
 
           ! this probably doesn't support radiation
@@ -490,7 +511,9 @@ contains
        else
 
 #ifdef RADIATION
-          call bl_error("ppm_type <=0 is not supported in with radiation")
+#ifndef AMREX_USE_CUDA
+          call amrex_error("ppm_type <=0 is not supported in with radiation")
+#endif          
 #endif
 
           ! Compute all slopes at kc (k3d)
