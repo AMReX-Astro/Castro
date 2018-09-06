@@ -10,8 +10,11 @@
 # NOTE: After compiling the problem code it needs to be copied into each directory by hand
 #
 # Written by Blaire Ness and Michael Zingale
+#
+# Last Updated 9/5/18
 
 import os
+import shutil
 
 # specify the names of the template files and the model file
 inputs_file = "inputs.2d.template"
@@ -21,26 +24,38 @@ model_file = "convective_flame.hse.tanh.delta_0.040cm.dx_0.050cm"
 # function for finding and replacing placeholder values within the template files
 def write_files(odir, param_dict):
 
+    # Look for existing directories for the different variables
     if os.path.exists(odir) == False:
         os.mkdir(odir)
+
+    # Replace placeholders in inputs template file
     with open("{}/inputs.2d".format(odir), "w") as in_file:
         for line in inputs_lines:
             for key in param_dict:
                 line = line.replace("@@{}@@".format(key), "{}".format(param_dict[key]))
             in_file.write(line)
 
+    # Replace placeholders in probin template file
     with open("{}/probin".format(odir), "w") as prob_file:
         for line in probin_lines:
             for key in param_dict:
                 line = line.replace("@@{}@@".format(key), "{}".format(param_dict[key]))
             prob_file.write(line)
 
-# read in the templates
+    with open("{}/convective_flame.hse.tanh.delta_0.040cm.dx_0.050cm".format(odir), "w") as mod_file:
+        for line in mod_lines:
+            mod_file.write(line)
+
+# read in the templates and model file
 with open(inputs_file, "r") as in_file:
     inputs_lines = in_file.readlines()
 
 with open(probin_file, "r") as prob_file:
     probin_lines = prob_file.readlines()
+
+with open(model_file, "r") as mod_file:
+    mod_lines = mod_file.readlines()
+
 
 # values to be replaced in the template files.
 # the format is (low, reference, high)
