@@ -20,6 +20,7 @@ import shutil
 inputs_file = "inputs.2d.template"
 probin_file = "probin_temp"
 model_file = "convective_flame.hse.tanh.delta_0.040cm.dx_0.050cm"
+exe_file = "Castro2d.gnu.MPI.ex"
 
 # function for finding and replacing placeholder values within the template files
 def write_files(odir, param_dict):
@@ -45,6 +46,10 @@ def write_files(odir, param_dict):
     with open("{}/convective_flame.hse.tanh.delta_0.040cm.dx_0.050cm".format(odir), "w") as mod_file:
         for line in mod_lines:
             mod_file.write(line)
+
+    shutil.copy(exe_file, odir)
+    print("exe copied ",odir)
+
 
 # read in the templates and model file
 with open(inputs_file, "r") as in_file:
