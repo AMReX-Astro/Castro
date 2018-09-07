@@ -95,7 +95,6 @@
          uCF(1:n_fluid_dof,i,j,k,iCF_E)  = S(ic,jc,UEDEN) * conv_enr
          uCF(1:n_fluid_dof,i,j,k,iCF_Ne) = S(ic,jc,UFX)   * conv_ne
 
-         WRITE(*,*), "uCF1=", i,j,k,uCF(1,i,j,k,iCF_E),uCF(1,i,j,k,iCF_Ne) 
          ! The uCF array was allocated in CreateRadiationdFields_Conserved with 
          ! ALLOCATE &
          !   ( uCR(1:nDOF, &
