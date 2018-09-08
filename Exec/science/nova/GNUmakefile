@@ -21,8 +21,7 @@ ifdef MICROPHYSICS_HOME
 EOS_DIR     := helmholtz
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/networks
-NETWORK_DIR := general_null
-GENERAL_NET_INPUTS = $(MICROPHYSICS_HOME)/networks/$(NETWORK_DIR)/pphotcno.net
+NETWORK_DIR := nova
 
 
 else
