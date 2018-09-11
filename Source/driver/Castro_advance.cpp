@@ -119,10 +119,6 @@ Castro::advance (Real time,
 	dt_new = do_advance_sdc(time, dt, amr_iteration, amr_ncycle);
       }
 
-      // store the new solution
-      MultiFab& S_new = get_new_data(State_Type);
-      MultiFab::Copy(S_new, *(k_new[SDC_NODES-1]), 0, 0, S_new.nComp(), 0);
-
 #ifdef REACTIONS
       // store the reaction information as well -- note: this will be
       // the instantaneous reactive source.  In the future, we might
@@ -130,7 +126,7 @@ Castro::advance (Real time,
 
       // this is done only for the plotfile
       MultiFab& R_new = get_new_data(Reactions_Type);
-      //MultiFab& S_new = get_new_data(State_Type);
+      MultiFab& S_new = get_new_data(State_Type);
 
       for (MFIter mfi(R_new, hydro_tile_size); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
@@ -771,7 +767,7 @@ Castro::do_advance_sdc (Real time,
 #endif
 
   // store the new solution
-  // MultiFab::Copy(S_new, *(k_new[SDC_NODES-1]), 0, 0, S_new.nComp(), 0);
+  MultiFab::Copy(S_new, *(k_new[SDC_NODES-1]), 0, 0, S_new.nComp(), 0);
 
 
   // I think this bit only needs to be done for the last iteration...
