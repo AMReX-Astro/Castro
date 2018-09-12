@@ -22,7 +22,10 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   real(rt)         :: lambda_f, v_f
 
-  namelist /fortin/ pert_frac, pert_delta, rho_fuel, T_fuel, T_ash
+  namelist /fortin/ pert_frac, pert_delta, rho_fuel, T_fuel, T_ash, &
+       fuel1_name, fuel2_name, fuel3_name, fuel4_name, &
+       ash1_name, ash2_name, ash3_name, ash4_name, &
+       X_fuel1, X_fuel2, X_fuel3, X_fuel4, X_ash1, X_ash2, X_ash3, X_ash4
 
   ! Build "probin" filename -- the name of file containing 
   ! fortin namelist.
@@ -103,10 +106,45 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   type (eos_t) :: eos_state
 
-  integer :: ifuel, iash
+  integer :: ifuel1, iash1, ifuel2, iash2, ifuel3, iash3, ifuel4, iash4
 
-  ifuel = network_species_index("helium-4")
-  iash = network_species_index("oxygen-16")
+  ! defaults
+  fuel1_name = "helium-4"
+  X_fuel1 = 1.0
+
+  ash1_name = "oxygen-16"
+  X_ash1 = 1.0
+
+  fuel2_name = ""
+  X_fuel2 = 0.0
+
+  ash2_name = ""
+  X_ash2 = 0.0
+
+  fuel3_name = ""
+  X_fuel3 = 0.0
+
+  ash3_name = ""
+  X_ash3 = 0.0
+
+  fuel4_name = ""
+  X_fuel4 = 0.0
+
+  ash4_name = ""
+  X_ash4 = 0.0
+
+  ifuel1 = network_species_index(fuel1_name)
+  iash1 = network_species_index(ash1_name)
+
+  ifuel2 = network_species_index(fuel2_name)
+  iash2 = network_species_index(ash2_name)
+
+  ifuel3 = network_species_index(fuel4_name)
+  iash3 = network_species_index(ash4_name)
+
+  ifuel4 = network_species_index(fuel4_name)
+  iash4 = network_species_index(ash4_name)
+
 
   L = probhi(1) - problo(1)
   x_int = problo(1) + pert_frac*L
@@ -115,7 +153,43 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   ! fuel state
   xn_fuel(:) = ZERO
-  xn_fuel(ifuel) = ONE
+  xn_ash(:) = ZERO
+
+  if (ifuel1 > 0) then
+     xn_fuel(ifuel1) = X_fuel1
+  endif
+
+  if (ifuel2 > 0) then
+     xn_fuel(ifuel2) = X_fuel2
+  endif
+
+  if (ifuel3 > 0) then
+     xn_fuel(ifuel3) = X_fuel3
+  endif
+
+  if (ifuel4 > 0) then
+     xn_fuel(ifuel4) = X_fuel4
+  endif
+
+  if (iash1 > 0) then
+     xn_fuel(iash1) = X_ash1
+  endif
+
+  if (iash2 > 0) then
+     xn_fuel(iash2) = X_ash2
+  endif
+
+  if (iash3 > 0) then
+     xn_fuel(iash3) = X_ash3
+  endif
+
+  if (iash4 > 0) then
+     xn_fuel(iash4) = X_ash4
+  endif
+
+  ! normalize
+  xn_fuel(:) = xn_fuel(:)/sum(xn_fuel(:))
+  xn_ash(:) = xn_ash(:)/sum(xn_ash(:))
 
   eos_state%rho = rho_fuel
   eos_state%T = T_fuel
@@ -127,9 +201,6 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   p_fuel = eos_state%p
 
   ! compute the ash state -- this should be hot but in pressure equilibrium
-  xn_ash(:) = ZERO
-  xn_ash(iash) = ONE
-
   eos_state%rho = rho_fuel  ! initial guess
   eos_state%p = p_fuel      ! pressure equilibrum
   eos_state%T = T_ash
@@ -139,7 +210,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   rho_ash = eos_state % rho
   e_ash = eos_state % e
-  
+
   !print *, 'fuel: ', rho_fuel, T_fuel, xn_fuel
   !print *, 'ash: ', rho_ash, T_ash, xn_ash
 
