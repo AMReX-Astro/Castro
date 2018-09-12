@@ -86,7 +86,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use eos_type_module
   use eos_module
   use amrex_constants_module
-
+  use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -145,6 +145,10 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   ifuel4 = network_species_index(fuel4_name)
   iash4 = network_species_index(ash4_name)
 
+  if (iash1 < 0 .and. iash2 < 0 .and. iash3 < 0 .and. iash4 < 0) then
+     call amrex_error("no valid ash state defined")
+  endif
+  
 
   L = probhi(1) - problo(1)
   x_int = problo(1) + pert_frac*L
@@ -172,19 +176,19 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   endif
 
   if (iash1 > 0) then
-     xn_fuel(iash1) = X_ash1
+     xn_ash(iash1) = X_ash1
   endif
 
   if (iash2 > 0) then
-     xn_fuel(iash2) = X_ash2
+     xn_ash(iash2) = X_ash2
   endif
 
   if (iash3 > 0) then
-     xn_fuel(iash3) = X_ash3
+     xn_ash(iash3) = X_ash3
   endif
 
   if (iash4 > 0) then
-     xn_fuel(iash4) = X_ash4
+     xn_ash(iash4) = X_ash4
   endif
 
   ! normalize
