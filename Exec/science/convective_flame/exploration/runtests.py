@@ -1,8 +1,9 @@
 # Script to automate the running of the test suite
 #
-# Last updated 9/6/18
+# Last updated 9/13/18
 
 import os
+from multiprocessing import Pool
 
 variables = {"ROT_PERIOD": ("low", "high"),
              "X_PERT_LOC": ("low", "high"),
@@ -33,7 +34,24 @@ for key in variables:
 
 dirs.append('reference')
 
-print(dirs)
+tests=[]
 
-for dir in dirs:
-    
+#print(dirs)
+
+# Make list of specific commands (is this necessary)
+for item in dirs:
+    test = item
+    command = "(cd %s; ./Castro2d.gnu.MPI.ex inputs.2d)" % test
+    tests.append(command)
+
+#print(tests)
+
+processes = dirs
+
+# Define function for running processes
+def run_process(process):
+    os.system('(cd {}; ./Castro2d.gnu.MPI.ex inputs.2d)'.format(process))
+
+# Run processes
+pool=Pool(processes=10)
+pool.map(run_process, processes)
