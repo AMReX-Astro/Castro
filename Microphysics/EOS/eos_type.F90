@@ -62,7 +62,7 @@ module eos_type_module
   !$acc create(mintemp, maxtemp, mindens, maxdens, minx, maxx, minye, maxye) &
   !$acc create(mine, maxe, minp, maxp, mins, maxs, minh, maxh)
 
-#ifdef CUDA
+#ifdef AMREX_USE_CUDA
   attributes(managed) :: mintemp
   attributes(managed) :: maxtemp
   attributes(managed) :: mindens
