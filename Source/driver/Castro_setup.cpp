@@ -506,7 +506,6 @@ Castro::variableSetUp ()
   for (int i=0; i <ncomp_thornado; ++i)
     {
       sprintf(buf, "thor_%d", i);
-      std::cout << "Making " << string(buf) << std::endl;
 
       set_scalar_bc(bc,phys_bc);
 
