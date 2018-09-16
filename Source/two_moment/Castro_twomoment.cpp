@@ -9,7 +9,7 @@ int
 Castro::init_thornado()
 {
     int nDimsX   = BL_SPACEDIM;
-    int nDimsE   = 1; // this specifies the number of energy groups in thornado, maybe change name?
+    int nDimsE   = 10; // this specifies the number of energy groups in thornado, maybe change name?
     int nSpecies = THORNADO_NSPECIES;
 
     amrex::Print() << "*****Calling InitThornado " << std::endl; 
@@ -44,7 +44,7 @@ Castro::init_thornado_data()
     // Note these are in units of MeV; we will convert to thornado units inside
     //      InitThornado_Patch
     Real eL = 0.;
-    Real eR = 20.;
+    Real eR = 300.;
 
     int swX[3];
     swX[0] = my_ngrow;

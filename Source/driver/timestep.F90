@@ -492,6 +492,10 @@ contains
              ! want to trigger a retry if the timestep strongly violated
              ! the stability criterion.
 
+             if (do_hydro .eq. 0) then
+                dt_new = 1.0e-7
+             endif 
+
              if (do_hydro .eq. 1) then
 
                 eos_state % rho = s_new(i,j,k,URHO )

@@ -2,6 +2,7 @@ PRECISION  = DOUBLE
 PROFILE    = FALSE
 
 DEBUG      = FALSE
+OPTIMIZE   = TRUE 
 
 DIM        = 2
 
@@ -15,7 +16,7 @@ HDF5_HOME  ?= /usr/local/Cellar/hdf5/1.10.3
 
 USE_THORNADO = TRUE
 
-DEFINES += -DMOMENT_CLOSURE_MINERBO
+DEFINES += -DMOMENT_CLOSURE_MAXIMUM_ENTROPY_CB
 DEFINES += -DMICROPHYSICS_WEAKLIB
 
 # define the location of the CASTRO top directory
@@ -32,7 +33,7 @@ endif
 ifdef MICROPHYSICS_HOME
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
-EOS_DIR     := helmholtz
+EOS_DIR     := stellarcollapse
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := general_null
