@@ -18,7 +18,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   type (eos_t) :: eos_state
 
-  namelist /fortin/ rho_i, T_i, rhoe_i, p_i
+  namelist /fortin/ centx, centy, centz
 
   !
   !     Build "probin" filename -- the name of file containing fortin namelist.
@@ -34,13 +34,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
      probin(i:i) = char(name(i))
   end do
 
-  ! set namelist defaults
-
-  rho_i = 1.0e6_rt
-  T_i = 1.0e6_rt
-  p_i = 1.0e0
-  rhoe_i = 1.0e0
-
   !     Read namelists
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
   read(untin,fortin)
@@ -48,16 +41,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   xn(:) = 0.0e0_rt
   xn(1) = 1.0e0_rt
-
-  eos_state%rho = rho_i
-  eos_state%T = T_i
-  eos_state%xn(:) = xn(:)
-
-  call eos(eos_input_rt, eos_state)
-
-  rhoe_i = rho_i*eos_state%e
-  p_i = eos_state%p
-
 
 end subroutine amrex_probinit
 

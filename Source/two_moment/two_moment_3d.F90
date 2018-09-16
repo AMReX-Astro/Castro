@@ -12,7 +12,7 @@
     use ProgramHeaderModule, only : nE, nDOF, nNodesX, nNodesE
     use FluidFieldsModule, only : uCF, iCF_D, iCF_S1, iCF_S2, iCF_S3, iCF_E, iCF_Ne
     use RadiationFieldsModule, only : nSpecies, uCR
-    use TimeSteppingModule_Castro, only : Update_IMEX_PC2
+    use TimeSteppingModule_Castro, only : Update_IMEX_PDARS
     use UnitsModule, only : Gram, Centimeter, Second
 
     implicit none
@@ -126,7 +126,7 @@
     ! ************************************************************************************
     ! Call the Fortran interface that lives in the thornado repo
     ! ************************************************************************************
-    call Update_IMEX_PC2(dt*Second, uCF, uCR)
+    call Update_IMEX_PDARS(dt*Second, uCF, uCR)
 
     ! ************************************************************************************
     ! Copy back from the thornado arrays into Castro arrays

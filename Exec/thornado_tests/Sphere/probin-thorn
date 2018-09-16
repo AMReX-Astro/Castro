@@ -1,11 +1,4 @@
 &fortin
-
-  T_i = 1.d6
-  rho_i = 1.d6
-  Ye_i = 0.5d0
-  rhoe_i = 1.d0
-  p_i = 1.d0
-
 /
 
 &tagging
@@ -24,9 +17,7 @@
 
 &extern
   !use_eos_coulomb = F
-  eos_file = "/Users/pmoesta/Downloads/Hempel_SFHoEOS_rho222_temp180_ye60_version_1.1_20120817.h5"
-  !eos_file = "/Users/pmoesta/Downloads/LS220_240r_140t_50y_analmu_20120628_SVNr28.h5"
-  !eos_file = "/Users/pmoesta/codes/ecp/Castro/Exec/thornado_tests/Sphere/EquationOfStateTable.h5"
+  eos_file = "/home/almgren/GitCode/thornado-mini-tables/Hempel_SFHoEOS_rho222_temp180_ye60_version_1.1_20120817.h5"
   use_energy_shift = T
   !input = "eos_input_rt"
 /
