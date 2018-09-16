@@ -149,9 +149,9 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   do j = lo(2), hi(2)
      do i = lo(1), hi(1)
 
-        x = xlo(1) + delta(1)*(dble(i)+half)
-        y = xlo(2) + delta(2)*(dble(j)+half)
-        z = xlo(3) + delta(3)*(dble(k)+half)
+        x = xlo(1) + delta(1)*(dble(i-lo(1))+half)
+        y = xlo(2) + delta(2)*(dble(j-lo(2))+half)
+        z = xlo(3) + delta(3)*(dble(k-lo(3))+half)
 
         radius = sqrt(x*x+y*y+z*z)
  
@@ -259,13 +259,13 @@ subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
      call amrex_abort("nDOE ne nNodesX(1)*nNodesX(2)*nNodesX(3)*nNodesE")
 
   do k = lo(3), hi(3)
-     zcen = xlo(3) + delta(3)*(float(k-lo(3)) + 0.5e0_rt)
+     zcen = xlo(3) + delta(3)*(dble(k-lo(3)) + 0.5_rt)
      
      do j = lo(2), hi(2)
-        ycen = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5e0_rt)
+        ycen = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5_rt)
 
         do i = lo(1), hi(1)
-           xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5e0_rt)
+           xcen = xlo(1) + delta(1)*(dble(i-lo(1)) + 0.5_rt)
 
            do is = 1, nSpecies
            do im = 1, n_moments
