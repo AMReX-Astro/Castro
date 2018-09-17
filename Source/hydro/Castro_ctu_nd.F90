@@ -73,7 +73,7 @@ contains
 #ifdef SHOCK_VAR
     use meth_params_module, only : USHK
 #endif
-    use amrex_constants_module, only : ZERO, ONE, FOURTH, HALF
+    use amrex_constants_module, only : ZERO, ONE, TWO, FOURTH, HALF
 
     use amrex_fort_module, only : rt => amrex_real
 
@@ -145,7 +145,7 @@ contains
 #if BL_SPACEDIM >= 2
     real(rt)         radflux2(radflux2_lo(1):radflux2_hi(1),radflux2_lo(2):radflux2_hi(2),radflux2_lo(3):radflux2_hi(3),0:ngroups-1)
 #endif
-#if BL_SPACEDIM == 2
+#if BL_SPACEDIM == 3
     real(rt)         radflux3(radflux3_lo(1):radflux3_hi(1),radflux3_lo(2):radflux3_hi(2),radflux3_lo(3):radflux3_hi(3),0:ngroups-1)
 #endif
 
@@ -167,7 +167,7 @@ contains
     real(rt)         :: Gf1E(3)
     real(rt)         :: ux, uy, uz, divu, lamc, Egdc
     real(rt)         :: dudx(3), dudy(3), dudz(3), nhat(3), GnDotu(3), nnColonDotGu
-    real(rt)         :: dprdx, dprdy, dprdz, ek1, ek2, dek
+    real(rt)         :: dprdx, dprdy, dprdz, ek1, ek2, dek, dpdx
     real(rt)         :: urho_new
     real(rt)         :: umx_new1, umy_new1, umz_new1
     real(rt)         :: umx_new2, umy_new2, umz_new2
@@ -512,8 +512,12 @@ contains
              do i = lo(1), hi(1)
 
                 ux = HALF*(qx(i,j,k,GDU) + qx(i+1,j,k,GDU))
+#if BL_SPACEDIM >= 2
                 uy = HALF*(qy(i,j,k,GDV) + qy(i,j+dg(2),k,GDV))
+#endif
+#if BL_SPACEDIM == 3
                 uz = HALF*(qz(i,j,k,GDW) + qz(i,j,k+dg(3),GDW))
+#endif
 
                 dudx(:) = ZERO
                 dudy(:) = ZERO
@@ -557,11 +561,11 @@ contains
                    nnColonDotGu = dot_product(nhat, GnDotu) / (dot_product(nhat,nhat)+1.e-50_rt)
 
 #if BL_SPACEDIM == 1
-                   lamc = HALF*(qx(i,j,GDLAMS+g) + qx(i+1,j,GDLAMS+g))
+                   lamc = HALF*(qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g))
 #endif
 #if BL_SPACEDIM == 2
-                   lamc = 0.25e0_rt*(qx(i,j,GDLAMS+g) + qx(i+1,j,GDLAMS+g) + &
-                                     qy(i,j,GDLAMS+g) + qy(i,j+1,GDLAMS+g))
+                   lamc = 0.25e0_rt*(qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g) + &
+                                     qy(i,j,k,GDLAMS+g) + qy(i,j+1,k,GDLAMS+g))
 #endif
 #if BL_SPACEDIM == 3
                    lamc = (qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g) + &
@@ -607,14 +611,14 @@ contains
 
 
 #if BL_SPACEDIM == 1
-                      Egdc = HALF*(qx(i,j,GDERADS+g) + qx(i+1,j,GDERADS+g))
-                      Erout(i,j,g) = Erout(i,j,g) + dt*ux*Gf1E(1) &
+                      Egdc = HALF*(qx(i,j,k,GDERADS+g) + qx(i+1,j,k,GDERADS+g))
+                      Erout(i,j,k,g) = Erout(i,j,k,g) + dt*ux*Gf1E(1) &
                            - dt*f2*Egdc*nnColonDotGu
 #endif
 #if BL_SPACEDIM == 2
-                      Egdc = 0.25e0_rt*(qx(i,j,GDERADS+g) + qx(i+1,j,GDERADS+g) + &
-                                        qy(i,j,GDERADS+g) + qy(i,j+1,GDERADS+g))
-                      Erout(i,j,g) = Erout(i,j,g) + dt*(ux*Gf1E(1)+uy*Gf1E(2)) &
+                      Egdc = 0.25e0_rt*(qx(i,j,k,GDERADS+g) + qx(i+1,j,k,GDERADS+g) + &
+                                        qy(i,j,k,GDERADS+g) + qy(i,j+1,k,GDERADS+g))
+                      Erout(i,j,k,g) = Erout(i,j,k,g) + dt*(ux*Gf1E(1)+uy*Gf1E(2)) &
                            - dt*f2*Egdc*nnColonDotGu
 #endif
 #if BL_SPACEDIM == 3
