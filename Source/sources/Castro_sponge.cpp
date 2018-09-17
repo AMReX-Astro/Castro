@@ -44,7 +44,7 @@ Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state, Real time
 		          BL_TO_FORTRAN_ANYD(state[mfi]),
 		          BL_TO_FORTRAN_ANYD(source[mfi]),
 		          BL_TO_FORTRAN_ANYD(volume[mfi]),
-		          ZFILL(dx), dt, time, mult_factor);
+		          AMREX_REAL_ANYD(dx), dt, time, mult_factor);
 
 	}
 #endif
@@ -114,7 +114,7 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
 		          BL_TO_FORTRAN_ANYD(state_old[mfi]),
 		          BL_TO_FORTRAN_ANYD(source[mfi]),
 		          BL_TO_FORTRAN_ANYD(volume[mfi]),
-		          ZFILL(dx), dt, time, mult_factor_old);
+		          AMREX_REAL_ANYD(dx), dt, time, mult_factor_old);
 
 	}
 
@@ -134,7 +134,7 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
 		          BL_TO_FORTRAN_ANYD(state_new[mfi]),
 		          BL_TO_FORTRAN_ANYD(source[mfi]),
 		          BL_TO_FORTRAN_ANYD(volume[mfi]),
-		          ZFILL(dx), dt, time, mult_factor_new);
+		          AMREX_REAL_ANYD(dx), dt, time, mult_factor_new);
 
 	}
 
