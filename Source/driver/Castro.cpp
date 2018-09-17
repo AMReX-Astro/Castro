@@ -208,7 +208,9 @@ Castro::variableCleanUp ()
 
     network_finalize();
     eos_finalize();
+#ifdef SPONGE
     sponge_finalize();
+#endif
 }
 
 void

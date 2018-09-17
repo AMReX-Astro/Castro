@@ -142,7 +142,8 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
 
 }
 
-void Castro::sponge_finalize()
+void
+Castro::sponge_finalize()
 {
     ca_deallocate_sponge_params();
 }

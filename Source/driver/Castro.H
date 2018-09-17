@@ -310,7 +310,7 @@ public:
 
     void construct_new_sponge_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
-    void sponge_finalize();
+    static void sponge_finalize();
 #endif
 
     void construct_old_ext_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
