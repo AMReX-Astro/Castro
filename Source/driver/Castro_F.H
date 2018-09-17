@@ -97,6 +97,7 @@ extern "C"
   void ca_get_tagging_params(const int* name, const int* namlen);
 #ifdef SPONGE
   void ca_get_sponge_params(const int* name, const int* namlen);
+  void ca_allocate_sponge_params();
   void ca_deallocate_sponge_params();
 #endif
 
