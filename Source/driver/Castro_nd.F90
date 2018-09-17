@@ -983,7 +983,7 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
 
 end subroutine ca_get_sponge_params
 
-subroutine ca_deallocate_sponge_params() bind(C, name="ca_get_sponge_params")
+subroutine ca_deallocate_sponge_params() bind(C, name="ca_deallocate_sponge_params")
 
     ! deallocate sponge parameters
 
