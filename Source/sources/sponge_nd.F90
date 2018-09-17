@@ -114,6 +114,8 @@ contains
     real(rt) :: alpha, sponge_factor
     type(eos_t) :: eos_state
 
+    !$gpu
+
     ! Radial distance between upper and lower boundaries.
 
     delta_r = sponge_upper_radius - sponge_lower_radius
