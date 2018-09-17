@@ -53,7 +53,7 @@ contains
     real(rt) :: src(NVAR)
     real(rt) :: local_state(NVAR)
 
-    src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),1:NVAR) = ZERO
+    ! src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),1:NVAR) = ZERO
 
     !$gpu
 
@@ -65,6 +65,8 @@ contains
 
           do i = lo(1), hi(1)
              r(1) = problo(1) + dble(i + HALF) * dx(1) - center(1)
+
+             src(i,j,k,:) = 0.0d0
 
              rho = state(i,j,k,URHO)
              rhoInv = ONE / rho
