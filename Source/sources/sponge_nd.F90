@@ -53,7 +53,9 @@ contains
     real(rt) :: src(NVAR)
     real(rt) :: local_state(NVAR)
 
-    src = ZERO
+    !$gpu
+
+    src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),1:NVAR) = ZERO
 
     do k = lo(3), hi(3)
        r(3) = problo(3) + dble(k + HALF) * dx(3) - center(3)
