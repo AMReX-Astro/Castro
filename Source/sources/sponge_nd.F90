@@ -66,7 +66,7 @@ contains
           do i = lo(1), hi(1)
              r(1) = problo(1) + dble(i + HALF) * dx(1) - center(1)
 
-             src(i,j,k,:) = 0.0d0
+             src(:) = 0.0d0
 
              rho = state(i,j,k,URHO)
              rhoInv = ONE / rho
