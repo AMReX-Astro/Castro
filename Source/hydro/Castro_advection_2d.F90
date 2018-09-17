@@ -8,7 +8,7 @@ module ctu_advection_module
 
   private
 
-  public umeth, consup
+  public umeth
 
 contains
 
