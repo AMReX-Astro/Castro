@@ -8,7 +8,7 @@ module sponge_module
   real(rt), allocatable, save :: sponge_lower_radius, sponge_upper_radius
   real(rt), allocatable, save :: sponge_lower_density, sponge_upper_density
   real(rt), allocatable, save :: sponge_lower_pressure, sponge_upper_pressure
-  real(rt), allocatable, save :: sponge_target_velocity(3)
+  real(rt), allocatable, save :: sponge_target_velocity(:)
   real(rt), allocatable, save :: sponge_timescale
 
 #ifdef AMREX_USE_CUDA

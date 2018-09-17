@@ -963,6 +963,8 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
 
   close (unit=un)
 
+  allocate(sponge_target_velocity(3))
+
   sponge_target_velocity = [sponge_target_x_velocity, &
                             sponge_target_y_velocity, &
                             sponge_target_z_velocity]
@@ -980,6 +982,16 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
 #endif
 
 end subroutine ca_get_sponge_params
+
+subroutine ca_deallocate_sponge_params() bind(C, name="ca_get_sponge_params")
+
+    ! deallocate sponge parameters
+
+    use sponge_module
+
+    deallocate(sponge_target_velocity)
+
+end subroutine ca_deallocate_sponge_params
 #endif
 
 #ifdef POINTMASS
