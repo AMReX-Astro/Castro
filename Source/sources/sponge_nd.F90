@@ -4,12 +4,12 @@ module sponge_module
 
   implicit none
 
-  real(rt), save :: sponge_lower_factor, sponge_upper_factor
-  real(rt), save :: sponge_lower_radius, sponge_upper_radius
-  real(rt), save :: sponge_lower_density, sponge_upper_density
-  real(rt), save :: sponge_lower_pressure, sponge_upper_pressure
-  real(rt), save :: sponge_target_velocity(3)
-  real(rt), save :: sponge_timescale
+  real(rt), allocatable, save :: sponge_lower_factor, sponge_upper_factor
+  real(rt), allocatable, save :: sponge_lower_radius, sponge_upper_radius
+  real(rt), allocatable, save :: sponge_lower_density, sponge_upper_density
+  real(rt), allocatable, save :: sponge_lower_pressure, sponge_upper_pressure
+  real(rt), allocatable, save :: sponge_target_velocity(3)
+  real(rt), allocatable, save :: sponge_timescale
 
 #ifdef AMREX_USE_CUDA
   attributes(managed) :: sponge_lower_factor, sponge_upper_factor
