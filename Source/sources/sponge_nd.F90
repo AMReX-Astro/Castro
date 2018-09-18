@@ -62,7 +62,7 @@ contains
     real(rt) :: src(NVAR)
     real(rt) :: local_state(NVAR)
 
-    src(:) = 0.0d0
+    src(:) = ZERO
 
     !$gpu
 
