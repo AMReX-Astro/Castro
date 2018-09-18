@@ -10,7 +10,7 @@ module amrinfo_module
   integer :: amr_iteration = 0
   integer :: amr_ncycle = 0
 
-  real(rt)         :: amr_time = 0.0
+  real(rt), allocatable         :: amr_time = 0.0
   real(rt)         :: amr_dt = 0.0
-  
+
 end module amrinfo_module

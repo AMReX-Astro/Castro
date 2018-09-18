@@ -181,7 +181,7 @@ public:
     //
     // Timestamp particles
     //
-    void TimestampParticles (int ngrow); 
+    void TimestampParticles (int ngrow);
     //
     // Advance the particles by dt
     //
@@ -259,6 +259,9 @@ public:
     void finalize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
     void cons_to_prim(const amrex::Real time);
+
+    void amrinfo_init();
+    void amrinfo_finalize();
 
 #ifndef AMREX_USE_CUDA
     void cons_to_prim_fourth(const amrex::Real time);
@@ -400,7 +403,7 @@ public:
     // Do work after regrid().
     //
     virtual void post_regrid (int lbase,
-                              int new_finest) override;   
+                              int new_finest) override;
     //
     // Do work after a restart().
     //
@@ -494,8 +497,8 @@ public:
 #endif
 
 #ifdef RADIATION
-    void final_radiation_call (amrex::MultiFab& S_new, 
-                               int iteration, 
+    void final_radiation_call (amrex::MultiFab& S_new,
+                               int iteration,
                                int ncycle);
 #endif
 
@@ -527,7 +530,7 @@ public:
     void add_spec_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& source, amrex::MultiFab& DiffTerm, amrex::Real t, amrex::Real mult_factor = 1.0);
 #endif
 #if (BL_SPACEDIM == 1)
-    void add_viscous_term_to_source   (amrex::MultiFab& ext_src, amrex::MultiFab& state, amrex::MultiFab& ViscousTermforMomentum, 
+    void add_viscous_term_to_source   (amrex::MultiFab& ext_src, amrex::MultiFab& state, amrex::MultiFab& ViscousTermforMomentum,
                                        amrex::MultiFab& ViscousTermforEnergy, amrex::Real t, amrex::Real mult_factor = 1.0);
 #endif
 #endif
@@ -621,7 +624,7 @@ public:
     // This is saved as a real because we will be storing the number of zones
     // advanced as a ratio with the number of zones on the coarse grid (to
     // help prevent the number from getting too large), and that may be a
-    // non-integer number.    
+    // non-integer number.
     //
     static amrex::Real num_zones_advanced;
 
@@ -754,7 +757,7 @@ protected:
 
     // MOL Butcher tableau
     static int MOL_STAGES;
-  
+
     static amrex::Vector< amrex::Vector<amrex::Real> > a_mol;
     static amrex::Vector<amrex::Real> b_mol;
     static amrex::Vector<amrex::Real> c_mol;
@@ -913,10 +916,10 @@ protected:
     bool do_subcycle;
     amrex::Real dt_subcycle;
     amrex::Real dt_advance;
-  
+
     // sdc
     int sdc_iteration;
-  
+
     // method of lines
     int mol_iteration;
 

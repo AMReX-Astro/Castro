@@ -223,6 +223,23 @@ end subroutine ca_get_ngdnv
 ! ::: ----------------------------------------------------------------
 ! :::
 
+subroutine ca_amrinfo_init() bind(C, name="ca_amrinfo_init")
+
+    use amrinfo_module, only: amr_time
+
+    allocate(amr_time)
+
+end subroutine ca_amrinfo_init
+
+subroutine ca_amrinfo_finalize() bind(C, name="ca_amrinfo_finalize")
+
+    use amrinfo_module, only: amr_time
+
+    deallocate(amr_time)
+
+end subroutine ca_amrinfo_finalize
+
+
 subroutine ca_set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in) &
      bind(C, name="ca_set_amr_info")
 

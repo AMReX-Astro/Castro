@@ -33,6 +33,8 @@ contains
 
     real(rt)         :: loc(3), omega(3)
 
+    !$gpu
+
     if (present(idir)) then
        if (idir .eq. 1) then
           loc = position(idx(1),idx(2),idx(3),ccx=.false.) - center
