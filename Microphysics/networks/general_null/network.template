@@ -34,7 +34,7 @@ module actual_network
   integer, parameter :: nrates = 1
   integer, parameter :: num_rate_groups = 1
 
-#ifdef CUDA
+#ifdef AMREX_USE_CUDA
   attributes(managed) :: aion, zion
 #endif
 

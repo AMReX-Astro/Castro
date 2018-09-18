@@ -33,7 +33,7 @@ module network
 
   !$acc declare create(aion_inv)
 
-#ifdef CUDA
+#ifdef AMREX_USE_CUDA
   attributes(managed) :: aion_inv
 #endif
 
