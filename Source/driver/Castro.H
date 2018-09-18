@@ -884,7 +884,7 @@ protected:
     static amrex::Real thornado_eL;
     static amrex::Real thornado_eR;
     static int         thornado_ndimse;
-    static int         thornado_zoome;
+    static amrex::Real thornado_zoome;
 #endif
 
     static int         lastDtPlotLimited;

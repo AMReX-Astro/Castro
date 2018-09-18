@@ -21,8 +21,9 @@ Castro::init_thornado()
 {
     int nDimsX   = BL_SPACEDIM;
     int nDimsE   = thornado_ndimse; // number of energy groups in thornado
-    int zoomE    = thornado_zoome;  // geometric zoom factor for energy groups
     int nSpecies = THORNADO_NSPECIES;
+
+    Real zoomE    = thornado_zoome;  // geometric zoom factor for energy groups
 
     amrex::Print() << "*****Calling InitThornado " << std::endl; 
     InitThornado(&nDimsX, &nDimsE, &zoomE, &nSpecies);
@@ -51,9 +52,6 @@ Castro::init_thornado_data()
 
     int * boxlen = new int[3];
     const Real* prob_lo   = geom.ProbLo();
-
-    // Real eL = 0.;
-    // Real eR = 300.;
 
     amrex::Print() << "***THORNADO *** Using eL and eR = " << thornado_eL << " " << thornado_eR << std::endl;
 
@@ -156,8 +154,6 @@ Castro::create_thornado_source(Real dt)
 
     // Note these are in units of MeV; we will convert to thornado units inside
     //      InitThornado_Patch
-    // Real eL = 0.;
-    // Real eR = 300.;
     amrex::Print() << "***THORNADO *** Using eL and eR = " << thornado_eL << " " << thornado_eR << std::endl;
 
     int swX[3];
