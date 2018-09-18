@@ -1,7 +1,7 @@
 module burn_type_module
 
-  use amrex_fort_module, only : rt => amrex_real
   use actual_network, only: nspec, nspec_evolve, naux
+  use amrex_fort_module, only : rt => amrex_real
 
   implicit none
 
@@ -46,7 +46,7 @@ module burn_type_module
 
     ! The following are the actual integration data.
     ! To avoid potential incompatibilities we won't
-    ! include the integration vector y itself here.
+    ! include the integration array y itself here.
     ! It can be reconstructed from all of the above
     ! data, particularly xn, e, and T.
 
@@ -132,7 +132,6 @@ contains
 
   end subroutine copy_burn_t
 
-
   ! Given an eos type, copy the data relevant to the burn type.
 
   subroutine eos_to_burn(eos_state, burn_state)
@@ -145,6 +144,8 @@ contains
 
     type (eos_t)  :: eos_state
     type (burn_t) :: burn_state
+
+    !$gpu
 
     burn_state % rho  = eos_state % rho
     burn_state % T    = eos_state % T
@@ -178,6 +179,8 @@ contains
     type (burn_t) :: burn_state
     type (eos_t)  :: eos_state
 
+    !$gpu
+
     eos_state % rho  = burn_state % rho
     eos_state % T    = burn_state % T
     eos_state % e    = burn_state % e
@@ -206,6 +209,8 @@ contains
     implicit none
 
     type (burn_t), intent(inout) :: state
+
+    !$gpu
 
     state % xn(:) = max(small_x, min(ONE, state % xn(:)))
     state % xn(:) = state % xn(:) / sum(state % xn(:))
