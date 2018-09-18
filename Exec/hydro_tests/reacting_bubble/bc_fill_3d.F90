@@ -227,8 +227,18 @@ contains
     integer :: domlo(3), domhi(3)
     real(rt)         delta(3), xlo(3), time
     real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
+    integer :: bc_temp(3,2)
 
-    call filcc(grav,grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3,domlo,domhi,delta,xlo,bc)
+    bc_temp(:,:) = bc(:,:)
+
+    if (bc(3,1) == EXT_DIR .and. grav_l3 < domlo(3)) then
+       bc_temp(3,1) = FOEXTRAP
+    endif
+    if (bc(3,2) == EXT_DIR .and. grav_h3 > domhi(3)) then
+       bc_temp(3,2) = FOEXTRAP
+    endif
+
+    call filcc(grav,grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3,domlo,domhi,delta,xlo,bc_temp)
 
   end subroutine ca_gravxfill
 
@@ -248,8 +258,18 @@ contains
     integer :: domlo(3), domhi(3)
     real(rt)         delta(3), xlo(3), time
     real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
+    integer :: bc_temp(3,2)
 
-    call filcc(grav,grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3,domlo,domhi,delta,xlo,bc)
+    bc_temp(:,:) = bc(:,:)
+
+    if (bc(3,1) == EXT_DIR .and. grav_l3 < domlo(3)) then
+       bc_temp(3,1) = FOEXTRAP
+    endif
+    if (bc(3,2) == EXT_DIR .and. grav_h3 > domhi(3)) then
+       bc_temp(3,2) = FOEXTRAP
+    endif
+
+    call filcc(grav,grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3,domlo,domhi,delta,xlo,bc_temp)
 
   end subroutine ca_gravyfill
 
@@ -270,8 +290,18 @@ contains
     integer :: domlo(3), domhi(3)
     real(rt)         delta(3), xlo(3), time
     real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
+    integer :: bc_temp(3,2)
 
-    call filcc(grav,grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3,domlo,domhi,delta,xlo,bc)
+    bc_temp(:,:) = bc(:,:)
+
+    if (bc(3,1) == EXT_DIR .and. grav_l3 < domlo(3)) then
+       bc_temp(3,1) = FOEXTRAP
+    endif
+    if (bc(3,2) == EXT_DIR .and. grav_h3 > domhi(3)) then
+       bc_temp(3,2) = FOEXTRAP
+    endif
+
+    call filcc(grav,grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3,domlo,domhi,delta,xlo,bc_temp)
 
   end subroutine ca_gravzfill
 
@@ -293,8 +323,18 @@ contains
     integer :: domlo(3), domhi(3)
     real(rt)         delta(3), xlo(3), time
     real(rt)         react(react_l1:react_h1,react_l2:react_h2,react_l3:react_h3)
+    integer :: bc_temp(3,2)
 
-    call filcc(react,react_l1,react_l2,react_l3,react_h1,react_h2,react_h3,domlo,domhi,delta,xlo,bc)
+    bc_temp(:,:) = bc(:,:)
+
+    if (bc(3,1) == EXT_DIR .and. react_l3 < domlo(3)) then
+       bc_temp(3,1) = FOEXTRAP
+    endif
+    if (bc(3,2) == EXT_DIR .and. react_h3 > domhi(3)) then
+       bc_temp(3,2) = FOEXTRAP
+    endif
+
+    call filcc(react,react_l1,react_l2,react_l3,react_h1,react_h2,react_h3,domlo,domhi,delta,xlo,bc_temp)
 
   end subroutine ca_reactfill
 
@@ -314,9 +354,19 @@ contains
     integer          :: domlo(3), domhi(3)
     real(rt)         :: delta(3), xlo(3), time
     real(rt)         :: phi(phi_l1:phi_h1,phi_l2:phi_h2,phi_l3:phi_h3)
+    integer :: bc_temp(3,2)
+
+    bc_temp(:,:) = bc(:,:)
+
+    if (bc(3,1) == EXT_DIR .and. phi_l3 < domlo(3)) then
+       bc_temp(3,1) = FOEXTRAP
+    endif
+    if (bc(3,2) == EXT_DIR .and. phi_h3 > domhi(3)) then
+       bc_temp(3,2) = FOEXTRAP
+    endif
 
     call filcc(phi,phi_l1,phi_l2,phi_l3,phi_h1,phi_h2,phi_h3, &
-               domlo,domhi,delta,xlo,bc)
+               domlo,domhi,delta,xlo,bc_temp)
 
   end subroutine ca_phigravfill
 
