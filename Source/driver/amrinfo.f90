@@ -13,4 +13,9 @@ module amrinfo_module
   real(rt), allocatable         :: amr_time
   real(rt), allocatable         :: amr_dt
 
+#ifdef AMREX_USE_CUDA
+    attributes(managed) :: amr_level, amr_iteration, amr_ncycle
+    attributes(managed) :: amr_time, amr_dt
+#endif
+
 end module amrinfo_module
