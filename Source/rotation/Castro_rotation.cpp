@@ -58,7 +58,7 @@ void Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old
 	MultiFab& rot_new = get_new_data(Rotation_Type);
 
     MultiFab phi_center;
-    phi_center.define(grids, dmap, 1, 1;
+    phi_center.define(grids, dmap, 1, 1);
     phi_center.setVal(0.0, 1);
 
 	// Fill the rotation data.
