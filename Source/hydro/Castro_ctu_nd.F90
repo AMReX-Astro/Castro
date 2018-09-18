@@ -60,7 +60,7 @@ contains
                                    track_grid_losses, limit_fluxes_on_small_dens
     use advection_util_module, only : limit_hydro_fluxes_on_small_dens, normalize_species_fluxes, calc_pdivu
     use castro_util_module, only : position, linear_to_angular_momentum
-    use prob_params_module, only : mom_flux_has_p, domlo_level, domhi_level, center, dg
+    use prob_params_module, only : mom_flux_has_p, domlo_level, domhi_level, center, dg, coord_type
     use amrinfo_module, only : amr_level
 #ifdef RADIATION
     use rad_params_module, only : ngroups, nugroup, dlognu
@@ -651,6 +651,12 @@ contains
           do j = lo(2), hi(2)
              do i = lo(1), hi(1) + 1
                 flux1(i,j,k,n) = dt * flux1(i,j,k,n) * area1(i,j,k)
+#if BL_SPACEDIM == 1
+                ! Correct the momentum flux with the grad p part.
+                if (coord_type .eq. 0 .and. n == UMX) then
+                   flux1(i,j,k,n) = flux1(i,j,k,n) + dt * area1(i,j,k) * qx(i,j,k,GDPRES)
+                endif
+#endif
              enddo
           enddo
        enddo
@@ -1211,4 +1217,3 @@ contains
   end subroutine ca_ctu_update
 
 end module ctu_module
-
