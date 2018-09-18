@@ -3021,12 +3021,6 @@ Castro::network_init ()
 }
 
 void
-Castro::network_init ()
-{
-   ca_network_init();
-}
-
-void
 Castro::network_finalize ()
 {
    ca_network_finalize();

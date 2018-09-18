@@ -260,8 +260,8 @@ public:
 
     void cons_to_prim(const amrex::Real time);
 
-    void amrinfo_init();
-    void amrinfo_finalize();
+    static void amrinfo_init();
+    static void amrinfo_finalize();
 
 #ifndef AMREX_USE_CUDA
     void cons_to_prim_fourth(const amrex::Real time);
