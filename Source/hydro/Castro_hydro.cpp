@@ -497,7 +497,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 #pragma gpu
           ca_construct_flux
               (AMREX_INT_ANYD(ebx.loVect()), AMREX_INT_ANYD(ebx.hiVect()),
-               domain_lo, domain_hi,
+               AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
                AMREX_REAL_ANYD(dx), dt,
                idir_f,
                BL_TO_FORTRAN_ANYD(Sborder[mfi]),
