@@ -1,3 +1,8 @@
+
+# ------------------  THORNADO-SPECIFIC INPUTS -------------------
+thornado.eL = 0
+thornado.eR = 300
+
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 #max_step = 10000
 #max_step = 100

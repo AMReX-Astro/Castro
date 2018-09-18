@@ -100,6 +100,9 @@ int          Castro::THORNADO_NNODES     = 2;
 int          Castro::THORNADO_NMOMENTS   = 4;
 int          Castro::THORNADO_FLUID_NDOF = std::pow(THORNADO_NNODES, BL_SPACEDIM     );   // =  8 for 3D
 int          Castro::THORNADO_RAD_NDOF   = std::pow(THORNADO_NNODES,(BL_SPACEDIM + 1));   // = 16 for 3D and 1 energy
+
+Real         Castro::thornado_eL         = 0.; 
+Real         Castro::thornado_eR         = 300.; 
 #endif
 
 Real         Castro::num_zones_advanced = 0.0;
@@ -396,6 +399,10 @@ Castro::read_params ()
 
 #ifdef AMREX_PARTICLES
     read_particle_params();
+#endif
+
+#ifdef THORNADO
+    read_thornado_params();
 #endif
 
 #ifdef RADIATION
@@ -910,19 +917,18 @@ Castro::initData ()
 #endif
 
 #ifdef HYBRID_MOMENTUM
-// <<<<<<< HEAD
-	  // Generate the initial hybrid momenta based on this user data.
-	  // ca_init_hybrid_momentum(lo, hi, BL_TO_FORTRAN_3D(S_new[mfi]));
-// =======
-	  // ca_init_hybrid_momentum(lo, hi, BL_TO_FORTRAN_ANYD(S_new[mfi]));
-// >>>>>>> development
+          // 
+          // Generate the initial hybrid momenta based on this user data.
+          //
+          ca_init_hybrid_momentum(lo, hi, BL_TO_FORTRAN_ANYD(S_new[mfi]));
 #endif
-
+          //
           // Verify that the sum of (rho X)_i = rho at every cell
-
+          //
           ca_check_initial_species(AMREX_ARLIM_3D(lo), AMREX_ARLIM_3D(hi),
-				   BL_TO_FORTRAN_ANYD(S_new[mfi]));
+                                   BL_TO_FORTRAN_ANYD(S_new[mfi]));
        }
+
        enforce_consistent_e(S_new);
 
        // thus far, we assume that all initialization has worked on cell-centers

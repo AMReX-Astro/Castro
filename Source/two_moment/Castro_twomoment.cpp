@@ -1,9 +1,18 @@
-
 #include "Castro.H"
+#include "AMReX_ParmParse.H"
 #include "TwoMoment_F.H"
 
 using std::string;
 using namespace amrex;
+
+void
+Castro::read_thornado_params ()
+{
+  ParmParse pp("thornado");
+
+  pp.query("eL", thornado_eL);
+  pp.query("eR", thornado_eR);
+}
 
 int
 Castro::init_thornado()
@@ -33,7 +42,6 @@ Castro::init_thornado_data()
     const Real* dx = geom.CellSize();
 
 // *************************************************************
-
     int swE = 0; // stencil for energy array; no energy ghost cells needed
     Vector<Real> grid_lo(3);
     Vector<Real> grid_hi(3);
@@ -41,10 +49,10 @@ Castro::init_thornado_data()
     int * boxlen = new int[3];
     const Real* prob_lo   = geom.ProbLo();
 
-    // Note these are in units of MeV; we will convert to thornado units inside
-    //      InitThornado_Patch
-    Real eL = 0.;
-    Real eR = 300.;
+    // Real eL = 0.;
+    // Real eR = 300.;
+
+    amrex::Print() << "***THORNADO *** Using eL and eR = " << thornado_eL << " " << thornado_eR << std::endl;
 
     int swX[3];
     swX[0] = my_ngrow;
@@ -55,7 +63,10 @@ Castro::init_thornado_data()
     swX[2] = 0;
 #endif
 
-    amrex::Print() << "*****Calling InitThornado_Patch " << std::endl; 
+    int nr =  Thor_new.nComp();
+    const Real  cur_time = state[Thornado_Type].curTime();
+
+    amrex::Print() << "*****Calling InitThornado_Patch and init_thornado on each patch " << std::endl; 
 
     // For now we will not allowing logical tiling
     for (MFIter mfi(Fluid_new, false); mfi.isValid(); ++mfi) 
@@ -80,33 +91,25 @@ Castro::init_thornado_data()
         boxlen[2]  = 1;
 #endif
 
+       // Note thornado_eL and thornado_eR in units of MeV; we will convert 
+       //      to thornado units inside InitThornado_Patch
         InitThornado_Patch(boxlen, swX,
             grid_lo.dataPtr(), grid_hi.dataPtr(),
-            &swE, &eL, &eR);
-    }
-    delete boxlen;
+            &swE, &thornado_eL, &thornado_eR);
 
-// *************************************************************
-
-    int nf = Fluid_new.nComp();
-    int nr =  Thor_new.nComp();
-    const Real  cur_time = state[Thornado_Type].curTime();
-
-    amrex::Print() << "*****Calling init_thornado_data on each patch " << std::endl; 
-
-    for (MFIter mfi(Thor_new); mfi.isValid(); ++mfi)
-    {
        RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
-       const Box& box     = mfi.validbox();
-       const int* lo      = box.loVect();
-       const int* hi      = box.hiVect();
+       const int* lo      = bx.loVect();
+       const int* hi      = bx.hiVect();
   
         ca_init_thornado_data
 	  (level, cur_time, lo, hi,
            nr, BL_TO_FORTRAN(Thor_new[mfi]), 
                BL_TO_FORTRAN(Fluid_new[mfi]), 
            dx, gridloc.lo(), gridloc.hi());
+
+        FreeThornado_Patch();
     }
+    delete boxlen;
 }
 
 void
@@ -142,6 +145,28 @@ Castro::create_thornado_source(Real dt)
     const Real* prob_lo   = geom.ProbLo();
 
     Real dt_sub = dt / n_sub;
+    int * boxlen = new int[3];
+
+    int swE = 0; // stencil for energy array; no energy ghost cells needed
+    Vector<Real> grid_lo(3);
+    Vector<Real> grid_hi(3);
+
+    // Note these are in units of MeV; we will convert to thornado units inside
+    //      InitThornado_Patch
+    // Real eL = 0.;
+    // Real eR = 300.;
+    amrex::Print() << "***THORNADO *** Using eL and eR = " << thornado_eL << " " << thornado_eR << std::endl;
+
+    int swX[3];
+    swX[0] = my_ngrow;
+    swX[1] = my_ngrow;
+#if (BL_SPACEDIM > 2)
+    swX[2] = my_ngrow;
+#else
+    swX[2] = 0;
+#endif
+
+    amrex::Print() << "*****Calling InitThornado_Patch " << std::endl; 
 
     for (int i = 0; i < n_sub; i++)
     {
@@ -156,12 +181,42 @@ Castro::create_thornado_source(Real dt)
       {
         Box bx = mfi.validbox();
 
+        if (i == 0)  
+        {
+           grid_lo[0] = prob_lo[0] +  bx.smallEnd(0)  * dx[0] / 100.0; // Factor of 100 because Thornado uses m, not cm
+           grid_hi[0] = prob_lo[0] + (bx.bigEnd(0)+1) * dx[0] / 100.0;
+           boxlen[0] = bx.length(0);
+
+           grid_lo[1] = prob_lo[1] +  bx.smallEnd(1)  * dx[1] / 100.0;
+           grid_hi[1] = prob_lo[1] + (bx.bigEnd(1)+1) * dx[1] / 100.0;
+           boxlen[1] = bx.length(1);
+
+#if (BL_SPACEDIM > 2)
+           grid_lo[2] = prob_lo[2] +  bx.smallEnd(2)  * dx[2] / 100.0;
+           grid_hi[2] = prob_lo[2] + (bx.bigEnd(2)+1) * dx[2] / 100.0;
+           boxlen[2] = bx.length(2);
+#else
+           grid_lo[2] = 0.;
+           grid_hi[2] = 1.;
+           boxlen[2]  = 1;
+#endif
+           std::cout << "CALLING PATCH ON BOX " << bx << std::endl;
+
+           // Note thornado_eL and thornado_eR in units of MeV; we will convert 
+           //      to thornado units inside InitThornado_Patch
+           InitThornado_Patch(boxlen, swX,
+               grid_lo.dataPtr(), grid_hi.dataPtr(),
+               &swE, &thornado_eL, &thornado_eR);
+        }
+
+        std::cout << "CALLING SOURCE ON BOX " << bx << std::endl;
         call_to_thornado(BL_TO_FORTRAN_BOX(bx), &dt_sub,
                          BL_TO_FORTRAN_FAB(S_border[mfi]),
                          BL_TO_FORTRAN_FAB(dS[mfi]),
                          BL_TO_FORTRAN_FAB(R_border[mfi]),
                          BL_TO_FORTRAN_FAB(U_R_new[mfi]), 
                          &n_fluid_dof, &n_moments, &my_ngrow);
+        std::cout << "DONE CALLING SOURCE ON BOX " << bx << std::endl;
 
         // Add the source term to all components even though there should
         //     only be non-zero source terms for (Rho, Xmom, Ymom, Zmom, RhoE, UFX)
@@ -169,8 +224,9 @@ Castro::create_thornado_source(Real dt)
 
 //      Note we can't call FreeThornado_Patch here because it is only initialized 
 //        at the begining of the run, not every timestep
-//      if (i == (n_sub-1)) FreeThornado_Patch();
+        if (i == (n_sub-1)) FreeThornado_Patch();
       }
       S_border.FillBoundary();
     }
+    delete boxlen;
 }

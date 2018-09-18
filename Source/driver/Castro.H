@@ -648,6 +648,14 @@ protected:
     amrex::Vector<std::unique_ptr<amrex::iMultiFab> > ib_mask;
     amrex::iMultiFab& build_interior_boundary_mask (int ng);
 
+
+#ifdef THORNADO
+    //
+    // Read thornado-related inputs
+    //
+    static void read_thornado_params();
+#endif
+
 #ifdef SELF_GRAVITY
     int get_numpts();
 
@@ -871,6 +879,10 @@ protected:
     static int THORNADO_NMOMENTS;
     static int THORNADO_FLUID_NDOF;
     static int THORNADO_RAD_NDOF;
+
+    // These are the lower and upper limits of the energy groups
+    static amrex::Real thornado_eL;
+    static amrex::Real thornado_eR;
 #endif
 
     static int         lastDtPlotLimited;
