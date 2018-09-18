@@ -6,11 +6,11 @@ module amrinfo_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  integer :: amr_level = 0
-  integer :: amr_iteration = 0
-  integer :: amr_ncycle = 0
+  integer, allocatable :: amr_level
+  integer, allocatable :: amr_iteration
+  integer, allocatable :: amr_ncycle
 
   real(rt), allocatable         :: amr_time
-  real(rt)         :: amr_dt = 0.0
+  real(rt), allocatable         :: amr_dt
 
 end module amrinfo_module

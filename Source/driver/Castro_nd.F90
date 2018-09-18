@@ -225,10 +225,18 @@ end subroutine ca_get_ngdnv
 
 subroutine ca_amrinfo_init() bind(C, name="ca_amrinfo_init")
 
-    use amrinfo_module, only: amr_time
+    use amrinfo_module, only: amr_level, amr_iteration, amr_ncycle, amr_time, amr_dt
 
+    allocate(amr_level)
+    amr_level = 0
+    allocate(amr_iteration)
+    amr_amr_iteration = 0
+    allocate(amr_ncycle)
+    amr_ncycle = 0
     allocate(amr_time)
     amr_time = 0.0d0
+    allocate(amr_dt)
+    amr_dt = 0.0d0
 
 end subroutine ca_amrinfo_init
 
@@ -236,7 +244,11 @@ subroutine ca_amrinfo_finalize() bind(C, name="ca_amrinfo_finalize")
 
     use amrinfo_module, only: amr_time
 
+    deallocate(amr_level)
+    deallocate(amr_iteration)
+    deallocate(amr_ncycle)
     deallocate(amr_time)
+    deallocate(amr_dt)
 
 end subroutine ca_amrinfo_finalize
 
