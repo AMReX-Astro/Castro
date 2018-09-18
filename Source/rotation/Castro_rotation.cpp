@@ -33,7 +33,7 @@ void Castro::construct_old_rotation_source(MultiFab& source, MultiFab& state, Re
     {
 	const Box& bx = mfi.tilebox();
 
-	ca_rsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+	ca_rsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 		ARLIM_3D(domlo), ARLIM_3D(domhi),
 		BL_TO_FORTRAN_ANYD(phirot_old[mfi]),
 		BL_TO_FORTRAN_ANYD(rot_old[mfi]),
@@ -83,8 +83,8 @@ void Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old
 	for (MFIter mfi(state_new, true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
-
-	    ca_corrrsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+#pragma gpu
+	    ca_corrrsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 			ARLIM_3D(domlo), ARLIM_3D(domhi),
 			BL_TO_FORTRAN_ANYD(phirot_old[mfi]),
 			BL_TO_FORTRAN_ANYD(phirot_new[mfi]),
@@ -109,7 +109,7 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, 
 {
     const Real* dx = geom.CellSize();
 
-    phi.setVal(0.0);    
+    phi.setVal(0.0);
 
     int ng = phi.nGrow();
 
@@ -121,7 +121,7 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, 
 
       const Box& bx = mfi.growntilebox(ng);
 
-      ca_fill_rotational_potential(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), 
+      ca_fill_rotational_potential(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 				   BL_TO_FORTRAN_ANYD(phi[mfi]),
 				   ZFILL(dx),time);
 
@@ -133,7 +133,7 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, 
 
     if (ng > rot.nGrow())
       amrex::Error("State MF has more ghost cells than rotation MF.");
-    
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -142,7 +142,7 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, 
 
       const Box& bx = mfi.growntilebox(ng);
 
-      ca_fill_rotational_acceleration(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), 
+      ca_fill_rotational_acceleration(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 				      BL_TO_FORTRAN_ANYD(rot[mfi]),
 				      BL_TO_FORTRAN_ANYD(state[mfi]),
 				      ZFILL(dx),time);
@@ -150,5 +150,3 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, 
     }
 
 }
-
-

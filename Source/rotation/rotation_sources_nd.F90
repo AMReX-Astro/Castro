@@ -62,7 +62,7 @@ contains
              rho = uold(i,j,k,URHO)
              rhoInv = ONE / rho
 
-             src = ZERO
+             src(:) = ZERO
              snew = uold(i,j,k,:)
 
              old_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoInv
@@ -234,6 +234,8 @@ contains
 
     ! Note that the time passed to this function
     ! is the new time at time-level n+1.
+
+    !$gpu
 
     omega_old = get_omega(time-dt)
     omega_new = get_omega(time   )

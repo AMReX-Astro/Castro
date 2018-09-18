@@ -55,7 +55,7 @@ contains
 
 
 
-  ! Given a position and velocity, calculate 
+  ! Given a position and velocity, calculate
   ! the rotational acceleration. This is the sum of:
   ! the Coriolis force (-2 omega x v),
   ! the centrifugal force (- omega x ( omega x r)),
@@ -76,6 +76,8 @@ contains
 
     logical, optional :: centrifugal, coriolis, domegadt
     logical :: c1, c2, c3
+
+    !$gpu
 
     omega = get_omega(time)
 
@@ -131,11 +133,11 @@ contains
        Sr = ZERO
 
        if (c1) then
-          Sr = Sr - cross_product(omega, omegacrossr) 
+          Sr = Sr - cross_product(omega, omegacrossr)
        endif
 
        if (c2) then
-          Sr = Sr - TWO * omegacrossv 
+          Sr = Sr - TWO * omegacrossv
        endif
 
        if (c3) then
