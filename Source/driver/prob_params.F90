@@ -1,5 +1,5 @@
 
-! This module stores the runtime parameters that define the problem domain.  
+! This module stores the runtime parameters that define the problem domain.
 ! These parameter are initialized in set_problem_params().
 
 module prob_params_module
@@ -15,13 +15,13 @@ module prob_params_module
   integer, allocatable :: Interior, Inflow, Outflow, Symmetry, SlipWall, NoSlipWall
 
   ! geometry information
-  integer,  save :: coord_type
+  integer,  allocatable, save :: coord_type
   real(rt), allocatable :: center(:), problo(:), probhi(:)
 
   ! dimension information
   integer, save, allocatable :: dim
 
-  ! indices that we use for dimension agnostic routines 
+  ! indices that we use for dimension agnostic routines
   ! to ensure we don't illegally access non-existent ghost cells
   ! the format is dg(1:dim) = 1, dg(dim+1:3) = 0
   integer, save, allocatable :: dg(:)
@@ -54,8 +54,9 @@ module prob_params_module
   attributes(managed) :: Interior, Inflow, Outflow, Symmetry, Slipwall, NoSlipWall
   attributes(managed) :: dim
   attributes(managed) :: dg
+  attributes(managed) :: coord_type
   attributes(managed) :: center, problo, probhi
   attributes(managed) :: domlo_level, domhi_level
 #endif
-  
+
 end module prob_params_module

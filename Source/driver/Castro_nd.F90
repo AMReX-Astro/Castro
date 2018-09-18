@@ -630,6 +630,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   allocate(SlipWall)
   allocate(NoSlipWall)
 
+  allocate(coord_type)
   allocate(center(3))
   allocate(problo(3))
   allocate(probhi(3))

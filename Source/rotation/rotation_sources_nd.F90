@@ -110,7 +110,9 @@ contains
                 SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
 
              else
+#ifndef AMREX_USE_GPU
                 call amrex_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
+#endif
              end if
 
              src(UEDEN) = src(UEDEN) + SrE
@@ -463,7 +465,9 @@ contains
                 SrEcorr = SrEcorr + HALF * (dot_product(vold, Sr_old) + dot_product(vnew, Sr_new))
 
              else
+#ifndef AMREX_USE_GPU
                 call amrex_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
+#endif
              end if
 
              src(UEDEN) = SrEcorr

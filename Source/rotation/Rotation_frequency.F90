@@ -47,9 +47,9 @@ contains
        endif
 
     else
-
+#ifndef AMREX_USE_GPU
        call amrex_error("Error:: rotation_nd.f90 :: invalid coord_type")
-
+#endif
     endif
 
   end function get_omega
@@ -89,9 +89,9 @@ contains
        endif
 
     else
-
+#ifndef AMREX_USE_GPU
        call amrex_error("Error:: rotation_nd.f90 :: unknown coord_type")
-
+#endif
     endif
 
   end function get_domegadt

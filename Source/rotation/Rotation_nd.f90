@@ -41,7 +41,9 @@ contains
        else if (idir .eq. 3) then
           loc = position(idx(1),idx(2),idx(3),ccz=.false.) - center
        else
+#ifndef AMREX_USE_GPU
           call amrex_error("Error: unknown direction in inertial_to_rotational_velocity.")
+#endif
        endif
     else
        loc = position(idx(1),idx(2),idx(3)) - center
