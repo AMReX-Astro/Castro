@@ -12,7 +12,7 @@ DIM ?= 3
 
 USE_GRAV ?= TRUE
 USE_REACT ?= FALSE
-USE_ROTATION ?= FALSE
+USE_ROTATION ?= TRUE
 
 # We want to use the dimension agnostic version of certain source files.
 
