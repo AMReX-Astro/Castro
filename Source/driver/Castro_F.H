@@ -778,7 +778,6 @@ extern "C"
     (const int* lo, const int* hi,
      const int* domlo, const int* domhi,
      const BL_FORT_FAB_ARG_3D(phi_old),
-     const BL_FORT_FAB_ARG_3D(phi_new),
      const BL_FORT_FAB_ARG_3D(rot_old),
      const BL_FORT_FAB_ARG_3D(rot_new),
      const BL_FORT_FAB_ARG_3D(S_old),
