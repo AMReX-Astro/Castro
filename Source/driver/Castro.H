@@ -260,9 +260,6 @@ public:
 
     void cons_to_prim(const amrex::Real time);
 
-    static void amrinfo_init();
-    static void amrinfo_finalize();
-
 #ifndef AMREX_USE_CUDA
     void cons_to_prim_fourth(const amrex::Real time);
 #endif
@@ -779,6 +776,10 @@ protected:
     static void network_finalize ();
 
     static void eos_finalize ();
+
+    static void amrinfo_init();
+    
+    static void amrinfo_finalize();
 
     static void read_params ();
 

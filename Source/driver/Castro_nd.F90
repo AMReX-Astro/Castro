@@ -228,6 +228,7 @@ subroutine ca_amrinfo_init() bind(C, name="ca_amrinfo_init")
     use amrinfo_module, only: amr_time
 
     allocate(amr_time)
+    amr_time = 0.0d0
 
 end subroutine ca_amrinfo_init
 
