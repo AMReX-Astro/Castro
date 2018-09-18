@@ -1,7 +1,5 @@
 module rotation_module
 
-  use math_module, only: cross_product
-  use rotation_frequency_module, only: get_omega, get_domegadt
   use meth_params_module, only: rotation_include_centrifugal, rotation_include_coriolis, &
        rotation_include_domegadt
 
@@ -22,6 +20,8 @@ contains
 
     use prob_params_module, only: center
     use castro_util_module, only: position
+    use math_module, only: cross_product
+    use rotation_frequency_module, only: get_omega
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -67,6 +67,8 @@ contains
 
     use amrex_constants_module, only: ZERO, TWO
     use meth_params_module, only: state_in_rotating_frame
+    use math_module, only: cross_product
+    use rotation_frequency_module, only: get_omega, get_domegadt
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -181,6 +183,8 @@ contains
 
     use amrex_constants_module, only: ZERO, HALF
     use meth_params_module, only: state_in_rotating_frame, rotation_include_centrifugal
+    use math_module, only: cross_product
+    use rotation_frequency_module, only: get_omega
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
