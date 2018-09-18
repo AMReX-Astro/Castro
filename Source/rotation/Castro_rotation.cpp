@@ -141,7 +141,7 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, 
     {
 
       const Box& bx = mfi.growntilebox(ng);
-// #pragma gpu
+#pragma gpu
       ca_fill_rotational_acceleration(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 				      BL_TO_FORTRAN_ANYD(rot[mfi]),
 				      BL_TO_FORTRAN_ANYD(state[mfi]),

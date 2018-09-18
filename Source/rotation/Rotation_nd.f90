@@ -3,7 +3,7 @@ module rotation_module
   use math_module, only: cross_product
   use rotation_frequency_module, only: get_omega, get_domegadt
   use meth_params_module, only: rotation_include_centrifugal, rotation_include_coriolis, &
-                                rotation_include_domegadt
+       rotation_include_domegadt
 
   use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
