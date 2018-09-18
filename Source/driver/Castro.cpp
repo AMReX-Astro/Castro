@@ -211,6 +211,7 @@ Castro::variableCleanUp ()
 #ifdef SPONGE
     sponge_finalize();
 #endif
+    amrinfo_finalize();
 }
 
 void
