@@ -10,7 +10,7 @@
     use amrex_error_module, only : amrex_abort
     use meth_params_module, only : URHO,UMX,UMY,UMZ,UEINT,UEDEN,UFX
     use ProgramHeaderModule, only : nE, nDOF, nNodesX, nNodesE
-    use FluidFieldsModule, only : uCF, iCF_D, iCF_S1, iCF_S2, iCF_E, iCF_Ne
+    use FluidFieldsModule, only : uCF, iCF_D, iCF_S1, iCF_S2, iCF_S3, iCF_E, iCF_Ne
     use RadiationFieldsModule, only : nSpecies, uCR
     use TimeSteppingModule_Castro, only : Update_IMEX_PDARS
     use UnitsModule, only : Gram, Centimeter, Second
@@ -92,6 +92,7 @@
          uCF(1:n_fluid_dof,i,j,k,iCF_D)  = S(ic,jc,URHO)  * conv_dens
          uCF(1:n_fluid_dof,i,j,k,iCF_S1) = S(ic,jc,UMX)   * conv_mom
          uCF(1:n_fluid_dof,i,j,k,iCF_S2) = S(ic,jc,UMY)   * conv_mom
+         uCF(1:n_fluid_dof,i,j,k,iCF_S3) = S(ic,jc,UMZ)   * conv_mom
          uCF(1:n_fluid_dof,i,j,k,iCF_E)  = S(ic,jc,UEDEN) * conv_enr
          uCF(1:n_fluid_dof,i,j,k,iCF_Ne) = S(ic,jc,UFX)   * conv_ne
 
