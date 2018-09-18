@@ -40,7 +40,7 @@ void Castro::construct_old_rotation_source(MultiFab& source, MultiFab& state, Re
 		        BL_TO_FORTRAN_ANYD(state[mfi]),
 		        BL_TO_FORTRAN_ANYD(source[mfi]),
 		        BL_TO_FORTRAN_ANYD(volume[mfi]),
-		        AMREX_REAL_ANYD(dx),dt,&time);
+		        AMREX_REAL_ANYD(dx),dt,time);
 
 	}
 
@@ -103,7 +103,7 @@ void Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old
 			            BL_TO_FORTRAN_ANYD((*mass_fluxes[0])[mfi]),
 			            BL_TO_FORTRAN_ANYD((*mass_fluxes[1])[mfi]),
 			            BL_TO_FORTRAN_ANYD((*mass_fluxes[2])[mfi]),
-			            AMREX_REAL_ANYD(dx),dt,&time,
+			            AMREX_REAL_ANYD(dx),dt,time,
 			            BL_TO_FORTRAN_ANYD(volume[mfi]));
 		}
 	}
