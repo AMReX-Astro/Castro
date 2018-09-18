@@ -242,7 +242,7 @@ end subroutine ca_amrinfo_init
 
 subroutine ca_amrinfo_finalize() bind(C, name="ca_amrinfo_finalize")
 
-    use amrinfo_module, only: amr_time
+    use amrinfo_module, only: amr_level, amr_iteration, amr_ncycle, amr_time, amr_dt
 
     deallocate(amr_level)
     deallocate(amr_iteration)
