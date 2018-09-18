@@ -230,7 +230,7 @@ subroutine ca_amrinfo_init() bind(C, name="ca_amrinfo_init")
     allocate(amr_level)
     amr_level = 0
     allocate(amr_iteration)
-    amr_amr_iteration = 0
+    amr_iteration = 0
     allocate(amr_ncycle)
     amr_ncycle = 0
     allocate(amr_time)

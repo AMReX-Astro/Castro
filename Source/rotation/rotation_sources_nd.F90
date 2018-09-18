@@ -156,7 +156,7 @@ contains
     use prob_params_module, only: center, dg
     use amrex_constants_module
     use math_module, only: cross_product ! function
-    use rotation_module, only: rotational_acceleration
+    use rotation_module, only: rotational_acceleration ! function
     use rotation_frequency_module, only: get_omega ! function
     use rotation_frequency_module, only: get_domegadt ! function
     use castro_util_module, only: position ! function
