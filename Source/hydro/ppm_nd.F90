@@ -29,7 +29,7 @@ contains
                              szm, szp, &
 #endif
                              sd_lo, sd_hi, &
-                             ilo1, ilo2, ihi1, ihi2, dx, k3d, kc, &
+                             lo, hi, dx, &
                              force_type_in)
 
     ! perform the ppm reconstruction on component n in the array s and
@@ -46,8 +46,7 @@ contains
     integer, intent(in) :: ncomp, n
     integer, intent(in) ::  sd_lo(3),  sd_hi(3)
     integer, intent(in) ::  f_lo(3),  f_hi(3)
-    integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
-    integer, intent(in) :: k3d, kc
+    integer, intent(in) :: lo(3), hi(3)
 
     real(rt)        , intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3), ncomp)
     real(rt)        , intent(in) :: flatn( f_lo(1): f_hi(1), f_lo(2): f_hi(2), f_lo(3): f_hi(3))
@@ -82,7 +81,7 @@ contains
                        szm, szp, &
 #endif
                        sd_lo, sd_hi, &
-                       ilo1, ilo2, ihi1, ihi2, dx, k3d, kc)
+                       lo, hi, dx)
 
     else if (ppm_type_to_use == 2) then
 
@@ -96,7 +95,7 @@ contains
                        szm, szp, &
 #endif
                        sd_lo, sd_hi, &
-                       ilo1, ilo2, ihi1, ihi2, dx, k3d, kc)
+                       lo, hi, dx)
 
     end if
 
@@ -116,7 +115,7 @@ contains
                        szm, szp, &
 #endif
                        sd_lo, sd_hi, &
-                       ilo1, ilo2, ihi1, ihi2, dx, k3d, kc)
+                       lo, hi, dx)
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : ppm_type
@@ -129,8 +128,7 @@ contains
     integer, intent(in) :: ncomp, n
     integer, intent(in) :: sd_lo(3), sd_hi(3)
     integer, intent(in) ::  f_lo(3),  f_hi(3)
-    integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
-    integer, intent(in) :: k3d, kc
+    integer, intent(in) :: lo(3), hi(3)
 
     real(rt), intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3), ncomp)
     real(rt), intent(in) :: flatn( f_lo(1): f_hi(1), f_lo(2): f_hi(2), f_lo(3): f_hi(3))
@@ -147,7 +145,7 @@ contains
     real(rt), intent(in) :: dx(3)
 
     ! local
-    integer i,j,k
+    integer i, j, k
 
     real(rt)         dsl, dsr, dsc
 
@@ -161,25 +159,25 @@ contains
     ! s_{i+\half}^{H.O.}
     real(rt)        , pointer :: sedge(:,:)
 
-#ifndef AMREX_USE_CUDA    
+#ifndef AMREX_USE_CUDA
     if (ppm_type .ne. 1) &
          call amrex_error("Should have ppm_type = 1 in ppm_type1")
 
-    if (s_lo(1) .gt. ilo1-3 .or. s_hi(1) .lt. ihi1+3) then 
+    if (s_lo(1) .gt. lo(1)-3 .or. s_hi(1) .lt. hi(1)+3) then
          call amrex_error("Need more ghost cells on array in ppm_type1")
     end if
 
 #if (BL_SPACEDIM >= 2)
-    if (s_lo(2) .gt. ilo2-3 .or. s_hi(2) .lt. ihi2+3) then
+    if (s_lo(2) .gt. ilo2-3 .or. s_hi(2) .lt. hi(2)+3) then
          call amrex_error("Need more ghost cells on array in ppm_type1")
     end if
 #endif
 #endif
     ! cell-centered indexing w/extra ghost cell
-    call bl_allocate(dsvl, ilo1-2, ihi1+2, ilo2-2*dg(2), ihi2+2*dg(2))
+    call bl_allocate(dsvl, lo(:)-2*dg(:), hi(:)+2*dg(:))
 
     ! edge-centered indexing
-    call bl_allocate(sedge, ilo1-1, ihi1+2, ilo2-dg(2), ihi2+2*dg(2))
+    call bl_allocate(sedge, lo(:)-dg(:), hi(:)+2*dg(:))
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! x-direction
@@ -188,63 +186,72 @@ contains
     ! compute s at x-edges
 
     ! compute van Leer slopes in x-direction
-    do j=ilo2-dg(2),ihi2+dg(2)
-       do i=ilo1-2,ihi1+2
-          dsc = HALF * (s(i+1,j,k3d,n) - s(i-1,j,k3d,n))
-          dsl = TWO  * (s(i  ,j,k3d,n) - s(i-1,j,k3d,n))
-          dsr = TWO  * (s(i+1,j,k3d,n) - s(i  ,j,k3d,n))
-          if (dsl*dsr .gt. ZERO) then
-             dsvl(i,j) = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
-          else
-             dsvl(i,j) = ZERO
-          end if
+    do k = lo(3)-dg(3), hi(3)+dg(3)
+       do j = lo(2)-dg(2), hi(2)+dg(2)
+          do i= lo(1)-2, hi(1)+2
+
+             dsc = HALF * (s(i+1,j,k,n) - s(i-1,j,k,n))
+             dsl = TWO  * (s(i  ,j,k,n) - s(i-1,j,k,n))
+             dsr = TWO  * (s(i+1,j,k,n) - s(i  ,j,k,n))
+
+             if (dsl*dsr .gt. ZERO) then
+                dsvl(i,j,k) = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+             else
+                dsvl(i,j,k) = ZERO
+             end if
+
+          end do
        end do
     end do
 
     ! interpolate s to x-edges
-    do j=ilo2-dg(2),ihi2+dg(2)
-       !dir$ ivdep
-       do i=ilo1-1,ihi1+2
-          sedge(i,j) = HALF*(s(i,j,k3d,n)+s(i-1,j,k3d,n)) &
-               - SIXTH*(dsvl(i,j)-dsvl(i-1,j))
-          ! make sure sedge lies in between adjacent cell-centered values
-          sedge(i,j) = max(sedge(i,j),min(s(i,j,k3d,n),s(i-1,j,k3d,n)))
-          sedge(i,j) = min(sedge(i,j),max(s(i,j,k3d,n),s(i-1,j,k3d,n)))
+    do k = lo(3)-dg(3), hi(3)+dg(3)
+       do j = lo(2)-dg(2), hi(2)+dg(2)
+          !dir$ ivdep
+          do i = lo(1)-1, hi(1)+2
+             sedge(i,j,k) = HALF*(s(i,j,k,n)+s(i-1,j,k,n)) &
+                  - SIXTH*(dsvl(i,j,k)-dsvl(i-1,j,k))
+             ! make sure sedge lies in between adjacent cell-centered values
+             sedge(i,j,k) = max(sedge(i,j,k),min(s(i,j,k,n),s(i-1,j,k,n)))
+             sedge(i,j,k) = min(sedge(i,j,k),max(s(i,j,k,n),s(i-1,j,k,n)))
+          end do
        end do
     end do
 
-    do j=ilo2-dg(2),ihi2+dg(2)
-       do i=ilo1-1,ihi1+1
+    do k = lo(3)-dg(3), hi(3)+dg(3)
+       do j = lo(2)-dg(2), hi(2)+dg(2)
+          do i = lo(1)-1, hi(1)+1
 
-          ! copy sedge into sp and sm
-          sm = sedge(i  ,j)
-          sp = sedge(i+1,j)
+             ! copy sedge into sp and sm
+             sm = sedge(i  ,j,k)
+             sp = sedge(i+1,j,k)
 
-          ! flatten the parabola BEFORE doing the other
-          ! monotonization -- this is the method that Flash does
-          sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d,n)
-          sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d,n)
+             ! flatten the parabola BEFORE doing the other
+             ! monotonization -- this is the method that Flash does
+             sm = flatn(i,j,k)*sm + (ONE-flatn(i,j,k))*s(i,j,k,n)
+             sp = flatn(i,j,k)*sp + (ONE-flatn(i,j,k))*s(i,j,k,n)
 
-          ! modify using quadratic limiters -- note this version of the limiting comes
-          ! from Colella and Sekora (2008), not the original PPM paper.
-          if ((sp-s(i,j,k3d,n))*(s(i,j,k3d,n)-sm) .le. ZERO) then
-             sp = s(i,j,k3d,n)
-             sm = s(i,j,k3d,n)
+             ! modify using quadratic limiters -- note this version of the limiting comes
+             ! from Colella and Sekora (2008), not the original PPM paper.
+             if ((sp-s(i,j,k,n))*(s(i,j,k,n)-sm) .le. ZERO) then
+                sp = s(i,j,k,n)
+                sm = s(i,j,k,n)
 
-          else if (abs(sp-s(i,j,k3d,n)) .ge. TWO*abs(sm-s(i,j,k3d,n))) then
-          !else if (-(sp-sm)**2/SIX > &
-          !     (sp - sm)*(s(i,j,k3d) - HALF*(sm + sp))) then
-             sp = THREE*s(i,j,k3d,n) - TWO*sm
+             else if (abs(sp-s(i,j,k,n)) .ge. TWO*abs(sm-s(i,j,k,n))) then
+                !else if (-(sp-sm)**2/SIX > &
+                !     (sp - sm)*(s(i,j,k3d) - HALF*(sm + sp))) then
+                sp = THREE*s(i,j,k,n) - TWO*sm
 
-          else if (abs(sm-s(i,j,k3d,n)) .ge. TWO*abs(sp-s(i,j,k3d,n))) then
-          !else if ((sp-sm)*(s(i,j,k3d) - HALF*(sm + sp)) > &
-          !     (sp - sm)**2/SIX) then
-             sm = THREE*s(i,j,k3d,n) - TWO*sp
-          end if
+             else if (abs(sm-s(i,j,k,n)) .ge. TWO*abs(sp-s(i,j,k,n))) then
+                !else if ((sp-sm)*(s(i,j,k3d) - HALF*(sm + sp)) > &
+                !     (sp - sm)**2/SIX) then
+                sm = THREE*s(i,j,k,n) - TWO*sp
+             end if
 
-          sxp(i,j,kc) = sp
-          sxm(i,j,kc) = sm
+             sxp(i,j,k) = sp
+             sxm(i,j,k) = sm
 
+          end do
        end do
     end do
 
@@ -256,62 +263,72 @@ contains
     ! compute s at y-edges
 
     ! compute van Leer slopes in y-direction
-    do j=ilo2-2,ihi2+2
-       do i=ilo1-1,ihi1+1
-          dsc = HALF * (s(i,j+1,k3d,n) - s(i,j-1,k3d,n))
-          dsl = TWO  * (s(i,j  ,k3d,n) - s(i,j-1,k3d,n))
-          dsr = TWO  * (s(i,j+1,k3d,n) - s(i,j  ,k3d,n))
-          if (dsl*dsr .gt. ZERO) then
-             dsvl(i,j) = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
-          else
-             dsvl(i,j) = ZERO
-          end if
+    do k = lo(3)-1, hi(3)+1
+       do j = lo(2)-2, hi(2)+2
+          do i=lo(1)-1, hi(1)+1
+
+             dsc = HALF * (s(i,j+1,k,n) - s(i,j-1,k,n))
+             dsl = TWO  * (s(i,j  ,k,n) - s(i,j-1,k,n))
+             dsr = TWO  * (s(i,j+1,k,n) - s(i,j  ,k,n))
+
+             if (dsl*dsr .gt. ZERO) then
+                dsvl(i,j,k) = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+             else
+                dsvl(i,j,k) = ZERO
+             end if
+
+          end do
        end do
     end do
 
     ! interpolate s to y-edges
-    do j=ilo2-1,ihi2+2
-       !dir$ ivdep
-       do i=ilo1-1,ihi1+1
-          sedge(i,j) = HALF*(s(i,j,k3d,n)+s(i,j-1,k3d,n)) &
-               - SIXTH*(dsvl(i,j)-dsvl(i,j-1))
-          ! make sure sedge lies in between adjacent cell-centered values
-          sedge(i,j) = max(sedge(i,j),min(s(i,j,k3d,n),s(i,j-1,k3d,n)))
-          sedge(i,j) = min(sedge(i,j),max(s(i,j,k3d,n),s(i,j-1,k3d,n)))
+    do k = lo(3)-1, hi(3)+1
+       do j = lo(2)-1, hi(2)+2
+
+          !dir$ ivdep
+          do i = lo(1)-1, hi(1)+1
+             sedge(i,j,k) = HALF*(s(i,j,k,n)+s(i,j-1,k,n)) &
+                  - SIXTH*(dsvl(i,j,k)-dsvl(i,j-1,k))
+             ! make sure sedge lies in between adjacent cell-centered values
+             sedge(i,j,k) = max(sedge(i,j,k),min(s(i,j,k,n),s(i,j-1,k,n)))
+             sedge(i,j,k) = min(sedge(i,j,k),max(s(i,j,k,n),s(i,j-1,k,n)))
+          end do
        end do
     end do
 
-    do j=ilo2-1,ihi2+1
-       do i=ilo1-1,ihi1+1
+    do k = lo(3)-1, hi(3)+1
+       do j = lo(2)-1, hi(2)+1
+          do i = lo(1)-1, hi(1)+1
 
-          ! copy sedge into sp and sm
-          sm = sedge(i,j  )
-          sp = sedge(i,j+1)
+             ! copy sedge into sp and sm
+             sm = sedge(i,j  ,k)
+             sp = sedge(i,j+1,k)
 
-          ! flatten the parabola BEFORE doing the other
-          ! monotonization -- this is the method that Flash does
-          sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d,n)
-          sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d,n)
+             ! flatten the parabola BEFORE doing the other
+             ! monotonization -- this is the method that Flash does
+             sm = flatn(i,j,k)*sm + (ONE-flatn(i,j,k))*s(i,j,k,n)
+             sp = flatn(i,j,k)*sp + (ONE-flatn(i,j,k))*s(i,j,k,n)
 
-          ! modify using quadratic limiters
-          if ((sp-s(i,j,k3d,n))*(s(i,j,k3d,n)-sm) .le. ZERO) then
-             sp = s(i,j,k3d,n)
-             sm = s(i,j,k3d,n)
+             ! modify using quadratic limiters
+             if ((sp-s(i,j,k,n))*(s(i,j,k,n)-sm) .le. ZERO) then
+                sp = s(i,j,k,n)
+                sm = s(i,j,k,n)
 
-          else if (abs(sp-s(i,j,k3d,n)) .ge. TWO*abs(sm-s(i,j,k3d,n))) then
-          !else if (-(sp-sm)**2/SIX > &
-          !     (sp - sm)*(s(i,j,k3d) - HALF*(sm + sp))) then
-             sp = THREE*s(i,j,k3d,n) - TWO*sm
+             else if (abs(sp-s(i,j,k,n)) .ge. TWO*abs(sm-s(i,j,k,n))) then
+                !else if (-(sp-sm)**2/SIX > &
+                !     (sp - sm)*(s(i,j,k3d) - HALF*(sm + sp))) then
+                sp = THREE*s(i,j,k,n) - TWO*sm
 
-          else if (abs(sm-s(i,j,k3d,n)) .ge. TWO*abs(sp-s(i,j,k3d,n))) then
-          !else if ((sp-sm)*(s(i,j,k3d) - HALF*(sm + sp)) > &
-          !     (sp - sm)**2/SIX) then
-             sm = THREE*s(i,j,k3d,n) - TWO*sp
-          end if
+             else if (abs(sm-s(i,j,k,n)) .ge. TWO*abs(sp-s(i,j,k,n))) then
+                !else if ((sp-sm)*(s(i,j,k3d) - HALF*(sm + sp)) > &
+                !     (sp - sm)**2/SIX) then
+                sm = THREE*s(i,j,k,n) - TWO*sp
+             end if
 
-          syp(i,j,kc) = sp
-          sym(i,j,kc) = sm
+             syp(i,j,k) = sp
+             sym(i,j,k) = sm
 
+          end do
        end do
     end do
 #endif
@@ -325,81 +342,71 @@ contains
 
     ! compute van Leer slopes in z-direction
 
-    do j=ilo2-1,ihi2+1
-       do i=ilo1-1,ihi1+1
+    do k = lo(3)-2, hi(3)+2
+       do j = lo(2)-1, hi(2)+1
+          do i = lo(1)-1, hi(1)+1
 
-          ! compute on slab below
-          k = k3d-1
-          dsc = HALF * (s(i,j,k+1,n) - s(i,j,k-1,n))
-          dsl = TWO  * (s(i,j,k  ,n) - s(i,j,k-1,n))
-          dsr = TWO  * (s(i,j,k+1,n) - s(i,j,k  ,n))
-          if (dsl*dsr .gt. ZERO) then
-             dsvlm = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
-          else
-             dsvlm = ZERO
-          end if
+             dsc = HALF * (s(i,j,k+1,n) - s(i,j,k-1,n))
+             dsl = TWO  * (s(i,j,k  ,n) - s(i,j,k-1,n))
+             dsr = TWO  * (s(i,j,k+1,n) - s(i,j,k  ,n))
 
-          ! compute on slab above
-          k = k3d+1
-          dsc = HALF * (s(i,j,k+1,n) - s(i,j,k-1,n))
-          dsl = TWO  * (s(i,j,k  ,n) - s(i,j,k-1,n))
-          dsr = TWO  * (s(i,j,k+1,n) - s(i,j,k  ,n))
-          if (dsl*dsr .gt. ZERO) then
-             dsvlp = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
-          else
-             dsvlp = ZERO
-          end if
+             if (dsl*dsr .gt. ZERO) then
+                dsvl(i,j,k) = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+             else
+                dsvl(i,j,k) = ZERO
+             end if
 
-          ! compute on current slab
-          k = k3d
-          dsc = HALF * (s(i,j,k+1,n) - s(i,j,k-1,n))
-          dsl = TWO  * (s(i,j,k  ,n) - s(i,j,k-1,n))
-          dsr = TWO  * (s(i,j,k+1,n) - s(i,j,k  ,n))
-          if (dsl*dsr .gt. ZERO) then
-             dsvl0 = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
-          else
-             dsvl0 = ZERO
-          end if
+          end do
+       end do
+    end do
 
-          ! interpolate to lo face
-          k = k3d
-          sm = HALF*(s(i,j,k,n)+s(i,j,k-1,n)) - SIXTH*(dsvl0-dsvlm)
-          ! make sure sedge lies in between adjacent cell-centered values
-          sm = max(sm,min(s(i,j,k,n),s(i,j,k-1,n)))
-          sm = min(sm,max(s(i,j,k,n),s(i,j,k-1,n)))
+    ! interpolate s to z-edges
+    do k = lo(3)-1, hi(3)+2
+       do j = lo(2)-1, hi(2)+1
+          do i = lo(1)-1, hi(1)+1
 
-          ! interpolate to hi face
-          k = k3d+1
-          sp = HALF*(s(i,j,k,n)+s(i,j,k-1,n)) - SIXTH*(dsvlp-dsvl0)
+             ! interpolate to lo face
+             sedge(i,j,k) = HALF*(s(i,j,k,n)+s(i,j,k-1,n)) &
+                  - SIXTH*(dsvl(i,j,k)-dsvl(i,j,k-1))
+             ! make sure sedge lies in between adjacent cell-centered values
+             sedge(i,j,k) = max(sedge(i,j,k),min(s(i,j,k,n),s(i,j,k-1,n)))
+             sedge(i,j,k) = min(sedge(i,j,k),max(s(i,j,k,n),s(i,j,k-1,n)))
+          end do
+       end do
+    end do
 
-          ! make sure sedge lies in between adjacent cell-centered values
-          sp = max(sp,min(s(i,j,k,n),s(i,j,k-1,n)))
-          sp = min(sp,max(s(i,j,k,n),s(i,j,k-1,n)))
+    do k = lo(3)-1, hi(3)+1
+       do j = lo(2)-1, hi(2)+1
+          do i = lo(1)-1, hi(1)+1
 
-          ! flatten the parabola BEFORE doing the other
-          ! monotonization -- this is the method that Flash does
-          sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d,n)
-          sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d,n)
+             sm = sedge(i,j,k)
+             sp = sedge(i,j,k+1)
 
-          ! modify using quadratic limiters
-          if ((sp-s(i,j,k3d,n))*(s(i,j,k3d,n)-sm) .le. ZERO) then
-             sp = s(i,j,k3d,n)
-             sm = s(i,j,k3d,n)
+             ! flatten the parabola BEFORE doing the other
+             ! monotonization -- this is the method that Flash does
+             sm = flatn(i,j,k)*sm + (ONE-flatn(i,j,k))*s(i,j,k,n)
+             sp = flatn(i,j,k)*sp + (ONE-flatn(i,j,k))*s(i,j,k,n)
 
-          else if (abs(sp-s(i,j,k3d,n)) .ge. TWO*abs(sm-s(i,j,k3d,n))) then
-          !else if (-(sp-sm)**2/SIX > &
-          !     (sp - sm)*(s(i,j,k3d) - HALF*(sm + sp))) then
-             sp = THREE*s(i,j,k3d,n) - TWO*sm
+             ! modify using quadratic limiters
+             if ((sp-s(i,j,k,n))*(s(i,j,k,n)-sm) .le. ZERO) then
+                sp = s(i,j,k,n)
+                sm = s(i,j,k,n)
 
-          else if (abs(sm-s(i,j,k3d,n)) .ge. TWO*abs(sp-s(i,j,k3d,n))) then
-          !else if ((sp-sm)*(s(i,j,k3d) - HALF*(sm + sp)) > &
-          !     (sp - sm)**2/SIX) then
-             sm = THREE*s(i,j,k3d,n) - TWO*sp
-          end if
+             else if (abs(sp-s(i,j,k,n)) .ge. TWO*abs(sm-s(i,j,k,n))) then
+                !else if (-(sp-sm)**2/SIX > &
+                !     (sp - sm)*(s(i,j,k3d) - HALF*(sm + sp))) then
+                sp = THREE*s(i,j,k,n) - TWO*sm
 
-          szp(i,j,kc) = sp
-          szm(i,j,kc) = sm
+             else if (abs(sm-s(i,j,k,n)) .ge. TWO*abs(sp-s(i,j,k,n))) then
+                !else if ((sp-sm)*(s(i,j,k3d) - HALF*(sm + sp)) > &
+                !     (sp - sm)**2/SIX) then
+                sm = THREE*s(i,j,k,n) - TWO*sp
+             end if
 
+             szp(i,j,k) = sp
+             szm(i,j,k) = sm
+
+          end do
        end do
     end do
 #endif
@@ -423,7 +430,7 @@ contains
                        szm, szp, &
 #endif
                        sd_lo, sd_hi, &
-                       ilo1, ilo2, ihi1, ihi2, dx, k3d, kc)
+                       lo, hi, dx)
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : ppm_type
@@ -436,8 +443,7 @@ contains
     integer, intent(in) :: ncomp, n
     integer, intent(in) :: sd_lo(3), sd_hi(3)
     integer, intent(in) ::  f_lo(3),  f_hi(3)
-    integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
-    integer, intent(in) :: k3d, kc
+    integer, intent(in) :: lo(3), hi(3)
 
     real(rt), intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3), ncomp)
     real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
@@ -477,24 +483,24 @@ contains
     ! a constant used for testing extrema
     real(rt), parameter :: SMALL = 1.e-10_rt
 
-#ifndef AMREX_USE_CUDA    
+#ifndef AMREX_USE_CUDA
     if (ppm_type .ne. 2) &
          call amrex_error("Should have ppm_type = 2 in ppm_type2")
 
-    if (s_lo(1) .gt. ilo1-3 .or. s_hi(1) .lt. ihi1+3) then 
+    if (s_lo(1) .gt. lo(1)-3 .or. s_hi(1) .lt. hi(1)+3) then
          call amrex_error("Need more ghost cells on array in ppm_type1")
     end if
 
 #if (BL_SPACEDIM >= 2)
-    if (s_lo(2) .gt. ilo2-3 .or. s_hi(2) .lt. ihi2+3) then
+    if (s_lo(2) .gt. lo(2)-3 .or. s_hi(2) .lt. hi(2)+3) then
          call amrex_error("Need more ghost cells on array in ppm_type1")
     end if
 #endif
 #endif
 
     ! edge-centered indexing
-    call bl_allocate(sedge, ilo1-2, ihi1+3, ilo2-2*dg(2), ihi2+3*dg(2))
-    call bl_allocate(sedgez,ilo1-1, ihi1+1, ilo2-dg(2), ihi2+dg(2), k3d-dg(2),k3d+2*dg(2))
+    call bl_allocate(sedge, lo(1)-2, hi(1)+3, lo(2)-2*dg(2), hi(2)+3*dg(2))
+    call bl_allocate(sedgez,lo(1)-1, hi(1)+1, lo(2)-dg(2), hi(2)+dg(2), k3d-dg(2),k3d+2*dg(2))
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! x-direction
@@ -503,8 +509,8 @@ contains
     ! compute s at x-edges
 
     ! interpolate s to x-edges
-    do j=ilo2-dg(2), ihi2+dg(2)
-       do i=ilo1-2, ihi1+3
+    do j=lo(2)-dg(2), hi(2)+dg(2)
+       do i=lo(1)-2, hi(1)+3
           sedge(i,j) = SEVEN12TH*(s(i-1,j,k3d,n)+s(i  ,j,k3d,n)) &
                - TWELFTH*(s(i-2,j,k3d,n)+s(i+1,j,k3d,n))
           !
@@ -525,8 +531,8 @@ contains
     !
     ! This is a new version of the algorithm to eliminate sensitivity to roundoff.
     !
-    do j=ilo2-dg(2), ihi2+dg(2)
-       do i=ilo1-1,ihi1+1
+    do j=lo(2)-dg(2), hi(2)+dg(2)
+       do i=lo(1)-1,hi(1)+1
 
           alphap   = sedge(i+1,j)-s(i,j,k3d,n)
           alpham   = sedge(i  ,j)-s(i,j,k3d,n)
@@ -617,8 +623,8 @@ contains
     ! compute s at y-edges
 
     ! interpolate s to y-edges
-    do j=ilo2-2, ihi2+3
-       do i=ilo1-1, ihi1+1
+    do j=lo(2)-2, hi(2)+3
+       do i=lo(1)-1, hi(1)+1
           sedge(i,j) = SEVEN12TH*(s(i,j-1,k3d,n)+s(i,j,k3d,n)) &
                - TWELFTH*(s(i,j-2,k3d,n)+s(i,j+1,k3d,n))
           !
@@ -639,8 +645,8 @@ contains
     !
     ! This is a new version of the algorithm to eliminate sensitivity to roundoff.
     !
-    do j=ilo2-1, ihi2+1
-       do i=ilo1-1, ihi1+1
+    do j=lo(2)-1, hi(2)+1
+       do i=lo(1)-1, hi(1)+1
 
           alphap   = sedge(i,j+1)-s(i,j,k3d,n)
           alpham   = sedge(i,j  )-s(i,j,k3d,n)
@@ -732,9 +738,9 @@ contains
 
     ! interpolate s to z-edges
     do k=k3d-1, k3d+2
-       do j=ilo2-1, ihi2+1
+       do j=lo(2)-1, hi(2)+1
           !dir$ ivdep
-          do i=ilo1-1, ihi1+1
+          do i=lo(1)-1, hi(1)+1
              sedgez(i,j,k) = SEVEN12TH*(s(i,j,k-1,n)+s(i,j,k,n)) &
                   - TWELFTH*(s(i,j,k-2,n)+s(i,j,k+1,n))
              !
@@ -757,8 +763,8 @@ contains
     ! This is a new version of the algorithm to eliminate sensitivity to roundoff.
     !
     k = k3d
-    do j=ilo2-1, ihi2+1
-       do i=ilo1-1, ihi1+1
+    do j=lo(2)-1, hi(2)+1
+       do i=lo(1)-1, hi(1)+1
 
           alphap   = sedgez(i,j,k+1)-s(i,j,k,n)
           alpham   = sedgez(i,j,k  )-s(i,j,k,n)
@@ -859,7 +865,7 @@ contains
 #endif
                              sd_lo, sd_hi, &
                              Ip, Im, I_lo, I_hi, icomp, ic, &
-                             ilo1, ilo2, ihi1, ihi2, dx, dt, k3d, kc)
+                             lo, hi, dx, dt)
 
     use meth_params_module, only : NQAUX, QC, NQ, QU, QV, QW
 
@@ -913,8 +919,8 @@ contains
     ! x-direction
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    do j = ilo2-dg(2), ihi2+dg(2)
-       do i = ilo1-1, ihi1+1
+    do j = lo(2)-dg(2), hi(2)+dg(2)
+       do i = lo(1)-1, hi(1)+1
 
           ! copy sedge into sp and sm
           sp = sxp(i,j,kc)
@@ -989,8 +995,8 @@ contains
     ! y-direction
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    do j = ilo2-dg(2), ihi2+dg(2)
-       do i = ilo1-1, ihi1+1
+    do j = lo(2)-dg(2), hi(2)+dg(2)
+       do i = lo(1)-1, hi(1)+1
 
           ! copy sedge into sp and sm
           sp = syp(i,j,kc)
@@ -1059,8 +1065,8 @@ contains
     ! z-direction
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    do j=ilo2-1,ihi2+1
-       do i=ilo1-1,ihi1+1
+    do j=lo(2)-1,hi(2)+1
+       do i=lo(1)-1,hi(1)+1
 
           sp = szp(i,j,kc)
           sm = szm(i,j,kc)
