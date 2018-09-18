@@ -57,7 +57,9 @@ Castro::sum_integrated_quantities ()
 
     Real omega[3] = { 0.0 };
 
+#ifdef ROTATION
     get_omega_vec(omega, time);
+#endif
 
     // Mass transfer rate
 
@@ -1023,10 +1025,10 @@ Castro::sum_integrated_quantities ()
 	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << time;
 
 	   log << std::scientific;
-
+#ifdef ROTATION 
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << rotational_period;
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << (2.0 * M_PI / rotational_period);
-
+#endif
 	   log << std::endl;
 
 	 }

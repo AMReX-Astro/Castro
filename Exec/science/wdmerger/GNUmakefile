@@ -11,8 +11,8 @@ USE_OMP ?= TRUE
 DIM ?= 3
 
 USE_GRAV ?= TRUE
-USE_REACT ?= TRUE
-USE_ROTATION ?= TRUE
+USE_REACT ?= FALSE
+USE_ROTATION ?= FALSE
 
 # We want to use the dimension agnostic version of certain source files.
 
@@ -26,7 +26,7 @@ endif
 
 # Set the default integrator for the burner.
 
-INTEGRATOR_DIR ?= VODE
+INTEGRATOR_DIR ?= VODE90
 
 # Default compiler.
 

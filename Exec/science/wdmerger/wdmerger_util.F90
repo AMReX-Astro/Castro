@@ -450,7 +450,9 @@ contains
     use meth_params_module, only: rot_period, point_mass
     use initial_model_module, only: initialize_model, establish_hse
     use prob_params_module, only: center, problo, probhi, dim, max_level, dx_level, physbc_lo, Symmetry
+#ifdef ROTATION    
     use rotation_frequency_module, only: get_omega
+#endif
     use math_module, only: cross_product
     use binary_module, only: get_roche_radii
     use problem_io_module, only: ioproc
@@ -464,7 +466,9 @@ contains
 
     integer :: lev
 
+#ifdef ROTATION    
     omega = get_omega(ZERO)
+#endif    
 
     ! Safety check: ensure that if we have a symmetric lower boundary, that the
     ! domain center (and thus the stars) are on that boundary.
@@ -944,7 +948,9 @@ contains
     use amrex_constants_module, only: ZERO
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UTEMP, UEINT, UEDEN, UFS, do_rotation
     use network, only: nspec
+#ifdef ROTATION    
     use rotation_frequency_module, only: get_omega
+#endif
     use math_module, only: cross_product
 
     implicit none
@@ -955,7 +961,9 @@ contains
     type (eos_t) :: ambient_state
     double precision :: omega(3)
 
+#ifdef ROTATION     
     omega = get_omega(time)
+#endif
 
     call get_ambient(ambient_state)
 
@@ -990,7 +998,9 @@ contains
   function inertial_rotation(vec, time) result(vec_i)
 
     use amrex_constants_module, only: ZERO
+#ifdef ROTATION    
     use rotation_frequency_module, only: get_omega
+#endif
     use meth_params_module, only: do_rotation, rot_period, rot_period_dot
 
     implicit none
@@ -1017,7 +1027,7 @@ contains
     ! recover the original expression as expected.
 
     if (do_rotation .eq. 1) then
-
+#ifdef ROTATION
        if (abs(rot_period_dot) > ZERO .and. time > ZERO) then
           theta = get_omega(ZERO) * (rot_period / rot_period_dot) * &
                   log( abs( (rot_period_dot / rot_period) * time + 1 ) )
@@ -1026,7 +1036,7 @@ contains
        endif
 
        omega = get_omega(time)
-
+#endif
     else
 
        omega = ZERO
@@ -1065,7 +1075,9 @@ contains
   function inertial_velocity(loc, vel, time) result (vel_i)
 
     use meth_params_module, only: do_rotation, state_in_rotating_frame
+#ifdef ROTATION
     use rotation_frequency_module, only: get_omega
+#endif
     use math_module, only: cross_product
 
     implicit none
@@ -1075,7 +1087,9 @@ contains
 
     double precision :: vel_i(3)
 
+#ifdef ROTATION
     omega = get_omega(time)
+#endif
 
     vel_i = vel
 

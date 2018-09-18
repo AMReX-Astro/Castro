@@ -52,7 +52,9 @@
      use initial_model_module, only: interpolate_3d_from_1d
      use math_module, only: cross_product
      use castro_util_module, only: position
+#ifdef ROTATION     
      use rotation_frequency_module, only: get_omega
+#endif     
      use wdmerger_util_module, only: inertial_velocity
 
      implicit none
@@ -81,8 +83,10 @@
      ! or if we are in an ambient zone.
 
      call get_ambient(ambient_state)
-
+     
+#ifdef ROTATION
      omega = get_omega(time)
+#endif
 
      rho_P = model_P % state(:) % rho
      rho_S = model_S % state(:) % rho

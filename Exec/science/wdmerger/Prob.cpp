@@ -623,9 +623,11 @@ void Castro::problem_post_init() {
   if (problem == 3 && !relaxation_is_done && parent->subCycle() && parent->finestLevel() > 0)
       amrex::Abort("Error: cannot perform relaxation step if we are sub-cycling in the AMR.");
 
+#ifdef ROTATION  
   // Update the rotational period; some problems change this from what's in the inputs parameters.
 
   get_period(&rotational_period);
+#endif
 
   // Initialize the energy storage array.
 
@@ -668,9 +670,11 @@ void Castro::problem_post_restart() {
 
   get_relaxation_status(&relaxation_is_done);
 
+#ifdef ROTATION  
   // Get the rotational period.
 
   get_period(&rotational_period);
+#endif
 
   // Get the energy data from Fortran.
 
@@ -863,6 +867,7 @@ void Castro::check_to_stop(Real time) {
 	// when the stars start coming into contact, and the
 	// assumption of spherically symmetric stars breaks down.
 
+#ifdef ROTATION	      
 	Real stopping_time = 0.90 * rotational_period / (4.0 * std::sqrt(2));
 
 	if (time >= stopping_time) {
@@ -872,6 +877,7 @@ void Castro::check_to_stop(Real time) {
 	  set_job_status(&jobDoneStatus);
 
 	}
+#endif
 
       }
 
@@ -1110,14 +1116,16 @@ Castro::update_relaxation(Real time, Real dt) {
 
     Real period = 2.0 * M_PI / omega;
 
+#ifdef ROTATION    
     if (amrex::ParallelDescriptor::IOProcessor()) {
           std::cout << "\n";
           std::cout << "  Updating the rotational period from " << rotational_period << " s to " << period << " s." << "\n";
 	  std::cout << "\n";
     }
-
+    
     rotational_period = period;
     set_period(&period);
+#endif
 
     // Check to see whether the relaxation should be turned off.
     // Note that at present the following check is only done on the

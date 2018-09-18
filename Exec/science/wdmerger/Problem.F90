@@ -920,13 +920,17 @@ end subroutine get_period
 
 subroutine get_omega_vec(omega_in, time) bind(C,name='get_omega_vec')
 
+#ifdef ROTATION        
   use rotation_frequency_module, only: get_omega
+#endif
 
   implicit none
 
   double precision :: omega_in(3), time
 
+#ifdef ROTATION  
   omega_in = get_omega(time)
+#endif
 
 end subroutine get_omega_vec
 
