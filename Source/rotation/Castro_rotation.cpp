@@ -57,11 +57,9 @@ void Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old
 	MultiFab& phirot_new = get_new_data(PhiRot_Type);
 	MultiFab& rot_new = get_new_data(Rotation_Type);
 
-    int ng = phirot_old.nGrow();
-
     MultiFab phi_center;
-    phi_center.define(grids, dmap, 1, 1);
-    phi_center.setVal(0.0, ng);
+    phi_center.define(grids, dmap, 1, 1;
+    phi_center.setVal(0.0, 1);
 
 	// Fill the rotation data.
 
@@ -76,8 +74,8 @@ void Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old
 
 	fill_rotation_field(phirot_new, rot_new, state_new, time);
 
-    MultiFab::Saxpy(phi_center, 0.5, phirot_old, 0, 0, 1, ng);
-    MultiFab::Saxpy(phi_center, 0.5, phirot_new, 0, 0, 1, ng);
+    MultiFab::Saxpy(phi_center, 0.5, phirot_old, 0, 0, 1, 1);
+    MultiFab::Saxpy(phi_center, 0.5, phirot_new, 0, 0, 1, 1);
 
 	// Now do corrector part of rotation source term update
 
