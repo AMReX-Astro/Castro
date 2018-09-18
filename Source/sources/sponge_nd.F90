@@ -104,7 +104,7 @@ contains
 
 
 
-  real(rt) function update_factor(r, state, dt) result(fac)
+  function update_factor(r, state, dt) result(fac)
 
     use amrex_constants_module, only: ZERO, HALF, ONE, M_PI
     use meth_params_module, only: sponge_implicit, NVAR, URHO, UTEMP, UFS, UFX
@@ -120,7 +120,7 @@ contains
     real(rt) :: delta_r, delta_rho, delta_p
     real(rt) :: alpha, sponge_factor
     type(eos_t) :: eos_state
-
+    real(rt) :: fac
 
     !$gpu
 
