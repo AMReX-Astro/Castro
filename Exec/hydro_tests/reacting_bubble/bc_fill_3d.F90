@@ -187,7 +187,7 @@ contains
        do k = adv_l3, domlo(3)-1
           z = xlo(3) + delta(3)*(dble(k-adv_l3)+ 0.5e0_rt)
           do j = adv_l2, adv_h2
-             do i=adv_l1,adv_h1
+             do i = adv_l1, adv_h1
                 adv(i,j,k) = interpolate(z,npts_model,model_r, &
                                          model_state(:,idens_model))
              enddo
