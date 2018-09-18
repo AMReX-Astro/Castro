@@ -19,7 +19,7 @@ contains
   subroutine inertial_to_rotational_velocity(idx, time, v, idir)
 
     use prob_params_module, only: center
-    use castro_util_module, only: position
+    use castro_util_module, only: position ! function
     use math_module, only: cross_product ! function
     use rotation_frequency_module, only: get_omega ! function
 
