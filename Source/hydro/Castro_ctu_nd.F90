@@ -411,7 +411,7 @@ contains
                      + radflux2(i,j,k,g) * area2(i,j,k) - radflux2(i,j+1,k,g) * area2(i,j+1,k) &
 #endif
 #if BL_SPACEDIM == 3
-                     + radflux3(i,j,k,g) * area3(i,j,k) - radflux3(i,j,k+1,g) * area3(i,j,k+1)
+                     + radflux3(i,j,k,g) * area3(i,j,k) - radflux3(i,j,k+1,g) * area3(i,j,k+1) &
 #endif
                 ) / vol(i,j,k)
              enddo
