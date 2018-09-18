@@ -38,7 +38,8 @@ contains
     real(rt)        , intent(in   ) :: uold(uold_lo(1):uold_hi(1),uold_lo(2):uold_hi(2),uold_lo(3):uold_hi(3),NVAR)
     real(rt)        , intent(inout) :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
     real(rt)        , intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    real(rt)        , intent(in   ) :: dx(3), dt, time
+    real(rt)        , intent(in   ) :: dx(3)
+    real(rt), value , intent(in   ) :: dt, time
 
     integer          :: i, j ,k
     real(rt)         :: Sr(3),SrE
@@ -208,7 +209,8 @@ contains
 
     real(rt)         :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
 
-    real(rt)         :: dx(3), dt, time
+    real(rt)         :: dx(3)
+    real(rt), value  :: dt, time
 
     integer          :: i,j,k
     real(rt)         :: loc(3)

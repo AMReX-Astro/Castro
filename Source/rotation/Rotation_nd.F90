@@ -236,7 +236,8 @@ contains
     integer         , intent(in   ) :: phi_lo(3), phi_hi(3)
 
     real(rt)        , intent(inout) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
-    real(rt)        , intent(in   ) :: dx(3), time
+    real(rt)        , intent(in   ) :: dx(3)
+    real(rt), value , intent(in   ) :: time
 
     integer          :: i, j, k
     real(rt)         :: r(3)
@@ -278,7 +279,8 @@ contains
 
     real(rt)        , intent(inout) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3),3)
     real(rt)        , intent(in   ) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
-    real(rt)        , intent(in   ) :: dx(3), time
+    real(rt)        , intent(in   ) :: dx(3)
+    real(rt), value , intent(in   ) :: time
 
     integer          :: i, j, k
     real(rt)         :: r(3), v(3)
