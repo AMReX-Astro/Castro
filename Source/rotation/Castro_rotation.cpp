@@ -32,15 +32,15 @@ void Castro::construct_old_rotation_source(MultiFab& source, MultiFab& state, Re
     for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
     {
 	const Box& bx = mfi.tilebox();
-
+#pragma gpu
 	ca_rsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-		ARLIM_3D(domlo), ARLIM_3D(domhi),
+		AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
 		BL_TO_FORTRAN_ANYD(phirot_old[mfi]),
 		BL_TO_FORTRAN_ANYD(rot_old[mfi]),
 		BL_TO_FORTRAN_ANYD(state[mfi]),
 		BL_TO_FORTRAN_ANYD(source[mfi]),
 		BL_TO_FORTRAN_ANYD(volume[mfi]),
-		ZFILL(dx),dt,&time);
+		AMREX_REAL_ANYD(dx),dt,&time);
 
     }
 
@@ -85,7 +85,7 @@ void Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old
 	    const Box& bx = mfi.tilebox();
 #pragma gpu
 	    ca_corrrsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-			ARLIM_3D(domlo), ARLIM_3D(domhi),
+			AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
 			BL_TO_FORTRAN_ANYD(phirot_old[mfi]),
 			BL_TO_FORTRAN_ANYD(phirot_new[mfi]),
 			BL_TO_FORTRAN_ANYD(rot_old[mfi]),
@@ -96,7 +96,7 @@ void Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old
 			BL_TO_FORTRAN_ANYD((*mass_fluxes[0])[mfi]),
 			BL_TO_FORTRAN_ANYD((*mass_fluxes[1])[mfi]),
 			BL_TO_FORTRAN_ANYD((*mass_fluxes[2])[mfi]),
-			ZFILL(dx),dt,&time,
+			AMREX_REAL_ANYD(dx),dt,&time,
 			BL_TO_FORTRAN_ANYD(volume[mfi]));
 	}
     }
@@ -120,10 +120,10 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, 
     {
 
       const Box& bx = mfi.growntilebox(ng);
-
+#pragma gpu
       ca_fill_rotational_potential(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 				   BL_TO_FORTRAN_ANYD(phi[mfi]),
-				   ZFILL(dx),time);
+				   AMREX_REAL_ANYD(dx),time);
 
     }
 
@@ -141,11 +141,11 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, 
     {
 
       const Box& bx = mfi.growntilebox(ng);
-
+#pragma gpu
       ca_fill_rotational_acceleration(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 				      BL_TO_FORTRAN_ANYD(rot[mfi]),
 				      BL_TO_FORTRAN_ANYD(state[mfi]),
-				      ZFILL(dx),time);
+				      AMREX_REAL_ANYD(dx),time);
 
     }
 

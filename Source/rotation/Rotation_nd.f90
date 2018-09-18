@@ -188,6 +188,8 @@ contains
 
     real(rt)         :: omega(3), omegacrossr(3)
 
+    !$gpu
+
     if (state_in_rotating_frame .eq. 1) then
 
        omega = get_omega(time)
@@ -230,6 +232,8 @@ contains
     integer          :: i, j, k
     real(rt)         :: r(3)
 
+    !$gpu
+
     do k = lo(3), hi(3)
        r(3) = problo(3) + dx(3)*(dble(k)+HALF) - center(3)
 
@@ -269,6 +273,8 @@ contains
 
     integer          :: i, j, k
     real(rt)         :: r(3)
+
+    !$gpu
 
     do k = lo(3), hi(3)
        r(3) = problo(3) + dx(3)*(dble(k)+HALF) - center(3)
