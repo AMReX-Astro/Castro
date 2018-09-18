@@ -56,7 +56,7 @@ Castro::sum_integrated_quantities ()
 	hyb_mom[1] += ca_lev.volWgtSum("lmom", time, local_flag);
 	hyb_mom[2] += ca_lev.volWgtSum("zmom", time, local_flag);
 #endif
-	
+
 	if (show_center_of_mass) {
 	   com[0] += ca_lev.locWgtSum("density", time, 0, local_flag);
 	   com[1] += ca_lev.locWgtSum("density", time, 1, local_flag);
@@ -67,11 +67,12 @@ Castro::sum_integrated_quantities ()
        rho_K += ca_lev.volWgtSum("kineng", time, local_flag);
        rho_E += ca_lev.volWgtSum("rho_E", time, local_flag);
 #ifdef SELF_GRAVITY
+if (gravity->get_gravity_type() == "PoissonGrav")
        rho_phi += ca_lev.volProductSum("density", "phiGrav", time, local_flag);
 #endif
 
     }
- 
+
     if (verbose > 0)
     {
 
@@ -137,7 +138,7 @@ Castro::sum_integrated_quantities ()
 	    else
 	      total_energy = -rho_phi + rho_E;
 #endif
-	    
+
 	    std::cout << '\n';
 	    std::cout << "TIME= " << time << " MASS        = "   << mass      << '\n';
 	    std::cout << "TIME= " << time << " XMOM        = "   << mom[0]    << '\n';
@@ -156,7 +157,7 @@ Castro::sum_integrated_quantities ()
 	    std::cout << "TIME= " << time << " RHO*E       = "   << rho_E     << '\n';
 #ifdef SELF_GRAVITY
 	    std::cout << "TIME= " << time << " RHO*PHI     = "   << rho_phi   << '\n';
-	    std::cout << "TIME= " << time << " TOTAL ENERGY= "   << total_energy << '\n';	    
+	    std::cout << "TIME= " << time << " TOTAL ENERGY= "   << total_energy << '\n';
 #endif
 	    if (parent->NumDataLogs() > 0 ) {
 
@@ -181,7 +182,7 @@ Castro::sum_integrated_quantities ()
 		      data_log1 << std::setw(datwidth) <<  "         rho_K";
 		      data_log1 << std::setw(datwidth) <<  "         rho_e";
 		      data_log1 << std::setw(datwidth) <<  "         rho_E";
-#ifdef SELF_GRAVITY		      
+#ifdef SELF_GRAVITY
 		      data_log1 << std::setw(datwidth) <<  "       rho_phi";
 		      data_log1 << std::setw(datwidth) <<  "  total energy";
 #endif
@@ -205,7 +206,7 @@ Castro::sum_integrated_quantities ()
 		  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << rho_K;
 		  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << rho_e;
 		  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << rho_E;
-#ifdef SELF_GRAVITY		  
+#ifdef SELF_GRAVITY
 		  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << rho_phi;
 		  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << total_energy;
 #endif
@@ -214,7 +215,7 @@ Castro::sum_integrated_quantities ()
 	       }
 
 	    }
-	    
+
 	    if (show_center_of_mass) {
 	        for (int i = 0; i <= 2; i++) {
 		  com[i]     = com[i] / mass;
