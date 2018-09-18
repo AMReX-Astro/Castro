@@ -1,7 +1,9 @@
 
 # ------------------  THORNADO-SPECIFIC INPUTS -------------------
-thornado.eL = 0
-thornado.eR = 300
+thornado.eL     = 0
+thornado.eR     = 300
+thornado.ndimse = 10
+thornado.zoome  = 1 
 
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 #max_step = 10000

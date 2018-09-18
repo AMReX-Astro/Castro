@@ -103,6 +103,8 @@ int          Castro::THORNADO_RAD_NDOF   = std::pow(THORNADO_NNODES,(BL_SPACEDIM
 
 Real         Castro::thornado_eL         = 0.; 
 Real         Castro::thornado_eR         = 300.; 
+int          Castro::thornado_ndimse     = 10; 
+int          Castro::thornado_zoome      = 1; 
 #endif
 
 Real         Castro::num_zones_advanced = 0.0;

@@ -10,19 +10,22 @@ Castro::read_thornado_params ()
 {
   ParmParse pp("thornado");
 
-  pp.query("eL", thornado_eL);
-  pp.query("eR", thornado_eR);
+  pp.query("eL"    , thornado_eL);
+  pp.query("eR"    , thornado_eR);
+  pp.query("ndimse", thornado_ndimse);
+  pp.query("zoome" , thornado_zoome);
 }
 
 int
 Castro::init_thornado()
 {
     int nDimsX   = BL_SPACEDIM;
-    int nDimsE   = 10; // this specifies the number of energy groups in thornado, maybe change name?
+    int nDimsE   = thornado_ndimse; // number of energy groups in thornado
+    int zoomE    = thornado_zoome;  // geometric zoom factor for energy groups
     int nSpecies = THORNADO_NSPECIES;
 
     amrex::Print() << "*****Calling InitThornado " << std::endl; 
-    InitThornado(&nDimsX, &nDimsE, &nSpecies);
+    InitThornado(&nDimsX, &nDimsE, &zoomE, &nSpecies);
 
     int ncomp_thornado;
 

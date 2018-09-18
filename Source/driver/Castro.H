@@ -883,6 +883,8 @@ protected:
     // These are the lower and upper limits of the energy groups
     static amrex::Real thornado_eL;
     static amrex::Real thornado_eR;
+    static int         thornado_ndimse;
+    static int         thornado_zoome;
 #endif
 
     static int         lastDtPlotLimited;
