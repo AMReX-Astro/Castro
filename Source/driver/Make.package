@@ -29,7 +29,7 @@ ca_F90EXE_sources += Castro_util.F90
 ca_F90EXE_sources += Derive_nd.F90
 ca_F90EXE_sources += interpolate.F90
 ca_f90EXE_sources += io.f90
-ca_f90EXE_sources += math.f90
+ca_F90EXE_sources += math.F90
 ca_F90EXE_sources += meth_params.F90
 ca_F90EXE_sources += set_indices.F90
 ca_f90EXE_sources += state_sizes.f90
@@ -57,4 +57,3 @@ ca_F90EXE_sources += prob_params.F90
 ca_F90EXE_sources += sums_nd.F90
 ca_f90EXE_sources += Tagging_nd.f90
 ca_F90EXE_sources += timestep.F90
-
