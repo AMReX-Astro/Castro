@@ -274,7 +274,7 @@ contains
     real(rt)        , intent(in   ) :: dx(3), time
 
     integer          :: i, j, k
-    real(rt)         :: r(3)
+    real(rt)         :: r(3), v(3)
 
     !$gpu
 
@@ -287,7 +287,9 @@ contains
           do i = lo(1), hi(1)
              r(1) = problo(1) + dx(1)*(dble(i)+HALF) - center(1)
 
-             rot(i,j,k,:) = rotational_acceleration(r, state(i,j,k,UMX:UMZ) / state(i,j,k,URHO), time)
+             v(:) = state(i,j,k,UMX:UMZ) / state(i,j,k,URHO)
+
+             rot(i,j,k,:) = rotational_acceleration(r, v, time)
 
           enddo
        enddo
