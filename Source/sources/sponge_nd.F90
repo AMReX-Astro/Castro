@@ -104,7 +104,7 @@ contains
 
 
 
-  real(rt) function update_factor(r, state, dt)
+  real(rt) function update_factor(r, state, dt) result(fac)
 
     use amrex_constants_module, only: ZERO, HALF, ONE, M_PI
     use meth_params_module, only: sponge_implicit, NVAR, URHO, UTEMP, UFS, UFX
@@ -120,6 +120,8 @@ contains
     real(rt) :: delta_r, delta_rho, delta_p
     real(rt) :: alpha, sponge_factor
     type(eos_t) :: eos_state
+
+    real(rt) :: fac
 
     !$gpu
 
@@ -226,9 +228,9 @@ contains
     ! which yields Sr = - (rho v) * (ONE - ONE / (ONE + alpha * sponge_factor)).
 
     if (sponge_implicit == 1) then
-       update_factor = -(ONE - ONE / (ONE + alpha * sponge_factor))
+       fac = -(ONE - ONE / (ONE + alpha * sponge_factor))
     else
-       update_factor = -alpha * sponge_factor
+       fac = -alpha * sponge_factor
     endif
 
   end function update_factor
