@@ -1101,9 +1101,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
       // Store the old and new time levels.
 
       for (int k = 0; k < num_state_type; k++) {
-
-	StateData::Initialize(*prev_state[k], state[k]);
-
+        *prev_state[k] = state[k];
       }
 
     }
