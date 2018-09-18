@@ -17,7 +17,7 @@
 
 &extern
   !use_eos_coulomb = F
-  eos_file = "/Users/pmoesta/Downloads/Hempel_SFHoEOS_rho222_temp180_ye60_version_1.1_20120817.h5"
+  eos_file = "./Hempel_SFHoEOS_rho222_temp180_ye60_version_1.1_20120817.h5"
   use_energy_shift = T
   !input = "eos_input_rt"
 /
