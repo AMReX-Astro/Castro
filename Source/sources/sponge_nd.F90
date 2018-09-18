@@ -121,7 +121,6 @@ contains
     real(rt) :: alpha, sponge_factor
     type(eos_t) :: eos_state
 
-    real(rt) :: fac
 
     !$gpu
 
