@@ -1,0 +1,22 @@
+&fortin
+
+ model_name =  "glasner_T5_Gconst_Snone.hse"
+
+ apply_vel_field = F
+ velpert_height_loc = 1.2e8
+ velpert_scale = 5.d6
+ velpert_amplitude = 1.d5
+ num_vortices = 2
+
+ zero_vels = F
+ interp_BC = F
+
+/
+
+&sponge
+
+/
+
+&extern
+
+/

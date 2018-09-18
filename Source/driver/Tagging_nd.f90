@@ -597,4 +597,223 @@ contains
 
   end subroutine ca_nucerror
 
+
+
+
+  ! Routines for retrieving the maximum tagging level.
+
+  subroutine get_max_denerr_lev(lev) bind(c, name='get_max_denerr_lev')
+
+    implicit none
+
+    integer, intent(out) :: lev
+
+    lev = max_denerr_lev
+
+  end subroutine get_max_denerr_lev
+
+
+
+  subroutine get_max_dengrad_lev(lev) bind(c, name='get_max_dengrad_lev')
+
+    implicit none
+
+    integer, intent(out) :: lev
+
+    lev = max_dengrad_lev
+
+  end subroutine get_max_dengrad_lev
+
+
+
+  subroutine get_max_dengrad_rel_lev(lev) bind(c, name='get_max_dengrad_rel_lev')
+
+    implicit none
+
+    integer, intent(out) :: lev
+
+    lev = max_dengrad_rel_lev
+
+  end subroutine get_max_dengrad_rel_lev
+
+
+
+  subroutine get_max_enterr_lev(lev) bind(c, name='get_max_enterr_lev')
+
+    implicit none
+
+    integer, intent(out) :: lev
+
+    lev = max_enterr_lev
+
+  end subroutine get_max_enterr_lev
+
+
+
+  subroutine get_max_entgrad_lev(lev) bind(c, name='get_max_entgrad_lev')
+
+    implicit none
+
+    integer, intent(out) :: lev
+
+    lev = max_entgrad_lev
+
+  end subroutine get_max_entgrad_lev
+
+
+
+  subroutine get_max_entgrad_rel_lev(lev) bind(c, name='get_max_entgrad_rel_lev')
+
+    implicit none
+
+    integer, intent(out) :: lev
+
+    lev = max_entgrad_rel_lev
+
+  end subroutine get_max_entgrad_rel_lev
+
+
+
+  subroutine get_max_velerr_lev(lev) bind(c, name='get_max_velerr_lev')
+
+    implicit none
+
+    integer, intent(out) :: lev
+
+    lev = max_velerr_lev
+
+  end subroutine get_max_velerr_lev
+
+
+
+  subroutine get_max_velgrad_lev(lev) bind(c, name='get_max_velgrad_lev')
+
+    implicit none
+
+    integer, intent(out) :: lev
+
+    lev = max_velgrad_lev
+
+  end subroutine get_max_velgrad_lev
+
+
+
+  subroutine get_max_velgrad_rel_lev(lev) bind(c, name='get_max_velgrad_rel_lev')
+
+    implicit none
+
+    integer, intent(out) :: lev
+
+    lev = max_velgrad_rel_lev
+
+  end subroutine get_max_velgrad_rel_lev
+
+
+
+  subroutine get_max_temperr_lev(lev) bind(c, name='get_max_temperr_lev')
+
+    implicit none
+
+    integer, intent(out) :: lev
+
+    lev = max_temperr_lev
+
+  end subroutine get_max_temperr_lev
+
+
+
+  subroutine get_max_tempgrad_lev(lev) bind(c, name='get_max_tempgrad_lev')
+
+    implicit none
+
+    integer, intent(out) :: lev
+
+    lev = max_tempgrad_lev
+
+  end subroutine get_max_tempgrad_lev
+
+
+
+  subroutine get_max_tempgrad_rel_lev(lev) bind(c, name='get_max_tempgrad_rel_lev')
+
+    implicit none
+
+    integer, intent(out) :: lev
+
+    lev = max_tempgrad_rel_lev
+
+  end subroutine get_max_tempgrad_rel_lev
+
+
+
+  subroutine get_max_presserr_lev(lev) bind(c, name='get_max_presserr_lev')
+
+    implicit none
+
+    integer, intent(out) :: lev
+
+    lev = max_presserr_lev
+
+  end subroutine get_max_presserr_lev
+
+
+
+  subroutine get_max_pressgrad_lev(lev) bind(c, name='get_max_pressgrad_lev')
+
+    implicit none
+
+    integer, intent(out) :: lev
+
+    lev = max_pressgrad_lev
+
+  end subroutine get_max_pressgrad_lev
+
+
+
+  subroutine get_max_pressgrad_rel_lev(lev) bind(c, name='get_max_pressgrad_rel_lev')
+
+    implicit none
+
+    integer, intent(out) :: lev
+
+    lev = max_pressgrad_rel_lev
+
+  end subroutine get_max_pressgrad_rel_lev
+
+
+
+  subroutine get_max_raderr_lev(lev) bind(c, name='get_max_raderr_lev')
+
+    implicit none
+
+    integer, intent(out) :: lev
+
+    lev = max_raderr_lev
+
+  end subroutine get_max_raderr_lev
+
+
+
+  subroutine get_max_radgrad_lev(lev) bind(c, name='get_max_radgrad_lev')
+
+    implicit none
+
+    integer, intent(out) :: lev
+
+    lev = max_radgrad_lev
+
+  end subroutine get_max_radgrad_lev
+
+
+
+  subroutine get_max_radgrad_rel_lev(lev) bind(c, name='get_max_radgrad_rel_lev')
+
+    implicit none
+
+    integer, intent(out) :: lev
+
+    lev = max_radgrad_rel_lev
+
+  end subroutine get_max_radgrad_rel_lev
+
 end module tagging_module

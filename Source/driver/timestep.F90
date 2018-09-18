@@ -23,7 +23,7 @@ contains
     use rotation_module, only: inertial_to_rotational_velocity
     use amrinfo_module, only: amr_time
 #endif
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only : rt => amrex_real, amrex_min
 
     implicit none
 
@@ -90,7 +90,7 @@ contains
              endif
 
              if (do_ctu == 1) then
-                dt  = min(dt,dt1,dt2,dt3)
+                call amrex_min(dt, min(dt1,dt2,dt3))
              else
                 ! method of lines constraint is tougher
                 dt_tmp = ONE/dt1
@@ -100,7 +100,8 @@ contains
                 if (dim == 3) then
                    dt_tmp = dt_tmp + ONE/dt3
                 endif
-                dt = min(dt, ONE/dt_tmp)
+
+                call amrex_min(dt, ONE/dt_tmp)
              endif
 
           enddo

@@ -551,17 +551,17 @@ void HypreMultiABec::vectorSetBoxValues(HYPRE_SStructVector x,
                                         Real *vec)
 {
   if (sgr.size() > 0) {
+    FArrayBox svecfab;
     for (int j = 0; j < sgr.size(); j++) {
       const Box& sreg = sgr[j];
-      int svol = sreg.numPts();
-      Real *svec = hypre_CTAlloc(double, svol);
+      svecfab.resize(sreg);
+      Real *svec = svecfab.dataPtr();
       for (IntVect v = sreg.smallEnd(); v <= sreg.bigEnd(); sreg.next(v)) {
         int is = sreg.index(v);
         int ir =  reg.index(v);
         svec[is] = vec[ir];
       }
       HYPRE_SStructVectorSetBoxValues(x, part, loV(sreg), hiV(sreg), 0, svec);
-      hypre_TFree(svec);
     }
   }
   else {
@@ -579,17 +579,17 @@ void HypreMultiABec::vectorGetBoxValues(HYPRE_SStructVector x,
   Real* vec = f.dataPtr(fcomp);
   if (sgr.size() > 0) {
     f.setVal(0.0, fcomp);
+    FArrayBox svecfab;
     for (int j = 0; j < sgr.size(); j++) {
       const Box& sreg = sgr[j];
-      int svol = sreg.numPts();
-      Real *svec = hypre_CTAlloc(double, svol);
+      svecfab.resize(sreg);
+      Real *svec = svecfab.dataPtr();
       HYPRE_SStructVectorGetBoxValues(x, part, loV(sreg), hiV(sreg), 0, svec);
       for (IntVect v = sreg.smallEnd(); v <= sreg.bigEnd(); sreg.next(v)) {
         int is = sreg.index(v);
         int ir =  reg.index(v);
         vec[ir] = svec[is];
       }
-      hypre_TFree(svec);
     }
   }
   else {
@@ -1384,7 +1384,8 @@ void HypreMultiABec::loadMatrix()
   Vector<Real> r;
   Real foo = 1.e200;
 
-  Real *mat;
+  FArrayBox matfab;
+  FArrayBox smatfab;
   for (int level = crse_level; level <= fine_level; level++) {
     int part = level - crse_level;
 
@@ -1392,8 +1393,8 @@ void HypreMultiABec::loadMatrix()
       i = mfi.index();
       const Box &reg = grids[level][i];
 
-      int volume = reg.numPts();
-      mat = hypre_CTAlloc(double, size*volume);
+      matfab.resize(reg,size);
+      Real* mat = matfab.dataPtr();
 
       // build matrix interior
 
@@ -1482,8 +1483,8 @@ void HypreMultiABec::loadMatrix()
       if (subgrids[level][i].size() > 0) {
         for (int j = 0; j < subgrids[level][i].size(); j++) {
           const Box& sreg = subgrids[level][i][j];
-          int svol = sreg.numPts();
-          Real *smat = hypre_CTAlloc(double, size*svol);
+	  smatfab.resize(sreg,size);
+	  Real* smat = smatfab.dataPtr();
           for (IntVect v = sreg.smallEnd(); v <= sreg.bigEnd(); sreg.next(v)) {
             int is = sreg.index(v);
             int ir =  reg.index(v);
@@ -1493,15 +1494,12 @@ void HypreMultiABec::loadMatrix()
           }
           HYPRE_SStructMatrixSetBoxValues(A, part, loV(sreg), hiV(sreg), 0,
                                           size, stencil_indices, smat);
-          hypre_TFree(smat);
         }
       }
       else {
         HYPRE_SStructMatrixSetBoxValues(A, part, loV(reg), hiV(reg), 0,
                                         size, stencil_indices, mat);
       }
-
-      hypre_TFree(mat);
     }
 
     // Add coarse-fine interface entries to the matrix here:
@@ -3180,6 +3178,8 @@ void HypreMultiABec::initializeApplyLevel(int level,
 
   Real *mat, *vec;
   FArrayBox fnew;
+  FArrayBox matfab;
+  FArrayBox smatfab;
   for (MFIter mfi(vector); mfi.isValid(); ++mfi) {
     i = mfi.index();
     const Box &reg = grids[level][i];
@@ -3206,8 +3206,8 @@ void HypreMultiABec::initializeApplyLevel(int level,
     product[mfi].setVal(0.0);
     vec = product[mfi].dataPtr();
 
-    int volume = reg.numPts();
-    mat = hypre_CTAlloc(double, size*volume);
+    matfab.resize(reg,size);
+    Real* mat = matfab.dataPtr();
 
     // build matrix interior
 
@@ -3299,8 +3299,8 @@ void HypreMultiABec::initializeApplyLevel(int level,
     if (subgrids[level][i].size() > 0) {
       for (int j = 0; j < subgrids[level][i].size(); j++) {
         const Box& sreg = subgrids[level][i][j];
-        int svol = sreg.numPts();
-        Real *smat = hypre_CTAlloc(double, size*svol);
+	smatfab.resize(sreg,size);
+	Real* smat = smatfab.dataPtr();
         for (IntVect v = sreg.smallEnd(); v <= sreg.bigEnd(); sreg.next(v)) {
           int is = sreg.index(v);
           int ir =  reg.index(v);
@@ -3310,27 +3310,12 @@ void HypreMultiABec::initializeApplyLevel(int level,
         }
         HYPRE_SStructMatrixSetBoxValues(A0, part, loV(sreg), hiV(sreg), 0,
                                         size, stencil_indices, smat);
-        hypre_TFree(smat);
       }
     }
     else {
       HYPRE_SStructMatrixSetBoxValues(A0, part, loV(reg), hiV(reg), 0,
                                       size, stencil_indices, mat);
     }
-#if 0
-    // with no subgrids, this (also) works correctly
-    Real *mat_tmp = hypre_CTAlloc(double, volume);
-    for (int s = 0; s < size; s++) {
-      for (int k = 0; k < volume; k++) {
-	mat_tmp[k] = mat[k * size + s];
-      }
-      HYPRE_SStructMatrixSetBoxValues(A0, part, loV(reg), hiV(reg), 0,
-				      1, &stencil_indices[s], mat_tmp);
-    }
-    hypre_TFree(mat_tmp);
-#endif
-
-    hypre_TFree(mat);
   }
 }
 

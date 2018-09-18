@@ -127,7 +127,7 @@ contains
 #endif
     use actual_eos_module, only: actual_eos
     use eos_override_module, only: eos_override
-#if (!(defined(AMREX_USE_CUDA) || defined(ACC)))
+#if (!(defined(AMREX_USE_CUDA) || defined(AMREX_USE_ACC)))
     use amrex_error_module, only: amrex_error
 #endif
 
@@ -144,7 +144,7 @@ contains
 
     ! Local variables
 
-#if (!(defined(AMREX_USE_CUDA) || defined(ACC)))
+#if (!(defined(AMREX_USE_CUDA) || defined(AMREX_USE_ACC)))
     if (.not. initialized) call amrex_error('EOS: not initialized')
 #endif
 
@@ -398,7 +398,7 @@ contains
 
 
 
-#if (!(defined(AMREX_USE_CUDA) || defined(ACC)))
+#if (!(defined(AMREX_USE_CUDA) || defined(AMREX_USE_ACC)))
   subroutine check_inputs(input, state)
 
     !$acc routine seq

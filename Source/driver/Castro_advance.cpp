@@ -869,9 +869,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
       // Store the old and new time levels.
 
       for (int k = 0; k < num_state_type; k++) {
-
-	StateData::Initialize(*prev_state[k], state[k]);
-
+        *prev_state[k] = state[k];
       }
 
     }
@@ -1014,11 +1012,11 @@ Castro::retry_advance(Real& time, Real dt, int amr_iteration, int amr_ncycle)
         const int* hi = bx.hiVect();
 
         ca_check_timestep(ARLIM_3D(lo), ARLIM_3D(hi),
-                          BL_TO_FORTRAN_3D(S_old[mfi]),
-                          BL_TO_FORTRAN_3D(S_new[mfi]),
+                          BL_TO_FORTRAN_ANYD(S_old[mfi]),
+                          BL_TO_FORTRAN_ANYD(S_new[mfi]),
 #ifdef REACTIONS
-                          BL_TO_FORTRAN_3D(R_old[mfi]),
-                          BL_TO_FORTRAN_3D(R_new[mfi]),
+                          BL_TO_FORTRAN_ANYD(R_old[mfi]),
+                          BL_TO_FORTRAN_ANYD(R_new[mfi]),
 #endif
                           ZFILL(dx),
                           &dt, &dt_sub);

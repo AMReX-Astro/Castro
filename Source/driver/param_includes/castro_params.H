@@ -3,33 +3,6 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
-#ifdef DIFFUSION
-static int diffuse_temp;
-static int diffuse_enth;
-static int diffuse_spec;
-static int diffuse_vel;
-static amrex::Real diffuse_cutoff_density;
-static amrex::Real diffuse_cond_scale_fac;
-#endif
-#ifdef AMREX_PARTICLES
-static int do_tracer_particles;
-#endif
-#ifdef ROTATION
-static amrex::Real rotational_period;
-static amrex::Real rotational_dPdt;
-static int rotation_include_centrifugal;
-static int rotation_include_coriolis;
-static int rotation_include_domegadt;
-static int state_in_rotating_frame;
-static int rot_source_type;
-static int implicit_rotation_update;
-static int rot_axis;
-#endif
-#ifdef POINTMASS
-static int use_point_mass;
-static amrex::Real point_mass;
-static int point_mass_fix_solution;
-#endif
 static int state_interp_order;
 static int lin_limit_state_interp;
 static int state_nghost;
@@ -61,10 +34,8 @@ static int use_flattening;
 static int transverse_use_eos;
 static int transverse_reset_density;
 static int transverse_reset_rhoe;
-static int dual_energy_update_E_from_e;
 static amrex::Real dual_energy_eta1;
 static amrex::Real dual_energy_eta2;
-static amrex::Real dual_energy_eta3;
 static int use_pslope;
 static int fix_mass_flux;
 static int limit_fluxes_on_small_dens;
@@ -135,3 +106,30 @@ static std::string job_name;
 static int output_at_completion;
 static amrex::Real reset_checkpoint_time;
 static int reset_checkpoint_step;
+#ifdef DIFFUSION
+static int diffuse_temp;
+static int diffuse_enth;
+static int diffuse_spec;
+static int diffuse_vel;
+static amrex::Real diffuse_cutoff_density;
+static amrex::Real diffuse_cond_scale_fac;
+#endif
+#ifdef ROTATION
+static amrex::Real rotational_period;
+static amrex::Real rotational_dPdt;
+static int rotation_include_centrifugal;
+static int rotation_include_coriolis;
+static int rotation_include_domegadt;
+static int state_in_rotating_frame;
+static int rot_source_type;
+static int implicit_rotation_update;
+static int rot_axis;
+#endif
+#ifdef POINTMASS
+static int use_point_mass;
+static amrex::Real point_mass;
+static int point_mass_fix_solution;
+#endif
+#ifdef AMREX_PARTICLES
+static int do_tracer_particles;
+#endif

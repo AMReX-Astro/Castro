@@ -18,7 +18,7 @@ module actual_eos_module
 
   logical, allocatable, save :: assume_neutral
 
-#ifdef CUDA
+#ifdef AMREX_USE_CUDA
   attributes(managed) :: gamma_const, assume_neutral
 #endif
 
@@ -88,7 +88,7 @@ contains
 
        ! dens, enthalpy, and xmass are inputs
 
-#if (!(defined(ACC) || defined(CUDA)))
+#if (!(defined(AMREX_USE_ACC) || defined(AMREX_USE_CUDA)))
        call amrex_error('EOS: eos_input_rh is not supported in this EOS.')
 #endif
 
@@ -96,7 +96,7 @@ contains
 
        ! temp, pres, and xmass are inputs
 
-#if (!(defined(ACC) || defined(CUDA)))
+#if (!(defined(AMREX_USE_ACC) || defined(AMREX_USE_CUDA)))
        call amrex_error('EOS: eos_input_tp is not supported in this EOS.')
 #endif
 
@@ -133,7 +133,7 @@ contains
 
        ! pressure entropy, and xmass are inputs
 
-#if (!(defined(ACC) || defined(CUDA)))
+#if (!(defined(AMREX_USE_ACC) || defined(AMREX_USE_CUDA)))
        call amrex_error('EOS: eos_input_ps is not supported in this EOS.')
 #endif
 
@@ -141,7 +141,7 @@ contains
 
        ! pressure, enthalpy and xmass are inputs
 
-#if (!(defined(ACC) || defined(CUDA)))
+#if (!(defined(AMREX_USE_ACC) || defined(AMREX_USE_CUDA)))
        call amrex_error('EOS: eos_input_ph is not supported in this EOS.')
 #endif
 
@@ -151,13 +151,13 @@ contains
 
        ! This system is underconstrained.
 
-#if (!(defined(ACC) || defined(CUDA)))
+#if (!(defined(AMREX_USE_ACC) || defined(AMREX_USE_CUDA)))
        call amrex_error('EOS: eos_input_th is not a valid input for the gamma law EOS.')
 #endif
 
     case default
 
-#if (!(defined(ACC) || defined(CUDA)))
+#if (!(defined(AMREX_USE_ACC) || defined(AMREX_USE_CUDA)))
        call amrex_error('EOS: invalid input.')
 #endif
 

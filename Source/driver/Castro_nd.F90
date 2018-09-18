@@ -807,8 +807,8 @@ subroutine ca_get_tagging_params(name, namlen) &
   denerr = 1.e20_rt
   dengrad = 1.e20_rt
   dengrad_rel = 1.e20_rt
-  max_denerr_lev = 10
-  max_dengrad_lev = 10
+  max_denerr_lev = -1
+  max_dengrad_lev = -1
   max_dengrad_rel_lev = -1
 
   enterr = 1.e20_rt
@@ -980,6 +980,37 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
 #endif
 
 end subroutine ca_get_sponge_params
+
+subroutine ca_allocate_sponge_params() bind(C, name="ca_allocate_sponge_params")
+
+    ! allocate sponge parameters
+
+    use sponge_module
+    allocate(sponge_lower_factor, sponge_upper_factor)
+    allocate(sponge_lower_radius, sponge_upper_radius)
+    allocate(sponge_lower_density, sponge_upper_density)
+    allocate(sponge_lower_pressure, sponge_upper_pressure)
+    allocate(sponge_target_velocity(3))
+    allocate(sponge_timescale)
+
+
+
+end subroutine ca_allocate_sponge_params
+
+subroutine ca_deallocate_sponge_params() bind(C, name="ca_deallocate_sponge_params")
+
+    ! deallocate sponge parameters
+
+    use sponge_module
+
+    deallocate(sponge_lower_factor, sponge_upper_factor)
+    deallocate(sponge_lower_radius, sponge_upper_radius)
+    deallocate(sponge_lower_density, sponge_upper_density)
+    deallocate(sponge_lower_pressure, sponge_upper_pressure)
+    deallocate(sponge_target_velocity)
+    deallocate(sponge_timescale)
+
+end subroutine ca_deallocate_sponge_params
 #endif
 
 #ifdef POINTMASS

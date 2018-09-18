@@ -215,6 +215,9 @@ Castro::variableCleanUp ()
 
     network_finalize();
     eos_finalize();
+#ifdef SPONGE
+    sponge_finalize();
+#endif
 }
 
 void
@@ -350,6 +353,14 @@ Castro::read_params ()
 
     if (!do_ctu && use_retry)
         amrex::Error("Method of lines integration is incompatible with the timestep retry mechanism.");
+
+#ifdef AMREX_USE_CUDA     
+    // not use ctu if using gpu
+    if (do_ctu == 1)
+      {
+	 amrex::Error("Running with CUDA requires do_ctu = 0");
+      }
+#endif    
 
     // fourth order implies do_ctu=0
     if (fourth_order == 1 && do_ctu == 1)
@@ -728,6 +739,9 @@ Castro::initMFs()
 
     post_step_regrid = 0;
 
+    lastDtRetryLimited = false;
+    lastDtFromRetry = 1.e200;
+
 }
 
 void
@@ -886,7 +900,7 @@ Castro::initData ()
 #ifdef AMREX_DIMENSION_AGNOSTIC
           BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
           (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), ns,
-  	   BL_TO_FORTRAN_3D(S_new[mfi]), ZFILL(dx),
+  	   BL_TO_FORTRAN_ANYD(S_new[mfi]), ZFILL(dx),
   	   ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
 #else
           BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
@@ -896,15 +910,18 @@ Castro::initData ()
 #endif
 
 #ifdef HYBRID_MOMENTUM
+// <<<<<<< HEAD
 	  // Generate the initial hybrid momenta based on this user data.
-	  ca_init_hybrid_momentum(lo, hi, BL_TO_FORTRAN_3D(S_new[mfi]));
+	  // ca_init_hybrid_momentum(lo, hi, BL_TO_FORTRAN_3D(S_new[mfi]));
+// =======
+	  // ca_init_hybrid_momentum(lo, hi, BL_TO_FORTRAN_ANYD(S_new[mfi]));
+// >>>>>>> development
 #endif
 
           // Verify that the sum of (rho X)_i = rho at every cell
 
-#pragma gpu
-          ca_check_initial_species(AMREX_ARLIM_ARG(lo), AMREX_ARLIM_ARG(hi), 
-				   BL_TO_FORTRAN_3D(S_new[mfi]));
+          ca_check_initial_species(AMREX_ARLIM_3D(lo), AMREX_ARLIM_3D(hi),
+				   BL_TO_FORTRAN_ANYD(S_new[mfi]));
        }
        enforce_consistent_e(S_new);
 
@@ -943,6 +960,9 @@ Castro::initData ()
           init_thornado_data();
 #endif
     }
+
+    int is_new = 1;
+    clean_state(is_new, S_new.nGrow());
 
 #ifdef RADIATION
     if (do_radiation) {
@@ -1165,7 +1185,7 @@ Castro::estTimeStep (Real dt_old)
 	  // Compute hydro-limited timestep.
 	if (do_hydro)
 	  {
-            
+
 #ifdef _OPENMP
 #pragma omp parallel reduction(min:estdt_hydro)
 #endif
@@ -1177,9 +1197,9 @@ Castro::estTimeStep (Real dt_old)
 		  const Box& box = mfi.tilebox();
 
 #pragma gpu
-		  ca_estdt(AMREX_ARLIM_ARG(box.loVect()), AMREX_ARLIM_ARG(box.hiVect()),
-			   BL_TO_FORTRAN_3D(stateMF[mfi]),
-			   ZFILL(dx),
+		  ca_estdt(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
+			   BL_TO_FORTRAN_ANYD(stateMF[mfi]),
+			   AMREX_REAL_ANYD(dx),
                            AMREX_MFITER_REDUCE_MIN(&dt));
 		}
               estdt_hydro = std::min(estdt_hydro, dt);
@@ -1202,7 +1222,7 @@ Castro::estTimeStep (Real dt_old)
               {
                 const Box& box = mfi.tilebox();
                 ca_estdt_temp_diffusion(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
-                                        BL_TO_FORTRAN_3D(stateMF[mfi]),
+                                        BL_TO_FORTRAN_ANYD(stateMF[mfi]),
                                         ZFILL(dx),&dt);
               }
             estdt_hydro = std::min(estdt_hydro, dt);
@@ -1215,12 +1235,12 @@ Castro::estTimeStep (Real dt_old)
 #endif
           {
             Real dt = max_dt / cfl;
-              
+
             for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
               {
                 const Box& box = mfi.tilebox();
                 ca_estdt_enth_diffusion(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
-                                        BL_TO_FORTRAN_3D(stateMF[mfi]),
+                                        BL_TO_FORTRAN_ANYD(stateMF[mfi]),
                                         ZFILL(dx),&dt);
               }
             estdt_hydro = std::min(estdt_hydro, dt);
@@ -1261,30 +1281,30 @@ Castro::estTimeStep (Real dt_old)
 #endif
       {
         Real dt = max_dt;
-        
+
         for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
           {
             const Box& box = mfi.validbox();
-            
+
             if (state[State_Type].hasOldData() && state[Reactions_Type].hasOldData()) {
 
               MultiFab& S_old = get_old_data(State_Type);
               MultiFab& R_old = get_old_data(Reactions_Type);
 
               ca_estdt_burning(ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
-                               BL_TO_FORTRAN_3D(S_old[mfi]),
-                               BL_TO_FORTRAN_3D(S_new[mfi]),
-                               BL_TO_FORTRAN_3D(R_old[mfi]),
-                               BL_TO_FORTRAN_3D(R_new[mfi]),
+                               BL_TO_FORTRAN_ANYD(S_old[mfi]),
+                               BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                               BL_TO_FORTRAN_ANYD(R_old[mfi]),
+                               BL_TO_FORTRAN_ANYD(R_new[mfi]),
                                ZFILL(dx),&dt_old,&dt);
-              
+
             } else {
-              
+
               ca_estdt_burning(ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
-                               BL_TO_FORTRAN_3D(S_new[mfi]),
-                               BL_TO_FORTRAN_3D(S_new[mfi]),
-                               BL_TO_FORTRAN_3D(R_new[mfi]),
-                               BL_TO_FORTRAN_3D(R_new[mfi]),
+                               BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                               BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                               BL_TO_FORTRAN_ANYD(R_new[mfi]),
+                               BL_TO_FORTRAN_ANYD(R_new[mfi]),
                                ZFILL(dx),&dt_old,&dt);
 
             }
@@ -1801,6 +1821,8 @@ Castro::postCoarseTimeStep (Real cumtime)
 void
 Castro::check_for_post_regrid (Real time)
 {
+
+    BL_PROFILE("Castro::check_for_post_regrid()");
 
     // Check whether we have any zones at this time signifying that they
     // need to be tagged that do not have corresponding zones on the
@@ -2324,7 +2346,7 @@ Castro::reflux(int crse_level, int fine_level)
 	if (update_sources_after_reflux) {
 
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
-		temp_fluxes[i].reset(new MultiFab(crse_lev.fluxes[i]->boxArray(), 
+		temp_fluxes[i].reset(new MultiFab(crse_lev.fluxes[i]->boxArray(),
 						  crse_lev.fluxes[i]->DistributionMap(),
 						  crse_lev.fluxes[i]->nComp(), crse_lev.fluxes[i]->nGrow()));
 		temp_fluxes[i]->setVal(0.0);
@@ -2360,12 +2382,12 @@ Castro::reflux(int crse_level, int fine_level)
 
 	    if (update_sources_after_reflux) {
 
-		temp_fluxes[0].reset(new MultiFab(crse_lev.P_radial.boxArray(), 
+		temp_fluxes[0].reset(new MultiFab(crse_lev.P_radial.boxArray(),
 						  crse_lev.P_radial.DistributionMap(),
 						  crse_lev.P_radial.nComp(), crse_lev.P_radial.nGrow()));
 		temp_fluxes[0]->setVal(0.0);
 
-                for (OrientationIter fi; fi; ++fi) 
+                for (OrientationIter fi; fi; ++fi)
 		{
 		    const FabSet& fs = (*reg)[fi()];
 		    int idir = fi().coordDir();
@@ -2399,7 +2421,7 @@ Castro::reflux(int crse_level, int fine_level)
 	    if (update_sources_after_reflux) {
 
 		for (int i = 0; i < BL_SPACEDIM; ++i) {
-		    temp_fluxes[i].reset(new MultiFab(crse_lev.rad_fluxes[i]->boxArray(), 
+		    temp_fluxes[i].reset(new MultiFab(crse_lev.rad_fluxes[i]->boxArray(),
 						      crse_lev.rad_fluxes[i]->DistributionMap(),
 						      crse_lev.rad_fluxes[i]->nComp(), crse_lev.rad_fluxes[i]->nGrow()));
 		    temp_fluxes[i]->setVal(0.0);
@@ -2420,7 +2442,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 	}
 
-#endif	
+#endif
 
 #ifdef SELF_GRAVITY
 	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
@@ -2611,6 +2633,8 @@ void
 Castro::normalize_species (MultiFab& S_new, int ng)
 {
 
+    BL_PROFILE("Castro::normalize_species()");
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -2619,14 +2643,16 @@ Castro::normalize_species (MultiFab& S_new, int ng)
        const Box& bx = mfi.growntilebox(ng);
 
 #pragma gpu
-       ca_normalize_species(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()), 
-                                     BL_TO_FORTRAN_3D(S_new[mfi]));
+       ca_normalize_species(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                            BL_TO_FORTRAN_ANYD(S_new[mfi]));
     }
 }
 
 void
 Castro::enforce_consistent_e (MultiFab& S)
 {
+
+    BL_PROFILE("Castro::enforce_consistent_e()");
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -2637,13 +2663,15 @@ Castro::enforce_consistent_e (MultiFab& S)
         const int* lo      = box.loVect();
         const int* hi      = box.hiVect();
 
-        ca_enforce_consistent_e(ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_3D(S[mfi]));
+        ca_enforce_consistent_e(ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_ANYD(S[mfi]));
     }
 }
 
 Real
 Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new, int ng)
 {
+
+    BL_PROFILE("Castro::enforce_min_density()");
 
     // This routine sets the density in S_new to be larger than the density floor.
     // Note that it will operate everywhere on S_new, including ghost zones.
@@ -2682,7 +2710,7 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new, int ng)
 
 #pragma gpu
 	ca_enforce_minimum_density
-            (AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
+            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
              BL_TO_FORTRAN_ANYD(stateold),
              BL_TO_FORTRAN_ANYD(statenew),
              BL_TO_FORTRAN_ANYD(vol),
@@ -2806,6 +2834,7 @@ Castro::apply_problem_tags (TagBoxArray& tags,
                             int          tagval,
                             Real         time)
 {
+    BL_PROFILE("Castro::apply_problem_tags()");
 
     const Real* dx        = geom.CellSize();
     const Real* prob_lo   = geom.ProbLo();
@@ -2837,7 +2866,7 @@ Castro::apply_problem_tags (TagBoxArray& tags,
 #ifdef AMREX_DIMENSION_AGNOSTIC
 	    set_problem_tags(ARLIM_3D(tilebx.loVect()), ARLIM_3D(tilebx.hiVect()),
                              tptr, ARLIM_3D(tlo), ARLIM_3D(thi),
-			     BL_TO_FORTRAN_3D(S_new[mfi]),
+			     BL_TO_FORTRAN_ANYD(S_new[mfi]),
 			     &tagval, &clearval,
 			     ZFILL(dx), ZFILL(prob_lo), &time, &level);
 #else
@@ -2862,6 +2891,8 @@ Castro::apply_problem_tags (TagBoxArray& tags,
 void
 Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real time, int j)
 {
+
+    BL_PROFILE("Castro::apply_tagging_func()");
 
     const int*  domain_lo = geom.Domain().loVect();
     const int*  domain_hi = geom.Domain().hiVect();
@@ -3021,6 +3052,8 @@ void
 Castro::reset_internal_energy(MultiFab& S_new)
 {
 
+    BL_PROFILE("Castro::reset_internal_energy()");
+
     MultiFab old_state;
 
     // Make a copy of the state so we can evaluate how much changed.
@@ -3042,8 +3075,8 @@ Castro::reset_internal_energy(MultiFab& S_new)
         const Box& bx = mfi.growntilebox(ng);
 
 #pragma gpu
-        ca_reset_internal_e(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
-			    BL_TO_FORTRAN_3D(S_new[mfi]),
+        ca_reset_internal_e(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+			    BL_TO_FORTRAN_ANYD(S_new[mfi]),
 			    print_fortran_warnings);
     }
 
@@ -3088,6 +3121,8 @@ void
 Castro::computeTemp(MultiFab& State, int ng)
 {
 
+  BL_PROFILE("Castro::computeTemp()");
+
   reset_internal_energy(State);
 
 #ifdef RADIATION
@@ -3100,24 +3135,24 @@ Castro::computeTemp(MultiFab& State, int ng)
   for (MFIter mfi(State,true); mfi.isValid(); ++mfi)
     {
       const Box& bx = mfi.growntilebox(ng);
-      
+
 #ifdef RADIATION
       if (Radiation::do_real_eos == 0) {
 	temp.resize(bx);
 	temp.copy(State[mfi],bx,Eint,bx,0,1);
-	
+
 	ca_compute_temp_given_cv
-	  (bx.loVect(), bx.hiVect(), 
-	   BL_TO_FORTRAN(temp), 
+	  (bx.loVect(), bx.hiVect(),
+	   BL_TO_FORTRAN(temp),
 	   BL_TO_FORTRAN(State[mfi]),
 	   &Radiation::const_c_v, &Radiation::c_v_exp_m, &Radiation::c_v_exp_n);
-	
+
 	State[mfi].copy(temp,bx,0,bx,Temp,1);
       } else {
 #endif
 #pragma gpu
-	ca_compute_temp(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
-			BL_TO_FORTRAN_3D(State[mfi]));
+	ca_compute_temp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+			BL_TO_FORTRAN_ANYD(State[mfi]));
 #ifdef RADIATION
       }
 #endif
@@ -3129,6 +3164,8 @@ Castro::computeTemp(MultiFab& State, int ng)
 void
 Castro::apply_source_term_predictor()
 {
+
+    BL_PROFILE("Castro::apply_source_term_predictor()");
 
     // Optionally predict the source terms to t + dt/2,
     // which is the time-level n+1/2 value, To do this we use a
@@ -3228,6 +3265,8 @@ Castro::make_radial_data(int is_new)
 {
 #if (BL_SPACEDIM > 1)
 
+   BL_PROFILE("Castro::make_radial_data()");
+
  // We only call this for level = 0
    BL_ASSERT(level == 0);
 
@@ -3246,8 +3285,8 @@ Castro::make_radial_data(int is_new)
       {
          Box bx(mfi.validbox());
          ca_compute_avgstate(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),ZFILL(dx),&dr,&nc,
-			     BL_TO_FORTRAN_3D(     S[mfi]),radial_state.dataPtr(),
-			     BL_TO_FORTRAN_3D(volume[mfi]),radial_vol.dataPtr(),
+			     BL_TO_FORTRAN_ANYD(     S[mfi]),radial_state.dataPtr(),
+			     BL_TO_FORTRAN_ANYD(volume[mfi]),radial_vol.dataPtr(),
 			     ZFILL(geom.ProbLo()),&numpts_1d);
       }
 
@@ -3288,8 +3327,8 @@ Castro::make_radial_data(int is_new)
       {
          Box bx(mfi.validbox());
          ca_compute_avgstate(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),ZFILL(dx),&dr,&nc,
-			     BL_TO_FORTRAN_3D(     S[mfi]),radial_state.dataPtr(),
-			     BL_TO_FORTRAN_3D(volume[mfi]),radial_vol.dataPtr(),
+			     BL_TO_FORTRAN_ANYD(     S[mfi]),radial_state.dataPtr(),
+			     BL_TO_FORTRAN_ANYD(volume[mfi]),radial_vol.dataPtr(),
 			     ZFILL(geom.ProbLo()),&numpts_1d);
       }
 
@@ -3328,6 +3367,8 @@ Castro::make_radial_data(int is_new)
 void
 Castro::define_new_center(MultiFab& S, Real time)
 {
+    BL_PROFILE("Castro::define_new_center()");
+
     Real center[3];
     const Real* dx = geom.CellSize();
 
@@ -3413,6 +3454,8 @@ Castro::getCPUTime()
 MultiFab&
 Castro::build_fine_mask()
 {
+    BL_PROFILE("Castro::build_fine_mask()");
+
     BL_ASSERT(level > 0); // because we are building a mask for the coarser level
 
     if (!fine_mask.empty()) return fine_mask;
@@ -3446,6 +3489,8 @@ Castro::build_fine_mask()
 iMultiFab&
 Castro::build_interior_boundary_mask (int ng)
 {
+    BL_PROFILE("Castro::build_interior_boundary_mask()");
+
     for (int i = 0; i < ib_mask.size(); ++i)
     {
 	if (ib_mask[i]->nGrow() == ng) {
@@ -3472,6 +3517,7 @@ Castro::build_interior_boundary_mask (int ng)
 void
 Castro::expand_state(MultiFab& S, Real time, int iclean, int ng)
 {
+  BL_PROFILE("Castro::expand_state()");
 
   // S is the multifab we are filling with State_Type StateData,
   // including a ghost cell fill at the end.  Before we do the fill,
@@ -3502,12 +3548,13 @@ Castro::expand_state(MultiFab& S, Real time, int iclean, int ng)
 void
 Castro::check_for_nan(MultiFab& state, int check_ghost)
 {
+  BL_PROFILE("Castro::check_for_nan()");
 
   int ng = 0;
   if (check_ghost == 1) {
     ng = state.nComp();
   }
-  
+
   if (state.contains_nan(Density,state.nComp(),ng,true))
     {
       for (int i = 0; i < state.nComp(); i++)
@@ -3526,6 +3573,8 @@ Castro::check_for_nan(MultiFab& state, int check_ghost)
 void
 Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux)
 {
+
+    BL_PROFILE("Castro::cons_to_prim()");
 
     BL_ASSERT(u.nComp() == NUM_STATE);
     BL_ASSERT(q.nComp() == QVAR);
@@ -3557,6 +3606,8 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux)
 
 Real
 Castro::clean_state(MultiFab& state) {
+
+    BL_PROFILE("Castro::clean_state(state)");
 
     // Enforce a minimum density.
 
@@ -3594,6 +3645,8 @@ Castro::clean_state(MultiFab& state) {
 Real
 Castro::clean_state(int is_new, int ng) {
 
+  BL_PROFILE("Castro::clean_state(is_new, ng)");
+
   // this is the "preferred" clean_state interface -- it will work
   // directly on the StateData.  is_new=0 means the old data is used,
   // is_new=1 means the new data is used.
@@ -3614,6 +3667,8 @@ Castro::clean_state(int is_new, int ng) {
 
 Real
 Castro::clean_state(int is_new, MultiFab& state_old, int ng) {
+
+    BL_PROFILE("Castro::clean_state(is_new, state_old, ng)");
 
   MultiFab& state = is_new == 1 ? get_new_data(State_Type) : get_old_data(State_Type);
 

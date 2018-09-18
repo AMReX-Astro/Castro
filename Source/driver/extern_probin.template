@@ -17,7 +17,7 @@ module extern_probin_module
 
 end module extern_probin_module
 
-subroutine runtime_init(name,namlen)
+subroutine runtime_init(name, namlen)
 
   use extern_probin_module
 
@@ -25,7 +25,7 @@ subroutine runtime_init(name,namlen)
 
   integer :: namlen
   integer :: name(namlen)
-
+  
   integer :: un, i, status
 
   integer, parameter :: maxlen = 256
@@ -63,7 +63,7 @@ subroutine runtime_init(name,namlen)
 
   else if (status > 0) then
      ! some problem in the namelist
-#ifndef AMREX_USE_CUDA 
+#ifndef AMREX_USE_CUDA
      print *, 'ERROR: problem in the extern namelist'
 #endif
      stop
@@ -75,3 +75,37 @@ subroutine runtime_init(name,namlen)
 
 end subroutine runtime_init
 
+subroutine runtime_pretty_print(name, namlen) bind(C, name="runtime_pretty_print")
+
+  use amrex_constants_module
+  use extern_probin_module
+
+  implicit none
+
+  integer :: unit, i
+
+  integer :: namlen
+  integer :: name(namlen)
+
+  integer, parameter :: maxlen = 256
+  character (len=maxlen) :: probin
+
+#ifndef AMREX_USE_CUDA
+  if (namlen > maxlen) then
+     print *, 'probin file name too long'
+     stop
+  endif
+#endif
+
+  do i = 1, namlen
+     probin(i:i) = char(name(i))
+  end do
+
+  ! open the job info file in Fortran
+  open(newunit=unit, file=probin(1:namlen), status="old", position="append")
+
+  @@printing@@
+
+  close(unit=unit)
+
+end subroutine runtime_pretty_print
