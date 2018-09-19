@@ -19,8 +19,8 @@ contains
     use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_error_module
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type
-    use math_module, only: cross_product
-    use castro_util_module, only: position
+    use math_module, only: cross_product ! function
+    use castro_util_module, only: position ! function
     use prob_params_module, only: center
 #ifdef HYBRID_MOMENTUM
     use meth_params_module, only: UMR, UMP
@@ -48,7 +48,8 @@ contains
     real(rt), intent(in)    :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3),3)
 #endif
     real(rt), intent(inout) :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
-    real(rt), intent(in)    :: dx(3), dt, time
+    real(rt), intent(in)    :: dx(3)
+    real(rt), intent(in), value :: dt, time
 
     real(rt) :: rho, rhoInv
     real(rt) :: Sr(3), SrE
@@ -58,7 +59,7 @@ contains
     integer  :: i, j, k
 
     ! Temporary array for holding the update to the state.
-    
+
     real(rt) :: src(NVAR)
 
     ! Temporary array for seeing what the new state would be if the update were applied here.
@@ -247,7 +248,8 @@ contains
 
     real(rt), intent(inout) :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NVAR)
 
-    real(rt), intent(in)    :: dx(3), dt, time
+    real(rt), intent(in)    :: dx(3)
+    real(rt), intent(in), value :: dt, time
 
     integer  :: i, j, k
 
