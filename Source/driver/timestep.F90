@@ -17,13 +17,13 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use prob_params_module, only: dim
-    use bl_constants_module
+    use amrex_constants_module, ONLY : ONE
 #ifdef ROTATION
     use meth_params_module, only: do_rotation, state_in_rotating_frame
     use rotation_module, only: inertial_to_rotational_velocity
     use amrinfo_module, only: amr_time
 #endif
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only : rt => amrex_real, amrex_min
 
     implicit none
 
@@ -41,6 +41,8 @@ contains
 #ifdef ROTATION
     real(rt)         :: vel(3)
 #endif
+
+    !$gpu
 
     ! Call EOS for the purpose of computing sound speed
 
@@ -88,7 +90,7 @@ contains
              endif
 
              if (do_ctu == 1) then
-                dt  = min(dt,dt1,dt2,dt3)
+                call amrex_min(dt, min(dt1,dt2,dt3))
              else
                 ! method of lines constraint is tougher
                 dt_tmp = ONE/dt1
@@ -98,7 +100,8 @@ contains
                 if (dim == 3) then
                    dt_tmp = dt_tmp + ONE/dt3
                 endif
-                dt = min(dt, ONE/dt_tmp)
+
+                call amrex_min(dt, ONE/dt_tmp)
              endif
 
           enddo
@@ -117,7 +120,7 @@ contains
                               dx, dt_old, dt) &
                               bind(C, name="ca_estdt_burning")
 
-    use bl_constants_module, only: HALF, ONE
+    use amrex_constants_module, only: HALF, ONE
     use network, only: nspec, naux, aion
     use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, dtnuc_e, dtnuc_X, dtnuc_X_threshold
     use prob_params_module, only : dim
@@ -128,8 +131,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use burner_module, only: ok_to_burn
-    use burn_type_module
-    use eos_type_module
+    use burn_type_module, only : burn_t, net_ienuc, burn_to_eos, eos_to_burn
     use amrex_fort_module, only : rt => amrex_real
     use extern_probin_module, only: small_x
 
@@ -262,8 +264,8 @@ contains
     use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, UFS, UFX, &
          diffuse_cutoff_density
     use prob_params_module, only: dim
-    use bl_constants_module
-    use conductivity_module
+    use amrex_constants_module, only : ONE, HALF
+    use conductivity_module, only : conductivity
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -340,8 +342,8 @@ contains
     use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, UFS, UFX, &
          diffuse_cutoff_density
     use prob_params_module, only: dim
-    use bl_constants_module
-    use conductivity_module
+    use amrex_constants_module, only : HALF, ONE
+    use conductivity_module, only : conductivity
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -422,7 +424,7 @@ contains
                                dx, dt_old, dt_new) &
                                bind(C, name="ca_check_timestep")
 
-    use bl_constants_module, only: HALF, ONE
+    use amrex_constants_module, only: HALF, ONE
     use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, UFS, UFX, UMX, UMZ, &
                                   cfl, do_hydro
 #ifdef REACTIONS

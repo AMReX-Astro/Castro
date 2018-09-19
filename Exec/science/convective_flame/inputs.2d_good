@@ -49,7 +49,7 @@ gravity.const_grav   = -4.2e7
 
 castro.do_rotation = 1
 castro.rotational_period = 0.01
-castro.rotation_include_centarifugal = 0
+castro.rotation_include_centrifugal = 0
 
 # TIME STEP CONTROL
 castro.cfl            = 0.5     # cfl number for hyperbolic system

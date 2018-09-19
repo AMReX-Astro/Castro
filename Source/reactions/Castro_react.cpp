@@ -25,6 +25,10 @@ Castro::strang_react_first_half(Real time, Real dt)
 
     MultiFab& state = Sborder;
 
+    // Check if we have any zones to burn.
+
+    if (!valid_zones_to_burn(state)) return;
+
     const int ng = state.nGrow();
 
     // Reactions are expensive and we would usually rather do a
@@ -153,6 +157,10 @@ Castro::strang_react_second_half(Real time, Real dt)
 
     MultiFab& state = get_new_data(State_Type);
 
+    // Check if we have any zones to burn.
+
+    if (!valid_zones_to_burn(state)) return;
+
     // To be consistent with other source term types,
     // we are only applying this on the interior zones.
 
@@ -228,7 +236,8 @@ Castro::strang_react_second_half(Real time, Real dt)
 
     }
 
-    clean_state(state);
+    int is_new = 1;
+    clean_state(is_new, state.nGrow());
 
 }
 
@@ -246,6 +255,10 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 
     w.setVal(1.0);
 
+    // Start off assuming a successful burn.
+
+    burn_success = 1;
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -256,13 +269,16 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 
 	// Note that box is *not* necessarily just the valid region!
 	ca_react_state(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		       BL_TO_FORTRAN_3D(s[mfi]),
-		       BL_TO_FORTRAN_3D(r[mfi]),
-		       BL_TO_FORTRAN_3D(w[mfi]),
-		       BL_TO_FORTRAN_3D(mask[mfi]),
-		       time, dt_react, strang_half);
+		       BL_TO_FORTRAN_ANYD(s[mfi]),
+		       BL_TO_FORTRAN_ANYD(r[mfi]),
+		       BL_TO_FORTRAN_ANYD(w[mfi]),
+		       BL_TO_FORTRAN_ANYD(mask[mfi]),
+		       time, dt_react, strang_half,
+                       &burn_success);
 
     }
+
+    ParallelDescriptor::ReduceIntMin(burn_success);
 
     if (verbose) {
 
@@ -379,3 +395,120 @@ Castro::react_state(Real time, Real dt)
 }
 
 #endif
+
+
+
+bool
+Castro::valid_zones_to_burn(MultiFab& State)
+{
+
+    // The default values of the limiters are 0 and 1.e200, respectively.
+
+    Real small = 1.e-10;
+    Real large = 1.e199;
+
+    // Check whether we are limiting on either rho or T.
+
+    bool limit_small_rho = react_rho_min >= small;
+    bool limit_large_rho = react_rho_max <= large;
+
+    bool limit_rho = limit_small_rho || limit_large_rho;
+
+    bool limit_small_T = react_T_min >= small;
+    bool limit_large_T = react_T_max <= large;
+
+    bool limit_T = limit_small_T || limit_large_T;
+
+    bool limit = limit_rho || limit_T;
+
+    if (!limit) return true;
+
+    // Now, if we're limiting on rho, collect the
+    // minimum and/or maximum and compare.
+
+    amrex::Vector<Real> small_limiters;
+    amrex::Vector<Real> large_limiters;
+
+    int ng = 0;
+    bool local = true;
+
+    Real small_dens = small;
+    Real large_dens = large;
+
+    if (limit_small_rho) {
+        Real small_dens = State.min(Density, 0, local);
+        small_limiters.push_back(small_dens);
+    }
+
+    if (limit_large_rho) {
+        Real large_dens = State.max(Density, 0, local);
+        large_limiters.push_back(large_dens);
+    }
+
+    Real small_T = small;
+    Real large_T = large;
+
+    if (limit_small_T) {
+        Real small_T = State.min(Temp, 0, local);
+        small_limiters.push_back(small_T);
+    }
+
+    if (limit_large_T) {
+        Real large_T = State.max(Temp, 0, local);
+        large_limiters.push_back(large_T);
+    }
+
+    // Now do the reductions. We're being careful here
+    // to limit the amount of work and communication,
+    // because regularly doing this check only makes sense
+    // if it is negligible compared to the amount of work
+    // needed to just do the burn as normal.
+
+    int small_size = small_limiters.size();
+
+    if (small_size > 0) {
+        amrex::ParallelDescriptor::ReduceRealMin(small_limiters.dataPtr(), small_size);
+
+        if (limit_small_rho) {
+            small_dens = small_limiters[0];
+            if (limit_small_T) {
+                small_T = small_limiters[1];
+            }
+        } else {
+            small_T = small_limiters[0];
+        }
+    }
+
+    int large_size = large_limiters.size();
+
+    if (large_size > 0) {
+        amrex::ParallelDescriptor::ReduceRealMax(large_limiters.dataPtr(), large_size);
+
+        if (limit_large_rho) {
+            large_dens = large_limiters[0];
+            if (limit_large_T) {
+                large_T = large_limiters[1];
+            }
+        } else {
+            large_T = large_limiters[1];
+        }
+    }
+
+    // Finally check on whether min <= rho <= max
+    // and min <= T <= max. The defaults are small
+    // and large respectively, so if the limiters
+    // are not on, these checks will not be triggered.
+
+    if (large_dens >= react_rho_min && small_dens <= react_rho_max &&
+        large_T >= react_T_min && small_T <= react_T_max) {
+        return true;
+    }
+
+    // If we got to this point, we did not survive the limiters,
+    // so there are no zones to burn.
+
+    amrex::Print() << std::endl << "  No valid zones to burn, skipping react_state()." << std::endl;
+
+    return false;
+
+}

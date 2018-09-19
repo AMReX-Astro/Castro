@@ -1,9 +1,7 @@
 module riemann_util_module
 
-  use bl_types
-  use bl_constants_module
-
   use amrex_fort_module, only : rt => amrex_real
+  use amrex_constants_module, only : ZERO, ONE, HALF
   implicit none
 
 contains

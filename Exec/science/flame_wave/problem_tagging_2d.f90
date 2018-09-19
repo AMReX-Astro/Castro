@@ -13,9 +13,11 @@ contains
                               dx,problo,time,level) bind(C, name="set_problem_tags")
 
     use meth_params_module, only: URHO, NVAR, UFS
-    use probdata_module, only: X_min, cutoff_density
+    use probdata_module, only: X_min, cutoff_density, &
+         burn_tagging_min, burn_tagging_max, max_hse_tagging_level
 
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer         ,intent(in   ) :: lo(2),hi(2)
@@ -36,8 +38,25 @@ contains
     do j = lo(2), hi(2)
        do i = lo(1), hi(1)
           if ( state(i,j,URHO) > cutoff_density .and. state(i,j,UFS) > X_min) then
-             tag(i,j) = set
+             if (level < max_hse_tagging_level) then
+                tag(i,j) = set
+             endif
           endif
+       enddo
+    enddo
+
+    ! additional tagging for just a layer where we are burning
+    do j = lo(2), hi(2)
+       do i = lo(1), hi(1)
+
+          if ( state(i,j,URHO) >= burn_tagging_min .and. &
+               state(i,j,URHO) <= burn_tagging_max) then
+             tag(i,j) = set
+
+          else if (level > max_hse_tagging_level) then
+             tag(i,j) = clear
+          endif
+
        enddo
     enddo
 

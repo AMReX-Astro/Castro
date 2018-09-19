@@ -8,8 +8,6 @@ module habec_module
   ! 
   ! alpha*phi - div(beta*grad phi) + div(\vec{c}*phi) 
 
-  use bl_types
-
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 

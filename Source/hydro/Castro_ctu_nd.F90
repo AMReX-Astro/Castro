@@ -48,7 +48,7 @@ subroutine ca_ctu_update(lo, hi, is_finest_level, time, &
                          mass_lost, xmom_lost, ymom_lost, zmom_lost, &
                          eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_ctu_update")
 
-  use mempool_module, only : bl_allocate, bl_deallocate
+  use amrex_mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : NQ, QVAR, QPRES, NQAUX, NVAR, NHYP, NGDNV, UMX, GDPRES, &
 #ifdef RADIATION
                                  QPTOT, &
@@ -56,7 +56,7 @@ subroutine ca_ctu_update(lo, hi, is_finest_level, time, &
                                  use_flattening, &
                                  first_order_hydro
   use advection_util_module, only : divu
-  use bl_constants_module, only : ZERO, ONE
+  use amrex_constants_module, only : ZERO, ONE
   use flatten_module, only: uflatten
   use prob_params_module, only : mom_flux_has_p, dg, coord_type
 #ifdef RADIATION

@@ -1,8 +1,7 @@
 module bc_fill_module
 
-  use bc_ext_fill_module
   use amrex_fort_module, only: rt => amrex_real
-  use amrex_filcc_module, only: filccn
+  use meth_params_module, only: NVAR
 
   implicit none
 
@@ -12,11 +11,39 @@ module bc_fill_module
 
 contains
 
-  subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
-                        domlo,domhi,delta,xlo,time,bc) &
-                        bind(C, name="ca_hypfill")
+  subroutine hypfill(adv, adv_l1, adv_l2, adv_h1, adv_h2, &
+                     domlo, domhi, delta, xlo, time, bc)
 
-    use meth_params_module, only: NVAR
+    use amrex_filcc_module, only: amrex_filccn
+
+    implicit none
+
+    include 'AMReX_bc_types.fi'
+
+    integer,  intent(in   ) :: adv_l1, adv_l2, adv_h1, adv_h2
+    integer,  intent(in   ) :: bc(2,2,NVAR)
+    integer,  intent(in   ) :: domlo(2), domhi(2)
+    real(rt), intent(in   ) :: delta(2), xlo(2), time
+    real(rt), intent(inout) :: adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
+
+    integer  :: lo(3), hi(3)
+
+    lo(1) = adv_l1
+    lo(2) = adv_l2
+    lo(3) = 0
+    hi(1) = adv_h1
+    hi(2) = adv_h2
+    hi(3) = 0
+
+    call amrex_filccn(lo, hi, adv, lo, hi, NVAR, domlo, domhi, delta, xlo, bc)
+
+  end subroutine hypfill
+
+
+  subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
+                        domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_hypfill")
+
+    use bc_ext_fill_module, only: ext_fill
 
     implicit none
 
@@ -26,49 +53,98 @@ contains
     real(rt), intent(in   ) :: delta(2), xlo(2), time
     real(rt), intent(inout) :: adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
 
-    integer :: adv_lo(3), adv_hi(3)
-
-    adv_lo = [adv_l1, adv_l2, 0]
-    adv_hi = [adv_h1, adv_h2, 0]
-
-    call filccn(adv_lo, adv_hi, adv, adv_lo, adv_hi, NVAR, domlo, domhi, delta, xlo, bc)
+    call hypfill(adv, adv_l1, adv_l2, adv_h1, adv_h2, domlo, domhi, delta, xlo, time, bc)
 
     ! process the external BCs here
-    call ext_fill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
-                  domlo,domhi,delta,xlo,time,bc)
-
+    call ext_fill(adv,adv_l1,adv_l2,adv_h1,adv_h2,domlo,domhi,delta,xlo,time,bc)
+    
   end subroutine ca_hypfill
 
 
+  subroutine denfill(adv, adv_l1, adv_l2, adv_h1, adv_h2, &
+                     domlo, domhi, delta, xlo, time, bc)
 
-  subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
-                        domlo,domhi,delta,xlo,time,bc) &
-                        bind(C, name="ca_denfill")
+    use amrex_filcc_module, only: amrex_filccn
+
+    implicit none
+
+    include 'AMReX_bc_types.fi'
 
     integer,  intent(in   ) :: adv_l1, adv_l2, adv_h1, adv_h2
-    integer,  intent(in   ) :: bc(2,2)
+    integer,  intent(in   ) :: bc(2,2,1)
     integer,  intent(in   ) :: domlo(2), domhi(2)
     real(rt), intent(in   ) :: delta(2), xlo(2), time
     real(rt), intent(inout) :: adv(adv_l1:adv_h1,adv_l2:adv_h2)
 
-    integer :: adv_lo(3), adv_hi(3)
+    integer :: lo(3), hi(3)
 
-    adv_lo = [adv_l1, adv_l2, 0]
-    adv_hi = [adv_h1, adv_h2, 0]
+    lo(1) = adv_l1
+    lo(2) = adv_l2
+    lo(3) = 0
+    hi(1) = adv_h1
+    hi(2) = adv_h2
+    hi(3) = 0
 
-    call filccn(adv_lo, adv_hi, adv, adv_lo, adv_hi, 1, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(lo, hi, adv, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+
+  end subroutine denfill
+
+
+  subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
+                        domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_denfill")
+
+    use bc_ext_fill_module, only: ext_denfill
+
+    implicit none
+
+    include 'AMReX_bc_types.fi'
+
+    integer,  intent(in   ) :: adv_l1, adv_l2, adv_h1, adv_h2
+    integer,  intent(in   ) :: bc(2,2,1)
+    integer,  intent(in   ) :: domlo(2), domhi(2)
+    real(rt), intent(in   ) :: delta(2), xlo(2), time
+    real(rt), intent(inout) :: adv(adv_l1:adv_h1,adv_l2:adv_h2)
+
+    call denfill(adv, adv_l1, adv_l2, adv_h1, adv_h2, domlo, domhi, delta, xlo, time, bc)
 
     ! process the external BCs here
-    call ext_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
-                     domlo,domhi,delta,xlo,time,bc)
-
+    call ext_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2,domlo,domhi,delta,xlo,time,bc)
+    
   end subroutine ca_denfill
 
 
-
 #ifdef GRAVITY
-  subroutine ca_phigravfill(phi,phi_l1,phi_l2, &
-                            phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) &
+  subroutine phigravfill(phi, phi_l1, phi_l2, phi_h1, phi_h2, &
+                         domlo, domhi, delta, xlo, time, bc)
+
+    use amrex_filcc_module, only: amrex_filccn
+
+    implicit none
+
+    include 'AMReX_bc_types.fi'
+
+    integer,  intent(in   ) :: phi_l1, phi_l2, phi_h1, phi_h2
+    integer,  intent(in   ) :: bc(2,2)
+    integer,  intent(in   ) :: domlo(2), domhi(2)
+    real(rt), intent(in   ) :: delta(2), xlo(2), time
+    real(rt), intent(inout) :: phi(phi_l1:phi_h1,phi_l2:phi_h2)
+
+    integer :: lo(3), hi(3)
+
+    lo(1) = phi_l1
+    lo(2) = phi_l2
+    lo(3) = 0
+    hi(1) = phi_h1
+    hi(2) = phi_h2
+    hi(3) = 0
+
+    call amrex_filccn(lo, hi, phi, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+
+  end subroutine phigravfill
+
+
+  subroutine ca_phigravfill(phi,phi_l1,phi_l2,phi_h1,phi_h2, &
+                            domlo,domhi,delta,xlo,time,bc) &
                             bind(C, name="ca_phigravfill")
 
     implicit none
@@ -79,15 +155,47 @@ contains
     real(rt), intent(in   ) :: delta(2), xlo(2), time
     real(rt), intent(inout) :: phi(phi_l1:phi_h1,phi_l2:phi_h2)
 
-    integer :: phi_lo(3), phi_hi(3)
-
-    phi_lo = [phi_l1, phi_l2, 0]
-    phi_hi = [phi_h1, phi_h2, 0]
-
-    call filccn(phi_lo, phi_hi, phi, phi_lo, phi_hi, 1, domlo, domhi, delta, xlo, bc)
+    call phigravfill(phi, phi_l1, phi_l2, phi_h1, phi_h2, &
+                     domlo, domhi, delta, xlo, time, bc)
 
   end subroutine ca_phigravfill
 
+  
+  subroutine gravxfill(grav, grav_l1, grav_l2, grav_h1, grav_h2, &
+                       domlo, domhi, delta, xlo, time, bc)
+
+    use amrex_filcc_module, only: amrex_filccn
+
+    implicit none
+
+    include 'AMReX_bc_types.fi'
+
+    integer,  intent(in   ) :: grav_l1, grav_l2, grav_h1, grav_h2
+    integer,  intent(in   ) :: bc(2,2)
+    integer,  intent(in   ) :: domlo(2), domhi(2)
+    real(rt), intent(in   ) :: delta(2), xlo(2), time
+    real(rt), intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2)
+
+    integer :: lo(3), hi(3)
+    integer :: bc_temp(2,2)
+
+    lo(1) = grav_l1
+    lo(2) = grav_l2
+    lo(3) = 0
+    hi(1) = grav_h1
+    hi(2) = grav_h2
+    hi(3) = 0
+    
+    ! handle an external BC via extrapolation here 
+    bc_temp(:,:) = bc(:,:)
+
+    if ( bc(2,1) == EXT_DIR .and. grav_l2 < domlo(2)) then
+       bc_temp(2,1) = FOEXTRAP
+    endif
+
+    call amrex_filccn(lo, hi, grav, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
+
+  end subroutine gravxfill
 
 
   subroutine ca_gravxfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
@@ -102,8 +210,36 @@ contains
     real(rt), intent(in   ) :: delta(2), xlo(2), time
     real(rt), intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2)
 
-    integer :: grav_lo(3), grav_hi(3)
+    call gravxfill(grav, grav_l1, grav_l2, grav_h1, grav_h2, &
+                   domlo, domhi, delta, xlo, time, bc)
+
+  end subroutine ca_gravxfill
+
+
+  subroutine gravyfill(grav, grav_l1, grav_l2, grav_h1, grav_h2, &
+                       domlo, domhi, delta, xlo, time, bc)
+
+    use amrex_filcc_module, only: amrex_filccn
+
+    implicit none
+
+    include 'AMReX_bc_types.fi'
+
+    integer,  intent(in   ) :: grav_l1, grav_l2, grav_h1, grav_h2
+    integer,  intent(in   ) :: bc(2,2)
+    integer,  intent(in   ) :: domlo(2), domhi(2)
+    real(rt), intent(in   ) :: delta(2), xlo(2), time
+    real(rt), intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2)
+
+    integer :: lo(3), hi(3)
     integer :: bc_temp(2,2)
+
+    lo(1) = grav_l1
+    lo(2) = grav_l2
+    lo(3) = 0
+    hi(1) = grav_h1
+    hi(2) = grav_h2
+    hi(3) = 0
 
     ! handle an external BC via extrapolation here 
     bc_temp(:,:) = bc(:,:)
@@ -112,13 +248,9 @@ contains
        bc_temp(2,1) = FOEXTRAP
     endif
 
-    grav_lo = [grav_l1, grav_l2, 0]
-    grav_hi = [grav_h1, grav_h2, 0]
+    call amrex_filccn(lo, hi, grav, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
-    call filccn(grav_lo, grav_hi, grav, grav_lo, grav_hi, 1, domlo, domhi, delta, xlo, bc)
-
-  end subroutine ca_gravxfill
-
+  end subroutine gravyfill
 
 
   subroutine ca_gravyfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
@@ -133,8 +265,36 @@ contains
     real(rt), intent(in   ) :: delta(2), xlo(2), time
     real(rt), intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2)
 
-    integer :: grav_lo(3), grav_hi(3)
+    call gravyfill(grav, grav_l1, grav_l2, grav_h1, grav_h2, &
+                   domlo, domhi, delta, xlo, time, bc)
+
+  end subroutine ca_gravyfill
+
+
+  subroutine gravzfill(grav, grav_l1, grav_l2, grav_h1, grav_h2, &
+                       domlo, domhi, delta, xlo, time, bc)
+
+    use amrex_filcc_module, only: amrex_filccn
+
+    implicit none
+
+    include 'AMReX_bc_types.fi'
+
+    integer,  intent(in   ) :: grav_l1, grav_l2, grav_h1, grav_h2
+    integer,  intent(in   ) :: bc(2,2)
+    integer,  intent(in   ) :: domlo(2), domhi(2)
+    real(rt), intent(in   ) :: delta(2), xlo(2), time
+    real(rt), intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2)
+
+    integer :: lo(3), hi(3)
     integer :: bc_temp(2,2)
+    
+    lo(1) = grav_l1
+    lo(2) = grav_l2
+    lo(3) = 0
+    hi(1) = grav_h1
+    hi(2) = grav_h2
+    hi(3) = 0
 
     ! handle an external BC via extrapolation here 
     bc_temp(:,:) = bc(:,:)
@@ -143,13 +303,9 @@ contains
        bc_temp(2,1) = FOEXTRAP
     endif
 
-    grav_lo = [grav_l1, grav_l2, 0]
-    grav_hi = [grav_h1, grav_h2, 0]
+    call amrex_filccn(lo, hi, grav, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
-    call filccn(grav_lo, grav_hi, grav, grav_lo, grav_hi, 1, domlo, domhi, delta, xlo, bc)
-
-  end subroutine ca_gravyfill
-
+  end subroutine gravzfill
 
 
   subroutine ca_gravzfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
@@ -164,20 +320,8 @@ contains
     real(rt), intent(in   ) :: delta(2), xlo(2), time
     real(rt), intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2)
 
-    integer :: grav_lo(3), grav_hi(3)
-    integer :: bc_temp(2,2)
-
-    ! handle an external BC via extrapolation here 
-    bc_temp(:,:) = bc(:,:)
-
-    if ( bc(2,1) == EXT_DIR .and. grav_l2 < domlo(2)) then
-       bc_temp(2,1) = FOEXTRAP
-    endif
-
-    grav_lo = [grav_l1, grav_l2, 0]
-    grav_hi = [grav_h1, grav_h2, 0]
-
-    call filccn(grav_lo, grav_hi, grav, grav_lo, grav_hi, 1, domlo, domhi, delta, xlo, bc)
+    call gravzfill(grav, grav_l1, grav_l2, grav_h1, grav_h2, &
+                   domlo, domhi, delta, xlo, time, bc)
 
   end subroutine ca_gravzfill
 #endif
@@ -185,8 +329,45 @@ contains
 
 
 #ifdef ROTATION
-  subroutine ca_phirotfill(phi,phi_l1,phi_l2, &
-                           phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) &
+  subroutine phirotfill(phi, phi_l1, phi_l2, phi_h1, phi_h2, &
+                        domlo, domhi, delta, xlo, time, bc)
+
+    use amrex_filcc_module, only: amrex_filccn
+
+    implicit none
+
+    include 'AMReX_bc_types.fi'
+
+    integer,  intent(in   ) :: phi_l1, phi_l2, phi_h1, phi_h2
+    integer,  intent(in   ) :: bc(2,2)
+    integer,  intent(in   ) :: domlo(2), domhi(2)
+    real(rt), intent(in   ) :: delta(2), xlo(2), time
+    real(rt), intent(inout) :: phi(phi_l1:phi_h1,phi_l2:phi_h2)
+
+    integer :: lo(3), hi(3)
+    integer :: bc_temp(2,2)
+
+    lo(1) = phi_l1
+    lo(2) = phi_l2
+    lo(3) = 0
+    hi(1) = phi_h1
+    hi(2) = phi_h2
+    hi(3) = 0
+
+    ! handle an external BC via extrapolation here 
+    bc_temp(:,:) = bc(:,:)
+
+    if ( bc(2,1) == EXT_DIR .and. phi_l2 < domlo(2)) then
+       bc_temp(2,1) = FOEXTRAP
+    endif
+
+    call amrex_filccn(lo, hi, phi, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
+
+  end subroutine phirotfill
+
+
+  subroutine ca_phirotfill(phi,phi_l1,phi_l2,phi_h1,phi_h2, &
+                           domlo,domhi,delta,xlo,time,bc) &
                            bind(C, name="ca_phirotfill")
 
     implicit none
@@ -197,37 +378,91 @@ contains
     real(rt), intent(in   ) :: delta(2), xlo(2), time
     real(rt), intent(inout) :: phi(phi_l1:phi_h1,phi_l2:phi_h2)
 
-    integer :: phi_lo(3), phi_hi(3)
+    call phirotfill(phi, phi_l1, phi_l2, phi_h1, phi_h2, &
+                    domlo, domhi, delta, xlo, time, bc)
+
+  end subroutine ca_phirotfill
+
+
+  subroutine rotxfill(rot, rot_l1, rot_l2, rot_h1, rot_h2, &
+                      domlo, domhi, delta, xlo, time, bc)
+
+    use amrex_filcc_module, only: amrex_filccn
+
+    implicit none
+
+    include 'AMReX_bc_types.fi'
+
+    integer,  intent(in   ) :: rot_l1, rot_l2, rot_h1, rot_h2
+    integer,  intent(in   ) :: bc(2,2)
+    integer,  intent(in   ) :: domlo(2), domhi(2)
+    real(rt), intent(in   ) :: delta(2), xlo(2), time
+    real(rt), intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2)
+
+    integer :: lo(3), hi(3)
     integer :: bc_temp(2,2)
+
+    lo(1) = rot_l1
+    lo(2) = rot_l2
+    lo(3) = 0
+    hi(1) = rot_h1
+    hi(2) = rot_h2
+    hi(3) = 0
 
     ! handle an external BC via extrapolation here 
     bc_temp(:,:) = bc(:,:)
 
-    if ( bc(2,1) == EXT_DIR .and. phi_l2 < domlo(2)) then
+    if ( bc(2,1) == EXT_DIR .and. rot_l2 < domlo(2)) then
        bc_temp(2,1) = FOEXTRAP
     endif
 
-    phi_lo = [phi_l1, phi_l2, 0]
-    phi_hi = [phi_h1, phi_h2, 0]
+    call amrex_filccn(lo, hi, rot, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
-    call filccn(phi_lo, phi_hi, phi, phi_lo, phi_hi, 1, domlo, domhi, delta, xlo, bc)
-
-  end subroutine ca_phirotfill
-
+  end subroutine rotxfill
 
 
   subroutine ca_rotxfill(rot,rot_l1,rot_l2,rot_h1,rot_h2, &
                          domlo,domhi,delta,xlo,time,bc) &
                          bind(C, name="ca_rotxfill")
 
+    implicit none
+
     integer,  intent(in   ) :: rot_l1, rot_l2, rot_h1, rot_h2
     integer,  intent(in   ) :: bc(2,2)
     integer,  intent(in   ) :: domlo(2), domhi(2)
     real(rt), intent(in   ) :: delta(2), xlo(2), time
     real(rt), intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2)
 
-    integer :: rot_lo(3), rot_hi(3)
+    call rotxfill(rot, rot_l1, rot_l2, rot_h1, rot_h2, &
+                  domlo, domhi, delta, xlo, time, bc)
+
+  end subroutine ca_rotxfill
+
+
+  subroutine rotyfill(rot, rot_l1, rot_l2, rot_h1, rot_h2, &
+                      domlo, domhi, delta, xlo, time, bc)
+
+    use amrex_filcc_module, only: amrex_filccn
+
+    implicit none
+
+    include 'AMReX_bc_types.fi'
+
+    integer,  intent(in   ) :: rot_l1, rot_l2, rot_h1, rot_h2
+    integer,  intent(in   ) :: bc(2,2)
+    integer,  intent(in   ) :: domlo(2), domhi(2)
+    real(rt), intent(in   ) :: delta(2), xlo(2), time
+    real(rt), intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2)
+
+    integer :: lo(3), hi(3)
     integer :: bc_temp(2,2)
+
+    lo(1) = rot_l1
+    lo(2) = rot_l2
+    lo(3) = 0
+    hi(1) = rot_h1
+    hi(2) = rot_h2
+    hi(3) = 0
 
     ! handle an external BC via extrapolation here 
     bc_temp(:,:) = bc(:,:)
@@ -236,27 +471,52 @@ contains
        bc_temp(2,1) = FOEXTRAP
     endif
 
-    rot_lo = [rot_l1, rot_l2, 0]
-    rot_hi = [rot_h1, rot_h2, 0]
+    call amrex_filccn(lo, hi, rot, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
-    call filccn(rot_lo, rot_hi, rot, rot_lo, rot_hi, 1, domlo, domhi, delta, xlo, bc)
-
-  end subroutine ca_rotxfill
-
+  end subroutine rotyfill
 
 
   subroutine ca_rotyfill(rot,rot_l1,rot_l2,rot_h1,rot_h2, &
                          domlo,domhi,delta,xlo,time,bc) &
                          bind(C, name="ca_rotyfill")
 
+    implicit none
+
     integer,  intent(in   ) :: rot_l1, rot_l2, rot_h1, rot_h2
     integer,  intent(in   ) :: bc(2,2)
     integer,  intent(in   ) :: domlo(2), domhi(2)
     real(rt), intent(in   ) :: delta(2), xlo(2), time
     real(rt), intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2)
 
-    integer :: rot_lo(3), rot_hi(3)
+    call rotyfill(rot, rot_l1, rot_l2, rot_h1, rot_h2, &
+                  domlo, domhi, delta, xlo, time, bc)
+
+  end subroutine ca_rotyfill
+
+  subroutine rotzfill(rot, rot_l1, rot_l2, rot_h1, rot_h2, &
+                      domlo, domhi, delta, xlo, time, bc)
+
+    use amrex_filcc_module, only: amrex_filccn
+
+    implicit none
+
+    include 'AMReX_bc_types.fi'
+
+    integer,  intent(in   ) :: rot_l1, rot_l2, rot_h1, rot_h2
+    integer,  intent(in   ) :: bc(2,2)
+    integer,  intent(in   ) :: domlo(2), domhi(2)
+    real(rt), intent(in   ) :: delta(2), xlo(2), time
+    real(rt), intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2)
+
+    integer :: lo(3), hi(3)
     integer :: bc_temp(2,2)
+
+    lo(1) = rot_l1
+    lo(2) = rot_l2
+    lo(3) = 0
+    hi(1) = rot_h1
+    hi(2) = rot_h2
+    hi(3) = 0
 
     ! handle an external BC via extrapolation here 
     bc_temp(:,:) = bc(:,:)
@@ -265,39 +525,25 @@ contains
        bc_temp(2,1) = FOEXTRAP
     endif
 
-    rot_lo = [rot_l1, rot_l2, 0]
-    rot_hi = [rot_h1, rot_h2, 0]
+    call amrex_filccn(lo, hi, rot, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
-    call filccn(rot_lo, rot_hi, rot, rot_lo, rot_hi, 1, domlo, domhi, delta, xlo, bc)
-
-  end subroutine ca_rotyfill
-
+  end subroutine rotzfill
 
 
   subroutine ca_rotzfill(rot,rot_l1,rot_l2,rot_h1,rot_h2, &
                          domlo,domhi,delta,xlo,time,bc) &
                          bind(C, name="ca_rotzfill")
 
+    implicit none
+
     integer,  intent(in   ) :: rot_l1, rot_l2, rot_h1, rot_h2
     integer,  intent(in   ) :: bc(2,2)
     integer,  intent(in   ) :: domlo(2), domhi(2)
     real(rt), intent(in   ) :: delta(2), xlo(2), time
     real(rt), intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2)
 
-    integer :: rot_lo(3), rot_hi(3)
-    integer :: bc_temp(2,2)
-
-    ! handle an external BC via extrapolation here 
-    bc_temp(:,:) = bc(:,:)
-
-    if ( bc(2,1) == EXT_DIR .and. rot_l2 < domlo(2)) then
-       bc_temp(2,1) = FOEXTRAP
-    endif
-
-    rot_lo = [rot_l1, rot_l2, 0]
-    rot_hi = [rot_h1, rot_h2, 0]
-
-    call filccn(rot_lo, rot_hi, rot, rot_lo, rot_hi, 1, domlo, domhi, delta, xlo, bc)
+    call rotzfill(rot, rot_l1, rot_l2, rot_h1, rot_h2, &
+                  domlo, domhi, delta, xlo, time, bc)
 
   end subroutine ca_rotzfill
 #endif
@@ -305,9 +551,14 @@ contains
 
 
 #ifdef REACTIONS
-  subroutine ca_reactfill(react,react_l1,react_l2, &
-                          react_h1,react_h2,domlo,domhi,delta,xlo,time,bc) &
-                          bind(C, name="ca_reactfill")
+  subroutine reactfill(react, react_l1, react_l2, react_h1, react_h2, &
+                       domlo, domhi, delta, xlo, time, bc)
+
+    use amrex_filcc_module, only: amrex_filccn
+
+    implicit none
+
+    include 'AMReX_bc_types.fi'
 
     integer,  intent(in   ) :: react_l1, react_l2, react_h1, react_h2
     integer,  intent(in   ) :: bc(2,2)
@@ -315,8 +566,15 @@ contains
     real(rt), intent(in   ) :: delta(2), xlo(2), time
     real(rt), intent(inout) :: react(react_l1:react_h1,react_l2:react_h2)
 
-    integer :: react_lo(3), react_hi(3)
+    integer :: lo(3), hi(3)
     integer :: bc_temp(2,2)
+
+    lo(1) = react_l1
+    lo(2) = react_l2
+    lo(3) = 0
+    hi(1) = react_h1
+    hi(2) = react_h2
+    hi(3) = 0
 
     ! handle an external BC via extrapolation here 
     bc_temp(:,:) = bc(:,:)
@@ -324,11 +582,27 @@ contains
     if ( bc(2,1) == EXT_DIR .and. react_l2 < domlo(2)) then
        bc_temp(2,1) = FOEXTRAP
     endif
+    
+    call amrex_filccn(lo, hi, react, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
-    react_lo = [react_l1, react_l2, 0]
-    react_hi = [react_h1, react_h2, 0]
+  end subroutine reactfill
 
-    call filccn(react_lo, react_hi, react, react_lo, react_hi, 1, domlo, domhi, delta, xlo, bc)
+
+  subroutine ca_reactfill(react,react_l1,react_l2,react_h1,react_h2, &
+                          domlo,domhi,delta,xlo,time,bc) &
+                          bind(C, name="ca_reactfill")
+
+    implicit none
+
+    integer,  intent(in   ) :: react_l1, react_l2, react_h1, react_h2
+    integer,  intent(in   ) :: bc(2,2)
+    integer,  intent(in   ) :: domlo(2), domhi(2)
+    real(rt), intent(in   ) :: delta(2), xlo(2), time
+    real(rt), intent(inout) :: react(react_l1:react_h1,react_l2:react_h2)
+
+    call reactfill &
+         (react, react_l1, react_l2, react_h1, react_h2, &
+         domlo, domhi, delta, xlo, time, bc)
 
   end subroutine ca_reactfill
 #endif
@@ -336,8 +610,14 @@ contains
 
 
 #ifdef RADIATION
-  subroutine ca_radfill(rad,rad_l1,rad_l2, &
-       rad_h1,rad_h2,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_radfill")
+  subroutine radfill(rad, rad_l1, rad_l2, rad_h1, rad_h2, &
+                     domlo, domhi, delta, xlo, time, bc)
+
+    use amrex_filcc_module, only: amrex_filccn
+
+    implicit none
+
+    include 'AMReX_bc_types.fi'
 
     integer,  intent(in   ) :: rad_l1, rad_l2, rad_h1, rad_h2
     integer,  intent(in   ) :: bc(2,2)
@@ -345,8 +625,15 @@ contains
     real(rt), intent(in   ) :: delta(2), xlo(2), time
     real(rt), intent(inout) :: rad(rad_l1:rad_h1,rad_l2:rad_h2)
 
-    integer :: rad_lo(3), rad_hi(3)
+    integer :: lo(3), hi(3)
     integer :: bc_temp(2,2)
+
+    lo(1) = rad_l1
+    lo(2) = rad_l2
+    lo(3) = 0
+    hi(1) = rad_h1
+    hi(2) = rad_h2
+    hi(3) = 0
 
     ! handle an external BC via extrapolation here 
     bc_temp(:,:) = bc(:,:)
@@ -354,11 +641,26 @@ contains
     if ( bc(2,1) == EXT_DIR .and. rad_l2 < domlo(2)) then
        bc_temp(2,1) = FOEXTRAP
     endif
+    
+    call amrex_filccn(lo, hi, rad, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
-    rad_lo = [rad_l1, rad_l2, 0]
-    rad_hi = [rad_h1, rad_h2, 0]
+  end subroutine radfill
 
-    call filccn(rad_lo, rad_hi, rad, rad_lo, rad_hi, 1, domlo, domhi, delta, xlo, bc)
+
+  subroutine ca_radfill(rad,rad_l1,rad_l2,rad_h1,rad_h2, &
+                        domlo,domhi,delta,xlo,time,bc) &
+                        bind(C, name="ca_radfill")
+
+    implicit none
+
+    integer,  intent(in   ) :: rad_l1, rad_l2, rad_h1, rad_h2
+    integer,  intent(in   ) :: bc(2,2)
+    integer,  intent(in   ) :: domlo(2), domhi(2)
+    real(rt), intent(in   ) :: delta(2), xlo(2), time
+    real(rt), intent(inout) :: rad(rad_l1:rad_h1,rad_l2:rad_h2)
+
+    call radfill(rad, rad_l1, rad_l2, rad_h1, rad_h2, &
+                 domlo, domhi, delta, xlo, time, bc)
 
   end subroutine ca_radfill
 #endif

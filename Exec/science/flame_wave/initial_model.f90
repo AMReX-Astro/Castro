@@ -64,7 +64,7 @@ module initial_model_module
   integer, parameter :: ispec_model = 4
 
   ! number of points in the model file
-  integer, save :: npts_model, num_models
+  integer, save :: gen_npts_model, num_models
 
   ! arrays for storing the model data -- we have an extra index here
   ! which is the model number
@@ -103,7 +103,7 @@ contains
     allocate (gen_model_state(nx, nvars_model, num_models_in))
     allocate (gen_model_r(nx, num_models_in))
 
-    npts_model = nx
+    gen_npts_model = nx
     num_models = num_models_in
 
   end subroutine init_model_data
@@ -111,13 +111,17 @@ contains
 
   subroutine init_1d_tanh(nx, xmin, xmax, model_params, model_num)
 
-    use bl_constants_module
-    use bl_error_module
+    use amrex_constants_module
+    use amrex_error_module
+    use amrex_fort_module, only : rt => amrex_real
+
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only : nspec, network_species_index, spec_names
     use fundamental_constants_module, only: Gconst
     use meth_params_module, only : const_grav
+
+    use amrex_paralleldescriptor_module, only: parallel_IOProcessor => amrex_pd_ioprocessor
 
     implicit none
 
@@ -167,7 +171,7 @@ contains
     ! mapping onto, and then we want to force it into HSE on that mesh.
     !-----------------------------------------------------------------------------
 
-    npts_model = nx
+    gen_npts_model = nx
 
     ! compute the coordinates of the new gridded function
     dCoord = (xmax - xmin) / dble(nx)
@@ -188,7 +192,7 @@ contains
 
     if (index_base == -1) then
        print *, 'ERROR: base_height not found on grid'
-       call bl_error('ERROR: invalid base_height')
+       call amrex_error('ERROR: invalid base_height')
     endif
 
 
@@ -208,8 +212,6 @@ contains
     ! to constrain the isentropic layer
     pres_base = eos_state%p
 
-    print *, 'pres_base = ', pres_base
-
     ! set an initial temperature profile and composition
     do i = 1, nx
 
@@ -228,18 +230,14 @@ contains
             HALF*(model_params % T_hi - model_params % T_star)* &
             (ONE + tanh(xc/(HALF*model_params % atm_delta)))
 
-       gen_model_state(0:index_base,itemp_model,model_num) = model_params % T_star
+       gen_model_state(1:index_base,itemp_model,model_num) = model_params % T_star
 
        ! the density and pressure will be determined via HSE,
        ! for now, set them to the base conditions
        gen_model_state(i,idens_model,model_num) = model_params % dens_base
        gen_model_state(i,ipres_model,model_num) = pres_base
 
-       print *, i, gen_model_r(i,model_num), gen_model_state(i,itemp_model,model_num)
     enddo
-
-    print *, 'index_base = ', index_base
-
 
     ! make the base thermodynamics consistent for this base point -- that is
     ! what we will integrate from!
@@ -268,8 +266,6 @@ contains
     !---------------------------------------------------------------------------
     do i = index_base+1, nx
 
-       print *, i, gen_model_state(i-1,itemp_model,model_num)
-
        if ((gen_model_r(i,model_num) > xmin + model_params % H_star + 3.0_rt * model_params % atm_delta) .and. .not. flipped) then
           isentropic = .true.
           flipped = .true.
@@ -283,8 +279,10 @@ contains
 
           entropy_base = eos_state % s
 
-          print *, "at the peak, T, rho = ", eos_state % T, eos_state % rho, model_num
 
+          if (parallel_IOProcessor()) then
+             print *, "base density = ", eos_state % rho, eos_state % T
+          endif
        endif
 
        delx = gen_model_r(i,model_num) - gen_model_r(i-1,model_num)
@@ -358,11 +356,11 @@ contains
 
                 drho = (A - dpt*dtemp)/(dpd - 0.5*delx*const_grav)
 
-                dens_zone = max(0.9_dp_t*dens_zone, &
-                     min(dens_zone + drho, 1.1_dp_t*dens_zone))
+                dens_zone = max(0.9_rt*dens_zone, &
+                     min(dens_zone + drho, 1.1_rt*dens_zone))
 
-                temp_zone = max(0.9_dp_t*temp_zone, &
-                     min(temp_zone + dtemp, 1.1_dp_t*temp_zone))
+                temp_zone = max(0.9_rt*temp_zone, &
+                     min(temp_zone + dtemp, 1.1_rt*temp_zone))
 
 
                 ! check if the density falls below our minimum cut-off --
@@ -443,7 +441,7 @@ contains
              print *, dens_zone, temp_zone
              print *, p_want, entropy_base, entropy
              print *, drho, dtemp
-             call bl_error('Error: HSE non-convergence')
+             call amrex_error('Error: HSE non-convergence')
 
           endif
 
@@ -530,8 +528,8 @@ contains
 
           drho = A/(dpd + 0.5*delx*const_grav)
 
-          dens_zone = max(0.9_dp_t*dens_zone, &
-               min(dens_zone + drho, 1.1_dp_t*dens_zone))
+          dens_zone = max(0.9_rt*dens_zone, &
+               min(dens_zone + drho, 1.1_rt*dens_zone))
 
 
           if (abs(drho) < TOL*dens_zone) then
@@ -548,7 +546,7 @@ contains
           print *, dens_zone, temp_zone
           print *, p_want
           print *, drho
-          call bl_error('Error: HSE non-convergence')
+          call amrex_error('Error: HSE non-convergence')
 
        endif
 

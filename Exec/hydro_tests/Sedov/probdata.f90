@@ -8,4 +8,6 @@ module probdata_module
   real(rt), save :: r_init
   integer, save ::  nsub
 
+  real(rt), save :: e_exp ! Explosion energy per zone
+
 end module probdata_module

@@ -5,10 +5,10 @@
 program fextract2d
 
   use f2kcli
-  use bl_space
   use bl_error_module
-  use bl_constants_module
   use bl_IO_module
+  use amrex_fort_module, only : rt => amrex_real
+  use amrex_constants_module
   use plotfile_module
 
   implicit none
@@ -16,25 +16,25 @@ program fextract2d
   type(plotfile) pf
   integer :: unit
   integer :: i, j, ii, jj
-  real(kind=dp_t) :: xx, yy
+  real(rt) :: xx, yy
   integer :: rr, r1
   integer :: uno
 
   integer :: nbins
-  real(kind=dp_t), allocatable :: r(:), rl(:)
-  real(kind=dp_t) :: maxdist, x_maxdist, y_maxdist
-  real(kind=dp_t) :: xctr, yctr
+  real(rt), allocatable :: r(:), rl(:)
+  real(rt) :: maxdist, x_maxdist, y_maxdist
+  real(rt) :: xctr, yctr
 
-  real(kind=dp_t) :: dx(MAX_SPACEDIM)
-  real(kind=dp_t) :: dx_fine
+  real(rt) :: dx(MAX_SPACEDIM)
+  real(rt) :: dx_fine
 
-  real(kind=dp_t) :: r_zone
+  real(rt) :: r_zone
   integer :: index
 
-  real(kind=dp_t), pointer :: p(:,:,:,:)
+  real(rt), pointer :: p(:,:,:,:)
 
   integer, allocatable :: ncount(:)
-  real(kind=dp_t), allocatable :: dens_bin(:), vel_bin(:), pres_bin(:), e_bin(:)
+  real(rt), allocatable :: dens_bin(:), vel_bin(:), pres_bin(:), e_bin(:)
 
   integer :: dens_comp, xmom_comp, ymom_comp, pres_comp, rhoe_comp
 

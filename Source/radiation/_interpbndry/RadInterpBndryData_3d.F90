@@ -74,8 +74,8 @@ subroutine FORT_BDINTERPXLO (bdry,DIMS(bdry), &
            derives(jc,kc,YDER)  = half*(crse(ic,jc,kc+1,n) - crse(ic,jc,kc-1,n))
            derives(jc,kc,Y2DER) = half*(crse(ic,jc,kc+1,n) - two*crse(ic,jc,kc,n) &
                                       + crse(ic,jc,kc-1,n))
-           derives(jc,kc,XYDER) = forth*(crse(ic,jc+1,kc+1,n) - crse(ic,jc-1,kc+1,n) &
-                                      + crse(ic,jc-1,kc-1,n) - crse(ic,jc+1,kc-1,n))
+           derives(jc,kc,XYDER) = fourth*(crse(ic,jc+1,kc+1,n) - crse(ic,jc-1,kc+1,n) &
+                                        + crse(ic,jc-1,kc-1,n) - crse(ic,jc+1,kc-1,n))
 
            if (mask(i,j-1,k) .ne. not_covered) then
               derives(jc,kc,XDER)  = crse(ic,jc+1,kc,n) - crse(ic,jc,kc,n)
@@ -196,8 +196,8 @@ subroutine FORT_BDINTERPXHI (bdry,DIMS(bdry), &
            derives(jc,kc,YDER)  = half*(crse(ic,jc,kc+1,n) - crse(ic,jc,kc-1,n))
            derives(jc,kc,Y2DER) = half*(crse(ic,jc,kc+1,n) - two*crse(ic,jc,kc,n) &
                                       + crse(ic,jc,kc-1,n))
-           derives(jc,kc,XYDER) = forth*(crse(ic,jc+1,kc+1,n) - crse(ic,jc-1,kc+1,n) &
-                                       + crse(ic,jc-1,kc-1,n) - crse(ic,jc+1,kc-1,n))
+           derives(jc,kc,XYDER) = fourth*(crse(ic,jc+1,kc+1,n) - crse(ic,jc-1,kc+1,n) &
+                                        + crse(ic,jc-1,kc-1,n) - crse(ic,jc+1,kc-1,n))
 
            if (mask(i,j-1,k) .ne. not_covered) then
               derives(jc,kc,XDER)  = crse(ic,jc+1,kc,n) - crse(ic,jc,kc,n)
@@ -318,8 +318,8 @@ subroutine FORT_BDINTERPYLO (bdry,DIMS(bdry), &
            derives(ic,kc,YDER)  = half*(crse(ic,jc,kc+1,n) - crse(ic,jc,kc-1,n))
            derives(ic,kc,Y2DER) = half*(crse(ic,jc,kc+1,n) - two*crse(ic,jc,kc,n) &
                                       + crse(ic,jc,kc-1,n))
-           derives(ic,kc,XYDER) = forth*(crse(ic+1,jc,kc+1,n) - crse(ic-1,jc,kc+1,n) &
-                                       + crse(ic-1,jc,kc-1,n) - crse(ic+1,jc,kc-1,n))
+           derives(ic,kc,XYDER) = fourth*(crse(ic+1,jc,kc+1,n) - crse(ic-1,jc,kc+1,n) &
+                                        + crse(ic-1,jc,kc-1,n) - crse(ic+1,jc,kc-1,n))
 
            if (mask(i-1,j,k) .ne. not_covered) then
               derives(ic,kc,XDER)  = crse(ic+1,jc,kc,n) - crse(ic,jc,kc,n)
@@ -440,8 +440,8 @@ subroutine FORT_BDINTERPYHI (bdry,DIMS(bdry), &
            derives(ic,kc,YDER)  = half*(crse(ic,jc,kc+1,n) - crse(ic,jc,kc-1,n))
            derives(ic,kc,Y2DER) = half*(crse(ic,jc,kc+1,n) - two*crse(ic,jc,kc,n) &
                                       + crse(ic,jc,kc-1,n))
-           derives(ic,kc,XYDER) = forth*(crse(ic+1,jc,kc+1,n) - crse(ic-1,jc,kc+1,n) &
-                                       + crse(ic-1,jc,kc-1,n) - crse(ic+1,jc,kc-1,n))
+           derives(ic,kc,XYDER) = fourth*(crse(ic+1,jc,kc+1,n) - crse(ic-1,jc,kc+1,n) &
+                                        + crse(ic-1,jc,kc-1,n) - crse(ic+1,jc,kc-1,n))
 
            if (mask(i-1,j,k) .ne. not_covered) then
               derives(ic,kc,XDER)  = crse(ic+1,jc,kc,n) - crse(ic,jc,kc,n)
@@ -562,8 +562,8 @@ subroutine FORT_BDINTERPZLO (bdry,DIMS(bdry), &
            derives(ic,jc,X2DER) = half*(crse(ic+1,jc,kc,n) - two*crse(ic,jc,kc,n) + crse(ic-1,jc,kc,n) )
            derives(ic,jc,YDER)  = half*(crse(ic,jc+1,kc,n) - crse(ic,jc-1,kc,n) )
            derives(ic,jc,Y2DER) = half*(crse(ic,jc+1,kc,n) - two*crse(ic,jc,kc,n) + crse(ic,jc-1,kc,n) )
-           derives(ic,jc,XYDER) = forth*(crse(ic+1,jc+1,kc,n) - crse(ic-1,jc+1,kc,n) &
-                                       + crse(ic-1,jc-1,kc,n) - crse(ic+1,jc-1,kc,n))
+           derives(ic,jc,XYDER) = fourth*(crse(ic+1,jc+1,kc,n) - crse(ic-1,jc+1,kc,n) &
+                                        + crse(ic-1,jc-1,kc,n) - crse(ic+1,jc-1,kc,n))
                
            if (mask(i-1,j,k) .ne. not_covered) then
               derives(ic,jc,XDER)  = crse(ic+1,jc,kc,n) - crse(ic,jc,kc,n)
@@ -685,8 +685,8 @@ subroutine FORT_BDINTERPZHI (bdry,DIMS(bdry), &
            derives(ic,jc,YDER)  = half*(crse(ic,jc+1,kc,n) - crse(ic,jc-1,kc,n))
            derives(ic,jc,Y2DER) = half*(crse(ic,jc+1,kc,n) - two*crse(ic,jc,kc,n) &
                                       + crse(ic,jc-1,kc,n))
-           derives(ic,jc,XYDER) = forth*(crse(ic+1,jc+1,kc,n) - crse(ic-1,jc+1,kc,n) &
-                                       + crse(ic-1,jc-1,kc,n) - crse(ic+1,jc-1,kc,n))
+           derives(ic,jc,XYDER) = fourth*(crse(ic+1,jc+1,kc,n) - crse(ic-1,jc+1,kc,n) &
+                                        + crse(ic-1,jc-1,kc,n) - crse(ic+1,jc-1,kc,n))
 
            if (mask(i-1,j,k) .ne. not_covered) then
               derives(ic,jc,XDER)  = crse(ic+1,jc,kc,n) - crse(ic,jc,kc,n)

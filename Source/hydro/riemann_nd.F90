@@ -1,7 +1,7 @@
 module riemann_module
 
   use amrex_fort_module, only : rt => amrex_real
-  use bl_constants_module
+  use amrex_constants_module
   use meth_params_module, only : NQ, NVAR, NQAUX, &
                                  URHO, UMX, UMY, UMZ, &
                                  UEDEN, UEINT, UFS, UFX, &
@@ -43,10 +43,11 @@ contains
                     shk, s_lo, s_hi, &
                     idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, domlo, domhi)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use network, only: nspec, naux
+    use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver
 
@@ -103,19 +104,23 @@ contains
     type (eos_t) :: eos_state
 
 #ifdef RADIATION
+#ifndef AMREX_USE_CUDA
     if (hybrid_riemann == 1) then
-       call bl_error("ERROR: hybrid Riemann not supported for radiation")
+       call amrex_error("ERROR: hybrid Riemann not supported for radiation")
     endif
 
     if (riemann_solver > 0) then
-       call bl_error("ERROR: only the CGF Riemann solver is supported for radiation")
+       call amrex_error("ERROR: only the CGF Riemann solver is supported for radiation")
     endif
+#endif
 #endif
 
 #if BL_SPACEDIM == 1
+#ifndef AMREX_USE_CUDA
     if (riemann_solver > 1) then
-       call bl_error("ERROR: HLLC not implemented for 1-d")
+       call amrex_error("ERROR: HLLC not implemented for 1-d")
     endif
+#endif    
 #endif
 
     if (ppm_temp_fix == 2) then
@@ -221,7 +226,9 @@ contains
 
        call bl_deallocate(qint)
 #else
-       call bl_error("ERROR: CG solver does not support radiaiton")
+#ifndef AMREX_USE_CUDA
+       call amrex_error("ERROR: CG solver does not support radiaiton")
+#endif
 #endif
 
     elseif (riemann_solver == 2) then
@@ -232,9 +239,10 @@ contains
                  qgdnv, q_lo, q_hi, &
                  idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
                  domlo, domhi)
-
+#ifndef AMREX_USE_CUDA
     else
-       call bl_error("ERROR: invalid value of riemann_solver")
+       call amrex_error("ERROR: invalid value of riemann_solver")
+#endif
     endif
 
 
@@ -286,10 +294,11 @@ contains
                            idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, domlo, domhi)
 
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use network, only: nspec, naux
+    use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver
 
@@ -334,19 +343,23 @@ contains
     type (eos_t) :: eos_state
 
 #ifdef RADIATION
+#ifndef AMREX_USE_CUDA
     if (hybrid_riemann == 1) then
-       call bl_error("ERROR: hybrid Riemann not supported for radiation")
+       call amrex_error("ERROR: hybrid Riemann not supported for radiation")
     endif
 
     if (riemann_solver > 0) then
-       call bl_error("ERROR: only the CGF Riemann solver is supported for radiation")
+       call amrex_error("ERROR: only the CGF Riemann solver is supported for radiation")
     endif
+#endif
 #endif
 
 #if BL_SPACEDIM == 1
+#ifndef AMREX_USE_CUDA
     if (riemann_solver > 1) then
-       call bl_error("ERROR: HLLC not implemented for 1-d")
+       call amrex_error("ERROR: HLLC not implemented for 1-d")
     endif
+#endif
 #endif
 
     if (ppm_temp_fix == 2) then
@@ -432,11 +445,15 @@ contains
                       idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
                       domlo, domhi)
 #else
-       call bl_error("ERROR: CG solver does not support radiaiton")
+#ifndef AMREX_USE_CUDA
+       call amrex_error("ERROR: CG solver does not support radiaiton")
+#endif
 #endif
 
+#ifndef AMREX_USE_CUDA
     else
-       call bl_error("ERROR: invalid value of riemann_solver")
+       call amrex_error("ERROR: invalid value of riemann_solver")
+#endif
     endif
 
   end subroutine riemann_state
@@ -455,7 +472,8 @@ contains
     ! this version is dimension agnostic -- for 1- and 2-d, set kc,
     ! kflux, and k3d to 0
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_error_module
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, &
                                    Symmetry, SlipWall, NoSlipWall, &
                                    mom_flux_has_p
@@ -541,12 +559,13 @@ contains
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
     real(rt) :: bnd_fac_x, bnd_fac_y, bnd_fac_z
 
-
+#ifndef AMREX_USE_CUDA 
     if (cg_blend == 2 .and. cg_maxiter < 5) then
 
-       call bl_error("Error: need cg_maxiter >= 5 to do a bisection search on secant iteration failure.")
+       call amrex_error("Error: need cg_maxiter >= 5 to do a bisection search on secant iteration failure.")
 
     endif
+#endif
 
     if (idir == 1) then
        iu = QU
@@ -639,7 +658,9 @@ contains
           ! note: reset both in either case, to remain thermo
           ! consistent
           if (rel <= ZERO .or. pl < small_pres) then
+#ifndef AMREX_USE_CUDA                  
              print *, "WARNING: (rho e)_l < 0 or pl < small_pres in Riemann: ", rel, pl, small_pres
+#endif
 
              eos_state % T   = small_temp
              eos_state % rho = rl
@@ -666,7 +687,9 @@ contains
           gcr = qaux(i,j,k3d,QGAMC)
 
           if (rer <= ZERO .or. pr < small_pres) then
+#ifndef AMREX_USE_CUDA
              print *, "WARNING: (rho e)_r < 0 or pr < small_pres in Riemann: ", rer, pr, small_pres
+#endif
 
              eos_state % T   = small_temp
              eos_state % rho = rr
@@ -804,7 +827,8 @@ contains
           if (.not. converged) then
 
              if (cg_blend == 0) then
-
+                     
+#ifndef AMREX_USE_CUDA
                 print *, 'pstar history: '
                 do iter = 1, iter_max
                    print *, iter, pstar_hist(iter)
@@ -814,8 +838,8 @@ contains
                 print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
                 print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
                 print *, 'cavg, smallc:', cavg, csmall
-                call bl_error("ERROR: non-convergence in the Riemann solver")
-
+                call amrex_error("ERROR: non-convergence in the Riemann solver")
+#endif
              else if (cg_blend == 1) then
 
                 pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr)
@@ -833,7 +857,8 @@ contains
                                      pstar, gamstar, converged, pstar_hist_extra)
 
                 if (.not. converged) then
-
+                        
+#ifndef AMREX_USE_CUDA
                    print *, 'pstar history: '
                    do iter = 1, iter_max
                       print *, iter, pstar_hist(iter)
@@ -846,14 +871,15 @@ contains
                    print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
                    print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
                    print *, 'cavg, smallc:', cavg, csmall
-                   call bl_error("ERROR: non-convergence in the Riemann solver")
-
+                   call amrex_error("ERROR: non-convergence in the Riemann solver")
+#endif
                 endif
 
              else
 
-                call bl_error("ERROR: unrecognized cg_blend option.")
-
+#ifndef AMREX_USE_CUDA
+                call amrex_error("ERROR: unrecognized cg_blend option.")
+#endif
              endif
 
           endif
@@ -1048,7 +1074,7 @@ contains
                        idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
                        domlo, domhi)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, &
                                    Symmetry, SlipWall, NoSlipWall, &
                                    mom_flux_has_p
@@ -1574,7 +1600,7 @@ contains
     ! need to know the pressure and velocity on the interface for the
     ! pdV term in the internal energy update.
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, &
                                    Symmetry, SlipWall, NoSlipWall
 

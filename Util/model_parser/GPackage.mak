@@ -1,3 +1,3 @@
-f90sources += model_parser.f90
+F90sources += model_parser.F90
 
 
