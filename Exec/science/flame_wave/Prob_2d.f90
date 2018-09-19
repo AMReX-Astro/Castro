@@ -190,6 +190,8 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   allocate(model_state(nx_model+ng, nvars_model))
   model_state(:, :) = gen_model_state(:, :, 1)
 
+  allocate(npts_model)
+
   npts_model = nx_model+ng
   model_initialized = .true.
 
