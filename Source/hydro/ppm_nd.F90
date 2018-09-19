@@ -892,8 +892,7 @@ contains
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: sd_lo(3), sd_hi(3)
     integer, intent(in) ::  I_lo(3),  I_hi(3)
-    integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
-    integer, intent(in) :: k3d, kc
+    integer, intent(in) :: lo(3), hi(3)
 
     real(rt), intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3), ncomp)
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3), NQ)
@@ -933,74 +932,76 @@ contains
     ! x-direction
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    do j = lo(2)-dg(2), hi(2)+dg(2)
-       do i = lo(1)-1, hi(1)+1
+    do k = lo(3)-dg(3), hi(3)+dg(3)
+       do j = lo(2)-dg(2), hi(2)+dg(2)
+          do i = lo(1)-1, hi(1)+1
 
-          ! copy sedge into sp and sm
-          sp = sxp(i,j,kc)
-          sm = sxm(i,j,kc)
+             ! copy sedge into sp and sm
+             sp = sxp(i,j,k)
+             sm = sxm(i,j,k)
 
 
-          ! compute x-component of Ip and Im
-          s6 = SIX*s(i,j,k3d,n) - THREE*(sm+sp)
+             ! compute x-component of Ip and Im
+             s6 = SIX*s(i,j,k,n) - THREE*(sm+sp)
 
-          ! Ip/m is the integral under the parabola for the extent
-          ! that a wave can travel over a timestep
-          !
-          ! Ip integrates to the right edge of a cell
-          ! Im integrates to the left edge of a cell
+             ! Ip/m is the integral under the parabola for the extent
+             ! that a wave can travel over a timestep
+             !
+             ! Ip integrates to the right edge of a cell
+             ! Im integrates to the left edge of a cell
 
-          ! u-c wave
-          sigma = abs(q(i,j,k3d,QU)-qaux(i,j,k3d,QC))*dtdx
+             ! u-c wave
+             sigma = abs(q(i,j,k,QU)-qaux(i,j,k,QC))*dtdx
 
-          if (q(i,j,k3d,QU)-qaux(i,j,k3d,QC) <= ZERO) then
-             Ip(i,j,kc,1,1,ic) = sp
-          else
-             Ip(i,j,kc,1,1,ic) = sp - &
-               HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          endif
+             if (q(i,j,k,QU)-qaux(i,j,k,QC) <= ZERO) then
+                Ip(i,j,k,1,1,ic) = sp
+             else
+                Ip(i,j,k,1,1,ic) = sp - &
+                     HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
+             endif
 
-          if (q(i,j,k3d,QU)-qaux(i,j,k3d,QC) >= ZERO) then
-             Im(i,j,kc,1,1,ic) = sm
-          else
-             Im(i,j,kc,1,1,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
-          endif
+             if (q(i,j,k,QU)-qaux(i,j,k,QC) >= ZERO) then
+                Im(i,j,k,1,1,ic) = sm
+             else
+                Im(i,j,k,1,1,ic) = sm + &
+                     HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
+             endif
 
-          ! u wave
-          sigma = abs(q(i,j,k3d,QU))*dtdx
+             ! u wave
+             sigma = abs(q(i,j,k,QU))*dtdx
 
-          if (q(i,j,k3d,QU) <= ZERO) then
-             Ip(i,j,kc,1,2,ic) = sp
-          else
-             Ip(i,j,kc,1,2,ic) = sp - &
-               HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          endif
+             if (q(i,j,k,QU) <= ZERO) then
+                Ip(i,j,k,1,2,ic) = sp
+             else
+                Ip(i,j,k,1,2,ic) = sp - &
+                     HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
+             endif
 
-          if (q(i,j,k3d,QU) >= ZERO) then
-             Im(i,j,kc,1,2,ic) = sm
-          else
-             Im(i,j,kc,1,2,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
-          endif
+             if (q(i,j,k,QU) >= ZERO) then
+                Im(i,j,k,1,2,ic) = sm
+             else
+                Im(i,j,k,1,2,ic) = sm + &
+                     HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
+             endif
 
-          ! u+c wave
-          sigma = abs(q(i,j,k3d,QU)+qaux(i,j,k3d,QC))*dtdx
+             ! u+c wave
+             sigma = abs(q(i,j,k,QU)+qaux(i,j,k,QC))*dtdx
 
-          if (q(i,j,k3d,QU)+qaux(i,j,k3d,QC) <= ZERO) then
-             Ip(i,j,kc,1,3,ic) = sp
-          else
-             Ip(i,j,kc,1,3,ic) = sp - &
-               HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          endif
+             if (q(i,j,k,QU)+qaux(i,j,k,QC) <= ZERO) then
+                Ip(i,j,k,1,3,ic) = sp
+             else
+                Ip(i,j,k,1,3,ic) = sp - &
+                     HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
+             endif
 
-          if (q(i,j,k3d,QU)+qaux(i,j,k3d,QC) >= ZERO) then
-             Im(i,j,kc,1,3,ic) = sm
-          else
-             Im(i,j,kc,1,3,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
-          endif
+             if (q(i,j,k,QU)+qaux(i,j,k,QC) >= ZERO) then
+                Im(i,j,k,1,3,ic) = sm
+             else
+                Im(i,j,k,1,3,ic) = sm + &
+                     HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
+             endif
 
+          end do
        end do
     end do
 
@@ -1009,67 +1010,69 @@ contains
     ! y-direction
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    do j = lo(2)-dg(2), hi(2)+dg(2)
-       do i = lo(1)-1, hi(1)+1
+    do k = lo(3)-dg(3), hi(3)+dg(3)
+       do j = lo(2)-dg(2), hi(2)+dg(2)
+          do i = lo(1)-1, hi(1)+1
 
-          ! copy sedge into sp and sm
-          sp = syp(i,j,kc)
-          sm = sym(i,j,kc)
+             ! copy sedge into sp and sm
+             sp = syp(i,j,k)
+             sm = sym(i,j,k)
 
-          ! compute y-component of Ip and Im
-          s6 = SIX*s(i,j,k3d,n) - THREE*(sm+sp)
+             ! compute y-component of Ip and Im
+             s6 = SIX*s(i,j,k,n) - THREE*(sm+sp)
 
-          ! v-c wave
-          sigma = abs(q(i,j,k3d,QV)-qaux(i,j,k3d,QC))*dtdy
+             ! v-c wave
+             sigma = abs(q(i,j,k,QV)-qaux(i,j,k,QC))*dtdy
 
-          if (q(i,j,k3d,QV)-qaux(i,j,k3d,QC) <= ZERO) then
-             Ip(i,j,kc,2,1,ic) = sp
-          else
-             Ip(i,j,kc,2,1,ic) = sp - &
-               HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          endif
+             if (q(i,j,k,QV)-qaux(i,j,k,QC) <= ZERO) then
+                Ip(i,j,k,2,1,ic) = sp
+             else
+                Ip(i,j,k,2,1,ic) = sp - &
+                     HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
+             endif
 
-          if (q(i,j,k3d,QV)-qaux(i,j,k3d,QC) >= ZERO) then
-             Im(i,j,kc,2,1,ic) = sm
-          else
-             Im(i,j,kc,2,1,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
-          endif
+             if (q(i,j,k,QV)-qaux(i,j,k,QC) >= ZERO) then
+                Im(i,j,k,2,1,ic) = sm
+             else
+                Im(i,j,k,2,1,ic) = sm + &
+                  HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
+             endif
 
-          ! v wave
-          sigma = abs(q(i,j,k3d,QV))*dtdy
+             ! v wave
+             sigma = abs(q(i,j,k,QV))*dtdy
 
-          if (q(i,j,k3d,QV) <= ZERO) then
-             Ip(i,j,kc,2,2,ic) = sp
-          else
-             Ip(i,j,kc,2,2,ic) = sp - &
-               HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          endif
+             if (q(i,j,k,QV) <= ZERO) then
+                Ip(i,j,k,2,2,ic) = sp
+             else
+                Ip(i,j,k,2,2,ic) = sp - &
+                     HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
+             endif
 
-          if (q(i,j,k3d,QV) >= ZERO) then
-             Im(i,j,kc,2,2,ic) = sm
-          else
-             Im(i,j,kc,2,2,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
-          endif
+             if (q(i,j,k,QV) >= ZERO) then
+                Im(i,j,k,2,2,ic) = sm
+             else
+                Im(i,j,k,2,2,ic) = sm + &
+                     HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
+             endif
 
-          ! v+c wave
-          sigma = abs(q(i,j,k3d,QV)+qaux(i,j,k3d,QC))*dtdy
+             ! v+c wave
+             sigma = abs(q(i,j,k,QV)+qaux(i,j,k,QC))*dtdy
 
-          if (q(i,j,k3d,QV)+qaux(i,j,k3d,QC) <= ZERO) then
-             Ip(i,j,kc,2,3,ic) = sp
-          else
-             Ip(i,j,kc,2,3,ic) = sp - &
-               HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          endif
+             if (q(i,j,k,QV)+qaux(i,j,k,QC) <= ZERO) then
+                Ip(i,j,k,2,3,ic) = sp
+             else
+                Ip(i,j,k,2,3,ic) = sp - &
+                     HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
+             endif
 
-          if (q(i,j,k3d,QV)+qaux(i,j,k3d,QC) >= ZERO) then
-             Im(i,j,kc,2,3,ic) = sm
-          else
-             Im(i,j,kc,2,3,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
-          endif
+             if (q(i,j,k,QV)+qaux(i,j,k,QC) >= ZERO) then
+                Im(i,j,k,2,3,ic) = sm
+             else
+                Im(i,j,k,2,3,ic) = sm + &
+                     HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
+             endif
 
+          end do
        end do
     end do
 #endif
@@ -1079,66 +1082,68 @@ contains
     ! z-direction
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    do j=lo(2)-1,hi(2)+1
-       do i=lo(1)-1,hi(1)+1
+    do k = lo(3)-1, hi(3)+1
+       do j = lo(2)-1, hi(2)+1
+          do i = lo(1)-1, hi(1)+1
 
-          sp = szp(i,j,kc)
-          sm = szm(i,j,kc)
+             sp = szp(i,j,k)
+             sm = szm(i,j,k)
 
-          ! compute z-component of Ip and Im
-          s6 = SIX*s(i,j,k3d,n) - THREE*(sm+sp)
+             ! compute z-component of Ip and Im
+             s6 = SIX*s(i,j,k,n) - THREE*(sm+sp)
 
-          ! w-c wave
-          sigma = abs(q(i,j,k3d,QW)-qaux(i,j,k3d,QC))*dtdz
+             ! w-c wave
+             sigma = abs(q(i,j,k,QW)-qaux(i,j,k,QC))*dtdz
 
-          if (q(i,j,k3d,QW)-qaux(i,j,k3d,QC) <= ZERO) then
-             Ip(i,j,kc,3,1,ic) = sp
-          else
-             Ip(i,j,kc,3,1,ic) = sp - &
-               HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          endif
+             if (q(i,j,k,QW)-qaux(i,j,k,QC) <= ZERO) then
+                Ip(i,j,k,3,1,ic) = sp
+             else
+                Ip(i,j,k,3,1,ic) = sp - &
+                     HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
+             endif
 
-          if (q(i,j,k3d,QW)-qaux(i,j,k3d,QC) >= ZERO) then
-             Im(i,j,kc,3,1,ic) = sm
-          else
-             Im(i,j,kc,3,1,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
-          endif
+             if (q(i,j,k,QW)-qaux(i,j,k,QC) >= ZERO) then
+                Im(i,j,k,3,1,ic) = sm
+             else
+                Im(i,j,k,3,1,ic) = sm + &
+                     HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
+             endif
 
-          ! w wave
-          sigma = abs(q(i,j,k3d,QW))*dtdz
+             ! w wave
+             sigma = abs(q(i,j,k,QW))*dtdz
 
-          if (q(i,j,k3d,QW) <= ZERO) then
-             Ip(i,j,kc,3,2,ic) = sp
-          else
-             Ip(i,j,kc,3,2,ic) = sp - &
-               HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          endif
+             if (q(i,j,k,QW) <= ZERO) then
+                Ip(i,j,k,3,2,ic) = sp
+             else
+                Ip(i,j,k,3,2,ic) = sp - &
+                     HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
+             endif
 
-          if (q(i,j,k3d,QW) >= ZERO) then
-             Im(i,j,kc,3,2,ic) = sm
-          else
-             Im(i,j,kc,3,2,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
-          endif
+             if (q(i,j,k,QW) >= ZERO) then
+                Im(i,j,k,3,2,ic) = sm
+             else
+                Im(i,j,k,3,2,ic) = sm + &
+                     HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
+             endif
 
-          ! w+c wave
-          sigma = abs(q(i,j,k3d,QW)+qaux(i,j,k3d,QC))*dtdz
+             ! w+c wave
+             sigma = abs(q(i,j,k,QW)+qaux(i,j,k,QC))*dtdz
 
-          if (q(i,j,k3d,QW)+qaux(i,j,k3d,QC) <= ZERO) then
-             Ip(i,j,kc,3,3,ic) = sp
-          else
-             Ip(i,j,kc,3,3,ic) = sp - &
-               HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          endif
+             if (q(i,j,k,QW)+qaux(i,j,k,QC) <= ZERO) then
+                Ip(i,j,k,3,3,ic) = sp
+             else
+                Ip(i,j,k,3,3,ic) = sp - &
+                     HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
+             endif
 
-          if (q(i,j,k3d,QW)+qaux(i,j,k3d,QC) >= ZERO) then
-             Im(i,j,kc,3,3,ic) = sm
-          else
-             Im(i,j,kc,3,3,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
-          endif
+             if (q(i,j,k,QW)+qaux(i,j,k,QC) >= ZERO) then
+                Im(i,j,k,3,3,ic) = sm
+             else
+                Im(i,j,k,3,3,ic) = sm + &
+                     HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
+             endif
 
+          end do
        end do
     end do
 #endif
