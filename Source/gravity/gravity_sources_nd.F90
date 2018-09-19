@@ -244,9 +244,9 @@ contains
 
     ! edge-centered gravity
 
-    real(rt), intent(in)    :: gravx(gx_lo(1):gx_hi(1),gx_lo(2):gx_hi(2),gx_lo(3):gx_hi(3),3)
-    real(rt), intent(in)    :: gravy(gy_lo(1):gy_hi(1),gy_lo(2):gy_hi(2),gy_lo(3):gy_hi(3),3)
-    real(rt), intent(in)    :: gravz(gz_lo(1):gz_hi(1),gz_lo(2):gz_hi(2),gz_lo(3):gz_hi(3),3)
+    real(rt), intent(in)    :: gravx(gx_lo(1):gx_hi(1),gx_lo(2):gx_hi(2),gx_lo(3):gx_hi(3))
+    real(rt), intent(in)    :: gravy(gy_lo(1):gy_hi(1),gy_lo(2):gy_hi(2),gy_lo(3):gy_hi(3))
+    real(rt), intent(in)    :: gravz(gz_lo(1):gz_hi(1),gz_lo(2):gz_hi(2),gz_lo(3):gz_hi(3))
 #endif
 
     ! Cell volume
@@ -282,6 +282,8 @@ contains
     ! Temporary array for seeing what the new state would be if the update were applied here.
 
     real(rt) :: snew(NVAR)
+
+    !$gpu
 
     ! real(rt), pointer :: phi(:,:,:)
     ! real(rt), pointer :: grav(:,:,:,:)
@@ -575,7 +577,7 @@ contains
 
 
 
-  subroutine ca_make_edge_centered_gravity(lo,hi &
+  subroutine ca_make_edge_centered_gravity(lo,hi, &
                          domlo, domhi, &
                          grav, g_lo, g_hi, &
                          phi, p_lo, p_hi, &
