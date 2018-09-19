@@ -9,6 +9,7 @@ contains
   function cross_product(A,B) result(C)
 
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     real(rt)         :: A(3), B(3)

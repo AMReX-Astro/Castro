@@ -20,7 +20,10 @@ CEXE_sources += sum_integrated_quantities.cpp
 
 FEXE_headers += Castro_F.H
 FEXE_headers += Castro_error_F.H
+
 FEXE_headers += Derive_F.H
+CEXE_headers += Derive.H
+CEXE_sources += Derive.cpp
 
 ca_F90EXE_sources += generic_fill.F90
 

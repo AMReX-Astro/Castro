@@ -120,6 +120,7 @@ contains
     real(rt) :: delta_r, delta_rho, delta_p
     real(rt) :: alpha, sponge_factor
     type(eos_t) :: eos_state
+    real(rt) :: fac
 
     real(rt) :: u_factor
 

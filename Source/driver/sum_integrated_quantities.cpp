@@ -67,8 +67,8 @@ Castro::sum_integrated_quantities ()
        rho_K += ca_lev.volWgtSum("kineng", time, local_flag);
        rho_E += ca_lev.volWgtSum("rho_E", time, local_flag);
 #ifdef SELF_GRAVITY
-if (gravity->get_gravity_type() == "PoissonGrav")
-       rho_phi += ca_lev.volProductSum("density", "phiGrav", time, local_flag);
+        if (gravity->get_gravity_type() == "PoissonGrav")
+               rho_phi += ca_lev.volProductSum("density", "phiGrav", time, local_flag);
 #endif
 
     }

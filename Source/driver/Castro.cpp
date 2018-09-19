@@ -928,8 +928,6 @@ Castro::initData ()
          for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
            {
              const Box& box     = mfi.validbox();
-             const int* lo      = box.loVect();
-             const int* hi      = box.hiVect();
 
              ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
                                      BL_TO_FORTRAN_FAB(Sborder[mfi]));
@@ -2825,8 +2823,6 @@ Castro::apply_problem_tags (TagBoxArray& tags,
 
     BL_PROFILE("Castro::apply_problem_tags()");
 
-    const int*  domain_lo = geom.Domain().loVect();
-    const int*  domain_hi = geom.Domain().hiVect();
     const Real* dx        = geom.CellSize();
     const Real* prob_lo   = geom.ProbLo();
 
