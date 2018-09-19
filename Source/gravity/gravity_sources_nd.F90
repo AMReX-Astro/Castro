@@ -170,10 +170,13 @@ contains
                          uold,uo_lo,uo_hi, &
                          unew,un_lo,un_hi, &
 #ifdef SELF_GRAVITY
-                         pold,po_lo,po_hi, &
-                         pnew,pn_lo,pn_hi, &
+                         phi,p_lo,p_hi, &
+                         grav,g_lo,g_hi, &
                          gold,go_lo,go_hi, &
                          gnew,gn_lo,gn_hi, &
+                         gravx,gx_lo,gx_hi, &
+                         gravy,gy_lo,gy_hi, &
+                         gravz,gz_lo,gz_hi, &
 #endif
                          vol,vol_lo,vol_hi, &
                          flux1,f1_lo,f1_hi, &
@@ -190,7 +193,8 @@ contains
                                   grav_source_type, gravity_type, get_g_from_phi
     use prob_params_module, only: dg, center, physbc_lo, physbc_hi, Symmetry
     use fundamental_constants_module, only: Gconst
-    use castro_util_module, only: position, is_domain_corner
+    use castro_util_module, only: position ! function
+    use castro_util_module, only: is_domain_corner
 #ifdef HYBRID_MOMENTUM
     use meth_params_module, only: UMR, UMP
     use hybrid_advection_module, only: set_hybrid_momentum_source
@@ -207,10 +211,13 @@ contains
     integer, intent(in)     :: uo_lo(3), uo_hi(3)
     integer, intent(in)     :: un_lo(3), un_hi(3)
 #ifdef SELF_GRAVITY
-    integer, intent(in)     :: po_lo(3), po_hi(3)
-    integer, intent(in)     :: pn_lo(3), pn_hi(3)
+    integer, intent(in)     :: p_lo(3), p_hi(3)
+    integer, intent(in)     :: g_lo(3), g_hi(3)
     integer, intent(in)     :: go_lo(3), go_hi(3)
     integer, intent(in)     :: gn_lo(3), gn_hi(3)
+    integer, intent(in)     :: gx_lo(3), gx_hi(3)
+    integer, intent(in)     :: gy_lo(3), gy_hi(3)
+    integer, intent(in)     :: gz_lo(3), gz_hi(3)
 #endif
     integer, intent(in)     :: vol_lo(3), vol_hi(3)
     integer, intent(in)     :: f1_lo(3), f1_hi(3)
@@ -227,13 +234,19 @@ contains
 #ifdef SELF_GRAVITY
     ! Old and new time gravitational potential
 
-    real(rt), intent(in)    :: pold(po_lo(1):po_hi(1),po_lo(2):po_hi(2),po_lo(3):po_hi(3))
-    real(rt), intent(in)    :: pnew(pn_lo(1):pn_hi(1),pn_lo(2):pn_hi(2),pn_lo(3):pn_hi(3))
+    real(rt), intent(in)    :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    real(rt), intent(in)    :: grav(g_lo(1):g_hi(1),g_lo(2):g_hi(2),g_lo(3):g_hi(3),3)
 
     ! Old and new time gravitational acceleration
 
     real(rt), intent(in)    :: gold(go_lo(1):go_hi(1),go_lo(2):go_hi(2),go_lo(3):go_hi(3),3)
     real(rt), intent(in)    :: gnew(gn_lo(1):gn_hi(1),gn_lo(2):gn_hi(2),gn_lo(3):gn_hi(3),3)
+
+    ! edge-centered gravity
+
+    real(rt), intent(in)    :: gravx(gx_lo(1):gx_hi(1),gx_lo(2):gx_hi(2),gx_lo(3):gx_hi(3),3)
+    real(rt), intent(in)    :: gravy(gy_lo(1):gy_hi(1),gy_lo(2):gy_hi(2),gy_lo(3):gy_hi(3),3)
+    real(rt), intent(in)    :: gravz(gz_lo(1):gz_hi(1),gz_lo(2):gz_hi(2),gz_lo(3):gz_hi(3),3)
 #endif
 
     ! Cell volume
@@ -270,11 +283,11 @@ contains
 
     real(rt) :: snew(NVAR)
 
-    real(rt), pointer :: phi(:,:,:)
-    real(rt), pointer :: grav(:,:,:,:)
-    real(rt), pointer :: gravx(:,:,:)
-    real(rt), pointer :: gravy(:,:,:)
-    real(rt), pointer :: gravz(:,:,:)
+    ! real(rt), pointer :: phi(:,:,:)
+    ! real(rt), pointer :: grav(:,:,:,:)
+    ! real(rt), pointer :: gravx(:,:,:)
+    ! real(rt), pointer :: gravy(:,:,:)
+    ! real(rt), pointer :: gravz(:,:,:)
 
     Sr_old(:) = ZERO
     Sr_new(:) = ZERO
@@ -291,109 +304,109 @@ contains
     ! 3: Puts all gravitational work into KE, not (rho e)
     ! 4: Conservative gravity approach (discussed in first white dwarf merger paper).
 
-#ifdef SELF_GRAVITY
-    if (grav_source_type .eq. 4) then
-
-       call bl_allocate(phi,   lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
-       call bl_allocate(grav,  lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1,1,3)
-       call bl_allocate(gravx, lo(1),hi(1)+1,lo(2),hi(2),lo(3),hi(3))
-       call bl_allocate(gravy, lo(1),hi(1),lo(2),hi(2)+1,lo(3),hi(3))
-       call bl_allocate(gravz, lo(1),hi(1),lo(2),hi(2),lo(3),hi(3)+1)
-
-       ! For our purposes, we want the time-level n+1/2 phi because we are
-       ! using fluxes evaluated at that time. To second order we can
-       ! average the new and old potentials.
-
-       phi = ZERO
-       grav = ZERO
-       gravx = ZERO
-       gravy = ZERO
-       gravz = ZERO
-
-       do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
-          do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
-             do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
-                phi(i,j,k) = HALF * (pnew(i,j,k) + pold(i,j,k))
-                grav(i,j,k,:) = HALF * (gnew(i,j,k,:) + gold(i,j,k,:))
-             enddo
-          enddo
-       enddo
-
-       ! We need to perform the following hack to deal with the fact that
-       ! the potential is defined on cell edges, not cell centers, for ghost
-       ! zones. We redefine the boundary zone values as equal to the adjacent
-       ! cell minus the original value. Then later when we do the adjacent zone
-       ! minus the boundary zone, we'll get the boundary value, which is what we want.
-       ! We don't need to reset this at the end because phi is a temporary array.
-       ! Note that this is needed for Poisson gravity only; the other gravity methods
-       ! generally define phi on cell centers even outside the domain.
-       ! Note also that we do not want to apply it on symmetry boundaries,
-       ! because in that case the value in the ghost zone is the cell-centered value.
-       ! We also want to skip the corners, because the potential is undefined there.
-
-       if (gravity_type == "PoissonGrav") then
-
-          do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
-             do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
-                do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
-                   if (is_domain_corner([i, j, k])) cycle
-
-                   if (i .lt. domlo(1) .and. physbc_lo(1) .ne. Symmetry) then
-                      phi(i,j,k) = phi(i+1,j,k) - phi(i,j,k)
-                   endif
-                   if (i .gt. domhi(1) .and. physbc_hi(1) .ne. Symmetry) then
-                      phi(i,j,k) = phi(i-1,j,k) - phi(i,j,k)
-                   endif
-                   if (j .lt. domlo(2) .and. physbc_lo(2) .ne. Symmetry) then
-                      phi(i,j,k) = phi(i,j+1,k) - phi(i,j,k)
-                   endif
-                   if (j .gt. domhi(2) .and. physbc_hi(2) .ne. Symmetry) then
-                      phi(i,j,k) = phi(i,j-1,k) - phi(i,j,k)
-                   endif
-                   if (k .lt. domlo(3) .and. physbc_lo(3) .ne. Symmetry) then
-                      phi(i,j,k) = phi(i,j,k+1) - phi(i,j,k)
-                   endif
-                   if (k .gt. domhi(3) .and. physbc_hi(3) .ne. Symmetry) then
-                      phi(i,j,k) = phi(i,j,k-1) - phi(i,j,k)
-                   endif
-                enddo
-             enddo
-          enddo
-
-       endif
-
-       if (.not. (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" .and. get_g_from_phi == 1) ) ) then
-
-          ! Construct the time-averaged edge-centered gravity.
-
-          do k = lo(3), hi(3)
-             do j = lo(2), hi(2)
-                do i = lo(1), hi(1)+1*dg(1)
-                   gravx(i,j,k) = HALF * (grav(i,j,k,1) + grav(i-1,j,k,1))
-                enddo
-             enddo
-          enddo
-
-          do k = lo(3), hi(3)
-             do j = lo(2), hi(2)+1*dg(2)
-                do i = lo(1), hi(1)
-                   gravy(i,j,k) = HALF * (grav(i,j,k,2) + grav(i,j-1,k,2))
-                enddo
-             enddo
-          enddo
-
-          do k = lo(3), hi(3)+1*dg(3)
-             do j = lo(2), hi(2)
-                do i = lo(1), hi(1)
-                   gravz(i,j,k) = HALF * (grav(i,j,k,3) + grav(i,j,k-1,3))
-                enddo
-             enddo
-          enddo
-
-       endif
-
-    endif
-#endif
+! #ifdef SELF_GRAVITY
+!     if (grav_source_type .eq. 4) then
+!
+!        call bl_allocate(phi,   lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
+!        call bl_allocate(grav,  lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1,1,3)
+!        call bl_allocate(gravx, lo(1),hi(1)+1,lo(2),hi(2),lo(3),hi(3))
+!        call bl_allocate(gravy, lo(1),hi(1),lo(2),hi(2)+1,lo(3),hi(3))
+!        call bl_allocate(gravz, lo(1),hi(1),lo(2),hi(2),lo(3),hi(3)+1)
+!
+!        ! For our purposes, we want the time-level n+1/2 phi because we are
+!        ! using fluxes evaluated at that time. To second order we can
+!        ! average the new and old potentials.
+!
+!        phi = ZERO
+!        grav = ZERO
+!        gravx = ZERO
+!        gravy = ZERO
+!        gravz = ZERO
+!
+!        do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
+!           do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
+!              do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
+!                 phi(i,j,k) = HALF * (pnew(i,j,k) + pold(i,j,k))
+!                 grav(i,j,k,:) = HALF * (gnew(i,j,k,:) + gold(i,j,k,:))
+!              enddo
+!           enddo
+!        enddo
+!
+!        ! We need to perform the following hack to deal with the fact that
+!        ! the potential is defined on cell edges, not cell centers, for ghost
+!        ! zones. We redefine the boundary zone values as equal to the adjacent
+!        ! cell minus the original value. Then later when we do the adjacent zone
+!        ! minus the boundary zone, we'll get the boundary value, which is what we want.
+!        ! We don't need to reset this at the end because phi is a temporary array.
+!        ! Note that this is needed for Poisson gravity only; the other gravity methods
+!        ! generally define phi on cell centers even outside the domain.
+!        ! Note also that we do not want to apply it on symmetry boundaries,
+!        ! because in that case the value in the ghost zone is the cell-centered value.
+!        ! We also want to skip the corners, because the potential is undefined there.
+!
+!        if (gravity_type == "PoissonGrav") then
+!
+!           do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
+!              do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
+!                 do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
+!                    if (is_domain_corner([i, j, k])) cycle
+!
+!                    if (i .lt. domlo(1) .and. physbc_lo(1) .ne. Symmetry) then
+!                       phi(i,j,k) = phi(i+1,j,k) - phi(i,j,k)
+!                    endif
+!                    if (i .gt. domhi(1) .and. physbc_hi(1) .ne. Symmetry) then
+!                       phi(i,j,k) = phi(i-1,j,k) - phi(i,j,k)
+!                    endif
+!                    if (j .lt. domlo(2) .and. physbc_lo(2) .ne. Symmetry) then
+!                       phi(i,j,k) = phi(i,j+1,k) - phi(i,j,k)
+!                    endif
+!                    if (j .gt. domhi(2) .and. physbc_hi(2) .ne. Symmetry) then
+!                       phi(i,j,k) = phi(i,j-1,k) - phi(i,j,k)
+!                    endif
+!                    if (k .lt. domlo(3) .and. physbc_lo(3) .ne. Symmetry) then
+!                       phi(i,j,k) = phi(i,j,k+1) - phi(i,j,k)
+!                    endif
+!                    if (k .gt. domhi(3) .and. physbc_hi(3) .ne. Symmetry) then
+!                       phi(i,j,k) = phi(i,j,k-1) - phi(i,j,k)
+!                    endif
+!                 enddo
+!              enddo
+!           enddo
+!
+!        endif
+!
+!        if (.not. (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" .and. get_g_from_phi == 1) ) ) then
+!
+!           ! Construct the time-averaged edge-centered gravity.
+!
+!           do k = lo(3), hi(3)
+!              do j = lo(2), hi(2)
+!                 do i = lo(1), hi(1)+1*dg(1)
+!                    gravx(i,j,k) = HALF * (grav(i,j,k,1) + grav(i-1,j,k,1))
+!                 enddo
+!              enddo
+!           enddo
+!
+!           do k = lo(3), hi(3)
+!              do j = lo(2), hi(2)+1*dg(2)
+!                 do i = lo(1), hi(1)
+!                    gravy(i,j,k) = HALF * (grav(i,j,k,2) + grav(i,j-1,k,2))
+!                 enddo
+!              enddo
+!           enddo
+!
+!           do k = lo(3), hi(3)+1*dg(3)
+!              do j = lo(2), hi(2)
+!                 do i = lo(1), hi(1)
+!                    gravz(i,j,k) = HALF * (grav(i,j,k,3) + grav(i,j,k-1,3))
+!                 enddo
+!              enddo
+!           enddo
+!
+!        endif
+!
+!     endif
+! #endif
 
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
@@ -548,16 +561,139 @@ contains
        enddo
     enddo
 
+! #ifdef SELF_GRAVITY
+!     if (grav_source_type .eq. 4) then
+!        call bl_deallocate(phi)
+!        call bl_deallocate(grav)
+!        call bl_deallocate(gravx)
+!        call bl_deallocate(gravy)
+!        call bl_deallocate(gravz)
+!     endif
+! #endif
+
+  end subroutine ca_corrgsrc
+
+
+
+  subroutine ca_make_edge_centered_gravity(lo,hi &
+                         domlo, domhi, &
+                         grav, g_lo, g_hi, &
+                         phi, p_lo, p_hi, &
+                         gravx,gx_lo,gx_hi, &
+                         gravy,gy_lo,gy_hi, &
+                         gravz,gz_lo,gz_hi) bind(C, name="ca_make_edge_centered_gravity")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use amrex_error_module
+    use amrex_constants_module, only: ZERO, HALF, ONE, TWO
+    use meth_params_module, only: grav_source_type, gravity_type, get_g_from_phi
+    use prob_params_module, only: dg, center, physbc_lo, physbc_hi, Symmetry
+    use castro_util_module, only: is_domain_corner
+
+    implicit none
+
+    integer, intent(in)     :: lo(3), hi(3)
+    integer, intent(in)     :: domlo(3), domhi(3)
+    integer, intent(in)     :: g_lo(3), g_hi(3)
+    integer, intent(in)     :: p_lo(3), p_hi(3)
+    integer, intent(in)     :: gx_lo(3), gx_hi(3)
+    integer, intent(in)     :: gy_lo(3), gy_hi(3)
+    integer, intent(in)     :: gz_lo(3), gz_hi(3)
+
+    real(rt), intent(in)    :: grav(g_lo(1):g_hi(1),g_lo(2):g_hi(2),g_lo(3):g_hi(3),3)
+    real(rt), intent(in)    :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    real(rt), intent(inout)    :: gravx(gx_lo(1):gx_hi(1),gx_lo(2):gx_hi(2),gx_lo(3):gx_hi(3),3)
+    real(rt), intent(inout)    :: gravy(gy_lo(1):gy_hi(1),gy_lo(2):gy_hi(2),gy_lo(3):gy_hi(3),3)
+    real(rt), intent(inout)    :: gravz(gz_lo(1):gz_hi(1),gz_lo(2):gz_hi(2),gz_lo(3):gz_hi(3),3)
+
+    integer  :: i, j, k
+
+    ! Gravitational source options for how to add the work to (rho E):
+    ! grav_source_type =
+    ! 1: Original version ("does work")
+    ! 2: Modification of type 1 that updates the U before constructing SrEcorr
+    ! 3: Puts all gravitational work into KE, not (rho e)
+    ! 4: Conservative gravity approach (discussed in first white dwarf merger paper).
+
 #ifdef SELF_GRAVITY
     if (grav_source_type .eq. 4) then
-       call bl_deallocate(phi)
-       call bl_deallocate(grav)
-       call bl_deallocate(gravx)
-       call bl_deallocate(gravy)
-       call bl_deallocate(gravz)
+
+       ! We need to perform the following hack to deal with the fact that
+       ! the potential is defined on cell edges, not cell centers, for ghost
+       ! zones. We redefine the boundary zone values as equal to the adjacent
+       ! cell minus the original value. Then later when we do the adjacent zone
+       ! minus the boundary zone, we'll get the boundary value, which is what we want.
+       ! We don't need to reset this at the end because phi is a temporary array.
+       ! Note that this is needed for Poisson gravity only; the other gravity methods
+       ! generally define phi on cell centers even outside the domain.
+       ! Note also that we do not want to apply it on symmetry boundaries,
+       ! because in that case the value in the ghost zone is the cell-centered value.
+       ! We also want to skip the corners, because the potential is undefined there.
+
+       if (gravity_type == "PoissonGrav") then
+
+          do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
+             do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
+                do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
+                   if (is_domain_corner([i, j, k])) cycle
+
+                   if (i .lt. domlo(1) .and. physbc_lo(1) .ne. Symmetry) then
+                      phi(i,j,k) = phi(i+1,j,k) - phi(i,j,k)
+                   endif
+                   if (i .gt. domhi(1) .and. physbc_hi(1) .ne. Symmetry) then
+                      phi(i,j,k) = phi(i-1,j,k) - phi(i,j,k)
+                   endif
+                   if (j .lt. domlo(2) .and. physbc_lo(2) .ne. Symmetry) then
+                      phi(i,j,k) = phi(i,j+1,k) - phi(i,j,k)
+                   endif
+                   if (j .gt. domhi(2) .and. physbc_hi(2) .ne. Symmetry) then
+                      phi(i,j,k) = phi(i,j-1,k) - phi(i,j,k)
+                   endif
+                   if (k .lt. domlo(3) .and. physbc_lo(3) .ne. Symmetry) then
+                      phi(i,j,k) = phi(i,j,k+1) - phi(i,j,k)
+                   endif
+                   if (k .gt. domhi(3) .and. physbc_hi(3) .ne. Symmetry) then
+                      phi(i,j,k) = phi(i,j,k-1) - phi(i,j,k)
+                   endif
+                enddo
+             enddo
+          enddo
+
+       endif
+
+       if (.not. (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" .and. get_g_from_phi == 1) ) ) then
+
+          ! Construct the time-averaged edge-centered gravity.
+
+          do k = lo(3), hi(3)
+             do j = lo(2), hi(2)
+                do i = lo(1), hi(1)+1*dg(1)
+                   gravx(i,j,k) = HALF * (grav(i,j,k,1) + grav(i-1,j,k,1))
+                enddo
+             enddo
+          enddo
+
+          do k = lo(3), hi(3)
+             do j = lo(2), hi(2)+1*dg(2)
+                do i = lo(1), hi(1)
+                   gravy(i,j,k) = HALF * (grav(i,j,k,2) + grav(i,j-1,k,2))
+                enddo
+             enddo
+          enddo
+
+          do k = lo(3), hi(3)+1*dg(3)
+             do j = lo(2), hi(2)
+                do i = lo(1), hi(1)
+                   gravz(i,j,k) = HALF * (grav(i,j,k,3) + grav(i,j,k-1,3))
+                enddo
+             enddo
+          enddo
+
+       endif
+
     endif
 #endif
 
-  end subroutine ca_corrgsrc
+end subroutine ca_make_edge_centered_gravity
 
 end module gravity_sources_module

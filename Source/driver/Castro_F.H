@@ -738,17 +738,29 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(S_old),
      const BL_FORT_FAB_ARG_3D(S_new),
 #ifdef SELF_GRAVITY
-     const BL_FORT_FAB_ARG_3D(phi_old),
-     const BL_FORT_FAB_ARG_3D(phi_new),
+     const BL_FORT_FAB_ARG_3D(phi_center),
+     const BL_FORT_FAB_ARG_3D(grav),
      const BL_FORT_FAB_ARG_3D(grav_old),
      const BL_FORT_FAB_ARG_3D(grav_new),
+     const BL_FORT_FAB_ARG_3D(gravx),
+     const BL_FORT_FAB_ARG_3D(gravy),
+     const BL_FORT_FAB_ARG_3D(gravz),
 #endif
      const BL_FORT_FAB_ARG_3D(volume),
      const BL_FORT_FAB_ARG_3D(xflux),
      const BL_FORT_FAB_ARG_3D(yflux),
      const BL_FORT_FAB_ARG_3D(zflux),
      const BL_FORT_FAB_ARG_3D(source),
-     const amrex::Real* dx, const amrex::Real& dt, const amrex::Real* time);
+     const amrex::Real* dx, const amrex::Real dt, const amrex::Real time);
+
+ void ca_make_edge_centered_gravity
+   (const int* lo, const int* hi,
+    const int* domlo, const int* domhi,
+    const BL_FORT_FAB_ARG_3D(grav),
+    const BL_FORT_FAB_ARG_3D(phi),
+    const BL_FORT_FAB_ARG_3D(gravx),
+    const BL_FORT_FAB_ARG_3D(gravy),
+    const BL_FORT_FAB_ARG_3D(gravz));
 #endif
 
 #ifdef ROTATION
