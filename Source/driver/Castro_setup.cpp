@@ -166,10 +166,6 @@ Castro::variableSetUp ()
   sponge_init();
 #endif
 
-  // Initialize the amr info
-  amrinfo_init();
-
-
   const int dm = BL_SPACEDIM;
 
 
