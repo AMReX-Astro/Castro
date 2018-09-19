@@ -66,6 +66,8 @@ contains
 
     real(rt) :: snew(NVAR)
 
+    !$gpu
+
     ! Initialize the update and temporary state to zero. We only need to do this once outside
     ! the loop, since the array access pattern is consistent across loop iterations.
 
@@ -188,7 +190,8 @@ contains
                                   grav_source_type, gravity_type, get_g_from_phi
     use prob_params_module, only: dg, center, physbc_lo, physbc_hi, Symmetry
     use fundamental_constants_module, only: Gconst
-    use castro_util_module, only: position, is_domain_corner
+    use castro_util_module, only: position ! function
+    use castro_util_module, only: is_domain_corner
 #ifdef HYBRID_MOMENTUM
     use meth_params_module, only: UMR, UMP
     use hybrid_advection_module, only: set_hybrid_momentum_source
@@ -274,6 +277,8 @@ contains
     real(rt), pointer :: gravx(:,:,:)
     real(rt), pointer :: gravy(:,:,:)
     real(rt), pointer :: gravz(:,:,:)
+
+    !$gpu
 
     Sr_old(:) = ZERO
     Sr_new(:) = ZERO
