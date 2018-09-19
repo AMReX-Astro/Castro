@@ -777,6 +777,10 @@ protected:
 
     static void eos_finalize ();
 
+    static void amrinfo_init();
+
+    static void amrinfo_finalize();
+
     static void read_params ();
 
     Castro& getLevel (int lev);
