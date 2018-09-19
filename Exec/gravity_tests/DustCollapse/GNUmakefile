@@ -27,3 +27,6 @@ Bpack	:= ./Make.package
 Blocs	:= .
 
 include $(CASTRO_HOME)/Exec/Make.Castro
+
+F90FLAGS += -Mcuda=charstring
+FFFLAGS += -Mcuda=charstring
