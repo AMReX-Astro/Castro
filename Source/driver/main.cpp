@@ -42,9 +42,6 @@ main (int   argc,
     //
     amrex::Initialize(argc,argv);
 
-    // Initialize the amr info
-    Castro::amrinfo_init();
-
     // Refuse to continue if we did not provide an inputs file.
 
     if (argc <= 1) {
