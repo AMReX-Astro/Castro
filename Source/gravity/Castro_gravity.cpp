@@ -279,11 +279,11 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 	MultiFab& grav_old = get_old_data(Gravity_Type);
 	MultiFab& grav_new = get_new_data(Gravity_Type);
 
-	MultiFab grav_center[BL_SPACEDIM];
+	MultiFab grav_center;
 
 	// for (int i = 0; i < BL_SPACEDIM; ++i) {
-	grav_center[i].define(grids, dmap, 3, 1);
-	grav_center[i].setVal(0.0, 1);
+	grav_center.define(grids, dmap, 3, 1);
+	grav_center.setVal(0.0, 1);
 	// }
 
 	// Calculate time-centered gravity
@@ -291,9 +291,9 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 	MultiFab::Saxpy(grav_center, 0.5, grav_new, 0, 0, 3, 1);
 
 	// Construct time-averaged edge-centered gravity.
-	MultiFab gravx[BL_SPACEDIM];
-	MultiFab gravy[BL_SPACEDIM];
-	MultiFab gravz[BL_SPACEDIM];
+	MultiFab gravx;
+	MultiFab gravy;
+	MultiFab gravz;
 
 	gravx.define(getEdgeBoxArray(0), dmap, 1, 0);
 	gravy.define(getEdgeBoxArray(1), dmap, 1, 0);
