@@ -440,14 +440,22 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
   MultiFab qp;
   qp.define(grids, dmap, 3*NQ, 2);
 
-  MultiFab flux[BL_SPACEDIM];
-  MultiFab qe[BL_SPACEDIM];
+  MultiFab flux[3];
+  MultiFab qe[3];
 
   for (int i = 0; i < BL_SPACEDIM; ++i) {
       flux[i].define(getEdgeBoxArray(i), dmap, NUM_STATE, 0);
       qe[i].define(getEdgeBoxArray(i), dmap, NGDNV, 0);
   }
-  
+
+  for (int i = BL_SPACEDIM; i < 3; ++i) {
+      flux[i].define(grids, dmap, NUM_STATE, 0);
+      qe[i].define(grids, dmap, NUM_STATE, 0);
+
+      flux[i].setVal(0.0);
+      qe[i].setVal(0.0);
+  }
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
