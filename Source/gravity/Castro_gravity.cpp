@@ -273,8 +273,8 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 	phi_center.setVal(0.0, 1);
 
 	// Calculate time-centered potential
-	MultiFab::Saxpy(phi_center, 0.5, phirot_old, 0, 0, 1, 1);
-	MultiFab::Saxpy(phi_center, 0.5, phirot_new, 0, 0, 1, 1);
+	MultiFab::Saxpy(phi_center, 0.5, phi_old, 0, 0, 1, 1);
+	MultiFab::Saxpy(phi_center, 0.5, phi_new, 0, 0, 1, 1);
 
 	MultiFab& grav_old = get_old_data(Gravity_Type);
 	MultiFab& grav_new = get_new_data(Gravity_Type);
@@ -284,11 +284,11 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 	for (int i = 0; i < BL_SPACEDIM; ++i) {
 		grav_center[i].define(grids, dmap, 3, 1);
 		grav_center[i].setVal(0.0, 1);
-	}
 
-	// Calculate time-centered gravity
-	MultiFab::Saxpy(grav_center, 0.5, grav_old, 0, 0, 3, 1);
-	MultiFab::Saxpy(grav_center, 0.5, grav_new, 0, 0, 3, 1);
+        // Calculate time-centered gravity
+    	MultiFab::Saxpy(grav_center[i], 0.5, grav_old[i], 0, 0, 3, 1);
+    	MultiFab::Saxpy(grav_center[i], 0.5, grav_new[i], 0, 0, 3, 1);
+	}
 
 	// Construct time-averaged edge-centered gravity.
 	MultiFab gravx[BL_SPACEDIM];
