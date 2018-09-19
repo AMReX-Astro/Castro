@@ -245,22 +245,6 @@ contains
     domegadt_old = get_domegadt(time-dt)
     domegadt_new = get_domegadt(time   )
 
-    ! if (rot_source_type == 4) then
-    !
-    !    ! call bl_allocate(phi,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
-    !
-    !    phi() = ZERO
-    !
-    !    do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
-    !       do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
-    !          do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
-    !             phi(i,j,k) = HALF * (pold(i,j,k) + pnew(i,j,k))
-    !          enddo
-    !       enddo
-    !    enddo
-    !
-    ! endif
-
     if (implicit_rotation_update == 1) then
 
        ! Don't do anything here if we've got the Coriolis force disabled.
@@ -477,10 +461,6 @@ contains
           enddo
        enddo
     enddo
-
-    ! if (rot_source_type .eq. 4) then
-    !    ! call bl_deallocate(phi)
-    ! endif
 
   end subroutine ca_corrrsrc
 

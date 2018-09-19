@@ -74,6 +74,7 @@ void Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old
 
 	fill_rotation_field(phirot_new, rot_new, state_new, time);
 
+    // Calculate time-centered rotational potential
     MultiFab::Saxpy(phi_center, 0.5, phirot_old, 0, 0, 1, 1);
     MultiFab::Saxpy(phi_center, 0.5, phirot_new, 0, 0, 1, 1);
 
