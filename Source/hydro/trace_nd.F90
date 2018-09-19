@@ -22,8 +22,8 @@ contains
 #if (BL_SPACEDIM == 1)
                      SrcQ, src_lo, Src_hi, &
 #endif
-                     ilo1, ilo2, ihi1, ihi2, domlo, domhi, &
-                     dx, dt, kc, k3d)
+                     lo, hi, domlo, domhi, &
+                     dx, dt)
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, QC, &
@@ -47,8 +47,7 @@ contains
 #if (BL_SPACEDIM == 1)
     integer, intent(in) :: src_lo(3), src_hi(3)
 #endif
-    integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
-    integer, intent(in) :: kc, k3d
+    integer, intent(in) :: lo, hi
     integer, intent(in) :: domlo(3), domhi(3)
 
     real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
@@ -71,7 +70,7 @@ contains
     real(rt), intent(in) :: dx(3), dt
 
     ! Local variables
-    integer :: i, j, n, ipassive
+    integer :: i, j, k, n, ipassive
 
     real(rt) :: dtdx, dtdy
     real(rt) :: cc, csq, rho, u, v, w, p, rhoe
@@ -116,156 +115,158 @@ contains
 
     ! construct the right state on the i interface
 
-    do j = ilo2-dg(2), ihi2+dg(2)
-       do i = ilo1-1, ihi1+1
+    do k = lo(3)-dg(3), hi(3)+dg(3)
+       do j = lo(2)-dg(2), hi(2)+dg(2)
+          do i = lo(1)-1, hi(1)+1
 
-          cc = qaux(i,j,k3d,QC)
-          csq = cc**2
-          rho = q(i,j,k3d,QRHO)
-          u = q(i,j,k3d,QU)
-          v = q(i,j,k3d,QV)
-          w = q(i,j,k3d,QW)
-          p = q(i,j,k3d,QPRES)
-          rhoe = q(i,j,k3d,QREINT)
-          enth = (rhoe+p)/(rho*csq)
+             cc = qaux(i,j,k,QC)
+             csq = cc**2
+             rho = q(i,j,k,QRHO)
+             u = q(i,j,k,QU)
+             v = q(i,j,k,QV)
+             w = q(i,j,k,QW)
+             p = q(i,j,k,QPRES)
+             rhoe = q(i,j,k,QREINT)
+             enth = (rhoe+p)/(rho*csq)
 
-          drho = dqx(i,j,kc,QRHO)
-          du = dqx(i,j,kc,QU)
-          dv = dqx(i,j,kc,QV)
-          dw = dqx(i,j,kc,QW)
-          dp = dqx(i,j,kc,QPRES)
-          drhoe = dqx(i,j,kc,QREINT)
+             drho = dqx(i,j,k,QRHO)
+             du = dqx(i,j,k,QU)
+             dv = dqx(i,j,k,QV)
+             dw = dqx(i,j,k,QW)
+             dp = dqx(i,j,k,QPRES)
+             drhoe = dqx(i,j,k,QREINT)
 
-          alpham = HALF*(dp/(rho*cc) - du)*(rho/cc)
-          alphap = HALF*(dp/(rho*cc) + du)*(rho/cc)
-          alpha0r = drho - dp/csq
-          alpha0e = drhoe - dp*enth
-          alpha0v = dv
-          alpha0w = dw
+             alpham = HALF*(dp/(rho*cc) - du)*(rho/cc)
+             alphap = HALF*(dp/(rho*cc) + du)*(rho/cc)
+             alpha0r = drho - dp/csq
+             alpha0e = drhoe - dp*enth
+             alpha0v = dv
+             alpha0w = dw
 
-          e(1) = u - cc
-          e(2) = u
-          e(3) = u + cc
+             e(1) = u - cc
+             e(2) = u
+             e(3) = u + cc
 
-          rho_ref = rho - HALF*(ONE + dtdx*min(e(1),ZERO))*drho
-          u_ref = u - HALF*(ONE + dtdx*min(e(1), ZERO))*du
-          v_ref = v - HALF*(ONE + dtdx*min(e(1), ZERO))*dv
-          w_ref = w - HALF*(ONE + dtdx*min(e(1), ZERO))*dw
-          p_ref = p - HALF*(ONE + dtdx*min(e(1), ZERO))*dp
-          rhoe_ref = rhoe - HALF*(ONE + dtdx*min(e(1),ZERO))*drhoe
+             rho_ref = rho - HALF*(ONE + dtdx*min(e(1),ZERO))*drho
+             u_ref = u - HALF*(ONE + dtdx*min(e(1), ZERO))*du
+             v_ref = v - HALF*(ONE + dtdx*min(e(1), ZERO))*dv
+             w_ref = w - HALF*(ONE + dtdx*min(e(1), ZERO))*dw
+             p_ref = p - HALF*(ONE + dtdx*min(e(1), ZERO))*dp
+             rhoe_ref = rhoe - HALF*(ONE + dtdx*min(e(1),ZERO))*drhoe
 
-          ! this is -(1/2) ( 1 + dt/dx lambda) (l . dq) r
-          apright = 0.25e0_rt*dtdx*(e(1) - e(3))*(ONE - sign(ONE, e(3)))*alphap
-          amright = 0.25e0_rt*dtdx*(e(1) - e(1))*(ONE - sign(ONE, e(1)))*alpham
+             ! this is -(1/2) ( 1 + dt/dx lambda) (l . dq) r
+             apright = 0.25e0_rt*dtdx*(e(1) - e(3))*(ONE - sign(ONE, e(3)))*alphap
+             amright = 0.25e0_rt*dtdx*(e(1) - e(1))*(ONE - sign(ONE, e(1)))*alpham
 
-          azrright = 0.25e0*dtdx*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0r
-          azeright = 0.25e0*dtdx*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0e
-          azv1rght = 0.25e0*dtdx*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0v
-          azw1rght = 0.25e0*dtdx*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0w
+             azrright = 0.25e0*dtdx*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0r
+             azeright = 0.25e0*dtdx*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0e
+             azv1rght = 0.25e0*dtdx*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0v
+             azw1rght = 0.25e0*dtdx*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0w
 
-          if (i .ge. ilo1) then
-             qxp(i,j,kc,QRHO) = rho_ref + apright + amright + azrright
-             qxp(i,j,kc,QRHO) = max(small_dens, qxp(i,j,kc,QRHO))
-             qxp(i,j,kc,QU) = u_ref + (apright - amright)*cc/rho
-             qxp(i,j,kc,QV) = v_ref + azv1rght
-             qxp(i,j,kc,QW) = w_ref + azw1rght
-             qxp(i,j,kc,QPRES) = p_ref + (apright + amright)*csq
-             qxp(i,j,kc,QPRES) = max(qxp(i,j,kc,QPRES), small_pres)
-             qxp(i,j,kc,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
+             if (i .ge. lo(1)) then
+                qxp(i,j,k,QRHO) = rho_ref + apright + amright + azrright
+                qxp(i,j,k,QRHO) = max(small_dens, qxp(i,j,k,QRHO))
+                qxp(i,j,k,QU) = u_ref + (apright - amright)*cc/rho
+                qxp(i,j,k,QV) = v_ref + azv1rght
+                qxp(i,j,k,QW) = w_ref + azw1rght
+                qxp(i,j,k,QPRES) = p_ref + (apright + amright)*csq
+                qxp(i,j,k,QPRES) = max(qxp(i,j,k,QPRES), small_pres)
+                qxp(i,j,k,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
 
-             ! add the source terms in 1-d, since we don't do this in
-             ! the transverse routines
+                ! add the source terms in 1-d, since we don't do this in
+                ! the transverse routines
 #if (BL_SPACEDIM == 1)
-             qxp(i,j,kc,QRHO  ) = qxp(i,j,kc,QRHO  ) + HALF*dt*srcQ(i,j,k3d,QRHO)
-             qxp(i,j,kc,QRHO  ) = max(small_dens, qxp(i,j,kc,QRHO))
-             qxp(i,j,kc,QU    ) = qxp(i,j,kc,QU    ) + HALF*dt*srcQ(i,j,k3d,QU)
-             qxp(i,j,kc,QREINT) = qxp(i,j,kc,QREINT) + HALF*dt*srcQ(i,j,k3d,QREINT)
-             qxp(i,j,kc,QPRES ) = qxp(i,j,kc,QPRES ) + HALF*dt*srcQ(i,j,k3d,QPRES)
+                qxp(i,j,k,QRHO  ) = qxp(i,j,k,QRHO  ) + HALF*dt*srcQ(i,j,k,QRHO)
+                qxp(i,j,k,QRHO  ) = max(small_dens, qxp(i,j,k,QRHO))
+                qxp(i,j,k,QU    ) = qxp(i,j,k,QU    ) + HALF*dt*srcQ(i,j,k,QU)
+                qxp(i,j,k,QREINT) = qxp(i,j,k,QREINT) + HALF*dt*srcQ(i,j,k,QREINT)
+                qxp(i,j,k,QPRES ) = qxp(i,j,k,QPRES ) + HALF*dt*srcQ(i,j,k,QPRES)
 #endif
-          end if
+             end if
 
-          ! now construct the left state on the i+1 interface
+             ! now construct the left state on the i+1 interface
 
-          rho_ref = rho + HALF*(ONE - dtdx*max(e(3), ZERO))*drho
-          u_ref = u + HALF*(ONE - dtdx*max(e(3), ZERO))*du
-          v_ref = v + HALF*(ONE - dtdx*max(e(3), ZERO))*dv
-          w_ref = w + HALF*(ONE - dtdx*max(e(3), ZERO))*dw
-          p_ref = p + HALF*(ONE - dtdx*max(e(3), ZERO))*dp
-          rhoe_ref = rhoe + HALF*(ONE - dtdx*max(e(3), ZERO))*drhoe
+             rho_ref = rho + HALF*(ONE - dtdx*max(e(3), ZERO))*drho
+             u_ref = u + HALF*(ONE - dtdx*max(e(3), ZERO))*du
+             v_ref = v + HALF*(ONE - dtdx*max(e(3), ZERO))*dv
+             w_ref = w + HALF*(ONE - dtdx*max(e(3), ZERO))*dw
+             p_ref = p + HALF*(ONE - dtdx*max(e(3), ZERO))*dp
+             rhoe_ref = rhoe + HALF*(ONE - dtdx*max(e(3), ZERO))*drhoe
 
-          apleft = 0.25e0_rt*dtdx*(e(3) - e(3))*(ONE + sign(ONE, e(3)))*alphap
-          amleft = 0.25e0_rt*dtdx*(e(3) - e(1))*(ONE + sign(ONE, e(1)))*alpham
+             apleft = 0.25e0_rt*dtdx*(e(3) - e(3))*(ONE + sign(ONE, e(3)))*alphap
+             amleft = 0.25e0_rt*dtdx*(e(3) - e(1))*(ONE + sign(ONE, e(1)))*alpham
 
-          azrleft = 0.25e0_rt*dtdx*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0r
-          azeleft = 0.25e0_rt*dtdx*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0e
-          azv1left = 0.25e0_rt*dtdx*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0v
-          azw1left = 0.25e0_rt*dtdx*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0w
+             azrleft = 0.25e0_rt*dtdx*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0r
+             azeleft = 0.25e0_rt*dtdx*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0e
+             azv1left = 0.25e0_rt*dtdx*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0v
+             azw1left = 0.25e0_rt*dtdx*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0w
 
-          if (i .le. ihi1) then
-             qxm(i+1,j,kc,QRHO) = rho_ref + apleft + amleft + azrleft
-             qxm(i+1,j,kc,QRHO) = max(small_dens, qxm(i+1,j,kc,QRHO))
-             qxm(i+1,j,kc,QU) = u_ref + (apleft - amleft)*cc/rho
-             qxm(i+1,j,kc,QV) = v_ref + azv1left
-             qxm(i+1,j,kc,QW) = w_ref + azw1left
-             qxm(i+1,j,kc,QPRES) = p_ref + (apleft + amleft)*csq
-             qxm(i+1,j,kc,QPRES) = max(qxm(i+1,j,kc,QPRES), small_pres)
-             qxm(i+1,j,kc,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
+             if (i .le. hi(1)) then
+                qxm(i+1,j,k,QRHO) = rho_ref + apleft + amleft + azrleft
+                qxm(i+1,j,k,QRHO) = max(small_dens, qxm(i+1,j,k,QRHO))
+                qxm(i+1,j,k,QU) = u_ref + (apleft - amleft)*cc/rho
+                qxm(i+1,j,k,QV) = v_ref + azv1left
+                qxm(i+1,j,k,QW) = w_ref + azw1left
+                qxm(i+1,j,k,QPRES) = p_ref + (apleft + amleft)*csq
+                qxm(i+1,j,k,QPRES) = max(qxm(i+1,j,k,QPRES), small_pres)
+                qxm(i+1,j,k,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
 
-             ! add the source terms in 1-d, since we don't do this in
-             ! the transverse routines
+                ! add the source terms in 1-d, since we don't do this in
+                ! the transverse routines
 #if (BL_SPACEDIM == 1)
-             qxm(i+1,j,kc,QRHO  ) = qxm(i+1,j,kc,QRHO  ) + HALF*dt*srcQ(i,j,k3d,QRHO)
-             qxm(i+1,j,kc,QRHO  ) = max(small_dens, qxm(i+1,j,kc,QRHO))
-             qxm(i+1,j,kc,QU    ) = qxm(i+1,j,kc,QU    ) + HALF*dt*srcQ(i,j,k3d,QU)
-             qxm(i+1,j,kc,QREINT) = qxm(i+1,j,kc,QREINT) + HALF*dt*srcQ(i,j,k3d,QREINT)
-             qxm(i+1,j,kc,QPRES ) = qxm(i+1,j,kc,QPRES ) + HALF*dt*srcQ(i,j,k3d,QPRES)
-#endif             
-          endif
+                qxm(i+1,j,k,QRHO  ) = qxm(i+1,j,k,QRHO  ) + HALF*dt*srcQ(i,j,k,QRHO)
+                qxm(i+1,j,k,QRHO  ) = max(small_dens, qxm(i+1,j,k,QRHO))
+                qxm(i+1,j,k,QU    ) = qxm(i+1,j,k,QU    ) + HALF*dt*srcQ(i,j,k,QU)
+                qxm(i+1,j,k,QREINT) = qxm(i+1,j,k,QREINT) + HALF*dt*srcQ(i,j,k,QREINT)
+                qxm(i+1,j,k,QPRES ) = qxm(i+1,j,k,QPRES ) + HALF*dt*srcQ(i,j,k,QPRES)
+#endif
+             endif
 
 #if (BL_SPACEDIM < 3)
-          ! geometry source terms
-          if (dloga(i,j,k3d) /= ZERO) then
-             courn = dtdx*(cc + abs(u))
-             eta = (ONE-courn)/(cc*dt*abs(dloga(i,j,k3d)))
-             dlogatmp = min(eta, ONE)*dloga(i,j,k3d)
-             sourcr = -HALF*dt*rho*dlogatmp*u
-             sourcp = sourcr*csq
-             source = sourcp*enth
-             if (i .le. ihi1) then
-                qxm(i+1,j,kc,QRHO) = qxm(i+1,j,kc,QRHO) + sourcr
-                qxm(i+1,j,kc,QRHO) = max(qxm(i+1,j,kc,QRHO),small_dens)
-                qxm(i+1,j,kc,QPRES) = qxm(i+1,j,kc,QPRES) + sourcp
-                qxm(i+1,j,kc,QREINT) = qxm(i+1,j,kc,QREINT) + source
+             ! geometry source terms
+             if (dloga(i,j,k) /= ZERO) then
+                courn = dtdx*(cc + abs(u))
+                eta = (ONE-courn)/(cc*dt*abs(dloga(i,j,k)))
+                dlogatmp = min(eta, ONE)*dloga(i,j,k)
+                sourcr = -HALF*dt*rho*dlogatmp*u
+                sourcp = sourcr*csq
+                source = sourcp*enth
+                if (i .le. hi(1)) then
+                   qxm(i+1,j,k,QRHO) = qxm(i+1,j,k,QRHO) + sourcr
+                   qxm(i+1,j,k,QRHO) = max(qxm(i+1,j,k,QRHO),small_dens)
+                   qxm(i+1,j,k,QPRES) = qxm(i+1,j,k,QPRES) + sourcp
+                   qxm(i+1,j,k,QREINT) = qxm(i+1,j,k,QREINT) + source
+                end if
+                if (i .ge. lo(1)) then
+                   qxp(i,j,k,QRHO) = qxp(i,j,k,QRHO) + sourcr
+                   qxp(i,j,k,QRHO) = max(qxp(i,j,k,QRHO),small_dens)
+                   qxp(i,j,k,QPRES) = qxp(i,j,k,QPRES) + sourcp
+                   qxp(i,j,k,QREINT) = qxp(i,j,k,QREINT) + source
+                end if
              end if
-             if (i .ge. ilo1) then
-                qxp(i,j,kc,QRHO) = qxp(i,j,kc,QRHO) + sourcr
-                qxp(i,j,kc,QRHO) = max(qxp(i,j,kc,QRHO),small_dens)
-                qxp(i,j,kc,QPRES) = qxp(i,j,kc,QPRES) + sourcp
-                qxp(i,j,kc,QREINT) = qxp(i,j,kc,QREINT) + source
-             end if
-          endif
 #endif
 
 #if (BL_SPACEDIM == 1)
-    ! Enforce constant mass flux rate if specified
-    if (fix_mass_flux_lo) then
-       qxm(ilo1,j,kc,QRHO  ) = q(domlo(1)-1,j,k3d,QRHO)
-       qxm(ilo1,j,kc,QU    ) = q(domlo(1)-1,j,k3d,QU  )
-       qxm(ilo1,j,kc,QPRES ) = q(domlo(1)-1,j,k3d,QPRES)
-       qxm(ilo1,j,kc,QREINT) = q(domlo(1)-1,j,k3d,QREINT)
-    end if
+             ! Enforce constant mass flux rate if specified
+             if (fix_mass_flux_lo) then
+                qxm(lo(1),j,k,QRHO  ) = q(domlo(1)-1,j,k,QRHO)
+                qxm(lo(1),j,k,QU    ) = q(domlo(1)-1,j,k,QU  )
+                qxm(lo(1),j,k,QPRES ) = q(domlo(1)-1,j,k,QPRES)
+                qxm(lo(1),j,k,QREINT) = q(domlo(1)-1,j,k,QREINT)
+             end if
 
-    ! Enforce constant mass flux rate if specified
-    if (fix_mass_flux_hi) then
-       qxp(ihi1+1,j,kc,QRHO  ) = q(domhi(1)+1,j,k3d,QRHO)
-       qxp(ihi1+1,j,kc,QU    ) = q(domhi(1)+1,j,k3d,QU  )
-       qxp(ihi1+1,j,kc,QPRES ) = q(domhi(1)+1,j,k3d,QPRES)
-       qxp(ihi1+1,j,kc,QREINT) = q(domhi(1)+1,j,k3d,QREINT)
-    end if
+             ! Enforce constant mass flux rate if specified
+             if (fix_mass_flux_hi) then
+                qxp(hi(1)+1,j,k,QRHO  ) = q(domhi(1)+1,j,k,QRHO)
+                qxp(hi(1)+1,j,k,QU    ) = q(domhi(1)+1,j,k,QU  )
+                qxp(hi(1)+1,j,k,QPRES ) = q(domhi(1)+1,j,k,QPRES)
+                qxp(hi(1)+1,j,k,QREINT) = q(domhi(1)+1,j,k,QREINT)
+             end if
 #endif
 
-       enddo
-    enddo
+          end do
+       end do
+    end do
 
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
@@ -275,134 +276,139 @@ contains
        ! components above, so don't process them here.
        if (n == QU .or. n == QV .or. n == QW) cycle
 
-       do j = ilo2-dg(2), ihi2+dg(2)
+       do k = lo(3)-dg(3), hi(3)+dg(3)
+          do j = lo(2)-dg(2), hi(2)+dg(2)
 
-          ! Right state
-          do i = ilo1, ihi1+1
-             u = q(i,j,k3d,QU)
-             if (u .gt. ZERO) then
-                spzero = -ONE
-             else
-                spzero = u*dtdx
-             endif
-             acmprght = HALF*(-ONE - spzero )*dqx(i,j,kc,n)
-             qxp(i,j,kc,n) = q(i,j,k3d,n) + acmprght
-          enddo
+             ! Right state
+             do i = lo(1), hi(1)+1
+                u = q(i,j,k,QU)
+                if (u .gt. ZERO) then
+                   spzero = -ONE
+                else
+                   spzero = u*dtdx
+                endif
+                acmprght = HALF*(-ONE - spzero )*dqx(i,j,k,n)
+                qxp(i,j,k,n) = q(i,j,k,n) + acmprght
+             end do
 
-          ! Left state
-          do i = ilo1-1, ihi1
-             u = q(i,j,k3d,QU)
-             if (u .ge. ZERO) then
-                spzero = u*dtdx
-             else
-                spzero = ONE
-             endif
-             acmpleft = HALF*(ONE - spzero )*dqx(i,j,kc,n)
-             qxm(i+1,j,kc,n) = q(i,j,k3d,n) + acmpleft
-          enddo
+             ! Left state
+             do i = lo(1)-1, hi(1)
+                u = q(i,j,k,QU)
+                if (u .ge. ZERO) then
+                   spzero = u*dtdx
+                else
+                   spzero = ONE
+                endif
+                acmpleft = HALF*(ONE - spzero )*dqx(i,j,k,n)
+                qxm(i+1,j,k,n) = q(i,j,k,n) + acmpleft
+             end do
 
 #if (BL_SPACEDIM == 1)
-       if (fix_mass_flux_hi) qxp(ihi1+1,j,kc,n) = q(ihi1+1,j,k3d,n)
-       if (fix_mass_flux_lo) qxm(ilo1,j,kc,n) = q(ilo1-1,j,k3d,n)
+             if (fix_mass_flux_hi) qxp(ihi1+1,j,k,n) = q(ihi1+1,j,k,n)
+             if (fix_mass_flux_lo) qxm(ilo1,j,k,n) = q(ilo1-1,j,k,n)
 #endif
 
-       enddo
-    enddo
+          end do
+       end do
+
+    end do
 
 #if (BL_SPACEDIM >= 2)
     !-----------------------------------------------------------------------
     ! y-direction
     !-----------------------------------------------------------------------
 
-    do j = ilo2-1, ihi2+1
-       do i = ilo1-1, ihi1+1
+    do k = lo(3)-1, hi(3)+1
+       do j = lo(2)-1, hi(2)+1
+          do i = lo(1)-1, hi(1)+1
 
-          cc = qaux(i,j,k3d,QC)
-          csq = cc**2
-          rho = q(i,j,k3d,QRHO)
-          u = q(i,j,k3d,QU)
-          v = q(i,j,k3d,QV)
-          w = q(i,j,k3d,QW)
-          p = q(i,j,k3d,QPRES)
-          rhoe = q(i,j,k3d,QREINT)
-          enth = (rhoe+p)/(rho*csq)
+             cc = qaux(i,j,k,QC)
+             csq = cc**2
+             rho = q(i,j,k,QRHO)
+             u = q(i,j,k,QU)
+             v = q(i,j,k,QV)
+             w = q(i,j,k,QW)
+             p = q(i,j,k,QPRES)
+             rhoe = q(i,j,k,QREINT)
+             enth = (rhoe+p)/(rho*csq)
 
-          drho = dqy(i,j,kc,QRHO)
-          du = dqy(i,j,kc,QU)
-          dv = dqy(i,j,kc,QV)
-          dw = dqy(i,j,kc,QW)
-          dp = dqy(i,j,kc,QPRES)
-          drhoe = dqy(i,j,kc,QREINT)
+             drho = dqy(i,j,k,QRHO)
+             du = dqy(i,j,k,QU)
+             dv = dqy(i,j,k,QV)
+             dw = dqy(i,j,k,QW)
+             dp = dqy(i,j,k,QPRES)
+             drhoe = dqy(i,j,k,QREINT)
 
-          alpham = HALF*(dp/(rho*cc) - dv)*(rho/cc)
-          alphap = HALF*(dp/(rho*cc) + dv)*(rho/cc)
-          alpha0r = drho - dp/csq
-          alpha0e = drhoe - dp*enth
-          alpha0u = du
-          alpha0w = dw
+             alpham = HALF*(dp/(rho*cc) - dv)*(rho/cc)
+             alphap = HALF*(dp/(rho*cc) + dv)*(rho/cc)
+             alpha0r = drho - dp/csq
+             alpha0e = drhoe - dp*enth
+             alpha0u = du
+             alpha0w = dw
 
-          e(1) = v - cc
-          e(2) = v
-          e(3) = v + cc
+             e(1) = v - cc
+             e(2) = v
+             e(3) = v + cc
 
-          ! construct the right state on the j-1/2 interface
+             ! construct the right state on the j-1/2 interface
 
-          rho_ref = rho - HALF*(ONE + dtdy*min(e(1), ZERO))*drho
-          u_ref = u - HALF*(ONE + dtdy*min(e(1), ZERO))*du
-          v_ref = v - HALF*(ONE + dtdy*min(e(1), ZERO))*dv
-          w_ref = w - HALF*(ONE + dtdy*min(e(1), ZERO))*dw
-          p_ref = p - HALF*(ONE + dtdy*min(e(1), ZERO))*dp
-          rhoe_ref = rhoe - HALF*(ONE + dtdy*min(e(1), ZERO))*drhoe
+             rho_ref = rho - HALF*(ONE + dtdy*min(e(1), ZERO))*drho
+             u_ref = u - HALF*(ONE + dtdy*min(e(1), ZERO))*du
+             v_ref = v - HALF*(ONE + dtdy*min(e(1), ZERO))*dv
+             w_ref = w - HALF*(ONE + dtdy*min(e(1), ZERO))*dw
+             p_ref = p - HALF*(ONE + dtdy*min(e(1), ZERO))*dp
+             rhoe_ref = rhoe - HALF*(ONE + dtdy*min(e(1), ZERO))*drhoe
 
-          apright = 0.25e0_rt*dtdy*(e(1) - e(3))*(ONE - sign(ONE, e(3)))*alphap
-          amright = 0.25e0_rt*dtdy*(e(1) - e(1))*(ONE - sign(ONE, e(1)))*alpham
+             apright = 0.25e0_rt*dtdy*(e(1) - e(3))*(ONE - sign(ONE, e(3)))*alphap
+             amright = 0.25e0_rt*dtdy*(e(1) - e(1))*(ONE - sign(ONE, e(1)))*alpham
 
-          azrright = 0.25e0*dtdy*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0r
-          azeright = 0.25e0*dtdy*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0e
-          azu1rght = 0.25e0*dtdy*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0u
-          azw1rght = 0.25e0*dtdy*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0w
+             azrright = 0.25e0*dtdy*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0r
+             azeright = 0.25e0*dtdy*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0e
+             azu1rght = 0.25e0*dtdy*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0u
+             azw1rght = 0.25e0*dtdy*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0w
 
-          if (j .ge. ilo2) then
-             qyp(i,j,kc,QRHO) = rho_ref + apright + amright + azrright
-             qyp(i,j,kc,QRHO) = max(small_dens, qyp(i,j,kc,QRHO))
-             qyp(i,j,kc,QV) = v_ref + (apright - amright)*cc/rho
-             qyp(i,j,kc,QU) = u_ref + azu1rght
-             qyp(i,j,kc,QW) = w_ref + azw1rght
-             qyp(i,j,kc,QPRES) = p_ref + (apright + amright)*csq
-             qyp(i,j,kc,QPRES) = max(qyp(i,j,kc,QPRES), small_pres)
-             qyp(i,j,kc,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
-          end if
+             if (j .ge. lo(2)) then
+                qyp(i,j,k,QRHO) = rho_ref + apright + amright + azrright
+                qyp(i,j,k,QRHO) = max(small_dens, qyp(i,j,k,QRHO))
+                qyp(i,j,k,QV) = v_ref + (apright - amright)*cc/rho
+                qyp(i,j,k,QU) = u_ref + azu1rght
+                qyp(i,j,k,QW) = w_ref + azw1rght
+                qyp(i,j,k,QPRES) = p_ref + (apright + amright)*csq
+                qyp(i,j,k,QPRES) = max(qyp(i,j,k,QPRES), small_pres)
+                qyp(i,j,k,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
+             end if
 
-          ! construct the left state on the j+1/2 interface
+             ! construct the left state on the j+1/2 interface
 
-          rho_ref = rho + HALF*(ONE - dtdy*max(e(3), ZERO))*drho
-          u_ref = u + HALF*(ONE - dtdy*max(e(3), ZERO))*du
-          v_ref = v + HALF*(ONE - dtdy*max(e(3), ZERO))*dv
-          w_ref = w + HALF*(ONE - dtdy*max(e(3), ZERO))*dw
-          p_ref = p + HALF*(ONE - dtdy*max(e(3), ZERO))*dp
-          rhoe_ref = rhoe + HALF*(ONE - dtdy*max(e(3), ZERO))*drhoe
+             rho_ref = rho + HALF*(ONE - dtdy*max(e(3), ZERO))*drho
+             u_ref = u + HALF*(ONE - dtdy*max(e(3), ZERO))*du
+             v_ref = v + HALF*(ONE - dtdy*max(e(3), ZERO))*dv
+             w_ref = w + HALF*(ONE - dtdy*max(e(3), ZERO))*dw
+             p_ref = p + HALF*(ONE - dtdy*max(e(3), ZERO))*dp
+             rhoe_ref = rhoe + HALF*(ONE - dtdy*max(e(3), ZERO))*drhoe
 
-          apleft = 0.25e0_rt*dtdy*(e(3) - e(3))*(ONE + sign(ONE, e(3)))*alphap
-          amleft = 0.25e0_rt*dtdy*(e(3) - e(1))*(ONE + sign(ONE, e(1)))*alpham
+             apleft = 0.25e0_rt*dtdy*(e(3) - e(3))*(ONE + sign(ONE, e(3)))*alphap
+             amleft = 0.25e0_rt*dtdy*(e(3) - e(1))*(ONE + sign(ONE, e(1)))*alpham
 
-          azrleft = 0.25e0_rt*dtdy*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0r
-          azeleft = 0.25e0_rt*dtdy*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0e
-          azu1left = 0.25e0_rt*dtdy*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0u
-          azw1left = 0.25e0_rt*dtdy*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0w
+             azrleft = 0.25e0_rt*dtdy*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0r
+             azeleft = 0.25e0_rt*dtdy*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0e
+             azu1left = 0.25e0_rt*dtdy*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0u
+             azw1left = 0.25e0_rt*dtdy*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0w
 
-          if (j .le. ihi2) then
-             qym(i,j+1,kc,QRHO) = rho_ref + apleft + amleft + azrleft
-             qym(i,j+1,kc,QRHO) = max(small_dens, qym(i,j+1,kc,QRHO))
-             qym(i,j+1,kc,QV) = v_ref + (apleft - amleft)*cc/rho
-             qym(i,j+1,kc,QU) = u_ref + azu1left
-             qym(i,j+1,kc,QW) = w_ref + azw1left
-             qym(i,j+1,kc,QPRES) = p_ref + (apleft + amleft)*csq
-             qym(i,j+1,kc,QPRES) = max(qym(i,j+1,kc,QPRES), small_pres)
-             qym(i,j+1,kc,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
-          endif
+             if (j .le. hi(2)) then
+                qym(i,j+1,k,QRHO) = rho_ref + apleft + amleft + azrleft
+                qym(i,j+1,k,QRHO) = max(small_dens, qym(i,j+1,k,QRHO))
+                qym(i,j+1,k,QV) = v_ref + (apleft - amleft)*cc/rho
+                qym(i,j+1,k,QU) = u_ref + azu1left
+                qym(i,j+1,k,QW) = w_ref + azw1left
+                qym(i,j+1,k,QPRES) = p_ref + (apleft + amleft)*csq
+                qym(i,j+1,k,QPRES) = max(qym(i,j+1,k,QPRES), small_pres)
+                qym(i,j+1,k,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
+             endif
 
-       enddo
-    enddo
+          end do
+       end do
+    end do
 
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
@@ -412,34 +418,36 @@ contains
        ! components above, so don't process them here.
        if (n == QU .or. n == QV .or. n == QW) cycle
 
-       do i = ilo1-1, ihi1+1
+       do k = lo(3)-1, hi(3)+1
+          do i = lo(1)-1, hi(1)+1
 
-          ! Top state
-          do j = ilo2, ihi2+1
-             v = q(i,j,k3d,QV)
-             if (v .gt. ZERO) then
-                spzero = -ONE
-             else
-                spzero = v*dtdy
-             endif
-             acmptop = HALF*(-ONE - spzero )*dqy(i,j,kc,n)
-             qyp(i,j,kc,n) = q(i,j,k3d,n) + acmptop
-          enddo
+             ! Top state
+             do j = lo(2), hi(2)+1
+                v = q(i,j,k,QV)
+                if (v .gt. ZERO) then
+                   spzero = -ONE
+                else
+                   spzero = v*dtdy
+                endif
+                acmptop = HALF*(-ONE - spzero )*dqy(i,j,k,n)
+                qyp(i,j,k,n) = q(i,j,k,n) + acmptop
+             enddo
 
-          ! Bottom state
-          do j = ilo2-1, ihi2
-             v = q(i,j,k3d,QV)
-             if (v .ge. ZERO) then
-                spzero = v*dtdy
-             else
-                spzero = ONE
-             endif
-             acmpbot = HALF*(ONE - spzero )*dqy(i,j,kc,n)
-             qym(i,j+1,kc,n) = q(i,j,k3d,n) + acmpbot
-          enddo
+             ! Bottom state
+             do j = lo(2)-1, hi(2)
+                v = q(i,j,k,QV)
+                if (v .ge. ZERO) then
+                   spzero = v*dtdy
+                else
+                   spzero = ONE
+                endif
+                acmpbot = HALF*(ONE - spzero )*dqy(i,j,k,n)
+                qym(i,j+1,k,n) = q(i,j,k,n) + acmpbot
+             enddo
 
-       enddo
-    enddo
+          end do
+       end do
+    end do
 #endif
 
   end subroutine tracexy
@@ -452,8 +460,8 @@ contains
                     qaux, qa_lo, qa_hi, &
                     dqz, dq_lo, dq_hi, &
                     qzm, qzp, qpd_lo, qpd_hi, &
-                    ilo1, ilo2, ihi1, ihi2, domlo, domhi, &
-                    dx, dt, km, kc, k3d)
+                    lo, hi, domlo, domhi, &
+                    dx, dt)
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, QC, &
@@ -468,8 +476,7 @@ contains
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: dq_lo(3), dq_hi(3)
     integer, intent(in) :: qpd_lo(3), qpd_hi(3)
-    integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
-    integer, intent(in) :: km, kc, k3d
+    integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
     real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
@@ -500,116 +507,98 @@ contains
 
     dtdz = dt/dx(3)
 
-    do j = ilo2-1, ihi2+1
-       do i = ilo1-1, ihi1+1
 
-          cc = qaux(i,j,k3d,QC)
-          csq = cc**2
-          rho = q(i,j,k3d,QRHO)
-          u = q(i,j,k3d,QU)
-          v = q(i,j,k3d,QV)
-          w = q(i,j,k3d,QW)
-          p = q(i,j,k3d,QPRES)
-          rhoe = q(i,j,k3d,QREINT)
-          enth = (rhoe+p)/(rho*csq)
+    do k = lo(3)-1, hi(3)+1
+       do j = lo(2)-1, hi(2)+1
+          do i = lo(1)-1, hi(1)+1
 
-          drho = dqz(i,j,kc,QRHO)
-          du = dqz(i,j,kc,QU)
-          dv = dqz(i,j,kc,QV)
-          dw = dqz(i,j,kc,QW)
-          dp = dqz(i,j,kc,QPRES)
-          drhoe = dqz(i,j,kc,QREINT)
+             cc = qaux(i,j,k,QC)
+             csq = cc**2
+             rho = q(i,j,k,QRHO)
+             u = q(i,j,k,QU)
+             v = q(i,j,k,QV)
+             w = q(i,j,k,QW)
+             p = q(i,j,k,QPRES)
+             rhoe = q(i,j,k,QREINT)
+             enth = (rhoe+p)/(rho*csq)
 
-          alpham = HALF*(dp/(rho*cc) - dw)*(rho/cc)
-          alphap = HALF*(dp/(rho*cc) + dw)*(rho/cc)
-          alpha0r = drho - dp/csq
-          alpha0e = drhoe - dp*enth
-          alpha0u = du
-          alpha0v = dv
+             drho = dqz(i,j,k,QRHO)
+             du = dqz(i,j,k,QU)
+             dv = dqz(i,j,k,QV)
+             dw = dqz(i,j,k,QW)
+             dp = dqz(i,j,k,QPRES)
+             drhoe = dqz(i,j,k,QREINT)
 
-          e(1) = w - cc
-          e(2) = w
-          e(3) = w + cc
+             alpham = HALF*(dp/(rho*cc) - dw)*(rho/cc)
+             alphap = HALF*(dp/(rho*cc) + dw)*(rho/cc)
+             alpha0r = drho - dp/csq
+             alpha0e = drhoe - dp*enth
+             alpha0u = du
+             alpha0v = dv
 
-          rho_ref = rho - HALF*(ONE + dtdz*min(e(1), ZERO))*drho
-          u_ref = u - HALF*(ONE + dtdz*min(e(1), ZERO))*du
-          v_ref = v - HALF*(ONE + dtdz*min(e(1), ZERO))*dv
-          w_ref = w - HALF*(ONE + dtdz*min(e(1), ZERO))*dw
-          p_ref = p - HALF*(ONE + dtdz*min(e(1), ZERO))*dp
-          rhoe_ref = rhoe - HALF*(ONE + dtdz*min(e(1),ZERO))*drhoe
+             e(1) = w - cc
+             e(2) = w
+             e(3) = w + cc
 
-          apright = 0.25e0_rt*dtdz*(e(1) - e(3))*(ONE - sign(ONE, e(3)))*alphap
-          amright = 0.25e0_rt*dtdz*(e(1) - e(1))*(ONE - sign(ONE, e(1)))*alpham
+             ! construct the right state on the k-1/2 interface
 
-          azrright = 0.25e0*dtdz*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0r
-          azeright = 0.25e0*dtdz*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0e
-          azu1rght = 0.25e0*dtdz*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0u
-          azv1rght = 0.25e0*dtdz*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0v
+             rho_ref = rho - HALF*(ONE + dtdz*min(e(1), ZERO))*drho
+             u_ref = u - HALF*(ONE + dtdz*min(e(1), ZERO))*du
+             v_ref = v - HALF*(ONE + dtdz*min(e(1), ZERO))*dv
+             w_ref = w - HALF*(ONE + dtdz*min(e(1), ZERO))*dw
+             p_ref = p - HALF*(ONE + dtdz*min(e(1), ZERO))*dp
+             rhoe_ref = rhoe - HALF*(ONE + dtdz*min(e(1),ZERO))*drhoe
 
-          qzp(i,j,kc,QRHO) = rho_ref + apright + amright + azrright
-          qzp(i,j,kc,QRHO) = max(small_dens, qzp(i,j,kc,QRHO))
-          qzp(i,j,kc,QW) = w_ref + (apright - amright)*(cc/rho)
-          qzp(i,j,kc,QU) = u_ref + azu1rght
-          qzp(i,j,kc,QV) = v_ref + azv1rght
-          qzp(i,j,kc,QPRES) = p_ref + (apright + amright)*csq
-          qzp(i,j,kc,QPRES) = max(qzp(i,j,kc,QPRES), small_pres)
-          qzp(i,j,kc,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
+             apright = 0.25e0_rt*dtdz*(e(1) - e(3))*(ONE - sign(ONE, e(3)))*alphap
+             amright = 0.25e0_rt*dtdz*(e(1) - e(1))*(ONE - sign(ONE, e(1)))*alpham
 
-          ! repeat above with km (k3d-1) to get qzm at kc
-          cc = qaux(i,j,k3d-1,QC)
-          csq = cc**2
-          rho = q(i,j,k3d-1,QRHO)
-          u = q(i,j,k3d-1,QU)
-          v = q(i,j,k3d-1,QV)
-          w = q(i,j,k3d-1,QW)
-          p = q(i,j,k3d-1,QPRES)
-          rhoe = q(i,j,k3d-1,QREINT)
-          enth = (rhoe+p)/(rho*csq)
+             azrright = 0.25e0*dtdz*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0r
+             azeright = 0.25e0*dtdz*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0e
+             azu1rght = 0.25e0*dtdz*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0u
+             azv1rght = 0.25e0*dtdz*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0v
 
-          drho = dqz(i,j,km,QRHO)
-          du = dqz(i,j,km,QU)
-          dv = dqz(i,j,km,QV)
-          dw = dqz(i,j,km,QW)
-          dp = dqz(i,j,km,QPRES)
-          drhoe = dqz(i,j,km,QREINT)
+             if (k .ge. lo(3)) then
+                qzp(i,j,k,QRHO) = rho_ref + apright + amright + azrright
+                qzp(i,j,k,QRHO) = max(small_dens, qzp(i,j,kc,QRHO))
+                qzp(i,j,k,QW) = w_ref + (apright - amright)*(cc/rho)
+                qzp(i,j,k,QU) = u_ref + azu1rght
+                qzp(i,j,k,QV) = v_ref + azv1rght
+                qzp(i,j,k,QPRES) = p_ref + (apright + amright)*csq
+                qzp(i,j,k,QPRES) = max(qzp(i,j,k,QPRES), small_pres)
+                qzp(i,j,k,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
+             endif
 
-          alpham = HALF*(dp/(rho*cc) - dw)*(rho/cc)
-          alphap = HALF*(dp/(rho*cc) + dw)*(rho/cc)
-          alpha0r = drho - dp/csq
-          alpha0e = drhoe - dp*enth
-          alpha0u = du
-          alpha0v = dv
+             ! construct the left state at the k+1/2 interface
 
-          e(1) = w - cc
-          e(2) = w
-          e(3) = w + cc
+             rho_ref = rho + HALF*(ONE - dtdz*max(e(3), ZERO))*drho
+             u_ref = u + HALF*(ONE - dtdz*max(e(3), ZERO))*du
+             v_ref = v + HALF*(ONE - dtdz*max(e(3), ZERO))*dv
+             w_ref = w + HALF*(ONE - dtdz*max(e(3), ZERO))*dw
+             p_ref = p + HALF*(ONE - dtdz*max(e(3), ZERO))*dp
+             rhoe_ref = rhoe + HALF*(ONE - dtdz*max(e(3), ZERO))*drhoe
 
-          rho_ref = rho + HALF*(ONE - dtdz*max(e(3), ZERO))*drho
-          u_ref = u + HALF*(ONE - dtdz*max(e(3), ZERO))*du
-          v_ref = v + HALF*(ONE - dtdz*max(e(3), ZERO))*dv
-          w_ref = w + HALF*(ONE - dtdz*max(e(3), ZERO))*dw
-          p_ref = p + HALF*(ONE - dtdz*max(e(3), ZERO))*dp
-          rhoe_ref = rhoe + HALF*(ONE - dtdz*max(e(3), ZERO))*drhoe
+             apleft = 0.25e0_rt*dtdz*(e(3) - e(3))*(ONE + sign(ONE, e(3)))*alphap
+             amleft = 0.25e0_rt*dtdz*(e(3) - e(1))*(ONE + sign(ONE, e(1)))*alpham
 
-          apleft = 0.25e0_rt*dtdz*(e(3) - e(3))*(ONE + sign(ONE, e(3)))*alphap
-          amleft = 0.25e0_rt*dtdz*(e(3) - e(1))*(ONE + sign(ONE, e(1)))*alpham
+             azrleft = 0.25e0_rt*dtdz*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0r
+             azeleft = 0.25e0_rt*dtdz*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0e
+             azu1left = 0.25e0_rt*dtdz*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0u
+             azv1left = 0.25e0_rt*dtdz*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0v
 
-          azrleft = 0.25e0_rt*dtdz*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0r
-          azeleft = 0.25e0_rt*dtdz*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0e
-          azu1left = 0.25e0_rt*dtdz*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0u
-          azv1left = 0.25e0_rt*dtdz*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0v
+             if (k .le. hi(3)) then
+                qzm(i,j,k+1,QRHO) = rho_ref + apleft + amleft + azrleft
+                qzm(i,j,k+1,QRHO) = max(small_dens, qzm(i,j,k+1,QRHO))
+                qzm(i,j,k+1,QW) = w_ref + (apleft - amleft)*(cc/rho)
+                qzm(i,j,k+1,QU) = u_ref + azu1left
+                qzm(i,j,k+1,QV) = v_ref + azv1left
+                qzm(i,j,k+1,QPRES) = p_ref + (apleft + amleft)*csq
+                qzm(i,j,k+1,QPRES) = max(qzm(i,j,k+1,QPRES), small_pres)
+                qzm(i,j,k+1,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
+             endif
 
-          qzm(i,j,kc,QRHO) = rho_ref + apleft + amleft + azrleft
-          qzm(i,j,kc,QRHO) = max(small_dens, qzm(i,j,kc,QRHO))
-          qzm(i,j,kc,QW) = w_ref + (apleft - amleft)*(cc/rho)
-          qzm(i,j,kc,QU) = u_ref + azu1left
-          qzm(i,j,kc,QV) = v_ref + azv1left
-          qzm(i,j,kc,QPRES) = p_ref + (apleft + amleft)*csq
-          qzm(i,j,kc,QPRES) = max(qzm(i,j,kc,QPRES), small_pres)
-          qzm(i,j,kc,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
-
-       enddo
-    enddo
+          end do
+       end do
+    end do
 
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
@@ -619,31 +608,36 @@ contains
        ! components above, so don't process them here.
        if (n == QU .or. n == QV .or. n == QW) cycle
 
-       do j = ilo2-1, ihi2+1
-          do i = ilo1-1, ihi1+1
+       do j = lo(2)-1, hi(2)+1
+          do i = lo(1)-1, hi(1)+1
 
              ! Top state
-             w = q(i,j,k3d,QW)
-             if (w .gt. ZERO) then
-                spzero = -ONE
-             else
-                spzero = w*dtdz
-             endif
-             acmptop = HALF*(-ONE - spzero )*dqz(i,j,kc,n)
-             qzp(i,j,kc,n) = q(i,j,k3d,n) + acmptop
+             do k = lo(3), hi(3)+1
+                w = q(i,j,k,QW)
+                if (w .gt. ZERO) then
+                   spzero = -ONE
+                else
+                   spzero = w*dtdz
+                endif
+                acmptop = HALF*(-ONE - spzero )*dqz(i,j,k,n)
+                qzp(i,j,k,n) = q(i,j,k,n) + acmptop
+             end do
 
              ! Bottom state
-             w = q(i,j,k3d-1,QW)
-             if (w .ge. ZERO) then
-                spzero = w*dtdz
-             else
-                spzero = ONE
-             endif
-             acmpbot = HALF*(ONE - spzero )*dqz(i,j,km,n)
-             qzm(i,j,kc,n) = q(i,j,k3d-1,n) + acmpbot
-          enddo
-       enddo
-    enddo
+             do k = lo(3)-1, hi(3)
+                w = q(i,j,k,QW)
+                if (w .ge. ZERO) then
+                   spzero = w*dtdz
+                else
+                   spzero = ONE
+                endif
+                acmpbot = HALF*(ONE - spzero )*dqz(i,j,k,n)
+                qzm(i,j,k+1,n) = q(i,j,k,n) + acmpbot
+             end do
+
+          end do
+       end do
+    end do
 
   end subroutine tracez
 
