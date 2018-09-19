@@ -245,7 +245,7 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state, Rea
     for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
     {
 	const Box& bx = mfi.tilebox();
-
+#pragma gpu
 	ca_gsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 		AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
 		BL_TO_FORTRAN_ANYD(state[mfi]),

@@ -19,8 +19,8 @@ contains
     use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_error_module
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type
-    use math_module, only: cross_product
-    use castro_util_module, only: position
+    use math_module, only: cross_product ! function
+    use castro_util_module, only: position ! function
     use prob_params_module, only: center
 #ifdef HYBRID_MOMENTUM
     use meth_params_module, only: UMR, UMP
@@ -65,6 +65,8 @@ contains
     ! Temporary array for seeing what the new state would be if the update were applied here.
 
     real(rt) :: snew(NVAR)
+
+    !$gpu
 
     ! Initialize the update and temporary state to zero. We only need to do this once outside
     ! the loop, since the array access pattern is consistent across loop iterations.
@@ -141,9 +143,9 @@ contains
                 SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
 
              else
-
+#ifndef AMREX_USE_CUDA
                 call amrex_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
-
+#endif
              end if
 
              src(UEDEN) = SrE
@@ -529,7 +531,9 @@ contains
 #endif
 
              else
+#ifndef AMREX_USE_CUDA
                 call amrex_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
+#endif
              end if
 
              src(UEDEN) = SrEcorr
