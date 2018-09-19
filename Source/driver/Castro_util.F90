@@ -29,6 +29,7 @@ contains
     integer  :: domlo(3), domhi(3)
     integer  :: dir
 
+    !$gpu
     idx = [ i, j, k ]
 
     dx(:) = dx_level(:,amr_level)

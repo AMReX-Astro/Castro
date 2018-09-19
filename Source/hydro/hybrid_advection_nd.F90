@@ -47,7 +47,7 @@ contains
     use amrex_constants_module, only: ONE
     use meth_params_module, only: NVAR, URHO, UMR, UML
     use prob_params_module, only: center
-    use castro_util_module, only: position
+    use castro_util_module, only: position ! function
     use network, only: nspec, naux
     use amrex_fort_module, only : rt => amrex_real
 
@@ -63,6 +63,7 @@ contains
     integer  :: i, j, k
     real(rt) :: loc(3), R, rhoInv
 
+    !$gpu
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -132,6 +133,7 @@ contains
 
     real(rt)         :: R
 
+    !$gpu
     R = sqrt( loc(1)**2 + loc(2)**2 )
 
     ! This is the inverse of Byerly et al., Equations 25 and 26.
@@ -156,6 +158,7 @@ contains
 
     real(rt)         :: R
 
+    !$gpu
     R = sqrt( loc(1)**2 + loc(2)**2 )
 
     ! This is analogous to the conversion of linear momentum to hybrid momentum.
@@ -322,7 +325,7 @@ contains
 
     use amrex_constants_module, only: HALF, ONE
     use meth_params_module, only: URHO, UMR, UMP, UMX, UMZ, UEDEN, NVAR
-    use castro_util_module, only: position
+    use castro_util_module, only: position ! function
     use prob_params_module, only: center
 
     use amrex_fort_module, only : rt => amrex_real
@@ -334,14 +337,16 @@ contains
 
     integer          :: i, j, k
     real(rt)         :: loc(3)
+    real(rt)         :: mom(3)
 
+    !$gpu
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
              loc = position(i,j,k) - center
-
-             state(i,j,k,UMX:UMZ) = hybrid_to_linear(loc, state(i,j,k,UMR:UMP))
+             mom = state(i,j,k,UMR:UMP)
+             state(i,j,k,UMX:UMZ) = hybrid_to_linear(loc, mom)
 
           enddo
        enddo
