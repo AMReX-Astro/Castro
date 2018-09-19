@@ -8,42 +8,40 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
                               ustar, pstar, W_l, W_r, &
                               verbose_in)
 
-  use bl_types
-  use bl_constants_module
+  use amrex_fort_module, only : rt => amrex_real
+  use amrex_constants_module
   use eos_module
   use eos_type_module
   use network, only: nspec
   use riemann_support
-  use probin_module, only: riemann_max_iter
+  use extern_probin_module, only: riemann_max_iter
 
   implicit none
 
-  real (kind=dp_t), intent(in) :: rho_l, u_l, p_l
-  real (kind=dp_t), intent(in) :: rho_r, u_r, p_r
-  real (kind=dp_t), intent(in) :: xn_l(nspec), xn_r(nspec)
-  real (kind=dp_t), intent(out) :: ustar, pstar, W_l, W_r
+  real (rt), intent(in) :: rho_l, u_l, p_l
+  real (rt), intent(in) :: rho_r, u_r, p_r
+  real (rt), intent(in) :: xn_l(nspec), xn_r(nspec)
+  real (rt), intent(out) :: ustar, pstar, W_l, W_r
   logical, optional, intent(in) :: verbose_in
 
+  real (rt) :: cs_l, cs_r
 
+  real (rt) :: pstar_new, ustar_l, ustar_r
 
-  real (kind=dp_t) :: cs_l, cs_r
+  real (rt) :: rho_tmp, u_tmp, p_tmp
+  real (rt) :: rhostar
 
-  real (kind=dp_t) :: pstar_new, ustar_l, ustar_r
+  real (rt) :: csbar, rhobar
+  real (rt) :: cs_star
 
-  real (kind=dp_t) :: rho_tmp, u_tmp, p_tmp
-  real (kind=dp_t) :: rhostar
+  real (rt) :: gammaE_l, gammaC_l, gammaE_r, gammaC_r
+  real (rt) :: gammaE_bar, gammaC_bar
 
-  real (kind=dp_t) :: csbar, rhobar
-  real (kind=dp_t) :: cs_star
+  real (rt) :: Z_l, Z_r
+  real (rt) :: W_temp, Z_temp
 
-  real (kind=dp_t) :: gammaE_l, gammaC_l, gammaE_r, gammaC_r
-  real (kind=dp_t) :: gammaE_bar, gammaC_bar
-
-  real (kind=dp_t) :: Z_l, Z_r
-  real (kind=dp_t) :: W_temp, Z_temp
-
-  real (kind=dp_t) :: err1, err2
-  real (kind=dp_t), parameter :: tol = 1.e-10_dp_t
+  real (rt) :: err1, err2
+  real (rt), parameter :: tol = 1.e-10_rt
   logical :: converged
 
   integer :: iter
@@ -52,8 +50,8 @@ subroutine riemann_star_state(rho_l, u_l, p_l, &
 
   character (len=16) :: lwave, rwave
 
-  real (kind=dp_t), parameter :: smallp = 1.d-8
-  real (kind=dp_t), parameter :: SMALL = 1.d-13
+  real (rt), parameter :: smallp = 1.d-8
+  real (rt), parameter :: SMALL = 1.d-13
 
   logical, parameter :: debug = .false.
 

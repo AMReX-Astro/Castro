@@ -29,30 +29,8 @@ Note, you will need to swap the default PGI environment to use Cray:
 module swap PrgEnv-pgi PrgEnv-cray
 \end{verbatim}
 
-Current status of Cray compilers:
-\begin{itemize}
-\item CCE/8.5.7 fail with OpenMP in {\tt AMReX\_BoxArray.cpp}.  This is a known compiler bug
-  (and also appears at NERSC).
-\item CCE/8.6.1 need newer versions of the PE to be loaded.  It is suggested to do:
-\begin{verbatim}
-module swap PrgEnv-{pgi,cray}
-module swap cce/8.6.1
-module load cray-mpich-compat/v7
-module swap craype/2.5.12
-\end{verbatim}
-  However, unfortunately the same compiler bug as above appears.
-
-\item It seems that setting
-\begin{verbatim}
-IPA_DISABLE_DISCARDING=1
-\end{verbatim}
-when compiling, it will work around the bug.
-\end{itemize}
-
-%To compile and link we need to use the CCE/8.5.7 compilers and 
-%{\tt cray-mpich/7.5.2}.  Note that {\tt cray-mpich/7.6.0} does not
-%work.
-
+cce/8.5.7 through 8.6.3 fail to compile AMReX. The default version at OLCF as of May 2018,
+cce/8.6.4, resolves this issue.
 
 \subsection{PGI}
 
@@ -125,15 +103,12 @@ See the \maestro\ User's Guide
 \item Cray compilers
 
   \begin{itemize}
-    \item The Cray compilers (CCE 8.6.1) fail to link the code.  This
-      is likely an issue interacting with the GCC headers
 
-    \item We can compile and link with CCE 8.5.7 by doing:
-      \begin{verbatim}
-module swap cce{,/8.5.7}
-module swap cray-mpich{,/7.5.5}
-module swap cray-libsci{,/16.11.1}
-      \end{verbatim}
+    \item The Cray compilers from versions 8.5.7 to 8.6.3 have issues compiling AMReX. This
+    can be resolved by loading version 8.6.4 or later. As of May 2018, you can do
+    \begin{verbatim}
+      module swap cce cce/8.6.5
+    \end{verbatim}
    \end{itemize}
 \item GNU
 
@@ -332,4 +307,19 @@ Needs to be updated
 
 
 \end{enumerate}
+
+
+
+\section{GPUs}
+
+\section{Bender}
+Compile as:
+\begin{verbatim}
+make CUDA_VERSION=cc60 COMPILE_CUDA_PATH=/usr/local/cuda-9.2 USE_CUDA=TRUE COMP=PGI -j 4
+\end{verbatim}
+
+To run the CUDA code path without device launching, do:
+\begin{verbatim}
+make -j4 COMP=PGI USE_CUDA=TRUE USE_MPI=FALSE DEBUG=TRUE NO_DEVICE_LAUNCH=TRUE CUDA_VERSION=cc60 COMPILE_CUDA_PATH=/usr/local/cuda-9.2
+\end{verbatim}
 

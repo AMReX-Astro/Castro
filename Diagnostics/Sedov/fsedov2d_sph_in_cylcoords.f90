@@ -12,10 +12,10 @@
 program fextract2d
 
   use f2kcli
-  use bl_space
+  use amrex_fort_module, only : rt => amrex_real
   use bl_error_module
-  use bl_constants_module
   use bl_IO_module
+  use amrex_constants_module
   use plotfile_module
 
   implicit none
@@ -23,26 +23,26 @@ program fextract2d
   type(plotfile) pf
   integer :: unit
   integer :: i, j, ii, jj
-  real(kind=dp_t) :: xx, yy, xl, yl, xr, yr
+  real(rt) :: xx, yy, xl, yl, xr, yr
   integer :: rr, r1
   integer :: uno
 
   integer :: nbins
-  real(kind=dp_t), allocatable :: r(:), rl(:)
-  real(kind=dp_t) :: maxdist, x_maxdist, y_maxdist
-  real(kind=dp_t) :: yctr
+  real(rt), allocatable :: r(:), rl(:)
+  real(rt) :: maxdist, x_maxdist, y_maxdist
+  real(rt) :: yctr
 
-  real(kind=dp_t) :: dx(MAX_SPACEDIM)
-  real(kind=dp_t) :: dx_fine
+  real(rt) :: dx(MAX_SPACEDIM)
+  real(rt) :: dx_fine
 
-  real(kind=dp_t) :: r_zone, vol
+  real(rt) :: r_zone, vol
   integer :: index
 
-  real(kind=dp_t), pointer :: p(:,:,:,:)
+  real(rt), pointer :: p(:,:,:,:)
 
-  real(kind=dp_t), allocatable :: volcount(:)
-  real(kind=dp_t), allocatable :: dens_bin(:), vel_bin(:), pres_bin(:), e_bin(:)
-  real(kind=dp_t) :: vel
+  real(rt), allocatable :: volcount(:)
+  real(rt), allocatable :: dens_bin(:), vel_bin(:), pres_bin(:), e_bin(:)
+  real(rt) :: vel
 
   integer :: dens_comp, xmom_comp, ymom_comp, pres_comp, rhoe_comp
 

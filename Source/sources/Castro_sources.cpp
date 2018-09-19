@@ -8,14 +8,14 @@
 using namespace amrex;
 
 void
-Castro::apply_source_to_state(MultiFab& state, MultiFab& source, Real dt, int ng)
+Castro::apply_source_to_state(int is_new, MultiFab& state, MultiFab& source, Real dt, int ng)
 {
     AMREX_ASSERT(source.nGrow() >= ng);
     AMREX_ASSERT(state.nGrow() >= ng);
 
     MultiFab::Saxpy(state, dt, source, 0, 0, NUM_STATE, ng);
 
-    clean_state(state);
+    clean_state(is_new, state.nGrow());
 }
 
 void

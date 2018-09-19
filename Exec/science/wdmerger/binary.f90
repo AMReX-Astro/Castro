@@ -14,7 +14,7 @@ contains
   
   subroutine get_roche_radii(mass_ratio, r_1, r_2, a)
 
-    use bl_constants_module, only: ONE, TWO3RD, THIRD
+    use amrex_constants_module, only: ONE, TWO3RD, THIRD
 
     implicit none
 
@@ -54,7 +54,7 @@ contains
   subroutine get_lagrange_points(mass_1, mass_2, com_1, com_2, &
                                  L1, L2, L3) bind(C, name="get_lagrange_points")
 
-    use bl_constants_module
+    use amrex_constants_module
 
     implicit none
 
@@ -114,7 +114,8 @@ contains
   
   subroutine lagrange_iterate(r, mass_1, mass_2, r1, r2, a, r_min, r_max)
 
-    use bl_constants_module, only: ZERO, HALF
+    use amrex_constants_module, only: ZERO, HALF
+    use amrex_error_module, only: amrex_error
     
     implicit none
 
@@ -135,7 +136,7 @@ contains
     integer :: i
 
     if (.not. (present(r_min) .or. present(r_max))) then
-       call bl_error("Lagrange point iteration must have at least one bound provided.")
+       call amrex_error("Lagrange point iteration must have at least one bound provided.")
     else if (present(r_min) .and. present(r_max)) then
        rm = r_min
        rp = r_max
@@ -195,7 +196,7 @@ contains
 
   function fL(M1, M2, r1, r2, r, a)
 
-    use bl_constants_module
+    use amrex_constants_module
 
     implicit none
 
@@ -217,7 +218,7 @@ contains
 
   function fdLdr(M1, M2, r1, r2, r, a)
 
-    use bl_constants_module
+    use amrex_constants_module
 
     implicit none
 
@@ -239,7 +240,7 @@ contains
 
   function gforce(M, r)
 
-    use bl_constants_module, only: ONE    
+    use amrex_constants_module, only: ONE    
     use fundamental_constants_module, only: Gconst
 
     double precision :: M, r
@@ -253,7 +254,7 @@ contains
 
   function dgforcedr(M, r)
 
-    use bl_constants_module, only: ONE, TWO
+    use amrex_constants_module, only: ONE, TWO
     use fundamental_constants_module, only: Gconst
 
     double precision :: M, r
@@ -268,7 +269,7 @@ contains
   
   function cforce(M, a, r)
 
-    use bl_constants_module, only: ONE    
+    use amrex_constants_module, only: ONE    
     use fundamental_constants_module, only: Gconst
 
     double precision :: M, a, r
@@ -283,7 +284,7 @@ contains
 
   function dcforcedr(M, a, r)
 
-    use bl_constants_module, only: ONE
+    use amrex_constants_module, only: ONE
     use fundamental_constants_module, only: Gconst
 
     double precision :: M, a, r    

@@ -27,9 +27,9 @@ Castro::pointmass_update(Real time, Real dt)
 
 	    pm_compute_delta_mass(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
                                   &mass_change_at_center,
-				  BL_TO_FORTRAN_3D(S_old[mfi]),
-				  BL_TO_FORTRAN_3D(S_new[mfi]),
-				  BL_TO_FORTRAN_3D(volume[mfi]),
+				  BL_TO_FORTRAN_ANYD(S_old[mfi]),
+				  BL_TO_FORTRAN_ANYD(S_new[mfi]),
+				  BL_TO_FORTRAN_ANYD(volume[mfi]),
 				  ZFILL(geom.ProbLo()), ZFILL(dx),
 				  &time, &dt);
 
@@ -51,7 +51,7 @@ Castro::pointmass_update(Real time, Real dt)
                 const Box& bx = mfi.tilebox();
 
 		pm_fix_solution(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				BL_TO_FORTRAN_3D(S_old[mfi]), BL_TO_FORTRAN_3D(S_new[mfi]),
+				BL_TO_FORTRAN_ANYD(S_old[mfi]), BL_TO_FORTRAN_ANYD(S_new[mfi]),
 				ZFILL(geom.ProbLo()), ZFILL(dx), &time, &dt);
              }
           }

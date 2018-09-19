@@ -21,6 +21,14 @@ subroutine ca_network_finalize() bind(C, name="ca_network_finalize")
 
 end subroutine ca_network_finalize
 
+subroutine ca_eos_finalize() bind(C, name="ca_eos_finalize")
+
+  use eos_module, only: eos_finalize
+
+  call eos_finalize()
+
+end subroutine ca_eos_finalize
+
 
 ! :::
 ! ::: ----------------------------------------------------------------
@@ -32,6 +40,8 @@ subroutine ca_extern_init(name,namlen) bind(C, name="ca_extern_init")
   ! extern_probin_module
 
   use amrex_fort_module, only: rt => amrex_real
+
+  implicit none
 
   integer, intent(in) :: namlen
   integer, intent(in) :: name(namlen)
@@ -57,10 +67,6 @@ subroutine ca_get_num_spec(nspec_out) bind(C, name="ca_get_num_spec")
 
 end subroutine ca_get_num_spec
 
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
 subroutine ca_get_num_aux(naux_out) bind(C, name="ca_get_num_aux")
 
   use network, only: naux
@@ -73,6 +79,19 @@ subroutine ca_get_num_aux(naux_out) bind(C, name="ca_get_num_aux")
   naux_out = naux
 
 end subroutine ca_get_num_aux
+
+subroutine ca_get_num_adv(nadv_out) bind(C, name="ca_get_num_adv")
+
+  use meth_params_module, only: nadv
+  use amrex_fort_module, only: rt => amrex_real
+
+  implicit none
+
+  integer, intent(out) :: nadv_out
+
+  nadv_out = nadv
+
+end subroutine ca_get_num_adv
 
 ! :::
 ! ::: ----------------------------------------------------------------
@@ -188,9 +207,51 @@ subroutine ca_get_nqaux(nqaux_in) bind(C, name="ca_get_nqaux")
 
 end subroutine ca_get_nqaux
 
+subroutine ca_get_ngdnv(ngdnv_in) bind(C, name="ca_get_ngdnv")
+
+  use meth_params_module, only: NGDNV
+
+  implicit none
+
+  integer, intent(inout) :: ngdnv_in
+
+  ngdnv_in = NGDNV
+
+end subroutine ca_get_ngdnv
+
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
+
+subroutine ca_amrinfo_init() bind(C, name="ca_amrinfo_init")
+
+    use amrinfo_module, only: amr_level, amr_iteration, amr_ncycle, amr_time, amr_dt
+
+    allocate(amr_level)
+    amr_level = 0
+    allocate(amr_iteration)
+    amr_iteration = 0
+    allocate(amr_ncycle)
+    amr_ncycle = 0
+    allocate(amr_time)
+    amr_time = 0.0d0
+    allocate(amr_dt)
+    amr_dt = 0.0d0
+
+end subroutine ca_amrinfo_init
+
+subroutine ca_amrinfo_finalize() bind(C, name="ca_amrinfo_finalize")
+
+    use amrinfo_module, only: amr_level, amr_iteration, amr_ncycle, amr_time, amr_dt
+
+    deallocate(amr_level)
+    deallocate(amr_iteration)
+    deallocate(amr_ncycle)
+    deallocate(amr_time)
+    deallocate(amr_dt)
+
+end subroutine ca_amrinfo_finalize
+
 
 subroutine ca_set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in) &
      bind(C, name="ca_set_amr_info")
@@ -329,6 +390,7 @@ subroutine swap_outflow_data() bind(C, name="swap_outflow_data")
 
   use meth_params_module, only: outflow_data_new, outflow_data_new_time, &
                                 outflow_data_old, outflow_data_old_time
+  use amrex_error_module
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
@@ -344,10 +406,12 @@ subroutine swap_outflow_data() bind(C, name="swap_outflow_data")
      allocate(outflow_data_old(nc,np))
   end if
 
+#ifndef AMREX_USE_CUDA
   if (size(outflow_data_old,dim=2) .ne. size(outflow_data_new,dim=2)) then
      print *,'size of old and new dont match in swap_outflow_data '
-     call bl_error("Error:: Castro_nd.f90 :: swap_outflow_data")
+     call amrex_error("Error:: Castro_nd.f90 :: swap_outflow_data")
   end if
+#endif
 
   outflow_data_old(1:nc,1:np) = outflow_data_new(1:nc,1:np)
 
@@ -366,12 +430,9 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
                                 Rmom, &
 #endif
                                 Eden, Eint, Temp, &
-                                FirstAdv, FirstSpec, FirstAux, numadv, &
+                                FirstAdv, FirstSpec, FirstAux, &
 #ifdef SHOCK_VAR
                                 Shock, &
-#endif
-#ifdef RADIATION
-                                ngroups_in, &
 #endif
                                 gravity_type_in, gravity_type_len) &
                                 bind(C, name="ca_set_method_params")
@@ -380,41 +441,30 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
   use network, only : nspec, naux
   use eos_module, only: eos_init
   use eos_type_module, only: eos_get_small_dens, eos_get_small_temp
-  use bl_constants_module, only : ZERO, ONE
+  use amrex_constants_module, only : ZERO, ONE
   use amrex_fort_module, only: rt => amrex_real
 #ifdef RADIATION
-  use rad_params_module, only: ngroups
+  use state_sizes_module, only : ngroups
 #endif
-
   implicit none
 
   integer, intent(in) :: dm
   integer, intent(in) :: Density, Xmom, Eden, Eint, Temp, &
                          FirstAdv, FirstSpec, FirstAux
-  integer, intent(in) :: numadv
 #ifdef SHOCK_VAR
   integer, intent(in) :: Shock
 #endif
   integer, intent(in) :: gravity_type_len
   integer, intent(in) :: gravity_type_in(gravity_type_len)
-#ifdef RADIATION
-  integer, intent(in) :: ngroups_in
-#endif
 #ifdef HYBRID_MOMENTUM
   integer, intent(in) :: Rmom
 #endif
 
   integer :: iadv, ispec
 
-  integer :: QLAST
-  integer :: NTHERM, QTHERM
-
   integer :: i
   integer :: ioproc
 
-#ifdef RADIATION
-  ngroups = ngroups_in
-#endif
 
   !---------------------------------------------------------------------
   ! set integer keys to index states
@@ -436,6 +486,13 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
   call ca_set_auxiliary_indices()
 
   call ca_set_primitive_indices()
+
+  ! sanity check
+#ifndef AMREX_USE_CUDA
+  if ((QU /= GDU) .or. (QV /= GDV) .or. (QW /= GDW)) then
+     call amrex_error("ERROR: velocity components for godunov and primitive state are not aligned")
+  endif
+#endif
 
   ! easy indexing for the passively advected quantities.  This
   ! lets us loop over all groups (advected, species, aux)
@@ -553,44 +610,6 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
 end subroutine ca_set_method_params
 
 
-subroutine ca_init_godunov_indices() bind(C, name="ca_init_godunov_indices")
-
-  use meth_params_module, only: GDRHO, GDU, GDV, GDW, GDPRES, GDGAME, NGDNV, &
-#ifdef RADIATION
-                                GDLAMS, GDERADS, &
-#endif
-                                QU, QV, QW
-
-  use amrex_fort_module, only: rt => amrex_real
-#ifdef RADIATION
-  use rad_params_module, only : ngroups
-#endif
-
-  implicit none
-
-  NGDNV = 6
-#if RADIATION
-  NGDNV = NGDNV + 2*ngroups
-#endif
-
-  GDRHO = 1
-  GDU = 2
-  GDV = 3
-  GDW = 4
-  GDPRES = 5
-  GDGAME = 6
-#ifdef RADIATION
-  GDLAMS = GDGAME+1            ! starting index for rad lambda
-  GDERADS = GDLAMS + ngroups   ! starting index for rad energy
-#endif
-
-  ! sanity check
-  if ((QU /= GDU) .or. (QV /= GDV) .or. (QW /= GDW)) then
-     call bl_error("ERROR: velocity components for godunov and primitive state are not aligned")
-  endif
-
-end subroutine ca_init_godunov_indices
-
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
@@ -604,7 +623,8 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
 
   ! Passing data from C++ into f90
 
-  use bl_constants_module, only: ZERO
+  use amrex_constants_module, only: ZERO
+  use amrex_error_module
   use prob_params_module
   use meth_params_module, only: UMX, UMY, UMZ
 #ifdef ROTATION
@@ -620,10 +640,30 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   integer,  intent(in) :: coord_type_in
   real(rt), intent(in) :: problo_in(dm), probhi_in(dm), center_in(dm)
 
+  allocate(dim)
+
   dim = dm
+
+  allocate(physbc_lo(3))
+  allocate(physbc_hi(3))
+
+  physbc_lo(:) = 0
+  physbc_hi(:) = 0
 
   physbc_lo(1:dm) = physbc_lo_in(1:dm)
   physbc_hi(1:dm) = physbc_hi_in(1:dm)
+
+  allocate(Interior)
+  allocate(Inflow)
+  allocate(Outflow)
+  allocate(Symmetry)
+  allocate(SlipWall)
+  allocate(NoSlipWall)
+
+  allocate(coord_type)
+  allocate(center(3))
+  allocate(problo(3))
+  allocate(probhi(3))
 
   Interior   = Interior_in
   Inflow     = Inflow_in
@@ -641,6 +681,8 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   problo(1:dm) = problo_in(1:dm)
   probhi(1:dm) = probhi_in(1:dm)
   center(1:dm) = center_in(1:dm)
+
+  allocate(dg(3))
 
   dg(:) = 1
 
@@ -660,9 +702,11 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
 
 
   ! sanity check on our allocations
+#ifndef AMREX_USE_CUDA
   if (UMZ > MAX_MOM_INDEX) then
-     call bl_error("ERROR: not enough space in comp in mom_flux_has_p")
+     call amrex_error("ERROR: not enough space in comp in mom_flux_has_p")
   endif
+#endif
 
   ! keep track of which components of the momentum flux have pressure
   if (dim == 1 .or. (dim == 2 .and. coord_type == 1)) then
@@ -763,7 +807,10 @@ subroutine ca_get_tagging_params(name, namlen) &
   ! Initialize the tagging parameters
 
   use tagging_module
+  use amrex_error_module
   use amrex_fort_module, only: rt => amrex_real
+
+  implicit none
 
   integer, intent(in) :: namlen
   integer, intent(in) :: name(namlen)
@@ -774,48 +821,68 @@ subroutine ca_get_tagging_params(name, namlen) &
   character (len=maxlen) :: probin
 
   namelist /tagging/ &
-       denerr,     dengrad,   max_denerr_lev,   max_dengrad_lev, &
-       enterr,     entgrad,   max_enterr_lev,   max_entgrad_lev, &
-       velerr,     velgrad,   max_velerr_lev,   max_velgrad_lev, &
-       presserr, pressgrad, max_presserr_lev, max_pressgrad_lev, &
-       temperr,   tempgrad,  max_temperr_lev,  max_tempgrad_lev, &
-       raderr,     radgrad,   max_raderr_lev,   max_radgrad_lev
+       denerr, dengrad, dengrad_rel, &
+       max_denerr_lev, max_dengrad_lev, max_dengrad_rel_lev, &
+       enterr, entgrad, entgrad_rel, &
+       max_enterr_lev, max_entgrad_lev, max_entgrad_rel_lev, &
+       velerr, velgrad, velgrad_rel, &
+       max_velerr_lev, max_velgrad_lev, max_velgrad_rel_lev, &
+       presserr, pressgrad, pressgrad_rel, &
+       max_presserr_lev, max_pressgrad_lev, max_pressgrad_rel_lev, &
+       temperr, tempgrad, tempgrad_rel, &
+       max_temperr_lev, max_tempgrad_lev, max_tempgrad_rel_lev, &
+       raderr, radgrad, radgrad_rel, &
+       max_raderr_lev, max_radgrad_lev, max_radgrad_rel_lev
 
   ! Set namelist defaults
   denerr = 1.e20_rt
   dengrad = 1.e20_rt
-  max_denerr_lev = 10
-  max_dengrad_lev = 10
+  dengrad_rel = 1.e20_rt
+  max_denerr_lev = -1
+  max_dengrad_lev = -1
+  max_dengrad_rel_lev = -1
 
   enterr = 1.e20_rt
   entgrad = 1.e20_rt
+  entgrad_rel = 1.e20_rt
   max_enterr_lev = -1
   max_entgrad_lev = -1
+  max_entgrad_rel_lev = -1
 
   presserr = 1.e20_rt
   pressgrad = 1.e20_rt
+  pressgrad_rel = 1.e20_rt
   max_presserr_lev = -1
   max_pressgrad_lev = -1
+  max_pressgrad_rel_lev = -1
 
   velerr  = 1.e20_rt
   velgrad = 1.e20_rt
+  velgrad_rel = 1.e20_rt
   max_velerr_lev = -1
   max_velgrad_lev = -1
+  max_velgrad_rel_lev = -1
 
   temperr  = 1.e20_rt
   tempgrad = 1.e20_rt
+  tempgrad_rel = 1.e20_rt
   max_temperr_lev = -1
   max_tempgrad_lev = -1
+  max_tempgrad_rel_lev = -1
 
   raderr  = 1.e20_rt
   radgrad = 1.e20_rt
+  radgrad_rel = 1.e20_rt
   max_raderr_lev = -1
   max_radgrad_lev = -1
+  max_radgrad_rel_lev = -1
 
   ! create the filename
+#ifndef AMREX_USE_CUDA
   if (namlen > maxlen) then
-     call bl_error('probin file name too long')
+     call amrex_error('probin file name too long')
   endif
+#endif
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -832,7 +899,9 @@ subroutine ca_get_tagging_params(name, namlen) &
 
   else if (status > 0) then
      ! some problem in the namelist
-     call bl_error('ERROR: problem in the tagging namelist')
+#ifndef AMREX_USE_CUDA
+     call amrex_error('ERROR: problem in the tagging namelist')
+#endif
   endif
 
   close (unit=un)
@@ -849,7 +918,10 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   ! Initialize the sponge parameters
 
   use sponge_module
+  use amrex_error_module
   use amrex_fort_module, only: rt => amrex_real
+
+  implicit none
 
   integer, intent(in) :: namlen
   integer, intent(in) :: name(namlen)
@@ -894,9 +966,11 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   sponge_timescale    = -1.e0_rt
 
   ! create the filename
+#ifndef AMREX_USE_CUDA
   if (namlen > maxlen) then
-     call bl_error('probin file name too long')
+     call amrex_error('probin file name too long')
   endif
+#endif
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -913,7 +987,9 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
 
   else if (status > 0) then
      ! some problem in the namelist
-     call bl_error('ERROR: problem in the sponge namelist')
+#ifndef AMREX_USE_CUDA
+     call amrex_error('ERROR: problem in the sponge namelist')
+#endif
   endif
 
   close (unit=un)
@@ -924,15 +1000,48 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
 
   ! Sanity check
 
+#ifndef AMREX_USE_CUDA
   if (sponge_lower_factor < 0.e0_rt .or. sponge_lower_factor > 1.e0_rt) then
-     call bl_error('ERROR: sponge_lower_factor cannot be outside of [0, 1].')
+     call amrex_error('ERROR: sponge_lower_factor cannot be outside of [0, 1].')
   endif
 
   if (sponge_upper_factor < 0.e0_rt .or. sponge_upper_factor > 1.e0_rt) then
-     call bl_error('ERROR: sponge_upper_factor cannot be outside of [0, 1].')
+     call amrex_error('ERROR: sponge_upper_factor cannot be outside of [0, 1].')
   endif
+#endif
 
 end subroutine ca_get_sponge_params
+
+subroutine ca_allocate_sponge_params() bind(C, name="ca_allocate_sponge_params")
+
+    ! allocate sponge parameters
+
+    use sponge_module
+    allocate(sponge_lower_factor, sponge_upper_factor)
+    allocate(sponge_lower_radius, sponge_upper_radius)
+    allocate(sponge_lower_density, sponge_upper_density)
+    allocate(sponge_lower_pressure, sponge_upper_pressure)
+    allocate(sponge_target_velocity(3))
+    allocate(sponge_timescale)
+
+
+
+end subroutine ca_allocate_sponge_params
+
+subroutine ca_deallocate_sponge_params() bind(C, name="ca_deallocate_sponge_params")
+
+    ! deallocate sponge parameters
+
+    use sponge_module
+
+    deallocate(sponge_lower_factor, sponge_upper_factor)
+    deallocate(sponge_lower_radius, sponge_upper_radius)
+    deallocate(sponge_lower_density, sponge_upper_density)
+    deallocate(sponge_lower_pressure, sponge_upper_pressure)
+    deallocate(sponge_target_velocity)
+    deallocate(sponge_timescale)
+
+end subroutine ca_deallocate_sponge_params
 #endif
 
 #ifdef POINTMASS

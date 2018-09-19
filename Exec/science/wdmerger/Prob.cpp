@@ -200,13 +200,13 @@ Castro::wd_update (Real time, Real dt)
 	  const int* lo   = box.loVect();
 	  const int* hi   = box.hiVect();
 
-	  wdcom(BL_TO_FORTRAN_3D(fabrho),
-		BL_TO_FORTRAN_3D(fabxmom),
-		BL_TO_FORTRAN_3D(fabymom),
-		BL_TO_FORTRAN_3D(fabzmom),
-		BL_TO_FORTRAN_3D(fabpmask),
-		BL_TO_FORTRAN_3D(fabsmask),
-		BL_TO_FORTRAN_3D(vol),
+	  wdcom(BL_TO_FORTRAN_ANYD(fabrho),
+		BL_TO_FORTRAN_ANYD(fabxmom),
+		BL_TO_FORTRAN_ANYD(fabymom),
+		BL_TO_FORTRAN_ANYD(fabzmom),
+		BL_TO_FORTRAN_ANYD(fabpmask),
+		BL_TO_FORTRAN_ANYD(fabsmask),
+		BL_TO_FORTRAN_ANYD(vol),
 		ARLIM_3D(lo),ARLIM_3D(hi),
 		ZFILL(dx),&time,
 		&com_p_x, &com_p_y, &com_p_z,
@@ -405,10 +405,10 @@ void Castro::volInBoundary (Real time, Real& vol_p, Real& vol_s, Real rho_cutoff
 	  const int* lo   = box.loVect();
 	  const int* hi   = box.hiVect();
 
-	  ca_volumeindensityboundary(BL_TO_FORTRAN_3D(fab),
-		                     BL_TO_FORTRAN_3D(fabpmask),
-				     BL_TO_FORTRAN_3D(fabsmask),
-				     BL_TO_FORTRAN_3D(vol),
+	  ca_volumeindensityboundary(BL_TO_FORTRAN_ANYD(fab),
+		                     BL_TO_FORTRAN_ANYD(fabpmask),
+				     BL_TO_FORTRAN_ANYD(fabsmask),
+				     BL_TO_FORTRAN_ANYD(vol),
 				     ARLIM_3D(lo),ARLIM_3D(hi),
 				     ZFILL(dx),&sp,&ss,&rho_cutoff);
 	  vp += sp;
@@ -507,14 +507,14 @@ Castro::gwstrain (Real time,
 	    const int* lo   = box.loVect();
 	    const int* hi   = box.hiVect();
 
-	    quadrupole_tensor_double_dot(BL_TO_FORTRAN_3D((*mfrho)[mfi]),
-					 BL_TO_FORTRAN_3D((*mfxmom)[mfi]),
-					 BL_TO_FORTRAN_3D((*mfymom)[mfi]),
-					 BL_TO_FORTRAN_3D((*mfzmom)[mfi]),
-					 BL_TO_FORTRAN_3D((*mfgravx)[mfi]),
-					 BL_TO_FORTRAN_3D((*mfgravy)[mfi]),
-					 BL_TO_FORTRAN_3D((*mfgravz)[mfi]),
-					 BL_TO_FORTRAN_3D(volume[mfi]),
+	    quadrupole_tensor_double_dot(BL_TO_FORTRAN_ANYD((*mfrho)[mfi]),
+					 BL_TO_FORTRAN_ANYD((*mfxmom)[mfi]),
+					 BL_TO_FORTRAN_ANYD((*mfymom)[mfi]),
+					 BL_TO_FORTRAN_ANYD((*mfzmom)[mfi]),
+					 BL_TO_FORTRAN_ANYD((*mfgravx)[mfi]),
+					 BL_TO_FORTRAN_ANYD((*mfgravy)[mfi]),
+					 BL_TO_FORTRAN_ANYD((*mfgravz)[mfi]),
+					 BL_TO_FORTRAN_ANYD(volume[mfi]),
 					 ARLIM_3D(lo),ARLIM_3D(hi),ZFILL(dx),&time,
 #ifdef _OPENMP
 					 priv_Qtt[tid]->dataPtr());
@@ -883,6 +883,8 @@ void Castro::check_to_stop(Real time) {
 
     if (jobDoneStatus == 1) {
 
+      signalStopJob = true;
+
       // Write out a checkpoint. Note that this will
       // only happen if you have amr.message_int = 1.
 
@@ -890,6 +892,12 @@ void Castro::check_to_stop(Real time) {
 	std::ofstream dump_file;
 	dump_file.open("dump_and_stop", std::ofstream::out);
 	dump_file.close();
+
+        // Also write out a file signifying that we're done with the simulation.
+
+        std::ofstream jobDoneFile;
+        jobDoneFile.open("jobIsDone", std::ofstream::out);
+        jobDoneFile.close();
       }
 
     }
@@ -912,18 +920,26 @@ void Castro::update_extrema(Real time) {
 
     for (int lev = 0; lev <= finest_level; lev++) {
 
-      MultiFab& S_new = parent->getLevel(lev).get_new_data(State_Type);
+      auto T = parent->getLevel(lev).derive("Temp", time, 0);
+      auto rho = parent->getLevel(lev).derive("density", time, 0);
+#ifdef REACTIONS
+      auto ts_te = parent->getLevel(lev).derive("t_sound_t_enuc", time, 0);
+#endif
 
-      T_curr_max = std::max(T_curr_max, S_new.max(Temp, 0, local_flag));
-      rho_curr_max = std::max(rho_curr_max, S_new.max(Density, 0, local_flag));
+      if (lev < finest_level) {
+          const MultiFab& mask = getLevel(lev+1).build_fine_mask();
+          MultiFab::Multiply(*T, mask, 0, 0, 1, 0);
+          MultiFab::Multiply(*rho, mask, 0, 0, 1, 0);
+#ifdef REACTIONS
+          MultiFab::Multiply(*ts_te, mask, 0, 0, 1, 0);
+#endif
+      }
+
+      T_curr_max = std::max(T_curr_max, T->max(0, 0, local_flag));
+      rho_curr_max = std::max(rho_curr_max, rho->max(0, 0, local_flag));
 
 #ifdef REACTIONS
-      if (lev == finest_level) {
-
-        auto ts_te_MF = parent->getLevel(lev).derive("t_sound_t_enuc", time, 0);
-	ts_te_curr_max = std::max(ts_te_curr_max, ts_te_MF->max(0,0,local_flag));
-
-      }
+      ts_te_curr_max = std::max(ts_te_curr_max, ts_te->max(0, 0, local_flag));
 #endif
 
     }
@@ -1059,11 +1075,11 @@ Castro::update_relaxation(Real time, Real dt) {
             const int* hi  = box.hiVect();
 
             sum_force_on_stars(lo, hi,
-                               BL_TO_FORTRAN_3D((*rot_force[lev])[mfi]),
-                               BL_TO_FORTRAN_3D(S_new[mfi]),
-                               BL_TO_FORTRAN_3D(vol[mfi]),
-                               BL_TO_FORTRAN_3D((*pmask)[mfi]),
-                               BL_TO_FORTRAN_3D((*smask)[mfi]),
+                               BL_TO_FORTRAN_ANYD((*rot_force[lev])[mfi]),
+                               BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                               BL_TO_FORTRAN_ANYD(vol[mfi]),
+                               BL_TO_FORTRAN_ANYD((*pmask)[mfi]),
+                               BL_TO_FORTRAN_ANYD((*smask)[mfi]),
                                &fpx, &fpy, &fpz, &fsx, &fsy, &fsz);
 
         }
@@ -1133,7 +1149,7 @@ Castro::update_relaxation(Real time, Real dt) {
 	const int* lo  = box.loVect();
 	const int* hi  = box.hiVect();
 
-	get_critical_roche_potential(BL_TO_FORTRAN_3D((*mfphieff)[mfi]),
+	get_critical_roche_potential(BL_TO_FORTRAN_ANYD((*mfphieff)[mfi]),
 				     lo, hi, L1, &potential);
 
     }
@@ -1157,8 +1173,8 @@ Castro::update_relaxation(Real time, Real dt) {
 	const int* lo   = box.loVect();
 	const int* hi   = box.hiVect();
 
-	check_relaxation(BL_TO_FORTRAN_3D(S_new[mfi]),
-			 BL_TO_FORTRAN_3D((*mfphieff)[mfi]),
+	check_relaxation(BL_TO_FORTRAN_ANYD(S_new[mfi]),
+			 BL_TO_FORTRAN_ANYD((*mfphieff)[mfi]),
 			 ARLIM_3D(lo),ARLIM_3D(hi),
 			 &potential,&is_done);
 

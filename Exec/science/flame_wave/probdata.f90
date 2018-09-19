@@ -1,7 +1,6 @@
 module probdata_module
 
   use amrex_fort_module, only : rt => amrex_real
-  character(len=80), save :: model_name
 
   real(rt)        , save :: dtemp, x_half_max, x_half_width
 
@@ -26,5 +25,8 @@ module probdata_module
   real (rt), save :: low_density_cutoff, smallx
 
   logical, save :: index_base_from_temp
+
+  integer, save :: max_hse_tagging_level
+  real (rt), save :: burn_tagging_min, burn_tagging_max
 
 end module probdata_module

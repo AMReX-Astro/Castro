@@ -9,7 +9,7 @@
 &tagging
 
   max_tempgrad_lev = 4
-  tempgrad = 0.5
+  tempgrad_rel = 0.5
   temperr = 2.d-6
 /
 

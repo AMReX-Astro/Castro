@@ -7,6 +7,7 @@
 
 using namespace amrex;
 
+#ifndef AMREX_USE_CUDA
 void
 Castro::construct_hydro_source(Real time, Real dt)
 {
@@ -109,33 +110,33 @@ Castro::construct_hydro_source(Real time, Real dt)
 	  ca_ctu_update
 	    (ARLIM_3D(lo), ARLIM_3D(hi), &is_finest_level, &time,
 	     ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
-	     BL_TO_FORTRAN_3D(statein), 
-	     BL_TO_FORTRAN_3D(stateout),
+	     BL_TO_FORTRAN_ANYD(statein), 
+	     BL_TO_FORTRAN_ANYD(stateout),
 #ifdef RADIATION
-	     BL_TO_FORTRAN_3D(Er), 
-	     BL_TO_FORTRAN_3D(Erout),
+	     BL_TO_FORTRAN_ANYD(Er), 
+	     BL_TO_FORTRAN_ANYD(Erout),
 #endif
-	     BL_TO_FORTRAN_3D(q[mfi]),
-	     BL_TO_FORTRAN_3D(qaux[mfi]),
-	     BL_TO_FORTRAN_3D(src_q[mfi]),
-	     BL_TO_FORTRAN_3D(source_out),
+	     BL_TO_FORTRAN_ANYD(q[mfi]),
+	     BL_TO_FORTRAN_ANYD(qaux[mfi]),
+	     BL_TO_FORTRAN_ANYD(src_q[mfi]),
+	     BL_TO_FORTRAN_ANYD(source_out),
 	     ZFILL(dx), &dt,
-	     D_DECL(BL_TO_FORTRAN_3D(flux[0]),
-		    BL_TO_FORTRAN_3D(flux[1]),
-		    BL_TO_FORTRAN_3D(flux[2])),
+	     D_DECL(BL_TO_FORTRAN_ANYD(flux[0]),
+		    BL_TO_FORTRAN_ANYD(flux[1]),
+		    BL_TO_FORTRAN_ANYD(flux[2])),
 #ifdef RADIATION
-	     D_DECL(BL_TO_FORTRAN_3D(rad_flux[0]),
-		    BL_TO_FORTRAN_3D(rad_flux[1]),
-		    BL_TO_FORTRAN_3D(rad_flux[2])),
+	     D_DECL(BL_TO_FORTRAN_ANYD(rad_flux[0]),
+		    BL_TO_FORTRAN_ANYD(rad_flux[1]),
+		    BL_TO_FORTRAN_ANYD(rad_flux[2])),
 #endif
-	     D_DECL(BL_TO_FORTRAN_3D(area[0][mfi]),
-		    BL_TO_FORTRAN_3D(area[1][mfi]),
-		    BL_TO_FORTRAN_3D(area[2][mfi])),
+	     D_DECL(BL_TO_FORTRAN_ANYD(area[0][mfi]),
+		    BL_TO_FORTRAN_ANYD(area[1][mfi]),
+		    BL_TO_FORTRAN_ANYD(area[2][mfi])),
 #if (BL_SPACEDIM < 3)
-	     BL_TO_FORTRAN_3D(pradial),
-	     BL_TO_FORTRAN_3D(dLogArea[0][mfi]),
+	     BL_TO_FORTRAN_ANYD(pradial),
+	     BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
 #endif
-	     BL_TO_FORTRAN_3D(volume[mfi]),
+	     BL_TO_FORTRAN_ANYD(volume[mfi]),
 	     verbose,
 #ifdef RADIATION
 	     &priv_nstep_fsp,
@@ -246,6 +247,7 @@ Castro::construct_hydro_source(Real time, Real dt)
         std::cout << std::endl << "... Leaving hydro advance" << std::endl << std::endl;
 
 }
+#endif
 
 
 
@@ -288,6 +290,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
   const int* domain_lo = geom.Domain().loVect();
   const int* domain_hi = geom.Domain().hiVect();
+
+#ifndef AMREX_USE_CUDA
 
 #ifdef _OPENMP
 #ifdef RADIATION
@@ -348,51 +352,51 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
           ca_fourth_single_stage
             (ARLIM_3D(lo), ARLIM_3D(hi), &time, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
              &(b_mol[mol_iteration]),
-             BL_TO_FORTRAN_3D(statein), 
-             BL_TO_FORTRAN_3D(stateout),
-             BL_TO_FORTRAN_3D(q[mfi]),
-             BL_TO_FORTRAN_3D(q_bar[mfi]),
-             BL_TO_FORTRAN_3D(qaux[mfi]),
-             BL_TO_FORTRAN_3D(source_in),
-             BL_TO_FORTRAN_3D(source_out),
-             BL_TO_FORTRAN_3D(source_hydro_only),
+             BL_TO_FORTRAN_ANYD(statein), 
+             BL_TO_FORTRAN_ANYD(stateout),
+             BL_TO_FORTRAN_ANYD(q[mfi]),
+             BL_TO_FORTRAN_ANYD(q_bar[mfi]),
+             BL_TO_FORTRAN_ANYD(qaux[mfi]),
+             BL_TO_FORTRAN_ANYD(source_in),
+             BL_TO_FORTRAN_ANYD(source_out),
+             BL_TO_FORTRAN_ANYD(source_hydro_only),
              ZFILL(dx), &dt,
-             D_DECL(BL_TO_FORTRAN_3D(flux[0]),
-                    BL_TO_FORTRAN_3D(flux[1]),
-                    BL_TO_FORTRAN_3D(flux[2])),
-             D_DECL(BL_TO_FORTRAN_3D(area[0][mfi]),
-                    BL_TO_FORTRAN_3D(area[1][mfi]),
-                    BL_TO_FORTRAN_3D(area[2][mfi])),
+             D_DECL(BL_TO_FORTRAN_ANYD(flux[0]),
+                    BL_TO_FORTRAN_ANYD(flux[1]),
+                    BL_TO_FORTRAN_ANYD(flux[2])),
+             D_DECL(BL_TO_FORTRAN_ANYD(area[0][mfi]),
+                    BL_TO_FORTRAN_ANYD(area[1][mfi]),
+                    BL_TO_FORTRAN_ANYD(area[2][mfi])),
 #if (BL_SPACEDIM < 3)
-             BL_TO_FORTRAN_3D(pradial),
-             BL_TO_FORTRAN_3D(dLogArea[0][mfi]),
+             BL_TO_FORTRAN_ANYD(pradial),
+             BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
 #endif
-             BL_TO_FORTRAN_3D(volume[mfi]),
+             BL_TO_FORTRAN_ANYD(volume[mfi]),
              verbose);
 
         } else {
           ca_mol_single_stage
             (ARLIM_3D(lo), ARLIM_3D(hi), &time, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
              &(b_mol[mol_iteration]),
-             BL_TO_FORTRAN_3D(statein), 
-             BL_TO_FORTRAN_3D(stateout),
-             BL_TO_FORTRAN_3D(q[mfi]),
-             BL_TO_FORTRAN_3D(qaux[mfi]),
-             BL_TO_FORTRAN_3D(source_in),
-             BL_TO_FORTRAN_3D(source_out),
-             BL_TO_FORTRAN_3D(source_hydro_only),
+             BL_TO_FORTRAN_ANYD(statein), 
+             BL_TO_FORTRAN_ANYD(stateout),
+             BL_TO_FORTRAN_ANYD(q[mfi]),
+             BL_TO_FORTRAN_ANYD(qaux[mfi]),
+             BL_TO_FORTRAN_ANYD(source_in),
+             BL_TO_FORTRAN_ANYD(source_out),
+             BL_TO_FORTRAN_ANYD(source_hydro_only),
              ZFILL(dx), &dt,
-             D_DECL(BL_TO_FORTRAN_3D(flux[0]),
-                    BL_TO_FORTRAN_3D(flux[1]),
-                    BL_TO_FORTRAN_3D(flux[2])),
-             D_DECL(BL_TO_FORTRAN_3D(area[0][mfi]),
-                    BL_TO_FORTRAN_3D(area[1][mfi]),
-                    BL_TO_FORTRAN_3D(area[2][mfi])),
+             D_DECL(BL_TO_FORTRAN_ANYD(flux[0]),
+                    BL_TO_FORTRAN_ANYD(flux[1]),
+                    BL_TO_FORTRAN_ANYD(flux[2])),
+             D_DECL(BL_TO_FORTRAN_ANYD(area[0][mfi]),
+                    BL_TO_FORTRAN_ANYD(area[1][mfi]),
+                    BL_TO_FORTRAN_ANYD(area[2][mfi])),
 #if (BL_SPACEDIM < 3)
-             BL_TO_FORTRAN_3D(pradial),
-             BL_TO_FORTRAN_3D(dLogArea[0][mfi]),
+             BL_TO_FORTRAN_ANYD(pradial),
+             BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
 #endif
-             BL_TO_FORTRAN_3D(volume[mfi]),
+             BL_TO_FORTRAN_ANYD(volume[mfi]),
              verbose);
         }
 
@@ -419,6 +423,128 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
     nstep_fsp = std::max(nstep_fsp, priv_nstep_fsp);
 #endif
   }  // end of omp parallel region
+
+#else
+
+  // CUDA version
+
+  MultiFab flatn;
+  flatn.define(grids, dmap, 1, 1);
+
+  MultiFab div;
+  div.define(grids, dmap, 1, 1);
+
+  MultiFab qm;
+  qm.define(grids, dmap, 3*NQ, 2);
+
+  MultiFab qp;
+  qp.define(grids, dmap, 3*NQ, 2);
+
+  MultiFab flux[BL_SPACEDIM];
+  MultiFab qe[BL_SPACEDIM];
+
+  for (int i = 0; i < BL_SPACEDIM; ++i) {
+      flux[i].define(getEdgeBoxArray(i), dmap, NUM_STATE, 0);
+      qe[i].define(getEdgeBoxArray(i), dmap, NGDNV, 0);
+  }
+  
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+      const Box& obx = mfi.growntilebox(1);
+
+      // Compute divergence of velocity field.
+
+#pragma gpu
+      ca_divu(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+              AMREX_REAL_ANYD(dx),
+              BL_TO_FORTRAN_ANYD(q[mfi]),
+              BL_TO_FORTRAN_ANYD(div[mfi]));
+
+      // Compute flattening coefficient for slope calculations.
+#pragma gpu
+      ca_uflaten
+          (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+           BL_TO_FORTRAN_ANYD(q[mfi]),
+           BL_TO_FORTRAN_ANYD(flatn[mfi]));
+
+      // Do PPM reconstruction to the zone edges.
+#pragma gpu
+      ca_ppm_reconstruct
+          (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+           BL_TO_FORTRAN_ANYD(q[mfi]),
+           BL_TO_FORTRAN_ANYD(flatn[mfi]),
+           BL_TO_FORTRAN_ANYD(qm[mfi]),
+           BL_TO_FORTRAN_ANYD(qp[mfi]));
+
+  } // MFIter loop
+
+
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+      for (int idir = 0; idir < BL_SPACEDIM; ++idir) {
+
+          const Box& ebx = mfi.nodaltilebox(idir);
+
+          int idir_f = idir + 1;
+
+#pragma gpu
+          ca_construct_flux
+              (AMREX_INT_ANYD(ebx.loVect()), AMREX_INT_ANYD(ebx.hiVect()),
+               AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
+               AMREX_REAL_ANYD(dx), dt,
+               idir_f,
+               BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+               BL_TO_FORTRAN_ANYD(div[mfi]),
+               BL_TO_FORTRAN_ANYD(qaux[mfi]),
+               BL_TO_FORTRAN_ANYD(qm[mfi]),
+               BL_TO_FORTRAN_ANYD(qp[mfi]),
+               BL_TO_FORTRAN_ANYD(qe[idir][mfi]),
+               BL_TO_FORTRAN_ANYD(flux[idir][mfi]),
+               BL_TO_FORTRAN_ANYD(area[idir][mfi]));
+
+          // Store the fluxes from this advance -- we weight them by the
+          // integrator weight for this stage
+          (*fluxes[idir])[mfi].saxpy(b_mol[mol_iteration], flux[idir][mfi], ebx, ebx, 0, 0, NUM_STATE);
+
+      }
+
+  } // MFIter loop
+
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+      const Box& bx = mfi.tilebox();
+
+#pragma gpu
+      ca_construct_hydro_update
+          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+           AMREX_REAL_ANYD(dx), dt,
+           BL_TO_FORTRAN_ANYD(qe[0][mfi]),
+           BL_TO_FORTRAN_ANYD(qe[1][mfi]),
+           BL_TO_FORTRAN_ANYD(qe[2][mfi]),
+           BL_TO_FORTRAN_ANYD(flux[0][mfi]),
+           BL_TO_FORTRAN_ANYD(flux[1][mfi]),
+           BL_TO_FORTRAN_ANYD(flux[2][mfi]),
+           BL_TO_FORTRAN_ANYD(area[0][mfi]),
+           BL_TO_FORTRAN_ANYD(area[1][mfi]),
+           BL_TO_FORTRAN_ANYD(area[2][mfi]),
+           BL_TO_FORTRAN_ANYD(volume[mfi]),
+           BL_TO_FORTRAN_ANYD(sources_for_hydro[mfi]),
+           BL_TO_FORTRAN_ANYD(k_stage[mfi]));
+
+  } // MFIter loop
+
+#endif
 
   BL_PROFILE_VAR_STOP(CA_UMDRV);
 
@@ -480,31 +606,31 @@ Castro::cons_to_prim(const Real time)
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
         const Box& qbx = mfi.growntilebox(NUM_GROW);
-        const int idx = mfi.tileIndex();
 
         // Convert the conservative state to the primitive variable state.
         // This fills both q and qaux.
 
-        ca_ctoprim(BL_TO_FORTRAN_BOX(qbx),
+#pragma gpu
+        ca_ctoprim(AMREX_INT_ANYD(qbx.loVect()), AMREX_INT_ANYD(qbx.hiVect()),
                    BL_TO_FORTRAN_ANYD(Sborder[mfi]),
 #ifdef RADIATION
                    BL_TO_FORTRAN_ANYD(Erborder[mfi]),
                    BL_TO_FORTRAN_ANYD(lamborder[mfi]),
 #endif
                    BL_TO_FORTRAN_ANYD(q[mfi]),
-                   BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                   &idx);
+                   BL_TO_FORTRAN_ANYD(qaux[mfi]));
 
         // Convert the source terms expressed as sources to the conserved state to those
         // expressed as sources for the primitive state.
+#ifndef AMREX_USE_CUDA
         if (do_ctu) {
           ca_srctoprim(BL_TO_FORTRAN_BOX(qbx),
                        BL_TO_FORTRAN_ANYD(q[mfi]),
                        BL_TO_FORTRAN_ANYD(qaux[mfi]),
                        BL_TO_FORTRAN_ANYD(sources_for_hydro[mfi]),
-                       BL_TO_FORTRAN_ANYD(src_q[mfi]),
-                       &idx);
+                       BL_TO_FORTRAN_ANYD(src_q[mfi]));
         }
+#endif
 
 #ifndef RADIATION
 
@@ -525,6 +651,7 @@ Castro::cons_to_prim(const Real time)
 }
 
 
+#ifndef AMREX_USE_CUDA
 void
 Castro::cons_to_prim_fourth(const Real time)
 {
@@ -547,7 +674,6 @@ Castro::cons_to_prim_fourth(const Real time)
 
       const Box& qbx = mfi.growntilebox(NUM_GROW);
       const Box& qbxm1 = mfi.growntilebox(NUM_GROW-1);
-      const int idx = mfi.tileIndex();
 
       // note: these conversions are using a growntilebox, so it
       // will include ghost cells
@@ -570,8 +696,7 @@ Castro::cons_to_prim_fourth(const Real time)
       ca_ctoprim(BL_TO_FORTRAN_BOX(qbx),
                  BL_TO_FORTRAN_ANYD(Sborder[mfi]),
                  BL_TO_FORTRAN_ANYD(q_bar[mfi]),
-                 BL_TO_FORTRAN_ANYD(qaux_bar),
-                 &idx);
+                 BL_TO_FORTRAN_ANYD(qaux_bar));
 
       // this is what we should construct the flattening coefficient
       // from
@@ -582,8 +707,7 @@ Castro::cons_to_prim_fourth(const Real time)
       ca_ctoprim(BL_TO_FORTRAN_BOX(qbxm1),
                  BL_TO_FORTRAN_ANYD(U_cc),
                  BL_TO_FORTRAN_ANYD(q[mfi]),
-                 BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                 &idx);
+                 BL_TO_FORTRAN_ANYD(qaux[mfi]));
     }
 
 
@@ -598,7 +722,6 @@ Castro::cons_to_prim_fourth(const Real time)
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       const Box& qbxm1 = mfi.growntilebox(NUM_GROW-1);
-      const int idx = mfi.tileIndex();
 
       // now convert q, qaux into 4th order accurate averages
       // this will create q, qaux in NUM_GROW-1 ghost cells, but that's
@@ -616,6 +739,7 @@ Castro::cons_to_prim_fourth(const Real time)
     check_for_nan(q_bar);
 #endif // RADIATION
 }
+#endif
 
 
 
@@ -629,6 +753,7 @@ Castro::check_for_cfl_violation(const Real dt)
 
     MultiFab& S_new = get_new_data(State_Type);
 
+#ifndef AMREX_USE_CUDA
 #ifdef _OPENMP
 #pragma omp parallel reduction(max:courno)
 #endif
@@ -639,9 +764,10 @@ Castro::check_for_cfl_violation(const Real dt)
         ca_compute_cfl(BL_TO_FORTRAN_BOX(bx),
                        BL_TO_FORTRAN_ANYD(q[mfi]),
                        BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                       &dt, dx, &courno);
+                       &dt, dx, &courno, &print_fortran_warnings);
 
     }
+#endif
 
     ParallelDescriptor::ReduceRealMax(courno);
 

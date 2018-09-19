@@ -140,11 +140,6 @@ transverse_reset_density     int           1                  y
 # with a value constructed from the $(\rho e)$ evolution equation
 transverse_reset_rhoe        int           0                  y
 
-# Allow internal energy resets and temperature flooring to change the
-# total energy variable UEDEN in addition to the internal energy variable
-# UEINT.
-dual_energy_update_E_from_e  int           1                  y
-
 # Threshold value of (E - K) / E such that above eta1, the hydrodynamic
 # pressure is derived from E - K; otherwise, we use the internal energy
 # variable UEINT.
@@ -154,10 +149,6 @@ dual_energy_eta1             Real          1.0e0              y
 # internal energy variable UEINT to match E - K. Below this, UEINT
 # remains unchanged.
 dual_energy_eta2             Real          1.0e-4             y
-
-# Threshold value of (E - K) / E such that above eta3, the temperature used
-# in the burning module is derived from E-K; otherwise, we use UEINT.
-dual_energy_eta3             Real          1.0e0              y
 
 # for the piecewise linear reconstruction, do we subtract off $(\rho g)$
 # from the pressure before limiting?
@@ -283,6 +274,10 @@ retry_tolerance              Real          0.02
 # number then it will disable retries using this criterion.
 retry_neg_dens_factor        Real          1.e-1
 
+# When performing a retry, the factor to multiply the current
+# timestep by when trying again.
+retry_subcycle_factor        Real          0.5
+
 # Check for a possible post-timestep regrid if certain stability
 # criteria were violated.
 use_post_step_regrid         int           0
@@ -328,6 +323,9 @@ dxnuc                        Real          1.e200             y
 # Disable limiting based on dxnuc above this threshold. This allows zones that
 # have already ignited or are about to ignite to be de-refined.
 dxnuc_max                    Real          1.e200             y
+
+# Disable limiting based on dxnuc above this AMR level.
+max_dxnuc_lev                int          -1                  y
 
 # permits reactions to be turned on and off -- mostly for efficiency's sake
 do_react                     int          -1                  y
@@ -518,7 +516,7 @@ reset_checkpoint_step        int           -1
 #-----------------------------------------------------------------------------
 
 # permits tracer particle calculation to be turned on and off
-do_tracer_particles          int           0       n      PARTICLES
+do_tracer_particles          int           0       n      AMREX_PARTICLES
 
 
 @namespace: particles Castro static
@@ -585,13 +583,15 @@ no_composite                int            0
 # at the cost of an additional Poisson solve per timestep.
 do_composite_phi_correction int            1
 
+# For all gravity types, we can choose a maximum level for explicitly
+# calculating the gravity and associated potential. Above that level,
+# we interpolate from coarser levels.
+max_solve_level              int           MAX_LEV-1
+
 # For non-Poisson gravity, do we want to construct the gravitational
 # acceleration by taking the gradient of the potential, rather than
 # constructing it directly?
 get_g_from_phi              int            0                  y
-
-# Use C++ MLMG linear solver for self gravity
-use_mlmg_solver              int           0                  n
 
 # how many FMG cycles?
 mlmg_max_fmg_iter            int           0                  n
@@ -610,5 +610,4 @@ mlmg_nsolve                  int           0                  n
 (v, verbose)                int            0                
 
 # Use MLMG as the operator
-use_mlmg_solver              int           0                  n
 mlmg_maxorder                int           4                  n

@@ -26,8 +26,8 @@ contains
 
   subroutine initialize(name, namlen)
 
-    use bl_constants_module, only: ZERO
-    use bl_error_module, only: bl_error
+    use amrex_constants_module, only: ZERO
+    use amrex_error_module, only: amrex_error
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none

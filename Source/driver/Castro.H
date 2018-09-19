@@ -181,7 +181,7 @@ public:
     //
     // Timestamp particles
     //
-    void TimestampParticles (int ngrow); 
+    void TimestampParticles (int ngrow);
     //
     // Advance the particles by dt
     //
@@ -232,19 +232,23 @@ public:
                           int  iteration,
                           int  ncycle) override;
 
+#ifndef AMREX_USE_CUDA
     amrex::Real do_advance (amrex::Real time,
                      amrex::Real dt,
                      int  amr_iteration,
                      int  amr_ncycle);
+#endif
 
     amrex::Real do_advance_mol (amrex::Real time,
                      amrex::Real dt,
                      int  amr_iteration,
                      int  amr_ncycle);
 
-    amrex::Real retry_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+#ifndef AMREX_USE_CUDA
+    bool retry_advance (amrex::Real& time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
     amrex::Real subcycle_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+#endif
 
     void initialize_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
@@ -256,11 +260,15 @@ public:
 
     void cons_to_prim(const amrex::Real time);
 
+#ifndef AMREX_USE_CUDA
     void cons_to_prim_fourth(const amrex::Real time);
+#endif
 
     void check_for_cfl_violation(const amrex::Real dt);
 
+#ifndef AMREX_USE_CUDA
     void construct_hydro_source(amrex::Real time, amrex::Real dt);
+#endif
 
     void construct_mol_hydro_source(amrex::Real time, amrex::Real dt);
 
@@ -301,6 +309,10 @@ public:
     void construct_old_sponge_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
 
     void construct_new_sponge_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
+
+    static void sponge_init();
+
+    static void sponge_finalize();
 #endif
 
     void construct_old_ext_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
@@ -392,7 +404,7 @@ public:
     // Do work after regrid().
     //
     virtual void post_regrid (int lbase,
-                              int new_finest) override;   
+                              int new_finest) override;
     //
     // Do work after a restart().
     //
@@ -473,6 +485,8 @@ public:
                       amrex::MultiFab&  react_mf,
                       amrex::Real       time,
                       amrex::Real       dt);
+
+    bool valid_zones_to_burn(amrex::MultiFab& State);
 #endif
 
 #ifdef ROTATION
@@ -484,14 +498,14 @@ public:
 #endif
 
 #ifdef RADIATION
-    void final_radiation_call (amrex::MultiFab& S_new, 
-                               int iteration, 
+    void final_radiation_call (amrex::MultiFab& S_new,
+                               int iteration,
                                int ncycle);
 #endif
 
     void reset_internal_energy (amrex::MultiFab& State);
 
-    void computeTemp (amrex::MultiFab& State);
+    void computeTemp (amrex::MultiFab& State, int ng);
 
     void apply_source_term_predictor();
 
@@ -517,7 +531,7 @@ public:
     void add_spec_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& source, amrex::MultiFab& DiffTerm, amrex::Real t, amrex::Real mult_factor = 1.0);
 #endif
 #if (BL_SPACEDIM == 1)
-    void add_viscous_term_to_source   (amrex::MultiFab& ext_src, amrex::MultiFab& state, amrex::MultiFab& ViscousTermforMomentum, 
+    void add_viscous_term_to_source   (amrex::MultiFab& ext_src, amrex::MultiFab& state, amrex::MultiFab& ViscousTermforMomentum,
                                        amrex::MultiFab& ViscousTermforEnergy, amrex::Real t, amrex::Real mult_factor = 1.0);
 #endif
 #endif
@@ -562,9 +576,9 @@ public:
 
     void add_force_to_sources (amrex::MultiFab& force, amrex::MultiFab& sources, amrex::MultiFab& state);
 
-    void apply_source_to_state (amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng = 0);
+    void apply_source_to_state (int is_new, amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng = 0);
 
-    void expand_state(amrex::MultiFab& S, amrex::Real time, int ng);
+    void expand_state(amrex::MultiFab& S, amrex::Real time, int iclean, int ng);
 
 #ifdef SELF_GRAVITY
     void make_radial_data (int is_new);
@@ -589,6 +603,7 @@ public:
     static int       QVAR;
     static int       NQAUX;
     static int       NQ;
+    static int       NGDNV;
 
     static int       FirstAdv,  NumAdv;
     static int       FirstSpec, NumSpec;
@@ -604,6 +619,15 @@ public:
     //
     amrex::MultiFab fine_mask;
     amrex::MultiFab& build_fine_mask();
+
+    //
+    // A record of how many cells we have advanced throughout the simulation.
+    // This is saved as a real because we will be storing the number of zones
+    // advanced as a ratio with the number of zones on the coarse grid (to
+    // help prevent the number from getting too large), and that may be a
+    // non-integer number.
+    //
+    static amrex::Real num_zones_advanced;
 
 protected:
 
@@ -707,6 +731,11 @@ protected:
     int cfl_violation;
 
     //
+    // Did we have a successful burn?
+    //
+    int burn_success;
+
+    //
     // State data to hold if we want to do a retry.
     //
     amrex::Vector<std::unique_ptr<amrex::StateData> > prev_state;
@@ -729,7 +758,7 @@ protected:
 
     // MOL Butcher tableau
     static int MOL_STAGES;
-  
+
     static amrex::Vector< amrex::Vector<amrex::Real> > a_mol;
     static amrex::Vector<amrex::Real> b_mol;
     static amrex::Vector<amrex::Real> c_mol;
@@ -746,6 +775,12 @@ protected:
 
     static void network_finalize ();
 
+    static void eos_finalize ();
+
+    static void amrinfo_init();
+
+    static void amrinfo_finalize();
+
     static void read_params ();
 
     Castro& getLevel (int lev);
@@ -755,15 +790,16 @@ protected:
 
     void reflux (int crse_level, int fine_level);
 
-    void normalize_species (amrex::MultiFab& S_new);
+    void normalize_species (amrex::MultiFab& S_new, int ng);
 
     void enforce_consistent_e (amrex::MultiFab& S);
 
-    amrex::Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new);
+    amrex::Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new, int ng);
+
+    amrex::Real clean_state (int is_new, amrex::MultiFab& state, int ng);
+    amrex::Real clean_state (int is_new, int ng);
 
     amrex::Real clean_state (amrex::MultiFab& state);
-
-    amrex::Real clean_state (amrex::MultiFab& state, amrex::MultiFab& state_old);
 
     void avgDown ();
 
@@ -826,6 +862,9 @@ protected:
     static int         lastDtPlotLimited;
     static amrex::Real lastDtBeforePlotLimiting;
 
+    int lastDtRetryLimited;
+    amrex::Real lastDtFromRetry;
+
     // for keeping track of mass changes from negative density resets
     static amrex::Real      frac_change;
 
@@ -882,10 +921,10 @@ protected:
     bool do_subcycle;
     amrex::Real dt_subcycle;
     amrex::Real dt_advance;
-  
+
     // sdc
     int sdc_iteration;
-  
+
     // method of lines
     int mol_iteration;
 

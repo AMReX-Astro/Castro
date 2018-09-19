@@ -1,15 +1,16 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
-  use bl_types
-  use prob_params_module, only: center
+  use amrex_constants_module, only: ZERO, HALF
+  use amrex_error_module
+  use amrex_fort_module, only : rt => amrex_real
+
+  use prob_params_module, only: center, coord_type
   use probdata_module
-  use bl_error_module
   use eos_type_module, only: eos_t, eos_input_rt
   use eos_module, only : eos
   use network, only : nspec
   use extern_probin_module, only: const_conductivity
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer init, namlen
@@ -28,12 +29,12 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   type (eos_t) :: eos_state
 
-  if (namlen .gt. maxlen) call bl_error("probin file name too long")
+  if (namlen .gt. maxlen) call amrex_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
   end do
-         
+
   ! Set namelist defaults
   T1 = 1.0_rt
   T2 = 2.0_rt
@@ -41,8 +42,12 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   diff_coeff = 1.0_rt
 
   ! set center, domain extrema
-  center(1) = (problo(1)+probhi(1))/2.e0_rt
-  center(2) = (problo(2)+probhi(2))/2.e0_rt
+  if (coord_type == 0) then
+     center(1) = HALF*(problo(1)+probhi(1))
+  elseif (coord_type == 1) then
+     center(1) = ZERO
+  endif
+  center(2) = HALF*(problo(2)+probhi(2))
 
   ! Read namelists
   untin = 9
@@ -77,16 +82,16 @@ end subroutine amrex_probinit
 
 ! ::: -----------------------------------------------------------
 ! ::: This routine is called at problem setup time and is used
-! ::: to initialize data on each grid.  
-! ::: 
+! ::: to initialize data on each grid.
+! :::
 ! ::: NOTE:  all arrays have one cell of ghost zones surrounding
 ! :::        the grid interior.  Values in these cells need not
 ! :::        be set here.
-! ::: 
+! :::
 ! ::: INPUTS/OUTPUTS:
-! ::: 
+! :::
 ! ::: level     => amr level of grid
-! ::: time      => time at which to init data             
+! ::: time      => time at which to init data
 ! ::: lo,hi     => index limits of grid interior (cell centered)
 ! ::: nstate    => number of state components.  You should know
 ! :::		   this already!
@@ -107,7 +112,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
   use prob_params_module, only : problo
   use prob_util_module, only : analytic
-  use bl_constants_module, only : ZERO, HALF
+  use amrex_constants_module, only : ZERO, HALF
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -163,4 +168,3 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   enddo
 
 end subroutine ca_initdata
-

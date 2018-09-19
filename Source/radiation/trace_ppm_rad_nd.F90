@@ -5,6 +5,7 @@ module trace_ppm_rad_module
 
   use prob_params_module, only : dg
   use amrex_fort_module, only : rt => amrex_real
+  use amrex_error_module, only : amrex_error
 
   implicit none
 
@@ -34,7 +35,7 @@ contains
                                    npassive, qpass_map, &
                                    fix_mass_flux
     use rad_params_module, only : ngroups
-    use bl_constants_module
+    use amrex_constants_module
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
 
     use amrex_fort_module, only : rt => amrex_real
@@ -124,7 +125,7 @@ contains
     
     if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
-       call bl_error("Error:: trace_ppm_rad_nd.f90 :: tracexy_ppm_rad")
+       call amrex_error("Error:: trace_ppm_rad_nd.f90 :: tracexy_ppm_rad")
     end if
 
     hdt = HALF * dt
@@ -1113,7 +1114,7 @@ contains
                                    ppm_reference_eigenvectors, ppm_predict_gammae, &
                                    npassive, qpass_map
     use rad_params_module, only : ngroups
-    use bl_constants_module
+    use amrex_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -1194,7 +1195,7 @@ contains
 
     if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in tracez_ppm with ppm_type = 0'
-       call bl_error("Error:: RadHydro_3d.f90 :: tracez_ppm_rad")
+       call amrex_error("Error:: RadHydro_3d.f90 :: tracez_ppm_rad")
     end if
 
     hdt = HALF * dt

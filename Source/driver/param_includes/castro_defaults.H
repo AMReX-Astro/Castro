@@ -3,33 +3,6 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
-#ifdef DIFFUSION
-int         Castro::diffuse_temp = 0;
-int         Castro::diffuse_enth = 0;
-int         Castro::diffuse_spec = 0;
-int         Castro::diffuse_vel = 0;
-amrex::Real Castro::diffuse_cutoff_density = -1.e200;
-amrex::Real Castro::diffuse_cond_scale_fac = 1.0;
-#endif
-#ifdef AMREX_PARTICLES
-int         Castro::do_tracer_particles = 0;
-#endif
-#ifdef ROTATION
-amrex::Real Castro::rotational_period = -1.e200;
-amrex::Real Castro::rotational_dPdt = 0.0;
-int         Castro::rotation_include_centrifugal = 1;
-int         Castro::rotation_include_coriolis = 1;
-int         Castro::rotation_include_domegadt = 1;
-int         Castro::state_in_rotating_frame = 1;
-int         Castro::rot_source_type = 4;
-int         Castro::implicit_rotation_update = 1;
-int         Castro::rot_axis = 3;
-#endif
-#ifdef POINTMASS
-int         Castro::use_point_mass = 1;
-amrex::Real Castro::point_mass = 0.0;
-int         Castro::point_mass_fix_solution = 0;
-#endif
 int         Castro::state_interp_order = 1;
 int         Castro::lin_limit_state_interp = 0;
 int         Castro::state_nghost = 0;
@@ -61,10 +34,8 @@ int         Castro::use_flattening = 1;
 int         Castro::transverse_use_eos = 0;
 int         Castro::transverse_reset_density = 1;
 int         Castro::transverse_reset_rhoe = 0;
-int         Castro::dual_energy_update_E_from_e = 1;
 amrex::Real Castro::dual_energy_eta1 = 1.0e0;
 amrex::Real Castro::dual_energy_eta2 = 1.0e-4;
-amrex::Real Castro::dual_energy_eta3 = 1.0e0;
 int         Castro::use_pslope = 1;
 int         Castro::fix_mass_flux = 0;
 int         Castro::limit_fluxes_on_small_dens = 0;
@@ -97,6 +68,7 @@ int         Castro::small_plot_per_is_exact = 0;
 int         Castro::use_retry = 0;
 amrex::Real Castro::retry_tolerance = 0.02;
 amrex::Real Castro::retry_neg_dens_factor = 1.e-1;
+amrex::Real Castro::retry_subcycle_factor = 0.5;
 int         Castro::use_post_step_regrid = 0;
 int         Castro::max_subcycles = 10;
 int         Castro::clamp_subcycles = 1;
@@ -106,6 +78,7 @@ amrex::Real Castro::dtnuc_X = 1.e200;
 amrex::Real Castro::dtnuc_X_threshold = 1.e-3;
 amrex::Real Castro::dxnuc = 1.e200;
 amrex::Real Castro::dxnuc_max = 1.e200;
+int         Castro::max_dxnuc_lev = -1;
 int         Castro::do_react = -1;
 amrex::Real Castro::react_T_min = 0.0;
 amrex::Real Castro::react_T_max = 1.e200;
@@ -141,3 +114,30 @@ std::string Castro::job_name = "";
 int         Castro::output_at_completion = 1;
 amrex::Real Castro::reset_checkpoint_time = -1.e200;
 int         Castro::reset_checkpoint_step = -1;
+#ifdef DIFFUSION
+int         Castro::diffuse_temp = 0;
+int         Castro::diffuse_enth = 0;
+int         Castro::diffuse_spec = 0;
+int         Castro::diffuse_vel = 0;
+amrex::Real Castro::diffuse_cutoff_density = -1.e200;
+amrex::Real Castro::diffuse_cond_scale_fac = 1.0;
+#endif
+#ifdef ROTATION
+amrex::Real Castro::rotational_period = -1.e200;
+amrex::Real Castro::rotational_dPdt = 0.0;
+int         Castro::rotation_include_centrifugal = 1;
+int         Castro::rotation_include_coriolis = 1;
+int         Castro::rotation_include_domegadt = 1;
+int         Castro::state_in_rotating_frame = 1;
+int         Castro::rot_source_type = 4;
+int         Castro::implicit_rotation_update = 1;
+int         Castro::rot_axis = 3;
+#endif
+#ifdef POINTMASS
+int         Castro::use_point_mass = 1;
+amrex::Real Castro::point_mass = 0.0;
+int         Castro::point_mass_fix_solution = 0;
+#endif
+#ifdef AMREX_PARTICLES
+int         Castro::do_tracer_particles = 0;
+#endif

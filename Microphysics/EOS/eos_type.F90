@@ -1,11 +1,11 @@
 module eos_type_module
 
-  use bl_types, only: dp_t
+  use amrex_fort_module, only : rt => amrex_real
   use network, only: nspec, naux
 
   implicit none
 
-  private :: dp_t, nspec, naux
+  private :: rt, nspec, naux
 
   integer, parameter :: eos_input_rt = 1  ! rho, T are inputs
   integer, parameter :: eos_input_rh = 2  ! rho, h are inputs
@@ -41,26 +41,45 @@ module eos_type_module
 
   ! Minimum and maximum thermodynamic quantities permitted by the EOS.
 
-  real(dp_t), save :: mintemp = 1.d-200
-  real(dp_t), save :: maxtemp = 1.d200
-  real(dp_t), save :: mindens = 1.d-200
-  real(dp_t), save :: maxdens = 1.d200
-  real(dp_t), save :: minx    = 1.d-200
-  real(dp_t), save :: maxx    = 1.d0 + 1.d-12
-  real(dp_t), save :: minye   = 1.d-200
-  real(dp_t), save :: maxye   = 1.d0 + 1.d-12
-  real(dp_t), save :: mine    = 1.d-200
-  real(dp_t), save :: maxe    = 1.d200
-  real(dp_t), save :: minp    = 1.d-200
-  real(dp_t), save :: maxp    = 1.d200
-  real(dp_t), save :: mins    = 1.d-200
-  real(dp_t), save :: maxs    = 1.d200
-  real(dp_t), save :: minh    = 1.d-200
-  real(dp_t), save :: maxh    = 1.d200
+  real(rt), allocatable :: mintemp
+  real(rt), allocatable :: maxtemp
+  real(rt), allocatable :: mindens
+  real(rt), allocatable :: maxdens
+  real(rt), allocatable :: minx
+  real(rt), allocatable :: maxx
+  real(rt), allocatable :: minye
+  real(rt), allocatable :: maxye
+  real(rt), allocatable :: mine
+  real(rt), allocatable :: maxe
+  real(rt), allocatable :: minp
+  real(rt), allocatable :: maxp
+  real(rt), allocatable :: mins
+  real(rt), allocatable :: maxs
+  real(rt), allocatable :: minh
+  real(rt), allocatable :: maxh
 
   !$acc declare &
   !$acc create(mintemp, maxtemp, mindens, maxdens, minx, maxx, minye, maxye) &
   !$acc create(mine, maxe, minp, maxp, mins, maxs, minh, maxh)
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: mintemp
+  attributes(managed) :: maxtemp
+  attributes(managed) :: mindens
+  attributes(managed) :: maxdens
+  attributes(managed) :: minx
+  attributes(managed) :: maxx
+  attributes(managed) :: minye
+  attributes(managed) :: maxye
+  attributes(managed) :: mine
+  attributes(managed) :: maxe
+  attributes(managed) :: minp
+  attributes(managed) :: maxp
+  attributes(managed) :: mins
+  attributes(managed) :: maxs
+  attributes(managed) :: minh
+  attributes(managed) :: maxh
+#endif
 
   ! A generic structure holding thermodynamic quantities and their derivatives,
   ! plus some other quantities of interest.
@@ -105,57 +124,118 @@ module eos_type_module
 
   type :: eos_t
 
-    real(dp_t) :: rho
-    real(dp_t) :: T
-    real(dp_t) :: p
-    real(dp_t) :: e
-    real(dp_t) :: h
-    real(dp_t) :: s
-    real(dp_t) :: xn(nspec)
-    real(dp_t) :: aux(naux)
+    real(rt) :: rho
+    real(rt) :: T
+    real(rt) :: p
+    real(rt) :: e
+    real(rt) :: h
+    real(rt) :: s
+    real(rt) :: xn(nspec)
+    real(rt) :: aux(naux)
 
-    real(dp_t) :: dpdT
-    real(dp_t) :: dpdr
-    real(dp_t) :: dedT
-    real(dp_t) :: dedr
-    real(dp_t) :: dhdT
-    real(dp_t) :: dhdr
-    real(dp_t) :: dsdT
-    real(dp_t) :: dsdr
-    real(dp_t) :: dpde
-    real(dp_t) :: dpdr_e
+    real(rt) :: dpdT
+    real(rt) :: dpdr
+    real(rt) :: dedT
+    real(rt) :: dedr
+    real(rt) :: dhdT
+    real(rt) :: dhdr
+    real(rt) :: dsdT
+    real(rt) :: dsdr
+    real(rt) :: dpde
+    real(rt) :: dpdr_e
 
-    real(dp_t) :: cv
-    real(dp_t) :: cp
-    real(dp_t) :: xne
-    real(dp_t) :: xnp
-    real(dp_t) :: eta
-    real(dp_t) :: pele
-    real(dp_t) :: ppos
-    real(dp_t) :: mu
-    real(dp_t) :: mu_e
-    real(dp_t) :: y_e
+    real(rt) :: cv
+    real(rt) :: cp
+    real(rt) :: xne
+    real(rt) :: xnp
+    real(rt) :: eta
+    real(rt) :: pele
+    real(rt) :: ppos
+    real(rt) :: mu
+    real(rt) :: mu_e
+    real(rt) :: y_e
 #ifdef EXTRA_THERMO
-    real(dp_t) :: dedX(nspec)
-    real(dp_t) :: dpdX(nspec)
-    real(dp_t) :: dhdX(nspec)
+    real(rt) :: dedX(nspec)
+    real(rt) :: dpdX(nspec)
+    real(rt) :: dhdX(nspec)
 #endif
-    real(dp_t) :: gam1
-    real(dp_t) :: cs
+    real(rt) :: gam1
+    real(rt) :: cs
 
-    real(dp_t) :: abar
-    real(dp_t) :: zbar
+    real(rt) :: abar
+    real(rt) :: zbar
 
 #ifdef EXTRA_THERMO
-    real(dp_t) :: dpdA
-    real(dp_t) :: dpdZ
-    real(dp_t) :: dedA
-    real(dp_t) :: dedZ
+    real(rt) :: dpdA
+    real(rt) :: dpdZ
+    real(rt) :: dedA
+    real(rt) :: dedZ
 #endif
 
   end type eos_t
 
 contains
+
+
+  ! Provides a copy subroutine for the eos_t type to
+  ! avoid derived type assignment (OpenACC and CUDA can't handle that)
+  subroutine copy_eos_t(to_eos, from_eos)
+
+    implicit none
+
+    type(eos_t) :: to_eos, from_eos
+
+    !$gpu
+
+    to_eos % rho = from_eos % rho
+    to_eos % T = from_eos % T
+    to_eos % p = from_eos % p
+    to_eos % e = from_eos % e
+    to_eos % h = from_eos % h
+    to_eos % s = from_eos % s
+    to_eos % xn(:) = from_eos % xn(:)
+    to_eos % aux(:) = from_eos % aux(:)
+
+    to_eos % dpdT = from_eos % dpdT
+    to_eos % dpdr = from_eos % dpdr
+    to_eos % dedT = from_eos % dedT
+    to_eos % dedr = from_eos % dedr
+    to_eos % dhdT = from_eos % dhdT
+    to_eos % dhdr = from_eos % dhdr
+    to_eos % dsdT = from_eos % dsdT
+    to_eos % dsdr = from_eos % dsdr
+    to_eos % dpde = from_eos % dpde
+    to_eos % dpdr_e = from_eos % dpdr_e
+
+    to_eos % cv = from_eos % cv
+    to_eos % cp = from_eos % cp
+    to_eos % xne = from_eos % xne
+    to_eos % xnp = from_eos % xnp
+    to_eos % eta = from_eos % eta
+    to_eos % pele = from_eos % pele
+    to_eos % ppos = from_eos % ppos
+    to_eos % mu = from_eos % mu
+    to_eos % mu_e = from_eos % mu_e
+    to_eos % y_e = from_eos % y_e
+
+    to_eos % gam1 = from_eos % gam1
+    to_eos % cs = from_eos % cs
+
+    to_eos % abar = from_eos % abar
+    to_eos % zbar = from_eos % zbar
+
+#ifdef EXTRA_THERMO
+    to_eos % dedX(:) = from_eos % dedX(:)
+    to_eos % dpdX(:) = from_eos % dpdX(:)
+    to_eos % dhdX(:) = from_eos % dhdX(:)
+    
+    to_eos % dpdA = from_eos % dpdA
+    to_eos % dpdZ = from_eos % dpdZ
+    to_eos % dedA = from_eos % dedA
+    to_eos % dedZ = from_eos % dedZ
+#endif
+  end subroutine copy_eos_t
+
 
   ! Given a set of mass fractions, calculate quantities that depend
   ! on the composition like abar and zbar.
@@ -164,12 +244,14 @@ contains
 
     !$acc routine seq
 
-    use bl_constants_module, only: ONE
+    use amrex_constants_module, only: ONE
     use network, only: aion, aion_inv, zion
 
     implicit none
 
     type (eos_t), intent(inout) :: state
+
+    !$gpu
 
     ! Calculate abar, the mean nucleon number,
     ! zbar, the mean proton number,
@@ -192,12 +274,14 @@ contains
 
     !$acc routine seq
 
-    use bl_constants_module, only: ZERO
+    use amrex_constants_module, only: ZERO
     use network, only: aion, aion_inv, zion
 
     implicit none
 
     type (eos_t), intent(inout) :: state
+
+    !$gpu
 
     state % dpdX(:) = state % dpdA * (state % abar * aion_inv(:))   &
                                    * (aion(:) - state % abar) &
@@ -228,12 +312,14 @@ contains
 
     !$acc routine seq
 
-    use bl_constants_module, only: ONE
+    use amrex_constants_module, only: ONE
     use extern_probin_module, only: small_x
 
     implicit none
 
     type (eos_t), intent(inout) :: state
+
+    !$gpu
 
     state % xn = max(small_x, min(ONE, state % xn))
 
@@ -252,6 +338,8 @@ contains
     implicit none
 
     type (eos_t), intent(inout) :: state
+
+    !$gpu
 
     state % T = min(maxtemp, max(mintemp, state % T))
     state % rho = min(maxdens, max(mindens, state % rho))
@@ -283,7 +371,9 @@ contains
 
     implicit none
 
-    real(dp_t), intent(out) :: small_temp_out
+    real(rt), intent(out) :: small_temp_out
+
+    !$gpu
 
     small_temp_out = mintemp
 
@@ -297,7 +387,9 @@ contains
 
     implicit none
 
-    real(dp_t), intent(out) :: small_dens_out
+    real(rt), intent(out) :: small_dens_out
+
+    !$gpu
 
     small_dens_out = mindens
 
@@ -311,7 +403,9 @@ contains
 
     implicit none
 
-    real(dp_t), intent(out) :: max_temp_out
+    real(rt), intent(out) :: max_temp_out
+
+    !$gpu
 
     max_temp_out = maxtemp
 
@@ -325,7 +419,9 @@ contains
 
     implicit none
 
-    real(dp_t), intent(out) :: max_dens_out
+    real(rt), intent(out) :: max_dens_out
+
+    !$gpu
 
     max_dens_out = maxdens
 

@@ -11,7 +11,7 @@ contains
                               set,clear,&
                               dx,problo,time,level) bind(C,name='set_problem_tags')
 
-    use bl_constants_module, only: ZERO, HALF, TWO
+    use amrex_constants_module, only: ZERO, HALF, TWO
     use meth_params_module, only: NVAR, URHO, UTEMP
     use prob_params_module, only: center, probhi, dim, Symmetry, physbc_lo, physbc_hi, &
                                   n_error_buf, ref_ratio, blocking_factor, domlo_level, domhi_level
@@ -132,8 +132,7 @@ contains
 
              ! Clear all tagging that occurs outside the radius set by max_tagging_radius.
 
-             if (r .gt. max_tagging_radius * maxval(abs(problo-center)) .or. &
-                 r .gt. max_tagging_radius * maxval(abs(probhi-center)) ) then
+             if (r .gt. max_tagging_radius * max(maxval(abs(problo-center)), maxval(abs(probhi-center)))) then
 
                 tag(i,j,k) = clear
 

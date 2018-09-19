@@ -44,7 +44,7 @@ contains
 
   subroutine ca_hybrid_hydro_source(lo, hi, state, s_lo, s_hi, ext_src, e_lo, e_hi, mult_factor) bind(C,name='ca_hybrid_hydro_source')
 
-    use bl_constants_module, only: ONE
+    use amrex_constants_module, only: ONE
     use meth_params_module, only: NVAR, URHO, UMR, UML
     use prob_params_module, only: center
     use castro_util_module, only: position
@@ -88,7 +88,7 @@ contains
 
   function linear_to_hybrid(loc, mom_in) result(mom_out)
 
-    use bl_constants_module, only: ZERO
+    use amrex_constants_module, only: ZERO
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -122,7 +122,7 @@ contains
 
   function hybrid_to_linear(loc, mom_in) result(mom_out)
 
-    use bl_constants_module, only: ZERO
+    use amrex_constants_module, only: ZERO
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -191,7 +191,7 @@ contains
   subroutine compute_hybrid_flux(state, flux, idir, idx, cell_centered)
 
     use meth_params_module, only: NVAR, NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, UMR, UML, UMP
-    use bl_error_module, only: bl_error
+    use amrex_error_module, only: amrex_error
     use prob_params_module, only: center
     use castro_util_module, only: position
 
@@ -226,8 +226,10 @@ contains
     else if (idir .eq. 3) then
        loc = position(idx(1),idx(2),idx(3),ccz=cc) - center
        u_adv = state(GDW)
+#ifndef AMREX_USE_CUDA
     else
-       call bl_error("Error: unknown direction in compute_hybrid_flux.")
+       call amrex_error("Error: unknown direction in compute_hybrid_flux.")
+#endif
     endif
 
     R = sqrt(loc(1)**2 + loc(2)**2)
@@ -253,11 +255,12 @@ contains
        flux(UMR) = hybrid_mom(1) * u_adv
        flux(UML) = hybrid_mom(2) * u_adv
        flux(UMP) = hybrid_mom(3) * u_adv + state(GDPRES)
-
+       
+#ifndef AMREX_USE_CUDA
     else
 
-       call bl_error("Error: unknown direction in compute_hybrid_flux.")
-
+       call amrex_error("Error: unknown direction in compute_hybrid_flux.")
+#endif
     endif
 
   end subroutine compute_hybrid_flux
@@ -317,7 +320,7 @@ contains
 
   subroutine ca_hybrid_update(lo, hi, state, state_lo, state_hi) bind(C, name='ca_hybrid_update')
 
-    use bl_constants_module, only: HALF, ONE
+    use amrex_constants_module, only: HALF, ONE
     use meth_params_module, only: URHO, UMR, UMP, UMX, UMZ, UEDEN, NVAR
     use castro_util_module, only: position
     use prob_params_module, only: center

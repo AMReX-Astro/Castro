@@ -1,8 +1,7 @@
 subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
-  use bl_types
-  use bl_constants_module
-  use bl_error_module
+  use amrex_constants_module
+  use amrex_error_module
   use initial_model_module
   use model_parser_module, only : model_r, model_state, npts_model, model_initialized
 
@@ -32,7 +31,8 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
                     ash1_name, ash2_name, ash3_name, &
                     fuel1_frac, fuel2_frac, fuel3_frac, &
                     ash1_frac, ash2_frac, ash3_frac, &
-                    low_density_cutoff, index_base_from_temp, smallx
+                    low_density_cutoff, index_base_from_temp, smallx, &
+                    max_hse_tagging_level, burn_tagging_min, burn_tagging_max
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 256
@@ -46,7 +46,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   real(rt) :: dx_model
   integer :: ng
 
-  if (namlen > maxlen) call bl_error("probin file name too long")
+  if (namlen > maxlen) call amrex_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -94,6 +94,10 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   smallx = 1.d-10
 
+  max_hse_tagging_level = 2
+  burn_tagging_min = 1.e4_rt
+  burn_tagging_max = 4.e6_rt
+
   open(newunit=untin,file=probin(1:namlen),form='formatted',status='old')
   read(untin,fortin)
   close(unit=untin)
@@ -129,7 +133,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   if (.not. species_defined) then
      print *, ifuel1, ifuel2, ifuel3
      print *, iash1, iash2, iash3
-     call bl_error("ERROR: species not defined")
+     call amrex_error("ERROR: species not defined")
   endif
 
 
@@ -147,11 +151,11 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   ! check if they sum to 1
   if (abs(sum(model_params % xn_star) - ONE) > nspec*smallx) then
-     call bl_error("ERROR: ash mass fractions don't sum to 1")
+     call amrex_error("ERROR: ash mass fractions don't sum to 1")
   endif
 
   if (abs(sum(model_params % xn_base) - ONE) > nspec*smallx) then
-     call bl_error("ERROR: fuel mass fractions don't sum to 1")
+     call amrex_error("ERROR: fuel mass fractions don't sum to 1")
   endif
 
   ! we are going to generate an initial model from problo(2) to
@@ -185,6 +189,8 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   allocate(model_state(nx_model+ng, nvars_model))
   model_state(:, :) = gen_model_state(:, :, 1)
+
+  allocate(npts_model)
 
   npts_model = nx_model+ng
   model_initialized = .true.
@@ -221,7 +227,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                        state, state_l1, state_l2, state_h1, state_h2, &
                        delta, xlo, xhi)
 
-  use bl_constants_module
+  use amrex_constants_module
   use probdata_module
   use interpolate_module
   use eos_module, only : eos
