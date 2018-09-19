@@ -281,23 +281,23 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 
 	MultiFab grav_center[BL_SPACEDIM];
 
-	for (int i = 0; i < BL_SPACEDIM; ++i) {
-		grav_center[i].define(grids, dmap, 3, 1);
-		grav_center[i].setVal(0.0, 1);
+	// for (int i = 0; i < BL_SPACEDIM; ++i) {
+	grav_center[i].define(grids, dmap, 3, 1);
+	grav_center[i].setVal(0.0, 1);
+	// }
 
-        // Calculate time-centered gravity
-    	MultiFab::Saxpy(grav_center[i], 0.5, grav_old[i], 0, 0, 3, 1);
-    	MultiFab::Saxpy(grav_center[i], 0.5, grav_new[i], 0, 0, 3, 1);
-	}
+	// Calculate time-centered gravity
+	MultiFab::Saxpy(grav_center, 0.5, grav_old, 0, 0, 3, 1);
+	MultiFab::Saxpy(grav_center, 0.5, grav_new, 0, 0, 3, 1);
 
 	// Construct time-averaged edge-centered gravity.
 	MultiFab gravx[BL_SPACEDIM];
 	MultiFab gravy[BL_SPACEDIM];
 	MultiFab gravz[BL_SPACEDIM];
 
-    gravx.define(getEdgeBoxArray(0), dmap, 1, 0);
-    gravy.define(getEdgeBoxArray(1), dmap, 1, 0);
-    gravz.define(getEdgeBoxArray(2), dmap, 1, 0);
+	gravx.define(getEdgeBoxArray(0), dmap, 1, 0);
+	gravy.define(getEdgeBoxArray(1), dmap, 1, 0);
+	gravz.define(getEdgeBoxArray(2), dmap, 1, 0);
 
 #endif
 
@@ -315,14 +315,14 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 		{
 			const Box& bx = mfi.tilebox();
 #ifdef SELF_GRAVITY
-            ca_make_edge_centered_gravity(
-                        ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-			            ARLIM_3D(domlo), ARLIM_3D(domhi),
-			            BL_TO_FORTRAN_ANYD(grav_center[mfi]),
-			            BL_TO_FORTRAN_ANYD(phi_center[mfi]),
-			            BL_TO_FORTRAN_ANYD(gravx[mfi]),
-			            BL_TO_FORTRAN_ANYD(gravy[mfi]),
-			            BL_TO_FORTRAN_ANYD(gravz[mfi]));
+			ca_make_edge_centered_gravity(
+				ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+				ARLIM_3D(domlo), ARLIM_3D(domhi),
+				BL_TO_FORTRAN_ANYD(grav_center[mfi]),
+				BL_TO_FORTRAN_ANYD(phi_center[mfi]),
+				BL_TO_FORTRAN_ANYD(gravx[mfi]),
+				BL_TO_FORTRAN_ANYD(gravy[mfi]),
+				BL_TO_FORTRAN_ANYD(gravz[mfi]));
 #endif
 
 #pragma gpu
