@@ -1821,8 +1821,6 @@ Castro::check_for_post_regrid (Real time)
 
 	tags.setVal(TagBox::CLEAR);
 
-	int err_idx = -1;
-
 	for (int i = 0; i < err_list.size(); ++i)
             apply_tagging_func(tags, TagBox::CLEAR, TagBox::SET, time, i);
 
