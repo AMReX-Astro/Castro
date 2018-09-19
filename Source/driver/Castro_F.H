@@ -730,7 +730,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(grav),
 #endif
      BL_FORT_FAB_ARG_3D(source),
-     const amrex::Real* dx, const amrex::Real& dt, const amrex::Real* time);
+     const amrex::Real* dx, const amrex::Real dt, const amrex::Real time);
 
   void ca_corrgsrc
     (const int* lo, const int* hi,

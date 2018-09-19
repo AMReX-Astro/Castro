@@ -48,7 +48,8 @@ contains
     real(rt), intent(in)    :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3),3)
 #endif
     real(rt), intent(inout) :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
-    real(rt), intent(in)    :: dx(3), dt, time
+    real(rt), intent(in)    :: dx(3)
+    real(rt), intent(in), value :: dt, time
 
     real(rt) :: rho, rhoInv
     real(rt) :: Sr(3), SrE
