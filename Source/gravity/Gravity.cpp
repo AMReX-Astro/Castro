@@ -1046,9 +1046,13 @@ Gravity::test_level_grad_phi_prev(int level)
 #pragma gpu
 		ca_test_residual(bx.loVect(), bx.hiVect(),
 		                 BL_TO_FORTRAN(Rhs[mfi]),
-		                 D_DECL(BL_TO_FORTRAN_3D((*grad_phi_prev[level][0])[mfi]),
+		                 BL_TO_FORTRAN_3D((*grad_phi_prev[level][0])[mfi]),
+#if AMREX_SPACEDIM >=2
 		                        BL_TO_FORTRAN_3D((*grad_phi_prev[level][1])[mfi]),
-		                        BL_TO_FORTRAN_3D((*grad_phi_prev[level][2])[mfi])),
+#if AMREX_SPACEDIM==3
+		                        BL_TO_FORTRAN_3D((*grad_phi_prev[level][2])[mfi]),
+#endif
+#endif
 		                 dx,problo,coord_type);
 	}
 	if (verbose) {
@@ -1116,9 +1120,13 @@ Gravity::test_level_grad_phi_curr(int level)
 #pragma gpu
 		ca_test_residual(bx.loVect(), bx.hiVect(),
 		                 BL_TO_FORTRAN(Rhs[mfi]),
-		                 D_DECL(BL_TO_FORTRAN((*grad_phi_curr[level][0])[mfi]),
+		                 BL_TO_FORTRAN((*grad_phi_curr[level][0])[mfi]),
+#if AMREX_SPACEDIM >=2
 		                        BL_TO_FORTRAN((*grad_phi_curr[level][1])[mfi]),
-		                        BL_TO_FORTRAN((*grad_phi_curr[level][2])[mfi])),
+#if AMREX_SPACEDIM==3
+		                        BL_TO_FORTRAN((*grad_phi_curr[level][2])[mfi]),
+#endif
+#endif
 		                 dx,problo,coord_type);
 	}
 	if (verbose) {
