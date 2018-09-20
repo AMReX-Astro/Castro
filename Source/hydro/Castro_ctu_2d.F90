@@ -292,7 +292,7 @@ contains
        else
           call amrex_error("ERROR: invalid value of islope")
 #endif
-       endif       
+       endif
 
     else
 
@@ -366,7 +366,7 @@ contains
                                flatn, q_lo, q_hi, &
                                sxm, sxp, sym, syp, q_lo, q_hi, &
                                lo, hi, dx)
-          
+
           call ppm_int_profile(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
                                q, q_lo, q_hi, &
                                qaux, qa_lo, qa_hi, &

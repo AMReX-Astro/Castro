@@ -246,6 +246,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
      flatn = ONE
   endif
 
+
   do n = 1, NQ
      call ppm_reconstruct(q, q_lo, q_hi, NQ, n, &
                           flatn, q_lo, q_hi, &
@@ -255,7 +256,6 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #endif
 #if AMREX_SPACEDIM == 3
                           szm, szp, &
-#endif
                           st_lo, st_hi, &
                           lo, hi, dx)
 
@@ -541,7 +541,8 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #if AMREX_SPACEDIM >= 2
   call normalize_species_fluxes(flux2_lo, flux2_hi, flux2, flux2_lo, flux2_hi)
 #endif
-#if AMREXL_SPACEDIM == 3
+
+#if AMREX_SPACEDIM == 3
   call normalize_species_fluxes(flux3_lo, flux3_hi, flux3, flux3_lo, flux3_hi)
 #endif
 

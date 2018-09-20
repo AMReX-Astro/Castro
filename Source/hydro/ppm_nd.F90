@@ -623,6 +623,7 @@ contains
        end do
     end do
 
+
 #if (AMREX_SPACEDIM >= 2)
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! y-direction
@@ -1157,6 +1158,9 @@ contains
                                      qp, qp_lo, qp_hi) bind(c,name='ca_ppm_reconstruct_cuda')
 
     use meth_params_module, only: NQ
+#ifndef AMREX_USE_GPU
+    use amrex_error_module, only: amrex_error
+#endif
 
     implicit none
 

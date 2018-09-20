@@ -717,8 +717,13 @@ contains
              end do
 
 #if (AMREX_SPACEDIM == 1)
+<<<<<<< HEAD
              if (fix_mass_flux_hi) qxp(hi(1)+1,j,k,n) = q(hi(1)+1,j,k,n)
              if (fix_mass_flux_lo) qxm(lo(1),j,k,n) = q(lo(1)-1,j,k,n)
+=======
+          if (fix_mass_flux_hi) qxp(ihi1+1,j,kc,n) = q(ihi1+1,j,k3d,n)
+          if (fix_mass_flux_lo) qxm(ilo1,j,kc,n) = q(ilo1-1,j,k3d,n)
+>>>>>>> development
 #endif
 
           end do
