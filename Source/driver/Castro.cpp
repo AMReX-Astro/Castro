@@ -625,6 +625,12 @@ Castro::buildMetrics ()
 	area[dir].define(getEdgeBoxArray(dir),dmap,1,NUM_GROW);
         geom.GetFaceArea(area[dir],dir);
     }
+    for (int dir = BL_SPACEDIM; dir < 3; dir++)
+    {
+        area[dir].clear();
+        area[dir].define(grids, dmap, 1, 0);
+        area[dir].setVal(0.0);
+    }
 
     dLogArea[0].clear();
 #if (BL_SPACEDIM <= 2)
@@ -2693,7 +2699,16 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new, int ng)
 	FArrayBox& statenew = S_new[mfi];
 	const FArrayBox& vol      = volume[mfi];
 
+#ifdef AMREX_USE_CUDA
 #pragma gpu
+	ca_enforce_minimum_density_cuda
+            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+             BL_TO_FORTRAN_ANYD(stateold),
+             BL_TO_FORTRAN_ANYD(statenew),
+             BL_TO_FORTRAN_ANYD(vol),
+             AMREX_MFITER_REDUCE_MIN(&dens_change),
+             verbose);
+#else
 	ca_enforce_minimum_density
             (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
              BL_TO_FORTRAN_ANYD(stateold),
@@ -2701,7 +2716,7 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new, int ng)
              BL_TO_FORTRAN_ANYD(vol),
              AMREX_MFITER_REDUCE_MIN(&dens_change),
              verbose);
-
+#endif
     }
 
     if (print_update_diagnostics)
