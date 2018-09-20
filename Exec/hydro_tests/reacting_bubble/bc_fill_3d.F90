@@ -33,7 +33,7 @@ contains
     integer i,j,k,n,iter,MAX_ITER,l
     real(rt)         z
     real(rt)         pres_above,pres_below,pres_want,pres_zone
-    real(rt)         drho,dpdr,temperature,eint,pressure,species(3),density
+    real(rt)         drho,dpdr,temperature,eint,pressure,species(nspec),density
     real(rt)         TOL
     logical converged_hse
 
@@ -187,7 +187,7 @@ contains
        do k = adv_l3, domlo(3)-1
           z = xlo(3) + delta(3)*(dble(k-adv_l3)+ 0.5e0_rt)
           do j = adv_l2, adv_h2
-             do i=adv_l1,adv_h1
+             do i = adv_l1, adv_h1
                 adv(i,j,k) = interpolate(z,npts_model,model_r, &
                                          model_state(:,idens_model))
              enddo
@@ -223,12 +223,22 @@ contains
     include 'AMReX_bc_types.fi'
 
     integer :: grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3
-    integer :: bc(3,2,*)
+    integer :: bc(3,2)
     integer :: domlo(3), domhi(3)
     real(rt)         delta(3), xlo(3), time
     real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
+    integer :: bc_temp(3,2)
 
-    call filcc(grav,grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3,domlo,domhi,delta,xlo,bc)
+    bc_temp(:,:) = bc(:,:)
+
+    if (bc(3,1) == EXT_DIR .and. grav_l3 < domlo(3)) then
+       bc_temp(3,1) = FOEXTRAP
+    endif
+    if (bc(3,2) == EXT_DIR .and. grav_h3 > domhi(3)) then
+       bc_temp(3,2) = FOEXTRAP
+    endif
+
+    call filcc(grav,grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3,domlo,domhi,delta,xlo,bc_temp)
 
   end subroutine ca_gravxfill
 
@@ -244,12 +254,22 @@ contains
     include 'AMReX_bc_types.fi'
 
     integer :: grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3
-    integer :: bc(3,2,*)
+    integer :: bc(3,2)
     integer :: domlo(3), domhi(3)
     real(rt)         delta(3), xlo(3), time
     real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
+    integer :: bc_temp(3,2)
 
-    call filcc(grav,grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3,domlo,domhi,delta,xlo,bc)
+    bc_temp(:,:) = bc(:,:)
+
+    if (bc(3,1) == EXT_DIR .and. grav_l3 < domlo(3)) then
+       bc_temp(3,1) = FOEXTRAP
+    endif
+    if (bc(3,2) == EXT_DIR .and. grav_h3 > domhi(3)) then
+       bc_temp(3,2) = FOEXTRAP
+    endif
+
+    call filcc(grav,grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3,domlo,domhi,delta,xlo,bc_temp)
 
   end subroutine ca_gravyfill
 
@@ -266,12 +286,22 @@ contains
     include 'AMReX_bc_types.fi'
 
     integer :: grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3
-    integer :: bc(3,2,*)
+    integer :: bc(3,2)
     integer :: domlo(3), domhi(3)
     real(rt)         delta(3), xlo(3), time
     real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
+    integer :: bc_temp(3,2)
 
-    call filcc(grav,grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3,domlo,domhi,delta,xlo,bc)
+    bc_temp(:,:) = bc(:,:)
+
+    if (bc(3,1) == EXT_DIR .and. grav_l3 < domlo(3)) then
+       bc_temp(3,1) = FOEXTRAP
+    endif
+    if (bc(3,2) == EXT_DIR .and. grav_h3 > domhi(3)) then
+       bc_temp(3,2) = FOEXTRAP
+    endif
+
+    call filcc(grav,grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3,domlo,domhi,delta,xlo,bc_temp)
 
   end subroutine ca_gravzfill
 
@@ -289,12 +319,22 @@ contains
     include 'AMReX_bc_types.fi'
 
     integer :: react_l1,react_l2,react_l3,react_h1,react_h2,react_h3
-    integer :: bc(3,2,*)
+    integer :: bc(3,2)
     integer :: domlo(3), domhi(3)
     real(rt)         delta(3), xlo(3), time
     real(rt)         react(react_l1:react_h1,react_l2:react_h2,react_l3:react_h3)
+    integer :: bc_temp(3,2)
 
-    call filcc(react,react_l1,react_l2,react_l3,react_h1,react_h2,react_h3,domlo,domhi,delta,xlo,bc)
+    bc_temp(:,:) = bc(:,:)
+
+    if (bc(3,1) == EXT_DIR .and. react_l3 < domlo(3)) then
+       bc_temp(3,1) = FOEXTRAP
+    endif
+    if (bc(3,2) == EXT_DIR .and. react_h3 > domhi(3)) then
+       bc_temp(3,2) = FOEXTRAP
+    endif
+
+    call filcc(react,react_l1,react_l2,react_l3,react_h1,react_h2,react_h3,domlo,domhi,delta,xlo,bc_temp)
 
   end subroutine ca_reactfill
 
@@ -310,13 +350,23 @@ contains
     include 'AMReX_bc_types.fi'
 
     integer          :: phi_l1,phi_l2,phi_l3,phi_h1,phi_h2,phi_h3
-    integer          :: bc(3,2,*)
+    integer          :: bc(3,2)
     integer          :: domlo(3), domhi(3)
     real(rt)         :: delta(3), xlo(3), time
     real(rt)         :: phi(phi_l1:phi_h1,phi_l2:phi_h2,phi_l3:phi_h3)
+    integer :: bc_temp(3,2)
+
+    bc_temp(:,:) = bc(:,:)
+
+    if (bc(3,1) == EXT_DIR .and. phi_l3 < domlo(3)) then
+       bc_temp(3,1) = FOEXTRAP
+    endif
+    if (bc(3,2) == EXT_DIR .and. phi_h3 > domhi(3)) then
+       bc_temp(3,2) = FOEXTRAP
+    endif
 
     call filcc(phi,phi_l1,phi_l2,phi_l3,phi_h1,phi_h2,phi_h3, &
-               domlo,domhi,delta,xlo,bc)
+               domlo,domhi,delta,xlo,bc_temp)
 
   end subroutine ca_phigravfill
 

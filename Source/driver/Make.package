@@ -1,6 +1,6 @@
 # these are the files that should be needed for any Castro build
 
-ca_f90EXE_sources += amrinfo.f90
+ca_F90EXE_sources += amrinfo.F90
 ca_F90EXE_sources += filcc_nd.F90
 
 CEXE_sources += Castro.cpp
@@ -20,7 +20,10 @@ CEXE_sources += sum_integrated_quantities.cpp
 
 FEXE_headers += Castro_F.H
 FEXE_headers += Castro_error_F.H
+
 FEXE_headers += Derive_F.H
+CEXE_headers += Derive.H
+CEXE_sources += Derive.cpp
 
 ca_F90EXE_sources += generic_fill.F90
 
@@ -29,7 +32,7 @@ ca_F90EXE_sources += Castro_util.F90
 ca_F90EXE_sources += Derive_nd.F90
 ca_F90EXE_sources += interpolate.F90
 ca_f90EXE_sources += io.f90
-ca_f90EXE_sources += math.f90
+ca_F90EXE_sources += math.F90
 ca_F90EXE_sources += meth_params.F90
 ca_F90EXE_sources += set_indices.F90
 ca_f90EXE_sources += state_sizes.f90
