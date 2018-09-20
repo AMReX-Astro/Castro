@@ -7,7 +7,7 @@ module advection_util_module
 
   public ca_enforce_minimum_density, ca_compute_cfl, ca_ctoprim, ca_srctoprim, dflux, &
          limit_hydro_fluxes_on_small_dens, shock, divu, calc_pdivu, normalize_species_fluxes, &
-         ca_enforce_minimum_density_cuda, ca_divu_cuda, scale_flux_cuda, apply_av_cuda, &
+         ca_divu_cuda, scale_flux_cuda, apply_av_cuda, &
          ca_construct_hydro_update_cuda
 
 contains
@@ -1636,112 +1636,6 @@ contains
     enddo
 
   end subroutine calc_pdivu
-
-
-
-  subroutine reset_to_small_state_cuda(old_state, new_state, idx, lo, hi, verbose)
-
-    use amrex_constants_module, only: ZERO
-    use network, only: nspec, naux
-    use eos_type_module, only: eos_t, eos_input_rt
-    use eos_module, only: eos
-    use amrex_fort_module, only: rt => amrex_real
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEINT, UEDEN, UFS, small_temp, small_dens, npassive, upass_map
-
-    implicit none
-
-    real(rt), intent(in   ) :: old_state(NVAR)
-    real(rt), intent(inout) :: new_state(NVAR)
-    integer,  intent(in   ) :: idx(3), lo(3), hi(3), verbose
-
-    integer      :: n, ipassive
-    type (eos_t) :: eos_state
-
-    !$gpu
-
-    ! If no neighboring zones are above small_dens, our only recourse
-    ! is to set the density equal to small_dens, and the temperature
-    ! equal to small_temp. We set the velocities to zero,
-    ! though any choice here would be arbitrary.
-
-#ifndef AMREX_USE_GPU
-    if (verbose .gt. 0) then
-       print *,'   '
-       if (new_state(URHO) < ZERO) then
-          print *,'>>> RESETTING NEG.  DENSITY AT ',idx(1),idx(2),idx(3)
-       else
-          print *,'>>> RESETTING SMALL DENSITY AT ',idx(1),idx(2),idx(3)
-       endif
-       print *,'>>> FROM ',new_state(URHO),' TO ',small_dens
-       print *,'>>> IN GRID ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-       print *,'>>> ORIGINAL DENSITY FOR OLD STATE WAS ',old_state(URHO)
-       print *,'   '
-    end if
-#endif
-
-    do ipassive = 1, npassive
-       n = upass_map(ipassive)
-       new_state(n) = new_state(n) * (small_dens / new_state(URHO))
-    end do
-
-    eos_state % rho = small_dens
-    eos_state % T   = small_temp
-    eos_state % xn  = new_state(UFS:UFS+nspec-1) / small_dens
-    eos_state % aux = new_state(UFS:UFS+naux-1) / small_dens
-
-    call eos(eos_input_rt, eos_state)
-
-    new_state(URHO ) = eos_state % rho
-    new_state(UTEMP) = eos_state % T
-
-    new_state(UMX  ) = ZERO
-    new_state(UMY  ) = ZERO
-    new_state(UMZ  ) = ZERO
-
-    new_state(UEINT) = eos_state % rho * eos_state % e
-    new_state(UEDEN) = new_state(UEINT)
-
-  end subroutine reset_to_small_state_cuda
-
-
-
-  subroutine reset_to_zone_state_cuda(old_state, new_state, input_state, idx, lo, hi, verbose)
-
-    use amrex_constants_module, only: ZERO
-    use amrex_fort_module, only: rt => amrex_real
-    use meth_params_module, only: NVAR, URHO
-
-    implicit none
-
-    real(rt), intent(in   ) :: old_state(NVAR), input_state(NVAR)
-    real(rt), intent(inout) :: new_state(NVAR)
-    integer,  intent(in   ) :: idx(3), lo(3), hi(3), verbose
-
-    !$gpu
-
-#ifndef AMREX_USE_GPU
-    if (verbose .gt. 0) then
-       if (new_state(URHO) < ZERO) then
-          print *,'   '
-          print *,'>>> RESETTING NEG.  DENSITY AT ',idx(1),idx(2),idx(3)
-          print *,'>>> FROM ',new_state(URHO),' TO ',input_state(URHO)
-          print *,'>>> IN GRID ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-          print *,'>>> ORIGINAL DENSITY FOR OLD STATE WAS ',old_state(URHO)
-          print *,'   '
-       else
-          print *,'   '
-          print *,'>>> RESETTING SMALL DENSITY AT ',idx(1),idx(2),idx(3)
-          print *,'>>> FROM ',new_state(URHO),' TO ',input_state(URHO)
-          print *,'>>> IN GRID ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-          print *,'>>> ORIGINAL DENSITY FOR OLD STATE WAS ',old_state(URHO)
-          print *,'   '
-       end if
-    end if
-#endif
-
-    new_state(:) = input_state(:)
-
-  end subroutine reset_to_zone_state_cuda
 
 
 
