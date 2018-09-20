@@ -8,7 +8,7 @@ module advection_util_module
   public ca_enforce_minimum_density, ca_compute_cfl, ca_ctoprim, ca_srctoprim, dflux, &
          limit_hydro_fluxes_on_small_dens, shock, divu, calc_pdivu, normalize_species_fluxes, &
          ca_enforce_minimum_density_cuda, ca_divu_cuda, scale_flux_cuda, apply_av_cuda, &
-         ca_construct_hydro_update_cuda, normalize_species_fluxes_cuda
+         ca_construct_hydro_update_cuda
 
 contains
 
@@ -21,7 +21,9 @@ contains
     use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UEINT, UEDEN, small_dens, density_reset_method
     use amrex_constants_module, only : ZERO
-    use amrex_error_module
+#ifndef AMREX_USE_GPU
+    use amrex_error_module, only: amrex_error
+#endif
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -44,20 +46,7 @@ contains
     real(rt)         :: unew(NVAR)
     integer          :: num_positive_zones
 
-    real(rt)         :: initial_mass, final_mass
-    real(rt)         :: initial_eint, final_eint
-    real(rt)         :: initial_eden, final_eden
-
     logical :: have_reset
-
-    initial_mass = ZERO
-    final_mass   = ZERO
-
-    initial_eint = ZERO
-    final_eint   = ZERO
-
-    initial_eden = ZERO
-    final_eden   = ZERO
 
     max_dens = ZERO
 
@@ -67,17 +56,14 @@ contains
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
 
-             initial_mass = initial_mass + uout(i,j,k,URHO ) * vol(i,j,k)
-             initial_eint = initial_eint + uout(i,j,k,UEINT) * vol(i,j,k)
-             initial_eden = initial_eden + uout(i,j,k,UEDEN) * vol(i,j,k)
-
              if (uout(i,j,k,URHO) .eq. ZERO) then
 
-#ifndef AMREX_USE_CUDA                     
+#ifndef AMREX_USE_GPU
                 print *,'DENSITY EXACTLY ZERO AT CELL ',i,j,k
                 print *,'  in grid ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-                call amrex_error("Error:: advection_util_nd.f90 :: ca_enforce_minimum_density")
+                call amrex_error("Error :: ca_enforce_minimum_density")
 #endif
+
              else if (uout(i,j,k,URHO) < small_dens) then
 
                 have_reset = .true.
@@ -188,10 +174,6 @@ contains
                 endif
 
              end if
-
-             final_mass = final_mass + uout(i,j,k,URHO ) * vol(i,j,k)
-             final_eint = final_eint + uout(i,j,k,UEINT) * vol(i,j,k)
-             final_eden = final_eden + uout(i,j,k,UEDEN) * vol(i,j,k)
 
           enddo
        enddo
@@ -1654,119 +1636,6 @@ contains
     enddo
 
   end subroutine calc_pdivu
-
-
-
-
-
-
-  subroutine ca_enforce_minimum_density_cuda(lo,hi, &
-                                             uin,uin_lo,uin_hi, &
-                                             uout,uout_lo,uout_hi, &
-                                             vol,vol_lo,vol_hi, &
-                                             frac_change,verbose) &
-                                             bind(c,name='ca_enforce_minimum_density_cuda')
-
-    use network, only: nspec, naux
-    use amrex_constants_module, only: ZERO
-    use amrex_fort_module, only: rt => amrex_real, amrex_min
-    use meth_params_module, only: NVAR, URHO, UEINT, UEDEN, small_dens
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ), value :: verbose
-    integer,  intent(in   ) ::  uin_lo(3),  uin_hi(3)
-    integer,  intent(in   ) :: uout_lo(3), uout_hi(3)
-    integer,  intent(in   ) ::  vol_lo(3),  vol_hi(3)
-
-    real(rt), intent(in   ) ::  uin( uin_lo(1): uin_hi(1), uin_lo(2): uin_hi(2), uin_lo(3): uin_hi(3),NVAR)
-    real(rt), intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
-    real(rt), intent(in   ) ::  vol( vol_lo(1): vol_hi(1), vol_lo(2): vol_hi(2), vol_lo(3): vol_hi(3))
-    real(rt), intent(inout) :: frac_change
-
-    ! Local variables
-    integer  :: i,ii,j,jj,k,kk
-    integer  :: i_set, j_set, k_set
-    real(rt) :: max_dens
-    real(rt) :: f_c
-    real(rt) :: old_state(NVAR), new_state(NVAR), unew(NVAR)
-    integer  :: num_positive_zones
-
-    !$gpu
-
-    max_dens = ZERO
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             if (uout(i,j,k,URHO) .eq. ZERO) then
-
-#ifndef AMREX_USE_GPU
-                print *,'DENSITY EXACTLY ZERO AT CELL ',i,j,k
-                print *,'  in grid ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-                call amrex_error("Error:: advection_util_nd.F90 :: ca_enforce_minimum_density")
-#endif
-             else if (uout(i,j,k,URHO) < small_dens) then
-
-                old_state = uin(i,j,k,:)
-
-                ! Store the maximum (negative) fractional change in the density
-
-                if (uout(i,j,k,URHO) < ZERO) then
-
-                   f_c = (uout(i,j,k,URHO) - uin(i,j,k,URHO)) / uin(i,j,k,URHO)
-
-                   call amrex_min(frac_change, f_c)
-
-                endif
-
-                ! Reset to the characteristics of the adjacent state with the highest density.
-
-                max_dens = uout(i,j,k,URHO)
-                i_set = i
-                j_set = j
-                k_set = k
-                do kk = -1,1
-                   do jj = -1,1
-                      do ii = -1,1
-                         if (i+ii.ge.lo(1) .and. j+jj.ge.lo(2) .and. k+kk.ge.lo(3) .and. &
-                              i+ii.le.hi(1) .and. j+jj.le.hi(2) .and. k+kk.le.hi(3)) then
-                            if (uout(i+ii,j+jj,k+kk,URHO) .gt. max_dens) then
-                               i_set = i+ii
-                               j_set = j+jj
-                               k_set = k+kk
-                               max_dens = uout(i_set,j_set,k_set,URHO)
-                            endif
-                         endif
-                      end do
-                   end do
-                end do
-
-                if (max_dens < small_dens) then
-
-                   ! We could not find any nearby zones with sufficient density.
-
-                   call reset_to_small_state_cuda(old_state, new_state, [i, j, k], lo, hi, verbose)
-
-                else
-
-                   unew = uout(i_set,j_set,k_set,:)
-
-                   call reset_to_zone_state_cuda(old_state, new_state, unew, [i, j, k], lo, hi, verbose)
-
-                endif
-
-                uout(i,j,k,:) = new_state
-
-             endif
-
-          enddo
-       enddo
-    enddo
-
-  end subroutine ca_enforce_minimum_density_cuda
 
 
 
