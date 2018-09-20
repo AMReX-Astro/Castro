@@ -70,11 +70,6 @@ subroutine ca_initdata(level,time,lo,hi,nvar, &
   ! Zero the state
   state(:,:,:,:) = ZERO
 
-  print *, 'shape model state = ', shape(model_state)
-  print *, 'shape state = ', shape(state)
-  print *, 'lo = ', lo
-  print *, 'hi = ', hi
-
   ! Check to make sure the number of zones in state and model are the same
   nzones_state = (hi(1)-lo(1)+1) * (hi(2)-lo(2)+1) * (hi(3)-lo(3)+1)
   if (.not. nzones_state .eq. npts_model) then
@@ -88,13 +83,9 @@ subroutine ca_initdata(level,time,lo,hi,nvar, &
   ! Fill state with model data
   n = 0
   do k = lo(3), hi(3)
-     print *, "k = ", k
      do j = lo(2), hi(2)
-        print *, "j = ", j          
         do i = lo(1), hi(1)
-           print *, "i = ", i
            n = n + 1
-           print *, "n = ", n
            state(i, j, k, URHO) = model_state(n, idens_model)
            state(i, j, k, UTEMP) = model_state(n, itemp_model)
            state(i, j, k, UFS:UFS-1+nspec) = model_state(n, ispec_model:ispec_model-1+nspec)
