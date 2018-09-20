@@ -336,12 +336,12 @@ contains
 
     endif
 
-    call normalize_species_fluxes(lo, hi, flux1, flux1_lo, flux1_hi)
+    call normalize_species_fluxes(flux1_lo, flux1_hi, flux1, flux1_lo,flux1_hi)
 #if AMREX_SPACEDIM >= 2
-    call normalize_species_fluxes(lo, hi, flux2, flux2_lo, flux2_hi)
+    call normalize_species_fluxes(flux2_lo, flux2_hi, flux2, flux2_lo,flux2_hi)
 #endif
 #if AMREX_SPACEDIM == 3
-    call normalize_species_fluxes(lo, hi, flux3, flux3_lo, flux3_hi)
+    call normalize_species_fluxes(flux3_lo, flux3_hi, flux3, flux3_lo, flux3_hi)
 #endif
 
     ! For hydro, we will create an update source term that is
