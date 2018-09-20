@@ -4,6 +4,10 @@
 #include <AMReX_AmrLevel.H>
 #include <AMReX_MLLinOp.H>
 
+#ifdef AMREX_USE_CUDA
+#include <AMReX_CudaAllocators.H>
+#endif
+
 class Gravity {
 
 public:
@@ -27,7 +31,7 @@ public:
   int NoComposite();
   int DoCompositeCorrection();
   int test_results_of_solves ();
-  
+
   void set_mass_offset(amrex::Real time, bool multi_level=true);
 
   amrex::Vector<std::unique_ptr<amrex::MultiFab> >& get_grad_phi_prev(int level);
@@ -47,7 +51,7 @@ public:
 		      int               is_new);
 
 
-  void solve_for_delta_phi (int                        crse_level, 
+  void solve_for_delta_phi (int                        crse_level,
                             int                        fine_level,
                             const amrex::Vector<amrex::MultiFab*>&          rhs,
                             const amrex::Vector<amrex::MultiFab*>&          delta_phi,
@@ -58,7 +62,7 @@ public:
 
   void multilevel_solve_for_new_phi (int level, int finest_level,
                                      int use_previous_phi_as_guess = 0);
-  void actual_multilevel_solve      (int level, int finest_level, 
+  void actual_multilevel_solve      (int level, int finest_level,
                                      const amrex::Vector<amrex::Vector<amrex::MultiFab*> >& grad_phi,
 				     int is_new,
                                      int use_previous_phi_as_guess = 0);
@@ -71,7 +75,7 @@ public:
 					amrex::MultiFab& cml_phi,
 					amrex::Vector<std::unique_ptr<amrex::MultiFab> >& cml_gphi);
 
-  void GetCrsePhi(int level, 
+  void GetCrsePhi(int level,
                   amrex::MultiFab& phi_crse,
                   amrex::Real time);
 
@@ -85,7 +89,13 @@ public:
   void average_fine_ec_onto_crse_ec(int level, int is_new);
 
   void make_radial_gravity(int level, amrex::Real time, amrex::Vector<amrex::Real>& radial_grav);
-  void interpolate_monopole_grav(int level, amrex::Vector<amrex::Real>& radial_grav, amrex::MultiFab& grav_vector);
+  void interpolate_monopole_grav(int level,
+#ifdef AMREX_USE_CUDA
+      amrex::Vector<amrex::Real, amrex::CudaManagedAllocator<amrex::Real>>& radial_grav,
+#else
+      amrex::Vector<amrex::Real>& radial_grav,
+#endif
+      amrex::MultiFab& grav_vector);
 
   void make_prescribed_grav(int level, amrex::Real time, amrex::MultiFab& grav, amrex::MultiFab& phi);
   void make_radial_phi(int level, const amrex::MultiFab& Rhs, amrex::MultiFab& phi, int fill_interior);
