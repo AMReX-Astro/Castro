@@ -108,7 +108,7 @@ contains
 #endif
 #endif
 
-#if BL_SPACEDIM == 1
+#if AMREX_SPACEDIM == 1
 #ifndef AMREX_USE_CUDA
     if (riemann_solver > 1) then
        call amrex_error("ERROR: HLLC not implemented for 1-d")
@@ -353,7 +353,7 @@ contains
 #endif
 #endif
 
-#if BL_SPACEDIM == 1
+#if AMREX_SPACEDIM == 1
 #ifndef AMREX_USE_CUDA
     if (riemann_solver > 1) then
        call amrex_error("ERROR: HLLC not implemented for 1-d")

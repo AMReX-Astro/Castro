@@ -16,10 +16,10 @@ contains
                      qaux, qa_lo, qa_hi, &
                      dqx, dqy, dq_lo, dq_hi, &
                      qxm, qxp, qym, qyp, qpd_lo, qpd_hi, &
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
                      dloga, dloga_lo, dloga_hi, &
 #endif
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
                      SrcQ, src_lo, Src_hi, &
 #endif
                      lo, hi, domlo, domhi, &
@@ -41,10 +41,10 @@ contains
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: dq_lo(3), dq_hi(3)
     integer, intent(in) :: qpd_lo(3), qpd_hi(3)
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
     integer, intent(in) :: src_lo(3), src_hi(3)
 #endif
     integer, intent(in) :: lo, hi
@@ -61,10 +61,10 @@ contains
     real(rt), intent(inout) :: qym(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
     real(rt), intent(inout) :: qyp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
 
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
     real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 #endif
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
     real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)    
 #endif
     real(rt), intent(in) :: dx(3), dt
@@ -90,7 +90,7 @@ contains
     logical :: fix_mass_flux_lo, fix_mass_flux_hi
 
     dtdx = dt/dx(1)
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
     dtdy = dt/dx(2)
 #endif
 
@@ -175,7 +175,7 @@ contains
 
                 ! add the source terms in 1-d, since we don't do this in
                 ! the transverse routines
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
                 qxp(i,j,k,QRHO  ) = qxp(i,j,k,QRHO  ) + HALF*dt*srcQ(i,j,k,QRHO)
                 qxp(i,j,k,QRHO  ) = max(small_dens, qxp(i,j,k,QRHO))
                 qxp(i,j,k,QU    ) = qxp(i,j,k,QU    ) + HALF*dt*srcQ(i,j,k,QU)
@@ -213,7 +213,7 @@ contains
 
                 ! add the source terms in 1-d, since we don't do this in
                 ! the transverse routines
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
                 qxm(i+1,j,k,QRHO  ) = qxm(i+1,j,k,QRHO  ) + HALF*dt*srcQ(i,j,k,QRHO)
                 qxm(i+1,j,k,QRHO  ) = max(small_dens, qxm(i+1,j,k,QRHO))
                 qxm(i+1,j,k,QU    ) = qxm(i+1,j,k,QU    ) + HALF*dt*srcQ(i,j,k,QU)
@@ -222,7 +222,7 @@ contains
 #endif
              endif
 
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
              ! geometry source terms
              if (dloga(i,j,k) /= ZERO) then
                 courn = dtdx*(cc + abs(u))
@@ -246,7 +246,7 @@ contains
              end if
 #endif
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
              ! Enforce constant mass flux rate if specified
              if (fix_mass_flux_lo) then
                 qxm(lo(1),j,k,QRHO  ) = q(domlo(1)-1,j,k,QRHO)
@@ -303,7 +303,7 @@ contains
                 qxm(i+1,j,k,n) = q(i,j,k,n) + acmpleft
              end do
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
              if (fix_mass_flux_hi) qxp(ihi1+1,j,k,n) = q(ihi1+1,j,k,n)
              if (fix_mass_flux_lo) qxm(ilo1,j,k,n) = q(ilo1-1,j,k,n)
 #endif
@@ -313,7 +313,7 @@ contains
 
     end do
 
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
     !-----------------------------------------------------------------------
     ! y-direction
     !-----------------------------------------------------------------------

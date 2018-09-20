@@ -60,9 +60,9 @@ contains
              do j = lo(2)-dg(2), hi(2)+dg(2)
                 do i = lo(1)-1, hi(1)+1
                 dqx(i,j,k,n) = ZERO
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
                 dqy(i,j,k,n) = ZERO
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
                 dqz(i,j,k,n) = ZERO
 #endif
 #endif
@@ -102,7 +102,7 @@ contains
              end do
           end do
 
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
           ! Compute slopes in second coordinate direction
           do k = lo(3)-dg(3), hi(3)+dg(3)
              do i = lo(1)-1, hi(1)+1
@@ -130,7 +130,7 @@ contains
           end do
 #endif
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
           ! Compute slopes in third coordinate direction
           do j = lo(2)-1, hi(2)+1
              do i = lo(1)-1, hi(1)+1
@@ -223,9 +223,9 @@ contains
           do j = lo(2)-dg(2), hi(2)+dg(2)
              do i = lo(1)-1, hi(1)+1
                 dqx(i,j,k,QPRES) = ZERO
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
                 dqy(i,j,k,QPRES) = ZERO
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
                 dqz(i,j,k,QPRES) = ZERO
 #endif
 #endif
@@ -269,7 +269,7 @@ contains
           end do
        end do
 
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
        ! Compute slopes in second coordinate direction
        do k = lo(3)-dg(3), hi(3)+dg(3)
           do i = lo(1)-1, hi(1)+1
@@ -305,7 +305,7 @@ contains
        end do
 #endif
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
        ! Compute slopes in third coordinate direction
        do j = lo(2)-1, hi(2)+1
           do i = lo(1)-1, hi(1)+1

@@ -12,20 +12,20 @@ subroutine ca_mol_single_stage(lo, hi, time, &
                                update_flux, uf_lo, uf_hi, &
                                dx, dt, &
                                flux1, flux1_lo, flux1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                                flux2, flux2_lo, flux2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                                flux3, flux3_lo, flux3_hi, &
 #endif
                                area1, area1_lo, area1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                                area2, area2_lo, area2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                                area3, area3_lo, area3_hi, &
 #endif
-#if BL_SPACEDIM < 3
+#if AMREX_SPACEDIM < 3
                                pradial, p_lo, p_hi, &
                                dloga, dloga_lo, dloga_hi, &
 #endif
@@ -73,15 +73,15 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   integer, intent(in) :: uf_lo(3), uf_hi(3)
   integer, intent(in) :: flux1_lo(3), flux1_hi(3)
   integer, intent(in) :: area1_lo(3), area1_hi(3)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
   integer, intent(in) :: flux2_lo(3), flux2_hi(3)
   integer, intent(in) :: area2_lo(3), area2_hi(3)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
   integer, intent(in) :: flux3_lo(3), flux3_hi(3)
   integer, intent(in) :: area3_lo(3), area3_hi(3)
 #endif
-#if BL_SPACEDIM <= 2
+#if AMREX_SPACEDIM <= 2
   integer, intent(in) :: p_lo(3), p_hi(3)
   integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
@@ -96,15 +96,15 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   real(rt), intent(inout) :: update_flux(uf_lo(1):uf_hi(1), uf_lo(2):uf_hi(2), uf_lo(3):uf_hi(3), NVAR)
   real(rt), intent(inout) :: flux1(flux1_lo(1):flux1_hi(1), flux1_lo(2):flux1_hi(2), flux1_lo(3):flux1_hi(3), NVAR)
   real(rt), intent(in) :: area1(area1_lo(1):area1_hi(1), area1_lo(2):area1_hi(2), area1_lo(3):area1_hi(3))
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
   real(rt), intent(inout) :: flux2(flux2_lo(1):flux2_hi(1), flux2_lo(2):flux2_hi(2), flux2_lo(3):flux2_hi(3), NVAR)
   real(rt), intent(in) :: area2(area2_lo(1):area2_hi(1), area2_lo(2):area2_hi(2), area2_lo(3):area2_hi(3))
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
   real(rt), intent(inout) :: flux3(flux3_lo(1):flux3_hi(1), flux3_lo(2):flux3_hi(2), flux3_lo(3):flux3_hi(3), NVAR)
   real(rt), intent(in) :: area3(area3_lo(1):area3_hi(1), area3_lo(2):area3_hi(2), area3_lo(3):area3_hi(3))
 #endif
-#if BL_SPACEDIM <= 2
+#if AMREX_SPACEDIM <= 2
   real(rt), intent(inout) :: pradial(p_lo(1):p_hi(1), p_lo(2):p_hi(2), p_lo(3):p_hi(3))
   real(rt), intent(in) :: dloga(dloga_lo(1):dloga_hi(1), dloga_lo(2):dloga_hi(2), dloga_lo(3):dloga_hi(3))
 #endif
@@ -162,20 +162,20 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+dg(2), lo(3), hi(3)+dg(3))
 
   call bl_allocate(q1, flux1_lo, flux1_hi, NGDNV)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
   call bl_allocate(q2, flux2_lo, flux2_hi, NGDNV)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
   call bl_allocate(q3, flux3_lo, flux3_hi, NGDNV)
 #endif
 
 #ifdef RADIATION
   ! when we do radiation, these would be passed out
   call bl_allocate(rflx, flux1_lo, flux1_hi, ngroups)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
   call bl_allocate(rfly, flux2_lo, flux2_hi, ngroups)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
   call bl_allocate(rflz, flux3_lo, flux3_hi, ngroups)
 #endif
 #endif
@@ -185,13 +185,13 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   call bl_allocate(qxm, It_lo, It_hi, NQ)
   call bl_allocate(qxp, It_lo, It_hi, NQ)
 
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
   call bl_allocate(sym, st_lo, st_hi)
   call bl_allocate(syp, st_lo, st_hi)
   call bl_allocate(qym, It_lo, It_hi, NQ)
   call bl_allocate(qyp, It_lo, It_hi, NQ)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
   call bl_allocate(szm, st_lo, st_hi)
   call bl_allocate(szp, st_lo, st_hi)
   call bl_allocate(qzm, It_lo, It_hi, NQ)
@@ -264,7 +264,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   ! data in the planar arrays.
 
   ! Initialize kc (current k-level) and km (previous k-level)
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
   kc = 1
   km = 2
 #else
@@ -274,7 +274,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   do k3d = lo(3)-dg(3), hi(3)+dg(3)
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
      ! Swap pointers to levels
      kt = km
      km = kc
@@ -285,10 +285,10 @@ subroutine ca_mol_single_stage(lo, hi, time, &
         call ppm_reconstruct(q, q_lo, q_hi, NQ, n, &
                              flatn, q_lo, q_hi, &
                              sxm, sxp, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                              sym, syp, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                              szm, szp, &
 #endif
                              st_lo, st_hi, &
@@ -308,7 +308,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
               ! right state at i-1/2 interface
               qxp(i,j,kc,n) = sxm(i,j,kc)
 
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
               ! y-edges
 
               ! left state at j-1/2 interface
@@ -318,7 +318,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
               qyp(i,j,kc,n) = sym(i,j,kc)
 #endif
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
               ! z-edges
 
               ! left state at k3d-1/2 interface
@@ -360,7 +360,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
               qxm(i,j,kc,QREINT) = qxm(i,j,kc,QRHO)*eos_state%e
               ! should we try to do something about Gamma_! on interface?
 
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
               eos_state%rho    = qyp(i,j,kc,QRHO)
               eos_state%T      = qyp(i,j,kc,QTEMP)
               eos_state%xn(:)  = qyp(i,j,kc,QFS:QFS-1+nspec)
@@ -384,7 +384,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
               ! should we try to do something about Gamma_! on interface?
 #endif
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
               eos_state%rho    = qzp(i,j,kc,QRHO)
               eos_state%T      = qzp(i,j,kc,QTEMP)
               eos_state%xn(:)  = qzp(i,j,kc,QFS:QFS-1+nspec)
@@ -433,7 +433,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
               enddo
            enddo
 
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
            ! Compute F^y at kc (k3d)
            call cmpflx(qym, qyp, It_lo, It_hi, &
                        flux2, flux2_lo, flux2_hi, &
@@ -453,7 +453,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #endif
         endif  ! hi(3) check
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
         ! Compute F^z at kc (k3d)
 
         call cmpflx(qzm, qzp, It_lo, It_hi, &
@@ -484,14 +484,14 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   call bl_deallocate(qxm)
   call bl_deallocate(qxp)
 
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
   call bl_deallocate(sym)
   call bl_deallocate(syp)
   call bl_deallocate(qym)
   call bl_deallocate(qyp)
 #endif
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
   call bl_deallocate(szm)
   call bl_deallocate(szp)
   call bl_deallocate(qzm)
@@ -510,20 +510,20 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
      if ( n == UTEMP ) then
         flux1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
         flux2(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
         flux3(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
 #endif
 
 #ifdef SHOCK_VAR
      else if ( n == USHK ) then
         flux1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
         flux2(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
         flux3(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
 #endif
 #endif
@@ -543,7 +543,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
               enddo
            enddo
         enddo
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
         do k = lo(3), hi(3)
            do j = lo(2), hi(2)+1
               do i = lo(1), hi(1)
@@ -557,7 +557,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
            enddo
         enddo
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
         do k = lo(3), hi(3)+1
            do j = lo(2), hi(2)
               do i = lo(1), hi(1)
@@ -581,11 +581,11 @@ subroutine ca_mol_single_stage(lo, hi, time, &
                                            vol,vol_lo,vol_hi, &
                                            flux1,flux1_lo,flux1_hi, &
                                            area1,area1_lo,area1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                                            flux2,flux2_lo,flux2_hi, &
                                            area2,area2_lo,area2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                                            flux3,flux3_lo,flux3_hi, &
                                            area3,area3_lo,area3_hi, &
 #endif
@@ -594,10 +594,10 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   endif
 
   call normalize_species_fluxes(flux1,flux1_lo,flux1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                                 flux2,flux2_lo,flux2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                                 flux3,flux3_lo,flux3_hi, &
 #endif
                                 lo,hi)
@@ -610,11 +610,11 @@ subroutine ca_mol_single_stage(lo, hi, time, &
         do j = lo(2), hi(2)
            do i = lo(1), hi(1)
 
-#if BL_SPACEDIM == 1
+#if AMREX_SPACEDIM == 1
               update(i,j,k,n) = update(i,j,k,n) + &
                    (flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) ) / vol(i,j,k)
 
-#elif BL_SPACEDIM == 2
+#elif AMREX_SPACEDIM == 2
               update(i,j,k,n) = update(i,j,k,n) + &
                    (flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) + &
                     flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) ) / vol(i,j,k)
@@ -626,13 +626,13 @@ subroutine ca_mol_single_stage(lo, hi, time, &
                     flux3(i,j,k,n) * area3(i,j,k) - flux3(i,j,k+1,n) * area3(i,j,k+1) ) / vol(i,j,k)
 #endif
 
-#if BL_SPACEDIM == 1
+#if AMREX_SPACEDIM == 1
               if (n == UMX) then
                  update(i,j,k,UMX) = update(i,j,k,UMX) - ( q1(i+1,j,k,GDPRES) - q1(i,j,k,GDPRES) ) / dx(1)
               endif
 #endif
 
-#if BL_SPACEDIM == 2
+#if AMREX_SPACEDIM == 2
               if (n == UMX) then
                  ! add the pressure source term for axisymmetry
                  if (coord_type > 0) then
@@ -652,7 +652,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
      enddo
   enddo
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
 #ifdef HYBRID_MOMENTUM
   call add_hybrid_advection_source(lo, hi, dt, &
                                    update, uout_lo, uout_hi, &
@@ -672,7 +672,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
            do i = lo(1), hi(1) + 1
               flux1(i,j,k,n) = dt * flux1(i,j,k,n) * area1(i,j,k)
 
-#if BL_SPACEDIM == 1
+#if AMREX_SPACEDIM == 1
               if (coord_type .eq. 0 .and. n == UMX) then
                  flux1(i,j,k,n) = flux1(i,j,k,n) + dt * area1(i,j,k) * q1(i,j,k,GDPRES)
               endif
@@ -683,7 +683,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
      enddo
   enddo
 
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
   do n = 1, NVAR
      do k = lo(3), hi(3)
         do j = lo(2), hi(2) + 1
@@ -695,7 +695,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   enddo
 #endif
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
   do n = 1, NVAR
      do k = lo(3), hi(3) + 1
         do j = lo(2), hi(2)
@@ -707,7 +707,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   enddo
 #endif
 
-#if BL_SPACEDIM < 3
+#if AMREX_SPACEDIM < 3
   if (coord_type > 0) then
      pradial(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)) = q1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),GDPRES) * dt
   end if
@@ -716,19 +716,19 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   call bl_deallocate(   div)
 
   call bl_deallocate(q1)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
   call bl_deallocate(q2)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
   call bl_deallocate(q3)
 #endif
 
 #ifdef RADIATION
   call bl_deallocate(rflx)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
   call bl_deallocate(rfly)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
   call bl_deallocate(rflz)
 #endif
 #endif
