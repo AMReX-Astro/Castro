@@ -510,7 +510,7 @@ contains
     endif
 
     ! Normalize the species fluxes.
-    call normalize_species_fluxes(flux, flux_lo, flux_hi, lo, hi)
+    call normalize_species_fluxes(flux_lo, flux_hi, flux, flux_lo, flux_hi)
 
 #ifdef RADIATION
     ! now do the radiation energy groups parts
