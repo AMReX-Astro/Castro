@@ -167,7 +167,7 @@ contains
 
 
   subroutine ca_put_radial_grav(lo,hi,dx,dr,&
-                                grav,g_l1,g_h1, &
+                                grav,g_l,g_h, &
                                 radial_grav,problo,n1d,level) bind(C, name="ca_put_radial_grav")
 
     use prob_params_module, only: center
@@ -176,17 +176,18 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer , intent(in   ) :: lo(1), hi(1)
-    real(rt), intent(in   ) :: dx(1), dr
-    real(rt), intent(in   ) :: problo(1)
+    integer , intent(in   ) :: lo(3), hi(3)
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), value, intent(in) :: dr
+    real(rt), intent(in   ) :: problo(3)
 
-    integer , intent(in   ) :: n1d, level
+    integer, value, intent(in) :: n1d, level
     real(rt), intent(in   ) :: radial_grav(0:n1d-1)
 
-    integer , intent(in   ) :: g_l1, g_h1
-    real(rt), intent(inout) :: grav(g_l1:g_h1)
+    integer , intent(in   ) :: g_l(3), g_h(3)
+    real(rt), intent(inout) :: grav(g_l(1):g_h(1),g_l(2):g_h(2),g_l(3):g_h(3),3)
 
-    integer          :: i, index
+    integer          :: i, j, k, index
     real(rt)         :: r, mag_grav
     real(rt)         :: cen, xi, slope, glo, gmd, ghi, minvar, maxvar
 
@@ -194,6 +195,8 @@ contains
     ! including the ghost cells. Taking the absolute value of r ensures
     ! that we will get the correct behavior even for the ghost zones with
     ! negative indices, which have a reflecting boundary condition.
+    j = lo(2)
+    k = lo(3)
 
     do i = lo(1), hi(1)
 
@@ -219,10 +222,12 @@ contains
        else if (index .gt. n1d-1) then
 
           if (level .eq. 0) then
+#ifndef USE_AMREX_CUDA
              print *,'PUT_RADIAL_GRAV: INDEX TOO BIG ', index, ' > ', n1d-1
              print *,'AT i ', i
              print *,'R / DR IS ', r, dr
              call amrex_error("Error:: Gravity_1d.f90 :: ca_put_radial_grav")
+#endif
           else
              ! NOTE: we don't do anything to this point if it's outside the
              !       radial grid and level > 0
@@ -247,7 +252,7 @@ contains
 
        if (index .le. n1d-1) then
 
-          grav(i) = mag_grav
+          grav(i,j,k,1) = mag_grav
 
        end if
 

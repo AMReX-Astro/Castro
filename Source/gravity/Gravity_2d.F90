@@ -171,7 +171,7 @@ contains
 
 
   subroutine ca_put_radial_grav (lo,hi,dx,dr,&
-       grav,g_l1,g_l2,g_h1,g_h2, &
+       grav,g_l,g_h, &
        radial_grav,problo,n1d,level) bind(C, name="ca_put_radial_grav")
 
     use prob_params_module, only: center
@@ -180,22 +180,24 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer , intent(in   ) :: lo(2),hi(2)
-    real(rt), intent(in   ) :: dx(2),dr
-    real(rt), intent(in   ) :: problo(2)
+    integer , intent(in   ) :: lo(3),hi(3)
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), value, intent(in) :: dr
+    real(rt), intent(in   ) :: problo(3)
 
-    integer , intent(in   ) :: n1d,level
+    integer , value, intent(in) :: n1d,level
     real(rt), intent(in   ) :: radial_grav(0:n1d-1)
 
-    integer , intent(in   ) :: g_l1,g_l2,g_h1,g_h2
-    real(rt), intent(inout) :: grav(g_l1:g_h1,g_l2:g_h2,2)
+    integer , intent(in   ) :: g_l(3), g_h(3)
+    real(rt), intent(inout) :: grav(g_l(1):g_h(1),g_l(2):g_h(2),g_l(3):g_h(3),3)
 
-    integer          :: i,j,index
+    integer          :: i,j,k,index
     real(rt)         :: x,y,r,mag_grav
     real(rt)         :: cen,xi,slope,glo,gmd,ghi,minvar,maxvar
 
     ! Note that we are interpolating onto the entire range of grav,
     ! including the ghost cells
+    k = lo(3)
 
     do j = lo(2), hi(2)
        y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
@@ -215,10 +217,12 @@ contains
              mag_grav = radial_grav(index) + slope * xi
           else if (index .gt. n1d-1) then
              if (level .eq. 0) then
+#ifndef USE_AMREX_CUDA
                 print *,'PUT_RADIAL_GRAV: INDEX TOO BIG ',index,' > ',n1d-1
                 print *,'AT (i,j) ',i,j
                 print *,'R / DR IS ',r,dr
                 call amrex_error("Error:: Gravity_2d.f90 :: ca_put_radial_grav")
+#endif
              else
                 ! NOTE: we don't do anything to this point if it's outside the
                 !       radial grid and level > 0
@@ -240,8 +244,8 @@ contains
           end if
 
           if (index .le. n1d-1) then
-             grav(i,j,1) = mag_grav * (x/r)
-             grav(i,j,2) = mag_grav * (y/r)
+             grav(i,j,k,1) = mag_grav * (x/r)
+             grav(i,j,k,2) = mag_grav * (y/r)
           end if
        enddo
     enddo

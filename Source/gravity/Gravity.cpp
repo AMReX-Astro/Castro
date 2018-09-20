@@ -1053,7 +1053,7 @@ Gravity::test_level_grad_phi_prev(int level)
 		                        BL_TO_FORTRAN_ANYD((*grad_phi_prev[level][2])[mfi]),
 #endif
 #endif
-		                 dx,problo,coord_type);
+		                 AMREX_REAL_ANYD(dx),AMREX_INT_ANYD(problo),coord_type);
 	}
 	if (verbose) {
 		Real resnorm = Rhs.norm0();
@@ -1127,7 +1127,7 @@ Gravity::test_level_grad_phi_curr(int level)
 		                        BL_TO_FORTRAN_ANYD((*grad_phi_curr[level][2])[mfi]),
 #endif
 #endif
-		                 dx,problo,coord_type);
+		                 AMREX_REAL_ANYD(dx),AMREX_INT_ANYD(problo),coord_type);
 	}
 	if (verbose) {
 		Real resnorm = Rhs.norm0();
@@ -1301,7 +1301,7 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector, Multi
        const Box& bx = mfi.growntilebox();
 #pragma gpu
        ca_prescribe_phi(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-		        BL_TO_FORTRAN_ANYD(phi[mfi]),dx);
+		        BL_TO_FORTRAN_ANYD(phi[mfi]),AMREX_REAL_ANYD(dx));
     }
 
 #ifdef _OPENMP
@@ -1312,7 +1312,7 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector, Multi
        const Box& bx = mfi.growntilebox();
 #pragma gpu
        ca_prescribe_grav(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-			 BL_TO_FORTRAN_ANYD(grav_vector[mfi]),dx);
+			 BL_TO_FORTRAN_ANYD(grav_vector[mfi]),AMREX_REAL_ANYD(dx));
     }
 
     if (verbose)
@@ -1347,10 +1347,11 @@ Gravity::interpolate_monopole_grav(int level, Vector<Real>& radial_grav, MultiFa
 	for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi)
 	{
 		const Box& bx = mfi.growntilebox();
-		ca_put_radial_grav(bx.loVect(),bx.hiVect(),dx,&dr,
-		                   BL_TO_FORTRAN(grav_vector[mfi]),
+#pragma gpu
+		ca_put_radial_grav(AMREX_INT_ANYD(bx.loVect()),AMREX_INT_ANYD(bx.hiVect()),AMREX_REAL_ANYD(dx),dr,
+		                   BL_TO_FORTRAN_ANYD(grav_vector[mfi]),
 		                   radial_grav.dataPtr(),geom.ProbLo(),
-		                   &n1d,&level);
+		                   n1d,level);
 	}
 }
 
