@@ -1350,7 +1350,7 @@ Gravity::interpolate_monopole_grav(int level, Vector<Real>& radial_grav, MultiFa
 #pragma gpu
 		ca_put_radial_grav(AMREX_INT_ANYD(bx.loVect()),AMREX_INT_ANYD(bx.hiVect()),AMREX_REAL_ANYD(dx),dr,
 		                   BL_TO_FORTRAN_ANYD(grav_vector[mfi]),
-		                   radial_grav.dataPtr(),AMREX_REAL_ANYD(geom.ProbLo()),
+		                   AMREX_REAL_ANYD(radial_grav.dataPtr()),AMREX_REAL_ANYD(geom.ProbLo()),
 		                   n1d,level);
 	}
 }
