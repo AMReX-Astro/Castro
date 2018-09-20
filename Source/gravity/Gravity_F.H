@@ -11,12 +11,16 @@ extern "C"
 
   void ca_test_residual
     (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG(rhs),
-     D_DECL(const BL_FORT_FAB_ARG(xgrad),
-            const BL_FORT_FAB_ARG(ygrad),
-            const BL_FORT_FAB_ARG(zgrad)),
-            const amrex::Real* dx, const amrex::Real* problo,
-            const int coord_type);
+    BL_FORT_FAB_ARG(rhs),
+    const BL_FORT_FAB_ARG(xgrad),
+#if AMREX_SPACEDIM >=2
+    const BL_FORT_FAB_ARG(ygrad),
+#if AMREX_SPACEDIM==3
+    const BL_FORT_FAB_ARG(zgrad),
+#endif
+#endif
+    const amrex::Real* dx, const amrex::Real* problo,
+    const int coord_type);
 
   void ca_compute_radial_mass
     (const int lo[], const int hi[],

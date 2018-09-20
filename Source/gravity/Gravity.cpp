@@ -1217,64 +1217,64 @@ Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
 void
 Gravity::test_composite_phi (int crse_level)
 {
-    BL_PROFILE("Gravity::test_composite_phi()");
+	BL_PROFILE("Gravity::test_composite_phi()");
 
-    if (verbose && ParallelDescriptor::IOProcessor()) {
-        std::cout << "   " << '\n';
-        std::cout << "... test_composite_phi at base level " << crse_level << '\n';
-    }
-
-    int finest_level = parent->finestLevel();
-    int nlevels = finest_level - crse_level + 1;
-
-    Vector<std::unique_ptr<MultiFab> > phi(nlevels);
-    Vector<std::unique_ptr<MultiFab> > rhs(nlevels);
-    Vector<std::unique_ptr<MultiFab> > res(nlevels);
-    for (int ilev = 0; ilev < nlevels; ++ilev)
-    {
-	int amr_lev = crse_level + ilev;
-
-	phi[ilev].reset(new MultiFab(grids[amr_lev],dmap[amr_lev],1,1));
-	MultiFab::Copy(*phi[ilev],
-		       LevelData[amr_lev]->get_new_data(PhiGrav_Type),
-		       0,0,1,1);
-
-	rhs[ilev].reset(new MultiFab(grids[amr_lev],dmap[amr_lev],1,1));
-	MultiFab::Copy(*rhs[ilev],
-		       LevelData[amr_lev]->get_new_data(State_Type),
-		       Density,0,1,0);
-
-	res[ilev].reset(new MultiFab(grids[amr_lev],dmap[amr_lev],1,0));
-	res[ilev]->setVal(0.);
-    }
-
-    Real time = LevelData[crse_level]->get_state_data(PhiGrav_Type).curTime();
-
-    Vector< Vector<MultiFab*> > grad_phi_null;
-    solve_phi_with_mlmg(crse_level, finest_level,
-                        amrex::GetVecOfPtrs(phi),
-                        amrex::GetVecOfPtrs(rhs),
-                        grad_phi_null,
-                        amrex::GetVecOfPtrs(res),
-                        time);
-
-    // Average residual from fine to coarse level before printing the norm
-    for (int amr_lev = finest_level-1; amr_lev >= 0; --amr_lev)
-    {
-	const IntVect& ratio = parent->refRatio(amr_lev);
-	int ilev = amr_lev - crse_level;
-	amrex::average_down(*res[ilev+1], *res[ilev],
-			     0, 1, ratio);
-    }
-
-    for (int amr_lev = crse_level; amr_lev <= finest_level; ++amr_lev) {
-	Real resnorm = res[amr_lev]->norm0();
-	if (ParallelDescriptor::IOProcessor()) {
-	    std::cout << "      ... norm of composite residual at level "
-		      << amr_lev << "  " << resnorm << '\n';
+	if (verbose && ParallelDescriptor::IOProcessor()) {
+		std::cout << "   " << '\n';
+		std::cout << "... test_composite_phi at base level " << crse_level << '\n';
 	}
-    }
-    if (ParallelDescriptor::IOProcessor()) std::cout << std::endl;
+
+	int finest_level = parent->finestLevel();
+	int nlevels = finest_level - crse_level + 1;
+
+	Vector<std::unique_ptr<MultiFab> > phi(nlevels);
+	Vector<std::unique_ptr<MultiFab> > rhs(nlevels);
+	Vector<std::unique_ptr<MultiFab> > res(nlevels);
+	for (int ilev = 0; ilev < nlevels; ++ilev)
+	{
+		int amr_lev = crse_level + ilev;
+
+		phi[ilev].reset(new MultiFab(grids[amr_lev],dmap[amr_lev],1,1));
+		MultiFab::Copy(*phi[ilev],
+		               LevelData[amr_lev]->get_new_data(PhiGrav_Type),
+		               0,0,1,1);
+
+		rhs[ilev].reset(new MultiFab(grids[amr_lev],dmap[amr_lev],1,1));
+		MultiFab::Copy(*rhs[ilev],
+		               LevelData[amr_lev]->get_new_data(State_Type),
+		               Density,0,1,0);
+
+		res[ilev].reset(new MultiFab(grids[amr_lev],dmap[amr_lev],1,0));
+		res[ilev]->setVal(0.);
+	}
+
+	Real time = LevelData[crse_level]->get_state_data(PhiGrav_Type).curTime();
+
+	Vector< Vector<MultiFab*> > grad_phi_null;
+	solve_phi_with_mlmg(crse_level, finest_level,
+	                    amrex::GetVecOfPtrs(phi),
+	                    amrex::GetVecOfPtrs(rhs),
+	                    grad_phi_null,
+	                    amrex::GetVecOfPtrs(res),
+	                    time);
+
+	// Average residual from fine to coarse level before printing the norm
+	for (int amr_lev = finest_level-1; amr_lev >= 0; --amr_lev)
+	{
+		const IntVect& ratio = parent->refRatio(amr_lev);
+		int ilev = amr_lev - crse_level;
+		amrex::average_down(*res[ilev+1], *res[ilev],
+		                    0, 1, ratio);
+	}
+
+	for (int amr_lev = crse_level; amr_lev <= finest_level; ++amr_lev) {
+		Real resnorm = res[amr_lev]->norm0();
+		if (ParallelDescriptor::IOProcessor()) {
+			std::cout << "      ... norm of composite residual at level "
+			          << amr_lev << "  " << resnorm << '\n';
+		}
+	}
+	if (ParallelDescriptor::IOProcessor()) std::cout << std::endl;
 }
 
 void
