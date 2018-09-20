@@ -787,11 +787,11 @@ contains
                                               vol,vol_lo,vol_hi, &
                                               flux1,flux1_lo,flux1_hi, &
                                               area1,area1_lo,area1_hi, &
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
                                               flux2,flux2_lo,flux2_hi, &
                                               area2,area2_lo,area2_hi, &
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
                                               flux3,flux3_lo,flux3_hi, &
                                               area3,area3_lo,area3_hi, &
 #endif
@@ -811,11 +811,11 @@ contains
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: flux1_lo(3), flux1_hi(3)
     integer, intent(in) :: area1_lo(3), area1_hi(3)
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
     integer, intent(in) :: flux2_lo(3), flux2_hi(3)
     integer, intent(in) :: area2_lo(3), area2_hi(3)
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
     integer, intent(in) :: flux3_lo(3), flux3_hi(3)
     integer, intent(in) :: area3_lo(3), area3_hi(3)
 #endif
@@ -827,11 +827,11 @@ contains
     real(rt), intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     real(rt), intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
     real(rt), intent(in   ) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
     real(rt), intent(inout) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
     real(rt), intent(in   ) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2),area2_lo(3):area2_hi(3))
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
     real(rt), intent(inout) :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
     real(rt), intent(in   ) :: area3(area3_lo(1):area3_hi(1),area3_lo(2):area3_hi(2),area3_lo(3):area3_hi(3))
 #endif
@@ -1026,7 +1026,7 @@ contains
     ! Now do the y-direction. The logic is all the same as for the x-direction,
     ! so the comments are skipped.
 
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
     thetap(:,:,:) = ONE
     thetam(:,:,:) = ONE
 
@@ -1138,7 +1138,7 @@ contains
     ! Now do the z-direction. The logic is all the same as for the x-direction,
     ! so the comments are skipped.
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
     thetap(:,:,:) = ONE
     thetam(:,:,:) = ONE
 
@@ -1308,10 +1308,10 @@ contains
              if (coord_type == 0) then
                 ! Cartesian
                 divU = HALF*(q(i+1,j,k,QU) - q(i-1,j,k,QU))*dxinv
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
                 divU = divU + HALF*(q(i,j+1,k,QV) - q(i,j-1,k,QV))*dyinv
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
                 divU = divU + HALF*(q(i,j,k+1,QW) - q(i,j,k-1,QW))*dzinv
 #endif
              elseif (coord_type == 1) then
@@ -1320,10 +1320,10 @@ contains
                 rm = dble(i - 1 + HALF)*dx(1)
                 rp = dble(i + 1 + HALF)*dx(1)
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
                 divU = HALF*(rp*q(i+1,j,k,QU) - rm*q(i-1,j,k,QU))/(rc*dx(1))
 #endif
-#if (BL_SPACEDIM == 2)
+#if (AMREX_SPACEDIM == 2)
                 divU = HALF*(rp*q(i+1,j,k,QU) - rm*q(i-1,j,k,QU))/(rc*dx(1)) + &
                        HALF*(q(i,j+1,k,QV) - q(i,j-1,k,QV))/dx(2)
 #endif
@@ -1352,7 +1352,7 @@ contains
                 px_post = q(i+1,j,k,QPRES)
              endif
 
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
              if (q(i,j+1,k,QPRES) - q(i,j-1,k,QPRES) < ZERO) then
                 py_pre  = q(i,j+1,k,QPRES)
                 py_post = q(i,j-1,k,QPRES)
@@ -1365,7 +1365,7 @@ contains
              py_post = 0.0_rt
 #endif
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
              if (q(i,j,k+1,QPRES) - q(i,j,k-1,QPRES) < ZERO) then
                 pz_pre  = q(i,j,k+1,QPRES)
                 pz_post = q(i,j,k-1,QPRES)
@@ -1380,12 +1380,12 @@ contains
 
              ! use compression to create unit vectors for the shock direction
              e_x = (q(i+1,j,k,QU) - q(i-1,j,k,QU))**2
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
              e_y = (q(i,j+1,k,QV) - q(i,j-1,k,QV))**2
 #else
              e_y = 0.0_rt
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
              e_z = (q(i,j,k+1,QW) - q(i,j,k-1,QW))**2
 #else
              e_z = 0.0_rt
@@ -1455,7 +1455,7 @@ contains
        do j = lo(2), hi(2)+dg(2)
           do i = lo(1), hi(1)+1
 
-#if BL_SPACEDIM == 1
+#if AMREX_SPACEDIM == 1
              if (coord_type == 0) then
                 div(i,j,k) = (q(i,j,k,QU) - q(i-1,j,k,QU)) / dx(1)
 
@@ -1486,7 +1486,7 @@ contains
 
 #endif
 
-#if BL_SPACEDIM == 2
+#if AMREX_SPACEDIM == 2
              if (coord_type == 0) then
                 ux = HALF*(q(i,j,k,QU) - q(i-1,j,k,QU) + q(i,j-1,k,QU) - q(i-1,j-1,k,QU))/dx(1)
                 vy = HALF*(q(i,j,k,QV) - q(i,j-1,k,QV) + q(i-1,j,k,QV) - q(i-1,j-1,k,QV))/dx(2)
@@ -1522,7 +1522,7 @@ contains
              div(i,j,k) = ux + vy
 #endif
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
              ux = FOURTH*( &
                     + q(i  ,j  ,k  ,QU) - q(i-1,j  ,k  ,QU) &
                     + q(i  ,j  ,k-1,QU) - q(i-1,j  ,k-1,QU) &
@@ -1558,11 +1558,11 @@ contains
   subroutine calc_pdivu(lo, hi, &
                         q1, q1_lo, q1_hi, &
                         area1, a1_lo, a1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                         q2, q2_lo, q2_hi, &
                         area2, a2_lo, a2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                         q3, q3_lo, q3_hi, &
                         area3, a3_lo, a3_hi, &
 #endif
@@ -1586,13 +1586,13 @@ contains
     integer, intent(in) :: a1_lo(3), a1_hi(3)
     real(rt), intent(in) :: q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NQ)
     real(rt), intent(in) :: area1(a1_lo(1):a1_hi(1),a1_lo(2):a1_hi(2),a1_lo(3):a1_hi(3))
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
     integer, intent(in) :: q2_lo(3), q2_hi(3)
     integer, intent(in) :: a2_lo(3), a2_hi(3)
     real(rt), intent(in) :: q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NQ)
     real(rt), intent(in) :: area2(a2_lo(1):a2_hi(1),a1_lo(2):a1_hi(2),a1_lo(3):a1_hi(3))
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     integer, intent(in) :: q3_lo(3), q3_hi(3)
     integer, intent(in) :: a3_lo(3), a3_hi(3)
     real(rt), intent(in) :: q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NQ)
@@ -1607,13 +1607,13 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-#if BL_SPACEDIM == 1
+#if AMREX_SPACEDIM == 1
              pdivu(i,j,k) = HALF * &
                   (q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES))* &
                   (q1(i+1,j,k,GDU)*area1(i+1,j,k) - q1(i,j,k,GDU)*area1(i,j,k)) / vol(i,j,k)
 #endif
 
-#if BL_SPACEDIM == 2
+#if AMREX_SPACEDIM == 2
              pdivu(i,j,k) = HALF*( &
                   (q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES)) * &
                   (q1(i+1,j,k,GDU)*area1(i+1,j,k) - q1(i,j,k,GDU)*area1(i,j,k)) + &
@@ -1621,7 +1621,7 @@ contains
                   (q2(i,j+1,k,GDV)*area2(i,j+1,k) - q2(i,j,k,GDV)*area2(i,j,k)) ) / vol(i,j,k)
 #endif
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
              pdivu(i,j,k) = &
                   HALF*(q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES)) * &
                        (q1(i+1,j,k,GDU) - q1(i,j,k,GDU))/dx(1) + &
