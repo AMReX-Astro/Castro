@@ -88,7 +88,13 @@ public:
 
   void average_fine_ec_onto_crse_ec(int level, int is_new);
 
-  void make_radial_gravity(int level, amrex::Real time, amrex::Vector<amrex::Real>& radial_grav);
+  void make_radial_gravity(int level, amrex::Real time,
+#ifdef AMREX_USE_CUDA
+    amrex::Vector<amrex::Real, amrex::CudaManagedAllocator<amrex::Real>>& radial_grav);
+#else
+    amrex::Vector<amrex::Real>& radial_grav);
+#endif
+
   void interpolate_monopole_grav(int level,
 #ifdef AMREX_USE_CUDA
       amrex::Vector<amrex::Real, amrex::CudaManagedAllocator<amrex::Real>>& radial_grav,

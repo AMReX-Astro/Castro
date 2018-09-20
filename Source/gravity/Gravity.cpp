@@ -46,8 +46,8 @@ Real Gravity::mass_offset    =  0.0;
 static Real Ggravity = 0.;
 
 #ifdef AMREX_USE_CUDA
-Vector< Vector<Real> , CudaManagedAllocator <Vector<Real>>> Gravity::radial_grav_old(MAX_LEV);
-Vector< Vector<Real> , CudaManagedAllocator <Vector<Real>>> Gravity::radial_grav_new(MAX_LEV);
+Vector< Vector<Real, CudaManagedAllocator <Real>> , CudaManagedAllocator <Vector<Real, CudaManagedAllocator<Real>>>> Gravity::radial_grav_old(MAX_LEV);
+Vector< Vector<Real, CudaManagedAllocator <Real>> , CudaManagedAllocator <Vector<Real, CudaManagedAllocator<Real>>>> Gravity::radial_grav_new(MAX_LEV);
 #else
 Vector< Vector<Real> > Gravity::radial_grav_old(MAX_LEV);
 Vector< Vector<Real> > Gravity::radial_grav_new(MAX_LEV);
