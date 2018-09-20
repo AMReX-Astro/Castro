@@ -214,7 +214,7 @@ contains
              else if (index .gt. n1d-1) then
 
                 if (level .eq. 0) then
-#ifndef USE_AMREX_CUDA
+#ifndef AMREX_USE_CUDA
                    print *,'PUT_RADIAL_GRAV: INDEX TOO BIG ',index,' > ',n1d-1
                    print *,'AT (i,j,k) ',i,j,k
                    print *,'X Y Z ',x,y,z
