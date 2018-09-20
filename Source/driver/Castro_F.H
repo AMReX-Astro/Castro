@@ -156,16 +156,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(state));
 #endif
 
-#ifdef AMREX_USE_CUDA
-  void ca_ctoprim_cuda(const int* lo, const int* hi,
-                       const amrex::Real* u, const int* u_lo, const int* u_hi,
-#ifdef RADIATION
-                       const amrex::Real* Er, const int* Er_lo, const int* Er_hi,
-                       const amrex::Real* lam, const int* lam_lo, const int* lam_hi,
-#endif
-                       amrex::Real* q, const int* q_lo, const int* q_hi,
-                       amrex::Real* qaux, const int* qa_lo, const int* qa_hi);
-#else
   void ca_ctoprim(const int* lo, const int* hi,
 	          const amrex::Real* u, const int* u_lo, const int* u_hi,
 #ifdef RADIATION
@@ -174,7 +164,6 @@ extern "C"
 #endif
 		  amrex::Real* q, const int* q_lo, const int* q_hi,
 		  amrex::Real* qaux, const int* qa_lo, const int* qa_hi);
-#endif
 
   void ca_srctoprim(const int* lo,   const int* hi,
 		    const amrex::Real* q,   const int* q_lo,   const int* q_hi,
@@ -185,8 +174,8 @@ extern "C"
   void ca_compute_cfl(const int* lo, const int* hi,
                       const BL_FORT_FAB_ARG_ANYD(q),
                       const BL_FORT_FAB_ARG_ANYD(qaux),
-                      const amrex::Real* dt, const amrex::Real* dx,
-                      amrex::Real* courno, const int* verbose);
+                      const amrex::Real dt, const amrex::Real* dx,
+                      amrex::Real* courno, const int verbose);
 
   void ca_check_initial_species
     (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(state));

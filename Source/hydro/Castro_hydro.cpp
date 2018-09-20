@@ -618,17 +618,7 @@ Castro::cons_to_prim(const Real time)
         // Convert the conservative state to the primitive variable state.
         // This fills both q and qaux.
 
-#ifdef AMREX_USE_CUDA
 #pragma gpu
-        ca_ctoprim_cuda(AMREX_INT_ANYD(qbx.loVect()), AMREX_INT_ANYD(qbx.hiVect()),
-                        BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-#ifdef RADIATION
-                        BL_TO_FORTRAN_ANYD(Erborder[mfi]),
-                        BL_TO_FORTRAN_ANYD(lamborder[mfi]),
-#endif
-                        BL_TO_FORTRAN_ANYD(q[mfi]),
-                        BL_TO_FORTRAN_ANYD(qaux[mfi]));
-#else
         ca_ctoprim(AMREX_INT_ANYD(qbx.loVect()), AMREX_INT_ANYD(qbx.hiVect()),
                    BL_TO_FORTRAN_ANYD(Sborder[mfi]),
 #ifdef RADIATION
@@ -637,7 +627,6 @@ Castro::cons_to_prim(const Real time)
 #endif
                    BL_TO_FORTRAN_ANYD(q[mfi]),
                    BL_TO_FORTRAN_ANYD(qaux[mfi]));
-#endif
 
         // Convert the source terms expressed as sources to the conserved state to those
         // expressed as sources for the primitive state.
@@ -772,7 +761,6 @@ Castro::check_for_cfl_violation(const Real dt)
 
     MultiFab& S_new = get_new_data(State_Type);
 
-#ifndef AMREX_USE_CUDA
 #ifdef _OPENMP
 #pragma omp parallel reduction(max:courno)
 #endif
@@ -780,13 +768,13 @@ Castro::check_for_cfl_violation(const Real dt)
 
         const Box& bx = mfi.tilebox();
 
+#pragma gpu
         ca_compute_cfl(BL_TO_FORTRAN_BOX(bx),
                        BL_TO_FORTRAN_ANYD(q[mfi]),
                        BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                       &dt, dx, &courno, &print_fortran_warnings);
+                       dt, AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MAX(&courno), print_fortran_warnings);
 
     }
-#endif
 
     ParallelDescriptor::ReduceRealMax(courno);
 
