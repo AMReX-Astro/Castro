@@ -593,14 +593,13 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   endif
 
-  call normalize_species_fluxes(flux1,flux1_lo,flux1_hi, &
+  call normalize_species_fluxes(flux1_lo, flux1_hi, flux1, flux1_lo, flux1_hi)
 #if BL_SPACEDIM >= 2
-                                flux2,flux2_lo,flux2_hi, &
+  call normalize_species_fluxes(flux2_lo, flux2_hi, flux2, flux2_lo, flux2_hi)
 #endif
 #if BL_SPACEDIM == 3
-                                flux3,flux3_lo,flux3_hi, &
+  call normalize_species_fluxes(flux3_lo, flux3_hi, flux3, flux3_lo, flux3_hi)
 #endif
-                                lo,hi)
 
   ! For hydro, we will create an update source term that is
   ! essentially the flux divergence.  This can be added with dt to
@@ -758,7 +757,7 @@ contains
 
     use amrex_fort_module, only: rt => amrex_real
     use meth_params_module, only: NVAR, NGDNV, NQAUX, NQ
-    use advection_util_module, only: apply_av_cuda, normalize_species_fluxes_cuda, scale_flux_cuda
+    use advection_util_module, only: apply_av_cuda, normalize_species_fluxes, scale_flux_cuda
     use riemann_module, only: cmpflx_cuda
 
     implicit none
@@ -791,7 +790,7 @@ contains
     call cmpflx_cuda(lo, hi, domlo, domhi, idir, qm, qm_lo, qm_hi, qp, qp_lo, qp_hi, &
                      qint, qe_lo, qe_hi, flux, f_lo, f_hi, qaux, qa_lo, qa_hi)
     call apply_av_cuda(lo, hi, idir, dx, div, div_lo, div_hi, uin, uin_lo, uin_hi, flux, f_lo, f_hi)
-    call normalize_species_fluxes_cuda(lo, hi, flux, f_lo, f_hi)
+    call normalize_species_fluxes(lo, hi, flux, f_lo, f_hi)
     call scale_flux_cuda(lo, hi, flux, f_lo, f_hi, area, a_lo, a_hi, dt)
 
   end subroutine ca_construct_flux_cuda

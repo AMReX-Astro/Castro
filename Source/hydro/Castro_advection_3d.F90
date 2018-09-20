@@ -1198,10 +1198,9 @@ contains
 
     endif
 
-    call normalize_species_fluxes(flux1,flux1_lo,flux1_hi, &
-                                  flux2,flux2_lo,flux2_hi, &
-                                  flux3,flux3_lo,flux3_hi, &
-                                  lo,hi)
+    call normalize_species_fluxes(flux1_lo, flux1_hi, flux1, flux1_lo, flux1_hi)
+    call normalize_species_fluxes(flux2_lo, flux2_hi, flux2, flux2_lo, flux2_hi)
+    call normalize_species_fluxes(flux3_lo, flux3_hi, flux3, flux3_lo, flux3_hi)
 
     ! For hydro, we will create an update source term that is
     ! essentially the flux divergence.  This can be added with dt to

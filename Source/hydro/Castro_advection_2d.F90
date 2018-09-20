@@ -722,9 +722,8 @@ contains
 
     ! Normalize the species fluxes.
 
-    call normalize_species_fluxes(flux1, flux1_lo, flux1_hi, &
-                                  flux2, flux2_lo, flux2_hi, &
-                                  lo, hi)
+    call normalize_species_fluxes(flux1_lo, flux1_hi, flux1, flux1_lo, flux1_hi)
+    call normalize_species_fluxes(flux2_lo, flux2_hi, flux2, flux2_lo, flux2_hi)
 
 #ifdef RADIATION
     do g = 0, ngroups-1
