@@ -136,8 +136,8 @@ contains
     real(rt)         :: cdtdx, cdtdy, cdtdz
     real(rt)         :: hdtdx, hdtdy, hdtdz
 
-    integer :: km, kc, kt, k3d, n
-    integer :: i, j, iwave, idim
+    integer :: n
+    integer :: i, j, k, iwave, idim
 
     ! Left and right state arrays (edge centered, cell centered)
     real(rt)        , pointer :: dqx(:,:,:,:), dqy(:,:,:,:), dqz(:,:,:,:)
@@ -195,23 +195,23 @@ contains
 
     logical :: source_nonzero(QVAR)
 
-    qt_lo = [lo(1) - 1, lo(2) - 1, 1]
-    qt_hi = [hi(1) + 2, hi(2) + 2, 2]
+    qt_lo = lo(:) - dg(:)
+    qt_hi = hi(:) + 2*dg(:)
 
-    It_lo = [lo(1) - 1, lo(2) - 1, 1]
-    It_hi = [hi(1) + 1, hi(2) + 1, 2]
+    It_lo = lo(:) - dg(:)
+    It_hi = hi(:) + dg(:)
 
-    shk_lo(:) = lo(:) - 1
-    shk_hi(:) = hi(:) + 1
+    shk_lo(:) = lo(:) - dg(:)
+    shk_hi(:) = hi(:) + dg(:)
 
-    fx_lo = [lo(1)    , lo(2) - 1, 1]
-    fx_hi = [hi(1) + 1, hi(2) + 1, 2]
+    fx_lo = [lo(1)    , lo(2) - 1, lo(3) - 1]
+    fx_hi = [hi(1) + 1, hi(2) + 1, hi(3) + 1]
 
-    fy_lo = [lo(1) - 1, lo(2)    , 1]
-    fy_hi = [hi(1) + 1, hi(2) + 1, 2]
+    fy_lo = [lo(1) - 1, lo(2)    , lo(3) - 1]
+    fy_hi = [hi(1) + 1, hi(2) + 1, hi(3) + 1]
 
-    fz_lo = [lo(1) - 1, lo(2) - 1, 1]
-    fz_hi = [hi(1) + 1, hi(2) + 1, 2]
+    fz_lo = [lo(1) - 1, lo(2) - 1, lo(3)    ]
+    fz_hi = [hi(1) + 1, hi(2) + 1, hi(3) + 1]
 
     call bl_allocate (     qgdnvx, qt_lo, qt_hi, NGDNV)
     call bl_allocate (    qgdnvxf, qt_lo, qt_hi, NGDNV)
@@ -310,13 +310,17 @@ contains
     dxinv = ONE/dx(1)
     dyinv = ONE/dx(2)
     dzinv = ONE/dx(3)
+
     dtdx = dt*dxinv
     dtdy = dt*dyinv
     dtdz = dt*dzinv
+
     hdt = HALF*dt
+
     hdtdx = HALF*dtdx
     hdtdy = HALF*dtdy
     hdtdz = HALF*dtdz
+
     cdtdx = dtdx*THIRD
     cdtdy = dtdy*THIRD
     cdtdz = dtdz*THIRD
@@ -324,11 +328,13 @@ contains
 #ifdef SHOCK_VAR
     uout(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),USHK) = ZERO
 
-    call shock(q,qd_lo,qd_hi,shk,shk_lo,shk_hi,lo,hi,dx)
+    call shock(q, qd_lo, qd_hi, &
+               shk, shk_lo, shk_hi, &
+               lo, hi, dx)
 
     ! Store the shock data for future use in the burning step.
 
-    do k3d = lo(3), hi(3)
+    do kx = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
              uout(i,j,k3d,USHK) = shk(i,j,k3d)
@@ -345,29 +351,13 @@ contains
     ! multidimensional shock detection -- this will be used to do the
     ! hybrid Riemann solver
     if (hybrid_riemann == 1) then
-       call shock(q,qd_lo,qd_hi,shk,shk_lo,shk_hi,lo,hi,dx)
+       call shock(q, qd_lo, qd_hi, &
+                  shk, shk_lo, shk_hi, &
+                  lo, hi, dx)
     else
        shk(:,:,:) = ZERO
     endif
 #endif
-
-    ! We come into this routine with a 3-d box of data, but we operate
-    ! on it locally by considering 2 planes that encompass all of the
-    ! x, y indices of the original box, but each plane corresponds to
-    ! a single z index.
-    !
-    ! In the notation below, k3d will always been the index into the
-    ! original 3-d box.  kc will be the z-index in the local "planar"
-    ! data and km will be the previously used index in the local
-    ! planar data.
-    !
-    ! With each loop in the k direction, we will overwrite the old
-    ! data in the planar arrays.
-
-
-    ! Initialize kc (current k-level) and km (previous k-level)
-    kc = 1
-    km = 2
 
 
     call bl_allocate(sxm, It_lo, It_hi)
@@ -389,184 +379,207 @@ contains
        enddo
     endif
 
-    do k3d = lo(3)-1, hi(3)+1
+    if (ppm_type > 0) then
 
-       ! Swap pointers to levels
-       kt = km
-       km = kc
-       kc = kt
+       do n = 1, NQ
+          call ppm_reconstruct(q, qd_lo, qd_hi, NQ, n, &
+                               flatn, qd_lo, qd_hi, &
+                               sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
+                               lo, hi, dx)
 
-       if (ppm_type > 0) then
+          call ppm_int_profile(q, qd_lo, qd_hi, NQ, n, &
+                               q, qd_lo, qd_hi, &
+                               qaux, qa_lo, qa_hi, &
+                               sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
+                               Ip, Im, It_lo, It_hi, NQ, n, &
+                               lo, hi, dx, dt)
+       end do
 
-          do n = 1, NQ
-             call ppm_reconstruct(q, qd_lo, qd_hi, NQ, n, &
+       ! source terms
+       do n = 1, QVAR
+          if (source_nonzero(n)) then
+             call ppm_reconstruct(srcQ, src_lo, src_hi, QVAR, n, &
                                   flatn, qd_lo, qd_hi, &
                                   sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
-                                  lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
+                                  lo, hi, dx)
 
-             call ppm_int_profile(q, qd_lo, qd_hi, NQ, n, &
+             call ppm_int_profile(srcQ, src_lo, src_hi, QVAR, n, &
                                   q, qd_lo, qd_hi, &
                                   qaux, qa_lo, qa_hi, &
                                   sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
-                                  Ip, Im, It_lo, It_hi, NQ, n, &
-                                  lo(1), lo(2), hi(1), hi(2), dx, dt, k3d, kc)
-          end do
-
-          ! source terms
-          do n = 1, QVAR
-             if (source_nonzero(n)) then
-                call ppm_reconstruct(srcQ, src_lo, src_hi, QVAR, n, &
-                                     flatn, qd_lo, qd_hi, &
-                                     sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
-                                     lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
-
-                call ppm_int_profile(srcQ, src_lo, src_hi, QVAR, n, &
-                                     q, qd_lo, qd_hi, &
-                                     qaux, qa_lo, qa_hi, &
-                                     sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
-                                     Ip_src, Im_src, It_lo, It_hi, QVAR, n, &
-                                     lo(1), lo(2), hi(1), hi(2), dx, dt, k3d, kc)
-             else
-                Ip_src(It_lo(1):It_hi(1),It_lo(2):It_hi(2),kc,:,:,n) = ZERO
-                Im_src(It_lo(1):It_hi(1),It_lo(2):It_hi(2),kc,:,:,n) = ZERO
-             endif
-
-          enddo
-
-          ! this probably doesn't support radiation
-          if (ppm_temp_fix /= 1) then
-             call ppm_reconstruct(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
-                                  flatn, qd_lo, qd_hi, &
-                                  sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
-                                  lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
-
-             call ppm_int_profile(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
-                                  q, qd_lo, qd_hi, &
-                                  qaux, qa_lo, qa_hi, &
-                                  sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
-                                  Ip_gc, Im_gc, It_lo, It_hi, 1, 1, &
-                                  lo(1), lo(2), hi(1), hi(2), dx, dt, k3d, kc)
+                                  Ip_src, Im_src, It_lo, It_hi, QVAR, n, &
+                                  lo, hi, dx, dt)
           else
-
-             do iwave = 1, 3
-                do idim = 1, 3
-
-                   do j = lo(2)-1, hi(2)+1
-                      do i = lo(1)-1, hi(1)+1
-                         eos_state % rho = Ip(i,j,kc,idim,iwave,QRHO)
-                         eos_state % T   = Ip(i,j,kc,idim,iwave,QTEMP)
-
-                         eos_state % xn  = Ip(i,j,kc,idim,iwave,QFS:QFS+nspec-1)
-                         eos_state % aux = Ip(i,j,kc,idim,iwave,QFX:QFX+naux-1)
-
-                         call eos(eos_input_rt, eos_state)
-
-                         Ip(i,j,kc,idim,iwave,QPRES)  = eos_state % p
-                         Ip(i,j,kc,idim,iwave,QREINT) = eos_state % e * Ip(i,j,kc,idim,iwave,QRHO)
-                         Ip_gc(i,j,kc,idim,iwave,1)   = eos_state % gam1
-                      enddo
-                   enddo
-
-                   do j = lo(2)-1, hi(2)+1
-                      do i = lo(1)-1, hi(1)+1
-                         eos_state % rho = Im(i,j,kc,idim,iwave,QRHO)
-                         eos_state % T   = Im(i,j,kc,idim,iwave,QTEMP)
-
-                         eos_state % xn  = Im(i,j,kc,idim,iwave,QFS:QFS+nspec-1)
-                         eos_state % aux = Im(i,j,kc,idim,iwave,QFX:QFX+naux-1)
-
-                         call eos(eos_input_rt, eos_state)
-
-                         Im(i,j,kc,idim,iwave,QPRES)  = eos_state % p
-                         Im(i,j,kc,idim,iwave,QREINT) = eos_state % e * Im(i,j,kc,idim,iwave,QRHO)
-                         Im_gc(i,j,kc,idim,iwave,1)   = eos_state % gam1
-                      enddo
-                   enddo
-
-                enddo
-             enddo
-
+             Ip_src(It_lo(1):It_hi(1),It_lo(2):It_hi(2),It_lo(3):It_hi(3),:,:,n) = ZERO
+             Im_src(It_lo(1):It_hi(1),It_lo(2):It_hi(2),It_lo(3):It_hi(3),:,:,n) = ZERO
           endif
 
-          ! Compute U_x and U_y at kc (k3d)
+       enddo
 
-#ifdef RADIATION
-          call tracexy_ppm_rad(q, qd_lo, qd_hi, &
+       ! this probably doesn't support radiation
+       if (ppm_temp_fix /= 1) then
+          call ppm_reconstruct(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
+                               flatn, qd_lo, qd_hi, &
+                               sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
+                               lo, hi, dx)
+
+          call ppm_int_profile(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
+                               q, qd_lo, qd_hi, &
                                qaux, qa_lo, qa_hi, &
-                               Ip, Im, Ip_src, Im_src, It_lo, It_hi, &
-                               qxm, qxp, qym, qyp, qt_lo, qt_hi, &
-                               lo(1), lo(2), hi(1), hi(2), domlo, domhi, &
-                               dx, dt, kc, k3d)
-#else
-          call tracexy_ppm(q, qd_lo, qd_hi, &
-                           qaux, qa_lo, qa_hi, &
-                           Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, It_lo, It_hi, &
-                           qxm, qxp, qym, qyp, qt_lo, qt_hi, &
-                           lo(1), lo(2), hi(1), hi(2), domlo, domhi, &
-                           dx, dt, kc, k3d)
-#endif
-
+                               sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
+                               Ip_gc, Im_gc, It_lo, It_hi, 1, 1, &
+                               lo, hi, dx, dt)
        else
 
-#ifdef RADIATION
-#ifndef AMREX_USE_CUDA
-          call amrex_error("ppm_type <=0 is not supported in with radiation")
-#endif          
-#endif
+          do iwave = 1, 3
+             do idim = 1, 3
 
-          ! Compute all slopes at kc (k3d)
-          call uslope(q, flatn, qd_lo, qd_hi, &
-                      dqx, dqy, dqz, qt_lo, qt_hi, &
-                      lo(1), lo(2), hi(1), hi(2), kc, k3d)
+                do k = lo(3)-1, hi(3)+1
+                   do j = lo(2)-1, hi(2)+1
+                      do i = lo(1)-1, hi(1)+1
 
-          if (use_pslope .eq. 1) &
-               call pslope(q, flatn, qd_lo, qd_hi, &
-                           dqx, dqy, dqz, qt_lo, qt_hi, &
-                           srcQ, src_lo, src_hi, &
-                           lo(1), lo(2), hi(1), hi(2), kc, k3d, dx)
+                         eos_state % rho = Ip(i,j,k,idim,iwave,QRHO)
+                         eos_state % T   = Ip(i,j,k,idim,iwave,QTEMP)
 
-          ! Compute U_x and U_y at kc (k3d)
-          call tracexy(q, qd_lo, qd_hi, &
-                       qaux, qa_lo, qa_hi, &
-                       dqx, dqy, qt_lo, qt_hi, &
-                       qxm, qxp, qym, qyp, qt_lo, qt_hi, &
-                       lo(1), lo(2), hi(1), hi(2), domlo, domhi, &
-                       dx, dt, kc, k3d)
+                         eos_state % xn  = Ip(i,j,k,idim,iwave,QFS:QFS+nspec-1)
+                         eos_state % aux = Ip(i,j,k,idim,iwave,QFX:QFX+naux-1)
+
+                         call eos(eos_input_rt, eos_state)
+
+                         Ip(i,j,k,idim,iwave,QPRES)  = eos_state % p
+                         Ip(i,j,k,idim,iwave,QREINT) = eos_state % e * Ip(i,j,k,idim,iwave,QRHO)
+                         Ip_gc(i,j,k,idim,iwave,1)   = eos_state % gam1
+                      end do
+                   end do
+                end do
+
+                do k = lo(3)-1, hi(3)+1
+                   do j = lo(2)-1, hi(2)+1
+                      do i = lo(1)-1, hi(1)+1
+                         eos_state % rho = Im(i,j,k,idim,iwave,QRHO)
+                         eos_state % T   = Im(i,j,k,idim,iwave,QTEMP)
+
+                         eos_state % xn  = Im(i,j,k,idim,iwave,QFS:QFS+nspec-1)
+                         eos_state % aux = Im(i,j,k,idim,iwave,QFX:QFX+naux-1)
+
+                         call eos(eos_input_rt, eos_state)
+
+                         Im(i,j,k,idim,iwave,QPRES)  = eos_state % p
+                         Im(i,j,k,idim,iwave,QREINT) = eos_state % e * Im(i,j,k,idim,iwave,QRHO)
+                         Im_gc(i,j,k,idim,iwave,1)   = eos_state % gam1
+                      end do
+                   end do
+                end do
+
+             end do
+          end do
 
        end if
 
-       ! Compute \tilde{F}^x at kc (k3d)
-       call cmpflx(qxm, qxp, qt_lo, qt_hi, &
-                   fx, fx_lo, fx_hi, &
-                   qgdnvx, qt_lo, qt_hi, &
-#ifdef RADIATION
-                   rfx, fx_lo, fx_hi, &
-#endif
-                   qaux, qa_lo, qa_hi, &
-                   shk, shk_lo, shk_hi, &
-                   1, lo(1), hi(1)+1, lo(2)-1, hi(2)+1, kc, kc, k3d, domlo, domhi)
+       ! Compute U_x and U_y at kc (k3d)
 
-       ! Compute \tilde{F}^y at kc (k3d)
-       call cmpflx(qym, qyp, qt_lo, qt_hi, &
-                   fy, fy_lo, fy_hi, &
-                   qgdnvy, qt_lo, qt_hi, &
 #ifdef RADIATION
-                   rfy, fy_lo, fy_hi, &
-#endif
-                   qaux, qa_lo, qa_hi, &
-                   shk, shk_lo, shk_hi, &
-                   2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, kc, kc, k3d, domlo, domhi)
+       call tracexy_ppm_rad(q, qd_lo, qd_hi, &
+                            qaux, qa_lo, qa_hi, &
+                            Ip, Im, Ip_src, Im_src, It_lo, It_hi, &
+                            qxm, qxp, qym, qyp, qt_lo, qt_hi, &
+                            lo, hi, domlo, domhi, &
+                            dx, dt)
 
-       ! Compute U'^y_x at kc (k3d)
-       call transy1(qxm, qmxy, qxp, qpxy, qt_lo, qt_hi, &
+       call tracez_ppm_rad(q, qd_lo, qd_hi, &
+                           qaux, qa_lo, qa_hi, &
+                           Ip, Im, Ip_src, Im_src, It_lo, It_hi, &
+                           qzm, qzp, qt_lo, qt_hi, &
+                           lo, hi, domlo, domhi, &
+                           dt)
+
+#else
+       call tracexy_ppm(q, qd_lo, qd_hi, &
+                        qaux, qa_lo, qa_hi, &
+                        Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, It_lo, It_hi, &
+                        qxm, qxp, qym, qyp, qt_lo, qt_hi, &
+                        lo, hi, domlo, domhi, &
+                        dx, dt)
+
+       call tracez_ppm(q, qd_lo, qd_hi, &
+                       qaux, qa_lo, qa_hi, &
+                       Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, It_lo, It_hi, &
+                       qzm, qzp, qt_lo, qt_hi, &
+                       lo, hi, domlo, domhi, &
+                       dt)
+#endif
+
+    else
+
+#ifdef RADIATION
+#ifndef AMREX_USE_CUDA
+       call amrex_error("ppm_type <=0 is not supported in with radiation")
+#endif
+#endif
+
+       ! Compute all slopes at kc (k3d)
+       call uslope(q, flatn, qd_lo, qd_hi, &
+                   dqx, dqy, dqz, qt_lo, qt_hi, &
+                   lo, hi)
+
+       if (use_pslope .eq. 1) &
+            call pslope(q, flatn, qd_lo, qd_hi, &
+                        dqx, dqy, dqz, qt_lo, qt_hi, &
+                        srcQ, src_lo, src_hi, &
+                        lo, hi, dx)
+
+       ! Compute U_x and U_y at kc (k3d)
+       call tracexy(q, qd_lo, qd_hi, &
                     qaux, qa_lo, qa_hi, &
-                    fy, &
+                    dqx, dqy, qt_lo, qt_hi, &
+                    qxm, qxp, qym, qyp, qt_lo, qt_hi, &
+                    lo, hi, domlo, domhi, &
+                    dx, dt)
+
+       ! we should not land here with radiation
+       call tracez(q, qd_lo, qd_hi, &
+                   qaux, qa_lo, qa_hi, &
+                   dqz, qt_lo, qt_hi, &
+                   qzm, qzp, qt_lo, qt_hi, &
+                   lo, hi, domlo, domhi, &
+                   dx, dt)
+
+    end if  ! ppm test
+
+    ! Compute \tilde{F}^x at kc (k3d)
+    call cmpflx(qxm, qxp, qt_lo, qt_hi, &
+                fx, fx_lo, fx_hi, &
+                qgdnvx, qt_lo, qt_hi, &
 #ifdef RADIATION
-                    rfy, &
+                rfx, fx_lo, fx_hi, &
 #endif
-                    fy_lo, fy_hi, &
-                    qgdnvy, qt_lo, qt_hi, &
-                    cdtdy, lo(1)-1, hi(1)+1, lo(2), hi(2), kc, k3d)
+                qaux, qa_lo, qa_hi, &
+                shk, shk_lo, shk_hi, &
+                1, [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], &
+                domlo, domhi)
+
+    ! Compute \tilde{F}^y at kc (k3d)
+    call cmpflx(qym, qyp, qt_lo, qt_hi, &
+                fy, fy_lo, fy_hi, &
+                qgdnvy, qt_lo, qt_hi, &
+#ifdef RADIATION
+                rfy, fy_lo, fy_hi, &
+#endif
+                qaux, qa_lo, qa_hi, &
+                shk, shk_lo, shk_hi, &
+                2, [lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], &
+                domlo, domhi)
+
+    ! Compute U'^y_x at kc (k3d)
+    call transy1(qxm, qmxy, qxp, qpxy, qt_lo, qt_hi, &
+                 qaux, qa_lo, qa_hi, &
+                 fy, &
+#ifdef RADIATION
+                 rfy, &
+#endif
+                 fy_lo, fy_hi, &
+                 qgdnvy, qt_lo, qt_hi, &
+                 cdtdy, [lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2), hi(3)+1])
 
        ! Compute U'^x_y at kc (k3d)
        call transx1(qym, qmyx, qyp, qpyx, qt_lo, qt_hi, &
@@ -577,7 +590,7 @@ contains
 #endif
                     fx_lo, fx_hi, &
                     qgdnvx, qt_lo, qt_hi, &
-                    cdtdx, lo(1), hi(1), lo(2)-1, hi(2)+1,kc,k3d)
+                    cdtdx, [lo(1), lo(2)-1, lo(3)-1], [hi(1), hi(2)+1, hi(3)+1])
 
        ! Compute F^{x|y} at kc (k3d)
        call cmpflx(qmxy, qpxy, qt_lo, qt_hi, &
@@ -588,7 +601,8 @@ contains
 #endif
                    qaux, qa_lo, qa_hi, &
                    shk,shk_lo,shk_hi, &
-                   1, lo(1), hi(1)+1, lo(2), hi(2), kc, kc, k3d, domlo, domhi)
+                   1, [lo(1), lo(2), lo(3)-1], [hi(1)+1, hi(2), hi(3)+1], &
+                   domlo, domhi)
 
        ! Compute F^{y|x} at kc (k3d)
        call cmpflx(qmyx, qpyx, qt_lo, qt_hi, &
@@ -599,180 +613,157 @@ contains
 #endif
                    qaux, qa_lo, qa_hi, &
                    shk, shk_lo, shk_hi, &
-                   2, lo(1), hi(1), lo(2), hi(2)+1, kc, kc, k3d, domlo, domhi)
+                   2, [lo(1), lo(2), lo(3)-1], [hi(1), hi(2)+1, hi(3)+1], &
+                   domlo, domhi)
 
-       if (k3d.ge.lo(3)) then
 
-          ! Compute U_z at kc (k3d)
-          if (ppm_type .gt. 0) then
+       ! Compute \tilde{F}^z at kc (k3d)
+       call cmpflx(qzm,qzp,qt_lo,qt_hi, &
+                   fz,fz_lo,fz_hi, &
+                   qgdnvz,qt_lo,qt_hi, &
 #ifdef RADIATION
-             call tracez_ppm_rad(q, qd_lo, qd_hi, &
-                                 qaux, qa_lo, qa_hi, &
-                                 Ip, Im, Ip_src, Im_src, It_lo, It_hi, &
-                                 qzm, qzp, qt_lo, qt_hi, &
-                                 lo(1), lo(2), hi(1), hi(2), domlo, domhi, &
-                                 dt, km, kc, k3d)
-
-#else
-             call tracez_ppm(q, qd_lo, qd_hi, &
-                             qaux, qa_lo, qa_hi, &
-                             Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, It_lo, It_hi, &
-                             qzm, qzp, qt_lo, qt_hi, &
-                             lo(1), lo(2), hi(1), hi(2), domlo, domhi, &
-                             dt, km, kc, k3d)
+                   rfz, fz_lo, fz_hi, &
 #endif
-          else
-             ! we should not land here with radiation
-             call tracez(q, qd_lo, qd_hi, &
-                         qaux, qa_lo, qa_hi, &
-                         dqz, qt_lo, qt_hi, &
-                         qzm, qzp, qt_lo, qt_hi, &
-                         lo(1), lo(2), hi(1), hi(2), domlo, domhi, &
-                         dx, dt, km, kc, k3d)
-          end if
+                   qaux, qa_lo, qa_hi, &
+                   shk, shk_lo, shk_hi, &
+                   3, [lo(1)-1, lo(2)-1, lo(3)], [ hi(1)+1, hi(2)+1, hi(3)+1], &
+                   domlo, domhi)
 
-          ! Compute \tilde{F}^z at kc (k3d)
-          call cmpflx(qzm,qzp,qt_lo,qt_hi, &
-                      fz,fz_lo,fz_hi, &
-                      qgdnvz,qt_lo,qt_hi, &
+       ! Compute U'^y_z at kc (k3d)
+       call transy2(qzm, qmzy, qzp, qpzy, qt_lo, qt_hi, &
+                    qaux, qa_lo, qa_hi, &
+                    fy, &
 #ifdef RADIATION
-                      rfz, fz_lo, fz_hi, &
+                    rfy, &
 #endif
-                      qaux, qa_lo, qa_hi, &
-                      shk, shk_lo, shk_hi, &
-                      3, lo(1)-1, hi(1)+1, lo(2)-1, hi(2)+1, kc, kc, k3d, domlo, domhi)
+                    fy_lo, fy_hi, &
+                    qgdnvy, qt_lo, qt_hi, &
+                    cdtdy, [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+1])
 
-          ! Compute U'^y_z at kc (k3d)
-          call transy2(qzm, qmzy, qzp, qpzy, qt_lo, qt_hi, &
-                       qaux, qa_lo, qa_hi, &
-                       fy, &
+       ! Compute U'^x_z at kc (k3d)
+       call transx2(qzm, qmzx, qzp, qpzx, qt_lo, qt_hi, &
+                    qaux, qa_lo, qa_hi, &
+                    fx, &
 #ifdef RADIATION
-                       rfy, &
+                    rfx, &
 #endif
-                       fy_lo, fy_hi, &
-                       qgdnvy, qt_lo, qt_hi, &
-                       cdtdy, lo(1)-1, hi(1)+1, lo(2), hi(2), kc, km, k3d)
+                    fx_lo, fx_hi, &
+                    qgdnvx, qt_lo, qt_hi, &
+                    cdtdx, [lo(1), lo(2)-1, lo(3)], [hi(1), hi(2)+1, hi(3)+1])
 
-          ! Compute U'^x_z at kc (k3d)
-          call transx2(qzm, qmzx, qzp, qpzx, qt_lo, qt_hi, &
-                       qaux, qa_lo, qa_hi, &
-                       fx, &
+       ! Compute F^{z|x} at kc (k3d)
+       call cmpflx(qmzx, qpzx, qt_lo, qt_hi, &
+                   fzx, fz_lo, fz_hi, &
+                   qgdnvtmpz1, qt_lo, qt_hi, &
 #ifdef RADIATION
-                       rfx, &
+                   rfzx, fz_lo, fz_hi, &
 #endif
-                       fx_lo, fx_hi, &
-                       qgdnvx, qt_lo, qt_hi, &
-                       cdtdx, lo(1), hi(1), lo(2)-1, hi(2)+1, kc, km, k3d)
+                   qaux, qa_lo, qa_hi, &
+                   shk, shk_lo, shk_hi, &
+                   3, [lo(1), lo(2)-1, lo(3)], [hi(1), hi(2)+1, hi(3)+1], &
+                   domlo, domhi)
 
-          ! Compute F^{z|x} at kc (k3d)
-          call cmpflx(qmzx, qpzx, qt_lo, qt_hi, &
-                      fzx, fz_lo, fz_hi, &
-                      qgdnvtmpz1, qt_lo, qt_hi, &
+       ! Compute F^{z|y} at kc (k3d)
+       call cmpflx(qmzy, qpzy, qt_lo, qt_hi, &
+                   fzy, fz_lo, fz_hi, &
+                   qgdnvtmpz2, qt_lo, qt_hi, &
 #ifdef RADIATION
-                      rfzx, fz_lo, fz_hi, &
+                   rfzy, fz_lo, fz_hi, &
 #endif
-                      qaux, qa_lo, qa_hi, &
-                      shk, shk_lo, shk_hi, &
-                      3, lo(1), hi(1), lo(2)-1, hi(2)+1, kc, kc, k3d, domlo, domhi)
+                   qaux, qa_lo, qa_hi, &
+                   shk, shk_lo, shk_hi, &
+                   3, [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+1], &
+                   domlo, domhi)
 
-          ! Compute F^{z|y} at kc (k3d)
-          call cmpflx(qmzy, qpzy, qt_lo, qt_hi, &
-                      fzy, fz_lo, fz_hi, &
-                      qgdnvtmpz2, qt_lo, qt_hi, &
+       ! Compute U''_z at kc (k3d)
+       call transxy(qzm, qzl, qzp, qzr, qt_lo, qt_hi, &
+                    qaux, qa_lo, qa_hi, &
+                    fxy, &
 #ifdef RADIATION
-                      rfzy, fz_lo, fz_hi, &
+                    rfxy, &
 #endif
-                      qaux, qa_lo, qa_hi, &
-                      shk, shk_lo, shk_hi, &
-                      3, lo(1)-1, hi(1)+1, lo(2), hi(2), kc, kc, k3d, domlo, domhi)
+                    fx_lo, fx_hi, &
+                    fyx,&
+#ifdef RADIATION
+                    rfyx, &
+#endif
+                    fy_lo, fy_hi, &
+                    qgdnvtmpx, qt_lo, qt_hi, &
+                    qgdnvtmpy, qt_lo, qt_hi, &
+                    srcQ, src_lo, src_hi,&
+                    hdt, hdtdx, hdtdy, [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1])
 
-          ! Compute U''_z at kc (k3d)
-          call transxy(qzm, qzl, qzp, qzr, qt_lo, qt_hi, &
-                       qaux, qa_lo, qa_hi, &
-                       fxy, &
+       ! Compute F^z at kc (k3d) -- note that flux3 is indexed by k3d, not kc
+       call cmpflx(qzl, qzr, qt_lo, qt_hi, &
+                   flux3, fd3_lo, fd3_hi, &
+                   qgdnvzf, qt_lo, qt_hi, &
 #ifdef RADIATION
-                       rfxy, &
+                   rflux3, rfd3_lo, rfd3_hi, &
 #endif
-                       fx_lo, fx_hi, &
-                       fyx,&
-#ifdef RADIATION
-                       rfyx, &
-#endif
-                       fy_lo, fy_hi, &
-                       qgdnvtmpx, qt_lo, qt_hi, &
-                       qgdnvtmpy, qt_lo, qt_hi, &
-                       srcQ, src_lo, src_hi,&
-                       hdt, hdtdx, hdtdy, lo(1), hi(1), lo(2), hi(2), kc, km, k3d)
+                   qaux, qa_lo, qa_hi, &
+                   shk,shk_lo,shk_hi, &
+                   3, [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], &
+                   domlo, domhi)
 
-          ! Compute F^z at kc (k3d) -- note that flux3 is indexed by k3d, not kc
-          call cmpflx(qzl, qzr, qt_lo, qt_hi, &
-                      flux3, fd3_lo, fd3_hi, &
-                      qgdnvzf, qt_lo, qt_hi, &
-#ifdef RADIATION
-                      rflux3, rfd3_lo, rfd3_hi, &
-#endif
-                      qaux, qa_lo, qa_hi, &
-                      shk,shk_lo,shk_hi, &
-                      3,lo(1),hi(1),lo(2),hi(2),kc,k3d,k3d,domlo,domhi)
-
+       do k = lo(3), hi(3)+1
           do j=lo(2)-1,hi(2)+1
              do i=lo(1)-1,hi(1)+1
-                q3(i,j,k3d,:) = qgdnvzf(i,j,kc,:)
+                q3(i,j,k,:) = qgdnvzf(i,j,k,:)
              end do
           end do
+       end do
 
-          if (k3d.gt.lo(3)) then
+       ! Compute U'^z_x and U'^z_y at km (k3d-1) -- note flux3 has physical index
+       call transz(qxm, qmxz, qxp, qpxz, qym, qmyz, qyp, qpyz, qt_lo, qt_hi, &
+                   qaux, qa_lo, qa_hi, &
+                   fz, &
+#ifdef RADIATION
+                   rfz, &
+#endif
+                   fz_lo, fz_hi, &
+                   qgdnvz,qt_lo,qt_hi, &
+                   cdtdz, [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1])
 
-             ! Compute U'^z_x and U'^z_y at km (k3d-1) -- note flux3 has physical index
-             call transz(qxm, qmxz, qxp, qpxz, qym, qmyz, qyp, qpyz, qt_lo, qt_hi, &
-                         qaux, qa_lo, qa_hi, &
-                         fz, &
+       ! Compute F^{x|z} at km (k3d-1)
+       call cmpflx(qmxz, qpxz, qt_lo, qt_hi, &
+                   fxz, fx_lo, fx_hi, &
+                   qgdnvx, qt_lo, qt_hi, &
 #ifdef RADIATION
-                         rfz, &
+                   rfxz, fx_lo, fx_hi, &
 #endif
-                         fz_lo, fz_hi, &
-                         qgdnvz,qt_lo,qt_hi, &
-                         cdtdz,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,km,kc,k3d)
+                   qaux, qa_lo, qa_hi, &
+                   shk, shk_lo, shk_hi, &
+                   1, [lo(1), lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1], &
+                   domlo, domhi)
 
-             ! Compute F^{x|z} at km (k3d-1)
-             call cmpflx(qmxz, qpxz, qt_lo, qt_hi, &
-                         fxz, fx_lo, fx_hi, &
-                         qgdnvx, qt_lo, qt_hi, &
+       ! Compute F^{y|z} at km (k3d-1)
+       call cmpflx(qmyz, qpyz, qt_lo, qt_hi, &
+                   fyz, fy_lo, fy_hi, &
+                   qgdnvy, qt_lo, qt_hi, &
 #ifdef RADIATION
-                         rfxz, fx_lo, fx_hi, &
+                   rfyz, fy_lo, fy_hi, &
 #endif
-                         qaux, qa_lo, qa_hi, &
-                         shk, shk_lo, shk_hi, &
-                         1, lo(1), hi(1)+1, lo(2)-1, hi(2)+1, km, km, k3d-1, domlo, domhi)
+                   qaux, qa_lo, qa_hi, &
+                   shk, shk_lo, shk_hi, &
+                   2, [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1])
 
-             ! Compute F^{y|z} at km (k3d-1)
-             call cmpflx(qmyz, qpyz, qt_lo, qt_hi, &
-                         fyz, fy_lo, fy_hi, &
-                         qgdnvy, qt_lo, qt_hi, &
+       ! Compute U''_x at km (k3d-1)
+       call transyz(qxm, qxl, qxp, qxr, qt_lo, qt_hi, &
+                    qaux, qa_lo, qa_hi, &
+                    fyz, &
 #ifdef RADIATION
-                         rfyz, fy_lo, fy_hi, &
+                    rfyz, &
 #endif
-                         qaux, qa_lo, qa_hi, &
-                         shk, shk_lo, shk_hi, &
-                         2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, km, km, k3d-1, domlo, domhi)
-
-             ! Compute U''_x at km (k3d-1)
-             call transyz(qxm, qxl, qxp, qxr, qt_lo, qt_hi, &
-                          qaux, qa_lo, qa_hi, &
-                          fyz, &
+                    fy_lo, fy_hi, &
+                    fzy, &
 #ifdef RADIATION
-                          rfyz, &
+                    rfzy, &
 #endif
-                          fy_lo, fy_hi, &
-                          fzy, &
-#ifdef RADIATION
-                          rfzy, &
-#endif
-                          fz_lo, fz_hi, &
-                          qgdnvy, qt_lo, qt_hi, &
-                          qgdnvtmpz2, qt_lo, qt_hi, &
-                          srcQ, src_lo, src_hi, &
-                          hdt, hdtdy, hdtdz, lo(1)-1, hi(1)+1, lo(2), hi(2), km, kc, k3d-1)
+                    fz_lo, fz_hi, &
+                    qgdnvy, qt_lo, qt_hi, &
+                    qgdnvtmpz2, qt_lo, qt_hi, &
+                    srcQ, src_lo, src_hi, &
+                    hdt, hdtdy, hdtdz, [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+1])
 
              ! Compute U''_y at km (k3d-1)
              call transxz(qym, qyl, qyp, qyr, qt_lo, qt_hi, &
