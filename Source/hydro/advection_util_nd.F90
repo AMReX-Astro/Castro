@@ -48,6 +48,8 @@ contains
 
     logical :: have_reset
 
+    !$gpu
+
     max_dens = ZERO
 
     have_reset = .false.
