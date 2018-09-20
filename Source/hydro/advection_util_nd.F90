@@ -7,7 +7,7 @@ module advection_util_module
 
   public ca_enforce_minimum_density, ca_compute_cfl, ca_ctoprim, ca_srctoprim, dflux, &
          limit_hydro_fluxes_on_small_dens, shock, divu, calc_pdivu, normalize_species_fluxes, &
-         ca_enforce_minimum_density_cuda, ca_divu_cuda, scale_flux_cuda, apply_av_cuda, &
+         ca_divu_cuda, scale_flux_cuda, apply_av_cuda, &
          ca_construct_hydro_update_cuda
 
 contains
@@ -306,7 +306,7 @@ contains
     use amrex_constants_module, only: ZERO, ONE
     use meth_params_module, only: NQ, QRHO, QU, QV, QW, QC, NQAUX, do_ctu
     use prob_params_module, only: dim
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only : rt => amrex_real, amrex_max
 
     implicit none
 
@@ -316,13 +316,16 @@ contains
 
     real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(in   ) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    real(rt), intent(in   ) :: dt, dx(3)
+    real(rt), intent(in   ), value :: dt
+    real(rt), intent(in   ) :: dx(3)
     real(rt), intent(inout) :: courno
-    integer,  intent(in   ) :: verbose
+    integer,  intent(in   ), value :: verbose
 
     real(rt) :: courx, coury, courz, courmx, courmy, courmz, courtmp
     real(rt) :: dtdx, dtdy, dtdz
     integer  :: i, j, k
+
+    !$gpu
 
     ! Compute running max of Courant number over grids
 
@@ -419,14 +422,14 @@ contains
                 end if
 #endif
 
-                courno = max(courno, courtmp)
+                call amrex_max(courno, courtmp)
              endif
           enddo
        enddo
     enddo
 
     if (do_ctu == 1) then
-       courno = max( courmx, courmy, courmz )
+       call amrex_max(courno, max(courmx, courmy, courmz))
     endif
 
   end subroutine ca_compute_cfl
@@ -504,6 +507,7 @@ contains
     real(rt)         :: ptot, ctot, gamc_tot
 #endif
 
+    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -787,11 +791,11 @@ contains
                                               vol,vol_lo,vol_hi, &
                                               flux1,flux1_lo,flux1_hi, &
                                               area1,area1_lo,area1_hi, &
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
                                               flux2,flux2_lo,flux2_hi, &
                                               area2,area2_lo,area2_hi, &
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
                                               flux3,flux3_lo,flux3_hi, &
                                               area3,area3_lo,area3_hi, &
 #endif
@@ -811,11 +815,11 @@ contains
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: flux1_lo(3), flux1_hi(3)
     integer, intent(in) :: area1_lo(3), area1_hi(3)
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
     integer, intent(in) :: flux2_lo(3), flux2_hi(3)
     integer, intent(in) :: area2_lo(3), area2_hi(3)
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
     integer, intent(in) :: flux3_lo(3), flux3_hi(3)
     integer, intent(in) :: area3_lo(3), area3_hi(3)
 #endif
@@ -827,11 +831,11 @@ contains
     real(rt), intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     real(rt), intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
     real(rt), intent(in   ) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
     real(rt), intent(inout) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
     real(rt), intent(in   ) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2),area2_lo(3):area2_hi(3))
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
     real(rt), intent(inout) :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
     real(rt), intent(in   ) :: area3(area3_lo(1):area3_hi(1),area3_lo(2):area3_hi(2),area3_lo(3):area3_hi(3))
 #endif
@@ -1026,7 +1030,7 @@ contains
     ! Now do the y-direction. The logic is all the same as for the x-direction,
     ! so the comments are skipped.
 
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
     thetap(:,:,:) = ONE
     thetam(:,:,:) = ONE
 
@@ -1138,7 +1142,7 @@ contains
     ! Now do the z-direction. The logic is all the same as for the x-direction,
     ! so the comments are skipped.
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
     thetap(:,:,:) = ONE
     thetam(:,:,:) = ONE
 
@@ -1308,10 +1312,10 @@ contains
              if (coord_type == 0) then
                 ! Cartesian
                 divU = HALF*(q(i+1,j,k,QU) - q(i-1,j,k,QU))*dxinv
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
                 divU = divU + HALF*(q(i,j+1,k,QV) - q(i,j-1,k,QV))*dyinv
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
                 divU = divU + HALF*(q(i,j,k+1,QW) - q(i,j,k-1,QW))*dzinv
 #endif
              elseif (coord_type == 1) then
@@ -1320,10 +1324,10 @@ contains
                 rm = dble(i - 1 + HALF)*dx(1)
                 rp = dble(i + 1 + HALF)*dx(1)
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
                 divU = HALF*(rp*q(i+1,j,k,QU) - rm*q(i-1,j,k,QU))/(rc*dx(1))
 #endif
-#if (BL_SPACEDIM == 2)
+#if (AMREX_SPACEDIM == 2)
                 divU = HALF*(rp*q(i+1,j,k,QU) - rm*q(i-1,j,k,QU))/(rc*dx(1)) + &
                        HALF*(q(i,j+1,k,QV) - q(i,j-1,k,QV))/dx(2)
 #endif
@@ -1352,7 +1356,7 @@ contains
                 px_post = q(i+1,j,k,QPRES)
              endif
 
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
              if (q(i,j+1,k,QPRES) - q(i,j-1,k,QPRES) < ZERO) then
                 py_pre  = q(i,j+1,k,QPRES)
                 py_post = q(i,j-1,k,QPRES)
@@ -1365,7 +1369,7 @@ contains
              py_post = 0.0_rt
 #endif
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
              if (q(i,j,k+1,QPRES) - q(i,j,k-1,QPRES) < ZERO) then
                 pz_pre  = q(i,j,k+1,QPRES)
                 pz_post = q(i,j,k-1,QPRES)
@@ -1380,12 +1384,12 @@ contains
 
              ! use compression to create unit vectors for the shock direction
              e_x = (q(i+1,j,k,QU) - q(i-1,j,k,QU))**2
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
              e_y = (q(i,j+1,k,QV) - q(i,j-1,k,QV))**2
 #else
              e_y = 0.0_rt
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
              e_z = (q(i,j,k+1,QW) - q(i,j,k-1,QW))**2
 #else
              e_z = 0.0_rt
@@ -1455,7 +1459,7 @@ contains
        do j = lo(2), hi(2)+dg(2)
           do i = lo(1), hi(1)+1
 
-#if BL_SPACEDIM == 1
+#if AMREX_SPACEDIM == 1
              if (coord_type == 0) then
                 div(i,j,k) = (q(i,j,k,QU) - q(i-1,j,k,QU)) / dx(1)
 
@@ -1486,7 +1490,7 @@ contains
 
 #endif
 
-#if BL_SPACEDIM == 2
+#if AMREX_SPACEDIM == 2
              if (coord_type == 0) then
                 ux = HALF*(q(i,j,k,QU) - q(i-1,j,k,QU) + q(i,j-1,k,QU) - q(i-1,j-1,k,QU))/dx(1)
                 vy = HALF*(q(i,j,k,QV) - q(i,j-1,k,QV) + q(i-1,j,k,QV) - q(i-1,j-1,k,QV))/dx(2)
@@ -1522,7 +1526,7 @@ contains
              div(i,j,k) = ux + vy
 #endif
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
              ux = FOURTH*( &
                     + q(i  ,j  ,k  ,QU) - q(i-1,j  ,k  ,QU) &
                     + q(i  ,j  ,k-1,QU) - q(i-1,j  ,k-1,QU) &
@@ -1558,11 +1562,11 @@ contains
   subroutine calc_pdivu(lo, hi, &
                         q1, q1_lo, q1_hi, &
                         area1, a1_lo, a1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                         q2, q2_lo, q2_hi, &
                         area2, a2_lo, a2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                         q3, q3_lo, q3_hi, &
                         area3, a3_lo, a3_hi, &
 #endif
@@ -1586,13 +1590,13 @@ contains
     integer, intent(in) :: a1_lo(3), a1_hi(3)
     real(rt), intent(in) :: q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NQ)
     real(rt), intent(in) :: area1(a1_lo(1):a1_hi(1),a1_lo(2):a1_hi(2),a1_lo(3):a1_hi(3))
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
     integer, intent(in) :: q2_lo(3), q2_hi(3)
     integer, intent(in) :: a2_lo(3), a2_hi(3)
     real(rt), intent(in) :: q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NQ)
     real(rt), intent(in) :: area2(a2_lo(1):a2_hi(1),a1_lo(2):a1_hi(2),a1_lo(3):a1_hi(3))
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     integer, intent(in) :: q3_lo(3), q3_hi(3)
     integer, intent(in) :: a3_lo(3), a3_hi(3)
     real(rt), intent(in) :: q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NQ)
@@ -1607,13 +1611,13 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-#if BL_SPACEDIM == 1
+#if AMREX_SPACEDIM == 1
              pdivu(i,j,k) = HALF * &
                   (q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES))* &
                   (q1(i+1,j,k,GDU)*area1(i+1,j,k) - q1(i,j,k,GDU)*area1(i,j,k)) / vol(i,j,k)
 #endif
 
-#if BL_SPACEDIM == 2
+#if AMREX_SPACEDIM == 2
              pdivu(i,j,k) = HALF*( &
                   (q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES)) * &
                   (q1(i+1,j,k,GDU)*area1(i+1,j,k) - q1(i,j,k,GDU)*area1(i,j,k)) + &
@@ -1621,7 +1625,7 @@ contains
                   (q2(i,j+1,k,GDV)*area2(i,j+1,k) - q2(i,j,k,GDV)*area2(i,j,k)) ) / vol(i,j,k)
 #endif
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
              pdivu(i,j,k) = &
                   HALF*(q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES)) * &
                        (q1(i+1,j,k,GDU) - q1(i,j,k,GDU))/dx(1) + &
@@ -1636,334 +1640,6 @@ contains
     enddo
 
   end subroutine calc_pdivu
-
-
-
-  subroutine reset_to_small_state_cuda(old_state, new_state, idx, lo, hi, verbose)
-
-    use amrex_constants_module, only: ZERO
-    use network, only: nspec, naux
-    use eos_type_module, only: eos_t, eos_input_rt
-    use eos_module, only: eos
-    use amrex_fort_module, only: rt => amrex_real
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEINT, UEDEN, UFS, small_temp, small_dens, npassive, upass_map
-
-    implicit none
-
-    real(rt), intent(in   ) :: old_state(NVAR)
-    real(rt), intent(inout) :: new_state(NVAR)
-    integer,  intent(in   ) :: idx(3), lo(3), hi(3), verbose
-
-    integer      :: n, ipassive
-    type (eos_t) :: eos_state
-
-    !$gpu
-
-    ! If no neighboring zones are above small_dens, our only recourse
-    ! is to set the density equal to small_dens, and the temperature
-    ! equal to small_temp. We set the velocities to zero,
-    ! though any choice here would be arbitrary.
-
-#ifndef AMREX_USE_GPU
-    if (verbose .gt. 0) then
-       print *,'   '
-       if (new_state(URHO) < ZERO) then
-          print *,'>>> RESETTING NEG.  DENSITY AT ',idx(1),idx(2),idx(3)
-       else
-          print *,'>>> RESETTING SMALL DENSITY AT ',idx(1),idx(2),idx(3)
-       endif
-       print *,'>>> FROM ',new_state(URHO),' TO ',small_dens
-       print *,'>>> IN GRID ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-       print *,'>>> ORIGINAL DENSITY FOR OLD STATE WAS ',old_state(URHO)
-       print *,'   '
-    end if
-#endif
-
-    do ipassive = 1, npassive
-       n = upass_map(ipassive)
-       new_state(n) = new_state(n) * (small_dens / new_state(URHO))
-    end do
-
-    eos_state % rho = small_dens
-    eos_state % T   = small_temp
-    eos_state % xn  = new_state(UFS:UFS+nspec-1) / small_dens
-    eos_state % aux = new_state(UFS:UFS+naux-1) / small_dens
-
-    call eos(eos_input_rt, eos_state)
-
-    new_state(URHO ) = eos_state % rho
-    new_state(UTEMP) = eos_state % T
-
-    new_state(UMX  ) = ZERO
-    new_state(UMY  ) = ZERO
-    new_state(UMZ  ) = ZERO
-
-    new_state(UEINT) = eos_state % rho * eos_state % e
-    new_state(UEDEN) = new_state(UEINT)
-
-  end subroutine reset_to_small_state_cuda
-
-
-
-  subroutine reset_to_zone_state_cuda(old_state, new_state, input_state, idx, lo, hi, verbose)
-
-    use amrex_constants_module, only: ZERO
-    use amrex_fort_module, only: rt => amrex_real
-    use meth_params_module, only: NVAR, URHO
-
-    implicit none
-
-    real(rt), intent(in   ) :: old_state(NVAR), input_state(NVAR)
-    real(rt), intent(inout) :: new_state(NVAR)
-    integer,  intent(in   ) :: idx(3), lo(3), hi(3), verbose
-
-    !$gpu
-
-#ifndef AMREX_USE_GPU
-    if (verbose .gt. 0) then
-       if (new_state(URHO) < ZERO) then
-          print *,'   '
-          print *,'>>> RESETTING NEG.  DENSITY AT ',idx(1),idx(2),idx(3)
-          print *,'>>> FROM ',new_state(URHO),' TO ',input_state(URHO)
-          print *,'>>> IN GRID ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-          print *,'>>> ORIGINAL DENSITY FOR OLD STATE WAS ',old_state(URHO)
-          print *,'   '
-       else
-          print *,'   '
-          print *,'>>> RESETTING SMALL DENSITY AT ',idx(1),idx(2),idx(3)
-          print *,'>>> FROM ',new_state(URHO),' TO ',input_state(URHO)
-          print *,'>>> IN GRID ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-          print *,'>>> ORIGINAL DENSITY FOR OLD STATE WAS ',old_state(URHO)
-          print *,'   '
-       end if
-    end if
-#endif
-
-    new_state(:) = input_state(:)
-
-  end subroutine reset_to_zone_state_cuda
-
-
-
-  subroutine compute_cfl_cuda(lo, hi, dt, dx, courno, &
-                              q, q_lo, q_hi, &
-                              qaux, qa_lo, qa_hi) &
-                              bind(C, name = "compute_cfl_cuda")
-
-    use amrex_constants_module, only: ZERO, ONE
-    use amrex_fort_module, only: rt => amrex_real, amrex_max
-    use meth_params_module, only: NQ, QRHO, QU, QV, QW, QC, NQAUX
-    use prob_params_module, only: dim
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: q_lo(3), q_hi(3)
-    integer,  intent(in   ) :: qa_lo(3), qa_hi(3)
-
-    real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(in   ) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    real(rt), intent(in   ) :: dt, dx(3)
-    real(rt), intent(inout) :: courno
-
-    real(rt) :: courx, coury, courz, courmx, courmy, courmz, courtmp
-    real(rt) :: dtdx, dtdy, dtdz
-    integer  :: i, j, k
-
-    !$gpu
-
-    ! Compute running max of Courant number over grids
-
-    courmx = courno
-    courmy = courno
-    courmz = courno
-
-    dtdx = dt / dx(1)
-
-    if (dim .ge. 2) then
-       dtdy = dt / dx(2)
-    else
-       dtdy = ZERO
-    endif
-
-    if (dim .eq. 3) then
-       dtdz = dt / dx(3)
-    else
-       dtdz = ZERO
-    endif
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             courx = ( qaux(i,j,k,QC) + abs(q(i,j,k,QU)) ) * dtdx
-             coury = ( qaux(i,j,k,QC) + abs(q(i,j,k,QV)) ) * dtdy
-             courz = ( qaux(i,j,k,QC) + abs(q(i,j,k,QW)) ) * dtdz
-
-             courmx = max( courmx, courx )
-             courmy = max( courmy, coury )
-             courmz = max( courmz, courz )
-
-             ! method-of-lines constraint
-             courtmp = courx
-             if (dim >= 2) then
-                courtmp = courtmp + coury
-             endif
-             if (dim == 3) then
-                courtmp = courtmp + courz
-             endif
-
-#ifndef AMREX_USE_GPU
-             ! note: it might not be 1 for all RK integrators
-             if (courtmp > ONE) then
-                print *,'   '
-                call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
-                print *,'>>> ... at cell (i,j,k)   : ', i, j, k
-                print *,'>>> ... u,v,w, c            ', q(i,j,k,QU), q(i,j,k,QV), q(i,j,k,QW), qaux(i,j,k,QC)
-                print *,'>>> ... density             ', q(i,j,k,QRHO)
-             endif
-#endif
-
-             call amrex_max(courno, courtmp)
-
-          enddo
-       enddo
-    enddo
-
-  end subroutine compute_cfl_cuda
-
-
-
-  subroutine ca_ctoprim_cuda(lo, hi, &
-                             uin, uin_lo, uin_hi, &
-                             q,     q_lo,   q_hi, &
-                             qaux, qa_lo,  qa_hi) bind(c,name='ca_ctoprim_cuda')
-
-    use actual_network, only: nspec, naux
-    use eos_module, only: eos
-    use eos_type_module, only: eos_t, eos_input_re
-    use amrex_constants_module, only: ZERO, HALF, ONE
-    use amrex_fort_module, only: rt => amrex_real
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, &
-                                  UEDEN, UEINT, UTEMP, &
-                                  QRHO, QU, QV, QW, &
-                                  QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
-                                  NQ, QC, QGAMC, QDPDR, QDPDE, NQAUX, &
-                                  npassive, upass_map, qpass_map, small_dens
-
-    implicit none
-
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: uin_lo(3), uin_hi(3)
-    integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: qa_lo(3), qa_hi(3)
-
-    real(rt), intent(in   ) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
-    real(rt), intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(inout) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-
-    real(rt), parameter :: small = 1.e-8_rt
-    real(rt), parameter :: dual_energy_eta1 = 1.e0_rt
-
-    integer  :: i, j, k, g
-    integer  :: n, iq, ipassive
-    real(rt) :: kineng, rhoinv
-    real(rt) :: vel(3)
-
-    type (eos_t) :: eos_state
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-#ifndef AMREX_USE_GPU
-             if (uin(i,j,k,URHO) .le. ZERO) then
-                print *,'   '
-                print *,'>>> Error: advection_util_nd.F90::ctoprim ',i, j, k
-                print *,'>>> ... negative density ', uin(i,j,k,URHO)
-                call bl_error("Error:: advection_util_nd.F90 :: ctoprim")
-             else if (uin(i,j,k,URHO) .lt. small_dens) then
-                print *,'   '
-                print *,'>>> Error: advection_util_nd.F90::ctoprim ',i, j, k
-                print *,'>>> ... small density ', uin(i,j,k,URHO)
-                call bl_error("Error:: advection_util_nd.F90 :: ctoprim")
-             endif
-#endif
-
-             q(i,j,k,QRHO) = uin(i,j,k,URHO)
-             rhoinv = ONE/q(i,j,k,QRHO)
-
-             vel = uin(i,j,k,UMX:UMZ) * rhoinv
-
-             q(i,j,k,QU:QW) = vel
-
-             ! Get the internal energy, which we'll use for
-             ! determining the pressure.  We use a dual energy
-             ! formalism. If (E - K) < eta1 and eta1 is suitably
-             ! small, then we risk serious numerical truncation error
-             ! in the internal energy.  Therefore we'll use the result
-             ! of the separately updated internal energy equation.
-             ! Otherwise, we'll set e = E - K.
-
-             kineng = HALF * q(i,j,k,QRHO) * (q(i,j,k,QU)**2 + q(i,j,k,QV)**2 + q(i,j,k,QW)**2)
-
-             if ( (uin(i,j,k,UEDEN) - kineng) / uin(i,j,k,UEDEN) .gt. dual_energy_eta1) then
-                q(i,j,k,QREINT) = (uin(i,j,k,UEDEN) - kineng) * rhoinv
-             else
-                q(i,j,k,QREINT) = uin(i,j,k,UEINT) * rhoinv
-             endif
-
-             ! If we're advecting in the rotating reference frame,
-             ! then subtract off the rotation component here.
-
-             q(i,j,k,QTEMP) = uin(i,j,k,UTEMP)
-          enddo
-       enddo
-    enddo
-
-    ! Load passively advected quatities into q
-    do ipassive = 1, npassive
-       n  = upass_map(ipassive)
-       iq = qpass_map(ipassive)
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                q(i,j,k,iq) = uin(i,j,k,n)/q(i,j,k,QRHO)
-             enddo
-          enddo
-       enddo
-    enddo
-
-    ! get gamc, p, T, c, csml using q state
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             eos_state % T   = q(i,j,k,QTEMP )
-             eos_state % rho = q(i,j,k,QRHO  )
-             eos_state % e   = q(i,j,k,QREINT)
-             eos_state % xn  = q(i,j,k,QFS:QFS+nspec-1)
-             eos_state % aux = q(i,j,k,QFX:QFX+naux-1)
-
-             call eos(eos_input_re, eos_state)
-
-             q(i,j,k,QTEMP)  = eos_state % T
-             q(i,j,k,QREINT) = eos_state % e * q(i,j,k,QRHO)
-             q(i,j,k,QPRES)  = eos_state % p
-             q(i,j,k,QGAME)  = q(i,j,k,QPRES) / q(i,j,k,QREINT) + ONE
-
-             qaux(i,j,k,QDPDR)  = eos_state % dpdr_e
-             qaux(i,j,k,QDPDE)  = eos_state % dpde
-
-             qaux(i,j,k,QGAMC)  = eos_state % gam1
-             qaux(i,j,k,QC   )  = eos_state % cs
-          enddo
-       enddo
-    enddo
-
-  end subroutine ca_ctoprim_cuda
 
 
 

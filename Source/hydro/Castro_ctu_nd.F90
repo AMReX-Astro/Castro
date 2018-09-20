@@ -11,36 +11,36 @@ contains
                     uout, uout_lo, uout_hi, &
                     update, updt_lo, updt_hi, &
                     flux1, flux1_lo, flux1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                     flux2, flux2_lo, flux2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                     flux3, flux3_lo, flux3_hi, &
 #endif
 #ifdef RADIATION
                     Erin, Erin_lo, Erin_hi, &
                     Erout, Erout_lo, Erout_hi, &
                     radflux1, radflux1_lo, radflux1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                     radflux2, radflux2_lo, radflux2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                     radflux3, radflux3_lo, radflux3_hi, &
 #endif
                     nstep_fsp, &
 #endif
                     qx, qx_lo, qx_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                     qy, qy_lo, qy_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                     qz, qz_lo, qz_hi, &
 #endif
                     area1, area1_lo, area1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                     area2, area2_lo, area2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                     area3, area3_lo, area3_hi, &
 #endif
                     vol,vol_lo,vol_hi, &
@@ -84,12 +84,12 @@ contains
     integer, intent(in) ::  updt_lo(3),  updt_hi(3)
     integer, intent(in) :: flux1_lo(3), flux1_hi(3)
     integer, intent(in) :: area1_lo(3), area1_hi(3)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
     integer, intent(in) :: flux2_lo(3), flux2_hi(3)
     integer, intent(in) :: area2_lo(3), area2_hi(3)
     integer, intent(in) ::    qy_lo(3),    qy_hi(3)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     integer, intent(in) :: flux3_lo(3), flux3_hi(3)
     integer, intent(in) :: area3_lo(3), area3_hi(3)
     integer, intent(in) ::    qz_lo(3),    qz_hi(3)
@@ -101,10 +101,10 @@ contains
     integer, intent(in) :: Erout_lo(3), Erout_hi(3)
     integer, intent(in) :: Erin_lo(3), Erin_hi(3)
     integer, intent(in) :: radflux1_lo(3), radflux1_hi(3)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
     integer, intent(in) :: radflux2_lo(3), radflux2_hi(3)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     integer, intent(in) :: radflux3_lo(3), radflux3_hi(3)
 #endif
     integer, intent(inout) :: nstep_fsp
@@ -122,13 +122,13 @@ contains
     real(rt)        , intent(in) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
     real(rt)        , intent(in) ::    qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
 
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
     real(rt)        , intent(inout) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
     real(rt)        , intent(in) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2),area2_lo(3):area2_hi(3))
     real(rt)        , intent(in) ::    qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
 #endif
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     real(rt)        , intent(inout) :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
     real(rt)        , intent(in) :: area3(area3_lo(1):area3_hi(1),area3_lo(2):area3_hi(2),area3_lo(3):area3_hi(3))
     real(rt)        , intent(in) ::    qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
@@ -142,10 +142,10 @@ contains
     real(rt)          Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
     real(rt)         Erout(Erout_lo(1):Erout_hi(1),Erout_lo(2):Erout_hi(2),Erout_lo(3):Erout_hi(3),0:ngroups-1)
     real(rt)         radflux1(radflux1_lo(1):radflux1_hi(1),radflux1_lo(2):radflux1_hi(2),radflux1_lo(3):radflux1_hi(3),0:ngroups-1)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
     real(rt)         radflux2(radflux2_lo(1):radflux2_hi(1),radflux2_lo(2):radflux2_hi(2),radflux2_lo(3):radflux2_hi(3),0:ngroups-1)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     real(rt)         radflux3(radflux3_lo(1):radflux3_hi(1),radflux3_lo(2):radflux3_hi(2),radflux3_lo(3):radflux3_hi(3),0:ngroups-1)
 #endif
 
@@ -189,11 +189,11 @@ contains
     call calc_pdivu(lo, hi, &
                     qx, qx_lo, qx_hi, &
                     area1, area1_lo, area1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                     qy, qy_lo, qy_hi, &
                     area2, area2_lo, area2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                     qz, qz_lo, qz_hi, &
                     area3, area3_lo, area3_hi, &
 #endif
@@ -205,10 +205,10 @@ contains
        if ( n == UTEMP ) then
 
           flux1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
           flux2(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
           flux3(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
 #endif
 
@@ -216,10 +216,10 @@ contains
        else if ( n == USHK ) then
 
           flux1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
           flux2(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
           flux3(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
 #endif
 #endif
@@ -238,7 +238,7 @@ contains
              enddo
           enddo
 
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)+1
                 do i = lo(1),hi(1)
@@ -252,7 +252,7 @@ contains
           enddo
 #endif
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
           do k = lo(3),hi(3)+1
              do j = lo(2),hi(2)
                 do i = lo(1),hi(1)
@@ -285,7 +285,7 @@ contains
        enddo
     enddo
 
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
     do g=0,ngroups-1
        do k = lo(3),hi(3)
           do j = lo(2),hi(2)+1
@@ -301,7 +301,7 @@ contains
     enddo
 #endif
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     do g=0,ngroups-1
        do k = lo(3),hi(3)+1
           do j = lo(2),hi(2)
@@ -324,11 +324,11 @@ contains
                                              vol,vol_lo,vol_hi, &
                                              flux1,flux1_lo,flux1_hi, &
                                              area1,area1_lo,area1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                                              flux2,flux2_lo,flux2_hi, &
                                              area2,area2_lo,area2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                                              flux3,flux3_lo,flux3_hi, &
                                              area3,area3_lo,area3_hi, &
 #endif
@@ -357,10 +357,10 @@ contains
 
                 update(i,j,k,n) = update(i,j,k,n) + &
                      ( flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                      + flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                      + flux3(i,j,k,n) * area3(i,j,k) - flux3(i,j,k+1,n) * area3(i,j,k+1) &
 #endif
                      ) * volinv
@@ -408,10 +408,10 @@ contains
              do i = lo(1),hi(1)
                 Erout(i,j,k,g) = Erin(i,j,k,g) + dt * &
                      ( radflux1(i,j,k,g) * area1(i,j,k) - radflux1(i+1,j,k,g) * area1(i+1,j,k) &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                      + radflux2(i,j,k,g) * area2(i,j,k) - radflux2(i,j+1,k,g) * area2(i,j+1,k) &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                      + radflux3(i,j,k,g) * area3(i,j,k) - radflux3(i,j,k+1,g) * area3(i,j,k+1) &
 #endif
                 ) / vol(i,j,k)
@@ -443,24 +443,24 @@ contains
              dprdz = ZERO
 
              do g = 0, ngroups-1
-#if BL_SPACEDIM == 1
+#if AMREX_SPACEDIM == 1
                 lamc = HALF*(qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g))
 #endif
-#if BL_SPACEDIM == 2
+#if AMREX_SPACEDIM == 2
                 lamc = FOURTH*(qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g) + &
                                qy(i,j,k,GDLAMS+g) + qy(i,j+1,k,GDLAMS+g))
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                 lamc = (qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g) + &
                         qy(i,j,k,GDLAMS+g) + qy(i,j+1,k,GDLAMS+g) + &
                         qz(i,j,k,GDLAMS+g) + qz(i,j,k+1,GDLAMS+g) ) / 6.e0_rt
 #endif
 
                 dprdx = dprdx + lamc*(qx(i+1,j,k,GDERADS+g) - qx(i,j,k,GDERADS+g))/dx(1)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                 dprdy = dprdy + lamc*(qy(i,j+1,k,GDERADS+g) - qy(i,j,k,GDERADS+g))/dx(2)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                 dprdz = dprdz + lamc*(qz(i,j,k+1,GDERADS+g) - qz(i,j,k,GDERADS+g))/dx(3)
 #endif
              end do
@@ -513,10 +513,10 @@ contains
              do i = lo(1), hi(1)
 
                 ux = HALF*(qx(i,j,k,GDU) + qx(i+1,j,k,GDU))
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                 uy = HALF*(qy(i,j,k,GDV) + qy(i,j+dg(2),k,GDV))
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                 uz = HALF*(qz(i,j,k,GDW) + qz(i,j,k+dg(3),GDW))
 #endif
 
@@ -528,13 +528,13 @@ contains
                 dudx(2) = (qx(i+1,j,k,GDV) - qx(i,j,k,GDV))/dx(1)
                 dudx(3) = (qx(i+1,j,k,GDW) - qx(i,j,k,GDW))/dx(1)
 
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                 dudy(1) = (qy(i,j+1,k,GDU) - qy(i,j,k,GDU))/dx(2)
                 dudy(2) = (qy(i,j+1,k,GDV) - qy(i,j,k,GDV))/dx(2)
                 dudy(3) = (qy(i,j+1,k,GDW) - qy(i,j,k,GDW))/dx(2)
 #endif
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                 dudz(1) = (qz(i,j,k+1,GDU) - qz(i,j,k,GDU))/dx(3)
                 dudz(2) = (qz(i,j,k+1,GDV) - qz(i,j,k,GDV))/dx(3)
                 dudz(3) = (qz(i,j,k+1,GDW) - qz(i,j,k,GDW))/dx(3)
@@ -548,10 +548,10 @@ contains
                    nhat(:) = ZERO
 
                    nhat(1) = (qx(i+1,j,k,GDERADS+g) - qx(i,j,k,GDERADS+g))/dx(1)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                    nhat(2) = (qy(i,j+1,k,GDERADS+g) - qy(i,j,k,GDERADS+g))/dx(2)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                    nhat(3) = (qz(i,j,k+1,GDERADS+g) - qz(i,j,k,GDERADS+g))/dx(3)
 #endif
 
@@ -561,14 +561,14 @@ contains
 
                    nnColonDotGu = dot_product(nhat, GnDotu) / (dot_product(nhat,nhat)+1.e-50_rt)
 
-#if BL_SPACEDIM == 1
+#if AMREX_SPACEDIM == 1
                    lamc = HALF*(qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g))
 #endif
-#if BL_SPACEDIM == 2
+#if AMREX_SPACEDIM == 2
                    lamc = 0.25e0_rt*(qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g) + &
                                      qy(i,j,k,GDLAMS+g) + qy(i,j+1,k,GDLAMS+g))
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                    lamc = (qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g) + &
                            qy(i,j,k,GDLAMS+g) + qy(i,j+1,k,GDLAMS+g) + &
                            qz(i,j,k,GDLAMS+g) + qz(i,j,k+1,GDLAMS+g) ) / 6.e0_rt
@@ -582,47 +582,47 @@ contains
                    if (fspace_type .eq. 1) then
                       Eddfxp = Edd_factor(qx(i+1,j  ,k  ,GDLAMS+g))
                       Eddfxm = Edd_factor(qx(i  ,j  ,k  ,GDLAMS+g))
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                       Eddfyp = Edd_factor(qy(i  ,j+1,k  ,GDLAMS+g))
                       Eddfym = Edd_factor(qy(i  ,j  ,k  ,GDLAMS+g))
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                       Eddfzp = Edd_factor(qz(i  ,j  ,k+1,GDLAMS+g))
                       Eddfzm = Edd_factor(qz(i  ,j  ,k  ,GDLAMS+g))
 #endif
 
                       f1xp = HALF*(ONE-Eddfxp)
                       f1xm = HALF*(ONE-Eddfxm)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                       f1yp = HALF*(ONE-Eddfyp)
                       f1ym = HALF*(ONE-Eddfym)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                       f1zp = HALF*(ONE-Eddfzp)
                       f1zm = HALF*(ONE-Eddfzm)
 #endif
 
                       Gf1E(1) = (f1xp*qx(i+1,j,k,GDERADS+g) - f1xm*qx(i,j,k,GDERADS+g)) / dx(1)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                       Gf1E(2) = (f1yp*qy(i,j+1,k,GDERADS+g) - f1ym*qy(i,j,k,GDERADS+g)) / dx(2)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                       Gf1E(3) = (f1zp*qz(i,j,k+1,GDERADS+g) - f1zm*qz(i,j,k,GDERADS+g)) / dx(3)
 #endif
 
 
-#if BL_SPACEDIM == 1
+#if AMREX_SPACEDIM == 1
                       Egdc = HALF*(qx(i,j,k,GDERADS+g) + qx(i+1,j,k,GDERADS+g))
                       Erout(i,j,k,g) = Erout(i,j,k,g) + dt*ux*Gf1E(1) &
                            - dt*f2*Egdc*nnColonDotGu
 #endif
-#if BL_SPACEDIM == 2
+#if AMREX_SPACEDIM == 2
                       Egdc = 0.25e0_rt*(qx(i,j,k,GDERADS+g) + qx(i+1,j,k,GDERADS+g) + &
                                         qy(i,j,k,GDERADS+g) + qy(i,j+1,k,GDERADS+g))
                       Erout(i,j,k,g) = Erout(i,j,k,g) + dt*(ux*Gf1E(1)+uy*Gf1E(2)) &
                            - dt*f2*Egdc*nnColonDotGu
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                       Egdc = (qx(i,j,k,GDERADS+g) + qx(i+1,j,k,GDERADS+g) &
                            +  qy(i,j,k,GDERADS+g) + qy(i,j+1,k,GDERADS+g) &
                            +  qz(i,j,k,GDERADS+g) + qz(i,j,k+1,GDERADS+g) ) / 6.e0_rt
@@ -652,7 +652,7 @@ contains
           do j = lo(2), hi(2)
              do i = lo(1), hi(1) + 1
                 flux1(i,j,k,n) = dt * flux1(i,j,k,n) * area1(i,j,k)
-#if BL_SPACEDIM == 1
+#if AMREX_SPACEDIM == 1
                 ! Correct the momentum flux with the grad p part.
                 if (coord_type .eq. 0 .and. n == UMX) then
                    flux1(i,j,k,n) = flux1(i,j,k,n) + dt * area1(i,j,k) * qx(i,j,k,GDPRES)
@@ -663,7 +663,7 @@ contains
        enddo
     enddo
 
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
     do n = 1, NVAR
        do k = lo(3), hi(3)
           do j = lo(2), hi(2) + 1
@@ -675,7 +675,7 @@ contains
     enddo
 #endif
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     do n = 1, NVAR
        do k = lo(3), hi(3) + 1
           do j = lo(2), hi(2)
@@ -698,7 +698,7 @@ contains
        enddo
     enddo
 
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
     do g = 0, ngroups-1
        do k = lo(3), hi(3)
           do j = lo(2), hi(2) + 1
@@ -710,7 +710,7 @@ contains
     enddo
 #endif
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     do g = 0, ngroups-1
        do k = lo(3), hi(3) + 1
           do j = lo(2), hi(2)
@@ -732,7 +732,7 @@ contains
        domlo = domlo_level(:,amr_level)
        domhi = domhi_level(:,amr_level)
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
        if (lo(3) .le. domlo(3) .and. hi(3) .ge. domlo(3)) then
 
           k = domlo(3)
@@ -782,7 +782,7 @@ contains
        endif
 #endif
 
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
        if (lo(2) .le. domlo(2) .and. hi(2) .ge. domlo(2)) then
 
           j = domlo(2)
@@ -901,29 +901,29 @@ contains
                            update, updt_lo, updt_hi, &
                            delta, dt, &
                            flux1, flux1_lo, flux1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                            flux2, flux2_lo, flux2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                            flux3, flux3_lo, flux3_hi, &
 #endif
 #ifdef RADIATION
                            radflux1, radflux1_lo, radflux1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                            radflux2, radflux2_lo, radflux2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                            radflux3, radflux3_lo, radflux3_hi, &
 #endif
 #endif
                            area1, area1_lo, area1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                            area2, area2_lo, area2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                            area3, area3_lo, area3_hi, &
 #endif
-#if BL_SPACEDIM <= 2
+#if AMREX_SPACEDIM <= 2
                            pradial, p_lo, p_hi, &
                            dloga, dloga_lo, dloga_hi, &
 #endif
@@ -972,30 +972,30 @@ contains
     integer, intent(in) :: srQ_lo(3), srQ_hi(3)
     integer, intent(in) :: updt_lo(3), updt_hi(3)
     integer, intent(in) :: flux1_lo(3), flux1_hi(3)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
     integer, intent(in) :: flux2_lo(3), flux2_hi(3)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     integer, intent(in) :: flux3_lo(3), flux3_hi(3)
 #endif
 #ifdef RADIATION
     integer, intent(in) :: radflux1_lo(3), radflux1_hi(3)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
     integer, intent(in) :: radflux2_lo(3), radflux2_hi(3)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     integer, intent(in) :: radflux3_lo(3), radflux3_hi(3)
 #endif
 #endif
     integer, intent(in) :: area1_lo(3), area1_hi(3)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
     integer, intent(in) :: area2_lo(3), area2_hi(3)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     integer, intent(in) :: area3_lo(3), area3_hi(3)
 #endif
     integer, intent(in) :: vol_lo(3), vol_hi(3)
-#if BL_SPACEDIM <= 2
+#if AMREX_SPACEDIM <= 2
     integer, intent(in) :: p_lo(3), p_hi(3)
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
@@ -1011,34 +1011,34 @@ contains
     real(rt)        , intent(in) :: srcQ(srQ_lo(1):srQ_hi(1), srQ_lo(2):srQ_hi(2), srQ_lo(3):srQ_hi(3), QVAR)
     real(rt)        , intent(inout) :: update(updt_lo(1):updt_hi(1), updt_lo(2):updt_hi(2), updt_lo(3):updt_hi(3), NVAR)
     real(rt)        , intent(inout) :: flux1(flux1_lo(1):flux1_hi(1), flux1_lo(2):flux1_hi(2), flux1_lo(3):flux1_hi(3), NVAR)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
     real(rt)        , intent(inout) :: flux2(flux2_lo(1):flux2_hi(1), flux2_lo(2):flux2_hi(2), flux2_lo(3):flux2_hi(3), NVAR)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     real(rt)        , intent(inout) :: flux3(flux3_lo(1):flux3_hi(1), flux3_lo(2):flux3_hi(2), flux3_lo(3):flux3_hi(3), NVAR)
 #endif
 #ifdef RADIATION
     real(rt)        , intent(inout) :: radflux1(radflux1_lo(1):radflux1_hi(1), radflux1_lo(2):radflux1_hi(2), &
                                                 radflux1_lo(3):radflux1_hi(3), 0:ngroups-1)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
     real(rt)        , intent(inout) :: radflux2(radflux2_lo(1):radflux2_hi(1), radflux2_lo(2):radflux2_hi(2), &
                                                 radflux2_lo(3):radflux2_hi(3), 0:ngroups-1)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     real(rt)        , intent(inout) :: radflux3(radflux3_lo(1):radflux3_hi(1), radflux3_lo(2):radflux3_hi(2), &
                                                 radflux3_lo(3):radflux3_hi(3), 0:ngroups-1)
 #endif
 #endif
     real(rt)        , intent(in) :: area1(area1_lo(1):area1_hi(1), area1_lo(2):area1_hi(2), area1_lo(3):area1_hi(3))
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
     real(rt)        , intent(in) :: area2(area2_lo(1):area2_hi(1), area2_lo(2):area2_hi(2), area2_lo(3):area2_hi(3))
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     real(rt)        , intent(in) :: area3(area3_lo(1):area3_hi(1), area3_lo(2):area3_hi(2), area3_lo(3):area3_hi(3))
 #endif
     real(rt)        , intent(in) :: vol(vol_lo(1):vol_hi(1), vol_lo(2):vol_hi(2), vol_lo(3):vol_hi(3))
 
-#if BL_SPACEDIM < 3
+#if AMREX_SPACEDIM < 3
     real(rt)        , intent(in) :: dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
     real(rt)        , intent(inout) :: pradial(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
 #endif
@@ -1066,20 +1066,20 @@ contains
 
     q1_lo = flux1_lo - dg
     q1_hi = flux1_hi + dg
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
     q2_lo = flux2_lo - dg
     q2_hi = flux2_hi + dg
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     q3_lo = flux3_lo - dg
     q3_hi = flux3_hi + dg
 #endif
 
     call bl_allocate(q1, q1_lo, q1_hi, NGDNV)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
     call bl_allocate(q2, q2_lo, q2_hi, NGDNV)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     call bl_allocate(q3, q3_lo, q3_hi, NGDNV)
 #endif
 
@@ -1108,37 +1108,37 @@ contains
                lo, hi, delta, dt, &
                uout, uout_lo, uout_hi, &
                flux1, flux1_lo, flux1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                flux2, flux2_lo, flux2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                flux3, flux3_lo, flux3_hi, &
 #endif
 #ifdef RADIATION
                radflux1, radflux1_lo, radflux1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                radflux2, radflux2_lo, radflux2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                radflux3, radflux3_lo, radflux3_hi, &
 #endif
 #endif
                q1, q1_lo, q1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                q2, q2_lo, q2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                q3, q3_lo, q3_hi, &
 #endif
                 area1, area1_lo, area1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                 area2, area2_lo, area2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                 area3, area3_lo, area3_hi, &
 #endif
                 vol, vol_lo, vol_hi, &
-#if BL_SPACEDIM < 3
+#if AMREX_SPACEDIM < 3
                 dloga, dloga_lo, dloga_hi, &
 #endif
                 domlo, domhi)
@@ -1155,36 +1155,36 @@ contains
                 uout, uout_lo, uout_hi, &
                 update, updt_lo, updt_hi, &
                 flux1, flux1_lo, flux1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                 flux2, flux2_lo, flux2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                 flux3, flux3_lo, flux3_hi, &
 #endif
 #ifdef RADIATION
                 Erin, Erin_lo, Erin_hi, &
                 Erout, Erout_lo, Erout_hi, &
                 radflux1, radflux1_lo, radflux1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                 radflux2, radflux2_lo, radflux2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                 radflux3, radflux3_lo, radflux3_hi, &
 #endif
                 nstep_fsp, &
 #endif
                 q1, q1_lo, q1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                 q2, q2_lo, q2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                 q3, q3_lo, q3_hi, &
 #endif
                 area1, area1_lo, area1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                 area2, area2_lo, area2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                 area3, area3_lo, area3_hi, &
 #endif
                 vol, vol_lo, vol_hi, &
@@ -1194,12 +1194,12 @@ contains
                 verbose)
 
 
-#if BL_SPACEDIM == 1
+#if AMREX_SPACEDIM == 1
     if (coord_type > 0) then
        pradial(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)) = q1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),GDPRES) * dt
     end if
 #endif
-#if BL_SPACEDIM == 2
+#if AMREX_SPACEDIM == 2
     if (.not. mom_flux_has_p(1)%comp(UMX)) then
        pradial(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)) = q1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),GDPRES) * dt
     end if
@@ -1208,10 +1208,10 @@ contains
     call bl_deallocate(   div)
 
     call bl_deallocate(    q1)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
     call bl_deallocate(    q2)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     call bl_deallocate(    q3)
 #endif
 
