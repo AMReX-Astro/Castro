@@ -8,7 +8,7 @@ module advection_util_module
   public ca_enforce_minimum_density, ca_compute_cfl, ca_ctoprim, ca_srctoprim, dflux, &
          limit_hydro_fluxes_on_small_dens, shock, divu, calc_pdivu, normalize_species_fluxes, &
          ca_enforce_minimum_density_cuda, ca_divu_cuda, scale_flux_cuda, apply_av_cuda, &
-         ca_construct_hydro_update_cuda, normalize_species_fluxes_cuda
+         ca_construct_hydro_update_cuda
 
 contains
 
@@ -1670,6 +1670,9 @@ contains
     use network, only: nspec, naux
     use amrex_constants_module, only: ZERO
     use amrex_fort_module, only: rt => amrex_real, amrex_min
+#ifndef AMREX_USE_GPU
+    use amrex_error_module, only: amrex_error
+#endif
     use meth_params_module, only: NVAR, URHO, UEINT, UEDEN, small_dens
 
     implicit none
