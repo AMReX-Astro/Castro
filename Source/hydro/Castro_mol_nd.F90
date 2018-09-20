@@ -256,6 +256,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #endif
 #if AMREX_SPACEDIM == 3
                           szm, szp, &
+#endif
                           st_lo, st_hi, &
                           lo, hi, dx)
 

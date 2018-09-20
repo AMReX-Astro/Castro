@@ -60,9 +60,10 @@ contains
              do j = lo(2)-dg(2), hi(2)+dg(2)
                 do i = lo(1)-1, hi(1)+1
                    dqx(i,j,k,n) = ZERO
-#if (AMREX_SPACEDIM >= 2)
+#if AMREX_SPACEDIM >= 2
                    dqy(i,j,k,n) = ZERO
-#if (AMREX_SPACEDIM == 3)
+#endif
+#if AMREX_SPACEDIM == 3
                    dqz(i,j,k,n) = ZERO
 #endif
                 end do
@@ -223,9 +224,10 @@ contains
           do j = lo(2)-dg(2), hi(2)+dg(2)
              do i = lo(1)-1, hi(1)+1
                 dqx(i,j,k,QPRES) = ZERO
-#if (AMREX_SPACEDIM >= 2)
+#if AMREX_SPACEDIM >= 2
                 dqy(i,j,k,QPRES) = ZERO
-#if (AMREX_SPACEDIM == 3)
+#endif
+#if AMREX_SPACEDIM == 3
                 dqz(i,j,k,QPRES) = ZERO
 #endif
              end do
