@@ -280,7 +280,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 
     }
 
-    if (burn_failed == 0.0) burn_success = 1;
+    if (burn_failed != 0.0) burn_success = 0;
 
     ParallelDescriptor::ReduceIntMin(burn_success);
 
