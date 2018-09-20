@@ -108,6 +108,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                                             model_state(:,idens_model))
            state(i,j,k,UTEMP) = interpolate(z,npts_model,model_r, &
                                             model_state(:,itemp_model))
+
            do n = 1, nspec
               state(i,j,k,UFS-1+n) = interpolate(z,npts_model,model_r, &
                                                  model_state(:,ispec_model-1+n))

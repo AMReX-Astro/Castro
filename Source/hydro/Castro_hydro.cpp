@@ -440,14 +440,22 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
   MultiFab qp;
   qp.define(grids, dmap, 3*NQ, 2);
 
-  MultiFab flux[BL_SPACEDIM];
-  MultiFab qe[BL_SPACEDIM];
+  MultiFab flux[3];
+  MultiFab qe[3];
 
   for (int i = 0; i < BL_SPACEDIM; ++i) {
       flux[i].define(getEdgeBoxArray(i), dmap, NUM_STATE, 0);
       qe[i].define(getEdgeBoxArray(i), dmap, NGDNV, 0);
   }
-  
+
+  for (int i = BL_SPACEDIM; i < 3; ++i) {
+      flux[i].define(grids, dmap, NUM_STATE, 0);
+      qe[i].define(grids, dmap, NUM_STATE, 0);
+
+      flux[i].setVal(0.0);
+      qe[i].setVal(0.0);
+  }
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -458,21 +466,21 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
       // Compute divergence of velocity field.
 
 #pragma gpu
-      ca_divu(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-              AMREX_REAL_ANYD(dx),
-              BL_TO_FORTRAN_ANYD(q[mfi]),
-              BL_TO_FORTRAN_ANYD(div[mfi]));
+      ca_divu_cuda(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+                   AMREX_REAL_ANYD(dx),
+                   BL_TO_FORTRAN_ANYD(q[mfi]),
+                   BL_TO_FORTRAN_ANYD(div[mfi]));
 
       // Compute flattening coefficient for slope calculations.
 #pragma gpu
-      ca_uflaten
+      ca_uflaten_cuda
           (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
            BL_TO_FORTRAN_ANYD(q[mfi]),
            BL_TO_FORTRAN_ANYD(flatn[mfi]));
 
       // Do PPM reconstruction to the zone edges.
 #pragma gpu
-      ca_ppm_reconstruct
+      ca_ppm_reconstruct_cuda
           (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
            BL_TO_FORTRAN_ANYD(q[mfi]),
            BL_TO_FORTRAN_ANYD(flatn[mfi]),
@@ -495,7 +503,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
           int idir_f = idir + 1;
 
 #pragma gpu
-          ca_construct_flux
+          ca_construct_flux_cuda
               (AMREX_INT_ANYD(ebx.loVect()), AMREX_INT_ANYD(ebx.hiVect()),
                AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
                AMREX_REAL_ANYD(dx), dt,
@@ -526,7 +534,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
       const Box& bx = mfi.tilebox();
 
 #pragma gpu
-      ca_construct_hydro_update
+      ca_construct_hydro_update_cuda
           (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
            AMREX_REAL_ANYD(dx), dt,
            BL_TO_FORTRAN_ANYD(qe[0][mfi]),
@@ -610,7 +618,17 @@ Castro::cons_to_prim(const Real time)
         // Convert the conservative state to the primitive variable state.
         // This fills both q and qaux.
 
+#ifdef AMREX_USE_CUDA
 #pragma gpu
+        ca_ctoprim_cuda(AMREX_INT_ANYD(qbx.loVect()), AMREX_INT_ANYD(qbx.hiVect()),
+                        BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+#ifdef RADIATION
+                        BL_TO_FORTRAN_ANYD(Erborder[mfi]),
+                        BL_TO_FORTRAN_ANYD(lamborder[mfi]),
+#endif
+                        BL_TO_FORTRAN_ANYD(q[mfi]),
+                        BL_TO_FORTRAN_ANYD(qaux[mfi]));
+#else
         ca_ctoprim(AMREX_INT_ANYD(qbx.loVect()), AMREX_INT_ANYD(qbx.hiVect()),
                    BL_TO_FORTRAN_ANYD(Sborder[mfi]),
 #ifdef RADIATION
@@ -619,6 +637,7 @@ Castro::cons_to_prim(const Real time)
 #endif
                    BL_TO_FORTRAN_ANYD(q[mfi]),
                    BL_TO_FORTRAN_ANYD(qaux[mfi]));
+#endif
 
         // Convert the source terms expressed as sources to the conserved state to those
         // expressed as sources for the primitive state.

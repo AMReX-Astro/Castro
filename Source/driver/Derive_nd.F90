@@ -825,7 +825,6 @@ contains
 
 
 
-#ifdef REACTIONS
   subroutine derenuctimescale(t,t_lo,t_hi,ncomp_t, &
                                  u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
                                  domhi,dx,xlo) bind(C, name="derenuctimescale")
@@ -895,7 +894,6 @@ contains
     enddo
 
   end subroutine derenuctimescale
-#endif
 
 
 
