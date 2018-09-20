@@ -223,9 +223,9 @@ contains
 
 
   subroutine compute_cfl(lo, hi, dt, dx, courno, &
-                                      q, q_lo, q_hi, &
-                                      qaux, qa_lo, qa_hi) &
-                                      bind(C, name = "compute_cfl")
+                         q, q_lo, q_hi, &
+                         qaux, qa_lo, qa_hi) &
+                         bind(C, name = "compute_cfl")
 
     use amrex_constants_module, only: ZERO, ONE
     use amrex_fort_module, only: rt => amrex_real, amrex_max
@@ -540,7 +540,7 @@ contains
                     + q(i        ,j        ,k        ,QU) - q(i-1*dg(1),j        ,k        ,QU) &
                     + q(i        ,j        ,k-1*dg(3),QU) - q(i-1*dg(1),j        ,k-1*dg(3),QU) &
                     + q(i        ,j-1*dg(2),k        ,QU) - q(i-1*dg(1),j-1*dg(2),k        ,QU) &
-                    + q(i        ,j-1*dg(2),k-1      ,QU) - q(i-1*dg(1),j-1*dg(2),k-1*dg(3),QU) ) * dxinv
+                    + q(i        ,j-1*dg(2),k-1*dg(3),QU) - q(i-1*dg(1),j-1*dg(2),k-1*dg(3),QU) ) * dxinv
 
              vy = FOURTH*( &
                     + q(i        ,j        ,k        ,QV) - q(i        ,j-1*dg(2),k        ,QV) &
@@ -604,22 +604,22 @@ contains
 
                 if (idir .eq. 1) then
 
-                   div1 = FOURTH * (div(i,j,k  ) + div(i,j+1*dg(2),k  ) + &
-                        div(i,j,k+1*dg(3)) + div(i,j+1*dg(2),k+1*dg(3)))
+                   div1 = FOURTH * (div(i,j,k        ) + div(i,j+1*dg(2),k        ) + &
+                                    div(i,j,k+1*dg(3)) + div(i,j+1*dg(2),k+1*dg(3)))
                    div1 = difmag * min(ZERO, div1)
                    div1 = div1 * (uin(i,j,k,n) - uin(i-1*dg(1),j,k,n))
 
                 else if (idir .eq. 2) then
 
-                   div1 = FOURTH * (div(i,j,k  ) + div(i+1*dg(1),j,k  ) + &
-                        div(i,j,k+1*dg(3)) + div(i+1*dg(1),j,k+1*dg(3)))
+                   div1 = FOURTH * (div(i,j,k        ) + div(i+1*dg(1),j,k        ) + &
+                                    div(i,j,k+1*dg(3)) + div(i+1*dg(1),j,k+1*dg(3)))
                    div1 = difmag * min(ZERO, div1)
                    div1 = div1 * (uin(i,j,k,n) - uin(i,j-1*dg(2),k,n))
 
                 else
 
-                   div1 = FOURTH * (div(i,j  ,k) + div(i+1*dg(1),j,k  ) + &
-                        div(i,j+1*dg(2),k) + div(i+1*dg(1),j+1*dg(2),k))
+                   div1 = FOURTH * (div(i,j        ,k) + div(i+1*dg(1),j        ,k) + &
+                                    div(i,j+1*dg(2),k) + div(i+1*dg(1),j+1*dg(2),k))
                    div1 = difmag * min(ZERO, div1)
                    div1 = div1 * (uin(i,j,k,n)-uin(i,j,k-1*dg(3),n))
 
