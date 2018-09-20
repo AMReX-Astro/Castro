@@ -140,12 +140,12 @@ contains
 
              ! If we were unsuccessful, update the success flag and exit.
 
-             ! if (.not. burn_state_out % success) then
+             if (.not. burn_state_out % success) then
 
-             !    failed = 1.0
-             !    return
+                failed = 1.0
+                return
 
-             ! end if
+             end if
 
              ! Note that we want to update the total energy by taking
              ! the difference of the old rho*e and the new rho*e. If
