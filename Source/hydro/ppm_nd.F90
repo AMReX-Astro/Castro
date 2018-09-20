@@ -20,10 +20,10 @@ contains
   subroutine ppm_reconstruct(s, s_lo, s_hi, ncomp, n, &
                              flatn, f_lo, f_hi, &
                              sxm, sxp, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                              sym, syp, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                              szm, szp, &
 #endif
                              sd_lo, sd_hi, &
@@ -51,11 +51,11 @@ contains
     real(rt)        , intent(in) :: flatn( f_lo(1): f_hi(1), f_lo(2): f_hi(2), f_lo(3): f_hi(3))
     real(rt)        , intent(inout) :: sxm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
     real(rt)        , intent(inout) :: sxp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
     real(rt)        , intent(inout) :: sym( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
     real(rt)        , intent(inout) :: syp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     real(rt)        , intent(inout) :: szm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
     real(rt)        , intent(inout) :: szp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
 #endif
@@ -73,10 +73,10 @@ contains
         call ppm_type1(s, s_lo, s_hi, ncomp, n, &
                        flatn, f_lo, f_hi, &
                        sxm, sxp, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                        sym, syp, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                        szm, szp, &
 #endif
                        sd_lo, sd_hi, &
@@ -87,10 +87,10 @@ contains
         call ppm_type2(s, s_lo, s_hi, ncomp, n, &
                        flatn, f_lo, f_hi, &
                        sxm, sxp, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                        sym, syp, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                        szm, szp, &
 #endif
                        sd_lo, sd_hi, &
@@ -107,10 +107,10 @@ contains
   subroutine ppm_type1(s, s_lo, s_hi, ncomp, n, &
                        flatn, f_lo, f_hi, &
                        sxm, sxp, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                        sym, syp, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                        szm, szp, &
 #endif
                        sd_lo, sd_hi, &
@@ -134,11 +134,11 @@ contains
     real(rt), intent(in) :: flatn( f_lo(1): f_hi(1), f_lo(2): f_hi(2), f_lo(3): f_hi(3))
     real(rt), intent(inout) :: sxm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
     real(rt), intent(inout) :: sxp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
     real(rt), intent(inout) :: sym( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
     real(rt), intent(inout) :: syp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     real(rt), intent(inout) :: szm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
     real(rt), intent(inout) :: szp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
 #endif
@@ -167,7 +167,7 @@ contains
          call amrex_error("Need more ghost cells on array in ppm_type1")
     end if
 
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
     if (s_lo(2) .gt. ilo2-3 .or. s_hi(2) .lt. ihi2+3) then
          call amrex_error("Need more ghost cells on array in ppm_type1")
     end if
@@ -246,7 +246,7 @@ contains
        end do
     end do
 
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! y-direction
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -314,7 +314,7 @@ contains
     end do
 #endif
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! z-direction
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -414,10 +414,10 @@ contains
   subroutine ppm_type2(s, s_lo, s_hi, ncomp, n, &
                        flatn, f_lo, f_hi, &
                        sxm, sxp, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                        sym, syp, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                        szm, szp, &
 #endif
                        sd_lo, sd_hi, &
@@ -441,11 +441,11 @@ contains
     real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
     real(rt), intent(inout) :: sxm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
     real(rt), intent(inout) :: sxp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
     real(rt), intent(inout) :: sym( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
     real(rt), intent(inout) :: syp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     real(rt), intent(inout) :: szm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
     real(rt), intent(inout) :: szp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
 #endif
@@ -483,7 +483,7 @@ contains
          call amrex_error("Need more ghost cells on array in ppm_type1")
     end if
 
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
     if (s_lo(2) .gt. ilo2-3 .or. s_hi(2) .lt. ihi2+3) then
          call amrex_error("Need more ghost cells on array in ppm_type1")
     end if
@@ -607,7 +607,7 @@ contains
     end do
 
 
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! y-direction
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -721,7 +721,7 @@ contains
     end do
 #endif
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! z-direction
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -849,10 +849,10 @@ contains
                              q, qd_lo, qd_hi, &
                              qaux, qa_lo, qa_hi, &
                              sxm, sxp, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                              sym, syp, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                              szm, szp, &
 #endif
                              sd_lo, sd_hi, &
@@ -878,16 +878,16 @@ contains
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3), NQAUX)
     real(rt), intent(in) ::   sxm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
     real(rt), intent(in) ::   sxp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
     real(rt), intent(in) ::   sym( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
     real(rt), intent(in) ::   syp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     real(rt), intent(in) ::   szm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
     real(rt), intent(in) ::   szp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
 #endif
-    real(rt), intent(inout) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3, icomp)
-    real(rt), intent(inout) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3, icomp)
+    real(rt), intent(inout) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3, icomp)
+    real(rt), intent(inout) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3, icomp)
 
     real(rt), intent(in) :: dx(3), dt
 
@@ -900,10 +900,10 @@ contains
     real(rt)         :: sm, sp
 
     dtdx = dt/dx(1)
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
     dtdy = dt/dx(2)
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
     dtdz = dt/dx(3)
 #endif
 
@@ -982,7 +982,7 @@ contains
        end do
     end do
 
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! y-direction
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1052,7 +1052,7 @@ contains
     end do
 #endif
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! z-direction
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1132,6 +1132,9 @@ contains
                                      qp, qp_lo, qp_hi) bind(c,name='ca_ppm_reconstruct_cuda')
 
     use meth_params_module, only: NQ
+#ifndef AMREX_USE_GPU
+    use amrex_error_module, only: amrex_error
+#endif
 
     implicit none
 

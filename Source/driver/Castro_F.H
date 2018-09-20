@@ -156,16 +156,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(state));
 #endif
 
-#ifdef AMREX_USE_CUDA
-  void ca_ctoprim_cuda(const int* lo, const int* hi,
-                       const amrex::Real* u, const int* u_lo, const int* u_hi,
-#ifdef RADIATION
-                       const amrex::Real* Er, const int* Er_lo, const int* Er_hi,
-                       const amrex::Real* lam, const int* lam_lo, const int* lam_hi,
-#endif
-                       amrex::Real* q, const int* q_lo, const int* q_hi,
-                       amrex::Real* qaux, const int* qa_lo, const int* qa_hi);
-#else
   void ca_ctoprim(const int* lo, const int* hi,
 	          const amrex::Real* u, const int* u_lo, const int* u_hi,
 #ifdef RADIATION
@@ -174,7 +164,6 @@ extern "C"
 #endif
 		  amrex::Real* q, const int* q_lo, const int* q_hi,
 		  amrex::Real* qaux, const int* qa_lo, const int* qa_hi);
-#endif
 
   void ca_srctoprim(const int* lo,   const int* hi,
 		    const amrex::Real* q,   const int* q_lo,   const int* q_hi,
@@ -185,27 +174,18 @@ extern "C"
   void ca_compute_cfl(const int* lo, const int* hi,
                       const BL_FORT_FAB_ARG_ANYD(q),
                       const BL_FORT_FAB_ARG_ANYD(qaux),
-                      const amrex::Real* dt, const amrex::Real* dx,
-                      amrex::Real* courno, const int* verbose);
+                      const amrex::Real dt, const amrex::Real* dx,
+                      amrex::Real* courno, const int verbose);
 
   void ca_check_initial_species
     (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(state));
 
-#ifdef AMREX_USE_CUDA
-  void ca_enforce_minimum_density_cuda
-    (const int* lo, const int* hi,
-     const amrex::Real* S_old, const int* s_old_lo, const int* s_old_hi,
-           amrex::Real* S_new, const int* s_new_lo, const int* s_new_hi,
-     const amrex::Real* vol, const int* vol_lo, const int* vol_hi,
-           amrex::Real* frac_change, const int verbose);
-#else
   void ca_enforce_minimum_density
     (const int* lo, const int* hi,
      const amrex::Real* S_old, const int* s_old_lo, const int* s_old_hi,
            amrex::Real* S_new, const int* s_new_lo, const int* s_new_hi,
      const amrex::Real* vol, const int* vol_lo, const int* vol_hi,
            amrex::Real* frac_change, const int verbose);
-#endif
 
   void ca_normalize_species
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new));
@@ -852,8 +832,8 @@ extern "C"
      BL_FORT_FAB_ARG_3D(reactions),
      BL_FORT_FAB_ARG_3D(weights),
      const BL_FORT_IFAB_ARG_3D(mask),
-     const amrex::Real& time, const amrex::Real& dt_react, const int& strang_half,
-     int* burn_success);
+     const amrex::Real time, const amrex::Real dt_react, const int strang_half,
+     amrex::Real* burn_failure);
 #endif
 #endif
 
