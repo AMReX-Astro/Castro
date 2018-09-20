@@ -214,11 +214,13 @@ contains
              else if (index .gt. n1d-1) then
 
                 if (level .eq. 0) then
+#ifndef USE_AMREX_CUDA
                    print *,'PUT_RADIAL_GRAV: INDEX TOO BIG ',index,' > ',n1d-1
                    print *,'AT (i,j,k) ',i,j,k
                    print *,'X Y Z ',x,y,z
                    print *,'R / DR ',r,dr
                    call amrex_error("Error:: Gravity_3d.f90 :: ca_put_radial_grav")
+#endif
                 else
                    ! NOTE: we don't do anything to this point if it's outside the
                    !       radial grid and level > 0
