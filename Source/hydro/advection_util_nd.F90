@@ -8,7 +8,7 @@ module advection_util_module
   public ca_enforce_minimum_density, ca_compute_cfl, ca_ctoprim, ca_srctoprim, dflux, &
          limit_hydro_fluxes_on_small_dens, shock, divu, calc_pdivu, normalize_species_fluxes, &
          ca_enforce_minimum_density_cuda, ca_divu_cuda, scale_flux_cuda, apply_av_cuda, &
-         ca_construct_hydro_update_cuda, normalize_species_fluxes_cuda
+         ca_construct_hydro_update_cuda
 
 contains
 
