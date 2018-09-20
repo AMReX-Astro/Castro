@@ -625,6 +625,12 @@ Castro::buildMetrics ()
 	area[dir].define(getEdgeBoxArray(dir),dmap,1,NUM_GROW);
         geom.GetFaceArea(area[dir],dir);
     }
+    for (int dir = BL_SPACEDIM; dir < 3; dir++)
+    {
+        area[dir].clear();
+        area[dir].define(grids, dmap, 1, 0);
+        area[dir].setVal(0.0);
+    }
 
     dLogArea[0].clear();
 #if (BL_SPACEDIM <= 2)
