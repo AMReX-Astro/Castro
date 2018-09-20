@@ -379,7 +379,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
                  ! right state at j-1/2 interface
                  qyp(i,j,kc,n) = sym(i,j,kc)
 #endif
-
+#if AMREX_SPACEDIM == 3
                  ! z-edges
 
                  ! left state at k3d-1/2 interface
