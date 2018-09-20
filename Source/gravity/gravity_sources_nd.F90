@@ -476,10 +476,10 @@ contains
     integer, intent(in)     :: gz_lo(3), gz_hi(3)
 
     real(rt), intent(in)    :: grav(g_lo(1):g_hi(1),g_lo(2):g_hi(2),g_lo(3):g_hi(3),3)
-    real(rt), intent(in)    :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
-    real(rt), intent(inout)    :: gravx(gx_lo(1):gx_hi(1),gx_lo(2):gx_hi(2),gx_lo(3):gx_hi(3),3)
-    real(rt), intent(inout)    :: gravy(gy_lo(1):gy_hi(1),gy_lo(2):gy_hi(2),gy_lo(3):gy_hi(3),3)
-    real(rt), intent(inout)    :: gravz(gz_lo(1):gz_hi(1),gz_lo(2):gz_hi(2),gz_lo(3):gz_hi(3),3)
+    real(rt), intent(inout)    :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    real(rt), intent(inout)    :: gravx(gx_lo(1):gx_hi(1),gx_lo(2):gx_hi(2),gx_lo(3):gx_hi(3))
+    real(rt), intent(inout)    :: gravy(gy_lo(1):gy_hi(1),gy_lo(2):gy_hi(2),gy_lo(3):gy_hi(3))
+    real(rt), intent(inout)    :: gravz(gz_lo(1):gz_hi(1),gz_lo(2):gz_hi(2),gz_lo(3):gz_hi(3))
 
     integer  :: i, j, k
 
