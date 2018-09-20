@@ -777,6 +777,10 @@ protected:
 
     static void eos_finalize ();
 
+    static void amrinfo_init();
+
+    static void amrinfo_finalize();
+
     static void read_params ();
 
     Castro& getLevel (int lev);
@@ -828,7 +832,7 @@ protected:
     // The data.
     //
     amrex::MultiFab             volume;
-    amrex::MultiFab             area[BL_SPACEDIM];
+    amrex::MultiFab             area[3];
     amrex::MultiFab             dLogArea[1];
     amrex::Vector< amrex::Vector<amrex::Real> > radius;
 
