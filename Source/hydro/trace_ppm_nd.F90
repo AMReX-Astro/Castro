@@ -73,7 +73,7 @@ contains
     real(rt), intent(in) :: dt, dx(3)
 
     ! Local variables
-    integer :: i, j
+    integer :: i, j, k
     integer :: n, ipassive
 
     type(eos_t) :: eos_state
@@ -132,9 +132,9 @@ contains
 
 
     fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
-         .and. (ilo1 == domlo(1))
+         .and. (lo(1) == domlo(1))
     fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
-         .and. (ihi1 == domhi(1))
+         .and. (hi(1) == domhi(1))
 
 
     !=========================================================================
@@ -383,7 +383,7 @@ contains
                       qxp(i,j,k,QPRES ) = p_ref - (alphap + alpham)*Clag_ev**2
 
                       qxp(i,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
-                      qxp(i,j,k,QREINT) = qxp(i,j,kc,QPRES )/(qxp(i,j,kc,QGAME) - ONE)
+                      qxp(i,j,k,QREINT) = qxp(i,j,k,QPRES )/(qxp(i,j,k,QGAME) - ONE)
                    endif
 
                 else
@@ -594,7 +594,7 @@ contains
 
                 else
                    tau_s = tau_ref + alphap + alpham + alpha0r
-                   qxm(i+1,j,kc,QRHO ) = ONE/tau_s
+                   qxm(i+1,j,k,QRHO ) = ONE/tau_s
 
                    qxm(i+1,j,k,QU   ) = u_ref + (alpham - alphap)*Clag_ev
                    qxm(i+1,j,k,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
@@ -647,18 +647,18 @@ contains
 #if (AMREX_SPACEDIM == 1)
              ! Enforce constant mass flux rate if specified
              if (fix_mass_flux_lo) then
-                qxm(ilo1,j,k,QRHO  ) = q(domlo(1)-1,j,k,QRHO)
-                qxm(ilo1,j,k,QU    ) = q(domlo(1)-1,j,k,QU  )
-                qxm(ilo1,j,k,QPRES ) = q(domlo(1)-1,j,k,QPRES)
-                qxm(ilo1,j,k,QREINT) = q(domlo(1)-1,j,k,QREINT)
+                qxm(lo(1),j,k,QRHO  ) = q(domlo(1)-1,j,k,QRHO)
+                qxm(lo(1),j,k,QU    ) = q(domlo(1)-1,j,k,QU  )
+                qxm(lo(1),j,k,QPRES ) = q(domlo(1)-1,j,k,QPRES)
+                qxm(lo(1),j,k,QREINT) = q(domlo(1)-1,j,k,QREINT)
              end if
 
              ! Enforce constant mass flux rate if specified
              if (fix_mass_flux_hi) then
-                qxp(ihi1+1,j,k,QRHO  ) = q(domhi(1)+1,j,k,QRHO)
-                qxp(ihi1+1,j,k,QU    ) = q(domhi(1)+1,j,k,QU  )
-                qxp(ihi1+1,j,k,QPRES ) = q(domhi(1)+1,j,k,QPRES)
-                qxp(ihi1+1,j,k,QREINT) = q(domhi(1)+1,j,k,QREINT)
+                qxp(hi(1)+1,j,k,QRHO  ) = q(domhi(1)+1,j,k,QRHO)
+                qxp(hi(1)+1,j,k,QU    ) = q(domhi(1)+1,j,k,QU  )
+                qxp(hi(1)+1,j,k,QPRES ) = q(domhi(1)+1,j,k,QPRES)
+                qxp(hi(1)+1,j,k,QREINT) = q(domhi(1)+1,j,k,QREINT)
              end if
 #endif
           end do
@@ -717,8 +717,8 @@ contains
              end do
 
 #if (AMREX_SPACEDIM == 1)
-             if (fix_mass_flux_hi) qxp(ihi1+1,j,k,n) = q(ihi1+1,j,k,n)
-             if (fix_mass_flux_lo) qxm(ilo1,j,k,n) = q(ilo1-1,j,k,n)
+             if (fix_mass_flux_hi) qxp(hi(1)+1,j,k,n) = q(hi(1)+1,j,k,n)
+             if (fix_mass_flux_lo) qxm(lo(1),j,k,n) = q(lo(1)-1,j,k,n)
 #endif
 
           end do
@@ -1234,7 +1234,7 @@ contains
        end do
 
        ! Minus state on face j+1
-       do lo(3)-1, hi(3)+1
+       do k = lo(3)-1, hi(3)+1
           do j = lo(2)-1, hi(2)
              do i = lo(1)-1, hi(1)+1
                 v = q(i,j,k,QV)

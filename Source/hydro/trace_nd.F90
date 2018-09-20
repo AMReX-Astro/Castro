@@ -47,7 +47,7 @@ contains
 #if (AMREX_SPACEDIM == 1)
     integer, intent(in) :: src_lo(3), src_hi(3)
 #endif
-    integer, intent(in) :: lo, hi
+    integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
     real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
@@ -102,9 +102,9 @@ contains
 #endif
 
     fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
-         .and. (ilo1 == domlo(1))
+         .and. (lo(1) == domlo(1))
     fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
-         .and. (ihi1 == domhi(1))
+         .and. (hi(1) == domhi(1))
 
 
     !-----------------------------------------------------------------------
@@ -304,8 +304,8 @@ contains
              end do
 
 #if (AMREX_SPACEDIM == 1)
-             if (fix_mass_flux_hi) qxp(ihi1+1,j,k,n) = q(ihi1+1,j,k,n)
-             if (fix_mass_flux_lo) qxm(ilo1,j,k,n) = q(ilo1-1,j,k,n)
+             if (fix_mass_flux_hi) qxp(hi(1)+1,j,k,n) = q(hi(1)+1,j,k,n)
+             if (fix_mass_flux_lo) qxm(lo(1),j,k,n) = q(lo(1)-1,j,k,n)
 #endif
 
           end do
@@ -487,7 +487,7 @@ contains
     real(rt), intent(in) :: dx(3), dt
 
     ! Local variables
-    integer :: i, j
+    integer :: i, j, k
     integer :: n, ipassive
 
     real(rt) :: dtdz
@@ -559,7 +559,7 @@ contains
 
              if (k .ge. lo(3)) then
                 qzp(i,j,k,QRHO) = rho_ref + apright + amright + azrright
-                qzp(i,j,k,QRHO) = max(small_dens, qzp(i,j,kc,QRHO))
+                qzp(i,j,k,QRHO) = max(small_dens, qzp(i,j,k,QRHO))
                 qzp(i,j,k,QW) = w_ref + (apright - amright)*(cc/rho)
                 qzp(i,j,k,QU) = u_ref + azu1rght
                 qzp(i,j,k,QV) = v_ref + azv1rght
