@@ -195,6 +195,9 @@ contains
     ! including the ghost cells. Taking the absolute value of r ensures
     ! that we will get the correct behavior even for the ghost zones with
     ! negative indices, which have a reflecting boundary condition.
+
+    !$gpu
+    
     j = lo(2)
     k = lo(3)
 

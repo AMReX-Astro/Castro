@@ -15,6 +15,10 @@
 #include <AMReX_MLMG.H>
 #include <AMReX_MLPoisson.H>
 
+#ifdef AMREX_USE_CUDA
+#include <AMReX_CudaAllocators.H>
+#endif
+
 #define MAX_LEV 30
 
 #include "gravity_defaults.H"
@@ -41,8 +45,13 @@ Real Gravity::mass_offset    =  0.0;
 
 static Real Ggravity = 0.;
 
+#ifdef AMREX_USE_CUDA
+Vector< Vector<Real, CudaManagedAllocator <Real>> > Gravity::radial_grav_old(MAX_LEV);
+Vector< Vector<Real, CudaManagedAllocator <Real>> > Gravity::radial_grav_new(MAX_LEV);
+#else
 Vector< Vector<Real> > Gravity::radial_grav_old(MAX_LEV);
 Vector< Vector<Real> > Gravity::radial_grav_new(MAX_LEV);
+#endif
 Vector< Vector<Real> > Gravity::radial_mass(MAX_LEV);
 Vector< Vector<Real> > Gravity::radial_vol(MAX_LEV);
 #ifdef GR_GRAV
@@ -1333,7 +1342,14 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector, Multi
 }
 
 void
-Gravity::interpolate_monopole_grav(int level, Vector<Real>& radial_grav, MultiFab& grav_vector)
+Gravity::interpolate_monopole_grav(int level,
+#ifdef AMREX_USE_CUDA
+    Vector<Real,CudaManagedAllocator <Real>>& radial_grav,
+#else
+    Vector<Real>& radial_grav,
+#endif
+    MultiFab& grav_vector)
+
 {
 	int n1d = radial_grav.size();
 
@@ -1350,7 +1366,7 @@ Gravity::interpolate_monopole_grav(int level, Vector<Real>& radial_grav, MultiFa
 #pragma gpu
 		ca_put_radial_grav(AMREX_INT_ANYD(bx.loVect()),AMREX_INT_ANYD(bx.hiVect()),AMREX_REAL_ANYD(dx),dr,
 		                   BL_TO_FORTRAN_ANYD(grav_vector[mfi]),
-		                   AMREX_REAL_ANYD(radial_grav.dataPtr()),AMREX_REAL_ANYD(geom.ProbLo()),
+		                   radial_grav.dataPtr(),AMREX_REAL_ANYD(geom.ProbLo()),
 		                   n1d,level);
 	}
 }
@@ -1369,7 +1385,11 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
     Vector<Real> radial_mass(n1d,0.0);
     Vector<Real> radial_vol(n1d,0.0);
     Vector<Real> radial_phi(n1d,0.0);
+#ifdef AMREX_USE_CUDA
+    Vector<Real, CudaManagedAllocator <Real>> radial_grav(n1d+1,0.0);
+#else
     Vector<Real> radial_grav(n1d+1,0.0);
+#endif
 
     const Geometry& geom = parent->Geom(level);
     const Real* dx   = geom.CellSize();
@@ -1435,7 +1455,7 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
         ca_put_radial_phi(bx.loVect(), bx.hiVect(),
 			  domain.loVect(), domain.hiVect(),
 			  dx,&dr, BL_TO_FORTRAN(phi[mfi]),
-			  radial_phi.dataPtr(),AMREX_REAL_ANYD(geom.ProbLo()),
+			  radial_phi.dataPtr(),geom.ProbLo(),
 			  &n1d,&fill_interior);
     }
 
@@ -2169,7 +2189,12 @@ Gravity::computeAvg (int level, MultiFab* mf, bool mask)
 #endif
 
 void
-Gravity::make_radial_gravity(int level, Real time, Vector<Real>& radial_grav)
+Gravity::make_radial_gravity(int level, Real time,
+#ifdef AMREX_USE_CUDA
+    Vector<Real, CudaManagedAllocator <Real>>& radial_grav)
+#else
+    Vector<Real>& radial_grav)
+#endif
 {
     BL_PROFILE("Gravity::make_radial_gravity()");
 

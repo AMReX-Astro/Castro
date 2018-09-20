@@ -179,6 +179,9 @@ contains
     integer          :: i,j,k,index
     real(rt)         :: x,y,z,r,mag_grav
     real(rt)         :: cen,xi,slope,glo,gmd,ghi,minvar,maxvar
+
+    !$gpu
+
     !
     ! Note that we are interpolating onto the entire range of grav,
     ! including the ghost cells.
