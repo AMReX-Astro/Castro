@@ -33,7 +33,7 @@ contains
     integer i,j,k,n,iter,MAX_ITER,l
     real(rt)         z
     real(rt)         pres_above,pres_below,pres_want,pres_zone
-    real(rt)         drho,dpdr,temperature,eint,pressure,species(3),density
+    real(rt)         drho,dpdr,temperature,eint,pressure,species(nspec),density
     real(rt)         TOL
     logical converged_hse
 
@@ -223,7 +223,7 @@ contains
     include 'AMReX_bc_types.fi'
 
     integer :: grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3
-    integer :: bc(3,2,*)
+    integer :: bc(3,2)
     integer :: domlo(3), domhi(3)
     real(rt)         delta(3), xlo(3), time
     real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
@@ -254,7 +254,7 @@ contains
     include 'AMReX_bc_types.fi'
 
     integer :: grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3
-    integer :: bc(3,2,*)
+    integer :: bc(3,2)
     integer :: domlo(3), domhi(3)
     real(rt)         delta(3), xlo(3), time
     real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
@@ -286,7 +286,7 @@ contains
     include 'AMReX_bc_types.fi'
 
     integer :: grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3
-    integer :: bc(3,2,*)
+    integer :: bc(3,2)
     integer :: domlo(3), domhi(3)
     real(rt)         delta(3), xlo(3), time
     real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
@@ -319,7 +319,7 @@ contains
     include 'AMReX_bc_types.fi'
 
     integer :: react_l1,react_l2,react_l3,react_h1,react_h2,react_h3
-    integer :: bc(3,2,*)
+    integer :: bc(3,2)
     integer :: domlo(3), domhi(3)
     real(rt)         delta(3), xlo(3), time
     real(rt)         react(react_l1:react_h1,react_l2:react_h2,react_l3:react_h3)
@@ -350,7 +350,7 @@ contains
     include 'AMReX_bc_types.fi'
 
     integer          :: phi_l1,phi_l2,phi_l3,phi_h1,phi_h2,phi_h3
-    integer          :: bc(3,2,*)
+    integer          :: bc(3,2)
     integer          :: domlo(3), domhi(3)
     real(rt)         :: delta(3), xlo(3), time
     real(rt)         :: phi(phi_l1:phi_h1,phi_l2:phi_h2,phi_l3:phi_h3)
