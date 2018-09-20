@@ -618,17 +618,7 @@ Castro::cons_to_prim(const Real time)
         // Convert the conservative state to the primitive variable state.
         // This fills both q and qaux.
 
-#ifdef AMREX_USE_CUDA
 #pragma gpu
-        ca_ctoprim_cuda(AMREX_INT_ANYD(qbx.loVect()), AMREX_INT_ANYD(qbx.hiVect()),
-                        BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-#ifdef RADIATION
-                        BL_TO_FORTRAN_ANYD(Erborder[mfi]),
-                        BL_TO_FORTRAN_ANYD(lamborder[mfi]),
-#endif
-                        BL_TO_FORTRAN_ANYD(q[mfi]),
-                        BL_TO_FORTRAN_ANYD(qaux[mfi]));
-#else
         ca_ctoprim(AMREX_INT_ANYD(qbx.loVect()), AMREX_INT_ANYD(qbx.hiVect()),
                    BL_TO_FORTRAN_ANYD(Sborder[mfi]),
 #ifdef RADIATION
@@ -637,7 +627,6 @@ Castro::cons_to_prim(const Real time)
 #endif
                    BL_TO_FORTRAN_ANYD(q[mfi]),
                    BL_TO_FORTRAN_ANYD(qaux[mfi]));
-#endif
 
         // Convert the source terms expressed as sources to the conserved state to those
         // expressed as sources for the primitive state.
