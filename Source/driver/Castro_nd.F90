@@ -226,17 +226,13 @@ end subroutine ca_get_ngdnv
 subroutine ca_set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in) &
      bind(C, name="ca_set_amr_info")
 
-  use amrinfo_module, only: amr_level, amr_iteration, amr_ncycle, amr_time, amr_dt, amrinfo_init
+  use amrinfo_module, only: amr_level, amr_iteration, amr_ncycle, amr_time, amr_dt
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
 
   integer,  intent(in) :: level_in, iteration_in, ncycle_in
   real(rt), intent(in) :: time_in, dt_in
-
-  if (.not. allocated(amr_level)) then
-     call amrinfo_init
-  endif
 
   if (level_in .ge. 0) then
      amr_level = level_in
