@@ -190,6 +190,8 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   allocate(model_state(nx_model+ng, nvars_model))
   model_state(:, :) = gen_model_state(:, :, 1)
 
+  allocate(npts_model)
+
   npts_model = nx_model+ng
   model_initialized = .true.
 
@@ -304,6 +306,9 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
         state(i,j,UEINT) = eos_state % rho * eos_state % e
         state(i,j,UEDEN) = state(i,j,UEDEN)
 
+          ! Initial velocities = 0
+        state(i,j,UMX:UMZ) = 0.e0_rt
+
         ! convert to partial densities
         do n = 1, nspec
            state(i,j,UFS+n-1) = state(i,j,URHO) * state(i,j,UFS+n-1)
@@ -311,8 +316,5 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
      enddo
   enddo
-
-  ! Initial velocities = 0
-  state(:,:,UMX:UMZ) = 0.e0_rt
 
 end subroutine ca_initdata

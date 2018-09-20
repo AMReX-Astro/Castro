@@ -499,9 +499,10 @@ contains
 
   subroutine ca_divu(lo, hi, dx, q, q_lo, q_hi, div, d_lo, d_hi) bind(c,name='ca_divu')
 
-    use amrex_constants_module, only: FOURTH, ONE
+    use amrex_constants_module, only: ZERO, FOURTH, ONE
     use amrex_fort_module, only: rt => amrex_real
     use meth_params_module, only: QU, QV, QW, NQ
+    use prob_params_module, only: dim, dg
 
     implicit none
 
@@ -518,30 +519,40 @@ contains
     !$gpu
 
     dxinv = ONE/dx(1)
-    dyinv = ONE/dx(2)
-    dzinv = ONE/dx(3)
+
+    if (dim >= 2) then
+       dyinv = ONE/dx(2)
+    else
+       dyinv = ZERO
+    end if
+
+    if (dim == 3) then
+       dzinv = ONE/dx(3)
+    else
+       dzinv = ZERO
+    end if
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
              ux = FOURTH*( &
-                    + q(i  ,j  ,k  ,QU) - q(i-1,j  ,k  ,QU) &
-                    + q(i  ,j  ,k-1,QU) - q(i-1,j  ,k-1,QU) &
-                    + q(i  ,j-1,k  ,QU) - q(i-1,j-1,k  ,QU) &
-                    + q(i  ,j-1,k-1,QU) - q(i-1,j-1,k-1,QU) ) * dxinv
+                    + q(i        ,j        ,k        ,QU) - q(i-1*dg(1),j        ,k        ,QU) &
+                    + q(i        ,j        ,k-1*dg(3),QU) - q(i-1*dg(1),j        ,k-1*dg(3),QU) &
+                    + q(i        ,j-1*dg(2),k        ,QU) - q(i-1*dg(1),j-1*dg(2),k        ,QU) &
+                    + q(i        ,j-1*dg(2),k-1      ,QU) - q(i-1*dg(1),j-1*dg(2),k-1*dg(3),QU) ) * dxinv
 
              vy = FOURTH*( &
-                    + q(i  ,j  ,k  ,QV) - q(i  ,j-1,k  ,QV) &
-                    + q(i  ,j  ,k-1,QV) - q(i  ,j-1,k-1,QV) &
-                    + q(i-1,j  ,k  ,QV) - q(i-1,j-1,k  ,QV) &
-                    + q(i-1,j  ,k-1,QV) - q(i-1,j-1,k-1,QV) ) * dyinv
+                    + q(i        ,j        ,k        ,QV) - q(i        ,j-1*dg(2),k        ,QV) &
+                    + q(i        ,j        ,k-1*dg(3),QV) - q(i        ,j-1*dg(2),k-1*dg(3),QV) &
+                    + q(i-1*dg(1),j        ,k        ,QV) - q(i-1*dg(1),j-1*dg(2),k        ,QV) &
+                    + q(i-1*dg(1),j        ,k-1*dg(3),QV) - q(i-1*dg(1),j-1*dg(2),k-1*dg(3),QV) ) * dyinv
 
              wz = FOURTH*( &
-                    + q(i  ,j  ,k  ,QW) - q(i  ,j  ,k-1,QW) &
-                    + q(i  ,j-1,k  ,QW) - q(i  ,j-1,k-1,QW) &
-                    + q(i-1,j  ,k  ,QW) - q(i-1,j  ,k-1,QW) &
-                    + q(i-1,j-1,k  ,QW) - q(i-1,j-1,k-1,QW) ) * dzinv
+                    + q(i        ,j        ,k        ,QW) - q(i        ,j        ,k-1*dg(3),QW) &
+                    + q(i        ,j-1*dg(2),k        ,QW) - q(i        ,j-1*dg(2),k-1*dg(3),QW) &
+                    + q(i-1*dg(1),j        ,k        ,QW) - q(i-1*dg(1),j        ,k-1*dg(3),QW) &
+                    + q(i-1*dg(1),j-1*dg(2),k        ,QW) - q(i-1*dg(1),j-1*dg(2),k-1*dg(3),QW) ) * dzinv
 
              div(i,j,k) = ux + vy + wz
 
@@ -560,6 +571,7 @@ contains
 
     use amrex_constants_module, only: ZERO, FOURTH
     use meth_params_module, only: NVAR, UTEMP
+    use prob_params_module, only: dg
 
     implicit none
 
@@ -592,24 +604,24 @@ contains
 
                 if (idir .eq. 1) then
 
-                   div1 = FOURTH * (div(i,j,k  ) + div(i,j+1,k  ) + &
-                        div(i,j,k+1) + div(i,j+1,k+1))
+                   div1 = FOURTH * (div(i,j,k  ) + div(i,j+1*dg(2),k  ) + &
+                        div(i,j,k+1*dg(3)) + div(i,j+1*dg(2),k+1*dg(3)))
                    div1 = difmag * min(ZERO, div1)
-                   div1 = div1 * (uin(i,j,k,n) - uin(i-1,j,k,n))
+                   div1 = div1 * (uin(i,j,k,n) - uin(i-1*dg(1),j,k,n))
 
                 else if (idir .eq. 2) then
 
-                   div1 = FOURTH * (div(i,j,k  ) + div(i+1,j,k  ) + &
-                        div(i,j,k+1) + div(i+1,j,k+1))
+                   div1 = FOURTH * (div(i,j,k  ) + div(i+1*dg(1),j,k  ) + &
+                        div(i,j,k+1*dg(3)) + div(i+1*dg(1),j,k+1*dg(3)))
                    div1 = difmag * min(ZERO, div1)
-                   div1 = div1 * (uin(i,j,k,n) - uin(i,j-1,k,n))
+                   div1 = div1 * (uin(i,j,k,n) - uin(i,j-1*dg(2),k,n))
 
                 else
 
-                   div1 = FOURTH * (div(i,j  ,k) + div(i+1,j,k  ) + &
-                        div(i,j+1,k) + div(i+1,j+1,k))
+                   div1 = FOURTH * (div(i,j  ,k) + div(i+1*dg(1),j,k  ) + &
+                        div(i,j+1*dg(2),k) + div(i+1*dg(1),j+1*dg(2),k))
                    div1 = difmag * min(ZERO, div1)
-                   div1 = div1 * (uin(i,j,k,n)-uin(i,j,k-1,n))
+                   div1 = div1 * (uin(i,j,k,n)-uin(i,j,k-1*dg(3),n))
 
                 end if
 
@@ -642,6 +654,7 @@ contains
 
     use amrex_constants_module, only: HALF, ONE
     use meth_params_module, only: NVAR, UEINT, NGDNV, GDPRES, GDU, GDV, GDW
+    use prob_params_module, only: dg
 
     implicit none
 
@@ -690,9 +703,9 @@ contains
                 ! We unscale by dt here, because the dt will be reapplied
                 ! when the update is actually applied to the state.
 
-                update(i,j,k,n) = update(i,j,k,n) + dtinv * (f1(i,j,k,n) - f1(i+1,j,k,n) + &
-                                                             f2(i,j,k,n) - f2(i,j+1,k,n) + &
-                                                             f3(i,j,k,n) - f3(i,j,k+1,n) ) / vol(i,j,k)
+                update(i,j,k,n) = update(i,j,k,n) + dtinv * (f1(i,j,k,n) - f1(i+1*dg(1),j        ,k        ,n) + &
+                                                             f2(i,j,k,n) - f2(i        ,j+1*dg(2),k        ,n) + &
+                                                             f3(i,j,k,n) - f3(i        ,j        ,k+1*dg(3),n) ) / vol(i,j,k)
 
                 update(i,j,k,n) = update(i,j,k,n) + srcU(i,j,k,n)
 

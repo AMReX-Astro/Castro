@@ -5,6 +5,7 @@
 #include "Castro.H"
 #include "Castro_F.H"
 #include <Derive_F.H>
+#include "Derive.H"
 #ifdef RADIATION
 # include "Radiation.H"
 # include "RAD_F.H"
@@ -166,6 +167,8 @@ Castro::variableSetUp ()
   sponge_init();
 #endif
 
+  // Initialize the amr info
+  amrinfo_init();
 
 
   const int dm = BL_SPACEDIM;
