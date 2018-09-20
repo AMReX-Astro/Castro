@@ -503,8 +503,9 @@ Castro::volProductSum (const std::string& name1,
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 
-	ca_sumproduct(ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_ANYD(fab1),
-		      BL_TO_FORTRAN_ANYD(fab2),ZFILL(dx),BL_TO_FORTRAN_ANYD(volume[mfi]),&s);
+#pragma gpu
+	ca_sumproduct(AMREX_INT_ANYD(lo),AMREX_INT_ANYD(hi),BL_TO_FORTRAN_ANYD(fab1),
+		      BL_TO_FORTRAN_ANYD(fab2),AMREX_REAL_ANYD(dx),BL_TO_FORTRAN_ANYD(volume[mfi]),&s);
         
         sum += s;
     }

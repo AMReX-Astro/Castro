@@ -361,9 +361,4 @@ contains
 
   end subroutine umeth
 
-! :::
-! ::: ------------------------------------------------------------------
-! :::
-
-
 end module ctu_advection_module
