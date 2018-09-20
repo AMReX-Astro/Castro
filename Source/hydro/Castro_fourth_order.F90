@@ -622,14 +622,13 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
   enddo
 
-  call normalize_species_fluxes(flx,flx_lo,flx_hi, &
+  call normalize_species_fluxes(flx_lo, flx_hi, flx, flx_lo, flx_hi)
 #if AMREX_SPACEDIM >= 2
-                                fly,fly_lo,fly_hi, &
+  call normalize_species_fluxes(fly_lo, fly_hi, fly, fly_lo, fly_hi)
 #endif
 #if AMREX_SPACEDIM == 3
-                                flz,flz_lo,flz_hi, &
+  call normalize_species_fluxes(flz_lo, flz_hi, flz, flz_lo, flz_hi)
 #endif
-                                lo,hi)
 
   ! For hydro, we will create an update source term that is
   ! essentially the flux divergence.  This can be added with dt to

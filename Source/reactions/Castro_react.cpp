@@ -258,6 +258,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
     // Start off assuming a successful burn.
 
     burn_success = 1;
+    Real burn_failed = 0.0;
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -268,15 +269,18 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 	const Box& bx = mfi.growntilebox(ngrow);
 
 	// Note that box is *not* necessarily just the valid region!
-	ca_react_state(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+#pragma gpu
+	ca_react_state(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 		       BL_TO_FORTRAN_ANYD(s[mfi]),
 		       BL_TO_FORTRAN_ANYD(r[mfi]),
 		       BL_TO_FORTRAN_ANYD(w[mfi]),
 		       BL_TO_FORTRAN_ANYD(mask[mfi]),
 		       time, dt_react, strang_half,
-                       &burn_success);
+	               AMREX_MFITER_REDUCE_SUM(&burn_failed));
 
     }
+
+    if (burn_failed == 0.0) burn_success = 1;
 
     ParallelDescriptor::ReduceIntMin(burn_success);
 
