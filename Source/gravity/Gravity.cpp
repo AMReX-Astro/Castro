@@ -1053,7 +1053,7 @@ Gravity::test_level_grad_phi_prev(int level)
 		                        BL_TO_FORTRAN_ANYD((*grad_phi_prev[level][2])[mfi]),
 #endif
 #endif
-		                 AMREX_REAL_ANYD(dx),AMREX_INT_ANYD(problo),coord_type);
+		                 AMREX_REAL_ANYD(dx),AMREX_REAL_ANYD(problo),coord_type);
 	}
 	if (verbose) {
 		Real resnorm = Rhs.norm0();
@@ -1127,7 +1127,7 @@ Gravity::test_level_grad_phi_curr(int level)
 		                        BL_TO_FORTRAN_ANYD((*grad_phi_curr[level][2])[mfi]),
 #endif
 #endif
-		                 AMREX_REAL_ANYD(dx),AMREX_INT_ANYD(problo),coord_type);
+		                 AMREX_REAL_ANYD(dx),AMREX_REAL_ANYD(problo),coord_type);
 	}
 	if (verbose) {
 		Real resnorm = Rhs.norm0();
@@ -1350,7 +1350,7 @@ Gravity::interpolate_monopole_grav(int level, Vector<Real>& radial_grav, MultiFa
 #pragma gpu
 		ca_put_radial_grav(AMREX_INT_ANYD(bx.loVect()),AMREX_INT_ANYD(bx.hiVect()),AMREX_REAL_ANYD(dx),dr,
 		                   BL_TO_FORTRAN_ANYD(grav_vector[mfi]),
-		                   radial_grav.dataPtr(),geom.ProbLo(),
+		                   radial_grav.dataPtr(),AMREX_REAL_ANYD(geom.ProbLo()),
 		                   n1d,level);
 	}
 }
@@ -1435,7 +1435,7 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
         ca_put_radial_phi(bx.loVect(), bx.hiVect(),
 			  domain.loVect(), domain.hiVect(),
 			  dx,&dr, BL_TO_FORTRAN(phi[mfi]),
-			  radial_phi.dataPtr(),geom.ProbLo(),
+			  radial_phi.dataPtr(),AMREX_REAL_ANYD(geom.ProbLo()),
 			  &n1d,&fill_interior);
     }
 
