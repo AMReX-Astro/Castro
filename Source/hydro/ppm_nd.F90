@@ -153,11 +153,11 @@ contains
     real(rt)         :: sm, sp
 
     ! \delta s_{\ib}^{vL}
-    real(rt)        , pointer :: dsvl(:,:)
+    real(rt)        , pointer :: dsvl(:,:,:)
     real(rt)         :: dsvlm, dsvl0, dsvlp
 
     ! s_{i+\half}^{H.O.}
-    real(rt)        , pointer :: sedge(:,:)
+    real(rt)        , pointer :: sedge(:,:,:)
 
 #ifndef AMREX_USE_CUDA
     if (ppm_type .ne. 1) &
@@ -168,7 +168,7 @@ contains
     end if
 
 #if (AMREX_SPACEDIM >= 2)
-    if (s_lo(2) .gt. ilo2-3 .or. s_hi(2) .lt. hi(2)+3) then
+    if (s_lo(2) .gt. lo(2)-3 .or. s_hi(2) .lt. hi(2)+3) then
          call amrex_error("Need more ghost cells on array in ppm_type1")
     end if
 #endif
@@ -474,7 +474,7 @@ contains
     real(rt)         :: sm, sp
 
     ! s_{i+\half}^{H.O.}
-    real(rt)        , pointer :: sedge(:,:)
+    real(rt)        , pointer :: sedge(:,:,:)
 
     ! constant used in Colella 2008
     real(rt)        , parameter :: C = 1.25e0_rt
@@ -780,89 +780,89 @@ contains
        do j = lo(2)-1, hi(2)+1
           do i = lo(1)-1, hi(1)+1
 
-          alphap   = sedge(i,j,k+1) - s(i,j,k,n)
-          alpham   = sedge(i,j,k  ) - s(i,j,k,n)
-          bigp     = abs(alphap) .gt. TWO*abs(alpham)
-          bigm     = abs(alpham) .gt. TWO*abs(alphap)
-          extremum = .false.
+             alphap   = sedge(i,j,k+1) - s(i,j,k,n)
+             alpham   = sedge(i,j,k  ) - s(i,j,k,n)
+             bigp     = abs(alphap) .gt. TWO*abs(alpham)
+             bigm     = abs(alpham) .gt. TWO*abs(alphap)
+             extremum = .false.
 
-          if (alpham*alphap .ge. ZERO) then
-             extremum = .true.
-          else if (bigp .or. bigm) then
-             !
-             ! Possible extremum. We look at cell centered values and face
-             ! centered values for a change in sign in the differences adjacent to
-             ! the cell. We use the pair of differences whose minimum magnitude is the
-             ! largest, and thus least susceptible to sensitivity to roundoff.
-             !
-             dafacem   = sedge(i,j,k) - sedge(i,j,k-1)
-             dafacep   = sedge(i,j,k+2) - sedge(i,j,k+1)
-             dabarm    = s(i,j,k,n) - s(i,j,k-1,n)
-             dabarp    = s(i,j,k+1,n) - s(i,j,k,n)
-             dafacemin = min(abs(dafacem), abs(dafacep))
-             dabarmin  = min(abs(dabarm), abs(dabarp))
-             if (dafacemin .ge. dabarmin) then
-                dachkm = dafacem
-                dachkp = dafacep
+             if (alpham*alphap .ge. ZERO) then
+                extremum = .true.
+             else if (bigp .or. bigm) then
+                !
+                ! Possible extremum. We look at cell centered values and face
+                ! centered values for a change in sign in the differences adjacent to
+                ! the cell. We use the pair of differences whose minimum magnitude is the
+                ! largest, and thus least susceptible to sensitivity to roundoff.
+                !
+                dafacem   = sedge(i,j,k) - sedge(i,j,k-1)
+                dafacep   = sedge(i,j,k+2) - sedge(i,j,k+1)
+                dabarm    = s(i,j,k,n) - s(i,j,k-1,n)
+                dabarp    = s(i,j,k+1,n) - s(i,j,k,n)
+                dafacemin = min(abs(dafacem), abs(dafacep))
+                dabarmin  = min(abs(dabarm), abs(dabarp))
+                if (dafacemin .ge. dabarmin) then
+                   dachkm = dafacem
+                   dachkp = dafacep
+                else
+                   dachkm = dabarm
+                   dachkp = dabarp
+                endif
+                extremum = (dachkm*dachkp .le. ZERO)
+             end if
+
+             if (extremum) then
+                D2     = SIX*(alpham + alphap)
+                D2L    = s(i,j,k-2,n) - TWO*s(i,j,k-1,n) + s(i,j,k,n)
+                D2R    = s(i,j,k,n) - TWO*s(i,j,k+1,n) + s(i,j,k+2,n)
+                D2C    = s(i,j,k-1,n) - TWO*s(i,j,k,n) + s(i,j,k+1,n)
+                sgn    = sign(ONE, D2)
+                D2LIM  = max(min(sgn*D2, C*sgn*D2L, C*sgn*D2R, C*sgn*D2C), ZERO)
+                alpham = alpham*D2LIM/max(abs(D2), SMALL)
+                alphap = alphap*D2LIM/max(abs(D2), SMALL)
              else
-                dachkm = dabarm
-                dachkp = dabarp
-             endif
-             extremum = (dachkm*dachkp .le. ZERO)
-          end if
-
-          if (extremum) then
-             D2     = SIX*(alpham + alphap)
-             D2L    = s(i,j,k-2,n) - TWO*s(i,j,k-1,n) + s(i,j,k,n)
-             D2R    = s(i,j,k,n) - TWO*s(i,j,k+1,n) + s(i,j,k+2,n)
-             D2C    = s(i,j,k-1,n) - TWO*s(i,j,k,n) + s(i,j,k+1,n)
-             sgn    = sign(ONE, D2)
-             D2LIM  = max(min(sgn*D2, C*sgn*D2L, C*sgn*D2R, C*sgn*D2C), ZERO)
-             alpham = alpham*D2LIM/max(abs(D2), SMALL)
-             alphap = alphap*D2LIM/max(abs(D2), SMALL)
-          else
-             if (bigp) then
-                sgn   = sign(ONE, alpham)
-                amax  = -alphap**2 / (4*(alpham + alphap))
-                delam = s(i,j,k-1,n) - s(i,j,k,n)
-                if (sgn*amax .ge. sgn*delam) then
-                   if (sgn*(delam - alpham).ge. SMALL) then
-                      alphap = (-TWO*delam - TWO*sgn*sqrt(delam**2 - delam*alpham))
-                   else
-                      alphap = -TWO*alpham
+                if (bigp) then
+                   sgn   = sign(ONE, alpham)
+                   amax  = -alphap**2 / (4*(alpham + alphap))
+                   delam = s(i,j,k-1,n) - s(i,j,k,n)
+                   if (sgn*amax .ge. sgn*delam) then
+                      if (sgn*(delam - alpham).ge. SMALL) then
+                         alphap = (-TWO*delam - TWO*sgn*sqrt(delam**2 - delam*alpham))
+                      else
+                         alphap = -TWO*alpham
+                      endif
                    endif
-                endif
-             end if
-             if (bigm) then
-                sgn   = sign(ONE, alphap)
-                amax  = -alpham**2 / (4*(alpham + alphap))
-                delap = s(i,j,k+1,n) - s(i,j,k,n)
-                if (sgn*amax .ge. sgn*delap) then
-                   if (sgn*(delap - alphap).ge. SMALL) then
-                      alpham = (-TWO*delap - TWO*sgn*sqrt(delap**2 - delap*alphap))
-                   else
-                      alpham = -TWO*alphap
+                end if
+                if (bigm) then
+                   sgn   = sign(ONE, alphap)
+                   amax  = -alpham**2 / (4*(alpham + alphap))
+                   delap = s(i,j,k+1,n) - s(i,j,k,n)
+                   if (sgn*amax .ge. sgn*delap) then
+                      if (sgn*(delap - alphap).ge. SMALL) then
+                         alpham = (-TWO*delap - TWO*sgn*sqrt(delap**2 - delap*alphap))
+                      else
+                         alpham = -TWO*alphap
+                      endif
                    endif
-                endif
+                end if
              end if
-          end if
 
-          sm = s(i,j,k,n) + alpham
-          sp = s(i,j,k,n) + alphap
+             sm = s(i,j,k,n) + alpham
+             sp = s(i,j,k,n) + alphap
 
-          ! flatten the parabola AFTER doing the monotonization
-          sm = flatn(i,j,k)*sm + (ONE-flatn(i,j,k))*s(i,j,k,n)
-          sp = flatn(i,j,k)*sp + (ONE-flatn(i,j,k))*s(i,j,k,n)
+             ! flatten the parabola AFTER doing the monotonization
+             sm = flatn(i,j,k)*sm + (ONE-flatn(i,j,k))*s(i,j,k,n)
+             sp = flatn(i,j,k)*sp + (ONE-flatn(i,j,k))*s(i,j,k,n)
 
-          szp(i,j,k) = sp
-          szm(i,j,k) = sm
+             szp(i,j,k) = sp
+             szm(i,j,k) = sm
 
+          end do
        end do
     end do
 #endif
 
     call bl_deallocate(sedge)
-    call bl_deallocate(sedgez)
 
   end subroutine ppm_type2
 

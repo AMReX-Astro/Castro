@@ -28,7 +28,6 @@ contains
 
     integer, intent(in) :: qd_lo(3), qd_hi(3)
     integer, intent(in) :: qpd_lo(3),qpd_hi(3)
-    integer, intent(in) :: ilo1, ilo2, ihi1, ihi2, kc, k3d
 
     real(rt), intent(in) :: q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
     real(rt), intent(in) :: flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
@@ -45,8 +44,8 @@ contains
 
     real(rt), pointer:: dsgn(:,:,:), dlim(:,:,:), df(:,:,:), dcen(:,:,:)
 
-    ilo = min(lo(:))
-    ihi = max(hi(:))
+    ilo = minval(lo(:))
+    ihi = maxval(hi(:))
 
     call bl_allocate(dsgn, lo-2*dg, hi+2*dg)
     call bl_allocate(dlim, lo-2*dg, hi+2*dg)
@@ -59,13 +58,14 @@ contains
           do k = lo(3)-dg(3), hi(3)+dg(3)
              do j = lo(2)-dg(2), hi(2)+dg(2)
                 do i = lo(1)-1, hi(1)+1
-                dqx(i,j,k,n) = ZERO
+                   dqx(i,j,k,n) = ZERO
 #if (AMREX_SPACEDIM >= 2)
-                dqy(i,j,k,n) = ZERO
+                   dqy(i,j,k,n) = ZERO
 #if (AMREX_SPACEDIM == 3)
-                dqz(i,j,k,n) = ZERO
+                   dqz(i,j,k,n) = ZERO
 #endif
 #endif
+                end do
              end do
           end do
        end do
@@ -147,7 +147,7 @@ contains
                    else
                       dlim(i,j,k) = ZERO
                    endif
-                   df(i,j,k) = dsgn(i,j,k)*min( dlim(i,j,k), abs(den(i,j,k)) )
+                   df(i,j,k) = dsgn(i,j,k)*min( dlim(i,j,k), abs(dcen(i,j,k)) )
                 end do
 
                 ! Now compute limited fourth order slopes
@@ -209,8 +209,8 @@ contains
     !     Local arrays
     real(rt), pointer :: dsgn(:,:,:), dlim(:,:,:), df(:,:,:), dcen(:,:,:)
 
-    ilo = min(lo(:))
-    ihi = max(hi(:))
+    ilo = minval(lo(:))
+    ihi = maxval(hi(:))
 
     call bl_allocate(dsgn, lo-2*dg, hi+2*dg)
     call bl_allocate(dlim, lo-2*dg, hi+2*dg)
@@ -251,7 +251,7 @@ contains
                      (q(i,j,k,QRHO) + q(i+1,j,k,QRHO))*(src(i,j,k,QU)+src(i+1,j,k,QU))*dx(1)
 
                 dcen(i,j,k) = HALF*(dlft+drgt)
-                dsgn(i,j,k) = sign(ONE, dcen(i,j))
+                dsgn(i,j,k) = sign(ONE, dcen(i,j,k))
                 if (dlft*drgt .ge. ZERO) then
                    dlim(i,j,k) = TWO * min( abs(dlft), abs(drgt) )
                 else

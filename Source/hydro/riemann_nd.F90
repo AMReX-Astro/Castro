@@ -156,7 +156,7 @@ contains
                 ! plus state
                 eos_state % rho = qp(i,j,k,QRHO)
                 eos_state % p   = qp(i,j,k,QPRES)
-                eos_state % e   = qp(i,j,k,QREINT)/qp(i,j,kc,QRHO)
+                eos_state % e   = qp(i,j,k,QREINT)/qp(i,j,k,QRHO)
                 eos_state % xn  = qp(i,j,k,QFS:QFS+nspec-1)
                 eos_state % aux = qp(i,j,k,QFX:QFX+naux-1)
 
@@ -248,7 +248,7 @@ contains
        ! and doing the hybrid approach
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
-             do i = lo(1), ihi(1)
+             do i = lo(1), hi(1)
 
                 select case (idir)
                 case (1)
@@ -336,7 +336,7 @@ contains
 
     ! local variables
 
-    integer i, j
+    integer i, j, k
 
     real(rt) :: cl, cr
     type (eos_t) :: eos_state
@@ -614,7 +614,7 @@ contains
 
     call bl_allocate(pstar_hist, 1,iter_max)
     call bl_allocate(pstar_hist_extra, 1,2*iter_max)
-    call bl_allocate(us1d, ilo,ihi)
+    call bl_allocate(us1d, lo(1), hi(1))
 
     do k = lo(3), hi(3)
        bnd_fac_z = ONE
@@ -1084,7 +1084,7 @@ contains
     integer, intent(in) :: qpd_lo(3), qpd_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: idir, lo, hi
+    integer, intent(in) :: idir, lo(3), hi(3)
     integer, intent(in) :: domlo(3),domhi(3)
 
 #ifdef RADIATION
@@ -1139,7 +1139,7 @@ contains
     type(eos_t) :: eos_state
     real(rt), dimension(nspec) :: xn
 
-    call bl_allocate(us1d,ilo,ihi)
+    call bl_allocate(us1d, lo(1), hi(1))
 
     ! set integer pointers for the normal and transverse velocity and
     ! momentum
@@ -1535,8 +1535,8 @@ contains
              u_adv = qint(i,j,k,iu)
 
              ! Enforce that fluxes through a symmetry plane or wall are hard zero.
-             if ( special_bnd_lo_x .and. i==domlo(1) .or. &
-                  special_bnd_hi_x .and. i==domhi(1)+1 ) then
+             if ( special_bnd_lo_x .and. i == domlo(1) .or. &
+                  special_bnd_hi_x .and. i == domhi(1)+1 ) then
                 bnd_fac_x = ZERO
              else
                 bnd_fac_x = ONE
@@ -1601,7 +1601,7 @@ contains
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: uflx_lo(3), uflx_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: idir, lo, hi
+    integer, intent(in) :: idir, lo(3), hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
     real(rt), intent(in) :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
