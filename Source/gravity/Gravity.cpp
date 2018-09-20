@@ -1185,41 +1185,41 @@ Gravity::create_comp_minus_level_grad_phi(int level,
 void
 Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
 {
-    BL_PROFILE("Gravity::average_fine_ec_onto_crse_ec()");
+	BL_PROFILE("Gravity::average_fine_ec_onto_crse_ec()");
 
-    // NOTE: this is called with level == the coarser of the two levels involved
-    if (level == parent->finestLevel()) return;
+	// NOTE: this is called with level == the coarser of the two levels involved
+	if (level == parent->finestLevel()) return;
 
-    //
-    // Coarsen() the fine stuff on processors owning the fine data.
-    //
-    BoxArray crse_gphi_fine_BA(grids[level+1].size());
+	//
+	// Coarsen() the fine stuff on processors owning the fine data.
+	//
+	BoxArray crse_gphi_fine_BA(grids[level+1].size());
 
-    IntVect fine_ratio = parent->refRatio(level);
+	IntVect fine_ratio = parent->refRatio(level);
 
-    for (int i = 0; i < crse_gphi_fine_BA.size(); ++i)
-        crse_gphi_fine_BA.set(i,amrex::coarsen(grids[level+1][i],fine_ratio));
+	for (int i = 0; i < crse_gphi_fine_BA.size(); ++i)
+		crse_gphi_fine_BA.set(i,amrex::coarsen(grids[level+1][i],fine_ratio));
 
-    Vector<std::unique_ptr<MultiFab> > crse_gphi_fine(BL_SPACEDIM);
-    for (int n=0; n<BL_SPACEDIM; ++n)
-    {
-        BoxArray eba = crse_gphi_fine_BA;
-	eba.surroundingNodes(n);
-        crse_gphi_fine[n].reset(new MultiFab(eba,dmap[level+1],1,0));
-    }
+	Vector<std::unique_ptr<MultiFab> > crse_gphi_fine(BL_SPACEDIM);
+	for (int n=0; n<BL_SPACEDIM; ++n)
+	{
+		BoxArray eba = crse_gphi_fine_BA;
+		eba.surroundingNodes(n);
+		crse_gphi_fine[n].reset(new MultiFab(eba,dmap[level+1],1,0));
+	}
 
-    auto& grad_phi = (is_new) ? grad_phi_curr : grad_phi_prev;
+	auto& grad_phi = (is_new) ? grad_phi_curr : grad_phi_prev;
 
-    amrex::average_down_faces(amrex::GetVecOfConstPtrs(grad_phi[level+1]),
-			       amrex::GetVecOfPtrs(crse_gphi_fine),
-			       fine_ratio);
+	amrex::average_down_faces(amrex::GetVecOfConstPtrs(grad_phi[level+1]),
+	                          amrex::GetVecOfPtrs(crse_gphi_fine),
+	                          fine_ratio);
 
-    const Geometry& cgeom = parent->Geom(level);
+	const Geometry& cgeom = parent->Geom(level);
 
-    for (int n = 0; n < BL_SPACEDIM; ++n)
-    {
-	grad_phi[level][n]->copy(*crse_gphi_fine[n], cgeom.periodicity());
-    }
+	for (int n = 0; n < BL_SPACEDIM; ++n)
+	{
+		grad_phi[level][n]->copy(*crse_gphi_fine[n], cgeom.periodicity());
+	}
 }
 
 void
@@ -1299,7 +1299,8 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector, Multi
     for (MFIter mfi(phi,true); mfi.isValid(); ++mfi)
     {
        const Box& bx = mfi.growntilebox();
-       ca_prescribe_phi(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+#pragma gpu
+       ca_prescribe_phi(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 		        BL_TO_FORTRAN_ANYD(phi[mfi]),dx);
     }
 
@@ -1309,7 +1310,8 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector, Multi
     for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi)
     {
        const Box& bx = mfi.growntilebox();
-       ca_prescribe_grav(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+#pragma gpu
+       ca_prescribe_grav(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 			 BL_TO_FORTRAN_ANYD(grav_vector[mfi]),dx);
     }
 

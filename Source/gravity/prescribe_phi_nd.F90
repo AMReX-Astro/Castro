@@ -4,7 +4,7 @@ module prescribe_phi_module
   implicit none
 
 contains
-  
+
   subroutine ca_prescribe_phi (lo,hi,phi,p_lo,p_hi,dx) &
        bind(C, name="ca_prescribe_phi")
 
@@ -18,6 +18,8 @@ contains
     real(rt), intent(out) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
     real(rt), intent(in) :: dx(3)
 
+    !$gpu
+
     ! Local variables
     !     integer          :: i, j, k
     !     real(rt)         :: x, y, z
@@ -25,7 +27,7 @@ contains
     !     real(rt)         :: M_c
 
     !     This is an example of how to specify a radial profile.
-    !     Note that in this example M_c could be saved 
+    !     Note that in this example M_c could be saved
     !     in another module instead, like a probdata_module.
     !     Note also that you'll have to be careful if you're working
     !     in fewer than three dimensions; you may want to set
@@ -34,7 +36,7 @@ contains
     !     M_c = 1.0e33_rt
     !
     !     do k = lo(3), hi(3)
-    !        if (dim .eq. 3) then      
+    !        if (dim .eq. 3) then
     !           z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
     !        else
     !           z = ZERO
