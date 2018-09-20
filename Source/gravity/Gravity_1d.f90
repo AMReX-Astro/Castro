@@ -21,7 +21,7 @@ contains
     integer , intent(in   ) :: lo(1),hi(1)
     integer , intent(in   ) :: rhl1, rhh1
     integer , intent(in   ) :: ecxl1, ecxh1
-    integer , intent(in   ) :: coord_type
+    integer , value, intent(in) :: coord_type
     real(rt), intent(inout) :: rhs(rhl1:rhh1)
     real(rt), intent(in   ) :: ecx(ecxl1:ecxh1)
     real(rt), intent(in   ) :: dx(1),problo(1)
@@ -29,6 +29,8 @@ contains
     real(rt)         :: lapphi
     real(rt)         :: rlo,rhi,rcen
     integer          :: i
+
+    !$gpu
 
     ! Cartesian
     if (coord_type .eq. 0) then
@@ -61,8 +63,12 @@ contains
        enddo
 
     else
+
+#ifndef AMREX_USE_CUDA
        print *,'Bogus coord_type in test_residual ' ,coord_type
        call amrex_error("Error:: Gravity_1d.f90 :: ca_test_residual")
+#endif
+
     end if
 
   end subroutine ca_test_residual

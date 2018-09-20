@@ -20,7 +20,7 @@ contains
     implicit none
 
     integer , intent(in   ) :: lo(2),hi(2)
-    integer , intent(in   ) :: coord_type
+    integer , value, intent(in   ) :: coord_type
     integer , intent(in   ) :: rhl1, rhl2, rhh1, rhh2
     integer , intent(in   ) :: ecxl1, ecxl2, ecxh1, ecxh2
     integer , intent(in   ) :: ecyl1, ecyl2, ecyh1, ecyh2
@@ -33,6 +33,8 @@ contains
     real(rt)         :: lapphi
     real(rt)         :: ri,ro,rc
     integer          :: i,j
+
+    !$gpu
 
     ! Cartesian
     if (coord_type .eq. 0) then
@@ -64,9 +66,11 @@ contains
        enddo
 
     else
-
+        
+#ifndef AMREX_USE_CUDA
        print *,'Bogus coord_type in test_residual ' ,coord_type
        call amrex_error("Error:: Gravity_2d.f90 :: ca_test_residual")
+#endif
 
     end if
 
@@ -78,7 +82,7 @@ contains
        state,r_l1,r_l2,r_h1,r_h2, &
        radial_mass,radial_vol,problo, &
        n1d,drdxfac,level) bind(C, name="ca_compute_radial_mass")
-    
+
     use amrex_constants_module
     use prob_params_module, only: center
     use meth_params_module, only: NVAR, URHO
@@ -131,13 +135,13 @@ contains
                 print *,'>>> Error: Gravity_2d::ca_compute_radial_mass ',i,j
                 print *,'>>> ... index too big: ', index,' > ',n1d-1
                 print *,'>>> ... at (i,j)     : ',i,j
-                print *,'    ' 
+                print *,'    '
                 call amrex_error("Error:: Gravity_2d.f90 :: ca_compute_radial_mass")
              end if
 
           else
 
-             ! Note that we assume we are in r-z coordinates in 2d or we wouldn't be 
+             ! Note that we assume we are in r-z coordinates in 2d or we wouldn't be
              !      doing monopole gravity
              lo_i = problo(1) + dble(i)*dx(1) - center(1)
              lo_j = problo(2) + dble(j)*dx(2) - center(2)
@@ -145,7 +149,7 @@ contains
                 xx  = lo_i + (dble(ii  )+HALF)*dx_frac
                 rlo = lo_i +  dble(ii  )       *dx_frac
                 rhi = lo_i +  dble(ii+1)       *dx_frac
-                vol_frac = vol_frac_fac * xx 
+                vol_frac = vol_frac_fac * xx
                 do jj = 0,drdxfac-1
                    yy = lo_j + (dble(jj)+HALF)*dy_frac
                    r = sqrt(xx**2  + yy**2)
@@ -174,7 +178,7 @@ contains
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
-    
+
     integer , intent(in   ) :: lo(2),hi(2)
     real(rt), intent(in   ) :: dx(2),dr
     real(rt), intent(in   ) :: problo(2)
@@ -205,7 +209,7 @@ contains
              slope = ( radial_grav(index+1) - radial_grav(index) ) / dr
              mag_grav = radial_grav(index) + slope * xi
           else if (index == n1d-1) then
-             ! Linear interpolation or extrapolation 
+             ! Linear interpolation or extrapolation
              slope = ( radial_grav(index) - radial_grav(index-1) ) / dr
              mag_grav = radial_grav(index) + slope * xi
           else if (index .gt. n1d-1) then
@@ -214,11 +218,11 @@ contains
                 print *,'AT (i,j) ',i,j
                 print *,'R / DR IS ',r,dr
                 call amrex_error("Error:: Gravity_2d.f90 :: ca_put_radial_grav")
-             else 
+             else
                 ! NOTE: we don't do anything to this point if it's outside the
                 !       radial grid and level > 0
              end if
-          else 
+          else
              ! Quadratic interpolation
              ghi = radial_grav(index+1)
              gmd = radial_grav(index  )
@@ -279,7 +283,7 @@ contains
           y = problo(2) + (dble(j  )     ) * dx(2) - center(2)
        else if (j .lt. domlo(2)) then
           y = problo(2) + (dble(j+1)     ) * dx(2) - center(2)
-       else 
+       else
           y = problo(2) + (dble(j  )+HALF) * dx(2) - center(2)
        end if
        do i = lo(1), hi(1)
@@ -287,7 +291,7 @@ contains
              x = problo(1) + (dble(i  )     ) * dx(1) - center(1)
           else if (i .lt. domlo(1)) then
              x = problo(1) + (dble(i+1)     ) * dx(1) - center(1)
-          else 
+          else
              x = problo(1) + (dble(i  )+HALF) * dx(1) - center(1)
           end if
           r = sqrt( x**2 + y**2)
@@ -301,7 +305,7 @@ contains
 
           if (  (fill_interior .eq. 1) .or. &
                ( j.lt.domlo(2).or.j.gt.domhi(2)  .or. &
-               i.lt.domlo(1).or.i.gt.domhi(1)  ) ) then  
+               i.lt.domlo(1).or.i.gt.domhi(1)  ) ) then
 
              cen = (dble(index)+HALF)*dr
              xi = r - cen
@@ -310,10 +314,10 @@ contains
                 slope = ( radial_phi(index+1) - radial_phi(index) ) / dr
                 phi(i,j) = radial_phi(index) + slope * xi
              else if (index == numpts_1d-1) then
-                ! Linear interpolation or extrapolation 
+                ! Linear interpolation or extrapolation
                 slope = ( radial_phi(index) - radial_phi(index-1) ) / dr
                 phi(i,j) = radial_phi(index) + slope * xi
-             else 
+             else
                 ! Quadratic interpolation
                 p_hi = radial_phi(index+1)
                 p_md = radial_phi(index  )

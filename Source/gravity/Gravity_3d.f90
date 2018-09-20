@@ -19,7 +19,7 @@ contains
     implicit none
 
     integer , intent(in   ) :: lo(3),hi(3)
-    integer , intent(in   ) :: coord_type
+    integer , value, intent(in) :: coord_type
     integer , intent(in   ) :: rhl1, rhl2, rhl3, rhh1, rhh2, rhh3
     integer , intent(in   ) :: ecxl1, ecxl2, ecxl3, ecxh1, ecxh2, ecxh3
     integer , intent(in   ) :: ecyl1, ecyl2, ecyl3, ecyh1, ecyh2, ecyh3
@@ -33,6 +33,8 @@ contains
     ! Local variables
     integer          :: i,j,k
     real(rt)         :: lapphi
+
+    !$gpu
 
     do k=lo(3),hi(3)
        do j=lo(2),hi(2)
@@ -456,7 +458,7 @@ contains
 
                    locb(3) = problo(3)
                    dz2 = (loc(3) - locb(3))**2
-                   
+
                    r = ( dx2 + dy2 + dz2 )**HALF
 
                    bcXYLo(l,m) = bcXYLo(l,m) - Gconst * rho(i,j,k) * vol(i,j,k) / r
@@ -505,7 +507,7 @@ contains
                    locb(3) = problo(3) + (dble(n)+HALF) * bcdx(3)
                 endif
                 dz2 = (loc(3) - locb(3))**2
-                
+
                 do l = bclo(1), bchi(1)
                    if (l .eq. bclo(1)) then
                       locb(1) = problo(1)

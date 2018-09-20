@@ -14,25 +14,25 @@ extern "C"
      BL_FORT_FAB_ARG(rhs),
      D_DECL(const BL_FORT_FAB_ARG(xgrad),
             const BL_FORT_FAB_ARG(ygrad),
-            const BL_FORT_FAB_ARG(zgrad)), 
-            const amrex::Real* dx, const amrex::Real* problo, 
-            const int* coord_type);
+            const BL_FORT_FAB_ARG(zgrad)),
+            const amrex::Real* dx, const amrex::Real* problo,
+            const int coord_type);
 
   void ca_compute_radial_mass
-    (const int lo[], const int hi[], 
+    (const int lo[], const int hi[],
      const amrex::Real* dx, const amrex::Real* dr,
-     const BL_FORT_FAB_ARG(S), 
-     amrex::Real* avgmass, amrex::Real* avgvol, 
-     const amrex::Real* problo, const int* numpts_1d, 
-     const int* drdxfac, const int* level); 
+     const BL_FORT_FAB_ARG(S),
+     amrex::Real* avgmass, amrex::Real* avgvol,
+     const amrex::Real* problo, const int* numpts_1d,
+     const int* drdxfac, const int* level);
 
   void ca_compute_avgpres
-    (const int lo[], const int hi[], 
+    (const int lo[], const int hi[],
      const amrex::Real* dx, const amrex::Real* dr,
-     const BL_FORT_FAB_ARG(S), 
-     amrex::Real* avgpres, 
-     const amrex::Real* problo, const int* numpts_1d, 
-     const int* drdxfac, const int* level); 
+     const BL_FORT_FAB_ARG(S),
+     amrex::Real* avgpres,
+     const amrex::Real* problo, const int* numpts_1d,
+     const int* drdxfac, const int* level);
 
   void ca_integrate_grav
     (const amrex::Real* avgmass, const amrex::Real* avgden,
@@ -52,31 +52,31 @@ extern "C"
 
 #ifdef GR_GRAV
   void ca_integrate_gr_grav
-    (const amrex::Real* avgden, const amrex::Real* avgmass, 
-     const amrex::Real* avgpres, amrex::Real* radial_grav, 
+    (const amrex::Real* avgden, const amrex::Real* avgmass,
+     const amrex::Real* avgpres, amrex::Real* radial_grav,
      const amrex::Real* dr, const int* numpts_1d);
 #endif
 
   void ca_integrate_phi
     (const amrex::Real* avgden, amrex::Real* radial_grav,
-     amrex::Real* radial_phi, 
+     amrex::Real* radial_phi,
      const amrex::Real* dr, const int* numpts_1d);
 
   void ca_put_radial_grav
-    (const int lo[], const int hi[], 
+    (const int lo[], const int hi[],
      const amrex::Real* dx, const amrex::Real* dr,
      BL_FORT_FAB_ARG(grav_vector),
-     const amrex::Real* radial_grav, 
-     const amrex::Real* problo, 
-     const int* n1d, const int* level); 
+     const amrex::Real* radial_grav,
+     const amrex::Real* problo,
+     const int* n1d, const int* level);
 
   void ca_put_radial_phi
-    (const int lo[], const int hi[], 
-     const int domlo[], const int domhi[], 
+    (const int lo[], const int hi[],
+     const int domlo[], const int domhi[],
      const amrex::Real* dx, const amrex::Real* dr,
      BL_FORT_FAB_ARG(phi),
      const amrex::Real* radial_phi,
-     const amrex::Real* problo, 
+     const amrex::Real* problo,
      const int* numpts_1d, const int* fill_interior);
 
   void init_multipole_gravity
@@ -90,7 +90,7 @@ extern "C"
      const int* lnum,
      const amrex::Real* qL0, const amrex::Real* qLC, const amrex::Real* qLS,
      const amrex::Real* qU0, const amrex::Real* qUC, const amrex::Real* qUS,
-     const int* npts, const int* boundary_only); 
+     const int* npts, const int* boundary_only);
 
   void ca_compute_multipole_moments
     (const int* lo, const int* hi,
@@ -101,7 +101,7 @@ extern "C"
      const int* lnum,
      amrex::Real* qL0, amrex::Real* qLC, amrex::Real* qLS,
      amrex::Real* qU0, amrex::Real* qUC, amrex::Real* qUS,
-     const int* npts, const int* boundary_only); 
+     const int* npts, const int* boundary_only);
 
   void ca_compute_direct_sum_bc
     (const int* lo, const int* hi, const amrex::Real* dx,
@@ -115,7 +115,7 @@ extern "C"
      const int* bclo, const int* bchi, const amrex::Real* bcdx);
 
   void ca_put_direct_sum_bc
-    (const int* lo, const int* hi, 
+    (const int* lo, const int* hi,
      amrex::Real* phi, const int* p_lo, const int* p_hi,
      const amrex::Real* bcXYLo, const amrex::Real* bcXYHi,
      const amrex::Real* bcXZLo, const amrex::Real* bcXZHi,

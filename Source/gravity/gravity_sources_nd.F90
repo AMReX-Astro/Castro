@@ -7,13 +7,13 @@ module gravity_sources_module
 contains
 
   subroutine ca_gsrc(lo,hi,domlo,domhi, &
-                     uold,uold_lo,uold_hi, &
-#ifdef SELF_GRAVITY
-                     phi,phi_lo,phi_hi, &
-                     grav,grav_lo,grav_hi, &
-#endif
-                     source,src_lo,src_hi, &
-                     dx,dt,time) bind(C, name="ca_gsrc")
+       uold,uold_lo,uold_hi, &
+       #ifdef SELF_GRAVITY
+    phi,phi_lo,phi_hi, &
+         grav,grav_lo,grav_hi, &
+         #endif
+    source,src_lo,src_hi, &
+         dx,dt,time) bind(C, name="ca_gsrc")
 
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, ONE
@@ -167,30 +167,30 @@ contains
   ! :::
 
   subroutine ca_corrgsrc(lo,hi,domlo,domhi, &
-                         uold,uo_lo,uo_hi, &
-                         unew,un_lo,un_hi, &
-#ifdef SELF_GRAVITY
-                         phi,p_lo,p_hi, &
-                         grav,g_lo,g_hi, &
-                         gold,go_lo,go_hi, &
-                         gnew,gn_lo,gn_hi, &
-                         gravx,gx_lo,gx_hi, &
-                         gravy,gy_lo,gy_hi, &
-                         gravz,gz_lo,gz_hi, &
-#endif
-                         vol,vol_lo,vol_hi, &
-                         flux1,f1_lo,f1_hi, &
-                         flux2,f2_lo,f2_hi, &
-                         flux3,f3_lo,f3_hi, &
-                         source,sr_lo,sr_hi, &
-                         dx,dt,time) bind(C, name="ca_corrgsrc")
+       uold,uo_lo,uo_hi, &
+       unew,un_lo,un_hi, &
+       #ifdef SELF_GRAVITY
+    phi,p_lo,p_hi, &
+         grav,g_lo,g_hi, &
+         gold,go_lo,go_hi, &
+         gnew,gn_lo,gn_hi, &
+         gravx,gx_lo,gx_hi, &
+         gravy,gy_lo,gy_hi, &
+         gravz,gz_lo,gz_hi, &
+         #endif
+    vol,vol_lo,vol_hi, &
+         flux1,f1_lo,f1_hi, &
+         flux2,f2_lo,f2_hi, &
+         flux3,f3_lo,f3_hi, &
+         source,sr_lo,sr_hi, &
+         dx,dt,time) bind(C, name="ca_corrgsrc")
 
     use amrex_fort_module, only: rt => amrex_real
     use amrex_error_module
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
     use amrex_mempool_module, only: bl_allocate, bl_deallocate
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, &
-                                  grav_source_type, gravity_type, get_g_from_phi
+         grav_source_type, gravity_type, get_g_from_phi
     use prob_params_module, only: dg, center, physbc_lo, physbc_hi, Symmetry
     use fundamental_constants_module, only: Gconst
     use castro_util_module, only: position ! function
@@ -285,12 +285,6 @@ contains
 
     !$gpu
 
-    ! real(rt), pointer :: phi(:,:,:)
-    ! real(rt), pointer :: grav(:,:,:,:)
-    ! real(rt), pointer :: gravx(:,:,:)
-    ! real(rt), pointer :: gravy(:,:,:)
-    ! real(rt), pointer :: gravz(:,:,:)
-
     Sr_old(:) = ZERO
     Sr_new(:) = ZERO
     Srcorr(:) = ZERO
@@ -298,117 +292,6 @@ contains
     snew(:) = ZERO
 
     hdtInv = HALF / dt
-
-    ! Gravitational source options for how to add the work to (rho E):
-    ! grav_source_type =
-    ! 1: Original version ("does work")
-    ! 2: Modification of type 1 that updates the U before constructing SrEcorr
-    ! 3: Puts all gravitational work into KE, not (rho e)
-    ! 4: Conservative gravity approach (discussed in first white dwarf merger paper).
-
-! #ifdef SELF_GRAVITY
-!     if (grav_source_type .eq. 4) then
-!
-!        call bl_allocate(phi,   lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
-!        call bl_allocate(grav,  lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1,1,3)
-!        call bl_allocate(gravx, lo(1),hi(1)+1,lo(2),hi(2),lo(3),hi(3))
-!        call bl_allocate(gravy, lo(1),hi(1),lo(2),hi(2)+1,lo(3),hi(3))
-!        call bl_allocate(gravz, lo(1),hi(1),lo(2),hi(2),lo(3),hi(3)+1)
-!
-!        ! For our purposes, we want the time-level n+1/2 phi because we are
-!        ! using fluxes evaluated at that time. To second order we can
-!        ! average the new and old potentials.
-!
-!        phi = ZERO
-!        grav = ZERO
-!        gravx = ZERO
-!        gravy = ZERO
-!        gravz = ZERO
-!
-!        do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
-!           do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
-!              do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
-!                 phi(i,j,k) = HALF * (pnew(i,j,k) + pold(i,j,k))
-!                 grav(i,j,k,:) = HALF * (gnew(i,j,k,:) + gold(i,j,k,:))
-!              enddo
-!           enddo
-!        enddo
-!
-!        ! We need to perform the following hack to deal with the fact that
-!        ! the potential is defined on cell edges, not cell centers, for ghost
-!        ! zones. We redefine the boundary zone values as equal to the adjacent
-!        ! cell minus the original value. Then later when we do the adjacent zone
-!        ! minus the boundary zone, we'll get the boundary value, which is what we want.
-!        ! We don't need to reset this at the end because phi is a temporary array.
-!        ! Note that this is needed for Poisson gravity only; the other gravity methods
-!        ! generally define phi on cell centers even outside the domain.
-!        ! Note also that we do not want to apply it on symmetry boundaries,
-!        ! because in that case the value in the ghost zone is the cell-centered value.
-!        ! We also want to skip the corners, because the potential is undefined there.
-!
-!        if (gravity_type == "PoissonGrav") then
-!
-!           do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
-!              do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
-!                 do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
-!                    if (is_domain_corner([i, j, k])) cycle
-!
-!                    if (i .lt. domlo(1) .and. physbc_lo(1) .ne. Symmetry) then
-!                       phi(i,j,k) = phi(i+1,j,k) - phi(i,j,k)
-!                    endif
-!                    if (i .gt. domhi(1) .and. physbc_hi(1) .ne. Symmetry) then
-!                       phi(i,j,k) = phi(i-1,j,k) - phi(i,j,k)
-!                    endif
-!                    if (j .lt. domlo(2) .and. physbc_lo(2) .ne. Symmetry) then
-!                       phi(i,j,k) = phi(i,j+1,k) - phi(i,j,k)
-!                    endif
-!                    if (j .gt. domhi(2) .and. physbc_hi(2) .ne. Symmetry) then
-!                       phi(i,j,k) = phi(i,j-1,k) - phi(i,j,k)
-!                    endif
-!                    if (k .lt. domlo(3) .and. physbc_lo(3) .ne. Symmetry) then
-!                       phi(i,j,k) = phi(i,j,k+1) - phi(i,j,k)
-!                    endif
-!                    if (k .gt. domhi(3) .and. physbc_hi(3) .ne. Symmetry) then
-!                       phi(i,j,k) = phi(i,j,k-1) - phi(i,j,k)
-!                    endif
-!                 enddo
-!              enddo
-!           enddo
-!
-!        endif
-!
-!        if (.not. (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" .and. get_g_from_phi == 1) ) ) then
-!
-!           ! Construct the time-averaged edge-centered gravity.
-!
-!           do k = lo(3), hi(3)
-!              do j = lo(2), hi(2)
-!                 do i = lo(1), hi(1)+1*dg(1)
-!                    gravx(i,j,k) = HALF * (grav(i,j,k,1) + grav(i-1,j,k,1))
-!                 enddo
-!              enddo
-!           enddo
-!
-!           do k = lo(3), hi(3)
-!              do j = lo(2), hi(2)+1*dg(2)
-!                 do i = lo(1), hi(1)
-!                    gravy(i,j,k) = HALF * (grav(i,j,k,2) + grav(i,j-1,k,2))
-!                 enddo
-!              enddo
-!           enddo
-!
-!           do k = lo(3), hi(3)+1*dg(3)
-!              do j = lo(2), hi(2)
-!                 do i = lo(1), hi(1)
-!                    gravz(i,j,k) = HALF * (grav(i,j,k,3) + grav(i,j,k-1,3))
-!                 enddo
-!              enddo
-!           enddo
-!
-!        endif
-!
-!     endif
-! #endif
 
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
@@ -508,12 +391,12 @@ contains
                 if (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" .and. get_g_from_phi == 1) ) then
 
                    SrEcorr = SrEcorr + (ONE / dt) * ((flux1(i        ,j,k) * HALF * (phi(i-1,j,k) + phi(i,j,k)) - &
-                                                      flux1(i+1*dg(1),j,k) * HALF * (phi(i+1,j,k) + phi(i,j,k)) + &
-                                                      flux2(i,j        ,k) * HALF * (phi(i,j-1,k) + phi(i,j,k)) - &
-                                                      flux2(i,j+1*dg(2),k) * HALF * (phi(i,j+1,k) + phi(i,j,k)) + &
-                                                      flux3(i,j,k        ) * HALF * (phi(i,j,k-1) + phi(i,j,k)) - &
-                                                      flux3(i,j,k+1*dg(3)) * HALF * (phi(i,j,k+1) + phi(i,j,k))) / vol(i,j,k) - &
-                                                      (rhon - rhoo) * phi(i,j,k))
+                        flux1(i+1*dg(1),j,k) * HALF * (phi(i+1,j,k) + phi(i,j,k)) + &
+                        flux2(i,j        ,k) * HALF * (phi(i,j-1,k) + phi(i,j,k)) - &
+                        flux2(i,j+1*dg(2),k) * HALF * (phi(i,j+1,k) + phi(i,j,k)) + &
+                        flux3(i,j,k        ) * HALF * (phi(i,j,k-1) + phi(i,j,k)) - &
+                        flux3(i,j,k+1*dg(3)) * HALF * (phi(i,j,k+1) + phi(i,j,k))) / vol(i,j,k) - &
+                        (rhon - rhoo) * phi(i,j,k))
 
                 else
 
@@ -523,11 +406,11 @@ contains
                    ! g_{i+1/2} = -( phi_{i+1} - phi_{i} ) / dx.
 
                    SrEcorr = SrEcorr + hdtInv * ( flux1(i        ,j,k) * gravx(i  ,j,k) * dx(1) + &
-                                                  flux1(i+1*dg(1),j,k) * gravx(i+1,j,k) * dx(1) + &
-                                                  flux2(i,j        ,k) * gravy(i,j  ,k) * dx(2) + &
-                                                  flux2(i,j+1*dg(2),k) * gravy(i,j+1,k) * dx(2) + &
-                                                  flux3(i,j,k        ) * gravz(i,j,k  ) * dx(3) + &
-                                                  flux3(i,j,k+1*dg(3)) * gravz(i,j,k+1) * dx(3) ) / vol(i,j,k)
+                        flux1(i+1*dg(1),j,k) * gravx(i+1,j,k) * dx(1) + &
+                        flux2(i,j        ,k) * gravy(i,j  ,k) * dx(2) + &
+                        flux2(i,j+1*dg(2),k) * gravy(i,j+1,k) * dx(2) + &
+                        flux3(i,j,k        ) * gravz(i,j,k  ) * dx(3) + &
+                        flux3(i,j,k+1*dg(3)) * gravz(i,j,k+1) * dx(3) ) / vol(i,j,k)
 
                 endif
 #else
@@ -535,13 +418,13 @@ contains
 
                 if (dim .eq. 1) then
                    SrEcorr = SrEcorr + (HALF / dt) * ( flux1(i        ,j,k) * const_grav * dx(1) + &
-                                                       flux1(i+1*dg(1),j,k) * const_grav * dx(1) ) / vol(i,j,k)
+                        flux1(i+1*dg(1),j,k) * const_grav * dx(1) ) / vol(i,j,k)
                 else if (dim .eq. 2) then
                    SrEcorr = SrEcorr + (HALF / dt) * ( flux2(i,j        ,k) * const_grav * dx(2) + &
-                                                       flux2(i,j+1*dg(2),k) * const_grav * dx(2) ) / vol(i,j,k)
+                        flux2(i,j+1*dg(2),k) * const_grav * dx(2) ) / vol(i,j,k)
                 else if (dim .eq. 3) then
                    SrEcorr = SrEcorr + (HALF / dt) * ( flux3(i,j,k        ) * const_grav * dx(3) + &
-                                                       flux3(i,j,k+1*dg(3)) * const_grav * dx(3) ) / vol(i,j,k)
+                        flux3(i,j,k+1*dg(3)) * const_grav * dx(3) ) / vol(i,j,k)
                 end if
 #endif
 
@@ -563,27 +446,17 @@ contains
        enddo
     enddo
 
-! #ifdef SELF_GRAVITY
-!     if (grav_source_type .eq. 4) then
-!        call bl_deallocate(phi)
-!        call bl_deallocate(grav)
-!        call bl_deallocate(gravx)
-!        call bl_deallocate(gravy)
-!        call bl_deallocate(gravz)
-!     endif
-! #endif
-
   end subroutine ca_corrgsrc
 
 
-
+#ifdef SELF_GRAVITY
   subroutine ca_make_edge_centered_gravity(lo,hi, &
-                         domlo, domhi, &
-                         grav, g_lo, g_hi, &
-                         phi, p_lo, p_hi, &
-                         gravx,gx_lo,gx_hi, &
-                         gravy,gy_lo,gy_hi, &
-                         gravz,gz_lo,gz_hi) bind(C, name="ca_make_edge_centered_gravity")
+       domlo, domhi, &
+       grav, g_lo, g_hi, &
+       phi, p_lo, p_hi, &
+       gravx,gx_lo,gx_hi, &
+       gravy,gy_lo,gy_hi, &
+       gravz,gz_lo,gz_hi) bind(C, name="ca_make_edge_centered_gravity")
 
     use amrex_fort_module, only: rt => amrex_real
     use amrex_error_module
@@ -617,7 +490,6 @@ contains
     ! 3: Puts all gravitational work into KE, not (rho e)
     ! 4: Conservative gravity approach (discussed in first white dwarf merger paper).
 
-#ifdef SELF_GRAVITY
     if (grav_source_type .eq. 4) then
 
        ! We need to perform the following hack to deal with the fact that
@@ -694,8 +566,8 @@ contains
        endif
 
     endif
-#endif
 
-end subroutine ca_make_edge_centered_gravity
+  end subroutine ca_make_edge_centered_gravity
+#endif
 
 end module gravity_sources_module

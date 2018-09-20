@@ -753,6 +753,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(source),
      const amrex::Real* dx, const amrex::Real dt, const amrex::Real time);
 
+#ifdef SELF_GRAVITY
  void ca_make_edge_centered_gravity
    (const int* lo, const int* hi,
     const int* domlo, const int* domhi,
@@ -761,6 +762,7 @@ extern "C"
     const BL_FORT_FAB_ARG_3D(gravx),
     const BL_FORT_FAB_ARG_3D(gravy),
     const BL_FORT_FAB_ARG_3D(gravz));
+#endif
 #endif
 
 #ifdef ROTATION
