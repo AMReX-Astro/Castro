@@ -11,12 +11,12 @@ extern "C"
 
   void ca_test_residual
     (const int* lo, const int* hi,
-    BL_FORT_FAB_ARG(rhs),
-    const BL_FORT_FAB_ARG(xgrad),
+    BL_FORT_FAB_ARG_3D(rhs),
+    const BL_FORT_FAB_ARG_3D(xgrad),
 #if AMREX_SPACEDIM >=2
-    const BL_FORT_FAB_ARG(ygrad),
+    const BL_FORT_FAB_ARG_3D(ygrad),
 #if AMREX_SPACEDIM==3
-    const BL_FORT_FAB_ARG(zgrad),
+    const BL_FORT_FAB_ARG_3D(zgrad),
 #endif
 #endif
     const amrex::Real* dx, const amrex::Real* problo,

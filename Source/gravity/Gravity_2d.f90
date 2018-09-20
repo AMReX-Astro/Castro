@@ -9,9 +9,9 @@ module gravity_2D_module
 contains
 
   subroutine ca_test_residual(lo, hi, &
-       rhs, rhl1, rhl2, rhh1, rhh2, &
-       ecx, ecxl1, ecxl2, ecxh1, ecxh2, &
-       ecy, ecyl1, ecyl2, ecyh1, ecyh2, &
+       rhs, rhl, rhh, &
+       ecx, ecxl, ecxh, &
+       ecy, ecyl, ecyh, &
        dx,problo,coord_type) bind(C, name="ca_test_residual")
 
     use amrex_constants_module
@@ -19,31 +19,32 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer , intent(in   ) :: lo(2),hi(2)
+    integer , intent(in   ) :: lo(3),hi(3)
     integer , value, intent(in   ) :: coord_type
-    integer , intent(in   ) :: rhl1, rhl2, rhh1, rhh2
-    integer , intent(in   ) :: ecxl1, ecxl2, ecxh1, ecxh2
-    integer , intent(in   ) :: ecyl1, ecyl2, ecyh1, ecyh2
-    real(rt), intent(inout) :: rhs(rhl1:rhh1,rhl2:rhh2)
-    real(rt), intent(in   ) :: ecx(ecxl1:ecxh1,ecxl2:ecxh2)
-    real(rt), intent(in   ) :: ecy(ecyl1:ecyh1,ecyl2:ecyh2)
-    real(rt), intent(in   ) :: dx(2), problo(2)
+    integer , intent(in   ) :: rhl(3), rhh(3)
+    integer , intent(in   ) :: ecxl(3), ecxh(3)
+    integer , intent(in   ) :: ecyl(3), ecyh(3)
+    real(rt), intent(inout) :: rhs(rhl(1):rhh(1),rhl(2):rhh(2),rhl(3):rhh(3))
+    real(rt), intent(in   ) :: ecx(ecxl(1):ecxh(1),ecxl(2):ecxh(2),ecxl(3):ecxh(3))
+    real(rt), intent(in   ) :: ecy(ecyl(1):ecyh(1),ecyl(2):ecyh(2),ecyl(3):ecyh(3))
+    real(rt), intent(in   ) :: dx(3), problo(3)
 
     ! Local variables
     real(rt)         :: lapphi
     real(rt)         :: ri,ro,rc
-    integer          :: i,j
+    integer          :: i,j,k
 
     !$gpu
+    k = lo(3)
 
     ! Cartesian
     if (coord_type .eq. 0) then
 
        do i=lo(1),hi(1)
           do j=lo(2),hi(2)
-             lapphi = (ecx(i+1,j)-ecx(i,j)) / dx(1) + &
-                  (ecy(i,j+1)-ecy(i,j)) / dx(2)
-             rhs(i,j) = rhs(i,j) - lapphi
+             lapphi = (ecx(i+1,j,k)-ecx(i,j,k)) / dx(1) + &
+                  (ecy(i,j+1,k)-ecy(i,j,k)) / dx(2)
+             rhs(i,j,k) = rhs(i,j,k) - lapphi
           enddo
        enddo
 
@@ -58,15 +59,15 @@ contains
 
           do j=lo(2),hi(2)
 
-             lapphi = (ro*ecx(i+1,j)-ri*ecx(i,j)) / (rc*dx(1)) + &
-                  (   ecy(i,j+1)-   ecy(i,j)) / dx(2)
+             lapphi = (ro*ecx(i+1,j,k)-ri*ecx(i,j,k)) / (rc*dx(1)) + &
+                  (   ecy(i,j+1,k)-   ecy(i,j,k)) / dx(2)
 
-             rhs(i,j) = rhs(i,j) - lapphi
+             rhs(i,j,k) = rhs(i,j,k) - lapphi
           enddo
        enddo
 
     else
-        
+
 #ifndef AMREX_USE_CUDA
        print *,'Bogus coord_type in test_residual ' ,coord_type
        call amrex_error("Error:: Gravity_2d.f90 :: ca_test_residual")

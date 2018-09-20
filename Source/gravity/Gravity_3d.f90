@@ -9,10 +9,10 @@ module gravity_3D_module
 contains
 
   subroutine ca_test_residual(lo, hi, &
-       rhs, rhl1, rhl2, rhl3, rhh1, rhh2, rhh3, &
-       ecx, ecxl1, ecxl2, ecxl3, ecxh1, ecxh2, ecxh3, &
-       ecy, ecyl1, ecyl2, ecyl3, ecyh1, ecyh2, ecyh3, &
-       ecz, eczl1, eczl2, eczl3, eczh1, eczh2, eczh3, &
+       rhs, rhl, rhh, &
+       ecx, ecxl, ecxh, &
+       ecy, ecyl, ecyh, &
+       ecz, eczl, eczh, &
        dx,problo,coord_type) bind(C, name="ca_test_residual")
 
     use amrex_fort_module, only : rt => amrex_real
@@ -20,14 +20,14 @@ contains
 
     integer , intent(in   ) :: lo(3),hi(3)
     integer , value, intent(in) :: coord_type
-    integer , intent(in   ) :: rhl1, rhl2, rhl3, rhh1, rhh2, rhh3
-    integer , intent(in   ) :: ecxl1, ecxl2, ecxl3, ecxh1, ecxh2, ecxh3
-    integer , intent(in   ) :: ecyl1, ecyl2, ecyl3, ecyh1, ecyh2, ecyh3
-    integer , intent(in   ) :: eczl1, eczl2, eczl3, eczh1, eczh2, eczh3
-    real(rt), intent(inout) :: rhs(rhl1:rhh1,rhl2:rhh2,rhl3:rhh3)
-    real(rt), intent(in   ) :: ecx(ecxl1:ecxh1,ecxl2:ecxh2, ecxl3:ecxh3)
-    real(rt), intent(in   ) :: ecy(ecyl1:ecyh1,ecyl2:ecyh2, ecyl3:ecyh3)
-    real(rt), intent(in   ) :: ecz(eczl1:eczh1,eczl2:eczh2, eczl3:eczh3)
+    integer , intent(in   ) :: rhl(3), rhh(3)
+    integer , intent(in   ) :: ecxl(3), ecxh(3)
+    integer , intent(in   ) :: ecyl(3), ecyh(3)
+    integer , intent(in   ) :: eczl(3), eczh(3)
+    real(rt), intent(inout) :: rhs(rhl(1):rhh(1),rhl(2):rhh(2),rhl(3):rhh(3))
+    real(rt), intent(in   ) :: ecx(ecxl(1):ecxh(1),ecxl(2):ecxh(2),ecxl(3):ecxh(3))
+    real(rt), intent(in   ) :: ecy(ecyl(1):ecyh(1),ecyl(2):ecyh(2),ecyl(3):ecyh(3))
+    real(rt), intent(in   ) :: ecz(eczl(1):eczh(1),eczl(2):eczh(2),eczl(3):eczh(3))
     real(rt), intent(in   ) :: dx(3),problo(3)
 
     ! Local variables
