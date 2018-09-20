@@ -13,20 +13,20 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
                                   update_flux, uf_lo, uf_hi, &
                                   dx, dt, &
                                   flx, flx_lo, flx_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                                   fly, fly_lo, fly_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                                   flz, flz_lo, flz_hi, &
 #endif
                                   area1, area1_lo, area1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                                   area2, area2_lo, area2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                                   area3, area3_lo, area3_hi, &
 #endif
-#if BL_SPACEDIM < 3
+#if AMREX_SPACEDIM < 3
                                   pradial, p_lo, p_hi, &
                                   dloga, dloga_lo, dloga_hi, &
 #endif
@@ -74,15 +74,15 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   integer, intent(in) :: uf_lo(3), uf_hi(3)
   integer, intent(in) :: flx_lo(3), flx_hi(3)
   integer, intent(in) :: area1_lo(3), area1_hi(3)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
   integer, intent(in) :: fly_lo(3), fly_hi(3)
   integer, intent(in) :: area2_lo(3), area2_hi(3)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
   integer, intent(in) :: flz_lo(3), flz_hi(3)
   integer, intent(in) :: area3_lo(3), area3_hi(3)
 #endif
-#if BL_SPACEDIM <= 2
+#if AMREX_SPACEDIM <= 2
   integer, intent(in) :: p_lo(3), p_hi(3)
   integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
@@ -99,15 +99,15 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   real(rt), intent(inout) :: update_flux(uf_lo(1):uf_hi(1), uf_lo(2):uf_hi(2), uf_lo(3):uf_hi(3), NVAR)
   real(rt), intent(inout) :: flx(flx_lo(1):flx_hi(1), flx_lo(2):flx_hi(2), flx_lo(3):flx_hi(3), NVAR)
   real(rt), intent(in) :: area1(area1_lo(1):area1_hi(1), area1_lo(2):area1_hi(2), area1_lo(3):area1_hi(3))
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
   real(rt), intent(inout) :: fly(fly_lo(1):fly_hi(1), fly_lo(2):fly_hi(2), fly_lo(3):fly_hi(3), NVAR)
   real(rt), intent(in) :: area2(area2_lo(1):area2_hi(1), area2_lo(2):area2_hi(2), area2_lo(3):area2_hi(3))
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
   real(rt), intent(inout) :: flz(flz_lo(1):flz_hi(1), flz_lo(2):flz_hi(2), flz_lo(3):flz_hi(3), NVAR)
   real(rt), intent(in) :: area3(area3_lo(1):area3_hi(1), area3_lo(2):area3_hi(2), area3_lo(3):area3_hi(3))
 #endif
-#if BL_SPACEDIM <= 2
+#if AMREX_SPACEDIM <= 2
   real(rt), intent(inout) :: pradial(p_lo(1):p_hi(1), p_lo(2):p_hi(2), p_lo(3):p_hi(3))
   real(rt), intent(in) :: dloga(dloga_lo(1):dloga_hi(1), dloga_lo(2):dloga_hi(2), dloga_lo(3):dloga_hi(3))
 #endif
@@ -189,14 +189,14 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   call bl_allocate(qgdnvx, flx_lo, flx_hi, NGDNV)
   call bl_allocate(qgdnvx_avg, q_lo, q_hi, NGDNV)
   call bl_allocate(flx_avg, q_lo, q_hi, NVAR)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
   call bl_allocate(qy_avg, q_lo, q_hi, NQ)
   call bl_allocate(qy_fc, q_lo, q_hi, NQ)
   call bl_allocate(qgdnvy, fly_lo, fly_hi, NGDNV)
   call bl_allocate(qgdnvy_avg, q_lo, q_hi, NGDNV)
   call bl_allocate(fly_avg, q_lo, q_hi, NVAR)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
   call bl_allocate(qz_avg, q_lo, q_hi, NQ)
   call bl_allocate(qz_fc, q_lo, q_hi, NQ)
   call bl_allocate(qgdnvz, flz_lo, flz_hi, NGDNV)
@@ -207,11 +207,11 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   call bl_allocate(qxm, q_lo, q_hi, NQ)
   call bl_allocate(qxp, q_lo, q_hi, NQ)
 
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
   call bl_allocate(qym, q_lo, q_hi, NQ)
   call bl_allocate(qyp, q_lo, q_hi, NQ)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
   call bl_allocate(qzm, q_lo, q_hi, NQ)
   call bl_allocate(qzp, q_lo, q_hi, NQ)
 #endif
@@ -274,7 +274,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
                  qxm, qxp, q_lo, q_hi, &
                  lo, hi)
 
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
      ! y-interfaces
      call states(2, &
                  q, q_lo, q_hi, NQ, n, &
@@ -283,7 +283,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
                  lo, hi)
 #endif
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
      ! z-interfaces
      call states(3, &
                  q, q_lo, q_hi, NQ, n, &
@@ -316,7 +316,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
                          lo(1), hi(1)+1, lo(2)-dg(2), hi(2)+dg(2), k, k, k)
   enddo
 
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
   do k = lo(3)-dg(3), hi(3)+dg(3)
 
      call riemann_state(qym, qyp, q_lo, q_hi, &
@@ -331,7 +331,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   enddo
 #endif
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
   do k = lo(3), hi(3)+dg(3)
 
      call riemann_state(qzm, qzp, q_lo, q_hi, &
@@ -352,12 +352,12 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   call bl_deallocate(qxm)
   call bl_deallocate(qxp)
 
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
   call bl_deallocate(qym)
   call bl_deallocate(qyp)
 #endif
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
   call bl_deallocate(qzm)
   call bl_deallocate(qzp)
 #endif
@@ -370,7 +370,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
   ! construct the face-center interface states
 
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
   ! x-interfaces
   do n = 1, NQ
      do k = lo(3), hi(3)
@@ -379,7 +379,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
               ! note: need to consider axisymmetry in the future
               lap = qx_avg(i,j+1,k,n) - TWO*qx_avg(i,j,k,n) + qx_avg(i,j-1,k,n)
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
               lap = lap + qx_avg(i,j,k+1,n) - TWO*qx_avg(i,j,k,n) + qx_avg(i,j,k-1,n)
 #endif
               qx_fc(i,j,k,n) = qx_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
@@ -396,7 +396,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
               ! note: need to consider axisymmetry in the future
               lap = qy_avg(i+1,j,k,n) - TWO*qy_avg(i,j,k,n) + qy_avg(i-1,j,k,n)
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
               lap = lap + qy_avg(i,j,k+1,n) - TWO*qy_avg(i,j,k,n) + qy_avg(i,j,k-1,n)
 #endif
               qy_fc(i,j,k,n) = qy_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
@@ -405,7 +405,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      enddo
   enddo
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
   ! z-interfaces
   do n = 1, NQ
      do k = lo(3), hi(3)+1
@@ -434,7 +434,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
                          lo(1), hi(1)+1, lo(2), hi(2), k, k, k) !, .true.)
   enddo
 
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
   do k = lo(3), hi(3)
      call compute_flux_q(2, qy_fc, q_lo, q_hi, &
                          fly, fly_lo, fly_hi, &
@@ -443,7 +443,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   enddo
 #endif
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
   do k = lo(3), hi(3)+1
      call compute_flux_q(3, qz_fc, q_lo, q_hi, &
                          flz, flz_lo, flz_hi, &
@@ -461,7 +461,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
            do i = lo(1), hi(1)+1
 
               lap = flx_avg(i,j+1,k,n) - TWO*flx_avg(i,j,k,n) + flx_avg(i,j-1,k,n)
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
               lap = lap + flx_avg(i,j,k+1,n) - TWO*flx_avg(i,j,k,n) + flx_avg(i,j,k-1,n)
 #endif
               flx(i,j,k,n) = flx(i,j,k,n) + 1.0_rt/24.0_rt * lap
@@ -477,7 +477,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
            do i = lo(1), hi(1)+1
 
               lap = qgdnvx_avg(i,j+1,k,n) - TWO*qgdnvx_avg(i,j,k,n) + qgdnvx_avg(i,j-1,k,n)
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
               lap = lap + qgdnvx_avg(i,j,k+1,n) - TWO*qgdnvx_avg(i,j,k,n) + qgdnvx_avg(i,j,k-1,n)
 #endif
               qgdnvx(i,j,k,n) = qgdnvx(i,j,k,n) + 1.0_rt/24.0_rt * lap
@@ -495,7 +495,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
            do i = lo(1), hi(1)
 
               lap = fly_avg(i+1,j,k,n) - TWO*fly_avg(i,j,k,n) + fly_avg(i-1,j,k,n)
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
               lap = lap + fly_avg(i,j,k+1,n) - TWO*fly_avg(i,j,k,n) + fly_avg(i,j,k-1,n)
 #endif
               fly(i,j,k,n) = fly(i,j,k,n) + 1.0_rt/24.0_rt * lap
@@ -510,7 +510,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
            do i = lo(1), hi(1)
 
               lap = qgdnvy_avg(i+1,j,k,n) - TWO*qgdnvy_avg(i,j,k,n) + qgdnvy_avg(i-1,j,k,n)
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
               lap = lap + qgdnvy_avg(i,j,k+1,n) - TWO*qgdnvy_avg(i,j,k,n) + qgdnvy_avg(i,j,k-1,n)
 #endif
               qgdnvy(i,j,k,n) = qgdnvy(i,j,k,n) + 1.0_rt/24.0_rt * lap
@@ -519,7 +519,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      enddo
   enddo
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
   ! z-interfaces
   do n = 1, NVAR
      do k = lo(3), hi(3)+1
@@ -586,20 +586,20 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
      if ( n == UTEMP ) then
         flx(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
         fly(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
         flz(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
 #endif
 
 #ifdef SHOCK_VAR
      else if ( n == USHK ) then
         flx(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
         fly(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
         flz(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
 #endif
 #endif
@@ -615,7 +615,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
               enddo
            enddo
         enddo
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
         do k = lo(3), hi(3)
            do j = lo(2), hi(2)+1
               do i = lo(1), hi(1)
@@ -626,7 +626,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
            enddo
         enddo
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
         do k = lo(3), hi(3)+1
            do j = lo(2), hi(2)
               do i = lo(1), hi(1)
@@ -642,14 +642,13 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
   enddo
 
-  call normalize_species_fluxes(flx,flx_lo,flx_hi, &
-#if BL_SPACEDIM >= 2
-                                fly,fly_lo,fly_hi, &
+  call normalize_species_fluxes(flx_lo, flx_hi, flx, flx_lo, flx_hi)
+#if AMREX_SPACEDIM >= 2
+  call normalize_species_fluxes(fly_lo, fly_hi, fly, fly_lo, fly_hi)
 #endif
-#if BL_SPACEDIM == 3
-                                flz,flz_lo,flz_hi, &
+#if AMREX_SPACEDIM == 3
+  call normalize_species_fluxes(flz_lo, flz_hi, flz, flz_lo, flz_hi)
 #endif
-                                lo,hi)
 
   ! For hydro, we will create an update source term that is
   ! essentially the flux divergence.  This can be added with dt to
@@ -659,11 +658,11 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
         do j = lo(2), hi(2)
            do i = lo(1), hi(1)
 
-#if BL_SPACEDIM == 1
+#if AMREX_SPACEDIM == 1
               update(i,j,k,n) = update(i,j,k,n) + &
                    (flx(i,j,k,n) * area1(i,j,k) - flx(i+1,j,k,n) * area1(i+1,j,k) ) / vol(i,j,k)
 
-#elif BL_SPACEDIM == 2
+#elif AMREX_SPACEDIM == 2
               update(i,j,k,n) = update(i,j,k,n) + &
                    (flx(i,j,k,n) * area1(i,j,k) - flx(i+1,j,k,n) * area1(i+1,j,k) + &
                     fly(i,j,k,n) * area2(i,j,k) - fly(i,j+1,k,n) * area2(i,j+1,k) ) / vol(i,j,k)
@@ -675,13 +674,13 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
                     flz(i,j,k,n) * area3(i,j,k) - flz(i,j,k+1,n) * area3(i,j,k+1) ) / vol(i,j,k)
 #endif
 
-#if BL_SPACEDIM == 1
+#if AMREX_SPACEDIM == 1
               if (n == UMX) then
                  update(i,j,k,UMX) = update(i,j,k,UMX) - ( qgdnvx(i+1,j,k,GDPRES) - qgdnvx(i,j,k,GDPRES) ) / dx(1)
               endif
 #endif
 
-#if BL_SPACEDIM == 2
+#if AMREX_SPACEDIM == 2
               if (n == UMX) then
                  ! add the pressure source term for axisymmetry
                  if (coord_type > 0) then
@@ -701,7 +700,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      enddo
   enddo
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
 #ifdef HYBRID_MOMENTUM
   call add_hybrid_advection_source(lo, hi, dt, &
                                    update, uout_lo, uout_hi, &
@@ -721,7 +720,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
            do i = lo(1), hi(1) + 1
               flx(i,j,k,n) = dt * flx(i,j,k,n) * area1(i,j,k)
 
-#if BL_SPACEDIM == 1
+#if AMREX_SPACEDIM == 1
               if (coord_type .eq. 0 .and. n == UMX) then
                  flx(i,j,k,n) = flx(i,j,k,n) + dt * area1(i,j,k) * qgdnvx(i,j,k,GDPRES)
               endif
@@ -732,7 +731,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      enddo
   enddo
 
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
   do n = 1, NVAR
      do k = lo(3), hi(3)
         do j = lo(2), hi(2) + 1
@@ -744,7 +743,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   enddo
 #endif
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
   do n = 1, NVAR
      do k = lo(3), hi(3) + 1
         do j = lo(2), hi(2)
@@ -756,7 +755,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   enddo
 #endif
 
-#if BL_SPACEDIM < 3
+#if AMREX_SPACEDIM < 3
   if (coord_type > 0) then
      pradial(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)) = qgdnvx(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),GDPRES) * dt
   end if
@@ -774,14 +773,14 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   call bl_deallocate(qgdnvx)
   call bl_deallocate(qgdnvx_avg)
   call bl_deallocate(flx_avg)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
   call bl_deallocate(qy_avg)
   call bl_deallocate(qy_fc)
   call bl_deallocate(qgdnvy)
   call bl_deallocate(qgdnvy_avg)
   call bl_deallocate(fly_avg)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
   call bl_deallocate(qz_avg)
   call bl_deallocate(qz_fc)
   call bl_deallocate(qgdnvz)

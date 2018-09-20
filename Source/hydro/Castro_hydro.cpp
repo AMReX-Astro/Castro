@@ -61,12 +61,12 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
     {
 
-      FArrayBox flux[BL_SPACEDIM];
-#if (BL_SPACEDIM <= 2)
+      FArrayBox flux[AMREX_SPACEDIM];
+#if (AMREX_SPACEDIM <= 2)
       FArrayBox pradial(Box::TheUnitBox(),1);
 #endif
 #ifdef RADIATION
-      FArrayBox rad_flux[BL_SPACEDIM];
+      FArrayBox rad_flux[AMREX_SPACEDIM];
 #endif
 
       int priv_nstep_fsp = -1;
@@ -93,7 +93,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 
 	  // Allocate fabs for fluxes
-	  for (int i = 0; i < BL_SPACEDIM ; i++)  {
+	  for (int i = 0; i < AMREX_SPACEDIM ; i++)  {
 	    const Box& bxtmp = amrex::surroundingNodes(bx,i);
 	    flux[i].resize(bxtmp,NUM_STATE);
 #ifdef RADIATION
@@ -101,7 +101,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 	  }
 
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
 	  if (!Geometry::IsCartesian()) {
 	    pradial.resize(amrex::surroundingNodes(bx,0),1);
 	  }
@@ -132,7 +132,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 	     D_DECL(BL_TO_FORTRAN_ANYD(area[0][mfi]),
 		    BL_TO_FORTRAN_ANYD(area[1][mfi]),
 		    BL_TO_FORTRAN_ANYD(area[2][mfi])),
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
 	     BL_TO_FORTRAN_ANYD(pradial),
 	     BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
 #endif
@@ -150,7 +150,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 	  // we want to copy the fluxes since we expect that there will not be
 	  // subcycling and we only want the last iteration's fluxes.
 
-	  for (int i = 0; i < BL_SPACEDIM ; i++) {
+	  for (int i = 0; i < AMREX_SPACEDIM ; i++) {
 #ifndef SDC
 	    (*fluxes    [i])[mfi].plus(    flux[i],mfi.nodaltilebox(i),0,0,NUM_STATE);
 #ifdef RADIATION
@@ -165,7 +165,7 @@ Castro::construct_hydro_source(Real time, Real dt)
             (*mass_fluxes[i])[mfi].copy(flux[i],mfi.nodaltilebox(i),Density,mfi.nodaltilebox(i),0,1);
 	  }
 
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
 	  if (!Geometry::IsCartesian()) {
 #ifndef SDC
 	    P_radial[mfi].plus(pradial,mfi.nodaltilebox(0),0,0,1);
@@ -307,12 +307,12 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
   {
 
-    FArrayBox flux[BL_SPACEDIM];
-#if (BL_SPACEDIM <= 2)
+    FArrayBox flux[AMREX_SPACEDIM];
+#if (AMREX_SPACEDIM <= 2)
     FArrayBox pradial(Box::TheUnitBox(),1);
 #endif
 #ifdef RADIATION
-    FArrayBox rad_flux[BL_SPACEDIM];
+    FArrayBox rad_flux[AMREX_SPACEDIM];
 #endif
 
     int priv_nstep_fsp = -1;
@@ -348,7 +348,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         } 
 
 	// Allocate fabs for fluxes
-	for (int i = 0; i < BL_SPACEDIM ; i++)  {
+	for (int i = 0; i < AMREX_SPACEDIM ; i++)  {
 	  const Box& bxtmp = amrex::surroundingNodes(bx,i);
 	  flux[i].resize(bxtmp,NUM_STATE);
 #ifdef RADIATION
@@ -356,7 +356,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
 	}
 
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
 	if (!Geometry::IsCartesian()) {
 	  pradial.resize(amrex::surroundingNodes(bx,0),1);
 	}
@@ -381,7 +381,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
              D_DECL(BL_TO_FORTRAN_ANYD(area[0][mfi]),
                     BL_TO_FORTRAN_ANYD(area[1][mfi]),
                     BL_TO_FORTRAN_ANYD(area[2][mfi])),
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
              BL_TO_FORTRAN_ANYD(pradial),
              BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
 #endif
@@ -406,7 +406,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
              D_DECL(BL_TO_FORTRAN_ANYD(area[0][mfi]),
                     BL_TO_FORTRAN_ANYD(area[1][mfi]),
                     BL_TO_FORTRAN_ANYD(area[2][mfi])),
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
              BL_TO_FORTRAN_ANYD(pradial),
              BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
 #endif
@@ -416,7 +416,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 	// Store the fluxes from this advance -- we weight them by the
 	// integrator weight for this stage
-	for (int i = 0; i < BL_SPACEDIM ; i++) {
+	for (int i = 0; i < AMREX_SPACEDIM ; i++) {
 	  (*fluxes[i])[mfi].saxpy(stage_weight, flux[i], 
                                   mfi.nodaltilebox(i), mfi.nodaltilebox(i), 0, 0, NUM_STATE);
 #ifdef RADIATION
@@ -425,7 +425,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
 	}
 
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
 	if (!Geometry::IsCartesian()) {
 	  P_radial[mfi].saxpy(stage_weight, pradial,
                               mfi.nodaltilebox(0), mfi.nodaltilebox(0), 0, 0, 1);
@@ -457,12 +457,12 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
   MultiFab flux[3];
   MultiFab qe[3];
 
-  for (int i = 0; i < BL_SPACEDIM; ++i) {
+  for (int i = 0; i < AMREX_SPACEDIM; ++i) {
       flux[i].define(getEdgeBoxArray(i), dmap, NUM_STATE, 0);
       qe[i].define(getEdgeBoxArray(i), dmap, NGDNV, 0);
   }
 
-  for (int i = BL_SPACEDIM; i < 3; ++i) {
+  for (int i = AMREX_SPACEDIM; i < 3; ++i) {
       flux[i].define(grids, dmap, NUM_STATE, 0);
       qe[i].define(grids, dmap, NUM_STATE, 0);
 
@@ -480,21 +480,21 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
       // Compute divergence of velocity field.
 
 #pragma gpu
-      ca_divu(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-              AMREX_REAL_ANYD(dx),
-              BL_TO_FORTRAN_ANYD(q[mfi]),
-              BL_TO_FORTRAN_ANYD(div[mfi]));
+      ca_divu_cuda(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+                   AMREX_REAL_ANYD(dx),
+                   BL_TO_FORTRAN_ANYD(q[mfi]),
+                   BL_TO_FORTRAN_ANYD(div[mfi]));
 
       // Compute flattening coefficient for slope calculations.
 #pragma gpu
-      ca_uflaten
+      ca_uflaten_cuda
           (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
            BL_TO_FORTRAN_ANYD(q[mfi]),
            BL_TO_FORTRAN_ANYD(flatn[mfi]));
 
       // Do PPM reconstruction to the zone edges.
 #pragma gpu
-      ca_ppm_reconstruct
+      ca_ppm_reconstruct_cuda
           (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
            BL_TO_FORTRAN_ANYD(q[mfi]),
            BL_TO_FORTRAN_ANYD(flatn[mfi]),
@@ -510,14 +510,14 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
   for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
-      for (int idir = 0; idir < BL_SPACEDIM; ++idir) {
+      for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
           const Box& ebx = mfi.nodaltilebox(idir);
 
           int idir_f = idir + 1;
 
 #pragma gpu
-          ca_construct_flux
+          ca_construct_flux_cuda
               (AMREX_INT_ANYD(ebx.loVect()), AMREX_INT_ANYD(ebx.hiVect()),
                AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
                AMREX_REAL_ANYD(dx), dt,
@@ -548,7 +548,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
       const Box& bx = mfi.tilebox();
 
 #pragma gpu
-      ca_construct_hydro_update
+      ca_construct_hydro_update_cuda
           (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
            AMREX_REAL_ANYD(dx), dt,
            BL_TO_FORTRAN_ANYD(qe[0][mfi]),
@@ -632,7 +632,17 @@ Castro::cons_to_prim(const Real time)
         // Convert the conservative state to the primitive variable state.
         // This fills both q and qaux.
 
+#ifdef AMREX_USE_CUDA
 #pragma gpu
+        ca_ctoprim_cuda(AMREX_INT_ANYD(qbx.loVect()), AMREX_INT_ANYD(qbx.hiVect()),
+                        BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+#ifdef RADIATION
+                        BL_TO_FORTRAN_ANYD(Erborder[mfi]),
+                        BL_TO_FORTRAN_ANYD(lamborder[mfi]),
+#endif
+                        BL_TO_FORTRAN_ANYD(q[mfi]),
+                        BL_TO_FORTRAN_ANYD(qaux[mfi]));
+#else
         ca_ctoprim(AMREX_INT_ANYD(qbx.loVect()), AMREX_INT_ANYD(qbx.hiVect()),
                    BL_TO_FORTRAN_ANYD(Sborder[mfi]),
 #ifdef RADIATION
@@ -641,6 +651,7 @@ Castro::cons_to_prim(const Real time)
 #endif
                    BL_TO_FORTRAN_ANYD(q[mfi]),
                    BL_TO_FORTRAN_ANYD(qaux[mfi]));
+#endif
 
         // Convert the source terms expressed as sources to the conserved state to those
         // expressed as sources for the primitive state.

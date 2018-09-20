@@ -6,7 +6,9 @@ module advection_util_module
   private
 
   public ca_enforce_minimum_density, ca_compute_cfl, ca_ctoprim, ca_srctoprim, dflux, &
-         limit_hydro_fluxes_on_small_dens, shock, divu, calc_pdivu, normalize_species_fluxes, avisc
+         limit_hydro_fluxes_on_small_dens, shock, divu, calc_pdivu, normalize_species_fluxes, avisc, &
+         ca_divu_cuda, scale_flux_cuda, apply_av_cuda, &
+         ca_construct_hydro_update_cuda
 
 contains
 
@@ -19,7 +21,9 @@ contains
     use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UEINT, UEDEN, small_dens, density_reset_method
     use amrex_constants_module, only : ZERO
-    use amrex_error_module
+#ifndef AMREX_USE_GPU
+    use amrex_error_module, only: amrex_error
+#endif
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -42,20 +46,7 @@ contains
     real(rt)         :: unew(NVAR)
     integer          :: num_positive_zones
 
-    real(rt)         :: initial_mass, final_mass
-    real(rt)         :: initial_eint, final_eint
-    real(rt)         :: initial_eden, final_eden
-
     logical :: have_reset
-
-    initial_mass = ZERO
-    final_mass   = ZERO
-
-    initial_eint = ZERO
-    final_eint   = ZERO
-
-    initial_eden = ZERO
-    final_eden   = ZERO
 
     max_dens = ZERO
 
@@ -65,17 +56,14 @@ contains
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
 
-             initial_mass = initial_mass + uout(i,j,k,URHO ) * vol(i,j,k)
-             initial_eint = initial_eint + uout(i,j,k,UEINT) * vol(i,j,k)
-             initial_eden = initial_eden + uout(i,j,k,UEDEN) * vol(i,j,k)
-
              if (uout(i,j,k,URHO) .eq. ZERO) then
 
-#ifndef AMREX_USE_CUDA                     
+#ifndef AMREX_USE_GPU
                 print *,'DENSITY EXACTLY ZERO AT CELL ',i,j,k
                 print *,'  in grid ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-                call amrex_error("Error:: advection_util_nd.f90 :: ca_enforce_minimum_density")
+                call amrex_error("Error :: ca_enforce_minimum_density")
 #endif
+
              else if (uout(i,j,k,URHO) < small_dens) then
 
                 have_reset = .true.
@@ -186,10 +174,6 @@ contains
                 endif
 
              end if
-
-             final_mass = final_mass + uout(i,j,k,URHO ) * vol(i,j,k)
-             final_eint = final_eint + uout(i,j,k,UEINT) * vol(i,j,k)
-             final_eden = final_eden + uout(i,j,k,UEDEN) * vol(i,j,k)
 
           enddo
        enddo
@@ -804,11 +788,11 @@ contains
                                               vol,vol_lo,vol_hi, &
                                               flux1,flux1_lo,flux1_hi, &
                                               area1,area1_lo,area1_hi, &
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
                                               flux2,flux2_lo,flux2_hi, &
                                               area2,area2_lo,area2_hi, &
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
                                               flux3,flux3_lo,flux3_hi, &
                                               area3,area3_lo,area3_hi, &
 #endif
@@ -828,11 +812,11 @@ contains
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: flux1_lo(3), flux1_hi(3)
     integer, intent(in) :: area1_lo(3), area1_hi(3)
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
     integer, intent(in) :: flux2_lo(3), flux2_hi(3)
     integer, intent(in) :: area2_lo(3), area2_hi(3)
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
     integer, intent(in) :: flux3_lo(3), flux3_hi(3)
     integer, intent(in) :: area3_lo(3), area3_hi(3)
 #endif
@@ -844,11 +828,11 @@ contains
     real(rt), intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     real(rt), intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
     real(rt), intent(in   ) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
     real(rt), intent(inout) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
     real(rt), intent(in   ) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2),area2_lo(3):area2_hi(3))
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
     real(rt), intent(inout) :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
     real(rt), intent(in   ) :: area3(area3_lo(1):area3_hi(1),area3_lo(2):area3_hi(2),area3_lo(3):area3_hi(3))
 #endif
@@ -1043,7 +1027,7 @@ contains
     ! Now do the y-direction. The logic is all the same as for the x-direction,
     ! so the comments are skipped.
 
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
     thetap(:,:,:) = ONE
     thetam(:,:,:) = ONE
 
@@ -1155,7 +1139,7 @@ contains
     ! Now do the z-direction. The logic is all the same as for the x-direction,
     ! so the comments are skipped.
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
     thetap(:,:,:) = ONE
     thetam(:,:,:) = ONE
 
@@ -1325,10 +1309,10 @@ contains
              if (coord_type == 0) then
                 ! Cartesian
                 divU = HALF*(q(i+1,j,k,QU) - q(i-1,j,k,QU))*dxinv
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
                 divU = divU + HALF*(q(i,j+1,k,QV) - q(i,j-1,k,QV))*dyinv
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
                 divU = divU + HALF*(q(i,j,k+1,QW) - q(i,j,k-1,QW))*dzinv
 #endif
              elseif (coord_type == 1) then
@@ -1337,10 +1321,10 @@ contains
                 rm = dble(i - 1 + HALF)*dx(1)
                 rp = dble(i + 1 + HALF)*dx(1)
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
                 divU = HALF*(rp*q(i+1,j,k,QU) - rm*q(i-1,j,k,QU))/(rc*dx(1))
 #endif
-#if (BL_SPACEDIM == 2)
+#if (AMREX_SPACEDIM == 2)
                 divU = HALF*(rp*q(i+1,j,k,QU) - rm*q(i-1,j,k,QU))/(rc*dx(1)) + &
                        HALF*(q(i,j+1,k,QV) - q(i,j-1,k,QV))/dx(2)
 #endif
@@ -1369,7 +1353,7 @@ contains
                 px_post = q(i+1,j,k,QPRES)
              endif
 
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
              if (q(i,j+1,k,QPRES) - q(i,j-1,k,QPRES) < ZERO) then
                 py_pre  = q(i,j+1,k,QPRES)
                 py_post = q(i,j-1,k,QPRES)
@@ -1382,7 +1366,7 @@ contains
              py_post = 0.0_rt
 #endif
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
              if (q(i,j,k+1,QPRES) - q(i,j,k-1,QPRES) < ZERO) then
                 pz_pre  = q(i,j,k+1,QPRES)
                 pz_post = q(i,j,k-1,QPRES)
@@ -1397,12 +1381,12 @@ contains
 
              ! use compression to create unit vectors for the shock direction
              e_x = (q(i+1,j,k,QU) - q(i-1,j,k,QU))**2
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
              e_y = (q(i,j+1,k,QV) - q(i,j-1,k,QV))**2
 #else
              e_y = 0.0_rt
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
              e_z = (q(i,j,k+1,QW) - q(i,j,k-1,QW))**2
 #else
              e_z = 0.0_rt
@@ -1436,105 +1420,6 @@ contains
     enddo
 
   end subroutine shock
-
-  subroutine normalize_species_fluxes(flux1, flux1_lo, flux1_hi, &
-#if (BL_SPACEDIM >= 2)
-                                      flux2, flux2_lo, flux2_hi, &
-#endif
-#if (BL_SPACEDIM == 3)
-                                      flux3, flux3_lo, flux3_hi, &
-#endif
-                                      lo, hi)
-
-    ! here we normalize the fluxes of the mass fractions so that
-    ! they sum to 0.  This is essentially the CMA procedure that is
-    ! defined in Plewa & Muller, 1999, A&A, 342, 179
-
-    use network, only : nspec
-    use meth_params_module, only : NVAR, URHO, UFS
-    use amrex_constants_module, only : ZERO, ONE
-    use prob_params_module, only : dg
-    use amrex_fort_module, only : rt => amrex_real
-    implicit none
-
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: flux1_lo(3), flux1_hi(3)
-    real(rt), intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
-#if (BL_SPACEDIM >= 2)
-    integer, intent(in) :: flux2_lo(3), flux2_hi(3)
-    real(rt), intent(inout) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
-#endif
-#if (BL_SPACEDIM == 3)
-    integer, intent(in) :: flux3_lo(3), flux3_hi(3)
-    real(rt), intent(inout) :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
-#endif
-
-    ! Local variables
-    integer          :: i, j, k, n
-    real(rt)         :: sum, fac
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)+1
-             sum = ZERO
-             do n = UFS, UFS+nspec-1
-                sum = sum + flux1(i,j,k,n)
-             end do
-             if (sum /= ZERO) then
-                fac = flux1(i,j,k,URHO) / sum
-             else
-                fac = ONE
-             end if
-             do n = UFS, UFS+nspec-1
-                flux1(i,j,k,n) = flux1(i,j,k,n) * fac
-             end do
-          end do
-       end do
-    end do
-
-#if (BL_SPACEDIM >= 2)
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)+dg(2)
-          do i = lo(1), hi(1)
-             sum = ZERO
-             do n = UFS, UFS+nspec-1
-                sum = sum + flux2(i,j,k,n)
-             end do
-             if (sum /= ZERO) then
-                fac = flux2(i,j,k,URHO) / sum
-             else
-                fac = ONE
-             end if
-             do n = UFS, UFS+nspec-1
-                flux2(i,j,k,n) = flux2(i,j,k,n) * fac
-             end do
-          end do
-       end do
-    end do
-#endif
-
-#if (BL_SPACEDIM == 3)
-    do k = lo(3),hi(3)+dg(3)
-       do j = lo(2),hi(2)
-          do i = lo(1),hi(1)
-             sum = ZERO
-             do n = UFS, UFS+nspec-1
-                sum = sum + flux3(i,j,k,n)
-             end do
-             if (sum /= ZERO) then
-                fac = flux3(i,j,k,URHO) / sum
-             else
-                fac = ONE
-             end if
-             do n = UFS, UFS+nspec-1
-                flux3(i,j,k,n) = flux3(i,j,k,n) * fac
-             end do
-          end do
-       end do
-    end do
-#endif
-
-  end subroutine normalize_species_fluxes
 
 ! :::
 ! ::: ------------------------------------------------------------------
@@ -1571,7 +1456,7 @@ contains
        do j = lo(2), hi(2)+dg(2)
           do i = lo(1), hi(1)+1
 
-#if BL_SPACEDIM == 1
+#if AMREX_SPACEDIM == 1
              if (coord_type == 0) then
                 div(i,j,k) = (q(i,j,k,QU) - q(i-1,j,k,QU)) / dx(1)
 
@@ -1602,7 +1487,7 @@ contains
 
 #endif
 
-#if BL_SPACEDIM == 2
+#if AMREX_SPACEDIM == 2
              if (coord_type == 0) then
                 ux = HALF*(q(i,j,k,QU) - q(i-1,j,k,QU) + q(i,j-1,k,QU) - q(i-1,j-1,k,QU))/dx(1)
                 vy = HALF*(q(i,j,k,QV) - q(i,j-1,k,QV) + q(i-1,j,k,QV) - q(i-1,j-1,k,QV))/dx(2)
@@ -1638,7 +1523,7 @@ contains
              div(i,j,k) = ux + vy
 #endif
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
              ux = FOURTH*( &
                     + q(i  ,j  ,k  ,QU) - q(i-1,j  ,k  ,QU) &
                     + q(i  ,j  ,k-1,QU) - q(i-1,j  ,k-1,QU) &
@@ -1778,11 +1663,11 @@ contains
   subroutine calc_pdivu(lo, hi, &
                         q1, q1_lo, q1_hi, &
                         area1, a1_lo, a1_hi, &
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                         q2, q2_lo, q2_hi, &
                         area2, a2_lo, a2_hi, &
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                         q3, q3_lo, q3_hi, &
                         area3, a3_lo, a3_hi, &
 #endif
@@ -1806,13 +1691,13 @@ contains
     integer, intent(in) :: a1_lo(3), a1_hi(3)
     real(rt), intent(in) :: q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NQ)
     real(rt), intent(in) :: area1(a1_lo(1):a1_hi(1),a1_lo(2):a1_hi(2),a1_lo(3):a1_hi(3))
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
     integer, intent(in) :: q2_lo(3), q2_hi(3)
     integer, intent(in) :: a2_lo(3), a2_hi(3)
     real(rt), intent(in) :: q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NQ)
     real(rt), intent(in) :: area2(a2_lo(1):a2_hi(1),a1_lo(2):a1_hi(2),a1_lo(3):a1_hi(3))
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     integer, intent(in) :: q3_lo(3), q3_hi(3)
     integer, intent(in) :: a3_lo(3), a3_hi(3)
     real(rt), intent(in) :: q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NQ)
@@ -1827,13 +1712,13 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-#if BL_SPACEDIM == 1
+#if AMREX_SPACEDIM == 1
              pdivu(i,j,k) = HALF * &
                   (q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES))* &
                   (q1(i+1,j,k,GDU)*area1(i+1,j,k) - q1(i,j,k,GDU)*area1(i,j,k)) / vol(i,j,k)
 #endif
 
-#if BL_SPACEDIM == 2
+#if AMREX_SPACEDIM == 2
              pdivu(i,j,k) = HALF*( &
                   (q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES)) * &
                   (q1(i+1,j,k,GDU)*area1(i+1,j,k) - q1(i,j,k,GDU)*area1(i,j,k)) + &
@@ -1841,7 +1726,7 @@ contains
                   (q2(i,j+1,k,GDV)*area2(i,j+1,k) - q2(i,j,k,GDV)*area2(i,j,k)) ) / vol(i,j,k)
 #endif
 
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
              pdivu(i,j,k) = &
                   HALF*(q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES)) * &
                        (q1(i+1,j,k,GDU) - q1(i,j,k,GDU))/dx(1) + &
@@ -1856,5 +1741,533 @@ contains
     enddo
 
   end subroutine calc_pdivu
+
+
+
+  subroutine compute_cfl_cuda(lo, hi, dt, dx, courno, &
+                              q, q_lo, q_hi, &
+                              qaux, qa_lo, qa_hi) &
+                              bind(C, name = "compute_cfl_cuda")
+
+    use amrex_constants_module, only: ZERO, ONE
+    use amrex_fort_module, only: rt => amrex_real, amrex_max
+    use meth_params_module, only: NQ, QRHO, QU, QV, QW, QC, NQAUX
+    use prob_params_module, only: dim
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: q_lo(3), q_hi(3)
+    integer,  intent(in   ) :: qa_lo(3), qa_hi(3)
+
+    real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in   ) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt), intent(in   ) :: dt, dx(3)
+    real(rt), intent(inout) :: courno
+
+    real(rt) :: courx, coury, courz, courmx, courmy, courmz, courtmp
+    real(rt) :: dtdx, dtdy, dtdz
+    integer  :: i, j, k
+
+    !$gpu
+
+    ! Compute running max of Courant number over grids
+
+    courmx = courno
+    courmy = courno
+    courmz = courno
+
+    dtdx = dt / dx(1)
+
+    if (dim .ge. 2) then
+       dtdy = dt / dx(2)
+    else
+       dtdy = ZERO
+    endif
+
+    if (dim .eq. 3) then
+       dtdz = dt / dx(3)
+    else
+       dtdz = ZERO
+    endif
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             courx = ( qaux(i,j,k,QC) + abs(q(i,j,k,QU)) ) * dtdx
+             coury = ( qaux(i,j,k,QC) + abs(q(i,j,k,QV)) ) * dtdy
+             courz = ( qaux(i,j,k,QC) + abs(q(i,j,k,QW)) ) * dtdz
+
+             courmx = max( courmx, courx )
+             courmy = max( courmy, coury )
+             courmz = max( courmz, courz )
+
+             ! method-of-lines constraint
+             courtmp = courx
+             if (dim >= 2) then
+                courtmp = courtmp + coury
+             endif
+             if (dim == 3) then
+                courtmp = courtmp + courz
+             endif
+
+#ifndef AMREX_USE_GPU
+             ! note: it might not be 1 for all RK integrators
+             if (courtmp > ONE) then
+                print *,'   '
+                call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
+                print *,'>>> ... at cell (i,j,k)   : ', i, j, k
+                print *,'>>> ... u,v,w, c            ', q(i,j,k,QU), q(i,j,k,QV), q(i,j,k,QW), qaux(i,j,k,QC)
+                print *,'>>> ... density             ', q(i,j,k,QRHO)
+             endif
+#endif
+
+             call amrex_max(courno, courtmp)
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine compute_cfl_cuda
+
+
+
+  subroutine ca_ctoprim_cuda(lo, hi, &
+                             uin, uin_lo, uin_hi, &
+                             q,     q_lo,   q_hi, &
+                             qaux, qa_lo,  qa_hi) bind(c,name='ca_ctoprim_cuda')
+
+    use actual_network, only: nspec, naux
+    use eos_module, only: eos
+    use eos_type_module, only: eos_t, eos_input_re
+    use amrex_constants_module, only: ZERO, HALF, ONE
+    use amrex_fort_module, only: rt => amrex_real
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, &
+                                  UEDEN, UEINT, UTEMP, &
+                                  QRHO, QU, QV, QW, &
+                                  QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
+                                  NQ, QC, QGAMC, QDPDR, QDPDE, NQAUX, &
+                                  npassive, upass_map, qpass_map, small_dens
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: uin_lo(3), uin_hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
+
+    real(rt), intent(in   ) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
+    real(rt), intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(inout) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+
+    real(rt), parameter :: small = 1.e-8_rt
+    real(rt), parameter :: dual_energy_eta1 = 1.e0_rt
+
+    integer  :: i, j, k, g
+    integer  :: n, iq, ipassive
+    real(rt) :: kineng, rhoinv
+    real(rt) :: vel(3)
+
+    type (eos_t) :: eos_state
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+#ifndef AMREX_USE_GPU
+             if (uin(i,j,k,URHO) .le. ZERO) then
+                print *,'   '
+                print *,'>>> Error: advection_util_nd.F90::ctoprim ',i, j, k
+                print *,'>>> ... negative density ', uin(i,j,k,URHO)
+                call bl_error("Error:: advection_util_nd.F90 :: ctoprim")
+             else if (uin(i,j,k,URHO) .lt. small_dens) then
+                print *,'   '
+                print *,'>>> Error: advection_util_nd.F90::ctoprim ',i, j, k
+                print *,'>>> ... small density ', uin(i,j,k,URHO)
+                call bl_error("Error:: advection_util_nd.F90 :: ctoprim")
+             endif
+#endif
+
+             q(i,j,k,QRHO) = uin(i,j,k,URHO)
+             rhoinv = ONE/q(i,j,k,QRHO)
+
+             vel = uin(i,j,k,UMX:UMZ) * rhoinv
+
+             q(i,j,k,QU:QW) = vel
+
+             ! Get the internal energy, which we'll use for
+             ! determining the pressure.  We use a dual energy
+             ! formalism. If (E - K) < eta1 and eta1 is suitably
+             ! small, then we risk serious numerical truncation error
+             ! in the internal energy.  Therefore we'll use the result
+             ! of the separately updated internal energy equation.
+             ! Otherwise, we'll set e = E - K.
+
+             kineng = HALF * q(i,j,k,QRHO) * (q(i,j,k,QU)**2 + q(i,j,k,QV)**2 + q(i,j,k,QW)**2)
+
+             if ( (uin(i,j,k,UEDEN) - kineng) / uin(i,j,k,UEDEN) .gt. dual_energy_eta1) then
+                q(i,j,k,QREINT) = (uin(i,j,k,UEDEN) - kineng) * rhoinv
+             else
+                q(i,j,k,QREINT) = uin(i,j,k,UEINT) * rhoinv
+             endif
+
+             ! If we're advecting in the rotating reference frame,
+             ! then subtract off the rotation component here.
+
+             q(i,j,k,QTEMP) = uin(i,j,k,UTEMP)
+          enddo
+       enddo
+    enddo
+
+    ! Load passively advected quatities into q
+    do ipassive = 1, npassive
+       n  = upass_map(ipassive)
+       iq = qpass_map(ipassive)
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                q(i,j,k,iq) = uin(i,j,k,n)/q(i,j,k,QRHO)
+             enddo
+          enddo
+       enddo
+    enddo
+
+    ! get gamc, p, T, c, csml using q state
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             eos_state % T   = q(i,j,k,QTEMP )
+             eos_state % rho = q(i,j,k,QRHO  )
+             eos_state % e   = q(i,j,k,QREINT)
+             eos_state % xn  = q(i,j,k,QFS:QFS+nspec-1)
+             eos_state % aux = q(i,j,k,QFX:QFX+naux-1)
+
+             call eos(eos_input_re, eos_state)
+
+             q(i,j,k,QTEMP)  = eos_state % T
+             q(i,j,k,QREINT) = eos_state % e * q(i,j,k,QRHO)
+             q(i,j,k,QPRES)  = eos_state % p
+             q(i,j,k,QGAME)  = q(i,j,k,QPRES) / q(i,j,k,QREINT) + ONE
+
+             qaux(i,j,k,QDPDR)  = eos_state % dpdr_e
+             qaux(i,j,k,QDPDE)  = eos_state % dpde
+
+             qaux(i,j,k,QGAMC)  = eos_state % gam1
+             qaux(i,j,k,QC   )  = eos_state % cs
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_ctoprim_cuda
+
+
+
+  subroutine normalize_species_fluxes(lo, hi, flux, f_lo, f_hi)
+
+    ! Normalize the fluxes of the mass fractions so that
+    ! they sum to 0.  This is essentially the CMA procedure that is
+    ! defined in Plewa & Muller, 1999, A&A, 342, 179.
+
+    use network, only: nspec
+    use amrex_constants_module, only: ZERO, ONE
+    use amrex_fort_module, only: rt => amrex_real
+    use meth_params_module, only: NVAR, URHO, UFS
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: f_lo(3), f_hi(3)
+    real(rt), intent(inout) :: flux(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3),NVAR)
+
+    ! Local variables
+    integer  :: i, j, k, n
+    real(rt) :: sum, fac
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             sum = ZERO
+
+             do n = UFS, UFS+nspec-1
+                sum = sum + flux(i,j,k,n)
+             end do
+
+             if (sum .ne. ZERO) then
+                fac = flux(i,j,k,URHO) / sum
+             else
+                fac = ONE
+             end if
+
+             do n = UFS, UFS+nspec-1
+                flux(i,j,k,n) = flux(i,j,k,n) * fac
+             end do
+
+          end do
+       end do
+    end do
+
+  end subroutine normalize_species_fluxes
+
+! :::
+! ::: ------------------------------------------------------------------
+! :::
+
+  subroutine ca_divu_cuda(lo, hi, dx, q, q_lo, q_hi, div, d_lo, d_hi) bind(c,name='ca_divu_cuda')
+
+    use amrex_constants_module, only: ZERO, FOURTH, ONE
+    use amrex_fort_module, only: rt => amrex_real
+    use meth_params_module, only: QU, QV, QW, NQ
+    use prob_params_module, only: dim, dg
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: q_lo(3), q_hi(3)
+    integer,  intent(in   ) :: d_lo(3), d_hi(3)
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(inout) :: div(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3))
+
+    integer  :: i, j, k
+    real(rt) :: ux, vy, wz, dxinv, dyinv, dzinv
+
+    !$gpu
+
+    dxinv = ONE/dx(1)
+
+    if (dim >= 2) then
+       dyinv = ONE/dx(2)
+    else
+       dyinv = ZERO
+    end if
+
+    if (dim == 3) then
+       dzinv = ONE/dx(3)
+    else
+       dzinv = ZERO
+    end if
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             ux = FOURTH*( &
+                    + q(i        ,j        ,k        ,QU) - q(i-1*dg(1),j        ,k        ,QU) &
+                    + q(i        ,j        ,k-1*dg(3),QU) - q(i-1*dg(1),j        ,k-1*dg(3),QU) &
+                    + q(i        ,j-1*dg(2),k        ,QU) - q(i-1*dg(1),j-1*dg(2),k        ,QU) &
+                    + q(i        ,j-1*dg(2),k-1*dg(3),QU) - q(i-1*dg(1),j-1*dg(2),k-1*dg(3),QU) ) * dxinv
+
+             vy = FOURTH*( &
+                    + q(i        ,j        ,k        ,QV) - q(i        ,j-1*dg(2),k        ,QV) &
+                    + q(i        ,j        ,k-1*dg(3),QV) - q(i        ,j-1*dg(2),k-1*dg(3),QV) &
+                    + q(i-1*dg(1),j        ,k        ,QV) - q(i-1*dg(1),j-1*dg(2),k        ,QV) &
+                    + q(i-1*dg(1),j        ,k-1*dg(3),QV) - q(i-1*dg(1),j-1*dg(2),k-1*dg(3),QV) ) * dyinv
+
+             wz = FOURTH*( &
+                    + q(i        ,j        ,k        ,QW) - q(i        ,j        ,k-1*dg(3),QW) &
+                    + q(i        ,j-1*dg(2),k        ,QW) - q(i        ,j-1*dg(2),k-1*dg(3),QW) &
+                    + q(i-1*dg(1),j        ,k        ,QW) - q(i-1*dg(1),j        ,k-1*dg(3),QW) &
+                    + q(i-1*dg(1),j-1*dg(2),k        ,QW) - q(i-1*dg(1),j-1*dg(2),k-1*dg(3),QW) ) * dzinv
+
+             div(i,j,k) = ux + vy + wz
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_divu_cuda
+
+
+
+  subroutine apply_av_cuda(lo, hi, idir, dx, &
+                           div, div_lo, div_hi, &
+                           uin, uin_lo, uin_hi, &
+                           flux, f_lo, f_hi)
+
+    use amrex_constants_module, only: ZERO, FOURTH
+    use meth_params_module, only: NVAR, UTEMP
+    use prob_params_module, only: dg
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: div_lo(3), div_hi(3)
+    integer,  intent(in   ) :: uin_lo(3), uin_hi(3)
+    integer,  intent(in   ) :: f_lo(3), f_hi(3)
+    real(rt), intent(in   ) :: dx(3)
+    integer,  intent(in   ), value :: idir
+
+    real(rt), intent(in   ) :: div(div_lo(1):div_hi(1),div_lo(2):div_hi(2),div_lo(3):div_hi(3))
+    real(rt), intent(in   ) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
+    real(rt), intent(inout) :: flux(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3),NVAR)
+
+    integer :: i, j, k, n
+
+    real(rt) :: div1
+
+    real(rt), parameter :: difmag = 0.1d0
+
+    !$gpu
+
+    do n = 1, NVAR
+
+       if ( n == UTEMP ) cycle
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                if (idir .eq. 1) then
+
+                   div1 = FOURTH * (div(i,j,k        ) + div(i,j+1*dg(2),k        ) + &
+                                    div(i,j,k+1*dg(3)) + div(i,j+1*dg(2),k+1*dg(3)))
+                   div1 = difmag * min(ZERO, div1)
+                   div1 = div1 * (uin(i,j,k,n) - uin(i-1*dg(1),j,k,n))
+
+                else if (idir .eq. 2) then
+
+                   div1 = FOURTH * (div(i,j,k        ) + div(i+1*dg(1),j,k        ) + &
+                                    div(i,j,k+1*dg(3)) + div(i+1*dg(1),j,k+1*dg(3)))
+                   div1 = difmag * min(ZERO, div1)
+                   div1 = div1 * (uin(i,j,k,n) - uin(i,j-1*dg(2),k,n))
+
+                else
+
+                   div1 = FOURTH * (div(i,j        ,k) + div(i+1*dg(1),j        ,k) + &
+                                    div(i,j+1*dg(2),k) + div(i+1*dg(1),j+1*dg(2),k))
+                   div1 = difmag * min(ZERO, div1)
+                   div1 = div1 * (uin(i,j,k,n)-uin(i,j,k-1*dg(3),n))
+
+                end if
+
+                flux(i,j,k,n) = flux(i,j,k,n) + dx(idir) * div1
+
+             end do
+          end do
+       end do
+
+    end do
+
+  end subroutine apply_av_cuda
+
+
+
+  subroutine ca_construct_hydro_update_cuda(lo, hi, dx, dt, &
+                                            q1, q1_lo, q1_hi, &
+                                            q2, q2_lo, q2_hi, &
+                                            q3, q3_lo, q3_hi, &
+                                            f1, f1_lo, f1_hi, &
+                                            f2, f2_lo, f2_hi, &
+                                            f3, f3_lo, f3_hi, &
+                                            a1, a1_lo, a1_hi, &
+                                            a2, a2_lo, a2_hi, &
+                                            a3, a3_lo, a3_hi, &
+                                            vol, vol_lo, vol_hi, &
+                                            srcU, srcU_lo, srcU_hi, &
+                                            update, u_lo, u_hi) &
+                                            bind(c,name='ca_construct_hydro_update_cuda')
+
+    use amrex_constants_module, only: HALF, ONE
+    use meth_params_module, only: NVAR, UEINT, NGDNV, GDPRES, GDU, GDV, GDW
+    use prob_params_module, only: dg
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: q1_lo(3), q1_hi(3)
+    integer,  intent(in   ) :: q2_lo(3), q2_hi(3)
+    integer,  intent(in   ) :: q3_lo(3), q3_hi(3)
+    integer,  intent(in   ) :: f1_lo(3), f1_hi(3)
+    integer,  intent(in   ) :: f2_lo(3), f2_hi(3)
+    integer,  intent(in   ) :: f3_lo(3), f3_hi(3)
+    integer,  intent(in   ) :: a1_lo(3), a1_hi(3)
+    integer,  intent(in   ) :: a2_lo(3), a2_hi(3)
+    integer,  intent(in   ) :: a3_lo(3), a3_hi(3)
+    integer,  intent(in   ) :: vol_lo(3), vol_hi(3)
+    integer,  intent(in   ) :: srcU_lo(3), srcU_hi(3)
+    integer,  intent(in   ) :: u_lo(3), u_hi(3)
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(in   ), value :: dt
+
+    real(rt), intent(in   ) :: q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NGDNV)
+    real(rt), intent(in   ) :: q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NGDNV)
+    real(rt), intent(in   ) :: q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NGDNV)
+    real(rt), intent(in   ) :: f1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3),NVAR)
+    real(rt), intent(in   ) :: f2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3),NVAR)
+    real(rt), intent(in   ) :: f3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3),NVAR)
+    real(rt), intent(in   ) :: a1(a1_lo(1):a1_hi(1),a1_lo(2):a1_hi(2),a1_lo(3):a1_hi(3))
+    real(rt), intent(in   ) :: a2(a2_lo(1):a2_hi(1),a2_lo(2):a2_hi(2),a2_lo(3):a2_hi(3))
+    real(rt), intent(in   ) :: a3(a3_lo(1):a3_hi(1),a3_lo(2):a3_hi(2),a3_lo(3):a3_hi(3))
+    real(rt), intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+    real(rt), intent(in   ) :: srcU(srcU_lo(1):srcU_hi(1),srcU_lo(2):srcU_hi(2),srcU_lo(3):srcU_hi(3),NVAR)
+    real(rt), intent(inout) :: update(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+
+    integer  :: i, j, k, n
+    real(rt) :: dtinv
+
+    !$gpu
+
+    dtinv = ONE / dt
+
+    do n = 1, NVAR
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                ! Note that the fluxes have already been scaled by dt * dA.
+                ! We unscale by dt here, because the dt will be reapplied
+                ! when the update is actually applied to the state.
+
+                update(i,j,k,n) = update(i,j,k,n) + dtinv * (f1(i,j,k,n) - f1(i+1*dg(1),j        ,k        ,n) + &
+                                                             f2(i,j,k,n) - f2(i        ,j+1*dg(2),k        ,n) + &
+                                                             f3(i,j,k,n) - f3(i        ,j        ,k+1*dg(3),n) ) / vol(i,j,k)
+
+                update(i,j,k,n) = update(i,j,k,n) + srcU(i,j,k,n)
+
+             enddo
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_construct_hydro_update_cuda
+
+
+
+  subroutine scale_flux_cuda(lo, hi, flux, f_lo, f_hi, area, a_lo, a_hi, dt)
+
+    use meth_params_module, only: NVAR
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: f_lo(3), f_hi(3)
+    integer,  intent(in   ) :: a_lo(3), a_hi(3)
+    real(rt), intent(in   ), value :: dt
+
+    real(rt), intent(inout) :: flux(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3),NVAR)
+    real(rt), intent(in   ) :: area(a_lo(1):a_hi(1),a_lo(2):a_hi(2),a_lo(3):a_hi(3))
+
+    integer :: i, j, k, n
+
+    !$gpu
+
+    do n = 1, NVAR
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                flux(i,j,k,n) = dt * flux(i,j,k,n) * area(i,j,k)
+             enddo
+          enddo
+       enddo
+    enddo
+
+  end subroutine scale_flux_cuda
 
 end module advection_util_module

@@ -56,7 +56,7 @@ module prob_params_module
   attributes(managed) :: dg
   attributes(managed) :: coord_type
   attributes(managed) :: center, problo, probhi
-  attributes(managed) :: dx_level, domlo_level, domhi_level
+  attributes(managed) :: domlo_level, domhi_level, dx_level
 #endif
 
 end module prob_params_module

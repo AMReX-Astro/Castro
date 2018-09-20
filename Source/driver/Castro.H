@@ -877,7 +877,7 @@ protected:
     // The data.
     //
     amrex::MultiFab             volume;
-    amrex::MultiFab             area[BL_SPACEDIM];
+    amrex::MultiFab             area[3];
     amrex::MultiFab             dLogArea[1];
     amrex::Vector< amrex::Vector<amrex::Real> > radius;
 
