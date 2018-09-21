@@ -594,11 +594,8 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
   ! Update device variables
 
   !$acc update &
-  !$acc device(NVAR) &
-  !$acc device(NQ) &
   !$acc device(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX) &
   !$acc device(USHK) &
-  !$acc device(QVAR) &
   !$acc device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME) &
   !$acc device(QFA, QFS, QFX) &
   !$acc device(NQAUX, QGAMC, QC, QDPDR, QDPDE) &
