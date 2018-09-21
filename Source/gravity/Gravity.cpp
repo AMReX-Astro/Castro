@@ -45,13 +45,13 @@ Real Gravity::mass_offset    =  0.0;
 
 static Real Ggravity = 0.;
 
-#ifdef AMREX_USE_CUDA
-Vector< Vector<Real, CudaManagedAllocator <Real>> , CudaManagedAllocator <Vector<Real, CudaManagedAllocator <Real>>>> Gravity::radial_grav_old(MAX_LEV);
-Vector< Vector<Real, CudaManagedAllocator <Real>> , CudaManagedAllocator <Vector<Real, CudaManagedAllocator <Real>>>> Gravity::radial_grav_new(MAX_LEV);
-#else
+// #ifdef AMREX_USE_CUDA
+// Vector< Vector<Real, CudaManagedAllocator <Real>> , CudaManagedAllocator <Vector<Real, CudaManagedAllocator <Real>>>> Gravity::radial_grav_old(MAX_LEV);
+// Vector< Vector<Real, CudaManagedAllocator <Real>> , CudaManagedAllocator <Vector<Real, CudaManagedAllocator <Real>>>> Gravity::radial_grav_new(MAX_LEV);
+// #else
 Vector< Vector<Real> > Gravity::radial_grav_old(MAX_LEV);
 Vector< Vector<Real> > Gravity::radial_grav_new(MAX_LEV);
-#endif
+// #endif
 Vector< Vector<Real> > Gravity::radial_mass(MAX_LEV);
 Vector< Vector<Real> > Gravity::radial_vol(MAX_LEV);
 #ifdef GR_GRAV
@@ -1363,10 +1363,14 @@ Gravity::interpolate_monopole_grav(int level,
 	for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi)
 	{
 		const Box& bx = mfi.growntilebox();
-#pragma gpu
-		ca_put_radial_grav(AMREX_INT_ANYD(bx.loVect()),AMREX_INT_ANYD(bx.hiVect()),AMREX_REAL_ANYD(dx),dr,
+// #pragma gpu
+		// ca_put_radial_grav(AMREX_INT_ANYD(bx.loVect()),AMREX_INT_ANYD(bx.hiVect()),AMREX_REAL_ANYD(dx),dr,
+		//                    BL_TO_FORTRAN_ANYD(grav_vector[mfi]),
+		//                    radial_grav.dataPtr(),AMREX_REAL_ANYD(geom.ProbLo()),
+		//                    n1d,level);
+       ca_put_radial_grav(ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()),ZFILL(dx),dr,
 		                   BL_TO_FORTRAN_ANYD(grav_vector[mfi]),
-		                   radial_grav.dataPtr(),AMREX_REAL_ANYD(geom.ProbLo()),
+		                   radial_grav.dataPtr(),ZFILL(geom.ProbLo()),
 		                   n1d,level);
 	}
 }
