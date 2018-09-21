@@ -1711,7 +1711,7 @@ contains
                       flux, f_lo, f_hi) bind(c, name="apply_av")
 
     use amrex_constants_module, only: ZERO, FOURTH
-    use meth_params_module, only: NVAR, UTEMP
+    use meth_params_module, only: NVAR, UTEMP, USHK
     use prob_params_module, only: dg
 
     implicit none
