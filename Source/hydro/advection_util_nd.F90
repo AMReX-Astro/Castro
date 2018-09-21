@@ -557,7 +557,8 @@ contains
 
 #ifdef ROTATION
              if (do_rotation == 1 .and. state_in_rotating_frame /= 1) then
-                call inertial_to_rotational_velocity([i, j, k], amr_time, q(i,j,k,QU:QW))
+                vel = q(i,j,k,QU:QW)
+                call inertial_to_rotational_velocity([i, j, k], amr_time, vel)
              endif
 #endif
 
@@ -1452,8 +1453,16 @@ contains
     real(rt) :: rl, rr, rc, ul, ur, vt, vb
 
     dxinv = ONE/dx(1)
+#if AMREX_SPACEDIM >= 2
     dyinv = ONE/dx(2)
+#else
+    dyinv = ZERO
+#endif
+#if AMREX_SPACEDIM == 3
     dzinv = ONE/dx(3)
+#else
+    dzinv = ZERO
+#endif
 
     do k = lo(3), hi(3)+dg(3)
        do j = lo(2), hi(2)+dg(2)
@@ -1461,7 +1470,7 @@ contains
 
 #if AMREX_SPACEDIM == 1
              if (coord_type == 0) then
-                div(i,j,k) = (q(i,j,k,QU) - q(i-1,j,k,QU)) / dx(1)
+                div(i,j,k) = (q(i,j,k,QU) - q(i-1,j,k,QU)) * dxinv
 
              else if (coord_type == 1) then
                 ! axisymmetric
@@ -1472,7 +1481,7 @@ contains
                    rr = (dble(i)+HALF) * dx(1) + problo(1)
                    rc = (dble(i)     ) * dx(1) + problo(1)
 
-                   div(i,j,k) = (rr*q(i,j,k,QU) - rl*q(i-1,j,k,QU)) / dx(1) / rc
+                   div(i,j,k) = (rr*q(i,j,k,QU) - rl*q(i-1,j,k,QU)) * dxinv / rc
                 endif
              else
                 ! spherical
@@ -1483,7 +1492,7 @@ contains
                    rr = (dble(i)+HALF) * dx(1) + problo(1)
                    rc = (dble(i)     ) * dx(1) + problo(1)
 
-                   div(i,j,k) = (rr**2*q(i,j,k,QU) - rl**2*q(i-1,j,k,QU)) / dx(1) / rc**2
+                   div(i,j,k) = (rr**2*q(i,j,k,QU) - rl**2*q(i-1,j,k,QU)) * dxinv / rc**2
                 endif
 
              endif
@@ -1492,8 +1501,8 @@ contains
 
 #if AMREX_SPACEDIM == 2
              if (coord_type == 0) then
-                ux = HALF*(q(i,j,k,QU) - q(i-1,j,k,QU) + q(i,j-1,k,QU) - q(i-1,j-1,k,QU))/dx(1)
-                vy = HALF*(q(i,j,k,QV) - q(i,j-1,k,QV) + q(i-1,j,k,QV) - q(i-1,j-1,k,QV))/dx(2)
+                ux = HALF*(q(i,j,k,QU) - q(i-1,j,k,QU) + q(i,j-1,k,QU) - q(i-1,j-1,k,QU)) * dxinv
+                vy = HALF*(q(i,j,k,QV) - q(i,j-1,k,QV) + q(i-1,j,k,QV) - q(i-1,j-1,k,QV)) * dyinv
 
              else
 
@@ -1511,13 +1520,13 @@ contains
                    ur = HALF * (q(i  ,j,k,QU) + q(i  ,j-1,k,QU))
 
                    ! Take 1/r d/dr(r*u)
-                   ux = (rr*ur - rl*ul) / dx(1) / rc
+                   ux = (rr*ur - rl*ul) * dxinv / rc
 
                    ! These are transverse averages in the x-direction
                    vb = HALF * (q(i,j-1,k,QV) + q(i-1,j-1,k,QV))
                    vt = HALF * (q(i,j  ,k,QV) + q(i-1,j  ,k,QV))
 
-                   vy = (vt - vb) / dx(2)
+                   vy = (vt - vb) * dyinv
 
                 end if
 
