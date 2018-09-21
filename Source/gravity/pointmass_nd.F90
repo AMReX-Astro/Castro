@@ -99,6 +99,8 @@
       integer            :: kk,kcen,kstart,kend
       integer, parameter :: box_size = 2
 
+      !$gpu
+
       ! This is just a small number to keep precision issues from making
       !   icen,jcen,kcen one cell too low.
       eps = 1.e-8_rt

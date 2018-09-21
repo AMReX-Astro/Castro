@@ -703,12 +703,12 @@ extern "C"
 
 #ifdef POINTMASS
   void pm_compute_delta_mass
-    (const int* lo, const int* hi, amrex::Real* pm_delta_mass,
+    (const int* lo, const int* hi, amrex::Real pm_delta_mass,
      const BL_FORT_FAB_ARG_3D(state),
      const BL_FORT_FAB_ARG_3D(stateout),
      const BL_FORT_FAB_ARG_3D(volume),
      const amrex::Real* problo, const amrex::Real* dx,
-     const amrex::Real* time, const amrex::Real* dt);
+     const amrex::Real time, const amrex::Real dt);
 
   void pm_fix_solution
     (const int* lo, const int* hi,
