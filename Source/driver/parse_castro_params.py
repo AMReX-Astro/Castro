@@ -211,7 +211,13 @@ class Param(object):
         if self.f90_dtype == "string":
             return "\n"
         else:
-            return "attributes(managed) :: {}\n".format(self.f90_name)
+            cstr = ""
+            if self.ifdef is not None:
+                cstr += "#ifdef {}\n".format(self.ifdef)
+            cstr += "attributes(managed) :: {}\n".format(self.f90_name)
+            if self.ifdef is not None:
+                cstr += "#endif\n"
+            return cstr
 
     def get_query_string(self, language):
         # this is the line that queries the ParmParse object to get
@@ -321,7 +327,7 @@ def write_meth_module(plist, meth_template):
 
     cuda_managed_string = ""
     for p in cuda_managed_decls:
-        cuda_managed_string += "  {}".format(p)
+        cuda_managed_string += "{}".format(p)
 
     for line in mt:
         if line.find("@@f90_declarations@@") > 0:

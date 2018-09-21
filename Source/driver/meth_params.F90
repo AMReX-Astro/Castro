@@ -189,86 +189,114 @@ module meth_params_module
   integer,  allocatable, save :: get_g_from_phi
 
 #ifdef AMREX_USE_CUDA
-  attributes(managed) :: difmag
-  attributes(managed) :: small_dens
-  attributes(managed) :: small_temp
-  attributes(managed) :: small_pres
-  attributes(managed) :: small_ener
-  attributes(managed) :: do_hydro
-  attributes(managed) :: do_ctu
-  attributes(managed) :: fourth_order
-  attributes(managed) :: hybrid_hydro
-  attributes(managed) :: ppm_type
-  attributes(managed) :: ppm_temp_fix
-  attributes(managed) :: ppm_predict_gammae
-  attributes(managed) :: ppm_reference_eigenvectors
-  attributes(managed) :: plm_iorder
-  attributes(managed) :: hybrid_riemann
-  attributes(managed) :: riemann_solver
-  attributes(managed) :: cg_maxiter
-  attributes(managed) :: cg_tol
-  attributes(managed) :: cg_blend
-  attributes(managed) :: use_eos_in_riemann
-  attributes(managed) :: use_flattening
-  attributes(managed) :: transverse_use_eos
-  attributes(managed) :: transverse_reset_density
-  attributes(managed) :: transverse_reset_rhoe
-  attributes(managed) :: dual_energy_eta1
-  attributes(managed) :: dual_energy_eta2
-  attributes(managed) :: use_pslope
-  attributes(managed) :: fix_mass_flux
-  attributes(managed) :: limit_fluxes_on_small_dens
-  attributes(managed) :: density_reset_method
-  attributes(managed) :: allow_negative_energy
-  attributes(managed) :: allow_small_energy
-  attributes(managed) :: do_sponge
-  attributes(managed) :: sponge_implicit
-  attributes(managed) :: first_order_hydro
-  
-  
-  
-  
-  
-  
-  attributes(managed) :: hse_zero_vels
-  attributes(managed) :: hse_interp_temp
-  attributes(managed) :: hse_reflect_vels
-  attributes(managed) :: mol_order
-  attributes(managed) :: cfl
-  attributes(managed) :: dtnuc_e
-  attributes(managed) :: dtnuc_X
-  attributes(managed) :: dtnuc_X_threshold
-  attributes(managed) :: dxnuc
-  attributes(managed) :: dxnuc_max
-  attributes(managed) :: max_dxnuc_lev
-  attributes(managed) :: do_react
-  attributes(managed) :: react_T_min
-  attributes(managed) :: react_T_max
-  attributes(managed) :: react_rho_min
-  attributes(managed) :: react_rho_max
-  attributes(managed) :: disable_shock_burning
-  attributes(managed) :: diffuse_cutoff_density
-  attributes(managed) :: diffuse_cond_scale_fac
-  attributes(managed) :: do_grav
-  attributes(managed) :: grav_source_type
-  attributes(managed) :: do_rotation
-  attributes(managed) :: rot_period
-  attributes(managed) :: rot_period_dot
-  attributes(managed) :: rotation_include_centrifugal
-  attributes(managed) :: rotation_include_coriolis
-  attributes(managed) :: rotation_include_domegadt
-  attributes(managed) :: state_in_rotating_frame
-  attributes(managed) :: rot_source_type
-  attributes(managed) :: implicit_rotation_update
-  attributes(managed) :: rot_axis
-  attributes(managed) :: use_point_mass
-  attributes(managed) :: point_mass
-  attributes(managed) :: point_mass_fix_solution
-  attributes(managed) :: do_acc
-  attributes(managed) :: grown_factor
-  attributes(managed) :: track_grid_losses
-  attributes(managed) :: const_grav
-  attributes(managed) :: get_g_from_phi
+attributes(managed) :: difmag
+attributes(managed) :: small_dens
+attributes(managed) :: small_temp
+attributes(managed) :: small_pres
+attributes(managed) :: small_ener
+attributes(managed) :: do_hydro
+attributes(managed) :: do_ctu
+attributes(managed) :: fourth_order
+attributes(managed) :: hybrid_hydro
+attributes(managed) :: ppm_type
+attributes(managed) :: ppm_temp_fix
+attributes(managed) :: ppm_predict_gammae
+attributes(managed) :: ppm_reference_eigenvectors
+attributes(managed) :: plm_iorder
+attributes(managed) :: hybrid_riemann
+attributes(managed) :: riemann_solver
+attributes(managed) :: cg_maxiter
+attributes(managed) :: cg_tol
+attributes(managed) :: cg_blend
+attributes(managed) :: use_eos_in_riemann
+attributes(managed) :: use_flattening
+attributes(managed) :: transverse_use_eos
+attributes(managed) :: transverse_reset_density
+attributes(managed) :: transverse_reset_rhoe
+attributes(managed) :: dual_energy_eta1
+attributes(managed) :: dual_energy_eta2
+attributes(managed) :: use_pslope
+attributes(managed) :: fix_mass_flux
+attributes(managed) :: limit_fluxes_on_small_dens
+attributes(managed) :: density_reset_method
+attributes(managed) :: allow_negative_energy
+attributes(managed) :: allow_small_energy
+attributes(managed) :: do_sponge
+attributes(managed) :: sponge_implicit
+attributes(managed) :: first_order_hydro
+
+
+
+
+
+
+attributes(managed) :: hse_zero_vels
+attributes(managed) :: hse_interp_temp
+attributes(managed) :: hse_reflect_vels
+attributes(managed) :: mol_order
+attributes(managed) :: cfl
+attributes(managed) :: dtnuc_e
+attributes(managed) :: dtnuc_X
+attributes(managed) :: dtnuc_X_threshold
+attributes(managed) :: dxnuc
+attributes(managed) :: dxnuc_max
+attributes(managed) :: max_dxnuc_lev
+attributes(managed) :: do_react
+attributes(managed) :: react_T_min
+attributes(managed) :: react_T_max
+attributes(managed) :: react_rho_min
+attributes(managed) :: react_rho_max
+attributes(managed) :: disable_shock_burning
+#ifdef DIFFUSION
+attributes(managed) :: diffuse_cutoff_density
+#endif
+#ifdef DIFFUSION
+attributes(managed) :: diffuse_cond_scale_fac
+#endif
+attributes(managed) :: do_grav
+attributes(managed) :: grav_source_type
+attributes(managed) :: do_rotation
+#ifdef ROTATION
+attributes(managed) :: rot_period
+#endif
+#ifdef ROTATION
+attributes(managed) :: rot_period_dot
+#endif
+#ifdef ROTATION
+attributes(managed) :: rotation_include_centrifugal
+#endif
+#ifdef ROTATION
+attributes(managed) :: rotation_include_coriolis
+#endif
+#ifdef ROTATION
+attributes(managed) :: rotation_include_domegadt
+#endif
+#ifdef ROTATION
+attributes(managed) :: state_in_rotating_frame
+#endif
+#ifdef ROTATION
+attributes(managed) :: rot_source_type
+#endif
+#ifdef ROTATION
+attributes(managed) :: implicit_rotation_update
+#endif
+#ifdef ROTATION
+attributes(managed) :: rot_axis
+#endif
+#ifdef POINTMASS
+attributes(managed) :: use_point_mass
+#endif
+#ifdef POINTMASS
+attributes(managed) :: point_mass
+#endif
+#ifdef POINTMASS
+attributes(managed) :: point_mass_fix_solution
+#endif
+attributes(managed) :: do_acc
+attributes(managed) :: grown_factor
+attributes(managed) :: track_grid_losses
+attributes(managed) :: const_grav
+attributes(managed) :: get_g_from_phi
 #endif
 
   !$acc declare &
