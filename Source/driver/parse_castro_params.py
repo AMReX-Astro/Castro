@@ -338,23 +338,25 @@ def write_meth_module(plist, meth_template):
 
             mo.write("\n")
             mo.write("  !$acc declare &\n")
-            mo.write("  !$acc create(")
-
             for n, p in enumerate(params):
                 if p.f90_dtype == "string":
-                    print("warning: string parameter {} will not be available on the GPU".format(p.name),
+                    print("warning: string parameter {} will not be on the GPU".format(p.name),
                           file=sys.stderr)
                     continue
 
-                mo.write("{}".format(p.f90_name))
+                if p.ifdef is not None:
+                    mo.write("#ifdef {}\n".format(p.ifdef))
+                mo.write("  !$acc create({})".format(p.f90_name))
 
-                if n == len(params)-1:
-                    mo.write(")\n")
+                if n != len(params)-1:
+                    mo.write(" &\n")
                 else:
-                    if n % 3 == 2:
-                        mo.write(") &\n  !$acc create(")
-                    else:
-                        mo.write(", ")
+                    mo.write("\n")
+
+                if p.ifdef is not None:
+                    mo.write("#endif\n")
+
+
 
         elif line.find("@@set_castro_params@@") >= 0:
 
