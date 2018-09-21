@@ -83,14 +83,15 @@
       integer, intent(in) :: uout_lo(3), uout_hi(3)
       integer, intent(in) :: vol_lo(3),  vol_hi(3)
 
-      real(rt), intent(inout) ::   delta_mass
+      real(rt), value, intent(inout) ::   delta_mass
       real(rt), intent(in) ::   uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),  &
                                   uin_lo(3):uin_hi(3),NVAR)
       real(rt), intent(in) ::  uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2), &
                                   uout_lo(3):uout_hi(3),NVAR)
       real(rt), intent(in) ::   vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2), &
                                   vol_lo(3):vol_hi(3))
-      real(rt), intent(in) :: problo(3),dx(3),time,dt
+      real(rt), intent(in) :: problo(3),dx(3)
+      real(rt), value, intent(in) :: time,dt
 
       real(rt)           :: eps
       integer            :: ii,icen,istart,iend
