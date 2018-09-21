@@ -41,7 +41,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
                                  first_order_hydro, difmag, hybrid_riemann, &
                                  limit_fluxes_on_small_dens, ppm_type, ppm_temp_fix
   use advection_util_module, only : limit_hydro_fluxes_on_small_dens, shock, &
-                                    divu, normalize_species_fluxes, calc_pdivu
+                                    divu, normalize_species_fluxes, calc_pdivu, scale_flux
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
   use flatten_module, only: uflatten
   use riemann_module, only: cmpflx
@@ -665,45 +665,24 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   ! Scale the fluxes for the form we expect later in refluxing.
 
-  do n = 1, NVAR
+  call scale_flux(flux1_lo, flux1_hi, flux1, flux1_lo, flux1_hi, area1, area1_lo, area1_hi, dt)
+#if AMREX_SPACEDIM >= 2
+  call scale_flux(flux2_lo, flux2_hi, flux2, flux2_lo, flux2_hi, area2, area2_lo, area2_hi, dt)
+#endif
+#if AMREX_SPACEDIM == 3
+  call scale_flux(flux3_lo, flux3_hi, flux3, flux3_lo, flux3_hi, area3, area3_lo, area3_hi, dt)
+#endif
+
+#if AMREX_SPACEDIM == 1
+  if (coord_type .eq. 0) then
      do k = lo(3), hi(3)
         do j = lo(2), hi(2)
            do i = lo(1), hi(1) + 1
-              flux1(i,j,k,n) = dt * flux1(i,j,k,n) * area1(i,j,k)
-
-#if AMREX_SPACEDIM == 1
-              if (coord_type .eq. 0 .and. n == UMX) then
-                 flux1(i,j,k,n) = flux1(i,j,k,n) + dt * area1(i,j,k) * q1(i,j,k,GDPRES)
-              endif
-#endif
-
+              flux1(i,j,k,UMX) = flux1(i,j,k,UMX) + dt * area1(i,j,k) * q1(i,j,k,GDPRES)
            enddo
         enddo
      enddo
-  enddo
-
-#if AMREX_SPACEDIM >= 2
-  do n = 1, NVAR
-     do k = lo(3), hi(3)
-        do j = lo(2), hi(2) + 1
-           do i = lo(1), hi(1)
-              flux2(i,j,k,n) = dt * flux2(i,j,k,n) * area2(i,j,k)
-           enddo
-        enddo
-     enddo
-  enddo
-#endif
-
-#if AMREX_SPACEDIM == 3
-  do n = 1, NVAR
-     do k = lo(3), hi(3) + 1
-        do j = lo(2), hi(2)
-           do i = lo(1), hi(1)
-              flux3(i,j,k,n) = dt * flux3(i,j,k,n) * area3(i,j,k)
-           enddo
-        enddo
-     enddo
-  enddo
+  endif
 #endif
 
 #if AMREX_SPACEDIM < 3
@@ -757,7 +736,7 @@ contains
 
     use amrex_fort_module, only: rt => amrex_real
     use meth_params_module, only: NVAR, NGDNV, NQAUX, NQ
-    use advection_util_module, only: apply_av_cuda, normalize_species_fluxes, scale_flux_cuda
+    use advection_util_module, only: apply_av_cuda, normalize_species_fluxes, scale_flux
     use riemann_module, only: cmpflx_cuda
 
     implicit none
@@ -791,7 +770,7 @@ contains
                      qint, qe_lo, qe_hi, flux, f_lo, f_hi, qaux, qa_lo, qa_hi)
     call apply_av_cuda(lo, hi, idir, dx, div, div_lo, div_hi, uin, uin_lo, uin_hi, flux, f_lo, f_hi)
     call normalize_species_fluxes(lo, hi, flux, f_lo, f_hi)
-    call scale_flux_cuda(lo, hi, flux, f_lo, f_hi, area, a_lo, a_hi, dt)
+    call scale_flux(lo, hi, flux, f_lo, f_hi, area, a_lo, a_hi, dt)
 
   end subroutine ca_construct_flux_cuda
 

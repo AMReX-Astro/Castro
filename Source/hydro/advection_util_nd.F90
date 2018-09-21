@@ -7,8 +7,7 @@ module advection_util_module
 
   public ca_enforce_minimum_density, ca_compute_cfl, ca_ctoprim, ca_srctoprim, dflux, &
          limit_hydro_fluxes_on_small_dens, shock, divu, calc_pdivu, normalize_species_fluxes, &
-         scale_flux_cuda, apply_av_cuda, &
-         ca_construct_hydro_update_cuda
+         scale_flux, apply_av_cuda, ca_construct_hydro_update_cuda
 
 contains
 
@@ -1860,7 +1859,7 @@ contains
 
 
 
-  subroutine scale_flux_cuda(lo, hi, flux, f_lo, f_hi, area, a_lo, a_hi, dt)
+  subroutine scale_flux(lo, hi, flux, f_lo, f_hi, area, a_lo, a_hi, dt) bind(c, name="scale_flux")
 
     use meth_params_module, only: NVAR
 
@@ -1888,6 +1887,6 @@ contains
        enddo
     enddo
 
-  end subroutine scale_flux_cuda
+  end subroutine scale_flux
 
 end module advection_util_module
