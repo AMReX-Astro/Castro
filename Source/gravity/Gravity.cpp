@@ -1458,7 +1458,7 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
         const Box& bx = mfi.growntilebox();
         ca_put_radial_phi(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			  ARLIM_3D(domain.loVect()), ARLIM_3D(domain.hiVect()),
-			  ZFILL(dx),dr, BL_TO_FORTRAN(phi[mfi]),
+			  ZFILL(dx),dr, BL_TO_FORTRAN_ANYD(phi[mfi]),
 			  radial_phi.dataPtr(),ZFILL(geom.ProbLo()),
 			  n1d,fill_interior);
     }

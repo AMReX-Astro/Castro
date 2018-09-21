@@ -75,8 +75,8 @@ extern "C"
      const int n1d, const int level);
 
   void ca_put_radial_phi
-    (const int lo*, const int hi*,
-     const int domlo*, const int domhi*,
+    (const int* lo, const int* hi,
+     const int* domlo, const int* domhi,
      const amrex::Real* dx, const amrex::Real dr,
      BL_FORT_FAB_ARG_3D(phi),
      const amrex::Real* radial_phi,
