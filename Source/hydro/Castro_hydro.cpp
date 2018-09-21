@@ -466,10 +466,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
       // Compute divergence of velocity field.
 
 #pragma gpu
-      ca_divu_cuda(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                   AMREX_REAL_ANYD(dx),
-                   BL_TO_FORTRAN_ANYD(q[mfi]),
-                   BL_TO_FORTRAN_ANYD(div[mfi]));
+      divu(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+           BL_TO_FORTRAN_ANYD(q[mfi]),
+           AMREX_REAL_ANYD(dx),
+           BL_TO_FORTRAN_ANYD(div[mfi]));
 
       // Compute flattening coefficient for slope calculations.
 #pragma gpu
