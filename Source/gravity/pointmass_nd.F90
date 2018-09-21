@@ -16,13 +16,15 @@
        integer         , intent(in   ) :: lo(3), hi(3)
        integer         , intent(in   ) :: grav_lo(3), grav_hi(3)
        integer         , intent(in   ) :: phi_lo(3), phi_hi(3)
-       real(rt)        , intent(in   ) :: point_mass
+       real(rt), value , intent(in   ) :: point_mass
        real(rt)        , intent(inout) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
        real(rt)        , intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3),3)
        real(rt)        , intent(in   ) :: problo(3),dx(3)
 
        integer          :: i,j,k
        real(rt)         :: x,y,z,rsq,radial_force,rinv
+
+       !$gpu
 
 !      This computes radial gravity due to a point mass at center().
        do k = lo(3), hi(3)
