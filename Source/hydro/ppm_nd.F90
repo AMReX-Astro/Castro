@@ -261,7 +261,7 @@ contains
     ! compute s at y-edges
 
     ! compute van Leer slopes in y-direction
-    do k = lo(3)-1, hi(3)+1
+    do k = lo(3)-dg(3), hi(3)+dg(3)
        do j = lo(2)-2, hi(2)+2
           do i=lo(1)-1, hi(1)+1
 
@@ -280,7 +280,7 @@ contains
     end do
 
     ! interpolate s to y-edges
-    do k = lo(3)-1, hi(3)+1
+    do k = lo(3)-dg(3), hi(3)+dg(3)
        do j = lo(2)-1, hi(2)+2
 
           !dir$ ivdep
@@ -294,7 +294,7 @@ contains
        end do
     end do
 
-    do k = lo(3)-1, hi(3)+1
+    do k = lo(3)-dg(3), hi(3)+dg(3)
        do j = lo(2)-1, hi(2)+1
           do i = lo(1)-1, hi(1)+1
 

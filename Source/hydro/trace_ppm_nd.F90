@@ -775,7 +775,7 @@ contains
 
     ! Trace to bottom and top edges using upwind PPM
 
-    do k = lo(3)-1, hi(3)+1
+    do k = lo(3)-dg(3), hi(3)+dg(3)
        do j = lo(2)-1, hi(2)+1
           do i = lo(1)-1, hi(1)+1
 
@@ -1217,7 +1217,7 @@ contains
        if (n == QU .or. n == QV .or. n == QW) cycle
 
        ! Plus state on face j
-       do k = lo(3)-1, hi(3)+1
+       do k = lo(3)-dg(3), hi(3)+dg(3)
           do j = lo(2), hi(2)+1
              do i = lo(1)-1, hi(1)+1
                 v = q(i,j,k,QV)
@@ -1234,7 +1234,7 @@ contains
        end do
 
        ! Minus state on face j+1
-       do k = lo(3)-1, hi(3)+1
+       do k = lo(3)-dg(3), hi(3)+dg(3)
           do j = lo(2)-1, hi(2)
              do i = lo(1)-1, hi(1)+1
                 v = q(i,j,k,QV)
@@ -1252,7 +1252,7 @@ contains
     end do
 
     if (ppm_temp_fix == 3) then
-       do k = lo(3)-1, hi(3)+1
+       do k = lo(3)-dg(3), hi(3)+dg(3)
           do j = lo(2)-1, hi(2)+1
              do i = lo(1)-1, hi(1)+1
 
