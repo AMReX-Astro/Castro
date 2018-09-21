@@ -41,7 +41,8 @@ subroutine ca_mol_single_stage(lo, hi, time, &
                                  first_order_hydro, difmag, hybrid_riemann, &
                                  limit_fluxes_on_small_dens, ppm_type, ppm_temp_fix
   use advection_util_module, only : limit_hydro_fluxes_on_small_dens, shock, &
-                                    divu, normalize_species_fluxes, calc_pdivu, scale_flux
+                                    divu, normalize_species_fluxes, calc_pdivu, &
+                                    scale_flux, apply_av
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
   use flatten_module, only: uflatten
   use riemann_module, only: cmpflx
@@ -528,52 +529,28 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #endif
 #endif
 
-     else
-        ! do the artificial viscosity
-        do k = lo(3), hi(3)
-           do j = lo(2), hi(2)
-              do i = lo(1), hi(1)+1
+     end if
 
-                 div1 = FOURTH*(div(i,j,k) + div(i,j+dg(2),k) + &
-                                div(i,j,k+dg(3)) + div(i,j+dg(2),k+dg(3)))
-                 div1 = difmag*min(ZERO, div1)
+  end do
 
-                 flux1(i,j,k,n) = flux1(i,j,k,n) + &
-                      dx(1) * div1 * (uin(i,j,k,n) - uin(i-1,j,k,n))
-              enddo
-           enddo
-        enddo
+  call apply_av(flux1_lo, flux1_hi, 1, dx, &
+                div, lo, hi+dg, &
+                uin, uin_lo, uin_hi, &
+                flux1, flux1_lo, flux1_hi)
+
 #if AMREX_SPACEDIM >= 2
-        do k = lo(3), hi(3)
-           do j = lo(2), hi(2)+1
-              do i = lo(1), hi(1)
-                 div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + &
-                                div(i,j,k+dg(3)) + div(i+1,j,k+dg(3)))
-                 div1 = difmag*min(ZERO, div1)
-
-                 flux2(i,j,k,n) = flux2(i,j,k,n) + &
-                      dx(2) * div1 * (uin(i,j,k,n) - uin(i,j-1,k,n))
-              enddo
-           enddo
-        enddo
+  call apply_av(flux2_lo, flux2_hi, 2, dx, &
+                div, lo, hi+dg, &
+                uin, uin_lo, uin_hi, &
+                flux2, flux2_lo, flux2_hi)
 #endif
+
 #if AMREX_SPACEDIM == 3
-        do k = lo(3), hi(3)+1
-           do j = lo(2), hi(2)
-              do i = lo(1), hi(1)
-                 div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + &
-                                div(i,j+1,k) + div(i+1,j+1,k))
-                 div1 = difmag*min(ZERO, div1)
-
-                 flux3(i,j,k,n) = flux3(i,j,k,n) + &
-                      dx(3) * div1 * (uin(i,j,k,n) - uin(i,j,k-1,n))
-              enddo
-           enddo
-        enddo
+  call apply_av(flux3_lo, flux3_hi, 3, dx, &
+                div, lo, hi+dg, &
+                uin, uin_lo, uin_hi, &
+                flux3, flux3_lo, flux3_hi)
 #endif
-     endif
-
-  enddo
 
   if (limit_fluxes_on_small_dens == 1) then
      call limit_hydro_fluxes_on_small_dens(uin,uin_lo,uin_hi, &
@@ -736,7 +713,7 @@ contains
 
     use amrex_fort_module, only: rt => amrex_real
     use meth_params_module, only: NVAR, NGDNV, NQAUX, NQ
-    use advection_util_module, only: apply_av_cuda, normalize_species_fluxes, scale_flux
+    use advection_util_module, only: apply_av, normalize_species_fluxes, scale_flux
     use riemann_module, only: cmpflx_cuda
 
     implicit none
@@ -768,7 +745,7 @@ contains
 
     call cmpflx_cuda(lo, hi, domlo, domhi, idir, qm, qm_lo, qm_hi, qp, qp_lo, qp_hi, &
                      qint, qe_lo, qe_hi, flux, f_lo, f_hi, qaux, qa_lo, qa_hi)
-    call apply_av_cuda(lo, hi, idir, dx, div, div_lo, div_hi, uin, uin_lo, uin_hi, flux, f_lo, f_hi)
+    call apply_av(lo, hi, idir, dx, div, div_lo, div_hi, uin, uin_lo, uin_hi, flux, f_lo, f_hi)
     call normalize_species_fluxes(lo, hi, flux, f_lo, f_hi)
     call scale_flux(lo, hi, flux, f_lo, f_hi, area, a_lo, a_hi, dt)
 

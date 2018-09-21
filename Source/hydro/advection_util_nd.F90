@@ -7,7 +7,7 @@ module advection_util_module
 
   public ca_enforce_minimum_density, ca_compute_cfl, ca_ctoprim, ca_srctoprim, dflux, &
          limit_hydro_fluxes_on_small_dens, shock, divu, calc_pdivu, normalize_species_fluxes, &
-         scale_flux, apply_av_cuda, ca_construct_hydro_update_cuda
+         scale_flux, apply_av, ca_construct_hydro_update_cuda
 
 contains
 
@@ -1705,10 +1705,10 @@ contains
 
 
 
-  subroutine apply_av_cuda(lo, hi, idir, dx, &
-                           div, div_lo, div_hi, &
-                           uin, uin_lo, uin_hi, &
-                           flux, f_lo, f_hi)
+  subroutine apply_av(lo, hi, idir, dx, &
+                      div, div_lo, div_hi, &
+                      uin, uin_lo, uin_hi, &
+                      flux, f_lo, f_hi) bind(c, name="apply_av")
 
     use amrex_constants_module, only: ZERO, FOURTH
     use meth_params_module, only: NVAR, UTEMP
@@ -1738,6 +1738,9 @@ contains
     do n = 1, NVAR
 
        if ( n == UTEMP ) cycle
+#ifdef SHOCK_VAR
+       if ( n == USHK  ) cycle
+#endif
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
@@ -1774,7 +1777,7 @@ contains
 
     end do
 
-  end subroutine apply_av_cuda
+  end subroutine apply_av
 
 
 
