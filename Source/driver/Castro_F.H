@@ -509,13 +509,13 @@ extern "C"
 #endif
      const amrex::Real* dx, const amrex::Real* dt_old, amrex::Real* dt);
 
-#ifdef AMREX_USE_CUDA
-  void ca_divu_cuda
+  void divu
     (const int* lo, const int* hi,
-     const amrex::Real* dx,
      BL_FORT_FAB_ARG_3D(q),
+     const amrex::Real* dx,
      BL_FORT_FAB_ARG_3D(div));
 
+#ifdef AMREX_USE_CUDA
   void ca_uflaten_cuda
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(q),
