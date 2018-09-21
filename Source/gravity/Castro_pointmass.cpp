@@ -49,10 +49,10 @@ Castro::pointmass_update(Real time, Real dt)
 			for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi)
 			{
 				const Box& bx = mfi.tilebox();
-
-				pm_fix_solution(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+#pragma gpu
+				pm_fix_solution(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 				                BL_TO_FORTRAN_ANYD(S_old[mfi]), BL_TO_FORTRAN_ANYD(S_new[mfi]),
-				                ZFILL(geom.ProbLo()), ZFILL(dx), &time, &dt);
+				                AMREX_REAL_ANYD(geom.ProbLo()), AMREX_REAL_ANYD(dx), time, dt);
 			}
 		}
 	}
