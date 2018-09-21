@@ -314,8 +314,8 @@ contains
                             Ip, Im, Ip_src, Im_src, I_lo, I_hi, &
                             qm, qp, qm, qp, qp_lo, qp_hi, &
                             dloga, dloga_lo, dloga_hi, &
-                            lo(1), 0, hi(1), 0, domlo, domhi, &
-                            dx, dt, 0, 0)
+                            lo, hi, domlo, domhi, &
+                            dx, dt)
 #else
        call tracexy_ppm(q, q_lo, q_hi, &
                         qaux, qa_lo, qa_hi, &
