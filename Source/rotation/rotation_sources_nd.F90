@@ -429,10 +429,10 @@ contains
 
                 SrEcorr = SrEcorr - (HALF / dt) * ( flux1(i        ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
                                                     flux1(i+1*dg(1),j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &
-                                                    flux2(i,j        ,k) * (phi(i,j,k) - phi(i,j-1,k)) - &
-                                                    flux2(i,j+1*dg(2),k) * (phi(i,j,k) - phi(i,j+1,k)) + &
-                                                    flux3(i,j,k        ) * (phi(i,j,k) - phi(i,j,k-1)) - &
-                                                    flux3(i,j,k+1*dg(3)) * (phi(i,j,k) - phi(i,j,k+1)) ) / vol(i,j,k)
+                                                    flux2(i,j        ,k) * (phi(i,j,k) - phi(i,j-dg(2),k)) - &
+                                                    flux2(i,j+1*dg(2),k) * (phi(i,j,k) - phi(i,j+dg(2),k)) + &
+                                                    flux3(i,j,k        ) * (phi(i,j,k) - phi(i,j,k-dg(3))) - &
+                                                    flux3(i,j,k+1*dg(3)) * (phi(i,j,k) - phi(i,j,k+dg(3))) ) / vol(i,j,k)
 
                 ! Correct for the time rate of change of the potential, which acts
                 ! purely as a source term. This is only necessary for this source type;

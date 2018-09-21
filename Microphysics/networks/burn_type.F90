@@ -136,8 +136,6 @@ contains
 
   subroutine eos_to_burn(eos_state, burn_state)
 
-    !$acc routine seq
-
     use eos_type_module, only: eos_t
 
     implicit none
@@ -170,8 +168,6 @@ contains
 
   subroutine burn_to_eos(burn_state, eos_state)
 
-    !$acc routine seq
-
     use eos_type_module, only: eos_t
 
     implicit none
@@ -200,8 +196,6 @@ contains
 
 
   subroutine normalize_abundances_burn(state)
-
-    !$acc routine seq
 
     use amrex_constants_module, only: ONE
     use extern_probin_module, only: small_x

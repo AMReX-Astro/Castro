@@ -57,7 +57,7 @@ subroutine ca_initdata(level,time,lo,hi,nvar, &
   real(rt)         :: state(state_lo(1):state_hi(1), &
        state_lo(2):state_hi(2), &
        state_lo(3):state_hi(3), NVAR)
-  integer :: nzones_state, i, j, k, n, ii
+  integer :: nzones_state, i, j, k, n, ii, m
   type (eos_t) :: eos_state
 
   ! Check to make sure model is initialized
@@ -70,22 +70,14 @@ subroutine ca_initdata(level,time,lo,hi,nvar, &
   ! Zero the state
   state(:,:,:,:) = ZERO
 
-  ! Check to make sure the number of zones in state and model are the same
-  nzones_state = (hi(1)-lo(1)+1) * (hi(2)-lo(2)+1) * (hi(3)-lo(3)+1)
-  if (.not. nzones_state .eq. npts_model) then
-#if !(defined(CUDA) || defined(ACC))
-     write(*,*) "nzones_state: ", nzones_state
-     write(*,*) "npts_model: ", npts_model
-     call amrex_error("Number of zones in state not equal to number of zones in model! Make sure you are running with one box.")
-#endif
-  endif
-
   ! Fill state with model data
-  n = 0
+  m = 0
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
-           n = n + 1
+           m = m + 1
+           n = mod(m, npts_model) + 1
+           
            state(i, j, k, URHO) = model_state(n, idens_model)
            state(i, j, k, UTEMP) = model_state(n, itemp_model)
            state(i, j, k, UFS:UFS-1+nspec) = model_state(n, ispec_model:ispec_model-1+nspec)

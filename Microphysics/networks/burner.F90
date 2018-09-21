@@ -34,7 +34,6 @@ contains
   function ok_to_burn(state) result(ok_to_burnr)
 
     !$gpu
-    !$acc routine seq
 
     use meth_params_module, only: react_T_min, react_T_max, react_rho_min, react_rho_max
 
@@ -60,7 +59,6 @@ contains
   subroutine burner(state_in, state_out, dt, time)
 
     !$gpu
-    !$acc routine seq
 
     use amrex_error_module
 
