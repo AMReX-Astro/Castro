@@ -197,7 +197,7 @@ contains
     ! negative indices, which have a reflecting boundary condition.
 
     !$gpu
-    
+
     j = lo(2)
     k = lo(3)
 
@@ -266,7 +266,7 @@ contains
 
 
   subroutine ca_put_radial_phi (lo,hi,domlo,domhi,dx,dr,&
-                                phi,p_l1,p_h1, &
+                                phi,p_l,p_h, &
                                 radial_phi,problo, &
                                 numpts_1d,fill_interior) bind(C, name="ca_put_radial_phi")
 
@@ -275,24 +275,27 @@ contains
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
-    integer , intent(in   ) :: lo(1), hi(1)
-    integer , intent(in   ) :: domlo(1), domhi(1)
-    real(rt), intent(in   ) :: dx(1), dr
-    real(rt), intent(in   ) :: problo(1)
+    integer , intent(in   ) :: lo(3), hi(3)
+    integer , intent(in   ) :: domlo(3), domhi(3)
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), value, intent(in   ) ::  dr
+    real(rt), intent(in   ) :: problo(3)
 
-    integer , intent(in   ) :: numpts_1d
+    integer , value, intent(in   ) :: numpts_1d
     real(rt), intent(in   ) :: radial_phi(0:numpts_1d-1)
-    integer , intent(in   ) :: fill_interior
+    integer , value, intent(in   ) :: fill_interior
 
-    integer , intent(in   ) :: p_l1, p_h1
-    real(rt), intent(inout) :: phi(p_l1:p_h1)
+    integer , intent(in   ) :: p_l(3), p_h(3)
+    real(rt), intent(inout) :: phi(p_l(1):p_h(1),p_l(2):p_h(2),p_l(3):p_h(3))
 
-    integer          :: i, index
+    integer          :: i, j, k, index
     real(rt)         :: r
     real(rt)         :: cen, xi, slope, p_lo, p_md, p_hi, minvar, maxvar
 
     ! Note that when we interpolate into the ghost cells we use the
     ! location of the edge, not the cell center.
+    j = lo(2)
+    k = lo(3)
 
     do i = lo(1), hi(1)
        if (i .gt. domhi(1)) then
@@ -306,10 +309,12 @@ contains
        index = int(r / dr)
 
        if (index .gt. numpts_1d-1) then
+#ifndef AMREX_USE_CUDA
           print *,'PUT_RADIAL_PHI: INDEX TOO BIG ', index, ' > ', numpts_1d-1
           print *,'AT (i) ',i
           print *,'R / DR IS ', r, dr
           call amrex_error("Error:: Gravity_1d.f90 :: ca_put_radial_phi")
+#endif
        end if
 
        if ( (fill_interior .eq. 1) .or. (i .lt. domlo(1) .or. i.gt.domhi(1)) ) then
@@ -327,7 +332,7 @@ contains
 
              ! Linear interpolation or extrapolation
              slope = ( radial_phi(index) - radial_phi(index-1) ) / dr
-             phi(i) = radial_phi(index) + slope * xi
+             phi(i,j,k) = radial_phi(index) + slope * xi
 
           else
 
@@ -335,13 +340,13 @@ contains
              p_hi = radial_phi(index+1)
              p_md = radial_phi(index  )
              p_lo = radial_phi(index-1)
-             phi(i) = ( p_hi -  TWO*p_md + p_lo)*xi**2/(TWO*dr**2) + &
+             phi(i,j,k) = ( p_hi -  TWO*p_md + p_lo)*xi**2/(TWO*dr**2) + &
                       ( p_hi       - p_lo      )*xi   /(TWO*dr   ) + &
                       (-p_hi + 26.e0_rt*p_md - p_lo)/24.e0_rt
              minvar = min(p_md, min(p_lo,p_hi))
              maxvar = max(p_md, max(p_lo,p_hi))
-             phi(i) = max(phi(i),minvar)
-             phi(i) = min(phi(i),maxvar)
+             phi(i,j,k) = max(phi(i,j,k),minvar)
+             phi(i,j,k) = min(phi(i,j,k),maxvar)
 
           end if
 

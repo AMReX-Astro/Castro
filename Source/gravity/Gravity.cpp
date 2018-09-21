@@ -1436,8 +1436,8 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 #pragma omp for
 	for (int i=0; i<n1d; i++) {
 	    for (int it=0; it<nthreads; it++) {
-		radial_mass[i] += priv_radial_mass[it][i];
-		radial_vol [i] += priv_radial_vol [it][i];
+    		radial_mass[i] += priv_radial_mass[it][i];
+    		radial_vol [i] += priv_radial_vol [it][i];
 	    }
 	}
 #endif
@@ -1456,11 +1456,11 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
     for (MFIter mfi(phi,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox();
-        ca_put_radial_phi(bx.loVect(), bx.hiVect(),
-			  domain.loVect(), domain.hiVect(),
-			  dx,&dr, BL_TO_FORTRAN(phi[mfi]),
-			  radial_phi.dataPtr(),geom.ProbLo(),
-			  &n1d,&fill_interior);
+        ca_put_radial_phi(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			  ARLIM_3D(domain.loVect()), ARLIM_3D(domain.hiVect()),
+			  ZFILL(dx),dr, BL_TO_FORTRAN(phi[mfi]),
+			  radial_phi.dataPtr(),ZFILL(geom.ProbLo()),
+			  n1d,fill_interior);
     }
 
     if (verbose)
@@ -2259,10 +2259,10 @@ Gravity::make_radial_gravity(int level, Real time,
 
         if (lev < level)
         {
-	    Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
-	    const MultiFab& mask = fine_level->build_fine_mask();
-	    for (int n = 0; n < NUM_STATE; ++n)
-		MultiFab::Multiply(S, mask, 0, n, 1, 0);
+    	    Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
+    	    const MultiFab& mask = fine_level->build_fine_mask();
+    	    for (int n = 0; n < NUM_STATE; ++n)
+    		MultiFab::Multiply(S, mask, 0, n, 1, 0);
         }
 
         int n1d = radial_mass[lev].size();

@@ -257,7 +257,7 @@ contains
 
 
   subroutine ca_put_radial_phi (lo,hi,domlo,domhi,dx,dr,&
-       phi,p_l1,p_l2,p_h1,p_h2, &
+       phi,p_l,p_h, &
        radial_phi,problo, &
        numpts_1d,fill_interior) bind(C, name="ca_put_radial_phi")
 
@@ -266,24 +266,26 @@ contains
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
-    integer , intent(in   ) :: lo(2),hi(2)
-    integer , intent(in   ) :: domlo(2),domhi(2)
-    real(rt), intent(in   ) :: dx(2),dr
-    real(rt), intent(in   ) :: problo(2)
+    integer , intent(in   ) :: lo(3),hi(3)
+    integer , intent(in   ) :: domlo(3),domhi(3)
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), value, intent(in   ) :: dr
+    real(rt), intent(in   ) :: problo(3)
 
-    integer , intent(in   ) :: numpts_1d
+    integer , value, intent(in   ) :: numpts_1d
     real(rt), intent(in   ) :: radial_phi(0:numpts_1d-1)
-    integer , intent(in   ) :: fill_interior
+    integer , value, intent(in   ) :: fill_interior
 
-    integer , intent(in   ) :: p_l1,p_l2,p_h1,p_h2
-    real(rt), intent(inout) :: phi(p_l1:p_h1,p_l2:p_h2)
+    integer , intent(in   ) :: p_l(3), p_h(3)
+    real(rt), intent(inout) :: phi(p_l(1):p_h(1),p_l(2):p_h(2),p_l(3):p_h(3))
 
-    integer          :: i,j,index
+    integer          :: i,j,k,index
     real(rt)         :: x,y,r
     real(rt)         :: cen,xi,slope,p_lo,p_md,p_hi,minvar,maxvar
 
     ! Note that when we interpolate into the ghost cells we use the
     ! location of the edge, not the cell center
+    k = lo(3)
 
     do j = lo(2), hi(2)
        if (j .gt. domhi(2)) then
@@ -304,10 +306,12 @@ contains
           r = sqrt( x**2 + y**2)
           index = int(r/dr)
           if (index .gt. numpts_1d-1) then
+#ifndef AMREX_USE_CUDA
              print *,'PUT_RADIAL_PHI: INDEX TOO BIG ',index,' > ',numpts_1d-1
              print *,'AT (i,j) ',i,j
              print *,'R / DR IS ',r,dr
              call amrex_error("Error:: Gravity_2d.f90 :: ca_put_radial_phi")
+#endif
           end if
 
           if (  (fill_interior .eq. 1) .or. &
@@ -329,14 +333,14 @@ contains
                 p_hi = radial_phi(index+1)
                 p_md = radial_phi(index  )
                 p_lo = radial_phi(index-1)
-                phi(i,j) = &
+                phi(i,j,k) = &
                      ( p_hi -  TWO*p_md + p_lo)*xi**2/(TWO*dr**2) + &
                      ( p_hi       - p_lo      )*xi   /(TWO*dr   ) + &
                      (-p_hi + 26.e0_rt*p_md - p_lo)/24.e0_rt
                 minvar = min(p_md, min(p_lo,p_hi))
                 maxvar = max(p_md, max(p_lo,p_hi))
-                phi(i,j) = max(phi(i,j),minvar)
-                phi(i,j) = min(phi(i,j),maxvar)
+                phi(i,j,k) = max(phi(i,j,k),minvar)
+                phi(i,j,k) = min(phi(i,j,k),maxvar)
              end if
 
           end if
