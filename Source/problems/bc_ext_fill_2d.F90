@@ -36,10 +36,10 @@ contains
     use network, only: nspec
     use model_parser_module, only: model_r, model_state, npts_model, idens_model, itemp_model, ispec_model
 
-    integer,  intent(in   ) :: adv_l1, adv_l2, adv_h1, adv_h2
-    integer,  intent(in   ) :: bc(2,2,NVAR)
-    integer,  intent(in   ) :: domlo(2), domhi(2)
-    real(rt), intent(in   ) :: delta(2), xlo(2), time
+    integer, intent(in) :: adv_l1, adv_l2, adv_h1, adv_h2
+    integer, intent(in) :: bc(2,2,NVAR)
+    integer, intent(in) :: domlo(2), domhi(2)
+    real(rt), intent(in) :: delta(2), xlo(2), time
     real(rt), intent(inout) :: adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
 
     integer  :: i, j, q, n, iter, m, joff
@@ -369,10 +369,10 @@ contains
 
     implicit none
 
-    integer,  intent(in   ) :: adv_l1, adv_l2, adv_h1, adv_h2
-    integer,  intent(in   ) :: bc(2,2)
-    integer,  intent(in   ) :: domlo(2), domhi(2)
-    real(rt), intent(in   ) :: delta(2), xlo(2), time
+    integer, intent(in) :: adv_l1, adv_l2, adv_h1, adv_h2
+    integer, intent(in) :: bc(2,2)
+    integer, intent(in) :: domlo(2), domhi(2)
+    real(rt), intent(in) :: delta(2), xlo(2), time
     real(rt), intent(inout) :: adv(adv_l1:adv_h1,adv_l2:adv_h2)
 
     integer  :: i, j
@@ -403,7 +403,7 @@ contains
 
     ! XHI
     if ( bc(1,2) == EXT_DIR .and. adv_h1 > domhi(1)) then
-       call amrex_error("We shoundn't be here (xlo denfill)")
+       call amrex_error("We shoundn't be here (xhi denfill)")
     endif
 #endif
 
