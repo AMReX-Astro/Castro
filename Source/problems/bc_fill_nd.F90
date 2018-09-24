@@ -19,6 +19,8 @@ contains
 
     use amrex_filcc_module, only: amrex_filccn
 
+    use bc_ext_fill_module, only: ext_fill
+
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -30,6 +32,9 @@ contains
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3),NVAR)
 
     call amrex_filccn(adv_lo, adv_hi, adv, adv_lo, adv_hi, NVAR, domlo, domhi, delta, xlo, bc)
+
+    ! process the external BCs here
+    call ext_fill(adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
 
   end subroutine hypfill
 
@@ -55,6 +60,7 @@ contains
   subroutine denfill(adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
 
     use amrex_filcc_module, only: amrex_filccn
+    use bc_ext_fill_module, only: ext_denfill
 
     implicit none
 
@@ -67,6 +73,9 @@ contains
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3))
 
     call amrex_filccn(adv_lo, adv_hi, adv, adv_lo, adv_hi, 1, domlo, domhi, delta, xlo, bc)
+
+    ! process the external BCs here
+    call ext_fill(adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
 
   end subroutine denfill
 
