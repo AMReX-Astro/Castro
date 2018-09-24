@@ -373,7 +373,7 @@ contains
 
 
   subroutine ca_compute_direct_sum_bc (lo, hi, dx, &
-       symmetry_type, lo_bc, hi_bc, &
+       symmetry_type, bc_lo, bc_hi, &
        rho, r_lo, r_hi, &
        vol, v_lo, v_hi, &
        problo, probhi, &
@@ -396,7 +396,7 @@ contains
     real(rt), intent(in   ) :: problo(3), probhi(3)
 
     integer , value, intent(in   ) :: symmetry_type
-    integer , intent(in   ) :: lo_bc(3), hi_bc(3)
+    integer , intent(in   ) :: bc_lo(3), bc_hi(3)
 
     real(rt), intent(out) :: bcXYLo(bclo(1):bchi(1),bclo(2):bchi(2))
     real(rt), intent(out) :: bcXYHi(bclo(1):bchi(1),bclo(2):bchi(2))
@@ -421,12 +421,12 @@ contains
     doSymmetricAdd      = .false.
 
     do b = 1, 3
-       if ( lo_bc(b) .eq. symmetry_type ) then
+       if ( bc_lo(b) .eq. symmetry_type ) then
           doSymmetricAddLo(b) = .true.
           doSymmetricAdd           = .true.
        endif
 
-       if ( hi_bc(b) .eq. symmetry_type ) then
+       if ( bc_hi(b) .eq. symmetry_type ) then
           doSymmetricAddHi(b) = .true.
           doSymmetricAdd           = .true.
        endif
