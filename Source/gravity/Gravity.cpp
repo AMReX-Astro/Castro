@@ -14,6 +14,7 @@
 #include <AMReX_FillPatchUtil.H>
 #include <AMReX_MLMG.H>
 #include <AMReX_MLPoisson.H>
+#include <AMReX_MVector.H>
 
 #define MAX_LEV 30
 
