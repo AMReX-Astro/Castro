@@ -48,14 +48,14 @@ contains
     real(rt) :: pres_above, p_want, pres_zone, A
     real(rt) :: drho, dpdr, temp_zone, eint, X_zone(nspec), dens_zone
 
-    integer, parameter :: MAX_ITER = 100
+    integer, parameter :: MAX_ITER = 250
     real(rt), parameter :: TOL = 1.e-8_rt
     logical :: converged_hse
 
     type (eos_t) :: eos_state
 
     do n = 1, NVAR
-       
+
 #ifndef AMREX_USE_CUDA
        if (bc(1,1,n) == EXT_DIR .and. xl_ext == EXT_HSE .and. adv_lo(1) < domlo(1)) then
           call amrex_error("ERROR: HSE boundaries not implemented for -x BC")
@@ -77,7 +77,7 @@ contains
 
              ! we will fill all the variables when we consider URHO
              if (n == URHO) then
-                do k= adv_lo(3), adv_hi(3)
+                do k = adv_lo(3), adv_hi(3)
                    do i = adv_lo(1), adv_hi(1)
                       ! we are integrating along a column at constant i.
                       ! Make sure that our starting state is well-defined
@@ -158,7 +158,7 @@ contains
 
                             ! Newton-Raphson - we want to zero A = p_want - p(rho)
                             A = p_want - pres_zone
-                            drho = A/(dpdr + HALF*delta(3)*const_grav)
+                            drho = A/(dpdr + HALF*delta(2)*const_grav)
 
                             dens_zone = max(0.9_rt*dens_zone, &
                                  min(dens_zone + drho, 1.1_rt*dens_zone))
@@ -292,7 +292,7 @@ contains
        endif
 
 
-       ! ZHI
+       ! YHI
        if (bc(2,2,n) == EXT_DIR .and. adv_hi(2) > domhi(2)) then
 
           if (yr_ext == EXT_HSE) then
