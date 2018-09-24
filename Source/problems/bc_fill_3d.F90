@@ -45,6 +45,8 @@ contains
 
     use meth_params_module, only: NVAR
 
+    use bc_ext_fill_module, only: ext_fill
+
     implicit none
 
     integer,  intent(in   ) :: adv_l1, adv_l2, adv_l3, adv_h1, adv_h2, adv_h3
@@ -54,6 +56,9 @@ contains
     real(rt), intent(inout) :: adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3,NVAR)
 
     call hypfill(adv, adv_l1, adv_l2, adv_l3, adv_h1, adv_h2, adv_h3, domlo, domhi, delta, xlo, time, bc)
+
+    ! process the external BCs here
+    call ext_fill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3,domlo,domhi,delta,xlo,time,bc)
 
   end subroutine ca_hypfill
 
@@ -91,6 +96,7 @@ contains
                         adv_h3,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_denfill")
 
     use amrex_fort_module, only: rt => amrex_real
+    use bc_ext_fill_module, only: ext_denfill
 
     implicit none
 
@@ -103,6 +109,9 @@ contains
     real(rt), intent(inout) :: adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3)
 
     call denfill(adv, adv_l1, adv_l2, adv_l3, adv_h1, adv_h2, adv_h3, domlo, domhi, delta, xlo, time, bc)
+
+    ! process the external BCs here
+    call ext_denfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3,domlo,domhi,delta,xlo,time,bc)
 
   end subroutine ca_denfill
 

@@ -541,7 +541,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 #endif
 
   ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
-  call divu(lo, hi, q, q_lo, q_hi, &
+  call divu(lo, hi+dg, q, q_lo, q_hi, &
             dx, div, lo, hi+dg)
 
   do n = 1, NVAR
