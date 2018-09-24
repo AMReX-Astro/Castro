@@ -84,6 +84,9 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
 }
 
 Gravity::~Gravity() {
+#if (BL_SPACEDIM > 1)
+		if (gravity_type == "PoissonGrav") finalize_multipole_grav();
+#endif
 }
 
 void
@@ -1519,6 +1522,13 @@ Gravity::init_multipole_grav()
 }
 
 void
+Gravity::finalize_multipole_grav() {
+
+	finalize_multipole_gravity();
+
+}
+
+void
 Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFab*>& Rhs, MultiFab& phi)
 {
     // Multipole BCs only make sense to construct if we are starting from the coarse level.
@@ -1765,6 +1775,16 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
     for (MFIter mfi(phi,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox();
+#ifdef AMREX_USE_CUDA
+#pragma gpu
+				ca_put_multipole_phi(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+					 AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
+					 AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(phi[mfi]),
+					 lnum,
+					 qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
+					 qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
+					 npts,boundary_only);
+#else
         ca_put_multipole_phi(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			     ARLIM_3D(domain.loVect()), ARLIM_3D(domain.hiVect()),
 			     ZFILL(dx), BL_TO_FORTRAN_ANYD(phi[mfi]),
@@ -1772,6 +1792,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 			     qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
 			     qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
 			     npts,boundary_only);
+#endif
     }
 
     if (verbose)

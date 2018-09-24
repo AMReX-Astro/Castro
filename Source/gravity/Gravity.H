@@ -109,6 +109,7 @@ public:
 #if (BL_SPACEDIM > 1)
   void fill_multipole_BCs(int crse_level, int fine_level, const amrex::Vector<amrex::MultiFab*>& Rhs, amrex::MultiFab& phi);
   void init_multipole_grav();
+  void finalize_multipole_grav();
 #endif
 #if (BL_SPACEDIM == 3)
   void fill_direct_sum_BCs(int crse_level, int fine_level, const amrex::Vector<amrex::MultiFab*>& Rhs, amrex::MultiFab& phi);

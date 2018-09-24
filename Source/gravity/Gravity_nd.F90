@@ -11,7 +11,7 @@ module gravity_module
   real(rt)        , allocatable, save :: volumeFactor, parityFactor
   real(rt)        , save :: edgeTolerance = 1.0e-2_rt
   real(rt)        , allocatable, save :: rmax
-  logical,          allocatable, save :: doSymmetricAddLo(3), doSymmetricAddHi(3), doSymmetricAdd
+  logical,          allocatable, save :: doSymmetricAddLo(:), doSymmetricAddHi(:), doSymmetricAdd
   logical,          save :: doReflectionLo(3), doReflectionHi(3)
   integer,          allocatable, save :: lnum_max
   real(rt)        , allocatable, save :: factArray(:,:)
@@ -324,6 +324,9 @@ contains
     volumeFactor = ONE
     parityFactor = ONE
 
+    allocate(doSymmetricAddLo, 3)
+    allocate(doSymmetricAddHi, 3)
+
     doSymmetricAddLo(:) = .false.
     doSymmetricAddHi(:) = .false.
 
@@ -426,6 +429,16 @@ contains
     rmax = HALF * maxval(probhi(1:dim) - problo(1:dim)) * sqrt(dble(dim))
 
   end subroutine init_multipole_gravity
+
+
+  subroutine finalize_multipole_gravity() bind(C,name="finalize_multipole_gravity")
+
+    implicit none
+
+    deallocate(doSymmetricAddLo)
+    deallocate(doSymmetricAddHi)
+
+  end subroutine finalize_multipole_gravity
 
 
 
