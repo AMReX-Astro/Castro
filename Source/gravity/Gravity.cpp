@@ -1386,14 +1386,18 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 
     int n1d = drdxfac*numpts_at_level;
 
-    Vector<Real> radial_mass(n1d,0.0);
-    Vector<Real> radial_vol(n1d,0.0);
-    Vector<Real> radial_phi(n1d,0.0);
-// #ifdef AMREX_USE_CUDA
-    // Vector<Real, CudaManagedAllocator <Real>> radial_grav(n1d+1,0.0);
-// #else
+
+#ifdef AMREX_USE_CUDA
+		Vector<Real, CudaManagedAllocator <Real>> radial_mass(n1d+1,0.0);
+		Vector<Real, CudaManagedAllocator <Real>> radial_vol(n1d+1,0.0);
+		Vector<Real, CudaManagedAllocator <Real>> radial_phi(n1d+1,0.0);
+    Vector<Real, CudaManagedAllocator <Real>> radial_grav(n1d+1,0.0);
+#else
+		Vector<Real> radial_mass(n1d,0.0);
+		Vector<Real> radial_vol(n1d,0.0);
+		Vector<Real> radial_phi(n1d,0.0);
     Vector<Real> radial_grav(n1d+1,0.0);
-// #endif
+#endif
 
     const Geometry& geom = parent->Geom(level);
     const Real* dx   = geom.CellSize();
@@ -1407,8 +1411,8 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
     Vector< Vector<Real> > priv_radial_mass(nthreads);
     Vector< Vector<Real> > priv_radial_vol (nthreads);
     for (int i=0; i<nthreads; i++) {
-	priv_radial_mass[i].resize(n1d,0.0);
-	priv_radial_vol [i].resize(n1d,0.0);
+			priv_radial_mass[i].resize(n1d,0.0);
+			priv_radial_vol [i].resize(n1d,0.0);
     }
 #pragma omp parallel
 #endif
@@ -1456,11 +1460,19 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
     for (MFIter mfi(phi,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox();
+#ifdef AMREX_USE_CUDA
+        ca_put_radial_phi(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+			  AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
+			  AMREX_REAL_ANYD(dx),dr, BL_TO_FORTRAN_ANYD(phi[mfi]),
+			  radial_phi.dataPtr(),AMREX_REAL_ANYD(geom.ProbLo()),
+			  n1d,fill_interior);
+#else
         ca_put_radial_phi(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			  ARLIM_3D(domain.loVect()), ARLIM_3D(domain.hiVect()),
 			  ZFILL(dx),dr, BL_TO_FORTRAN_ANYD(phi[mfi]),
 			  radial_phi.dataPtr(),ZFILL(geom.ProbLo()),
 			  n1d,fill_interior);
+#endif
     }
 
     if (verbose)

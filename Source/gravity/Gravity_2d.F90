@@ -285,6 +285,8 @@ contains
     real(rt)         :: x,y,r
     real(rt)         :: cen,xi,slope,p_lo,p_md,p_hi,minvar,maxvar
 
+    !$gpu
+
     ! Note that when we interpolate into the ghost cells we use the
     ! location of the edge, not the cell center
     k = lo(3)
