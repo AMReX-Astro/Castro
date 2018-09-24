@@ -95,7 +95,6 @@ contains
   subroutine ca_denfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2, &
                         adv_h3,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_denfill")
 
-    use amrex_fort_module, only: rt => amrex_real
     use bc_ext_fill_module, only: ext_denfill
 
     implicit none
@@ -181,6 +180,8 @@ contains
     real(rt), intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
 
     integer :: lo(3), hi(3)
+    integer :: bc_temp(3, 2)
+    integer :: d
 
     lo(1) = grav_l1
     lo(2) = grav_l2
@@ -189,7 +190,18 @@ contains
     hi(2) = grav_h2
     hi(3) = grav_h3
 
-    call amrex_filccn(lo, hi, grav, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+    ! handle an external BC via extrpolation here
+    bc_temp(:,:) = bc(:,:)
+
+    if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
+       bc_temp(d,1) = FOEXTRAP
+    endif
+
+    if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
+       bc_temp(d,2) = FOEXTRAP
+    endif
+
+    call amrex_filccn(lo, hi, grav, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
   end subroutine gravxfill
 
@@ -228,6 +240,8 @@ contains
     real(rt), intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
 
     integer :: lo(3), hi(3)
+    integer :: bc_temp(3, 2)
+    integer :: d
 
     lo(1) = grav_l1
     lo(2) = grav_l2
@@ -236,7 +250,18 @@ contains
     hi(2) = grav_h2
     hi(3) = grav_h3
 
-    call amrex_filccn(lo, hi, grav, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+    ! handle an external BC via extrpolation here
+    bc_temp(:,:) = bc(:,:)
+
+    if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
+       bc_temp(d,1) = FOEXTRAP
+    endif
+
+    if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
+       bc_temp(d,2) = FOEXTRAP
+    endif
+
+    call amrex_filccn(lo, hi, grav, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
   end subroutine gravyfill
 
@@ -275,6 +300,8 @@ contains
     real(rt), intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
 
     integer :: lo(3), hi(3)
+    integer :: bc_temp(3, 2)
+    integer :: d
 
     lo(1) = grav_l1
     lo(2) = grav_l2
@@ -283,7 +310,18 @@ contains
     hi(2) = grav_h2
     hi(3) = grav_h3
 
-    call amrex_filccn(lo, hi, grav, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+    ! handle an external BC via extrpolation here
+    bc_temp(:,:) = bc(:,:)
+
+    if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
+       bc_temp(d,1) = FOEXTRAP
+    endif
+
+    if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
+       bc_temp(d,2) = FOEXTRAP
+    endif
+
+    call amrex_filccn(lo, hi, grav, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
   end subroutine gravzfill
 
@@ -325,6 +363,8 @@ contains
     real(rt), intent(inout) :: phi(phi_l1:phi_h1,phi_l2:phi_h2,phi_l3:phi_h3)
 
     integer :: lo(3), hi(3)
+    integer :: bc_temp(3, 2)
+    integer :: d
 
     lo(1) = phi_l1
     lo(2) = phi_l2
@@ -333,7 +373,18 @@ contains
     hi(2) = phi_h2
     hi(3) = phi_h3
 
-    call amrex_filccn(lo, hi, phi, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+    ! handle an external BC via extrpolation here
+    bc_temp(:,:) = bc(:,:)
+
+    if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
+       bc_temp(d,1) = FOEXTRAP
+    endif
+
+    if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
+       bc_temp(d,2) = FOEXTRAP
+    endif
+
+    call amrex_filccn(lo, hi, phi, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
   end subroutine phirotfill
 
@@ -372,6 +423,8 @@ contains
     real(rt), intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2,rot_l3:rot_h3)
 
     integer :: lo(3), hi(3)
+    integer :: bc_temp(3, 2)
+    integer :: d
 
     lo(1) = rot_l1
     lo(2) = rot_l2
@@ -380,7 +433,18 @@ contains
     hi(2) = rot_h2
     hi(3) = rot_h3
 
-    call amrex_filccn(lo, hi, rot, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+    ! handle an external BC via extrpolation here
+    bc_temp(:,:) = bc(:,:)
+
+    if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
+       bc_temp(d,1) = FOEXTRAP
+    endif
+
+    if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
+       bc_temp(d,2) = FOEXTRAP
+    endif
+
+    call amrex_filccn(lo, hi, rot, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
   end subroutine rotxfill
 
@@ -419,6 +483,8 @@ contains
     real(rt), intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2,rot_l3:rot_h3)
 
     integer :: lo(3), hi(3)
+    integer :: bc_temp(3, 2)
+    integer :: d
 
     lo(1) = rot_l1
     lo(2) = rot_l2
@@ -427,7 +493,18 @@ contains
     hi(2) = rot_h2
     hi(3) = rot_h3
 
-    call amrex_filccn(lo, hi, rot, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+    ! handle an external BC via extrpolation here
+    bc_temp(:,:) = bc(:,:)
+
+    if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
+       bc_temp(d,1) = FOEXTRAP
+    endif
+
+    if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
+       bc_temp(d,2) = FOEXTRAP
+    endif
+
+    call amrex_filccn(lo, hi, rot, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
   end subroutine rotyfill
 
@@ -466,6 +543,8 @@ contains
     real(rt), intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2,rot_l3:rot_h3)
 
     integer :: lo(3), hi(3)
+    integer :: bc_temp(3, 2)
+    integer :: d
 
     lo(1) = rot_l1
     lo(2) = rot_l2
@@ -474,7 +553,18 @@ contains
     hi(2) = rot_h2
     hi(3) = rot_h3
 
-    call amrex_filccn(lo, hi, rot, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+    ! handle an external BC via extrpolation here
+    bc_temp(:,:) = bc(:,:)
+
+    if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
+       bc_temp(d,1) = FOEXTRAP
+    endif
+
+    if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
+       bc_temp(d,2) = FOEXTRAP
+    endif
+
+    call amrex_filccn(lo, hi, rot, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
   end subroutine rotzfill
 
@@ -516,6 +606,8 @@ contains
     real(rt), intent(inout) :: react(react_l1:react_h1,react_l2:react_h2,react_l3:react_h3)
 
     integer :: lo(3), hi(3)
+    integer :: bc_temp(3, 2)
+    integer :: d
 
     lo(1) = react_l1
     lo(2) = react_l2
@@ -524,7 +616,18 @@ contains
     hi(2) = react_h2
     hi(3) = react_h3
 
-    call amrex_filccn(lo, hi, react, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+    ! handle an external BC via extrpolation here
+    bc_temp(:,:) = bc(:,:)
+
+    if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
+       bc_temp(d,1) = FOEXTRAP
+    endif
+
+    if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
+       bc_temp(d,2) = FOEXTRAP
+    endif
+
+    call amrex_filccn(lo, hi, react, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
   end subroutine reactfill
 
@@ -566,6 +669,8 @@ contains
     real(rt), intent(inout) :: rad(rad_l1:rad_h1,rad_l2:rad_h2,rad_l3:rad_h3)
 
     integer :: lo(3), hi(3)
+    integer :: bc_temp(3, 2)
+    integer :: d
 
     lo(1) = rad_l1
     lo(2) = rad_l2
@@ -574,7 +679,18 @@ contains
     hi(2) = rad_h2
     hi(3) = rad_h3
 
-    call amrex_filccn(lo, hi, rad, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+    ! handle an external BC via extrpolation here
+    bc_temp(:,:) = bc(:,:)
+
+    if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
+       bc_temp(d,1) = FOEXTRAP
+    endif
+
+    if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
+       bc_temp(d,2) = FOEXTRAP
+    endif
+
+    call amrex_filccn(lo, hi, rad, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
   end subroutine radfill
 
