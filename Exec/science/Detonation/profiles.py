@@ -35,7 +35,7 @@ def get_Te_profile(plotfile):
     return time, x_coord, temp, enuc
 
 
-def doit(pprefix, nums, skip):
+def doit(pprefix, nums, skip, limitlabels):
 
     f = plt.figure()
     f.set_size_inches(7.0, 9.0)
@@ -46,12 +46,18 @@ def doit(pprefix, nums, skip):
     # Get set of colors to use and apply to plot
     numplots = int( len(nums) / skip )
     cm = plt.get_cmap('nipy_spectral')
-    clist = [cm(1.0*i/numplots) for i in range(numplots + 1)]
+    clist = [cm(0.95*i/numplots) for i in range(numplots + 1)]
     hexclist = [rgba_to_hex(ci) for ci in clist]
     ax_T.set_prop_cycle(cycler('color', hexclist))
     ax_e.set_prop_cycle(cycler('color', hexclist))
     
-    skiplabels = int( numplots / 7 )
+    if limitlabels > 1:
+        skiplabels = int( numplots / limitlabels )
+    elif limitlabels < 0:
+        print("Illegal value for limitlabels: %.0f" % limitlabels)
+        sys.exit()
+    else:
+        skiplabels = 1
     index = 0
 
     for n in range(0, len(nums), skip):
@@ -87,10 +93,12 @@ if __name__ == "__main__":
                    help="interval between plotfiles")
     p.add_argument("plotfiles", type=str, nargs="+",
                    help="list of plotfiles to plot")
+    p.add_argument("--limitlabels", type=float, default=1.,
+                   help="Show all labels (default) or reduce to ~ given value")
 
     args = p.parse_args()
 
     prefix = args.plotfiles[0].split("plt")[0] + "plt"
     plot_nums = sorted([p.split("plt")[1] for p in args.plotfiles], key=int)
 
-    doit(prefix, plot_nums, args.skip)
+    doit(prefix, plot_nums, args.skip, args.limitlabels)
