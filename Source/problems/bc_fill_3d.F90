@@ -193,13 +193,15 @@ contains
     ! handle an external BC via extrpolation here
     bc_temp(:,:) = bc(:,:)
 
-    if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
-       bc_temp(d,1) = FOEXTRAP
-    endif
+    do d = 1, AMREX_SPACEDIM
+       if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
+          bc_temp(d,1) = FOEXTRAP
+       endif
 
-    if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
-       bc_temp(d,2) = FOEXTRAP
-    endif
+       if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
+       endif
+    end do
 
     call amrex_filccn(lo, hi, grav, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
@@ -253,13 +255,15 @@ contains
     ! handle an external BC via extrpolation here
     bc_temp(:,:) = bc(:,:)
 
-    if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
-       bc_temp(d,1) = FOEXTRAP
-    endif
-
-    if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
-       bc_temp(d,2) = FOEXTRAP
-    endif
+    do d = 1, AMREX_SPACEDIM
+       if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
+          bc_temp(d,1) = FOEXTRAP
+       endif
+       
+       if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
+       endif
+    end do
 
     call amrex_filccn(lo, hi, grav, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
@@ -313,13 +317,15 @@ contains
     ! handle an external BC via extrpolation here
     bc_temp(:,:) = bc(:,:)
 
-    if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
-       bc_temp(d,1) = FOEXTRAP
-    endif
+    do d = 1, AMREX_SPACEDIM    
+       if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
+          bc_temp(d,1) = FOEXTRAP
+       endif
 
-    if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
-       bc_temp(d,2) = FOEXTRAP
-    endif
+       if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
+       endif
+    end do
 
     call amrex_filccn(lo, hi, grav, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
@@ -376,13 +382,15 @@ contains
     ! handle an external BC via extrpolation here
     bc_temp(:,:) = bc(:,:)
 
-    if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
-       bc_temp(d,1) = FOEXTRAP
-    endif
+    do d = 1, AMREX_SPACEDIM    
+       if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
+          bc_temp(d,1) = FOEXTRAP
+       endif
 
-    if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
-       bc_temp(d,2) = FOEXTRAP
-    endif
+       if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
+       endif
+    end do
 
     call amrex_filccn(lo, hi, phi, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
@@ -436,13 +444,15 @@ contains
     ! handle an external BC via extrpolation here
     bc_temp(:,:) = bc(:,:)
 
-    if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
-       bc_temp(d,1) = FOEXTRAP
-    endif
+    do d = 1, AMREX_SPACEDIM
+       if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
+          bc_temp(d,1) = FOEXTRAP
+       endif
 
-    if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
-       bc_temp(d,2) = FOEXTRAP
-    endif
+       if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
+       endif
+    end do
 
     call amrex_filccn(lo, hi, rot, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
@@ -496,13 +506,15 @@ contains
     ! handle an external BC via extrpolation here
     bc_temp(:,:) = bc(:,:)
 
-    if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
-       bc_temp(d,1) = FOEXTRAP
-    endif
+    do d = 1, AMREX_SPACEDIM
+       if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
+          bc_temp(d,1) = FOEXTRAP
+       endif
 
-    if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
-       bc_temp(d,2) = FOEXTRAP
-    endif
+       if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
+       endif
+    end do
 
     call amrex_filccn(lo, hi, rot, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
@@ -556,13 +568,15 @@ contains
     ! handle an external BC via extrpolation here
     bc_temp(:,:) = bc(:,:)
 
-    if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
-       bc_temp(d,1) = FOEXTRAP
-    endif
+    do d = 1, AMREX_SPACEDIM
+       if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
+          bc_temp(d,1) = FOEXTRAP
+       endif
 
-    if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
-       bc_temp(d,2) = FOEXTRAP
-    endif
+       if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
+       endif
+    end do
 
     call amrex_filccn(lo, hi, rot, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
@@ -619,13 +633,15 @@ contains
     ! handle an external BC via extrpolation here
     bc_temp(:,:) = bc(:,:)
 
-    if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
-       bc_temp(d,1) = FOEXTRAP
-    endif
+    do d = 1, AMREX_SPACEDIM
+       if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
+          bc_temp(d,1) = FOEXTRAP
+       endif
 
-    if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
-       bc_temp(d,2) = FOEXTRAP
-    endif
+       if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
+       endif
+    end do
 
     call amrex_filccn(lo, hi, react, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
@@ -682,13 +698,15 @@ contains
     ! handle an external BC via extrpolation here
     bc_temp(:,:) = bc(:,:)
 
-    if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
-       bc_temp(d,1) = FOEXTRAP
-    endif
+    do d = 1, AMREX_SPACEDIM
+       if (bc(d,1) == EXT_DIR .and. lo(d) < domlo(d)) then
+          bc_temp(d,1) = FOEXTRAP
+       endif
 
-    if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
-       bc_temp(d,2) = FOEXTRAP
-    endif
+       if (bc(d,2) == EXT_DIR .and. hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
+       endif
+    end do
 
     call amrex_filccn(lo, hi, rad, lo, hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
