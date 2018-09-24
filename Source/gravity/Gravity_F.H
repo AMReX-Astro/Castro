@@ -111,7 +111,7 @@ extern "C"
 
   void ca_compute_direct_sum_bc
     (const int* lo, const int* hi, const amrex::Real* dx,
-     const int* symmetry_type, const int* lo_bc, const int* hi_bc,
+     const int symmetry_type, const int* lo_bc, const int* hi_bc,
      const amrex::Real* rho, const int* r_lo, const int* r_hi,
      const amrex::Real* vol, const int* v_lo, const int* v_hi,
      const amrex::Real* problo, const amrex::Real* probhi,

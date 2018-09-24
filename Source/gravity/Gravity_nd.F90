@@ -324,8 +324,8 @@ contains
     volumeFactor = ONE
     parityFactor = ONE
 
-    allocate(doSymmetricAddLo, 3)
-    allocate(doSymmetricAddHi, 3)
+    allocate(doSymmetricAddLo(3))
+    allocate(doSymmetricAddHi(3))
 
     doSymmetricAddLo(:) = .false.
     doSymmetricAddHi(:) = .false.

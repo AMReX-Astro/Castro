@@ -395,7 +395,7 @@ contains
     real(rt), intent(in   ) :: dx(3), bcdx(3)
     real(rt), intent(in   ) :: problo(3), probhi(3)
 
-    integer , intent(in   ) :: symmetry_type
+    integer , value, intent(in   ) :: symmetry_type
     integer , intent(in   ) :: lo_bc(3), hi_bc(3)
 
     real(rt), intent(out) :: bcXYLo(bclo(1):bchi(1),bclo(2):bchi(2))
@@ -655,6 +655,8 @@ contains
 
     integer          :: i, j, k
 
+    !$gpu
+
     ! Note that we assume phi has one ghost zone relative to the domain,
     ! and since we use a grown box for this loop, so the boxes that lie
     ! on the perimeter of the domain will indeed have lo = domlo - 1.
@@ -733,6 +735,8 @@ contains
     real(rt)         :: x, y, z, r
     real(rt)         :: rho, dV
     real(rt)         :: bcTerm
+
+    !$gpu
 
     ! Add contributions from any symmetric boundaries.
 
