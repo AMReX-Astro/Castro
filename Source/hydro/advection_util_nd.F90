@@ -7,8 +7,7 @@ module advection_util_module
 
   public ca_enforce_minimum_density, ca_compute_cfl, ca_ctoprim, ca_srctoprim, dflux, &
          limit_hydro_fluxes_on_small_dens, shock, divu, calc_pdivu, normalize_species_fluxes, avisc, &
-         ca_divu_cuda, scale_flux_cuda, apply_av_cuda, &
-         ca_construct_hydro_update_cuda
+         scale_flux, apply_av, ca_construct_hydro_update_cuda
 
 contains
 
@@ -1432,7 +1431,7 @@ contains
 
   subroutine divu(lo, hi, &
                   q, q_lo, q_hi, &
-                  dx, div, div_lo, div_hi)
+                  dx, div, div_lo, div_hi) bind(c, name='divu')
 
     ! this computes the *node-centered* divergence
 
@@ -1440,6 +1439,7 @@ contains
     use amrex_constants_module, only : HALF, FOURTH, ONE, ZERO
     use prob_params_module, only : dg, coord_type, problo
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
@@ -1453,6 +1453,8 @@ contains
     real(rt) :: ux, vy, wz, dxinv, dyinv, dzinv
     real(rt) :: rl, rr, rc, ul, ur, vt, vb
 
+    !$gpu
+
     dxinv = ONE/dx(1)
 #if AMREX_SPACEDIM >= 2
     dyinv = ONE/dx(2)
@@ -1465,13 +1467,13 @@ contains
     dzinv = ZERO
 #endif
 
-    do k = lo(3), hi(3)+dg(3)
-       do j = lo(2), hi(2)+dg(2)
-          do i = lo(1), hi(1)+1
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
 #if AMREX_SPACEDIM == 1
              if (coord_type == 0) then
-                div(i,j,k) = (q(i,j,k,QU) - q(i-1,j,k,QU)) * dxinv
+                div(i,j,k) = (q(i,j,k,QU) - q(i-1*dg(1),j,k,QU)) * dxinv
 
              else if (coord_type == 1) then
                 ! axisymmetric
@@ -1482,7 +1484,7 @@ contains
                    rr = (dble(i)+HALF) * dx(1) + problo(1)
                    rc = (dble(i)     ) * dx(1) + problo(1)
 
-                   div(i,j,k) = (rr*q(i,j,k,QU) - rl*q(i-1,j,k,QU)) * dxinv / rc
+                   div(i,j,k) = (rr*q(i,j,k,QU) - rl*q(i-1*dg(1),j,k,QU)) * dxinv / rc
                 endif
              else
                 ! spherical
@@ -1493,7 +1495,7 @@ contains
                    rr = (dble(i)+HALF) * dx(1) + problo(1)
                    rc = (dble(i)     ) * dx(1) + problo(1)
 
-                   div(i,j,k) = (rr**2*q(i,j,k,QU) - rl**2*q(i-1,j,k,QU)) * dxinv / rc**2
+                   div(i,j,k) = (rr**2*q(i,j,k,QU) - rl**2*q(i-1*dg(1),j,k,QU)) * dxinv / rc**2
                 endif
 
              endif
@@ -1502,8 +1504,8 @@ contains
 
 #if AMREX_SPACEDIM == 2
              if (coord_type == 0) then
-                ux = HALF*(q(i,j,k,QU) - q(i-1,j,k,QU) + q(i,j-1,k,QU) - q(i-1,j-1,k,QU)) * dxinv
-                vy = HALF*(q(i,j,k,QV) - q(i,j-1,k,QV) + q(i-1,j,k,QV) - q(i-1,j-1,k,QV)) * dyinv
+                ux = HALF*(q(i,j,k,QU) - q(i-1*dg(1),j        ,k,QU) + q(i        ,j-1*dg(2),k,QU) - q(i-1*dg(1),j-1*dg(2),k,QU)) * dxinv
+                vy = HALF*(q(i,j,k,QV) - q(i        ,j-1*dg(2),k,QV) + q(i-1*dg(1),j        ,k,QV) - q(i-1*dg(1),j-1*dg(2),k,QV)) * dyinv
 
              else
 
@@ -1517,15 +1519,15 @@ contains
                    rc = (dble(i)     ) * dx(1) + problo(1)
 
                    ! These are transverse averages in the y-direction
-                   ul = HALF * (q(i-1,j,k,QU) + q(i-1,j-1,k,QU))
-                   ur = HALF * (q(i  ,j,k,QU) + q(i  ,j-1,k,QU))
+                   ul = HALF * (q(i-1*dg(1),j,k,QU) + q(i-1*dg(1),j-1*dg(2),k,QU))
+                   ur = HALF * (q(i        ,j,k,QU) + q(i        ,j-1*dg(2),k,QU))
 
                    ! Take 1/r d/dr(r*u)
                    ux = (rr*ur - rl*ul) * dxinv / rc
 
                    ! These are transverse averages in the x-direction
-                   vb = HALF * (q(i,j-1,k,QV) + q(i-1,j-1,k,QV))
-                   vt = HALF * (q(i,j  ,k,QV) + q(i-1,j  ,k,QV))
+                   vb = HALF * (q(i,j-1*dg(2),k,QV) + q(i-1*dg(1),j-1*dg(2),k,QV))
+                   vt = HALF * (q(i,j        ,k,QV) + q(i-1*dg(1),j        ,k,QV))
 
                    vy = (vt - vb) * dyinv
 
@@ -1538,22 +1540,22 @@ contains
 
 #if AMREX_SPACEDIM == 3
              ux = FOURTH*( &
-                    + q(i  ,j  ,k  ,QU) - q(i-1,j  ,k  ,QU) &
-                    + q(i  ,j  ,k-1,QU) - q(i-1,j  ,k-1,QU) &
-                    + q(i  ,j-1,k  ,QU) - q(i-1,j-1,k  ,QU) &
-                    + q(i  ,j-1,k-1,QU) - q(i-1,j-1,k-1,QU) ) * dxinv
+                    + q(i        ,j        ,k        ,QU) - q(i-1*dg(1),j        ,k        ,QU) &
+                    + q(i        ,j        ,k-1*dg(3),QU) - q(i-1*dg(1),j        ,k-1*dg(3),QU) &
+                    + q(i        ,j-1*dg(2),k        ,QU) - q(i-1*dg(1),j-1*dg(2),k        ,QU) &
+                    + q(i        ,j-1*dg(2),k-1*dg(3),QU) - q(i-1*dg(1),j-1*dg(2),k-1*dg(3),QU) ) * dxinv
 
              vy = FOURTH*( &
-                    + q(i  ,j  ,k  ,QV) - q(i  ,j-1,k  ,QV) &
-                    + q(i  ,j  ,k-1,QV) - q(i  ,j-1,k-1,QV) &
-                    + q(i-1,j  ,k  ,QV) - q(i-1,j-1,k  ,QV) &
-                    + q(i-1,j  ,k-1,QV) - q(i-1,j-1,k-1,QV) ) * dyinv
+                    + q(i        ,j        ,k        ,QV) - q(i        ,j-1*dg(2),k        ,QV) &
+                    + q(i        ,j        ,k-1*dg(3),QV) - q(i        ,j-1*dg(2),k-1*dg(3),QV) &
+                    + q(i-1*dg(1),j        ,k        ,QV) - q(i-1*dg(1),j-1*dg(2),k        ,QV) &
+                    + q(i-1*dg(1),j        ,k-1*dg(3),QV) - q(i-1*dg(1),j-1*dg(2),k-1*dg(3),QV) ) * dyinv
 
              wz = FOURTH*( &
-                    + q(i  ,j  ,k  ,QW) - q(i  ,j  ,k-1,QW) &
-                    + q(i  ,j-1,k  ,QW) - q(i  ,j-1,k-1,QW) &
-                    + q(i-1,j  ,k  ,QW) - q(i-1,j  ,k-1,QW) &
-                    + q(i-1,j-1,k  ,QW) - q(i-1,j-1,k-1,QW) ) * dzinv
+                    + q(i        ,j        ,k        ,QW) - q(i        ,j        ,k-1*dg(3),QW) &
+                    + q(i        ,j-1*dg(2),k        ,QW) - q(i        ,j-1*dg(2),k-1*dg(3),QW) &
+                    + q(i-1*dg(1),j        ,k        ,QW) - q(i-1*dg(1),j        ,k-1*dg(3),QW) &
+                    + q(i-1*dg(1),j-1*dg(2),k        ,QW) - q(i-1*dg(1),j-1*dg(2),k-1*dg(3),QW) ) * dzinv
 
              div(i,j,k) = ux + vy + wz
 #endif
@@ -1806,84 +1808,15 @@ contains
 
   end subroutine normalize_species_fluxes
 
-! :::
-! ::: ------------------------------------------------------------------
-! :::
-
-  subroutine ca_divu_cuda(lo, hi, dx, q, q_lo, q_hi, div, d_lo, d_hi) bind(c,name='ca_divu_cuda')
-
-    use amrex_constants_module, only: ZERO, FOURTH, ONE
-    use amrex_fort_module, only: rt => amrex_real
-    use meth_params_module, only: QU, QV, QW, NQ
-    use prob_params_module, only: dim, dg
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: q_lo(3), q_hi(3)
-    integer,  intent(in   ) :: d_lo(3), d_hi(3)
-    real(rt), intent(in   ) :: dx(3)
-    real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(inout) :: div(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3))
-
-    integer  :: i, j, k
-    real(rt) :: ux, vy, wz, dxinv, dyinv, dzinv
-
-    !$gpu
-
-    dxinv = ONE/dx(1)
-
-    if (dim >= 2) then
-       dyinv = ONE/dx(2)
-    else
-       dyinv = ZERO
-    end if
-
-    if (dim == 3) then
-       dzinv = ONE/dx(3)
-    else
-       dzinv = ZERO
-    end if
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             ux = FOURTH*( &
-                    + q(i        ,j        ,k        ,QU) - q(i-1*dg(1),j        ,k        ,QU) &
-                    + q(i        ,j        ,k-1*dg(3),QU) - q(i-1*dg(1),j        ,k-1*dg(3),QU) &
-                    + q(i        ,j-1*dg(2),k        ,QU) - q(i-1*dg(1),j-1*dg(2),k        ,QU) &
-                    + q(i        ,j-1*dg(2),k-1*dg(3),QU) - q(i-1*dg(1),j-1*dg(2),k-1*dg(3),QU) ) * dxinv
-
-             vy = FOURTH*( &
-                    + q(i        ,j        ,k        ,QV) - q(i        ,j-1*dg(2),k        ,QV) &
-                    + q(i        ,j        ,k-1*dg(3),QV) - q(i        ,j-1*dg(2),k-1*dg(3),QV) &
-                    + q(i-1*dg(1),j        ,k        ,QV) - q(i-1*dg(1),j-1*dg(2),k        ,QV) &
-                    + q(i-1*dg(1),j        ,k-1*dg(3),QV) - q(i-1*dg(1),j-1*dg(2),k-1*dg(3),QV) ) * dyinv
-
-             wz = FOURTH*( &
-                    + q(i        ,j        ,k        ,QW) - q(i        ,j        ,k-1*dg(3),QW) &
-                    + q(i        ,j-1*dg(2),k        ,QW) - q(i        ,j-1*dg(2),k-1*dg(3),QW) &
-                    + q(i-1*dg(1),j        ,k        ,QW) - q(i-1*dg(1),j        ,k-1*dg(3),QW) &
-                    + q(i-1*dg(1),j-1*dg(2),k        ,QW) - q(i-1*dg(1),j-1*dg(2),k-1*dg(3),QW) ) * dzinv
-
-             div(i,j,k) = ux + vy + wz
-
-          enddo
-       enddo
-    enddo
-
-  end subroutine ca_divu_cuda
 
 
-
-  subroutine apply_av_cuda(lo, hi, idir, dx, &
-                           div, div_lo, div_hi, &
-                           uin, uin_lo, uin_hi, &
-                           flux, f_lo, f_hi)
+  subroutine apply_av(lo, hi, idir, dx, &
+                      div, div_lo, div_hi, &
+                      uin, uin_lo, uin_hi, &
+                      flux, f_lo, f_hi) bind(c, name="apply_av")
 
     use amrex_constants_module, only: ZERO, FOURTH
-    use meth_params_module, only: NVAR, UTEMP
+    use meth_params_module, only: NVAR, UTEMP, USHK
     use prob_params_module, only: dg
 
     implicit none
@@ -1910,6 +1843,9 @@ contains
     do n = 1, NVAR
 
        if ( n == UTEMP ) cycle
+#ifdef SHOCK_VAR
+       if ( n == USHK  ) cycle
+#endif
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
@@ -1946,7 +1882,7 @@ contains
 
     end do
 
-  end subroutine apply_av_cuda
+  end subroutine apply_av
 
 
 
@@ -2031,7 +1967,7 @@ contains
 
 
 
-  subroutine scale_flux_cuda(lo, hi, flux, f_lo, f_hi, area, a_lo, a_hi, dt)
+  subroutine scale_flux(lo, hi, flux, f_lo, f_hi, area, a_lo, a_hi, dt) bind(c, name="scale_flux")
 
     use meth_params_module, only: NVAR
 
@@ -2059,6 +1995,6 @@ contains
        enddo
     enddo
 
-  end subroutine scale_flux_cuda
+  end subroutine scale_flux
 
 end module advection_util_module

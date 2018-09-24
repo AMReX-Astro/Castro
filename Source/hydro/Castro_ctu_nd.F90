@@ -1147,7 +1147,7 @@ contains
     call bl_deallocate( flatn)
 
     ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
-    call divu(lo, hi, q, q_lo, q_hi, delta, div, lo, hi+dg)
+    call divu(lo, hi+dg, q, q_lo, q_hi, delta, div, lo, hi+dg)
 
     ! Conservative update
     call consup(uin, uin_lo, uin_hi, &
