@@ -252,7 +252,7 @@ contains
     hi(2) = grav_h2
     hi(3) = grav_h3
 
-    ! handle an external BC via extrpolation here
+    ! handle an external BC via extrapolation here
     bc_temp(:,:) = bc(:,:)
 
     do d = 1, AMREX_SPACEDIM
@@ -314,7 +314,7 @@ contains
     hi(2) = grav_h2
     hi(3) = grav_h3
 
-    ! handle an external BC via extrpolation here
+    ! handle an external BC via extrapolation here
     bc_temp(:,:) = bc(:,:)
 
     do d = 1, AMREX_SPACEDIM    
@@ -379,7 +379,7 @@ contains
     hi(2) = phi_h2
     hi(3) = phi_h3
 
-    ! handle an external BC via extrpolation here
+    ! handle an external BC via extrapolation here
     bc_temp(:,:) = bc(:,:)
 
     do d = 1, AMREX_SPACEDIM    
@@ -441,7 +441,7 @@ contains
     hi(2) = rot_h2
     hi(3) = rot_h3
 
-    ! handle an external BC via extrpolation here
+    ! handle an external BC via extrapolation here
     bc_temp(:,:) = bc(:,:)
 
     do d = 1, AMREX_SPACEDIM
@@ -503,7 +503,7 @@ contains
     hi(2) = rot_h2
     hi(3) = rot_h3
 
-    ! handle an external BC via extrpolation here
+    ! handle an external BC via extrapolation here
     bc_temp(:,:) = bc(:,:)
 
     do d = 1, AMREX_SPACEDIM
@@ -565,7 +565,7 @@ contains
     hi(2) = rot_h2
     hi(3) = rot_h3
 
-    ! handle an external BC via extrpolation here
+    ! handle an external BC via extrapolation here
     bc_temp(:,:) = bc(:,:)
 
     do d = 1, AMREX_SPACEDIM
@@ -630,7 +630,7 @@ contains
     hi(2) = react_h2
     hi(3) = react_h3
 
-    ! handle an external BC via extrpolation here
+    ! handle an external BC via extrapolation here
     bc_temp(:,:) = bc(:,:)
 
     do d = 1, AMREX_SPACEDIM
@@ -695,7 +695,7 @@ contains
     hi(2) = rad_h2
     hi(3) = rad_h3
 
-    ! handle an external BC via extrpolation here
+    ! handle an external BC via extrapolation here
     bc_temp(:,:) = bc(:,:)
 
     do d = 1, AMREX_SPACEDIM
