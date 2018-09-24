@@ -8,14 +8,22 @@ module gravity_module
 
   ! Data for the multipole gravity
 
-  real(rt)        , save :: volumeFactor, parityFactor
+  real(rt)        , allocatable, save :: volumeFactor, parityFactor
   real(rt)        , save :: edgeTolerance = 1.0e-2_rt
-  real(rt)        , save :: rmax
-  logical,          save :: doSymmetricAddLo(3), doSymmetricAddHi(3), doSymmetricAdd
+  real(rt)        , allocatable, save :: rmax
+  logical,          allocatable, save :: doSymmetricAddLo(3), doSymmetricAddHi(3), doSymmetricAdd
   logical,          save :: doReflectionLo(3), doReflectionHi(3)
-  integer,          save :: lnum_max
+  integer,          allocatable, save :: lnum_max
   real(rt)        , allocatable, save :: factArray(:,:)
   real(rt)        , allocatable, save :: parity_q0(:), parity_qC_qS(:,:)
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: volumeFactor, parityFactor
+  attributes(managed) :: rmax, lnum_max
+  attributes(managed) :: doSymmetricAddLo, doSymmetricAddHi, doSymmetricAdd
+  attributes(managed) :: factArray
+  attributes(managed) :: parity_q0, parity_qC_qS
+#endif
 
 contains
 

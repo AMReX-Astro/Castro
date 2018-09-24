@@ -1768,10 +1768,10 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
         ca_put_multipole_phi(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			     ARLIM_3D(domain.loVect()), ARLIM_3D(domain.hiVect()),
 			     ZFILL(dx), BL_TO_FORTRAN_ANYD(phi[mfi]),
-			     &lnum,
+			     lnum,
 			     qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
 			     qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
-			     &npts,&boundary_only);
+			     npts,boundary_only);
     }
 
     if (verbose)

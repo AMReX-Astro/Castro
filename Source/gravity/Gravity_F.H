@@ -102,10 +102,10 @@ extern "C"
      const amrex::Real* dx,
      const BL_FORT_FAB_ARG_3D(rho),
      const BL_FORT_FAB_ARG_3D(vol),
-     const int* lnum,
+     const int lnum,
      amrex::Real* qL0, amrex::Real* qLC, amrex::Real* qLS,
      amrex::Real* qU0, amrex::Real* qUC, amrex::Real* qUS,
-     const int* npts, const int* boundary_only);
+     const int npts, const int boundary_only);
 
   void ca_compute_direct_sum_bc
     (const int* lo, const int* hi, const amrex::Real* dx,
