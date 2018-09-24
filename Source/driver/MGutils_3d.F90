@@ -19,7 +19,7 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: lo(2),hi(2),xlo(2),ylo(2),xhi(2),yhi(2)
+    integer, intent(in) :: lo(3),hi(3),xlo(3),ylo(3),xhi(3),yhi(3)
     integer, intent(in) ::  rl1, rl2, rh1, rh2
     integer, intent(in) :: ecxl1, ecxl2, ecxh1, ecxh2
     integer, intent(in) :: ecyl1, ecyl2, ecyh1, ecyh2
@@ -27,7 +27,7 @@ contains
     real(rt), intent(inout) :: rhs(rl1:rh1,rl2:rh2)
     real(rt)         ecx(ecxl1:ecxh1,ecxl2:ecxh2)
     real(rt)         ecy(ecyl1:ecyh1,ecyl2:ecyh2)
-    real(rt)         dx(2)
+    real(rt)         dx(3)
 
     real(rt)         r
     integer i,j
@@ -71,20 +71,22 @@ contains
 
 
   subroutine ca_weight_cc(lo, hi, &
-       cc, cl1, cl2, ch1, ch2,  &
+       cc, c_lo, c_hi,  &
        dx, coord_type) bind(C, name="ca_weight_cc")
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: lo(2),hi(2)
-    integer, intent(in) :: cl1, cl2, ch1, ch2
-    integer, intent(in) :: coord_type
-    real(rt), intent(inout) :: cc(cl1:ch1,cl2:ch2)
-    real(rt), intent(in) :: dx(2)
+    integer, intent(in) :: lo(3),hi(3)
+    integer, intent(in) ::c_lo(3), c_hi(3)
+    integer, value, intent(in) ::coord_type
+    real(rt), intent(inout) ::cc(c_lo(1):c_hi(1),c_lo(2):c_hi(2),c_lo(3):c_lo(3))
+    real(rt), intent(in) :: dx(3)
 
     real(rt)         r
-    integer i,j
+    integer i,j,k
+
+    !$gpu
 
     ! r-z
     if (coord_type .eq. 1) then
@@ -93,7 +95,9 @@ contains
        do i=lo(1),hi(1)
           r = (dble(i)+0.5e0_rt) * dx(1)
           do j=lo(2),hi(2)
-             cc(i,j) = cc(i,j) * r
+             do k = lo(3), hi(3)
+                cc(i,j,k) = cc(i,j,k) * r
+             enddo
           enddo
        enddo
 
@@ -109,20 +113,22 @@ contains
 
 
   subroutine ca_unweight_cc(lo, hi, &
-       cc, cl1, cl2, ch1, ch2,  &
+       cc, c_lo, c_hi,  &
        dx, coord_type) bind(C, name="ca_unweight_cc")
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) ::  lo(2),hi(2)
-    integer, intent(in) :: cl1, cl2, ch1, ch2
-    integer, intent(in) :: coord_type
-    real(rt), intent(inout) :: cc(cl1:ch1,cl2:ch2)
-    real(rt), intent(in) :: dx(2)
+    integer, intent(in) :: lo(3),hi(3)
+    integer, intent(in) ::c_lo(3), c_hi(3)
+    integer, value, intent(in) ::coord_type
+    real(rt), intent(inout) ::cc(c_lo(1):c_hi(1),c_lo(2):c_hi(2),c_lo(3):c_lo(3))
+    real(rt), intent(in) :: dx(3)
 
     real(rt)         r
-    integer i,j
+    integer i,j,k
+
+    !$gpu
 
     ! r-z
     if (coord_type .eq. 1) then
@@ -131,7 +137,9 @@ contains
        do i=lo(1),hi(1)
           r = (dble(i)+0.5e0_rt) * dx(1)
           do j=lo(2),hi(2)
-             cc(i,j) = cc(i,j) / r
+             do k = lo(3),hi(3)
+                cc(i,j,k) = cc(i,j,k) / r
+             enddo
           enddo
        enddo
 

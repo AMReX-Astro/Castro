@@ -12,7 +12,7 @@
 using namespace amrex;
 
 Diffusion::Diffusion(Amr* Parent, BCRec* _phys_bc)
-  : 
+  :
     parent(Parent),
     LevelData(MAX_LEV),
     grids(MAX_LEV),
@@ -42,7 +42,7 @@ Diffusion::read_params ()
 }
 
 
-void 
+void
 Diffusion::output_job_info_params(std::ostream& jobInfoFile)
 {
 #include "diffusion_job_info_tests.H"
@@ -69,8 +69,8 @@ Diffusion::install_level (int                   level,
 }
 
 void
-Diffusion::applyop (int level, MultiFab& Temperature, 
-                    MultiFab& CrseTemp, MultiFab& DiffTerm, 
+Diffusion::applyop (int level, MultiFab& Temperature,
+                    MultiFab& CrseTemp, MultiFab& DiffTerm,
                     Vector<std::unique_ptr<MultiFab> >& temp_cond_coef)
 {
     applyop_mlmg(level, Temperature, CrseTemp, DiffTerm, temp_cond_coef);
@@ -79,8 +79,8 @@ Diffusion::applyop (int level, MultiFab& Temperature,
 
 #if (BL_SPACEDIM == 1)
 void
-Diffusion::applyViscOp (int level, MultiFab& Vel, 
-                        MultiFab& CrseVel, MultiFab& ViscTerm, 
+Diffusion::applyViscOp (int level, MultiFab& Vel,
+                        MultiFab& CrseVel, MultiFab& ViscTerm,
                         Vector<std::unique_ptr<MultiFab> >& visc_coeff)
 {
     applyViscOp_mlmg(level, Vel, CrseVel, ViscTerm, visc_coeff);
@@ -94,7 +94,7 @@ Diffusion::applyMetricTerms(int level, MultiFab& Rhs, Vector<std::unique_ptr<Mul
     const Real* dx = parent->Geom(level).CellSize();
     const int coord_type = Geometry::Coord();
 #ifdef _OPENMP
-#pragma omp parallel	  
+#pragma omp parallel
 #endif
     for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
     {
@@ -126,13 +126,14 @@ Diffusion::weight_cc(int level, MultiFab& cc)
     const Real* dx = parent->Geom(level).CellSize();
     const int coord_type = Geometry::Coord();
 #ifdef _OPENMP
-#pragma omp parallel	  
+#pragma omp parallel
 #endif
     for (MFIter mfi(cc,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
-        ca_weight_cc(bx.loVect(), bx.hiVect(),
-		     BL_TO_FORTRAN(cc[mfi]),dx,&coord_type);
+#pragma gpu
+        ca_weight_cc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+		     BL_TO_FORTRAN_ANYD(cc[mfi]),dx,coord_type);
     }
 }
 
@@ -142,13 +143,14 @@ Diffusion::unweight_cc(int level, MultiFab& cc)
     const Real* dx = parent->Geom(level).CellSize();
     const int coord_type = Geometry::Coord();
 #ifdef _OPENMP
-#pragma omp parallel	  
+#pragma omp parallel
 #endif
     for (MFIter mfi(cc,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
-        ca_unweight_cc(bx.loVect(), bx.hiVect(),
-		       BL_TO_FORTRAN(cc[mfi]),dx,&coord_type);
+#pragma gpu
+        ca_unweight_cc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+		       BL_TO_FORTRAN_ANYD(cc[mfi]),dx,coord_type);
     }
 }
 #endif
@@ -184,8 +186,8 @@ Diffusion::make_mg_bc ()
 }
 
 void
-Diffusion::applyop_mlmg (int level, MultiFab& Temperature, 
-                         MultiFab& CrseTemp, MultiFab& DiffTerm, 
+Diffusion::applyop_mlmg (int level, MultiFab& Temperature,
+                         MultiFab& CrseTemp, MultiFab& DiffTerm,
                          Vector<std::unique_ptr<MultiFab> >& temp_cond_coef)
 {
     if (verbose && ParallelDescriptor::IOProcessor()) {
@@ -196,7 +198,7 @@ Diffusion::applyop_mlmg (int level, MultiFab& Temperature,
     const Geometry& geom = parent->Geom(level);
     const BoxArray& ba = Temperature.boxArray();
     const DistributionMapping& dm = Temperature.DistributionMap();
-    
+
     MLABecLaplacian mlabec({geom}, {ba}, {dm},
                            LPInfo().setMetricTerm(true).setMaxCoarseningLevel(0));
     mlabec.setMaxOrder(mlmg_maxorder);
@@ -220,8 +222,8 @@ Diffusion::applyop_mlmg (int level, MultiFab& Temperature,
 }
 
 void
-Diffusion::applyViscOp_mlmg (int level, MultiFab& Vel, 
-                            MultiFab& CrseVel, MultiFab& ViscTerm, 
+Diffusion::applyViscOp_mlmg (int level, MultiFab& Vel,
+                            MultiFab& CrseVel, MultiFab& ViscTerm,
                             Vector<std::unique_ptr<MultiFab> >& visc_coeff)
 {
     if (verbose && ParallelDescriptor::IOProcessor()) {
@@ -232,7 +234,7 @@ Diffusion::applyViscOp_mlmg (int level, MultiFab& Vel,
     const Geometry& geom = parent->Geom(level);
     const BoxArray& ba = Vel.boxArray();
     const DistributionMapping& dm = Vel.DistributionMap();
-    
+
     MLABecLaplacian mlabec({geom}, {ba}, {dm},
                            LPInfo().setMetricTerm(false).setMaxCoarseningLevel(0));
     mlabec.setMaxOrder(mlmg_maxorder);
