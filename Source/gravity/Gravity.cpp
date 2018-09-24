@@ -2060,6 +2060,7 @@ Gravity::unweight_edges(int level, const Vector<MultiFab*>& edges)
 		for (MFIter mfi(*edges[idir],true); mfi.isValid(); ++mfi)
 		{
 			const Box& bx = mfi.tilebox();
+#pragma gpu
 			ca_unweight_edges(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 			                  BL_TO_FORTRAN_ANYD((*edges[idir])[mfi]),
 			                  AMREX_REAL_ANYD(dx),coord_type,idir);

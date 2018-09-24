@@ -137,8 +137,8 @@ extern "C"
 
   void ca_unweight_edges
     (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG(edge),
-     const amrex::Real* dx, const int* coord_type, const int* idir);
+     BL_FORT_FAB_ARG_3D(edge),
+     const amrex::Real* dx, const int coord_type, const int idir);
 
 
 #ifdef HYBRID_MOMENTUM
