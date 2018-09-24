@@ -46,7 +46,7 @@ def doit(pprefix, nums, skip):
     # Get set of colors to use and apply to plot
     numplots = int( len(nums) / skip )
     cm = plt.get_cmap('nipy_spectral')
-    clist = [cm(1.0*i/numplots) for i in range(numplots + 1)]
+    clist = [cm(0.95*i/numplots) for i in range(numplots + 1)]
     hexclist = [rgba_to_hex(ci) for ci in clist]
     ax_T.set_prop_cycle(cycler('color', hexclist))
     ax_e.set_prop_cycle(cycler('color', hexclist))
