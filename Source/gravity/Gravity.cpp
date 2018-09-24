@@ -14,7 +14,10 @@
 #include <AMReX_FillPatchUtil.H>
 #include <AMReX_MLMG.H>
 #include <AMReX_MLPoisson.H>
-#include <AMReX_MVector.H>
+
+#ifdef AMREX_USE_CUDA
+#include <AMReX_CudaAllocators.H>
+#endif
 
 #define MAX_LEV 30
 
@@ -46,8 +49,8 @@ static Real Ggravity = 0.;
 // Vector< Vector<Real, CudaManagedAllocator <Real>> , CudaManagedAllocator <Vector<Real, CudaManagedAllocator <Real>>>> Gravity::radial_grav_old(MAX_LEV);
 // Vector< Vector<Real, CudaManagedAllocator <Real>> , CudaManagedAllocator <Vector<Real, CudaManagedAllocator <Real>>>> Gravity::radial_grav_new(MAX_LEV);
 // #else
-MVector< MVector<Real> > Gravity::radial_grav_old(MAX_LEV);
-MVector< MVector<Real> > Gravity::radial_grav_new(MAX_LEV);
+Vector< Vector<Real> > Gravity::radial_grav_old(MAX_LEV);
+Vector< Vector<Real> > Gravity::radial_grav_new(MAX_LEV);
 // #endif
 Vector< Vector<Real> > Gravity::radial_mass(MAX_LEV);
 Vector< Vector<Real> > Gravity::radial_vol(MAX_LEV);
