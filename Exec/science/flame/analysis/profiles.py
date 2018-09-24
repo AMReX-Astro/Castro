@@ -9,14 +9,7 @@ import matplotlib.pyplot as plt
 import yt
 import sys
 import numpy as np
-from cycler import cycler
 
-## Define RGBA to HEX
-def rgba_to_hex(rgba):
-    r = int(rgba[0]*255.0)
-    g = int(rgba[1]*255.0)
-    b = int(rgba[2]*255.0)
-    return '#{:02X}{:02X}{:02X}'.format(r,g,b)
 
 def get_Te_profile(plotfile):
 
@@ -42,32 +35,15 @@ def doit(pprefix, nums, skip):
 
     ax_T = f.add_subplot(211)
     ax_e = f.add_subplot(212)
-
-    # Get set of colors to use and apply to plot
-    numplots = int( len(nums) / skip )
-    cm = plt.get_cmap('nipy_spectral')
-    clist = [cm(0.95*i/numplots) for i in range(numplots + 1)]
-    hexclist = [rgba_to_hex(ci) for ci in clist]
-    ax_T.set_prop_cycle(cycler('color', hexclist))
-    ax_e.set_prop_cycle(cycler('color', hexclist))
     
-    skiplabels = int( numplots / 7 )
-    index = 0
-
     for n in range(0, len(nums), skip):
 
         pfile = "{}{}".format(prefix, nums[n])
 
         time, x, T, enuc = get_Te_profile(pfile)
 
-        if ( index % skiplabels == 0):
-            ax_T.plot(x, T, label="t = {:6.4g} s".format(time))
-        else: 
-            ax_T.plot(x, T)
-
+        ax_T.plot(x, T, label="t = {:6.4g} s".format(time))
         ax_e.plot(x, enuc)
-
-        index = index + 1
         
     ax_T.legend(frameon=False)
     ax_T.set_ylabel("T (K)")

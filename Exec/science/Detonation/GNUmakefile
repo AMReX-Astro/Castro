@@ -21,7 +21,7 @@ ifdef MICROPHYSICS_HOME
 EOS_DIR     := helmholtz
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/networks
-NETWORK_DIR := aprox19 
+NETWORK_DIR := subch
 
 INTEGRATOR_DIR := VODE
 
