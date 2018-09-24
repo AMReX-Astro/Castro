@@ -78,9 +78,9 @@ contains
 
 
   subroutine ca_compute_radial_mass (lo,hi,dx,dr,&
-                                     state,r_l1,r_h1, &
-                                     radial_mass,radial_vol,problo, &
-                                     n1d,drdxfac,level) bind(C, name="ca_compute_radial_mass")
+       state,r_l1,r_h1, &
+       radial_mass,radial_vol,problo, &
+       n1d,drdxfac,level) bind(C, name="ca_compute_radial_mass")
 
     use amrex_constants_module, only: HALF, FOUR3RD, M_PI
     use prob_params_module, only: center, Symmetry, physbc_lo, coord_type
@@ -107,11 +107,15 @@ contains
     real(rt)         :: lo_i, rlo, rhi
 
     if (physbc_lo(1) .ne. Symmetry) then
+#ifndef AMREX_USE_CUDA
        call amrex_error("Error: Gravity_1d.f90 :: 1D gravity assumes symmetric lower boundary.")
+#endif
     endif
 
     if (coord_type .ne. 2) then
+#ifndef AMREX_USE_CUDA
        call amrex_error("Error: Gravity_1d.f90 :: 1D gravity assumes spherical coordinates.")
+#endif
     endif
 
     fac = dble(drdxfac)
@@ -126,12 +130,14 @@ contains
        if (index .gt. n1d-1) then
 
           if (level .eq. 0) then
+#ifndef AMREX_USE_CUDA
              print *,'   '
              print *,'>>> Error: Gravity_1d::ca_compute_radial_mass ', i
              print *,'>>> ... index too big: ', index,' > ',n1d-1
              print *,'>>> ... at i     : ', i
              print *,'    '
              call amrex_error("Error:: Gravity_1d.f90 :: ca_compute_radial_mass")
+#endif
           end if
 
        else
@@ -167,8 +173,8 @@ contains
 
 
   subroutine ca_put_radial_grav(lo,hi,dx,dr,&
-                                grav,g_l,g_h, &
-                                radial_grav,problo,n1d,level) bind(C, name="ca_put_radial_grav")
+       grav,g_l,g_h, &
+       radial_grav,problo,n1d,level) bind(C, name="ca_put_radial_grav")
 
     use prob_params_module, only: center
     use amrex_constants_module, only: HALF, TWO
@@ -243,8 +249,8 @@ contains
           gmd = radial_grav(index  )
           glo = radial_grav(index-1)
           mag_grav = ( ghi -  TWO*gmd + glo)*xi**2/(TWO*dr**2) + &
-                     ( ghi       - glo     )*xi   /(TWO*dr   ) + &
-                     (-ghi + 26.e0_rt*gmd - glo)/24.e0_rt
+               ( ghi       - glo     )*xi   /(TWO*dr   ) + &
+               (-ghi + 26.e0_rt*gmd - glo)/24.e0_rt
 
           minvar = min(gmd, min(glo,ghi))
           maxvar = max(gmd, max(glo,ghi))
@@ -266,9 +272,9 @@ contains
 
 
   subroutine ca_put_radial_phi (lo,hi,domlo,domhi,dx,dr,&
-                                phi,p_l,p_h, &
-                                radial_phi,problo, &
-                                numpts_1d,fill_interior) bind(C, name="ca_put_radial_phi")
+       phi,p_l,p_h, &
+       radial_phi,problo, &
+       numpts_1d,fill_interior) bind(C, name="ca_put_radial_phi")
 
     use prob_params_module, only: center
     use amrex_constants_module, only: HALF, TWO
@@ -341,8 +347,8 @@ contains
              p_md = radial_phi(index  )
              p_lo = radial_phi(index-1)
              phi(i,j,k) = ( p_hi -  TWO*p_md + p_lo)*xi**2/(TWO*dr**2) + &
-                      ( p_hi       - p_lo      )*xi   /(TWO*dr   ) + &
-                      (-p_hi + 26.e0_rt*p_md - p_lo)/24.e0_rt
+                  ( p_hi       - p_lo      )*xi   /(TWO*dr   ) + &
+                  (-p_hi + 26.e0_rt*p_md - p_lo)/24.e0_rt
              minvar = min(p_md, min(p_lo,p_hi))
              maxvar = max(p_md, max(p_lo,p_hi))
              phi(i,j,k) = max(phi(i,j,k),minvar)

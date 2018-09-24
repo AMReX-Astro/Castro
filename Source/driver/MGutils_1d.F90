@@ -15,7 +15,7 @@ contains
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
-    
+
     integer, intent(in) :: lo(1),hi(1),xlo(1),xhi(1)
     integer, intent(in) :: rl1, rh1
     integer, intent(in) :: ecxl1, ecxh1
@@ -63,8 +63,8 @@ contains
           ecx(i) = ecx(i) * r**2
        enddo
 
-#ifndef AMREX_USE_CUDA       
-    else 
+#ifndef AMREX_USE_CUDA
+    else
        print *,'Bogus coord_type in apply_metric ' ,coord_type
        call amrex_error("Error:: MGutils_1d.f90 :: ca_apply_metric")
 #endif
@@ -80,7 +80,7 @@ contains
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
-    
+
     integer, intent(in) :: lo(1),hi(1)
     integer, intent(in) ::cl1, ch1
     integer, intent(in) ::coord_type
@@ -107,7 +107,7 @@ contains
        enddo
 
 #ifndef AMREX_USE_CUDA
-    else 
+    else
        print *,'Bogus coord_type in weight_cc ' ,coord_type
        call amrex_error("Error:: MGutils_1d.f90 :: ca_weight_cc")
 #endif
@@ -123,7 +123,7 @@ contains
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
-    
+
     integer, intent(in) :: lo(1),hi(1)
     integer, intent(in) :: cl1, ch1
     integer, intent(in) :: coord_type
@@ -149,8 +149,8 @@ contains
           cc(i) = cc(i) / r**2
        enddo
 
-#ifndef AMREX_USE_CUDA       
-    else 
+#ifndef AMREX_USE_CUDA
+    else
        print *,'Bogus coord_type in unweight_cc ' ,coord_type
        call amrex_error("Error:: MGutils_1d.f90 :: ca_unweight_cc")
 #endif
@@ -161,20 +161,25 @@ contains
 
 
   subroutine ca_unweight_edges(lo, hi, &
-       ecx, ecxl1, ecxh1, dx, coord_type, idir) &
+       ecx, ecx_lo, ecx_hi, dx, coord_type, idir) &
        bind(C, name="ca_unweight_edges")
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
-    
-    integer, intent(in) :: lo(1),hi(1)
-    integer, intent(in) :: ecxl1, ecxh1
-    integer, intent(in) :: coord_type, idir
-    real(rt), intent(inout) :: ecx(ecxl1:ecxh1)
-    real(rt), intent(in) :: dx(1)
+
+    integer, intent(in) :: lo(3),hi(3)
+    integer, intent(in) :: ecx_lo(3), ecx_hi(3)
+    integer, value, intent(in) :: coord_type, idir
+    real(rt), intent(inout) :: ecx(ecx_lo(1):ecx_hi(1),ecx_lo(2):ecx_hi(2),ecx_lo(3):ecx_hi(3))
+    real(rt), intent(in) :: dx(3)
 
     real(rt)         r
-    integer i
+    integer i,j,k
+
+    !$gpu
+
+    j = lo(2)
+    k = lo(3)
 
     ! r-z
     if (coord_type .eq. 1) then
@@ -182,7 +187,7 @@ contains
        ! On edges
        do i=lo(1),hi(1)
           r = abs(dble(i))*dx(1)
-          if (i.ne.0) ecx(i) = ecx(i) / r
+          if (i.ne.0) ecx(i,j,k) = ecx(i,j,k) / r
        enddo
 
        ! spherical
@@ -191,11 +196,11 @@ contains
        ! On edges
        do i=lo(1),hi(1)
           r = dble(i)*dx(1)
-          if (i.ne.0) ecx(i) = ecx(i) / r**2
+          if (i.ne.0) ecx(i,j,k) = ecx(i,j,k) / r**2
        enddo
 
 #ifndef AMREX_USE_CUDA
-    else 
+    else
        print *,'Bogus coord_type in unweight_edges ' ,coord_type
        call amrex_error("Error:: MGutils_1d.f90 :: ca_unweight_edges")
 #endif

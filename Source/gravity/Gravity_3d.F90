@@ -116,11 +116,13 @@ contains
              if (index .gt. n1d-1) then
 
                 if (level .eq. 0) then
+#ifndef AMREX_USE_CUDA
                    print *,'   '
                    print *,'>>> Error: Gravity_3d::ca_compute_radial_mass ',i,j,k
                    print *,'>>> ... index too big: ', index,' > ',n1d-1
                    print *,'>>> ... at (i,j,k)   : ',i,j,k
                    call amrex_error("Error:: Gravity_3d.f90 :: ca_compute_radial_mass")
+#endif
                 end if
 
              else
@@ -369,14 +371,14 @@ contains
 
 
   subroutine ca_compute_direct_sum_bc (lo, hi, dx, &
-                                       symmetry_type, lo_bc, hi_bc, &
-                                       rho, r_lo, r_hi, &
-                                       vol, v_lo, v_hi, &
-                                       problo, probhi, &
-                                       bcXYLo, bcXYHi, &
-                                       bcXZLo, bcXZHi, &
-                                       bcYZLo, bcYZHi, &
-                                       bclo, bchi, bcdx) bind(C, name="ca_compute_direct_sum_bc")
+       symmetry_type, lo_bc, hi_bc, &
+       rho, r_lo, r_hi, &
+       vol, v_lo, v_hi, &
+       problo, probhi, &
+       bcXYLo, bcXYHi, &
+       bcXZLo, bcXZHi, &
+       bcYZLo, bcYZHi, &
+       bclo, bchi, bcdx) bind(C, name="ca_compute_direct_sum_bc")
 
     use fundamental_constants_module, only: Gconst
     use amrex_constants_module
@@ -476,9 +478,9 @@ contains
                    if ( doSymmetricAdd ) then
 
                       bcXYLo(l,m) = bcXYLo(l,m) + &
-                                    direct_sum_symmetric_add(loc,locb,problo,probhi, &
-                                                             rho(i,j,k),vol(i,j,k), &
-                                                             doSymmetricAddLo,doSymmetricAddHi)
+                           direct_sum_symmetric_add(loc,locb,problo,probhi, &
+                           rho(i,j,k),vol(i,j,k), &
+                           doSymmetricAddLo,doSymmetricAddHi)
 
                    endif
 
@@ -492,9 +494,9 @@ contains
                    if ( doSymmetricAdd ) then
 
                       bcXYHi(l,m) = bcXYHi(l,m) + &
-                                    direct_sum_symmetric_add(loc,locb,problo,probhi, &
-                                                             rho(i,j,k),vol(i,j,k), &
-                                                             doSymmetricAddLo,doSymmetricAddHi)
+                           direct_sum_symmetric_add(loc,locb,problo,probhi, &
+                           rho(i,j,k),vol(i,j,k), &
+                           doSymmetricAddLo,doSymmetricAddHi)
 
                    endif
 
@@ -535,9 +537,9 @@ contains
                    if ( doSymmetricAdd ) then
 
                       bcXZLo(l,n) = bcXZLo(l,n) + &
-                                    direct_sum_symmetric_add(loc,locb,problo,probhi, &
-                                                             rho(i,j,k),vol(i,j,k), &
-                                                             doSymmetricAddLo,doSymmetricAddHi)
+                           direct_sum_symmetric_add(loc,locb,problo,probhi, &
+                           rho(i,j,k),vol(i,j,k), &
+                           doSymmetricAddLo,doSymmetricAddHi)
 
                    endif
 
@@ -551,9 +553,9 @@ contains
                    if ( doSymmetricAdd ) then
 
                       bcXZHi(l,n) = bcXZHi(l,n) + &
-                                    direct_sum_symmetric_add(loc,locb,problo,probhi, &
-                                                             rho(i,j,k),vol(i,j,k), &
-                                                             doSymmetricAddLo,doSymmetricAddHi)
+                           direct_sum_symmetric_add(loc,locb,problo,probhi, &
+                           rho(i,j,k),vol(i,j,k), &
+                           doSymmetricAddLo,doSymmetricAddHi)
 
                    endif
 
@@ -593,9 +595,9 @@ contains
                    if ( doSymmetricAdd ) then
 
                       bcYZLo(m,n) = bcYZLo(m,n) + &
-                                    direct_sum_symmetric_add(loc,locb,problo,probhi, &
-                                                             rho(i,j,k),vol(i,j,k), &
-                                                             doSymmetricAddLo,doSymmetricAddHi)
+                           direct_sum_symmetric_add(loc,locb,problo,probhi, &
+                           rho(i,j,k),vol(i,j,k), &
+                           doSymmetricAddLo,doSymmetricAddHi)
                    endif
 
                    locb(1) = probhi(1)
@@ -608,9 +610,9 @@ contains
                    if ( doSymmetricAdd ) then
 
                       bcYZHi(m,n) = bcYZHi(m,n) + &
-                                    direct_sum_symmetric_add(loc,locb,problo,probhi, &
-                                                             rho(i,j,k),vol(i,j,k), &
-                                                             doSymmetricAddLo,doSymmetricAddHi)
+                           direct_sum_symmetric_add(loc,locb,problo,probhi, &
+                           rho(i,j,k),vol(i,j,k), &
+                           doSymmetricAddLo,doSymmetricAddHi)
 
                    endif
 
@@ -627,11 +629,11 @@ contains
 
 
   subroutine ca_put_direct_sum_bc (lo, hi, &
-                                   phi, p_lo, p_hi, &
-                                   bcXYLo, bcXYHi, &
-                                   bcXZLo, bcXZHi, &
-                                   bcYZLo, bcYZHi, &
-                                   bclo, bchi) bind(C, name="ca_put_direct_sum_bc")
+       phi, p_lo, p_hi, &
+       bcXYLo, bcXYHi, &
+       bcXZLo, bcXZHi, &
+       bcYZLo, bcYZHi, &
+       bclo, bchi) bind(C, name="ca_put_direct_sum_bc")
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none

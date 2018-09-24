@@ -132,12 +132,14 @@ contains
           if (index .gt. n1d-1) then
 
              if (level .eq. 0) then
+#ifndef AMREX_USE_CUDA
                 print *,'   '
                 print *,'>>> Error: Gravity_2d::ca_compute_radial_mass ',i,j
                 print *,'>>> ... index too big: ', index,' > ',n1d-1
                 print *,'>>> ... at (i,j)     : ',i,j
                 print *,'    '
                 call amrex_error("Error:: Gravity_2d.f90 :: ca_compute_radial_mass")
+#endif
              end if
 
           else

@@ -7,7 +7,7 @@ module MGutils_2D_module
   public
 
 contains
-  
+
   subroutine ca_apply_metric(lo, hi, &
        xlo, ylo, &
        xhi, yhi, &
@@ -18,7 +18,7 @@ contains
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
-    
+
     integer, intent(in) :: lo(2),hi(2),xlo(2),ylo(2),xhi(2),yhi(2)
     integer, intent(in) ::  rl1, rl2, rh1, rh2
     integer, intent(in) :: ecxl1, ecxl2, ecxh1, ecxh2
@@ -58,9 +58,9 @@ contains
              ecy(i,j) = ecy(i,j) * r
           enddo
        enddo
-       
+
 #ifndef AMREX_USE_CUDA
-    else 
+    else
        print *,'Bogus coord_type in apply_metric ' ,coord_type
        call amrex_error("Error:: MGutils_2d.f90 :: ca_apply_metric")
 #endif
@@ -76,7 +76,7 @@ contains
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
-    
+
     integer, intent(in) :: lo(2),hi(2)
     integer, intent(in) :: cl1, cl2, ch1, ch2
     integer, intent(in) :: coord_type
@@ -96,9 +96,9 @@ contains
              cc(i,j) = cc(i,j) * r
           enddo
        enddo
-       
+
 #ifndef AMREX_USE_CUDA
-    else 
+    else
        print *,'Bogus coord_type in weight_cc ' ,coord_type
        call amrex_error("Error:: MGutils_2d.f90 :: ca_weight_cc")
 #endif
@@ -114,7 +114,7 @@ contains
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
-    
+
     integer, intent(in) ::  lo(2),hi(2)
     integer, intent(in) :: cl1, cl2, ch1, ch2
     integer, intent(in) :: coord_type
@@ -135,8 +135,8 @@ contains
           enddo
        enddo
 
-#ifndef AMREX_USE_CUDA       
-    else 
+#ifndef AMREX_USE_CUDA
+    else
        print *,'Bogus coord_type in unweight_cc ' ,coord_type
        call amrex_error("Error:: MGutils_2d.f90 :: ca_unweight_cc")
 #endif
@@ -147,20 +147,24 @@ contains
 
 
   subroutine ca_unweight_edges(lo, hi, &
-       ec, ecl1, ecl2, ech1, ech2, dx, coord_type, idir) &
+       ec, ec_lo, ec_hi, dx, coord_type, idir) &
        bind(C, name="ca_unweight_edges")
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
-    
-    integer, intent(in) ::  lo(2),hi(2)
-    integer, intent(in) :: ecl1, ecl2, ech1, ech2
-    integer, intent(in) :: coord_type, idir
-    real(rt), intent(inout) :: ec(ecl1:ech1,ecl2:ech2)
-    real(rt), intent(in) :: dx(2)
+
+    integer, intent(in) ::  lo(3),hi(3)
+    integer, intent(in) :: ec_lo(3), ec_hi(3)
+    integer, value, intent(in) :: coord_type, idir
+    real(rt), intent(inout) :: ec(ec_lo(1):ec_hi(1),ec_lo(2):ec_hi(2),ec_lo(3):ec_hi(3))
+    real(rt), intent(in) :: dx(3)
 
     real(rt)         :: r
-    integer          :: i,j
+    integer          :: i,j,k
+
+    !$gpu
+
+    k = lo(3)
 
     ! r-z
     if (coord_type .eq. 1) then
@@ -171,7 +175,7 @@ contains
              if (i .ne. 0) then
                 r = dble(i)*dx(1)
                 do j = lo(2),hi(2)
-                   ec(i,j) = ec(i,j) / r
+                   ec(i,j,k) = ec(i,j,k) / r
                 enddo
              end if
           enddo
@@ -180,13 +184,13 @@ contains
           do i = lo(1), hi(1)
              r = (dble(i)+0.5e0_rt) * dx(1)
              do j = lo(2),hi(2)
-                ec(i,j) = ec(i,j) / r
+                ec(i,j,k) = ec(i,j,k) / r
              enddo
           enddo
        end if
-       
+
 #ifndef AMREX_USE_CUDA
-    else 
+    else
        print *,'Bogus coord_type in unweight_edges ' ,coord_type
        call amrex_error("Error:: MGutils_2d.f90 :: ca_unweight_edges")
 #endif
@@ -195,4 +199,3 @@ contains
   end subroutine ca_unweight_edges
 
 end module MGutils_2D_module
-    

@@ -18,13 +18,13 @@ module gravity_module
   real(rt)        , allocatable, save :: parity_q0(:), parity_qC_qS(:,:)
 
 contains
-  
-! ::
-! :: ----------------------------------------------------------
-! ::
+
+  ! ::
+  ! :: ----------------------------------------------------------
+  ! ::
 
   ! Returns the gravitational constant, G
-  
+
   subroutine get_grav_const(Gconst_out) bind(C, name="get_grav_const")
 
     use fundamental_constants_module, only: Gconst
@@ -40,13 +40,13 @@ contains
   ! :: ----------------------------------------------------------
   ! ::
 
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! Given a radial mass distribution, this computes the gravitational
   ! acceleration as a function of radius by computing the mass enclosed
   ! in successive spherical shells.
   ! Inputs: mass(r), dr, numpts_1d
   ! Outputs: grav(r)
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine ca_integrate_grav (mass,den,grav,max_radius,dr,numpts_1d) &
        bind(C, name="ca_integrate_grav")
@@ -82,7 +82,7 @@ contains
        if (i.eq.0) then
 
           ! The mass at (i) is distributed into these two regions
-          vol_outer_shell = fourthirdspi * rc**3 
+          vol_outer_shell = fourthirdspi * rc**3
           vol_upper_shell = fourthirdspi * (rhi**3 - rc**3)
           vol_total_i     = vol_outer_shell + vol_upper_shell
 
@@ -100,10 +100,10 @@ contains
           vol_upper_shell = fourthirdspi * halfdr * ( rc**2 + rhi*rc + rhi**2)
           vol_total_i     = vol_outer_shell + vol_upper_shell
 
-          mass_encl = mass_encl + (vol_inner_shell/vol_total_im1) * mass(i-1) + & 
-               (vol_outer_shell/vol_total_i  ) * mass(i  ) 
+          mass_encl = mass_encl + (vol_inner_shell/vol_total_im1) * mass(i-1) + &
+               (vol_outer_shell/vol_total_i  ) * mass(i  )
 
-       else 
+       else
 
           ! The mass at (i-1) is distributed into these two shells
           vol_lower_shell = vol_outer_shell   ! This copies from the previous i
@@ -129,7 +129,7 @@ contains
   ! :: ----------------------------------------------------------
   ! ::
 
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! Integrates radial mass elements of a spherically symmetric
   ! mass distribution to calculate both the gravitational acceleration,
   ! grav, and the gravitational potential, phi. Here the mass variable
@@ -156,10 +156,10 @@ contains
   !
   ! Inputs: mass, grav, dr, numpts_1d
   ! Outputs: phi
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine ca_integrate_phi (mass,grav,phi,dr,numpts_1d) &
-                               bind(C, name="ca_integrate_phi")
+       bind(C, name="ca_integrate_phi")
 
     use fundamental_constants_module, only : Gconst
 
@@ -198,11 +198,11 @@ contains
   ! :: ----------------------------------------------------------
   ! ::
 
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! Same as ca_integrate_grav above, but includes general relativistic effects.
   ! Inputs: rho, mass, pressure, dr, numpts_1d
   ! Outputs: grav
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine ca_integrate_gr_grav (rho,mass,pres,grav,dr,numpts_1d) &
        bind(C, name="ca_integrate_gr_grav")
@@ -241,7 +241,7 @@ contains
        if (i.eq.0) then
 
           ! The mass at (i) is distributed into these two regions
-          vol_outer_shell = fourthirdspi * rc**3 
+          vol_outer_shell = fourthirdspi * rc**3
           vol_upper_shell = fourthirdspi * (rhi**3 - rc**3)
           vol_total_i     = vol_outer_shell + vol_upper_shell
 
@@ -259,8 +259,8 @@ contains
           vol_upper_shell = fourthirdspi * halfdr * ( rc**2 + rhi*rc + rhi**2)
           vol_total_i     = vol_outer_shell + vol_upper_shell
 
-          mass_encl = mass_encl + vol_inner_shell / vol_total_im1 * mass(i-1) + & 
-               vol_outer_shell / vol_total_i   * mass(i  ) 
+          mass_encl = mass_encl + vol_inner_shell / vol_total_im1 * mass(i-1) + &
+               vol_outer_shell / vol_total_i   * mass(i  )
        end if
        grav(i) = -Gconst * mass_encl / rc**2
 
@@ -308,7 +308,7 @@ contains
     integer :: b, l, m
 
     ! If any of the boundaries are symmetric, we need to account for the mass that is assumed
-    ! to lie on the opposite side of the symmetric axis. If the center in any direction 
+    ! to lie on the opposite side of the symmetric axis. If the center in any direction
     ! coincides with the boundary, then we can simply double the mass as a result of that reflection.
     ! Otherwise, we need to do a more general solve. We include a logical that is set to true
     ! if any boundary is symmetric, so that we can avoid unnecessary function calls.
@@ -422,10 +422,10 @@ contains
 
 
   subroutine ca_put_multipole_phi (lo,hi,domlo,domhi,dx, &
-                                   phi,p_lo,p_hi, &
-                                   lnum,qL0,qLC,qLS,qU0,qUC,qUS, &
-                                   npts,boundary_only) &
-                                   bind(C, name="ca_put_multipole_phi")
+       phi,p_lo,p_hi, &
+       lnum,qL0,qLC,qLS,qU0,qUC,qUS, &
+       npts,boundary_only) &
+       bind(C, name="ca_put_multipole_phi")
 
     use prob_params_module, only: problo, center, dim, coord_type
     use fundamental_constants_module, only: Gconst
@@ -461,7 +461,9 @@ contains
     endif
 
     if (lnum > lnum_max) then
+#ifndef AMREX_USE_CUDA
        call amrex_error("Error: ca_compute_multipole_moments: requested more multipole moments than we allocated data for.")
+#endif
     endif
 
     do k = lo(3), hi(3)
@@ -551,7 +553,7 @@ contains
                       do m = 1, l
 
                          phi(i,j,k) = phi(i,j,k) + (qLC(l,m,n) * cos(m * phiAngle) + qLS(l,m,n) * sin(m * phiAngle)) * &
-                                      assocLegPolyArr(l,m) * r_U
+                              assocLegPolyArr(l,m) * r_U
 
                       enddo
 
@@ -572,11 +574,11 @@ contains
 
 
   subroutine ca_compute_multipole_moments (lo,hi,domlo,domhi, &
-                                           dx,rho,r_lo,r_hi, &
-                                           vol,v_lo,v_hi, &
-                                           lnum,qL0,qLC,qLS,qU0,qUC,qUS, &
-                                           npts,boundary_only) &
-                                           bind(C, name="ca_compute_multipole_moments")
+       dx,rho,r_lo,r_hi, &
+       vol,v_lo,v_hi, &
+       lnum,qL0,qLC,qLS,qU0,qUC,qUS, &
+       npts,boundary_only) &
+       bind(C, name="ca_compute_multipole_moments")
 
     use prob_params_module, only: problo, center, probhi, dim, coord_type
     use amrex_constants_module
@@ -618,7 +620,9 @@ contains
     ! Sanity check
 
     if (lnum > lnum_max) then
+#ifndef AMREX_USE_CUDA
        call amrex_error("Error: ca_compute_multipole_moments: requested more multipole moments than we allocated data for.")
+#endif
     endif
 
     do k = lo(3), hi(3)
@@ -645,7 +649,7 @@ contains
              ! Now, compute the multipole moments.
 
              call multipole_add(cosTheta, phiAngle, r, rho(i,j,k), vol(i,j,k) / rmax**3, &
-                                qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index, .true.)
+                  qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index, .true.)
 
              ! Now add in contributions if we have any symmetric boundaries in 3D.
              ! The symmetric boundary in 2D axisymmetric is handled separately.
@@ -653,10 +657,10 @@ contains
              if ( doSymmetricAdd ) then
 
                 call multipole_symmetric_add(doSymmetricAddLo, doSymmetricAddHi, &
-                                             x, y, z, problo, probhi, &
-                                             rho(i,j,k), vol(i,j,k) / rmax**3, &
-                                             qL0, qLC, qLS, qU0, qUC, qUS, &
-                                             lnum, npts, nlo, index)
+                     x, y, z, problo, probhi, &
+                     rho(i,j,k), vol(i,j,k) / rmax**3, &
+                     qL0, qLC, qLS, qU0, qUC, qUS, &
+                     lnum, npts, nlo, index)
 
              endif
 
@@ -774,10 +778,10 @@ contains
 
 
   subroutine multipole_symmetric_add(doSymmetricAddLo, doSymmetricAddHi, &
-                                     x, y, z, problo, probhi, &
-                                     rho, vol, &
-                                     qU0, qUC, qUS, qL0, qLC, qLS, &
-                                     lnum, npts, nlo, index)
+       x, y, z, problo, probhi, &
+       rho, vol, &
+       qU0, qUC, qUS, qL0, qLC, qLS, &
+       lnum, npts, nlo, index)
 
     use prob_params_module, only: center
     use amrex_constants_module
@@ -885,8 +889,8 @@ contains
 
 
   subroutine multipole_add(cosTheta, phiAngle, r, rho, vol, &
-                           qL0, qLC, qLS, qU0, qUC, qUS, &
-                           lnum, npts, nlo, index, do_parity)
+       qL0, qLC, qLS, qU0, qUC, qUS, &
+       lnum, npts, nlo, index, do_parity)
 
     use amrex_constants_module, only: ONE
 
