@@ -96,6 +96,7 @@ contains
                         adv_h3,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_denfill")
 
     use amrex_fort_module, only: rt => amrex_real
+    use bc_ext_fill_module, only: ext_denfill
 
     implicit none
 

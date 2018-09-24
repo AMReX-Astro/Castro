@@ -43,6 +43,7 @@ contains
     real(rt), intent(inout) :: adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3,NVAR)
 
     integer :: i, j, k, q, n, iter, m
+
     real(rt) :: y, z
     real(rt) :: dens_above, dens_base, temp_above
     real(rt) :: pres_above, p_want, pres_zone, A
@@ -208,7 +209,8 @@ contains
                             ! note: we need to match the corresponding
                             ! zone on the other side of the interface
                             koff = domlo(3)-k-1
-                            adv(i,j,k,UMZ) = -dens_zone*(adv(i,j,domlo(3)+koff,UMZ)/adv(i,j,domlo(3)+koff,URHO)
+
+                            adv(i,j,k,UMZ) = -dens_zone*(adv(i,j,domlo(3)+koff,UMZ)/adv(i,j,domlo(3)+koff,URHO))
 
                             adv(i,j,k,UMX) = -dens_zone*(adv(i,j,domlo(3),UMX)/dens_base)
                             adv(i,j,k,UMY) = -dens_zone*(adv(i,j,domlo(3),UMY)/dens_base)
