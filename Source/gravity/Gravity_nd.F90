@@ -438,7 +438,7 @@ contains
     integer , intent(in   ) :: domlo(3), domhi(3)
     real(rt), intent(in   ) :: dx(3)
 
-    integer , intent(in   ) :: lnum, npts, boundary_only
+    integer , value, intent(in   ) :: lnum, npts, boundary_only
     real(rt), intent(in   ) :: qL0(0:lnum,0:npts-1), qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
     real(rt), intent(in   ) :: qU0(0:lnum,0:npts-1), qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
 
@@ -450,6 +450,8 @@ contains
     real(rt)         :: x, y, z, r, cosTheta, phiAngle
     real(rt)         :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
     real(rt)         :: r_L, r_U
+
+    !$gpu
 
     ! If we're using this to construct boundary values, then only use
     ! the outermost bin.
@@ -589,7 +591,7 @@ contains
     integer , intent(in   ) :: lo(3),hi(3)
     integer , intent(in   ) :: domlo(3),domhi(3)
     real(rt), intent(in   ) :: dx(3)
-    integer , intent(in   ) :: boundary_only, npts, lnum
+    integer , value, intent(in   ) :: boundary_only, npts, lnum
 
     real(rt), intent(inout) :: qL0(0:lnum,0:npts-1), qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
     real(rt), intent(inout) :: qU0(0:lnum,0:npts-1), qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
@@ -603,6 +605,8 @@ contains
     integer          :: nlo, index
 
     real(rt)         :: x, y, z, r, drInv, cosTheta, phiAngle
+
+    !$gpu
 
     ! If we're using this to construct boundary values, then only fill
     ! the outermost bin.
@@ -704,6 +708,8 @@ contains
     real(rt)         :: x
     real(rt)         :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
 
+    !$gpu
+
     legPolyArr(:)        = ZERO
     assocLegPolyArr(:,:) = ZERO
 
@@ -804,6 +810,8 @@ contains
 
     real(rt)         :: cosTheta, phiAngle, r
     real(rt)         :: xLo, yLo, zLo, xHi, yHi, zHi
+
+    !$gpu
 
     xLo = ( TWO * (problo(1) - center(1)) ) / rmax - x
     xHi = ( TWO * (probhi(1) - center(1)) ) / rmax - x
@@ -912,6 +920,8 @@ contains
     real(rt)         :: rho_r_L, rho_r_U
 
     real(rt)         :: p0(0:lnum), pCS(0:lnum,0:lnum)
+
+    !$gpu
 
     call fill_legendre_arrays(legPolyArr, assocLegPolyArr, cosTheta, lnum)
 

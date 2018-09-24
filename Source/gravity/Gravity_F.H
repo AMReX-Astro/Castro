@@ -91,10 +91,10 @@ extern "C"
      const int* domlo, const int* domhi,
      const amrex::Real* dx,
      BL_FORT_FAB_ARG_3D(phi),
-     const int* lnum,
+     const int lnum,
      const amrex::Real* qL0, const amrex::Real* qLC, const amrex::Real* qLS,
      const amrex::Real* qU0, const amrex::Real* qUC, const amrex::Real* qUS,
-     const int* npts, const int* boundary_only);
+     const int npts, const int boundary_only);
 
   void ca_compute_multipole_moments
     (const int* lo, const int* hi,

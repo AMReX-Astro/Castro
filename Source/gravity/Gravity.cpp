@@ -1461,6 +1461,7 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
     {
         const Box& bx = mfi.growntilebox();
 #ifdef AMREX_USE_CUDA
+#pragma gpu
         ca_put_radial_phi(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 			  AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
 			  AMREX_REAL_ANYD(dx),dr, BL_TO_FORTRAN_ANYD(phi[mfi]),
@@ -1599,12 +1600,22 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 
 #ifdef _OPENMP
 	int nthreads = omp_get_max_threads();
+#ifdef AMREX_USE_CUDA
+	Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_qL0(nthreads);
+	Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_qLC(nthreads);
+	Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_qLS(nthreads);
+	Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_qU0(nthreads);
+	Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_qUC(nthreads);
+	Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_qUS(nthreads);
+#else
 	Vector<std::unique_ptr<FArrayBox> > priv_qL0(nthreads);
 	Vector<std::unique_ptr<FArrayBox> > priv_qLC(nthreads);
 	Vector<std::unique_ptr<FArrayBox> > priv_qLS(nthreads);
 	Vector<std::unique_ptr<FArrayBox> > priv_qU0(nthreads);
 	Vector<std::unique_ptr<FArrayBox> > priv_qUC(nthreads);
 	Vector<std::unique_ptr<FArrayBox> > priv_qUS(nthreads);
+#endif
+
 	for (int i=0; i<nthreads; i++) {
 	    priv_qL0[i].reset(new FArrayBox(boxq0));
 	    priv_qLC[i].reset(new FArrayBox(boxqC));
@@ -1628,12 +1639,29 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 	    for (MFIter mfi(source,true); mfi.isValid(); ++mfi)
 	    {
 	        const Box& bx = mfi.tilebox();
-
+#ifdef AMREX_USE_CUDA
+#pragma gpu
+					ca_compute_multipole_moments(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+																 AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
+							 AMREX_REAL_ANYD(dx),BL_TO_FORTRAN_ANYD(source[mfi]),
+							 BL_TO_FORTRAN_ANYD((*volume[lev])[mfi]),
+							 lnum,
+#ifdef _OPENMP
+							 priv_qL0[tid]->dataPtr(),
+							 priv_qLC[tid]->dataPtr(),priv_qLS[tid]->dataPtr(),
+							 priv_qU0[tid]->dataPtr(),
+							 priv_qUC[tid]->dataPtr(),priv_qUS[tid]->dataPtr(),
+#else
+							 qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
+							 qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
+#endif
+							 npts,boundary_only);
+#else
 					ca_compute_multipole_moments(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		                             ARLIM_3D(domain.loVect()), ARLIM_3D(domain.hiVect()),
 					     ZFILL(dx),BL_TO_FORTRAN_ANYD(source[mfi]),
 					     BL_TO_FORTRAN_ANYD((*volume[lev])[mfi]),
-					     &lnum,
+					     lnum,
 #ifdef _OPENMP
 					     priv_qL0[tid]->dataPtr(),
 					     priv_qLC[tid]->dataPtr(),priv_qLS[tid]->dataPtr(),
@@ -1643,7 +1671,8 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 					     qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
 					     qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
 #endif
-					     &npts,&boundary_only);
+					     npts,boundary_only);
+#endif
 	}
 
 #ifdef _OPENMP
