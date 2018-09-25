@@ -23,20 +23,20 @@ extern "C"
     const int coord_type);
 
   void ca_compute_radial_mass
-    (const int lo[], const int hi[],
-     const amrex::Real* dx, const amrex::Real* dr,
-     const BL_FORT_FAB_ARG(S),
+    (const int* lo, const int* hi,
+     const amrex::Real* dx, const amrex::Real dr,
+     const BL_FORT_FAB_ARG_3D(S),
      amrex::Real* avgmass, amrex::Real* avgvol,
-     const amrex::Real* problo, const int* numpts_1d,
-     const int* drdxfac, const int* level);
+     const amrex::Real* problo, const int numpts_1d,
+     const int drdxfac, const int level);
 
   void ca_compute_avgpres
-    (const int lo[], const int hi[],
-     const amrex::Real* dx, const amrex::Real* dr,
-     const BL_FORT_FAB_ARG(S),
+    (const int* lo, const int* hi,
+     const amrex::Real* dx, const amrex::Real dr,
+     const BL_FORT_FAB_ARG_3D(S),
      amrex::Real* avgpres,
-     const amrex::Real* problo, const int* numpts_1d,
-     const int* drdxfac, const int* level);
+     const amrex::Real* problo, const int numpts_1d,
+     const int drdxfac, const int level);
 
   void ca_integrate_grav
     (const amrex::Real* avgmass, const amrex::Real* avgden,

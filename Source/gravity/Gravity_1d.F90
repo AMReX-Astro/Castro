@@ -78,7 +78,7 @@ contains
 
 
   subroutine ca_compute_radial_mass (lo,hi,dx,dr,&
-       state,r_l1,r_h1, &
+       state,r_lo,r_hi, &
        radial_mass,radial_vol,problo, &
        n1d,drdxfac,level) bind(C, name="ca_compute_radial_mass")
 
@@ -89,18 +89,18 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer , intent(in   ) :: lo(1), hi(1)
-    real(rt), intent(in   ) :: dx(1), dr
-    real(rt), intent(in   ) :: problo(1)
+    integer , intent(in   ) :: lo(3), hi(3)
+    real(rt), intent(in   ) :: dx(3), dr
+    real(rt), intent(in   ) :: problo(3)
 
-    integer , intent(in   ) :: n1d, drdxfac, level
+    integer , value, intent(in   ) :: n1d, drdxfac, level
     real(rt), intent(inout) :: radial_mass(0:n1d-1)
     real(rt), intent(inout) :: radial_vol (0:n1d-1)
 
-    integer , intent(in   ) :: r_l1, r_h1
-    real(rt), intent(in   ) :: state(r_l1:r_h1,NVAR)
+    integer , intent(in   ) :: r_lo(3), r_hi(3)
+    real(rt), intent(in   ) :: state(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),NVAR)
 
-    integer          :: i, index
+    integer          :: i, j, k, index
     integer          :: ii
     real(rt)         :: r
     real(rt)         :: dx_frac, fac, vol
@@ -120,6 +120,9 @@ contains
 
     fac = dble(drdxfac)
     dx_frac = dx(1) / fac
+
+    j = lo(2)
+    k = lo(3)
 
     do i = lo(1), hi(1)
 
@@ -158,7 +161,7 @@ contains
              index = int(r / dr)
 
              if (index .le. n1d-1) then
-                radial_mass(index) = radial_mass(index) + vol * state(i,URHO)
+                radial_mass(index) = radial_mass(index) + vol * state(i,j,k,URHO)
                 radial_vol (index) = radial_vol (index) + vol
              end if
 

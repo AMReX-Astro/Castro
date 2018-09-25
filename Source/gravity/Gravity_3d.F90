@@ -52,7 +52,7 @@ contains
 
 
   subroutine ca_compute_radial_mass (lo,hi,dx,dr,&
-       state,r_l1,r_l2,r_l3,r_h1,r_h2,r_h3,&
+       state,r_lo,r_hi,&
        radial_mass,radial_vol,problo,&
        n1d,drdxfac,level) bind(C, name="ca_compute_radial_mass")
 
@@ -63,16 +63,16 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer , intent(in   ) :: lo(3),hi(3)
-    real(rt), intent(in   ) :: dx(3),dr
+    integer , intent(in   ) :: lo(3), hi(3)
+    real(rt), intent(in   ) :: dx(3), dr
     real(rt), intent(in   ) :: problo(3)
 
-    integer , intent(in   ) :: n1d,drdxfac,level
+    integer , value, intent(in   ) :: n1d, drdxfac, level
     real(rt), intent(inout) :: radial_mass(0:n1d-1)
     real(rt), intent(inout) :: radial_vol (0:n1d-1)
 
-    integer , intent(in   ) :: r_l1,r_l2,r_l3,r_h1,r_h2,r_h3
-    real(rt), intent(in   ) :: state(r_l1:r_h1,r_l2:r_h2,r_l3:r_h3,NVAR)
+    integer , intent(in   ) :: r_lo(3), r_hi(3)
+    real(rt), intent(in   ) :: state(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),NVAR)
 
     integer          :: i,j,k,index
     integer          :: ii,jj,kk
@@ -413,6 +413,8 @@ contains
     real(rt)         :: loc(3), locb(3), dx2, dy2, dz2
 
     logical          :: doSymmetricAddLo(3), doSymmetricAddHi(3), doSymmetricAdd
+
+    !$gpu
 
     ! Determine if we need to add contributions from any symmetric boundaries
 
