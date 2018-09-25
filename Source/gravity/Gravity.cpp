@@ -1399,14 +1399,14 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 
 
 #ifdef AMREX_USE_CUDA
-		Vector<Real, CudaManagedAllocator<Real> > radial_mass(n1d+1,0.0);
-		Vector<Real, CudaManagedAllocator<Real> > radial_vol(n1d+1,0.0);
-		Vector<Real, CudaManagedAllocator<Real> > radial_phi(n1d+1,0.0);
+	Vector<Real, CudaManagedAllocator<Real> > radial_mass(n1d,0.0);
+	Vector<Real, CudaManagedAllocator<Real> > radial_vol(n1d,0.0);
+	Vector<Real, CudaManagedAllocator<Real> > radial_phi(n1d,0.0);
     Vector<Real, CudaManagedAllocator<Real> > radial_grav(n1d+1,0.0);
 #else
-		Vector<Real> radial_mass(n1d,0.0);
-		Vector<Real> radial_vol(n1d,0.0);
-		Vector<Real> radial_phi(n1d,0.0);
+	Vector<Real> radial_mass(n1d,0.0);
+	Vector<Real> radial_vol(n1d,0.0);
+	Vector<Real> radial_phi(n1d,0.0);
     Vector<Real> radial_grav(n1d+1,0.0);
 #endif
 
@@ -1439,7 +1439,7 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 	for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
-#pragma gpu
+// #pragma gpu
 	    ca_compute_radial_mass(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 					 AMREX_REAL_ANYD(dx),dr,
 				   BL_TO_FORTRAN_ANYD(Rhs[mfi]),
@@ -2373,13 +2373,11 @@ Gravity::make_radial_gravity(int level, Real time,
 				int nthreads = omp_get_max_threads();
 
 #ifdef AMREX_USE_CUDA
-
 #ifdef GR_GRAV
 				Vector< Vector<Real, CudaManagedAllocator<Real> > > priv_radial_pres(nthreads);
 #endif
 				Vector< Vector<Real, CudaManagedAllocator<Real> > > priv_radial_mass(nthreads);
 				Vector< Vector<Real, CudaManagedAllocator<Real> > > priv_radial_vol (nthreads);
-
 #else
 
 #ifdef GR_GRAV
@@ -2404,8 +2402,8 @@ Gravity::make_radial_gravity(int level, Real time,
 	    for (MFIter mfi(S,true); mfi.isValid(); ++mfi)
 	    {
 	        const Box& bx = mfi.tilebox();
-		FArrayBox& fab = S[mfi];
-#pragma gpu
+			FArrayBox& fab = S[mfi];
+// #pragma gpu
 		ca_compute_radial_mass(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 						AMREX_REAL_ANYD(dx), dr,
 				       BL_TO_FORTRAN_ANYD(fab),
