@@ -1772,7 +1772,6 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 			 qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
 			 qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
 			 npts,boundary_only);
-#endif
     }
 
     if (verbose)
@@ -2372,11 +2371,23 @@ Gravity::make_radial_gravity(int level, Real time,
 
 #ifdef _OPENMP
 				int nthreads = omp_get_max_threads();
+
+#ifdef AMREX_USE_CUDA
+
+#ifdef GR_GRAV
+				Vector< Vector<Real, CudaManagedAllocator<Real> > > priv_radial_pres(nthreads);
+#endif
+				Vector< Vector<Real, CudaManagedAllocator<Real> > > priv_radial_mass(nthreads);
+				Vector< Vector<Real, CudaManagedAllocator<Real> > > priv_radial_vol (nthreads);
+
+#else
+
 #ifdef GR_GRAV
 				Vector< Vector<Real> > priv_radial_pres(nthreads);
 #endif
 				Vector< Vector<Real> > priv_radial_mass(nthreads);
 				Vector< Vector<Real> > priv_radial_vol (nthreads);
+#endif
 				for (int i=0; i<nthreads; i++) {
 #ifdef GR_GRAV
 				    priv_radial_pres[i].resize(n1d,0.0);

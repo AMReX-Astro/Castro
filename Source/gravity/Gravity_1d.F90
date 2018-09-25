@@ -107,6 +107,8 @@ contains
     real(rt)         :: dx_frac, fac, vol
     real(rt)         :: lo_i, rlo, rhi
 
+    !$gpu
+
     if (physbc_lo(1) .ne. Symmetry) then
 #ifndef AMREX_USE_CUDA
        call amrex_error("Error: Gravity_1d.f90 :: 1D gravity assumes symmetric lower boundary.")
@@ -200,6 +202,8 @@ contains
     integer          :: i, j, k, index
     real(rt)         :: r, mag_grav
     real(rt)         :: cen, xi, slope, glo, gmd, ghi, minvar, maxvar
+
+    !$gpu
 
     ! Note that we are interpolating onto the entire range of grav,
     ! including the ghost cells. Taking the absolute value of r ensures
