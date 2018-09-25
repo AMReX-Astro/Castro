@@ -45,18 +45,29 @@ Real Gravity::mass_offset    =  0.0;
 
 static Real Ggravity = 0.;
 
-// #ifdef AMREX_USE_CUDA
-// Vector< Vector<Real, CudaManagedAllocator <Real>> , CudaManagedAllocator <Vector<Real, CudaManagedAllocator <Real>>>> Gravity::radial_grav_old(MAX_LEV);
-// Vector< Vector<Real, CudaManagedAllocator <Real>> , CudaManagedAllocator <Vector<Real, CudaManagedAllocator <Real>>>> Gravity::radial_grav_new(MAX_LEV);
-// #else
+#ifdef AMREX_USE_CUDA
+Vector< Vector<Real, CudaManagedAllocator<Real> > > Gravity::radial_grav_old(MAX_LEV);
+Vector< Vector<Real, CudaManagedAllocator<Real> > > Gravity::radial_grav_new(MAX_LEV);
+Vector< Vector<Real, CudaManagedAllocator<Real> > > Gravity::radial_mass(MAX_LEV);
+Vector< Vector<Real, CudaManagedAllocator<Real> > > Gravity::radial_vol(MAX_LEV);
+
+#ifdef GR_GRAV
+Vector< Vector<Real, CudaManagedAllocator<Real> > > Gravity::radial_pres(MAX_LEV);
+#endif
+
+#else
 Vector< Vector<Real> > Gravity::radial_grav_old(MAX_LEV);
 Vector< Vector<Real> > Gravity::radial_grav_new(MAX_LEV);
-// #endif
 Vector< Vector<Real> > Gravity::radial_mass(MAX_LEV);
 Vector< Vector<Real> > Gravity::radial_vol(MAX_LEV);
+
 #ifdef GR_GRAV
 Vector< Vector<Real> > Gravity::radial_pres(MAX_LEV);
 #endif
+
+#endif
+
+
 
 Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
     :
@@ -1346,11 +1357,11 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector, Multi
 
 void
 Gravity::interpolate_monopole_grav(int level,
-// #ifdef AMREX_USE_CUDA
-                                   // Vector<Real,CudaManagedAllocator <Real>>& radial_grav,
-// #else
+#ifdef AMREX_USE_CUDA
+                                   Vector<Real,CudaManagedAllocator<Real>>& radial_grav,
+#else
                                    Vector<Real>& radial_grav,
-// #endif
+#endif
                                    MultiFab& grav_vector)
 
 {
@@ -1366,14 +1377,11 @@ Gravity::interpolate_monopole_grav(int level,
     for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox();
-// #pragma gpu
-        // ca_put_radial_grav(AMREX_INT_ANYD(bx.loVect()),AMREX_INT_ANYD(bx.hiVect()),AMREX_REAL_ANYD(dx),dr,
-        //                    BL_TO_FORTRAN_ANYD(grav_vector[mfi]),
-        //                    radial_grav.dataPtr(),AMREX_REAL_ANYD(geom.ProbLo()),
-        //                    n1d,level);
-        ca_put_radial_grav(ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()),ZFILL(dx),dr,
+#pragma gpu
+        ca_put_radial_grav(AMREX_INT_ANYD(bx.loVect()),AMREX_INT_ANYD(bx.hiVect()),
+						   AMREX_REAL_ANYD(dx),dr,
                            BL_TO_FORTRAN_ANYD(grav_vector[mfi]),
-                           radial_grav.dataPtr(),ZFILL(geom.ProbLo()),
+                           radial_grav.dataPtr(),AMREX_REAL_ANYD(geom.ProbLo()),
                            n1d,level);
     }
 }
@@ -1391,10 +1399,10 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 
 
 #ifdef AMREX_USE_CUDA
-		Vector<Real, CudaManagedAllocator <Real>> radial_mass(n1d+1,0.0);
-		Vector<Real, CudaManagedAllocator <Real>> radial_vol(n1d+1,0.0);
-		Vector<Real, CudaManagedAllocator <Real>> radial_phi(n1d+1,0.0);
-    Vector<Real, CudaManagedAllocator <Real>> radial_grav(n1d+1,0.0);
+		Vector<Real, CudaManagedAllocator<Real> > radial_mass(n1d+1,0.0);
+		Vector<Real, CudaManagedAllocator<Real> > radial_vol(n1d+1,0.0);
+		Vector<Real, CudaManagedAllocator<Real> > radial_phi(n1d+1,0.0);
+    Vector<Real, CudaManagedAllocator<Real> > radial_grav(n1d+1,0.0);
 #else
 		Vector<Real> radial_mass(n1d,0.0);
 		Vector<Real> radial_vol(n1d,0.0);
@@ -1411,8 +1419,13 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 
 #ifdef _OPENMP
     int nthreads = omp_get_max_threads();
+#ifdef AMREX_USE_CUDA
+    Vector< Vector<Real, CudaManagedAllocator<Real> > > priv_radial_mass(nthreads);
+    Vector< Vector<Real, CudaManagedAllocator<Real> > > priv_radial_vol (nthreads);
+#else
     Vector< Vector<Real> > priv_radial_mass(nthreads);
     Vector< Vector<Real> > priv_radial_vol (nthreads);
+#endif
     for (int i=0; i<nthreads; i++) {
 			priv_radial_mass[i].resize(n1d,0.0);
 			priv_radial_vol [i].resize(n1d,0.0);
@@ -1426,8 +1439,9 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 	for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
-	    ca_compute_radial_mass(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-					 ZFILL(dx),dr,
+#pragma gpu
+	    ca_compute_radial_mass(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+					 AMREX_REAL_ANYD(dx),dr,
 				   BL_TO_FORTRAN_ANYD(Rhs[mfi]),
 #ifdef _OPENMP
 				   priv_radial_mass[tid].dataPtr(),
@@ -1436,7 +1450,7 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 				   radial_mass.dataPtr(),
 				   radial_vol.dataPtr(),
 #endif
-				   ZFILL(geom.ProbLo()),n1d,drdxfac,level);
+				   AMREX_REAL_ANYD(geom.ProbLo()),n1d,drdxfac,level);
 	}
 
 #ifdef _OPENMP
@@ -1464,20 +1478,12 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
     for (MFIter mfi(phi,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox();
-#ifdef AMREX_USE_CUDA
 #pragma gpu
         ca_put_radial_phi(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 			  AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
 			  AMREX_REAL_ANYD(dx),dr, BL_TO_FORTRAN_ANYD(phi[mfi]),
 			  radial_phi.dataPtr(),AMREX_REAL_ANYD(geom.ProbLo()),
 			  n1d,fill_interior);
-#else
-        ca_put_radial_phi(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-			  ARLIM_3D(domain.loVect()), ARLIM_3D(domain.hiVect()),
-			  ZFILL(dx),dr, BL_TO_FORTRAN_ANYD(phi[mfi]),
-			  radial_phi.dataPtr(),ZFILL(geom.ProbLo()),
-			  n1d,fill_interior);
-#endif
     }
 
     if (verbose)
@@ -1650,10 +1656,9 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 	    for (MFIter mfi(source,true); mfi.isValid(); ++mfi)
 	    {
 	        const Box& bx = mfi.tilebox();
-#ifdef AMREX_USE_CUDA
 #pragma gpu
 					ca_compute_multipole_moments(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-																 AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
+							 AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
 							 AMREX_REAL_ANYD(dx),BL_TO_FORTRAN_ANYD(source[mfi]),
 							 BL_TO_FORTRAN_ANYD((*volume[lev])[mfi]),
 							 lnum,
@@ -1667,23 +1672,6 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 							 qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
 #endif
 							 npts,boundary_only);
-#else
-					ca_compute_multipole_moments(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		                             ARLIM_3D(domain.loVect()), ARLIM_3D(domain.hiVect()),
-					     ZFILL(dx),BL_TO_FORTRAN_ANYD(source[mfi]),
-					     BL_TO_FORTRAN_ANYD((*volume[lev])[mfi]),
-					     lnum,
-#ifdef _OPENMP
-					     priv_qL0[tid]->dataPtr(),
-					     priv_qLC[tid]->dataPtr(),priv_qLS[tid]->dataPtr(),
-					     priv_qU0[tid]->dataPtr(),
-					     priv_qUC[tid]->dataPtr(),priv_qUS[tid]->dataPtr(),
-#else
-					     qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
-					     qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
-#endif
-					     npts,boundary_only);
-#endif
 	}
 
 #ifdef _OPENMP
@@ -1776,7 +1764,6 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
     for (MFIter mfi(phi,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox();
-#ifdef AMREX_USE_CUDA
 #pragma gpu
 		ca_put_multipole_phi(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 			 AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
@@ -1785,14 +1772,6 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 			 qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
 			 qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
 			 npts,boundary_only);
-#else
-        ca_put_multipole_phi(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-			     ARLIM_3D(domain.loVect()), ARLIM_3D(domain.hiVect()),
-			     ZFILL(dx), BL_TO_FORTRAN_ANYD(phi[mfi]),
-			     lnum,
-			     qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
-			     qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
-			     npts,boundary_only);
 #endif
     }
 
@@ -2053,7 +2032,6 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
         const Box& bx= mfi.growntilebox();
 
 				FArrayBox& p = phi[mfi];
-#ifdef AMREX_USE_CUDA
 #pragma gpu
 		ca_put_direct_sum_bc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 			 p.dataPtr(), AMREX_INT_ANYD(p.loVect()), AMREX_INT_ANYD(p.hiVect()),
@@ -2061,14 +2039,6 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
 			 bcXZLo.dataPtr(), bcXZHi.dataPtr(),
 			 bcYZLo.dataPtr(), bcYZHi.dataPtr(),
 			 AMREX_INT_ANYD(bclo), AMREX_INT_ANYD(bchi));
-#else
-        ca_put_direct_sum_bc(bx.loVect(), bx.hiVect(),
-			     p.dataPtr(), ARLIM_3D(p.loVect()), ARLIM_3D(p.hiVect()),
-			     bcXYLo.dataPtr(), bcXYHi.dataPtr(),
-			     bcXZLo.dataPtr(), bcXZHi.dataPtr(),
-			     bcYZLo.dataPtr(), bcYZHi.dataPtr(),
-	                     bclo, bchi);
-#endif
     }
 
     if (verbose)
@@ -2317,11 +2287,11 @@ Gravity::computeAvg (int level, MultiFab* mf, bool mask)
 
 void
 Gravity::make_radial_gravity(int level, Real time,
-// #ifdef AMREX_USE_CUDA
-    // Vector<Real, CudaManagedAllocator <Real>>& radial_grav)
-// #else
+#ifdef AMREX_USE_CUDA
+    Vector<Real, CudaManagedAllocator<Real> >& radial_grav)
+#else
     Vector<Real>& radial_grav)
-// #endif
+#endif
 {
     BL_PROFILE("Gravity::make_radial_gravity()");
 
@@ -2424,8 +2394,9 @@ Gravity::make_radial_gravity(int level, Real time,
 	    {
 	        const Box& bx = mfi.tilebox();
 		FArrayBox& fab = S[mfi];
-
-		ca_compute_radial_mass(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), ZFILL(dx), dr,
+#pragma gpu
+		ca_compute_radial_mass(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+						AMREX_REAL_ANYD(dx), dr,
 				       BL_TO_FORTRAN_ANYD(fab),
 #ifdef _OPENMP
 				       priv_radial_mass[tid].dataPtr(),
@@ -2434,7 +2405,7 @@ Gravity::make_radial_gravity(int level, Real time,
 				       radial_mass[lev].dataPtr(),
 				       radial_vol[lev].dataPtr(),
 #endif
-				       ZFILL(geom.ProbLo()),n1d,drdxfac,lev);
+				       AMREX_REAL_ANYD(geom.ProbLo()),n1d,drdxfac,lev);
 
 #ifdef GR_GRAV
 		ca_compute_avgpres(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), ZFILL(dx), dr,
