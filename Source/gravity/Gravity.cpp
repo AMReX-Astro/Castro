@@ -1426,7 +1426,7 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 	for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
-	    ca_compute_radial_mass(ARLIM_3d(bx.loVect()), ARLIM_3D(bx.hiVect()),
+	    ca_compute_radial_mass(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 					 ZFILL(dx),dr,
 				   BL_TO_FORTRAN_ANYD(Rhs[mfi]),
 #ifdef _OPENMP
@@ -1778,13 +1778,13 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
         const Box& bx = mfi.growntilebox();
 #ifdef AMREX_USE_CUDA
 #pragma gpu
-				ca_put_multipole_phi(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-					 AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
-					 AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(phi[mfi]),
-					 lnum,
-					 qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
-					 qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
-					 npts,boundary_only);
+		ca_put_multipole_phi(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+			 AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
+			 AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(phi[mfi]),
+			 lnum,
+			 qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
+			 qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
+			 npts,boundary_only);
 #else
         ca_put_multipole_phi(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			     ARLIM_3D(domain.loVect()), ARLIM_3D(domain.hiVect()),
@@ -2055,12 +2055,12 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
 				FArrayBox& p = phi[mfi];
 #ifdef AMREX_USE_CUDA
 #pragma gpu
-				ca_put_direct_sum_bc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-					 p.dataPtr(), AMREX_INT_ANYD(p.loVect()), AMREX_INT_ANYD(p.hiVect()),
-					 bcXYLo.dataPtr(), bcXYHi.dataPtr(),
-					 bcXZLo.dataPtr(), bcXZHi.dataPtr(),
-					 bcYZLo.dataPtr(), bcYZHi.dataPtr(),
-											 AMREX_INT_ANYD(bclo), AMREX_INT_ANYD(bchi));
+		ca_put_direct_sum_bc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+			 p.dataPtr(), AMREX_INT_ANYD(p.loVect()), AMREX_INT_ANYD(p.hiVect()),
+			 bcXYLo.dataPtr(), bcXYHi.dataPtr(),
+			 bcXZLo.dataPtr(), bcXZHi.dataPtr(),
+			 bcYZLo.dataPtr(), bcYZHi.dataPtr(),
+			 AMREX_INT_ANYD(bclo), AMREX_INT_ANYD(bchi));
 #else
         ca_put_direct_sum_bc(bx.loVect(), bx.hiVect(),
 			     p.dataPtr(), ARLIM_3D(p.loVect()), ARLIM_3D(p.hiVect()),
@@ -2425,7 +2425,7 @@ Gravity::make_radial_gravity(int level, Real time,
 	        const Box& bx = mfi.tilebox();
 		FArrayBox& fab = S[mfi];
 
-		ca_compute_radial_mass(ARLIM_3d(bx.loVect()), ARLIM_3D(bx.hiVect()), ZFILL(dx), dr,
+		ca_compute_radial_mass(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), ZFILL(dx), dr,
 				       BL_TO_FORTRAN_ANYD(fab),
 #ifdef _OPENMP
 				       priv_radial_mass[tid].dataPtr(),
