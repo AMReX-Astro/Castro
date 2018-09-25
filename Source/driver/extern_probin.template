@@ -83,6 +83,8 @@ subroutine runtime_pretty_print(name, namlen) bind(C, name="runtime_pretty_print
   integer :: namlen
   integer :: name(namlen)
 
+  logical :: ltest
+
   integer, parameter :: maxlen = 256
   character (len=maxlen) :: probin
 
