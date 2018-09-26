@@ -59,9 +59,9 @@ contains
           do j = ilo2-dg(2), ihi2+dg(2)
              do i = ilo1-1, ihi1+1
                 dqx(i,j,kc,n) = ZERO
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
                 dqy(i,j,kc,n) = ZERO
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
                 dqz(i,j,kc,n) = ZERO
 #endif
 #endif
@@ -100,7 +100,7 @@ contains
 
           enddo
 
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
           ! Compute slopes in second coordinate direction
           do i = ilo1-1, ihi1+1
              ! First compute Fromm slopes for this column
@@ -126,7 +126,7 @@ contains
           enddo
 #endif
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
           ! Compute slopes in third coordinate direction
           do j = ilo2-1, ihi2+1
              do i = ilo1-1, ihi1+1
@@ -242,9 +242,9 @@ contains
        do j = ilo2-dg(2), ihi2+dg(2)
           do i = ilo1-1, ihi1+1
              dqx(i,j,kc,QPRES) = ZERO
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
              dqy(i,j,kc,QPRES) = ZERO
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
              dqz(i,j,kc,QPRES) = ZERO
 #endif
 #endif
@@ -285,7 +285,7 @@ contains
           enddo
        enddo
 
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
        ! Compute slopes in second coordinate direction
        do i = ilo1-1, ihi1+1
 
@@ -319,7 +319,7 @@ contains
        enddo
 #endif
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
        ! Compute slopes in third coordinate direction
        do j = ilo2-1, ihi2+1
           do i = ilo1-1, ihi1+1

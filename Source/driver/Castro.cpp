@@ -223,6 +223,7 @@ Castro::variableCleanUp ()
 #ifdef SPONGE
     sponge_finalize();
 #endif
+    amrinfo_finalize();
 }
 
 void
@@ -359,13 +360,13 @@ Castro::read_params ()
     if (!do_ctu && use_retry)
         amrex::Error("Method of lines integration is incompatible with the timestep retry mechanism.");
 
-#ifdef AMREX_USE_CUDA     
+#ifdef AMREX_USE_CUDA
     // not use ctu if using gpu
     if (do_ctu == 1)
       {
 	 amrex::Error("Running with CUDA requires do_ctu = 0");
       }
-#endif    
+#endif
 
     // fourth order implies do_ctu=0
     if (fourth_order == 1 && do_ctu == 1)
@@ -639,6 +640,12 @@ Castro::buildMetrics ()
         area[dir].clear();
 	area[dir].define(getEdgeBoxArray(dir),dmap,1,NUM_GROW);
         geom.GetFaceArea(area[dir],dir);
+    }
+    for (int dir = BL_SPACEDIM; dir < 3; dir++)
+    {
+        area[dir].clear();
+        area[dir].define(grids, dmap, 1, 0);
+        area[dir].setVal(0.0);
     }
 
     dLogArea[0].clear();
@@ -942,6 +949,7 @@ Castro::initData ()
          AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
 
          // note: this cannot be tiled
+
          for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
            {
              const Box& box     = mfi.validbox();
@@ -1842,8 +1850,6 @@ Castro::check_for_post_regrid (Real time)
 
 	tags.setVal(TagBox::CLEAR);
 
-	int err_idx = -1;
-
 	for (int i = 0; i < err_list.size(); ++i)
             apply_tagging_func(tags, TagBox::CLEAR, TagBox::SET, time, i);
 
@@ -2716,13 +2722,12 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new, int ng)
 	FArrayBox& statenew = S_new[mfi];
 	const FArrayBox& vol      = volume[mfi];
 
-#pragma gpu
 	ca_enforce_minimum_density
-            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+            (AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
              BL_TO_FORTRAN_ANYD(stateold),
              BL_TO_FORTRAN_ANYD(statenew),
              BL_TO_FORTRAN_ANYD(vol),
-             AMREX_MFITER_REDUCE_MIN(&dens_change),
+             &dens_change,
              verbose);
 
     }
@@ -3017,6 +3022,18 @@ Castro::derive (const std::string& name,
 #endif
 
     AmrLevel::derive(name,time,mf,dcomp);
+}
+
+void
+Castro::amrinfo_init ()
+{
+   ca_amrinfo_init();
+}
+
+void
+Castro::amrinfo_finalize()
+{
+   ca_amrinfo_finalize();
 }
 
 void

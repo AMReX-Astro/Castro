@@ -156,6 +156,8 @@ contains
 
     real(rt)         :: R
 
+    !$gpu
+
     R = sqrt( loc(1)**2 + loc(2)**2 )
 
     ! This is analogous to the conversion of linear momentum to hybrid momentum.
@@ -255,7 +257,7 @@ contains
        flux(UMR) = hybrid_mom(1) * u_adv
        flux(UML) = hybrid_mom(2) * u_adv
        flux(UMP) = hybrid_mom(3) * u_adv + state(GDPRES)
-       
+
 #ifndef AMREX_USE_CUDA
     else
 
