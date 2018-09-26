@@ -10,8 +10,6 @@ contains
 
   subroutine eos_override(state)
 
-    !$acc routine seq
-
     use eos_type_module, only: eos_t
 
     implicit none

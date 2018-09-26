@@ -1,9 +1,7 @@
 module rotation_module
 
-  use math_module, only: cross_product
-  use rotation_frequency_module, only: get_omega, get_domegadt
   use meth_params_module, only: rotation_include_centrifugal, rotation_include_coriolis, &
-                                rotation_include_domegadt
+       rotation_include_domegadt
 
   use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
@@ -21,7 +19,9 @@ contains
   subroutine inertial_to_rotational_velocity(idx, time, v, idir)
 
     use prob_params_module, only: center
-    use castro_util_module, only: position
+    use castro_util_module, only: position ! function
+    use math_module, only: cross_product ! function
+    use rotation_frequency_module, only: get_omega ! function
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -33,6 +33,8 @@ contains
 
     real(rt)         :: loc(3), omega(3)
 
+    !$gpu
+
     if (present(idir)) then
        if (idir .eq. 1) then
           loc = position(idx(1),idx(2),idx(3),ccx=.false.) - center
@@ -41,7 +43,9 @@ contains
        else if (idir .eq. 3) then
           loc = position(idx(1),idx(2),idx(3),ccz=.false.) - center
        else
+#ifndef AMREX_USE_GPU
           call amrex_error("Error: unknown direction in inertial_to_rotational_velocity.")
+#endif
        endif
     else
        loc = position(idx(1),idx(2),idx(3)) - center
@@ -55,7 +59,7 @@ contains
 
 
 
-  ! Given a position and velocity, calculate 
+  ! Given a position and velocity, calculate
   ! the rotational acceleration. This is the sum of:
   ! the Coriolis force (-2 omega x v),
   ! the centrifugal force (- omega x ( omega x r)),
@@ -65,6 +69,9 @@ contains
 
     use amrex_constants_module, only: ZERO, TWO
     use meth_params_module, only: state_in_rotating_frame
+    use math_module, only: cross_product ! function
+    use rotation_frequency_module, only: get_omega ! function
+    use rotation_frequency_module, only: get_domegadt ! function
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -76,6 +83,8 @@ contains
 
     logical, optional :: centrifugal, coriolis, domegadt
     logical :: c1, c2, c3
+
+    !$gpu
 
     omega = get_omega(time)
 
@@ -131,11 +140,11 @@ contains
        Sr = ZERO
 
        if (c1) then
-          Sr = Sr - cross_product(omega, omegacrossr) 
+          Sr = Sr - cross_product(omega, omegacrossr)
        endif
 
        if (c2) then
-          Sr = Sr - TWO * omegacrossv 
+          Sr = Sr - TWO * omegacrossv
        endif
 
        if (c3) then
@@ -177,6 +186,8 @@ contains
 
     use amrex_constants_module, only: ZERO, HALF
     use meth_params_module, only: state_in_rotating_frame, rotation_include_centrifugal
+    use math_module, only: cross_product ! function
+    use rotation_frequency_module, only: get_omega ! function
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -185,6 +196,8 @@ contains
     real(rt)         :: phi
 
     real(rt)         :: omega(3), omegacrossr(3)
+
+    !$gpu
 
     if (state_in_rotating_frame .eq. 1) then
 
@@ -223,10 +236,13 @@ contains
     integer         , intent(in   ) :: phi_lo(3), phi_hi(3)
 
     real(rt)        , intent(inout) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
-    real(rt)        , intent(in   ) :: dx(3), time
+    real(rt)        , intent(in   ) :: dx(3)
+    real(rt), value , intent(in   ) :: time
 
     integer          :: i, j, k
     real(rt)         :: r(3)
+
+    !$gpu
 
     do k = lo(3), hi(3)
        r(3) = problo(3) + dx(3)*(dble(k)+HALF) - center(3)
@@ -263,10 +279,13 @@ contains
 
     real(rt)        , intent(inout) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3),3)
     real(rt)        , intent(in   ) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
-    real(rt)        , intent(in   ) :: dx(3), time
+    real(rt)        , intent(in   ) :: dx(3)
+    real(rt), value , intent(in   ) :: time
 
     integer          :: i, j, k
-    real(rt)         :: r(3)
+    real(rt)         :: r(3), v(3)
+
+    !$gpu
 
     do k = lo(3), hi(3)
        r(3) = problo(3) + dx(3)*(dble(k)+HALF) - center(3)
@@ -277,7 +296,9 @@ contains
           do i = lo(1), hi(1)
              r(1) = problo(1) + dx(1)*(dble(i)+HALF) - center(1)
 
-             rot(i,j,k,:) = rotational_acceleration(r, state(i,j,k,UMX:UMZ) / state(i,j,k,URHO), time)
+             v(:) = state(i,j,k,UMX:UMZ) / state(i,j,k,URHO)
+
+             rot(i,j,k,:) = rotational_acceleration(r, v, time)
 
           enddo
        enddo

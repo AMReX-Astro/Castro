@@ -1,9 +1,7 @@
 # sources used with rotation
 # this is included if USE_ROTATION = TRUE
 
-ca_f90EXE_sources += Rotation_nd.f90
+ca_F90EXE_sources += Rotation_nd.F90
 ca_F90EXE_sources += Rotation_frequency.F90
 ca_F90EXE_sources += rotation_sources_nd.F90
 CEXE_sources += Castro_rotation.cpp
-
-

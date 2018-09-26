@@ -434,10 +434,10 @@ contains
           do i = lo(1), hi(1)
              do n = 1, nc
                 lap = U(i+1,j,k,n) - TWO*U(i,j,k,n) + U(i-1,j,k,n)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                 lap = lap + U(i,j+1,k,n) - TWO*U(i,j,k,n) + U(i,j-1,k,n)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                 lap = lap + U(i,j,k+1,n) - TWO*U(i,j,k,n) + U(i,j,k-1,n)
 #endif
 
@@ -474,10 +474,10 @@ contains
           do i = lo(1), hi(1)
              do n = 1, nc
                 lap = q_bar(i+1,j,k,n) - TWO*q_bar(i,j,k,n) + q_bar(i-1,j,k,n)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                 lap = lap + q_bar(i,j+1,k,n) - TWO*q_bar(i,j,k,n) + q_bar(i,j-1,k,n)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                 lap = lap + q_bar(i,j,k+1,n) - TWO*q_bar(i,j,k,n) + q_bar(i,j,k-1,n)
 #endif
 
@@ -515,10 +515,10 @@ contains
           do i = lo(1), hi(1)
              do n = 1, nc
                 lap(i,j,k,n) = q(i+1,j,k,n) - TWO*q(i,j,k,n) + q(i-1,j,k,n)
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                 lap(i,j,k,n) = lap(i,j,k,n) + q(i,j+1,k,n) - TWO*q(i,j,k,n) + q(i,j-1,k,n)
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
                 lap(i,j,k,n) = lap(i,j,k,n) + q(i,j,k+1,n) - TWO*q(i,j,k,n) + q(i,j,k-1,n)
 #endif
              enddo

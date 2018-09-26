@@ -33,7 +33,7 @@ contains
     integer i,j,n,iter,MAX_ITER,l
     real(rt)         y
     real(rt)         pres_above,pres_below,pres_want,pres_zone
-    real(rt)         drho,dpdr,temperature,eint,pressure,species(3),density
+    real(rt)         drho,dpdr,temperature,eint,pressure,species(nspec),density
     real(rt)         TOL
     logical converged_hse
 
@@ -86,7 +86,7 @@ contains
                    adv(i,j,UEINT) = density*eos_state%e
                    adv(i,j,UEDEN) = density*eos_state%e + HALF*sum(adv(i,j,UMX:UMZ)**2)/density
                    adv(i,j,UTEMP) = temperature
-                   adv(i,j,UFS:UFS+2) = density*species
+                   adv(i,j,UFS:UFS-1+nspec) = density*species
 
                 end if
 
@@ -132,7 +132,7 @@ contains
                    adv(i,j,UEINT) = density*eos_state%e
                    adv(i,j,UEDEN) = density*eos_state%e + HALF*sum(adv(i,j,UMX:UMZ)**2)/density
                    adv(i,j,UTEMP) = temperature
-                   adv(i,j,UFS:UFS+2) = density*species
+                   adv(i,j,UFS:UFS-l+nspec) = density*species
 
                 end if
 
@@ -180,7 +180,7 @@ contains
                    adv(i,j,UEINT) = density*eos_state%e
                    adv(i,j,UEDEN) = density*eos_state%e + HALF*sum(adv(i,j,UMX:UMZ)**2)/density
                    adv(i,j,UTEMP) = temperature
-                   adv(i,j,UFS:UFS+2) = density*species
+                   adv(i,j,UFS:UFS-1+nspec) = density*species
 
 
                 end if
@@ -224,7 +224,7 @@ contains
                    adv(i,j,UEINT) = density*eos_state%e
                    adv(i,j,UEDEN) = density*eos_state%e + HALF*sum(adv(i,j,UMX:UMZ)**2)/density
                    adv(i,j,UTEMP) = temperature
-                   adv(i,j,UFS:UFS+2) = density*species
+                   adv(i,j,UFS:UFS-1+nspec) = density*species
 
                 end if
 

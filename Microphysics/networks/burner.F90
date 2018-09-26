@@ -31,23 +31,23 @@ contains
 
 
 
-  function ok_to_burn(state)
+  function ok_to_burn(state) result(ok_to_burnr)
 
-    !$acc routine seq
+    !$gpu
 
     use meth_params_module, only: react_T_min, react_T_max, react_rho_min, react_rho_max
 
     implicit none
 
-    logical       :: ok_to_burn
+    logical       :: ok_to_burnr
     type (burn_t) :: state
 
-    ok_to_burn = .true.
+    ok_to_burnr = .true.
 
     if (state % T < react_T_min .or. state % T > react_T_max .or. &
         state % rho < react_rho_min .or. state % rho > react_rho_max) then
 
-       ok_to_burn = .false.
+       ok_to_burnr = .false.
 
     endif
 
@@ -58,7 +58,7 @@ contains
 #ifndef SDC
   subroutine burner(state_in, state_out, dt, time)
 
-    !$acc routine seq
+    !$gpu
 
     use amrex_error_module
 
@@ -70,7 +70,7 @@ contains
 
     ! Make sure the network and burner have been initialized.
 
-#ifndef ACC
+#if !(defined(ACC)||defined(AMREX_USE_CUDA))
     if (.NOT. network_initialized) then
        call amrex_error("ERROR in burner: must initialize network first.")
     endif
@@ -81,8 +81,7 @@ contains
 #endif
 
     ! Initialize the final state by assuming it does not change.
-
-    state_out = state_in
+    call copy_burn_t(state_out, state_in)
 
     ! Do the burning.
 
