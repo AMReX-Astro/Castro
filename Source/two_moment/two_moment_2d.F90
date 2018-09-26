@@ -15,6 +15,8 @@
     use TimeSteppingModule_Castro, only : Update_IMEX_PDARS
     use UnitsModule, only : Gram, Centimeter, Second
 
+    use ReferenceElementModuleX, only: WeightsX_q
+
     implicit none
     integer, intent(in) :: lo(2), hi(2)
     integer, intent(in) ::  s_lo(2),  s_hi(2)
@@ -39,7 +41,7 @@
     ! Temporary variables
     integer  :: i,j,k
     integer  :: ic,jc,kc
-    integer  :: ii,id,ie,im,is
+    integer  :: ii,id,ie,im,is,ind
     real(rt) :: conv_dens, conv_mom, conv_enr, conv_ne, conv_J, conv_H, testdt
 
     ! Sanity check on size of arrays
@@ -125,6 +127,10 @@
 
     call Update_IMEX_PDARS(dt*Second, uCF, uCR)
 
+    print *,'NDOF ',n_fluid_dof
+    print *,'SIZE OF WEIGHTS ',size(WeightsX_q,dim=1)
+    stop
+
     ! ************************************************************************************
     ! Copy back from the thornado arrays into Castro arrays
     ! ************************************************************************************
@@ -138,16 +144,29 @@
          k = 1
 
          ! We store dS as a source term which we can add to S outside of this routine
-         ! uCF returned as a cell-averaged quantity so all components are the same,
-         !  can just use the first component
+         ! We now use the weighting from thornado to convert the four node values back 
+         !  into a single averaged value
+         ! 
          ! Update_IMEX_PC2 doesn't currently change the fluid density or momentum
+         ! 
 
-!         dS(ic,jc,URHO ) = uCF(1,i,j,k,iCF_D)  / conv_dens - S(ic,jc,URHO)
-!         dS(ic,jc,UMX  ) = uCF(1,i,j,k,iCF_S1) / conv_mom  - S(ic,jc,UMX)
-!         dS(ic,jc,UMY  ) = uCF(1,i,j,k,iCF_S2) / conv_mom  - S(ic,jc,UMY)
-          dS(ic,jc,UEDEN) = uCF(1,i,j,k,iCF_E)  / conv_enr  - S(ic,jc,UEDEN)
+          dS(ic,jc,:) = 0.d0
+          do ind = 1, n_fluid_dof
+!            dS(ic,jc,URHO ) = dS(ic,jc,URHO ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_D )
+!            dS(ic,jc,UMX  ) = dS(ic,jc,UMX  ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_S1)
+!            dS(ic,jc,UMY  ) = dS(ic,jc,UMY  ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_S2)
+             dS(ic,jc,UEDEN) = dS(ic,jc,UEDEN) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_E )
+             dS(ic,jc,UFX  ) = dS(ic,jc,UFX  ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_Ne)
+          end do
+
+!         dS(ic,jc,URHO ) = dS(ic,jc,URHO ) / conv_dens - S(ic,jc,URHO )
+!         dS(ic,jc,UMX  ) = dS(ic,jc,UMX  ) / conv_mom  - S(ic,jc,UMX  )
+!         dS(ic,jc,UMY  ) = dS(ic,jc,UMY  ) / conv_mom  - S(ic,jc,UMY  )
+          dS(ic,jc,UEDEN) = dS(ic,jc,UEDEN) / conv_enr  - S(ic,jc,UEDEN)
+          dS(ic,jc,UFX  ) = dS(ic,jc,UFX  ) / conv_ne   - S(ic,jc,UFX  )
+
           dS(ic,jc,UEINT) = dS(ic,jc,UEDEN)     ! TRUE IFF NO MOMENTUM SOURCE TERMS
-          dS(ic,jc,UFX  ) = uCF(1,i,j,k,iCF_Ne) / conv_ne   - S(ic,jc,UFX)
+
          do is = 1, nSpecies
          do im = 1, n_moments
          do ie = 1, nE

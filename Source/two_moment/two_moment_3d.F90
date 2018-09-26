@@ -39,7 +39,7 @@
     ! Temporary variables
     integer  :: i,j,k
     integer  :: ic,jc,kc
-    integer  :: ii,id,ie,im,is
+    integer  :: ii,id,ie,im,is,ind
     real(rt) :: conv_dens, conv_mom, conv_enr, conv_ne, conv_J, conv_H, testdt
 
     ! Sanity check on size of arrays
@@ -141,19 +141,32 @@
          j = jc - lo(2) + 1
          k = kc - lo(3) + 1
 
-         !! KS: if we fill UEINT, need the final fluid state from ComputeIncrement; is that uCF at this point?
          ! We store dS as a source term which we can add to S outside of this routine
-         ! uCF returned as a cell-averaged quantity so all components are the same,
-         !  can just use the first component
+         ! We now use the weighting from thornado to convert the four node values back
+         !  into a single averaged value
+         ! 
          ! Update_IMEX_PC2 doesn't currently change the fluid density or momentum
+         ! 
 
-!        dS(ic,jc,kc,URHO ) = uCF(1,i,j,k,iCF_D) - S(i,j,k,URHO)
-!        dS(ic,jc,kc,UMX  ) = uCF(1,i,j,k,iCF_S1) - S(i,j,k,UMX)
-!        dS(ic,jc,kc,UMY  ) = uCF(1,i,j,k,iCF_S2) - S(i,j,k,UMY)
-!        dS(ic,jc,kc,UMZ  ) = uCF(1,i,j,k,iCF_S3) - S(i,j,k,UMZ)
-         dS(ic,jc,kc,UEDEN) = uCF(1,i,j,k,iCF_E ) / conv_enr - S(i,j,k,UEDEN)
+         dS(ic,jc,kc,:) = 0.d0
+
+         do ind = 1, n_fluid_dof
+!            dS(ic,jc,kc,URHO ) = dS(ic,jc,kc,URHO ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_D ) 
+!            dS(ic,jc,kc,UMX  ) = dS(ic,jc,kc,UMX  ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_S1) 
+!            dS(ic,jc,kc,UMY  ) = dS(ic,jc,kc,UMY  ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_S2) 
+!            dS(ic,jc,kc,UMZ  ) = dS(ic,jc,kc,UMZ  ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_S3) 
+             dS(ic,jc,kc,UEDEN) = dS(ic,jc,kc,UEDEN) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_E ) 
+             dS(ic,jc,kc,UFX  ) = dS(ic,jc,kc,UFX  ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_Ne) 
+         end do
+
+!        dS(ic,jc,kc,URHO ) = dS(ic,jc,kc,URHO ) / conv_dens - S(ic,jc,kc,URHO )
+!        dS(ic,jc,kc,UMX  ) = dS(ic,jc,kc,UMX  ) / conv_mom  - S(ic,jc,kc,UMX  )  
+!        dS(ic,jc,kc,UMY  ) = dS(ic,jc,kc,UMY  ) / conv_mom  - S(ic,jc,kc,UMY  )  
+!        dS(ic,jc,kc,UMZ  ) = dS(ic,jc,kc,UMZ  ) / conv_mom  - S(ic,jc,kc,UMZ  )  
+         dS(ic,jc,kc,UEDEN) = dS(ic,jc,kc,UEDEN) / conv_enr  - S(ic,jc,kc,UEDEN)
+         dS(ic,jc,kc,UFX  ) = dS(ic,jc,kc,UFX  ) / conv_ne   - S(ic,jc,kc,UFX  )  
+
          dS(ic,jc,kc,UEINT) = dS(ic,jc,kc,UEDEN)     ! TRUE IFF NO MOMENTUM SOURCE TERMS
-         dS(ic,jc,kc,UFX  ) = uCF(1,i,j,k,iCF_Ne) / conv_ne - S(i,j,k,UFX)
 
          do is = 1, nSpecies
          do im = 1, n_moments
