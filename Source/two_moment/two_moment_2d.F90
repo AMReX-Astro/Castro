@@ -6,6 +6,7 @@
                               n_fluid_dof, n_moments, ng) &
                               bind(C, name="call_to_thornado")
 
+    use amrex_constants_module, only : fourth, half, zero
     use amrex_fort_module, only : rt => amrex_real
     use amrex_error_module, only : amrex_abort
     use meth_params_module, only : URHO,UMX,UMY,UMZ,UEINT,UEDEN,UFX
@@ -40,9 +41,16 @@
 
     ! Temporary variables
     integer  :: i,j,k
+    integer  :: ii,jj
     integer  :: ic,jc,kc
-    integer  :: ii,id,ie,im,is,ind
+    integer  :: id,ie,im,is,ind
+    real(rt) :: x,y,z
     real(rt) :: conv_dens, conv_mom, conv_enr, conv_ne, conv_J, conv_H, testdt
+
+    ! For interpolation
+    real(rt) :: xslope(ns), yslope(ns), xyslope(ns), Sval(ns)
+    real(rt) :: min_val_ll(ns), min_val_lh(ns), min_val_hl(ns), min_val_hh(ns)
+    real(rt) :: max_val_ll(ns), max_val_lh(ns), max_val_hl(ns), max_val_hh(ns)
 
     ! Sanity check on size of arrays
     ! Note that we have set ngrow_thornado = ngrow_state in Castro_setup.cpp
@@ -70,8 +78,15 @@
     conv_J    = Gram/Second**2/Centimeter ! check that this is correct
     conv_H    = Gram/Second**3
 
+    ! print *,'NDOF ',n_fluid_dof
+    ! print *,'SIZE OF 1 NODES ',size(NodesX_q,dim=1)
+    ! print *,'SIZE OF 2 NODES ',size(NodesX_q,dim=2)
+    ! print *,'IN X ',NodesX_q(1,:)
+    ! print *,'IN Y ',NodesX_q(2,:)
+    ! print *,'IN Z ',NodesX_q(3,:)
+
     ! ************************************************************************************
-    ! Copy from the Castro arrays into Thornado arrays from InitThornado_Patch
+    ! Copy from the Castro "S" arrays into Thornado "uCF" arrays from InitThornado_Patch
     ! ************************************************************************************
     do jc = lo(2)-ng,hi(2)+ng
     do ic = lo(1)-ng,hi(1)+ng
@@ -84,27 +99,116 @@
          !       1-swX(3):nX(3)+swX(3), &
          !       1:nCF) )
 
-         ! U_R_o spatial indices start at lo - (number of ghost zones)
-         ! uCR spatial indices start at 1 - (number of ghost zones)
+         !   S spatial indices start at lo - (number of ghost zones)
+         ! uCF spatial indices start at 1 - (number of ghost zones)
          i = ic - lo(1) + 1
          j = jc - lo(2) + 1
          k = 1
 
-         ! Thornado uses units where c = G = k = 1, Meter = 1
-         uCF(1:n_fluid_dof,i,j,k,iCF_D)  = S(ic,jc,URHO)  * conv_dens
-         uCF(1:n_fluid_dof,i,j,k,iCF_S1) = S(ic,jc,UMX)   * conv_mom
-         uCF(1:n_fluid_dof,i,j,k,iCF_S2) = S(ic,jc,UMY)   * conv_mom
-         uCF(1:n_fluid_dof,i,j,k,iCF_S3) = S(ic,jc,UMZ)   * conv_mom
-         uCF(1:n_fluid_dof,i,j,k,iCF_E)  = S(ic,jc,UEDEN) * conv_enr
-         uCF(1:n_fluid_dof,i,j,k,iCF_Ne) = S(ic,jc,UFX)   * conv_ne
+         ! Define the slopes as centered differences
+          xslope(:) = (S(ic+1,jc,:) - S(ic-1,jc,:)) * half
+          yslope(:) = (S(ic,jc+1,:) - S(ic,jc-1,:)) * half
+         xyslope(:) = (S(ic+1,jc+1,:) - S(ic-1,jc+1,:) &
+                      +S(ic-1,jc-1,:) - S(ic+1,jc-1,:)) * fourth
 
-         ! The uCF array was allocated in CreateRadiationdFields_Conserved with 
+         ! Find the min and max of the current state over the cell and 8 closest neighbors
+         min_val_ll(:) = S(ic,jc,:)
+         max_val_ll(:) = S(ic,jc,:)
+         min_val_lh(:) = S(ic,jc,:)
+         max_val_lh(:) = S(ic,jc,:)
+         min_val_hl(:) = S(ic,jc,:)
+         max_val_hl(:) = S(ic,jc,:)
+         min_val_hh(:) = S(ic,jc,:)
+         max_val_hh(:) = S(ic,jc,:)
+
+         do jj = jc-1,jc
+         do ii = ic-1,ic
+            min_val_ll(:) = min(min_val_ll(:), S(ii,jj,:))
+            max_val_ll(:) = max(max_val_ll(:), S(ii,jj,:))
+         end do
+         end do
+
+         do jj = jc  ,jc+1
+         do ii = ic-1,ic
+            min_val_lh(:) = min(min_val_lh(:), S(ii,jj,:))
+            max_val_lh(:) = max(max_val_lh(:), S(ii,jj,:))
+         end do
+         end do
+
+         do jj = jc-1,jc
+         do ii = ic  ,ic+1
+            min_val_hl(:) = min(min_val_hl(:), S(ii,jj,:))
+            max_val_hl(:) = max(max_val_hl(:), S(ii,jj,:))
+         end do
+         end do
+
+         do jj = jc  ,jc+1
+         do ii = ic  ,ic+1
+            min_val_hh(:) = min(min_val_hh(:), S(ii,jj,:))
+            max_val_hh(:) = max(max_val_hh(:), S(ii,jj,:))
+         end do
+         end do
+
+         do ind = 1, n_fluid_dof
+
+            ! These are the locations of the DG nodes in the space [-.5:.5]
+            x = NodesX_q(1,ind)
+            y = NodesX_q(2,ind)
+            z = NodesX_q(3,ind)
+
+            ! Use the slopes to extrapolate from the center to the nodes
+            Sval(:) = S(ic,jc,:) + x*xslope(:) + y*yslope(:) + x*y*xyslope(:)
+
+            ! Make sure that the extrapolation onto node locations creates no new max or min
+            if (x.gt.zero .and. y.gt.zero) then
+               Sval(:) = min(Sval(:),max_val_hh(:))
+               Sval(:) = max(Sval(:),min_val_hh(:))
+            end if
+            if (x.gt.zero .and. y.le.zero) then
+               Sval(:) = min(Sval(:),max_val_hl(:))
+               Sval(:) = max(Sval(:),min_val_hl(:))
+            end if
+            if (x.le.zero .and. y.gt.zero) then
+               Sval(:) = min(Sval(:),max_val_lh(:))
+               Sval(:) = max(Sval(:),min_val_lh(:))
+            end if
+            if (x.le.zero .and. y.le.zero) then
+               Sval(:) = min(Sval(:),max_val_ll(:))
+               Sval(:) = max(Sval(:),min_val_ll(:))
+            end if
+
+            ! Thornado uses units where c = G = k = 1, Meter = 1
+            uCF(ind,i,j,k,iCF_D)  = Sval(URHO)  * conv_dens
+            uCF(ind,i,j,k,iCF_S1) = Sval(UMX)   * conv_mom
+            uCF(ind,i,j,k,iCF_S2) = Sval(UMY)   * conv_mom
+            uCF(ind,i,j,k,iCF_S3) = Sval(UMZ)   * conv_mom
+            uCF(ind,i,j,k,iCF_E)  = Sval(UEDEN) * conv_enr
+            uCF(ind,i,j,k,iCF_Ne) = Sval(UFX)   * conv_ne
+
+         end do
+
+    end do
+    end do
+
+    ! ************************************************************************************
+    ! Copy from the Castro U_R arrays into Thornado arrays from InitThornado_Patch
+    ! ************************************************************************************
+    do jc = lo(2)-ng,hi(2)+ng
+    do ic = lo(1)-ng,hi(1)+ng
+
+         ! The uCR array was allocated in CreateRadiationdFields_Conserved with 
          ! ALLOCATE &
          !   ( uCR(1:nDOF, &
          !         1-swE:nE+swE, &
          !         1-swX(1):nX(1)+swX(1), &
          !         1-swX(2):nX(2)+swX(2), &
          !         1:nCR, 1:nSpecies) )
+
+         ! U_R_o spatial indices start at lo - (number of ghost zones)
+         !   uCR spatial indices start at 1 - (number of ghost zones)
+         i = ic - lo(1) + 1
+         j = jc - lo(2) + 1
+         k = 1
 
          do is = 1, nSpecies
          do im = 1, n_moments
