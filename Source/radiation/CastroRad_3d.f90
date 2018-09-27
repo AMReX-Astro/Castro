@@ -1205,7 +1205,7 @@ subroutine ca_estdt_rad(lo, hi, u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3, &
   use eos_module, only : eos
   use eos_type_module, only: eos_t, eos_input_re
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, &
-       UFX, allow_negative_energy
+       UFX
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -1235,7 +1235,7 @@ subroutine ca_estdt_rad(lo, hi, u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3, &
            eos_state % aux = u(i,j,k,UFX:UFX+naux -1) * rhoInv
 
            ! Protect against negative e
-           if (eos_state%e .gt. 0.e0_rt .or. allow_negative_energy.eq.1) then
+           if (eos_state%e .gt. 0.e0_rt) then
               call eos(eos_input_re, eos_state)
               c = eos_state % cs
            else

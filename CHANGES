@@ -10,6 +10,8 @@
   -- merged the different dimensional versions of the CTU consup
      routine into a single routine (#399)
 
+  -- removed the unsafe option "allow_negative_energy"
+
 
 # 18.09
 
