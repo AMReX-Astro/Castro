@@ -737,12 +737,8 @@ subroutine ca_estdt_rad(lo, hi, u,u_l1,u_l2,u_h1,u_h2, &
         eos_state % xn  = u(i,j,UFS:UFS+nspec-1) * rhoInv
         eos_state % aux = u(i,j,UFX:UFX+naux -1) * rhoInv
 
-        if (eos_state % e .gt. 0.e0_rt) then
-           call eos(eos_input_re, eos_state)
-           c = eos_state % cs
-        else
-           c = 0.e0_rt
-        end if
+        call eos(eos_input_re, eos_state)
+        c = eos_state % cs
 
         c = sqrt(c**2 + gpr(i,j)*rhoInv)
 
