@@ -184,15 +184,16 @@ contains
     ! compute s at x-edges
 
     ! compute van Leer slopes in x-direction
+
     do k = lo(3)-dg(3), hi(3)+dg(3)
        do j = lo(2)-dg(2), hi(2)+dg(2)
           do i= lo(1)-2, hi(1)+2
 
-             dsc = HALF * (s(i+1,j,k,n) - s(i-1,j,k,n))
              dsl = TWO  * (s(i  ,j,k,n) - s(i-1,j,k,n))
              dsr = TWO  * (s(i+1,j,k,n) - s(i  ,j,k,n))
 
              if (dsl*dsr .gt. ZERO) then
+                dsc = HALF * (s(i+1,j,k,n) - s(i-1,j,k,n))
                 dsvl(i,j,k) = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
              else
                 dsvl(i,j,k) = ZERO
@@ -265,11 +266,11 @@ contains
        do j = lo(2)-2, hi(2)+2
           do i=lo(1)-1, hi(1)+1
 
-             dsc = HALF * (s(i,j+1,k,n) - s(i,j-1,k,n))
              dsl = TWO  * (s(i,j  ,k,n) - s(i,j-1,k,n))
              dsr = TWO  * (s(i,j+1,k,n) - s(i,j  ,k,n))
 
              if (dsl*dsr .gt. ZERO) then
+                dsc = HALF * (s(i,j+1,k,n) - s(i,j-1,k,n))
                 dsvl(i,j,k) = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
              else
                 dsvl(i,j,k) = ZERO
@@ -344,11 +345,11 @@ contains
        do j = lo(2)-1, hi(2)+1
           do i = lo(1)-1, hi(1)+1
 
-             dsc = HALF * (s(i,j,k+1,n) - s(i,j,k-1,n))
              dsl = TWO  * (s(i,j,k  ,n) - s(i,j,k-1,n))
              dsr = TWO  * (s(i,j,k+1,n) - s(i,j,k  ,n))
 
              if (dsl*dsr .gt. ZERO) then
+                dsc = HALF * (s(i,j,k+1,n) - s(i,j,k-1,n))
                 dsvl(i,j,k) = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
              else
                 dsvl(i,j,k) = ZERO
@@ -910,7 +911,7 @@ contains
     real(rt), intent(inout) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3, icomp)
 
     real(rt), intent(in) :: dx(3), dt
-
+    real(rt) :: speed
 
     ! local
     integer i,j,k
@@ -939,7 +940,6 @@ contains
              sp = sxp(i,j,k)
              sm = sxm(i,j,k)
 
-
              ! compute x-component of Ip and Im
              s6 = SIX*s(i,j,k,n) - THREE*(sm+sp)
 
@@ -950,16 +950,17 @@ contains
              ! Im integrates to the left edge of a cell
 
              ! u-c wave
-             sigma = abs(q(i,j,k,QU)-qaux(i,j,k,QC))*dtdx
+             speed = q(i,j,k,QU)-qaux(i,j,k,QC)
+             sigma = abs(speed)*dtdx
 
-             if (q(i,j,k,QU)-qaux(i,j,k,QC) <= ZERO) then
+             if (speed <= ZERO) then
                 Ip(i,j,k,1,1,ic) = sp
              else
                 Ip(i,j,k,1,1,ic) = sp - &
                      HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
              endif
 
-             if (q(i,j,k,QU)-qaux(i,j,k,QC) >= ZERO) then
+             if (speed >= ZERO) then
                 Im(i,j,k,1,1,ic) = sm
              else
                 Im(i,j,k,1,1,ic) = sm + &
@@ -967,16 +968,17 @@ contains
              endif
 
              ! u wave
-             sigma = abs(q(i,j,k,QU))*dtdx
+             speed = q(i,j,k,QU)
+             sigma = abs(speed)*dtdx
 
-             if (q(i,j,k,QU) <= ZERO) then
+             if (speed <= ZERO) then
                 Ip(i,j,k,1,2,ic) = sp
              else
                 Ip(i,j,k,1,2,ic) = sp - &
                      HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
              endif
 
-             if (q(i,j,k,QU) >= ZERO) then
+             if (speed >= ZERO) then
                 Im(i,j,k,1,2,ic) = sm
              else
                 Im(i,j,k,1,2,ic) = sm + &
@@ -984,16 +986,17 @@ contains
              endif
 
              ! u+c wave
-             sigma = abs(q(i,j,k,QU)+qaux(i,j,k,QC))*dtdx
+             speed = q(i,j,k,QU)+qaux(i,j,k,QC)
+             sigma = abs(speed)*dtdx
 
-             if (q(i,j,k,QU)+qaux(i,j,k,QC) <= ZERO) then
+             if (speed <= ZERO) then
                 Ip(i,j,k,1,3,ic) = sp
              else
                 Ip(i,j,k,1,3,ic) = sp - &
                      HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
              endif
 
-             if (q(i,j,k,QU)+qaux(i,j,k,QC) >= ZERO) then
+             if (speed >= ZERO) then
                 Im(i,j,k,1,3,ic) = sm
              else
                 Im(i,j,k,1,3,ic) = sm + &
@@ -1021,16 +1024,17 @@ contains
              s6 = SIX*s(i,j,k,n) - THREE*(sm+sp)
 
              ! v-c wave
-             sigma = abs(q(i,j,k,QV)-qaux(i,j,k,QC))*dtdy
+             speed = q(i,j,k,QV)-qaux(i,j,k,QC)
+             sigma = abs(speed)*dtdy
 
-             if (q(i,j,k,QV)-qaux(i,j,k,QC) <= ZERO) then
+             if (speed <= ZERO) then
                 Ip(i,j,k,2,1,ic) = sp
              else
                 Ip(i,j,k,2,1,ic) = sp - &
                      HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
              endif
 
-             if (q(i,j,k,QV)-qaux(i,j,k,QC) >= ZERO) then
+             if (speed >= ZERO) then
                 Im(i,j,k,2,1,ic) = sm
              else
                 Im(i,j,k,2,1,ic) = sm + &
@@ -1038,16 +1042,17 @@ contains
              endif
 
              ! v wave
-             sigma = abs(q(i,j,k,QV))*dtdy
+             speed = q(i,j,k,QV)
+             sigma = abs(speed)*dtdy
 
-             if (q(i,j,k,QV) <= ZERO) then
+             if (speed <= ZERO) then
                 Ip(i,j,k,2,2,ic) = sp
              else
                 Ip(i,j,k,2,2,ic) = sp - &
                      HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
              endif
 
-             if (q(i,j,k,QV) >= ZERO) then
+             if (speed >= ZERO) then
                 Im(i,j,k,2,2,ic) = sm
              else
                 Im(i,j,k,2,2,ic) = sm + &
@@ -1055,16 +1060,17 @@ contains
              endif
 
              ! v+c wave
-             sigma = abs(q(i,j,k,QV)+qaux(i,j,k,QC))*dtdy
+             speed = q(i,j,k,QV)+qaux(i,j,k,QC)
+             sigma = abs(speed)*dtdy
 
-             if (q(i,j,k,QV)+qaux(i,j,k,QC) <= ZERO) then
+             if (speed <= ZERO) then
                 Ip(i,j,k,2,3,ic) = sp
              else
                 Ip(i,j,k,2,3,ic) = sp - &
                      HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
              endif
 
-             if (q(i,j,k,QV)+qaux(i,j,k,QC) >= ZERO) then
+             if (speed >= ZERO) then
                 Im(i,j,k,2,3,ic) = sm
              else
                 Im(i,j,k,2,3,ic) = sm + &
@@ -1092,16 +1098,17 @@ contains
              s6 = SIX*s(i,j,k,n) - THREE*(sm+sp)
 
              ! w-c wave
-             sigma = abs(q(i,j,k,QW)-qaux(i,j,k,QC))*dtdz
+             speed = q(i,j,k,QW)-qaux(i,j,k,QC)
+             sigma = abs(speed)*dtdz
 
-             if (q(i,j,k,QW)-qaux(i,j,k,QC) <= ZERO) then
+             if (speed <= ZERO) then
                 Ip(i,j,k,3,1,ic) = sp
              else
                 Ip(i,j,k,3,1,ic) = sp - &
                      HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
              endif
 
-             if (q(i,j,k,QW)-qaux(i,j,k,QC) >= ZERO) then
+             if (speed >= ZERO) then
                 Im(i,j,k,3,1,ic) = sm
              else
                 Im(i,j,k,3,1,ic) = sm + &
@@ -1109,16 +1116,17 @@ contains
              endif
 
              ! w wave
-             sigma = abs(q(i,j,k,QW))*dtdz
+             speed = q(i,j,k,QW)
+             sigma = abs(speed)*dtdz
 
-             if (q(i,j,k,QW) <= ZERO) then
+             if (speed <= ZERO) then
                 Ip(i,j,k,3,2,ic) = sp
              else
                 Ip(i,j,k,3,2,ic) = sp - &
                      HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
              endif
 
-             if (q(i,j,k,QW) >= ZERO) then
+             if (speed >= ZERO) then
                 Im(i,j,k,3,2,ic) = sm
              else
                 Im(i,j,k,3,2,ic) = sm + &
@@ -1126,16 +1134,17 @@ contains
              endif
 
              ! w+c wave
-             sigma = abs(q(i,j,k,QW)+qaux(i,j,k,QC))*dtdz
+             speed = q(i,j,k,QW)+qaux(i,j,k,QC)
+             sigma = abs(speed)*dtdz
 
-             if (q(i,j,k,QW)+qaux(i,j,k,QC) <= ZERO) then
+             if (speed <= ZERO) then
                 Ip(i,j,k,3,3,ic) = sp
              else
                 Ip(i,j,k,3,3,ic) = sp - &
                      HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
              endif
 
-             if (q(i,j,k,QW)+qaux(i,j,k,QC) >= ZERO) then
+             if (speed  >= ZERO) then
                 Im(i,j,k,3,3,ic) = sm
              else
                 Im(i,j,k,3,3,ic) = sm + &
@@ -1150,7 +1159,6 @@ contains
   end subroutine ppm_int_profile
 
 
-  
   subroutine ca_ppm_reconstruct_cuda(lo, hi, &
                                      s, s_lo, s_hi, &
                                      flatn, f_lo, f_hi, &
@@ -1212,19 +1220,19 @@ contains
 
                 ! Compute van Leer slopes
 
-                dsc = HALF * (s(i  ,j,k,n) - s(i-2,j,k,n))
                 dsl = TWO  * (s(i-1,j,k,n) - s(i-2,j,k,n))
                 dsr = TWO  * (s(i  ,j,k,n) - s(i-1,j,k,n))
                 if (dsl*dsr .gt. ZERO) then
+                   dsc = HALF * (s(i  ,j,k,n) - s(i-2,j,k,n))
                    dsvl_l = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
                 else
                    dsvl_l = ZERO
                 end if
 
-                dsc = HALF * (s(i+1,j,k,n) - s(i-1,j,k,n))
                 dsl = TWO  * (s(i  ,j,k,n) - s(i-1,j,k,n))
                 dsr = TWO  * (s(i+1,j,k,n) - s(i  ,j,k,n))
                 if (dsl*dsr .gt. ZERO) then
+                   dsc = HALF * (s(i+1,j,k,n) - s(i-1,j,k,n))
                    dsvl_r = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
                 else
                    dsvl_r = ZERO
@@ -1241,19 +1249,19 @@ contains
 
                 ! Compute van Leer slopes
 
-                dsc = HALF * (s(i+1,j,k,n) - s(i-1,j,k,n))
                 dsl = TWO  * (s(i  ,j,k,n) - s(i-1,j,k,n))
                 dsr = TWO  * (s(i+1,j,k,n) - s(i  ,j,k,n))
                 if (dsl*dsr .gt. ZERO) then
+                   dsc = HALF * (s(i+1,j,k,n) - s(i-1,j,k,n))
                    dsvl_l = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
                 else
                    dsvl_l = ZERO
                 end if
 
-                dsc = HALF * (s(i+2,j,k,n) - s(i  ,j,k,n))
                 dsl = TWO  * (s(i+1,j,k,n) - s(i  ,j,k,n))
                 dsr = TWO  * (s(i+2,j,k,n) - s(i+1,j,k,n))
                 if (dsl*dsr .gt. ZERO) then
+                   dsc = HALF * (s(i+2,j,k,n) - s(i  ,j,k,n))
                    dsvl_r = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
                 else
                    dsvl_r = ZERO
@@ -1308,19 +1316,19 @@ contains
 
                 ! Compute van Leer slopes
 
-                dsc = HALF * (s(i,j  ,k,n) - s(i,j-2,k,n))
                 dsl = TWO  * (s(i,j-1,k,n) - s(i,j-2,k,n))
                 dsr = TWO  * (s(i,j  ,k,n) - s(i,j-1,k,n))
                 if (dsl*dsr .gt. ZERO) then
+                   dsc = HALF * (s(i,j  ,k,n) - s(i,j-2,k,n))
                    dsvl_l = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
                 else
                    dsvl_l = ZERO
                 end if
 
-                dsc = HALF * (s(i,j+1,k,n) - s(i,j-1,k,n))
                 dsl = TWO  * (s(i,j  ,k,n) - s(i,j-1,k,n))
                 dsr = TWO  * (s(i,j+1,k,n) - s(i,j  ,k,n))
                 if (dsl*dsr .gt. ZERO) then
+                   dsc = HALF * (s(i,j+1,k,n) - s(i,j-1,k,n))
                    dsvl_r = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
                 else
                    dsvl_r = ZERO
@@ -1337,19 +1345,19 @@ contains
 
                 ! Compute van Leer slopes
 
-                dsc = HALF * (s(i,j+1,k,n) - s(i,j-1,k,n))
                 dsl = TWO  * (s(i,j  ,k,n) - s(i,j-1,k,n))
                 dsr = TWO  * (s(i,j+1,k,n) - s(i,j  ,k,n))
                 if (dsl*dsr .gt. ZERO) then
+                   dsc = HALF * (s(i,j+1,k,n) - s(i,j-1,k,n))
                    dsvl_l = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
                 else
                    dsvl_l = ZERO
                 end if
 
-                dsc = HALF * (s(i,j+2,k,n) - s(i,j  ,k,n))
                 dsl = TWO  * (s(i,j+1,k,n) - s(i,j  ,k,n))
                 dsr = TWO  * (s(i,j+2,k,n) - s(i,j+1,k,n))
                 if (dsl*dsr .gt. ZERO) then
+                   dsc = HALF * (s(i,j+2,k,n) - s(i,j  ,k,n))
                    dsvl_r = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
                 else
                    dsvl_r = ZERO
@@ -1405,19 +1413,19 @@ contains
 
                 ! Compute van Leer slopes
 
-                dsc = HALF * (s(i,j,k  ,n) - s(i,j,k-2,n))
                 dsl = TWO  * (s(i,j,k-1,n) - s(i,j,k-2,n))
                 dsr = TWO  * (s(i,j,k  ,n) - s(i,j,k-1,n))
                 if (dsl*dsr .gt. ZERO) then
+                   dsc = HALF * (s(i,j,k  ,n) - s(i,j,k-2,n))
                    dsvl_l = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
                 else
                    dsvl_l = ZERO
                 end if
 
-                dsc = HALF * (s(i,j,k+1,n) - s(i,j,k-1,n))
                 dsl = TWO  * (s(i,j,k  ,n) - s(i,j,k-1,n))
                 dsr = TWO  * (s(i,j,k+1,n) - s(i,j,k  ,n))
                 if (dsl*dsr .gt. ZERO) then
+                   dsc = HALF * (s(i,j,k+1,n) - s(i,j,k-1,n))
                    dsvl_r = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
                 else
                    dsvl_r = ZERO
@@ -1434,19 +1442,19 @@ contains
 
                 ! Compute van Leer slopes
 
-                dsc = HALF * (s(i,j,k+1,n) - s(i,j,k-1,n))
                 dsl = TWO  * (s(i,j,k  ,n) - s(i,j,k-1,n))
                 dsr = TWO  * (s(i,j,k+1,n) - s(i,j,k  ,n))
                 if (dsl*dsr .gt. ZERO) then
+                   dsc = HALF * (s(i,j,k+1,n) - s(i,j,k-1,n))
                    dsvl_l = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
                 else
                    dsvl_l = ZERO
                 end if
 
-                dsc = HALF * (s(i,j,k+2,n) - s(i,j,k  ,n))
                 dsl = TWO  * (s(i,j,k+1,n) - s(i,j,k  ,n))
                 dsr = TWO  * (s(i,j,k+2,n) - s(i,j,k+1,n))
                 if (dsl*dsr .gt. ZERO) then
+                   dsc = HALF * (s(i,j,k+2,n) - s(i,j,k  ,n))
                    dsvl_r = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
                 else
                    dsvl_r = ZERO

@@ -66,7 +66,6 @@ contains
 #ifdef SHOCK_VAR
     use meth_params_module, only : USHK
 #endif
-    use amrex_fort_module, only : rt => amrex_real
     use advection_util_module, only : shock
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
@@ -547,7 +546,6 @@ contains
                     vol, vol_lo, vol_hi, &
                     ilo, ihi, jlo, jhi)
 
-    use amrex_fort_module, only : rt => amrex_real
     use amrex_constants_module
     use network, only : nspec, naux
     use meth_params_module, only : NQ, QVAR, NQAUX, &
@@ -572,7 +570,6 @@ contains
 #endif
     use eos_module, only: eos
     use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
-    use amrex_fort_module, only : rt => amrex_real
 
     integer qd_lo(3), qd_hi(3)
     integer qa_lo(3), qa_hi(3)
@@ -1046,7 +1043,6 @@ contains
                     srcQ, src_lo, src_hi, &
                     hdt, cdtdy, ilo, ihi, jlo, jhi)
 
-    use amrex_fort_module, only : rt => amrex_real
     use amrex_constants_module
     use network, only : nspec, naux
     use meth_params_module, only : NQ, QVAR, NQAUX, &
@@ -1071,7 +1067,6 @@ contains
 #endif
     use eos_module, only: eos
     use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
-    use amrex_fort_module, only : rt => amrex_real
 
     integer qd_lo(3), qd_hi(3)
     integer qa_lo(3), qa_hi(3)
