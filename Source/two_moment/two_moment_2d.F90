@@ -15,7 +15,7 @@
     use TimeSteppingModule_Castro, only : Update_IMEX_PDARS
     use UnitsModule, only : Gram, Centimeter, Second
 
-    use ReferenceElementModuleX, only: WeightsX_q
+    use ReferenceElementModuleX, only: NodesX_q, WeightsX_q
 
     implicit none
     integer, intent(in) :: lo(2), hi(2)
@@ -126,10 +126,6 @@
     ! ************************************************************************************
 
     call Update_IMEX_PDARS(dt*Second, uCF, uCR)
-
-    print *,'NDOF ',n_fluid_dof
-    print *,'SIZE OF WEIGHTS ',size(WeightsX_q,dim=1)
-    stop
 
     ! ************************************************************************************
     ! Copy back from the thornado arrays into Castro arrays
