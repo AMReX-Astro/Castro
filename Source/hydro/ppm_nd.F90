@@ -918,7 +918,6 @@ contains
           sp = sxp(i,j,kc)
           sm = sxm(i,j,kc)
 
-
           ! compute x-component of Ip and Im
           s6 = SIX*s(i,j,k3d,n) - THREE*(sm+sp)
 
@@ -932,18 +931,15 @@ contains
           speed = q(i,j,k3d,QU)-qaux(i,j,k3d,QC)
           sigma = abs(speed)*dtdx
 
+          ! if speed == ZERO, then either branch is the same
           if (speed <= ZERO) then
              Ip(i,j,kc,1,1,ic) = sp
+             Im(i,j,kc,1,1,ic) = sm + &
+               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           else
              Ip(i,j,kc,1,1,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          endif
-
-          if (speed >= ZERO) then
              Im(i,j,kc,1,1,ic) = sm
-          else
-             Im(i,j,kc,1,1,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           endif
 
           ! u wave
@@ -952,16 +948,12 @@ contains
 
           if (speed <= ZERO) then
              Ip(i,j,kc,1,2,ic) = sp
+             Im(i,j,kc,1,2,ic) = sm + &
+               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           else
              Ip(i,j,kc,1,2,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          endif
-
-          if (speed >= ZERO) then
              Im(i,j,kc,1,2,ic) = sm
-          else
-             Im(i,j,kc,1,2,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           endif
 
           ! u+c wave
@@ -970,16 +962,12 @@ contains
 
           if (speed <= ZERO) then
              Ip(i,j,kc,1,3,ic) = sp
+             Im(i,j,kc,1,3,ic) = sm + &
+               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           else
              Ip(i,j,kc,1,3,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          endif
-
-          if (speed >= ZERO) then
              Im(i,j,kc,1,3,ic) = sm
-          else
-             Im(i,j,kc,1,3,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           endif
 
        end do
@@ -1006,16 +994,12 @@ contains
 
           if (speed <= ZERO) then
              Ip(i,j,kc,2,1,ic) = sp
+             Im(i,j,kc,2,1,ic) = sm + &
+               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           else
              Ip(i,j,kc,2,1,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          endif
-
-          if (speed >= ZERO) then
              Im(i,j,kc,2,1,ic) = sm
-          else
-             Im(i,j,kc,2,1,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           endif
 
           ! v wave
@@ -1024,16 +1008,12 @@ contains
 
           if (speed <= ZERO) then
              Ip(i,j,kc,2,2,ic) = sp
+             Im(i,j,kc,2,2,ic) = sm + &
+               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           else
              Ip(i,j,kc,2,2,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          endif
-
-          if (speed >= ZERO) then
              Im(i,j,kc,2,2,ic) = sm
-          else
-             Im(i,j,kc,2,2,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           endif
 
           ! v+c wave
@@ -1042,16 +1022,12 @@ contains
 
           if (speed <= ZERO) then
              Ip(i,j,kc,2,3,ic) = sp
+             Im(i,j,kc,2,3,ic) = sm + &
+               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           else
              Ip(i,j,kc,2,3,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          endif
-
-          if (speed >= ZERO) then
              Im(i,j,kc,2,3,ic) = sm
-          else
-             Im(i,j,kc,2,3,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           endif
 
        end do
@@ -1078,16 +1054,12 @@ contains
 
           if (speed <= ZERO) then
              Ip(i,j,kc,3,1,ic) = sp
+             Im(i,j,kc,3,1,ic) = sm + &
+               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           else
              Ip(i,j,kc,3,1,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          endif
-
-          if (speed >= ZERO) then
              Im(i,j,kc,3,1,ic) = sm
-          else
-             Im(i,j,kc,3,1,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           endif
 
           ! w wave
@@ -1096,16 +1068,12 @@ contains
 
           if (speed <= ZERO) then
              Ip(i,j,kc,3,2,ic) = sp
+             Im(i,j,kc,3,2,ic) = sm + &
+               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           else
              Ip(i,j,kc,3,2,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          endif
-
-          if (speed >= ZERO) then
              Im(i,j,kc,3,2,ic) = sm
-          else
-             Im(i,j,kc,3,2,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           endif
 
           ! w+c wave
@@ -1114,16 +1082,12 @@ contains
 
           if (speed <= ZERO) then
              Ip(i,j,kc,3,3,ic) = sp
+             Im(i,j,kc,3,3,ic) = sm + &
+               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           else
              Ip(i,j,kc,3,3,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          endif
-
-          if (speed >= ZERO) then
              Im(i,j,kc,3,3,ic) = sm
-          else
-             Im(i,j,kc,3,3,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           endif
 
        end do
