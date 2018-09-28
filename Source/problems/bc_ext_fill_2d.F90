@@ -378,23 +378,6 @@ contains
     integer  :: i, j
     real(rt) :: y
 
-    integer :: lo(3), hi(3)
-
-    lo(1) = adv_l1
-    lo(2) = adv_l2
-    lo(3) = 0
-    hi(1) = adv_h1
-    hi(2) = adv_h2
-    hi(3) = 0
-
-    ! Note: this function should not be needed, technically, but is
-    ! provided to filpatch because there are many times in the algorithm
-    ! when just the density is needed.  We try to rig up the filling so
-    ! that the same function is called here and in hypfill where all the
-    ! states are filled.
-
-    call amrex_filccn(lo, hi, adv, lo, hi, 1, domlo, domhi, delta, xlo, bc)
-
 #ifndef AMREX_USE_CUDA
     ! XLO
     if ( bc(1,1) == EXT_DIR .and. adv_l1 < domlo(1)) then
