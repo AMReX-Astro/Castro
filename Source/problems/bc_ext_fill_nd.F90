@@ -38,7 +38,7 @@ contains
     use model_parser_module, only: model_r, model_state, npts_model, idens_model, itemp_model, ispec_model
 
     integer, intent(in) :: adv_lo(3), adv_hi(3)
-    integer, intent(in) :: bc(dim,2,*)
+    integer, intent(in) :: bc(dim,2,NVAR)
     integer, intent(in) :: domlo(3), domhi(3)
     real(rt), intent(in) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3),NVAR)
@@ -312,6 +312,7 @@ contains
 
                       ! set all the variables even though we're testing on URHO
                       if (n == URHO) then
+
                          call interpolate_sub(dens_zone, y,npts_model,model_r, &
                               model_state(:,idens_model))
 
@@ -703,7 +704,7 @@ contains
     end if
 
     ! YHI
-    if ( bc(3,2) == EXT_DIR .and. adv_hi(2) > domhi(2)) then
+    if ( bc(2,2) == EXT_DIR .and. adv_hi(2) > domhi(2)) then
        do j = domhi(2)+1, adv_hi(2)
           y = problo(2) + delta(2)*(dble(j)+ HALF)
           do k = adv_lo(3), adv_hi(3)
