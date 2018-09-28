@@ -95,7 +95,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   smallx = 1.d-10
 
   max_hse_tagging_level = 2
-  max_base_tagging_level = 2
+  max_base_tagging_level = 1
 
   open(newunit=untin,file=probin(1:namlen),form='formatted',status='old')
   read(untin,fortin)
