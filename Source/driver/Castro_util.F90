@@ -128,7 +128,7 @@ contains
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, &
-         UTEMP, small_temp, allow_negative_energy, allow_small_energy, &
+         UTEMP, small_temp, allow_small_energy, &
          dual_energy_eta2
     use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_fort_module, only : rt => amrex_real
@@ -155,10 +155,6 @@ contains
     ! a call to the EOS using the small temperature.
     ! If so, reset it using the current temperature,
     ! assuming it is at least as large as small_temp.
-    ! Note that allow_small_energy .eq. 0 overrides
-    ! allow_negative_energy .eq. 0 since a negative
-    ! energy is of course smaller than the smallest
-    ! allowed energy.
 
     if (allow_small_energy .eq. 0) then
 
@@ -227,7 +223,7 @@ contains
           enddo
        enddo
 
-    else if (allow_negative_energy .eq. 0) then
+    else
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
@@ -297,26 +293,6 @@ contains
           enddo
        enddo
 
-       ! If (allow_negative_energy .eq. 1) and (allow_small_energy .eq. 1)
-       ! then just reset (rho e) from (rho E)
-    else
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-
-                rhoInv = ONE/u(i,j,k,URHO)
-                Up = u(i,j,k,UMX) * rhoInv
-                Vp = u(i,j,k,UMY) * rhoInv
-                Wp = u(i,j,k,UMZ) * rhoInv
-                ke = HALF * (Up**2 + Vp**2 + Wp**2)
-
-                u(i,j,k,UEINT) = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
-
-             enddo
-          enddo
-       enddo
-
     endif
 
   end subroutine ca_reset_internal_e
@@ -329,7 +305,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_input_re, eos_t
     use meth_params_module, only: NVAR, URHO, UEDEN, UEINT, UTEMP, &
-         UFS, UFX, allow_negative_energy
+         UFS, UFX
     use amrex_constants_module, only: ZERO, ONE
     use amrex_error_module
     use amrex_fort_module, only: rt => amrex_real
@@ -362,7 +338,7 @@ contains
                 call amrex_error("Error:: compute_temp_nd.f90")
              end if
 
-             if (allow_negative_energy .eq. 0 .and. state(i,j,k,UEINT) <= ZERO) then
+             if (state(i,j,k,UEINT) <= ZERO) then
                 print *,'   '
                 print *,'>>> Warning: Castro_util.F90::ca_compute_temp ',i,j,k
                 print *,'>>> ... negative (rho e) ',state(i,j,k,UEINT)

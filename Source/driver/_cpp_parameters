@@ -173,9 +173,6 @@ limit_fluxes_on_small_dens   int           0                  y
 # 3 = Reset to the original zone state before the hydro update
 density_reset_method         int           1                  y
 
-# Whether or not to allow internal energy to be less than zero
-allow_negative_energy        int           0                  y
-
 # Whether or not to allow the internal energy to be less than the
 # internal energy corresponding to small\_temp
 allow_small_energy           int           1                  y

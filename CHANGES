@@ -1,5 +1,6 @@
 # changes since last release
 
+
   -- The runtime parameter castro.do_ctu was replaced by
      castro.time_integration_method.  The allowed values are
      0 (CTU integration), 1 (MOL), or 2 (SDC)
@@ -11,6 +12,17 @@
   -- A framework for a new spectral deferred corrections method
      was added.  This will allow for higher-order time integration.
 
+  -- fixed handling of external BCs (#402)
+
+  -- unified some CUDA hydro solver code with the method-of-lines code
+
+  -- offloaded gravity source terms, rotation, reactions, and sponge
+     to GPUs with CUDA
+
+  -- merged the different dimensional versions of the CTU consup
+     routine into a single routine (#399)
+
+  -- removed the unsafe option "allow_negative_energy"
 
 # 18.09
 

@@ -64,7 +64,6 @@ jobInfoFile << (Castro::use_pslope == 1 ? "    " : "[*] ") << "castro.use_pslope
 jobInfoFile << (Castro::fix_mass_flux == 0 ? "    " : "[*] ") << "castro.fix_mass_flux = " << Castro::fix_mass_flux << std::endl;
 jobInfoFile << (Castro::limit_fluxes_on_small_dens == 0 ? "    " : "[*] ") << "castro.limit_fluxes_on_small_dens = " << Castro::limit_fluxes_on_small_dens << std::endl;
 jobInfoFile << (Castro::density_reset_method == 1 ? "    " : "[*] ") << "castro.density_reset_method = " << Castro::density_reset_method << std::endl;
-jobInfoFile << (Castro::allow_negative_energy == 0 ? "    " : "[*] ") << "castro.allow_negative_energy = " << Castro::allow_negative_energy << std::endl;
 jobInfoFile << (Castro::allow_small_energy == 1 ? "    " : "[*] ") << "castro.allow_small_energy = " << Castro::allow_small_energy << std::endl;
 jobInfoFile << (Castro::do_sponge == 0 ? "    " : "[*] ") << "castro.do_sponge = " << Castro::do_sponge << std::endl;
 jobInfoFile << (Castro::sponge_implicit == 1 ? "    " : "[*] ") << "castro.sponge_implicit = " << Castro::sponge_implicit << std::endl;

@@ -17,10 +17,10 @@ import os
 import shutil
 
 # specify the names of the template files and the model file
-inputs_file = "inputs.2d.template"
+inputs_file = "inputs.1d.testsuite.temp"
 probin_file = "probin_temp"
-model_file = "convective_flame.hse.tanh.delta_0.040cm.dx_0.050cm"
-exe_file = "Castro2d.gnu.MPI.ex"
+#model_file = "convective_flame.hse.tanh.delta_0.040cm.dx_0.050cm"
+exe_file = "Castro1d.gnu.MPI.ex"
 
 # function for finding and replacing placeholder values within the template files
 def write_files(odir, param_dict):
@@ -30,7 +30,7 @@ def write_files(odir, param_dict):
         os.mkdir(odir)
 
     # Replace placeholders in inputs template file
-    with open("{}/inputs.2d".format(odir), "w") as in_file:
+    with open("{}/inputs.1d.testsuite".format(odir), "w") as in_file:
         for line in inputs_lines:
             for key in param_dict:
                 line = line.replace("@@{}@@".format(key), "{}".format(param_dict[key]))
@@ -43,9 +43,9 @@ def write_files(odir, param_dict):
                 line = line.replace("@@{}@@".format(key), "{}".format(param_dict[key]))
             prob_file.write(line)
 
-    with open("{}/convective_flame.hse.tanh.delta_0.040cm.dx_0.050cm".format(odir), "w") as mod_file:
-        for line in mod_lines:
-            mod_file.write(line)
+#    with open("{}/convective_flame.hse.tanh.delta_0.040cm.dx_0.050cm".format(odir), "w") as mod_file:
+#        for line in mod_lines:
+#            mod_file.write(line)
 
     shutil.copy(exe_file, odir)
     print("exe copied ",odir)
@@ -58,8 +58,8 @@ with open(inputs_file, "r") as in_file:
 with open(probin_file, "r") as prob_file:
     probin_lines = prob_file.readlines()
 
-with open(model_file, "r") as mod_file:
-    mod_lines = mod_file.readlines()
+#with open(model_file, "r") as mod_file:
+#    mod_lines = mod_file.readlines()
 
 
 # values to be replaced in the template files.

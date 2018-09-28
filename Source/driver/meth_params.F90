@@ -139,7 +139,6 @@ module meth_params_module
   integer,  allocatable, save :: fix_mass_flux
   integer,  allocatable, save :: limit_fluxes_on_small_dens
   integer,  allocatable, save :: density_reset_method
-  integer,  allocatable, save :: allow_negative_energy
   integer,  allocatable, save :: allow_small_energy
   integer,  allocatable, save :: do_sponge
   integer,  allocatable, save :: sponge_implicit
@@ -228,7 +227,6 @@ attributes(managed) :: use_pslope
 attributes(managed) :: fix_mass_flux
 attributes(managed) :: limit_fluxes_on_small_dens
 attributes(managed) :: density_reset_method
-attributes(managed) :: allow_negative_energy
 attributes(managed) :: allow_small_energy
 attributes(managed) :: do_sponge
 attributes(managed) :: sponge_implicit
@@ -346,7 +344,6 @@ attributes(managed) :: get_g_from_phi
   !$acc create(fix_mass_flux) &
   !$acc create(limit_fluxes_on_small_dens) &
   !$acc create(density_reset_method) &
-  !$acc create(allow_negative_energy) &
   !$acc create(allow_small_energy) &
   !$acc create(do_sponge) &
   !$acc create(sponge_implicit) &
@@ -564,8 +561,6 @@ contains
     limit_fluxes_on_small_dens = 0;
     allocate(density_reset_method)
     density_reset_method = 1;
-    allocate(allow_negative_energy)
-    allow_negative_energy = 0;
     allocate(allow_small_energy)
     allow_small_energy = 1;
     allocate(do_sponge)
@@ -696,7 +691,6 @@ contains
     call pp%query("fix_mass_flux", fix_mass_flux)
     call pp%query("limit_fluxes_on_small_dens", limit_fluxes_on_small_dens)
     call pp%query("density_reset_method", density_reset_method)
-    call pp%query("allow_negative_energy", allow_negative_energy)
     call pp%query("allow_small_energy", allow_small_energy)
     call pp%query("do_sponge", do_sponge)
     call pp%query("sponge_implicit", sponge_implicit)
@@ -750,23 +744,23 @@ contains
     !$acc device(use_eos_in_riemann, use_flattening, transverse_use_eos) &
     !$acc device(transverse_reset_density, transverse_reset_rhoe, dual_energy_eta1) &
     !$acc device(dual_energy_eta2, use_pslope, fix_mass_flux) &
-    !$acc device(limit_fluxes_on_small_dens, density_reset_method, allow_negative_energy) &
-    !$acc device(allow_small_energy, do_sponge, sponge_implicit) &
-    !$acc device(first_order_hydro, hse_zero_vels, hse_interp_temp) &
-    !$acc device(hse_reflect_vels, mol_order, sdc_order) &
-    !$acc device(sdc_solver, sdc_solver_tol, sdc_solve_for_rhoe) &
-    !$acc device(sdc_use_analytic_jac, cfl, dtnuc_e) &
-    !$acc device(dtnuc_X, dtnuc_X_threshold, dxnuc) &
-    !$acc device(dxnuc_max, max_dxnuc_lev, do_react) &
-    !$acc device(react_T_min, react_T_max, react_rho_min) &
-    !$acc device(react_rho_max, disable_shock_burning, diffuse_cutoff_density) &
-    !$acc device(diffuse_cond_scale_fac, do_grav, grav_source_type) &
-    !$acc device(do_rotation, rot_period, rot_period_dot) &
-    !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
-    !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
-    !$acc device(rot_axis, use_point_mass, point_mass) &
-    !$acc device(point_mass_fix_solution, do_acc, grown_factor) &
-    !$acc device(track_grid_losses, const_grav, get_g_from_phi)
+    !$acc device(limit_fluxes_on_small_dens, density_reset_method, allow_small_energy) &
+    !$acc device(do_sponge, sponge_implicit, first_order_hydro) &
+    !$acc device(hse_zero_vels, hse_interp_temp, hse_reflect_vels) &
+    !$acc device(mol_order, sdc_order, sdc_solver) &
+    !$acc device(sdc_solver_tol, sdc_solve_for_rhoe, sdc_use_analytic_jac) &
+    !$acc device(cfl, dtnuc_e, dtnuc_X) &
+    !$acc device(dtnuc_X_threshold, dxnuc, dxnuc_max) &
+    !$acc device(max_dxnuc_lev, do_react, react_T_min) &
+    !$acc device(react_T_max, react_rho_min, react_rho_max) &
+    !$acc device(disable_shock_burning, diffuse_cutoff_density, diffuse_cond_scale_fac) &
+    !$acc device(do_grav, grav_source_type, do_rotation) &
+    !$acc device(rot_period, rot_period_dot, rotation_include_centrifugal) &
+    !$acc device(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
+    !$acc device(rot_source_type, implicit_rotation_update, rot_axis) &
+    !$acc device(use_point_mass, point_mass, point_mass_fix_solution) &
+    !$acc device(do_acc, grown_factor, track_grid_losses) &
+    !$acc device(const_grav, get_g_from_phi)
 
 
     ! now set the external BC flags
@@ -943,9 +937,6 @@ contains
     end if
     if (allocated(density_reset_method)) then
         deallocate(density_reset_method)
-    end if
-    if (allocated(allow_negative_energy)) then
-        deallocate(allow_negative_energy)
     end if
     if (allocated(allow_small_energy)) then
         deallocate(allow_small_energy)
