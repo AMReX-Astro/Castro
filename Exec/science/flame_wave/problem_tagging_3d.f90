@@ -37,7 +37,7 @@ contains
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-             if ( state(i,j,k,URHO) > cutoff_density .and. state(i,j,k,UFS) > X_min) then
+             if ( state(i,j,k,URHO) > cutoff_density .and. state(i,j,k,UFS)/state(i,j,k,URHO) > X_min) then
                 if (level < max_hse_tagging_level) then
                    tag(i,j,k) = set
                 end if
