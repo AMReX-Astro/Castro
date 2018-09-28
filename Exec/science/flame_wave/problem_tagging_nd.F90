@@ -14,7 +14,7 @@ contains
 
     use meth_params_module, only: URHO, NVAR, UFS
     use probdata_module, only: X_min, cutoff_density, &
-         burn_tagging_min, burn_tagging_max, max_hse_tagging_level
+         max_hse_tagging_level, max_base_tagging_level
 
     use amrex_fort_module, only : rt => amrex_real
 
@@ -32,15 +32,14 @@ contains
 
     integer :: i, j, k
 
-    ! Tag on regions of with X > X_min (note: this is the first
-    ! species variable) and rho < cutoff_density.  Note that X is the
-    ! first species variable and so is in index UFS of the state
-    ! array.
+    ! Tag on regions of with X > X_min and rho < cutoff_density.  Note
+    ! that X is the first species variable and so is in index UFS of
+    ! the state array.  This should refine just the fueld layer
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-             if ( state(i,j,k,URHO) > cutoff_density .and. state(i,j,k,UFS) > X_min) then
+             if ( state(i,j,k,URHO) > cutoff_density .and. state(i,j,k,UFS)/state(i,j,k,URHO) > X_min) then
                 if (level < max_hse_tagging_level) then
                    tag(i,j,k) = set
                 end if
@@ -49,19 +48,14 @@ contains
        end do
     end do
 
-    ! additional tagging for just a layer where we are burning
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-
-             if ( state(i,j,k,URHO) >= burn_tagging_min .and. &
-                  state(i,j,k,URHO) <= burn_tagging_max) then
-                tag(i,j,k) = set
-
-             else if (level > max_hse_tagging_level) then
-                tag(i,j,k) = clear
-             endif
-
+             if ( state(i,j,k,URHO) > cutoff_density) then
+                if (level < max_base_tagging_level) then
+                   tag(i,j,k) = set
+                end if
+             end if
           end do
        end do
     end do
