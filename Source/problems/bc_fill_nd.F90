@@ -75,7 +75,7 @@ contains
     call amrex_filccn(adv_lo, adv_hi, adv, adv_lo, adv_hi, 1, domlo, domhi, delta, xlo, bc)
 
     ! process the external BCs here
-    call ext_fill(adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
+    call ext_denfill(adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
 
   end subroutine denfill
 
