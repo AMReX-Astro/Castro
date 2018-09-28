@@ -8,7 +8,8 @@ module bc_ext_fill_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
                                  UEDEN, UEINT, UFS, UTEMP, const_grav, &
                                  hse_zero_vels, hse_interp_temp, hse_reflect_vels, &
-                                 xl_ext, xr_ext, yl_ext, yr_ext, zl_ext,zr_ext,EXT_HSE, EXT_INTERP
+                                 xl_ext, xr_ext, yl_ext, yr_ext, zl_ext,zr_ext, EXT_HSE, EXT_INTERP
+  use prob_params_module, only: dim
 
   implicit none
 
@@ -37,7 +38,7 @@ contains
     use model_parser_module, only: model_r, model_state, npts_model, idens_model, itemp_model, ispec_model
 
     integer, intent(in) :: adv_lo(3), adv_hi(3)
-    integer, intent(in) :: bc(3,2,*)
+    integer, intent(in) :: bc(dim,2,*)
     integer, intent(in) :: domlo(3), domhi(3)
     real(rt), intent(in) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3),NVAR)
@@ -660,7 +661,7 @@ contains
     implicit none
 
     integer, intent(in) :: adv_lo(3), adv_hi(3)
-    integer, intent(in) :: bc(3,2)
+    integer, intent(in) :: bc(dim,2)
     integer, intent(in) :: domlo(3), domhi(3)
     real(rt), intent(in) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3))
@@ -674,8 +675,6 @@ contains
     ! when just the density is needed.  We try to rig up the filling so
     ! that the same function is called here and in hypfill where all the
     ! states are filled.
-
-    call amrex_filccn(adv_lo, adv_hi, adv, adv_lo, adv_hi, 1, domlo, domhi, delta, xlo, bc)
 
 #ifndef AMREX_USE_CUDA
     ! XLO
