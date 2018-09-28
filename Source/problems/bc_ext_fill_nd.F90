@@ -356,6 +356,8 @@ contains
        endif
 
 
+#if AMREX_SPACEDIM == 3
+
        !-------------------------------------------------------------------------
        ! z boundaries
        !-------------------------------------------------------------------------
@@ -581,7 +583,6 @@ contains
 
        endif
 
-
        ! ZHI
        if (bc(3,2,n) == EXT_DIR .and. adv_hi(3) > domhi(3)) then
 
@@ -643,6 +644,7 @@ contains
           end if  ! zr_ext check
 
        end if
+#endif
 
     end do
 
@@ -712,6 +714,7 @@ contains
        end do
     end if
 
+#if AMREX_SPACEDIM == 3
     ! ZLO
     if ( bc(3,1) == EXT_DIR .and. adv_lo(3) < domlo(3)) then
        do k = adv_lo(3), domlo(3)-1
@@ -735,6 +738,7 @@ contains
           end do
        end do
     end if
+#endif
 
   end subroutine ext_denfill
 
