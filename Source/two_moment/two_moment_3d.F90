@@ -6,6 +6,7 @@
                               n_fluid_dof, n_moments, ng) &
                               bind(C, name="call_to_thornado")
 
+    use amrex_constants_module, only : fourth, half, zero, one, two
     use amrex_fort_module, only : rt => amrex_real
     use amrex_error_module, only : amrex_abort
     use meth_params_module, only : URHO,UMX,UMY,UMZ,UEINT,UEDEN,UFX
@@ -14,6 +15,8 @@
     use RadiationFieldsModule, only : nSpecies, uCR
     use TimeSteppingModule_Castro, only : Update_IMEX_PDARS
     use UnitsModule, only : Gram, Centimeter, Second
+
+    use ReferenceElementModuleX, only: NodesX_q, WeightsX_q
 
     implicit none
     integer, intent(in) :: lo(3), hi(3)
@@ -37,10 +40,16 @@
     real(rt), intent(inout) ::  U_R_n(U_R_n_lo(1): U_R_n_hi(1),  U_R_n_lo(2): U_R_n_hi(2),   U_R_n_lo(3): U_R_n_hi(3), 0:n_urn-1) 
 
     ! Temporary variables
-    integer  :: i,j,k
+    integer  :: i,j,k,n
     integer  :: ic,jc,kc
     integer  :: ii,id,ie,im,is,ind
     real(rt) :: conv_dens, conv_mom, conv_enr, conv_ne, conv_J, conv_H, testdt
+
+    ! For interpolation
+    real(rt) :: x, y, z
+    real(rt) :: xslope(ns), yslope(ns), zslope(ns)
+    real(rt) :: Sval(ns)
+    real(rt) :: dlft(ns), drgt(ns), dcen(ns), dlim, dsgn
 
     ! Sanity check on size of arrays
     ! Note that we have set ngrow_thornado = ngrow_state in Castro_setup.cpp
@@ -59,9 +68,6 @@
     if (ng.ne. 2) &
       call amrex_abort("Need two ghost cells in call_to_thornado!")
 
-    ! Zero out dS
-    dS = 0.0e0
-
     conv_dens = Gram / Centimeter**3
     conv_mom  = Gram / Centimeter**2 / Second
     conv_enr  = Gram / Centimeter / Second**2
@@ -70,7 +76,7 @@
     conv_H    = Gram/Second**3
 
     ! ************************************************************************************
-    ! Copy from the Castro arrays into Thornado arrays from InitThornado_Patch
+    ! Interpolate from the Castro "S" arrays into Thornado "uCF" arrays from InitThornado_Patch
     ! ************************************************************************************
     do kc = lo(3)-ng,hi(3)+ng
     do jc = lo(2)-ng,hi(2)+ng
@@ -90,13 +96,84 @@
          j = jc - lo(2) + 1
          k = kc - lo(3) + 1
 
-         ! Thornado uses units where c = G = k = 1, Meter = 1
-         uCF(1:n_fluid_dof,i,j,k,iCF_D)  = S(ic,jc,kc,URHO)  * conv_dens
-         uCF(1:n_fluid_dof,i,j,k,iCF_S1) = S(ic,jc,kc,UMX)   * conv_mom
-         uCF(1:n_fluid_dof,i,j,k,iCF_S2) = S(ic,jc,kc,UMY)   * conv_mom
-         uCF(1:n_fluid_dof,i,j,k,iCF_S3) = S(ic,jc,kc,UMZ)   * conv_mom
-         uCF(1:n_fluid_dof,i,j,k,iCF_E)  = S(ic,jc,kc,UEDEN) * conv_enr
-         uCF(1:n_fluid_dof,i,j,k,iCF_Ne) = S(ic,jc,kc,UFX)   * conv_ne
+        ! Define limited second-order slopes in x-direction
+         dlft(:) = (S(ic  ,jc,kc,:) - S(ic-1,jc,kc,:)) * two
+         drgt(:) = (S(ic+1,jc,kc,:) - S(ic  ,jc,kc,:)) * two
+         dcen(:) = (S(ic+1,jc,kc,:) - S(ic-1,jc,kc,:)) * half
+
+         do n = 1, ns
+            dsgn = sign(one, dcen(n))
+            xslope(n) = min( abs(dlft(n)), abs(drgt(n)) )
+            if (dlft(n) * drgt(n) .ge. zero) then
+               dlim = xslope(n)
+            else
+               dlim = zero
+            endif
+            xslope(n) = dsgn * min( dlim, abs(dcen(n)) )
+         end do
+
+        ! Define limited second-order slopes in y-direction
+         dlft(:) = (S(ic,jc  ,kc,:) - S(ic,jc-1,kc,:)) * two
+         drgt(:) = (S(ic,jc+1,kc,:) - S(ic,jc  ,kc,:)) * two
+         dcen(:) = (S(ic,jc+1,kc,:) - S(ic,jc-1,kc,:)) * half
+
+         do n = 1, ns
+            dsgn = sign(one, dcen(n))
+            yslope(n) = min( abs(dlft(n)), abs(drgt(n)) )
+            if (dlft(n) * drgt(n) .ge. zero) then
+               dlim = yslope(n)
+            else
+               dlim = zero
+            endif
+            yslope(n) = dsgn * min( dlim, abs(dcen(n)) )
+         end do
+
+        ! Define limited second-order slopes in z-direction
+         dlft(:) = (S(ic,jc,kc  ,:) - S(ic,jc,kc-1,:)) * two
+         drgt(:) = (S(ic,jc,kc+1,:) - S(ic,jc,kc  ,:)) * two
+         dcen(:) = (S(ic,jc,kc+1,:) - S(ic,jc,kc-1,:)) * half
+
+         do n = 1, ns
+            dsgn = sign(one, dcen(n))
+            zslope(n) = min( abs(dlft(n)), abs(drgt(n)) )
+            if (dlft(n) * drgt(n) .ge. zero) then
+               dlim = zslope(n)
+            else
+               dlim = zero
+            endif
+            zslope(n) = dsgn * min( dlim, abs(dcen(n)) )
+         end do
+
+         do ind = 1, n_fluid_dof
+
+            ! These are the locations of the DG nodes in the space [-.5:.5]
+            x = NodesX_q(1,ind)
+            y = NodesX_q(2,ind)
+            z = NodesX_q(3,ind)
+
+            ! Use the slopes to extrapolate from the center to the nodes
+            Sval(:) = S(ic,jc,kc,:) + x*xslope(:) + y*yslope(:) + z*zslope(:)
+
+            ! Thornado uses units where c = G = k = 1, Meter = 1
+            uCF(ind,i,j,k,iCF_D)  = Sval(URHO)  * conv_dens
+            uCF(ind,i,j,k,iCF_S1) = Sval(UMX)   * conv_mom
+            uCF(ind,i,j,k,iCF_S2) = Sval(UMY)   * conv_mom
+            uCF(ind,i,j,k,iCF_S3) = Sval(UMZ)   * conv_mom
+            uCF(ind,i,j,k,iCF_E)  = Sval(UEDEN) * conv_enr
+            uCF(ind,i,j,k,iCF_Ne) = Sval(UFX)   * conv_ne
+
+         end do
+
+    end do
+    end do
+    end do
+
+    ! ************************************************************************************
+    ! Copy from the Castro U_R arrays into Thornado arrays from InitThornado_Patch
+    ! ************************************************************************************
+    do kc = lo(3)-ng,hi(3)+ng
+    do jc = lo(2)-ng,hi(2)+ng
+    do ic = lo(1)-ng,hi(1)+ng
 
          ! The uCF array was allocated in CreateRadiationdFields_Conserved with 
          ! ALLOCATE &
@@ -124,7 +201,7 @@
     end do
 
     ! ************************************************************************************
-    ! Call the Fortran interface that lives in the thornado repo
+    ! Call the time stepper that lives in the thornado repo
     ! ************************************************************************************
     call Update_IMEX_PDARS(dt*Second, uCF, uCR)
 
@@ -148,13 +225,14 @@
          ! Update_IMEX_PC2 doesn't currently change the fluid density or momentum
          ! 
 
+         ! Zero out dS so we can accumulate weighted average in it
          dS(ic,jc,kc,:) = 0.d0
 
          do ind = 1, n_fluid_dof
-!            dS(ic,jc,kc,URHO ) = dS(ic,jc,kc,URHO ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_D ) 
-!            dS(ic,jc,kc,UMX  ) = dS(ic,jc,kc,UMX  ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_S1) 
-!            dS(ic,jc,kc,UMY  ) = dS(ic,jc,kc,UMY  ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_S2) 
-!            dS(ic,jc,kc,UMZ  ) = dS(ic,jc,kc,UMZ  ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_S3) 
+             dS(ic,jc,kc,URHO ) = dS(ic,jc,kc,URHO ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_D ) 
+             dS(ic,jc,kc,UMX  ) = dS(ic,jc,kc,UMX  ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_S1) 
+             dS(ic,jc,kc,UMY  ) = dS(ic,jc,kc,UMY  ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_S2) 
+             dS(ic,jc,kc,UMZ  ) = dS(ic,jc,kc,UMZ  ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_S3) 
              dS(ic,jc,kc,UEDEN) = dS(ic,jc,kc,UEDEN) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_E ) 
              dS(ic,jc,kc,UFX  ) = dS(ic,jc,kc,UFX  ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_Ne) 
          end do
