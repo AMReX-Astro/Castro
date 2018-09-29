@@ -16,7 +16,7 @@ contains
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_source_type
     use prob_params_module, only: center
     use amrex_constants_module
-    use castro_util_module, only: position
+    use castro_util_module, only: position ! function
 #ifdef HYBRID_MOMENTUM
     use meth_params_module, only: UMR, UMP, state_in_rotating_frame
     use hybrid_advection_module, only: add_hybrid_momentum_source
@@ -38,7 +38,8 @@ contains
     real(rt)        , intent(in   ) :: uold(uold_lo(1):uold_hi(1),uold_lo(2):uold_hi(2),uold_lo(3):uold_hi(3),NVAR)
     real(rt)        , intent(inout) :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
     real(rt)        , intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    real(rt)        , intent(in   ) :: dx(3), dt, time
+    real(rt)        , intent(in   ) :: dx(3)
+    real(rt), value , intent(in   ) :: dt, time
 
     integer          :: i, j ,k
     real(rt)         :: Sr(3),SrE
@@ -53,6 +54,8 @@ contains
 
     real(rt)         :: snew(NVAR)
 
+    !$gpu
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -62,7 +65,7 @@ contains
              rho = uold(i,j,k,URHO)
              rhoInv = ONE / rho
 
-             src = ZERO
+             src(:) = ZERO
              snew = uold(i,j,k,:)
 
              old_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoInv
@@ -108,7 +111,9 @@ contains
                 SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
 
              else
+#ifndef AMREX_USE_GPU
                 call amrex_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
+#endif
              end if
 
              src(UEDEN) = src(UEDEN) + SrE
@@ -128,8 +133,7 @@ contains
 
 
   subroutine ca_corrrsrc(lo,hi,domlo,domhi, &
-                         pold,po_lo,po_hi, &
-                         pnew,pn_lo,pn_hi, &
+                         phi,p_lo,p_hi, &
                          rold,ro_lo,ro_hi, &
                          rnew,rn_lo,rn_hi, &
                          uold,uo_lo,uo_hi, &
@@ -152,10 +156,11 @@ contains
                                   implicit_rotation_update, rotation_include_coriolis, state_in_rotating_frame
     use prob_params_module, only: center, dg
     use amrex_constants_module
-    use math_module, only: cross_product
-    use rotation_module, only: rotational_acceleration
-    use rotation_frequency_module, only: get_omega, get_domegadt
-    use castro_util_module, only: position
+    use math_module, only: cross_product ! function
+    use rotation_module, only: rotational_acceleration ! function
+    use rotation_frequency_module, only: get_omega ! function
+    use rotation_frequency_module, only: get_domegadt ! function
+    use castro_util_module, only: position ! function
 #ifdef HYBRID_MOMENTUM
     use meth_params_module, only : UMR, UMP
     use hybrid_advection_module, only: add_hybrid_momentum_source
@@ -167,8 +172,7 @@ contains
     integer          :: lo(3), hi(3)
     integer          :: domlo(3), domhi(3)
 
-    integer          :: po_lo(3),po_hi(3)
-    integer          :: pn_lo(3),pn_hi(3)
+    integer          :: p_lo(3),p_hi(3)
     integer          :: ro_lo(3),ro_hi(3)
     integer          :: rn_lo(3),rn_hi(3)
     integer          :: uo_lo(3),uo_hi(3)
@@ -179,10 +183,9 @@ contains
     integer          :: f3_lo(3),f3_hi(3)
     integer          :: vol_lo(3),vol_hi(3)
 
-    ! Old and new time rotational potential
+    ! Time centered rotational potential
 
-    real(rt)         :: pold(po_lo(1):po_hi(1),po_lo(2):po_hi(2),po_lo(3):po_hi(3))
-    real(rt)         :: pnew(pn_lo(1):pn_hi(1),pn_lo(2):pn_hi(2),pn_lo(3):pn_hi(3))
+    real(rt)         :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
 
     ! Old and new time rotational acceleration
 
@@ -206,7 +209,8 @@ contains
 
     real(rt)         :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
 
-    real(rt)         :: dx(3), dt, time
+    real(rt)         :: dx(3)
+    real(rt), value  :: dt, time
 
     integer          :: i,j,k
     real(rt)         :: loc(3)
@@ -223,8 +227,6 @@ contains
 
     real(rt)         :: snew(NVAR)
 
-    real(rt)        , pointer :: phi(:,:,:)
-
     ! Rotation source options for how to add the work to (rho E):
     ! rot_source_type =
     ! 1: Standard version ("does work")
@@ -235,27 +237,13 @@ contains
     ! Note that the time passed to this function
     ! is the new time at time-level n+1.
 
+    !$gpu
+
     omega_old = get_omega(time-dt)
     omega_new = get_omega(time   )
 
     domegadt_old = get_domegadt(time-dt)
     domegadt_new = get_domegadt(time   )
-
-    if (rot_source_type == 4) then
-
-       call bl_allocate(phi,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
-
-       phi = ZERO
-
-       do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
-          do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
-             do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
-                phi(i,j,k) = HALF * (pold(i,j,k) + pnew(i,j,k))
-             enddo
-          enddo
-       enddo
-
-    endif
 
     if (implicit_rotation_update == 1) then
 
@@ -441,10 +429,10 @@ contains
 
                 SrEcorr = SrEcorr - (HALF / dt) * ( flux1(i        ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
                                                     flux1(i+1*dg(1),j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &
-                                                    flux2(i,j        ,k) * (phi(i,j,k) - phi(i,j-1,k)) - &
-                                                    flux2(i,j+1*dg(2),k) * (phi(i,j,k) - phi(i,j+1,k)) + &
-                                                    flux3(i,j,k        ) * (phi(i,j,k) - phi(i,j,k-1)) - &
-                                                    flux3(i,j,k+1*dg(3)) * (phi(i,j,k) - phi(i,j,k+1)) ) / vol(i,j,k)
+                                                    flux2(i,j        ,k) * (phi(i,j,k) - phi(i,j-dg(2),k)) - &
+                                                    flux2(i,j+1*dg(2),k) * (phi(i,j,k) - phi(i,j+dg(2),k)) + &
+                                                    flux3(i,j,k        ) * (phi(i,j,k) - phi(i,j,k-dg(3))) - &
+                                                    flux3(i,j,k+1*dg(3)) * (phi(i,j,k) - phi(i,j,k+dg(3))) ) / vol(i,j,k)
 
                 ! Correct for the time rate of change of the potential, which acts
                 ! purely as a source term. This is only necessary for this source type;
@@ -459,7 +447,9 @@ contains
                 SrEcorr = SrEcorr + HALF * (dot_product(vold, Sr_old) + dot_product(vnew, Sr_new))
 
              else
+#ifndef AMREX_USE_GPU
                 call amrex_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
+#endif
              end if
 
              src(UEDEN) = SrEcorr
@@ -471,10 +461,6 @@ contains
           enddo
        enddo
     enddo
-
-    if (rot_source_type .eq. 4) then
-       call bl_deallocate(phi)
-    endif
 
   end subroutine ca_corrrsrc
 

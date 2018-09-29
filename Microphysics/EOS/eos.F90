@@ -119,15 +119,13 @@ contains
 
   subroutine eos(input, state)
 
-    !$acc routine seq
-
     use eos_type_module, only: eos_t, composition
 #ifdef EXTRA_THERMO
     use eos_type_module, only : composition_derivatives
 #endif
     use actual_eos_module, only: actual_eos
     use eos_override_module, only: eos_override
-#if (!(defined(AMREX_USE_CUDA) || defined(ACC)))
+#if (!(defined(AMREX_USE_CUDA) || defined(AMREX_USE_ACC)))
     use amrex_error_module, only: amrex_error
 #endif
 
@@ -144,7 +142,7 @@ contains
 
     ! Local variables
 
-#if (!(defined(AMREX_USE_CUDA) || defined(ACC)))
+#if (!(defined(AMREX_USE_CUDA) || defined(AMREX_USE_ACC)))
     if (.not. initialized) call amrex_error('EOS: not initialized')
 #endif
 
@@ -180,8 +178,6 @@ contains
 
 
   subroutine reset_inputs(input, state, has_been_reset)
-
-    !$acc routine seq
 
     use eos_type_module, only: eos_t, &
                                eos_input_rt, eos_input_re, eos_input_rh, eos_input_tp, &
@@ -248,8 +244,6 @@ contains
 
   subroutine reset_rho(state, has_been_reset)
 
-    !$acc routine seq
-
     use eos_type_module, only: eos_t, mindens, maxdens
 
     implicit none
@@ -269,8 +263,6 @@ contains
 
   subroutine reset_T(state, has_been_reset)
 
-    !$acc routine seq
-
     use eos_type_module, only: eos_t, mintemp, maxtemp
 
     implicit none
@@ -287,8 +279,6 @@ contains
 
 
   subroutine reset_e(state, has_been_reset)
-
-    !$acc routine seq
 
     use eos_type_module, only: eos_t, mine, maxe
 
@@ -309,8 +299,6 @@ contains
 
   subroutine reset_h(state, has_been_reset)
 
-    !$acc routine seq
-
     use eos_type_module, only: eos_t, minh, maxh
 
     implicit none
@@ -330,8 +318,6 @@ contains
 
   subroutine reset_s(state, has_been_reset)
 
-    !$acc routine seq
-
     use eos_type_module, only: eos_t, mins, maxs
 
     implicit none
@@ -350,8 +336,6 @@ contains
 
 
   subroutine reset_p(state, has_been_reset)
-
-    !$acc routine seq
 
     use eos_type_module, only: eos_t, minp, maxp
 
@@ -375,8 +359,6 @@ contains
 
   subroutine eos_reset(state, has_been_reset)
 
-    !$acc routine seq
-
     use eos_type_module, only: eos_t, eos_input_rt, mintemp, maxtemp, mindens, maxdens
     use actual_eos_module, only: actual_eos
 
@@ -398,10 +380,8 @@ contains
 
 
 
-#if (!(defined(AMREX_USE_CUDA) || defined(ACC)))
+#if (!(defined(AMREX_USE_CUDA) || defined(AMREX_USE_ACC)))
   subroutine check_inputs(input, state)
-
-    !$acc routine seq
 
     use amrex_error_module
     use network, only: nspec
@@ -484,8 +464,6 @@ contains
 
   subroutine check_rho(state)
 
-    !$acc routine seq
-
     use amrex_error_module
     use eos_type_module, only: eos_t, mindens, maxdens, print_state
 
@@ -506,8 +484,6 @@ contains
 
 
   subroutine check_T(state)
-
-    !$acc routine seq
 
     use amrex_error_module
     use eos_type_module, only: eos_t, mintemp, maxtemp, print_state
@@ -530,8 +506,6 @@ contains
 
   subroutine check_e(state)
 
-    !$acc routine seq
-
     use amrex_error_module
     use eos_type_module, only: eos_t, mine, maxe, print_state
 
@@ -552,8 +526,6 @@ contains
 
 
   subroutine check_h(state)
-
-    !$acc routine seq
 
     use amrex_error_module
     use eos_type_module, only: eos_t, minh, maxh, print_state
@@ -576,8 +548,6 @@ contains
 
   subroutine check_s(state)
 
-    !$acc routine seq
-
     use amrex_error_module
     use eos_type_module, only: eos_t, mins, maxs, print_state
 
@@ -598,8 +568,6 @@ contains
 
 
   subroutine check_p(state)
-
-    !$acc routine seq
 
     use amrex_error_module
     use eos_type_module, only: eos_t, minp, maxp, print_state

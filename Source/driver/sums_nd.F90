@@ -387,6 +387,8 @@ contains
   subroutine ca_sumproduct(lo,hi,f1,f1_lo,f1_hi,f2,f2_lo,f2_hi,dx,&
                            vol,v_lo,v_hi,product) bind(C, name="ca_sumproduct")
 
+    !$gpu
+    
     use amrex_constants_module, only : ZERO
 
     use amrex_fort_module, only : rt => amrex_real

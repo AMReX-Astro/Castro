@@ -32,7 +32,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
                     fuel1_frac, fuel2_frac, fuel3_frac, &
                     ash1_frac, ash2_frac, ash3_frac, &
                     low_density_cutoff, index_base_from_temp, smallx, &
-                    max_hse_tagging_level, burn_tagging_min, burn_tagging_max
+                    max_hse_tagging_level, max_base_tagging_level
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 256
@@ -95,8 +95,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   smallx = 1.d-10
 
   max_hse_tagging_level = 2
-  burn_tagging_min = 1.e4_rt
-  burn_tagging_max = 4.e6_rt
+  max_base_tagging_level = 1
 
   open(newunit=untin,file=probin(1:namlen),form='formatted',status='old')
   read(untin,fortin)
@@ -189,6 +188,8 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   allocate(model_state(nx_model+ng, nvars_model))
   model_state(:, :) = gen_model_state(:, :, 1)
+
+  allocate(npts_model)
 
   npts_model = nx_model+ng
   model_initialized = .true.
@@ -304,6 +305,9 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
         state(i,j,UEINT) = eos_state % rho * eos_state % e
         state(i,j,UEDEN) = state(i,j,UEDEN)
 
+          ! Initial velocities = 0
+        state(i,j,UMX:UMZ) = 0.e0_rt
+
         ! convert to partial densities
         do n = 1, nspec
            state(i,j,UFS+n-1) = state(i,j,URHO) * state(i,j,UFS+n-1)
@@ -311,8 +315,5 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
      enddo
   enddo
-
-  ! Initial velocities = 0
-  state(:,:,UMX:UMZ) = 0.e0_rt
 
 end subroutine ca_initdata

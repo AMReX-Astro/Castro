@@ -5,6 +5,7 @@
 #include "Castro.H"
 #include "Castro_F.H"
 #include <Derive_F.H>
+#include "Derive.H"
 #ifdef RADIATION
 # include "Radiation.H"
 # include "RAD_F.H"
@@ -161,6 +162,15 @@ Castro::variableSetUp ()
   burner_init();
 #endif
 
+#ifdef SPONGE
+  // Initialize the sponge
+  sponge_init();
+#endif
+
+  // Initialize the amr info
+  amrinfo_init();
+
+
   const int dm = BL_SPACEDIM;
 
 
@@ -207,7 +217,7 @@ Castro::variableSetUp ()
   ca_set_castro_method_params();
 
   // set the conserved, primitive, aux, and godunov indices in Fortran
-  ca_set_method_params(dm, Density, Xmom, 
+  ca_set_method_params(dm, Density, Xmom,
 #ifdef HYBRID_MOMENTUM
                        Rmom,
 #endif
@@ -223,7 +233,7 @@ Castro::variableSetUp ()
   // and the auxiliary variables
   ca_get_nqaux(&NQAUX);
 
-  // initialize the Godunov state array used in hydro 
+  // initialize the Godunov state array used in hydro
   ca_get_ngdnv(&NGDNV);
 
   // NQ will be used to dimension the primitive variable state
@@ -717,17 +727,17 @@ Castro::variableSetUp ()
 
     //
     // thermal diffusivity (k_th/(rho c_v))
-    //    
+    //
     derive_lst.add("diff_coeff",IndexType::TheCellType(),1,ca_derdiffcoeff,the_same_box);
     derive_lst.addComponent("diff_coeff",desc_lst,State_Type,Density,NUM_STATE);
 
 
     //
     // diffusion term (the divergence of thermal flux)
-    //    
+    //
     derive_lst.add("diff_term",IndexType::TheCellType(),1,ca_derdiffterm,grow_box_by_one);
     derive_lst.addComponent("diff_term",desc_lst,State_Type,Density,NUM_STATE);
-    
+
 
   }
 #endif

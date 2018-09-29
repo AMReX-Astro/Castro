@@ -20,6 +20,7 @@ end module extern_probin_module
 subroutine runtime_init(name, namlen)
 
   use extern_probin_module
+  use amrex_error_module, only: amrex_error
 
   implicit none
 
@@ -40,12 +41,9 @@ subroutine runtime_init(name, namlen)
 
 
   ! create the filename
-#ifndef AMREX_USE_CUDA
   if (namlen > maxlen) then
-     print *, 'probin file name too long'
-     stop
+     call amrex_error("probin file name too long")
   endif
-#endif
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -63,10 +61,7 @@ subroutine runtime_init(name, namlen)
 
   else if (status > 0) then
      ! some problem in the namelist
-#ifndef AMREX_USE_CUDA
-     print *, 'ERROR: problem in the extern namelist'
-#endif
-     stop
+     call amrex_error("ERROR: problem in the extern namelist")
   endif
 
   close (unit=un)
@@ -79,6 +74,7 @@ subroutine runtime_pretty_print(name, namlen) bind(C, name="runtime_pretty_print
 
   use amrex_constants_module
   use extern_probin_module
+  use amrex_error_module, only: amrex_error
 
   implicit none
 
@@ -87,15 +83,14 @@ subroutine runtime_pretty_print(name, namlen) bind(C, name="runtime_pretty_print
   integer :: namlen
   integer :: name(namlen)
 
+  logical :: ltest
+
   integer, parameter :: maxlen = 256
   character (len=maxlen) :: probin
 
-#ifndef AMREX_USE_CUDA
   if (namlen > maxlen) then
-     print *, 'probin file name too long'
-     stop
+     call amrex_error("probin file name too long")
   endif
-#endif
 
   do i = 1, namlen
      probin(i:i) = char(name(i))

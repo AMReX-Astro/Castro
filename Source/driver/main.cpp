@@ -63,7 +63,7 @@ main (int   argc,
     int  max_step;
     Real strt_time;
     Real stop_time;
-    ParmParse pp; 
+    ParmParse pp;
 
     max_step  = -1;
     strt_time =  0.0;
@@ -75,7 +75,7 @@ main (int   argc,
 
     if (strt_time < 0.0)
     {
-        amrex::Abort("MUST SPECIFY a non-negative strt_time"); 
+        amrex::Abort("MUST SPECIFY a non-negative strt_time");
     }
 
     if (max_step < 0 && stop_time < 0.0) {
@@ -93,7 +93,7 @@ main (int   argc,
 
     time_pointer = gmtime(&time_type);
 
-    if (ParallelDescriptor::IOProcessor()) 
+    if (ParallelDescriptor::IOProcessor())
       std::cout << std::setfill('0') << "\nStarting run at "
 		<< std::setw(2) << time_pointer->tm_hour << ":"
 		<< std::setw(2) << time_pointer->tm_min << ":"
@@ -101,7 +101,7 @@ main (int   argc,
 		<< time_pointer->tm_year + 1900 << "-"
 		<< std::setw(2) << time_pointer->tm_mon + 1 << "-"
 		<< std::setw(2) << time_pointer->tm_mday << "." << std::endl;
-    
+
     //
     // Initialize random seed after we're running in parallel.
     //
@@ -117,7 +117,7 @@ main (int   argc,
 
     // If we set the regrid_on_restart flag and if we are *not* going to take
     //    a time step then we want to go ahead and regrid here.
-    if ( amrptr->RegridOnRestart() && 
+    if ( amrptr->RegridOnRestart() &&
          ( (amrptr->levelSteps(0) >= max_step) ||
            (amrptr->cumTime() >= stop_time) ) )
            {
@@ -200,7 +200,7 @@ main (int   argc,
 		<< time_pointer->tm_year + 1900 << "-"
 		<< std::setw(2) << time_pointer->tm_mon + 1 << "-"
 		<< std::setw(2) << time_pointer->tm_mday << "." << std::endl;
-    
+
     delete amrptr;
     //
     // This MUST follow the above delete as ~Amr() may dump files to disk.

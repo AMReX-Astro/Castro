@@ -2,13 +2,13 @@ module bc_ext_fill_module
 
   use amrex_constants_module, only: ZERO, HALF
   use amrex_error_module
+  use amrex_fort_module, only: rt => amrex_real
   use amrex_filcc_module, only: amrex_filccn
+  use interpolate_module, only: interpolate_sub
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
                                  UEDEN, UEINT, UFS, UTEMP, const_grav, &
                                  hse_zero_vels, hse_interp_temp, hse_reflect_vels, &
                                  xl_ext, xr_ext, yl_ext, yr_ext, zl_ext,zr_ext,EXT_HSE, EXT_INTERP
-  use interpolate_module, only: interpolate_sub
-  use amrex_fort_module, only : rt => amrex_real
 
   implicit none
 
@@ -35,53 +35,47 @@ contains
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec
     use model_parser_module, only: model_r, model_state, npts_model, idens_model, itemp_model, ispec_model
-    use amrex_fort_module, only : rt => amrex_real
+ 
+    integer, intent(in) :: adv_l1, adv_h1, adv_l2, adv_h2, adv_l3, adv_h3
+    integer, intent(in) :: bc(3,2,*)
+    integer, intent(in) :: domlo(3), domhi(3)
+    real(rt), intent(in) :: delta(3), xlo(3), time
+    real(rt), intent(inout) :: adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3,NVAR)
 
-    integer adv_l1, adv_h1,adv_l2,adv_h2,adv_l3,adv_h3
-    integer bc(3,2,*)
-    integer domlo(3), domhi(3)
-    real(rt)         delta(3), xlo(3), time
-    real(rt)         adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3,NVAR)
+    integer :: i, j, k, q, n, iter, m, koff
+    real(rt) :: y, z
+    real(rt) :: dens_above, dens_base, temp_above
+    real(rt) :: pres_above, p_want, pres_zone, A
+    real(rt) :: drho, dpdr, temp_zone, eint, X_zone(nspec), dens_zone
 
-    integer i, j,k, q, n, iter, m
-    real(rt)         y,z
-    real(rt)         :: dens_above, dens_base, temp_above
-    real(rt)         :: pres_above, p_want, pres_zone, A
-    real(rt)         :: drho, dpdr, temp_zone, eint, X_zone(nspec), dens_zone
-
-    integer, parameter :: MAX_ITER = 5000
-    real(rt)        , parameter :: TOL = 1.e-12_rt
+    integer, parameter :: MAX_ITER = 100
+    real(rt), parameter :: TOL = 1.e-8_rt
     logical :: converged_hse
 
     type (eos_t) :: eos_state
 
     do n = 1, NVAR
+
+#ifndef AMREX_USE_CUDA
        !XLO
        if (bc(1,1,n) == EXT_DIR .and. xl_ext == EXT_HSE .and. adv_l1 < domlo(1)) then
-#ifndef AMREX_USE_CUDA          
           call amrex_error("ERROR: HSE boundaries not implemented for -X")
-#endif
        end if
 
        !YLO
        if (bc(2,1,n) == EXT_DIR .and. yl_ext == EXT_HSE .and. adv_l2 < domlo(2)) then
-#ifndef AMREX_USE_CUDA
           call amrex_error("ERROR: HSE boundaries not implemented for -Y")
-#endif
        end if
 
        ! XHI
        if (bc(1,2,n) == EXT_DIR .and. xr_ext == EXT_HSE .and. adv_h1 > domhi(1)) then
-#ifndef AMREX_USE_CUDA
           call amrex_error("ERROR: HSE boundaries not implemented for +X")
-#endif
        end if
        ! YHI
       if (bc(2,2,n) == EXT_DIR .and. yr_ext == EXT_HSE .and. adv_h2 > domhi(2)) then
-#ifndef AMREX_USE_CUDA
          call amrex_error("ERROR: HSE boundaries not implemented for +Y")
-#endif
       end if
+#endif
 
        ! ZLO
        if (bc(3,1,n) == EXT_DIR .and. adv_l3 < domlo(3)) then
@@ -186,7 +180,7 @@ contains
 
 #ifndef AMREX_USE_CUDA
                       if (.not. converged_hse) then
-                         print *, "i, j, k,domlo(3): ", i, j,k, domlo(3)
+                         print *, "i, j, k,domlo(3): ", i, j, k, domlo(3)
                          print *, "p_want:    ", p_want
                          print *, "dens_zone: ", dens_zone
                          print *, "temp_zone: ", temp_zone
@@ -195,7 +189,6 @@ contains
                          print *, "column info: "
                          print *, "   dens: ", adv(i,j,k:domlo(3),URHO)
                          print *, "   temp: ", adv(i,j,k:domlo(3),UTEMP)
-                         print *, "pressure: ", (7.0_rt/5.0_rt-1_rt)*adv(i,j,k:domlo(3),UEINT)
                          call amrex_error("ERROR in bc_ext_fill_1d: failure to converge in -Z BC")
                       endif
 #endif
@@ -211,21 +204,25 @@ contains
                       else
 
                          if (hse_reflect_vels == 1) then
+                            ! reflect normal, zero gradient for transverse
+                            ! note: we need to match the corresponding
+                            ! zone on the other side of the interface
+                            koff = domlo(3)-k-1
+                            adv(i,j,k,UMZ) = -dens_zone*(adv(i,j,domlo(3)+koff,UMZ)/adv(i,j,domlo(3)+koff,URHO))
+
                             adv(i,j,k,UMX) = -dens_zone*(adv(i,j,domlo(3),UMX)/dens_base)
                             adv(i,j,k,UMY) = -dens_zone*(adv(i,j,domlo(3),UMY)/dens_base)
-                            adv(i,j,k,UMZ) = -dens_zone*(adv(i,j,domlo(3),UMZ)/dens_base)
-
                          else
+                            ! zero gradient
                             adv(i,j,k,UMX) = dens_zone*(adv(i,j,domlo(1),UMX)/dens_base)
                             adv(i,j,k,UMY) = dens_zone*(adv(i,j,domlo(2),UMY)/dens_base)
                             adv(i,j,k,UMZ) = dens_zone*(adv(i,j,domlo(3),UMZ)/dens_base)
-
                          endif
                       endif
                       eos_state%rho = dens_zone
                       eos_state%T = temp_zone
                       eos_state%xn(:) = X_zone
-                      
+
                       call eos(eos_input_rt, eos_state)
 
                       pres_zone = eos_state%p
@@ -235,7 +232,7 @@ contains
                       adv(i,j,k,URHO) = dens_zone
                       adv(i,j,k,UEINT) = dens_zone*eint
                       adv(i,j,k,UEDEN) = dens_zone*eint + &
-                           HALF*sum(adv(i,j,k,UMX:UMZ)**2.0_rt)/dens_zone
+                           HALF*sum(adv(i,j,k,UMX:UMZ)**2)/dens_zone
                       adv(i,j,k,UTEMP) = temp_zone
                       adv(i,j,k,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
 
@@ -243,14 +240,18 @@ contains
                       dens_above = dens_zone
                       pres_above = pres_zone
 
-                    enddo
+                    end do
                   end do
                 end do
              endif  ! n == URHO
+
           elseif (zl_ext == EXT_INTERP) then
+
             do k = domlo(3)-1, adv_l3, -1
               z = problo(3) + delta(3)*(dble(k)+HALF)
-              do j= adv_l2, adv_h2
+
+              do j = adv_l2, adv_h2
+
                 do i = adv_l1, adv_h1
                    ! set all the variables even though we're testing on URHO
                   if (n == URHO) then
@@ -265,6 +266,8 @@ contains
                        call interpolate_sub(X_zone(q), z,npts_model,model_r, &
                                             model_state(:,ispec_model-1+q))
                     enddo
+
+                    ! extrap normal momentum
                     adv(i,j,k,UMZ) = min(ZERO, adv(i,j,domlo(3),UMZ))
 
                       ! zero transverse momentum
@@ -283,7 +286,7 @@ contains
                     adv(i,j,k,URHO) = dens_zone
                     adv(i,j,k,UEINT) = dens_zone*eint
                     adv(i,j,k,UEDEN) = dens_zone*eint + &
-                          HALF*sum(adv(i,j,k,UMX:UMZ)**2.0_rt)/dens_zone
+                          HALF*sum(adv(i,j,k,UMX:UMZ)**2)/dens_zone
                     adv(i,j,k,UTEMP) = temp_zone
                     adv(i,j,k,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
                   endif
@@ -306,8 +309,10 @@ contains
 
           elseif (zr_ext == EXT_INTERP) then
              ! interpolate thermodynamics from initial model
+
             do k = domhi(3)+1, adv_h3
               z = problo(3) + delta(3)*(dble(k) + HALF)
+
               do j = adv_l2,adv_h2
                 do i = adv_l1, adv_h1
 
@@ -326,10 +331,12 @@ contains
 
 
                     ! extrap normal momentum
-                    adv(i,j,k,UMZ) = min(ZERO, adv(i,j,domhi(3),UMZ))
+                    adv(i,j,k,UMZ) = max(ZERO, adv(i,j,domhi(3),UMZ))
+
                     ! zero transverse momentum
                     adv(i,j,k,UMX) = ZERO
                     adv(i,j,k,UMY) = ZERO
+
                     eos_state%rho = dens_zone
                     eos_state%T = temp_zone
                     eos_state%xn(:) = X_zone
@@ -342,7 +349,7 @@ contains
                     adv(i,j,k,URHO) = dens_zone
                     adv(i,j,k,UEINT) = dens_zone*eint
                     adv(i,j,k,UEDEN) = dens_zone*eint + &
-                          HALF*sum(adv(i,j,k,UMX:UMZ)**2.0_rt)/dens_zone
+                          HALF*sum(adv(i,j,k,UMX:UMZ)**2)/dens_zone
                     adv(i,j,k,UTEMP) = temp_zone
                     adv(i,j,k,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
 
@@ -365,64 +372,66 @@ contains
                          bind(C, name="ext_denfill")
 
     use prob_params_module, only : problo
+    use interpolate_module
     use model_parser_module
     use amrex_error_module
-    use amrex_fort_module, only : rt => amrex_real
 
-    integer adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3
-    integer bc(3,2,*)
-    integer domlo(3), domhi(3)
-    real(rt)         delta(3), xlo(3), time
-    real(rt)         adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3)
+    implicit none
 
-    integer i,j,k
-    real(rt)         y,z
+    integer, intent(in) :: adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3
+    integer, intent(in) :: bc(3,2)
+    integer, intent(in) :: domlo(3), domhi(3)
+    real(rt), intent(in) :: delta(3), xlo(3), time
+    real(rt), intent(inout) :: adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3)
 
-    integer :: lo(3), hi(3)
+    integer :: i, j, k
+    real(rt) :: y, z
 
-    lo(1) = adv_l1
-    lo(2) = adv_l2
-    lo(3) = adv_l3
-    hi(1) = adv_h1
-    hi(2) = adv_h2
-    hi(3) = adv_h3
-
-    ! Note: this function should not be needed, technically, but is
-    ! provided to filpatch because there are many times in the algorithm
-    ! when just the density is needed.  We try to rig up the filling so
-    ! that the same function is called here and in hypfill where all the
-    ! states are filled.
-
-    call amrex_filccn(lo, hi, adv, lo, hi, 1, domlo, domhi, delta, xlo, bc)
-
+#ifndef AMREX_USE_CUDA
     ! XLO
-    if ( bc(1,1,1) == EXT_DIR .and. adv_l1 < domlo(1)) then
-#ifndef AMREX_USE_CUDA
+    if ( bc(1,1) == EXT_DIR .and. adv_l1 < domlo(1)) then
        call amrex_error("We shoundn't be here (xlo denfill)")
-#endif
-    end if
-
-
-    ! YLO
-    if ( bc(2,1,1) == EXT_DIR .and. adv_l2 < domlo(2)) then
-#ifndef AMREX_USE_CUDA
-       call amrex_error("We shoundn't be here (ylo denfill)")
-#endif
     end if
 
     ! XHI
-    if ( bc(1,2,1) == EXT_DIR .and. adv_h1 > domhi(1)) then
-#ifndef AMREX_USE_CUDA
+    if ( bc(1,2) == EXT_DIR .and. adv_h1 > domhi(1)) then
        call amrex_error("We shoundn't be here (xhi denfill)")
-#endif
     endif
 
+    ! YLO
+    if ( bc(2,1) == EXT_DIR .and. adv_l2 < domlo(2)) then
+       call amrex_error("We shoundn't be here (ylo denfill)")
+    end if
+
     ! YHI
-    if ( bc(2,2,1) == EXT_DIR .and. adv_h2 > domhi(2)) then
-#ifndef AMREX_USE_CUDA
+    if ( bc(2,2) == EXT_DIR .and. adv_h2 > domhi(2)) then
        call amrex_error("We shoundn't be here (yhi denfill)")
-#endif
     endif
+#endif
+
+    ! ZLO
+    if ( bc(3,1) == EXT_DIR .and. adv_l3 < domlo(3)) then
+       do k = adv_l3, domlo(3)-1
+          z = problo(3) + delta(3)*(dble(k) + HALF)
+          do j = adv_l2, adv_h2
+             do i = adv_l1, adv_h1
+                call interpolate_sub(adv(i,j,k), z,npts_model,model_r,model_state(:,idens_model))
+             end do
+          end do
+       end do
+    end if
+
+    ! ZHI
+    if ( bc(3,2) == EXT_DIR .and. adv_h3 > domhi(3)) then
+       do k = domhi(3)+1, adv_h3
+          z = problo(3) + delta(3)*(dble(k)+ HALF)
+          do j = adv_l2, adv_h2
+             do i = adv_l1, adv_h1
+                call interpolate_sub(adv(i,j,k), z,npts_model,model_r,model_state(:,idens_model))
+             end do
+          end do
+       end do
+    end if
 
   end subroutine ext_denfill
 
