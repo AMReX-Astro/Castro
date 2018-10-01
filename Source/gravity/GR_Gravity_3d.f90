@@ -36,6 +36,8 @@ subroutine ca_compute_avgpres (lo,hi,dx,dr,&
   type (eos_t) :: eos_state
   real(rt)         :: rhoInv
 
+  !$gpu
+
   fac     = dble(drdxfac)
   dx_frac = dx(1) / fac
   dy_frac = dx(2) / fac

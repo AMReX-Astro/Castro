@@ -36,6 +36,8 @@ subroutine ca_compute_avgpres (lo,hi,dx,dr,&
 
   type (eos_t) :: eos_state
 
+  !$gpu
+
 #ifndef AMREX_USE_CUDA
   if (physbc_lo(1) .ne. Symmetry) then
      call amrex_error("Error: GR_Gravity_1d.f90 :: 1D gravity assumes symmetric lower boundary.")

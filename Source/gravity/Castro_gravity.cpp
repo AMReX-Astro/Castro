@@ -9,216 +9,216 @@ using namespace amrex;
 void
 Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 {
-		MultiFab& grav_old = get_old_data(Gravity_Type);
-		MultiFab& phi_old = get_old_data(PhiGrav_Type);
+    MultiFab& grav_old = get_old_data(Gravity_Type);
+    MultiFab& phi_old = get_old_data(PhiGrav_Type);
 
-		// Always set phi to zero initially since some gravity modes
-		// don't use it and we want to have valid data.
+    // Always set phi to zero initially since some gravity modes
+    // don't use it and we want to have valid data.
 
-		if (gravity->get_gravity_type() != "PoissonGrav")
-				phi_old.setVal(0.0);
+    if (gravity->get_gravity_type() != "PoissonGrav")
+        phi_old.setVal(0.0);
 
-		if (!do_grav) {
+    if (!do_grav) {
 
-				grav_old.setVal(0.0);
+        grav_old.setVal(0.0);
 
-				return;
+        return;
 
-		}
+    }
 
-		// Do level solve at beginning of time step in order to compute the
-		// difference between the multilevel and the single level solutions.
+    // Do level solve at beginning of time step in order to compute the
+    // difference between the multilevel and the single level solutions.
 
-		if (gravity->get_gravity_type() == "PoissonGrav")
-		{
+    if (gravity->get_gravity_type() == "PoissonGrav")
+    {
 
-				// Create a copy of the current (composite) data on this level.
+        // Create a copy of the current (composite) data on this level.
 
-				MultiFab comp_phi;
-				Vector<std::unique_ptr<MultiFab> > comp_gphi(BL_SPACEDIM);
+        MultiFab comp_phi;
+        Vector<std::unique_ptr<MultiFab> > comp_gphi(BL_SPACEDIM);
 
-				if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
+        if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
 
-						comp_phi.define(phi_old.boxArray(), phi_old.DistributionMap(), phi_old.nComp(), phi_old.nGrow());
-						MultiFab::Copy(comp_phi, phi_old, 0, 0, phi_old.nComp(), phi_old.nGrow());
+            comp_phi.define(phi_old.boxArray(), phi_old.DistributionMap(), phi_old.nComp(), phi_old.nGrow());
+            MultiFab::Copy(comp_phi, phi_old, 0, 0, phi_old.nComp(), phi_old.nGrow());
 
-						for (int n = 0; n < BL_SPACEDIM; ++n) {
-								comp_gphi[n].reset(new MultiFab(getEdgeBoxArray(n), dmap, 1, 0));
-								comp_gphi[n]->copy(*gravity->get_grad_phi_prev(level)[n], 0, 0, 1);
-						}
+            for (int n = 0; n < BL_SPACEDIM; ++n) {
+                comp_gphi[n].reset(new MultiFab(getEdgeBoxArray(n), dmap, 1, 0));
+                comp_gphi[n]->copy(*gravity->get_grad_phi_prev(level)[n], 0, 0, 1);
+            }
 
-				}
+        }
 
-				if (verbose && ParallelDescriptor::IOProcessor()) {
-						std::cout << " " << '\n';
-						std::cout << "... old-time level solve at level " << level << '\n';
-				}
+        if (verbose && ParallelDescriptor::IOProcessor()) {
+            std::cout << " " << '\n';
+            std::cout << "... old-time level solve at level " << level << '\n';
+        }
 
-				int is_new = 0;
+        int is_new = 0;
 
-				// If we are doing composite solves, then this is a placeholder solve
-				// to get the difference between the composite and level solutions. If
-				// we are only doing level solves, then this is the main result.
+        // If we are doing composite solves, then this is a placeholder solve
+        // to get the difference between the composite and level solutions. If
+        // we are only doing level solves, then this is the main result.
 
-				gravity->solve_for_phi(level,
-				                       phi_old,
-				                       amrex::GetVecOfPtrs(gravity->get_grad_phi_prev(level)),
-				                       is_new);
+        gravity->solve_for_phi(level,
+                               phi_old,
+                               amrex::GetVecOfPtrs(gravity->get_grad_phi_prev(level)),
+                               is_new);
 
-				if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
+        if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
 
-						// Subtract the level solve from the composite solution.
+            // Subtract the level solve from the composite solution.
 
-						gravity->create_comp_minus_level_grad_phi(level,
-						                                          comp_phi,
-						                                          amrex::GetVecOfPtrs(comp_gphi),
-						                                          comp_minus_level_phi,
-						                                          comp_minus_level_grad_phi);
+            gravity->create_comp_minus_level_grad_phi(level,
+                                                      comp_phi,
+                                                      amrex::GetVecOfPtrs(comp_gphi),
+                                                      comp_minus_level_phi,
+                                                      comp_minus_level_grad_phi);
 
-						// Copy the composite data back. This way the forcing
-						// uses the most accurate data we have.
+            // Copy the composite data back. This way the forcing
+            // uses the most accurate data we have.
 
-						MultiFab::Copy(phi_old, comp_phi, 0, 0, phi_old.nComp(), phi_old.nGrow());
+            MultiFab::Copy(phi_old, comp_phi, 0, 0, phi_old.nComp(), phi_old.nGrow());
 
-						for (int n = 0; n < BL_SPACEDIM; ++n)
-								gravity->get_grad_phi_prev(level)[n] -> copy(*comp_gphi[n], 0, 0, 1);
+            for (int n = 0; n < BL_SPACEDIM; ++n)
+                gravity->get_grad_phi_prev(level)[n] -> copy(*comp_gphi[n], 0, 0, 1);
 
-				}
+        }
 
-				if (gravity->test_results_of_solves() == 1) {
+        if (gravity->test_results_of_solves() == 1) {
 
-						if (verbose && ParallelDescriptor::IOProcessor()) {
-								std::cout << " " << '\n';
-								std::cout << "... testing grad_phi_curr after doing single level solve " << '\n';
-						}
+            if (verbose && ParallelDescriptor::IOProcessor()) {
+                std::cout << " " << '\n';
+                std::cout << "... testing grad_phi_curr after doing single level solve " << '\n';
+            }
 
-						gravity->test_level_grad_phi_prev(level);
+            gravity->test_level_grad_phi_prev(level);
 
-				}
+        }
 
-		}
+    }
 
-		// Define the old gravity vector.
+    // Define the old gravity vector.
 
-		gravity->get_old_grav_vector(level, grav_old, time);
+    gravity->get_old_grav_vector(level, grav_old, time);
 
 }
 
 void
 Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
 {
-		MultiFab& grav_new = get_new_data(Gravity_Type);
-		MultiFab& phi_new = get_new_data(PhiGrav_Type);
+    MultiFab& grav_new = get_new_data(Gravity_Type);
+    MultiFab& phi_new = get_new_data(PhiGrav_Type);
 
-		// Always set phi to zero initially since some gravity modes
-		// don't use it and we want to have valid data.
+    // Always set phi to zero initially since some gravity modes
+    // don't use it and we want to have valid data.
 
-		if (gravity->get_gravity_type() != "PoissonGrav")
-				phi_new.setVal(0.0);
+    if (gravity->get_gravity_type() != "PoissonGrav")
+        phi_new.setVal(0.0);
 
-		if (!do_grav) {
+    if (!do_grav) {
 
-				grav_new.setVal(0.0);
+        grav_new.setVal(0.0);
 
-				return;
+        return;
 
-		}
+    }
 
-		// If we're doing Poisson gravity, do the new-time level solve here.
+    // If we're doing Poisson gravity, do the new-time level solve here.
 
-		if (gravity->get_gravity_type() == "PoissonGrav")
-		{
+    if (gravity->get_gravity_type() == "PoissonGrav")
+    {
 
-				// Use the "old" phi from the current time step as a guess for this solve.
+        // Use the "old" phi from the current time step as a guess for this solve.
 
-				MultiFab& phi_old = get_old_data(PhiGrav_Type);
+        MultiFab& phi_old = get_old_data(PhiGrav_Type);
 
-				MultiFab::Copy(phi_new, phi_old, 0, 0, 1, phi_new.nGrow());
+        MultiFab::Copy(phi_new, phi_old, 0, 0, 1, phi_new.nGrow());
 
-				// Subtract off the (composite - level) contribution for the purposes
-				// of the level solve. We'll add it back later.
+        // Subtract off the (composite - level) contribution for the purposes
+        // of the level solve. We'll add it back later.
 
-				if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() && level < parent->finestLevel() && level <= gravity->get_max_solve_level())
-						phi_new.minus(comp_minus_level_phi, 0, 1, 0);
+        if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() && level < parent->finestLevel() && level <= gravity->get_max_solve_level())
+            phi_new.minus(comp_minus_level_phi, 0, 1, 0);
 
-				if (verbose && ParallelDescriptor::IOProcessor()) {
-						std::cout << " " << '\n';
-						std::cout << "... new-time level solve at level " << level << '\n';
-				}
+        if (verbose && ParallelDescriptor::IOProcessor()) {
+            std::cout << " " << '\n';
+            std::cout << "... new-time level solve at level " << level << '\n';
+        }
 
-				int is_new = 1;
+        int is_new = 1;
 
-				gravity->solve_for_phi(level,
-				                       phi_new,
-				                       amrex::GetVecOfPtrs(gravity->get_grad_phi_curr(level)),
-				                       is_new);
+        gravity->solve_for_phi(level,
+                               phi_new,
+                               amrex::GetVecOfPtrs(gravity->get_grad_phi_curr(level)),
+                               is_new);
 
-				if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() == 1 && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
+        if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() == 1 && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
 
-						if (gravity->test_results_of_solves() == 1) {
+            if (gravity->test_results_of_solves() == 1) {
 
-								if (verbose && ParallelDescriptor::IOProcessor()) {
-										std::cout << " " << '\n';
-										std::cout << "... testing grad_phi_curr before adding comp_minus_level_grad_phi " << '\n';
-								}
+                if (verbose && ParallelDescriptor::IOProcessor()) {
+                    std::cout << " " << '\n';
+                    std::cout << "... testing grad_phi_curr before adding comp_minus_level_grad_phi " << '\n';
+                }
 
-								gravity->test_level_grad_phi_curr(level);
+                gravity->test_level_grad_phi_curr(level);
 
-						}
+            }
 
-						// Add back the (composite - level) contribution. This ensures that
-						// if we are not doing a sync solve, then we still get the difference
-						// between the composite and level solves added to the force we
-						// calculate, so it is slightly more accurate than it would have been.
+            // Add back the (composite - level) contribution. This ensures that
+            // if we are not doing a sync solve, then we still get the difference
+            // between the composite and level solves added to the force we
+            // calculate, so it is slightly more accurate than it would have been.
 
-						phi_new.plus(comp_minus_level_phi, 0, 1, 0);
-						for (int n = 0; n < BL_SPACEDIM; ++n)
-								gravity->get_grad_phi_curr(level)[n] -> plus(*comp_minus_level_grad_phi[n], 0, 1, 0);
+            phi_new.plus(comp_minus_level_phi, 0, 1, 0);
+            for (int n = 0; n < BL_SPACEDIM; ++n)
+                gravity->get_grad_phi_curr(level)[n] -> plus(*comp_minus_level_grad_phi[n], 0, 1, 0);
 
-						if (gravity->test_results_of_solves() == 1) {
+            if (gravity->test_results_of_solves() == 1) {
 
-								if (verbose && ParallelDescriptor::IOProcessor()) {
-										std::cout << " " << '\n';
-										std::cout << "... testing grad_phi_curr after adding comp_minus_level_grad_phi " << '\n';
-								}
+                if (verbose && ParallelDescriptor::IOProcessor()) {
+                    std::cout << " " << '\n';
+                    std::cout << "... testing grad_phi_curr after adding comp_minus_level_grad_phi " << '\n';
+                }
 
-								gravity->test_level_grad_phi_curr(level);
+                gravity->test_level_grad_phi_curr(level);
 
-						}
+            }
 
-				}
+        }
 
-		}
+    }
 
-		// Define new gravity vector.
+    // Define new gravity vector.
 
-		gravity->get_new_grav_vector(level, grav_new, time);
+    gravity->get_new_grav_vector(level, grav_new, time);
 
-		if (gravity->get_gravity_type() == "PoissonGrav" && level <= gravity->get_max_solve_level()) {
+    if (gravity->get_gravity_type() == "PoissonGrav" && level <= gravity->get_max_solve_level()) {
 
-				if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() == 1 && level < parent->finestLevel()) {
+        if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() == 1 && level < parent->finestLevel()) {
 
-						// Now that we have calculated the force, if we are going to do a sync
-						// solve then subtract off the (composite - level) contribution, as it
-						// interferes with the sync solve.
+            // Now that we have calculated the force, if we are going to do a sync
+            // solve then subtract off the (composite - level) contribution, as it
+            // interferes with the sync solve.
 
-						if (gravity->NoSync() == 0) {
+            if (gravity->NoSync() == 0) {
 
-								phi_new.minus(comp_minus_level_phi, 0, 1, 0);
+                phi_new.minus(comp_minus_level_phi, 0, 1, 0);
 
-								for (int n = 0; n < BL_SPACEDIM; ++n)
-										gravity->get_grad_phi_curr(level)[n]->minus(*comp_minus_level_grad_phi[n], 0, 1, 0);
+                for (int n = 0; n < BL_SPACEDIM; ++n)
+                    gravity->get_grad_phi_curr(level)[n]->minus(*comp_minus_level_grad_phi[n], 0, 1, 0);
 
-						}
+            }
 
-						// In any event we can now clear this memory, as we no longer need it.
+            // In any event we can now clear this memory, as we no longer need it.
 
-						comp_minus_level_phi.clear();
-						comp_minus_level_grad_phi.clear();
+            comp_minus_level_phi.clear();
+            comp_minus_level_grad_phi.clear();
 
-				}
+        }
 
-		}
+    }
 
 }
 #endif
@@ -227,36 +227,36 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state, Rea
 {
 
 #ifdef SELF_GRAVITY
-		const MultiFab& phi_old = get_old_data(PhiGrav_Type);
-		const MultiFab& grav_old = get_old_data(Gravity_Type);
+    const MultiFab& phi_old = get_old_data(PhiGrav_Type);
+    const MultiFab& grav_old = get_old_data(Gravity_Type);
 #endif
 
-		if (!do_grav) return;
+    if (!do_grav) return;
 
-		// Gravitational source term for the time-level n data.
+    // Gravitational source term for the time-level n data.
 
-		const Real* dx = geom.CellSize();
-		const int* domlo = geom.Domain().loVect();
-		const int* domhi = geom.Domain().hiVect();
+    const Real* dx = geom.CellSize();
+    const int* domlo = geom.Domain().loVect();
+    const int* domhi = geom.Domain().hiVect();
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-		for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
-		{
-				const Box& bx = mfi.tilebox();
+    for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
+    {
+        const Box& bx = mfi.tilebox();
 #pragma gpu
-				ca_gsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-				        AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-				        BL_TO_FORTRAN_ANYD(state[mfi]),
+        ca_gsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
+                BL_TO_FORTRAN_ANYD(state[mfi]),
 #ifdef SELF_GRAVITY
-				        BL_TO_FORTRAN_ANYD(phi_old[mfi]),
-				        BL_TO_FORTRAN_ANYD(grav_old[mfi]),
+                BL_TO_FORTRAN_ANYD(phi_old[mfi]),
+                BL_TO_FORTRAN_ANYD(grav_old[mfi]),
 #endif
-				        BL_TO_FORTRAN_ANYD(source[mfi]),
-				        AMREX_REAL_ANYD(dx),dt,time);
+                BL_TO_FORTRAN_ANYD(source[mfi]),
+                AMREX_REAL_ANYD(dx),dt,time);
 
-		}
+    }
 
 }
 
@@ -264,85 +264,85 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 {
 
 #ifdef SELF_GRAVITY
-		MultiFab& phi_old = get_old_data(PhiGrav_Type);
-		MultiFab& phi_new = get_new_data(PhiGrav_Type);
+    MultiFab& phi_old = get_old_data(PhiGrav_Type);
+    MultiFab& phi_new = get_new_data(PhiGrav_Type);
 
-		MultiFab phi_center;
-		phi_center.define(grids, dmap, 1, 1);
-		phi_center.setVal(0.0, 1);
+    MultiFab phi_center;
+    phi_center.define(grids, dmap, 1, 1);
+    phi_center.setVal(0.0, 1);
 
-		// Calculate time-centered potential
-		MultiFab::Saxpy(phi_center, 0.5, phi_old, 0, 0, 1, 1);
-		MultiFab::Saxpy(phi_center, 0.5, phi_new, 0, 0, 1, 1);
+    // Calculate time-centered potential
+    MultiFab::Saxpy(phi_center, 0.5, phi_old, 0, 0, 1, 1);
+    MultiFab::Saxpy(phi_center, 0.5, phi_new, 0, 0, 1, 1);
 
-		MultiFab& grav_old = get_old_data(Gravity_Type);
-		MultiFab& grav_new = get_new_data(Gravity_Type);
+    MultiFab& grav_old = get_old_data(Gravity_Type);
+    MultiFab& grav_new = get_new_data(Gravity_Type);
 
-		MultiFab grav_center;
-		grav_center.define(grids, dmap, 3, 1);
-		grav_center.setVal(0.0, 1);
+    MultiFab grav_center;
+    grav_center.define(grids, dmap, 3, 1);
+    grav_center.setVal(0.0, 1);
 
-		// Calculate time-centered gravity
-		MultiFab::Saxpy(grav_center, 0.5, grav_old, 0, 0, 3, 1);
-		MultiFab::Saxpy(grav_center, 0.5, grav_new, 0, 0, 3, 1);
+    // Calculate time-centered gravity
+    MultiFab::Saxpy(grav_center, 0.5, grav_old, 0, 0, 3, 1);
+    MultiFab::Saxpy(grav_center, 0.5, grav_new, 0, 0, 3, 1);
 
-		// Construct time-averaged edge-centered gravity.
-		MultiFab gravx;
-		MultiFab gravy;
-		MultiFab gravz;
+    // Construct time-averaged edge-centered gravity.
+    MultiFab gravx;
+    MultiFab gravy;
+    MultiFab gravz;
 
-		gravx.define(getEdgeBoxArray(0), dmap, 1, 0);
-		gravy.define(getEdgeBoxArray(1), dmap, 1, 0);
-		gravz.define(getEdgeBoxArray(2), dmap, 1, 0);
+    gravx.define(getEdgeBoxArray(0), dmap, 1, 0);
+    gravy.define(getEdgeBoxArray(1), dmap, 1, 0);
+    gravz.define(getEdgeBoxArray(2), dmap, 1, 0);
 
 #endif
 
-		if (!do_grav) return;
+    if (!do_grav) return;
 
-		const Real *dx = geom.CellSize();
-		const int* domlo = geom.Domain().loVect();
-		const int* domhi = geom.Domain().hiVect();
+    const Real *dx = geom.CellSize();
+    const int* domlo = geom.Domain().loVect();
+    const int* domhi = geom.Domain().hiVect();
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-		{
-				for (MFIter mfi(state_new, true); mfi.isValid(); ++mfi)
-				{
-						const Box& bx = mfi.tilebox();
+    {
+        for (MFIter mfi(state_new, true); mfi.isValid(); ++mfi)
+        {
+            const Box& bx = mfi.tilebox();
 #ifdef SELF_GRAVITY
-						ca_make_edge_centered_gravity(
-								ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-								ARLIM_3D(domlo), ARLIM_3D(domhi),
-								BL_TO_FORTRAN_ANYD(grav_center[mfi]),
-								BL_TO_FORTRAN_ANYD(phi_center[mfi]),
-								BL_TO_FORTRAN_ANYD(gravx[mfi]),
-								BL_TO_FORTRAN_ANYD(gravy[mfi]),
-								BL_TO_FORTRAN_ANYD(gravz[mfi]));
+            ca_make_edge_centered_gravity(
+                ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+                ARLIM_3D(domlo), ARLIM_3D(domhi),
+                BL_TO_FORTRAN_ANYD(grav_center[mfi]),
+                BL_TO_FORTRAN_ANYD(phi_center[mfi]),
+                BL_TO_FORTRAN_ANYD(gravx[mfi]),
+                BL_TO_FORTRAN_ANYD(gravy[mfi]),
+                BL_TO_FORTRAN_ANYD(gravz[mfi]));
 #endif
 
 #pragma gpu
-						ca_corrgsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-						            AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-						            BL_TO_FORTRAN_ANYD(state_old[mfi]),
-						            BL_TO_FORTRAN_ANYD(state_new[mfi]),
+            ca_corrgsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                        AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
+                        BL_TO_FORTRAN_ANYD(state_old[mfi]),
+                        BL_TO_FORTRAN_ANYD(state_new[mfi]),
 #ifdef SELF_GRAVITY
-						            BL_TO_FORTRAN_ANYD(phi_center[mfi]),
-						            BL_TO_FORTRAN_ANYD(grav_center[mfi]),
-						            BL_TO_FORTRAN_ANYD(grav_old[mfi]),
-						            BL_TO_FORTRAN_ANYD(grav_new[mfi]),
-						            BL_TO_FORTRAN_ANYD(gravx[mfi]),
-						            BL_TO_FORTRAN_ANYD(gravy[mfi]),
-						            BL_TO_FORTRAN_ANYD(gravz[mfi]),
+                        BL_TO_FORTRAN_ANYD(phi_center[mfi]),
+                        BL_TO_FORTRAN_ANYD(grav_center[mfi]),
+                        BL_TO_FORTRAN_ANYD(grav_old[mfi]),
+                        BL_TO_FORTRAN_ANYD(grav_new[mfi]),
+                        BL_TO_FORTRAN_ANYD(gravx[mfi]),
+                        BL_TO_FORTRAN_ANYD(gravy[mfi]),
+                        BL_TO_FORTRAN_ANYD(gravz[mfi]),
 #endif
-						            BL_TO_FORTRAN_ANYD(volume[mfi]),
-						            BL_TO_FORTRAN_ANYD((*mass_fluxes[0])[mfi]),
-						            BL_TO_FORTRAN_ANYD((*mass_fluxes[1])[mfi]),
-						            BL_TO_FORTRAN_ANYD((*mass_fluxes[2])[mfi]),
-						            BL_TO_FORTRAN_ANYD(source[mfi]),
-						            AMREX_REAL_ANYD(dx),dt,time);
+                        BL_TO_FORTRAN_ANYD(volume[mfi]),
+                        BL_TO_FORTRAN_ANYD((*mass_fluxes[0])[mfi]),
+                        BL_TO_FORTRAN_ANYD((*mass_fluxes[1])[mfi]),
+                        BL_TO_FORTRAN_ANYD((*mass_fluxes[2])[mfi]),
+                        BL_TO_FORTRAN_ANYD(source[mfi]),
+                        AMREX_REAL_ANYD(dx),dt,time);
 
-				}
-		}
+        }
+    }
 
 }

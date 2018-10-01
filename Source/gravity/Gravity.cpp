@@ -81,7 +81,7 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
     if (gravity_type == "PoissonGrav") init_multipole_grav();
 #endif
     max_rhs = 0.0;
-    
+
 #ifdef AMREX_USE_CUDA
     radial_grav_old.resize(MAX_LEV);
     radial_grav_new.resize(MAX_LEV);
@@ -1810,11 +1810,11 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
     const int loVectXY[3] = {domlo[0]-1, domlo[1]-1, 0         };
     const int hiVectXY[3] = {domhi[0]+1, domhi[1]+1, 0         };
 
-    const int loVectXZ[3] = {domlo[0]-1, 0         , domlo[2]-1};
-    const int hiVectXZ[3] = {domhi[0]+1, 0         , domhi[2]+1};
+    const int loVectXZ[3] = {domlo[0]-1, 0, domlo[2]-1};
+    const int hiVectXZ[3] = {domhi[0]+1, 0, domhi[2]+1};
 
-    const int loVectYZ[3] = {0         , domlo[1]-1, domlo[2]-1};
-    const int hiVectYZ[3] = {0         , domhi[1]+1, domhi[1]+1};
+    const int loVectYZ[3] = {0, domlo[1]-1, domlo[2]-1};
+    const int hiVectYZ[3] = {0, domhi[1]+1, domhi[1]+1};
 
     const int bclo[3] = {domlo[0]-1, domlo[1]-1, domlo[2]-1};
     const int bchi[3] = {domhi[0]+1, domhi[1]+1, domhi[2]+1};
@@ -1859,154 +1859,154 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
 
     for (int dir = 0; dir < 3; dir++)
     {
-      lo_bc[dir] = phys_bc->lo(dir);
-      hi_bc[dir] = phys_bc->hi(dir);
+        lo_bc[dir] = phys_bc->lo(dir);
+        hi_bc[dir] = phys_bc->hi(dir);
     }
 
     int symmetry_type = Symmetry;
 
     for (int lev = crse_level; lev <= fine_level; ++lev) {
 
-	// Create a local copy of the RHS so that we can mask it.
+        // Create a local copy of the RHS so that we can mask it.
 
         MultiFab source(Rhs[lev - crse_level]->boxArray(),
-			Rhs[lev - crse_level]->DistributionMap(),
-			1, 0);
+                        Rhs[lev - crse_level]->DistributionMap(),
+                        1, 0);
 
-	MultiFab::Copy(source, *Rhs[lev - crse_level], 0, 0, 1, 0);
+        MultiFab::Copy(source, *Rhs[lev - crse_level], 0, 0, 1, 0);
 
-	if (lev < fine_level) {
-	    const MultiFab& mask = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)))->build_fine_mask();
-	    MultiFab::Multiply(source, mask, 0, 0, 1, 0);
-	}
+        if (lev < fine_level) {
+            const MultiFab& mask = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)))->build_fine_mask();
+            MultiFab::Multiply(source, mask, 0, 0, 1, 0);
+        }
 
-	const Real* dx = parent->Geom(lev).CellSize();
+        const Real* dx = parent->Geom(lev).CellSize();
 
 #ifdef _OPENMP
-	int nthreads = omp_get_max_threads();
+        int nthreads = omp_get_max_threads();
 
 #ifdef AMREX_USE_CUDA
-	Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_bcXYLo(nthreads);
-	Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_bcXYHi(nthreads);
-	Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_bcXZLo(nthreads);
-	Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_bcXZHi(nthreads);
-	Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_bcYZLo(nthreads);
-	Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_bcYZHi(nthreads);
+        Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_bcXYLo(nthreads);
+        Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_bcXYHi(nthreads);
+        Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_bcXZLo(nthreads);
+        Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_bcXZHi(nthreads);
+        Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_bcYZLo(nthreads);
+        Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_bcYZHi(nthreads);
 #else
-	Vector<std::unique_ptr<FArrayBox> > priv_bcXYLo(nthreads);
-	Vector<std::unique_ptr<FArrayBox> > priv_bcXYHi(nthreads);
-	Vector<std::unique_ptr<FArrayBox> > priv_bcXZLo(nthreads);
-	Vector<std::unique_ptr<FArrayBox> > priv_bcXZHi(nthreads);
-	Vector<std::unique_ptr<FArrayBox> > priv_bcYZLo(nthreads);
-	Vector<std::unique_ptr<FArrayBox> > priv_bcYZHi(nthreads);
+        Vector<std::unique_ptr<FArrayBox> > priv_bcXYLo(nthreads);
+        Vector<std::unique_ptr<FArrayBox> > priv_bcXYHi(nthreads);
+        Vector<std::unique_ptr<FArrayBox> > priv_bcXZLo(nthreads);
+        Vector<std::unique_ptr<FArrayBox> > priv_bcXZHi(nthreads);
+        Vector<std::unique_ptr<FArrayBox> > priv_bcYZLo(nthreads);
+        Vector<std::unique_ptr<FArrayBox> > priv_bcYZHi(nthreads);
 #endif
 
-	for (int i=0; i<nthreads; i++) {
-	    priv_bcXYLo[i].reset(new FArrayBox(boxXY));
-	    priv_bcXYHi[i].reset(new FArrayBox(boxXY));
-	    priv_bcXZLo[i].reset(new FArrayBox(boxXZ));
-	    priv_bcXZHi[i].reset(new FArrayBox(boxXZ));
-	    priv_bcYZLo[i].reset(new FArrayBox(boxYZ));
-	    priv_bcYZHi[i].reset(new FArrayBox(boxYZ));
-	}
+        for (int i=0; i<nthreads; i++) {
+            priv_bcXYLo[i].reset(new FArrayBox(boxXY));
+            priv_bcXYHi[i].reset(new FArrayBox(boxXY));
+            priv_bcXZLo[i].reset(new FArrayBox(boxXZ));
+            priv_bcXZHi[i].reset(new FArrayBox(boxXZ));
+            priv_bcYZLo[i].reset(new FArrayBox(boxYZ));
+            priv_bcYZHi[i].reset(new FArrayBox(boxYZ));
+        }
 #pragma omp parallel
 #endif
-	{
+        {
 #ifdef _OPENMP
-	    int tid = omp_get_thread_num();
-	    priv_bcXYLo[tid]->setVal(0.0);
-	    priv_bcXYHi[tid]->setVal(0.0);
-	    priv_bcXZLo[tid]->setVal(0.0);
-	    priv_bcXZHi[tid]->setVal(0.0);
-	    priv_bcYZLo[tid]->setVal(0.0);
-	    priv_bcYZHi[tid]->setVal(0.0);
+            int tid = omp_get_thread_num();
+            priv_bcXYLo[tid]->setVal(0.0);
+            priv_bcXYHi[tid]->setVal(0.0);
+            priv_bcXZLo[tid]->setVal(0.0);
+            priv_bcXZHi[tid]->setVal(0.0);
+            priv_bcYZLo[tid]->setVal(0.0);
+            priv_bcYZHi[tid]->setVal(0.0);
 #endif
-	    for (MFIter mfi(source,true); mfi.isValid(); ++mfi)
-	    {
-					const Box bx = mfi.tilebox();
+            for (MFIter mfi(source,true); mfi.isValid(); ++mfi)
+            {
+                const Box bx = mfi.tilebox();
 
-					const FArrayBox& r = source[mfi];
-					const FArrayBox& v = (*volume[lev])[mfi];
+                const FArrayBox& r = source[mfi];
+                const FArrayBox& v = (*volume[lev])[mfi];
 #ifdef AMREX_USE_CUDA
 #pragma gpu
-					ca_compute_direct_sum_bc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-					 AMREX_REAL_ANYD(dx),
-					 symmetry_type, AMREX_INT_ANYD(lo_bc), AMREX_INT_ANYD(hi_bc),
-					 r.dataPtr(), AMREX_INT_ANYD(r.loVect()), AMREX_INT_ANYD(r.hiVect()),
-					 v.dataPtr(), AMREX_INT_ANYD(v.loVect()), AMREX_INT_ANYD(v.hiVect()),
-					 AMREX_REAL_ANYD(crse_geom.ProbLo()),AMREX_REAL_ANYD(crse_geom.ProbHi()),
+                ca_compute_direct_sum_bc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                                         AMREX_REAL_ANYD(dx),
+                                         symmetry_type, AMREX_INT_ANYD(lo_bc), AMREX_INT_ANYD(hi_bc),
+                                         r.dataPtr(), AMREX_INT_ANYD(r.loVect()), AMREX_INT_ANYD(r.hiVect()),
+                                         v.dataPtr(), AMREX_INT_ANYD(v.loVect()), AMREX_INT_ANYD(v.hiVect()),
+                                         AMREX_REAL_ANYD(crse_geom.ProbLo()),AMREX_REAL_ANYD(crse_geom.ProbHi()),
 #ifdef _OPENMP
-					 priv_bcXYLo[tid]->dataPtr(),
-					 priv_bcXYHi[tid]->dataPtr(),
-					 priv_bcXZLo[tid]->dataPtr(),
-					 priv_bcXZHi[tid]->dataPtr(),
-					 priv_bcYZLo[tid]->dataPtr(),
-					 priv_bcYZHi[tid]->dataPtr(),
+                                         priv_bcXYLo[tid]->dataPtr(),
+                                         priv_bcXYHi[tid]->dataPtr(),
+                                         priv_bcXZLo[tid]->dataPtr(),
+                                         priv_bcXZHi[tid]->dataPtr(),
+                                         priv_bcYZLo[tid]->dataPtr(),
+                                         priv_bcYZHi[tid]->dataPtr(),
 #else
-					 bcXYLo.dataPtr(), bcXYHi.dataPtr(),
-					 bcXZLo.dataPtr(), bcXZHi.dataPtr(),
-					 bcYZLo.dataPtr(), bcYZHi.dataPtr(),
+                                         bcXYLo.dataPtr(), bcXYHi.dataPtr(),
+                                         bcXZLo.dataPtr(), bcXZHi.dataPtr(),
+                                         bcYZLo.dataPtr(), bcYZHi.dataPtr(),
 #endif
-					 bclo, bchi, bcdx);
+                                         bclo, bchi, bcdx);
 #else
-					ca_compute_direct_sum_bc(bx.loVect(), bx.hiVect(), dx,
-					 symmetry_type, lo_bc, hi_bc,
-					 r.dataPtr(), ARLIM_3D(r.loVect()), ARLIM_3D(r.hiVect()),
-					 v.dataPtr(), ARLIM_3D(v.loVect()), ARLIM_3D(v.hiVect()),
-					 crse_geom.ProbLo(),crse_geom.ProbHi(),
+                ca_compute_direct_sum_bc(bx.loVect(), bx.hiVect(), dx,
+                                         symmetry_type, lo_bc, hi_bc,
+                                         r.dataPtr(), ARLIM_3D(r.loVect()), ARLIM_3D(r.hiVect()),
+                                         v.dataPtr(), ARLIM_3D(v.loVect()), ARLIM_3D(v.hiVect()),
+                                         crse_geom.ProbLo(),crse_geom.ProbHi(),
 #ifdef _OPENMP
-					 priv_bcXYLo[tid]->dataPtr(),
-					 priv_bcXYHi[tid]->dataPtr(),
-					 priv_bcXZLo[tid]->dataPtr(),
-					 priv_bcXZHi[tid]->dataPtr(),
-					 priv_bcYZLo[tid]->dataPtr(),
-					 priv_bcYZHi[tid]->dataPtr(),
+                                         priv_bcXYLo[tid]->dataPtr(),
+                                         priv_bcXYHi[tid]->dataPtr(),
+                                         priv_bcXZLo[tid]->dataPtr(),
+                                         priv_bcXZHi[tid]->dataPtr(),
+                                         priv_bcYZLo[tid]->dataPtr(),
+                                         priv_bcYZHi[tid]->dataPtr(),
 #else
-					 bcXYLo.dataPtr(), bcXYHi.dataPtr(),
-					 bcXZLo.dataPtr(), bcXZHi.dataPtr(),
-					 bcYZLo.dataPtr(), bcYZHi.dataPtr(),
+                                         bcXYLo.dataPtr(), bcXYHi.dataPtr(),
+                                         bcXZLo.dataPtr(), bcXZHi.dataPtr(),
+                                         bcYZLo.dataPtr(), bcYZHi.dataPtr(),
 #endif
-	                                 bclo, bchi, bcdx);
+                                         bclo, bchi, bcdx);
 #endif
-	    }
+            }
 
 #ifdef _OPENMP
-	    Real* pXYLo = bcXYLo.dataPtr();
-	    Real* pXYHi = bcXYHi.dataPtr();
-	    Real* pXZLo = bcXZLo.dataPtr();
-	    Real* pXZHi = bcXZHi.dataPtr();
-	    Real* pYZLo = bcYZLo.dataPtr();
-	    Real* pYZHi = bcYZHi.dataPtr();
+            Real* pXYLo = bcXYLo.dataPtr();
+            Real* pXYHi = bcXYHi.dataPtr();
+            Real* pXZLo = bcXZLo.dataPtr();
+            Real* pXZHi = bcXZHi.dataPtr();
+            Real* pYZLo = bcYZLo.dataPtr();
+            Real* pYZHi = bcYZHi.dataPtr();
 #pragma omp barrier
 #pragma omp for nowait
-	    for (int i=0; i<nPtsXY; i++) {
-		for (int it=0; it<nthreads; it++) {
-		    const Real* pl = priv_bcXYLo[it]->dataPtr();
-		    const Real* ph = priv_bcXYHi[it]->dataPtr();
-		    pXYLo[i] += pl[i];
-		    pXYHi[i] += ph[i];
-		}
-	    }
+            for (int i=0; i<nPtsXY; i++) {
+                for (int it=0; it<nthreads; it++) {
+                    const Real* pl = priv_bcXYLo[it]->dataPtr();
+                    const Real* ph = priv_bcXYHi[it]->dataPtr();
+                    pXYLo[i] += pl[i];
+                    pXYHi[i] += ph[i];
+                }
+            }
 #pragma omp for nowait
-	    for (int i=0; i<nPtsXZ; i++) {
-		for (int it=0; it<nthreads; it++) {
-		    const Real* pl = priv_bcXZLo[it]->dataPtr();
-		    const Real* ph = priv_bcXZHi[it]->dataPtr();
-		    pXZLo[i] += pl[i];
-		    pXZHi[i] += ph[i];
-		}
-	    }
+            for (int i=0; i<nPtsXZ; i++) {
+                for (int it=0; it<nthreads; it++) {
+                    const Real* pl = priv_bcXZLo[it]->dataPtr();
+                    const Real* ph = priv_bcXZHi[it]->dataPtr();
+                    pXZLo[i] += pl[i];
+                    pXZHi[i] += ph[i];
+                }
+            }
 #pragma omp for nowait
-	    for (int i=0; i<nPtsYZ; i++) {
-		for (int it=0; it<nthreads; it++) {
-		    const Real* pl = priv_bcYZLo[it]->dataPtr();
-		    const Real* ph = priv_bcYZHi[it]->dataPtr();
-		    pYZLo[i] += pl[i];
-		    pYZHi[i] += ph[i];
-		}
-	    }
+            for (int i=0; i<nPtsYZ; i++) {
+                for (int it=0; it<nthreads; it++) {
+                    const Real* pl = priv_bcYZLo[it]->dataPtr();
+                    const Real* ph = priv_bcYZHi[it]->dataPtr();
+                    pYZLo[i] += pl[i];
+                    pYZHi[i] += ph[i];
+                }
+            }
 #endif
-	}
+        }
 
     } // end loop over levels
 
@@ -2029,32 +2029,31 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
     {
         const Box& bx= mfi.growntilebox();
 
-				FArrayBox& p = phi[mfi];
+        FArrayBox& p = phi[mfi];
 #pragma gpu
-		ca_put_direct_sum_bc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-			 p.dataPtr(), AMREX_INT_ANYD(p.loVect()), AMREX_INT_ANYD(p.hiVect()),
-			 bcXYLo.dataPtr(), bcXYHi.dataPtr(),
-			 bcXZLo.dataPtr(), bcXZHi.dataPtr(),
-			 bcYZLo.dataPtr(), bcYZHi.dataPtr(),
-			 AMREX_INT_ANYD(bclo), AMREX_INT_ANYD(bchi));
+        ca_put_direct_sum_bc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                             p.dataPtr(), AMREX_INT_ANYD(p.loVect()), AMREX_INT_ANYD(p.hiVect()),
+                             bcXYLo.dataPtr(), bcXYHi.dataPtr(),
+                             bcXZLo.dataPtr(), bcXZHi.dataPtr(),
+                             bcYZLo.dataPtr(), bcYZHi.dataPtr(),
+                             AMREX_INT_ANYD(bclo), AMREX_INT_ANYD(bchi));
     }
 
     if (verbose)
     {
         const int IOProc = ParallelDescriptor::IOProcessorNumber();
-        Real      end    = ParallelDescriptor::second() - strt;
+        Real end    = ParallelDescriptor::second() - strt;
 
 #ifdef BL_LAZY
 	Lazy::QueueReduction( [=] () mutable {
 #endif
-        ParallelDescriptor::ReduceRealMax(end,IOProc);
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "Gravity::fill_direct_sum_BCs() time = " << end << std::endl;
+    ParallelDescriptor::ReduceRealMax(end,IOProc);
+    if (ParallelDescriptor::IOProcessor())
+        std::cout << "Gravity::fill_direct_sum_BCs() time = " << end << std::endl;
 #ifdef BL_LAZY
 	});
 #endif
     }
-
 }
 #endif
 
@@ -2306,19 +2305,19 @@ Gravity::make_radial_gravity(int level, Real time,
         const Real t_new = LevelData[lev]->get_state_data(State_Type).curTime();
         const Real eps   = (t_new - t_old) * 1.e-6;
 
-				const int NUM_STATE = LevelData[lev]->get_new_data(State_Type).nComp();
+		const int NUM_STATE = LevelData[lev]->get_new_data(State_Type).nComp();
 
         // Create MultiFab with NUM_STATE components and no ghost cells
         MultiFab S(grids[lev],dmap[lev],NUM_STATE,0);
 
-				if ( eps == 0.0 )
-				{
-			            // Old and new time are identical; this should only happen if
-			            // dt is smaller than roundoff compared to the current time,
-			            // in which case we're probably in trouble anyway,
-			            // but we will still handle it gracefully here.
-			            S.copy(LevelData[lev]->get_new_data(State_Type),0,0,NUM_STATE);
-				}
+		if ( eps == 0.0 )
+		{
+	            // Old and new time are identical; this should only happen if
+	            // dt is smaller than roundoff compared to the current time,
+	            // in which case we're probably in trouble anyway,
+	            // but we will still handle it gracefully here.
+	            S.copy(LevelData[lev]->get_new_data(State_Type),0,0,NUM_STATE);
+		}
         else if ( std::abs(time-t_old) < eps)
         {
             S.copy(LevelData[lev]->get_old_data(State_Type),0,0,NUM_STATE);
@@ -2369,29 +2368,29 @@ Gravity::make_radial_gravity(int level, Real time,
         Real dr = dx[0] / double(drdxfac);
 
 #ifdef _OPENMP
-				int nthreads = omp_get_max_threads();
+		int nthreads = omp_get_max_threads();
 
 #ifdef AMREX_USE_CUDA
 #ifdef GR_GRAV
-				Vector< Vector<Real, CudaManagedAllocator<Real> > > priv_radial_pres(nthreads);
+		Vector< Vector<Real, CudaManagedAllocator<Real> > > priv_radial_pres(nthreads);
 #endif
-				Vector< Vector<Real, CudaManagedAllocator<Real> > > priv_radial_mass(nthreads);
-				Vector< Vector<Real, CudaManagedAllocator<Real> > > priv_radial_vol (nthreads);
+		Vector< Vector<Real, CudaManagedAllocator<Real> > > priv_radial_mass(nthreads);
+		Vector< Vector<Real, CudaManagedAllocator<Real> > > priv_radial_vol (nthreads);
 #else
 
 #ifdef GR_GRAV
-				Vector< Vector<Real> > priv_radial_pres(nthreads);
+		Vector< Vector<Real> > priv_radial_pres(nthreads);
 #endif
-				Vector< Vector<Real> > priv_radial_mass(nthreads);
-				Vector< Vector<Real> > priv_radial_vol (nthreads);
+		Vector< Vector<Real> > priv_radial_mass(nthreads);
+		Vector< Vector<Real> > priv_radial_vol (nthreads);
 #endif
-				for (int i=0; i<nthreads; i++) {
+		for (int i=0; i<nthreads; i++) {
 #ifdef GR_GRAV
-				    priv_radial_pres[i].resize(n1d,0.0);
+		    priv_radial_pres[i].resize(n1d,0.0);
 #endif
-				    priv_radial_mass[i].resize(n1d,0.0);
-				    priv_radial_vol [i].resize(n1d,0.0);
-				}
+		    priv_radial_mass[i].resize(n1d,0.0);
+		    priv_radial_vol [i].resize(n1d,0.0);
+		}
 #pragma omp parallel
 #endif
 	{
@@ -2403,7 +2402,7 @@ Gravity::make_radial_gravity(int level, Real time,
 	        const Box& bx = mfi.tilebox();
 			FArrayBox& fab = S[mfi];
 // #pragma gpu
-		ca_compute_radial_mass(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+    		ca_compute_radial_mass(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 						ZFILL(dx), dr,
 				       BL_TO_FORTRAN_ANYD(fab),
 #ifdef _OPENMP
@@ -2416,14 +2415,16 @@ Gravity::make_radial_gravity(int level, Real time,
 				       ZFILL(geom.ProbLo()),n1d,drdxfac,lev);
 
 #ifdef GR_GRAV
-		ca_compute_avgpres(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), ZFILL(dx), dr,
-				   BL_TO_FORTRAN(fab),
+#pragma gpu
+    		ca_compute_avgpres(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                    AMREX_REAL_ANYD(dx), dr,
+				   BL_TO_FORTRAN_ANYD(fab),
 #ifdef _OPENMP
 				   priv_radial_pres[tid].dataPtr(),
 #else
 				   radial_pres[lev].dataPtr(),
 #endif
-				   ZFILL(geom.ProbLo()),n1d,drdxfac,lev);
+				   AMREX_REAL_ANYD(geom.ProbLo()),n1d,drdxfac,lev);
 #endif
 	    }
 
@@ -2431,13 +2432,13 @@ Gravity::make_radial_gravity(int level, Real time,
 #pragma omp barrier
 #pragma omp for
 	    for (int i=0; i<n1d; i++) {
-				for (int it=0; it<nthreads; it++) {
+			for (int it=0; it<nthreads; it++) {
 #ifdef GR_GRAV
-	        radial_pres[lev][i] += priv_radial_pres[it][i];
+    	        radial_pres[lev][i] += priv_radial_pres[it][i];
 #endif
-	        radial_mass[lev][i] += priv_radial_mass[it][i];
+    	        radial_mass[lev][i] += priv_radial_mass[it][i];
 			    radial_vol [lev][i] += priv_radial_vol [it][i];
-				}
+			}
 	    }
 #endif
 	}
