@@ -45,17 +45,7 @@ Real Gravity::mass_offset    =  0.0;
 
 static Real Ggravity = 0.;
 
-#ifdef AMREX_USE_CUDA
-Vector< Vector<Real, CudaManagedAllocator<Real> > > Gravity::radial_grav_old(MAX_LEV);
-Vector< Vector<Real, CudaManagedAllocator<Real> > > Gravity::radial_grav_new(MAX_LEV);
-Vector< Vector<Real, CudaManagedAllocator<Real> > > Gravity::radial_mass(MAX_LEV);
-Vector< Vector<Real, CudaManagedAllocator<Real> > > Gravity::radial_vol(MAX_LEV);
-
-#ifdef GR_GRAV
-Vector< Vector<Real, CudaManagedAllocator<Real> > > Gravity::radial_pres(MAX_LEV);
-#endif
-
-#else
+#ifndef AMREX_USE_CUDA
 Vector< Vector<Real> > Gravity::radial_grav_old(MAX_LEV);
 Vector< Vector<Real> > Gravity::radial_grav_new(MAX_LEV);
 Vector< Vector<Real> > Gravity::radial_mass(MAX_LEV);
@@ -66,7 +56,6 @@ Vector< Vector<Real> > Gravity::radial_pres(MAX_LEV);
 #endif
 
 #endif
-
 
 
 Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
@@ -92,6 +81,16 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
     if (gravity_type == "PoissonGrav") init_multipole_grav();
 #endif
     max_rhs = 0.0;
+    
+#ifdef AMREX_USE_CUDA
+    radial_grav_old.resize(MAX_LEV);
+    radial_grav_new.resize(MAX_LEV);
+    radial_mass.resize(MAX_LEV);
+    radial_vol.resize(MAX_LEV);
+#ifdef GR_GRAV
+    radial_pres.resize(MAX_LEV);
+#endif
+#endif
 }
 
 Gravity::~Gravity() {
