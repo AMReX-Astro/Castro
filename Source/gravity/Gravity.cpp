@@ -1376,11 +1376,10 @@ Gravity::interpolate_monopole_grav(int level,
     for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox();
-#pragma gpu
-        ca_put_radial_grav(AMREX_INT_ANYD(bx.loVect()),AMREX_INT_ANYD(bx.hiVect()),
-						   AMREX_REAL_ANYD(dx),dr,
+        ca_put_radial_grav(ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()),
+						   ZFILL(dx),dr,
                            BL_TO_FORTRAN_ANYD(grav_vector[mfi]),
-                           radial_grav.dataPtr(),AMREX_REAL_ANYD(geom.ProbLo()),
+                           radial_grav.dataPtr(),ZFILL(geom.ProbLo()),
                            n1d,level);
     }
 }
@@ -1415,16 +1414,10 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 
     // Define total mass in each shell
     // Note that RHS = density (we have not yet multiplied by G)
-
 #ifdef _OPENMP
     int nthreads = omp_get_max_threads();
-#ifdef AMREX_USE_CUDA
-    Vector< Vector<Real, CudaManagedAllocator<Real> > > priv_radial_mass(nthreads);
-    Vector< Vector<Real, CudaManagedAllocator<Real> > > priv_radial_vol (nthreads);
-#else
     Vector< Vector<Real> > priv_radial_mass(nthreads);
     Vector< Vector<Real> > priv_radial_vol (nthreads);
-#endif
     for (int i=0; i<nthreads; i++) {
 			priv_radial_mass[i].resize(n1d,0.0);
 			priv_radial_vol [i].resize(n1d,0.0);
@@ -1438,18 +1431,19 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 	for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
-#pragma gpu
-	    ca_compute_radial_mass(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-					 AMREX_REAL_ANYD(dx),dr,
-				   BL_TO_FORTRAN_ANYD(Rhs[mfi]),
+        const Real* problo = geom.ProbLo();
+
+        ca_compute_radial_mass(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+                     ZFILL(dx),dr,
+                   BL_TO_FORTRAN_ANYD(Rhs[mfi]),
 #ifdef _OPENMP
-				   priv_radial_mass[tid].dataPtr(),
-				   priv_radial_vol[tid].dataPtr(),
+                   priv_radial_mass[tid].dataPtr(),
+                   priv_radial_vol[tid].dataPtr(),
 #else
-				   radial_mass.dataPtr(),
-				   radial_vol.dataPtr(),
+                   radial_mass.dataPtr(),
+                   radial_vol.dataPtr(),
 #endif
-				   AMREX_REAL_ANYD(geom.ProbLo()),n1d,drdxfac,level);
+           ZFILL(geom.ProbLo()),n1d,drdxfac,level);
 	}
 
 #ifdef _OPENMP
@@ -1480,9 +1474,9 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 #pragma gpu
         ca_put_radial_phi(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 			  AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
-			  AMREX_REAL_ANYD(dx),dr, BL_TO_FORTRAN_ANYD(phi[mfi]),
-			  radial_phi.dataPtr(),AMREX_REAL_ANYD(geom.ProbLo()),
-			  n1d,fill_interior);
+			  AMREX_REAL_ANYD(dx), dr, BL_TO_FORTRAN_ANYD(phi[mfi]),
+			  radial_phi.dataPtr(), AMREX_REAL_ANYD(geom.ProbLo()),
+			  n1d, fill_interior);
     }
 
     if (verbose)
@@ -2367,23 +2361,15 @@ Gravity::make_radial_gravity(int level, Real time,
         const Real* dx   = geom.CellSize();
         Real dr = dx[0] / double(drdxfac);
 
-#ifdef _OPENMP
+#if ! defined(AMREX_USE_CUDA) && defined( _OPENMP)
 		int nthreads = omp_get_max_threads();
-
-#ifdef AMREX_USE_CUDA
-#ifdef GR_GRAV
-		Vector< Vector<Real, CudaManagedAllocator<Real> > > priv_radial_pres(nthreads);
-#endif
-		Vector< Vector<Real, CudaManagedAllocator<Real> > > priv_radial_mass(nthreads);
-		Vector< Vector<Real, CudaManagedAllocator<Real> > > priv_radial_vol (nthreads);
-#else
 
 #ifdef GR_GRAV
 		Vector< Vector<Real> > priv_radial_pres(nthreads);
 #endif
 		Vector< Vector<Real> > priv_radial_mass(nthreads);
 		Vector< Vector<Real> > priv_radial_vol (nthreads);
-#endif
+
 		for (int i=0; i<nthreads; i++) {
 #ifdef GR_GRAV
 		    priv_radial_pres[i].resize(n1d,0.0);
@@ -2401,7 +2387,7 @@ Gravity::make_radial_gravity(int level, Real time,
 	    {
 	        const Box& bx = mfi.tilebox();
 			FArrayBox& fab = S[mfi];
-// #pragma gpu
+
     		ca_compute_radial_mass(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 						ZFILL(dx), dr,
 				       BL_TO_FORTRAN_ANYD(fab),

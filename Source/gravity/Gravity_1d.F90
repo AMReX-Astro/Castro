@@ -30,7 +30,6 @@ contains
     real(rt)         :: rlo,rhi,rcen
     integer          :: i,j,k
 
-    !$gpu
     j = lo(2)
     k = lo(3)
 
@@ -106,8 +105,6 @@ contains
     real(rt)         :: r
     real(rt)         :: dx_frac, fac, vol
     real(rt)         :: lo_i, rlo, rhi
-
-    !$gpu
 
     if (physbc_lo(1) .ne. Symmetry) then
 #ifndef AMREX_USE_CUDA

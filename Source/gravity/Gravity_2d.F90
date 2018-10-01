@@ -109,8 +109,6 @@ contains
     real(rt)         :: fac,xx,yy,dx_frac,dy_frac,vol_frac,vol_frac_fac
     real(rt)         :: lo_i,lo_j,rlo,rhi
 
-    !$gpu
-
     if (abs(center(2) - problo(2)) .lt. 1.e-2 * dx(2)) then
        octant_factor = TWO
     else
@@ -201,8 +199,6 @@ contains
     integer          :: i,j,k,index
     real(rt)         :: x,y,r,mag_grav
     real(rt)         :: cen,xi,slope,glo,gmd,ghi,minvar,maxvar
-
-    !$gpu
 
     ! Note that we are interpolating onto the entire range of grav,
     ! including the ghost cells
