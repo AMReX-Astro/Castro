@@ -322,6 +322,7 @@ contains
     ! if any boundary is symmetric, so that we can avoid unnecessary function calls.
 
     allocate(volumeFactor, parityFactor, rmax)
+    allocate(doSymmetricAdd)
     allocate(lnum_max)
 
     volumeFactor = ONE
@@ -443,6 +444,7 @@ contains
 
     deallocate(doSymmetricAddLo)
     deallocate(doSymmetricAddHi)
+    deallocate(doSymmetricAdd)
 
     deallocate(factArray)
     deallocate(parity_q0)

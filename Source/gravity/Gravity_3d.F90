@@ -415,8 +415,6 @@ contains
 
     logical          :: doSymmetricAddLo(3), doSymmetricAddHi(3), doSymmetricAdd
 
-    !$gpu
-
     ! Determine if we need to add contributions from any symmetric boundaries
 
     doSymmetricAddLo(:) = .false.

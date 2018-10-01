@@ -1879,21 +1879,12 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
 #ifdef _OPENMP
         int nthreads = omp_get_max_threads();
 
-#ifdef AMREX_USE_CUDA
-        Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_bcXYLo(nthreads);
-        Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_bcXYHi(nthreads);
-        Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_bcXZLo(nthreads);
-        Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_bcXZHi(nthreads);
-        Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_bcYZLo(nthreads);
-        Vector<std::unique_ptr<FArrayBox>, CudaManagedAllocator<std::unique_ptr<FArrayBox> > > priv_bcYZHi(nthreads);
-#else
         Vector<std::unique_ptr<FArrayBox> > priv_bcXYLo(nthreads);
         Vector<std::unique_ptr<FArrayBox> > priv_bcXYHi(nthreads);
         Vector<std::unique_ptr<FArrayBox> > priv_bcXZLo(nthreads);
         Vector<std::unique_ptr<FArrayBox> > priv_bcXZHi(nthreads);
         Vector<std::unique_ptr<FArrayBox> > priv_bcYZLo(nthreads);
         Vector<std::unique_ptr<FArrayBox> > priv_bcYZHi(nthreads);
-#endif
 
         for (int i=0; i<nthreads; i++) {
             priv_bcXYLo[i].reset(new FArrayBox(boxXY));
@@ -1921,28 +1912,7 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
 
                 const FArrayBox& r = source[mfi];
                 const FArrayBox& v = (*volume[lev])[mfi];
-#ifdef AMREX_USE_CUDA
-#pragma gpu
-                ca_compute_direct_sum_bc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                                         AMREX_REAL_ANYD(dx),
-                                         symmetry_type, AMREX_INT_ANYD(lo_bc), AMREX_INT_ANYD(hi_bc),
-                                         r.dataPtr(), AMREX_INT_ANYD(r.loVect()), AMREX_INT_ANYD(r.hiVect()),
-                                         v.dataPtr(), AMREX_INT_ANYD(v.loVect()), AMREX_INT_ANYD(v.hiVect()),
-                                         AMREX_REAL_ANYD(crse_geom.ProbLo()),AMREX_REAL_ANYD(crse_geom.ProbHi()),
-#ifdef _OPENMP
-                                         priv_bcXYLo[tid]->dataPtr(),
-                                         priv_bcXYHi[tid]->dataPtr(),
-                                         priv_bcXZLo[tid]->dataPtr(),
-                                         priv_bcXZHi[tid]->dataPtr(),
-                                         priv_bcYZLo[tid]->dataPtr(),
-                                         priv_bcYZHi[tid]->dataPtr(),
-#else
-                                         bcXYLo.dataPtr(), bcXYHi.dataPtr(),
-                                         bcXZLo.dataPtr(), bcXZHi.dataPtr(),
-                                         bcYZLo.dataPtr(), bcYZHi.dataPtr(),
-#endif
-                                         bclo, bchi, bcdx);
-#else
+
                 ca_compute_direct_sum_bc(bx.loVect(), bx.hiVect(), dx,
                                          symmetry_type, lo_bc, hi_bc,
                                          r.dataPtr(), ARLIM_3D(r.loVect()), ARLIM_3D(r.hiVect()),
@@ -1961,7 +1931,7 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
                                          bcYZLo.dataPtr(), bcYZHi.dataPtr(),
 #endif
                                          bclo, bchi, bcdx);
-#endif
+
             }
 
 #ifdef _OPENMP
@@ -2024,7 +1994,6 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
         const Box& bx= mfi.growntilebox();
 
         FArrayBox& p = phi[mfi];
-#pragma gpu
         ca_put_direct_sum_bc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                              p.dataPtr(), AMREX_INT_ANYD(p.loVect()), AMREX_INT_ANYD(p.hiVect()),
                              bcXYLo.dataPtr(), bcXYHi.dataPtr(),
