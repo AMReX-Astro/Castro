@@ -24,5 +24,5 @@ endif
 ca_F90EXE_sources += Gravity_$(DIM)d.F90
 
 ifeq ($(USE_GR), TRUE)
-  ca_f90EXE_sources += GR_Gravity_$(DIM)d.f90
+  ca_F90EXE_sources += GR_Gravity_$(DIM)d.F90
 endif

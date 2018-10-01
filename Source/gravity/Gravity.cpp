@@ -2415,16 +2415,16 @@ Gravity::make_radial_gravity(int level, Real time,
 				       ZFILL(geom.ProbLo()),n1d,drdxfac,lev);
 
 #ifdef GR_GRAV
-#pragma gpu
-    		ca_compute_avgpres(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                    AMREX_REAL_ANYD(dx), dr,
+// #pragma gpu
+    		ca_compute_avgpres(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+                    ZFILL(dx), dr,
 				   BL_TO_FORTRAN_ANYD(fab),
 #ifdef _OPENMP
 				   priv_radial_pres[tid].dataPtr(),
 #else
 				   radial_pres[lev].dataPtr(),
 #endif
-				   AMREX_REAL_ANYD(geom.ProbLo()),n1d,drdxfac,lev);
+				   ZFILL(geom.ProbLo()),n1d,drdxfac,lev);
 #endif
 	    }
 
