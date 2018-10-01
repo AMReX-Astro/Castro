@@ -321,6 +321,9 @@ contains
     ! Otherwise, we need to do a more general solve. We include a logical that is set to true
     ! if any boundary is symmetric, so that we can avoid unnecessary function calls.
 
+    allocate(volumeFactor, parityFactor, rmax)
+    allocate(lnum_max)
+
     volumeFactor = ONE
     parityFactor = ONE
 
@@ -435,8 +438,15 @@ contains
 
     implicit none
 
+    deallocate(volumeFactor, parityFactor, rmax)
+    deallocate(lnum_max)
+
     deallocate(doSymmetricAddLo)
     deallocate(doSymmetricAddHi)
+
+    deallocate(factArray)
+    deallocate(parity_q0)
+    deallocate(parity_qC_qS)
 
   end subroutine finalize_multipole_gravity
 
