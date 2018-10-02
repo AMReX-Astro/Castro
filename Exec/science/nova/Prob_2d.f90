@@ -131,6 +131,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            state(i,j,UFS-1+n) = interpolate(y,npts_model,model_r, &
                                             model_state(:,ispec_model-1+n))
         enddo
+        state(i,j,UFS:UFS-1+nspec) = state(i,j,UFS:UFS-1+nspec)/sum(state(i,j,UFS:UFS-1+nspec))
 
      enddo
   enddo
