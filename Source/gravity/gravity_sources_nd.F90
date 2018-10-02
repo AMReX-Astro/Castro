@@ -8,12 +8,12 @@ contains
 
   subroutine ca_gsrc(lo,hi,domlo,domhi, &
        uold,uold_lo,uold_hi, &
-       #ifdef SELF_GRAVITY
-    phi,phi_lo,phi_hi, &
-         grav,grav_lo,grav_hi, &
-         #endif
-    source,src_lo,src_hi, &
-         dx,dt,time) bind(C, name="ca_gsrc")
+#ifdef SELF_GRAVITY
+       phi,phi_lo,phi_hi, &
+       grav,grav_lo,grav_hi, &
+#endif
+       source,src_lo,src_hi, &
+       dx,dt,time) bind(C, name="ca_gsrc")
 
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, ONE
@@ -169,21 +169,21 @@ contains
   subroutine ca_corrgsrc(lo,hi,domlo,domhi, &
        uold,uo_lo,uo_hi, &
        unew,un_lo,un_hi, &
-       #ifdef SELF_GRAVITY
-    phi,p_lo,p_hi, &
-         grav,g_lo,g_hi, &
-         gold,go_lo,go_hi, &
-         gnew,gn_lo,gn_hi, &
-         gravx,gx_lo,gx_hi, &
-         gravy,gy_lo,gy_hi, &
-         gravz,gz_lo,gz_hi, &
-         #endif
-    vol,vol_lo,vol_hi, &
-         flux1,f1_lo,f1_hi, &
-         flux2,f2_lo,f2_hi, &
-         flux3,f3_lo,f3_hi, &
-         source,sr_lo,sr_hi, &
-         dx,dt,time) bind(C, name="ca_corrgsrc")
+#ifdef SELF_GRAVITY
+       phi,p_lo,p_hi, &
+       grav,g_lo,g_hi, &
+       gold,go_lo,go_hi, &
+       gnew,gn_lo,gn_hi, &
+       gravx,gx_lo,gx_hi, &
+       gravy,gy_lo,gy_hi, &
+       gravz,gz_lo,gz_hi, &
+#endif
+       vol,vol_lo,vol_hi, &
+       flux1,f1_lo,f1_hi, &
+       flux2,f2_lo,f2_hi, &
+       flux3,f3_lo,f3_hi, &
+       source,sr_lo,sr_hi, &
+       dx,dt,time) bind(C, name="ca_corrgsrc")
 
     use amrex_fort_module, only: rt => amrex_real
     use amrex_error_module
@@ -263,7 +263,8 @@ contains
 
     real(rt), intent(inout) :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NVAR)
 
-    real(rt), intent(in)    :: dx(3), dt, time
+    real(rt), intent(in)    :: dx(3)
+    real(rt), value, intent(in)    :: dt, time
 
     integer  :: i, j, k
 

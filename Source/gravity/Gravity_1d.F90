@@ -30,6 +30,8 @@ contains
     real(rt)         :: rlo,rhi,rcen
     integer          :: i,j,k
 
+    !$gpu
+
     j = lo(2)
     k = lo(3)
 
