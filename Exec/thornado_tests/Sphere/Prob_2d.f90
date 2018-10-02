@@ -156,7 +156,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         rho_in(i) = state(i,j,URHO) * (Gram/Centimeter**3)
           T_in(i) = state(i,j,UTEMP) * Kelvin
 
-         Ye_in(i) = (  Ye_max - ( Ye_max -  Ye_min) * tanh_y )
+         Ye_in(i) = (  Ye_min - ( Ye_min -  Ye_max) * tanh_y )
            
      enddo
 

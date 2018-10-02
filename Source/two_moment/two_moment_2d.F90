@@ -229,7 +229,7 @@
     ! Call the Fortran interface that lives in the thornado repo
     ! ************************************************************************************
 
-    call Update_IMEX_PDARS(dt*Second, uCF, uCR)
+!    call Update_IMEX_PDARS(dt*Second, uCF, uCR)
 
     ! ************************************************************************************
     ! Copy back from the thornado arrays into Castro arrays
