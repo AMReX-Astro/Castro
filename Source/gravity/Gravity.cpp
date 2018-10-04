@@ -1649,10 +1649,10 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 	    for (MFIter mfi(source,true); mfi.isValid(); ++mfi)
 	    {
 	        const Box& bx = mfi.tilebox();
-#pragma gpu
-					ca_compute_multipole_moments(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-							 AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
-							 AMREX_REAL_ANYD(dx),BL_TO_FORTRAN_ANYD(source[mfi]),
+            // don't offload due to dataPtrs to FArrayBoxes
+			ca_compute_multipole_moments(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+							 ARLIM_3D(domain.loVect()), ARLIM_3D(domain.hiVect()),
+							 ZFILL(dx),BL_TO_FORTRAN_ANYD(source[mfi]),
 							 BL_TO_FORTRAN_ANYD((*volume[lev])[mfi]),
 							 lnum,
 #ifdef _OPENMP
@@ -1757,14 +1757,25 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
     for (MFIter mfi(phi,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox();
-#pragma gpu
-		ca_put_multipole_phi(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-			 AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
-			 AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(phi[mfi]),
-			 lnum,
-			 qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
-			 qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
-			 npts,boundary_only);
+        // Device::endDeviceLaunchRegion();
+        // Not sure how to put dataPtr's to FArrayBox objects on the gpu,
+        // so shall leave off for now
+// #pragma gpu
+		// ca_put_multipole_phi(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+		// 	 AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
+		// 	 AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(phi[mfi]),
+		// 	 lnum,
+		// 	 qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
+		// 	 qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
+		// 	 npts,boundary_only);
+         ca_put_multipole_phi(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+ 			 ARLIM_3D(domain.loVect()), ARLIM_3D(domain.hiVect()),
+ 			ZFILL(dx), BL_TO_FORTRAN_ANYD(phi[mfi]),
+ 			 lnum,
+ 			 qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
+ 			 qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
+ 			 npts,boundary_only);
+     // Device::beginDeviceLaunchRegion();
     }
 
     if (verbose)
