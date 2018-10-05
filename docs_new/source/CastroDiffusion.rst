@@ -6,19 +6,19 @@ Thermal Diffusion
 Castro incorporates explicit thermal diffusion into the energy equation.
 In terms of the specific internal energy, :math:`e`, this appears as:
 
-.. math:: \rho \frac{De}{Dt} + p \nabla \cdot \ub = \nabla \cdot \kth \nabla T
+.. math:: \rho \frac{De}{Dt} + p \nabla \cdot \ub = \nabla \cdot {k_\mathrm{th}}\nabla T
 
-where :math:`\kth` is the thermal conductivity, with units
+where :math:`{k_\mathrm{th}}` is the thermal conductivity, with units
 :math:`\mathrm{erg~cm^{-1}~s^{-1}~K^{-1}}`.
 
 To see the similarity to the thermal diffusion equation, consider the special
-case of constant conductivity, :math:`\kth`, and density, and assume an
+case of constant conductivity, :math:`{k_\mathrm{th}}`, and density, and assume an
 ideal gas, so :math:`e = c_v T`, where :math:`c_v` is the specific heat at constant volume.
 Finally, ignore hydrodynamics, so :math:`\ub = 0`. This gives:
 
 .. math:: \frac{\partial T}{\partial t} = D \nabla^2 T
 
-where :math:`D \equiv \kth/(\rho c_v)`. Solving this equation
+where :math:`D \equiv {k_\mathrm{th}}/(\rho c_v)`. Solving this equation
 explicitly requires a timestep limiter of
 
 .. math:: \Delta t_\mathrm{diff} \le \frac{1}{2} \frac{\Delta x^2}{D}
@@ -56,11 +56,11 @@ interface for the conductivity is:
         real (kind=dp_t), intent(inout) :: therm_cond
 
 The density, temperature, and mass fractions come in through the
-eos_state type. An EOS call is done in  just before the
+eos_state type. An EOS call is done in Castro just before the
 call to , so you can assume that the entire
 state is consistent.
 
-There are two conductivity routines provided with  by default:
+There are two conductivity routines provided with Castro by default:
 
 -  constant : A simple constant thermal conductivity. This can be
    selected by setting
@@ -79,7 +79,7 @@ There are two conductivity routines provided with  by default:
 -  constant_opacity : A simple constant opacity. This is
    converted to an opacity as:
 
-   .. math:: \kth = \frac{16 \sigma_B T^3}{3 \kappa_\mathrm{const} \rho}
+   .. math:: {k_\mathrm{th}}= \frac{16 \sigma_B T^3}{3 \kappa_\mathrm{const} \rho}
 
    where :math:`\kappa_\mathrm{const}` is the opacity, with units :math:`\mathrm{cm^2~g^{-1}}`.
    This is selected by setting
@@ -113,7 +113,7 @@ and does pure diffusion is provided as diffusion_test.
 Enthalpy Diffusion
 ==================
 
- can also diffuse enthalpy
+Castro can also diffuse enthalpy
 
 Note this uses the same interface for the transport coefficients as
 thermal diffusion, so the two cannot be used at the same time.
@@ -121,7 +121,7 @@ thermal diffusion, so the two cannot be used at the same time.
 Species Diffusion
 =================
 
- can also diffuse species.
+Castro can also diffuse species.
 
 Note this uses the same interface for the transport coefficients as
 thermal diffusion, so the two cannot be used at the same time.

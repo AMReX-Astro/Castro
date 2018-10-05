@@ -1,7 +1,7 @@
-Introduction to 
-================
+Introduction to Castro
+======================
 
- is a adaptive mesh, radiation hydrodynamics code that is
+Castro is a adaptive mesh, radiation hydrodynamics code that is
 designed to model astrophysical reacting flows on massively parallel
 computers.
 
@@ -28,7 +28,7 @@ The major capabilities:
 Units and Conventions
 =====================
 
- works in CGS units unless otherwise specified.
+Castro works in CGS units unless otherwise specified.
 Table \ `[table:units] <#table:units>`__ shows some of the common symbols / names used
 throughout the code documentation and papers.
 
@@ -43,26 +43,30 @@ throughout the code documentation and papers.
    +=======================+=======================+=======================+
    | :math:`t`             | s                     | time                  |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`\rho`          | :math:`\gcc`          | mass density          |
+   | :math:`\rho`          | :math:`\mathrm{g~cm^{ | mass density          |
+   |                       | -3}}`                 |                       |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`\ub`           | :math:`\cms`          | velocity vector       |
+   | :math:`\ub`           | :math:`\mathrm{cm~s^{ | velocity vector       |
+   |                       | -1}}`                 |                       |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`p`             | :math:`\presunit`     | pressure              |
+   | :math:`p`             | :math:`\mathrm{dyn~cm | pressure              |
+   |                       | ^{-2}}`               |                       |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`\gb`           | :math:`\accelunit`    | gravitational         |
-   |                       |                       | acceleration          |
+   | :math:`\gb`           | :math:`\mathrm{cm~s^{ | gravitational         |
+   |                       | -2}}`                 | acceleration          |
    +-----------------------+-----------------------+-----------------------+
    | :math:`\Sb`           | varies                | source term           |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`E`             | :math:`\ergg`         | specific total energy |
+   | :math:`E`             | :math:`\mathrm{erg~g^ | specific total energy |
+   |                       | {-1}}`                |                       |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`e`             | :math:`\ergg`         | specific internal     |
-   |                       |                       | energy                |
+   | :math:`e`             | :math:`\mathrm{erg~g^ | specific internal     |
+   |                       | {-1}}`                | energy                |
    +-----------------------+-----------------------+-----------------------+
    | :math:`T`             | :math:`K`             | temperature           |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`\kth`          | :math:`\mathrm{erg~cm | thermal conductivity  |
-   |                       | ^{-1}~s^{-1}~K~{-1}}` |                       |
+   | :math:`{k_\mathrm{th} | :math:`\mathrm{erg~cm | thermal conductivity  |
+   | }`                    | ^{-1}~s^{-1}~K~{-1}}` |                       |
    +-----------------------+-----------------------+-----------------------+
    | :math:`X_k`           | –                     | mass fraction of      |
    |                       |                       | species :math:`k`     |

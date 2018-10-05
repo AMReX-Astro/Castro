@@ -1,17 +1,17 @@
 Code structure
 ==============
 
- is built upon the   framework. This provides
+Castro is built upon the AMReX C framework. This provides
 high-level classes for managing an adaptive mesh refinement
 simulation, including the core data structures we will deal with. A
-key design pattern in  is that the overall memory management
-and parallelization is done in the  layer, while the heavy
-computational work is done in Fortran kernels.  provides
+key design pattern in AMReX is that the overall memory management
+and parallelization is done in the C layer, while the heavy
+computational work is done in Fortran kernels. AMReX provides
 convenient data structures that allow for this workflow—high level
-objects in  that communicate with Fortran through pointers to
+objects in C that communicate with Fortran through pointers to
 data regions that appear as multidimensional arrays.
 
- uses a structured-grid approach to hydrodynamics. We work
+Castro uses a structured-grid approach to hydrodynamics. We work
 with square/cubic zones that hold state variables (density, momentum,
 etc.) and compute the fluxes of these quantities through the
 interfaces of the zones (this is a finite-volume approach).
@@ -19,20 +19,20 @@ Parallelization is achieved by domain decomposition. We divide our
 domain into many smaller boxes, and distributed these across
 processors. When information is needed at the boundaries of the
 boxes, messages are exchanged and this data is held in a perimeter of
-*ghost cells*.  manages this decompostion and
-communication for us. Additionally,  implements adaptive mesh
+*ghost cells*. AMReX manages this decompostion and
+communication for us. Additionally, AMReX implements adaptive mesh
 refinement. In addition to the coarse decomposition of our domain
 into zones and boxes, we can refine rectangular regions by adding
 finer-gridded boxes on top of the coarser grid. We call the
 collection of boxes at the same resolution a *level*.
 
- uses a hybrid MPI + OpenMP approach to parallelism. MPI is
+Castro uses a hybrid MPI + OpenMP approach to parallelism. MPI is
 at used to communicate across nodes on a computer and OpenMP is used
 within a node, to loop over subregions of a box with different
 threads.
 
 The code structure in the Castro/ directory reflects the
-division between  and Fortran.
+division between C and Fortran.
 
 -  constants/: contains a file of useful constants in CGS units
 
@@ -64,7 +64,7 @@ division between  and Fortran.
    -  viscosity/: the viscous transport coefficient
 
 -  Source/: source code. In this main directory is all of
-   the code. Sources are mixed  and Fortran and are organized by topic as:
+   the code. Sources are mixed C and Fortran and are organized by topic as:
 
    -  diffusion/ : thermal diffusion code
 
@@ -97,29 +97,29 @@ Major data structures
 =====================
 
 The following data structures are the most commonly encountered when
-working in the  portions of . This are all
- data-structures / classes.
+working in the C portions of Castro. This are all
+AMReX data-structures / classes.
 
 Amr
 ---
 
 This is the main class that drives the whole simulation. This is
-the highest level in .
+the highest level in Castro.
 
- and Castro classes
--------------------
+AmrLevel and Castro classes
+---------------------------
 
-An is a virtual base class provided by  that
+An is a virtual base class provided by AMReX that
 stores all the state data on a single level in the AMR hierarchy and
 understands how to advance that data in time.
 
-The most important data managed by the  is an array of
-, which holds the fluid quantities, etc., in the boxes
+The most important data managed by the AmrLevel is an array of
+StateData, which holds the fluid quantities, etc., in the boxes
 that together make up the level.
 
-The Castro class is derived from the . It provides
-the -specific routines to evolve our system of equations. Like
-the , there is one Castro object for each level in the
+The Castro class is derived from the AmrLevel. It provides
+the Castro-specific routines to evolve our system of equations. Like
+the AmrLevel, there is one Castro object for each level in the
 AMR hierarchry.
 
 A lot of the member data in the Castro class are static member
@@ -133,7 +133,7 @@ same object in each instantiation of the Castro class.
 Floating point data
 -------------------
 
-Floating point data in the   frame work is declared as
+Floating point data in the C AMReX frame work is declared as
 Real. This is typedef to either float or
 double depending on the make variable .
 
@@ -151,27 +151,27 @@ parameter is:
 The bl_constants_module provides common constants that can
 be used in the code, like ZERO, THIRD, ONE, etc.
 
-Note: single precision support in  is not yet complete. In
+Note: single precision support in Castro is not yet complete. In
 particular, a lot of the supporting microphysics has not been updated.
 
- and 
------
+Box and FArrayBox
+-----------------
 
 A is simply a rectangular region in space. It does not hold
-data. In , an AMR level has a global index space, with
+data. In AMReX, an AMR level has a global index space, with
 :math:`(0,0,0)` being the lower left corner of the domain at that level, and
 :math:`(N_x-1, N_y-1, N_z-1)` being the upper right corner of the domain
 (for a domain of :math:`N_x \times N_y \times N_z` zones). The location of
-any  at a level can be uniquely specified with respect to this
+any Box at a level can be uniquely specified with respect to this
 global index space by giving the index of its lower-left and
 upper-right corners. Figure \ `[fig:soft:indexspace] <#fig:soft:indexspace>`__ shows an
 example of three boxes at the same level of refinement.
 
- provides other data structures that collect es together,
+AMReX provides other data structures that collect Boxes together,
 most importantly the . We generally do not use these
-directly, with the exception of the  ,
-which is defined as part of the  class that Castro
-inherits. grids is used when building new s to give
+directly, with the exception of the BoxArray ,
+which is defined as part of the AmrLevel class that Castro
+inherits. grids is used when building new MultiFabs to give
 the layout of the boxes at the current level.
 
 .. raw:: latex
@@ -181,74 +181,80 @@ the layout of the boxes at the current level.
 .. figure:: index_grid2
    :alt: [fig:soft:indexspace] Three boxes that comprise a single level. At this
    resolution, the domain is 20\ :math:`\times`\ 18 zones. Note that the
-   indexing in  starts with :math:`0`.
+   indexing in AMReX starts with :math:`0`.
    :width: 4in
 
    [fig:soft:indexspace] Three boxes that comprise a single level. At this
    resolution, the domain is 20\ :math:`\times`\ 18 zones. Note that the
-   indexing in  starts with :math:`0`.
+   indexing in AMReX starts with :math:`0`.
 
 A or *FAB*, for *Fortran array box* is a data
-structure that contains a  locating it in space, as well as a
+structure that contains a Box locating it in space, as well as a
 pointer to a data buffer. The real floating point data are stored as
-one-dimensional arrays in es. The associated can be
+one-dimensional arrays in FArrayBoxes. The associated Boxcan be
 used to reshape the 1D array into multi-dimensional arrays to be used
-by Fortran subroutines. The key part of the   data
+by Fortran subroutines. The key part of the C AMReX data
 structures is that this data buffer can be sent to Fortran, where it
 will appear as a DIM+1 dimensional array (DIM space + 1
 component).
 
-Note:  is complied for a specific dimensionality.
+Note: Castro is complied for a specific dimensionality.
+
+MultiFab
+--------
 
 At the highest abstraction level, we have the (mulitple
-es). A  contains an array of es, including
-es owned by other processors for the purpose of communication,
-an array of MPI ranks specifying which MPI processor owns each ,
-and an array of pointers to es owned by this MPI
+FArrayBoxes). A MultiFab contains an array of Boxes, including
+Boxes owned by other processors for the purpose of communication,
+an array of MPI ranks specifying which MPI processor owns each Box,
+and an array of pointers to FArrayBoxes owned by this MPI
 processor. Note: a
- is a collection of the boxes that together make up a single
+MultiFab is a collection of the boxes that together make up a single
 level of data in the AMR hierarchy.
 
-A  can have multiple components (like density, temperature,
+A MultiFab can have multiple components (like density, temperature,
 ...) as well as a perimeter of ghost cells to exchange data with
 neighbors or implement boundary conditions (this is all reflected in
-the underlying ).
+the underlying FArrayBox).
 
-Parallelization in  is done by distributing the FABs across
+Parallelization in AMReX is done by distributing the FABs across
 processors. Each processor knows which FABs are local to it. To loop
-over all the boxes local to a processor, an  is used (more
+over all the boxes local to a processor, an MFIter is used (more
 on this below).
 
-High-level operations exist on s to add, subtract, multiply,
+High-level operations exist on MultiFabs to add, subtract, multiply,
 etc., them together or with scalars, so you don’t need to write out
 loops over the data directly.
 
-In , s are one of the main data structures you will
-interact with in the  portions of the code.
+In Castro, MultiFabs are one of the main data structures you will
+interact with in the C portions of the code.
 
 .. _soft:sec:statedata:
 
-is a class that essentially holds a pair of s: one
-at the old time and one at the new time.  knows how to
+StateData
+---------
+
+is a class that essentially holds a pair of MultiFabs: one
+at the old time and one at the new time. AMReX knows how to
 interpolate in time between these states to get data at any
 intermediate point in time. The main data that we care about in
- (the fluid state, gravitational potential, etc.) will be
-stored as . Essentially, data is made  in
- if we need it to be stored in checkpoints / plotfiles, and/or
+Castro (the fluid state, gravitational potential, etc.) will be
+stored as StateData. Essentially, data is made StateData in
+Castro if we need it to be stored in checkpoints / plotfiles, and/or
 we want it to be automatically interpolated when we refine.
 
-An  stores an array of  (in a  array
+An AmrLevel stores an array of StateData (in a C array
 called state). We index this array using integer keys (defined
 via an enum in Castro.H). The state data is registered
-with  in .
+with AMReX in .
 
-Note that each of the different  carried in the state
+Note that each of the different StateData carried in the state
 array can have different numbers of components, ghost cells, boundary
 conditions, etc. This is the main reason we separate all this data
-into separate  objects collected together in an indexable
+into separate StateData objects collected together in an indexable
 array.
 
-The current  names  carries are:
+The current StateData names Castro carries are:
 
 -  : this is the NUM_STATE hydrodynamics
    components that make up the conserved hydrodynamics state (usually
@@ -265,14 +271,14 @@ The current  names  carries are:
    will simply be advected, but we will allow rotation (in particular,
    the Coriolis force) to affect them.
 
-   State_Type s have no ghost cells by default for
+   State_Type MultiFabs have no ghost cells by default for
    pure hydro and a single ghost cell by default when RADIATION
    is enabled. There is an option to force them to have ghost cells by
    setting the parameter at runtime.
 
    Note that the prediction of the hydrodynamic state to the interface
    will require 4 ghost cells. This accomodated by creating a separate
-   , that lives at the old-time level and
+   MultiFab, that lives at the old-time level and
    has the necessary ghost cells. We will describe this more later.
 
 -  : this stores the radiation energy density,
@@ -308,8 +314,8 @@ The current  names  carries are:
       \MarginPar{SDC does differently}
 
    Note: we do not make use of the old-time quantity here. In fact, we
-   never allocate the s for the old-time in the Source_Type
-   , so there is not wasted memory.
+   never allocate the FArrayBoxs for the old-time in the Source_Type
+   StateData, so there is not wasted memory.
 
 -  : this holds the data for the nuclear
    reactions. It has NumSpec+2 components: the species
@@ -317,7 +323,7 @@ The current  names  carries are:
    the specific energy generation rate (:math:`\dot{e}_\mathrm{nuc}`),
    and its density (:math:`\rho \dot{e}_\mathrm{nuc}`).
 
-   These are stored as  so we have access to the reaction terms
+   These are stored as StateData so we have access to the reaction terms
    outside of advance, both for diagnostics (like flame speed estimation)
    and for reaction timestep limiting (this in particular needs the
    data stored in checkpoints for continuity of timestepping upon restart).
@@ -334,7 +340,7 @@ The current  names  carries are:
    algorithm.
 
 We access the multifabs that carry the data of interest by interacting
-with the  using one of these keys. For instance:
+with the StateData using one of these keys. For instance:
 
 ::
 
@@ -343,13 +349,13 @@ with the  using one of these keys. For instance:
 gets a pointer to the multifab containing the hydrodynamics state data
 at the new time.
 
-Various source s
-----------------
+Various source MultiFabs
+------------------------
 
-There are a number of different s (and arrays of s)
+There are a number of different MultiFabs (and arrays of MultiFabs)
 that hold source term information.
 
--  : this is a  that holds the
+-  : this is a MultiFab that holds the
    update to the hydrodynamics (basically the divergence of the
    fluxes). This is filled in the conservative update routine of the
    hydrodynamics.
@@ -362,29 +368,29 @@ that hold source term information.
 
    .. math:: \frac{\partial \Ub}{\partial t} = \Sb_\mathrm{flux}
 
--  : a single  that stores
+-  : a single MultiFab that stores
    the sum of sources over each physical process.
 
- and interacting with Fortran
-=============================
+MFIter and interacting with Fortran
+===================================
 
 The process of looping over boxes at a given level of refinement and
-operating on their data in Fortran is linked to how  achieves
-thread-level parallelism. The OpenMP approach in  has evolved
+operating on their data in Fortran is linked to how Castro achieves
+thread-level parallelism. The OpenMP approach in Castro has evolved
 considerably since the original paper was written, with the modern
 approach, called *tiling*, gearing up to meet the demands of
 many-core processors in the next-generation of supercomputers. We
 discuss the original and new approach together here.
 
 In both cases, the key construct is the —this is a
- iterator that knows how to loop over the es in the
- that are local to the processor (in this way, a lot of the
+C iterator that knows how to loop over the FArrayBoxes in the
+MultiFab that are local to the processor (in this way, a lot of the
 parallelism is hidden from view).
 
-Non-Tiling 
------------
+Non-Tiling MFIter
+-----------------
 
-The non-tiling way to iterate over the s is
+The non-tiling way to iterate over the FArrayBoxs is
  [1]_:
 
 .. code:: c++
@@ -415,7 +421,7 @@ The non-tiling way to iterate over the s is
 
 A few comments about this code
 
--  In this example, we are working off of a  named mf.
+-  In this example, we are working off of a MultiFab named mf.
    This could, for example, come from state data as:
 
    ::
@@ -425,12 +431,12 @@ A few comments about this code
 -  We are passing the data in mf one box at a time to the
    Fortran function do_work.
 
--  Here the  iterator, mfi, will perform the loop
+-  Here the MFIter iterator, mfi, will perform the loop
    only over the boxes that are local to the MPI task. If there are 3
    boxes on the processor, then this loop has 3 iterations.
 
-   ++mfi iterates to the next  owned by the
-    mf, and mfi.isValid() returns false
+   ++mfi iterates to the next FArrayBox owned by the
+   MultiFab mf, and mfi.isValid() returns false
    after we’ve reached the last box contained in the MultiFab,
    terminating the loop.
 
@@ -445,7 +451,7 @@ A few comments about this code
    is defined to always be 3D, with 0s substituted for the
    higher dimension values if we are running in 1- or 2D.
 
-   Passing the data in this 3D fashion is a newer approach in .
+   Passing the data in this 3D fashion is a newer approach in Castro.
    This enables writing *dimension agnostic code*. There are many
    other approaches that will pass only the DIM values of
    lo and hi using alternate macros in ArrayLim.H.
@@ -454,16 +460,16 @@ A few comments about this code
    data region. This is what is passed to Fortran.
 
 -  fab.nComp() gives an int—the number of components
-   in the . This will be used for dimensioning in Fortran.
+   in the MultiFab. This will be used for dimensioning in Fortran.
 
 -  To properly dimension the array in Fortran, we need the actual
    bounds of the data region, including any ghost cells. This is the
-    abox, obtained as fab.box(). We pass the
+   Box abox, obtained as fab.box(). We pass the
    lo and hi of the full data region as well.
 
 To properly compile, we need a prototype for the Fortran
 function. These are placed in the \_F.H files in the
- Source/ directory. Here’s the prototype for
+Castro Source/ directory. Here’s the prototype for
 our function:
 
 .. code:: c++
@@ -528,7 +534,7 @@ Finally, comments on the Fortran routine;
    Fortran subroutine is part of a module.
 
 -  We dimension state using s_lo and s_hi—these are
-   the bounds we got from the , and are for the entire data
+   the bounds we got from the FArrayBox, and are for the entire data
    region, including ghost cells.
 
    Note, in Fortran, the spatial indices of state don’t
@@ -556,13 +562,13 @@ Finally, comments on the Fortran routine;
    0 for any dimensions not represented in our simulation.
 
 Up to this point, we have not said anything about threading. In this
-style of using the , we implement the OpenMP in Fortran, for
+style of using the MFIter, we implement the OpenMP in Fortran, for
 instance by putting a pragma around the outer loop in this example.
 
 .. _sec:boxlib1:
 
-’s Current Tiling Approach In C++
----------------------------------
+AMReX’s Current Tiling Approach In C++
+--------------------------------------
 
 There are two types of tiling that people discuss. In *logical
 tiling*, the data storage in memory is unchanged from how we do things
@@ -571,12 +577,12 @@ contiguously). But when we loop in OpenMP over a box, the tiling
 changes how we loop over the data. The alternative is called
 *separate tiling*—here the data storage in memory itself is changed
 to reflect how the tiling will be performed. This is not considered
-in .
+in AMReX.
 
-We have recently introduced logical tiling into parts of İt
+We have recently introduced logical tiling into parts of AMReXİt
 is off by default, to make the transition smooth and because not
 everything should be tiled. It can be enabled on a loop-by-loop basis
-by setting an optional argument to . We demonstrate this
+by setting an optional argument to MFIter. We demonstrate this
 below. Further examples can be found at Tutorials/Tiling_C,
 and Src/LinearSolvers/C_CellMG/.
 
@@ -662,7 +668,7 @@ Some comments:
    .tilebox().
 
 -  When passing into the Fortran routine, we still use the index
-   space of the entire  (including ghost cells), as seen in
+   space of the entire FArrayBox (including ghost cells), as seen in
    the abox construction. This is needed to properly dimension
    the array in Fortran.
 
@@ -741,7 +747,7 @@ The MFIter class provides some other useful functions:
 
 -  mfi.growntilebox(int) : A grown tile box that includes
    ghost cells at box boundaries only. Thus the returned boxes for a
-    are non-overlapping.
+   FArrayBox are non-overlapping.
 
 -  mfi.nodaltilebox(int) : Returns non-overlapping
    edge-type boxes for tiles. The argument is for direction.
@@ -757,7 +763,7 @@ work in the ghost cells of tiles.
 Practical Details in Working with Tiling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-With tiling, the OpenMP is now all in , and not in Fortran for all
+With tiling, the OpenMP is now all in C, and not in Fortran for all
 modules except reactions and initdata.
 
 It is the responsibility of the coder to make sure that the routines
@@ -786,7 +792,7 @@ note that:
    (which corresponds to the memory layout) and the index-space of the
    tile.
 
-   -  In the  end, we pass (sometimes via the
+   -  In the C end, we pass (sometimes via the
       BL_TO_FORTRAN() macro) the loVect and hiVect of the
       entire box (including ghost cells). These are then used to
       allocate the array in Fortran as:
@@ -817,7 +823,7 @@ note that:
             a(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = 0.0
 
       where lo() and hi() are the index-space for the tile box
-      returned from mfi.tilebox() in  and passed into the Fortran
+      returned from mfi.tilebox() in C and passed into the Fortran
       routine.
 
    -  Look at r_old_s in Exec/gravity_tests/DustCollapse/probdata.f90 as an
@@ -827,14 +833,14 @@ note that:
 Boundaries: FillPatch and FillPatchIterator
 ===========================================
 
- calls the act of filling ghost cells a *fillpatch*
+AMReX calls the act of filling ghost cells a *fillpatch*
 operation. Boundaries between grids are of two types. The first we
 call “fine-fine”, which is two grids at the same level. The second
 type is "coarse-fine", which needs interpolation from the coarse grid
 to fill the fine grid ghost cells. Both of these are part of the
 fillpatch operation. Fine-fine fills are just a straight copy from
 “valid regions” to ghost cells. Coarse-fine fills are enabled
-because the  is not just arrays, they’re “State Data”,
+because the StateData is not just arrays, they’re “State Data”,
 which means that the data knows how to interpolate itself (in an
 anthropomorphical sense). The type of interpolation to use is defined
 in Castro_setup.cpp—search for
@@ -845,7 +851,7 @@ average of the fine values created is equal to the coarse value from
 which they came. (This wouldn’t be the case with straight linear
 interpolation, for example.)
 
-Additionally, since  has an old and new timelevel,
+Additionally, since StateData has an old and new timelevel,
 the fill patch operation can interpolate to an intermediate time.
 
 Examples
@@ -855,10 +861,10 @@ To illustrate the various ways we fill ghost cells and use the data,
 let’s consider the following scenarios:
 
 -  *You have state data that was defined with no ghost cells. You
-   want to create a new  containing a copy of that data with
+   want to create a new MultiFab containing a copy of that data with
    NGROW ghost cells.*
 
-   This is the case with —the  of the
+   This is the case with —the MultiFab of the
    hydrodynamic state that we use to kick-off the hydrodynamics
    advance.
 
@@ -876,8 +882,8 @@ let’s consider the following scenarios:
          const Real prev_time = state[State_Type].prevTime();                        
          expand_state(Sborder, prev_time, NUM_GROW);      
 
-   Note in the call to .define(), we tell  to already
-   allocate the data regions for the s that are part of
+   Note in the call to .define(), we tell AMReX to already
+   allocate the data regions for the FArrayBoxs that are part of
    Sborder.
 
    The actually filling of the ghost cells is done by
@@ -888,11 +894,12 @@ let’s consider the following scenarios:
          AmrLevel::FillPatch(*this, Sborder, NUM_GROW, 
                              prev_time, State_Type, 0, NUM_STATE);                
 
-   Here, we are filling the ng ghost cells of at time prev_time. We are using the
-    that is part of the current Castro object that we
+   Here, we are filling the ng ghost cells of MultiFab
+   Sborder at time prev_time. We are using the
+   StateData that is part of the current Castro object that we
    are part of. Note: FillPatch takes an object reference as its
    first argument, which is the object that contains the relevant
-   —that is what the this pointer indicates.
+   StateData—that is what the this pointer indicates.
    Finally, we are copying the State_Type data components 0 to
    NUM_STATE [3]_.
 
@@ -905,12 +912,12 @@ let’s consider the following scenarios:
    (including any physical boundaries) with valid data.*
 
    This is very similar to the procedure shown above. The main
-   difference is that for the  that will be the target
-   of the ghost cell filling, we pass in a reference to the  itself.
+   difference is that for the MultiFab that will be the target
+   of the ghost cell filling, we pass in a reference to the StateData itself.
 
    The main thing you need to be careful of here, is that you
    need to ensure that the the time you are at is consistent with
-   the ’s time. Here’s an example from the radiation
+   the StateData’s time. Here’s an example from the radiation
    portion of the code MGFLDRadSolver.cpp:
 
    .. code:: c++
@@ -922,21 +929,21 @@ let’s consider the following scenarios:
                              0, S_new.nComp(), 0); 
 
    In this example, S_new is a pointer to the new-time-level
-   State_Type . So this operation will use the
+   State_Type MultiFab. So this operation will use the
    State_Type data to fill its own ghost cells. we fill the
    ngrow ghost cells of the new-time-level State_Type data,
    for all the components.
 
-   Note that in this example, because the  lives in the
+   Note that in this example, because the StateData lives in the
    Castro object and we are working from the Radiation object,
    we need to make reference to the current castro object
    pointer. If this were all done within the Castro object, then
    the pointer will simply be this, as we saw above.
 
--  *You have a  with some derived quantity. You want to
+-  *You have a MultiFab with some derived quantity. You want to
    fill its ghost cells.*
 
-   s have a FillBoundary() method that will fill all
+   MultiFabs have a FillBoundary() method that will fill all
    the ghost cells between boxes at the same level. It will not fill
    ghost cells at coarse-fine boundaries or at physical boundaries.
 
@@ -945,12 +952,12 @@ let’s consider the following scenarios:
 
    This is the job of the —this iterator is used to
    loop over the grids and fill ghostcells. A key thing to keep in
-   mind about the  is that you operate on a copy
+   mind about the FillPatchIterator is that you operate on a copy
    of the data—the data is disconnected from the original source. If
    you want to update the data in the source, you need to explicitly
    copy it back. Also note: FillPatchIterator takes a multifab,
    but this is not filled—this is only used to get the grid
-   layout. Finally, the way the  is implemented
+   layout. Finally, the way the FillPatchIterator is implemented
    is that all the communication is done first, and then the iterating
    over boxes commences.
 
@@ -979,7 +986,7 @@ let’s consider the following scenarios:
 
 In general, one should never assume that ghostcells are valid, and
 instead do a fill patch operation when in doubt. Sometimes we will
-use a  to fill the ghost cells into a multifab
+use a FillPatchIterator to fill the ghost cells into a multifab
 without an explict look. This is done as:
 
 ::
@@ -988,13 +995,13 @@ without an explict look. This is done as:
       MultiFab& state_old = fpi.get_mf();     
 
 In this operation, state_old points to the internal
- in the , by getting a reference to it as
+MultiFab in the FillPatchIterator, by getting a reference to it as
 fpi.get_mf(). This avoids a local copy.
 
-Note that in the examples above, we see that only  can fill
+Note that in the examples above, we see that only StateData can fill
 physical boundaries (because these register how to fill the boundaries
 when they are defined). There are some advanced operations in
- that can get around this, but we do not use them in .
+AMReX that can get around this, but we do not use them in Castro.
 
 .. _soft:phys_bcs:
 
@@ -1044,7 +1051,7 @@ routines.
 
    \centering
 
-.. table:: [table:castro:bcs] Physical boundary conditions supported in . why does slipwall and noslipwall do the same thing?
+.. table:: [table:castro:bcs] Physical boundary conditions supported in Castro. why does slipwall and noslipwall do the same thing?
 
    +-------------+-------------+-------------+-------------+-------------+
    | **name**    | **integer** | **normal    | **transvers | **scalars** |
@@ -1067,15 +1074,16 @@ routines.
    |             |             |             | N           | N           |
    +-------------+-------------+-------------+-------------+-------------+
 
-.. _section-1:
+FluxRegister
+------------
 
-A  holds face-centered data at the boundaries of a box.
-It is composed of a set of s (one for each face, so 6 for
-3D). A  stores fluxes at coarse-fine interfaces,
+A FluxRegister holds face-centered data at the boundaries of a box.
+It is composed of a set of MultiFabs (one for each face, so 6 for
+3D). A FluxRegister stores fluxes at coarse-fine interfaces,
 and isused for the flux-correction step.
 
-Other  Concepts
-===============
+Other AMReX Concepts
+====================
 
 There are a large number of classes that help define the structure of
 the grids, metadata associate with the variables, etc. A good way to
@@ -1086,7 +1094,7 @@ Geometry class
 --------------
 
 There is a Geometry object, for each level as part of
-the Castro object (this is inhereted through ).
+the Castro object (this is inhereted through AmrLevel).
 
 ParmParse class
 ---------------
@@ -1102,20 +1110,20 @@ static class member of the Castro object. This means that all
 levels refer to the same Gravity object.
 
 Within the Gravity object, there are pointers to the Amr
-object (as parent), and all of the s (as a ,
+object (as parent), and all of the AmrLevels (as a PArray,
 LevelData). The gravity object gets the geometry
 information at each level through the parent Amr class.
 
 The main job of the gravity object is to provide the potential
 and gravitation acceleration for use in the hydrodynamic sources.
 Depending on the approximation used for gravity, this could mean
-calling the  multigrid solvers to solve the Poisson equation.
+calling the AMReX multigrid solvers to solve the Poisson equation.
 
 Fortran Helper Modules
 ======================
 
 There are a number of modules that make data available to the Fortran
-side of  or perform other useful tasks.
+side of Castro or perform other useful tasks.
 
 -  :
 
@@ -1161,14 +1169,14 @@ side of  or perform other useful tasks.
    This module is built if USE_MODELPARSER = TRUE is set in the
    problem’s GNUmakefile. It then provides storage for the an
    initial model and routines to read it in and interpolate onto the
-    grid.
+   Castro grid.
 
 -  prob_params_module:
 
    [soft:prob_params]
 
    This module stores information about the domain and current level,
-   and is periodically synced up with the  driver. The information
+   and is periodically synced up with the C driver. The information
    available here is:
 
    -  , : these are the boundary
@@ -1260,7 +1268,7 @@ The purpose of these files is:
          identify where in the computational domain the box lives.
 
       -  nscal: the number of scalar quantities—this is not typically
-         used in .
+         used in Castro.
 
       -  state_l1, state_l2, (state_l3): the
          integer indices of the lower left corner of the box in each
@@ -1307,7 +1315,7 @@ The purpose of these files is:
 
 -  :
 
-   These routines handle how  fills ghostcells
+   These routines handle how Castro fills ghostcells
    *at physical boundaries* for specific data. Most problem
    setups won’t need to do anything special here, and inclusion
    of this file is optional – only use it if you need to set
@@ -1435,7 +1443,7 @@ each of these in the main source tree.
    checkpoint files that are used for runtime diagnostics.
 
    The name of the checkpoint directory is passed in as an argument.
-   provides the  interfaces for these routines.
+   provides the C interfaces for these routines.
 
 -  ,
 
@@ -1451,15 +1459,15 @@ each of these in the main source tree.
 
    Together, these provide a mechanism to create derived quantities
    that can be stored in the plotfile. Problem_Derives.H
-   provides the  code that defines these new plot variables. It
+   provides the C code that defines these new plot variables. It
    does this by adding them to the —a list of
-   derived variables that  knows about. When adding new
+   derived variables that Castro knows about. When adding new
    variables, a descriptive name, Fortran routine that does the
-   deriving, and component of  are specified.
+   deriving, and component of StateData are specified.
 
    The Fortran routine that does the deriving is put in the
    problem-specific problem_derive_nd.f90 (and a prototype for
-    is put in Problem_Derives.H). A example is provided by
+   C is put in Problem_Derives.H). A example is provided by
    the problem, which derives several new
    quantities (perturbations against a background one-dimensional
    model, in this case).
@@ -1530,9 +1538,9 @@ running, which means that each CPU writes to a unique file, which can
 create a very large number of files, which can lead to inode issues.
 
 .. [1]
-   Note: some older code will use a special  preprocessor macro,
+   Note: some older code will use a special AMReX preprocessor macro,
    , defined in , that converts
-   the  multifab into a Fortran array and its lo and hi indices.
+   the C multifab into a Fortran array and its lo and hi indices.
    Additionally, some older code will wrap the Fortran subroutine name
    in an additional preprocessor macro,
    to handle the name mangling between Fortran and C. This later
@@ -1541,7 +1549,7 @@ create a very large number of files, which can lead to inode issues.
 
 .. [2]
    the way to read these complicated
-    declarations is right-to-left. So ‘const int\* lo‘ means
+   C declarations is right-to-left. So ‘const int\* lo‘ means
    ‘lo‘ is a integer pointer to a memory space that is constant. See
    https://isocpp.org/wiki/faq/const-correctness#ptr-to-const
 

@@ -61,14 +61,14 @@ the timestep can increase (castro.change_max) of 1.05.
    \centering
 
 .. figure:: sod_3d
-   :alt: [fig:sod]  solution for Sod’s problem run in 3-d,
+   :alt: [fig:sod] Castro solution for Sod’s problem run in 3-d,
    with the newest ppm limiters,
    along the :math:`x`, :math:`y`, and :math:`z` axes. A coarse grid of 32 zones in the
    direction of propagation, with 2 levels of refinement was used. The
    analytic solution appears as the red line.
    :width: 4.75in
 
-   [fig:sod]  solution for Sod’s problem run in 3-d,
+   [fig:sod] Castro solution for Sod’s problem run in 3-d,
    with the newest ppm limiters,
    along the :math:`x`, :math:`y`, and :math:`z` axes. A coarse grid of 32 zones in the
    direction of propagation, with 2 levels of refinement was used. The
@@ -79,20 +79,20 @@ the timestep can increase (castro.change_max) of 1.05.
    \centering
 
 .. figure:: sod_3d_ppm0
-   :alt: [fig:sod_ppm0]  solution for Sod’s problem run in 3-d,
+   :alt: [fig:sod_ppm0] Castro solution for Sod’s problem run in 3-d,
    with the piecewise-linear Godunov method with limiters,
    along the :math:`x`, :math:`y`, and :math:`z` axes. A coarse grid of 32 zones in the
    direction of propagation, with 2 levels of refinement was used. The
    analytic solution appears as the red line.
    :width: 4.75in
 
-   [fig:sod_ppm0]  solution for Sod’s problem run in 3-d,
+   [fig:sod_ppm0] Castro solution for Sod’s problem run in 3-d,
    with the piecewise-linear Godunov method with limiters,
    along the :math:`x`, :math:`y`, and :math:`z` axes. A coarse grid of 32 zones in the
    direction of propagation, with 2 levels of refinement was used. The
    analytic solution appears as the red line.
 
-Figure \ `[fig:sod] <#fig:sod>`__ shows the  solution using the newest PPM limiters
+Figure \ `[fig:sod] <#fig:sod>`__ shows the Castro solution using the newest PPM limiters
 compared to the analytic
 solution, showing the density, velocity, pressure, and internal energy.
 Figure \ `[fig:sod_ppm0] <#fig:sod_ppm0>`__ is the same as Figure \ `[fig:sod] <#fig:sod>`__,
@@ -101,20 +101,20 @@ shown for comparison.
 
 The Verification subdirectory includes the analytic solution for
 the Sod problem sod-exact.out, with :math:`\gamma = 1.4`. 1-d slices
-can be extracted from the  plotfile using the fextract tool
+can be extracted from the Castro plotfile using the fextract tool
 from BoxLib/Tools/Postprocessing/F_Src/.
-The steps to generate this verification plot with  are:
+The steps to generate this verification plot with Castro are:
 
-#. in Exec/hydro_tests/Sod, build the  executable in 3-d
+#. in Exec/hydro_tests/Sod, build the Castro executable in 3-d
 
-#. | run the Sod problem with  in the :math:`x`, :math:`y`, and :math:`z` directions:
+#. | run the Sod problem with Castro in the :math:`x`, :math:`y`, and :math:`z` directions:
    | ./Castro3d.Linux.Intel.Intel.ex inputs-sod-x
    | ./Castro3d.Linux.Intel.Intel.ex inputs-sod-y
    | ./Castro3d.Linux.Intel.Intel.ex inputs-sod-z
 
 #. build the fextract tool in BoxLib/Tools/Postprocessing/F_Src/.
 
-#. | run fextract on the  output to generate 1-d slices
+#. | run fextract on the Castro output to generate 1-d slices
      through the output:
    | fextract3d.Linux.Intel.exe -d 1 -s sodx.out -p sod_x_plt00034
    | fextract3d.Linux.Intel.exe -d 2 -s sody.out -p sod_y_plt00034
@@ -185,20 +185,20 @@ solver with the new limiters are used.
    \centering
 
 .. figure:: test2_3d
-   :alt: [fig:test2]  solution for the double rarefaction
+   :alt: [fig:test2] Castro solution for the double rarefaction
    problem run in 3-d, along the :math:`x`, :math:`y`, and :math:`z` axes. A coarse grid
    of 32 zones in the direction of propagation, with 2 levels of
    refinement was used. The analytic solution appears as the red
    line.
    :width: 5in
 
-   [fig:test2]  solution for the double rarefaction
+   [fig:test2] Castro solution for the double rarefaction
    problem run in 3-d, along the :math:`x`, :math:`y`, and :math:`z` axes. A coarse grid
    of 32 zones in the direction of propagation, with 2 levels of
    refinement was used. The analytic solution appears as the red
    line.
 
-Figure \ `[fig:test2] <#fig:test2>`__ shows the  output, run along all 3
+Figure \ `[fig:test2] <#fig:test2>`__ shows the Castro output, run along all 3
 coordinate axes in 3-d, compared to the analytic solution.
 
 The comparison to the analytic solution follows the same procedure as
@@ -264,20 +264,20 @@ solver with the new limiters are used.
    \centering
 
 .. figure:: test3_3d
-   :alt: [fig:test3]  solution for the strong shock
+   :alt: [fig:test3] Castro solution for the strong shock
    problem run in 3-d, along the :math:`x`, :math:`y`, and :math:`z` axes. A coarse grid
    of 32 zones in the direction of propagation, with 2 levels of
    refinement was used. The analytic solution appears as the red
    line.
    :width: 5in
 
-   [fig:test3]  solution for the strong shock
+   [fig:test3] Castro solution for the strong shock
    problem run in 3-d, along the :math:`x`, :math:`y`, and :math:`z` axes. A coarse grid
    of 32 zones in the direction of propagation, with 2 levels of
    refinement was used. The analytic solution appears as the red
    line.
 
-Figure \ `[fig:test3] <#fig:test3>`__ shows the  output, run along all 3
+Figure \ `[fig:test3] <#fig:test3>`__ shows the Castro output, run along all 3
 coordinate axes in 3-d, compared to the analytic solution.
 
 The comparison to the analytic solution follows the same procedure as
@@ -302,9 +302,9 @@ factors in the hydrodynamics solver.
 We use a publically available code, sedov3.f
 :raw-latex:`\cite{timmes_sedov_code}`, to generate the analytic solutions.
 
-The  implementation of the Sedov problem is in Exec/hydro_tests/Sedov.
+The Castro implementation of the Sedov problem is in Exec/hydro_tests/Sedov.
 A number of different inputs/probin files are provided, corresponding
-to different Sedov/ geometries. The main ones are:
+to different Sedov/Castro geometries. The main ones are:
 
 [Table:Sod]
 
@@ -328,7 +328,7 @@ To further minimize any grid effects, we do subsampling
 in each zone: each zone is divided it into :math:`N_\mathrm{sub}` subzones in each
 coordinate direction, each subzone is initialized independently, and
 then the subzones are averaged together (using a volume weighting for
-spherical or cylindrical/axisymmetric  grids) to determine the
+spherical or cylindrical/axisymmetric Castro grids) to determine the
 initial state of the full zone.
 
 For these runs, we use :math:`\rho_\mathrm{ambient} = 1`,
@@ -340,7 +340,7 @@ domain runs from 0 to 1 in each coordinate direction.
 
 Analysis routines for the Sedov problem are provided in
 Castro/Diagnostics/Sedov/. These routines will
-average the  solution over angles, using the proper geometric
+average the Castro solution over angles, using the proper geometric
 weighting, to produce an average profile as a function of radius.
 The following routines correspond to the inputs files described above:
 
@@ -354,15 +354,15 @@ profile can be extracted using the appropriate fsedov routine,
 as listed in Table \ `[table:fsedov] <#table:fsedov>`__. For example, to run and process
 the 2-d cylindrical Sedov explosion, one would do:
 
-#. in Exec/hydro_tests/Sedov, build the  executable in 2-d
+#. in Exec/hydro_tests/Sedov, build the Castro executable in 2-d
 
-#. | run the spherical Sedov problem with  in 2-d cylindrical coordinates:
+#. | run the spherical Sedov problem with Castro in 2-d cylindrical coordinates:
    | ./Castro2d.Linux.Intel.Intel.ex inputs.2d.sph_in_cylcoords
 
 #. build the fsedov2d_sph_in_cylcoords tool in
    Castro/Diagnostics/Sedov.
 
-#. | run fsedov2d_sph_in_cylcoords on the  output to generate 1-d radial
+#. | run fsedov2d_sph_in_cylcoords on the Castro output to generate 1-d radial
      profiles:
    | fsedov2d_sph_in_cylcoords.Linux.Intel.exe -s sedov_2d_sph_in_cyl.out :math:`\mathtt{\backslash}` 
    | :math:`~~~~~`\ -p sedov_2d_sph_in_cyl_plt00246
@@ -373,19 +373,19 @@ sedov_3d_sph.out respectively). Once this is done, the
 sedov_sph.gp gnuplot script can be used to make a plot comparing
 the 3 solutions to the analytic solution, spherical_sedov.dat.
 
-Figure \ `[fig:sedov_sph] <#fig:sedov_sph>`__ shows the comparison of the 3  spherical Sedov explosion simulations to the analytic solution.
+Figure \ `[fig:sedov_sph] <#fig:sedov_sph>`__ shows the comparison of the 3 Castro spherical Sedov explosion simulations to the analytic solution.
 
 .. raw:: latex
 
    \centering
 
 .. figure:: sedov_sph
-   :alt: [fig:sedov_sph]  solution for the Sedov blast wave problem
+   :alt: [fig:sedov_sph] Castro solution for the Sedov blast wave problem
    run in 1-d spherical, 2-d axisymmetric, and 3-d Cartesian coordinates.
    Each of these geometries produces a spherical Sedov explosion.
    :width: 5in
 
-   [fig:sedov_sph]  solution for the Sedov blast wave problem
+   [fig:sedov_sph] Castro solution for the Sedov blast wave problem
    run in 1-d spherical, 2-d axisymmetric, and 3-d Cartesian coordinates.
    Each of these geometries produces a spherical Sedov explosion.
 
@@ -397,12 +397,12 @@ Cylindrical Blast Wave
    \centering
 
 .. figure:: sedov_cyl
-   :alt: [fig:sedov_cyl]  solution for the Sedov blast wave problem
+   :alt: [fig:sedov_cyl] Castro solution for the Sedov blast wave problem
    run in 2-d Cartesian coordinates. This corresponds to a cylindrical
    Sedov explosion.
    :width: 5in
 
-   [fig:sedov_cyl]  solution for the Sedov blast wave problem
+   [fig:sedov_cyl] Castro solution for the Sedov blast wave problem
    run in 2-d Cartesian coordinates. This corresponds to a cylindrical
    Sedov explosion.
 
@@ -447,7 +447,7 @@ Gravity Test Problems
 Radiation Test Problems
 =======================
 
-There are two photon radiation solvers in —a gray solver and a
+There are two photon radiation solvers in Castro—a gray solver and a
 multigroup solver. The gray solver follows the algorithm outlined
 in :raw-latex:`\cite{howellgreenough:2003}`. We use the notation described in that
 paper. In particular, the radiation energy equation takes the form
@@ -462,7 +462,7 @@ of:
 Here, :math:`E_R` is the radiation energy density, :math:`\kappa_R` is the
 Roseland-mean opacity, :math:`\kappa_P` is the Planck-mean opaciy, and
 :math:`\lambda` is a quantity :math:`\le 1/3` that is subjected to limiting to
-keep the radiation field causal.  allows for :math:`\kappa_R`
+keep the radiation field causal. Castro allows for :math:`\kappa_R`
 and :math:`\kappa_P` to be set independently as power-laws.
 
 Light Front
@@ -508,13 +508,13 @@ Our implementation of this problem follows that of
    \centering
 
 .. figure:: radiating_source
-   :alt: [fig:radsource]  solution for radiating source
+   :alt: [fig:radsource] Castro solution for radiating source
    test problem. Heating and cooling solutions are shown as a function
    of time, compared to the analytic solution. The gray photon solver
    was used.
    :width: 5in
 
-   [fig:radsource]  solution for radiating source
+   [fig:radsource] Castro solution for radiating source
    test problem. Heating and cooling solutions are shown as a function
    of time, compared to the analytic solution. The gray photon solver
    was used.
@@ -543,18 +543,18 @@ the analytic solution is provided as analytic.f90.
    \centering
 
 .. figure:: radiating_sphere
-   :alt: [fig:radsphere]  solution for radiating sphere problem,
+   :alt: [fig:radsphere] Castro solution for radiating sphere problem,
    showing the radiation energy density as a function of energy group.
    This test was run with 64 photon energy groups.
    :width: 5in
 
-   [fig:radsphere]  solution for radiating sphere problem,
+   [fig:radsphere] Castro solution for radiating sphere problem,
    showing the radiation energy density as a function of energy group.
    This test was run with 64 photon energy groups.
 
 Regression Testing
 ==================
 
-An automated regression test suite for  (or any -based
+An automated regression test suite for Castro (or any BoxLib-based
 code) written in Python exists in BoxLib/Tools/RegressionTesting.
-Details of its use are provided in the  User’s Guide.
+Details of its use are provided in the BoxLib User’s Guide.

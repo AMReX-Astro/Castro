@@ -35,7 +35,7 @@ Compiling
    (note: the problem above is not bl_types, that just seems to be
    the way the error manifests itself). The source files are specified
    in the various Make.package files throughout the
-    directory hierarchy. make will look through the
+   Castro directory hierarchy. make will look through the
    directories in the VPATH_LOCATIONS to find the files.
 
    There are 2 things you can do to check what’s happening. First, inspect
@@ -47,7 +47,7 @@ Compiling
 
    Next, ask make to tell you where it is finding each of the source
    files. This is done through a script find_files_vpath.py
-   that is hooked into ’s build system. You can run this as:
+   that is hooked into Castro’s build system. You can run this as:
 
    ::
 
@@ -70,7 +70,7 @@ Compiling
    This will tell you the value of all the compilers and their options.
 
 #. *How do I use a system’s BLAS library instead of compiling and
-   linking the one that comes with the  microphysics?*
+   linking the one that comes with the StarKiller microphysics?*
 
    To use a system’s BLAS library, set the Make variable
    to TRUE. This will then look at
@@ -78,7 +78,7 @@ Compiling
    (defaults to -lopenblas).
 
 #. *How can I check to make sure the function signatures defined
-   in  are consistent with their implementations in Fortran?*
+   in C are consistent with their implementations in Fortran?*
 
    Use:
 
@@ -91,26 +91,26 @@ Compiling
 Debugging
 =========
 
-#. * crashes with a floating point exception—how can
+#. *Castro crashes with a floating point exception—how can
    I get more information?*
 
    The best thing to do is to recompile the code with TEST=TRUE
-   set in the GNUmakefile. This will have  catch the
-   signals raised in both  and Fortran functions. Behind the
+   set in the GNUmakefile. This will have AMReX catch the
+   signals raised in both C and Fortran functions. Behind the
    scenes, this defines the BL_TESTING preprocessor flag, which
    will initialize memory allocated in fabs or multifabs to
    signaling NaNs (sNaN), and use the BLBackTrace::handler()
-   function to handle various signals raised in both  and Fortran
+   function to handle various signals raised in both C and Fortran
    functions. This is a Linux/UNIX capability. This gives us a chance
    to print out backtrace information. The signals include seg fault,
    floating point exceptions (NaNs, divided by zero and overflow), and
    interruption by the user and system. What signals are handed to
-    are controlled by (e.g., using interruption by the
+   AMReX are controlled by AMReX(e.g., using interruption by the
    user, this was once used to find an MPI deadlock.) It also includes
    the BL_ASSERTION statements if USE_ASSERTION=TRUE or
    DEBUG=TRUE.
 
-   The  parameters that affect the behavior are:
+   The AMReX parameters that affect the behavior are:
 
    -  amrex.fpe_trap_invalid
 
@@ -120,7 +120,7 @@ Debugging
 
    For further capabilities, defining BACKTRACE=TRUE enables you
    to get more information than the backtrace of the call stack info by
-   instrumenting the code. (This is in  code only). Here is an
+   instrumenting the code. (This is in C code only). Here is an
    example. You know the line “Real rho = state(cell,0);” is
    causing a segfault. You could add a print statement before that.
    But it might print out thousands (or even millions) of line before
@@ -139,10 +139,10 @@ Debugging
    The “print” prints to a stack of string, not stdout. When it
    hits the segfault, you will only see the last print out.
 
-#. *How can I monitor the state in a zone from the  side
+#. *How can I monitor the state in a zone from the C side
    at various points in the evolution?*
 
-   Given a  mf, you can dump out the state as:
+   Given a MultiFab mf, you can dump out the state as:
 
    ::
 
@@ -154,10 +154,10 @@ Debugging
    space. Note that since a multifab exists only on a single level, the
    integer indices here refer to the global index space on that level.
 
-#. *What if I want to see all the data in a ?*
+#. *What if I want to see all the data in a FArrayBox?*
 
    You can simply output a FAB to std::cout. Imagine that you
-   are in an  loop, with a  mf:
+   are in an MFIter loop, with a MultiFab mf:
 
    ::
 
@@ -214,7 +214,7 @@ Managing Runs
 
 #. *How can I output plotfiles in single precision?*
 
-   The  runtime parameter:
+   The AMReX runtime parameter:
 
    ::
 
@@ -222,14 +222,14 @@ Managing Runs
 
    controls this (put this in your inputs file). Note: checkpoint files are unaffected
    by this and will always be written out in the native precision (the ‘fab.format‘ parameter
-   is overridden in the checkpoint code in ).
+   is overridden in the checkpoint code in AMReX).
 
 .. _ch:faq:vis:
 
 Visualization
 =============
 
-#. *When I try to use  with the Nvidia driver, all I see is
+#. *When I try to use Amrvis with the Nvidia driver, all I see is
    black—no data. How do I fix this?*
 
    You need to edit your xorg.conf file (usually found in /etc/X11/

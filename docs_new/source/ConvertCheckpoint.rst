@@ -58,7 +58,7 @@ new larger domain with a level that is a factor of 2 coarser than the existing l
    The new domain will be a factor of grown_factor (in this case, 8) larger than the previous domain.
 
    Note that ref_ratio must be 2 or 4, because those are the only acceptable values of ref_ratio
-   in .
+   in Castro.
 
    grown_factor can be any reasonable integer; but it’s only been
    tested with 2, 3, 4 and 8. It does not need to be a multiple of 2.

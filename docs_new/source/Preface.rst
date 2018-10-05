@@ -1,15 +1,15 @@
-Welcome to the  User’s Guide!
+Welcome to the Castro User’s Guide!
 
-In this User’s Guide we describe how to download and run , a
+In this User’s Guide we describe how to download and run Castro, a
 massively parallel code that solves the multicomponent compressible
 hydrodynamic equations for astrophysical flows including self-gravity,
-nuclear reactions and radiation.  uses an Eulerian grid and
+nuclear reactions and radiation. Castro uses an Eulerian grid and
 incorporates adaptive mesh refinement (AMR). Our approach to AMR uses
 a nested hierarchy of logically-rectangular grids with simultaneous
 refinement in both space and time, utilizing the
- library [1]_.
+AMReX library [1]_.
 
-The core algorithms in  are described in a series of papers:
+The core algorithms in Castro are described in a series of papers:
 
 -  *CASTRO: A New Compressible Astrophysical Solver. I. Hydrodynamics and Self-gravity*,
    A. S. Almgren, V. E. Beckner, J. B. Bell, M. S. Day, L. H. Howell, C. C. Joggerst, M. J. Lijewski,
@@ -32,15 +32,15 @@ Improvements to the gravity solver and rotation were described in:
    2016, ApJ, 819, 94.
    http://dx.doi.org/10.3847/0004-637X/819/2/94
 
-The development of  library is led by the
+The development of AMReX library is led by the
 Center for Computational Sciences and Engineering / Lawrence Berkeley
-National Laboratory.  development is done collaboratively,
+National Laboratory. Castro development is done collaboratively,
 including the CCSE and Stony Brook University.
 
- *core developers* are those who have made substantial
+Castro *core developers* are those who have made substantial
 contributions to the code. The process for becoming a core developer
-is described in the README.md in the  root directory.
-Current  core developers are:
+is described in the README.md in the Castro root directory.
+Current Castro core developers are:
 
     Ann Almgren
     Maria G. Barrios Sazo
@@ -55,10 +55,10 @@ Current  core developers are:
     Weiqun Zhang
     Michael Zingale
 
-| All  development takes place on the project’s github
+| All Castro development takes place on the project’s github
   page
 | https://github.com/AMReX-Astro/Castro
-| External contributions are welcomed. Fork the  repo, modify
+| External contributions are welcomed. Fork the Castro repo, modify
   your local copy, and issue a pull-request to the
   AMReX-Astro/Castro project. Further guidelines are given in the
   README.md file.
@@ -66,24 +66,24 @@ Current  core developers are:
 To get help, subscribe to the *castro-help* google group mailing list:
 https://groups.google.com/forum/#!forum/castro-help
 
-Acknowledging and Citing 
-=========================
+Acknowledging and Citing Castro
+===============================
 
-If you use  in your research, we would appreciate it if you
+If you use Castro in your research, we would appreciate it if you
 cited the relevant code papers describing its design, features, and
 testing. A list of these can be found in the
 `CITATION <https://github.com/AMReX-Astro/Castro/blob/master/CITATION>`__ file in the root Castro/ directory.
 
-The development  is supported by the science application
+The development Castro is supported by the science application
 interests of the contributors. There is a lot of effort behind the
 scenes: testing, optimization, development of new features, bug
 fixing, :math:`\ldots`, that is often done under the radar. Nevertheless,
 we are happy to volunteer our time to help new users come up to speed
-with . When significant new development / debugging for you
-application is provided by a member of the  development
+with Castro. When significant new development / debugging for you
+application is provided by a member of the Castro development
 community, we would appreciate consideration of inviting the
 developer(s) for co-authorship on any science paper that results.
 
 .. [1]
-   earlier versions of  used the
-    library
+   earlier versions of Castro used the
+   BoxLib library

@@ -4,11 +4,11 @@ Introduction to Runtime Parameters
 ==================================
 
 Castro has 2 sets of runtime parameters—those controlled by
- and those controlled by Fortran. The  parameters are set
-in the inputs file and managed by the  ParmParse
-class. For -specific parameters, we list the runtime
+C and those controlled by Fortran. The C parameters are set
+in the inputs file and managed by the AMReX ParmParse
+class. For Castro-specific parameters, we list the runtime
 parameters in a file and generate the
- code and headers using the script—note
+C code and headers using the script—note
 this script needs to be run every time the \_cpp_parameters
 file is updated.
 
@@ -16,7 +16,7 @@ The behavior of the network, EOS, and other microphysics routines are
 controlled by a different set of runtime parameters. These parameters are defined
 in plain-text files located in the different
 directories that hold the microphysics code. At compile time, a
-script in the  bulid system, , locates all
+script in the AMReX bulid system, , locates all
 of the \_parameters files that are needed for the given choice
 of network, integrator, and EOS, and assembles all of the runtime
 parameters into a module named (using the
@@ -26,7 +26,7 @@ probin file in the &extern namelist.
 C++ parameter format
 --------------------
 
-The  parameters take the form of:
+The C parameters take the form of:
 
 ::
 
@@ -67,14 +67,14 @@ define the same parameter, but with different defaults, the version of
 the parameter with the highest priority takes precedence. This allows
 specific implementations to override the general parameter defaults.
 
-The documentation below for the   parameters is
+The documentation below for the Castro C parameters is
 automatically generated, using the comments in the \_cpp_parameters
 file.
 
 Removed Runtime Parameters
 ==========================
 
-The following runtime parameters have been removed for .
+The following runtime parameters have been removed for Castro.
 
 -  castro.ppm_flatten_before_integrals : this parameter
    controlled whether we applied the flattening of the parabolic

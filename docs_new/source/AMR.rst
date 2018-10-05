@@ -1,4 +1,4 @@
-Our approach to adaptive refinement in  uses a nested hierarchy
+Our approach to adaptive refinement in Castro uses a nested hierarchy
 of logically-rectangular grids with simultaneous refinement of the
 grids in both space and time. The integration algorithm on the grid
 hierarchy is a recursive procedure in which coarse grids are advanced
@@ -23,7 +23,7 @@ https://ccse.lbl.gov/people/jbb/shortcourse/lecture1.pdf.
 Tagging for Refinement
 ======================
 
- determines what zones should be tagged for refinement at the
+Castro determines what zones should be tagged for refinement at the
 next regridding step by using a set of built-in routines that test on
 quantities such as the density and pressure and determining whether
 the quantities themselves or their gradients pass a user-specified
@@ -182,7 +182,7 @@ Here we present the AMR algorithm for the compressible equations with
 self-gravity. The gravity component of the algorithm is closely
 related to (but not identical to) that in Miniati and Colella, JCP,
 2007. The content here is largely based on the content in the original
- paper (:raw-latex:`\cite{castro_I}`). The most significant difference is the
+Castro paper (:raw-latex:`\cite{castro_I}`). The most significant difference is the
 addition of a different strategy for when to employ the synchronization;
 but regardless of whether the original or new strategy is used, the fundamental
 synchronization step is identical.
@@ -315,7 +315,7 @@ Indeed, an algorithm that did not subcycle, but marched every zone along
 at the same timestep, could do so – and some codes, like FLASH,
 actually do this, where no new-time source terms are computed on any
 level until the hydrodynamic update has been fully completed and the
-coarse-fine mismatches corrected. But in  we cannot do this; in
+coarse-fine mismatches corrected. But in Castro we cannot do this; in
 general we assume the ability to subcycle, so the architecture is set up
 to always calculate the new-time source terms on a given level
 immediately after the hydrodynamic update on that level. Hence on the
@@ -336,7 +336,7 @@ of the source term). This has a couple of severe limitations. First,
 it means that when the form of the source term is changed, the form of
 the corrector term is changed too. For example, it is less easy to
 write down the form of this corrector term for the flux-based
-gravitational energy source term that is now standard in .
+gravitational energy source term that is now standard in Castro.
 Second, gravity is a relatively easy case due to its linearity in the
 density and the gravitational acceleration; other source terms
 representing more complicated physics might not have an easily
@@ -369,7 +369,7 @@ code parameter castro.update_sources_after_reflux.
 
 Note that at present nuclear reactions are not enabled as part of this
 scheme, and at present are not automatically updated after an AMR
-synchronization. This will be amended in a future release of .
+synchronization. This will be amended in a future release of Castro.
 
 .. _sec:synchronization_timing:
 
@@ -386,7 +386,7 @@ discussion about source terms in `2.2 <#sec:synchronization_sources>`__. If
 we have a coarse level and one fine level with a refinement ratio of
 two, then for normal subcycling the fine grid takes two timesteps for
 every one timestep taken by the coarse level. The strategy advocated by
-the original  paper (and Miniati and Colella) is to only do the
+the original Castro paper (and Miniati and Colella) is to only do the
 AMR synchronization at the actual synchronization time between coarse
 and fine levels, that is, at the end of the second fine timestep.
 Consequently, we actually only update the source terms after that second
@@ -398,7 +398,7 @@ grid, but the algorithm as presented above didn’t take full account of
 this information. So, the gravitational field at the old time in
 the second fine timestep is actually missing information that would have
 been present if we had updated the coarse grid already. Is there a way
-to use this information? For the assumptions we make in , the
+to use this information? For the assumptions we make in Castro, the
 answer is actually yes. If we apply the effect of the synchronization
 not at the synchronization time but at the end of every fine
 timestep, then every fine timestep always has the most up-to-date
@@ -408,7 +408,7 @@ reached the synchronization time. But we already know at the end of the
 first fine timestep what the synchronization correction will be from
 that fine timestep: it will be equal to 1/2 of the coarse contribution
 to the flux register and the normal contribution to the flux register
-for just that timestep. This is true because in , we assume that
+for just that timestep. This is true because in Castro, we assume that
 the fluxes provided by the hydrodynamic solver are piecewise-constant
 over the timestep, which is all that is needed to be second-order
 accurate in time if the fluxes are time centered [3]_. So it is fair to say
@@ -480,12 +480,12 @@ the synchronizations applied at the end of the fine level timesteps.
    In the absence of a global field like
    the gravitational potential, this would only need to be done on the
    coarse level, as we always assume that the solution on the fine grid is
-   correct and average it down to the coarse grid. In  we do it by
+   correct and average it down to the coarse grid. In Castro we do it by
    default on the fine level too in anticipation of the fact that gravity
    is a common component of many of our production science
    simulations. This could be generalized so that if you aren’t using any
    global force fields, you don’t bother updating the fine level. If this
-   is important to the science you want to do, please let the  developers know and we can look into it.
+   is important to the science you want to do, please let the Castro developers know and we can look into it.
 
 .. [2]
    in general it may be desirable for this to be a

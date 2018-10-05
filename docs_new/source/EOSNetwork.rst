@@ -1,22 +1,22 @@
 Equation of State
 =================
 
-Standard  EOSes
----------------
+Standard Castro EOSes
+---------------------
 
- is written in a modular fashion so that the EOS and network
+Castro is written in a modular fashion so that the EOS and network
 burning routines can be supplied by the user. However, for the
 examples presented later we use several EOS and network routines
-that come with the  distribution.
+that come with the Microphysics distribution.
 
- relies on routines to calculate the equation of state (EOS)
+Castro relies on routines to calculate the equation of state (EOS)
 of a fluid, as well as a species network to define the components of
 the fluid. The network optionally has the ability to do nuclear burning,
 but for this section its main purpose is in defining the species so that
 the EOS can calculate fluid properties that depend on composition, such
 as electron fraction.
 
-By default,  comes with the gamma_law
+By default, Castro comes with the gamma_law
 EOS. This represents a gamma law gas, with equation of state:
 
 .. math:: P = (\gamma - 1) \rho e.
@@ -26,13 +26,13 @@ restricted set of thermodynamic variables are actually calculated,
 the minimum necessary for the hydrodynamics. A fuller set of
 thermodynamic variables, for example the entropy from the
 Sackur-Tetrode equation, are calculated in the gamma_law_general
-EOS inside the  repository.)
+EOS inside the Microphysics repository.)
 
 EOS Interfaces and Parameters
 -----------------------------
 
 Each EOS should have two main routines by which it interfaces to the
-rest of . At the beginning of the simulation, eos_init
+rest of Castro. At the beginning of the simulation, eos_init
 will perform any initialization steps and save EOS variables (mainly
 ``smallt``, the temperature floor, and ``smalld``, the
 density floor). Then, whenever you want to call the EOS, use
@@ -56,7 +56,7 @@ to find the density or temperature that corresponds to the given
 input.
 
 The eos_state variable is a Fortran derived type (similar to
-a  struct). It stores a complete set of thermodynamic
+a C struct). It stores a complete set of thermodynamic
 variables. When calling the EOS, you should first fill the variables
 that are the inputs, for example with
 
@@ -85,9 +85,9 @@ if it’s available, but if not then use ``small_temp`` or
 ``small_dens``.
 
 If you are interested in using more realistic and sophisticated equations of
-state, you should download the ` <https://github.com/starkiller-astro/Microphysics>`__
+state, you should download the `Microphysics <https://github.com/starkiller-astro/Microphysics>`__
 repository. This is a collection of microphysics routines that are compatible with the
- codes. We refer you to the documentation in that repository for how to set it up
+BoxLib codes. We refer you to the documentation in that repository for how to set it up
 and for information on the equations of state provided. That documentation
 also goes into more detail about the details of the EOS code, in case you are interested in
 how it works (and in case you want to develop your own EOS).
@@ -97,7 +97,7 @@ Nuclear Network
 
 The nuclear network serves two purposes: it defines the fluid components used
 in both the equation of state and the hydrodynamics, and it evolves those
-components through a nuclear burning step.  comes with a general_null
+components through a nuclear burning step. Castro comes with a general_null
 network (which lives in the Networks/ directory). This is a bare interface for a
 nuclear reaction network. No reactions are enabled, and no auxiliary variables
 are accepted. It contains several sets of isotopes; for example,
@@ -131,13 +131,13 @@ It takes in an input burn_t and returns an output burn_t after
 the burning has completed. The nuclear energy release can be computed by
 taking the difference of burn_state_out % e and
 burn_state_in % e. The species change can be computed analogously.
-In normal operation in   the integration occurs over a time interval
+In normal operation in Castro  the integration occurs over a time interval
 of :math:`\Delta t/2`, where :math:`\Delta t` is the hydrodynamics timestep.
 
 If you are interested in using actual nuclear burning networks,
 you should download the `Microphysics <https://github.com/starkiller-astro/Microphysics>`__
 repository. This is a collection of microphysics routines that are compatible with the
- codes. We refer you to the documentation in that repository for how to set it up
+BoxLib codes. We refer you to the documentation in that repository for how to set it up
 and for information on the networks provided. That documentation
 also goes into more detail about the details of the network code, in case you are interested in
 how it works (and in case you want to develop your own network).
@@ -155,7 +155,7 @@ Three input modes are required of any EOS:
 
 The eos_t derived type holds a large number of thermodynamics
 quantities, but not all of these are needed for basic
- operation. The main quantities that any EOS in any mode needs to
+Castro operation. The main quantities that any EOS in any mode needs to
 supply, if they are not input, are:
 
 -  eos_state % T: the temperature

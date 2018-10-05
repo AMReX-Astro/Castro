@@ -1,1 +1,0 @@
-for i in `find . -name "*.tex"`; do pandoc $i --mathjax --wrap=preserve -o ../docs_new/`basename $i .tex`.rst; done

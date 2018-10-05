@@ -1,7 +1,7 @@
 Introduction
 ============
 
- has three radiation solvers:
+Castro has three radiation solvers:
 
 -  SingleGroupSolver: this solver does not have radiation
    pressre. It is pure hydro plus radiation diffusion. This is only
@@ -21,7 +21,7 @@ Introduction
 The gray solver has a comoving frame mode and a mixed frame mode,
 whereas the MG solver uses the comoving frame approach. More details
 about the formulation and algorithm can be found in the series of
- papers.
+Castro papers.
 
 Getting Started
 ===============
@@ -29,16 +29,16 @@ Getting Started
 Getting the Code
 ----------------
 
-The  radiation solver is part of the main  git repo,
-so you already have all the  code and problem setups
+The Castro radiation solver is part of the main Castro git repo,
+so you already have all the Castro code and problem setups
 to exercise radiation. The only other requirement is a copy
-of the  library.  provides the algebraic multigrid
+of the Hypre library. Hypre provides the algebraic multigrid
 solvers used by the implicit radiation update. You can get
 a copy at https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html. You will need to follow their installation instructions.
 
 In addition to the environment variables you set for the main
- hydrodynamics problems, you also need to tell the code
-where to find . This is done via one of two variables:
+Castro hydrodynamics problems, you also need to tell the code
+where to find Hypre. This is done via one of two variables:
 
 -  the environment variable HYPRE_DIR should
    point to the location of your Hypre installation
@@ -73,7 +73,7 @@ Microphysics: EOS, Network, and Opacity
 EOS
 ---
 
- provides several types of equation of state (EOS), including
+Castro provides several types of equation of state (EOS), including
 gamma-law and Helmholtz. To use the gamma-law EOS, set
 
 ::
@@ -86,10 +86,10 @@ The original Helmholtz EOS for stellar interiors includes a radiation
 contribution. However, for radiation hydrodynamics calculations, the
 radition contribution should be taken out of EOS because radiation has
 been treated in other places. To use Helmholtz EOS, we will use the
-version in , as with the pure hydrodynamics code, but
+version in Microphysics, as with the pure hydrodynamics code, but
 this will interpret the preprocessor variable and
 disable the radiation portion of the EOS [1]_ If you have your own EOS, you
-can put it in .
+can put it in Microphysics.
 
 EOS Parameters
 ~~~~~~~~~~~~~~
@@ -139,9 +139,9 @@ Some notes:
    texts may instead have an implicit density factor in :math:`\kappa`,
    yielding units :math:`\mathrm{cm}^2~\mathrm{g}^{-1}`.
 
--   allows for two temperatures (different radiation and gas
+-  Castro allows for two temperatures (different radiation and gas
    temperature, so :math:`E_\mathrm{r} \ne a T_\mathrm{gas}^4`).
-   Correspondingly,  cares about both the Planck mean,
+   Correspondingly, Castro cares about both the Planck mean,
    :math:`\kappa_P`, and Rosseland mean, :math:`\kappa_R`, opacities—these have
    different weightings.
 
@@ -358,7 +358,7 @@ See Krumholz et al. 2007 for some discussion on this.
 Boundary Conditions
 -------------------
 
- needs to know about the boundary conditions for both
+Castro needs to know about the boundary conditions for both
 the hydrodynamics and radiation portions of the evolution.
 
 Hydrodynamics Evolution
@@ -396,7 +396,7 @@ equation. They do not affect hydrodynamic boundaries.
       Specify the radiation energy density on the boundary.
       For gray radiation, this could be :math:`E_r = a T^4`.
 
-      For multigroup radiation,  stores the energy density as
+      For multigroup radiation, Castro stores the energy density as
       :math:`\mathrm{erg}~\mathrm{cm}^{-3}`, so the total radiation energy
       can be found by simply summing over the groups. So if you want
       to set the radiation BCs using the Planck function, you simply
@@ -406,7 +406,7 @@ equation. They do not affect hydrodynamic boundaries.
    -  102 *Neumann*:
 
       Here, you specify the radiation flux on the boundary. For gray
-      radiation, this is the expression given in the gray  paper
+      radiation, this is the expression given in the gray Castro paper
       (Eq. 7, 8),
 
       .. math:: F_r = - \frac{c\lambda}{\kappa_R} \nabla E_r
@@ -658,7 +658,7 @@ computer. So it is worth trying a few solvers to find out which one
 is best for your problem and computer.
 
 : the linear solver
-in  to use. The available choices are:
+in Hypre to use. The available choices are:
 
 -  0: SMG
 
@@ -722,5 +722,5 @@ is different that the specify internal energy of the gas :math:`\mathrm{erg~g^{-
 .. [1]
    at the moment, we
    don’t have a way to allow for the EOS to provide radiation pressure
-   if the  radiation is used solely for neutrinos, but this is
+   if the Castro radiation is used solely for neutrinos, but this is
    something that could be added easily.

@@ -1,8 +1,8 @@
 Downloading the Code
 ====================
 
- is built on top of the  framework. In order to run
-  you must download two separate git modules.
+Castro is built on top of the AMReX framework. In order to run
+Castro  you must download two separate git modules.
 
 .. raw:: latex
 
@@ -14,7 +14,7 @@ First, make sure that git is installed on your machine—we recommend version 1.
 
    \vspace{.1in}
 
-#. Clone/fork the  repository from the AMReX-Codes
+#. Clone/fork the AMReX repository from the AMReX-Codes
    github page (https://github.com/AMReX-Codes/amrex/). To
    clone via the command line, simply type:
 
@@ -31,7 +31,7 @@ First, make sure that git is installed on your machine—we recommend version 1.
 
    This will create a directory called amrex/ on your machine.
 
-   You will want to periodically update  by typing
+   You will want to periodically update AMReX by typing
 
    ::
 
@@ -41,11 +41,11 @@ First, make sure that git is installed on your machine—we recommend version 1.
 
    Note: actively development is done on the development branch
    in each repo, and merged into the master branch periodically.
-   If you wish to use the  development branch, then you
-   should also switch to the development branch for .
+   If you wish to use the Castro development branch, then you
+   should also switch to the development branch for AMReX.
 
 #. Set the environment variable, AMREX_HOME, on your
-   machine to point to the path name where you have put .
+   machine to point to the path name where you have put AMReX.
    You can add this to your .bashrc as:
 
    ::
@@ -55,7 +55,7 @@ First, make sure that git is installed on your machine—we recommend version 1.
    where you replace ``/path/to/amrex/`` will the full path to the
    amrex/ directory.
 
-#. Clone/fork the  repository from the same
+#. Clone/fork the Castro repository from the same
    github organization as above, using either HTTP access:
 
    ::
@@ -70,14 +70,14 @@ First, make sure that git is installed on your machine—we recommend version 1.
 
    Or, as above, you can download a ZIP file of the code from
    `our main github page <https://github.com/AMReX-Astro>`__,
-   by clicking on the  link.
+   by clicking on the Castro link.
 
-   As with , development on  is done in the
+   As with AMReX, development on Castro is done in the
    development branch, so you should work there if you want
    the latest source.
 
 #. We recommend setting the CASTRO_HOME environment
-   variable to point to the path name where you have put .
+   variable to point to the path name where you have put Castro.
    Add the following to your .bashrc:
 
    ::
@@ -99,15 +99,15 @@ First, make sure that git is installed on your machine—we recommend version 1.
 
        git clone ssh://git@github.com:/starkiller-astro/Microphysics.git
 
-   To access the  routines, set the MICROPHYSICS_HOME
+   To access the Microphysics routines, set the MICROPHYSICS_HOME
    environment variable to point to the Microphysics/ directory.
 
 Building the Code
 =================
 
-In  each different problem setup is stored in its own
+In Castro each different problem setup is stored in its own
 sub-directory under Castro/Exec/. You build the
- executable in the problem sub-directory. Here we’ll
+Castro executable in the problem sub-directory. Here we’ll
 build the Sedov problem:
 
 #. From the directory in which you checked out the Castro git repo,
@@ -162,7 +162,7 @@ build the Sedov problem:
       build with MPI—this requires that you have the MPI library
       installed on your machine. In this case, the build system will
       need to know about your MPI installation. This can be done by
-      editing the makefiles in the  tree, but the default
+      editing the makefiles in the AMReX tree, but the default
       fallback is to look for the standard MPI wrappers (e.g. 
       mpic++ and mpif90) to do the build.
 
@@ -175,7 +175,7 @@ build the Sedov problem:
 Running the Code
 ================
 
-#.  takes an input file that overrides the runtime parameter defaults.
+#. Castro takes an input file that overrides the runtime parameter defaults.
    The code is run as:
 
    ::
@@ -196,11 +196,11 @@ Visualization of the Results
 ============================
 
 There are several options for visualizing the data. The popular
- package supports the  file format natively, as does the
- python package [2]_. The standard tool used within the
--community is , which we demonstrate here.  is available on github.
+VisIt package supports the AMReX file format natively, as does the
+yt python package [2]_. The standard tool used within the
+AMReX-community is Amrvis, which we demonstrate here. Amrvis is available on github.
 
-#. Get :
+#. Get Amrvis:
 
    ::
 
@@ -222,7 +222,7 @@ There are several options for visualizing the data. The popular
 
    Then cd into volpack/ and type make.
 
-   Note:  requires the OSF/Motif libraries and headers. If you don’t have these
+   Note: Amrvis requires the OSF/Motif libraries and headers. If you don’t have these
    you will need to install the development version of motif through your package manager.
    On most Linux distributions, the motif library is provided by the
    openmotif package, and its header files (like Xm.h) are provided
@@ -230,7 +230,7 @@ There are several options for visualizing the data. The popular
    package management tool to install them, which varies from
    distribution to distribution, but is straightforward.
    lesstif gives some functionality and will allow you to build the amrvis executable,
-   but  may not run properly.
+   but Amrvis may not run properly.
 
    You may then want to create an alias to amrvis2d, for example
 
@@ -238,14 +238,14 @@ There are several options for visualizing the data. The popular
 
        alias amrvis2d /tmp/Amrvis/amrvis2d...ex
 
-   where /tmp/Amrvis/amrvis2d...ex is the full path and name of the  executable.
+   where /tmp/Amrvis/amrvis2d...ex is the full path and name of the Amrvis executable.
 
-#. Configure :
+#. Configure Amrvis:
 
    Copy the amrvis.defaults file to your home directory (you can
    rename it to .amrvis.defaults if you wish). Then edit the
    file, and change the palette line to point to the full
-   path/filename of the Palette file that comes with .
+   path/filename of the Palette file that comes with Amrvis.
 
 #. Visualize:
 
@@ -262,13 +262,13 @@ There are several options for visualizing the data. The popular
    in order to look at the actual numbers, etc. You can also export the
    pictures in several different formats under "File/Export".
 
-   Some users have found that  does not work properly under X
+   Some users have found that Amrvis does not work properly under X
    with the proprietary Nvidia graphics driver. A fix for this is
    provided in the FAQ (§ `[ch:faq:vis] <#ch:faq:vis>`__)—this is due to the default
    behavior of the DAC in mappuing colors.
 
-   Note:  is a great alternative to using  for visualization,
-   and understands  plotfiles well.
+   Note: yt is a great alternative to using Amrvis for visualization,
+   and understands Castro plotfiles well.
 
    Please know that we do have a number of conversion routines to other
    formats (such as matlab), but it is hard to describe them all. If you
@@ -276,12 +276,12 @@ There are several options for visualizing the data. The popular
    (again, asalmgren@lbl.gov) and we will point you to whatever we have
    that can help.
 
-You have now completed a brief introduction to .
+You have now completed a brief introduction to Castro.
 
 Other Distributed Problem Setups
 ================================
 
-There are a number of standard problem setups that come with .
+There are a number of standard problem setups that come with Castro.
 These can be used as a starting point toward writing your own setup.
 We organize these into subdirectories by broad type (radiation, hydro,
 gravity, etc.): The standard categories and *some* of the included
@@ -302,7 +302,7 @@ problems are:
       Model a 1-d stellar atmosphere (plane-parallel or
       spherical/self-gravitating) and dump energy in via an analytic
       heat source and watch the atmosphere’s hydrostatic state adjust in
-      response. This is the counterpart to the  
+      response. This is the counterpart to the Maestro 
       test_basestate unit test.
 
 -  hydro_tests:
@@ -314,7 +314,7 @@ problems are:
       different :math:`\gamma` from one another / the background atmosphere.
       This uses the multigamma EOS.
 
-      An analogous problem is implemented in .
+      An analogous problem is implemented in Maestro.
 
    -  HCBubble:
 
@@ -332,7 +332,7 @@ problems are:
    -  reacting_bubble:
 
       A reacting bubble in a stratified white dwarf atmosphere. This
-      problem was featured in the  reaction
+      problem was featured in the Maestro reaction
       paper :raw-latex:`\cite{maestro:III}`.
 
    -  RT:
@@ -344,12 +344,12 @@ problems are:
    -  Sedov:
 
       The standard Sedov-Taylor blast wave problem. This setup was used
-      in the first  paper :raw-latex:`\cite{castro_I}`.
+      in the first Castro paper :raw-latex:`\cite{castro_I}`.
 
    -  Sod:
 
       A one-dimensional shock tube setup, including the classic Sod
-      problem. This setup was used in the original  paper.
+      problem. This setup was used in the original Castro paper.
 
    -  Sod_stellar:
 
@@ -365,7 +365,7 @@ problems are:
       custom tagging routine, sponge the fluid above the atmosphere, and
       write a custom diagnostics routine.
 
-      A  version of this problem setup also exists.
+      A Maestro version of this problem setup also exists.
 
 -  radiation_tests:
 
@@ -376,8 +376,8 @@ problems are:
 .. [1]
    Note: previously the radiation
    solver was distributed separately as CastroRadiation.git,
-   but this has been merged into the main  respository
+   but this has been merged into the main Castro respository
 
 .. [2]
    Each of these will recognize it as the
-    format.
+   BoxLib format.

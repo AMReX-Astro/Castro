@@ -1,7 +1,7 @@
 Introduction
 ============
 
-The hydrodynamics scheme in  implements an unsplit
+The hydrodynamics scheme in Castro implements an unsplit
 second-order Godunov method. Characteristic tracing is used to
 time-center the input states to the Riemann solver. The same
 hydrodynamics routines are used for pure hydro and radiation
@@ -256,12 +256,12 @@ We begin with the fully compressible equations for the conserved state vector,
    \begin{aligned}
    \frac{\partial \rho}{\partial t} &=& - \nabla \cdot (\rho \ub) + S_{{\rm ext},\rho}, \\
    \frac{\partial (\rho \ub)}{\partial t} &=& - \nabla \cdot (\rho \ub \ub) - \nabla p +\rho \gb + \Sb_{{\rm ext},\rho\ub}, \\
-   \frac{\partial (\rho E)}{\partial t} &=& - \nabla \cdot (\rho \ub E + p \ub) + \rho \ub \cdot \gb - \sum_k {\rho q_k \dot\omega_k} + \nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E}, \\
+   \frac{\partial (\rho E)}{\partial t} &=& - \nabla \cdot (\rho \ub E + p \ub) + \rho \ub \cdot \gb - \sum_k {\rho q_k \dot\omega_k} + \nabla\cdot{k_\mathrm{th}}\nabla T + S_{{\rm ext},\rho E}, \\
    \frac{\partial (\rho A_k)}{\partial t} &=& - \nabla \cdot (\rho \ub A_k) + S_{{\rm ext},\rho A_k}, \\
    \frac{\partial (\rho X_k)}{\partial t} &=& - \nabla \cdot (\rho \ub X_k) + \rho \dot\omega_k + S_{{\rm ext},\rho X_k}, \\
    \frac{\partial (\rho Y_k)}{\partial t} &=& - \nabla \cdot (\rho \ub Y_k) + S_{{\rm ext},\rho Y_k}.\label{eq:compressible-equations}\end{aligned}
 
-Here :math:`\rho, \ub, T, p`, and :math:`\kth` are the density, velocity,
+Here :math:`\rho, \ub, T, p`, and :math:`{k_\mathrm{th}}` are the density, velocity,
 temperature, pressure, and thermal conductivity, respectively, and :math:`E
 = e + \ub \cdot \ub / 2` is the total energy with :math:`e` representing the
 internal energy. In addition, :math:`X_k` is the abundance of the :math:`k^{\rm
@@ -330,7 +330,7 @@ accounted for in **Steps 1** and **6**. The source terms are:
    S_{{\rm ext},\rho} \\
    \gb + \frac{1}{\rho}\Sb_{{\rm ext},\rho\ub} \\
    \frac{1}{\rho}\frac{\partial p}{\partial e}S_{{\rm ext},\rho E} + \frac{\partial p}{\partial\rho}S_{{\rm ext}\rho} \\
-   \nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E} \\
+   \nabla\cdot{k_\mathrm{th}}\nabla T + S_{{\rm ext},\rho E} \\
    \frac{1}{\rho}S_{{\rm ext},\rho A_k} \\
    \frac{1}{\rho}S_{{\rm ext},\rho X_k} \\
    \frac{1}{\rho}S_{{\rm ext},\rho Y_k}
@@ -349,7 +349,7 @@ accounted for in **Steps 1** and **6**. The source terms are:
    =
    \left(\begin{array}{c}
    \rho \gb + \Sb_{{\rm ext},\rho\ub} \\
-   \rho \ub \cdot \gb + \nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E} \\
+   \rho \ub \cdot \gb + \nabla\cdot{k_\mathrm{th}}\nabla T + S_{{\rm ext},\rho E} \\
    S_{{\rm ext},\rho A_k} \\
    S_{{\rm ext},\rho X_k} \\
    S_{{\rm ext},\rho Y_k}
@@ -358,7 +358,7 @@ accounted for in **Steps 1** and **6**. The source terms are:
 Primitive Forms
 ===============
 
- uses the primitive form of the fluid equations, defined in terms of
+Castro uses the primitive form of the fluid equations, defined in terms of
 the state :math:`\Qb = (\rho, \ub, p, \rho e, A_k, X_k, Y_k)`, to construct the
 interface states that are input to the Riemann problem.
 
@@ -374,7 +374,7 @@ The primitive variable equations for density, velocity, and pressure are:
    \frac{\partial p}{\partial t} &=& -\ub\cdot\nabla p - \rho c^2\nabla\cdot\ub +
    \left(\frac{\partial p}{\partial \rho}\right)_{e,X}S_{{\rm ext},\rho}\nonumber\\
    &&+\  \frac{1}{\rho}\sum_k\left(\frac{\partial p}{\partial X_k}\right)_{\rho,e,X_j,j\neq k}\left(\rho\dot\omega_k + S_{{\rm ext},\rho X_k} - X_kS_{{\rm ext},\rho}\right)\nonumber\\
-   && +\  \frac{1}{\rho}\left(\frac{\partial p}{\partial e}\right)_{\rho,X}\left[-eS_{{\rm ext},\rho} - \sum_k\rho q_k\dot\omega_k + \nabla\cdot\kth\nabla T \right.\nonumber\\
+   && +\  \frac{1}{\rho}\left(\frac{\partial p}{\partial e}\right)_{\rho,X}\left[-eS_{{\rm ext},\rho} - \sum_k\rho q_k\dot\omega_k + \nabla\cdot{k_\mathrm{th}}\nabla T \right.\nonumber\\
    && \quad\qquad\qquad\qquad+\ S_{{\rm ext},\rho E} - \ub\cdot\left(\Sb_{{\rm ext},\rho\ub} - \frac{\ub}{2}S_{{\rm ext},\rho}\right)\Biggr] \end{aligned}
 
 The advected quantities appear as:
@@ -403,7 +403,7 @@ We augment the above system with an internal energy equation:
 
    \begin{aligned}
    \frac{\partial(\rho e)}{\partial t} &=& - \ub\cdot\nabla(\rho e) - (\rho e+p)\nabla\cdot\ub - \sum_k \rho q_k\dot\omega_k 
-                                           + \nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E} \nonumber\\
+                                           + \nabla\cdot{k_\mathrm{th}}\nabla T + S_{{\rm ext},\rho E} \nonumber\\
    && -\  \ub\cdot\left(\Sb_{{\rm ext},\rho\ub}-\frac{1}{2}S_{{\rm ext},\rho}\ub\right), \end{aligned}
 
 This has two benefits. First, for a general equation of state,
@@ -617,7 +617,7 @@ runtime parameters for hydrodynamics:
    conditions by assuming the star is spherically symmetric in
    the outer regions (0 or 1; default: 0)
 
-   When used,  averages the values at a given radius over the
+   When used, Castro averages the values at a given radius over the
    cells that are inside the domain to define a radial function. This
    function is then used to set the values outside the domain in
    implementing the boundary conditions.
@@ -943,7 +943,7 @@ the state ill-posed. There are several parameters that help fix this:
 Riemann Problem
 ---------------
 
- has three main options for the Riemann solver—the
+Castro has three main options for the Riemann solver—the
 Colella & Glaz solver :raw-latex:`\cite{colglaz}` (the same solver used
 by Flash), a simpler solver described in an unpublished
 manuscript by Colella, Glaz, & Ferguson, and an HLLC
@@ -1052,7 +1052,7 @@ parameters apply:
 
    The default is to use the solver based on an unpublished Colella,
    Glaz, & Ferguson manuscript (it also appears in :raw-latex:`\cite{pember:1996}`),
-   as described in the original  paper :raw-latex:`\cite{castro_I}`.
+   as described in the original Castro paper :raw-latex:`\cite{castro_I}`.
 
    The Colella & Glaz solver is iterative, and two runtime parameters are used
    to control its behavior:
@@ -1156,7 +1156,7 @@ Flux Limiting
 Multi-dimensional hydrodynamic simulations often have numerical
 artifacts that result from the sharp density gradients. A somewhat
 common issue, especially at low resolution, is negative densities that
-occur as a result of a hydro update.  contains a prescription
+occur as a result of a hydro update. Castro contains a prescription
 for dealing with negative densities, that resets the negative density
 to be similar to nearby zones. Various choices exist for how to do
 this, such as resetting it to the original zone density before the

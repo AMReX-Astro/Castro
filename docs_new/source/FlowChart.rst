@@ -2,7 +2,7 @@ Introduction
 ============
 
 There are several different time-evolution methods currently
-implemented in . As best as possible, they share the same
+implemented in Castro. As best as possible, they share the same
 driver routines and use preprocessor or runtime variables to separate
 the different code paths.
 
@@ -58,19 +58,19 @@ of each step.
    actions are performend (note, we omit the actions taken for a retry,
    which we will describe later):
 
-   -  Sync up the level information to the Fortran-side of
+   -  Sync up the level information to the Fortran-side of Castro
 
    -  Do any radiation initialization
 
    -  Initialize all of the intermediate storage arrays (like those
       that hold source terms, etc.).
 
-   -  Swap the  from the new to old (e.g., ensures that
+   -  Swap the StateData from the new to old (e.g., ensures that
       the next evolution starts with the result from the previous step).
 
    -  Do a
 
-   -  Create the s that hold the primitive variable information
+   -  Create the MultiFabs that hold the primitive variable information
       for the hydro solve.
 
    -  For method of lines integration: allocate the storage for the
@@ -211,7 +211,7 @@ make the update more akin to:
 
 .. math:: \Ub^{n+1,(c)} = \Ub^{n+1,(b)} + \frac{\dt}{2} [\Sb(\Ub^{n+1,(c)}) - \Sb(\Ub^n)]
 
- also supports radiation. This part of the update algorithm
+Castro also supports radiation. This part of the update algorithm
 only deals with the advective / hyperbolic terms in the radiation update.
 
 Here is the single-level algorithm. The goal here is to update the
@@ -245,7 +245,7 @@ S_old, to the new time, S_new.
    Update the solution due to the effect of reactions over half a time
    step. The integration method and system of equations used here is
    determined by a host of runtime parameters that are part of the
-    package. But the basic idea is to evolve the energy
+   Microphysics package. But the basic idea is to evolve the energy
    release from the reactions, the species mass fractions, and
    temperature through :math:`\Delta t/2`.
 
@@ -292,7 +292,7 @@ S_old, to the new time, S_new.
    [, ]
 
    The time level :math:`n` sources are computed, and added to the
-    . The sources are then applied
+   StateData . The sources are then applied
    to the state after the burn, :math:`\Ub^\star` with a full :math:`\Delta t`
    weighting (this will be corrected later). This produces the
    intermediate state, :math:`\Ub^{n+1,(a)}`.
@@ -302,7 +302,7 @@ S_old, to the new time, S_new.
    #. sponge : the sponge is a damping term added to
       the momentum equation that is designed to drive the velocities to
       zero over some timescale. Our implementation of the sponge
-      follows that of  :raw-latex:`\cite{maestro:III}`
+      follows that of Maestro :raw-latex:`\cite{maestro:III}`
 
    #. external sources : users can define problem-specific sources
       in the file. Sources for the different
@@ -379,8 +379,7 @@ S_old, to the new time, S_new.
    divergence of a flux).
 
    We do the hydro update in two parts—first we construct the
-   advective update and store it in the
-   , then we do the conservative update in a separate step. This
+   advective update and store it in the , then we do the conservative update in a separate step. This
    separation allows us to use the advective update separately in more
    complex time-integration schemes.
 
@@ -544,7 +543,7 @@ The time at the intermediate stages is evaluated as:
 
 The integration coefficients are stored in the vectors
 , , and , and the
-stage updates are stored in the  .
+stage updates are stored in the MultiFab .
 
 Here is the single-level algorithm. We use the same notation
 as in the CTU flowchart.
@@ -576,7 +575,7 @@ S_old, to the new time, S_new.
    step, sees the effects of the reactions.
 
    Each stage needs to build its starting point from this point, so we
-   store the effect of the burn in a new , ,
+   store the effect of the burn in a new MultiFab, ,
    for use in the stage initialization.
 
 #. [strang:oldsource] *Construct sources from the current
@@ -588,7 +587,7 @@ S_old, to the new time, S_new.
       \MarginPar{fix: gravity is still using {\tt S\_old}}
 
    The time level :math:`n` sources are computed, and added to the
-    . The sources are then applied
+   StateData . The sources are then applied
    to the state after the burn, :math:`\Ub^\star` with a full :math:`\Delta t`
    weighting (this will be corrected later). This produces the
    intermediate state, :math:`\Ub^{n+1,(a)}`.

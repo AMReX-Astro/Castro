@@ -1,4 +1,4 @@
-There are a large number of tools that can be used to read in  or  data and make plots. Here we give a brief overview of some
+There are a large number of tools that can be used to read in Castro or BoxLib data and make plots. Here we give a brief overview of some
 of the tools as well as some examples.
 
 Controlling What’s in the PlotFile
@@ -21,12 +21,12 @@ variables appear in the plotfile.
 -  : this controls which of the
    derived variables to be stored in the plotfile. Derived variables
    are created only when the plotfile is being created, using the
-   infrastructure provided by  to register variables and the
+   infrastructure provided by BoxLib to register variables and the
    associated Fortran routine to do the deriving
    ().
 
    By default, no derived variables are stored. You can store all
-   derived variables that  knows about by doing:
+   derived variables that Castro knows about by doing:
 
    ::
 
@@ -71,22 +71,25 @@ out visit.llnl.gov.
 then the key is to read the Header file, plt00000/Header, for example,
 rather than telling to to read plt00000.
 
- is a free and open-source software that provides data analysis and
+yt
+==
+
+yt is a free and open-source software that provides data analysis and
 publication-level visualization tools for astrophysical simulation
-results such as those CASTRO produces. As  is script-based, it’s not
+results such as those CASTRO produces. As yt is script-based, it’s not
 as easy to use as VisIt, and certainly not as easy as amrvis, but the
-images can be worth it! Here we do not flesh out , but give an
+images can be worth it! Here we do not flesh out yt, but give an
 overview intended to get a person started. Full documentation and
 explanations from which this section was adapted can be found at
 http://yt-project.org/doc/index.html.
 
- can be installed by the following commands:
+yt can be installed by the following commands:
 
 $ wget https://raw.githubusercontent.com/yt-project/yt/master/doc/install_script.sh
 
 $ bash install_script.sh
 
-This installs  in your current directory. To update in the
+This installs yt in your current directory. To update ytin the
 future, simply do
 
 $ conda update yt
@@ -96,9 +99,9 @@ assuming you have conda installed.
 Castro-Specific Data
 --------------------
 
- was originally created for simple analysis and visualization of
+yt was originally created for simple analysis and visualization of
 data from the Enzo code. Since, it has grown to include support for a
-variety of codes, including Castro. However, will still sometimes
+variety of codes, including Castro. However, ytwill still sometimes
 make assumptions, especially about data field names, that favor Enzo
 and cause errors with Castro data. These problems can usually be
 avoided by taking care to specify the data fields desired in
@@ -107,7 +110,7 @@ visualization. For example, Enzo’s density field is called
 user does not specify the field. However, Castro does not have a field
 called “Density”; instead, the density field is called “density.”
 If a user does not specify a field while plotting with Castro data,
-chances are that  will try (and fail) to find “Density” and return
+chances are that yt will try (and fail) to find “Density” and return
 an error. As you will see in the examples, however, there is a way to
 create your own fields from existing ones. You can use these derived
 fields as you would use any other field.
@@ -116,29 +119,29 @@ There are also a few imperatives when it comes to reading in your
 Castro simulation data and associated information. First and foremost
 is that the inputs file for the simulation **must** exist in the
 same directory as where the plotfile directory is located, and it
-**must** be named “**inputs**.”  reads information from the
+**must** be named “**inputs**.” yt reads information from the
 inputs file such as the number of levels in the simulation run, the
-number of cells, the domain dimensions, and the simulation time.  will also optionally parse the probin file for pertinent information
+number of cells, the domain dimensions, and the simulation time. yt will also optionally parse the probin file for pertinent information
 if it is similarly included with the name “**probin**” in the same
 directory as the plotfile of interest. When specifying a plotfile as
 the data source for plots, you may simply call it by its directory
 name, rather than using the Header file as in VisIt. As a final
 caveat, the existence of the job_info file within the plotfile
 directory is what currently distinguishes Castro data from MAESTRO
-data in ; unless you like surprises, we suggest you ensure your
+data in yt; unless you like surprises, we suggest you ensure your
 plotfile has one.
 
-Interacting with : Command Line and Scripting
----------------------------------------------
+Interacting with yt: Command Line and Scripting
+-----------------------------------------------
 
-is written completely in python (if you don’t have python,  will
+ytis written completely in python (if you don’t have python, yt will
 install it for you) and there are a number of different ways to
 interact with it, including a web-based gui. Here we will cover
-command-line  and scripts/the python interactive prompt, but other
-methods are outlined on the  webpage at
+command-line yt and scripts/the python interactive prompt, but other
+methods are outlined on the yt webpage at
 http://yt-project.org/doc/interacting/index.html.
 
-The first step in starting up  is to activate the  environment:
+The first step in starting up yt is to activate the yt environment:
 
 $ source $YT_DEST/bin/activate
 
@@ -148,8 +151,8 @@ and do a few other things. Try $ yt to see a list of commands,
 and $ yt :math:`<`\ command\ :math:`>` --help
 to see the details of a command. The command line is the easiest way
 to get quick, preliminary plots – but the simplicity comes at a
-price, as  will make certain assumptions for you. We could plot a
-projection of density along the x-axis for the plotfile ( calls it a
+price, as yt will make certain assumptions for you. We could plot a
+projection of density along the x-axis for the plotfile (yt calls it a
 parameter file) plt_def_00020 by doing the following:
 
 $ yt plot -p -a 0 -f density plt_def_00020
@@ -170,7 +173,7 @@ the interactive prompt by the command
 
 which will leave you in the interactive prompt, allowing you to
 explore the data objects you’ve created in your script and debug
-errors you may encounter. While in the  environment, you can access
+errors you may encounter. While in the yt environment, you can access
 the interactive prompt by $ *python* or the shortcut
 
 $ pyyt
@@ -195,17 +198,17 @@ Note that neither saving nor loading objects is necessary, but can be
 useful when the creation of these objects is time-consuming, which is
 often the case during identification of clumps or contours.
 
- Basics
--------
+yt Basics
+---------
 
-The first thing you will always want to do is to import :
+The first thing you will always want to do is to import yt:
 
 :math:`>>>` from yt.mods import \*
 
 Under certain circumstances you will be required to import more, as we
 will see in some of the examples, but this covers most of it,
 including all of the primary functions and data objects provided by
-. Next, you’ll need  to access the plotfile you’re interested in
+yt. Next, you’ll need yt to access the plotfile you’re interested in
 analyzing. Remember, you must have the “inputs” file in the same
 directory:
 
@@ -224,9 +227,9 @@ within each one. It is easily created:
 
 :math:`>>>` ds.index
 
-Upon execution,  may print out a number of lines saying it’s adding
+Upon execution, yt may print out a number of lines saying it’s adding
 unknown fields to the list of fields. This is because Castro has
-different names for fields than what  expects. We can see what
+different names for fields than what yt expects. We can see what
 fields exist through the commands
 
 :math:`>>>` print ds.index.field_list
@@ -248,23 +251,23 @@ you can find the value and location of the maximum of a field in the domain:
 associated with the hierarchy object and was accessed with ds.h.find_max.)
 
 The list goes on. A full list of methods and attributes associated
-with the index object (and most any  object or function) can be
+with the index object (and most any yt object or function) can be
 accessed by the help function:
 
 :math:`>>>` help(pf.index)
 
 You can also use :math:`>>>` *dir()* on an object or
 function to find out which names it defines. Don’t be shy about
-searching the  documentation for help. Note that creating the
+searching the yt documentation for help. Note that creating the
 index object in its own line is not always needed before calling
-functions like find_max;  will construct it automatically if it
+functions like find_max; yt will construct it automatically if it
 does not already exist.
 
 Data Containers and Selection
 -----------------------------
 
 Sometimes, you’ll want to select, analyze, or plot only portions of
-your simulation data. To that end,  includes a way to create data
+your simulation data. To that end, yt includes a way to create data
 “containers” that select data based on geometric bounds or fluid
 quantity values. There are many, including rays, cylinders, and clumps
 (some in the examples, all described in the documentation), but the
@@ -274,7 +277,7 @@ density cell we found above:
 :math:`>>>` my_data_container = ds.sphere(location, (5.0e4, ‘km’))
 
 Here, specify that the radius is in units of kilometers using a dimensionful
-quantity. When specifying distances in , the default is to use the
+quantity. When specifying distances in yt, the default is to use the
 simulation-native unit named “code_length”, which for Castro is “cm”, and
 if you just put in 5.0e4 instead of (5.0e4, ‘km’), you will get a 50,000 cm radius.
 The pf.index.print_stats() command lists available units. We can access the data
@@ -297,7 +300,7 @@ Once it has been saved, it can be easily loaded later:
 Grid Inspection
 ---------------
 
- also allows for detailed grid inspection. The index object
+yt also allows for detailed grid inspection. The index object
 possesses an array of grids, from which we can select and examine
 specific ones:
 
@@ -336,7 +339,7 @@ further refined:
 :math:`>>>`\ print my_grid.child_mask.sum()/float(my_grid.ActiveDimensions.prod())
 
 Rather than go into detail about the many possibilities for plotting
-in , we’ll provide some examples.
+in yt, we’ll provide some examples.
 
 Example Scripts
 ---------------
@@ -741,7 +744,7 @@ pf.field_info[‘magvel’]._units = r‘\\rm{cm}/\rm{s}’
 
 pf.field_info[‘kineng’]._units = r‘\\rm{ergs}’
 
-*# We can create new fields from existing ones. assumes all units are in cgs, and*
+*# We can create new fields from existing ones. ytassumes all units are in cgs, and*
 
 .. raw:: latex
 
@@ -769,7 +772,7 @@ return data[‘density’]
 
 add_field(‘Density’, function=_newDen, units=r‘\\rm{g}/\rm{cm}^{3}’)
 
-*# PlotCollections are one of the most commonly used tools in , alongside SlicePlots and*
+*# PlotCollections are one of the most commonly used tools in yt, alongside SlicePlots and*
 
 .. raw:: latex
 

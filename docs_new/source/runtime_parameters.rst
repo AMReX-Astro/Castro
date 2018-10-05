@@ -603,8 +603,8 @@ parameters
    |                       | technique) or do we   |                       |
    |                       | use :math:`(\rho e)`  |                       |
    |                       | (the classic          |                       |
-   |                       |  behavior). Note this |                       |
-   |                       | also uses             |                       |
+   |                       | Castro behavior).     |                       |
+   |                       | Note this also uses   |                       |
    |                       | :math:`\tau = 1/\rho` |                       |
    |                       | instead of            |                       |
    |                       | :math:`\rho`.         |                       |

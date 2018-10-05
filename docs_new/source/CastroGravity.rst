@@ -6,7 +6,7 @@ Introduction
 Integration Strategy
 --------------------
 
- uses subcycling to integrate levels at different timesteps.
+Castro uses subcycling to integrate levels at different timesteps.
 The gravity algorithm needs to respect this. Self-gravity is computed
 via multigrid. At coarse-fine interfaces, the stencil used in the
 Laplacian understands the coarse-fine interface and is different than
@@ -35,7 +35,7 @@ The overall integration strategy is unchanged from the discussion in
 -  The old-time gravity on the coarse level is defined based on
    this composite solve, but we also do a level solve on the coarse
    level, and use it to determine the difference between the composite
-   solve and the level solve, and store that in a .
+   solve and the level solve, and store that in a MultiFab.
 
 -  After the hydro advance on the coarse level, we do another level
    solve, and use the (level solve :math:`-` compositive solve) as a lagged
@@ -68,7 +68,7 @@ all time.
 Controls
 --------
 
- can incorporate gravity as a constant, monopole approximation,
+Castro can incorporate gravity as a constant, monopole approximation,
 or a full Poisson solve. To enable gravity in the code, set:
 
 ::
@@ -304,7 +304,7 @@ Poisson Boundary Conditions: 3D
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following describes methods for doing isolated boundary
-conditions. The best reference for ’s implementation of this
+conditions. The best reference for Castro’s implementation of this
 is :raw-latex:`\cite{katz:2016}`.
 
 -  **Multipole Expansion**

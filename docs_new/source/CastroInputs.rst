@@ -1,12 +1,12 @@
-The  executable uses two inputs files at runtime to set and alter the
+The Castro executable uses two inputs files at runtime to set and alter the
 behavior of the algorithm and initial conditions.
 
 The main inputs file, typically named inputs
-is used to set  parameters and the control flow in the
- portions of the  code. Each parameter here has a
+is used to set BoxLib parameters and the control flow in the
+C portions of the Castro code. Each parameter here has a
 namespace (like amr.\ *optionname* or castro.
 *optionname*). Parameters set here are read using the
- ParmParse class infrastructure.
+BoxLib ParmParse class infrastructure.
 
 The second inputs file, typically named probin is used by the Fortran code that initializes the problem
 setup. It is read at problem initialization (via a Fortran
@@ -41,16 +41,16 @@ probin file:
 Common inputs Options
 =====================
 
-**Important**: because the inputs file is handled by the  portion of
+**Important**: because the inputs file is handled by the C portion of
 the code, any quantities you specify in scientific notation, must take the
 form 1.e5 and not 1.d5—the ‘d’ specifier is not recognized.
 
-Additionally, note that in , all quantities are in CGS units.
+Additionally, note that in Castro, all quantities are in CGS units.
 
 Problem Geometry
 ----------------
 
-The geometry namespace is used by  to define the
+The geometry namespace is used by BoxLib to define the
 computational domain. The main parameters here are:
 
 -  : physical location of low corner of the
@@ -100,7 +100,7 @@ Domain Boundary Conditions
 --------------------------
 
 Boundary conditions are specified using integer keys that are interpreted
-by . The runtime parameters that we use are:
+by BoxLib. The runtime parameters that we use are:
 
 -  castro.lo_bc: boundary type of each low face (must be set)
 
@@ -257,7 +257,7 @@ The relevant runtime parameters are:
    to make larger and more regular boxes? This is the grid efficiency.
 
    When blocking_factor = 1, *grid efficiency* is exactly the
-   fraction of refined cells in the fine  which correspond to
+   fraction of refined cells in the fine BoxArray which correspond to
    coarse cells which were tagged. For other blocking factors,
    we actually apply grid_eff at the level which has been coarsened
    by blocking_factor, so it is no longer strictly this fraction,
@@ -301,7 +301,7 @@ Getting good performance
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 These parameters can have a large impact on the performance
-of , so taking the time to experiment with is worth the effort.
+of Castro, so taking the time to experiment with is worth the effort.
 Having grids that are large enough to coarsen multiple levels in a
 V-cycle is essential for good multigrid performance in simulations
 that use self-gravity.
@@ -531,7 +531,7 @@ which will subcycle twice at every level (except level 0).
 Restart Capability
 ------------------
 
- has a standard sort of checkpointing and restarting capability.
+Castro has a standard sort of checkpointing and restarting capability.
 In the inputs file, the following options control the generation of
 checkpoint files (which are really directories):
 
@@ -619,7 +619,7 @@ To restart from chk_run00061, for example, then set
 Controlling Plotfile Generation
 -------------------------------
 
-The main output from  is in the form of plotfiles (which are
+The main output from Castro is in the form of plotfiles (which are
 really directories). The following options in the inputs file control
 the generation of plotfiles:
 
@@ -705,7 +705,7 @@ Screen Output
 -------------
 
 There are several options that set how much output is written to the
-screen as  runs:
+screen as Castro runs:
 
 -  : verbosity of Amr.cpp (0 or 1; default: 0)
 

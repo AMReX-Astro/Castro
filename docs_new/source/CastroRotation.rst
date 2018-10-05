@@ -3,7 +3,7 @@
 Introduction
 ============
 
-Currently,  supports contant, solid-body rotation about a fixed
+Currently, Castro supports contant, solid-body rotation about a fixed
 (in space and time) axis in 2D and 3D by transforming the evolution
 equations to the rotating frame of reference.
 

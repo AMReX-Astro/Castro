@@ -1,4 +1,4 @@
-Castro requires both a  compiler (with support for  11) and
+Castro requires both a C compiler (with support for C 11) and
 a Fortran compiler with 2003+ support.
 
 General Compilers
@@ -8,7 +8,7 @@ GCC
 ---
 
 The GCC compilers are the preferred compilers on Linux machines.
- runs without issue with GCC 7.x and GCC 8.x.
+Castro runs without issue with GCC 7.x and GCC 8.x.
 
 Intel
 -----
@@ -19,11 +19,11 @@ and should not be used.
 PGI
 ---
 
-The PGI compilers (16.4–16.10) are also tested with  and have
+The PGI compilers (16.4–16.10) are also tested with Castro and have
 no known issues. Since PGI uses the GCC header files, a compatible
-version of GCC is needed. This is particularly problematic with  11
+version of GCC is needed. This is particularly problematic with C 11
 support. At the moment, with PGI 16.10 compilers the latest GCC compiler
-that has compatible  11 support is GCC 4.9.4.
+that has compatible C 11 support is GCC 4.9.4.
 
 Working at OLCF (ORNL)
 ======================
@@ -72,7 +72,7 @@ Finally, to use OpenACC, you need to make the CUDA libraries available to the PG
 Automatic Restarting and Archiving of Data
 ------------------------------------------
 
-See the  User’s Guide
+See the Maestro User’s Guide
 
 Working at NERSC
 ================
@@ -293,7 +293,7 @@ For the following LANL systems, which all have access to a joint file system,
 
 -  Trinitite
 
-the following steps are needed to get  compiling (reported by Platon Karpov, 6/13/2016):
+the following steps are needed to get Castro compiling (reported by Platon Karpov, 6/13/2016):
 
 | 1) Compile on the login node (thus host is lanl.gov)
 | 2) Do *not* set env variable ``BOXLIB_USE_MPI_WRAPPERS`` at all
