@@ -293,7 +293,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            state(i,j,k,UFS:UFS-1+nspec) = ZERO
 
            do n = 1, nspec
-              state(i,j,k,UFS-1+n) = f * interpolate(y,gen_npts_model,gen_model_r(:,2), &
+              state(i,j,k,UFS-1+n) = f * interpolate(z,gen_npts_model,gen_model_r(:,2), &
                                                      gen_model_state(:,ispec_model-1+n,2)) + &
                           (1.0_rt - f) * interpolate(z,gen_npts_model,gen_model_r(:,1), &
                                                      gen_model_state(:,ispec_model-1+n,1))
