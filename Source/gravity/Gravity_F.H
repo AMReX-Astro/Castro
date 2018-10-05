@@ -88,14 +88,14 @@ extern "C"
 
   void finalize_multipole_gravity();
 
- void ca_put_multipole_phi
-   (const int* lo, const int* hi,
-    const int* domlo, const int* domhi,
-    const amrex::Real* dx,
-    BL_FORT_FAB_ARG_3D(phi),
-    const int lnum,
-    BL_FORT_FAB_ARG_3D(qL0), BL_FORT_FAB_ARG_3D(qLC), BL_FORT_FAB_ARG_3D(qLS),
-    const int npts, const int boundary_only);
+  void ca_put_multipole_phi
+    (const int* lo, const int* hi,
+     const int* domlo, const int* domhi,
+     const amrex::Real* dx,
+     BL_FORT_FAB_ARG_3D(phi),
+     const int lnum,
+     const amrex::Real* qL0, const amrex::Real* qLC, const amrex::Real* qLS,
+     const int npts, const int boundary_only);
 
   void ca_compute_multipole_moments
     (const int* lo, const int* hi,

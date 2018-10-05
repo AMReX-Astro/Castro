@@ -1376,10 +1376,11 @@ Gravity::interpolate_monopole_grav(int level,
     for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox();
-        ca_put_radial_grav(ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()),
-						   ZFILL(dx),dr,
+#pragma gpu
+        ca_put_radial_grav(AMREX_INT_ANYD(bx.loVect()),AMREX_INT_ANYD(bx.hiVect()),
+						   AMREX_REAL_ANYD(dx),dr,
                            BL_TO_FORTRAN_ANYD(grav_vector[mfi]),
-                           radial_grav.dataPtr(),ZFILL(geom.ProbLo()),
+                           radial_grav.dataPtr(),AMREX_REAL_ANYD(geom.ProbLo()),
                            n1d,level);
     }
 }
@@ -1432,7 +1433,7 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 	{
 	    const Box& bx = mfi.tilebox();
         const Real* problo = geom.ProbLo();
-
+// sums over radial_mass, vol so don't put on gpu
         ca_compute_radial_mass(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
                      ZFILL(dx),dr,
                    BL_TO_FORTRAN_ANYD(Rhs[mfi]),
@@ -1764,8 +1765,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 			 AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
 			 AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(phi[mfi]),
 			 lnum,
-			 BL_TO_FORTRAN_ANYD(qL0),BL_TO_FORTRAN_ANYD(qLC),
-             BL_TO_FORTRAN_ANYD(qLS),
+             qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
 			 npts,boundary_only);
     }
 
@@ -2227,7 +2227,6 @@ Gravity::computeAvg (int level, MultiFab* mf, bool mask)
 	{
 		FArrayBox& fab = (*mf)[mfi];
 
-		Real s;
 		const Box& box  = mfi.tilebox();
 		const int* lo   = box.loVect();
 		const int* hi   = box.hiVect();
@@ -2236,12 +2235,15 @@ Gravity::computeAvg (int level, MultiFab* mf, bool mask)
 		// Note that this routine will do a volume weighted sum of
 		// whatever quantity is passed in, not strictly the "mass".
 		//
-		ca_summass(ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_ANYD(fab),
-		           dx,BL_TO_FORTRAN_ANYD((*volume[level])[mfi]),&s);
-		sum += s;
+        // NOTE: not sure if this is producing errors???? 1e-10 error at n=0, but
+        // no noticeable increase in eror at n=10
+#pragma gpu
+		ca_summass(AMREX_INT_ANYD(lo),AMREX_INT_ANYD(hi),BL_TO_FORTRAN_ANYD(fab),
+		           AMREX_REAL_ANYD(dx),BL_TO_FORTRAN_ANYD((*volume[level])[mfi]),
+                   AMREX_MFITER_REDUCE_SUM(&sum));
 	}
 
-	ParallelDescriptor::ReduceRealSum(sum);
+    ParallelDescriptor::ReduceRealSum(sum);
 
 	return sum;
 }
@@ -2358,7 +2360,7 @@ Gravity::make_radial_gravity(int level, Real time,
 	    {
 	        const Box& bx = mfi.tilebox();
 			FArrayBox& fab = S[mfi];
-
+            // don't offload as sums radial_mass and radial_vol
     		ca_compute_radial_mass(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 						ZFILL(dx), dr,
 				       BL_TO_FORTRAN_ANYD(fab),
