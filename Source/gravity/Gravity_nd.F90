@@ -453,10 +453,10 @@ contains
   end subroutine finalize_multipole_gravity
 
 
-
   subroutine ca_put_multipole_phi (lo,hi,domlo,domhi,dx, &
        phi,p_lo,p_hi, &
-       lnum,qL0,qLC,qLS,qU0,qUC,qUS, &
+       lnum, &
+       qL0,ql0_lo, ql0_hi, qLC, qlc_lo, qlc_hi, qLS, qls_lo, qls_hi, &
        npts,boundary_only) &
        bind(C, name="ca_put_multipole_phi")
 
@@ -470,10 +470,13 @@ contains
     integer , intent(in   ) :: lo(3), hi(3)
     integer , intent(in   ) :: domlo(3), domhi(3)
     real(rt), intent(in   ) :: dx(3)
+    integer , intent(in   ) :: ql0_lo(3),ql0_hi(3),qlc_lo(3),qlc_hi(3),qls_lo(3),qls_hi(3)
 
     integer , value, intent(in   ) :: lnum, npts, boundary_only
-    real(rt), intent(in   ) :: qL0(0:lnum,0:npts-1), qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
-    real(rt), intent(in   ) :: qU0(0:lnum,0:npts-1), qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
+    real(rt), intent(in   ) :: qL0(ql0_lo(1):ql0_hi(1),ql0_lo(2):ql0_hi(2),ql0_lo(3):ql0_hi(3))
+    real(rt), intent(in   ) :: qLC(qlc_lo(1):qlc_hi(1),qlc_lo(2):qlc_hi(2),qlc_lo(3):qlc_hi(3))
+    real(rt), intent(in   ) :: qLS(qls_lo(1):qls_hi(1),qls_lo(2):qls_hi(2),qls_lo(3):qls_hi(3))
+
 
     integer , intent(in   ) :: p_lo(3), p_hi(3)
     real(rt), intent(inout) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
@@ -583,7 +586,8 @@ contains
                       r_L = r**dble( l  )
                       r_U = r**dble(-l-1)
 
-                      phi(i,j,k) = phi(i,j,k) + qL0(l,n) * legPolyArr(l) * r_U
+                      ! phi(i,j,k) = phi(i,j,k) + qL0(l,n) * legPolyArr(l) * r_U
+                      phi(i,j,k) = phi(i,j,k) + qL0(l,ql0_lo(2),n) * legPolyArr(l) * r_U
 
                       do m = 1, l
 
