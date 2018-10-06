@@ -240,8 +240,8 @@ throughout the code documentation and papers.
    | :math:`X_k`           | –                     | mass fraction of      |
    |                       |                       | species :math:`k`     |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`\dot\omega_k`  | :math:`\mathrm{s^{-1} | species creation rate |
-   |                       | }`                    | (from reactions)      |
+   | :math:`\omega\omega_k | :math:`\mathrm{s^{-1} | species creation rate |
+   | `                     | }`                    | (from reactions)      |
    +-----------------------+-----------------------+-----------------------+
 
 Physical constants, again using the CGS system are available
@@ -978,18 +978,18 @@ the code chooses a time step based on the CFL number:
 
 .. math::
 
-   \Delta t = \mathtt{CFL}\, \cdot\, \min_{i,j,k}\left[\min\left\{\frac{\Delta x}{|u|_{i,j,k}+c_{i,j,k}},
-                                                                  \frac{\Delta y}{|v|_{i,j,k}+c_{i,j,k}},
-                                                                  \frac{\Delta z}{|w|_{i,j,k}+c_{i,j,k}}\right\}\right]
+   tt = \mathtt{CFL}\, \cdot\, \min_{i,j,k}\left[\min\left\{1{tx}{|u|_{i,j,k}+c_{i,j,k}},
+                                                                  1{ty}{|v|_{i,j,k}+c_{i,j,k}},
+                                                                  1{tz}{|w|_{i,j,k}+c_{i,j,k}}\right\}\right]
    \label{eq:cfl}
 
 If method-of-lines integration is used instead, then we have
 
 .. math::
 
-   \Delta t = \mathtt{CFL}\, \cdot\, \min_{i,j,k}\left[\left(\frac{\Delta x}{|u|_{i,j,k}+c_{i,j,k}}\right)^{-1} +
-                                                       \left(\frac{\Delta y}{|v|_{i,j,k}+c_{i,j,k}}\right)^{-1} +
-                                                       \left(\frac{\Delta z}{|w|_{i,j,k}+c_{i,j,k}}\right)^{-1}\right]^{-1}
+   tt = \mathtt{CFL}\, \cdot\, \min_{i,j,k}\left[\left(1{tx}{|u|_{i,j,k}+c_{i,j,k}}\right)^{-1} +
+                                                       \left(1{ty}{|v|_{i,j,k}+c_{i,j,k}}\right)^{-1} +
+                                                       \left(1{tz}{|w|_{i,j,k}+c_{i,j,k}}\right)^{-1}\right]^{-1}
 
 (If we are simulating in 1D or 2D, the extraneous parts related to :math:`v` and/or :math:`w` are removed.)
 
@@ -1063,9 +1063,9 @@ be limited by:
 
 .. math::
 
-   \Delta t = \frac{1}{2}\min_{i,j,k}\left[\min\left\{\frac{\Delta x^2}{D_{i,j,k}},
-                                                      \frac{\Delta y^2}{D_{i,j,k}},
-                                                      \frac{\Delta z^2}{D_{i,j,k}}\right\}\right]
+   tt = 1{1}{2}\min_{i,j,k}\left[\min\left\{1{tx^2}{D_{i,j,k}},
+                                                      1{ty^2}{D_{i,j,k}},
+                                                      1{tz^2}{D_{i,j,k}}\right\}\right]
 
 where :math:`D \equiv k / (\rho c_V)` if we are diffusing temperature, and
 :math:`D \equiv k / (\rho c_P)` if we are diffusing enthalpy. No input parameter
@@ -1074,9 +1074,9 @@ is necessary to enable this constraint. See Chapter `[ch:diffusion] <#ch:diffusi
 [] If reactions are enabled, the timestep will also
 be limited by two constraints:
 
-.. math:: \Delta t = \mathtt{dtnuc\_e}\, \min_{i,j,k} \left\{\frac{e_{i,j,k}}{\dot{e}_{i,j,k}}\right\}
+.. math:: tt = \mathtt{dtnuc\_e}\, \min_{i,j,k} \left\{1{e_{i,j,k}}{\omega{e}_{i,j,k}}\right\}
 
-.. math:: \Delta t = \mathtt{dtnuc\_X}\, \min_{i,j,k} \left\{\min_n\frac{X^n_{i,j,k}}{\dot{X}^n_{i,j,k}}\right\}
+.. math:: tt = \mathtt{dtnuc\_X}\, \min_{i,j,k} \left\{\min_n1{X^n_{i,j,k}}{\omega{X}^n_{i,j,k}}\right\}
 
 where :math:`e` is the internal energy, and :math:`X^n` is the mass fraction of
 the :math:`n`\ th species. The safety factors correspond to the runtime parameters
@@ -1085,7 +1085,7 @@ say that the timestep must be small enough so that no zone can change
 its internal energy by more than the fraction in one
 step, and so that no zone can change the abundance of any isotope by
 more than the fraction in one step. The time derivatives
-:math:`\dot{e}` and :math:`\dot{X}^n` are estimated by calling the right-hand-side
+:math:`\omega{e}` and :math:`\omega{X}^n` are estimated by calling the right-hand-side
 of the nuclear network given the state at the time the timestep limiter
 is being calculated. (We use a small number floor to prevent division by zero.)
 To prevent the timestep from being dominated by trace species, there is
@@ -1726,9 +1726,9 @@ The current StateData names Castro carries are:
 
 -  : this holds the data for the nuclear
    reactions. It has NumSpec+2 components: the species
-   creation rates (usually denoted :math:`\dot\omega_k` in these notes),
-   the specific energy generation rate (:math:`\dot{e}_\mathrm{nuc}`),
-   and its density (:math:`\rho \dot{e}_\mathrm{nuc}`).
+   creation rates (usually denoted :math:`\omega\omega_k` in these notes),
+   the specific energy generation rate (:math:`\omega{e}_\mathrm{nuc}`),
+   and its density (:math:`\rho \omega{e}_\mathrm{nuc}`).
 
    These are stored as StateData so we have access to the reaction terms
    outside of advance, both for diagnostics (like flame speed estimation)
@@ -1774,7 +1774,7 @@ that hold source term information.
 
    So the update of the conserved state appears as:
 
-   .. math:: \frac{\partial {\bf U}}{\partial t} = {\bf S}_\mathrm{flux}
+   .. math:: 1{\partial {\bf U}}{\partial t} = {\bf S}_\mathrm{flux}
 
 -  : a single MultiFab that stores
    the sum of sources over each physical process.
@@ -2685,9 +2685,9 @@ The purpose of these files is:
          meth_params_module (e.g., URHO) to refer to specific
          quantities
 
-      -  delta(): this is an array containing the zone width (:math:`\Delta x`)
-         in each coordinate direction: :math:`\mathtt{delta(1)} = \Delta x`,
-         :math:`\mathtt{delta(2)} = \Delta y`, :math:`\ldots`.
+      -  delta(): this is an array containing the zone width (:math:`tx`)
+         in each coordinate direction: :math:`\mathtt{delta(1)} = tx`,
+         :math:`\mathtt{delta(2)} = ty`, :math:`\ldots`.
 
       -  xlo(), xhi(): these are the physical coordinates of the
          lower left and upper right corners of the *valid region*
@@ -2944,8 +2944,8 @@ driver routines and use preprocessor or runtime variables to separate
 the different code paths.
 
 -  Strang-splitting: the Strang evolution does the burning on the
-   state for :math:`\Delta t/2`, then updates the hydrodynamics using the
-   burned state, and then does the final :math:`\Delta t/2` burning. No
+   state for :math:`tt/2`, then updates the hydrodynamics using the
+   burned state, and then does the final :math:`tt/2` burning. No
    explicit coupling of the burning and hydro is done. Within the
    Strang code path, there are two methods for doing the hydrodynamics,
    controlled by .
@@ -3036,7 +3036,7 @@ of each step.
 
    If is set, then we subcycle the current
    step if we violated any stability criteria to reach the desired
-   :math:`\Delta t`. The idea is the following: if the timestep that you
+   :math:`tt`. The idea is the following: if the timestep that you
    took had a timestep that was not sufficient to enforce the stability
    criteria that you would like to achieve, such as the CFL criterion
    for hydrodynamics or the burning stability criterion for reactions,
@@ -3108,7 +3108,7 @@ The explicit portion of the system advancement (reactions,
 hydrodynamics, and gravity) is done by . Consider
 our system of equations as:
 
-.. math:: \frac{\partial{\bf U}}{\partial t} = -{\bf A}({\bf U}) + {\bf R}({\bf U}) + {\bf S},
+.. math:: 1{\partial{\bf U}}{\partial t} = -{\bf A}({\bf U}) + {\bf R}({\bf U}) + {\bf S},
 
 where :math:`{\bf A}({\bf U}) = \nabla \cdot {\bf F}({\bf U})`, with :math:`{\bf F}` the flux vector, :math:`{\bf R}` are the reaction
 source terms, and :math:`{\bf S}` are the non-reaction source terms, which
@@ -3123,13 +3123,13 @@ update, in sequence, looks like:
 .. math::
 
    \begin{aligned}
-   {\bf U}^\star &= {\bf U}^n + \frac{\Delta t}{2}{\bf R}({\bf U}^n) \\
-   {\bf U}^{n+1,(a)} &= {\bf U}^\star + \Delta t\, {\bf S}({\bf U}^\star) \\
-   {\bf U}^{n+1,(b)} &= {\bf U}^{n+1,(a)} - \Delta t\, {\bf A}({\bf U}^\star) \\
-   {\bf U}^{n+1,(c)} &= {\bf U}^{n+1,(b)} + \frac{\Delta t}{2}\, [{\bf S}({\bf U}^{n+1,(b)}) - {\bf S}({\bf U}^\star)] \label{eq:source_correct}\\
-   {\bf U}^{n+1}     &= {\bf U}^{n+1,(c)} + \frac{\Delta t}{2} {\bf R}({\bf U}^{n+1,(c)})\end{aligned}
+   {\bf U}^\star &= {\bf U}^n + 1{tt}{2}{\bf R}({\bf U}^n) \\
+   {\bf U}^{n+1,(a)} &= {\bf U}^\star + tt\, {\bf S}({\bf U}^\star) \\
+   {\bf U}^{n+1,(b)} &= {\bf U}^{n+1,(a)} - tt\, {\bf A}({\bf U}^\star) \\
+   {\bf U}^{n+1,(c)} &= {\bf U}^{n+1,(b)} + 1{tt}{2}\, [{\bf S}({\bf U}^{n+1,(b)}) - {\bf S}({\bf U}^\star)] \label{eq:source_correct}\\
+   {\bf U}^{n+1}     &= {\bf U}^{n+1,(c)} + 1{tt}{2} {\bf R}({\bf U}^{n+1,(c)})\end{aligned}
 
-Note that in the first step, we add a full :math:`\Delta t` of the old-time
+Note that in the first step, we add a full :math:`tt` of the old-time
 source to the state. This prediction ensures consistency when it
 comes time to predicting the new-time source at the end of the update.
 The construction of the advective terms, :math:`{\bf A({\bf U})}` is purely
@@ -3146,7 +3146,7 @@ sources implicitly by updating density first, and then momentum,
 and then energy. This is done for rotating and gravity, and can
 make the update more akin to:
 
-.. math:: {\bf U}^{n+1,(c)} = {\bf U}^{n+1,(b)} + \frac{\Delta t}{2} [{\bf S}({\bf U}^{n+1,(c)}) - {\bf S}({\bf U}^n)]
+.. math:: {\bf U}^{n+1,(c)} = {\bf U}^{n+1,(b)} + 1{tt}{2} [{\bf S}({\bf U}^{n+1,(c)}) - {\bf S}({\bf U}^n)]
 
 Castro also supports radiation. This part of the update algorithm
 only deals with the advective / hyperbolic terms in the radiation update.
@@ -3177,14 +3177,14 @@ S_old, to the new time, S_new.
 
    #. Check for NaNs in the initial state, S_old.
 
-#. *React :math:`\Delta t/2`.* []
+#. *React :math:`tt/2`.* []
 
    Update the solution due to the effect of reactions over half a time
    step. The integration method and system of equations used here is
    determined by a host of runtime parameters that are part of the
    Microphysics package. But the basic idea is to evolve the energy
    release from the reactions, the species mass fractions, and
-   temperature through :math:`\Delta t/2`.
+   temperature through :math:`tt/2`.
 
    Using the notation above, we begin with the time-level :math:`n` state,
    :math:`{\bf U}^n`, and produce a state that has evolved only due to reactions,
@@ -3193,13 +3193,13 @@ S_old, to the new time, S_new.
    .. math::
 
       \begin{aligned}
-          (\rho e)^\star &= (\rho e)^\star - \frac{\Delta t}{2} \rho H_\mathrm{nuc} \\
-          (\rho E)^\star &= (\rho E)^\star - \frac{\Delta t}{2} \rho H_\mathrm{nuc} \\
-          (\rho X_k)^\star &= (\rho X_k)^\star + \frac{\Delta t}{2}(\rho\dot\omega_k)^n.
+          (\rho e)^\star &= (\rho e)^\star - 1{tt}{2} \rho H_\mathrm{nuc} \\
+          (\rho E)^\star &= (\rho E)^\star - 1{tt}{2} \rho H_\mathrm{nuc} \\
+          (\rho X_k)^\star &= (\rho X_k)^\star + 1{tt}{2}(\rho\omega\omega_k)^n.
         \end{aligned}
 
    Here, :math:`H_\mathrm{nuc}` is the energy release (erg/g/s) over the
-   burn, and :math:`\dot\omega_k` is the creation rate for species :math:`k`.
+   burn, and :math:`\omega\omega_k` is the creation rate for species :math:`k`.
 
    After exiting the burner, we call the EOS with :math:`\rho^\star`,
    :math:`e^\star`, and :math:`X_k^\star` to get the new temperature, :math:`T^\star`.
@@ -3230,7 +3230,7 @@ S_old, to the new time, S_new.
 
    The time level :math:`n` sources are computed, and added to the
    StateData . The sources are then applied
-   to the state after the burn, :math:`{\bf U}^\star` with a full :math:`\Delta t`
+   to the state after the burn, :math:`{\bf U}^\star` with a full :math:`tt`
    weighting (this will be corrected later). This produces the
    intermediate state, :math:`{\bf U}^{n+1,(a)}`.
 
@@ -3276,7 +3276,7 @@ S_old, to the new time, S_new.
       .. math::
 
          {\bf g}^n = -\nabla\phi^n, \qquad
-               \Delta\phi^n = 4\pi G\rho^n,
+               t\phi^n = 4\pi G\rho^n,
 
       The construction of the form of the gravity source for the
       momentum and energy equation is dependent on the parameter
@@ -3310,7 +3310,7 @@ S_old, to the new time, S_new.
    completely inside of the surrounding burn operations.
 
    Note that the source terms are already applied to
-   in this step, with a full :math:`\Delta t`—this will be corrected later.
+   in this step, with a full :math:`tt`—this will be corrected later.
 
 #. [strang:hydro] *Construct the hydro update* []
 
@@ -3384,13 +3384,13 @@ S_old, to the new time, S_new.
 #. [strang:newsource] *Correct the source terms with the :math:`n+1` contribution*
    [, ]
 
-   Previously we added :math:`\Delta t\, {\bf S}({\bf U}^\star)` to the state, when
-   we really want a time-centered approach, :math:`(\Delta t/2)[{\bf S}({\bf U}^\star
+   Previously we added :math:`tt\, {\bf S}({\bf U}^\star)` to the state, when
+   we really want a time-centered approach, :math:`(tt/2)[{\bf S}({\bf U}^\star
        + {\bf S}({\bf U}^{n+1,(b)})]`. We fix that here.
 
    We start by computing the source term vector :math:`{\bf S}({\bf U}^{n+1,(b)})`
    using the updated state, :math:`{\bf U}^{n+1,(b)}`. We then compute the
-   correction, :math:`(\Delta t/2)[{\bf S}({\bf U}^{n+1,(b)}) - {\bf S}({\bf U}^\star)]` to
+   correction, :math:`(tt/2)[{\bf S}({\bf U}^{n+1,(b)}) - {\bf S}({\bf U}^\star)]` to
    add to :math:`{\bf U}^{n+1,(b)}` to give us the properly time-centered source,
    and the fully updated state, :math:`{\bf U}^{n+1,(c)}`. This correction is stored
    in the  [10]_.
@@ -3398,9 +3398,9 @@ S_old, to the new time, S_new.
    In the process of updating the sources, we update the temperature to
    make it consistent with the new state.
 
-#. *React :math:`\Delta t/2`.* []
+#. *React :math:`tt/2`.* []
 
-   We do the final :math:`\Delta t/2` reacting on the state, begining with :math:`{\bf U}^{n+1,(c)}` to
+   We do the final :math:`tt/2` reacting on the state, begining with :math:`{\bf U}^{n+1,(c)}` to
    give us the final state on this level, :math:`{\bf U}^{n+1}`.
 
    This is largely the same as , but
@@ -3446,22 +3446,22 @@ Main Hydro, Reaction, and Gravity Advancement (MOL w/ Strang-splitting)
 The handling of sources differs in the MOL integration, as compared to CTU.
 Again, consider our system as:
 
-.. math:: \frac{\partial{\bf U}}{\partial t} = -{\bf A}({\bf U}) + {\bf R}({\bf U}) + {\bf S}\, .
+.. math:: 1{\partial{\bf U}}{\partial t} = -{\bf A}({\bf U}) + {\bf R}({\bf U}) + {\bf S}\, .
 
 We will again use Strang splitting to discretize the
 advection-reaction equations, but the hydro update will consist of :math:`s`
 stages. The update first does the reactions, as with CTU:
 
-.. math:: {\bf U}^\star = {\bf U}^n + \frac{\Delta t}{2}{\bf R}({\bf U}^n)
+.. math:: {\bf U}^\star = {\bf U}^n + 1{tt}{2}{\bf R}({\bf U}^n)
 
 We then consider the hydro update discretized in space, but not time, written
 as:
 
-.. math:: \frac{\partial {\bf U}}{\partial t} = -{\bf A}({\bf U}) + {\bf S}({\bf U})
+.. math:: 1{\partial {\bf U}}{\partial t} = -{\bf A}({\bf U}) + {\bf S}({\bf U})
 
 Using a Runge-Kutta (or similar) integrator, we write the update as:
 
-.. math:: {\bf U}^{n+1,\star} = {\bf U}^\star + \Delta t\sum_{l=1}^s b_i {\bf k}_l
+.. math:: {\bf U}^{n+1,\star} = {\bf U}^\star + tt\sum_{l=1}^s b_i {\bf k}_l
 
 where :math:`b_i` is the weight for stage :math:`i` and :math:`k_i` is the stage update:
 
@@ -3469,18 +3469,18 @@ where :math:`b_i` is the weight for stage :math:`i` and :math:`k_i` is the stage
 
 with
 
-.. math:: {\bf U}_l = {\bf U}^\star  + \Delta t\sum_{m=1}^{l-1} a_{lm} {\bf k}_m
+.. math:: {\bf U}_l = {\bf U}^\star  + tt\sum_{m=1}^{l-1} a_{lm} {\bf k}_m
 
 Finally, there is the last part of the reactions:
 
-.. math:: {\bf U}^{n+1} = {\bf U}^{n+1,\star} + \frac{\Delta t}{2} {\bf R}({\bf U}^{n+1,\star})
+.. math:: {\bf U}^{n+1} = {\bf U}^{n+1,\star} + 1{tt}{2} {\bf R}({\bf U}^{n+1,\star})
 
 In contrast to the CTU method, the sources are treated together
 with the advection here.
 
 The time at the intermediate stages is evaluated as:
 
-.. math:: t_l = c_l \Delta t
+.. math:: t_l = c_l tt
 
 The integration coefficients are stored in the vectors
 , , and , and the
@@ -3504,13 +3504,13 @@ S_old, to the new time, S_new.
       temporarily in the new-time slot (what we normally refer to as
       ):
 
-      .. math:: \mathtt{S\_new}_\mathrm{iter} = \mathtt{Sburn} + \Delta t\sum_{l=0}^{\mathrm{iter}-1} a_{\mathrm{iter},l} \mathtt{k\_mol}_l
+      .. math:: \mathtt{S\_new}_\mathrm{iter} = \mathtt{Sburn} + tt\sum_{l=0}^{\mathrm{iter}-1} a_{\mathrm{iter},l} \mathtt{k\_mol}_l
 
       Then initialize from .
 
    Check for NaNs in the initial state, S_old.
 
-#. *React :math:`\Delta t/2`.* []
+#. *React :math:`tt/2`.* []
 
    This step is unchanged from the CTU version. At the end of this
    step, sees the effects of the reactions.
@@ -3530,7 +3530,7 @@ S_old, to the new time, S_new.
 
    The time level :math:`n` sources are computed, and added to the
    StateData . The sources are then applied
-   to the state after the burn, :math:`{\bf U}^\star` with a full :math:`\Delta t`
+   to the state after the burn, :math:`{\bf U}^\star` with a full :math:`tt`
    weighting (this will be corrected later). This produces the
    intermediate state, :math:`{\bf U}^{n+1,(a)}`.
 
@@ -3539,7 +3539,7 @@ S_old, to the new time, S_new.
    .. math::
 
       {\bf g}^n = -\nabla\phi^n, \qquad
-          \Delta\phi^n = 4\pi G\rho^n,
+          t\phi^n = 4\pi G\rho^n,
 
 #. [strang:hydro] *Construct the hydro update* []
 
@@ -3555,7 +3555,7 @@ S_old, to the new time, S_new.
    a single stage. On the last stage, we compute the final update
    as:
 
-   .. math:: \mathtt{S\_new} = \mathtt{Sburn} + \Delta t\sum_{l=0}^{\mathrm{n\_stages}-1} b_l \, \mathrm{k\_mol}_l
+   .. math:: \mathtt{S\_new} = \mathtt{Sburn} + tt\sum_{l=0}^{\mathrm{n\_stages}-1} b_l \, \mathrm{k\_mol}_l
 
 #. [strang:clean] *Clean State* []
 
@@ -3568,9 +3568,9 @@ S_old, to the new time, S_new.
 
    After these checks, we check the state for NaNs.
 
-#. *React :math:`\Delta t/2`.* []
+#. *React :math:`tt/2`.* []
 
-   We do the final :math:`\Delta t/2` reacting on the state, begining with :math:`{\bf U}^{n+1,(c)}` to
+   We do the final :math:`tt/2` reacting on the state, begining with :math:`{\bf U}^{n+1,(c)}` to
    give us the final state on this level, :math:`{\bf U}^{n+1}`.
 
    This is largely the same as , but
@@ -3646,7 +3646,7 @@ step now proceeds as:
       update as a source—this way the reactions see the
       time-evolution due to advection as we integrate:
 
-      .. math:: \frac{d{\bf U}}{dt} = \left [ \mathcal{A}({\bf U}) \right ]^{n+1/2} + {\bf R}({\bf U})
+      .. math:: 1{d{\bf U}}{dt} = \left [ \mathcal{A}({\bf U}) \right ]^{n+1/2} + {\bf R}({\bf U})
 
       The advective source includes both the divergence of the fluxes
       as well as the time-centered source terms. This is computed by
@@ -4699,8 +4699,8 @@ parameters
    |                       | fractions of a zone.  |                       |
    |                       | The timestep is equal |                       |
    |                       | to dtnuc              |                       |
-   |                       | :math:`\cdot\,(X / \d |                       |
-   |                       | ot{X})`.              |                       |
+   |                       | :math:`\cdot\,(X / \o |                       |
+   |                       | mega{X})`.            |                       |
    +-----------------------+-----------------------+-----------------------+
    |                       | If we are using the   | 1.e-3                 |
    |                       | timestep limiter      |                       |
@@ -4723,8 +4723,8 @@ parameters
    |                       | of a zone. The        |                       |
    |                       | timestep is equal to  |                       |
    |                       | dtnuc                 |                       |
-   |                       | :math:`\cdot\,(e / \d |                       |
-   |                       | ot{e})`.              |                       |
+   |                       | :math:`\cdot\,(e / \o |                       |
+   |                       | mega{e})`.            |                       |
    +-----------------------+-----------------------+-----------------------+
    |                       | limit the zone size   | 1.e200                |
    |                       | based on how much the |                       |
@@ -4735,7 +4735,7 @@ parameters
    |                       | level must be smaller |                       |
    |                       | than dxnuc            |                       |
    |                       | :math:`\cdot\, c_s\cd |                       |
-   |                       | ot (e / \dot{e})`,    |                       |
+   |                       | ot (e / \omega{e})`,  |                       |
    |                       | where :math:`c_s` is  |                       |
    |                       | the sound speed. This |                       |
    |                       | ensures that the      |                       |
@@ -6057,18 +6057,18 @@ We begin with the fully compressible equations for the conserved state vector,
 .. math::
 
    \begin{aligned}
-   \frac{\partial \rho}{\partial t} &=& - \nabla \cdot (\rho {\bf u}) + S_{{\rm ext},\rho}, \\
-   \frac{\partial (\rho {\bf u})}{\partial t} &=& - \nabla \cdot (\rho {\bf u}{\bf u}) - \nabla p +\rho {\bf g}+ {\bf S}_{{\rm ext},\rho{\bf u}}, \\
-   \frac{\partial (\rho E)}{\partial t} &=& - \nabla \cdot (\rho {\bf u}E + p {\bf u}) + \rho {\bf u}\cdot {\bf g}- \sum_k {\rho q_k \dot\omega_k} + \nabla\cdot{k_\mathrm{th}}\nabla T + S_{{\rm ext},\rho E}, \\
-   \frac{\partial (\rho A_k)}{\partial t} &=& - \nabla \cdot (\rho {\bf u}A_k) + S_{{\rm ext},\rho A_k}, \\
-   \frac{\partial (\rho X_k)}{\partial t} &=& - \nabla \cdot (\rho {\bf u}X_k) + \rho \dot\omega_k + S_{{\rm ext},\rho X_k}, \\
-   \frac{\partial (\rho Y_k)}{\partial t} &=& - \nabla \cdot (\rho {\bf u}Y_k) + S_{{\rm ext},\rho Y_k}.\label{eq:compressible-equations}\end{aligned}
+   1{\partial \rho}{\partial t} &=& - \nabla \cdot (\rho {\bf u}) + S_{{\rm ext},\rho}, \\
+   1{\partial (\rho {\bf u})}{\partial t} &=& - \nabla \cdot (\rho {\bf u}{\bf u}) - \nabla p +\rho {\bf g}+ {\bf S}_{{\rm ext},\rho{\bf u}}, \\
+   1{\partial (\rho E)}{\partial t} &=& - \nabla \cdot (\rho {\bf u}E + p {\bf u}) + \rho {\bf u}\cdot {\bf g}- \sum_k {\rho q_k \omega\omega_k} + \nabla\cdot{k_\mathrm{th}}\nabla T + S_{{\rm ext},\rho E}, \\
+   1{\partial (\rho A_k)}{\partial t} &=& - \nabla \cdot (\rho {\bf u}A_k) + S_{{\rm ext},\rho A_k}, \\
+   1{\partial (\rho X_k)}{\partial t} &=& - \nabla \cdot (\rho {\bf u}X_k) + \rho \omega\omega_k + S_{{\rm ext},\rho X_k}, \\
+   1{\partial (\rho Y_k)}{\partial t} &=& - \nabla \cdot (\rho {\bf u}Y_k) + S_{{\rm ext},\rho Y_k}.\label{eq:compressible-equations}\end{aligned}
 
 Here :math:`\rho, {\bf u}, T, p`, and :math:`{k_\mathrm{th}}` are the density, velocity,
 temperature, pressure, and thermal conductivity, respectively, and :math:`E
 = e + {\bf u}\cdot {\bf u}/ 2` is the total energy with :math:`e` representing the
 internal energy. In addition, :math:`X_k` is the abundance of the :math:`k^{\rm
-  th}` isotope, with associated production rate, :math:`\dot\omega_k`, and
+  th}` isotope, with associated production rate, :math:`\omega\omega_k`, and
 energy release, :math:`q_k`. Here :math:`{\bf g}` is the gravitational vector, and
 :math:`S_{{\rm ext},\rho}, {\bf S}_{{\rm ext}\rho{\bf u}}`, etc., are user-specified
 source terms. :math:`A_k` is an advected quantity, i.e., a tracer. We also
@@ -6132,12 +6132,12 @@ accounted for in **Steps 1** and **6**. The source terms are:
    =
    \left(\begin{array}{c}
    S_{{\rm ext},\rho} \\
-   {\bf g}+ \frac{1}{\rho}{\bf S}_{{\rm ext},\rho{\bf u}} \\
-   \frac{1}{\rho}\frac{\partial p}{\partial e}S_{{\rm ext},\rho E} + \frac{\partial p}{\partial\rho}S_{{\rm ext}\rho} \\
+   {\bf g}+ 1{1}{\rho}{\bf S}_{{\rm ext},\rho{\bf u}} \\
+   1{1}{\rho}1{\partial p}{\partial e}S_{{\rm ext},\rho E} + 1{\partial p}{\partial\rho}S_{{\rm ext}\rho} \\
    \nabla\cdot{k_\mathrm{th}}\nabla T + S_{{\rm ext},\rho E} \\
-   \frac{1}{\rho}S_{{\rm ext},\rho A_k} \\
-   \frac{1}{\rho}S_{{\rm ext},\rho X_k} \\
-   \frac{1}{\rho}S_{{\rm ext},\rho Y_k}
+   1{1}{\rho}S_{{\rm ext},\rho A_k} \\
+   1{1}{\rho}S_{{\rm ext},\rho X_k} \\
+   1{1}{\rho}S_{{\rm ext},\rho Y_k}
    \end{array}\right)^n,
 
 .. math::
@@ -6171,26 +6171,26 @@ The primitive variable equations for density, velocity, and pressure are:
 .. math::
 
    \begin{aligned}
-     \frac{\partial\rho}{\partial t} &=& -{\bf u}\cdot\nabla\rho - \rho\nabla\cdot{\bf u}+ S_{{\rm ext},\rho} \\
+     1{\partial\rho}{\partial t} &=& -{\bf u}\cdot\nabla\rho - \rho\nabla\cdot{\bf u}+ S_{{\rm ext},\rho} \\
    %
-     \frac{\partial{\bf u}}{\partial t} &=& -{\bf u}\cdot\nabla{\bf u}- \frac{1}{\rho}\nabla p + {\bf g}+ 
-   \frac{1}{\rho} ({\bf S}_{{\rm ext},\rho{\bf u}} - {\bf u}\; S_{{\rm ext},\rho}) \\
-   \frac{\partial p}{\partial t} &=& -{\bf u}\cdot\nabla p - \rho c^2\nabla\cdot{\bf u}+
-   \left(\frac{\partial p}{\partial \rho}\right)_{e,X}S_{{\rm ext},\rho}\nonumber\\
-   &&+\  \frac{1}{\rho}\sum_k\left(\frac{\partial p}{\partial X_k}\right)_{\rho,e,X_j,j\neq k}\left(\rho\dot\omega_k + S_{{\rm ext},\rho X_k} - X_kS_{{\rm ext},\rho}\right)\nonumber\\
-   && +\  \frac{1}{\rho}\left(\frac{\partial p}{\partial e}\right)_{\rho,X}\left[-eS_{{\rm ext},\rho} - \sum_k\rho q_k\dot\omega_k + \nabla\cdot{k_\mathrm{th}}\nabla T \right.\nonumber\\
-   && \quad\qquad\qquad\qquad+\ S_{{\rm ext},\rho E} - {\bf u}\cdot\left({\bf S}_{{\rm ext},\rho{\bf u}} - \frac{{\bf u}}{2}S_{{\rm ext},\rho}\right)\Biggr] \end{aligned}
+     1{\partial{\bf u}}{\partial t} &=& -{\bf u}\cdot\nabla{\bf u}- 1{1}{\rho}\nabla p + {\bf g}+ 
+   1{1}{\rho} ({\bf S}_{{\rm ext},\rho{\bf u}} - {\bf u}\; S_{{\rm ext},\rho}) \\
+   1{\partial p}{\partial t} &=& -{\bf u}\cdot\nabla p - \rho c^2\nabla\cdot{\bf u}+
+   \left(1{\partial p}{\partial \rho}\right)_{e,X}S_{{\rm ext},\rho}\nonumber\\
+   &&+\  1{1}{\rho}\sum_k\left(1{\partial p}{\partial X_k}\right)_{\rho,e,X_j,j\neq k}\left(\rho\omega\omega_k + S_{{\rm ext},\rho X_k} - X_kS_{{\rm ext},\rho}\right)\nonumber\\
+   && +\  1{1}{\rho}\left(1{\partial p}{\partial e}\right)_{\rho,X}\left[-eS_{{\rm ext},\rho} - \sum_k\rho q_k\omega\omega_k + \nabla\cdot{k_\mathrm{th}}\nabla T \right.\nonumber\\
+   && \quad\qquad\qquad\qquad+\ S_{{\rm ext},\rho E} - {\bf u}\cdot\left({\bf S}_{{\rm ext},\rho{\bf u}} - 1{{\bf u}}{2}S_{{\rm ext},\rho}\right)\Biggr] \end{aligned}
 
 The advected quantities appear as:
 
 .. math::
 
    \begin{aligned}
-   \frac{\partial A_k}{\partial t} &=& -{\bf u}\cdot\nabla A_k + \frac{1}{\rho}
+   1{\partial A_k}{\partial t} &=& -{\bf u}\cdot\nabla A_k + 1{1}{\rho}
                                         ( S_{{\rm ext},\rho A_k} - A_k S_{{\rm ext},\rho} ), \\
-   \frac{\partial X_k}{\partial t} &=& -{\bf u}\cdot\nabla X_k + \dot\omega_k + \frac{1}{\rho}
+   1{\partial X_k}{\partial t} &=& -{\bf u}\cdot\nabla X_k + \omega\omega_k + 1{1}{\rho}
                                         ( S_{{\rm ext},\rho X_k}  - X_k S_{{\rm ext},\rho} ), \\
-   \frac{\partial Y_k}{\partial t} &=& -{\bf u}\cdot\nabla Y_k + \frac{1}{\rho} 
+   1{\partial Y_k}{\partial t} &=& -{\bf u}\cdot\nabla Y_k + 1{1}{\rho} 
                                         ( S_{{\rm ext},\rho Y_k}  - Y_k S_{{\rm ext},\rho} ).\end{aligned}
 
 All of the primitive variables are derived from the conservative state
@@ -6206,9 +6206,9 @@ We augment the above system with an internal energy equation:
 .. math::
 
    \begin{aligned}
-   \frac{\partial(\rho e)}{\partial t} &=& - {\bf u}\cdot\nabla(\rho e) - (\rho e+p)\nabla\cdot{\bf u}- \sum_k \rho q_k\dot\omega_k 
+   1{\partial(\rho e)}{\partial t} &=& - {\bf u}\cdot\nabla(\rho e) - (\rho e+p)\nabla\cdot{\bf u}- \sum_k \rho q_k\omega\omega_k 
                                            + \nabla\cdot{k_\mathrm{th}}\nabla T + S_{{\rm ext},\rho E} \nonumber\\
-   && -\  {\bf u}\cdot\left({\bf S}_{{\rm ext},\rho{\bf u}}-\frac{1}{2}S_{{\rm ext},\rho}{\bf u}\right), \end{aligned}
+   && -\  {\bf u}\cdot\left({\bf S}_{{\rm ext},\rho{\bf u}}-1{1}{2}S_{{\rm ext},\rho}{\bf u}\right), \end{aligned}
 
 This has two benefits. First, for a general equation of state,
 carrying around an additional thermodynamic quantity allows us to
@@ -6216,7 +6216,7 @@ avoid equation of state calls (in particular, in the Riemann solver,
 see e.g. :raw-latex:`\cite{colglaz}`). Second, it is sometimes the case that the
 internal energy calculated as
 
-.. math:: e_T \equiv E - \frac{1}{2} \mathbf{v}^2
+.. math:: e_T \equiv E - 1{1}{2} \mathbf{v}^2
 
 is
 unreliable. This has two usual causes: one, for high Mach number
@@ -6269,7 +6269,7 @@ Primitive Variable System
 The full primitive variable form (without the advected or auxiliary
 quantities) is
 
-.. math:: \frac{\partial{\bf Q}}{\partial t} + \sum_d {\bf A}_d\frac{\partial{\bf Q}}{\partial x_d} = {\bf S}_{{\bf Q}}.
+.. math:: 1{\partial{\bf Q}}{\partial t} + \sum_d {\bf A}_d1{\partial{\bf Q}}{\partial x_d} = {\bf S}_{{\bf Q}}.
 
 For example, in 2D:
 
@@ -6286,7 +6286,7 @@ For example, in 2D:
    +
    \left(\begin{array}{cccccc}
    u & \rho & 0 & 0 & 0 & 0 \\
-   0 & u & 0 & \frac{1}{\rho} & 0 & 0 \\
+   0 & u & 0 & 1{1}{\rho} & 0 & 0 \\
    0 & 0 & u & 0 & 0 & 0 \\
    0 & \rho c^2 & 0 & u & 0 & 0 \\
    0 & \rho e + p & 0 & 0 & u & 0 \\
@@ -6304,7 +6304,7 @@ For example, in 2D:
    \left(\begin{array}{cccccc}
    v & 0 & \rho & 0 & 0 & 0 \\
    0 & v & 0 & 0 & 0 & 0 \\
-   0 & 0 & v & \frac{1}{\rho} & 0 & 0 \\
+   0 & 0 & v & 1{1}{\rho} & 0 & 0 \\
    0 & 0 & \rho c^2 & v & 0 & 0 \\
    0 & 0 & \rho e + p & 0 & v & 0 \\
    0 & 0 & 0 & 0 & 0 & v
@@ -6331,7 +6331,7 @@ The right column eigenvectors are:
    {\bf R}({\bf A}_x) =
    \left(\begin{array}{cccccc}
    1 & 1 & 0 & 0 & 0 & 1 \\
-   -\frac{c}{\rho} & 0 & 0 & 0 & 0 & \frac{c}{\rho} \\
+   -1{c}{\rho} & 0 & 0 & 0 & 0 & 1{c}{\rho} \\
    0 & 0 & 1 & 0 & 0 & 0 \\
    c^2 & 0 & 0 & 0 & 0 & c^2 \\
    h & 0 & 0 & 1 & 0 & h \\
@@ -6342,7 +6342,7 @@ The right column eigenvectors are:
    \left(\begin{array}{cccccc}
    1 & 1 & 0 & 0 & 0 & 1 \\
    0 & 0 & 1 & 0 & 0 & 0 \\
-   -\frac{c}{\rho} & 0 & 0 & 0 & 0 & \frac{c}{\rho} \\
+   -1{c}{\rho} & 0 & 0 & 0 & 0 & 1{c}{\rho} \\
    c^2 & 0 & 0 & 0 & 0 & c^2 \\
    h & 0 & 0 & 1 & 0 & h \\
    0 & 0 & 0 & 0 & 1 & 0 \\
@@ -6354,22 +6354,22 @@ The left row eigenvectors, normalized so that :math:`{\bf R}_d\cdot{\bf L}_d = {
 
    {\bf L}_x =
    \left(\begin{array}{cccccc}
-   0 & -\frac{\rho}{2c} & 0 & \frac{1}{2c^2} & 0 & 0 \\
-   1 & 0 & 0 & -\frac{1}{c^2} & 0 & 0 \\
+   0 & -1{\rho}{2c} & 0 & 1{1}{2c^2} & 0 & 0 \\
+   1 & 0 & 0 & -1{1}{c^2} & 0 & 0 \\
    0 & 0 & 1 & 0 & 0 & 0 \\
-   0 & 0 & 0 & -\frac{h}{c^2} & 1 & 0 \\
+   0 & 0 & 0 & -1{h}{c^2} & 1 & 0 \\
    0 & 0 & 0 & 0 & 0 & 1 \\
-   0 & \frac{\rho}{2c} & 0 & \frac{1}{2c^2} & 0 & 0
+   0 & 1{\rho}{2c} & 0 & 1{1}{2c^2} & 0 & 0
    \end{array}\right),
    \qquad
    {\bf L}_y =
    \left(\begin{array}{cccccc}
-   0 & 0 & -\frac{\rho}{2c} & \frac{1}{2c^2} & 0 & 0 \\
-   1 & 0 & 0 & -\frac{1}{c^2} & 0 & 0 \\
+   0 & 0 & -1{\rho}{2c} & 1{1}{2c^2} & 0 & 0 \\
+   1 & 0 & 0 & -1{1}{c^2} & 0 & 0 \\
    0 & 1 & 0 & 0 & 0 & 0 \\
-   0 & 0 & 0 & -\frac{h}{c^2} & 1 & 0 \\
+   0 & 0 & 0 & -1{h}{c^2} & 1 & 0 \\
    0 & 0 & 0 & 0 & 0 & 1 \\
-   0 & 0 & \frac{\rho}{2c} & \frac{1}{2c^2} & 0 & 0
+   0 & 0 & 1{\rho}{2c} & 1{1}{2c^2} & 0 & 0
    \end{array}\right).
 
 .. _Sec:Advection Step:
@@ -6475,7 +6475,7 @@ flattening for the x-direction, here are the steps:
 
 #. Define :math:`\zeta`
 
-   .. math:: \zeta_i = \frac{p_{i+1}-p_{i-1}}{\max\left(p_{\rm small},|p_{i+2}-p_{i-2}|\right)}.
+   .. math:: \zeta_i = 1{p_{i+1}-p_{i-1}}{\max\left(p_{\rm small},|p_{i+2}-p_{i-2}|\right)}.
 
 #. Define :math:`\tilde\chi`
 
@@ -6486,7 +6486,7 @@ flattening for the x-direction, here are the steps:
    :math:`\tilde\chi_i` to lie in the range :math:`[0,1]`. Then, if either
    :math:`u_{i+1}-u_{i-1}<0` or
 
-   .. math:: \frac{p_{i+1}-p_{i-1}}{\min(p_{i+1},p_{i-1})} \le c,
+   .. math:: 1{p_{i+1}-p_{i-1}}{\min(p_{i+1},p_{i-1})} \le c,
 
    where :math:`c=1/3` is a tunable parameter, then set :math:`\tilde\chi_i=0`.
 
@@ -6546,19 +6546,23 @@ equations in 1D, for simplicity):
 
    .. math::
 
-      s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+      s_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
          \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
          \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} = \frac{7}{12}\left(s_{i+1}+s_i\right) - \frac{1}{12}\left(s_{i+2}+s_{i-1}\right).
+         \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} = 1{7}{12}\left(s_{i+1}+s_i\right) - 1{1}{12}\left(s_{i+2}+s_{i-1}\right).
 
-   Then, if :math:`(s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+   Then, if :math:`(s_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
       \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
       \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}-s_i)(s_{i+1}-s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+      \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}-s_i)(s_{i+1}-s_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
       \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
       \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
       \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}) < 0`, we limit
-   :math:`s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+   :math:`s_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
       \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
       \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
       \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}` a nonlinear combination of approximations to the
@@ -6569,18 +6573,22 @@ equations in 1D, for simplicity):
       .. math::
 
          \begin{aligned}
-         (D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+         (D^2s)_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} &=& 3\left(s_{i}-2s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} &=& 3\left(s_{i}-2s_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
             \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}+s_{i+1}\right) \\
-         (D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+         (D^2s)_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
             \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},L} &=& s_{i-1}-2s_{i}+s_{i+1} \\
-         (D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+         (D^2s)_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
             \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},R} &=& s_{i}-2s_{i+1}+s_{i+2}\end{aligned}
@@ -6589,39 +6597,47 @@ equations in 1D, for simplicity):
 
       .. math::
 
-         s = \text{sign}\left[(D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+         s = \text{sign}\left[(D^2s)_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
             \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}\right],
 
       .. math::
 
-         (D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+         (D^2s)_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},\text{lim}} = s\max\left\{\min\left[Cs\left|(D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},\text{lim}} = s\max\left\{\min\left[Cs\left|(D^2s)_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},L}\right|,Cs\left|(D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},L}\right|,Cs\left|(D^2s)_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},R}\right|,s\left|(D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},R}\right|,s\left|(D^2s)_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
             \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}\right|\right],0\right\},
 
       where :math:`C=1.25` as used in Colella and Sekora 2009. The limited value
-      of :math:`s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+      of :math:`s_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
          \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
          \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
          \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}` is
 
       .. math::
 
-         s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+         s_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} = \frac{1}{2}\left(s_{i}+s_{i+1}\right) - \frac{1}{6}(D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} = 1{1}{2}\left(s_{i}+s_{i+1}\right) - 1{1}{6}(D^2s)_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
             \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},\text{lim}}.
@@ -6635,7 +6651,8 @@ equations in 1D, for simplicity):
 
       .. math::
 
-         \alpha_{i,\pm} = s_{i\pm\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+         \alpha_{i,\pm} = s_{i\pm\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
             \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} - s_i.
@@ -6648,17 +6665,21 @@ equations in 1D, for simplicity):
       .. math::
 
          \begin{aligned}
-         (Ds)_{i,{\rm face},-} &=& s_{i-\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+         (Ds)_{i,{\rm face},-} &=& s_{i-\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} - s_{i-\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} - s_{i-\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 3}\kern-.2em/
             \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{3\!/2}} \\
-         (Ds)_{i,{\rm face},+} &=& s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
+         (Ds)_{i,{\rm face},+} &=& s_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 3}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{3\!/2}} - s_{i-\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{3\!/2}} - s_{i-\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
             \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}\end{aligned}
@@ -6700,14 +6721,14 @@ equations in 1D, for simplicity):
 
       Then,
 
-      .. math:: \alpha_{i,\pm} = \frac{\alpha_{i,\pm}(D^2s)_{i,\text{lim}}}{\max\left[(D^2s)_{i},1\times 10^{-10}\right]}
+      .. math:: \alpha_{i,\pm} = 1{\alpha_{i,\pm}(D^2s)_{i,\text{lim}}}{\max\left[(D^2s)_{i},1\times 10^{-10}\right]}
 
    -  If we are not at an extremum and :math:`|\alpha_{i,\pm}| >
         2|\alpha_{i,\mp}|`, then define
 
       .. math:: s = \text{sign}(\alpha_{i,\mp})
 
-      .. math:: \delta\mathcal{I}_{\text{ext}} = \frac{-\alpha_{i,\pm}^2}{4\left(\alpha_{j,+}+\alpha_{j,-}\right)},
+      .. math:: \delta\mathcal{I}_{\text{ext}} = 1{-\alpha_{i,\pm}^2}{4\left(\alpha_{j,+}+\alpha_{j,-}\right)},
 
       .. math:: \delta s = s_{i\mp 1} - s_i,
 
@@ -6717,7 +6738,8 @@ equations in 1D, for simplicity):
 
       .. math::
 
-         \alpha_{i,\pm} =  -2\delta s - 2s\left[(\delta s)^2 - \delta s \alpha_{i,\mp}\right]^{\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+         \alpha_{i,\pm} =  -2\delta s - 2s\left[(\delta s)^2 - \delta s \alpha_{i,\mp}\right]^{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
             \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}
@@ -6735,29 +6757,33 @@ equations in 1D, for simplicity):
 
    .. math:: s_6 = 6s_{i} - 3\left(s_{i,-}+s_{i,+}\right),
 
-   .. math:: \xi = \frac{x - ih}{h}, ~ 0 \le \xi \le 1.
+   .. math:: \xi = 1{x - ih}{h}, ~ 0 \le \xi \le 1.
 
 -  | **Step 3:** Integrate quadratic profiles. We are essentially
      computing the average value swept out by the quadratic profile
      across the face assuming the profile is moving at a speed
      :math:`\lambda_k`.
    | Define the following integrals, where :math:`\sigma_k =
-       |\lambda_k|\Delta t/h`:
+       |\lambda_k|tt/h`:
 
      .. math::
 
         \begin{aligned}
-        \mathcal{I}^{(k)}_{+}(s_i) &=& \frac{1}{\sigma_k h}\int_{(i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+        \mathcal{I}^{(k)}_{+}(s_i) &=& 1{1}{\sigma_k h}\int_{(i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2})h-\sigma_k h}^{(i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+           \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2})h-\sigma_k h}^{(i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2})h}s_i^I(x)dx \\
-        \mathcal{I}^{(k)}_{-}(s_i) &=& \frac{1}{\sigma_k h}\int_{(i-\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+        \mathcal{I}^{(k)}_{-}(s_i) &=& 1{1}{\sigma_k h}\int_{(i-\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2})h}^{(i-\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+           \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2})h}^{(i-\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2})h+\sigma_k h}s_i^I(x)dx\end{aligned}
@@ -6767,8 +6793,8 @@ equations in 1D, for simplicity):
      .. math::
 
         \begin{aligned}
-        \mathcal{I}^{(k)}_{+}(s_i) &=& s_{i,+} - \frac{\sigma_k}{2}\left[s_{i,+}-s_{i,-}-\left(1-\frac{2}{3}\sigma_k\right)s_{6,i}\right], \\
-        \mathcal{I}^{(k)}_{-}(s_i) &=& s_{i,-} + \frac{\sigma_k}{2}\left[s_{i,+}-s_{i,-}+\left(1-\frac{2}{3}\sigma_k\right)s_{6,i}\right].\end{aligned}
+        \mathcal{I}^{(k)}_{+}(s_i) &=& s_{i,+} - 1{\sigma_k}{2}\left[s_{i,+}-s_{i,-}-\left(1-1{2}{3}\sigma_k\right)s_{6,i}\right], \\
+        \mathcal{I}^{(k)}_{-}(s_i) &=& s_{i,-} + 1{\sigma_k}{2}\left[s_{i,+}-s_{i,-}+\left(1-1{2}{3}\sigma_k\right)s_{6,i}\right].\end{aligned}
 
 -  **Step 4:** Obtain 1D edge states by performing a 1D
    extrapolation to get left and right edge states. Note that we
@@ -6777,14 +6803,16 @@ equations in 1D, for simplicity):
    .. math::
 
       \begin{aligned}
-      s_{L,i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+      s_{L,i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
          \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
          \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} &=& s_i - \chi_i\sum_{k:\lambda_k \ge 0}{\bf l}_k\cdot\left[s_i-\mathcal{I}^{(k)}_{+}(s_i)\right]{\bf r}_k + \frac{\Delta t}{2}S_i^n, \\
-      s_{R,i-\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+         \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} &=& s_i - \chi_i\sum_{k:\lambda_k \ge 0}{\bf l}_k\cdot\left[s_i-\mathcal{I}^{(k)}_{+}(s_i)\right]{\bf r}_k + 1{tt}{2}S_i^n, \\
+      s_{R,i-\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
          \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
          \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} &=& s_i - \chi_i\sum_{k:\lambda_k < 0}{\bf l}_k\cdot\left[s_i-\mathcal{I}^{(k)}_{-}(s_i)\right]{\bf r}_k + \frac{\Delta t}{2}S_i^n.\end{aligned}
+         \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} &=& s_i - \chi_i\sum_{k:\lambda_k < 0}{\bf l}_k\cdot\left[s_i-\mathcal{I}^{(k)}_{-}(s_i)\right]{\bf r}_k + 1{tt}{2}S_i^n.\end{aligned}
 
    Here, :math:`{\bf r}_k` is the :math:`k^{\rm th}` right column eigenvector of
    :math:`{\bf R}({\bf A}_d)` and :math:`{\bf l}_k` is the :math:`k^{\rm th}` left row eigenvector lf
@@ -6868,9 +6896,9 @@ Here are the steps. First, define :math:`(\rho c)_{\rm small} = \rho_{\rm
 
 Define star states:
 
-.. math:: p^* = \max\left[p_{\rm small},\frac{\left[(\rho c)_L p_R + (\rho c)_R p_L\right] + (\rho c)_L(\rho c)_R(u_L-u_R)}{(\rho c)_L + (\rho c)_R}\right],
+.. math:: p^* = \max\left[p_{\rm small},1{\left[(\rho c)_L p_R + (\rho c)_R p_L\right] + (\rho c)_L(\rho c)_R(u_L-u_R)}{(\rho c)_L + (\rho c)_R}\right],
 
-.. math:: u^* = \frac{\left[(\rho c)_L u_L + (\rho c)_R u_R\right]+ (p_L - p_R)}{(\rho c)_L + (\rho c)_R}.
+.. math:: u^* = 1{\left[(\rho c)_L u_L + (\rho c)_R u_R\right]+ (p_L - p_R)}{(\rho c)_L + (\rho c)_R}.
 
 If :math:`u^* \ge 0` then define :math:`\rho_0, u_0, p_0, (\rho e)_0` and :math:`\Gamma_0` to be the left state. Otherwise, define them to be the right state. Then, set
 
@@ -6878,13 +6906,13 @@ If :math:`u^* \ge 0` then define :math:`\rho_0, u_0, p_0, (\rho e)_0` and :math:
 
 and define
 
-.. math:: c_0 = \max\left(c_{\rm small},\sqrt{\frac{\Gamma_0 p_0}{\rho_0}}\right),
+.. math:: c_0 = \max\left(c_{\rm small},\sqrt{1{\Gamma_0 p_0}{\rho_0}}\right),
 
-.. math:: \rho^* = \rho_0 + \frac{p^* - p_0}{c_0^2},
+.. math:: \rho^* = \rho_0 + 1{p^* - p_0}{c_0^2},
 
-.. math:: (\rho e)^* = (\rho e)_0 + (p^* - p_0)\frac{(\rho e)_0 + p_0}{\rho_0 c_0^2},
+.. math:: (\rho e)^* = (\rho e)_0 + (p^* - p_0)1{(\rho e)_0 + p_0}{\rho_0 c_0^2},
 
-.. math:: c^* = \max\left(c_{\rm small},\sqrt{\left|\frac{\Gamma_0 p^*}{\rho^*}\right|}\right)
+.. math:: c^* = \max\left(c_{\rm small},\sqrt{\left|1{\Gamma_0 p^*}{\rho^*}\right|}\right)
 
 Then,
 
@@ -6893,14 +6921,14 @@ Then,
    \begin{aligned}
    c_{\rm out} &=& c_0 - {\rm sign}(u^*)u_0, \\
    c_{\rm in} &=& c^* - {\rm sign}(u^*)u^*, \\
-   c_{\rm shock} &=& \frac{c_{\rm in} + c_{\rm out}}{2}.\end{aligned}
+   c_{\rm shock} &=& 1{c_{\rm in} + c_{\rm out}}{2}.\end{aligned}
 
 If :math:`p^* - p_0 \ge 0`, then :math:`c_{\rm in} = c_{\rm out} = c_{\rm shock}`.
 Then, if :math:`c_{\rm out} = c_{\rm in}`, we define :math:`c_{\rm temp} =
 \epsilon c_{\rm avg}`. Otherwise, :math:`c_{\rm temp} = c_{\rm out} -
 c_{\rm in}`. We define the fraction
 
-.. math:: f = \frac{1}{2}\left[1 + \frac{c_{\rm out} + c_{\rm in}}{c_{\rm temp}}\right],
+.. math:: f = 1{1}{2}\left[1 + 1{c_{\rm out} + c_{\rm in}}{c_{\rm temp}}\right],
 
 and constrain :math:`f` to lie in the range :math:`f\in[0,1]`.
 
@@ -6932,7 +6960,7 @@ p_{\rm gdnv}=p^*`, and :math:`(\rho e)_{\rm gdnv}=(\rho e)^*`.
 
 If instead the Colella & Glaz solver is used, then we define
 
-.. math:: \gamma \equiv \frac{p}{\rho e} + 1
+.. math:: \gamma \equiv 1{p}{\rho e} + 1
 
 on each side of the interface and follow the rest of the algorithm as
 described in the original paper.
@@ -6997,10 +7025,11 @@ advance the solution:
 
 .. math::
 
-   {\bf U}^{n+1} = {\bf U}^n - \Delta t\nabla\cdot{\bf F}^{n+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+   {\bf U}^{n+1} = {\bf U}^n - tt\nabla\cdot{\bf F}^{n+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
       \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
       \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}+ \Delta t{\bf S}^n.
+      \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}+ tt{\bf S}^n.
 
 Again, note that since the source term is not time centered, this is
 not a second-order method. After the advective update, we correct the
@@ -7088,7 +7117,7 @@ positivity preservation at the zone edge :math:`{\rm i}+1/2`, the flux
 
 where :math:`0 \leq \theta_{{\rm i}+1/2} \leq 1` is a scalar, and :math:`\mathbf{F}^{LF}_{{\rm i}+1/2}` is the Lax-Friedrichs flux,
 
-.. math:: \mathbf{F}^{LF}_{{\rm i}+1/2} = \frac{1}{2}\left[\mathbf{F}^{n}_{{\rm i}} + \mathbf{F}^{n}_{{\rm i}+1} + \text{CFL}\frac{\Delta x}{\Delta t} \frac{1}{\alpha}\left(\mathbf{U}^{n}_{{\rm i}} - \mathbf{U}^{n}_{{\rm i}+1}\right)\right],
+.. math:: \mathbf{F}^{LF}_{{\rm i}+1/2} = 1{1}{2}\left[\mathbf{F}^{n}_{{\rm i}} + \mathbf{F}^{n}_{{\rm i}+1} + \text{CFL}1{tx}{tt} 1{1}{\alpha}\left(\mathbf{U}^{n}_{{\rm i}} - \mathbf{U}^{n}_{{\rm i}+1}\right)\right],
 
 where :math:`0 < \text{CFL} < 1` is the CFL safety factor (the method is
 guaranteed to preserve positivity as long as :math:`\text{CFL} < 1/2`), and
@@ -7327,7 +7356,7 @@ spherically-symmetric fashion.
 
 -  In 1D spherical coordinates we compute
 
-   .. math:: g(r) = -\frac{G M_{\rm enclosed}}{ r^2}
+   .. math:: g(r) = -1{G M_{\rm enclosed}}{ r^2}
 
    where :math:`M_{\rm enclosed}` is calculated from the density at the time
    of the call.
@@ -7364,14 +7393,14 @@ spherically-symmetric fashion.
    new maxima or minima.
 
    The default resolution of the radial arrays at a level is the grid
-   cell spacing at that level, i.e., :math:`\Delta r = \Delta x`. O For
+   cell spacing at that level, i.e., :math:`tr = tx`. O For
    increased accuracy, one can define as a number
    greater than :math:`1` (:math:`2` or :math:`4` are recommended) and the spacing of the
-   radial array will then satisfy :math:`\Delta x / \Delta r =` drdxfac.
+   radial array will then satisfy :math:`tx / tr =` drdxfac.
    Individual Cartesian grid cells are subdivided by drdxfac in
    each coordinate direction for the purposing of averaging the density,
    and the integration that creates :math:`g` is done at the finer resolution
-   of the new :math:`\Delta r`.
+   of the new :math:`tr`.
 
    Note that the center of the star is defined in the subroutine PROBINIT
    and the radius is computed as the distance from that center.
@@ -7395,7 +7424,7 @@ The most general case is a self-induced gravitational field,
 
 where :math:`\phi` is defined by solving
 
-.. math:: \mathbf{\Delta} \phi = 4 \pi G \rho .\label{eq:Self Gravity}
+.. math:: \mathbf{t} \phi = 4 \pi G \rho .\label{eq:Self Gravity}
 
 We only allow PoissonGrav in 2D or 3D because in 1D, computing
 the monopole approximation in spherical coordinates is faster and more
@@ -7430,7 +7459,7 @@ is :raw-latex:`\cite{katz:2016}`.
    Poisson’s equation for electric charges and gravitational
    ”charges”), an expansion in spherical harmonics for :math:`\phi` is
 
-   .. math:: \phi(\mathbf{x}) = -G\sum_{l=0}^{\infty}\sum_{m=-l}^{l} \frac{4\pi}{2l + 1} q_{lm} \frac{Y_{lm}(\theta,\phi)}{r^{l+1}}, \label{spherical_harmonic_expansion}
+   .. math:: \phi(\mathbf{x}) = -G\sum_{l=0}^{\infty}\sum_{m=-l}^{l} 1{4\pi}{2l + 1} q_{lm} 1{Y_{lm}(\theta,\phi)}{r^{l+1}}, \label{spherical_harmonic_expansion}
 
    The origin of the coordinate system is taken to be the ``center``
    variable, that must be declared and stored in the ``probdata``
@@ -7455,15 +7484,15 @@ is :raw-latex:`\cite{katz:2016}`.
    .. math::
 
       \begin{aligned}
-        &\frac{4\pi}{2l+1} \sum_{m=-l}^{l} Y^*_{lm}(\theta^\prime,\phi^\prime)\, Y_{lm}(\theta, \phi) = P_l(\text{cos}\, \theta) P_l(\text{cos}\, \theta^\prime) \notag \\
-        &\ \ + 2 \sum_{m=1}^{l} \frac{(l-m)!}{(l+m)!} P_{l}^{m}(\text{cos}\, \theta)\, P_{l}^{m}(\text{cos}\, \theta^\prime)\, \left[\text{cos}(m\phi)\, \text{cos}(m\phi^\prime) + \text{sin}(m\phi)\, \text{sin}(m\phi^\prime)\right].\end{aligned}
+        &1{4\pi}{2l+1} \sum_{m=-l}^{l} Y^*_{lm}(\theta^\prime,\phi^\prime)\, Y_{lm}(\theta, \phi) = P_l(\text{cos}\, \theta) P_l(\text{cos}\, \theta^\prime) \notag \\
+        &\ \ + 2 \sum_{m=1}^{l} 1{(l-m)!}{(l+m)!} P_{l}^{m}(\text{cos}\, \theta)\, P_{l}^{m}(\text{cos}\, \theta^\prime)\, \left[\text{cos}(m\phi)\, \text{cos}(m\phi^\prime) + \text{sin}(m\phi)\, \text{sin}(m\phi^\prime)\right].\end{aligned}
 
    Here the :math:`P_{l}^{m}` are the associated Legendre polynomials and the
    :math:`P_l` are the Legendre polynomials. After some algebraic
    simplification, the potential outside of the mass distribution can be
    written in the following way:
 
-   .. math:: \phi(\mathbf{x}) \approx -G\sum_{l=0}^{l_{\text{max}}} \left[Q_l^{(0)} \frac{P_l(\text{cos}\, \theta)}{r^{l+1}} + \sum_{m = 1}^{l}\left[ Q_{lm}^{(C)}\, \text{cos}(m\phi) + Q_{lm}^{(S)}\, \text{sin}(m\phi)\right] \frac{P_{l}^{m}(\text{cos}\, \theta)}{r^{l+1}} \right].
+   .. math:: \phi(\mathbf{x}) \approx -G\sum_{l=0}^{l_{\text{max}}} \left[Q_l^{(0)} 1{P_l(\text{cos}\, \theta)}{r^{l+1}} + \sum_{m = 1}^{l}\left[ Q_{lm}^{(C)}\, \text{cos}(m\phi) + Q_{lm}^{(S)}\, \text{sin}(m\phi)\right] 1{P_{l}^{m}(\text{cos}\, \theta)}{r^{l+1}} \right].
 
    The modified multipole moments are:
 
@@ -7471,8 +7500,8 @@ is :raw-latex:`\cite{katz:2016}`.
 
       \begin{aligned}
         Q_l^{(0)}   &= \int P_l(\text{cos}\, \theta^\prime)\, {r^{\prime}}^l \rho(\mathbf{x}^\prime)\, d^3 x^\prime \\
-        Q_{lm}^{(C)} &= 2\frac{(l-m)!}{(l+m)!} \int P_{l}^{m}(\text{cos}\, \theta^\prime)\, \text{cos}(m\phi^\prime)\, {r^\prime}^l \rho(\mathbf{x}^\prime)\, d^3 x^\prime \\
-        Q_{lm}^{(S)} &= 2\frac{(l-m)!}{(l+m)!} \int P_{l}^{m}(\text{cos}\, \theta^\prime)\, \text{sin}(m\phi^\prime)\, {r^\prime}^l \rho(\mathbf{x}^\prime)\, d^3 x^\prime.\end{aligned}
+        Q_{lm}^{(C)} &= 21{(l-m)!}{(l+m)!} \int P_{l}^{m}(\text{cos}\, \theta^\prime)\, \text{cos}(m\phi^\prime)\, {r^\prime}^l \rho(\mathbf{x}^\prime)\, d^3 x^\prime \\
+        Q_{lm}^{(S)} &= 21{(l-m)!}{(l+m)!} \int P_{l}^{m}(\text{cos}\, \theta^\prime)\, \text{sin}(m\phi^\prime)\, {r^\prime}^l \rho(\mathbf{x}^\prime)\, d^3 x^\prime.\end{aligned}
 
    Our strategy for the multipole boundary conditions, then, is to pick
    some value :math:`l_{\text{max}}` that is of sufficiently high order to
@@ -7502,7 +7531,7 @@ is :raw-latex:`\cite{katz:2016}`.
    y^\prime, z^\prime)`. By the principle of linear superposition as
    applied to the gravitational potential,
 
-   .. math:: \phi(\mathbf{r}^\prime) = \sum_{\text{ijk}} \frac{-G \rho_{\text{ijk}}\, \Delta V_{\text{ijk}}}{\left[(x - x^\prime)^2 + (y - y^\prime)^2 + (z - z^\prime)^2\right]^{1/2}},
+   .. math:: \phi(\mathbf{r}^\prime) = \sum_{\text{ijk}} 1{-G \rho_{\text{ijk}}\, tV_{\text{ijk}}}{\left[(x - x^\prime)^2 + (y - y^\prime)^2 + (z - z^\prime)^2\right]^{1/2}},
 
    where :math:`x = x(i)`, :math:`y = y(j)` and :math:`z = z(k)` are constructed in the
    usual sense from the zone indices. The sum here runs over every cell
@@ -7577,8 +7606,8 @@ strong gravitational field, we need to use Einstein field equations
 .. math::
 
    \label{field}
-   R_{ik}-\frac{1}{2}g_{ik}R=\frac{\kappa}{c^{2}}T_{ik} \quad , \quad
-   \kappa=\frac{8\pi G}{c^{2}}\quad ,
+   R_{ik}-1{1}{2}g_{ik}R=1{\kappa}{c^{2}}T_{ik} \quad , \quad
+   \kappa=1{8\pi G}{c^{2}}\quad ,
 
 where :math:`R_{ik}` is the Ricci tensor, :math:`g_{ik}` is the metric tensor, :math:`R`
 is the Riemann curvature, :math:`c` is the speed of light and :math:`G` is
@@ -7603,23 +7632,23 @@ equations can be reduced to 3 ordinary differential equations:
 .. math::
 
    \label{diff1}
-      \frac{\kappa P}{c^{2}} =
-      e^{-\lambda}\left (\frac{\nu^{\prime}}{r}+\frac{1}{r^{2}} \right )-\frac{1}{r^{2}}
+      1{\kappa P}{c^{2}} =
+      e^{-\lambda}\left (1{\nu^{\prime}}{r}+1{1}{r^{2}} \right )-1{1}{r^{2}}
       \quad ,
 
 .. math::
 
    \label{diff2}
-     \frac{\kappa P}{c^{2}} =
-     \frac{1}{2}e^{-\lambda}\left (\nu^{\prime\prime}+\frac{1}{2}{\nu^{\prime}}^{2}+\frac{\nu^
+     1{\kappa P}{c^{2}} =
+     1{1}{2}e^{-\lambda}\left (\nu^{\prime\prime}+1{1}{2}{\nu^{\prime}}^{2}+1{\nu^
        {\prime}-\lambda^{\prime}}{r}
-      -\frac{\nu^{\prime}\lambda^{\prime}}{2} \right ) \quad ,
+      -1{\nu^{\prime}\lambda^{\prime}}{2} \right ) \quad ,
 
 .. math::
 
    \label{diff3}
      \kappa \varrho =
-     e^{-\lambda}\left (\frac{\lambda^{\prime}}{r}-\frac{1}{r^{2}}\right )+\frac{1}{r^{2}} \quad ,
+     e^{-\lambda}\left (1{\lambda^{\prime}}{r}-1{1}{r^{2}}\right )+1{1}{r^{2}} \quad ,
 
 where primes means the derivatives with respect to :math:`r`. After
 multiplying with :math:`4\pi r^2`, (`[diff3] <#diff3>`__) can be integrated and
@@ -7652,23 +7681,23 @@ equilibrium in general relativity:
 .. math::
 
    \label{tov}
-     \frac{dP}{dr} = -\frac{Gm}{r^{2}}\varrho \left (1+\frac{P}{\varrho
-       c^{2}}\right )\left (1+\frac{4\pi r^3 P}{m c^{2}}\right ) \left (1-\frac{2Gm}{r c^{2}} \right)^{-1} \quad .
+     1{dP}{dr} = -1{Gm}{r^{2}}\varrho \left (1+1{P}{\varrho
+       c^{2}}\right )\left (1+1{4\pi r^3 P}{m c^{2}}\right ) \left (1-1{2Gm}{r c^{2}} \right)^{-1} \quad .
 
 For Newtonian case :math:`c^2 \rightarrow  \infty`, it reverts to usual form
 
 .. math::
 
    \label{newton}
-     \frac{dP}{dr} = -\frac{Gm}{r^{2}}\varrho \quad .
+     1{dP}{dr} = -1{Gm}{r^{2}}\varrho \quad .
 
 Now we take effective monopole gravity as
 
 .. math::
 
    \label{tov2}
-   \tilde{g} = -\frac{Gm}{r^{2}} (1+\frac{P}{\varrho
-     c^{2}})(1+\frac{4\pi r^3 P}{m c^{2}}) (1-\frac{2Gm}{r c^{2}})^{-1}  \quad .
+   \tilde{g} = -1{Gm}{r^{2}} (1+1{P}{\varrho
+     c^{2}})(1+1{4\pi r^3 P}{m c^{2}}) (1-1{2Gm}{r c^{2}})^{-1}  \quad .
 
 For general situations, we neglect the :math:`U/c^2` and potential energy in
 m because they are usually much smaller than :math:`\varrho_0`. Only when
@@ -7679,8 +7708,8 @@ as
 .. math::
 
    \label{tov3}
-     \tilde{g} = -\frac{GM_{\rm enclosed}}{r^{2}} \left (1+\frac{P}{\varrho
-       c^{2}} \right )\left (1+\frac{4\pi r^3 P}{M_{\rm enclosed} c^{2}} \right ) \left (1-\frac{2GM_{\rm enclosed}}{r c^{2}} \right )^{-1} \quad ,
+     \tilde{g} = -1{GM_{\rm enclosed}}{r^{2}} \left (1+1{P}{\varrho
+       c^{2}} \right )\left (1+1{4\pi r^3 P}{M_{\rm enclosed} c^{2}} \right ) \left (1-1{2GM_{\rm enclosed}}{r c^{2}} \right )^{-1} \quad ,
 
 where :math:`M_{enclosed}` has the same meaning as with the
 MonopoleGrav approximation.
@@ -7694,11 +7723,11 @@ castro.grav_source_type.
 
 -  castro.grav_source_type = 1 : we use a
    standard predictor-corrector formalism for updating the momentum and
-   energy. Specifically, our first update is equal to :math:`\Delta t \times
+   energy. Specifically, our first update is equal to :math:`tt \times
      \mathbf{S}^n` , where :math:`\mathbf{S}^n` is the value of the source
    terms at the old-time (which is usually called time-level :math:`n`). At
    the end of the timestep, we do a corrector step where we subtract
-   off :math:`\Delta t / 2 \times \mathbf{S}^n` and add on :math:`\Delta t / 2
+   off :math:`tt / 2 \times \mathbf{S}^n` and add on :math:`tt / 2
      \times \mathbf{S}^{n+1}`, so that at the end of the timestep the
    source term is properly time centered.
 
@@ -7741,7 +7770,7 @@ Thermal Diffusion
 Castro incorporates explicit thermal diffusion into the energy equation.
 In terms of the specific internal energy, :math:`e`, this appears as:
 
-.. math:: \rho \frac{De}{Dt} + p \nabla \cdot {\bf u}= \nabla \cdot {k_\mathrm{th}}\nabla T
+.. math:: \rho 1{De}{Dt} + p \nabla \cdot {\bf u}= \nabla \cdot {k_\mathrm{th}}\nabla T
 
 where :math:`{k_\mathrm{th}}` is the thermal conductivity, with units
 :math:`\mathrm{erg~cm^{-1}~s^{-1}~K^{-1}}`.
@@ -7751,12 +7780,12 @@ case of constant conductivity, :math:`{k_\mathrm{th}}`, and density, and assume 
 ideal gas, so :math:`e = c_v T`, where :math:`c_v` is the specific heat at constant volume.
 Finally, ignore hydrodynamics, so :math:`{\bf u}= 0`. This gives:
 
-.. math:: \frac{\partial T}{\partial t} = D \nabla^2 T
+.. math:: 1{\partial T}{\partial t} = D \nabla^2 T
 
 where :math:`D \equiv {k_\mathrm{th}}/(\rho c_v)`. Solving this equation
 explicitly requires a timestep limiter of
 
-.. math:: \Delta t_\mathrm{diff} \le \frac{1}{2} \frac{\Delta x^2}{D}
+.. math:: tt_\mathrm{diff} \le 1{1}{2} 1{tx^2}{D}
 
 (this is implemented in in
 Castro/Source/driver/timestep.F90).
@@ -7814,7 +7843,7 @@ There are two conductivity routines provided with Castro by default:
 -  constant_opacity : A simple constant opacity. This is
    converted to an opacity as:
 
-   .. math:: {k_\mathrm{th}}= \frac{16 \sigma_B T^3}{3 \kappa_\mathrm{const} \rho}
+   .. math:: {k_\mathrm{th}}= 1{16 \sigma_B T^3}{3 \kappa_\mathrm{const} \rho}
 
    where :math:`\kappa_\mathrm{const}` is the opacity, with units :math:`\mathrm{cm^2~g^{-1}}`.
    This is selected by setting
@@ -7995,7 +8024,7 @@ respectively. The total time rate of change of `[eq:r] <#eq:r>`__ is given by
 .. math::
 
    \label{eq:vcomp}
-       \frac{Dr_i}{Dt}\boldsymbol{e_i} = \frac{D\widetilde{r_i}}{Dt}\widetilde{\boldsymbol{e_i}} + \widetilde{r_i}\frac{D\widetilde{\boldsymbol{e_i}}}{Dt} + \frac{Dl_i}{Dt}\boldsymbol{e_i},
+       1{Dr_i}{Dt}\boldsymbol{e_i} = 1{D\widetilde{r_i}}{Dt}\widetilde{\boldsymbol{e_i}} + \widetilde{r_i}1{D\widetilde{\boldsymbol{e_i}}}{Dt} + 1{Dl_i}{Dt}\boldsymbol{e_i},
 
 where we have used the fact that the unit vectors of the inertial
 frame :math:`C` are not moving (or at least can be considered stationary,
@@ -8009,7 +8038,7 @@ vector moves circumferentially, that is
 .. math::
 
    \label{eq:etilde-rot}
-       \frac{D\widetilde{\boldsymbol{e_i}}}{Dt} = \boldsymbol{\omega}\times\widetilde{\boldsymbol{e_i}}.
+       1{D\widetilde{\boldsymbol{e_i}}}{Dt} = \boldsymbol{\omega}\times\widetilde{\boldsymbol{e_i}}.
 
 Plugging `[eq:etilde-rot] <#eq:etilde-rot>`__ into `[eq:vcomp] <#eq:vcomp>`__ and switching back to
 vector notation, we have
@@ -8017,7 +8046,7 @@ vector notation, we have
 .. math::
 
    \label{eq:r-dot}
-       \frac{D{\bf r}}{Dt} = \frac{D\widetilde{{\bf r}}}{Dt} + \boldsymbol{\omega}\times\widetilde{{\bf r}}+ \frac{D\boldsymbol{l}}{Dt}.
+       1{D{\bf r}}{Dt} = 1{D\widetilde{{\bf r}}}{Dt} + \boldsymbol{\omega}\times\widetilde{{\bf r}}+ 1{D\boldsymbol{l}}{Dt}.
 
 The left hand side of `[eq:r-dot] <#eq:r-dot>`__ is interpretted as the velocity
 of the fluid element as seen in the inertial frame; the first term on the
@@ -8039,7 +8068,7 @@ Similarly, by taking a second time derivative of `[eq:v] <#eq:v>`__ we have
 .. math::
 
    \label{eq:a}
-       \frac{D\boldsymbol{v}}{Dt} = \frac{D\widetilde{\boldsymbol{v}}}{Dt} + 2\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}+ \boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right] + \frac{D\boldsymbol{v_l}}{Dt}.
+       1{D\boldsymbol{v}}{Dt} = 1{D\widetilde{\boldsymbol{v}}}{Dt} + 2\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}+ \boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right] + 1{D\boldsymbol{v_l}}{Dt}.
 
 Henceforth we will assume the two coordinate systems are not
 translating relative to one another, :math:`\boldsymbol{v_l} = 0`. It is
@@ -8052,14 +8081,14 @@ rotating frame:
 .. math::
 
    \label{eq:cont-rot}
-       \frac{\partial \rho}{\partial t} = -\boldsymbol{\nabla}\cdot\left(\rho\widetilde{\boldsymbol{v}}\right),
+       1{\partial \rho}{\partial t} = -\boldsymbol{\nabla}\cdot\left(\rho\widetilde{\boldsymbol{v}}\right),
 
 or
 
 .. math::
 
    \label{eq:cont-rot-total}
-       \frac{D\rho}{Dt} = -\rho\boldsymbol{\nabla}\cdot\widetilde{\boldsymbol{v}}.
+       1{D\rho}{Dt} = -\rho\boldsymbol{\nabla}\cdot\widetilde{\boldsymbol{v}}.
 
 Momentum equation in rotating frame
 -----------------------------------
@@ -8069,7 +8098,7 @@ The usual momentum equation applies in an inertial frame:
 .. math::
 
    \label{eq:mom1}
-       \frac{D\left(\rho\boldsymbol{v}\right)}{Dt} = -\rho\boldsymbol{v}\cdot\boldsymbol{\nabla}\boldsymbol{v}- \boldsymbol{\nabla}p + \rho{\bf g}.
+       1{D\left(\rho\boldsymbol{v}\right)}{Dt} = -\rho\boldsymbol{v}\cdot\boldsymbol{\nabla}\boldsymbol{v}- \boldsymbol{\nabla}p + \rho{\bf g}.
 
 Using the continuity equation, `[eq:cont-rot-total] <#eq:cont-rot-total>`__, and substituting for
 the terms in the rotating frame from `[eq:a] <#eq:a>`__, we have from `[eq:mom1] <#eq:mom1>`__:
@@ -8077,9 +8106,9 @@ the terms in the rotating frame from `[eq:a] <#eq:a>`__, we have from `[eq:mom1]
 .. math::
 
    \begin{aligned}
-       \rho\left(\frac{D\widetilde{\boldsymbol{v}}}{Dt} + 2\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}+ \boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right]\right) - \rho\boldsymbol{v}\boldsymbol{\nabla}\cdot\boldsymbol{v}&=& -\rho\boldsymbol{v}\cdot\boldsymbol{\nabla}\boldsymbol{v}- \boldsymbol{\nabla}p + \rho{\bf g}\nonumber \\
-       \rho\left(\frac{\partial\widetilde{\boldsymbol{v}}}{\partial t} + \widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}\widetilde{\boldsymbol{v}}\right) &=& -\boldsymbol{\nabla}p + \rho{\bf g}- 2\rho\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}- \rho\boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right] \nonumber \\
-     \frac{\partial\left(\rho\widetilde{\boldsymbol{v}}\right)}{\partial t} &=& -\boldsymbol{\nabla}\cdot\left(\rho\widetilde{\boldsymbol{v}}\widetilde{\boldsymbol{v}}\right) - \boldsymbol{\nabla}p + \rho{\bf g}- 2\rho\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}\nonumber \\
+       \rho\left(1{D\widetilde{\boldsymbol{v}}}{Dt} + 2\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}+ \boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right]\right) - \rho\boldsymbol{v}\boldsymbol{\nabla}\cdot\boldsymbol{v}&=& -\rho\boldsymbol{v}\cdot\boldsymbol{\nabla}\boldsymbol{v}- \boldsymbol{\nabla}p + \rho{\bf g}\nonumber \\
+       \rho\left(1{\partial\widetilde{\boldsymbol{v}}}{\partial t} + \widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}\widetilde{\boldsymbol{v}}\right) &=& -\boldsymbol{\nabla}p + \rho{\bf g}- 2\rho\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}- \rho\boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right] \nonumber \\
+     1{\partial\left(\rho\widetilde{\boldsymbol{v}}\right)}{\partial t} &=& -\boldsymbol{\nabla}\cdot\left(\rho\widetilde{\boldsymbol{v}}\widetilde{\boldsymbol{v}}\right) - \boldsymbol{\nabla}p + \rho{\bf g}- 2\rho\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}\nonumber \\
      & & -\ \rho\boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right]\label{eq:mom-rot}
      \end{aligned}
 
@@ -8088,7 +8117,7 @@ or
 .. math::
 
    \label{eq:mom-rot-tot}
-       \frac{D\left(\rho\widetilde{\boldsymbol{v}}\right)}{Dt} = -\rho\widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}\widetilde{\boldsymbol{v}}- \boldsymbol{\nabla}p + \rho{\bf g}- 2\rho\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}- \rho\boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right].
+       1{D\left(\rho\widetilde{\boldsymbol{v}}\right)}{Dt} = -\rho\widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}\widetilde{\boldsymbol{v}}- \boldsymbol{\nabla}p + \rho{\bf g}- 2\rho\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}- \rho\boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right].
 
 Energy equations in rotating frame
 ----------------------------------
@@ -8099,7 +8128,7 @@ a rotating frame
 .. math::
 
    \label{eq:v-rot}
-       \frac{D\widetilde{\boldsymbol{v}}}{Dt} = -\frac{1}{\rho}\boldsymbol{\nabla}p + {\bf g}- 2\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}- \boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right].
+       1{D\widetilde{\boldsymbol{v}}}{Dt} = -1{1}{\rho}\boldsymbol{\nabla}p + {\bf g}- 2\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}- \boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right].
 
 The kinetic energy equation can be obtained from `[eq:v-rot] <#eq:v-rot>`__ by
 mulitplying by :math:`\rho\widetilde{\boldsymbol{v}}`:
@@ -8107,9 +8136,9 @@ mulitplying by :math:`\rho\widetilde{\boldsymbol{v}}`:
 .. math::
 
    \begin{aligned}
-       \rho\widetilde{\boldsymbol{v}}\cdot\frac{D\widetilde{\boldsymbol{v}}}{Dt} &=& -\widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}p + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}- 2\rho\widetilde{\boldsymbol{v}}\cdot\left[\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}\right] - \rho\widetilde{\boldsymbol{v}}\cdot\left\{\boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right]\right\} \nonumber \\
-       \frac{1}{2}\frac{D\left(\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}\right)}{Dt} - \frac{1}{2}\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}\frac{D\rho}{Dt} &=& -\widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}p + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}- \rho\widetilde{\boldsymbol{v}}\cdot\left[\left(\boldsymbol{\omega}\cdot\widetilde{{\bf r}}\right)\boldsymbol{\omega}- \rho\omega^2\widetilde{{\bf r}}\right] \nonumber \\
-       \frac{1}{2}\frac{D\left(\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}\right)}{Dt} &=& -\frac{1}{2}\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}\boldsymbol{\nabla}\cdot\widetilde{\boldsymbol{v}}- \widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}p + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}- \rho\widetilde{\boldsymbol{v}}\cdot\left[\left(\boldsymbol{\omega}\cdot\widetilde{{\bf r}}\right)\boldsymbol{\omega}- \rho\omega^2\widetilde{{\bf r}}\right]. \label{eq:ekin-rot-total}
+       \rho\widetilde{\boldsymbol{v}}\cdot1{D\widetilde{\boldsymbol{v}}}{Dt} &=& -\widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}p + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}- 2\rho\widetilde{\boldsymbol{v}}\cdot\left[\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}\right] - \rho\widetilde{\boldsymbol{v}}\cdot\left\{\boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right]\right\} \nonumber \\
+       1{1}{2}1{D\left(\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}\right)}{Dt} - 1{1}{2}\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}1{D\rho}{Dt} &=& -\widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}p + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}- \rho\widetilde{\boldsymbol{v}}\cdot\left[\left(\boldsymbol{\omega}\cdot\widetilde{{\bf r}}\right)\boldsymbol{\omega}- \rho\omega^2\widetilde{{\bf r}}\right] \nonumber \\
+       1{1}{2}1{D\left(\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}\right)}{Dt} &=& -1{1}{2}\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}\boldsymbol{\nabla}\cdot\widetilde{\boldsymbol{v}}- \widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}p + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}- \rho\widetilde{\boldsymbol{v}}\cdot\left[\left(\boldsymbol{\omega}\cdot\widetilde{{\bf r}}\right)\boldsymbol{\omega}- \rho\omega^2\widetilde{{\bf r}}\right]. \label{eq:ekin-rot-total}
      \end{aligned}
 
 The internal energy is simply advected, and, from the first law of
@@ -8118,17 +8147,17 @@ thermodynamics, can change due to :math:`pdV` work:
 .. math::
 
    \label{eq:eint-rot-total}
-       \frac{D\left(\rho e\right)}{Dt} = -\left(\rho e + p\right)\boldsymbol{\nabla}\cdot\widetilde{\boldsymbol{v}}.
+       1{D\left(\rho e\right)}{Dt} = -\left(\rho e + p\right)\boldsymbol{\nabla}\cdot\widetilde{\boldsymbol{v}}.
 
 Combining `[eq:ekin-rot-total] <#eq:ekin-rot-total>`__ and `[eq:eint-rot-total] <#eq:eint-rot-total>`__ we can
 get the evolution of the total specific energy in the rotating frame,
-:math:`\rho \widetilde{E} = \rho e + \frac{1}{2}\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}`:
+:math:`\rho \widetilde{E} = \rho e + 1{1}{2}\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}`:
 
 .. math::
 
    \begin{aligned}
-       \frac{D\left(\rho e\right)}{Dt} + \frac{1}{2}\frac{D\left(\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}\right)}{Dt} &=& -\left(\rho e + p + \frac{1}{2}\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}\right)\boldsymbol{\nabla}\cdot\widetilde{\boldsymbol{v}}- \widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}p + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}-\rho\widetilde{\boldsymbol{v}}\cdot\left[\left(\boldsymbol{\omega}\cdot\widetilde{{\bf r}}\right)\boldsymbol{\omega}- \rho\omega^2\widetilde{{\bf r}}\right]\nonumber \\
-       \frac{D\left(\rho \widetilde{E}\right)}{Dt} &=& -\rho\widetilde{E}\boldsymbol{\nabla}\cdot\widetilde{\boldsymbol{v}}- \boldsymbol{\nabla}\cdot\left(p\widetilde{\boldsymbol{v}}\right) + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}- \rho\widetilde{\boldsymbol{v}}\cdot\left[\left(\boldsymbol{\omega}\cdot\widetilde{{\bf r}}\right)\boldsymbol{\omega}- \rho\omega^2\widetilde{{\bf r}}\right] \label{eq:etot-rot-total}
+       1{D\left(\rho e\right)}{Dt} + 1{1}{2}1{D\left(\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}\right)}{Dt} &=& -\left(\rho e + p + 1{1}{2}\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}\right)\boldsymbol{\nabla}\cdot\widetilde{\boldsymbol{v}}- \widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}p + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}-\rho\widetilde{\boldsymbol{v}}\cdot\left[\left(\boldsymbol{\omega}\cdot\widetilde{{\bf r}}\right)\boldsymbol{\omega}- \rho\omega^2\widetilde{{\bf r}}\right]\nonumber \\
+       1{D\left(\rho \widetilde{E}\right)}{Dt} &=& -\rho\widetilde{E}\boldsymbol{\nabla}\cdot\widetilde{\boldsymbol{v}}- \boldsymbol{\nabla}\cdot\left(p\widetilde{\boldsymbol{v}}\right) + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}- \rho\widetilde{\boldsymbol{v}}\cdot\left[\left(\boldsymbol{\omega}\cdot\widetilde{{\bf r}}\right)\boldsymbol{\omega}- \rho\omega^2\widetilde{{\bf r}}\right] \label{eq:etot-rot-total}
      \end{aligned}
 
 or
@@ -8136,7 +8165,7 @@ or
 .. math::
 
    \label{eq:etot-rot}
-       \frac{\partial\left(\rho\widetilde{E}\right)}{\partial t} = -\boldsymbol{\nabla}\cdot\left(\rho\widetilde{E}\widetilde{\boldsymbol{v}}+ p\widetilde{\boldsymbol{v}}\right) + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}- \rho\widetilde{\boldsymbol{v}}\cdot\left[\left(\boldsymbol{\omega}\cdot\widetilde{{\bf r}}\right)\boldsymbol{\omega}- \rho\omega^2\widetilde{{\bf r}}\right].
+       1{\partial\left(\rho\widetilde{E}\right)}{\partial t} = -\boldsymbol{\nabla}\cdot\left(\rho\widetilde{E}\widetilde{\boldsymbol{v}}+ p\widetilde{\boldsymbol{v}}\right) + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}- \rho\widetilde{\boldsymbol{v}}\cdot\left[\left(\boldsymbol{\omega}\cdot\widetilde{{\bf r}}\right)\boldsymbol{\omega}- \rho\omega^2\widetilde{{\bf r}}\right].
 
 Switching to the rotating reference frame
 -----------------------------------------
@@ -8151,9 +8180,9 @@ reference:
 .. math::
 
    \begin{aligned}
-       \frac{\partial\rho}{\partial t} &=& -\boldsymbol{\nabla}\cdot\left(\rho\boldsymbol{v}\right) \label{eq:cont-rot-switch} \\
-       \frac{\partial \left(\rho\boldsymbol{v}\right)}{\partial t} &=& -\boldsymbol{\nabla}\cdot\left(\rho\boldsymbol{v}\boldsymbol{v}\right) - \boldsymbol{\nabla}p + \rho{\bf g}- 2\rho\boldsymbol{\omega}\times\boldsymbol{v}- \rho\left(\boldsymbol{\omega}\cdot{\bf r}\right)\boldsymbol{\omega}+ \rho\omega^2{\bf r}\label{eq:mom-rot-switch} \\
-       \frac{\partial\left(\rho E\right)}{\partial t} &=& -\boldsymbol{\nabla}\cdot\left(\rho E\boldsymbol{v}+ p\boldsymbol{v}\right) + \rho\boldsymbol{v}\cdot{\bf g}- \rho\left(\boldsymbol{\omega}\cdot{\bf r}\right)\left(\boldsymbol{\omega}\cdot\boldsymbol{v}\right) + \rho\omega^2\left(\boldsymbol{v}\cdot{\bf r}\right). \label{eq:etot-rot-switch}
+       1{\partial\rho}{\partial t} &=& -\boldsymbol{\nabla}\cdot\left(\rho\boldsymbol{v}\right) \label{eq:cont-rot-switch} \\
+       1{\partial \left(\rho\boldsymbol{v}\right)}{\partial t} &=& -\boldsymbol{\nabla}\cdot\left(\rho\boldsymbol{v}\boldsymbol{v}\right) - \boldsymbol{\nabla}p + \rho{\bf g}- 2\rho\boldsymbol{\omega}\times\boldsymbol{v}- \rho\left(\boldsymbol{\omega}\cdot{\bf r}\right)\boldsymbol{\omega}+ \rho\omega^2{\bf r}\label{eq:mom-rot-switch} \\
+       1{\partial\left(\rho E\right)}{\partial t} &=& -\boldsymbol{\nabla}\cdot\left(\rho E\boldsymbol{v}+ p\boldsymbol{v}\right) + \rho\boldsymbol{v}\cdot{\bf g}- \rho\left(\boldsymbol{\omega}\cdot{\bf r}\right)\left(\boldsymbol{\omega}\cdot\boldsymbol{v}\right) + \rho\omega^2\left(\boldsymbol{v}\cdot{\bf r}\right). \label{eq:etot-rot-switch}
      \end{aligned}
 
 Adding the forcing to the hydrodynamics
@@ -8169,11 +8198,11 @@ in how the energy update is done:
 
 -  castro.rot_source_type = 1 : we use a
    standard predictor-corrector formalism for updating the momentum and
-   energy. Specifically, our first update is equal to :math:`\Delta t \times
+   energy. Specifically, our first update is equal to :math:`tt \times
      \mathbf{S}^n` , where :math:`\mathbf{S}^n` is the value of the source
    terms at the old-time (which is usually called time-level :math:`n`). At
    the end of the timestep, we do a corrector step where we subtract
-   off :math:`\Delta t / 2 \times \mathbf{S}^n` and add on :math:`\Delta t / 2
+   off :math:`tt / 2 \times \mathbf{S}^n` and add on :math:`tt / 2
      \times \mathbf{S}^{n+1}`, so that at the end of the timestep the
    source term is properly time centered.
 
@@ -8370,7 +8399,7 @@ Some notes:
    :math:`\kappa_P`, and Rosseland mean, :math:`\kappa_R`, opacities—these have
    different weightings.
 
-   If we set :math:`\kappa_P \Delta x \gg 1` (:math:`\kappa_P` is really large),
+   If we set :math:`\kappa_P tx \gg 1` (:math:`\kappa_P` is really large),
    then the two temperatures become the same.
 
    If we set :math:`\kappa_P = \kappa_R`, then we can see how different the
@@ -8439,7 +8468,7 @@ The parameters describing the opacity include:
    .. math::
 
       \kappa = \mathrm{const}\ \rho^{m} T^{-n} \nu^{p}
-          \left [1-\exp{\left (-\frac{h\nu}{k T} \right )} \right ].
+          \left [1-\exp{\left (-1{h\nu}{k T} \right )} \right ].
 
 -  radiation.surface_average = 2
 
@@ -8542,14 +8571,14 @@ Flux Limiter and Closure
    -  0: :math:`f = \lambda`, where :math:`f` is the scalar Eddington factor
       and :math:`\lambda` is the flux limiter.
 
-   -  1: :math:`f = \frac{1}{3}`
+   -  1: :math:`f = 1{1}{3}`
 
    -  2: :math:`f = 1 - 2 \lambda`
 
    -  3: :math:`f = \lambda + (\lambda R)^2`, where :math:`R` is the radiation
       Knudsen number.
 
-   -  4: :math:`f = \frac{1}{3} + \frac{2}{3} (\frac{F}{cE})^2`, where
+   -  4: :math:`f = 1{1}{3} + 1{2}{3} (1{F}{cE})^2`, where
       :math:`F` is the radiation flux, :math:`E` is the radiation energy density,
       and :math:`c` is the speed of light.
 
@@ -8557,7 +8586,7 @@ Note the behavior of the radiative flux in the optically thin and
 optically thick limits. The flux limiter, :math:`\lambda = \lambda(R)`,
 where
 
-.. math:: R = \frac{|\nabla E_r^{(0)}|}{\chi_R E_r^{(0)}}
+.. math:: R = 1{|\nabla E_r^{(0)}|}{\chi_R E_r^{(0)}}
 
 Regardless of the limiter chosen, when we are optically thick,
 :math:`\chi_R \rightarrow \infty`, :math:`R \rightarrow 0`, and :math:`\lambda \rightarrow 1/3`.
@@ -8565,8 +8594,8 @@ The radiative flux then becomes
 
 .. math::
 
-   F_r^{(0)} = -\frac{c\lambda}{\chi_R} \nabla E_r^{(0)} \rightarrow
-     \frac{1}{3} \frac{c}{\chi_R} \nabla E_r^{(0)}
+   F_r^{(0)} = -1{c\lambda}{\chi_R} \nabla E_r^{(0)} \rightarrow
+     1{1}{3} 1{c}{\chi_R} \nabla E_r^{(0)}
 
 And when we are optically thin, :math:`\chi_R \rightarrow 0`, :math:`R \rightarrow \infty`,
 and :math:`\lambda \rightarrow 1/R = \chi_R E_r^{(0)}/{|\nabla E_r^{0}|}`, and
@@ -8574,8 +8603,8 @@ the radiative flux then becomes
 
 .. math::
 
-   F_r^{(0)} = -\frac{c\lambda}{\chi_R} \nabla E_r^{(0)} \rightarrow
-     -\frac{c}{\chi_R}\frac{\chi_R E_r^{(0)}}{|\nabla E_r^{0}|}
+   F_r^{(0)} = -1{c\lambda}{\chi_R} \nabla E_r^{(0)} \rightarrow
+     -1{c}{\chi_R}1{\chi_R E_r^{(0)}}{|\nabla E_r^{0}|}
        \nabla E_r^{(0)} = -c E_r^{0}
 
 See Krumholz et al. 2007 for some discussion on this.
@@ -8634,7 +8663,7 @@ equation. They do not affect hydrodynamic boundaries.
       radiation, this is the expression given in the gray Castro paper
       (Eq. 7, 8),
 
-      .. math:: F_r = - \frac{c\lambda}{\kappa_R} \nabla E_r
+      .. math:: F_r = - 1{c\lambda}{\kappa_R} \nabla E_r
 
       where :math:`\lambda` is the flux limiter.
 
@@ -8856,7 +8885,7 @@ radiation.n_bisect = 1000
 
 radiation.use_dkdT = 1
     | 
-    | If it is 1, :math:`\frac{\partial \kappa}{\partial T}` is retained in the
+    | If it is 1, :math:`1{\partial \kappa}{\partial T}` is retained in the
       Jacobi matrix for the outer (Newton) iteration.
 
 radiation.update_opacity = 1000
@@ -9204,7 +9233,7 @@ the burning has completed. The nuclear energy release can be computed by
 taking the difference of burn_state_out % e and
 burn_state_in % e. The species change can be computed analogously.
 In normal operation in Castro  the integration occurs over a time interval
-of :math:`\Delta t/2`, where :math:`\Delta t` is the hydrodynamics timestep.
+of :math:`tt/2`, where :math:`tt` is the hydrodynamics timestep.
 
 If you are interested in using actual nuclear burning networks,
 you should download the `Microphysics <https://github.com/starkiller-astro/Microphysics>`__
@@ -9264,33 +9293,33 @@ needs to supply:
    specific enthalpy with respect to mass fraction at constant
    :math:`T` and :math:`p`. This is commonly computed as:
 
-   .. math:: \xi_k = e_{X_k} + \frac{1}{p_\rho} \left (\frac{p}{\rho^2} - e_\rho \right ) p_{X_k}\enskip .
+   .. math:: \xi_k = e_{X_k} + 1{1}{p_\rho} \left (1{p}{\rho^2} - e_\rho \right ) p_{X_k}\enskip .
 
    with
 
    .. math::
 
       \begin{aligned}
-      p_{X_k} &=& \left .\frac{\partial p}{\partial \bar{A}} \right |_{\rho, T, \bar{Z}}
-                \frac{\partial \bar{A}}{\partial X_k} +
-                \left . \frac{\partial p}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
-                \frac{\partial \bar{Z}}{\partial X_k} \nonumber \\
-              &=& -\frac{\bar{A}^2}{A_k}
-                \left .\frac{\partial p}{\partial \bar{A}} \right |_{\rho, T, \bar{Z}} +
-                \frac{\bar{A}}{A_k} \left (Z_k - \bar{Z} \right )
-                \left . \frac{\partial p}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}\enskip,\end{aligned}
+      p_{X_k} &=& \left .1{\partial p}{\partial \bar{A}} \right |_{\rho, T, \bar{Z}}
+                1{\partial \bar{A}}{\partial X_k} +
+                \left . 1{\partial p}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
+                1{\partial \bar{Z}}{\partial X_k} \nonumber \\
+              &=& -1{\bar{A}^2}{A_k}
+                \left .1{\partial p}{\partial \bar{A}} \right |_{\rho, T, \bar{Z}} +
+                1{\bar{A}}{A_k} \left (Z_k - \bar{Z} \right )
+                \left . 1{\partial p}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}\enskip,\end{aligned}
 
    .. math::
 
       \begin{aligned}
-      e_{X_k} &=& \left . \frac{\partial e }{\partial \bar{A}} \right |_{\rho, T, \bar{Z}}
-              \frac{\partial \bar{A}}{\partial X_k} +
-              \left .\frac{\partial e}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
-              \frac{\partial \bar{Z}}{\partial X_k} \nonumber \\
-              &=& -\frac{\bar{A}^2}{A_k}
-              \left . \frac{\partial e }{\partial \bar{A}} \right |_{\rho, T, \bar{Z}} +
-              \frac{\bar{A}}{A_k} \left (Z_k - \bar{Z}\right )
-              \left .\frac{\partial e}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}\enskip.\end{aligned}
+      e_{X_k} &=& \left . 1{\partial e }{\partial \bar{A}} \right |_{\rho, T, \bar{Z}}
+              1{\partial \bar{A}}{\partial X_k} +
+              \left .1{\partial e}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
+              1{\partial \bar{Z}}{\partial X_k} \nonumber \\
+              &=& -1{\bar{A}^2}{A_k}
+              \left . 1{\partial e }{\partial \bar{A}} \right |_{\rho, T, \bar{Z}} +
+              1{\bar{A}}{A_k} \left (Z_k - \bar{Z}\right )
+              \left .1{\partial e}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}\enskip.\end{aligned}
 
 (see :raw-latex:`\cite{maestro:III}`, Appendix A).
 
@@ -9496,15 +9525,15 @@ Synchronization Methodology
 Over a coarse grid time step we collect flux register information for
 the hyperbolic part of the synchronization:
 
-.. math:: \delta{\bf F}= -\Delta t_c A^c F^c + \sum \Delta t_f A^f F^f
+.. math:: \delta{\bf F}= -tt_c A^c F^c + \sum tt_f A^f F^f
 
 Analogously, at the end of a coarse grid time step we store the
 mismatch in normal gradients of :math:`\phi` at the coarse-fine interface:
 
 .. math::
 
-   \delta F_\phi =  - A^c \frac{\partial \phi^c}{\partial n}
-   + \sum A^f \frac{\partial \phi^f}{\partial n}
+   \delta F_\phi =  - A^c 1{\partial \phi^c}{\partial n}
+   + \sum A^f 1{\partial \phi^f}{\partial n}
 
 We want the composite :math:`\phi^{c-f}` to satisfy the multilevel
 version of (`[eq:Self Gravity] <#eq:Self Gravity>`__) at the synchronization time, just
@@ -9527,7 +9556,7 @@ The synchronization consists of two parts:
    the flux synchronization and adjust the gravitational terms to reflect
    the changes in :math:`\rho` and :math:`{\bf u}`.
 
-   .. math:: {{\bf U}}^{c, \star} = \overline{{\bf U}}^{c} + \frac{\delta{\bf F}}{V},
+   .. math:: {{\bf U}}^{c, \star} = \overline{{\bf U}}^{c} + 1{\delta{\bf F}}{V},
 
    where :math:`V` is the volume of the cell and the correction from
    :math:`\delta{\bf F}` is supported only on coarse cells adjacent to fine grids.
@@ -9560,14 +9589,14 @@ The synchronization consists of two parts:
 
    .. math::
 
-      R \equiv  4 \pi G \rho^{\star,c-f} - \Delta^{c-f} \; \overline{\phi}^{c-f} 
+      R \equiv  4 \pi G \rho^{\star,c-f} - t^{c-f} \; \overline{\phi}^{c-f} 
       = - 4 \pi G (\delta \rho)^c - (\nabla \cdot \delta F_\phi ) |_c   .
 
    Then we solve
 
    .. math::
 
-      \Delta^{c-f} \; \delta \phi^{c-f} = R
+      t^{c-f} \; \delta \phi^{c-f} = R
       \label{eq:gravsync}
 
    as a two level solve at the coarse and fine levels.
@@ -9588,7 +9617,7 @@ The synchronization consists of two parts:
       .. math::
 
          \delta {F_\phi}^{cc-c} = \delta F_\phi^{cc-c} 
-         + \sum A^c \frac{\partial (\delta \phi)^{c-f}}{\partial n}  .
+         + \sum A^c 1{\partial (\delta \phi)^{c-f}}{\partial n}  .
 
    The gravity synchronization algorithm can be disabled with
    gravity.no_sync = 1. This should be done with care. Generally,
@@ -9732,7 +9761,7 @@ modification being that the flux register contribution from the coarse
 grid is appropriately weighted by the fine grid timestep instead of
 the coarse grid timestep, and we only include the current fine step:
 
-.. math:: \delta{\bf F}= -\Delta t_f A^c F^c + \Delta t_f A^f F^f
+.. math:: \delta{\bf F}= -tt_f A^c F^c + tt_f A^f F^f
 
 The form of the :math:`\phi` flux register remains unchanged, because the
 intent of the gravity sync solve is to simply instantaneously correct
@@ -9765,10 +9794,10 @@ level 2), a synchronization after the next two timesteps on level 2
 between level 0 and level 1. In the new method, we always call the
 synchronization at the end of every timestep *on the finest level
 only*, and we simultaneously do the synchronization *on every
-level*. The timestep :math:`\Delta t_f` in the flux register is just the
+level*. The timestep :math:`tt_f` in the flux register is just the
 timestep on the finest level. (If this is unclear, give it a sanity
 check: when the sum of all flux register totals is added up, the level
-0 contribution will have a factor of :math:`\Delta t` equal to the coarse
+0 contribution will have a factor of :math:`tt` equal to the coarse
 grid timestep since the sum of the timesteps on the finest level over
 the entire advance must equal the level 0 timestep. So, the final
 contribution from the flux register is the same as if we had saved up
@@ -11537,7 +11566,7 @@ and the references therein)
 is to convert the explosion energy into a pressure contained within a
 certain volume, :math:`V_\mathrm{init}`, of radius :math:`r_\mathrm{init}` as
 
-.. math:: p_\mathrm{init} = \frac{(\gamma - 1) E_\mathrm{exp}}{V_\mathrm{init}} \enskip .
+.. math:: p_\mathrm{init} = 1{(\gamma - 1) E_\mathrm{exp}}{V_\mathrm{init}} \enskip .
 
 This pressure is then deposited in all of the cells where :math:`r <
 r_\mathrm{init}`.
@@ -11634,7 +11663,7 @@ Constant :math:`|{\bf g}|=1`. The density profile is essentially :math:`\rho=1` 
 bottom, :math:`\rho=2` on top, but with a perturbation. A single-mode
 perturbation is constructed as:
 
-.. math:: \tilde y(x) = 0.5 + 0.01 \frac{\cos(4\pi x) + \cos(4\pi(L_x - x))}{2}
+.. math:: \tilde y(x) = 0.5 + 0.01 1{\cos(4\pi x) + \cos(4\pi(L_x - x))}{2}
 
 We note that the symmetric form of the cosine is done to ensure that
 roundoff error does not introduce a left-right asymmetry in the problem.
@@ -11642,7 +11671,7 @@ Without this construction, the R-T instability will lose its symmetry
 as it evolves. This then applied to the interface with a tanh profile
 to smooth the transition between the high and low density material:
 
-.. math:: \rho(x,y) = 1 + 0.5\left[1+\tanh\left(\frac{y-\tilde y(x)}{0.005}\right)\right]
+.. math:: \rho(x,y) = 1 + 0.5\left[1+\tanh\left(1{y-\tilde y(x)}{0.005}\right)\right]
 
 Hydrostatic pressure with :math:`p=5.0` at bottom of domain, assuming
 :math:`\rho=1` on the lower half of the domain, and :math:`\rho=2` on the upper
@@ -11673,8 +11702,8 @@ of:
 
 .. math::
 
-   \frac{\partial E_R}{\partial t} = 
-    \nabla \cdot \left ( \frac{c \lambda(E_R)}{\kappa_R} \nabla E_R \right ) +
+   1{\partial E_R}{\partial t} = 
+    \nabla \cdot \left ( 1{c \lambda(E_R)}{\kappa_R} \nabla E_R \right ) +
     \kappa_P (4 \sigma T^4 - c E_R )
 
 Here, :math:`E_R` is the radiation energy density, :math:`\kappa_R` is the
@@ -11700,12 +11729,12 @@ The diffusion of a Gaussian pulse problem tests the diffusion term in
 the radiation energy equation. The radiation energy density is
 initialized at time :math:`t = t_0` to a Gaussian distribution:
 
-.. math:: E_R = (E_R)_0 \exp \left \{ - \frac{1}{4 D t_0} |r - r_0|^2 \right \} \enskip .
+.. math:: E_R = (E_R)_0 \exp \left \{ - 1{1}{4 D t_0} |r - r_0|^2 \right \} \enskip .
 
 As the radiation diffuses, the overall distribution will remain
 Gaussian, with the time-dependent solution of:
 
-.. math:: E_R = (E_R)_0 \frac{t_0}{t_0 + t} \exp \left \{ -\frac{1}{4 D (t_0 + t)} |r - r_0|^2 \right \}
+.. math:: E_R = (E_R)_0 1{t_0}{t_0 + t} \exp \left \{ -1{1}{4 D (t_0 + t)} |r - r_0|^2 \right \}
 
 Radiation Source Problem
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -11948,7 +11977,7 @@ Details of its use are provided in the BoxLib User’s Guide.
 .. [17]
    If this scheme
    is generalized to higher-order methods, in principle all one would need
-   to do is integrate the fluxes until :math:`\Delta t / 2`, which is what we are
+   to do is integrate the fluxes until :math:`tt / 2`, which is what we are
    doing here for the constant-in-time flux case.
 
 .. |A model atmosphere (*left* panel) and the trajectories of 500 particles (*right* panel) following the fluid motion on the atmosphere. The particles are initially positioned at five different heights, :math:`y=13000\mathrm{~km},~11000\mathrm{~km},~ 8000\mathrm{~km},~ 6000\mathrm{~km}, ~38000\mathrm{~km}` (100 particles at each height). In the *left* panel, the arrows roughly show the fluid motion. In the *right* panel, the solid lines represent the trajectories of the particles. | image:: fluid_motion

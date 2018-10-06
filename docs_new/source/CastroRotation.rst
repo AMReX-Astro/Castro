@@ -102,13 +102,13 @@ Coordinate transformation to rotating frame
 Consider an inertial reference frame :math:`C` and a non-inertial
 reference frame :math:`\widetilde{C}` whose origins are separated by the
 vector :math:`\boldsymbol{l}` (see Figure \ `[fig:sec:rot:frames] <#fig:sec:rot:frames>`__). The non-inertial frame is rotating about the axis
-:math:`\ob` with a *constant* angular velocity :math:`\omega`;
+:math:`\boldsymbol{\omega}` with a *constant* angular velocity :math:`\omega`;
 furthermore, we assume the *direction* of the rotational axis is
 fixed. Consider a fluid element at the point :math:`P` whose location is
-given by :math:`\rb` in :math:`C` and by :math:`\rbt` in
+given by :math:`{\bf r}` in :math:`C` and by :math:`\widetilde{{\bf r}}` in
 :math:`\widetilde{C}`:
 
-.. math:: \rb = \rbt + \boldsymbol{l},
+.. math:: {\bf r}= \widetilde{{\bf r}}+ \boldsymbol{l},
 
 or in component notation
 
@@ -132,13 +132,13 @@ and the change in :math:`\boldsymbol{l}` gives the relative motion of the two
 coordinate systems). By definition, a unit vector can not change its
 length, and therefore the only change of :math:`\widetilde{\boldsymbol{e_i}}` with
 time can come from changing direction. This change is carried out by
-a rotation about the :math:`\ob` axis, and the tip of the unit
+a rotation about the :math:`\boldsymbol{\omega}` axis, and the tip of the unit
 vector moves circumferentially, that is
 
 .. math::
 
    \label{eq:etilde-rot}
-       \frac{D\widetilde{\boldsymbol{e_i}}}{Dt} = \ob\times\widetilde{\boldsymbol{e_i}}.
+       \frac{D\widetilde{\boldsymbol{e_i}}}{Dt} = \boldsymbol{\omega}\times\widetilde{\boldsymbol{e_i}}.
 
 Plugging `[eq:etilde-rot] <#eq:etilde-rot>`__ into `[eq:vcomp] <#eq:vcomp>`__ and switching back to
 vector notation, we have
@@ -146,7 +146,7 @@ vector notation, we have
 .. math::
 
    \label{eq:r-dot}
-       \frac{D\rb}{Dt} = \frac{D\rbt}{Dt} + \ob\times\rbt + \frac{D\boldsymbol{l}}{Dt}.
+       \frac{D{\bf r}}{Dt} = \frac{D\widetilde{{\bf r}}}{Dt} + \boldsymbol{\omega}\times\widetilde{{\bf r}}+ \frac{D\boldsymbol{l}}{Dt}.
 
 The left hand side of `[eq:r-dot] <#eq:r-dot>`__ is interpretted as the velocity
 of the fluid element as seen in the inertial frame; the first term on the
@@ -159,7 +159,7 @@ additional velocity due to rotation and translation of the frame
 .. math::
 
    \label{eq:v}
-       \vb = \vbt + \ob\times\rbt + \boldsymbol{v_l},
+       \boldsymbol{v}= \widetilde{\boldsymbol{v}}+ \boldsymbol{\omega}\times\widetilde{{\bf r}}+ \boldsymbol{v_l},
 
 where we use :math:`\boldsymbol{v_l}` to represent the translational velocity.
 
@@ -168,27 +168,27 @@ Similarly, by taking a second time derivative of `[eq:v] <#eq:v>`__ we have
 .. math::
 
    \label{eq:a}
-       \frac{D\vb}{Dt} = \frac{D\vbt}{Dt} + 2\ob\times\vbt + \ob\times\left[\ob\times\rbt\right] + \frac{D\boldsymbol{v_l}}{Dt}.
+       \frac{D\boldsymbol{v}}{Dt} = \frac{D\widetilde{\boldsymbol{v}}}{Dt} + 2\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}+ \boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right] + \frac{D\boldsymbol{v_l}}{Dt}.
 
 Henceforth we will assume the two coordinate systems are not
 translating relative to one another, :math:`\boldsymbol{v_l} = 0`. It is
 also worth mentioning that derivatives with respect to spatial
 coordinates do not involve additional terms due to rotation,
-i.e. :math:`\nablab\cdot\vb = \nablab\cdot\vbt`.
+i.e. :math:`\boldsymbol{\nabla}\cdot\boldsymbol{v}= \boldsymbol{\nabla}\cdot\widetilde{\boldsymbol{v}}`.
 Because of this, the continuity equation remains unchanged in the
 rotating frame:
 
 .. math::
 
    \label{eq:cont-rot}
-       \frac{\partial \rho}{\partial t} = -\nablab\cdot\left(\rho\vbt\right),
+       \frac{\partial \rho}{\partial t} = -\boldsymbol{\nabla}\cdot\left(\rho\widetilde{\boldsymbol{v}}\right),
 
 or
 
 .. math::
 
    \label{eq:cont-rot-total}
-       \frac{D\rho}{Dt} = -\rho\nablab\cdot\vbt.
+       \frac{D\rho}{Dt} = -\rho\boldsymbol{\nabla}\cdot\widetilde{\boldsymbol{v}}.
 
 Momentum equation in rotating frame
 ===================================
@@ -198,7 +198,7 @@ The usual momentum equation applies in an inertial frame:
 .. math::
 
    \label{eq:mom1}
-       \frac{D\left(\rho\vb\right)}{Dt} = -\rho\vb\cdot\nablab\vb - \nablab p + \rho\gb.
+       \frac{D\left(\rho\boldsymbol{v}\right)}{Dt} = -\rho\boldsymbol{v}\cdot\boldsymbol{\nabla}\boldsymbol{v}- \boldsymbol{\nabla}p + \rho{\bf g}.
 
 Using the continuity equation, `[eq:cont-rot-total] <#eq:cont-rot-total>`__, and substituting for
 the terms in the rotating frame from `[eq:a] <#eq:a>`__, we have from `[eq:mom1] <#eq:mom1>`__:
@@ -206,10 +206,10 @@ the terms in the rotating frame from `[eq:a] <#eq:a>`__, we have from `[eq:mom1]
 .. math::
 
    \begin{aligned}
-       \rho\left(\frac{D\vbt}{Dt} + 2\ob\times\vbt + \ob\times\left[\ob\times\rbt\right]\right) - \rho\vb\nablab\cdot\vb &=& -\rho\vb\cdot\nablab\vb - \nablab p + \rho\gb \nonumber \\
-       \rho\left(\frac{\partial\vbt}{\partial t} + \vbt\cdot\nablab\vbt\right) &=& -\nablab p + \rho\gb - 2\rho\ob\times\vbt - \rho\ob\times\left[\ob\times\rbt\right] \nonumber \\
-     \frac{\partial\left(\rho\vbt\right)}{\partial t} &=& -\nablab\cdot\left(\rho\vbt\vbt\right) - \nablab p + \rho\gb - 2\rho\ob\times\vbt \nonumber \\
-     & & -\ \rho\ob\times\left[\ob\times\rbt\right]\label{eq:mom-rot}
+       \rho\left(\frac{D\widetilde{\boldsymbol{v}}}{Dt} + 2\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}+ \boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right]\right) - \rho\boldsymbol{v}\boldsymbol{\nabla}\cdot\boldsymbol{v}&=& -\rho\boldsymbol{v}\cdot\boldsymbol{\nabla}\boldsymbol{v}- \boldsymbol{\nabla}p + \rho{\bf g}\nonumber \\
+       \rho\left(\frac{\partial\widetilde{\boldsymbol{v}}}{\partial t} + \widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}\widetilde{\boldsymbol{v}}\right) &=& -\boldsymbol{\nabla}p + \rho{\bf g}- 2\rho\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}- \rho\boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right] \nonumber \\
+     \frac{\partial\left(\rho\widetilde{\boldsymbol{v}}\right)}{\partial t} &=& -\boldsymbol{\nabla}\cdot\left(\rho\widetilde{\boldsymbol{v}}\widetilde{\boldsymbol{v}}\right) - \boldsymbol{\nabla}p + \rho{\bf g}- 2\rho\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}\nonumber \\
+     & & -\ \rho\boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right]\label{eq:mom-rot}
      \end{aligned}
 
 or
@@ -217,7 +217,7 @@ or
 .. math::
 
    \label{eq:mom-rot-tot}
-       \frac{D\left(\rho\vbt\right)}{Dt} = -\rho\vbt\cdot\nablab\vbt - \nablab p + \rho\gb - 2\rho\ob\times\vbt - \rho\ob\times\left[\ob\times\rbt\right].
+       \frac{D\left(\rho\widetilde{\boldsymbol{v}}\right)}{Dt} = -\rho\widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}\widetilde{\boldsymbol{v}}- \boldsymbol{\nabla}p + \rho{\bf g}- 2\rho\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}- \rho\boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right].
 
 Energy equations in rotating frame
 ==================================
@@ -228,17 +228,17 @@ a rotating frame
 .. math::
 
    \label{eq:v-rot}
-       \frac{D\vbt}{Dt} = -\frac{1}{\rho}\nablab p + \gb - 2\ob\times\vbt - \ob\times\left[\ob\times\rbt\right].
+       \frac{D\widetilde{\boldsymbol{v}}}{Dt} = -\frac{1}{\rho}\boldsymbol{\nabla}p + {\bf g}- 2\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}- \boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right].
 
 The kinetic energy equation can be obtained from `[eq:v-rot] <#eq:v-rot>`__ by
-mulitplying by :math:`\rho\vbt`:
+mulitplying by :math:`\rho\widetilde{\boldsymbol{v}}`:
 
 .. math::
 
    \begin{aligned}
-       \rho\vbt\cdot\frac{D\vbt}{Dt} &=& -\vbt\cdot\nablab p + \rho\vbt\cdot\gb - 2\rho\vbt\cdot\left[\ob\times\vbt\right] - \rho\vbt\cdot\left\{\ob\times\left[\ob\times\rbt\right]\right\} \nonumber \\
-       \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} - \frac{1}{2}\vbt\cdot\vbt\frac{D\rho}{Dt} &=& -\vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right] \nonumber \\
-       \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} &=& -\frac{1}{2}\rho\vbt\cdot\vbt\nablab\cdot\vbt - \vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right]. \label{eq:ekin-rot-total}
+       \rho\widetilde{\boldsymbol{v}}\cdot\frac{D\widetilde{\boldsymbol{v}}}{Dt} &=& -\widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}p + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}- 2\rho\widetilde{\boldsymbol{v}}\cdot\left[\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}\right] - \rho\widetilde{\boldsymbol{v}}\cdot\left\{\boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right]\right\} \nonumber \\
+       \frac{1}{2}\frac{D\left(\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}\right)}{Dt} - \frac{1}{2}\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}\frac{D\rho}{Dt} &=& -\widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}p + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}- \rho\widetilde{\boldsymbol{v}}\cdot\left[\left(\boldsymbol{\omega}\cdot\widetilde{{\bf r}}\right)\boldsymbol{\omega}- \rho\omega^2\widetilde{{\bf r}}\right] \nonumber \\
+       \frac{1}{2}\frac{D\left(\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}\right)}{Dt} &=& -\frac{1}{2}\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}\boldsymbol{\nabla}\cdot\widetilde{\boldsymbol{v}}- \widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}p + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}- \rho\widetilde{\boldsymbol{v}}\cdot\left[\left(\boldsymbol{\omega}\cdot\widetilde{{\bf r}}\right)\boldsymbol{\omega}- \rho\omega^2\widetilde{{\bf r}}\right]. \label{eq:ekin-rot-total}
      \end{aligned}
 
 The internal energy is simply advected, and, from the first law of
@@ -247,17 +247,17 @@ thermodynamics, can change due to :math:`pdV` work:
 .. math::
 
    \label{eq:eint-rot-total}
-       \frac{D\left(\rho e\right)}{Dt} = -\left(\rho e + p\right)\nablab\cdot\vbt.
+       \frac{D\left(\rho e\right)}{Dt} = -\left(\rho e + p\right)\boldsymbol{\nabla}\cdot\widetilde{\boldsymbol{v}}.
 
 Combining `[eq:ekin-rot-total] <#eq:ekin-rot-total>`__ and `[eq:eint-rot-total] <#eq:eint-rot-total>`__ we can
 get the evolution of the total specific energy in the rotating frame,
-:math:`\rho \widetilde{E} = \rho e + \frac{1}{2}\rho\vbt\cdot\vbt`:
+:math:`\rho \widetilde{E} = \rho e + \frac{1}{2}\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}`:
 
 .. math::
 
    \begin{aligned}
-       \frac{D\left(\rho e\right)}{Dt} + \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} &=& -\left(\rho e + p + \frac{1}{2}\rho\vbt\cdot\vbt\right)\nablab\cdot\vbt - \vbt\cdot\nablab p + \rho\vbt\cdot\gb -\rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right]\nonumber \\
-       \frac{D\left(\rho \widetilde{E}\right)}{Dt} &=& -\rho\widetilde{E}\nablab\cdot\vbt - \nablab\cdot\left(p\vbt\right) + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right] \label{eq:etot-rot-total}
+       \frac{D\left(\rho e\right)}{Dt} + \frac{1}{2}\frac{D\left(\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}\right)}{Dt} &=& -\left(\rho e + p + \frac{1}{2}\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}\right)\boldsymbol{\nabla}\cdot\widetilde{\boldsymbol{v}}- \widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}p + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}-\rho\widetilde{\boldsymbol{v}}\cdot\left[\left(\boldsymbol{\omega}\cdot\widetilde{{\bf r}}\right)\boldsymbol{\omega}- \rho\omega^2\widetilde{{\bf r}}\right]\nonumber \\
+       \frac{D\left(\rho \widetilde{E}\right)}{Dt} &=& -\rho\widetilde{E}\boldsymbol{\nabla}\cdot\widetilde{\boldsymbol{v}}- \boldsymbol{\nabla}\cdot\left(p\widetilde{\boldsymbol{v}}\right) + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}- \rho\widetilde{\boldsymbol{v}}\cdot\left[\left(\boldsymbol{\omega}\cdot\widetilde{{\bf r}}\right)\boldsymbol{\omega}- \rho\omega^2\widetilde{{\bf r}}\right] \label{eq:etot-rot-total}
      \end{aligned}
 
 or
@@ -265,7 +265,7 @@ or
 .. math::
 
    \label{eq:etot-rot}
-       \frac{\partial\left(\rho\widetilde{E}\right)}{\partial t} = -\nablab\cdot\left(\rho\widetilde{E}\vbt + p\vbt\right) + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right].
+       \frac{\partial\left(\rho\widetilde{E}\right)}{\partial t} = -\boldsymbol{\nabla}\cdot\left(\rho\widetilde{E}\widetilde{\boldsymbol{v}}+ p\widetilde{\boldsymbol{v}}\right) + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}- \rho\widetilde{\boldsymbol{v}}\cdot\left[\left(\boldsymbol{\omega}\cdot\widetilde{{\bf r}}\right)\boldsymbol{\omega}- \rho\omega^2\widetilde{{\bf r}}\right].
 
 Switching to the rotating reference frame
 =========================================
@@ -280,9 +280,9 @@ reference:
 .. math::
 
    \begin{aligned}
-       \frac{\partial\rho}{\partial t} &=& -\nablab\cdot\left(\rho\vb\right) \label{eq:cont-rot-switch} \\
-       \frac{\partial \left(\rho\vb\right)}{\partial t} &=& -\nablab\cdot\left(\rho\vb\vb\right) - \nablab p + \rho\gb - 2\rho\ob\times\vb - \rho\left(\ob\cdot\rb\right)\ob + \rho\omega^2\rb \label{eq:mom-rot-switch} \\
-       \frac{\partial\left(\rho E\right)}{\partial t} &=& -\nablab\cdot\left(\rho E\vb + p\vb\right) + \rho\vb\cdot\gb - \rho\left(\ob\cdot\rb\right)\left(\ob\cdot\vb\right) + \rho\omega^2\left(\vb\cdot\rb\right). \label{eq:etot-rot-switch}
+       \frac{\partial\rho}{\partial t} &=& -\boldsymbol{\nabla}\cdot\left(\rho\boldsymbol{v}\right) \label{eq:cont-rot-switch} \\
+       \frac{\partial \left(\rho\boldsymbol{v}\right)}{\partial t} &=& -\boldsymbol{\nabla}\cdot\left(\rho\boldsymbol{v}\boldsymbol{v}\right) - \boldsymbol{\nabla}p + \rho{\bf g}- 2\rho\boldsymbol{\omega}\times\boldsymbol{v}- \rho\left(\boldsymbol{\omega}\cdot{\bf r}\right)\boldsymbol{\omega}+ \rho\omega^2{\bf r}\label{eq:mom-rot-switch} \\
+       \frac{\partial\left(\rho E\right)}{\partial t} &=& -\boldsymbol{\nabla}\cdot\left(\rho E\boldsymbol{v}+ p\boldsymbol{v}\right) + \rho\boldsymbol{v}\cdot{\bf g}- \rho\left(\boldsymbol{\omega}\cdot{\bf r}\right)\left(\boldsymbol{\omega}\cdot\boldsymbol{v}\right) + \rho\omega^2\left(\boldsymbol{v}\cdot{\bf r}\right). \label{eq:etot-rot-switch}
      \end{aligned}
 
 Adding the forcing to the hydrodynamics

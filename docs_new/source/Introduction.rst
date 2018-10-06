@@ -46,16 +46,16 @@ throughout the code documentation and papers.
    | :math:`\rho`          | :math:`\mathrm{g~cm^{ | mass density          |
    |                       | -3}}`                 |                       |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`\ub`           | :math:`\mathrm{cm~s^{ | velocity vector       |
+   | :math:`{\bf u}`       | :math:`\mathrm{cm~s^{ | velocity vector       |
    |                       | -1}}`                 |                       |
    +-----------------------+-----------------------+-----------------------+
    | :math:`p`             | :math:`\mathrm{dyn~cm | pressure              |
    |                       | ^{-2}}`               |                       |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`\gb`           | :math:`\mathrm{cm~s^{ | gravitational         |
+   | :math:`{\bf g}`       | :math:`\mathrm{cm~s^{ | gravitational         |
    |                       | -2}}`                 | acceleration          |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`\Sb`           | varies                | source term           |
+   | :math:`{\bf S}`       | varies                | source term           |
    +-----------------------+-----------------------+-----------------------+
    | :math:`E`             | :math:`\mathrm{erg~g^ | specific total energy |
    |                       | {-1}}`                |                       |
@@ -71,7 +71,7 @@ throughout the code documentation and papers.
    | :math:`X_k`           | –                     | mass fraction of      |
    |                       |                       | species :math:`k`     |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`\omegadot_k`   | :math:`\mathrm{s^{-1} | species creation rate |
+   | :math:`\dot\omega_k`  | :math:`\mathrm{s^{-1} | species creation rate |
    |                       | }`                    | (from reactions)      |
    +-----------------------+-----------------------+-----------------------+
 

@@ -62,8 +62,8 @@ several main data structures that hold the state.
       |                       |                       | the other quantities  |
       |                       |                       | using                 |
       |                       |                       | :math:`\rho e = \rho  |
-      |                       |                       | E - \rho \ub \cdot \u |
-      |                       |                       | b / 2`                |
+      |                       |                       | E - \rho {\bf u}\cdot |
+      |                       |                       |  {\bf u}/ 2`          |
       +-----------------------+-----------------------+-----------------------+
       | UTEMP                 | :math:`T`             | this is computed from |
       |                       |                       | the other quantities  |
@@ -249,32 +249,32 @@ Conservation Forms
 ==================
 
 We begin with the fully compressible equations for the conserved state vector,
-:math:`\Ub = (\rho, \rho \ub, \rho E, \rho A_k, \rho X_k, \rho Y_k):`
+:math:`{\bf U}= (\rho, \rho {\bf u}, \rho E, \rho A_k, \rho X_k, \rho Y_k):`
 
 .. math::
 
    \begin{aligned}
-   \frac{\partial \rho}{\partial t} &=& - \nabla \cdot (\rho \ub) + S_{{\rm ext},\rho}, \\
-   \frac{\partial (\rho \ub)}{\partial t} &=& - \nabla \cdot (\rho \ub \ub) - \nabla p +\rho \gb + \Sb_{{\rm ext},\rho\ub}, \\
-   \frac{\partial (\rho E)}{\partial t} &=& - \nabla \cdot (\rho \ub E + p \ub) + \rho \ub \cdot \gb - \sum_k {\rho q_k \dot\omega_k} + \nabla\cdot{k_\mathrm{th}}\nabla T + S_{{\rm ext},\rho E}, \\
-   \frac{\partial (\rho A_k)}{\partial t} &=& - \nabla \cdot (\rho \ub A_k) + S_{{\rm ext},\rho A_k}, \\
-   \frac{\partial (\rho X_k)}{\partial t} &=& - \nabla \cdot (\rho \ub X_k) + \rho \dot\omega_k + S_{{\rm ext},\rho X_k}, \\
-   \frac{\partial (\rho Y_k)}{\partial t} &=& - \nabla \cdot (\rho \ub Y_k) + S_{{\rm ext},\rho Y_k}.\label{eq:compressible-equations}\end{aligned}
+   \frac{\partial \rho}{\partial t} &=& - \nabla \cdot (\rho {\bf u}) + S_{{\rm ext},\rho}, \\
+   \frac{\partial (\rho {\bf u})}{\partial t} &=& - \nabla \cdot (\rho {\bf u}{\bf u}) - \nabla p +\rho {\bf g}+ {\bf S}_{{\rm ext},\rho{\bf u}}, \\
+   \frac{\partial (\rho E)}{\partial t} &=& - \nabla \cdot (\rho {\bf u}E + p {\bf u}) + \rho {\bf u}\cdot {\bf g}- \sum_k {\rho q_k \dot\omega_k} + \nabla\cdot{k_\mathrm{th}}\nabla T + S_{{\rm ext},\rho E}, \\
+   \frac{\partial (\rho A_k)}{\partial t} &=& - \nabla \cdot (\rho {\bf u}A_k) + S_{{\rm ext},\rho A_k}, \\
+   \frac{\partial (\rho X_k)}{\partial t} &=& - \nabla \cdot (\rho {\bf u}X_k) + \rho \dot\omega_k + S_{{\rm ext},\rho X_k}, \\
+   \frac{\partial (\rho Y_k)}{\partial t} &=& - \nabla \cdot (\rho {\bf u}Y_k) + S_{{\rm ext},\rho Y_k}.\label{eq:compressible-equations}\end{aligned}
 
-Here :math:`\rho, \ub, T, p`, and :math:`{k_\mathrm{th}}` are the density, velocity,
+Here :math:`\rho, {\bf u}, T, p`, and :math:`{k_\mathrm{th}}` are the density, velocity,
 temperature, pressure, and thermal conductivity, respectively, and :math:`E
-= e + \ub \cdot \ub / 2` is the total energy with :math:`e` representing the
+= e + {\bf u}\cdot {\bf u}/ 2` is the total energy with :math:`e` representing the
 internal energy. In addition, :math:`X_k` is the abundance of the :math:`k^{\rm
   th}` isotope, with associated production rate, :math:`\dot\omega_k`, and
-energy release, :math:`q_k`. Here :math:`\gb` is the gravitational vector, and
-:math:`S_{{\rm ext},\rho}, \Sb_{{\rm ext}\rho\ub}`, etc., are user-specified
+energy release, :math:`q_k`. Here :math:`{\bf g}` is the gravitational vector, and
+:math:`S_{{\rm ext},\rho}, {\bf S}_{{\rm ext}\rho{\bf u}}`, etc., are user-specified
 source terms. :math:`A_k` is an advected quantity, i.e., a tracer. We also
 carry around auxiliary variables, :math:`Y_k`, which have a user-defined
 evolution equation, but by default are treated as advected quantities.
 
 In the code we also carry around :math:`T` and :math:`\rho e` in the conservative
 state vector even though they are derived from the other conserved
-quantities. The ordering of the elements within :math:`\Ub` is defined
+quantities. The ordering of the elements within :math:`{\bf U}` is defined
 by integer variables into the array—see
 Table \ `[table:consints] <#table:consints>`__
 
@@ -307,18 +307,18 @@ Some notes:
 Source Terms
 ============
 
-We now compute explicit source terms for each variable in :math:`\Qb` and
-:math:`\Ub`. The primitive variable source terms will be used to construct
+We now compute explicit source terms for each variable in :math:`{\bf Q}` and
+:math:`{\bf U}`. The primitive variable source terms will be used to construct
 time-centered fluxes. The conserved variable source will be used to
 advance the solution. We neglect reaction source terms since they are
 accounted for in **Steps 1** and **6**. The source terms are:
 
 .. math::
 
-   \Sb_{\Qb}^n =
+   {\bf S}_{{\bf Q}}^n =
    \left(\begin{array}{c}
    S_\rho \\
-   \Sb_{\ub} \\
+   {\bf S}_{{\bf u}} \\
    S_p \\
    S_{\rho e} \\
    S_{A_k} \\
@@ -328,7 +328,7 @@ accounted for in **Steps 1** and **6**. The source terms are:
    =
    \left(\begin{array}{c}
    S_{{\rm ext},\rho} \\
-   \gb + \frac{1}{\rho}\Sb_{{\rm ext},\rho\ub} \\
+   {\bf g}+ \frac{1}{\rho}{\bf S}_{{\rm ext},\rho{\bf u}} \\
    \frac{1}{\rho}\frac{\partial p}{\partial e}S_{{\rm ext},\rho E} + \frac{\partial p}{\partial\rho}S_{{\rm ext}\rho} \\
    \nabla\cdot{k_\mathrm{th}}\nabla T + S_{{\rm ext},\rho E} \\
    \frac{1}{\rho}S_{{\rm ext},\rho A_k} \\
@@ -338,9 +338,9 @@ accounted for in **Steps 1** and **6**. The source terms are:
 
 .. math::
 
-   \Sb_{\Ub}^n =
+   {\bf S}_{{\bf U}}^n =
    \left(\begin{array}{c}
-   \Sb_{\rho\ub} \\
+   {\bf S}_{\rho{\bf u}} \\
    S_{\rho E} \\
    S_{\rho A_k} \\
    S_{\rho X_k} \\
@@ -348,8 +348,8 @@ accounted for in **Steps 1** and **6**. The source terms are:
    \end{array}\right)^n
    =
    \left(\begin{array}{c}
-   \rho \gb + \Sb_{{\rm ext},\rho\ub} \\
-   \rho \ub \cdot \gb + \nabla\cdot{k_\mathrm{th}}\nabla T + S_{{\rm ext},\rho E} \\
+   \rho {\bf g}+ {\bf S}_{{\rm ext},\rho{\bf u}} \\
+   \rho {\bf u}\cdot {\bf g}+ \nabla\cdot{k_\mathrm{th}}\nabla T + S_{{\rm ext},\rho E} \\
    S_{{\rm ext},\rho A_k} \\
    S_{{\rm ext},\rho X_k} \\
    S_{{\rm ext},\rho Y_k}
@@ -359,7 +359,7 @@ Primitive Forms
 ===============
 
 Castro uses the primitive form of the fluid equations, defined in terms of
-the state :math:`\Qb = (\rho, \ub, p, \rho e, A_k, X_k, Y_k)`, to construct the
+the state :math:`{\bf Q}= (\rho, {\bf u}, p, \rho e, A_k, X_k, Y_k)`, to construct the
 interface states that are input to the Riemann problem.
 
 The primitive variable equations for density, velocity, and pressure are:
@@ -367,26 +367,26 @@ The primitive variable equations for density, velocity, and pressure are:
 .. math::
 
    \begin{aligned}
-     \frac{\partial\rho}{\partial t} &=& -\ub\cdot\nabla\rho - \rho\nabla\cdot\ub + S_{{\rm ext},\rho} \\
+     \frac{\partial\rho}{\partial t} &=& -{\bf u}\cdot\nabla\rho - \rho\nabla\cdot{\bf u}+ S_{{\rm ext},\rho} \\
    %
-     \frac{\partial\ub}{\partial t} &=& -\ub\cdot\nabla\ub - \frac{1}{\rho}\nabla p + \gb + 
-   \frac{1}{\rho} (\Sb_{{\rm ext},\rho\ub} - \ub \; S_{{\rm ext},\rho}) \\
-   \frac{\partial p}{\partial t} &=& -\ub\cdot\nabla p - \rho c^2\nabla\cdot\ub +
+     \frac{\partial{\bf u}}{\partial t} &=& -{\bf u}\cdot\nabla{\bf u}- \frac{1}{\rho}\nabla p + {\bf g}+ 
+   \frac{1}{\rho} ({\bf S}_{{\rm ext},\rho{\bf u}} - {\bf u}\; S_{{\rm ext},\rho}) \\
+   \frac{\partial p}{\partial t} &=& -{\bf u}\cdot\nabla p - \rho c^2\nabla\cdot{\bf u}+
    \left(\frac{\partial p}{\partial \rho}\right)_{e,X}S_{{\rm ext},\rho}\nonumber\\
    &&+\  \frac{1}{\rho}\sum_k\left(\frac{\partial p}{\partial X_k}\right)_{\rho,e,X_j,j\neq k}\left(\rho\dot\omega_k + S_{{\rm ext},\rho X_k} - X_kS_{{\rm ext},\rho}\right)\nonumber\\
    && +\  \frac{1}{\rho}\left(\frac{\partial p}{\partial e}\right)_{\rho,X}\left[-eS_{{\rm ext},\rho} - \sum_k\rho q_k\dot\omega_k + \nabla\cdot{k_\mathrm{th}}\nabla T \right.\nonumber\\
-   && \quad\qquad\qquad\qquad+\ S_{{\rm ext},\rho E} - \ub\cdot\left(\Sb_{{\rm ext},\rho\ub} - \frac{\ub}{2}S_{{\rm ext},\rho}\right)\Biggr] \end{aligned}
+   && \quad\qquad\qquad\qquad+\ S_{{\rm ext},\rho E} - {\bf u}\cdot\left({\bf S}_{{\rm ext},\rho{\bf u}} - \frac{{\bf u}}{2}S_{{\rm ext},\rho}\right)\Biggr] \end{aligned}
 
 The advected quantities appear as:
 
 .. math::
 
    \begin{aligned}
-   \frac{\partial A_k}{\partial t} &=& -\ub\cdot\nabla A_k + \frac{1}{\rho}
+   \frac{\partial A_k}{\partial t} &=& -{\bf u}\cdot\nabla A_k + \frac{1}{\rho}
                                         ( S_{{\rm ext},\rho A_k} - A_k S_{{\rm ext},\rho} ), \\
-   \frac{\partial X_k}{\partial t} &=& -\ub\cdot\nabla X_k + \dot\omega_k + \frac{1}{\rho}
+   \frac{\partial X_k}{\partial t} &=& -{\bf u}\cdot\nabla X_k + \dot\omega_k + \frac{1}{\rho}
                                         ( S_{{\rm ext},\rho X_k}  - X_k S_{{\rm ext},\rho} ), \\
-   \frac{\partial Y_k}{\partial t} &=& -\ub\cdot\nabla Y_k + \frac{1}{\rho} 
+   \frac{\partial Y_k}{\partial t} &=& -{\bf u}\cdot\nabla Y_k + \frac{1}{\rho} 
                                         ( S_{{\rm ext},\rho Y_k}  - Y_k S_{{\rm ext},\rho} ).\end{aligned}
 
 All of the primitive variables are derived from the conservative state
@@ -402,9 +402,9 @@ We augment the above system with an internal energy equation:
 .. math::
 
    \begin{aligned}
-   \frac{\partial(\rho e)}{\partial t} &=& - \ub\cdot\nabla(\rho e) - (\rho e+p)\nabla\cdot\ub - \sum_k \rho q_k\dot\omega_k 
+   \frac{\partial(\rho e)}{\partial t} &=& - {\bf u}\cdot\nabla(\rho e) - (\rho e+p)\nabla\cdot{\bf u}- \sum_k \rho q_k\dot\omega_k 
                                            + \nabla\cdot{k_\mathrm{th}}\nabla T + S_{{\rm ext},\rho E} \nonumber\\
-   && -\  \ub\cdot\left(\Sb_{{\rm ext},\rho\ub}-\frac{1}{2}S_{{\rm ext},\rho}\ub\right), \end{aligned}
+   && -\  {\bf u}\cdot\left({\bf S}_{{\rm ext},\rho{\bf u}}-\frac{1}{2}S_{{\rm ext},\rho}{\bf u}\right), \end{aligned}
 
 This has two benefits. First, for a general equation of state,
 carrying around an additional thermodynamic quantity allows us to
@@ -465,7 +465,7 @@ Primitive Variable System
 The full primitive variable form (without the advected or auxiliary
 quantities) is
 
-.. math:: \frac{\partial\Qb}{\partial t} + \sum_d \Ab_d\frac{\partial\Qb}{\partial x_d} = \Sb_{\Qb}.
+.. math:: \frac{\partial{\bf Q}}{\partial t} + \sum_d {\bf A}_d\frac{\partial{\bf Q}}{\partial x_d} = {\bf S}_{{\bf Q}}.
 
 For example, in 2D:
 
@@ -514,17 +514,17 @@ For example, in 2D:
    X_k
    \end{array}\right)_y
    =
-   \Sb_\Qb
+   {\bf S}_{\bf Q}
 
 The eigenvalues are:
 
-.. math:: {\bf \Lambda}(\Ab_x) = \{u-c,u,u,u,u,u+c\}, \qquad {\bf \Lambda}(\Ab_y) = \{v-c,v,v,v,v,v+c\} .
+.. math:: {\bf \Lambda}({\bf A}_x) = \{u-c,u,u,u,u,u+c\}, \qquad {\bf \Lambda}({\bf A}_y) = \{v-c,v,v,v,v,v+c\} .
 
 The right column eigenvectors are:
 
 .. math::
 
-   \Rb(\Ab_x) =
+   {\bf R}({\bf A}_x) =
    \left(\begin{array}{cccccc}
    1 & 1 & 0 & 0 & 0 & 1 \\
    -\frac{c}{\rho} & 0 & 0 & 0 & 0 & \frac{c}{\rho} \\
@@ -534,7 +534,7 @@ The right column eigenvectors are:
    0 & 0 & 0 & 0 & 1 & 0 \\
    \end{array}\right),
    \qquad
-   \Rb(\Ab_y) =
+   {\bf R}({\bf A}_y) =
    \left(\begin{array}{cccccc}
    1 & 1 & 0 & 0 & 0 & 1 \\
    0 & 0 & 1 & 0 & 0 & 0 \\
@@ -544,11 +544,11 @@ The right column eigenvectors are:
    0 & 0 & 0 & 0 & 1 & 0 \\
    \end{array}\right).
 
-The left row eigenvectors, normalized so that :math:`\Rb_d\cdot\Lb_d = \Ib` are:
+The left row eigenvectors, normalized so that :math:`{\bf R}_d\cdot{\bf L}_d = {\bf I}` are:
 
 .. math::
 
-   \Lb_x =
+   {\bf L}_x =
    \left(\begin{array}{cccccc}
    0 & -\frac{\rho}{2c} & 0 & \frac{1}{2c^2} & 0 & 0 \\
    1 & 0 & 0 & -\frac{1}{c^2} & 0 & 0 \\
@@ -558,7 +558,7 @@ The left row eigenvectors, normalized so that :math:`\Rb_d\cdot\Lb_d = \Ib` are:
    0 & \frac{\rho}{2c} & 0 & \frac{1}{2c^2} & 0 & 0
    \end{array}\right),
    \qquad
-   \Lb_y =
+   {\bf L}_y =
    \left(\begin{array}{cccccc}
    0 & 0 & -\frac{\rho}{2c} & \frac{1}{2c^2} & 0 & 0 \\
    1 & 0 & 0 & -\frac{1}{c^2} & 0 & 0 \\
@@ -643,7 +643,7 @@ We compute the primtive variables from the conserved variables.
 -  :math:`\rho, \rho e`: directly copy these from the conserved state
    vector
 
--  :math:`\ub, A_k, X_k, Y_k`: copy these from the conserved state
+-  :math:`{\bf u}, A_k, X_k, Y_k`: copy these from the conserved state
    vector, dividing by :math:`\rho`
 
 -  :math:`p,T`: use the EOS.
@@ -732,7 +732,7 @@ Colella algorithm, which we describe later, incorporates the
 transverse terms, and also describes the modifications required for
 equations with additional characteristics besides the fluid velocity.
 There are four steps to compute these dual-valued edge states (here,
-we use :math:`s` to denote an arbitrary scalar from :math:`\Qb`, and we write the
+we use :math:`s` to denote an arbitrary scalar from :math:`{\bf Q}`, and we write the
 equations in 1D, for simplicity):
 
 -  **Step 1**: Compute :math:`s_{i,+}` and :math:`s_{i,-}`, which are spatial
@@ -740,10 +740,24 @@ equations in 1D, for simplicity):
    limiters, respectively. Begin by interpolating :math:`s` to edges using a
    4th-order interpolation in space:
 
-   .. math:: s_{i+\myhalf} = \frac{7}{12}\left(s_{i+1}+s_i\right) - \frac{1}{12}\left(s_{i+2}+s_{i-1}\right).
+   .. math::
 
-   Then, if :math:`(s_{i+\myhalf}-s_i)(s_{i+1}-s_{i+\myhalf}) < 0`, we limit
-   :math:`s_{i+\myhalf}` a nonlinear combination of approximations to the
+      s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+         \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} = \frac{7}{12}\left(s_{i+1}+s_i\right) - \frac{1}{12}\left(s_{i+2}+s_{i-1}\right).
+
+   Then, if :math:`(s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+      \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}-s_i)(s_{i+1}-s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+      \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}) < 0`, we limit
+   :math:`s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+      \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}` a nonlinear combination of approximations to the
    second derivative. The steps are as follows:
 
    #. Define:
@@ -751,20 +765,62 @@ equations in 1D, for simplicity):
       .. math::
 
          \begin{aligned}
-         (D^2s)_{i+\myhalf} &=& 3\left(s_{i}-2s_{i+\myhalf}+s_{i+1}\right) \\
-         (D^2s)_{i+\myhalf,L} &=& s_{i-1}-2s_{i}+s_{i+1} \\
-         (D^2s)_{i+\myhalf,R} &=& s_{i}-2s_{i+1}+s_{i+2}\end{aligned}
+         (D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} &=& 3\left(s_{i}-2s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}+s_{i+1}\right) \\
+         (D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},L} &=& s_{i-1}-2s_{i}+s_{i+1} \\
+         (D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},R} &=& s_{i}-2s_{i+1}+s_{i+2}\end{aligned}
 
    #. Define
 
-      .. math:: s = \text{sign}\left[(D^2s)_{i+\myhalf}\right],
+      .. math::
 
-      .. math:: (D^2s)_{i+\myhalf,\text{lim}} = s\max\left\{\min\left[Cs\left|(D^2s)_{i+\myhalf,L}\right|,Cs\left|(D^2s)_{i+\myhalf,R}\right|,s\left|(D^2s)_{i+\myhalf}\right|\right],0\right\},
+         s = \text{sign}\left[(D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}\right],
+
+      .. math::
+
+         (D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},\text{lim}} = s\max\left\{\min\left[Cs\left|(D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},L}\right|,Cs\left|(D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},R}\right|,s\left|(D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}\right|\right],0\right\},
 
       where :math:`C=1.25` as used in Colella and Sekora 2009. The limited value
-      of :math:`s_{i+\myhalf}` is
+      of :math:`s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+         \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}` is
 
-      .. math:: s_{i+\myhalf} = \frac{1}{2}\left(s_{i}+s_{i+1}\right) - \frac{1}{6}(D^2s)_{i+\myhalf,\text{lim}}.
+      .. math::
+
+         s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} = \frac{1}{2}\left(s_{i}+s_{i+1}\right) - \frac{1}{6}(D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},\text{lim}}.
 
    Now we implement an updated implementation of the Colella & Sekora
    algorithm which eliminates sensitivity to roundoff. First we
@@ -773,7 +829,12 @@ equations in 1D, for simplicity):
 
    -  For the first test, define
 
-      .. math:: \alpha_{i,\pm} = s_{i\pm\myhalf} - s_i.
+      .. math::
+
+         \alpha_{i,\pm} = s_{i\pm\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} - s_i.
 
       If :math:`\alpha_{i,+}\alpha_{i,-} \ge 0`, then we are at an extremum.
 
@@ -783,8 +844,20 @@ equations in 1D, for simplicity):
       .. math::
 
          \begin{aligned}
-         (Ds)_{i,{\rm face},-} &=& s_{i-\myhalf} - s_{i-\sfrac{3}{2}} \\
-         (Ds)_{i,{\rm face},+} &=& s_{i+\sfrac{3}{2}} - s_{i-\myhalf}\end{aligned}
+         (Ds)_{i,{\rm face},-} &=& s_{i-\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} - s_{i-\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 3}\kern-.2em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{3\!/2}} \\
+         (Ds)_{i,{\rm face},+} &=& s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 3}\kern-.2em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{3\!/2}} - s_{i-\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}\end{aligned}
 
       .. math:: (Ds)_{i,{\rm face,min}} = \min\left[\left|(Ds)_{i,{\rm face},-}\right|,\left|(Ds)_{i,{\rm face},+}\right|\right].
 
@@ -838,7 +911,12 @@ equations in 1D, for simplicity):
       the following test. If :math:`s\delta s - \alpha_{i,\mp} \ge 1\times
       10^{-10}`, then
 
-      .. math:: \alpha_{i,\pm} =  -2\delta s - 2s\left[(\delta s)^2 - \delta s \alpha_{i,\mp}\right]^{\myhalf}
+      .. math::
+
+         \alpha_{i,\pm} =  -2\delta s - 2s\left[(\delta s)^2 - \delta s \alpha_{i,\mp}\right]^{\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}
 
       otherwise,
 
@@ -865,8 +943,20 @@ equations in 1D, for simplicity):
      .. math::
 
         \begin{aligned}
-        \mathcal{I}^{(k)}_{+}(s_i) &=& \frac{1}{\sigma_k h}\int_{(i+\myhalf)h-\sigma_k h}^{(i+\myhalf)h}s_i^I(x)dx \\
-        \mathcal{I}^{(k)}_{-}(s_i) &=& \frac{1}{\sigma_k h}\int_{(i-\myhalf)h}^{(i-\myhalf)h+\sigma_k h}s_i^I(x)dx\end{aligned}
+        \mathcal{I}^{(k)}_{+}(s_i) &=& \frac{1}{\sigma_k h}\int_{(i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+           \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2})h-\sigma_k h}^{(i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+           \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2})h}s_i^I(x)dx \\
+        \mathcal{I}^{(k)}_{-}(s_i) &=& \frac{1}{\sigma_k h}\int_{(i-\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+           \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2})h}^{(i-\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+           \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2})h+\sigma_k h}s_i^I(x)dx\end{aligned}
 
      Plugging in (`[Quadratic Interp] <#Quadratic Interp>`__) gives:
 
@@ -883,12 +973,18 @@ equations in 1D, for simplicity):
    .. math::
 
       \begin{aligned}
-      s_{L,i+\myhalf} &=& s_i - \chi_i\sum_{k:\lambda_k \ge 0}\lb_k\cdot\left[s_i-\mathcal{I}^{(k)}_{+}(s_i)\right]\rb_k + \frac{\dt}{2}S_i^n, \\
-      s_{R,i-\myhalf} &=& s_i - \chi_i\sum_{k:\lambda_k < 0}\lb_k\cdot\left[s_i-\mathcal{I}^{(k)}_{-}(s_i)\right]\rb_k + \frac{\dt}{2}S_i^n.\end{aligned}
+      s_{L,i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+         \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} &=& s_i - \chi_i\sum_{k:\lambda_k \ge 0}{\bf l}_k\cdot\left[s_i-\mathcal{I}^{(k)}_{+}(s_i)\right]{\bf r}_k + \frac{\Delta t}{2}S_i^n, \\
+      s_{R,i-\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+         \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} &=& s_i - \chi_i\sum_{k:\lambda_k < 0}{\bf l}_k\cdot\left[s_i-\mathcal{I}^{(k)}_{-}(s_i)\right]{\bf r}_k + \frac{\Delta t}{2}S_i^n.\end{aligned}
 
-   Here, :math:`\rb_k` is the :math:`k^{\rm th}` right column eigenvector of
-   :math:`\Rb(\Ab_d)` and :math:`\lb_k` is the :math:`k^{\rm th}` left row eigenvector lf
-   :math:`\Lb(\Ab_d)`. The flattening coefficient is :math:`\chi_i`.
+   Here, :math:`{\bf r}_k` is the :math:`k^{\rm th}` right column eigenvector of
+   :math:`{\bf R}({\bf A}_d)` and :math:`{\bf l}_k` is the :math:`k^{\rm th}` left row eigenvector lf
+   :math:`{\bf L}({\bf A}_d)`. The flattening coefficient is :math:`\chi_i`.
 
 In order to add the transverse terms in an spatial operator unsplit
 framework, the details follow exactly as given in Section 4.2.1 in
@@ -1000,7 +1096,7 @@ Then, if :math:`c_{\rm out} = c_{\rm in}`, we define :math:`c_{\rm temp} =
 \epsilon c_{\rm avg}`. Otherwise, :math:`c_{\rm temp} = c_{\rm out} -
 c_{\rm in}`. We define the fraction
 
-.. math:: f = \half\left[1 + \frac{c_{\rm out} + c_{\rm in}}{c_{\rm temp}}\right],
+.. math:: f = \frac{1}{2}\left[1 + \frac{c_{\rm out} + c_{\rm in}}{c_{\rm temp}}\right],
 
 and constrain :math:`f` to lie in the range :math:`f\in[0,1]`.
 
@@ -1095,7 +1191,12 @@ Compute Fluxes and Update
 Compute the fluxes as a function of the primitive variables, and then
 advance the solution:
 
-.. math:: \Ub^{n+1} = \Ub^n - \dt\nabla\cdot\Fb^\nph + \dt\Sb^n.
+.. math::
+
+   {\bf U}^{n+1} = {\bf U}^n - \Delta t\nabla\cdot{\bf F}^{n+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
+      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
+      \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}+ \Delta t{\bf S}^n.
 
 Again, note that since the source term is not time centered, this is
 not a second-order method. After the advective update, we correct the

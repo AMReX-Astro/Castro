@@ -171,14 +171,14 @@ The explicit portion of the system advancement (reactions,
 hydrodynamics, and gravity) is done by . Consider
 our system of equations as:
 
-.. math:: \frac{\partial\Ub}{\partial t} = -{\bf A}(\Ub) + \Rb(\Ub) + \Sb,
+.. math:: \frac{\partial{\bf U}}{\partial t} = -{\bf A}({\bf U}) + {\bf R}({\bf U}) + {\bf S},
 
-where :math:`{\bf A}(\Ub) = \nabla \cdot \Fb(\Ub)`, with :math:`\Fb` the flux vector, :math:`\Rb` are the reaction
-source terms, and :math:`\Sb` are the non-reaction source terms, which
-includes any user-defined external sources, :math:`\Sb_{\rm ext}`. We use
+where :math:`{\bf A}({\bf U}) = \nabla \cdot {\bf F}({\bf U})`, with :math:`{\bf F}` the flux vector, :math:`{\bf R}` are the reaction
+source terms, and :math:`{\bf S}` are the non-reaction source terms, which
+includes any user-defined external sources, :math:`{\bf S}_{\rm ext}`. We use
 Strang splitting to discretize the advection-reaction equations. In
 summary, for each time step, we update the conservative variables,
-:math:`\Ub`, by reacting for half a time step, advecting for a full time
+:math:`{\bf U}`, by reacting for half a time step, advecting for a full time
 step (ignoring the reaction terms), and reacting for half a time step.
 The treatment of source terms complicates this a little. The actual
 update, in sequence, looks like:
@@ -186,22 +186,22 @@ update, in sequence, looks like:
 .. math::
 
    \begin{aligned}
-   \Ub^\star &= \Ub^n + \frac{\dt}{2}\Rb(\Ub^n) \\
-   \Ub^{n+1,(a)} &= \Ub^\star + \dt\, \Sb(\Ub^\star) \\
-   \Ub^{n+1,(b)} &= \Ub^{n+1,(a)} - \dt\, {\bf A}(\Ub^\star) \\
-   \Ub^{n+1,(c)} &= \Ub^{n+1,(b)} + \frac{\dt}{2}\, [\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)] \label{eq:source_correct}\\
-   \Ub^{n+1}     &= \Ub^{n+1,(c)} + \frac{\dt}{2} \Rb(\Ub^{n+1,(c)})\end{aligned}
+   {\bf U}^\star &= {\bf U}^n + \frac{\Delta t}{2}{\bf R}({\bf U}^n) \\
+   {\bf U}^{n+1,(a)} &= {\bf U}^\star + \Delta t\, {\bf S}({\bf U}^\star) \\
+   {\bf U}^{n+1,(b)} &= {\bf U}^{n+1,(a)} - \Delta t\, {\bf A}({\bf U}^\star) \\
+   {\bf U}^{n+1,(c)} &= {\bf U}^{n+1,(b)} + \frac{\Delta t}{2}\, [{\bf S}({\bf U}^{n+1,(b)}) - {\bf S}({\bf U}^\star)] \label{eq:source_correct}\\
+   {\bf U}^{n+1}     &= {\bf U}^{n+1,(c)} + \frac{\Delta t}{2} {\bf R}({\bf U}^{n+1,(c)})\end{aligned}
 
 Note that in the first step, we add a full :math:`\Delta t` of the old-time
 source to the state. This prediction ensures consistency when it
 comes time to predicting the new-time source at the end of the update.
-The construction of the advective terms, :math:`{\bf A(\Ub)}` is purely
+The construction of the advective terms, :math:`{\bf A({\bf U})}` is purely
 explicit, and based on an unsplit second-order Godunov method. We
 predict the standard primitive variables, as well as :math:`\rho e`, at
 time-centered edges and use an approximate Riemann solver construct
 fluxes.
 
-At the beginning of the time step, we assume that :math:`\Ub` and :math:`\phi` are
+At the beginning of the time step, we assume that :math:`{\bf U}` and :math:`\phi` are
 defined consistently, i.e., :math:`\rho^n` and :math:`\phi^n` satisfy equation
 (`[eq:Self Gravity] <#eq:Self Gravity>`__). Note that in
 Eq. \ `[eq:source_correct] <#eq:source_correct>`__, we actually can actually do some
@@ -209,7 +209,7 @@ sources implicitly by updating density first, and then momentum,
 and then energy. This is done for rotating and gravity, and can
 make the update more akin to:
 
-.. math:: \Ub^{n+1,(c)} = \Ub^{n+1,(b)} + \frac{\dt}{2} [\Sb(\Ub^{n+1,(c)}) - \Sb(\Ub^n)]
+.. math:: {\bf U}^{n+1,(c)} = {\bf U}^{n+1,(b)} + \frac{\Delta t}{2} [{\bf S}({\bf U}^{n+1,(c)}) - {\bf S}({\bf U}^n)]
 
 Castro also supports radiation. This part of the update algorithm
 only deals with the advective / hyperbolic terms in the radiation update.
@@ -250,19 +250,19 @@ S_old, to the new time, S_new.
    temperature through :math:`\Delta t/2`.
 
    Using the notation above, we begin with the time-level :math:`n` state,
-   :math:`\Ub^n`, and produce a state that has evolved only due to reactions,
-   :math:`\Ub^\star`.
+   :math:`{\bf U}^n`, and produce a state that has evolved only due to reactions,
+   :math:`{\bf U}^\star`.
 
    .. math::
 
       \begin{aligned}
-          (\rho e)^\star &= (\rho e)^\star - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
-          (\rho E)^\star &= (\rho E)^\star - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
-          (\rho X_k)^\star &= (\rho X_k)^\star + \frac{\dt}{2}(\rho\omegadot_k)^n.
+          (\rho e)^\star &= (\rho e)^\star - \frac{\Delta t}{2} \rho H_\mathrm{nuc} \\
+          (\rho E)^\star &= (\rho E)^\star - \frac{\Delta t}{2} \rho H_\mathrm{nuc} \\
+          (\rho X_k)^\star &= (\rho X_k)^\star + \frac{\Delta t}{2}(\rho\dot\omega_k)^n.
         \end{aligned}
 
    Here, :math:`H_\mathrm{nuc}` is the energy release (erg/g/s) over the
-   burn, and :math:`\omegadot_k` is the creation rate for species :math:`k`.
+   burn, and :math:`\dot\omega_k` is the creation rate for species :math:`k`.
 
    After exiting the burner, we call the EOS with :math:`\rho^\star`,
    :math:`e^\star`, and :math:`X_k^\star` to get the new temperature, :math:`T^\star`.
@@ -293,9 +293,9 @@ S_old, to the new time, S_new.
 
    The time level :math:`n` sources are computed, and added to the
    StateData . The sources are then applied
-   to the state after the burn, :math:`\Ub^\star` with a full :math:`\Delta t`
+   to the state after the burn, :math:`{\bf U}^\star` with a full :math:`\Delta t`
    weighting (this will be corrected later). This produces the
-   intermediate state, :math:`\Ub^{n+1,(a)}`.
+   intermediate state, :math:`{\bf U}^{n+1,(a)}`.
 
    The sources that we deal with here are:
 
@@ -306,7 +306,7 @@ S_old, to the new time, S_new.
 
    #. external sources : users can define problem-specific sources
       in the file. Sources for the different
-      equations in the conservative state vector, :math:`\Ub`, are indexed
+      equations in the conservative state vector, :math:`{\bf U}`, are indexed
       using the integer keys defined in meth_params_module
       (e.g., URHO).
 
@@ -337,7 +337,7 @@ S_old, to the new time, S_new.
 
       .. math::
 
-         \gb^n = -\nabla\phi^n, \qquad
+         {\bf g}^n = -\nabla\phi^n, \qquad
                \Delta\phi^n = 4\pi G\rho^n,
 
       The construction of the form of the gravity source for the
@@ -364,8 +364,8 @@ S_old, to the new time, S_new.
       given in Chapter \ `[ch:rotation] <#ch:rotation>`__.
 
    The source terms here are evaluated using the post-burn state,
-   :math:`\Ub^\star` (), and later corrected by using the
-   new state just before the burn, :math:`\Ub^{n+1,(b)}`. This is compatible
+   :math:`{\bf U}^\star` (), and later corrected by using the
+   new state just before the burn, :math:`{\bf U}^{n+1,(b)}`. This is compatible
    with Strang-splitting, since the hydro and sources takes place
    completely inside of the surrounding burn operations.
 
@@ -384,7 +384,7 @@ S_old, to the new time, S_new.
    complex time-integration schemes.
 
    In the Strang-split formulation, we start the reconstruction using
-   the state after burning, :math:`\Ub^\star` (). There
+   the state after burning, :math:`{\bf U}^\star` (). There
    are two approaches we use, the corner transport upwind (CTU) method
    that uses characteristic tracing as described in
    :raw-latex:`\cite{colella:1990}`, and a method-of-lines approach. The choice is
@@ -443,15 +443,15 @@ S_old, to the new time, S_new.
 #. [strang:newsource] *Correct the source terms with the :math:`n+1` contribution*
    [, ]
 
-   Previously we added :math:`\Delta t\, \Sb(\Ub^\star)` to the state, when
-   we really want a time-centered approach, :math:`(\Delta t/2)[\Sb(\Ub^\star
-       + \Sb(\Ub^{n+1,(b)})]`. We fix that here.
+   Previously we added :math:`\Delta t\, {\bf S}({\bf U}^\star)` to the state, when
+   we really want a time-centered approach, :math:`(\Delta t/2)[{\bf S}({\bf U}^\star
+       + {\bf S}({\bf U}^{n+1,(b)})]`. We fix that here.
 
-   We start by computing the source term vector :math:`\Sb(\Ub^{n+1,(b)})`
-   using the updated state, :math:`\Ub^{n+1,(b)}`. We then compute the
-   correction, :math:`(\Delta t/2)[\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)]` to
-   add to :math:`\Ub^{n+1,(b)}` to give us the properly time-centered source,
-   and the fully updated state, :math:`\Ub^{n+1,(c)}`. This correction is stored
+   We start by computing the source term vector :math:`{\bf S}({\bf U}^{n+1,(b)})`
+   using the updated state, :math:`{\bf U}^{n+1,(b)}`. We then compute the
+   correction, :math:`(\Delta t/2)[{\bf S}({\bf U}^{n+1,(b)}) - {\bf S}({\bf U}^\star)]` to
+   add to :math:`{\bf U}^{n+1,(b)}` to give us the properly time-centered source,
+   and the fully updated state, :math:`{\bf U}^{n+1,(c)}`. This correction is stored
    in the  [2]_.
 
    In the process of updating the sources, we update the temperature to
@@ -459,8 +459,8 @@ S_old, to the new time, S_new.
 
 #. *React :math:`\Delta t/2`.* []
 
-   We do the final :math:`\dt/2` reacting on the state, begining with :math:`\Ub^{n+1,(c)}` to
-   give us the final state on this level, :math:`\Ub^{n+1}`.
+   We do the final :math:`\Delta t/2` reacting on the state, begining with :math:`{\bf U}^{n+1,(c)}` to
+   give us the final state on this level, :math:`{\bf U}^{n+1}`.
 
    This is largely the same as , but
    it does not currently fill the reactions in the ghost cells.
@@ -469,7 +469,7 @@ S_old, to the new time, S_new.
 
    Finalize does the following:
 
-   #. for the momentum sources, we compute :math:`d\Sb/dt`, to use in the
+   #. for the momentum sources, we compute :math:`d{\bf S}/dt`, to use in the
       source term prediction/extrapolation for the hydrodynamic
       interface states during the next step.
 
@@ -505,41 +505,41 @@ Main Hydro, Reaction, and Gravity Advancement (MOL w/ Strang-splitting)
 The handling of sources differs in the MOL integration, as compared to CTU.
 Again, consider our system as:
 
-.. math:: \frac{\partial\Ub}{\partial t} = -{\bf A}(\Ub) + \Rb(\Ub) + \Sb \, .
+.. math:: \frac{\partial{\bf U}}{\partial t} = -{\bf A}({\bf U}) + {\bf R}({\bf U}) + {\bf S}\, .
 
 We will again use Strang splitting to discretize the
 advection-reaction equations, but the hydro update will consist of :math:`s`
 stages. The update first does the reactions, as with CTU:
 
-.. math:: \Ub^\star = \Ub^n + \frac{\dt}{2}\Rb(\Ub^n)
+.. math:: {\bf U}^\star = {\bf U}^n + \frac{\Delta t}{2}{\bf R}({\bf U}^n)
 
 We then consider the hydro update discretized in space, but not time, written
 as:
 
-.. math:: \frac{\partial \Ub}{\partial t} = -{\bf A}(\Ub) + \Sb(\Ub)
+.. math:: \frac{\partial {\bf U}}{\partial t} = -{\bf A}({\bf U}) + {\bf S}({\bf U})
 
 Using a Runge-Kutta (or similar) integrator, we write the update as:
 
-.. math:: \Ub^{n+1,\star} = \Ub^\star + \dt \sum_{l=1}^s b_i {\bf k}_l
+.. math:: {\bf U}^{n+1,\star} = {\bf U}^\star + \Delta t\sum_{l=1}^s b_i {\bf k}_l
 
 where :math:`b_i` is the weight for stage :math:`i` and :math:`k_i` is the stage update:
 
-.. math:: {\bf k}_l = -{\bf A}(\Ub_l) + \Sb(\Ub_l)
+.. math:: {\bf k}_l = -{\bf A}({\bf U}_l) + {\bf S}({\bf U}_l)
 
 with
 
-.. math:: \Ub_l = \Ub^\star  + \dt \sum_{m=1}^{l-1} a_{lm} {\bf k}_m
+.. math:: {\bf U}_l = {\bf U}^\star  + \Delta t\sum_{m=1}^{l-1} a_{lm} {\bf k}_m
 
 Finally, there is the last part of the reactions:
 
-.. math:: \Ub^{n+1} = \Ub^{n+1,\star} + \frac{\dt}{2} \Rb(\Ub^{n+1,\star})
+.. math:: {\bf U}^{n+1} = {\bf U}^{n+1,\star} + \frac{\Delta t}{2} {\bf R}({\bf U}^{n+1,\star})
 
 In contrast to the CTU method, the sources are treated together
 with the advection here.
 
 The time at the intermediate stages is evaluated as:
 
-.. math:: t_l = c_l \dt
+.. math:: t_l = c_l \Delta t
 
 The integration coefficients are stored in the vectors
 , , and , and the
@@ -563,7 +563,7 @@ S_old, to the new time, S_new.
       temporarily in the new-time slot (what we normally refer to as
       ):
 
-      .. math:: \mathtt{S\_new}_\mathrm{iter} = \mathtt{Sburn} + \dt \sum_{l=0}^{\mathrm{iter}-1} a_{\mathrm{iter},l} \mathtt{k\_mol}_l
+      .. math:: \mathtt{S\_new}_\mathrm{iter} = \mathtt{Sburn} + \Delta t\sum_{l=0}^{\mathrm{iter}-1} a_{\mathrm{iter},l} \mathtt{k\_mol}_l
 
       Then initialize from .
 
@@ -588,15 +588,15 @@ S_old, to the new time, S_new.
 
    The time level :math:`n` sources are computed, and added to the
    StateData . The sources are then applied
-   to the state after the burn, :math:`\Ub^\star` with a full :math:`\Delta t`
+   to the state after the burn, :math:`{\bf U}^\star` with a full :math:`\Delta t`
    weighting (this will be corrected later). This produces the
-   intermediate state, :math:`\Ub^{n+1,(a)}`.
+   intermediate state, :math:`{\bf U}^{n+1,(a)}`.
 
    For full Poisson gravity, we solve for for gravity using:
 
    .. math::
 
-      \gb^n = -\nabla\phi^n, \qquad
+      {\bf g}^n = -\nabla\phi^n, \qquad
           \Delta\phi^n = 4\pi G\rho^n,
 
 #. [strang:hydro] *Construct the hydro update* []
@@ -607,13 +607,13 @@ S_old, to the new time, S_new.
    In constructing the stage update, we use the source evaluated earlier,
    and compute:
 
-   .. math:: \mathtt{k\_mol}_l = - \Ab(\Ub_l) + \Sb(\Ub_l)
+   .. math:: \mathtt{k\_mol}_l = - {\bf A}({\bf U}_l) + {\bf S}({\bf U}_l)
 
    Each call to do_advance_mol only computes this update for
    a single stage. On the last stage, we compute the final update
    as:
 
-   .. math:: \mathtt{S\_new} = \mathtt{Sburn} + \dt \sum_{l=0}^{\mathrm{n\_stages}-1} b_l \, \mathrm{k\_mol}_l
+   .. math:: \mathtt{S\_new} = \mathtt{Sburn} + \Delta t\sum_{l=0}^{\mathrm{n\_stages}-1} b_l \, \mathrm{k\_mol}_l
 
 #. [strang:clean] *Clean State* []
 
@@ -627,8 +627,8 @@ S_old, to the new time, S_new.
 
 #. *React :math:`\Delta t/2`.* []
 
-   We do the final :math:`\dt/2` reacting on the state, begining with :math:`\Ub^{n+1,(c)}` to
-   give us the final state on this level, :math:`\Ub^{n+1}`.
+   We do the final :math:`\Delta t/2` reacting on the state, begining with :math:`{\bf U}^{n+1,(c)}` to
+   give us the final state on this level, :math:`{\bf U}^{n+1}`.
 
    This is largely the same as , but
    it does not currently fill the reactions in the ghost cells.
@@ -637,7 +637,7 @@ S_old, to the new time, S_new.
 
    Finalize does the following:
 
-   #. for the momentum sources, we compute :math:`d\Sb/dt`, to use in the
+   #. for the momentum sources, we compute :math:`d{\bf S}/dt`, to use in the
       source term prediction/extrapolation for the hydrodynamic
       interface states during the next step.
 
@@ -672,12 +672,12 @@ Overview of a single step (with SDC)
 
 We express our system as:
 
-.. math:: \Ub_t = \mathcal{A}(\Ub) + \Rb(\Ub)
+.. math:: {\bf U}_t = \mathcal{A}({\bf U}) + {\bf R}({\bf U})
 
 here :math:`\mathcal{A}` is the advective source, which includes both the
 flux divergence and the hydrodynamic source terms (e.g. gravity):
 
-.. math:: \mathcal{A}(\Ub) = -\nabla \cdot \Fb(\Ub) + \Sb
+.. math:: \mathcal{A}({\bf U}) = -\nabla \cdot {\bf F}({\bf U}) + {\bf S}
 
 The SDC version of the main advance loop looks similar to the no-SDC
 version, but includes an iteration loop over the hydro, gravity, and
@@ -695,7 +695,7 @@ step now proceeds as:
       interface states, we use an iteratively-lagged approximation to the
       reaction source on the primitive variables, :math:`\mathcal{I}_q^{k-1}`.
 
-      The result of this is an approximation to :math:`\mathcal{A}(\Ub)`,
+      The result of this is an approximation to :math:`\mathcal{A}({\bf U})`,
       stored in (the flux divergence)
       and and .
 
@@ -703,7 +703,7 @@ step now proceeds as:
       update as a source—this way the reactions see the
       time-evolution due to advection as we integrate:
 
-      .. math:: \frac{d\Ub}{dt} = \left [ \mathcal{A}(\Ub) \right ]^{n+1/2} + \Rb(\Ub)
+      .. math:: \frac{d{\bf U}}{dt} = \left [ \mathcal{A}({\bf U}) \right ]^{n+1/2} + {\bf R}({\bf U})
 
       The advective source includes both the divergence of the fluxes
       as well as the time-centered source terms. This is computed by
@@ -776,7 +776,7 @@ summarize those differences.
 #. *Finalize* []
 
    This differs from Strang step \ `[strang:finalize] <#strang:finalize>`__ in that we do not
-   construct :math:`d\Sb/dt`, but instead store the total hydrodynamical source
+   construct :math:`d{\bf S}/dt`, but instead store the total hydrodynamical source
    term at the new time. As discussed above, this will be used in the
    next iteration to approximate the time-centered source term.
 

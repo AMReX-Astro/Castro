@@ -412,7 +412,7 @@ Rayleigh-Taylor
 2D. Domain size 0.5 by 1.0. 256 by 512 cells, single level
 calculation. Periodic in x, solid walls on top and bottom in y.
 Gamma law gas with :math:`\gamma=1.4`, no reactions. Zero initial velocity.
-Constant :math:`|\gb|=1`. The density profile is essentially :math:`\rho=1` on
+Constant :math:`|{\bf g}|=1`. The density profile is essentially :math:`\rho=1` on
 bottom, :math:`\rho=2` on top, but with a perturbation. A single-mode
 perturbation is constructed as:
 

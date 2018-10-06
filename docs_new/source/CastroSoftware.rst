@@ -258,7 +258,7 @@ The current StateData names Castro carries are:
 
 -  : this is the NUM_STATE hydrodynamics
    components that make up the conserved hydrodynamics state (usually
-   referred to as :math:`\Ub` in these notes. But note that this does
+   referred to as :math:`{\bf U}` in these notes. But note that this does
    not include the radiation energy density.
 
    In Fortran, the components of a FAB derived from State_Type
@@ -306,7 +306,7 @@ The current StateData names Castro carries are:
    change in rotation rate, :math:`\Omega`.
 
 -  : this holds the time-rate of change of
-   the source terms, :math:`d\Sb/dt`, for each of the NUM_STATE
+   the source terms, :math:`d{\bf S}/dt`, for each of the NUM_STATE
    State_Type variables.
 
    .. raw:: latex
@@ -319,7 +319,7 @@ The current StateData names Castro carries are:
 
 -  : this holds the data for the nuclear
    reactions. It has NumSpec+2 components: the species
-   creation rates (usually denoted :math:`\omegadot_k` in these notes),
+   creation rates (usually denoted :math:`\dot\omega_k` in these notes),
    the specific energy generation rate (:math:`\dot{e}_\mathrm{nuc}`),
    and its density (:math:`\rho \dot{e}_\mathrm{nuc}`).
 
@@ -362,11 +362,11 @@ that hold source term information.
 
    As this is expressed as a source term, what is actually stored is
 
-   .. math:: \Sb_\mathrm{flux} = -\nabla \cdot {\bf F}
+   .. math:: {\bf S}_\mathrm{flux} = -\nabla \cdot {\bf F}
 
    So the update of the conserved state appears as:
 
-   .. math:: \frac{\partial \Ub}{\partial t} = \Sb_\mathrm{flux}
+   .. math:: \frac{\partial {\bf U}}{\partial t} = {\bf S}_\mathrm{flux}
 
 -  : a single MultiFab that stores
    the sum of sources over each physical process.
@@ -1200,23 +1200,8 @@ side of Castro or perform other useful tasks.
       velocity.
 
    -  
-
-      .. raw:: latex
-
-         \variable{coord\_type}
-
    -  
-
-      .. raw:: latex
-
-         \variable{dim}
-
    -  
-
-      .. raw:: latex
-
-         \variable{dg}
-
    -  *refining information*
 
 Setting Up Your Own Problem

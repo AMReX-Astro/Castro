@@ -195,7 +195,7 @@ Synchronization Methodology
 Over a coarse grid time step we collect flux register information for
 the hyperbolic part of the synchronization:
 
-.. math:: \delta\Fb = -\Delta t_c A^c F^c + \sum \Delta t_f A^f F^f
+.. math:: \delta{\bf F}= -\Delta t_c A^c F^c + \sum \Delta t_f A^f F^f
 
 Analogously, at the end of a coarse grid time step we store the
 mismatch in normal gradients of :math:`\phi` at the coarse-fine interface:
@@ -212,9 +212,9 @@ is to synchronize :math:`\phi` across levels at that time and then zero out
 this mismatch register.
 
 At the end of a coarse grid time step we can define
-:math:`{\overline{\Ub}}^{c-f}` and :math:`\overline{\phi}^{c-f}` as the composite
+:math:`{\overline{{\bf U}}}^{c-f}` and :math:`\overline{\phi}^{c-f}` as the composite
 of the data from coarse and fine grids as a provisional solution at
-time :math:`n+1`. (Assume :math:`\overline{\Ub}` has been averaged down so that
+time :math:`n+1`. (Assume :math:`\overline{{\bf U}}` has been averaged down so that
 the data on coarse cells underlying fine cells is the average of the
 fine cell data above it.)
 
@@ -224,12 +224,12 @@ The synchronization consists of two parts:
 
    In the hyperbolic reflux step, we update the conserved variables with
    the flux synchronization and adjust the gravitational terms to reflect
-   the changes in :math:`\rho` and :math:`\ub`.
+   the changes in :math:`\rho` and :math:`{\bf u}`.
 
-   .. math:: {\Ub}^{c, \star} = \overline{\Ub}^{c} + \frac{\delta\Fb}{V},
+   .. math:: {{\bf U}}^{c, \star} = \overline{{\bf U}}^{c} + \frac{\delta{\bf F}}{V},
 
    where :math:`V` is the volume of the cell and the correction from
-   :math:`\delta\Fb` is supported only on coarse cells adjacent to fine grids.
+   :math:`\delta{\bf F}` is supported only on coarse cells adjacent to fine grids.
 
    Note: this can be enabled/disabled via castro.do_reflux. Generally,
    it should be enabled (1).
@@ -244,7 +244,7 @@ The synchronization consists of two parts:
 
    In this step we correct for the mismatch in normal derivative in
    :math:`\phi^{c-f}` at the coarse-fine interface, as well as accounting for
-   the changes in source terms for :math:`(\rho \ub)` and :math:`(\rho E)` due to the
+   the changes in source terms for :math:`(\rho {\bf u})` and :math:`(\rho E)` due to the
    change in :math:`\rho.`
 
    On the coarse grid only, we define
@@ -431,7 +431,7 @@ modification being that the flux register contribution from the coarse
 grid is appropriately weighted by the fine grid timestep instead of
 the coarse grid timestep, and we only include the current fine step:
 
-.. math:: \delta\Fb = -\Delta t_f A^c F^c + \Delta t_f A^f F^f
+.. math:: \delta{\bf F}= -\Delta t_f A^c F^c + \Delta t_f A^f F^f
 
 The form of the :math:`\phi` flux register remains unchanged, because the
 intent of the gravity sync solve is to simply instantaneously correct
