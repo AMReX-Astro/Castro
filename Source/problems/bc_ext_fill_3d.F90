@@ -42,7 +42,7 @@ contains
     real(rt), intent(in) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3,NVAR)
 
-    integer :: i, j, k, q, n, iter, m
+    integer :: i, j, k, q, n, iter, m, koff
 
     real(rt) :: y, z
     real(rt) :: dens_above, dens_base, temp_above
