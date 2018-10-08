@@ -1,4 +1,4 @@
-module MGutils_2D_module
+module MGutils_3D_module
 
   use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
@@ -219,4 +219,4 @@ contains
 
   end subroutine ca_unweight_edges
 
-end module MGutils_2D_module
+end module MGutils_3D_module

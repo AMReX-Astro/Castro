@@ -1996,12 +1996,13 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
         const Box& bx= mfi.growntilebox();
 
         FArrayBox& p = phi[mfi];
-        ca_put_direct_sum_bc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                             p.dataPtr(), ARLIM_3D(p.loVect()), ARLIM_3D(p.hiVect()),
+#pragma gpu
+        ca_put_direct_sum_bc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                             p.dataPtr(), AMREX_INT_ANYD(p.loVect()), AMREX_INT_ANYD(p.hiVect()),
                              bcXYLo.dataPtr(), bcXYHi.dataPtr(),
                              bcXZLo.dataPtr(), bcXZHi.dataPtr(),
                              bcYZLo.dataPtr(), bcYZHi.dataPtr(),
-                             ARLIM_3D(bclo), ARLIM_3D(bchi));
+                             AMREX_INT_ANYD(bclo), AMREX_INT_ANYD(bchi));
     }
 
     if (verbose)
