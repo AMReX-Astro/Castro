@@ -746,7 +746,8 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, shk_lo, shk_hi, &
-                2, [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1])
+                2, [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1], &
+                domlo, domhi)
 
     ! Compute U''_x at km (k3d-1)
     call transyz(qxm, qxl, qxp, qxr, qt_lo, qt_hi, &
@@ -1050,7 +1051,7 @@ contains
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: fx_lo(3), fx_hi(3)
     integer, intent(in) :: qx_lo(3), qx_hi(3)
-    integer, intent(in) :: lo, hi
+    integer, intent(in) :: lo(3), hi(3)
 
 #ifdef RADIATION
     real(rt)         rfx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
@@ -1066,7 +1067,7 @@ contains
     real(rt)         qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
     real(rt)         cdtdx
 
-    integer i, j, n, nqp, ipassive
+    integer i, j, k, n, nqp, ipassive
 
     real(rt)         rhoinv
     real(rt)         rrnew, rr
@@ -1115,7 +1116,7 @@ contains
 
                 if (j >= lo(2)+1) then
                    rr = qyp(i,j,k,QRHO)
-                   rrnew = rr - cdtdx*(fx(i+1,j,kc,URHO) - fx(i,j,kc,URHO))
+                   rrnew = rr - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
                    compu = rr*qyp(i,j,k,nqp) - compn
                    qypo(i,j,k,nqp) = compu/rrnew
                 end if
@@ -1287,7 +1288,7 @@ contains
 #ifdef RADIATION
                 qypo(i,j,k,qrad:qradhi) = ernewr(:)
                 qypo(i,j,k,qptot  ) = sum(lambda(:)*ernewr(:)) + qypo(i,j,k,QPRES)
-                qypo(i,j,k,qreitot) = sum(qypo(i,j,kc,qrad:qradhi)) + qypo(i,j,k,QREINT)
+                qypo(i,j,k,qreitot) = sum(qypo(i,j,k,qrad:qradhi)) + qypo(i,j,k,QREINT)
 #endif
 
              end if
@@ -1349,7 +1350,7 @@ contains
 
                 if (.not. reset_state) then
                    ! do the transverse terms for p, gamma, and rhoe, as necessary
-                   if (transverse_reset_rhoe == 1 .and. qymo(i,j+1,kc,QREINT) <= ZERO) then
+                   if (transverse_reset_rhoe == 1 .and. qymo(i,j+1,k,QREINT) <= ZERO) then
                       ! If it is negative, reset the internal energy by using the discretized
                       ! expression for updating (rho e).
                       qymo(i,j+1,k,QREINT) = qym(i,j+1,k,QREINT) - &
@@ -1452,7 +1453,7 @@ contains
     real(rt)         qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
     real(rt)         cdtdx
 
-    integer i, j, n, nqp, ipassive
+    integer i, j, k, n, nqp, ipassive
 
     real(rt)         rhoinv
     real(rt)         rrnew, rr
@@ -1502,10 +1503,10 @@ contains
                 compu = rr*qzp(i,j,k,nqp) - compn
                 qzpo(i,j,k,nqp) = compu/rrnew
 
-                compn = cdtdx*(fx(i+1,j,km,n) - fx(i,j,km,n))
+                compn = cdtdx*(fx(i+1,j,k-1,n) - fx(i,j,k-1,n))
 
                 rr = qzm(i,j,k,QRHO)
-                rrnew = rr - cdtdx*(fx(i+1,j,km,URHO) - fx(i,j,km,URHO))
+                rrnew = rr - cdtdx*(fx(i+1,j,k-1,URHO) - fx(i,j,k-1,URHO))
                 compu = rr*qzm(i,j,k,nqp) - compn
                 qzmo(i,j,k,nqp) = compu/rrnew
 
@@ -1883,7 +1884,7 @@ contains
     real(rt)         qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
     real(rt)         cdtdy
 
-    integer i, j, n, nqp, ipassive
+    integer i, j, k, n, nqp, ipassive
 
     real(rt)         rhoinv
     real(rt)         rrnew, rr
@@ -2266,7 +2267,7 @@ contains
     real(rt)         qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
     real(rt)         cdtdy
 
-    integer i, j, n, nqp, ipassive
+    integer i, j, k, n, nqp, ipassive
 
     real(rt)         rhoinv
     real(rt)         rrnew, rr
@@ -2316,10 +2317,10 @@ contains
                 compu = rr*qzp(i,j,k,nqp) - compn
                 qzpo(i,j,k,nqp) = compu/rrnew
 
-                compn = cdtdy*(fy(i,j+1,km,n) - fy(i,j,km,n))
+                compn = cdtdy*(fy(i,j+1,k-1,n) - fy(i,j,k-1,n))
 
                 rr = qzm(i,j,k,QRHO)
-                rrnew = rr - cdtdy*(fy(i,j+1,km,URHO) - fy(i,j,km,URHO))
+                rrnew = rr - cdtdy*(fy(i,j+1,k-1,URHO) - fy(i,j,k-1,URHO))
                 compu = rr*qzm(i,j,k,nqp) - compn
                 qzmo(i,j,k,nqp) = compu/rrnew
 
@@ -2699,7 +2700,7 @@ contains
     real(rt)         qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
     real(rt)         cdtdz
 
-    integer n, nqp, i, j, ipassive
+    integer n, nqp, i, j, k, ipassive
 
     real(rt)         rrnew, rr
     real(rt)         compn, compu
@@ -2738,7 +2739,7 @@ contains
        n  = upass_map(ipassive)
        nqp = qpass_map(ipassive)
 
-       do k = lo(3), hi(3)
+        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
 
@@ -3229,7 +3230,7 @@ contains
                      qx,qx_lo,qx_hi, &
                      qy,qy_lo,qy_hi, &
                      srcQ,src_lo,src_hi, &
-                     hdt,cdtdx,cdtdy,lo(1),hi(1),jlo,hi(2),k,k-1,k3d)
+                     hdt,cdtdx,cdtdy,lo,hi)
 
 
     use amrex_constants_module, only : ZERO, ONE, HALF
@@ -3286,7 +3287,7 @@ contains
     real(rt)         srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
     real(rt)         hdt,cdtdx,cdtdy
 
-    integer i, j, n, nqp, ipassive
+    integer i, j, k, n, nqp, ipassive
 
     real(rt)         rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
     real(rt)         rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
@@ -3767,7 +3768,7 @@ contains
                      qx, qx_lo, qx_hi, &
                      qz, qz_lo, qz_hi, &
                      srcQ, src_lo, src_hi, &
-                     hdt, cdtdx, cdtdz, lo(1), hi(1), jlo, hi(2), k-1, k, k)
+                     hdt, cdtdx, cdtdz, lo, hi)
 
 
     use amrex_constants_module, only : ZERO, ONE, HALF
@@ -3824,7 +3825,7 @@ contains
     real(rt)         srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
     real(rt)         hdt,cdtdx,cdtdz
 
-    integer i, j, n, nqp, ipassive
+    integer i, j, k, n, nqp, ipassive
 
     real(rt)         rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
     real(rt)         rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
@@ -4296,7 +4297,7 @@ contains
     real(rt)         srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
     real(rt)         hdt,cdtdy,cdtdz
 
-    integer i, j, n, nqp, ipassive
+    integer i, j, k, n, nqp, ipassive
 
     real(rt)         rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
     real(rt)         rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
