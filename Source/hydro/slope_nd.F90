@@ -334,7 +334,7 @@ contains
              end do
 
              ! now limited fourth order slopes
-             do k = lo(3)-2, hi(3)+2
+             do k = lo(3)-1, hi(3)+1
                 dp1 = FOUR3RD*dcen(i,j,k) - SIXTH*(df(i,j,k+1) + df(i,j,k-1))
                 dqz(i,j,k,QPRES) = flatn(i,j,k)*ds*min(dlim(i,j,k),abs(dp1))
                 dqz(i,j,k,QPRES) = dqz(i,j,k,QPRES) + q(i,j,k,QRHO)*src(i,j,k,QW)*dx(3)
