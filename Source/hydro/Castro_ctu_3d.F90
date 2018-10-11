@@ -81,7 +81,6 @@ contains
     use meth_params_module, only : USHK
 #endif
     use advection_util_module, only : shock
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: qd_lo(3), qd_hi(3)
@@ -950,10 +949,6 @@ contains
 #endif
   use eos_module, only: eos
   use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
-  use amrex_fort_module, only : rt => amrex_real
-
-
-    use amrex_fort_module, only : rt => amrex_real
 
     integer, intent(in) :: ii, jj, kk
     integer, intent(in) :: qd_lo(3), qd_hi(3)
@@ -1027,7 +1022,6 @@ contains
     ! Note that what we call jlo here is jlo = lo(2) - 1
     ! Note that what we call jhi here is jhi = hi(2) + 1
 
-    use amrex_fort_module, only : rt => amrex_real
 
   use amrex_constants_module, only : ZERO, ONE, HALF
 
@@ -1053,7 +1047,6 @@ contains
 #endif
   use eos_module, only: eos
   use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
-  use amrex_fort_module, only : rt => amrex_real
 
 
     integer :: qd_lo(3),qd_hi(3)
@@ -1412,7 +1405,6 @@ contains
                      qx, qx_lo, qx_hi, &
                      cdtdx, ilo, ihi, jlo, jhi, kc, km, k3d)
 
-    use amrex_fort_module, only : rt => amrex_real
 
   use amrex_constants_module, only : ZERO, ONE, HALF
 
@@ -1438,7 +1430,6 @@ contains
 #endif
   use eos_module, only: eos
   use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
-  use amrex_fort_module, only : rt => amrex_real
 
 
     integer :: qd_lo(3),qd_hi(3)
@@ -1840,7 +1831,6 @@ contains
                      qy, qy_lo, qy_hi, &
                      cdtdy, ilo, ihi, jlo, jhi, kc, k3d)
 
-    use amrex_fort_module, only : rt => amrex_real
 
   use amrex_constants_module, only : ZERO, ONE, HALF
 
@@ -1866,7 +1856,6 @@ contains
 #endif
   use eos_module, only: eos
   use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
-  use amrex_fort_module, only : rt => amrex_real
 
 
     integer :: qd_lo(3),qd_hi(3)
@@ -2221,7 +2210,6 @@ contains
                      qy, qy_lo, qy_hi, &
                      cdtdy, ilo, ihi, jlo, jhi, kc, km, k3d)
 
-    use amrex_fort_module, only : rt => amrex_real
 
   use amrex_constants_module, only : ZERO, ONE, HALF
 
@@ -2247,7 +2235,6 @@ contains
 #endif
   use eos_module, only: eos
   use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
-  use amrex_fort_module, only : rt => amrex_real
 
 
     integer :: qd_lo(3),qd_hi(3)
@@ -2648,7 +2635,6 @@ contains
                     qz,qz_lo,qz_hi, &
                     cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
 
-    use amrex_fort_module, only : rt => amrex_real
 
   use amrex_constants_module, only : ZERO, ONE, HALF
 
@@ -2674,7 +2660,6 @@ contains
 #endif
   use eos_module, only: eos
   use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
-  use amrex_fort_module, only : rt => amrex_real
 
 
     integer :: qd_lo(3),qd_hi(3)
@@ -3230,7 +3215,6 @@ contains
                      srcQ,src_lo,src_hi, &
                      hdt,cdtdx,cdtdy,ilo,ihi,jlo,jhi,kc,km,k3d)
 
-    use amrex_fort_module, only : rt => amrex_real
 
   use amrex_constants_module, only : ZERO, ONE, HALF
 
@@ -3256,7 +3240,6 @@ contains
 #endif
   use eos_module, only: eos
   use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
-  use amrex_fort_module, only : rt => amrex_real
 
 
     integer :: qd_lo(3),qd_hi(3)
@@ -3765,7 +3748,6 @@ contains
                      srcQ, src_lo, src_hi, &
                      hdt, cdtdx, cdtdz, ilo, ihi, jlo, jhi, km, kc, k3d)
 
-    use amrex_fort_module, only : rt => amrex_real
 
   use amrex_constants_module, only : ZERO, ONE, HALF
 
@@ -3791,7 +3773,6 @@ contains
 #endif
   use eos_module, only: eos
   use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
-  use amrex_fort_module, only : rt => amrex_real
 
 
     integer :: qd_lo(3),qd_hi(3)
@@ -4234,7 +4215,6 @@ contains
                      srcQ, src_lo, src_hi, &
                      hdt, cdtdy, cdtdz, ilo, ihi, jlo, jhi, km, kc, k3d)
 
-    use amrex_fort_module, only : rt => amrex_real
 
   use amrex_constants_module, only : ZERO, ONE, HALF
 
@@ -4260,7 +4240,6 @@ contains
 #endif
   use eos_module, only: eos
   use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
-  use amrex_fort_module, only : rt => amrex_real
 
 
     integer :: qd_lo(3),qd_hi(3)

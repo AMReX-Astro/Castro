@@ -17,7 +17,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   integer :: init, namlen
   integer :: name(namlen)
-  real(rt) :: problo(2), probhi(2)
+  real(rt) :: problo(3), probhi(3)
 
   type (eos_t) :: eos_state
 
@@ -161,7 +161,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   ! probhi(2) with nx_model zones.  But to allow for a interpolated
   ! lower boundary, we'll add 4 ghostcells to this, so we need to
   ! compute dx
-  dx_model = (probhi(2) - problo(2))/nx_model
+  dx_model = (probhi(AMREX_SPACEDIM) - problo(AMREX_SPACEDIM))/nx_model
   ng = 4
 
   ! now generate the initial models
@@ -179,7 +179,9 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   model_params % index_base_from_temp = index_base_from_temp
 
-  call init_1d_tanh(nx_model+ng, problo(2)-ng*dx_model, probhi(2), model_params, 1)
+  call init_1d_tanh(nx_model+ng, &
+                    problo(AMREX_SPACEDIM)-ng*dx_model, probhi(AMREX_SPACEDIM), &
+                    model_params, 1)
 
   ! store the model in the model_parser_module since that is used in
   ! the boundary conditions
@@ -198,7 +200,9 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   ! a hotter temperature
   model_params % T_hi = model_params % T_hi + dtemp
 
-  call init_1d_tanh(nx_model+ng, problo(2)-ng*dx_model, probhi(2), model_params, 2)
+  call init_1d_tanh(nx_model+ng, &
+                    problo(AMREX_SPACEDIM)-ng*dx_model, probhi(AMREX_SPACEDIM), &
+                    model_params, 2)
 
 end subroutine amrex_probinit
 
@@ -223,7 +227,7 @@ end subroutine amrex_probinit
 ! ::: xlo,xhi   => physical locations of lower left and upper
 ! ::: -----------------------------------------------------------
 subroutine ca_initdata(level, time, lo, hi, nscal, &
-                       state, state_l1, state_l2, state_h1, state_h2, &
+                       state, state_lo, state_hi, &
                        delta, xlo, xhi)
 
   use amrex_constants_module
@@ -239,81 +243,93 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  integer level, nscal
-  integer lo(2), hi(2)
-  integer state_l1,state_l2,state_h1,state_h2
-  real(rt)         xlo(2), xhi(2), time, delta(2)
-  real(rt)         state(state_l1:state_h1,state_l2:state_h2,NVAR)
+  integer, intent(in) :: level, nscal
+  integer, intent(in) :: lo(3), hi(3)
+  integer, intent(in) :: state_lo(3), state_hi(3)
+  real(rt), intent(in) :: xlo(3), xhi(3), time, delta(3)
+  real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
 
-  real(rt)         dist,x,y
-  integer i,j,n
+  real(rt) :: dist, x, y, z, r, height
+  integer :: i, j, k, n
 
-  real(rt)         t0,x1,y1,r1,temp
-
-  real(rt)         temppres(state_l1:state_h1,state_l2:state_h2)
+  real(rt) :: temppres(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3))
 
   type (eos_t) :: eos_state
   real(rt) :: sum_excess, sum_excess2, current_fuel, f
 
+  do k = lo(3), hi(3)
+     z = problo(3) + (dble(k)+HALF)*delta(3)
 
-  do j = lo(2), hi(2)
-     y = problo(2) + (dble(j)+HALF)*delta(2)
+     do j = lo(2), hi(2)
+        y = problo(2) + (dble(j)+HALF)*delta(2)
 
-     do i = lo(1), hi(1)
-        x = problo(1) + (dble(i)+HALF)*delta(1)
+        do i = lo(1), hi(1)
+           x = problo(1) + (dble(i)+HALF)*delta(1)
 
-        if (x < x_half_max) then
-           f = 1.0_rt
-        else if (x > x_half_max + x_half_width) then
-           f = 0.0_rt
-        else
-           f = -(x - x_half_max)/x_half_width + 1.0_rt
-        endif
+           ! lateral distance
+           if (AMREX_SPACEDIM == 2) then
+              r = x
+              height = y
+           else if (AMREX_SPACEDIM == 3) then
+              r = sqrt(x**2 + y**2)
+              height = z
+           else
+              call amrex_error("ERROR: problem not setup for 1D")
+           end if
 
-        state(i,j,URHO)  = f * interpolate(y,gen_npts_model,gen_model_r(:,2), &
-                                           gen_model_state(:,idens_model,2)) + &
-                           (1.0_rt - f) * interpolate(y,gen_npts_model,gen_model_r(:,1), &
-                                           gen_model_state(:,idens_model,1))
+           if (r < x_half_max) then
+              f = 1.0_rt
+           else if (r > x_half_max + x_half_width) then
+              f = 0.0_rt
+           else
+              f = -(r - x_half_max)/x_half_width + ONE
+           endif
 
-        state(i,j,UTEMP) = f * interpolate(y,gen_npts_model,gen_model_r(:,2), &
-                                           gen_model_state(:,itemp_model,2)) + &
-                           (1.0_rt - f) * interpolate(y,gen_npts_model,gen_model_r(:,1), &
-                                           gen_model_state(:,itemp_model,1))
+           state(i,j,k,URHO)  = f * interpolate(height,gen_npts_model,gen_model_r(:,2), &
+                                                gen_model_state(:,idens_model,2)) + &
+                     (1.0_rt - f) * interpolate(height,gen_npts_model,gen_model_r(:,1), &
+                                                gen_model_state(:,idens_model,1))
 
-        temppres(i,j) = f * interpolate(y,gen_npts_model,gen_model_r(:,2), &
-                                        gen_model_state(:,ipres_model,2)) + &
-                           (1.0_rt - f) * interpolate(y,gen_npts_model,gen_model_r(:,1), &
-                                           gen_model_state(:,ipres_model,1))
+           state(i,j,k,UTEMP) = f * interpolate(height,gen_npts_model,gen_model_r(:,2), &
+                                                gen_model_state(:,itemp_model,2)) + &
+                     (1.0_rt - f) * interpolate(height,gen_npts_model,gen_model_r(:,1), &
+                                                gen_model_state(:,itemp_model,1))
 
-        state(i,j,UFS:UFS-1+nspec) = ZERO
+           temppres(i,j,k) = f * interpolate(height,gen_npts_model,gen_model_r(:,2), &
+                                             gen_model_state(:,ipres_model,2)) + &
+                  (1.0_rt - f) * interpolate(height,gen_npts_model,gen_model_r(:,1), &
+                                             gen_model_state(:,ipres_model,1))
 
-        do n = 1, nspec
-           state(i,j,UFS-1+n) = f * interpolate(y,gen_npts_model,gen_model_r(:,2), &
-                                                gen_model_state(:,ispec_model-1+n,2)) + &
-                                (1.0_rt - f) * interpolate(y,gen_npts_model,gen_model_r(:,1), &
-                                                gen_model_state(:,ispec_model-1+n,1))
-        enddo
+           state(i,j,k,UFS:UFS-1+nspec) = ZERO
 
-        eos_state%rho = state(i,j,URHO)
-        eos_state%T = state(i,j,UTEMP)
-        eos_state%p = temppres(i,j)
-        eos_state%xn(:) = state(i,j,UFS:UFS-1+nspec)
+           do n = 1, nspec
+              state(i,j,k,UFS-1+n) = f * interpolate(height,gen_npts_model,gen_model_r(:,2), &
+                                                     gen_model_state(:,ispec_model-1+n,2)) + &
+                          (1.0_rt - f) * interpolate(height,gen_npts_model,gen_model_r(:,1), &
+                                                     gen_model_state(:,ispec_model-1+n,1))
+           enddo
 
-        call eos(eos_input_rp, eos_state)
+           eos_state%rho = state(i,j,k,URHO)
+           eos_state%T = state(i,j,k,UTEMP)
+           eos_state%p = temppres(i,j,k)
+           eos_state%xn(:) = state(i,j,k,UFS:UFS-1+nspec)
 
-        state(i,j,UTEMP) = eos_state % T
-        state(i,j,UEINT) = eos_state % rho * eos_state % e
-        state(i,j,UEDEN) = state(i,j,UEDEN)
+           call eos(eos_input_rp, eos_state)
 
-          ! Initial velocities = 0
-        state(i,j,UMX:UMZ) = 0.e0_rt
+           state(i,j,k,UTEMP) = eos_state % T
+           state(i,j,k,UEINT) = eos_state % rho * eos_state % e
+           state(i,j,k,UEDEN) = state(i,j,k,UEDEN)
 
-        ! convert to partial densities
-        do n = 1, nspec
-           state(i,j,UFS+n-1) = state(i,j,URHO) * state(i,j,UFS+n-1)
+           ! Initial velocities = 0
+           state(i,j,k,UMX:UMZ) = 0.e0_rt
+
+           ! convert to partial densities
+           do n = 1, nspec
+              state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * state(i,j,k,UFS+n-1)
+           end do
+
         end do
-
-     enddo
-  enddo
+     end do
+  end do
 
 end subroutine ca_initdata
