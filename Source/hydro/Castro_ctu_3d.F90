@@ -31,6 +31,9 @@ contains
 ! ::: :: flux3      <=  (modify) flux in Z direction on Z edges
 ! ::: ----------------------------------------------------------------
 
+  !! TODO: we can get rid of the the different temporary q Godunov
+  !! state arrays
+
   subroutine umeth(q, qd_lo, qd_hi, &
                    flatn, &
                    qaux, qa_lo, qa_hi, &
@@ -714,7 +717,10 @@ contains
        end do
     end do
 
-    ! Compute U'^z_x and U'^z_y at km (k3d-1) -- note flux3 has physical index
+    ! Compute correction to x and y fluxes with transverse z correction,
+    ! U'^z_x and U'^z_y
+    ! This updates the k-1 flux using the k state, the flux difference
+    ! is written a fz(k) - fz(k-1), so we don't start at lo(3)
     call transz(qxm, qmxz, qxp, qpxz, qym, qmyz, qyp, qpyz, qt_lo, qt_hi, &
                 qaux, qa_lo, qa_hi, &
                 fz, &
@@ -723,21 +729,25 @@ contains
 #endif
                 fz_lo, fz_hi, &
                 qgdnvz,qt_lo,qt_hi, &
-                cdtdz, [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1])
+                cdtdz, [lo(1)-1, lo(2)-1, lo(3)+1], [hi(1)+1, hi(2)+1, hi(3)+1])
 
-    ! Compute F^{x|z} at km (k3d-1)
+    ! Compute F^{x|z} at km
+    !! originally: fill flux km, use k3d-1
+    !! now: fill flux k using k
     call cmpflx(qmxz, qpxz, qt_lo, qt_hi, &
                 fxz, fx_lo, fx_hi, &
                 qgdnvx, qt_lo, qt_hi, &
 #ifdef RADIATION
                 rfxz, fx_lo, fx_hi, &
 #endif
-                qaux, qa_lo, qa_hi, &
+c                                                                                                      qaux, qa_lo, qa_hi, &
                 shk, shk_lo, shk_hi, &
-                1, [lo(1), lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1], &
+                1, [lo(1), lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)], &
                 domlo, domhi)
 
     ! Compute F^{y|z} at km (k3d-1)
+    !!! originally, fill km, use k3d-1
+    !! now fill flux k using k
     call cmpflx(qmyz, qpyz, qt_lo, qt_hi, &
                 fyz, fy_lo, fy_hi, &
                 qgdnvy, qt_lo, qt_hi, &
@@ -746,10 +756,11 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, shk_lo, shk_hi, &
-                2, [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1], &
+                2, [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+1, hi(3)], &
                 domlo, domhi)
 
     ! Compute U''_x at km (k3d-1)
+    !!! fill km use k3d-1
     call transyz(qxm, qxl, qxp, qxr, qt_lo, qt_hi, &
                  qaux, qa_lo, qa_hi, &
                  fyz, &
@@ -768,6 +779,7 @@ contains
                  hdt, hdtdy, hdtdz, [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+1])
 
     ! Compute U''_y at km (k3d-1)
+    !!! fill km use k3d-1
     call transxz(qym, qyl, qyp, qyr, qt_lo, qt_hi, &
                  qaux, qa_lo, qa_hi, &
                  fxz, &
@@ -786,6 +798,7 @@ contains
                  hdt, hdtdx, hdtdz, [lo(1), lo(2)-1, lo(3)], [hi(1), hi(2)+1, hi(3)+1])
 
     ! Compute F^x at km (k3d-1)
+    !!! fill km, use k3d-1  --- but we can have this fill kc using k3d
     call cmpflx(qxl, qxr, qt_lo, qt_hi, &
                 flux1, fd1_lo, fd1_hi, &
                 qgdnvxf, qt_lo, qt_hi, &
@@ -805,6 +818,7 @@ contains
     end do
 
     ! Compute F^y at km (k3d-1)
+    !!! fill km using k3d-1
     call cmpflx(qyl, qyr, qt_lo, qt_hi, &
                 flux2, fd2_lo, fd2_hi, &
                 qgdnvyf, qt_lo, qt_hi, &
@@ -2734,6 +2748,8 @@ contains
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
+
+    print *, "in transz: ", fz_lo, lo
 
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
