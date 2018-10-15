@@ -2132,7 +2132,7 @@ contains
 #ifdef RADIATION
              rvnewlx = rvnewlx + dmom
              renewlx = renewlx + dre
-             ernewl  = erl(:) + der(:)
+             ernewl  = erl(:) - cdtdy*(rfy(i,j+1,kc,:)- rfy(i,j,kc,:)) + der(:)
 #endif
 
              ! Reset to original value if adding transverse terms made density negative
