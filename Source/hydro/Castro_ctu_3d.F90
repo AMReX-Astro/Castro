@@ -167,11 +167,11 @@ contains
     double precision, dimension(:,:,:,:), pointer :: ftmp1, ftmp2, rftmp1, rftmp2
     double precision, dimension(:,:,:,:), pointer :: qgdnvtmp1, qgdnvtmp2
 
-    integer :: fglo(3), fghi(3), glo(3), ghi(3)
-
     type (eos_t) :: eos_state
 
     logical :: source_nonzero(QVAR)
+
+    integer :: fglo(3), fghi(3), glo(3), ghi(3)
 
     ! Local constants
     dxinv = ONE/dx(1)
@@ -215,8 +215,8 @@ contains
        call bl_allocate ( Im, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,3,1,3,1,NQ)
 
        ! for source terms
-       call bl_allocate ( Ip_src, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,3,1,3,1,NQ)
-       call bl_allocate ( Im_src, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,3,1,3,1,NQ)
+       call bl_allocate ( Ip_src, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,3,1,3,1,QVAR)
+       call bl_allocate ( Im_src, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,3,1,3,1,QVAR)
 
        ! for gamc -- needed for the reference state in eigenvectors
        call bl_allocate ( Ip_gc, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,3,1,3,1,1)
