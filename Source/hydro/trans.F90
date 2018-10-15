@@ -54,15 +54,16 @@ contains
 #ifdef RADIATION
     real(rt) :: rfx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
 #endif
+
     real(rt), intent(in) :: cdtdx
 
     real(rt), intent(in) :: qym(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(in) :: qyp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(in) :: qzm(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(in) :: qzp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(in) :: fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
     real(rt), intent(in) :: qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
-    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
     real(rt), intent(out) :: qymo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(out) :: qypo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
@@ -87,7 +88,6 @@ contains
     real(rt)         renewry, renewly, renewrz, renewlz
     real(rt)         pnewry, pnewly, pnewrz, pnewlz
     real(rt)         rhoekenry, rhoekenly, rhoekenrz, rhoekenlz
-    real(rt)         compn, compu
     real(rt)         pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
 
     real(rt)         :: gamc
@@ -114,7 +114,6 @@ contains
        nqp = qpass_map(ipassive)
 
        do k = lo(3)-1, hi(3)+1
-
           do j = lo(2), hi(2)+1
              do i = lo(1), hi(1)
                 rrnew = qyp(i,j,k,QRHO) - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
@@ -130,7 +129,6 @@ contains
                 qymo(i,j+1,k,nqp) = compu/rrnew
              end do
           end do
-
        end do
     end do
 
@@ -208,8 +206,7 @@ contains
              rury = rrry*qyp(i,j,k,QU)
              rvry = rrry*qyp(i,j,k,QV)
              rwry = rrry*qyp(i,j,k,QW)
-             ekenry = HALF*rrry* &
-                  (qyp(i,j,k,QU)**2 + qyp(i,j,k,QV)**2 + qyp(i,j,k,QW)**2)
+             ekenry = HALF*rrry*sum(qyp(i,j,k,QU:QW)**2)
              rery = qyp(i,j,k,QREINT) + ekenry
 #ifdef RADIATION
              err  = qyp(i,j,k,qrad:qradhi)
@@ -255,7 +252,7 @@ contains
              if (.not. reset_state) then
                 ! do the transverse terms for p, gamma, and rhoe, as necessary
 
-                if (transverse_reset_rhoe .eq. 1 .and. qypo(i,j,k,QREINT) <= ZERO) then
+                if (transverse_reset_rhoe == 1 .and. qypo(i,j,k,QREINT) <= ZERO) then
                    ! If it is negative, reset the internal energy by
                    ! using the discretized expression for updating (rho e).
                    qypo(i,j,k,QREINT) = qyp(i,j,k,QREINT) - &
@@ -361,8 +358,7 @@ contains
              ruly = rrly*qym(i,j+1,k,QU)
              rvly = rrly*qym(i,j+1,k,QV)
              rwly = rrly*qym(i,j+1,k,QW)
-             ekenly = HALF*rrly* &
-                  (qym(i,j+1,k,QU)**2 + qym(i,j+1,k,QV)**2 + qym(i,j+1,k,QW)**2)
+             ekenly = HALF*rrly*sum(qym(i,j+1,k,QU:QW)**2)
              rely = qym(i,j+1,k,QREINT) + ekenly
 #ifdef RADIATION
              erl  = qym(i,j+1,k,qrad:qradhi)
@@ -394,6 +390,7 @@ contains
                 reset_state = .true.
              endif
 
+             ! Convert back to primitive form
              qymo(i,j+1,k,QRHO) = rrnewly
              rhoinv = ONE/rrnewly
              qymo(i,j+1,k,QU) = runewly*rhoinv
@@ -406,6 +403,7 @@ contains
 
              if (.not. reset_state) then
                 ! do the transverse terms for p, gamma, and rhoe, as necessary
+
                 if (transverse_reset_rhoe == 1 .and. qymo(i,j+1,k,QREINT) <= ZERO) then
                    ! If it is negative, reset the internal energy by using the discretized
                    ! expression for updating (rho e).
@@ -460,11 +458,9 @@ contains
        do k = lo(3), hi(3)+1
           do j = lo(2)-1, hi(2)+1
              do i = lo(1), hi(1)
-
                 rrnew = qzp(i,j,k,QRHO) - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
                 compu = qzp(i,j,k,QRHO)*qzp(i,j,k,nqp) - cdtdx*(fx(i+1,j,k,n) - fx(i,j,k,n))
                 qzpo(i,j,k,nqp) = compu/rrnew
-
              end do
           end do
        end do
@@ -472,11 +468,9 @@ contains
        do k = lo(3)-1, hi(3)
           do j = lo(2)-1, hi(2)+1
              do i = lo(1), hi(1)
-
                 rrnew = qzm(i,j,k+1,QRHO) - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
                 compu = qzm(i,j,k+1,QRHO)*qzm(i,j,k+1,nqp) - cdtdx*(fx(i+1,j,k,n) - fx(i,j,k,n))
                 qzmo(i,j,k+1,nqp) = compu/rrnew
-
              end do
           end do
        end do
@@ -550,13 +544,12 @@ contains
              end if
 #endif
 
-
              ! Convert to conservation form
              rrrz = qzp(i,j,k,QRHO)
              rurz = rrrz*qzp(i,j,k,QU)
              rvrz = rrrz*qzp(i,j,k,QV)
              rwrz = rrrz*qzp(i,j,k,QW)
-             ekenrz = HALF*rrrz*(qzp(i,j,k,QU)**2 + qzp(i,j,k,QV)**2 + qzp(i,j,k,QW)**2)
+             ekenrz = HALF*rrrz*sum(qzp(i,j,k,QU:QW)**2)
              rerz = qzp(i,j,k,QREINT) + ekenrz
 #ifdef RADIATION
              err  = qzp(i,j,k,qrad:qradhi)
@@ -710,7 +703,7 @@ contains
              rulz = rrlz*qzm(i,j,k+1,QU)
              rvlz = rrlz*qzm(i,j,k+1,QV)
              rwlz = rrlz*qzm(i,j,k+1,QW)
-             ekenlz = HALF*rrlz*(qzm(i,j,k+1,QU)**2 + qzm(i,j,k+1,QV)**2 + qzm(i,j,k+1,QW)**2)
+             ekenlz = HALF*rrlz*sum(qzm(i,j,k+1,QU:QW)**2)
              relz = qzm(i,j,k+1,QREINT) + ekenlz
 #ifdef RADIATION
              erl  = qzm(i,j,k+1,qrad:qradhi)
@@ -767,6 +760,7 @@ contains
                 ! If we are wrong, we will fix it later
 
                 if (ppm_predict_gammae == 0) then
+                   ! add the transverse term to the p evolution eq here
                    pnewlz = qzm(i,j,k+1,QPRES) - cdtdx*(dup + pav*du*(gamc - ONE))
                    qzmo(i,j,k+1,QPRES) = max(pnewlz,small_pres)
                 else
@@ -796,8 +790,6 @@ contains
     end do
 
   end subroutine transx
-
-
   !===========================================================================
   ! transy
   !===========================================================================
@@ -858,6 +850,7 @@ contains
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(in) :: fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
     real(rt), intent(in) :: qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
+
     real(rt), intent(out) :: qxmo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(out) :: qxpo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(out) :: qzmo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
@@ -867,7 +860,6 @@ contains
 
     real(rt)         rhoinv
     real(rt)         rrnew, rr
-    real(rt)         compn, compu
     real(rt)         rrrx, rrlx, rrrz, rrlz
     real(rt)         rurx, rulx, rurz, rulz
     real(rt)         rvrx, rvlx, rvrz, rvlz
@@ -882,6 +874,7 @@ contains
     real(rt)         pnewrx, pnewlx, pnewrz, pnewlz
     real(rt)         rhoekenrx, rhoekenlx, rhoekenrz, rhoekenlz
     real(rt)         pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+
     real(rt)         :: gamc
 
 #ifdef RADIATION
@@ -907,19 +900,18 @@ contains
 
        do k = lo(3)-1, hi(3)+1
           do j = lo(2), hi(2)
-
              do i = lo(1), hi(1)+1
                 rrnew = qxp(i,j,k,QRHO) - cdtdy*(fy(i,j+1,k,URHO) - fy(i,j,k,URHO))
                 compu = qxp(i,j,k,QRHO)*qxp(i,j,k,nqp) - cdtdy*(fy(i,j+1,k,n) - fy(i,j,k,n))
                 qxpo(i,j,k,nqp) = compu/rrnew
              end do
 
+
              do i = lo(1)-1, hi(1)
                 rrnew = qxm(i+1,j,k,QRHO) - cdtdy*(fy(i,j+1,k,URHO) - fy(i,j,k,URHO))
                 compu = qxm(i+1,j,k,QRHO)*qxm(i+1,j,k,nqp) - cdtdy*(fy(i,j+1,k,n) - fy(i,j,k,n))
                 qxmo(i+1,j,k,nqp) = compu/rrnew
              end do
-
           end do
        end do
     end do
@@ -932,9 +924,9 @@ contains
     do k = lo(3)-1, hi(3)+1
        do j = lo(2), hi(2)
 
-          !-------------------------------------------------------------------
+          !-------------------------------------------------------------
           ! qxpo state
-          !-------------------------------------------------------------------
+          !-------------------------------------------------------------
 
           do i = lo(1), hi(1)+1
 
@@ -997,8 +989,7 @@ contains
              rurx = rrrx*qxp(i,j,k,QU)
              rvrx = rrrx*qxp(i,j,k,QV)
              rwrx = rrrx*qxp(i,j,k,QW)
-             ekenrx = HALF*rrrx*(qxp(i,j,k,QU)**2 + qxp(i,j,k,QV)**2 &
-                  + qxp(i,j,k,QW)**2)
+             ekenrx = HALF*rrrx*sum(qxp(i,j,k,QU:QW)**2)
              rerx = qxp(i,j,k,QREINT) + ekenrx
 #ifdef RADIATION
              err  = qxp(i,j,k,qrad:qradhi)
@@ -1030,6 +1021,7 @@ contains
                 reset_state = .true.
              endif
 
+             ! Convert back to primitive form
              qxpo(i,j,k,QRHO) = rrnewrx
              rhoinv = ONE/rrnewrx
              qxpo(i,j,k,QU) = runewrx*rhoinv
@@ -1146,8 +1138,7 @@ contains
              rulx = rrlx*qxm(i+1,j,k,QU)
              rvlx = rrlx*qxm(i+1,j,k,QV)
              rwlx = rrlx*qxm(i+1,j,k,QW)
-             ekenlx = HALF*rrlx*(qxm(i+1,j,k,QU)**2 + qxm(i+1,j,k,QV)**2 &
-                  + qxm(i+1,j,k,QW)**2)
+             ekenlx = HALF*rrlx*sum(qxm(i+1,j,k,QU:QW)**2)
              relx = qxm(i+1,j,k,QREINT) + ekenlx
 #ifdef RADIATION
              erl  = qxm(i+1,j,k,qrad:qradhi)
@@ -1162,7 +1153,7 @@ contains
 #ifdef RADIATION
              rvnewlx = rvnewlx + dmom
              renewlx = renewlx + dre
-             ernewl  = erl(:) + der(:)
+             ernewl  = erl(:) - cdtdy*(rfy(i,j+1,k,:) - rfy(i,j,k,:)) + der(:)
 #endif
 
              ! Reset to original value if adding transverse terms made density negative
@@ -1304,6 +1295,7 @@ contains
              du = ugp-ugm
              dge = gegp-gegm
 
+             ! this is the gas gamma_1
 #ifdef RADIATION
              gamc = qaux(i,j,k,QGAMCG)
 #else
@@ -1339,8 +1331,7 @@ contains
              rurz = rrrz*qzp(i,j,k,QU)
              rvrz = rrrz*qzp(i,j,k,QV)
              rwrz = rrrz*qzp(i,j,k,QW)
-             ekenrz = HALF*rrrz*(qzp(i,j,k,QU)**2 + qzp(i,j,k,QV)**2 &
-                  + qzp(i,j,k,QW)**2)
+             ekenrz = HALF*rrrz*sum(qzp(i,j,k,QU:QW)**2)
              rerz = qzp(i,j,k,QREINT) + ekenrz
 #ifdef RADIATION
              err  = qzp(i,j,k,qrad:qradhi)
@@ -1384,6 +1375,8 @@ contains
              qzpo(i,j,k,QREINT) = renewrz - rhoekenrz
 
              if (.not. reset_state) then
+                ! do the transverse terms for p, gamma, and rhoe, as necessary
+
                 if (transverse_reset_rhoe == 1 .and. qzpo(i,j,k,QREINT) <= ZERO) then
                    ! If it is negative, reset the internal energy by using the discretized
                    ! expression for updating (rho e).
@@ -1425,7 +1418,7 @@ contains
     end do
 
     !-------------------------------------------------------------------
-    ! qzmo states
+    ! qzmo state
     !-------------------------------------------------------------------
 
     do k = lo(3)-1, hi(3)
@@ -1491,8 +1484,7 @@ contains
              rulz = rrlz*qzm(i,j,k+1,QU)
              rvlz = rrlz*qzm(i,j,k+1,QV)
              rwlz = rrlz*qzm(i,j,k+1,QW)
-             ekenlz = HALF*rrlz*(qzm(i,j,k+1,QU)**2 + qzm(i,j,k+1,QV)**2 &
-                  + qzm(i,j,k+1,QW)**2)
+             ekenlz = HALF*rrlz*sum(qzm(i,j,k+1,QU:QW)**2)
              relz = qzm(i,j,k+1,QREINT) + ekenlz
 #ifdef RADIATION
              erl  = qzm(i,j,k+1,qrad:qradhi)
@@ -1536,6 +1528,8 @@ contains
              qzmo(i,j,k+1,QREINT) = renewlz - rhoekenlz
 
              if (.not. reset_state) then
+                ! do the transverse terms for p, gamma, and rhoe, as necessary
+
                 if (transverse_reset_rhoe == 1 .and. qzmo(i,j,k+1,QREINT) <= ZERO) then
                    ! If it is negative, reset the internal energy by using the discretized
                    ! expression for updating (rho e).
@@ -1577,8 +1571,6 @@ contains
     end do
 
   end subroutine transy
-
-
   !===========================================================================
   ! transz
   !===========================================================================
@@ -1592,7 +1584,6 @@ contains
                     fz_lo, fz_hi, &
                     qz, qz_lo, qz_hi, &
                     cdtdz, lo, hi)
-
 
     use amrex_constants_module, only : ZERO, ONE, HALF
 
@@ -1645,10 +1636,10 @@ contains
     real(rt), intent(out) :: qymo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(out) :: qypo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
 
-    integer n, nqp, i, j, k, ipassive
+    integer i, j, k, n, nqp, ipassive
 
+    real(rt)         rhoinv
     real(rt)         rrnew, rr
-    real(rt)         compn, compu
     real(rt)         rrrx, rrry, rrlx, rrly
     real(rt)         rurx, rury, rulx, ruly
     real(rt)         rvrx, rvry, rvlx, rvly
@@ -1679,7 +1670,7 @@ contains
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
-    ! transerse term and convert back to the primitive quantity
+    ! transverse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
     do ipassive = 1,npassive
@@ -1688,12 +1679,12 @@ contains
 
         do k = lo(3), hi(3)
           do j = lo(2)-1, hi(2)+1
-
              do i = lo(1), hi(1)+1
                 rrnew = qxp(i,j,k,QRHO) - cdtdz*(fz(i,j,k+1,URHO) - fz(i,j,k,URHO))
                 compu = qxp(i,j,k,QRHO)*qxp(i,j,k,nqp) - cdtdz*(fz(i,j,k+1,n) - fz(i,j,k,n))
                 qxpo(i,j,k,nqp) = compu/rrnew
              end do
+
 
              do i = lo(1)-1, hi(1)
                 rrnew = qxm(i+1,j,k,QRHO) - cdtdz*(fz(i,j,k+1,URHO) - fz(i,j,k,URHO))
@@ -1705,7 +1696,7 @@ contains
     end do
 
     !-------------------------------------------------------------------
-    ! add transverse flux difference in the z-direction to x-states
+    ! add the transverse flux difference in the z-direction to x-states
     ! for the fluid variables
     !-------------------------------------------------------------------
 
@@ -1724,6 +1715,7 @@ contains
              ugm  = qz(i,j,k,GDW   )
              gegp = qz(i,j,k+1,GDGAME)
              gegm = qz(i,j,k,GDGAME)
+
 #ifdef RADIATION
              lambda(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
              ergp = qz(i,j,k+1,GDERADS:GDERADS-1+ngroups)
@@ -1758,13 +1750,13 @@ contains
                 do g=0, ngroups-1
                    eddf = Edd_factor(lambda(g))
                    f1 = HALF*(ONE-eddf)
-                   der(g) = cdtdz*HALF*(ugp+ugm)*(ergp(g)-ergm(g))
+                   der(g) = cdtdz*HALF*(ugp+ugm) * f1 * (ergp(g) - ergm(g))
                 end do
              else if (fspace_type .eq. 2) then
                 do g=0, ngroups-1
                    eddf = Edd_factor(lambda(g))
                    f1 = HALF*(ONE-eddf)
-                   der(g) = cdtdz*HALF*(ergp(g)+ergm(g))*(ugm-ugp)*f1
+                   der(g) = cdtdz * f1 * HALF*(ergp(g)+ergm(g)) * (ugm-ugp)
                 end do
              else ! mixed frame
                 der(:) = cdtdz * luge
@@ -1776,8 +1768,7 @@ contains
              rurx = rrrx*qxp(i,j,k,QU)
              rvrx = rrrx*qxp(i,j,k,QV)
              rwrx = rrrx*qxp(i,j,k,QW)
-             ekenrx = HALF*rrrx*(qxp(i,j,k,QU)**2 + qxp(i,j,k,QV)**2 &
-                  + qxp(i,j,k,QW)**2)
+             ekenrx = HALF*rrrx*sum(qxp(i,j,k,QU:QW)**2)
              rerx = qxp(i,j,k,QREINT) + ekenrx
 #ifdef RADIATION
              errx = qxp(i,j,k,qrad:qradhi)
@@ -1811,18 +1802,21 @@ contains
 
              ! Convert back to primitive form
              qxpo(i,j,k,QRHO) = rrnewrx
-             qxpo(i,j,k,QU) = runewrx/qxpo(i,j,k,QRHO)
-             qxpo(i,j,k,QV) = rvnewrx/qxpo(i,j,k,QRHO)
-             qxpo(i,j,k,QW) = rwnewrx/qxpo(i,j,k,QRHO)
+             rhoinv = ONE/rrnewrx
+             qxpo(i,j,k,QU) = runewrx*rhoinv
+             qxpo(i,j,k,QV) = rvnewrx*rhoinv
+             qxpo(i,j,k,QW) = rwnewrx*rhoinv
 
              ! note: we run the risk of (rho e) being negative here
-             rhoekenrx = HALF*(runewrx**2 + rvnewrx**2 + rwnewrx**2)/qxpo(i,j,k,QRHO)
+             rhoekenrx = HALF*(runewrx**2 + rvnewrx**2 + rwnewrx**2)*rhoinv
              qxpo(i,j,k,QREINT) = renewrx - rhoekenrx
 
              if (.not. reset_state) then
+                ! do the transverse terms for p, gamma, and rhoe, as necessary
+
                 if (transverse_reset_rhoe == 1 .and. qxpo(i,j,k,QREINT) <= ZERO) then
-                   ! If it is negative, reset the internal energy by using the discretized
-                   ! expression for updating (rho e).
+                   ! If it is negative, reset the internal energy by
+                   ! using the discretized expression for updating (rho e).
                    qxpo(i,j,k,QREINT) = qxp(i,j,k,QREINT) - &
                         cdtdz*(fz(i,j,k+1,UEINT) - fz(i,j,k,UEINT) + pav*du)
                 endif
@@ -1904,13 +1898,13 @@ contains
                 do g=0, ngroups-1
                    eddf = Edd_factor(lambda(g))
                    f1 = HALF*(ONE-eddf)
-                   der(g) = cdtdz*HALF*(ugp+ugm)*(ergp(g)-ergm(g))
+                   der(g) = cdtdz*HALF*(ugp+ugm) * f1 * (ergp(g) - ergm(g))
                 end do
              else if (fspace_type .eq. 2) then
                 do g=0, ngroups-1
                    eddf = Edd_factor(lambda(g))
                    f1 = HALF*(ONE-eddf)
-                   der(g) = cdtdz*HALF*(ergp(g)+ergm(g))*(ugm-ugp)*f1
+                   der(g) = cdtdz * f1 * HALF*(ergp(g)+ergm(g))*(ugm-ugp)
                 end do
              else ! mixed frame
                 der(:) = cdtdz * luge
@@ -1922,8 +1916,7 @@ contains
              rulx = rrlx*qxm(i+1,j,k,QU)
              rvlx = rrlx*qxm(i+1,j,k,QV)
              rwlx = rrlx*qxm(i+1,j,k,QW)
-             ekenlx = HALF*rrlx*(qxm(i+1,j,k,QU)**2 + qxm(i+1,j,k,QV)**2 &
-                  + qxm(i+1,j,k,QW)**2)
+             ekenlx = HALF*rrlx*sum(qxm(i+1,j,k,QU:QW)**2)
              relx = qxm(i+1,j,k,QREINT) + ekenlx
 #ifdef RADIATION
              erlx = qxm(i+1,j,k,qrad:qradhi)
@@ -1957,12 +1950,13 @@ contains
 
              ! Convert back to primitive form
              qxmo(i+1,j,k,QRHO) = rrnewlx
-             qxmo(i+1,j,k,QU) = runewlx/qxmo(i+1,j,k,QRHO)
-             qxmo(i+1,j,k,QV) = rvnewlx/qxmo(i+1,j,k,QRHO)
-             qxmo(i+1,j,k,QW) = rwnewlx/qxmo(i+1,j,k,QRHO)
+             rhoinv = ONE/rrnewlx
+             qxmo(i+1,j,k,QU) = runewlx*rhoinv
+             qxmo(i+1,j,k,QV) = rvnewlx*rhoinv
+             qxmo(i+1,j,k,QW) = rwnewlx*rhoinv
 
              ! note: we run the risk of (rho e) being negative here
-             rhoekenlx = HALF*(runewlx**2 + rvnewlx**2 + rwnewlx**2)/qxmo(i+1,j,k,QRHO)
+             rhoekenlx = HALF*(runewlx**2 + rvnewlx**2 + rwnewlx**2)*rhoinv
              qxmo(i+1,j,k,QREINT) = renewlx - rhoekenlx
 
              if (.not. reset_state) then
@@ -2026,6 +2020,7 @@ contains
              end do
           end do
 
+
           do j = lo(2)-1, hi(2)
              do i = lo(1)-1, hi(1)+1
                 rrnew = qym(i,j+1,k,QRHO) - cdtdz*(fz(i,j,k+1,URHO) - fz(i,j,k,URHO))
@@ -2037,7 +2032,7 @@ contains
     end do
 
     !-------------------------------------------------------------------
-    ! add transverse flux difference in the z-direction to y-states
+    ! add the transverse flux difference in the z-direction to y-states
     ! for the fluid variables
     !-------------------------------------------------------------------
 
@@ -2090,13 +2085,13 @@ contains
                 do g=0, ngroups-1
                    eddf = Edd_factor(lambda(g))
                    f1 = HALF*(ONE-eddf)
-                   der(g) = cdtdz*HALF*(ugp+ugm)*(ergp(g)-ergm(g))
+                   der(g) = cdtdz*HALF*(ugp+ugm) * f1 * (ergp(g) - ergm(g))
                 end do
              else if (fspace_type .eq. 2) then
                 do g=0, ngroups-1
                    eddf = Edd_factor(lambda(g))
                    f1 = HALF*(ONE-eddf)
-                   der(g) = cdtdz*HALF*(ergp(g)+ergm(g))*(ugm-ugp)*f1
+                   der(g) = cdtdz* f1 * HALF*(ergp(g)+ergm(g))*(ugm-ugp)
                 end do
              else ! mixed frame
                 der(:) = cdtdz * luge
@@ -2108,8 +2103,7 @@ contains
              rury = rrry*qyp(i,j,k,QU)
              rvry = rrry*qyp(i,j,k,QV)
              rwry = rrry*qyp(i,j,k,QW)
-             ekenry = HALF*rrry*(qyp(i,j,k,QU)**2 + qyp(i,j,k,QV)**2 &
-                  + qyp(i,j,k,QW)**2)
+             ekenry = HALF*rrry*sum(qyp(i,j,k,QU:QW)**2)
              rery = qyp(i,j,k,QREINT) + ekenry
 #ifdef RADIATION
              erry = qyp(i,j,k,qrad:qradhi)
@@ -2143,15 +2137,18 @@ contains
 
              ! Convert back to primitive form
              qypo(i,j,k,QRHO) = rrnewry
-             qypo(i,j,k,QU) = runewry/qypo(i,j,k,QRHO)
-             qypo(i,j,k,QV) = rvnewry/qypo(i,j,k,QRHO)
-             qypo(i,j,k,QW) = rwnewry/qypo(i,j,k,QRHO)
+             rhoinv = ONE/rrnewry
+             qypo(i,j,k,QU) = runewry*rhoinv
+             qypo(i,j,k,QV) = rvnewry*rhoinv
+             qypo(i,j,k,QW) = rwnewry*rhoinv
 
              ! note: we run the risk of (rho e) being negative here
-             rhoekenry = HALF*(runewry**2 + rvnewry**2 + rwnewry**2)/qypo(i,j,k,QRHO)
+             rhoekenry = HALF*(runewry**2 + rvnewry**2 + rwnewry**2)*rhoinv
              qypo(i,j,k,QREINT) = renewry - rhoekenry
 
              if (.not. reset_state) then
+                ! do the transverse terms for p, gamma, and rhoe, as necessary
+
                 if (transverse_reset_rhoe == 1 .and. qypo(i,j,k,QREINT) <= ZERO) then
                    ! If it is negative, reset the internal energy by using the discretized
                    ! expression for updating (rho e).
@@ -2238,13 +2235,13 @@ contains
                 do g=0, ngroups-1
                    eddf = Edd_factor(lambda(g))
                    f1 = HALF*(ONE-eddf)
-                   der(g) = cdtdz*HALF*(ugp+ugm)*(ergp(g)-ergm(g))
+                   der(g) = cdtdz*HALF*(ugp+ugm) * f1 * (ergp(g) - ergm(g))
                 end do
              else if (fspace_type .eq. 2) then
                 do g=0, ngroups-1
                    eddf = Edd_factor(lambda(g))
                    f1 = HALF*(ONE-eddf)
-                   der(g) = cdtdz*HALF*(ergp(g)+ergm(g))*(ugm-ugp)*f1
+                   der(g) = cdtdz * f1 * HALF*(ergp(g)+ergm(g))*(ugm-ugp)
                 end do
              else ! mixed frame
                 der(:) = cdtdz * luge
@@ -2256,8 +2253,7 @@ contains
              ruly = rrly*qym(i,j+1,k,QU)
              rvly = rrly*qym(i,j+1,k,QV)
              rwly = rrly*qym(i,j+1,k,QW)
-             ekenly = HALF*rrly*(qym(i,j+1,k,QU)**2 + qym(i,j+1,k,QV)**2 &
-                  + qym(i,j+1,k,QW)**2)
+             ekenly = HALF*rrly*sum(qym(i,j+1,k,QU:QW)**2)
              rely = qym(i,j+1,k,QREINT) + ekenly
 #ifdef RADIATION
              erly = qym(i,j+1,k,qrad:qradhi)
@@ -2291,15 +2287,18 @@ contains
 
              ! Convert back to primitive form
              qymo(i,j+1,k,QRHO) = rrnewly
-             qymo(i,j+1,k,QU) = runewly/qymo(i,j+1,k,QRHO)
-             qymo(i,j+1,k,QV) = rvnewly/qymo(i,j+1,k,QRHO)
-             qymo(i,j+1,k,QW) = rwnewly/qymo(i,j+1,k,QRHO)
+             rhoinv = ONE/rrnewly
+             qymo(i,j+1,k,QU) = runewly*rhoinv
+             qymo(i,j+1,k,QV) = rvnewly*rhoinv
+             qymo(i,j+1,k,QW) = rwnewly*rhoinv
 
              ! note: we run the risk of (rho e) being negative here
-             rhoekenly = HALF*(runewly**2 + rvnewly**2 + rwnewly**2)/qymo(i,j+1,k,QRHO)
+             rhoekenly = HALF*(runewly**2 + rvnewly**2 + rwnewly**2)*rhoinv
              qymo(i,j+1,k,QREINT) = renewly - rhoekenly
 
              if (.not. reset_state) then
+                ! do the transverse terms for p, gamma, and rhoe, as necessary
+
                 if (transverse_reset_rhoe == 1 .and. qymo(i,j+1,k,QREINT) <= ZERO) then
                    ! If it is negative, reset the internal energy by using the discretized
                    ! expression for updating (rho e).
@@ -2341,27 +2340,19 @@ contains
     end do
 
   end subroutine transz
-
-
   !===========================================================================
-  ! transxy
+  ! transz
   !===========================================================================
-  subroutine transxy(qm, qmo, qp, qpo, q_lo, q_hi, &
-                     qaux, qa_lo, qa_hi, &
-                     fxy, &
+  subroutine transz(qxm, qxmo, qxp, qxpo, &
+                    qym, qymo, qyp, qypo, q_lo, q_hi, &
+                    qaux, qa_lo, qa_hi, &
+                    fz, &
 #ifdef RADIATION
-                     rfxy, &
+                    rfz, &
 #endif
-                     fx_lo, fx_hi, &
-                     fyx, &
-#ifdef RADIATION
-                     rfyx, &
-#endif
-                     fy_lo, fy_hi, &
-                     qx, qx_lo, qx_hi, &
-                     qy, qy_lo, qy_hi, &
-                     srcQ, src_lo, src_hi, &
-                     hdt, cdtdx, cdtdy, lo, hi)
+                    fz_lo, fz_hi, &
+                    qz, qz_lo, qz_hi, &
+                    cdtdz, lo, hi)
 
     use amrex_constants_module, only : ZERO, ONE, HALF
 
@@ -2391,267 +2382,212 @@ contains
 
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: fx_lo(3), fx_hi(3)
-    integer, intent(in) :: fy_lo(3), fy_hi(3)
-    integer, intent(in) :: qx_lo(3), qx_hi(3)
-    integer, intent(in) :: qy_lo(3), qy_hi(3)
-    integer, intent(in) :: src_lo(3), src_hi(3)
+    integer, intent(in) :: fz_lo(3), fz_hi(3)
+    integer, intent(in) :: qz_lo(3), qz_hi(3)
     integer, intent(in) :: lo(3), hi(3)
 
-    real(rt), intent(in) :: hdt, cdtdx, cdtdy
-
 #ifdef RADIATION
-    real(rt), intent(in) :: rfxy(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
-    real(rt), intent(in) :: rfyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
+    real(rt), intent(in) :: rfz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
 #endif
 
-    real(rt), intent(in) ::   qm(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(out) :: qmo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(in) ::   qp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(out) :: qpo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) :: cdtdz
 
+    real(rt), intent(in) :: qxm(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) :: qxp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) :: qym(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) :: qyp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt), intent(in) :: fz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
+    real(rt), intent(in) :: qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
 
-    real(rt), intent(in) :: fxy(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
-    real(rt), intent(in) :: fyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
-    real(rt), intent(in) :: qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
-    real(rt), intent(in) :: qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
-    real(rt), intent(in) :: srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
-
+    real(rt), intent(out) :: qxmo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(out) :: qxpo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(out) :: qymo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(out) :: qypo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
 
     integer i, j, k, n, nqp, ipassive
 
-    real(rt)         rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
-    real(rt)         rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
-    real(rt)         rrnewr, runewr, rvnewr, rwnewr, renewr
-    real(rt)         rrnewl, runewl, rvnewl, rwnewl, renewl
-    real(rt)         pnewr, pnewl
-    real(rt)         pgxp, pgxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew, gexnew
-    real(rt)         pgyp, pgym, ugyp, ugym, gegyp, gegym, duyp, pyav, duy, pynew, geynew
-    real(rt)         uxav, gexav, dgex, uyav, geyav, dgey
-    real(rt)         compr, compl, compnr, compnl
+    real(rt)         rhoinv
+    real(rt)         rrnew, rr
+    real(rt)         rrrx, rrry, rrlx, rrly
+    real(rt)         rurx, rury, rulx, ruly
+    real(rt)         rvrx, rvry, rvlx, rvly
+    real(rt)         rwrx, rwry, rwlx, rwly
+    real(rt)         ekenrx, ekenry, ekenlx, ekenly
+    real(rt)         rerx, rery, relx, rely
+    real(rt)         rrnewrx, rrnewry, rrnewlx, rrnewly
+    real(rt)         runewrx, runewry, runewlx, runewly
+    real(rt)         rvnewrx, rvnewry, rvnewlx, rvnewly
+    real(rt)         rwnewrx, rwnewry, rwnewlx, rwnewly
+    real(rt)         renewrx, renewry, renewlx, renewly
+    real(rt)         pnewrx, pnewry, pnewlx, pnewly
+    real(rt)         rhoekenrx, rhoekenry, rhoekenlx, rhoekenly
+    real(rt)         pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    real(rt)         :: gamc
 
 #ifdef RADIATION
-    real(rt)         :: dmx, dmy, dre
-    real(rt)        , dimension(0:ngroups-1) :: der, lamc, lamm, lugex, lugey, lgex, lgey, &
-         err, ernewr, erl, ernewl, ergxp, ergyp, ergxm, ergym, ergxpm, ergypm, ergxmm, ergymm
+    real(rt)         :: dmz, dre
+    real(rt)        , dimension(0:ngroups-1) :: der, lambda, luge, lamge, &
+         ergp, errx, ernewrx, erry, ernewry, ergm, erlx, ernewlx, erly, ernewly
     real(rt)         eddf, f1
     integer :: g
 #endif
 
     logical :: reset_state
 
+    ! work on qx* first
+
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
-    ! transerse term and convert back to the primitive quantity
+    ! transverse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nqp = qpass_map(ipassive)
 
-       do k = lo(3), hi(3)+1
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-
-                rrr = qp(i,j,k,QRHO)
-                compr = rrr*qp(i,j,k,nqp)
-                rrnewr = rrr - cdtdx*(fxy(i+1,j,k,URHO) - fxy(i,j,k,URHO)) &
-                             - cdtdy*(fyx(i,j+1,k,URHO) - fyx(i,j,k,URHO))
-                compnr = compr - cdtdx*(fxy(i+1,j,k,n) - fxy(i,j,k,n)) &
-                               - cdtdy*(fyx(i,j+1,k,n) - fyx(i,j,k,n))
-
-                qpo(i,j,k,nqp) = compnr/rrnewr + hdt*srcQ(i,j,k  ,nqp)
-
+        do k = lo(3), hi(3)
+          do j = lo(2)-1, hi(2)+1
+             do i = lo(1), hi(1)+1
+                rrnew = qxp(i,j,k,QRHO) - cdtdz*(fz(i,j,k+1,URHO) - fz(i,j,k,URHO))
+                compu = qxp(i,j,k,QRHO)*qxp(i,j,k,nqp) - cdtdz*(fz(i,j,k+1,n) - fz(i,j,k,n))
+                qxpo(i,j,k,nqp) = compu/rrnew
              end do
-          end do
-       end do
 
-       do k = lo(3)-1, hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
 
-                rrl = qm(i,j,k+1,QRHO)
-                compl = rrl*qm(i,j,k+1,nqp)
-                rrnewl = rrl - cdtdx*(fxy(i+1,j,k,URHO) - fxy(i,j,k,URHO)) &
-                             - cdtdy*(fyx(i,j+1,k,URHO) - fyx(i,j,k,URHO))
-                compnl = compl - cdtdx*(fxy(i+1,j,k,n) - fxy(i,j,k,n)) &
-                               - cdtdy*(fyx(i,j+1,k,n) - fyx(i,j,k,n))
-
-                qmo(i,j,k+1,nqp) = compnl/rrnewl + hdt*srcQ(i,j,k,nqp)
-
+             do i = lo(1)-1, hi(1)
+                rrnew = qxm(i+1,j,k,QRHO) - cdtdz*(fz(i,j,k+1,URHO) - fz(i,j,k,URHO))
+                compu = qxm(i+1,j,k,QRHO)*qxm(i+1,j,k,nqp) - cdtdz*(fz(i,j,k+1,n) - fz(i,j,k,n))
+                qxmo(i+1,j,k,nqp) = compu/rrnew
              end do
           end do
        end do
     end do
 
     !-------------------------------------------------------------------
-    ! add the transverse xy and yx differences to the z-states for the
-    ! fluid variables
+    ! add the transverse flux difference in the z-direction to x-states
+    ! for the fluid variables
     !-------------------------------------------------------------------
 
-    !-------------------------------------------------------------------
-    ! qzpo state
-    !-------------------------------------------------------------------
+    do k = lo(3), hi(3)
+       do j = lo(2)-1, hi(2)+1
 
-    do k = lo(3), hi(3)+1
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
+          !-------------------------------------------------------------------
+          ! qxpo state
+          !-------------------------------------------------------------------
 
-             pgxp = qx(i+1,j,k,GDPRES)
-             pgxm = qx(i,j,k,GDPRES)
-             ugxp = qx(i+1,j,k,GDU)
-             ugxm = qx(i,j,k,GDU)
-             gegxp = qx(i+1,j,k,GDGAME)
-             gegxm = qx(i,j,k,GDGAME)
+          do i = lo(1), hi(1)+1
 
-             pgyp = qy(i,j+1,k,GDPRES)
-             pgym = qy(i,j,k,GDPRES)
-             ugyp = qy(i,j+1,k,GDV)
-             ugym = qy(i,j,k,GDV)
-             gegyp = qy(i,j+1,k,GDGAME)
-             gegym = qy(i,j,k,GDGAME)
+             pgp  = qz(i,j,k+1,GDPRES)
+             pgm  = qz(i,j,k,GDPRES)
+             ugp  = qz(i,j,k+1,GDW   )
+             ugm  = qz(i,j,k,GDW   )
+             gegp = qz(i,j,k+1,GDGAME)
+             gegm = qz(i,j,k,GDGAME)
 
-             duxp = pgxp*ugxp - pgxm*ugxm
-             pxav = HALF*(pgxp+pgxm)
-             uxav = HALF*(ugxp+ugxm)
-             gexav = HALF*(gegxp+gegxm)
-             dux = ugxp-ugxm
-             dgex = gegxp-gegxm
 #ifdef RADIATION
-             pxnew = cdtdx*(duxp + pxav*dux*(qaux(i,j,k,QGAMCG) - ONE))
-             gexnew = cdtdx*( (gexav-ONE)*(gexav - qaux(i,j,k,QGAMCG))*dux - uxav*dgex )
+             lambda(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
+             ergp = qz(i,j,k+1,GDERADS:GDERADS-1+ngroups)
+             ergm = qz(i,j,k,GDERADS:GDERADS-1+ngroups)
+#endif
+
+             ! we need to augment our conserved system with either a p
+             ! equation or gammae (if we have ppm_predict_gammae = 1) to
+             ! be able to deal with the general EOS
+
+             dup = pgp*ugp - pgm*ugm
+             pav = HALF*(pgp+pgm)
+             uav = HALF*(ugp+ugm)
+             geav = HALF*(gegp+gegm)
+             du = ugp-ugm
+             dge = gegp-gegm
+
+             ! this is the gas gamma_1
+#ifdef RADIATION
+             gamc = qaux(i,j,k,QGAMCG)
 #else
-             pxnew = cdtdx*(duxp + pxav*dux*(qaux(i,j,k,QGAMC) - ONE))
-             gexnew = cdtdx*( (gexav-ONE)*(gexav - qaux(i,j,k,QGAMC))*dux - uxav*dgex )
-#endif
-
-             duyp = pgyp*ugyp - pgym*ugym
-             pyav = HALF*(pgyp+pgym)
-             uyav = HALF*(ugyp+ugym)
-             geyav = HALF*(gegyp+gegym)
-             duy = ugyp-ugym
-             dgey = gegyp-gegym
-#ifdef RADIATION
-             pynew = cdtdy*(duyp + pyav*duy*(qaux(i,j,k,QGAMCG) - ONE))
-             geynew = cdtdy*( (geyav-ONE)*(geyav - qaux(i,j,k,QGAMCG))*duy - uyav*dgey )
-#else
-             pynew = cdtdy*(duyp + pyav*duy*(qaux(i,j,k,QGAMC) - ONE))
-             geynew = cdtdy*( (geyav-ONE)*(geyav - qaux(i,j,k,QGAMC))*duy - uyav*dgey )
+             gamc = qaux(i,j,k,QGAMC)
 #endif
 
 #ifdef RADIATION
-             lamc(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
-             ergxp = qx(i+1,j,k,GDERADS:GDERADS-1+ngroups)
-             ergxm = qx(i  ,j,k,GDERADS:GDERADS-1+ngroups)
-             ergyp = qy(i,j+1,k,GDERADS:GDERADS-1+ngroups)
-             ergym = qy(i,j  ,k,GDERADS:GDERADS-1+ngroups)
-#endif
-
-
-             ! Convert to conservation form
-             rrr = qp(i,j,k,QRHO)
-             rur = rrr*qp(i,j,k,QU)
-             rvr = rrr*qp(i,j,k,QV)
-             rwr = rrr*qp(i,j,k,QW)
-             ekenr = HALF*rrr*(qp(i,j,k,QU)**2 + qp(i,j,k,QV)**2 + &
-                  qp(i,j,k,QW)**2)
-             rer = qp(i,j,k,QREINT) + ekenr
-#ifdef RADIATION
-             err = qp(i,j,k,qrad:qradhi)
-
-             lgex = lamc(:) * (ergxp(:)-ergxm(:))
-             lgey = lamc(:) * (ergyp(:)-ergym(:))
-             dmx = - cdtdx*sum(lgex)
-             dmy = - cdtdy*sum(lgey)
-             lugex = HALF*(ugxp+ugxm) * lgex(:)
-             lugey = HALF*(ugyp+ugym) * lgey(:)
-             dre = -cdtdx*sum(lugex) - cdtdy*sum(lugey)
+             lamge = lambda(:) * (ergp(:)-ergm(:))
+             dmz = - cdtdz*sum(lamge)
+             luge = HALF*(ugp+ugm) * lamge(:)
+             dre = -cdtdz*sum(luge)
 
              if (fspace_type .eq. 1 .and. comoving) then
                 do g=0, ngroups-1
-                   eddf = Edd_factor(lamc(g))
+                   eddf = Edd_factor(lambda(g))
                    f1 = HALF*(ONE-eddf)
-                   der(g) = f1*(cdtdx*HALF*(ugxp+ugxm)*(ergxp(g)-ergxm(g)) &
-                        +       cdtdy*HALF*(ugyp+ugym)*(ergyp(g)-ergym(g)) )
+                   der(g) = cdtdz*HALF*(ugp+ugm) * f1 * (ergp(g) - ergm(g))
                 end do
              else if (fspace_type .eq. 2) then
                 do g=0, ngroups-1
-                   eddf = Edd_factor(lamc(g))
+                   eddf = Edd_factor(lambda(g))
                    f1 = HALF*(ONE-eddf)
-                   der(g) = f1*(cdtdx*HALF*(ergxp(g)+ergxm(g))*(ugxm-ugxp) &
-                        +       cdtdy*HALF*(ergyp(g)+ergym(g))*(ugym-ugyp) )
+                   der(g) = cdtdz * f1 * HALF*(ergp(g)+ergm(g)) * (ugm-ugp)
                 end do
              else ! mixed frame
-                der(:) = cdtdx * lugex + cdtdy * lugey
+                der(:) = cdtdz * luge
              end if
+#endif
+
+             ! Convert to conservation form
+             rrrx = qxp(i,j,k,QRHO)
+             rurx = rrrx*qxp(i,j,k,QU)
+             rvrx = rrrx*qxp(i,j,k,QV)
+             rwrx = rrrx*qxp(i,j,k,QW)
+             ekenrx = HALF*rrrx*sum(qxp(i,j,k,QU:QW)**2)
+             rerx = qxp(i,j,k,QREINT) + ekenrx
+#ifdef RADIATION
+             errx = qxp(i,j,k,qrad:qradhi)
 #endif
 
              ! Add transverse predictor
-             rrnewr = rrr - cdtdx*(fxy(i+1,j,k,URHO) - fxy(i,j,k,URHO)) &
-                          - cdtdy*(fyx(i,j+1,k,URHO) - fyx(i,j,k,URHO))
-             runewr = rur - cdtdx*(fxy(i+1,j,k,UMX) - fxy(i,j,k,UMX)) &
-                          - cdtdy*(fyx(i,j+1,k,UMX) - fyx(i,j,k,UMX))
-             rvnewr = rvr - cdtdx*(fxy(i+1,j,k,UMY) - fxy(i,j,k,UMY)) &
-                          - cdtdy*(fyx(i,j+1,k,UMY) - fyx(i,j,k,UMY))
-             rwnewr = rwr - cdtdx*(fxy(i+1,j,k,UMZ) - fxy(i,j,k,UMZ)) &
-                          - cdtdy*(fyx(i,j+1,k,UMZ) - fyx(i,j,k,UMZ))
-             renewr = rer - cdtdx*(fxy(i+1,j,k,UEDEN) - fxy(i,j,k,UEDEN)) &
-                          - cdtdy*(fyx(i,j+1,k,UEDEN) - fyx(i,j,k,UEDEN))
+             rrnewrx = rrrx - cdtdz*(fz(i,j,k+1,URHO) - fz(i,j,k,URHO))
+             runewrx = rurx - cdtdz*(fz(i,j,k+1,UMX) - fz(i,j,k,UMX))
+             rvnewrx = rvrx - cdtdz*(fz(i,j,k+1,UMY) - fz(i,j,k,UMY))
+             rwnewrx = rwrx - cdtdz*(fz(i,j,k+1,UMZ) - fz(i,j,k,UMZ))
+             renewrx = rerx - cdtdz*(fz(i,j,k+1,UEDEN) - fz(i,j,k,UEDEN))
 #ifdef RADIATION
-             runewr = runewr + dmx
-             rvnewr = rvnewr + dmy
-             renewr = renewr + dre
-             ernewr = err(:) - cdtdx*(rfxy(i+1,j,k,:) - rfxy(i,j,k,:)) &
-                             - cdtdy*(rfyx(i,j+1,k,:) - rfyx(i,j,k,:))  &
-                             + der(:)
+             rwnewrx = rwnewrx + dmz
+             renewrx = renewrx + dre
+             ernewrx = errx(:) - cdtdz*(rfz(i,j,k+1,:) - rfz(i,j,k,:)) + der(:)
 #endif
 
              ! Reset to original value if adding transverse terms made density negative
              reset_state = .false.
-             if (transverse_reset_density == 1 .and. rrnewr < ZERO) then
-                rrnewr = rrr
-                runewr = rur
-                rvnewr = rvr
-                rwnewr = rwr
-                renewr = rer
+             if (transverse_reset_density == 1 .and. rrnewrx < ZERO) then
+                rrnewrx = rrrx
+                runewrx = rurx
+                rvnewrx = rvrx
+                rwnewrx = rwrx
+                renewrx = rerx
 #ifdef RADIATION
-                ernewr = err(:)
+                ernewrx = errx(:)
 #endif
                 reset_state = .true.
-             endif
+             end if
 
              ! Convert back to primitive form
-             qpo(i,j,k,QRHO  ) = rrnewr
-             qpo(i,j,k,QU    ) = runewr/rrnewr
-             qpo(i,j,k,QV    ) = rvnewr/rrnewr
-             qpo(i,j,k,QW    ) = rwnewr/rrnewr
-
-             ! for ppm_type > 0 we already added the piecewise parabolic traced
-             ! source terms to the normal edge states.
-             if (ppm_type == 0) then
-                qpo(i,j,k,QRHO ) = qpo(i,j,k,QRHO ) + hdt*srcQ(i,j,k,QRHO)
-                qpo(i,j,k,QU:QW) = qpo(i,j,k,QU:QW) + hdt*srcQ(i,j,k,QU:QW)
-             endif
+             qxpo(i,j,k,QRHO) = rrnewrx
+             rhoinv = ONE/rrnewrx
+             qxpo(i,j,k,QU) = runewrx*rhoinv
+             qxpo(i,j,k,QV) = rvnewrx*rhoinv
+             qxpo(i,j,k,QW) = rwnewrx*rhoinv
 
              ! note: we run the risk of (rho e) being negative here
-             rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
-             qpo(i,j,k,QREINT) = renewr - rhoekenr
-             if (ppm_type == 0) then
-                qpo(i,j,k,QREINT) = qpo(i,j,k,QREINT) + hdt*srcQ(i,j,k,QREINT)
-             endif
+             rhoekenrx = HALF*(runewrx**2 + rvnewrx**2 + rwnewrx**2)*rhoinv
+             qxpo(i,j,k,QREINT) = renewrx - rhoekenrx
 
              if (.not. reset_state) then
-                if (transverse_reset_rhoe == 1 .and. qpo(i,j,k,QREINT) <= ZERO) then
-                   ! If it is negative, reset the internal energy by using the discretized
-                   ! expression for updating (rho e).
-                   qpo(i,j,k,QREINT) = qp(i,j,k,QREINT) &
-                        - cdtdx*(fxy(i+1,j,k,UEINT) - fxy(i,j,k,UEINT) + pxav*dux) &
-                        - cdtdy*(fyx(i,j+1,k,UEINT) - fyx(i,j,k,UEINT) + pyav*duy)
-                endif
+                ! do the transverse terms for p, gamma, and rhoe, as necessary
 
-                if (ppm_type == 0) then
-                   qpo(i,j,k,QREINT) = qpo(i,j,k,QREINT) + hdt*srcQ(i,j,k,QREINT)
+                if (transverse_reset_rhoe == 1 .and. qxpo(i,j,k,QREINT) <= ZERO) then
+                   ! If it is negative, reset the internal energy by
+                   ! using the discretized expression for updating (rho e).
+                   qxpo(i,j,k,QREINT) = qxp(i,j,k,QREINT) - &
+                        cdtdz*(fz(i,j,k+1,UEINT) - fz(i,j,k,UEINT) + pav*du)
                 endif
 
                 ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
@@ -2659,199 +2595,145 @@ contains
 
                 if (ppm_predict_gammae == 0) then
                    ! add the transverse term to the p evolution eq here
-                   pnewr = qp(i,j,k,QPRES) - pxnew - pynew
-                   qpo(i,j,k,QPRES) = pnewr
-                   if (ppm_type == 0) then
-                      qpo(i,j,k,QPRES) = qpo(i,j,k,QPRES) + hdt*srcQ(i,j,k,QPRES)
-                   endif
+                   pnewrx = qxp(i,j,k,QPRES) - cdtdz*(dup + pav*du*(gamc - ONE))
+                   qxpo(i,j,k,QPRES) = max(pnewrx,small_pres)
                 else
                    ! Update gammae with its transverse terms
-                   qpo(i,j,k,QGAME) = qp(i,j,k,QGAME) + gexnew + geynew
+                   qxpo(i,j,k,QGAME) = qxp(i,j,k,QGAME) + &
+                        cdtdz*( (geav-ONE)*(geav - gamc)*du - uav*dge )
 
                    ! and compute the p edge state from this and (rho e)
-                   qpo(i,j,k,QPRES) = qpo(i,j,k,QREINT)*(qpo(i,j,k,QGAME)-ONE)
+                   qxpo(i,j,k,QPRES) = qxpo(i,j,k,QREINT)*(qxpo(i,j,k,QGAME)-ONE)
+                   qxpo(i,j,k,QPRES) = max(qxpo(i,j,k,QPRES), small_pres)
                 endif
              else
-                qpo(i,j,k,QPRES) = qp(i,j,k,QPRES)
-                if (ppm_type == 0) then
-                   qpo(i,j,k,QPRES) = qpo(i,j,k,QPRES) + hdt*srcQ(i,j,k,QPRES)
-                endif
-                qpo(i,j,k,QGAME) = qp(i,j,k,QGAME)
+                qxpo(i,j,k,QPRES) = qxp(i,j,k,QPRES)
+                qxpo(i,j,k,QGAME) = qxp(i,j,k,QGAME)
              endif
 
-             qpo(i,j,k,QPRES) = max(qpo(i,j,k,QPRES), small_pres)
-
-             call reset_edge_state_thermo(qpo, q_lo, q_hi, i, j, k)
+             call reset_edge_state_thermo(qxpo, q_lo, q_hi, i, j, k)
 
 #ifdef RADIATION
-             qpo(i,j,k,qrad:qradhi) = ernewr(:)
-             qpo(i,j,k,qptot  ) = sum(lamc(:)*ernewr(:)) + qpo(i,j,k,QPRES)
-             qpo(i,j,k,qreitot) = sum(qpo(i,j,k,qrad:qradhi)) + qpo(i,j,k,QREINT)
+             qxpo(i,j,k,qrad:qradhi) = ernewrx(:)
+             qxpo(i,j,k,qptot  ) = sum(lambda(:)*ernewrx(:)) + qxpo(i,j,k,QPRES)
+             qxpo(i,j,k,qreitot) = sum(qxpo(i,j,k,qrad:qradhi)) + qxpo(i,j,k,QREINT)
 #endif
 
           end do
-       end do
-    end do
 
-    !-------------------------------------------------------------------
-    ! qzmo state
-    !-------------------------------------------------------------------
+          !-------------------------------------------------------------------
+          ! qxmo state
+          !-------------------------------------------------------------------
 
-    do k = lo(3)-1, hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
+          do i = lo(1)-1, hi(1)
 
-             pgxp = qx(i+1,j,k,GDPRES)
-             pgxm = qx(i,j,k,GDPRES)
-             ugxp = qx(i+1,j,k,GDU)
-             ugxm = qx(i,j,k,GDU)
-             gegxp = qx(i+1,j,k,GDGAME)
-             gegxm = qx(i,j,k,GDGAME)
-
-             pgyp = qy(i,j+1,k,GDPRES)
-             pgym = qy(i,j,k,GDPRES)
-             ugyp = qy(i,j+1,k,GDV)
-             ugym = qy(i,j,k,GDV)
-             gegyp = qy(i,j+1,k,GDGAME)
-             gegym = qy(i,j,k,GDGAME)
-
-             duxp = pgxp*ugxp - pgxm*ugxm
-             pxav = HALF*(pgxp+pgxm)
-             uxav = HALF*(ugxp+ugxm)
-             gexav = HALF*(gegxp+gegxm)
-             dux = ugxp-ugxm
-             dgex = gegxp-gegxm
+             pgp  = qz(i,j,k+1,GDPRES)
+             pgm  = qz(i,j,k,GDPRES)
+             ugp  = qz(i,j,k+1,GDW   )
+             ugm  = qz(i,j,k,GDW   )
+             gegp = qz(i,j,k+1,GDGAME)
+             gegm = qz(i,j,k,GDGAME)
 #ifdef RADIATION
-             pxnew = cdtdx*(duxp + pxav*dux*(qaux(i,j,k,QGAMCG) - ONE))
-             gexnew = cdtdx*( (gexav-ONE)*(gexav - qaux(i,j,k,QGAMCG))*dux - uxav*dgex )
+             lambda(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
+             ergp = qz(i,j,k+1,GDERADS:GDERADS-1+ngroups)
+             ergm = qz(i,j,k,GDERADS:GDERADS-1+ngroups)
+#endif
+
+             ! we need to augment our conserved system with either a p
+             ! equation or gammae (if we have ppm_predict_gammae = 1) to
+             ! be able to deal with the general EOS
+
+             dup = pgp*ugp - pgm*ugm
+             pav = HALF*(pgp+pgm)
+             uav = HALF*(ugp+ugm)
+             geav = HALF*(gegp+gegm)
+             du = ugp-ugm
+             dge = gegp-gegm
+
+             ! this is the gas gamma_1
+#ifdef RADIATION
+             gamc = qaux(i,j,k,QGAMCG)
 #else
-             pxnew = cdtdx*(duxp + pxav*dux*(qaux(i,j,k,QGAMC) - ONE))
-             gexnew = cdtdx*( (gexav-ONE)*(gexav - qaux(i,j,k,QGAMC))*dux - uxav*dgex )
-#endif
-
-             duyp = pgyp*ugyp - pgym*ugym
-             pyav = HALF*(pgyp+pgym)
-             uyav = HALF*(ugyp+ugym)
-             geyav = HALF*(gegyp+gegym)
-             duy = ugyp-ugym
-             dgey = gegyp-gegym
-#ifdef RADIATION
-             pynew = cdtdy*(duyp + pyav*duy*(qaux(i,j,k,QGAMCG) - ONE))
-             geynew = cdtdy*( (geyav-ONE)*(geyav - qaux(i,j,k,QGAMCG))*duy - uyav*dgey )
-#else
-             pynew = cdtdy*(duyp + pyav*duy*(qaux(i,j,k,QGAMC) - ONE))
-             geynew = cdtdy*( (geyav-ONE)*(geyav - qaux(i,j,k,QGAMC))*duy - uyav*dgey )
+             gamc = qaux(i,j,k,QGAMC)
 #endif
 
 #ifdef RADIATION
-             lamc(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
-             ergxp = qx(i+1,j,k,GDERADS:GDERADS-1+ngroups)
-             ergxm = qx(i  ,j,k,GDERADS:GDERADS-1+ngroups)
-             ergyp = qy(i,j+1,k,GDERADS:GDERADS-1+ngroups)
-             ergym = qy(i,j  ,k,GDERADS:GDERADS-1+ngroups)
-#endif
-
-             ! Convert to conservation form
-             rrl = qm(i,j,k+1,QRHO)
-             rul = rrl*qm(i,j,k+1,QU)
-             rvl = rrl*qm(i,j,k+1,QV)
-             rwl = rrl*qm(i,j,k+1,QW)
-             ekenl = HALF*rrl*(qm(i,j,k+1,QU)**2 + qm(i,j,k+1,QV)**2 + &
-                  qm(i,j,k+1,QW)**2)
-             rel = qm(i,j,k+1,QREINT) + ekenl
-#ifdef RADIATION
-             erl = qm(i,j,k+1,qrad:qradhi)
-
-             lgex = lamm(:) * (ergxpm(:)-ergxmm(:))
-             lgey = lamm(:) * (ergypm(:)-ergymm(:))
-             dmx = - cdtdx*sum(lgex)
-             dmy = - cdtdy*sum(lgey)
-             lugex = HALF*(ugxpm+ugxmm) * lgex(:)
-             lugey = HALF*(ugypm+ugymm) * lgey(:)
-             dre = -cdtdx*sum(lugex) - cdtdy*sum(lugey)
+             lamge = lambda(:) * (ergp(:)-ergm(:))
+             dmz = - cdtdz*sum(lamge)
+             luge = HALF*(ugp+ugm) * lamge(:)
+             dre = -cdtdz*sum(luge)
 
              if (fspace_type .eq. 1 .and. comoving) then
                 do g=0, ngroups-1
-                   eddf = Edd_factor(lamm(g))
+                   eddf = Edd_factor(lambda(g))
                    f1 = HALF*(ONE-eddf)
-                   der(g) = f1*(cdtdx*HALF*(ugxpm+ugxmm)*(ergxpm(g)-ergxmm(g)) &
-                        +       cdtdy*HALF*(ugypm+ugymm)*(ergypm(g)-ergymm(g)) )
+                   der(g) = cdtdz*HALF*(ugp+ugm) * f1 * (ergp(g) - ergm(g))
                 end do
              else if (fspace_type .eq. 2) then
                 do g=0, ngroups-1
-                   eddf = Edd_factor(lamm(g))
+                   eddf = Edd_factor(lambda(g))
                    f1 = HALF*(ONE-eddf)
-                   der(g) = f1*(cdtdx*HALF*(ergxpm(g)+ergxmm(g))*(ugxmm-ugxpm) &
-                        +       cdtdy*HALF*(ergypm(g)+ergymm(g))*(ugymm-ugypm) )
+                   der(g) = cdtdz * f1 * HALF*(ergp(g)+ergm(g))*(ugm-ugp)
                 end do
              else ! mixed frame
-                der(:) = cdtdx * lugex + cdtdy * lugey
+                der(:) = cdtdz * luge
              end if
 #endif
 
-             rrnewl = rrl - cdtdx*(fxy(i+1,j,k,URHO) - fxy(i,j,k,URHO)) &
-                          - cdtdy*(fyx(i,j+1,k,URHO) - fyx(i,j,k,URHO))
-             runewl = rul - cdtdx*(fxy(i+1,j,k,UMX) - fxy(i,j,k,UMX)) &
-                          - cdtdy*(fyx(i,j+1,k,UMX) - fyx(i,j,k,UMX))
-             rvnewl = rvl - cdtdx*(fxy(i+1,j,k,UMY) - fxy(i,j,k,UMY)) &
-                          - cdtdy*(fyx(i,j+1,k,UMY) - fyx(i,j,k,UMY))
-             rwnewl = rwl - cdtdx*(fxy(i+1,j,k,UMZ) - fxy(i,j,k,UMZ)) &
-                          - cdtdy*(fyx(i,j+1,k,UMZ) - fyx(i,j,k,UMZ))
-             renewl = rel - cdtdx*(fxy(i+1,j,k,UEDEN) - fxy(i,j,k,UEDEN)) &
-                          - cdtdy*(fyx(i,j+1,k,UEDEN) - fyx(i,j,k,UEDEN))
+             ! Convert to conservation form
+             rrlx = qxm(i+1,j,k,QRHO)
+             rulx = rrlx*qxm(i+1,j,k,QU)
+             rvlx = rrlx*qxm(i+1,j,k,QV)
+             rwlx = rrlx*qxm(i+1,j,k,QW)
+             ekenlx = HALF*rrlx*sum(qxm(i+1,j,k,QU:QW)**2)
+             relx = qxm(i+1,j,k,QREINT) + ekenlx
 #ifdef RADIATION
-             runewl = runewl + dmx
-             rvnewl = rvnewl + dmy
-             renewl = renewl + dre
-             ernewl = erl(:) - cdtdx*(rfxy(i+1,j  ,k,:) - rfxy(i,j,k,:)) &
-                             - cdtdy*(rfyx(i  ,j+1,k,:) - rfyx(i,j,k,:)) &
-                             + der(:)
+             erlx = qxm(i+1,j,k,qrad:qradhi)
+#endif
+
+             ! Add transverse predictor
+             rrnewlx = rrlx - cdtdz*(fz(i,j,k+1,URHO) - fz(i,j,k,URHO))
+             runewlx = rulx - cdtdz*(fz(i,j,k+1,UMX) - fz(i,j,k,UMX))
+             rvnewlx = rvlx - cdtdz*(fz(i,j,k+1,UMY) - fz(i,j,k,UMY))
+             rwnewlx = rwlx - cdtdz*(fz(i,j,k+1,UMZ) - fz(i,j,k,UMZ))
+             renewlx = relx - cdtdz*(fz(i,j,k+1,UEDEN) - fz(i,j,k,UEDEN))
+#ifdef RADIATION
+             rwnewlx = rwnewlx + dmz
+             renewlx = renewlx + dre
+             ernewlx = erlx(:) - cdtdz*(rfz(i,j,k+1,:) - rfz(i,j,k,:)) + der(:)
 #endif
 
              ! Reset to original value if adding transverse terms made density negative
              reset_state = .false.
-             if (transverse_reset_density == 1 .and. rrnewl < ZERO) then
-                rrnewl = rrl
-                runewl = rul
-                rvnewl = rvl
-                rwnewl = rwl
-                renewl = rel
+             if (transverse_reset_density == 1 .and. rrnewlx < ZERO) then
+                rrnewlx = rrlx
+                runewlx = rulx
+                rvnewlx = rvlx
+                rwnewlx = rwlx
+                renewlx = relx
 #ifdef RADIATION
-                ernewl = erl(:)
+                ernewlx = erlx(:)
 #endif
                 reset_state = .true.
-             endif
+             end if
 
              ! Convert back to primitive form
-             qmo(i,j,k+1,QRHO  ) = rrnewl
-             qmo(i,j,k+1,QU    ) = runewl/rrnewl
-             qmo(i,j,k+1,QV    ) = rvnewl/rrnewl
-             qmo(i,j,k+1,QW    ) = rwnewl/rrnewl
-
-             ! for ppm_type > 0 we already added the piecewise parabolic traced
-             ! source terms to the normal edge states.
-             if (ppm_type == 0) then
-                qmo(i,j,k+1,QRHO  ) = qmo(i,j,k+1,QRHO  ) + hdt*srcQ(i,j,k,QRHO)
-                qmo(i,j,k+1,QU:QW) = qmo(i,j,k+1,QU:QW) + hdt * srcQ(i,j,k,QU:QW)
-             endif
+             qxmo(i+1,j,k,QRHO) = rrnewlx
+             rhoinv = ONE/rrnewlx
+             qxmo(i+1,j,k,QU) = runewlx*rhoinv
+             qxmo(i+1,j,k,QV) = rvnewlx*rhoinv
+             qxmo(i+1,j,k,QW) = rwnewlx*rhoinv
 
              ! note: we run the risk of (rho e) being negative here
-             rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
-             qmo(i,j,k+1,QREINT) = renewl - rhoekenl
-             if (ppm_type == 0) then
-                qmo(i,j,k+1,QREINT) = qmo(i,j,k+1,QREINT) + hdt*srcQ(i,j,k,QREINT)
-             endif
+             rhoekenlx = HALF*(runewlx**2 + rvnewlx**2 + rwnewlx**2)*rhoinv
+             qxmo(i+1,j,k,QREINT) = renewlx - rhoekenlx
 
              if (.not. reset_state) then
-                if (transverse_reset_rhoe == 1 .and. qmo(i,j,k+1,QREINT) <= ZERO) then
+                if (transverse_reset_rhoe == 1 .and. qxmo(i+1,j,k,QREINT) <= ZERO) then
                    ! If it is negative, reset the internal energy by using the discretized
                    ! expression for updating (rho e).
-                   qmo(i,j,k+1,QREINT) = qm(i,j,k+1,QREINT) &
-                        - cdtdx*(fxy(i+1,j,k,UEINT) - fxy(i,j,k,UEINT) + pxav*dux) &
-                        - cdtdy*(fyx(i,j+1,k,UEINT) - fyx(i,j,k,UEINT) + pyav*duy)
-                   if (ppm_type == 0) then
-                      qmo(i,j,k+1,QREINT) = qmo(i,j,k+1,QREINT) + hdt*srcQ(i,j,k,QREINT)
-                   endif
+                   qxmo(i+1,j,k,QREINT) = qxm(i+1,j,k,QREINT) - &
+                        cdtdz*(fz(i,j,k+1,UEINT) - fz(i,j,k,UEINT) + pav*du)
                 endif
 
                 ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
@@ -2859,182 +2741,68 @@ contains
 
                 if (ppm_predict_gammae == 0) then
                    ! add the transverse term to the p evolution eq here
-                   pnewl = qm(i,j,k+1,QPRES) - pxnew - pynew
-                   qmo(i,j,k+1,QPRES) = pnewl
-                   if (ppm_type == 0) then
-                      qmo(i,j,k+1,QPRES) = qmo(i,j,k+1,QPRES) + hdt*srcQ(i,j,k,QPRES)
-                   endif
+                   pnewlx = qxm(i+1,j,k,QPRES) - cdtdz*(dup + pav*du*(gamc - ONE))
+                   qxmo(i+1,j,k,QPRES) = max(pnewlx,small_pres)
                 else
                    ! Update gammae with its transverse terms
-                   qmo(i,j,k+1,QGAME) = qm(i,j,k+1,QGAME) + gexnew + geynew
+                   qxmo(i+1,j,k,QGAME) = qxm(i+1,j,k,QGAME) + &
+                        cdtdz*( (geav-ONE)*(geav - gamc)*du - uav*dge )
 
                    ! and compute the p edge state from this and (rho e)
-                   qmo(i,j,k+1,QPRES) = qmo(i,j,k+1,QREINT)*(qmo(i,j,k+1,QGAME)-ONE)
-                endif
+                   qxmo(i+1,j,k,QPRES) = qxmo(i+1,j,k,QREINT)*(qxmo(i+1,j,k,QGAME)-ONE)
+                   qxmo(i+1,j,k,QPRES) = max(qxmo(i+1,j,k,QPRES), small_pres)
+                end if
              else
-                qmo(i,j,k+1,QPRES) = qm(i,j,k+1,QPRES)
-                if (ppm_type == 0) then
-                   qmo(i,j,k+1,QPRES) = qmo(i,j,k+1,QPRES) + hdt*srcQ(i,j,k,QPRES)
-                endif
-                qmo(i,j,k+1,QGAME) = qm(i,j,k+1,QGAME)
+                qxmo(i+1,j,k,QPRES) = qxm(i+1,j,k,QPRES)
+                qxmo(i+1,j,k,QGAME) = qxm(i+1,j,k,QGAME)
              endif
 
-             qmo(i,j,k+1,QPRES) = max(qmo(i,j,k+1,QPRES), small_pres)
-
-             call reset_edge_state_thermo(qmo, q_lo, q_hi, i, j, k+1)
+             call reset_edge_state_thermo(qxmo, q_lo, q_hi, i+1, j, k)
 
 #ifdef RADIATION
-             qmo(i,j,k+1,qrad:qradhi) = ernewl(:)
-             qmo(i,j,k+1,qptot  ) = sum(lamm(:)*ernewl(:)) + qmo(i,j,k+1,QPRES)
-             qmo(i,j,k+1,qreitot) = sum(qmo(i,j,k+1,qrad:qradhi)) + qmo(i,j,k+1,QREINT)
+             qxmo(i+1,j,k,qrad:qradhi) = ernewlx(:)
+             qxmo(i+1,j,k,qptot  ) = sum(lambda(:)*ernewlx(:)) + qxmo(i+1,j,k,QPRES)
+             qxmo(i+1,j,k,qreitot) = sum(qxmo(i+1,j,k,qrad:qradhi)) + qxmo(i+1,j,k,QREINT)
 #endif
 
           end do
        end do
     end do
 
-  end subroutine transxy
-
-
-  !===========================================================================
-  ! transxz
-  !===========================================================================
-  subroutine transxz(qm, qmo, qp, qpo, q_lo, q_hi, &
-                     qaux, qa_lo, qa_hi, &
-                     fxz, &
-#ifdef RADIATION
-                     rfxz, &
-#endif
-                     fx_lo, fx_hi, &
-                     fzx, &
-#ifdef RADIATION
-                     rfzx, &
-#endif
-                     fz_lo, fz_hi, &
-                     qx, qx_lo, qx_hi, &
-                     qz, qz_lo, qz_hi, &
-                     srcQ, src_lo, src_hi, &
-                     hdt, cdtdx, cdtdz, lo, hi)
-
-
-    use amrex_constants_module, only : ZERO, ONE, HALF
-
-    use network, only : nspec, naux
-    use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QFS, QFX, &
-                                   QC, QGAMC, &
-#ifdef RADIATION
-                                   qrad, qradhi, qptot, qreitot, &
-                                   fspace_type, comoving, &
-                                   GDERADS, GDLAMS, &
-                                   QCG, QGAMCG, QLAMS, &
-#endif
-                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, &
-                                   NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
-                                   small_pres, small_temp, &
-                                   npassive, upass_map, qpass_map, &
-                                   ppm_predict_gammae, ppm_type, &
-                                   transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
-#ifdef RADIATION
-    use rad_params_module, only : ngroups
-    use fluxlimiter_module, only : Edd_factor
-#endif
-    use eos_module, only: eos
-    use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
-
-
-    integer, intent(in) :: q_lo(3),q_hi(3)
-    integer, intent(in) :: qa_lo(3),qa_hi(3)
-    integer, intent(in) :: fx_lo(3),fx_hi(3)
-    integer, intent(in) :: fz_lo(3),fz_hi(3)
-    integer, intent(in) :: qx_lo(3),qx_hi(3)
-    integer, intent(in) :: qz_lo(3),qz_hi(3)
-    integer, intent(in) :: src_lo(3),src_hi(3)
-    integer, intent(in) :: lo(3), hi(3)
-
-#ifdef RADIATION
-    real(rt), intent(in) :: rfxz(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
-    real(rt), intent(in) :: rfzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
-#endif
-
-    real(rt), intent(in) :: qm(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(in) :: qp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(out) :: qmo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(out) :: qpo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-
-    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-
-    real(rt), intent(in) :: fxz(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
-    real(rt), intent(in) :: fzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
-    real(rt), intent(in) :: qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
-    real(rt), intent(in) :: qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
-    real(rt), intent(in) :: srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
-    real(rt), intent(in) :: hdt,cdtdx,cdtdz
-
-    integer i, j, k, n, nqp, ipassive
-
-    real(rt)         rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
-    real(rt)         rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
-    real(rt)         rrnewr, runewr, rvnewr, rwnewr, renewr
-    real(rt)         rrnewl, runewl, rvnewl, rwnewl, renewl
-    real(rt)         pnewr, pnewl
-    real(rt)         pgxp, pgxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew, gexnew
-    real(rt)         pgzp, pgzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew, geznew
-    real(rt)         uxav, gexav, dgex, uzav, gezav, dgez
-    real(rt)         compr, compl, compnr, compnl, drr, dcompn
-
-#ifdef RADIATION
-    real(rt)         :: dmx, dmz, dre
-    real(rt)        , dimension(0:ngroups-1) :: der, lambda, lugex, lugez, lgex, lgez, &
-         err, ernewr, erl, ernewl, ergzp, ergxp, ergzm,  ergxm
-    real(rt)         eddf, f1
-    integer :: g
-#endif
-
-    logical :: reset_state
+    ! work on qy*
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
     !-------------------------------------------------------------------------
 
-    do ipassive = 1,npassive
-       n  = upass_map(ipassive)
+    do ipassive = 1, npassive
+       n = upass_map(ipassive)
        nqp = qpass_map(ipassive)
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)+1
-             do i = lo(1), hi(1)
-
-                rrr = qp(i,j,k,QRHO)
-                compr = rrr*qp(i,j,k,nqp)
-                rrnewr = rrr - cdtdx*(fxz(i+1,j,k,URHO) - fxz(i,j,k,URHO)) &
-                             - cdtdz*(fzx(i  ,j,k+1,URHO) - fzx(i,j,k,URHO))
-                compnr = compr - cdtdx*(fxz(i+1,j,k,n) - fxz(i,j,k,n)) &
-                               - cdtdz*(fzx(i  ,j,k+1,n) - fzx(i,j,k,n))
-
-                qpo(i,j  ,k,nqp) = compnr/rrnewr + hdt*srcQ(i,j,k,nqp)
+             do i = lo(1)-1, hi(1)+1
+                rrnew = qyp(i,j,k,QRHO) - cdtdz*(fz(i,j,k+1,URHO) - fz(i,j,k,URHO))
+                compu = qyp(i,j,k,QRHO)*qyp(i,j,k,nqp) - cdtdz*(fz(i,j,k+1,n) - fz(i,j,k,n))
+                qypo(i,j,k,nqp) = compu/rrnew
              end do
           end do
 
-          do j = lo(2)-1, hi(2)
-             do i = lo(1), hi(1)
-                rrl = qm(i,j+1,k,QRHO)
-                compl = rrl*qm(i,j+1,k,nqp)
-                rrnewl = rrl - cdtdx*(fxz(i+1,j,k,URHO) - fxz(i,j,k,URHO)) &
-                             - cdtdz*(fzx(i  ,j,k+1,URHO) - fzx(i,j,k,URHO))
-                compnl = compl - cdtdx*(fxz(i+1,j,k,n) - fxz(i,j,k,n)) &
-                               - cdtdz*(fzx(i  ,j,k+1,n) - fzx(i,j,k,n))
 
-                qmo(i,j+1,k,nqp) = compnl/rrnewl + hdt*srcQ(i,j,k,nqp)
+          do j = lo(2)-1, hi(2)
+             do i = lo(1)-1, hi(1)+1
+                rrnew = qym(i,j+1,k,QRHO) - cdtdz*(fz(i,j,k+1,URHO) - fz(i,j,k,URHO))
+                compu = qym(i,j+1,k,QRHO)*qym(i,j+1,k,nqp) - cdtdz*(fz(i,j,k+1,n) - fz(i,j,k,n))
+                qymo(i,j+1,k,nqp) = compu/rrnew
              end do
           end do
        end do
     end do
 
     !-------------------------------------------------------------------
-    ! add the transverse xz and zx differences to the y-states for the
-    ! fluid variables
+    ! add the transverse flux difference in the z-direction to y-states
+    ! for the fluid variables
     !-------------------------------------------------------------------
 
     do k = lo(3), hi(3)
@@ -3044,160 +2812,117 @@ contains
        !-------------------------------------------------------------------
 
        do j = lo(2), hi(2)+1
-          do i = lo(1), hi(1)
+          do i = lo(1)-1, hi(1)+1
 
-             pgxp  = qx(i+1,j,k,GDPRES)
-             pgxm  = qx(i,j,k,GDPRES)
-             ugxp  = qx(i+1,j,k,GDU)
-             ugxm  = qx(i,j,k,GDU)
-             gegxp = qx(i+1,j,k,GDGAME)
-             gegxm = qx(i,j,k,GDGAME)
-#ifdef RADIATION
-             ergxp = qx(i+1,j,k,GDERADS:GDERADS-1+ngroups)
-             ergxm = qx(i  ,j,k,GDERADS:GDERADS-1+ngroups)
-#endif
-
-             pgzp  = qz(i,j,k+1,GDPRES)
-             pgzm  = qz(i,j,k,GDPRES)
-             ugzp  = qz(i,j,k+1,GDW)
-             ugzm  = qz(i,j,k,GDW)
-             gegzp = qz(i,j,k+1,GDGAME)
-             gegzm = qz(i,j,k,GDGAME)
-#ifdef RADIATION
-             ergzp = qz(i,j,k+1,GDERADS:GDERADS-1+ngroups)
-             ergzm = qz(i,j,k,GDERADS:GDERADS-1+ngroups)
-#endif
-
-             duxp = pgxp*ugxp - pgxm*ugxm
-             pxav = HALF*(pgxp+pgxm)
-             uxav = HALF*(ugxp+ugxm)
-             gexav = HALF*(gegxp+gegxm)
-             dux = ugxp-ugxm
-             dgex = gegxp-gegxm
-#ifdef RADIATION
-             pxnew = cdtdx*(duxp + pxav*dux*(qaux(i,j,k,QGAMCG) - ONE))
-             gexnew = cdtdx*( (gexav-ONE)*(gexav - qaux(i,j,k,QGAMCG))*dux - uxav*dgex )
-#else
-             pxnew = cdtdx*(duxp + pxav*dux*(qaux(i,j,k,QGAMC) - ONE))
-             gexnew = cdtdx*( (gexav-ONE)*(gexav - qaux(i,j,k,QGAMC))*dux - uxav*dgex )
-#endif
-
-             duzp = pgzp*ugzp - pgzm*ugzm
-             pzav = HALF*(pgzp+pgzm)
-             uzav = HALF*(ugzp+ugzm)
-             gezav = HALF*(gegzp+gegzm)
-             duz = ugzp-ugzm
-             dgez = gegzp-gegzm
-#ifdef RADIATION
-             pznew = cdtdz*(duzp + pzav*duz*(qaux(i,j,k,QGAMCG) - ONE))
-             geznew = cdtdz*( (gezav-ONE)*(gezav - qaux(i,j,k,QGAMCG))*duz - uzav*dgez )
-#else
-             pznew = cdtdz*(duzp + pzav*duz*(qaux(i,j,k,QGAMC) - ONE))
-             geznew = cdtdz*( (gezav-ONE)*(gezav - qaux(i,j,k,QGAMC))*duz - uzav*dgez )
-#endif
-
+             pgp  = qz(i,j,k+1,GDPRES)
+             pgm  = qz(i,j,k,GDPRES)
+             ugp  = qz(i,j,k+1,GDW   )
+             ugm  = qz(i,j,k,GDW   )
+             gegp = qz(i,j,k+1,GDGAME)
+             gegm = qz(i,j,k,GDGAME)
 #ifdef RADIATION
              lambda(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
+             ergp = qz(i,j,k+1,GDERADS:GDERADS-1+ngroups)
+             ergm = qz(i,j,k,GDERADS:GDERADS-1+ngroups)
+#endif
 
-             lgex = lambda(:) * (ergxp(:)-ergxm(:))
-             lgez = lambda(:) * (ergzp(:)-ergzm(:))
-             dmx = - cdtdx*sum(lgex)
-             dmz = - cdtdz*sum(lgez)
-             lugex = HALF*(ugxp+ugxm) * lgex(:)
-             lugez = HALF*(ugzp+ugzm) * lgez(:)
-             dre = -cdtdx * sum(lugex) - cdtdz * sum(lugez)
+             ! we need to augment our conserved system with either a p
+             ! equation or gammae (if we have ppm_predict_gammae = 1) to
+             ! be able to deal with the general EOS
+
+             dup = pgp*ugp - pgm*ugm
+             pav = HALF*(pgp+pgm)
+             uav = HALF*(ugp+ugm)
+             geav = HALF*(gegp+gegm)
+             du = ugp-ugm
+             dge = gegp-gegm
+
+             ! this is the gas gamma_1
+#ifdef RADIATION
+             gamc = qaux(i,j,k,QGAMCG)
+#else
+             gamc = qaux(i,j,k,QGAMC)
+#endif
+
+#ifdef RADIATION
+             lamge = lambda(:) * (ergp(:)-ergm(:))
+             dmz = - cdtdz*sum(lamge)
+             luge = HALF*(ugp+ugm) * lamge(:)
+             dre = -cdtdz*sum(luge)
 
              if (fspace_type .eq. 1 .and. comoving) then
                 do g=0, ngroups-1
                    eddf = Edd_factor(lambda(g))
                    f1 = HALF*(ONE-eddf)
-                   der(g) = f1*(cdtdx*HALF*(ugxp+ugxm)*(ergxp(g)-ergxm(g)) &
-                        +       cdtdz*HALF*(ugzp+ugzm)*(ergzp(g)-ergzm(g)) )
+                   der(g) = cdtdz*HALF*(ugp+ugm) * f1 * (ergp(g) - ergm(g))
                 end do
              else if (fspace_type .eq. 2) then
                 do g=0, ngroups-1
                    eddf = Edd_factor(lambda(g))
                    f1 = HALF*(ONE-eddf)
-                   der(g) = f1*(cdtdx*HALF*(ergxp(g)+ergxm(g))*(ugxm-ugxp) &
-                        +       cdtdz*HALF*(ergzp(g)+ergzm(g))*(ugzm-ugzp) )
+                   der(g) = cdtdz* f1 * HALF*(ergp(g)+ergm(g))*(ugm-ugp)
                 end do
              else ! mixed frame
-                der(:) = cdtdx*lugex + cdtdz*lugez
+                der(:) = cdtdz * luge
              end if
 #endif
 
              ! Convert to conservation form
-             rrr = qp(i,j,k,QRHO)
-             rur = rrr*qp(i,j,k,QU)
-             rvr = rrr*qp(i,j,k,QV)
-             rwr = rrr*qp(i,j,k,QW)
-             ekenr = HALF*rrr*(qp(i,j,k,QU)**2 + qp(i,j,k,QV)**2 + qp(i,j,k,QW)**2)
-             rer = qp(i,j,k,QREINT) + ekenr
+             rrry = qyp(i,j,k,QRHO)
+             rury = rrry*qyp(i,j,k,QU)
+             rvry = rrry*qyp(i,j,k,QV)
+             rwry = rrry*qyp(i,j,k,QW)
+             ekenry = HALF*rrry*sum(qyp(i,j,k,QU:QW)**2)
+             rery = qyp(i,j,k,QREINT) + ekenry
 #ifdef RADIATION
-             err = qp(i,j,k,qrad:qradhi)
+             erry = qyp(i,j,k,qrad:qradhi)
 #endif
 
              ! Add transverse predictor
-             rrnewr = rrr - cdtdx*(fxz(i+1,j,k,URHO) - fxz(i,j,k,URHO)) &
-                          - cdtdz*(fzx(i,j,k+1,URHO) - fzx(i,j,k,URHO))
-             runewr = rur - cdtdx*(fxz(i+1,j,k,UMX) - fxz(i,j,k,UMX)) &
-                          - cdtdz*(fzx(i,j,k+1,UMX) - fzx(i,j,k,UMX))
-             rvnewr = rvr - cdtdx*(fxz(i+1,j,k,UMY) - fxz(i,j,k,UMY)) &
-                          - cdtdz*(fzx(i,j,k+1,UMY) - fzx(i,j,k,UMY))
-             rwnewr = rwr - cdtdx*(fxz(i+1,j,k,UMZ) - fxz(i,j,k,UMZ)) &
-                          - cdtdz*(fzx(i,j,k+1,UMZ) - fzx(i,j,k,UMZ))
-             renewr = rer - cdtdx*(fxz(i+1,j,k,UEDEN) - fxz(i,j,k,UEDEN)) &
-                          - cdtdz*(fzx(i,j,k+1,UEDEN) - fzx(i,j,k,UEDEN))
+             rrnewry = rrry - cdtdz*(fz(i,j,k+1,URHO) - fz(i,j,k,URHO))
+             runewry = rury - cdtdz*(fz(i,j,k+1,UMX) - fz(i,j,k,UMX))
+             rvnewry = rvry - cdtdz*(fz(i,j,k+1,UMY) - fz(i,j,k,UMY))
+             rwnewry = rwry - cdtdz*(fz(i,j,k+1,UMZ) - fz(i,j,k,UMZ))
+             renewry = rery - cdtdz*(fz(i,j,k+1,UEDEN) - fz(i,j,k,UEDEN))
 #ifdef RADIATION
-             runewr = runewr + dmx
-             rwnewr = rwnewr + dmz
-             renewr = renewr + dre
-             ernewr = err(:) - cdtdx*(rfxz(i+1,j,k,:) - rfxz(i,j,k,:)) &
-                             - cdtdz*(rfzx(i  ,j,k+1,:) - rfzx(i,j,k,:)) &
-                             + der(:)
+             rwnewry = rwnewry + dmz
+             renewry = renewry + dre
+             ernewry = erry(:) - cdtdz*(rfz(i,j,k+1,:) - rfz(i,j,k,:)) + der(:)
 #endif
 
              ! Reset to original value if adding transverse terms made density negative
              reset_state = .false.
-             if (transverse_reset_density == 1 .and. rrnewr < ZERO) then
-                rrnewr = rrr
-                runewr = rur
-                rvnewr = rvr
-                rwnewr = rwr
-                renewr = rer
+             if (transverse_reset_density == 1 .and. rrnewry < ZERO) then
+                rrnewry = rrry
+                runewry = rury
+                rvnewry = rvry
+                rwnewry = rwry
+                renewry = rery
 #ifdef RADIATION
-                ernewr = err(:)
+                ernewry = erry(:)
 #endif
                 reset_state = .true.
-             endif
+             end if
 
-             qpo(i,j,k,QRHO  ) = rrnewr
-             qpo(i,j,k,QU    ) = runewr/rrnewr
-             qpo(i,j,k,QV    ) = rvnewr/rrnewr
-             qpo(i,j,k,QW    ) = rwnewr/rrnewr
-
-             ! for ppm_type > 0 we already added the piecewise parabolic traced
-             ! source terms to the normal edge states.
-             if (ppm_type == 0) then
-                qpo(i,j,k,QRHO  ) = qpo(i,j,k,QRHO  ) + hdt*srcQ(i,j,k,QRHO)
-                qpo(i,j,k,QU:QW) = qpo(i,j,k,QU:QW) + hdt * srcQ(i,j,k,QU:QW)
-             endif
+             ! Convert back to primitive form
+             qypo(i,j,k,QRHO) = rrnewry
+             rhoinv = ONE/rrnewry
+             qypo(i,j,k,QU) = runewry*rhoinv
+             qypo(i,j,k,QV) = rvnewry*rhoinv
+             qypo(i,j,k,QW) = rwnewry*rhoinv
 
              ! note: we run the risk of (rho e) being negative here
-             rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
-             qpo(i,j,k,QREINT) = renewr - rhoekenr
-             if (ppm_type == 0) then
-                qpo(i,j,k,QREINT) = qpo(i,j,k,QREINT) + hdt*srcQ(i,j,k,QREINT)
-             endif
+             rhoekenry = HALF*(runewry**2 + rvnewry**2 + rwnewry**2)*rhoinv
+             qypo(i,j,k,QREINT) = renewry - rhoekenry
 
              if (.not. reset_state) then
-                if (transverse_reset_rhoe == 1 .and. qpo(i,j,k,QREINT) <= ZERO) then
-                   qpo(i,j,k,QREINT) = qp(i,j,k,QREINT) &
-                        - cdtdx*(fxz(i+1,j,k,UEINT) - fxz(i,j,k,UEINT) + pxav*dux) &
-                        - cdtdz*(fzx(i  ,j,k+1,UEINT) - fzx(i,j,k,UEINT) + pzav*duz)
-                   if (ppm_type == 0) then
-                      qpo(i,j,k,QREINT) = qpo(i,j,k,QREINT) + hdt*srcQ(i,j,k,QREINT)
-                   endif
+                ! do the transverse terms for p, gamma, and rhoe, as necessary
+
+                if (transverse_reset_rhoe == 1 .and. qypo(i,j,k,QREINT) <= ZERO) then
+                   ! If it is negative, reset the internal energy by using the discretized
+                   ! expression for updating (rho e).
+                   qypo(i,j,k,QREINT) = qyp(i,j,k,QREINT) - &
+                        cdtdz*(fz(i,j,k+1,UEINT) - fz(i,j,k,UEINT) + pav*du)
                 endif
 
                 ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
@@ -3205,35 +2930,30 @@ contains
 
                 if (ppm_predict_gammae == 0) then
                    ! add the transverse term to the p evolution eq here
-                   pnewr = qp(i,j,k,QPRES) - pxnew - pznew
-                   qpo(i,j,k,QPRES) = pnewr
-                   if (ppm_type == 0) then
-                      qpo(i,j,k,QPRES) = qpo(i,j,k,QPRES) + hdt*srcQ(i,j,k,QPRES)
-                   endif
+                   pnewry = qyp(i,j,k,QPRES) - cdtdz*(dup + pav*du*(gamc - ONE))
+                   qypo(i,j,k,QPRES) = max(pnewry,small_pres)
                 else
                    ! Update gammae with its transverse terms
-                   qpo(i,j,k,QGAME) = qp(i,j,k,QGAME) + gexnew + geznew
-                   
+                   qypo(i,j,k,QGAME) = qyp(i,j,k,QGAME) + &
+                        cdtdz*( (geav-ONE)*(geav - gamc)*du - uav*dge )
+
                    ! and compute the p edge state from this and (rho e)
-                   qpo(i,j,k,QPRES) = qpo(i,j,k,QREINT)*(qpo(i,j,k,QGAME)-ONE)
+                   qypo(i,j,k,QPRES) = qypo(i,j,k,QREINT)*(qypo(i,j,k,QGAME)-ONE)
+                   qypo(i,j,k,QPRES) = max(qypo(i,j,k,QPRES), small_pres)
                 endif
              else
-                qpo(i,j,k,QPRES) = qp(i,j,k,QPRES)
-                if (ppm_type == 0) then
-                   qpo(i,j,k,QPRES) = qpo(i,j,k,QPRES) + hdt*srcQ(i,j,k,QPRES)
-                endif
-                qpo(i,j,k,QGAME) = qp(i,j,k,QGAME)
+                qypo(i,j,k,QPRES) = qyp(i,j,k,QPRES)
+                qypo(i,j,k,QGAME) = qyp(i,j,k,QGAME)
              endif
 
-             qpo(i,j,k,QPRES) = max(qpo(i,j,k,QPRES), small_pres)
-
-             call reset_edge_state_thermo(qpo, q_lo, q_hi, i, j, k)
+             call reset_edge_state_thermo(qypo, q_lo, q_hi, i, j, k)
 
 #ifdef RADIATION
-             qpo(i,j,k,qrad:qradhi) = ernewr(:)
-             qpo(i,j,k,qptot  ) = sum(lambda(:)*ernewr(:)) + qpo(i,j,k,QPRES)
-             qpo(i,j,k,qreitot) = sum(qpo(i,j,k,qrad:qradhi)) + qpo(i,j,k,QREINT)
+             qypo(i,j,k,qrad:qradhi) = ernewry(:)
+             qypo(i,j,k,qptot  ) = sum(lambda(:)*ernewry(:)) + qypo(i,j,k,QPRES)
+             qypo(i,j,k,qreitot) = sum(qypo(i,j,k,qrad:qradhi)) + qypo(i,j,k,QREINT)
 #endif
+
           end do
        end do
 
@@ -3242,162 +2962,117 @@ contains
        !-------------------------------------------------------------------
 
        do j = lo(2)-1, hi(2)
-          do i = lo(1), hi(1)
+          do i = lo(1)-1, hi(1)+1
 
-             pgxp  = qx(i+1,j,k,GDPRES)
-             pgxm  = qx(i,j,k,GDPRES)
-             ugxp  = qx(i+1,j,k,GDU)
-             ugxm  = qx(i,j,k,GDU)
-             gegxp = qx(i+1,j,k,GDGAME)
-             gegxm = qx(i,j,k,GDGAME)
-#ifdef RADIATION
-             ergxp = qx(i+1,j,k,GDERADS:GDERADS-1+ngroups)
-             ergxm = qx(i  ,j,k,GDERADS:GDERADS-1+ngroups)
-#endif
-
-             pgzp  = qz(i,j,k+1,GDPRES)
-             pgzm  = qz(i,j,k,GDPRES)
-             ugzp  = qz(i,j,k+1,GDW)
-             ugzm  = qz(i,j,k,GDW)
-             gegzp = qz(i,j,k+1,GDGAME)
-             gegzm = qz(i,j,k,GDGAME)
-#ifdef RADIATION
-             ergzp = qz(i,j,k+1,GDERADS:GDERADS-1+ngroups)
-             ergzm = qz(i,j,k,GDERADS:GDERADS-1+ngroups)
-#endif
-
-             duxp = pgxp*ugxp - pgxm*ugxm
-             pxav = HALF*(pgxp+pgxm)
-             uxav = HALF*(ugxp+ugxm)
-             gexav = HALF*(gegxp+gegxm)
-             dux = ugxp-ugxm
-             dgex = gegxp-gegxm
-#ifdef RADIATION
-             pxnew = cdtdx*(duxp + pxav*dux*(qaux(i,j,k,QGAMCG) - ONE))
-             gexnew = cdtdx*( (gexav-ONE)*(gexav - qaux(i,j,k,QGAMCG))*dux - uxav*dgex )
-#else
-             pxnew = cdtdx*(duxp + pxav*dux*(qaux(i,j,k,QGAMC) - ONE))
-             gexnew = cdtdx*( (gexav-ONE)*(gexav - qaux(i,j,k,QGAMC))*dux - uxav*dgex )
-#endif
-
-             duzp = pgzp*ugzp - pgzm*ugzm
-             pzav = HALF*(pgzp+pgzm)
-             uzav = HALF*(ugzp+ugzm)
-             gezav = HALF*(gegzp+gegzm)
-             duz = ugzp-ugzm
-             dgez = gegzp-gegzm
-#ifdef RADIATION
-             pznew = cdtdz*(duzp + pzav*duz*(qaux(i,j,k,QGAMCG) - ONE))
-             geznew = cdtdz*( (gezav-ONE)*(gezav - qaux(i,j,k,QGAMCG))*duz - uzav*dgez )
-#else
-             pznew = cdtdz*(duzp + pzav*duz*(qaux(i,j,k,QGAMC) - ONE))
-             geznew = cdtdz*( (gezav-ONE)*(gezav - qaux(i,j,k,QGAMC))*duz - uzav*dgez )
-#endif
-
+             pgp  = qz(i,j,k+1,GDPRES)
+             pgm  = qz(i,j,k,GDPRES)
+             ugp  = qz(i,j,k+1,GDW   )
+             ugm  = qz(i,j,k,GDW   )
+             gegp = qz(i,j,k+1,GDGAME)
+             gegm = qz(i,j,k,GDGAME)
 #ifdef RADIATION
              lambda(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
+             ergp = qz(i,j,k+1,GDERADS:GDERADS-1+ngroups)
+             ergm = qz(i,j,k,GDERADS:GDERADS-1+ngroups)
+#endif
 
-             lgex = lambda(:) * (ergxp(:)-ergxm(:))
-             lgez = lambda(:) * (ergzp(:)-ergzm(:))
-             dmx = - cdtdx*sum(lgex)
-             dmz = - cdtdz*sum(lgez)
-             lugex = HALF*(ugxp+ugxm) * lgex(:)
-             lugez = HALF*(ugzp+ugzm) * lgez(:)
-             dre = -cdtdx * sum(lugex) - cdtdz * sum(lugez)
+             ! we need to augment our conserved system with either a p
+             ! equation or gammae (if we have ppm_predict_gammae = 1) to
+             ! be able to deal with the general EOS
+
+             dup = pgp*ugp - pgm*ugm
+             pav = HALF*(pgp+pgm)
+             uav = HALF*(ugp+ugm)
+             geav = HALF*(gegp+gegm)
+             du = ugp-ugm
+             dge = gegp-gegm
+
+             ! this is the gas gamma_1
+#ifdef RADIATION
+             gamc = qaux(i,j,k,QGAMCG)
+#else
+             gamc = qaux(i,j,k,QGAMC)
+#endif
+
+#ifdef RADIATION
+             lamge = lambda(:) * (ergp(:)-ergm(:))
+             dmz = - cdtdz*sum(lamge)
+             luge = HALF*(ugp+ugm) * lamge(:)
+             dre = -cdtdz*sum(luge)
 
              if (fspace_type .eq. 1 .and. comoving) then
                 do g=0, ngroups-1
                    eddf = Edd_factor(lambda(g))
                    f1 = HALF*(ONE-eddf)
-                   der(g) = f1*(cdtdx*HALF*(ugxp+ugxm)*(ergxp(g)-ergxm(g)) &
-                        +       cdtdz*HALF*(ugzp+ugzm)*(ergzp(g)-ergzm(g)) )
+                   der(g) = cdtdz*HALF*(ugp+ugm) * f1 * (ergp(g) - ergm(g))
                 end do
              else if (fspace_type .eq. 2) then
                 do g=0, ngroups-1
                    eddf = Edd_factor(lambda(g))
                    f1 = HALF*(ONE-eddf)
-                   der(g) = f1*(cdtdx*HALF*(ergxp(g)+ergxm(g))*(ugxm-ugxp) &
-                        +       cdtdz*HALF*(ergzp(g)+ergzm(g))*(ugzm-ugzp) )
+                   der(g) = cdtdz * f1 * HALF*(ergp(g)+ergm(g))*(ugm-ugp)
                 end do
              else ! mixed frame
-                der(:) = cdtdx*lugex + cdtdz*lugez
+                der(:) = cdtdz * luge
              end if
 #endif
 
              ! Convert to conservation form
-             rrl = qm(i,j+1,k,QRHO)
-             rul = rrl*qm(i,j+1,k,QU)
-             rvl = rrl*qm(i,j+1,k,QV)
-             rwl = rrl*qm(i,j+1,k,QW)
-             ekenl = HALF*rrl*(qm(i,j+1,k,QU)**2 + qm(i,j+1,k,QV)**2 + qm(i,j+1,k,QW)**2)
-             rel = qm(i,j+1,k,QREINT) + ekenl
+             rrly = qym(i,j+1,k,QRHO)
+             ruly = rrly*qym(i,j+1,k,QU)
+             rvly = rrly*qym(i,j+1,k,QV)
+             rwly = rrly*qym(i,j+1,k,QW)
+             ekenly = HALF*rrly*sum(qym(i,j+1,k,QU:QW)**2)
+             rely = qym(i,j+1,k,QREINT) + ekenly
 #ifdef RADIATION
-             erl = qm(i,j+1,k,qrad:qradhi)
+             erly = qym(i,j+1,k,qrad:qradhi)
 #endif
 
              ! Add transverse predictor
-             rrnewl = rrl - cdtdx*(fxz(i+1,j,k,URHO) - fxz(i,j,k,URHO)) &
-                          - cdtdz*(fzx(i,j,k+1,URHO) - fzx(i,j,k,URHO))
-             runewl = rul - cdtdx*(fxz(i+1,j,k,UMX) - fxz(i,j,k,UMX)) &
-                          - cdtdz*(fzx(i,j,k+1,UMX) - fzx(i,j,k,UMX))
-             rvnewl = rvl - cdtdx*(fxz(i+1,j,k,UMY) - fxz(i,j,k,UMY)) &
-                          - cdtdz*(fzx(i,j,k+1,UMY) - fzx(i,j,k,UMY))
-             rwnewl = rwl - cdtdx*(fxz(i+1,j,k,UMZ) - fxz(i,j,k,UMZ)) &
-                          - cdtdz*(fzx(i,j,k+1,UMZ) - fzx(i,j,k,UMZ))
-             renewl = rel - cdtdx*(fxz(i+1,j,k,UEDEN) - fxz(i,j,k,UEDEN)) &
-                          - cdtdz*(fzx(i,j,k+1,UEDEN) - fzx(i,j,k,UEDEN))
+             rrnewly = rrly - cdtdz*(fz(i,j,k+1,URHO) - fz(i,j,k,URHO))
+             runewly = ruly - cdtdz*(fz(i,j,k+1,UMX) - fz(i,j,k,UMX))
+             rvnewly = rvly - cdtdz*(fz(i,j,k+1,UMY) - fz(i,j,k,UMY))
+             rwnewly = rwly - cdtdz*(fz(i,j,k+1,UMZ) - fz(i,j,k,UMZ))
+             renewly = rely - cdtdz*(fz(i,j,k+1,UEDEN) - fz(i,j,k,UEDEN))
 #ifdef RADIATION
-             runewl = runewl + dmx
-             rwnewl = rwnewl + dmz
-             renewl = renewl + dre
-             ernewl = erl(:) - cdtdx*(rfxz(i+1,j,k,:) - rfxz(i,j,k,:)) &
-                             - cdtdz*(rfzx(i  ,j,k+1,:) - rfzx(i,j,k,:)) &
-                             + der(:)
+             rwnewly = rwnewly + dmz
+             renewly = renewly + dre
+             ernewly = erly(:) - cdtdz*(rfz(i,j,k+1,:) - rfz(i,j,k,:)) + der(:)
 #endif
 
              ! Reset to original value if adding transverse terms made density negative
              reset_state = .false.
-             if (transverse_reset_density == 1 .and. rrnewl < ZERO) then
-                rrnewl = rrl
-                runewl = rul
-                rvnewl = rvl
-                rwnewl = rwl
-                renewl = rel
+             if (transverse_reset_density == 1 .and. rrnewly < ZERO) then
+                rrnewly = rrly
+                runewly = ruly
+                rvnewly = rvly
+                rwnewly = rwly
+                renewly = rely
 #ifdef RADIATION
-                ernewl = erl(:)
+                ernewly = erly(:)
 #endif
                 reset_state = .true.
              endif
 
-             qmo(i,j+1,k,QRHO  ) = rrnewl
-             qmo(i,j+1,k,QU    ) = runewl/rrnewl
-             qmo(i,j+1,k,QV    ) = rvnewl/rrnewl
-             qmo(i,j+1,k,QW    ) = rwnewl/rrnewl
-
-             ! for ppm_type > 0 we already added the piecewise parabolic traced
-             ! source terms to the normal edge states.
-             if (ppm_type == 0) then
-                qmo(i,j+1,k,QRHO  ) = qmo(i,j+1,k,QRHO  ) + hdt*srcQ(i,j,k,QRHO)
-                qmo(i,j+1,k,QU:QW) = qmo(i,j+1,k,QU:QW) + hdt * srcQ(i,j,k,QU:QW)
-             endif
+             ! Convert back to primitive form
+             qymo(i,j+1,k,QRHO) = rrnewly
+             rhoinv = ONE/rrnewly
+             qymo(i,j+1,k,QU) = runewly*rhoinv
+             qymo(i,j+1,k,QV) = rvnewly*rhoinv
+             qymo(i,j+1,k,QW) = rwnewly*rhoinv
 
              ! note: we run the risk of (rho e) being negative here
-             rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
-             qmo(i,j+1,k,QREINT) = renewl - rhoekenl
-             if (ppm_type == 0) then
-                qmo(i,j+1,k,QREINT) = qmo(i,j+1,k,QREINT) + hdt*srcQ(i,j,k,QREINT)
-             endif
+             rhoekenly = HALF*(runewly**2 + rvnewly**2 + rwnewly**2)*rhoinv
+             qymo(i,j+1,k,QREINT) = renewly - rhoekenly
 
              if (.not. reset_state) then
-                if (transverse_reset_rhoe == 1 .and. qmo(i,j+1,k,QREINT) <= ZERO) then
+                ! do the transverse terms for p, gamma, and rhoe, as necessary
+
+                if (transverse_reset_rhoe == 1 .and. qymo(i,j+1,k,QREINT) <= ZERO) then
                    ! If it is negative, reset the internal energy by using the discretized
                    ! expression for updating (rho e).
-                   qmo(i,j+1,k,QREINT) = qm(i,j+1,k,QREINT) &
-                        - cdtdx*(fxz(i+1,j,k,UEINT) - fxz(i,j,k,UEINT) + pxav*dux) &
-                        - cdtdz*(fzx(i,j,k+1,UEINT) - fzx(i,j,k,UEINT) + pzav*duz)
-                   if (ppm_type == 0) then
-                      qmo(i,j+1,k,QREINT) = qmo(i,j+1,k,QREINT) + hdt*srcQ(i,j,k,QREINT)
-                   endif
+                   qymo(i,j+1,k,QREINT) = qym(i,j+1,k,QREINT) - &
+                        cdtdz*(fz(i,j,k+1,UEINT) - fz(i,j,k,UEINT) + pav*du)
                 endif
 
                 ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
@@ -3405,43 +3080,35 @@ contains
 
                 if (ppm_predict_gammae == 0) then
                    ! add the transverse term to the p evolution eq here
-                   pnewl = qm(i,j+1,k,QPRES) - pxnew - pznew
-                   qmo(i,j+1,k,QPRES) = pnewl
-                   if (ppm_type == 0) then
-                      qmo(i,j+1,k,QPRES) = qmo(i,j+1,k,QPRES) + hdt*srcQ(i,j,k,QPRES)
-                   endif
+                   pnewly = qym(i,j+1,k,QPRES) - cdtdz*(dup + pav*du*(gamc - ONE))
+                   qymo(i,j+1,k,QPRES) = max(pnewly,small_pres)
                 else
                    ! Update gammae with its transverse terms
-                   qmo(i,j+1,k,QGAME) = qm(i,j+1,k,QGAME) + gexnew + geznew
-                   
+                   qymo(i,j+1,k,QGAME) = qym(i,j+1,k,QGAME) + &
+                        cdtdz*( (geav-ONE)*(geav - gamc)*du - uav*dge )
+
                    ! and compute the p edge state from this and (rho e)
-                   qmo(i,j+1,k,QPRES) = qmo(i,j+1,k,QREINT)*(qmo(i,j+1,k,QGAME)-ONE)
+                   qymo(i,j+1,k,QPRES) = qymo(i,j+1,k,QREINT)*(qymo(i,j+1,k,QGAME)-ONE)
+                   qymo(i,j+1,k,QPRES) = max(qymo(i,j+1,k,QPRES), small_pres)
                 endif
              else
-                qmo(i,j+1,k,QPRES) = qm(i,j+1,k,QPRES)
-                if (ppm_type == 0) then
-                   qmo(i,j+1,k,QPRES) = qmo(i,j+1,k,QPRES) + hdt*srcQ(i,j,k,QPRES)
-                endif
-                qmo(i,j+1,k,QGAME) = qm(i,j+1,k,QGAME)
+                qymo(i,j+1,k,QPRES) = qym(i,j+1,k,QPRES)
+                qymo(i,j+1,k,QGAME) = qym(i,j+1,k,QGAME)
              endif
-             
-             qmo(i,j+1,k,QPRES) = max(qmo(i,j+1,k,QPRES), small_pres)
 
-             call reset_edge_state_thermo(qmo, q_lo, q_hi, i, j+1, k)
+             call reset_edge_state_thermo(qymo, q_lo, q_hi, i, j+1, k)
 
 #ifdef RADIATION
-             qmo(i,j+1,k,qrad:qradhi) = ernewl(:)
-             qmo(i,j+1,k,qptot  ) = sum(lambda(:)*ernewl(:)) + qmo(i,j+1,k,QPRES)
-             qmo(i,j+1,k,qreitot) = sum(qmo(i,j+1,k,qrad:qradhi)) + qmo(i,j+1,k,QREINT)
+             qymo(i,j+1,k,qrad:qradhi) = ernewly(:)
+             qymo(i,j+1,k,qptot  ) = sum(lambda(:)*ernewly(:)) + qymo(i,j+1,k,QPRES)
+             qymo(i,j+1,k,qreitot) = sum(qymo(i,j+1,k,qrad:qradhi)) + qymo(i,j+1,k,QREINT)
 #endif
 
           end do
        end do
     end do
 
-  end subroutine transxz
-
-
+  end subroutine transz
   !===========================================================================
   ! transyz
   !===========================================================================
@@ -3498,7 +3165,7 @@ contains
     integer, intent(in) :: src_lo(3),src_hi(3)
     integer, intent(in) :: lo(3), hi(3)
 
-    real(rt), intent(in) :: hdt,cdtdy,cdtdz
+    real(rt), intent(in) :: hdt, cdtdy, cdtdz
 
 #ifdef RADIATION
     real(rt), intent(in) :: rfyz(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
@@ -3529,7 +3196,6 @@ contains
     real(rt)         pgzp, pgzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew, geznew
     real(rt)         uyav, geyav, dgey, uzav, gezav, dgez
     real(rt)         compr, compl, compnr, compnl
-    real(rt)         drr, dcompn
 
 #ifdef RADIATION
     real(rt)         :: dmy, dmz, dre
@@ -3676,8 +3342,7 @@ contains
              rur = rrr*qp(i,j,k,QU)
              rvr = rrr*qp(i,j,k,QV)
              rwr = rrr*qp(i,j,k,QW)
-             ekenr = HALF*rrr*(qp(i,j,k,QU)**2 + qp(i,j,k,QV)**2 + &
-                  qp(i,j,k,QW)**2)
+             ekenr = HALF*rrr*sum(qp(i,j,k,QU:QW)**2)
              rer = qp(i,j,k,QREINT) + ekenr
 #ifdef RADIATION
              err = qp(i,j,k,qrad:qradhi)
@@ -3738,8 +3403,9 @@ contains
 
              if (.not. reset_state) then
                 if (transverse_reset_rhoe == 1 .and. qpo(i,j,k,QREINT) <= ZERO) then
-                   ! If it is negative, reset the internal energy by using the discretized
-                   ! expression for updating (rho e).
+                   ! If it is negative, reset the internal energy by
+                   ! using the discretized expression for updating
+                   ! (rho e).
                    qpo(i,j,k,QREINT) = qp(i,j,k,QREINT) &
                         - cdtdy*(fyz(i,j+1,k,UEINT) - fyz(i,j,k,UEINT) + pyav*duy) &
                         - cdtdz*(fzy(i,j  ,k+1,UEINT) - fzy(i,j,k,UEINT) + pzav*duz)
@@ -3876,8 +3542,7 @@ contains
              rul = rrl*qm(i+1,j,k,QU)
              rvl = rrl*qm(i+1,j,k,QV)
              rwl = rrl*qm(i+1,j,k,QW)
-             ekenl = HALF*rrl*(qm(i+1,j,k,QU)**2 + qm(i+1,j,k,QV)**2 + &
-                  qm(i+1,j,k,QW)**2)
+             ekenl = HALF*rrl*sum(qm(i+1,j,k,QU:QW)**2)
              rel = qm(i+1,j,k,QREINT) + ekenl
 #ifdef RADIATION
              erl = qm(i+1,j,k,qrad:qradhi)
@@ -3988,6 +3653,1111 @@ contains
     end do
 
   end subroutine transyz
+  !===========================================================================
+  ! transxz
+  !===========================================================================
+  subroutine transxz(qm, qmo, qp, qpo, q_lo, q_hi, &
+                     qaux, qa_lo, qa_hi, &
+                     fxz, &
+#ifdef RADIATION
+                     rfxz, &
+#endif
+                     fx_lo, fx_hi, &
+                     fzx, &
+#ifdef RADIATION
+                     rfzx, &
+#endif
+                     fz_lo, fz_hi, &
+                     qx, qx_lo, qx_hi, &
+                     qz, qz_lo, qz_hi, &
+                     srcQ, src_lo, src_hi, &
+                     hdt, cdtdx, cdtdz, lo, hi)
+
+
+    use amrex_constants_module, only : ZERO, ONE, HALF
+
+    use network, only : nspec, naux
+    use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
+                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   QC, QGAMC, &
+#ifdef RADIATION
+                                   qrad, qradhi, qptot, qreitot, &
+                                   fspace_type, comoving, &
+                                   GDERADS, GDLAMS, &
+                                   QCG, QGAMCG, QLAMS, &
+#endif
+                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, &
+                                   NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
+                                   small_pres, small_temp, &
+                                   npassive, upass_map, qpass_map, &
+                                   ppm_predict_gammae, ppm_type, &
+                                   transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
+#ifdef RADIATION
+    use rad_params_module, only : ngroups
+    use fluxlimiter_module, only : Edd_factor
+#endif
+    use eos_module, only: eos
+    use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
+
+
+    integer, intent(in) :: q_lo(3),q_hi(3)
+    integer, intent(in) :: qa_lo(3),qa_hi(3)
+    integer, intent(in) :: fx_lo(3),fx_hi(3)
+    integer, intent(in) :: fz_lo(3),fz_hi(3)
+    integer, intent(in) :: qx_lo(3),qx_hi(3)
+    integer, intent(in) :: qz_lo(3),qz_hi(3)
+    integer, intent(in) :: src_lo(3),src_hi(3)
+    integer, intent(in) :: lo(3), hi(3)
+
+    real(rt), intent(in) :: hdt, cdtdx, cdtdz
+
+#ifdef RADIATION
+    real(rt), intent(in) :: rfxz(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
+    real(rt), intent(in) :: rfzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
+#endif
+
+    real(rt), intent(in) :: qm(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) :: qp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(out) :: qmo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(out) :: qpo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+
+    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+
+    real(rt), intent(in) :: fxz(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
+    real(rt), intent(in) :: fzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
+    real(rt), intent(in) :: qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
+    real(rt), intent(in) :: qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
+    real(rt), intent(in) :: srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
+
+    integer i, j, k, n, nqp, ipassive
+
+    real(rt)         rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
+    real(rt)         rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
+    real(rt)         rrnewr, runewr, rvnewr, rwnewr, renewr
+    real(rt)         rrnewl, runewl, rvnewl, rwnewl, renewl
+    real(rt)         pnewr, pnewl
+    real(rt)         pgxp, pgxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew, gexnew
+    real(rt)         pgzp, pgzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew, geznew
+    real(rt)         uxav, gexav, dgex, uzav, gezav, dgez
+    real(rt)         compr, compl, compnr, compnl
+
+#ifdef RADIATION
+    real(rt)         :: dmx, dmz, dre
+    real(rt)        , dimension(0:ngroups-1) :: der, lambda, lugex, lugez, lgex, lgez, &
+         err, ernewr, erl, ernewl, ergzp, ergxp, ergzm,  ergxm
+    real(rt)         eddf, f1
+    integer :: g
+#endif
+
+    logical :: reset_state
+
+    !-------------------------------------------------------------------------
+    ! update all of the passively-advected quantities with the
+    ! transerse term and convert back to the primitive quantity
+    !-------------------------------------------------------------------------
+
+    do ipassive = 1,npassive
+       n  = upass_map(ipassive)
+       nqp = qpass_map(ipassive)
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)+1
+             do i = lo(1), hi(1)
+                rrr = qp(i,j,k,QRHO)
+                compr = rrr*qp(i,j,k,nqp)
+                rrnewr = rrr - cdtdx*(fxz(i+1,j,k,URHO) - fxz(i,j,k,URHO)) &
+                             - cdtdz*(fzx(i  ,j,k+1,URHO) - fzx(i,j,k,URHO))
+                compnr = compr - cdtdx*(fxz(i+1,j,k,n) - fxz(i,j,k,n)) &
+                               - cdtdz*(fzx(i  ,j,k+1,n) - fzx(i,j,k,n))
+
+                qpo(i,j  ,k,nqp) = compnr/rrnewr + hdt*srcQ(i,j,k,nqp)
+             end do
+          end do
+
+          do j = lo(2)-1, hi(2)
+             do i = lo(1), hi(1)
+                rrl = qm(i,j+1,k,QRHO)
+                compl = rrl*qm(i,j+1,k,nqp)
+                rrnewl = rrl - cdtdx*(fxz(i+1,j,k,URHO) - fxz(i,j,k,URHO)) &
+                             - cdtdz*(fzx(i  ,j,k+1,URHO) - fzx(i,j,k,URHO))
+                compnl = compl - cdtdx*(fxz(i+1,j,k,n) - fxz(i,j,k,n)) &
+                               - cdtdz*(fzx(i  ,j,k+1,n) - fzx(i,j,k,n))
+
+                qmo(i,j+1,k,nqp) = compnl/rrnewl + hdt*srcQ(i,j,k,nqp)
+             end do
+          end do
+       end do
+    end do
+
+    !-------------------------------------------------------------------
+    ! add the transverse xz and zx differences to the y-states for the
+    ! fluid variables
+    !-------------------------------------------------------------------
+
+    do k = lo(3), hi(3)
+
+       !-------------------------------------------------------------------
+       ! qypo state
+       !-------------------------------------------------------------------
+
+       do j = lo(2), hi(2)+1
+          do i = lo(1), hi(1)
+
+             pgxp  = qx(i+1,j,k,GDPRES)
+             pgxm  = qx(i,j,k,GDPRES)
+             ugxp  = qx(i+1,j,k,GDU)
+             ugxm  = qx(i,j,k,GDU)
+             gegxp = qx(i+1,j,k,GDGAME)
+             gegxm = qx(i,j,k,GDGAME)
+#ifdef RADIATION
+             ergxp = qx(i+1,j,k,GDERADS:GDERADS-1+ngroups)
+             ergxm = qx(i  ,j,k,GDERADS:GDERADS-1+ngroups)
+#endif
+
+             pgzp  = qz(i,j,k+1,GDPRES)
+             pgzm  = qz(i,j,k,GDPRES)
+             ugzp  = qz(i,j,k+1,GDW)
+             ugzm  = qz(i,j,k,GDW)
+             gegzp = qz(i,j,k+1,GDGAME)
+             gegzm = qz(i,j,k,GDGAME)
+#ifdef RADIATION
+             ergzp = qz(i,j,k+1,GDERADS:GDERADS-1+ngroups)
+             ergzm = qz(i,j,k,GDERADS:GDERADS-1+ngroups)
+#endif
+
+             duxp = pgxp*ugxp - pgxm*ugxm
+             pxav = HALF*(pgxp+pgxm)
+             uxav = HALF*(ugxp+ugxm)
+             gexav = HALF*(gegxp+gegxm)
+             dux = ugxp-ugxm
+             dgex = gegxp-gegxm
+#ifdef RADIATION
+             pxnew = cdtdx*(duxp + pxav*dux*(qaux(i,j,k,QGAMCG) - ONE))
+             gexnew = cdtdx*( (gexav-ONE)*(gexav - qaux(i,j,k,QGAMCG))*dux - uxav*dgex )
+#else
+             pxnew = cdtdx*(duxp + pxav*dux*(qaux(i,j,k,QGAMC) - ONE))
+             gexnew = cdtdx*( (gexav-ONE)*(gexav - qaux(i,j,k,QGAMC))*dux - uxav*dgex )
+#endif
+
+             duzp = pgzp*ugzp - pgzm*ugzm
+             pzav = HALF*(pgzp+pgzm)
+             uzav = HALF*(ugzp+ugzm)
+             gezav = HALF*(gegzp+gegzm)
+             duz = ugzp-ugzm
+             dgez = gegzp-gegzm
+#ifdef RADIATION
+             pznew = cdtdz*(duzp + pzav*duz*(qaux(i,j,k,QGAMCG) - ONE))
+             geznew = cdtdz*( (gezav-ONE)*(gezav - qaux(i,j,k,QGAMCG))*duz - uzav*dgez )
+#else
+             pznew = cdtdz*(duzp + pzav*duz*(qaux(i,j,k,QGAMC) - ONE))
+             geznew = cdtdz*( (gezav-ONE)*(gezav - qaux(i,j,k,QGAMC))*duz - uzav*dgez )
+#endif
+
+#ifdef RADIATION
+             lambda(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
+
+             lgex = lambda(:) * (ergxp(:)-ergxm(:))
+             lgez = lambda(:) * (ergzp(:)-ergzm(:))
+             dmx = - cdtdx*sum(lgex)
+             dmz = - cdtdz*sum(lgez)
+             lugex = HALF*(ugxp+ugxm) * lgex(:)
+             lugez = HALF*(ugzp+ugzm) * lgez(:)
+             dre = -cdtdx * sum(lugex) - cdtdz * sum(lugez)
+
+             if (fspace_type .eq. 1 .and. comoving) then
+                do g=0, ngroups-1
+                   eddf = Edd_factor(lambda(g))
+                   f1 = HALF*(ONE-eddf)
+                   der(g) = f1*(cdtdx*HALF*(ugxp+ugxm)*(ergxp(g)-ergxm(g)) &
+                        +       cdtdz*HALF*(ugzp+ugzm)*(ergzp(g)-ergzm(g)) )
+                end do
+             else if (fspace_type .eq. 2) then
+                do g=0, ngroups-1
+                   eddf = Edd_factor(lambda(g))
+                   f1 = HALF*(ONE-eddf)
+                   der(g) = f1*(cdtdx*HALF*(ergxp(g)+ergxm(g))*(ugxm-ugxp) &
+                        +       cdtdz*HALF*(ergzp(g)+ergzm(g))*(ugzm-ugzp) )
+                end do
+             else ! mixed frame
+                der(:) = cdtdx*lugex + cdtdz*lugez
+             end if
+#endif
+
+             ! Convert to conservation form
+             rrr = qp(i,j,k,QRHO)
+             rur = rrr*qp(i,j,k,QU)
+             rvr = rrr*qp(i,j,k,QV)
+             rwr = rrr*qp(i,j,k,QW)
+             ekenr = HALF*rrr*sum(qp(i,j,k,QU:QW)**2)
+             rer = qp(i,j,k,QREINT) + ekenr
+#ifdef RADIATION
+             err = qp(i,j,k,qrad:qradhi)
+#endif
+
+             ! Add transverse predictor
+             rrnewr = rrr - cdtdx*(fxz(i+1,j,k,URHO) - fxz(i,j,k,URHO)) &
+                          - cdtdz*(fzx(i,j,k+1,URHO) - fzx(i,j,k,URHO))
+             runewr = rur - cdtdx*(fxz(i+1,j,k,UMX) - fxz(i,j,k,UMX)) &
+                          - cdtdz*(fzx(i,j,k+1,UMX) - fzx(i,j,k,UMX))
+             rvnewr = rvr - cdtdx*(fxz(i+1,j,k,UMY) - fxz(i,j,k,UMY)) &
+                          - cdtdz*(fzx(i,j,k+1,UMY) - fzx(i,j,k,UMY))
+             rwnewr = rwr - cdtdx*(fxz(i+1,j,k,UMZ) - fxz(i,j,k,UMZ)) &
+                          - cdtdz*(fzx(i,j,k+1,UMZ) - fzx(i,j,k,UMZ))
+             renewr = rer - cdtdx*(fxz(i+1,j,k,UEDEN) - fxz(i,j,k,UEDEN)) &
+                          - cdtdz*(fzx(i,j,k+1,UEDEN) - fzx(i,j,k,UEDEN))
+#ifdef RADIATION
+             runewr = runewr + dmx
+             rwnewr = rwnewr + dmz
+             renewr = renewr + dre
+             ernewr = err(:) - cdtdx*(rfxz(i+1,j,k,:) - rfxz(i,j,k,:)) &
+                             - cdtdz*(rfzx(i  ,j,k+1,:) - rfzx(i,j,k,:)) &
+                             + der(:)
+#endif
+
+             ! Reset to original value if adding transverse terms made density negative
+             reset_state = .false.
+             if (transverse_reset_density == 1 .and. rrnewr < ZERO) then
+                rrnewr = rrr
+                runewr = rur
+                rvnewr = rvr
+                rwnewr = rwr
+                renewr = rer
+#ifdef RADIATION
+                ernewr = err(:)
+#endif
+                reset_state = .true.
+             endif
+
+             ! Convert back to primitive form
+             qpo(i,j,k,QRHO  ) = rrnewr
+             qpo(i,j,k,QU    ) = runewr/rrnewr
+             qpo(i,j,k,QV    ) = rvnewr/rrnewr
+             qpo(i,j,k,QW    ) = rwnewr/rrnewr
+
+             ! for ppm_type > 0 we already added the piecewise parabolic traced
+             ! source terms to the normal edge states.
+             if (ppm_type == 0) then
+                qpo(i,j,k,QRHO  ) = qpo(i,j,k,QRHO  ) + hdt*srcQ(i,j,k,QRHO)
+                qpo(i,j,k,QU:QW) = qpo(i,j,k,QU:QW) + hdt * srcQ(i,j,k,QU:QW)
+             endif
+
+             ! note: we run the risk of (rho e) being negative here
+             rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
+             qpo(i,j,k,QREINT) = renewr - rhoekenr
+             if (ppm_type == 0) then
+                qpo(i,j,k,QREINT) = qpo(i,j,k,QREINT) + hdt*srcQ(i,j,k,QREINT)
+             endif
+
+             if (.not. reset_state) then
+                if (transverse_reset_rhoe == 1 .and. qpo(i,j,k,QREINT) <= ZERO) then
+                   ! If it is negative, reset the internal energy by
+                   ! using the discretized expression for updating
+                   ! (rho e).
+                   qpo(i,j,k,QREINT) = qp(i,j,k,QREINT) &
+                        - cdtdx*(fxz(i+1,j,k,UEINT) - fxz(i,j,k,UEINT) + pxav*dux) &
+                        - cdtdz*(fzx(i  ,j,k+1,UEINT) - fzx(i,j,k,UEINT) + pzav*duz)
+                   if (ppm_type == 0) then
+                      qpo(i,j,k,QREINT) = qpo(i,j,k,QREINT) + hdt*srcQ(i,j,k,QREINT)
+                   endif
+                endif
+
+                ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+                ! If we are wrong, we will fix it later
+
+                if (ppm_predict_gammae == 0) then
+                   ! add the transverse term to the p evolution eq here
+                   pnewr = qp(i,j,k,QPRES) - pxnew - pznew
+                   qpo(i,j,k,QPRES) = pnewr
+                   if (ppm_type == 0) then
+                      qpo(i,j,k,QPRES) = qpo(i,j,k,QPRES) + hdt*srcQ(i,j,k,QPRES)
+                   endif
+                else
+                   ! Update gammae with its transverse terms
+                   qpo(i,j,k,QGAME) = qp(i,j,k,QGAME) + gexnew + geznew
+                   
+                   ! and compute the p edge state from this and (rho e)
+                   qpo(i,j,k,QPRES) = qpo(i,j,k,QREINT)*(qpo(i,j,k,QGAME)-ONE)
+                endif
+             else
+                qpo(i,j,k,QPRES) = qp(i,j,k,QPRES)
+                if (ppm_type == 0) then
+                   qpo(i,j,k,QPRES) = qpo(i,j,k,QPRES) + hdt*srcQ(i,j,k,QPRES)
+                endif
+                qpo(i,j,k,QGAME) = qp(i,j,k,QGAME)
+             endif
+
+             qpo(i,j,k,QPRES) = max(qpo(i,j,k,QPRES), small_pres)
+
+             call reset_edge_state_thermo(qpo, q_lo, q_hi, i, j, k)
+
+#ifdef RADIATION
+             qpo(i,j,k,qrad:qradhi) = ernewr(:)
+             qpo(i,j,k,qptot  ) = sum(lambda(:)*ernewr(:)) + qpo(i,j,k,QPRES)
+             qpo(i,j,k,qreitot) = sum(qpo(i,j,k,qrad:qradhi)) + qpo(i,j,k,QREINT)
+#endif
+          end do
+       end do
+
+       !-------------------------------------------------------------------
+       ! qymo state
+       !-------------------------------------------------------------------
+
+       do j = lo(2)-1, hi(2)
+          do i = lo(1), hi(1)
+
+             pgxp  = qx(i+1,j,k,GDPRES)
+             pgxm  = qx(i,j,k,GDPRES)
+             ugxp  = qx(i+1,j,k,GDU)
+             ugxm  = qx(i,j,k,GDU)
+             gegxp = qx(i+1,j,k,GDGAME)
+             gegxm = qx(i,j,k,GDGAME)
+#ifdef RADIATION
+             ergxp = qx(i+1,j,k,GDERADS:GDERADS-1+ngroups)
+             ergxm = qx(i  ,j,k,GDERADS:GDERADS-1+ngroups)
+#endif
+
+             pgzp  = qz(i,j,k+1,GDPRES)
+             pgzm  = qz(i,j,k,GDPRES)
+             ugzp  = qz(i,j,k+1,GDW)
+             ugzm  = qz(i,j,k,GDW)
+             gegzp = qz(i,j,k+1,GDGAME)
+             gegzm = qz(i,j,k,GDGAME)
+#ifdef RADIATION
+             ergzp = qz(i,j,k+1,GDERADS:GDERADS-1+ngroups)
+             ergzm = qz(i,j,k,GDERADS:GDERADS-1+ngroups)
+#endif
+
+             duxp = pgxp*ugxp - pgxm*ugxm
+             pxav = HALF*(pgxp+pgxm)
+             uxav = HALF*(ugxp+ugxm)
+             gexav = HALF*(gegxp+gegxm)
+             dux = ugxp-ugxm
+             dgex = gegxp-gegxm
+#ifdef RADIATION
+             pxnew = cdtdx*(duxp + pxav*dux*(qaux(i,j,k,QGAMCG) - ONE))
+             gexnew = cdtdx*( (gexav-ONE)*(gexav - qaux(i,j,k,QGAMCG))*dux - uxav*dgex )
+#else
+             pxnew = cdtdx*(duxp + pxav*dux*(qaux(i,j,k,QGAMC) - ONE))
+             gexnew = cdtdx*( (gexav-ONE)*(gexav - qaux(i,j,k,QGAMC))*dux - uxav*dgex )
+#endif
+
+             duzp = pgzp*ugzp - pgzm*ugzm
+             pzav = HALF*(pgzp+pgzm)
+             uzav = HALF*(ugzp+ugzm)
+             gezav = HALF*(gegzp+gegzm)
+             duz = ugzp-ugzm
+             dgez = gegzp-gegzm
+#ifdef RADIATION
+             pznew = cdtdz*(duzp + pzav*duz*(qaux(i,j,k,QGAMCG) - ONE))
+             geznew = cdtdz*( (gezav-ONE)*(gezav - qaux(i,j,k,QGAMCG))*duz - uzav*dgez )
+#else
+             pznew = cdtdz*(duzp + pzav*duz*(qaux(i,j,k,QGAMC) - ONE))
+             geznew = cdtdz*( (gezav-ONE)*(gezav - qaux(i,j,k,QGAMC))*duz - uzav*dgez )
+#endif
+
+#ifdef RADIATION
+             lambda(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
+
+             lgex = lambda(:) * (ergxp(:)-ergxm(:))
+             lgez = lambda(:) * (ergzp(:)-ergzm(:))
+             dmx = - cdtdx*sum(lgex)
+             dmz = - cdtdz*sum(lgez)
+             lugex = HALF*(ugxp+ugxm) * lgex(:)
+             lugez = HALF*(ugzp+ugzm) * lgez(:)
+             dre = -cdtdx * sum(lugex) - cdtdz * sum(lugez)
+
+             if (fspace_type .eq. 1 .and. comoving) then
+                do g=0, ngroups-1
+                   eddf = Edd_factor(lambda(g))
+                   f1 = HALF*(ONE-eddf)
+                   der(g) = f1*(cdtdx*HALF*(ugxp+ugxm)*(ergxp(g)-ergxm(g)) &
+                        +       cdtdz*HALF*(ugzp+ugzm)*(ergzp(g)-ergzm(g)) )
+                end do
+             else if (fspace_type .eq. 2) then
+                do g=0, ngroups-1
+                   eddf = Edd_factor(lambda(g))
+                   f1 = HALF*(ONE-eddf)
+                   der(g) = f1*(cdtdx*HALF*(ergxp(g)+ergxm(g))*(ugxm-ugxp) &
+                        +       cdtdz*HALF*(ergzp(g)+ergzm(g))*(ugzm-ugzp) )
+                end do
+             else ! mixed frame
+                der(:) = cdtdx*lugex + cdtdz*lugez
+             end if
+#endif
+
+             ! Convert to conservation form
+             rrl = qm(i,j+1,k,QRHO)
+             rul = rrl*qm(i,j+1,k,QU)
+             rvl = rrl*qm(i,j+1,k,QV)
+             rwl = rrl*qm(i,j+1,k,QW)
+             ekenl = HALF*rrl*sum(qm(i,j+1,k,QU:QW)**2)
+             rel = qm(i,j+1,k,QREINT) + ekenl
+#ifdef RADIATION
+             erl = qm(i,j+1,k,qrad:qradhi)
+#endif
+
+             ! Add transverse predictor
+             rrnewl = rrl - cdtdx*(fxz(i+1,j,k,URHO) - fxz(i,j,k,URHO)) &
+                          - cdtdz*(fzx(i,j,k+1,URHO) - fzx(i,j,k,URHO))
+             runewl = rul - cdtdx*(fxz(i+1,j,k,UMX) - fxz(i,j,k,UMX)) &
+                          - cdtdz*(fzx(i,j,k+1,UMX) - fzx(i,j,k,UMX))
+             rvnewl = rvl - cdtdx*(fxz(i+1,j,k,UMY) - fxz(i,j,k,UMY)) &
+                          - cdtdz*(fzx(i,j,k+1,UMY) - fzx(i,j,k,UMY))
+             rwnewl = rwl - cdtdx*(fxz(i+1,j,k,UMZ) - fxz(i,j,k,UMZ)) &
+                          - cdtdz*(fzx(i,j,k+1,UMZ) - fzx(i,j,k,UMZ))
+             renewl = rel - cdtdx*(fxz(i+1,j,k,UEDEN) - fxz(i,j,k,UEDEN)) &
+                          - cdtdz*(fzx(i,j,k+1,UEDEN) - fzx(i,j,k,UEDEN))
+#ifdef RADIATION
+             runewl = runewl + dmx
+             rwnewl = rwnewl + dmz
+             renewl = renewl + dre
+             ernewl = erl(:) - cdtdx*(rfxz(i+1,j,k,:) - rfxz(i,j,k,:)) &
+                             - cdtdz*(rfzx(i  ,j,k+1,:) - rfzx(i,j,k,:)) &
+                             + der(:)
+#endif
+
+             ! Reset to original value if adding transverse terms made density negative
+             reset_state = .false.
+             if (transverse_reset_density == 1 .and. rrnewl < ZERO) then
+                rrnewl = rrl
+                runewl = rul
+                rvnewl = rvl
+                rwnewl = rwl
+                renewl = rel
+#ifdef RADIATION
+                ernewl = erl(:)
+#endif
+                reset_state = .true.
+             endif
+
+             ! Convert back to primitive form
+             qmo(i,j+1,k,QRHO  ) = rrnewl
+             qmo(i,j+1,k,QU    ) = runewl/rrnewl
+             qmo(i,j+1,k,QV    ) = rvnewl/rrnewl
+             qmo(i,j+1,k,QW    ) = rwnewl/rrnewl
+
+             ! for ppm_type > 0 we already added the piecewise parabolic traced
+             ! source terms to the normal edge states.
+             if (ppm_type == 0) then
+                qmo(i,j+1,k,QRHO  ) = qmo(i,j+1,k,QRHO  ) + hdt*srcQ(i,j,k,QRHO)
+                qmo(i,j+1,k,QU:QW) = qmo(i,j+1,k,QU:QW) + hdt * srcQ(i,j,k,QU:QW)
+             endif
+
+             ! note: we run the risk of (rho e) being negative here
+             rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
+             qmo(i,j+1,k,QREINT) = renewl - rhoekenl
+             if (ppm_type == 0) then
+                qmo(i,j+1,k,QREINT) = qmo(i,j+1,k,QREINT) + hdt*srcQ(i,j,k,QREINT)
+             endif
+
+             if (.not. reset_state) then
+                if (transverse_reset_rhoe == 1 .and. qmo(i,j+1,k,QREINT) <= ZERO) then
+                   ! If it is negative, reset the internal energy by using the discretized
+                   ! expression for updating (rho e).
+                   qmo(i,j+1,k,QREINT) = qm(i,j+1,k,QREINT) &
+                        - cdtdx*(fxz(i+1,j,k,UEINT) - fxz(i,j,k,UEINT) + pxav*dux) &
+                        - cdtdz*(fzx(i,j,k+1,UEINT) - fzx(i,j,k,UEINT) + pzav*duz)
+                   if (ppm_type == 0) then
+                      qmo(i,j+1,k,QREINT) = qmo(i,j+1,k,QREINT) + hdt*srcQ(i,j,k,QREINT)
+                   endif
+                endif
+
+                ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+                ! If we are wrong, we will fix it later
+
+                if (ppm_predict_gammae == 0) then
+                   ! add the transverse term to the p evolution eq here
+                   pnewl = qm(i,j+1,k,QPRES) - pxnew - pznew
+                   qmo(i,j+1,k,QPRES) = pnewl
+                   if (ppm_type == 0) then
+                      qmo(i,j+1,k,QPRES) = qmo(i,j+1,k,QPRES) + hdt*srcQ(i,j,k,QPRES)
+                   endif
+                else
+                   ! Update gammae with its transverse terms
+                   qmo(i,j+1,k,QGAME) = qm(i,j+1,k,QGAME) + gexnew + geznew
+                   
+                   ! and compute the p edge state from this and (rho e)
+                   qmo(i,j+1,k,QPRES) = qmo(i,j+1,k,QREINT)*(qmo(i,j+1,k,QGAME)-ONE)
+                endif
+             else
+                qmo(i,j+1,k,QPRES) = qm(i,j+1,k,QPRES)
+                if (ppm_type == 0) then
+                   qmo(i,j+1,k,QPRES) = qmo(i,j+1,k,QPRES) + hdt*srcQ(i,j,k,QPRES)
+                endif
+                qmo(i,j+1,k,QGAME) = qm(i,j+1,k,QGAME)
+             endif
+             
+             qmo(i,j+1,k,QPRES) = max(qmo(i,j+1,k,QPRES), small_pres)
+
+             call reset_edge_state_thermo(qmo, q_lo, q_hi, i, j+1, k)
+
+#ifdef RADIATION
+             qmo(i,j+1,k,qrad:qradhi) = ernewl(:)
+             qmo(i,j+1,k,qptot  ) = sum(lambda(:)*ernewl(:)) + qmo(i,j+1,k,QPRES)
+             qmo(i,j+1,k,qreitot) = sum(qmo(i,j+1,k,qrad:qradhi)) + qmo(i,j+1,k,QREINT)
+#endif
+
+          end do
+       end do
+    end do
+
+  end subroutine transxz
+  !===========================================================================
+  ! transxy
+  !===========================================================================
+  subroutine transxy(qm, qmo, qp, qpo, q_lo, q_hi, &
+                     qaux, qa_lo, qa_hi, &
+                     fxy, &
+#ifdef RADIATION
+                     rfxy, &
+#endif
+                     fx_lo, fx_hi, &
+                     fyx, &
+#ifdef RADIATION
+                     rfyx, &
+#endif
+                     fy_lo, fy_hi, &
+                     qx, qx_lo, qx_hi, &
+                     qy, qy_lo, qy_hi, &
+                     srcQ, src_lo, src_hi, &
+                     hdt, cdtdx, cdtdy, lo, hi)
+
+
+    use amrex_constants_module, only : ZERO, ONE, HALF
+
+    use network, only : nspec, naux
+    use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
+                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   QC, QGAMC, &
+#ifdef RADIATION
+                                   qrad, qradhi, qptot, qreitot, &
+                                   fspace_type, comoving, &
+                                   GDERADS, GDLAMS, &
+                                   QCG, QGAMCG, QLAMS, &
+#endif
+                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, &
+                                   NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
+                                   small_pres, small_temp, &
+                                   npassive, upass_map, qpass_map, &
+                                   ppm_predict_gammae, ppm_type, &
+                                   transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
+#ifdef RADIATION
+    use rad_params_module, only : ngroups
+    use fluxlimiter_module, only : Edd_factor
+#endif
+    use eos_module, only: eos
+    use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
+
+
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
+    integer, intent(in) :: fx_lo(3), fx_hi(3)
+    integer, intent(in) :: fy_lo(3), fy_hi(3)
+    integer, intent(in) :: qx_lo(3), qx_hi(3)
+    integer, intent(in) :: qy_lo(3), qy_hi(3)
+    integer, intent(in) :: src_lo(3), src_hi(3)
+    integer, intent(in) :: lo(3), hi(3)
+
+    real(rt), intent(in) :: hdt, cdtdx, cdtdy
+
+#ifdef RADIATION
+    real(rt), intent(in) :: rfxy(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
+    real(rt), intent(in) :: rfyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
+#endif
+
+    real(rt), intent(in) ::   qm(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) ::   qp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(out) :: qmo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(out) :: qpo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+
+    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+
+    real(rt), intent(in) :: fxy(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
+    real(rt), intent(in) :: fyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
+    real(rt), intent(in) :: qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
+    real(rt), intent(in) :: qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
+    real(rt), intent(in) :: srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
+
+
+    integer i, j, k, n, nqp, ipassive
+
+    real(rt)         rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
+    real(rt)         rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
+    real(rt)         rrnewr, runewr, rvnewr, rwnewr, renewr
+    real(rt)         rrnewl, runewl, rvnewl, rwnewl, renewl
+    real(rt)         pnewr, pnewl
+    real(rt)         pgxp, pgxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew, gexnew
+    real(rt)         pgyp, pgym, ugyp, ugym, gegyp, gegym, duyp, pyav, duy, pynew, geynew
+    real(rt)         uxav, gexav, dgex, uyav, geyav, dgey
+    real(rt)         compr, compl, compnr, compnl
+
+#ifdef RADIATION
+    real(rt)         :: dmx, dmy, dre
+    real(rt)        , dimension(0:ngroups-1) :: der, lambda, lamm, lugex, lugey, lgex, lgey, &
+         err, ernewr, erl, ernewl, ergxp, ergyp, ergxm, ergym, ergxpm, ergypm, ergxmm, ergymm
+    real(rt)         eddf, f1
+    integer :: g
+#endif
+
+    logical :: reset_state
+
+    !-------------------------------------------------------------------------
+    ! update all of the passively-advected quantities with the
+    ! transerse term and convert back to the primitive quantity
+    !-------------------------------------------------------------------------
+
+    do ipassive = 1,npassive
+       n  = upass_map(ipassive)
+       nqp = qpass_map(ipassive)
+
+       do k = lo(3), hi(3)+1
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                rrr = qp(i,j,k,QRHO)
+                compr = rrr*qp(i,j,k,nqp)
+                rrnewr = rrr - cdtdx*(fxy(i+1,j,k,URHO) - fxy(i,j,k,URHO)) &
+                             - cdtdy*(fyx(i,j+1,k,URHO) - fyx(i,j,k,URHO))
+                compnr = compr - cdtdx*(fxy(i+1,j,k,n) - fxy(i,j,k,n)) &
+                               - cdtdy*(fyx(i,j+1,k,n) - fyx(i,j,k,n))
+
+                qpo(i,j,k,nqp) = compnr/rrnewr + hdt*srcQ(i,j,k  ,nqp)
+             end do
+          end do
+       end do
+
+       do k = lo(3)-1, hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                rrl = qm(i,j,k+1,QRHO)
+                compl = rrl*qm(i,j,k+1,nqp)
+                rrnewl = rrl - cdtdx*(fxy(i+1,j,k,URHO) - fxy(i,j,k,URHO)) &
+                             - cdtdy*(fyx(i,j+1,k,URHO) - fyx(i,j,k,URHO))
+                compnl = compl - cdtdx*(fxy(i+1,j,k,n) - fxy(i,j,k,n)) &
+                               - cdtdy*(fyx(i,j+1,k,n) - fyx(i,j,k,n))
+
+                qmo(i,j,k+1,nqp) = compnl/rrnewl + hdt*srcQ(i,j,k,nqp)
+             end do
+          end do
+       end do
+    end do
+
+    !-------------------------------------------------------------------
+    ! add the transverse xy and yx differences to the z-states for the
+    ! fluid variables
+    !-------------------------------------------------------------------
+
+    !-------------------------------------------------------------------
+    ! qzpo state
+    !-------------------------------------------------------------------
+
+    do k = lo(3), hi(3)+1
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             pgxp = qx(i+1,j,k,GDPRES)
+             pgxm = qx(i,j,k,GDPRES)
+             ugxp = qx(i+1,j,k,GDU)
+             ugxm = qx(i,j,k,GDU)
+             gegxp = qx(i+1,j,k,GDGAME)
+             gegxm = qx(i,j,k,GDGAME)
+#ifdef RADIATION
+             ergxp = qx(i+1,j,k,GDERADS:GDERADS-1+ngroups)
+             ergxm = qx(i  ,j,k,GDERADS:GDERADS-1+ngroups)
+#endif
+
+             pgyp = qy(i,j+1,k,GDPRES)
+             pgym = qy(i,j,k,GDPRES)
+             ugyp = qy(i,j+1,k,GDV)
+             ugym = qy(i,j,k,GDV)
+             gegyp = qy(i,j+1,k,GDGAME)
+             gegym = qy(i,j,k,GDGAME)
+#ifdef RADIATION
+             ergyp = qy(i,j+1,k,GDERADS:GDERADS-1+ngroups)
+             ergym = qy(i,j  ,k,GDERADS:GDERADS-1+ngroups)
+#endif
+
+             duxp = pgxp*ugxp - pgxm*ugxm
+             pxav = HALF*(pgxp+pgxm)
+             uxav = HALF*(ugxp+ugxm)
+             gexav = HALF*(gegxp+gegxm)
+             dux = ugxp-ugxm
+             dgex = gegxp-gegxm
+#ifdef RADIATION
+             pxnew = cdtdx*(duxp + pxav*dux*(qaux(i,j,k,QGAMCG) - ONE))
+             gexnew = cdtdx*( (gexav-ONE)*(gexav - qaux(i,j,k,QGAMCG))*dux - uxav*dgex )
+#else
+             pxnew = cdtdx*(duxp + pxav*dux*(qaux(i,j,k,QGAMC) - ONE))
+             gexnew = cdtdx*( (gexav-ONE)*(gexav - qaux(i,j,k,QGAMC))*dux - uxav*dgex )
+#endif
+
+             duyp = pgyp*ugyp - pgym*ugym
+             pyav = HALF*(pgyp+pgym)
+             uyav = HALF*(ugyp+ugym)
+             geyav = HALF*(gegyp+gegym)
+             duy = ugyp-ugym
+             dgey = gegyp-gegym
+#ifdef RADIATION
+             pynew = cdtdy*(duyp + pyav*duy*(qaux(i,j,k,QGAMCG) - ONE))
+             geynew = cdtdy*( (geyav-ONE)*(geyav - qaux(i,j,k,QGAMCG))*duy - uyav*dgey )
+#else
+             pynew = cdtdy*(duyp + pyav*duy*(qaux(i,j,k,QGAMC) - ONE))
+             geynew = cdtdy*( (geyav-ONE)*(geyav - qaux(i,j,k,QGAMC))*duy - uyav*dgey )
+#endif
+
+#ifdef RADIATION
+             lambda(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
+
+             lgex = lambda(:) * (ergxp(:)-ergxm(:))
+             lgey = lambda(:) * (ergyp(:)-ergym(:))
+             dmx = - cdtdx*sum(lgex)
+             dmy = - cdtdy*sum(lgey)
+             lugex = HALF*(ugxp+ugxm) * lgex(:)
+             lugey = HALF*(ugyp+ugym) * lgey(:)
+             dre = -cdtdx*sum(lugex) - cdtdy*sum(lugey)
+
+             if (fspace_type .eq. 1 .and. comoving) then
+                do g=0, ngroups-1
+                   eddf = Edd_factor(lambda(g))
+                   f1 = HALF*(ONE-eddf)
+                   der(g) = f1*(cdtdx*HALF*(ugxp+ugxm)*(ergxp(g)-ergxm(g)) &
+                        +       cdtdy*HALF*(ugyp+ugym)*(ergyp(g)-ergym(g)) )
+                end do
+             else if (fspace_type .eq. 2) then
+                do g=0, ngroups-1
+                   eddf = Edd_factor(lambda(g))
+                   f1 = HALF*(ONE-eddf)
+                   der(g) = f1*(cdtdx*HALF*(ergxp(g)+ergxm(g))*(ugxm-ugxp) &
+                        +       cdtdy*HALF*(ergyp(g)+ergym(g))*(ugym-ugyp) )
+                end do
+             else ! mixed frame
+                der(:) = cdtdx * lugex + cdtdy * lugey
+             end if
+#endif
+
+             ! Convert to conservation form
+             rrr = qp(i,j,k,QRHO)
+             rur = rrr*qp(i,j,k,QU)
+             rvr = rrr*qp(i,j,k,QV)
+             rwr = rrr*qp(i,j,k,QW)
+             ekenr = HALF*rrr*sum(qp(i,j,k,QU:QW)**2)
+             rer = qp(i,j,k,QREINT) + ekenr
+#ifdef RADIATION
+             err = qp(i,j,k,qrad:qradhi)
+#endif
+
+
+             ! Add transverse predictor
+             rrnewr = rrr - cdtdx*(fxy(i+1,j,k,URHO) - fxy(i,j,k,URHO)) &
+                          - cdtdy*(fyx(i,j+1,k,URHO) - fyx(i,j,k,URHO))
+             runewr = rur - cdtdx*(fxy(i+1,j,k,UMX) - fxy(i,j,k,UMX)) &
+                          - cdtdy*(fyx(i,j+1,k,UMX) - fyx(i,j,k,UMX))
+             rvnewr = rvr - cdtdx*(fxy(i+1,j,k,UMY) - fxy(i,j,k,UMY)) &
+                          - cdtdy*(fyx(i,j+1,k,UMY) - fyx(i,j,k,UMY))
+             rwnewr = rwr - cdtdx*(fxy(i+1,j,k,UMZ) - fxy(i,j,k,UMZ)) &
+                          - cdtdy*(fyx(i,j+1,k,UMZ) - fyx(i,j,k,UMZ))
+             renewr = rer - cdtdx*(fxy(i+1,j,k,UEDEN) - fxy(i,j,k,UEDEN)) &
+                          - cdtdy*(fyx(i,j+1,k,UEDEN) - fyx(i,j,k,UEDEN))
+#ifdef RADIATION
+             runewr = runewr + dmx
+             rvnewr = rvnewr + dmy
+             renewr = renewr + dre
+             ernewr = err(:) - cdtdx*(rfxy(i+1,j,k,:) - rfxy(i,j,k,:)) &
+                             - cdtdy*(rfyx(i,j+1,k,:) - rfyx(i,j,k,:))  &
+                             + der(:)
+#endif
+
+             ! Reset to original value if adding transverse terms made density negative
+             reset_state = .false.
+             if (transverse_reset_density == 1 .and. rrnewr < ZERO) then
+                rrnewr = rrr
+                runewr = rur
+                rvnewr = rvr
+                rwnewr = rwr
+                renewr = rer
+#ifdef RADIATION
+                ernewr = err(:)
+#endif
+                reset_state = .true.
+             endif
+
+             ! Convert back to primitive form
+             qpo(i,j,k,QRHO  ) = rrnewr
+             qpo(i,j,k,QU    ) = runewr/rrnewr
+             qpo(i,j,k,QV    ) = rvnewr/rrnewr
+             qpo(i,j,k,QW    ) = rwnewr/rrnewr
+
+             ! for ppm_type > 0 we already added the piecewise parabolic traced
+             ! source terms to the normal edge states.
+             if (ppm_type == 0) then
+                qpo(i,j,k,QRHO ) = qpo(i,j,k,QRHO ) + hdt*srcQ(i,j,k,QRHO)
+                qpo(i,j,k,QU:QW) = qpo(i,j,k,QU:QW) + hdt*srcQ(i,j,k,QU:QW)
+             endif
+
+             ! note: we run the risk of (rho e) being negative here
+             rhoekenr = HALF*(runewr**2 + rvnewr**2 + rwnewr**2)/rrnewr
+             qpo(i,j,k,QREINT) = renewr - rhoekenr
+             if (ppm_type == 0) then
+                qpo(i,j,k,QREINT) = qpo(i,j,k,QREINT) + hdt*srcQ(i,j,k,QREINT)
+             endif
+
+             if (.not. reset_state) then
+                if (transverse_reset_rhoe == 1 .and. qpo(i,j,k,QREINT) <= ZERO) then
+                   ! If it is negative, reset the internal energy by
+                   ! using the discretized expression for updating
+                   ! (rho e).
+                   qpo(i,j,k,QREINT) = qp(i,j,k,QREINT) &
+                        - cdtdx*(fxy(i+1,j,k,UEINT) - fxy(i,j,k,UEINT) + pxav*dux) &
+                        - cdtdy*(fyx(i,j+1,k,UEINT) - fyx(i,j,k,UEINT) + pyav*duy)
+                   if (ppm_type == 0) then
+                      qpo(i,j,k,QREINT) = qpo(i,j,k,QREINT) + hdt*srcQ(i,j,k,QREINT)
+                   endif
+                endif
+
+
+                ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+                ! If we are wrong, we will fix it later
+
+                if (ppm_predict_gammae == 0) then
+                   ! add the transverse term to the p evolution eq here
+                   pnewr = qp(i,j,k,QPRES) - pxnew - pynew
+                   qpo(i,j,k,QPRES) = pnewr
+                   if (ppm_type == 0) then
+                      qpo(i,j,k,QPRES) = qpo(i,j,k,QPRES) + hdt*srcQ(i,j,k,QPRES)
+                   endif
+                else
+                   ! Update gammae with its transverse terms
+                   qpo(i,j,k,QGAME) = qp(i,j,k,QGAME) + gexnew + geynew
+
+                   ! and compute the p edge state from this and (rho e)
+                   qpo(i,j,k,QPRES) = qpo(i,j,k,QREINT)*(qpo(i,j,k,QGAME)-ONE)
+                endif
+             else
+                qpo(i,j,k,QPRES) = qp(i,j,k,QPRES)
+                if (ppm_type == 0) then
+                   qpo(i,j,k,QPRES) = qpo(i,j,k,QPRES) + hdt*srcQ(i,j,k,QPRES)
+                endif
+                qpo(i,j,k,QGAME) = qp(i,j,k,QGAME)
+             endif
+
+             qpo(i,j,k,QPRES) = max(qpo(i,j,k,QPRES), small_pres)
+
+             call reset_edge_state_thermo(qpo, q_lo, q_hi, i, j, k)
+
+#ifdef RADIATION
+             qpo(i,j,k,qrad:qradhi) = ernewr(:)
+             qpo(i,j,k,qptot  ) = sum(lambda(:)*ernewr(:)) + qpo(i,j,k,QPRES)
+             qpo(i,j,k,qreitot) = sum(qpo(i,j,k,qrad:qradhi)) + qpo(i,j,k,QREINT)
+#endif
+
+          end do
+       end do
+    end do
+
+    !-------------------------------------------------------------------
+    ! qzmo state
+    !-------------------------------------------------------------------
+
+    do k = lo(3)-1, hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             pgxp = qx(i+1,j,k,GDPRES)
+             pgxm = qx(i,j,k,GDPRES)
+             ugxp = qx(i+1,j,k,GDU)
+             ugxm = qx(i,j,k,GDU)
+             gegxp = qx(i+1,j,k,GDGAME)
+             gegxm = qx(i,j,k,GDGAME)
+#ifdef RADIATION
+             ergxp = qx(i+1,j,k,GDERADS:GDERADS-1+ngroups)
+             ergxm = qx(i  ,j,k,GDERADS:GDERADS-1+ngroups)
+#endif
+
+             pgyp = qy(i,j+1,k,GDPRES)
+             pgym = qy(i,j,k,GDPRES)
+             ugyp = qy(i,j+1,k,GDV)
+             ugym = qy(i,j,k,GDV)
+             gegyp = qy(i,j+1,k,GDGAME)
+             gegym = qy(i,j,k,GDGAME)
+#ifdef RADIATION
+             ergyp = qy(i,j+1,k,GDERADS:GDERADS-1+ngroups)
+             ergym = qy(i,j  ,k,GDERADS:GDERADS-1+ngroups)
+#endif
+
+             duxp = pgxp*ugxp - pgxm*ugxm
+             pxav = HALF*(pgxp+pgxm)
+             uxav = HALF*(ugxp+ugxm)
+             gexav = HALF*(gegxp+gegxm)
+             dux = ugxp-ugxm
+             dgex = gegxp-gegxm
+#ifdef RADIATION
+             pxnew = cdtdx*(duxp + pxav*dux*(qaux(i,j,k,QGAMCG) - ONE))
+             gexnew = cdtdx*( (gexav-ONE)*(gexav - qaux(i,j,k,QGAMCG))*dux - uxav*dgex )
+#else
+             pxnew = cdtdx*(duxp + pxav*dux*(qaux(i,j,k,QGAMC) - ONE))
+             gexnew = cdtdx*( (gexav-ONE)*(gexav - qaux(i,j,k,QGAMC))*dux - uxav*dgex )
+#endif
+
+             duyp = pgyp*ugyp - pgym*ugym
+             pyav = HALF*(pgyp+pgym)
+             uyav = HALF*(ugyp+ugym)
+             geyav = HALF*(gegyp+gegym)
+             duy = ugyp-ugym
+             dgey = gegyp-gegym
+#ifdef RADIATION
+             pynew = cdtdy*(duyp + pyav*duy*(qaux(i,j,k,QGAMCG) - ONE))
+             geynew = cdtdy*( (geyav-ONE)*(geyav - qaux(i,j,k,QGAMCG))*duy - uyav*dgey )
+#else
+             pynew = cdtdy*(duyp + pyav*duy*(qaux(i,j,k,QGAMC) - ONE))
+             geynew = cdtdy*( (geyav-ONE)*(geyav - qaux(i,j,k,QGAMC))*duy - uyav*dgey )
+#endif
+
+#ifdef RADIATION
+             lambda(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
+
+             lgex = lamm(:) * (ergxpm(:)-ergxmm(:))
+             lgey = lamm(:) * (ergypm(:)-ergymm(:))
+             dmx = - cdtdx*sum(lgex)
+             dmy = - cdtdy*sum(lgey)
+             lugex = HALF*(ugxpm+ugxmm) * lgex(:)
+             lugey = HALF*(ugypm+ugymm) * lgey(:)
+             dre = -cdtdx*sum(lugex) - cdtdy*sum(lugey)
+
+             if (fspace_type .eq. 1 .and. comoving) then
+                do g=0, ngroups-1
+                   eddf = Edd_factor(lamm(g))
+                   f1 = HALF*(ONE-eddf)
+                   der(g) = f1*(cdtdx*HALF*(ugxpm+ugxmm)*(ergxpm(g)-ergxmm(g)) &
+                        +       cdtdy*HALF*(ugypm+ugymm)*(ergypm(g)-ergymm(g)) )
+                end do
+             else if (fspace_type .eq. 2) then
+                do g=0, ngroups-1
+                   eddf = Edd_factor(lamm(g))
+                   f1 = HALF*(ONE-eddf)
+                   der(g) = f1*(cdtdx*HALF*(ergxpm(g)+ergxmm(g))*(ugxmm-ugxpm) &
+                        +       cdtdy*HALF*(ergypm(g)+ergymm(g))*(ugymm-ugypm) )
+                end do
+             else ! mixed frame
+                der(:) = cdtdx * lugex + cdtdy * lugey
+             end if
+#endif
+
+             ! Convert to conservation form
+             rrl = qm(i,j,k+1,QRHO)
+             rul = rrl*qm(i,j,k+1,QU)
+             rvl = rrl*qm(i,j,k+1,QV)
+             rwl = rrl*qm(i,j,k+1,QW)
+             ekenl = HALF*rrl*sum(qm(i,j,k+1,QU:WQ)**2)
+             rel = qm(i,j,k+1,QREINT) + ekenl
+#ifdef RADIATION
+             erl = qm(i,j,k+1,qrad:qradhi)
+#endif
+
+             ! Add transverse predictor
+             rrnewl = rrl - cdtdx*(fxy(i+1,j,k,URHO) - fxy(i,j,k,URHO)) &
+                          - cdtdy*(fyx(i,j+1,k,URHO) - fyx(i,j,k,URHO))
+             runewl = rul - cdtdx*(fxy(i+1,j,k,UMX) - fxy(i,j,k,UMX)) &
+                          - cdtdy*(fyx(i,j+1,k,UMX) - fyx(i,j,k,UMX))
+             rvnewl = rvl - cdtdx*(fxy(i+1,j,k,UMY) - fxy(i,j,k,UMY)) &
+                          - cdtdy*(fyx(i,j+1,k,UMY) - fyx(i,j,k,UMY))
+             rwnewl = rwl - cdtdx*(fxy(i+1,j,k,UMZ) - fxy(i,j,k,UMZ)) &
+                          - cdtdy*(fyx(i,j+1,k,UMZ) - fyx(i,j,k,UMZ))
+             renewl = rel - cdtdx*(fxy(i+1,j,k,UEDEN) - fxy(i,j,k,UEDEN)) &
+                          - cdtdy*(fyx(i,j+1,k,UEDEN) - fyx(i,j,k,UEDEN))
+#ifdef RADIATION
+             runewl = runewl + dmx
+             rvnewl = rvnewl + dmy
+             renewl = renewl + dre
+             ernewl = erl(:) - cdtdx*(rfxy(i+1,j  ,k,:) - rfxy(i,j,k,:)) &
+                             - cdtdy*(rfyx(i  ,j+1,k,:) - rfyx(i,j,k,:)) &
+                             + der(:)
+#endif
+
+             ! Reset to original value if adding transverse terms made density negative
+             reset_state = .false.
+             if (transverse_reset_density == 1 .and. rrnewl < ZERO) then
+                rrnewl = rrl
+                runewl = rul
+                rvnewl = rvl
+                rwnewl = rwl
+                renewl = rel
+#ifdef RADIATION
+                ernewl = erl(:)
+#endif
+                reset_state = .true.
+             endif
+
+             ! Convert back to primitive form
+             qmo(i,j,k+1,QRHO  ) = rrnewl
+             qmo(i,j,k+1,QU    ) = runewl/rrnewl
+             qmo(i,j,k+1,QV    ) = rvnewl/rrnewl
+             qmo(i,j,k+1,QW    ) = rwnewl/rrnewl
+
+             ! for ppm_type > 0 we already added the piecewise parabolic traced
+             ! source terms to the normal edge states.
+             if (ppm_type == 0) then
+                qmo(i,j,k+1,QRHO  ) = qmo(i,j,k+1,QRHO  ) + hdt*srcQ(i,j,k,QRHO)
+                qmo(i,j,k+1,QU:QW) = qmo(i,j,k+1,QU:QW) + hdt * srcQ(i,j,k,QU:QW)
+             endif
+
+             ! note: we run the risk of (rho e) being negative here
+             rhoekenl = HALF*(runewl**2 + rvnewl**2 + rwnewl**2)/rrnewl
+             qmo(i,j,k+1,QREINT) = renewl - rhoekenl
+             if (ppm_type == 0) then
+                qmo(i,j,k+1,QREINT) = qmo(i,j,k+1,QREINT) + hdt*srcQ(i,j,k,QREINT)
+             endif
+
+             if (.not. reset_state) then
+                if (transverse_reset_rhoe == 1 .and. qmo(i,j,k+1,QREINT) <= ZERO) then
+                   ! If it is negative, reset the internal energy by using the discretized
+                   ! expression for updating (rho e).
+                   qmo(i,j,k+1,QREINT) = qm(i,j,k+1,QREINT) &
+                        - cdtdx*(fxy(i+1,j,k,UEINT) - fxy(i,j,k,UEINT) + pxav*dux) &
+                        - cdtdy*(fyx(i,j+1,k,UEINT) - fyx(i,j,k,UEINT) + pyav*duy)
+                   if (ppm_type == 0) then
+                      qmo(i,j,k+1,QREINT) = qmo(i,j,k+1,QREINT) + hdt*srcQ(i,j,k,QREINT)
+                   endif
+                endif
+
+                ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
+                ! If we are wrong, we will fix it later
+
+                if (ppm_predict_gammae == 0) then
+                   ! add the transverse term to the p evolution eq here
+                   pnewl = qm(i,j,k+1,QPRES) - pxnew - pynew
+                   qmo(i,j,k+1,QPRES) = pnewl
+                   if (ppm_type == 0) then
+                      qmo(i,j,k+1,QPRES) = qmo(i,j,k+1,QPRES) + hdt*srcQ(i,j,k,QPRES)
+                   endif
+                else
+                   ! Update gammae with its transverse terms
+                   qmo(i,j,k+1,QGAME) = qm(i,j,k+1,QGAME) + gexnew + geynew
+
+                   ! and compute the p edge state from this and (rho e)
+                   qmo(i,j,k+1,QPRES) = qmo(i,j,k+1,QREINT)*(qmo(i,j,k+1,QGAME)-ONE)
+                endif
+             else
+                qmo(i,j,k+1,QPRES) = qm(i,j,k+1,QPRES)
+                if (ppm_type == 0) then
+                   qmo(i,j,k+1,QPRES) = qmo(i,j,k+1,QPRES) + hdt*srcQ(i,j,k,QPRES)
+                endif
+                qmo(i,j,k+1,QGAME) = qm(i,j,k+1,QGAME)
+             endif
+
+             qmo(i,j,k+1,QPRES) = max(qmo(i,j,k+1,QPRES), small_pres)
+
+             call reset_edge_state_thermo(qmo, q_lo, q_hi, i, j, k+1)
+
+#ifdef RADIATION
+             qmo(i,j,k+1,qrad:qradhi) = ernewl(:)
+             qmo(i,j,k+1,qptot  ) = sum(lamm(:)*ernewl(:)) + qmo(i,j,k+1,QPRES)
+             qmo(i,j,k+1,qreitot) = sum(qmo(i,j,k+1,qrad:qradhi)) + qmo(i,j,k+1,QREINT)
+#endif
+
+          end do
+       end do
+    end do
+
+  end subroutine transxy
 
   subroutine reset_edge_state_thermo(qedge, qd_lo, qd_hi, ii, jj, kk)
 
@@ -4068,7 +4838,5 @@ contains
     end if
 
   end subroutine reset_edge_state_thermo
-
-
 
 end module transverse_module
