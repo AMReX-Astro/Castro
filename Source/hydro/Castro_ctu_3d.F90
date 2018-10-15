@@ -2132,7 +2132,7 @@ contains
 #ifdef RADIATION
              rvnewlx = rvnewlx + dmom
              renewlx = renewlx + dre
-             ernewl  = erl(:) + der(:)
+             ernewl  = erl(:) - cdtdy*(rfy(i,j+1,kc,:)- rfy(i,j,kc,:)) + der(:)
 #endif
 
              ! Reset to original value if adding transverse terms made density negative
@@ -2815,7 +2815,7 @@ contains
              do g=0, ngroups-1
                 eddf = Edd_factor(lambda(g))
                 f1 = HALF*(ONE-eddf)
-                der(g) = cdtdz*HALF*(ugp+ugm)*(ergp(g)-ergm(g))
+                der(g) = cdtdz*HALF* f1* (ugp+ugm)*(ergp(g)-ergm(g))
              end do
           else if (fspace_type .eq. 2) then
              do g=0, ngroups-1
