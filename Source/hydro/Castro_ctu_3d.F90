@@ -63,6 +63,7 @@ contains
                                    hybrid_riemann
     use trace_ppm_module, only : tracexy_ppm, tracez_ppm
     use trace_module, only : tracexy, tracez
+    use transverse_module
     use ppm_module, only : ppm_reconstruct, ppm_int_profile
     use slope_module, only : uslope, pslope
     use actual_network, only : nspec, naux
@@ -1021,87 +1022,5 @@ contains
     call bl_deallocate(qgdnvtmp2)
 
   end subroutine umeth
-
-
-  subroutine reset_edge_state_thermo(qedge, qd_lo, qd_hi, ii, jj, kk)
-
-  use amrex_constants_module, only : ZERO, ONE, HALF
-
-  use network, only : nspec, naux
-  use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                 QPRES, QREINT, QGAME, QFS, QFX, &
-                                 QC, QGAMC, &
-#ifdef RADIATION
-                                 qrad, qradhi, qptot, qreitot, &
-                                 fspace_type, comoving, &
-                                 GDERADS, GDLAMS, &
-                                 QCG, QGAMCG, QLAMS, &
-#endif
-                                 URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, &
-                                 NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
-                                 small_pres, small_temp, &
-                                 npassive, upass_map, qpass_map, &
-                                 ppm_predict_gammae, ppm_type, &
-                                 transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
-#ifdef RADIATION
-  use rad_params_module, only : ngroups
-  use fluxlimiter_module, only : Edd_factor
-#endif
-  use eos_module, only: eos
-  use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
-
-    integer, intent(in) :: ii, jj, kk
-    integer, intent(in) :: qd_lo(3), qd_hi(3)
-    real(rt)        , intent(inout) :: qedge(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-
-    logical :: reset
-    type (eos_t) :: eos_state
-
-    reset = .false.
-
-    if (transverse_reset_rhoe == 1) then
-       ! if we are still negative, then we need to reset
-       if (qedge(ii,jj,kk,QREINT) < ZERO) then
-          reset = .true.
-
-          eos_state % rho = qedge(ii,jj,kk,QRHO)
-          eos_state % T = small_temp
-          eos_state % xn(:) = qedge(ii,jj,kk,QFS:QFS-1+nspec)
-          eos_state % aux(:) = qedge(ii,jj,kk,QFX:QFX-1+naux)
-
-          call eos(eos_input_rt, eos_state)
-
-          qedge(ii,jj,kk,QREINT) = qedge(ii,jj,kk,QRHO)*eos_state % e
-          qedge(ii,jj,kk,QPRES) = eos_state % p
-       endif
-
-    end if
-
-    if (ppm_predict_gammae == 0 ) then
-
-       if (transverse_use_eos == 1) then
-          eos_state % rho = qedge(ii,jj,kk,QRHO)
-          eos_state % e   = qedge(ii,jj,kk,QREINT) / qedge(ii,jj,kk,QRHO)
-          eos_state % T   = small_temp
-          eos_state % xn  = qedge(ii,jj,kk,QFS:QFS+nspec-1)
-          eos_state % aux = qedge(ii,jj,kk,QFX:QFX+naux-1)
-
-          call eos(eos_input_re, eos_state)
-
-          qedge(ii,jj,kk,QREINT) = eos_state % e * eos_state % rho
-          qedge(ii,jj,kk,QPRES) = max(eos_state % p, small_pres)
-       end if
-
-    else
-       if (reset) then
-          ! recompute the p edge state from this and (rho e), since we reset
-          ! qreint  (actually, is this code even necessary?)
-          qedge(ii,jj,kk,QPRES) = qedge(ii,jj,kk,QREINT)*(qedge(ii,jj,kk,QGAME)-ONE)
-          qedge(ii,jj,kk,QPRES) = max(qedge(ii,jj,kk,QPRES), small_pres)
-       end if
-    end if
-
-  end subroutine reset_edge_state_thermo
-
 
 end module ctu_advection_module
