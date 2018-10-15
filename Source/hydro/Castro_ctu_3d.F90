@@ -40,11 +40,11 @@ contains
                    srcQ, src_lo, src_hi, &
                    lo, hi, dx, dt, &
                    uout, uout_lo, uout_hi, &
-                   flux1, fd1_lo, fd1_hi, &
+                   flux1, f1_lo, f1_hi, &
                    flux2, f2_lo, f2_hi, &
                    flux3, f3_lo, f3_hi, &
 #ifdef RADIATION
-                   rflux1, rfd1_lo, rfd1_hi, &
+                   rflux1, rf1_lo, rf1_hi, &
                    rflux2, rf2_lo, rf2_hi, &
                    rflux3, rf3_lo, rf3_hi, &
 #endif
@@ -156,7 +156,7 @@ contains
          rfx, rfy, rfz, rfxy, rfxz, rfyx, rfyz, rfzx, rfzy
 #endif
 
-    double precision, dimension(:,:,:), pointer:: &
+    double precision, dimension(:,:,:,:), pointer:: &
          qgdnvx, qgdnvy, qgdnvz, &
          qgdnvxy, qgdnvxz, &
          qgdnvyx, qgdnvyz, &
@@ -164,7 +164,7 @@ contains
 
     ! these will be the temporary arrays we actually allocate space for
     double precision, dimension(:,:,:,:), pointer :: ftmp1, ftmp2, rftmp1, rftmp2
-    double precision, dimension(:,:,:), pointer :: qgdnvtmp1, qgdnvtmp2
+    double precision, dimension(:,:,:,:), pointer :: qgdnvtmp1, qgdnvtmp2
 
     integer :: fglo(3), fghi(3), glo(3), ghi(3)
 
@@ -201,8 +201,8 @@ contains
     call bl_allocate ( qxm, fglo, fghi, QVAR)
     call bl_allocate ( qxp, fglo, fghi, QVAR)
 
-    call bl_allocate ( qym, fglo, fghi(1), QVAR)
-    call bl_allocate ( qyp, fglo, fghi(1), QVAR)
+    call bl_allocate ( qym, fglo, fghi, QVAR)
+    call bl_allocate ( qyp, fglo, fghi, QVAR)
 
     call bl_allocate ( qzm, fglo, fghi, QVAR)
     call bl_allocate ( qzp, fglo, fghi, QVAR)
@@ -234,7 +234,7 @@ contains
     uout(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),USHK) = ZERO
 
     call shock(q, qd_lo, qd_hi, &
-               shk, shk_lo, shk_hi, &
+               shk, glo, ghi, &
                lo, hi, dx)
 
     ! Store the shock data for future use in the burning step.
@@ -257,7 +257,7 @@ contains
     ! hybrid Riemann solver
     if (hybrid_riemann == 1) then
        call shock(q, qd_lo, qd_hi, &
-                  shk, shk_lo, shk_hi, &
+                  shk, glo, ghi, &
                   lo, hi, dx)
     else
        shk(:,:,:) = ZERO
@@ -518,7 +518,7 @@ contains
 #ifdef RADIATION
     rfx    =>    rftmp1
 #endif
-    qgdnvx  =>  qdnvtmp1
+    qgdnvx  =>  qgdnvtmp1
 
     ! Compute F^x
     ! Inputs: qxm, qxp                     : xface, +-1 at y & z
@@ -543,7 +543,7 @@ contains
     !         gamc                         : +-4
     ! Outputs: qmyx, qpyx                  : yface, +-0 at x, +-1 at z
     !          qmzx, qpzx                  : zface, +-0 at x, +-1 at y
-    call transx(qym, qmyx, qyp, qpyx,
+    call transx(qym, qmyx, qyp, qpyx, &
                 qzm, qmzx, qzp, qpzx, fglo, fghi, &
                 qaux, qa_lo, qa_hi, &
                 fx, &
@@ -608,7 +608,7 @@ contains
 #ifdef RADIATION
     rfz     =>    rftmp1
 #endif
-    qgdnvz  =>  qdnvtmp1
+    qgdnvz  =>  qgdnvtmp1
 
     ! Compute F^z
     ! Inputs: qzm, qzp                     : zface, +-1 at x & y
@@ -874,7 +874,7 @@ contains
 #ifdef RADIATION
     rfxy     =>     rftmp1
 #endif
-    qgdnvxy  =>   qdnvtmp1
+    qgdnvxy  =>   qgdnvtmp1
 
 
     ! Compute F^{x|y}
@@ -897,7 +897,7 @@ contains
 #ifdef RADIATION
     rfyx     =>     rftmp2
 #endif
-    qdnvyx   =>  qgdnvtmp2
+    qgdnvyx  =>  qgdnvtmp2
 
     ! Compute F^{y|x}
     ! Inputs: qmyx, qpyx                       : yface, +-0 at x, +-1 at z
@@ -962,7 +962,7 @@ contains
                 rflux3, rf3_lo, rf3_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk,shk_lo,shk_hi, &
+                shk, glo, ghi, &
                 3, [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], &
                 domlo, domhi)
 
