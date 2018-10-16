@@ -301,17 +301,6 @@ contains
                                lo, hi, dx, dt)
        end do
 
-       do d = 1, 3
-          print *, "checking Ip for NaN"
-          call check_for_nan(Ip(:,:,:,d,1,:), glo, ghi, [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
-          call check_for_nan(Ip(:,:,:,d,2,:), glo, ghi, [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
-          call check_for_nan(Ip(:,:,:,d,3,:), glo, ghi, [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
-
-          print *, "checking Im for NaN"
-          call check_for_nan(Im(:,:,:,d,1,:), glo, ghi, [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
-          call check_for_nan(Im(:,:,:,d,2,:), glo, ghi, [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
-          call check_for_nan(Im(:,:,:,d,3,:), glo, ghi, [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
-       end do
 
        ! source terms
        do n = 1, QVAR
@@ -394,10 +383,6 @@ contains
 
        end if
 
-    print *, "checking Ip for NaN"
-    call check_for_nan(Ip(:,:,:,1,1,:), glo, ghi, [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
-    call check_for_nan(Ip(:,:,:,2,1,:), glo, ghi, [lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
-    call check_for_nan(Ip(:,:,:,3,1,:), glo, ghi, [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
 
        ! Compute U_x and U_y at kc (k3d)
 
@@ -625,6 +610,9 @@ contains
                 2, [lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], &
                 domlo, domhi)
 
+    print *, "checking Fy for NaN"
+    call check_for_nan(fy, glo, ghi, [lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], NVAR, 1)
+
     ! add the transverse flux difference in y to the x and z states
     ! Inputs: qxm, qxp                     : xface, +-1 at y & z
     !         qzm, qzp                     : zface, +-1 at x & y
@@ -669,6 +657,9 @@ contains
                 shk, glo, ghi, &
                 3, [lo(1)-1, lo(2)-1, lo(3)], [ hi(1)+1, hi(2)+1, hi(3)+1], &
                 domlo, domhi)
+
+    print *, "checking Fz for NaN"
+    call check_for_nan(fz, glo, ghi, [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1], NVAR, 1)
 
     ! add the transverse flux difference in z to the x and y states
     ! Inputs: qxm, qxp                     : xface, +-1 at y & z
