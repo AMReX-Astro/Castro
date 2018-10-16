@@ -129,7 +129,7 @@ contains
     real(rt) :: hdtdx, hdtdy, hdtdz
 
     integer :: n
-    integer :: i, j, k, iwave, idim
+    integer :: i, j, k, iwave, idim, d
 
     real(rt), pointer :: dqx(:,:,:,:), dqy(:,:,:,:), dqz(:,:,:,:)
 
@@ -199,14 +199,14 @@ contains
     ghi = hi + dg(:)
 
 
-    call bl_allocate ( qxm, fglo, fghi, QVAR)
-    call bl_allocate ( qxp, fglo, fghi, QVAR)
+    call bl_allocate ( qxm, fglo, fghi, NQ)
+    call bl_allocate ( qxp, fglo, fghi, NQ)
 
-    call bl_allocate ( qym, fglo, fghi, QVAR)
-    call bl_allocate ( qyp, fglo, fghi, QVAR)
+    call bl_allocate ( qym, fglo, fghi, NQ)
+    call bl_allocate ( qyp, fglo, fghi, NQ)
 
-    call bl_allocate ( qzm, fglo, fghi, QVAR)
-    call bl_allocate ( qzp, fglo, fghi, QVAR)
+    call bl_allocate ( qzm, fglo, fghi, NQ)
+    call bl_allocate ( qzp, fglo, fghi, NQ)
 
 
     if (ppm_type .gt. 0) then
@@ -301,6 +301,18 @@ contains
                                lo, hi, dx, dt)
        end do
 
+       do d = 1, 3
+          print *, "checking Ip for NaN"
+          call check_for_nan(Ip(:,:,:,d,1,:), glo, ghi, [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
+          call check_for_nan(Ip(:,:,:,d,2,:), glo, ghi, [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
+          call check_for_nan(Ip(:,:,:,d,3,:), glo, ghi, [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
+
+          print *, "checking Im for NaN"
+          call check_for_nan(Im(:,:,:,d,1,:), glo, ghi, [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
+          call check_for_nan(Im(:,:,:,d,2,:), glo, ghi, [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
+          call check_for_nan(Im(:,:,:,d,3,:), glo, ghi, [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
+       end do
+
        ! source terms
        do n = 1, QVAR
           if (source_nonzero(n)) then
@@ -382,6 +394,11 @@ contains
 
        end if
 
+    print *, "checking Ip for NaN"
+    call check_for_nan(Ip(:,:,:,1,1,:), glo, ghi, [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
+    call check_for_nan(Ip(:,:,:,2,1,:), glo, ghi, [lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
+    call check_for_nan(Ip(:,:,:,3,1,:), glo, ghi, [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
+
        ! Compute U_x and U_y at kc (k3d)
 
 #ifdef RADIATION
@@ -452,6 +469,20 @@ contains
 
     end if  ! ppm test
 
+    print *, "checking qxm for NaN"
+    call check_for_nan(qxm, fglo, fghi, [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
+    print *, "checking qxp for NaN"
+    call check_for_nan(qxp, fglo, fghi, [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
+    print *, "checking qym for NaN"
+    call check_for_nan(qym, fglo, fghi, [lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
+    print *, "checking qyp for NaN"
+    call check_for_nan(qyp, fglo, fghi, [lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
+    print *, "checking qzm for NaN"
+    call check_for_nan(qzm, fglo, fghi, [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
+    print *, "checking qzp for NaN"
+    call check_for_nan(qzp, fglo, fghi, [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1], NQ, 1)
+
+
     if (ppm_type .gt. 0) then
        call bl_deallocate ( Ip)
        call bl_deallocate ( Im)
@@ -476,26 +507,26 @@ contains
     call bl_deallocate(szp)
 
 
-    call bl_allocate( qmxy, fglo, fghi, QVAR)
-    call bl_allocate( qpxy, fglo, fghi, QVAR)
+    call bl_allocate( qmxy, fglo, fghi, NQ)
+    call bl_allocate( qpxy, fglo, fghi, NQ)
 
-    call bl_allocate( qmxz, fglo, fghi, QVAR)
-    call bl_allocate( qpxz, fglo, fghi, QVAR)
+    call bl_allocate( qmxz, fglo, fghi, NQ)
+    call bl_allocate( qpxz, fglo, fghi, NQ)
 
-    call bl_allocate( qmyx, fglo, fghi, QVAR)
-    call bl_allocate( qpyx, fglo, fghi, QVAR)
+    call bl_allocate( qmyx, fglo, fghi, NQ)
+    call bl_allocate( qpyx, fglo, fghi, NQ)
 
-    call bl_allocate( qmyz, fglo, fghi, QVAR)
-    call bl_allocate( qpyz, fglo, fghi, QVAR)
+    call bl_allocate( qmyz, fglo, fghi, NQ)
+    call bl_allocate( qpyz, fglo, fghi, NQ)
 
-    call bl_allocate( qmzx, fglo, fghi, QVAR)
-    call bl_allocate( qpzx, fglo, fghi, QVAR)
+    call bl_allocate( qmzx, fglo, fghi, NQ)
+    call bl_allocate( qpzx, fglo, fghi, NQ)
 
-    call bl_allocate( qmzy, fglo, fghi, QVAR)
-    call bl_allocate( qpzy, fglo, fghi, QVAR)
+    call bl_allocate( qmzy, fglo, fghi, NQ)
+    call bl_allocate( qpzy, fglo, fghi, NQ)
 
-    call bl_allocate( ql, fglo, fghi, QVAR)
-    call bl_allocate( qr, fglo, fghi, QVAR)
+    call bl_allocate( ql, fglo, fghi, NQ)
+    call bl_allocate( qr, fglo, fghi, NQ)
 
     call bl_allocate( ftmp1, glo, ghi, NVAR)
     call bl_allocate( ftmp2, glo, ghi, NVAR)
@@ -537,6 +568,9 @@ contains
                 1, [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], &
                 domlo, domhi)
 
+    print *, "checking Fx for NaN"
+    call check_for_nan(fx, glo, ghi, [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], NVAR, 1)
+
     ! add the transverse flux difference in x to the y and z states
     ! Inputs: qym, qyp                     : yface, +-1 at x & z
     !         qzm, qzp                     : zface, +-1 at x & y
@@ -559,6 +593,15 @@ contains
 #ifdef RADIATION
     nullify(rfx)
 #endif
+
+    print *, "checking qmyx for NaN"
+    call check_for_nan(qmyx, fglo, fghi, lo, hi, NQ, 1)
+    print *, "checking qpyx for NaN"
+    call check_for_nan(qpyx, fglo, fghi, lo, hi, NQ, 1)
+    print *, "checking qmzx for NaN"
+    call check_for_nan(qmzx, fglo, fghi, lo, hi, NQ, 1)
+    print *, "checking qmzx for NaN"
+    call check_for_nan(qmzx, fglo, fghi, lo, hi, NQ, 1)
 
     fy     =>     ftmp1
 #ifdef RADIATION

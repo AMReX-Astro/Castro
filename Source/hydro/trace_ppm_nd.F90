@@ -1404,13 +1404,12 @@ contains
     ! Note: in contrast to the above code for x and y, here the loop
     ! is over interfaces, not over cell-centers.
 
-
     !-------------------------------------------------------------------------
     ! z-direction
     !-------------------------------------------------------------------------
 
     ! Trace to left and right edges using upwind PPM
-    do k = lo(3)-1, lo(3)+1
+    do k = lo(3)-1, hi(3)+1
        do j = lo(2)-1, hi(2)+1
           do i = lo(1)-1, hi(1)+1
 
@@ -1847,6 +1846,7 @@ contains
                 qzm(i,j,k+1,QV    ) = Ip(i,j,k,3,2,QV) + hdt*Ip_src(i,j,k,3,2,QV)
 
              end if
+
           end do
        end do
     end do
