@@ -1437,7 +1437,7 @@ contains
              ! plus state on face k
              !-------------------------------------------------------------------
 
-             if (k > lo(3)) then
+             if (k >= lo(3)) then
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the left
