@@ -609,6 +609,9 @@ contains
                 2, [lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], &
                 domlo, domhi)
 
+    print *, "checking Fy for NaN"
+    call check_for_nan(fy, glo, ghi, [lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], NVAR, 1)
+
     ! add the transverse flux difference in y to the x and z states
     ! Inputs: qxm, qxp                     : xface, +-1 at y & z
     !         qzm, qzp                     : zface, +-1 at x & y
@@ -653,6 +656,9 @@ contains
                 shk, glo, ghi, &
                 3, [lo(1)-1, lo(2)-1, lo(3)], [ hi(1)+1, hi(2)+1, hi(3)+1], &
                 domlo, domhi)
+
+    print *, "checking Fz for NaN"
+    call check_for_nan(fz, glo, ghi, [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1], NVAR, 1)
 
     ! add the transverse flux difference in z to the x and y states
     ! Inputs: qxm, qxp                     : xface, +-1 at y & z
