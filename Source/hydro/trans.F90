@@ -1,9 +1,32 @@
 module transverse_module
 
+  use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
 contains
+
+  subroutine check_for_nan(s, s_lo, s_hi, lo, hi, ncomp, comp)
+    integer, intent(in) :: s_lo(3), s_hi(3)
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: ncomp
+    real(rt), intent(in) :: s(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), ncomp)
+
+    integer :: i, j, k, n, comp
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             if (isnan(s(i,j,k,comp))) then
+                print *, "NaN: ", i, j, k, comp
+                call amrex_error("NaN")
+             endif
+          end do
+       end do
+    end do
+
+  end subroutine check_for_nan
 
   !===========================================================================
   ! transx
@@ -524,7 +547,7 @@ contains
 #ifdef RADIATION
              lamge = lambda(:) * (ergp(:)-ergm(:))
              dmom = - cdtdx*sum(lamge(:))
-             luge = HALF*(ugp+ugm) * lamge(:)
+             luge = ugc * lamge(:)
              dre = -cdtdx*sum(luge)
 
              if (fspace_type .eq. 1 .and. comoving) then
@@ -564,8 +587,7 @@ contains
 #ifdef RADIATION
              runewrz = runewrz + dmom
              renewrz = renewrz + dre
-             ernewr  = err(:) - cdtdx*(rfx(i+1,j,k,:) - rfx(i,j,k,:)) &
-                  + der(:)
+             ernewr  = err(:) - cdtdx*(rfx(i+1,j,k,:) - rfx(i,j,k,:)) + der(:)
 #endif
 
              ! Reset to original value if adding transverse terms made density negative
@@ -597,8 +619,9 @@ contains
                 ! do the transverse terms for p, gamma, and rhoe, as necessary
 
                 if (transverse_reset_rhoe == 1 .and. qzpo(i,j,k,QREINT) <= ZERO) then
-                   ! If it is negative, reset the internal energy by using the discretized
-                   ! expression for updating (rho e).
+                   ! If it is negative, reset the internal energy by
+                   ! using the discretized expression for updating
+                   ! (rho e).
                    qzpo(i,j,k,QREINT) = qzp(i,j,k,QREINT) - &
                         cdtdx*(fx(i+1,j,k,UEINT) - fx(i,j,k,UEINT) + pav*du)
                 end if
@@ -678,7 +701,7 @@ contains
 #ifdef RADIATION
              lamge = lambda(:) * (ergp(:)-ergm(:))
              dmom = - cdtdx*sum(lamge(:))
-             luge = HALF*(ugp+ugm) * lamge(:)
+             luge = ugc * lamge(:)
              dre = -cdtdx*sum(luge)
 
              if (fspace_type .eq. 1 .and. comoving) then
