@@ -3856,23 +3856,23 @@ contains
              lgey = lamm(:) * (ergypm(:)-ergymm(:))
              dmx = - cdtdx*sum(lgex)
              dmy = - cdtdy*sum(lgey)
-             lugex = HALF*(ugxpm+ugxmm) * lgex(:)
-             lugey = HALF*(ugypm+ugymm) * lgey(:)
+             lugex = HALF*(ugxp+ugxm) * lgex(:)
+             lugey = HALF*(ugyp+ugym) * lgey(:)
              dre = -cdtdx*sum(lugex) - cdtdy*sum(lugey)
 
              if (fspace_type .eq. 1 .and. comoving) then
                 do g=0, ngroups-1
                    eddf = Edd_factor(lamm(g))
                    f1 = HALF*(ONE-eddf)
-                   der(g) = f1*(cdtdx*HALF*(ugxpm+ugxmm)*(ergxpm(g)-ergxmm(g)) &
-                        +       cdtdy*HALF*(ugypm+ugymm)*(ergypm(g)-ergymm(g)) )
+                   der(g) = f1*(cdtdx*HALF*(ugxp+ugxm)*(ergxp(g)-ergxm(g)) &
+                        +       cdtdy*HALF*(ugyp+ugym)*(ergyp(g)-ergym(g)) )
                 end do
              else if (fspace_type .eq. 2) then
                 do g=0, ngroups-1
                    eddf = Edd_factor(lamm(g))
                    f1 = HALF*(ONE-eddf)
-                   der(g) = f1*(cdtdx*HALF*(ergxpm(g)+ergxmm(g))*(ugxmm-ugxpm) &
-                        +       cdtdy*HALF*(ergypm(g)+ergymm(g))*(ugymm-ugypm) )
+                   der(g) = f1*(cdtdx*HALF*(ergxp(g)+ergxm(g))*(ugxm-ugxp) &
+                        +       cdtdy*HALF*(ergyp(g)+ergym(g))*(ugym-ugyp) )
                 end do
              else ! mixed frame
                 der(:) = cdtdx * lugex + cdtdy * lugey

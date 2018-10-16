@@ -888,7 +888,7 @@ contains
                 fxy, glo, ghi, &
                 qgdnvxy, fglo, fghi, &
 #ifdef RADIATION
-                rfxy, fx_lo, fx_hi, &
+                rfxy, glo, ghi, &
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
