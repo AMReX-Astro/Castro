@@ -1406,8 +1406,10 @@ contains
 
 
     !-------------------------------------------------------------------------
-    ! construct qzp  -- plus state on face kc
+    ! z-direction
     !-------------------------------------------------------------------------
+
+    ! Trace to left and right edges using upwind PPM
     do k = lo(3)-1, lo(3)+1
        do j = lo(2)-1, hi(2)+1
           do i = lo(1)-1, hi(1)+1
@@ -1440,7 +1442,9 @@ contains
              if (k >= lo(3)) then
 
                 ! Set the reference state
-                ! This will be the fastest moving state to the left
+                ! This will be the fastest moving state to the left --
+                ! this is the method that Miller & Colella and Colella &
+                ! Woodward user
                 rho_ref  = Im(i,j,k,3,1,QRHO)
                 w_ref    = Im(i,j,k,3,1,QW)
 
@@ -1462,12 +1466,11 @@ contains
                 Clag_ref = rho_ref*cc_ref
                 h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
 
-                ! *m are the jumps carried by w-c
-                ! *p are the jumps carried by w+c
-
                 ! Note: for the transverse velocities, the jump is carried
                 !       only by the w wave (the contact)
 
+
+                ! we also add the sources here so they participate in the tracing
                 dwm = w_ref - Im(i,j,k,3,1,QW) - hdt*Im_src(i,j,k,3,1,QW)
                 dptotm = p_ref - Im(i,j,k,3,1,QPRES) - hdt*Im_src(i,j,k,3,1,QPRES)
 
@@ -1475,10 +1478,13 @@ contains
                 dptot = p_ref - Im(i,j,k,3,2,QPRES) - hdt*Im_src(i,j,k,3,2,QPRES)
                 drhoe_g = rhoe_g_ref - Im(i,j,k,3,2,QREINT) - hdt*Im_src(i,j,k,3,2,QREINT)
 
+                ! TODO: need to figure sources for this out...
                 dTm = temp_ref - Im(i,j,k,3,1,QTEMP)
                 dT0 = temp_ref - Im(i,j,k,3,2,QTEMP)
                 dTp = temp_ref - Im(i,j,k,3,3,QTEMP)
 
+                ! we are treating tau as 1/rho, but we could have reconstructed
+                ! it separately
                 ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
                 dtaum = tau_ref - ONE/Im(i,j,k,3,1,QRHO) + hdt*Im_src(i,j,k,3,1,QRHO)/Im(i,j,k,3,1,QRHO)**2
                 dtau = tau_ref - ONE/Im(i,j,k,3,2,QRHO) + hdt*Im_src(i,j,k,3,2,QRHO)/Im(i,j,k,3,2,QRHO)**2
@@ -1517,7 +1523,9 @@ contains
                       ! (rho, u, p, (rho e) eigensystem
 
                       ! These are analogous to the beta's from the original PPM
-                      ! paper.  This is simply (l . dq), where dq = qref - I(q)
+                      ! paper (except we work with rho instead of tau).  This is
+                      ! simply (l . dq), where dq = qref - I(q)
+
                       alpham = HALF*(dptotm*(ONE/(rho_ev*cc_ev)) - dwm)*(rho_ev/cc_ev)
                       alphap = HALF*(dptotp*(ONE/(rho_ev*cc_ev)) + dwp)*(rho_ev/cc_ev)
                       alpha0r = drho - dptot/csq_ev
@@ -1540,6 +1548,7 @@ contains
                       alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
 
                    endif
+
                 else
 
                    ! (tau, u T) eigensystem
@@ -1571,6 +1580,7 @@ contains
                 else
                    alpham = -HALF*alpham
                 endif
+
                 if (w+cc > ZERO) then
                    alphap = ZERO
                 else if (w+cc < ZERO) then
@@ -1578,6 +1588,7 @@ contains
                 else
                    alphap = -HALF*alphap
                 endif
+
                 if (w > ZERO) then
                    alpha0r = ZERO
                    alpha0e_g = ZERO
@@ -1628,7 +1639,13 @@ contains
                 qzp(i,j,k,QRHO ) = max(qzp(i,j,k,QRHO ), small_dens)
                 qzp(i,j,k,QPRES) = max(qzp(i,j,k,QPRES), small_pres)
 
-                ! transverse velocities
+                ! Transverse velocities -- there's no projection here, so
+                ! we don't need a reference state.  We only care about
+                ! the state traced under the middle wave
+
+                ! Recall that I already takes the limit of the parabola
+                ! in the event that the wave is not moving toward the
+                ! interface
                 qzp(i,j,k,QU    ) = Im(i,j,k,3,2,QU) + hdt*Im_src(i,j,k,3,2,QU)
                 qzp(i,j,k,QV    ) = Im(i,j,k,3,2,QV) + hdt*Im_src(i,j,k,3,2,QV)
 
@@ -1665,9 +1682,6 @@ contains
                 ! *m are the jumps carried by w-c
                 ! *p are the jumps carried by w+c
 
-                ! Note: for the transverse velocities, the jump is carried
-                !       only by the w wave (the contact)
-
                 dwm = w_ref - Ip(i,j,k,3,1,QW) - hdt*Ip_src(i,j,k,3,1,QW)
                 dptotm = p_ref - Ip(i,j,k,3,1,QPRES) - hdt*Ip_src(i,j,k,3,1,QPRES)
 
@@ -1675,14 +1689,14 @@ contains
                 dptot = p_ref - Ip(i,j,k,3,2,QPRES) - hdt*Ip_src(i,j,k,3,2,QPRES)
                 drhoe_g = rhoe_g_ref - Ip(i,j,k,3,2,QREINT) - hdt*Ip_src(i,j,k,3,2,QREINT)
 
+                dTm = temp_ref - Ip(i,j,k,3,1,QTEMP)
+                dT0 = temp_ref - Ip(i,j,k,3,2,QTEMP)
+                dTp = temp_ref - Ip(i,j,k,3,3,QTEMP)
+
                 ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
                 dtaum = tau_ref - ONE/Ip(i,j,k,3,1,QRHO) + hdt*Ip_src(i,j,k,3,1,QRHO)/Ip(i,j,k,3,1,QRHO)**2
                 dtau = tau_ref - ONE/Ip(i,j,k,3,2,QRHO) + hdt*Ip_src(i,j,k,3,2,QRHO)/Ip(i,j,k,3,2,QRHO)**2
                 dtaup = tau_ref - ONE/Ip(i,j,k,3,3,QRHO) + hdt*Ip_src(i,j,k,3,3,QRHO)/Ip(i,j,k,3,3,QRHO)**2
-
-                dTm = temp_ref - Ip(i,j,k,3,1,QTEMP)
-                dT0 = temp_ref - Ip(i,j,k,3,2,QTEMP)
-                dTp = temp_ref - Ip(i,j,k,3,3,QTEMP)
 
                 dwp = w_ref - Ip(i,j,k,3,3,QW) - hdt*Ip_src(i,j,k,3,3,QW)
                 dptotp = p_ref - Ip(i,j,k,3,3,QPRES) - hdt*Ip_src(i,j,k,3,3,QPRES)
@@ -1713,10 +1727,12 @@ contains
 
                    if (ppm_predict_gammae == 0) then
 
-                      ! (rho, u, p, (rho e) eigensystem
+                      ! (rho, u, p, (rho e)) eigensystem
 
                       ! These are analogous to the beta's from the original PPM
-                      ! paper.  This is simply (l . dq), where dq = qref - I(q)
+                      ! paper (except we work with rho instead of tau).  This is
+                      ! simply (l . dq), where dq = qref - I(q)
+
                       alpham = HALF*(dptotm*(ONE/(rho_ev*cc_ev)) - dwm)*(rho_ev/cc_ev)
                       alphap = HALF*(dptotp*(ONE/(rho_ev*cc_ev)) + dwp)*(rho_ev/cc_ev)
                       alpha0r = drho - dptot/csq_ev
@@ -1848,7 +1864,7 @@ contains
        ! components above, so don't process them here.
        if (n == QU .or. n == QV .or. n == QW) cycle
 
-       ! Plus state on face kc
+       ! Plus state on face k
        do k = lo(3), hi(3)+1
           do j = lo(2)-1, hi(2)+1
              do i = lo(1)-1, hi(1)+1
@@ -1866,7 +1882,7 @@ contains
           end do
        end do
 
-       ! Minus state on face kc
+       ! Minus state on face k+1
        do k = lo(3)-1, hi(3)
           do j = lo(2)-1, hi(2)+1
              do i = lo(1)-1, hi(1)+1
