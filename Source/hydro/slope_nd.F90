@@ -133,6 +133,7 @@ contains
 
                 ! First compute Fromm slopes
                 do k = lo(3)-2, hi(3)+2
+
                    dlft = TWO*(q(i,j,k ,n) - q(i,j,k-1,n))
                    drgt = TWO*(q(i,j,k+1,n) - q(i,j,k, n))
                    dcen(i,j,k) = FOURTH * (dlft+drgt)
@@ -198,7 +199,7 @@ contains
     integer :: i, j, k
 
     real(rt) :: dlft, drgt, dp1
-    real(rt) :: dm, dp, dc, dl, dfm, dfp, ds
+    real(rt) :: dm, dp, dc, dl, dfm, dfp
 
     !     Local arrays
     real(rt), pointer :: dsgn(:,:,:), dlim(:,:,:), df(:,:,:), dcen(:,:,:)
@@ -326,7 +327,7 @@ contains
              ! now limited fourth order slopes
              do k = lo(3)-1, hi(3)+1
                 dp1 = FOUR3RD*dcen(i,j,k) - SIXTH*(df(i,j,k+1) + df(i,j,k-1))
-                dqz(i,j,k,QPRES) = flatn(i,j,k)*ds*min(dlim(i,j,k),abs(dp1))
+                dqz(i,j,k,QPRES) = flatn(i,j,k)*dsgn(i,j,k)*min(dlim(i,j,k),abs(dp1))
                 dqz(i,j,k,QPRES) = dqz(i,j,k,QPRES) + q(i,j,k,QRHO)*src(i,j,k,QW)*dx(3)
              end do
           end do
