@@ -40,12 +40,7 @@ contains
 
     real(rt) :: dlft, drgt, slop, dq1
 
-    integer :: ilo, ihi
-
     real(rt), pointer:: dsgn(:,:,:), dlim(:,:,:), df(:,:,:), dcen(:,:,:)
-
-    ilo = minval(lo(:))
-    ihi = maxval(hi(:))
 
     call bl_allocate(dsgn, lo-2*dg, hi+2*dg)
     call bl_allocate(dlim, lo-2*dg, hi+2*dg)
@@ -202,16 +197,11 @@ contains
 
     integer :: i, j, k
 
-    integer :: ilo, ihi
-
     real(rt) :: dlft, drgt, dp1
     real(rt) :: dm, dp, dc, dl, dfm, dfp, ds
 
     !     Local arrays
     real(rt), pointer :: dsgn(:,:,:), dlim(:,:,:), df(:,:,:), dcen(:,:,:)
-
-    ilo = minval(lo(:))
-    ihi = maxval(hi(:))
 
     call bl_allocate(dsgn, lo-2*dg, hi+2*dg)
     call bl_allocate(dlim, lo-2*dg, hi+2*dg)
@@ -270,7 +260,7 @@ contains
           end do
        end do
 
-#if (AMREX_SPACEDIM >= 2)
+#if AMREX_SPACEDIM >= 2
        ! Compute slopes in second coordinate direction
        do k = lo(3)-dg(3), hi(3)+dg(3)
           do i = lo(1)-1, hi(1)+1
@@ -306,7 +296,7 @@ contains
        end do
 #endif
 
-#if (AMREX_SPACEDIM == 3)
+#if AMREX_SPACEDIM == 3
        ! Compute slopes in third coordinate direction
        do j = lo(2)-1, hi(2)+1
           do i = lo(1)-1, hi(1)+1
