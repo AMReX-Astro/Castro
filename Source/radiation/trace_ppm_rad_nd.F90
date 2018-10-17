@@ -4,8 +4,8 @@
 module trace_ppm_rad_module
 
   use prob_params_module, only : dg
-  use amrex_fort_module, only : rt => amrex_real
   use amrex_error_module, only : amrex_error
+  use amrex_fort_module, only : rt => amrex_real
 
   implicit none
 
@@ -19,7 +19,7 @@ contains
                              qaux, qa_lo, qa_hi, &
                              Ip, Im, Ip_src, Im_src, I_lo, I_hi, &
                              qxm, qxp, qym, qyp, qs_lo, qs_hi, &
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
                              dloga, dloga_lo, dloga_hi, &
 #endif
                              lo, hi, domlo, domhi, &
@@ -45,7 +45,7 @@ contains
     integer, intent(in) :: qs_lo(3), qs_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: I_lo(3), I_hi(3)
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
     integer, intent(in) :: lo(3), hi(3)
@@ -54,18 +54,18 @@ contains
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3,NQ)
-    real(rt), intent(in) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3,NQ)
+    real(rt), intent(in) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
+    real(rt), intent(in) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
 
-    real(rt), intent(in) :: Ip_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3,QVAR)
-    real(rt), intent(in) :: Im_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3,QVAR)
+    real(rt), intent(in) :: Ip_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
+    real(rt), intent(in) :: Im_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
 
 
     real(rt), intent(inout) :: qxm(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
     real(rt), intent(inout) :: qxp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
     real(rt), intent(inout) :: qym(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
     real(rt), intent(inout) :: qyp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
     real(rt), intent(in) :: dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 #endif
     real(rt), intent(in) :: dt, dx(3)
@@ -554,7 +554,7 @@ contains
              ! geometry source terms
              !-------------------------------------------------------------------
 
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
              if (dloga(i,j,k) /= 0) then
                 courn = dt/dx(1)*(cc+abs(u))
                 eta = (ONE-courn)/(cc*dt*abs(dloga(i,j,k)))
@@ -588,7 +588,7 @@ contains
              endif
 #endif
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
              ! Enforce constant mass flux rate if specified
              if (fix_mass_flux_lo) then
                 qxm(lo(1),j,k,QRHO   ) = q(domlo(1)-1,j,k,QRHO)
@@ -667,7 +667,7 @@ contains
                 endif
              enddo
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
              if (fix_mass_flux_hi) qxp(hi(1)+1,j,k,n) = q(hi(1)+1,j,k,n)
              if (fix_mass_flux_lo) qxm(lo(1),j,k,n) = q(lo(1)-1,j,k,n)
 #endif
@@ -675,7 +675,7 @@ contains
        end do
     end do
 
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
     !-------------------------------------------------------------------------
     ! y-direction
     !-------------------------------------------------------------------------
