@@ -1,5 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 50
+max_step = 25
 stop_time =  3.0
 
 # PROBLEM SIZE & GEOMETRY
@@ -14,7 +14,7 @@ amr.n_cell           = 128        64
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  3   1 
+castro.lo_bc       =  3   1
 castro.hi_bc       =  2   1
 
 castro.yl_ext_bc_type = "hse"
@@ -41,13 +41,20 @@ castro.grav_source_type = 2
 castro.allow_negative_energy = 0
 
 gravity.gravity_type = ConstantGrav
-gravity.const_grav   = -2.0e14
+gravity.const_grav   = -1.5e14
 
 castro.rotational_period = 0.001
 castro.rotation_include_centrifugal = 0
 
 castro.diffuse_temp = 1
-castro.diffuse_cutoff_density = 1.e4
+castro.diffuse_cutoff_density = 5.e4
+castro.diffuse_cond_scale_fac = 10.0
+
+castro.react_rho_min = 1.e2
+castro.react_rho_max = 5.e7
+
+castro.react_T_min = 6.e7
+
 
 # TIME STEP CONTROL
 castro.cfl            = 0.8     # cfl number for hyperbolic system
@@ -62,7 +69,7 @@ castro.sum_interval   = 1       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 
-# REFINEMENT / REGRIDDING 
+# REFINEMENT / REGRIDDING
 amr.max_level       = 1       # maximum level number allowed
 amr.ref_ratio       = 4 4 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
@@ -80,4 +87,4 @@ amr.plot_per         = 5.e-7      # number of timesteps between plotfiles
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
-amr.probin_file = probin
+amr.probin_file = probin.boost.aprox13

@@ -52,9 +52,9 @@ Castro::problem_post_timestep()
                 const Box& bx = mfi.tilebox();
 
                 check_stopping_criteria(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                        BL_TO_FORTRAN_3D((*v)[mfi]),
-                                        BL_TO_FORTRAN_3D((*T)[mfi]),
-                                        BL_TO_FORTRAN_3D((*ts_te)[mfi]),
+                                        BL_TO_FORTRAN_ANYD((*v)[mfi]),
+                                        BL_TO_FORTRAN_ANYD((*T)[mfi]),
+                                        BL_TO_FORTRAN_ANYD((*ts_te)[mfi]),
                                         T_stopping_criterion, ts_te_stopping_criterion, &to_stop);
 
             }

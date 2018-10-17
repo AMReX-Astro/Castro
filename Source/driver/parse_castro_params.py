@@ -211,7 +211,13 @@ class Param(object):
         if self.f90_dtype == "string":
             return "\n"
         else:
-            return "attributes(managed) :: {}\n".format(self.f90_name)
+            cstr = ""
+            if self.ifdef is not None:
+                cstr += "#ifdef {}\n".format(self.ifdef)
+            cstr += "attributes(managed) :: {}\n".format(self.f90_name)
+            if self.ifdef is not None:
+                cstr += "#endif\n"
+            return cstr
 
     def get_query_string(self, language):
         # this is the line that queries the ParmParse object to get
@@ -321,7 +327,7 @@ def write_meth_module(plist, meth_template):
 
     cuda_managed_string = ""
     for p in cuda_managed_decls:
-        cuda_managed_string += "  {}".format(p)
+        cuda_managed_string += "{}".format(p)
 
     for line in mt:
         if line.find("@@f90_declarations@@") > 0:
@@ -338,23 +344,25 @@ def write_meth_module(plist, meth_template):
 
             mo.write("\n")
             mo.write("  !$acc declare &\n")
-            mo.write("  !$acc create(")
-
             for n, p in enumerate(params):
                 if p.f90_dtype == "string":
-                    print("warning: string parameter {} will not be available on the GPU".format(p.name),
+                    print("warning: string parameter {} will not be on the GPU".format(p.name),
                           file=sys.stderr)
                     continue
 
-                mo.write("{}".format(p.f90_name))
+                if p.ifdef is not None:
+                    mo.write("#ifdef {}\n".format(p.ifdef))
+                mo.write("  !$acc create({})".format(p.f90_name))
 
-                if n == len(params)-1:
-                    mo.write(")\n")
+                if n != len(params)-1:
+                    mo.write(" &\n")
                 else:
-                    if n % 3 == 2:
-                        mo.write(") &\n  !$acc create(")
-                    else:
-                        mo.write(", ")
+                    mo.write("\n")
+
+                if p.ifdef is not None:
+                    mo.write("#endif\n")
+
+
 
         elif line.find("@@set_castro_params@@") >= 0:
 

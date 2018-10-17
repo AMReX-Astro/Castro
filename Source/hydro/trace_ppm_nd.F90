@@ -19,7 +19,7 @@ contains
                          qaux, qa_lo, qa_hi, &
                          Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
                          qxm, qxp, qym, qyp, qs_lo, qs_hi, &
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
                          dloga, dloga_lo, dloga_hi, &
 #endif
                          ilo1, ilo2, ihi1, ihi2, domlo, domhi, &
@@ -45,7 +45,7 @@ contains
     integer, intent(in) :: qs_lo(3),qs_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: I_lo(3), I_hi(3)
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
     integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
@@ -55,20 +55,20 @@ contains
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3,NQ)
-    real(rt), intent(in) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3,NQ)
+    real(rt), intent(in) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
+    real(rt), intent(in) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
 
-    real(rt), intent(in) :: Ip_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3,QVAR)
-    real(rt), intent(in) :: Im_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3,QVAR)
+    real(rt), intent(in) :: Ip_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
+    real(rt), intent(in) :: Im_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
 
-    real(rt), intent(in) :: Ip_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3,1)
-    real(rt), intent(in) :: Im_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3,1)
+    real(rt), intent(in) :: Ip_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,1)
+    real(rt), intent(in) :: Im_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,1)
 
     real(rt), intent(inout) :: qxm(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
     real(rt), intent(inout) :: qxp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
     real(rt), intent(inout) :: qym(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
     real(rt), intent(inout) :: qyp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
     real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 #endif
     real(rt), intent(in) :: dt, dx(3)
@@ -221,8 +221,8 @@ contains
              p_ref = max(p_ref, small_pres)
 
              ! For tracing (optionally)
-             cc_ref = sqrt(gam_g_ref*p_ref/rho_ref)
-             csq_ref = cc_ref**2
+             csq_ref = gam_g_ref*p_ref/rho_ref
+             cc_ref = sqrt(csq_ref)
              Clag_ref = rho_ref*cc_ref
              h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
 
@@ -439,8 +439,8 @@ contains
              p_ref = max(p_ref, small_pres)
 
              ! For tracing (optionally)
-             cc_ref = sqrt(gam_g_ref*p_ref/rho_ref)
-             csq_ref = cc_ref**2
+             csq_ref = gam_g_ref*p_ref/rho_ref
+             cc_ref = sqrt(csq_ref)
              Clag_ref = rho_ref*cc_ref
              h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
 
@@ -619,7 +619,7 @@ contains
           ! geometry source terms
           !-------------------------------------------------------------------
 
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
           if (dloga(i,j,k3d) /= 0) then
              courn = dt/dx(1)*(cc+abs(u))
              eta = (ONE-courn)/(cc*dt*abs(dloga(i,j,k3d)))
@@ -645,7 +645,7 @@ contains
           endif
 #endif
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
           ! Enforce constant mass flux rate if specified
           if (fix_mass_flux_lo) then
              qxm(ilo1,j,kc,QRHO  ) = q(domlo(1)-1,j,k3d,QRHO)
@@ -717,7 +717,7 @@ contains
              endif
           enddo
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
           if (fix_mass_flux_hi) qxp(ihi1+1,j,kc,n) = q(ihi1+1,j,k3d,n)
           if (fix_mass_flux_lo) qxm(ilo1,j,kc,n) = q(ilo1-1,j,k3d,n)
 #endif
@@ -767,7 +767,7 @@ contains
     endif
 
 
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
     !-------------------------------------------------------------------------
     ! y-direction
     !-------------------------------------------------------------------------
@@ -821,8 +821,8 @@ contains
              p_ref = max(p_ref, small_pres)
 
              ! For tracing (optionally)
-             cc_ref = sqrt(gam_g_ref*p_ref/rho_ref)
-             csq_ref = cc_ref**2
+             csq_ref = gam_g_ref*p_ref/rho_ref
+             cc_ref = sqrt(csq_ref)
              Clag_ref = rho_ref*cc_ref
              h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
 
@@ -1022,8 +1022,8 @@ contains
              p_ref = max(p_ref, small_pres)
 
              ! For tracing (optionally)
-             cc_ref = sqrt(gam_g_ref*p_ref/rho_ref)
-             csq_ref = cc_ref**2
+             csq_ref = gam_g_ref*p_ref/rho_ref
+             cc_ref = sqrt(csq_ref)
              Clag_ref = rho_ref*cc_ref
              h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
 
@@ -1446,8 +1446,8 @@ contains
           p_ref = max(p_ref, small_pres)
 
           ! For tracing (optionally)
-          cc_ref = sqrt(gam_g_ref*p_ref/rho_ref)
-          csq_ref = cc_ref**2
+          csq_ref = gam_g_ref*p_ref/rho_ref
+          cc_ref = sqrt(csq_ref)
           Clag_ref = rho_ref*cc_ref
           h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
 
@@ -1667,8 +1667,8 @@ contains
           p_ref = max(p_ref,small_pres)
 
           ! For tracing (optionally)
-          cc_ref = sqrt(gam_g_ref*p_ref/rho_ref)
-          csq_ref = cc_ref**2
+          csq_ref = gam_g_ref*p_ref/rho_ref
+          cc_ref = sqrt(csq_ref)
           Clag_ref = rho_ref*cc_ref
           h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
 

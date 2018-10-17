@@ -1,7 +1,25 @@
-# changes since last release
+# 18.10
+
+  -- fixed handling of external BCs (#402)
+
+  -- unified some CUDA hydro solver code with the method-of-lines code
+
+  -- offloaded gravity source terms, rotation, reactions, and sponge
+     to GPUs with CUDA
+
+  -- merged the different dimensional versions of the CTU consup
+     routine into a single routine (#399)
+
+  -- removed the unsafe option "allow_negative_energy"
+
+
+# 18.09
 
   -- we now only trace under sources that are non-zero, to save
-     computational expense.  #381
+     computational expense.  (#381)
+
+  -- we now update T for consistency when we reset a small internal
+     energy, e (#384)
 
   -- The parameter dual_energy_update_E_from_e has been removed,
      and the default behavior is now that the total energy (E)
@@ -13,6 +31,14 @@
      eos_input_re, the energy will not be updated after the EOS
      call (e.g. by the Newton iteration scheme in Helmholtz).
      This will cause changes in simulation output. (#368)
+
+  -- the problem-specific runtime parameters (probin) are now
+     written to the job_info file (#380)
+
+  -- we now skip the initial EOS call prior to the burn -- this
+     was redundant because we already did a clean_state (#377)
+
+  -- we now support recent versions of hypre (#373)
 
 # 18.08
 

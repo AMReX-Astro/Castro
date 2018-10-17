@@ -76,6 +76,10 @@ ifeq ($(USE_SYSTEM_BLAS), TRUE)
   LIBRARIES += $(BLAS_LIBRARY)
 endif
 
+ifeq ($(USE_CUDA),TRUE)
+  USE_GPU_PRAGMA = TRUE
+endif
+
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
 
 all: build_status $(executable)
@@ -146,6 +150,17 @@ endif
 ifeq ($(USE_REACT), TRUE)
   Bdirs += Source/reactions
   DEFINES += -DREACTIONS
+endif
+
+ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
+  DEFINES += -DREACT_SPARSE_JACOBIAN
+
+  # The following is sometimes useful to turn on for debugging sparse J indices
+  # (if a get/set/scale is called with (row, col) not in the sparse J, stop)
+  # Otherwise, set/scale do nothing, and get returns 0.
+  ifeq ($(USE_SPARSE_STOP_ON_OOB), TRUE)
+    DEFINES += -DSPARSE_STOP_ON_OOB
+  endif
 endif
 
 ifeq ($(USE_SDC), TRUE)
@@ -401,17 +416,11 @@ endif
 
 EXTERN_PARAMETERS := $(shell $(AMREX_HOME)/Tools/F_scripts/findparams.py $(EXTERN_SEARCH))
 
-MANAGED_PROBIN_FLAG :=
-ifdef USE_CUDA
-  ifeq ($(USE_CUDA), TRUE)
-    MANAGED_PROBIN_FLAG := --managed
-  endif
-endif
 
 extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
 	$(AMREX_HOME)/Tools/F_scripts/write_probin.py \
            -t $(EXTERN_TEMPLATE) -o extern.F90 -n extern \
-           --pa "$(EXTERN_PARAMETERS)" $(MANAGED_PROBIN_FLAG)
+           --pa "$(EXTERN_PARAMETERS)" --managed
 
 #------------------------------------------------------------------------------
 # state variable info

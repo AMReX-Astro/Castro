@@ -248,12 +248,12 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state, Rea
 
 	ca_gsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		ARLIM_3D(domlo), ARLIM_3D(domhi),
-		BL_TO_FORTRAN_3D(state[mfi]),
+		BL_TO_FORTRAN_ANYD(state[mfi]),
 #ifdef SELF_GRAVITY
-		BL_TO_FORTRAN_3D(phi_old[mfi]),
-		BL_TO_FORTRAN_3D(grav_old[mfi]),
+		BL_TO_FORTRAN_ANYD(phi_old[mfi]),
+		BL_TO_FORTRAN_ANYD(grav_old[mfi]),
 #endif
-		BL_TO_FORTRAN_3D(source[mfi]),
+		BL_TO_FORTRAN_ANYD(source[mfi]),
 		ZFILL(dx),dt,&time);
 
     }
@@ -287,19 +287,19 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 
 	    ca_corrgsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			ARLIM_3D(domlo), ARLIM_3D(domhi),
-			BL_TO_FORTRAN_3D(state_old[mfi]),
-			BL_TO_FORTRAN_3D(state_new[mfi]),
+			BL_TO_FORTRAN_ANYD(state_old[mfi]),
+			BL_TO_FORTRAN_ANYD(state_new[mfi]),
 #ifdef SELF_GRAVITY
-			BL_TO_FORTRAN_3D(phi_old[mfi]),
-			BL_TO_FORTRAN_3D(phi_new[mfi]),
-			BL_TO_FORTRAN_3D(grav_old[mfi]),
-			BL_TO_FORTRAN_3D(grav_new[mfi]),
+			BL_TO_FORTRAN_ANYD(phi_old[mfi]),
+			BL_TO_FORTRAN_ANYD(phi_new[mfi]),
+			BL_TO_FORTRAN_ANYD(grav_old[mfi]),
+			BL_TO_FORTRAN_ANYD(grav_new[mfi]),
 #endif
-			BL_TO_FORTRAN_3D(volume[mfi]),
-			BL_TO_FORTRAN_3D((*mass_fluxes[0])[mfi]),
-			BL_TO_FORTRAN_3D((*mass_fluxes[1])[mfi]),
-			BL_TO_FORTRAN_3D((*mass_fluxes[2])[mfi]),
-			BL_TO_FORTRAN_3D(source[mfi]),
+			BL_TO_FORTRAN_ANYD(volume[mfi]),
+			BL_TO_FORTRAN_ANYD((*mass_fluxes[0])[mfi]),
+			BL_TO_FORTRAN_ANYD((*mass_fluxes[1])[mfi]),
+			BL_TO_FORTRAN_ANYD((*mass_fluxes[2])[mfi]),
+			BL_TO_FORTRAN_ANYD(source[mfi]),
 			ZFILL(dx),dt,&time);
 
 	}

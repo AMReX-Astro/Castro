@@ -101,7 +101,7 @@ subroutine ca_compute_temp_given_rhoe(lo,hi,  &
   use network, only : nspec, naux
   use eos_module, only : eos
   use eos_type_module, only : eos_t, eos_input_re
-  use meth_params_module, only : NVAR, URHO, UTEMP, UFS, UFX, small_temp, allow_negative_energy
+  use meth_params_module, only : NVAR, URHO, UTEMP, UFS, UFX, small_temp
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -118,7 +118,7 @@ subroutine ca_compute_temp_given_rhoe(lo,hi,  &
   do k = lo(3),hi(3)
   do j = lo(2),hi(2)
   do i = lo(1),hi(1)
-     if (allow_negative_energy.eq.0 .and. temp(i,j,k).le.0.e0_rt) then
+     if (temp(i,j,k) .le. 0.e0_rt) then
         temp(i,j,k) = small_temp
      else
         rhoInv = 1.e0_rt / state(i,j,k,URHO)
@@ -198,7 +198,7 @@ subroutine ca_compute_temp_given_reye(lo, hi, &
   use eos_module, only: eos
   use eos_type_module, only: eos_t, eos_input_re
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UFS, UFX, &
-       small_temp, allow_negative_energy
+       small_temp
   
   use amrex_error_module, only : amrex_error
   use amrex_fort_module, only : rt => amrex_real
@@ -221,7 +221,7 @@ subroutine ca_compute_temp_given_reye(lo, hi, &
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
 
-           if(allow_negative_energy.eq.0 .and. rhoe(i,j,k).le.0.e0_rt) then
+           if (rhoe(i,j,k) .le. 0.e0_rt) then
               temp(i,j,k) = small_temp
            else
 
