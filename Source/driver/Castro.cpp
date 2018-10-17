@@ -1005,7 +1005,11 @@ Castro::initData ()
     }
 
     int is_new = 1;
-    clean_state(is_new, S_new.nGrow());
+    clean_state(
+#ifdef MHD
+		    Bx_new, By_new, Bz_new,
+#endif
+		    is_new, S_new.nGrow());
 
 #ifdef RADIATION
     if (do_radiation) {
@@ -3189,20 +3193,14 @@ Castro::reset_internal_energy(
     {
         const Box& bx = mfi.growntilebox(ng);
 
-<<<<<<< HEAD
 #pragma gpu	
-        ca_reset_internal_e(ARLIM_INT_ANYD(bx.loVect()), ARLIM_INT_ANYD(bx.hiVect()),
+        ca_reset_internal_e(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 #ifdef MHD
                             BL_TO_FORTRAN_3D(Bx[mfi]),
 			    BL_TO_FORTRAN_3D(By[mfi]),
 			    BL_TO_FORTRAN_3D(Bz[mfi]),
 #endif
 			    BL_TO_FORTRAN_ANYD(S_new[mfi]),
-=======
-#pragma gpu
-        ca_reset_internal_e(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-			    BL_TO_FORTRAN_ANYD(S_new[mfi]),
->>>>>>> development
 			    print_fortran_warnings);
     }
 
