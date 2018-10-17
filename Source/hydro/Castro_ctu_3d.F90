@@ -476,7 +476,6 @@ contains
     call bl_deallocate(szm)
     call bl_deallocate(szp)
 
-
     call bl_allocate( qmxy, fglo, fghi, NQ)
     call bl_allocate( qpxy, fglo, fghi, NQ)
 
@@ -834,6 +833,7 @@ contains
                  srcQ, src_lo, src_hi, &
                  hdt, hdtdx, hdtdz, lo, hi)
 
+
     nullify(fzx, qgdnvzx)
     nullify(fxz, qgdnvxz)
 #ifdef RADIATION
@@ -947,7 +947,7 @@ contains
     nullify(fxy, qgdnvxy)
     nullify(fyx, qgdnvyx)
 #ifdef RADIATION
-    nullify(rfxy, rfyz)
+    nullify(rfxy, rfyx)
 #endif
 
     qgdnvz  =>  qgdnvtmp1

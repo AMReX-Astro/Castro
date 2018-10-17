@@ -3531,8 +3531,8 @@ contains
 
 #ifdef RADIATION
     real(rt)         :: dmx, dmy, dre
-    real(rt)        , dimension(0:ngroups-1) :: der, lambda, lamm, lugex, lugey, lgex, lgey, &
-         err, ernewr, erl, ernewl, ergxp, ergyp, ergxm, ergym, ergxpm, ergypm, ergxmm, ergymm
+    real(rt)        , dimension(0:ngroups-1) :: der, lambda, lugex, lugey, lgex, lgey, &
+         err, ernewr, erl, ernewl, ergxp, ergyp, ergxm, ergym
     real(rt)         eddf, f1
     integer :: g
 #endif
@@ -3852,8 +3852,8 @@ contains
 #ifdef RADIATION
              lambda(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
 
-             lgex = lamm(:) * (ergxpm(:)-ergxmm(:))
-             lgey = lamm(:) * (ergypm(:)-ergymm(:))
+             lgex = lambda(:) * (ergxp(:)-ergxm(:))
+             lgey = lambda(:) * (ergyp(:)-ergym(:))
              dmx = - cdtdx*sum(lgex)
              dmy = - cdtdy*sum(lgey)
              lugex = HALF*(ugxp+ugxm) * lgex(:)
@@ -3862,14 +3862,14 @@ contains
 
              if (fspace_type .eq. 1 .and. comoving) then
                 do g=0, ngroups-1
-                   eddf = Edd_factor(lamm(g))
+                   eddf = Edd_factor(lambda(g))
                    f1 = HALF*(ONE-eddf)
                    der(g) = f1*(cdtdx*HALF*(ugxp+ugxm)*(ergxp(g)-ergxm(g)) &
                         +       cdtdy*HALF*(ugyp+ugym)*(ergyp(g)-ergym(g)) )
                 end do
              else if (fspace_type .eq. 2) then
                 do g=0, ngroups-1
-                   eddf = Edd_factor(lamm(g))
+                   eddf = Edd_factor(lambda(g))
                    f1 = HALF*(ONE-eddf)
                    der(g) = f1*(cdtdx*HALF*(ergxp(g)+ergxm(g))*(ugxm-ugxp) &
                         +       cdtdy*HALF*(ergyp(g)+ergym(g))*(ugym-ugyp) )
@@ -3987,7 +3987,7 @@ contains
 
 #ifdef RADIATION
              qmo(i,j,k+1,qrad:qradhi) = ernewl(:)
-             qmo(i,j,k+1,qptot  ) = sum(lamm(:)*ernewl(:)) + qmo(i,j,k+1,QPRES)
+             qmo(i,j,k+1,qptot  ) = sum(lambda(:)*ernewl(:)) + qmo(i,j,k+1,QPRES)
              qmo(i,j,k+1,qreitot) = sum(qmo(i,j,k+1,qrad:qradhi)) + qmo(i,j,k+1,QREINT)
 #endif
 
