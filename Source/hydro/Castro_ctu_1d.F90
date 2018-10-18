@@ -53,7 +53,7 @@ contains
     use rad_params_module, only : ngroups
     use trace_ppm_rad_module, only : tracexy_ppm_rad
 #else
-    use trace_ppm_module, only : tracexy_ppm
+    use trace_ppm_module, only : trace_ppm
 #endif
 #ifdef SHOCK_VAR
     use meth_params_module, only : USHK
@@ -317,13 +317,13 @@ contains
                             lo, hi, domlo, domhi, &
                             dx, dt)
 #else
-       call tracexy_ppm(q, q_lo, q_hi, &
-                        qaux, qa_lo, qa_hi, &
-                        Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
-                        qm, qp, qm, qp, qp_lo, qp_hi, &
-                        dloga, dloga_lo, dloga_hi, &
-                        lo, hi, domlo, domhi, &
-                        dx, dt)
+       call trace_ppm(1, q, q_lo, q_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
+                      qm, qp, qp_lo, qp_hi, &
+                      dloga, dloga_lo, dloga_hi, &
+                      lo, hi, domlo, domhi, &
+                      dx, dt)
 #endif
     else
 #ifdef RADIATION
