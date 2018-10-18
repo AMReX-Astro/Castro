@@ -461,7 +461,6 @@ contains
                                    small_dens
     use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_error_module
-    use castro_util_module, only: position
 #ifdef ROTATION
     use meth_params_module, only: do_rotation, state_in_rotating_frame
     use rotation_module, only: inertial_to_rotational_velocity
@@ -643,16 +642,13 @@ contains
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use actual_network, only : nspec, naux
-    use eos_module, only : eos
-    use eos_type_module, only : eos_t, eos_input_re
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, &
                                    QVAR, QRHO, QU, QV, QW, NQ, &
                                    QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
                                    npassive, upass_map, qpass_map
     use amrex_constants_module, only: ZERO, HALF, ONE
-    use castro_util_module, only: position
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)

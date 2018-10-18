@@ -19,6 +19,8 @@ contains
 
     use amrex_filcc_module, only: amrex_filccn
 
+    use bc_ext_fill_module, only: ext_fill
+
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -30,6 +32,9 @@ contains
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3),NVAR)
 
     call amrex_filccn(adv_lo, adv_hi, adv, adv_lo, adv_hi, NVAR, domlo, domhi, delta, xlo, bc)
+
+    ! process the external BCs here
+    call ext_fill(adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
 
   end subroutine hypfill
 
@@ -55,6 +60,7 @@ contains
   subroutine denfill(adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
 
     use amrex_filcc_module, only: amrex_filccn
+    use bc_ext_fill_module, only: ext_denfill
 
     implicit none
 
@@ -67,6 +73,9 @@ contains
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3))
 
     call amrex_filccn(adv_lo, adv_hi, adv, adv_lo, adv_hi, 1, domlo, domhi, delta, xlo, bc)
+
+    ! process the external BCs here
+    call ext_denfill(adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
 
   end subroutine denfill
 
@@ -145,8 +154,12 @@ contains
     bc_temp(:,:) = bc(:,:)
 
     do d = 1, dim
-       if ( bc(d,1) == EXT_DIR .and. grav_lo(d) < domlo(d)) then
+       if (bc(d,1) == EXT_DIR .and. grav_lo(d) < domlo(d)) then
           bc_temp(d,1) = FOEXTRAP
+       end if
+
+       if (bc(d,2) == EXT_DIR .and. grav_hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
        end if
     end do
 
@@ -192,8 +205,12 @@ contains
     bc_temp(:,:) = bc(:,:)
 
     do d = 1, dim
-       if ( bc(d,1) == EXT_DIR .and. grav_lo(d) < domlo(d)) then
+       if (bc(d,1) == EXT_DIR .and. grav_lo(d) < domlo(d)) then
           bc_temp(d,1) = FOEXTRAP
+       end if
+
+       if (bc(d,2) == EXT_DIR .and. grav_hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
        end if
     end do
 
@@ -239,8 +256,12 @@ contains
     bc_temp(:,:) = bc(:,:)
 
     do d = 1, dim
-       if ( bc(d,1) == EXT_DIR .and. grav_lo(d) < domlo(d)) then
+       if (bc(d,1) == EXT_DIR .and. grav_lo(d) < domlo(d)) then
           bc_temp(d,1) = FOEXTRAP
+       end if
+
+       if (bc(d,2) == EXT_DIR .and. grav_hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
        end if
     end do
 
@@ -289,8 +310,12 @@ contains
     bc_temp(:,:) = bc(:,:)
 
     do d = 1, dim
-       if ( bc(d,1) == EXT_DIR .and. phi_lo(d) < domlo(d)) then
+       if (bc(d,1) == EXT_DIR .and. phi_lo(d) < domlo(d)) then
           bc_temp(d,1) = FOEXTRAP
+       end if
+
+       if (bc(d,2) == EXT_DIR .and. phi_hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
        end if
     end do
 
@@ -336,8 +361,12 @@ contains
     bc_temp(:,:) = bc(:,:)
 
     do d = 1, dim
-       if ( bc(d,1) == EXT_DIR .and. rot_lo(d) < domlo(d)) then
+       if (bc(d,1) == EXT_DIR .and. rot_lo(d) < domlo(d)) then
           bc_temp(d,1) = FOEXTRAP
+       end if
+
+       if (bc(d,2) == EXT_DIR .and. rot_hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
        end if
     end do
 
@@ -383,8 +412,12 @@ contains
     bc_temp(:,:) = bc(:,:)
 
     do d = 1, dim
-       if ( bc(d,1) == EXT_DIR .and. rot_lo(d) < domlo(d)) then
+       if (bc(d,1) == EXT_DIR .and. rot_lo(d) < domlo(d)) then
           bc_temp(d,1) = FOEXTRAP
+       end if
+
+       if (bc(d,2) == EXT_DIR .and. rot_hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
        end if
     end do
 
@@ -430,8 +463,12 @@ contains
     bc_temp(:,:) = bc(:,:)
 
     do d = 1, dim
-       if ( bc(d,1) == EXT_DIR .and. rot_lo(d) < domlo(d)) then
+       if (bc(d,1) == EXT_DIR .and. rot_lo(d) < domlo(d)) then
           bc_temp(d,1) = FOEXTRAP
+       end if
+
+       if (bc(d,2) == EXT_DIR .and. rot_hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
        end if
     end do
 
@@ -479,8 +516,12 @@ contains
     bc_temp(:,:) = bc(:,:)
 
     do d = 1, dim
-       if ( bc(d,1) == EXT_DIR .and. react_lo(d) < domlo(d)) then
+       if (bc(d,1) == EXT_DIR .and. react_lo(d) < domlo(d)) then
           bc_temp(d,1) = FOEXTRAP
+       end if
+
+       if (bc(d,2) == EXT_DIR .and. react_hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
        end if
     end do
 
@@ -529,8 +570,12 @@ contains
     bc_temp(:,:) = bc(:,:)
 
     do d = 1, dim
-       if ( bc(d,1) == EXT_DIR .and. rad_lo(d) < domlo(d)) then
+       if (bc(d,1) == EXT_DIR .and. rad_lo(d) < domlo(d)) then
           bc_temp(d,1) = FOEXTRAP
+       end if
+
+       if (bc(d,2) == EXT_DIR .and. rad_hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
        end if
     end do
 

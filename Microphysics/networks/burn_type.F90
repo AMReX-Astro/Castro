@@ -1,6 +1,11 @@
 module burn_type_module
 
+#ifdef REACT_SPARSE_JACOBIAN
+  use actual_network, only: nspec, nspec_evolve, naux, NETWORK_SPARSE_JAC_NNZ
+#else
   use actual_network, only: nspec, nspec_evolve, naux
+#endif
+
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -51,7 +56,12 @@ module burn_type_module
     ! data, particularly xn, e, and T.
 
     real(rt) :: ydot(neqs)
+
+#ifdef REACT_SPARSE_JACOBIAN
+    real(rt) :: sparse_jac(NETWORK_SPARSE_JAC_NNZ)
+#else
     real(rt) :: jac(neqs, neqs)
+#endif
 
     ! Whether we are self-heating or not.
 
@@ -115,7 +125,12 @@ contains
     to_state % dcpdT = from_state % dcpdT
 
     to_state % ydot(1:neqs) = from_state % ydot(1:neqs)
+
+#ifdef REACT_SPARSE_JACOBIAN
+    to_state % sparse_jac(1:NETWORK_SPARSE_JAC_NNZ) = from_state % sparse_jac(1:NETWORK_SPARSE_JAC_NNZ)
+#else
     to_state % jac(1:neqs, 1:neqs) = from_state % jac(1:neqs, 1:neqs)
+#endif
 
     to_state % self_heat = from_state % self_heat
 
@@ -132,9 +147,12 @@ contains
 
   end subroutine copy_burn_t
 
+
   ! Given an eos type, copy the data relevant to the burn type.
 
   subroutine eos_to_burn(eos_state, burn_state)
+
+    !$acc routine seq
 
     use eos_type_module, only: eos_t
 
@@ -168,6 +186,8 @@ contains
 
   subroutine burn_to_eos(burn_state, eos_state)
 
+    !$acc routine seq
+
     use eos_type_module, only: eos_t
 
     implicit none
@@ -196,6 +216,8 @@ contains
 
 
   subroutine normalize_abundances_burn(state)
+
+    !$acc routine seq
 
     use amrex_constants_module, only: ONE
     use extern_probin_module, only: small_x

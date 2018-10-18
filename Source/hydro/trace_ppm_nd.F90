@@ -221,8 +221,8 @@ contains
              p_ref = max(p_ref, small_pres)
 
              ! For tracing (optionally)
-             cc_ref = sqrt(gam_g_ref*p_ref/rho_ref)
-             csq_ref = cc_ref**2
+             csq_ref = gam_g_ref*p_ref/rho_ref
+             cc_ref = sqrt(csq_ref)
              Clag_ref = rho_ref*cc_ref
              h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
 
@@ -439,8 +439,8 @@ contains
              p_ref = max(p_ref, small_pres)
 
              ! For tracing (optionally)
-             cc_ref = sqrt(gam_g_ref*p_ref/rho_ref)
-             csq_ref = cc_ref**2
+             csq_ref = gam_g_ref*p_ref/rho_ref
+             cc_ref = sqrt(csq_ref)
              Clag_ref = rho_ref*cc_ref
              h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
 
@@ -821,8 +821,8 @@ contains
              p_ref = max(p_ref, small_pres)
 
              ! For tracing (optionally)
-             cc_ref = sqrt(gam_g_ref*p_ref/rho_ref)
-             csq_ref = cc_ref**2
+             csq_ref = gam_g_ref*p_ref/rho_ref
+             cc_ref = sqrt(csq_ref)
              Clag_ref = rho_ref*cc_ref
              h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
 
@@ -1022,8 +1022,8 @@ contains
              p_ref = max(p_ref, small_pres)
 
              ! For tracing (optionally)
-             cc_ref = sqrt(gam_g_ref*p_ref/rho_ref)
-             csq_ref = cc_ref**2
+             csq_ref = gam_g_ref*p_ref/rho_ref
+             cc_ref = sqrt(csq_ref)
              Clag_ref = rho_ref*cc_ref
              h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
 
@@ -1446,8 +1446,8 @@ contains
           p_ref = max(p_ref, small_pres)
 
           ! For tracing (optionally)
-          cc_ref = sqrt(gam_g_ref*p_ref/rho_ref)
-          csq_ref = cc_ref**2
+          csq_ref = gam_g_ref*p_ref/rho_ref
+          cc_ref = sqrt(csq_ref)
           Clag_ref = rho_ref*cc_ref
           h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
 
@@ -1667,8 +1667,8 @@ contains
           p_ref = max(p_ref,small_pres)
 
           ! For tracing (optionally)
-          cc_ref = sqrt(gam_g_ref*p_ref/rho_ref)
-          csq_ref = cc_ref**2
+          csq_ref = gam_g_ref*p_ref/rho_ref
+          cc_ref = sqrt(csq_ref)
           Clag_ref = rho_ref*cc_ref
           h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
 
