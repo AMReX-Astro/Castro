@@ -48,7 +48,7 @@ contains
                                    ppm_type, hybrid_riemann, &
                                    use_pslope, plm_iorder, ppm_temp_fix
     use riemann_module, only : cmpflx
-    use trace_module, only : tracexy
+    use trace_plm_module, only : trace_plm
 #ifdef RADIATION
     use rad_params_module, only : ngroups
     use trace_ppm_rad_module, only : tracexy_ppm_rad
@@ -332,14 +332,14 @@ contains
 #endif
 #else
 
-       call tracexy(q, q_lo, q_hi, &
-                    qaux, qa_lo, qa_hi, &
-                    dq, dq, q_lo, q_hi, &
-                    qm, qp, qm, qp, qp_lo, qp_hi, &
-                    dloga, dloga_lo, dloga_hi, &
-                    srcQ, src_lo, src_hi, &
-                    lo, hi, domlo, domhi, &
-                    dx, dt)
+       call trace_plm(1, q, q_lo, q_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      dq, q_lo, q_hi, &
+                      qm, qp, qp_lo, qp_hi, &
+                      dloga, dloga_lo, dloga_hi, &
+                      srcQ, src_lo, src_hi, &
+                      lo, hi, domlo, domhi, &
+                      dx, dt)
 
        deallocate(dq)
 #endif
