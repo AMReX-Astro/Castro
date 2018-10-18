@@ -53,14 +53,14 @@ contains
                                    QC, QFS, QFX, QGAMC, QU, QV, QRHO, QTEMP, QPRES, QREINT, &
                                    GDU, GDV, GDPRES, NGDNV, NQ, &
                                    NQAUX, &
-                                   ppm_type, &
+                                   ppm_type, ppm_predict_gammae, &
                                    use_pslope, plm_iorder, ppm_temp_fix
     use trace_plm_module, only : trace_plm
 #ifdef RADIATION
     use rad_params_module, only : ngroups
     use trace_ppm_rad_module, only : tracexy_ppm_rad
 #else
-    use trace_ppm_module, only : trace_ppm
+    use trace_ppm_module, only : trace_ppm, trace_ppm_gammae, trace_ppm_temp
 #endif
     use riemann_module, only: cmpflx
 #ifdef SHOCK_VAR
@@ -431,21 +431,57 @@ contains
                             lo, hi, domlo, domhi, &
                             dx, dt)
 #else
-       call trace_ppm(1, q, q_lo, q_hi, &
-                      qaux, qa_lo, qa_hi, &
-                      Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
-                      qxm, qxp, qp_lo, qp_hi, &
-                      dloga, dloga_lo, dloga_hi, &
-                      lo, hi, domlo, domhi, &
-                      dx, dt)
+       if (ppm_temp_fix < 3) then
+          if (ppm_predict_gammae == 0) then
+             call trace_ppm(1, q, q_lo, q_hi, &
+                            qaux, qa_lo, qa_hi, &
+                            Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
+                            qxm, qxp, qp_lo, qp_hi, &
+                            dloga, dloga_lo, dloga_hi, &
+                            lo, hi, domlo, domhi, &
+                            dx, dt)
 
-       call trace_ppm(2, q, q_lo, q_hi, &
-                      qaux, qa_lo, qa_hi, &
-                      Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
-                      qym, qyp, qp_lo, qp_hi, &
-                      dloga, dloga_lo, dloga_hi, &
-                      lo, hi, domlo, domhi, &
-                      dx, dt)
+             call trace_ppm(2, q, q_lo, q_hi, &
+                            qaux, qa_lo, qa_hi, &
+                            Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
+                            qym, qyp, qp_lo, qp_hi, &
+                            dloga, dloga_lo, dloga_hi, &
+                            lo, hi, domlo, domhi, &
+                            dx, dt)
+          else
+             call trace_ppm_gammae(1, q, q_lo, q_hi, &
+                                   qaux, qa_lo, qa_hi, &
+                                   Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
+                                   qxm, qxp, qp_lo, qp_hi, &
+                                   dloga, dloga_lo, dloga_hi, &
+                                   lo, hi, domlo, domhi, &
+                                   dx, dt)
+
+             call trace_ppm_gammae(2, q, q_lo, q_hi, &
+                                   qaux, qa_lo, qa_hi, &
+                                   Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
+                                   qym, qyp, qp_lo, qp_hi, &
+                                   dloga, dloga_lo, dloga_hi, &
+                                   lo, hi, domlo, domhi, &
+                                   dx, dt)
+          endif
+       else
+          call trace_ppm_temp(1, q, q_lo, q_hi, &
+                              qaux, qa_lo, qa_hi, &
+                              Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
+                              qxm, qxp, qp_lo, qp_hi, &
+                              dloga, dloga_lo, dloga_hi, &
+                              lo, hi, domlo, domhi, &
+                              dx, dt)
+
+          call trace_ppm_temp(2, q, q_lo, q_hi, &
+                              qaux, qa_lo, qa_hi, &
+                              Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
+                              qym, qyp, qp_lo, qp_hi, &
+                              dloga, dloga_lo, dloga_hi, &
+                              lo, hi, domlo, domhi, &
+                              dx, dt)
+       endif
 #endif
 
 

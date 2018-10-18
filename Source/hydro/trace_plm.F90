@@ -182,13 +182,11 @@ contains
                  (idir == 2 .and. j >= lo(2)) .or. &
                  (idir == 3 .and. k >= lo(3))) then
 
-                qp(i,j,k,QRHO) = rho_ref + apright + amright + azrright
-                qp(i,j,k,QRHO) = max(small_dens, qp(i,j,k,QRHO))
+                qp(i,j,k,QRHO) = max(small_dens, rho_ref + apright + amright + azrright)
                 qp(i,j,k,QUN) = un_ref + (apright - amright)*cc/rho
                 qp(i,j,k,QUT) = ut_ref + azut1rght
                 qp(i,j,k,QUTT) = utt_ref + azutt1rght
-                qp(i,j,k,QPRES) = p_ref + (apright + amright)*csq
-                qp(i,j,k,QPRES) = max(qp(i,j,k,QPRES), small_pres)
+                qp(i,j,k,QPRES) = max(small_pres, p_ref + (apright + amright)*csq)
                 qp(i,j,k,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
 
                 ! add the source terms in 1-d, since we don't do this in
@@ -223,13 +221,11 @@ contains
                  (idir == 2 .and. j <= hi(2)) .or. &
                  (idir == 3 .and. k <= hi(3))) then
 
-                qm(i+ix,j+iy,k+iz,QRHO) = rho_ref + apleft + amleft + azrleft
-                qm(i+ix,j+iy,k+iz,QRHO) = max(small_dens, qm(i+ix,j+iy,k+iz,QRHO))
+                qm(i+ix,j+iy,k+iz,QRHO) = max(small_dens, rho_ref + apleft + amleft + azrleft)
                 qm(i+ix,j+iy,k+iz,QUN) = un_ref + (apleft - amleft)*cc/rho
                 qm(i+ix,j+iy,k+iz,QUT) = ut_ref + azut1left
                 qm(i+ix,j+iy,k+iz,QUTT) = utt_ref + azutt1left
-                qm(i+ix,j+iy,k+iz,QPRES) = p_ref + (apleft + amleft)*csq
-                qm(i+ix,j+iy,k+iz,QPRES) = max(qm(i+ix,j+iy,k+iz,QPRES), small_pres)
+                qm(i+ix,j+iy,k+iz,QPRES) = max(small_pres, p_ref + (apleft + amleft)*csq)
                 qm(i+ix,j+iy,k+iz,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
 
                 ! add the source terms in 1-d, since we don't do this in
@@ -316,7 +312,7 @@ contains
                    acmprght = HALF*(-ONE - spzero )*dq(i,j,k,n)
                    qp(i,j,k,n) = q(i,j,k,n) + acmprght
                 endif
-                
+
                 ! Left state
                 if ((idir == 1 .and. i <= hi(1)) .or. &
                     (idir == 2 .and. j <= hi(2)) .or. &
