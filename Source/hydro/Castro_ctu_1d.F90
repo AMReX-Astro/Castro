@@ -43,7 +43,7 @@ contains
                    domlo, domhi)
 
     use meth_params_module, only : QVAR, NQ, NVAR, &
-                                   QC, QFS, QFX, QGAMC, QU, QRHO, QTEMP, QPRES, QREINT, &
+                                   QC, QFS, QFX, QGAMC, QU, QRHO, QTEMP, QPRES, QREINT, QGAME, &
                                    NQAUX, NGDNV, &
                                    ppm_type, hybrid_riemann, ppm_predict_gammae, &
                                    use_pslope, plm_iorder, ppm_temp_fix
@@ -127,6 +127,7 @@ contains
     type(eos_t) :: eos_state
 
     logical :: source_nonzero(QVAR)
+    logical :: reconstruct_state(NQ)
 
     qp_lo = lo - dg
     qp_hi = hi + 2*dg
@@ -188,6 +189,18 @@ contains
     allocate ( qm(qp_lo(1):qp_hi(1),NQ))
     allocate ( qp(qp_lo(1):qp_hi(1),NQ))
 
+    ! we don't need to reconstruct all of the NQ state variables,
+    ! depending on how we are tracing
+    reconstruct_state(:) = .true.
+    if (ppm_predict_gammae /= 1) then
+       reconstruct_state(QGAME) = .false.
+    else
+       reconstruct_state(QREINT) = .false.
+    endif
+    if (ppm_temp_fix < 3) then
+       reconstruct_state(QTEMP) = .false.
+    endif
+
     if (ppm_type == 0) then
        allocate(dq(q_lo(1):q_hi(1),NQ))
 
@@ -196,13 +209,18 @@ contains
 
        else
           ! piecewise linear slope
-          call uslope(q, flatn, q_lo, q_hi, &
-                      dq, dq, dq, q_lo, q_hi, &
-                      lo, hi)
+          do n = 1, NQ
+             if (.not. reconstruct_state(n)) cycle
+             call uslope(q, q_lo, q_hi, n, &
+                         flatn, q_lo, q_hi, &
+                         dq, q_lo, q_hi, &
+                         lo, hi)
+          end do
 
           if (use_pslope == 1) &
-               call pslope(q, flatn, q_lo, q_hi, &
-                           dq, dq, dq, q_lo, q_hi, &
+               call pslope(q, q_lo, q_hi, &
+                           flatn, q_lo, q_hi, &
+                           dq, q_lo, q_hi, &
                            srcQ, src_lo, src_hi, &
                            lo, hi, dx)
 
@@ -223,6 +241,7 @@ contains
        ! limiting, and returns the integral of each profile under each
        ! wave to each interface
        do n = 1, NQ
+          if (.not. reconstruct_state(n)) cycle
           call ppm_reconstruct(q, q_lo, q_hi, NQ, n, &
                                flatn, q_lo, q_hi, &
                                sxm, sxp, q_lo, q_hi, &

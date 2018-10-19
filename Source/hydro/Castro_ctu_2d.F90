@@ -51,7 +51,7 @@ contains
 
     use meth_params_module, only : NQ, QVAR, NVAR, ppm_type, hybrid_riemann, &
                                    QC, QFS, QFX, QGAMC, QU, QV, QRHO, QTEMP, QPRES, QREINT, &
-                                   GDU, GDV, GDPRES, NGDNV, NQ, &
+                                   GDU, GDV, GDPRES, NGDNV, NQ, QGAME, &
                                    NQAUX, &
                                    ppm_type, ppm_predict_gammae, &
                                    use_pslope, plm_iorder, ppm_temp_fix
@@ -158,6 +158,7 @@ contains
     type(eos_t) :: eos_state
 
     logical :: source_nonzero(QVAR)
+    logical :: reconstruct_state(NQ)
 
     tflx_lo = [lo(1), lo(2)-1, 0]
     tflx_hi = [hi(1)+1, hi(2)+1, 0]
@@ -251,6 +252,18 @@ contains
     endif
 #endif
 
+    ! we don't need to reconstruct all of the NQ state variables,
+    ! depending on how we are tracing
+    reconstruct_state(:) = .true.
+    if (ppm_predict_gammae /= 1) then
+       reconstruct_state(QGAME) = .false.
+    else
+       reconstruct_state(QREINT) = .false.
+    endif
+    if (ppm_temp_fix < 3) then
+       reconstruct_state(QTEMP) = .false.
+    endif
+
     if (ppm_type == 0) then
 
        allocate(dqx(q_lo(1):q_hi(1),q_lo(2):q_hi(2),NQ))
@@ -264,13 +277,19 @@ contains
        elseif (plm_iorder == 2) then
           ! these are piecewise linear slopes.  The limiter is a 4th order
           ! limiter, but the overall method will be second order.
-          call uslope(q, flatn, q_lo, q_hi, &
-                      dqx, dqy, dqx, q_lo, q_hi, &  ! second dqx is dummy
-                      lo, hi)
+
+          do n = 1, NQ
+             if (.not. reconstruct_state(n)) cycle
+             call uslope(q, q_lo, q_hi, n, &
+                         flatn, q_lo, q_hi, &
+                         dqx, dqy, q_lo, q_hi, &  ! second dqx is dummy
+                         lo, hi)
+          end do
 
           if (use_pslope == 1) then
-             call pslope(q, flatn, q_lo, q_hi, &
-                         dqx, dqy, dqx, q_lo, q_hi, &  ! second dqx is dummy
+             call pslope(q, q_lo, q_hi, &
+                         flatn, q_lo, q_hi, &
+                         dqx, dqy, q_lo, q_hi, &  ! second dqx is dummy
                          srcQ, src_lo, src_hi, &
                          lo, hi, dx)
 
@@ -281,6 +300,7 @@ contains
           ! reconstruction based on the BDS advection method to construct
           ! the x- and y-slopes together
           do n = 1, NQ
+             if (.not. reconstruct_state(n)) cycle
              call multid_slope(q, q_lo, q_hi, NQ, n, &
                                flatn, &
                                dqx, dqy, q_lo, q_hi, &
@@ -310,6 +330,8 @@ contains
        ! limiting, and returns the integral of each profile under each
        ! wave to each interface
        do n = 1, NQ
+          if (.not. reconstruct_state(n)) cycle
+
           call ppm_reconstruct(q, q_lo, q_hi, NQ, n, &
                                flatn, q_lo, q_hi, &
                                sxm, sxp, sym, syp, q_lo, q_hi, &

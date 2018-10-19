@@ -56,7 +56,7 @@ contains
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : QVAR, NQ, NVAR, QPRES, QRHO, QU, QW, &
                                    QFS, QFX, QTEMP, QREINT, &
-                                   QC, QGAMC, NQAUX, &
+                                   QC, QGAMC, NQAUX, QGAME, QREINT, &
                                    NGDNV, GDU, GDV, GDW, GDPRES, &
                                    ppm_type, ppm_predict_gammae, &
                                    use_pslope, ppm_temp_fix, &
@@ -169,6 +169,7 @@ contains
     type (eos_t) :: eos_state
 
     logical :: source_nonzero(QVAR)
+    logical :: reconstruct_state(NQ)
 
     integer :: fglo(3), fghi(3), glo(3), ghi(3)
 
@@ -272,6 +273,18 @@ contains
     call bl_allocate(szm, glo, ghi)
     call bl_allocate(szp, glo, ghi)
 
+    ! we don't need to reconstruct all of the NQ state variables,
+    ! depending on how we are tracing
+    reconstruct_state(:) = .true.
+    if (ppm_predict_gammae /= 1) then
+       reconstruct_state(QGAME) = .false.
+    else
+       reconstruct_state(QREINT) = .false.
+    endif
+    if (ppm_temp_fix < 3) then
+       reconstruct_state(QTEMP) = .false.
+    endif
+
     ! preprocess the sources -- we don't want to trace under a source that is empty
     if (ppm_type > 0) then
        do n = 1, QVAR
@@ -287,6 +300,8 @@ contains
     if (ppm_type > 0) then
 
        do n = 1, NQ
+          if (.not. reconstruct_state(n)) cycle
+
           call ppm_reconstruct(q, qd_lo, qd_hi, NQ, n, &
                                flatn, qd_lo, qd_hi, &
                                sxm, sxp, sym, syp, szm, szp, glo, ghi, &
@@ -475,12 +490,17 @@ contains
 #endif
 
        ! Compute all slopes at kc (k3d)
-       call uslope(q, flatn, qd_lo, qd_hi, &
-                   dqx, dqy, dqz, glo, ghi, &
-                   lo, hi)
+       do n = 1, NQ
+          if (.not. reconstruct_state(n)) cycle
+          call uslope(q, qd_lo, qd_hi, n, &
+                      flatn, qd_lo, qd_hi, &
+                      dqx, dqy, dqz, glo, ghi, &
+                      lo, hi)
+       end do
 
        if (use_pslope .eq. 1) &
-            call pslope(q, flatn, qd_lo, qd_hi, &
+            call pslope(q, qd_lo, qd_hi, &
+                        flatn, qd_lo, qd_hi, &
                         dqx, dqy, dqz, glo, ghi, &
                         srcQ, src_lo, src_hi, &
                         lo, hi, dx)
