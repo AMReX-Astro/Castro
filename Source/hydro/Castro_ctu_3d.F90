@@ -61,7 +61,7 @@ contains
                                    ppm_type, &
                                    use_pslope, ppm_temp_fix, &
                                    hybrid_riemann
-    use trace_ppm_module, only : trace_ppm
+    use trace_ppm_module, only : tracexy_ppm, tracez_ppm
     use trace_module, only : tracexy, tracez
     use transverse_module
     use ppm_module, only : ppm_reconstruct, ppm_int_profile
@@ -401,26 +401,19 @@ contains
                            dt)
 
 #else
-       call trace_ppm(1, q, qd_lo, qd_hi, &
-                      qaux, qa_lo, qa_hi, &
-                      Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
-                      qxm, qxp, fglo, fghi, &
-                      lo, hi, domlo, domhi, &
-                      dx, dt)
+       call tracexy_ppm(q, qd_lo, qd_hi, &
+                        qaux, qa_lo, qa_hi, &
+                        Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
+                        qxm, qxp, qym, qyp, fglo, fghi, &
+                        lo, hi, domlo, domhi, &
+                        dx, dt)
 
-       call trace_ppm(2, q, qd_lo, qd_hi, &
-                      qaux, qa_lo, qa_hi, &
-                      Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
-                      qym, qyp, fglo, fghi, &
-                      lo, hi, domlo, domhi, &
-                      dx, dt)
-
-       call trace_ppm(3, q, qd_lo, qd_hi, &
-                      qaux, qa_lo, qa_hi, &
-                      Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
-                      qzm, qzp, fglo, fghi, &
-                      lo, hi, domlo, domhi, &
-                      dx, dt)
+       call tracez_ppm(q, qd_lo, qd_hi, &
+                       qaux, qa_lo, qa_hi, &
+                       Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
+                       qzm, qzp, fglo, fghi, &
+                       lo, hi, domlo, domhi, &
+                       dt)
 #endif
 
     else
