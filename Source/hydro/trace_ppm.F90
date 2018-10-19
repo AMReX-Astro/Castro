@@ -639,8 +639,7 @@ contains
              !-------------------------------------------------------------------
 
 #if (AMREX_SPACEDIM < 3)
-             ! these only apply for x states (dim = 1)
-             if (dim == 1) .and. dloga(i,j,k) /= 0) then
+             if (dloga(i,j,k) /= 0) then
                 courn = dt/dx(1)*(cc+abs(un))
                 eta = (ONE-courn)/(cc*dt*abs(dloga(i,j,k)))
                 dlogatmp = min(eta, ONE)*dloga(i,j,k)
@@ -648,15 +647,17 @@ contains
                 sourcp = sourcr*csq
                 source = sourcp*h_g
 
-                if (i <= hi(1)) then
+                if ((idir == 1 .and. i <= hi(1)) .or. &
+                    (idir == 2 .and. j <= hi(2))) then
 
-                   qm(i+1,j,k,QRHO) = qm(i+1,j,k,QRHO) + sourcr
-                   qm(i+1,j,k,QRHO) = max(qm(i+1,j,k,QRHO), small_dens)
-                   qm(i+1,j,k,QPRES) = qm(i+1,j,k,QPRES) + sourcp
-                   qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source
+                   qm(i+ix,j+iy,k+iz,QRHO) = qm(i+ix,j+iy,k+iz,QRHO) + sourcr
+                   qm(i+ix,j+iy,k+iz,QRHO) = max(qm(i+ix,j+iy,k+iz,QRHO), small_dens)
+                   qm(i+ix,j+iy,k+iz,QPRES) = qm(i+ix,j+iy,k+iz,QPRES) + sourcp
+                   qm(i+ix,j+iy,k+iz,QREINT) = qm(i+ix,j+iy,k+iz,QREINT) + source
                 end if
 
-                if (i >= lo(1)) then
+                if ((idir == 1 .and. i >= lo(1)) .or. &
+                    (idir == 2 .and. j >= lo(2))) then
 
                    qp(i,j,k,QRHO) = qp(i,j,k,QRHO) + sourcr
                    qp(i,j,k,QRHO) = max(qp(i,j,k,QRHO), small_dens)

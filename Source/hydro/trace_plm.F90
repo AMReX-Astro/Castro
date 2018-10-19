@@ -244,8 +244,8 @@ contains
              endif
 
 #if (AMREX_SPACEDIM < 3)
-             ! geometry source terms -- these only apply to the x-states
-             if (idir == 1 .and. dloga(i,j,k) /= ZERO) then
+             ! geometry source terms
+             if (dloga(i,j,k) /= ZERO) then
                 courn = dtdx*(cc + abs(un))
                 eta = (ONE-courn)/(cc*dt*abs(dloga(i,j,k)))
                 dlogatmp = min(eta, ONE)*dloga(i,j,k)
@@ -253,13 +253,15 @@ contains
                 sourcp = sourcr*csq
                 source = sourcp*enth
 
-                if (i <= hi(1)) then
+                if ((idir == 1 .and. i <= hi(1)) .or. &
+                    (idir == 2 .and. j <= hi(2))) then
                    qm(i+ix,j+iy,k+iz,QRHO) = qm(i+ix,j+iy,k+iz,QRHO) + sourcr
                    qm(i+ix,j+iy,k+iz,QRHO) = max(qm(i+ix,j+iy,k+iz,QRHO),small_dens)
                    qm(i+ix,j+iy,k+iz,QPRES) = qm(i+ix,j+iy,k+iz,QPRES) + sourcp
                    qm(i+ix,j+iy,k+iz,QREINT) = qm(i+ix,j+iy,k+iz,QREINT) + source
                 end if
-                if (i >= lo(1)) then
+                if ((idir == 1 .and. i >= lo(1)) .or. &
+                    (idir == 2 .and. j >= lo(2))) then
                    qp(i,j,k,QRHO) = qp(i,j,k,QRHO) + sourcr
                    qp(i,j,k,QRHO) = max(qp(i,j,k,QRHO),small_dens)
                    qp(i,j,k,QPRES) = qp(i,j,k,QPRES) + sourcp
