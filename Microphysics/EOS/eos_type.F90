@@ -1,5 +1,6 @@
 module eos_type_module
 
+  use amrex_error_module, only: amrex_error
   use amrex_fort_module, only : rt => amrex_real
   use network, only: nspec, naux
 
@@ -413,11 +414,9 @@ contains
   ! independent variable for the given input
   function eos_input_has_var(input, ivar) result(has)
 
-    use eos_type_module
-
     implicit none
 
-    integer, intent(in) :: input
+    integer, intent(in) :: input, ivar
     logical :: has
 
     !$gpu
