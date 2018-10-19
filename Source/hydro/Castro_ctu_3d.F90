@@ -61,7 +61,8 @@ contains
                                    ppm_type, &
                                    use_pslope, ppm_temp_fix, &
                                    hybrid_riemann
-    use trace_plm_module, only : trace_plm
+    use trace_ppm_module, only : trace_ppm
+    use trace_module, only : tracexy, tracez
     use transverse_module
     use ppm_module, only : ppm_reconstruct, ppm_int_profile
     use slope_module, only : uslope, pslope
@@ -74,7 +75,7 @@ contains
     use rad_params_module, only : ngroups
     use trace_ppm_rad_module, only : tracexy_ppm_rad, tracez_ppm_rad
 #else
-    use trace_ppm_module, only : trace_ppm
+    use trace_ppm_module, only : tracexy_ppm, tracez_ppm
 #endif
 #ifdef SHOCK_VAR
     use meth_params_module, only : USHK
@@ -442,26 +443,20 @@ contains
                         lo, hi, dx)
 
        ! Compute U_x and U_y at kc (k3d)
-       call trace_plm(1, q, qd_lo, qd_hi, &
-                      qaux, qa_lo, qa_hi, &
-                      dqx, glo, ghi, &
-                      qxm, qxp, fglo, fghi, &
-                      lo, hi, domlo, domhi, &
-                      dx, dt)
+       call tracexy(q, qd_lo, qd_hi, &
+                    qaux, qa_lo, qa_hi, &
+                    dqx, dqy, glo, ghi, &
+                    qxm, qxp, qym, qyp, fglo, fghi, &
+                    lo, hi, domlo, domhi, &
+                    dx, dt)
 
-       call trace_plm(2, q, qd_lo, qd_hi, &
-                      qaux, qa_lo, qa_hi, &
-                      dqy, glo, ghi, &
-                      qym, qyp, fglo, fghi, &
-                      lo, hi, domlo, domhi, &
-                      dx, dt)
-
-       call trace_plm(3, q, qd_lo, qd_hi, &
-                      qaux, qa_lo, qa_hi, &
-                      dqz, glo, ghi, &
-                      qzm, qzp, fglo, fghi, &
-                      lo, hi, domlo, domhi, &
-                      dx, dt)
+       ! we should not land here with radiation
+       call tracez(q, qd_lo, qd_hi, &
+                   qaux, qa_lo, qa_hi, &
+                   dqz, glo, ghi, &
+                   qzm, qzp, fglo, fghi, &
+                   lo, hi, domlo, domhi, &
+                   dx, dt)
 
     end if  ! ppm test
 

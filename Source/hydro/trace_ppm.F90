@@ -704,58 +704,49 @@ contains
 
        do k = lo(3)-dg(3), hi(3)+dg(3)
           do j = lo(2)-dg(2), hi(2)+dg(2)
-             do i = lo(1)-1, hi(1)+1
 
-                ! Plus state on face i
-                if ((idir == 1 .and. i >= lo(1)) .or. &
-                    (idir == 2 .and. j >= lo(2)) .or. &
-                    (idir == 3 .and. k >= lo(3))) then
+             ! Plus state on face i
+             do i = lo(1), hi(1)+1
+                un = q(i,j,k,QUN)
 
-                   un = q(i,j,k,QUN)
+                ! We have
+                !
+                ! q_l = q_ref - Proj{(q_ref - I)}
+                !
+                ! and Proj{} represents the characteristic projection.
+                ! But for these, there is only 1-wave that matters, the u
+                ! wave, so no projection is needed.  Since we are not
+                ! projecting, the reference state doesn't matter
 
-                   ! We have
-                   !
-                   ! q_l = q_ref - Proj{(q_ref - I)}
-                   !
-                   ! and Proj{} represents the characteristic projection.
-                   ! But for these, there is only 1-wave that matters, the u
-                   ! wave, so no projection is needed.  Since we are not
-                   ! projecting, the reference state doesn't matter
-
-                   if (un > ZERO) then
-                      qp(i,j,k,n) = q(i,j,k,n)
-                   else if (un < ZERO) then
-                      qp(i,j,k,n) = Im(i,j,k,idir,2,n)
-                   else
-                      qp(i,j,k,n) = q(i,j,k,n) + HALF*(Im(i,j,k,idir,2,n) - q(i,j,k,n))
-                   endif
+                if (un > ZERO) then
+                   qp(i,j,k,n) = q(i,j,k,n)
+                else if (un < ZERO) then
+                   qp(i,j,k,n) = Im(i,j,k,idir,2,n)
+                else
+                   qp(i,j,k,n) = q(i,j,k,n) + HALF*(Im(i,j,k,idir,2,n) - q(i,j,k,n))
                 endif
+             enddo
 
-                ! Minus state on face i+1
-                if ((idir == 1 .and. i <= hi(1)) .or. &
-                    (idir == 2 .and. j <= hi(2)) .or. &
-                    (idir == 3 .and. k <= hi(3))) then
+             ! Minus state on face i+1
+             do i = lo(1)-1, hi(1)
+                un = q(i,j,k,QUN)
 
-                   un = q(i,j,k,QUN)
-
-                   if (un > ZERO) then
-                      qm(i+ix,j+iy,k+iz,n) = Ip(i,j,k,idir,2,n)
-                   else if (un < ZERO) then
-                      qm(i+ix,j+iy,k+iz,n) = q(i,j,k,n)
-                   else
-                      qm(i+ix,j+iy,k+iz,n) = q(i,j,k,n) + HALF*(Ip(i,j,k,idir,2,n) - q(i,j,k,n))
-                   endif
+                if (un > ZERO) then
+                   qm(i+ix,j+iy,k+iz,n) = Ip(i,j,k,idir,2,n)
+                else if (un < ZERO) then
+                   qm(i+ix,j+iy,k+iz,n) = q(i,j,k,n)
+                else
+                   qm(i+ix,j+iy,k+iz,n) = q(i,j,k,n) + HALF*(Ip(i,j,k,idir,2,n) - q(i,j,k,n))
                 endif
-
              end do
 
 #if AMREX_SPACEDIM == 1
              if (fix_mass_flux_hi) qp(hi(1)+1,j,k,n) = q(hi(1)+1,j,k,n)
              if (fix_mass_flux_lo) qm(lo(1),j,k,n) = q(lo(1)-1,j,k,n)
 #endif
+
           end do
        end do
-
     end do
 
     if (ppm_temp_fix == 3) then

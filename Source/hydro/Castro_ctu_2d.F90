@@ -55,7 +55,7 @@ contains
                                    NQAUX, &
                                    ppm_type, &
                                    use_pslope, plm_iorder, ppm_temp_fix
-    use trace_plm_module, only : trace_plm
+    use trace_module, only : tracexy
 #ifdef RADIATION
     use rad_params_module, only : ngroups
     use trace_ppm_rad_module, only : tracexy_ppm_rad
@@ -405,21 +405,13 @@ contains
        call amrex_error("ppm_type <=0 is not supported in umeth for radiation")
 #endif
 #else
-       call trace_plm(1, q, q_lo, q_hi, &
-                      qaux, qa_lo, qa_hi, &
-                      dqx, q_lo, q_hi, &
-                      qxm, qxp, qp_lo, qp_hi, &
-                      dloga, dloga_lo, dloga_hi, &
-                      lo, hi, domlo, domhi, &
-                      dx, dt)
-
-       call trace_plm(2, q, q_lo, q_hi, &
-                      qaux, qa_lo, qa_hi, &
-                      dqy, q_lo, q_hi, &
-                      qym, qyp, qp_lo, qp_hi, &
-                      dloga, dloga_lo, dloga_hi, &
-                      lo, hi, domlo, domhi, &
-                      dx, dt)
+       call tracexy(q, q_lo, q_hi, &
+                    qaux, qa_lo, qa_hi, &
+                    dqx, dqy, q_lo, q_hi, &
+                    qxm, qxp, qym, qyp, qp_lo, qp_hi, &
+                    dloga, dloga_lo, dloga_hi, &
+                    lo, hi, domlo, domhi, &
+                    dx, dt)
 #endif
     else
 #ifdef RADIATION
