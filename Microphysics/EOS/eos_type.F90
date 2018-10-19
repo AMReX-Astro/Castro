@@ -16,7 +16,7 @@ module eos_type_module
   integer, parameter :: eos_input_ph = 7  ! p, h are inputs
   integer, parameter :: eos_input_th = 8  ! T, h are inputs
 
-  ! these are used to allow for a generic interface to the 
+  ! these are used to allow for a generic interface to the
   ! root finding
   integer, parameter :: itemp = 1
   integer, parameter :: idens = 2
@@ -176,7 +176,6 @@ module eos_type_module
 
 contains
 
-
   ! Provides a copy subroutine for the eos_t type to
   ! avoid derived type assignment (OpenACC and CUDA can't handle that)
   subroutine copy_eos_t(to_eos, from_eos)
@@ -322,7 +321,6 @@ contains
   end subroutine normalize_abundances
 
 
-
   ! Ensure that inputs are within reasonable limits.
 
   subroutine clean_state(state)
@@ -354,7 +352,6 @@ contains
     print *, 'Y_E  = ', state % y_e
 
   end subroutine print_state
-
 
 
   subroutine eos_get_small_temp(small_temp_out)
@@ -410,5 +407,93 @@ contains
     max_dens_out = maxdens
 
   end subroutine eos_get_max_dens
+
+
+  ! Check to see if variable ivar is a valid
+  ! independent variable for the given input
+  function eos_input_has_var(input, ivar) result(has)
+
+    use eos_type_module
+
+    implicit none
+
+    integer, intent(in) :: input
+    logical :: has
+
+    !$gpu
+
+    has = .false.
+    
+    select case (ivar)
+
+    case (itemp)
+
+       if (input == eos_input_rt .or. &
+           input == eos_input_tp .or. &
+           input == eos_input_th) then
+
+          has = .true.
+
+       endif
+
+    case (idens)
+
+       if (input == eos_input_rt .or. &
+           input == eos_input_rh .or. &
+           input == eos_input_rp .or. &
+           input == eos_input_re) then
+
+          has = .true.
+
+       endif
+
+    case (iener)
+
+       if (input == eos_input_re) then
+
+          has = .true.
+
+       endif
+       
+    case (ienth)
+
+       if (input == eos_input_rh .or. &
+           input == eos_input_ph .or. &
+           input == eos_input_th) then
+
+          has = .true.
+
+       endif
+
+    case (ientr)
+
+       if (input == eos_input_ps) then
+
+          has = .true.
+
+       endif
+
+    case (ipres)
+
+       if (input == eos_input_tp .or. &
+           input == eos_input_rp .or. &
+           input == eos_input_ps .or. &
+           input == eos_input_ph) then
+
+          has = .true.
+
+       endif
+
+    case default
+
+#ifdef AMREX_USE_CUDA
+       stop
+#else
+       call amrex_error("EOS: invalid independent variable")
+#endif
+
+    end select
+
+  end function eos_input_has_var
 
 end module eos_type_module
