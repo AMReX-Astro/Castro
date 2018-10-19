@@ -101,9 +101,10 @@ contains
 #if (AMREX_SPACEDIM >= 2)
           ! Compute slopes in second coordinate direction
           do k = lo(3)-dg(3), hi(3)+dg(3)
-             do i = lo(1)-1, hi(1)+1
-                ! First compute Fromm slopes for this column
-                do j = lo(2)-2*dg(2), hi(2)+2*dg(2)
+             do j = lo(2)-2*dg(2), hi(2)+2*dg(2)
+                do i = lo(1)-1, hi(1)+1
+
+                   ! First compute Fromm slopes
                    dlft = TWO*(q(i,j ,k,n) - q(i,j-1,k,n))
                    drgt = TWO*(q(i,j+1,k,n) - q(i,j ,k,n))
                    dcen(i,j,k) = FOURTH * (dlft+drgt)
@@ -116,9 +117,13 @@ contains
                    endif
                    df(i,j,k) = dsgn(i,j,k)*min( dlim(i,j,k), abs(dcen(i,j,k)) )
                 end do
+             end do
+          end do
 
-                ! Now compute limited fourth order slopes
-                do j = lo(2)-dg(2), hi(2)+dg(2)
+          do k = lo(3)-dg(3), hi(3)+dg(3)
+             do j = lo(2)-dg(2), hi(2)+dg(2)
+                do i = lo(1)-1, hi(1)+1
+                   ! Now compute limited fourth order slopes
                    dq1 = FOUR3RD*dcen(i,j,k) - SIXTH*( df(i,j+1,k) + df(i,j-1,k) )
                    dqy(i,j,k,n) = flatn(i,j,k)*dsgn(i,j,k)*min(dlim(i,j,k), abs(dq1))
                 end do
@@ -128,12 +133,11 @@ contains
 
 #if (AMREX_SPACEDIM == 3)
           ! Compute slopes in third coordinate direction
-          do j = lo(2)-1, hi(2)+1
-             do i = lo(1)-1, hi(1)+1
+          do k = lo(3)-2, hi(3)+2
+             do j = lo(2)-1, hi(2)+1
+                do i = lo(1)-1, hi(1)+1
 
-                ! First compute Fromm slopes
-                do k = lo(3)-2, hi(3)+2
-
+                   ! First compute Fromm slopes
                    dlft = TWO*(q(i,j,k ,n) - q(i,j,k-1,n))
                    drgt = TWO*(q(i,j,k+1,n) - q(i,j,k, n))
                    dcen(i,j,k) = FOURTH * (dlft+drgt)
@@ -146,9 +150,13 @@ contains
                    endif
                    df(i,j,k) = dsgn(i,j,k)*min( dlim(i,j,k), abs(dcen(i,j,k)) )
                 end do
+             end do
+          end do
 
-                ! Now compute limited fourth order slopes
-                do k = lo(3)-1, hi(3)+1
+          do k = lo(3)-1, hi(3)+1
+             do j = lo(2)-1, hi(2)+1
+                do i = lo(1)-1, hi(1)+1
+                   ! Now compute limited fourth order slopes
                    dq1 = FOUR3RD*dcen(i,j,k) - SIXTH*(df(i,j,k+1) + df(i,j,k-1))
                    dqz(i,j,k,n) = flatn(i,j,k)*dsgn(i,j,k)*min(dlim(i,j,k),abs(dq1))
                 end do
@@ -264,10 +272,10 @@ contains
 #if AMREX_SPACEDIM >= 2
        ! Compute slopes in second coordinate direction
        do k = lo(3)-dg(3), hi(3)+dg(3)
-          do i = lo(1)-1, hi(1)+1
+          do j = lo(2)-2, hi(2)+2
+             do i = lo(1)-1, hi(1)+1
 
-             ! First compute Fromm slopes
-             do j = lo(2)-2, hi(2)+2
+                ! First compute Fromm slopes
                 dlft = q(i,j  ,k,QPRES) - q(i,j-1,k,QPRES)
                 drgt = q(i,j+1,k,QPRES) - q(i,j  ,k,QPRES)
 
@@ -286,9 +294,14 @@ contains
                 endif
                 df(i,j,k) = dsgn(i,j,k)*min( dlim(i,j,k), abs(dcen(i,j,k)) )
              end do
+          end do
+       end do
 
-             ! Now limited fourth order slopes
-             do j = lo(2)-1, hi(2)+1
+       do k = lo(3)-dg(3), hi(3)+dg(3)
+          do j = lo(2)-1, hi(2)+1
+             do i = lo(1)-1, hi(1)+1
+
+                ! Now limited fourth order slopes
                 dp1 = FOUR3RD*dcen(i,j,k) - SIXTH*( df(i,j+1,k) + df(i,j-1,k) )
                 dqy(i,j,k,QPRES) = flatn(i,j,k)*dsgn(i,j,k)*min(dlim(i,j,k),abs(dp1))
                 dqy(i,j,k,QPRES) = dqy(i,j,k,QPRES) + q(i,j,k,QRHO)*src(i,j,k,QV)*dx(2)
@@ -299,11 +312,11 @@ contains
 
 #if AMREX_SPACEDIM == 3
        ! Compute slopes in third coordinate direction
-       do j = lo(2)-1, hi(2)+1
-          do i = lo(1)-1, hi(1)+1
+       do k = lo(3)-2, hi(3)+2
+          do j = lo(2)-1, hi(2)+1
+             do i = lo(1)-1, hi(1)+1
 
-             ! First compute Fromm slopes
-             do k = lo(3)-2, hi(3)+2
+                ! First compute Fromm slopes
 
                 dlft = q(i,j,k  ,QPRES) - q(i,j,k-1,QPRES)
                 drgt = q(i,j,k+1,QPRES) - q(i,j,k  ,QPRES)
@@ -323,9 +336,14 @@ contains
                 endif
                 df(i,j,k) = dsgn(i,j,k)*min( dlim(i,j,k), abs(dcen(i,j,k)) )
              end do
+          end do
+       end do
 
-             ! now limited fourth order slopes
-             do k = lo(3)-1, hi(3)+1
+       do k = lo(3)-1, hi(3)+1
+          do j = lo(2)-1, hi(2)+1
+             do i = lo(1)-1, hi(1)+1
+
+                ! now limited fourth order slopes
                 dp1 = FOUR3RD*dcen(i,j,k) - SIXTH*(df(i,j,k+1) + df(i,j,k-1))
                 dqz(i,j,k,QPRES) = flatn(i,j,k)*dsgn(i,j,k)*min(dlim(i,j,k),abs(dp1))
                 dqz(i,j,k,QPRES) = dqz(i,j,k,QPRES) + q(i,j,k,QRHO)*src(i,j,k,QW)*dx(3)
