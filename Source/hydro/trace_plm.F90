@@ -88,6 +88,7 @@ contains
     logical :: fix_mass_flux_lo, fix_mass_flux_hi
 
     integer :: QUN, QUT, QUTT
+    real(rt) :: ref_fac, trace_fac1, trace_fac2, trace_fac3
 
     dtdx = dt/dx(idir)
 
@@ -153,21 +154,26 @@ contains
              e(2) = un
              e(3) = un + cc
 
-             rho_ref = rho - HALF*(ONE + dtdx*min(e(1),ZERO))*drho
-             un_ref = un - HALF*(ONE + dtdx*min(e(1), ZERO))*dun
-             ut_ref = ut - HALF*(ONE + dtdx*min(e(1), ZERO))*dut
-             utt_ref = utt - HALF*(ONE + dtdx*min(e(1), ZERO))*dutt
-             p_ref = p - HALF*(ONE + dtdx*min(e(1), ZERO))*dp
-             rhoe_ref = rhoe - HALF*(ONE + dtdx*min(e(1),ZERO))*drhoe
+             ref_fac = HALF*(ONE + dtdx*min(e(1), ZERO))
+             rho_ref = rho - ref_fac*drho
+             un_ref = un - ref_fac*dun
+             ut_ref = ut - ref_fac*dut
+             utt_ref = utt - ref_fac*dutt
+             p_ref = p - ref_fac*dp
+             rhoe_ref = rhoe - ref_fac*drhoe
 
              ! this is -(1/2) ( 1 + dt/dx lambda) (l . dq) r
-             apright = 0.25e0_rt*dtdx*(e(1) - e(3))*(ONE - sign(ONE, e(3)))*alphap
-             amright = 0.25e0_rt*dtdx*(e(1) - e(1))*(ONE - sign(ONE, e(1)))*alpham
+             trace_fac1 = ZERO !  FOURTH*dtdx*(e(1) - e(1))*(ONE - sign(ONE, e(1)))
+             trace_fac2 = FOURTH*dtdx*(e(1) - e(2))*(ONE - sign(ONE, e(2)))
+             trace_fac3 = FOURTH*dtdx*(e(1) - e(3))*(ONE - sign(ONE, e(3)))
 
-             azrright = 0.25e0*dtdx*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0r
-             azeright = 0.25e0*dtdx*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0e
-             azut1rght = 0.25e0*dtdx*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0ut
-             azutt1rght = 0.25e0*dtdx*(e(1) - e(2))*(ONE - sign(ONE, e(2)))*alpha0utt
+             apright = trace_fac3*alphap
+             amright = trace_fac1*alpham
+
+             azrright = trace_fac2*alpha0r
+             azeright = trace_fac2*alpha0e
+             azut1rght = trace_fac2*alpha0ut
+             azutt1rght = trace_fac2*alpha0utt
 
              if ((idir == 1 .and. i >= lo(1)) .or. &
                  (idir == 2 .and. j >= lo(2)) .or. &
@@ -193,20 +199,25 @@ contains
 
              ! now construct the left state on the i+1 interface
 
-             rho_ref = rho + HALF*(ONE - dtdx*max(e(3), ZERO))*drho
-             un_ref = un + HALF*(ONE - dtdx*max(e(3), ZERO))*dun
-             ut_ref = ut + HALF*(ONE - dtdx*max(e(3), ZERO))*dut
-             utt_ref = utt + HALF*(ONE - dtdx*max(e(3), ZERO))*dutt
-             p_ref = p + HALF*(ONE - dtdx*max(e(3), ZERO))*dp
-             rhoe_ref = rhoe + HALF*(ONE - dtdx*max(e(3), ZERO))*drhoe
+             ref_fac = HALF*(ONE - dtdx*max(e(3), ZERO))
+             rho_ref = rho + ref_fac*drho
+             un_ref = un + ref_fac*dun
+             ut_ref = ut + ref_fac*dut
+             utt_ref = utt + ref_fac*dutt
+             p_ref = p + ref_fac*dp
+             rhoe_ref = rhoe + ref_fac*drhoe
 
-             apleft = 0.25e0_rt*dtdx*(e(3) - e(3))*(ONE + sign(ONE, e(3)))*alphap
-             amleft = 0.25e0_rt*dtdx*(e(3) - e(1))*(ONE + sign(ONE, e(1)))*alpham
+             trace_fac1 = FOURTH*dtdx*(e(3) - e(1))*(ONE + sign(ONE, e(1)))
+             trace_fac2 = FOURTH*dtdx*(e(3) - e(2))*(ONE + sign(ONE, e(2)))
+             trace_fac3 = ZERO !  FOURTH*dtdx*(e(3) - e(3))*(ONE + sign(ONE, e(3)))
 
-             azrleft = 0.25e0_rt*dtdx*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0r
-             azeleft = 0.25e0_rt*dtdx*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0e
-             azut1left = 0.25e0_rt*dtdx*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0ut
-             azutt1left = 0.25e0_rt*dtdx*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0utt
+             apleft = trace_fac3*alphap
+             amleft = trace_fac1*alpham
+
+             azrleft = trace_fac2*alpha0r
+             azeleft = trace_fac2*alpha0e
+             azut1left = trace_fac2*alpha0ut
+             azutt1left = trace_fac2*alpha0utt
 
              if (idir == 1 .and. i <= hi(1)) then
                 qm(i+1,j,k,QRHO) = max(small_dens, rho_ref + apleft + amleft + azrleft)
@@ -309,11 +320,7 @@ contains
                     (idir == 3 .and. k >= lo(3))) then
 
                    un = q(i,j,k,QUN)
-                   if (un .gt. ZERO) then
-                      spzero = -ONE
-                   else
-                      spzero = un*dtdx
-                   endif
+                   spzero = merge(-ONE, un*dtdx, un >= ZERO)
                    acmprght = HALF*(-ONE - spzero)*dq(i,j,k,n)
                    qp(i,j,k,n) = q(i,j,k,n) + acmprght
                 endif
