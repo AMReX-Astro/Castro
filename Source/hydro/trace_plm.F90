@@ -87,7 +87,7 @@ contains
     real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
     logical :: fix_mass_flux_lo, fix_mass_flux_hi
 
-    integer :: ix, iy, iz, QUN, QUT, QUTT
+    integer :: QUN, QUT, QUTT
 
     dtdx = dt/dx(idir)
 
@@ -104,23 +104,14 @@ contains
          .and. (hi(1) == domhi(1))
 
     if (idir == 1) then
-       ix = 1
-       iy = 0
-       iz = 0
        QUN = QU
        QUT = QV
        QUTT = QW
     else if (idir == 2) then
-       ix = 0
-       iy = 1
-       iz = 0
        QUN = QV
        QUT = QW
        QUTT = QU
     else if (idir == 3) then
-       ix = 0
-       iy = 0
-       iz = 1
        QUN = QW
        QUT = QU
        QUTT = QV
@@ -217,26 +208,40 @@ contains
              azut1left = 0.25e0_rt*dtdx*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0ut
              azutt1left = 0.25e0_rt*dtdx*(e(3) - e(2))*(ONE + sign(ONE, e(2)))*alpha0utt
 
-             if ((idir == 1 .and. i <= hi(1)) .or. &
-                 (idir == 2 .and. j <= hi(2)) .or. &
-                 (idir == 3 .and. k <= hi(3))) then
+             if (idir == 1 .and. i <= hi(1)) then
+                qm(i+1,j,k,QRHO) = max(small_dens, rho_ref + apleft + amleft + azrleft)
+                qm(i+1,j,k,QUN) = un_ref + (apleft - amleft)*cc/rho
+                qm(i+1,j,k,QUT) = ut_ref + azut1left
+                qm(i+1,j,k,QUTT) = utt_ref + azutt1left
+                qm(i+1,j,k,QPRES) = max(small_pres, p_ref + (apleft + amleft)*csq)
+                qm(i+1,j,k,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
 
-                qm(i+ix,j+iy,k+iz,QRHO) = max(small_dens, rho_ref + apleft + amleft + azrleft)
-                qm(i+ix,j+iy,k+iz,QUN) = un_ref + (apleft - amleft)*cc/rho
-                qm(i+ix,j+iy,k+iz,QUT) = ut_ref + azut1left
-                qm(i+ix,j+iy,k+iz,QUTT) = utt_ref + azutt1left
-                qm(i+ix,j+iy,k+iz,QPRES) = max(small_pres, p_ref + (apleft + amleft)*csq)
-                qm(i+ix,j+iy,k+iz,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
-
-                ! add the source terms in 1-d, since we don't do this in
-                ! the transverse routines
+                ! add the source terms in 1-d, since we usually do this in the transverse routines
 #if (AMREX_SPACEDIM == 1)
-                qm(i+ix,j+iy,k+iz,QRHO  ) = qm(i+ix,j+iy,k+iz,QRHO  ) + HALF*dt*srcQ(i,j,k,QRHO)
-                qm(i+ix,j+iy,k+iz,QRHO  ) = max(small_dens, qm(i+ix,j+iy,k+iz,QRHO))
-                qm(i+ix,j+iy,k+iz,QUN   ) = qm(i+ix,j+iy,k+iz,QUN    ) + HALF*dt*srcQ(i,j,k,QUN)
-                qm(i+ix,j+iy,k+iz,QREINT) = qm(i+ix,j+iy,k+iz,QREINT) + HALF*dt*srcQ(i,j,k,QREINT)
-                qm(i+ix,j+iy,k+iz,QPRES ) = qm(i+ix,j+iy,k+iz,QPRES ) + HALF*dt*srcQ(i,j,k,QPRES)
+                qm(i+1,j,k,QRHO) = max(small_dens, qm(i+1,j,k,QRHO) + HALF*dt*srcQ(i,j,k,QRHO))
+                qm(i+1,j,k,QUN) = qm(i+1,j,k,QUN) + HALF*dt*srcQ(i,j,k,QUN)
+                qm(i+1,j,k,QUT) = qm(i+1,j,k,QUT) + HALF*dt*srcQ(i,j,k,QUT)
+                qm(i+1,j,k,QUTT) = qm(i+1,j,k,QUTT) + HALF*dt*srcQ(i,j,k,QUTT)
+                qm(i+1,j,k,QREINT) = qm(i,j,k,QREINT) + HALF*dt*srcQ(i,j,k,QREINT)
+                qm(i+1,j,k,QPRES) = qm(i,j,k,QPRES ) + HALF*dt*srcQ(i,j,k,QPRES)
 #endif
+
+             else if (idir == 2 .and. j <= hi(2)) then
+                qm(i,j+1,k,QRHO) = max(small_dens, rho_ref + apleft + amleft + azrleft)
+                qm(i,j+1,k,QUN) = un_ref + (apleft - amleft)*cc/rho
+                qm(i,j+1,k,QUT) = ut_ref + azut1left
+                qm(i,j+1,k,QUTT) = utt_ref + azutt1left
+                qm(i,j+1,k,QPRES) = max(small_pres, p_ref + (apleft + amleft)*csq)
+                qm(i,j+1,k,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
+
+             else if (idir == 3 .and. k <= hi(3)) then
+                qm(i,j,k+1,QRHO) = max(small_dens, rho_ref + apleft + amleft + azrleft)
+                qm(i,j,k+1,QUN) = un_ref + (apleft - amleft)*cc/rho
+                qm(i,j,k+1,QUT) = ut_ref + azut1left
+                qm(i,j,k+1,QUTT) = utt_ref + azutt1left
+                qm(i,j,k+1,QPRES) = max(small_pres, p_ref + (apleft + amleft)*csq)
+                qm(i,j,k+1,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
+
              endif
 
 #if (AMREX_SPACEDIM < 3)
@@ -250,14 +255,14 @@ contains
                 source = sourcp*enth
 
                 if (i <= hi(1)) then
-                   qm(i+ix,j+iy,k+iz,QRHO) = qm(i+ix,j+iy,k+iz,QRHO) + sourcr
-                   qm(i+ix,j+iy,k+iz,QRHO) = max(qm(i+ix,j+iy,k+iz,QRHO),small_dens)
-                   qm(i+ix,j+iy,k+iz,QPRES) = qm(i+ix,j+iy,k+iz,QPRES) + sourcp
-                   qm(i+ix,j+iy,k+iz,QREINT) = qm(i+ix,j+iy,k+iz,QREINT) + source
+                   qm(i+1,j,k,QRHO) = qm(i+1,j,k,QRHO) + sourcr
+                   qm(i+1,j,k,QRHO) = max(qm(i+1,j,k,QRHO), small_dens)
+                   qm(i+1,j,k,QPRES) = qm(i+1,j,k,QPRES) + sourcp
+                   qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source
                 end if
                 if (i >= lo(1)) then
                    qp(i,j,k,QRHO) = qp(i,j,k,QRHO) + sourcr
-                   qp(i,j,k,QRHO) = max(qp(i,j,k,QRHO),small_dens)
+                   qp(i,j,k,QRHO) = max(qp(i,j,k,QRHO), small_dens)
                    qp(i,j,k,QPRES) = qp(i,j,k,QPRES) + sourcp
                    qp(i,j,k,QREINT) = qp(i,j,k,QREINT) + source
                 end if
@@ -309,23 +314,21 @@ contains
                    else
                       spzero = un*dtdx
                    endif
-                   acmprght = HALF*(-ONE - spzero )*dq(i,j,k,n)
+                   acmprght = HALF*(-ONE - spzero)*dq(i,j,k,n)
                    qp(i,j,k,n) = q(i,j,k,n) + acmprght
                 endif
 
                 ! Left state
-                if ((idir == 1 .and. i <= hi(1)) .or. &
-                    (idir == 2 .and. j <= hi(2)) .or. &
-                    (idir == 3 .and. k <= hi(3))) then
+                un = q(i,j,k,QUN)
+                spzero = merge(un*dtdx, ONE, un >= ZERO)
+                acmpleft = HALF*(ONE - spzero )*dq(i,j,k,n)
 
-                   un = q(i,j,k,QUN)
-                   if (un .ge. ZERO) then
-                      spzero = un*dtdx
-                   else
-                      spzero = ONE
-                   endif
-                   acmpleft = HALF*(ONE - spzero )*dq(i,j,k,n)
-                   qm(i+ix,j+iy,k+iz,n) = q(i,j,k,n) + acmpleft
+                if (idir == 1 .and. i <= hi(1)) then
+                   qm(i+1,j,k,n) = q(i,j,k,n) + acmpleft
+                else if (idir == 2 .and. j <= hi(2)) then
+                   qm(i,j+1,k,n) = q(i,j,k,n) + acmpleft
+                else if (idir == 3 .and. k <= hi(3)) then
+                   qm(i,j,k+1,n) = q(i,j,k,n) + acmpleft
                 endif
              enddo
 
