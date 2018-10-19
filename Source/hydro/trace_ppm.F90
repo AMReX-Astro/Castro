@@ -233,6 +233,9 @@ contains
                 Clag_ref = rho_ref*cc_ref
                 h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
 
+                ! *m are the jumps carried by un-c
+                ! *p are the jumps carried by un+c
+
                 ! Note: for the transverse velocities, the jump is carried
                 !       only by the u wave (the contact)
 
@@ -278,37 +281,14 @@ contains
                 alpha0r = drho - dptot/csq_ev
                 alpha0e_g = drhoe_g - dptot*h_g_ev  ! note h_g has a 1/c**2 in it
 
-                if (un-cc > ZERO) then
-                   alpham = ZERO
-                else if (un-cc < ZERO) then
-                   alpham = -alpham
-                else
-                   alpham = -HALF*alpham
-                endif
-
-                if (un+cc > ZERO) then
-                   alphap = ZERO
-                else if (un+cc < ZERO) then
-                   alphap = -alphap
-                else
-                   alphap = -HALF*alphap
-                endif
-
-                if (un > ZERO) then
-                   alpha0r = ZERO
-                   alpha0e_g = ZERO
-                else if (un < ZERO) then
-                   alpha0r = -alpha0r
-                   alpha0e_g = -alpha0e_g
-                else
-                   alpha0r = -HALF*alpha0r
-                   alpha0e_g = -HALF*alpha0e_g
-                endif
+                alpham = merge(ZERO, -alpham, un-cc > ZERO)
+                alphap = merge(ZERO, -alphap, un+cc > ZERO)
+                alpha0r = merge(ZERO, -alpha0r, un > ZERO)
+                alpha0e_g = merge(ZERO, -alpha0e_g, un > ZERO)
 
                 ! The final interface states are just
                 ! q_s = q_ref - sum(l . dq) r
                 ! note that the a{mpz}right as defined above have the minus already
-
                 qp(i,j,k,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
                 qp(i,j,k,QUN) = un_ref + (alphap - alpham)*cc_ev/rho_ev
                 qp(i,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
@@ -396,33 +376,10 @@ contains
                 alpha0r = drho - dptot/csq_ev
                 alpha0e_g = drhoe_g - dptot*h_g_ev  ! h_g has a 1/c**2 in it
 
-                if (un-cc > ZERO) then
-                   alpham = -alpham
-                else if (un-cc < ZERO) then
-                   alpham = ZERO
-                else
-                   alpham = -HALF*alpham
-                endif
-
-                if (un+cc > ZERO) then
-                   alphap = -alphap
-                else if (un+cc < ZERO) then
-                   alphap = ZERO
-                else
-                   alphap = -HALF*alphap
-                endif
-
-                if (un > ZERO) then
-                   alpha0r = -alpha0r
-                   alpha0e_g = -alpha0e_g
-                else if (un < ZERO) then
-                   alpha0r = ZERO
-                   alpha0e_g = ZERO
-                else
-                   alpha0r = -HALF*alpha0r
-                   alpha0e_g = -HALF*alpha0e_g
-                endif
-
+                alpham = merge(-alpham, ZERO, un-cc > ZERO)
+                alphap = merge(-alphap, ZERO, un+cc > ZERO)
+                alpha0r = merge(-alpha0r, ZERO, un > ZERO)
+                alpha0e_g = merge(-alpha0e_g, ZERO, un > ZERO)
 
                 ! The final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
@@ -844,33 +801,10 @@ contains
                 gfactor = (game - ONE)*(game - gam_g)
                 alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
 
-
-                if (un-cc > ZERO) then
-                   alpham = ZERO
-                else if (un-cc < ZERO) then
-                   alpham = -alpham
-                else
-                   alpham = -HALF*alpham
-                endif
-
-                if (un+cc > ZERO) then
-                   alphap = ZERO
-                else if (un+cc < ZERO) then
-                   alphap = -alphap
-                else
-                   alphap = -HALF*alphap
-                endif
-
-                if (un > ZERO) then
-                   alpha0r = ZERO
-                   alpha0e_g = ZERO
-                else if (un < ZERO) then
-                   alpha0r = -alpha0r
-                   alpha0e_g = -alpha0e_g
-                else
-                   alpha0r = -HALF*alpha0r
-                   alpha0e_g = -HALF*alpha0e_g
-                endif
+                alpham = merge(ZERO, -alpham, un-cc > ZERO)
+                alphap = merge(ZERO, -alphap, un+cc > ZERO)
+                alpha0r = merge(ZERO, -alpha0r, un > ZERO)
+                alpha0e_g = merge(ZERO, -alpha0e_g, un > ZERO)
 
                 ! The final interface states are just
                 ! q_s = q_ref - sum(l . dq) r
@@ -974,33 +908,10 @@ contains
                 gfactor = (game - ONE)*(game - gam_g)
                 alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
 
-
-                if (un-cc > ZERO) then
-                   alpham = -alpham
-                else if (un-cc < ZERO) then
-                   alpham = ZERO
-                else
-                   alpham = -HALF*alpham
-                endif
-
-                if (un+cc > ZERO) then
-                   alphap = -alphap
-                else if (un+cc < ZERO) then
-                   alphap = ZERO
-                else
-                   alphap = -HALF*alphap
-                endif
-
-                if (un > ZERO) then
-                   alpha0r = -alpha0r
-                   alpha0e_g = -alpha0e_g
-                else if (un < ZERO) then
-                   alpha0r = ZERO
-                   alpha0e_g = ZERO
-                else
-                   alpha0r = -HALF*alpha0r
-                   alpha0e_g = -HALF*alpha0e_g
-                endif
+                alpham = merge(-alpham, ZERO, un-cc > ZERO)
+                alphap = merge(-alphap, ZERO, un+cc > ZERO)
+                alpha0r = merge(-alpha0r, ZERO, un > ZERO)
+                alpha0e_g = merge(-alpha0e_g, ZERO, un > ZERO)
 
 
                 ! The final interface states are just
@@ -1448,33 +1359,9 @@ contains
                 ! not used, but needed to prevent bad invalid ops
                 alpha0e_g = ZERO
 
-
-                if (un-cc > ZERO) then
-                   alpham = ZERO
-                else if (un-cc < ZERO) then
-                   alpham = -alpham
-                else
-                   alpham = -HALF*alpham
-                endif
-
-                if (un+cc > ZERO) then
-                   alphap = ZERO
-                else if (un+cc < ZERO) then
-                   alphap = -alphap
-                else
-                   alphap = -HALF*alphap
-                endif
-
-                if (un > ZERO) then
-                   alpha0r = ZERO
-                   alpha0e_g = ZERO
-                else if (un < ZERO) then
-                   alpha0r = -alpha0r
-                   alpha0e_g = -alpha0e_g
-                else
-                   alpha0r = -HALF*alpha0r
-                   alpha0e_g = -HALF*alpha0e_g
-                endif
+                alpham = merge(ZERO, -alpham, un-cc > ZERO)
+                alphap = merge(ZERO, -alphap, un+cc > ZERO)
+                alpha0r = merge(ZERO, -alpha0r, un > ZERO)
 
                 ! The final interface states are just
                 ! q_s = q_ref - sum(l . dq) r
@@ -1596,32 +1483,9 @@ contains
                 ! not used, but needed to prevent bad invalid ops
                 alpha0e_g = ZERO
 
-                if (un-cc > ZERO) then
-                   alpham = -alpham
-                else if (un-cc < ZERO) then
-                   alpham = ZERO
-                else
-                   alpham = -HALF*alpham
-                endif
-
-                if (un+cc > ZERO) then
-                   alphap = -alphap
-                else if (un+cc < ZERO) then
-                   alphap = ZERO
-                else
-                   alphap = -HALF*alphap
-                endif
-
-                if (un > ZERO) then
-                   alpha0r = -alpha0r
-                   alpha0e_g = -alpha0e_g
-                else if (un < ZERO) then
-                   alpha0r = ZERO
-                   alpha0e_g = ZERO
-                else
-                   alpha0r = -HALF*alpha0r
-                   alpha0e_g = -HALF*alpha0e_g
-                endif
+                alpham = merge(-alpham, ZERO, un-cc > ZERO)
+                alphap = merge(-alphap, ZERO, un+cc > ZERO)
+                alpha0r = merge(-alpha0r, ZERO, un > ZERO)
 
 
                 ! The final interface states are just
