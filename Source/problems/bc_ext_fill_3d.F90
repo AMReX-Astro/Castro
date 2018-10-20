@@ -43,6 +43,7 @@ contains
     real(rt), intent(inout) :: adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3,NVAR)
 
     integer :: i, j, k, q, n, iter, m, koff
+
     real(rt) :: y, z
     real(rt) :: dens_above, dens_base, temp_above
     real(rt) :: pres_above, p_want, pres_zone, A
@@ -208,6 +209,7 @@ contains
                             ! note: we need to match the corresponding
                             ! zone on the other side of the interface
                             koff = domlo(3)-k-1
+
                             adv(i,j,k,UMZ) = -dens_zone*(adv(i,j,domlo(3)+koff,UMZ)/adv(i,j,domlo(3)+koff,URHO))
 
                             adv(i,j,k,UMX) = -dens_zone*(adv(i,j,domlo(3),UMX)/dens_base)
@@ -386,23 +388,6 @@ contains
 
     integer :: i, j, k
     real(rt) :: y, z
-
-    integer :: lo(3), hi(3)
-
-    lo(1) = adv_l1
-    lo(2) = adv_l2
-    lo(3) = adv_l3
-    hi(1) = adv_h1
-    hi(2) = adv_h2
-    hi(3) = adv_h3
-
-    ! Note: this function should not be needed, technically, but is
-    ! provided to filpatch because there are many times in the algorithm
-    ! when just the density is needed.  We try to rig up the filling so
-    ! that the same function is called here and in hypfill where all the
-    ! states are filled.
-
-    call amrex_filccn(lo, hi, adv, lo, hi, 1, domlo, domhi, delta, xlo, bc)
 
 #ifndef AMREX_USE_CUDA
     ! XLO

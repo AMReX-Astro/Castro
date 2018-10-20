@@ -1,4 +1,4 @@
-# changes since last release
+# 18.10
 
   -- fixed handling of external BCs (#402)
 
