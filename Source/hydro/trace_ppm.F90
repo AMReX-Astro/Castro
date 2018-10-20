@@ -604,8 +604,8 @@ contains
     real(rt) :: rho_ref, un_ref, p_ref, rhoe_g_ref
     real(rt) :: tau_ref
 
-    real(rt) :: cc_ref, csq_ref, Clag_ref, gam_g_ref, game_ref, gfactor
-    real(rt) :: cc_ev, csq_ev, Clag_ev, tau_ev
+    real(rt) :: Clag_ref, gam_g_ref, game_ref, gfactor
+    real(rt) :: Clag_ev, tau_ev
 
     real(rt) :: alpham, alphap, alpha0r, alpha0e_g
     real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
@@ -719,10 +719,7 @@ contains
                 rho_ref = max(rho_ref, small_dens)
                 p_ref = max(p_ref, small_pres)
 
-                ! For tracing (optionally)
-                csq_ref = gam_g_ref*p_ref/rho_ref
-                cc_ref = sqrt(csq_ref)
-                Clag_ref = rho_ref*cc_ref
+                Clag_ref = sqrt(gam_g_ref*p_ref*rho_ref)
 
                 ! Note: for the transverse velocities, the jump is carried
                 !       only by the u wave (the contact)
@@ -748,13 +745,9 @@ contains
                 ! Optionally use the reference state in evaluating the
                 ! eigenvectors
                 if (ppm_reference_eigenvectors == 0) then
-                   cc_ev   = cc
-                   csq_ev  = csq
                    Clag_ev = Clag
                    tau_ev  = ONE/rho
                 else
-                   cc_ev   = cc_ref
-                   csq_ev  = csq_ref
                    Clag_ev = Clag_ref
                    tau_ev  = tau_ref
                 endif
@@ -828,9 +821,7 @@ contains
                 p_ref = max(p_ref, small_pres)
 
                 ! For tracing (optionally)
-                csq_ref = gam_g_ref*p_ref/rho_ref
-                cc_ref = sqrt(csq_ref)
-                Clag_ref = rho_ref*cc_ref
+                Clag_ref = sqrt(gam_g_ref*p_ref*rho_ref)
 
                 ! *m are the jumps carried by u-c
                 ! *p are the jumps carried by u+c
@@ -851,13 +842,9 @@ contains
                 ! Optionally use the reference state in evaluating the
                 ! eigenvectors
                 if (ppm_reference_eigenvectors == 0) then
-                   cc_ev   = cc
-                   csq_ev  = csq
                    Clag_ev = Clag
                    tau_ev  = ONE/rho
                 else
-                   cc_ev   = cc_ref
-                   csq_ev  = csq_ref
                    Clag_ev = Clag_ref
                    tau_ev  = tau_ref
                 endif
