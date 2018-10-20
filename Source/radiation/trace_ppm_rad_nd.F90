@@ -11,19 +11,19 @@ module trace_ppm_rad_module
 
   private
 
-  public tracexy_ppm_rad, tracez_ppm_rad
+  public trace_ppm_rad
 
 contains
 
-  subroutine tracexy_ppm_rad(q, qd_lo, qd_hi, &
-                             qaux, qa_lo, qa_hi, &
-                             Ip, Im, Ip_src, Im_src, I_lo, I_hi, &
-                             qxm, qxp, qym, qyp, qs_lo, qs_hi, &
+  subroutine trace_ppm_rad(idir, q, qd_lo, qd_hi, &
+                           qaux, qa_lo, qa_hi, &
+                           Ip, Im, Ip_src, Im_src, I_lo, I_hi, &
+                           qm, qp, qs_lo, qs_hi, &
 #if (AMREX_SPACEDIM < 3)
-                             dloga, dloga_lo, dloga_hi, &
+                           dloga, dloga_lo, dloga_hi, &
 #endif
-                             lo, hi, domlo, domhi, &
-                             dx, dt)
+                           lo, hi, domlo, domhi, &
+                           dx, dt)
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, &
@@ -41,6 +41,7 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
+    integer, intent(in) :: idir
     integer, intent(in) :: qd_lo(3), qd_hi(3)
     integer, intent(in) :: qs_lo(3), qs_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
@@ -61,14 +62,14 @@ contains
     real(rt), intent(in) :: Im_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
 
 
-    real(rt), intent(inout) :: qxm(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
-    real(rt), intent(inout) :: qxp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
-    real(rt), intent(inout) :: qym(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
-    real(rt), intent(inout) :: qyp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
+    real(rt), intent(inout) :: qm(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
+    real(rt), intent(inout) :: qp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
 #if (AMREX_SPACEDIM < 3)
     real(rt), intent(in) :: dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 #endif
     real(rt), intent(in) :: dt, dx(3)
+
+    integer :: QUN, QUT, QUTT
 
     ! Local variables
     integer :: i, j, k, g
@@ -95,7 +96,7 @@ contains
     !   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
     real(rt) :: cc, csq, cgassq, Clag
-    real(rt) :: rho, u, v, w, p, rhoe_g, h_g, tau
+    real(rt) :: rho, un, p, rhoe_g, h_g, tau
     real(rt) :: ptot, gam_g, game
 
     real(rt) :: drho, dptot, drhoe_g
@@ -103,7 +104,7 @@ contains
     real(rt) :: dup, dvp, dptotp
     real(rt) :: dum, dvm, dptotm
 
-    real(rt) :: rho_ref, u_ref, v_ref, p_ref, rhoe_g_ref, h_g_ref
+    real(rt) :: rho_ref, un_ref, p_ref, rhoe_g_ref, h_g_ref
     real(rt) :: tau_ref
     real(rt) :: ptot_ref
 
@@ -163,9 +164,19 @@ contains
     ! state to get the full state on that interface.
 
 
-    !-------------------------------------------------------------------------
-    ! x-direction
-    !-------------------------------------------------------------------------
+    if (idir == 1) then
+       QUN = QU
+       QUT = QV
+       QUTT = QW
+    else if (idir == 2) then
+       QUN = QV
+       QUT = QW
+       QUTT = QU
+    else if (idir == 3) then
+       QUN = QW
+       QUT = QU
+       QUTT = QV
+    endif
 
     ! Trace to left and right edges using upwind PPM
 
@@ -191,9 +202,7 @@ contains
              csq = cc**2
              Clag = rho*cc
 
-             u = q(i,j,k,QU)
-             v = q(i,j,k,QV)
-             w = q(i,j,k,QW)
+             un = q(i,j,k,QUN)
 
              p = q(i,j,k,QPRES)
              rhoe_g = q(i,j,k,QREINT)
@@ -217,20 +226,20 @@ contains
                 ! This will be the fastest moving state to the left --
                 ! this is the method that Miller & Colella and Colella &
                 ! Woodward use
-                rho_ref  = Im(i,j,k,1,1,QRHO)
-                u_ref    = Im(i,j,k,1,1,QU)
+                rho_ref  = Im(i,j,k,idir,1,QRHO)
+                un_ref    = Im(i,j,k,idir,1,QUN)
 
-                p_ref    = Im(i,j,k,1,1,QPRES)
-                rhoe_g_ref = Im(i,j,k,1,1,QREINT)
+                p_ref    = Im(i,j,k,idir,1,QPRES)
+                rhoe_g_ref = Im(i,j,k,idir,1,QREINT)
 
-                tau_ref  = ONE/Im(i,j,k,1,1,QRHO)
+                tau_ref  = ONE/Im(i,j,k,idir,1,QRHO)
 
                 !gam_g_ref  = Im_gc(i,j,k,1,1,1)
-                game_ref = Im(i,j,k,1,1,QGAME)
+                game_ref = Im(i,j,k,idir,1,QGAME)
 
-                ptot_ref = Im(i,j,k,1,1,QPTOT)
+                ptot_ref = Im(i,j,k,idir,1,QPTOT)
 
-                er_ref(:) = Im(i,j,k,1,1,QRAD:QRADHI)
+                er_ref(:) = Im(i,j,k,idir,1,QRAD:QRADHI)
 
 
                 rho_ref = max(rho_ref,small_dens)
@@ -243,19 +252,19 @@ contains
                 !       only by the u wave (the contact)
 
                 ! we also add the sources here so they participate in the tracing
-                dum    = u_ref    - Im(i,j,k,1,1,QU) - hdt*Im_src(i,j,k,1,1,QU)
-                dptotm = ptot_ref - Im(i,j,k,1,1,qptot) - hdt*Im_src(i,j,k,1,1,QPRES)
+                dum    = un_ref    - Im(i,j,k,idir,1,QUN) - hdt*Im_src(i,j,k,idir,1,QUN)
+                dptotm = ptot_ref - Im(i,j,k,idir,1,qptot) - hdt*Im_src(i,j,k,idir,1,QPRES)
 
-                drho    = rho_ref    - Im(i,j,k,1,2,QRHO) - hdt*Im_src(i,j,k,1,2,QRHO)
-                dptot   = ptot_ref   - Im(i,j,k,1,2,qptot) - hdt*Im_src(i,j,k,1,2,QPRES)
-                drhoe_g = rhoe_g_ref - Im(i,j,k,1,2,QREINT) - hdt*Im_src(i,j,k,1,2,QREINT)
+                drho    = rho_ref    - Im(i,j,k,idir,2,QRHO) - hdt*Im_src(i,j,k,idir,2,QRHO)
+                dptot   = ptot_ref   - Im(i,j,k,idir,2,qptot) - hdt*Im_src(i,j,k,idir,2,QPRES)
+                drhoe_g = rhoe_g_ref - Im(i,j,k,idir,2,QREINT) - hdt*Im_src(i,j,k,idir,2,QREINT)
 
                 ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
-                dtau  = tau_ref  - ONE/Im(i,j,k,1,2,QRHO) + hdt*Im_src(i,j,k,1,2,QRHO)/Im(i,j,k,1,2,QRHO)**2
-                der(:)  = er_ref(:)  - Im(i,j,k,1,2,qrad:qradhi)
+                dtau  = tau_ref  - ONE/Im(i,j,k,idir,2,QRHO) + hdt*Im_src(i,j,k,idir,2,QRHO)/Im(i,j,k,idir,2,QRHO)**2
+                der(:)  = er_ref(:)  - Im(i,j,k,idir,2,qrad:qradhi)
 
-                dup    = u_ref    - Im(i,j,k,1,3,QU) - hdt*Im_src(i,j,k,1,3,QU)
-                dptotp = ptot_ref - Im(i,j,k,1,3,qptot) - hdt*Im_src(i,j,k,1,3,QPRES)
+                dup    = un_ref    - Im(i,j,k,idir,3,QUN) - hdt*Im_src(i,j,k,idir,3,QUN)
+                dptotp = ptot_ref - Im(i,j,k,idir,3,qptot) - hdt*Im_src(i,j,k,idir,3,QPRES)
 
 
                 ! Optionally use the reference state in evaluating the
@@ -285,7 +294,7 @@ contains
                    alphap = HALF*(-dup - dptotp*(ONE/Clag))*(ONE/Clag)
                    alpha0r = dtau + dptot*(ONE/Clag)**2
 
-                   dge   = game_ref - Im(i,j,k,1,2,QGAME)
+                   dge   = game_ref - Im(i,j,k,idir,2,QGAME)
                    gfactor = (game - ONE)*(game - gam_g)
                    alpha0e_g = gfactor*dptot/(tau*Clag**2) + dge
 
@@ -293,85 +302,59 @@ contains
 
                 alphar(:) = der(:) - dptot/csq*hr
 
-                if (u-cc > ZERO) then
-                   alpham = ZERO
-                else if (u-cc < ZERO) then
-                   alpham = -alpham
-                else
-                   alpham = -HALF*alpham
-                endif
+                alpham = merge(ZERO, -alpham, un-cc > ZERO)
+                alphap = merge(ZERO, -alphap, un+cc > ZERO)
+                alpha0r = merge(ZERO, -alpha0r, un > ZERO)
+                alphar(:) = merge(ZERO, -alphar(:), un > ZERO)
+                alpha0e_g = merge(ZERO, -alpha0e_g, un > ZERO)
 
-                if (u+cc > ZERO) then
-                   alphap = ZERO
-                else if (u+cc < ZERO) then
-                   alphap = -alphap
-                else
-                   alphap = -HALF*alphap
-                endif
-
-                if (u > ZERO) then
-                   alpha0r = ZERO
-                   alpha0e_g = ZERO
-                   alphar(:) = ZERO
-                else if (u < ZERO) then
-                   alpha0r = -alpha0r
-                   alpha0e_g = -alpha0e_g
-                   alphar(:) = -alphar(:)
-                else
-                   alpha0r = -HALF*alpha0r
-                   alpha0e_g = -HALF*alpha0e_g
-                   alphar(:) = -HALF*alphar(:)
-                endif
 
                 ! The final interface states are just
                 ! q_s = q_ref - sum(l . dq) r
                 ! note that the a{mpz}right as defined above have the minus already
                 if (ppm_predict_gammae == 0) then
-                   qxp(i,j,k,QRHO) = rho_ref + alphap + alpham + alpha0r
-                   qxp(i,j,k,QU) = u_ref + (alphap - alpham)*cc/rho
-                   qxp(i,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
-                   qxp(i,j,k,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamp(:)*alphar(:))
+                   qp(i,j,k,QRHO) = rho_ref + alphap + alpham + alpha0r
+                   qp(i,j,k,QUN) = un_ref + (alphap - alpham)*cc/rho
+                   qp(i,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
+                   qp(i,j,k,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamp(:)*alphar(:))
 
                    qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
-                   qxp(i,j,k,qrad:qradhi) = qrtmp
+                   qp(i,j,k,qrad:qradhi) = qrtmp
 
-                   qxp(i,j,k,qptot) = ptot_ref + (alphap + alpham)*csq
-                   qxp(i,j,k,qreitot) = qxp(i,j,k,QREINT) + sum(qrtmp)
+                   qp(i,j,k,qptot) = ptot_ref + (alphap + alpham)*csq
+                   qp(i,j,k,qreitot) = qp(i,j,k,QREINT) + sum(qrtmp)
 
                 else
                    tau_s = tau_ref + alphap + alpham + alpha0r
-                   qxp(i,j,k,QRHO  ) = ONE/tau_s
+                   qp(i,j,k,QRHO  ) = ONE/tau_s
 
-                   qxp(i,j,k,QU    ) = u_ref + (alpham - alphap)*Clag
-                   qxp(i,j,k,QPRES ) = p_ref - (alphap + alpham)*(cgassq/tau**2) - sum(lamp(:)*alphar(:))
+                   qp(i,j,k,QUN    ) = un_ref + (alpham - alphap)*Clag
+                   qp(i,j,k,QPRES ) = p_ref - (alphap + alpham)*(cgassq/tau**2) - sum(lamp(:)*alphar(:))
 
-                   qxp(i,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau + alpha0e_g
-                   qxp(i,j,k,QREINT) = qxp(i,j,k,QPRES )/(qxp(i,j,k,QGAME) - ONE)
+                   qp(i,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau + alpha0e_g
+                   qp(i,j,k,QREINT) = qp(i,j,k,QPRES )/(qp(i,j,k,QGAME) - ONE)
 
                    qrtmp = er_ref(:) - (alphap + alpham)*hr/tau**2 + alphar(:)
-                   qxp(i,j,k,qrad:qradhi) = qrtmp
+                   qp(i,j,k,qrad:qradhi) = qrtmp
 
-                   qxp(i,j,k,qptot) = ptot_ref - (alphap + alpham)*Clag**2
-                   qxp(i,j,k,qreitot) = qxp(i,j,k,QREINT) + sum(qrtmp)
+                   qp(i,j,k,qptot) = ptot_ref - (alphap + alpham)*Clag**2
+                   qp(i,j,k,qreitot) = qp(i,j,k,QREINT) + sum(qrtmp)
 
                 endif
 
                 ! Enforce small_*
-                qxp(i,j,k,QRHO) = max(qxp(i,j,k,QRHO), small_dens)
-                qxp(i,j,k,QPRES) = max(qxp(i,j,k,QPRES),small_pres)
+                qp(i,j,k,QRHO) = max(qp(i,j,k,QRHO), small_dens)
+                qp(i,j,k,QPRES) = max(qp(i,j,k,QPRES),small_pres)
 
                 do g = 0, ngroups-1
-                   if (qxp(i,j,k,qrad+g) < ZERO) then
-                      er_foo = - qxp(i,j,k,qrad+g)
-                      qxp(i,j,k,qrad+g) = ZERO
-                      qxp(i,j,k,qptot) = qxp(i,j,k,qptot) + lamp(g) * er_foo
-                      qxp(i,j,k,qreitot) = qxp(i,j,k,qreitot) + er_foo
+                   if (qp(i,j,k,qrad+g) < ZERO) then
+                      er_foo = - qp(i,j,k,qrad+g)
+                      qp(i,j,k,qrad+g) = ZERO
+                      qp(i,j,k,qptot) = qp(i,j,k,qptot) + lamp(g) * er_foo
+                      qp(i,j,k,qreitot) = qp(i,j,k,qreitot) + er_foo
                    end if
                 end do
 
-                if (qxp(i,j,k,QPRES) < ZERO) then
-                   qxp(i,j,k,QPRES) = p
-                end if
 
                 ! Transverse velocities -- there's no projection here, so
                 ! we don't need a reference state.  We only care about
@@ -380,8 +363,8 @@ contains
                 ! Recall that I already takes the limit of the parabola
                 ! in the event that the wave is not moving toward the
                 ! interface
-                qxp(i,j,k,QV) = Im(i,j,k,1,2,QV) + hdt*Im_src(i,j,k,1,2,QV)
-                qxp(i,j,k,QW) = Im(i,j,k,1,2,QW) + hdt*Im_src(i,j,k,1,2,QW)
+                qp(i,j,k,QUT) = Im(i,j,k,idir,2,QUT) + hdt*Im_src(i,j,k,idir,2,QUT)
+                qp(i,j,k,QUTT) = Im(i,j,k,idir,2,QUTT) + hdt*Im_src(i,j,k,idir,2,QUTT)
 
              endif
 
@@ -393,21 +376,21 @@ contains
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the right
-                rho_ref  = Ip(i,j,k,1,3,QRHO)
-                u_ref    = Ip(i,j,k,1,3,QU)
+                rho_ref  = Ip(i,j,k,idir,3,QRHO)
+                un_ref    = Ip(i,j,k,idir,3,QUN)
 
-                p_ref    = Ip(i,j,k,1,3,QPRES)
-                rhoe_g_ref = Ip(i,j,k,1,3,QREINT)
+                p_ref    = Ip(i,j,k,idir,3,QPRES)
+                rhoe_g_ref = Ip(i,j,k,idir,3,QREINT)
 
-                tau_ref  = ONE/Ip(i,j,k,1,3,QRHO)
+                tau_ref  = ONE/Ip(i,j,k,idir,3,QRHO)
 
                 !gam_g_ref  = Ip_gc(i,j,k,1,3,1)
-                game_ref = Ip(i,j,k,1,3,QGAME)
+                game_ref = Ip(i,j,k,idir,3,QGAME)
 
 
-                ptot_ref = Ip(i,j,k,1,3,QPTOT)
+                ptot_ref = Ip(i,j,k,idir,3,QPTOT)
 
-                er_ref(:) = Ip(i,j,k,1,3,QRAD:QRADHI)
+                er_ref(:) = Ip(i,j,k,idir,3,QRAD:QRADHI)
 
                 rho_ref = max(rho_ref,small_dens)
                 p_ref = max(p_ref,small_pres)
@@ -415,17 +398,17 @@ contains
                 ! *m are the jumps carried by u-c
                 ! *p are the jumps carried by u+c
 
-                dum    = u_ref    - Ip(i,j,k,1,1,QU) - hdt*Ip_src(i,j,k,1,1,QU)
-                dptotm = ptot_ref - Ip(i,j,k,1,1,qptot) - hdt*Ip_src(i,j,k,1,1,QPRES)
+                dum    = un_ref    - Ip(i,j,k,idir,1,QUN) - hdt*Ip_src(i,j,k,idir,1,QUN)
+                dptotm = ptot_ref - Ip(i,j,k,idir,1,qptot) - hdt*Ip_src(i,j,k,idir,1,QPRES)
 
-                drho    = rho_ref    - Ip(i,j,k,1,2,QRHO) - hdt*Ip_src(i,j,k,1,2,QRHO)
-                dptot   = ptot_ref   - Ip(i,j,k,1,2,qptot) - hdt*Ip_src(i,j,k,1,2,QPRES)
-                drhoe_g = rhoe_g_ref - Ip(i,j,k,1,2,QREINT) - hdt*Ip_src(i,j,k,1,2,QREINT)
-                dtau  = tau_ref  - ONE/Ip(i,j,k,1,2,QRHO) + hdt*Ip_src(i,j,k,1,2,QRHO)/Ip(i,j,k,1,2,QRHO)**2
-                der(:)  = er_ref(:)  - Ip(i,j,k,1,2,qrad:qradhi)
+                drho    = rho_ref    - Ip(i,j,k,idir,2,QRHO) - hdt*Ip_src(i,j,k,idir,2,QRHO)
+                dptot   = ptot_ref   - Ip(i,j,k,idir,2,qptot) - hdt*Ip_src(i,j,k,idir,2,QPRES)
+                drhoe_g = rhoe_g_ref - Ip(i,j,k,idir,2,QREINT) - hdt*Ip_src(i,j,k,idir,2,QREINT)
+                dtau  = tau_ref  - ONE/Ip(i,j,k,idir,2,QRHO) + hdt*Ip_src(i,j,k,idir,2,QRHO)/Ip(i,j,k,idir,2,QRHO)**2
+                der(:)  = er_ref(:)  - Ip(i,j,k,idir,2,qrad:qradhi)
 
-                dup    = u_ref    - Ip(i,j,k,1,3,QU) - hdt*Ip_src(i,j,k,1,3,QU)
-                dptotp = ptot_ref - Ip(i,j,k,1,3,qptot) - hdt*Ip_src(i,j,k,1,3,QPRES)
+                dup    = un_ref    - Ip(i,j,k,idir,3,QUN) - hdt*Ip_src(i,j,k,idir,3,QUN)
+                dptotp = ptot_ref - Ip(i,j,k,idir,3,qptot) - hdt*Ip_src(i,j,k,idir,3,QPRES)
 
 
                 ! Optionally use the reference state in evaluating the
@@ -455,7 +438,7 @@ contains
                    alphap = HALF*(-dup - dptotp*(ONE/Clag))*(ONE/Clag)
                    alpha0r = dtau + dptot*(ONE/Clag)**2
 
-                   dge = game_ref - Ip(i,j,k,1,2,QGAME)
+                   dge = game_ref - Ip(i,j,k,idir,2,QGAME)
                    gfactor = (game - ONE)*(game - gam_g)
                    alpha0e_g = gfactor*dptot/(tau*Clag**2) + dge
 
@@ -463,89 +446,152 @@ contains
 
                 alphar(:) = der(:) - dptot/csq*hr
 
-                if (u-cc > ZERO) then
-                   alpham = -alpham
-                else if (u-cc < ZERO) then
-                   alpham = ZERO
-                else
-                   alpham = -HALF*alpham
-                endif
-
-                if (u+cc > ZERO) then
-                   alphap = -alphap
-                else if (u+cc < ZERO) then
-                   alphap = ZERO
-                else
-                   alphap = -HALF*alphap
-                endif
-
-                if (u > ZERO) then
-                   alpha0r = -alpha0r
-                   alpha0e_g = -alpha0e_g
-                   alphar(:) = -alphar(:)
-                else if (u < ZERO) then
-                   alpha0r = ZERO
-                   alpha0e_g = ZERO
-                   alphar(:) = ZERO
-                else
-                   alpha0r = -HALF*alpha0r
-                   alpha0e_g = -HALF*alpha0e_g
-                   alphar(:) = -HALF*alphar(:)
-                endif
+                alpham = merge(-alpham, ZERO, un-cc > ZERO)
+                alphap = merge(-alphap, ZERO, un+cc > ZERO)
+                alpha0r = merge(-alpha0r, ZERO, un > ZERO)
+                alphar(:) = merge(-alphar(:), ZERO, un > ZERO)
+                alpha0e_g = merge(-alpha0e_g, ZERO, un > ZERO)
 
                 ! The final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
                 ! note that the a{mpz}left as defined above have the minus already
                 if (ppm_predict_gammae == 0) then
-                   qxm(i+1,j,k,QRHO) = rho_ref + alphap + alpham + alpha0r
-                   qxm(i+1,j,k,QU) = u_ref + (alphap - alpham)*cc/rho
-                   qxm(i+1,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
-                   qxm(i+1,j,k,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:))
 
-                   qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
-                   qxm(i+1,j,k,qrad:qradhi) = qrtmp
+                   if (idir == 1) then
+                      qm(i+1,j,k,QRHO) = max(small_dens, rho_ref + alphap + alpham + alpha0r)
+                      qm(i+1,j,k,QUN) = un_ref + (alphap - alpham)*cc/rho
+                      qm(i+1,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
+                      qm(i+1,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:)))
 
-                   qxm(i+1,j,k,qptot) = ptot_ref + (alphap + alpham)*csq
-                   qxm(i+1,j,k,qreitot) = qxm(i+1,j,k,QREINT) + sum(qrtmp)
+                      qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
+                      qm(i+1,j,k,qrad:qradhi) = qrtmp
+
+                      qm(i+1,j,k,qptot) = ptot_ref + (alphap + alpham)*csq
+                      qm(i+1,j,k,qreitot) = qm(i+1,j,k,QREINT) + sum(qrtmp)
+
+                   else if (idir == 2) then
+                      qm(i,j+1,k,QRHO) = max(small_dens, rho_ref + alphap + alpham + alpha0r)
+                      qm(i,j+1,k,QUN) = un_ref + (alphap - alpham)*cc/rho
+                      qm(i,j+1,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
+                      qm(i,j+1,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:)))
+
+                      qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
+                      qm(i,j+1,k,qrad:qradhi) = qrtmp
+
+                      qm(i,j+1,k,qptot) = ptot_ref + (alphap + alpham)*csq
+                      qm(i,j+1,k,qreitot) = qm(i,j+1,k,QREINT) + sum(qrtmp)
+
+                   else if (idir == 3) then
+                      qm(i,j,k+1,QRHO) = max(small_dens, rho_ref + alphap + alpham + alpha0r)
+                      qm(i,j,k+1,QUN) = un_ref + (alphap - alpham)*cc/rho
+                      qm(i,j,k+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
+                      qm(i,j,k+1,QPRES) = max(small_pres, p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:)))
+
+                      qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
+                      qm(i,j,k+1,qrad:qradhi) = qrtmp
+
+                      qm(i,j,k+1,qptot) = ptot_ref + (alphap + alpham)*csq
+                      qm(i,j,k+1,qreitot) = qm(i,j,k+1,QREINT) + sum(qrtmp)
+
+                   end if
 
                 else
-                   tau_s = tau_ref + alphap + alpham + alpha0r
-                   qxm(i+1,j,k,QRHO  ) = ONE/tau_s
 
-                   qxm(i+1,j,k,QU    ) = u_ref + (alpham - alphap)*Clag
-                   qxm(i+1,j,k,QPRES ) = p_ref - (alphap + alpham)*(cgassq/tau**2) - sum(lamm(:)*alphar(:))
+                   if (idir == 1) then
+                      tau_s = tau_ref + alphap + alpham + alpha0r
+                      qm(i+1,j,k,QRHO  ) = max(small_dens, ONE/tau_s)
 
-                   qxm(i+1,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau + alpha0e_g
-                   qxm(i+1,j,k,QREINT) = qxm(i+1,j,k,QPRES )/(qxm(i+1,j,k,QGAME) - ONE)
+                      qm(i+1,j,k,QUN    ) = un_ref + (alpham - alphap)*Clag
+                      qm(i+1,j,k,QPRES ) = max(small_pres, p_ref - (alphap + alpham)*(cgassq/tau**2) - sum(lamm(:)*alphar(:)))
 
-                   qrtmp = er_ref(:) - (alphap + alpham)*hr/tau**2 + alphar(:)
-                   qxm(i+1,j,k,qrad:qradhi) = qrtmp
+                      qm(i+1,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau + alpha0e_g
+                      qm(i+1,j,k,QREINT) = qm(i+1,j,k,QPRES )/(qm(i+1,j,k,QGAME) - ONE)
 
-                   qxm(i+1,j,k,qptot) = ptot_ref - (alphap + alpham)*Clag**2
-                   qxm(i+1,j,k,qreitot) = qxm(i+1,j,k,QREINT) + sum(qrtmp)
+                      qrtmp = er_ref(:) - (alphap + alpham)*hr/tau**2 + alphar(:)
+                      qm(i+1,j,k,qrad:qradhi) = qrtmp
+
+                      qm(i+1,j,k,qptot) = ptot_ref - (alphap + alpham)*Clag**2
+                      qm(i+1,j,k,qreitot) = qm(i+1,j,k,QREINT) + sum(qrtmp)
+
+                   else if (idir == 2) then
+                      tau_s = tau_ref + alphap + alpham + alpha0r
+                      qm(i,j+1,k,QRHO  ) = max(small_dens, ONE/tau_s)
+
+                      qm(i,j+1,k,QUN    ) = un_ref + (alpham - alphap)*Clag
+                      qm(i,j+1,k,QPRES ) = max(small_pres, p_ref - (alphap + alpham)*(cgassq/tau**2) - sum(lamm(:)*alphar(:)))
+
+                      qm(i,j+1,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau + alpha0e_g
+                      qm(i,j+1,k,QREINT) = qm(i,j+1,k,QPRES )/(qm(i,j+1,k,QGAME) - ONE)
+
+                      qrtmp = er_ref(:) - (alphap + alpham)*hr/tau**2 + alphar(:)
+                      qm(i,j+1,k,qrad:qradhi) = qrtmp
+
+                      qm(i,j+1,k,qptot) = ptot_ref - (alphap + alpham)*Clag**2
+                      qm(i,j+1,k,qreitot) = qm(i,j+1,k,QREINT) + sum(qrtmp)
+
+                   else if (idir == 3) then
+                      tau_s = tau_ref + alphap + alpham + alpha0r
+                      qm(i,j,k+1,QRHO  ) = max(small_dens, ONE/tau_s)
+
+                      qm(i,j,k+1,QUN    ) = un_ref + (alpham - alphap)*Clag
+                      qm(i,j,k+1,QPRES ) = max(small_pres, p_ref - (alphap + alpham)*(cgassq/tau**2) - sum(lamm(:)*alphar(:)))
+
+                      qm(i,j,k+1,QGAME) = game_ref + gfactor*(alpham + alphap)/tau + alpha0e_g
+                      qm(i,j,k+1,QREINT) = qm(i,j,k+1,QPRES )/(qm(i,j,k+1,QGAME) - ONE)
+
+                      qrtmp = er_ref(:) - (alphap + alpham)*hr/tau**2 + alphar(:)
+                      qm(i,j,k+1,qrad:qradhi) = qrtmp
+
+                      qm(i,j,k+1,qptot) = ptot_ref - (alphap + alpham)*Clag**2
+                      qm(i,j,k+1,qreitot) = qm(i,j,k+1,QREINT) + sum(qrtmp)
+
+                   end if
 
                 endif
 
-                ! Enforce small_*
-                qxm(i+1,j,k,QRHO)  = max(qxm(i+1,j,k,QRHO),small_dens)
-                qxm(i+1,j,k,QPRES) = max(qxm(i+1,j,k,QPRES),small_pres)
+                if (idir == 1) then
+                   do g=0,ngroups-1
+                      if (qm(i+1,j,k,qrad+g) < ZERO) then
+                         er_foo = - qm(i+1,j,k,qrad+g)
+                         qm(i+1,j,k,qrad+g) = ZERO
+                         qm(i+1,j,k,qptot) = qm(i+1,j,k,qptot) + lamm(g) * er_foo
+                         qm(i+1,j,k,qreitot) = qm(i+1,j,k,qreitot) + er_foo
+                      end if
+                   end do
 
-                do g=0,ngroups-1
-                   if (qxm(i+1,j,k,qrad+g) < ZERO) then
-                      er_foo = - qxm(i+1,j,k,qrad+g)
-                      qxm(i+1,j,k,qrad+g) = ZERO
-                      qxm(i+1,j,k,qptot) = qxm(i+1,j,k,qptot) + lamm(g) * er_foo
-                      qxm(i+1,j,k,qreitot) = qxm(i+1,j,k,qreitot) + er_foo
-                   end if
-                end do
+                   ! transverse velocities
+                   qm(i+1,j,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUT)
+                   qm(i+1,j,k,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
 
-                if (qxm(i+1,j,k,QPRES) < ZERO) then
-                   qxm(i+1,j,k,QPRES) = p
+                else if (idir == 2) then
+                   do g=0,ngroups-1
+                      if (qm(i,j+1,k,qrad+g) < ZERO) then
+                         er_foo = - qm(i,j+1,k,qrad+g)
+                         qm(i,j+1,k,qrad+g) = ZERO
+                         qm(i,j+1,k,qptot) = qm(i,j+1,k,qptot) + lamm(g) * er_foo
+                         qm(i,j+1,k,qreitot) = qm(i,j+1,k,qreitot) + er_foo
+                      end if
+                   end do
+
+                   ! transverse velocities
+                   qm(i,j+1,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUT)
+                   qm(i,j+1,k,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+
+                else if (idir == 3) then
+                   do g=0,ngroups-1
+                      if (qm(i,j,k+1,qrad+g) < ZERO) then
+                         er_foo = - qm(i,j,k+1,qrad+g)
+                         qm(i,j,k+1,qrad+g) = ZERO
+                         qm(i,j,k+1,qptot) = qm(i,j,k+1,qptot) + lamm(g) * er_foo
+                         qm(i,j,k+1,qreitot) = qm(i,j,k+1,qreitot) + er_foo
+                      end if
+                   end do
+
+                   ! transverse velocities
+                   qm(i,j,k+1,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUT)
+                   qm(i,j,k+1,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+
                 end if
-
-                ! transverse velocities
-                qxm(i+1,j,k,QV    ) = Ip(i,j,k,1,2,QV) + hdt*Ip_src(i,j,k,1,2,QV)
-                qxm(i+1,j,k,QW    ) = Ip(i,j,k,1,2,QW) + hdt*Ip_src(i,j,k,1,2,QW)
 
              end if
 
@@ -555,7 +601,7 @@ contains
              !-------------------------------------------------------------------
 
 #if (AMREX_SPACEDIM < 3)
-             if (dloga(i,j,k) /= 0) then
+             if (idir == 1 .and. dloga(i,j,k) /= 0) then
                 courn = dt/dx(1)*(cc+abs(u))
                 eta = (ONE-courn)/(cc*dt*abs(dloga(i,j,k)))
                 dlogatmp = min(eta, ONE)*dloga(i,j,k)
@@ -565,25 +611,25 @@ contains
                 sourcer(:) = -HALF*dt*dlogatmp*u*(lam0(:)+ONE)*er(:)
 
                 if (i <= hi(1)) then
-                   qxm(i+1,j,k,QRHO  ) = qxm(i+1,j,k,QRHO  ) + sourcr
-                   qxm(i+1,j,k,QRHO  ) = max(qxm(i+1,j,k,QRHO), small_dens)
-                   qxm(i+1,j,k,QPRES ) = qxm(i+1,j,k,QPRES ) + sourcp
-                   qxm(i+1,j,k,QREINT) = qxm(i+1,j,k,QREINT) + source
-                   qxm(i+1,j,k,qrad:qradhi) = qxm(i+1,j,k,qrad:qradhi) + sourcer(:)
-                   ! qxm(i+1,j,k,qptot ) = sum(lamm(:)*qxm(i+1,j,k,qrad:qradhi)) + qxm(i+1,j,k,QPRES)
-                   qxm(i+1,j,k,qptot) = qxm(i+1,j,k,qptot) + sum(lamm(:)*sourcer(:)) + sourcp
-                   qxm(i+1,j,k,qreitot) = sum(qxm(i+1,j,k,qrad:qradhi))  + qxm(i+1,j,k,QREINT)
+                   qm(i+1,j,k,QRHO  ) = qm(i+1,j,k,QRHO  ) + sourcr
+                   qm(i+1,j,k,QRHO  ) = max(qm(i+1,j,k,QRHO), small_dens)
+                   qm(i+1,j,k,QPRES ) = qm(i+1,j,k,QPRES ) + sourcp
+                   qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source
+                   qm(i+1,j,k,qrad:qradhi) = qm(i+1,j,k,qrad:qradhi) + sourcer(:)
+                   ! qm(i+1,j,k,qptot ) = sum(lamm(:)*qm(i+1,j,k,qrad:qradhi)) + qm(i+1,j,k,QPRES)
+                   qm(i+1,j,k,qptot) = qm(i+1,j,k,qptot) + sum(lamm(:)*sourcer(:)) + sourcp
+                   qm(i+1,j,k,qreitot) = sum(qm(i+1,j,k,qrad:qradhi))  + qm(i+1,j,k,QREINT)
                 end if
 
                 if (i >= lo(1)) then
-                   qxp(i,j,k,QRHO  ) = qxp(i,j,k,QRHO  ) + sourcr
-                   qxp(i,j,k,QRHO  ) = max(qxp(i,j,k,QRHO), small_dens)
-                   qxp(i,j,k,QPRES ) = qxp(i,j,k,QPRES ) + sourcp
-                   qxp(i,j,k,QREINT) = qxp(i,j,k,QREINT) + source
-                   qxp(i,j,k,qrad:qradhi) = qxp(i,j,k,qrad:qradhi) + sourcer(:)
-                   ! qxp(i  ,qptot ) = sum(lamp(:)*qxp(i,qrad:qradhi)) + qxp(i,QPRES)
-                   qxp(i,j,k,qptot) = qxp(i,j,k,qptot) + sum(lamp(:)*sourcer(:)) + sourcp
-                   qxp(i,j,k,qreitot) = sum(qxp(i,j,k,qrad:qradhi))  + qxp(i,j,k,QREINT)
+                   qp(i,j,k,QRHO  ) = qp(i,j,k,QRHO  ) + sourcr
+                   qp(i,j,k,QRHO  ) = max(qp(i,j,k,QRHO), small_dens)
+                   qp(i,j,k,QPRES ) = qp(i,j,k,QPRES ) + sourcp
+                   qp(i,j,k,QREINT) = qp(i,j,k,QREINT) + source
+                   qp(i,j,k,qrad:qradhi) = qp(i,j,k,qrad:qradhi) + sourcer(:)
+                   ! qp(i  ,qptot ) = sum(lamp(:)*qp(i,qrad:qradhi)) + qp(i,QPRES)
+                   qp(i,j,k,qptot) = qp(i,j,k,qptot) + sum(lamp(:)*sourcer(:)) + sourcp
+                   qp(i,j,k,qreitot) = sum(qp(i,j,k,qrad:qradhi))  + qp(i,j,k,QREINT)
                 end if
              endif
 #endif
@@ -591,24 +637,24 @@ contains
 #if (AMREX_SPACEDIM == 1)
              ! Enforce constant mass flux rate if specified
              if (fix_mass_flux_lo) then
-                qxm(lo(1),j,k,QRHO   ) = q(domlo(1)-1,j,k,QRHO)
-                qxm(lo(1),j,k,QU     ) = q(domlo(1)-1,j,k,QU  )
-                qxm(lo(1),j,k,QPRES  ) = q(domlo(1)-1,j,k,QPRES)
-                qxm(lo(1),j,k,QREINT ) = q(domlo(1)-1,j,k,QREINT)
-                qxm(lo(1),j,k,qrad:qradhi) = q(domlo(1)-1,j,k,qrad:qradhi)
-                qxm(lo(1),j,k,qptot  ) = q(domlo(1)-1,j,k,qptot)
-                qxm(lo(1),j,k,qreitot) = q(domlo(1)-1,j,k,qreitot)
+                qm(lo(1),j,k,QRHO   ) = q(domlo(1)-1,j,k,QRHO)
+                qm(lo(1),j,k,QUN     ) = q(domlo(1)-1,j,k,QUN  )
+                qm(lo(1),j,k,QPRES  ) = q(domlo(1)-1,j,k,QPRES)
+                qm(lo(1),j,k,QREINT ) = q(domlo(1)-1,j,k,QREINT)
+                qm(lo(1),j,k,qrad:qradhi) = q(domlo(1)-1,j,k,qrad:qradhi)
+                qm(lo(1),j,k,qptot  ) = q(domlo(1)-1,j,k,qptot)
+                qm(lo(1),j,k,qreitot) = q(domlo(1)-1,j,k,qreitot)
              end if
 
              ! Enforce constant mass flux rate if specified
              if (fix_mass_flux_hi) then
-                qxp(hi(1)+1,j,k,QRHO   ) = q(domhi(1)+1,j,k,QRHO)
-                qxp(hi(1)+1,j,k,QU     ) = q(domhi(1)+1,j,k,QU  )
-                qxp(hi(1)+1,j,k,QPRES  ) = q(domhi(1)+1,j,k,QPRES)
-                qxp(hi(1)+1,j,k,QREINT ) = q(domhi(1)+1,j,k,QREINT)
-                qxp(hi(1)+1,j,k,qrad:qradhi) = q(domhi(1)+1,j,k,qrad:qradhi)
-                qxp(hi(1)+1,j,k,qptot  ) = q(domhi(1)+1,j,k,qptot)
-                qxp(hi(1)+1,j,k,qreitot) = q(domhi(1)+1,j,k,qreitot)
+                qp(hi(1)+1,j,k,QRHO   ) = q(domhi(1)+1,j,k,QRHO)
+                qp(hi(1)+1,j,k,QUN     ) = q(domhi(1)+1,j,k,QUN  )
+                qp(hi(1)+1,j,k,QPRES  ) = q(domhi(1)+1,j,k,QPRES)
+                qp(hi(1)+1,j,k,QREINT ) = q(domhi(1)+1,j,k,QREINT)
+                qp(hi(1)+1,j,k,qrad:qradhi) = q(domhi(1)+1,j,k,qrad:qradhi)
+                qp(hi(1)+1,j,k,qptot  ) = q(domhi(1)+1,j,k,qptot)
+                qp(hi(1)+1,j,k,qreitot) = q(domhi(1)+1,j,k,qreitot)
              end if
 #endif
           end do
@@ -631,1014 +677,52 @@ contains
 
        do k = lo(3)-dg(3), hi(3)+dg(3)
           do j = lo(2)-dg(2), hi(2)+dg(2)
+             do i = lo(1)-1, hi(1)+1
 
-             ! Plus state on face i
-             do i = lo(1), hi(1)+1
-                u = q(i,j,k,QU)
+                ! Plus state on face i
+                if ((idir == 1 .and. i >= lo(1)) .or. &
+                    (idir == 2 .and. j >= lo(2)) .or. &
+                    (idir == 3 .and. k >= lo(3))) then
 
-                ! We have
-                !
-                ! q_l = q_ref - Proj{(q_ref - I)}
-                !
-                ! and Proj{} represents the characteristic projection.
-                ! But for these, there is only 1-wave that matters, the u
-                ! wave, so no projection is needed.  Since we are not
-                ! projecting, the reference state doesn't matter
+                   un = q(i,j,k,QUN)
 
-                if (u > ZERO) then
-                   qxp(i,j,k,n) = q(i,j,k,n)
-                else if (u < ZERO) then
-                   qxp(i,j,k,n) = Im(i,j,k,1,2,n)
-                else
-                   qxp(i,j,k,n) = q(i,j,k,n) + HALF*(Im(i,j,k,1,2,n) - q(i,j,k,n))
+                   ! We have
+                   !
+                   ! q_l = q_ref - Proj{(q_ref - I)}
+                   !
+                   ! and Proj{} represents the characteristic projection.
+                   ! But for these, there is only 1-wave that matters, the u
+                   ! wave, so no projection is needed.  Since we are not
+                   ! projecting, the reference state doesn't matter
+
+                   qp(i,j,k,n) = merge(q(i,j,k,n), Im(i,j,k,idir,2,n), un > ZERO)
                 endif
-             enddo
 
-             ! Minus state on face i+1
-             do i = lo(1)-1, hi(1)
-                u = q(i,j,k,QU)
+                ! Minus state on face i+1
+                if (idir == 1 .and. i <= hi(1)) then
+                   un = q(i,j,k,QUN)
+                   qm(i+1,j,k,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
 
-                if (u > ZERO) then
-                   qxm(i+1,j,k,n) = Ip(i,j,k,1,2,n)
-                else if (u < ZERO) then
-                   qxm(i+1,j,k,n) = q(i,j,k,n)
-                else
-                   qxm(i+1,j,k,n) = q(i,j,k,n) + HALF*(Ip(i,j,k,1,2,n) - q(i,j,k,n))
+                else if (idir == 2 .and. j <= hi(2)) then
+                   un = q(i,j,k,QUN)
+                   qm(i,j+1,k,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
+
+                else if (idir == 3 .and. k <= hi(3)) then
+                   un = q(i,j,k,QUN)
+                   qm(i,j,k+1,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
+
                 endif
-             enddo
+
+             end do
 
 #if (AMREX_SPACEDIM == 1)
-             if (fix_mass_flux_hi) qxp(hi(1)+1,j,k,n) = q(hi(1)+1,j,k,n)
-             if (fix_mass_flux_lo) qxm(lo(1),j,k,n) = q(lo(1)-1,j,k,n)
+             if (fix_mass_flux_hi) qp(hi(1)+1,j,k,n) = q(hi(1)+1,j,k,n)
+             if (fix_mass_flux_lo) qm(lo(1),j,k,n) = q(lo(1)-1,j,k,n)
 #endif
           end do
        end do
     end do
 
-#if (AMREX_SPACEDIM >= 2)
-    !-------------------------------------------------------------------------
-    ! y-direction
-    !-------------------------------------------------------------------------
-
-    ! Trace to bottom and top edges using upwind PPM
-    do k = lo(3)-dg(3), hi(3)+dg(3)
-       do j = lo(2)-1, hi(2)+1
-          do i = lo(1)-1, hi(1)+1
-
-             gfactor = ONE ! to help compiler resolve ANTI dependence
-
-             do g=0, ngroups-1
-                lam0(g) = qaux(i,j,k,QLAMS+g)
-                lamp(g) = qaux(i,j,k,QLAMS+g)
-                lamm(g) = qaux(i,j,k,QLAMS+g)
-             end do
-
-             rho = q(i,j,k,QRHO)
-             tau = ONE/rho
-
-             cgassq = qaux(i,j,k,QCG)**2
-             cc = qaux(i,j,k,QC)
-             csq = cc**2
-             Clag = rho*cc
-
-             u = q(i,j,k,QU)
-             v = q(i,j,k,QV)
-             w = q(i,j,k,QW)
-
-             p = q(i,j,k,QPRES)
-             rhoe_g = q(i,j,k,QREINT)
-             h_g = ( (p + rhoe_g)/rho)/csq
-
-             gam_g = qaux(i,j,k,QGAMCG)
-             game = q(i,j,k,QGAME)
-
-             ptot = q(i,j,k,qptot)
-
-             er(:)= q(i,j,k,qrad:qradhi)
-             hr(:) = (lam0+ONE)*er/rho
-
-             !-------------------------------------------------------------------
-             ! plus state on face j
-             !-------------------------------------------------------------------
-
-             if (j >= lo(2)) then
-
-                ! Set the reference state
-                ! This will be the fastest moving state to the left
-                rho_ref  = Im(i,j,k,2,1,QRHO)
-                v_ref    = Im(i,j,k,2,1,QV)
-
-                p_ref    = Im(i,j,k,2,1,QPRES)
-                rhoe_g_ref = Im(i,j,k,2,1,QREINT)
-
-                tau_ref  = ONE/Im(i,j,k,2,1,QRHO)
-
-                !gam_g_ref  = Im_gc(i,j,k,2,1,1)
-                game_ref = Im(i,j,k,2,1,QGAME)
-
-                ptot_ref    = Im(i,j,k,2,1,QPTOT)
-
-                er_ref(:) = Im(i,j,k,2,1,QRAD:QRADHI)
-
-
-                rho_ref = max(rho_ref,small_dens)
-                p_ref = max(p_ref,small_pres)
-
-                ! *m are the jumps carried by v-c
-                ! *p are the jumps carried by v+c
-
-                dvm    = v_ref    - Im(i,j,k,2,1,QV) - hdt*Im_src(i,j,k,2,1,QV)
-                dptotm = ptot_ref - Im(i,j,k,2,1,qptot) - hdt*Im_src(i,j,k,2,1,QPRES)
-
-                drho    = rho_ref    - Im(i,j,k,2,2,QRHO) - hdt*Im_src(i,j,k,2,2,QRHO)
-                dptot   = ptot_ref   - Im(i,j,k,2,2,qptot) - hdt*Im_src(i,j,k,2,2,QPRES)
-                drhoe_g = rhoe_g_ref - Im(i,j,k,2,2,QREINT) - hdt*Im_src(i,j,k,2,2,QREINT)
-                dtau  = tau_ref  - ONE/Im(i,j,k,2,2,QRHO) + hdt*Im_src(i,j,k,2,2,QRHO)/Im(i,j,k,2,2,QRHO)**2
-                der(:)  = er_ref(:)  - Im(i,j,k,2,2,qrad:qradhi)
-
-                dvp    = v_ref    - Im(i,j,k,2,3,QV) - hdt*Im_src(i,j,k,2,3,QV)
-                dptotp = ptot_ref - Im(i,j,k,2,3,qptot) - hdt*Im_src(i,j,k,2,3,QPRES)
-
-
-                ! Optionally use the reference state in evaluating the
-                ! eigenvectors -- NOT YET IMPLEMENTED
-
-                if (ppm_predict_gammae == 0) then
-
-                   ! (rho, u, p, (rho e) eigensystem
-
-                   ! These are analogous to the beta's from the original PPM
-                   ! paper (except we work with rho instead of tau).  This
-                   ! is simply (l . dq), where dq = qref - I(q)
-
-                   alpham = HALF*(dptotm/(rho*cc) - dvm)*rho/cc
-                   alphap = HALF*(dptotp/(rho*cc) + dvp)*rho/cc
-                   alpha0r = drho - dptot/csq
-                   alpha0e_g = drhoe_g - dptot*h_g
-
-                else
-
-                   ! (tau, u, p, game) eigensystem
-
-                   ! This is the way things were done in the original PPM
-                   ! paper -- here we work with tau in the characteristic
-                   ! system
-
-                   alpham = HALF*( dvm - dptotm*(ONE/Clag))*(ONE/Clag)
-                   alphap = HALF*(-dvp - dptotp*(ONE/Clag))*(ONE/Clag)
-                   alpha0r = dtau + dptot*(ONE/Clag)**2
-
-                   dge = game_ref - Im(i,j,k,2,2,QGAME)
-                   gfactor = (game - ONE)*(game - gam_g)
-                   alpha0e_g = gfactor*dptot/(tau*Clag**2) + dge
-
-                endif
-
-                alphar(:) = der(:) - dptot/csq*hr
-
-                if (v-cc > ZERO) then
-                   alpham = ZERO
-                else if (v-cc < ZERO) then
-                   alpham = -alpham
-                else
-                   alpham = -HALF*alpham
-                endif
-
-                if (v+cc > ZERO) then
-                   alphap = ZERO
-                else if (v+cc < ZERO) then
-                   alphap = -alphap
-                else
-                   alphap = -HALF*alphap
-                endif
-
-                if (v > ZERO) then
-                   alpha0r = ZERO
-                   alpha0e_g = ZERO
-                   alphar(:) = ZERO
-                else if (v < ZERO) then
-                   alpha0r = -alpha0r
-                   alpha0e_g = -alpha0e_g
-                   alphar(:) = -alphar(:)
-                else
-                   alpha0r = -HALF*alpha0r
-                   alpha0e_g = -HALF*alpha0e_g
-                   alphar(:) = -HALF*alphar(:)
-                endif
-
-                ! The final interface states are just
-                ! q_s = q_ref - sum (l . dq) r
-                ! note that the a{mpz}right as defined above have the minus already
-                if (ppm_predict_gammae == 0) then
-                   qyp(i,j,k,QRHO) = rho_ref + alphap + alpham + alpha0r
-                   qyp(i,j,k,QV) = v_ref + (alphap - alpham)*cc/rho
-                   qyp(i,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
-                   qyp(i,j,k,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamp(:)*alphar(:))
-
-                   qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
-                   qyp(i,j,k,qrad:qradhi) = qrtmp
-
-                   qyp(i,j,k,qptot) = ptot_ref + (alphap + alpham)*csq
-                   qyp(i,j,k,qreitot) = qyp(i,j,k,QREINT) + sum(qrtmp)
-
-                else
-                   tau_s = tau_ref + alphap + alpham + alpha0r
-                   qyp(i,j,k,QRHO  ) = ONE/tau_s
-
-                   qyp(i,j,k,QV    ) = v_ref + (alpham - alphap)*Clag
-                   qyp(i,j,k,QPRES ) = p_ref - (alphap + alpham)*(cgassq/tau**2) - sum(lamp(:)*alphar(:))
-
-                   qyp(i,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau + alpha0e_g
-                   qyp(i,j,k,QREINT) = qyp(i,j,k,QPRES )/(qyp(i,j,k,QGAME) - ONE)
-
-                   qrtmp = er_ref(:) - (alphap + alpham)*hr/tau**2 + alphar(:)
-                   qyp(i,j,k,qrad:qradhi) = qrtmp
-
-                   qyp(i,j,k,qptot) = ptot_ref - (alphap + alpham)*Clag**2
-                   qyp(i,j,k,qreitot) = qyp(i,j,k,QREINT) + sum(qrtmp)
-
-                endif
-
-                ! Enforce small_*
-                qyp(i,j,k,QRHO ) = max(qyp(i,j,k,QRHO ),small_dens)
-                qyp(i,j,k,QPRES) = max(qyp(i,j,k,QPRES),small_pres)
-
-                do g=0,ngroups-1
-                   if (qyp(i,j,k,qrad+g) < ZERO) then
-                      er_foo = - qyp(i,j,k,qrad+g)
-                      qyp(i,j,k,qrad+g) = ZERO
-                      qyp(i,j,k,qptot) = qyp(i,j,k,qptot) + lamp(g) * er_foo
-                      qyp(i,j,k,qreitot) = qyp(i,j,k,qreitot) + er_foo
-                   end if
-                end do
-
-                if (qyp(i,j,k,QPRES) < ZERO) then
-                   qyp(i,j,k,QPRES) = p
-                end if
-
-                ! transverse velocities
-                qyp(i,j,k,QU    ) = Im(i,j,k,2,2,QU) + hdt*Im_src(i,j,k,2,2,QU)
-                qyp(i,j,k,QW    ) = Im(i,j,k,2,2,QW) + hdt*Im_src(i,j,k,2,2,QW)
-
-             end if
-
-             !-------------------------------------------------------------------
-             ! minus state on face j+1
-             !-------------------------------------------------------------------
-
-             if (j <= hi(2)) then
-
-                ! Set the reference state
-                ! This will be the fastest moving state to the right
-                rho_ref  = Ip(i,j,k,2,3,QRHO)
-                v_ref    = Ip(i,j,k,2,3,QV)
-
-                p_ref    = Ip(i,j,k,2,3,QPRES)
-                rhoe_g_ref = Ip(i,j,k,2,3,QREINT)
-
-                tau_ref  = ONE/Ip(i,j,k,2,3,QRHO)
-
-                !gam_g_ref  = Ip_gc(i,j,k,2,3,1)
-                game_ref = Ip(i,j,k,2,3,QGAME)
-
-                ptot_ref    = Ip(i,j,k,2,3,QPTOT)
-
-                er_ref(:) = Ip(i,j,k,2,3,QRAD:QRADHI)
-
-
-                rho_ref = max(rho_ref,small_dens)
-                p_ref = max(p_ref,small_pres)
-
-                ! *m are the jumps carried by v-c
-                ! *p are the jumps carried by v+c
-
-                dvm    = v_ref    - Ip(i,j,k,2,1,QV) - hdt*Ip_src(i,j,k,2,1,QV)
-                dptotm = ptot_ref - Ip(i,j,k,2,1,qptot) - hdt*Ip_src(i,j,k,2,1,QPRES)
-
-                drho    = rho_ref    - Ip(i,j,k,2,2,QRHO) - hdt*Ip_src(i,j,k,2,2,QRHO)
-                dptot   = ptot_ref   - Ip(i,j,k,2,2,qptot) - hdt*Ip_src(i,j,k,2,2,QPRES)
-                drhoe_g = rhoe_g_ref - Ip(i,j,k,2,2,QREINT) - hdt*Ip_src(i,j,k,2,2,QREINT)
-                dtau  = tau_ref  - ONE/Ip(i,j,k,2,2,QRHO) + hdt*Ip_src(i,j,k,2,2,QRHO)/Ip(i,j,k,2,2,QRHO)**2
-                der(:)  = er_ref(:)  - Ip(i,j,k,2,2,qrad:qradhi)
-
-                dvp    = v_ref    - Ip(i,j,k,2,3,QV) - hdt*Ip_src(i,j,k,2,3,QV)
-                dptotp = ptot_ref - Ip(i,j,k,2,3,qptot) - hdt*Ip_src(i,j,k,2,3,QPRES)
-
-                ! Optionally use the reference state in evaluating the
-                ! eigenvectors -- NOT YET IMPLEMENTED
-
-                if (ppm_predict_gammae == 0) then
-
-                   ! (rho, u, p, (rho e) eigensystem
-
-                   ! These are analogous to the beta's from the original PPM
-                   ! paper.  This is simply (l . dq), where dq = qref - I(q)
-
-                   alpham = HALF*(dptotm/(rho*cc) - dvm)*rho/cc
-                   alphap = HALF*(dptotp/(rho*cc) + dvp)*rho/cc
-                   alpha0e_g = drhoe_g - dptot*h_g
-                   alpha0r = drho - dptot/csq
-
-                else
-
-                   ! (tau, u, p, game) eigensystem
-
-                   ! This is the way things were done in the original PPM
-                   ! paper -- here we work with tau in the characteristic
-                   ! system
-
-                   alpham = HALF*( dvm - dptotm*(ONE/Clag))*(ONE/Clag)
-                   alphap = HALF*(-dvp - dptotp*(ONE/Clag))*(ONE/Clag)
-                   alpha0r = dtau + dptot*(ONE/Clag)**2
-
-                   dge = game_ref - Ip(i,j,k,2,2,QGAME)
-                   gfactor = (game - ONE)*(game - gam_g)
-                   alpha0e_g = gfactor*dptot/(tau*Clag**2) + dge
-
-                endif
-
-                alphar(:) = der(:)- dptot/csq*hr
-
-                if (v-cc > ZERO) then
-                   alpham = -alpham
-                else if (v-cc < ZERO) then
-                   alpham = ZERO
-                else
-                   alpham = -HALF*alpham
-                endif
-
-                if (v+cc > ZERO) then
-                   alphap = -alphap
-                else if (v+cc < ZERO) then
-                   alphap = ZERO
-                else
-                   alphap = -HALF*alphap
-                endif
-
-                if (v > ZERO) then
-                   alpha0r = -alpha0r
-                   alpha0e_g = -alpha0e_g
-                   alphar(:) = -alphar(:)
-                else if (v < ZERO) then
-                   alpha0r = ZERO
-                   alpha0e_g = ZERO
-                   alphar(:) = ZERO
-                else
-                   alpha0r = -HALF*alpha0r
-                   alpha0e_g = -HALF*alpha0e_g
-                   alphar(:) = -HALF*alphar(:)
-                endif
-
-                ! The final interface states are just
-                ! q_s = q_ref - sum (l . dq) r
-                ! note that the a{mpz}left as defined above has the minus already
-
-                if (ppm_predict_gammae == 0) then
-
-                   qym(i,j+1,k,QRHO) = rho_ref + alphap + alpham + alpha0r
-                   qym(i,j+1,k,QV) = v_ref + (alphap - alpham)*cc/rho
-                   qym(i,j+1,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
-                   qym(i,j+1,k,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:))
-
-                   qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
-                   qym(i,j+1,k,qrad:qradhi) = qrtmp
-
-                   qym(i,j+1,k,qptot) = ptot_ref + (alphap + alpham)*csq
-                   qym(i,j+1,k,qreitot) = qym(i,j+1,k,QREINT) + sum(qrtmp)
-
-                else
-                   tau_s = tau_ref + alphap + alpham + alpha0r
-                   qym(i,j+1,k,QRHO  ) = ONE/tau_s
-
-                   qym(i,j+1,k,QV    ) = v_ref + (alpham - alphap)*Clag
-                   qym(i,j+1,k,QPRES ) = p_ref - (alphap + alpham)*(cgassq/tau**2) - sum(lamm(:)*alphar(:))
-
-                   qym(i,j+1,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau + alpha0e_g
-                   qym(i,j+1,k,QREINT) = qym(i,j+1,k,QPRES )/(qym(i,j+1,k,QGAME) - ONE)
-
-                   qrtmp = er_ref(:) - (alphap + alpham)*hr/tau**2 + alphar(:)
-                   qym(i,j+1,k,qrad:qradhi) = qrtmp
-
-                   qym(i,j+1,k,qptot) = ptot_ref - (alphap + alpham)*Clag**2
-                   qym(i,j+1,k,qreitot) = qym(i,j+1,k,QREINT) + sum(qrtmp)
-
-                endif
-
-                ! Enforce small_*
-                qym(i,j+1,k,QRHO ) = max(qym(i,j+1,k,QRHO ),small_dens)
-                qym(i,j+1,k,QPRES) = max(qym(i,j+1,k,QPRES),small_pres)
-
-                do g=0,ngroups-1
-                   if (qym(i,j+1,k,qrad+g) < ZERO) then
-                      er_foo = - qym(i,j+1,k,qrad+g)
-                      qym(i,j+1,k,qrad+g) = ZERO
-                      qym(i,j+1,k,qptot) = qym(i,j+1,k,qptot) + lamm(g) * er_foo
-                      qym(i,j+1,k,qreitot) = qym(i,j+1,k,qreitot) + er_foo
-                   end if
-                end do
-
-                if (qym(i,j+1,k,QPRES) < ZERO) then
-                   qym(i,j+1,k,QPRES) = p
-                end if
-
-                ! transverse velocities
-                qym(i,j+1,k,QU    ) = Ip(i,j,k,2,2,QU) + hdt*Ip_src(i,j,k,2,2,QU)
-                qym(i,j+1,k,QW    ) = Ip(i,j,k,2,2,QW) + hdt*Ip_src(i,j,k,2,2,QW)
-
-             end if
-          end do
-       end do
-    end do
-
-    !-------------------------------------------------------------------------
-    ! Passively advected quantities
-    !-------------------------------------------------------------------------
-
-    ! Do all of the passively advected quantities in one loop
-    do ipassive = 1, npassive
-       n = qpass_map(ipassive)
-
-       ! For DIM < 3, the velocities are included in the passive
-       ! quantities.  But we already dealt with all 3 velocity
-       ! components above, so don't process them here.
-       if (n == QU .or. n == QV .or. n == QW) cycle
-
-       ! Plus state on face j
-       do k = lo(3)-dg(3), hi(3)+dg(3)
-          do j = lo(2), hi(2)+1
-             do i = lo(1)-1, hi(1)+1
-                v = q(i,j,k,QV)
-
-                if (v > ZERO) then
-                   qyp(i,j,k,n) = q(i,j,k,n)
-                else if (v < ZERO) then
-                   qyp(i,j,k,n) = Im(i,j,k,2,2,n)
-                else
-                   qyp(i,j,k,n) = q(i,j,k,n) + HALF*(Im(i,j,k,2,2,n) - q(i,j,k,n))
-                endif
-             end do
-          end do
-       end do
-
-       ! Minus state on face j+1
-       do k = lo(3)-dg(3), hi(3)+dg(3)
-          do j = lo(2)-1, hi(2)
-             do i = lo(1)-1, hi(1)+1
-                v = q(i,j,k,QV)
-
-                if (v > ZERO) then
-                   qym(i,j+1,k,n) = Ip(i,j,k,2,2,n)
-                else if (v < ZERO) then
-                   qym(i,j+1,k,n) = q(i,j,k,n)
-                else
-                   qym(i,j+1,k,n) = q(i,j,k,n) + HALF*(Ip(i,j,k,2,2,n) - q(i,j,k,n))
-                endif
-             end do
-          end do
-       end do
-
-    end do
-#endif
-
-  end subroutine tracexy_ppm_rad
-
-
-
-  subroutine tracez_ppm_rad(q, qd_lo, qd_hi, &
-                            qaux, qa_lo, qa_hi, &
-                            Ip, Im, Ip_src, Im_src, I_lo, I_hi, &
-                            qzm, qzp, qs_lo, qs_hi, &
-                            lo, hi, domlo, domhi, &
-                            dt)
-
-    use network, only : nspec, naux
-    use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, &
-                                   QREINT, QPRES, QGAME, QC, QCG, QGAMC, QGAMCG, QLAMS, &
-                                   qrad, qradhi, qptot, qreitot, &
-                                   small_dens, small_pres, &
-                                   ppm_type, &
-                                   ppm_reference_eigenvectors, ppm_predict_gammae, &
-                                   npassive, qpass_map
-    use rad_params_module, only : ngroups
-    use amrex_constants_module
-
-    use amrex_fort_module, only : rt => amrex_real
-    implicit none
-
-    integer, intent(in) :: qd_lo(3), qd_hi(3)
-    integer, intent(in) :: qs_lo(3), qs_hi(3)
-    integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: I_lo(3), I_hi(3)
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: domlo(3), domhi(3)
-
-    real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-
-    real(rt), intent(in) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,NQ)
-    real(rt), intent(in) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,NQ)
-
-    real(rt), intent(in) :: Ip_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,QVAR)
-    real(rt), intent(in) :: Im_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,QVAR)
-
-
-    real(rt), intent(inout) :: qzm(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
-    real(rt), intent(inout) :: qzp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
-
-
-    real(rt), intent(in) :: dt
-
-    !     Local variables
-    integer :: i, j, k, g
-    integer :: n, ipassive
-
-    real(rt) :: hdt
-
-    ! To allow for easy integration of radiation, we adopt the
-    ! following conventions:
-    !
-    ! rho : mass density
-    ! u, v, w : velocities
-    ! p : gas (hydro) pressure
-    ! ptot : total pressure (note for pure hydro, this is
-    !        just the gas pressure)
-    ! rhoe_g : gas specific internal energy
-    ! cgas : sound speed for just the gas contribution
-    ! cc : total sound speed (including radiation)
-    ! h_g : gas specific enthalpy / cc**2
-    ! gam_g : the gas Gamma_1
-    ! game : gas gamma_e
-    !
-    ! for pure hydro, we will only consider:
-    !   rho, u, v, w, ptot, rhoe_g, cc, h_g
-
-    real(rt)         :: cc, csq, cgassq, Clag
-    real(rt)         :: rho, u, v, w, p, rhoe_g, h_g, tau
-    real(rt)         :: ptot, gam_g, game
-
-    real(rt)         :: drho, dptot, drhoe_g
-    real(rt)         :: de, dge, dtau
-    real(rt)         :: dwp, dptotp
-    real(rt)         :: dwm, dptotm
-
-    real(rt)         :: rho_ref, w_ref, p_ref, rhoe_g_ref, h_g_ref
-    real(rt)         :: tau_ref
-    real(rt)         :: ptot_ref
-
-    real(rt)         :: gam_g_ref, game_ref, gfactor
-
-    real(rt)         :: alpham, alphap, alpha0r, alpha0e_g
-
-    real(rt)         :: tau_s, e_s
-
-    real(rt)        , dimension(0:ngroups-1) :: er, der, alphar, qrtmp,hr
-    real(rt)        , dimension(0:ngroups-1) :: lam0, lamp, lamm
-
-    real(rt)        , dimension(0:ngroups-1) :: er_ref
-
-    real(rt)         :: er_foo
-
-    if (ppm_type == 0) then
-       print *,'Oops -- shouldnt be in tracez_ppm with ppm_type = 0'
-       call amrex_error("Error:: RadHydro_3d.f90 :: tracez_ppm_rad")
-    end if
-
-    hdt = HALF * dt
-
-
-    !=========================================================================
-    ! PPM CODE
-    !=========================================================================
-
-    ! Trace to left and right edges using upwind PPM
-    !
-
-    do k = lo(3)-1, hi(3)+1
-       do j = lo(2)-1, hi(2)+1
-          do i = lo(1)-1, hi(1)+1
-
-             gfactor = ONE ! to help compiler resolve ANTI dependence
-
-             do g=0, ngroups-1
-                lam0(g) = qaux(i,j,k,QLAMS+g)
-                lamp(g) = qaux(i,j,k,QLAMS+g)
-                lamm(g) = qaux(i,j,k,QLAMS+g)
-             end do
-
-             rho = q(i,j,k,QRHO)
-             tau = ONE/rho
-
-             cgassq = qaux(i,j,k,QCG)**2
-             cc = qaux(i,j,k,QC)
-             csq = cc**2
-             Clag = rho*cc
-
-             u = q(i,j,k,QU)
-             v = q(i,j,k,QV)
-             w = q(i,j,k,QW)
-
-             p = q(i,j,k,QPRES)
-             rhoe_g = q(i,j,k,QREINT)
-             h_g = ( (p + rhoe_g)/rho)/csq
-
-             gam_g = qaux(i,j,k,QGAMCG)
-             game = q(i,j,k,QGAME)
-
-             ptot = q(i,j,k,qptot)
-
-             er(:) = q(i,j,k,qrad:qradhi)
-             hr(:) = (lam0+ONE)*er/rho
-
-             !-------------------------------------------------------------------
-             ! plus state on face k
-             !-------------------------------------------------------------------
-
-             if (k >= lo(3)) then
-
-                ! Set the reference state
-                ! This will be the fastest moving state to the left
-                rho_ref  = Im(i,j,k,3,1,QRHO)
-                w_ref    = Im(i,j,k,3,1,QW)
-
-                p_ref    = Im(i,j,k,3,1,QPRES)
-                rhoe_g_ref = Im(i,j,k,3,1,QREINT)
-
-                tau_ref  = ONE/Im(i,j,k,3,1,QRHO)
-
-                !gam_g_ref  = Im_gc(i,j,k,3,1,1)
-                game_ref = Im(i,j,k,3,1,QGAME)
-
-                ptot_ref = Im(i,j,k,3,1,QPTOT)
-
-                er_ref(:) = Im(i,j,k,3,1,QRAD:QRADHI)
-
-
-                rho_ref = max(rho_ref,small_dens)
-                p_ref = max(p_ref,small_pres)
-
-                ! *m are the jumps carried by w-c
-                ! *p are the jumps carried by w+c
-
-                ! Note: for the transverse velocities, the jump is carried
-                !       only by the w wave (the contact)
-
-                dwm    = w_ref    - Im(i,j,k,3,1,QW) - hdt*Im_src(i,j,k,3,1,QW)
-                dptotm = ptot_ref - Im(i,j,k,3,1,qptot) - hdt*Im_src(i,j,k,3,1,QPRES)
-
-                drho    = rho_ref    - Im(i,j,k,3,2,QRHO) - hdt*Im_src(i,j,k,3,2,QRHO)
-                dptot   = ptot_ref   - Im(i,j,k,3,2,qptot) - hdt*Im_src(i,j,k,3,2,QPRES)
-                drhoe_g = rhoe_g_ref - Im(i,j,k,3,2,QREINT) - hdt*Im_src(i,j,k,3,2,QREINT)
-                dtau  = tau_ref  - ONE/Im(i,j,k,3,2,QRHO) + hdt*Im_src(i,j,k,3,2,QRHO)/Im(i,j,k,3,2,QRHO)**2
-                der(:)  = er_ref(:)  - Im(i,j,k,3,2,qrad:qradhi)
-
-                dwp    = w_ref    - Im(i,j,k,3,3,QW) - hdt*Im_src(i,j,k,3,3,QW)
-                dptotp = ptot_ref - Im(i,j,k,3,3,qptot) - hdt*Im_src(i,j,k,3,3,QPRES)
-
-
-                ! Optionally use the reference state in evaluating the
-                ! eigenvectors -- NOT YET IMPLEMENTED
-
-                if (ppm_predict_gammae == 0) then
-
-                   ! (rho, u, p, (rho e) eigensystem
-
-                   ! These are analogous to the beta's from the original PPM
-                   ! paper.  This is simply (l . dq), where dq = qref - I(q)
-
-                   alpham = HALF*(dptotm/(rho*cc) - dwm)*rho/cc
-                   alphap = HALF*(dptotp/(rho*cc) + dwp)*rho/cc
-                   alpha0r = drho - dptot/csq
-                   alpha0e_g = drhoe_g - dptot*h_g
-
-                else
-
-                   ! (tau, u, p, game) eigensystem
-
-                   ! This is the way things were done in the original PPM
-                   ! paper -- here we work with tau in the characteristic
-                   ! system
-
-                   alpham = HALF*( dwm - dptotm*(ONE/Clag))*(ONE/Clag)
-                   alphap = HALF*(-dwp - dptotp*(ONE/Clag))*(ONE/Clag)
-                   alpha0r = dtau + dptot*(ONE/Clag)**2
-
-                   dge = game_ref - Im(i,j,k,3,2,QGAME)
-                   gfactor = (game - ONE)*(game - gam_g)
-                   alpha0e_g = gfactor*dptot/(tau*Clag**2) + dge
-
-                endif
-
-                alphar(:) = der(:) - dptot/csq*hr
-
-                if (w-cc > ZERO) then
-                   alpham = ZERO
-                else if (w-cc < ZERO) then
-                   alpham = -alpham
-                else
-                   alpham = -HALF*alpham
-                endif
-
-                if (w+cc > ZERO) then
-                   alphap = ZERO
-                else if (w+cc < ZERO) then
-                   alphap = -alphap
-                else
-                   alphap = -HALF*alphap
-                endif
-
-                if (w > ZERO) then
-                   alpha0r = ZERO
-                   alpha0e_g = ZERO
-                   alphar(:) = ZERO
-                else if (w < ZERO) then
-                   alpha0r = -alpha0r
-                   alpha0e_g = -alpha0e_g
-                   alphar(:) = -alphar(:)
-                else
-                   alpha0r = -HALF*alpha0r
-                   alpha0e_g = -HALF*alpha0e_g
-                   alphar(:) = -HALF*alphar(:)
-                endif
-
-                ! The final interface states are just
-                ! q_s = q_ref - sum (l . dq) r
-                ! note that the a{mpz}right as defined above have the minus already
-
-                if (ppm_predict_gammae == 0) then
-                   qzp(i,j,k,QRHO) = rho_ref + alphap + alpham + alpha0r
-                   qzp(i,j,k,QW) = w_ref + (alphap - alpham)*cc/rho
-                   qzp(i,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
-                   qzp(i,j,k,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamp(:)*alphar(:))
-
-                   qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
-                   qzp(i,j,k,qrad:qradhi) = qrtmp
-
-                   qzp(i,j,k,qptot) = ptot_ref + (alphap + alpham)*csq
-                   qzp(i,j,k,qreitot) = qzp(i,j,k,QREINT) + sum(qrtmp)
-
-                else
-                   tau_s = tau_ref + alphap + alpham + alpha0r
-                   qzp(i,j,k,QRHO  ) = ONE/tau_s
-
-                   qzp(i,j,k,QW    ) = w_ref + (alpham - alphap)*Clag
-                   qzp(i,j,k,QPRES ) = p_ref - (alphap + alpham)*(cgassq/tau**2) - sum(lamp(:)*alphar(:))
-
-                   qzp(i,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau + alpha0e_g
-                   qzp(i,j,k,QREINT) = qzp(i,j,k,QPRES )/(qzp(i,j,k,QGAME) - ONE)
-
-                   qrtmp = er_ref(:) - (alphap + alpham)*hr/tau**2 + alphar(:)
-                   qzp(i,j,k,qrad:qradhi) = qrtmp
-
-                   qzp(i,j,k,qptot) = ptot_ref - (alphap + alpham)*Clag**2
-                   qzp(i,j,k,qreitot) = qzp(i,j,k,QREINT) + sum(qrtmp)
-
-                endif
-
-                ! Enforce small_*
-                qzp(i,j,k,QRHO ) = max(qzp(i,j,k,QRHO ),small_dens)
-                qzp(i,j,k,QPRES) = max(qzp(i,j,k,QPRES),small_pres)
-
-                do g=0,ngroups-1
-                   if (qzp(i,j,k,qrad+g) < ZERO) then
-                      er_foo = - qzp(i,j,k,qrad+g)
-                      qzp(i,j,k,qrad+g) = ZERO
-                      qzp(i,j,k,qptot) = qzp(i,j,k,qptot) + lamp(g) * er_foo
-                      qzp(i,j,k,qreitot) = qzp(i,j,k,qreitot) + er_foo
-                   end if
-                end do
-
-                if (qzp(i,j,k,QPRES) < ZERO) then
-                   qzp(i,j,k,QPRES) = p
-                end if
-
-                ! transverse velocities
-                qzp(i,j,k,QU    ) = Im(i,j,k,3,2,QU) + hdt*Im_src(i,j,k,3,2,QU)
-                qzp(i,j,k,QV    ) = Im(i,j,k,3,2,QV) + hdt*Im_src(i,j,k,3,2,QV)
-             endif
-
-             !-------------------------------------------------------------------
-             ! minus state on face k+1
-             !-------------------------------------------------------------------
-
-             if (k <= hi(3)) then
-
-                ! Set the reference state
-                ! This will be the fastest moving state to the right
-                rho_ref  = Ip(i,j,k,3,3,QRHO)
-                w_ref    = Ip(i,j,k,3,3,QW)
-
-                p_ref    = Ip(i,j,k,3,3,QPRES)
-                rhoe_g_ref = Ip(i,j,k,3,3,QREINT)
-
-                tau_ref  = ONE/Ip(i,j,k,3,3,QRHO)
-
-                !gam_g_ref  = Ip_gc(i,j,k,3,3,1)
-                game_ref = Ip(i,j,k,3,3,QGAME)
-
-                ptot_ref    = Ip(i,j,k,3,3,QPTOT)
-
-                er_ref(:) = Ip(i,j,k,3,3,QRAD:QRADHI)
-
-
-                rho_ref = max(rho_ref,small_dens)
-                p_ref = max(p_ref,small_pres)
-
-                ! *m are the jumps carried by w-c
-                ! *p are the jumps carried by w+c
-
-                ! Note: for the transverse velocities, the jump is carried
-                !       only by the w wave (the contact)
-
-                dwm    = w_ref    - Ip(i,j,k,3,1,QW) - hdt*Ip_src(i,j,k,3,1,QW)
-                dptotm = ptot_ref - Ip(i,j,k,3,1,qptot) - hdt*Ip_src(i,j,k,3,1,QPRES)
-
-                drho    = rho_ref    - Ip(i,j,k,3,2,QRHO) - hdt*Ip_src(i,j,k,3,2,QRHO)
-                dptot   = ptot_ref   - Ip(i,j,k,3,2,qptot) - hdt*Ip_src(i,j,k,3,2,QPRES)
-
-                drhoe_g = rhoe_g_ref - Ip(i,j,k,3,2,QREINT) - hdt*Ip_src(i,j,k,3,2,QREINT)
-                dtau  = tau_ref  - ONE/Ip(i,j,k,3,2,QRHO) + hdt*Ip_src(i,j,k,3,2,QRHO)/Ip(i,j,k,3,2,QRHO)**2
-                der(:)  = er_ref(:)  - Ip(i,j,k,3,2,qrad:qradhi)
-
-                dwp    = w_ref    - Ip(i,j,k,3,3,QW) - hdt*Ip_src(i,j,k,3,3,QW)
-                dptotp = ptot_ref - Ip(i,j,k,3,3,qptot) - hdt*Ip_src(i,j,k,3,3,QPRES)
-
-
-                ! Optionally use the reference state in evaluating the
-                ! eigenvectors -- NOT YET IMPLEMENTED
-
-                if (ppm_predict_gammae == 0) then
-
-                   ! (rho, u, p, (rho e) eigensystem
-
-                   ! These are analogous to the beta's from the original PPM
-                   ! paper.  This is simply (l . dq), where dq = qref - I(q)
-
-                   alpham = HALF*(dptotm/(rho*cc) - dwm)*rho/cc
-                   alphap = HALF*(dptotp/(rho*cc) + dwp)*rho/cc
-                   alpha0r = drho - dptot/csq
-                   alpha0e_g = drhoe_g - dptot*h_g
-
-                else
-
-                   ! (tau, u, p, game) eigensystem
-
-                   ! This is the way things were done in the original PPM
-                   ! paper -- here we work with tau in the characteristic
-                   ! system
-
-                   alpham = HALF*( dwm - dptotm*(ONE/Clag))*(ONE/Clag)
-                   alphap = HALF*(-dwp - dptotp*(ONE/Clag))*(ONE/Clag)
-                   alpha0r = dtau + dptot*(ONE/Clag)**2
-
-                   dge = game_ref - Ip(i,j,k,3,2,QGAME)
-                   gfactor = (game - ONE)*(game - gam_g)
-                   alpha0e_g = gfactor*dptot/(tau*Clag**2) + dge
-
-                endif
-
-                alphar(:) = der(:) - dptot/csq*hr
-
-                if (w-cc > ZERO) then
-                   alpham = -alpham
-                else if (w-cc < ZERO) then
-                   alpham = ZERO
-                else
-                   alpham = -HALF*alpham
-                endif
-
-                if (w+cc > ZERO) then
-                   alphap = -alphap
-                else if (w+cc < ZERO) then
-                   alphap = ZERO
-                else
-                   alphap = -HALF*alphap
-                endif
-
-                if (w > ZERO) then
-                   alpha0r = -alpha0r
-                   alpha0e_g = -alpha0e_g
-                   alphar(:) = -alphar(:)
-                else if (w < ZERO) then
-                   alpha0r = ZERO
-                   alpha0e_g = ZERO
-                   alphar(:) = ZERO
-                else
-                   alpha0r = -HALF*alpha0r
-                   alpha0e_g = -HALF*alpha0e_g
-                   alphar(:) = -HALF*alphar(:)
-                endif
-
-                ! The final interface states are just
-                ! q_s = q_ref - sum (l . dq) r
-                ! note that the a{mpz}left as defined above have the minus already
-
-                if (ppm_predict_gammae == 0) then
-                   qzm(i,j,k+1,QRHO) = rho_ref + alphap + alpham + alpha0r
-                   qzm(i,j,k+1,QW) = w_ref + (alphap - alpham)*cc/rho
-                   qzm(i,j,k+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
-                   qzm(i,j,k+1,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:))
-
-                   qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
-                   qzm(i,j,k+1,qrad:qradhi) = qrtmp
-
-                   qzm(i,j,k+1,qptot) = ptot_ref + (alphap + alpham)*csq
-                   qzm(i,j,k+1,qreitot) = qzm(i,j,k+1,QREINT) + sum(qrtmp)
-
-                else
-                   tau_s = tau_ref + alphap + alpham + alpha0r
-                   qzm(i,j,k+1,QRHO  ) = ONE/tau_s
-
-                   qzm(i,j,k+1,QW    ) = w_ref + (alpham - alphap)*Clag
-                   qzm(i,j,k+1,QPRES ) = p_ref - (alphap + alpham)*(cgassq/tau**2) - sum(lamm(:)*alphar(:))
-
-                   qzm(i,j,k+1,QGAME) = game_ref + gfactor*(alpham + alphap)/tau + alpha0e_g
-                   qzm(i,j,k+1,QREINT) = qzm(i,j,k+1,QPRES )/(qzm(i,j,k+1,QGAME) - ONE)
-
-                   qrtmp = er_ref(:) - (alphap + alpham)*hr/tau**2 + alphar(:)
-                   qzm(i,j,k+1,qrad:qradhi) = qrtmp
-
-                   qzm(i,j,k+1,qptot) = ptot_ref - (alphap + alpham)*Clag**2
-                   qzm(i,j,k+1,qreitot) = qzm(i,j,k+1,QREINT) + sum(qrtmp)
-
-                endif
-
-                ! Enforce small_*
-                qzm(i,j,k+1,QRHO ) = max(qzm(i,j,k+1,QRHO ),small_dens)
-                qzm(i,j,k+1,QPRES) = max(qzm(i,j,k+1,QPRES),small_pres)
-
-                do g=0,ngroups-1
-                   if (qzm(i,j,k+1,qrad+g) < ZERO) then
-                      er_foo = - qzm(i,j,k+1,qrad+g)
-                      qzm(i,j,k+1,qrad+g) = ZERO
-                      qzm(i,j,k+1,qptot) = qzm(i,j,k+1,qptot) + lamm(g) * er_foo
-                      qzm(i,j,k+1,qreitot) = qzm(i,j,k+1,qreitot) + er_foo
-                   end if
-                end do
-
-                if (qzm(i,j,k+1,QPRES) < ZERO) then
-                   qzm(i,j,k+1,QPRES) = p
-                end if
-
-                ! Transverse velocity
-                qzm(i,j,k+1,QU    ) = Ip(i,j,k,3,2,QU) + hdt*Ip_src(i,j,k,3,2,QU)
-                qzm(i,j,k+1,QV    ) = Ip(i,j,k,3,2,QV) + hdt*Ip_src(i,j,k,3,2,QV)
-
-             end if
-          end do
-       end do
-    end do
-
-    !-------------------------------------------------------------------------
-    ! passively advected quantities
-    !-------------------------------------------------------------------------
-
-    ! Do all of the passively advected quantities in one loop
-    do ipassive = 1, npassive
-       n = qpass_map(ipassive)
-
-       ! For DIM < 3, the velocities are included in the passive
-       ! quantities.  But we already dealt with all 3 velocity
-       ! components above, so don't process them here.
-       if (n == QU .or. n == QV .or. n == QW) cycle
-
-       ! Plus state on face kc
-       do k = lo(3), hi(3)+1
-          do j = lo(2)-1, hi(2)+1
-             do i = lo(1)-1, hi(1)+1
-
-                w = q(i,j,k,QW)
-
-                if (w > ZERO) then
-                   qzp(i,j,k,n) = q(i,j,k,n)
-                else if (w < ZERO) then
-                   qzp(i,j,k,n) = Im(i,j,k,3,2,n)
-                else
-                   qzp(i,j,k,n) = q(i,j,k,n) + HALF*(Im(i,j,k,3,2,n) - q(i,j,k,n))
-                end if
-             end do
-          end do
-       end do
-
-       ! Minus state on face k
-       do k = lo(3)-1, hi(3)
-          do j = lo(2)-1, hi(2)+1
-             do i = lo(1)-1, hi(1)+1
-
-                w = q(i,j,k,QW)
-
-                if (w > ZERO) then
-                   qzm(i,j,k+1,n) = Ip(i,j,k,3,2,n)
-                else if (w < ZERO) then
-                   qzm(i,j,k+1,n) = q(i,j,k,n)
-                else
-                   qzm(i,j,k+1,n) = q(i,j,k,n) + HALF*(Ip(i,j,k,3,2,n) - q(i,j,k,n))
-                endif
-
-             end do
-          end do
-       end do
-
-    end do
-  end subroutine tracez_ppm_rad
+  end subroutine trace_ppm_rad
 
 end module trace_ppm_rad_module
