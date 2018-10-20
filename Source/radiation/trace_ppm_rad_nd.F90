@@ -602,13 +602,13 @@ contains
 
 #if (AMREX_SPACEDIM < 3)
              if (idir == 1 .and. dloga(i,j,k) /= 0) then
-                courn = dt/dx(1)*(cc+abs(u))
+                courn = dt/dx(1)*(cc+abs(un))
                 eta = (ONE-courn)/(cc*dt*abs(dloga(i,j,k)))
                 dlogatmp = min(eta, ONE)*dloga(i,j,k)
-                sourcr = -HALF*dt*rho*dlogatmp*u
+                sourcr = -HALF*dt*rho*dlogatmp*un
                 sourcp = sourcr*cgassq
                 source = sourcp*h_g
-                sourcer(:) = -HALF*dt*dlogatmp*u*(lam0(:)+ONE)*er(:)
+                sourcer(:) = -HALF*dt*dlogatmp*un*(lam0(:)+ONE)*er(:)
 
                 if (i <= hi(1)) then
                    qm(i+1,j,k,QRHO  ) = qm(i+1,j,k,QRHO  ) + sourcr

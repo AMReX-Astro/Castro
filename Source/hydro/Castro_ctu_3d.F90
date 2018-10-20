@@ -72,7 +72,7 @@ contains
     use amrex_constants_module
 #ifdef RADIATION
     use rad_params_module, only : ngroups
-    use trace_ppm_rad_module, only : tracexy_ppm_rad, tracez_ppm_rad
+    use trace_ppm_rad_module, only : trace_ppm_rad
 #else
     use trace_ppm_module, only : trace_ppm, trace_ppm_gammae, trace_ppm_temp
 #endif
@@ -400,19 +400,27 @@ contains
        ! Compute U_x and U_y at kc (k3d)
 
 #ifdef RADIATION
-       call tracexy_ppm_rad(q, qd_lo, qd_hi, &
-                            qaux, qa_lo, qa_hi, &
-                            Ip, Im, Ip_src, Im_src, glo, ghi, &
-                            qxm, qxp, qym, qyp, fglo, fghi, &
-                            lo, hi, domlo, domhi, &
-                            dx, dt)
+       call trace_ppm_rad(1, q, qd_lo, qd_hi, &
+                          qaux, qa_lo, qa_hi, &
+                          Ip, Im, Ip_src, Im_src, glo, ghi, &
+                          qxm, qxp, fglo, fghi, &
+                          lo, hi, domlo, domhi, &
+                          dx, dt)
 
-       call tracez_ppm_rad(q, qd_lo, qd_hi, &
-                           qaux, qa_lo, qa_hi, &
-                           Ip, Im, Ip_src, Im_src, glo, ghi, &
-                           qzm, qzp, fglo, fghi, &
-                           lo, hi, domlo, domhi, &
-                           dt)
+       call trace_ppm_rad(2, q, qd_lo, qd_hi, &
+                          qaux, qa_lo, qa_hi, &
+                          Ip, Im, Ip_src, Im_src, glo, ghi, &
+                          qym, qyp, fglo, fghi, &
+                          lo, hi, domlo, domhi, &
+                          dx, dt)
+
+       call trace_ppm_rad(3, q, qd_lo, qd_hi, &
+                          qaux, qa_lo, qa_hi, &
+                          Ip, Im, Ip_src, Im_src, glo, ghi, &
+                          qzm, qzp, fglo, fghi, &
+                          lo, hi, domlo, domhi, &
+                          dx, dt)
+
 
 #else
        if (ppm_temp_fix < 3) then

@@ -58,7 +58,7 @@ contains
     use trace_plm_module, only : trace_plm
 #ifdef RADIATION
     use rad_params_module, only : ngroups
-    use trace_ppm_rad_module, only : tracexy_ppm_rad
+    use trace_ppm_rad_module, only : trace_ppm_rad
 #else
     use trace_ppm_module, only : trace_ppm, trace_ppm_gammae, trace_ppm_temp
 #endif
@@ -445,13 +445,21 @@ contains
 #endif
     else
 #ifdef RADIATION
-       call tracexy_ppm_rad(q, q_lo, q_hi, &
-                            qaux, qa_lo, qa_hi, &
-                            Ip, Im, Ip_src, Im_src, I_lo, I_hi, &
-                            qxm, qxp, qym, qyp, qp_lo, qp_hi, &
-                            dloga, dloga_lo, dloga_hi, &
-                            lo, hi, domlo, domhi, &
-                            dx, dt)
+       call trace_ppm_rad(1, q, q_lo, q_hi, &
+                          qaux, qa_lo, qa_hi, &
+                          Ip, Im, Ip_src, Im_src, I_lo, I_hi, &
+                          qxm, qxp, qp_lo, qp_hi, &
+                          dloga, dloga_lo, dloga_hi, &
+                          lo, hi, domlo, domhi, &
+                          dx, dt)
+
+       call trace_ppm_rad(2, q, q_lo, q_hi, &
+                          qaux, qa_lo, qa_hi, &
+                          Ip, Im, Ip_src, Im_src, I_lo, I_hi, &
+                          qym, qyp, qp_lo, qp_hi, &
+                          dloga, dloga_lo, dloga_hi, &
+                          lo, hi, domlo, domhi, &
+                          dx, dt)
 #else
        if (ppm_temp_fix < 3) then
           if (ppm_predict_gammae == 0) then
