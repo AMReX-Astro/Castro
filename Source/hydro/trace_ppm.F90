@@ -34,8 +34,6 @@ contains
                                    npassive, qpass_map, ppm_temp_fix, &
                                    fix_mass_flux
     use amrex_constants_module, only : ZERO, HALF, ONE
-    use eos_type_module, only : eos_t, eos_input_rt
-    use eos_module, only : eos
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
 
     use amrex_fort_module, only : rt => amrex_real
@@ -75,11 +73,9 @@ contains
     integer :: i, j, k
     integer :: n, ipassive
 
-    type(eos_t) :: eos_state
-
     real(rt) :: hdt
 
-    integer :: ix, iy, iz, QUN, QUT, QUTT
+    integer :: QUN, QUT, QUTT
 
     ! To allow for easy integration of radiation, we adopt the
     ! following conventions:
@@ -160,23 +156,14 @@ contains
     ! state to get the full state on that interface.
 
     if (idir == 1) then
-       ix = 1
-       iy = 0
-       iz = 0
        QUN = QU
        QUT = QV
        QUTT = QW
     else if (idir == 2) then
-       ix = 0
-       iy = 1
-       iz = 0
        QUN = QV
        QUT = QW
        QUTT = QU
     else if (idir == 3) then
-       ix = 0
-       iy = 0
-       iz = 1
        QUN = QW
        QUT = QU
        QUTT = QV
@@ -373,14 +360,36 @@ contains
                 ! The final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
                 ! note that the a{mpz}left as defined above have the minus already
-                qm(i+ix,j+iy,k+iz,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
-                qm(i+ix,j+iy,k+iz,QUN) = un_ref + (alphap - alpham)*cc_ev/rho_ev
-                qm(i+ix,j+iy,k+iz,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
-                qm(i+ix,j+iy,k+iz,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
+                if (idir == 1) then
+                   qm(i+1,j,k,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
+                   qm(i+1,j,k,QUN) = un_ref + (alphap - alpham)*cc_ev/rho_ev
+                   qm(i+1,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
+                   qm(i+1,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
 
-                ! transverse velocities
-                qm(i+ix,j+iy,k+iz,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
-                qm(i+ix,j+iy,k+iz,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   ! transverse velocities
+                   qm(i+1,j,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i+1,j,k,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+
+                else if (idir == 2) then
+                   qm(i,j+1,k,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
+                   qm(i,j+1,k,QUN) = un_ref + (alphap - alpham)*cc_ev/rho_ev
+                   qm(i,j+1,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
+                   qm(i,j+1,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
+
+                   ! transverse velocities
+                   qm(i,j+1,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i,j+1,k,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+
+                else if (idir == 3) then
+                   qm(i,j,k+1,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
+                   qm(i,j,k+1,QUN) = un_ref + (alphap - alpham)*cc_ev/rho_ev
+                   qm(i,j,k+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
+                   qm(i,j,k+1,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
+
+                   ! transverse velocities
+                   qm(i,j,k+1,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i,j,k+1,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                endif
 
              end if
 
@@ -476,17 +485,14 @@ contains
 
                 ! Minus state on face i+1
                 if (idir == 1 .and. i <= hi(1)) then
-
                    un = q(i,j,k,QUN)
                    qm(i+1,j,k,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
 
                 else if (idir == 2 .and. j <= hi(2)) then
-
                    un = q(i,j,k,QUN)
                    qm(i,j+1,k,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
 
                 else if (idir == 3 .and. k <= hi(3)) then
-
                    un = q(i,j,k,QUN)
                    qm(i,j,k+1,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
 
@@ -525,8 +531,6 @@ contains
                                    npassive, qpass_map, ppm_temp_fix, &
                                    fix_mass_flux
     use amrex_constants_module, only : ZERO, HALF, ONE
-    use eos_type_module, only : eos_t, eos_input_rt
-    use eos_module, only : eos
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
 
     use amrex_fort_module, only : rt => amrex_real
@@ -566,11 +570,9 @@ contains
     integer :: i, j, k
     integer :: n, ipassive
 
-    type(eos_t) :: eos_state
-
     real(rt) :: hdt
 
-    integer :: ix, iy, iz, QUN, QUT, QUTT
+    integer :: QUN, QUT, QUTT
 
     ! To allow for easy integration of radiation, we adopt the
     ! following conventions:
@@ -654,23 +656,14 @@ contains
     ! state to get the full state on that interface.
 
     if (idir == 1) then
-       ix = 1
-       iy = 0
-       iz = 0
        QUN = QU
        QUT = QV
        QUTT = QW
     else if (idir == 2) then
-       ix = 0
-       iy = 1
-       iz = 0
        QUN = QV
        QUT = QW
        QUTT = QU
     else if (idir == 3) then
-       ix = 0
-       iy = 0
-       iz = 1
        QUN = QW
        QUT = QU
        QUTT = QV
@@ -891,19 +884,49 @@ contains
                 ! The final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
                 ! note that the a{mpz}left as defined above have the minus already
-                tau_s = tau_ref + alphap + alpham + alpha0r
-                qm(i+ix,j+iy,k+iz,QRHO) = max(small_dens, ONE/tau_s)
+                if (idir == 1) then
+                   tau_s = tau_ref + alphap + alpham + alpha0r
+                   qm(i+1,j,k,QRHO) = max(small_dens, ONE/tau_s)
 
-                qm(i+ix,j+iy,k+iz,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                qm(i+ix,j+iy,k+iz,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ev**2)
+                   qm(i+1,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
+                   qm(i+1,j,k,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ev**2)
 
-                qm(i+ix,j+iy,k+iz,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
-                qm(i+ix,j+iy,k+iz,QREINT) = qm(i+ix,j+iy,k+iz,QPRES )/(qm(i+ix,j+iy,k+iz,QGAME) - ONE)
+                   qm(i+1,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
+                   qm(i+1,j,k,QREINT) = qm(i+1,j,k,QPRES )/(qm(i+1,j,k,QGAME) - ONE)
 
-                ! transverse velocities
-                qm(i+ix,j+iy,k+iz,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
-                qm(i+ix,j+iy,k+iz,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   ! transverse velocities
+                   qm(i+1,j,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i+1,j,k,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
 
+                else if (idir == 2) then
+                   tau_s = tau_ref + alphap + alpham + alpha0r
+                   qm(i,j+1,k,QRHO) = max(small_dens, ONE/tau_s)
+
+                   qm(i,j+1,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
+                   qm(i,j+1,k,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ev**2)
+
+                   qm(i,j+1,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
+                   qm(i,j+1,k,QREINT) = qm(i,j+1,k,QPRES )/(qm(i,j+1,k,QGAME) - ONE)
+
+                   ! transverse velocities
+                   qm(i,j+1,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i,j+1,k,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+
+                else if (idir == 3) then
+                   tau_s = tau_ref + alphap + alpham + alpha0r
+                   qm(i,j,k+1,QRHO) = max(small_dens, ONE/tau_s)
+
+                   qm(i,j,k+1,QUN) = un_ref + (alpham - alphap)*Clag_ev
+                   qm(i,j,k+1,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ev**2)
+
+                   qm(i,j,k+1,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
+                   qm(i,j,k+1,QREINT) = qm(i,j,k+1,QPRES )/(qm(i,j,k+1,QGAME) - ONE)
+
+                   ! transverse velocities
+                   qm(i,j,k+1,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i,j,k+1,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+
+                end if
              end if
 
              !-------------------------------------------------------------------
@@ -992,29 +1015,22 @@ contains
                    ! wave, so no projection is needed.  Since we are not
                    ! projecting, the reference state doesn't matter
 
-                   if (un > ZERO) then
-                      qp(i,j,k,n) = q(i,j,k,n)
-                   else if (un < ZERO) then
-                      qp(i,j,k,n) = Im(i,j,k,idir,2,n)
-                   else
-                      qp(i,j,k,n) = q(i,j,k,n) + HALF*(Im(i,j,k,idir,2,n) - q(i,j,k,n))
-                   endif
+                   qp(i,j,k,n) = merge(q(i,j,k,n), Im(i,j,k,idir,2,n), un > ZERO)
                 endif
 
                 ! Minus state on face i+1
-                if ((idir == 1 .and. i <= hi(1)) .or. &
-                    (idir == 2 .and. j <= hi(2)) .or. &
-                    (idir == 3 .and. k <= hi(3))) then
-
+                if (idir == 1 .and. i <= hi(1)) then
                    un = q(i,j,k,QUN)
+                   qm(i+1,j,k,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
 
-                   if (un > ZERO) then
-                      qm(i+ix,j+iy,k+iz,n) = Ip(i,j,k,idir,2,n)
-                   else if (un < ZERO) then
-                      qm(i+ix,j+iy,k+iz,n) = q(i,j,k,n)
-                   else
-                      qm(i+ix,j+iy,k+iz,n) = q(i,j,k,n) + HALF*(Ip(i,j,k,idir,2,n) - q(i,j,k,n))
-                   endif
+                else if (idir == 2 .and. j <= hi(2)) then
+                   un = q(i,j,k,QUN)
+                   qm(i,j+1,k,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
+
+                else if (idir == 3 .and. k <= hi(3)) then
+                   un = q(i,j,k,QUN)
+                   qm(i,j,k+1,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
+
                 endif
 
              end do
@@ -1095,7 +1111,7 @@ contains
 
     real(rt) :: hdt
 
-    integer :: ix, iy, iz, QUN, QUT, QUTT
+    integer :: QUN, QUT, QUTT
 
     ! To allow for easy integration of radiation, we adopt the
     ! following conventions:
@@ -1119,14 +1135,14 @@ contains
     real(rt) :: rho, un, ut, utt, p, rhoe_g, h_g, temp
     real(rt) :: gam_g, game
 
-    real(rt) :: drho, dptot, drhoe_g
+    real(rt) :: drho, dptot
     real(rt) :: de, dge, dtau, dtaum, dtaup
     real(rt) :: dup, dvp, dptotp
     real(rt) :: dum, dvm, dptotm
     real(rt) :: dT0, dTp, dTm
     real(rt) :: p_r, p_T
 
-    real(rt) :: rho_ref, un_ref, p_ref, rhoe_g_ref, temp_ref
+    real(rt) :: rho_ref, un_ref, p_ref, temp_ref
     real(rt) :: tau_ref
 
     real(rt) :: cc_ref, csq_ref, Clag_ref, gam_g_ref, game_ref, gfactor
@@ -1181,23 +1197,14 @@ contains
     ! state to get the full state on that interface.
 
     if (idir == 1) then
-       ix = 1
-       iy = 0
-       iz = 0
        QUN = QU
        QUT = QV
        QUTT = QW
     else if (idir == 2) then
-       ix = 0
-       iy = 1
-       iz = 0
        QUN = QV
        QUT = QW
        QUTT = QU
     else if (idir == 3) then
-       ix = 0
-       iy = 0
-       iz = 1
        QUN = QW
        QUT = QU
        QUTT = QV
@@ -1244,7 +1251,6 @@ contains
                 un_ref    = Im(i,j,k,idir,1,QUN)
 
                 p_ref    = Im(i,j,k,idir,1,QPRES)
-                rhoe_g_ref = Im(i,j,k,idir,1,QREINT)
                 temp_ref = Im(i,j,k,idir,1,QTEMP)
 
                 tau_ref  = ONE/Im(i,j,k,idir,1,QRHO)
@@ -1270,7 +1276,6 @@ contains
 
                 drho = rho_ref - Im(i,j,k,idir,2,QRHO) - hdt*Im_src(i,j,k,idir,2,QRHO)
                 dptot = p_ref - Im(i,j,k,idir,2,QPRES) - hdt*Im_src(i,j,k,idir,2,QPRES)
-                drhoe_g = rhoe_g_ref - Im(i,j,k,idir,2,QREINT) - hdt*Im_src(i,j,k,idir,2,QREINT)
 
                 ! TODO: need to figure sources for this out...
                 dTm = temp_ref - Im(i,j,k,idir,1,QTEMP)
@@ -1369,7 +1374,6 @@ contains
                 un_ref    = Ip(i,j,k,idir,3,QUN)
 
                 p_ref    = Ip(i,j,k,idir,3,QPRES)
-                rhoe_g_ref = Ip(i,j,k,idir,3,QREINT)
                 temp_ref = Ip(i,j,k,idir,3,QTEMP)
 
                 tau_ref  = ONE/Ip(i,j,k,idir,3,QRHO)
@@ -1393,7 +1397,6 @@ contains
 
                 drho = rho_ref - Ip(i,j,k,idir,2,QRHO) - hdt*Ip_src(i,j,k,idir,2,QRHO)
                 dptot = p_ref - Ip(i,j,k,idir,2,QPRES) - hdt*Ip_src(i,j,k,idir,2,QPRES)
-                drhoe_g = rhoe_g_ref - Ip(i,j,k,idir,2,QREINT) - hdt*Ip_src(i,j,k,idir,2,QREINT)
 
                 dTm = temp_ref - Ip(i,j,k,idir,1,QTEMP)
                 dT0 = temp_ref - Ip(i,j,k,idir,2,QTEMP)
@@ -1453,19 +1456,55 @@ contains
                 ! The final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
                 ! note that the a{mpz}left as defined above have the minus already
-                tau_s = tau_ref + alphap + alpham + alpha0r
-                qm(i+ix,j+iy,k+iz,QRHO) = max(small_dens, ONE/tau_s)
+                if (idir == 1) then
+                   tau_s = tau_ref + alphap + alpham + alpha0r
+                   qm(i+1,j,k,QRHO) = max(small_dens, ONE/tau_s)
 
-                qm(i+ix,j+iy,k+iz,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                qm(i+ix,j+iy,k+iz,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
-                     rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
+                   qm(i+1,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
+                   qm(i+1,j,k,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
+                        rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
 
-                ! we defer getting the pressure until later, once we do the species
-                qm(i+ix,j+iy,k+iz,QPRES) = small_pres ! just to make it defined
+                   ! we defer getting the pressure until later, once
+                   ! we do the species
+                   qm(i+1,j,k,QPRES) = small_pres ! just to make it defined
 
-                ! transverse velocities
-                qm(i+ix,j+iy,k+iz,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
-                qm(i+ix,j+iy,k+iz,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   ! transverse velocities
+                   qm(i+1,j,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i+1,j,k,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+
+                else if (idir == 2) then
+                   tau_s = tau_ref + alphap + alpham + alpha0r
+                   qm(i,j+1,k,QRHO) = max(small_dens, ONE/tau_s)
+
+                   qm(i,j+1,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
+                   qm(i,j+1,k,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
+                        rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
+
+                   ! we defer getting the pressure until later, once
+                   ! we do the species
+                   qm(i,j+1,k,QPRES) = small_pres ! just to make it defined
+
+                   ! transverse velocities
+                   qm(i,j+1,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i,j+1,k,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+
+                else if (idir == 3) then
+                   tau_s = tau_ref + alphap + alpham + alpha0r
+                   qm(i,j,k+1,QRHO) = max(small_dens, ONE/tau_s)
+
+                   qm(i,j,k+1,QUN) = un_ref + (alpham - alphap)*Clag_ev
+                   qm(i,j,k+1,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
+                        rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
+
+                   ! we defer getting the pressure until later, once
+                   ! we do the species
+                   qm(i,j,k+1,QPRES) = small_pres ! just to make it defined
+
+                   ! transverse velocities
+                   qm(i,j,k+1,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i,j,k+1,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+
+                endif
 
              end if
 
@@ -1555,29 +1594,22 @@ contains
                    ! wave, so no projection is needed.  Since we are not
                    ! projecting, the reference state doesn't matter
 
-                   if (un > ZERO) then
-                      qp(i,j,k,n) = q(i,j,k,n)
-                   else if (un < ZERO) then
-                      qp(i,j,k,n) = Im(i,j,k,idir,2,n)
-                   else
-                      qp(i,j,k,n) = q(i,j,k,n) + HALF*(Im(i,j,k,idir,2,n) - q(i,j,k,n))
-                   endif
+                   qp(i,j,k,n) = merge(q(i,j,k,n), Im(i,j,k,idir,2,n), un > ZERO)
                 endif
 
                 ! Minus state on face i+1
-                if ((idir == 1 .and. i <= hi(1)) .or. &
-                    (idir == 2 .and. j <= hi(2)) .or. &
-                    (idir == 3 .and. k <= hi(3))) then
-
+                if (idir == 1 .and. i <= hi(1)) then
                    un = q(i,j,k,QUN)
+                   qm(i+1,j,k,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
 
-                   if (un > ZERO) then
-                      qm(i+ix,j+iy,k+iz,n) = Ip(i,j,k,idir,2,n)
-                   else if (un < ZERO) then
-                      qm(i+ix,j+iy,k+iz,n) = q(i,j,k,n)
-                   else
-                      qm(i+ix,j+iy,k+iz,n) = q(i,j,k,n) + HALF*(Ip(i,j,k,idir,2,n) - q(i,j,k,n))
-                   endif
+                else if (idir == 2 .and. j <= hi(2)) then
+                   un = q(i,j,k,QUN)
+                   qm(i,j+1,k,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
+
+                else if (idir == 3 .and. k <= hi(3)) then
+                   un = q(i,j,k,QUN)
+                   qm(i,j,k+1,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
+
                 endif
 
              end do
@@ -1614,22 +1646,45 @@ contains
                 qp(i,j,k,QPRES) = max(qp(i,j,k,QPRES), small_pres)
              endif
 
-             if ((idir == 1 .and. i <= hi(1)) .or. &
-                 (idir == 2 .and. j <= hi(2)) .or. &
-                 (idir == 3 .and. k <= hi(3))) then
+             if (idir == 1 .and. i <= hi(1)) then
 
                 ! minus face
-                eos_state%T     = qm(i+ix,j+iy,k+iz,QTEMP)
-                eos_state%rho   = qm(i+ix,j+iy,k+iz,QRHO)
-                eos_state%xn(:) = qm(i+ix,j+iy,k+iz,QFS:QFS-1+nspec)
-                eos_state%aux(:) = qm(i+ix,j+iy,k+iz,QFX:QFX-1+naux)
+                eos_state%T     = qm(i+1,j,k,QTEMP)
+                eos_state%rho   = qm(i+1,j,k,QRHO)
+                eos_state%xn(:) = qm(i+1,j,k,QFS:QFS-1+nspec)
+                eos_state%aux(:) = qm(i+1,j,k,QFX:QFX-1+naux)
 
                 call eos(eos_input_rt, eos_state)
 
-                qm(i+ix,j+iy,k+iz,QPRES) = eos_state%p
-                qm(i+ix,j+iy,k+iz,QREINT) = qm(i+ix,j+iy,k+iz,QRHO)*eos_state%e
+                qm(i+1,j,k,QPRES) = max(small_pres, eos_state%p)
+                qm(i+1,j,k,QREINT) = qm(i+1,j,k,QRHO)*eos_state%e
 
-                qm(i+ix,j+iy,k+iz,QPRES) = max(qm(i+ix,j+iy,k+iz,QPRES), small_pres)
+             else if (idir == 2 .and. j <= hi(2)) then
+
+                ! minus face
+                eos_state%T     = qm(i,j+1,k,QTEMP)
+                eos_state%rho   = qm(i,j+1,k,QRHO)
+                eos_state%xn(:) = qm(i,j+1,k,QFS:QFS-1+nspec)
+                eos_state%aux(:) = qm(i,j+1,k,QFX:QFX-1+naux)
+
+                call eos(eos_input_rt, eos_state)
+
+                qm(i,j+1,k,QPRES) = max(small_pres, eos_state%p)
+                qm(i,j+1,k,QREINT) = qm(i,j+1,k,QRHO)*eos_state%e
+
+             else if (idir == 3 .and. k <= hi(3)) then
+
+                ! minus face
+                eos_state%T     = qm(i,j,k+1,QTEMP)
+                eos_state%rho   = qm(i,j,k+1,QRHO)
+                eos_state%xn(:) = qm(i,j,k+1,QFS:QFS-1+nspec)
+                eos_state%aux(:) = qm(i,j,k+1,QFX:QFX-1+naux)
+
+                call eos(eos_input_rt, eos_state)
+
+                qm(i,j,k+1,QPRES) = max(small_pres, eos_state%p)
+                qm(i,j,k+1,QREINT) = qm(i,j,k+1,QRHO)*eos_state%e
+
              endif
 
           end do
