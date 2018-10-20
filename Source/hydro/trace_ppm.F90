@@ -99,7 +99,7 @@ contains
     ! for pure hydro, we will only consider:
     !   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
-    real(rt) :: cc, csq, cgassq, Clag
+    real(rt) :: cc, csq, cgassq
     real(rt) :: rho, un, ut, utt, p, rhoe_g, h_g
     real(rt) :: gam_g
 
@@ -109,8 +109,8 @@ contains
 
     real(rt) :: rho_ref, un_ref, p_ref, rhoe_g_ref, h_g_ref
 
-    real(rt) :: cc_ref, csq_ref, Clag_ref, gam_g_ref
-    real(rt) :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, h_g_ev
+    real(rt) :: cc_ref, csq_ref, gam_g_ref
+    real(rt) :: cc_ev, csq_ev, rho_ev, h_g_ev
 
     real(rt) :: alpham, alphap, alpha0r, alpha0e_g
     real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
@@ -191,7 +191,6 @@ contains
 
              cc = qaux(i,j,k,QC)
              csq = cc**2
-             Clag = rho*cc
 
              un = q(i,j,k,QUN)
              ut = q(i,j,k,QUT)
@@ -230,7 +229,6 @@ contains
                 ! For tracing (optionally)
                 csq_ref = gam_g_ref*p_ref/rho_ref
                 cc_ref = sqrt(csq_ref)
-                Clag_ref = rho_ref*cc_ref
                 h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
 
                 ! *m are the jumps carried by un-c
@@ -258,16 +256,12 @@ contains
                    rho_ev  = rho
                    cc_ev   = cc
                    csq_ev  = csq
-                   Clag_ev = Clag
                    h_g_ev = h_g
-                   p_ev    = p
                 else
                    rho_ev  = rho_ref
                    cc_ev   = cc_ref
                    csq_ev  = csq_ref
-                   Clag_ev = Clag_ref
                    h_g_ev = h_g_ref
-                   p_ev    = p_ref
                 endif
 
                 ! (rho, u, p, (rho e) eigensystem
@@ -331,7 +325,6 @@ contains
                 ! For tracing (optionally)
                 csq_ref = gam_g_ref*p_ref/rho_ref
                 cc_ref = sqrt(csq_ref)
-                Clag_ref = rho_ref*cc_ref
                 h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
 
                 ! *m are the jumps carried by u-c
@@ -353,16 +346,12 @@ contains
                    rho_ev  = rho
                    cc_ev   = cc
                    csq_ev  = csq
-                   Clag_ev = Clag
                    h_g_ev = h_g
-                   p_ev    = p
                 else
                    rho_ev  = rho_ref
                    cc_ev   = cc_ref
                    csq_ev  = csq_ref
-                   Clag_ev = Clag_ref
                    h_g_ev = h_g_ref
-                   p_ev    = p_ref
                 endif
 
                 ! (rho, u, p, (rho e)) eigensystem
@@ -602,7 +591,7 @@ contains
     !   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
     real(rt) :: cc, csq, cgassq, Clag
-    real(rt) :: rho, un, ut, utt, p, rhoe_g, h_g, temp
+    real(rt) :: rho, un, ut, utt, p, rhoe_g, h_g
     real(rt) :: gam_g, game
 
     real(rt) :: dptot
@@ -610,11 +599,11 @@ contains
     real(rt) :: dup, dvp, dptotp
     real(rt) :: dum, dvm, dptotm
 
-    real(rt) :: rho_ref, un_ref, p_ref, rhoe_g_ref, h_g_ref
+    real(rt) :: rho_ref, un_ref, p_ref, rhoe_g_ref
     real(rt) :: tau_ref
 
     real(rt) :: cc_ref, csq_ref, Clag_ref, gam_g_ref, game_ref, gfactor
-    real(rt) :: cc_ev, csq_ev, Clag_ev, p_ev, h_g_ev, tau_ev
+    real(rt) :: cc_ev, csq_ev, Clag_ev, tau_ev
 
     real(rt) :: alpham, alphap, alpha0r, alpha0e_g
     real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
@@ -706,7 +695,6 @@ contains
 
              p = q(i,j,k,QPRES)
              rhoe_g = q(i,j,k,QREINT)
-             h_g = ( (p + rhoe_g)/rho)/csq
 
              gam_g = qaux(i,j,k,QGAMC)
              game = q(i,j,k,QGAME)
@@ -742,7 +730,6 @@ contains
                 csq_ref = gam_g_ref*p_ref/rho_ref
                 cc_ref = sqrt(csq_ref)
                 Clag_ref = rho_ref*cc_ref
-                h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
 
                 ! Note: for the transverse velocities, the jump is carried
                 !       only by the u wave (the contact)
@@ -771,15 +758,11 @@ contains
                    cc_ev   = cc
                    csq_ev  = csq
                    Clag_ev = Clag
-                   h_g_ev = h_g
-                   p_ev    = p
                    tau_ev  = ONE/rho
                 else
                    cc_ev   = cc_ref
                    csq_ev  = csq_ref
                    Clag_ev = Clag_ref
-                   h_g_ev = h_g_ref
-                   p_ev    = p_ref
                    tau_ev  = tau_ref
                 endif
 
@@ -855,7 +838,6 @@ contains
                 csq_ref = gam_g_ref*p_ref/rho_ref
                 cc_ref = sqrt(csq_ref)
                 Clag_ref = rho_ref*cc_ref
-                h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
 
                 ! *m are the jumps carried by u-c
                 ! *p are the jumps carried by u+c
@@ -879,15 +861,11 @@ contains
                    cc_ev   = cc
                    csq_ev  = csq
                    Clag_ev = Clag
-                   h_g_ev = h_g
-                   p_ev    = p
                    tau_ev  = ONE/rho
                 else
                    cc_ev   = cc_ref
                    csq_ev  = csq_ref
                    Clag_ev = Clag_ref
-                   h_g_ev = h_g_ref
-                   p_ev    = p_ref
                    tau_ev  = tau_ref
                 endif
 
@@ -935,6 +913,7 @@ contains
 #if (AMREX_SPACEDIM < 3)
              ! these only apply for x states (dim = 1)
              if (idir == 1 .and. dloga(i,j,k) /= 0) then
+                h_g = ( (p + rhoe_g)/rho)/csq
                 courn = dt/dx(1)*(cc+abs(un))
                 eta = (ONE-courn)/(cc*dt*abs(dloga(i,j,k)))
                 dlogatmp = min(eta, ONE)*dloga(i,j,k)
@@ -943,7 +922,6 @@ contains
                 source = sourcp*h_g
 
                 if (i <= hi(1)) then
-
                    qm(i+1,j,k,QRHO) = qm(i+1,j,k,QRHO) + sourcr
                    qm(i+1,j,k,QRHO) = max(qm(i+1,j,k,QRHO), small_dens)
                    qm(i+1,j,k,QPRES) = qm(i+1,j,k,QPRES) + sourcp
@@ -951,7 +929,6 @@ contains
                 end if
 
                 if (i >= lo(1)) then
-
                    qp(i,j,k,QRHO) = qp(i,j,k,QRHO) + sourcr
                    qp(i,j,k,QRHO) = max(qp(i,j,k,QRHO), small_dens)
                    qp(i,j,k,QPRES) = qp(i,j,k,QPRES) + sourcp
@@ -1149,11 +1126,11 @@ contains
     real(rt) :: dT0, dTp, dTm
     real(rt) :: p_r, p_T
 
-    real(rt) :: rho_ref, un_ref, p_ref, rhoe_g_ref, h_g_ref, temp_ref
+    real(rt) :: rho_ref, un_ref, p_ref, rhoe_g_ref, temp_ref
     real(rt) :: tau_ref
 
     real(rt) :: cc_ref, csq_ref, Clag_ref, gam_g_ref, game_ref, gfactor
-    real(rt) :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, h_g_ev, tau_ev, temp_ev
+    real(rt) :: cc_ev, csq_ev, Clag_ev, rho_ev, tau_ev, temp_ev
 
     real(rt) :: alpham, alphap, alpha0r, alpha0e_g
     real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
@@ -1245,7 +1222,6 @@ contains
 
              p = q(i,j,k,QPRES)
              rhoe_g = q(i,j,k,QREINT)
-             h_g = ( (p + rhoe_g)/rho)/csq
              temp = q(i,j,k,QTEMP)
 
              gam_g = qaux(i,j,k,QGAMC)
@@ -1283,7 +1259,6 @@ contains
                 csq_ref = gam_g_ref*p_ref/rho_ref
                 cc_ref = sqrt(csq_ref)
                 Clag_ref = rho_ref*cc_ref
-                h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
 
                 ! Note: for the transverse velocities, the jump is carried
                 !       only by the u wave (the contact)
@@ -1320,8 +1295,6 @@ contains
                    cc_ev   = cc
                    csq_ev  = csq
                    Clag_ev = Clag
-                   h_g_ev = h_g
-                   p_ev    = p
                    tau_ev  = ONE/rho
                    temp_ev = temp
                 else
@@ -1329,8 +1302,6 @@ contains
                    cc_ev   = cc_ref
                    csq_ev  = csq_ref
                    Clag_ev = Clag_ref
-                   h_g_ev = h_g_ref
-                   p_ev    = p_ref
                    tau_ev  = tau_ref
                    temp_ev = temp_ref
                 endif
@@ -1413,7 +1384,6 @@ contains
                 csq_ref = gam_g_ref*p_ref/rho_ref
                 cc_ref = sqrt(csq_ref)
                 Clag_ref = rho_ref*cc_ref
-                h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
 
                 ! *m are the jumps carried by u-c
                 ! *p are the jumps carried by u+c
@@ -1444,8 +1414,6 @@ contains
                    cc_ev   = cc
                    csq_ev  = csq
                    Clag_ev = Clag
-                   h_g_ev = h_g
-                   p_ev    = p
                    tau_ev  = ONE/rho
                    temp_ev = temp
                 else
@@ -1453,8 +1421,6 @@ contains
                    cc_ev   = cc_ref
                    csq_ev  = csq_ref
                    Clag_ev = Clag_ref
-                   h_g_ev = h_g_ref
-                   p_ev    = p_ref
                    tau_ev  = tau_ref
                    temp_ev = temp_ref
                 endif
@@ -1510,6 +1476,7 @@ contains
 #if (AMREX_SPACEDIM < 3)
              ! these only apply for x states (idir = 1)
              if (idir == 1 .and. dloga(i,j,k) /= 0) then
+                h_g = ( (p + rhoe_g)/rho)/csq
                 courn = dt/dx(1)*(cc+abs(un))
                 eta = (ONE-courn)/(cc*dt*abs(dloga(i,j,k)))
                 dlogatmp = min(eta, ONE)*dloga(i,j,k)
