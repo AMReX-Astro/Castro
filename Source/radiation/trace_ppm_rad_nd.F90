@@ -220,7 +220,9 @@ contains
              ! plus state on face i
              !-------------------------------------------------------------------
 
-             if (i >= lo(1)) then
+             if ((idir == 1 .and. i >= lo(1)) .or. &
+                 (idir == 2 .and. j >= lo(2)) .or. &
+                 (idir == 3 .and. k >= lo(3))) then
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the left --
@@ -234,7 +236,7 @@ contains
 
                 tau_ref  = ONE/Im(i,j,k,idir,1,QRHO)
 
-                !gam_g_ref  = Im_gc(i,j,k,1,1,1)
+                !gam_g_ref  = Im_gc(i,j,k,idir,1,1)
                 game_ref = Im(i,j,k,idir,1,QGAME)
 
                 ptot_ref = Im(i,j,k,idir,1,QPTOT)
@@ -372,7 +374,9 @@ contains
              !-------------------------------------------------------------------
              ! minus state on face i + 1
              !-------------------------------------------------------------------
-             if (i <= hi(1)) then
+             if ((idir == 1 .and. i <= hi(1)) .or. &
+                 (idir == 2 .and. j <= hi(2)) .or. &
+                 (idir == 3 .and. k <= hi(3))) then
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the right
@@ -384,7 +388,7 @@ contains
 
                 tau_ref  = ONE/Ip(i,j,k,idir,3,QRHO)
 
-                !gam_g_ref  = Ip_gc(i,j,k,1,3,1)
+                !gam_g_ref  = Ip_gc(i,j,k,idir,3,1)
                 game_ref = Ip(i,j,k,idir,3,QGAME)
 
 
