@@ -21,10 +21,7 @@ extern "C"
      const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* xhi);
 
   void InitThornado_Patch(const int* len, int* swX,
-                          const amrex::Real* grid_lo, const amrex::Real* grid_hi, 
-                          const int* swE, 
-                          const amrex::Real* eL, 
-                          const amrex::Real* eR);
+                          const amrex::Real* grid_lo, const amrex::Real* grid_hi);
 
   void FreeThornado_Patch();
 

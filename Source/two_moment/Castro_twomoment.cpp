@@ -97,15 +97,13 @@ Castro::init_thornado_data()
         boxlen[2]  = 1;
 #endif
 
-       // Note thornado_eL and thornado_eR in units of MeV; we will convert 
-       //      to thornado units inside InitThornado_Patch
-        InitThornado_Patch(boxlen, swX,
-            grid_lo.dataPtr(), grid_hi.dataPtr(),
-            &swE, &thornado_eL, &thornado_eR);
+        // Note thornado_eL and thornado_eR in units of MeV; we will convert 
+        //      to thornado units inside InitThornado_Patch
+        InitThornado_Patch(boxlen, swX, grid_lo.dataPtr(), grid_hi.dataPtr());
 
-       RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
-       const int* lo      = bx.loVect();
-       const int* hi      = bx.hiVect();
+        RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
+        const int* lo      = bx.loVect();
+        const int* hi      = bx.hiVect();
   
         ca_init_thornado_data
 	  (level, cur_time, lo, hi,
@@ -208,9 +206,7 @@ Castro::create_thornado_source(Real dt)
 
            // Note thornado_eL and thornado_eR in units of MeV; we will convert 
            //      to thornado units inside InitThornado_Patch
-           InitThornado_Patch(boxlen, swX,
-               grid_lo.dataPtr(), grid_hi.dataPtr(),
-               &swE, &thornado_eL, &thornado_eR);
+           InitThornado_Patch(boxlen, swX, grid_lo.dataPtr(), grid_hi.dataPtr());
         }
 
         std::cout << "CALLING SOURCE ON BOX " << bx << std::endl;

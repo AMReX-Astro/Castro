@@ -10,9 +10,10 @@
     use amrex_fort_module, only : rt => amrex_real
     use amrex_error_module, only : amrex_abort
     use meth_params_module, only : URHO,UMX,UMY,UMZ,UEINT,UEDEN,UFX
-    use ProgramHeaderModule, only : nE, nDOF, nNodesX, nNodesE
+    use ProgramHeaderModule, only : nE, nDOF, nNodesX, nNodesE, swE
     use FluidFieldsModule, only : uCF, iCF_D, iCF_S1, iCF_S2, iCF_S3, iCF_E, iCF_Ne
-    use RadiationFieldsModule, only : nSpecies, uCR
+    use FluidFieldsModule, only : CreateFluidFields, DestroyFluidFields
+    use RadiationFieldsModule, only : CreateRadiationFields,DestroyRadiationFields,nSpecies, uCR
     use TimeSteppingModule_Castro, only : Update_IMEX_PDARS
     use UnitsModule, only : Gram, Centimeter, Second
 
@@ -51,6 +52,9 @@
     real(rt) :: Sval(ns)
     real(rt) :: dlft(ns), drgt(ns), dcen(ns), dlim, dsgn
 
+    integer  :: nX(3)
+    integer  :: swX(3)
+
     if (ng.ne. 2) &
       call amrex_abort("Need two ghost cells in call_to_thornado!")
 
@@ -60,6 +64,13 @@
     conv_ne   = 1.d0 / Centimeter**3
     conv_J    = Gram/Second**2/Centimeter
     conv_H    = Gram/Second**3
+
+    nX(:)  = hi(1) - lo(1) + 1
+    swX(:) = ng
+
+    call CreateFluidFields ( nX, swX )
+
+    call CreateRadiationFields ( nX, swX, nE, swE, nSpecies_Option = nSpecies )
 
     ! ************************************************************************************
     ! Interpolate from the Castro "S" arrays into Thornado "uCF" arrays from InitThornado_Patch
@@ -250,5 +261,8 @@
     end do
     end do
     end do
+
+    call DestroyFluidFields
+    call DestroyRadiationFields
 
   end subroutine call_to_thornado
