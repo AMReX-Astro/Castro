@@ -161,7 +161,7 @@
     do jc = lo(2)-ng,hi(2)+ng
     do ic = lo(1)-ng,hi(1)+ng
 
-         ! The uCF array was allocated in CreateRadiationdFields_Conserved with 
+         ! The uCR array was allocated in CreateRadiationdFields_Conserved with 
          ! ALLOCATE &
          !   ( uCR(1:nDOF, &
          !         1-swE:nE+swE, &
@@ -175,8 +175,8 @@
          do ie = 1, nE
          do id = 1, nDOF
             ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
-            if (im .eq. 1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,kc,ii)*conv_J
-            if (im > 1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,kc,ii)*conv_H
+            if (im .eq. 1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,kc,ii)
+            if (im  >   1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,kc,ii)
          end do
          end do
          end do
@@ -189,6 +189,7 @@
     ! ************************************************************************************
     ! Call the time stepper that lives in the thornado repo
     ! ************************************************************************************
+
     call Update_IMEX_PDARS(dt*Second, uCF, uCR)
 
     ! ************************************************************************************
@@ -238,8 +239,8 @@
          do id = 1, nDOF
             ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
 
-            if (im .eq. 1) U_R_n(ic,jc,kc,ii) = uCR(id,ie,i,j,k,im,is)/conv_J
-            if (im   >  1) U_R_n(ic,jc,kc,ii) = uCR(id,ie,i,j,k,im,is)/conv_H
+            if (im .eq. 1) U_R_n(ic,jc,kc,ii) = uCR(id,ie,i,j,k,im,is)
+            if (im   >  1) U_R_n(ic,jc,kc,ii) = uCR(id,ie,i,j,k,im,is)
 
          end do
          end do
