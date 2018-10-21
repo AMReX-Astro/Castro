@@ -129,9 +129,9 @@ Castro::create_thornado_source(Real dt)
     int my_ngrow = 2;  // two fluid ghost cells
 
     // This fills the ghost cells of the fluid MultiFab which we will pass into Thornado
-    MultiFab S_border(grids, dmap, NUM_STATE, my_ngrow);
+    MultiFab S_border(grids, dmap, NUM_STATE, my_ngrow+1);
     const Real  prev_time = state[State_Type].prevTime();
-    AmrLevel::FillPatch(*this, S_border, my_ngrow, prev_time, State_Type, 0, NUM_STATE);
+    AmrLevel::FillPatch(*this, S_border, my_ngrow+1, prev_time, State_Type, 0, NUM_STATE);
 
     // This fills the ghost cells of the radiation MultiFab which we will pass into Thornado
     MultiFab R_border(grids, dmap, U_R_old.nComp(), my_ngrow);

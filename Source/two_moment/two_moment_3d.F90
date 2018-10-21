@@ -51,20 +51,6 @@
     real(rt) :: Sval(ns)
     real(rt) :: dlft(ns), drgt(ns), dcen(ns), dlim, dsgn
 
-    ! Sanity check on size of arrays
-    ! Note that we have set ngrow_thornado = ngrow_state in Castro_setup.cpp
-    if (U_R_o_lo(1) .ne. S_lo(1) .or.  U_R_o_hi(1) .ne. S_hi(1) .or. &
-        U_R_o_lo(2) .ne. S_lo(2) .or.  U_R_o_hi(2) .ne. S_hi(2) .or. &
-        U_R_o_lo(3) .ne. S_lo(3) .or.  U_R_o_hi(3) .ne. S_hi(3)) then
-        print *,'INCONSISTENT ARRAY BOUNDS ON FLUID AND RADIATION VARS'
-        print *,'U_R_lo: ', U_R_o_lo(:)
-        print *,'U_R_hi: ', U_R_o_hi(:)
-        print *,'  S_lo: ',   S_lo(:)
-        print *,'  S_hi: ',   S_hi(:)
-        stop
-    endif
-    ! End Sanity check 
-
     if (ng.ne. 2) &
       call amrex_abort("Need two ghost cells in call_to_thornado!")
 
