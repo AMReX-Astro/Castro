@@ -97,8 +97,6 @@ Castro::init_thornado_data()
         boxlen[2]  = 1;
 #endif
 
-        // Note thornado_eL and thornado_eR in units of MeV; we will convert 
-        //      to thornado units inside InitThornado_Patch
         InitThornado_Patch(boxlen, swX, grid_lo.dataPtr(), grid_hi.dataPtr());
 
         RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
@@ -168,8 +166,6 @@ Castro::create_thornado_source(Real dt)
     swX[2] = 0;
 #endif
 
-    amrex::Print() << "*****Calling InitThornado_Patch " << std::endl; 
-
     for (int i = 0; i < n_sub; i++)
     {
 
@@ -181,10 +177,8 @@ Castro::create_thornado_source(Real dt)
       // For now we will not allowing logical tiling
       for (MFIter mfi(S_border, false); mfi.isValid(); ++mfi) 
       {
-        Box bx = mfi.validbox();
+           Box bx = mfi.validbox();
 
-        if (i == 0)  
-        {
            grid_lo[0] = prob_lo[0] +  bx.smallEnd(0)  * dx[0] / 100.0; // Factor of 100 because Thornado uses m, not cm
            grid_hi[0] = prob_lo[0] + (bx.bigEnd(0)+1) * dx[0] / 100.0;
            boxlen[0] = bx.length(0);
@@ -202,30 +196,23 @@ Castro::create_thornado_source(Real dt)
            grid_hi[2] = 1.;
            boxlen[2]  = 1;
 #endif
-           std::cout << "CALLING PATCH ON BOX " << bx << std::endl;
-
-           // Note thornado_eL and thornado_eR in units of MeV; we will convert 
-           //      to thornado units inside InitThornado_Patch
            InitThornado_Patch(boxlen, swX, grid_lo.dataPtr(), grid_hi.dataPtr());
-        }
 
-        std::cout << "CALLING SOURCE ON BOX " << bx << std::endl;
-        call_to_thornado(BL_TO_FORTRAN_BOX(bx), &dt_sub,
-                         BL_TO_FORTRAN_FAB(S_border[mfi]),
-                         BL_TO_FORTRAN_FAB(dS[mfi]),
-                         BL_TO_FORTRAN_FAB(R_border[mfi]),
-                         BL_TO_FORTRAN_FAB(U_R_new[mfi]), 
-                         &n_fluid_dof, &n_moments, &my_ngrow);
-        std::cout << "DONE CALLING SOURCE ON BOX " << bx << std::endl;
+           call_to_thornado(BL_TO_FORTRAN_BOX(bx), &dt_sub,
+                            BL_TO_FORTRAN_FAB(S_border[mfi]),
+                            BL_TO_FORTRAN_FAB(dS[mfi]),
+                            BL_TO_FORTRAN_FAB(R_border[mfi]),
+                            BL_TO_FORTRAN_FAB(U_R_new[mfi]), 
+                            &n_fluid_dof, &n_moments, &my_ngrow);
 
-        // Add the source term to all components even though there should
-        //     only be non-zero source terms for (Rho, Xmom, Ymom, Zmom, RhoE, UFX)
-        MultiFab::Add(S_new, dS, Density, 0, S_new.nComp(), 0);
-
-//      Note we can't call FreeThornado_Patch here because it is only initialized 
-//        at the begining of the run, not every timestep
-        if (i == (n_sub-1)) FreeThornado_Patch();
+           // Add the source term to all components even though there should
+           //     only be non-zero source terms for (Rho, Xmom, Ymom, Zmom, RhoE, UFX)
+           MultiFab::Add(S_new, dS, Density, 0, S_new.nComp(), 0);
+   
+           FreeThornado_Patch();
       }
+
+      // Fill the ghost cells before taking the next dt_sub 
       S_border.FillBoundary();
     }
     delete boxlen;
