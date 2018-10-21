@@ -208,7 +208,8 @@ subroutine ca_init_thornado_data(level,time,lo,hi, &
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP, UFS, UFX
   use MeshModule, only: MeshE, MeshX, NodeCoordinate
   use UnitsModule
-  use EquationOfStateModule_TABLE, only: ComputeThermodynamicStates_Auxiliary_TABLE, ComputeElectronChemicalPotential_TABLE, ComputeProtonChemicalPotential_TABLE, ComputeNeutronChemicalPotential_TABLE 
+  use EquationOfStateModule_TABLE, only: ComputeThermodynamicStates_Auxiliary_TABLE, ComputeElectronChemicalPotential_TABLE, &
+                                         ComputeProtonChemicalPotential_TABLE, ComputeNeutronChemicalPotential_TABLE 
 
   implicit none
 
@@ -260,13 +261,13 @@ subroutine ca_init_thornado_data(level,time,lo,hi, &
 
         xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5e0_rt) - centx
         
-        ! get Castro fluid variables unit convert to thornado units
+        ! Get Castro fluid variables unit convert to thornado units
         rho_in(1) = state(i,j,URHO) * Gram / Centimeter**3
         T_in(1) = state(i,j,UTEMP) * Kelvin
         Evol(1) = state(i,j,UEINT) * (Erg/Centimeter**3)
         Ne_loc(1) = state(i,j,UFX) / Centimeter**3  
         
-        ! calculate chemical potentials via thornado subroutines
+        ! Calculate chemical potentials via thornado subroutines
         call ComputeThermodynamicStates_Auxiliary_TABLE( rho_in, Evol, Ne_loc, T_in, Em_in, Ye_in) 
         call ComputeElectronChemicalPotential_TABLE(rho_in,T_in,Ye_in,M_e)        
         call ComputeProtonChemicalPotential_TABLE(rho_in,T_in,Ye_in,M_p)        
@@ -284,7 +285,7 @@ subroutine ca_init_thornado_data(level,time,lo,hi, &
            do ixnode = 1, nNodesX(1)
            do ienode = 1, nNodesE
  
-              ! calculate the indices
+              ! Calculate the indices
               id = (ienode-1) + nx*(ixnode-1) + ny*(iynode-1)
               ii = ii_0 + id
 

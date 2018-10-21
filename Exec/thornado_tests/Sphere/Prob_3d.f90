@@ -2,6 +2,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use eos_module
   use eos_type_module
+  use amrex_constants_module, only: half
   use amrex_error_module 
   use network
   use probdata_module
@@ -41,6 +42,10 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   xn(:) = 0.0e0_rt
   xn(1) = 1.0e0_rt
+
+  centx = half * (problo(1)+probhi(1))
+  centy = half * (problo(2)+probhi(2))
+  centz = half * (problo(3)+probhi(3))
 
 end subroutine amrex_probinit
 
@@ -113,18 +118,18 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   T_min = 5.0e9 
   T_max = 2.6e11
 
-  Ye_min = 0.4
+  Ye_min = 0.3
   Ye_max = 0.46
 
   ! ************************ Radii and widths for rho, T, Ye ************************
-  r_rho = 2.0e7
-  H_rho = 1.0e7
+  r_rho = 2.0e6
+  H_rho = 1.0e6
 
-  r_T = 2.5e7
-  H_T = 2.0e7
+  r_T = 2.5e6
+  H_T = 2.0e6
 
-  r_Ye = 4.5e7
-  H_Ye = 1.0e7
+  r_Ye = 4.5e6
+  H_Ye = 1.0e6
 
   ! ************************ ************************ ************************
 
@@ -132,9 +137,9 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   do j = lo(2), hi(2)
      do i = lo(1), hi(1)
 
-        x = xlo(1) + delta(1)*(dble(i-lo(1))+half)
-        y = xlo(2) + delta(2)*(dble(j-lo(2))+half)
-        z = xlo(3) + delta(3)*(dble(k-lo(3))+half)
+        x = xlo(1) + delta(1)*(dble(i-lo(1))+half) - centx
+        y = xlo(2) + delta(2)*(dble(j-lo(2))+half) - centy
+        z = xlo(3) + delta(3)*(dble(k-lo(3))+half) - centz
 
         radius = sqrt(x*x+y*y+z*z)
  
@@ -172,6 +177,9 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   enddo
   enddo
 
+  deallocate(rho_in,T_in,Ye_in)
+  deallocate(Epervol_out,Epermass_out,Ne_out)
+
 end subroutine ca_initdata
 
 ! hardwired assuming 4 moments
@@ -189,9 +197,11 @@ end subroutine get_rad_ncomp
 
 ! hardwired assuming 4 moments
 ! streaming sine wave, J = H_x = 1 + sin(2*pi*x)
-subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
+subroutine ca_init_thornado_data(level,time,lo,hi,&
+                                 nrad_comp,rad_state, &
                                  rad_state_l1,rad_state_l2,rad_state_l3, &
                                  rad_state_h1,rad_state_h2,rad_state_h3, &
+                                 state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3, &
                                  delta,xlo,xhi) bind(C,name="ca_init_thornado_data")
 
   use probdata_module
@@ -200,17 +210,26 @@ subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
   use amrex_fort_module, only : rt => amrex_real
   use amrex_error_module
   use amrex_constants_module, only : M_PI
+  use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS, UFX
+  use MeshModule, only: MeshE, MeshX, NodeCoordinate
+  use UnitsModule
+  use EquationOfStateModule_TABLE, only: ComputeThermodynamicStates_Auxiliary_TABLE, ComputeElectronChemicalPotential_TABLE, &
+                                         ComputeProtonChemicalPotential_TABLE, ComputeNeutronChemicalPotential_TABLE
 
   implicit none
 
   integer , intent(in) :: level, nrad_comp
   integer , intent(in) :: lo(3), hi(3)
+  integer , intent(in) :: state_l1,state_h1
+  integer , intent(in) :: state_l2,state_h2
+  integer , intent(in) :: state_l3,state_h3
   integer , intent(in) :: rad_state_l1,rad_state_h1
   integer , intent(in) :: rad_state_l2,rad_state_h2
   integer , intent(in) :: rad_state_l3,rad_state_h3
   real(rt), intent(in) :: xlo(3), xhi(3), time, delta(3)
   real(rt), intent(inout) ::  rad_state(rad_state_l1:rad_state_h1,rad_state_l2:rad_state_h2,&
                                         rad_state_l3:rad_state_h3,0:nrad_comp-1)
+  real(rt), intent(inout) ::  state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,NVAR)
 
   ! Local parameter
   integer, parameter :: n_moments = 4
@@ -220,6 +239,7 @@ subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
   integer :: ii,ii_0,is,im,ie,id
   integer :: nx,ny,nz
   real(rt) :: xcen, ycen, zcen, xnode, ynode, znode
+  real(rt) :: rho_in(1), T_in(1), Ye_in(1), Evol(1), Ne_loc(1), Em_in(1), M_e(1), M_p(1), M_n(1), M_nu(1), E(1)
 
   ! zero it out, just in case
   rad_state = 0.0e0_rt
@@ -242,13 +262,27 @@ subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
      call amrex_abort("nDOE ne nNodesX(1)*nNodesX(2)*nNodesX(3)*nNodesE")
 
   do k = lo(3), hi(3)
-     zcen = xlo(3) + delta(3)*(dble(k-lo(3)) + 0.5_rt)
+     zcen = xlo(3) + delta(3)*(dble(k-lo(3)) + 0.5_rt) - centz
      
      do j = lo(2), hi(2)
-        ycen = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5_rt)
+        ycen = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5_rt) - centy
 
         do i = lo(1), hi(1)
-           xcen = xlo(1) + delta(1)*(dble(i-lo(1)) + 0.5_rt)
+           xcen = xlo(1) + delta(1)*(dble(i-lo(1)) + 0.5_rt) - centx
+
+           ! Get Castro fluid variables unit convert to thornado units
+           rho_in(1) = state(i,j,k,URHO) * Gram / Centimeter**3
+           T_in(1) = state(i,j,k,UTEMP) * Kelvin
+           Evol(1) = state(i,j,k,UEINT) * (Erg/Centimeter**3)
+           Ne_loc(1) = state(i,j,k,UFX) / Centimeter**3
+
+           ! Calculate chemical potentials via thornado subroutines
+           call ComputeThermodynamicStates_Auxiliary_TABLE( rho_in, Evol, Ne_loc, T_in, Em_in, Ye_in)
+           call ComputeElectronChemicalPotential_TABLE(rho_in,T_in,Ye_in,M_e)
+           call ComputeProtonChemicalPotential_TABLE(rho_in,T_in,Ye_in,M_p)
+           call ComputeNeutronChemicalPotential_TABLE(rho_in,T_in,Ye_in,M_n)
+
+           M_nu = M_e + M_p - M_n
 
            do is = 1, nSpecies
            do im = 1, n_moments
@@ -261,21 +295,24 @@ subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
            do ixnode = 1, nNodesX(1)
            do ienode = 1, nNodesE
  
-              ! calculate the indices
+              ! Calculate the indices
               id = (ienode-1) + nx*(ixnode-1) + ny*(iynode-1) + nz*(iznode-1)
               ii = ii_0 + id
 
-              ! calculate actual positions of the nodes used for the gaussian quadrature
+              ! Calculate actual positions of the nodes used for the gaussian quadrature
               xnode = xcen + ( float(ixnode)-1.5e0_rt )*delta(1)/sqrt(3.0e0_rt)
               ynode = ycen + ( float(iynode)-1.5e0_rt )*delta(2)/sqrt(3.0e0_rt)
               znode = zcen + ( float(iznode)-1.5e0_rt )*delta(3)/sqrt(3.0e0_rt)
 
+              ! Get energy at given node coordinate via thornado subroutine
+              E = NodeCoordinate( MeshE, ie, ienode)
+
               ! J moment, im = 1
-              if (im .eq. 1) rad_state(i,j,k,ii) = 1.0e0_rt + 0.9999e0_rt*sin(2.0e0_rt*M_PI*xnode)
+              if (im .eq. 1) &
+                      rad_state(i,j,k,ii) = max(1.0e0_rt / (exp( (E(1)-M_nu(1)) / T_in(1))  + 1.0e0_rt), 1.0d-99)
 
               ! H_x moment, im = 2
-              if (im .eq. 2) rad_state(i,j,k,ii) = 3.0e10_rt*0.9999e0_rt &
-                              *(1.0e0_rt + 0.9999e0_rt*sin(2.0e0_rt*M_PI*xnode))
+              if (im .eq. 2) rad_state(i,j,k,ii) = 0.e0_rt
 
               ! H_y moment, im = 3
               if (im .eq. 3) rad_state(i,j,k,ii) = 0.0e0_rt
