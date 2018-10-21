@@ -101,9 +101,10 @@ int          Castro::THORNADO_NMOMENTS   = 4;
 int          Castro::THORNADO_FLUID_NDOF = std::pow(THORNADO_NNODES, BL_SPACEDIM     );   // =  8 for 3D
 int          Castro::THORNADO_RAD_NDOF   = std::pow(THORNADO_NNODES,(BL_SPACEDIM + 1));   // = 16 for 3D and 1 energy
 
+int          Castro::thornado_swE        = 0;
 Real         Castro::thornado_eL         = 0.; 
 Real         Castro::thornado_eR         = 300.; 
-int          Castro::thornado_ndimse     = 10; 
+int          Castro::thornado_ndimse     = 10;
 Real         Castro::thornado_zoome      = 1.0; 
 #endif
 

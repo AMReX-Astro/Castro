@@ -885,6 +885,7 @@ protected:
     static int THORNADO_RAD_NDOF;
 
     // These are the lower and upper limits of the energy groups
+    static int         thornado_swE;
     static amrex::Real thornado_eL;
     static amrex::Real thornado_eR;
     static int         thornado_ndimse;

@@ -6,7 +6,9 @@
 extern "C"
 {
 #endif
-  void InitThornado(const int* nDimsX, const int* nDimsE, const amrex::Real* zoomE, const int* nSpecies);
+  void InitThornado(const int* nDimsX, const int* nDimsE, const int* swE,
+                    const amrex::Real* eL, const amrex::Real* eR,
+                    const amrex::Real* zoomE, const int* nSpecies);
 
   void ca_get_rad_ncomp(int* rad_ncomp);
 

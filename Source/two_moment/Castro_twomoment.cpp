@@ -14,6 +14,7 @@ Castro::read_thornado_params ()
   pp.query("eR"    , thornado_eR);
   pp.query("ndimse", thornado_ndimse);
   pp.query("zoome" , thornado_zoome);
+  pp.query("swE"   , thornado_swE);
 }
 
 int
@@ -25,8 +26,12 @@ Castro::init_thornado()
 
     Real zoomE    = thornado_zoome;  // geometric zoom factor for energy groups
 
+    int swE = thornado_swE;
+    Real eL = thornado_eL;
+    Real eR = thornado_eR;
+
     amrex::Print() << "*****Calling InitThornado " << std::endl; 
-    InitThornado(&nDimsX, &nDimsE, &zoomE, &nSpecies);
+    InitThornado(&nDimsX, &nDimsE, &swE, &eL, &eR, &zoomE, &nSpecies);
 
     int ncomp_thornado;
 
