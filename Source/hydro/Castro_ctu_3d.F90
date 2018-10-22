@@ -173,29 +173,31 @@ contains
 
     ! Local constants
     dxinv = ONE/dx(1)
-    dyinv = ONE/dx(2)
-    dzinv = ONE/dx(3)
-
     dtdx = dt*dxinv
+    hdtdx = HALF*dtdx
+    cdtdx = dtdx*THIRD
+
+#if AMREX_SPACEDIM >= 2
+    dyinv = ONE/dx(2)
     dtdy = dt*dyinv
+    hdtdy = HALF*dtdy
+    cdtdy = dtdy*THIRD
+#endif
+
+#if AMREX_SPACEDIM == 3
+    dzinv = ONE/dx(3)
     dtdz = dt*dzinv
+    hdtdz = HALF*dtdz
+    cdtdz = dtdz*THIRD
+#endif
 
     hdt = HALF*dt
-
-    hdtdx = HALF*dtdx
-    hdtdy = HALF*dtdy
-    hdtdz = HALF*dtdz
-
-    cdtdx = dtdx*THIRD
-    cdtdy = dtdy*THIRD
-    cdtdz = dtdz*THIRD
 
     fglo = lo - dg(:)  ! face + one ghost
     fghi = hi + 2*dg(:)
 
     glo = lo - dg(:)  ! one ghost,  this can be used for face-based arrays too
     ghi = hi + dg(:)
-
 
     call bl_allocate ( qxm, fglo, fghi, NQ)
     call bl_allocate ( qxp, fglo, fghi, NQ)
@@ -209,16 +211,16 @@ contains
 
     if (ppm_type .gt. 0) then
        ! x-index, y-index, z-index, dim, characteristics, variables
-       call bl_allocate ( Ip, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,3,1,3,1,NQ)
-       call bl_allocate ( Im, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,3,1,3,1,NQ)
+       call bl_allocate ( Ip, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,AMREX_SPACEDIM,1,3,1,NQ)
+       call bl_allocate ( Im, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,AMREX_SPACEDIM,1,3,1,NQ)
 
        ! for source terms
-       call bl_allocate ( Ip_src, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,3,1,3,1,QVAR)
-       call bl_allocate ( Im_src, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,3,1,3,1,QVAR)
+       call bl_allocate ( Ip_src, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,AMREX_SPACEDIM,1,3,1,QVAR)
+       call bl_allocate ( Im_src, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,AMREX_SPACEDIM,1,3,1,QVAR)
 
        ! for gamc -- needed for the reference state in eigenvectors
-       call bl_allocate ( Ip_gc, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,3,1,3,1,1)
-       call bl_allocate ( Im_gc, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,3,1,3,1,1)
+       call bl_allocate ( Ip_gc, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,AMREX_SPACEDIM,1,3,1,1)
+       call bl_allocate ( Im_gc, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,AMREX_SPACEDIM,1,3,1,1)
     else
        call bl_allocate ( dqx, glo, ghi, NQ)
        call bl_allocate ( dqy, glo, ghi, NQ)
@@ -267,10 +269,14 @@ contains
 
     call bl_allocate(sxm, glo, ghi)
     call bl_allocate(sxp, glo, ghi)
+#if AMREX_SPACEDIM >= 2
     call bl_allocate(sym, glo, ghi)
     call bl_allocate(syp, glo, ghi)
+#endif
+#if AMREX_SPACEDIM == 3
     call bl_allocate(szm, glo, ghi)
     call bl_allocate(szp, glo, ghi)
+#endif
 
     ! we don't need to reconstruct all of the NQ state variables,
     ! depending on how we are tracing
@@ -303,13 +309,27 @@ contains
 
           call ppm_reconstruct(q, qd_lo, qd_hi, NQ, n, &
                                flatn, qd_lo, qd_hi, &
-                               sxm, sxp, sym, syp, szm, szp, glo, ghi, &
+                               sxm, sxp, &
+#if AMREX_SPACEDIM >= 2
+                               sym, syp, &
+#endif
+#if AMREX_SPACEDIM == 3
+                               szm, szp, &
+#endif
+                               glo, ghi, &
                                lo, hi, dx)
 
           call ppm_int_profile(q, qd_lo, qd_hi, NQ, n, &
                                q, qd_lo, qd_hi, &
                                qaux, qa_lo, qa_hi, &
-                               sxm, sxp, sym, syp, szm, szp, glo, ghi, &
+                               sxm, sxp, &
+#if AMREX_SPACEDIM >= 2
+                               sym, syp, &
+#endif
+#if AMREX_SPACEDIM == 3
+                               szm, szp, &
+#endif
+                               glo, ghi, &
                                Ip, Im, glo, ghi, NQ, n, &
                                lo, hi, dx, dt)
        end do
@@ -318,13 +338,27 @@ contains
        if (ppm_temp_fix /= 1) then
           call ppm_reconstruct(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
                                flatn, qd_lo, qd_hi, &
-                               sxm, sxp, sym, syp, szm, szp, glo, ghi, &
+                               sxm, sxp, &
+#if AMREX_SPACEDIM >= 2
+                               sym, syp, &
+#endif
+#if AMREX_SPACEDIM == 3
+                               szm, szp, &
+#endif
+                               glo, ghi, &
                                lo, hi, dx)
 
           call ppm_int_profile(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
                                q, qd_lo, qd_hi, &
                                qaux, qa_lo, qa_hi, &
-                               sxm, sxp, sym, syp, szm, szp, glo, ghi, &
+                               sxm, sxp, &
+#if AMREX_SPACEDIM >= 2
+                               sym, syp, &
+#endif
+#if AMREX_SPACEDIM == 3
+                               szm, szp, &
+#endif
+                               glo, ghi, &
                                Ip_gc, Im_gc, glo, ghi, 1, 1, &
                                lo, hi, dx, dt)
        else
@@ -384,13 +418,26 @@ contains
           if (source_nonzero(n)) then
              call ppm_reconstruct(srcQ, src_lo, src_hi, QVAR, n, &
                                   flatn, qd_lo, qd_hi, &
-                                  sxm, sxp, sym, syp, szm, szp, glo, ghi, &
+                                  sxm, sxp, &
+#if AMREX_SPACEDIM >= 2
+                                  sym, syp, &
+#endif
+#if AMREX_SPACEDIM == 3
+                                  szm, szp, &
+#endif
+                                  glo, ghi, &
                                   lo, hi, dx)
 
              call ppm_int_profile(srcQ, src_lo, src_hi, QVAR, n, &
                                   q, qd_lo, qd_hi, &
                                   qaux, qa_lo, qa_hi, &
-                                  sxm, sxp, sym, syp, szm, szp, glo, ghi, &
+                                  sxm, sxp, &
+#if AMREX_SPACEDIM >= 2
+                                  sym, syp, &
+#endif
+#if AMREX_SPACEDIM == 3
+                                  szm, szp, &
+                                  glo, ghi, &
                                   Ip_src, Im_src, glo, ghi, QVAR, n, &
                                   lo, hi, dx, dt)
           else
