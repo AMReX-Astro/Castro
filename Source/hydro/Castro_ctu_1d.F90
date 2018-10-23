@@ -393,7 +393,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, shk_lo, shk_hi, &
-                1, [lo(1), 0, 0], [hi(1)+1, 0, 0], &
+                1, lo, hi+1, &
                 domlo, domhi)
 
     deallocate (qm,qp)

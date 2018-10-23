@@ -165,8 +165,13 @@ contains
          call amrex_error("Need more ghost cells on array in ppm_type1")
     end if
 
-#if (AMREX_SPACEDIM >= 2)
+#if AMREX_SPACEDIM >= 2
     if (s_lo(2) .gt. lo(2)-3 .or. s_hi(2) .lt. hi(2)+3) then
+         call amrex_error("Need more ghost cells on array in ppm_type1")
+    end if
+#endif
+#if AMREX_SPACEDIM == 3
+    if (s_lo(3) .gt. lo(3)-3 .or. s_hi(3) .lt. hi(3)+3) then
          call amrex_error("Need more ghost cells on array in ppm_type1")
     end if
 #endif
@@ -633,7 +638,7 @@ contains
     ! compute s at y-edges
 
     ! interpolate s to y-edges
-    do k = lo(3)-1, hi(3)+1
+    do k = lo(3)-dg(3), hi(3)+dg(3)
        do j = lo(2)-2, hi(2)+3
           do i = lo(1)-1, hi(1)+1
              sedge(i,j,k) = SEVEN12TH*(s(i,j-1,k,n)+s(i,j,k,n)) &
@@ -657,7 +662,7 @@ contains
     !
     ! This is a new version of the algorithm to eliminate sensitivity to roundoff.
     !
-    do k = lo(3)-1, hi(3)+1
+    do k = lo(3)-dg(3), hi(3)+dg(3)
        do j = lo(2)-1, hi(2)+1
           do i = lo(1)-1, hi(1)+1
 
