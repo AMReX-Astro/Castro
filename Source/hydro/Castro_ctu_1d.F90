@@ -53,7 +53,7 @@ contains
     use rad_params_module, only : ngroups
     use trace_ppm_rad_module, only : trace_ppm_rad
 #else
-    use trace_ppm_module, only : trace_ppm, trace_ppm_gammae, trace_ppm_temp
+    use trace_ppm_module, only : trace_ppm
 #endif
 #ifdef SHOCK_VAR
     use meth_params_module, only : USHK
@@ -336,35 +336,18 @@ contains
                           lo, hi, domlo, domhi, &
                           dx, dt)
 #else
-       if (ppm_temp_fix < 3) then
-          if (ppm_predict_gammae == 0) then
-             call trace_ppm(1, q, q_lo, q_hi, &
-                            qaux, qa_lo, qa_hi, &
-                            Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
-                            qm, qp, qp_lo, qp_hi, &
-                            dloga, dloga_lo, dloga_hi, &
-                            lo, hi, domlo, domhi, &
-                            dx, dt)
-          else
-             call trace_ppm_gammae(1, q, q_lo, q_hi, &
-                                   qaux, qa_lo, qa_hi, &
-                                   Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
-                                   qm, qp, qp_lo, qp_hi, &
-                                   dloga, dloga_lo, dloga_hi, &
-                                   lo, hi, domlo, domhi, &
-                                   dx, dt)
-          endif
-       else
-             call trace_ppm_temp(1, q, q_lo, q_hi, &
-                                 qaux, qa_lo, qa_hi, &
-                                 Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
-                                 qm, qp, qp_lo, qp_hi, &
-                                 dloga, dloga_lo, dloga_hi, &
-                                 lo, hi, domlo, domhi, &
-                                 dx, dt)
-       endif
+       call trace_ppm(1, q, q_lo, q_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
+                      qm, qp, qp_lo, qp_hi, &
+                      dloga, dloga_lo, dloga_hi, &
+                      lo, hi, domlo, domhi, &
+                      dx, dt)
 #endif
     else
+
+       ! PLM
+
 #ifdef RADIATION
 #ifndef AMREX_USE_CUDA
        call amrex_error("ppm_type <=0 is not supported in umeth with radiation")

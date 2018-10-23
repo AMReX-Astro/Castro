@@ -73,7 +73,7 @@ contains
     use rad_params_module, only : ngroups
     use trace_ppm_rad_module, only : trace_ppm_rad
 #else
-    use trace_ppm_module, only : trace_ppm, trace_ppm_gammae, trace_ppm_temp
+    use trace_ppm_module, only : trace_ppm
 #endif
 #ifdef SHOCK_VAR
     use meth_params_module, only : USHK
@@ -437,6 +437,7 @@ contains
 #endif
 #if AMREX_SPACEDIM == 3
                                   szm, szp, &
+#endif
                                   glo, ghi, &
                                   Ip_src, Im_src, glo, ghi, QVAR, n, &
                                   lo, hi, dx, dt)
@@ -448,7 +449,7 @@ contains
        enddo
 
 
-       ! Compute U_x and U_y at kc (k3d)
+       ! compute the interface states
 
 #ifdef RADIATION
        call trace_ppm_rad(1, q, qd_lo, qd_hi, &
@@ -473,74 +474,30 @@ contains
                           dx, dt)
 
 #else
-       if (ppm_temp_fix < 3) then
-          if (ppm_predict_gammae == 0) then
-             call trace_ppm(1, q, qd_lo, qd_hi, &
-                            qaux, qa_lo, qa_hi, &
-                            Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
-                            qxm, qxp, fglo, fghi, &
-                            lo, hi, domlo, domhi, &
-                            dx, dt)
+       call trace_ppm(1, q, qd_lo, qd_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
+                      qxm, qxp, fglo, fghi, &
+                      lo, hi, domlo, domhi, &
+                      dx, dt)
 
-             call trace_ppm(2, q, qd_lo, qd_hi, &
-                            qaux, qa_lo, qa_hi, &
-                            Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
-                            qym, qyp, fglo, fghi, &
-                            lo, hi, domlo, domhi, &
-                            dx, dt)
+       call trace_ppm(2, q, qd_lo, qd_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
+                      qym, qyp, fglo, fghi, &
+                      lo, hi, domlo, domhi, &
+                      dx, dt)
 
-             call trace_ppm(3, q, qd_lo, qd_hi, &
-                            qaux, qa_lo, qa_hi, &
-                            Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
-                            qzm, qzp, fglo, fghi, &
-                            lo, hi, domlo, domhi, &
-                            dx, dt)
-          else
-             call trace_ppm_gammae(1, q, qd_lo, qd_hi, &
-                                   qaux, qa_lo, qa_hi, &
-                                   Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
-                                   qxm, qxp, fglo, fghi, &
-                                   lo, hi, domlo, domhi, &
-                                   dx, dt)
-
-             call trace_ppm_gammae(2, q, qd_lo, qd_hi, &
-                                   qaux, qa_lo, qa_hi, &
-                                   Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
-                                   qym, qyp, fglo, fghi, &
-                                   lo, hi, domlo, domhi, &
-                                   dx, dt)
-
-             call trace_ppm_gammae(3, q, qd_lo, qd_hi, &
-                                   qaux, qa_lo, qa_hi, &
-                                   Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
-                                   qzm, qzp, fglo, fghi, &
-                                   lo, hi, domlo, domhi, &
-                                   dx, dt)
-          endif
-       else
-          call trace_ppm_temp(1, q, qd_lo, qd_hi, &
-                              qaux, qa_lo, qa_hi, &
-                              Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
-                              qxm, qxp, fglo, fghi, &
-                              lo, hi, domlo, domhi, &
-                              dx, dt)
-
-          call trace_ppm_temp(2, q, qd_lo, qd_hi, &
-                              qaux, qa_lo, qa_hi, &
-                              Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
-                              qym, qyp, fglo, fghi, &
-                              lo, hi, domlo, domhi, &
-                              dx, dt)
-
-          call trace_ppm_temp(3, q, qd_lo, qd_hi, &
-                              qaux, qa_lo, qa_hi, &
-                              Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
-                              qzm, qzp, fglo, fghi, &
-                              lo, hi, domlo, domhi, &
-                              dx, dt)
-       endif
+       call trace_ppm(3, q, qd_lo, qd_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
+                      qzm, qzp, fglo, fghi, &
+                      lo, hi, domlo, domhi, &
+                      dx, dt)
 #endif
     else
+       ! PLM
+
 #ifdef RADIATION
 #ifndef AMREX_USE_CUDA
        call amrex_error("ppm_type <=0 is not supported in with radiation")
@@ -552,14 +509,28 @@ contains
           if (.not. reconstruct_state(n)) cycle
           call uslope(q, qd_lo, qd_hi, n, &
                       flatn, qd_lo, qd_hi, &
-                      dqx, dqy, dqz, glo, ghi, &
+                      dqx, &
+#if AMREX_SPACEDIM >= 2
+                      dqy, &
+#endif
+#if AMREX_SPACEDIM == 3
+                      dqz, &
+#endif
+                      glo, ghi, &
                       lo, hi)
        end do
 
        if (use_pslope == 1) &
             call pslope(q, qd_lo, qd_hi, &
                         flatn, qd_lo, qd_hi, &
-                        dqx, dqy, dqz, glo, ghi, &
+                        dqx, &
+#if AMREX_SPACEDIM >= 2
+                        dqy, &
+#endif
+#if AMREX_SPACEDIM == 3
+                        dqz, &
+#endif
+                        glo, ghi, &
                         srcQ, src_lo, src_hi, &
                         lo, hi, dx)
 
