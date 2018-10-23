@@ -308,49 +308,10 @@ contains
                                Ip_gc, Im_gc, I_lo, I_hi, 1, 1, &
                                lo, hi, dx, dt)
        else
-          ! temperature-based PPM -- if desired, take the Ip(T)/Im(T)
-          ! constructed above and use the EOS to overwrite Ip(p)/Im(p)
-          ! get an edge-based gam1 here if we didn't get it from the EOS
-          ! call above (for ppm_temp_fix = 1)
-          do iwave = 1, 3
-             do idim = 1, 2
 
-                do j = lo(2)-1, hi(2)+1
-                   do i = lo(1)-1, hi(1)+1
-
-                      eos_state%rho   = Ip(i,j,idim,iwave,QRHO)
-                      eos_state%T     = Ip(i,j,idim,iwave,QTEMP)
-
-                      eos_state%xn(:) = Ip(i,j,idim,iwave,QFS:QFS-1+nspec)
-                      eos_state%aux   = Ip(i,j,idim,iwave,QFX:QFX-1+naux)
-
-                      call eos(eos_input_rt, eos_state)
-
-                      Ip(i,j,idim,iwave,QPRES) = eos_state % p
-                      Ip(i,j,idim,iwave,QREINT) = Ip(i,j,idim,iwave,QRHO) * eos_state % e
-                      Ip_gc(i,j,idim,iwave,1) = eos_state%gam1
-
-                   end do
-                end do
-
-                do j = lo(2)-1, hi(2)+1
-                   do i = lo(1)-1, hi(1)+1
-
-                      eos_state%rho   = Im(i,j,idim,iwave,QRHO)
-                      eos_state%T     = Im(i,j,idim,iwave,QTEMP)
-
-                      eos_state%xn(:) = Im(i,j,idim,iwave,QFS:QFS-1+nspec)
-                      eos_state%aux   = Im(i,j,idim,iwave,QFX:QFX-1+naux)
-
-                      call eos(eos_input_rt, eos_state)
-
-                      Im(i,j,idim,iwave,QPRES) = eos_state % p
-                      Im(i,j,idim,iwave,QREINT) = Im(i,j,idim,iwave,QRHO) * eos_state % e
-                      Im_gc(i,j,idim,iwave,1) = eos_state%gam1
-                   enddo
-                enddo
-             enddo
-          enddo
+          ! temperature-based PPM
+          call ppm_reconstruct_with_eos(lo-dg, hi+dg, &
+                                        Ip, Im, Ip_gc, Im_gc, glo, ghi)
 
        endif
 

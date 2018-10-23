@@ -41,16 +41,34 @@ contains
                    lo, hi, dx, dt, &
                    uout, uout_lo, uout_hi, &
                    flux1, f1_lo, f1_hi, &
+#if AMREX_SPACEDIM >= 2
                    flux2, f2_lo, f2_hi, &
+#endif
+#if AMREX_SPACEDIM == 3
                    flux3, f3_lo, f3_hi, &
+#endif
 #ifdef RADIATION
                    rflux1, rf1_lo, rf1_hi, &
+#if AMREX_SPACEDIM >= 2
                    rflux2, rf2_lo, rf2_hi, &
+#endif
+#if AMREX_SPACEDIM == 3
                    rflux3, rf3_lo, rf3_hi, &
 #endif
+#endif
                    q1, q1_lo, q1_hi, &
+#if AMREX_SPACEDIM >= 2
                    q2, q2_lo, q2_hi, &
+#endif
+#if AMREX_SPACEDIM == 3
                    q3, q3_lo, q3_hi, &
+#endif
+#if AMREX_SPACEDIM <= 2
+                   area1, area1_lo, area1_hi, &
+                   area2, area2_lo, area2_hi, &
+                   vol, vol_lo, vol_hi, &
+                   dloga, dloga_lo, dloga_hi, &
+#endif
                    domlo, domhi)
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
@@ -59,7 +77,7 @@ contains
                                    QC, QGAMC, NQAUX, QGAME, QREINT, &
                                    NGDNV, GDU, GDV, GDW, GDPRES, &
                                    ppm_type, ppm_predict_gammae, &
-                                   use_pslope, ppm_temp_fix, &
+                                   plm_iorder, use_pslope, ppm_temp_fix, &
                                    hybrid_riemann
     use network, only : nspec, naux
     use eos_type_module, only: eos_t, eos_input_rt
@@ -68,6 +86,9 @@ contains
     use transverse_module
     use ppm_module, only : ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
     use slope_module, only : uslope, pslope
+#if AMREX_SPACEDIM == 2
+    use multid_slope_module, only : multid_slope
+#endif
     use riemann_module, only: cmpflx
 #ifdef RADIATION
     use rad_params_module, only : ngroups
@@ -88,16 +109,31 @@ contains
     integer, intent(in) :: src_lo(3), src_hi(3)
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: uout_lo(3), uout_hi(3)
-    integer, intent(in) :: f1_lo(3), f1_hi(3)
-    integer, intent(in) :: f2_lo(3), f2_hi(3)
-    integer, intent(in) :: f3_lo(3), f3_hi(3)
     integer, intent(in) :: q1_lo(3), q1_hi(3)
+    integer, intent(in) :: f1_lo(3), f1_hi(3)
+#if AMREX_SPACEDIM >= 2
     integer, intent(in) :: q2_lo(3), q2_hi(3)
+    integer, intent(in) :: f2_lo(3), f2_hi(3)
+#endif
+#if AMREX_SPACEDIM == 3
+    integer, intent(in) :: f3_lo(3), f3_hi(3)
     integer, intent(in) :: q3_lo(3), q3_hi(3)
+#endif
+#if AMREX_SPACEDIM <= 2
+    integer, intent(in) :: area1_lo(3), area1_hi(3)
+    integer, intent(in) :: area2_lo(3), area2_hi(3)
+    integer, intent(in) :: vol_lo(3), vol_hi(3)
+    integer, intent(in) :: dloga_lo(3), dloga_hi(3)
+#endif
+
 #ifdef RADIATION
     integer, intent(in) :: rf1_lo(3), rf1_hi(3)
+#if AMREX_SPACEDIM >= 2
     integer, intent(in) :: rf2_lo(3), rf2_hi(3)
+#endif
+#if AMREX_SPACEDIM == 3
     integer, intent(in) :: rf3_lo(3), rf3_hi(3)
+#endif
 #endif
     integer, intent(in) :: domlo(3), domhi(3)
 
@@ -110,16 +146,30 @@ contains
 
     real(rt), intent(inout) ::  uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
     real(rt), intent(inout) :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3),NVAR)
-    real(rt), intent(inout) :: flux2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3),NVAR)
-    real(rt), intent(inout) :: flux3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3),NVAR)
     real(rt), intent(inout) ::    q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NGDNV)
+#if AMREX_SPACEDIM >= 2
+    real(rt), intent(inout) :: flux2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3),NVAR)
     real(rt), intent(inout) ::    q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NGDNV)
+#endif
+#if AMREX_SPACEDIM == 3
+    real(rt), intent(inout) :: flux3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3),NVAR)
     real(rt), intent(inout) ::    q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NGDNV)
+#endif
 
 #ifdef RADIATION
     real(rt), intent(inout) :: rflux1(rf1_lo(1):rf1_hi(1),rf1_lo(2):rf1_hi(2),rf1_lo(3):rf1_hi(3),0:ngroups-1)
+#if AMREX_SPACEDIM >= 2
     real(rt), intent(inout) :: rflux2(rf2_lo(1):rf2_hi(1),rf2_lo(2):rf2_hi(2),rf2_lo(3):rf2_hi(3),0:ngroups-1)
+#endif
+#if AMREX_SPACEDIM == 3
     real(rt), intent(inout) :: rflux3(rf3_lo(1):rf3_hi(1),rf3_lo(2):rf3_hi(2),rf3_lo(3):rf3_hi(3),0:ngroups-1)
+#endif
+#endif
+#if AMREX_SPACEDIM <= 2
+    real(rt), intent(in) :: dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
+    real(rt), intent(in) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
+    real(rt), intent(in) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2),area2_lo(3):area2_hi(3))
+    real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
 #endif
 
     real(rt) :: dxinv, dyinv, dzinv
@@ -206,9 +256,10 @@ contains
     call bl_allocate ( qym, fglo, fghi, NQ)
     call bl_allocate ( qyp, fglo, fghi, NQ)
 
+#if AMREX_SPACEDIM == 3
     call bl_allocate ( qzm, fglo, fghi, NQ)
     call bl_allocate ( qzp, fglo, fghi, NQ)
-
+#endif
 
     if (ppm_type .gt. 0) then
        ! x-index, y-index, z-index, dim, characteristics, variables
@@ -224,8 +275,12 @@ contains
        call bl_allocate ( Im_gc, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,AMREX_SPACEDIM,1,3,1,1)
     else
        call bl_allocate ( dqx, glo, ghi, NQ)
+#if AMREX_SPACEDIM >= 2
        call bl_allocate ( dqy, glo, ghi, NQ)
+#endif
+#if AMREX_SPACEDIM == 3
        call bl_allocate ( dqz, glo, ghi, NQ)
+#endif
     end if
 
     ! for the hybrid Riemann solver
@@ -414,6 +469,9 @@ contains
                           qaux, qa_lo, qa_hi, &
                           Ip, Im, Ip_src, Im_src, glo, ghi, &
                           qxm, qxp, fglo, fghi, &
+#if AMREX_SPACEDIM <= 2
+                          dloga, dloga_lo, dloga_hi, &
+#endif
                           lo, hi, domlo, domhi, &
                           dx, dt)
 
@@ -421,21 +479,29 @@ contains
                           qaux, qa_lo, qa_hi, &
                           Ip, Im, Ip_src, Im_src, glo, ghi, &
                           qym, qyp, fglo, fghi, &
+#if AMREX_SPACEDIM <= 2
+                          dloga, dloga_lo, dloga_hi, &
+#endif
                           lo, hi, domlo, domhi, &
                           dx, dt)
 
+#if AMREX_SPACEDIM == 3
        call trace_ppm_rad(3, q, qd_lo, qd_hi, &
                           qaux, qa_lo, qa_hi, &
                           Ip, Im, Ip_src, Im_src, glo, ghi, &
                           qzm, qzp, fglo, fghi, &
                           lo, hi, domlo, domhi, &
                           dx, dt)
+#endif
 
 #else
        call trace_ppm(1, q, qd_lo, qd_hi, &
                       qaux, qa_lo, qa_hi, &
                       Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
                       qxm, qxp, fglo, fghi, &
+#if AMREX_SPACEDIM <= 2
+                      dloga, dloga_lo, dloga_hi, &
+#endif
                       lo, hi, domlo, domhi, &
                       dx, dt)
 
@@ -443,15 +509,21 @@ contains
                       qaux, qa_lo, qa_hi, &
                       Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
                       qym, qyp, fglo, fghi, &
+#if AMREX_SPACEDIM <= 2
+                      dloga, dloga_lo, dloga_hi, &
+#endif
                       lo, hi, domlo, domhi, &
                       dx, dt)
 
+#if AMREX_SPACEDIM == 3
        call trace_ppm(3, q, qd_lo, qd_hi, &
                       qaux, qa_lo, qa_hi, &
                       Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
                       qzm, qzp, fglo, fghi, &
                       lo, hi, domlo, domhi, &
                       dx, dt)
+#endif
+
 #endif
     else
        ! PLM
@@ -461,42 +533,69 @@ contains
        call amrex_error("ppm_type <=0 is not supported in with radiation")
 #endif
 #endif
-
-       ! Compute all slopes
-       do n = 1, NQ
-          if (.not. reconstruct_state(n)) cycle
-          call uslope(q, qd_lo, qd_hi, n, &
-                      flatn, qd_lo, qd_hi, &
-                      dqx, &
+       if (plm_iorder > 0) then
+          ! Compute all slopes
+          do n = 1, NQ
+             if (.not. reconstruct_state(n)) cycle
+             call uslope(q, qd_lo, qd_hi, n, &
+                         flatn, qd_lo, qd_hi, &
+                         dqx, &
 #if AMREX_SPACEDIM >= 2
-                      dqy, &
+                         dqy, &
 #endif
 #if AMREX_SPACEDIM == 3
-                      dqz, &
+                         dqz, &
 #endif
-                      glo, ghi, &
-                      lo, hi)
-       end do
+                         glo, ghi, &
+                         lo, hi)
+          end do
 
-       if (use_pslope == 1) &
-            call pslope(q, qd_lo, qd_hi, &
-                        flatn, qd_lo, qd_hi, &
-                        dqx, &
+          if (use_pslope == 1) then
+             call pslope(q, qd_lo, qd_hi, &
+                         flatn, qd_lo, qd_hi, &
+                         dqx, &
 #if AMREX_SPACEDIM >= 2
-                        dqy, &
+                         dqy, &
 #endif
 #if AMREX_SPACEDIM == 3
-                        dqz, &
+                         dqz, &
 #endif
-                        glo, ghi, &
-                        srcQ, src_lo, src_hi, &
-                        lo, hi, dx)
+                         glo, ghi, &
+                         srcQ, src_lo, src_hi, &
+                         lo, hi, dx)
+          endif
 
-       ! Compute U_x and U_y at kc (k3d)
+       elseif (plm_iorder == -2) then
+
+#if AMREX_SPACEDIM == 2
+          ! these are also piecewise linear, but it uses a multidimensional
+          ! reconstruction based on the BDS advection method to construct
+          ! the x- and y-slopes together
+          do n = 1, NQ
+             if (.not. reconstruct_state(n)) cycle
+             call multid_slope(q, q_lo, q_hi, NQ, n, &
+                               flatn, &
+                               dqx, dqy, q_lo, q_hi, &
+                               dx(1), dx(2), &
+                               lo(1), lo(2), hi(1), hi(2))
+          end do
+#else
+          call amrex_error("ERROR: multidimension reconstruction not supported")
+#endif
+       end if
+
+       ! compute the interface states
+
        call trace_plm(1, q, qd_lo, qd_hi, &
                       qaux, qa_lo, qa_hi, &
                       dqx, glo, ghi, &
                       qxm, qxp, fglo, fghi, &
+#if (AMREX_SPACEDIM < 3)
+                      dloga, dloga_lo, dloga_hi, &
+#endif
+#if (AMREX_SPACEDIM == 1)
+                      SrcQ, src_lo, Src_hi, &
+#endif
                       lo, hi, domlo, domhi, &
                       dx, dt)
 
@@ -504,15 +603,23 @@ contains
                       qaux, qa_lo, qa_hi, &
                       dqy, glo, ghi, &
                       qym, qyp, fglo, fghi, &
+#if (AMREX_SPACEDIM < 3)
+                      dloga, dloga_lo, dloga_hi, &
+#endif
+#if (AMREX_SPACEDIM == 1)
+                      SrcQ, src_lo, Src_hi, &
+#endif
                       lo, hi, domlo, domhi, &
                       dx, dt)
 
+#if AMREX_SPACEDIM == 3
        call trace_plm(3, q, qd_lo, qd_hi, &
                       qaux, qa_lo, qa_hi, &
                       dqz, glo, ghi, &
                       qzm, qzp, fglo, fghi, &
                       lo, hi, domlo, domhi, &
                       dx, dt)
+#endif
 
     end if  ! ppm test
 
@@ -539,6 +646,7 @@ contains
     call bl_deallocate(szm)
     call bl_deallocate(szp)
 
+#if AMREX_SPACEDIM == 3
     call bl_allocate( qmxy, fglo, fghi, NQ)
     call bl_allocate( qpxy, fglo, fghi, NQ)
 
@@ -557,9 +665,6 @@ contains
     call bl_allocate( qmzy, fglo, fghi, NQ)
     call bl_allocate( qpzy, fglo, fghi, NQ)
 
-    call bl_allocate( ql, fglo, fghi, NQ)
-    call bl_allocate( qr, fglo, fghi, NQ)
-
     call bl_allocate( ftmp1, glo, ghi, NVAR)
     call bl_allocate( ftmp2, glo, ghi, NVAR)
 #ifdef RADIATION
@@ -568,7 +673,12 @@ contains
 #endif
     call bl_allocate ( qgdnvtmp1, fglo, fghi, NGDNV)
     call bl_allocate ( qgdnvtmp2, fglo, fghi, NGDNV)
+#endif
 
+#if AMREX_SPACEDIM >= 2
+    call bl_allocate( ql, fglo, fghi, NQ)
+    call bl_allocate( qr, fglo, fghi, NQ)
+#endif
 
     !-------------------------------------------------------------------------!
     ! Some notes on the work index (i.e., lo and hi arguments near the end    !
