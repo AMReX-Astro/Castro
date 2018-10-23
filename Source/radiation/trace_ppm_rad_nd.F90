@@ -15,6 +15,7 @@ module trace_ppm_rad_module
 
 contains
 
+
   subroutine trace_ppm_rad(idir, q, qd_lo, qd_hi, &
                            qaux, qa_lo, qa_hi, &
                            Ip, Im, Ip_src, Im_src, I_lo, I_hi, &
@@ -61,9 +62,9 @@ contains
     real(rt), intent(in) :: Ip_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
     real(rt), intent(in) :: Im_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
 
-
     real(rt), intent(inout) :: qm(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
     real(rt), intent(inout) :: qp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
+
 #if (AMREX_SPACEDIM < 3)
     real(rt), intent(in) :: dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 #endif
@@ -368,7 +369,7 @@ contains
                 qp(i,j,k,QUT) = Im(i,j,k,idir,2,QUT) + hdt*Im_src(i,j,k,idir,2,QUT)
                 qp(i,j,k,QUTT) = Im(i,j,k,idir,2,QUTT) + hdt*Im_src(i,j,k,idir,2,QUTT)
 
-             endif
+             end if
 
 
              !-------------------------------------------------------------------

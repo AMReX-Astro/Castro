@@ -695,6 +695,8 @@ Castro::writeJobInfo (const std::string& dir)
 #ifdef _OPENMP
   jobInfoFile << "number of threads:       " << omp_get_max_threads() << "\n";
 #endif
+  jobInfoFile << "\n";
+  jobInfoFile << "hydro tile size:         " << hydro_tile_size << "\n";
 
   jobInfoFile << "\n";
   jobInfoFile << "CPU time used since start of simulation (CPU-hours): " <<
