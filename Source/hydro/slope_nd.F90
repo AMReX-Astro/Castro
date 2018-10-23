@@ -336,7 +336,6 @@ contains
              do i = lo(1)-1, hi(1)+1
 
                 ! First compute Fromm slopes
-
                 dlft = q(i,j,k  ,QPRES) - q(i,j,k-1,QPRES)
                 drgt = q(i,j,k+1,QPRES) - q(i,j,k  ,QPRES)
 

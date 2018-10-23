@@ -354,7 +354,6 @@ contains
 
        endif
 
-
        ! source terms
        do n = 1, QVAR
           if (source_nonzero(n)) then
@@ -417,6 +416,7 @@ contains
        ! PLM
 
 #ifdef RADIATION
+
 #ifndef AMREX_USE_CUDA
        call amrex_error("ppm_type <=0 is not supported in with radiation")
 #endif
