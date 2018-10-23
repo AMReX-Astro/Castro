@@ -66,7 +66,7 @@ contains
     use eos_module, only: eos
     use trace_plm_module, only : trace_plm
     use transverse_module
-    use ppm_module, only : ppm_reconstruct, ppm_int_profile
+    use ppm_module, only : ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
     use slope_module, only : uslope, pslope
     use riemann_module, only: cmpflx
 #ifdef RADIATION
@@ -362,53 +362,10 @@ contains
                                Ip_gc, Im_gc, glo, ghi, 1, 1, &
                                lo, hi, dx, dt)
        else
-          ! temperature-based PPM -- if desired, take the Ip(T)/Im(T)
-          ! constructed above and use the EOS to overwrite Ip(p)/Im(p)
-          ! get an edge-based gam1 here if we didn't get it from the EOS
-          ! call above (for ppm_temp_fix = 1)
-          do iwave = 1, 3
-             do idim = 1, 3
 
-                do k = lo(3)-1, hi(3)+1
-                   do j = lo(2)-1, hi(2)+1
-                      do i = lo(1)-1, hi(1)+1
-
-                         eos_state % rho = Ip(i,j,k,idim,iwave,QRHO)
-                         eos_state % T   = Ip(i,j,k,idim,iwave,QTEMP)
-
-                         eos_state % xn  = Ip(i,j,k,idim,iwave,QFS:QFS+nspec-1)
-                         eos_state % aux = Ip(i,j,k,idim,iwave,QFX:QFX+naux-1)
-
-                         call eos(eos_input_rt, eos_state)
-
-                         Ip(i,j,k,idim,iwave,QPRES)  = eos_state % p
-                         Ip(i,j,k,idim,iwave,QREINT) = Ip(i,j,k,idim,iwave,QRHO) * eos_state % e
-                         Ip_gc(i,j,k,idim,iwave,1)   = eos_state % gam1
-                      end do
-                   end do
-                end do
-
-                do k = lo(3)-1, hi(3)+1
-                   do j = lo(2)-1, hi(2)+1
-                      do i = lo(1)-1, hi(1)+1
-
-                         eos_state % rho = Im(i,j,k,idim,iwave,QRHO)
-                         eos_state % T   = Im(i,j,k,idim,iwave,QTEMP)
-
-                         eos_state % xn  = Im(i,j,k,idim,iwave,QFS:QFS+nspec-1)
-                         eos_state % aux = Im(i,j,k,idim,iwave,QFX:QFX+naux-1)
-
-                         call eos(eos_input_rt, eos_state)
-
-                         Im(i,j,k,idim,iwave,QPRES)  = eos_state % p
-                         Im(i,j,k,idim,iwave,QREINT) = Im(i,j,k,idim,iwave,QRHO) * eos_state % e
-                         Im_gc(i,j,k,idim,iwave,1)   = eos_state % gam1
-                      end do
-                   end do
-                end do
-
-             end do
-          end do
+          ! temperature-based PPM
+          call ppm_reconstruct_with_eos(lo-dg, hi+dg, &
+                                        Ip, Im, Ip_gc, Im_gc, glo, ghi)
 
        end if
 
@@ -639,7 +596,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                1, [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], &
+                1, [lo(1), lo(2)-dg(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
                 domlo, domhi)
 
     ! add the transverse flux difference in x to the y and z states
@@ -684,7 +641,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                2, [lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1], &
+                2, [lo(1)-1, lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
                 domlo, domhi)
 
     ! add the transverse flux difference in y to the x and z states
@@ -729,7 +686,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                3, [lo(1)-1, lo(2)-1, lo(3)], [ hi(1)+1, hi(2)+1, hi(3)+1], &
+                3, [lo(1)-1, lo(2)-dg(2), lo(3)], [ hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
                 domlo, domhi)
 
     ! add the transverse flux difference in z to the x and y states
@@ -781,7 +738,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                2, [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+1, hi(3)], &
+                2, [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
                 domlo, domhi)
 
     fzy      =>      ftmp2
@@ -803,7 +760,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                3, [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+1], &
+                3, [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+dg(3)], &
                 domlo, domhi)
 
     qxl => ql
@@ -886,7 +843,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                3, [lo(1), lo(2)-1, lo(3)], [hi(1), hi(2)+1, hi(3)+1], &
+                3, [lo(1), lo(2)-dg(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
                 domlo, domhi)
 
     fxz      =>      ftmp2
@@ -908,7 +865,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                1, [lo(1), lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)], &
+                1, [lo(1), lo(2)-dg(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
                 domlo, domhi)
 
     qyl => ql
@@ -960,10 +917,10 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                2, [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], domlo, domhi)
+                2, [lo(1), lo(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)], domlo, domhi)
 
     do k = lo(3), hi(3)
-       do j = lo(2), hi(2)+1
+       do j = lo(2), hi(2)+dg(2)
           do i = lo(1), hi(1)
              q2(i,j,k,:) = qgdnvy(i,j,k,:)
           end do
@@ -997,7 +954,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                1, [lo(1), lo(2), lo(3)-1], [hi(1)+1, hi(2), hi(3)+1], &
+                1, [lo(1), lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2), hi(3)+dg(3)], &
                 domlo, domhi)
 
     fyx      =>      ftmp2
@@ -1019,7 +976,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                2, [lo(1), lo(2), lo(3)-1], [hi(1), hi(2)+1, hi(3)+1], &
+                2, [lo(1), lo(2), lo(3)-dg(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
                 domlo, domhi)
 
     qzl => ql
@@ -1070,10 +1027,10 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                3, [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], &
+                3, [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+dg(3)], &
                 domlo, domhi)
 
-    do k = lo(3), hi(3)+1
+    do k = lo(3), hi(3)+dg(3)
        do j=lo(2),hi(2)
           do i=lo(1),hi(1)
              q3(i,j,k,:) = qgdnvz(i,j,k,:)
