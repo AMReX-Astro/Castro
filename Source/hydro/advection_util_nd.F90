@@ -587,7 +587,7 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             eos_state % T   = 1.e4
+             eos_state % T   = q(i,j,k,QTEMP )
              eos_state % rho = q(i,j,k,QRHO  )
              eos_state % e   = q(i,j,k,QREINT)
              eos_state % xn  = q(i,j,k,QFS:QFS+nspec-1)
