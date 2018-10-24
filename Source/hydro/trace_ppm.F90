@@ -367,7 +367,7 @@ contains
                    qm(i+1,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
 
                    ! transverse velocities
-                   qm(i+1,j,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i+1,j,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUT)
                    qm(i+1,j,k,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
 
                 else if (idir == 2) then
@@ -377,7 +377,7 @@ contains
                    qm(i,j+1,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
 
                    ! transverse velocities
-                   qm(i,j+1,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i,j+1,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUT)
                    qm(i,j+1,k,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
 
                 else if (idir == 3) then
@@ -387,7 +387,7 @@ contains
                    qm(i,j,k+1,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
 
                    ! transverse velocities
-                   qm(i,j,k+1,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i,j,k+1,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUT)
                    qm(i,j,k+1,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
                 endif
 
@@ -882,7 +882,7 @@ contains
                    qm(i+1,j,k,QREINT) = qm(i+1,j,k,QPRES )/(qm(i+1,j,k,QGAME) - ONE)
 
                    ! transverse velocities
-                   qm(i+1,j,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i+1,j,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUT)
                    qm(i+1,j,k,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
 
                 else if (idir == 2) then
@@ -896,7 +896,7 @@ contains
                    qm(i,j+1,k,QREINT) = qm(i,j+1,k,QPRES )/(qm(i,j+1,k,QGAME) - ONE)
 
                    ! transverse velocities
-                   qm(i,j+1,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i,j+1,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUT)
                    qm(i,j+1,k,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
 
                 else if (idir == 3) then
@@ -910,7 +910,7 @@ contains
                    qm(i,j,k+1,QREINT) = qm(i,j,k+1,QPRES )/(qm(i,j,k+1,QGAME) - ONE)
 
                    ! transverse velocities
-                   qm(i,j,k+1,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i,j,k+1,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUT)
                    qm(i,j,k+1,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
 
                 end if
@@ -1456,7 +1456,7 @@ contains
                    qm(i+1,j,k,QPRES) = small_pres ! just to make it defined
 
                    ! transverse velocities
-                   qm(i+1,j,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i+1,j,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUT)
                    qm(i+1,j,k,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
 
                 else if (idir == 2) then
@@ -1472,7 +1472,7 @@ contains
                    qm(i,j+1,k,QPRES) = small_pres ! just to make it defined
 
                    ! transverse velocities
-                   qm(i,j+1,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i,j+1,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUT)
                    qm(i,j+1,k,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
 
                 else if (idir == 3) then
@@ -1488,7 +1488,7 @@ contains
                    qm(i,j,k+1,QPRES) = small_pres ! just to make it defined
 
                    ! transverse velocities
-                   qm(i,j,k+1,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i,j,k+1,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUT)
                    qm(i,j,k+1,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
 
                 endif
