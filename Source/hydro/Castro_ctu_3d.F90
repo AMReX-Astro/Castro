@@ -634,17 +634,25 @@ contains
        call bl_deallocate ( Im_gc)
     else
        call bl_deallocate ( dqx)
+#if AMREX_SPACEDIM >= 2
        call bl_deallocate ( dqy)
+#endif
+#if AMREX_SPACEDIM == 3
        call bl_deallocate ( dqz)
+#endif
     end if
 
     ! Deallocate arrays
     call bl_deallocate(sxm)
     call bl_deallocate(sxp)
+#if AMREX_SPACEDIM >= 2
     call bl_deallocate(sym)
     call bl_deallocate(syp)
+#endif
+#if AMREX_SPACEDIM == 3
     call bl_deallocate(szm)
     call bl_deallocate(szp)
+#endif
 
 #if AMREX_SPACEDIM == 3
     call bl_allocate( qmxy, fglo, fghi, NQ)
@@ -910,6 +918,10 @@ contains
     qgdnvx  =>  qgdnvtmp1
 
     ! now compute the final x fluxes, F^x
+    ! Inputs: qxl, qxr                        : xface, +-0 at y & z
+    !         gamc, csml, c                   : +-4
+    !         shk                             : +-1
+    ! Outputs: flux1, ugdnvx, pgdnvx, gegdnvx : xface, +-0 at y & z
     call cmpflx(qxl, qxr, fglo, fghi, &
                 flux1, f1_lo, f1_hi, &
                 qgdnvx, fglo, fghi, &
@@ -1157,15 +1169,19 @@ contains
     call bl_deallocate ( qxm)
     call bl_deallocate ( qxp)
 
+#if AMREX_SPACEDIM >= 2
     call bl_deallocate ( qym)
     call bl_deallocate ( qyp)
-
+#endif
+#if AMREX_SPACEDIM == 3
     call bl_deallocate ( qzm)
     call bl_deallocate ( qzp)
+#endif
 
     call bl_deallocate ( ql)
     call bl_deallocate ( qr)
 
+#if AMREX_SPACEDIM == 3
     call bl_deallocate ( qmxy)
     call bl_deallocate ( qpxy)
 
@@ -1194,6 +1210,7 @@ contains
 
     call bl_deallocate(qgdnvtmp1)
     call bl_deallocate(qgdnvtmp2)
+#endif
 
   end subroutine umeth
 
