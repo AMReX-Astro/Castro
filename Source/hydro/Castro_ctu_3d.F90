@@ -185,10 +185,10 @@ contains
     real(rt), pointer :: Ip_src(:,:,:,:,:,:), Im_src(:,:,:,:,:,:)
     real(rt), pointer :: Ip_gc(:,:,:,:,:,:), Im_gc(:,:,:,:,:,:)
 
-    real(rt)        , pointer :: shk(:,:,:)
+    real(rt), pointer :: shk(:,:,:)
 
-    real(rt)        , pointer :: sxm(:,:,:), sym(:,:,:), szm(:,:,:)
-    real(rt)        , pointer :: sxp(:,:,:), syp(:,:,:), szp(:,:,:)
+    real(rt), pointer :: sxm(:,:,:), sym(:,:,:), szm(:,:,:)
+    real(rt), pointer :: sxp(:,:,:), syp(:,:,:), szp(:,:,:)
 
     ! Left and right state arrays (edge centered, cell centered)
     double precision, dimension(:,:,:,:), pointer :: &
