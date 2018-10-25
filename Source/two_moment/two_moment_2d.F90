@@ -9,13 +9,13 @@
     use amrex_constants_module, only : fourth, half, zero, one, two
     use amrex_fort_module, only : rt => amrex_real
     use amrex_error_module, only : amrex_abort
-    use meth_params_module, only : URHO,UMX,UMY,UMZ,UEINT,UEDEN,UFX
+    use meth_params_module, only : URHO,UMX,UMY,UMZ,UEINT,UEDEN,UFX,UFS
     use ProgramHeaderModule, only : nE, nDOF, nNodesX, nNodesE, swE
     use FluidFieldsModule, only : uCF, iCF_D, iCF_S1, iCF_S2, iCF_S3, iCF_E, iCF_Ne
     use FluidFieldsModule, only : CreateFluidFields, DestroyFluidFields
     use RadiationFieldsModule, only : CreateRadiationFields,DestroyRadiationFields,nSpecies, uCR
     use TimeSteppingModule_Castro, only : Update_IMEX_PDARS
-    use UnitsModule, only : Gram, Centimeter, Second
+    use UnitsModule, only : Gram, Centimeter, Second, AtomicMassUnit, Erg
 
     use ReferenceElementModuleX, only: NodesX_q, WeightsX_q
 
@@ -60,7 +60,8 @@
 
     conv_dens = Gram / Centimeter**3
     conv_mom  = Gram / Centimeter**2 / Second
-    conv_enr  = Gram / Centimeter / Second**2
+    !conv_enr  = Gram / Centimeter / Second**2
+    conv_enr  = Erg / Centimeter**3
     conv_ne   = 1.d0 / Centimeter**3
     conv_J    = Gram/Second**2/Centimeter ! check that this is correct
     conv_H    = Gram/Second**3
@@ -197,7 +198,7 @@
     ! Call the time stepper that lives in the thornado repo
     ! ************************************************************************************
 
-     call Update_IMEX_PDARS(dt*Second, uCF, uCR)
+    call Update_IMEX_PDARS(dt*Second, uCF, uCR)
 
     ! ************************************************************************************
     ! Copy back from the thornado arrays into Castro arrays
@@ -249,6 +250,9 @@
          end do
          end do
          end do
+
+         ! Store electron molar fraction * density in the species
+         ds(ic,jc,UFS) = dS(ic,jc,UFX) * AtomicMassUnit / Gram
 
     end do
     end do
