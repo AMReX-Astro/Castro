@@ -33,7 +33,7 @@ endif
 ifdef MICROPHYSICS_HOME
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
-EOS_DIR     := stellarcollapse
+EOS_DIR     := weaklib
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := nuclear_matter
