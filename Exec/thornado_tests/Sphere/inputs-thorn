@@ -8,7 +8,7 @@ thornado.zoome  = 1.0
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 #max_step = 10000
 #max_step = 100
-stop_time =  1.e-2
+stop_time =  1.e-4
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0 0 0
@@ -17,9 +17,9 @@ geometry.prob_lo     =  -1.e7     -1.e7     -1.e7
 geometry.prob_hi     = 1.e7    1.e7    1.e7 # 100km
 #amr.n_cell           = 256     256      256
 amr.n_cell           = 64 64 64
-#########amr.n_cell           = 16 16 16
+amr.n_cell           = 16 16 16
 
-amr.max_grid_size   = 64 
+amr.max_grid_size   = 64
 #amr.max_grid_size   = 256
 fabarray.mfiter_tile_size = 1024 1024 1024
 
@@ -69,11 +69,12 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
 amr.check_file      = thorn_chk  # root name of checkpoint file
-amr.check_int       = 200         # number of timesteps between checkpoints
+#amr.check_int       = 200         # number of timesteps between checkpoints
+amr.check_int       = 1000000
 
 # PLOTFILES
 amr.plot_file       = thorn_plt  # root name of plotfile
-amr.plot_int        = 1          # number of timesteps between plotfiles
+amr.plot_int        = 1000000          # number of timesteps between plotfiles
 amr.derive_plot_vars = density xmom ymom zmom eden Temp pressure  # these variables appear in the plotfile
 amr.derive_plot_vars = pressure J_avg Hx_avg Hy_avg Hz_avg
 
