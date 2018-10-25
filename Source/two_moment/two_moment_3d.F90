@@ -65,8 +65,10 @@
     conv_J    = Gram/Second**2/Centimeter
     conv_H    = Gram/Second**3
 
-    nX(:)  = hi(1) - lo(1) + 1
+    nX(:)  = hi(:) - lo(:) + 1
     swX(:) = ng
+
+    print *,'NX ', nx(:)
 
     call CreateFluidFields ( nX, swX )
 
