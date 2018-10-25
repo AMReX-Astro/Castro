@@ -35,10 +35,8 @@ ifdef MICROPHYSICS_HOME
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := stellarcollapse
 
-# This sets the EOS directory in $(MICROPHYSICS_HOME)/networks
-NETWORK_DIR := general_null
-
-GENERAL_NET_INPUTS = ./ignition.net
+# This sets the network directory in $(MICROPHYSICS_HOME)/networks
+NETWORK_DIR := nuclear_matter
 
 else
 
