@@ -79,4 +79,4 @@ amr.derive_plot_vars = density xmom ymom zmom eden Temp pressure  # these variab
 amr.derive_plot_vars = pressure J_avg Hx_avg Hy_avg Hz_avg
 
 #PROBIN FILENAME
-amr.probin_file = probin-thorn-weaklib
+amr.probin_file = probin-thorn
