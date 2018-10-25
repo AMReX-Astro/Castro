@@ -167,6 +167,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         state(i,j,UEINT) =  Epervol_out(i) / (Erg/Centimeter**3)    ! UEINT = (rho e) 
         state(i,j,UEDEN) =  state(i,j,UEINT)   ! (rho E) = (rho e) since momentum = 0
         state(i,j,UFX  ) =  Ne_out(i) * Centimeter**3
+        state(i,j,UFS  ) =  Ne_out(i) * Centimeter**3 * AtomicMassUnit / Gram
 
      enddo
 
