@@ -1,3 +1,5 @@
+# Building and running with the stellarcollapse EOS
+
 To build with the StellarCollapse EOS in Microphysics, pass
 `EOS_DIR=stellarcollapse` as a make flag.
 
