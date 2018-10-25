@@ -6,9 +6,6 @@ module probdata_module
 
   real(rt)        , save :: X_min, cutoff_density
 
-  ! lower boundary
-  logical         , save :: interp_BC, zero_vels
-
   integer, save :: nx_model
 
   real(rt), save :: T_hi, T_star, T_lo

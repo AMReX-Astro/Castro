@@ -23,7 +23,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   integer :: untin, i
 
-  namelist /fortin/ nx_model, interp_BC, zero_vels, &
+  namelist /fortin/ nx_model, &
                     dtemp, x_half_max, x_half_width, &
                     X_min, cutoff_density, &
                     dens_base, T_star, T_hi, T_lo, H_star, atm_delta, &
@@ -59,9 +59,6 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   dtemp = 3.81e8_rt
   x_half_max = 1.2e5_rt
   x_half_width = 3.6e4_rt
-
-  interp_BC = .false.
-  zero_vels = .false.
 
   dens_base = 2.d6
 
