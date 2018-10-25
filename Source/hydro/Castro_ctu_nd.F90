@@ -263,8 +263,10 @@ contains
     call bl_allocate ( qxm, fglo, fghi, NQ)
     call bl_allocate ( qxp, fglo, fghi, NQ)
 
+#if AMREX_SPACEDIM >= 2
     call bl_allocate ( qym, fglo, fghi, NQ)
     call bl_allocate ( qyp, fglo, fghi, NQ)
+#endif
 
 #if AMREX_SPACEDIM == 3
     call bl_allocate ( qzm, fglo, fghi, NQ)
@@ -485,15 +487,17 @@ contains
                           lo, hi, domlo, domhi, &
                           dx, dt)
 
+#if AMREX_SPACEDIM >= 2
        call trace_ppm_rad(2, q, qd_lo, qd_hi, &
                           qaux, qa_lo, qa_hi, &
                           Ip, Im, Ip_src, Im_src, glo, ghi, &
                           qym, qyp, fglo, fghi, &
-#if AMREX_SPACEDIM <= 2
+#if AMREX_SPACEDIM == 2
                           dloga, dloga_lo, dloga_hi, &
 #endif
                           lo, hi, domlo, domhi, &
                           dx, dt)
+#endif
 
 #if AMREX_SPACEDIM == 3
        call trace_ppm_rad(3, q, qd_lo, qd_hi, &
@@ -515,15 +519,17 @@ contains
                       lo, hi, domlo, domhi, &
                       dx, dt)
 
+#if AMREX_SPACEDIM >= 2
        call trace_ppm(2, q, qd_lo, qd_hi, &
                       qaux, qa_lo, qa_hi, &
                       Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
                       qym, qyp, fglo, fghi, &
-#if AMREX_SPACEDIM <= 2
+#if AMREX_SPACEDIM == 2
                       dloga, dloga_lo, dloga_hi, &
 #endif
                       lo, hi, domlo, domhi, &
                       dx, dt)
+#endif
 
 #if AMREX_SPACEDIM == 3
        call trace_ppm(3, q, qd_lo, qd_hi, &
@@ -1333,8 +1339,10 @@ contains
     call bl_deallocate ( qzp)
 #endif
 
+#if AMREX_SPACEDIM >= 2
     call bl_deallocate ( ql)
     call bl_deallocate ( qr)
+#endif
 
 #if AMREX_SPACEDIM == 3
     call bl_deallocate ( qmxy)
@@ -1354,7 +1362,9 @@ contains
 
     call bl_deallocate ( qmyz)
     call bl_deallocate ( qpyz)
+#endif
 
+#if AMREX_SPACEDIM >= 2
     call bl_deallocate ( ftmp1)
     call bl_deallocate ( ftmp2)
 
