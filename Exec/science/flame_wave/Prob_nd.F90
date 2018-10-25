@@ -25,7 +25,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   namelist /fortin/ nx_model, interp_BC, zero_vels, &
                     dtemp, x_half_max, x_half_width, &
-                    X_min, cutoff_density, hot_ash, &
+                    X_min, cutoff_density, &
                     dens_base, T_star, T_hi, T_lo, H_star, atm_delta, &
                     fuel1_name, fuel2_name, fuel3_name, &
                     ash1_name, ash2_name, ash3_name, &

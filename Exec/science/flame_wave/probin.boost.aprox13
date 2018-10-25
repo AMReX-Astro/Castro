@@ -7,8 +7,6 @@
   x_half_max = 2.048d4
   x_half_width = 2048.d0
 
-  hot_ash = F
-
   nx_model = 1024
 
   dens_base = 3.43e6

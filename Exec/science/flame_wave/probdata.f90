@@ -6,8 +6,6 @@ module probdata_module
 
   real(rt)        , save :: X_min, cutoff_density
 
-  logical, save :: hot_ash
-
   ! lower boundary
   logical         , save :: interp_BC, zero_vels
 
