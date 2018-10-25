@@ -64,7 +64,7 @@ contains
 #if AMREX_SPACEDIM <= 2
                    area1, area1_lo, area1_hi, &
 #endif
-#if AMREX_SPACEDIM == 3
+#if AMREX_SPACEDIM == 2
                    area2, area2_lo, area2_hi, &
 #endif
 #if AMREX_SPACEDIM <= 2
