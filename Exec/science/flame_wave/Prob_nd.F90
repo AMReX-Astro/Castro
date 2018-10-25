@@ -4,13 +4,8 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   use amrex_error_module
   use initial_model_module
   use model_parser_module, only : model_r, model_state, npts_model, model_initialized
-
   use probdata_module
-
   use amrex_fort_module, only : rt => amrex_real
-
-  use eos_type_module, only : eos_t, eos_input_rt, eos_input_tp
-  use eos_module, only : eos
   use network
 
   implicit none
@@ -18,8 +13,6 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   integer :: init, namlen
   integer :: name(namlen)
   real(rt) :: problo(3), probhi(3)
-
-  type (eos_t) :: eos_state
 
   integer :: untin, i
 
@@ -222,6 +215,8 @@ end subroutine amrex_probinit
 ! ::: state     <=  Scalar array
 ! ::: delta     => cell size
 ! ::: xlo,xhi   => physical locations of lower left and upper
+! :::              right hand corner of grid.  (does not include
+! :::		   ghost region).
 ! ::: -----------------------------------------------------------
 subroutine ca_initdata(level, time, lo, hi, nscal, &
                        state, state_lo, state_hi, &

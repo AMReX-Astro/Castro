@@ -2,6 +2,8 @@ module probdata_module
 
   use amrex_fort_module, only : rt => amrex_real
 
+  implicit none
+
   real(rt)        , save :: dtemp, x_half_max, x_half_width
 
   real(rt)        , save :: X_min, cutoff_density
