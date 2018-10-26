@@ -519,6 +519,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
           // Store the fluxes from this advance -- we weight them by the
           // integrator weight for this stage
+#ifdef AMREX_USE_CUDA
+          Cuda::Device::synchronize();  // because saxpy below is run on cpu
+#endif
           (*fluxes[idir])[mfi].saxpy(b_mol[mol_iteration], flux[idir][mfi], ebx, ebx, 0, 0, NUM_STATE);
 
       }
