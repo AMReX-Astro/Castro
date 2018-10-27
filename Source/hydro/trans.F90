@@ -18,7 +18,7 @@ contains
 #endif
                     fx_lo, fx_hi, &
                     qx, qx_lo, qx_hi, &
-                    cdtdx, lo, hi)
+                    hdt, cdtdx, lo, hi)
 
   use amrex_constants_module, only : ZERO, ONE, HALF
 
@@ -116,19 +116,37 @@ contains
        n  = upass_map(ipassive)
        nqp = qpass_map(ipassive)
 
-       do k = lo(3)-1, hi(3)+1
+       do k = lo(3)-dg(3), hi(3)+dg(3)
           do j = lo(2)-1, hi(2)+1
              do i = lo(1), hi(1)
                 if (j >= lo(2)) then
+#if AMREX_SPACEDIM == 2
+                   rrnew = qyp(i,j,k,QRHO) - hdt*(area1(i+1,j,k)*fx(i+1,j,k,URHO) - &
+                                                  area1(i,j,k)*fx(i,j,k,URHO))/vol(i,j,k)
+                   compu = qyp(i,j,k,QRHO)*qyp(i,j,k,nqp) - &
+                        hdt*(area1(i+1,j,k)*fx(i+1,j,k,n) - &
+                             area1(i,j,k)*fx(i,j,k,n))/vol(i,j,k)
+                   qypo(i,j,k,nqp) = compu/rrnew + hdt*srcQ(i,j,k,nqp)
+#else
                    rrnew = qyp(i,j,k,QRHO) - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
                    compu = qyp(i,j,k,QRHO)*qyp(i,j,k,nqp) - cdtdx*(fx(i+1,j,k,n) - fx(i,j,k,n))
                    qypo(i,j,k,nqp) = compu/rrnew
+#endif
                 end if
 
                 if (j <= hi(2)) then
+#if AMREX_SPACEDIM == 2
+                   rrnew = qym(i,j+1,k,QRHO) - hdt*(area1(i+1,j,k)*fx(i+1,j,k,URHO) - &
+                                                    area1(i,j,k)*fx(i,j,k,URHO))/vol(i,j,k)
+                   compu = qym(i,j+1,k,QRHO)*qym(i,j+1,k,nqp) - &
+                        hdt*(area1(i+1,j,k)*fx(i+1,j,k,n) - &
+                             area1(i,j,k)*fx(i,j,k,n))/vol(i,j,k)
+                   qymo(i,j+1,k,nqp) = compu/rrnew + hdt*srcQ(i,j,nqp)
+#else
                    rrnew = qym(i,j+1,k,QRHO) - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
                    compu = qym(i,j+1,k,QRHO)*qym(i,j+1,k,nqp) - cdtdx*(fx(i+1,j,k,n) - fx(i,j,k,n))
                    qymo(i,j+1,k,nqp) = compu/rrnew
+#endif
                 end if
              end do
           end do
@@ -140,7 +158,7 @@ contains
     ! for the fluid variables
     !-------------------------------------------------------------------
 
-    do k = lo(3)-1, hi(3)+1
+    do k = lo(3)-dg(3), hi(3)+dg(3)
        do j = lo(2)-1, hi(2)+1
           do i = lo(1), hi(1)
 
@@ -162,6 +180,7 @@ contains
              ! equation or gammae (if we have ppm_predict_gammae = 1) to
              ! be able to deal with the general EOS
 
+############
              dup = pgp*ugp - pgm*ugm
              pav = HALF*(pgp+pgm)
              uav = HALF*(ugp+ugm)
@@ -822,7 +841,7 @@ contains
     ! for the fluid variables
     !-------------------------------------------------------------------
 
-    do k = lo(3)-1, hi(3)+1
+    do k = lo(3)-dg(3), hi(3)+dg(3)
        do j = lo(2), hi(2)
           do i = lo(1)-1, hi(1)+1
 
