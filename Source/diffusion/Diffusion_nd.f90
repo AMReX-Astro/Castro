@@ -243,8 +243,8 @@ contains
              call eos(eos_input_re,eos_state)
 
              if (eos_state%rho > diffuse_cutoff_density) then
-                call conductivity(eos_state, coeff)
-                coeff = coeff / eos_state%cp
+                call conductivity(eos_state)
+                coeff = eos_state % conductivity / eos_state%cp
              else
                 coeff = ZERO
              endif
@@ -316,7 +316,6 @@ contains
     real(rt)         :: coef_cc(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1)
 
     type (eos_t) :: eos_state
-    real(rt)         :: cond
 
     ! fill the cell-centered conductivity
 
@@ -339,11 +338,11 @@ contains
 
              if (eos_state%rho > diffuse_cutoff_density) then
 
-                call conductivity(eos_state, cond)
+                call conductivity(eos_state)
              else
-                cond = ZERO
+                eos_state % conductivity = ZERO
              endif
-             coef_cc(i,j,k) = diffuse_cond_scale_fac * cond
+             coef_cc(i,j,k) = diffuse_cond_scale_fac * eos_state % conductivity
           enddo
        enddo
     enddo
@@ -425,8 +424,8 @@ contains
              call eos(eos_input_re,eos_state)
 
              if (eos_state%rho > diffuse_cutoff_density) then
-                call conductivity(eos_state, cond)
-                cond = cond / eos_state%cp
+                call conductivity(eos_state)
+                cond = eos_state % conductivity / eos_state%cp
              else
                 cond = ZERO
              endif
