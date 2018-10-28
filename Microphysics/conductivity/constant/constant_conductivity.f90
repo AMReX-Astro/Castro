@@ -19,7 +19,7 @@ contains
 
     implicit none
 
-    type (eos_t), intent(in) :: eos_state
+    type (eos_t), intent(inout) :: eos_state
 
     eos_state % conductivity = const_conductivity
     
