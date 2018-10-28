@@ -18,7 +18,7 @@ contains
     
     use extern_probin_module, only: const_opacity
 
-    type (eos_t), intent(in) :: eos_state
+    type (eos_t), intent(inout) :: eos_state
 
     eos_state % conductivity = (16*sigma_SB*(eos_state%T)**3)/(3*const_opacity*eos_state%rho)
     
