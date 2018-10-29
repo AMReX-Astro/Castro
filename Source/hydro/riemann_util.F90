@@ -540,12 +540,12 @@ contains
              ! if we are enforcing the EOS, then take rho, p, and X, and
              ! compute rhoe
              if (do_eos) then
-                eos_state % rho = qint(i,j,kc,QRHO)
-                eos_state % p = qint(i,j,kc,QPRES)
-                eos_state % xn(:) = qint(i,j,kc,QFS:QFS-1+nspec)
+                eos_state % rho = qint(i,j,k,QRHO)
+                eos_state % p = qint(i,j,k,QPRES)
+                eos_state % xn(:) = qint(i,j,k,QFS:QFS-1+nspec)
                 eos_state % T = 100.0  ! initial guess
                 call eos(eos_input_rp, eos_state)
-                qint(i,j,kc,QREINT) = qint(i,j,kc,QRHO) * eos_state % e
+                qint(i,j,k,QREINT) = qint(i,j,k,QRHO) * eos_state % e
              endif
 
              ! Compute fluxes, order as conserved state (not q)

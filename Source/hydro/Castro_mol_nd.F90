@@ -494,7 +494,6 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
 #endif
 
-  end do
 
   call bl_deallocate(flatn)
 

@@ -290,7 +290,7 @@ contains
   subroutine riemann_state(qm, qp, qpd_lo, qpd_hi, &
                            qint, q_lo, q_hi, &
                            qaux, qa_lo, qa_hi, &
-                           idir, lo, hi, domlo, domhi, compute_gammaes)
+                           idir, lo, hi, domlo, domhi, compute_gammas)
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use eos_module, only: eos
