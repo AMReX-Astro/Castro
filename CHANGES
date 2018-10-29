@@ -1,3 +1,13 @@
+changes since last release
+
+  -- we've restructured the CTU solver to no longer use a slab
+     approach in 3d.  This is in preparation for offloading the solver
+     to GPUs.
+
+  -- a few minor bugs were fixed in the transverse routines of the CTU
+     solver with radiation
+
+
 # 18.10
 
 

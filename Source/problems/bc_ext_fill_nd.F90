@@ -67,6 +67,7 @@ contains
        end if
 #endif
 
+#if AMREX_SPACEDIM >= 2
        !-------------------------------------------------------------------------
        ! y boundaries
        !-------------------------------------------------------------------------
@@ -355,7 +356,7 @@ contains
           end if  ! zr_ext check
 
        endif
-
+#endif
 
 #if AMREX_SPACEDIM == 3
 
@@ -691,6 +692,7 @@ contains
     endif
 #endif
 
+#if AMREX_SPACEDIM >= 2
     ! YLO
     if ( bc(2,1) == EXT_DIR .and. adv_lo(2) < domlo(2)) then
        do j = adv_lo(2), domlo(2)-1
@@ -714,6 +716,7 @@ contains
           end do
        end do
     end if
+#endif
 
 #if AMREX_SPACEDIM == 3
     ! ZLO

@@ -308,12 +308,12 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      call riemann_state(qxm, qxp, q_lo, q_hi, &
                         qx_avg, q_lo, q_hi, &
                         qaux, qa_lo, qa_hi, &
-                        1, lo(1), hi(1)+1, lo(2)-dg(2), hi(2)+dg(2), k, k, k, domlo, domhi) !, .true.)
+                        1, [lo(1), lo(2)-dg(2), k], [hi(1)+1, hi(2)+dg(2), k], domlo, domhi)
 
      call compute_flux_q(1, qx_avg, q_lo, q_hi, &
                          flx_avg, q_lo, q_hi, &
                          qgdnvx_avg, q_lo, q_hi, &
-                         lo(1), hi(1)+1, lo(2)-dg(2), hi(2)+dg(2), k, k, k)
+                         [lo(1), lo(2)-dg(2), k], [hi(1)+1, hi(2)+dg(2), k])
   enddo
 
 #if AMREX_SPACEDIM >= 2
@@ -322,12 +322,12 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      call riemann_state(qym, qyp, q_lo, q_hi, &
                         qy_avg, q_lo, q_hi, &
                         qaux, qa_lo, qa_hi, &
-                        2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, k, k, k, domlo, domhi) !, .true.)
+                        2, [lo(1)-1, lo(2), k], [hi(1)+1, hi(2)+1, k], domlo, domhi)
 
      call compute_flux_q(2, qy_avg, q_lo, q_hi, &
                          fly_avg, q_lo, q_hi, &
                          qgdnvy_avg, q_lo, q_hi, &
-                         lo(1)-1, hi(1)+1, lo(2), hi(2)+1, k, k, k)
+                         [lo(1)-1, lo(2), k], [hi(1)+1, hi(2)+1, k])
   enddo
 #endif
 
@@ -337,12 +337,12 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      call riemann_state(qzm, qzp, q_lo, q_hi, &
                         qz_avg, q_lo, q_hi, &
                         qaux, qa_lo, qa_hi, &
-                        3, lo(1)-1, hi(1)+1, lo(2)-1, hi(2)+1, k, k, k, domlo, domhi) !, .true.)
+                        3, [lo(1)-1, lo(2)-1, k], [hi(1)+1, hi(2)+1, k], domlo, domhi)
 
      call compute_flux_q(3, qz_avg, q_lo, q_hi, &
                          flz_avg, q_lo, q_hi, &
                          qgdnvz_avg, q_lo, q_hi, &
-                         lo(1)-1, hi(1)+1, lo(2)-1, hi(2)+1, k, k, k)
+                         [lo(1)-1, lo(2)-1, k], [hi(1)+1, hi(2)+1, k])
   enddo
 #endif
 
@@ -427,29 +427,23 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
   ! compute face-centered fluxes
   ! these will be stored in flx, fly, flz
-  do k = lo(3), hi(3)
-     call compute_flux_q(1, qx_fc, q_lo, q_hi, &
-                         flx, flx_lo, flx_hi, &
-                         qgdnvx, flx_lo, flx_hi, &
-                         lo(1), hi(1)+1, lo(2), hi(2), k, k, k) !, .true.)
-  enddo
+  call compute_flux_q(1, qx_fc, q_lo, q_hi, &
+                      flx, flx_lo, flx_hi, &
+                      qgdnvx, flx_lo, flx_hi, &
+                      [lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)])
 
 #if AMREX_SPACEDIM >= 2
-  do k = lo(3), hi(3)
-     call compute_flux_q(2, qy_fc, q_lo, q_hi, &
-                         fly, fly_lo, fly_hi, &
-                         qgdnvy, fly_lo, fly_hi, &
-                         lo(1), hi(1), lo(2), hi(2)+1, k, k, k) !, .true.)
-  enddo
+  call compute_flux_q(2, qy_fc, q_lo, q_hi, &
+                      fly, fly_lo, fly_hi, &
+                      qgdnvy, fly_lo, fly_hi, &
+                      [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)])
 #endif
 
 #if AMREX_SPACEDIM == 3
-  do k = lo(3), hi(3)+1
-     call compute_flux_q(3, qz_fc, q_lo, q_hi, &
-                         flz, flz_lo, flz_hi, &
-                         qgdnvz, flz_lo, flz_hi, &
-                         lo(1), hi(1), lo(2), hi(2), k, k, k) !, .true.)
-  enddo
+  call compute_flux_q(3, qz_fc, q_lo, q_hi, &
+                      flz, flz_lo, flz_hi, &
+                      qgdnvz, flz_lo, flz_hi, &
+                      [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1])
 #endif
 
 
