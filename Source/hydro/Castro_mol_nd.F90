@@ -214,12 +214,6 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   call bl_allocate(shk, shk_lo, shk_hi)
 
-#ifndef AMREX_USE_CUDA
-  if (ppm_type == 0) then
-     call amrex_error("ERROR: method of lines integration does not support ppm_type = 0")
-  endif
-#endif
-
 #ifdef SHOCK_VAR
   uout(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), USHK) = ZERO
 
