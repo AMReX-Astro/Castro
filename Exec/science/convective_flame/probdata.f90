@@ -1,26 +1,18 @@
 module probdata_module
 
-  use network, only : nspec
-
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
-  character(len=80), save :: model_name
+  real(rt)        , save :: dtemp, x_half_max, x_half_width
 
-  real(rt)        , save :: pert_factor, x_pert_loc, pert_width
-  real(rt)        , save :: cutoff_density
-
-  real(rt)        , save :: thermal_conductivity
-
-  logical         , save :: zero_vels
-
-  real(rt)        , save :: rho_ambient, T_ambient, e_ambient, xn_ambient(nspec)
+  real(rt)        , save :: X_min, cutoff_density
 
   real(rt)        , save :: refine_cutoff_height
 
   integer, save :: nx_model
 
-  real(rt), save :: T_base, T_star, T_lo
+  real(rt), save :: T_hi, T_star, T_lo
   real(rt), save :: dens_base
   real(rt), save :: H_star, atm_delta
 
@@ -32,6 +24,5 @@ module probdata_module
   real (rt), save :: low_density_cutoff, smallx
 
   logical, save :: index_base_from_temp
-
 
 end module probdata_module
