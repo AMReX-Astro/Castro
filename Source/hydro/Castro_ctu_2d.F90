@@ -266,13 +266,13 @@ contains
           ! limiter, but the overall method will be second order.
           call uslope(q, flatn, q_lo, q_hi, &
                       dqx, dqy, dqx, q_lo, q_hi, &  ! second dqx is dummy
-                      lo(1), lo(2), hi(1), hi(2), 0, 0)
+                      lo, hi)
 
           if (use_pslope == 1) then
              call pslope(q, flatn, q_lo, q_hi, &
                          dqx, dqy, dqx, q_lo, q_hi, &  ! second dqx is dummy
                          srcQ, src_lo, src_hi, &
-                         lo(1), lo(2), hi(1), hi(2), 0, 0, dx)
+                         lo, hi, dx)
 
           endif
 
@@ -290,8 +290,8 @@ contains
 #ifndef AMREX_USE_CUDA
        else
           call amrex_error("ERROR: invalid value of islope")
-#endif          
-       endif       
+#endif
+       endif
 
     else
 
@@ -313,14 +313,14 @@ contains
           call ppm_reconstruct(q, q_lo, q_hi, NQ, n, &
                                flatn, q_lo, q_hi, &
                                sxm, sxp, sym, syp, q_lo, q_hi, &
-                               lo(1), lo(2), hi(1), hi(2), dx, 0, 0)
+                               lo, hi, dx)
 
           call ppm_int_profile(q, q_lo, q_hi, NQ, n, &
                                q, q_lo, q_hi, &
                                qaux, qa_lo, qa_hi, &
                                sxm, sxp, sym, syp, q_lo, q_hi, &
                                Ip, Im, I_lo, I_hi, NQ, n, &
-                               lo(1), lo(2), hi(1), hi(2), dx, dt, 0, 0)
+                               lo, hi, dx, dt)
        end do
 
        ! temperature-based PPM -- if desired, take the Ip(T)/Im(T)
@@ -364,14 +364,14 @@ contains
           call ppm_reconstruct(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
                                flatn, q_lo, q_hi, &
                                sxm, sxp, sym, syp, q_lo, q_hi, &
-                               lo(1), lo(2), hi(1), hi(2), dx, 0, 0)
-          
+                               lo, hi, dx)
+
           call ppm_int_profile(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
                                q, q_lo, q_hi, &
                                qaux, qa_lo, qa_hi, &
                                sxm, sxp, sym, syp, q_lo, q_hi, &
                                Ip_gc, Im_gc, I_lo, I_hi, 1, 1, &
-                               lo(1), lo(2), hi(1), hi(2), dx, dt, 0, 0)
+                               lo, hi, dx, dt)
        endif
 
        do n = 1, QVAR
@@ -379,14 +379,14 @@ contains
              call ppm_reconstruct(srcQ, src_lo, src_hi, QVAR, n, &
                                   flatn, q_lo, q_hi, &
                                   sxm, sxp, sym, syp, q_lo, q_hi, &
-                                  lo(1), lo(2), hi(1), hi(2), dx, 0, 0)
+                                  lo, hi, dx)
 
              call ppm_int_profile(srcQ, src_lo, src_hi, QVAR, n, &
                                   q, q_lo, q_hi, &
                                   qaux, qa_lo, qa_hi, &
                                   sxm, sxp, sym, syp, q_lo, q_hi, &
                                   Ip_src, Im_src, I_lo, I_hi, QVAR, n, &
-                                  lo(1), lo(2), hi(1), hi(2), dx, dt, 0, 0)
+                                  lo, hi, dx, dt)
           else
              Ip_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),:,:,n) = ZERO
              Im_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),:,:,n) = ZERO
@@ -410,26 +410,26 @@ contains
                     dqx, dqy, q_lo, q_hi, &
                     qxm, qxp, qym, qyp, qp_lo, qp_hi, &
                     dloga, dloga_lo, dloga_hi, &
-                    lo(1), lo(2), hi(1), hi(2), domlo, domhi, &
-                    dx, dt, 0, 0)
+                    lo, hi, domlo, domhi, &
+                    dx, dt)
 #endif
     else
 #ifdef RADIATION
        call tracexy_ppm_rad(q, q_lo, q_hi, &
                             qaux, qa_lo, qa_hi, &
-                            Ip, Im, Ip_src, Im_src, I_lo, I_hi, &            
+                            Ip, Im, Ip_src, Im_src, I_lo, I_hi, &
                             qxm, qxp, qym, qyp, qp_lo, qp_hi, &
                             dloga, dloga_lo, dloga_hi, &
-                            lo(1), lo(2), hi(1), hi(2), domlo, domhi, &
-                            dx, dt, 0, 0)
+                            lo, hi, domlo, domhi, &
+                            dx, dt)
 #else
        call tracexy_ppm(q, q_lo, q_hi, &
                         qaux, qa_lo, qa_hi, &
                         Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
                         qxm, qxp, qym, qyp, qp_lo, qp_hi, &
                         dloga, dloga_lo, dloga_hi, &
-                        lo(1), lo(2), hi(1), hi(2), domlo, domhi, &
-                        dx, dt, 0, 0)
+                        lo, hi, domlo, domhi, &
+                        dx, dt)
 #endif
 
 
@@ -449,7 +449,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, shk_lo, shk_hi, &
-                1, lo(1), hi(1)+1, lo(2)-1, hi(2)+1, 0, 0, 0, &
+                1, [lo(1), lo(2)-1, 0], [hi(1)+1, hi(2)+1, 0], &
                 domlo, domhi)
 
     ! Solve the Riemann problem in the y-direction using these first
@@ -462,7 +462,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, shk_lo, shk_hi, &
-                2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, 0, 0, 0, &
+                2, [lo(1)-1, lo(2), 0], [hi(1)+1, hi(2)+1, 0], &
                 domlo, domhi)
 
     ! Correct the x-interface states (qxm, qxp) by adding the
@@ -490,7 +490,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, shk_lo, shk_hi, &
-                1, lo(1), hi(1)+1, lo(2), hi(2), 0, 0, 0, &
+                1, [lo(1), lo(2), 0], [hi(1)+1, hi(2), 0], &
                 domlo, domhi)
 
     ! Correct the y-interface states (qym, qyp) by adding the
@@ -520,7 +520,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, shk_lo, shk_hi, &
-                2, lo(1), hi(1), lo(2), hi(2)+1, 0, 0, 0, &
+                2, [lo(1), lo(2), 0], [hi(1), hi(2)+1, 0], &
                 domlo, domhi)
 
     deallocate(qm,qp,qxm,qxp,qym,qyp)

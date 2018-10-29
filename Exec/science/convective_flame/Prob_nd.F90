@@ -1,4 +1,4 @@
-subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use amrex_constants_module
   use amrex_error_module
@@ -18,14 +18,13 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   namelist /fortin/ nx_model, &
                     dtemp, x_half_max, x_half_width, &
-                    X_min, cutoff_density, &
+                    X_min, cutoff_density, refine_cutoff_height, &
                     dens_base, T_star, T_hi, T_lo, H_star, atm_delta, &
                     fuel1_name, fuel2_name, fuel3_name, &
                     ash1_name, ash2_name, ash3_name, &
                     fuel1_frac, fuel2_frac, fuel3_frac, &
                     ash1_frac, ash2_frac, ash3_frac, &
-                    low_density_cutoff, index_base_from_temp, smallx, &
-                    max_hse_tagging_level, max_base_tagging_level
+                    low_density_cutoff, index_base_from_temp, smallx
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 256
@@ -47,26 +46,28 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   ! set namelist defaults here
   X_min = 1.e-4_rt
-  cutoff_density = 500.e0_rt
+  cutoff_density = 1.e-8_rt
 
-  dtemp = 3.81e8_rt
-  x_half_max = 1.2e5_rt
-  x_half_width = 3.6e4_rt
+  dtemp = 2.0_rt
+  x_half_max = 10.0_rt
+  x_half_width = 1.0_rt
+
+  refine_cutoff_height = HALF*(problo(2)+probhi(2))
 
   dens_base = 2.d6
 
   T_star = 1.d8
-  T_hi = 5.d8
+  T_hi   = 5.d8
   T_lo   = 5.e7
 
   H_star = 500.d0
   atm_delta  = 25.d0
 
-  fuel1_name = "helium-4"
+  fuel1_name = "fuel"
   fuel2_name = ""
   fuel3_name = ""
 
-  ash1_name  = "iron-56"
+  ash1_name  = "inert"
   ash2_name  = ""
   ash3_name  = ""
 
@@ -84,11 +85,9 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   smallx = 1.d-10
 
-  max_hse_tagging_level = 2
-  max_base_tagging_level = 1
-
-  open(newunit=untin,file=probin(1:namlen),form='formatted',status='old')
-  read(untin,fortin)
+  ! Read namelists
+  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
+  read(untin, fortin)
   close(unit=untin)
 
   ! get the species indices
@@ -189,7 +188,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   ! now create a perturbed model -- we want the same base conditions
   ! a hotter temperature
   model_params % T_hi = model_params % T_hi + dtemp
-
+  print *, model_params % T_hi
   call init_1d_tanh(nx_model+ng, &
                     problo(AMREX_SPACEDIM)-ng*dx_model, probhi(AMREX_SPACEDIM), &
                     model_params, 2)
@@ -218,17 +217,18 @@ end subroutine amrex_probinit
 ! :::              right hand corner of grid.  (does not include
 ! :::		   ghost region).
 ! ::: -----------------------------------------------------------
-subroutine ca_initdata(level, time, lo, hi, nscal, &
+subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state, state_lo, state_hi, &
                        delta, xlo, xhi)
 
-  use amrex_constants_module
+  use amrex_constants_module, only: HALF, ZERO, ONE
   use probdata_module
   use interpolate_module
-  use eos_module, only : eos
-  use eos_type_module, only : eos_t, eos_input_rt, eos_input_tp, eos_input_rp
-  use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UTEMP
+  use eos_module
+  use eos_type_module
   use prob_params_module, only: problo
+  use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, &
+                                 UFS, UTEMP
   use network, only: nspec
   use initial_model_module
 
@@ -252,10 +252,10 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   do k = lo(3), hi(3)
      z = problo(3) + (dble(k)+HALF)*delta(3)
 
-     do j = lo(2), hi(2)
+     do j=lo(2),hi(2)
         y = problo(2) + (dble(j)+HALF)*delta(2)
 
-        do i = lo(1), hi(1)
+        do i=lo(1),hi(1)
            x = problo(1) + (dble(i)+HALF)*delta(1)
 
            ! lateral distance
