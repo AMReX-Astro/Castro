@@ -592,20 +592,20 @@ implicit none
              uL(i,j,k,UFS:UFS+nspec-1,1,2) = um(i,j,k,UFS:UFS+nspec-1,1) - dt/(3.d0*dx)*(flxz(i,j,k+1,UFS:UFS+nspec-1) &
                                              - flxz(i,j,k,UFS:UFS+nspec-1))
 
-             uL(i,j,k,URHO,2,2) = um(i,j,k,URHO,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,URHO) - flxx(i,j,k,URHO))! x corrected y
-             uL(i,j,k,UMX,2,2) = um(i,j,k,UMX,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMX) - flxx(i,j,k,UMX))
-             uL(i,j,k,UMY,2,2) = um(i,j,k,UMY,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMY) - flxx(i,j,k,UMY))
-             uL(i,j,k,UMZ,2,2) = um(i,j,k,UMZ,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMZ) - flxx(i,j,k,UMZ))
-             uL(i,j,k,UEDEN,2,2) = um(i,j,k,UEDEN,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UEDEN) - flxx(i,j,k,UEDEN))
-             uL(i,j,k,UFS:UFS+nspec-1,2,2) = um(i,j,k,UFS:UFS+nspec-1,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UFS:UFS+nspec-1) &
+             uL(i,j,k,URHO,2,1) = um(i,j,k,URHO,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,URHO) - flxx(i,j,k,URHO))! x corrected y
+             uL(i,j,k,UMX,2,1) = um(i,j,k,UMX,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMX) - flxx(i,j,k,UMX))
+             uL(i,j,k,UMY,2,1) = um(i,j,k,UMY,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMY) - flxx(i,j,k,UMY))
+             uL(i,j,k,UMZ,2,1) = um(i,j,k,UMZ,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMZ) - flxx(i,j,k,UMZ))
+             uL(i,j,k,UEDEN,2,1) = um(i,j,k,UEDEN,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UEDEN) - flxx(i,j,k,UEDEN))
+             uL(i,j,k,UFS:UFS+nspec-1,2,1) = um(i,j,k,UFS:UFS+nspec-1,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UFS:UFS+nspec-1) &
                                              - flxx(i,j,k,UFS:UFS+nspec-1))
 
-             uL(i,j,k,URHO,2,1) = um(i,j,k,URHO,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,URHO) - flxz(i,j,k,URHO))! z corrected y
-             uL(i,j,k,UMX,2,1) = um(i,j,k,UMX,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMX) - flxz(i,j,k,UMX))
-             uL(i,j,k,UMY,2,1) = um(i,j,k,UMY,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMY) - flxz(i,j,k,UMY))
-             uL(i,j,k,UMZ,2,1) = um(i,j,k,UMZ,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMZ) - flxz(i,j,k,UMZ))
-             uL(i,j,k,UEDEN,2,1) = um(i,j,k,UEDEN,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UEDEN) - flxz(i,j,k,UEDEN))
-             uL(i,j,k,UFS:UFS+nspec-1,2,1) = um(i,j,k,UFS:UFS+nspec-1,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UFS:UFS+nspec-1) & 
+             uL(i,j,k,URHO,2,2) = um(i,j,k,URHO,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,URHO) - flxz(i,j,k,URHO))! z corrected y
+             uL(i,j,k,UMX,2,2) = um(i,j,k,UMX,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMX) - flxz(i,j,k,UMX))
+             uL(i,j,k,UMY,2,2) = um(i,j,k,UMY,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMY) - flxz(i,j,k,UMY))
+             uL(i,j,k,UMZ,2,2) = um(i,j,k,UMZ,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMZ) - flxz(i,j,k,UMZ))
+             uL(i,j,k,UEDEN,2,2) = um(i,j,k,UEDEN,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UEDEN) - flxz(i,j,k,UEDEN))
+             uL(i,j,k,UFS:UFS+nspec-1,2,2) = um(i,j,k,UFS:UFS+nspec-1,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UFS:UFS+nspec-1) & 
                                              - flxz(i,j,k,UFS:UFS+nspec-1))
 
              uL(i,j,k,URHO,3,1) = um(i,j,k,URHO,3) - dt/(3.d0*dz)*(flxx(i+1,j,k,URHO) - flxx(i,j,k,URHO))! x corrected z
@@ -682,20 +682,20 @@ implicit none
              uR(i,j,k,UFS:UFS+nspec-1,1,2) = up(i,j,k,UFS:UFS+nspec-1,1) - dt/(3.d0*dx)*(flxz(i,j,k+1,UFS:UFS+nspec-1) & 
                                             - flxz(i,j,k,UFS:UFS+nspec-1))
 
-             uR(i,j,k,URHO,2,2) = up(i,j,k,URHO,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,URHO) - flxx(i,j,k,URHO))
-             uR(i,j,k,UMX,2,2) = up(i,j,k,UMX,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMX) - flxx(i,j,k,UMX))
-             uR(i,j,k,UMY,2,2) = up(i,j,k,UMY,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMY) - flxx(i,j,k,UMY))
-             uR(i,j,k,UMZ,2,2) = up(i,j,k,UMZ,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMZ) - flxx(i,j,k,UMZ))
-             uR(i,j,k,UEDEN,2,2) = up(i,j,k,UEDEN,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UEDEN) - flxx(i,j,k,UEDEN))
-             uR(i,j,k,UFS:UFS+nspec-1,2,2) = up(i,j,k,UFS:UFS+nspec-1,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UFS:UFS+nspec-1) & 
+             uR(i,j,k,URHO,2,1) = up(i,j,k,URHO,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,URHO) - flxx(i,j,k,URHO))
+             uR(i,j,k,UMX,2,1) = up(i,j,k,UMX,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMX) - flxx(i,j,k,UMX))
+             uR(i,j,k,UMY,2,1) = up(i,j,k,UMY,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMY) - flxx(i,j,k,UMY))
+             uR(i,j,k,UMZ,2,1) = up(i,j,k,UMZ,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMZ) - flxx(i,j,k,UMZ))
+             uR(i,j,k,UEDEN,2,1) = up(i,j,k,UEDEN,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UEDEN) - flxx(i,j,k,UEDEN))
+             uR(i,j,k,UFS:UFS+nspec-1,2,1) = up(i,j,k,UFS:UFS+nspec-1,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UFS:UFS+nspec-1) & 
                                             - flxx(i,j,k,UFS:UFS+nspec-1))
 
-             uR(i,j,k,URHO,2,1) = up(i,j,k,URHO,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,URHO) - flxz(i,j,k,URHO))
-             uR(i,j,k,UMX,2,1) = up(i,j,k,UMX,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMX) - flxz(i,j,k,UMX))
-             uR(i,j,k,UMY,2,1) = up(i,j,k,UMY,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMY) - flxz(i,j,k,UMY))
-             uR(i,j,k,UMZ,2,1) = up(i,j,k,UMZ,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMZ) - flxz(i,j,k,UMZ))
-             uR(i,j,k,UEDEN,2,1) = up(i,j,k,UEDEN,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UEDEN) - flxz(i,j,k,UEDEN))
-             uR(i,j,k,UFS:UFS+nspec-1,2,1) = up(i,j,k,UFS:UFS+nspec-1,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UFS:UFS+nspec-1) & 
+             uR(i,j,k,URHO,2,2) = up(i,j,k,URHO,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,URHO) - flxz(i,j,k,URHO))
+             uR(i,j,k,UMX,2,2) = up(i,j,k,UMX,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMX) - flxz(i,j,k,UMX))
+             uR(i,j,k,UMY,2,2) = up(i,j,k,UMY,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMY) - flxz(i,j,k,UMY))
+             uR(i,j,k,UMZ,2,2) = up(i,j,k,UMZ,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMZ) - flxz(i,j,k,UMZ))
+             uR(i,j,k,UEDEN,2,2) = up(i,j,k,UEDEN,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UEDEN) - flxz(i,j,k,UEDEN))
+             uR(i,j,k,UFS:UFS+nspec-1,2,2) = up(i,j,k,UFS:UFS+nspec-1,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UFS:UFS+nspec-1) & 
                                              - flxz(i,j,k,UFS:UFS+nspec-1))
 
              uR(i,j,k,URHO,3,1) = up(i,j,k,URHO,3) - dt/(3.d0*dz)*(flxx(i+1,j,k,URHO) - flxx(i,j,k,URHO))
