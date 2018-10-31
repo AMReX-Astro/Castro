@@ -806,18 +806,18 @@ implicit none
 
 				!Y-direction
 				!-> Affected by X flux
-				uL(i,j,k,UMAGY,2,2) = um(i,j,k,UMAGY,2) - dt/(3.d0*dy)*(Ez(i+1,j,k) - Ez(i,j,k))
-				uL(i,j,k,UMAGZ,2,2) = um(i,j,k,UMAGZ,2) - dt/(6.d0*dy)*&
+				uL(i,j,k,UMAGY,2,1) = um(i,j,k,UMAGY,2) - dt/(3.d0*dy)*(Ez(i+1,j,k) - Ez(i,j,k))
+				uL(i,j,k,UMAGZ,2,1) = um(i,j,k,UMAGZ,2) - dt/(6.d0*dy)*&
 									((Ey(i+1,j,k+1) - Ey(i,j,k+1)) + &
 									 (Ey(i+1,j,k  ) - Ey(i,j,k  )))
 				!-> Affected by Z flux
-				uL(i,j,k,UMAGY,2,1) = um(i,j,k,UMAGY,2) + dt/(3.d0*dy)*(Ex(i,j,k+1) - Ex(i,j,k))
-				uL(i,j,k,UMAGX,2,1) = um(i,j,k,UMAGX,2) + dt/(6.d0*dy)*&
+				uL(i,j,k,UMAGY,2,2) = um(i,j,k,UMAGY,2) + dt/(3.d0*dy)*(Ex(i,j,k+1) - Ex(i,j,k))
+				uL(i,j,k,UMAGX,2,2) = um(i,j,k,UMAGX,2) + dt/(6.d0*dy)*&
 									((Ey(i+1,j,k+1) - Ey(i+1,j,k)) + &
 									 (Ey(i  ,j,k+1) - Ey(i  ,j,k)))
 
-				uL(i,j,k,UMAGX,2,2) = um(i,j,k,UMAGX,2)
-				uL(i,j,k,UMAGZ,2,1) = um(i,j,k,UMAGZ,2)
+				uL(i,j,k,UMAGX,2,1) = um(i,j,k,UMAGX,2)
+				uL(i,j,k,UMAGZ,2,2) = um(i,j,k,UMAGZ,2)
 
 				!Z-Direction
 				!-> Affected by X flux
@@ -862,18 +862,18 @@ implicit none
                                 uR(i,j,k,UMAGZ,1,2) = up(i,j,k,UMAGZ,1)
 				!Y-direction
 				!-> Affected by X flux
-				uR(i,j,k,UMAGY,2,2) = up(i,j,k,UMAGY,2) - dt/(3.d0*dy)*(Ez(i+1,j+1,k) - Ez(i,j+1,k))
-				uR(i,j,k,UMAGZ,2,2) = up(i,j,k,UMAGZ,2) - dt/(6.d0*dy)*&
+				uR(i,j,k,UMAGY,2,1) = up(i,j,k,UMAGY,2) - dt/(3.d0*dy)*(Ez(i+1,j+1,k) - Ez(i,j+1,k))
+				uR(i,j,k,UMAGZ,2,1) = up(i,j,k,UMAGZ,2) - dt/(6.d0*dy)*&
 									((Ey(i+1,j,k+1) - Ey(i,j,k+1)) + &
 									 (Ey(i+1,j,k  ) - Ey(i,j,k  )))
 				!-> Affected by Z flux
-				uR(i,j,k,UMAGY,2,1) = up(i,j,k,UMAGY,2) + dt/(3.d0*dy)*(Ex(i,j+1,k+1) - Ex(i,j+1,k))
-				uR(i,j,k,UMAGX,2,1) = up(i,j,k,UMAGX,2) + dt/(6.d0*dy)*&
+				uR(i,j,k,UMAGY,2,2) = up(i,j,k,UMAGY,2) + dt/(3.d0*dy)*(Ex(i,j+1,k+1) - Ex(i,j+1,k))
+				uR(i,j,k,UMAGX,2,2) = up(i,j,k,UMAGX,2) + dt/(6.d0*dy)*&
 									((Ey(i+1,j,k+1) - Ey(i+1,j,k)) + &
 									 (Ey(i  ,j,k+1) - Ey(i  ,j,k)))
 
-				uR(i,j,k,UMAGX,2,2) = up(i,j,k,UMAGX,2)
-				uR(i,j,k,UMAGZ,2,1) = up(i,j,k,UMAGZ,2)
+				uR(i,j,k,UMAGX,2,1) = up(i,j,k,UMAGX,2)
+				uR(i,j,k,UMAGZ,2,2) = up(i,j,k,UMAGZ,2)
 
 				!Z-Direction
 				!-> Affected by X flux
