@@ -327,7 +327,7 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 
 	!B in second perpendicular direction
 	UssL(UMAGP2) = (sqrt(UsL(URHO))*UsR(UMAGP2) + sqrt(UsR(URHO))*UsL(UMAGP2) + sqrt(UsL(URHO)*UsR(URHO))&
-          *(UsR(UMP2)/UsR(URHO) - UsL(UMP2)/UsR(URHO))*sign(1.d0,qL(QMAGN)))/(sqrt(UsL(URHO)) + sqrt(UsR(URHO)))
+          *(UsR(UMP2)/UsR(URHO) - UsL(UMP2)/UsL(URHO))*sign(1.d0,qL(QMAGN)))/(sqrt(UsL(URHO)) + sqrt(UsR(URHO)))
 	UssR(UMAGP2) = UssL(UMAGP2)
 
 	!Energy , eq.(63)

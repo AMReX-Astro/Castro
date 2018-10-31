@@ -592,20 +592,20 @@ implicit none
              uL(i,j,k,UFS:UFS+nspec-1,1,2) = um(i,j,k,UFS:UFS+nspec-1,1) - dt/(3.d0*dx)*(flxz(i,j,k+1,UFS:UFS+nspec-1) &
                                              - flxz(i,j,k,UFS:UFS+nspec-1))
 
-             uL(i,j,k,URHO,2,1) = um(i,j,k,URHO,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,URHO) - flxx(i,j,k,URHO))! x corrected y
-             uL(i,j,k,UMX,2,1) = um(i,j,k,UMX,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMX) - flxx(i,j,k,UMX))
-             uL(i,j,k,UMY,2,1) = um(i,j,k,UMY,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMY) - flxx(i,j,k,UMY))
-             uL(i,j,k,UMZ,2,1) = um(i,j,k,UMZ,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMZ) - flxx(i,j,k,UMZ))
-             uL(i,j,k,UEDEN,2,1) = um(i,j,k,UEDEN,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UEDEN) - flxx(i,j,k,UEDEN))
-             uL(i,j,k,UFS:UFS+nspec-1,2,1) = um(i,j,k,UFS:UFS+nspec-1,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UFS:UFS+nspec-1) &
+             uL(i,j,k,URHO,2,2) = um(i,j,k,URHO,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,URHO) - flxx(i,j,k,URHO))! x corrected y
+             uL(i,j,k,UMX,2,2) = um(i,j,k,UMX,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMX) - flxx(i,j,k,UMX))
+             uL(i,j,k,UMY,2,2) = um(i,j,k,UMY,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMY) - flxx(i,j,k,UMY))
+             uL(i,j,k,UMZ,2,2) = um(i,j,k,UMZ,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMZ) - flxx(i,j,k,UMZ))
+             uL(i,j,k,UEDEN,2,2) = um(i,j,k,UEDEN,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UEDEN) - flxx(i,j,k,UEDEN))
+             uL(i,j,k,UFS:UFS+nspec-1,2,2) = um(i,j,k,UFS:UFS+nspec-1,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UFS:UFS+nspec-1) &
                                              - flxx(i,j,k,UFS:UFS+nspec-1))
 
-             uL(i,j,k,URHO,2,2) = um(i,j,k,URHO,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,URHO) - flxz(i,j,k,URHO))! z corrected y
-             uL(i,j,k,UMX,2,2) = um(i,j,k,UMX,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMX) - flxz(i,j,k,UMX))
-             uL(i,j,k,UMY,2,2) = um(i,j,k,UMY,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMY) - flxz(i,j,k,UMY))
-             uL(i,j,k,UMZ,2,2) = um(i,j,k,UMZ,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMZ) - flxz(i,j,k,UMZ))
-             uL(i,j,k,UEDEN,2,2) = um(i,j,k,UEDEN,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UEDEN) - flxz(i,j,k,UEDEN))
-             uL(i,j,k,UFS:UFS+nspec-1,2,2) = um(i,j,k,UFS:UFS+nspec-1,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UFS:UFS+nspec-1) & 
+             uL(i,j,k,URHO,2,1) = um(i,j,k,URHO,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,URHO) - flxz(i,j,k,URHO))! z corrected y
+             uL(i,j,k,UMX,2,1) = um(i,j,k,UMX,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMX) - flxz(i,j,k,UMX))
+             uL(i,j,k,UMY,2,1) = um(i,j,k,UMY,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMY) - flxz(i,j,k,UMY))
+             uL(i,j,k,UMZ,2,1) = um(i,j,k,UMZ,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMZ) - flxz(i,j,k,UMZ))
+             uL(i,j,k,UEDEN,2,1) = um(i,j,k,UEDEN,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UEDEN) - flxz(i,j,k,UEDEN))
+             uL(i,j,k,UFS:UFS+nspec-1,2,1) = um(i,j,k,UFS:UFS+nspec-1,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UFS:UFS+nspec-1) & 
                                              - flxz(i,j,k,UFS:UFS+nspec-1))
 
              uL(i,j,k,URHO,3,1) = um(i,j,k,URHO,3) - dt/(3.d0*dz)*(flxx(i+1,j,k,URHO) - flxx(i,j,k,URHO))! x corrected z
@@ -682,20 +682,20 @@ implicit none
              uR(i,j,k,UFS:UFS+nspec-1,1,2) = up(i,j,k,UFS:UFS+nspec-1,1) - dt/(3.d0*dx)*(flxz(i,j,k+1,UFS:UFS+nspec-1) & 
                                             - flxz(i,j,k,UFS:UFS+nspec-1))
 
-             uR(i,j,k,URHO,2,1) = up(i,j,k,URHO,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,URHO) - flxx(i,j,k,URHO))
-             uR(i,j,k,UMX,2,1) = up(i,j,k,UMX,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMX) - flxx(i,j,k,UMX))
-             uR(i,j,k,UMY,2,1) = up(i,j,k,UMY,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMY) - flxx(i,j,k,UMY))
-             uR(i,j,k,UMZ,2,1) = up(i,j,k,UMZ,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMZ) - flxx(i,j,k,UMZ))
-             uR(i,j,k,UEDEN,2,1) = up(i,j,k,UEDEN,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UEDEN) - flxx(i,j,k,UEDEN))
-             uR(i,j,k,UFS:UFS+nspec-1,2,1) = up(i,j,k,UFS:UFS+nspec-1,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UFS:UFS+nspec-1) & 
+             uR(i,j,k,URHO,2,2) = up(i,j,k,URHO,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,URHO) - flxx(i,j,k,URHO))
+             uR(i,j,k,UMX,2,2) = up(i,j,k,UMX,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMX) - flxx(i,j,k,UMX))
+             uR(i,j,k,UMY,2,2) = up(i,j,k,UMY,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMY) - flxx(i,j,k,UMY))
+             uR(i,j,k,UMZ,2,2) = up(i,j,k,UMZ,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UMZ) - flxx(i,j,k,UMZ))
+             uR(i,j,k,UEDEN,2,2) = up(i,j,k,UEDEN,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UEDEN) - flxx(i,j,k,UEDEN))
+             uR(i,j,k,UFS:UFS+nspec-1,2,2) = up(i,j,k,UFS:UFS+nspec-1,2) - dt/(3.d0*dy)*(flxx(i+1,j,k,UFS:UFS+nspec-1) & 
                                             - flxx(i,j,k,UFS:UFS+nspec-1))
 
-             uR(i,j,k,URHO,2,2) = up(i,j,k,URHO,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,URHO) - flxz(i,j,k,URHO))
-             uR(i,j,k,UMX,2,2) = up(i,j,k,UMX,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMX) - flxz(i,j,k,UMX))
-             uR(i,j,k,UMY,2,2) = up(i,j,k,UMY,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMY) - flxz(i,j,k,UMY))
-             uR(i,j,k,UMZ,2,2) = up(i,j,k,UMZ,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMZ) - flxz(i,j,k,UMZ))
-             uR(i,j,k,UEDEN,2,2) = up(i,j,k,UEDEN,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UEDEN) - flxz(i,j,k,UEDEN))
-             uR(i,j,k,UFS:UFS+nspec-1,2,2) = up(i,j,k,UFS:UFS+nspec-1,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UFS:UFS+nspec-1) & 
+             uR(i,j,k,URHO,2,1) = up(i,j,k,URHO,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,URHO) - flxz(i,j,k,URHO))
+             uR(i,j,k,UMX,2,1) = up(i,j,k,UMX,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMX) - flxz(i,j,k,UMX))
+             uR(i,j,k,UMY,2,1) = up(i,j,k,UMY,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMY) - flxz(i,j,k,UMY))
+             uR(i,j,k,UMZ,2,1) = up(i,j,k,UMZ,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UMZ) - flxz(i,j,k,UMZ))
+             uR(i,j,k,UEDEN,2,1) = up(i,j,k,UEDEN,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UEDEN) - flxz(i,j,k,UEDEN))
+             uR(i,j,k,UFS:UFS+nspec-1,2,1) = up(i,j,k,UFS:UFS+nspec-1,2) - dt/(3.d0*dy)*(flxz(i,j,k+1,UFS:UFS+nspec-1) & 
                                              - flxz(i,j,k,UFS:UFS+nspec-1))
 
              uR(i,j,k,URHO,3,1) = up(i,j,k,URHO,3) - dt/(3.d0*dz)*(flxx(i+1,j,k,URHO) - flxx(i,j,k,URHO))
@@ -797,25 +797,27 @@ implicit none
 										 (Ex(i,j+1,k  ) - Ex(i,j,k)))
 				!-> Affected by Z flux
 				uL(i,j,k,UMAGX,1,2) = um(i,j,k,UMAGX,1) - dt/(3.d0*dx)*(Ey(i,j,k+1) - Ey(i,j,k))
-				uL(i,j,k,UMAGY,1,1) = um(i,j,k,UMAGY,1) - dt/(6.d0*dx)*&
+				uL(i,j,k,UMAGY,1,2) = um(i,j,k,UMAGY,1) - dt/(6.d0*dx)*&
 									 	((Ex(i,j+1,k+1) - Ex(i,j+1,k)) + &
 										 (Ex(i,j  ,k+1) - Ex(i,j  ,k)))
 				!-> Affected by X flux
-				uL(i,j,k,UMAGY:UMAGZ,1,2) = um(i,j,k,UMAGY:UMAGZ,1)
+				uL(i,j,k,UMAGY,1,1) = um(i,j,k,UMAGY,1)
+                                uL(i,j,k,UMAGZ,1,2) = um(i,j,k,UMAGZ,1)
+
 				!Y-direction
 				!-> Affected by X flux
-				uL(i,j,k,UMAGY,2,1) = um(i,j,k,UMAGY,2) - dt/(3.d0*dy)*(Ez(i+1,j,k) - Ez(i,j,k))
-				uL(i,j,k,UMAGZ,2,1) = um(i,j,k,UMAGZ,2) - dt/(6.d0*dy)*&
+				uL(i,j,k,UMAGY,2,2) = um(i,j,k,UMAGY,2) - dt/(3.d0*dy)*(Ez(i+1,j,k) - Ez(i,j,k))
+				uL(i,j,k,UMAGZ,2,2) = um(i,j,k,UMAGZ,2) - dt/(6.d0*dy)*&
 									((Ey(i+1,j,k+1) - Ey(i,j,k+1)) + &
 									 (Ey(i+1,j,k  ) - Ey(i,j,k  )))
 				!-> Affected by Z flux
-				uL(i,j,k,UMAGY,2,2) = um(i,j,k,UMAGY,2) + dt/(3.d0*dy)*(Ex(i,j,k+1) - Ex(i,j,k))
+				uL(i,j,k,UMAGY,2,1) = um(i,j,k,UMAGY,2) + dt/(3.d0*dy)*(Ex(i,j,k+1) - Ex(i,j,k))
 				uL(i,j,k,UMAGX,2,1) = um(i,j,k,UMAGX,2) + dt/(6.d0*dy)*&
 									((Ey(i+1,j,k+1) - Ey(i+1,j,k)) + &
 									 (Ey(i  ,j,k+1) - Ey(i  ,j,k)))
 
 				uL(i,j,k,UMAGX,2,2) = um(i,j,k,UMAGX,2)
-				uL(i,j,k,UMAGZ,2,2) = um(i,j,k,UMAGZ,2)
+				uL(i,j,k,UMAGZ,2,1) = um(i,j,k,UMAGZ,2)
 
 				!Z-Direction
 				!-> Affected by X flux
@@ -825,11 +827,13 @@ implicit none
 									 (Ez(i+1,j  ,k) - Ez(i,j  ,k)))
 				!-> Affected by Y flux
 				uL(i,j,k,UMAGZ,3,2) = um(i,j,k,UMAGZ,3) - dt/(3.d0*dz)*(Ex(i,j+1,k) - Ex(i,j,k))
-				uL(i,j,k,UMAGX,3,1) = um(i,j,k,UMAGX,3) - dt/(6.d0*dz)*&
+				uL(i,j,k,UMAGX,3,2) = um(i,j,k,UMAGX,3) - dt/(6.d0*dz)*&
 									((Ez(i+1,j+1,k) - Ez(i+1,j,k)) + &
 									 (Ez(i  ,j+1,k) - Ez(i  ,j,k)))
 
-				uL(i,j,k,UMAGX:UMAGY,3,2) = um(i,j,k,UMAGX:UMAGY,3)
+				uL(i,j,k,UMAGX,3,1) = um(i,j,k,UMAGX,3)
+                                uL(i,j,k,UMAGY,3,2) = um(i,j,k,UMAGY,3)
+
 				uL(i,j,k,UEINT,1,1) = uL(i,j,k,UEINT,1,1) -0.5d0*dot_product(uL(i,j,k,UMAGX:UMAGZ,1,1),uL(i,j,k,UMAGX:UMAGZ,1,1))
 
 				uL(i,j,k,UEINT,1,2) = uL(i,j,k,UEINT,1,2) -0.5d0*dot_product(uL(i,j,k,UMAGX:UMAGZ,1,2),uL(i,j,k,UMAGX:UMAGZ,1,2))
@@ -850,25 +854,26 @@ implicit none
 										 (Ex(i,j+1,k  ) - Ex(i,j,k  )))
 				!-> Affected by Z flux
 				uR(i,j,k,UMAGX,1,2) = up(i,j,k,UMAGX,1) - dt/(3.d0*dx)*(Ey(i+1,j,k+1) - Ey(i+1,j,k))
-				uR(i,j,k,UMAGY,1,1) = up(i,j,k,UMAGY,1) - dt/(6.d0*dx)*&
+				uR(i,j,k,UMAGY,1,2) = up(i,j,k,UMAGY,1) - dt/(6.d0*dx)*&
 									 	((Ex(i,j+1,k+1) - Ex(i,j+1,k)) + &
 										 (Ex(i,j  ,k+1) - Ex(i,j  ,k)))
 
-				uR(i,j,k,UMAGY:UMAGZ,1,2) = up(i,j,k,UMAGY:UMAGZ,1)
+				uR(i,j,k,UMAGY,1,1) = up(i,j,k,UMAGY,1)
+                                uR(i,j,k,UMAGZ,1,2) = up(i,j,k,UMAGZ,1)
 				!Y-direction
 				!-> Affected by X flux
-				uR(i,j,k,UMAGY,2,1) = up(i,j,k,UMAGY,2) - dt/(3.d0*dy)*(Ez(i+1,j+1,k) - Ez(i,j+1,k))
-				uR(i,j,k,UMAGZ,2,1) = up(i,j,k,UMAGZ,2) - dt/(6.d0*dy)*&
+				uR(i,j,k,UMAGY,2,2) = up(i,j,k,UMAGY,2) - dt/(3.d0*dy)*(Ez(i+1,j+1,k) - Ez(i,j+1,k))
+				uR(i,j,k,UMAGZ,2,2) = up(i,j,k,UMAGZ,2) - dt/(6.d0*dy)*&
 									((Ey(i+1,j,k+1) - Ey(i,j,k+1)) + &
 									 (Ey(i+1,j,k  ) - Ey(i,j,k  )))
 				!-> Affected by Z flux
-				uR(i,j,k,UMAGY,2,2) = up(i,j,k,UMAGY,2) + dt/(3.d0*dy)*(Ex(i,j+1,k+1) - Ex(i,j+1,k))
+				uR(i,j,k,UMAGY,2,1) = up(i,j,k,UMAGY,2) + dt/(3.d0*dy)*(Ex(i,j+1,k+1) - Ex(i,j+1,k))
 				uR(i,j,k,UMAGX,2,1) = up(i,j,k,UMAGX,2) + dt/(6.d0*dy)*&
 									((Ey(i+1,j,k+1) - Ey(i+1,j,k)) + &
 									 (Ey(i  ,j,k+1) - Ey(i  ,j,k)))
 
 				uR(i,j,k,UMAGX,2,2) = up(i,j,k,UMAGX,2)
-				uR(i,j,k,UMAGZ,2,2) = up(i,j,k,UMAGZ,2)
+				uR(i,j,k,UMAGZ,2,1) = up(i,j,k,UMAGZ,2)
 
 				!Z-Direction
 				!-> Affected by X flux
@@ -879,11 +884,12 @@ implicit none
 				!-> Affected by Y flux
 				uR(i,j,k,UMAGZ,3,2) = up(i,j,k,UMAGZ,3) - dt/(3.d0*dz)*(Ex(i,j+1,k+1) - Ex(i,j,k+1))
 					
-				uR(i,j,k,UMAGX,3,1) = up(i,j,k,UMAGX,3) - dt/(6.d0*dz)*&
+				uR(i,j,k,UMAGX,3,2) = up(i,j,k,UMAGX,3) - dt/(6.d0*dz)*&
 									((Ez(i+1,j+1,k) - Ez(i+1,j,k)) + &
 									 (Ez(i  ,j+1,k) - Ez(i  ,j,k)))
 
-				uR(i,j,k,UMAGX:UMAGY,3,2) = up(i,j,k,UMAGX:UMAGY,3)
+				uR(i,j,k,UMAGX,3,1) = up(i,j,k,UMAGX,3)
+                                uR(i,j,k,UMAGY,3,2) = up(i,j,k,UMAGY,3)
 
 				uR(i,j,k,UEINT,1,1) = uR(i,j,k,UEINT,1,1) - 0.5d0*dot_product(uR(i,j,k,UMAGX:UMAGZ,1,1),uR(i,j,k,UMAGX:UMAGZ,1,1))
 

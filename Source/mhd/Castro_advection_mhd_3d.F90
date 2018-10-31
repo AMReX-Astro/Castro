@@ -896,7 +896,7 @@ subroutine enercorr(bcc, bcc_l1, bcc_l2, bcc_l3, bcc_h1, bcc_h2, bcc_h3, &
            v = uout(i,j,k,UMY)/uout(i,j,k,URHO)
            w = uout(i,j,k,UMZ)/uout(i,j,k,URHO)
           
-           uout(i,j,k,UEDEN) = uout(i,j,k,UEDEN) + 0.5d0*(bx**2 +by**2 + bz**2 - dot_product(bcc(i,j,k,1:3),bcc(i,j,k,1:3)))
+           !uout(i,j,k,UEDEN) = uout(i,j,k,UEDEN) + 0.5d0*(bx**2 +by**2 + bz**2 - dot_product(bcc(i,j,k,1:3),bcc(i,j,k,1:3)))
            e = uout(i,j,k,UEDEN) - 0.5d0*(u**2 + v**2 + w**2)*uout(i,j,k,URHO)
            uout(i,j,k,UEINT) = e - 0.5d0*(bx**2 + by**2 + bz**2)
 	enddo
