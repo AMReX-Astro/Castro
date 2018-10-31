@@ -191,7 +191,9 @@ contains
 #if (AMREX_SPACEDIM == 1)
                 qp(i,j,k,QRHO  ) = qp(i,j,k,QRHO  ) + HALF*dt*srcQ(i,j,k,QRHO)
                 qp(i,j,k,QRHO  ) = max(small_dens, qp(i,j,k,QRHO))
-                qp(i,j,k,QUN   ) = qp(i,j,k,QUN    ) + HALF*dt*srcQ(i,j,k,QUN)
+                qp(i,j,k,QUN   ) = qp(i,j,k,QUN   ) + HALF*dt*srcQ(i,j,k,QUN)
+                qp(i,j,k,QUT   ) = qp(i,j,k,QUT   ) + HALF*dt*srcQ(i,j,k,QUT)
+                qp(i,j,k,QUTT  ) = qp(i,j,k,QUTT  ) + HALF*dt*srcQ(i,j,k,QUTT)
                 qp(i,j,k,QREINT) = qp(i,j,k,QREINT) + HALF*dt*srcQ(i,j,k,QREINT)
                 qp(i,j,k,QPRES ) = qp(i,j,k,QPRES ) + HALF*dt*srcQ(i,j,k,QPRES)
 #endif
@@ -233,8 +235,8 @@ contains
                 qm(i+1,j,k,QUN) = qm(i+1,j,k,QUN) + HALF*dt*srcQ(i,j,k,QUN)
                 qm(i+1,j,k,QUT) = qm(i+1,j,k,QUT) + HALF*dt*srcQ(i,j,k,QUT)
                 qm(i+1,j,k,QUTT) = qm(i+1,j,k,QUTT) + HALF*dt*srcQ(i,j,k,QUTT)
-                qm(i+1,j,k,QREINT) = qm(i,j,k,QREINT) + HALF*dt*srcQ(i,j,k,QREINT)
-                qm(i+1,j,k,QPRES) = qm(i,j,k,QPRES ) + HALF*dt*srcQ(i,j,k,QPRES)
+                qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + HALF*dt*srcQ(i,j,k,QREINT)
+                qm(i+1,j,k,QPRES) = qm(i+1,j,k,QPRES ) + HALF*dt*srcQ(i,j,k,QPRES)
 #endif
 
              else if (idir == 2 .and. j <= hi(2)) then
