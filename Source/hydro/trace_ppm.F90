@@ -11,11 +11,7 @@ module trace_ppm_module
 
   private
 
-<<<<<<< HEAD
   public trace_ppm
-=======
-  public trace_ppm, trace_ppm_gammae, trace_ppm_temp
->>>>>>> development
 
 contains
 
@@ -30,7 +26,6 @@ contains
                        dx, dt)
 
     use network, only : nspec, naux
-<<<<<<< HEAD
     use meth_params_module, only : NQ, NQAUX, QVAR, ppm_predict_gammae, &
                                    ppm_temp_fix
 
@@ -115,27 +110,17 @@ contains
                             dx, dt)
 
     use network, only : nspec, naux
-=======
->>>>>>> development
+
     use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFX, QFS, &
                                    small_dens, small_pres, &
                                    ppm_type, &
-<<<<<<< HEAD
                                    ppm_reference_eigenvectors, &
                                    npassive, qpass_map, &
-=======
-                                   ppm_reference_eigenvectors, ppm_predict_gammae, &
-                                   npassive, qpass_map, ppm_temp_fix, &
->>>>>>> development
                                    fix_mass_flux
     use amrex_constants_module, only : ZERO, HALF, ONE
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
 
-<<<<<<< HEAD
-=======
-    use amrex_fort_module, only : rt => amrex_real
->>>>>>> development
     implicit none
 
     integer, intent(in) :: idir
@@ -608,12 +593,7 @@ contains
 
     end do
 
-<<<<<<< HEAD
   end subroutine trace_ppm_rhoe
-=======
-  end subroutine trace_ppm
->>>>>>> development
-
 
   subroutine trace_ppm_gammae(idir, q, qd_lo, qd_hi, &
                               qaux, qa_lo, qa_hi, &
@@ -630,21 +610,12 @@ contains
                                    QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFX, QFS, &
                                    small_dens, small_pres, &
                                    ppm_type, &
-<<<<<<< HEAD
                                    ppm_reference_eigenvectors, &
                                    npassive, qpass_map, &
-=======
-                                   ppm_reference_eigenvectors, ppm_predict_gammae, &
-                                   npassive, qpass_map, ppm_temp_fix, &
->>>>>>> development
                                    fix_mass_flux
     use amrex_constants_module, only : ZERO, HALF, ONE
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
 
-<<<<<<< HEAD
-=======
-    use amrex_fort_module, only : rt => amrex_real
->>>>>>> development
     implicit none
 
     integer, intent(in) :: idir
@@ -1160,23 +1131,14 @@ contains
                                    QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFX, QFS, &
                                    small_dens, small_pres, &
                                    ppm_type, &
-<<<<<<< HEAD
                                    ppm_reference_eigenvectors, &
                                    npassive, qpass_map, &
-=======
-                                   ppm_reference_eigenvectors, ppm_predict_gammae, &
-                                   npassive, qpass_map, ppm_temp_fix, &
->>>>>>> development
                                    fix_mass_flux
     use amrex_constants_module, only : ZERO, HALF, ONE
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
 
-<<<<<<< HEAD
-=======
-    use amrex_fort_module, only : rt => amrex_real
->>>>>>> development
     implicit none
 
     integer, intent(in) :: idir
