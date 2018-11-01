@@ -827,7 +827,7 @@ subroutine magup(bxin, bxin_lo, bxin_hi, &
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
 	do i = lo(1), hi(1)+1
-           bxout(i,j,k) = bxin(i,j,k) + dt/dz*(Ey(i,j,k+1) - Ey(i,j,k)) - dt/dy*(Ez(i,j+1,k) - Ez(i,j,k))
+           bxout(i,j,k) = bxin(i,j,k) + dt/dx*( (Ey(i,j,k+1) - Ey(i,j,k)) - (Ez(i,j+1,k) - Ez(i,j,k)) )
 
 	enddo
      enddo
@@ -837,7 +837,7 @@ subroutine magup(bxin, bxin_lo, bxin_hi, &
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)+1
 	do i = lo(1), hi(1)
-           byout(i,j,k) = byin(i,j,k) + dt/dx*(Ez(i+1,j,k) - Ez(i,j,k)) - dt/dz*(Ex(i,j,k+1) - Ex(i,j,k))
+           byout(i,j,k) = byin(i,j,k) + dt/dy*( (Ez(i+1,j,k) - Ez(i,j,k)) - (Ex(i,j,k+1) - Ex(i,j,k)) )
 	enddo
      enddo
   enddo
@@ -845,7 +845,7 @@ subroutine magup(bxin, bxin_lo, bxin_hi, &
   do k = lo(3), hi(3)+1
      do j = lo(2), hi(2)
 	do i = lo(1), hi(1)
-           bzout(i,j,k) = bzin(i,j,k) + dt/dy*(Ex(i,j+1,k) - Ex(i,j,k)) - dt/dx*(Ey(i+1,j,k) - Ey(i,j,k))
+           bzout(i,j,k) = bzin(i,j,k) + dt/dz*( (Ex(i,j+1,k) - Ex(i,j,k)) - (Ey(i+1,j,k) - Ey(i,j,k)) )
 	enddo
      enddo
   enddo
