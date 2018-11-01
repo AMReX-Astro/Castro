@@ -110,6 +110,7 @@ contains
                             dx, dt)
 
     use network, only : nspec, naux
+
     use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFX, QFS, &
                                    small_dens, small_pres, &
@@ -593,7 +594,6 @@ contains
     end do
 
   end subroutine trace_ppm_rhoe
-
 
   subroutine trace_ppm_gammae(idir, q, qd_lo, qd_hi, &
                               qaux, qa_lo, qa_hi, &
