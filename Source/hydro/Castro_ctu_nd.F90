@@ -184,7 +184,9 @@ contains
 
     real(rt) :: dxinv, dyinv, dzinv
     real(rt) :: dtdx, dtdy, dtdz, hdt
+#ifdef AMREX_SPACEDIM == 3
     real(rt) :: cdtdx, cdtdy, cdtdz
+#endif
     real(rt) :: hdtdx, hdtdy, hdtdz
 
     integer :: i, j, k, iwave, idim, n
@@ -236,19 +238,19 @@ contains
     dxinv = ONE/dx(1)
     dtdx = dt*dxinv
     hdtdx = HALF*dtdx
-    cdtdx = dtdx*THIRD
 
 #if AMREX_SPACEDIM >= 2
     dyinv = ONE/dx(2)
     dtdy = dt*dyinv
     hdtdy = HALF*dtdy
-    cdtdy = dtdy*THIRD
 #endif
 
 #if AMREX_SPACEDIM == 3
     dzinv = ONE/dx(3)
     dtdz = dt*dzinv
     hdtdz = HALF*dtdz
+    cdtdx = dtdx*THIRD
+    cdtdy = dtdy*THIRD
     cdtdz = dtdz*THIRD
 #endif
 
