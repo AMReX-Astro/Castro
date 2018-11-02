@@ -20,15 +20,15 @@ contains
 ! ::: :: q           => (const)  input state, primitives
 ! ::: :: qaux        => (const)  auxiliary hydro data
 ! ::: :: flatn       => (const)  flattening parameter
-! ::: :: src         => (const)  source
-! ::: :: nx          => (const)  number of cells in X direction
-! ::: :: ny          => (const)  number of cells in Y direction
-! ::: :: nz          => (const)  number of cells in Z direction
+! ::: :: srcQ        => (const)  primitive variable source
 ! ::: :: dx          => (const)  grid spacing in X, Y, Z direction
 ! ::: :: dt          => (const)  time stepsize
 ! ::: :: flux1      <=  (modify) flux in X direction on X edges
 ! ::: :: flux2      <=  (modify) flux in Y direction on Y edges
 ! ::: :: flux3      <=  (modify) flux in Z direction on Z edges
+! ::: :: q1         <=  (modify) Godunov interface state in X
+! ::: :: q2         <=  (modify) Godunov interface state in Y
+! ::: :: q3         <=  (modify) Godunov interface state in Z
 ! ::: ----------------------------------------------------------------
 
   !! TODO: we can get rid of the the different temporary q Godunov
@@ -56,26 +56,24 @@ contains
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : QVAR, NQ, NVAR, QPRES, QRHO, QU, QW, &
                                    QFS, QFX, QTEMP, QREINT, &
-                                   QC, QGAMC, NQAUX, &
+                                   QC, QGAMC, NQAUX, QGAME, QREINT, &
                                    NGDNV, GDU, GDV, GDW, GDPRES, &
-                                   ppm_type, &
+                                   ppm_type, ppm_predict_gammae, &
                                    use_pslope, ppm_temp_fix, &
                                    hybrid_riemann
-    use trace_ppm_module, only : tracexy_ppm, tracez_ppm
-    use trace_module, only : tracexy, tracez
+    use network, only : nspec, naux
+    use eos_type_module, only: eos_t, eos_input_rt
+    use eos_module, only: eos
+    use trace_plm_module, only : trace_plm
     use transverse_module
     use ppm_module, only : ppm_reconstruct, ppm_int_profile
     use slope_module, only : uslope, pslope
-    use actual_network, only : nspec, naux
-    use eos_module, only: eos
-    use eos_type_module, only: eos_t, eos_input_rt
     use riemann_module, only: cmpflx
-    use amrex_constants_module
 #ifdef RADIATION
     use rad_params_module, only : ngroups
-    use trace_ppm_rad_module, only : tracexy_ppm_rad, tracez_ppm_rad
+    use trace_ppm_rad_module, only : trace_ppm_rad
 #else
-    use trace_ppm_module, only : tracexy_ppm, tracez_ppm
+    use trace_ppm_module, only : trace_ppm, trace_ppm_gammae, trace_ppm_temp
 #endif
 #ifdef SHOCK_VAR
     use meth_params_module, only : USHK
@@ -96,12 +94,14 @@ contains
     integer, intent(in) :: q1_lo(3), q1_hi(3)
     integer, intent(in) :: q2_lo(3), q2_hi(3)
     integer, intent(in) :: q3_lo(3), q3_hi(3)
-    integer, intent(in) :: domlo(3), domhi(3)
 #ifdef RADIATION
     integer, intent(in) :: rf1_lo(3), rf1_hi(3)
     integer, intent(in) :: rf2_lo(3), rf2_hi(3)
     integer, intent(in) :: rf3_lo(3), rf3_hi(3)
 #endif
+    integer, intent(in) :: domlo(3), domhi(3)
+
+    real(rt), intent(in) :: dx(3), dt
 
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
@@ -115,7 +115,6 @@ contains
     real(rt), intent(inout) ::    q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NGDNV)
     real(rt), intent(inout) ::    q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NGDNV)
     real(rt), intent(inout) ::    q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NGDNV)
-    real(rt), intent(in) :: dx(3), dt
 
 #ifdef RADIATION
     real(rt), intent(inout) :: rflux1(rf1_lo(1):rf1_hi(1),rf1_lo(2):rf1_hi(2),rf1_lo(3):rf1_hi(3),0:ngroups-1)
@@ -128,8 +127,7 @@ contains
     real(rt) :: cdtdx, cdtdy, cdtdz
     real(rt) :: hdtdx, hdtdy, hdtdz
 
-    integer :: n
-    integer :: i, j, k, iwave, idim, d
+    integer :: i, j, k, iwave, idim, n
 
     real(rt), pointer :: dqx(:,:,:,:), dqy(:,:,:,:), dqz(:,:,:,:)
 
@@ -170,6 +168,7 @@ contains
     type (eos_t) :: eos_state
 
     logical :: source_nonzero(QVAR)
+    logical :: reconstruct_state(NQ)
 
     integer :: fglo(3), fghi(3), glo(3), ghi(3)
 
@@ -230,6 +229,7 @@ contains
     ! for the hybrid Riemann solver
     call bl_allocate(shk, glo, ghi)
 
+    ! multidimensional shock detection
 
 #ifdef SHOCK_VAR
     uout(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),USHK) = ZERO
@@ -273,6 +273,18 @@ contains
     call bl_allocate(szm, glo, ghi)
     call bl_allocate(szp, glo, ghi)
 
+    ! we don't need to reconstruct all of the NQ state variables,
+    ! depending on how we are tracing
+    reconstruct_state(:) = .true.
+    if (ppm_predict_gammae /= 1) then
+       reconstruct_state(QGAME) = .false.
+    else
+       reconstruct_state(QREINT) = .false.
+    endif
+    if (ppm_temp_fix < 3) then
+       reconstruct_state(QTEMP) = .false.
+    endif
+
     ! preprocess the sources -- we don't want to trace under a source that is empty
     if (ppm_type > 0) then
        do n = 1, QVAR
@@ -283,11 +295,13 @@ contains
              source_nonzero(n) = .true.
           endif
        enddo
-    endif
 
-    if (ppm_type > 0) then
-
+       ! Compute Ip and Im -- this does the parabolic reconstruction,
+       ! limiting, and returns the integral of each profile under each
+       ! wave to each interface
        do n = 1, NQ
+          if (.not. reconstruct_state(n)) cycle
+
           call ppm_reconstruct(q, qd_lo, qd_hi, NQ, n, &
                                flatn, qd_lo, qd_hi, &
                                sxm, sxp, sym, syp, szm, szp, glo, ghi, &
@@ -300,6 +314,71 @@ contains
                                Ip, Im, glo, ghi, NQ, n, &
                                lo, hi, dx, dt)
        end do
+
+
+       if (ppm_temp_fix /= 1) then
+          call ppm_reconstruct(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
+                               flatn, qd_lo, qd_hi, &
+                               sxm, sxp, sym, syp, szm, szp, glo, ghi, &
+                               lo, hi, dx)
+
+          call ppm_int_profile(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
+                               q, qd_lo, qd_hi, &
+                               qaux, qa_lo, qa_hi, &
+                               sxm, sxp, sym, syp, szm, szp, glo, ghi, &
+                               Ip_gc, Im_gc, glo, ghi, 1, 1, &
+                               lo, hi, dx, dt)
+       else
+          ! temperature-based PPM -- if desired, take the Ip(T)/Im(T)
+          ! constructed above and use the EOS to overwrite Ip(p)/Im(p)
+          ! get an edge-based gam1 here if we didn't get it from the EOS
+          ! call above (for ppm_temp_fix = 1)
+          do iwave = 1, 3
+             do idim = 1, 3
+
+                do k = lo(3)-1, hi(3)+1
+                   do j = lo(2)-1, hi(2)+1
+                      do i = lo(1)-1, hi(1)+1
+
+                         eos_state % rho = Ip(i,j,k,idim,iwave,QRHO)
+                         eos_state % T   = Ip(i,j,k,idim,iwave,QTEMP)
+
+                         eos_state % xn  = Ip(i,j,k,idim,iwave,QFS:QFS+nspec-1)
+                         eos_state % aux = Ip(i,j,k,idim,iwave,QFX:QFX+naux-1)
+
+                         call eos(eos_input_rt, eos_state)
+
+                         Ip(i,j,k,idim,iwave,QPRES)  = eos_state % p
+                         Ip(i,j,k,idim,iwave,QREINT) = Ip(i,j,k,idim,iwave,QRHO) * eos_state % e
+                         Ip_gc(i,j,k,idim,iwave,1)   = eos_state % gam1
+                      end do
+                   end do
+                end do
+
+                do k = lo(3)-1, hi(3)+1
+                   do j = lo(2)-1, hi(2)+1
+                      do i = lo(1)-1, hi(1)+1
+
+                         eos_state % rho = Im(i,j,k,idim,iwave,QRHO)
+                         eos_state % T   = Im(i,j,k,idim,iwave,QTEMP)
+
+                         eos_state % xn  = Im(i,j,k,idim,iwave,QFS:QFS+nspec-1)
+                         eos_state % aux = Im(i,j,k,idim,iwave,QFX:QFX+naux-1)
+
+                         call eos(eos_input_rt, eos_state)
+
+                         Im(i,j,k,idim,iwave,QPRES)  = eos_state % p
+                         Im(i,j,k,idim,iwave,QREINT) = Im(i,j,k,idim,iwave,QRHO) * eos_state % e
+                         Im_gc(i,j,k,idim,iwave,1)   = eos_state % gam1
+                      end do
+                   end do
+                end do
+
+             end do
+          end do
+
+       end if
+
 
        ! source terms
        do n = 1, QVAR
@@ -322,138 +401,147 @@ contains
 
        enddo
 
-       ! this probably doesn't support radiation
-       if (ppm_temp_fix /= 1) then
-          call ppm_reconstruct(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
-                               flatn, qd_lo, qd_hi, &
-                               sxm, sxp, sym, syp, szm, szp, glo, ghi, &
-                               lo, hi, dx)
-
-          call ppm_int_profile(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
-                               q, qd_lo, qd_hi, &
-                               qaux, qa_lo, qa_hi, &
-                               sxm, sxp, sym, syp, szm, szp, glo, ghi, &
-                               Ip_gc, Im_gc, glo, ghi, 1, 1, &
-                               lo, hi, dx, dt)
-       else
-
-          do iwave = 1, 3
-             do idim = 1, 3
-
-                do k = lo(3)-1, hi(3)+1
-                   do j = lo(2)-1, hi(2)+1
-                      do i = lo(1)-1, hi(1)+1
-
-                         eos_state % rho = Ip(i,j,k,idim,iwave,QRHO)
-                         eos_state % T   = Ip(i,j,k,idim,iwave,QTEMP)
-
-                         eos_state % xn  = Ip(i,j,k,idim,iwave,QFS:QFS+nspec-1)
-                         eos_state % aux = Ip(i,j,k,idim,iwave,QFX:QFX+naux-1)
-
-                         call eos(eos_input_rt, eos_state)
-
-                         Ip(i,j,k,idim,iwave,QPRES)  = eos_state % p
-                         Ip(i,j,k,idim,iwave,QREINT) = eos_state % e * Ip(i,j,k,idim,iwave,QRHO)
-                         Ip_gc(i,j,k,idim,iwave,1)   = eos_state % gam1
-                      end do
-                   end do
-                end do
-
-                do k = lo(3)-1, hi(3)+1
-                   do j = lo(2)-1, hi(2)+1
-                      do i = lo(1)-1, hi(1)+1
-                         eos_state % rho = Im(i,j,k,idim,iwave,QRHO)
-                         eos_state % T   = Im(i,j,k,idim,iwave,QTEMP)
-
-                         eos_state % xn  = Im(i,j,k,idim,iwave,QFS:QFS+nspec-1)
-                         eos_state % aux = Im(i,j,k,idim,iwave,QFX:QFX+naux-1)
-
-                         call eos(eos_input_rt, eos_state)
-
-                         Im(i,j,k,idim,iwave,QPRES)  = eos_state % p
-                         Im(i,j,k,idim,iwave,QREINT) = eos_state % e * Im(i,j,k,idim,iwave,QRHO)
-                         Im_gc(i,j,k,idim,iwave,1)   = eos_state % gam1
-                      end do
-                   end do
-                end do
-
-             end do
-          end do
-
-       end if
-
 
        ! Compute U_x and U_y at kc (k3d)
 
 #ifdef RADIATION
-       call tracexy_ppm_rad(q, qd_lo, qd_hi, &
+       call trace_ppm_rad(1, q, qd_lo, qd_hi, &
+                          qaux, qa_lo, qa_hi, &
+                          Ip, Im, Ip_src, Im_src, glo, ghi, &
+                          qxm, qxp, fglo, fghi, &
+                          lo, hi, domlo, domhi, &
+                          dx, dt)
+
+       call trace_ppm_rad(2, q, qd_lo, qd_hi, &
+                          qaux, qa_lo, qa_hi, &
+                          Ip, Im, Ip_src, Im_src, glo, ghi, &
+                          qym, qyp, fglo, fghi, &
+                          lo, hi, domlo, domhi, &
+                          dx, dt)
+
+       call trace_ppm_rad(3, q, qd_lo, qd_hi, &
+                          qaux, qa_lo, qa_hi, &
+                          Ip, Im, Ip_src, Im_src, glo, ghi, &
+                          qzm, qzp, fglo, fghi, &
+                          lo, hi, domlo, domhi, &
+                          dx, dt)
+
+#else
+       if (ppm_temp_fix < 3) then
+          if (ppm_predict_gammae == 0) then
+             call trace_ppm(1, q, qd_lo, qd_hi, &
                             qaux, qa_lo, qa_hi, &
-                            Ip, Im, Ip_src, Im_src, glo, ghi, &
-                            qxm, qxp, qym, qyp, fglo, fghi, &
+                            Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
+                            qxm, qxp, fglo, fghi, &
                             lo, hi, domlo, domhi, &
                             dx, dt)
 
-       call tracez_ppm_rad(q, qd_lo, qd_hi, &
-                           qaux, qa_lo, qa_hi, &
-                           Ip, Im, Ip_src, Im_src, glo, ghi, &
-                           qzm, qzp, fglo, fghi, &
-                           lo, hi, domlo, domhi, &
-                           dt)
+             call trace_ppm(2, q, qd_lo, qd_hi, &
+                            qaux, qa_lo, qa_hi, &
+                            Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
+                            qym, qyp, fglo, fghi, &
+                            lo, hi, domlo, domhi, &
+                            dx, dt)
 
-#else
-       call tracexy_ppm(q, qd_lo, qd_hi, &
-                        qaux, qa_lo, qa_hi, &
-                        Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
-                        qxm, qxp, qym, qyp, fglo, fghi, &
-                        lo, hi, domlo, domhi, &
-                        dx, dt)
+             call trace_ppm(3, q, qd_lo, qd_hi, &
+                            qaux, qa_lo, qa_hi, &
+                            Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
+                            qzm, qzp, fglo, fghi, &
+                            lo, hi, domlo, domhi, &
+                            dx, dt)
+          else
+             call trace_ppm_gammae(1, q, qd_lo, qd_hi, &
+                                   qaux, qa_lo, qa_hi, &
+                                   Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
+                                   qxm, qxp, fglo, fghi, &
+                                   lo, hi, domlo, domhi, &
+                                   dx, dt)
 
-       call tracez_ppm(q, qd_lo, qd_hi, &
-                       qaux, qa_lo, qa_hi, &
-                       Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
-                       qzm, qzp, fglo, fghi, &
-                       lo, hi, domlo, domhi, &
-                       dt)
+             call trace_ppm_gammae(2, q, qd_lo, qd_hi, &
+                                   qaux, qa_lo, qa_hi, &
+                                   Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
+                                   qym, qyp, fglo, fghi, &
+                                   lo, hi, domlo, domhi, &
+                                   dx, dt)
+
+             call trace_ppm_gammae(3, q, qd_lo, qd_hi, &
+                                   qaux, qa_lo, qa_hi, &
+                                   Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
+                                   qzm, qzp, fglo, fghi, &
+                                   lo, hi, domlo, domhi, &
+                                   dx, dt)
+          endif
+       else
+          call trace_ppm_temp(1, q, qd_lo, qd_hi, &
+                              qaux, qa_lo, qa_hi, &
+                              Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
+                              qxm, qxp, fglo, fghi, &
+                              lo, hi, domlo, domhi, &
+                              dx, dt)
+
+          call trace_ppm_temp(2, q, qd_lo, qd_hi, &
+                              qaux, qa_lo, qa_hi, &
+                              Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
+                              qym, qyp, fglo, fghi, &
+                              lo, hi, domlo, domhi, &
+                              dx, dt)
+
+          call trace_ppm_temp(3, q, qd_lo, qd_hi, &
+                              qaux, qa_lo, qa_hi, &
+                              Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
+                              qzm, qzp, fglo, fghi, &
+                              lo, hi, domlo, domhi, &
+                              dx, dt)
+       endif
 #endif
-
     else
-
 #ifdef RADIATION
 #ifndef AMREX_USE_CUDA
        call amrex_error("ppm_type <=0 is not supported in with radiation")
 #endif
 #endif
 
-       ! Compute all slopes at kc (k3d)
-       call uslope(q, flatn, qd_lo, qd_hi, &
-                   dqx, dqy, dqz, glo, ghi, &
-                   lo, hi)
+       ! Compute all slopes
+       do n = 1, NQ
+          if (.not. reconstruct_state(n)) cycle
+          call uslope(q, qd_lo, qd_hi, n, &
+                      flatn, qd_lo, qd_hi, &
+                      dqx, dqy, dqz, glo, ghi, &
+                      lo, hi)
+       end do
 
-       if (use_pslope .eq. 1) &
-            call pslope(q, flatn, qd_lo, qd_hi, &
+       if (use_pslope == 1) &
+            call pslope(q, qd_lo, qd_hi, &
+                        flatn, qd_lo, qd_hi, &
                         dqx, dqy, dqz, glo, ghi, &
                         srcQ, src_lo, src_hi, &
                         lo, hi, dx)
 
        ! Compute U_x and U_y at kc (k3d)
-       call tracexy(q, qd_lo, qd_hi, &
-                    qaux, qa_lo, qa_hi, &
-                    dqx, dqy, glo, ghi, &
-                    qxm, qxp, qym, qyp, fglo, fghi, &
-                    lo, hi, domlo, domhi, &
-                    dx, dt)
+       call trace_plm(1, q, qd_lo, qd_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      dqx, glo, ghi, &
+                      qxm, qxp, fglo, fghi, &
+                      lo, hi, domlo, domhi, &
+                      dx, dt)
 
-       ! we should not land here with radiation
-       call tracez(q, qd_lo, qd_hi, &
-                   qaux, qa_lo, qa_hi, &
-                   dqz, glo, ghi, &
-                   qzm, qzp, fglo, fghi, &
-                   lo, hi, domlo, domhi, &
-                   dx, dt)
+       call trace_plm(2, q, qd_lo, qd_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      dqy, glo, ghi, &
+                      qym, qyp, fglo, fghi, &
+                      lo, hi, domlo, domhi, &
+                      dx, dt)
+
+       call trace_plm(3, q, qd_lo, qd_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      dqz, glo, ghi, &
+                      qzm, qzp, fglo, fghi, &
+                      lo, hi, domlo, domhi, &
+                      dx, dt)
 
     end if  ! ppm test
 
-    if (ppm_type .gt. 0) then
+    if (ppm_type > 0) then
        call bl_deallocate ( Ip)
        call bl_deallocate ( Im)
 
