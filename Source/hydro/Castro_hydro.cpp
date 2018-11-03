@@ -248,7 +248,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 
     if (verbose && ParallelDescriptor::IOProcessor())
-        std::cout << std::endl << "... Leaving hydro advance" << std::endl << std::endl;
+        std::cout << "... Leaving hydro advance" << std::endl << std::endl;
 
     if (verbose > 0)
     {

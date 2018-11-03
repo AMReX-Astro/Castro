@@ -515,7 +515,8 @@ Castro::valid_zones_to_burn(MultiFab& State)
     // If we got to this point, we did not survive the limiters,
     // so there are no zones to burn.
 
-    amrex::Print() << std::endl << "  No valid zones to burn, skipping react_state()." << std::endl;
+    if (verbose > 1)
+        amrex::Print() << "  No valid zones to burn, skipping react_state()." << std::endl;
 
     return false;
 
