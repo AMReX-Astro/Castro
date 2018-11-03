@@ -545,6 +545,10 @@ Castro::Castro (Amr&            papa,
 #endif
 #endif
 
+   if (Knapsack_Weight_Type > 0) {
+    get_new_data(Knapsack_Weight_Type).setVal(1.0);
+   }
+
 #ifdef DIFFUSION
       // diffusion is a static object, only alloc if not already there
       if (diffusion == 0)

@@ -17,6 +17,8 @@ Castro::strang_react_first_half(Real time, Real dt)
 
     MultiFab& reactions = get_old_data(Reactions_Type);
 
+    // Ensure we always have valid data, even if we don't do the burn.
+
     reactions.setVal(0.0);
 
     if (do_react != 1) return;
@@ -151,7 +153,12 @@ Castro::strang_react_second_half(Real time, Real dt)
 
     MultiFab& reactions = get_new_data(Reactions_Type);
 
+    // Ensure we always have valid data, even if we don't do the burn.
+
     reactions.setVal(0.0);
+
+    if (Knapsack_Weight_Type > 0)
+        get_new_data(Knapsack_Weight_Type).setVal(1.0);
 
     if (do_react != 1) return;
 
