@@ -284,7 +284,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 
     ParallelDescriptor::ReduceIntMin(burn_success);
 
-    if (verbose) {
+    if (print_update_diagnostics) {
 
 	Real e_added = r.sum(NumSpec + 1);
 
@@ -370,14 +370,18 @@ Castro::react_state(Real time, Real dt)
     if (ng > 0)
         S_new.FillBoundary(geom.periodicity());
 
-    if (verbose) {
+    if (print_update_diagnostics) {
 
         Real e_added = reactions.sum(NumSpec + 1);
 
 	if (ParallelDescriptor::IOProcessor() && e_added != 0.0)
 	    std::cout << "... (rho e) added from burning: " << e_added << std::endl;
 
-	if (ParallelDescriptor::IOProcessor())
+    }
+
+    if (verbose) {
+
+        if (ParallelDescriptor::IOProcessor())
 	    std::cout << "... Leaving burner after completing full timestep of burning." << "\n";
 
         const int IOProc   = ParallelDescriptor::IOProcessorNumber();
