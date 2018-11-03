@@ -458,7 +458,7 @@ Gravity::solve_for_phi (int               level,
 #endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
         if (ParallelDescriptor::IOProcessor())
-            std::cout << "Gravity::solve_for_phi() time = " << end << std::endl;
+            std::cout << "Gravity::solve_for_phi() time = " << end << std::endl << std::endl;
 #ifdef BL_LAZY
 	});
 #endif
