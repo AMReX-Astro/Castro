@@ -12,6 +12,10 @@ void
 Castro::construct_hydro_source(Real time, Real dt)
 {
 
+  BL_PROFILE("Castro::construct_hydro_source()");
+
+  const Real strt_time = ParallelDescriptor::second();
+
   // this constructs the hydrodynamic source (essentially the flux
   // divergence) using the CTU framework for unsplit hydrodynamics
 
@@ -246,6 +250,23 @@ Castro::construct_hydro_source(Real time, Real dt)
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << std::endl << "... Leaving hydro advance" << std::endl << std::endl;
 
+    if (verbose > 0)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+	Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+	if (ParallelDescriptor::IOProcessor())
+	  std::cout << "Castro::construct_hydro_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+	});
+#endif
+    }
+
 }
 #endif
 
@@ -255,9 +276,13 @@ void
 Castro::construct_mol_hydro_source(Real time, Real dt)
 {
 
+  BL_PROFILE("Castro::construct_mol_hydro_source()");
+
   // this constructs the hydrodynamic source (essentially the flux
   // divergence) using method of lines integration.  The output, as a
   // update to the state, is stored in the k_mol array of multifabs.
+
+  const Real strt_time = ParallelDescriptor::second();
 
   if (verbose && ParallelDescriptor::IOProcessor())
     std::cout << "... hydro MOL stage " << mol_iteration << std::endl;
@@ -581,6 +606,23 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
 	  print_source_change(hydro_update);
 
+#ifdef BL_LAZY
+	});
+#endif
+    }
+
+    if (verbose > 0)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+	Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+	if (ParallelDescriptor::IOProcessor())
+	  std::cout << "Castro::construct_mol_hydro_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
 	});
 #endif
