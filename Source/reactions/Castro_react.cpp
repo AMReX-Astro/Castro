@@ -237,7 +237,7 @@ Castro::strang_react_second_half(Real time, Real dt)
 
     if (use_custom_knapsack_weights) {
 
-	state.copy(*stte_temp, 0, 0, state_temp->nComp(), state_temp->nGrow(), state_temp->nGrow());
+	state.copy(*state_temp, 0, 0, state_temp->nComp(), state_temp->nGrow(), state_temp->nGrow());
 	reactions.copy(*reactions_temp, 0, 0, reactions_temp->nComp(), reactions_temp->nGrow(), reactions_temp->nGrow());
 	weights->copy(*weights_temp, 0, 0, weights_temp->nComp(), weights_temp->nGrow(), weights_temp->nGrow());
 
