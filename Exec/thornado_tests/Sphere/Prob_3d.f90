@@ -160,7 +160,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         rho_in(i) = state(i,j,k,URHO) * (Gram/Centimeter**3)
           T_in(i) = state(i,j,k,UTEMP) * Kelvin
 
-         Ye_in(i) = (  Ye_max - ( Ye_max -  Ye_min) * tanh_y )
+         Ye_in(i) = (  Ye_min - ( Ye_min -  Ye_max) * tanh_y )
            
      enddo
 
@@ -171,6 +171,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         state(i,j,k,UEINT) =  Epervol_out(i) / (Erg/Centimeter**3)    ! UEINT = (rho e) 
         state(i,j,k,UEDEN) =  state(i,j,k,UEINT)   ! (rho E) = (rho e) since momentum = 0
         state(i,j,k,UFX  ) =  Ne_out(i) * Centimeter**3
+        state(i,j,k,UFS  ) =  Ne_out(i) * Centimeter**3 * AtomicMassUnit / Gram
 
      enddo
 
