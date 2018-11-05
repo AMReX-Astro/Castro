@@ -180,12 +180,16 @@ contains
              ! equation or gammae (if we have ppm_predict_gammae = 1) to
              ! be able to deal with the general EOS
 
-############
+#if AMREX_SPACEDIM == 2
+             dup = area1(i+1,j)*pggp*ugp - area1(i,j)*pggm*ugm
+             du = area1(i+1,j)*ugp-area1(i,j)*ugm
+#else
              dup = pgp*ugp - pgm*ugm
+             du = ugp-ugm
+#endif
              pav = HALF*(pgp+pgm)
              uav = HALF*(ugp+ugm)
              geav = HALF*(gegp+gegm)
-             du = ugp-ugm
              dge = gegp-gegm
 
              ! this is the gas gamma_1
@@ -208,16 +212,26 @@ contains
                    der(g) = cdtdx * ugc * f1 * (ergp(g) - ergm(g))
                 end do
              else if (fspace_type .eq. 2) then
+#if AMREX_SPACEDIM == 2
+                divu = (area1(i+1,j)*ugp-area1(i,j)*ugm)/vol(i,j)
+                do g=0, ngroups-1
+                   eddf = Edd_factor(lambda(g))
+                   f1 = 0.5e0_rt*(1.e0_rt-eddf)
+                   der(g) = -hdt * f1 * 0.5e0_rt*(ergp(g)+ergm(g)) * divu
+                end do
+#else
                 do g=0, ngroups-1
                    eddf = Edd_factor(lambda(g))
                    f1 = HALF*(ONE-eddf)
                    der(g) = cdtdx * f1 * HALF*(ergp(g)+ergm(g)) * (ugm-ugp)
                 end do
+#endif
              else ! mixed frame
                 der(:) = cdtdx * luge
              end if
 #endif
 
+============
              !----------------------------------------------------------------
              ! qypo state
              !----------------------------------------------------------------
