@@ -975,6 +975,11 @@ Castro::initData ()
 #ifdef THORNADO
 	  // Generate the initial thornado radiation data
           init_thornado_data();
+          // Initialize dS to zero
+          MultiFab& dS_new    = get_new_data(Thornado_Fluid_Source_Type);
+          MultiFab& dS_old    = get_new_data(Thornado_Fluid_Source_Type);
+          dS_new.setVal(0.);
+          dS_old.setVal(0.);
 #endif
     }
 

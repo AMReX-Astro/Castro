@@ -141,9 +141,6 @@ Castro::create_thornado_source(Real dt)
     int n_fluid_dof = THORNADO_FLUID_NDOF;
     int n_moments   = THORNADO_NMOMENTS;
 
-    // For right now create a temporary holder for the source term -- we'll incorporate it 
-    //    more permanently later.  
-    MultiFab dS(grids, dmap, S_new.nComp(), S_new.nGrow());
     const Real* prob_lo   = geom.ProbLo();
 
     Real dt_sub = dt / n_sub;
@@ -165,6 +162,14 @@ Castro::create_thornado_source(Real dt)
 #else
     swX[2] = 0;
 #endif
+
+    // The StateData Thornado_Fluid_Source_Type will hold the entire contribution
+    //   for this time step
+    MultiFab& dS_new = get_new_data(Thornado_Fluid_Source_Type);
+    dS_new.setVal(0.);
+
+    // The temporary MultiFab will hold the contribution for each substep
+    MultiFab dS(grids, dmap, S_new.nComp(), S_new.nGrow());
 
     for (int i = 0; i < n_sub; i++)
     {
@@ -208,6 +213,8 @@ Castro::create_thornado_source(Real dt)
            // Add the source term to all components even though there should
            //     only be non-zero source terms for (Rho, Xmom, Ymom, Zmom, RhoE, UFX)
            MultiFab::Add(S_new, dS, Density, 0, S_new.nComp(), 0);
+
+           MultiFab::Add(dS_new, dS, Density, 0, S_new.nComp(), 0);
    
            FreeThornado_Patch();
       }
@@ -215,5 +222,10 @@ Castro::create_thornado_source(Real dt)
       // Fill the ghost cells before taking the next dt_sub 
       S_border.FillBoundary();
     }
+
+    // Copy dS_new into dS_old so that we can interpolate in time correctly 
+    MultiFab& dS_old = get_new_data(Thornado_Fluid_Source_Type);
+    MultiFab::Copy(dS_old,dS_new,0,0,dS_new.nComp(),dS_new.nGrow());
+
     delete boxlen;
 }

@@ -46,12 +46,6 @@
     integer  :: ii,id,ie,im,is,ind
     real(rt) :: conv_dens, conv_mom, conv_enr, conv_ne, conv_J, conv_H, testdt
 
-    ! For interpolation
-    real(rt) :: x, y, z
-    real(rt) :: xslope(ns), yslope(ns), zslope(ns)
-    real(rt) :: Sval(ns)
-    real(rt) :: dlft(ns), drgt(ns), dcen(ns), dlim, dsgn
-
     integer  :: nX(3)
     integer  :: swX(3)
 
@@ -75,97 +69,12 @@
     call CreateRadiationFields ( nX, swX, nE, swE, nSpecies_Option = nSpecies )
 
     ! ************************************************************************************
-    ! Interpolate from the Castro "S" arrays into Thornado "uCF" arrays from InitThornado_Patch
+    ! Interpolate from the Castro "S" arrays into Thornado "uCF" arrays
     ! ************************************************************************************
-    do kc = lo(3)-ng,hi(3)+ng
-    do jc = lo(2)-ng,hi(2)+ng
-    do ic = lo(1)-ng,hi(1)+ng
 
-         ! The uCF array was allocated in CreateFluidFieldsConserved with 
-         !     ALLOCATE( uCF &
-         !      (1:nDOFX, &
-         !       1-swX(1):nX(1)+swX(1), &
-         !       1-swX(2):nX(2)+swX(2), &
-         !       1-swX(3):nX(3)+swX(3), &
-         !       1:nCF) )
-
-         ! U_R_o spatial indices start at lo - (number of ghost zones)
-         ! uCR spatial indices start at 1 - (number of ghost zones)
-         i = ic - lo(1) + 1
-         j = jc - lo(2) + 1
-         k = kc - lo(3) + 1
-
-        ! Define limited second-order slopes in x-direction
-         dlft(:) = (S(ic  ,jc,kc,:) - S(ic-1,jc,kc,:)) * two
-         drgt(:) = (S(ic+1,jc,kc,:) - S(ic  ,jc,kc,:)) * two
-         dcen(:) = (S(ic+1,jc,kc,:) - S(ic-1,jc,kc,:)) * half
-
-         do n = 1, ns
-            dsgn = sign(one, dcen(n))
-            xslope(n) = min( abs(dlft(n)), abs(drgt(n)) )
-            if (dlft(n) * drgt(n) .ge. zero) then
-               dlim = xslope(n)
-            else
-               dlim = zero
-            endif
-            xslope(n) = dsgn * min( dlim, abs(dcen(n)) )
-         end do
-
-        ! Define limited second-order slopes in y-direction
-         dlft(:) = (S(ic,jc  ,kc,:) - S(ic,jc-1,kc,:)) * two
-         drgt(:) = (S(ic,jc+1,kc,:) - S(ic,jc  ,kc,:)) * two
-         dcen(:) = (S(ic,jc+1,kc,:) - S(ic,jc-1,kc,:)) * half
-
-         do n = 1, ns
-            dsgn = sign(one, dcen(n))
-            yslope(n) = min( abs(dlft(n)), abs(drgt(n)) )
-            if (dlft(n) * drgt(n) .ge. zero) then
-               dlim = yslope(n)
-            else
-               dlim = zero
-            endif
-            yslope(n) = dsgn * min( dlim, abs(dcen(n)) )
-         end do
-
-        ! Define limited second-order slopes in z-direction
-         dlft(:) = (S(ic,jc,kc  ,:) - S(ic,jc,kc-1,:)) * two
-         drgt(:) = (S(ic,jc,kc+1,:) - S(ic,jc,kc  ,:)) * two
-         dcen(:) = (S(ic,jc,kc+1,:) - S(ic,jc,kc-1,:)) * half
-
-         do n = 1, ns
-            dsgn = sign(one, dcen(n))
-            zslope(n) = min( abs(dlft(n)), abs(drgt(n)) )
-            if (dlft(n) * drgt(n) .ge. zero) then
-               dlim = zslope(n)
-            else
-               dlim = zero
-            endif
-            zslope(n) = dsgn * min( dlim, abs(dcen(n)) )
-         end do
-
-         do ind = 1, n_fluid_dof
-
-            ! These are the locations of the DG nodes in the space [-.5:.5]
-            x = NodesX_q(1,ind)
-            y = NodesX_q(2,ind)
-            z = NodesX_q(3,ind)
-
-            ! Use the slopes to extrapolate from the center to the nodes
-            Sval(:) = S(ic,jc,kc,:) + x*xslope(:) + y*yslope(:) + z*zslope(:)
-
-            ! Thornado uses units where c = G = k = 1, Meter = 1
-            uCF(ind,i,j,k,iCF_D)  = Sval(URHO)  * conv_dens
-            uCF(ind,i,j,k,iCF_S1) = Sval(UMX)   * conv_mom
-            uCF(ind,i,j,k,iCF_S2) = Sval(UMY)   * conv_mom
-            uCF(ind,i,j,k,iCF_S3) = Sval(UMZ)   * conv_mom
-            uCF(ind,i,j,k,iCF_E)  = Sval(UEDEN) * conv_enr
-            uCF(ind,i,j,k,iCF_Ne) = Sval(UFX)   * conv_ne
-
-         end do
-
-    end do
-    end do
-    end do
+    call interpolate_fluid (lo, hi, &
+                            S , s_lo, s_hi, ns , &
+                            n_fluid_dof, ng)
 
     ! ************************************************************************************
     ! Copy from the Castro U_R arrays into Thornado arrays from InitThornado_Patch

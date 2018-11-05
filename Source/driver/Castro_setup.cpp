@@ -542,6 +542,12 @@ Castro::variableSetUp ()
 			 &cell_cons_interp, state_data_extrap,
 			 store_in_checkpoint);
 
+  store_in_checkpoint = false;
+  desc_lst.addDescriptor(Thornado_Fluid_Source_Type, IndexType::TheCellType(),
+			 StateDescriptor::Point, NUM_GROW, NUM_STATE,
+			 &cell_cons_interp, state_data_extrap,
+			 store_in_checkpoint);
+
   char buf[10];
   for (int i=0; i <ncomp_thornado; ++i)
     {
