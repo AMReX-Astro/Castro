@@ -249,6 +249,39 @@ contains
                 err  = qyp(i,j,k,qrad:qradhi)
 #endif
 
+#if AMREX_SPACEDIM == 2
+                ! Add transverse predictor
+                rrnewry = rrry - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
+                                      area1(i,j)*fx(i,j,URHO))/vol(i,j)
+
+                ! Note that pressure may be treated specially here, depending on 
+                ! the geometry.  Our y-interface equation for (rho u) is:
+                !
+                !  d(rho u)/dt + d(rho u v)/dy = - 1/r d(r rho u u)/dr - dp/dr
+                !
+                ! in cylindrical coords -- note that the p term is not in
+                ! a divergence, so there are no area factors.  For this
+                ! geometry, we do not include p in our definition of the
+                ! flux in the x-direction, for we need to fix this now.
+                runewry = rury - hdt*(area1(i+1,j)*fx(i+1,j,UMX)  -  &
+                                      area1(i,j)*fx(i,j,UMX))/vol(i,j)
+                if (.not. mom_flux_has_p(1)%comp(UMX)) then
+                   runewry = runewry - cdtdx *(pgp-pgm)
+                endif
+                rvnewry = rvry - hdt*(area1(i+1,j)*fx(i+1,j,UMY)  -  &
+                                      area1(i,j)*fx(i,j,UMY))/vol(i,j)
+                ! note: we did the w velocity as a passive above
+                renewry = rery - hdt*(area1(i+1,j)*fx(i+1,j,UEDEN)-  &
+                                      area1(i,j)*fx(i,j,UEDEN))/vol(i,j)
+
+#ifdef RADIATION
+                runewry = runewry - HALF*hdt*(area1(i+1,j)+area1(i,j))*sum(lamge)/vol(i,j)
+                renewry = renewry + dre
+                ernewr(:) = err(:) - hdt*(area1(i+1,j)*rfx(i+1,j,:)-  &
+                                          area1(i,j)*rfx(i,j,:))/vol(i,j) + der(:)
+#endif
+
+#else
                 ! Add transverse predictor
                 rrnewry = rrry - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
                 runewry = rury - cdtdx*(fx(i+1,j,k,UMX) - fx(i,j,k,UMX))
@@ -259,6 +292,7 @@ contains
                 runewry = runewry + dmom
                 renewry = renewry + dre
                 ernewr  = err(:) - cdtdx*(rfx(i+1,j,k,:) - rfx(i,j,k,:)) + der(:)
+#endif
 #endif
 
                 ! Reset to original value if adding transverse terms made density negative
@@ -292,8 +326,14 @@ contains
                    if (transverse_reset_rhoe == 1 .and. qypo(i,j,k,QREINT) <= ZERO) then
                       ! If it is negative, reset the internal energy by
                       ! using the discretized expression for updating (rho e).
+#if AMREX_SPACEDIM == 2
+                      qpo(i,j,QREINT) = qp(i,j,QREINT) - &
+                           hdt*(area1(i+1,j)*fx(i+1,j,UEINT)-  &
+                                area1(i,j)*fx(i,j,UEINT) + pav*dAu)/vol(i,j)
+#else
                       qypo(i,j,k,QREINT) = qyp(i,j,k,QREINT) - &
                            cdtdx*(fx(i+1,j,k,UEINT) - fx(i,j,k,UEINT) + pav*du)
+#endif
                    end if
 
                    ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
@@ -301,13 +341,22 @@ contains
 
                    if (ppm_predict_gammae == 0) then
                       ! add the transverse term to the p evolution eq here
+#if AMREX_SPACEDIM == 2
+                      ! the divergences here, dup and du, already have area factors
+                      pnewry = qyp(i,j,k,QPRES) - hdt*(dup + pav*du*(gamc - ONE))/vol(i,j)
+#else
                       pnewry = qyp(i,j,k,QPRES) - cdtdx*(dup + pav*du*(gamc - ONE))
+#endif
                       qypo(i,j,k,QPRES) = max(pnewry, small_pres)
                    else
                       ! Update gammae with its transverse terms
+#if AMREX_SPACEDIM = 2
+                      qypo(i,j,k,QGAME) = qyp(i,j,k,QGAME) + &
+                           hdt*( (geav-ONE)*(geav - gamc)*du)/vol(i,j) - cdtdx*uav*dge
+#else
                       qypo(i,j,k,QGAME) = qyp(i,j,k,QGAME) + &
                            cdtdx*( (geav-ONE)*(geav - gamc)*du - uav*dge )
-
+#endif
                       ! and compute the p edge state from this and (rho e)
                       qypo(i,j,k,QPRES) = qypo(i,j,k,QREINT)*(qypo(i,j,k,QGAME)-ONE)
                       qypo(i,j,k,QPRES) = max(qypo(i,j,k,QPRES),small_pres)
@@ -327,6 +376,7 @@ contains
 
              end if
 
+
              !-------------------------------------------------------------------
              ! qymo state
              !-------------------------------------------------------------------
@@ -344,6 +394,27 @@ contains
                 erl  = qym(i,j+1,k,qrad:qradhi)
 #endif
 
+#if AMREX_SPACEDIM == 2
+                rrnewly = rrly - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
+                                      area1(i,j)*fx(i,j,URHO))/vol(i,j)
+                runewly = ruly - hdt*(area1(i+1,j)*fx(i+1,j,UMX)  -  &
+                                      area1(i,j)*fx(i,j,UMX))/vol(i,j) 
+                if (.not. mom_flux_has_p(1)%comp(UMX)) then
+                   runewly = runewly - cdtdx *(pgp-pgm)
+                endif
+                rvnewly = rvly - hdt*(area1(i+1,j)*fx(i+1,j,UMY)  -  &
+                                      area1(i,j)*fx(i,j,UMY))/vol(i,j)
+                renewly = rely - hdt*(area1(i+1,j)*fx(i+1,j,UEDEN)-  &
+                                      area1(i,j)*fx(i,j,UEDEN))/vol(i,j)
+
+#ifdef RADIATION
+                runewly = runewly - HALF*hdt*(area1(i+1,j)+area1(i,j))*sum(lamge)/vol(i,j)
+                renewly = renewly + dre
+                ernewl(:) = erl(:) - hdt*(area1(i+1,j)*rfx(i+1,j,:)-  &
+                                          area1(i,j)*rfx(i,j,:))/vol(i,j) + der(:)
+#endif
+
+#else
                 ! Add transverse predictor
                 rrnewly = rrly - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
                 runewly = ruly - cdtdx*(fx(i+1,j,k,UMX) - fx(i,j,k,UMX))
@@ -355,7 +426,7 @@ contains
                 renewly = renewly + dre
                 ernewl  = erl(:) - cdtdx*(rfx(i+1,j,k,:) - rfx(i,j,k,:)) + der(:)
 #endif
-
+#endif
                 ! Reset to original value if adding transverse terms made density negative
                 reset_state = .false.
                 if (transverse_reset_density == 1 .and. rrnewly < ZERO) then
@@ -387,8 +458,14 @@ contains
                    if (transverse_reset_rhoe == 1 .and. qymo(i,j+1,k,QREINT) <= ZERO) then
                       ! If it is negative, reset the internal energy by using the discretized
                       ! expression for updating (rho e).
+#if AMREX_SPACEDIM == 2
+                      qymo(i,j+1,k,QREINT) = qym(i,j+1,k,QREINT) - &
+                           hdt*(area1(i+1,j,k)*fx(i+1,j,k,UEINT)-  &
+                                area1(i,j,k)*fx(i,j,k,UEINT) + pav*dAu)/vol(i,j,k)
+#else
                       qymo(i,j+1,k,QREINT) = qym(i,j+1,k,QREINT) - &
                            cdtdx*(fx(i+1,j,k,UEINT) - fx(i,j,k,UEINT) + pav*du)
+#endif
                    end if
 
                    ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
@@ -396,12 +473,21 @@ contains
 
                    if (ppm_predict_gammae == 0) then
                       ! add the transverse term to the p evolution eq here
+#if AMREX_SPACEDIM == 2
+                      pnewly = qym(i,j+1,k,QPRES) - hdt*(dup + pav*du*(gamc - ONE))/vol(i,j,k)
+#else
                       pnewly = qym(i,j+1,k,QPRES) - cdtdx*(dup + pav*du*(gamc - ONE))
+#endif
                       qymo(i,j+1,k,QPRES) = max(pnewly,small_pres)
                    else
                       ! Update gammae with its transverse terms
+#if AMREX_SPACEDIM == 2
+                      qymo(i,j+1,k,QGAME) = qym(i,j+1,k,QGAME) + &
+                           hdt*( (geav-ONE)*(geav - gamc)*dAu)/vol(i,j,k) - cdtdx*uav*dge
+#else
                       qymo(i,j+1,k,QGAME) = qym(i,j+1,k,QGAME) + &
                            cdtdx*( (geav-ONE)*(geav - gamc)*du - uav*dge )
+#endif
 
                       ! and compute the p edge state from this and (rho e)
                       qymo(i,j+1,k,QPRES) = qymo(i,j+1,k,QREINT)*(qymo(i,j+1,k,QGAME)-ONE)
@@ -426,6 +512,7 @@ contains
        end do
     end do
 
+#if AMREX_SPACEDIM == 3
     !==========================================================================
     ! work on qz*
     !==========================================================================
@@ -717,6 +804,7 @@ contains
           end do
        end do
     end do
+#endif
 
   end subroutine transx
 
