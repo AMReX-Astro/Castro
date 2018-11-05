@@ -51,7 +51,6 @@ Castro::init_thornado_data()
     const Real* dx = geom.CellSize();
 
 // *************************************************************
-    int swE = 0; // stencil for energy array; no energy ghost cells needed
     Vector<Real> grid_lo(3);
     Vector<Real> grid_hi(3);
 
@@ -146,7 +145,6 @@ Castro::create_thornado_source(Real dt)
     Real dt_sub = dt / n_sub;
     int * boxlen = new int[3];
 
-    int swE = 0; // stencil for energy array; no energy ghost cells needed
     Vector<Real> grid_lo(3);
     Vector<Real> grid_hi(3);
 
