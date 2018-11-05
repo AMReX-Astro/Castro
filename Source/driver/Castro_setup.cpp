@@ -542,12 +542,6 @@ Castro::variableSetUp ()
 			 &cell_cons_interp, state_data_extrap,
 			 store_in_checkpoint);
 
-  store_in_checkpoint = false;
-  desc_lst.addDescriptor(Thornado_Fluid_Source_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point, NUM_GROW, NUM_STATE,
-			 &cell_cons_interp, state_data_extrap,
-			 store_in_checkpoint);
-
   char buf[10];
   for (int i=0; i <ncomp_thornado; ++i)
     {
@@ -558,6 +552,20 @@ Castro::variableSetUp ()
       desc_lst.setComponent(Thornado_Type,i,string(buf),bc,
                             BndryFunc(ca_generic_single_fill));
     }
+
+  store_in_checkpoint = false;
+  desc_lst.addDescriptor(Thornado_Fluid_Source_Type, IndexType::TheCellType(),
+			 StateDescriptor::Point, NUM_GROW, NUM_STATE,
+			 &cell_cons_interp, state_data_extrap,
+			 store_in_checkpoint);
+
+  for (int i=0; i < NUM_STATE; ++i)
+  {
+      sprintf(buf, "thor_src_%d", i);
+      set_scalar_bc(bc,phys_bc);
+      desc_lst.setComponent(Thornado_Fluid_Source_Type,i,string(buf),bc,
+                            BndryFunc(ca_generic_single_fill));
+  }
 
   derive_lst.add("J_avg",IndexType::TheCellType(),1,ca_der_J,the_same_box);
   derive_lst.addComponent("J_avg",desc_lst,Thornado_Type,0,ncomp_thornado);
