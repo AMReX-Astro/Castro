@@ -2,6 +2,8 @@ module transverse_module
 
   use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
+  use prob_params_module, only : dg
+
   implicit none
 
 contains
@@ -10,7 +12,10 @@ contains
   ! transx
   !===========================================================================
   subroutine transx(qym, qymo, qyp, qypo, &
-                    qzm, qzmo, qzp, qzpo, q_lo, q_hi, &
+#if AMREX_SPACEDIM == 3
+                    qzm, qzmo, qzp, qzpo, &
+#endif
+                    q_lo, q_hi, &
                     qaux, qa_lo, qa_hi, &
                     fx, &
 #ifdef RADIATION
@@ -18,6 +23,10 @@ contains
 #endif
                     fx_lo, fx_hi, &
                     qx, qx_lo, qx_hi, &
+#if AMREX_SPACEDIM == 2
+                    area1, area1_lo, area1_hi, &
+                    vol, vol_lo, vol_hi, &
+#endif
                     hdt, cdtdx, lo, hi)
 
   use amrex_constants_module, only : ZERO, ONE, HALF
@@ -44,33 +53,46 @@ contains
 #endif
   use eos_module, only: eos
   use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
-
+#if AMREX_SPACEDIM == 2
+  use prob_params_module, only : mom_flux_has_p
+#endif
 
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: fx_lo(3), fx_hi(3)
     integer, intent(in) :: qx_lo(3), qx_hi(3)
     integer, intent(in) :: lo(3), hi(3)
+#if AMREX_SPACEDIM == 2
+    integer, intent(in) :: area1_lo(3), area1_hi(3)
+    integer, intent(in) :: vol_lo(3), vol_hi(3)
+#endif
 
 #ifdef RADIATION
     real(rt) :: rfx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
 #endif
 
-    real(rt), intent(in) :: cdtdx
+    real(rt), intent(in) :: hdt, cdtdx
 
     real(rt), intent(in) :: qym(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(in) :: qyp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+#if AMREX_SPACEDIM == 3
     real(rt), intent(in) :: qzm(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(in) :: qzp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+#endif
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(in) :: fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
     real(rt), intent(in) :: qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
 
     real(rt), intent(out) :: qymo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(out) :: qypo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+#if AMREX_SPACEDIM == 3
     real(rt), intent(out) :: qzmo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(out) :: qzpo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-
+#endif
+#if AMREX_SPACEDIM == 2
+    real(rt), intent(in) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
+    real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+#endif
 
     integer i, j, k, n, nqp, ipassive
 
@@ -116,6 +138,9 @@ contains
        n  = upass_map(ipassive)
        nqp = qpass_map(ipassive)
 
+       ! since we merge 2- and 3-d, be sure not to update any velocities
+       if (nqp == QU .or. nqp == QV .or. nqp == QW) cycle
+
        do k = lo(3)-dg(3), hi(3)+dg(3)
           do j = lo(2)-1, hi(2)+1
              do i = lo(1), hi(1)
@@ -126,7 +151,7 @@ contains
                    compu = qyp(i,j,k,QRHO)*qyp(i,j,k,nqp) - &
                         hdt*(area1(i+1,j,k)*fx(i+1,j,k,n) - &
                              area1(i,j,k)*fx(i,j,k,n))/vol(i,j,k)
-                   qypo(i,j,k,nqp) = compu/rrnew + hdt*srcQ(i,j,k,nqp)
+                   qypo(i,j,k,nqp) = compu/rrnew
 #else
                    rrnew = qyp(i,j,k,QRHO) - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
                    compu = qyp(i,j,k,QRHO)*qyp(i,j,k,nqp) - cdtdx*(fx(i+1,j,k,n) - fx(i,j,k,n))
@@ -141,7 +166,7 @@ contains
                    compu = qym(i,j+1,k,QRHO)*qym(i,j+1,k,nqp) - &
                         hdt*(area1(i+1,j,k)*fx(i+1,j,k,n) - &
                              area1(i,j,k)*fx(i,j,k,n))/vol(i,j,k)
-                   qymo(i,j+1,k,nqp) = compu/rrnew + hdt*srcQ(i,j,nqp)
+                   qymo(i,j+1,k,nqp) = compu/rrnew
 #else
                    rrnew = qym(i,j+1,k,QRHO) - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
                    compu = qym(i,j+1,k,QRHO)*qym(i,j+1,k,nqp) - cdtdx*(fx(i+1,j,k,n) - fx(i,j,k,n))
@@ -181,8 +206,8 @@ contains
              ! be able to deal with the general EOS
 
 #if AMREX_SPACEDIM == 2
-             dup = area1(i+1,j)*pggp*ugp - area1(i,j)*pggm*ugm
-             du = area1(i+1,j)*ugp-area1(i,j)*ugm
+             dup = area1(i+1,j,k)*pgp*ugp - area1(i,j,k)*pgm*ugm
+             du = area1(i+1,j,k)*ugp-area1(i,j,k)*ugm
 #else
              dup = pgp*ugp - pgm*ugm
              du = ugp-ugm
@@ -213,7 +238,7 @@ contains
                 end do
              else if (fspace_type .eq. 2) then
 #if AMREX_SPACEDIM == 2
-                divu = (area1(i+1,j)*ugp-area1(i,j)*ugm)/vol(i,j)
+                divu = (area1(i+1,j,k)*ugp-area1(i,j,k)*ugm)/vol(i,j,k)
                 do g=0, ngroups-1
                    eddf = Edd_factor(lambda(g))
                    f1 = 0.5e0_rt*(1.e0_rt-eddf)
@@ -231,7 +256,6 @@ contains
              end if
 #endif
 
-============
              !----------------------------------------------------------------
              ! qypo state
              !----------------------------------------------------------------
@@ -251,8 +275,8 @@ contains
 
 #if AMREX_SPACEDIM == 2
                 ! Add transverse predictor
-                rrnewry = rrry - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
-                                      area1(i,j)*fx(i,j,URHO))/vol(i,j)
+                rrnewry = rrry - hdt*(area1(i+1,j,k)*fx(i+1,j,k,URHO) -  &
+                                      area1(i,j,k)*fx(i,j,k,URHO))/vol(i,j,k)
 
                 ! Note that pressure may be treated specially here, depending on 
                 ! the geometry.  Our y-interface equation for (rho u) is:
@@ -263,22 +287,23 @@ contains
                 ! a divergence, so there are no area factors.  For this
                 ! geometry, we do not include p in our definition of the
                 ! flux in the x-direction, for we need to fix this now.
-                runewry = rury - hdt*(area1(i+1,j)*fx(i+1,j,UMX)  -  &
-                                      area1(i,j)*fx(i,j,UMX))/vol(i,j)
+                runewry = rury - hdt*(area1(i+1,j,k)*fx(i+1,j,k,UMX)  -  &
+                                      area1(i,j,k)*fx(i,j,k,UMX))/vol(i,j,k)
                 if (.not. mom_flux_has_p(1)%comp(UMX)) then
                    runewry = runewry - cdtdx *(pgp-pgm)
                 endif
-                rvnewry = rvry - hdt*(area1(i+1,j)*fx(i+1,j,UMY)  -  &
-                                      area1(i,j)*fx(i,j,UMY))/vol(i,j)
-                ! note: we did the w velocity as a passive above
-                renewry = rery - hdt*(area1(i+1,j)*fx(i+1,j,UEDEN)-  &
-                                      area1(i,j)*fx(i,j,UEDEN))/vol(i,j)
+                rvnewry = rvry - hdt*(area1(i+1,j,k)*fx(i+1,j,k,UMY)  -  &
+                                      area1(i,j,k)*fx(i,j,k,UMY))/vol(i,j,k)
+                rwnewry = rwry - hdt*(area1(i+1,j,k)*fx(i+1,j,k,UMZ)  -  &
+                                      area1(i,j,k)*fx(i,j,k,UMZ))/vol(i,j,k)
+                renewry = rery - hdt*(area1(i+1,j,k)*fx(i+1,j,k,UEDEN)-  &
+                                      area1(i,j,k)*fx(i,j,k,UEDEN))/vol(i,j,k)
 
 #ifdef RADIATION
-                runewry = runewry - HALF*hdt*(area1(i+1,j)+area1(i,j))*sum(lamge)/vol(i,j)
+                runewry = runewry - HALF*hdt*(area1(i+1,j,k)+area1(i,j,k))*sum(lamge)/vol(i,j,k)
                 renewry = renewry + dre
-                ernewr(:) = err(:) - hdt*(area1(i+1,j)*rfx(i+1,j,:)-  &
-                                          area1(i,j)*rfx(i,j,:))/vol(i,j) + der(:)
+                ernewr(:) = err(:) - hdt*(area1(i+1,j,k)*rfx(i+1,j,k,:)-  &
+                                          area1(i,j,k)*rfx(i,j,k,:))/vol(i,j,k) + der(:)
 #endif
 
 #else
@@ -327,9 +352,9 @@ contains
                       ! If it is negative, reset the internal energy by
                       ! using the discretized expression for updating (rho e).
 #if AMREX_SPACEDIM == 2
-                      qpo(i,j,QREINT) = qp(i,j,QREINT) - &
-                           hdt*(area1(i+1,j)*fx(i+1,j,UEINT)-  &
-                                area1(i,j)*fx(i,j,UEINT) + pav*dAu)/vol(i,j)
+                      qypo(i,j,k,QREINT) = qyp(i,j,k,QREINT) - &
+                           hdt*(area1(i+1,j,k)*fx(i+1,j,k,UEINT)-  &
+                                area1(i,j,k)*fx(i,j,k,UEINT) + pav*du)/vol(i,j,k)
 #else
                       qypo(i,j,k,QREINT) = qyp(i,j,k,QREINT) - &
                            cdtdx*(fx(i+1,j,k,UEINT) - fx(i,j,k,UEINT) + pav*du)
@@ -343,16 +368,16 @@ contains
                       ! add the transverse term to the p evolution eq here
 #if AMREX_SPACEDIM == 2
                       ! the divergences here, dup and du, already have area factors
-                      pnewry = qyp(i,j,k,QPRES) - hdt*(dup + pav*du*(gamc - ONE))/vol(i,j)
+                      pnewry = qyp(i,j,k,QPRES) - hdt*(dup + pav*du*(gamc - ONE))/vol(i,j,k)
 #else
                       pnewry = qyp(i,j,k,QPRES) - cdtdx*(dup + pav*du*(gamc - ONE))
 #endif
                       qypo(i,j,k,QPRES) = max(pnewry, small_pres)
                    else
                       ! Update gammae with its transverse terms
-#if AMREX_SPACEDIM = 2
+#if AMREX_SPACEDIM == 2
                       qypo(i,j,k,QGAME) = qyp(i,j,k,QGAME) + &
-                           hdt*( (geav-ONE)*(geav - gamc)*du)/vol(i,j) - cdtdx*uav*dge
+                           hdt*( (geav-ONE)*(geav - gamc)*du)/vol(i,j,k) - cdtdx*uav*dge
 #else
                       qypo(i,j,k,QGAME) = qyp(i,j,k,QGAME) + &
                            cdtdx*( (geav-ONE)*(geav - gamc)*du - uav*dge )
@@ -395,23 +420,25 @@ contains
 #endif
 
 #if AMREX_SPACEDIM == 2
-                rrnewly = rrly - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
-                                      area1(i,j)*fx(i,j,URHO))/vol(i,j)
-                runewly = ruly - hdt*(area1(i+1,j)*fx(i+1,j,UMX)  -  &
-                                      area1(i,j)*fx(i,j,UMX))/vol(i,j) 
+                rrnewly = rrly - hdt*(area1(i+1,j,k)*fx(i+1,j,k,URHO) -  &
+                                      area1(i,j,k)*fx(i,j,k,URHO))/vol(i,j,k)
+                runewly = ruly - hdt*(area1(i+1,j,k)*fx(i+1,j,k,UMX)  -  &
+                                      area1(i,j,k)*fx(i,j,k,UMX))/vol(i,j,k) 
                 if (.not. mom_flux_has_p(1)%comp(UMX)) then
                    runewly = runewly - cdtdx *(pgp-pgm)
                 endif
-                rvnewly = rvly - hdt*(area1(i+1,j)*fx(i+1,j,UMY)  -  &
-                                      area1(i,j)*fx(i,j,UMY))/vol(i,j)
-                renewly = rely - hdt*(area1(i+1,j)*fx(i+1,j,UEDEN)-  &
-                                      area1(i,j)*fx(i,j,UEDEN))/vol(i,j)
+                rvnewly = rvly - hdt*(area1(i+1,j,k)*fx(i+1,j,k,UMY)  -  &
+                                      area1(i,j,k)*fx(i,j,k,UMY))/vol(i,j,k)
+                rwnewly = rwly - hdt*(area1(i+1,j,k)*fx(i+1,j,k,UMZ)  -  &
+                                      area1(i,j,k)*fx(i,j,k,UMZ))/vol(i,j,k)
+                renewly = rely - hdt*(area1(i+1,j,k)*fx(i+1,j,k,UEDEN)-  &
+                                      area1(i,j,k)*fx(i,j,k,UEDEN))/vol(i,j,k)
 
 #ifdef RADIATION
-                runewly = runewly - HALF*hdt*(area1(i+1,j)+area1(i,j))*sum(lamge)/vol(i,j)
+                runewly = runewly - HALF*hdt*(area1(i+1,j,k)+area1(i,j,k))*sum(lamge)/vol(i,j,k)
                 renewly = renewly + dre
-                ernewl(:) = erl(:) - hdt*(area1(i+1,j)*rfx(i+1,j,:)-  &
-                                          area1(i,j)*rfx(i,j,:))/vol(i,j) + der(:)
+                ernewl(:) = erl(:) - hdt*(area1(i+1,j,k)*rfx(i+1,j,k,:)-  &
+                                          area1(i,j,k)*rfx(i,j,k,:))/vol(i,j,k) + der(:)
 #endif
 
 #else
@@ -461,7 +488,7 @@ contains
 #if AMREX_SPACEDIM == 2
                       qymo(i,j+1,k,QREINT) = qym(i,j+1,k,QREINT) - &
                            hdt*(area1(i+1,j,k)*fx(i+1,j,k,UEINT)-  &
-                                area1(i,j,k)*fx(i,j,k,UEINT) + pav*dAu)/vol(i,j,k)
+                                area1(i,j,k)*fx(i,j,k,UEINT) + pav*du)/vol(i,j,k)
 #else
                       qymo(i,j+1,k,QREINT) = qym(i,j+1,k,QREINT) - &
                            cdtdx*(fx(i+1,j,k,UEINT) - fx(i,j,k,UEINT) + pav*du)
@@ -483,7 +510,7 @@ contains
                       ! Update gammae with its transverse terms
 #if AMREX_SPACEDIM == 2
                       qymo(i,j+1,k,QGAME) = qym(i,j+1,k,QGAME) + &
-                           hdt*( (geav-ONE)*(geav - gamc)*dAu)/vol(i,j,k) - cdtdx*uav*dge
+                           hdt*( (geav-ONE)*(geav - gamc)*du)/vol(i,j,k) - cdtdx*uav*dge
 #else
                       qymo(i,j+1,k,QGAME) = qym(i,j+1,k,QGAME) + &
                            cdtdx*( (geav-ONE)*(geav - gamc)*du - uav*dge )
@@ -525,6 +552,9 @@ contains
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
        nqp = qpass_map(ipassive)
+
+       ! since we merge 2- and 3-d, be sure not to update any velocities
+       if (nqp == QU .or. nqp == QV .or. nqp == QW) cycle
 
        do k = lo(3)-1, hi(3)+1
           do j = lo(2)-1, hi(2)+1
@@ -812,7 +842,10 @@ contains
   ! transy
   !===========================================================================
   subroutine transy(qxm, qxmo, qxp, qxpo, &
-                    qzm, qzmo, qzp, qzpo, q_lo, q_hi, &
+#if AMREX_SPACEDIM == 3
+                    qzm, qzmo, qzp, qzpo, &
+#endif
+                    q_lo, q_hi, &
                     qaux, qa_lo, qa_hi, &
                     fy, &
 #ifdef RADIATION
@@ -863,16 +896,20 @@ contains
 
     real(rt), intent(in) :: qxm(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(in) :: qxp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+#if AMREX_SPACEDIM == 3
     real(rt), intent(in) :: qzm(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(in) :: qzp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+#endif
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(in) :: fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
     real(rt), intent(in) :: qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
 
     real(rt), intent(out) :: qxmo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(out) :: qxpo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+#if AMREX_SPACEDIM == 3
     real(rt), intent(out) :: qzmo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(out) :: qzpo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+#endif
 
     integer i, j, k, n, nqp, ipassive
 
@@ -917,6 +954,9 @@ contains
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nqp = qpass_map(ipassive)
+
+       ! since we merge 2- and 3-d, be sure not to update any velocities
+       if (nqp == QU .or. nqp == QV .or. nqp == QW) cycle
 
        do k = lo(3)-1, hi(3)+1
           do j = lo(2), hi(2)
@@ -1194,7 +1234,7 @@ contains
        end do
     end do
 
-
+#if AMREX_SPACEDIM == 3
     !=========================================================================
     ! work on qz*
     !=========================================================================
@@ -1207,6 +1247,9 @@ contains
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nqp = qpass_map(ipassive)
+
+       ! since we merge 2- and 3-d, be sure not to update any velocities
+       if (nqp == QU .or. nqp == QV .or. nqp == QW) cycle
 
        do k = lo(3)-1, hi(3)+1
           do j = lo(2), hi(2)
@@ -1485,9 +1528,11 @@ contains
           end do
        end do
     end do
+#endif
 
   end subroutine transy
 
+#if AMREX_SPACEDIM == 3
   !===========================================================================
   ! transz
   !===========================================================================
@@ -3577,6 +3622,7 @@ contains
     end do
 
   end subroutine transxy
+#endif
 
   subroutine reset_edge_state_thermo(qedge, qd_lo, qd_hi, ii, jj, kk)
 

@@ -792,9 +792,8 @@ contains
                 rfy, glo, ghi, &
 #endif
                 q2, q2_lo, q2_hi, &
-                srcQ, src_lo, src_hi, &
-                hdt, hdtdy, &
-                lo(1)-1, hi(1)+1, lo(2), hi(2))
+                hdtdy, &
+                [lo(1), lo(2), 0], [hi(1), hi(2), 0])
 
     ! Solve the final Riemann problem across the x-interfaces with the
     ! full unsplit states.  The resulting flux through the x-interfaces
@@ -822,11 +821,10 @@ contains
                 rfx, glo, ghi, &
 #endif
                 qgdnvx, fglo, fghi, &
-                srcQ, src_lo, src_hi, &
-                hdt, hdtdx, &
                 area1, area1_lo, area1_hi, &
                 vol, vol_lo, vol_hi, &
-                lo(1), hi(1), lo(2)-1, hi(2)+1)
+                hdt, hdtdx, &
+                [lo(1), lo(2), 0], [hi(1), hi(2), 0])
 
     ! Solve the final Riemann problem across the y-interfaces with the
     ! full unsplit states.  The resulting flux through the y-interfaces
@@ -894,7 +892,7 @@ contains
 #endif
                 glo, ghi, &
                 qgdnvx, fglo, fghi, &
-                cdtdx, lo, hi)
+                hdt, cdtdx, lo, hi)
 
     nullify(fx, qgdnvx)
 #ifdef RADIATION
