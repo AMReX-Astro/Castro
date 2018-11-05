@@ -258,10 +258,20 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
 
   if (ppm_type == 0)  then
-     ! piecewise linear slopes
-     call uslope(q, flatn, q_lo, q_hi, &
-          dqx, dqy, dqz, st_lo, st_hi, &
-          lo, hi)
+     do n = 1, NQ
+        ! piecewise linear slopes
+        call uslope(q, q_lo, q_hi, n, &
+                    flatn, q_lo, q_hi, &
+                    dqx, &
+#if AMREX_SPACEDIM >= 2
+                    dqy, &
+#endif
+#if AMREX_SPACEDIM == 3
+                    dqz, &
+#endif
+                    st_lo, st_hi, &
+                    lo, hi)
+     end do
   endif
 
   do n = 1, NQ
