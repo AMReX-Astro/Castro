@@ -609,9 +609,7 @@ contains
 #if (AMREX_SPACEDIM < 3)
                       dloga, dloga_lo, dloga_hi, &
 #endif
-#if (AMREX_SPACEDIM == 1)
                       SrcQ, src_lo, Src_hi, &
-#endif
                       lo, hi, domlo, domhi, &
                       dx, dt)
 
@@ -622,9 +620,7 @@ contains
 #if (AMREX_SPACEDIM < 3)
                       dloga, dloga_lo, dloga_hi, &
 #endif
-#if (AMREX_SPACEDIM == 1)
                       SrcQ, src_lo, Src_hi, &
-#endif
                       lo, hi, domlo, domhi, &
                       dx, dt)
 
@@ -633,6 +629,7 @@ contains
                       qaux, qa_lo, qa_hi, &
                       dqz, glo, ghi, &
                       qzm, qzp, fglo, fghi, &
+                      SrcQ, src_lo, Src_hi, &
                       lo, hi, domlo, domhi, &
                       dx, dt)
 #endif
@@ -1064,7 +1061,6 @@ contains
                  glo, ghi, &
                  qgdnvyz, fglo, fghi, &
                  qgdnvzy, fglo, fghi, &
-                 srcQ, src_lo, src_hi, &
                  hdt, hdtdy, hdtdz, lo, hi)
 
     nullify(fyz, qgdnvyz)
@@ -1173,7 +1169,6 @@ contains
                  glo, ghi, &
                  qgdnvxz, fglo, fghi, &
                  qgdnvzx, fglo, fghi, &
-                 srcQ, src_lo, src_hi, &
                  hdt, hdtdx, hdtdz, lo, hi)
 
 
@@ -1284,7 +1279,6 @@ contains
                  glo, ghi, &
                  qgdnvxy, fglo, fghi, &
                  qgdnvyx, fglo, fghi, &
-                 srcQ, src_lo, src_hi,&
                  hdt, hdtdx, hdtdy, lo, hi)
 
     nullify(fxy, qgdnvxy)

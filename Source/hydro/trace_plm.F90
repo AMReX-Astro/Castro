@@ -19,9 +19,7 @@ contains
 #if (AMREX_SPACEDIM < 3)
                        dloga, dloga_lo, dloga_hi, &
 #endif
-#if (AMREX_SPACEDIM == 1)
                        SrcQ, src_lo, Src_hi, &
-#endif
                        lo, hi, domlo, domhi, &
                        dx, dt)
 
@@ -45,9 +43,7 @@ contains
 #if (AMREX_SPACEDIM < 3)
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
-#if (AMREX_SPACEDIM == 1)
     integer, intent(in) :: src_lo(3), src_hi(3)
-#endif
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
@@ -62,9 +58,7 @@ contains
 #if (AMREX_SPACEDIM < 3)
     real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 #endif
-#if (AMREX_SPACEDIM == 1)
     real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
-#endif
     real(rt), intent(in) :: dx(3), dt
 
     ! Local variables
