@@ -1,4 +1,6 @@
 
+amrex.fpe_trap_invalid =  1
+
 # ------------------  THORNADO-SPECIFIC INPUTS -------------------
 thornado.eL     = 0
 thornado.eR     = 20
@@ -68,11 +70,13 @@ amr.blocking_factor = 4       # block factor in grid generation
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
+amr.checkpoint_files_output = 1
 amr.check_file      = thorn_chk  # root name of checkpoint file
 #amr.check_int       = 200         # number of timesteps between checkpoints
 amr.check_int       = 1000000
 
 # PLOTFILES
+amr.plot_files_output = 1
 amr.plot_file       = thorn_plt  # root name of plotfile
 amr.plot_int        = 1000000          # number of timesteps between plotfiles
 amr.derive_plot_vars = density xmom ymom zmom eden Temp pressure  # these variables appear in the plotfile
