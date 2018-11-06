@@ -1,5 +1,12 @@
 changes since last release
 
+  -- a bug was fixed in the 1-d SDC integration -- we were not
+     applying the reactive source terms to the hydrodynamics interface
+     prediction.
+
+  -- we now apply the source terms for PLM before the transverse
+     routines.  This is more consistent with the PPM version.
+
 # 18.11
 
   -- we've restructured the CTU solver to no longer use a slab
