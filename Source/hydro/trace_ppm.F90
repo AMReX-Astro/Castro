@@ -28,7 +28,8 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NQAUX, QVAR, ppm_predict_gammae, &
-                                   ppm_temp_fix, QU, QV, QW, npassive, qpass_map
+                                   ppm_temp_fix, QU, QV, QW, npassive, qpass_map, fix_mass_flux
+    use prob_params_module, only : physbc_lo, physbc_hi, Outflow
 
     implicit none
 
@@ -64,6 +65,15 @@ contains
 
     real(rt) :: un
     integer :: ipassive, n, i, j, k
+
+#if AMREX_SPACEDIM == 1
+    logical :: fix_mass_flux_lo, fix_mass_flux_hi
+
+    fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
+         .and. (lo(1) == domlo(1))
+    fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
+         .and. (hi(1) == domhi(1))
+#endif
 
     ! the passive stuff is the same regardless of the tracing
     do ipassive = 1, npassive
