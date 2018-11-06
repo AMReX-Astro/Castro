@@ -28,7 +28,8 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NQAUX, QVAR, ppm_predict_gammae, &
-                                   ppm_temp_fix, QU, QV, QW, npassive, qpass_map
+                                   ppm_temp_fix, QU, QV, QW, npassive, qpass_map, fix_mass_flux
+    use prob_params_module, only : physbc_lo, physbc_hi, Outflow
 
     implicit none
 
@@ -64,6 +65,15 @@ contains
 
     real(rt) :: un
     integer :: ipassive, n, i, j, k
+
+#if AMREX_SPACEDIM == 1
+    logical :: fix_mass_flux_lo, fix_mass_flux_hi
+
+    fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
+         .and. (lo(1) == domlo(1))
+    fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
+         .and. (hi(1) == domhi(1))
+#endif
 
     ! the passive stuff is the same regardless of the tracing
     do ipassive = 1, npassive
@@ -103,18 +113,16 @@ contains
                 if (idir == 1 .and. i <= hi(1)) then
                    un = q(i,j,k,QU-1+idir)
                    qm(i+1,j,k,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
-
+                   qm(i+1,j,k,n) = qm(i+1,j,k,n) + HALF*dt*Ip_src(i,j,k,idir,2,n)
                 else if (idir == 2 .and. j <= hi(2)) then
                    un = q(i,j,k,QU-1+idir)
                    qm(i,j+1,k,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
-
+                   qm(i,j+1,k,n) = qm(i,j+1,k,n) + HALF*dt*Ip_src(i,j,k,idir,2,n)
                 else if (idir == 3 .and. k <= hi(3)) then
                    un = q(i,j,k,QU-1+idir)
                    qm(i,j,k+1,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
-
+                   qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*Ip_src(i,j,k,idir,2,n)
                 end if
-
-                qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*Ip_src(i,j,k,idir,2,n)
 
              end do
 
