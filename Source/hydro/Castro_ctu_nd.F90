@@ -784,10 +784,11 @@ contains
     ! Outputs: qm, qp                      : xface, +-0 at y
     call transy(qxm, ql, qxp, qr, fglo, fghi, &
                 qaux, qa_lo, qa_hi, &
-                fy, glo, ghi, &
+                fy, &
 #ifdef RADIATION
-                rfy, glo, ghi, &
+                rfy, &
 #endif
+                glo, ghi, &
                 q2, q2_lo, q2_hi, &
                 hdtdy, &
                 [lo(1), lo(2), 0], [hi(1), hi(2), 0])
@@ -813,10 +814,11 @@ contains
     ! Outputs: qm, qp                      : yface, +-0 at x
     call transx(qym, ql, qyp, qr, fglo, fghi, &
                 qaux, qa_lo, qa_hi, &
-                fx, glo, ghi, &
+                fx, &
 #ifdef RADIATION
-                rfx, glo, ghi, &
+                rfx, &
 #endif
+                glo, ghi, &
                 qgdnvx, fglo, fghi, &
                 area1, area1_lo, area1_hi, &
                 vol, vol_lo, vol_hi, &

@@ -116,7 +116,7 @@ contains
     real(rt)         :: gamc
 
 #ifdef RADIATION
-    real(rt)         :: dre, dmom
+    real(rt)         :: dre, dmom, divu
     real(rt)        , dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
          lamge, luge, der
     real(rt)         eddf, f1, ugc
