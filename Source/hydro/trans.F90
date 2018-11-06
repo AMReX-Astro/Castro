@@ -958,7 +958,7 @@ contains
        ! since we merge 2- and 3-d, be sure not to update any velocities
        if (nqp == QU .or. nqp == QV .or. nqp == QW) cycle
 
-       do k = lo(3)-1, hi(3)+1
+       do k = lo(3)-dg(3), hi(3)+dg(3)
           do j = lo(2), hi(2)
              do i = lo(1)-1, hi(1)+1
                 if (i >= lo(1)) then
