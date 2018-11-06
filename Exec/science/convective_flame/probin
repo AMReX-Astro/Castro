@@ -13,7 +13,7 @@
   T_lo   = 1.e-2
 
   H_star = 1.25d0
-  atm_delta  = 0.04
+  atm_delta  = 0.2
 
   fuel1_name = "fuel"
   fuel1_frac = 1.0d0
