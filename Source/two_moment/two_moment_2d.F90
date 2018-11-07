@@ -25,7 +25,7 @@
     integer, intent(in) ::  s_lo(2),  s_hi(2)
     integer, intent(in) ::  d_lo(2),  d_hi(2)
     integer, intent(in) ::  U_R_o_lo(2),  U_R_o_hi(2)
-    integer, intent(in) ::  U_R_n_lo(2),  U_R_n_hi(3)
+    integer, intent(in) ::  U_R_n_lo(2),  U_R_n_hi(2)
     integer, intent(in) ::  ns, nds, n_uro, n_urn
     integer, intent(in) ::  n_fluid_dof, n_moments
     integer, intent(in) :: ng
