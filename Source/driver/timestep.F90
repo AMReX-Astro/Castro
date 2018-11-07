@@ -479,39 +479,36 @@ contains
 
              ! CFL hydrodynamic stability criterion
 
-             ! If the timestep violated (v+c) * dt / dx > 1,
+             ! If the timestep violated (v+c) * dt / dx > CFL,
              ! suggest a new timestep such that (v+c) * dt / dx <= CFL,
              ! where CFL is the user's chosen timestep constraint.
-             ! We don't use the CFL choice in the test for violation
-             ! because if we did, then even a small increase in velocity
-             ! over the timestep would be enough to trigger a retry
-             ! (and empirically we have found that this can happen
-             ! basically every timestep, which can greatly increase
-             ! the cost of a simulation for not much benefit);
-             ! but these types of issues are exactly why a user picks a
-             ! safe buffer value like CFL = 0.8 or CFL = 0.5. We only
-             ! want to trigger a retry if the timestep strongly violated
-             ! the stability criterion.
+             ! Note that this means that we'll suggest a retry even
+             ! for very small violations of the CFL criterion, which
+             ! we may not want. That is why the retry_tolerance parameter
+             ! exists when we're checking whether to do a retry: if it
+             ! is non-zero, then small violations will be tolerated.
+
+             ! This check does not enforce a CFL constraint on the
+             ! new velocity; it is only a restraint on what the initial
+             ! timestep at the old-time should have been.
 
              if (do_hydro .eq. 1) then
 
-                eos_state % rho = s_new(i,j,k,URHO )
-                eos_state % T   = s_new(i,j,k,UTEMP)
-                eos_state % e   = s_new(i,j,k,UEINT) * rhoninv
-                eos_state % xn  = s_new(i,j,k,UFS:UFS+nspec-1) * rhoninv
-                eos_state % aux = s_new(i,j,k,UFX:UFX+naux-1) * rhoninv
+                eos_state % rho = s_old(i,j,k,URHO )
+                eos_state % T   = s_old(i,j,k,UTEMP)
+                eos_state % e   = s_old(i,j,k,UEINT) * rhooinv
+                eos_state % xn  = s_old(i,j,k,UFS:UFS+nspec-1) * rhooinv
+                eos_state % aux = s_old(i,j,k,UFX:UFX+naux-1) * rhooinv
 
                 call eos(eos_input_re, eos_state)
 
-                v = HALF * (s_old(i,j,k,UMX:UMZ) * rhooinv + s_new(i,j,k,UMX:UMZ) * rhoninv)
+                v = abs(s_old(i,j,k,UMX:UMZ)) * rhooinv
 
                 c = eos_state % cs
 
-                tau_CFL = minval(dx(1:dim) / (c + abs(v(1:dim))))
+                tau_CFL = minval(dx(1:dim) / (c + v(1:dim)))
 
-                if (dt_old > tau_CFL) then
-                   dt_new = min(dt_new, cfl * tau_CFL)
-                endif
+                dt_new = min(dt_new, cfl * tau_CFL)
 
              endif
 

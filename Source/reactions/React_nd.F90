@@ -192,7 +192,7 @@ contains
                   j .ge. w_lo(2) .and. j .le. w_hi(2) .and. &
                   k .ge. w_lo(3) .and. k .le. w_hi(3) ) then
 
-                weights(i,j,k) = min(ONE, dble(burn_state_out % n_rhs + 2 * burn_state_out % n_jac))
+                weights(i,j,k) = max(ONE, dble(burn_state_out % n_rhs + 2 * burn_state_out % n_jac))
 
              endif
 
