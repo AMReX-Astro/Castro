@@ -12,6 +12,10 @@ void
 Castro::construct_hydro_source(Real time, Real dt)
 {
 
+  BL_PROFILE("Castro::construct_hydro_source()");
+
+  const Real strt_time = ParallelDescriptor::second();
+
   // this constructs the hydrodynamic source (essentially the flux
   // divergence) using the CTU framework for unsplit hydrodynamics
 
@@ -244,7 +248,24 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 
     if (verbose && ParallelDescriptor::IOProcessor())
-        std::cout << std::endl << "... Leaving hydro advance" << std::endl << std::endl;
+        std::cout << "... Leaving hydro advance" << std::endl << std::endl;
+
+    if (verbose > 0)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+	Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+	if (ParallelDescriptor::IOProcessor())
+	  std::cout << "Castro::construct_hydro_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+	});
+#endif
+    }
 
 }
 #endif
@@ -255,10 +276,15 @@ void
 Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 {
 
+  BL_PROFILE("Castro::construct_mol_hydro_source()");
+
   // this constructs the hydrodynamic source (essentially the flux
   // divergence) using method of lines integration.  The output, as a
+
   // update to the state, is stored in the multifab A_update, which is
   // passed in
+
+  const Real strt_time = ParallelDescriptor::second();
 
   if (verbose && ParallelDescriptor::IOProcessor()) {
     if (time_integration_method == MethodOfLines) {
@@ -600,6 +626,23 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
     }
 
+    if (verbose > 0)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+	Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+	if (ParallelDescriptor::IOProcessor())
+	  std::cout << "Castro::construct_mol_hydro_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+	});
+#endif
+    }
+
 }
 
 
@@ -795,8 +838,7 @@ Castro::check_for_cfl_violation(const Real dt)
     ParallelDescriptor::ReduceRealMax(courno);
 
     if (courno > 1.0) {
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "WARNING -- EFFECTIVE CFL AT THIS LEVEL " << level << " IS " << courno << '\n';
+        amrex::Print() << "WARNING -- EFFECTIVE CFL AT LEVEL " << level << " IS " << courno << std::endl << std::endl;
 
         cfl_violation = 1;
     }
