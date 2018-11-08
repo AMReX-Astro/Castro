@@ -278,7 +278,7 @@ contains
 
     real(rt)         :: dt1, dt2, dt3, rho_inv
     integer          :: i, j, k
-    real(rt)         :: cond, D
+    real(rt)         :: D
 
     type (eos_t) :: eos_state
 
@@ -304,10 +304,10 @@ contains
                 call eos(eos_input_re, eos_state)
 
                 ! we also need the conductivity
-                call conductivity(eos_state, cond)
+                call conductivity(eos_state)
 
                 ! maybe we should check (and take action) on negative cv here?
-                D = cond*rho_inv/eos_state%cv
+                D = eos_state % conductivity*rho_inv/eos_state%cv
 
                 dt1 = HALF*dx(1)**2/D
 
@@ -356,7 +356,7 @@ contains
 
     real(rt)         :: dt1, dt2, dt3, rho_inv
     integer          :: i, j, k
-    real(rt)         :: cond, D
+    real(rt)         :: D
 
     type (eos_t) :: eos_state
 
@@ -382,9 +382,9 @@ contains
                 call eos(eos_input_re, eos_state)
 
                 ! we also need the conductivity
-                call conductivity(eos_state, cond)
+                call conductivity(eos_state)
 
-                D = cond*rho_inv/eos_state%cp
+                D = eos_state % conductivity*rho_inv/eos_state%cp
 
                 dt1 = HALF*dx(1)**2/D
 
