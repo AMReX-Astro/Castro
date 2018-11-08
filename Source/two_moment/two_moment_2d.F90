@@ -15,8 +15,7 @@
     use FluidFieldsModule, only : CreateFluidFields, DestroyFluidFields
     use RadiationFieldsModule, only : CreateRadiationFields,DestroyRadiationFields,nSpecies, uCR
     use TimeSteppingModule_Castro, only : Update_IMEX_PDARS
-    use EquationOfStateModule_TABLE, only : ComputeTemperatureFromSpecificInternalEnergy_TABLE
-    use UnitsModule, only : Gram, Centimeter, Second, AtomicMassUnit, Erg, Kelvin
+    use UnitsModule, only : Gram, Centimeter, Second, AtomicMassUnit, Erg
 
     use ReferenceElementModuleX, only: NodesX_q, WeightsX_q
 
@@ -46,23 +45,7 @@
     integer  :: ic,jc
     integer  :: ii,id,ie,im,is,ind
     real(rt) :: x,y,z
-    real(rt) :: conv_dens, conv_mom, conv_enr, conv_ne, conv_J, conv_H, testdt
-
-    ! For interpolation
-    real(rt) :: xslope(ns), yslope(ns)
-    real(rt) :: Sval(ns)
-    real(rt) :: dlft(ns), drgt(ns), dcen(ns), dlim, dsgn
-
-    real(rt) :: T_out(1)
-    real(rt) :: rho_in(1)
-    real(rt) :: Ye_in(1)
-    real(rt) :: E_in(1)
-
-    real(rt) :: fac(ns),fac_all
-    real(rt) :: delta_S_slope(ns)
-    real(rt) :: delta_S_val(ns)
-
-    real(rt) :: temp
+    real(rt) :: conv_dens, conv_mom, conv_enr, conv_ne
 
     integer  :: nX(3)
     integer  :: swX(3)
@@ -72,17 +55,8 @@
 
     conv_dens = Gram / Centimeter**3
     conv_mom  = Gram / Centimeter**2 / Second
-    !conv_enr  = Gram /Centimeter / Second**2
     conv_enr  = Erg / Centimeter**3
     conv_ne   = 1.d0 / Centimeter**3
-    conv_J    = Gram/Second**2/Centimeter
-    conv_H    = Gram/Second**3
-
-    ! print *,'NDOF ',n_fluid_dof
-    ! print *,'SIZE OF NODESX_q ',size(NodesX_q,dim=1), size(NodesX_q,dim=2)
-    ! print *,'IN X ',NodesX_q(1,:)
-    ! print *,'IN Y ',NodesX_q(2,:)
-    ! print *,'IN Z ',NodesX_q(3,:)
 
     nX(1) = hi(1) - lo(1) + 1
     nX(2) = hi(2) - lo(2) + 1
@@ -189,8 +163,8 @@
          do id = 1, nDOF
 
             ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
-            if (im .eq. 1) dr(ic,jc,ii) = uCR(id,ie,i,j,k,im,is) - U_R_o(ic,jc,ii)
-            if (im   >  1) dr(ic,jc,ii) = uCR(id,ie,i,j,k,im,is) - U_R_o(ic,jc,ii)
+            if (im .eq. 1) dR(ic,jc,ii) = uCR(id,ie,i,j,k,im,is) - U_R_o(ic,jc,ii)
+            if (im   >  1) dR(ic,jc,ii) = uCR(id,ie,i,j,k,im,is) - U_R_o(ic,jc,ii)
 
          end do
          end do

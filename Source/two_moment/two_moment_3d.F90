@@ -2,20 +2,20 @@
                               S , s_lo, s_hi, ns , &
                               dS, d_lo, d_hi, nds, &
                               U_R_o, U_R_o_lo, U_R_o_hi, n_uro, &
-                              U_R_n, U_R_n_lo, U_R_n_hi, n_urn, &
+                              dR   ,    dr_lo,    dr_hi, n_urn, &
                               n_fluid_dof, n_moments, ng) &
                               bind(C, name="call_to_thornado")
 
     use amrex_constants_module, only : fourth, half, zero, one, two
     use amrex_fort_module, only : rt => amrex_real
     use amrex_error_module, only : amrex_abort
-    use meth_params_module, only : URHO,UMX,UMY,UMZ,UEINT,UEDEN,UFX
+    use meth_params_module, only : URHO,UMX,UMY,UMZ,UEINT,UEDEN,UFX,UFS
     use ProgramHeaderModule, only : nE, nDOF, nNodesX, nNodesE, swE
     use FluidFieldsModule, only : uCF, iCF_D, iCF_S1, iCF_S2, iCF_S3, iCF_E, iCF_Ne
     use FluidFieldsModule, only : CreateFluidFields, DestroyFluidFields
     use RadiationFieldsModule, only : CreateRadiationFields,DestroyRadiationFields,nSpecies, uCR
     use TimeSteppingModule_Castro, only : Update_IMEX_PDARS
-    use UnitsModule, only : Gram, Centimeter, Second
+    use UnitsModule, only : Gram, Centimeter, Second,  AtomicMassUnit, Erg
 
     use ReferenceElementModuleX, only: NodesX_q, WeightsX_q
 
@@ -24,7 +24,7 @@
     integer, intent(in) ::  s_lo(3),  s_hi(3)
     integer, intent(in) ::  d_lo(3),  d_hi(3)
     integer, intent(in) ::  U_R_o_lo(3),  U_R_o_hi(3)
-    integer, intent(in) ::  U_R_n_lo(3),  U_R_n_hi(3)
+    integer, intent(in) ::     dr_lo(3),     dr_hi(3)
     integer, intent(in) ::  ns, nds, n_uro, n_urn
     integer, intent(in) ::  n_fluid_dof, n_moments
     integer, intent(in) :: ng
@@ -38,13 +38,13 @@
 
     ! Old and new radiation state
     real(rt), intent(inout) ::  U_R_o(U_R_o_lo(1): U_R_o_hi(1),  U_R_o_lo(2): U_R_o_hi(2),   U_R_o_lo(3): U_R_o_hi(3), 0:n_uro-1) 
-    real(rt), intent(inout) ::  U_R_n(U_R_n_lo(1): U_R_n_hi(1),  U_R_n_lo(2): U_R_n_hi(2),   U_R_n_lo(3): U_R_n_hi(3), 0:n_urn-1) 
+    real(rt), intent(inout) ::     dR(   dr_lo(1):    dr_hi(1),     dr_lo(2):    dr_hi(2),      dr_lo(3):    dr_hi(3), 0:n_urn-1)
 
     ! Temporary variables
     integer  :: i,j,k,n
     integer  :: ic,jc,kc
     integer  :: ii,id,ie,im,is,ind
-    real(rt) :: conv_dens, conv_mom, conv_enr, conv_ne, conv_J, conv_H, testdt
+    real(rt) :: conv_dens, conv_mom, conv_enr, conv_ne
 
     integer  :: nX(3)
     integer  :: swX(3)
@@ -55,9 +55,8 @@
     conv_dens = Gram / Centimeter**3
     conv_mom  = Gram / Centimeter**2 / Second
     conv_enr  = Gram / Centimeter / Second**2
+    conv_enr  = Erg / Centimeter**3
     conv_ne   = 1.d0 / Centimeter**3
-    conv_J    = Gram/Second**2/Centimeter
-    conv_H    = Gram/Second**3
 
     nX(:)  = hi(:) - lo(:) + 1
     swX(:) = ng
@@ -91,6 +90,12 @@
          !         1-swX(2):nX(2)+swX(2), &
          !         1-swX(3):nX(3)+swX(3), &
          !         1:nCR, 1:nSpecies) )
+
+         ! U_R_o spatial indices start at lo - (number of ghost zones)
+         !   uCR spatial indices start at 1 - (number of ghost zones)
+         i = ic - lo(1) + 1
+         j = jc - lo(2) + 1
+         k = kc - lo(3) + 1
 
          do is = 1, nSpecies
          do im = 1, n_moments
@@ -161,13 +166,16 @@
          do id = 1, nDOF
             ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
 
-            if (im .eq. 1) U_R_n(ic,jc,kc,ii) = uCR(id,ie,i,j,k,im,is)
-            if (im   >  1) U_R_n(ic,jc,kc,ii) = uCR(id,ie,i,j,k,im,is)
+            if (im .eq. 1) dR(ic,jc,kc,ii) = uCR(id,ie,i,j,k,im,is) - U_R_o(ic,jc,kc,ii)
+            if (im   >  1) dR(ic,jc,kc,ii) = uCR(id,ie,i,j,k,im,is) - U_R_o(ic,jc,kc,ii)
 
          end do
          end do
          end do
          end do
+
+         ! Store electron molar fraction * density in the species
+         ds(ic,jc,kc,UFS) = dS(ic,jc,kc,UFX) * AtomicMassUnit / Gram
 
     end do
     end do
