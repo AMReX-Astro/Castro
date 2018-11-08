@@ -14,6 +14,10 @@ changes since last release
   -- a few minor bugs were fixed in the transverse routines of the CTU
      solver with radiation
 
+  -- simplified conductivity interface to match the eos interface by
+     moving the conductivity variable in the arguments into the eos
+     type.
+
 
 # 18.10
 
