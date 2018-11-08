@@ -9,7 +9,6 @@ thornado.zoome  = 1.0
 
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 #max_step = 10000
-#max_step = 100
 stop_time =  1.e-4
 
 # PROBLEM SIZE & GEOMETRY
@@ -79,7 +78,7 @@ amr.check_int       = 1000000
 amr.plot_files_output = 1
 amr.plot_file       = thorn_plt  # root name of plotfile
 amr.plot_int        = 1000000          # number of timesteps between plotfiles
-amr.derive_plot_vars = density xmom ymom zmom eden Temp pressure  # these variables appear in the plotfile
+amr.plot_vars        = density xmom ymom zmom eden eint Temp
 amr.derive_plot_vars = pressure J_avg Hx_avg Hy_avg Hz_avg
 
 #PROBIN FILENAME
