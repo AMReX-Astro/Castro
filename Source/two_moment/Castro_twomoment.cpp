@@ -153,10 +153,13 @@ Castro::create_thornado_source(Real dt)
        MultiFab R_border(grids, dmap, U_R_old.nComp(), my_ngrow);
        AmrLevel::FillPatch(*this, R_border, my_ngrow, prev_time, Thornado_Type, 0, U_R_old.nComp());
 
-       // int n_sub = GetNSteps(dt); // From thornado
-       int n_sub = 1; // THIS IS JUST A HACK TO MAKE IT COMPILE 
-
        const Real* dx = geom.CellSize();
+
+       // int n_sub = GetNSteps(dt); // From thornado
+       Real dt_CGS;
+       compute_thornado_timestep(dx, dt_CGS );
+       std::cout << "DT " << dt << " " << dt_CGS << std::endl;
+       int n_sub = 1; // THIS IS JUST A HACK TO MAKE IT COMPILE 
 
        int n_fluid_dof = THORNADO_FLUID_NDOF;
        int n_moments   = THORNADO_NMOMENTS;

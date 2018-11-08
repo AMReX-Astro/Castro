@@ -1,3 +1,22 @@
+  subroutine compute_thornado_timestep(dx, dt) &
+                              bind(C, name="compute_thornado_timestep")
+
+    use amrex_fort_module, only : rt => amrex_real
+    use UnitsModule, only : Centimeter
+    use TimeSteppingModule_Castro, only : ComputeTimeStep_TwoMoment
+
+    real(rt), intent(in ) :: dx(2)
+    real(rt), intent(out) :: dt
+
+    real(rt) :: dX_CGS(3)
+
+    dX_CGS(1:2) = dx(1:2) / Centimeter 
+    dX_CGS(3)   = dX_CGS(2)
+
+    call ComputeTimeStep_TwoMoment( dX_CGS, dt )
+
+  end subroutine compute_thornado_timestep
+
   subroutine call_to_thornado(lo, hi, dt, &
                               S , s_lo, s_hi, ns , &
                               dS, d_lo, d_hi, nds, &

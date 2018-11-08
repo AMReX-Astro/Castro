@@ -25,6 +25,9 @@ extern "C"
 
   void FreeThornado_Patch();
 
+  void compute_thornado_timestep(const amrex::Real* dx, 
+                                       amrex::Real& dt); 
+
   void call_to_thornado(const int lo[], const int hi[], amrex::Real* dt_sub,
                         BL_FORT_FAB_ARG_3D( U_F  ), const int* ns,
                         BL_FORT_FAB_ARG_3D(dU_F  ), const int* nds,
