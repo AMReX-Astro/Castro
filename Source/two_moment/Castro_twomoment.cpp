@@ -30,7 +30,8 @@ Castro::init_thornado()
     Real eL = thornado_eL;
     Real eR = thornado_eR;
 
-    amrex::Print() << "*****Calling InitThornado " << std::endl; 
+    // Note these are in units of MeV
+    amrex::Print() << "*****Calling InitThornado with eL and eR = " << thornado_eL << " " << thornado_eR << std::endl;
     InitThornado(&nDimsX, &nDimsE, &swE, &eL, &eR, &zoomE, &nSpecies);
 
     int ncomp_thornado;
@@ -57,8 +58,6 @@ Castro::init_thornado_data()
     int * boxlen = new int[3];
     const Real* prob_lo   = geom.ProbLo();
 
-    amrex::Print() << "***THORNADO *** Using eL and eR = " << thornado_eL << " " << thornado_eR << std::endl;
-
     int swX[3];
     swX[0] = my_ngrow;
     swX[1] = my_ngrow;
@@ -70,8 +69,6 @@ Castro::init_thornado_data()
 
     int nr =  Thor_new.nComp();
     const Real  cur_time = state[Thornado_Type].curTime();
-
-    amrex::Print() << "*****Calling InitThornado_Patch and init_thornado on each patch " << std::endl; 
 
     // For now we will not allowing logical tiling
     for (MFIter mfi(Fluid_new, false); mfi.isValid(); ++mfi) 
@@ -118,22 +115,33 @@ Castro::create_thornado_source(Real dt)
 {
 
     MultiFab& S_new = get_new_data(State_Type);
-    // The temporary MultiFab will hold the contribution for each substep
-    MultiFab dS(grids, dmap, S_new.nComp(), S_new.nGrow());
+
+    MultiFab& U_R_old = get_old_data(Thornado_Type);
+    MultiFab& U_R_new = get_new_data(Thornado_Type);
+
+    // Need to copy old into new because we haven't define U_R_new yet 
+    MultiFab::Copy(U_R_new,U_R_old,0,0,U_R_new.nComp(),U_R_new.nGrow());
 
     // The StateData Thornado_Fluid_Source_Type will hold the entire contribution
     //   for this time step
+    MultiFab& dS_old = get_old_data(Thornado_Fluid_Source_Type);
     MultiFab& dS_new = get_new_data(Thornado_Fluid_Source_Type);
+    dS_old.setVal(0.);
     dS_new.setVal(0.);
+
+    MultiFab& dR_old = get_old_data(Thornado_Rad_Source_Type);
+    MultiFab& dR_new = get_new_data(Thornado_Rad_Source_Type);
+    dR_old.setVal(0.);
+    dR_new.setVal(0.);
+
+    // The temporary MultiFabs will hold the contribution for each substep
+    MultiFab dS(grids, dmap,  dS_new.nComp(),  dS_new.nGrow());
+    MultiFab dR(grids, dmap, U_R_new.nComp(), U_R_new.nGrow());
 
     // We only actually compute the source at level 0; otherwise we interpolate from 
     //    the coarser level
     if (level == 0)
     {
-
-       MultiFab& U_R_old = get_old_data(Thornado_Type);
-       MultiFab& U_R_new = get_new_data(Thornado_Type);
-
        int my_ngrow = 2;  // two fluid ghost cells
 
        // This fills the ghost cells of the fluid MultiFab which we will pass into Thornado
@@ -161,10 +169,6 @@ Castro::create_thornado_source(Real dt)
        Vector<Real> grid_lo(3);
        Vector<Real> grid_hi(3);
 
-       // Note these are in units of MeV; we will convert to thornado units inside
-       //      InitThornado_Patch
-       amrex::Print() << "***THORNADO *** Using eL and eR = " << thornado_eL << " " << thornado_eR << std::endl;
-
        int swX[3];
        swX[0] = my_ngrow;
        swX[1] = my_ngrow;
@@ -177,10 +181,10 @@ Castro::create_thornado_source(Real dt)
        for (int i = 0; i < n_sub; i++)
        {
 
-          // Make sure to zero dS here since not all the 
-          //    components will be filled in call_to_thornado
-          //    and we don't want to re-add terms from the last iteration
+          // Make sure to zero dS and dR here since we don't want to 
+          //    re-add terms from the last iteration
           dS.setVal(0.);
+          dR.setVal(0.);
 
           // For now we will not allowing logical tiling
           for (MFIter mfi(S_border, false); mfi.isValid(); ++mfi) 
@@ -210,7 +214,7 @@ Castro::create_thornado_source(Real dt)
                                BL_TO_FORTRAN_FAB(S_border[mfi]),
                                BL_TO_FORTRAN_FAB(dS[mfi]),
                                BL_TO_FORTRAN_FAB(R_border[mfi]),
-                               BL_TO_FORTRAN_FAB(U_R_new[mfi]), 
+                               BL_TO_FORTRAN_FAB(dR[mfi]), 
                                &n_fluid_dof, &n_moments, &my_ngrow);
    
               FreeThornado_Patch();
@@ -221,21 +225,31 @@ Castro::create_thornado_source(Real dt)
           MultiFab::Add( S_new, dS, Density, 0, S_new.nComp(), 0);
           MultiFab::Add(dS_new, dS, Density, 0, S_new.nComp(), 0);
 
+          MultiFab::Add(U_R_new, dR, 0, 0, U_R_new.nComp(), 0);
+          MultiFab::Add( dR_new, dR, 0, 0, U_R_new.nComp(), 0);
+
           // Fill the ghost cells before taking the next dt_sub 
           S_border.FillBoundary();
        }
 
        delete boxlen;
 
-    // if (level > 0) then interpolate dS
+    // if (level > 0) then interpolate dS and dR
     } else {
        const Real  cur_time = state[Thornado_Type].curTime();
+
        AmrLevel::FillPatch(*this, dS, 0, cur_time, Thornado_Fluid_Source_Type, 0, NUM_STATE);
        MultiFab::Add( S_new, dS, Density, 0, S_new.nComp(), 0);
        MultiFab::Add(dS_new, dS, Density, 0, S_new.nComp(), 0);
+
+       AmrLevel::FillPatch(*this, dR, 0, cur_time, Thornado_Rad_Source_Type, 0, dR_new.nComp());
+       MultiFab::Add(U_R_new, dR, 0, 0, U_R_new.nComp(), 0);
+       MultiFab::Add( dR_new, dR, 0, 0, U_R_new.nComp(), 0);
     }
 
     // Copy dS_new into dS_old so that we can interpolate in time correctly 
-    MultiFab& dS_old = get_new_data(Thornado_Fluid_Source_Type);
     MultiFab::Copy(dS_old,dS_new,0,0,dS_new.nComp(),dS_new.nGrow());
+
+    // Copy dR_new into dR_old so that we can interpolate in time correctly 
+    MultiFab::Copy(dR_old,dR_new,0,0,dR_new.nComp(),dR_new.nGrow());
 }

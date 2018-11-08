@@ -2,7 +2,7 @@
                               S , s_lo, s_hi, ns , &
                               dS, d_lo, d_hi, nds, &
                               U_R_o, U_R_o_lo, U_R_o_hi, n_uro, &
-                              U_R_n, U_R_n_lo, U_R_n_hi, n_urn, &
+                              dR   ,    dr_lo,    dr_hi, n_urn, &
                               n_fluid_dof, n_moments, ng) &
                               bind(C, name="call_to_thornado")
 
@@ -25,7 +25,7 @@
     integer, intent(in) ::  s_lo(2),  s_hi(2)
     integer, intent(in) ::  d_lo(2),  d_hi(2)
     integer, intent(in) ::  U_R_o_lo(2),  U_R_o_hi(2)
-    integer, intent(in) ::  U_R_n_lo(2),  U_R_n_hi(2)
+    integer, intent(in) ::     dr_lo(2),     dr_hi(2)
     integer, intent(in) ::  ns, nds, n_uro, n_urn
     integer, intent(in) ::  n_fluid_dof, n_moments
     integer, intent(in) :: ng
@@ -39,7 +39,7 @@
 
     ! Old and new radiation state
     real(rt), intent(inout) ::  U_R_o(U_R_o_lo(1): U_R_o_hi(1),  U_R_o_lo(2): U_R_o_hi(2), 0:n_uro-1) 
-    real(rt), intent(inout) ::  U_R_n(U_R_n_lo(1): U_R_n_hi(1),  U_R_n_lo(2): U_R_n_hi(2), 0:n_urn-1) 
+    real(rt), intent(inout) ::     dR(   dr_lo(1):    dr_hi(1),     dr_lo(2):    dr_hi(2), 0:n_urn-1) 
 
     ! Temporary variables
     integer  :: i,j,k,n
@@ -61,6 +61,8 @@
     real(rt) :: fac(ns),fac_all
     real(rt) :: delta_S_slope(ns)
     real(rt) :: delta_S_val(ns)
+
+    real(rt) :: temp
 
     integer  :: nX(3)
     integer  :: swX(3)
@@ -185,9 +187,10 @@
          do im = 1, n_moments
          do ie = 1, nE
          do id = 1, nDOF
+
             ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
-            if (im .eq. 1) U_R_n(ic,jc,ii) = uCR(id,ie,i,j,k,im,is)
-            if (im   >  1) U_R_n(ic,jc,ii) = uCR(id,ie,i,j,k,im,is)
+            if (im .eq. 1) dr(ic,jc,ii) = uCR(id,ie,i,j,k,im,is) - U_R_o(ic,jc,ii)
+            if (im   >  1) dr(ic,jc,ii) = uCR(id,ie,i,j,k,im,is) - U_R_o(ic,jc,ii)
 
          end do
          end do

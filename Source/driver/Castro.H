@@ -46,7 +46,8 @@ enum StateType { State_Type = 0,
 #endif
 #ifdef THORNADO
 		 Thornado_Type,
-		 Thornado_Fluid_Source_Type
+		 Thornado_Fluid_Source_Type,
+		 Thornado_Rad_Source_Type
 #endif
 };
 
