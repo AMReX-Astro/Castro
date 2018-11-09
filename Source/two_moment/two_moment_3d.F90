@@ -2,7 +2,6 @@
                               bind(C, name="compute_thornado_timestep")
 
     use amrex_fort_module, only : rt => amrex_real
-    use UnitsModule, only : Centimeter
     use TimeSteppingModule_Castro, only : ComputeTimeStep_TwoMoment
 
     real(rt), intent(in ) :: dx(3)
@@ -10,7 +9,7 @@
 
     real(rt) :: dX_CGS(3)
 
-    dX_CGS(:) = dx(:) * Centimeter 
+    dX_CGS(:) = dx(:)
 
     call ComputeTimeStep_TwoMoment( dX_CGS, dt )
 
