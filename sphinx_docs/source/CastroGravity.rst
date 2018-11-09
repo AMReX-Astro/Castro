@@ -28,7 +28,7 @@ The overall integration strategy is unchanged from the discussion in
 :raw-latex:`\cite{castro_I}`. Briefly:
 
 -  At the beginning of a simulation, we do a multilevel composite
-   solve (if ).
+   solve (if gravity.no_composite= 0).
 
    We also do a multilevel composite solve after each regrid.
 
@@ -48,7 +48,7 @@ The overall integration strategy is unchanged from the discussion in
 
 -  At an AMR synchronization step across levels (see Section `[sec:amr_synchronization] <#sec:amr_synchronization>`__
    for a description of when these synchronizations occur), if we’re choosing
-   to synchronize the gravitational field across levels ()
+   to synchronize the gravitational field across levels (gravity.no_sync= 0)
    we then do a solve starting from
    the coarse grid that adjusts for the mismatch between the fine-grid
    phi and the coarse-grid phi, as well as the mismatch between the
@@ -57,9 +57,9 @@ The overall integration strategy is unchanged from the discussion in
 
    Thus, to within the gravity error tolerance, you get the same final
    result as if you had done a full composite solve at the end of the
-   timestep (assuming ).
+   timestep (assuming gravity.no_sync= 0).
 
-If you do , then you never do a full
+If you do gravity.no_composite= 1, then you never do a full
 multilevel solve, and the gravity on any level is defined only by the
 solve on that level. The only time this would be appropriate is if
 the fine level(s) cover essentially all of the mass on the grid for
@@ -86,7 +86,7 @@ via castro.do_grav = 1. If you want to incorporate a point mass
 in the GNUmakefile.
 
 There are currently four options for how gravity is calculated,
-controlled by setting . The options are
+controlled by setting gravity.gravity_type. The options are
 ConstantGrav, PoissonGrav, Monopole Grav or
 PrescribedGrav. Again, these are only relevant if USE_GRAV =
 TRUE in the GNUmakefile and castro.do_grav = 1 in the
@@ -97,14 +97,14 @@ abort.
 Some additional notes:
 
 -  For the full Poisson solver
-   (), the behavior
+   (gravity.gravity_type= PoissonGrav), the behavior
    of the full Poisson solve / multigrid solver is controlled by
-   and .
+   gravity.no_sync and gravity.no_composite.
 
 -  For isolated boundary conditions, and when
-   , the parameters
+   gravity.gravity_type= PoissonGrav, the parameters
    gravity.max_multipole_order and
-   control the accuracy of
+   gravity.direct_sum_bcs control the accuracy of
    the Dirichlet boundary conditions. These are described in
    Section `2.3.2 <#sec-poisson-3d-bcs>`__.
 
@@ -114,25 +114,25 @@ Some additional notes:
 The following parameters apply to gravity
 solves:
 
--  : how should we calculate gravity?
+-  gravity.gravity_type : how should we calculate gravity?
    Can be ConstantGrav, PoissonGrav, MonopoleGrav, or
    PrescribedGrav
 
--  : if gravity.gravity_type =
+-  gravity.const_grav : if gravity.gravity_type =
    ConstantGrav, set the value of constant gravity (default: 0.0)
 
--  : gravity.gravity_type =
+-  gravity.no_sync : gravity.gravity_type =
    PoissonGrav, do we perform the “sync solve"? (0 or 1; default: 0)
 
--  : if gravity.gravity_type
+-  gravity.no_composite : if gravity.gravity_type
    = PoissonGrav, whether to perform a composite solve (0 or 1;
    default: 0)
 
--  : maximum level to solve
+-  gravity.max_solve_level : maximum level to solve
    for :math:`\phi` and :math:`\mathbf{g}`; above this level, interpolate from
    below (default: :math:`{\tt MAX\_LEV} - 1`)
 
--  : if gravity.gravity_type =
+-  gravity.abs_tol : if gravity.gravity_type =
    PoissonGrav, this is the absolute tolerance for the Poisson
    solve. You can specify a single value for this tolerane (or do
    nothing, and get a reasonable default value), and then the absolute
@@ -145,33 +145,33 @@ solves:
    possible level in the simulation, and then the scaling by
    :math:`\text{ref\_ratio}^2` is not applied.
 
--  : if gravity.gravity_type
+-  gravity.rel_tol : if gravity.gravity_type
    = PoissonGrav, this is the relative tolerance for the Poisson
    solve. By default it is zero. You can specify a single value for
    this tolerance and it will apply on every level, or you can specify
    an array of values for , one for each possible level
    in the simulation. This replaces the old parameter
-   .
+   gravity.ml_tol.
 
--  : if
+-  gravity.max_multipole_order : if
    gravity.gravity_type = PoissonGrav, this is the max :math:`\ell` value
    to use for multipole BCs (must be :math:`\geq 0`; default: 0)
 
--  : if
+-  gravity.direct_sum_bcs : if
    gravity.gravity_type = PoissonGrav, evaluate BCs using exact sum
    (0 or 1; default: 0)
 
--  : ratio of dr for monopole gravity
+-  gravity.drdxfac : ratio of dr for monopole gravity
    binning to grid resolution
 
 The follow parameters affect the coupling of hydro and gravity:
 
--  : turn on/off gravity
+-  castro.do_grav : turn on/off gravity
 
--  : do we recompute the center
+-  castro.moving_center : do we recompute the center
    used for the multipole gravity solver each step?
 
--  : point mass at the center of the star
+-  castro.point_mass : point mass at the center of the star
    (must be :math:`\geq 0`; default: 0.0)
 
 Note that in the following, MAX_LEV is a hard-coded parameter
@@ -251,7 +251,7 @@ spherically-symmetric fashion.
 
    The default resolution of the radial arrays at a level is the grid
    cell spacing at that level, i.e., :math:`\Delta r = \Delta x`. O For
-   increased accuracy, one can define as a number
+   increased accuracy, one can define gravity.drdxfac as a number
    greater than :math:`1` (:math:`2` or :math:`4` are recommended) and the spacing of the
    radial array will then satisfy :math:`\Delta x / \Delta r =` drdxfac.
    Individual Cartesian grid cells are subdivided by drdxfac in
@@ -371,7 +371,7 @@ is :raw-latex:`\cite{katz:2016}`.
    :math:`l_{\text{max}}`.
 
    The number of :math:`l` values calculated is controlled by
-   in your inputs file. By
+   gravity.max_multipole_order in your inputs file. By
    default, it is set to ``0``, which means that a monopole
    approximation is used. There is currently a hard-coded limit of
    :math:`l_{\text{max}} = 50`. This is because the method used to generate the
@@ -407,7 +407,7 @@ is :raw-latex:`\cite{katz:2016}`.
    This is quite expensive even for reasonable sized domains, so this
    option is recommended only for analysis purposes, to check if the
    other methods are producing accurate results. It can be enabled by
-   setting in your inputs file.
+   setting gravity.direct_sum_bcs= 1 in your inputs file.
 
 PrescribedGrav
 --------------

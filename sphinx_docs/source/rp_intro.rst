@@ -7,20 +7,20 @@ Castro has 2 sets of runtime parameters—those controlled by
 C and those controlled by Fortran. The C parameters are set
 in the inputs file and managed by the AMReX ParmParse
 class. For Castro-specific parameters, we list the runtime
-parameters in a file and generate the
-C code and headers using the script—note
+parameters in a file \_cpp_parameters and generate the
+C code and headers using the mk_params.sh script—note
 this script needs to be run every time the \_cpp_parameters
 file is updated.
 
 The behavior of the network, EOS, and other microphysics routines are
 controlled by a different set of runtime parameters. These parameters are defined
-in plain-text files located in the different
+in plain-text files \_parameters located in the different
 directories that hold the microphysics code. At compile time, a
-script in the AMReX bulid system, , locates all
+script in the AMReX bulid system, findparams.py, locates all
 of the \_parameters files that are needed for the given choice
 of network, integrator, and EOS, and assembles all of the runtime
-parameters into a module named (using the
-script). The parameters are set in your
+parameters into a module named extern_probin_module (using the
+write_probin.py script). The parameters are set in your
 probin file in the &extern namelist.
 
 C++ parameter format
@@ -41,7 +41,7 @@ of the information up to and including any of the optional columns you
 need (e.g., if you are going to provide the fortran name, you
 also need to provide need in Fortran? and ifdef. The
 need in Fortran? column is y if the runtime parameter should
-be made available in Fortran (through ).
+be made available in Fortran (through meth_params_module).
 The ifdef field provides the name of a preprocessor name that
 should wrap this parameter definition—it will only be compiled in if
 that name is defined to the preprocessor. The fortran name is

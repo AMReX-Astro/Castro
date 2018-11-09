@@ -212,36 +212,32 @@ throughout the code documentation and papers.
    +=======================+=======================+=======================+
    | :math:`t`             | s                     | time                  |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`\rho`          | :math:`\mathrm{g~cm^{ | mass density          |
-   |                       | -3}}`                 |                       |
+   | :math:`\rho`          | :math:`\gcc`          | mass density          |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`{\bf u}`       | :math:`\mathrm{cm~s^{ | velocity vector       |
-   |                       | -1}}`                 |                       |
+   | :math:`\ub`           | :math:`\cms`          | velocity vector       |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`p`             | :math:`\mathrm{dyn~cm | pressure              |
-   |                       | ^{-2}}`               |                       |
+   | :math:`p`             | :math:`\presunit`     | pressure              |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`{\bf g}`       | :math:`\mathrm{cm~s^{ | gravitational         |
-   |                       | -2}}`                 | acceleration          |
+   | :math:`\gb`           | :math:`\accelunit`    | gravitational         |
+   |                       |                       | acceleration          |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`{\bf S}`       | varies                | source term           |
+   | :math:`\Sb`           | varies                | source term           |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`E`             | :math:`\mathrm{erg~g^ | specific total energy |
-   |                       | {-1}}`                |                       |
+   | :math:`E`             | :math:`\ergg`         | specific total energy |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`e`             | :math:`\mathrm{erg~g^ | specific internal     |
-   |                       | {-1}}`                | energy                |
+   | :math:`e`             | :math:`\ergg`         | specific internal     |
+   |                       |                       | energy                |
    +-----------------------+-----------------------+-----------------------+
    | :math:`T`             | :math:`K`             | temperature           |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`{k_\mathrm{th} | :math:`\mathrm{erg~cm | thermal conductivity  |
-   | }`                    | ^{-1}~s^{-1}~K~{-1}}` |                       |
+   | :math:`\kth`          | :math:`\mathrm{erg~cm | thermal conductivity  |
+   |                       | ^{-1}~s^{-1}~K~{-1}}` |                       |
    +-----------------------+-----------------------+-----------------------+
    | :math:`X_k`           | –                     | mass fraction of      |
    |                       |                       | species :math:`k`     |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`\omega\omega_k | :math:`\mathrm{s^{-1} | species creation rate |
-   | `                     | }`                    | (from reactions)      |
+   | :math:`\omegadot_k`   | :math:`\mathrm{s^{-1} | species creation rate |
+   |                       | }`                    | (from reactions)      |
    +-----------------------+-----------------------+-----------------------+
 
 Physical constants, again using the CGS system are available
@@ -374,19 +370,27 @@ build the Sedov problem:
 
 #. In Sedov/, edit the GNUmakefile, and set
 
-   -  This is the dimensionality—here we pick 2-d.
+   -  DIM = 2
 
-   -  This is the set of compilers. gnu are a good default
+      This is the dimensionality—here we pick 2-d.
+
+   -  COMP = gnu
+
+      This is the set of compilers. gnu are a good default
       choice (this will use g++ and gfortran. You can
       also choose pgi and intel for example.
 
       If you want to try other compilers than the GNU suite and they
       don’t work, please let us know.
 
-   -  This disabled debugging checks and results in a more
+   -  DEBUG = FALSE
+
+      This disabled debugging checks and results in a more
       optimized executable.
 
-   -  This turns off parallelization via MPI. Set it to TRUE to
+   -  USE_MPI = FALSE
+
+      This turns off parallelization via MPI. Set it to TRUE to
       build with MPI—this requires that you have the MPI library
       installed on your machine. In this case, the build system will
       need to know about your MPI installation. This can be done by
@@ -617,7 +621,7 @@ BoxLib ParmParse class infrastructure.
 The second inputs file, typically named probin is used by the Fortran code that initializes the problem
 setup. It is read at problem initialization (via a Fortran
 namelist) and the problem-specific quantities are stored in a
-Fortran module defined in the problem’s
+Fortran module probdata_module defined in the problem’s
 probdata.f90 file.
 
 Only the inputs file is specified on the commandline. The
@@ -641,7 +645,7 @@ probin file:
 
 -  &extern is used to set different microphysics options
 
--  &tagging is used to get the parameters (defined in )
+-  &tagging is used to get the parameters (defined in tagging_module)
    that affect how we tag for refinement.
 
 Common inputs Options
@@ -659,20 +663,20 @@ Problem Geometry
 The geometry namespace is used by BoxLib to define the
 computational domain. The main parameters here are:
 
--  : physical location of low corner of the
+-  geometry.prob_lo: physical location of low corner of the
    domain (type: Real; must be set)
 
    Note: a number is needed for each dimension in the problem
 
--  : physical location of high corner of the
+-  geometry.prob_hi: physical location of high corner of the
    domain (type: Real; must be set)
 
    Note: a number is needed for each dimension in the problem
 
--  : coordinate system, 0 = Cartesian,
+-  geometry.coord_sys: coordinate system, 0 = Cartesian,
    1 = :math:`r`-:math:`z` (2-d only), 2 = spherical (1-d only) (must be set)
 
--  : is the domain periodic in this direction?
+-  geometry.is_periodic: is the domain periodic in this direction?
    0 if false, 1 if true (default: 0 0 0)
 
    Note: an integer is needed for each dimension in the problem
@@ -748,19 +752,19 @@ The grid resolution is specified by defining the resolution at the
 coarsest level (level 0) and the number of refinement levels and
 factor of refinement between levels. The relevant parameters are:
 
--  : number of cells in each direction at the
+-  amr.n_cell: number of cells in each direction at the
    coarsest level (Integer :math:`> 0`; must be set)
 
--  : number of levels of refinement above the
+-  amr.max_level: number of levels of refinement above the
    coarsest level (Integer :math:`\geq 0`; must be set)
 
--  : ratio of coarse to fine grid spacing
+-  amr.ref_ratio: ratio of coarse to fine grid spacing
    between subsequent levels (2 or 4; must be set)
 
--  : how often (in terms of number of steps)
+-  amr.regrid_int: how often (in terms of number of steps)
    to regrid (Integer; must be set)
 
--  : should we regrid immediately
+-  amr.regrid_on_restart: should we regrid immediately
    after restarting? (0 or 1; default: 0)
 
 Note: if amr.max_level = 0 then you do not need to set
@@ -824,7 +828,7 @@ grids that contain the tagged cells.
 
 The relevant runtime parameters are:
 
--  : name of file from which to read the
+-  amr.regrid_file: name of file from which to read the
    grids (text; default: no file)
 
    If set to a filename, e.g. fixed_girds, then list of grids
@@ -833,16 +837,16 @@ The relevant runtime parameters are:
    amr.max_grid_size criterion. The rest of the gridding procedure
    described below will not occur if amr.regrid_file is set.
 
--  : radius of additional tagging
+-  amr.n_error_buf: radius of additional tagging
    around already tagged cells (Integer :math:`\geq 0`; default: 1)
 
--  : maximum size of a grid in any
+-  amr.max_grid_size: maximum size of a grid in any
    direction (Integer :math:`> 0`; default: 128 (2-d), 32 (3-d))
 
    Note: amr.max_grid_size must be even, and a multiple of
    amr.blocking_factor at every level.
 
--  : grid size must be a multiple of this
+-  amr.blocking_factor: grid size must be a multiple of this
    (Integer :math:`> 0`; default: 2)
 
    Note: amr.blocking_factor at every level must be a power of
@@ -854,7 +858,7 @@ The relevant runtime parameters are:
    multigrid algorithm to coarsen more at the lowest level, reducing
    the amount of work required by the bottom solver.
 
--  : grid efficiency (Real :math:`>0` and :math:`<1`;
+-  amr.grid_eff: grid efficiency (Real :math:`>0` and :math:`<1`;
    default: 0.7)
 
    When creating a refined grid, do we make boxes that only include
@@ -869,7 +873,7 @@ The relevant runtime parameters are:
    by blocking_factor, so it is no longer strictly this fraction,
    but the idea is still the same.
 
--  | : refine grids more if # of
+-  | amr.refine_grid_layout: refine grids more if # of
      processors :math:`>` # of grids (0 if false, 1 if true; default: 1)
 
 Note also that amr.n_error_buf, amr.max_grid_size and
@@ -945,10 +949,10 @@ Simulation Time
 
 There are two paramters that can define when a simulation ends:
 
--  : maximum number of level 0 time steps (Integer
+-  max_step: maximum number of level 0 time steps (Integer
    :math:`\geq 0`; default: -1)
 
--  : final simulation time (Real :math:`\geq 0`; default:
+-  stop_time: final simulation time (Real :math:`\geq 0`; default:
    -1.0)
 
 To control the number of time steps, you can limit by the maximum
@@ -978,42 +982,42 @@ the code chooses a time step based on the CFL number:
 
 .. math::
 
-   tt = \mathtt{CFL}\, \cdot\, \min_{i,j,k}\left[\min\left\{1{tx}{|u|_{i,j,k}+c_{i,j,k}},
-                                                                  1{ty}{|v|_{i,j,k}+c_{i,j,k}},
-                                                                  1{tz}{|w|_{i,j,k}+c_{i,j,k}}\right\}\right]
+   \Delta t = \mathtt{CFL}\, \cdot\, \min_{i,j,k}\left[\min\left\{\frac{\Delta x}{|u|_{i,j,k}+c_{i,j,k}},
+                                                                  \frac{\Delta y}{|v|_{i,j,k}+c_{i,j,k}},
+                                                                  \frac{\Delta z}{|w|_{i,j,k}+c_{i,j,k}}\right\}\right]
    \label{eq:cfl}
 
 If method-of-lines integration is used instead, then we have
 
 .. math::
 
-   tt = \mathtt{CFL}\, \cdot\, \min_{i,j,k}\left[\left(1{tx}{|u|_{i,j,k}+c_{i,j,k}}\right)^{-1} +
-                                                       \left(1{ty}{|v|_{i,j,k}+c_{i,j,k}}\right)^{-1} +
-                                                       \left(1{tz}{|w|_{i,j,k}+c_{i,j,k}}\right)^{-1}\right]^{-1}
+   \Delta t = \mathtt{CFL}\, \cdot\, \min_{i,j,k}\left[\left(\frac{\Delta x}{|u|_{i,j,k}+c_{i,j,k}}\right)^{-1} +
+                                                       \left(\frac{\Delta y}{|v|_{i,j,k}+c_{i,j,k}}\right)^{-1} +
+                                                       \left(\frac{\Delta z}{|w|_{i,j,k}+c_{i,j,k}}\right)^{-1}\right]^{-1}
 
 (If we are simulating in 1D or 2D, the extraneous parts related to :math:`v` and/or :math:`w` are removed.)
 
 The following parameters affect the timestep choice:
 
--  : CFL number (Real :math:`> 0` and :math:`\leq 1`;
+-  castro.cfl: CFL number (Real :math:`> 0` and :math:`\leq 1`;
    default: 0.8)
 
--  : factor by which to shrink the initial
+-  castro.init_shrink: factor by which to shrink the initial
    time step (Real :math:`> 0` and :math:`\leq 1`; default: 1.0)
 
--  : factor by which the time step can
+-  castro.change_max: factor by which the time step can
    grow in subsequent steps (Real :math:`\geq 1`; default: 1.1)
 
--  : level 0 time step regardless of cfl
+-  castro.fixed_dt: level 0 time step regardless of cfl
    or other settings (Real :math:`> 0`; unused if not set)
 
--  : initial level 0 time
+-  castro.initial_dt: initial level 0 time
    step regardless of other settings (Real :math:`> 0`; unused if not set)
 
--  : time step below which calculation
+-  castro.dt_cutoff: time step below which calculation
    will abort (Real :math:`> 0`; default: 0.0)
 
--  : whether or not to abort the
+-  castro.hard_cfl_limit: whether or not to abort the
    simulation if the hydrodynamics update creates velocities that
    violate the CFL criterion (Integer; default: 1)
 
@@ -1058,38 +1062,38 @@ sets the *initial* level 0 time step to be :math:`10^{-4}` regardless of
 castro.cfl or castro.fixed_dt. The time step can
 grow in subsequent steps by a factor of castro.change_max each step.
 
-[] If diffusion is enabled, the timestep will also
+[DIFFUSION] If diffusion is enabled, the timestep will also
 be limited by:
 
 .. math::
 
-   tt = 1{1}{2}\min_{i,j,k}\left[\min\left\{1{tx^2}{D_{i,j,k}},
-                                                      1{ty^2}{D_{i,j,k}},
-                                                      1{tz^2}{D_{i,j,k}}\right\}\right]
+   \Delta t = \frac{1}{2}\min_{i,j,k}\left[\min\left\{\frac{\Delta x^2}{D_{i,j,k}},
+                                                      \frac{\Delta y^2}{D_{i,j,k}},
+                                                      \frac{\Delta z^2}{D_{i,j,k}}\right\}\right]
 
 where :math:`D \equiv k / (\rho c_V)` if we are diffusing temperature, and
 :math:`D \equiv k / (\rho c_P)` if we are diffusing enthalpy. No input parameter
 is necessary to enable this constraint. See Chapter `[ch:diffusion] <#ch:diffusion>`__ for more details.
 
-[] If reactions are enabled, the timestep will also
+[REACTIONS] If reactions are enabled, the timestep will also
 be limited by two constraints:
 
-.. math:: tt = \mathtt{dtnuc\_e}\, \min_{i,j,k} \left\{1{e_{i,j,k}}{\omega{e}_{i,j,k}}\right\}
+.. math:: \Delta t = \mathtt{dtnuc\_e}\, \min_{i,j,k} \left\{\frac{e_{i,j,k}}{\dot{e}_{i,j,k}}\right\}
 
-.. math:: tt = \mathtt{dtnuc\_X}\, \min_{i,j,k} \left\{\min_n1{X^n_{i,j,k}}{\omega{X}^n_{i,j,k}}\right\}
+.. math:: \Delta t = \mathtt{dtnuc\_X}\, \min_{i,j,k} \left\{\min_n\frac{X^n_{i,j,k}}{\dot{X}^n_{i,j,k}}\right\}
 
 where :math:`e` is the internal energy, and :math:`X^n` is the mass fraction of
 the :math:`n`\ th species. The safety factors correspond to the runtime parameters
-and . These limiters
+castro.dtnuc_e and castro.dtnuc_X. These limiters
 say that the timestep must be small enough so that no zone can change
 its internal energy by more than the fraction in one
 step, and so that no zone can change the abundance of any isotope by
 more than the fraction in one step. The time derivatives
-:math:`\omega{e}` and :math:`\omega{X}^n` are estimated by calling the right-hand-side
+:math:`\dot{e}` and :math:`\dot{X}^n` are estimated by calling the right-hand-side
 of the nuclear network given the state at the time the timestep limiter
 is being calculated. (We use a small number floor to prevent division by zero.)
 To prevent the timestep from being dominated by trace species, there is
-an additional option which is the
+an additional option castro.dtnuc_X_threshold which is the
 mass fraction threshold below which a species will not be considered in
 the timestep constraint. and are set to
 a large number by default, effectively disabling them. Typical choices
@@ -1099,7 +1103,7 @@ Subcycling
 ~~~~~~~~~~
 
 Castro supports a number of different modes for subcycling in time,
-set via .
+set via amr.subcycling_mode.
 
 -  amr.subcycling_mode = Auto (default): the code will run
    with equal refinement in space and time. In other words, if level
@@ -1112,7 +1116,7 @@ set via .
    the deprecated command amr.nosub = 1.
 
 -  If amr.subcycling_mode = Manual: the code will subcycle
-   according to the values supplied by .
+   according to the values supplied by amr.subcycling_iterations.
 
 In the case of amr.subcycling_mode = Manual, we subcycle in
 manual mode with largest allowable timestep. The number of iterations
@@ -1141,13 +1145,13 @@ Castro has a standard sort of checkpointing and restarting capability.
 In the inputs file, the following options control the generation of
 checkpoint files (which are really directories):
 
--  : prefix for restart files (text;
+-  amr.check_file: prefix for restart files (text;
    default: chk)
 
--  : how often (by level 0 time steps) to
+-  amr.check_int: how often (by level 0 time steps) to
    write restart files (Integer :math:`> 0`; default: -1)
 
--  : how often (by simulation time) to
+-  amr.check_per: how often (by simulation time) to
    write restart files (Real :math:`> 0`; default: -1.0)
 
    Note that amr.check_per will write a checkpoint at the first
@@ -1155,26 +1159,26 @@ checkpoint files (which are really directories):
    In particular, the timestep is not modified to match this interval, so
    you won’t get a checkpoint at exactly the time you requested.
 
--  : name of the file (directory) from
+-  amr.restart: name of the file (directory) from
    which to restart (Text; not used if not set)
 
--  : should we write
+-  amr.checkpoint_files_output: should we write
    checkpoint files? (0 or 1; default: 1)
 
    If you are doing a scaling study then set
    amr.checkpoint_files_output = 0 so you can test scaling of the
    algorithm without I/O.
 
--  : how parallel is the writing of
+-  amr.check_nfiles: how parallel is the writing of
    the checkpoint files? (Integer :math:`\geq 1`; default: 64)
 
    See the § \ `9 <#software:io>`__ for more details on parallel I/O and the
    amr.check_nfiles parameter.
 
--  : should we write a
+-  amr.checkpoint_on_restart: should we write a
    checkpoint immediately after restarting? (0 or 1; default: 0)
 
--  : factor by which domain has been
+-  castro.grown_factor: factor by which domain has been
    grown (Integer :math:`\geq 1`; default: 1)
 
 Note:
@@ -1229,13 +1233,13 @@ The main output from Castro is in the form of plotfiles (which are
 really directories). The following options in the inputs file control
 the generation of plotfiles:
 
--  : prefix for plotfiles (text; default:
+-  amr.plot_file: prefix for plotfiles (text; default:
    “plt”)
 
--  : how often (by level-0 time steps) to
+-  amr.plot_int: how often (by level-0 time steps) to
    write plot files (Integer :math:`> 0`; default: -1)
 
--  : how often (by simulation time) to write
+-  amr.plot_per: how often (by simulation time) to write
    plot files (Real :math:`> 0`; default: -1.0)
 
    Note that amr.plot_per will write a plotfile at the first
@@ -1243,31 +1247,31 @@ the generation of plotfiles:
    In particular, the timestep is not modified to match this interval, so
    you won’t get a checkpoint at exactly the time you requested.
 
--  : name of state variables to include in
+-  amr.plot_vars: name of state variables to include in
    plotfiles (valid options: ALL, NONE or a list; default:
    ALL)
 
--  : name of derived variables to
+-  amr.derive_plot_vars: name of derived variables to
    include in plotfiles (valid options: ALL, NONE or a
    list; default: NONE
 
--  : should we write plot files?
+-  amr.plot_files_output: should we write plot files?
    (0 or 1; default: 1)
 
    If you are doing a scaling study then set
    amr.plot_files_output = 0 so you can test scaling of the
    algorithm without I/O.
 
--  : should we write a plotfile
+-  amr.plotfile_on_restart: should we write a plotfile
    immediately after restarting? (0 or 1; default: 0)
 
--  : how parallel is the writing of the
+-  amr.plot_nfiles: how parallel is the writing of the
    plotfiles? (Integer :math:`\geq 1`; default: 64)
 
    See the Software Section for more details on parallel I/O and the
    amr.plot_nfiles parameter.
 
--  : include all the species mass
+-  castro.plot_X: include all the species mass
    fractions in the plotfile (0 or 1; default: 0)
 
 All the options for amr.derive_plot_vars are kept in
@@ -1313,28 +1317,28 @@ Screen Output
 There are several options that set how much output is written to the
 screen as Castro runs:
 
--  : verbosity of Amr.cpp (0 or 1; default: 0)
+-  amr.v: verbosity of Amr.cpp (0 or 1; default: 0)
 
--  : verbosity of Castro.cpp (0 or 1; default: 0)
+-  castro.v: verbosity of Castro.cpp (0 or 1; default: 0)
 
--  : verbosity of Gravity.cpp (0 or 1; default: 0)
+-  gravity.v: verbosity of Gravity.cpp (0 or 1; default: 0)
 
--  : verbosity of Diffusion.cpp (0 or 1;
+-  diffusion.v: verbosity of Diffusion.cpp (0 or 1;
    default: 0)
 
--  : verbosity of multigrid solver (for gravity) (allow
+-  mg.v: verbosity of multigrid solver (for gravity) (allow
    values: 0,1,2,3,4; default: 0)
 
--  : name of the file to which the grids are
+-  amr.grid_log: name of the file to which the grids are
    written (text; not used if not set)
 
--  : name of the file to which certain output is
+-  amr.run_log: name of the file to which certain output is
    written (text; not used if not set)
 
--  : name of the file to which certain
+-  amr.run_log_terse: name of the file to which certain
    (terser) output is written (text; not used if not set)
 
--  : if :math:`> 0`, how often (in level-0 time
+-  amr.sum_interval: if :math:`> 0`, how often (in level-0 time
    steps) to compute and print integral quantities (Integer; default: -1)
 
    The integral quantities include total mass, momentum and energy in
@@ -1349,7 +1353,7 @@ screen as Castro runs:
    for example. If this line is commented out then
    it will not compute and print these quanitities.
 
--  : allows the user to set a
+-  castro.do_special_tagging: allows the user to set a
    special flag based on user-specified criteria (0 or 1; default: 1)
 
    castro.do_special_tagging = 1 can be used, for example, to
@@ -1541,11 +1545,11 @@ Floating point data
 
 Floating point data in the C AMReX frame work is declared as
 Real. This is typedef to either float or
-double depending on the make variable .
+double depending on the make variable PRECISION.
 
 The corresponding type for Fortran is provided by the
-as . We typically rename
-this to when using it. An example of a declaration of a
+bl_fort_module as c_real. We typically rename
+this to rt when using it. An example of a declaration of a
 parameter is:
 
 ::
@@ -1575,7 +1579,7 @@ example of three boxes at the same level of refinement.
 
 AMReX provides other data structures that collect Boxes together,
 most importantly the . We generally do not use these
-directly, with the exception of the BoxArray ,
+directly, with the exception of the BoxArray grids,
 which is defined as part of the AmrLevel class that Castro
 inherits. grids is used when building new MultiFabs to give
 the layout of the boxes at the current level.
@@ -1652,7 +1656,7 @@ we want it to be automatically interpolated when we refine.
 An AmrLevel stores an array of StateData (in a C array
 called state). We index this array using integer keys (defined
 via an enum in Castro.H). The state data is registered
-with AMReX in .
+with AMReX in Castro_setup.cpp.
 
 Note that each of the different StateData carried in the state
 array can have different numbers of components, ghost cells, boundary
@@ -1662,14 +1666,14 @@ array.
 
 The current StateData names Castro carries are:
 
--  : this is the NUM_STATE hydrodynamics
+-  State_Type : this is the NUM_STATE hydrodynamics
    components that make up the conserved hydrodynamics state (usually
-   referred to as :math:`{\bf U}` in these notes. But note that this does
+   referred to as :math:`\Ub` in these notes. But note that this does
    not include the radiation energy density.
 
    In Fortran, the components of a FAB derived from State_Type
-   is indexed using the integer keys defined in
-   and stored in , e.g., URHO, UMX,
+   is indexed using the integer keys defined in Castro_nd.F90
+   and stored in meth_params_module, e.g., URHO, UMX,
    UMY, ...
 
    Note: regardless of dimensionality, we always carry around all
@@ -1680,39 +1684,39 @@ The current StateData names Castro carries are:
    State_Type MultiFabs have no ghost cells by default for
    pure hydro and a single ghost cell by default when RADIATION
    is enabled. There is an option to force them to have ghost cells by
-   setting the parameter at runtime.
+   setting the parameter castro.state_nghost at runtime.
 
    Note that the prediction of the hydrodynamic state to the interface
    will require 4 ghost cells. This accomodated by creating a separate
-   MultiFab, that lives at the old-time level and
+   MultiFab, Sborder that lives at the old-time level and
    has the necessary ghost cells. We will describe this more later.
 
--  : this stores the radiation energy density,
-   commonly denoted :math:`E_r` in these notes. It has
+-  Rad_Type : this stores the radiation energy density,
+   commonly denoted :math:`E_r` in these notes. It has nGroups
    components—the number of energy groups used in the multigroup
    radiation hydrodynamics approximation.
 
--  : this is simply the gravitational
+-  PhiGrav_Type : this is simply the gravitational
    potential, usually denoted :math:`\Phi` in these notes.
 
--  : this is the gravitational
+-  Gravity_Type : this is the gravitational
    acceleration. There are always 3 components, regardless of the
    dimensionality (consistent with our choice of always carrying all 3
    velocity components).
 
--  : this is the rotational potential.
+-  PhiRot_Type : this is the rotational potential.
    When rotation is enabled, this will store the effective potential
    corresponding to the centrifugal force.
 
--  : this is the rotational acceleration.
+-  Rotation_Type : this is the rotational acceleration.
    There are always 3 components, regardless of the dimensionality
    (consistent with our choice of always carrying all 3 velocity
    components). This includes the terms corresponding to the Coriolis
    force, the centrifugal force, as well as optional terms due to the
    change in rotation rate, :math:`\Omega`.
 
--  : this holds the time-rate of change of
-   the source terms, :math:`d{\bf S}/dt`, for each of the NUM_STATE
+-  Source_Type : this holds the time-rate of change of
+   the source terms, :math:`d\Sb/dt`, for each of the NUM_STATE
    State_Type variables.
 
    .. raw:: latex
@@ -1724,11 +1728,11 @@ The current StateData names Castro carries are:
    never allocate the FArrayBoxs for the old-time in the Source_Type
    StateData, so there is not wasted memory.
 
--  : this holds the data for the nuclear
+-  Reactions_Type : this holds the data for the nuclear
    reactions. It has NumSpec+2 components: the species
-   creation rates (usually denoted :math:`\omega\omega_k` in these notes),
-   the specific energy generation rate (:math:`\omega{e}_\mathrm{nuc}`),
-   and its density (:math:`\rho \omega{e}_\mathrm{nuc}`).
+   creation rates (usually denoted :math:`\omegadot_k` in these notes),
+   the specific energy generation rate (:math:`\dot{e}_\mathrm{nuc}`),
+   and its density (:math:`\rho \dot{e}_\mathrm{nuc}`).
 
    These are stored as StateData so we have access to the reaction terms
    outside of advance, both for diagnostics (like flame speed estimation)
@@ -1740,7 +1744,7 @@ The current StateData names Castro carries are:
       \marginpar{\vskip-\baselineskip\raggedright\tiny\sffamily
       \hrule\smallskip{\color{red}why do we need rho edot and edot separately?}\par\smallskip\hrule}
 
--  : this is used with the SDC
+-  SDC_React_Type : this is used with the SDC
    time-advancement algorithm. This stores the QVAR terms
    that describe how the primitive variables change over the timestep
    due only to reactions. These are used when predicting the interface
@@ -1763,20 +1767,20 @@ Various source MultiFabs
 There are a number of different MultiFabs (and arrays of MultiFabs)
 that hold source term information.
 
--  : this is a MultiFab that holds the
+-  hydro_source : this is a MultiFab that holds the
    update to the hydrodynamics (basically the divergence of the
    fluxes). This is filled in the conservative update routine of the
    hydrodynamics.
 
    As this is expressed as a source term, what is actually stored is
 
-   .. math:: {\bf S}_\mathrm{flux} = -\nabla \cdot {\bf F}
+   .. math:: \Sb_\mathrm{flux} = -\nabla \cdot {\bf F}
 
    So the update of the conserved state appears as:
 
-   .. math:: 1{\partial {\bf U}}{\partial t} = {\bf S}_\mathrm{flux}
+   .. math:: \frac{\partial \Ub}{\partial t} = \Sb_\mathrm{flux}
 
--  : a single MultiFab that stores
+-  sources_for_hydro : a single MultiFab that stores
    the sum of sources over each physical process.
 
 MFIter and interacting with Fortran
@@ -1854,7 +1858,7 @@ A few comments about this code
    box.hiVect().
 
    In passing to the Fortran function, we use the macro
-   , defined in to pass the lo
+   ARLIM_3D, defined in ArrayLim.H to pass the lo
    and hi vectors as pointers to an int array. This array
    is defined to always be 3D, with 0s substituted for the
    higher dimension values if we are running in 1- or 2D.
@@ -2062,7 +2066,7 @@ Some comments:
    There is another interface fo MFIter that can take an
    IntVect that explicitly gives the tile size in each coordinate
    direction. If we don’t explictly specify the tile size at the loop,
-   then the runtime parameter
+   then the runtime parameter fabarray.mfiter_tile_size
    can be used to set it globally.
 
 -  .validBox() has the same meaning as in the non-tile
@@ -2272,7 +2276,7 @@ let’s consider the following scenarios:
    want to create a new MultiFab containing a copy of that data with
    NGROW ghost cells.*
 
-   This is the case with —the MultiFab of the
+   This is the case with Sborder—the MultiFab of the
    hydrodynamic state that we use to kick-off the hydrodynamics
    advance.
 
@@ -2282,7 +2286,7 @@ let’s consider the following scenarios:
 
          Multifab Sborder;
 
-   It is then allocated in
+   It is then allocated in Castro::initialize_do_advance()
 
    .. code:: c++
 
@@ -2295,7 +2299,7 @@ let’s consider the following scenarios:
    Sborder.
 
    The actually filling of the ghost cells is done by
-   :
+   Castro::expand_state():
 
    .. code:: c++
 
@@ -2418,8 +2422,8 @@ Physical Boundaries
 
 Physical boundary conditions are specified by an integer
 index [7]_ in
-the inputs file, using the and
-runtime parameters. The generally
+the inputs file, using the castro.lo_bc and
+castro.hi_bc runtime parameters. The generally
 supported boundary conditions are, their corresponding integer key,
 and the action they take for the normal velocity, transverse
 velocity, and generic scalar are shown in Table \ `[table:castro:bcs] <#table:castro:bcs>`__
@@ -2445,14 +2449,14 @@ which say which kind of bc to use on which kind of physical boundary.
 Boundary conditions are set in functions like “
 set_scalar_bc”, which uses the scalar_bc pre-defined
 arrays. We also specify the name of the Fortran routine that
-is responsible for filling the data there (e.g., ).
+is responsible for filling the data there (e.g., hypfill).
 These routines are discussed more below.
 
 If you want to specify a value at a function (like at an inflow
 boundary), then you choose an *inflow* boundary at that face of
 the domain. You then need to write the implementation code for this.
-An example is the problem which implements a
-hydrostatic lower boundary (through its custom
+An example is the problem toy_convect which implements a
+hydrostatic lower boundary (through its custom bc_fill_?d.F90
 routines.
 
 .. raw:: latex
@@ -2501,7 +2505,7 @@ amrex/Src/ directory.
 Geometry class
 ~~~~~~~~~~~~~~
 
-There is a Geometry object, for each level as part of
+There is a Geometry object, geom for each level as part of
 the Castro object (this is inhereted through AmrLevel).
 
 ParmParse class
@@ -2533,24 +2537,24 @@ Fortran Helper Modules
 There are a number of modules that make data available to the Fortran
 side of Castro or perform other useful tasks.
 
--  :
+-  bl_constants_module:
 
    This provides double precision constants as Fortran parameters, like
    ZERO, HALF, and ONE.
 
--  :
+-  bl_types:
 
    This provides a double precision type, dp_t for use in
    Fortran. This should be identical to double precision on most
    architectures.
 
--  :
+-  extern_probin_module:
 
    This module provides access to the runtime parameters for the
    microphysics routines (EOS, reaction network, etc.). The source
    for this module is generated at compile type via a make rule
    that invokes a python script. This will search for all of the
-   files in the external sources, parse them
+   \_parameters files in the external sources, parse them
    for runtime parameters, and build the module.
 
 -  fundamental_constants_module:
@@ -2587,16 +2591,16 @@ side of Castro or perform other useful tasks.
    and is periodically synced up with the C driver. The information
    available here is:
 
-   -  , : these are the boundary
+   -  physbc_lo, physbc_hi: these are the boundary
       condition types at the low and high ends of the domain, for each
       coordinate direction. Integer keys, Interior, Inflow,
       Outflow, Symmetry, SlipWall, and
       NoSlipWall allow you to interpret the values.
 
-   -  is the center of the problem. Note—this is up
+   -  center is the center of the problem. Note—this is up
       to the problem setup to define (in the probinit subroutine).
       Alternately, it can be set at runtime via
-      .
+      castro.center.
 
       Usually center will be the physical center of the domain,
       but not always. For instance, for axisymmetric problems,
@@ -2607,9 +2611,12 @@ side of Castro or perform other useful tasks.
       defining the center of the sponge, and in deriving the radial
       velocity.
 
-   -  
-   -  
-   -  
+   -  coord_type
+
+   -  dim
+
+   -  dg
+
    -  *refining information*
 
 Setting Up Your Own Problem
@@ -2628,12 +2635,12 @@ problem. Here we describe how to customize your problem.
 
 The purpose of these files is:
 
--  : this holds the probdata_module Fortran module
+-  probdata.f90: this holds the probdata_module Fortran module
    that allocates storage for all the problem-specific runtime parameters that
    are used by the problem (including those that are read from the probin
    file.
 
--  : this holds the main routines to
+-  Prob_?d.f90: this holds the main routines to
    initialize the problem and grid and perform problem-specific boundary
    conditions:
 
@@ -2646,7 +2653,7 @@ The purpose of these files is:
       setup for an example). The parameters that are initialized
       here are those stored in the probdata_module.
 
-   -  :
+   -  ca_initdata():
 
       This routine will initialize the state data for a single grid.
       The inputs to this routine are:
@@ -2685,9 +2692,9 @@ The purpose of these files is:
          meth_params_module (e.g., URHO) to refer to specific
          quantities
 
-      -  delta(): this is an array containing the zone width (:math:`tx`)
-         in each coordinate direction: :math:`\mathtt{delta(1)} = tx`,
-         :math:`\mathtt{delta(2)} = ty`, :math:`\ldots`.
+      -  delta(): this is an array containing the zone width (:math:`\Delta x`)
+         in each coordinate direction: :math:`\mathtt{delta(1)} = \Delta x`,
+         :math:`\mathtt{delta(2)} = \Delta y`, :math:`\ldots`.
 
       -  xlo(), xhi(): these are the physical coordinates of the
          lower left and upper right corners of the *valid region*
@@ -2706,7 +2713,7 @@ The purpose of these files is:
          coordinates should be computed using problo() from the
          prob_params_module.)
 
--  :
+-  bc_fill_?d.F90:
 
    These routines handle how Castro fills ghostcells
    *at physical boundaries* for specific data. Most problem
@@ -2825,35 +2832,35 @@ Optional Files
 The follow problem-specific files are optional. There are stubs for
 each of these in the main source tree.
 
--  :
+-  Problem.f90 :
 
-   This provides two routines, and
-   that can be used to add information to the
+   This provides two routines, problem_checkpoint and
+   problem_restart that can be used to add information to the
    checkpoint files and read it in upon restart. This is useful for
    some global problem-specific quantities. For instance, the
-    [8]_ problem uses this
+   wdmerger [8]_ problem uses this
    to store center of mass position and velocity information in the
    checkpoint files that are used for runtime diagnostics.
 
    The name of the checkpoint directory is passed in as an argument.
-   provides the C interfaces for these routines.
+   Problem_F.H provides the C interfaces for these routines.
 
--  ,
+-  problem_tagging_?d.F90, problem_tagging_nd.F90
 
    This implements problem-specific tagging for refinement, through a
-   subroutine . The full hydrodynamic state
+   subroutine set_problem_tags. The full hydrodynamic state
    (State_Type) is passed in, and the problem can mark zones for
-   refinement by setting the variable for a zone to
-   . An example is provided by the
+   refinement by setting the tag variable for a zone to
+   set. An example is provided by the toy_convect
    problem which refines a rectangular region (fuel layer) based on
    a density parameter and the H mass fraction.
 
--  , ,
+-  Problem_Derive_F.H, Problem_Derives.H, problem_derive_nd.f90
 
    Together, these provide a mechanism to create derived quantities
    that can be stored in the plotfile. Problem_Derives.H
    provides the C code that defines these new plot variables. It
-   does this by adding them to the —a list of
+   does this by adding them to the derive_lst—a list of
    derived variables that Castro knows about. When adding new
    variables, a descriptive name, Fortran routine that does the
    deriving, and component of StateData are specified.
@@ -2861,17 +2868,17 @@ each of these in the main source tree.
    The Fortran routine that does the deriving is put in the
    problem-specific problem_derive_nd.f90 (and a prototype for
    C is put in Problem_Derives.H). A example is provided by
-   the problem, which derives several new
+   the reacting_bubble problem, which derives several new
    quantities (perturbations against a background one-dimensional
    model, in this case).
 
--  , ,
+-  Prob.cpp, Problem.H, Problem_F.H
 
    These files provide problem-specific routines for computing global
-   diagnostic information through the
+   diagnostic information through the sum_integrated_quantities
    functionality that is part of the Castro class.
 
-   An example is provided by , where an estimate
+   An example is provided by toy_flame, where an estimate
    of the flame speed is computed by integrating the mass of fuel on
    the grid.
 
@@ -2882,10 +2889,10 @@ Most of the problem setups have separate implementations for 1-, 2-,
 and 3D. A new method exists that allows you to write just a single
 set of files for any dimensionality (this is called the *dimension
 agnostic* format). To use this mode, set
-in your GNUmakefile.
-Then write you problem initialization in .
+DIMENSION_AGNOSTIC= TRUE in your GNUmakefile.
+Then write you problem initialization in Prob_nd.F90.
 Analogous routines exist for tagging and boundary conditions. See the
-and problem setups for an
+rotating_torus and Noh problem setups for an
 example.
 
 .. _software:io:
@@ -2903,7 +2910,7 @@ shared across thousands of CPUs. Each CPU writes the part of the
 MultiFab that it owns to disk, but they don’t each write to their own
 distinct file. Instead each MultiFab is written to a runtime
 configurable number of files N (N can be set in the inputs file as the
-parameter and ; the
+parameter amr.checkpoint_nfiles and amr.plot_nfiles; the
 default is 64). That is to say, each MultiFab is written to disk
 across at most N files, plus a small amount of data that gets written
 to a header file describing how the file is laid out in those N files.
@@ -2944,11 +2951,11 @@ driver routines and use preprocessor or runtime variables to separate
 the different code paths.
 
 -  Strang-splitting: the Strang evolution does the burning on the
-   state for :math:`tt/2`, then updates the hydrodynamics using the
-   burned state, and then does the final :math:`tt/2` burning. No
+   state for :math:`\Delta t/2`, then updates the hydrodynamics using the
+   burned state, and then does the final :math:`\Delta t/2` burning. No
    explicit coupling of the burning and hydro is done. Within the
    Strang code path, there are two methods for doing the hydrodynamics,
-   controlled by .
+   controlled by castro.do_ctu.
 
    -  Corner-transport upwind (CTU): this implements the unsplit,
       characteristic tracing method of :raw-latex:`\cite{colella:1990}`.
@@ -2959,17 +2966,17 @@ the different code paths.
       each requiring reconstruction, Riemann solve, etc., and the final
       solution is pieced together from the intermediate stages.
 
--  SDC: the SDC path is enabled by the preprocessor
+-  SDC: the SDC path is enabled by the SDC preprocessor
    variable. This iteratively couples the reactions and hydrodynamics together.
 
 Several helper functions are used throughout:
 
--  :
+-  clean_state:
    There are many ways that the hydrodynamics state may become
-   unphysical in the evolution. The routine
+   unphysical in the evolution. The clean_state() routine
    enforces some checks on the state. In particular, it
 
-   #. enforces that the density is above
+   #. enforces that the density is above castro.small_dens
 
    #. normalizes the species so that the mass fractions sum to 1
 
@@ -2983,13 +2990,13 @@ Overview of a single step (no SDC)
 ----------------------------------
 
 The main evolution for a single step is contained in
-, as . This does
+Castro_advance.cpp, as Castro::advance(). This does
 the following advancement. Note, some parts of this are only done
 depending on which preprocessor directives are defined at
 compile-time—the relevant directive is noted in the [ ] at the start
 of each step.
 
-#. *Initialization* ()
+#. *Initialization* (initialize_advance())
 
    This sets up the current level for advancement. The following
    actions are performend (note, we omit the actions taken for a retry,
@@ -3005,13 +3012,13 @@ of each step.
    -  Swap the StateData from the new to old (e.g., ensures that
       the next evolution starts with the result from the previous step).
 
-   -  Do a
+   -  Do a clean_state
 
    -  Create the MultiFabs that hold the primitive variable information
       for the hydro solve.
 
    -  For method of lines integration: allocate the storage for the
-      intermediate stage updates, , and the  that holds the post burn state.
+      intermediate stage updates, k_mol, and the Sburn MultiFab that holds the post burn state.
 
    -  Zero out all of the fluxes
 
@@ -3019,13 +3026,13 @@ of each step.
 
    The update strategy differs for CTU vs MOL:
 
-   -  CTU: Calls to take a single step,
+   -  CTU: Calls do_advance to take a single step,
       incorporating hydrodynamics, reactions, and source terms.
 
-   -  MOL: Call times
+   -  MOL: Call do_advance_mol MOL_STAGES times
       (i.e., once for each of the intermediate stages in the ODE
       integration). Within do_advance we will use the stage
-      number, , to do an pre- or post-hydro
+      number, mol_iteration, to do an pre- or post-hydro
       sources (e.g., burning).
 
    In either case, for radiation-hydrodynamics, this step does the
@@ -3034,9 +3041,9 @@ of each step.
    included in this step, and are time-centered to achieve second-order
    accuracy.
 
-   If is set, then we subcycle the current
+   If castro.use_retry is set, then we subcycle the current
    step if we violated any stability criteria to reach the desired
-   :math:`tt`. The idea is the following: if the timestep that you
+   :math:`\Delta t`. The idea is the following: if the timestep that you
    took had a timestep that was not sufficient to enforce the stability
    criteria that you would like to achieve, such as the CFL criterion
    for hydrodynamics or the burning stability criterion for reactions,
@@ -3048,7 +3055,7 @@ of each step.
    enough to satisfy the criteria. Note that this will effectively
    double the memory footprint on each level if you choose to use it.
 
-#. [] *Auxiliary quantitiy evolution*
+#. [AUX_UPDATE] *Auxiliary quantitiy evolution*
 
    Auxiliary variables in Castro are those that obey a continuity
    equation (with optional sources) that are passed into the EOS, but
@@ -3056,23 +3063,23 @@ of each step.
 
    The advection and source terms are already dealt with in the
    main hydrodynamics advance (above step). A user-supplied routine
-   can be provided here to further update these
+   ca_auxupdate can be provided here to further update these
    quantities.
 
-#. *Radial data and [] point mass*
+#. *Radial data and [POINTMASS] point mass*
 
-   If is set, then we average the state data
+   If castro.spherical_star is set, then we average the state data
    over angles here to create a radial profile. This is then used in the
    boundary filling routines to properly set Dirichlet BCs when our domain
    is smaller than the star, so the profile on the boundaries will not
    be uniform.
 
-   If is set, then we
+   If castro.point_mass_fix_solution is set, then we
    change the mass of the point mass that optionally contributes to the
    gravitational potential by taking mass from the surrounding zones
    (keeping the density in those zones constant).
 
-#. [] *Radiation implicit update*
+#. [RADIATION] *Radiation implicit update*
 
    The do_advance() routine only handled the hyperbolic
    portion of the radiation update. This step does the implicit solve
@@ -3080,9 +3087,9 @@ of each step.
    new time level. Note that at the moment, this is backward-difference
    implicit (first-order in time) for stability.
 
-   This is handled by .
+   This is handled by final_radiation_call().
 
-#. [] *Particles*
+#. [PARTICLES] *Particles*
 
    If we are including passively-advected particles, they are
    advanced in this step.
@@ -3095,7 +3102,7 @@ of each step.
       coarse-fine interfaces. This cleans up the memory used during
       the step.
 
-   -  If is set, then we
+   -  If castro.track_grid_losses is set, then we
       also add up the mass that left through the boundary over this
       step. [9]_
 
@@ -3105,17 +3112,17 @@ Main Hydro, Reaction, and Gravity Advancement (CTU w/ Strang-splitting)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The explicit portion of the system advancement (reactions,
-hydrodynamics, and gravity) is done by . Consider
+hydrodynamics, and gravity) is done by do_advance(). Consider
 our system of equations as:
 
-.. math:: 1{\partial{\bf U}}{\partial t} = -{\bf A}({\bf U}) + {\bf R}({\bf U}) + {\bf S},
+.. math:: \frac{\partial\Ub}{\partial t} = -{\bf A}(\Ub) + \Rb(\Ub) + \Sb,
 
-where :math:`{\bf A}({\bf U}) = \nabla \cdot {\bf F}({\bf U})`, with :math:`{\bf F}` the flux vector, :math:`{\bf R}` are the reaction
-source terms, and :math:`{\bf S}` are the non-reaction source terms, which
-includes any user-defined external sources, :math:`{\bf S}_{\rm ext}`. We use
+where :math:`{\bf A}(\Ub) = \nabla \cdot \Fb(\Ub)`, with :math:`\Fb` the flux vector, :math:`\Rb` are the reaction
+source terms, and :math:`\Sb` are the non-reaction source terms, which
+includes any user-defined external sources, :math:`\Sb_{\rm ext}`. We use
 Strang splitting to discretize the advection-reaction equations. In
 summary, for each time step, we update the conservative variables,
-:math:`{\bf U}`, by reacting for half a time step, advecting for a full time
+:math:`\Ub`, by reacting for half a time step, advecting for a full time
 step (ignoring the reaction terms), and reacting for half a time step.
 The treatment of source terms complicates this a little. The actual
 update, in sequence, looks like:
@@ -3123,22 +3130,22 @@ update, in sequence, looks like:
 .. math::
 
    \begin{aligned}
-   {\bf U}^\star &= {\bf U}^n + 1{tt}{2}{\bf R}({\bf U}^n) \\
-   {\bf U}^{n+1,(a)} &= {\bf U}^\star + tt\, {\bf S}({\bf U}^\star) \\
-   {\bf U}^{n+1,(b)} &= {\bf U}^{n+1,(a)} - tt\, {\bf A}({\bf U}^\star) \\
-   {\bf U}^{n+1,(c)} &= {\bf U}^{n+1,(b)} + 1{tt}{2}\, [{\bf S}({\bf U}^{n+1,(b)}) - {\bf S}({\bf U}^\star)] \label{eq:source_correct}\\
-   {\bf U}^{n+1}     &= {\bf U}^{n+1,(c)} + 1{tt}{2} {\bf R}({\bf U}^{n+1,(c)})\end{aligned}
+   \Ub^\star &= \Ub^n + \frac{\dt}{2}\Rb(\Ub^n) \\
+   \Ub^{n+1,(a)} &= \Ub^\star + \dt\, \Sb(\Ub^\star) \\
+   \Ub^{n+1,(b)} &= \Ub^{n+1,(a)} - \dt\, {\bf A}(\Ub^\star) \\
+   \Ub^{n+1,(c)} &= \Ub^{n+1,(b)} + \frac{\dt}{2}\, [\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)] \label{eq:source_correct}\\
+   \Ub^{n+1}     &= \Ub^{n+1,(c)} + \frac{\dt}{2} \Rb(\Ub^{n+1,(c)})\end{aligned}
 
-Note that in the first step, we add a full :math:`tt` of the old-time
+Note that in the first step, we add a full :math:`\Delta t` of the old-time
 source to the state. This prediction ensures consistency when it
 comes time to predicting the new-time source at the end of the update.
-The construction of the advective terms, :math:`{\bf A({\bf U})}` is purely
+The construction of the advective terms, :math:`{\bf A(\Ub)}` is purely
 explicit, and based on an unsplit second-order Godunov method. We
 predict the standard primitive variables, as well as :math:`\rho e`, at
 time-centered edges and use an approximate Riemann solver construct
 fluxes.
 
-At the beginning of the time step, we assume that :math:`{\bf U}` and :math:`\phi` are
+At the beginning of the time step, we assume that :math:`\Ub` and :math:`\phi` are
 defined consistently, i.e., :math:`\rho^n` and :math:`\phi^n` satisfy equation
 (`[eq:Self Gravity] <#eq:Self Gravity>`__). Note that in
 Eq. \ `[eq:source_correct] <#eq:source_correct>`__, we actually can actually do some
@@ -3146,24 +3153,24 @@ sources implicitly by updating density first, and then momentum,
 and then energy. This is done for rotating and gravity, and can
 make the update more akin to:
 
-.. math:: {\bf U}^{n+1,(c)} = {\bf U}^{n+1,(b)} + 1{tt}{2} [{\bf S}({\bf U}^{n+1,(c)}) - {\bf S}({\bf U}^n)]
+.. math:: \Ub^{n+1,(c)} = \Ub^{n+1,(b)} + \frac{\dt}{2} [\Sb(\Ub^{n+1,(c)}) - \Sb(\Ub^n)]
 
 Castro also supports radiation. This part of the update algorithm
 only deals with the advective / hyperbolic terms in the radiation update.
 
 Here is the single-level algorithm. The goal here is to update the
- from the old to new time (see
+State_Type StateData from the old to new time (see
 § \ `2.6 <#soft:sec:statedata>`__). We will use the following notation
 here, consistent with the names used in the code:
 
--  is a multifab reference to the old-time-level
+-  S_old is a multifab reference to the old-time-level
    State_Type data.
 
--  is a multifab that has ghost cells and is
+-  Sborder is a multifab that has ghost cells and is
    initialized from S_old. This is what the hydrodynamic
    reconstruction will work from.
 
--  is a multifab reference to the new-time-level
+-  S_new is a multifab reference to the new-time-level
    State_Type data.
 
 In the code, the objective is to evolve the state from the old time,
@@ -3171,35 +3178,35 @@ S_old, to the new time, S_new.
 
 #. [strang:init] *Initialize*
 
-   #. In :
+   #. In initialize_do_advance() :
 
-      #. Create , initialized from S_old
+      #. Create Sborder, initialized from S_old
 
    #. Check for NaNs in the initial state, S_old.
 
-#. *React :math:`tt/2`.* []
+#. *React :math:`\Delta t/2`.* [strang_react_first_half()]
 
    Update the solution due to the effect of reactions over half a time
    step. The integration method and system of equations used here is
    determined by a host of runtime parameters that are part of the
    Microphysics package. But the basic idea is to evolve the energy
    release from the reactions, the species mass fractions, and
-   temperature through :math:`tt/2`.
+   temperature through :math:`\Delta t/2`.
 
    Using the notation above, we begin with the time-level :math:`n` state,
-   :math:`{\bf U}^n`, and produce a state that has evolved only due to reactions,
-   :math:`{\bf U}^\star`.
+   :math:`\Ub^n`, and produce a state that has evolved only due to reactions,
+   :math:`\Ub^\star`.
 
    .. math::
 
       \begin{aligned}
-          (\rho e)^\star &= (\rho e)^\star - 1{tt}{2} \rho H_\mathrm{nuc} \\
-          (\rho E)^\star &= (\rho E)^\star - 1{tt}{2} \rho H_\mathrm{nuc} \\
-          (\rho X_k)^\star &= (\rho X_k)^\star + 1{tt}{2}(\rho\omega\omega_k)^n.
+          (\rho e)^\star &= (\rho e)^\star - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
+          (\rho E)^\star &= (\rho E)^\star - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
+          (\rho X_k)^\star &= (\rho X_k)^\star + \frac{\dt}{2}(\rho\omegadot_k)^n.
         \end{aligned}
 
    Here, :math:`H_\mathrm{nuc}` is the energy release (erg/g/s) over the
-   burn, and :math:`\omega\omega_k` is the creation rate for species :math:`k`.
+   burn, and :math:`\omegadot_k` is the creation rate for species :math:`k`.
 
    After exiting the burner, we call the EOS with :math:`\rho^\star`,
    :math:`e^\star`, and :math:`X_k^\star` to get the new temperature, :math:`T^\star`.
@@ -3215,24 +3222,24 @@ S_old, to the new time, S_new.
    on the same level with valid data.
 
    An experimental option (enabled via
-   ) will create a custom
+   use_custom_knapsack_weights) will create a custom
    distribution map based on the work needed in burning a zone and
    redistribute the boxes across processors before burning, to better
    load balance..
 
-   After reactions, is called.
+   After reactions, clean_state is called.
 
-   At the end of this step, sees the effects of the
+   At the end of this step, Sborder sees the effects of the
    reactions.
 
 #. [strang:oldsource] *Construct time-level :math:`n` sources and apply*
-   [, ]
+   [construct_old_gravity(), do_old_sources()]
 
    The time level :math:`n` sources are computed, and added to the
-   StateData . The sources are then applied
-   to the state after the burn, :math:`{\bf U}^\star` with a full :math:`tt`
+   StateData Source_Type. The sources are then applied
+   to the state after the burn, :math:`\Ub^\star` with a full :math:`\Delta t`
    weighting (this will be corrected later). This produces the
-   intermediate state, :math:`{\bf U}^{n+1,(a)}`.
+   intermediate state, :math:`\Ub^{n+1,(a)}`.
 
    The sources that we deal with here are:
 
@@ -3242,16 +3249,16 @@ S_old, to the new time, S_new.
       follows that of Maestro :raw-latex:`\cite{maestro:III}`
 
    #. external sources : users can define problem-specific sources
-      in the file. Sources for the different
-      equations in the conservative state vector, :math:`{\bf U}`, are indexed
+      in the ext_src_?d.f90 file. Sources for the different
+      equations in the conservative state vector, :math:`\Ub`, are indexed
       using the integer keys defined in meth_params_module
       (e.g., URHO).
 
       This is most commonly used for external heat sources (see the
-      problem setup) for an example. But most
+      toy_convect problem setup) for an example. But most
       problems will not use this.
 
-   #. [] diffusion : thermal diffusion can be
+   #. [DIFFUSION] diffusion : thermal diffusion can be
       added in an explicit formulation. Second-order accuracy is
       achieved by averaging the time-level :math:`n` and :math:`n+1` terms, using
       the same predictor-corrector strategy described here.
@@ -3262,25 +3269,25 @@ S_old, to the new time, S_new.
       timestep constraint, since the treatment is explicit. See
       Chapter \ `[ch:diffusion] <#ch:diffusion>`__ for more details.
 
-   #. [] angular momentum
+   #. [HYBRID_MOMENTUM] angular momentum
 
       .. raw:: latex
 
          \marginpar{\vskip-\baselineskip\raggedright\tiny\sffamily
          \hrule\smallskip{\color{red}need to write this up}\par\smallskip\hrule}
 
-   #. [] gravity:
+   #. [GRAVITY] gravity:
 
       For full Poisson gravity, we solve for for gravity using:
 
       .. math::
 
-         {\bf g}^n = -\nabla\phi^n, \qquad
-               t\phi^n = 4\pi G\rho^n,
+         \gb^n = -\nabla\phi^n, \qquad
+               \Delta\phi^n = 4\pi G\rho^n,
 
       The construction of the form of the gravity source for the
       momentum and energy equation is dependent on the parameter
-      . Full details of the gravity
+      castro.grav_source_type. Full details of the gravity
       solver are given in Chapter \ `[ch:gravity] <#ch:gravity>`__.
 
       .. raw:: latex
@@ -3293,47 +3300,48 @@ S_old, to the new time, S_new.
          \marginpar{\vskip-\baselineskip\raggedright\tiny\sffamily
          \hrule\smallskip{\color{red}what do we store? phi and g? source?}\par\smallskip\hrule}
 
-   #. [] rotation
+   #. [ROTATION] rotation
 
       We compute the rotational potential (for use in the energy update)
       and the rotational acceleration (for use in the momentum
       equation). This includes the Coriolis and centrifugal terms in a
       constant-angular-velocity co-rotating frame. The form of the
       rotational source that is constructed then depends on the
-      parameter . More details are
+      parameter castro.rot_source_type. More details are
       given in Chapter \ `[ch:rotation] <#ch:rotation>`__.
 
    The source terms here are evaluated using the post-burn state,
-   :math:`{\bf U}^\star` (), and later corrected by using the
-   new state just before the burn, :math:`{\bf U}^{n+1,(b)}`. This is compatible
+   :math:`\Ub^\star` (Sborder), and later corrected by using the
+   new state just before the burn, :math:`\Ub^{n+1,(b)}`. This is compatible
    with Strang-splitting, since the hydro and sources takes place
    completely inside of the surrounding burn operations.
 
-   Note that the source terms are already applied to
-   in this step, with a full :math:`tt`—this will be corrected later.
+   Note that the source terms are already applied to S_new
+   in this step, with a full :math:`\Delta t`—this will be corrected later.
 
-#. [strang:hydro] *Construct the hydro update* []
+#. [strang:hydro] *Construct the hydro update* [construct_hydro_source()]
 
    The goal is to advance our system considering only the advective
    terms (which in Cartesian coordinates can be written as the
    divergence of a flux).
 
    We do the hydro update in two parts—first we construct the
-   advective update and store it in the , then we do the conservative update in a separate step. This
+   advective update and store it in the hydro_source
+   MultiFab, then we do the conservative update in a separate step. This
    separation allows us to use the advective update separately in more
    complex time-integration schemes.
 
    In the Strang-split formulation, we start the reconstruction using
-   the state after burning, :math:`{\bf U}^\star` (). There
+   the state after burning, :math:`\Ub^\star` (Sborder). There
    are two approaches we use, the corner transport upwind (CTU) method
    that uses characteristic tracing as described in
    :raw-latex:`\cite{colella:1990}`, and a method-of-lines approach. The choice is
-   determined by the parameter .
+   determined by the parameter castro.do_ctu.
 
    #. CTU method:
 
       For the CTU method, we predict to the half-time (:math:`n+1/2`) to get a
-      second-order accurate method. Note: does not
+      second-order accurate method. Note: Sborder does not
       know of any sources except for reactions. The advection step is
       complicated, and more detail is given in Section
       `6 <#Sec:Advection Step>`__. Here is the summarized version:
@@ -3353,7 +3361,7 @@ S_old, to the new time, S_new.
       the interface states. This is essentially the same vector that was
       computed in the previous step, with a few modifications. The most
       important is that if we set
-      , then we extrapolate the
+      castro.source_term_predictor, then we extrapolate the
       source terms from :math:`n` to :math:`n+1/2`, using the change from the previous
       step.
 
@@ -3362,55 +3370,55 @@ S_old, to the new time, S_new.
       nature of this method.
 
       The update computed here is then immediately applied to
-      .
+      S_new.
 
    #. method of lines
 
-#. [strang:clean] *Clean State* []
+#. [strang:clean] *Clean State* [clean_state()]
 
    .. raw:: latex
 
       \marginpar{\vskip-\baselineskip\raggedright\tiny\sffamily
       \hrule\smallskip{\color{red}we only seem to do this for the MOL integration}\par\smallskip\hrule}
 
-   This is done on .
+   This is done on S_new.
 
    After these checks, we check the state for NaNs.
 
 #. [strang:radial] *Update radial data and center of mass for monopole gravity*
 
-   These quantities are computed using .
+   These quantities are computed using S_new.
 
 #. [strang:newsource] *Correct the source terms with the :math:`n+1` contribution*
-   [, ]
+   [construct_new_gravity(), do_new_sources]
 
-   Previously we added :math:`tt\, {\bf S}({\bf U}^\star)` to the state, when
-   we really want a time-centered approach, :math:`(tt/2)[{\bf S}({\bf U}^\star
-       + {\bf S}({\bf U}^{n+1,(b)})]`. We fix that here.
+   Previously we added :math:`\Delta t\, \Sb(\Ub^\star)` to the state, when
+   we really want a time-centered approach, :math:`(\Delta t/2)[\Sb(\Ub^\star
+       + \Sb(\Ub^{n+1,(b)})]`. We fix that here.
 
-   We start by computing the source term vector :math:`{\bf S}({\bf U}^{n+1,(b)})`
-   using the updated state, :math:`{\bf U}^{n+1,(b)}`. We then compute the
-   correction, :math:`(tt/2)[{\bf S}({\bf U}^{n+1,(b)}) - {\bf S}({\bf U}^\star)]` to
-   add to :math:`{\bf U}^{n+1,(b)}` to give us the properly time-centered source,
-   and the fully updated state, :math:`{\bf U}^{n+1,(c)}`. This correction is stored
-   in the  [10]_.
+   We start by computing the source term vector :math:`\Sb(\Ub^{n+1,(b)})`
+   using the updated state, :math:`\Ub^{n+1,(b)}`. We then compute the
+   correction, :math:`(\Delta t/2)[\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)]` to
+   add to :math:`\Ub^{n+1,(b)}` to give us the properly time-centered source,
+   and the fully updated state, :math:`\Ub^{n+1,(c)}`. This correction is stored
+   in the new_sources MultiFab [10]_.
 
    In the process of updating the sources, we update the temperature to
    make it consistent with the new state.
 
-#. *React :math:`tt/2`.* []
+#. *React :math:`\Delta t/2`.* [strang_react_second_half()]
 
-   We do the final :math:`tt/2` reacting on the state, begining with :math:`{\bf U}^{n+1,(c)}` to
-   give us the final state on this level, :math:`{\bf U}^{n+1}`.
+   We do the final :math:`\dt/2` reacting on the state, begining with :math:`\Ub^{n+1,(c)}` to
+   give us the final state on this level, :math:`\Ub^{n+1}`.
 
-   This is largely the same as , but
+   This is largely the same as strang_react_first_half(), but
    it does not currently fill the reactions in the ghost cells.
 
-#. [strang:finalize] *Finalize* []
+#. [strang:finalize] *Finalize* [finalize_do_advance()]
 
    Finalize does the following:
 
-   #. for the momentum sources, we compute :math:`d{\bf S}/dt`, to use in the
+   #. for the momentum sources, we compute :math:`d\Sb/dt`, to use in the
       source term prediction/extrapolation for the hydrodynamic
       interface states during the next step.
 
@@ -3446,45 +3454,45 @@ Main Hydro, Reaction, and Gravity Advancement (MOL w/ Strang-splitting)
 The handling of sources differs in the MOL integration, as compared to CTU.
 Again, consider our system as:
 
-.. math:: 1{\partial{\bf U}}{\partial t} = -{\bf A}({\bf U}) + {\bf R}({\bf U}) + {\bf S}\, .
+.. math:: \frac{\partial\Ub}{\partial t} = -{\bf A}(\Ub) + \Rb(\Ub) + \Sb \, .
 
 We will again use Strang splitting to discretize the
 advection-reaction equations, but the hydro update will consist of :math:`s`
 stages. The update first does the reactions, as with CTU:
 
-.. math:: {\bf U}^\star = {\bf U}^n + 1{tt}{2}{\bf R}({\bf U}^n)
+.. math:: \Ub^\star = \Ub^n + \frac{\dt}{2}\Rb(\Ub^n)
 
 We then consider the hydro update discretized in space, but not time, written
 as:
 
-.. math:: 1{\partial {\bf U}}{\partial t} = -{\bf A}({\bf U}) + {\bf S}({\bf U})
+.. math:: \frac{\partial \Ub}{\partial t} = -{\bf A}(\Ub) + \Sb(\Ub)
 
 Using a Runge-Kutta (or similar) integrator, we write the update as:
 
-.. math:: {\bf U}^{n+1,\star} = {\bf U}^\star + tt\sum_{l=1}^s b_i {\bf k}_l
+.. math:: \Ub^{n+1,\star} = \Ub^\star + \dt \sum_{l=1}^s b_i {\bf k}_l
 
 where :math:`b_i` is the weight for stage :math:`i` and :math:`k_i` is the stage update:
 
-.. math:: {\bf k}_l = -{\bf A}({\bf U}_l) + {\bf S}({\bf U}_l)
+.. math:: {\bf k}_l = -{\bf A}(\Ub_l) + \Sb(\Ub_l)
 
 with
 
-.. math:: {\bf U}_l = {\bf U}^\star  + tt\sum_{m=1}^{l-1} a_{lm} {\bf k}_m
+.. math:: \Ub_l = \Ub^\star  + \dt \sum_{m=1}^{l-1} a_{lm} {\bf k}_m
 
 Finally, there is the last part of the reactions:
 
-.. math:: {\bf U}^{n+1} = {\bf U}^{n+1,\star} + 1{tt}{2} {\bf R}({\bf U}^{n+1,\star})
+.. math:: \Ub^{n+1} = \Ub^{n+1,\star} + \frac{\dt}{2} \Rb(\Ub^{n+1,\star})
 
 In contrast to the CTU method, the sources are treated together
 with the advection here.
 
 The time at the intermediate stages is evaluated as:
 
-.. math:: t_l = c_l tt
+.. math:: t_l = c_l \dt
 
 The integration coefficients are stored in the vectors
-, , and , and the
-stage updates are stored in the MultiFab .
+a_mol, b_mol, and c_mol, and the
+stage updates are stored in the MultiFab k_mol.
 
 Here is the single-level algorithm. We use the same notation
 as in the CTU flowchart.
@@ -3494,34 +3502,34 @@ S_old, to the new time, S_new.
 
 #. [strang:init] *Initialize*
 
-   In , set the starting point for the stage’s integration:
+   In initialize_do_advance(), set the starting point for the stage’s integration:
 
-   #. if : initialize
-      from
+   #. if mol_iteration = 0: initialize
+      Sborder from S_old
 
-   #. if : we need to create
+   #. if mol_iteration > 0: we need to create
       the starting point for the current stage. We store this,
       temporarily in the new-time slot (what we normally refer to as
-      ):
+      S_new):
 
-      .. math:: \mathtt{S\_new}_\mathrm{iter} = \mathtt{Sburn} + tt\sum_{l=0}^{\mathrm{iter}-1} a_{\mathrm{iter},l} \mathtt{k\_mol}_l
+      .. math:: \mathtt{S\_new}_\mathrm{iter} = \mathtt{Sburn} + \dt \sum_{l=0}^{\mathrm{iter}-1} a_{\mathrm{iter},l} \mathtt{k\_mol}_l
 
-      Then initialize from .
+      Then initialize Sborder from S_new.
 
    Check for NaNs in the initial state, S_old.
 
-#. *React :math:`tt/2`.* []
+#. *React :math:`\Delta t/2`.* [strang_react_first_half()]
 
    This step is unchanged from the CTU version. At the end of this
-   step, sees the effects of the reactions.
+   step, Sborder sees the effects of the reactions.
 
    Each stage needs to build its starting point from this point, so we
-   store the effect of the burn in a new MultiFab, ,
+   store the effect of the burn in a new MultiFab, Sburn,
    for use in the stage initialization.
 
 #. [strang:oldsource] *Construct sources from the current
    stage’s state*
-   [, ]
+   [construct_old_gravity(), do_old_sources()]
 
    .. raw:: latex
 
@@ -3529,58 +3537,59 @@ S_old, to the new time, S_new.
       \hrule\smallskip{\color{red}fix: gravity is still using{\tt S\_old}}\par\smallskip\hrule}
 
    The time level :math:`n` sources are computed, and added to the
-   StateData . The sources are then applied
-   to the state after the burn, :math:`{\bf U}^\star` with a full :math:`tt`
+   StateData Source_Type. The sources are then applied
+   to the state after the burn, :math:`\Ub^\star` with a full :math:`\Delta t`
    weighting (this will be corrected later). This produces the
-   intermediate state, :math:`{\bf U}^{n+1,(a)}`.
+   intermediate state, :math:`\Ub^{n+1,(a)}`.
 
    For full Poisson gravity, we solve for for gravity using:
 
    .. math::
 
-      {\bf g}^n = -\nabla\phi^n, \qquad
-          t\phi^n = 4\pi G\rho^n,
+      \gb^n = -\nabla\phi^n, \qquad
+          \Delta\phi^n = 4\pi G\rho^n,
 
-#. [strang:hydro] *Construct the hydro update* []
+#. [strang:hydro] *Construct the hydro update* [construct_hydro_source()]
 
    The hydro update in the MOL branch will include both the advective
-   and source terms. In each stage, store in the righthand side for the current stage.
+   and source terms. In each stage, store in k_mol
+   [istage] the righthand side for the current stage.
 
    In constructing the stage update, we use the source evaluated earlier,
    and compute:
 
-   .. math:: \mathtt{k\_mol}_l = - {\bf A}({\bf U}_l) + {\bf S}({\bf U}_l)
+   .. math:: \mathtt{k\_mol}_l = - \Ab(\Ub_l) + \Sb(\Ub_l)
 
    Each call to do_advance_mol only computes this update for
    a single stage. On the last stage, we compute the final update
    as:
 
-   .. math:: \mathtt{S\_new} = \mathtt{Sburn} + tt\sum_{l=0}^{\mathrm{n\_stages}-1} b_l \, \mathrm{k\_mol}_l
+   .. math:: \mathtt{S\_new} = \mathtt{Sburn} + \dt \sum_{l=0}^{\mathrm{n\_stages}-1} b_l \, \mathrm{k\_mol}_l
 
-#. [strang:clean] *Clean State* []
+#. [strang:clean] *Clean State* [clean_state()]
 
    .. raw:: latex
 
       \marginpar{\vskip-\baselineskip\raggedright\tiny\sffamily
       \hrule\smallskip{\color{red}we only seem to do this for the MOL integration}\par\smallskip\hrule}
 
-   This is done on .
+   This is done on S_new.
 
    After these checks, we check the state for NaNs.
 
-#. *React :math:`tt/2`.* []
+#. *React :math:`\Delta t/2`.* [strang_react_second_half()]
 
-   We do the final :math:`tt/2` reacting on the state, begining with :math:`{\bf U}^{n+1,(c)}` to
-   give us the final state on this level, :math:`{\bf U}^{n+1}`.
+   We do the final :math:`\dt/2` reacting on the state, begining with :math:`\Ub^{n+1,(c)}` to
+   give us the final state on this level, :math:`\Ub^{n+1}`.
 
-   This is largely the same as , but
+   This is largely the same as strang_react_first_half(), but
    it does not currently fill the reactions in the ghost cells.
 
-#. [strang:finalize] *Finalize* []
+#. [strang:finalize] *Finalize* [finalize_do_advance()]
 
    Finalize does the following:
 
-   #. for the momentum sources, we compute :math:`d{\bf S}/dt`, to use in the
+   #. for the momentum sources, we compute :math:`d\Sb/dt`, to use in the
       source term prediction/extrapolation for the hydrodynamic
       interface states during the next step.
 
@@ -3615,12 +3624,12 @@ Overview of a single step (with SDC)
 
 We express our system as:
 
-.. math:: {\bf U}_t = \mathcal{A}({\bf U}) + {\bf R}({\bf U})
+.. math:: \Ub_t = \mathcal{A}(\Ub) + \Rb(\Ub)
 
 here :math:`\mathcal{A}` is the advective source, which includes both the
 flux divergence and the hydrodynamic source terms (e.g. gravity):
 
-.. math:: \mathcal{A}({\bf U}) = -\nabla \cdot {\bf F}({\bf U}) + {\bf S}
+.. math:: \mathcal{A}(\Ub) = -\nabla \cdot \Fb(\Ub) + \Sb
 
 The SDC version of the main advance loop looks similar to the no-SDC
 version, but includes an iteration loop over the hydro, gravity, and
@@ -3638,21 +3647,21 @@ step now proceeds as:
       interface states, we use an iteratively-lagged approximation to the
       reaction source on the primitive variables, :math:`\mathcal{I}_q^{k-1}`.
 
-      The result of this is an approximation to :math:`\mathcal{A}({\bf U})`,
-      stored in (the flux divergence)
-      and and .
+      The result of this is an approximation to :math:`\mathcal{A}(\Ub)`,
+      stored in hydro_sources (the flux divergence)
+      and old_sources and new_sources.
 
    #. *React*: Reactions are integrated with the advective
       update as a source—this way the reactions see the
       time-evolution due to advection as we integrate:
 
-      .. math:: 1{d{\bf U}}{dt} = \left [ \mathcal{A}({\bf U}) \right ]^{n+1/2} + {\bf R}({\bf U})
+      .. math:: \frac{d\Ub}{dt} = \left [ \mathcal{A}(\Ub) \right ]^{n+1/2} + \Rb(\Ub)
 
       The advective source includes both the divergence of the fluxes
       as well as the time-centered source terms. This is computed by
-      by summing over all source components
-      , , and
-      .
+      sum_of_sources() by summing over all source components
+      hydro_source, old_sources, and
+      new_sources.
 
    #. *Clean state*: This ensures that the thermodynamic state is
       valid and consistent.
@@ -3674,25 +3683,25 @@ The evolution in do_advance is substantially different than the
 Strang case. In particular, reactions are not evolved. Here we
 summarize those differences.
 
-#. *Initialize* []
+#. *Initialize* [initialize_do_advance()]
 
    This is unchanged from step `[strang:init] <#strang:init>`__ in the Strang algorithm.
 
 #. *Construct time-level :math:`n` sources and apply*
-   [, ]
+   [construct_old_gravity(), do_old_sources()]
 
    This corresponds to step `[strang:oldsource] <#strang:oldsource>`__ in the Strang
    algorithm. There are not differences compared to the Strang
    algorithm, although we note, this only needs to be done for the first
    SDC iteration in the advancement, since the old state does not change.
 
-#. *Construct the hydro update* []
+#. *Construct the hydro update* [construct_hydro_source()]
 
    This corresponds to step \ `[strang:hydro] <#strang:hydro>`__ in the Strang
    algorithm. There are a few major differences with the Strang case:
 
    -  There is no need to extrapolate source terms to the half-time
-      for the prediction (the
+      for the prediction (the castro.source_term_predictor
       parameter), since SDC provides a natural way to approximate the
       time-centered source—we simply use the iteratively-lagged new-time
       source.
@@ -3700,26 +3709,26 @@ summarize those differences.
    -  The primitive variable source terms that are used for the
       prediction include the contribution due to reactions (from the last
       SDC iteration). This addition is done in
-      after the source terms are
+      construct_hydro_source() after the source terms are
       converted to primitive variables.
 
 #. *Update radial data and center of mass for monopole gravity*
 
    This is the same as the Strang step \ `[strang:radial] <#strang:radial>`__
 
-#. *Clean State* []
+#. *Clean State* [clean_state()]
 
    This is the same as the Strang step \ `[strang:clean] <#strang:clean>`__
 
 #. [strang:newsource] *Correct the source terms with the :math:`n+1` contribution*
-   [, ]
+   [construct_new_gravity(), do_new_sources]
 
    This is the same as the Strang step \ `[strang:newsource] <#strang:newsource>`__
 
-#. *Finalize* []
+#. *Finalize* [finalize_do_advance()]
 
    This differs from Strang step \ `[strang:finalize] <#strang:finalize>`__ in that we do not
-   construct :math:`d{\bf S}/dt`, but instead store the total hydrodynamical source
+   construct :math:`d\Sb/dt`, but instead store the total hydrodynamical source
    term at the new time. As discussed above, this will be used in the
    next iteration to approximate the time-centered source term.
 
@@ -3735,20 +3744,20 @@ Castro has 2 sets of runtime parameters—those controlled by
 C and those controlled by Fortran. The C parameters are set
 in the inputs file and managed by the AMReX ParmParse
 class. For Castro-specific parameters, we list the runtime
-parameters in a file and generate the
-C code and headers using the script—note
+parameters in a file \_cpp_parameters and generate the
+C code and headers using the mk_params.sh script—note
 this script needs to be run every time the \_cpp_parameters
 file is updated.
 
 The behavior of the network, EOS, and other microphysics routines are
 controlled by a different set of runtime parameters. These parameters are defined
-in plain-text files located in the different
+in plain-text files \_parameters located in the different
 directories that hold the microphysics code. At compile time, a
-script in the AMReX bulid system, , locates all
+script in the AMReX bulid system, findparams.py, locates all
 of the \_parameters files that are needed for the given choice
 of network, integrator, and EOS, and assembles all of the runtime
-parameters into a module named (using the
-script). The parameters are set in your
+parameters into a module named extern_probin_module (using the
+write_probin.py script). The parameters are set in your
 probin file in the &extern namelist.
 
 C++ parameter format
@@ -3769,7 +3778,7 @@ of the information up to and including any of the optional columns you
 need (e.g., if you are going to provide the fortran name, you
 also need to provide need in Fortran? and ifdef. The
 need in Fortran? column is y if the runtime parameter should
-be made available in Fortran (through ).
+be made available in Fortran (through meth_params_module).
 The ifdef field provides the name of a preprocessor name that
 should wrap this parameter definition—it will only be compiled in if
 that name is defined to the preprocessor. The fortran name is
@@ -3857,26 +3866,19 @@ parameters
    | .. raw:: latex        |                       |                       |
    |                       |                       |                       |
    |    \endlastfoot       |                       |                       |
-   |                       |                       |                       |
-   | .. raw:: latex        |                       |                       |
-   |                       |                       |                       |
-   |    \rowcolor{tableSha |                       |                       |
-   | de}                   |                       |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | how to do limiting of | 0                     |
-   |                       | the state data when   |                       |
+   | lin_limit_state_inter | how to do limiting of | 0                     |
+   | pcastro               | the state data when   |                       |
    |                       | interpolating 0: only |                       |
    |                       | prevent new extrema   |                       |
    |                       | 1: preserve linear    |                       |
    |                       | combinations of state |                       |
    |                       | variables             |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | highest order used in | 1                     |
+   |                       | highest order used in | 1                     |
    |                       | interpolation         |                       |
-   |    \rowcolor{tableSha |                       |                       |
-   | de}                   |                       |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | Number of ghost zones | 0                     |
+   | state_nghostcastro    | Number of ghost zones | 0                     |
    |                       | for state data to     |                       |
    |                       | have. Note that if    |                       |
    |                       | you are using         |                       |
@@ -3886,13 +3888,12 @@ parameters
    |                       | radiation needs at    |                       |
    |                       | least one ghost zone. |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | whether to re-compute | 1                     |
+   |                       | whether to re-compute | 1                     |
    |                       | new-time source terms |                       |
-   |    \rowcolor{tableSha | after a reflux        |                       |
-   | de}                   |                       |                       |
+   |                       | after a reflux        |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | should we have state  | 0                     |
-   |                       | data for custom       |                       |
+   | use_custom_knapsack_w | should we have state  | 0                     |
+   | eightscastro          | data for custom       |                       |
    |                       | load-balancing        |                       |
    |                       | weighting?            |                       |
    +-----------------------+-----------------------+-----------------------+
@@ -3924,34 +3925,29 @@ parameters
    | .. raw:: latex        |                       |                       |
    |                       |                       |                       |
    |    \endlastfoot       |                       |                       |
-   |                       |                       |                       |
-   | .. raw:: latex        |                       |                       |
-   |                       |                       |                       |
-   |    \rowcolor{tableSha |                       |                       |
-   | de}                   |                       |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | a string describing   | ""                    |
+   | job_namecastro        | a string describing   | ""                    |
    |                       | the simulation that   |                       |
    |                       | will be copied into   |                       |
    |                       | the plotfile’s        |                       |
    |                       | job_info file         |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | write a final         | 1                     |
+   |                       | write a final         | 1                     |
    |                       | plotfile and          |                       |
-   |    \rowcolor{tableSha | checkpoint upon       |                       |
-   | de}                   | completion            |                       |
+   |                       | checkpoint upon       |                       |
+   |                       | completion            |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | display warnings in   | (0, 1)                |
-   |                       | Fortran90 routines    |                       |
+   | print_fortran_warning | display warnings in   | (0, 1)                |
+   | scastro               | Fortran90 routines    |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | display information   | (0, 1)                |
+   |                       | display information   | (0, 1)                |
    |                       | about updates to the  |                       |
-   |    \rowcolor{tableSha | state (how much mass, |                       |
-   | de}                   | momentum, energy      |                       |
+   |                       | state (how much mass, |                       |
+   |                       | momentum, energy      |                       |
    |                       | added)                |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | Do we want to reset   | -1                    |
-   |                       | the number of steps   |                       |
+   | reset_checkpoint_step | Do we want to reset   | -1                    |
+   | castro                | the number of steps   |                       |
    |                       | in the checkpoint?    |                       |
    |                       | This ONLY takes       |                       |
    |                       | effect if             |                       |
@@ -3968,10 +3964,10 @@ parameters
    |                       | greater than this     |                       |
    |                       | default value.        |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | Do we want to reset   | -1.e200               |
+   |                       | Do we want to reset   | -1.e200               |
    |                       | the time in the       |                       |
-   |    \rowcolor{tableSha | checkpoint? This ONLY |                       |
-   | de}                   | takes effect if       |                       |
+   |                       | checkpoint? This ONLY |                       |
+   |                       | takes effect if       |                       |
    |                       | amr.regrid_on_restart |                       |
    |                       | = 1 and               |                       |
    |                       | amr.checkpoint_on_res |                       |
@@ -3985,24 +3981,24 @@ parameters
    |                       | greater than this     |                       |
    |                       | default value.        |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | display center of     | 0                     |
-   |                       | mass diagnostics      |                       |
+   | show_center_of_massca | display center of     | 0                     |
+   | stro                  | mass diagnostics      |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | how often (number of  | -1                    |
+   |                       | how often (number of  | -1                    |
    |                       | coarse timesteps) to  |                       |
-   |    \rowcolor{tableSha | compute integral sums |                       |
-   | de}                   | (for runtime          |                       |
+   |                       | compute integral sums |                       |
+   |                       | (for runtime          |                       |
    |                       | diagnostics)          |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | how often (simulation | -1.0e0                |
+   | sum_percastro         | how often (simulation | -1.0e0                |
    |                       | time) to compute      |                       |
    |                       | integral sums (for    |                       |
    |                       | runtime diagnostics)  |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | calculate losses of   | 0                     |
+   |                       | calculate losses of   | 0                     |
    |                       | material through      |                       |
-   |    \rowcolor{tableSha | physical grid         |                       |
-   | de}                   | boundaries            |                       |
+   |                       | physical grid         |                       |
+   |                       | boundaries            |                       |
    +-----------------------+-----------------------+-----------------------+
 
 .. raw:: latex
@@ -4032,31 +4028,22 @@ parameters
    | .. raw:: latex        |                       |                       |
    |                       |                       |                       |
    |    \endlastfoot       |                       |                       |
-   |                       |                       |                       |
-   | .. raw:: latex        |                       |                       |
-   |                       |                       |                       |
-   |    \rowcolor{tableSha |                       |                       |
-   | de}                   |                       |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | set a cutoff density  | -1.e200               |
-   |                       | for diffusion – we    |                       |
+   | diffuse_cutoff_densit | set a cutoff density  | -1.e200               |
+   | ycastro               | for diffusion – we    |                       |
    |                       | zero the term out     |                       |
    |                       | below this density    |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | enable enthalpy       | 0                     |
-   |                       | diffusion             |                       |
-   |    \rowcolor{tableSha |                       |                       |
-   | de}                   |                       |                       |
-   +-----------------------+-----------------------+-----------------------+
-   |                       | enable species        | 0                     |
+   |                       | enable enthalpy       | 0                     |
    |                       | diffusion             |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | enable thermal        | 0                     |
+   | diffuse_speccastro    | enable species        | 0                     |
    |                       | diffusion             |                       |
-   |    \rowcolor{tableSha |                       |                       |
-   | de}                   |                       |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | enable velocity       | 0                     |
+   |                       | enable thermal        | 0                     |
+   |                       | diffusion             |                       |
+   +-----------------------+-----------------------+-----------------------+
+   | diffuse_velcastro     | enable velocity       | 0                     |
    |                       | diffusion             |                       |
    +-----------------------+-----------------------+-----------------------+
 
@@ -4087,13 +4074,8 @@ parameters
    | .. raw:: latex        |                       |                       |
    |                       |                       |                       |
    |    \endlastfoot       |                       |                       |
-   |                       |                       |                       |
-   | .. raw:: latex        |                       |                       |
-   |                       |                       |                       |
-   |    \rowcolor{tableSha |                       |                       |
-   | de}                   |                       |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | used with the         | -1                    |
+   | star_at_centercastro  | used with the         | -1                    |
    |                       | embiggening routines  |                       |
    |                       | to determine how to   |                       |
    |                       | extend the domain     |                       |
@@ -4126,89 +4108,84 @@ parameters
    | .. raw:: latex        |                       |                       |
    |                       |                       |                       |
    |    \endlastfoot       |                       |                       |
-   |                       |                       |                       |
-   | .. raw:: latex        |                       |                       |
-   |                       |                       |                       |
-   |    \rowcolor{tableSha |                       |                       |
-   | de}                   |                       |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | permits rotation      | -1                    |
+   | do_rotationcastro     | permits rotation      | -1                    |
    |                       | calculation to be     |                       |
    |                       | turned on and off     |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | determines how the    | 4                     |
+   |                       | determines how the    | 4                     |
    |                       | gravitational source  |                       |
-   |    \rowcolor{tableSha | term is added to the  |                       |
-   | de}                   | momentum and energy   |                       |
+   |                       | term is added to the  |                       |
+   |                       | momentum and energy   |                       |
    |                       | state variables.      |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | we can do a implicit  | 1                     |
-   |                       | solution of the       |                       |
+   | implicit_rotation_upd | we can do a implicit  | 1                     |
+   | atecastro             | solution of the       |                       |
    |                       | rotation update to    |                       |
    |                       | allow for better      |                       |
    |                       | coupling of the       |                       |
    |                       | Coriolis terms        |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | to we recompute the   | 0                     |
+   |                       | to we recompute the   | 0                     |
    |                       | center used for the   |                       |
-   |    \rowcolor{tableSha | multipole gravity     |                       |
-   | de}                   | solve each step?      |                       |
+   |                       | multipole gravity     |                       |
+   |                       | solve each step?      |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | mass of the point     | 0.0                   |
+   | point_masscastro      | mass of the point     | 0.0                   |
    |                       | mass                  |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | if we have a central  | 0                     |
+   |                       | if we have a central  | 0                     |
    |                       | point mass, we can    |                       |
-   |    \rowcolor{tableSha | prevent mass from     |                       |
-   | de}                   | building up in the    |                       |
+   |                       | prevent mass from     |                       |
+   |                       | building up in the    |                       |
    |                       | zones adjacent to it  |                       |
    |                       | by keeping their      |                       |
    |                       | density constant and  |                       |
    |                       | adding their mass to  |                       |
    |                       | the point mass object |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | the coordinate axis   | 3                     |
+   | rot_axiscastro        | the coordinate axis   | 3                     |
    |                       | (:math:`x=1`,         |                       |
    |                       | :math:`y=2`,          |                       |
    |                       | :math:`z=3`) for the  |                       |
    |                       | rotation vector       |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | determines how the    | 4                     |
+   |                       | determines how the    | 4                     |
    |                       | rotation source terms |                       |
-   |    \rowcolor{tableSha | are added to the      |                       |
-   | de}                   | momentum and energy   |                       |
+   |                       | are added to the      |                       |
+   |                       | momentum and energy   |                       |
    |                       | equations             |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | permits the           | 1                     |
-   |                       | centrifugal terms in  |                       |
+   | rotation_include_cent | permits the           | 1                     |
+   | rifugalcastro         | centrifugal terms in  |                       |
    |                       | the rotation to be    |                       |
    |                       | turned on and off     |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | permits the Coriolis  | 1                     |
+   |                       | permits the Coriolis  | 1                     |
    |                       | terms in the rotation |                       |
-   |    \rowcolor{tableSha | to be turned on and   |                       |
-   | de}                   | off                   |                       |
+   |                       | to be turned on and   |                       |
+   |                       | off                   |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | permits the           | 1                     |
-   |                       | d(omega)/dt terms in  |                       |
+   | rotation_include_dome | permits the           | 1                     |
+   | gadtcastro            | d(omega)/dt terms in  |                       |
    |                       | the rotation to be    |                       |
    |                       | turned on and off     |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | the rotation periods  | 0.0                   |
+   |                       | the rotation periods  | 0.0                   |
    |                       | time evolution—this   |                       |
-   |    \rowcolor{tableSha | allows the rotation   |                       |
-   | de}                   | rate to change        |                       |
+   |                       | allows the rotation   |                       |
+   |                       | rate to change        |                       |
    |                       | durning the           |                       |
    |                       | simulation time       |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | the rotation period   | -1.e200               |
-   |                       | for the corotating    |                       |
+   | rotational_periodcast | the rotation period   | -1.e200               |
+   | ro                    | for the corotating    |                       |
    |                       | frame                 |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | Which reference frame | 1                     |
+   |                       | Which reference frame | 1                     |
    |                       | to measure the state  |                       |
-   |    \rowcolor{tableSha | variables with        |                       |
-   | de}                   | respect to. The       |                       |
+   |                       | variables with        |                       |
+   |                       | respect to. The       |                       |
    |                       | standard in the       |                       |
    |                       | literature when using |                       |
    |                       | a rotating reference  |                       |
@@ -4227,7 +4204,7 @@ parameters
    |                       | (but the frame will   |                       |
    |                       | still rotate).        |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | include a central     | 1                     |
+   | use_point_masscastro  | include a central     | 1                     |
    |                       | point mass            |                       |
    +-----------------------+-----------------------+-----------------------+
 
@@ -4258,23 +4235,18 @@ parameters
    | .. raw:: latex        |                       |                       |
    |                       |                       |                       |
    |    \endlastfoot       |                       |                       |
-   |                       |                       |                       |
-   | .. raw:: latex        |                       |                       |
-   |                       |                       |                       |
-   |    \rowcolor{tableSha |                       |                       |
-   | de}                   |                       |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | Whether or not to     | 1                     |
-   |                       | allow the internal    |                       |
+   | allow_small_energycas | Whether or not to     | 1                     |
+   | tro                   | allow the internal    |                       |
    |                       | energy to be less     |                       |
    |                       | than the internal     |                       |
    |                       | energy corresponding  |                       |
    |                       | to small_temp         |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | for the Colella &     | 2                     |
+   |                       | for the Colella &     | 2                     |
    |                       | Glaz Riemann solver,  |                       |
-   |    \rowcolor{tableSha | what to do if we do   |                       |
-   | de}                   | not converge to a     |                       |
+   |                       | what to do if we do   |                       |
+   |                       | not converge to a     |                       |
    |                       | solution for the star |                       |
    |                       | state. 0 = do         |                       |
    |                       | nothing; print        |                       |
@@ -4287,21 +4259,21 @@ parameters
    |                       | cg_maxiter            |                       |
    |                       | iterations.           |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | for the Colella &     | 12                    |
+   | cg_maxitercastro      | for the Colella &     | 12                    |
    |                       | Glaz Riemann solver,  |                       |
    |                       | the maximum number of |                       |
    |                       | iterations to take    |                       |
    |                       | when solving for the  |                       |
    |                       | star state            |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | for the Colella &     | 1.0e-5                |
+   |                       | for the Colella &     | 1.0e-5                |
    |                       | Glaz Riemann solver,  |                       |
-   |    \rowcolor{tableSha | the tolerance to      |                       |
-   | de}                   | demand in finding the |                       |
+   |                       | the tolerance to      |                       |
+   |                       | demand in finding the |                       |
    |                       | star state            |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | Which method to use   | 1                     |
-   |                       | when resetting a      |                       |
+   | density_reset_methodc | Which method to use   | 1                     |
+   | astro                 | when resetting a      |                       |
    |                       | negative/small        |                       |
    |                       | density 1 = Reset to  |                       |
    |                       | characteristics of    |                       |
@@ -4315,35 +4287,34 @@ parameters
    |                       | before the hydro      |                       |
    |                       | update                |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | the coefficient of    | 0.1                   |
+   |                       | the coefficient of    | 0.1                   |
    |                       | the artificial        |                       |
-   |    \rowcolor{tableSha | viscosity             |                       |
-   | de}                   |                       |                       |
+   |                       | viscosity             |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | do we do the CTU      | 1                     |
+   | do_ctucastro          | do we do the CTU      | 1                     |
    |                       | unsplit method or a   |                       |
    |                       | method-of-lines       |                       |
    |                       | approach?             |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | permits hydro to be   | -1                    |
+   |                       | permits hydro to be   | -1                    |
    |                       | turned on and off for |                       |
-   |    \rowcolor{tableSha | running pure rad      |                       |
-   | de}                   | problems              |                       |
+   |                       | running pure rad      |                       |
+   |                       | problems              |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | permits sponge to be  | 0                     |
+   | do_spongecastro       | permits sponge to be  | 0                     |
    |                       | turned on and off     |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | Threshold value of (E | 1.0e0                 |
+   |                       | Threshold value of (E | 1.0e0                 |
    |                       | - K) / E such that    |                       |
-   |    \rowcolor{tableSha | above eta1, the       |                       |
-   | de}                   | hydrodynamic pressure |                       |
+   |                       | above eta1, the       |                       |
+   |                       | hydrodynamic pressure |                       |
    |                       | is derived from E -   |                       |
    |                       | K; otherwise, we use  |                       |
    |                       | the internal energy   |                       |
    |                       | variable UEINT.       |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | Threshold value of (E | 1.0e-4                |
-   |                       | - K) / E such that    |                       |
+   | dual_energy_eta2castr | Threshold value of (E | 1.0e-4                |
+   | o                     | - K) / E such that    |                       |
    |                       | above eta2, we update |                       |
    |                       | the internal energy   |                       |
    |                       | variable UEINT to     |                       |
@@ -4351,22 +4322,20 @@ parameters
    |                       | this, UEINT remains   |                       |
    |                       | unchanged.            |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | set the flattening    | 0                     |
+   |                       | set the flattening    | 0                     |
    |                       | parameter to zero to  |                       |
-   |    \rowcolor{tableSha | force the             |                       |
-   | de}                   | reconstructed         |                       |
+   |                       | force the             |                       |
+   |                       | reconstructed         |                       |
    |                       | profiles to be flat,  |                       |
    |                       | resulting in a        |                       |
    |                       | first-order method    |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       |                       | 0                     |
+   | fix_mass_fluxcastro   |                       | 0                     |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | do we do fourth-order | 0                     |
+   |                       | do we do fourth-order | 0                     |
    |                       | accurate MOL hydro?   |                       |
-   |    \rowcolor{tableSha |                       |                       |
-   | de}                   |                       |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | if we are doing HSE   | 0                     |
+   | hse_interp_tempcastro | if we are doing HSE   | 0                     |
    |                       | boundary conditions,  |                       |
    |                       | should we get the     |                       |
    |                       | temperature via       |                       |
@@ -4374,26 +4343,26 @@ parameters
    |                       | model_parser) or hold |                       |
    |                       | it constant?          |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | if we are doing HSE   | 0                     |
+   |                       | if we are doing HSE   | 0                     |
    |                       | boundary conditions,  |                       |
-   |    \rowcolor{tableSha | how do we treat the   |                       |
-   | de}                   | velocity? reflect? or |                       |
+   |                       | how do we treat the   |                       |
+   |                       | velocity? reflect? or |                       |
    |                       | outflow?              |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | if we are doing HSE   | 0                     |
+   | hse_zero_velscastro   | if we are doing HSE   | 0                     |
    |                       | boundary conditions,  |                       |
    |                       | do we zero the        |                       |
    |                       | velocity?             |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | whether to use the    | 0                     |
+   |                       | whether to use the    | 0                     |
    |                       | hybrid advection      |                       |
-   |    \rowcolor{tableSha | scheme that updates   |                       |
-   | de}                   | z-angular momentum,   |                       |
+   |                       | scheme that updates   |                       |
+   |                       | z-angular momentum,   |                       |
    |                       | cylindrical momentum, |                       |
    |                       | and azimuthal         |                       |
    |                       | momentum (3D only)    |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | do we drop from our   | 0                     |
+   | hybrid_riemanncastro  | do we drop from our   | 0                     |
    |                       | regular Riemann       |                       |
    |                       | solver to HLL when we |                       |
    |                       | are in shocks to      |                       |
@@ -4401,25 +4370,24 @@ parameters
    |                       | decoupling            |                       |
    |                       | instability?          |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | Should we limit the   | 0                     |
+   |                       | Should we limit the   | 0                     |
    |                       | density fluxes so     |                       |
-   |    \rowcolor{tableSha | that we do not create |                       |
-   | de}                   | small densities?      |                       |
+   |                       | that we do not create |                       |
+   |                       | small densities?      |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | integration order for | 2                     |
+   | mol_ordercastro       | integration order for | 2                     |
    |                       | MOL integration 1 =   |                       |
    |                       | first order, 2 =      |                       |
    |                       | second order TVD, 3 = |                       |
    |                       | 3rd order TVD, 4 =    |                       |
    |                       | 4th order RK          |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | for piecewise linear, | 2                     |
+   |                       | for piecewise linear, | 2                     |
    |                       | reconstruction order  |                       |
-   |    \rowcolor{tableSha | to use                |                       |
-   | de}                   |                       |                       |
+   |                       | to use                |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | do we construct       | 0                     |
-   |                       | :math:`\gamma_e = p/( |                       |
+   | ppm_predict_gammaecas | do we construct       | 0                     |
+   | tro                   | :math:`\gamma_e = p/( |                       |
    |                       | \rho e) + 1`          |                       |
    |                       | and bring it to the   |                       |
    |                       | interfaces for        |                       |
@@ -4436,25 +4404,25 @@ parameters
    |                       | instead of            |                       |
    |                       | :math:`\rho`.         |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | do we use the         | 0                     |
+   |                       | do we use the         | 0                     |
    |                       | reference state in    |                       |
-   |    \rowcolor{tableSha | evaluating the        |                       |
-   | de}                   | eigenvectors?         |                       |
+   |                       | evaluating the        |                       |
+   |                       | eigenvectors?         |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | various methods of    | 0                     |
+   | ppm_temp_fixcastro    | various methods of    | 0                     |
    |                       | giving temperature a  |                       |
    |                       | larger role in the    |                       |
    |                       | reconstruction—see    |                       |
    |                       | Zingale & Katz 2015   |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | reconstruction type:  | 1                     |
+   |                       | reconstruction type:  | 1                     |
    |                       | 0: piecewise linear;  |                       |
-   |    \rowcolor{tableSha | 1: classic Colella &  |                       |
-   | de}                   | Woodward ppm; 2:      |                       |
+   |                       | 1: classic Colella &  |                       |
+   |                       | Woodward ppm; 2:      |                       |
    |                       | extrema-preserving    |                       |
    |                       | ppm                   |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | which Riemann solver  | 0                     |
+   | riemann_solvercastro  | which Riemann solver  | 0                     |
    |                       | do we use: 0:         |                       |
    |                       | Colella, Glaz, &      |                       |
    |                       | Ferguson (a two-shock |                       |
@@ -4462,44 +4430,44 @@ parameters
    |                       | Glaz (a two-shock     |                       |
    |                       | solver) 2: HLLC       |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | the small density     | -1.e200               |
+   |                       | the small density     | -1.e200               |
    |                       | cutoff. Densities     |                       |
-   |    \rowcolor{tableSha | below this value will |                       |
-   | de}                   | be reset              |                       |
+   |                       | below this value will |                       |
+   |                       | be reset              |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | the small specific    | -1.e200               |
+   | small_enercastro      | the small specific    | -1.e200               |
    |                       | internal energy       |                       |
    |                       | cutoff. Internal      |                       |
    |                       | energies below this   |                       |
    |                       | value will be reset   |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | the small pressure    | -1.e200               |
+   |                       | the small pressure    | -1.e200               |
    |                       | cutoff. Pressures     |                       |
-   |    \rowcolor{tableSha | below this value will |                       |
-   | de}                   | be reset              |                       |
+   |                       | below this value will |                       |
+   |                       | be reset              |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | the small temperature | -1.e200               |
+   | small_tempcastro      | the small temperature | -1.e200               |
    |                       | cutoff. Temperatures  |                       |
    |                       | below this value will |                       |
    |                       | be reset              |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | extrapolate the       | 0                     |
+   |                       | extrapolate the       | 0                     |
    |                       | source terms (gravity |                       |
-   |    \rowcolor{tableSha | and rotation) to      |                       |
-   | de}                   | :math:`n+1/2`         |                       |
+   |                       | and rotation) to      |                       |
+   |                       | :math:`n+1/2`         |                       |
    |                       | timelevel for use in  |                       |
    |                       | the interface state   |                       |
    |                       | prediction            |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | if we are using the   | 1                     |
+   | sponge_implicitcastro | if we are using the   | 1                     |
    |                       | sponge, whether to    |                       |
    |                       | use the implicit      |                       |
    |                       | solve for it          |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | if the transverse     | 1                     |
+   |                       | if the transverse     | 1                     |
    |                       | interface state       |                       |
-   |    \rowcolor{tableSha | correction, if the    |                       |
-   | de}                   | new density is        |                       |
+   |                       | correction, if the    |                       |
+   |                       | new density is        |                       |
    |                       | negative, then        |                       |
    |                       | replace all of the    |                       |
    |                       | interface quantities  |                       |
@@ -4508,8 +4476,8 @@ parameters
    |                       | transverse            |                       |
    |                       | correction.           |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | if the interface      | 0                     |
-   |                       | state for             |                       |
+   | transverse_reset_rhoe | if the interface      | 0                     |
+   | castro                | state for             |                       |
    |                       | :math:`(\rho e)` is   |                       |
    |                       | negative after we add |                       |
    |                       | the transverse terms, |                       |
@@ -4521,29 +4489,29 @@ parameters
    |                       | :math:`(\rho e)`      |                       |
    |                       | evolution equation    |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | after we add the      | 0                     |
+   |                       | after we add the      | 0                     |
    |                       | transverse correction |                       |
-   |    \rowcolor{tableSha | to the interface      |                       |
-   | de}                   | states, replace the   |                       |
+   |                       | to the interface      |                       |
+   |                       | states, replace the   |                       |
    |                       | predicted pressure    |                       |
    |                       | with an EOS call      |                       |
    |                       | (using :math:`e` and  |                       |
    |                       | :math:`\rho`).        |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | should we use the EOS | 0                     |
-   |                       | in the Riemann solver |                       |
+   | use_eos_in_riemanncas | should we use the EOS | 0                     |
+   | tro                   | in the Riemann solver |                       |
    |                       | to ensure             |                       |
    |                       | thermodynamic         |                       |
    |                       | consistency?          |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | flatten the           | 1                     |
+   |                       | flatten the           | 1                     |
    |                       | reconstructed         |                       |
-   |    \rowcolor{tableSha | profiles around       |                       |
-   | de}                   | shocks to prevent     |                       |
+   |                       | profiles around       |                       |
+   |                       | shocks to prevent     |                       |
    |                       | them from becoming    |                       |
    |                       | too thin              |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | for the piecewise     | 1                     |
+   | use_pslopecastro      | for the piecewise     | 1                     |
    |                       | linear                |                       |
    |                       | reconstruction, do we |                       |
    |                       | subtract off          |                       |
@@ -4551,32 +4519,32 @@ parameters
    |                       | the pressure before   |                       |
    |                       | limiting?             |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | if we are doing an    | ""                    |
-   |                       | external -x boundary  |                       |
-   |    \rowcolor{tableSha | condition, who do we  |                       |
-   | de}                   | interpret it?         |                       |
-   +-----------------------+-----------------------+-----------------------+
    |                       | if we are doing an    | ""                    |
+   |                       | external -x boundary  |                       |
+   |                       | condition, who do we  |                       |
+   |                       | interpret it?         |                       |
+   +-----------------------+-----------------------+-----------------------+
+   | xr_ext_bc_typecastro  | if we are doing an    | ""                    |
    |                       | external +x boundary  |                       |
    |                       | condition, who do we  |                       |
    |                       | interpret it?         |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | if we are doing an    | ""                    |
-   |                       | external -y boundary  |                       |
-   |    \rowcolor{tableSha | condition, who do we  |                       |
-   | de}                   | interpret it?         |                       |
-   +-----------------------+-----------------------+-----------------------+
    |                       | if we are doing an    | ""                    |
+   |                       | external -y boundary  |                       |
+   |                       | condition, who do we  |                       |
+   |                       | interpret it?         |                       |
+   +-----------------------+-----------------------+-----------------------+
+   | yr_ext_bc_typecastro  | if we are doing an    | ""                    |
    |                       | external +y boundary  |                       |
    |                       | condition, who do we  |                       |
    |                       | interpret it?         |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | if we are doing an    | ""                    |
-   |                       | external -z boundary  |                       |
-   |    \rowcolor{tableSha | condition, who do we  |                       |
-   | de}                   | interpret it?         |                       |
-   +-----------------------+-----------------------+-----------------------+
    |                       | if we are doing an    | ""                    |
+   |                       | external -z boundary  |                       |
+   |                       | condition, who do we  |                       |
+   |                       | interpret it?         |                       |
+   +-----------------------+-----------------------+-----------------------+
+   | zr_ext_bc_typecastro  | if we are doing an    | ""                    |
    |                       | external +z boundary  |                       |
    |                       | condition, who do we  |                       |
    |                       | interpret it?         |                       |
@@ -4609,13 +4577,8 @@ parameters
    | .. raw:: latex        |                       |                       |
    |                       |                       |                       |
    |    \endlastfoot       |                       |                       |
-   |                       |                       |                       |
-   | .. raw:: latex        |                       |                       |
-   |                       |                       |                       |
-   |    \rowcolor{tableSha |                       |                       |
-   | de}                   |                       |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | determines whether we | -1                    |
+   | do_acccastro          | determines whether we | -1                    |
    |                       | use accelerators for  |                       |
    |                       | specific loops        |                       |
    +-----------------------+-----------------------+-----------------------+
@@ -4647,11 +4610,6 @@ parameters
    | .. raw:: latex        |                       |                       |
    |                       |                       |                       |
    |    \endlastfoot       |                       |                       |
-   |                       |                       |                       |
-   | .. raw:: latex        |                       |                       |
-   |                       |                       |                       |
-   |    \rowcolor{tableSha |                       |                       |
-   | de}                   |                       |                       |
    +-----------------------+-----------------------+-----------------------+
 
 .. raw:: latex
@@ -4681,29 +4639,24 @@ parameters
    | .. raw:: latex        |                       |                       |
    |                       |                       |                       |
    |    \endlastfoot       |                       |                       |
-   |                       |                       |                       |
-   | .. raw:: latex        |                       |                       |
-   |                       |                       |                       |
-   |    \rowcolor{tableSha |                       |                       |
-   | de}                   |                       |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | permits reactions to  | -1                    |
+   | do_reactcastro        | permits reactions to  | -1                    |
    |                       | be turned on and off  |                       |
    |                       | – mostly for          |                       |
    |                       | efficiency’s sake     |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | Limit the timestep    | 1.e200                |
+   |                       | Limit the timestep    | 1.e200                |
    |                       | based on how much the |                       |
-   |    \rowcolor{tableSha | burning can change    |                       |
-   | de}                   | the species mass      |                       |
+   |                       | burning can change    |                       |
+   |                       | the species mass      |                       |
    |                       | fractions of a zone.  |                       |
    |                       | The timestep is equal |                       |
    |                       | to dtnuc              |                       |
-   |                       | :math:`\cdot\,(X / \o |                       |
-   |                       | mega{X})`.            |                       |
+   |                       | :math:`\cdot\,(X / \d |                       |
+   |                       | ot{X})`.              |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | If we are using the   | 1.e-3                 |
-   |                       | timestep limiter      |                       |
+   | dtnuc_X_thresholdcast | If we are using the   | 1.e-3                 |
+   | ro                    | timestep limiter      |                       |
    |                       | based on changes in   |                       |
    |                       | :math:`X`, set a      |                       |
    |                       | threshold on the      |                       |
@@ -4716,17 +4669,17 @@ parameters
    |                       | small due to changes  |                       |
    |                       | in trace species.     |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | Limit the timestep    | 1.e200                |
+   |                       | Limit the timestep    | 1.e200                |
    |                       | based on how much the |                       |
-   |    \rowcolor{tableSha | burning can change    |                       |
-   | de}                   | the internal energy   |                       |
+   |                       | burning can change    |                       |
+   |                       | the internal energy   |                       |
    |                       | of a zone. The        |                       |
    |                       | timestep is equal to  |                       |
    |                       | dtnuc                 |                       |
-   |                       | :math:`\cdot\,(e / \o |                       |
-   |                       | mega{e})`.            |                       |
+   |                       | :math:`\cdot\,(e / \d |                       |
+   |                       | ot{e})`.              |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | limit the zone size   | 1.e200                |
+   | dxnuccastro           | limit the zone size   | 1.e200                |
    |                       | based on how much the |                       |
    |                       | burning can change    |                       |
    |                       | the internal energy   |                       |
@@ -4735,7 +4688,7 @@ parameters
    |                       | level must be smaller |                       |
    |                       | than dxnuc            |                       |
    |                       | :math:`\cdot\, c_s\cd |                       |
-   |                       | ot (e / \omega{e})`,  |                       |
+   |                       | ot (e / \dot{e})`,    |                       |
    |                       | where :math:`c_s` is  |                       |
    |                       | the sound speed. This |                       |
    |                       | ensures that the      |                       |
@@ -4744,35 +4697,34 @@ parameters
    |                       | nuclear energy        |                       |
    |                       | injection timescale.  |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | Disable limiting      | 1.e200                |
+   |                       | Disable limiting      | 1.e200                |
    |                       | based on dxnuc above  |                       |
-   |    \rowcolor{tableSha | this threshold. This  |                       |
-   | de}                   | allows zones that     |                       |
+   |                       | this threshold. This  |                       |
+   |                       | allows zones that     |                       |
    |                       | have already ignited  |                       |
    |                       | or are about to       |                       |
    |                       | ignite to be          |                       |
    |                       | de-refined.           |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | Disable limiting      | -1                    |
+   | max_dxnuc_levcastro   | Disable limiting      | -1                    |
    |                       | based on dxnuc above  |                       |
    |                       | this AMR level.       |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | maximum temperature   | 1.e200                |
-   |                       | for allowing          |                       |
-   |    \rowcolor{tableSha | reactions to occur in |                       |
-   | de}                   | a zone                |                       |
-   +-----------------------+-----------------------+-----------------------+
-   |                       | minimum temperature   | 0.0                   |
+   |                       | maximum temperature   | 1.e200                |
    |                       | for allowing          |                       |
    |                       | reactions to occur in |                       |
    |                       | a zone                |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | maximum density for   | 1.e200                |
-   |                       | allowing reactions to |                       |
-   |    \rowcolor{tableSha | occur in a zone       |                       |
-   | de}                   |                       |                       |
+   | react_T_mincastro     | minimum temperature   | 0.0                   |
+   |                       | for allowing          |                       |
+   |                       | reactions to occur in |                       |
+   |                       | a zone                |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | minimum density for   | 0.0                   |
+   |                       | maximum density for   | 1.e200                |
+   |                       | allowing reactions to |                       |
+   |                       | occur in a zone       |                       |
+   +-----------------------+-----------------------+-----------------------+
+   | react_rho_mincastro   | minimum density for   | 0.0                   |
    |                       | allowing reactions to |                       |
    |                       | occur in a zone       |                       |
    +-----------------------+-----------------------+-----------------------+
@@ -4784,33 +4736,29 @@ parameters
 .. table:: castro : refinement
 parameters
 
-   +--------------------------+--+---+
-   |                          |  |   |
-   +--------------------------+--+---+
-   | Table —continued         |  |   |
-   +--------------------------+--+---+
-   |                          |  |   |
-   +--------------------------+--+---+
-   |                          |  |   |
-   +--------------------------+--+---+
-   | .. raw:: latex           |  | 0 |
-   |                          |  |   |
-   |    \endfoot              |  |   |
-   |                          |  |   |
-   | .. raw:: latex           |  |   |
-   |                          |  |   |
-   |    \hline                |  |   |
-   |                          |  |   |
-   | .. raw:: latex           |  |   |
-   |                          |  |   |
-   |    \endlastfoot          |  |   |
-   |                          |  |   |
-   | .. raw:: latex           |  |   |
-   |                          |  |   |
-   |    \rowcolor{tableShade} |  |   |
-   +--------------------------+--+---+
-   |                          |  | 0 |
-   +--------------------------+--+---+
+   +----------------------+--+---+
+   |                      |  |   |
+   +----------------------+--+---+
+   | Table —continued     |  |   |
+   +----------------------+--+---+
+   |                      |  |   |
+   +----------------------+--+---+
+   |                      |  |   |
+   +----------------------+--+---+
+   | .. raw:: latex       |  | 0 |
+   |                      |  |   |
+   |    \endfoot          |  |   |
+   |                      |  |   |
+   | .. raw:: latex       |  |   |
+   |                      |  |   |
+   |    \hline            |  |   |
+   |                      |  |   |
+   | .. raw:: latex       |  |   |
+   |                      |  |   |
+   |    \endlastfoot      |  |   |
+   +----------------------+--+---+
+   | spherical_starcastro |  | 0 |
+   +----------------------+--+---+
 
 .. raw:: latex
 
@@ -4839,67 +4787,62 @@ parameters
    | .. raw:: latex        |                       |                       |
    |                       |                       |                       |
    |    \endlastfoot       |                       |                       |
-   |                       |                       |                       |
-   | .. raw:: latex        |                       |                       |
-   |                       |                       |                       |
-   |    \rowcolor{tableSha |                       |                       |
-   | de}                   |                       |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | the maximum factor by | 1.1                   |
+   | change_maxcastro      | the maximum factor by | 1.1                   |
    |                       | which the timestep    |                       |
    |                       | can increase from one |                       |
    |                       | step to the next.     |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | If we do request more | 1                     |
+   |                       | If we do request more | 1                     |
    |                       | than the maximum      |                       |
-   |    \rowcolor{tableSha | number of subcycles,  |                       |
-   | de}                   | should we fail, or    |                       |
+   |                       | number of subcycles,  |                       |
+   |                       | should we fail, or    |                       |
    |                       | should we clamp to    |                       |
    |                       | that maximum number   |                       |
    |                       | and perform that      |                       |
    |                       | many?                 |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | the smallest valid    | 0.0                   |
+   | dt_cutoffcastro       | the smallest valid    | 0.0                   |
    |                       | timestep—if we go     |                       |
    |                       | below this, we abort  |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | a fixed timestep to   | -1.0                  |
+   |                       | a fixed timestep to   | -1.0                  |
    |                       | use for all steps     |                       |
-   |    \rowcolor{tableSha | (negative turns it    |                       |
-   | de}                   | off)                  |                       |
+   |                       | (negative turns it    |                       |
+   |                       | off)                  |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | a factor by which to  | 1.0                   |
+   | init_shrinkcastro     | a factor by which to  | 1.0                   |
    |                       | reduce the first      |                       |
    |                       | timestep from that    |                       |
    |                       | requested by the      |                       |
    |                       | timestep estimators   |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | the initial timestep  | -1.0                  |
+   |                       | the initial timestep  | -1.0                  |
    |                       | (negative uses the    |                       |
-   |    \rowcolor{tableSha | step returned from    |                       |
-   | de}                   | the timestep          |                       |
+   |                       | step returned from    |                       |
+   |                       | the timestep          |                       |
    |                       | constraints)          |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | the largest valid     | 1.e200                |
+   | max_dtcastro          | the largest valid     | 1.e200                |
    |                       | timestep—limit all    |                       |
    |                       | timesteps to be no    |                       |
    |                       | larger than this      |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | Do not permit more    | 10                    |
+   |                       | Do not permit more    | 10                    |
    |                       | subcycled timesteps   |                       |
-   |    \rowcolor{tableSha | than this parameter.  |                       |
-   | de}                   | Set to a negative     |                       |
+   |                       | than this parameter.  |                       |
+   |                       | Set to a negative     |                       |
    |                       | value to disable this |                       |
    |                       | criterion.            |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | enforce that the AMR  | 0                     |
-   |                       | plot interval must be |                       |
+   | plot_per_is_exactcast | enforce that the AMR  | 0                     |
+   | ro                    | plot interval must be |                       |
    |                       | hit exactly           |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | If we’re doing        | 1.e-1                 |
+   |                       | If we’re doing        | 1.e-1                 |
    |                       | retries, set the      |                       |
-   |    \rowcolor{tableSha | target threshold for  |                       |
-   | de}                   | changes in density if |                       |
+   |                       | target threshold for  |                       |
+   |                       | changes in density if |                       |
    |                       | a retry is triggered  |                       |
    |                       | by a negative         |                       |
    |                       | density. If this is   |                       |
@@ -4908,16 +4851,16 @@ parameters
    |                       | disable retries using |                       |
    |                       | this criterion.       |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | When performing a     | 0.5                   |
-   |                       | retry, the factor to  |                       |
+   | retry_subcycle_factor | When performing a     | 0.5                   |
+   | castro                | retry, the factor to  |                       |
    |                       | multiply the current  |                       |
    |                       | timestep by when      |                       |
    |                       | trying again.         |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | Tolerance to use when | 0.02                  |
+   |                       | Tolerance to use when | 0.02                  |
    |                       | evaluating whether to |                       |
-   |    \rowcolor{tableSha | do a retry. The       |                       |
-   | de}                   | timestep suggested by |                       |
+   |                       | do a retry. The       |                       |
+   |                       | timestep suggested by |                       |
    |                       | the retry will be     |                       |
    |                       | multiplied by (1 +    |                       |
    |                       | this factor) before   |                       |
@@ -4931,24 +4874,23 @@ parameters
    |                       | numerical             |                       |
    |                       | differences.          |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | Number of iterations  | 2                     |
+   | sdc_iterscastro       | Number of iterations  | 2                     |
    |                       | for the SDC advance.  |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | enforce that the AMR  | 0                     |
+   |                       | enforce that the AMR  | 0                     |
    |                       | small plot interval   |                       |
-   |    \rowcolor{tableSha | must be hit exactly   |                       |
-   | de}                   |                       |                       |
+   |                       | must be hit exactly   |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | Check for a possible  | 0                     |
-   |                       | post-timestep regrid  |                       |
+   | use_post_step_regridc | Check for a possible  | 0                     |
+   | astro                 | post-timestep regrid  |                       |
    |                       | if certain stability  |                       |
    |                       | criteria were         |                       |
    |                       | violated.             |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | Retry a timestep if   | 0                     |
+   |                       | Retry a timestep if   | 0                     |
    |                       | it violated the       |                       |
-   |    \rowcolor{tableSha | timestep-limiting     |                       |
-   | de}                   | criteria over the     |                       |
+   |                       | timestep-limiting     |                       |
+   |                       | criteria over the     |                       |
    |                       | course of an advance. |                       |
    |                       | The criteria will     |                       |
    |                       | suggest a new         |                       |
@@ -4993,13 +4935,8 @@ parameters
    | .. raw:: latex        |                       |                       |
    |                       |                       |                       |
    |    \endlastfoot       |                       |                       |
-   |                       |                       |                       |
-   | .. raw:: latex        |                       |                       |
-   |                       |                       |                       |
-   |    \rowcolor{tableSha |                       |                       |
-   | de}                   |                       |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | the level of          | 0                     |
+   | vdiffusion            | the level of          | 0                     |
    |                       | verbosity for the     |                       |
    |                       | diffusion solve       |                       |
    |                       | (higher number means  |                       |
@@ -5037,13 +4974,8 @@ parameters
    | .. raw:: latex        |                       |                       |
    |                       |                       |                       |
    |    \endlastfoot       |                       |                       |
-   |                       |                       |                       |
-   | .. raw:: latex        |                       |                       |
-   |                       |                       |                       |
-   |    \rowcolor{tableSha |                       |                       |
-   | de}                   |                       |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | Check if the user     | 0                     |
+   | direct_sum_bcsgravity | Check if the user     | 0                     |
    |                       | wants to compute the  |                       |
    |                       | boundary conditions   |                       |
    |                       | using the brute force |                       |
@@ -5051,10 +4983,10 @@ parameters
    |                       | false, since this     |                       |
    |                       | method is slow.       |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | should we apply a     | 1                     |
+   |                       | should we apply a     | 1                     |
    |                       | lagged correction to  |                       |
-   |    \rowcolor{tableSha | the potential that    |                       |
-   | de}                   | gets us closer to the |                       |
+   |                       | the potential that    |                       |
+   |                       | gets us closer to the |                       |
    |                       | composite solution?   |                       |
    |                       | This makes the        |                       |
    |                       | resulting fine grid   |                       |
@@ -5064,15 +4996,15 @@ parameters
    |                       | Poisson solve per     |                       |
    |                       | timestep.             |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | ratio of dr for       | 1                     |
+   | drdxfacgravity        | ratio of dr for       | 1                     |
    |                       | monopole gravity      |                       |
    |                       | binning to grid       |                       |
    |                       | resolution            |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | For non-Poisson       | 0                     |
+   |                       | For non-Poisson       | 0                     |
    |                       | gravity, do we want   |                       |
-   |    \rowcolor{tableSha | to construct the      |                       |
-   | de}                   | gravitational         |                       |
+   |                       | to construct the      |                       |
+   |                       | gravitational         |                       |
    |                       | acceleration by       |                       |
    |                       | taking the gradient   |                       |
    |                       | of the potential,     |                       |
@@ -5080,15 +5012,15 @@ parameters
    |                       | constructing it       |                       |
    |                       | directly?             |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | what type             | "fillme"              |
+   | gravity_typegravity   | what type             | "fillme"              |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | the maximum mulitpole | 0                     |
+   |                       | the maximum mulitpole | 0                     |
    |                       | order to use for      |                       |
-   |    \rowcolor{tableSha | multipole BCs when    |                       |
-   | de}                   | doing Poisson gravity |                       |
+   |                       | multipole BCs when    |                       |
+   |                       | doing Poisson gravity |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | For all gravity       | MAX_LEV-1             |
-   |                       | types, we can choose  |                       |
+   | max_solve_levelgravit | For all gravity       | MAX_LEV-1             |
+   | y                     | types, we can choose  |                       |
    |                       | a maximum level for   |                       |
    |                       | explicitly            |                       |
    |                       | calculating the       |                       |
@@ -5098,34 +5030,27 @@ parameters
    |                       | interpolate from      |                       |
    |                       | coarser levels.       |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | Do agglomeration?     | 1                     |
-   |                       |                       |                       |
-   |    \rowcolor{tableSha |                       |                       |
-   | de}                   |                       |                       |
+   |                       | Do agglomeration?     | 1                     |
    +-----------------------+-----------------------+-----------------------+
-   |                       |                       | 1                     |
+   | mlmg_consolidationgra |                       | 1                     |
+   | vity                  |                       |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | how many FMG cycles?  | 0                     |
-   |                       |                       |                       |
-   |    \rowcolor{tableSha |                       |                       |
-   | de}                   |                       |                       |
+   |                       | how many FMG cycles?  | 0                     |
    +-----------------------+-----------------------+-----------------------+
-   |                       | Do N-Solve?           | 0                     |
+   | mlmg_nsolvegravity    | Do N-Solve?           | 0                     |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | do we do a composite  | 0                     |
+   |                       | do we do a composite  | 0                     |
    |                       | solve?                |                       |
-   |    \rowcolor{tableSha |                       |                       |
-   | de}                   |                       |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | do we perform the     | 0                     |
+   | no_syncgravity        | do we perform the     | 0                     |
    |                       | synchronization at    |                       |
    |                       | coarse-fine           |                       |
    |                       | interfaces?           |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | the level of          | 0                     |
+   |                       | the level of          | 0                     |
    |                       | verbosity for the     |                       |
-   |    \rowcolor{tableSha | gravity solve (higher |                       |
-   | de}                   | number means more     |                       |
+   |                       | gravity solve (higher |                       |
+   |                       | number means more     |                       |
    |                       | output on the status  |                       |
    |                       | of the solve /        |                       |
    |                       | multigrid             |                       |
@@ -5162,43 +5087,37 @@ parameters
    | .. raw:: latex        |                       |                       |
    |                       |                       |                       |
    |    \endlastfoot       |                       |                       |
-   |                       |                       |                       |
-   | .. raw:: latex        |                       |                       |
-   |                       |                       |                       |
-   |    \rowcolor{tableSha |                       |                       |
-   | de}                   |                       |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | the name of timestamp | ""                    |
-   |                       | files.                |                       |
+   | particle_output_filep | the name of timestamp | ""                    |
+   | articles              | files.                |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | the name of a file    | ""                    |
+   |                       | the name of a file    | ""                    |
    |                       | with new particles at |                       |
-   |    \rowcolor{tableSha | restart               |                       |
-   | de}                   |                       |                       |
+   |                       | restart               |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | to restart from a     | 0                     |
-   |                       | checkpoint that was   |                       |
+   | restart_from_nonparti | to restart from a     | 0                     |
+   | cle_chkfileparticles  | checkpoint that was   |                       |
    |                       | written with          |                       |
    |                       | USE_PARTICLES=FALSE   |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | whether the local     | 1                     |
+   |                       | whether the local     | 1                     |
    |                       | densities at given    |                       |
-   |    \rowcolor{tableSha | positions of          |                       |
-   | de}                   | particles are stored  |                       |
+   |                       | positions of          |                       |
+   |                       | particles are stored  |                       |
    |                       | in output files       |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | the name of a         | ""                    |
-   |                       | directory in which    |                       |
+   | timestamp_dirparticle | the name of a         | ""                    |
+   | s                     | directory in which    |                       |
    |                       | timestamp files are   |                       |
    |                       | stored.               |                       |
    +-----------------------+-----------------------+-----------------------+
-   | .. raw:: latex        | whether the local     | 0                     |
+   |                       | whether the local     | 0                     |
    |                       | temperatures at given |                       |
-   |    \rowcolor{tableSha | positions of          |                       |
-   | de}                   | particles are stored  |                       |
+   |                       | positions of          |                       |
+   |                       | particles are stored  |                       |
    |                       | in output files       |                       |
    +-----------------------+-----------------------+-----------------------+
-   |                       | the level of          | 0                     |
+   | vparticles            | the level of          | 0                     |
    |                       | verbosity for the     |                       |
    |                       | tracer particle (0 or |                       |
    |                       | 1)                    |                       |
@@ -5622,8 +5541,8 @@ Compiling
    linking the one that comes with the StarKiller microphysics?*
 
    To use a system’s BLAS library, set the Make variable
-   to TRUE. This will then look at
-   the Make variable for the library to link
+   USE_SYSTEM_BLAS to TRUE. This will then look at
+   the Make variable BLAS_LIBRARY for the library to link
    (defaults to -lopenblas).
 
 #. *How can I check to make sure the function signatures defined
@@ -5746,17 +5665,17 @@ Managing Runs
 #. *How can I force the running code to output, even it the plot or
    checkpoint interval parameters don’t require it?*
 
-   Create a file called , e.g., as:
+   Create a file called dump_and_continue, e.g., as:
 
    ::
 
        touch dump_and_continue
 
    This will force the code to output a checkpoint file that can be used
-   to restart. Other options are to output
-   a plotfile, to output a checkpoint file
-   and halt the code, and to simply stop the code.
-   Note that the parameter controls how often
+   to restart. Other options are plot_and_continue to output
+   a plotfile, dump_and_stop to output a checkpoint file
+   and halt the code, and stop_run to simply stop the code.
+   Note that the parameter amr.message_int controls how often
    the existence of these files is checked; by default it is 10, so the
    check will be done at the end of every timestep that is a multiple of 10.
    Set that to 1 in your inputs file if you’d like it to check every timestep.
@@ -5815,7 +5734,7 @@ Some general notes:
 -  Regardless of the dimensionality, we always carry around all 3
    components of velocity/momentum—this allows for rotation sources easily.
 
--  When radiation is enabled (via ), we discuss
+-  When radiation is enabled (via RADIATION), we discuss
    the gas and radiation quantities separately. This generally applies
    to the temperature, pressure, internal energy, various adiabatic
    indices, and sound speed. When we refer to the “total” value of
@@ -5838,7 +5757,7 @@ Within the Fortran routines that implement the hydrodynamics, there are
 several main data structures that hold the state.
 
 -  conserved state: these arrays generally begin with u,
-   e.g., , . The
+   e.g., uin, uout. The NVAR
    components for the state data in the array are accessed using
    integer keys defined in `[table:consints] <#table:consints>`__.
 
@@ -5865,8 +5784,8 @@ several main data structures that hold the state.
       |                       |                       | the other quantities  |
       |                       |                       | using                 |
       |                       |                       | :math:`\rho e = \rho  |
-      |                       |                       | E - \rho {\bf u}\cdot |
-      |                       |                       |  {\bf u}/ 2`          |
+      |                       |                       | E - \rho \ub \cdot \u |
+      |                       |                       | b / 2`                |
       +-----------------------+-----------------------+-----------------------+
       | UTEMP                 | :math:`T`             | this is computed from |
       |                       |                       | the other quantities  |
@@ -5883,16 +5802,19 @@ several main data structures that hold the state.
       | USHK                  | a shock flag          | (used for shock       |
       |                       |                       | detection)            |
       +-----------------------+-----------------------+-----------------------+
-      | UMR                   | radial momentum       | (if is defined)       |
+      | UMR                   | radial momentum       | (if HYBRID_MOMENTUM   |
+      |                       |                       | is defined)           |
       +-----------------------+-----------------------+-----------------------+
-      | UML                   | angular momentum      | (if is defined)       |
+      | UML                   | angular momentum      | (if HYBRID_MOMENTUM   |
+      |                       |                       | is defined)           |
       +-----------------------+-----------------------+-----------------------+
-      | UMP                   | vertical momentum     | (if is defined)       |
+      | UMP                   | vertical momentum     | (if HYBRID_MOMENTUM   |
+      |                       |                       | is defined)           |
       +-----------------------+-----------------------+-----------------------+
 
 -  primitive variable state: these arrays generally simply called
-   q, and has components. Note: if
-   is defined, then there are
+   q, and has NQ components. Note: if
+   RADIATION is defined, then there are QVAR
    components that are pure hydro out of the total NQ components,
    and the pure hydro components always come first in the state array.
 
@@ -5944,13 +5866,14 @@ several main data structures that hold the state.
       |                       |                       | + radiation           |
       +-----------------------+-----------------------+-----------------------+
       | QRAD                  | :math:`E_r`           | the radiation energy  |
-      |                       |                       | (there are of these)  |
+      |                       |                       | (there are ngroups of |
+      |                       |                       | these)                |
       +-----------------------+-----------------------+-----------------------+
 
 -  auxiliary primitive variables: these arrays are generally called
-   . The main difference between these and the regular
+   qaux. The main difference between these and the regular
    primitive variables is that we do not attempt to do any
-   reconstruction on their profiles. There are quantities, indexed
+   reconstruction on their profiles. There are NQAUX quantities, indexed
    by the integer keys listed in table \ `[table:qauxlist] <#table:qauxlist>`__.
 
    .. raw:: latex
@@ -5984,15 +5907,17 @@ several main data structures that hold the state.
       +-----------------------+-----------------------+-----------------------+
       | QGAMCG                | :math:`{\Gamma_1}_\ma | includes radiation    |
       |                       | thrm{tot}`            | components (defined   |
-      |                       |                       | only if is defined)   |
+      |                       |                       | only if RADIATION is  |
+      |                       |                       | defined)              |
       +-----------------------+-----------------------+-----------------------+
       | QCG                   | :math:`{c_s}_\mathrm{ | total sound speed     |
       |                       | tot}`                 | including radiation   |
-      |                       |                       | (defined only if is   |
-      |                       |                       | defined)              |
+      |                       |                       | (defined only if      |
+      |                       |                       | RADIATION is defined) |
       +-----------------------+-----------------------+-----------------------+
-      | QLAMS                 | :math:`\lambda_f`     | the flux limiters     |
-      |                       |                       | (defined only if is   |
+      | QLAMS                 | :math:`\lambda_f`     | the ngroups flux      |
+      |                       |                       | limiters (defined     |
+      |                       |                       | only if RADIATION is  |
       |                       |                       | defined)              |
       +-----------------------+-----------------------+-----------------------+
 
@@ -6001,7 +5926,7 @@ several main data structures that hold the state.
    non-conservative terms in the equations. These arrays are generally
    called qx, qy, and qz for the x, y, and z
    interfaces respectively (in some places the numbers 1, 2, and 3 are
-   used instead). There are components accessed with
+   used instead). There are NGDNV components accessed with
    the integer keys defined in table \ `[table:gdlist] <#table:gdlist>`__
 
    .. raw:: latex
@@ -6026,58 +5951,60 @@ several main data structures that hold the state.
       | QDW                   | :math:`w`             |                       |
       +-----------------------+-----------------------+-----------------------+
       | QDPRES                | :math:`p`             | regardless of whether |
-      |                       |                       | is defined, this is   |
-      |                       |                       | always just the gas   |
-      |                       |                       | pressure              |
+      |                       |                       | RADIATION is defined, |
+      |                       |                       | this is always just   |
+      |                       |                       | the gas pressure      |
       +-----------------------+-----------------------+-----------------------+
       | QDGAME                | :math:`\gamma_e = p/( | regardless of whether |
-      |                       | \rho e) + 1`          | is defined, this is   |
-      |                       |                       | always just the gas   |
-      |                       |                       | contribution          |
+      |                       | \rho e) + 1`          | RADIATION is defined, |
+      |                       |                       | this is always just   |
+      |                       |                       | the gas contribution  |
       +-----------------------+-----------------------+-----------------------+
       | QDLAMS                | :math:`{\lambda_f}`   | the starting index    |
       |                       |                       | for the flux          |
       |                       |                       | limiter—there are     |
-      |                       |                       | components (defined   |
-      |                       |                       | only if is defined)   |
+      |                       |                       | ngroups components    |
+      |                       |                       | (defined only if      |
+      |                       |                       | RADIATION is defined) |
       +-----------------------+-----------------------+-----------------------+
       | QDERADS               | :math:`E_r`           | the starting index    |
       |                       |                       | for the radiation     |
       |                       |                       | energy—there are      |
-      |                       |                       | components (defined   |
-      |                       |                       | only if is defined)   |
+      |                       |                       | ngroups components    |
+      |                       |                       | (defined only if      |
+      |                       |                       | RADIATION is defined) |
       +-----------------------+-----------------------+-----------------------+
 
 Conservation Forms
 ------------------
 
 We begin with the fully compressible equations for the conserved state vector,
-:math:`{\bf U}= (\rho, \rho {\bf u}, \rho E, \rho A_k, \rho X_k, \rho Y_k):`
+:math:`\Ub = (\rho, \rho \ub, \rho E, \rho A_k, \rho X_k, \rho Y_k):`
 
 .. math::
 
    \begin{aligned}
-   1{\partial \rho}{\partial t} &=& - \nabla \cdot (\rho {\bf u}) + S_{{\rm ext},\rho}, \\
-   1{\partial (\rho {\bf u})}{\partial t} &=& - \nabla \cdot (\rho {\bf u}{\bf u}) - \nabla p +\rho {\bf g}+ {\bf S}_{{\rm ext},\rho{\bf u}}, \\
-   1{\partial (\rho E)}{\partial t} &=& - \nabla \cdot (\rho {\bf u}E + p {\bf u}) + \rho {\bf u}\cdot {\bf g}- \sum_k {\rho q_k \omega\omega_k} + \nabla\cdot{k_\mathrm{th}}\nabla T + S_{{\rm ext},\rho E}, \\
-   1{\partial (\rho A_k)}{\partial t} &=& - \nabla \cdot (\rho {\bf u}A_k) + S_{{\rm ext},\rho A_k}, \\
-   1{\partial (\rho X_k)}{\partial t} &=& - \nabla \cdot (\rho {\bf u}X_k) + \rho \omega\omega_k + S_{{\rm ext},\rho X_k}, \\
-   1{\partial (\rho Y_k)}{\partial t} &=& - \nabla \cdot (\rho {\bf u}Y_k) + S_{{\rm ext},\rho Y_k}.\label{eq:compressible-equations}\end{aligned}
+   \frac{\partial \rho}{\partial t} &=& - \nabla \cdot (\rho \ub) + S_{{\rm ext},\rho}, \\
+   \frac{\partial (\rho \ub)}{\partial t} &=& - \nabla \cdot (\rho \ub \ub) - \nabla p +\rho \gb + \Sb_{{\rm ext},\rho\ub}, \\
+   \frac{\partial (\rho E)}{\partial t} &=& - \nabla \cdot (\rho \ub E + p \ub) + \rho \ub \cdot \gb - \sum_k {\rho q_k \dot\omega_k} + \nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E}, \\
+   \frac{\partial (\rho A_k)}{\partial t} &=& - \nabla \cdot (\rho \ub A_k) + S_{{\rm ext},\rho A_k}, \\
+   \frac{\partial (\rho X_k)}{\partial t} &=& - \nabla \cdot (\rho \ub X_k) + \rho \dot\omega_k + S_{{\rm ext},\rho X_k}, \\
+   \frac{\partial (\rho Y_k)}{\partial t} &=& - \nabla \cdot (\rho \ub Y_k) + S_{{\rm ext},\rho Y_k}.\label{eq:compressible-equations}\end{aligned}
 
-Here :math:`\rho, {\bf u}, T, p`, and :math:`{k_\mathrm{th}}` are the density, velocity,
+Here :math:`\rho, \ub, T, p`, and :math:`\kth` are the density, velocity,
 temperature, pressure, and thermal conductivity, respectively, and :math:`E
-= e + {\bf u}\cdot {\bf u}/ 2` is the total energy with :math:`e` representing the
+= e + \ub \cdot \ub / 2` is the total energy with :math:`e` representing the
 internal energy. In addition, :math:`X_k` is the abundance of the :math:`k^{\rm
-  th}` isotope, with associated production rate, :math:`\omega\omega_k`, and
-energy release, :math:`q_k`. Here :math:`{\bf g}` is the gravitational vector, and
-:math:`S_{{\rm ext},\rho}, {\bf S}_{{\rm ext}\rho{\bf u}}`, etc., are user-specified
+  th}` isotope, with associated production rate, :math:`\dot\omega_k`, and
+energy release, :math:`q_k`. Here :math:`\gb` is the gravitational vector, and
+:math:`S_{{\rm ext},\rho}, \Sb_{{\rm ext}\rho\ub}`, etc., are user-specified
 source terms. :math:`A_k` is an advected quantity, i.e., a tracer. We also
 carry around auxiliary variables, :math:`Y_k`, which have a user-defined
 evolution equation, but by default are treated as advected quantities.
 
 In the code we also carry around :math:`T` and :math:`\rho e` in the conservative
 state vector even though they are derived from the other conserved
-quantities. The ordering of the elements within :math:`{\bf U}` is defined
+quantities. The ordering of the elements within :math:`\Ub` is defined
 by integer variables into the array—see
 Table \ `[table:consints] <#table:consints>`__
 
@@ -6091,14 +6018,14 @@ Some notes:
    You should always initialize all velocity components to zero, and
    always construct the kinetic energy with all three velocity components.
 
--  There are advected quantities, which range from
+-  There are NADV advected quantities, which range from
    UFA: UFA+nadv-1. The advected quantities have no effect at all on
    the rest of the solution but can be useful as tracer quantities.
 
--  There are species (defined in the network
+-  There are NSPEC species (defined in the network
    directory), which range from UFS: UFS+nspec-1.
 
--  There are auxiliary variables, from
+-  There are NAUX auxiliary variables, from
    UFX:UFX+naux-1 The auxiliary variables are passed into the equation
    of state routines along with the species; An example of an auxiliary
    variable is the electron fraction, :math:`Y_e`, in core collapse simulations.
@@ -6111,18 +6038,18 @@ Some notes:
 Source Terms
 ------------
 
-We now compute explicit source terms for each variable in :math:`{\bf Q}` and
-:math:`{\bf U}`. The primitive variable source terms will be used to construct
+We now compute explicit source terms for each variable in :math:`\Qb` and
+:math:`\Ub`. The primitive variable source terms will be used to construct
 time-centered fluxes. The conserved variable source will be used to
 advance the solution. We neglect reaction source terms since they are
 accounted for in **Steps 1** and **6**. The source terms are:
 
 .. math::
 
-   {\bf S}_{{\bf Q}}^n =
+   \Sb_{\Qb}^n =
    \left(\begin{array}{c}
    S_\rho \\
-   {\bf S}_{{\bf u}} \\
+   \Sb_{\ub} \\
    S_p \\
    S_{\rho e} \\
    S_{A_k} \\
@@ -6132,19 +6059,19 @@ accounted for in **Steps 1** and **6**. The source terms are:
    =
    \left(\begin{array}{c}
    S_{{\rm ext},\rho} \\
-   {\bf g}+ 1{1}{\rho}{\bf S}_{{\rm ext},\rho{\bf u}} \\
-   1{1}{\rho}1{\partial p}{\partial e}S_{{\rm ext},\rho E} + 1{\partial p}{\partial\rho}S_{{\rm ext}\rho} \\
-   \nabla\cdot{k_\mathrm{th}}\nabla T + S_{{\rm ext},\rho E} \\
-   1{1}{\rho}S_{{\rm ext},\rho A_k} \\
-   1{1}{\rho}S_{{\rm ext},\rho X_k} \\
-   1{1}{\rho}S_{{\rm ext},\rho Y_k}
+   \gb + \frac{1}{\rho}\Sb_{{\rm ext},\rho\ub} \\
+   \frac{1}{\rho}\frac{\partial p}{\partial e}S_{{\rm ext},\rho E} + \frac{\partial p}{\partial\rho}S_{{\rm ext}\rho} \\
+   \nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E} \\
+   \frac{1}{\rho}S_{{\rm ext},\rho A_k} \\
+   \frac{1}{\rho}S_{{\rm ext},\rho X_k} \\
+   \frac{1}{\rho}S_{{\rm ext},\rho Y_k}
    \end{array}\right)^n,
 
 .. math::
 
-   {\bf S}_{{\bf U}}^n =
+   \Sb_{\Ub}^n =
    \left(\begin{array}{c}
-   {\bf S}_{\rho{\bf u}} \\
+   \Sb_{\rho\ub} \\
    S_{\rho E} \\
    S_{\rho A_k} \\
    S_{\rho X_k} \\
@@ -6152,8 +6079,8 @@ accounted for in **Steps 1** and **6**. The source terms are:
    \end{array}\right)^n
    =
    \left(\begin{array}{c}
-   \rho {\bf g}+ {\bf S}_{{\rm ext},\rho{\bf u}} \\
-   \rho {\bf u}\cdot {\bf g}+ \nabla\cdot{k_\mathrm{th}}\nabla T + S_{{\rm ext},\rho E} \\
+   \rho \gb + \Sb_{{\rm ext},\rho\ub} \\
+   \rho \ub \cdot \gb + \nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E} \\
    S_{{\rm ext},\rho A_k} \\
    S_{{\rm ext},\rho X_k} \\
    S_{{\rm ext},\rho Y_k}
@@ -6163,7 +6090,7 @@ Primitive Forms
 ---------------
 
 Castro uses the primitive form of the fluid equations, defined in terms of
-the state :math:`{\bf Q}= (\rho, {\bf u}, p, \rho e, A_k, X_k, Y_k)`, to construct the
+the state :math:`\Qb = (\rho, \ub, p, \rho e, A_k, X_k, Y_k)`, to construct the
 interface states that are input to the Riemann problem.
 
 The primitive variable equations for density, velocity, and pressure are:
@@ -6171,26 +6098,26 @@ The primitive variable equations for density, velocity, and pressure are:
 .. math::
 
    \begin{aligned}
-     1{\partial\rho}{\partial t} &=& -{\bf u}\cdot\nabla\rho - \rho\nabla\cdot{\bf u}+ S_{{\rm ext},\rho} \\
+     \frac{\partial\rho}{\partial t} &=& -\ub\cdot\nabla\rho - \rho\nabla\cdot\ub + S_{{\rm ext},\rho} \\
    %
-     1{\partial{\bf u}}{\partial t} &=& -{\bf u}\cdot\nabla{\bf u}- 1{1}{\rho}\nabla p + {\bf g}+ 
-   1{1}{\rho} ({\bf S}_{{\rm ext},\rho{\bf u}} - {\bf u}\; S_{{\rm ext},\rho}) \\
-   1{\partial p}{\partial t} &=& -{\bf u}\cdot\nabla p - \rho c^2\nabla\cdot{\bf u}+
-   \left(1{\partial p}{\partial \rho}\right)_{e,X}S_{{\rm ext},\rho}\nonumber\\
-   &&+\  1{1}{\rho}\sum_k\left(1{\partial p}{\partial X_k}\right)_{\rho,e,X_j,j\neq k}\left(\rho\omega\omega_k + S_{{\rm ext},\rho X_k} - X_kS_{{\rm ext},\rho}\right)\nonumber\\
-   && +\  1{1}{\rho}\left(1{\partial p}{\partial e}\right)_{\rho,X}\left[-eS_{{\rm ext},\rho} - \sum_k\rho q_k\omega\omega_k + \nabla\cdot{k_\mathrm{th}}\nabla T \right.\nonumber\\
-   && \quad\qquad\qquad\qquad+\ S_{{\rm ext},\rho E} - {\bf u}\cdot\left({\bf S}_{{\rm ext},\rho{\bf u}} - 1{{\bf u}}{2}S_{{\rm ext},\rho}\right)\Biggr] \end{aligned}
+     \frac{\partial\ub}{\partial t} &=& -\ub\cdot\nabla\ub - \frac{1}{\rho}\nabla p + \gb + 
+   \frac{1}{\rho} (\Sb_{{\rm ext},\rho\ub} - \ub \; S_{{\rm ext},\rho}) \\
+   \frac{\partial p}{\partial t} &=& -\ub\cdot\nabla p - \rho c^2\nabla\cdot\ub +
+   \left(\frac{\partial p}{\partial \rho}\right)_{e,X}S_{{\rm ext},\rho}\nonumber\\
+   &&+\  \frac{1}{\rho}\sum_k\left(\frac{\partial p}{\partial X_k}\right)_{\rho,e,X_j,j\neq k}\left(\rho\dot\omega_k + S_{{\rm ext},\rho X_k} - X_kS_{{\rm ext},\rho}\right)\nonumber\\
+   && +\  \frac{1}{\rho}\left(\frac{\partial p}{\partial e}\right)_{\rho,X}\left[-eS_{{\rm ext},\rho} - \sum_k\rho q_k\dot\omega_k + \nabla\cdot\kth\nabla T \right.\nonumber\\
+   && \quad\qquad\qquad\qquad+\ S_{{\rm ext},\rho E} - \ub\cdot\left(\Sb_{{\rm ext},\rho\ub} - \frac{\ub}{2}S_{{\rm ext},\rho}\right)\Biggr] \end{aligned}
 
 The advected quantities appear as:
 
 .. math::
 
    \begin{aligned}
-   1{\partial A_k}{\partial t} &=& -{\bf u}\cdot\nabla A_k + 1{1}{\rho}
+   \frac{\partial A_k}{\partial t} &=& -\ub\cdot\nabla A_k + \frac{1}{\rho}
                                         ( S_{{\rm ext},\rho A_k} - A_k S_{{\rm ext},\rho} ), \\
-   1{\partial X_k}{\partial t} &=& -{\bf u}\cdot\nabla X_k + \omega\omega_k + 1{1}{\rho}
+   \frac{\partial X_k}{\partial t} &=& -\ub\cdot\nabla X_k + \dot\omega_k + \frac{1}{\rho}
                                         ( S_{{\rm ext},\rho X_k}  - X_k S_{{\rm ext},\rho} ), \\
-   1{\partial Y_k}{\partial t} &=& -{\bf u}\cdot\nabla Y_k + 1{1}{\rho} 
+   \frac{\partial Y_k}{\partial t} &=& -\ub\cdot\nabla Y_k + \frac{1}{\rho} 
                                         ( S_{{\rm ext},\rho Y_k}  - Y_k S_{{\rm ext},\rho} ).\end{aligned}
 
 All of the primitive variables are derived from the conservative state
@@ -6206,9 +6133,9 @@ We augment the above system with an internal energy equation:
 .. math::
 
    \begin{aligned}
-   1{\partial(\rho e)}{\partial t} &=& - {\bf u}\cdot\nabla(\rho e) - (\rho e+p)\nabla\cdot{\bf u}- \sum_k \rho q_k\omega\omega_k 
-                                           + \nabla\cdot{k_\mathrm{th}}\nabla T + S_{{\rm ext},\rho E} \nonumber\\
-   && -\  {\bf u}\cdot\left({\bf S}_{{\rm ext},\rho{\bf u}}-1{1}{2}S_{{\rm ext},\rho}{\bf u}\right), \end{aligned}
+   \frac{\partial(\rho e)}{\partial t} &=& - \ub\cdot\nabla(\rho e) - (\rho e+p)\nabla\cdot\ub - \sum_k \rho q_k\dot\omega_k 
+                                           + \nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E} \nonumber\\
+   && -\  \ub\cdot\left(\Sb_{{\rm ext},\rho\ub}-\frac{1}{2}S_{{\rm ext},\rho}\ub\right), \end{aligned}
 
 This has two benefits. First, for a general equation of state,
 carrying around an additional thermodynamic quantity allows us to
@@ -6216,7 +6143,7 @@ avoid equation of state calls (in particular, in the Riemann solver,
 see e.g. :raw-latex:`\cite{colglaz}`). Second, it is sometimes the case that the
 internal energy calculated as
 
-.. math:: e_T \equiv E - 1{1}{2} \mathbf{v}^2
+.. math:: e_T \equiv E - \frac{1}{2} \mathbf{v}^2
 
 is
 unreliable. This has two usual causes: one, for high Mach number
@@ -6231,9 +6158,9 @@ from ENZO :raw-latex:`\cite{bryan:1995,bryan:2014}`, where we switch between :ma
 e)` and :math:`(\rho e_T)` depending on the local state of the fluid. To do
 so, we define parameters :math:`\eta_1`, :math:`\eta_2`, and :math:`\eta_3`,
 corresponding to the code parameters
-,
-, and
-. We then consider the ratio :math:`e_T
+castro.dual_energy_eta1,
+castro.dual_energy_eta2, and
+castro.dual_energy_eta3. We then consider the ratio :math:`e_T
 / E`, the ratio of the internal energy (derived from the total energy)
 to the total energy. These parameters are used as follows:
 
@@ -6249,7 +6176,7 @@ to the total energy. These parameters are used as follows:
 
    Optionally we can also update :math:`E` so that it gains the difference of
    the old and and new :math:`e`, by setting
-   to 1.
+   castro.dual_energy_update_E_from_e to 1.
 
 -  :math:`\eta_3`: Similar to :math:`\eta_1`, if :math:`e_T > \eta_3 E`, we use
    :math:`e_T` for the purposes of our nuclear reactions, otherwise, we use
@@ -6269,7 +6196,7 @@ Primitive Variable System
 The full primitive variable form (without the advected or auxiliary
 quantities) is
 
-.. math:: 1{\partial{\bf Q}}{\partial t} + \sum_d {\bf A}_d1{\partial{\bf Q}}{\partial x_d} = {\bf S}_{{\bf Q}}.
+.. math:: \frac{\partial\Qb}{\partial t} + \sum_d \Ab_d\frac{\partial\Qb}{\partial x_d} = \Sb_{\Qb}.
 
 For example, in 2D:
 
@@ -6286,7 +6213,7 @@ For example, in 2D:
    +
    \left(\begin{array}{cccccc}
    u & \rho & 0 & 0 & 0 & 0 \\
-   0 & u & 0 & 1{1}{\rho} & 0 & 0 \\
+   0 & u & 0 & \frac{1}{\rho} & 0 & 0 \\
    0 & 0 & u & 0 & 0 & 0 \\
    0 & \rho c^2 & 0 & u & 0 & 0 \\
    0 & \rho e + p & 0 & 0 & u & 0 \\
@@ -6304,7 +6231,7 @@ For example, in 2D:
    \left(\begin{array}{cccccc}
    v & 0 & \rho & 0 & 0 & 0 \\
    0 & v & 0 & 0 & 0 & 0 \\
-   0 & 0 & v & 1{1}{\rho} & 0 & 0 \\
+   0 & 0 & v & \frac{1}{\rho} & 0 & 0 \\
    0 & 0 & \rho c^2 & v & 0 & 0 \\
    0 & 0 & \rho e + p & 0 & v & 0 \\
    0 & 0 & 0 & 0 & 0 & v
@@ -6318,58 +6245,58 @@ For example, in 2D:
    X_k
    \end{array}\right)_y
    =
-   {\bf S}_{\bf Q}
+   \Sb_\Qb
 
 The eigenvalues are:
 
-.. math:: {\bf \Lambda}({\bf A}_x) = \{u-c,u,u,u,u,u+c\}, \qquad {\bf \Lambda}({\bf A}_y) = \{v-c,v,v,v,v,v+c\} .
+.. math:: {\bf \Lambda}(\Ab_x) = \{u-c,u,u,u,u,u+c\}, \qquad {\bf \Lambda}(\Ab_y) = \{v-c,v,v,v,v,v+c\} .
 
 The right column eigenvectors are:
 
 .. math::
 
-   {\bf R}({\bf A}_x) =
+   \Rb(\Ab_x) =
    \left(\begin{array}{cccccc}
    1 & 1 & 0 & 0 & 0 & 1 \\
-   -1{c}{\rho} & 0 & 0 & 0 & 0 & 1{c}{\rho} \\
+   -\frac{c}{\rho} & 0 & 0 & 0 & 0 & \frac{c}{\rho} \\
    0 & 0 & 1 & 0 & 0 & 0 \\
    c^2 & 0 & 0 & 0 & 0 & c^2 \\
    h & 0 & 0 & 1 & 0 & h \\
    0 & 0 & 0 & 0 & 1 & 0 \\
    \end{array}\right),
    \qquad
-   {\bf R}({\bf A}_y) =
+   \Rb(\Ab_y) =
    \left(\begin{array}{cccccc}
    1 & 1 & 0 & 0 & 0 & 1 \\
    0 & 0 & 1 & 0 & 0 & 0 \\
-   -1{c}{\rho} & 0 & 0 & 0 & 0 & 1{c}{\rho} \\
+   -\frac{c}{\rho} & 0 & 0 & 0 & 0 & \frac{c}{\rho} \\
    c^2 & 0 & 0 & 0 & 0 & c^2 \\
    h & 0 & 0 & 1 & 0 & h \\
    0 & 0 & 0 & 0 & 1 & 0 \\
    \end{array}\right).
 
-The left row eigenvectors, normalized so that :math:`{\bf R}_d\cdot{\bf L}_d = {\bf I}` are:
+The left row eigenvectors, normalized so that :math:`\Rb_d\cdot\Lb_d = \Ib` are:
 
 .. math::
 
-   {\bf L}_x =
+   \Lb_x =
    \left(\begin{array}{cccccc}
-   0 & -1{\rho}{2c} & 0 & 1{1}{2c^2} & 0 & 0 \\
-   1 & 0 & 0 & -1{1}{c^2} & 0 & 0 \\
+   0 & -\frac{\rho}{2c} & 0 & \frac{1}{2c^2} & 0 & 0 \\
+   1 & 0 & 0 & -\frac{1}{c^2} & 0 & 0 \\
    0 & 0 & 1 & 0 & 0 & 0 \\
-   0 & 0 & 0 & -1{h}{c^2} & 1 & 0 \\
+   0 & 0 & 0 & -\frac{h}{c^2} & 1 & 0 \\
    0 & 0 & 0 & 0 & 0 & 1 \\
-   0 & 1{\rho}{2c} & 0 & 1{1}{2c^2} & 0 & 0
+   0 & \frac{\rho}{2c} & 0 & \frac{1}{2c^2} & 0 & 0
    \end{array}\right),
    \qquad
-   {\bf L}_y =
+   \Lb_y =
    \left(\begin{array}{cccccc}
-   0 & 0 & -1{\rho}{2c} & 1{1}{2c^2} & 0 & 0 \\
-   1 & 0 & 0 & -1{1}{c^2} & 0 & 0 \\
+   0 & 0 & -\frac{\rho}{2c} & \frac{1}{2c^2} & 0 & 0 \\
+   1 & 0 & 0 & -\frac{1}{c^2} & 0 & 0 \\
    0 & 1 & 0 & 0 & 0 & 0 \\
-   0 & 0 & 0 & -1{h}{c^2} & 1 & 0 \\
+   0 & 0 & 0 & -\frac{h}{c^2} & 1 & 0 \\
    0 & 0 & 0 & 0 & 0 & 1 \\
-   0 & 0 & 1{\rho}{2c} & 1{1}{2c^2} & 0 & 0
+   0 & 0 & \frac{\rho}{2c} & \frac{1}{2c^2} & 0 & 0
    \end{array}\right).
 
 .. _Sec:Advection Step:
@@ -6391,33 +6318,33 @@ Each of these steps has a variety of runtime parameters that
 affect their behavior. Additionally, there are some general
 runtime parameters for hydrodynamics:
 
--  : time-advance the fluid dynamical
+-  castro.do_hydro: time-advance the fluid dynamical
    equations (0 or 1; must be set)
 
--  : include additional user-specified
+-  castro.add_ext_src: include additional user-specified
    source term (0 or 1; default 0)
 
--  : call the sponge routine
+-  castro.do_sponge: call the sponge routine
    after the solution update (0 or 1; default: 0)
 
    The purpose of the sponge is to damp velocities outside of a star, to
    prevent them from dominating the timestep constraint. The sponge parameters
    are set in your probin file, in the &sponge namelist. You can sponge either
-   on radius from the center (using and
-   ) or on density (using
-   and ). The timescale of the damping is
-   set through .
+   on radius from the center (using sponge_lower_radius and
+   sponge_upper_radius) or on density (using sponge_lower_density
+   and sponge_upper_density). The timescale of the damping is
+   set through sponge_timescale.
 
--  : enforce that :math:`\sum_i X_i = 1`
+-  castro.normalize_species: enforce that :math:`\sum_i X_i = 1`
    (0 or 1; default: 0)
 
--  : enforce constant mass flux at
+-  castro.fix_mass_flux: enforce constant mass flux at
    domain boundary (0 or 1; default: 1)
 
--  : is internal energy allowed to be
+-  castro.allow_negative_energy: is internal energy allowed to be
    negative? (0 or 1; default: 1)
 
--  : this is used to set the boundary
+-  castro.spherical_star: this is used to set the boundary
    conditions by assuming the star is spherically symmetric in
    the outer regions (0 or 1; default: 0)
 
@@ -6426,16 +6353,16 @@ runtime parameters for hydrodynamics:
    function is then used to set the values outside the domain in
    implementing the boundary conditions.
 
--  : (0 or 1; default: 0)
+-  castro.show_center_of_mass: (0 or 1; default: 0)
 
 Several floors are imposed on the thermodynamic quantities to prevet unphysical
 behavior:
 
--  : (Real; default: -1.e20)
+-  castro.small_dens: (Real; default: -1.e20)
 
--  : (Real; default: -1.e20)
+-  castro.small_temp: (Real; default: -1.e20)
 
--  : (Real; default: -1.e20)
+-  castro.small_pres: (Real; default: -1.e20)
 
 .. _Sec:Compute Primitive Variables:
 
@@ -6447,12 +6374,12 @@ We compute the primtive variables from the conserved variables.
 -  :math:`\rho, \rho e`: directly copy these from the conserved state
    vector
 
--  :math:`{\bf u}, A_k, X_k, Y_k`: copy these from the conserved state
+-  :math:`\ub, A_k, X_k, Y_k`: copy these from the conserved state
    vector, dividing by :math:`\rho`
 
 -  :math:`p,T`: use the EOS.
 
-   First, if is 0 (it defaults to
+   First, if castro.allow_negative_energy is 0 (it defaults to
    1) and :math:`e < 0`, we do the following:
 
    #. Use the EOS to set :math:`e = e(\rho,T_{\rm small},X_k)`.
@@ -6475,7 +6402,7 @@ flattening for the x-direction, here are the steps:
 
 #. Define :math:`\zeta`
 
-   .. math:: \zeta_i = 1{p_{i+1}-p_{i-1}}{\max\left(p_{\rm small},|p_{i+2}-p_{i-2}|\right)}.
+   .. math:: \zeta_i = \frac{p_{i+1}-p_{i-1}}{\max\left(p_{\rm small},|p_{i+2}-p_{i-2}|\right)}.
 
 #. Define :math:`\tilde\chi`
 
@@ -6486,7 +6413,7 @@ flattening for the x-direction, here are the steps:
    :math:`\tilde\chi_i` to lie in the range :math:`[0,1]`. Then, if either
    :math:`u_{i+1}-u_{i-1}<0` or
 
-   .. math:: 1{p_{i+1}-p_{i-1}}{\min(p_{i+1},p_{i-1})} \le c,
+   .. math:: \frac{p_{i+1}-p_{i-1}}{\min(p_{i+1},p_{i-1})} \le c,
 
    where :math:`c=1/3` is a tunable parameter, then set :math:`\tilde\chi_i=0`.
 
@@ -6502,7 +6429,7 @@ flattening for the x-direction, here are the steps:
 
 The following runtime parameters affect the behavior here:
 
--  turns on/off the flattening of parabola
+-  castro.use_flattening turns on/off the flattening of parabola
    near shocks (0 or 1; default 1)
 
 Edge State Prediction
@@ -6514,7 +6441,7 @@ are several reconstruction techniques, a piecewise
 linear method that follows the description in Colella (1990) :raw-latex:`\cite{colella:1990}`,
 the classic PPM limiters :raw-latex:`\cite{ppm}`, and the new PPM limiters introduced
 in Colella & Sekora (2008) :raw-latex:`\cite{colellasekora}`. The choice of
-limiters is determined by .
+limiters is determined by castro.ppm_type.
 
 For the new PPM limiters, we have further modified the method
 of :raw-latex:`\cite{colellasekora}` to eliminate sensitivity due to roundoff error
@@ -6536,7 +6463,7 @@ Colella algorithm, which we describe later, incorporates the
 transverse terms, and also describes the modifications required for
 equations with additional characteristics besides the fluid velocity.
 There are four steps to compute these dual-valued edge states (here,
-we use :math:`s` to denote an arbitrary scalar from :math:`{\bf Q}`, and we write the
+we use :math:`s` to denote an arbitrary scalar from :math:`\Qb`, and we write the
 equations in 1D, for simplicity):
 
 -  **Step 1**: Compute :math:`s_{i,+}` and :math:`s_{i,-}`, which are spatial
@@ -6544,28 +6471,10 @@ equations in 1D, for simplicity):
    limiters, respectively. Begin by interpolating :math:`s` to edges using a
    4th-order interpolation in space:
 
-   .. math::
+   .. math:: s_{i+\myhalf} = \frac{7}{12}\left(s_{i+1}+s_i\right) - \frac{1}{12}\left(s_{i+2}+s_{i-1}\right).
 
-      s_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} = 1{7}{12}\left(s_{i+1}+s_i\right) - 1{1}{12}\left(s_{i+2}+s_{i-1}\right).
-
-   Then, if :math:`(s_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}-s_i)(s_{i+1}-s_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}) < 0`, we limit
-   :math:`s_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}` a nonlinear combination of approximations to the
+   Then, if :math:`(s_{i+\myhalf}-s_i)(s_{i+1}-s_{i+\myhalf}) < 0`, we limit
+   :math:`s_{i+\myhalf}` a nonlinear combination of approximations to the
    second derivative. The steps are as follows:
 
    #. Define:
@@ -6573,74 +6482,20 @@ equations in 1D, for simplicity):
       .. math::
 
          \begin{aligned}
-         (D^2s)_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} &=& 3\left(s_{i}-2s_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}+s_{i+1}\right) \\
-         (D^2s)_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},L} &=& s_{i-1}-2s_{i}+s_{i+1} \\
-         (D^2s)_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},R} &=& s_{i}-2s_{i+1}+s_{i+2}\end{aligned}
+         (D^2s)_{i+\myhalf} &=& 3\left(s_{i}-2s_{i+\myhalf}+s_{i+1}\right) \\
+         (D^2s)_{i+\myhalf,L} &=& s_{i-1}-2s_{i}+s_{i+1} \\
+         (D^2s)_{i+\myhalf,R} &=& s_{i}-2s_{i+1}+s_{i+2}\end{aligned}
 
    #. Define
 
-      .. math::
+      .. math:: s = \text{sign}\left[(D^2s)_{i+\myhalf}\right],
 
-         s = \text{sign}\left[(D^2s)_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}\right],
-
-      .. math::
-
-         (D^2s)_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},\text{lim}} = s\max\left\{\min\left[Cs\left|(D^2s)_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},L}\right|,Cs\left|(D^2s)_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},R}\right|,s\left|(D^2s)_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}\right|\right],0\right\},
+      .. math:: (D^2s)_{i+\myhalf,\text{lim}} = s\max\left\{\min\left[Cs\left|(D^2s)_{i+\myhalf,L}\right|,Cs\left|(D^2s)_{i+\myhalf,R}\right|,s\left|(D^2s)_{i+\myhalf}\right|\right],0\right\},
 
       where :math:`C=1.25` as used in Colella and Sekora 2009. The limited value
-      of :math:`s_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}` is
+      of :math:`s_{i+\myhalf}` is
 
-      .. math::
-
-         s_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} = 1{1}{2}\left(s_{i}+s_{i+1}\right) - 1{1}{6}(D^2s)_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},\text{lim}}.
+      .. math:: s_{i+\myhalf} = \frac{1}{2}\left(s_{i}+s_{i+1}\right) - \frac{1}{6}(D^2s)_{i+\myhalf,\text{lim}}.
 
    Now we implement an updated implementation of the Colella & Sekora
    algorithm which eliminates sensitivity to roundoff. First we
@@ -6649,13 +6504,7 @@ equations in 1D, for simplicity):
 
    -  For the first test, define
 
-      .. math::
-
-         \alpha_{i,\pm} = s_{i\pm\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} - s_i.
+      .. math:: \alpha_{i,\pm} = s_{i\pm\myhalf} - s_i.
 
       If :math:`\alpha_{i,+}\alpha_{i,-} \ge 0`, then we are at an extremum.
 
@@ -6665,24 +6514,14 @@ equations in 1D, for simplicity):
       .. math::
 
          \begin{aligned}
-         (Ds)_{i,{\rm face},-} &=& s_{i-\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} - s_{i-\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
+         (Ds)_{i,{\rm face},-} &=& s_{i-\myhalf} - s_{i-\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 3}\kern-.2em/
             \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{3\!/2}} \\
-         (Ds)_{i,{\rm face},+} &=& s_{i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
+         (Ds)_{i,{\rm face},+} &=& s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 3}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{3\!/2}} - s_{i-\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}\end{aligned}
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{3\!/2}} - s_{i-\myhalf}\end{aligned}
 
       .. math:: (Ds)_{i,{\rm face,min}} = \min\left[\left|(Ds)_{i,{\rm face},-}\right|,\left|(Ds)_{i,{\rm face},+}\right|\right].
 
@@ -6721,14 +6560,14 @@ equations in 1D, for simplicity):
 
       Then,
 
-      .. math:: \alpha_{i,\pm} = 1{\alpha_{i,\pm}(D^2s)_{i,\text{lim}}}{\max\left[(D^2s)_{i},1\times 10^{-10}\right]}
+      .. math:: \alpha_{i,\pm} = \frac{\alpha_{i,\pm}(D^2s)_{i,\text{lim}}}{\max\left[(D^2s)_{i},1\times 10^{-10}\right]}
 
    -  If we are not at an extremum and :math:`|\alpha_{i,\pm}| >
         2|\alpha_{i,\mp}|`, then define
 
       .. math:: s = \text{sign}(\alpha_{i,\mp})
 
-      .. math:: \delta\mathcal{I}_{\text{ext}} = 1{-\alpha_{i,\pm}^2}{4\left(\alpha_{j,+}+\alpha_{j,-}\right)},
+      .. math:: \delta\mathcal{I}_{\text{ext}} = \frac{-\alpha_{i,\pm}^2}{4\left(\alpha_{j,+}+\alpha_{j,-}\right)},
 
       .. math:: \delta s = s_{i\mp 1} - s_i,
 
@@ -6736,13 +6575,7 @@ equations in 1D, for simplicity):
       the following test. If :math:`s\delta s - \alpha_{i,\mp} \ge 1\times
       10^{-10}`, then
 
-      .. math::
-
-         \alpha_{i,\pm} =  -2\delta s - 2s\left[(\delta s)^2 - \delta s \alpha_{i,\mp}\right]^{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}
+      .. math:: \alpha_{i,\pm} =  -2\delta s - 2s\left[(\delta s)^2 - \delta s \alpha_{i,\mp}\right]^{\myhalf}
 
       otherwise,
 
@@ -6757,44 +6590,28 @@ equations in 1D, for simplicity):
 
    .. math:: s_6 = 6s_{i} - 3\left(s_{i,-}+s_{i,+}\right),
 
-   .. math:: \xi = 1{x - ih}{h}, ~ 0 \le \xi \le 1.
+   .. math:: \xi = \frac{x - ih}{h}, ~ 0 \le \xi \le 1.
 
 -  | **Step 3:** Integrate quadratic profiles. We are essentially
      computing the average value swept out by the quadratic profile
      across the face assuming the profile is moving at a speed
      :math:`\lambda_k`.
    | Define the following integrals, where :math:`\sigma_k =
-       |\lambda_k|tt/h`:
+       |\lambda_k|\Delta t/h`:
 
      .. math::
 
         \begin{aligned}
-        \mathcal{I}^{(k)}_{+}(s_i) &=& 1{1}{\sigma_k h}\int_{(i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2})h-\sigma_k h}^{(i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2})h}s_i^I(x)dx \\
-        \mathcal{I}^{(k)}_{-}(s_i) &=& 1{1}{\sigma_k h}\int_{(i-\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2})h}^{(i-\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2})h+\sigma_k h}s_i^I(x)dx\end{aligned}
+        \mathcal{I}^{(k)}_{+}(s_i) &=& \frac{1}{\sigma_k h}\int_{(i+\myhalf)h-\sigma_k h}^{(i+\myhalf)h}s_i^I(x)dx \\
+        \mathcal{I}^{(k)}_{-}(s_i) &=& \frac{1}{\sigma_k h}\int_{(i-\myhalf)h}^{(i-\myhalf)h+\sigma_k h}s_i^I(x)dx\end{aligned}
 
      Plugging in (`[Quadratic Interp] <#Quadratic Interp>`__) gives:
 
      .. math::
 
         \begin{aligned}
-        \mathcal{I}^{(k)}_{+}(s_i) &=& s_{i,+} - 1{\sigma_k}{2}\left[s_{i,+}-s_{i,-}-\left(1-1{2}{3}\sigma_k\right)s_{6,i}\right], \\
-        \mathcal{I}^{(k)}_{-}(s_i) &=& s_{i,-} + 1{\sigma_k}{2}\left[s_{i,+}-s_{i,-}+\left(1-1{2}{3}\sigma_k\right)s_{6,i}\right].\end{aligned}
+        \mathcal{I}^{(k)}_{+}(s_i) &=& s_{i,+} - \frac{\sigma_k}{2}\left[s_{i,+}-s_{i,-}-\left(1-\frac{2}{3}\sigma_k\right)s_{6,i}\right], \\
+        \mathcal{I}^{(k)}_{-}(s_i) &=& s_{i,-} + \frac{\sigma_k}{2}\left[s_{i,+}-s_{i,-}+\left(1-\frac{2}{3}\sigma_k\right)s_{6,i}\right].\end{aligned}
 
 -  **Step 4:** Obtain 1D edge states by performing a 1D
    extrapolation to get left and right edge states. Note that we
@@ -6803,20 +6620,12 @@ equations in 1D, for simplicity):
    .. math::
 
       \begin{aligned}
-      s_{L,i+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} &=& s_i - \chi_i\sum_{k:\lambda_k \ge 0}{\bf l}_k\cdot\left[s_i-\mathcal{I}^{(k)}_{+}(s_i)\right]{\bf r}_k + 1{tt}{2}S_i^n, \\
-      s_{R,i-\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} &=& s_i - \chi_i\sum_{k:\lambda_k < 0}{\bf l}_k\cdot\left[s_i-\mathcal{I}^{(k)}_{-}(s_i)\right]{\bf r}_k + 1{tt}{2}S_i^n.\end{aligned}
+      s_{L,i+\myhalf} &=& s_i - \chi_i\sum_{k:\lambda_k \ge 0}\lb_k\cdot\left[s_i-\mathcal{I}^{(k)}_{+}(s_i)\right]\rb_k + \frac{\dt}{2}S_i^n, \\
+      s_{R,i-\myhalf} &=& s_i - \chi_i\sum_{k:\lambda_k < 0}\lb_k\cdot\left[s_i-\mathcal{I}^{(k)}_{-}(s_i)\right]\rb_k + \frac{\dt}{2}S_i^n.\end{aligned}
 
-   Here, :math:`{\bf r}_k` is the :math:`k^{\rm th}` right column eigenvector of
-   :math:`{\bf R}({\bf A}_d)` and :math:`{\bf l}_k` is the :math:`k^{\rm th}` left row eigenvector lf
-   :math:`{\bf L}({\bf A}_d)`. The flattening coefficient is :math:`\chi_i`.
+   Here, :math:`\rb_k` is the :math:`k^{\rm th}` right column eigenvector of
+   :math:`\Rb(\Ab_d)` and :math:`\lb_k` is the :math:`k^{\rm th}` left row eigenvector lf
+   :math:`\Lb(\Ab_d)`. The flattening coefficient is :math:`\chi_i`.
 
 In order to add the transverse terms in an spatial operator unsplit
 framework, the details follow exactly as given in Section 4.2.1 in
@@ -6825,22 +6634,22 @@ which are given below.
 
 For the reconstruction of the interface states, the following apply:
 
--  : use piecewise linear vs PPM algorithm
+-  castro.ppm_type: use piecewise linear vs PPM algorithm
    (0, 1, 2; default: 1)
 
    Values of 1 and 2 are both piecewise parabolic reconstruction, with
    2 using updated limiters that better preserve extrema.
 
--  does various attempts to use the
+-  castro.ppm_temp_fix does various attempts to use the
    temperature in the reconstruction of the interface states. This
    is experimental.
 
--  reconstructs :math:`\gamma_e = p/(\rho e) + 1`
+-  castro.ppm_predict_gammae reconstructs :math:`\gamma_e = p/(\rho e) + 1`
    to the interfaces and does the necessary transverse terms to aid in
    the conversion between the conserved and primitive interface states
    in the transverse flux routines (0 or 1; default 0)
 
--  uses the reference states in
+-  castro.ppm_reference_eigenvectors uses the reference states in
    the evaluation of the eigenvectors for the characteristic projection
    (0 or 1; default 0)
 
@@ -6850,17 +6659,17 @@ transverse directions involve separate Riemann solves. Sometimes, the
 update to the interface state from the transverse directions can make
 the state ill-posed. There are several parameters that help fix this:
 
--  : If this is 1, then we call
+-  castro.transverse_use_eos: If this is 1, then we call
    the equation of state on the interface, using :math:`\rho`, :math:`e`, and
    :math:`X_k`, to get the interface pressure. This should result in a
    thermodynamically consistent interface state.
 
--  : If the transverse
+-  castro.transverse_reset_density: If the transverse
    corrections result in a negative density on the interface, then we
    reset all of the interface states to their values before the
    transverse corrections.
 
--  : The transverse updates operate
+-  castro.transverse_reset_rhoe: The transverse updates operate
    on the conserved state. Usually, we construct the interface
    :math:`(\rho e)` in the transverse update from total energy and the
    kinetic energy, however, if the interface :math:`(rho e)` is negative,
@@ -6896,9 +6705,9 @@ Here are the steps. First, define :math:`(\rho c)_{\rm small} = \rho_{\rm
 
 Define star states:
 
-.. math:: p^* = \max\left[p_{\rm small},1{\left[(\rho c)_L p_R + (\rho c)_R p_L\right] + (\rho c)_L(\rho c)_R(u_L-u_R)}{(\rho c)_L + (\rho c)_R}\right],
+.. math:: p^* = \max\left[p_{\rm small},\frac{\left[(\rho c)_L p_R + (\rho c)_R p_L\right] + (\rho c)_L(\rho c)_R(u_L-u_R)}{(\rho c)_L + (\rho c)_R}\right],
 
-.. math:: u^* = 1{\left[(\rho c)_L u_L + (\rho c)_R u_R\right]+ (p_L - p_R)}{(\rho c)_L + (\rho c)_R}.
+.. math:: u^* = \frac{\left[(\rho c)_L u_L + (\rho c)_R u_R\right]+ (p_L - p_R)}{(\rho c)_L + (\rho c)_R}.
 
 If :math:`u^* \ge 0` then define :math:`\rho_0, u_0, p_0, (\rho e)_0` and :math:`\Gamma_0` to be the left state. Otherwise, define them to be the right state. Then, set
 
@@ -6906,13 +6715,13 @@ If :math:`u^* \ge 0` then define :math:`\rho_0, u_0, p_0, (\rho e)_0` and :math:
 
 and define
 
-.. math:: c_0 = \max\left(c_{\rm small},\sqrt{1{\Gamma_0 p_0}{\rho_0}}\right),
+.. math:: c_0 = \max\left(c_{\rm small},\sqrt{\frac{\Gamma_0 p_0}{\rho_0}}\right),
 
-.. math:: \rho^* = \rho_0 + 1{p^* - p_0}{c_0^2},
+.. math:: \rho^* = \rho_0 + \frac{p^* - p_0}{c_0^2},
 
-.. math:: (\rho e)^* = (\rho e)_0 + (p^* - p_0)1{(\rho e)_0 + p_0}{\rho_0 c_0^2},
+.. math:: (\rho e)^* = (\rho e)_0 + (p^* - p_0)\frac{(\rho e)_0 + p_0}{\rho_0 c_0^2},
 
-.. math:: c^* = \max\left(c_{\rm small},\sqrt{\left|1{\Gamma_0 p^*}{\rho^*}\right|}\right)
+.. math:: c^* = \max\left(c_{\rm small},\sqrt{\left|\frac{\Gamma_0 p^*}{\rho^*}\right|}\right)
 
 Then,
 
@@ -6921,14 +6730,14 @@ Then,
    \begin{aligned}
    c_{\rm out} &=& c_0 - {\rm sign}(u^*)u_0, \\
    c_{\rm in} &=& c^* - {\rm sign}(u^*)u^*, \\
-   c_{\rm shock} &=& 1{c_{\rm in} + c_{\rm out}}{2}.\end{aligned}
+   c_{\rm shock} &=& \frac{c_{\rm in} + c_{\rm out}}{2}.\end{aligned}
 
 If :math:`p^* - p_0 \ge 0`, then :math:`c_{\rm in} = c_{\rm out} = c_{\rm shock}`.
 Then, if :math:`c_{\rm out} = c_{\rm in}`, we define :math:`c_{\rm temp} =
 \epsilon c_{\rm avg}`. Otherwise, :math:`c_{\rm temp} = c_{\rm out} -
 c_{\rm in}`. We define the fraction
 
-.. math:: f = 1{1}{2}\left[1 + 1{c_{\rm out} + c_{\rm in}}{c_{\rm temp}}\right],
+.. math:: f = \half\left[1 + \frac{c_{\rm out} + c_{\rm in}}{c_{\rm temp}}\right],
 
 and constrain :math:`f` to lie in the range :math:`f\in[0,1]`.
 
@@ -6960,7 +6769,7 @@ p_{\rm gdnv}=p^*`, and :math:`(\rho e)_{\rm gdnv}=(\rho e)^*`.
 
 If instead the Colella & Glaz solver is used, then we define
 
-.. math:: \gamma \equiv 1{p}{\rho e} + 1
+.. math:: \gamma \equiv \frac{p}{\rho e} + 1
 
 on each side of the interface and follow the rest of the algorithm as
 described in the original paper.
@@ -6968,7 +6777,7 @@ described in the original paper.
 For the construction of the fluxes in the Riemann solver, the following
 parameters apply:
 
--  : this can be one of the following values:
+-  castro.riemann_solver: this can be one of the following values:
 
    -  0: the Colella, Glaz, & Ferguson solver.
 
@@ -6985,13 +6794,13 @@ parameters apply:
    The Colella & Glaz solver is iterative, and two runtime parameters are used
    to control its behavior:
 
-   -  : number of iterations for CG algorithm
+   -  castro.cg_maxiter: number of iterations for CG algorithm
       (Integer; default: 12)
 
-   -  : tolerance for CG solver when solving
+   -  castro.cg_tol: tolerance for CG solver when solving
       for the “star” state (Real; default: 1.0e-5)
 
-   -  : this controls what happens if the root
+   -  castro.cg_blend: this controls what happens if the root
       finding in the CG solver fails. There is a nonlinear equation to find
       the pressure in the *star* region from the jump conditions for a
       shock (this is the two-shock approximation—the left and right states
@@ -7023,13 +6832,7 @@ Compute Fluxes and Update
 Compute the fluxes as a function of the primitive variables, and then
 advance the solution:
 
-.. math::
-
-   {\bf U}^{n+1} = {\bf U}^n - tt\nabla\cdot{\bf F}^{n+\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}+ tt{\bf S}^n.
+.. math:: \Ub^{n+1} = \Ub^n - \dt\nabla\cdot\Fb^\nph + \dt\Sb^n.
 
 Again, note that since the source term is not time centered, this is
 not a second-order method. After the advective update, we correct the
@@ -7040,7 +6843,7 @@ Temperature Fixes
 
 There are a number of experimental options for improving the behavior
 of the temperature in the reconstruction and interface state
-prediction. The options are controlled by ,
+prediction. The options are controlled by castro.ppm_temp_fix,
 which takes values:
 
 -  0: the default method—temperature is not considered
@@ -7066,7 +6869,7 @@ which takes values:
 
 -  3: This does the characteristic tracing using the
    :math:`(\tau, u, T)` eigensystem. Note: this is not widely
-   implemented—see the for an
+   implemented—see the Sod_stellar for an
    implementation.
 
 Resets
@@ -7103,7 +6906,7 @@ limiting fluxes such that negative densities could not occur, so that
 such a reset would in practice always be avoided. Our solution
 implements the positivity-preserving method of :raw-latex:`\cite{hu:2013}`. This
 behavior is controlled by
-.
+castro.limit_fluxes_on_small_dens.
 
 A hydrodynamical update to a zone can be broken down into an update
 over every face of the zone where a flux crosses the face over the
@@ -7117,7 +6920,7 @@ positivity preservation at the zone edge :math:`{\rm i}+1/2`, the flux
 
 where :math:`0 \leq \theta_{{\rm i}+1/2} \leq 1` is a scalar, and :math:`\mathbf{F}^{LF}_{{\rm i}+1/2}` is the Lax-Friedrichs flux,
 
-.. math:: \mathbf{F}^{LF}_{{\rm i}+1/2} = 1{1}{2}\left[\mathbf{F}^{n}_{{\rm i}} + \mathbf{F}^{n}_{{\rm i}+1} + \text{CFL}1{tx}{tt} 1{1}{\alpha}\left(\mathbf{U}^{n}_{{\rm i}} - \mathbf{U}^{n}_{{\rm i}+1}\right)\right],
+.. math:: \mathbf{F}^{LF}_{{\rm i}+1/2} = \frac{1}{2}\left[\mathbf{F}^{n}_{{\rm i}} + \mathbf{F}^{n}_{{\rm i}+1} + \text{CFL}\frac{\Delta x}{\Delta t} \frac{1}{\alpha}\left(\mathbf{U}^{n}_{{\rm i}} - \mathbf{U}^{n}_{{\rm i}+1}\right)\right],
 
 where :math:`0 < \text{CFL} < 1` is the CFL safety factor (the method is
 guaranteed to preserve positivity as long as :math:`\text{CFL} < 1/2`), and
@@ -7128,7 +6931,7 @@ guaranteed to preserve positivity as long as :math:`\text{CFL} < 1/2`), and
 :math:`\theta_{{\rm i}+1/2}` is chosen at every interface by calculating the
 update that would be obtained from , setting
 the density component equal to a value just larger than the density floor,
-, and solving
+castro.small_dens, and solving
 for the value of :math:`\theta` at the interface that makes the equality
 hold. In regions where the density is not at risk of going negative,
 :math:`\theta \approx 1` and the original hydrodynamic update is recovered.
@@ -7171,7 +6974,7 @@ The overall integration strategy is unchanged from the discussion in
 :raw-latex:`\cite{castro_I}`. Briefly:
 
 -  At the beginning of a simulation, we do a multilevel composite
-   solve (if ).
+   solve (if gravity.no_composite= 0).
 
    We also do a multilevel composite solve after each regrid.
 
@@ -7191,7 +6994,7 @@ The overall integration strategy is unchanged from the discussion in
 
 -  At an AMR synchronization step across levels (see Section `2 <#sec:amr_synchronization>`__
    for a description of when these synchronizations occur), if we’re choosing
-   to synchronize the gravitational field across levels ()
+   to synchronize the gravitational field across levels (gravity.no_sync= 0)
    we then do a solve starting from
    the coarse grid that adjusts for the mismatch between the fine-grid
    phi and the coarse-grid phi, as well as the mismatch between the
@@ -7200,9 +7003,9 @@ The overall integration strategy is unchanged from the discussion in
 
    Thus, to within the gravity error tolerance, you get the same final
    result as if you had done a full composite solve at the end of the
-   timestep (assuming ).
+   timestep (assuming gravity.no_sync= 0).
 
-If you do , then you never do a full
+If you do gravity.no_composite= 1, then you never do a full
 multilevel solve, and the gravity on any level is defined only by the
 solve on that level. The only time this would be appropriate is if
 the fine level(s) cover essentially all of the mass on the grid for
@@ -7229,7 +7032,7 @@ via castro.do_grav = 1. If you want to incorporate a point mass
 in the GNUmakefile.
 
 There are currently four options for how gravity is calculated,
-controlled by setting . The options are
+controlled by setting gravity.gravity_type. The options are
 ConstantGrav, PoissonGrav, Monopole Grav or
 PrescribedGrav. Again, these are only relevant if USE_GRAV =
 TRUE in the GNUmakefile and castro.do_grav = 1 in the
@@ -7240,14 +7043,14 @@ abort.
 Some additional notes:
 
 -  For the full Poisson solver
-   (), the behavior
+   (gravity.gravity_type= PoissonGrav), the behavior
    of the full Poisson solve / multigrid solver is controlled by
-   and .
+   gravity.no_sync and gravity.no_composite.
 
 -  For isolated boundary conditions, and when
-   , the parameters
+   gravity.gravity_type= PoissonGrav, the parameters
    gravity.max_multipole_order and
-   control the accuracy of
+   gravity.direct_sum_bcs control the accuracy of
    the Dirichlet boundary conditions. These are described in
    Section `2.3.2 <#sec-poisson-3d-bcs>`__.
 
@@ -7257,25 +7060,25 @@ Some additional notes:
 The following parameters apply to gravity
 solves:
 
--  : how should we calculate gravity?
+-  gravity.gravity_type : how should we calculate gravity?
    Can be ConstantGrav, PoissonGrav, MonopoleGrav, or
    PrescribedGrav
 
--  : if gravity.gravity_type =
+-  gravity.const_grav : if gravity.gravity_type =
    ConstantGrav, set the value of constant gravity (default: 0.0)
 
--  : gravity.gravity_type =
+-  gravity.no_sync : gravity.gravity_type =
    PoissonGrav, do we perform the “sync solve"? (0 or 1; default: 0)
 
--  : if gravity.gravity_type
+-  gravity.no_composite : if gravity.gravity_type
    = PoissonGrav, whether to perform a composite solve (0 or 1;
    default: 0)
 
--  : maximum level to solve
+-  gravity.max_solve_level : maximum level to solve
    for :math:`\phi` and :math:`\mathbf{g}`; above this level, interpolate from
    below (default: :math:`{\tt MAX\_LEV} - 1`)
 
--  : if gravity.gravity_type =
+-  gravity.abs_tol : if gravity.gravity_type =
    PoissonGrav, this is the absolute tolerance for the Poisson
    solve. You can specify a single value for this tolerane (or do
    nothing, and get a reasonable default value), and then the absolute
@@ -7288,33 +7091,33 @@ solves:
    possible level in the simulation, and then the scaling by
    :math:`\text{ref\_ratio}^2` is not applied.
 
--  : if gravity.gravity_type
+-  gravity.rel_tol : if gravity.gravity_type
    = PoissonGrav, this is the relative tolerance for the Poisson
    solve. By default it is zero. You can specify a single value for
    this tolerance and it will apply on every level, or you can specify
    an array of values for , one for each possible level
    in the simulation. This replaces the old parameter
-   .
+   gravity.ml_tol.
 
--  : if
+-  gravity.max_multipole_order : if
    gravity.gravity_type = PoissonGrav, this is the max :math:`\ell` value
    to use for multipole BCs (must be :math:`\geq 0`; default: 0)
 
--  : if
+-  gravity.direct_sum_bcs : if
    gravity.gravity_type = PoissonGrav, evaluate BCs using exact sum
    (0 or 1; default: 0)
 
--  : ratio of dr for monopole gravity
+-  gravity.drdxfac : ratio of dr for monopole gravity
    binning to grid resolution
 
 The follow parameters affect the coupling of hydro and gravity:
 
--  : turn on/off gravity
+-  castro.do_grav : turn on/off gravity
 
--  : do we recompute the center
+-  castro.moving_center : do we recompute the center
    used for the multipole gravity solver each step?
 
--  : point mass at the center of the star
+-  castro.point_mass : point mass at the center of the star
    (must be :math:`\geq 0`; default: 0.0)
 
 Note that in the following, MAX_LEV is a hard-coded parameter
@@ -7356,7 +7159,7 @@ spherically-symmetric fashion.
 
 -  In 1D spherical coordinates we compute
 
-   .. math:: g(r) = -1{G M_{\rm enclosed}}{ r^2}
+   .. math:: g(r) = -\frac{G M_{\rm enclosed}}{ r^2}
 
    where :math:`M_{\rm enclosed}` is calculated from the density at the time
    of the call.
@@ -7393,14 +7196,14 @@ spherically-symmetric fashion.
    new maxima or minima.
 
    The default resolution of the radial arrays at a level is the grid
-   cell spacing at that level, i.e., :math:`tr = tx`. O For
-   increased accuracy, one can define as a number
+   cell spacing at that level, i.e., :math:`\Delta r = \Delta x`. O For
+   increased accuracy, one can define gravity.drdxfac as a number
    greater than :math:`1` (:math:`2` or :math:`4` are recommended) and the spacing of the
-   radial array will then satisfy :math:`tx / tr =` drdxfac.
+   radial array will then satisfy :math:`\Delta x / \Delta r =` drdxfac.
    Individual Cartesian grid cells are subdivided by drdxfac in
    each coordinate direction for the purposing of averaging the density,
    and the integration that creates :math:`g` is done at the finer resolution
-   of the new :math:`tr`.
+   of the new :math:`\Delta r`.
 
    Note that the center of the star is defined in the subroutine PROBINIT
    and the radius is computed as the distance from that center.
@@ -7424,7 +7227,7 @@ The most general case is a self-induced gravitational field,
 
 where :math:`\phi` is defined by solving
 
-.. math:: \mathbf{t} \phi = 4 \pi G \rho .\label{eq:Self Gravity}
+.. math:: \mathbf{\Delta} \phi = 4 \pi G \rho .\label{eq:Self Gravity}
 
 We only allow PoissonGrav in 2D or 3D because in 1D, computing
 the monopole approximation in spherical coordinates is faster and more
@@ -7459,7 +7262,7 @@ is :raw-latex:`\cite{katz:2016}`.
    Poisson’s equation for electric charges and gravitational
    ”charges”), an expansion in spherical harmonics for :math:`\phi` is
 
-   .. math:: \phi(\mathbf{x}) = -G\sum_{l=0}^{\infty}\sum_{m=-l}^{l} 1{4\pi}{2l + 1} q_{lm} 1{Y_{lm}(\theta,\phi)}{r^{l+1}}, \label{spherical_harmonic_expansion}
+   .. math:: \phi(\mathbf{x}) = -G\sum_{l=0}^{\infty}\sum_{m=-l}^{l} \frac{4\pi}{2l + 1} q_{lm} \frac{Y_{lm}(\theta,\phi)}{r^{l+1}}, \label{spherical_harmonic_expansion}
 
    The origin of the coordinate system is taken to be the ``center``
    variable, that must be declared and stored in the ``probdata``
@@ -7484,15 +7287,15 @@ is :raw-latex:`\cite{katz:2016}`.
    .. math::
 
       \begin{aligned}
-        &1{4\pi}{2l+1} \sum_{m=-l}^{l} Y^*_{lm}(\theta^\prime,\phi^\prime)\, Y_{lm}(\theta, \phi) = P_l(\text{cos}\, \theta) P_l(\text{cos}\, \theta^\prime) \notag \\
-        &\ \ + 2 \sum_{m=1}^{l} 1{(l-m)!}{(l+m)!} P_{l}^{m}(\text{cos}\, \theta)\, P_{l}^{m}(\text{cos}\, \theta^\prime)\, \left[\text{cos}(m\phi)\, \text{cos}(m\phi^\prime) + \text{sin}(m\phi)\, \text{sin}(m\phi^\prime)\right].\end{aligned}
+        &\frac{4\pi}{2l+1} \sum_{m=-l}^{l} Y^*_{lm}(\theta^\prime,\phi^\prime)\, Y_{lm}(\theta, \phi) = P_l(\text{cos}\, \theta) P_l(\text{cos}\, \theta^\prime) \notag \\
+        &\ \ + 2 \sum_{m=1}^{l} \frac{(l-m)!}{(l+m)!} P_{l}^{m}(\text{cos}\, \theta)\, P_{l}^{m}(\text{cos}\, \theta^\prime)\, \left[\text{cos}(m\phi)\, \text{cos}(m\phi^\prime) + \text{sin}(m\phi)\, \text{sin}(m\phi^\prime)\right].\end{aligned}
 
    Here the :math:`P_{l}^{m}` are the associated Legendre polynomials and the
    :math:`P_l` are the Legendre polynomials. After some algebraic
    simplification, the potential outside of the mass distribution can be
    written in the following way:
 
-   .. math:: \phi(\mathbf{x}) \approx -G\sum_{l=0}^{l_{\text{max}}} \left[Q_l^{(0)} 1{P_l(\text{cos}\, \theta)}{r^{l+1}} + \sum_{m = 1}^{l}\left[ Q_{lm}^{(C)}\, \text{cos}(m\phi) + Q_{lm}^{(S)}\, \text{sin}(m\phi)\right] 1{P_{l}^{m}(\text{cos}\, \theta)}{r^{l+1}} \right].
+   .. math:: \phi(\mathbf{x}) \approx -G\sum_{l=0}^{l_{\text{max}}} \left[Q_l^{(0)} \frac{P_l(\text{cos}\, \theta)}{r^{l+1}} + \sum_{m = 1}^{l}\left[ Q_{lm}^{(C)}\, \text{cos}(m\phi) + Q_{lm}^{(S)}\, \text{sin}(m\phi)\right] \frac{P_{l}^{m}(\text{cos}\, \theta)}{r^{l+1}} \right].
 
    The modified multipole moments are:
 
@@ -7500,8 +7303,8 @@ is :raw-latex:`\cite{katz:2016}`.
 
       \begin{aligned}
         Q_l^{(0)}   &= \int P_l(\text{cos}\, \theta^\prime)\, {r^{\prime}}^l \rho(\mathbf{x}^\prime)\, d^3 x^\prime \\
-        Q_{lm}^{(C)} &= 21{(l-m)!}{(l+m)!} \int P_{l}^{m}(\text{cos}\, \theta^\prime)\, \text{cos}(m\phi^\prime)\, {r^\prime}^l \rho(\mathbf{x}^\prime)\, d^3 x^\prime \\
-        Q_{lm}^{(S)} &= 21{(l-m)!}{(l+m)!} \int P_{l}^{m}(\text{cos}\, \theta^\prime)\, \text{sin}(m\phi^\prime)\, {r^\prime}^l \rho(\mathbf{x}^\prime)\, d^3 x^\prime.\end{aligned}
+        Q_{lm}^{(C)} &= 2\frac{(l-m)!}{(l+m)!} \int P_{l}^{m}(\text{cos}\, \theta^\prime)\, \text{cos}(m\phi^\prime)\, {r^\prime}^l \rho(\mathbf{x}^\prime)\, d^3 x^\prime \\
+        Q_{lm}^{(S)} &= 2\frac{(l-m)!}{(l+m)!} \int P_{l}^{m}(\text{cos}\, \theta^\prime)\, \text{sin}(m\phi^\prime)\, {r^\prime}^l \rho(\mathbf{x}^\prime)\, d^3 x^\prime.\end{aligned}
 
    Our strategy for the multipole boundary conditions, then, is to pick
    some value :math:`l_{\text{max}}` that is of sufficiently high order to
@@ -7515,7 +7318,7 @@ is :raw-latex:`\cite{katz:2016}`.
    :math:`l_{\text{max}}`.
 
    The number of :math:`l` values calculated is controlled by
-   in your inputs file. By
+   gravity.max_multipole_order in your inputs file. By
    default, it is set to ``0``, which means that a monopole
    approximation is used. There is currently a hard-coded limit of
    :math:`l_{\text{max}} = 50`. This is because the method used to generate the
@@ -7531,7 +7334,7 @@ is :raw-latex:`\cite{katz:2016}`.
    y^\prime, z^\prime)`. By the principle of linear superposition as
    applied to the gravitational potential,
 
-   .. math:: \phi(\mathbf{r}^\prime) = \sum_{\text{ijk}} 1{-G \rho_{\text{ijk}}\, tV_{\text{ijk}}}{\left[(x - x^\prime)^2 + (y - y^\prime)^2 + (z - z^\prime)^2\right]^{1/2}},
+   .. math:: \phi(\mathbf{r}^\prime) = \sum_{\text{ijk}} \frac{-G \rho_{\text{ijk}}\, \Delta V_{\text{ijk}}}{\left[(x - x^\prime)^2 + (y - y^\prime)^2 + (z - z^\prime)^2\right]^{1/2}},
 
    where :math:`x = x(i)`, :math:`y = y(j)` and :math:`z = z(k)` are constructed in the
    usual sense from the zone indices. The sum here runs over every cell
@@ -7551,7 +7354,7 @@ is :raw-latex:`\cite{katz:2016}`.
    This is quite expensive even for reasonable sized domains, so this
    option is recommended only for analysis purposes, to check if the
    other methods are producing accurate results. It can be enabled by
-   setting in your inputs file.
+   setting gravity.direct_sum_bcs= 1 in your inputs file.
 
 PrescribedGrav
 ~~~~~~~~~~~~~~
@@ -7606,8 +7409,8 @@ strong gravitational field, we need to use Einstein field equations
 .. math::
 
    \label{field}
-   R_{ik}-1{1}{2}g_{ik}R=1{\kappa}{c^{2}}T_{ik} \quad , \quad
-   \kappa=1{8\pi G}{c^{2}}\quad ,
+   R_{ik}-\frac{1}{2}g_{ik}R=\frac{\kappa}{c^{2}}T_{ik} \quad , \quad
+   \kappa=\frac{8\pi G}{c^{2}}\quad ,
 
 where :math:`R_{ik}` is the Ricci tensor, :math:`g_{ik}` is the metric tensor, :math:`R`
 is the Riemann curvature, :math:`c` is the speed of light and :math:`G` is
@@ -7632,23 +7435,23 @@ equations can be reduced to 3 ordinary differential equations:
 .. math::
 
    \label{diff1}
-      1{\kappa P}{c^{2}} =
-      e^{-\lambda}\left (1{\nu^{\prime}}{r}+1{1}{r^{2}} \right )-1{1}{r^{2}}
+      \frac{\kappa P}{c^{2}} =
+      e^{-\lambda}\left (\frac{\nu^{\prime}}{r}+\frac{1}{r^{2}} \right )-\frac{1}{r^{2}}
       \quad ,
 
 .. math::
 
    \label{diff2}
-     1{\kappa P}{c^{2}} =
-     1{1}{2}e^{-\lambda}\left (\nu^{\prime\prime}+1{1}{2}{\nu^{\prime}}^{2}+1{\nu^
+     \frac{\kappa P}{c^{2}} =
+     \frac{1}{2}e^{-\lambda}\left (\nu^{\prime\prime}+\frac{1}{2}{\nu^{\prime}}^{2}+\frac{\nu^
        {\prime}-\lambda^{\prime}}{r}
-      -1{\nu^{\prime}\lambda^{\prime}}{2} \right ) \quad ,
+      -\frac{\nu^{\prime}\lambda^{\prime}}{2} \right ) \quad ,
 
 .. math::
 
    \label{diff3}
      \kappa \varrho =
-     e^{-\lambda}\left (1{\lambda^{\prime}}{r}-1{1}{r^{2}}\right )+1{1}{r^{2}} \quad ,
+     e^{-\lambda}\left (\frac{\lambda^{\prime}}{r}-\frac{1}{r^{2}}\right )+\frac{1}{r^{2}} \quad ,
 
 where primes means the derivatives with respect to :math:`r`. After
 multiplying with :math:`4\pi r^2`, (`[diff3] <#diff3>`__) can be integrated and
@@ -7681,23 +7484,23 @@ equilibrium in general relativity:
 .. math::
 
    \label{tov}
-     1{dP}{dr} = -1{Gm}{r^{2}}\varrho \left (1+1{P}{\varrho
-       c^{2}}\right )\left (1+1{4\pi r^3 P}{m c^{2}}\right ) \left (1-1{2Gm}{r c^{2}} \right)^{-1} \quad .
+     \frac{dP}{dr} = -\frac{Gm}{r^{2}}\varrho \left (1+\frac{P}{\varrho
+       c^{2}}\right )\left (1+\frac{4\pi r^3 P}{m c^{2}}\right ) \left (1-\frac{2Gm}{r c^{2}} \right)^{-1} \quad .
 
 For Newtonian case :math:`c^2 \rightarrow  \infty`, it reverts to usual form
 
 .. math::
 
    \label{newton}
-     1{dP}{dr} = -1{Gm}{r^{2}}\varrho \quad .
+     \frac{dP}{dr} = -\frac{Gm}{r^{2}}\varrho \quad .
 
 Now we take effective monopole gravity as
 
 .. math::
 
    \label{tov2}
-   \tilde{g} = -1{Gm}{r^{2}} (1+1{P}{\varrho
-     c^{2}})(1+1{4\pi r^3 P}{m c^{2}}) (1-1{2Gm}{r c^{2}})^{-1}  \quad .
+   \tilde{g} = -\frac{Gm}{r^{2}} (1+\frac{P}{\varrho
+     c^{2}})(1+\frac{4\pi r^3 P}{m c^{2}}) (1-\frac{2Gm}{r c^{2}})^{-1}  \quad .
 
 For general situations, we neglect the :math:`U/c^2` and potential energy in
 m because they are usually much smaller than :math:`\varrho_0`. Only when
@@ -7708,8 +7511,8 @@ as
 .. math::
 
    \label{tov3}
-     \tilde{g} = -1{GM_{\rm enclosed}}{r^{2}} \left (1+1{P}{\varrho
-       c^{2}} \right )\left (1+1{4\pi r^3 P}{M_{\rm enclosed} c^{2}} \right ) \left (1-1{2GM_{\rm enclosed}}{r c^{2}} \right )^{-1} \quad ,
+     \tilde{g} = -\frac{GM_{\rm enclosed}}{r^{2}} \left (1+\frac{P}{\varrho
+       c^{2}} \right )\left (1+\frac{4\pi r^3 P}{M_{\rm enclosed} c^{2}} \right ) \left (1-\frac{2GM_{\rm enclosed}}{r c^{2}} \right )^{-1} \quad ,
 
 where :math:`M_{enclosed}` has the same meaning as with the
 MonopoleGrav approximation.
@@ -7723,11 +7526,11 @@ castro.grav_source_type.
 
 -  castro.grav_source_type = 1 : we use a
    standard predictor-corrector formalism for updating the momentum and
-   energy. Specifically, our first update is equal to :math:`tt \times
+   energy. Specifically, our first update is equal to :math:`\Delta t \times
      \mathbf{S}^n` , where :math:`\mathbf{S}^n` is the value of the source
    terms at the old-time (which is usually called time-level :math:`n`). At
    the end of the timestep, we do a corrector step where we subtract
-   off :math:`tt / 2 \times \mathbf{S}^n` and add on :math:`tt / 2
+   off :math:`\Delta t / 2 \times \mathbf{S}^n` and add on :math:`\Delta t / 2
      \times \mathbf{S}^{n+1}`, so that at the end of the timestep the
    source term is properly time centered.
 
@@ -7770,24 +7573,24 @@ Thermal Diffusion
 Castro incorporates explicit thermal diffusion into the energy equation.
 In terms of the specific internal energy, :math:`e`, this appears as:
 
-.. math:: \rho 1{De}{Dt} + p \nabla \cdot {\bf u}= \nabla \cdot {k_\mathrm{th}}\nabla T
+.. math:: \rho \frac{De}{Dt} + p \nabla \cdot \ub = \nabla \cdot \kth \nabla T
 
-where :math:`{k_\mathrm{th}}` is the thermal conductivity, with units
+where :math:`\kth` is the thermal conductivity, with units
 :math:`\mathrm{erg~cm^{-1}~s^{-1}~K^{-1}}`.
 
 To see the similarity to the thermal diffusion equation, consider the special
-case of constant conductivity, :math:`{k_\mathrm{th}}`, and density, and assume an
+case of constant conductivity, :math:`\kth`, and density, and assume an
 ideal gas, so :math:`e = c_v T`, where :math:`c_v` is the specific heat at constant volume.
-Finally, ignore hydrodynamics, so :math:`{\bf u}= 0`. This gives:
+Finally, ignore hydrodynamics, so :math:`\ub = 0`. This gives:
 
-.. math:: 1{\partial T}{\partial t} = D \nabla^2 T
+.. math:: \frac{\partial T}{\partial t} = D \nabla^2 T
 
-where :math:`D \equiv {k_\mathrm{th}}/(\rho c_v)`. Solving this equation
+where :math:`D \equiv \kth/(\rho c_v)`. Solving this equation
 explicitly requires a timestep limiter of
 
-.. math:: tt_\mathrm{diff} \le 1{1}{2} 1{tx^2}{D}
+.. math:: \Delta t_\mathrm{diff} \le \frac{1}{2} \frac{\Delta x^2}{D}
 
-(this is implemented in in
+(this is implemented in ca_estdt_temp_diffusion in
 Castro/Source/driver/timestep.F90).
 
 Support for diffusion must be compiled into the code by setting
@@ -7798,7 +7601,7 @@ in time.
 
 The following parameter affects diffusion:
 
--  : enable thermal diffusion (0 or 1; default 0)
+-  castro.diffuse_temp: enable thermal diffusion (0 or 1; default 0)
 
 A pure diffusion problem (with no hydrodynamics) can be run by setting
 
@@ -7821,7 +7624,7 @@ interface for the conductivity is:
 
 The density, temperature, and mass fractions come in through the
 eos_state type. An EOS call is done in Castro just before the
-call to , so you can assume that the entire
+call to thermal_conductivity, so you can assume that the entire
 state is consistent.
 
 There are two conductivity routines provided with Castro by default:
@@ -7843,7 +7646,7 @@ There are two conductivity routines provided with Castro by default:
 -  constant_opacity : A simple constant opacity. This is
    converted to an opacity as:
 
-   .. math:: {k_\mathrm{th}}= 1{16 \sigma_B T^3}{3 \kappa_\mathrm{const} \rho}
+   .. math:: \kth = \frac{16 \sigma_B T^3}{3 \kappa_\mathrm{const} \rho}
 
    where :math:`\kappa_\mathrm{const}` is the opacity, with units :math:`\mathrm{cm^2~g^{-1}}`.
    This is selected by setting
@@ -7866,7 +7669,7 @@ where the density rapidly drops and the mean free path becomes
 large. In those instances, you should use the flux limited diffusion
 module in Castro to evolve a radiation field. However, if your
 interest is only on the diffusion in the interior, you can use
-the parameter to specify a density,
+the castro.diffuse_cutoff_density parameter to specify a density,
 below which, diffusion is not modeled. This is implemented in the
 code by zeroing out the conductivity and skipping the estimation
 of the timestep limit in these zones.
@@ -7920,7 +7723,7 @@ in the GNUMakefile. Rotation can then be enabled via
     castro.do_rotation = 1
 
 in the inputs file. The rotational period must then be set via
-. The rotational period is internally
+castro.rotational_period. The rotational period is internally
 converted to an angular frequency for use in the source term
 equations.
 
@@ -7945,36 +7748,36 @@ ca_rotate routine found in the Rotate_$(DIM)d.f90 file.
 
 The main parameters that affect rotation are:
 
--  : include rotation as a forcing
+-  castro.do_rotation : include rotation as a forcing
    term (0 or 1; default: 0)
 
--  : period (s) of rotation
+-  castro.rotational_period : period (s) of rotation
    (default: 0.0)
 
--  : d(period) / dt for rotation
+-  castro.rotational_dPdt : d(period) / dt for rotation
    (default: 0.0)
 
--  : whether to
+-  castro.rotation_include_centrifugal : whether to
    include the centrifugal forcing (default: 1)
 
--  : whether to
+-  castro.rotation_include_coriolis : whether to
    include the Coriolis forcing (default: 1)
 
--  : whether to
+-  castro.rotation_include_domegadt : whether to
    include the forcing from the time derivative of the rotation
    frequency (default: 1)
 
--  : whether state
+-  castro.state_in_rotating_frame : whether state
    variables are measured in the rotating frame (default: 1)
 
--  : method of updating the
+-  castro.rot_source_type : method of updating the
    energy during a rotation update (default: 4)
 
--  : for the Coriolis
+-  castro.implicit_rotation_update : for the Coriolis
    term, which mixes momenta in the source term, whether we should
    solve for the update implicitly (default: 1)
 
--  : rotation axis (default: 3
+-  castro.rot_axis : rotation axis (default: 3
    (Cartesian); 2 (cylindrical))
 
 For completeness, we show below a derivation of the source terms that
@@ -8002,13 +7805,13 @@ Coordinate transformation to rotating frame
 Consider an inertial reference frame :math:`C` and a non-inertial
 reference frame :math:`\widetilde{C}` whose origins are separated by the
 vector :math:`\boldsymbol{l}` (see Figure \ `[fig:sec:rot:frames] <#fig:sec:rot:frames>`__). The non-inertial frame is rotating about the axis
-:math:`\boldsymbol{\omega}` with a *constant* angular velocity :math:`\omega`;
+:math:`\ob` with a *constant* angular velocity :math:`\omega`;
 furthermore, we assume the *direction* of the rotational axis is
 fixed. Consider a fluid element at the point :math:`P` whose location is
-given by :math:`{\bf r}` in :math:`C` and by :math:`\widetilde{{\bf r}}` in
+given by :math:`\rb` in :math:`C` and by :math:`\rbt` in
 :math:`\widetilde{C}`:
 
-.. math:: {\bf r}= \widetilde{{\bf r}}+ \boldsymbol{l},
+.. math:: \rb = \rbt + \boldsymbol{l},
 
 or in component notation
 
@@ -8024,7 +7827,7 @@ respectively. The total time rate of change of `[eq:r] <#eq:r>`__ is given by
 .. math::
 
    \label{eq:vcomp}
-       1{Dr_i}{Dt}\boldsymbol{e_i} = 1{D\widetilde{r_i}}{Dt}\widetilde{\boldsymbol{e_i}} + \widetilde{r_i}1{D\widetilde{\boldsymbol{e_i}}}{Dt} + 1{Dl_i}{Dt}\boldsymbol{e_i},
+       \frac{Dr_i}{Dt}\boldsymbol{e_i} = \frac{D\widetilde{r_i}}{Dt}\widetilde{\boldsymbol{e_i}} + \widetilde{r_i}\frac{D\widetilde{\boldsymbol{e_i}}}{Dt} + \frac{Dl_i}{Dt}\boldsymbol{e_i},
 
 where we have used the fact that the unit vectors of the inertial
 frame :math:`C` are not moving (or at least can be considered stationary,
@@ -8032,13 +7835,13 @@ and the change in :math:`\boldsymbol{l}` gives the relative motion of the two
 coordinate systems). By definition, a unit vector can not change its
 length, and therefore the only change of :math:`\widetilde{\boldsymbol{e_i}}` with
 time can come from changing direction. This change is carried out by
-a rotation about the :math:`\boldsymbol{\omega}` axis, and the tip of the unit
+a rotation about the :math:`\ob` axis, and the tip of the unit
 vector moves circumferentially, that is
 
 .. math::
 
    \label{eq:etilde-rot}
-       1{D\widetilde{\boldsymbol{e_i}}}{Dt} = \boldsymbol{\omega}\times\widetilde{\boldsymbol{e_i}}.
+       \frac{D\widetilde{\boldsymbol{e_i}}}{Dt} = \ob\times\widetilde{\boldsymbol{e_i}}.
 
 Plugging `[eq:etilde-rot] <#eq:etilde-rot>`__ into `[eq:vcomp] <#eq:vcomp>`__ and switching back to
 vector notation, we have
@@ -8046,7 +7849,7 @@ vector notation, we have
 .. math::
 
    \label{eq:r-dot}
-       1{D{\bf r}}{Dt} = 1{D\widetilde{{\bf r}}}{Dt} + \boldsymbol{\omega}\times\widetilde{{\bf r}}+ 1{D\boldsymbol{l}}{Dt}.
+       \frac{D\rb}{Dt} = \frac{D\rbt}{Dt} + \ob\times\rbt + \frac{D\boldsymbol{l}}{Dt}.
 
 The left hand side of `[eq:r-dot] <#eq:r-dot>`__ is interpretted as the velocity
 of the fluid element as seen in the inertial frame; the first term on the
@@ -8059,7 +7862,7 @@ additional velocity due to rotation and translation of the frame
 .. math::
 
    \label{eq:v}
-       \boldsymbol{v}= \widetilde{\boldsymbol{v}}+ \boldsymbol{\omega}\times\widetilde{{\bf r}}+ \boldsymbol{v_l},
+       \vb = \vbt + \ob\times\rbt + \boldsymbol{v_l},
 
 where we use :math:`\boldsymbol{v_l}` to represent the translational velocity.
 
@@ -8068,27 +7871,27 @@ Similarly, by taking a second time derivative of `[eq:v] <#eq:v>`__ we have
 .. math::
 
    \label{eq:a}
-       1{D\boldsymbol{v}}{Dt} = 1{D\widetilde{\boldsymbol{v}}}{Dt} + 2\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}+ \boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right] + 1{D\boldsymbol{v_l}}{Dt}.
+       \frac{D\vb}{Dt} = \frac{D\vbt}{Dt} + 2\ob\times\vbt + \ob\times\left[\ob\times\rbt\right] + \frac{D\boldsymbol{v_l}}{Dt}.
 
 Henceforth we will assume the two coordinate systems are not
 translating relative to one another, :math:`\boldsymbol{v_l} = 0`. It is
 also worth mentioning that derivatives with respect to spatial
 coordinates do not involve additional terms due to rotation,
-i.e. :math:`\boldsymbol{\nabla}\cdot\boldsymbol{v}= \boldsymbol{\nabla}\cdot\widetilde{\boldsymbol{v}}`.
+i.e. :math:`\nablab\cdot\vb = \nablab\cdot\vbt`.
 Because of this, the continuity equation remains unchanged in the
 rotating frame:
 
 .. math::
 
    \label{eq:cont-rot}
-       1{\partial \rho}{\partial t} = -\boldsymbol{\nabla}\cdot\left(\rho\widetilde{\boldsymbol{v}}\right),
+       \frac{\partial \rho}{\partial t} = -\nablab\cdot\left(\rho\vbt\right),
 
 or
 
 .. math::
 
    \label{eq:cont-rot-total}
-       1{D\rho}{Dt} = -\rho\boldsymbol{\nabla}\cdot\widetilde{\boldsymbol{v}}.
+       \frac{D\rho}{Dt} = -\rho\nablab\cdot\vbt.
 
 Momentum equation in rotating frame
 -----------------------------------
@@ -8098,7 +7901,7 @@ The usual momentum equation applies in an inertial frame:
 .. math::
 
    \label{eq:mom1}
-       1{D\left(\rho\boldsymbol{v}\right)}{Dt} = -\rho\boldsymbol{v}\cdot\boldsymbol{\nabla}\boldsymbol{v}- \boldsymbol{\nabla}p + \rho{\bf g}.
+       \frac{D\left(\rho\vb\right)}{Dt} = -\rho\vb\cdot\nablab\vb - \nablab p + \rho\gb.
 
 Using the continuity equation, `[eq:cont-rot-total] <#eq:cont-rot-total>`__, and substituting for
 the terms in the rotating frame from `[eq:a] <#eq:a>`__, we have from `[eq:mom1] <#eq:mom1>`__:
@@ -8106,10 +7909,10 @@ the terms in the rotating frame from `[eq:a] <#eq:a>`__, we have from `[eq:mom1]
 .. math::
 
    \begin{aligned}
-       \rho\left(1{D\widetilde{\boldsymbol{v}}}{Dt} + 2\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}+ \boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right]\right) - \rho\boldsymbol{v}\boldsymbol{\nabla}\cdot\boldsymbol{v}&=& -\rho\boldsymbol{v}\cdot\boldsymbol{\nabla}\boldsymbol{v}- \boldsymbol{\nabla}p + \rho{\bf g}\nonumber \\
-       \rho\left(1{\partial\widetilde{\boldsymbol{v}}}{\partial t} + \widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}\widetilde{\boldsymbol{v}}\right) &=& -\boldsymbol{\nabla}p + \rho{\bf g}- 2\rho\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}- \rho\boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right] \nonumber \\
-     1{\partial\left(\rho\widetilde{\boldsymbol{v}}\right)}{\partial t} &=& -\boldsymbol{\nabla}\cdot\left(\rho\widetilde{\boldsymbol{v}}\widetilde{\boldsymbol{v}}\right) - \boldsymbol{\nabla}p + \rho{\bf g}- 2\rho\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}\nonumber \\
-     & & -\ \rho\boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right]\label{eq:mom-rot}
+       \rho\left(\frac{D\vbt}{Dt} + 2\ob\times\vbt + \ob\times\left[\ob\times\rbt\right]\right) - \rho\vb\nablab\cdot\vb &=& -\rho\vb\cdot\nablab\vb - \nablab p + \rho\gb \nonumber \\
+       \rho\left(\frac{\partial\vbt}{\partial t} + \vbt\cdot\nablab\vbt\right) &=& -\nablab p + \rho\gb - 2\rho\ob\times\vbt - \rho\ob\times\left[\ob\times\rbt\right] \nonumber \\
+     \frac{\partial\left(\rho\vbt\right)}{\partial t} &=& -\nablab\cdot\left(\rho\vbt\vbt\right) - \nablab p + \rho\gb - 2\rho\ob\times\vbt \nonumber \\
+     & & -\ \rho\ob\times\left[\ob\times\rbt\right]\label{eq:mom-rot}
      \end{aligned}
 
 or
@@ -8117,7 +7920,7 @@ or
 .. math::
 
    \label{eq:mom-rot-tot}
-       1{D\left(\rho\widetilde{\boldsymbol{v}}\right)}{Dt} = -\rho\widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}\widetilde{\boldsymbol{v}}- \boldsymbol{\nabla}p + \rho{\bf g}- 2\rho\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}- \rho\boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right].
+       \frac{D\left(\rho\vbt\right)}{Dt} = -\rho\vbt\cdot\nablab\vbt - \nablab p + \rho\gb - 2\rho\ob\times\vbt - \rho\ob\times\left[\ob\times\rbt\right].
 
 Energy equations in rotating frame
 ----------------------------------
@@ -8128,17 +7931,17 @@ a rotating frame
 .. math::
 
    \label{eq:v-rot}
-       1{D\widetilde{\boldsymbol{v}}}{Dt} = -1{1}{\rho}\boldsymbol{\nabla}p + {\bf g}- 2\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}- \boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right].
+       \frac{D\vbt}{Dt} = -\frac{1}{\rho}\nablab p + \gb - 2\ob\times\vbt - \ob\times\left[\ob\times\rbt\right].
 
 The kinetic energy equation can be obtained from `[eq:v-rot] <#eq:v-rot>`__ by
-mulitplying by :math:`\rho\widetilde{\boldsymbol{v}}`:
+mulitplying by :math:`\rho\vbt`:
 
 .. math::
 
    \begin{aligned}
-       \rho\widetilde{\boldsymbol{v}}\cdot1{D\widetilde{\boldsymbol{v}}}{Dt} &=& -\widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}p + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}- 2\rho\widetilde{\boldsymbol{v}}\cdot\left[\boldsymbol{\omega}\times\widetilde{\boldsymbol{v}}\right] - \rho\widetilde{\boldsymbol{v}}\cdot\left\{\boldsymbol{\omega}\times\left[\boldsymbol{\omega}\times\widetilde{{\bf r}}\right]\right\} \nonumber \\
-       1{1}{2}1{D\left(\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}\right)}{Dt} - 1{1}{2}\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}1{D\rho}{Dt} &=& -\widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}p + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}- \rho\widetilde{\boldsymbol{v}}\cdot\left[\left(\boldsymbol{\omega}\cdot\widetilde{{\bf r}}\right)\boldsymbol{\omega}- \rho\omega^2\widetilde{{\bf r}}\right] \nonumber \\
-       1{1}{2}1{D\left(\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}\right)}{Dt} &=& -1{1}{2}\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}\boldsymbol{\nabla}\cdot\widetilde{\boldsymbol{v}}- \widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}p + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}- \rho\widetilde{\boldsymbol{v}}\cdot\left[\left(\boldsymbol{\omega}\cdot\widetilde{{\bf r}}\right)\boldsymbol{\omega}- \rho\omega^2\widetilde{{\bf r}}\right]. \label{eq:ekin-rot-total}
+       \rho\vbt\cdot\frac{D\vbt}{Dt} &=& -\vbt\cdot\nablab p + \rho\vbt\cdot\gb - 2\rho\vbt\cdot\left[\ob\times\vbt\right] - \rho\vbt\cdot\left\{\ob\times\left[\ob\times\rbt\right]\right\} \nonumber \\
+       \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} - \frac{1}{2}\vbt\cdot\vbt\frac{D\rho}{Dt} &=& -\vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right] \nonumber \\
+       \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} &=& -\frac{1}{2}\rho\vbt\cdot\vbt\nablab\cdot\vbt - \vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right]. \label{eq:ekin-rot-total}
      \end{aligned}
 
 The internal energy is simply advected, and, from the first law of
@@ -8147,17 +7950,17 @@ thermodynamics, can change due to :math:`pdV` work:
 .. math::
 
    \label{eq:eint-rot-total}
-       1{D\left(\rho e\right)}{Dt} = -\left(\rho e + p\right)\boldsymbol{\nabla}\cdot\widetilde{\boldsymbol{v}}.
+       \frac{D\left(\rho e\right)}{Dt} = -\left(\rho e + p\right)\nablab\cdot\vbt.
 
 Combining `[eq:ekin-rot-total] <#eq:ekin-rot-total>`__ and `[eq:eint-rot-total] <#eq:eint-rot-total>`__ we can
 get the evolution of the total specific energy in the rotating frame,
-:math:`\rho \widetilde{E} = \rho e + 1{1}{2}\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}`:
+:math:`\rho \widetilde{E} = \rho e + \frac{1}{2}\rho\vbt\cdot\vbt`:
 
 .. math::
 
    \begin{aligned}
-       1{D\left(\rho e\right)}{Dt} + 1{1}{2}1{D\left(\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}\right)}{Dt} &=& -\left(\rho e + p + 1{1}{2}\rho\widetilde{\boldsymbol{v}}\cdot\widetilde{\boldsymbol{v}}\right)\boldsymbol{\nabla}\cdot\widetilde{\boldsymbol{v}}- \widetilde{\boldsymbol{v}}\cdot\boldsymbol{\nabla}p + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}-\rho\widetilde{\boldsymbol{v}}\cdot\left[\left(\boldsymbol{\omega}\cdot\widetilde{{\bf r}}\right)\boldsymbol{\omega}- \rho\omega^2\widetilde{{\bf r}}\right]\nonumber \\
-       1{D\left(\rho \widetilde{E}\right)}{Dt} &=& -\rho\widetilde{E}\boldsymbol{\nabla}\cdot\widetilde{\boldsymbol{v}}- \boldsymbol{\nabla}\cdot\left(p\widetilde{\boldsymbol{v}}\right) + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}- \rho\widetilde{\boldsymbol{v}}\cdot\left[\left(\boldsymbol{\omega}\cdot\widetilde{{\bf r}}\right)\boldsymbol{\omega}- \rho\omega^2\widetilde{{\bf r}}\right] \label{eq:etot-rot-total}
+       \frac{D\left(\rho e\right)}{Dt} + \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} &=& -\left(\rho e + p + \frac{1}{2}\rho\vbt\cdot\vbt\right)\nablab\cdot\vbt - \vbt\cdot\nablab p + \rho\vbt\cdot\gb -\rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right]\nonumber \\
+       \frac{D\left(\rho \widetilde{E}\right)}{Dt} &=& -\rho\widetilde{E}\nablab\cdot\vbt - \nablab\cdot\left(p\vbt\right) + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right] \label{eq:etot-rot-total}
      \end{aligned}
 
 or
@@ -8165,7 +7968,7 @@ or
 .. math::
 
    \label{eq:etot-rot}
-       1{\partial\left(\rho\widetilde{E}\right)}{\partial t} = -\boldsymbol{\nabla}\cdot\left(\rho\widetilde{E}\widetilde{\boldsymbol{v}}+ p\widetilde{\boldsymbol{v}}\right) + \rho\widetilde{\boldsymbol{v}}\cdot{\bf g}- \rho\widetilde{\boldsymbol{v}}\cdot\left[\left(\boldsymbol{\omega}\cdot\widetilde{{\bf r}}\right)\boldsymbol{\omega}- \rho\omega^2\widetilde{{\bf r}}\right].
+       \frac{\partial\left(\rho\widetilde{E}\right)}{\partial t} = -\nablab\cdot\left(\rho\widetilde{E}\vbt + p\vbt\right) + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right].
 
 Switching to the rotating reference frame
 -----------------------------------------
@@ -8180,9 +7983,9 @@ reference:
 .. math::
 
    \begin{aligned}
-       1{\partial\rho}{\partial t} &=& -\boldsymbol{\nabla}\cdot\left(\rho\boldsymbol{v}\right) \label{eq:cont-rot-switch} \\
-       1{\partial \left(\rho\boldsymbol{v}\right)}{\partial t} &=& -\boldsymbol{\nabla}\cdot\left(\rho\boldsymbol{v}\boldsymbol{v}\right) - \boldsymbol{\nabla}p + \rho{\bf g}- 2\rho\boldsymbol{\omega}\times\boldsymbol{v}- \rho\left(\boldsymbol{\omega}\cdot{\bf r}\right)\boldsymbol{\omega}+ \rho\omega^2{\bf r}\label{eq:mom-rot-switch} \\
-       1{\partial\left(\rho E\right)}{\partial t} &=& -\boldsymbol{\nabla}\cdot\left(\rho E\boldsymbol{v}+ p\boldsymbol{v}\right) + \rho\boldsymbol{v}\cdot{\bf g}- \rho\left(\boldsymbol{\omega}\cdot{\bf r}\right)\left(\boldsymbol{\omega}\cdot\boldsymbol{v}\right) + \rho\omega^2\left(\boldsymbol{v}\cdot{\bf r}\right). \label{eq:etot-rot-switch}
+       \frac{\partial\rho}{\partial t} &=& -\nablab\cdot\left(\rho\vb\right) \label{eq:cont-rot-switch} \\
+       \frac{\partial \left(\rho\vb\right)}{\partial t} &=& -\nablab\cdot\left(\rho\vb\vb\right) - \nablab p + \rho\gb - 2\rho\ob\times\vb - \rho\left(\ob\cdot\rb\right)\ob + \rho\omega^2\rb \label{eq:mom-rot-switch} \\
+       \frac{\partial\left(\rho E\right)}{\partial t} &=& -\nablab\cdot\left(\rho E\vb + p\vb\right) + \rho\vb\cdot\gb - \rho\left(\ob\cdot\rb\right)\left(\ob\cdot\vb\right) + \rho\omega^2\left(\vb\cdot\rb\right). \label{eq:etot-rot-switch}
      \end{aligned}
 
 Adding the forcing to the hydrodynamics
@@ -8190,7 +7993,7 @@ Adding the forcing to the hydrodynamics
 
 There are several ways to incorporate the effect of the rotation
 forcing on the hydrodynamical evolution. We control this through the
-use of the runtime parameter . This
+use of the runtime parameter castro.rot_source_type. This
 is an integer with values currently ranging from 1 through 4, and
 these values are all analogous to the way that gravity is used to
 update the momentum and energy. For the most part, the differences are
@@ -8198,11 +8001,11 @@ in how the energy update is done:
 
 -  castro.rot_source_type = 1 : we use a
    standard predictor-corrector formalism for updating the momentum and
-   energy. Specifically, our first update is equal to :math:`tt \times
+   energy. Specifically, our first update is equal to :math:`\Delta t \times
      \mathbf{S}^n` , where :math:`\mathbf{S}^n` is the value of the source
    terms at the old-time (which is usually called time-level :math:`n`). At
    the end of the timestep, we do a corrector step where we subtract
-   off :math:`tt / 2 \times \mathbf{S}^n` and add on :math:`tt / 2
+   off :math:`\Delta t / 2 \times \mathbf{S}^n` and add on :math:`\Delta t / 2
      \times \mathbf{S}^{n+1}`, so that at the end of the timestep the
    source term is properly time centered.
 
@@ -8316,7 +8119,7 @@ edit the file GNUmakefile, and set
 
 -  DIM = 1 or 2 or 3
 
--  —this is important. This tells the build system to
+-  USE_RAD = TRUE—this is important. This tells the build system to
    compile in, and link the the radiation code.
 
 Then type make to generate an executable file.
@@ -8341,7 +8144,7 @@ contribution. However, for radiation hydrodynamics calculations, the
 radition contribution should be taken out of EOS because radiation has
 been treated in other places. To use Helmholtz EOS, we will use the
 version in Microphysics, as with the pure hydrodynamics code, but
-this will interpret the preprocessor variable and
+this will interpret the RADIATION preprocessor variable and
 disable the radiation portion of the EOS [13]_ If you have your own EOS, you
 can put it in Microphysics.
 
@@ -8399,7 +8202,7 @@ Some notes:
    :math:`\kappa_P`, and Rosseland mean, :math:`\kappa_R`, opacities—these have
    different weightings.
 
-   If we set :math:`\kappa_P tx \gg 1` (:math:`\kappa_P` is really large),
+   If we set :math:`\kappa_P \Delta x \gg 1` (:math:`\kappa_P` is really large),
    then the two temperatures become the same.
 
    If we set :math:`\kappa_P = \kappa_R`, then we can see how different the
@@ -8468,7 +8271,7 @@ The parameters describing the opacity include:
    .. math::
 
       \kappa = \mathrm{const}\ \rho^{m} T^{-n} \nu^{p}
-          \left [1-\exp{\left (-1{h\nu}{k T} \right )} \right ].
+          \left [1-\exp{\left (-\frac{h\nu}{k T} \right )} \right ].
 
 -  radiation.surface_average = 2
 
@@ -8571,14 +8374,14 @@ Flux Limiter and Closure
    -  0: :math:`f = \lambda`, where :math:`f` is the scalar Eddington factor
       and :math:`\lambda` is the flux limiter.
 
-   -  1: :math:`f = 1{1}{3}`
+   -  1: :math:`f = \frac{1}{3}`
 
    -  2: :math:`f = 1 - 2 \lambda`
 
    -  3: :math:`f = \lambda + (\lambda R)^2`, where :math:`R` is the radiation
       Knudsen number.
 
-   -  4: :math:`f = 1{1}{3} + 1{2}{3} (1{F}{cE})^2`, where
+   -  4: :math:`f = \frac{1}{3} + \frac{2}{3} (\frac{F}{cE})^2`, where
       :math:`F` is the radiation flux, :math:`E` is the radiation energy density,
       and :math:`c` is the speed of light.
 
@@ -8586,7 +8389,7 @@ Note the behavior of the radiative flux in the optically thin and
 optically thick limits. The flux limiter, :math:`\lambda = \lambda(R)`,
 where
 
-.. math:: R = 1{|\nabla E_r^{(0)}|}{\chi_R E_r^{(0)}}
+.. math:: R = \frac{|\nabla E_r^{(0)}|}{\chi_R E_r^{(0)}}
 
 Regardless of the limiter chosen, when we are optically thick,
 :math:`\chi_R \rightarrow \infty`, :math:`R \rightarrow 0`, and :math:`\lambda \rightarrow 1/3`.
@@ -8594,8 +8397,8 @@ The radiative flux then becomes
 
 .. math::
 
-   F_r^{(0)} = -1{c\lambda}{\chi_R} \nabla E_r^{(0)} \rightarrow
-     1{1}{3} 1{c}{\chi_R} \nabla E_r^{(0)}
+   F_r^{(0)} = -\frac{c\lambda}{\chi_R} \nabla E_r^{(0)} \rightarrow
+     \frac{1}{3} \frac{c}{\chi_R} \nabla E_r^{(0)}
 
 And when we are optically thin, :math:`\chi_R \rightarrow 0`, :math:`R \rightarrow \infty`,
 and :math:`\lambda \rightarrow 1/R = \chi_R E_r^{(0)}/{|\nabla E_r^{0}|}`, and
@@ -8603,8 +8406,8 @@ the radiative flux then becomes
 
 .. math::
 
-   F_r^{(0)} = -1{c\lambda}{\chi_R} \nabla E_r^{(0)} \rightarrow
-     -1{c}{\chi_R}1{\chi_R E_r^{(0)}}{|\nabla E_r^{0}|}
+   F_r^{(0)} = -\frac{c\lambda}{\chi_R} \nabla E_r^{(0)} \rightarrow
+     -\frac{c}{\chi_R}\frac{\chi_R E_r^{(0)}}{|\nabla E_r^{0}|}
        \nabla E_r^{(0)} = -c E_r^{0}
 
 See Krumholz et al. 2007 for some discussion on this.
@@ -8663,7 +8466,7 @@ equation. They do not affect hydrodynamic boundaries.
       radiation, this is the expression given in the gray Castro paper
       (Eq. 7, 8),
 
-      .. math:: F_r = - 1{c\lambda}{\kappa_R} \nabla E_r
+      .. math:: F_r = - \frac{c\lambda}{\kappa_R} \nabla E_r
 
       where :math:`\lambda` is the flux limiter.
 
@@ -8885,7 +8688,7 @@ radiation.n_bisect = 1000
 
 radiation.use_dkdT = 1
     | 
-    | If it is 1, :math:`1{\partial \kappa}{\partial T}` is retained in the
+    | If it is 1, :math:`\frac{\partial \kappa}{\partial T}` is retained in the
       Jacobi matrix for the outer (Newton) iteration.
 
 radiation.update_opacity = 1000
@@ -8911,7 +8714,7 @@ performance of the solvers usually depends on problems and the
 computer. So it is worth trying a few solvers to find out which one
 is best for your problem and computer.
 
-: the linear solver
+radsolve.level_solver_flag: the linear solver
 in Hypre to use. The available choices are:
 
 -  0: SMG
@@ -8942,25 +8745,25 @@ you cannot use PFMG.
 Setting this to 109 (GMRES using Struct SMG/PFMG as preconditioner)
 should work reasonably well for most problems.
 
-(default: 40):
+radsolve.maxiter (default: 40):
 Maximal number of iteration in Hypre.
 
-(default: 1.e-10):
+radsolve.reltol (default: 1.e-10):
 Relative tolerance in Hypre
 
-(default: 0):
+radsolve.abstol (default: 0):
 Absolute tolerance in Hypre
 
-(default: 0):
+radsolve.v (default: 0):
 Verbosity
 
-(default: 0):
+radsolve.verbos (default: 0):
 Verbosity
 
-(default: 0):
+habec.verbose (default: 0):
 Verbosity for level_solver_flag :math:`<` 100
 
-(default: 0):
+hmabec.verbose (default: 0):
 Verbosity for level_solver_flag :math:`>=` 100
 
 Output
@@ -9233,7 +9036,7 @@ the burning has completed. The nuclear energy release can be computed by
 taking the difference of burn_state_out % e and
 burn_state_in % e. The species change can be computed analogously.
 In normal operation in Castro  the integration occurs over a time interval
-of :math:`tt/2`, where :math:`tt` is the hydrodynamics timestep.
+of :math:`\Delta t/2`, where :math:`\Delta t` is the hydrodynamics timestep.
 
 If you are interested in using actual nuclear burning networks,
 you should download the `Microphysics <https://github.com/starkiller-astro/Microphysics>`__
@@ -9293,33 +9096,33 @@ needs to supply:
    specific enthalpy with respect to mass fraction at constant
    :math:`T` and :math:`p`. This is commonly computed as:
 
-   .. math:: \xi_k = e_{X_k} + 1{1}{p_\rho} \left (1{p}{\rho^2} - e_\rho \right ) p_{X_k}\enskip .
+   .. math:: \xi_k = e_{X_k} + \frac{1}{p_\rho} \left (\frac{p}{\rho^2} - e_\rho \right ) p_{X_k}\enskip .
 
    with
 
    .. math::
 
       \begin{aligned}
-      p_{X_k} &=& \left .1{\partial p}{\partial \bar{A}} \right |_{\rho, T, \bar{Z}}
-                1{\partial \bar{A}}{\partial X_k} +
-                \left . 1{\partial p}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
-                1{\partial \bar{Z}}{\partial X_k} \nonumber \\
-              &=& -1{\bar{A}^2}{A_k}
-                \left .1{\partial p}{\partial \bar{A}} \right |_{\rho, T, \bar{Z}} +
-                1{\bar{A}}{A_k} \left (Z_k - \bar{Z} \right )
-                \left . 1{\partial p}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}\enskip,\end{aligned}
+      p_{X_k} &=& \left .\frac{\partial p}{\partial \bar{A}} \right |_{\rho, T, \bar{Z}}
+                \frac{\partial \bar{A}}{\partial X_k} +
+                \left . \frac{\partial p}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
+                \frac{\partial \bar{Z}}{\partial X_k} \nonumber \\
+              &=& -\frac{\bar{A}^2}{A_k}
+                \left .\frac{\partial p}{\partial \bar{A}} \right |_{\rho, T, \bar{Z}} +
+                \frac{\bar{A}}{A_k} \left (Z_k - \bar{Z} \right )
+                \left . \frac{\partial p}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}\enskip,\end{aligned}
 
    .. math::
 
       \begin{aligned}
-      e_{X_k} &=& \left . 1{\partial e }{\partial \bar{A}} \right |_{\rho, T, \bar{Z}}
-              1{\partial \bar{A}}{\partial X_k} +
-              \left .1{\partial e}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
-              1{\partial \bar{Z}}{\partial X_k} \nonumber \\
-              &=& -1{\bar{A}^2}{A_k}
-              \left . 1{\partial e }{\partial \bar{A}} \right |_{\rho, T, \bar{Z}} +
-              1{\bar{A}}{A_k} \left (Z_k - \bar{Z}\right )
-              \left .1{\partial e}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}\enskip.\end{aligned}
+      e_{X_k} &=& \left . \frac{\partial e }{\partial \bar{A}} \right |_{\rho, T, \bar{Z}}
+              \frac{\partial \bar{A}}{\partial X_k} +
+              \left .\frac{\partial e}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
+              \frac{\partial \bar{Z}}{\partial X_k} \nonumber \\
+              &=& -\frac{\bar{A}^2}{A_k}
+              \left . \frac{\partial e }{\partial \bar{A}} \right |_{\rho, T, \bar{Z}} +
+              \frac{\bar{A}}{A_k} \left (Z_k - \bar{Z}\right )
+              \left .\frac{\partial e}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}\enskip.\end{aligned}
 
 (see :raw-latex:`\cite{maestro:III}`, Appendix A).
 
@@ -9363,27 +9166,27 @@ describes the process by which zones are tagged, and describes how to
 add customized tagging criteria.
 
 The routines for tagging cells are located in the
-file in the Source/driver/ directory. (These are
+Tagging_nd.f90 file in the Source/driver/ directory. (These are
 dimension-agnostic routines that loop over all three dimensional
 indices even for 1D or 2D problems.) The main routines are
-, , ,
-, and . They refine based on
+ca_denerror, ca_temperror, ca_presserror,
+ca_velerror, and ca_raderror. They refine based on
 density, temperature, pressure, velocity, and radiation energy density
 (if enabled), respectively. The same approach is used for all of
 them. As an example, we consider the density tagging routine. There
 are four parameters that control tagging. If the density in a zone is
-greater than the user-specified parameter , then that
+greater than the user-specified parameter denerr, then that
 zone will be tagged for refinement, but only if the current AMR level
-is less than the user-specified parameter .
+is less than the user-specified parameter max_denerr_lev.
 Similarly, if the absolute density gradient between a zone and any
 adjacent zone is greater than the user-specified parameter
-, that zone will be tagged for refinement, but only
+dengrad, that zone will be tagged for refinement, but only
 if we are currently on a level below
-. Note that setting denerr alone
+max_dengrad_lev. Note that setting denerr alone
 will not do anything; you’ll need to set max_dengrad_lev :math:`>=
 1` for this to have any effect.
 
-All four of these parameters are set in the namelist
+All four of these parameters are set in the &tagging namelist
 in your probin file. If left unmodified, they
 default to a value that means we will never tag. The complete set of
 parameters that can be controlled this way is the following:
@@ -9443,8 +9246,8 @@ ca_denerror, ca_temperror, etc. operate. This is not recommended, and if you do 
 be aware that CLEARing a zone this way may not have the desired effect.
 
 We provide also the ability for the user to define their own tagging criteria.
-This is done through the Fortran function in the
-files. This function is provided the entire
+This is done through the Fortran function set_problem_tags in the
+problem_tagging_d.f90 files. This function is provided the entire
 state (including density, temperature, velocity, etc.) and the array
 of tagging status for every zone. As an example of how to use this, suppose we
 have a 3D Cartesian simulation where we want to tag any zone that has a
@@ -9525,15 +9328,15 @@ Synchronization Methodology
 Over a coarse grid time step we collect flux register information for
 the hyperbolic part of the synchronization:
 
-.. math:: \delta{\bf F}= -tt_c A^c F^c + \sum tt_f A^f F^f
+.. math:: \delta\Fb = -\Delta t_c A^c F^c + \sum \Delta t_f A^f F^f
 
 Analogously, at the end of a coarse grid time step we store the
 mismatch in normal gradients of :math:`\phi` at the coarse-fine interface:
 
 .. math::
 
-   \delta F_\phi =  - A^c 1{\partial \phi^c}{\partial n}
-   + \sum A^f 1{\partial \phi^f}{\partial n}
+   \delta F_\phi =  - A^c \frac{\partial \phi^c}{\partial n}
+   + \sum A^f \frac{\partial \phi^f}{\partial n}
 
 We want the composite :math:`\phi^{c-f}` to satisfy the multilevel
 version of (`[eq:Self Gravity] <#eq:Self Gravity>`__) at the synchronization time, just
@@ -9542,9 +9345,9 @@ is to synchronize :math:`\phi` across levels at that time and then zero out
 this mismatch register.
 
 At the end of a coarse grid time step we can define
-:math:`{\overline{{\bf U}}}^{c-f}` and :math:`\overline{\phi}^{c-f}` as the composite
+:math:`{\overline{\Ub}}^{c-f}` and :math:`\overline{\phi}^{c-f}` as the composite
 of the data from coarse and fine grids as a provisional solution at
-time :math:`n+1`. (Assume :math:`\overline{{\bf U}}` has been averaged down so that
+time :math:`n+1`. (Assume :math:`\overline{\Ub}` has been averaged down so that
 the data on coarse cells underlying fine cells is the average of the
 fine cell data above it.)
 
@@ -9554,12 +9357,12 @@ The synchronization consists of two parts:
 
    In the hyperbolic reflux step, we update the conserved variables with
    the flux synchronization and adjust the gravitational terms to reflect
-   the changes in :math:`\rho` and :math:`{\bf u}`.
+   the changes in :math:`\rho` and :math:`\ub`.
 
-   .. math:: {{\bf U}}^{c, \star} = \overline{{\bf U}}^{c} + 1{\delta{\bf F}}{V},
+   .. math:: {\Ub}^{c, \star} = \overline{\Ub}^{c} + \frac{\delta\Fb}{V},
 
    where :math:`V` is the volume of the cell and the correction from
-   :math:`\delta{\bf F}` is supported only on coarse cells adjacent to fine grids.
+   :math:`\delta\Fb` is supported only on coarse cells adjacent to fine grids.
 
    Note: this can be enabled/disabled via castro.do_reflux. Generally,
    it should be enabled (1).
@@ -9574,7 +9377,7 @@ The synchronization consists of two parts:
 
    In this step we correct for the mismatch in normal derivative in
    :math:`\phi^{c-f}` at the coarse-fine interface, as well as accounting for
-   the changes in source terms for :math:`(\rho {\bf u})` and :math:`(\rho E)` due to the
+   the changes in source terms for :math:`(\rho \ub)` and :math:`(\rho E)` due to the
    change in :math:`\rho.`
 
    On the coarse grid only, we define
@@ -9589,14 +9392,14 @@ The synchronization consists of two parts:
 
    .. math::
 
-      R \equiv  4 \pi G \rho^{\star,c-f} - t^{c-f} \; \overline{\phi}^{c-f} 
+      R \equiv  4 \pi G \rho^{\star,c-f} - \Delta^{c-f} \; \overline{\phi}^{c-f} 
       = - 4 \pi G (\delta \rho)^c - (\nabla \cdot \delta F_\phi ) |_c   .
 
    Then we solve
 
    .. math::
 
-      t^{c-f} \; \delta \phi^{c-f} = R
+      \Delta^{c-f} \; \delta \phi^{c-f} = R
       \label{eq:gravsync}
 
    as a two level solve at the coarse and fine levels.
@@ -9617,7 +9420,7 @@ The synchronization consists of two parts:
       .. math::
 
          \delta {F_\phi}^{cc-c} = \delta F_\phi^{cc-c} 
-         + \sum A^c 1{\partial (\delta \phi)^{c-f}}{\partial n}  .
+         + \sum A^c \frac{\partial (\delta \phi)^{c-f}}{\partial n}  .
 
    The gravity synchronization algorithm can be disabled with
    gravity.no_sync = 1. This should be done with care. Generally,
@@ -9761,7 +9564,7 @@ modification being that the flux register contribution from the coarse
 grid is appropriately weighted by the fine grid timestep instead of
 the coarse grid timestep, and we only include the current fine step:
 
-.. math:: \delta{\bf F}= -tt_f A^c F^c + tt_f A^f F^f
+.. math:: \delta\Fb = -\Delta t_f A^c F^c + \Delta t_f A^f F^f
 
 The form of the :math:`\phi` flux register remains unchanged, because the
 intent of the gravity sync solve is to simply instantaneously correct
@@ -9794,10 +9597,10 @@ level 2), a synchronization after the next two timesteps on level 2
 between level 0 and level 1. In the new method, we always call the
 synchronization at the end of every timestep *on the finest level
 only*, and we simultaneously do the synchronization *on every
-level*. The timestep :math:`tt_f` in the flux register is just the
+level*. The timestep :math:`\Delta t_f` in the flux register is just the
 timestep on the finest level. (If this is unclear, give it a sanity
 check: when the sum of all flux register totals is added up, the level
-0 contribution will have a factor of :math:`tt` equal to the coarse
+0 contribution will have a factor of :math:`\Delta t` equal to the coarse
 grid timestep since the sum of the timesteps on the finest level over
 the entire advance must equal the level 0 timestep. So, the final
 contribution from the flux register is the same as if we had saved up
@@ -10301,7 +10104,7 @@ Controlling What’s in the PlotFile
 There are a few options that can be set at runtime to control what
 variables appear in the plotfile.
 
--  : this controls which of the main
+-  amr.plot_vars : this controls which of the main
    state variables appear in the plotfile. The default is for all of
    them to be stored. But you can specify a subset by name, e.g.
 
@@ -10312,12 +10115,12 @@ variables appear in the plotfile.
 
    to only store that subset.
 
--  : this controls which of the
+-  amr.derive_plot_vars : this controls which of the
    derived variables to be stored in the plotfile. Derived variables
    are created only when the plotfile is being created, using the
    infrastructure provided by BoxLib to register variables and the
    associated Fortran routine to do the deriving
-   ().
+   (Derive_nd.F90).
 
    By default, no derived variables are stored. You can store all
    derived variables that Castro knows about by doing:
@@ -11261,7 +11064,7 @@ exact Riemann solver from Toro :raw-latex:`\cite{toro:1997}`, Chapter 4.
 Sod’s Problem
 ^^^^^^^^^^^^^
 
-The problem :raw-latex:`\cite{sod:1978}` is a simple shock tube problem that
+The Sod problem :raw-latex:`\cite{sod:1978}` is a simple shock tube problem that
 exhibits a shock, contact discontinuity, and a rarefaction wave.
 The initial conditions are:
 
@@ -11535,7 +11338,7 @@ fextract named test3x.out, test3y.out, and test3z.out.
 Sedov Problem
 ~~~~~~~~~~~~~
 
-The (or Sedov-Taylor) blast wave is a standard hydrodynamics
+The Sedov (or Sedov-Taylor) blast wave is a standard hydrodynamics
 test problem. A large amount of energy is placed into a very small
 volume, driving a spherical (or cylindrical in 2-d Cartesian
 coordinates) blast wave. Analytic solutions were found by Sedov
@@ -11566,7 +11369,7 @@ and the references therein)
 is to convert the explosion energy into a pressure contained within a
 certain volume, :math:`V_\mathrm{init}`, of radius :math:`r_\mathrm{init}` as
 
-.. math:: p_\mathrm{init} = 1{(\gamma - 1) E_\mathrm{exp}}{V_\mathrm{init}} \enskip .
+.. math:: p_\mathrm{init} = \frac{(\gamma - 1) E_\mathrm{exp}}{V_\mathrm{init}} \enskip .
 
 This pressure is then deposited in all of the cells where :math:`r <
 r_\mathrm{init}`.
@@ -11659,11 +11462,11 @@ Rayleigh-Taylor
 2D. Domain size 0.5 by 1.0. 256 by 512 cells, single level
 calculation. Periodic in x, solid walls on top and bottom in y.
 Gamma law gas with :math:`\gamma=1.4`, no reactions. Zero initial velocity.
-Constant :math:`|{\bf g}|=1`. The density profile is essentially :math:`\rho=1` on
+Constant :math:`|\gb|=1`. The density profile is essentially :math:`\rho=1` on
 bottom, :math:`\rho=2` on top, but with a perturbation. A single-mode
 perturbation is constructed as:
 
-.. math:: \tilde y(x) = 0.5 + 0.01 1{\cos(4\pi x) + \cos(4\pi(L_x - x))}{2}
+.. math:: \tilde y(x) = 0.5 + 0.01 \frac{\cos(4\pi x) + \cos(4\pi(L_x - x))}{2}
 
 We note that the symmetric form of the cosine is done to ensure that
 roundoff error does not introduce a left-right asymmetry in the problem.
@@ -11671,7 +11474,7 @@ Without this construction, the R-T instability will lose its symmetry
 as it evolves. This then applied to the interface with a tanh profile
 to smooth the transition between the high and low density material:
 
-.. math:: \rho(x,y) = 1 + 0.5\left[1+\tanh\left(1{y-\tilde y(x)}{0.005}\right)\right]
+.. math:: \rho(x,y) = 1 + 0.5\left[1+\tanh\left(\frac{y-\tilde y(x)}{0.005}\right)\right]
 
 Hydrostatic pressure with :math:`p=5.0` at bottom of domain, assuming
 :math:`\rho=1` on the lower half of the domain, and :math:`\rho=2` on the upper
@@ -11702,8 +11505,8 @@ of:
 
 .. math::
 
-   1{\partial E_R}{\partial t} = 
-    \nabla \cdot \left ( 1{c \lambda(E_R)}{\kappa_R} \nabla E_R \right ) +
+   \frac{\partial E_R}{\partial t} = 
+    \nabla \cdot \left ( \frac{c \lambda(E_R)}{\kappa_R} \nabla E_R \right ) +
     \kappa_P (4 \sigma T^4 - c E_R )
 
 Here, :math:`E_R` is the radiation energy density, :math:`\kappa_R` is the
@@ -11729,12 +11532,12 @@ The diffusion of a Gaussian pulse problem tests the diffusion term in
 the radiation energy equation. The radiation energy density is
 initialized at time :math:`t = t_0` to a Gaussian distribution:
 
-.. math:: E_R = (E_R)_0 \exp \left \{ - 1{1}{4 D t_0} |r - r_0|^2 \right \} \enskip .
+.. math:: E_R = (E_R)_0 \exp \left \{ - \frac{1}{4 D t_0} |r - r_0|^2 \right \} \enskip .
 
 As the radiation diffuses, the overall distribution will remain
 Gaussian, with the time-dependent solution of:
 
-.. math:: E_R = (E_R)_0 1{t_0}{t_0 + t} \exp \left \{ -1{1}{4 D (t_0 + t)} |r - r_0|^2 \right \}
+.. math:: E_R = (E_R)_0 \frac{t_0}{t_0 + t} \exp \left \{ -\frac{1}{4 D (t_0 + t)} |r - r_0|^2 \right \}
 
 Radiation Source Problem
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -11769,7 +11572,7 @@ Our implementation of this problem follows that of
 Radiating Sphere
 ~~~~~~~~~~~~~~~~
 
-The radiating sphere () is a multigroup radiation
+The radiating sphere (RadSphere) is a multigroup radiation
 test problem. A hot sphere is centered at the origin in a spherical
 geometry. The spectrum from this sphere follows a Planck
 distribution. The ambient medium is at a much lower temperature. A
@@ -11901,10 +11704,10 @@ Details of its use are provided in the BoxLib User’s Guide.
 
 .. [4]
    Note: some older code will use a special AMReX preprocessor macro,
-   , defined in , that converts
+   BL_TO_FORTRAN, defined in ArrayLim.H, that converts
    the C multifab into a Fortran array and its lo and hi indices.
    Additionally, some older code will wrap the Fortran subroutine name
-   in an additional preprocessor macro,
+   in an additional preprocessor macro, BL_FORT_PROC_CALL
    to handle the name mangling between Fortran and C. This later
    macro is generally not needed any more because of Fortran 2003
    interoperability with C (through the Fortran bind keyword).
@@ -11921,7 +11724,7 @@ Details of its use are provided in the BoxLib User’s Guide.
    compared to the actual code
 
 .. [7]
-   the integer values are defined in
+   the integer values are defined in BC_TYPES.H
 
 .. [8]
    available separately at
@@ -11977,7 +11780,7 @@ Details of its use are provided in the BoxLib User’s Guide.
 .. [17]
    If this scheme
    is generalized to higher-order methods, in principle all one would need
-   to do is integrate the fluxes until :math:`tt / 2`, which is what we are
+   to do is integrate the fluxes until :math:`\Delta t / 2`, which is what we are
    doing here for the constant-in-time flux case.
 
 .. |A model atmosphere (*left* panel) and the trajectories of 500 particles (*right* panel) following the fluid motion on the atmosphere. The particles are initially positioned at five different heights, :math:`y=13000\mathrm{~km},~11000\mathrm{~km},~ 8000\mathrm{~km},~ 6000\mathrm{~km}, ~38000\mathrm{~km}` (100 particles at each height). In the *left* panel, the arrows roughly show the fluid motion. In the *right* panel, the solid lines represent the trajectories of the particles. | image:: fluid_motion

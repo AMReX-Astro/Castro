@@ -11,7 +11,7 @@ BoxLib ParmParse class infrastructure.
 The second inputs file, typically named probin is used by the Fortran code that initializes the problem
 setup. It is read at problem initialization (via a Fortran
 namelist) and the problem-specific quantities are stored in a
-Fortran module defined in the problem’s
+Fortran module probdata_module defined in the problem’s
 probdata.f90 file.
 
 Only the inputs file is specified on the commandline. The
@@ -35,7 +35,7 @@ probin file:
 
 -  &extern is used to set different microphysics options
 
--  &tagging is used to get the parameters (defined in )
+-  &tagging is used to get the parameters (defined in tagging_module)
    that affect how we tag for refinement.
 
 Common inputs Options
@@ -53,20 +53,20 @@ Problem Geometry
 The geometry namespace is used by BoxLib to define the
 computational domain. The main parameters here are:
 
--  : physical location of low corner of the
+-  geometry.prob_lo: physical location of low corner of the
    domain (type: Real; must be set)
 
    Note: a number is needed for each dimension in the problem
 
--  : physical location of high corner of the
+-  geometry.prob_hi: physical location of high corner of the
    domain (type: Real; must be set)
 
    Note: a number is needed for each dimension in the problem
 
--  : coordinate system, 0 = Cartesian,
+-  geometry.coord_sys: coordinate system, 0 = Cartesian,
    1 = :math:`r`-:math:`z` (2-d only), 2 = spherical (1-d only) (must be set)
 
--  : is the domain periodic in this direction?
+-  geometry.is_periodic: is the domain periodic in this direction?
    0 if false, 1 if true (default: 0 0 0)
 
    Note: an integer is needed for each dimension in the problem
@@ -142,19 +142,19 @@ The grid resolution is specified by defining the resolution at the
 coarsest level (level 0) and the number of refinement levels and
 factor of refinement between levels. The relevant parameters are:
 
--  : number of cells in each direction at the
+-  amr.n_cell: number of cells in each direction at the
    coarsest level (Integer :math:`> 0`; must be set)
 
--  : number of levels of refinement above the
+-  amr.max_level: number of levels of refinement above the
    coarsest level (Integer :math:`\geq 0`; must be set)
 
--  : ratio of coarse to fine grid spacing
+-  amr.ref_ratio: ratio of coarse to fine grid spacing
    between subsequent levels (2 or 4; must be set)
 
--  : how often (in terms of number of steps)
+-  amr.regrid_int: how often (in terms of number of steps)
    to regrid (Integer; must be set)
 
--  : should we regrid immediately
+-  amr.regrid_on_restart: should we regrid immediately
    after restarting? (0 or 1; default: 0)
 
 Note: if amr.max_level = 0 then you do not need to set
@@ -218,7 +218,7 @@ grids that contain the tagged cells.
 
 The relevant runtime parameters are:
 
--  : name of file from which to read the
+-  amr.regrid_file: name of file from which to read the
    grids (text; default: no file)
 
    If set to a filename, e.g. fixed_girds, then list of grids
@@ -227,16 +227,16 @@ The relevant runtime parameters are:
    amr.max_grid_size criterion. The rest of the gridding procedure
    described below will not occur if amr.regrid_file is set.
 
--  : radius of additional tagging
+-  amr.n_error_buf: radius of additional tagging
    around already tagged cells (Integer :math:`\geq 0`; default: 1)
 
--  : maximum size of a grid in any
+-  amr.max_grid_size: maximum size of a grid in any
    direction (Integer :math:`> 0`; default: 128 (2-d), 32 (3-d))
 
    Note: amr.max_grid_size must be even, and a multiple of
    amr.blocking_factor at every level.
 
--  : grid size must be a multiple of this
+-  amr.blocking_factor: grid size must be a multiple of this
    (Integer :math:`> 0`; default: 2)
 
    Note: amr.blocking_factor at every level must be a power of
@@ -248,7 +248,7 @@ The relevant runtime parameters are:
    multigrid algorithm to coarsen more at the lowest level, reducing
    the amount of work required by the bottom solver.
 
--  : grid efficiency (Real :math:`>0` and :math:`<1`;
+-  amr.grid_eff: grid efficiency (Real :math:`>0` and :math:`<1`;
    default: 0.7)
 
    When creating a refined grid, do we make boxes that only include
@@ -263,7 +263,7 @@ The relevant runtime parameters are:
    by blocking_factor, so it is no longer strictly this fraction,
    but the idea is still the same.
 
--  | : refine grids more if # of
+-  | amr.refine_grid_layout: refine grids more if # of
      processors :math:`>` # of grids (0 if false, 1 if true; default: 1)
 
 Note also that amr.n_error_buf, amr.max_grid_size and
@@ -339,10 +339,10 @@ Simulation Time
 
 There are two paramters that can define when a simulation ends:
 
--  : maximum number of level 0 time steps (Integer
+-  max_step: maximum number of level 0 time steps (Integer
    :math:`\geq 0`; default: -1)
 
--  : final simulation time (Real :math:`\geq 0`; default:
+-  stop_time: final simulation time (Real :math:`\geq 0`; default:
    -1.0)
 
 To control the number of time steps, you can limit by the maximum
@@ -389,25 +389,25 @@ If method-of-lines integration is used instead, then we have
 
 The following parameters affect the timestep choice:
 
--  : CFL number (Real :math:`> 0` and :math:`\leq 1`;
+-  castro.cfl: CFL number (Real :math:`> 0` and :math:`\leq 1`;
    default: 0.8)
 
--  : factor by which to shrink the initial
+-  castro.init_shrink: factor by which to shrink the initial
    time step (Real :math:`> 0` and :math:`\leq 1`; default: 1.0)
 
--  : factor by which the time step can
+-  castro.change_max: factor by which the time step can
    grow in subsequent steps (Real :math:`\geq 1`; default: 1.1)
 
--  : level 0 time step regardless of cfl
+-  castro.fixed_dt: level 0 time step regardless of cfl
    or other settings (Real :math:`> 0`; unused if not set)
 
--  : initial level 0 time
+-  castro.initial_dt: initial level 0 time
    step regardless of other settings (Real :math:`> 0`; unused if not set)
 
--  : time step below which calculation
+-  castro.dt_cutoff: time step below which calculation
    will abort (Real :math:`> 0`; default: 0.0)
 
--  : whether or not to abort the
+-  castro.hard_cfl_limit: whether or not to abort the
    simulation if the hydrodynamics update creates velocities that
    violate the CFL criterion (Integer; default: 1)
 
@@ -452,7 +452,7 @@ sets the *initial* level 0 time step to be :math:`10^{-4}` regardless of
 castro.cfl or castro.fixed_dt. The time step can
 grow in subsequent steps by a factor of castro.change_max each step.
 
-[] If diffusion is enabled, the timestep will also
+[DIFFUSION] If diffusion is enabled, the timestep will also
 be limited by:
 
 .. math::
@@ -465,7 +465,7 @@ where :math:`D \equiv k / (\rho c_V)` if we are diffusing temperature, and
 :math:`D \equiv k / (\rho c_P)` if we are diffusing enthalpy. No input parameter
 is necessary to enable this constraint. See Chapter `[ch:diffusion] <#ch:diffusion>`__ for more details.
 
-[] If reactions are enabled, the timestep will also
+[REACTIONS] If reactions are enabled, the timestep will also
 be limited by two constraints:
 
 .. math:: \Delta t = \mathtt{dtnuc\_e}\, \min_{i,j,k} \left\{\frac{e_{i,j,k}}{\dot{e}_{i,j,k}}\right\}
@@ -474,7 +474,7 @@ be limited by two constraints:
 
 where :math:`e` is the internal energy, and :math:`X^n` is the mass fraction of
 the :math:`n`\ th species. The safety factors correspond to the runtime parameters
-and . These limiters
+castro.dtnuc_e and castro.dtnuc_X. These limiters
 say that the timestep must be small enough so that no zone can change
 its internal energy by more than the fraction in one
 step, and so that no zone can change the abundance of any isotope by
@@ -483,7 +483,7 @@ more than the fraction in one step. The time derivatives
 of the nuclear network given the state at the time the timestep limiter
 is being calculated. (We use a small number floor to prevent division by zero.)
 To prevent the timestep from being dominated by trace species, there is
-an additional option which is the
+an additional option castro.dtnuc_X_threshold which is the
 mass fraction threshold below which a species will not be considered in
 the timestep constraint. and are set to
 a large number by default, effectively disabling them. Typical choices
@@ -493,7 +493,7 @@ Subcycling
 ----------
 
 Castro supports a number of different modes for subcycling in time,
-set via .
+set via amr.subcycling_mode.
 
 -  amr.subcycling_mode = Auto (default): the code will run
    with equal refinement in space and time. In other words, if level
@@ -506,7 +506,7 @@ set via .
    the deprecated command amr.nosub = 1.
 
 -  If amr.subcycling_mode = Manual: the code will subcycle
-   according to the values supplied by .
+   according to the values supplied by amr.subcycling_iterations.
 
 In the case of amr.subcycling_mode = Manual, we subcycle in
 manual mode with largest allowable timestep. The number of iterations
@@ -535,13 +535,13 @@ Castro has a standard sort of checkpointing and restarting capability.
 In the inputs file, the following options control the generation of
 checkpoint files (which are really directories):
 
--  : prefix for restart files (text;
+-  amr.check_file: prefix for restart files (text;
    default: chk)
 
--  : how often (by level 0 time steps) to
+-  amr.check_int: how often (by level 0 time steps) to
    write restart files (Integer :math:`> 0`; default: -1)
 
--  : how often (by simulation time) to
+-  amr.check_per: how often (by simulation time) to
    write restart files (Real :math:`> 0`; default: -1.0)
 
    Note that amr.check_per will write a checkpoint at the first
@@ -549,26 +549,26 @@ checkpoint files (which are really directories):
    In particular, the timestep is not modified to match this interval, so
    you won’t get a checkpoint at exactly the time you requested.
 
--  : name of the file (directory) from
+-  amr.restart: name of the file (directory) from
    which to restart (Text; not used if not set)
 
--  : should we write
+-  amr.checkpoint_files_output: should we write
    checkpoint files? (0 or 1; default: 1)
 
    If you are doing a scaling study then set
    amr.checkpoint_files_output = 0 so you can test scaling of the
    algorithm without I/O.
 
--  : how parallel is the writing of
+-  amr.check_nfiles: how parallel is the writing of
    the checkpoint files? (Integer :math:`\geq 1`; default: 64)
 
    See the § \ `[software:io] <#software:io>`__ for more details on parallel I/O and the
    amr.check_nfiles parameter.
 
--  : should we write a
+-  amr.checkpoint_on_restart: should we write a
    checkpoint immediately after restarting? (0 or 1; default: 0)
 
--  : factor by which domain has been
+-  castro.grown_factor: factor by which domain has been
    grown (Integer :math:`\geq 1`; default: 1)
 
 Note:
@@ -623,13 +623,13 @@ The main output from Castro is in the form of plotfiles (which are
 really directories). The following options in the inputs file control
 the generation of plotfiles:
 
--  : prefix for plotfiles (text; default:
+-  amr.plot_file: prefix for plotfiles (text; default:
    “plt”)
 
--  : how often (by level-0 time steps) to
+-  amr.plot_int: how often (by level-0 time steps) to
    write plot files (Integer :math:`> 0`; default: -1)
 
--  : how often (by simulation time) to write
+-  amr.plot_per: how often (by simulation time) to write
    plot files (Real :math:`> 0`; default: -1.0)
 
    Note that amr.plot_per will write a plotfile at the first
@@ -637,31 +637,31 @@ the generation of plotfiles:
    In particular, the timestep is not modified to match this interval, so
    you won’t get a checkpoint at exactly the time you requested.
 
--  : name of state variables to include in
+-  amr.plot_vars: name of state variables to include in
    plotfiles (valid options: ALL, NONE or a list; default:
    ALL)
 
--  : name of derived variables to
+-  amr.derive_plot_vars: name of derived variables to
    include in plotfiles (valid options: ALL, NONE or a
    list; default: NONE
 
--  : should we write plot files?
+-  amr.plot_files_output: should we write plot files?
    (0 or 1; default: 1)
 
    If you are doing a scaling study then set
    amr.plot_files_output = 0 so you can test scaling of the
    algorithm without I/O.
 
--  : should we write a plotfile
+-  amr.plotfile_on_restart: should we write a plotfile
    immediately after restarting? (0 or 1; default: 0)
 
--  : how parallel is the writing of the
+-  amr.plot_nfiles: how parallel is the writing of the
    plotfiles? (Integer :math:`\geq 1`; default: 64)
 
    See the Software Section for more details on parallel I/O and the
    amr.plot_nfiles parameter.
 
--  : include all the species mass
+-  castro.plot_X: include all the species mass
    fractions in the plotfile (0 or 1; default: 0)
 
 All the options for amr.derive_plot_vars are kept in
@@ -707,28 +707,28 @@ Screen Output
 There are several options that set how much output is written to the
 screen as Castro runs:
 
--  : verbosity of Amr.cpp (0 or 1; default: 0)
+-  amr.v: verbosity of Amr.cpp (0 or 1; default: 0)
 
--  : verbosity of Castro.cpp (0 or 1; default: 0)
+-  castro.v: verbosity of Castro.cpp (0 or 1; default: 0)
 
--  : verbosity of Gravity.cpp (0 or 1; default: 0)
+-  gravity.v: verbosity of Gravity.cpp (0 or 1; default: 0)
 
--  : verbosity of Diffusion.cpp (0 or 1;
+-  diffusion.v: verbosity of Diffusion.cpp (0 or 1;
    default: 0)
 
--  : verbosity of multigrid solver (for gravity) (allow
+-  mg.v: verbosity of multigrid solver (for gravity) (allow
    values: 0,1,2,3,4; default: 0)
 
--  : name of the file to which the grids are
+-  amr.grid_log: name of the file to which the grids are
    written (text; not used if not set)
 
--  : name of the file to which certain output is
+-  amr.run_log: name of the file to which certain output is
    written (text; not used if not set)
 
--  : name of the file to which certain
+-  amr.run_log_terse: name of the file to which certain
    (terser) output is written (text; not used if not set)
 
--  : if :math:`> 0`, how often (in level-0 time
+-  amr.sum_interval: if :math:`> 0`, how often (in level-0 time
    steps) to compute and print integral quantities (Integer; default: -1)
 
    The integral quantities include total mass, momentum and energy in
@@ -743,7 +743,7 @@ screen as Castro runs:
    for example. If this line is commented out then
    it will not compute and print these quanitities.
 
--  : allows the user to set a
+-  castro.do_special_tagging: allows the user to set a
    special flag based on user-specified criteria (0 or 1; default: 1)
 
    castro.do_special_tagging = 1 can be used, for example, to

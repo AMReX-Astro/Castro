@@ -135,11 +135,11 @@ Floating point data
 
 Floating point data in the C AMReX frame work is declared as
 Real. This is typedef to either float or
-double depending on the make variable .
+double depending on the make variable PRECISION.
 
 The corresponding type for Fortran is provided by the
-as . We typically rename
-this to when using it. An example of a declaration of a
+bl_fort_module as c_real. We typically rename
+this to rt when using it. An example of a declaration of a
 parameter is:
 
 ::
@@ -169,7 +169,7 @@ example of three boxes at the same level of refinement.
 
 AMReX provides other data structures that collect Boxes together,
 most importantly the . We generally do not use these
-directly, with the exception of the BoxArray ,
+directly, with the exception of the BoxArray grids,
 which is defined as part of the AmrLevel class that Castro
 inherits. grids is used when building new MultiFabs to give
 the layout of the boxes at the current level.
@@ -246,7 +246,7 @@ we want it to be automatically interpolated when we refine.
 An AmrLevel stores an array of StateData (in a C array
 called state). We index this array using integer keys (defined
 via an enum in Castro.H). The state data is registered
-with AMReX in .
+with AMReX in Castro_setup.cpp.
 
 Note that each of the different StateData carried in the state
 array can have different numbers of components, ghost cells, boundary
@@ -256,14 +256,14 @@ array.
 
 The current StateData names Castro carries are:
 
--  : this is the NUM_STATE hydrodynamics
+-  State_Type : this is the NUM_STATE hydrodynamics
    components that make up the conserved hydrodynamics state (usually
-   referred to as :math:`{\bf U}` in these notes. But note that this does
+   referred to as :math:`\Ub` in these notes. But note that this does
    not include the radiation energy density.
 
    In Fortran, the components of a FAB derived from State_Type
-   is indexed using the integer keys defined in
-   and stored in , e.g., URHO, UMX,
+   is indexed using the integer keys defined in Castro_nd.F90
+   and stored in meth_params_module, e.g., URHO, UMX,
    UMY, ...
 
    Note: regardless of dimensionality, we always carry around all
@@ -274,39 +274,39 @@ The current StateData names Castro carries are:
    State_Type MultiFabs have no ghost cells by default for
    pure hydro and a single ghost cell by default when RADIATION
    is enabled. There is an option to force them to have ghost cells by
-   setting the parameter at runtime.
+   setting the parameter castro.state_nghost at runtime.
 
    Note that the prediction of the hydrodynamic state to the interface
    will require 4 ghost cells. This accomodated by creating a separate
-   MultiFab, that lives at the old-time level and
+   MultiFab, Sborder that lives at the old-time level and
    has the necessary ghost cells. We will describe this more later.
 
--  : this stores the radiation energy density,
-   commonly denoted :math:`E_r` in these notes. It has
+-  Rad_Type : this stores the radiation energy density,
+   commonly denoted :math:`E_r` in these notes. It has nGroups
    components—the number of energy groups used in the multigroup
    radiation hydrodynamics approximation.
 
--  : this is simply the gravitational
+-  PhiGrav_Type : this is simply the gravitational
    potential, usually denoted :math:`\Phi` in these notes.
 
--  : this is the gravitational
+-  Gravity_Type : this is the gravitational
    acceleration. There are always 3 components, regardless of the
    dimensionality (consistent with our choice of always carrying all 3
    velocity components).
 
--  : this is the rotational potential.
+-  PhiRot_Type : this is the rotational potential.
    When rotation is enabled, this will store the effective potential
    corresponding to the centrifugal force.
 
--  : this is the rotational acceleration.
+-  Rotation_Type : this is the rotational acceleration.
    There are always 3 components, regardless of the dimensionality
    (consistent with our choice of always carrying all 3 velocity
    components). This includes the terms corresponding to the Coriolis
    force, the centrifugal force, as well as optional terms due to the
    change in rotation rate, :math:`\Omega`.
 
--  : this holds the time-rate of change of
-   the source terms, :math:`d{\bf S}/dt`, for each of the NUM_STATE
+-  Source_Type : this holds the time-rate of change of
+   the source terms, :math:`d\Sb/dt`, for each of the NUM_STATE
    State_Type variables.
 
    .. raw:: latex
@@ -317,9 +317,9 @@ The current StateData names Castro carries are:
    never allocate the FArrayBoxs for the old-time in the Source_Type
    StateData, so there is not wasted memory.
 
--  : this holds the data for the nuclear
+-  Reactions_Type : this holds the data for the nuclear
    reactions. It has NumSpec+2 components: the species
-   creation rates (usually denoted :math:`\dot\omega_k` in these notes),
+   creation rates (usually denoted :math:`\omegadot_k` in these notes),
    the specific energy generation rate (:math:`\dot{e}_\mathrm{nuc}`),
    and its density (:math:`\rho \dot{e}_\mathrm{nuc}`).
 
@@ -332,7 +332,7 @@ The current StateData names Castro carries are:
 
       \MarginPar{why do we need rho edot and edot separately?}
 
--  : this is used with the SDC
+-  SDC_React_Type : this is used with the SDC
    time-advancement algorithm. This stores the QVAR terms
    that describe how the primitive variables change over the timestep
    due only to reactions. These are used when predicting the interface
@@ -355,20 +355,20 @@ Various source MultiFabs
 There are a number of different MultiFabs (and arrays of MultiFabs)
 that hold source term information.
 
--  : this is a MultiFab that holds the
+-  hydro_source : this is a MultiFab that holds the
    update to the hydrodynamics (basically the divergence of the
    fluxes). This is filled in the conservative update routine of the
    hydrodynamics.
 
    As this is expressed as a source term, what is actually stored is
 
-   .. math:: {\bf S}_\mathrm{flux} = -\nabla \cdot {\bf F}
+   .. math:: \Sb_\mathrm{flux} = -\nabla \cdot {\bf F}
 
    So the update of the conserved state appears as:
 
-   .. math:: \frac{\partial {\bf U}}{\partial t} = {\bf S}_\mathrm{flux}
+   .. math:: \frac{\partial \Ub}{\partial t} = \Sb_\mathrm{flux}
 
--  : a single MultiFab that stores
+-  sources_for_hydro : a single MultiFab that stores
    the sum of sources over each physical process.
 
 MFIter and interacting with Fortran
@@ -446,7 +446,7 @@ A few comments about this code
    box.hiVect().
 
    In passing to the Fortran function, we use the macro
-   , defined in to pass the lo
+   ARLIM_3D, defined in ArrayLim.H to pass the lo
    and hi vectors as pointers to an int array. This array
    is defined to always be 3D, with 0s substituted for the
    higher dimension values if we are running in 1- or 2D.
@@ -654,7 +654,7 @@ Some comments:
    There is another interface fo MFIter that can take an
    IntVect that explicitly gives the tile size in each coordinate
    direction. If we don’t explictly specify the tile size at the loop,
-   then the runtime parameter
+   then the runtime parameter fabarray.mfiter_tile_size
    can be used to set it globally.
 
 -  .validBox() has the same meaning as in the non-tile
@@ -864,7 +864,7 @@ let’s consider the following scenarios:
    want to create a new MultiFab containing a copy of that data with
    NGROW ghost cells.*
 
-   This is the case with —the MultiFab of the
+   This is the case with Sborder—the MultiFab of the
    hydrodynamic state that we use to kick-off the hydrodynamics
    advance.
 
@@ -874,7 +874,7 @@ let’s consider the following scenarios:
 
          Multifab Sborder;
 
-   It is then allocated in
+   It is then allocated in Castro::initialize_do_advance()
 
    .. code:: c++
 
@@ -887,7 +887,7 @@ let’s consider the following scenarios:
    Sborder.
 
    The actually filling of the ghost cells is done by
-   :
+   Castro::expand_state():
 
    .. code:: c++
 
@@ -1010,8 +1010,8 @@ Physical Boundaries
 
 Physical boundary conditions are specified by an integer
 index [4]_ in
-the inputs file, using the and
-runtime parameters. The generally
+the inputs file, using the castro.lo_bc and
+castro.hi_bc runtime parameters. The generally
 supported boundary conditions are, their corresponding integer key,
 and the action they take for the normal velocity, transverse
 velocity, and generic scalar are shown in Table \ `[table:castro:bcs] <#table:castro:bcs>`__
@@ -1037,14 +1037,14 @@ which say which kind of bc to use on which kind of physical boundary.
 Boundary conditions are set in functions like “
 set_scalar_bc”, which uses the scalar_bc pre-defined
 arrays. We also specify the name of the Fortran routine that
-is responsible for filling the data there (e.g., ).
+is responsible for filling the data there (e.g., hypfill).
 These routines are discussed more below.
 
 If you want to specify a value at a function (like at an inflow
 boundary), then you choose an *inflow* boundary at that face of
 the domain. You then need to write the implementation code for this.
-An example is the problem which implements a
-hydrostatic lower boundary (through its custom
+An example is the problem toy_convect which implements a
+hydrostatic lower boundary (through its custom bc_fill_?d.F90
 routines.
 
 .. raw:: latex
@@ -1093,7 +1093,7 @@ amrex/Src/ directory.
 Geometry class
 --------------
 
-There is a Geometry object, for each level as part of
+There is a Geometry object, geom for each level as part of
 the Castro object (this is inhereted through AmrLevel).
 
 ParmParse class
@@ -1125,24 +1125,24 @@ Fortran Helper Modules
 There are a number of modules that make data available to the Fortran
 side of Castro or perform other useful tasks.
 
--  :
+-  bl_constants_module:
 
    This provides double precision constants as Fortran parameters, like
    ZERO, HALF, and ONE.
 
--  :
+-  bl_types:
 
    This provides a double precision type, dp_t for use in
    Fortran. This should be identical to double precision on most
    architectures.
 
--  :
+-  extern_probin_module:
 
    This module provides access to the runtime parameters for the
    microphysics routines (EOS, reaction network, etc.). The source
    for this module is generated at compile type via a make rule
    that invokes a python script. This will search for all of the
-   files in the external sources, parse them
+   \_parameters files in the external sources, parse them
    for runtime parameters, and build the module.
 
 -  fundamental_constants_module:
@@ -1179,16 +1179,16 @@ side of Castro or perform other useful tasks.
    and is periodically synced up with the C driver. The information
    available here is:
 
-   -  , : these are the boundary
+   -  physbc_lo, physbc_hi: these are the boundary
       condition types at the low and high ends of the domain, for each
       coordinate direction. Integer keys, Interior, Inflow,
       Outflow, Symmetry, SlipWall, and
       NoSlipWall allow you to interpret the values.
 
-   -  is the center of the problem. Note—this is up
+   -  center is the center of the problem. Note—this is up
       to the problem setup to define (in the probinit subroutine).
       Alternately, it can be set at runtime via
-      .
+      castro.center.
 
       Usually center will be the physical center of the domain,
       but not always. For instance, for axisymmetric problems,
@@ -1199,9 +1199,12 @@ side of Castro or perform other useful tasks.
       defining the center of the sponge, and in deriving the radial
       velocity.
 
-   -  
-   -  
-   -  
+   -  coord_type
+
+   -  dim
+
+   -  dg
+
    -  *refining information*
 
 Setting Up Your Own Problem
@@ -1220,12 +1223,12 @@ problem. Here we describe how to customize your problem.
 
 The purpose of these files is:
 
--  : this holds the probdata_module Fortran module
+-  probdata.f90: this holds the probdata_module Fortran module
    that allocates storage for all the problem-specific runtime parameters that
    are used by the problem (including those that are read from the probin
    file.
 
--  : this holds the main routines to
+-  Prob_?d.f90: this holds the main routines to
    initialize the problem and grid and perform problem-specific boundary
    conditions:
 
@@ -1238,7 +1241,7 @@ The purpose of these files is:
       setup for an example). The parameters that are initialized
       here are those stored in the probdata_module.
 
-   -  :
+   -  ca_initdata():
 
       This routine will initialize the state data for a single grid.
       The inputs to this routine are:
@@ -1298,7 +1301,7 @@ The purpose of these files is:
          coordinates should be computed using problo() from the
          prob_params_module.)
 
--  :
+-  bc_fill_?d.F90:
 
    These routines handle how Castro fills ghostcells
    *at physical boundaries* for specific data. Most problem
@@ -1417,35 +1420,35 @@ Optional Files
 The follow problem-specific files are optional. There are stubs for
 each of these in the main source tree.
 
--  :
+-  Problem.f90 :
 
-   This provides two routines, and
-   that can be used to add information to the
+   This provides two routines, problem_checkpoint and
+   problem_restart that can be used to add information to the
    checkpoint files and read it in upon restart. This is useful for
    some global problem-specific quantities. For instance, the
-    [5]_ problem uses this
+   wdmerger [5]_ problem uses this
    to store center of mass position and velocity information in the
    checkpoint files that are used for runtime diagnostics.
 
    The name of the checkpoint directory is passed in as an argument.
-   provides the C interfaces for these routines.
+   Problem_F.H provides the C interfaces for these routines.
 
--  ,
+-  problem_tagging_?d.F90, problem_tagging_nd.F90
 
    This implements problem-specific tagging for refinement, through a
-   subroutine . The full hydrodynamic state
+   subroutine set_problem_tags. The full hydrodynamic state
    (State_Type) is passed in, and the problem can mark zones for
-   refinement by setting the variable for a zone to
-   . An example is provided by the
+   refinement by setting the tag variable for a zone to
+   set. An example is provided by the toy_convect
    problem which refines a rectangular region (fuel layer) based on
    a density parameter and the H mass fraction.
 
--  , ,
+-  Problem_Derive_F.H, Problem_Derives.H, problem_derive_nd.f90
 
    Together, these provide a mechanism to create derived quantities
    that can be stored in the plotfile. Problem_Derives.H
    provides the C code that defines these new plot variables. It
-   does this by adding them to the —a list of
+   does this by adding them to the derive_lst—a list of
    derived variables that Castro knows about. When adding new
    variables, a descriptive name, Fortran routine that does the
    deriving, and component of StateData are specified.
@@ -1453,17 +1456,17 @@ each of these in the main source tree.
    The Fortran routine that does the deriving is put in the
    problem-specific problem_derive_nd.f90 (and a prototype for
    C is put in Problem_Derives.H). A example is provided by
-   the problem, which derives several new
+   the reacting_bubble problem, which derives several new
    quantities (perturbations against a background one-dimensional
    model, in this case).
 
--  , ,
+-  Prob.cpp, Problem.H, Problem_F.H
 
    These files provide problem-specific routines for computing global
-   diagnostic information through the
+   diagnostic information through the sum_integrated_quantities
    functionality that is part of the Castro class.
 
-   An example is provided by , where an estimate
+   An example is provided by toy_flame, where an estimate
    of the flame speed is computed by integrating the mass of fuel on
    the grid.
 
@@ -1474,10 +1477,10 @@ Most of the problem setups have separate implementations for 1-, 2-,
 and 3D. A new method exists that allows you to write just a single
 set of files for any dimensionality (this is called the *dimension
 agnostic* format). To use this mode, set
-in your GNUmakefile.
-Then write you problem initialization in .
+DIMENSION_AGNOSTIC= TRUE in your GNUmakefile.
+Then write you problem initialization in Prob_nd.F90.
 Analogous routines exist for tagging and boundary conditions. See the
-and problem setups for an
+rotating_torus and Noh problem setups for an
 example.
 
 .. _software:io:
@@ -1495,7 +1498,7 @@ shared across thousands of CPUs. Each CPU writes the part of the
 MultiFab that it owns to disk, but they don’t each write to their own
 distinct file. Instead each MultiFab is written to a runtime
 configurable number of files N (N can be set in the inputs file as the
-parameter and ; the
+parameter amr.checkpoint_nfiles and amr.plot_nfiles; the
 default is 64). That is to say, each MultiFab is written to disk
 across at most N files, plus a small amount of data that gets written
 to a header file describing how the file is laid out in those N files.
@@ -1524,10 +1527,10 @@ create a very large number of files, which can lead to inode issues.
 
 .. [1]
    Note: some older code will use a special AMReX preprocessor macro,
-   , defined in , that converts
+   BL_TO_FORTRAN, defined in ArrayLim.H, that converts
    the C multifab into a Fortran array and its lo and hi indices.
    Additionally, some older code will wrap the Fortran subroutine name
-   in an additional preprocessor macro,
+   in an additional preprocessor macro, BL_FORT_PROC_CALL
    to handle the name mangling between Fortran and C. This later
    macro is generally not needed any more because of Fortran 2003
    interoperability with C (through the Fortran bind keyword).
@@ -1544,7 +1547,7 @@ create a very large number of files, which can lead to inode issues.
    compared to the actual code
 
 .. [4]
-   the integer values are defined in
+   the integer values are defined in BC_TYPES.H
 
 .. [5]
    available separately at
