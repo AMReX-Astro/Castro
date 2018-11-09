@@ -20,7 +20,11 @@
 import os
 import sys
 import sphinx_rtd_theme
+import breathe
+
 sys.path.insert(0, os.path.abspath('../../'))
+sys.path.append(os.path.dirname(breathe.__file__))
+
 
 
 # -- General configuration ------------------------------------------------
@@ -42,7 +46,14 @@ extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.inheritance_diagram',
     'sphinx.ext.graphviz',
     'IPython.sphinxext.ipython_console_highlighting',
-    'sphinx.ext.githubpages']
+    'sphinx.ext.githubpages',
+    'breathe']
+
+breathe_projects = {
+    "castro":"../doxy_files/xml",
+    }
+
+breathe_default_project = "castro"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -185,6 +196,3 @@ texinfo_documents = [
      author, 'Castro', 'One line description of project.',
      'Miscellaneous'),
 ]
-
-
-
