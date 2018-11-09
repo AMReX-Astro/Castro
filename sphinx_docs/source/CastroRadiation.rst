@@ -62,7 +62,7 @@ edit the file GNUmakefile, and set
 
 -  DIM = 1 or 2 or 3
 
--  —this is important. This tells the build system to
+-  USE_RAD = TRUE—this is important. This tells the build system to
    compile in, and link the the radiation code.
 
 Then type make to generate an executable file.
@@ -87,7 +87,7 @@ contribution. However, for radiation hydrodynamics calculations, the
 radition contribution should be taken out of EOS because radiation has
 been treated in other places. To use Helmholtz EOS, we will use the
 version in Microphysics, as with the pure hydrodynamics code, but
-this will interpret the preprocessor variable and
+this will interpret the RADIATION preprocessor variable and
 disable the radiation portion of the EOS [1]_ If you have your own EOS, you
 can put it in Microphysics.
 
@@ -657,7 +657,7 @@ performance of the solvers usually depends on problems and the
 computer. So it is worth trying a few solvers to find out which one
 is best for your problem and computer.
 
-: the linear solver
+radsolve.level_solver_flag: the linear solver
 in Hypre to use. The available choices are:
 
 -  0: SMG
@@ -688,25 +688,25 @@ you cannot use PFMG.
 Setting this to 109 (GMRES using Struct SMG/PFMG as preconditioner)
 should work reasonably well for most problems.
 
-(default: 40):
+radsolve.maxiter (default: 40):
 Maximal number of iteration in Hypre.
 
-(default: 1.e-10):
+radsolve.reltol (default: 1.e-10):
 Relative tolerance in Hypre
 
-(default: 0):
+radsolve.abstol (default: 0):
 Absolute tolerance in Hypre
 
-(default: 0):
+radsolve.v (default: 0):
 Verbosity
 
-(default: 0):
+radsolve.verbos (default: 0):
 Verbosity
 
-(default: 0):
+habec.verbose (default: 0):
 Verbosity for level_solver_flag :math:`<` 100
 
-(default: 0):
+hmabec.verbose (default: 0):
 Verbosity for level_solver_flag :math:`>=` 100
 
 Output

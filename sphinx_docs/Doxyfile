@@ -806,8 +806,8 @@ INPUT_ENCODING         = UTF-8
 # *.f, *.for, *.tcl, *.vhd, *.vhdl, *.ucf and *.qsf.
 
 FILE_PATTERNS          = *.cpp \
-                         *.H 
-                         #*.f90 \
+                         *.H \
+                         #*.f90 
                          #*.F90
 
 # The RECURSIVE tag can be used to specify whether or not subdirectories should

@@ -24,7 +24,6 @@ html:
 	doxygen Doxyfile
 	breathe-apidoc --o source doxy_files/xml
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
-	mkdir -p ../docs
 	cp -r build/html/* ../docs/
 
 # Catch-all target: route all unknown targets to Sphinx using the new

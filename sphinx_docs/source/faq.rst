@@ -73,8 +73,8 @@ Compiling
    linking the one that comes with the StarKiller microphysics?*
 
    To use a system’s BLAS library, set the Make variable
-   to TRUE. This will then look at
-   the Make variable for the library to link
+   USE_SYSTEM_BLAS to TRUE. This will then look at
+   the Make variable BLAS_LIBRARY for the library to link
    (defaults to -lopenblas).
 
 #. *How can I check to make sure the function signatures defined
@@ -197,17 +197,17 @@ Managing Runs
 #. *How can I force the running code to output, even it the plot or
    checkpoint interval parameters don’t require it?*
 
-   Create a file called , e.g., as:
+   Create a file called dump_and_continue, e.g., as:
 
    ::
 
        touch dump_and_continue
 
    This will force the code to output a checkpoint file that can be used
-   to restart. Other options are to output
-   a plotfile, to output a checkpoint file
-   and halt the code, and to simply stop the code.
-   Note that the parameter controls how often
+   to restart. Other options are plot_and_continue to output
+   a plotfile, dump_and_stop to output a checkpoint file
+   and halt the code, and stop_run to simply stop the code.
+   Note that the parameter amr.message_int controls how often
    the existence of these files is checked; by default it is 10, so the
    check will be done at the end of every timestep that is a multiple of 10.
    Set that to 1 in your inputs file if you’d like it to check every timestep.

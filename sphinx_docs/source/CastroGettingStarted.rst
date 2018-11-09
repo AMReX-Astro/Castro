@@ -122,19 +122,27 @@ build the Sedov problem:
 
 #. In Sedov/, edit the GNUmakefile, and set
 
-   -  This is the dimensionality—here we pick 2-d.
+   -  DIM = 2
 
-   -  This is the set of compilers. gnu are a good default
+      This is the dimensionality—here we pick 2-d.
+
+   -  COMP = gnu
+
+      This is the set of compilers. gnu are a good default
       choice (this will use g++ and gfortran. You can
       also choose pgi and intel for example.
 
       If you want to try other compilers than the GNU suite and they
       don’t work, please let us know.
 
-   -  This disabled debugging checks and results in a more
+   -  DEBUG = FALSE
+
+      This disabled debugging checks and results in a more
       optimized executable.
 
-   -  This turns off parallelization via MPI. Set it to TRUE to
+   -  USE_MPI = FALSE
+
+      This turns off parallelization via MPI. Set it to TRUE to
       build with MPI—this requires that you have the MPI library
       installed on your machine. In this case, the build system will
       need to know about your MPI installation. This can be done by

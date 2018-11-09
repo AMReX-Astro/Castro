@@ -43,35 +43,31 @@ throughout the code documentation and papers.
    +=======================+=======================+=======================+
    | :math:`t`             | s                     | time                  |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`\rho`          | :math:`\mathrm{g~cm^{ | mass density          |
-   |                       | -3}}`                 |                       |
+   | :math:`\rho`          | :math:`\gcc`          | mass density          |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`{\bf u}`       | :math:`\mathrm{cm~s^{ | velocity vector       |
-   |                       | -1}}`                 |                       |
+   | :math:`\ub`           | :math:`\cms`          | velocity vector       |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`p`             | :math:`\mathrm{dyn~cm | pressure              |
-   |                       | ^{-2}}`               |                       |
+   | :math:`p`             | :math:`\presunit`     | pressure              |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`{\bf g}`       | :math:`\mathrm{cm~s^{ | gravitational         |
-   |                       | -2}}`                 | acceleration          |
+   | :math:`\gb`           | :math:`\accelunit`    | gravitational         |
+   |                       |                       | acceleration          |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`{\bf S}`       | varies                | source term           |
+   | :math:`\Sb`           | varies                | source term           |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`E`             | :math:`\mathrm{erg~g^ | specific total energy |
-   |                       | {-1}}`                |                       |
+   | :math:`E`             | :math:`\ergg`         | specific total energy |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`e`             | :math:`\mathrm{erg~g^ | specific internal     |
-   |                       | {-1}}`                | energy                |
+   | :math:`e`             | :math:`\ergg`         | specific internal     |
+   |                       |                       | energy                |
    +-----------------------+-----------------------+-----------------------+
    | :math:`T`             | :math:`K`             | temperature           |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`{k_\mathrm{th} | :math:`\mathrm{erg~cm | thermal conductivity  |
-   | }`                    | ^{-1}~s^{-1}~K~{-1}}` |                       |
+   | :math:`\kth`          | :math:`\mathrm{erg~cm | thermal conductivity  |
+   |                       | ^{-1}~s^{-1}~K~{-1}}` |                       |
    +-----------------------+-----------------------+-----------------------+
    | :math:`X_k`           | –                     | mass fraction of      |
    |                       |                       | species :math:`k`     |
    +-----------------------+-----------------------+-----------------------+
-   | :math:`\dot\omega_k`  | :math:`\mathrm{s^{-1} | species creation rate |
+   | :math:`\omegadot_k`   | :math:`\mathrm{s^{-1} | species creation rate |
    |                       | }`                    | (from reactions)      |
    +-----------------------+-----------------------+-----------------------+
 

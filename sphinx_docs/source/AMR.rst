@@ -33,27 +33,27 @@ describes the process by which zones are tagged, and describes how to
 add customized tagging criteria.
 
 The routines for tagging cells are located in the
-file in the Source/driver/ directory. (These are
+Tagging_nd.f90 file in the Source/driver/ directory. (These are
 dimension-agnostic routines that loop over all three dimensional
 indices even for 1D or 2D problems.) The main routines are
-, , ,
-, and . They refine based on
+ca_denerror, ca_temperror, ca_presserror,
+ca_velerror, and ca_raderror. They refine based on
 density, temperature, pressure, velocity, and radiation energy density
 (if enabled), respectively. The same approach is used for all of
 them. As an example, we consider the density tagging routine. There
 are four parameters that control tagging. If the density in a zone is
-greater than the user-specified parameter , then that
+greater than the user-specified parameter denerr, then that
 zone will be tagged for refinement, but only if the current AMR level
-is less than the user-specified parameter .
+is less than the user-specified parameter max_denerr_lev.
 Similarly, if the absolute density gradient between a zone and any
 adjacent zone is greater than the user-specified parameter
-, that zone will be tagged for refinement, but only
+dengrad, that zone will be tagged for refinement, but only
 if we are currently on a level below
-. Note that setting denerr alone
+max_dengrad_lev. Note that setting denerr alone
 will not do anything; you’ll need to set max_dengrad_lev :math:`>=
 1` for this to have any effect.
 
-All four of these parameters are set in the namelist
+All four of these parameters are set in the &tagging namelist
 in your probin file. If left unmodified, they
 default to a value that means we will never tag. The complete set of
 parameters that can be controlled this way is the following:
@@ -113,8 +113,8 @@ ca_denerror, ca_temperror, etc. operate. This is not recommended, and if you do 
 be aware that CLEARing a zone this way may not have the desired effect.
 
 We provide also the ability for the user to define their own tagging criteria.
-This is done through the Fortran function in the
-files. This function is provided the entire
+This is done through the Fortran function set_problem_tags in the
+problem_tagging_d.f90 files. This function is provided the entire
 state (including density, temperature, velocity, etc.) and the array
 of tagging status for every zone. As an example of how to use this, suppose we
 have a 3D Cartesian simulation where we want to tag any zone that has a
@@ -195,7 +195,7 @@ Synchronization Methodology
 Over a coarse grid time step we collect flux register information for
 the hyperbolic part of the synchronization:
 
-.. math:: \delta{\bf F}= -\Delta t_c A^c F^c + \sum \Delta t_f A^f F^f
+.. math:: \delta\Fb = -\Delta t_c A^c F^c + \sum \Delta t_f A^f F^f
 
 Analogously, at the end of a coarse grid time step we store the
 mismatch in normal gradients of :math:`\phi` at the coarse-fine interface:
@@ -212,9 +212,9 @@ is to synchronize :math:`\phi` across levels at that time and then zero out
 this mismatch register.
 
 At the end of a coarse grid time step we can define
-:math:`{\overline{{\bf U}}}^{c-f}` and :math:`\overline{\phi}^{c-f}` as the composite
+:math:`{\overline{\Ub}}^{c-f}` and :math:`\overline{\phi}^{c-f}` as the composite
 of the data from coarse and fine grids as a provisional solution at
-time :math:`n+1`. (Assume :math:`\overline{{\bf U}}` has been averaged down so that
+time :math:`n+1`. (Assume :math:`\overline{\Ub}` has been averaged down so that
 the data on coarse cells underlying fine cells is the average of the
 fine cell data above it.)
 
@@ -224,12 +224,12 @@ The synchronization consists of two parts:
 
    In the hyperbolic reflux step, we update the conserved variables with
    the flux synchronization and adjust the gravitational terms to reflect
-   the changes in :math:`\rho` and :math:`{\bf u}`.
+   the changes in :math:`\rho` and :math:`\ub`.
 
-   .. math:: {{\bf U}}^{c, \star} = \overline{{\bf U}}^{c} + \frac{\delta{\bf F}}{V},
+   .. math:: {\Ub}^{c, \star} = \overline{\Ub}^{c} + \frac{\delta\Fb}{V},
 
    where :math:`V` is the volume of the cell and the correction from
-   :math:`\delta{\bf F}` is supported only on coarse cells adjacent to fine grids.
+   :math:`\delta\Fb` is supported only on coarse cells adjacent to fine grids.
 
    Note: this can be enabled/disabled via castro.do_reflux. Generally,
    it should be enabled (1).
@@ -244,7 +244,7 @@ The synchronization consists of two parts:
 
    In this step we correct for the mismatch in normal derivative in
    :math:`\phi^{c-f}` at the coarse-fine interface, as well as accounting for
-   the changes in source terms for :math:`(\rho {\bf u})` and :math:`(\rho E)` due to the
+   the changes in source terms for :math:`(\rho \ub)` and :math:`(\rho E)` due to the
    change in :math:`\rho.`
 
    On the coarse grid only, we define
@@ -431,7 +431,7 @@ modification being that the flux register contribution from the coarse
 grid is appropriately weighted by the fine grid timestep instead of
 the coarse grid timestep, and we only include the current fine step:
 
-.. math:: \delta{\bf F}= -\Delta t_f A^c F^c + \Delta t_f A^f F^f
+.. math:: \delta\Fb = -\Delta t_f A^c F^c + \Delta t_f A^f F^f
 
 The form of the :math:`\phi` flux register remains unchanged, because the
 intent of the gravity sync solve is to simply instantaneously correct

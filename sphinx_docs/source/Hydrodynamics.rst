@@ -12,7 +12,7 @@ Some general notes:
 -  Regardless of the dimensionality, we always carry around all 3
    components of velocity/momentum—this allows for rotation sources easily.
 
--  When radiation is enabled (via ), we discuss
+-  When radiation is enabled (via RADIATION), we discuss
    the gas and radiation quantities separately. This generally applies
    to the temperature, pressure, internal energy, various adiabatic
    indices, and sound speed. When we refer to the “total” value of
@@ -35,7 +35,7 @@ Within the Fortran routines that implement the hydrodynamics, there are
 several main data structures that hold the state.
 
 -  conserved state: these arrays generally begin with u,
-   e.g., , . The
+   e.g., uin, uout. The NVAR
    components for the state data in the array are accessed using
    integer keys defined in `[table:consints] <#table:consints>`__.
 
@@ -62,8 +62,8 @@ several main data structures that hold the state.
       |                       |                       | the other quantities  |
       |                       |                       | using                 |
       |                       |                       | :math:`\rho e = \rho  |
-      |                       |                       | E - \rho {\bf u}\cdot |
-      |                       |                       |  {\bf u}/ 2`          |
+      |                       |                       | E - \rho \ub \cdot \u |
+      |                       |                       | b / 2`                |
       +-----------------------+-----------------------+-----------------------+
       | UTEMP                 | :math:`T`             | this is computed from |
       |                       |                       | the other quantities  |
@@ -80,16 +80,19 @@ several main data structures that hold the state.
       | USHK                  | a shock flag          | (used for shock       |
       |                       |                       | detection)            |
       +-----------------------+-----------------------+-----------------------+
-      | UMR                   | radial momentum       | (if is defined)       |
+      | UMR                   | radial momentum       | (if HYBRID_MOMENTUM   |
+      |                       |                       | is defined)           |
       +-----------------------+-----------------------+-----------------------+
-      | UML                   | angular momentum      | (if is defined)       |
+      | UML                   | angular momentum      | (if HYBRID_MOMENTUM   |
+      |                       |                       | is defined)           |
       +-----------------------+-----------------------+-----------------------+
-      | UMP                   | vertical momentum     | (if is defined)       |
+      | UMP                   | vertical momentum     | (if HYBRID_MOMENTUM   |
+      |                       |                       | is defined)           |
       +-----------------------+-----------------------+-----------------------+
 
 -  primitive variable state: these arrays generally simply called
-   q, and has components. Note: if
-   is defined, then there are
+   q, and has NQ components. Note: if
+   RADIATION is defined, then there are QVAR
    components that are pure hydro out of the total NQ components,
    and the pure hydro components always come first in the state array.
 
@@ -141,13 +144,14 @@ several main data structures that hold the state.
       |                       |                       | + radiation           |
       +-----------------------+-----------------------+-----------------------+
       | QRAD                  | :math:`E_r`           | the radiation energy  |
-      |                       |                       | (there are of these)  |
+      |                       |                       | (there are ngroups of |
+      |                       |                       | these)                |
       +-----------------------+-----------------------+-----------------------+
 
 -  auxiliary primitive variables: these arrays are generally called
-   . The main difference between these and the regular
+   qaux. The main difference between these and the regular
    primitive variables is that we do not attempt to do any
-   reconstruction on their profiles. There are quantities, indexed
+   reconstruction on their profiles. There are NQAUX quantities, indexed
    by the integer keys listed in table \ `[table:qauxlist] <#table:qauxlist>`__.
 
    .. raw:: latex
@@ -181,15 +185,17 @@ several main data structures that hold the state.
       +-----------------------+-----------------------+-----------------------+
       | QGAMCG                | :math:`{\Gamma_1}_\ma | includes radiation    |
       |                       | thrm{tot}`            | components (defined   |
-      |                       |                       | only if is defined)   |
+      |                       |                       | only if RADIATION is  |
+      |                       |                       | defined)              |
       +-----------------------+-----------------------+-----------------------+
       | QCG                   | :math:`{c_s}_\mathrm{ | total sound speed     |
       |                       | tot}`                 | including radiation   |
-      |                       |                       | (defined only if is   |
-      |                       |                       | defined)              |
+      |                       |                       | (defined only if      |
+      |                       |                       | RADIATION is defined) |
       +-----------------------+-----------------------+-----------------------+
-      | QLAMS                 | :math:`\lambda_f`     | the flux limiters     |
-      |                       |                       | (defined only if is   |
+      | QLAMS                 | :math:`\lambda_f`     | the ngroups flux      |
+      |                       |                       | limiters (defined     |
+      |                       |                       | only if RADIATION is  |
       |                       |                       | defined)              |
       +-----------------------+-----------------------+-----------------------+
 
@@ -198,7 +204,7 @@ several main data structures that hold the state.
    non-conservative terms in the equations. These arrays are generally
    called qx, qy, and qz for the x, y, and z
    interfaces respectively (in some places the numbers 1, 2, and 3 are
-   used instead). There are components accessed with
+   used instead). There are NGDNV components accessed with
    the integer keys defined in table \ `[table:gdlist] <#table:gdlist>`__
 
    .. raw:: latex
@@ -223,58 +229,60 @@ several main data structures that hold the state.
       | QDW                   | :math:`w`             |                       |
       +-----------------------+-----------------------+-----------------------+
       | QDPRES                | :math:`p`             | regardless of whether |
-      |                       |                       | is defined, this is   |
-      |                       |                       | always just the gas   |
-      |                       |                       | pressure              |
+      |                       |                       | RADIATION is defined, |
+      |                       |                       | this is always just   |
+      |                       |                       | the gas pressure      |
       +-----------------------+-----------------------+-----------------------+
       | QDGAME                | :math:`\gamma_e = p/( | regardless of whether |
-      |                       | \rho e) + 1`          | is defined, this is   |
-      |                       |                       | always just the gas   |
-      |                       |                       | contribution          |
+      |                       | \rho e) + 1`          | RADIATION is defined, |
+      |                       |                       | this is always just   |
+      |                       |                       | the gas contribution  |
       +-----------------------+-----------------------+-----------------------+
       | QDLAMS                | :math:`{\lambda_f}`   | the starting index    |
       |                       |                       | for the flux          |
       |                       |                       | limiter—there are     |
-      |                       |                       | components (defined   |
-      |                       |                       | only if is defined)   |
+      |                       |                       | ngroups components    |
+      |                       |                       | (defined only if      |
+      |                       |                       | RADIATION is defined) |
       +-----------------------+-----------------------+-----------------------+
       | QDERADS               | :math:`E_r`           | the starting index    |
       |                       |                       | for the radiation     |
       |                       |                       | energy—there are      |
-      |                       |                       | components (defined   |
-      |                       |                       | only if is defined)   |
+      |                       |                       | ngroups components    |
+      |                       |                       | (defined only if      |
+      |                       |                       | RADIATION is defined) |
       +-----------------------+-----------------------+-----------------------+
 
 Conservation Forms
 ==================
 
 We begin with the fully compressible equations for the conserved state vector,
-:math:`{\bf U}= (\rho, \rho {\bf u}, \rho E, \rho A_k, \rho X_k, \rho Y_k):`
+:math:`\Ub = (\rho, \rho \ub, \rho E, \rho A_k, \rho X_k, \rho Y_k):`
 
 .. math::
 
    \begin{aligned}
-   \frac{\partial \rho}{\partial t} &=& - \nabla \cdot (\rho {\bf u}) + S_{{\rm ext},\rho}, \\
-   \frac{\partial (\rho {\bf u})}{\partial t} &=& - \nabla \cdot (\rho {\bf u}{\bf u}) - \nabla p +\rho {\bf g}+ {\bf S}_{{\rm ext},\rho{\bf u}}, \\
-   \frac{\partial (\rho E)}{\partial t} &=& - \nabla \cdot (\rho {\bf u}E + p {\bf u}) + \rho {\bf u}\cdot {\bf g}- \sum_k {\rho q_k \dot\omega_k} + \nabla\cdot{k_\mathrm{th}}\nabla T + S_{{\rm ext},\rho E}, \\
-   \frac{\partial (\rho A_k)}{\partial t} &=& - \nabla \cdot (\rho {\bf u}A_k) + S_{{\rm ext},\rho A_k}, \\
-   \frac{\partial (\rho X_k)}{\partial t} &=& - \nabla \cdot (\rho {\bf u}X_k) + \rho \dot\omega_k + S_{{\rm ext},\rho X_k}, \\
-   \frac{\partial (\rho Y_k)}{\partial t} &=& - \nabla \cdot (\rho {\bf u}Y_k) + S_{{\rm ext},\rho Y_k}.\label{eq:compressible-equations}\end{aligned}
+   \frac{\partial \rho}{\partial t} &=& - \nabla \cdot (\rho \ub) + S_{{\rm ext},\rho}, \\
+   \frac{\partial (\rho \ub)}{\partial t} &=& - \nabla \cdot (\rho \ub \ub) - \nabla p +\rho \gb + \Sb_{{\rm ext},\rho\ub}, \\
+   \frac{\partial (\rho E)}{\partial t} &=& - \nabla \cdot (\rho \ub E + p \ub) + \rho \ub \cdot \gb - \sum_k {\rho q_k \dot\omega_k} + \nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E}, \\
+   \frac{\partial (\rho A_k)}{\partial t} &=& - \nabla \cdot (\rho \ub A_k) + S_{{\rm ext},\rho A_k}, \\
+   \frac{\partial (\rho X_k)}{\partial t} &=& - \nabla \cdot (\rho \ub X_k) + \rho \dot\omega_k + S_{{\rm ext},\rho X_k}, \\
+   \frac{\partial (\rho Y_k)}{\partial t} &=& - \nabla \cdot (\rho \ub Y_k) + S_{{\rm ext},\rho Y_k}.\label{eq:compressible-equations}\end{aligned}
 
-Here :math:`\rho, {\bf u}, T, p`, and :math:`{k_\mathrm{th}}` are the density, velocity,
+Here :math:`\rho, \ub, T, p`, and :math:`\kth` are the density, velocity,
 temperature, pressure, and thermal conductivity, respectively, and :math:`E
-= e + {\bf u}\cdot {\bf u}/ 2` is the total energy with :math:`e` representing the
+= e + \ub \cdot \ub / 2` is the total energy with :math:`e` representing the
 internal energy. In addition, :math:`X_k` is the abundance of the :math:`k^{\rm
   th}` isotope, with associated production rate, :math:`\dot\omega_k`, and
-energy release, :math:`q_k`. Here :math:`{\bf g}` is the gravitational vector, and
-:math:`S_{{\rm ext},\rho}, {\bf S}_{{\rm ext}\rho{\bf u}}`, etc., are user-specified
+energy release, :math:`q_k`. Here :math:`\gb` is the gravitational vector, and
+:math:`S_{{\rm ext},\rho}, \Sb_{{\rm ext}\rho\ub}`, etc., are user-specified
 source terms. :math:`A_k` is an advected quantity, i.e., a tracer. We also
 carry around auxiliary variables, :math:`Y_k`, which have a user-defined
 evolution equation, but by default are treated as advected quantities.
 
 In the code we also carry around :math:`T` and :math:`\rho e` in the conservative
 state vector even though they are derived from the other conserved
-quantities. The ordering of the elements within :math:`{\bf U}` is defined
+quantities. The ordering of the elements within :math:`\Ub` is defined
 by integer variables into the array—see
 Table \ `[table:consints] <#table:consints>`__
 
@@ -288,14 +296,14 @@ Some notes:
    You should always initialize all velocity components to zero, and
    always construct the kinetic energy with all three velocity components.
 
--  There are advected quantities, which range from
+-  There are NADV advected quantities, which range from
    UFA: UFA+nadv-1. The advected quantities have no effect at all on
    the rest of the solution but can be useful as tracer quantities.
 
--  There are species (defined in the network
+-  There are NSPEC species (defined in the network
    directory), which range from UFS: UFS+nspec-1.
 
--  There are auxiliary variables, from
+-  There are NAUX auxiliary variables, from
    UFX:UFX+naux-1 The auxiliary variables are passed into the equation
    of state routines along with the species; An example of an auxiliary
    variable is the electron fraction, :math:`Y_e`, in core collapse simulations.
@@ -307,18 +315,18 @@ Some notes:
 Source Terms
 ============
 
-We now compute explicit source terms for each variable in :math:`{\bf Q}` and
-:math:`{\bf U}`. The primitive variable source terms will be used to construct
+We now compute explicit source terms for each variable in :math:`\Qb` and
+:math:`\Ub`. The primitive variable source terms will be used to construct
 time-centered fluxes. The conserved variable source will be used to
 advance the solution. We neglect reaction source terms since they are
 accounted for in **Steps 1** and **6**. The source terms are:
 
 .. math::
 
-   {\bf S}_{{\bf Q}}^n =
+   \Sb_{\Qb}^n =
    \left(\begin{array}{c}
    S_\rho \\
-   {\bf S}_{{\bf u}} \\
+   \Sb_{\ub} \\
    S_p \\
    S_{\rho e} \\
    S_{A_k} \\
@@ -328,9 +336,9 @@ accounted for in **Steps 1** and **6**. The source terms are:
    =
    \left(\begin{array}{c}
    S_{{\rm ext},\rho} \\
-   {\bf g}+ \frac{1}{\rho}{\bf S}_{{\rm ext},\rho{\bf u}} \\
+   \gb + \frac{1}{\rho}\Sb_{{\rm ext},\rho\ub} \\
    \frac{1}{\rho}\frac{\partial p}{\partial e}S_{{\rm ext},\rho E} + \frac{\partial p}{\partial\rho}S_{{\rm ext}\rho} \\
-   \nabla\cdot{k_\mathrm{th}}\nabla T + S_{{\rm ext},\rho E} \\
+   \nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E} \\
    \frac{1}{\rho}S_{{\rm ext},\rho A_k} \\
    \frac{1}{\rho}S_{{\rm ext},\rho X_k} \\
    \frac{1}{\rho}S_{{\rm ext},\rho Y_k}
@@ -338,9 +346,9 @@ accounted for in **Steps 1** and **6**. The source terms are:
 
 .. math::
 
-   {\bf S}_{{\bf U}}^n =
+   \Sb_{\Ub}^n =
    \left(\begin{array}{c}
-   {\bf S}_{\rho{\bf u}} \\
+   \Sb_{\rho\ub} \\
    S_{\rho E} \\
    S_{\rho A_k} \\
    S_{\rho X_k} \\
@@ -348,8 +356,8 @@ accounted for in **Steps 1** and **6**. The source terms are:
    \end{array}\right)^n
    =
    \left(\begin{array}{c}
-   \rho {\bf g}+ {\bf S}_{{\rm ext},\rho{\bf u}} \\
-   \rho {\bf u}\cdot {\bf g}+ \nabla\cdot{k_\mathrm{th}}\nabla T + S_{{\rm ext},\rho E} \\
+   \rho \gb + \Sb_{{\rm ext},\rho\ub} \\
+   \rho \ub \cdot \gb + \nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E} \\
    S_{{\rm ext},\rho A_k} \\
    S_{{\rm ext},\rho X_k} \\
    S_{{\rm ext},\rho Y_k}
@@ -359,7 +367,7 @@ Primitive Forms
 ===============
 
 Castro uses the primitive form of the fluid equations, defined in terms of
-the state :math:`{\bf Q}= (\rho, {\bf u}, p, \rho e, A_k, X_k, Y_k)`, to construct the
+the state :math:`\Qb = (\rho, \ub, p, \rho e, A_k, X_k, Y_k)`, to construct the
 interface states that are input to the Riemann problem.
 
 The primitive variable equations for density, velocity, and pressure are:
@@ -367,26 +375,26 @@ The primitive variable equations for density, velocity, and pressure are:
 .. math::
 
    \begin{aligned}
-     \frac{\partial\rho}{\partial t} &=& -{\bf u}\cdot\nabla\rho - \rho\nabla\cdot{\bf u}+ S_{{\rm ext},\rho} \\
+     \frac{\partial\rho}{\partial t} &=& -\ub\cdot\nabla\rho - \rho\nabla\cdot\ub + S_{{\rm ext},\rho} \\
    %
-     \frac{\partial{\bf u}}{\partial t} &=& -{\bf u}\cdot\nabla{\bf u}- \frac{1}{\rho}\nabla p + {\bf g}+ 
-   \frac{1}{\rho} ({\bf S}_{{\rm ext},\rho{\bf u}} - {\bf u}\; S_{{\rm ext},\rho}) \\
-   \frac{\partial p}{\partial t} &=& -{\bf u}\cdot\nabla p - \rho c^2\nabla\cdot{\bf u}+
+     \frac{\partial\ub}{\partial t} &=& -\ub\cdot\nabla\ub - \frac{1}{\rho}\nabla p + \gb + 
+   \frac{1}{\rho} (\Sb_{{\rm ext},\rho\ub} - \ub \; S_{{\rm ext},\rho}) \\
+   \frac{\partial p}{\partial t} &=& -\ub\cdot\nabla p - \rho c^2\nabla\cdot\ub +
    \left(\frac{\partial p}{\partial \rho}\right)_{e,X}S_{{\rm ext},\rho}\nonumber\\
    &&+\  \frac{1}{\rho}\sum_k\left(\frac{\partial p}{\partial X_k}\right)_{\rho,e,X_j,j\neq k}\left(\rho\dot\omega_k + S_{{\rm ext},\rho X_k} - X_kS_{{\rm ext},\rho}\right)\nonumber\\
-   && +\  \frac{1}{\rho}\left(\frac{\partial p}{\partial e}\right)_{\rho,X}\left[-eS_{{\rm ext},\rho} - \sum_k\rho q_k\dot\omega_k + \nabla\cdot{k_\mathrm{th}}\nabla T \right.\nonumber\\
-   && \quad\qquad\qquad\qquad+\ S_{{\rm ext},\rho E} - {\bf u}\cdot\left({\bf S}_{{\rm ext},\rho{\bf u}} - \frac{{\bf u}}{2}S_{{\rm ext},\rho}\right)\Biggr] \end{aligned}
+   && +\  \frac{1}{\rho}\left(\frac{\partial p}{\partial e}\right)_{\rho,X}\left[-eS_{{\rm ext},\rho} - \sum_k\rho q_k\dot\omega_k + \nabla\cdot\kth\nabla T \right.\nonumber\\
+   && \quad\qquad\qquad\qquad+\ S_{{\rm ext},\rho E} - \ub\cdot\left(\Sb_{{\rm ext},\rho\ub} - \frac{\ub}{2}S_{{\rm ext},\rho}\right)\Biggr] \end{aligned}
 
 The advected quantities appear as:
 
 .. math::
 
    \begin{aligned}
-   \frac{\partial A_k}{\partial t} &=& -{\bf u}\cdot\nabla A_k + \frac{1}{\rho}
+   \frac{\partial A_k}{\partial t} &=& -\ub\cdot\nabla A_k + \frac{1}{\rho}
                                         ( S_{{\rm ext},\rho A_k} - A_k S_{{\rm ext},\rho} ), \\
-   \frac{\partial X_k}{\partial t} &=& -{\bf u}\cdot\nabla X_k + \dot\omega_k + \frac{1}{\rho}
+   \frac{\partial X_k}{\partial t} &=& -\ub\cdot\nabla X_k + \dot\omega_k + \frac{1}{\rho}
                                         ( S_{{\rm ext},\rho X_k}  - X_k S_{{\rm ext},\rho} ), \\
-   \frac{\partial Y_k}{\partial t} &=& -{\bf u}\cdot\nabla Y_k + \frac{1}{\rho} 
+   \frac{\partial Y_k}{\partial t} &=& -\ub\cdot\nabla Y_k + \frac{1}{\rho} 
                                         ( S_{{\rm ext},\rho Y_k}  - Y_k S_{{\rm ext},\rho} ).\end{aligned}
 
 All of the primitive variables are derived from the conservative state
@@ -402,9 +410,9 @@ We augment the above system with an internal energy equation:
 .. math::
 
    \begin{aligned}
-   \frac{\partial(\rho e)}{\partial t} &=& - {\bf u}\cdot\nabla(\rho e) - (\rho e+p)\nabla\cdot{\bf u}- \sum_k \rho q_k\dot\omega_k 
-                                           + \nabla\cdot{k_\mathrm{th}}\nabla T + S_{{\rm ext},\rho E} \nonumber\\
-   && -\  {\bf u}\cdot\left({\bf S}_{{\rm ext},\rho{\bf u}}-\frac{1}{2}S_{{\rm ext},\rho}{\bf u}\right), \end{aligned}
+   \frac{\partial(\rho e)}{\partial t} &=& - \ub\cdot\nabla(\rho e) - (\rho e+p)\nabla\cdot\ub - \sum_k \rho q_k\dot\omega_k 
+                                           + \nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E} \nonumber\\
+   && -\  \ub\cdot\left(\Sb_{{\rm ext},\rho\ub}-\frac{1}{2}S_{{\rm ext},\rho}\ub\right), \end{aligned}
 
 This has two benefits. First, for a general equation of state,
 carrying around an additional thermodynamic quantity allows us to
@@ -427,9 +435,9 @@ from ENZO :raw-latex:`\cite{bryan:1995,bryan:2014}`, where we switch between :ma
 e)` and :math:`(\rho e_T)` depending on the local state of the fluid. To do
 so, we define parameters :math:`\eta_1`, :math:`\eta_2`, and :math:`\eta_3`,
 corresponding to the code parameters
-,
-, and
-. We then consider the ratio :math:`e_T
+castro.dual_energy_eta1,
+castro.dual_energy_eta2, and
+castro.dual_energy_eta3. We then consider the ratio :math:`e_T
 / E`, the ratio of the internal energy (derived from the total energy)
 to the total energy. These parameters are used as follows:
 
@@ -445,7 +453,7 @@ to the total energy. These parameters are used as follows:
 
    Optionally we can also update :math:`E` so that it gains the difference of
    the old and and new :math:`e`, by setting
-   to 1.
+   castro.dual_energy_update_E_from_e to 1.
 
 -  :math:`\eta_3`: Similar to :math:`\eta_1`, if :math:`e_T > \eta_3 E`, we use
    :math:`e_T` for the purposes of our nuclear reactions, otherwise, we use
@@ -465,7 +473,7 @@ Primitive Variable System
 The full primitive variable form (without the advected or auxiliary
 quantities) is
 
-.. math:: \frac{\partial{\bf Q}}{\partial t} + \sum_d {\bf A}_d\frac{\partial{\bf Q}}{\partial x_d} = {\bf S}_{{\bf Q}}.
+.. math:: \frac{\partial\Qb}{\partial t} + \sum_d \Ab_d\frac{\partial\Qb}{\partial x_d} = \Sb_{\Qb}.
 
 For example, in 2D:
 
@@ -514,17 +522,17 @@ For example, in 2D:
    X_k
    \end{array}\right)_y
    =
-   {\bf S}_{\bf Q}
+   \Sb_\Qb
 
 The eigenvalues are:
 
-.. math:: {\bf \Lambda}({\bf A}_x) = \{u-c,u,u,u,u,u+c\}, \qquad {\bf \Lambda}({\bf A}_y) = \{v-c,v,v,v,v,v+c\} .
+.. math:: {\bf \Lambda}(\Ab_x) = \{u-c,u,u,u,u,u+c\}, \qquad {\bf \Lambda}(\Ab_y) = \{v-c,v,v,v,v,v+c\} .
 
 The right column eigenvectors are:
 
 .. math::
 
-   {\bf R}({\bf A}_x) =
+   \Rb(\Ab_x) =
    \left(\begin{array}{cccccc}
    1 & 1 & 0 & 0 & 0 & 1 \\
    -\frac{c}{\rho} & 0 & 0 & 0 & 0 & \frac{c}{\rho} \\
@@ -534,7 +542,7 @@ The right column eigenvectors are:
    0 & 0 & 0 & 0 & 1 & 0 \\
    \end{array}\right),
    \qquad
-   {\bf R}({\bf A}_y) =
+   \Rb(\Ab_y) =
    \left(\begin{array}{cccccc}
    1 & 1 & 0 & 0 & 0 & 1 \\
    0 & 0 & 1 & 0 & 0 & 0 \\
@@ -544,11 +552,11 @@ The right column eigenvectors are:
    0 & 0 & 0 & 0 & 1 & 0 \\
    \end{array}\right).
 
-The left row eigenvectors, normalized so that :math:`{\bf R}_d\cdot{\bf L}_d = {\bf I}` are:
+The left row eigenvectors, normalized so that :math:`\Rb_d\cdot\Lb_d = \Ib` are:
 
 .. math::
 
-   {\bf L}_x =
+   \Lb_x =
    \left(\begin{array}{cccccc}
    0 & -\frac{\rho}{2c} & 0 & \frac{1}{2c^2} & 0 & 0 \\
    1 & 0 & 0 & -\frac{1}{c^2} & 0 & 0 \\
@@ -558,7 +566,7 @@ The left row eigenvectors, normalized so that :math:`{\bf R}_d\cdot{\bf L}_d = {
    0 & \frac{\rho}{2c} & 0 & \frac{1}{2c^2} & 0 & 0
    \end{array}\right),
    \qquad
-   {\bf L}_y =
+   \Lb_y =
    \left(\begin{array}{cccccc}
    0 & 0 & -\frac{\rho}{2c} & \frac{1}{2c^2} & 0 & 0 \\
    1 & 0 & 0 & -\frac{1}{c^2} & 0 & 0 \\
@@ -587,33 +595,33 @@ Each of these steps has a variety of runtime parameters that
 affect their behavior. Additionally, there are some general
 runtime parameters for hydrodynamics:
 
--  : time-advance the fluid dynamical
+-  castro.do_hydro: time-advance the fluid dynamical
    equations (0 or 1; must be set)
 
--  : include additional user-specified
+-  castro.add_ext_src: include additional user-specified
    source term (0 or 1; default 0)
 
--  : call the sponge routine
+-  castro.do_sponge: call the sponge routine
    after the solution update (0 or 1; default: 0)
 
    The purpose of the sponge is to damp velocities outside of a star, to
    prevent them from dominating the timestep constraint. The sponge parameters
    are set in your probin file, in the &sponge namelist. You can sponge either
-   on radius from the center (using and
-   ) or on density (using
-   and ). The timescale of the damping is
-   set through .
+   on radius from the center (using sponge_lower_radius and
+   sponge_upper_radius) or on density (using sponge_lower_density
+   and sponge_upper_density). The timescale of the damping is
+   set through sponge_timescale.
 
--  : enforce that :math:`\sum_i X_i = 1`
+-  castro.normalize_species: enforce that :math:`\sum_i X_i = 1`
    (0 or 1; default: 0)
 
--  : enforce constant mass flux at
+-  castro.fix_mass_flux: enforce constant mass flux at
    domain boundary (0 or 1; default: 1)
 
--  : is internal energy allowed to be
+-  castro.allow_negative_energy: is internal energy allowed to be
    negative? (0 or 1; default: 1)
 
--  : this is used to set the boundary
+-  castro.spherical_star: this is used to set the boundary
    conditions by assuming the star is spherically symmetric in
    the outer regions (0 or 1; default: 0)
 
@@ -622,16 +630,16 @@ runtime parameters for hydrodynamics:
    function is then used to set the values outside the domain in
    implementing the boundary conditions.
 
--  : (0 or 1; default: 0)
+-  castro.show_center_of_mass: (0 or 1; default: 0)
 
 Several floors are imposed on the thermodynamic quantities to prevet unphysical
 behavior:
 
--  : (Real; default: -1.e20)
+-  castro.small_dens: (Real; default: -1.e20)
 
--  : (Real; default: -1.e20)
+-  castro.small_temp: (Real; default: -1.e20)
 
--  : (Real; default: -1.e20)
+-  castro.small_pres: (Real; default: -1.e20)
 
 .. _Sec:Compute Primitive Variables:
 
@@ -643,12 +651,12 @@ We compute the primtive variables from the conserved variables.
 -  :math:`\rho, \rho e`: directly copy these from the conserved state
    vector
 
--  :math:`{\bf u}, A_k, X_k, Y_k`: copy these from the conserved state
+-  :math:`\ub, A_k, X_k, Y_k`: copy these from the conserved state
    vector, dividing by :math:`\rho`
 
 -  :math:`p,T`: use the EOS.
 
-   First, if is 0 (it defaults to
+   First, if castro.allow_negative_energy is 0 (it defaults to
    1) and :math:`e < 0`, we do the following:
 
    #. Use the EOS to set :math:`e = e(\rho,T_{\rm small},X_k)`.
@@ -698,7 +706,7 @@ flattening for the x-direction, here are the steps:
 
 The following runtime parameters affect the behavior here:
 
--  turns on/off the flattening of parabola
+-  castro.use_flattening turns on/off the flattening of parabola
    near shocks (0 or 1; default 1)
 
 Edge State Prediction
@@ -710,7 +718,7 @@ are several reconstruction techniques, a piecewise
 linear method that follows the description in Colella (1990) :raw-latex:`\cite{colella:1990}`,
 the classic PPM limiters :raw-latex:`\cite{ppm}`, and the new PPM limiters introduced
 in Colella & Sekora (2008) :raw-latex:`\cite{colellasekora}`. The choice of
-limiters is determined by .
+limiters is determined by castro.ppm_type.
 
 For the new PPM limiters, we have further modified the method
 of :raw-latex:`\cite{colellasekora}` to eliminate sensitivity due to roundoff error
@@ -732,7 +740,7 @@ Colella algorithm, which we describe later, incorporates the
 transverse terms, and also describes the modifications required for
 equations with additional characteristics besides the fluid velocity.
 There are four steps to compute these dual-valued edge states (here,
-we use :math:`s` to denote an arbitrary scalar from :math:`{\bf Q}`, and we write the
+we use :math:`s` to denote an arbitrary scalar from :math:`\Qb`, and we write the
 equations in 1D, for simplicity):
 
 -  **Step 1**: Compute :math:`s_{i,+}` and :math:`s_{i,-}`, which are spatial
@@ -740,24 +748,10 @@ equations in 1D, for simplicity):
    limiters, respectively. Begin by interpolating :math:`s` to edges using a
    4th-order interpolation in space:
 
-   .. math::
+   .. math:: s_{i+\myhalf} = \frac{7}{12}\left(s_{i+1}+s_i\right) - \frac{1}{12}\left(s_{i+2}+s_{i-1}\right).
 
-      s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} = \frac{7}{12}\left(s_{i+1}+s_i\right) - \frac{1}{12}\left(s_{i+2}+s_{i-1}\right).
-
-   Then, if :math:`(s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}-s_i)(s_{i+1}-s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}) < 0`, we limit
-   :math:`s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}` a nonlinear combination of approximations to the
+   Then, if :math:`(s_{i+\myhalf}-s_i)(s_{i+1}-s_{i+\myhalf}) < 0`, we limit
+   :math:`s_{i+\myhalf}` a nonlinear combination of approximations to the
    second derivative. The steps are as follows:
 
    #. Define:
@@ -765,62 +759,20 @@ equations in 1D, for simplicity):
       .. math::
 
          \begin{aligned}
-         (D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} &=& 3\left(s_{i}-2s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}+s_{i+1}\right) \\
-         (D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},L} &=& s_{i-1}-2s_{i}+s_{i+1} \\
-         (D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},R} &=& s_{i}-2s_{i+1}+s_{i+2}\end{aligned}
+         (D^2s)_{i+\myhalf} &=& 3\left(s_{i}-2s_{i+\myhalf}+s_{i+1}\right) \\
+         (D^2s)_{i+\myhalf,L} &=& s_{i-1}-2s_{i}+s_{i+1} \\
+         (D^2s)_{i+\myhalf,R} &=& s_{i}-2s_{i+1}+s_{i+2}\end{aligned}
 
    #. Define
 
-      .. math::
+      .. math:: s = \text{sign}\left[(D^2s)_{i+\myhalf}\right],
 
-         s = \text{sign}\left[(D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}\right],
-
-      .. math::
-
-         (D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},\text{lim}} = s\max\left\{\min\left[Cs\left|(D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},L}\right|,Cs\left|(D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},R}\right|,s\left|(D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}\right|\right],0\right\},
+      .. math:: (D^2s)_{i+\myhalf,\text{lim}} = s\max\left\{\min\left[Cs\left|(D^2s)_{i+\myhalf,L}\right|,Cs\left|(D^2s)_{i+\myhalf,R}\right|,s\left|(D^2s)_{i+\myhalf}\right|\right],0\right\},
 
       where :math:`C=1.25` as used in Colella and Sekora 2009. The limited value
-      of :math:`s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}` is
+      of :math:`s_{i+\myhalf}` is
 
-      .. math::
-
-         s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} = \frac{1}{2}\left(s_{i}+s_{i+1}\right) - \frac{1}{6}(D^2s)_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2},\text{lim}}.
+      .. math:: s_{i+\myhalf} = \frac{1}{2}\left(s_{i}+s_{i+1}\right) - \frac{1}{6}(D^2s)_{i+\myhalf,\text{lim}}.
 
    Now we implement an updated implementation of the Colella & Sekora
    algorithm which eliminates sensitivity to roundoff. First we
@@ -829,12 +781,7 @@ equations in 1D, for simplicity):
 
    -  For the first test, define
 
-      .. math::
-
-         \alpha_{i,\pm} = s_{i\pm\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} - s_i.
+      .. math:: \alpha_{i,\pm} = s_{i\pm\myhalf} - s_i.
 
       If :math:`\alpha_{i,+}\alpha_{i,-} \ge 0`, then we are at an extremum.
 
@@ -844,20 +791,14 @@ equations in 1D, for simplicity):
       .. math::
 
          \begin{aligned}
-         (Ds)_{i,{\rm face},-} &=& s_{i-\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} - s_{i-\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
+         (Ds)_{i,{\rm face},-} &=& s_{i-\myhalf} - s_{i-\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 3}\kern-.2em/
             \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{3\!/2}} \\
          (Ds)_{i,{\rm face},+} &=& s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
             \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 3}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{3\!/2}} - s_{i-\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}\end{aligned}
+            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{3\!/2}} - s_{i-\myhalf}\end{aligned}
 
       .. math:: (Ds)_{i,{\rm face,min}} = \min\left[\left|(Ds)_{i,{\rm face},-}\right|,\left|(Ds)_{i,{\rm face},+}\right|\right].
 
@@ -911,12 +852,7 @@ equations in 1D, for simplicity):
       the following test. If :math:`s\delta s - \alpha_{i,\mp} \ge 1\times
       10^{-10}`, then
 
-      .. math::
-
-         \alpha_{i,\pm} =  -2\delta s - 2s\left[(\delta s)^2 - \delta s \alpha_{i,\mp}\right]^{\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}
+      .. math:: \alpha_{i,\pm} =  -2\delta s - 2s\left[(\delta s)^2 - \delta s \alpha_{i,\mp}\right]^{\myhalf}
 
       otherwise,
 
@@ -943,20 +879,8 @@ equations in 1D, for simplicity):
      .. math::
 
         \begin{aligned}
-        \mathcal{I}^{(k)}_{+}(s_i) &=& \frac{1}{\sigma_k h}\int_{(i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2})h-\sigma_k h}^{(i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2})h}s_i^I(x)dx \\
-        \mathcal{I}^{(k)}_{-}(s_i) &=& \frac{1}{\sigma_k h}\int_{(i-\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2})h}^{(i-\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-           \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2})h+\sigma_k h}s_i^I(x)dx\end{aligned}
+        \mathcal{I}^{(k)}_{+}(s_i) &=& \frac{1}{\sigma_k h}\int_{(i+\myhalf)h-\sigma_k h}^{(i+\myhalf)h}s_i^I(x)dx \\
+        \mathcal{I}^{(k)}_{-}(s_i) &=& \frac{1}{\sigma_k h}\int_{(i-\myhalf)h}^{(i-\myhalf)h+\sigma_k h}s_i^I(x)dx\end{aligned}
 
      Plugging in (`[Quadratic Interp] <#Quadratic Interp>`__) gives:
 
@@ -973,18 +897,12 @@ equations in 1D, for simplicity):
    .. math::
 
       \begin{aligned}
-      s_{L,i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} &=& s_i - \chi_i\sum_{k:\lambda_k \ge 0}{\bf l}_k\cdot\left[s_i-\mathcal{I}^{(k)}_{+}(s_i)\right]{\bf r}_k + \frac{\Delta t}{2}S_i^n, \\
-      s_{R,i-\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-         \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}} &=& s_i - \chi_i\sum_{k:\lambda_k < 0}{\bf l}_k\cdot\left[s_i-\mathcal{I}^{(k)}_{-}(s_i)\right]{\bf r}_k + \frac{\Delta t}{2}S_i^n.\end{aligned}
+      s_{L,i+\myhalf} &=& s_i - \chi_i\sum_{k:\lambda_k \ge 0}\lb_k\cdot\left[s_i-\mathcal{I}^{(k)}_{+}(s_i)\right]\rb_k + \frac{\dt}{2}S_i^n, \\
+      s_{R,i-\myhalf} &=& s_i - \chi_i\sum_{k:\lambda_k < 0}\lb_k\cdot\left[s_i-\mathcal{I}^{(k)}_{-}(s_i)\right]\rb_k + \frac{\dt}{2}S_i^n.\end{aligned}
 
-   Here, :math:`{\bf r}_k` is the :math:`k^{\rm th}` right column eigenvector of
-   :math:`{\bf R}({\bf A}_d)` and :math:`{\bf l}_k` is the :math:`k^{\rm th}` left row eigenvector lf
-   :math:`{\bf L}({\bf A}_d)`. The flattening coefficient is :math:`\chi_i`.
+   Here, :math:`\rb_k` is the :math:`k^{\rm th}` right column eigenvector of
+   :math:`\Rb(\Ab_d)` and :math:`\lb_k` is the :math:`k^{\rm th}` left row eigenvector lf
+   :math:`\Lb(\Ab_d)`. The flattening coefficient is :math:`\chi_i`.
 
 In order to add the transverse terms in an spatial operator unsplit
 framework, the details follow exactly as given in Section 4.2.1 in
@@ -993,22 +911,22 @@ which are given below.
 
 For the reconstruction of the interface states, the following apply:
 
--  : use piecewise linear vs PPM algorithm
+-  castro.ppm_type: use piecewise linear vs PPM algorithm
    (0, 1, 2; default: 1)
 
    Values of 1 and 2 are both piecewise parabolic reconstruction, with
    2 using updated limiters that better preserve extrema.
 
--  does various attempts to use the
+-  castro.ppm_temp_fix does various attempts to use the
    temperature in the reconstruction of the interface states. This
    is experimental.
 
--  reconstructs :math:`\gamma_e = p/(\rho e) + 1`
+-  castro.ppm_predict_gammae reconstructs :math:`\gamma_e = p/(\rho e) + 1`
    to the interfaces and does the necessary transverse terms to aid in
    the conversion between the conserved and primitive interface states
    in the transverse flux routines (0 or 1; default 0)
 
--  uses the reference states in
+-  castro.ppm_reference_eigenvectors uses the reference states in
    the evaluation of the eigenvectors for the characteristic projection
    (0 or 1; default 0)
 
@@ -1018,17 +936,17 @@ transverse directions involve separate Riemann solves. Sometimes, the
 update to the interface state from the transverse directions can make
 the state ill-posed. There are several parameters that help fix this:
 
--  : If this is 1, then we call
+-  castro.transverse_use_eos: If this is 1, then we call
    the equation of state on the interface, using :math:`\rho`, :math:`e`, and
    :math:`X_k`, to get the interface pressure. This should result in a
    thermodynamically consistent interface state.
 
--  : If the transverse
+-  castro.transverse_reset_density: If the transverse
    corrections result in a negative density on the interface, then we
    reset all of the interface states to their values before the
    transverse corrections.
 
--  : The transverse updates operate
+-  castro.transverse_reset_rhoe: The transverse updates operate
    on the conserved state. Usually, we construct the interface
    :math:`(\rho e)` in the transverse update from total energy and the
    kinetic energy, however, if the interface :math:`(rho e)` is negative,
@@ -1096,7 +1014,7 @@ Then, if :math:`c_{\rm out} = c_{\rm in}`, we define :math:`c_{\rm temp} =
 \epsilon c_{\rm avg}`. Otherwise, :math:`c_{\rm temp} = c_{\rm out} -
 c_{\rm in}`. We define the fraction
 
-.. math:: f = \frac{1}{2}\left[1 + \frac{c_{\rm out} + c_{\rm in}}{c_{\rm temp}}\right],
+.. math:: f = \half\left[1 + \frac{c_{\rm out} + c_{\rm in}}{c_{\rm temp}}\right],
 
 and constrain :math:`f` to lie in the range :math:`f\in[0,1]`.
 
@@ -1136,7 +1054,7 @@ described in the original paper.
 For the construction of the fluxes in the Riemann solver, the following
 parameters apply:
 
--  : this can be one of the following values:
+-  castro.riemann_solver: this can be one of the following values:
 
    -  0: the Colella, Glaz, & Ferguson solver.
 
@@ -1153,13 +1071,13 @@ parameters apply:
    The Colella & Glaz solver is iterative, and two runtime parameters are used
    to control its behavior:
 
-   -  : number of iterations for CG algorithm
+   -  castro.cg_maxiter: number of iterations for CG algorithm
       (Integer; default: 12)
 
-   -  : tolerance for CG solver when solving
+   -  castro.cg_tol: tolerance for CG solver when solving
       for the “star” state (Real; default: 1.0e-5)
 
-   -  : this controls what happens if the root
+   -  castro.cg_blend: this controls what happens if the root
       finding in the CG solver fails. There is a nonlinear equation to find
       the pressure in the *star* region from the jump conditions for a
       shock (this is the two-shock approximation—the left and right states
@@ -1191,12 +1109,7 @@ Compute Fluxes and Update
 Compute the fluxes as a function of the primitive variables, and then
 advance the solution:
 
-.. math::
-
-   {\bf U}^{n+1} = {\bf U}^n - \Delta t\nabla\cdot{\bf F}^{n+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 1}\kern-.15em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 1}\kern-.2em/
-      \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{1\!/2}}+ \Delta t{\bf S}^n.
+.. math:: \Ub^{n+1} = \Ub^n - \dt\nabla\cdot\Fb^\nph + \dt\Sb^n.
 
 Again, note that since the source term is not time centered, this is
 not a second-order method. After the advective update, we correct the
@@ -1207,7 +1120,7 @@ Temperature Fixes
 
 There are a number of experimental options for improving the behavior
 of the temperature in the reconstruction and interface state
-prediction. The options are controlled by ,
+prediction. The options are controlled by castro.ppm_temp_fix,
 which takes values:
 
 -  0: the default method—temperature is not considered
@@ -1233,7 +1146,7 @@ which takes values:
 
 -  3: This does the characteristic tracing using the
    :math:`(\tau, u, T)` eigensystem. Note: this is not widely
-   implemented—see the for an
+   implemented—see the Sod_stellar for an
    implementation.
 
 Resets
@@ -1270,7 +1183,7 @@ limiting fluxes such that negative densities could not occur, so that
 such a reset would in practice always be avoided. Our solution
 implements the positivity-preserving method of :raw-latex:`\cite{hu:2013}`. This
 behavior is controlled by
-.
+castro.limit_fluxes_on_small_dens.
 
 A hydrodynamical update to a zone can be broken down into an update
 over every face of the zone where a flux crosses the face over the
@@ -1295,7 +1208,7 @@ guaranteed to preserve positivity as long as :math:`\text{CFL} < 1/2`), and
 :math:`\theta_{{\rm i}+1/2}` is chosen at every interface by calculating the
 update that would be obtained from , setting
 the density component equal to a value just larger than the density floor,
-, and solving
+castro.small_dens, and solving
 for the value of :math:`\theta` at the interface that makes the equality
 hold. In regions where the density is not at risk of going negative,
 :math:`\theta \approx 1` and the original hydrodynamic update is recovered.

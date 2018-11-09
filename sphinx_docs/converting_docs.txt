@@ -1,0 +1,35 @@
+This is how we convert the LaTeX docs to Sphinx.  We want to do so in
+a way that preserves the ability to use LaTeX macros in math mode in
+the Sphinx.  Since we are using MathJax to render the HTML, we do this
+by adding a javascript file with the macros defined.
+
+1. convert the .tex files to .rst
+
+   Use the pandoc.sh script to do this.  First create a file called
+   "textsymbols.tex" that has all of the LaTeX newcommands that apply
+   only in TEXT MODE (not math).  These will just be converted inplace
+   in the .rst, since they are not rendered by math.
+
+   The script will send this textsymbols.tex into sphinx along with
+   each .tex file.  Any special commands in math mode will be left
+   intact.
+
+   The .rst will be put into docs_new/.  Copy them into the Sphinx source/
+   directory.
+
+2. To create "newcommands" for the math rendering, we follow:
+
+   http://paugargallo.com/posts/2016-05-05-sphinx-mathjax.html
+
+   create a source/_templates/layout.html with:
+
+{% extends "!layout.html" %}
+{% set script_files = script_files + ["_static/mathjax_conf.js"] %}
+
+   The create a file with the LaTeX newcommands you want to work in
+   math mode (via MathJax).  Here it is mathsymbols.tex.  The script
+   create_newcommands.py will read this and output the javascript that
+   is needed for mathjax.  Run as:
+
+   python3 create_newcommands.py > source/_static/mathjax_conf.js
+

@@ -7,7 +7,7 @@ Controlling What’s in the PlotFile
 There are a few options that can be set at runtime to control what
 variables appear in the plotfile.
 
--  : this controls which of the main
+-  amr.plot_vars : this controls which of the main
    state variables appear in the plotfile. The default is for all of
    them to be stored. But you can specify a subset by name, e.g.
 
@@ -18,12 +18,12 @@ variables appear in the plotfile.
 
    to only store that subset.
 
--  : this controls which of the
+-  amr.derive_plot_vars : this controls which of the
    derived variables to be stored in the plotfile. Derived variables
    are created only when the plotfile is being created, using the
    infrastructure provided by BoxLib to register variables and the
    associated Fortran routine to do the deriving
-   ().
+   (Derive_nd.F90).
 
    By default, no derived variables are stored. You can store all
    derived variables that Castro knows about by doing:
