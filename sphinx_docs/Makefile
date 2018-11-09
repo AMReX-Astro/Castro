@@ -4,7 +4,7 @@
 # You can set these variables from the command line.
 SPHINXOPTS    = -E -a
 SPHINXBUILD   = sphinx-build
-SPHINXPROJ    = pyro
+SPHINXPROJ    = castro
 SOURCEDIR     = source
 BUILDDIR      = build
 
@@ -17,6 +17,13 @@ help:
 clean:
 	rm -rf build doxy_files source/class source/file source/namespace
 	rm -f source/classlist.rst source/filelist.rst source/namespacelist.rst
+
+html:
+	./rp.py > source/runtime_parameters.rst
+	doxygen Doxyfile
+	breathe-apidoc --o source doxy_files/xml
+	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	cp -r build/html/* ../docs/
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
