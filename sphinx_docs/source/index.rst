@@ -13,7 +13,7 @@ Castro: an adaptive mesh compressible hydrodynamics code
 
    Preface
    Introduction
-   CastroGettingStarted
+   getting_started
    CastroInputs
    CastroSoftware
    managingjobs

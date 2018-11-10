@@ -1,40 +1,37 @@
+**********************
 Introduction to Castro
-======================
+**********************
 
-Castro is a adaptive mesh, radiation hydrodynamics code that is
+Castro is a adaptive mesh, radiation hydrodynamics code that is
 designed to model astrophysical reacting flows on massively parallel
 computers.
 
 The major capabilities:
 
--  1-, 2-, and 3-dimensional unsplit, 2nd-order hydrodynamics
+  * 1-, 2-, and 3-dimensional unsplit, 2nd-order hydrodynamics
 
--  multigroup flux-limited diffusion radiation hydrodynamics
+  * multigroup flux-limited diffusion radiation hydrodynamics
 
--  adaptive mesh refinement with subcycling; jumps of 2x and 4x between levels
+  * adaptive mesh refinement with subcycling; jumps of 2x and 4x between levels
 
--  arbitrary equation of state (gamma-law and stellar EOSes are bundled)
+  * arbitrary equation of state (gamma-law and stellar EOSes are bundled)
 
--  general nuclear reaction networks
+  * general nuclear reaction networks
 
--  explicit thermal diffusion
+  * explicit thermal diffusion
 
--  full Poisson gravity (with isolated boundary conditions)
+  * full Poisson gravity (with isolated boundary conditions)
 
--  rotation (in the co-rotating frame) in 2-d axisymmetric and 3-d.
+  * rotation (in the co-rotating frame) in 2-d axisymmetric and 3-d.
 
--  parallelization via MPI + OpenMP
+  * parallelization via MPI + OpenMP
 
 Units and Conventions
 =====================
 
-Castro works in CGS units unless otherwise specified.
-Table \ `[table:units] <#table:units>`__ shows some of the common symbols / names used
+Castro works in CGS units unless otherwise specified.
+Table \ `[table:units] <#table:units>`__ shows some of the common symbols / names used
 throughout the code documentation and papers.
-
-.. raw:: latex
-
-   \centering
 
 .. table:: [table:units] Common quantities and units.
 
@@ -72,4 +69,5 @@ throughout the code documentation and papers.
    +-----------------------+-----------------------+-----------------------+
 
 Physical constants, again using the CGS system are available
-in Castro/constants/constants_cgs.f90
+in ``Castro/constants/constants_cgs.f90``
+
