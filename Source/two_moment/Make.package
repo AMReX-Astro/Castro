@@ -8,6 +8,9 @@ FEXE_headers      += TwoMoment_F.H
 ca_F90EXE_sources += two_moment_$(DIM)d.F90
 ca_F90EXE_sources += interpolate_fluid_$(DIM)d.F90
 
+CEXE_sources      += DG_Interpolater.cpp
+CEXE_headers      += DG_Interpolater.H
+
 ca_F90EXE_sources += derive_two_moment_nd.F90
 
 #  This lives in BLAS-3.8.0

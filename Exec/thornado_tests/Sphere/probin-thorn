@@ -3,10 +3,10 @@
 
 &tagging
 
-  denerr = 3
+  denerr = 1e14
   dengrad = 0.01
   max_denerr_lev = 3
-  max_dengrad_lev = 3
+  max_dengrad_lev = -1
 
   presserr = 3
   pressgrad = 0.01

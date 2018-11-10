@@ -141,6 +141,7 @@ Castro::create_thornado_source(Real dt)
     // We only actually compute the source at level 0; otherwise we interpolate from 
     //    the coarser level
     if (level == 0)
+//  if (1 == 1)
     {
        int my_ngrow = 2;  // two fluid ghost cells
 

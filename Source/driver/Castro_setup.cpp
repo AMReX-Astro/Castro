@@ -12,6 +12,7 @@
 #endif
 #ifdef THORNADO
 # include "TwoMoment_F.H"
+# include "DG_Interpolater.H"
 #endif
 
 #include "AMReX_buildInfo.H"
@@ -23,6 +24,10 @@ static Box the_same_box (const Box& b) { return b; }
 static Box grow_box_by_one (const Box& b) { return amrex::grow(b,1); }
 
 typedef StateDescriptor::BndryFunc BndryFunc;
+
+#ifdef THORNADO
+// extern DG_Interpolater           dg_interp;
+#endif
 
 //
 // Components are:
@@ -540,7 +545,7 @@ Castro::variableSetUp ()
   store_in_checkpoint = false;
   desc_lst.addDescriptor(Thornado_Rad_Source_Type, IndexType::TheCellType(),
 			 StateDescriptor::Point, ngrow_thornado, ncomp_thornado,
-			 &cell_cons_interp, state_data_extrap,
+			 &dg_interp, state_data_extrap, 
 			 store_in_checkpoint);
 
   for (int i=0; i < ncomp_thornado; ++i)
@@ -556,7 +561,7 @@ Castro::variableSetUp ()
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Thornado_Type, IndexType::TheCellType(),
 			 StateDescriptor::Point, ngrow_thornado, ncomp_thornado,
-			 &cell_cons_interp, state_data_extrap,
+			 &dg_interp, state_data_extrap, 
 			 store_in_checkpoint);
 
   for (int i=0; i <ncomp_thornado; ++i)
