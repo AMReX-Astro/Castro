@@ -128,12 +128,6 @@ def make_rest_table(param_files):
 if __name__ == "__main__":
 
     # find all of the _parameter files
-    top_dir = "../"
-
-    param_files = []
-    for root, dirs, files in os.walk(top_dir):
-        for f in files:
-            if f == "_parameters":
-                param_files.append(os.path.normpath("/".join([root, f])))
+    param_files = ["../Source/driver/_cpp_parameters"]
 
     make_rest_table(param_files)
