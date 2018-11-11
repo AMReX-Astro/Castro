@@ -2,8 +2,9 @@
 Visualization
 *************
 
-There are a large number of tools that can be used to read in Castro or BoxLib data and make plots. Here we give a brief overview of some
-of the tools as well as some examples.
+There are a large number of tools that can be used to read in Castro
+or AMReX data and make plots. Here we give a brief overview of some of
+the tools as well as some examples.
 
 Controlling What’s in the PlotFile
 ==================================
@@ -11,38 +12,28 @@ Controlling What’s in the PlotFile
 There are a few options that can be set at runtime to control what
 variables appear in the plotfile.
 
--  amr.plot_vars : this controls which of the main
-   state variables appear in the plotfile. The default is for all of
-   them to be stored. But you can specify a subset by name, e.g.
+  * ``amr.plot_vars``: this controls which of the main
+    state variables appear in the plotfile. The default is for all of
+    them to be stored. But you can specify a subset by name, e.g.::
 
-   ::
+        amr.plot_vars = density
 
-             amr.plot_vars = density
-           
+    to only store that subset.
 
-   to only store that subset.
+  * ``amr.derive_plot_vars``: this controls which of the derived
+    variables to be stored in the plotfile. Derived variables are
+    created only when the plotfile is being created, using the
+    infrastructure provided by AMReX to register variables and the
+    associated Fortran routine to do the deriving (``Derive_nd.F90``).
 
--  amr.derive_plot_vars : this controls which of the
-   derived variables to be stored in the plotfile. Derived variables
-   are created only when the plotfile is being created, using the
-   infrastructure provided by BoxLib to register variables and the
-   associated Fortran routine to do the deriving
-   (Derive_nd.F90).
+    By default, no derived variables are stored. You can store all
+    derived variables that Castro knows about by doing::
 
-   By default, no derived variables are stored. You can store all
-   derived variables that Castro knows about by doing:
+       amr.derive_plot_vars = ALL
 
-   ::
+   or a subset by explicitly listing them, e.g.::
 
-             amr.derive_plot_vars = ALL
-           
-
-   or a subset by explicitly listing them, e.g.,
-
-   ::
-
-             amr.derive_plot_vars = entropy pressure
-           
+      amr.derive_plot_vars = entropy pressure
 
 amrvis
 ======
@@ -78,62 +69,50 @@ rather than telling to to read plt00000.
 yt
 ==
 
-yt is a free and open-source software that provides data analysis and
+yt is a free and open-source software that provides data analysis and
 publication-level visualization tools for astrophysical simulation
-results such as those CASTRO produces. As yt is script-based, it’s not
+results such as those Castro produces. As yt is script-based, it’s not
 as easy to use as VisIt, and certainly not as easy as amrvis, but the
 images can be worth it! Here we do not flesh out yt, but give an
 overview intended to get a person started. Full documentation and
 explanations from which this section was adapted can be found at
 http://yt-project.org/doc/index.html.
 
-yt can be installed by the following commands:
-
-$ wget https://raw.githubusercontent.com/yt-project/yt/master/doc/install_script.sh
-
-$ bash install_script.sh
-
-This installs yt in your current directory. To update ytin the
-future, simply do
-
-$ conda update yt
-
-assuming you have conda installed.
 
 Castro-Specific Data
 --------------------
 
-yt was originally created for simple analysis and visualization of
+yt was originally created for simple analysis and visualization of
 data from the Enzo code. Since, it has grown to include support for a
-variety of codes, including Castro. However, ytwill still sometimes
+variety of codes, including Castro. However, yt will still sometimes
 make assumptions, especially about data field names, that favor Enzo
 and cause errors with Castro data. These problems can usually be
 avoided by taking care to specify the data fields desired in
 visualization. For example, Enzo’s density field is called
-“Density,” and is the default for many plotting mechanisms when the
+“Density”, and is the default for many plotting mechanisms when the
 user does not specify the field. However, Castro does not have a field
 called “Density”; instead, the density field is called “density.”
 If a user does not specify a field while plotting with Castro data,
-chances are that yt will try (and fail) to find “Density” and return
+chances are that yt will try (and fail) to find “Density” and return
 an error. As you will see in the examples, however, there is a way to
 create your own fields from existing ones. You can use these derived
 fields as you would use any other field.
 
 There are also a few imperatives when it comes to reading in your
 Castro simulation data and associated information. First and foremost
-is that the inputs file for the simulation **must** exist in the
-same directory as where the plotfile directory is located, and it
-**must** be named “**inputs**.” yt reads information from the
-inputs file such as the number of levels in the simulation run, the
-number of cells, the domain dimensions, and the simulation time. yt will also optionally parse the probin file for pertinent information
-if it is similarly included with the name “**probin**” in the same
-directory as the plotfile of interest. When specifying a plotfile as
-the data source for plots, you may simply call it by its directory
-name, rather than using the Header file as in VisIt. As a final
-caveat, the existence of the job_info file within the plotfile
-directory is what currently distinguishes Castro data from MAESTRO
-data in yt; unless you like surprises, we suggest you ensure your
-plotfile has one.
+is that the inputs file for the simulation **must** exist in the same
+directory as where the plotfile directory is located, and it **must**
+be named “**inputs**.” yt reads information from the inputs file such
+as the number of levels in the simulation run, the number of cells,
+the domain dimensions, and the simulation time. yt will also
+optionally parse the probin file for pertinent information if it is
+similarly included with the name “**probin**” in the same directory as
+the plotfile of interest. When specifying a plotfile as the data
+source for plots, you may simply call it by its directory name, rather
+than using the Header file as in VisIt. As a final caveat, the
+existence of the job_info file within the plotfile directory is what
+currently distinguishes Castro data from MAESTRO data in yt; unless
+you like surprises, we suggest you ensure your plotfile has one.
 
 Interacting with yt: Command Line and Scripting
 -----------------------------------------------
@@ -425,17 +404,9 @@ p.annotate_point([5.95e9, 5.1e9], ‘Star!’)
 
 *# This saves the plot to a file with the given prefix. We can alternatively specify*
 
-.. raw:: latex
-
-   \setlength{\parskip}{0pt}
-
 *# the entire filename.*
 
 p.save(‘contours.press_den\_’)
-
-.. raw:: latex
-
-   \centering
 
 .. figure:: Slice_z_pressure.png
    :alt: Pressure slice with annotations
