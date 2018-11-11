@@ -27,6 +27,7 @@ MathJax.Hub.Config({
             ub: '{{\\bf u}}',
             Ub: '{{\\bf U}}',
             xb: '{{\\bf x}}',
+            dt: '{\\Delta t}',
             omegadot: '{\\dot\\omega}',
             inp: '{{\\rm in}}',
             outp: '{{\\rm out}}',
