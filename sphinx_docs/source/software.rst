@@ -598,16 +598,11 @@ tiling with the tile size equal to the box size.
 Let us consider an example. Suppose there are four boxes—see
 Figure \ `[fig:domain-tiling] <#fig:domain-tiling>`__.
 
-.. raw:: latex
-
-   \centering
-
 .. figure:: domain-tile.png
-   :alt: [fig:domain-tiling] A simple domain showing 4
-   Boxes labeled 0–3, and their tiling regions (dotted lines)
+   :alt: tiling of the domain
 
-   [fig:domain-tiling] A simple domain showing 4
-   Boxes labeled 0–3, and their tiling regions (dotted lines)
+   A simple domain showing 4 Boxes labeled 0–3, and their tiling
+   regions (dotted lines)
 
 The first box is divided into 4 logical tiles, the second and third
 are divided into 2 tiles each (because they are small), and the fourth
