@@ -60,39 +60,23 @@ kept constant. We use a CFL number of 0.9, an initial timestep shrink
 (castro.init_shrink) of 0.1, and the maximum factor by which
 the timestep can increase (castro.change_max) of 1.05.
 
-.. raw:: latex
-
-   \centering
-
 .. figure:: sod_3d.png
-   :alt: [fig:sod] Castro solution for Sod’s problem run in 3-d,
-   with the newest ppm limiters,
-   along the :math:`x`, :math:`y`, and :math:`z` axes. A coarse grid of 32 zones in the
-   direction of propagation, with 2 levels of refinement was used. The
-   analytic solution appears as the red line.
+   :alt: sod problem
    :width: 4.75in
 
-   [fig:sod] Castro solution for Sod’s problem run in 3-d,
-   with the newest ppm limiters,
-   along the :math:`x`, :math:`y`, and :math:`z` axes. A coarse grid of 32 zones in the
-   direction of propagation, with 2 levels of refinement was used. The
-   analytic solution appears as the red line.
-
-.. raw:: latex
-
-   \centering
+   Castro solution for Sod’s problem run in 3-d, with the newest ppm
+   limiters, along the :math:`x`, :math:`y`, and :math:`z` axes. A
+   coarse grid of 32 zones in the direction of propagation, with 2
+   levels of refinement was used. The analytic solution appears as the
+   red line.
 
 .. figure:: sod_3d_ppm0.png
-   :alt: [fig:sod_ppm0] Castro solution for Sod’s problem run in 3-d,
-   with the piecewise-linear Godunov method with limiters,
-   along the :math:`x`, :math:`y`, and :math:`z` axes. A coarse grid of 32 zones in the
-   direction of propagation, with 2 levels of refinement was used. The
-   analytic solution appears as the red line.
+   :alt: sod problem
    :width: 4.75in
 
-   [fig:sod_ppm0] Castro solution for Sod’s problem run in 3-d,
-   with the piecewise-linear Godunov method with limiters,
-   along the :math:`x`, :math:`y`, and :math:`z` axes. A coarse grid of 32 zones in the
+   Castro solution for Sod’s problem run in 3-d, with the
+   piecewise-linear Godunov method with limiters, along the :math:`x`,
+   :math:`y`, and :math:`z` axes. A coarse grid of 32 zones in the
    direction of propagation, with 2 levels of refinement was used. The
    analytic solution appears as the red line.
 
@@ -159,9 +143,6 @@ The system is evolved until :math:`t = 0.15` s. Setups for 1-, 2-, and 3-d
 are provided. The following inputs files and probin files setup the
 Sod’s problem:
 
-.. raw:: latex
-
-   \centering
 
 +-----------------------+-----------------------+-----------------------+
 | inputs-test2-x        | probin-test2-x        | Double rarefaction    |
@@ -184,23 +165,14 @@ timestep shrink (castro.init_shrink) of 0.1, and the maximum factor by which
 the timestep can increase (castro.change_max) of 1.05. The PPM
 solver with the new limiters are used.
 
-.. raw:: latex
-
-   \centering
-
 .. figure:: test2_3d.png
-   :alt: [fig:test2] Castro solution for the double rarefaction
-   problem run in 3-d, along the :math:`x`, :math:`y`, and :math:`z` axes. A coarse grid
-   of 32 zones in the direction of propagation, with 2 levels of
-   refinement was used. The analytic solution appears as the red
-   line.
+   :alt: double rarefaction
    :width: 5in
 
-   [fig:test2] Castro solution for the double rarefaction
-   problem run in 3-d, along the :math:`x`, :math:`y`, and :math:`z` axes. A coarse grid
+   Castro solution for the double rarefaction problem run in 3-d,
+   along the :math:`x`, :math:`y`, and :math:`z` axes. A coarse grid
    of 32 zones in the direction of propagation, with 2 levels of
-   refinement was used. The analytic solution appears as the red
-   line.
+   refinement was used. The analytic solution appears as the red line.
 
 Figure \ `[fig:test2] <#fig:test2>`__ shows the Castro output, run along all 3
 coordinate axes in 3-d, compared to the analytic solution.
@@ -238,9 +210,6 @@ The system is evolved until :math:`t = 0.012` s. Setups for 1-, 2-, and 3-d
 are provided. The following inputs files and probin files setup the
 Sod’s problem:
 
-.. raw:: latex
-
-   \centering
 
 +-----------------------+-----------------------+-----------------------+
 | inputs-test3-x        | probin-test3-x        | Strong shock problem  |
@@ -263,23 +232,14 @@ timestep shrink (castro.init_shrink) of 0.1, and the maximum factor by which
 the timestep can increase (castro.change_max) of 1.05. The PPM
 solver with the new limiters are used.
 
-.. raw:: latex
-
-   \centering
-
 .. figure:: test3_3d.png
-   :alt: [fig:test3] Castro solution for the strong shock
-   problem run in 3-d, along the :math:`x`, :math:`y`, and :math:`z` axes. A coarse grid
-   of 32 zones in the direction of propagation, with 2 levels of
-   refinement was used. The analytic solution appears as the red
-   line.
+   :alt: strong shock
    :width: 5in
 
-   [fig:test3] Castro solution for the strong shock
-   problem run in 3-d, along the :math:`x`, :math:`y`, and :math:`z` axes. A coarse grid
-   of 32 zones in the direction of propagation, with 2 levels of
-   refinement was used. The analytic solution appears as the red
-   line.
+   Castro solution for the strong shock problem run in 3-d, along the
+   :math:`x`, :math:`y`, and :math:`z` axes. A coarse grid of 32 zones
+   in the direction of propagation, with 2 levels of refinement was
+   used. The analytic solution appears as the red line.
 
 Figure \ `[fig:test3] <#fig:test3>`__ shows the Castro output, run along all 3
 coordinate axes in 3-d, compared to the analytic solution.
@@ -379,36 +339,24 @@ the 3 solutions to the analytic solution, spherical_sedov.dat.
 
 Figure \ `[fig:sedov_sph] <#fig:sedov_sph>`__ shows the comparison of the 3 Castro spherical Sedov explosion simulations to the analytic solution.
 
-.. raw:: latex
-
-   \centering
-
 .. figure:: sedov_sph.png
-   :alt: [fig:sedov_sph] Castro solution for the Sedov blast wave problem
-   run in 1-d spherical, 2-d axisymmetric, and 3-d Cartesian coordinates.
-   Each of these geometries produces a spherical Sedov explosion.
+   :alt: Sedov blast wave
    :width: 5in
 
-   [fig:sedov_sph] Castro solution for the Sedov blast wave problem
-   run in 1-d spherical, 2-d axisymmetric, and 3-d Cartesian coordinates.
-   Each of these geometries produces a spherical Sedov explosion.
+   Castro solution for the Sedov blast wave problem run in 1-d
+   spherical, 2-d axisymmetric, and 3-d Cartesian coordinates.  Each
+   of these geometries produces a spherical Sedov explosion.
 
 Cylindrical Blast Wave
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. raw:: latex
-
-   \centering
-
 .. figure:: sedov_cyl.png
-   :alt: [fig:sedov_cyl] Castro solution for the Sedov blast wave problem
-   run in 2-d Cartesian coordinates. This corresponds to a cylindrical
-   Sedov explosion.
+   :alt: Sedov in 2-d
    :width: 5in
 
-   [fig:sedov_cyl] Castro solution for the Sedov blast wave problem
-   run in 2-d Cartesian coordinates. This corresponds to a cylindrical
-   Sedov explosion.
+   Castro solution for the Sedov blast wave problem run in 2-d
+   Cartesian coordinates. This corresponds to a cylindrical Sedov
+   explosion.
 
 Rayleigh-Taylor
 ---------------
@@ -435,15 +383,11 @@ Hydrostatic pressure with :math:`p=5.0` at bottom of domain, assuming
 half and no density perturbation. We run to :math:`t=2.5` with piecewise
 linear, old PPM, and new PPM. CFL=0.9. See Figure `[fig:RT] <#fig:RT>`__.
 
-.. raw:: latex
-
-   \centering
-
 .. figure:: RT_ppm_type.png
-   :alt: [fig:RT]Rayleigh-Taylor with different PPM types.
+   :alt: Rayleigh-Taylor with different PPM types.
    :width: 6.5in
 
-   [fig:RT]Rayleigh-Taylor with different PPM types.
+   Rayleigh-Taylor with different PPM types.
 
 Gravity Test Problems
 =====================
@@ -507,21 +451,13 @@ thermal equilibrium is achieved.
 Our implementation of this problem follows that of
 :raw-latex:`\cite{swestymyra:2009}`.
 
-.. raw:: latex
-
-   \centering
-
 .. figure:: radiating_source.png
-   :alt: [fig:radsource] Castro solution for radiating source
-   test problem. Heating and cooling solutions are shown as a function
-   of time, compared to the analytic solution. The gray photon solver
-   was used.
+   :alt: radiatin source 
    :width: 5in
 
-   [fig:radsource] Castro solution for radiating source
-   test problem. Heating and cooling solutions are shown as a function
-   of time, compared to the analytic solution. The gray photon solver
-   was used.
+   Castro solution for radiating source test problem. Heating and
+   cooling solutions are shown as a function of time, compared to the
+   analytic solution. The gray photon solver was used.
 
 Radiating Sphere
 ----------------
@@ -542,19 +478,13 @@ Our implementation of this problem is in Exec/radiation_tests/RadSphere and
 follows that of :raw-latex:`\cite{swestymyra:2009}`. The routine that computes
 the analytic solution is provided as analytic.f90.
 
-.. raw:: latex
-
-   \centering
-
 .. figure:: radiating_sphere.png
-   :alt: [fig:radsphere] Castro solution for radiating sphere problem,
-   showing the radiation energy density as a function of energy group.
-   This test was run with 64 photon energy groups.
+   :alt: radiating sphere
    :width: 5in
 
-   [fig:radsphere] Castro solution for radiating sphere problem,
-   showing the radiation energy density as a function of energy group.
-   This test was run with 64 photon energy groups.
+   Castro solution for radiating sphere problem, showing the radiation
+   energy density as a function of energy group.  This test was run
+   with 64 photon energy groups.
 
 Regression Testing
 ==================

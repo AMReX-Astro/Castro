@@ -630,10 +630,6 @@ im = cam.draw_grids(im, alpha=0.03, min_level=1, max_level=1)
 
 im.write_png(‘pressure_shell_volume.png’)
 
-.. raw:: latex
-
-   \centering
-
 .. figure:: volume.png
    :alt: Volume rendering
    :width: 3.5in

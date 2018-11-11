@@ -86,17 +86,10 @@ switching to a rotating reference frame.
 Coordinate transformation to rotating frame
 ===========================================
 
-.. raw:: latex
-
-   \centering
-
 .. figure:: tframes.png
-   :alt: [fig:sec:rot:frames] Inertial frame :math:`C` and
-   non-inertial frame :math:`\tilde{C}`. We consider a fluid element
-   :math:`P`, whose distance in the two frames is related by
-   :math:`{\bf r} = \tilde{\bf{r}} + {\bf l}`
+   :alt: inertial vs. corotating frame
 
-   [fig:sec:rot:frames] Inertial frame :math:`C` and
+   Inertial frame :math:`C` and
    non-inertial frame :math:`\tilde{C}`. We consider a fluid element
    :math:`P`, whose distance in the two frames is related by
    :math:`{\bf r} = \tilde{\bf{r}} + {\bf l}`
