@@ -1,4 +1,6 @@
-[chapter:parameters]
+******************
+Runtime Parameters
+******************
 
 Introduction to Runtime Parameters
 ==================================
@@ -96,3 +98,8 @@ The following runtime parameters have been removed for Castro.
    reference state.
 
    (removed in commit: 213f4ffc53463141084551c7be4b37a2720229aa)
+
+
+.. toctree::
+
+   runtime_parameters

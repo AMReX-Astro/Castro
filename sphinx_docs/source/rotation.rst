@@ -90,7 +90,7 @@ Coordinate transformation to rotating frame
 
    \centering
 
-.. figure:: tframes
+.. figure:: tframes.png
    :alt: [fig:sec:rot:frames] Inertial frame :math:`C` and
    non-inertial frame :math:`\tilde{C}`. We consider a fluid element
    :math:`P`, whose distance in the two frames is related by

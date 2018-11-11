@@ -64,7 +64,7 @@ the timestep can increase (castro.change_max) of 1.05.
 
    \centering
 
-.. figure:: sod_3d
+.. figure:: sod_3d.png
    :alt: [fig:sod] Castro solution for Sod’s problem run in 3-d,
    with the newest ppm limiters,
    along the :math:`x`, :math:`y`, and :math:`z` axes. A coarse grid of 32 zones in the
@@ -82,7 +82,7 @@ the timestep can increase (castro.change_max) of 1.05.
 
    \centering
 
-.. figure:: sod_3d_ppm0
+.. figure:: sod_3d_ppm0.png
    :alt: [fig:sod_ppm0] Castro solution for Sod’s problem run in 3-d,
    with the piecewise-linear Godunov method with limiters,
    along the :math:`x`, :math:`y`, and :math:`z` axes. A coarse grid of 32 zones in the
@@ -188,7 +188,7 @@ solver with the new limiters are used.
 
    \centering
 
-.. figure:: test2_3d
+.. figure:: test2_3d.png
    :alt: [fig:test2] Castro solution for the double rarefaction
    problem run in 3-d, along the :math:`x`, :math:`y`, and :math:`z` axes. A coarse grid
    of 32 zones in the direction of propagation, with 2 levels of
@@ -267,7 +267,7 @@ solver with the new limiters are used.
 
    \centering
 
-.. figure:: test3_3d
+.. figure:: test3_3d.png
    :alt: [fig:test3] Castro solution for the strong shock
    problem run in 3-d, along the :math:`x`, :math:`y`, and :math:`z` axes. A coarse grid
    of 32 zones in the direction of propagation, with 2 levels of
@@ -383,7 +383,7 @@ Figure \ `[fig:sedov_sph] <#fig:sedov_sph>`__ shows the comparison of the 3 Cas
 
    \centering
 
-.. figure:: sedov_sph
+.. figure:: sedov_sph.png
    :alt: [fig:sedov_sph] Castro solution for the Sedov blast wave problem
    run in 1-d spherical, 2-d axisymmetric, and 3-d Cartesian coordinates.
    Each of these geometries produces a spherical Sedov explosion.
@@ -400,7 +400,7 @@ Cylindrical Blast Wave
 
    \centering
 
-.. figure:: sedov_cyl
+.. figure:: sedov_cyl.png
    :alt: [fig:sedov_cyl] Castro solution for the Sedov blast wave problem
    run in 2-d Cartesian coordinates. This corresponds to a cylindrical
    Sedov explosion.
@@ -439,7 +439,7 @@ linear, old PPM, and new PPM. CFL=0.9. See Figure `[fig:RT] <#fig:RT>`__.
 
    \centering
 
-.. figure:: RT_ppm_type
+.. figure:: RT_ppm_type.png
    :alt: [fig:RT]Rayleigh-Taylor with different PPM types.
    :width: 6.5in
 
@@ -511,7 +511,7 @@ Our implementation of this problem follows that of
 
    \centering
 
-.. figure:: radiating_source
+.. figure:: radiating_source.png
    :alt: [fig:radsource] Castro solution for radiating source
    test problem. Heating and cooling solutions are shown as a function
    of time, compared to the analytic solution. The gray photon solver
@@ -546,7 +546,7 @@ the analytic solution is provided as analytic.f90.
 
    \centering
 
-.. figure:: radiating_sphere
+.. figure:: radiating_sphere.png
    :alt: [fig:radsphere] Castro solution for radiating sphere problem,
    showing the radiation energy density as a function of energy group.
    This test was run with 64 photon energy groups.

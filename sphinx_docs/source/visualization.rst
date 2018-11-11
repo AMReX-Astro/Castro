@@ -437,7 +437,7 @@ p.save(‘contours.press_den\_’)
 
    \centering
 
-.. figure:: Slice_z_pressure
+.. figure:: Slice_z_pressure.png
    :alt: Pressure slice with annotations
    :width: 6in
 
@@ -634,7 +634,7 @@ im.write_png(‘pressure_shell_volume.png’)
 
    \centering
 
-.. figure:: volume
+.. figure:: volume.png
    :alt: Volume rendering
    :width: 3.5in
 
@@ -714,7 +714,7 @@ plt.savefig(‘pres_magvel_isocontours.png’)
 
    \centering
 
-.. figure:: isocontours
+.. figure:: isocontours.png
    :alt: Pressure isocontour rendering colored with velocity magnitude
    :width: 4in
 
@@ -864,13 +864,13 @@ pc.save(‘profile’)
 
    \centering
 
-.. figure:: LineQueryPlot_0_t_magvel
+.. figure:: LineQueryPlot_0_t_magvel.png
    :alt: Density/velocity magnitude/kinetic energy phase plot
    :width: 4in
 
    Density/velocity magnitude/kinetic energy phase plot
 
-.. figure:: Profile2D_1_Density_magvel_kineng
+.. figure:: Profile2D_1_Density_magvel_kineng.png
    :alt: Density/velocity magnitude/kinetic energy phase plot
    :width: 4in
 
@@ -946,7 +946,7 @@ plot.save(‘off_axis_density’)
 
    \centering
 
-.. figure:: OffAxisProjection_density
+.. figure:: OffAxisProjection_density.png
    :alt: Off-axis density projection
    :width: 4in
 

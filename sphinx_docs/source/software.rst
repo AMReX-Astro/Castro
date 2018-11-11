@@ -182,7 +182,7 @@ the layout of the boxes at the current level.
 
    \centering
 
-.. figure:: index_grid2
+.. figure:: index_grid2.png
    :alt: [fig:soft:indexspace] Three boxes that comprise a single level. At this
    resolution, the domain is 20\ :math:`\times`\ 18 zones. Note that the
    indexing in AMReX starts with :math:`0`.
@@ -602,7 +602,7 @@ Figure \ `[fig:domain-tiling] <#fig:domain-tiling>`__.
 
    \centering
 
-.. figure:: domain-tile
+.. figure:: domain-tile.png
    :alt: [fig:domain-tiling] A simple domain showing 4
    Boxes labeled 0–3, and their tiling regions (dotted lines)
 
