@@ -30,6 +30,14 @@ Castro: an adaptive mesh compressible hydrodynamics code
    visualization
    Verification
 
+.. toctree::
+   :maxdepth: 1
+   :caption: API
+
+   filelist
+   classlist
+   namespacelist
+
 Indices and tables
 ==================
 
