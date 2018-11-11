@@ -38,125 +38,119 @@ Hydrodynamics Data Structures
 Within the Fortran routines that implement the hydrodynamics, there are
 several main data structures that hold the state.
 
--  conserved state: these arrays generally begin with u,
-   e.g., uin, uout. The NVAR
+-  conserved state: these arrays generally begin with ``u``,
+   e.g., ``uin``, ``uout``. The ``NVAR``
    components for the state data in the array are accessed using
    integer keys defined in `[table:consints] <#table:consints>`__.
 
    .. table:: [table:consints] The integer variables to index the conservative state array
 
-      +-----------------------+-----------------------+-----------------------+
-      | **variable**          | **quantity**          | **note**              |
-      +=======================+=======================+=======================+
-      | URHO                  | :math:`\rho`          |                       |
-      +-----------------------+-----------------------+-----------------------+
-      | UMX                   | :math:`\rho u`        |                       |
-      +-----------------------+-----------------------+-----------------------+
-      | UMY                   | :math:`\rho v`        |                       |
-      +-----------------------+-----------------------+-----------------------+
-      | UMZ                   | :math:`\rho w`        |                       |
-      +-----------------------+-----------------------+-----------------------+
-      | UEDEN                 | :math:`\rho E`        |                       |
-      +-----------------------+-----------------------+-----------------------+
-      | UEINT                 | :math:`\rho e`        | this is computed from |
-      |                       |                       | the other quantities  |
-      |                       |                       | using                 |
-      |                       |                       | :math:`\rho e = \rho  |
-      |                       |                       | E - \rho \ub \cdot \u |
-      |                       |                       | b / 2`                |
-      +-----------------------+-----------------------+-----------------------+
-      | UTEMP                 | :math:`T`             | this is computed from |
-      |                       |                       | the other quantities  |
-      |                       |                       | using the EOS         |
-      +-----------------------+-----------------------+-----------------------+
-      | UFA                   | :math:`\rho A_1`      | the first advected    |
-      |                       |                       | quantity              |
-      +-----------------------+-----------------------+-----------------------+
-      | UFS                   | :math:`\rho X_1`      | the first species     |
-      +-----------------------+-----------------------+-----------------------+
-      | UFX                   | :math:`\rho Y_1`      | the first auxiliary   |
-      |                       |                       | variable              |
-      +-----------------------+-----------------------+-----------------------+
-      | USHK                  | a shock flag          | (used for shock       |
-      |                       |                       | detection)            |
-      +-----------------------+-----------------------+-----------------------+
-      | UMR                   | radial momentum       | (if HYBRID_MOMENTUM   |
-      |                       |                       | is defined)           |
-      +-----------------------+-----------------------+-----------------------+
-      | UML                   | angular momentum      | (if HYBRID_MOMENTUM   |
-      |                       |                       | is defined)           |
-      +-----------------------+-----------------------+-----------------------+
-      | UMP                   | vertical momentum     | (if HYBRID_MOMENTUM   |
-      |                       |                       | is defined)           |
-      +-----------------------+-----------------------+-----------------------+
+      +-----------------------+-----------------------+-------------------------+
+      | **variable**          | **quantity**          | **note**                |
+      +=======================+=======================+=========================+
+      | ``URHO``              | :math:`\rho`          |                         |
+      +-----------------------+-----------------------+-------------------------+
+      | ``UMX``               | :math:`\rho u`        |                         |
+      +-----------------------+-----------------------+-------------------------+
+      | ``UMY``               | :math:`\rho v`        |                         |
+      +-----------------------+-----------------------+-------------------------+
+      | ``UMZ``               | :math:`\rho w`        |                         |
+      +-----------------------+-----------------------+-------------------------+
+      | ``UEDEN``             | :math:`\rho E`        |                         |
+      +-----------------------+-----------------------+-------------------------+
+      | ``UEINT``             | :math:`\rho e`        | this is computed from   |
+      |                       |                       | the other quantities    |
+      |                       |                       | using                   |
+      |                       |                       | :math:`\rho e = \rho    |
+      |                       |                       | E - \rho |\ub|^2        |
+      |                       |                       | / 2`                    |
+      +-----------------------+-----------------------+-------------------------+
+      | ``UTEMP``             | :math:`T`             | this is computed from   |
+      |                       |                       | the other quantities    |
+      |                       |                       | using the EOS           |
+      +-----------------------+-----------------------+-------------------------+
+      | ``UFA``               | :math:`\rho A_1`      | the first advected      |
+      |                       |                       | quantity                |
+      +-----------------------+-----------------------+-------------------------+
+      | ``UFS``               | :math:`\rho X_1`      | the first species       |
+      +-----------------------+-----------------------+-------------------------+
+      | ``UFX``               | :math:`\rho Y_1`      | the first auxiliary     |
+      |                       |                       | variable                |
+      +-----------------------+-----------------------+-------------------------+
+      | ``USHK``              | a shock flag          | (used for shock         |
+      |                       |                       | detection)              |
+      +-----------------------+-----------------------+-------------------------+
+      | ``UMR``               | radial momentum       | (if ``HYBRID_MOMENTUM`` |
+      |                       |                       | is defined)             |
+      +-----------------------+-----------------------+-------------------------+
+      | ``UML``               | angular momentum      | (if ``HYBRID_MOMENTUM`` |
+      |                       |                       | is defined)             |
+      +-----------------------+-----------------------+-------------------------+
+      | ``UMP``               | vertical momentum     | (if ``HYBRID_MOMENTUM`` |
+      |                       |                       | is defined)             |
+      +-----------------------+-----------------------+-------------------------+
 
 -  primitive variable state: these arrays generally simply called
-   q, and has NQ components. Note: if
-   RADIATION is defined, then there are QVAR
-   components that are pure hydro out of the total NQ components,
-   and the pure hydro components always come first in the state array.
+   ``q``, and has ``NQ`` components.
+
+   .. note:: if ``RADIATION`` is defined, then there are ``QVAR``
+      components that are pure hydro out of the total ``NQ``
+      components, and the pure hydro components always come first in
+      the state array.
 
    Table \ `[table:primlist] <#table:primlist>`__ gives the names of the primitive variable integer
    keys for accessing these arrays.
 
-   .. raw:: latex
-
-      \centering
 
    .. table:: [table:primlist] The integer variable keys for
    accessing the primitive state vector. Note, unless otherwise
    specified the quantities without a subscript are “gas” only
    and those with the “tot” subscript are “gas + radiation”.
 
-      +-----------------------+-----------------------+-----------------------+
-      | **variable**          | **quantity**          | **note**              |
-      +=======================+=======================+=======================+
-      | QRHO                  | :math:`\rho`          |                       |
-      +-----------------------+-----------------------+-----------------------+
-      | QU                    | :math:`u`             |                       |
-      +-----------------------+-----------------------+-----------------------+
-      | QV                    | :math:`v`             |                       |
-      +-----------------------+-----------------------+-----------------------+
-      | QW                    | :math:`w`             |                       |
-      +-----------------------+-----------------------+-----------------------+
-      | QPRES                 | :math:`p`             |                       |
-      +-----------------------+-----------------------+-----------------------+
-      | QREINT                | :math:`\rho e`        |                       |
-      +-----------------------+-----------------------+-----------------------+
-      | QTEMP                 | :math:`T`             |                       |
-      +-----------------------+-----------------------+-----------------------+
-      | QGAME                 | :math:`p/(\rho e) + 1 |                       |
-      |                       | `                     |                       |
-      +-----------------------+-----------------------+-----------------------+
-      | QFA                   | :math:`A_1`           | the first advected    |
-      |                       |                       | quantity              |
-      +-----------------------+-----------------------+-----------------------+
-      | QFS                   | :math:`X_1`           | the first species     |
-      +-----------------------+-----------------------+-----------------------+
-      | QFX                   | :math:`Y_1`           | the first auxiliary   |
-      |                       |                       | variable              |
-      +-----------------------+-----------------------+-----------------------+
-      | QPTOT                 | :math:`p_\mathrm{tot} | the total pressure,   |
-      |                       | `                     | gas + radiation       |
-      +-----------------------+-----------------------+-----------------------+
-      | QREITOT               | :math:`e_\mathrm{tot} | the total specific    |
-      |                       | `                     | internal energy, gas  |
-      |                       |                       | + radiation           |
-      +-----------------------+-----------------------+-----------------------+
-      | QRAD                  | :math:`E_r`           | the radiation energy  |
-      |                       |                       | (there are ngroups of |
-      |                       |                       | these)                |
-      +-----------------------+-----------------------+-----------------------+
+      +-----------------------+------------------------+-----------------------+
+      | **variable**          | **quantity**           | **note**              |
+      +=======================+========================+=======================+
+      | ``QRHO``              | :math:`\rho`           |                       |
+      +-----------------------+------------------------+-----------------------+
+      | ``QU``                | :math:`u`              |                       |
+      +-----------------------+------------------------+-----------------------+
+      | ``QV``                | :math:`v`              |                       |
+      +-----------------------+------------------------+-----------------------+
+      | ``QW``                | :math:`w`              |                       |
+      +-----------------------+------------------------+-----------------------+
+      | ``QPRES``             | :math:`p`              |                       |
+      +-----------------------+------------------------+-----------------------+
+      | ``QREINT``            | :math:`\rho e`         |                       |
+      +-----------------------+------------------------+-----------------------+
+      | ``QTEMP``             | :math:`T`              |                       |
+      +-----------------------+------------------------+-----------------------+
+      | ``QGAME``             | :math:`p/(\rho e) + 1` |                       |
+      +-----------------------+------------------------+-----------------------+
+      | ``QFA``               | :math:`A_1`            | the first advected    |
+      |                       |                        | quantity              |
+      +-----------------------+------------------------+-----------------------+
+      | ``QFS``               | :math:`X_1`            | the first species     |
+      +-----------------------+------------------------+-----------------------+
+      | ``QFX``               | :math:`Y_1`            | the first auxiliary   |
+      |                       |                        | variable              |
+      +-----------------------+------------------------+-----------------------+
+      | ``QPTOT``             | :math:`p_\mathrm{tot}` | the total pressure,   |
+      |                       |                        | gas + radiation       |
+      +-----------------------+------------------------+-----------------------+
+      | ``QREITOT``           | :math:`e_\mathrm{tot}` | the total specific    |
+      |                       |                        | internal energy, gas  |
+      |                       |                        | + radiation           |
+      +-----------------------+------------------------+-----------------------+
+      | ``QRAD``              | :math:`E_r`            | the radiation energy  |
+      |                       |                        | (there are ngroups of |
+      |                       |                        | these)                |
+      +-----------------------+------------------------+-----------------------+
 
 -  auxiliary primitive variables: these arrays are generally called
    qaux. The main difference between these and the regular
    primitive variables is that we do not attempt to do any
-   reconstruction on their profiles. There are NQAUX quantities, indexed
+   reconstruction on their profiles. There are ``NQAUX`` quantities, indexed
    by the integer keys listed in table \ `[table:qauxlist] <#table:qauxlist>`__.
-
-   .. raw:: latex
-
-      \centering
 
    .. table:: [table:qauxlist] The integer variable keys for
    accessing the auxiliary primitive state vector, quax.
@@ -167,44 +161,44 @@ several main data structures that hold the state.
       +-----------------------+-----------------------+-----------------------+
       | **variable**          | **quantity**          | **note**              |
       +=======================+=======================+=======================+
-      | QGAMC                 | :math:`\gamma_1`      | the first adiabatic   |
+      | ``QGAMC``             | :math:`\gamma_1`      | the first adiabatic   |
       |                       |                       | exponent, as returned |
       |                       |                       | from the EOS          |
       +-----------------------+-----------------------+-----------------------+
-      | QC                    | :math:`c_s`           | the sound speed, as   |
+      | ``QC``                | :math:`c_s`           | the sound speed, as   |
       |                       |                       | returned from the EOS |
       +-----------------------+-----------------------+-----------------------+
-      | QCSML                 |                       | a small sound speed   |
+      | ``QCSML``             |                       | a small sound speed   |
       |                       |                       | used for cutoffs      |
       +-----------------------+-----------------------+-----------------------+
-      | QDPDR                 | :math:`\partial p/\pa | computed via the EOS  |
-      |                       | rtial \rho |_e`       |                       |
+      | ``QDPDR``             | :math:`\partial p/    | computed via the EOS  |
+      |                       | \partial \rho |_e`    |                       |
       +-----------------------+-----------------------+-----------------------+
-      | QDPDE                 | :math:`\partial p/\pa | computed via the EOS  |
-      |                       | rtial e|_\rho`        |                       |
+      | ``QDPDE``             | :math:`\partial p/    | computed via the EOS  |
+      |                       | \partial e|_\rho`     |                       |
       +-----------------------+-----------------------+-----------------------+
-      | QGAMCG                | :math:`{\Gamma_1}_\ma | includes radiation    |
-      |                       | thrm{tot}`            | components (defined   |
-      |                       |                       | only if RADIATION is  |
-      |                       |                       | defined)              |
+      | ``QGAMCG``            | :math:`{\Gamma_1      | includes radiation    |
+      |                       | }_\mathrm{tot}`       | components (defined   |
+      |                       |                       | only if ``RADIATION`` |
+      |                       |                       | is defined)           |
       +-----------------------+-----------------------+-----------------------+
-      | QCG                   | :math:`{c_s}_\mathrm{ | total sound speed     |
-      |                       | tot}`                 | including radiation   |
+      | ``QCG``               | :math:`{c_s           | total sound speed     |
+      |                       | }_\mathrm{tot}`       | including radiation   |
       |                       |                       | (defined only if      |
-      |                       |                       | RADIATION is defined) |
-      +-----------------------+-----------------------+-----------------------+
-      | QLAMS                 | :math:`\lambda_f`     | the ngroups flux      |
-      |                       |                       | limiters (defined     |
-      |                       |                       | only if RADIATION is  |
+      |                       |                       | ``RADIATION`` is      |
       |                       |                       | defined)              |
+      +-----------------------+-----------------------+-----------------------+
+      | ``QLAMS``             | :math:`\lambda_f`     | the ``ngroups`` flux  |
+      |                       |                       | limiters (defined     |
+      |                       |                       | only if ``RADIATION`` |
+      |                       |                       | is defined)           |
       +-----------------------+-----------------------+-----------------------+
 
--  interface variable: these are the time-centered interface states
+-  interface variables: these are the time-centered interface states
    returned by the Riemann solver. They are used to discretize some
    non-conservative terms in the equations. These arrays are generally
-   called qx, qy, and qz for the x, y, and z
-   interfaces respectively (in some places the numbers 1, 2, and 3 are
-   used instead). There are NGDNV components accessed with
+   called ``q1``, ``q2``, and ``q3`` for the x, y, and z
+   interfaces respectively. There are ``NGDNV`` components accessed with
    the integer keys defined in table \ `[table:gdlist] <#table:gdlist>`__
 
    .. table:: [table:gdlist] The integer variable keys for
@@ -216,37 +210,41 @@ several main data structures that hold the state.
       +-----------------------+-----------------------+-----------------------+
       | **variable**          | **quantity**          | **note**              |
       +=======================+=======================+=======================+
-      | QGDRHO                | :math:`\rho`          |                       |
+      | ``QGDRHO``            | :math:`\rho`          |                       |
       +-----------------------+-----------------------+-----------------------+
-      | QDU                   | :math:`u`             |                       |
+      | ``QDU``               | :math:`u`             |                       |
       +-----------------------+-----------------------+-----------------------+
-      | QDV                   | :math:`v`             |                       |
+      | ``QDV``               | :math:`v`             |                       |
       +-----------------------+-----------------------+-----------------------+
-      | QDW                   | :math:`w`             |                       |
+      | ``QDW``               | :math:`w`             |                       |
       +-----------------------+-----------------------+-----------------------+
-      | QDPRES                | :math:`p`             | regardless of whether |
-      |                       |                       | RADIATION is defined, |
+      | ``QDPRES``            | :math:`p`             | regardless of whether |
+      |                       |                       | ``RADIATION`` is      |
+      |                       |                       | defined,              |
       |                       |                       | this is always just   |
       |                       |                       | the gas pressure      |
       +-----------------------+-----------------------+-----------------------+
-      | QDGAME                | :math:`\gamma_e = p/( | regardless of whether |
-      |                       | \rho e) + 1`          | RADIATION is defined, |
+      | ``QDGAME``            | :math:`\gamma_e = p/( | regardless of whether |
+      |                       | \rho e) + 1`          | ``RADIATION`` is      |
+      |                       |                       | defined,              |
       |                       |                       | this is always just   |
       |                       |                       | the gas contribution  |
       +-----------------------+-----------------------+-----------------------+
-      | QDLAMS                | :math:`{\lambda_f}`   | the starting index    |
+      | ``QDLAMS``            | :math:`{\lambda_f}`   | the starting index    |
       |                       |                       | for the flux          |
       |                       |                       | limiter—there are     |
       |                       |                       | ngroups components    |
       |                       |                       | (defined only if      |
-      |                       |                       | RADIATION is defined) |
+      |                       |                       | ``RADIATION`` is      |
+      |                       |                       | defined)              |
       +-----------------------+-----------------------+-----------------------+
-      | QDERADS               | :math:`E_r`           | the starting index    |
+      | ``QDERADS``           | :math:`E_r`           | the starting index    |
       |                       |                       | for the radiation     |
       |                       |                       | energy—there are      |
       |                       |                       | ngroups components    |
       |                       |                       | (defined only if      |
-      |                       |                       | RADIATION is defined) |
+      |                       |                       | ``RADIATION`` is      |
+      |                       |                       | defined)              |
       +-----------------------+-----------------------+-----------------------+
 
 Conservation Forms
@@ -266,16 +264,18 @@ We begin with the fully compressible equations for the conserved state vector,
    \frac{\partial (\rho Y_k)}{\partial t} &= - \nabla \cdot (\rho \ub Y_k) + S_{{\rm ext},\rho Y_k}.\label{eq:compressible-equations}
    \end{align}
 
-Here :math:`\rho, \ub, T, p`, and :math:`\kth` are the density, velocity,
-temperature, pressure, and thermal conductivity, respectively, and :math:`E
-= e + \ub \cdot \ub / 2` is the total energy with :math:`e` representing the
-internal energy. In addition, :math:`X_k` is the abundance of the :math:`k^{\rm
-  th}` isotope, with associated production rate, :math:`\dot\omega_k`, and
-energy release, :math:`q_k`. Here :math:`\gb` is the gravitational vector, and
-:math:`S_{{\rm ext},\rho}, \Sb_{{\rm ext}\rho\ub}`, etc., are user-specified
-source terms. :math:`A_k` is an advected quantity, i.e., a tracer. We also
-carry around auxiliary variables, :math:`Y_k`, which have a user-defined
-evolution equation, but by default are treated as advected quantities.
+Here :math:`\rho, \ub, T, p`, and :math:`\kth` are the density,
+velocity, temperature, pressure, and thermal conductivity,
+respectively, and :math:`E = e + \ub \cdot \ub / 2` is the total
+energy with :math:`e` representing the internal energy. In addition,
+:math:`X_k` is the abundance of the :math:`k^{\rm th}` isotope, with
+associated production rate, :math:`\dot\omega_k`, and energy release,
+:math:`q_k`. Here :math:`\gb` is the gravitational vector, and
+:math:`S_{{\rm ext},\rho}, \Sb_{{\rm ext}\rho\ub}`, etc., are
+user-specified source terms. :math:`A_k` is an advected quantity,
+i.e., a tracer. We also carry around auxiliary variables, :math:`Y_k`,
+which have a user-defined evolution equation, but by default are
+treated as advected quantities.
 
 In the code we also carry around :math:`T` and :math:`\rho e` in the conservative
 state vector even though they are derived from the other conserved
@@ -293,21 +293,18 @@ Some notes:
    You should always initialize all velocity components to zero, and
    always construct the kinetic energy with all three velocity components.
 
--  There are NADV advected quantities, which range from
-   UFA: UFA+nadv-1. The advected quantities have no effect at all on
+-  There are ``NADV`` advected quantities, which range from
+   ``UFA: UFA+nadv-1``. The advected quantities have no effect at all on
    the rest of the solution but can be useful as tracer quantities.
 
--  There are NSPEC species (defined in the network
-   directory), which range from UFS: UFS+nspec-1.
+-  There are ``NSPEC`` species (defined in the network
+   directory), which range from ``UFS: UFS+nspec-1``.
 
--  There are NAUX auxiliary variables, from
-   UFX:UFX+naux-1 The auxiliary variables are passed into the equation
-   of state routines along with the species; An example of an auxiliary
-   variable is the electron fraction, :math:`Y_e`, in core collapse simulations.
+-  There are ``NAUX`` auxiliary variables, from ``UFX:UFX+naux-1``. The
+   auxiliary variables are passed into the equation of state routines
+   along with the species. An example of an auxiliary variable is the
+   electron fraction, :math:`Y_e`, in core collapse simulations.
 
-.. raw:: latex
-
-   \MarginPar{note about qpass\_map here}
 
 Source Terms
 ============
@@ -595,51 +592,48 @@ Each of these steps has a variety of runtime parameters that
 affect their behavior. Additionally, there are some general
 runtime parameters for hydrodynamics:
 
--  castro.do_hydro: time-advance the fluid dynamical
+-  ``castro.do_hydro``: time-advance the fluid dynamical
    equations (0 or 1; must be set)
 
--  castro.add_ext_src: include additional user-specified
+-  ``castro.add_ext_src``: include additional user-specified
    source term (0 or 1; default 0)
 
--  castro.do_sponge: call the sponge routine
+-  ``castro.do_sponge``: call the sponge routine
    after the solution update (0 or 1; default: 0)
 
    The purpose of the sponge is to damp velocities outside of a star, to
    prevent them from dominating the timestep constraint. The sponge parameters
-   are set in your probin file, in the &sponge namelist. You can sponge either
-   on radius from the center (using sponge_lower_radius and
-   sponge_upper_radius) or on density (using sponge_lower_density
-   and sponge_upper_density). The timescale of the damping is
-   set through sponge_timescale.
+   are set in your ``probin`` file, in the ``&sponge`` namelist. You can sponge either
+   on radius from the center (using ``sponge_lower_radius`` and
+   ``sponge_upper_radius``) or on density (using ``sponge_lower_density``
+   and ``sponge_upper_density``). The timescale of the damping is
+   set through ``sponge_timescale``.
 
--  castro.normalize_species: enforce that :math:`\sum_i X_i = 1`
+-  ``castro.normalize_species``: enforce that :math:`\sum_i X_i = 1`
    (0 or 1; default: 0)
 
--  castro.fix_mass_flux: enforce constant mass flux at
+-  ``castro.fix_mass_flux``: enforce constant mass flux at
    domain boundary (0 or 1; default: 1)
 
--  castro.allow_negative_energy: is internal energy allowed to be
-   negative? (0 or 1; default: 1)
-
--  castro.spherical_star: this is used to set the boundary
+-  ``castro.spherical_star``: this is used to set the boundary
    conditions by assuming the star is spherically symmetric in
    the outer regions (0 or 1; default: 0)
 
-   When used, Castro averages the values at a given radius over the
+   When used, Castro averages the values at a given radius over the
    cells that are inside the domain to define a radial function. This
    function is then used to set the values outside the domain in
    implementing the boundary conditions.
 
--  castro.show_center_of_mass: (0 or 1; default: 0)
+-  ``castro.show_center_of_mass``: (0 or 1; default: 0)
 
 Several floors are imposed on the thermodynamic quantities to prevet unphysical
 behavior:
 
--  castro.small_dens: (Real; default: -1.e20)
+-  ``castro.small_dens``: (Real; default: -1.e20)
 
--  castro.small_temp: (Real; default: -1.e20)
+-  ``castro.small_temp``: (Real; default: -1.e20)
 
--  castro.small_pres: (Real; default: -1.e20)
+-  ``castro.small_pres``: (Real; default: -1.e20)
 
 .. _Sec:Compute Primitive Variables:
 
