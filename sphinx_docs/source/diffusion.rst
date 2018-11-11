@@ -1,4 +1,6 @@
-[ch:diffusion]
+*********
+Diffusion
+*********
 
 Thermal Diffusion
 =================

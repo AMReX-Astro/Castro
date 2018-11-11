@@ -1,3 +1,7 @@
+************************
+Adaptive Mesh Refinement
+************************
+
 Our approach to adaptive refinement in Castro uses a nested hierarchy
 of logically-rectangular grids with simultaneous refinement of the
 grids in both space and time. The integration algorithm on the grid

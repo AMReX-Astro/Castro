@@ -1,4 +1,6 @@
-[ch:gravity]
+*******
+Gravity
+*******
 
 Introduction
 ============

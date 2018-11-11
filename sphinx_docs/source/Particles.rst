@@ -1,9 +1,26 @@
+****************
 Tracer particles
-================
+****************
 
-Tracer particles are to track the Lagrangian evolution of a model fluid using discrete particles. In hydrodynamical simulations based on an Eulerian grid (including CASTRO), thermodynamic variables at a given time are derived by solving the equations of motion of a fluid between cells. Therefore, in this scheme, the physical quantities that we can access to are not discretized quantities at any given position, but rather average values over each cell. However, employing discrete particles, passively advected with the fluid flow, allows us to obtain local instantaneous thermodynamic variables, such as the temperature and the density, at well-defined positions, independent of the spatial resolution, i.e., the spatial cell size. This means that we can follow the evolution of the fluid at any given position and time.
+Tracer particles are to track the Lagrangian evolution of a model
+fluid using discrete particles. In hydrodynamical simulations based on
+an Eulerian grid (including CASTRO), thermodynamic variables at a
+given time are derived by solving the equations of motion of a fluid
+between cells. Therefore, in this scheme, the physical quantities that
+we can access to are not discretized quantities at any given position,
+but rather average values over each cell. However, employing discrete
+particles, passively advected with the fluid flow, allows us to obtain
+local instantaneous thermodynamic variables, such as the temperature
+and the density, at well-defined positions, independent of the spatial
+resolution, i.e., the spatial cell size. This means that we can follow
+the evolution of the fluid at any given position and time.
 
-CASTRO provides a tracer particle scheme with useful options. In this scheme, particles are advanced using the midpoint method either with the cell-centered velocities or the face-centered velocities (Marker-And-Cell method) [1]_. The number and the initial positions of particles are flexibly determined according to the purpose of a given model.
+CASTRO provides a tracer particle scheme with useful options. In this
+scheme, particles are advanced using the midpoint method either with
+the cell-centered velocities or the face-centered velocities
+(Marker-And-Cell method) [1]_. The number and the initial positions of
+particles are flexibly determined according to the purpose of a given
+model.
 
 Initializing the Particles
 ==========================

@@ -14,21 +14,20 @@ Castro: an adaptive mesh compressible hydrodynamics code
    Preface
    Introduction
    getting_started
-   CastroInputs
-   CastroSoftware
-   managingjobs
+   inputs
+   software
    faq
    Hydrodynamics
-   CastroGravity
-   CastroDiffusion
-   CastroRotation
-   CastroRadiation
+   gravity
+   diffusion
+   rotation
+   radiation
    Particles
    EOSNetwork
    AMR
    ConvertCheckpoint
    MAESTRO_restart
-   CastroVisualization
+   visualization
    Verification
 
 Indices and tables

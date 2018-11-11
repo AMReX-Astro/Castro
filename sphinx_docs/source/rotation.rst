@@ -1,4 +1,6 @@
-[ch:rotation]
+********
+Rotation
+********
 
 Introduction
 ============

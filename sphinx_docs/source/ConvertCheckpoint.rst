@@ -1,3 +1,7 @@
+*********************
+Checkpoint Embiggener
+*********************
+
 Within the CASTRO distribution, there is the capability to “grow” a
 checkpoint file so that a calculation can be restarted in a larger
 domain covered by grid cells a factor of two or four coarser than the
