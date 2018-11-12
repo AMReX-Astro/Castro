@@ -41,6 +41,7 @@ extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
+    'sphinxcontrib.bibtex',
     'sphinx.ext.autosummary',
     'nbsphinx',
     'numpydoc',
@@ -115,7 +116,6 @@ with open('mathsymbols.tex', 'r') as f:
                 mathjax_config['TeX']['Macros'][macro[0]] = "{"+macro[3]+"}"
             else:
                 mathjax_config['TeX']['Macros'][macro[0]] = ["{"+macro[3]+"}", int(macro[2])]
-
 
 
 # -- Options for HTML output ----------------------------------------------
