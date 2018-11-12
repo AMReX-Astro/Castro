@@ -17,19 +17,23 @@ by adding a javascript file with the macros defined.
    The .rst will be put into docs_new/.  Copy them into the Sphinx source/
    directory.
 
-2. To create "newcommands" for the math rendering, we follow:
+2. To create "newcommands" for the math rendering, we use the mathjax_config variable,
+   which can be set to a dictionary with parameters for mathjax.
 
-   http://paugargallo.com/posts/2016-05-05-sphinx-mathjax.html
+   https://www.sphinx-doc.org/en/master/usage/extensions/math.html?highlight=math#confval-mathjax_config
 
-   create a source/_templates/layout.html with:
+   In particular, latex newcommands to into {'TeX': {'Macros': {}}}
 
-{% extends "!layout.html" %}
-{% set script_files = script_files + ["_static/mathjax_conf.js"] %}
+   This code put into conf.py handles it:
 
-   The create a file with the LaTeX newcommands you want to work in
-   math mode (via MathJax).  Here it is mathsymbols.tex.  The script
-   create_newcommands.py will read this and output the javascript that
-   is needed for mathjax.  Run as:
+mathjax_config = {'TeX': {'Macros': {}}}
 
-   python3 create_newcommands.py > source/_static/mathjax_conf.js
+with open('mathsymbols.tex', 'r') as f:
+    for line in f:
+        macros = re.findall(r'\\newcommand{\\(.*?)}(\[(\d)\])?{(.+)}', line)
+        for macro in macros:
+            if len(macro[1]) == 0:
+                mathjax_config['TeX']['Macros'][macro[0]] = "{"+macro[3]+"}"
+            else:
+                mathjax_config['TeX']['Macros'][macro[0]] = ["{"+macro[3]+"}", int(macro[2])]
 

@@ -18,6 +18,7 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+import re
 import sys
 import sphinx_rtd_theme
 import breathe
@@ -101,6 +102,20 @@ pygments_style = 'sphinx'
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
+
+
+# -- Options for MathJax
+mathjax_config = {'TeX': {'Macros': {}}}
+
+with open('mathsymbols.tex', 'r') as f:
+    for line in f:
+        macros = re.findall(r'\\newcommand{\\(.*?)}(\[(\d)\])?{(.+)}', line)
+        for macro in macros:
+            if len(macro[1]) == 0:
+                mathjax_config['TeX']['Macros'][macro[0]] = "{"+macro[3]+"}"
+            else:
+                mathjax_config['TeX']['Macros'][macro[0]] = ["{"+macro[3]+"}", int(macro[2])]
+
 
 
 # -- Options for HTML output ----------------------------------------------
