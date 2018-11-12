@@ -215,7 +215,6 @@ contains
              do i = lo(1), hi(1)
                 if (den(i,j,k,1) .ge. denerr) then
                    tag(i,j,k) = set
-                   print *,'TAGGING ',i,j
                 endif
              enddo
           enddo

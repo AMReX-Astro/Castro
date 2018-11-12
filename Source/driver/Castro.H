@@ -825,6 +825,11 @@ protected:
 
     void avgDown (int state_indx);
 
+#ifdef THORNADO
+    void average_down_thornado_data(const amrex::MultiFab& S_fine, amrex::MultiFab& S_crse, 
+                                    int scomp, int ncomp, const amrex::IntVect& ratio);
+#endif
+
     void buildMetrics ();
 
     void initMFs ();

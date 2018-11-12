@@ -2789,9 +2789,21 @@ Castro::avgDown (int state_indx)
     MultiFab&  S_crse   = get_new_data(state_indx);
     MultiFab&  S_fine   = fine_lev.get_new_data(state_indx);
 
+#ifdef THORNADO
+    if ( (state_indx == Thornado_Type) || (state_indx == Thornado_Rad_Source_Type) )
+    {
+       average_down_thornado_data(S_fine, S_crse,
+   			          0, S_fine.nComp(), fine_ratio);
+    } else {
+       amrex::average_down(S_fine, S_crse,
+   			   fgeom, cgeom,
+   			   0, S_fine.nComp(), fine_ratio);
+    }
+#else
     amrex::average_down(S_fine, S_crse,
 			 fgeom, cgeom,
 			 0, S_fine.nComp(), fine_ratio);
+#endif
 }
 
 void
