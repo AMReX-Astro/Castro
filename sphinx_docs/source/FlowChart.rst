@@ -31,12 +31,12 @@ the different code paths.
 
 Several helper functions are used throughout:
 
--  clean_state:
+-  ``clean_state``:
    There are many ways that the hydrodynamics state may become
-   unphysical in the evolution. The clean_state() routine
+   unphysical in the evolution. The ``clean_state()`` routine
    enforces some checks on the state. In particular, it
 
-   #. enforces that the density is above castro.small_dens
+   #. enforces that the density is above ``castro.small_dens``
 
    #. normalizes the species so that the mass fractions sum to 1
 
@@ -50,13 +50,13 @@ Overview of a single step (no SDC)
 ==================================
 
 The main evolution for a single step is contained in
-Castro_advance.cpp, as Castro::advance(). This does
+``Castro_advance.cpp``, as ``Castro::advance()``. This does
 the following advancement. Note, some parts of this are only done
 depending on which preprocessor directives are defined at
 compile-time—the relevant directive is noted in the [ ] at the start
 of each step.
 
-#. *Initialization* (initialize_advance())
+#. *Initialization* (``initialize_advance()``)
 
    This sets up the current level for advancement. The following
    actions are performend (note, we omit the actions taken for a retry,
@@ -69,16 +69,17 @@ of each step.
    -  Initialize all of the intermediate storage arrays (like those
       that hold source terms, etc.).
 
-   -  Swap the StateData from the new to old (e.g., ensures that
+   -  Swap the StateData from the new to old (e.g., ensures that
       the next evolution starts with the result from the previous step).
 
-   -  Do a clean_state
+   -  Do a ``clean_state``
 
    -  Create the MultiFabs that hold the primitive variable information
       for the hydro solve.
 
    -  For method of lines integration: allocate the storage for the
-      intermediate stage updates, k_mol, and the Sburn MultiFab that holds the post burn state.
+      intermediate stage updates, ``k_mol``, and the ``Sburn``
+      MultiFab that holds the post burn state.
 
    -  Zero out all of the fluxes
 
@@ -86,13 +87,13 @@ of each step.
 
    The update strategy differs for CTU vs MOL:
 
-   -  CTU: Calls do_advance to take a single step,
+   -  CTU: Calls ``do_advance to`` take a single step,
       incorporating hydrodynamics, reactions, and source terms.
 
-   -  MOL: Call do_advance_mol MOL_STAGES times
+   -  MOL: Call ``do_advance_mol`` ``MOL_STAGES`` times
       (i.e., once for each of the intermediate stages in the ODE
-      integration). Within do_advance we will use the stage
-      number, mol_iteration, to do an pre- or post-hydro
+      integration). Within ``do_advance`` we will use the stage
+      number, ``mol_iteration``, to do an pre- or post-hydro
       sources (e.g., burning).
 
    In either case, for radiation-hydrodynamics, this step does the
@@ -101,13 +102,13 @@ of each step.
    included in this step, and are time-centered to achieve second-order
    accuracy.
 
-   If castro.use_retry is set, then we subcycle the current
+   If ``castro.use_retry`` is set, then we subcycle the current
    step if we violated any stability criteria to reach the desired
    :math:`\Delta t`. The idea is the following: if the timestep that you
    took had a timestep that was not sufficient to enforce the stability
    criteria that you would like to achieve, such as the CFL criterion
    for hydrodynamics or the burning stability criterion for reactions,
-   you can retry the timestep by setting castro.use_retry = 1 in
+   you can retry the timestep by setting ``castro.use_retry`` = 1 in
    your inputs file. This will save the current state data at the
    beginning of the level advance, and then if the criteria are not
    satisfied, will reject that advance and start over from the old
@@ -128,26 +129,26 @@ of each step.
 
 #. *Radial data and [POINTMASS] point mass*
 
-   If castro.spherical_star is set, then we average the state data
+   If ``castro.spherical_star`` is set, then we average the state data
    over angles here to create a radial profile. This is then used in the
    boundary filling routines to properly set Dirichlet BCs when our domain
    is smaller than the star, so the profile on the boundaries will not
    be uniform.
 
-   If castro.point_mass_fix_solution is set, then we
+   If ``castro.point_mass_fix_solution`` is set, then we
    change the mass of the point mass that optionally contributes to the
    gravitational potential by taking mass from the surrounding zones
    (keeping the density in those zones constant).
 
 #. [RADIATION] *Radiation implicit update*
 
-   The do_advance() routine only handled the hyperbolic
+   The ``do_advance()`` routine only handled the hyperbolic
    portion of the radiation update. This step does the implicit solve
    (either gray or multigroup) to advance the radiation energies to the
    new time level. Note that at the moment, this is backward-difference
    implicit (first-order in time) for stability.
 
-   This is handled by final_radiation_call().
+   This is handled by ``final_radiation_call()``.
 
 #. [PARTICLES] *Particles*
 
@@ -162,7 +163,7 @@ of each step.
       coarse-fine interfaces. This cleans up the memory used during
       the step.
 
-   -  If castro.track_grid_losses is set, then we
+   -  If ``castro.track_grid_losses`` is set, then we
       also add up the mass that left through the boundary over this
       step. [1]_
 
@@ -172,7 +173,7 @@ Main Hydro, Reaction, and Gravity Advancement (CTU w/ Strang-splitting)
 -----------------------------------------------------------------------
 
 The explicit portion of the system advancement (reactions,
-hydrodynamics, and gravity) is done by do_advance(). Consider
+hydrodynamics, and gravity) is done by ``do_advance()``. Consider
 our system of equations as:
 
 .. math:: \frac{\partial\Ub}{\partial t} = -{\bf A}(\Ub) + \Rb(\Ub) + \Sb,
@@ -219,37 +220,37 @@ Castro also supports radiation. This part of the update algorithm
 only deals with the advective / hyperbolic terms in the radiation update.
 
 Here is the single-level algorithm. The goal here is to update the
-State_Type StateData from the old to new time (see
+``State_Type``  StateData from the old to new time (see
 § \ `[soft:sec:statedata] <#soft:sec:statedata>`__). We will use the following notation
 here, consistent with the names used in the code:
 
--  S_old is a multifab reference to the old-time-level
-   State_Type data.
+-  ``S_old`` is a MultiFab reference to the old-time-level
+   ``State_Type`` data.
 
--  Sborder is a multifab that has ghost cells and is
-   initialized from S_old. This is what the hydrodynamic
+-  ``Sborder`` is a MultiFab that has ghost cells and is
+   initialized from ``S_old``. This is what the hydrodynamic
    reconstruction will work from.
 
--  S_new is a multifab reference to the new-time-level
-   State_Type data.
+-  ``S_new`` is a MultiFab reference to the new-time-level
+   ``State_Type`` data.
 
 In the code, the objective is to evolve the state from the old time,
-S_old, to the new time, S_new.
+``S_old``, to the new time, ``S_new``.
 
 #. [strang:init] *Initialize*
 
-   #. In initialize_do_advance() :
+   #. In ``initialize_do_advance()`` :
 
-      #. Create Sborder, initialized from S_old
+      #. Create ``Sborder``, initialized from ``S_old``
 
-   #. Check for NaNs in the initial state, S_old.
+   #. Check for NaNs in the initial state, ``S_old``.
 
 #. *React :math:`\Delta t/2`.* [strang_react_first_half()]
 
    Update the solution due to the effect of reactions over half a time
    step. The integration method and system of equations used here is
    determined by a host of runtime parameters that are part of the
-   Microphysics package. But the basic idea is to evolve the energy
+   Microphysics package. But the basic idea is to evolve the energy
    release from the reactions, the species mass fractions, and
    temperature through :math:`\Delta t/2`.
 
@@ -278,25 +279,25 @@ S_old, to the new time, S_new.
    in this routine (accomplished throuh the use of a mask) will burn
    only in the valid interior cells or in any ghost cells that are on a
    coarse-fine interface or physical boundary. This allows us to just
-   use a level FillBoundary() call to fill all of the ghost cells
+   use a level ``FillBoundary()`` call to fill all of the ghost cells
    on the same level with valid data.
 
    An experimental option (enabled via
-   use_custom_knapsack_weights) will create a custom
+   ``use_custom_knapsack_weights``) will create a custom
    distribution map based on the work needed in burning a zone and
    redistribute the boxes across processors before burning, to better
-   load balance..
+   load balance.
 
-   After reactions, clean_state is called.
+   After reactions, ``clean_state`` is called.
 
-   At the end of this step, Sborder sees the effects of the
+   At the end of this step, ``Sborder`` sees the effects of the
    reactions.
 
 #. [strang:oldsource] *Construct time-level :math:`n` sources and apply*
-   [construct_old_gravity(), do_old_sources()]
+   [``construct_old_gravity()``, ``do_old_sources()``]
 
    The time level :math:`n` sources are computed, and added to the
-   StateData Source_Type. The sources are then applied
+   StateData ``Source_Type``. The sources are then applied
    to the state after the burn, :math:`\Ub^\star` with a full :math:`\Delta t`
    weighting (this will be corrected later). This produces the
    intermediate state, :math:`\Ub^{n+1,(a)}`.
@@ -306,19 +307,19 @@ S_old, to the new time, S_new.
    #. sponge : the sponge is a damping term added to
       the momentum equation that is designed to drive the velocities to
       zero over some timescale. Our implementation of the sponge
-      follows that of Maestro :raw-latex:`\cite{maestro:III}`
+      follows that of Maestro :raw-latex:`\cite{maestro:III}`
 
    #. external sources : users can define problem-specific sources
-      in the ext_src_?d.f90 file. Sources for the different
+      in the ``ext_src_?d.f90`` file. Sources for the different
       equations in the conservative state vector, :math:`\Ub`, are indexed
-      using the integer keys defined in meth_params_module
+      using the integer keys defined in ``meth_params_module``
       (e.g., URHO).
 
       This is most commonly used for external heat sources (see the
-      toy_convect problem setup) for an example. But most
+      ``toy_convect`` problem setup) for an example. But most
       problems will not use this.
 
-   #. [DIFFUSION] diffusion : thermal diffusion can be
+   #. [``DIFFUSION``] diffusion : thermal diffusion can be
       added in an explicit formulation. Second-order accuracy is
       achieved by averaging the time-level :math:`n` and :math:`n+1` terms, using
       the same predictor-corrector strategy described here.
@@ -329,13 +330,10 @@ S_old, to the new time, S_new.
       timestep constraint, since the treatment is explicit. See
       Chapter \ `[ch:diffusion] <#ch:diffusion>`__ for more details.
 
-   #. [HYBRID_MOMENTUM] angular momentum
+   #. [``HYBRID_MOMENTUM``] angular momentum
 
-      .. raw:: latex
 
-         \MarginPar{need to write this up}
-
-   #. [GRAVITY] gravity:
+   #. [``GRAVITY``] gravity:
 
       For full Poisson gravity, we solve for for gravity using:
 
@@ -346,34 +344,27 @@ S_old, to the new time, S_new.
 
       The construction of the form of the gravity source for the
       momentum and energy equation is dependent on the parameter
-      castro.grav_source_type. Full details of the gravity
+      ``castro.grav_source_type``. Full details of the gravity
       solver are given in Chapter \ `[ch:gravity] <#ch:gravity>`__.
 
-      .. raw:: latex
 
-         \MarginPar{we should add a description of whether we do a level solve or a composite solve}
-
-      .. raw:: latex
-
-         \MarginPar{what do we store? phi and g? source?}
-
-   #. [ROTATION] rotation
+   #. [``ROTATION``] rotation
 
       We compute the rotational potential (for use in the energy update)
       and the rotational acceleration (for use in the momentum
       equation). This includes the Coriolis and centrifugal terms in a
       constant-angular-velocity co-rotating frame. The form of the
       rotational source that is constructed then depends on the
-      parameter castro.rot_source_type. More details are
+      parameter ``castro.rot_source_type``. More details are
       given in Chapter \ `[ch:rotation] <#ch:rotation>`__.
 
    The source terms here are evaluated using the post-burn state,
-   :math:`\Ub^\star` (Sborder), and later corrected by using the
+   :math:`\Ub^\star` (``Sborder``), and later corrected by using the
    new state just before the burn, :math:`\Ub^{n+1,(b)}`. This is compatible
    with Strang-splitting, since the hydro and sources takes place
    completely inside of the surrounding burn operations.
 
-   Note that the source terms are already applied to S_new
+   Note that the source terms are already applied to ``S_new``
    in this step, with a full :math:`\Delta t`—this will be corrected later.
 
 #. [strang:hydro] *Construct the hydro update* [construct_hydro_source()]
@@ -389,7 +380,7 @@ S_old, to the new time, S_new.
    complex time-integration schemes.
 
    In the Strang-split formulation, we start the reconstruction using
-   the state after burning, :math:`\Ub^\star` (Sborder). There
+   the state after burning, :math:`\Ub^\star` (``Sborder``). There
    are two approaches we use, the corner transport upwind (CTU) method
    that uses characteristic tracing as described in
    :raw-latex:`\cite{colella:1990}`, and a method-of-lines approach. The choice is
@@ -398,7 +389,7 @@ S_old, to the new time, S_new.
    #. CTU method:
 
       For the CTU method, we predict to the half-time (:math:`n+1/2`) to get a
-      second-order accurate method. Note: Sborder does not
+      second-order accurate method. Note: ``Sborder`` does not
       know of any sources except for reactions. The advection step is
       complicated, and more detail is given in Section
       `[Sec:Advection Step] <#Sec:Advection Step>`__. Here is the summarized version:
@@ -418,7 +409,7 @@ S_old, to the new time, S_new.
       the interface states. This is essentially the same vector that was
       computed in the previous step, with a few modifications. The most
       important is that if we set
-      castro.source_term_predictor, then we extrapolate the
+      ``castro.source_term_predictor``, then we extrapolate the
       source terms from :math:`n` to :math:`n+1/2`, using the change from the previous
       step.
 
@@ -427,26 +418,26 @@ S_old, to the new time, S_new.
       nature of this method.
 
       The update computed here is then immediately applied to
-      S_new.
+      ``S_new``.
 
    #. method of lines
 
-#. [strang:clean] *Clean State* [clean_state()]
+#. [strang:clean] *Clean State* [``clean_state()``]
 
    .. raw:: latex
 
       \MarginPar{we only seem to do this for the MOL integration}
 
-   This is done on S_new.
+   This is done on ``S_new``.
 
    After these checks, we check the state for NaNs.
 
 #. [strang:radial] *Update radial data and center of mass for monopole gravity*
 
-   These quantities are computed using S_new.
+   These quantities are computed using ``S_new``.
 
 #. [strang:newsource] *Correct the source terms with the :math:`n+1` contribution*
-   [construct_new_gravity(), do_new_sources]
+   [``construct_new_gravity()``, ``do_new_sources``]
 
    Previously we added :math:`\Delta t\, \Sb(\Ub^\star)` to the state, when
    we really want a time-centered approach, :math:`(\Delta t/2)[\Sb(\Ub^\star
@@ -467,10 +458,10 @@ S_old, to the new time, S_new.
    We do the final :math:`\dt/2` reacting on the state, begining with :math:`\Ub^{n+1,(c)}` to
    give us the final state on this level, :math:`\Ub^{n+1}`.
 
-   This is largely the same as strang_react_first_half(), but
+   This is largely the same as ``strang_react_first_half()``, but
    it does not currently fill the reactions in the ghost cells.
 
-#. [strang:finalize] *Finalize* [finalize_do_advance()]
+#. [strang:finalize] *Finalize* [``finalize_do_advance()``]
 
    Finalize does the following:
 
@@ -484,25 +475,25 @@ S_old, to the new time, S_new.
 A summary of which state is the input and which is updated for each of
 these processes is presented below:
 
-+--------------------+-------+-----------------+-----------------+
-| *step*             | S_old | Sborder         | S_new           |
-+====================+=======+=================+=================+
-| 1. init            | input | updated         |                 |
-+--------------------+-------+-----------------+-----------------+
-| 2. react           |       | input / updated |                 |
-+--------------------+-------+-----------------+-----------------+
-| 3. old sources     |       | input           | updated         |
-+--------------------+-------+-----------------+-----------------+
-| 4. hydro           |       | input           | updated         |
-+--------------------+-------+-----------------+-----------------+
-| 5. clean           |       |                 | input / updated |
-+--------------------+-------+-----------------+-----------------+
-| 6. radial / center |       |                 | input           |
-+--------------------+-------+-----------------+-----------------+
-| 7. correct sources |       |                 | input / updated |
-+--------------------+-------+-----------------+-----------------+
-| 8. react           |       |                 | input / updated |
-+--------------------+-------+-----------------+-----------------+
++--------------------+-----------+---------------------+---------------------+
+| *step*             | ``S_old`` | ``Sborder``         | ``S_new``           |
++====================+===========+=====================+=====================+
+| 1. init            | input     | updated             |                     |
++--------------------+-----------+---------------------+---------------------+
+| 2. react           |           | input / updated     |                     |
++--------------------+-----------+---------------------+---------------------+
+| 3. old sources     |           | input               | updated             |
++--------------------+-----------+---------------------+---------------------+
+| 4. hydro           |           | input               | updated             |
++--------------------+-----------+---------------------+---------------------+
+| 5. clean           |           |                     | input / updated     |
++--------------------+-----------+---------------------+---------------------+
+| 6. radial / center |           |                     | input               |
++--------------------+-----------+---------------------+---------------------+
+| 7. correct sources |           |                     | input / updated     |
++--------------------+-----------+---------------------+---------------------+
+| 8. react           |           |                     | input / updated     |
++--------------------+-----------+---------------------+---------------------+
 
 Main Hydro, Reaction, and Gravity Advancement (MOL w/ Strang-splitting)
 -----------------------------------------------------------------------
@@ -547,52 +538,52 @@ The time at the intermediate stages is evaluated as:
 .. math:: t_l = c_l \dt
 
 The integration coefficients are stored in the vectors
-a_mol, b_mol, and c_mol, and the
-stage updates are stored in the MultiFab k_mol.
+``a_mol``, ``b_mol``, and ``c_mol``, and the
+stage updates are stored in the MultiFab ``k_mol``.
 
 Here is the single-level algorithm. We use the same notation
 as in the CTU flowchart.
 
 In the code, the objective is to evolve the state from the old time,
-S_old, to the new time, S_new.
+``S_old``, to the new time, ``S_new``.
 
 #. [strang:init] *Initialize*
 
-   In initialize_do_advance(), set the starting point for the stage’s integration:
+   In ``initialize_do_advance()``, set the starting point for the stage’s integration:
 
-   #. if mol_iteration = 0: initialize
-      Sborder from S_old
+   #. if ``mol_iteration`` = 0: initialize
+      ``Sborder`` from ``S_old``
 
-   #. if mol_iteration > 0: we need to create
+   #. if ``mol_iteration`` > 0: we need to create
       the starting point for the current stage. We store this,
       temporarily in the new-time slot (what we normally refer to as
-      S_new):
+      ``S_new``):
 
       .. math:: \mathtt{S\_new}_\mathrm{iter} = \mathtt{Sburn} + \dt \sum_{l=0}^{\mathrm{iter}-1} a_{\mathrm{iter},l} \mathtt{k\_mol}_l
 
-      Then initialize Sborder from S_new.
+      Then initialize ``Sborder`` from ``S_new``.
 
-   Check for NaNs in the initial state, S_old.
+   Check for NaNs in the initial state, ``S_old``.
 
 #. *React :math:`\Delta t/2`.* [strang_react_first_half()]
 
    This step is unchanged from the CTU version. At the end of this
-   step, Sborder sees the effects of the reactions.
+   step, ``Sborder`` sees the effects of the reactions.
 
    Each stage needs to build its starting point from this point, so we
-   store the effect of the burn in a new MultiFab, Sburn,
+   store the effect of the burn in a new MultiFab, ``Sburn``,
    for use in the stage initialization.
 
 #. [strang:oldsource] *Construct sources from the current
    stage’s state*
-   [construct_old_gravity(), do_old_sources()]
+   [``construct_old_gravity()``, ``do_old_sources()``]
 
    .. raw:: latex
 
       \MarginPar{fix: gravity is still using {\tt S\_old}}
 
    The time level :math:`n` sources are computed, and added to the
-   StateData Source_Type. The sources are then applied
+   StateData ``Source_Type``. The sources are then applied
    to the state after the burn, :math:`\Ub^\star` with a full :math:`\Delta t`
    weighting (this will be corrected later). This produces the
    intermediate state, :math:`\Ub^{n+1,(a)}`.
@@ -604,30 +595,30 @@ S_old, to the new time, S_new.
       \gb^n = -\nabla\phi^n, \qquad
           \Delta\phi^n = 4\pi G\rho^n,
 
-#. [strang:hydro] *Construct the hydro update* [construct_hydro_source()]
+#. [strang:hydro] *Construct the hydro update* [``construct_hydro_source()``]
 
    The hydro update in the MOL branch will include both the advective
-   and source terms. In each stage, store in k_mol
-   [istage] the righthand side for the current stage.
+   and source terms. In each stage, store in ``k_mol[istage]`` the righthand 
+   side for the current stage.
 
    In constructing the stage update, we use the source evaluated earlier,
    and compute:
 
    .. math:: \mathtt{k\_mol}_l = - \Ab(\Ub_l) + \Sb(\Ub_l)
 
-   Each call to do_advance_mol only computes this update for
+   Each call to ``do_advance_mol`` only computes this update for
    a single stage. On the last stage, we compute the final update
    as:
 
    .. math:: \mathtt{S\_new} = \mathtt{Sburn} + \dt \sum_{l=0}^{\mathrm{n\_stages}-1} b_l \, \mathrm{k\_mol}_l
 
-#. [strang:clean] *Clean State* [clean_state()]
+#. [strang:clean] *Clean State* [``clean_state()``]
 
    .. raw:: latex
 
       \MarginPar{we only seem to do this for the MOL integration}
 
-   This is done on S_new.
+   This is done on ``S_new``.
 
    After these checks, we check the state for NaNs.
 
@@ -636,10 +627,10 @@ S_old, to the new time, S_new.
    We do the final :math:`\dt/2` reacting on the state, begining with :math:`\Ub^{n+1,(c)}` to
    give us the final state on this level, :math:`\Ub^{n+1}`.
 
-   This is largely the same as strang_react_first_half(), but
+   This is largely the same as ``strang_react_first_half()``, but
    it does not currently fill the reactions in the ghost cells.
 
-#. [strang:finalize] *Finalize* [finalize_do_advance()]
+#. [strang:finalize] *Finalize* [``finalize_do_advance()``]
 
    Finalize does the following:
 
@@ -653,25 +644,25 @@ S_old, to the new time, S_new.
 A summary of which state is the input and which is updated for each of
 these processes is presented below:
 
-+--------------------+-------+-----------------+-----------------+
-| *step*             | S_old | Sborder         | S_new           |
-+====================+=======+=================+=================+
-| 1. init            | input | updated         |                 |
-+--------------------+-------+-----------------+-----------------+
-| 2. react           |       | input / updated |                 |
-+--------------------+-------+-----------------+-----------------+
-| 3. old sources     |       | input           | updated         |
-+--------------------+-------+-----------------+-----------------+
-| 4. hydro           |       | input           | updated         |
-+--------------------+-------+-----------------+-----------------+
-| 5. clean           |       |                 | input / updated |
-+--------------------+-------+-----------------+-----------------+
-| 6. radial / center |       |                 | input           |
-+--------------------+-------+-----------------+-----------------+
-| 7. correct sources |       |                 | input / updated |
-+--------------------+-------+-----------------+-----------------+
-| 8. react           |       |                 | input / updated |
-+--------------------+-------+-----------------+-----------------+
++--------------------+-----------+---------------------+---------------------+
+| *step*             | ``S_old`` | ``Sborder``         | ``S_new``           |
++====================+===========+=====================+=====================+
+| 1. init            | input     | updated             |                     |
++--------------------+-----------+---------------------+---------------------+
+| 2. react           |           | input / updated     |                     |
++--------------------+-----------+---------------------+---------------------+
+| 3. old sources     |           | input               | updated             |
++--------------------+-----------+---------------------+---------------------+
+| 4. hydro           |           | input               | updated             |
++--------------------+-----------+---------------------+---------------------+
+| 5. clean           |           |                     | input / updated     |
++--------------------+-----------+---------------------+---------------------+
+| 6. radial / center |           |                     | input               |
++--------------------+-----------+---------------------+---------------------+
+| 7. correct sources |           |                     | input / updated     |
++--------------------+-----------+---------------------+---------------------+
+| 8. react           |           |                     | input / updated     |
++--------------------+-----------+---------------------+---------------------+
 
 Overview of a single step (with SDC)
 ====================================
@@ -681,7 +672,7 @@ We express our system as:
 .. math:: \Ub_t = \mathcal{A}(\Ub) + \Rb(\Ub)
 
 here :math:`\mathcal{A}` is the advective source, which includes both the
-flux divergence and the hydrodynamic source terms (e.g. gravity):
+flux divergence and the hydrodynamic source terms (e.g. gravity):
 
 .. math:: \mathcal{A}(\Ub) = -\nabla \cdot \Fb(\Ub) + \Sb
 
@@ -693,7 +684,7 @@ step now proceeds as:
 
 2. *Advancement*
 
-   Loop :math:`k` from 0 to sdc_iters, doing:
+   Loop :math:`k` from 0 to ``sdc_iters``, doing:
 
    #. *Hydrodynamics advance*: This is done through
       do_advance—in SDC mode, this only updates the hydrodynamics,
@@ -702,8 +693,8 @@ step now proceeds as:
       reaction source on the primitive variables, :math:`\mathcal{I}_q^{k-1}`.
 
       The result of this is an approximation to :math:`\mathcal{A}(\Ub)`,
-      stored in hydro_sources (the flux divergence)
-      and old_sources and new_sources.
+      stored in ``hydro_sources`` (the flux divergence)
+      and ``old_sources`` and ``new_sources``.
 
    #. *React*: Reactions are integrated with the advective
       update as a source—this way the reactions see the
@@ -713,9 +704,9 @@ step now proceeds as:
 
       The advective source includes both the divergence of the fluxes
       as well as the time-centered source terms. This is computed by
-      sum_of_sources() by summing over all source components
-      hydro_source, old_sources, and
-      new_sources.
+      ``sum_of_sources()`` by summing over all source components
+      ``hydro_source``, ``old_sources``, and
+      ``new_sources``.
 
    #. *Clean state*: This ensures that the thermodynamic state is
       valid and consistent.
@@ -737,25 +728,25 @@ The evolution in do_advance is substantially different than the
 Strang case. In particular, reactions are not evolved. Here we
 summarize those differences.
 
-#. *Initialize* [initialize_do_advance()]
+#. *Initialize* [``initialize_do_advance()``]
 
    This is unchanged from step `[strang:init] <#strang:init>`__ in the Strang algorithm.
 
 #. *Construct time-level :math:`n` sources and apply*
-   [construct_old_gravity(), do_old_sources()]
+   [``construct_old_gravity()``, ``do_old_sources()``]
 
    This corresponds to step `[strang:oldsource] <#strang:oldsource>`__ in the Strang
    algorithm. There are not differences compared to the Strang
    algorithm, although we note, this only needs to be done for the first
    SDC iteration in the advancement, since the old state does not change.
 
-#. *Construct the hydro update* [construct_hydro_source()]
+#. *Construct the hydro update* [``construct_hydro_source()``]
 
    This corresponds to step \ `[strang:hydro] <#strang:hydro>`__ in the Strang
    algorithm. There are a few major differences with the Strang case:
 
    -  There is no need to extrapolate source terms to the half-time
-      for the prediction (the castro.source_term_predictor
+      for the prediction (the ``castro.source_term_predictor``
       parameter), since SDC provides a natural way to approximate the
       time-centered source—we simply use the iteratively-lagged new-time
       source.
@@ -763,23 +754,23 @@ summarize those differences.
    -  The primitive variable source terms that are used for the
       prediction include the contribution due to reactions (from the last
       SDC iteration). This addition is done in
-      construct_hydro_source() after the source terms are
+      ``construct_hydro_source()`` after the source terms are
       converted to primitive variables.
 
 #. *Update radial data and center of mass for monopole gravity*
 
    This is the same as the Strang step \ `[strang:radial] <#strang:radial>`__
 
-#. *Clean State* [clean_state()]
+#. *Clean State* [``clean_state()``]
 
    This is the same as the Strang step \ `[strang:clean] <#strang:clean>`__
 
 #. [strang:newsource] *Correct the source terms with the :math:`n+1` contribution*
-   [construct_new_gravity(), do_new_sources]
+   [``construct_new_gravity()``, ``do_new_sources``]
 
    This is the same as the Strang step \ `[strang:newsource] <#strang:newsource>`__
 
-#. *Finalize* [finalize_do_advance()]
+#. *Finalize* [``finalize_do_advance()``]
 
    This differs from Strang step \ `[strang:finalize] <#strang:finalize>`__ in that we do not
    construct :math:`d\Sb/dt`, but instead store the total hydrodynamical source
