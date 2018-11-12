@@ -283,7 +283,7 @@ and the references therein)
 is to convert the explosion energy into a pressure contained within a
 certain volume, :math:`V_\mathrm{init}`, of radius :math:`r_\mathrm{init}` as
 
-.. math:: p_\mathrm{init} = \frac{(\gamma - 1) E_\mathrm{exp}}{V_\mathrm{init}} \enskip .
+.. math:: p_\mathrm{init} = \frac{(\gamma - 1) E_\mathrm{exp}}{V_\mathrm{init}} 
 
 This pressure is then deposited in all of the cells where :math:`r <
 r_\mathrm{init}`.
@@ -430,7 +430,7 @@ The diffusion of a Gaussian pulse problem tests the diffusion term in
 the radiation energy equation. The radiation energy density is
 initialized at time :math:`t = t_0` to a Gaussian distribution:
 
-.. math:: E_R = (E_R)_0 \exp \left \{ - \frac{1}{4 D t_0} |r - r_0|^2 \right \} \enskip .
+.. math:: E_R = (E_R)_0 \exp \left \{ - \frac{1}{4 D t_0} |r - r_0|^2 \right \}
 
 As the radiation diffuses, the overall distribution will remain
 Gaussian, with the time-dependent solution of:
