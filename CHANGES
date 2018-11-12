@@ -1,11 +1,22 @@
 changes since last release
 
+  -- fixed an issue that resulted in the custom knapsack distribution
+     map not generating a useful distribution map for the reactions.
+     Also, fixed an edge case where this custom distribution map could
+     cause a numerical overflow and code crash. (#382)
+
+# 18.11
+
   -- we've restructured the CTU solver to no longer use a slab
      approach in 3d.  This is in preparation for offloading the solver
      to GPUs.
 
   -- a few minor bugs were fixed in the transverse routines of the CTU
      solver with radiation
+
+  -- simplified conductivity interface to match the eos interface by
+     moving the conductivity variable in the arguments into the eos
+     type.
 
 
 # 18.10

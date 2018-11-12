@@ -17,6 +17,8 @@ Castro::strang_react_first_half(Real time, Real dt)
 
     MultiFab& reactions = get_old_data(Reactions_Type);
 
+    // Ensure we always have valid data, even if we don't do the burn.
+
     reactions.setVal(0.0);
 
     if (do_react != 1) return;
@@ -112,13 +114,13 @@ Castro::strang_react_first_half(Real time, Real dt)
 
     }
 
-    if (verbose && ParallelDescriptor::IOProcessor())
-        std::cout << "\n" << "... Entering burner and doing half-timestep of burning." << "\n";
+    if (verbose)
+        amrex::Print() << "... Entering burner and doing half-timestep of burning." << std::endl << std::endl;
 
     react_state(*state_temp, *reactions_temp, *mask_temp, *weights_temp, time, dt, 1, ng);
 
-    if (verbose && ParallelDescriptor::IOProcessor())
-        std::cout << "... Leaving burner after completing half-timestep of burning." << "\n";
+    if (verbose)
+        amrex::Print() << "... Leaving burner after completing half-timestep of burning." << std::endl << std::endl;
 
     // Note that this FillBoundary *must* occur before we copy any data back
     // to the main state data; it is the only way to ensure that the parallel
@@ -151,7 +153,12 @@ Castro::strang_react_second_half(Real time, Real dt)
 
     MultiFab& reactions = get_new_data(Reactions_Type);
 
+    // Ensure we always have valid data, even if we don't do the burn.
+
     reactions.setVal(0.0);
+
+    if (Knapsack_Weight_Type > 0)
+        get_new_data(Knapsack_Weight_Type).setVal(1.0);
 
     if (do_react != 1) return;
 
@@ -218,13 +225,13 @@ Castro::strang_react_second_half(Real time, Real dt)
 
     }
 
-    if (verbose && ParallelDescriptor::IOProcessor())
-        std::cout << "\n" << "... Entering burner and doing half-timestep of burning." << "\n";
+    if (verbose)
+        amrex::Print() << "... Entering burner and doing half-timestep of burning." << std::endl << std::endl;
 
     react_state(*state_temp, *reactions_temp, *mask_temp, *weights_temp, time, dt, 2, ng);
 
-    if (verbose && ParallelDescriptor::IOProcessor())
-        std::cout << "... Leaving burner after completing half-timestep of burning." << "\n";
+    if (verbose)
+        amrex::Print() << "... Leaving burner after completing half-timestep of burning." << std::endl << std::endl;
 
     state_temp->FillBoundary(geom.periodicity());
 
@@ -284,12 +291,12 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 
     ParallelDescriptor::ReduceIntMin(burn_success);
 
-    if (verbose) {
+    if (print_update_diagnostics) {
 
 	Real e_added = r.sum(NumSpec + 1);
 
-	if (ParallelDescriptor::IOProcessor() && e_added != 0.0)
-	    std::cout << "... (rho e) added from burning: " << e_added << std::endl;
+	if (e_added != 0.0)
+            amrex::Print() << "... (rho e) added from burning: " << e_added << std::endl << std::endl;
 
     }
 
@@ -303,8 +310,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-	if (ParallelDescriptor::IOProcessor())
-	  std::cout << "Castro::react_state() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::react_state() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
 	});
 #endif
@@ -323,8 +329,8 @@ Castro::react_state(Real time, Real dt)
 
     const Real strt_time = ParallelDescriptor::second();
 
-    if (verbose && ParallelDescriptor::IOProcessor())
-        std::cout << "\n" << "... Entering burner and doing full timestep of burning." << "\n";
+    if (verbose)
+        amrex::Print() << "... Entering burner and doing full timestep of burning." << std::endl << std::endl;
 
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
@@ -370,15 +376,18 @@ Castro::react_state(Real time, Real dt)
     if (ng > 0)
         S_new.FillBoundary(geom.periodicity());
 
-    if (verbose) {
+    if (print_update_diagnostics) {
 
         Real e_added = reactions.sum(NumSpec + 1);
 
-	if (ParallelDescriptor::IOProcessor() && e_added != 0.0)
-	    std::cout << "... (rho e) added from burning: " << e_added << std::endl;
+	if (e_added != 0.0)
+            amrex::Print() << "... (rho e) added from burning: " << e_added << std::endl << std::endl;
 
-	if (ParallelDescriptor::IOProcessor())
-	    std::cout << "... Leaving burner after completing full timestep of burning." << "\n";
+    }
+
+    if (verbose) {
+
+        amrex::Print() << "... Leaving burner after completing full timestep of burning." << std::endl << std::endl;
 
         const int IOProc   = ParallelDescriptor::IOProcessorNumber();
         Real      run_time = ParallelDescriptor::second() - strt_time;
@@ -388,8 +397,7 @@ Castro::react_state(Real time, Real dt)
 #endif
         ParallelDescriptor::ReduceRealMax(run_time, IOProc);
 
-	if (ParallelDescriptor::IOProcessor())
-	  std::cout << "Castro::react_state() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::react_state() time = " << run_time << std::endl << std::endl;
 #ifdef BL_LAZY
 	});
 #endif
@@ -511,7 +519,8 @@ Castro::valid_zones_to_burn(MultiFab& State)
     // If we got to this point, we did not survive the limiters,
     // so there are no zones to burn.
 
-    amrex::Print() << std::endl << "  No valid zones to burn, skipping react_state()." << std::endl;
+    if (verbose > 1)
+        amrex::Print() << "  No valid zones to burn, skipping react_state()." << std::endl;
 
     return false;
 

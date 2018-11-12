@@ -226,6 +226,15 @@ is overridden in the checkpoint code in \amrex).
 
 \end{enumerate}
 
+\section{Runtime Errors}
+
+\item {\em When running with retries, \castro\ requests too many substeps
+  and crashes}
+
+  This can occur due to CFL violations or negative densities.  If there are
+  density resets, try running with {\tt castro.limit_fluxes_on_small_dens = 1}.
+  This will use a flux limiter to prevent the density from going negative.
+
 \section{Visualization}
 
 \label{ch:faq:vis}
