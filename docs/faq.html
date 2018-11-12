@@ -97,6 +97,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#debugging">Debugging</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#profiling">Profiling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#managing-runs">Managing Runs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#runtime-errors">Runtime Errors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#visualization">Visualization</a></li>
 </ul>
 </li>
@@ -414,8 +415,20 @@ is overridden in the checkpoint code in AMReX).</p>
 </li>
 </ol>
 </div>
+<div class="section" id="runtime-errors">
+<span id="ch-faq-vis"></span><h2>Runtime Errors<a class="headerlink" href="#runtime-errors" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first"><em>When running with retries, Castro requests too many substeps
+and crashes.</em></p>
+<p>This can occur due to CFL violations or negative densities.  If
+there are density resets, try running with
+<code class="docutils literal notranslate"><span class="pre">castro.limit_fluxes_on_small_dens</span></code> = 1.  This will use a flux
+limiter to prevent the density from going negative.</p>
+</li>
+</ol>
+</div>
 <div class="section" id="visualization">
-<span id="ch-faq-vis"></span><h2>Visualization<a class="headerlink" href="#visualization" title="Permalink to this headline">¶</a></h2>
+<h2>Visualization<a class="headerlink" href="#visualization" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
 <li><p class="first"><em>When I try to use Amrvis&nbsp;with the Nvidia driver, all I see is
 black—no data. How do I fix this?</em></p>

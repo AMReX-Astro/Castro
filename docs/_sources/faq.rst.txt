@@ -230,6 +230,17 @@ Managing Runs
 
 .. _ch:faq:vis:
 
+Runtime Errors
+==============
+
+#. *When running with retries, Castro requests too many substeps
+   and crashes.*
+
+   This can occur due to CFL violations or negative densities.  If
+   there are density resets, try running with
+   ``castro.limit_fluxes_on_small_dens`` = 1.  This will use a flux
+   limiter to prevent the density from going negative.
+
 Visualization
 =============
 
