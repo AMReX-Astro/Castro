@@ -1,0 +1,4 @@
+Namespace prescribe_phi_module
+==============================
+
+.. doxygennamespace:: prescribe_phi_module

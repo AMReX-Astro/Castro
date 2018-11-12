@@ -1,0 +1,4 @@
+Namespace ctu_module
+====================
+
+.. doxygennamespace:: ctu_module

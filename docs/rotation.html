@@ -1,0 +1,556 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Rotation &mdash; Castro 2.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Radiation" href="radiation.html" />
+    <link rel="prev" title="Diffusion" href="diffusion.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Rotation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#coordinate-transformation-to-rotating-frame">Coordinate transformation to rotating frame</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#momentum-equation-in-rotating-frame">Momentum equation in rotating frame</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#energy-equations-in-rotating-frame">Energy equations in rotating frame</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#switching-to-the-rotating-reference-frame">Switching to the rotating reference frame</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#adding-the-forcing-to-the-hydrodynamics">Adding the forcing to the hydrodynamics</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="namespacelist.html">Namespace list</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Rotation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/rotation.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+/* nice headers on first paragraph of info/warning boxes */
+.admonition .first {
+    margin: -12px;
+    padding: 6px 12px;
+    margin-bottom: 12px;
+    color: #fff;
+    line-height: 1;
+    display: block;
+}
+.admonition.warning .first {
+    background: #f0b37e;
+}
+.admonition.note .first {
+    background: #6ab0de;
+}
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="rotation">
+<h1>Rotation<a class="headerlink" href="#rotation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>Currently, Castro&nbsp;supports contant, solid-body rotation about a fixed
+(in space and time) axis in 2D and 3D by transforming the evolution
+equations to the rotating frame of reference.</p>
+<p>To include rotation you must set</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_ROTATION</span> <span class="o">=</span> <span class="n">TRUE</span>
+</pre></div>
+</div>
+<p>in the GNUMakefile. Rotation can then be enabled via</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">do_rotation</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>in the inputs file. The rotational period must then be set via
+castro.rotational_period. The rotational period is internally
+converted to an angular frequency for use in the source term
+equations.</p>
+<p>The axis of rotation currently depends on the dimensionality of the
+problem and the value of coord_sys; in all cases, however, the
+default axis of rotation points from center, which is typically
+defined in a Prob_$(DIM)d.f90 routine, to the typical “vertical
+direction.” The vertical direction is defined as follows:</p>
+<ul class="simple">
+<li>2D<ul>
+<li>coord_sys = 0, (x,y): out of the (x,y)-plane along the “z”-axis</li>
+<li>coord_sys = 1, (r,z): along the z-axis</li>
+</ul>
+</li>
+<li>3D<ul>
+<li>coord_sys = 0, (x,y,z): along the z-axis</li>
+</ul>
+</li>
+</ul>
+<p>To change these defaults, modify the omega vector in the
+ca_rotate routine found in the Rotate_$(DIM)d.f90 file.</p>
+<p>The main parameters that affect rotation are:</p>
+<ul class="simple">
+<li>castro.do_rotation : include rotation as a forcing
+term (0 or 1; default: 0)</li>
+<li>castro.rotational_period : period (s) of rotation
+(default: 0.0)</li>
+<li>castro.rotational_dPdt : d(period) / dt for rotation
+(default: 0.0)</li>
+<li>castro.rotation_include_centrifugal : whether to
+include the centrifugal forcing (default: 1)</li>
+<li>castro.rotation_include_coriolis : whether to
+include the Coriolis forcing (default: 1)</li>
+<li>castro.rotation_include_domegadt : whether to
+include the forcing from the time derivative of the rotation
+frequency (default: 1)</li>
+<li>castro.state_in_rotating_frame : whether state
+variables are measured in the rotating frame (default: 1)</li>
+<li>castro.rot_source_type : method of updating the
+energy during a rotation update (default: 4)</li>
+<li>castro.implicit_rotation_update : for the Coriolis
+term, which mixes momenta in the source term, whether we should
+solve for the update implicitly (default: 1)</li>
+<li>castro.rot_axis : rotation axis (default: 3
+(Cartesian); 2 (cylindrical))</li>
+</ul>
+<p>For completeness, we show below a derivation of the source terms that
+appear in the momentum and total energy evolution equations upon
+switching to a rotating reference frame.</p>
+</div>
+<div class="section" id="coordinate-transformation-to-rotating-frame">
+<h2>Coordinate transformation to rotating frame<a class="headerlink" href="#coordinate-transformation-to-rotating-frame" title="Permalink to this headline">¶</a></h2>
+<div class="figure" id="id9">
+<img alt="inertial vs. corotating frame" src="_images/tframes.png" />
+<p class="caption"><span class="caption-text">Inertial frame <span class="math notranslate nohighlight">\(C\)</span> and
+non-inertial frame <span class="math notranslate nohighlight">\(\tilde{C}\)</span>. We consider a fluid element
+<span class="math notranslate nohighlight">\(P\)</span>, whose distance in the two frames is related by
+<span class="math notranslate nohighlight">\({\bf r} = \tilde{\bf{r}} + {\bf l}\)</span></span></p>
+</div>
+<p>Consider an inertial reference frame <span class="math notranslate nohighlight">\(C\)</span> and a non-inertial
+reference frame <span class="math notranslate nohighlight">\(\widetilde{C}\)</span> whose origins are separated by the
+vector <span class="math notranslate nohighlight">\(\boldsymbol{l}\)</span> (see Figure&nbsp;<a class="reference external" href="#fig:sec:rot:frames">[fig:sec:rot:frames]</a>). The non-inertial frame is rotating about the axis
+<span class="math notranslate nohighlight">\(\ob\)</span> with a <em>constant</em> angular velocity <span class="math notranslate nohighlight">\(\omega\)</span>;
+furthermore, we assume the <em>direction</em> of the rotational axis is
+fixed. Consider a fluid element at the point <span class="math notranslate nohighlight">\(P\)</span> whose location is
+given by <span class="math notranslate nohighlight">\(\rb\)</span> in <span class="math notranslate nohighlight">\(C\)</span> and by <span class="math notranslate nohighlight">\(\rbt\)</span> in
+<span class="math notranslate nohighlight">\(\widetilde{C}\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\rb = \rbt + \boldsymbol{l},\]</div>
+<p>or in component notation</p>
+<div class="math notranslate nohighlight">
+\[\label{eq:r}
+    r_i\boldsymbol{e_i} = \widetilde{r_i}\widetilde{\boldsymbol{e_i}} + l_i\boldsymbol{e_i},\]</div>
+<p>where <span class="math notranslate nohighlight">\(\boldsymbol{e_i}\)</span> and <span class="math notranslate nohighlight">\(\widetilde{\boldsymbol{e_i}}\)</span> are the <span class="math notranslate nohighlight">\(i\)</span>th unit
+vectors in the <span class="math notranslate nohighlight">\(C\)</span> and <span class="math notranslate nohighlight">\(\widetilde{C}\)</span> coordinate systems,
+respectively. The total time rate of change of <a class="reference external" href="#eq:r">[eq:r]</a> is given by</p>
+<div class="math notranslate nohighlight">
+\[\label{eq:vcomp}
+    \frac{Dr_i}{Dt}\boldsymbol{e_i} = \frac{D\widetilde{r_i}}{Dt}\widetilde{\boldsymbol{e_i}} + \widetilde{r_i}\frac{D\widetilde{\boldsymbol{e_i}}}{Dt} + \frac{Dl_i}{Dt}\boldsymbol{e_i},\]</div>
+<p>where we have used the fact that the unit vectors of the inertial
+frame <span class="math notranslate nohighlight">\(C\)</span> are not moving (or at least can be considered stationary,
+and the change in <span class="math notranslate nohighlight">\(\boldsymbol{l}\)</span> gives the relative motion of the two
+coordinate systems). By definition, a unit vector can not change its
+length, and therefore the only change of <span class="math notranslate nohighlight">\(\widetilde{\boldsymbol{e_i}}\)</span> with
+time can come from changing direction. This change is carried out by
+a rotation about the <span class="math notranslate nohighlight">\(\ob\)</span> axis, and the tip of the unit
+vector moves circumferentially, that is</p>
+<div class="math notranslate nohighlight">
+\[\label{eq:etilde-rot}
+    \frac{D\widetilde{\boldsymbol{e_i}}}{Dt} = \ob\times\widetilde{\boldsymbol{e_i}}.\]</div>
+<p>Plugging <a class="reference external" href="#eq:etilde-rot">[eq:etilde-rot]</a> into <a class="reference external" href="#eq:vcomp">[eq:vcomp]</a> and switching back to
+vector notation, we have</p>
+<div class="math notranslate nohighlight">
+\[\label{eq:r-dot}
+    \frac{D\rb}{Dt} = \frac{D\rbt}{Dt} + \ob\times\rbt + \frac{D\boldsymbol{l}}{Dt}.\]</div>
+<p>The left hand side of <a class="reference external" href="#eq:r-dot">[eq:r-dot]</a> is interpretted as the velocity
+of the fluid element as seen in the inertial frame; the first term on the
+right hand side is the velocity of the fluid element as seen by a
+stationary observer in the rotating frame <span class="math notranslate nohighlight">\(\widetilde{C}\)</span>. The second
+and third terms on the right hand side of <a class="reference external" href="#eq:r-dot">[eq:r-dot]</a> describe the
+additional velocity due to rotation and translation of the frame
+<span class="math notranslate nohighlight">\(\widetilde{C}\)</span> as seen in <span class="math notranslate nohighlight">\(C\)</span>. In other words,</p>
+<div class="math notranslate nohighlight">
+\[\label{eq:v}
+    \vb = \vbt + \ob\times\rbt + \boldsymbol{v_l},\]</div>
+<p>where we use <span class="math notranslate nohighlight">\(\boldsymbol{v_l}\)</span> to represent the translational velocity.</p>
+<p>Similarly, by taking a second time derivative of <a class="reference external" href="#eq:v">[eq:v]</a> we have</p>
+<div class="math notranslate nohighlight">
+\[\label{eq:a}
+    \frac{D\vb}{Dt} = \frac{D\vbt}{Dt} + 2\ob\times\vbt + \ob\times\left[\ob\times\rbt\right] + \frac{D\boldsymbol{v_l}}{Dt}.\]</div>
+<p>Henceforth we will assume the two coordinate systems are not
+translating relative to one another, <span class="math notranslate nohighlight">\(\boldsymbol{v_l} = 0\)</span>. It is
+also worth mentioning that derivatives with respect to spatial
+coordinates do not involve additional terms due to rotation,
+i.e. <span class="math notranslate nohighlight">\(\nablab\cdot\vb = \nablab\cdot\vbt\)</span>.
+Because of this, the continuity equation remains unchanged in the
+rotating frame:</p>
+<div class="math notranslate nohighlight">
+\[\label{eq:cont-rot}
+    \frac{\partial \rho}{\partial t} = -\nablab\cdot\left(\rho\vbt\right),\]</div>
+<p>or</p>
+<div class="math notranslate nohighlight">
+\[\label{eq:cont-rot-total}
+    \frac{D\rho}{Dt} = -\rho\nablab\cdot\vbt.\]</div>
+</div>
+<div class="section" id="momentum-equation-in-rotating-frame">
+<h2>Momentum equation in rotating frame<a class="headerlink" href="#momentum-equation-in-rotating-frame" title="Permalink to this headline">¶</a></h2>
+<p>The usual momentum equation applies in an inertial frame:</p>
+<div class="math notranslate nohighlight">
+\[\label{eq:mom1}
+    \frac{D\left(\rho\vb\right)}{Dt} = -\rho\vb\cdot\nablab\vb - \nablab p + \rho\gb.\]</div>
+<p>Using the continuity equation, <a class="reference external" href="#eq:cont-rot-total">[eq:cont-rot-total]</a>, and substituting for
+the terms in the rotating frame from <a class="reference external" href="#eq:a">[eq:a]</a>, we have from <a class="reference external" href="#eq:mom1">[eq:mom1]</a>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+    \rho\left(\frac{D\vbt}{Dt} + 2\ob\times\vbt + \ob\times\left[\ob\times\rbt\right]\right) - \rho\vb\nablab\cdot\vb &amp;=&amp; -\rho\vb\cdot\nablab\vb - \nablab p + \rho\gb \nonumber \\
+    \rho\left(\frac{\partial\vbt}{\partial t} + \vbt\cdot\nablab\vbt\right) &amp;=&amp; -\nablab p + \rho\gb - 2\rho\ob\times\vbt - \rho\ob\times\left[\ob\times\rbt\right] \nonumber \\
+  \frac{\partial\left(\rho\vbt\right)}{\partial t} &amp;=&amp; -\nablab\cdot\left(\rho\vbt\vbt\right) - \nablab p + \rho\gb - 2\rho\ob\times\vbt \nonumber \\
+  &amp; &amp; -\ \rho\ob\times\left[\ob\times\rbt\right]\label{eq:mom-rot}
+  \end{aligned}\end{split}\]</div>
+<p>or</p>
+<div class="math notranslate nohighlight">
+\[\label{eq:mom-rot-tot}
+    \frac{D\left(\rho\vbt\right)}{Dt} = -\rho\vbt\cdot\nablab\vbt - \nablab p + \rho\gb - 2\rho\ob\times\vbt - \rho\ob\times\left[\ob\times\rbt\right].\]</div>
+</div>
+<div class="section" id="energy-equations-in-rotating-frame">
+<h2>Energy equations in rotating frame<a class="headerlink" href="#energy-equations-in-rotating-frame" title="Permalink to this headline">¶</a></h2>
+<p>From <a class="reference external" href="#eq:mom-rot-tot">[eq:mom-rot-tot]</a>, we have the velocity evolution equation in
+a rotating frame</p>
+<div class="math notranslate nohighlight">
+\[\label{eq:v-rot}
+    \frac{D\vbt}{Dt} = -\frac{1}{\rho}\nablab p + \gb - 2\ob\times\vbt - \ob\times\left[\ob\times\rbt\right].\]</div>
+<p>The kinetic energy equation can be obtained from <a class="reference external" href="#eq:v-rot">[eq:v-rot]</a> by
+mulitplying by <span class="math notranslate nohighlight">\(\rho\vbt\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+    \rho\vbt\cdot\frac{D\vbt}{Dt} &amp;=&amp; -\vbt\cdot\nablab p + \rho\vbt\cdot\gb - 2\rho\vbt\cdot\left[\ob\times\vbt\right] - \rho\vbt\cdot\left\{\ob\times\left[\ob\times\rbt\right]\right\} \nonumber \\
+    \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} - \frac{1}{2}\vbt\cdot\vbt\frac{D\rho}{Dt} &amp;=&amp; -\vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right] \nonumber \\
+    \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} &amp;=&amp; -\frac{1}{2}\rho\vbt\cdot\vbt\nablab\cdot\vbt - \vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right]. \label{eq:ekin-rot-total}
+  \end{aligned}\end{split}\]</div>
+<p>The internal energy is simply advected, and, from the first law of
+thermodynamics, can change due to <span class="math notranslate nohighlight">\(pdV\)</span> work:</p>
+<div class="math notranslate nohighlight">
+\[\label{eq:eint-rot-total}
+    \frac{D\left(\rho e\right)}{Dt} = -\left(\rho e + p\right)\nablab\cdot\vbt.\]</div>
+<p>Combining <a class="reference external" href="#eq:ekin-rot-total">[eq:ekin-rot-total]</a> and <a class="reference external" href="#eq:eint-rot-total">[eq:eint-rot-total]</a> we can
+get the evolution of the total specific energy in the rotating frame,
+<span class="math notranslate nohighlight">\(\rho \widetilde{E} = \rho e + \frac{1}{2}\rho\vbt\cdot\vbt\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+    \frac{D\left(\rho e\right)}{Dt} + \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} &amp;=&amp; -\left(\rho e + p + \frac{1}{2}\rho\vbt\cdot\vbt\right)\nablab\cdot\vbt - \vbt\cdot\nablab p + \rho\vbt\cdot\gb -\rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right]\nonumber \\
+    \frac{D\left(\rho \widetilde{E}\right)}{Dt} &amp;=&amp; -\rho\widetilde{E}\nablab\cdot\vbt - \nablab\cdot\left(p\vbt\right) + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right] \label{eq:etot-rot-total}
+  \end{aligned}\end{split}\]</div>
+<p>or</p>
+<div class="math notranslate nohighlight">
+\[\label{eq:etot-rot}
+    \frac{\partial\left(\rho\widetilde{E}\right)}{\partial t} = -\nablab\cdot\left(\rho\widetilde{E}\vbt + p\vbt\right) + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right].\]</div>
+</div>
+<div class="section" id="switching-to-the-rotating-reference-frame">
+<h2>Switching to the rotating reference frame<a class="headerlink" href="#switching-to-the-rotating-reference-frame" title="Permalink to this headline">¶</a></h2>
+<p>If we choose to be a stationary observer in the rotating reference
+frame, we can drop all of the tildes, which indicated terms in the
+non-inertial frame <span class="math notranslate nohighlight">\(\widetilde{C}\)</span>. Doing so, and making sure we
+account for the offset, <span class="math notranslate nohighlight">\(\boldsymbol{l}\)</span>, between the two coordinate systems, we obtain
+the following equations for hydrodynamics in a rotating frame of
+reference:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+    \frac{\partial\rho}{\partial t} &amp;=&amp; -\nablab\cdot\left(\rho\vb\right) \label{eq:cont-rot-switch} \\
+    \frac{\partial \left(\rho\vb\right)}{\partial t} &amp;=&amp; -\nablab\cdot\left(\rho\vb\vb\right) - \nablab p + \rho\gb - 2\rho\ob\times\vb - \rho\left(\ob\cdot\rb\right)\ob + \rho\omega^2\rb \label{eq:mom-rot-switch} \\
+    \frac{\partial\left(\rho E\right)}{\partial t} &amp;=&amp; -\nablab\cdot\left(\rho E\vb + p\vb\right) + \rho\vb\cdot\gb - \rho\left(\ob\cdot\rb\right)\left(\ob\cdot\vb\right) + \rho\omega^2\left(\vb\cdot\rb\right). \label{eq:etot-rot-switch}
+  \end{aligned}\end{split}\]</div>
+</div>
+<div class="section" id="adding-the-forcing-to-the-hydrodynamics">
+<h2>Adding the forcing to the hydrodynamics<a class="headerlink" href="#adding-the-forcing-to-the-hydrodynamics" title="Permalink to this headline">¶</a></h2>
+<p>There are several ways to incorporate the effect of the rotation
+forcing on the hydrodynamical evolution. We control this through the
+use of the runtime parameter castro.rot_source_type. This
+is an integer with values currently ranging from 1 through 4, and
+these values are all analogous to the way that gravity is used to
+update the momentum and energy. For the most part, the differences are
+in how the energy update is done:</p>
+<ul>
+<li><p class="first">castro.rot_source_type = 1 : we use a
+standard predictor-corrector formalism for updating the momentum and
+energy. Specifically, our first update is equal to :math:<a href="#id1"><span class="problematic" id="id2">`</span></a>Delta t times</p>
+<blockquote>
+<div><p>mathbf{S}^n` , where <span class="math notranslate nohighlight">\(\mathbf{S}^n\)</span> is the value of the source</p>
+</div></blockquote>
+<p>terms at the old-time (which is usually called time-level <span class="math notranslate nohighlight">\(n\)</span>). At
+the end of the timestep, we do a corrector step where we subtract
+off <span class="math notranslate nohighlight">\(\Delta t / 2 \times \mathbf{S}^n\)</span> and add on :math:<a href="#id3"><span class="problematic" id="id4">`</span></a>Delta t / 2</p>
+<blockquote>
+<div><p>times mathbf{S}^{n+1}`, so that at the end of the timestep the</p>
+</div></blockquote>
+<p>source term is properly time centered.</p>
+</li>
+<li><p class="first">castro.rot_source_type = 2 : we do something very
+similar to 1. The major difference is that when evaluating the
+energy source term at the new time (which is equal to :math:<a href="#id5"><span class="problematic" id="id6">`</span></a>mathbf{u}</p>
+<blockquote>
+<div><p>cdot mathbf{S}^{n+1}_{rho mathbf{u}}`, where the latter is the</p>
+</div></blockquote>
+<p>momentum source term evaluated at the new time), we first update the
+momentum, rather than using the value of <span class="math notranslate nohighlight">\(\mathbf{u}\)</span> before
+entering the rotation source terms. This permits a tighter coupling
+between the momentum and energy update and we have seen that it
+usually results in a more accurate evolution.</p>
+</li>
+<li><p class="first">castro.rot_source_type = 3 : we do the same momentum
+update as the previous two, but for the energy update, we put all of
+the work into updating the kinetic energy alone. In particular, we
+explicitly ensure that <span class="math notranslate nohighlight">\((rho e)\)</span> maintains the same, and update
+<span class="math notranslate nohighlight">\((rho K)\)</span> with the work due to rotation, adding the new kinetic
+energy to the old internal energy to determine the final total gas
+energy. The physical motivation is that work should be done on the
+velocity, and should not directly update the temperature – only
+indirectly through things like shocks.</p>
+</li>
+<li><p class="first">castro.rot_source_type = 4 : the energy update is done
+in a “conservative” fashion. The previous methods all evaluate
+the value of the source term at the cell center, but this method
+evaluates the change in energy at cell edges, using the
+hydrodynamical mass fluxes, permitting total energy to be conserved
+(excluding possible losses at open domain boundaries). Additionally,
+the velocity update is slightly different—for the corrector step,
+we note that there is an implicit coupling between the velocity
+components, and we directly solve this coupled equation, which
+results in a slightly better coupling and a more accurate evolution.</p>
+</li>
+</ul>
+<p>The other major option is castro.implicit_rotation_update.
+This does the update of the Coriolis term in the momentum equation
+implicitly (e.g., the velocity in the Coriolis force for the zone
+depends on the updated momentum). The energy update is unchanged.</p>
+<p>A detailed discussion of these options and some verification
+tests is presented in <a href="#id7"><span class="problematic" id="id8">:raw-latex:`\cite{katz:2016}`</span></a>.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="radiation.html" class="btn btn-neutral float-right" title="Radiation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="diffusion.html" class="btn btn-neutral" title="Diffusion" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

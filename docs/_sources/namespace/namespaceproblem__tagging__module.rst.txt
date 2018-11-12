@@ -1,0 +1,4 @@
+Namespace problem_tagging_module
+================================
+
+.. doxygennamespace:: problem_tagging_module

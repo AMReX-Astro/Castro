@@ -1,0 +1,4 @@
+Namespace flatten_module
+========================
+
+.. doxygennamespace:: flatten_module

@@ -1,0 +1,4 @@
+Namespace rotation_module
+=========================
+
+.. doxygennamespace:: rotation_module

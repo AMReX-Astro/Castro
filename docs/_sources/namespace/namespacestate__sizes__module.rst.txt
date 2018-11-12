@@ -1,0 +1,4 @@
+Namespace state_sizes_module
+============================
+
+.. doxygennamespace:: state_sizes_module

@@ -1,0 +1,4 @@
+Namespace blackbody_module
+==========================
+
+.. doxygennamespace:: blackbody_module

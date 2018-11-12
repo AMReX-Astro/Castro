@@ -1,0 +1,4 @@
+Namespace amrex_error_module
+============================
+
+.. doxygennamespace:: amrex_error_module

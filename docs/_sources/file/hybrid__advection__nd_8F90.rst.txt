@@ -1,0 +1,4 @@
+File hybrid_advection_nd.F90
+============================
+
+.. doxygenfile:: hybrid_advection_nd.F90

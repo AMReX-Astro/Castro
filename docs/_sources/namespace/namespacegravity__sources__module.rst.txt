@@ -1,0 +1,4 @@
+Namespace gravity_sources_module
+================================
+
+.. doxygennamespace:: gravity_sources_module

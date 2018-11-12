@@ -1,0 +1,4 @@
+Namespace derive_module
+=======================
+
+.. doxygennamespace:: derive_module

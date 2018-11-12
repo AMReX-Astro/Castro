@@ -1,0 +1,4 @@
+Namespace advection_util_module
+===============================
+
+.. doxygennamespace:: advection_util_module

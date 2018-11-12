@@ -1,0 +1,4 @@
+Namespace rad_util_module
+=========================
+
+.. doxygennamespace:: rad_util_module

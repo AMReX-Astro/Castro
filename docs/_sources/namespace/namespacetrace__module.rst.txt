@@ -1,0 +1,4 @@
+Namespace trace_module
+======================
+
+.. doxygennamespace:: trace_module

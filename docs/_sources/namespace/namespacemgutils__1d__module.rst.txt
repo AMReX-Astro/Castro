@@ -1,0 +1,4 @@
+Namespace mgutils_1d_module
+===========================
+
+.. doxygennamespace:: mgutils_1d_module

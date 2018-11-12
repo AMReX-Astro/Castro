@@ -1,0 +1,4 @@
+File diffusion_job_info_tests.H
+===============================
+
+.. doxygenfile:: diffusion_job_info_tests.H

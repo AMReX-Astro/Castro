@@ -1,0 +1,4 @@
+Namespace bc_fill_module
+========================
+
+.. doxygennamespace:: bc_fill_module

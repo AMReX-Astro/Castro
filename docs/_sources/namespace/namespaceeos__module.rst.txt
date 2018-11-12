@@ -1,0 +1,4 @@
+Namespace eos_module
+====================
+
+.. doxygennamespace:: eos_module

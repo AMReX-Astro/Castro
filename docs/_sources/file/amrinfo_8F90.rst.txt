@@ -1,0 +1,4 @@
+File amrinfo.F90
+================
+
+.. doxygenfile:: amrinfo.F90

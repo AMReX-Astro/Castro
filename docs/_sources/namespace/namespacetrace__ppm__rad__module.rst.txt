@@ -1,0 +1,4 @@
+Namespace trace_ppm_rad_module
+==============================
+
+.. doxygennamespace:: trace_ppm_rad_module

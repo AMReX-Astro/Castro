@@ -1,0 +1,1435 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File RAD_F.H &mdash; Castro 2.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File RadBndryData.H" href="RadBndryData_8H.html" />
+    <link rel="prev" title="File RAD_3D.F90" href="RAD__3D_8F90.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="CastroBld_8cpp.html">File CastroBld.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CastroParticles_8cpp.html">File CastroParticles.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CastroRad__1d_8f90.html">File CastroRad_1d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CastroRad__2d_8f90.html">File CastroRad_2d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CastroRad__3d_8f90.html">File CastroRad_3d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro_8H.html">File Castro.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro_8cpp.html">File Castro.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__F_8H.html">File Castro_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__advance_8cpp.html">File Castro_advance.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__ctu__1d_8F90.html">File Castro_ctu_1d.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__ctu__2d_8F90.html">File Castro_ctu_2d.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__ctu__3d_8F90.html">File Castro_ctu_3d.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__ctu__nd_8F90.html">File Castro_ctu_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__diffusion_8cpp.html">File Castro_diffusion.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__error_8cpp.html">File Castro_error.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__error__F_8H.html">File Castro_error_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__external_8cpp.html">File Castro_external.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__fourth__order_8F90.html">File Castro_fourth_order.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__gravity_8cpp.html">File Castro_gravity.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__hybrid_8cpp.html">File Castro_hybrid.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__hydro_8cpp.html">File Castro_hydro.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__io_8H.html">File Castro_io.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__io_8cpp.html">File Castro_io.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__mol__nd_8F90.html">File Castro_mol_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__nd_8F90.html">File Castro_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__pointmass_8cpp.html">File Castro_pointmass.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__prob__err_8cpp.html">File Castro_prob_err.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__prob__err__F_8H.html">File Castro_prob_err_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__prob__err__list_8H.html">File Castro_prob_err_list.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__radiation_8cpp.html">File Castro_radiation.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__react_8cpp.html">File Castro_react.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__rotation_8cpp.html">File Castro_rotation.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__setup_8cpp.html">File Castro_setup.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__sources_8cpp.html">File Castro_sources.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__sponge_8cpp.html">File Castro_sponge.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__thermo_8cpp.html">File Castro_thermo.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__util_8F90.html">File Castro_util.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Derive_8H.html">File Derive.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Derive_8cpp.html">File Derive.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Derive__F_8H.html">File Derive_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Derive__nd_8F90.html">File Derive_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Diffusion_8H.html">File Diffusion.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Diffusion_8cpp.html">File Diffusion.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Diffusion__nd_8f90.html">File Diffusion_nd.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="DumpModel1d_8H.html">File DumpModel1d.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="DumpModel1d_8cpp.html">File DumpModel1d.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Enthalpy__nd_8f90.html">File Enthalpy_nd.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GR__Gravity__1d_8f90.html">File GR_Gravity_1d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GR__Gravity__2d_8f90.html">File GR_Gravity_2d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GR__Gravity__3d_8f90.html">File GR_Gravity_3d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gravity_8H.html">File Gravity.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gravity_8cpp.html">File Gravity.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gravity__1d_8f90.html">File Gravity_1d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gravity__2d_8f90.html">File Gravity_2d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gravity__3d_8f90.html">File Gravity_3d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gravity__F_8H.html">File Gravity_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gravity__nd_8f90.html">File Gravity_nd.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HABEC__1D_8F90.html">File HABEC_1D.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HABEC__2D_8F90.html">File HABEC_2D.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HABEC__3D_8F90.html">File HABEC_3D.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HABEC__F_8H.html">File HABEC_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HypreABec_8H.html">File HypreABec.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HypreABec_8cpp.html">File HypreABec.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HypreExtMultiABec_8cpp.html">File HypreExtMultiABec.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HypreMultiABec_8H.html">File HypreMultiABec.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HypreMultiABec_8cpp.html">File HypreMultiABec.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MGFLDRadSolver_8cpp.html">File MGFLDRadSolver.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MGFLD_8cpp.html">File MGFLD.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MGFLD__1d_8f90.html">File MGFLD_1d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MGFLD__2d_8f90.html">File MGFLD_2d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MGFLD__3d_8f90.html">File MGFLD_3d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MGFLDneut__1d_8f90.html">File MGFLDneut_1d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MGFLDneut__2d_8f90.html">File MGFLDneut_2d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MGFLDneut__3d_8f90.html">File MGFLDneut_3d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MGRadBndry_8H.html">File MGRadBndry.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MGRadBndry_8cpp.html">File MGRadBndry.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MGutils__1d_8F90.html">File MGutils_1d.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MGutils__2d_8F90.html">File MGutils_2d.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NGBndry_8H.html">File NGBndry.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Prob_8cpp.html">File Prob.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Prob__1d_8f90.html">File Prob_1d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Prob__2d_8f90.html">File Prob_2d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Prob__3d_8f90.html">File Prob_3d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Prob__nd_8F90.html">File Prob_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Problem_8H.html">File Problem.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Problem_8f90.html">File Problem.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Problem__Derive_8H.html">File Problem_Derive.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Problem__Derive__F_8H.html">File Problem_Derive_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Problem__Derives_8H.html">File Problem_Derives.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Problem__F_8H.html">File Problem_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RADINTERPBNDRYDATA__F_8H.html">File RADINTERPBNDRYDATA_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RAD__1D_8F90.html">File RAD_1D.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RAD__2D_8F90.html">File RAD_2D.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RAD__3D_8F90.html">File RAD_3D.F90</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File RAD_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadBndryData_8H.html">File RadBndryData.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadBndryData_8cpp.html">File RadBndryData.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadBndry_8H.html">File RadBndry.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadBndry_8cpp.html">File RadBndry.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadBndry__1d_8f90.html">File RadBndry_1d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadBndry__2d_8f90.html">File RadBndry_2d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadBndry__3d_8f90.html">File RadBndry_3d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadBoundCond_8H.html">File RadBoundCond.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadDerive__nd_8f90.html">File RadDerive_nd.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadEOS__1d_8f90.html">File RadEOS_1d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadEOS__2d_8f90.html">File RadEOS_2d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadEOS__3d_8f90.html">File RadEOS_3d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadHydro__nd_8f90.html">File RadHydro_nd.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadInterpBndryData_8H.html">File RadInterpBndryData.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadInterpBndryData_8cpp.html">File RadInterpBndryData.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadInterpBndryData__1d_8F90.html">File RadInterpBndryData_1d.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadInterpBndryData__2d_8F90.html">File RadInterpBndryData_2d.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadInterpBndryData__3d_8F90.html">File RadInterpBndryData_3d.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadMultiGroup_8cpp.html">File RadMultiGroup.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadPlotvar_8cpp.html">File RadPlotvar.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadPlotvar__1d_8f90.html">File RadPlotvar_1d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadPlotvar__2d_8f90.html">File RadPlotvar_2d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadPlotvar__3d_8f90.html">File RadPlotvar_3d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadSolve_8H.html">File RadSolve.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadSolve_8cpp.html">File RadSolve.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadTests_8H.html">File RadTests.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadTypes_8H.html">File RadTypes.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rad__nd_8f90.html">File Rad_nd.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Radiation_8H.html">File Radiation.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Radiation_8cpp.html">File Radiation.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="React__nd_8F90.html">File React_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rotation__frequency_8F90.html">File Rotation_frequency.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rotation__nd_8F90.html">File Rotation_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SGFLD_8cpp.html">File SGFLD.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SGRadSolver_8cpp.html">File SGRadSolver.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tagging__nd_8F90.html">File Tagging_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advection__util__nd_8F90.html">File advection_util_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="amrinfo_8F90.html">File amrinfo.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bc__ext__fill__1d_8F90.html">File bc_ext_fill_1d.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bc__ext__fill__2d_8F90.html">File bc_ext_fill_2d.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bc__ext__fill__3d_8F90.html">File bc_ext_fill_3d.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bc__fill__1d_8F90.html">File bc_fill_1d.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bc__fill__2d_8F90.html">File bc_fill_2d.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bc__fill__3d_8F90.html">File bc_fill_3d.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bc__fill__nd_8F90.html">File bc_fill_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="blackbody_8f90.html">File blackbody.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="castro__defaults_8H.html">File castro_defaults.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="castro__job__info__tests_8H.html">File castro_job_info_tests.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="castro__params_8H.html">File castro_params.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="castro__queries_8H.html">File castro_queries.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="diffusion__defaults_8H.html">File diffusion_defaults.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="diffusion__job__info__tests_8H.html">File diffusion_job_info_tests.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="diffusion__params_8H.html">File diffusion_params.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="diffusion__queries_8H.html">File diffusion_queries.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="energy__diagnostics_8cpp.html">File energy_diagnostics.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ext__src__1d_8f90.html">File ext_src_1d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ext__src__2d_8f90.html">File ext_src_2d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ext__src__3d_8f90.html">File ext_src_3d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ext__src__nd_8F90.html">File ext_src_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="filcc__nd_8F90.html">File filcc_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="filt__prim__1d_8f90.html">File filt_prim_1d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="filt__prim__2d_8f90.html">File filt_prim_2d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="filt__prim__3d_8f90.html">File filt_prim_3d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="filter_8f90.html">File filter.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="flatten__nd_8F90.html">File flatten_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fluxlimiter_8f90.html">File fluxlimiter.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fourth__order_8F90.html">File fourth_order.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generic__fill_8F90.html">File generic_fill.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gravity__defaults_8H.html">File gravity_defaults.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gravity__job__info__tests_8H.html">File gravity_job_info_tests.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gravity__params_8H.html">File gravity_params.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gravity__queries_8H.html">File gravity_queries.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gravity__sources__nd_8F90.html">File gravity_sources_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hybrid__advection__nd_8F90.html">File hybrid_advection_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interpolate_8F90.html">File interpolate.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="io_8f90.html">File io.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kavg_8F90.html">File kavg.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main_8cpp.html">File main.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="math_8F90.html">File math.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="meth__params_8F90.html">File meth_params.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="multid__slope__2d_8f90.html">File multid_slope_2d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="particles__defaults_8H.html">File particles_defaults.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="particles__job__info__tests_8H.html">File particles_job_info_tests.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="particles__params_8H.html">File particles_params.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="particles__queries_8H.html">File particles_queries.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pointmass__nd_8f90.html">File pointmass_nd.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppm__nd_8F90.html">File ppm_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="prescribe__grav__nd_8f90.html">File prescribe_grav_nd.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="prescribe__phi__nd_8F90.html">File prescribe_phi_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="prob__params_8F90.html">File prob_params.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problem__derive__nd_8f90.html">File problem_derive_nd.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problem__tagging__1d_8f90.html">File problem_tagging_1d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problem__tagging__2d_8f90.html">File problem_tagging_2d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problem__tagging__3d_8f90.html">File problem_tagging_3d.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problem__tagging__nd_8F90.html">File problem_tagging_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rad__params_8f90.html">File rad_params.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rad__util_8f90.html">File rad_util.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="riemann__nd_8F90.html">File riemann_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="riemann__util_8F90.html">File riemann_util.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rotation__sources__nd_8F90.html">File rotation_sources_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="slope__nd_8F90.html">File slope_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sponge__nd_8F90.html">File sponge_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state__sizes_8f90.html">File state_sizes.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sum__integrated__quantities_8cpp.html">File sum_integrated_quantities.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sum__utils_8cpp.html">File sum_utils.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sums__nd_8F90.html">File sums_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temp_8f90.html">File temp.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo__nd_8F90.html">File thermo_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timestep_8F90.html">File timestep.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trace__nd_8F90.html">File trace_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trace__ppm__nd_8F90.html">File trace_ppm_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trace__ppm__rad__nd_8F90.html">File trace_ppm_rad_nd.F90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="update__sponge__params_8f90.html">File update_sponge_params.f90</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../namespacelist.html">Namespace list</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+      <li>File RAD_F.H</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/RAD__F_8H.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+/* nice headers on first paragraph of info/warning boxes */
+.admonition .first {
+    margin: -12px;
+    padding: 6px 12px;
+    margin-bottom: 12px;
+    color: #fff;
+    line-height: 1;
+    display: block;
+}
+.admonition.warning .first {
+    background: #f0b37e;
+}
+.admonition.note .first {
+    background: #6ab0de;
+}
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="file-rad-f-h">
+<h1>File RAD_F.H<a class="headerlink" href="#file-rad-f-h" title="Permalink to this headline">¶</a></h1>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt id="_CPPv321ca_init_radhydro_parsRKiRKiRKiRKN5amrex4RealE">
+<span class="target" id="RAD__F_8H_1aa48c41e70b9bbe214fe90b10b1fcad22"></span>void <code class="descname">ca_init_radhydro_pars</code><span class="sig-paren">(</span><em class="property">const</em> int &amp;<em>fspace_advection_type</em>, <em class="property">const</em> int &amp;<em>do_inelastic_scattering</em>, <em class="property">const</em> int &amp;<em>comoving</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>flatten_pp_threshold</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv321ca_init_radhydro_parsRKiRKiRKiRKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv319ca_initradconstantsRKN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERi">
+<span class="target" id="RAD__F_8H_1ab4e4d17a9f8dbfd7eb0e7f1ec8648bca"></span>void <code class="descname">ca_initradconstants</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>pi</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>clight</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>hplanck</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>kboltz</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>stefbol</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>avogadro</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>mev2erg</em>, int &amp;<em>J_is_used</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv319ca_initradconstantsRKN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv318ca_initsinglegroupRKi">
+<span class="target" id="RAD__F_8H_1ac5caf970a0b8ac63602ea4c0cada531c"></span>void <code class="descname">ca_initsinglegroup</code><span class="sig-paren">(</span><em class="property">const</em> int &amp;<em>ngroups</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv318ca_initsinglegroupRKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv325ca_compute_powerlaw_kappaA_KiA_KiF15BL_FORT_FAB_ARG5kappaEK16BL_FORT_FAB_ARGuPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealE">
+<span class="target" id="RAD__F_8H_1aaf6fd3dfac1f87846cb622838673c232"></span>void <code class="descname">ca_compute_powerlaw_kappa</code><span class="sig-paren">(</span><em class="property">const</em> int <em>lo</em>[], <em class="property">const</em> int <em>hi</em>[], <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>kappa<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARGu, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>kappa0</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>m</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>n</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>p</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>Tfloor</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>kfloor</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv325ca_compute_powerlaw_kappaA_KiA_KiF15BL_FORT_FAB_ARG5kappaEK16BL_FORT_FAB_ARGuPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv327ca_compute_powerlaw_kappa_sA_KiA_KiF15BL_FORT_FAB_ARG5kappaEK16BL_FORT_FAB_ARGuPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealE">
+<span class="target" id="RAD__F_8H_1afd283875824ebb2b1a949a5847817ef3"></span>void <code class="descname">ca_compute_powerlaw_kappa_s</code><span class="sig-paren">(</span><em class="property">const</em> int <em>lo</em>[], <em class="property">const</em> int <em>hi</em>[], <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>kappa<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARGu, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>kappa0</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>m</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>n</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>p</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>s0</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>sm</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>sn</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>sp</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>Tfloor</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>kfloor</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv327ca_compute_powerlaw_kappa_sA_KiA_KiF15BL_FORT_FAB_ARG5kappaEK16BL_FORT_FAB_ARGuPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv315BL_FORT_FAB_ARG6kapkap">
+<span class="target" id="RAD__F_8H_1a557f59df919d88e5c3dfb71893994e3c"></span><code class="descname">BL_FORT_FAB_ARG</code><span class="sig-paren">(</span>kapkap<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a566415f8e64ec019d85ccbe4bac73a8c"></span><code class="descname">const BL_FORT_FAB_ARG(kap_r)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1affe1c3bc816eb0e00530f0eb1cd34e4d"></span><code class="descname">const int const int const amrex::Real const const const BL_FORT_FAB_ARG(Er)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1aa9ef162ac51c62a3ca98e936d00b29ba"></span><code class="descname">const int const int const const BL_FORT_FAB_ARG(kap)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1accbcf85acc5a65700da99216f6ed62fe"></span><code class="descname">const const BL_FORT_FAB_ARG(lam)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv312ca_get_v_dcfA_KiA_KiK17BL_FORT_FAB_ARGerK20BL_FORT_FAB_ARGstateK19BL_FORT_FAB_ARGtempK18BL_FORT_FAB_ARGc_vK17BL_FORT_FAB_ARGkrK17BL_FORT_FAB_ARGkpK18BL_FORT_FAB_ARGkp2PKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEF15BL_FORT_FAB_ARG1vEF15BL_FORT_FAB_ARG3dcfE">
+<span class="target" id="RAD__F_8H_1aa9cd7f0c0223947df02202caf8b1e0af"></span>void <code class="descname">ca_get_v_dcf</code><span class="sig-paren">(</span><em class="property">const</em> int <em>lo</em>[], <em class="property">const</em> int <em>hi</em>[], <em class="property">const</em> BL_FORT_FAB_ARGer, <em class="property">const</em> BL_FORT_FAB_ARGstate, <em class="property">const</em> BL_FORT_FAB_ARGtemp, <em class="property">const</em> BL_FORT_FAB_ARGc_v, <em class="property">const</em> BL_FORT_FAB_ARGkr, <em class="property">const</em> BL_FORT_FAB_ARGkp, <em class="property">const</em> BL_FORT_FAB_ARGkp2, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dtemp</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dtime</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>sigma</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>c</em>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>v<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>dcf<span class="sig-paren">)</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv312ca_get_v_dcfA_KiA_KiK17BL_FORT_FAB_ARGerK20BL_FORT_FAB_ARGstateK19BL_FORT_FAB_ARGtempK18BL_FORT_FAB_ARGc_vK17BL_FORT_FAB_ARGkrK17BL_FORT_FAB_ARGkpK18BL_FORT_FAB_ARGkp2PKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEF15BL_FORT_FAB_ARG1vEF15BL_FORT_FAB_ARG3dcfE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv313ca_update_dcfA_KiA_KiF15BL_FORT_FAB_ARG3dcfEK21BL_FORT_FAB_ARGetainvK17BL_FORT_FAB_ARGkpK17BL_FORT_FAB_ARGkr">
+<span class="target" id="RAD__F_8H_1a07898406fd3ed5bfbfb0392926b03f45"></span>void <code class="descname">ca_update_dcf</code><span class="sig-paren">(</span><em class="property">const</em> int <em>lo</em>[], <em class="property">const</em> int <em>hi</em>[], <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>dcf<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARGetainv, <em class="property">const</em> BL_FORT_FAB_ARGkp, <em class="property">const</em> BL_FORT_FAB_ARGkr, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv313ca_update_dcfA_KiA_KiF15BL_FORT_FAB_ARG3dcfEK21BL_FORT_FAB_ARGetainvK17BL_FORT_FAB_ARGkpK17BL_FORT_FAB_ARGkr" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv317ca_compute_dcoefsA_KiA_KiF15BL_FORT_FAB_ARG1dEK18BL_FORT_FAB_ARGlamK16BL_FORT_FAB_ARGvK18BL_FORT_FAB_ARGdcfPKN5amrex4RealEPKi">
+<span class="target" id="RAD__F_8H_1a4b0a7a27912fddd433de2fe848cdc226"></span>void <code class="descname">ca_compute_dcoefs</code><span class="sig-paren">(</span><em class="property">const</em> int <em>lo</em>[], <em class="property">const</em> int <em>hi</em>[], <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>d<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARGlam, <em class="property">const</em> BL_FORT_FAB_ARGv, <em class="property">const</em> BL_FORT_FAB_ARGdcf, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>r</em>, <em class="property">const</em> int *<em>idir</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv317ca_compute_dcoefsA_KiA_KiF15BL_FORT_FAB_ARG1dEK18BL_FORT_FAB_ARGlamK16BL_FORT_FAB_ARGvK18BL_FORT_FAB_ARGdcfPKN5amrex4RealEPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a433431d791814ad1720178a6554756a4"></span><code class="descname">const const BL_FORT_FAB_ARG(gPr)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv317ca_set_dterm_faceA_KiA_KiK17BL_FORT_FAB_ARGErK20BL_FORT_FAB_ARGdcoefF15BL_FORT_FAB_ARG10dterm_faceEPKN5amrex4RealEPKi">
+<span class="target" id="RAD__F_8H_1ad32cb8e4498d8401d1e956bd4e7830a4"></span>void <code class="descname">ca_set_dterm_face</code><span class="sig-paren">(</span><em class="property">const</em> int <em>lo</em>[], <em class="property">const</em> int <em>hi</em>[], <em class="property">const</em> BL_FORT_FAB_ARGEr, <em class="property">const</em> BL_FORT_FAB_ARGdcoef, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>dterm_face<span class="sig-paren">)</span>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dx</em>, <em class="property">const</em> int *<em>idir</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv317ca_set_dterm_faceA_KiA_KiK17BL_FORT_FAB_ARGErK20BL_FORT_FAB_ARGdcoefF15BL_FORT_FAB_ARG10dterm_faceEPKN5amrex4RealEPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv314ca_face2centerA_KiA_KiRKiRKiRKiRKiRKiF6D_DECLFK15BL_FORT_FAB_ARG4fooxEFK15BL_FORT_FAB_ARG4fooyEFK15BL_FORT_FAB_ARG4foozEEF15BL_FORT_FAB_ARG4foocE">
+<span class="target" id="RAD__F_8H_1ab01a6721b35249bf3028f2e63875e138"></span>void <code class="descname">ca_face2center</code><span class="sig-paren">(</span><em class="property">const</em> int <em>lo</em>[], <em class="property">const</em> int <em>hi</em>[], <em class="property">const</em> int &amp;<em>scomp</em>, <em class="property">const</em> int &amp;<em>dcomp</em>, <em class="property">const</em> int &amp;<em>ncomp</em>, <em class="property">const</em> int &amp;<em>nf</em>, <em class="property">const</em> int &amp;<em>nc</em>, D_DECL<span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>foox<span class="sig-paren">)</span>, <em class="property">const</em> <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>fooy<span class="sig-paren">)</span>, <em class="property">const</em> <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>fooz<span class="sig-paren">)</span><span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>fooc<span class="sig-paren">)</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv314ca_face2centerA_KiA_KiRKiRKiRKiRKiRKiF6D_DECLFK15BL_FORT_FAB_ARG4fooxEFK15BL_FORT_FAB_ARG4fooyEFK15BL_FORT_FAB_ARG4foozEEF15BL_FORT_FAB_ARG4foocE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv316ca_correct_dtermF6D_DECLF15BL_FORT_FAB_ARG3dfxEF15BL_FORT_FAB_ARG3dfyEF15BL_FORT_FAB_ARG3dfzEEPKN5amrex4RealEPKN5amrex4RealE">
+<span class="target" id="RAD__F_8H_1afb4e656cf79792a4f222b7be6fe4b70c"></span>void <code class="descname">ca_correct_dterm</code><span class="sig-paren">(</span>D_DECL<span class="sig-paren">(</span><a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>dfx<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>dfy<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>dfz<span class="sig-paren">)</span><span class="sig-paren">)</span>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>re</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>rc</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv316ca_correct_dtermF6D_DECLF15BL_FORT_FAB_ARG3dfxEF15BL_FORT_FAB_ARG3dfyEF15BL_FORT_FAB_ARG3dfzEEPKN5amrex4RealEPKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv318ca_initfluxlimiterPKiPKi">
+<span class="target" id="RAD__F_8H_1a455f96f59e4e5aba73c048b241dc309e"></span>void <code class="descname">ca_initfluxlimiter</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>limiter</em>, <em class="property">const</em> int *<em>closure</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv318ca_initfluxlimiterPKiPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a124eb05e23769d4c30120fdd0d744278"></span><code class="descname">const int const int const const const const const BL_FORT_FAB_ARG(eta1)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a0617644bfd5d0e4fdc4a970ef18a34e1"></span><code class="descname">const int const int const const BL_FORT_FAB_ARG(spc)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a690dd359c8a910832e39f9c5aa27382b"></span><code class="descname">const int const int const const const BL_FORT_FAB_ARG(aco)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a978d29e4cde68c90910b5629f4d20f04"></span><code class="descname">const int const int BL_FORT_FAB_ARG(Ern)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a2f3764f2f7fd233a2b8ed971c76fb2d4"></span><code class="descname">const int const int const BL_FORT_FAB_ARG(Erl)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a5d87d5a020575459a2344dfe53ec73d9"></span><code class="descname">const int const int const const const BL_FORT_FAB_ARG(etaT)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a254a596b8ab4be7416981fcb84555d28"></span><code class="descname">const int const int BL_FORT_FAB_ARG(rhs)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a57b59ef995094db1d57488687fcffbd1"></span><code class="descname">const int const int const const const const const const const const BL_FORT_FAB_ARG(mugT)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a1aa27cfd13de52bb752c58d0648e45dc"></span><code class="descname">const int const int const const BL_FORT_FAB_ARG(spec)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a4735f2dd08a0b251ba5f95092b3086ea"></span><code class="descname">const int const int BL_FORT_FAB_ARG(rhoe_new)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a816a6ce44b888ca5664750ba7a91c507"></span><code class="descname">const int const int const const BL_FORT_FAB_ARG(rhoe_star)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a76de65852c5e5ebb0b1f5003a62dea8b"></span><code class="descname">const int const int const const const BL_FORT_FAB_ARG(rhoe_step)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1aea295968582c6cd249d3944bf384e7dc"></span><code class="descname">const int const int const BL_FORT_FAB_ARG(Er_new)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a3635fa7b53d15c3091fd17765950be80"></span><code class="descname">const int const int BL_FORT_FAB_ARG(temp_new)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a7acb43bd63b36130f36b413b01e4a4f3"></span><code class="descname">const int const int const const const const const const BL_FORT_FAB_ARG(temp_star)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a91180ce3ad9da7fdc864ab21f6962ef2"></span><code class="descname">const int const int const const const const BL_FORT_FAB_ARG(rho)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1ada6157f19fdcadafdb939c72a0d933cb"></span><code class="descname">const int const int const const BL_FORT_FAB_ARG(kappa_p)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1acec483a86a2d8165804656fa013f6f34"></span><code class="descname">const int const int BL_FORT_FAB_ARG(jg)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a48a25d7679a64212868fbe8ef14ff7a1"></span><code class="descname">const int const int const const BL_FORT_FAB_ARG(dedT)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a7db73173cae36df0ff79c7943d167699"></span><code class="descname">const int const int const const const const BL_FORT_FAB_ARG(etTz)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a8aec03a81340c767d46b4c2c86b60435"></span><code class="descname">const int const int const const BL_FORT_FAB_ARG(temp)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a5554ead6482257b0f64528aa7cfb3402"></span><code class="descname">const int const int BL_FORT_FAB_ARG(coupt)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1adfe12a572573d35f2e060ce191626247"></span><code class="descname">const int const int const const const BL_FORT_FAB_ARG(kpp)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1ab24707ef1cf04d576e85b298edecc9f0"></span><code class="descname">const int const int const const BL_FORT_FAB_ARG(Eg)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1adb4fe200b9d771d96639526bc67bbe17"></span><code class="descname">const int const int BL_FORT_FAB_ARG(etat)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1ab9ba7791ecf8a6a96ed8478cbfab7593"></span><code class="descname">const int const int const const const const BL_FORT_FAB_ARG(etaTz)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1aa64836ed86018e035744f845e293c124"></span><code class="descname">const int const int BL_FORT_FAB_ARG(djdT)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a05296a907b84d50f538967115e3b99dc"></span><code class="descname">const int const int const const BL_FORT_FAB_ARG(dkdT)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1ad1db3100be3a5a94f9645e726f54aeff"></span><code class="descname">const int const int const const const BL_FORT_FAB_ARG(Er_star)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv314ca_compute_rhsPKiPKiF15BL_FORT_FAB_ARG3rhsEK17BL_FORT_FAB_ARGjgK19BL_FORT_FAB_ARGmugTK20BL_FORT_FAB_ARGcoupTK19BL_FORT_FAB_ARGetaTK22BL_FORT_FAB_ARGEr_stepK24BL_FORT_FAB_ARGrhoe_stepK22BL_FORT_FAB_ARGEr_starK24BL_FORT_FAB_ARGrhoe_starPKN5amrex4RealEPKN5amrex4RealEPKiPKN5amrex4RealE">
+<span class="target" id="RAD__F_8H_1af6b4932ec4148bfc3da093989f425eb4"></span>void <code class="descname">ca_compute_rhs</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>rhs<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARGjg, <em class="property">const</em> BL_FORT_FAB_ARGmugT, <em class="property">const</em> BL_FORT_FAB_ARGcoupT, <em class="property">const</em> BL_FORT_FAB_ARGetaT, <em class="property">const</em> BL_FORT_FAB_ARGEr_step, <em class="property">const</em> BL_FORT_FAB_ARGrhoe_step, <em class="property">const</em> BL_FORT_FAB_ARGEr_star, <em class="property">const</em> BL_FORT_FAB_ARGrhoe_star, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>r</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dt</em>, <em class="property">const</em> int *<em>igroup</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>ptc_tau</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv314ca_compute_rhsPKiPKiF15BL_FORT_FAB_ARG3rhsEK17BL_FORT_FAB_ARGjgK19BL_FORT_FAB_ARGmugTK20BL_FORT_FAB_ARGcoupTK19BL_FORT_FAB_ARGetaTK22BL_FORT_FAB_ARGEr_stepK24BL_FORT_FAB_ARGrhoe_stepK22BL_FORT_FAB_ARGEr_starK24BL_FORT_FAB_ARGrhoe_starPKN5amrex4RealEPKN5amrex4RealEPKiPKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1af7ad720cc0f4489861e23e8050ca3819"></span><code class="descname">const int const int BL_FORT_FAB_ARG(state)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a707fe3e23277440f9173753284748a63"></span><code class="descname">const int const int const BL_FORT_FAB_ARG(rhoe)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1ad814c8ef860d6be393b2d146fae3bbc6"></span><code class="descname">const int const int const const const BL_FORT_FAB_ARG(msk)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a1fc80413e2b15e565638ceef1ef785ed"></span><code class="descname">const int const int const const BL_FORT_FAB_ARG(Er_pi)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1abf99819431d3d3dea820d3ea7edfe0f9"></span><code class="descname">const int const int const const const const const const BL_FORT_FAB_ARG(coupT)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1ab514d7cf15dc8d23d7cccf22d51b360f"></span><code class="descname">const int const int const amrex::Real const BL_FORT_FAB_ARG(Snew)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv320ca_compute_rosselandA_KiA_KiF15BL_FORT_FAB_ARG3kprEK20BL_FORT_FAB_ARGstate">
+<span class="target" id="RAD__F_8H_1a406cfd7218c5dd345110066e3767f573"></span>void <code class="descname">ca_compute_rosseland</code><span class="sig-paren">(</span><em class="property">const</em> int <em>lo</em>[], <em class="property">const</em> int <em>hi</em>[], <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>kpr<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARGstate, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv320ca_compute_rosselandA_KiA_KiF15BL_FORT_FAB_ARG3kprEK20BL_FORT_FAB_ARGstate" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1ab9a30c90550dccfa7be8d609c9eab2e2"></span><code class="descname">const int const int BL_FORT_FAB_ARG_3D(kps)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1aa0684ed0e24315e10dcf238ce983e697"></span><code class="descname">const int const int const BL_FORT_FAB_ARG_3D(state)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv317ca_compute_planckA_KiA_KiF15BL_FORT_FAB_ARG3kppEK20BL_FORT_FAB_ARGstate">
+<span class="target" id="RAD__F_8H_1a4a5357dd58f84f7f7806de69087da14d"></span>void <code class="descname">ca_compute_planck</code><span class="sig-paren">(</span><em class="property">const</em> int <em>lo</em>[], <em class="property">const</em> int <em>hi</em>[], <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>kpp<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARGstate, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv317ca_compute_planckA_KiA_KiF15BL_FORT_FAB_ARG3kppEK20BL_FORT_FAB_ARGstate" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv312ca_filt_primA_KiA_KiF15BL_FORT_FAB_ARG4StmpEF15BL_FORT_FAB_ARG4SnewEF15BL_FORT_FAB_ARG4maskEPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi">
+<span class="target" id="RAD__F_8H_1a87e206a956ea891fcd053a0807681f05"></span>void <code class="descname">ca_filt_prim</code><span class="sig-paren">(</span><em class="property">const</em> int <em>lo</em>[], <em class="property">const</em> int <em>hi</em>[], <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>Stmp<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>Snew<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>mask<span class="sig-paren">)</span>, <em class="property">const</em> int *<em>filter_prim_T</em>, <em class="property">const</em> int *<em>filter_prim_S</em>, <em class="property">const</em> int *<em>domlo</em>, <em class="property">const</em> int *<em>domhi</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>delta</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>xlo</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>problo</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>time</em>, <em class="property">const</em> int *<em>level</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv312ca_filt_primA_KiA_KiF15BL_FORT_FAB_ARG4StmpEF15BL_FORT_FAB_ARG4SnewEF15BL_FORT_FAB_ARG4maskEPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1aa971ed65ad21bbd336e718036504364e"></span><code class="descname">const int const int const const BL_FORT_FAB_ARG(T)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a7f2f5041a5298fc210b4be0ff0359e03"></span><code class="descname">const int const int const const const BL_FORT_FAB_ARG(Ts)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a53333b3a29cb90a1c924e1d3a3680965"></span><code class="descname">const int const int const const const BL_FORT_FAB_ARG(kpr)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1adcb29209eb674725dbcab2ff0b048bef"></span><code class="descname">const int const int const const BL_FORT_FAB_ARG(kappa_r)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1af46283413a1640f0c085a58f658a1398"></span><code class="descname">const int const int const BL_FORT_FAB_ARG(bcgr)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a14f0290af5b993fc0c24b58ccf1605f2"></span><code class="descname">const int const int const const BL_FORT_FAB_ARG(ccoe)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv319ca_flux_face2centerA_KiA_KiF15BL_FORT_FAB_ARG4testEK18BL_FORT_FAB_ARGflxPKN5amrex4RealEPKiPKiPKiPKiPKi">
+<span class="target" id="RAD__F_8H_1ae5eb2d296a69f0773053d6cb0fa2e491"></span>void <code class="descname">ca_flux_face2center</code><span class="sig-paren">(</span><em class="property">const</em> int <em>lo</em>[], <em class="property">const</em> int <em>hi</em>[], <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>test<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARGflx, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>x</em>, <em class="property">const</em> int *<em>xlo</em>, <em class="property">const</em> int *<em>xhi</em>, <em class="property">const</em> int *<em>ntest</em>, <em class="property">const</em> int *<em>idim</em>, <em class="property">const</em> int *<em>iflx</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv319ca_flux_face2centerA_KiA_KiF15BL_FORT_FAB_ARG4testEK18BL_FORT_FAB_ARGflxPKN5amrex4RealEPKiPKiPKiPKiPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv310ca_spalphaPKiPKiF15BL_FORT_FAB_ARG3SPaEF6D_DECLF15BL_FORT_FAB_ARG4lamxEF15BL_FORT_FAB_ARG4lamyEF15BL_FORT_FAB_ARG4lamzEEPKi">
+<span class="target" id="RAD__F_8H_1a29040d55c398b2f610f92096d2997bc9"></span>void <code class="descname">ca_spalpha</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>SPa<span class="sig-paren">)</span>, D_DECL<span class="sig-paren">(</span><a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>lamx<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>lamy<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>lamz<span class="sig-paren">)</span><span class="sig-paren">)</span>, <em class="property">const</em> int *<em>igroup</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv310ca_spalphaPKiPKiF15BL_FORT_FAB_ARG3SPaEF6D_DECLF15BL_FORT_FAB_ARG4lamxEF15BL_FORT_FAB_ARG4lamyEF15BL_FORT_FAB_ARG4lamzEEPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv311ca_derertotF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi">
+<span class="target" id="RAD__F_8H_1a6acbc447a7b3632317fc7e8f03199caf"></span>void <code class="descname">ca_derertot</code><span class="sig-paren">(</span>BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>der<span class="sig-paren">)</span>, <em class="property">const</em> int *<em>nvar</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Ddata, <em class="property">const</em> int *<em>ncomp</em>, <em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> int *<em>domain_lo</em>, <em class="property">const</em> int *<em>domain_hi</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>delta</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>xlo</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>time</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dt</em>, <em class="property">const</em> int *<em>bcrec</em>, <em class="property">const</em> int *<em>level</em>, <em class="property">const</em> int *<em>grid_no</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv311ca_derertotF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv310ca_derenueF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi">
+<span class="target" id="RAD__F_8H_1afe870868f0116eb07893cc8892167016"></span>void <code class="descname">ca_derenue</code><span class="sig-paren">(</span>BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>der<span class="sig-paren">)</span>, <em class="property">const</em> int *<em>nvar</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Ddata, <em class="property">const</em> int *<em>ncomp</em>, <em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> int *<em>domain_lo</em>, <em class="property">const</em> int *<em>domain_hi</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>delta</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>xlo</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>time</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dt</em>, <em class="property">const</em> int *<em>bcrec</em>, <em class="property">const</em> int *<em>level</em>, <em class="property">const</em> int *<em>grid_no</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv310ca_derenueF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv311ca_derenuaeF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi">
+<span class="target" id="RAD__F_8H_1af5e5205c9334bdb3d7a9f9ff959ef978"></span>void <code class="descname">ca_derenuae</code><span class="sig-paren">(</span>BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>der<span class="sig-paren">)</span>, <em class="property">const</em> int *<em>nvar</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Ddata, <em class="property">const</em> int *<em>ncomp</em>, <em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> int *<em>domain_lo</em>, <em class="property">const</em> int *<em>domain_hi</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>delta</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>xlo</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>time</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dt</em>, <em class="property">const</em> int *<em>bcrec</em>, <em class="property">const</em> int *<em>level</em>, <em class="property">const</em> int *<em>grid_no</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv311ca_derenuaeF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv314ca_compute_c_vA_KiA_KiK17BL_FORT_FAB_ARGcvK19BL_FORT_FAB_ARGtempK20BL_FORT_FAB_ARGstate">
+<span class="target" id="RAD__F_8H_1aa024db2a149224a710088b03c88c5775"></span>void <code class="descname">ca_compute_c_v</code><span class="sig-paren">(</span><em class="property">const</em> int <em>lo</em>[], <em class="property">const</em> int <em>hi</em>[], <em class="property">const</em> BL_FORT_FAB_ARGcv, <em class="property">const</em> BL_FORT_FAB_ARGtemp, <em class="property">const</em> BL_FORT_FAB_ARGstate<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv314ca_compute_c_vA_KiA_KiK17BL_FORT_FAB_ARGcvK19BL_FORT_FAB_ARGtempK20BL_FORT_FAB_ARGstate" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv311ca_get_rhoeA_KiA_KiK19BL_FORT_FAB_ARGrhoeK19BL_FORT_FAB_ARGtempK20BL_FORT_FAB_ARGstate">
+<span class="target" id="RAD__F_8H_1a8182bce42850d7fba239d012d5942d99"></span>void <code class="descname">ca_get_rhoe</code><span class="sig-paren">(</span><em class="property">const</em> int <em>lo</em>[], <em class="property">const</em> int <em>hi</em>[], <em class="property">const</em> BL_FORT_FAB_ARGrhoe, <em class="property">const</em> BL_FORT_FAB_ARGtemp, <em class="property">const</em> BL_FORT_FAB_ARGstate<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv311ca_get_rhoeA_KiA_KiK19BL_FORT_FAB_ARGrhoeK19BL_FORT_FAB_ARGtempK20BL_FORT_FAB_ARGstate" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv326ca_compute_temp_given_rhoeA_KiA_KiF15BL_FORT_FAB_ARG4tempEK20BL_FORT_FAB_ARGstate">
+<span class="target" id="RAD__F_8H_1a63cc968162d1c7bf942a82816ee8c5c2"></span>void <code class="descname">ca_compute_temp_given_rhoe</code><span class="sig-paren">(</span><em class="property">const</em> int <em>lo</em>[], <em class="property">const</em> int <em>hi</em>[], <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>temp<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARGstate, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv326ca_compute_temp_given_rhoeA_KiA_KiF15BL_FORT_FAB_ARG4tempEK20BL_FORT_FAB_ARGstate" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv324ca_compute_temp_given_cvA_KiA_KiF15BL_FORT_FAB_ARG4tempEK20BL_FORT_FAB_ARGstatePKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealE">
+<span class="target" id="RAD__F_8H_1a47d1d454d0dea088ecdab8fac3b79201"></span>void <code class="descname">ca_compute_temp_given_cv</code><span class="sig-paren">(</span><em class="property">const</em> int <em>lo</em>[], <em class="property">const</em> int <em>hi</em>[], <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>temp<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARGstate, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>const_c_v</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>c_v_exp_m</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>c_v_exp_n</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv324ca_compute_temp_given_cvA_KiA_KiF15BL_FORT_FAB_ARG4tempEK20BL_FORT_FAB_ARGstatePKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1aab2561517b3904e27c1184ed1ab127ea"></span><code class="descname">const int const int const const BL_FORT_FAB_ARG(Ecom)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a37c7d487d0bb6c0c03422da267058f18"></span><code class="descname">const int const int const const const BL_FORT_FAB_ARG(F)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1abf9adc79326fe4bb46086c2ed16569d4"></span><code class="descname">const int const int const const const int int BL_FORT_FAB_ARG(plotvar)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a61ac68fa69b25775e5e23bfd8e20c29f"></span><code class="descname">const int const int D_DECL(const  BL_FORT_FAB_ARGlamx, const  BL_FORT_FAB_ARGlamy, const  BL_FORT_FAB_ARGlamz)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1afa34bde068744d726a57f141b4dd8710"></span><code class="descname">const int const int int BL_FORT_FAB_ARG(fcc)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a6fbc50b18ff4e37f350cc40c1b28d5e1"></span><code class="descname">const int const int const amrex::Real const const BL_FORT_FAB_ARG(f)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a44ead6ad40631f90bf3580f7d729ab9c"></span><code class="descname">const int const int const amrex::Real const const const const BL_FORT_FAB_ARG(Fi)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="RAD__F_8H_1a123cfc6c8ea17b0c5239b461dcc11332"></span><code class="descname">const int const int const amrex::Real const const const const int int BL_FORT_FAB_ARG(Fo)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv36multrsF15BL_FORT_FAB_ARG2ccEF7ARLIM_P5regloEF7ARLIM_P5reghiEPN5amrex4RealEPN5amrex4RealE">
+<span class="target" id="RAD__F_8H_1aead66dfddfba35a4ee0e5cd8afda1dfe"></span>void <code class="descname">multrs</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>cc<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>r</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>s</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv36multrsF15BL_FORT_FAB_ARG2ccEF7ARLIM_P5regloEF7ARLIM_P5reghiEPN5amrex4RealEPN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv34sphcPN5amrex4RealEPN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiEPKN5amrex4RealE">
+<span class="target" id="RAD__F_8H_1a70c09afe233c963e9747c508679b4cdd"></span>void <code class="descname">sphc</code><span class="sig-paren">(</span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>r</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>s</em>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dx</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv34sphcPN5amrex4RealEPN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiEPKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv34sphePN5amrex4RealEPN5amrex4RealERKiF7ARLIM_P9edgeboxloEF7ARLIM_P9edgeboxhiEPKN5amrex4RealE">
+<span class="target" id="RAD__F_8H_1a8df7aa94671741b6a6de5a4b66c86493"></span>void <code class="descname">sphe</code><span class="sig-paren">(</span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>r</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>s</em>, <em class="property">const</em> int &amp;<em>idim</em>, ARLIM_P<span class="sig-paren">(</span>edgeboxlo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>edgeboxhi<span class="sig-paren">)</span>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dx</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv34sphePN5amrex4RealEPN5amrex4RealERKiF7ARLIM_P9edgeboxloEF7ARLIM_P9edgeboxhiEPKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv36lacoefF15BL_FORT_FAB_ARG6acoefsEF7ARLIM_P5regloEF7ARLIM_P5reghiEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealERKN5amrex4RealERKN5amrex4RealERKN5amrex4RealE">
+<span class="target" id="RAD__F_8H_1aada8da51fb486a08448b01b41337e40c"></span>void <code class="descname">lacoef</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>acoefs<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>fkp</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>eta</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>etainv</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>r</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>s</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>c</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>dt</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>theta</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv36lacoefF15BL_FORT_FAB_ARG6acoefsEF7ARLIM_P5regloEF7ARLIM_P5reghiEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealERKN5amrex4RealERKN5amrex4RealERKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv39FORT_KAVGRKN5amrex4RealERKN5amrex4RealERKN5amrex4RealERKi">
+<span class="target" id="RAD__F_8H_1a726fdca16fdc58339baa40d6dda35d21"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">FORT_KAVG</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>a</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>b</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>d</em>, <em class="property">const</em> int &amp;<em>iopt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv39FORT_KAVGRKN5amrex4RealERKN5amrex4RealERKN5amrex4RealERKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv35bclimPN5amrex4RealEF15BL_FORT_FAB_ARG6lambdaEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiF15BL_FORT_FAB_ARG7kappa_rEPN5amrex4RealEPN5amrex4RealERKN5amrex4RealEPKN5amrex4RealE">
+<span class="target" id="RAD__F_8H_1a7ec36ea115d072bacd95464f0462c3aa"></span>void <code class="descname">bclim</code><span class="sig-paren">(</span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>bcoefs</em>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>lambda<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> int &amp;<em>idim</em>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>kappa_r<span class="sig-paren">)</span>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>r</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>s</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>c</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dx</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv35bclimPN5amrex4RealEF15BL_FORT_FAB_ARG6lambdaEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiF15BL_FORT_FAB_ARG7kappa_rEPN5amrex4RealEPN5amrex4RealERKN5amrex4RealEPKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv36flxlimF15BL_FORT_FAB_ARG6lambdaEF7ARLIM_P5regloEF7ARLIM_P5reghiERKi">
+<span class="target" id="RAD__F_8H_1a89f8488ecd051e0588cc712970530b52"></span>void <code class="descname">flxlim</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>lambda<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> int &amp;<em>limiter</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv36flxlimF15BL_FORT_FAB_ARG6lambdaEF7ARLIM_P5regloEF7ARLIM_P5reghiERKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv36eddfacPN5amrex4RealEF7ARLIM_P3rloEF7ARLIM_P3rhiEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRKi">
+<span class="target" id="RAD__F_8H_1acc9fc48b61d446bf283e5cd369201ed7"></span>void <code class="descname">eddfac</code><span class="sig-paren">(</span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>efact</em>, ARLIM_P<span class="sig-paren">(</span>rlo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>rhi<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> int &amp;<em>limiter</em>, <em class="property">const</em> int &amp;<em>idim</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv36eddfacPN5amrex4RealEF7ARLIM_P3rloEF7ARLIM_P3rhiEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv36scgrd1F15BL_FORT_FAB_ARG1REF7ARLIM_P5regloEF7ARLIM_P5reghiERKiF15BL_FORT_FAB_ARG7kappa_rEPN5amrex4RealEPKN5amrex4RealE">
+<span class="target" id="RAD__F_8H_1a80fe8c53578fecbb6d53bfccbe80ee85"></span>void <code class="descname">scgrd1</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>R<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> int &amp;<em>idim</em>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>kappa_r<span class="sig-paren">)</span>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>Er</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dx</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv36scgrd1F15BL_FORT_FAB_ARG1REF7ARLIM_P5regloEF7ARLIM_P5reghiERKiF15BL_FORT_FAB_ARG7kappa_rEPN5amrex4RealEPKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv36scgrd2F15BL_FORT_FAB_ARG1REF7ARLIM_P5regloEF7ARLIM_P5reghiERKiF15BL_FORT_FAB_ARG7kappa_rEPN5amrex4RealEPKN5amrex4RealE">
+<span class="target" id="RAD__F_8H_1a8b51772719950e0a378e9f87bf27bcb7"></span>void <code class="descname">scgrd2</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>R<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> int &amp;<em>idim</em>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>kappa_r<span class="sig-paren">)</span>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>Er</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dx</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv36scgrd2F15BL_FORT_FAB_ARG1REF7ARLIM_P5regloEF7ARLIM_P5reghiERKiF15BL_FORT_FAB_ARG7kappa_rEPN5amrex4RealEPKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv36scgrd3F15BL_FORT_FAB_ARG1REF7ARLIM_P5regloEF7ARLIM_P5reghiERKiF15BL_FORT_FAB_ARG7kappa_rEPN5amrex4RealEPKN5amrex4RealE">
+<span class="target" id="RAD__F_8H_1addb266175815d86a86fdc4e25e1648ee"></span>void <code class="descname">scgrd3</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>R<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> int &amp;<em>idim</em>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>kappa_r<span class="sig-paren">)</span>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>Er</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dx</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv36scgrd3F15BL_FORT_FAB_ARG1REF7ARLIM_P5regloEF7ARLIM_P5reghiERKiF15BL_FORT_FAB_ARG7kappa_rEPN5amrex4RealEPKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv34lrhsF15BL_FORT_FAB_ARG3rhsEF7ARLIM_P5regloEF7ARLIM_P5reghiEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEF15BL_FORT_FAB_ARG6Er_oldEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealERKN5amrex4RealERKN5amrex4RealERKN5amrex4RealERKN5amrex4RealE">
+<span class="target" id="RAD__F_8H_1a1600733f5351a3e639c90af3596794ba"></span>void <code class="descname">lrhs</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>rhs<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>temp</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>fkp</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>eta</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>etainv</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>rhoem</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>rhoes</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dflux_old</em>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>Er_old<span class="sig-paren">)</span>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>Edot</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>r</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>s</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>delta_t</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>sigma</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>c</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>theta</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv34lrhsF15BL_FORT_FAB_ARG3rhsEF7ARLIM_P5regloEF7ARLIM_P5reghiEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEF15BL_FORT_FAB_ARG6Er_oldEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealERKN5amrex4RealERKN5amrex4RealERKN5amrex4RealERKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv36anatw2PN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiEPN5amrex4RealERKN5amrex4RealERKN5amrex4RealERKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi">
+<span class="target" id="RAD__F_8H_1a5e3673fe94e7435347a084a9e4aa4fdf"></span>void <code class="descname">anatw2</code><span class="sig-paren">(</span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>test</em>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>temp</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>p</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>xf</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>Tc</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dx</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>xlo</em>, <em class="property">const</em> int *<em>lo</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv36anatw2PN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiEPN5amrex4RealERKN5amrex4RealERKN5amrex4RealERKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv36cfrhoeF7ARLIM_P5regloEF7ARLIM_P5reghiEF15BL_FORT_FAB_ARG5frhoeEF15BL_FORT_FAB_ARG5stateE">
+<span class="target" id="RAD__F_8H_1a7c4685fd88c61352470f263be382212a"></span>void <code class="descname">cfrhoe</code><span class="sig-paren">(</span>ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>frhoe<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>state<span class="sig-paren">)</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv36cfrhoeF7ARLIM_P5regloEF7ARLIM_P5reghiEF15BL_FORT_FAB_ARG5frhoeEF15BL_FORT_FAB_ARG5stateE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv35gtempF7ARLIM_P5regloEF7ARLIM_P5reghiEF15BL_FORT_FAB_ARG4tempEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEF15BL_FORT_FAB_ARG5stateE">
+<span class="target" id="RAD__F_8H_1a2e43fd6b48d889d3ac78e886725a8774"></span>void <code class="descname">gtemp</code><span class="sig-paren">(</span>ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>temp<span class="sig-paren">)</span>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>con</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>em</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>en</em>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>state<span class="sig-paren">)</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv35gtempF7ARLIM_P5regloEF7ARLIM_P5reghiEF15BL_FORT_FAB_ARG4tempEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEF15BL_FORT_FAB_ARG5stateE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv33gcvF7ARLIM_P5regloEF7ARLIM_P5reghiEF15BL_FORT_FAB_ARG3c_vEK19BL_FORT_FAB_ARGtempPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEK20BL_FORT_FAB_ARGstate">
+<span class="target" id="RAD__F_8H_1a8001fe1fdd7523bc8fd007da65e95b19"></span>void <code class="descname">gcv</code><span class="sig-paren">(</span>ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>c_v<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARGtemp, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>con</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>em</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>en</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>tf</em>, <em class="property">const</em> BL_FORT_FAB_ARGstate, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv33gcvF7ARLIM_P5regloEF7ARLIM_P5reghiEF15BL_FORT_FAB_ARG3c_vEK19BL_FORT_FAB_ARGtempPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEK20BL_FORT_FAB_ARGstate" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv35cexchF7ARLIM_P5regloEF7ARLIM_P5reghiEF15BL_FORT_FAB_ARG4exchEF15BL_FORT_FAB_ARG2ErEF15BL_FORT_FAB_ARG3fkpERKN5amrex4RealERKN5amrex4RealE">
+<span class="target" id="RAD__F_8H_1af8ad00d8d1b71b4c141607b8a4847674"></span>void <code class="descname">cexch</code><span class="sig-paren">(</span>ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>exch<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>Er<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>fkp<span class="sig-paren">)</span>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>sigma</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>c</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv35cexchF7ARLIM_P5regloEF7ARLIM_P5reghiEF15BL_FORT_FAB_ARG4exchEF15BL_FORT_FAB_ARG2ErEF15BL_FORT_FAB_ARG3fkpERKN5amrex4RealERKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv35ceta2F7ARLIM_P5regloEF7ARLIM_P5reghiEPN5amrex4RealEPN5amrex4RealEF7ARLIM_P3eloEF7ARLIM_P3ehiEF15BL_FORT_FAB_ARG4frhoEF15BL_FORT_FAB_ARG4tempEF15BL_FORT_FAB_ARG3c_vEF15BL_FORT_FAB_ARG3fkpEF15BL_FORT_FAB_ARG2erERKN5amrex4RealERKN5amrex4RealERKN5amrex4RealERKN5amrex4RealERKN5amrex4RealERKi">
+<span class="target" id="RAD__F_8H_1ad64e71a2f5b52a5b76a46d44cf64bd65"></span>void <code class="descname">ceta2</code><span class="sig-paren">(</span>ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>eta</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>etainv</em>, ARLIM_P<span class="sig-paren">(</span>elo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>ehi<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>frho<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>temp<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>c_v<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>fkp<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>er<span class="sig-paren">)</span>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>dT</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>delta_t</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>sigma</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>c</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>underr</em>, <em class="property">const</em> int &amp;<em>lagpla</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv35ceta2F7ARLIM_P5regloEF7ARLIM_P5reghiEPN5amrex4RealEPN5amrex4RealEF7ARLIM_P3eloEF7ARLIM_P3ehiEF15BL_FORT_FAB_ARG4frhoEF15BL_FORT_FAB_ARG4tempEF15BL_FORT_FAB_ARG3c_vEF15BL_FORT_FAB_ARG3fkpEF15BL_FORT_FAB_ARG2erERKN5amrex4RealERKN5amrex4RealERKN5amrex4RealERKN5amrex4RealERKN5amrex4RealERKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv34ceupF7ARLIM_P5regloEF7ARLIM_P5reghiERN5amrex4RealERN5amrex4RealEF15BL_FORT_FAB_ARG6frhoesEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealERKN5amrex4RealERKN5amrex4RealE">
+<span class="target" id="RAD__F_8H_1a4e90dd533b64f5ce14739234c5f72fb6"></span>void <code class="descname">ceup</code><span class="sig-paren">(</span>ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>relres</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>absres</em>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>frhoes<span class="sig-paren">)</span>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>frhoem</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>eta</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>etainv</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dflux_old</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dflux_new</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>exch</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>delta_t</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>theta</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv34ceupF7ARLIM_P5regloEF7ARLIM_P5reghiERN5amrex4RealERN5amrex4RealEF15BL_FORT_FAB_ARG6frhoesEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealERKN5amrex4RealERKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv39ceupdtermF7ARLIM_P5regloEF7ARLIM_P5reghiERN5amrex4RealERN5amrex4RealEF15BL_FORT_FAB_ARG6frhoesEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealERKN5amrex4RealERKN5amrex4RealE">
+<span class="target" id="RAD__F_8H_1a51de662c021100153bc5c5e49968cf38"></span>void <code class="descname">ceupdterm</code><span class="sig-paren">(</span>ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>relres</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>absres</em>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>frhoes<span class="sig-paren">)</span>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>frhoem</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>eta</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>etainv</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dflux_old</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dflux_new</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>exch</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dterm</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>delta_t</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>theta</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv39ceupdtermF7ARLIM_P5regloEF7ARLIM_P5reghiERN5amrex4RealERN5amrex4RealEF15BL_FORT_FAB_ARG6frhoesEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealERKN5amrex4RealERKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv35nceupF7ARLIM_P5regloEF7ARLIM_P5reghiERN5amrex4RealERN5amrex4RealEF15BL_FORT_FAB_ARG6frhoesEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEF15BL_FORT_FAB_ARG2erEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEF15BL_FORT_FAB_ARG5stateERKN5amrex4RealERKN5amrex4RealERKN5amrex4RealERKN5amrex4RealE">
+<span class="target" id="RAD__F_8H_1a7024d7a2ccacbc349301490f7544f846"></span>void <code class="descname">nceup</code><span class="sig-paren">(</span>ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>relres</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>absres</em>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>frhoes<span class="sig-paren">)</span>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>frhoem</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>eta</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>etainv</em>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>er<span class="sig-paren">)</span>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dflux_old</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dflux_new</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>temp</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>fkp</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>cv</em>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>state<span class="sig-paren">)</span>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>sigma</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>c</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>delta_t</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>theta</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv35nceupF7ARLIM_P5regloEF7ARLIM_P5reghiERN5amrex4RealERN5amrex4RealEF15BL_FORT_FAB_ARG6frhoesEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEF15BL_FORT_FAB_ARG2erEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEF15BL_FORT_FAB_ARG5stateERKN5amrex4RealERKN5amrex4RealERKN5amrex4RealERKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv35cetotF7ARLIM_P5regloEF7ARLIM_P5reghiEF15BL_FORT_FAB_ARG5stateEF15BL_FORT_FAB_ARG4rhoeE">
+<span class="target" id="RAD__F_8H_1a0d52040d0a289f68bd981660897f3a41"></span>void <code class="descname">cetot</code><span class="sig-paren">(</span>ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>state<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>rhoe<span class="sig-paren">)</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv35cetotF7ARLIM_P5regloEF7ARLIM_P5reghiEF15BL_FORT_FAB_ARG5stateEF15BL_FORT_FAB_ARG4rhoeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv34fkpnF7ARLIM_P5regloEF7ARLIM_P5reghiEF15BL_FORT_FAB_ARG3fkpEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealERKN5amrex4RealEPN5amrex4RealEF15BL_FORT_FAB_ARG4tempEF15BL_FORT_FAB_ARG5stateE">
+<span class="target" id="RAD__F_8H_1a237353f68ff169faa7be0be4ed861ab8"></span>void <code class="descname">fkpn</code><span class="sig-paren">(</span>ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>fkp<span class="sig-paren">)</span>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>con</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>em</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>en</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>ep</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>xnu</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>tf</em>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>temp<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>state<span class="sig-paren">)</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv34fkpnF7ARLIM_P5regloEF7ARLIM_P5reghiEF15BL_FORT_FAB_ARG3fkpEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealERKN5amrex4RealEPN5amrex4RealEF15BL_FORT_FAB_ARG4tempEF15BL_FORT_FAB_ARG5stateE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv36rosse1F7ARLIM_P5regloEF7ARLIM_P5reghiEF15BL_FORT_FAB_ARG6kapparEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealERKN5amrex4RealEPN5amrex4RealERKN5amrex4RealEF15BL_FORT_FAB_ARG4tempEF15BL_FORT_FAB_ARG5stateE">
+<span class="target" id="RAD__F_8H_1a70bd8651db2ffe6abea3bedcba80cae1"></span>void <code class="descname">rosse1</code><span class="sig-paren">(</span>ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>kappar<span class="sig-paren">)</span>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>con</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>em</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>en</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>ep</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>xnu</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>tf</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>kfloor</em>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>temp<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>state<span class="sig-paren">)</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv36rosse1F7ARLIM_P5regloEF7ARLIM_P5reghiEF15BL_FORT_FAB_ARG6kapparEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealERKN5amrex4RealEPN5amrex4RealERKN5amrex4RealEF15BL_FORT_FAB_ARG4tempEF15BL_FORT_FAB_ARG5stateE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv37rosse1sF7ARLIM_P5regloEF7ARLIM_P5reghiEF15BL_FORT_FAB_ARG6kapparEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealERKN5amrex4RealEPN5amrex4RealERKN5amrex4RealEF15BL_FORT_FAB_ARG4tempEF15BL_FORT_FAB_ARG5stateE">
+<span class="target" id="RAD__F_8H_1ab7c687d6bb891a354de32e851f333d67"></span>void <code class="descname">rosse1s</code><span class="sig-paren">(</span>ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>kappar<span class="sig-paren">)</span>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>con</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>em</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>en</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>ep</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>scon</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>sem</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>sen</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>sep</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>xnu</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>tf</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>kfloor</em>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>temp<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>state<span class="sig-paren">)</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv37rosse1sF7ARLIM_P5regloEF7ARLIM_P5reghiEF15BL_FORT_FAB_ARG6kapparEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealERKN5amrex4RealEPN5amrex4RealERKN5amrex4RealEF15BL_FORT_FAB_ARG4tempEF15BL_FORT_FAB_ARG5stateE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv36nfloorF15BL_FORT_FAB_ARG4destEF7ARLIM_P5regloEF7ARLIM_P5reghiERiRKN5amrex4RealERKi">
+<span class="target" id="RAD__F_8H_1a7641af8551f1c24a6161fc3d87b7da5e"></span>void <code class="descname">nfloor</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>dest<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, int &amp;<em>nflr</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>flr</em>, <em class="property">const</em> int &amp;<em>nvar</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv36nfloorF15BL_FORT_FAB_ARG4destEF7ARLIM_P5regloEF7ARLIM_P5reghiERiRKN5amrex4RealERKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv311lacoefmgfldF15BL_FORT_FAB_ARG1aEF7ARLIM_P5regloEF7ARLIM_P5reghiEPN5amrex4RealEF7ARLIM_P3kloEF7ARLIM_P3khiEPN5amrex4RealEPN5amrex4RealERKN5amrex4RealERKN5amrex4RealE">
+<span class="target" id="RAD__F_8H_1a48957e8a664a7ccddbae3ac9cd27be4a"></span>void <code class="descname">lacoefmgfld</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>a<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>kappa</em>, ARLIM_P<span class="sig-paren">(</span>klo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>khi<span class="sig-paren">)</span>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>r</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>s</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>delta_t</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>c</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv311lacoefmgfldF15BL_FORT_FAB_ARG1aEF7ARLIM_P5regloEF7ARLIM_P5reghiEPN5amrex4RealEF7ARLIM_P3kloEF7ARLIM_P3khiEPN5amrex4RealEPN5amrex4RealERKN5amrex4RealERKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv36rffaceF15BL_FORT_FAB_ARG4fineEF15BL_FORT_FAB_ARG4crseERKiPKi">
+<span class="target" id="RAD__F_8H_1aa38c114a26eb09802b6ca7f3553e3e1c"></span>void <code class="descname">rfface</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>fine<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>crse<span class="sig-paren">)</span>, <em class="property">const</em> int &amp;<em>idim</em>, <em class="property">const</em> int *<em>irat</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv36rffaceF15BL_FORT_FAB_ARG4fineEF15BL_FORT_FAB_ARG4crseERKiPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv313FORT_RADBNDRYPN5amrex4RealEF7ARLIM_P3bloEF7ARLIM_P3bhiEF7ARLIM_P3dloEF7ARLIM_P3dhiEPKN5amrex4RealEPKN5amrex4RealERKN5amrex4RealERKiRKi">
+<span class="target" id="RAD__F_8H_1ae64a420a7f2670a1bfcf731a8e9e0dac"></span>void <code class="descname">FORT_RADBNDRY</code><span class="sig-paren">(</span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>bf</em>, ARLIM_P<span class="sig-paren">(</span>blo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>bhi<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>dlo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>dhi<span class="sig-paren">)</span>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dx</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>xlo</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>time</em>, <em class="property">const</em> int &amp;<em>dir</em>, <em class="property">const</em> int &amp;<em>face</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv313FORT_RADBNDRYPN5amrex4RealEF7ARLIM_P3bloEF7ARLIM_P3bhiEF7ARLIM_P3dloEF7ARLIM_P3dhiEPKN5amrex4RealEPKN5amrex4RealERKN5amrex4RealERKiRKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv314FORT_RADBNDRY2PN5amrex4RealEF7ARLIM_P3bloEF7ARLIM_P3bhiEPiF7ARLIM_P3dloEF7ARLIM_P3dhiEPKN5amrex4RealEPKN5amrex4RealERKN5amrex4RealE">
+<span class="target" id="RAD__F_8H_1a4cf9a421bc17e4a5c7b2ee62dab114a7"></span>void <code class="descname">FORT_RADBNDRY2</code><span class="sig-paren">(</span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>bf</em>, ARLIM_P<span class="sig-paren">(</span>blo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>bhi<span class="sig-paren">)</span>, int *<em>tfab</em>, ARLIM_P<span class="sig-paren">(</span>dlo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>dhi<span class="sig-paren">)</span>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>dx</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>xlo</em>, <em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real &amp;<em>time</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv314FORT_RADBNDRY2PN5amrex4RealEF7ARLIM_P3bloEF7ARLIM_P3bhiEPiF7ARLIM_P3dloEF7ARLIM_P3dhiEPKN5amrex4RealEPKN5amrex4RealERKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv36bextrpF15BL_FORT_FAB_ARG1fEF7ARLIM_P5regloEF7ARLIM_P5reghiE">
+<span class="target" id="RAD__F_8H_1a5b3d6c351113a8b08e9146bcba1d8886"></span>void <code class="descname">bextrp</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>f<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv36bextrpF15BL_FORT_FAB_ARG1fEF7ARLIM_P5regloEF7ARLIM_P5reghiE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv323FORT_INIT_OPACITY_TABLERKi">
+<span class="target" id="RAD__F_8H_1acf5854415ccda2caa2ff0ac16deabf80"></span>void <code class="descname">FORT_INIT_OPACITY_TABLE</code><span class="sig-paren">(</span><em class="property">const</em> int &amp;<em>iverb</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv323FORT_INIT_OPACITY_TABLERKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv38lbcoefnaPN5amrex4RealEPN5amrex4RealEF7ARLIM_P3bloEF7ARLIM_P3bhiEF7ARLIM_P4bxloEF7ARLIM_P4bxhiEF15BL_FORT_FAB_ARG4specERKi">
+<span class="target" id="RAD__F_8H_1accf0318630638428a2bf5882aa0ac7da"></span>void <code class="descname">lbcoefna</code><span class="sig-paren">(</span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>bcoef</em>, <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<em>bcgrp</em>, ARLIM_P<span class="sig-paren">(</span>blo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>bhi<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>bxlo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>bxhi<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>spec<span class="sig-paren">)</span>, <em class="property">const</em> int &amp;<em>idim</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv38lbcoefnaPN5amrex4RealEPN5amrex4RealEF7ARLIM_P3bloEF7ARLIM_P3bhiEF7ARLIM_P4bxloEF7ARLIM_P4bxhiEF15BL_FORT_FAB_ARG4specERKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv36ljupnaF15BL_FORT_FAB_ARG4jnewEF7ARLIM_P5regloEF7ARLIM_P5reghiEF15BL_FORT_FAB_ARG4specEF15BL_FORT_FAB_ARG5accelERKi">
+<span class="target" id="RAD__F_8H_1a0f8aacd826034ac1340a12b212287c30"></span>void <code class="descname">ljupna</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>jnew<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>spec<span class="sig-paren">)</span>, <a class="reference internal" href="#_CPPv315BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>accel<span class="sig-paren">)</span>, <em class="property">const</em> int &amp;<em>nTotal</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv36ljupnaF15BL_FORT_FAB_ARG4jnewEF7ARLIM_P5regloEF7ARLIM_P5reghiEF15BL_FORT_FAB_ARG4specEF15BL_FORT_FAB_ARG5accelERKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Variables</p>
+<dl class="member">
+<dt id="_CPPv37nugroup">
+<span class="target" id="RAD__F_8H_1af05fec4427bea7be9ebba28725d8cb7e"></span><em class="property">const</em> <a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real *<code class="descname">nugroup</code><a class="headerlink" href="#_CPPv37nugroup" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a7931c5ca3b41001242813478b99608b5"></span><code class="descname">const amrex::Real const amrex::Real * dnugroup</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1aa000efe8e1e10d0188db59246131dd66"></span><code class="descname">const amrex::Real const amrex::Real const amrex::Real const amrex::Real const int &amp; ngroups</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a28e35fb72f394947a4129888d497d581"></span><code class="descname">const amrex::Real const amrex::Real const amrex::Real const amrex::Real const int const int &amp; ng0</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a00abcb90a3d47854c422968905087275"></span><code class="descname">const amrex::Real const amrex::Real const amrex::Real const amrex::Real const int const int const int &amp; ng1</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a784322d19061edeaf51806c47d2fb2ab"></span><code class="descname">const amrex::Real const amrex::Real const amrex::Real const amrex::Real * xnu</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a4979dbb740a270585753272ee037b042"></span><code class="descname">const amrex::Real const amrex::Real const amrex::Real* dlognugroup</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1afa8c4b68eee4a61bae19c2d38051c047"></span><code class="descname">const int const int const const const amrex::Real* dx</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1adbcb0304db9034bbc452d3b83af65230"></span><code class="descname">const const const amrex::Real const int* ngrow</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1aa76ca0ac7fe5db198062c992a547f288"></span><code class="descname">const const const int const int const amrex::Real const int * limiter</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a078e25802a3a56cd6972c1c6bf781d76"></span><code class="descname">const const const amrex::Real const int const int const int* filter_lambda_T</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a5e8acff32c34ebaacc330323cbbc29ec"></span><code class="descname">const const const amrex::Real const int const int const int const int* filter_lambda_S</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv32lo">
+<span class="target" id="RAD__F_8H_1a132a6fc74cbfe14c75c395fef14ebedc"></span><em class="property">const</em> int <code class="descname">lo</code>[]<br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a01455bb875db212d416e36bf21142c82"></span><code class="descname">const int const int hi[]</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1af502973ea4aa8d63020b43923cd6e396"></span><code class="descname">const const const int const int const amrex::Real const int const int* comoving</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a5a4af9ae557adbfb028d3cf2d53d1a30"></span><code class="descname">const int const int const amrex::Real const amrex::Real* dt</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a8abc307241363a8bf1e2df2a7f3d0a3a"></span><code class="descname">const int const int const const const const const const const const const const amrex::Real const amrex::Real * ptc_tau</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a836ddceb98c9e640447f6929264dfd9b"></span><code class="descname">const int const int const const const const const const const const const const amrex::Real* rel_rhoe</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a34fb3688570f47ac0430b15f28e47644"></span><code class="descname">const int const int const const const const const const const const const const amrex::Real amrex::Real* abs_rhoe</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a0d954d2b6d7cc61d643821f08fbfe7e8"></span><code class="descname">const int const int const const const const const const const const const const amrex::Real amrex::Real amrex::Real* rel_FT</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1aa00ed0cdaaef6ec969a6fa58e4db24d8"></span><code class="descname">const int const int const const const const const const const const const const amrex::Real amrex::Real amrex::Real amrex::Real* abs_FT</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1abc2d857fc413371e837b96ff74892342"></span><code class="descname">const int const int const const const const const const const const const const amrex::Real amrex::Real amrex::Real amrex::Real amrex::Real* rel_T</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a46f1a450e123912e6a63ea51230f88cf"></span><code class="descname">const int const int const const const const const const const const const const amrex::Real amrex::Real amrex::Real amrex::Real amrex::Real amrex::Real* abs_T</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a077c0835dd281b510bbe4a97b9c1d48f"></span><code class="descname">const int const int const const const const const amrex::Real * delta_t</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a770a4ee22107d46c8e59433592f6424b"></span><code class="descname">const int const int const const const const const amrex::Real* rel</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a0ad3ea77f5ff9d64ccdaf532d13ab959"></span><code class="descname">const int const int const const const const const amrex::Real amrex::Real* abs</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a52721b92d591569cdfccca7cac4f366f"></span><code class="descname">const int const int const const const const const amrex::Real amrex::Real amrex::Real* errr</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a8f8ddcd05c9e7302b8ddb6c113cc9e82"></span><code class="descname">const int const int const const const const const amrex::Real const amrex::Real* tau</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a5b58694c5e089057cf4d6486ac3c08a3"></span><code class="descname">const int const int const const const amrex::Real* derat</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1aa4a5b4bff4f5c25c2cb44f1d5e88180d"></span><code class="descname">const int const int const const const amrex::Real amrex::Real* dTrat</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1ad6bb62597d6aac0d1cb17775e2061074"></span><code class="descname">const int const int const const amrex::Real* k0_p</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1ae8484c336fb8a6edfc8fc432aabcaa43"></span><code class="descname">const int const int const const amrex::Real const amrex::Real* m_p</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a0fe7d207d1202af2fdd2d2a6a4481789"></span><code class="descname">const int const int const const amrex::Real const amrex::Real const amrex::Real* n_p</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a3667800920b11f39a32c8db8d2d41d45"></span><code class="descname">const int const int const const amrex::Real const amrex::Real const amrex::Real const amrex::Real* k0_r</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a37aa15edf7c58193069a83bdc16514ac"></span><code class="descname">const int const int const const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real* m_r</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1ae60f667309df1fade87754053a8caf12"></span><code class="descname">const int const int const const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real* n_r</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a96b3a0e2074ceff4d9db2c85c1cbe993"></span><code class="descname">const int const int const const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real* Tfloor</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1aefac773a4103d508afa5cbfbb200d446"></span><code class="descname">const int const int const const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real* kfloor</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1aea737a7c057a9c1d0c806f7b85db1bcd"></span><code class="descname">const int const int const const const const amrex::Real* PFcoef</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1ad1c506cc952ae1c8b3cfb92a5bdbfd9c"></span><code class="descname">const int const int const const const const amrex::Real const int&amp; use_WiensLaw</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a416db09f2c4d58ec32dcf2dbfa1c51a8"></span><code class="descname">const int const int const const const const amrex::Real const int const int&amp; integrate_Planck</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1af6d0e04bc4eae78dddcae8f5d48caf37"></span><code class="descname">const int const int const const const const amrex::Real const int const int const amrex::Real&amp; Tf</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1aaf25a589570f191e99714d30aa6c0840"></span><code class="descname">const int const int const const const int const int * use_dkdT</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1aca0cf02a93a24fe74dc8ac366ddb3ea7"></span><code class="descname">const int const int const const const const int const int* validStar</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a8bede6d30960e67630c43c8a7e4ea079"></span><code class="descname">const int const int const const const const int const int const int* lag_opac</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1af0236bc61d12c3a06c64ed58aaedcbf7"></span><code class="descname">const int const int const const const int* do_kappa_stm_emission</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a2489173bb6ab3b902c454bdfa251b446"></span><code class="descname">const int const int const const const int const int const amrex::Real* const_kappa_p</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a34508947563b3c279111bc03a6d85c9b"></span><code class="descname">const int const int const const const int const int const amrex::Real const amrex::Real* kappa_p_exp_m</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a7a2ebce1319ba13cae85e7ff48a2e9e6"></span><code class="descname">const int const int const const const int const int const amrex::Real const amrex::Real const amrex::Real* kappa_p_exp_n</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1aceb2a2489280dd70d2c1700954e8b4e3"></span><code class="descname">const int const int const const const int const int const amrex::Real const amrex::Real const amrex::Real const amrex::Real* kappa_p_exp_p</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a9b8413e9fc906d1833daa42965b3955c"></span><code class="descname">const int const int const const const int const int const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real* const_kappa_r</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1aa13abd0b71e1dd9944a1bbcb41d6ebf7"></span><code class="descname">const int const int const const const int const int const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real* kappa_r_exp_m</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1abe83361dce248f11ecf274e1ac61b5c8"></span><code class="descname">const int const int const const const int const int const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real* kappa_r_exp_n</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1affbd9b10ab90a3ac6f06df87f74a0fe5"></span><code class="descname">const int const int const const const int const int const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real* kappa_r_exp_p</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a6b9b5460a6bffddf9260c57dde39aece"></span><code class="descname">const int const int const const const int const int const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real* const_scattering</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a63b5a6d94d916e65bfa63fd1cbde345b"></span><code class="descname">const int const int const const const int const int const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real* scattering_exp_m</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1ac2644849b112296c676c6109824515e2"></span><code class="descname">const int const int const const const int const int const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real* scattering_exp_n</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1aa6eefe540adc2bd81ca78f9123b5f0de"></span><code class="descname">const int const int const const const int const int const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real* scattering_exp_p</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a29feed9a1933d4aca42ee254c1e99f07"></span><code class="descname">const int const int const const const int const int const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real const amrex::Real* prop_temp_floor</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1af4f8a0a0951863a711edee2ea4025cf9"></span><code class="descname">const int const int const const const amrex::Real const int* idim</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a7af6acf04874a5eb6fcb776fa8e1cae8"></span><code class="descname">const int const int const const const amrex::Real const int const int* igroup</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a6e2660c33090d5ffe49b9ebf686c12c9"></span><code class="descname">const int const int const amrex::Real* r</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1ad60036d4db273cd4636d0e5e4fbf0964"></span><code class="descname">const int const int const const const int&amp; iflx</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a7a5101e01af4875c60bbf5ae2fde2d9e"></span><code class="descname">const int const int const const const int int&amp; nflx</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1abb4b501a0f5167023f5cd576c38f6ccc"></span><code class="descname">const int const int const const const int int int&amp; ier</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1af7457604339dc1cc416307fa456eb004"></span><code class="descname">const int const int const const const int int int int&amp; npv</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1adf595f4ae42699cdf45906e9b937da4a"></span><code class="descname">const int const int int&amp; nlam</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a24cbd0a80905472339bffad2ce576129"></span><code class="descname">const int const int const amrex::Real&amp; flag</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1adf46a085d4371e766203f8d0c6981cb1"></span><code class="descname">const int const int const amrex::Real const const const const int&amp; ifi</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a97a396c52156852f6958ebd0a2017dd4"></span><code class="descname">const int const int const amrex::Real const const const const int int&amp; nfi</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a0dfbd78ffce0f40d7d169e7c2dcb3fa4"></span><code class="descname">const int const int const amrex::Real const const const const int int int&amp; ifo</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="RAD__F_8H_1a83580196c082ff44cd4f907fafef31b9"></span><code class="descname">const int const int const amrex::Real const const const const int int int int&amp; nfo</code></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="RadBndryData_8H.html" class="btn btn-neutral float-right" title="File RadBndryData.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="RAD__3D_8F90.html" class="btn btn-neutral" title="File RAD_3D.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

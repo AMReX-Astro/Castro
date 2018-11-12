@@ -1,0 +1,4 @@
+Namespace gravity_3d_module
+===========================
+
+.. doxygennamespace:: gravity_3d_module

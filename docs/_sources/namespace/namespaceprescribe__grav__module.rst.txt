@@ -1,0 +1,4 @@
+Namespace prescribe_grav_module
+===============================
+
+.. doxygennamespace:: prescribe_grav_module

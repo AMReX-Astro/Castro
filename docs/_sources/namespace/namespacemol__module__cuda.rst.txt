@@ -1,0 +1,4 @@
+Namespace mol_module_cuda
+=========================
+
+.. doxygennamespace:: mol_module_cuda

@@ -1,0 +1,4 @@
+Namespace burner_module
+=======================
+
+.. doxygennamespace:: burner_module
