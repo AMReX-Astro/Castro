@@ -712,6 +712,16 @@ void Castro::problem_post_restart() {
 
   }
 
+  // It is possible that we are restarting from a checkpoint
+  // that already satisfies the stopping criteria. If so, we
+  // should honor that constraint, and refuse to take more
+  // timesteps. In this case we do not want to dump a checkpoint,
+  // since we have not advanced at all and we would just be
+  // overwriting the existing checkpoint.
+
+  const bool dump = false;
+  check_to_stop(time, dump);
+
 }
 
 #endif
@@ -732,7 +742,7 @@ void Castro::writeGitHashes(std::ostream& log) {
 
 
 
-void Castro::check_to_stop(Real time) {
+void Castro::check_to_stop(Real time, bool dump) {
 
     int jobDoneStatus;
 
@@ -888,7 +898,7 @@ void Castro::check_to_stop(Real time) {
       // Write out a checkpoint. Note that this will
       // only happen if you have amr.message_int = 1.
 
-      if (amrex::ParallelDescriptor::IOProcessor()) {
+      if (dump && amrex::ParallelDescriptor::IOProcessor()) {
 	std::ofstream dump_file;
 	dump_file.open("dump_and_stop", std::ofstream::out);
 	dump_file.close();

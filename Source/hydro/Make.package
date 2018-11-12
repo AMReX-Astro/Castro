@@ -14,8 +14,8 @@ ca_F90EXE_sources += fourth_order.F90
 ca_F90EXE_sources += riemann_nd.F90
 ca_F90EXE_sources += riemann_util.F90
 ca_F90EXE_sources += slope_nd.F90
-ca_F90EXE_sources += trace_nd.F90
-ca_F90EXE_sources += trace_ppm_nd.F90
+ca_F90EXE_sources += trace_plm.F90
+ca_F90EXE_sources += trace_ppm.F90
 
 ca_F90EXE_sources += Castro_ctu_nd.F90
 ca_F90EXE_sources += Castro_mol_nd.F90
@@ -24,4 +24,8 @@ ca_F90EXE_sources += Castro_ctu_$(DIM)d.F90
 
 ifeq ($(DIM), 2)
   ca_f90EXE_sources += multid_slope_$(DIM)d.f90
+endif
+
+ifeq ($(DIM), 3)
+  ca_F90EXE_sources += trans.F90
 endif

@@ -320,7 +320,7 @@ Gravity::install_level (int                   level,
         Real z = Geometry::ProbHi(2) - center[2];
         max_radius_all_in_domain = std::min(max_radius_all_in_domain,z);
 #endif
-        if (verbose && ParallelDescriptor::IOProcessor())
+        if (verbose > 1 && ParallelDescriptor::IOProcessor())
             std::cout << "Maximum radius for which the mass is contained in the domain: "
                       << max_radius_all_in_domain << std::endl;
     }
@@ -403,7 +403,7 @@ Gravity::solve_for_phi (int               level,
 {
     BL_PROFILE("Gravity::solve_for_phi()");
 
-    if (verbose && ParallelDescriptor::IOProcessor())
+    if (verbose > 1 && ParallelDescriptor::IOProcessor())
 	std::cout << " ... solve for phi at level " << level << std::endl;
 
     const Real strt = ParallelDescriptor::second();
@@ -458,7 +458,7 @@ Gravity::solve_for_phi (int               level,
 #endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
         if (ParallelDescriptor::IOProcessor())
-            std::cout << "Gravity::solve_for_phi() time = " << end << std::endl;
+            std::cout << "Gravity::solve_for_phi() time = " << end << std::endl << std::endl;
 #ifdef BL_LAZY
 	});
 #endif
@@ -480,7 +480,7 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
     }
 
     BL_ASSERT(parent->finestLevel()>crse_level);
-    if (verbose && ParallelDescriptor::IOProcessor()) {
+    if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
           std::cout << " ... gravity_sync at crse_level " << crse_level << '\n';
           std::cout << " ...     up to finest_level     " << fine_level << '\n';
     }
@@ -535,7 +535,7 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
 
     if (crse_level == 0 && !crse_geom.isAllPeriodic()) {
 
-	if (verbose && ParallelDescriptor::IOProcessor())
+	if (verbose > 1 && ParallelDescriptor::IOProcessor())
          std::cout << " ... Making bc's for delta_phi at crse_level 0"  << std::endl;
 
 #if (BL_SPACEDIM == 3)
@@ -579,7 +579,7 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
 
 	Real local_correction = rhs[0]->sum() / grids[crse_level].numPts();
 
-        if (verbose && ParallelDescriptor::IOProcessor())
+        if (verbose > 1 && ParallelDescriptor::IOProcessor())
             std::cout << "WARNING: Adjusting RHS in gravity_sync solve by " << local_correction << '\n';
 
 	for (int lev = fine_level; lev >= crse_level; --lev)
@@ -690,7 +690,7 @@ Gravity::multilevel_solve_for_new_phi (int level, int finest_level, int use_prev
 {
     BL_PROFILE("Gravity::multilevel_solve_for_new_phi()");
 
-    if (verbose && ParallelDescriptor::IOProcessor())
+    if (verbose > 1 && ParallelDescriptor::IOProcessor())
       std::cout << "... multilevel solve for new phi at base level " << level << " to finest level " << finest_level << std::endl;
 
     for (int lev = level; lev <= finest_level; lev++) {
@@ -1013,7 +1013,7 @@ Gravity::test_level_grad_phi_prev(int level)
     // This is a correction for fully periodic domains only
     if ( Geometry::isAllPeriodic() )
     {
-       if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
+       if (verbose > 1 && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
           std::cout << " ... subtracting average density from RHS at level ... "
                     << level << " " << mass_offset << std::endl;
        Rhs.plus(-mass_offset,0,1,0);
@@ -1021,7 +1021,7 @@ Gravity::test_level_grad_phi_prev(int level)
 
     Rhs.mult(Ggravity);
 
-    if (verbose) {
+    if (verbose > 1) {
        Real rhsnorm = Rhs.norm0();
        if (ParallelDescriptor::IOProcessor()) {
           std::cout << "... test_level_grad_phi_prev at level " << level << std::endl;
@@ -1049,7 +1049,7 @@ Gravity::test_level_grad_phi_prev(int level)
 				BL_TO_FORTRAN((*grad_phi_prev[level][2])[mfi])),
 			 dx,problo,&coord_type);
     }
-    if (verbose) {
+    if (verbose > 1) {
        Real resnorm = Rhs.norm0();
 //     Real gppxnorm = grad_phi_prev[level][0]->norm0();
 #if (BL_SPACEDIM > 1)
@@ -1083,14 +1083,14 @@ Gravity::test_level_grad_phi_curr(int level)
     // This is a correction for fully periodic domains only
     if ( Geometry::isAllPeriodic() )
     {
-       if (verbose && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
+       if (verbose > 1 && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
           std::cout << " ... subtracting average density from RHS in solve ... " << mass_offset << std::endl;
        Rhs.plus(-mass_offset,0,1,0);
     }
 
     Rhs.mult(Ggravity);
 
-    if (verbose) {
+    if (verbose > 1) {
        Real rhsnorm = Rhs.norm0();
        if (ParallelDescriptor::IOProcessor()) {
           std::cout << "... test_level_grad_phi_curr at level " << level << std::endl;
@@ -1118,7 +1118,7 @@ Gravity::test_level_grad_phi_curr(int level)
 				BL_TO_FORTRAN((*grad_phi_curr[level][2])[mfi])),
 			 dx,problo,&coord_type);
     }
-    if (verbose) {
+    if (verbose > 1) {
        Real resnorm = Rhs.norm0();
 //     Real gppxnorm = grad_phi_curr[level][0]->norm0();
 #if (BL_SPACEDIM > 1)
@@ -1148,7 +1148,7 @@ Gravity::create_comp_minus_level_grad_phi(int level,
 {
     BL_PROFILE("Gravity::create_comp_minus_level_grad_phi()");
 
-    if (verbose && ParallelDescriptor::IOProcessor()) {
+    if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
 	std::cout << "\n";
 	std::cout << "... compute difference between level and composite solves at level " << level << "\n";
 	std::cout << "\n";
@@ -1216,7 +1216,7 @@ Gravity::test_composite_phi (int crse_level)
 {
     BL_PROFILE("Gravity::test_composite_phi()");
 
-    if (verbose && ParallelDescriptor::IOProcessor()) {
+    if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
         std::cout << "   " << '\n';
         std::cout << "... test_composite_phi at base level " << crse_level << '\n';
     }
@@ -1312,7 +1312,7 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector, Multi
 #endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
         if (ParallelDescriptor::IOProcessor())
-            std::cout << "Gravity::make_prescribed_grav() time = " << end << std::endl;
+            std::cout << "Gravity::make_prescribed_grav() time = " << end << std::endl << std::endl;
 #ifdef BL_LAZY
 	});
 #endif
@@ -1435,7 +1435,7 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 #endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
         if (ParallelDescriptor::IOProcessor())
-            std::cout << "Gravity::make_radial_phi() time = " << end << std::endl;
+            std::cout << "Gravity::make_radial_phi() time = " << end << std::endl << std::endl;
 #ifdef BL_LAZY
 	});
 #endif
@@ -1705,7 +1705,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 #endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
         if (ParallelDescriptor::IOProcessor())
-            std::cout << "Gravity::fill_multipole_BCs() time = " << end << std::endl;
+            std::cout << "Gravity::fill_multipole_BCs() time = " << end << std::endl << std::endl;
 #ifdef BL_LAZY
 	});
 #endif
@@ -1938,7 +1938,7 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
 #endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
         if (ParallelDescriptor::IOProcessor())
-            std::cout << "Gravity::fill_direct_sum_BCs() time = " << end << std::endl;
+            std::cout << "Gravity::fill_direct_sum_BCs() time = " << end << std::endl << std::endl;
 #ifdef BL_LAZY
 	});
 #endif
@@ -2069,7 +2069,7 @@ Gravity::set_mass_offset (Real time, bool multi_level)
 	}
 
 	mass_offset = mass_offset / geom.ProbSize();
-	if (verbose && ParallelDescriptor::IOProcessor())
+	if (verbose > 1 && ParallelDescriptor::IOProcessor())
 	    std::cout << "Defining average density to be " << mass_offset << std::endl;
 
 	Real diff = std::abs(mass_offset - old_mass_offset);
@@ -2430,7 +2430,7 @@ Gravity::make_radial_gravity(int level, Real time, Vector<Real>& radial_grav)
 #endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
         if (ParallelDescriptor::IOProcessor())
-            std::cout << "Gravity::make_radial_gravity() time = " << end << std::endl;
+            std::cout << "Gravity::make_radial_gravity() time = " << end << std::endl << std::endl;
 #ifdef BL_LAZY
 	});
 #endif
@@ -2572,7 +2572,7 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
 
     if (crse_level == 0 && !Geometry::isAllPeriodic())
     {
-        if (verbose) {
+        if (verbose > 1) {
             amrex::Print() << " ... Making bc's for phi at level 0\n";
         }
 
@@ -2643,7 +2643,7 @@ Gravity::solve_for_delta_phi(int crse_level, int fine_level,
     BL_ASSERT(grad_delta_phi.size() == nlevs);
     BL_ASSERT(delta_phi.size() == nlevs);
 
-    if (verbose && ParallelDescriptor::IOProcessor()) {
+    if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
       std::cout << "... solving for delta_phi at crse_level = " << crse_level << std::endl;
       std::cout << "...                    up to fine_level = " << fine_level << std::endl;
     }
@@ -2706,7 +2706,7 @@ Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
     }
 
     MLMG mlmg(mlpoisson);
-    mlmg.setVerbose(verbose);
+    mlmg.setVerbose(verbose - 1); // With normal verbosity we don't want MLMG information
     if (crse_level == 0) {
 	mlmg.setMaxFmgIter(mlmg_max_fmg_iter);
     } else {

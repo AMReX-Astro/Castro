@@ -1130,15 +1130,14 @@ contains
 #if AMREX_SPACEDIM == 3
                q3, q3_lo, q3_hi, &
 #endif
+#if AMREX_SPACEDIM < 3
                 area1, area1_lo, area1_hi, &
-#if AMREX_SPACEDIM >= 2
+#endif
+#if AMREX_SPACEDIM == 2
                 area2, area2_lo, area2_hi, &
 #endif
-#if AMREX_SPACEDIM == 3
-                area3, area3_lo, area3_hi, &
-#endif
-                vol, vol_lo, vol_hi, &
 #if AMREX_SPACEDIM < 3
+                vol, vol_lo, vol_hi, &
                 dloga, dloga_lo, dloga_hi, &
 #endif
                 domlo, domhi)
