@@ -153,8 +153,8 @@ parameter is::
 The ``amrex_constants_module`` provides common constants that can
 be used in the code, like ``ZERO``, ``THIRD``, ``ONE``, etc.
 
-Note: single precision support in Castro is not yet complete. In
-particular, a lot of the supporting microphysics has not been updated.
+.. note :: single precision support in Castro is not yet complete. In
+   particular, a lot of the supporting microphysics has not been updated.
 
 ``Box`` and ``FArrayBox``
 -------------------------
@@ -166,7 +166,7 @@ data. In AMReX, an AMR level has a global index space, with
 (for a domain of :math:`N_x \times N_y \times N_z` zones). The location of
 any ``Box`` at a level can be uniquely specified with respect to this
 global index space by giving the index of its lower-left and
-upper-right corners. Figure \ `[fig:soft:indexspace] <#fig:soft:indexspace>`__ shows an
+upper-right corners. Figure `[fig:soft:indexspace] <#fig:soft:indexspace>`__ shows an
 example of three boxes at the same level of refinement.
 
 AMReX provides other data structures that collect Boxes together,
@@ -180,13 +180,13 @@ the layout of the boxes at the current level.
    :width: 4in
 
    Three boxes that comprise a single level. At this
-   resolution, the domain is 20\ :math:`\times`\ 18 zones. Note that the
+   resolution, the domain is 20 :math:`\times` 18 zones. Note that the
    indexing in AMReX starts with :math:`0`.
 
 A ``FArrayBox`` or *FAB*, for *Fortran array box* is a data
 structure that contains a ``Box`` locating it in space, as well as a
 pointer to a data buffer. The real floating point data are stored as
-one-dimensional arrays in ``FArrayBox``es. The associated ``Box`` can be
+one-dimensional arrays in ``FArrayBox`` es. The associated ``Box`` can be
 used to reshape the 1D array into multi-dimensional arrays to be used
 by Fortran subroutines. The key part of the C++ AMReX data
 structures is that this data buffer can be sent to Fortran, where it
@@ -199,7 +199,7 @@ component).
 ------------
 
 At the highest abstraction level, we have the ``MultiFab`` (mulitple
-FArrayBoxes). A ``MultiFab`` contains an array of ``Box``es, including
+FArrayBoxes). A ``MultiFab`` contains an array of ``Box`` es, including
 boxes owned by other processors for the purpose of communication,
 an array of MPI ranks specifying which MPI processor owns each ``Box``,
 and an array of pointers to ``FArrayBoxes`` owned by this MPI
@@ -218,11 +218,11 @@ processors. Each processor knows which FABs are local to it. To loop
 over all the boxes local to a processor, an ``MFIter`` is used (more
 on this below).
 
-High-level operations exist on ``MultiFab``s to add, subtract, multiply,
+High-level operations exist on ``MultiFab`` s to add, subtract, multiply,
 etc., them together or with scalars, so you don’t need to write out
 loops over the data directly.
 
-In Castro, ``MultiFab``s are one of the main data structures you will
+In Castro, ``MultiFab`` s are one of the main data structures you will
 interact with in the C++ portions of the code.
 
 .. _soft:sec:statedata:
@@ -231,7 +231,7 @@ interact with in the C++ portions of the code.
 -------------
 
 ``StateData`` is a class that essentially holds a pair of
-``MultiFab``s: one at the old time and one at the new
+``MultiFab`` s: one at the old time and one at the new
 time. AMReX knows how to interpolate in time between these states to
 get data at any intermediate point in time. The main data that we care
 about in Castro (the fluid state, gravitational potential, etc.) will
@@ -267,7 +267,7 @@ The current ``StateData`` names Castro carries are:
       simply be advected, but we will allow rotation (in particular,
       the Coriolis force) to affect them.
 
-   ``State_Type`` ``MultiFab``s have no ghost cells by default for
+   ``State_Type`` ``MultiFab`` s have no ghost cells by default for
    pure hydro and a single ghost cell by default when ``RADIATION``
    is enabled. There is an option to force them to have ghost cells by
    setting the parameter ``castro.state_nghost`` at runtime.
@@ -307,7 +307,7 @@ The current ``StateData`` names Castro carries are:
 
 
    .. note:: we do not make use of the old-time quantity here. In
-      fact, we never allocate the ``FArrayBox``s for the old-time in
+      fact, we never allocate the ``FArrayBox`` s for the old-time in
       the ``Source_Type`` ``StateData``, so there is not wasted
       memory.
 
@@ -329,7 +329,7 @@ The current ``StateData`` names Castro carries are:
    states of the primitive variables for the hydrodynamics portion of the
    algorithm.
 
-We access the ``MultiFab``s that carry the data of interest by interacting
+We access the ``MultiFab`` s that carry the data of interest by interacting
 with the ``StateData`` using one of these keys. For instance::
 
     MultiFab& S_new = get_new_data(State_Type);
@@ -371,14 +371,14 @@ many-core processors in the next-generation of supercomputers. We
 discuss the original and new approach together here.
 
 In both cases, the key construct is the ``MFiter``—this is a
-C++ iterator that knows how to loop over the ``FArrayBox``es in the
+C++ iterator that knows how to loop over the ``FArrayBox`` es in the
 ``MultiFab`` that are local to the processor (in this way, a lot of the
 parallelism is hidden from view).
 
 Non-Tiling MFIter
 -----------------
 
-The non-tiling way to iterate over the ``FArrayBox``s is
+The non-tiling way to iterate over the ``FArrayBox`` s is
  [1]_:
 
 .. code:: c++
@@ -518,7 +518,7 @@ Finally, comments on the Fortran routine;
    in the binding, but the PGI compiler requires this if our
    Fortran subroutine is part of a module.
 
--  We dimension state using ``s_lo`` and ``s_hi``—these are
+-  We dimension state using ``s_lo`` and ``s_hi`` —these are
    the bounds we got from the ``FArrayBox``, and are for the entire data
    region, including ghost cells.
 
@@ -577,7 +577,7 @@ non-tiling iteration approach can be considered as a special case of
 tiling with the tile size equal to the box size.
 
 Let us consider an example. Suppose there are four boxes—see
-Figure \ `[fig:domain-tiling] <#fig:domain-tiling>`__.
+Figure `[fig:domain-tiling] <#fig:domain-tiling>`__.
 
 .. figure:: domain-tile.png
    :alt: tiling of the domain
@@ -625,7 +625,7 @@ do_work routine is show below:
 
       }
 
-Note that the code is almost identical to the one in § \ `[sec:boxlib0] <#sec:boxlib0>`__.
+Note that the code is almost identical to the one in § `[sec:boxlib0] <#sec:boxlib0>`__.
 Some comments:
 
 -  The iterator now takes an extra argument to turn on tiling (set
@@ -836,7 +836,7 @@ let’s consider the following scenarios:
    want to create a new ``MultiFab`` containing a copy of that data with
    ``NGROW`` ghost cells.*
 
-   This is the case with ``Sborder``—the ``MultiFab`` of the
+   This is the case with ``Sborder`` —the ``MultiFab`` of the
    hydrodynamic state that we use to kick-off the hydrodynamics
    advance.
 
@@ -855,7 +855,7 @@ let’s consider the following scenarios:
          expand_state(Sborder, prev_time, NUM_GROW);
 
    Note in the call to ``.define()``, we tell AMReX to already
-   allocate the data regions for the ``FArrayBox``s that are part of
+   allocate the data regions for the ``FArrayBox`` s that are part of
    ``Sborder``.
 
    The actually filling of the ghost cells is done by
@@ -871,7 +871,7 @@ let’s consider the following scenarios:
    ``StateData`` that is part of the current ``Castro`` object that we
    are part of. Note: ``FillPatch`` takes an object reference as its
    first argument, which is the object that contains the relevant
-   ``StateData``—that is what the this pointer indicates.
+   ``StateData`` —that is what the this pointer indicates.
    Finally, we are copying the ``State_Type`` data components 0 to
    ``NUM_STATE`` [3]_.
 
@@ -889,7 +889,7 @@ let’s consider the following scenarios:
 
    The main thing you need to be careful of here, is that you
    need to ensure that the the time you are at is consistent with
-   the ``StateData``’s time. Here’s an example from the radiation
+   the ``StateData`` ’s time. Here’s an example from the radiation
    portion of the code ``MGFLDRadSolver.cpp``:
 
    .. code:: c++
@@ -980,7 +980,7 @@ Physical boundary conditions are specified by an integer index [4]_ in
 the ``inputs`` file, using the ``castro.lo_bc`` and ``castro.hi_bc`` runtime
 parameters. The generally supported boundary conditions are, their
 corresponding integer key, and the action they take for the normal
-velocity, transverse velocity, and generic scalar are shown in Table \
+velocity, transverse velocity, and generic scalar are shown in Table
 `[table:castro:bcs] <#table:castro:bcs>`__
 
 The definition of the specific actions are:
@@ -1036,7 +1036,7 @@ routines.
 ------------
 
 A ``FluxRegister`` holds face-centered data at the boundaries of a box.
-It is composed of a set of ``MultiFab``s (one for each face, so 6 for
+It is composed of a set of ``MultiFab`` s (one for each face, so 6 for
 3D). A ``FluxRegister`` stores fluxes at coarse-fine interfaces,
 and isused for the flux-correction step.
 
@@ -1158,4 +1158,30 @@ side of Castroor perform other useful tasks.
    -  ``dg``
 
    -  *refining information*
+
+
+
+.. [1]
+   Note: some older code will use a special AMReX preprocessor macro,
+   ``BL_TO_FORTRAN``, defined in ``ArrayLim.H``, that converts
+   the C++ ``MultiFab`` into a Fortran array and its ``lo`` and ``hi`` indices.
+   Additionally, some older code will wrap the Fortran subroutine name
+   in an additional preprocessor macro, ``BL_FORT_PROC_CALL``
+   to handle the name mangling between Fortran and C. This later
+   macro is generally not needed any more because of Fortran 2003
+   interoperability with C (through the Fortran ``bind`` keyword).
+
+.. [2]
+   the way to read these complicated
+   C declarations is right-to-left. So ``const int* lo`` means
+   ``lo`` is a integer pointer to a memory space that is constant. See
+   https://isocpp.org/wiki/faq/const-correctness#ptr-to-const
+
+.. [3]
+   for clarity and continuity in this
+   documentation, some of the variable names have been changed
+   compared to the actual code
+
+.. [4]
+   the integer values are defined in ``BC_TYPES.H``
 
