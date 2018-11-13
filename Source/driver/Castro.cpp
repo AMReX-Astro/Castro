@@ -1944,8 +1944,8 @@ Castro::post_regrid (int lbase,
 		   amrex::InterpFromCoarseLevel(*grad_phi_fine[n], time, *grad_phi_coarse[n],
 						0, 0, 1,
 						parent->Geom(level-1), parent->Geom(level),
-						gp_phys_bc, gp_phys_bc, parent->refRatio(level-1),
-						gp_interp, gp_bcs);
+						gp_phys_bc, 0, gp_phys_bc, 0, parent->refRatio(level-1),
+						gp_interp, gp_bcs, 0);
 	       }
 
 	   }
