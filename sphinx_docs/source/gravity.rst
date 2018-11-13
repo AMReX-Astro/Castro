@@ -30,7 +30,7 @@ The overall integration strategy is unchanged from the discussion in
 :raw-latex:`\cite{castro_I}`. Briefly:
 
 -  At the beginning of a simulation, we do a multilevel composite
-   solve (if gravity.no_composite= 0).
+   solve (if ``gravity.no_composite`` = 0).
 
    We also do a multilevel composite solve after each regrid.
 
@@ -40,7 +40,7 @@ The overall integration strategy is unchanged from the discussion in
    solve and the level solve, and store that in a MultiFab.
 
 -  After the hydro advance on the coarse level, we do another level
-   solve, and use the (level solve :math:`-` compositive solve) as a lagged
+   solve, and use the (level solve - compositive solve) as a lagged
    predictor of how much we need to add back to that level solve to get
    an effective new-time value for phi on the coarse level, and that’s
    what defines the phi used for the new-time gravity
@@ -48,20 +48,21 @@ The overall integration strategy is unchanged from the discussion in
 -  Then we do the fine grid timestep(s), each using the same
    strategy
 
--  At an AMR synchronization step across levels (see Section `[sec:amr_synchronization] <#sec:amr_synchronization>`__
-   for a description of when these synchronizations occur), if we’re choosing
-   to synchronize the gravitational field across levels (gravity.no_sync= 0)
-   we then do a solve starting from
-   the coarse grid that adjusts for the mismatch between the fine-grid
-   phi and the coarse-grid phi, as well as the mismatch between the
-   fine-grid density fluxes and the coarse-grid density fluxes, and add
-   the resulting sync solve phi to both the coarse and the fine level
+- At an AMR synchronization step across levels (see Section
+   `[sec:amr_synchronization] <#sec:amr_synchronization>`__ for a
+   description of when these synchronizations occur), if we’re
+   choosing to synchronize the gravitational field across levels
+   (``gravity.no_sync`` = 0) we then do a solve starting from the coarse
+   grid that adjusts for the mismatch between the fine-grid phi and
+   the coarse-grid phi, as well as the mismatch between the fine-grid
+   density fluxes and the coarse-grid density fluxes, and add the
+   resulting sync solve phi to both the coarse and the fine level
 
    Thus, to within the gravity error tolerance, you get the same final
    result as if you had done a full composite solve at the end of the
-   timestep (assuming gravity.no_sync= 0).
+   timestep (assuming ``gravity.no_sync`` = 0).
 
-If you do gravity.no_composite= 1, then you never do a full
+If you do ``gravity.no_composite`` = 1, then you never do a full
 multilevel solve, and the gravity on any level is defined only by the
 solve on that level. The only time this would be appropriate is if
 the fine level(s) cover essentially all of the mass on the grid for
@@ -71,144 +72,137 @@ Controls
 --------
 
 Castro can incorporate gravity as a constant, monopole approximation,
-or a full Poisson solve. To enable gravity in the code, set:
-
-::
+or a full Poisson solve. To enable gravity in the code, set::
 
     USE_GRAV = TRUE
 
-in the GNUmakefile, and then turn it on in the inputs file
-via castro.do_grav = 1. If you want to incorporate a point mass
-(through castro.point_mass), you must have
-
-::
+in the ``GNUmakefile``, and then turn it on in the inputs file
+via ``castro.do_grav`` = 1. If you want to incorporate a point mass
+(through ``castro.point_mass``), you must have::
 
     USE_POINTMASS = TRUE
 
-in the GNUmakefile.
+in the ``GNUmakefile``.
 
 There are currently four options for how gravity is calculated,
-controlled by setting gravity.gravity_type. The options are
-ConstantGrav, PoissonGrav, Monopole Grav or
-PrescribedGrav. Again, these are only relevant if USE_GRAV =
-TRUE in the GNUmakefile and castro.do_grav = 1 in the
-inputs file. If both of these are set then the user is required
-to specify the gravity type in the inputs file or the program will
-abort.
+controlled by setting ``gravity.gravity_type``. The options are
+``ConstantGrav``, ``PoissonGrav``, ``MonopoleGrav`` or
+``PrescribedGrav``. Again, these are only relevant if ``USE_GRAV =
+TRUE`` in the ``GNUmakefile`` and ``castro.do_grav`` = 1 in the inputs
+file. If both of these are set then the user is required to specify
+the gravity type in the inputs file or the program will abort.
 
 Some additional notes:
 
 -  For the full Poisson solver
-   (gravity.gravity_type= PoissonGrav), the behavior
+   (``gravity.gravity_type`` = ``PoissonGrav``), the behavior
    of the full Poisson solve / multigrid solver is controlled by
-   gravity.no_sync and gravity.no_composite.
+   ``gravity.no_sync`` and ``gravity.no_composite``.
 
 -  For isolated boundary conditions, and when
-   gravity.gravity_type= PoissonGrav, the parameters
-   gravity.max_multipole_order and
-   gravity.direct_sum_bcs control the accuracy of
+   ``gravity.gravity_type``=  ``PoissonGrav``, the parameters
+   ``gravity.max_multipole_order`` and
+   ``gravity.direct_sum_bcs`` control the accuracy of
    the Dirichlet boundary conditions. These are described in
    Section `2.3.2 <#sec-poisson-3d-bcs>`__.
 
--  For MonopoleGrav, in 1D we must have coord_sys = 2, and in
-   2D we must have coord_sys = 1.
+-  For ``MonopoleGrav``, in 1D we must have ``coord_sys`` = 2, and in
+   2D we must have ``coord_sys`` = 1.
 
 The following parameters apply to gravity
 solves:
 
--  gravity.gravity_type : how should we calculate gravity?
-   Can be ConstantGrav, PoissonGrav, MonopoleGrav, or
-   PrescribedGrav
+-  ``gravity.gravity_type`` : how should we calculate gravity?
+   Can be ``ConstantGrav``, ``PoissonGrav``, ``MonopoleGrav``, or
+   ``PrescribedGrav``
 
--  gravity.const_grav : if gravity.gravity_type =
-   ConstantGrav, set the value of constant gravity (default: 0.0)
+-  ``gravity.const_grav`` : if ``gravity.gravity_type`` =
+   ``ConstantGrav``, set the value of constant gravity (default: 0.0)
 
--  gravity.no_sync : gravity.gravity_type =
-   PoissonGrav, do we perform the “sync solve"? (0 or 1; default: 0)
+-  ``gravity.no_sync`` : ``gravity.gravity_type`` =
+   ``PoissonGrav``, do we perform the “sync solve"? (0 or 1; default: 0)
 
--  gravity.no_composite : if gravity.gravity_type
-   = PoissonGrav, whether to perform a composite solve (0 or 1;
+-  ``gravity.no_composite`` : if gravity.gravity_type
+   = ``PoissonGrav``, whether to perform a composite solve (0 or 1;
    default: 0)
 
--  gravity.max_solve_level : maximum level to solve
+-  ``gravity.max_solve_level`` : maximum level to solve
    for :math:`\phi` and :math:`\mathbf{g}`; above this level, interpolate from
    below (default: :math:`{\tt MAX\_LEV} - 1`)
 
--  gravity.abs_tol : if gravity.gravity_type =
-   PoissonGrav, this is the absolute tolerance for the Poisson
-   solve. You can specify a single value for this tolerane (or do
-   nothing, and get a reasonable default value), and then the absolute
-   tolerance used by the multigrid solve is :math:`\text{abs\_tol} \times
-     4\pi G\, \rho_{\text{max}}` where :math:`\rho_{\text{max}}` is the maximum
+- ``gravity.abs_tol`` : if ``gravity.gravity_type`` = ``PoissonGrav``,
+   this is the absolute tolerance for the Poisson solve. You can
+   specify a single value for this tolerance (or do nothing, and get a
+   reasonable default value), and then the absolute tolerance used by
+   the multigrid solve is :math:`\text{abs\_tol} \times 4\pi G\,
+   \rho_{\text{max}}` where :math:`\rho_{\text{max}}` is the maximum
    value of the density on the domain. On fine levels, this absolute
-   tolerance is multiplied by :math:`\text{ref\_ratio}^2` to account for the
-   change in the absolute scale of the Laplacian operator. You can
-   also specify an array of values for , one for each
+   tolerance is multiplied by :math:`\text{ref\_ratio}^2` to account
+   for the change in the absolute scale of the Laplacian operator. You
+   can also specify an array of values for ``abs_tol``, one for each
    possible level in the simulation, and then the scaling by
    :math:`\text{ref\_ratio}^2` is not applied.
 
--  gravity.rel_tol : if gravity.gravity_type
-   = PoissonGrav, this is the relative tolerance for the Poisson
-   solve. By default it is zero. You can specify a single value for
-   this tolerance and it will apply on every level, or you can specify
-   an array of values for , one for each possible level
-   in the simulation. This replaces the old parameter
-   gravity.ml_tol.
+- ``gravity.rel_tol`` : if ``gravity.gravity_type`` = ``PoissonGrav``,
+   this is the relative tolerance for the Poisson solve. By default it
+   is zero. You can specify a single value for this tolerance and it
+   will apply on every level, or you can specify an array of values
+   for ``rel_tol``, one for each possible level in the
+   simulation. This replaces the old parameter ``gravity.ml_tol``.
 
--  gravity.max_multipole_order : if
-   gravity.gravity_type = PoissonGrav, this is the max :math:`\ell` value
-   to use for multipole BCs (must be :math:`\geq 0`; default: 0)
+- ``gravity.max_multipole_order`` : if ``gravity.gravity_type`` =
+   ``PoissonGrav``, this is the max :math:`\ell` value to use for
+   multipole BCs (must be :math:`\geq 0`; default: 0)
 
--  gravity.direct_sum_bcs : if
-   gravity.gravity_type = PoissonGrav, evaluate BCs using exact sum
-   (0 or 1; default: 0)
+- ``gravity.direct_sum_bcs`` : if ``gravity.gravity_type`` =
+   ``PoissonGrav``, evaluate BCs using exact sum (0 or 1; default: 0)
 
--  gravity.drdxfac : ratio of dr for monopole gravity
+-  ``gravity.drdxfac`` : ratio of dr for monopole gravity
    binning to grid resolution
 
 The follow parameters affect the coupling of hydro and gravity:
 
--  castro.do_grav : turn on/off gravity
+-  ``castro.do_grav`` : turn on/off gravity
 
--  castro.moving_center : do we recompute the center
+-  ``castro.moving_center`` : do we recompute the center
    used for the multipole gravity solver each step?
 
--  castro.point_mass : point mass at the center of the star
+-  ``castro.point_mass`` : point mass at the center of the star
    (must be :math:`\geq 0`; default: 0.0)
 
-Note that in the following, MAX_LEV is a hard-coded parameter
-in Source/Gravity.cpp which is currently set to 15. It
-determines how many levels can be tracked by the Gravity object.
+Note that in the following, ``MAX_LEV`` is a hard-coded parameter
+in ``Source/Gravity.cpp`` which is currently set to 15. It
+determines how many levels can be tracked by the ``Gravity`` object.
 
 Types of Approximations
 =======================
 
-ConstantGrav
-------------
+``ConstantGrav``
+----------------
 
 Gravity can be defined as constant in direction and magnitude,
-defined in the inputs file by
+defined in the inputs file by::
+
+   gravity.const_grav = -9.8
 
 for example, to set the gravity to have magnitude :math:`9.8` in the
 negative :math:`y`-direction if in 2D, negative :math:`z`-direction if in 3-D.
-The actual setting is done in Gravity.cpp as:
-
-::
+The actual setting is done in Gravity.cpp as::
 
      grav.setVal(const_grav, BL_SPACEDIM-1, 1, ng);
 
-Note that at present we do not fill the gravitational potential :math:`\phi` in
-this mode; it will be set to zero.
+Note that at present we do not fill the gravitational potential
+:math:`\phi` in this mode; it will be set to zero.
 
-Note: ConstantGrav can only be used along a Cartesian direction
+Note: ``ConstantGrav`` can only be used along a Cartesian direction
 (vertical for 2D axisymmetric).
 
 .. _sec-monopole-grav:
 
-MonopoleGrav
-------------
+``MonopoleGrav``
+----------------
 
-MonopoleGrav integrates the mass distribution on the grid
+``MonopoleGrav`` integrates the mass distribution on the grid
 in spherical shells, defining an enclosed mass and uses this
 to compute the gravitational potential and acceleration in a
 spherically-symmetric fashion.
@@ -217,8 +211,8 @@ spherically-symmetric fashion.
 
    .. math:: g(r) = -\frac{G M_{\rm enclosed}}{ r^2}
 
-   where :math:`M_{\rm enclosed}` is calculated from the density at the time
-   of the call.
+   where :math:`M_{\rm enclosed}` is calculated from the density at
+   the time of the call.
 
    For levels above the coarsest level we define the extent of that
    level’s radial arrays as ranging from the center of the star (:math:`r=0`)
@@ -247,22 +241,24 @@ spherically-symmetric fashion.
 
    We then average the density onto a 1D radial array. We note that
    there is a mapping from the Cartesian cells to the radial array and
-   back; unlike the 1D case this requires interpolation. We use quadratic
-   interpolation with limiting so that the interpolation does not create
-   new maxima or minima.
+   back; unlike the 1D case this requires interpolation. We use
+   quadratic interpolation with limiting so that the interpolation
+   does not create new maxima or minima.
 
    The default resolution of the radial arrays at a level is the grid
-   cell spacing at that level, i.e., :math:`\Delta r = \Delta x`. O For
-   increased accuracy, one can define gravity.drdxfac as a number
-   greater than :math:`1` (:math:`2` or :math:`4` are recommended) and the spacing of the
-   radial array will then satisfy :math:`\Delta x / \Delta r =` drdxfac.
-   Individual Cartesian grid cells are subdivided by drdxfac in
-   each coordinate direction for the purposing of averaging the density,
-   and the integration that creates :math:`g` is done at the finer resolution
-   of the new :math:`\Delta r`.
+   cell spacing at that level, i.e., :math:`\Delta r = \Delta x`. O
+   For increased accuracy, one can define gravity.drdxfac as a number
+   greater than :math:`1` (:math:`2` or :math:`4` are recommended) and
+   the spacing of the radial array will then satisfy :math:`\Delta x /
+   \Delta r =` drdxfac.  Individual Cartesian grid cells are
+   subdivided by drdxfac in each coordinate direction for the
+   purposing of averaging the density, and the integration that
+   creates :math:`g` is done at the finer resolution of the new
+   :math:`\Delta r`.
 
-   Note that the center of the star is defined in the subroutine PROBINIT
-   and the radius is computed as the distance from that center.
+   Note that the center of the star is defined in the subroutine
+   ``probinit`` and the radius is computed as the distance from that
+   center.
 
    .. raw:: latex
 
@@ -271,10 +267,10 @@ spherically-symmetric fashion.
         is not part of the grid}
 
  What about the potential in this case? when does
-make_radial_phi come into play?
+``make_radial_phi`` come into play?
 
-PoissonGrav
------------
+``PoissonGrav``
+---------------
 
 The most general case is a self-induced gravitational field,
 
@@ -284,7 +280,7 @@ where :math:`\phi` is defined by solving
 
 .. math:: \mathbf{\Delta} \phi = 4 \pi G \rho .\label{eq:Self Gravity}
 
-We only allow PoissonGrav in 2D or 3D because in 1D, computing
+We only allow ``PoissonGrav`` in 2D or 3D because in 1D, computing
 the monopole approximation in spherical coordinates is faster and more
 accurate than solving the Poisson equation.
 
@@ -293,12 +289,12 @@ Poisson Boundary Conditions: 2D
 
 In 2D, if boundary conditions are not periodic in both directions, we
 use a monopole approximation at the coarsest level. This involves
-computing an effective 1D radial density profile (on level =
-0 only), integrating it outwards from the center to get the
-gravitational acceleration :math:`\mathbf{g}`, and then integrating :math:`g`
-outwards from the center to get :math:`\phi` (using :math:`\phi(0) = 0` as a
-boundary condition, since no mass is enclosed at :math:`r = 0`). For more
-details, see Section `2.2 <#sec-monopole-grav>`__.
+computing an effective 1D radial density profile (on level = 0 only),
+integrating it outwards from the center to get the gravitational
+acceleration :math:`\mathbf{g}`, and then integrating :math:`g`
+outwards from the center to get :math:`\phi` (using :math:`\phi(0) =
+0` as a boundary condition, since no mass is enclosed at :math:`r =
+0`). For more details, see Section `2.2 <#sec-monopole-grav>`__.
 
 .. _sec-poisson-3d-bcs:
 
@@ -373,12 +369,13 @@ is :raw-latex:`\cite{katz:2016}`.
    :math:`l_{\text{max}}`.
 
    The number of :math:`l` values calculated is controlled by
-   gravity.max_multipole_order in your inputs file. By
-   default, it is set to ``0``, which means that a monopole
-   approximation is used. There is currently a hard-coded limit of
-   :math:`l_{\text{max}} = 50`. This is because the method used to generate the
-   Legendre polynomials is not numerically stable for arbitrary :math:`l`
-   (because the polynomials get very large, for large enough :math:`l`).
+   ``gravity.max_multipole_order`` in your inputs file. By default, it
+   is set to ``0``, which means that a monopole approximation is
+   used. There is currently a hard-coded limit of
+   :math:`l_{\text{max}} = 50`. This is because the method used to
+   generate the Legendre polynomials is not numerically stable for
+   arbitrary :math:`l` (because the polynomials get very large, for
+   large enough :math:`l`).
 
 -  **Direct Sum**
 
@@ -391,40 +388,41 @@ is :raw-latex:`\cite{katz:2016}`.
 
    .. math:: \phi(\mathbf{r}^\prime) = \sum_{\text{ijk}} \frac{-G \rho_{\text{ijk}}\, \Delta V_{\text{ijk}}}{\left[(x - x^\prime)^2 + (y - y^\prime)^2 + (z - z^\prime)^2\right]^{1/2}},
 
-   where :math:`x = x(i)`, :math:`y = y(j)` and :math:`z = z(k)` are constructed in the
-   usual sense from the zone indices. The sum here runs over every cell
-   in the physical domain (that is, the calculation is :math:`\mathcal{O}(N^3)`
-   for each boundary cell). There are :math:`6N^2` ghost cells needed for the
-   Poisson solve (since there are six physical faces of the domain), so
-   the total cost of this operation is :math:`\mathcal{O}(N^5)` (this only
+   where :math:`x = x(i)`, :math:`y = y(j)` and :math:`z = z(k)` are
+   constructed in the usual sense from the zone indices. The sum here
+   runs over every cell in the physical domain (that is, the
+   calculation is :math:`\mathcal{O}(N^3)` for each boundary
+   cell). There are :math:`6N^2` ghost cells needed for the Poisson
+   solve (since there are six physical faces of the domain), so the
+   total cost of this operation is :math:`\mathcal{O}(N^5)` (this only
    operates on the coarse grid, at present). In practice, we use the
-   domain decomposition inherent in the code to implement this solve: for
-   the grids living on any MPI task, we create six :math:`N^2` arrays
-   representing each of those faces, and then iterate over every cell on
-   each of those grids, and compute their respective contributions to all
-   of the faces. Then, we do a global reduce to add up the contributions
-   from all cells together. Finally, we place the boundary condition
-   terms appropriate for each grid onto its respective cells.
+   domain decomposition inherent in the code to implement this solve:
+   for the grids living on any MPI task, we create six :math:`N^2`
+   arrays representing each of those faces, and then iterate over
+   every cell on each of those grids, and compute their respective
+   contributions to all of the faces. Then, we do a global reduce to
+   add up the contributions from all cells together. Finally, we place
+   the boundary condition terms appropriate for each grid onto its
+   respective cells.
 
    This is quite expensive even for reasonable sized domains, so this
    option is recommended only for analysis purposes, to check if the
    other methods are producing accurate results. It can be enabled by
-   setting gravity.direct_sum_bcs= 1 in your inputs file.
+   setting ``gravity.direct_sum_bcs`` = 1 in your inputs file.
 
-PrescribedGrav
---------------
+``PrescribedGrav``
+------------------
 
-With PrescribedGrav [1]_, gravity can be defined as a function that
-is specified by the user. The option is allowed in 2D and 3D. To
-define the gravity vector, copy prescribe_grav_nd.f90 from
-Source/gravity/ to your run directory. The makefile system will always
-choose this local copy of the file over the one in another directory.
-Then define the components of gravity inside a loop over the grid
-inside the file. If your problem uses a radial gravity in the form
-:math:`g(r)`, you can simply adapt
-ca_prescribe_grav_gravityprofile, otherwise you will have to
-adapt **ca_prescribe_grav**, both are located in
-prescribed_grav_nd.90.
+With PrescribedGrav [1]_, gravity can be defined as a function that is
+specified by the user. The option is allowed in 2D and 3D. To define
+the gravity vector, copy ``prescribe_grav_nd.f90`` from
+``Source/gravity/`` to your run directory. The makefile system will
+always choose this local copy of the file over the one in another
+directory.  Then define the components of gravity inside a loop over
+the grid inside the file. If your problem uses a radial gravity in the
+form :math:`g(r)`, you can simply adapt
+``ca_prescribe_grav_gravityprofile``, otherwise you will have to adapt
+``ca_prescribe_grav``, both are located in ``prescribed_grav_nd.90``.
 
 Point Mass
 ----------
@@ -438,28 +436,29 @@ in the simulation.
 
 Note that point mass can be :math:`< 0`.
 
-A useful option is point_mass_fix_solution. If set to
-1, then it takes all zones that are adjacent to the location of the
-center variable and keeps their density constant. Any changes
-in density that occur after a hydro update in those zones are reset,
-and the mass deleted is added to the pointmass. (If there is
-expansion, and the density lowers, then the point mass is reduced and
-the mass is added back to the grid). This calculation is done in
-pm_compute_delta_mass() in
-Source/gravity/pointmass_nd.f90.
+A useful option is ``point_mass_fix_solution``. If set to 1, then it
+takes all zones that are adjacent to the location of the center
+variable and keeps their density constant. Any changes in density that
+occur after a hydro update in those zones are reset, and the mass
+deleted is added to the pointmass. (If there is expansion, and the
+density lowers, then the point mass is reduced and the mass is added
+back to the grid). This calculation is done in
+``pm_compute_delta_mass()`` in ``Source/gravity/pointmass_nd.f90``.
 
 GR correction
 =============
 
 In the cases of compact objects or very massive stars, the general
-relativity (GR) effect starts to play a role [2]_. First, we consider the hydrostatic equilibrium due to
-effects of GR then derive GR-correction term for Newtonian gravity.
-The correction term is applied to the monopole approximation only when
-USE_GR = TRUE is set in the GNUmakefile.
+relativity (GR) effect starts to play a role [2]_. First, we consider
+the hydrostatic equilibrium due to effects of GR then derive
+GR-correction term for Newtonian gravity.  The correction term is
+applied to the monopole approximation only when ``USE_GR`` = TRUE is
+set in the ``GNUmakefile``.
 
-The formulae of GR-correction here are based on :raw-latex:`\cite{grbk1}`. For
-detailed physics, please refer to :raw-latex:`\cite{grbk2}`. For describing very
-strong gravitational field, we need to use Einstein field equations
+The formulae of GR-correction here are based on
+:raw-latex:`\cite{grbk1}`. For detailed physics, please refer to
+:raw-latex:`\cite{grbk2}`. For describing very strong gravitational
+field, we need to use Einstein field equations
 
 .. math::
 
@@ -467,15 +466,16 @@ strong gravitational field, we need to use Einstein field equations
    R_{ik}-\frac{1}{2}g_{ik}R=\frac{\kappa}{c^{2}}T_{ik} \quad , \quad
    \kappa=\frac{8\pi G}{c^{2}}\quad ,
 
-where :math:`R_{ik}` is the Ricci tensor, :math:`g_{ik}` is the metric tensor, :math:`R`
-is the Riemann curvature, :math:`c` is the speed of light and :math:`G` is
-gravitational constant. :math:`T_{ik}` is the energy momentum tensor, which
-for ideal gas has only the non-vanishing components :math:`T_{00}` =
-:math:`\varrho c^2` , :math:`T_{11}` = :math:`T_{22}` = :math:`T_{33}` = :math:`P` ( contains rest
-mass and energy density, :math:`P` is pressure). We are interested in
-spherically symmetric mass distribution. Then the line element :math:`ds`
-for given spherical coordinate :math:`(r, \vartheta, \varphi)` has the
-general form
+where :math:`R_{ik}` is the Ricci tensor, :math:`g_{ik}` is the metric
+tensor, :math:`R` is the Riemann curvature, :math:`c` is the speed of
+light and :math:`G` is gravitational constant. :math:`T_{ik}` is the
+energy momentum tensor, which for ideal gas has only the non-vanishing
+components :math:`T_{00}` = :math:`\varrho c^2` , :math:`T_{11}` =
+:math:`T_{22}` = :math:`T_{33}` = :math:`P` ( contains rest mass and
+energy density, :math:`P` is pressure). We are interested in
+spherically symmetric mass distribution. Then the line element
+:math:`ds` for given spherical coordinate :math:`(r, \vartheta,
+\varphi)` has the general form
 
 .. math::
 
@@ -483,9 +483,10 @@ general form
      ds^{2} = e^{\nu}c^{2}dt^{2}-e^{\lambda}dr^{2}-r^{2}(d\vartheta^{2}+\sin^{2}
      \vartheta d\varphi) \quad ,
 
-with :math:`\nu = \nu(r)`, :math:`\lambda = \lambda(r)`. Now we can put the
-expression of :math:`T_{ik}` and :math:`ds` into (`[field] <#field>`__), then field
-equations can be reduced to 3 ordinary differential equations:
+with :math:`\nu = \nu(r)`, :math:`\lambda = \lambda(r)`. Now we can
+put the expression of :math:`T_{ik}` and :math:`ds` into (`[field]
+<#field>`__), then field equations can be reduced to 3 ordinary
+differential equations:
 
 .. math::
 
@@ -509,8 +510,8 @@ equations can be reduced to 3 ordinary differential equations:
      e^{-\lambda}\left (\frac{\lambda^{\prime}}{r}-\frac{1}{r^{2}}\right )+\frac{1}{r^{2}} \quad ,
 
 where primes means the derivatives with respect to :math:`r`. After
-multiplying with :math:`4\pi r^2`, (`[diff3] <#diff3>`__) can be integrated and
-yields
+multiplying with :math:`4\pi r^2`, (`[diff3] <#diff3>`__) can be
+integrated and yields
 
 .. math::
 
@@ -524,17 +525,18 @@ the :math:`m` is called “gravitational mass” inside r defined as
    \label{gmass2}
      m = \int_{0}^{r}4\pi r^{2}  \varrho dr\quad .
 
-For the :math:`r = R`, :math:`m` becomes the mass :math:`M` of the star. :math:`M` contains
-not only the rest mass but the whole energy (divided by :math:`c^2`), that
-includes the internal and gravitational energy. So the :math:`\varrho =
-\varrho_0 +U/c^2` contains the whole energy density :math:`U` and rest-mass
-density :math:`\varrho_0`. Differentiation of (`[diff1] <#diff1>`__) with respect to
-:math:`r` gives :math:`P = P^{\prime}(\lambda,\lambda^{\prime},
-\nu,\nu^{\prime},r)`, where
+For the :math:`r = R`, :math:`m` becomes the mass :math:`M` of the
+star. :math:`M` contains not only the rest mass but the whole energy
+(divided by :math:`c^2`), that includes the internal and gravitational
+energy. So the :math:`\varrho = \varrho_0 +U/c^2` contains the whole
+energy density :math:`U` and rest-mass density
+:math:`\varrho_0`. Differentiation of (`[diff1] <#diff1>`__) with
+respect to :math:`r` gives :math:`P =
+P^{\prime}(\lambda,\lambda^{\prime}, \nu,\nu^{\prime},r)`, where
 :math:`\lambda,\lambda^{\prime},\nu,\nu^{\prime}` can be eliminated by
-(`[diff1] <#diff1>`__), (`[diff2] <#diff2>`__), (`[diff3] <#diff3>`__). Finally we reach
-*Tolman-Oppenheinmer-Volkoff(TOV)* equation for hydrostatic
-equilibrium in general relativity:
+(`[diff1] <#diff1>`__), (`[diff2] <#diff2>`__), (`[diff3]
+<#diff3>`__). Finally we reach *Tolman-Oppenheinmer-Volkoff(TOV)*
+equation for hydrostatic equilibrium in general relativity:
 
 .. math::
 
@@ -557,11 +559,11 @@ Now we take effective monopole gravity as
    \tilde{g} = -\frac{Gm}{r^{2}} (1+\frac{P}{\varrho
      c^{2}})(1+\frac{4\pi r^3 P}{m c^{2}}) (1-\frac{2Gm}{r c^{2}})^{-1}  \quad .
 
-For general situations, we neglect the :math:`U/c^2` and potential energy in
-m because they are usually much smaller than :math:`\varrho_0`. Only when
-:math:`T` reaches :math:`10^{13} K` (:math:`KT \approx m_{p} c^2`, :math:`m_p` is proton mass)
-before it really makes a difference. So (`[tov2] <#tov2>`__) can be expressed
-as
+For general situations, we neglect the :math:`U/c^2` and potential
+energy in m because they are usually much smaller than
+:math:`\varrho_0`. Only when :math:`T` reaches :math:`10^{13} K`
+(:math:`KT \approx m_{p} c^2`, :math:`m_p` is proton mass) before it
+really makes a difference. So (`[tov2] <#tov2>`__) can be expressed as
 
 .. math::
 
@@ -570,16 +572,16 @@ as
        c^{2}} \right )\left (1+\frac{4\pi r^3 P}{M_{\rm enclosed} c^{2}} \right ) \left (1-\frac{2GM_{\rm enclosed}}{r c^{2}} \right )^{-1} \quad ,
 
 where :math:`M_{enclosed}` has the same meaning as with the
-MonopoleGrav approximation.
+``MonopoleGrav`` approximation.
 
 Hydrodynamics Source Terms
 ==========================
 
 There are several options to incorporate the effects of gravity into
 the hydrodynamics system. The main parameter here is
-castro.grav_source_type.
+``castro.grav_source_type``.
 
--  castro.grav_source_type = 1 : we use a
+-  ``castro.grav_source_type`` = 1 : we use a
    standard predictor-corrector formalism for updating the momentum and
    energy. Specifically, our first update is equal to :math:`\Delta t \times
      \mathbf{S}^n` , where :math:`\mathbf{S}^n` is the value of the source
@@ -589,7 +591,7 @@ castro.grav_source_type.
      \times \mathbf{S}^{n+1}`, so that at the end of the timestep the
    source term is properly time centered.
 
--  castro.grav_source_type = 2 : we do something very
+-  ``castro.grav_source_type`` = 2 : we do something very
    similar to 1. The major difference is that when evaluating the
    energy source term at the new time (which is equal to :math:`\mathbf{u}
      \cdot \mathbf{S}^{n+1}_{\rho \mathbf{u}}`, where the latter is the
@@ -599,7 +601,7 @@ castro.grav_source_type.
    between the momentum and energy update and we have seen that it
    usually results in a more accurate evolution.
 
--  castro.grav_source_type = 3 : we do the same momentum
+-  ``castro.grav_source_type`` = 3 : we do the same momentum
    update as the previous two, but for the energy update, we put all of
    the work into updating the kinetic energy alone. In particular, we
    explicitly ensure that :math:`(rho e)` maintains the same, and update
@@ -609,7 +611,7 @@ castro.grav_source_type.
    velocity, and should not directly update the temperature—only
    indirectly through things like shocks.
 
--  castro.grav_source_type = 4 : the energy update is done
+-  ``castro.grav_source_type`` = 4 : the energy update is done
    in a “conservative” fashion. The previous methods all evaluate
    the value of the source term at the cell center, but this method
    evaluates the change in energy at cell edges, using the
@@ -618,7 +620,7 @@ castro.grav_source_type.
    :raw-latex:`\cite{katzthesis}` for some more details.
 
 .. [1]
-   Note: The PrescribedGrav
+   Note: The ``PrescribedGrav``
    option and text here were contributed by Jan Frederik Engels of
    University of Gottingen.
 
