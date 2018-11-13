@@ -11,16 +11,12 @@ extern "C"
 
   void ca_test_residual
     (const int* lo, const int* hi,
-    BL_FORT_FAB_ARG_3D(rhs),
-    const BL_FORT_FAB_ARG_3D(xgrad),
-#if AMREX_SPACEDIM >=2
-    const BL_FORT_FAB_ARG_3D(ygrad),
-#if AMREX_SPACEDIM==3
-    const BL_FORT_FAB_ARG_3D(zgrad),
-#endif
-#endif
-    const amrex::Real* dx, const amrex::Real* problo,
-    const int coord_type);
+     BL_FORT_FAB_ARG(rhs),
+     D_DECL(const BL_FORT_FAB_ARG(xgrad),
+            const BL_FORT_FAB_ARG(ygrad),
+            const BL_FORT_FAB_ARG(zgrad)),
+            const amrex::Real* dx, const amrex::Real* problo,
+    const int* coord_type);
 
   void ca_compute_radial_mass
     (const int* lo, const int* hi,
@@ -69,7 +65,7 @@ extern "C"
   void ca_put_radial_grav
     (const int* lo, const int* hi,
      const amrex::Real* dx, const amrex::Real dr,
-     BL_FORT_FAB_ARG_3D(grav_vector),
+     BL_FORT_FAB_ARG_ANYD(grav_vector),
      const amrex::Real* radial_grav,
      const amrex::Real* problo,
      const int n1d, const int level);
@@ -119,6 +115,7 @@ extern "C"
      amrex::Real* bcYZLo, amrex::Real* bcYZHi,
      const int* bclo, const int* bchi, const amrex::Real* bcdx);
 
+#if (BL_SPACEDIM == 3)
   void ca_put_direct_sum_bc
     (const int* lo, const int* hi,
      amrex::Real* phi, const int* p_lo, const int* p_hi,
@@ -126,6 +123,7 @@ extern "C"
      const amrex::Real* bcXZLo, const amrex::Real* bcXZHi,
      const amrex::Real* bcYZLo, const amrex::Real* bcYZHi,
      const int* bclo, const int* bchi);
+#endif
 
 #ifdef POINTMASS
   void pm_add_to_grav

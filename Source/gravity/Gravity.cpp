@@ -1066,17 +1066,13 @@ Gravity::test_level_grad_phi_prev(int level)
 		// Test whether using the edge-based gradients
 		//   to compute Div(Grad(Phi)) satisfies Lap(phi) = RHS
 		// Fill the RHS array with the residual
-#pragma gpu
-		ca_test_residual(AMREX_INT_ANYD(bx.loVect()),  AMREX_INT_ANYD(bx.hiVect()),
-		                 BL_TO_FORTRAN_ANYD(Rhs[mfi]),
-		                 BL_TO_FORTRAN_ANYD((*grad_phi_prev[level][0])[mfi]),
-#if AMREX_SPACEDIM >=2
-                    BL_TO_FORTRAN_ANYD((*grad_phi_prev[level][1])[mfi]),
-#if AMREX_SPACEDIM==3
-                    BL_TO_FORTRAN_ANYD((*grad_phi_prev[level][2])[mfi]),
-#endif
-#endif
-		                 AMREX_REAL_ANYD(dx),AMREX_REAL_ANYD(problo),coord_type);
+// #pragma gpu
+        ca_test_residual(bx.loVect(), bx.hiVect(),
+             BL_TO_FORTRAN(Rhs[mfi]),
+             D_DECL(BL_TO_FORTRAN((*grad_phi_prev[level][0])[mfi]),
+                BL_TO_FORTRAN((*grad_phi_prev[level][1])[mfi]),
+                BL_TO_FORTRAN((*grad_phi_prev[level][2])[mfi])),
+            dx,problo,&coord_type);
 	}
 	if (verbose > 1) {
 		Real resnorm = Rhs.norm0();
@@ -1140,17 +1136,13 @@ Gravity::test_level_grad_phi_curr(int level)
 		// Test whether using the edge-based gradients
 		//   to compute Div(Grad(Phi)) satisfies Lap(phi) = RHS
 		// Fill the RHS array with the residual
-#pragma gpu
-		ca_test_residual(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-		                 BL_TO_FORTRAN_ANYD(Rhs[mfi]),
-		                 BL_TO_FORTRAN_ANYD((*grad_phi_curr[level][0])[mfi]),
-#if AMREX_SPACEDIM >=2
-                      BL_TO_FORTRAN_ANYD((*grad_phi_curr[level][1])[mfi]),
-#if AMREX_SPACEDIM==3
-                      BL_TO_FORTRAN_ANYD((*grad_phi_curr[level][2])[mfi]),
-#endif
-#endif
-		                 AMREX_REAL_ANYD(dx),AMREX_REAL_ANYD(problo),coord_type);
+// #pragma gpu
+        ca_test_residual(bx.loVect(), bx.hiVect(),
+             BL_TO_FORTRAN(Rhs[mfi]),
+             D_DECL(BL_TO_FORTRAN((*grad_phi_curr[level][0])[mfi]),
+                BL_TO_FORTRAN((*grad_phi_curr[level][1])[mfi]),
+                BL_TO_FORTRAN((*grad_phi_curr[level][2])[mfi])),
+            dx,problo,&coord_type);
 	}
 	if (verbose > 1) {
 		Real resnorm = Rhs.norm0();

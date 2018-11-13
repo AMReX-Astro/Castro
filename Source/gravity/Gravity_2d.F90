@@ -68,10 +68,10 @@ contains
 
     else
 
-#ifndef AMREX_USE_CUDA
-       print *,'Bogus coord_type in test_residual ' ,coord_type
-       call amrex_error("Error:: Gravity_2d.f90 :: ca_test_residual")
-#endif
+       ! #ifndef AMREX_USE_CUDA
+       !        print *,'Bogus coord_type in test_residual ' ,coord_type
+       !        call amrex_error("Error:: Gravity_2d.f90 :: ca_test_residual")
+       ! #endif
 
     end if
 
@@ -135,14 +135,14 @@ contains
           if (index .gt. n1d-1) then
 
              if (level .eq. 0) then
-#ifndef AMREX_USE_CUDA
-                print *,'   '
-                print *,'>>> Error: Gravity_2d::ca_compute_radial_mass ',i,j
-                print *,'>>> ... index too big: ', index,' > ',n1d-1
-                print *,'>>> ... at (i,j)     : ',i,j
-                print *,'    '
-                call amrex_error("Error:: Gravity_2d.f90 :: ca_compute_radial_mass")
-#endif
+                ! #ifndef AMREX_USE_CUDA
+                !                 print *,'   '
+                !                 print *,'>>> Error: Gravity_2d::ca_compute_radial_mass ',i,j
+                !                 print *,'>>> ... index too big: ', index,' > ',n1d-1
+                !                 print *,'>>> ... at (i,j)     : ',i,j
+                !                 print *,'    '
+                !                 call amrex_error("Error:: Gravity_2d.f90 :: ca_compute_radial_mass")
+                ! #endif
              end if
 
           else
@@ -200,6 +200,8 @@ contains
     real(rt)         :: x,y,r,mag_grav
     real(rt)         :: cen,xi,slope,glo,gmd,ghi,minvar,maxvar
 
+    !$gpu
+
     ! Note that we are interpolating onto the entire range of grav,
     ! including the ghost cells
     k = lo(3)
@@ -222,12 +224,12 @@ contains
              mag_grav = radial_grav(index) + slope * xi
           else if (index .gt. n1d-1) then
              if (level .eq. 0) then
-#ifndef USE_AMREX_CUDA
-                print *,'PUT_RADIAL_GRAV: INDEX TOO BIG ',index,' > ',n1d-1
-                print *,'AT (i,j) ',i,j
-                print *,'R / DR IS ',r,dr
-                call amrex_error("Error:: Gravity_2d.f90 :: ca_put_radial_grav")
-#endif
+                ! #ifndef USE_AMREX_CUDA
+                !                 print *,'PUT_RADIAL_GRAV: INDEX TOO BIG ',index,' > ',n1d-1
+                !                 print *,'AT (i,j) ',i,j
+                !                 print *,'R / DR IS ',r,dr
+                !                 call amrex_error("Error:: Gravity_2d.f90 :: ca_put_radial_grav")
+                ! #endif
              else
                 ! NOTE: we don't do anything to this point if it's outside the
                 !       radial grid and level > 0
@@ -311,12 +313,12 @@ contains
           r = sqrt( x**2 + y**2)
           index = int(r/dr)
           if (index .gt. numpts_1d-1) then
-#ifndef AMREX_USE_CUDA
-             print *,'PUT_RADIAL_PHI: INDEX TOO BIG ',index,' > ',numpts_1d-1
-             print *,'AT (i,j) ',i,j
-             print *,'R / DR IS ',r,dr
-             call amrex_error("Error:: Gravity_2d.f90 :: ca_put_radial_phi")
-#endif
+             ! #ifndef AMREX_USE_CUDA
+             !              print *,'PUT_RADIAL_PHI: INDEX TOO BIG ',index,' > ',numpts_1d-1
+             !              print *,'AT (i,j) ',i,j
+             !              print *,'R / DR IS ',r,dr
+             !              call amrex_error("Error:: Gravity_2d.f90 :: ca_put_radial_phi")
+             ! #endif
           end if
 
           if (  (fill_interior .eq. 1) .or. &
