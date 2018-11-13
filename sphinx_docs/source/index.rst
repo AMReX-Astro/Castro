@@ -18,6 +18,7 @@ Castro: an adaptive mesh compressible hydrodynamics code
    rp_intro
    FlowChart
    software
+   creating_a_problem
    faq
    Hydrodynamics
    gravity
