@@ -204,6 +204,6 @@ class GradPhiPhysBCFunct
 {
 public:
     GradPhiPhysBCFunct ();
-    virtual void FillBoundary (amrex::MultiFab& mf, int dcomp, int ncomp, amrex::Real time);
+    virtual void FillBoundary (amrex::MultiFab& mf, int dcomp, int ncomp, amrex::Real time, int bccomp);
 };
 #endif
