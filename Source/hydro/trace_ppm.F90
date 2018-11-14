@@ -11,7 +11,7 @@ module trace_ppm_module
 
   private
 
-  public trace_ppm, trace_ppm_gammae, trace_ppm_temp
+  public trace_ppm
 
 contains
 
@@ -26,17 +26,101 @@ contains
                        dx, dt)
 
     use network, only : nspec, naux
+    use meth_params_module, only : NQ, NQAUX, QVAR, ppm_predict_gammae, &
+                                   ppm_temp_fix
+
+    implicit none
+
+    integer, intent(in) :: idir
+    integer, intent(in) :: qd_lo(3), qd_hi(3)
+    integer, intent(in) :: qs_lo(3),qs_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
+    integer, intent(in) :: I_lo(3), I_hi(3)
+#if (AMREX_SPACEDIM < 3)
+    integer, intent(in) :: dloga_lo(3), dloga_hi(3)
+#endif
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: domlo(3), domhi(3)
+
+    real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+
+    real(rt), intent(in) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
+    real(rt), intent(in) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
+
+    real(rt), intent(in) :: Ip_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
+    real(rt), intent(in) :: Im_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
+
+    real(rt), intent(in) :: Ip_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,1)
+    real(rt), intent(in) :: Im_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,1)
+
+    real(rt), intent(inout) :: qm(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
+    real(rt), intent(inout) :: qp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
+#if (AMREX_SPACEDIM < 3)
+    real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
+#endif
+    real(rt), intent(in) :: dt, dx(3)
+
+    if (ppm_temp_fix < 3) then
+       if (ppm_predict_gammae == 0) then
+          call trace_ppm_rhoe(idir, q, qd_lo, qd_hi, &
+                              qaux, qa_lo, qa_hi, &
+                              Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
+                              qm, qp, qs_lo, qs_hi, &
+#if (AMREX_SPACEDIM < 3)
+                              dloga, dloga_lo, dloga_hi, &
+#endif
+                              lo, hi, domlo, domhi, &
+                              dx, dt)
+       else
+          call trace_ppm_gammae(idir, q, qd_lo, qd_hi, &
+                                qaux, qa_lo, qa_hi, &
+                                Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
+                                qm, qp, qs_lo, qs_hi, &
+#if (AMREX_SPACEDIM < 3)
+                                dloga, dloga_lo, dloga_hi, &
+#endif
+                                lo, hi, domlo, domhi, &
+                                dx, dt)
+       endif
+    else
+       call trace_ppm_temp(idir, q, qd_lo, qd_hi, &
+                           qaux, qa_lo, qa_hi, &
+                           Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
+                           qm, qp, qs_lo, qs_hi, &
+#if (AMREX_SPACEDIM < 3)
+                           dloga, dloga_lo, dloga_hi, &
+#endif
+                           lo, hi, domlo, domhi, &
+                           dx, dt)
+    endif
+
+  end subroutine trace_ppm
+
+
+
+  subroutine trace_ppm_rhoe(idir, q, qd_lo, qd_hi, &
+                            qaux, qa_lo, qa_hi, &
+                            Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
+                            qm, qp, qs_lo, qs_hi, &
+#if (AMREX_SPACEDIM < 3)
+                            dloga, dloga_lo, dloga_hi, &
+#endif
+                            lo, hi, domlo, domhi, &
+                            dx, dt)
+
+    use network, only : nspec, naux
+
     use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFX, QFS, &
                                    small_dens, small_pres, &
                                    ppm_type, &
-                                   ppm_reference_eigenvectors, ppm_predict_gammae, &
-                                   npassive, qpass_map, ppm_temp_fix, &
+                                   ppm_reference_eigenvectors, &
+                                   npassive, qpass_map, &
                                    fix_mass_flux
     use amrex_constants_module, only : ZERO, HALF, ONE
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: idir
@@ -509,8 +593,7 @@ contains
 
     end do
 
-  end subroutine trace_ppm
-
+  end subroutine trace_ppm_rhoe
 
   subroutine trace_ppm_gammae(idir, q, qd_lo, qd_hi, &
                               qaux, qa_lo, qa_hi, &
@@ -527,13 +610,12 @@ contains
                                    QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFX, QFS, &
                                    small_dens, small_pres, &
                                    ppm_type, &
-                                   ppm_reference_eigenvectors, ppm_predict_gammae, &
-                                   npassive, qpass_map, ppm_temp_fix, &
+                                   ppm_reference_eigenvectors, &
+                                   npassive, qpass_map, &
                                    fix_mass_flux
     use amrex_constants_module, only : ZERO, HALF, ONE
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: idir
@@ -1049,15 +1131,14 @@ contains
                                    QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFX, QFS, &
                                    small_dens, small_pres, &
                                    ppm_type, &
-                                   ppm_reference_eigenvectors, ppm_predict_gammae, &
-                                   npassive, qpass_map, ppm_temp_fix, &
+                                   ppm_reference_eigenvectors, &
+                                   npassive, qpass_map, &
                                    fix_mass_flux
     use amrex_constants_module, only : ZERO, HALF, ONE
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: idir

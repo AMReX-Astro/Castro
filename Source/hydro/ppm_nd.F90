@@ -13,7 +13,7 @@ module ppm_module
 
   private
 
-  public ppm_reconstruct, ppm_int_profile
+  public ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
 
 contains
 
@@ -1470,5 +1470,71 @@ contains
     end do
 
   end subroutine ca_ppm_reconstruct_cuda
+
+
+  subroutine ppm_reconstruct_with_eos(lo, hi, &
+                                      Ip, Im, Ip_gc, Im_gc, I_lo, I_hi)
+
+    use meth_params_module, only : NQ, QRHO, QTEMP, QPRES, QREINT, QFS, QFX
+    use eos_type_module, only : eos_t, eos_input_rt
+    use eos_module, only : eos
+    use network, only : nspec, naux
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: I_lo(3), I_hi(3)
+
+    real(rt), intent(inout) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3, NQ)
+    real(rt), intent(inout) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3, NQ)
+    real(rt), intent(inout) :: Ip_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3, 1)
+    real(rt), intent(inout) :: Im_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3, 1)
+
+    integer :: iwave, idim, i, j, k
+
+    type(eos_t) :: eos_state
+
+    ! temperature-based PPM -- if desired, take the Ip(T)/Im(T)
+    ! constructed above and use the EOS to overwrite Ip(p)/Im(p)
+    ! get an edge-based gam1 here if we didn't get it from the EOS
+    ! call above (for ppm_temp_fix = 1)
+
+    do iwave = 1, 3
+       do idim = 1, AMREX_SPACEDIM
+
+          do k = lo(3), hi(3)
+             do j = lo(2), hi(2)
+                do i = lo(1), hi(1)
+
+                   eos_state % rho = Ip(i,j,k,idim,iwave,QRHO)
+                   eos_state % T   = Ip(i,j,k,idim,iwave,QTEMP)
+
+                   eos_state % xn  = Ip(i,j,k,idim,iwave,QFS:QFS+nspec-1)
+                   eos_state % aux = Ip(i,j,k,idim,iwave,QFX:QFX+naux-1)
+
+                   call eos(eos_input_rt, eos_state)
+
+                   Ip(i,j,k,idim,iwave,QPRES)  = eos_state % p
+                   Ip(i,j,k,idim,iwave,QREINT) = Ip(i,j,k,idim,iwave,QRHO) * eos_state % e
+                   Ip_gc(i,j,k,idim,iwave,1)   = eos_state % gam1
+
+
+                   eos_state % rho = Im(i,j,k,idim,iwave,QRHO)
+                   eos_state % T   = Im(i,j,k,idim,iwave,QTEMP)
+
+                   eos_state % xn  = Im(i,j,k,idim,iwave,QFS:QFS+nspec-1)
+                   eos_state % aux = Im(i,j,k,idim,iwave,QFX:QFX+naux-1)
+
+                   call eos(eos_input_rt, eos_state)
+
+                   Im(i,j,k,idim,iwave,QPRES)  = eos_state % p
+                   Im(i,j,k,idim,iwave,QREINT) = Im(i,j,k,idim,iwave,QRHO) * eos_state % e
+                   Im_gc(i,j,k,idim,iwave,1)   = eos_state % gam1
+                end do
+             end do
+          end do
+
+       end do
+    end do
+
+  end subroutine ppm_reconstruct_with_eos
 
 end module ppm_module
