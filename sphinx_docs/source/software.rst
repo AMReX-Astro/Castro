@@ -360,7 +360,7 @@ that hold source term information.
    the sum of sources over each physical process.
 
 ``MFIter`` and interacting with Fortran
-===================================
+=======================================
 
 The process of looping over boxes at a given level of refinement and
 operating on their data in Fortran is linked to how Castro achieves
@@ -1033,7 +1033,7 @@ routines.
    +-------------+-------------+-------------+--------------+--------------+
 
 ``FluxRegister``
-------------
+----------------
 
 A ``FluxRegister`` holds face-centered data at the boundaries of a box.
 It is composed of a set of ``MultiFab`` s (one for each face, so 6 for

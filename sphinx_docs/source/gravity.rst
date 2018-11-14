@@ -8,14 +8,13 @@ Introduction
 Integration Strategy
 --------------------
 
-Castro uses subcycling to integrate levels at different timesteps.
+Castro uses subcycling to integrate levels at different timesteps.
 The gravity algorithm needs to respect this. Self-gravity is computed
 via multigrid. At coarse-fine interfaces, the stencil used in the
 Laplacian understands the coarse-fine interface and is different than
 the stencil used in the interior.
 
-There are two types of
-solves that we discuss with AMR:
+There are two types of solves that we discuss with AMR:
 
 -  *composite solve* : This is a multilevel solve, starting at
    a coarse level (usually level 0) and solving for the potential on
@@ -48,7 +47,7 @@ The overall integration strategy is unchanged from the discussion in
 -  Then we do the fine grid timestep(s), each using the same
    strategy
 
-- At an AMR synchronization step across levels (see Section
+-  At an AMR synchronization step across levels (see Section
    `[sec:amr_synchronization] <#sec:amr_synchronization>`__ for a
    description of when these synchronizations occur), if we’re
    choosing to synchronize the gravitational field across levels
@@ -128,33 +127,33 @@ solves:
 
 -  ``gravity.max_solve_level`` : maximum level to solve
    for :math:`\phi` and :math:`\mathbf{g}`; above this level, interpolate from
-   below (default: :math:`{\tt MAX\_LEV} - 1`)
+   below (default: ``MAX_LEV``-1)
 
-- ``gravity.abs_tol`` : if ``gravity.gravity_type`` = ``PoissonGrav``,
+-  ``gravity.abs_tol`` : if ``gravity.gravity_type`` = ``PoissonGrav``,
    this is the absolute tolerance for the Poisson solve. You can
    specify a single value for this tolerance (or do nothing, and get a
    reasonable default value), and then the absolute tolerance used by
-   the multigrid solve is :math:`\text{abs\_tol} \times 4\pi G\,
+   the multigrid solve is ``abs_tol`` :math:`\times 4\pi G\,
    \rho_{\text{max}}` where :math:`\rho_{\text{max}}` is the maximum
    value of the density on the domain. On fine levels, this absolute
-   tolerance is multiplied by :math:`\text{ref\_ratio}^2` to account
+   tolerance is multiplied by (``ref_ratio``):sup:`2` to account
    for the change in the absolute scale of the Laplacian operator. You
    can also specify an array of values for ``abs_tol``, one for each
    possible level in the simulation, and then the scaling by
-   :math:`\text{ref\_ratio}^2` is not applied.
+   (``ref_ratio``):sup:`2` is not applied.
 
-- ``gravity.rel_tol`` : if ``gravity.gravity_type`` = ``PoissonGrav``,
+-  ``gravity.rel_tol`` : if ``gravity.gravity_type`` = ``PoissonGrav``,
    this is the relative tolerance for the Poisson solve. By default it
    is zero. You can specify a single value for this tolerance and it
    will apply on every level, or you can specify an array of values
    for ``rel_tol``, one for each possible level in the
    simulation. This replaces the old parameter ``gravity.ml_tol``.
 
-- ``gravity.max_multipole_order`` : if ``gravity.gravity_type`` =
+-  ``gravity.max_multipole_order`` : if ``gravity.gravity_type`` =
    ``PoissonGrav``, this is the max :math:`\ell` value to use for
    multipole BCs (must be :math:`\geq 0`; default: 0)
 
-- ``gravity.direct_sum_bcs`` : if ``gravity.gravity_type`` =
+-  ``gravity.direct_sum_bcs`` : if ``gravity.gravity_type`` =
    ``PoissonGrav``, evaluate BCs using exact sum (0 or 1; default: 0)
 
 -  ``gravity.drdxfac`` : ratio of dr for monopole gravity
@@ -246,8 +245,8 @@ spherically-symmetric fashion.
    does not create new maxima or minima.
 
    The default resolution of the radial arrays at a level is the grid
-   cell spacing at that level, i.e., :math:`\Delta r = \Delta x`. O
-   For increased accuracy, one can define gravity.drdxfac as a number
+   cell spacing at that level, i.e., :math:`\Delta r = \Delta x`. 
+   For increased accuracy, one can define ``gravity.drdxfac`` as a number
    greater than :math:`1` (:math:`2` or :math:`4` are recommended) and
    the spacing of the radial array will then satisfy :math:`\Delta x /
    \Delta r =` drdxfac.  Individual Cartesian grid cells are
@@ -260,13 +259,11 @@ spherically-symmetric fashion.
    ``probinit`` and the radius is computed as the distance from that
    center.
 
-   .. raw:: latex
+   .. note:: there is an additional correction at the corners in
+             ``make_radial_grav`` that accounts for the volume in a shell
+             that is not part of the grid.
 
-      \MarginPar{there is an additional correction at the corners in {\tt
-          make\_radial\_grav} that accounts for the volume in a shell that
-        is not part of the grid}
-
- What about the potential in this case? when does
+What about the potential in this case? when does
 ``make_radial_phi`` come into play?
 
 ``PoissonGrav``
@@ -434,7 +431,7 @@ option works by adding the gravitational acceleration of the point
 mass onto the acceleration from whatever other gravity type is under
 in the simulation.
 
-Note that point mass can be :math:`< 0`.
+.. note:: the point mass have a mass < 0
 
 A useful option is ``point_mass_fix_solution``. If set to 1, then it
 takes all zones that are adjacent to the location of the center
@@ -581,43 +578,43 @@ There are several options to incorporate the effects of gravity into
 the hydrodynamics system. The main parameter here is
 ``castro.grav_source_type``.
 
--  ``castro.grav_source_type`` = 1 : we use a
-   standard predictor-corrector formalism for updating the momentum and
-   energy. Specifically, our first update is equal to :math:`\Delta t \times
-     \mathbf{S}^n` , where :math:`\mathbf{S}^n` is the value of the source
-   terms at the old-time (which is usually called time-level :math:`n`). At
-   the end of the timestep, we do a corrector step where we subtract
-   off :math:`\Delta t / 2 \times \mathbf{S}^n` and add on :math:`\Delta t / 2
-     \times \mathbf{S}^{n+1}`, so that at the end of the timestep the
-   source term is properly time centered.
+- ``castro.grav_source_type`` = 1 : we use a standard
+  predictor-corrector formalism for updating the momentum and
+  energy. Specifically, our first update is equal to :math:`\Delta t
+  \times \mathbf{S}^n` , where :math:`\mathbf{S}^n` is the value of
+  the source terms at the old-time (which is usually called time-level
+  :math:`n`). At the end of the timestep, we do a corrector step where
+  we subtract off :math:`\Delta t / 2 \times \mathbf{S}^n` and add on
+  :math:`\Delta t / 2 \times \mathbf{S}^{n+1}`, so that at the end of
+  the timestep the source term is properly time centered.
 
--  ``castro.grav_source_type`` = 2 : we do something very
-   similar to 1. The major difference is that when evaluating the
-   energy source term at the new time (which is equal to :math:`\mathbf{u}
-     \cdot \mathbf{S}^{n+1}_{\rho \mathbf{u}}`, where the latter is the
-   momentum source term evaluated at the new time), we first update the
-   momentum, rather than using the value of :math:`\mathbf{u}` before
-   entering the gravity source terms. This permits a tighter coupling
-   between the momentum and energy update and we have seen that it
-   usually results in a more accurate evolution.
+- ``castro.grav_source_type`` = 2 : we do something very similar
+  to 1. The major difference is that when evaluating the energy source
+  term at the new time (which is equal to :math:`\mathbf{u} \cdot
+  \mathbf{S}^{n+1}_{\rho \mathbf{u}}`, where the latter is the
+  momentum source term evaluated at the new time), we first update the
+  momentum, rather than using the value of :math:`\mathbf{u}` before
+  entering the gravity source terms. This permits a tighter coupling
+  between the momentum and energy update and we have seen that it
+  usually results in a more accurate evolution.
 
--  ``castro.grav_source_type`` = 3 : we do the same momentum
-   update as the previous two, but for the energy update, we put all of
-   the work into updating the kinetic energy alone. In particular, we
-   explicitly ensure that :math:`(rho e)` maintains the same, and update
-   :math:`(rho K)` with the work due to gravity, adding the new kinetic
-   energy to the old internal energy to determine the final total gas
-   energy. The physical motivation is that work should be done on the
-   velocity, and should not directly update the temperature—only
-   indirectly through things like shocks.
+- ``castro.grav_source_type`` = 3 : we do the same momentum update as
+  the previous two, but for the energy update, we put all of the work
+  into updating the kinetic energy alone. In particular, we explicitly
+  ensure that :math:`(rho e)` maintains the same, and update
+  :math:`(rho K)` with the work due to gravity, adding the new kinetic
+  energy to the old internal energy to determine the final total gas
+  energy. The physical motivation is that work should be done on the
+  velocity, and should not directly update the temperature—only
+  indirectly through things like shocks.
 
--  ``castro.grav_source_type`` = 4 : the energy update is done
-   in a “conservative” fashion. The previous methods all evaluate
-   the value of the source term at the cell center, but this method
-   evaluates the change in energy at cell edges, using the
-   hydrodynamical mass fluxes, permitting total energy to be conserved
-   (excluding possible losses at open domain boundaries). See
-   :raw-latex:`\cite{katzthesis}` for some more details.
+- ``castro.grav_source_type`` = 4 : the energy update is done in a
+  “conservative” fashion. The previous methods all evaluate the value
+  of the source term at the cell center, but this method evaluates the
+  change in energy at cell edges, using the hydrodynamical mass
+  fluxes, permitting total energy to be conserved (excluding possible
+  losses at open domain boundaries). See
+  :raw-latex:`\cite{katzthesis}` for some more details.
 
 .. [1]
    Note: The ``PrescribedGrav``
