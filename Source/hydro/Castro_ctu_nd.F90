@@ -184,7 +184,7 @@ contains
 
     real(rt) :: dxinv, dyinv, dzinv
     real(rt) :: dtdx, dtdy, dtdz, hdt
-#ifdef AMREX_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     real(rt) :: cdtdx, cdtdy, cdtdz
 #endif
     real(rt) :: hdtdx, hdtdy, hdtdz

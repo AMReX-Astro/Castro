@@ -30,7 +30,6 @@ contains
     use meth_params_module, only : NQ, NQAUX, QVAR, ppm_predict_gammae, &
                                    ppm_temp_fix, QU, QV, QW, npassive, qpass_map, fix_mass_flux
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
-                                   ppm_temp_fix
 
     implicit none
 
