@@ -641,6 +641,23 @@ public:
     //
     static amrex::Real num_zones_advanced;
 
+
+#ifdef THORNADO
+    static int THORNADO_NSPECIES;
+    static int THORNADO_NNODES;
+    static int THORNADO_NMOMENTS;
+    static int THORNADO_FLUID_NDOF;
+    static int THORNADO_RAD_NDOF;
+
+    // These are the lower and upper limits of the energy groups
+    static int         thornado_swE;
+    static amrex::Real thornado_eL;
+    static amrex::Real thornado_eR;
+    static int         thornado_ndimse;
+    static amrex::Real thornado_zoome;
+#endif
+
+
 protected:
 
     //
@@ -827,7 +844,7 @@ protected:
 
 #ifdef THORNADO
     void average_down_thornado_data(const amrex::MultiFab& S_fine, amrex::MultiFab& S_crse, 
-                                    int scomp, int ncomp, const amrex::IntVect& ratio);
+                                    int ncomp, const amrex::IntVect& ratio);
 #endif
 
     void buildMetrics ();
@@ -883,21 +900,6 @@ protected:
     static int              num_err_list_default;
     static amrex::BCRec     phys_bc;
     static int       NUM_GROW;
-
-#ifdef THORNADO
-    static int THORNADO_NSPECIES;
-    static int THORNADO_NNODES;
-    static int THORNADO_NMOMENTS;
-    static int THORNADO_FLUID_NDOF;
-    static int THORNADO_RAD_NDOF;
-
-    // These are the lower and upper limits of the energy groups
-    static int         thornado_swE;
-    static amrex::Real thornado_eL;
-    static amrex::Real thornado_eR;
-    static int         thornado_ndimse;
-    static amrex::Real thornado_zoome;
-#endif
 
     static int         lastDtPlotLimited;
     static amrex::Real lastDtBeforePlotLimiting;
