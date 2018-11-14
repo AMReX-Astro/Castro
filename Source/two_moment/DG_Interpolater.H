@@ -5,6 +5,8 @@
 #include <AMReX_BCRec.H>
 #include <AMReX_REAL.H>
 #include <AMReX_Interpolater.H>
+#include "Castro.H"
+#include "TwoMoment_F.H"
 
 namespace amrex {
 

@@ -111,14 +111,22 @@ Castro::init_thornado_data()
     }
     delete boxlen;
 }
+
 void
-Castro::average_down_thornado_data(const MultiFab& S_fine, MultiFab& S_crse, int scomp, int ncomp, 
+Castro::average_down_thornado_data(const MultiFab& S_fine, MultiFab& S_crse, int ncomp, 
                                    const IntVect& ratio)
 {
         AMREX_ASSERT(S_crse.nComp() == S_fine.nComp());
         AMREX_ASSERT((S_crse.is_cell_centered() && S_fine.is_cell_centered()));
 
         bool is_cell_centered = S_crse.is_cell_centered();
+
+        const int* ratioV = ratio.getVect();
+
+        int n_rad_dof   = THORNADO_RAD_NDOF;
+        int n_species   = THORNADO_NSPECIES;
+        int n_moments   = THORNADO_NMOMENTS;
+        int n_energy_bins = thornado_ndimse;
         
         //
         // Coarsen() the fine stuff on processors owning the fine data.
@@ -135,11 +143,14 @@ Castro::average_down_thornado_data(const MultiFab& S_fine, MultiFab& S_crse, int
                 //  NOTE: The tilebox is defined at the coarse level.
                 const Box& tbx = mfi.tilebox();
 
-                BL_FORT_PROC_CALL(BL_AVGDOWN,bl_avgdown)
-                    (tbx.loVect(), tbx.hiVect(),
-                     BL_TO_FORTRAN_N(S_fine[mfi],scomp),
-                     BL_TO_FORTRAN_N(S_crse[mfi],scomp),
-                     ratio.getVect(),&ncomp);
+                const int* cblo = tbx.loVect();
+                const int* cbhi = tbx.hiVect();
+
+                ca_dg_coarsen(AMREX_ARLIM_ANYD(cblo), AMREX_ARLIM_ANYD(cbhi),
+                              BL_TO_FORTRAN_ANYD(S_fine[mfi]),
+                              BL_TO_FORTRAN_ANYD(S_crse[mfi]),
+                              AMREX_ARLIM_ANYD(ratioV),
+                              &ncomp, &n_rad_dof, &n_species, &n_moments, &n_energy_bins);
             }
         }
         else
@@ -153,19 +164,19 @@ Castro::average_down_thornado_data(const MultiFab& S_fine, MultiFab& S_crse, int
             {
                 //  NOTE: The tilebox is defined at the coarse level.
                 const Box& tbx = mfi.tilebox();
-                
-                //  NOTE: We copy from component scomp of the fine fab into component 0 of the crse fab
-                //        because the crse fab is a temporary which was made starting at comp 0, it is
-                //        not part of the actual crse multifab which came in.
 
-                BL_FORT_PROC_CALL(BL_AVGDOWN,bl_avgdown)
-                    (tbx.loVect(), tbx.hiVect(),
-                     BL_TO_FORTRAN_N(S_fine[mfi],scomp),
-                     BL_TO_FORTRAN_N(crse_S_fine[mfi],0),
-                     ratio.getVect(),&ncomp);
+                const int* cblo = tbx.loVect();
+                const int* cbhi = tbx.hiVect();
+
+                ca_dg_coarsen(AMREX_ARLIM_ANYD(cblo), AMREX_ARLIM_ANYD(cbhi),
+                              BL_TO_FORTRAN_ANYD(S_fine[mfi]),
+                              BL_TO_FORTRAN_ANYD(crse_S_fine[mfi]),
+                              AMREX_ARLIM_ANYD(ratioV),
+                              &ncomp, &n_rad_dof, &n_species, &n_moments, &n_energy_bins);
+
             }
             
-            S_crse.copy(crse_S_fine,0,scomp,ncomp);
+            S_crse.copy(crse_S_fine,0,0,ncomp);
         }
 }
 

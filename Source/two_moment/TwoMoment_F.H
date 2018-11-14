@@ -71,6 +71,26 @@ extern "C"
      const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
      const int* level, const int* grid_no);
 
+  void ca_dg_refine(const int* fblo, const int* fbhi,
+                    BL_FORT_FAB_ARG_ANYD(fine),
+                    const BL_FORT_FAB_ARG_ANYD(crse),
+                    const int* nFineX,
+                    const int* nvar,
+                    const int* n_dof,
+                    const int* n_species,
+                    const int* n_moments,
+                    const int* n_energy_bins);
+
+  void ca_dg_coarsen(const int* cblo, const int* cbhi,
+                     const BL_FORT_FAB_ARG_ANYD(fine),
+                     BL_FORT_FAB_ARG_ANYD(crse),
+                     const int* nFineX,
+                     const int* nvar,
+                     const int* n_dof,
+                     const int* n_species,
+                     const int* n_moments,
+                     const int* n_energy_bins);
+
 #ifdef __cplusplus
 }
 #endif

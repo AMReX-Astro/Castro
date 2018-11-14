@@ -10,6 +10,7 @@ ca_F90EXE_sources += interpolate_fluid_$(DIM)d.F90
 
 CEXE_sources      += DG_Interpolater.cpp
 CEXE_headers      += DG_Interpolater.H
+ca_F90EXE_sources += dg_amr_helper_nd.F90
 
 ca_F90EXE_sources += derive_two_moment_nd.F90
 
@@ -35,6 +36,7 @@ ca_F90EXE_sources += derive_two_moment_nd.F90
   ca_f90EXE_sources += ReferenceElementModuleX_Lagrange.f90
   ca_f90EXE_sources += ReferenceElementModuleE_Lagrange.f90
   ca_f90EXE_sources += ReferenceElementModule_Lagrange.f90
+  ca_f90EXE_sources += UtilitiesModule.f90
 
 # In Modules/Mesh
   ca_f90EXE_sources += MeshModule.f90
@@ -56,6 +58,7 @@ ca_F90EXE_sources += derive_two_moment_nd.F90
   ca_f90EXE_sources += TwoMoment_BoundaryConditionsModule.f90
   ca_f90EXE_sources += TwoMoment_UtilitiesModule.f90
   ca_f90EXE_sources += TwoMoment_DiscretizationModule_Collisions_Neutrinos.f90
+  ca_f90EXE_sources += TwoMoment_MeshRefinementModule.f90
 
 # In Modules/Units
   ca_f90EXE_sources += PhysicalConstantsModule.f90
