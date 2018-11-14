@@ -84,6 +84,10 @@ void
 Castro::do_old_sources(MultiFab& source, MultiFab& state, Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
 
+    BL_PROFILE("Castro::do_old_sources()");
+
+    const Real strt_time = ParallelDescriptor::second();
+
     // Construct the old-time sources.
 
     source.setVal(0.0, source.nGrow());
@@ -104,11 +108,32 @@ Castro::do_old_sources(MultiFab& source, MultiFab& state, Real time, Real dt, in
       print_all_source_changes(dt, is_new);
     }
 
+    if (verbose > 0)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+	Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+	if (ParallelDescriptor::IOProcessor())
+	  std::cout << "Castro::do_old_sources() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+	});
+#endif
+    }
+
 }
 
 void
 Castro::do_new_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
+
+    BL_PROFILE("Castro::do_new_sources()");
+
+    const Real strt_time = ParallelDescriptor::second();
 
     source.setVal(0.0, NUM_GROW);
 
@@ -128,6 +153,23 @@ Castro::do_new_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
     if (print_update_diagnostics) {
       bool is_new = true;
       print_all_source_changes(dt, is_new);
+    }
+
+    if (verbose > 0)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+	Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+	if (ParallelDescriptor::IOProcessor())
+	  std::cout << "Castro::do_new_sources() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+	});
+#endif
     }
 
 }

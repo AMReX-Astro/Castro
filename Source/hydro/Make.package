@@ -23,6 +23,7 @@ ca_F90EXE_sources += Castro_fourth_order.F90
 
 ifeq ($(DIM), 2)
   ca_f90EXE_sources += multid_slope_$(DIM)d.f90
+  ca_F90EXE_sources += trans_2d.F90
 endif
 
 ifneq ($(DIM), 1)

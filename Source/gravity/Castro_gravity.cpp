@@ -50,8 +50,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 	}
 
 	if (verbose && ParallelDescriptor::IOProcessor()) {
-	    std::cout << " " << '\n';
-	    std::cout << "... old-time level solve at level " << level << '\n';
+	    std::cout << "... old-time level Poisson gravity solve at level " << level << std::endl << std::endl;
 	}
 
 	int is_new = 0;
@@ -142,8 +141,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
 	    phi_new.minus(comp_minus_level_phi, 0, 1, 0);
 
 	if (verbose && ParallelDescriptor::IOProcessor()) {
-	    std::cout << " " << '\n';
-	    std::cout << "... new-time level solve at level " << level << '\n';
+	    std::cout << "... new-time level Poisson gravity solve at level " << level << std::endl << std::endl;
 	}
 
 	int is_new = 1;

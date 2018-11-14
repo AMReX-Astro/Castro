@@ -30,6 +30,7 @@ contains
     use meth_params_module, only : NQ, NQAUX, QVAR, ppm_predict_gammae, &
                                    ppm_temp_fix, QU, QV, QW, npassive, qpass_map, fix_mass_flux
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
+                                   ppm_temp_fix
 
     implicit none
 
@@ -62,6 +63,7 @@ contains
     real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 #endif
     real(rt), intent(in) :: dt, dx(3)
+
 
     real(rt) :: un
     integer :: ipassive, n, i, j, k
