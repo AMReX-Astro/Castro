@@ -1,18 +1,16 @@
 changes since last release
 
-<<<<<<< HEAD
   -- a bug was fixed in the 1-d SDC integration -- we were not
      applying the reactive source terms to the hydrodynamics interface
      prediction.
 
   -- we now apply the source terms for PLM before the transverse
      routines.  This is more consistent with the PPM version.
-=======
+
   -- fixed an issue that resulted in the custom knapsack distribution
      map not generating a useful distribution map for the reactions.
      Also, fixed an edge case where this custom distribution map could
      cause a numerical overflow and code crash. (#382)
->>>>>>> development
 
 # 18.11
 
