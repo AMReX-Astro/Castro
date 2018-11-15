@@ -368,7 +368,7 @@ contains
        do n = 1, NQ
           if (.not. reconstruct_state(n)) cycle
 
-          call ppm_reconstruct(lo-dg, hi+dg, &
+          call ppm_reconstruct(lo-dg, hi+dg, 0, &
                                q, qd_lo, qd_hi, NQ, n, &
                                flatn, qd_lo, qd_hi, &
                                sm, sp, glo, ghi)
@@ -384,7 +384,7 @@ contains
 
 
        if (ppm_temp_fix /= 1) then
-          call ppm_reconstruct(lo-dg, hi+dg, &
+          call ppm_reconstruct(lo-dg, hi+dg, 0, &
                                qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
                                flatn, qd_lo, qd_hi, &
                                sm, sp, glo, ghi)
@@ -408,7 +408,7 @@ contains
        ! source terms
        do n = 1, QVAR
           if (source_nonzero(n)) then
-             call ppm_reconstruct(lo-dg, hi+dg, &
+             call ppm_reconstruct(lo-dg, hi+dg, 0, &
                                   srcQ, src_lo, src_hi, QVAR, n, &
                                   flatn, qd_lo, qd_hi, &
                                   sm, sp, glo, ghi)

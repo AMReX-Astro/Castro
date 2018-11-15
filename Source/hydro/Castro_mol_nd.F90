@@ -244,7 +244,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
 
   do n = 1, NQ
-     call ppm_reconstruct(lo-dg, hi+dg, &
+     call ppm_reconstruct(lo-dg, hi+dg, 0, &
                           q, q_lo, q_hi, NQ, n, &
                           flatn, q_lo, q_hi, &
                           sm, sp, st_lo, st_hi)
