@@ -17,10 +17,21 @@ module ppm_module
 
 contains
 
-  subroutine ppm_reconstruct(lo, hi, &
+  subroutine ppm_reconstruct(lo, hi, put_on_edges, &
                              s, s_lo, s_hi, nc, n, &
                              flatn, f_lo, f_hi, &
                              qm, qp, q_lo, q_hi) bind(c, name='ppm_reconstruct')
+
+    ! this routine does the reconstruction of the zone data into
+    ! parabola.  The loops are over zone centers and for zone center,
+    ! it will compute the left and right values of the parabola and
+    ! store these in the qm and qp arrays.  If put_on_edges = 0, then
+    ! this storage is done by zone so the parabola information for a
+    ! zone can then be used in ppm_int_profile to compute the
+    ! integrals.  If put_on_edges = 1, then we copy this information
+    ! to the appropriate edges, such that qm(i,j,k,1) is the left
+    ! state on the i-1/2 interface.  This is used for method-of-lines
+    ! integration methods.
 
 #ifndef AMREX_USE_GPU
     use amrex_error_module, only: amrex_error
@@ -29,11 +40,12 @@ contains
 
     implicit none
 
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    integer,  intent(in   ) :: f_lo(3), f_hi(3)
-    integer,  intent(in   ) :: q_lo(3), q_hi(3)
-    integer,  intent(in   ) :: n, nc
+    integer, intent(in   ) :: lo(3), hi(3)
+    integer, intent(in) :: put_on_edges
+    integer, intent(in   ) :: s_lo(3), s_hi(3)
+    integer, intent(in   ) :: f_lo(3), f_hi(3)
+    integer, intent(in   ) :: q_lo(3), q_hi(3)
+    integer, intent(in   ) :: n, nc
 
     real(rt), intent(in   ) :: s(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), nc)
     real(rt), intent(in   ) :: flatn(f_lo(1):f_hi(1), f_lo(2):f_hi(2), f_lo(3):f_hi(3))
@@ -157,8 +169,16 @@ contains
 
              end if
 
-             qp(i,j,k,1) = sp
-             qm(i,j,k,1) = sm
+             if (put_on_edges == 1) then
+                ! right state at i-1/2
+                qp(i,j,k,1) = sm
+
+                ! left state at i+1/2
+                qm(i+1,j,k,1) = sp
+             else
+                qp(i,j,k,1) = sp
+                qm(i,j,k,1) = sm
+             endif
 
           end do
        end do
@@ -253,8 +273,17 @@ contains
 
              end if
 
-             qp(i,j,k,2) = sp
-             qm(i,j,k,2) = sm
+             if (put_on_edges == 1) then
+
+                ! right state on j-1/2
+                qp(i,j,k,2) = sm
+
+                ! left state on j+1/2
+                qm(i,j+1,k,2) = sp
+             else
+                qp(i,j,k,2) = sp
+                qm(i,j,k,2) = sm
+             endif
 
           end do
        end do
@@ -350,8 +379,18 @@ contains
 
              end if
 
-             qp(i,j,k,3) = sp
-             qm(i,j,k,3) = sm
+             if (put_on_edges == 1) then
+
+                ! right state at k-1/2
+                qp(i,j,k,3) = sm
+
+                ! left state at k+1/2
+                qm(i,j,k+1,3) = sp
+
+             else
+                qp(i,j,k,3) = sp
+                qm(i,j,k,3) = sm
+             endif
 
           end do
        end do
