@@ -215,10 +215,12 @@ Castro::create_thornado_source(Real dt)
     {
        int my_ngrow = 2;  // two fluid ghost cells
 
+       const Real prev_time = state[State_Type].prevTime();
+       const Real  cur_time = state[State_Type].curTime();
+
        // This fills the ghost cells of the fluid MultiFab which we will pass into Thornado
        MultiFab S_border(grids, dmap, NUM_STATE, my_ngrow+1);
-       const Real  prev_time = state[State_Type].prevTime();
-       AmrLevel::FillPatch(*this, S_border, my_ngrow+1, prev_time, State_Type, 0, NUM_STATE);
+       AmrLevel::FillPatch(*this, S_border, my_ngrow+1, cur_time, State_Type, 0, NUM_STATE);
 
        // This fills the ghost cells of the radiation MultiFab which we will pass into Thornado
        MultiFab R_border(grids, dmap, U_R_old.nComp(), my_ngrow);
@@ -302,11 +304,13 @@ Castro::create_thornado_source(Real dt)
 
           // Add the source term to all components even though there should
           //     only be non-zero source terms for (Rho, Xmom, Ymom, Zmom, RhoE, UFX)
-          MultiFab::Add( S_new, dS, Density, 0, S_new.nComp(), 0);
-          MultiFab::Add(dS_new, dS, Density, 0, S_new.nComp(), 0);
+          MultiFab::Add( S_border, dS, Density, 0, S_new.nComp(), 0);
+          MultiFab::Add( S_new   , dS, Density, 0, S_new.nComp(), 0);
+          MultiFab::Add(dS_new   , dS, Density, 0, S_new.nComp(), 0);
 
-          MultiFab::Add(U_R_new, dR, 0, 0, U_R_new.nComp(), 0);
-          MultiFab::Add( dR_new, dR, 0, 0, U_R_new.nComp(), 0);
+          MultiFab::Add(R_border, dR, 0, 0, U_R_new.nComp(), 0);
+          MultiFab::Add(U_R_new , dR, 0, 0, U_R_new.nComp(), 0);
+          MultiFab::Add( dR_new , dR, 0, 0, U_R_new.nComp(), 0);
 
           // Fill the ghost cells before taking the next dt_sub 
           S_border.FillBoundary();
