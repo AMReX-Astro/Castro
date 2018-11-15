@@ -80,9 +80,9 @@
 
     print *,'NX ', nx(:)
 
-    call CreateFluidFields ( nX, swX )
+    call CreateFluidFields ( nX, swX, Verbose_Option = .FALSE. )
 
-    call CreateRadiationFields ( nX, swX, nE, swE, nSpecies_Option = nSpecies )
+    call CreateRadiationFields ( nX, swX, nE, swE, nSpecies_Option = nSpecies, Verbose_Option = .FALSE. )
 
     ! ************************************************************************************
     ! Interpolate from the Castro "S" arrays into Thornado "uCF" arrays
