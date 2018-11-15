@@ -197,10 +197,9 @@ contains
     real(rt), pointer :: Ip_src(:,:,:,:,:,:), Im_src(:,:,:,:,:,:)
     real(rt), pointer :: Ip_gc(:,:,:,:,:,:), Im_gc(:,:,:,:,:,:)
 
-    real(rt)        , pointer :: shk(:,:,:)
+    real(rt), pointer :: shk(:,:,:)
 
-    real(rt)        , pointer :: sxm(:,:,:), sym(:,:,:), szm(:,:,:)
-    real(rt)        , pointer :: sxp(:,:,:), syp(:,:,:), szp(:,:,:)
+    real(rt), pointer :: sm(:,:,:,:), sp(:,:,:,:)
 
     ! Left and right state arrays (edge centered, cell centered)
     double precision, dimension(:,:,:,:), pointer :: &
@@ -337,16 +336,8 @@ contains
 #endif
 
 
-    call bl_allocate(sxm, glo, ghi)
-    call bl_allocate(sxp, glo, ghi)
-#if AMREX_SPACEDIM >= 2
-    call bl_allocate(sym, glo, ghi)
-    call bl_allocate(syp, glo, ghi)
-#endif
-#if AMREX_SPACEDIM == 3
-    call bl_allocate(szm, glo, ghi)
-    call bl_allocate(szp, glo, ghi)
-#endif
+    call bl_allocate(sm, glo, ghi, AMREX_SPACEDIM)
+    call bl_allocate(sp, glo, ghi, AMREX_SPACEDIM)
 
     ! we don't need to reconstruct all of the NQ state variables,
     ! depending on how we are tracing
@@ -377,60 +368,34 @@ contains
        do n = 1, NQ
           if (.not. reconstruct_state(n)) cycle
 
-          call ppm_reconstruct(q, qd_lo, qd_hi, NQ, n, &
+          call ppm_reconstruct(lo-dg, hi+dg, &
+                               q, qd_lo, qd_hi, NQ, n, &
                                flatn, qd_lo, qd_hi, &
-                               sxm, sxp, &
-#if AMREX_SPACEDIM >= 2
-                               sym, syp, &
-#endif
-#if AMREX_SPACEDIM == 3
-                               szm, szp, &
-#endif
-                               glo, ghi, &
-                               lo, hi, dx)
+                               sm, sp, glo, ghi)
 
-          call ppm_int_profile(q, qd_lo, qd_hi, NQ, n, &
+          call ppm_int_profile(lo-dg, hi+dg, &
+                               q, qd_lo, qd_hi, NQ, n, &
                                q, qd_lo, qd_hi, &
                                qaux, qa_lo, qa_hi, &
-                               sxm, sxp, &
-#if AMREX_SPACEDIM >= 2
-                               sym, syp, &
-#endif
-#if AMREX_SPACEDIM == 3
-                               szm, szp, &
-#endif
-                               glo, ghi, &
+                               sm, sp, glo, ghi, &
                                Ip, Im, glo, ghi, NQ, n, &
-                               lo, hi, dx, dt)
+                               dx, dt)
        end do
 
 
        if (ppm_temp_fix /= 1) then
-          call ppm_reconstruct(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
+          call ppm_reconstruct(lo-dg, hi+dg, &
+                               qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
                                flatn, qd_lo, qd_hi, &
-                               sxm, sxp, &
-#if AMREX_SPACEDIM >= 2
-                               sym, syp, &
-#endif
-#if AMREX_SPACEDIM == 3
-                               szm, szp, &
-#endif
-                               glo, ghi, &
-                               lo, hi, dx)
+                               sm, sp, glo, ghi)
 
-          call ppm_int_profile(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
+          call ppm_int_profile(lo-dg, hi+dg, &
+                               qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
                                q, qd_lo, qd_hi, &
                                qaux, qa_lo, qa_hi, &
-                               sxm, sxp, &
-#if AMREX_SPACEDIM >= 2
-                               sym, syp, &
-#endif
-#if AMREX_SPACEDIM == 3
-                               szm, szp, &
-#endif
-                               glo, ghi, &
+                               sm, sp, glo, ghi, &
                                Ip_gc, Im_gc, glo, ghi, 1, 1, &
-                               lo, hi, dx, dt)
+                               dx, dt)
        else
 
           ! temperature-based PPM
@@ -443,31 +408,18 @@ contains
        ! source terms
        do n = 1, QVAR
           if (source_nonzero(n)) then
-             call ppm_reconstruct(srcQ, src_lo, src_hi, QVAR, n, &
+             call ppm_reconstruct(lo-dg, hi+dg, &
+                                  srcQ, src_lo, src_hi, QVAR, n, &
                                   flatn, qd_lo, qd_hi, &
-                                  sxm, sxp, &
-#if AMREX_SPACEDIM >= 2
-                                  sym, syp, &
-#endif
-#if AMREX_SPACEDIM == 3
-                                  szm, szp, &
-#endif
-                                  glo, ghi, &
-                                  lo, hi, dx)
+                                  sm, sp, glo, ghi)
 
-             call ppm_int_profile(srcQ, src_lo, src_hi, QVAR, n, &
+             call ppm_int_profile(lo-dg, hi+dg, &
+                                  srcQ, src_lo, src_hi, QVAR, n, &
                                   q, qd_lo, qd_hi, &
                                   qaux, qa_lo, qa_hi, &
-                                  sxm, sxp, &
-#if AMREX_SPACEDIM >= 2
-                                  sym, syp, &
-#endif
-#if AMREX_SPACEDIM == 3
-                                  szm, szp, &
-#endif
-                                  glo, ghi, &
+                                  sm, sp, glo, ghi, &
                                   Ip_src, Im_src, glo, ghi, QVAR, n, &
-                                  lo, hi, dx, dt)
+                                  dx, dt)
           else
              Ip_src(glo(1):ghi(1),glo(2):ghi(2),glo(3):ghi(3),:,:,n) = ZERO
              Im_src(glo(1):ghi(1),glo(2):ghi(2),glo(3):ghi(3),:,:,n) = ZERO
@@ -658,16 +610,8 @@ contains
     end if
 
     ! Deallocate arrays
-    call bl_deallocate(sxm)
-    call bl_deallocate(sxp)
-#if AMREX_SPACEDIM >= 2
-    call bl_deallocate(sym)
-    call bl_deallocate(syp)
-#endif
-#if AMREX_SPACEDIM == 3
-    call bl_deallocate(szm)
-    call bl_deallocate(szp)
-#endif
+    call bl_deallocate(sm)
+    call bl_deallocate(sp)
 
 #if AMREX_SPACEDIM == 3
     call bl_allocate( qmxy, fglo, fghi, NQ)

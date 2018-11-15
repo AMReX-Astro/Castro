@@ -131,8 +131,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   real(rt)        , pointer:: shk(:,:,:)
 
   ! temporary interface values of the parabola
-  real(rt)        , pointer :: sxm(:,:,:), sym(:,:,:), szm(:,:,:)
-  real(rt)        , pointer :: sxp(:,:,:), syp(:,:,:), szp(:,:,:)
+  real(rt)        , pointer :: sm(:,:,:,:), sp(:,:,:,:)
 
   real(rt)        , pointer :: qxm(:,:,:,:), qym(:,:,:,:), qzm(:,:,:,:)
   real(rt)        , pointer :: qxp(:,:,:,:), qyp(:,:,:,:), qzp(:,:,:,:)
@@ -179,20 +178,16 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #endif
 #endif
 
-  call bl_allocate(sxm, st_lo, st_hi)
-  call bl_allocate(sxp, st_lo, st_hi)
+  call bl_allocate(sm, st_lo, st_hi, AMREX_SPACEDIM)
+  call bl_allocate(sp, st_lo, st_hi, AMREX_SPACEDIM)
   call bl_allocate(qxm, It_lo, It_hi, NQ)
   call bl_allocate(qxp, It_lo, It_hi, NQ)
 
 #if AMREX_SPACEDIM >= 2
-  call bl_allocate(sym, st_lo, st_hi)
-  call bl_allocate(syp, st_lo, st_hi)
   call bl_allocate(qym, It_lo, It_hi, NQ)
   call bl_allocate(qyp, It_lo, It_hi, NQ)
 #endif
 #if AMREX_SPACEDIM == 3
-  call bl_allocate(szm, st_lo, st_hi)
-  call bl_allocate(szp, st_lo, st_hi)
   call bl_allocate(qzm, It_lo, It_hi, NQ)
   call bl_allocate(qzp, It_lo, It_hi, NQ)
 #endif
@@ -249,17 +244,10 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
 
   do n = 1, NQ
-     call ppm_reconstruct(q, q_lo, q_hi, NQ, n, &
+     call ppm_reconstruct(lo-dg, hi+dg, &
+                          q, q_lo, q_hi, NQ, n, &
                           flatn, q_lo, q_hi, &
-                          sxm, sxp, &
-#if AMREX_SPACEDIM >= 2
-                          sym, syp, &
-#endif
-#if AMREX_SPACEDIM == 3
-                          szm, szp, &
-#endif
-                          st_lo, st_hi, &
-                          lo, hi, dx)
+                          sm, sp, st_lo, st_hi)
 
      ! Construct the interface states -- this is essentially just a
      ! reshuffling of interface states from zone-center indexing to
@@ -271,29 +259,29 @@ subroutine ca_mol_single_stage(lo, hi, time, &
               ! x-edges
 
               ! left state at i-1/2 interface
-              qxm(i,j,k,n) = sxp(i-1,j,k)
+              qxm(i,j,k,n) = sp(i-1,j,k,1)
 
               ! right state at i-1/2 interface
-              qxp(i,j,k,n) = sxm(i,j,k)
+              qxp(i,j,k,n) = sm(i,j,k,1)
 
 #if AMREX_SPACEDIM >= 2
               ! y-edges
 
               ! left state at j-1/2 interface
-              qym(i,j,k,n) = syp(i,j-1,k)
+              qym(i,j,k,n) = sp(i,j-1,k,2)
 
               ! right state at j-1/2 interface
-              qyp(i,j,k,n) = sym(i,j,k)
+              qyp(i,j,k,n) = sm(i,j,k,2)
 #endif
 
 #if AMREX_SPACEDIM == 3
               ! z-edges
 
               ! left state at k-1/2 interface
-              qzm(i,j,k,n) = szp(i,j,k-1)
+              qzm(i,j,k,n) = sp(i,j,k-1,3)
 
               ! right state at k-1/2 interface
-              qzp(i,j,k,n) = szm(i,j,k)
+              qzp(i,j,k,n) = sm(i,j,k,3)
 #endif
 
            enddo
@@ -426,21 +414,17 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   call bl_deallocate(flatn)
 
-  call bl_deallocate(sxm)
-  call bl_deallocate(sxp)
+  call bl_deallocate(sm)
+  call bl_deallocate(sp)
   call bl_deallocate(qxm)
   call bl_deallocate(qxp)
 
 #if AMREX_SPACEDIM >= 2
-  call bl_deallocate(sym)
-  call bl_deallocate(syp)
   call bl_deallocate(qym)
   call bl_deallocate(qyp)
 #endif
 
 #if AMREX_SPACEDIM == 3
-  call bl_deallocate(szm)
-  call bl_deallocate(szp)
   call bl_deallocate(qzm)
   call bl_deallocate(qzp)
 #endif
