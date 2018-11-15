@@ -212,7 +212,6 @@ Castro::create_thornado_source(Real dt)
     // We only actually compute the source at level 0; otherwise we interpolate from 
     //    the coarser level
     if (level == 0)
-//  if (1 == 1)
     {
        int my_ngrow = 2;  // two fluid ghost cells
 
@@ -313,11 +312,13 @@ Castro::create_thornado_source(Real dt)
     } else {
        const Real  cur_time = state[Thornado_Type].curTime();
 
-       AmrLevel::FillPatch(*this, dS, 0, cur_time, Thornado_Fluid_Source_Type, 0, NUM_STATE);
+       int ng_to_fill = 0;
+
+       AmrLevel::FillCoarsePatch(dS, 0, cur_time, Thornado_Fluid_Source_Type, 0, NUM_STATE, ng_to_fill);
        MultiFab::Add( S_new, dS, Density, 0, S_new.nComp(), 0);
        MultiFab::Add(dS_new, dS, Density, 0, S_new.nComp(), 0);
 
-       AmrLevel::FillPatch(*this, dR, 0, cur_time, Thornado_Rad_Source_Type, 0, dR_new.nComp());
+       AmrLevel::FillCoarsePatch(dR, 0, cur_time, Thornado_Rad_Source_Type, 0, dR_new.nComp(), ng_to_fill);
        MultiFab::Add(U_R_new, dR, 0, 0, U_R_new.nComp(), 0);
        MultiFab::Add( dR_new, dR, 0, 0, U_R_new.nComp(), 0);
     }
