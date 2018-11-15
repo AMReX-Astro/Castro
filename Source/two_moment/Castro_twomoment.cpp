@@ -229,8 +229,10 @@ Castro::create_thornado_source(Real dt)
        // int n_sub = GetNSteps(dt); // From thornado
        Real dt_CGS;
        compute_thornado_timestep(dx, dt_CGS );
-       std::cout << "DT " << dt << " " << dt_CGS << std::endl;
-       int n_sub = 1; // THIS IS JUST A HACK TO MAKE IT COMPILE 
+
+       int n_sub = 1; 
+       if (dt_CGS < dt) 
+          n_sub = int(dt / dt_CGS) + 1;
 
        int n_fluid_dof = THORNADO_FLUID_NDOF;
        int n_moments   = THORNADO_NMOMENTS;
@@ -239,6 +241,10 @@ Castro::create_thornado_source(Real dt)
 
        Real dt_sub = dt / n_sub;
        int * boxlen = new int[3];
+
+       amrex::Print() << "... dt_Castro   " << dt      << std::endl;
+       amrex::Print() << "... dt_Thornado " << dt_CGS  << std::endl;
+       amrex::Print() << "... dt_sub      " << dt_sub  << std::endl;
 
        Vector<Real> grid_lo(3);
        Vector<Real> grid_hi(3);
@@ -304,7 +310,13 @@ Castro::create_thornado_source(Real dt)
 
           // Fill the ghost cells before taking the next dt_sub 
           S_border.FillBoundary();
+          R_border.FillBoundary();
        }
+
+       // Divide by dt so what we actually store is dS/dt and dR/dt
+       Real dt_inv = 1.0 / dt;
+       dS_new.mult(dt_inv);
+       dR_new.mult(dt_inv);
 
        delete boxlen;
 
@@ -314,13 +326,18 @@ Castro::create_thornado_source(Real dt)
 
        int ng_to_fill = 0;
 
+       // Interpolate dS/dt and dR/dt from coarse grid
        AmrLevel::FillCoarsePatch(dS, 0, cur_time, Thornado_Fluid_Source_Type, 0, NUM_STATE, ng_to_fill);
-       MultiFab::Add( S_new, dS, Density, 0, S_new.nComp(), 0);
-       MultiFab::Add(dS_new, dS, Density, 0, S_new.nComp(), 0);
-
        AmrLevel::FillCoarsePatch(dR, 0, cur_time, Thornado_Rad_Source_Type, 0, dR_new.nComp(), ng_to_fill);
-       MultiFab::Add(U_R_new, dR, 0, 0, U_R_new.nComp(), 0);
-       MultiFab::Add( dR_new, dR, 0, 0, U_R_new.nComp(), 0);
+
+       // Store dS/dt in "dS_new" and dR/dt in "dR_new" at this level -- this is only used if we need to
+       //       interpolate to a finer level
+       MultiFab::Copy (dS_new, dS, 0, 0,   S_new.nComp(), 0); 
+       MultiFab::Copy (dR_new, dR, 0, 0, U_R_new.nComp(), 0); 
+
+       // Multiply by dt before adding to the state
+       MultiFab::Saxpy (  S_new, dt, dS, 0, 0,   S_new.nComp(), 0);
+       MultiFab::Saxpy (U_R_new, dt, dR, 0, 0, U_R_new.nComp(), 0);
     }
 
     // Copy dS_new into dS_old so that we can interpolate in time correctly 
