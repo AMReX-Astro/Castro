@@ -25,10 +25,6 @@ static Box grow_box_by_one (const Box& b) { return amrex::grow(b,1); }
 
 typedef StateDescriptor::BndryFunc BndryFunc;
 
-#ifdef THORNADO
-// extern DG_Interpolater           dg_interp;
-#endif
-
 //
 // Components are:
 //  Interior, Inflow, Outflow,  Symmetry,     SlipWall,     NoSlipWall
@@ -540,7 +536,8 @@ Castro::variableSetUp ()
   // We need to call this here so we know how many components to allocate 
   int ncomp_thornado = Castro::init_thornado();
   int ngrow_thornado = ngrow_state;
-  char buf[10];
+
+  char buf[20];
 
   store_in_checkpoint = false;
   desc_lst.addDescriptor(Thornado_Rad_Source_Type, IndexType::TheCellType(),
@@ -576,6 +573,9 @@ Castro::variableSetUp ()
 
   derive_lst.add("J_avg",IndexType::TheCellType(),1,ca_der_J,the_same_box);
   derive_lst.addComponent("J_avg",desc_lst,Thornado_Type,0,ncomp_thornado);
+
+//derive_lst.add("J_avg_per_E",IndexType::TheCellType(),100,ca_der_J_per_E,the_same_box);
+//derive_lst.addComponent("J_avg_per_E",desc_lst,Thornado_Type,0,ncomp_thornado);
 
   derive_lst.add("Hx_avg",IndexType::TheCellType(),1,ca_der_Hx,the_same_box);
   derive_lst.addComponent("Hx_avg",desc_lst,Thornado_Type,0,ncomp_thornado);
