@@ -622,6 +622,9 @@ public:
     static int       FirstAux,  NumAux;
 
     static amrex::Vector<std::string> source_names;
+#ifdef THORNADO
+    static amrex::Vector<std::string> thornado_plotvar_names;
+#endif
 
     //
     // This MultiFab is on the coarser level.  This is useful for the coarser level
@@ -655,6 +658,8 @@ public:
     static amrex::Real thornado_eR;
     static int         thornado_ndimse;
     static amrex::Real thornado_zoome;
+    static int         thornado_nplotvar;
+    static int         thornado_plot_node_averages;
 #endif
 
 
@@ -673,6 +678,8 @@ protected:
     // Read thornado-related inputs
     //
     static void read_thornado_params();
+
+    std::unique_ptr<amrex::MultiFab> get_thornado_plotMF ();
 #endif
 
 #ifdef SELF_GRAVITY

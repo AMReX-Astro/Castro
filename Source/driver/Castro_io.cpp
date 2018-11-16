@@ -621,6 +621,12 @@ Castro::setPlotVariables ()
 
   for (int i = 0; i < desc_lst[Source_Type].nComp(); i++)
       parent->deleteStatePlotVar(desc_lst[Source_Type].name(i));
+#ifdef THORNADO
+  for (int i = 0; i < desc_lst[Thornado_Fluid_Source_Type].nComp(); i++)
+      parent->deleteStatePlotVar(desc_lst[Thornado_Fluid_Source_Type].name(i));
+  for (int i = 0; i < desc_lst[Thornado_Rad_Source_Type].nComp(); i++)
+      parent->deleteStatePlotVar(desc_lst[Thornado_Rad_Source_Type].name(i));
+#endif
 
 #ifdef SDC
 #ifdef REACTIONS
@@ -980,6 +986,10 @@ Castro::plotFileOutput(const std::string& dir,
 #ifdef RADIATION
     if (Radiation::nplotvar > 0) n_data_items += Radiation::nplotvar;
 #endif
+#ifdef THORNADO
+    if (thornado_nplotvar > 0)  n_data_items += thornado_nplotvar;
+    std::cout << "NUMBER OF ADDITIONAL THORNADO PLOTVARS " << thornado_nplotvar << std::endl;
+#endif
 
     Real cur_time = state[State_Type].curTime();
 
@@ -1015,6 +1025,11 @@ Castro::plotFileOutput(const std::string& dir,
 #ifdef RADIATION
 	for (i=0; i<Radiation::nplotvar; ++i)
 	    os << Radiation::plotvar_names[i] << '\n';
+#endif
+
+#ifdef THORNADO
+	for (i=0; i <thornado_nplotvar; ++i)
+	    os << thornado_plotvar_names[i] << '\n';
 #endif
 
         os << BL_SPACEDIM << '\n';
@@ -1141,6 +1156,14 @@ Castro::plotFileOutput(const std::string& dir,
 	    cnt++;
 	}
     }
+
+#ifdef THORNADO
+    if (thornado_nplotvar > 0) {
+        auto thornado_plt_MF = get_thornado_plotMF();
+	MultiFab::Copy(plotMF,*thornado_plt_MF,0,cnt,thornado_nplotvar,0);
+	cnt += thornado_nplotvar;
+    }
+#endif
 
 #ifdef RADIATION
     if (Radiation::nplotvar > 0) {
