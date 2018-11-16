@@ -17,6 +17,11 @@ changes since last release
      Also, fixed an edge case where this custom distribution map could
      cause a numerical overflow and code crash. (#382)
 
+  -- removed ppm_type = 2.  This was not used for science simulations
+     becuase it was never shown to be completely stable.  In the near
+     future, the full fourth order method will be merged which will be
+     a better replacement.
+
 # 18.11
 
   -- we've restructured the CTU solver to no longer use a slab
