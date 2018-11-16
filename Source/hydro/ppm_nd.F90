@@ -47,7 +47,7 @@ contains
     integer, intent(in   ) :: f_lo(3), f_hi(3)
     integer, intent(in   ) :: qm_lo(3), qm_hi(3)
     integer, intent(in   ) :: qp_lo(3), qp_hi(3)
-    integer, intent(in   ) :: n, nc
+    integer, intent(in   ), value :: n, nc
 
     real(rt), intent(in   ) :: s(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), nc)
     real(rt), intent(in   ) :: flatn(f_lo(1):f_hi(1), f_lo(2):f_hi(2), f_lo(3):f_hi(3))
