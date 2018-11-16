@@ -7,6 +7,11 @@ changes since last release
   -- we now apply the source terms for PLM before the transverse
      routines.  This is more consistent with the PPM version.
 
+  -- fixed a bug in 2-d with rotation -- we were adding the source
+     terms to the out-of-plane velocity twice in the prediction of the
+     interface states, resulting in an overall first-order
+     approximation there.
+
   -- fixed an issue that resulted in the custom knapsack distribution
      map not generating a useful distribution map for the reactions.
      Also, fixed an edge case where this custom distribution map could
