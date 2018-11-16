@@ -19,9 +19,7 @@ contains
 #if (AMREX_SPACEDIM < 3)
                        dloga, dloga_lo, dloga_hi, &
 #endif
-#if (AMREX_SPACEDIM == 1)
                        SrcQ, src_lo, Src_hi, &
-#endif
                        lo, hi, domlo, domhi, &
                        dx, dt)
 
@@ -45,9 +43,7 @@ contains
 #if (AMREX_SPACEDIM < 3)
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
-#if (AMREX_SPACEDIM == 1)
     integer, intent(in) :: src_lo(3), src_hi(3)
-#endif
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
@@ -62,9 +58,7 @@ contains
 #if (AMREX_SPACEDIM < 3)
     real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 #endif
-#if (AMREX_SPACEDIM == 1)
     real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
-#endif
     real(rt), intent(in) :: dx(3), dt
 
     ! Local variables
@@ -186,9 +180,7 @@ contains
                 qp(i,j,k,QPRES) = max(small_pres, p_ref + (apright + amright)*csq)
                 qp(i,j,k,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
 
-                ! add the source terms in 1-d, since we don't do this in
-                ! the transverse routines
-#if (AMREX_SPACEDIM == 1)
+                ! add the source terms 
                 qp(i,j,k,QRHO  ) = qp(i,j,k,QRHO  ) + HALF*dt*srcQ(i,j,k,QRHO)
                 qp(i,j,k,QRHO  ) = max(small_dens, qp(i,j,k,QRHO))
                 qp(i,j,k,QUN   ) = qp(i,j,k,QUN   ) + HALF*dt*srcQ(i,j,k,QUN)
@@ -196,7 +188,7 @@ contains
                 qp(i,j,k,QUTT  ) = qp(i,j,k,QUTT  ) + HALF*dt*srcQ(i,j,k,QUTT)
                 qp(i,j,k,QREINT) = qp(i,j,k,QREINT) + HALF*dt*srcQ(i,j,k,QREINT)
                 qp(i,j,k,QPRES ) = qp(i,j,k,QPRES ) + HALF*dt*srcQ(i,j,k,QPRES)
-#endif
+
              end if
 
              ! now construct the left state on the i+1 interface
@@ -229,15 +221,13 @@ contains
                 qm(i+1,j,k,QPRES) = max(small_pres, p_ref + (apleft + amleft)*csq)
                 qm(i+1,j,k,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
 
-                ! add the source terms in 1-d, since we usually do this in the transverse routines
-#if (AMREX_SPACEDIM == 1)
+                ! add the source terms
                 qm(i+1,j,k,QRHO) = max(small_dens, qm(i+1,j,k,QRHO) + HALF*dt*srcQ(i,j,k,QRHO))
                 qm(i+1,j,k,QUN) = qm(i+1,j,k,QUN) + HALF*dt*srcQ(i,j,k,QUN)
                 qm(i+1,j,k,QUT) = qm(i+1,j,k,QUT) + HALF*dt*srcQ(i,j,k,QUT)
                 qm(i+1,j,k,QUTT) = qm(i+1,j,k,QUTT) + HALF*dt*srcQ(i,j,k,QUTT)
                 qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + HALF*dt*srcQ(i,j,k,QREINT)
                 qm(i+1,j,k,QPRES) = qm(i+1,j,k,QPRES ) + HALF*dt*srcQ(i,j,k,QPRES)
-#endif
 
              else if (idir == 2 .and. j <= hi(2)) then
                 qm(i,j+1,k,QRHO) = max(small_dens, rho_ref + apleft + amleft + azrleft)
@@ -247,6 +237,14 @@ contains
                 qm(i,j+1,k,QPRES) = max(small_pres, p_ref + (apleft + amleft)*csq)
                 qm(i,j+1,k,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
 
+                ! add the source terms
+                qm(i,j+1,k,QRHO) = max(small_dens, qm(i,j+1,k,QRHO) + HALF*dt*srcQ(i,j,k,QRHO))
+                qm(i,j+1,k,QUN) = qm(i,j+1,k,QUN) + HALF*dt*srcQ(i,j,k,QUN)
+                qm(i,j+1,k,QUT) = qm(i,j+1,k,QUT) + HALF*dt*srcQ(i,j,k,QUT)
+                qm(i,j+1,k,QUTT) = qm(i,j+1,k,QUTT) + HALF*dt*srcQ(i,j,k,QUTT)
+                qm(i,j+1,k,QREINT) = qm(i,j+1,k,QREINT) + HALF*dt*srcQ(i,j,k,QREINT)
+                qm(i,j+1,k,QPRES) = qm(i,j+1,k,QPRES ) + HALF*dt*srcQ(i,j,k,QPRES)
+
              else if (idir == 3 .and. k <= hi(3)) then
                 qm(i,j,k+1,QRHO) = max(small_dens, rho_ref + apleft + amleft + azrleft)
                 qm(i,j,k+1,QUN) = un_ref + (apleft - amleft)*cc/rho
@@ -254,6 +252,14 @@ contains
                 qm(i,j,k+1,QUTT) = utt_ref + azutt1left
                 qm(i,j,k+1,QPRES) = max(small_pres, p_ref + (apleft + amleft)*csq)
                 qm(i,j,k+1,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
+
+                ! add the source terms
+                qm(i,j,k+1,QRHO) = max(small_dens, qm(i,j,k+1,QRHO) + HALF*dt*srcQ(i,j,k,QRHO))
+                qm(i,j,k+1,QUN) = qm(i,j,k+1,QUN) + HALF*dt*srcQ(i,j,k,QUN)
+                qm(i,j,k+1,QUT) = qm(i,j,k+1,QUT) + HALF*dt*srcQ(i,j,k,QUT)
+                qm(i,j,k+1,QUTT) = qm(i,j,k+1,QUTT) + HALF*dt*srcQ(i,j,k,QUTT)
+                qm(i,j,k+1,QREINT) = qm(i,j,k+1,QREINT) + HALF*dt*srcQ(i,j,k,QREINT)
+                qm(i,j,k+1,QPRES) = qm(i,j,k+1,QPRES ) + HALF*dt*srcQ(i,j,k,QPRES)
 
              endif
 
@@ -324,7 +330,7 @@ contains
                    un = q(i,j,k,QUN)
                    spzero = merge(-ONE, un*dtdx, un >= ZERO)
                    acmprght = HALF*(-ONE - spzero)*dq(i,j,k,n)
-                   qp(i,j,k,n) = q(i,j,k,n) + acmprght
+                   qp(i,j,k,n) = q(i,j,k,n) + acmprght + HALF*dt*srcQ(i,j,k,n)
                 endif
 
                 ! Left state
@@ -333,11 +339,11 @@ contains
                 acmpleft = HALF*(ONE - spzero )*dq(i,j,k,n)
 
                 if (idir == 1 .and. i <= hi(1)) then
-                   qm(i+1,j,k,n) = q(i,j,k,n) + acmpleft
+                   qm(i+1,j,k,n) = q(i,j,k,n) + acmpleft + HALF*dt*srcQ(i,j,k,n)
                 else if (idir == 2 .and. j <= hi(2)) then
-                   qm(i,j+1,k,n) = q(i,j,k,n) + acmpleft
+                   qm(i,j+1,k,n) = q(i,j,k,n) + acmpleft + HALF*dt*srcQ(i,j,k,n)
                 else if (idir == 3 .and. k <= hi(3)) then
-                   qm(i,j,k+1,n) = q(i,j,k,n) + acmpleft
+                   qm(i,j,k+1,n) = q(i,j,k,n) + acmpleft + HALF*dt*srcQ(i,j,k,n)
                 endif
              enddo
 
