@@ -12,11 +12,13 @@ Castro::read_thornado_params ()
 {
   ParmParse pp("thornado");
 
-  pp.query("eL"    , thornado_eL);
-  pp.query("eR"    , thornado_eR);
-  pp.query("ndimse", thornado_ndimse);
-  pp.query("zoome" , thornado_zoome);
-  pp.query("swE"   , thornado_swE);
+  pp.query("eL"       , thornado_eL);
+  pp.query("eR"       , thornado_eR);
+  pp.query("ndimse"   , thornado_ndimse);
+  pp.query("zoome"    , thornado_zoome);
+  pp.query("swE"      , thornado_swE);
+
+  pp.query("plot_node_averages", thornado_plot_node_averages);
 }
 
 int
@@ -40,6 +42,39 @@ Castro::init_thornado()
 
     ca_get_rad_ncomp(&ncomp_thornado);
 
+    if (thornado_plot_node_averages == 1) {
+
+       ca_get_thornado_node_averages(&thornado_nplotvar);
+
+       char buf[10];
+
+       int n_each = thornado_nplotvar/4;
+
+       for (int i = 0; i < n_each; i++)
+       {
+           sprintf(buf, "J_avg%d", i);
+           thornado_plotvar_names.push_back(buf);
+       }
+       for (int i = 0; i < n_each; i++)
+       {
+           sprintf(buf, "Hx_avg%d", i);
+           thornado_plotvar_names.push_back(buf);
+       }
+       for (int i = 0; i < n_each; i++)
+       {
+           sprintf(buf, "Hy_avg%d", i);
+           thornado_plotvar_names.push_back(buf);
+       }
+       for (int i = 0; i < n_each; i++)
+       {
+           sprintf(buf, "Hz_avg%d", i);
+           thornado_plotvar_names.push_back(buf);
+       }
+   
+    } else {
+       thornado_nplotvar = 0;
+    }
+ 
     return ncomp_thornado;
 }
 
@@ -180,6 +215,15 @@ Castro::average_down_thornado_data(const MultiFab& S_fine, MultiFab& S_crse, int
         }
 }
 
+std::unique_ptr<MultiFab>
+Castro::get_thornado_plotMF ()
+{
+    std::unique_ptr<MultiFab> mf;
+    std::cout << "MAKING PLOTVAR OF SIZE " << thornado_nplotvar << std::endl;
+    mf.reset(new MultiFab(grids, dmap, thornado_nplotvar, 0));
+    mf->setVal(0.);
+    return mf;
+}
 
 void
 Castro::create_thornado_source(Real dt)

@@ -106,6 +106,11 @@ Real         Castro::thornado_eL         = 0.;
 Real         Castro::thornado_eR         = 300.; 
 int          Castro::thornado_ndimse     = 10;
 Real         Castro::thornado_zoome      = 1.0; 
+int          Castro::thornado_nplotvar   = 0;  // Note this only counts the node_averages, the others are already taken care of
+int          Castro::thornado_plot_node_averages = 0;
+
+Vector<std::string>  Castro::thornado_plotvar_names;
+
 #endif
 
 Real         Castro::num_zones_advanced = 0.0;
