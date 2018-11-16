@@ -52,22 +52,22 @@ Castro::init_thornado()
 
        for (int i = 0; i < n_each; i++)
        {
-           sprintf(buf, "J_avg%d", i);
+           sprintf(buf, "J_avg_bin%d", i);
            thornado_plotvar_names.push_back(buf);
        }
        for (int i = 0; i < n_each; i++)
        {
-           sprintf(buf, "Hx_avg%d", i);
+           sprintf(buf, "Hx_avg_bin%d", i);
            thornado_plotvar_names.push_back(buf);
        }
        for (int i = 0; i < n_each; i++)
        {
-           sprintf(buf, "Hy_avg%d", i);
+           sprintf(buf, "Hy_avg_bin%d", i);
            thornado_plotvar_names.push_back(buf);
        }
        for (int i = 0; i < n_each; i++)
        {
-           sprintf(buf, "Hz_avg%d", i);
+           sprintf(buf, "Hz_avg_bin%d", i);
            thornado_plotvar_names.push_back(buf);
        }
    
@@ -152,9 +152,6 @@ Castro::average_down_thornado_data(const MultiFab& S_fine, MultiFab& S_crse, int
                                    const IntVect& ratio)
 {
         AMREX_ASSERT(S_crse.nComp() == S_fine.nComp());
-        AMREX_ASSERT((S_crse.is_cell_centered() && S_fine.is_cell_centered()));
-
-        bool is_cell_centered = S_crse.is_cell_centered();
 
         const int* ratioV = ratio.getVect();
 
@@ -221,7 +218,18 @@ Castro::get_thornado_plotMF ()
     std::unique_ptr<MultiFab> mf;
     std::cout << "MAKING PLOTVAR OF SIZE " << thornado_nplotvar << std::endl;
     mf.reset(new MultiFab(grids, dmap, thornado_nplotvar, 0));
-    mf->setVal(0.);
+
+    MultiFab& U_R_new = get_new_data(Thornado_Type);
+
+    int ncomp_thornado = U_R_new.nComp();
+
+    for (MFIter mfi(*mf, true); mfi.isValid(); ++mfi) 
+    {
+        Box tile_bx = mfi.tilebox();
+        ca_der_avgs_per_E(BL_TO_FORTRAN_BOX(tile_bx), 
+                          BL_TO_FORTRAN_ANYD((*mf)[mfi])  ,&thornado_nplotvar,
+                          BL_TO_FORTRAN_ANYD(U_R_new[mfi]),&ncomp_thornado);
+    }
     return mf;
 }
 

@@ -37,16 +37,12 @@ extern "C"
                         BL_FORT_FAB_ARG_3D( U_R_n), const int* n_urn,
                         int* n_fluid_dof, int* n_moments, int* my_ngrow);
 
-  void ca_der_J
-    (BL_FORT_FAB_ARG_3D(J),const int* nvar,
-     const BL_FORT_FAB_ARG_3D(U_R),const int* ncomp,
-     const int* lo, const int* hi,
-     const int* domain_lo, const int* domain_hi,
-     const amrex::Real* delta, const amrex::Real* xlo,
-     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
-     const int* level, const int* grid_no);
+  void ca_der_avgs_per_E
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(J)        ,const int* nvar,
+     const BL_FORT_FAB_ARG_3D(U_R),const int* ncomp);
 
-  void ca_der_J_per_E
+  void ca_der_J
     (BL_FORT_FAB_ARG_3D(J),const int* nvar,
      const BL_FORT_FAB_ARG_3D(U_R),const int* ncomp,
      const int* lo, const int* hi,
