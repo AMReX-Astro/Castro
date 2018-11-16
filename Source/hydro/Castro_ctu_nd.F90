@@ -184,7 +184,7 @@ contains
 
     real(rt) :: dxinv, dyinv, dzinv
     real(rt) :: dtdx, dtdy, dtdz, hdt
-#ifdef AMREX_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     real(rt) :: cdtdx, cdtdy, cdtdz
 #endif
     real(rt) :: hdtdx, hdtdy, hdtdz
@@ -611,9 +611,7 @@ contains
 #if (AMREX_SPACEDIM < 3)
                       dloga, dloga_lo, dloga_hi, &
 #endif
-#if (AMREX_SPACEDIM == 1)
                       SrcQ, src_lo, Src_hi, &
-#endif
                       lo, hi, domlo, domhi, &
                       dx, dt)
 
@@ -624,9 +622,7 @@ contains
 #if (AMREX_SPACEDIM < 3)
                       dloga, dloga_lo, dloga_hi, &
 #endif
-#if (AMREX_SPACEDIM == 1)
                       SrcQ, src_lo, Src_hi, &
-#endif
                       lo, hi, domlo, domhi, &
                       dx, dt)
 
@@ -635,6 +631,7 @@ contains
                       qaux, qa_lo, qa_hi, &
                       dqz, glo, ghi, &
                       qzm, qzp, fglo, fghi, &
+                      SrcQ, src_lo, Src_hi, &
                       lo, hi, domlo, domhi, &
                       dx, dt)
 #endif
@@ -789,14 +786,14 @@ contains
     ! Outputs: qm, qp                      : xface, +-0 at y
     call transy(qxm, ql, qxp, qr, fglo, fghi, &
                 qaux, qa_lo, qa_hi, &
-                fy, glo, ghi, &
+                fy, &
 #ifdef RADIATION
-                rfy, glo, ghi, &
+                rfy, &
 #endif
+                glo, ghi, &
                 q2, q2_lo, q2_hi, &
-                srcQ, src_lo, src_hi, &
-                hdt, hdtdy, &
-                lo(1)-1, hi(1)+1, lo(2), hi(2))
+                hdtdy, &
+                [lo(1), lo(2), 0], [hi(1), hi(2), 0])
 
     ! Solve the final Riemann problem across the x-interfaces with the
     ! full unsplit states.  The resulting flux through the x-interfaces
@@ -819,16 +816,16 @@ contains
     ! Outputs: qm, qp                      : yface, +-0 at x
     call transx(qym, ql, qyp, qr, fglo, fghi, &
                 qaux, qa_lo, qa_hi, &
-                fx, glo, ghi, &
+                fx, &
 #ifdef RADIATION
-                rfx, glo, ghi, &
+                rfx, &
 #endif
+                glo, ghi, &
                 qgdnvx, fglo, fghi, &
-                srcQ, src_lo, src_hi, &
-                hdt, hdtdx, &
                 area1, area1_lo, area1_hi, &
                 vol, vol_lo, vol_hi, &
-                lo(1), hi(1), lo(2)-1, hi(2)+1)
+                hdt, hdtdx, &
+                [lo(1), lo(2), 0], [hi(1), hi(2), 0])
 
     ! Solve the final Riemann problem across the y-interfaces with the
     ! full unsplit states.  The resulting flux through the y-interfaces
@@ -896,7 +893,7 @@ contains
 #endif
                 glo, ghi, &
                 qgdnvx, fglo, fghi, &
-                cdtdx, lo, hi)
+                hdt, cdtdx, lo, hi)
 
     nullify(fx, qgdnvx)
 #ifdef RADIATION
@@ -1068,7 +1065,6 @@ contains
                  glo, ghi, &
                  qgdnvyz, fglo, fghi, &
                  qgdnvzy, fglo, fghi, &
-                 srcQ, src_lo, src_hi, &
                  hdt, hdtdy, hdtdz, lo, hi)
 
     nullify(fyz, qgdnvyz)
@@ -1177,7 +1173,6 @@ contains
                  glo, ghi, &
                  qgdnvxz, fglo, fghi, &
                  qgdnvzx, fglo, fghi, &
-                 srcQ, src_lo, src_hi, &
                  hdt, hdtdx, hdtdz, lo, hi)
 
 
@@ -1288,7 +1283,6 @@ contains
                  glo, ghi, &
                  qgdnvxy, fglo, fghi, &
                  qgdnvyx, fglo, fghi, &
-                 srcQ, src_lo, src_hi,&
                  hdt, hdtdx, hdtdy, lo, hi)
 
     nullify(fxy, qgdnvxy)
