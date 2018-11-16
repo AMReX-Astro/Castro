@@ -81,8 +81,8 @@ contains
        n = qpass_map(ipassive)
 
        ! For DIM < 3, the velocities are included in the passive
-       ! quantities.  But we already dealt with all 3 velocity
-       ! components above, so don't process them here.
+       ! quantities.  We will deal with all 3 velocity
+       ! components below, so don't process them here.
        if (n == QU .or. n == QV .or. n == QW) cycle
 
        do k = lo(3)-dg(3), hi(3)+dg(3)
