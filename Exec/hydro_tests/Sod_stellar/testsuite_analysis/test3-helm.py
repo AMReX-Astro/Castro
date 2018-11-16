@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # run as: ./test3-helm.py castro_exec_dir plotfle
 
@@ -11,7 +11,7 @@ import numpy as np
 
 import matplotlib
 matplotlib.use('agg')
-import pylab
+import matplotlib.pyplot as plt
 
 def process(castro_exec_dir, plotfile):
 
@@ -19,22 +19,24 @@ def process(castro_exec_dir, plotfile):
 
     # 1. find the fextract tool by looking through the User's path
     path = os.environ["PATH"].split(":")
-    
+
     for d in path:
-        if not os.path.isdir(d): continue
-        for f in os.listdir(d):
-            if (os.path.isfile(d+"/"+f) and 
+        full_dir = os.path.expanduser(d)
+        if not os.path.isdir(full_dir):
+            continue
+        for f in os.listdir(full_dir):
+            if (os.path.isfile(full_dir+"/"+f) and
                 f.startswith("fextract") and f.endswith(".exe")):
-                analysis_routine = d+"/"+f
+                analysis_routine = full_dir+"/"+f
                 break
 
-    print "analysis_routine = ", analysis_routine
+    print("analysis_routine = ", analysis_routine)
 
     shutil.copy(analysis_routine, run_dir)
 
 
     # 2. analyze the data
-    
+
 
     # output the average profile
     os.system("./{} -s {} {}".format(os.path.basename(analysis_routine), "test3-helm.out", plotfile))
@@ -43,23 +45,23 @@ def process(castro_exec_dir, plotfile):
     analytic = castro_exec_dir + "Exec/hydro_tests/Sod_stellar/Verification/test3.exact.128.out"
     analytic_data = np.loadtxt(analytic)
 
-    # need to be more flexible with the data from the simulations, as the 
+    # need to be more flexible with the data from the simulations, as the
     # columns shift depending on the dimensionality.  This gets the column
     # names from the header
     data = np.genfromtxt("test3-helm.out", skip_header=2, names=True)
 
     # 3. make the plot
-    pylab.subplot(411)
+    plt.subplot(411)
 
-    pylab.plot(analytic_data[:,1], analytic_data[:,2])
-    pylab.scatter(data["x"], data["density"], marker="+", color="r")
+    plt.plot(analytic_data[:,1], analytic_data[:,2])
+    plt.scatter(data["x"], data["density"], marker="+", color="r")
 
-    pylab.xlabel("x")
-    pylab.ylabel("density")
-    pylab.xlim(0,2.e5)
+    plt.xlabel("x")
+    plt.ylabel("density")
+    plt.xlim(0,2.e5)
 
 
-    pylab.subplot(412)
+    plt.subplot(412)
 
     # figure out which dimensions are present
     d = 1
@@ -69,48 +71,48 @@ def process(castro_exec_dir, plotfile):
     dim = "xmom"
     if d >= 2 and data["ymom"].ptp() > data["xmom"].ptp(): dim = "ymom"
     if d == 3 and data["zmom"].ptp() > data[dim].ptp(): dim = "zmom"
-    
-    pylab.plot(analytic_data[:,1], analytic_data[:,3])
-    pylab.scatter(data["x"], data[dim]/data["density"], marker="+", color="r")
 
-    pylab.xlabel("x")
-    pylab.ylabel("velocity")
-    pylab.xlim(0,2.e5)
+    plt.plot(analytic_data[:,1], analytic_data[:,3])
+    plt.scatter(data["x"], data[dim]/data["density"], marker="+", color="r")
 
-
-    pylab.subplot(413)
-
-    pylab.plot(analytic_data[:,1], analytic_data[:,4])
-    pylab.scatter(data["x"], data["pressure"], marker="+", color="r")
-
-    pylab.xlabel("x")
-    pylab.ylabel("pressure")
-    pylab.xlim(0,2.e5)
+    plt.xlabel("x")
+    plt.ylabel("velocity")
+    plt.xlim(0,2.e5)
 
 
-    pylab.subplot(414)
+    plt.subplot(413)
 
-    pylab.plot(analytic_data[:,1], analytic_data[:,5])
-    pylab.scatter(data["x"], data["Temp"], marker="+", color="r")
+    plt.plot(analytic_data[:,1], analytic_data[:,4])
+    plt.scatter(data["x"], data["pressure"], marker="+", color="r")
 
-    pylab.xlabel("x")
-    pylab.ylabel("temperature")
-    pylab.xlim(0,2.e5)
+    plt.xlabel("x")
+    plt.ylabel("pressure")
+    plt.xlim(0,2.e5)
 
 
-    ax = pylab.gca()
+    plt.subplot(414)
+
+    plt.plot(analytic_data[:,1], analytic_data[:,5])
+    plt.scatter(data["x"], data["Temp"], marker="+", color="r")
+
+    plt.xlabel("x")
+    plt.ylabel("temperature")
+    plt.xlim(0,2.e5)
+
+
+    ax = plt.gca()
     ax.set_yscale("log")
 
-    f = pylab.gcf()
+    f = plt.gcf()
     f.set_size_inches(6.0, 9.0)
 
-    pylab.tight_layout()
+    plt.tight_layout()
 
     index = plotfile.rfind("_plt")
     if (index > 0):
-        pylab.savefig(plotfile[:index] + ".png")
+        plt.savefig(plotfile[:index] + ".png")
     else:
-        pylab.savefig("test3-helm.png")
+        plt.savefig("test3-helm.png")
 
 
 
@@ -120,4 +122,3 @@ if __name__ == "__main__":
     plotfile = str(sys.argv[2])
 
     process(castro_exec_dir, plotfile)
-
