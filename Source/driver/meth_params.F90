@@ -89,7 +89,7 @@ module meth_params_module
 #ifdef RADIATION
   attributes(managed) :: GDLAMS, GDERADS
 #endif
-  attributes(managed) :: gravity_type
+  ! attributes(managed) :: gravity_type
   attributes(managed) :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 #endif
 
@@ -189,113 +189,113 @@ module meth_params_module
   integer,  allocatable, save :: get_g_from_phi
 
 #ifdef AMREX_USE_CUDA
-attributes(managed) :: difmag
-attributes(managed) :: small_dens
-attributes(managed) :: small_temp
-attributes(managed) :: small_pres
-attributes(managed) :: small_ener
-attributes(managed) :: do_hydro
-attributes(managed) :: do_ctu
-attributes(managed) :: fourth_order
-attributes(managed) :: hybrid_hydro
-attributes(managed) :: ppm_type
-attributes(managed) :: ppm_temp_fix
-attributes(managed) :: ppm_predict_gammae
-attributes(managed) :: ppm_reference_eigenvectors
-attributes(managed) :: plm_iorder
-attributes(managed) :: hybrid_riemann
-attributes(managed) :: riemann_solver
-attributes(managed) :: cg_maxiter
-attributes(managed) :: cg_tol
-attributes(managed) :: cg_blend
-attributes(managed) :: use_eos_in_riemann
-attributes(managed) :: use_flattening
-attributes(managed) :: transverse_use_eos
-attributes(managed) :: transverse_reset_density
-attributes(managed) :: transverse_reset_rhoe
-attributes(managed) :: dual_energy_eta1
-attributes(managed) :: dual_energy_eta2
-attributes(managed) :: use_pslope
-attributes(managed) :: fix_mass_flux
-attributes(managed) :: limit_fluxes_on_small_dens
-attributes(managed) :: density_reset_method
-attributes(managed) :: allow_small_energy
-attributes(managed) :: do_sponge
-attributes(managed) :: sponge_implicit
-attributes(managed) :: first_order_hydro
+  attributes(managed) :: difmag
+  attributes(managed) :: small_dens
+  attributes(managed) :: small_temp
+  attributes(managed) :: small_pres
+  attributes(managed) :: small_ener
+  attributes(managed) :: do_hydro
+  attributes(managed) :: do_ctu
+  attributes(managed) :: fourth_order
+  attributes(managed) :: hybrid_hydro
+  attributes(managed) :: ppm_type
+  attributes(managed) :: ppm_temp_fix
+  attributes(managed) :: ppm_predict_gammae
+  attributes(managed) :: ppm_reference_eigenvectors
+  attributes(managed) :: plm_iorder
+  attributes(managed) :: hybrid_riemann
+  attributes(managed) :: riemann_solver
+  attributes(managed) :: cg_maxiter
+  attributes(managed) :: cg_tol
+  attributes(managed) :: cg_blend
+  attributes(managed) :: use_eos_in_riemann
+  attributes(managed) :: use_flattening
+  attributes(managed) :: transverse_use_eos
+  attributes(managed) :: transverse_reset_density
+  attributes(managed) :: transverse_reset_rhoe
+  attributes(managed) :: dual_energy_eta1
+  attributes(managed) :: dual_energy_eta2
+  attributes(managed) :: use_pslope
+  attributes(managed) :: fix_mass_flux
+  attributes(managed) :: limit_fluxes_on_small_dens
+  attributes(managed) :: density_reset_method
+  attributes(managed) :: allow_small_energy
+  attributes(managed) :: do_sponge
+  attributes(managed) :: sponge_implicit
+  attributes(managed) :: first_order_hydro
 
 
 
 
 
 
-attributes(managed) :: hse_zero_vels
-attributes(managed) :: hse_interp_temp
-attributes(managed) :: hse_reflect_vels
-attributes(managed) :: mol_order
-attributes(managed) :: cfl
-attributes(managed) :: dtnuc_e
-attributes(managed) :: dtnuc_X
-attributes(managed) :: dtnuc_X_threshold
-attributes(managed) :: dxnuc
-attributes(managed) :: dxnuc_max
-attributes(managed) :: max_dxnuc_lev
-attributes(managed) :: do_react
-attributes(managed) :: react_T_min
-attributes(managed) :: react_T_max
-attributes(managed) :: react_rho_min
-attributes(managed) :: react_rho_max
-attributes(managed) :: disable_shock_burning
+  attributes(managed) :: hse_zero_vels
+  attributes(managed) :: hse_interp_temp
+  attributes(managed) :: hse_reflect_vels
+  attributes(managed) :: mol_order
+  attributes(managed) :: cfl
+  attributes(managed) :: dtnuc_e
+  attributes(managed) :: dtnuc_X
+  attributes(managed) :: dtnuc_X_threshold
+  attributes(managed) :: dxnuc
+  attributes(managed) :: dxnuc_max
+  attributes(managed) :: max_dxnuc_lev
+  attributes(managed) :: do_react
+  attributes(managed) :: react_T_min
+  attributes(managed) :: react_T_max
+  attributes(managed) :: react_rho_min
+  attributes(managed) :: react_rho_max
+  attributes(managed) :: disable_shock_burning
 #ifdef DIFFUSION
-attributes(managed) :: diffuse_cutoff_density
+  attributes(managed) :: diffuse_cutoff_density
 #endif
 #ifdef DIFFUSION
-attributes(managed) :: diffuse_cond_scale_fac
+  attributes(managed) :: diffuse_cond_scale_fac
 #endif
-attributes(managed) :: do_grav
-attributes(managed) :: grav_source_type
-attributes(managed) :: do_rotation
+  attributes(managed) :: do_grav
+  attributes(managed) :: grav_source_type
+  attributes(managed) :: do_rotation
 #ifdef ROTATION
-attributes(managed) :: rot_period
-#endif
-#ifdef ROTATION
-attributes(managed) :: rot_period_dot
+  attributes(managed) :: rot_period
 #endif
 #ifdef ROTATION
-attributes(managed) :: rotation_include_centrifugal
+  attributes(managed) :: rot_period_dot
 #endif
 #ifdef ROTATION
-attributes(managed) :: rotation_include_coriolis
+  attributes(managed) :: rotation_include_centrifugal
 #endif
 #ifdef ROTATION
-attributes(managed) :: rotation_include_domegadt
+  attributes(managed) :: rotation_include_coriolis
 #endif
 #ifdef ROTATION
-attributes(managed) :: state_in_rotating_frame
+  attributes(managed) :: rotation_include_domegadt
 #endif
 #ifdef ROTATION
-attributes(managed) :: rot_source_type
+  attributes(managed) :: state_in_rotating_frame
 #endif
 #ifdef ROTATION
-attributes(managed) :: implicit_rotation_update
+  attributes(managed) :: rot_source_type
 #endif
 #ifdef ROTATION
-attributes(managed) :: rot_axis
+  attributes(managed) :: implicit_rotation_update
+#endif
+#ifdef ROTATION
+  attributes(managed) :: rot_axis
 #endif
 #ifdef POINTMASS
-attributes(managed) :: use_point_mass
+  attributes(managed) :: use_point_mass
 #endif
 #ifdef POINTMASS
-attributes(managed) :: point_mass
+  attributes(managed) :: point_mass
 #endif
 #ifdef POINTMASS
-attributes(managed) :: point_mass_fix_solution
+  attributes(managed) :: point_mass_fix_solution
 #endif
-attributes(managed) :: do_acc
-attributes(managed) :: grown_factor
-attributes(managed) :: track_grid_losses
-attributes(managed) :: const_grav
-attributes(managed) :: get_g_from_phi
+  attributes(managed) :: do_acc
+  attributes(managed) :: grown_factor
+  attributes(managed) :: track_grid_losses
+  attributes(managed) :: const_grav
+  attributes(managed) :: get_g_from_phi
 #endif
 
   !$acc declare &
@@ -430,7 +430,7 @@ contains
 #ifdef RADIATION
     allocate(GDLAMS, GDERADS)
 #endif
-    allocate(gravity_type)
+    ! allocate(gravity_type)
     allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
     allocate(const_grav)
@@ -801,241 +801,241 @@ contains
 #endif
 
     if (allocated(difmag)) then
-        deallocate(difmag)
+       deallocate(difmag)
     end if
     if (allocated(small_dens)) then
-        deallocate(small_dens)
+       deallocate(small_dens)
     end if
     if (allocated(small_temp)) then
-        deallocate(small_temp)
+       deallocate(small_temp)
     end if
     if (allocated(small_pres)) then
-        deallocate(small_pres)
+       deallocate(small_pres)
     end if
     if (allocated(small_ener)) then
-        deallocate(small_ener)
+       deallocate(small_ener)
     end if
     if (allocated(do_hydro)) then
-        deallocate(do_hydro)
+       deallocate(do_hydro)
     end if
     if (allocated(do_ctu)) then
-        deallocate(do_ctu)
+       deallocate(do_ctu)
     end if
     if (allocated(fourth_order)) then
-        deallocate(fourth_order)
+       deallocate(fourth_order)
     end if
     if (allocated(hybrid_hydro)) then
-        deallocate(hybrid_hydro)
+       deallocate(hybrid_hydro)
     end if
     if (allocated(ppm_type)) then
-        deallocate(ppm_type)
+       deallocate(ppm_type)
     end if
     if (allocated(ppm_temp_fix)) then
-        deallocate(ppm_temp_fix)
+       deallocate(ppm_temp_fix)
     end if
     if (allocated(ppm_predict_gammae)) then
-        deallocate(ppm_predict_gammae)
+       deallocate(ppm_predict_gammae)
     end if
     if (allocated(ppm_reference_eigenvectors)) then
-        deallocate(ppm_reference_eigenvectors)
+       deallocate(ppm_reference_eigenvectors)
     end if
     if (allocated(plm_iorder)) then
-        deallocate(plm_iorder)
+       deallocate(plm_iorder)
     end if
     if (allocated(hybrid_riemann)) then
-        deallocate(hybrid_riemann)
+       deallocate(hybrid_riemann)
     end if
     if (allocated(riemann_solver)) then
-        deallocate(riemann_solver)
+       deallocate(riemann_solver)
     end if
     if (allocated(cg_maxiter)) then
-        deallocate(cg_maxiter)
+       deallocate(cg_maxiter)
     end if
     if (allocated(cg_tol)) then
-        deallocate(cg_tol)
+       deallocate(cg_tol)
     end if
     if (allocated(cg_blend)) then
-        deallocate(cg_blend)
+       deallocate(cg_blend)
     end if
     if (allocated(use_eos_in_riemann)) then
-        deallocate(use_eos_in_riemann)
+       deallocate(use_eos_in_riemann)
     end if
     if (allocated(use_flattening)) then
-        deallocate(use_flattening)
+       deallocate(use_flattening)
     end if
     if (allocated(transverse_use_eos)) then
-        deallocate(transverse_use_eos)
+       deallocate(transverse_use_eos)
     end if
     if (allocated(transverse_reset_density)) then
-        deallocate(transverse_reset_density)
+       deallocate(transverse_reset_density)
     end if
     if (allocated(transverse_reset_rhoe)) then
-        deallocate(transverse_reset_rhoe)
+       deallocate(transverse_reset_rhoe)
     end if
     if (allocated(dual_energy_eta1)) then
-        deallocate(dual_energy_eta1)
+       deallocate(dual_energy_eta1)
     end if
     if (allocated(dual_energy_eta2)) then
-        deallocate(dual_energy_eta2)
+       deallocate(dual_energy_eta2)
     end if
     if (allocated(use_pslope)) then
-        deallocate(use_pslope)
+       deallocate(use_pslope)
     end if
     if (allocated(fix_mass_flux)) then
-        deallocate(fix_mass_flux)
+       deallocate(fix_mass_flux)
     end if
     if (allocated(limit_fluxes_on_small_dens)) then
-        deallocate(limit_fluxes_on_small_dens)
+       deallocate(limit_fluxes_on_small_dens)
     end if
     if (allocated(density_reset_method)) then
-        deallocate(density_reset_method)
+       deallocate(density_reset_method)
     end if
     if (allocated(allow_small_energy)) then
-        deallocate(allow_small_energy)
+       deallocate(allow_small_energy)
     end if
     if (allocated(do_sponge)) then
-        deallocate(do_sponge)
+       deallocate(do_sponge)
     end if
     if (allocated(sponge_implicit)) then
-        deallocate(sponge_implicit)
+       deallocate(sponge_implicit)
     end if
     if (allocated(first_order_hydro)) then
-        deallocate(first_order_hydro)
+       deallocate(first_order_hydro)
     end if
     if (allocated(xl_ext_bc_type)) then
-        deallocate(xl_ext_bc_type)
+       deallocate(xl_ext_bc_type)
     end if
     if (allocated(xr_ext_bc_type)) then
-        deallocate(xr_ext_bc_type)
+       deallocate(xr_ext_bc_type)
     end if
     if (allocated(yl_ext_bc_type)) then
-        deallocate(yl_ext_bc_type)
+       deallocate(yl_ext_bc_type)
     end if
     if (allocated(yr_ext_bc_type)) then
-        deallocate(yr_ext_bc_type)
+       deallocate(yr_ext_bc_type)
     end if
     if (allocated(zl_ext_bc_type)) then
-        deallocate(zl_ext_bc_type)
+       deallocate(zl_ext_bc_type)
     end if
     if (allocated(zr_ext_bc_type)) then
-        deallocate(zr_ext_bc_type)
+       deallocate(zr_ext_bc_type)
     end if
     if (allocated(hse_zero_vels)) then
-        deallocate(hse_zero_vels)
+       deallocate(hse_zero_vels)
     end if
     if (allocated(hse_interp_temp)) then
-        deallocate(hse_interp_temp)
+       deallocate(hse_interp_temp)
     end if
     if (allocated(hse_reflect_vels)) then
-        deallocate(hse_reflect_vels)
+       deallocate(hse_reflect_vels)
     end if
     if (allocated(mol_order)) then
-        deallocate(mol_order)
+       deallocate(mol_order)
     end if
     if (allocated(cfl)) then
-        deallocate(cfl)
+       deallocate(cfl)
     end if
     if (allocated(dtnuc_e)) then
-        deallocate(dtnuc_e)
+       deallocate(dtnuc_e)
     end if
     if (allocated(dtnuc_X)) then
-        deallocate(dtnuc_X)
+       deallocate(dtnuc_X)
     end if
     if (allocated(dtnuc_X_threshold)) then
-        deallocate(dtnuc_X_threshold)
+       deallocate(dtnuc_X_threshold)
     end if
     if (allocated(dxnuc)) then
-        deallocate(dxnuc)
+       deallocate(dxnuc)
     end if
     if (allocated(dxnuc_max)) then
-        deallocate(dxnuc_max)
+       deallocate(dxnuc_max)
     end if
     if (allocated(max_dxnuc_lev)) then
-        deallocate(max_dxnuc_lev)
+       deallocate(max_dxnuc_lev)
     end if
     if (allocated(do_react)) then
-        deallocate(do_react)
+       deallocate(do_react)
     end if
     if (allocated(react_T_min)) then
-        deallocate(react_T_min)
+       deallocate(react_T_min)
     end if
     if (allocated(react_T_max)) then
-        deallocate(react_T_max)
+       deallocate(react_T_max)
     end if
     if (allocated(react_rho_min)) then
-        deallocate(react_rho_min)
+       deallocate(react_rho_min)
     end if
     if (allocated(react_rho_max)) then
-        deallocate(react_rho_max)
+       deallocate(react_rho_max)
     end if
     if (allocated(disable_shock_burning)) then
-        deallocate(disable_shock_burning)
+       deallocate(disable_shock_burning)
     end if
     if (allocated(diffuse_cutoff_density)) then
-        deallocate(diffuse_cutoff_density)
+       deallocate(diffuse_cutoff_density)
     end if
     if (allocated(diffuse_cond_scale_fac)) then
-        deallocate(diffuse_cond_scale_fac)
+       deallocate(diffuse_cond_scale_fac)
     end if
     if (allocated(do_grav)) then
-        deallocate(do_grav)
+       deallocate(do_grav)
     end if
     if (allocated(grav_source_type)) then
-        deallocate(grav_source_type)
+       deallocate(grav_source_type)
     end if
     if (allocated(do_rotation)) then
-        deallocate(do_rotation)
+       deallocate(do_rotation)
     end if
     if (allocated(rot_period)) then
-        deallocate(rot_period)
+       deallocate(rot_period)
     end if
     if (allocated(rot_period_dot)) then
-        deallocate(rot_period_dot)
+       deallocate(rot_period_dot)
     end if
     if (allocated(rotation_include_centrifugal)) then
-        deallocate(rotation_include_centrifugal)
+       deallocate(rotation_include_centrifugal)
     end if
     if (allocated(rotation_include_coriolis)) then
-        deallocate(rotation_include_coriolis)
+       deallocate(rotation_include_coriolis)
     end if
     if (allocated(rotation_include_domegadt)) then
-        deallocate(rotation_include_domegadt)
+       deallocate(rotation_include_domegadt)
     end if
     if (allocated(state_in_rotating_frame)) then
-        deallocate(state_in_rotating_frame)
+       deallocate(state_in_rotating_frame)
     end if
     if (allocated(rot_source_type)) then
-        deallocate(rot_source_type)
+       deallocate(rot_source_type)
     end if
     if (allocated(implicit_rotation_update)) then
-        deallocate(implicit_rotation_update)
+       deallocate(implicit_rotation_update)
     end if
     if (allocated(rot_axis)) then
-        deallocate(rot_axis)
+       deallocate(rot_axis)
     end if
     if (allocated(use_point_mass)) then
-        deallocate(use_point_mass)
+       deallocate(use_point_mass)
     end if
     if (allocated(point_mass)) then
-        deallocate(point_mass)
+       deallocate(point_mass)
     end if
     if (allocated(point_mass_fix_solution)) then
-        deallocate(point_mass_fix_solution)
+       deallocate(point_mass_fix_solution)
     end if
     if (allocated(do_acc)) then
-        deallocate(do_acc)
+       deallocate(do_acc)
     end if
     if (allocated(grown_factor)) then
-        deallocate(grown_factor)
+       deallocate(grown_factor)
     end if
     if (allocated(track_grid_losses)) then
-        deallocate(track_grid_losses)
+       deallocate(track_grid_losses)
     end if
     if (allocated(const_grav)) then
-        deallocate(const_grav)
+       deallocate(const_grav)
     end if
     if (allocated(get_g_from_phi)) then
-        deallocate(get_g_from_phi)
+       deallocate(get_g_from_phi)
     end if
 
 

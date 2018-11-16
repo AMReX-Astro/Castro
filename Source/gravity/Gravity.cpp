@@ -852,13 +852,13 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level,
 
 		const Vector<BCRec>& gp_bcs = LevelData[amr_lev]->get_desc_lst()[Gravity_Type].getBCs();
 
-		for (int n = 0; n < BL_SPACEDIM; ++n) {
-			amrex::InterpFromCoarseLevel(*grad_phi[amr_lev][n], time, *grad_phi[amr_lev-1][n],
-			                             0, 0, 1,
-			                             parent->Geom(amr_lev-1), parent->Geom(amr_lev),
-			                             gp_phys_bc, gp_phys_bc, parent->refRatio(amr_lev-1),
-			                             gp_interp, gp_bcs);
-		}
+        for (int n = 0; n < BL_SPACEDIM; ++n) {
+            amrex::InterpFromCoarseLevel(*grad_phi[amr_lev][n], time, *grad_phi[amr_lev-1][n],
+                                         0, 0, 1,
+                                         parent->Geom(amr_lev-1), parent->Geom(amr_lev),
+                                         gp_phys_bc, 0, gp_phys_bc, 0, parent->refRatio(amr_lev-1),
+                                         gp_interp, gp_bcs, 0);
+        }
 
 	}
 
@@ -2591,7 +2591,7 @@ Gravity::sanity_check (int level)
 GradPhiPhysBCFunct::GradPhiPhysBCFunct () { }
 
 void
-GradPhiPhysBCFunct::FillBoundary (MultiFab& mf, int dcomp, int scomp, Real time)
+GradPhiPhysBCFunct::FillBoundary (MultiFab& mf, int dcomp, int scomp, Real time, int bccomp)
 {
     BL_PROFILE("GradPhiPhysBCFunct::FillBoundary");
 

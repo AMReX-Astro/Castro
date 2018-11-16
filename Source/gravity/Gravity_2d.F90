@@ -330,11 +330,11 @@ contains
              if (index == 0) then
                 ! Linear interpolation or extrapolation
                 slope = ( radial_phi(index+1) - radial_phi(index) ) / dr
-                phi(i,j) = radial_phi(index) + slope * xi
+                phi(i,j,k) = radial_phi(index) + slope * xi
              else if (index == numpts_1d-1) then
                 ! Linear interpolation or extrapolation
                 slope = ( radial_phi(index) - radial_phi(index-1) ) / dr
-                phi(i,j) = radial_phi(index) + slope * xi
+                phi(i,j,k) = radial_phi(index) + slope * xi
              else
                 ! Quadratic interpolation
                 p_hi = radial_phi(index+1)
