@@ -521,8 +521,8 @@ extern "C"
      BL_FORT_FAB_ARG_3D(q),
      BL_FORT_FAB_ARG_3D(flatn));
 
-  void ca_ppm_reconstruct_cuda
-    (const int* lo, const int* hi,
+  void ca_ppm_reconstruct
+    (const int* lo, const int* hi, int,
      BL_FORT_FAB_ARG_3D(q),
      BL_FORT_FAB_ARG_3D(flatn),
      BL_FORT_FAB_ARG_3D(qm),

@@ -505,8 +505,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
       // Do PPM reconstruction to the zone edges.
 #pragma gpu
-      ca_ppm_reconstruct_cuda
-          (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+      ca_ppm_reconstruct
+          (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()), 1,
            BL_TO_FORTRAN_ANYD(q[mfi]),
            BL_TO_FORTRAN_ANYD(flatn[mfi]),
            BL_TO_FORTRAN_ANYD(qm[mfi]),

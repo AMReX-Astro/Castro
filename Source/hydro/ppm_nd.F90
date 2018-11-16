@@ -17,10 +17,11 @@ module ppm_module
 
 contains
 
-  subroutine ppm_reconstruct(lo, hi, put_on_edges, &
-                             s, s_lo, s_hi, nc, n, &
-                             flatn, f_lo, f_hi, &
-                             qm, qp, q_lo, q_hi) bind(c, name='ppm_reconstruct')
+  subroutine ca_ppm_reconstruct(lo, hi, put_on_edges, &
+                                s, s_lo, s_hi, nc, n, &
+                                flatn, f_lo, f_hi, &
+                                qm, qm_lo, qm_hi, &
+                                qp, qp_lo, qp_hi) bind(c, name='ca_ppm_reconstruct')
 
     ! this routine does the reconstruction of the zone data into
     ! parabola.  The loops are over zone centers and for zone center,
@@ -41,16 +42,17 @@ contains
     implicit none
 
     integer, intent(in   ) :: lo(3), hi(3)
-    integer, intent(in) :: put_on_edges
+    integer, intent(in), value :: put_on_edges
     integer, intent(in   ) :: s_lo(3), s_hi(3)
     integer, intent(in   ) :: f_lo(3), f_hi(3)
-    integer, intent(in   ) :: q_lo(3), q_hi(3)
+    integer, intent(in   ) :: qm_lo(3), qm_hi(3)
+    integer, intent(in   ) :: qp_lo(3), qp_hi(3)
     integer, intent(in   ) :: n, nc
 
     real(rt), intent(in   ) :: s(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), nc)
     real(rt), intent(in   ) :: flatn(f_lo(1):f_hi(1), f_lo(2):f_hi(2), f_lo(3):f_hi(3))
-    real(rt), intent(inout) :: qm(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),AMREX_SPACEDIM)
-    real(rt), intent(inout) :: qp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),AMREX_SPACEDIM)
+    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),AMREX_SPACEDIM)
+    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),AMREX_SPACEDIM)
 
     ! local
     integer :: i, j, k
