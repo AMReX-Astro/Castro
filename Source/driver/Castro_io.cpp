@@ -988,7 +988,6 @@ Castro::plotFileOutput(const std::string& dir,
 #endif
 #ifdef THORNADO
     if (thornado_nplotvar > 0)  n_data_items += thornado_nplotvar;
-    std::cout << "NUMBER OF ADDITIONAL THORNADO PLOTVARS " << thornado_nplotvar << std::endl;
 #endif
 
     Real cur_time = state[State_Type].curTime();

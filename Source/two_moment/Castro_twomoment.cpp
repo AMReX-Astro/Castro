@@ -216,7 +216,6 @@ std::unique_ptr<MultiFab>
 Castro::get_thornado_plotMF ()
 {
     std::unique_ptr<MultiFab> mf;
-    std::cout << "MAKING PLOTVAR OF SIZE " << thornado_nplotvar << std::endl;
     mf.reset(new MultiFab(grids, dmap, thornado_nplotvar, 0));
 
     MultiFab& U_R_new = get_new_data(Thornado_Type);

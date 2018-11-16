@@ -18,6 +18,8 @@ contains
                                U_R    ,d_lo,d_hi,nc) &
     bind(C, name="ca_der_avgs_per_E")
 
+    use ReferenceElementModule, only: weights_q
+
     implicit none 
 
     integer, intent(in)     :: lo(3), hi(3)
@@ -26,7 +28,7 @@ contains
     real(rt), intent(inout) :: U_R_avg(j_lo(1):j_hi(1),j_lo(2):j_hi(2),j_lo(3):j_hi(3),0:nv-1)
     real(rt), intent(in)    :: U_R    (d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),0:nc-1)
 
-    integer          :: i, j, k, is, ie, id, im, ii, icomp, icount, n_moments = 4
+    integer          :: i, j, k, is, ie, id, im, ii, icomp, n_moments = 4
     integer          :: n_each
 
     U_R_avg(:,:,:,:) = 0.0e0_rt  ! zero it out
@@ -38,8 +40,8 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-            icount = 0
             do is = 1, nSpecies
+
             do ie = 1, nE
             do id = 1, nDOF ! radiation degrees of freedom
 
@@ -47,37 +49,34 @@ contains
               ii = (is-1)*(n_moments*nE*nDOF) + &
                    (im-1)*(nE*nDOF) + &
                    (ie-1)*nDOF + (id-1)
-              icomp = ie-1
-              U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) + U_R(i,j,k,ii)
+              icomp = (is-1)*nSpecies + ie-1
+              U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) + U_R(i,j,k,ii) * weights_q(id)
 
               im = 2  ! H_x is second moment
               ii = (is-1)*(n_moments*nE*nDOF) + &
                    (im-1)*(nE*nDOF) + &
                    (ie-1)*nDOF + (id-1)
-              icomp = n_each+ie-1
-              U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) + U_R(i,j,k,ii)
+              icomp = (is-1)*nSpecies + n_each+ie-1
+              U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) + U_R(i,j,k,ii) * weights_q(id)
 
               im = 3  ! H_x is second moment
               ii = (is-1)*(n_moments*nE*nDOF) + &
                    (im-1)*(nE*nDOF) + &
                    (ie-1)*nDOF + (id-1)
-              icomp = 2*n_each+ie-1
-              U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) + U_R(i,j,k,ii)
+              icomp = (is-1)*nSpecies + 2*n_each+ie-1
+              U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) + U_R(i,j,k,ii) * weights_q(id)
 
               im = 4  ! H_z is second moment
               ii = (is-1)*(n_moments*nE*nDOF) + &
                    (im-1)*(nE*nDOF) + &
                    (ie-1)*nDOF + (id-1)
-              icomp = 3*n_each+ie-1
-              U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) + U_R(i,j,k,ii)
-
-              icount = icount + 1  ! for averaging
+              icomp = (is-1)*nSpecies + 3*n_each+ie-1
+              U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) + U_R(i,j,k,ii) * weights_q(id)
 
             end do
             end do
-            end do
 
-            U_R_avg(i,j,k,:) = U_R_avg(i,j,k,:) / icount  ! average
+            end do
 
           end do
        end do
@@ -89,6 +88,8 @@ contains
                       U_R,d_lo,d_hi,nc,lo,hi,domlo, &
                       domhi,delta,xlo,time,dt,bc,level,grid_no) &
                       bind(C, name="ca_der_J")
+
+    use ReferenceElementModule, only: weights_q
 
     implicit none 
 
@@ -102,29 +103,33 @@ contains
     real(rt), intent(in)    :: U_R(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),0:nc)
     integer, intent(in)     :: level, grid_no
 
-    integer          :: i, j, k, is, ie, id, im, ii, icount, n_moments = 4
-
-    print *,'NV IN CA_DER_J ',nv
+    integer          :: i, j, k, is, ie, id, im, ii, icomp, n_moments = 4
 
     J_avg(:,:,:,:) = 0.0e0_rt  ! zero it out
+
+    im = 1  ! J is first moment
+
+    if (nv .ne. 1) then
+       print *,'NV NOT ONE IN CA_DER_J ', nv
+       stop
+    end if
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-            icount = 0
             do is = 1, nSpecies
             do ie = 1, nE
-            do id = 1, nDOF ! radiation degrees of freedom
-              im = 1  ! J is first moment
               ii = (is-1)*(n_moments*nE*nDOF) + &
-                   (im-1)*(nE*nDOF) + &
-                   (ie-1)*nDOF + (id-1)
-              icount = icount + 1  ! for averaging
-              J_avg(i,j,k,:) = J_avg(i,j,k,:) + U_R(i,j,k,ii)
+                   (im-1)*(nE*nDOF) + (ie-1)*nDOF
+              do id = 1, nDOF ! radiation degrees of freedom
+                 icomp = ii + (id-1)
+                 J_avg(i,j,k,1) = J_avg(i,j,k,1) + U_R(i,j,k,icomp) * weights_q(id)
+              end do
             end do
             end do
-            end do
-            J_avg(i,j,k,:) = J_avg(i,j,k,:) / icount  ! average
+
+            J_avg(i,j,k,1) = J_avg(i,j,k,1) / (nSpecies * nE)
 
           end do
        end do
@@ -136,6 +141,8 @@ contains
                       U_R,d_lo,d_hi,nc,lo,hi,domlo, &
                       domhi,delta,xlo,time,dt,bc,level,grid_no) &
                       bind(C, name="ca_der_Hx")
+
+    use ReferenceElementModule, only: weights_q
 
     implicit none 
 
@@ -149,27 +156,33 @@ contains
     real(rt), intent(in)    :: U_R(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),0:nc)
     integer, intent(in)     :: level, grid_no
 
-    integer          :: i, j, k, is, ie, id, im, ii, icount, n_moments = 4
+    integer          :: i, j, k, is, ie, id, im, ii, icomp, n_moments = 4
 
     Hx_avg(:,:,:,:) = 0.0e0_rt  ! zero it out
+
+    im = 2  ! Hx is second moment
+
+    if (nv .ne. 1) then
+       print *,'NV NOT ONE IN CA_DER_HX ', nv
+       stop
+    end if
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-            icount = 0
             do is = 1, nSpecies
             do ie = 1, nE
-            do id = 1, nDOF
-              im = 2  ! Hx is second moment
-              ii = (is-1)*(n_moments*nE*nDOF) + &
-                   (im-1)*(nE*nDOF) + &
-                   (ie-1)*nDOF + (id-1)
-              icount = icount + 1  ! for averaging
-              Hx_avg(i,j,k,:) = Hx_avg(i,j,k,:) + U_R(i,j,k,ii)
+               ii = (is-1)*(n_moments*nE*nDOF) + &
+                    (im-1)*(nE*nDOF) + (ie-1)*nDOF
+               do id = 1, nDOF
+                 icomp = ii + (id-1)
+                 Hx_avg(i,j,k,1) = Hx_avg(i,j,k,1) + U_R(i,j,k,icomp) * weights_q(id)
+               end do
             end do
             end do
-            end do
-            Hx_avg(i,j,k,:) = Hx_avg(i,j,k,:) / icount  ! average
+
+            Hx_avg(i,j,k,:) = Hx_avg(i,j,k,:) / (nSpecies * nE)
 
           end do
        end do
@@ -184,6 +197,8 @@ contains
                       domhi,delta,xlo,time,dt,bc,level,grid_no) &
                       bind(C, name="ca_der_Hy")
 
+    use ReferenceElementModule, only: weights_q
+
     implicit none 
 
     integer, intent(in)     :: lo(3), hi(3)
@@ -196,27 +211,33 @@ contains
     real(rt), intent(in)    :: U_R(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),0:nc)
     integer, intent(in)     :: level, grid_no
 
-    integer          :: i, j, k, is, ie, id, im, ii, icount, n_moments = 4
+    integer          :: i, j, k, is, ie, id, im, ii, icomp, n_moments = 4
 
     Hy_avg(:,:,:,:) = 0.0e0_rt  ! zero it out
+
+    im = 3  ! Hy is third moment
+
+    if (nv .ne. 1) then
+       print *,'NV NOT ONE IN CA_DER_HY ', nv
+       stop
+    end if
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-            icount = 0
             do is = 1, nSpecies
             do ie = 1, nE
-            do id = 1, nDOF
-              im = 3  ! Hy is third moment
-              ii = (is-1)*(n_moments*nE*nDOF) + &
-                   (im-1)*(nE*nDOF) + &
-                   (ie-1)*nDOF + (id-1)
-              icount = icount + 1  ! for averaging
-              Hy_avg(i,j,k,:) = Hy_avg(i,j,k,:) + U_R(i,j,k,ii)
+               ii = (is-1)*(n_moments*nE*nDOF) + &
+                    (im-1)*(nE*nDOF) + (ie-1)*nDOF
+               do id = 1, nDOF
+                 icomp = ii + (id-1)
+                 Hy_avg(i,j,k,1) = Hy_avg(i,j,k,1) + U_R(i,j,k,icomp) * weights_q(id)
+               end do
             end do
             end do
-            end do
-            Hy_avg(i,j,k,:) = Hy_avg(i,j,k,:) / icount  ! average
+
+            Hy_avg(i,j,k,:) = Hy_avg(i,j,k,:) / (nSpecies * nE)
 
           end do
        end do
@@ -231,6 +252,8 @@ contains
                       domhi,delta,xlo,time,dt,bc,level,grid_no) &
                       bind(C, name="ca_der_Hz")
 
+    use ReferenceElementModule, only: weights_q
+
     implicit none 
 
     integer, intent(in)     :: lo(3), hi(3)
@@ -243,27 +266,33 @@ contains
     real(rt), intent(in)    :: U_R(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),0:nc)
     integer, intent(in)     :: level, grid_no
 
-    integer          :: i, j, k, is, ie, id, im, ii, icount, n_moments = 4
+    integer          :: i, j, k, is, ie, id, im, ii, icomp, n_moments = 4
 
     Hz_avg(:,:,:,:) = 0.0e0_rt  ! zero it out
+
+    im = 4  ! Hz is fourth moment
+
+    if (nv .ne. 1) then
+       print *,'NV NOT ONE IN CA_DER_HZ ', nv
+       stop
+    end if
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-            icount = 0
             do is = 1, nSpecies
             do ie = 1, nE
-            do id = 1, nDOF
-              im = 4  ! Hz is fourth moment
-              ii = (is-1)*(n_moments*nE*nDOF) + &
-                   (im-1)*(nE*nDOF) + &
-                   (ie-1)*nDOF + (id-1)
-              icount = icount + 1  ! for averaging
-              Hz_avg(i,j,k,:) = Hz_avg(i,j,k,:) + U_R(i,j,k,ii)
+               ii = (is-1)*(n_moments*nE*nDOF) + &
+                    (im-1)*(nE*nDOF) + (ie-1)*nDOF
+               do id = 1, nDOF
+                 icomp = ii + (id-1)
+                 Hz_avg(i,j,k,1) = Hz_avg(i,j,k,1) + U_R(i,j,k,icomp) * weights_q(id)
+               end do
             end do
             end do
-            end do
-            Hz_avg(i,j,k,:) = Hz_avg(i,j,k,:) / icount  ! average
+
+            Hz_avg(i,j,k,1) = Hz_avg(i,j,k,1) / (nSpecies * nE)
 
           end do
        end do
