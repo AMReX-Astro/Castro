@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # run as: ./test2-helm.py castro_exec_dir plotfle
 
