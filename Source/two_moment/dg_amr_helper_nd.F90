@@ -27,7 +27,15 @@ contains
     ! local variables
     integer :: idof, ispec, imom, iebin, ic, jc, kc, icomp, ifx, ify, ifz, nfx, nfy, nfz
     real(rt) :: U_Coarse(1:n_dof, 1:n_energy_bins)
-    real(rt) :: U_Fine(1:n_dof, 1:n_energy_bins, 0:nFineX(1), 0:nFineX(2), 0:nFineX(3))
+
+    ! For AMREX_SPACEDIM < 3, nFineX(i > AMREX_SPACEDIM) = 0
+#if (AMREX_SPACEDIM >= 2)
+    real(rt) :: U_Fine(1:n_dof, 1:n_energy_bins, 1:nFineX(1), 1:nFineX(2), 1:1)
+#elif (AMREX_SPACEDIM == 3)
+    real(rt) :: U_Fine(1:n_dof, 1:n_energy_bins, 1:nFineX(1), 1:nFineX(2), 1:nFineX(3))
+#else
+    real(rt) :: U_Fine(1:n_dof, 1:n_energy_bins, 1:nFineX(1), 1:1, 1:1)
+#endif
 
     ! loop over coarse grid ...
     do ic = crse_lo(1), crse_hi(1)
@@ -53,19 +61,27 @@ contains
                    ! unpack U_Fine into fine if (ifine, jfine) lies within (fblo, fbhi)
                    do iebin = 1, n_energy_bins
                       do idof = 1, n_dof
-                         do nfx = 0, nFineX(1)
-                            do nfy = 0, nFineX(2)
-                               do nfz = 0, nFineX(3)
-                                  ifx = fblo(1) + nfx + nFineX(1) * (ic - crse_lo(1))
-                                  ify = fblo(2) + nfy + nFineX(2) * (jc - crse_lo(2))
-                                  ifz = fblo(3) + nfz + nFineX(3) * (kc - crse_lo(3))
+                         do nfx = 1, nFineX(1)
+#if (AMREX_SPACEDIM == 2)
+                            do nfy = 1, nFineX(2)
+                               do nfz = 1, 1
+#elif (AMREX_SPACEDIM == 3)
+                            do nfy = 1, nFineX(2)
+                               do nfz = 1, nFineX(3)
+#else
+                            do nfy = 1, 1
+                               do nfz = 1, 1
+#endif
+                                  ifx = fblo(1) + (nfx-1) + nFineX(1) * (ic - crse_lo(1))
+                                  ify = fblo(2) + (nfy-1) + nFineX(2) * (jc - crse_lo(2))
+                                  ifz = fblo(3) + (nfz-1) + nFineX(3) * (kc - crse_lo(3))
                                   if (fblo(1) .le. ifx .and. ifx .le. fbhi(1) .and. &
                                       fblo(2) .le. ify .and. ify .le. fbhi(2) .and. &
                                       fblo(3) .le. ifz .and. ifz .le. fbhi(3)) then
                                      icomp = (ispec-1)*(n_moments*n_energy_bins*n_dof) + (imom-1)*(n_energy_bins*n_dof) + (iebin-1)*n_dof + (idof-1)
                                      fine(ifx, ify, ifz, icomp) = U_Fine(idof, iebin, nfx, nfy, nfz)
                                   endif
-                               enddo
+                              enddo
                             enddo
                          enddo
                       enddo
@@ -108,18 +124,28 @@ contains
     ! local variables
     integer :: idof, ispec, imom, iebin, ic, jc, kc, icomp, ifx, ify, ifz, nfx, nfy, nfz
     real(rt) :: U_Coarse(1:n_dof, 1:n_energy_bins)
-    real(rt) :: U_Fine(1:n_dof, 1:n_energy_bins, 0:nFineX(1), 0:nFineX(2), 0:nFineX(3))
+
+    ! For AMREX_SPACEDIM < 3, nFineX(i > AMREX_SPACEDIM) = 0
+#if (AMREX_SPACEDIM >= 2)
+    real(rt) :: U_Fine(1:n_dof, 1:n_energy_bins, 1:nFineX(1), 1:nFineX(2), 1:1)
+#elif (AMREX_SPACEDIM == 3)
+    real(rt) :: U_Fine(1:n_dof, 1:n_energy_bins, 1:nFineX(1), 1:nFineX(2), 1:nFineX(3))
+#else
+    real(rt) :: U_Fine(1:n_dof, 1:n_energy_bins, 1:nFineX(1), 1:1, 1:1)
+#endif
 
     ! find starting indices into the fine grid corresponding to the indices in crse_lo
     fblo = 0
     do ic = 1, AMREX_SPACEDIM
        fblo(ic) = fine_lo(ic) + (cblo(ic) - crse_lo(ic)) * nFineX(ic)
     enddo
+    ! should check that this is within fine_hi bounds
 
+    ! should the below be crse_lo, crse_hi or cblo to cbhi
     ! loop over coarse grid ...
-    do ic = crse_lo(1), crse_hi(1)
-       do jc = crse_lo(2), crse_hi(2)
-          do kc = crse_lo(3), crse_hi(3)
+    do ic = cblo(1), cbhi(1)
+       do jc = cblo(2), cbhi(2)
+          do kc = cblo(3), cbhi(3)
 
              ! loop over species and moments ...
              do ispec = 1, n_species
@@ -128,12 +154,20 @@ contains
                    ! pack fine into U_Fine
                    do iebin = 1, n_energy_bins
                       do idof = 1, n_dof
-                         do nfx = 0, nFineX(1)
-                            do nfy = 0, nFineX(2)
-                               do nfz = 0, nFineX(3)
-                                  ifx = fblo(1) + nfx + nFineX(1) * (ic - crse_lo(1))
-                                  ify = fblo(2) + nfy + nFineX(2) * (jc - crse_lo(2))
-                                  ifz = fblo(3) + nfz + nFineX(3) * (kc - crse_lo(3))
+                         do nfx = 1, nFineX(1)
+#if (AMREX_SPACEDIM == 2)
+                            do nfy = 1, nFineX(2)
+                               do nfz = 1, 1
+#elif (AMREX_SPACEDIM == 3)
+                            do nfy = 1, nFineX(2)
+                               do nfz = 1, nFineX(3)
+#else
+                            do nfy = 1, 1
+                               do nfz = 1, 1
+#endif
+                                  ifx = fblo(1) + (nfx-1) + nFineX(1) * (ic - crse_lo(1))
+                                  ify = fblo(2) + (nfy-1) + nFineX(2) * (jc - crse_lo(2))
+                                  ifz = fblo(3) + (nfz-1) + nFineX(3) * (kc - crse_lo(3))
                                   icomp = (ispec-1)*(n_moments*n_energy_bins*n_dof) + (imom-1)*(n_energy_bins*n_dof) + (iebin-1)*n_dof + (idof-1)
                                   U_Fine(idof, iebin, nfx, nfy, nfz) = fine(ifx, ify, ifz, icomp)
                                enddo
