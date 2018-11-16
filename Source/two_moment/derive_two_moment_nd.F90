@@ -18,7 +18,8 @@ contains
                                U_R    ,d_lo,d_hi,nc) &
     bind(C, name="ca_der_avgs_per_E")
 
-    use ReferenceElementModule, only: weights_q
+    use ReferenceElementModule, only: weights_q, NodeNumberTable
+    use GeometryFieldsModuleE , only: iGE_Ep2, uGE
 
     implicit none 
 
@@ -29,7 +30,9 @@ contains
     real(rt), intent(in)    :: U_R    (d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),0:nc-1)
 
     integer          :: i, j, k, is, ie, id, im, ii, icomp, n_moments = 4
+    integer          :: iNodeE
     integer          :: n_each
+    real(rt)         :: weight_esquared, sum_esquared
 
     U_R_avg(:,:,:,:) = 0.0e0_rt  ! zero it out
  
@@ -39,45 +42,65 @@ contains
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-
-            do is = 1, nSpecies
+          do is = 1, nSpecies
 
             do ie = 1, nE
-            do id = 1, nDOF ! radiation degrees of freedom
 
-              im = 1  ! J is first moment
-              ii = (is-1)*(n_moments*nE*nDOF) + &
-                   (im-1)*(nE*nDOF) + &
-                   (ie-1)*nDOF + (id-1)
+              sum_esquared = 0.d0
+
+              do id = 1, nDOF ! radiation degrees of freedom
+
+                iNodeE = NodeNumberTable(1,id)
+  
+                weight_esquared = uGE(iNodeE,ie,iGE_Ep2)
+  
+                sum_esquared = sum_esquared + weights_q(id) * weight_esquared
+  
+                im = 1  ! J is first moment
+                ii = (is-1)*(n_moments*nE*nDOF) + &
+                     (im-1)*(nE*nDOF) + &
+                     (ie-1)*nDOF + (id-1)
+                icomp = (is-1)*nSpecies + ie-1
+                U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) + U_R(i,j,k,ii) * weights_q(id) * weight_esquared
+  
+                im = 2  ! H_x is second moment
+                ii = (is-1)*(n_moments*nE*nDOF) + &
+                     (im-1)*(nE*nDOF) + &
+                     (ie-1)*nDOF + (id-1)
+                icomp = (is-1)*nSpecies + n_each+ie-1
+                U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) + U_R(i,j,k,ii) * weights_q(id) * weight_esquared
+  
+                im = 3  ! H_x is second moment
+                ii = (is-1)*(n_moments*nE*nDOF) + &
+                     (im-1)*(nE*nDOF) + &
+                     (ie-1)*nDOF + (id-1)
+                icomp = (is-1)*nSpecies + 2*n_each+ie-1
+                U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) + U_R(i,j,k,ii) * weights_q(id) * weight_esquared
+  
+                im = 4  ! H_z is second moment
+                ii = (is-1)*(n_moments*nE*nDOF) + &
+                     (im-1)*(nE*nDOF) + &
+                     (ie-1)*nDOF + (id-1)
+                icomp = (is-1)*nSpecies + 3*n_each+ie-1
+                U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) + U_R(i,j,k,ii) * weights_q(id) * weight_esquared
+  
+              end do
+
               icomp = (is-1)*nSpecies + ie-1
-              U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) + U_R(i,j,k,ii) * weights_q(id)
+              U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) / sum_esquared
 
-              im = 2  ! H_x is second moment
-              ii = (is-1)*(n_moments*nE*nDOF) + &
-                   (im-1)*(nE*nDOF) + &
-                   (ie-1)*nDOF + (id-1)
               icomp = (is-1)*nSpecies + n_each+ie-1
-              U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) + U_R(i,j,k,ii) * weights_q(id)
+              U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) / sum_esquared
 
-              im = 3  ! H_x is second moment
-              ii = (is-1)*(n_moments*nE*nDOF) + &
-                   (im-1)*(nE*nDOF) + &
-                   (ie-1)*nDOF + (id-1)
               icomp = (is-1)*nSpecies + 2*n_each+ie-1
-              U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) + U_R(i,j,k,ii) * weights_q(id)
+              U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) / sum_esquared
 
-              im = 4  ! H_z is second moment
-              ii = (is-1)*(n_moments*nE*nDOF) + &
-                   (im-1)*(nE*nDOF) + &
-                   (ie-1)*nDOF + (id-1)
               icomp = (is-1)*nSpecies + 3*n_each+ie-1
-              U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) + U_R(i,j,k,ii) * weights_q(id)
-
-            end do
-            end do
+              U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) / sum_esquared
 
             end do
 
+          end do
           end do
        end do
     end do
@@ -89,7 +112,8 @@ contains
                       domhi,delta,xlo,time,dt,bc,level,grid_no) &
                       bind(C, name="ca_der_J")
 
-    use ReferenceElementModule, only: weights_q
+    use ReferenceElementModule, only: weights_q, NodeNumberTable
+    use GeometryFieldsModuleE , only: iGE_Ep2, uGE
 
     implicit none 
 
@@ -104,6 +128,8 @@ contains
     integer, intent(in)     :: level, grid_no
 
     integer          :: i, j, k, is, ie, id, im, ii, icomp, n_moments = 4
+    integer          :: iNodeE
+    real(rt)         :: weight_esquared, sum_esquared
 
     J_avg(:,:,:,:) = 0.0e0_rt  ! zero it out
 
@@ -118,18 +144,31 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
+            sum_esquared = 0.d0
+
             do is = 1, nSpecies
             do ie = 1, nE
+
               ii = (is-1)*(n_moments*nE*nDOF) + &
                    (im-1)*(nE*nDOF) + (ie-1)*nDOF
+
               do id = 1, nDOF ! radiation degrees of freedom
+
+                 iNodeE = NodeNumberTable(1,id)
+
+                 weight_esquared = uGE(iNodeE,ie,iGE_Ep2)
+
+                 sum_esquared = sum_esquared + weights_q(id) * weight_esquared
+
                  icomp = ii + (id-1)
-                 J_avg(i,j,k,1) = J_avg(i,j,k,1) + U_R(i,j,k,icomp) * weights_q(id)
-              end do
+
+                 J_avg(i,j,k,1) = J_avg(i,j,k,1) + U_R(i,j,k,icomp) * weights_q(id) * weight_esquared
+
+            end do
             end do
             end do
 
-            J_avg(i,j,k,1) = J_avg(i,j,k,1) / (nSpecies * nE)
+            J_avg(i,j,k,1) = J_avg(i,j,k,1) / sum_esquared
 
           end do
        end do
@@ -138,11 +177,12 @@ contains
   end subroutine ca_der_J
 
   subroutine ca_der_Hx(Hx_avg,hx_lo,hx_hi,nv, &
-                      U_R,d_lo,d_hi,nc,lo,hi,domlo, &
-                      domhi,delta,xlo,time,dt,bc,level,grid_no) &
-                      bind(C, name="ca_der_Hx")
+                       U_R,d_lo,d_hi,nc,lo,hi,domlo, &
+                       domhi,delta,xlo,time,dt,bc,level,grid_no) &
+                       bind(C, name="ca_der_Hx")
 
-    use ReferenceElementModule, only: weights_q
+    use ReferenceElementModule, only: weights_q, NodeNumberTable
+    use GeometryFieldsModuleE , only: iGE_Ep2, uGE
 
     implicit none 
 
@@ -157,6 +197,8 @@ contains
     integer, intent(in)     :: level, grid_no
 
     integer          :: i, j, k, is, ie, id, im, ii, icomp, n_moments = 4
+    integer          :: iNodeE
+    real(rt)         :: weight_esquared, sum_esquared
 
     Hx_avg(:,:,:,:) = 0.0e0_rt  ! zero it out
 
@@ -171,18 +213,31 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
+            sum_esquared = 0.d0
+
             do is = 1, nSpecies
             do ie = 1, nE
-               ii = (is-1)*(n_moments*nE*nDOF) + &
-                    (im-1)*(nE*nDOF) + (ie-1)*nDOF
-               do id = 1, nDOF
+
+              ii = (is-1)*(n_moments*nE*nDOF) + &
+                   (im-1)*(nE*nDOF) + (ie-1)*nDOF
+
+              do id = 1, nDOF ! radiation degrees of freedom
+
+                 iNodeE = NodeNumberTable(1,id)
+
+                 weight_esquared = uGE(iNodeE,ie,iGE_Ep2)
+
+                 sum_esquared = sum_esquared + weights_q(id) * weight_esquared
+
                  icomp = ii + (id-1)
-                 Hx_avg(i,j,k,1) = Hx_avg(i,j,k,1) + U_R(i,j,k,icomp) * weights_q(id)
-               end do
+
+                 Hx_avg(i,j,k,1) = Hx_avg(i,j,k,1) + U_R(i,j,k,icomp) * weights_q(id) * weight_esquared
+
+            end do
             end do
             end do
 
-            Hx_avg(i,j,k,:) = Hx_avg(i,j,k,:) / (nSpecies * nE)
+            Hx_avg(i,j,k,1) = Hx_avg(i,j,k,1) / sum_esquared
 
           end do
        end do
@@ -191,13 +246,13 @@ contains
   end subroutine ca_der_Hx
 
 
-
   subroutine ca_der_Hy(Hy_avg,hy_lo,hy_hi,nv, &
                       U_R,d_lo,d_hi,nc,lo,hi,domlo, &
                       domhi,delta,xlo,time,dt,bc,level,grid_no) &
                       bind(C, name="ca_der_Hy")
 
-    use ReferenceElementModule, only: weights_q
+    use ReferenceElementModule, only: weights_q, NodeNumberTable
+    use GeometryFieldsModuleE , only: iGE_Ep2, uGE
 
     implicit none 
 
@@ -212,6 +267,8 @@ contains
     integer, intent(in)     :: level, grid_no
 
     integer          :: i, j, k, is, ie, id, im, ii, icomp, n_moments = 4
+    integer          :: iNodeE
+    real(rt)         :: weight_esquared, sum_esquared
 
     Hy_avg(:,:,:,:) = 0.0e0_rt  ! zero it out
 
@@ -226,18 +283,31 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
+            sum_esquared = 0.d0
+
             do is = 1, nSpecies
             do ie = 1, nE
-               ii = (is-1)*(n_moments*nE*nDOF) + &
-                    (im-1)*(nE*nDOF) + (ie-1)*nDOF
-               do id = 1, nDOF
+
+              ii = (is-1)*(n_moments*nE*nDOF) + &
+                   (im-1)*(nE*nDOF) + (ie-1)*nDOF
+
+              do id = 1, nDOF ! radiation degrees of freedom
+
+                 iNodeE = NodeNumberTable(1,id)
+
+                 weight_esquared = uGE(iNodeE,ie,iGE_Ep2)
+
+                 sum_esquared = sum_esquared + weights_q(id) * weight_esquared
+
                  icomp = ii + (id-1)
-                 Hy_avg(i,j,k,1) = Hy_avg(i,j,k,1) + U_R(i,j,k,icomp) * weights_q(id)
-               end do
+
+                 Hy_avg(i,j,k,1) = Hy_avg(i,j,k,1) + U_R(i,j,k,icomp) * weights_q(id) * weight_esquared
+
+            end do
             end do
             end do
 
-            Hy_avg(i,j,k,:) = Hy_avg(i,j,k,:) / (nSpecies * nE)
+            Hy_avg(i,j,k,1) = Hy_avg(i,j,k,1) / sum_esquared
 
           end do
        end do
@@ -252,7 +322,8 @@ contains
                       domhi,delta,xlo,time,dt,bc,level,grid_no) &
                       bind(C, name="ca_der_Hz")
 
-    use ReferenceElementModule, only: weights_q
+    use ReferenceElementModule, only: weights_q, NodeNumberTable
+    use GeometryFieldsModuleE , only: iGE_Ep2, uGE
 
     implicit none 
 
@@ -267,6 +338,8 @@ contains
     integer, intent(in)     :: level, grid_no
 
     integer          :: i, j, k, is, ie, id, im, ii, icomp, n_moments = 4
+    integer          :: iNodeE
+    real(rt)         :: weight_esquared, sum_esquared
 
     Hz_avg(:,:,:,:) = 0.0e0_rt  ! zero it out
 
@@ -281,18 +354,31 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
+            sum_esquared = 0.d0
+
             do is = 1, nSpecies
             do ie = 1, nE
-               ii = (is-1)*(n_moments*nE*nDOF) + &
-                    (im-1)*(nE*nDOF) + (ie-1)*nDOF
-               do id = 1, nDOF
+
+              ii = (is-1)*(n_moments*nE*nDOF) + &
+                   (im-1)*(nE*nDOF) + (ie-1)*nDOF
+
+              do id = 1, nDOF ! radiation degrees of freedom
+
+                 iNodeE = NodeNumberTable(1,id)
+
+                 weight_esquared = uGE(iNodeE,ie,iGE_Ep2)
+
+                 sum_esquared = sum_esquared + weights_q(id) * weight_esquared
+
                  icomp = ii + (id-1)
-                 Hz_avg(i,j,k,1) = Hz_avg(i,j,k,1) + U_R(i,j,k,icomp) * weights_q(id)
-               end do
+
+                 Hz_avg(i,j,k,1) = Hz_avg(i,j,k,1) + U_R(i,j,k,icomp) * weights_q(id) * weight_esquared
+
+            end do
             end do
             end do
 
-            Hz_avg(i,j,k,1) = Hz_avg(i,j,k,1) / (nSpecies * nE)
+            Hz_avg(i,j,k,1) = Hz_avg(i,j,k,1) / sum_esquared
 
           end do
        end do
