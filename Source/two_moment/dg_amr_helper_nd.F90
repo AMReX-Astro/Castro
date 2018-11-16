@@ -139,9 +139,7 @@ contains
     do ic = 1, AMREX_SPACEDIM
        fblo(ic) = fine_lo(ic) + (cblo(ic) - crse_lo(ic)) * nFineX(ic)
     enddo
-    ! should check that this is within fine_hi bounds
 
-    ! should the below be crse_lo, crse_hi or cblo to cbhi
     ! loop over coarse grid ...
     do ic = cblo(1), cbhi(1)
        do jc = cblo(2), cbhi(2)
