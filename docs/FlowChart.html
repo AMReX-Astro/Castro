@@ -370,7 +370,7 @@ coarse-fine interfaces. This cleans up the memory used during
 the step.</li>
 <li>If <code class="docutils literal notranslate"><span class="pre">castro.track_grid_losses</span></code> is set, then we
 also add up the mass that left through the boundary over this
-step. <a class="footnote-reference" href="#id11" id="id3">[1]</a></li>
+step. <a class="footnote-reference" href="#id9" id="id3">[1]</a></li>
 <li>Free any memory allocated for the level advance.</li>
 </ul>
 </li>
@@ -442,7 +442,7 @@ reconstruction will work from.</li>
 <li>Check for NaNs in the initial state, <code class="docutils literal notranslate"><span class="pre">S_old</span></code>.</li>
 </ol>
 </li>
-<li><p class="first"><em>React :math:`Delta t/2`.</em> [strang_react_first_half()]</p>
+<li><p class="first"><em>React</em> <span class="math notranslate nohighlight">\(\Delta t/2\)</span> [<code class="docutils literal notranslate"><span class="pre">strang_react_first_half()</span></code> ]</p>
 <p>Update the solution due to the effect of reactions over half a time
 step. The integration method and system of equations used here is
 determined by a host of runtime parameters that are part of the
@@ -479,8 +479,8 @@ load balance.</p>
 <p>At the end of this step, <code class="docutils literal notranslate"><span class="pre">Sborder</span></code> sees the effects of the
 reactions.</p>
 </li>
-<li><p class="first">[strang:oldsource] <em>Construct time-level :math:`n` sources and apply</em>
-[<code class="docutils literal notranslate"><span class="pre">construct_old_gravity()</span></code>, <code class="docutils literal notranslate"><span class="pre">do_old_sources()</span></code>]</p>
+<li><p class="first">[strang:oldsource] <em>Construct time-level n sources and apply</em>
+[<code class="docutils literal notranslate"><span class="pre">construct_old_gravity()</span></code>, <code class="docutils literal notranslate"><span class="pre">do_old_sources()</span></code> ]</p>
 <p>The time level <span class="math notranslate nohighlight">\(n\)</span> sources are computed, and added to the
 StateData <code class="docutils literal notranslate"><span class="pre">Source_Type</span></code>. The sources are then applied
 to the state after the burn, <span class="math notranslate nohighlight">\(\Ub^\star\)</span> with a full <span class="math notranslate nohighlight">\(\Delta t\)</span>
@@ -595,25 +595,21 @@ nature of this method.</p>
 <li><p class="first">[strang:radial] <em>Update radial data and center of mass for monopole gravity</em></p>
 <p>These quantities are computed using <code class="docutils literal notranslate"><span class="pre">S_new</span></code>.</p>
 </li>
-<li><p class="first">[strang:newsource] <em>Correct the source terms with the :math:`n+1` contribution</em>
-[<code class="docutils literal notranslate"><span class="pre">construct_new_gravity()</span></code>, <code class="docutils literal notranslate"><span class="pre">do_new_sources</span></code>]</p>
+<li><p class="first">[strang:newsource] <em>Correct the source terms with the n+1
+contribution</em> [<code class="docutils literal notranslate"><span class="pre">construct_new_gravity()</span></code>, <code class="docutils literal notranslate"><span class="pre">do_new_sources</span></code> ]</p>
 <p>Previously we added <span class="math notranslate nohighlight">\(\Delta t\, \Sb(\Ub^\star)\)</span> to the state, when
-we really want a time-centered approach, :math:<a href="#id8"><span class="problematic" id="id9">`</span></a>(Delta t/2)[Sb(Ub^star</p>
-<blockquote>
-<div><ul class="simple">
-<li>Sb(Ub^{n+1,(b)})]`. We fix that here.</li>
-</ul>
-</div></blockquote>
+we really want a time-centered approach,
+<span class="math notranslate nohighlight">\((\Delta t/2)[\Sb(\Ub^\star + \Sb(\Ub^{n+1,(b)})]\)</span> . We fix that here.</p>
 <p>We start by computing the source term vector <span class="math notranslate nohighlight">\(\Sb(\Ub^{n+1,(b)})\)</span>
 using the updated state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(b)}\)</span>. We then compute the
 correction, <span class="math notranslate nohighlight">\((\Delta t/2)[\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)]\)</span> to
 add to <span class="math notranslate nohighlight">\(\Ub^{n+1,(b)}\)</span> to give us the properly time-centered source,
 and the fully updated state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(c)}\)</span>. This correction is stored
-in the new_sources MultiFab <a class="footnote-reference" href="#id12" id="id10">[2]</a>.</p>
+in the new_sources MultiFab <a class="footnote-reference" href="#id10" id="id8">[2]</a>.</p>
 <p>In the process of updating the sources, we update the temperature to
 make it consistent with the new state.</p>
 </li>
-<li><p class="first"><em>React :math:`Delta t/2`.</em> [strang_react_second_half()]</p>
+<li><p class="first"><em>React</em> <span class="math notranslate nohighlight">\(\Delta t/2\)</span> [<code class="docutils literal notranslate"><span class="pre">strang_react_second_half()</span></code>]</p>
 <p>We do the final <span class="math notranslate nohighlight">\(\dt/2\)</span> reacting on the state, begining with <span class="math notranslate nohighlight">\(\Ub^{n+1,(c)}\)</span> to
 give us the final state on this level, <span class="math notranslate nohighlight">\(\Ub^{n+1}\)</span>.</p>
 <p>This is largely the same as <code class="docutils literal notranslate"><span class="pre">strang_react_first_half()</span></code>, but
@@ -771,7 +767,7 @@ temporarily in the new-time slot (what we normally refer to as
 </ol>
 <p>Check for NaNs in the initial state, <code class="docutils literal notranslate"><span class="pre">S_old</span></code>.</p>
 </li>
-<li><p class="first"><em>React :math:`Delta t/2`.</em> [strang_react_first_half()]</p>
+<li><p class="first"><em>React</em> <span class="math notranslate nohighlight">\(\Delta t/2\)</span> [<code class="docutils literal notranslate"><span class="pre">strang_react_first_half()</span></code> ]</p>
 <p>This step is unchanged from the CTU version. At the end of this
 step, <code class="docutils literal notranslate"><span class="pre">Sborder</span></code> sees the effects of the reactions.</p>
 <p>Each stage needs to build its starting point from this point, so we
@@ -809,7 +805,7 @@ as:</p>
 <p>This is done on <code class="docutils literal notranslate"><span class="pre">S_new</span></code>.</p>
 <p>After these checks, we check the state for NaNs.</p>
 </li>
-<li><p class="first"><em>React :math:`Delta t/2`.</em> [strang_react_second_half()]</p>
+<li><p class="first"><em>React</em> <span class="math notranslate nohighlight">\(\Delta t/2\)</span> [<code class="docutils literal notranslate"><span class="pre">strang_react_second_half()</span></code>]</p>
 <p>We do the final <span class="math notranslate nohighlight">\(\dt/2\)</span> reacting on the state, begining with <span class="math notranslate nohighlight">\(\Ub^{n+1,(c)}\)</span> to
 give us the final state on this level, <span class="math notranslate nohighlight">\(\Ub^{n+1}\)</span>.</p>
 <p>This is largely the same as <code class="docutils literal notranslate"><span class="pre">strang_react_first_half()</span></code>, but
@@ -973,7 +969,7 @@ summarize those differences.</p>
 <li><p class="first"><em>Initialize</em> [<code class="docutils literal notranslate"><span class="pre">initialize_do_advance()</span></code>]</p>
 <p>This is unchanged from step <a class="reference external" href="#strang:init">[strang:init]</a> in the Strang algorithm.</p>
 </li>
-<li><p class="first"><em>Construct time-level :math:`n` sources and apply</em>
+<li><p class="first"><em>Construct time-level n sources and apply</em>
 [<code class="docutils literal notranslate"><span class="pre">construct_old_gravity()</span></code>, <code class="docutils literal notranslate"><span class="pre">do_old_sources()</span></code>]</p>
 <p>This corresponds to step <a class="reference external" href="#strang:oldsource">[strang:oldsource]</a> in the Strang
 algorithm. There are not differences compared to the Strang
@@ -1002,8 +998,8 @@ converted to primitive variables.</li>
 <li><p class="first"><em>Clean State</em> [<code class="docutils literal notranslate"><span class="pre">clean_state()</span></code>]</p>
 <p>This is the same as the Strang step&nbsp;<a class="reference external" href="#strang:clean">[strang:clean]</a></p>
 </li>
-<li><p class="first">[strang:newsource] <em>Correct the source terms with the :math:`n+1` contribution</em>
-[<code class="docutils literal notranslate"><span class="pre">construct_new_gravity()</span></code>, <code class="docutils literal notranslate"><span class="pre">do_new_sources</span></code>]</p>
+<li><p class="first">[strang:newsource] <em>Correct the source terms with the n+1 contribution</em>
+[<code class="docutils literal notranslate"><span class="pre">construct_new_gravity()</span></code>, <code class="docutils literal notranslate"><span class="pre">do_new_sources</span></code> ]</p>
 <p>This is the same as the Strang step&nbsp;<a class="reference external" href="#strang:newsource">[strang:newsource]</a></p>
 </li>
 <li><p class="first"><em>Finalize</em> [<code class="docutils literal notranslate"><span class="pre">finalize_do_advance()</span></code>]</p>
@@ -1013,7 +1009,7 @@ term at the new time. As discussed above, this will be used in the
 next iteration to approximate the time-centered source term.</p>
 </li>
 </ol>
-<table class="docutils footnote" frame="void" id="id11" rules="none">
+<table class="docutils footnote" frame="void" id="id9" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id3">[1]</a></td><td>Note: this functionality assumes that only the
@@ -1022,10 +1018,10 @@ any use masks to prevent double counting if multiple levels
 touch the boundary.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id12" rules="none">
+<table class="docutils footnote" frame="void" id="id10" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id10">[2]</a></td><td>The correction for gravity is slightly different since we directly compute the time-centered gravitational source term using the hydrodynamic fluxes.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id8">[2]</a></td><td>The correction for gravity is slightly different since we directly compute the time-centered gravitational source term using the hydrodynamic fluxes.</td></tr>
 </tbody>
 </table>
 </div>

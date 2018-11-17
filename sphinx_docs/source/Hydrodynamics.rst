@@ -780,20 +780,14 @@ equations in 1D, for simplicity):
 
       If :math:`\alpha_{i,+}\alpha_{i,-} \ge 0`, then we are at an extremum.
 
-   -  We only apply the second test if either :math:`|\alpha_{i,\pm}| >
-        2|\alpha_{i,\mp}|`. If so, we define:
+   -  We only apply the second test if either
+      :math:`|\alpha_{i,\pm}| > 2|\alpha_{i,\mp}|`. If so, we define:
 
       .. math::
 
          \begin{align}
-         (Ds)_{i,{\rm face},-} &= s_{i-\myhalf} - s_{i-\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 3}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{3\!/2}} \\
-         (Ds)_{i,{\rm face},+} &= s_{i+\mathchoice{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptfont 0 3}\kern-.15em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptfont 0 2}}{\kern 0em\raise.5ex\hbox{\the\scriptscriptfont 0 3}\kern-.2em/
-            \kern-.15em\lower.25ex\hbox{\the\scriptscriptfont 0 2}}{3\!/2}} - s_{i-\myhalf}
+         (Ds)_{i,{\rm face},-} &= s_{i-1/2} - s_{i-3/2} \\
+         (Ds)_{i,{\rm face},+} &= s_{i+3/2} - s_{i-1/2}
          \end{align}
 
       .. math:: (Ds)_{i,{\rm face,min}} = \min\left[\left|(Ds)_{i,{\rm face},-}\right|,\left|(Ds)_{i,{\rm face},+}\right|\right].
@@ -837,8 +831,8 @@ equations in 1D, for simplicity):
 
       .. math:: \alpha_{i,\pm} = \frac{\alpha_{i,\pm}(D^2s)_{i,\text{lim}}}{\max\left[(D^2s)_{i},1\times 10^{-10}\right]}
 
-   -  If we are not at an extremum and :math:`|\alpha_{i,\pm}| >
-        2|\alpha_{i,\mp}|`, then define
+   -  If we are not at an extremum and 
+      :math:`|\alpha_{i,\pm}| > 2|\alpha_{i,\mp}|`, then define
 
       .. math:: s = \text{sign}(\alpha_{i,\mp})
 
@@ -912,22 +906,22 @@ which are given below.
 
 For the reconstruction of the interface states, the following apply:
 
--  castro.ppm_type: use piecewise linear vs PPM algorithm
+-  ``castro.ppm_type`` : use piecewise linear vs PPM algorithm
    (0, 1, 2; default: 1)
 
    Values of 1 and 2 are both piecewise parabolic reconstruction, with
    2 using updated limiters that better preserve extrema.
 
--  castro.ppm_temp_fix does various attempts to use the
+-  ``castro.ppm_temp_fix`` does various attempts to use the
    temperature in the reconstruction of the interface states. This
    is experimental.
 
--  castro.ppm_predict_gammae reconstructs :math:`\gamma_e = p/(\rho e) + 1`
+-  ``castro.ppm_predict_gammae`` reconstructs :math:`\gamma_e = p/(\rho e) + 1`
    to the interfaces and does the necessary transverse terms to aid in
    the conversion between the conserved and primitive interface states
    in the transverse flux routines (0 or 1; default 0)
 
--  castro.ppm_reference_eigenvectors uses the reference states in
+-  ``castro.ppm_reference_eigenvectors`` uses the reference states in
    the evaluation of the eigenvectors for the characteristic projection
    (0 or 1; default 0)
 
@@ -937,29 +931,29 @@ transverse directions involve separate Riemann solves. Sometimes, the
 update to the interface state from the transverse directions can make
 the state ill-posed. There are several parameters that help fix this:
 
--  castro.transverse_use_eos: If this is 1, then we call
+-  ``castro.transverse_use_eos`` : If this is 1, then we call
    the equation of state on the interface, using :math:`\rho`, :math:`e`, and
    :math:`X_k`, to get the interface pressure. This should result in a
    thermodynamically consistent interface state.
 
--  castro.transverse_reset_density: If the transverse
+-  ``castro.transverse_reset_density`` : If the transverse
    corrections result in a negative density on the interface, then we
    reset all of the interface states to their values before the
    transverse corrections.
 
--  castro.transverse_reset_rhoe: The transverse updates operate
+-  ``castro.transverse_reset_rhoe`` : The transverse updates operate
    on the conserved state. Usually, we construct the interface
    :math:`(\rho e)` in the transverse update from total energy and the
    kinetic energy, however, if the interface :math:`(rho e)` is negative,
-   and transverse_reset_rhoe = 1, then we explicitly
+   and ``transverse_reset_rhoe`` = 1, then we explicitly
    discretize an equation for the evolution of :math:`(\rho e)`, including
    its transverse update.
 
 Riemann Problem
 ---------------
 
-Castro has three main options for the Riemann solver—the
-Colella & Glaz solver :raw-latex:`\cite{colglaz}` (the same solver used
+Castro has three main options for the Riemann solver—the
+Colella & Glaz solver :raw-latex:`\cite{colglaz}` (the same solver used
 by Flash), a simpler solver described in an unpublished
 manuscript by Colella, Glaz, & Ferguson, and an HLLC
 solver. The first two are both
@@ -976,8 +970,8 @@ neighboring cell-centered values of :math:`c`. We have also computed
 :math:`\rho_{\rm small}, p_{\rm small}`, and :math:`c_{\rm small}` using
 cell-centered data.
 
-Here are the steps. First, define :math:`(\rho c)_{\rm small} = \rho_{\rm
-  small}c_{\rm small}`. Then, define:
+Here are the steps. First, define 
+:math:`(\rho c)_{\rm small} = \rho_{\rm small}c_{\rm small}`. Then, define:
 
 .. math:: (\rho c)_{L/R} = \max\left[(\rho c)_{\rm small},\left|\Gamma_{L/R},p_{L/R},\rho_{L/R}\right|\right].
 
@@ -1042,8 +1036,9 @@ Then, define
    (\rho e)_{\rm gdnv} &=& f(\rho e)^* + (1-f)(\rho e)_0.
    \end{align}
 
-Finally, if :math:`c_{\rm out} < 0`, set :math:`\rho_{\rm gdnv}=\rho_0, u_{\rm
-  gdnv}=u_0, p_{\rm gdnv}=p_0`, and :math:`(\rho e)_{\rm gdnv}=(\rho e)_0`.
+Finally, if :math:`c_{\rm out} < 0`, set 
+:math:`\rho_{\rm gdnv}=\rho_0, u_{\rm gdnv}=u_0, p_{\rm gdnv}=p_0`, and 
+:math:`(\rho e)_{\rm gdnv}=(\rho e)_0`.
 If :math:`c_{\rm in}\ge 0`, set :math:`\rho_{\rm gdnv}=\rho^*, u_{\rm gdnv}=u^*,
 p_{\rm gdnv}=p^*`, and :math:`(\rho e)_{\rm gdnv}=(\rho e)^*`.
 
@@ -1057,7 +1052,7 @@ described in the original paper.
 For the construction of the fluxes in the Riemann solver, the following
 parameters apply:
 
--  castro.riemann_solver: this can be one of the following values:
+-  ``castro.riemann_solver``: this can be one of the following values:
 
    -  0: the Colella, Glaz, & Ferguson solver.
 
@@ -1069,18 +1064,18 @@ parameters apply:
 
    The default is to use the solver based on an unpublished Colella,
    Glaz, & Ferguson manuscript (it also appears in :raw-latex:`\cite{pember:1996}`),
-   as described in the original Castro paper :raw-latex:`\cite{castro_I}`.
+   as described in the original Castro paper :raw-latex:`\cite{castro_I}`.
 
    The Colella & Glaz solver is iterative, and two runtime parameters are used
    to control its behavior:
 
-   -  castro.cg_maxiter: number of iterations for CG algorithm
+   -  ``castro.cg_maxiter`` : number of iterations for CG algorithm
       (Integer; default: 12)
 
-   -  castro.cg_tol: tolerance for CG solver when solving
+   -  ``castro.cg_tol`` : tolerance for CG solver when solving
       for the “star” state (Real; default: 1.0e-5)
 
-   -  castro.cg_blend: this controls what happens if the root
+   -  ``castro.cg_blend`` : this controls what happens if the root
       finding in the CG solver fails. There is a nonlinear equation to find
       the pressure in the *star* region from the jump conditions for a
       shock (this is the two-shock approximation—the left and right states
@@ -1100,7 +1095,7 @@ parameters apply:
          iterations to find the root. Sometimes this can work where the
          secant method fails.
 
--  castro.hybrid_riemann: switch to an HLL Riemann solver when we are
+-  ``castro.hybrid_riemann`` : switch to an HLL Riemann solver when we are
    in a zone with a shock (0 or 1; default 0)
 
    This eliminates an odd-even decoupling issue (see the oddeven
@@ -1205,9 +1200,9 @@ where :math:`0 \leq \theta_{{\rm i}+1/2} \leq 1` is a scalar, and :math:`\mathbf
 where :math:`0 < \text{CFL} < 1` is the CFL safety factor (the method is
 guaranteed to preserve positivity as long as :math:`\text{CFL} < 1/2`), and
 :math:`\alpha` is a scalar that ensures multi-dimensional correctness
-(:math:`\alpha = 1` in 1D, :math:`1/2` in 2D, :math:`1/3` in 3D). :math:`\mathbf{F}_{{\rm
-    i}}` is the flux of material evaluated at the zone center :math:`{\rm
-  i}` using the cell-centered quantities :math:`\mathbf{U}`. The scalar
+(:math:`\alpha = 1` in 1D, :math:`1/2` in 2D, :math:`1/3` in 3D). 
+:math:`\mathbf{F}_{{\rm i}}` is the flux of material evaluated at the zone center 
+:math:`{\rm i}` using the cell-centered quantities :math:`\mathbf{U}`. The scalar
 :math:`\theta_{{\rm i}+1/2}` is chosen at every interface by calculating the
 update that would be obtained from , setting
 the density component equal to a value just larger than the density floor,

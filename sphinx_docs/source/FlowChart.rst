@@ -293,7 +293,7 @@ In the code, the objective is to evolve the state from the old time,
    At the end of this step, ``Sborder`` sees the effects of the
    reactions.
 
-#. [strang:oldsource] *Construct time-level :math:`n` sources and apply*
+#. [strang:oldsource] *Construct time-level n sources and apply*
    [``construct_old_gravity()``, ``do_old_sources()`` ]
 
    The time level :math:`n` sources are computed, and added to the
@@ -565,7 +565,7 @@ In the code, the objective is to evolve the state from the old time,
 
    Check for NaNs in the initial state, ``S_old``.
 
-#. *React :math:`\Delta t/2`.* [strang_react_first_half()]
+#. *React* :math:`\Delta t/2` [``strang_react_first_half()`` ]
 
    This step is unchanged from the CTU version. At the end of this
    step, ``Sborder`` sees the effects of the reactions.
@@ -622,7 +622,7 @@ In the code, the objective is to evolve the state from the old time,
 
    After these checks, we check the state for NaNs.
 
-#. *React :math:`\Delta t/2`.* [strang_react_second_half()]
+#. *React* :math:`\Delta t/2` [``strang_react_second_half()``]
 
    We do the final :math:`\dt/2` reacting on the state, begining with :math:`\Ub^{n+1,(c)}` to
    give us the final state on this level, :math:`\Ub^{n+1}`.
@@ -732,7 +732,7 @@ summarize those differences.
 
    This is unchanged from step `[strang:init] <#strang:init>`__ in the Strang algorithm.
 
-#. *Construct time-level :math:`n` sources and apply*
+#. *Construct time-level n sources and apply*
    [``construct_old_gravity()``, ``do_old_sources()``]
 
    This corresponds to step `[strang:oldsource] <#strang:oldsource>`__ in the Strang
@@ -765,8 +765,8 @@ summarize those differences.
 
    This is the same as the Strang step \ `[strang:clean] <#strang:clean>`__
 
-#. [strang:newsource] *Correct the source terms with the :math:`n+1` contribution*
-   [``construct_new_gravity()``, ``do_new_sources``]
+#. [strang:newsource] *Correct the source terms with the n+1 contribution*
+   [``construct_new_gravity()``, ``do_new_sources`` ]
 
    This is the same as the Strang step \ `[strang:newsource] <#strang:newsource>`__
 

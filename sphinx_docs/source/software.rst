@@ -833,8 +833,8 @@ To illustrate the various ways we fill ghost cells and use the data,
 let’s consider the following scenarios:
 
 -  *You have state data that was defined with no ghost cells. You
-   want to create a new ``MultiFab`` containing a copy of that data with
-   ``NGROW`` ghost cells.*
+   want to create a new* ``MultiFab`` *containing a copy of that data with*
+   ``NGROW`` *ghost cells.*
 
    This is the case with ``Sborder`` —the ``MultiFab`` of the
    hydrodynamic state that we use to kick-off the hydrodynamics
@@ -879,7 +879,7 @@ let’s consider the following scenarios:
    ``NUM_GROW`` ghost cells consistent with the ``State_Type``
    data at the old time-level.
 
--  *You have state data that was defined with ``NGROW`` ghost
+-  *You have state data that was defined with* ``NGROW`` *ghost
    cells. You want to ensure that the ghost cells are filled
    (including any physical boundaries) with valid data.*
 
@@ -912,7 +912,7 @@ let’s consider the following scenarios:
    pointer. If this were all done within the ``castro`` object, then
    the pointer will simply be ``this``, as we saw above.
 
--  *You have a ``MultiFab`` with some derived quantity. You want to
+-  *You have a* ``MultiFab`` *with some derived quantity. You want to
    fill its ghost cells.*
 
    ``MultiFabs`` have a ``FillBoundary()`` method that will fill all
