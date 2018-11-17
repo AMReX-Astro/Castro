@@ -1,5 +1,91 @@
-castro
-------
+namespace: ``castro``
+---------------------
+
+**gravity and rotation**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``do_grav``                            | permits gravity calculation to be turned on and off     | -1            |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``moving_center``                      | to we recompute the center used for the multipole       | 0             |
+|                                        | gravity solve each step?                                |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``grav_source_type``                   | determines how the gravitational source term is added   | 4             |
+|                                        | to the momentum and energy state variables.             |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``do_rotation``                        | permits rotation calculation to be turned on and off    | -1            |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``rotational_period``                  | the rotation period for the corotating frame            | -1.e200       |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``rotational_dPdt``                    | the rotation periods time evolution---this allows the   | 0.0           |
+|                                        | rotation rate to change durning the simulation time     |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``rotation_include_centrifugal``       | permits the centrifugal terms in the rotation to be     | 1             |
+|                                        | turned on and off                                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``rotation_include_coriolis``          | permits the Coriolis terms in the rotation to be turned | 1             |
+|                                        | on and off                                              |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``rotation_include_domegadt``          | permits the d(omega)/dt terms in the rotation to be     | 1             |
+|                                        | turned on and off                                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``state_in_rotating_frame``            | Which reference frame to measure the state variables    | 1             |
+|                                        | with respect to. The standard in the literature when    |               |
+|                                        | using a rotating reference frame is to measure the      |               |
+|                                        | state variables with respect to an observer fixed in    |               |
+|                                        | that rotating frame. If this option is disabled by      |               |
+|                                        | setting it to 0, the state variables will be measured   |               |
+|                                        | with respect to an observer fixed in the inertial frame |               |
+|                                        | (but the frame will still rotate).                      |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``rot_source_type``                    | determines how the rotation source terms are added to   | 4             |
+|                                        | the momentum and energy equations                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``implicit_rotation_update``           | we can do a implicit solution of the rotation update to | 1             |
+|                                        | allow for better coupling of the Coriolis terms         |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``rot_axis``                           | the coordinate axis ($x=1$, $y=2$, $z=3$) for the       | 3             |
+|                                        | rotation vector                                         |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``use_point_mass``                     | include a central point mass                            | 1             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``point_mass``                         | mass of the point mass                                  | 0.0           |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``point_mass_fix_solution``            | if we have a central point mass, we can prevent mass    | 0             |
+|                                        | from building up in the zones adjacent to it by keeping |               |
+|                                        | their density constant and adding their mass to the     |               |
+|                                        | point mass object                                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**particles**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``do_tracer_particles``                | permits tracer particle calculation to be turned on and | 0             |
+|                                        | off                                                     |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**embiggening**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``grown_factor``                       | the factor by which to extend the domain upon restart   | 1             |
+|                                        | for embiggening                                         |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``star_at_center``                     | used with the embiggening routines to determine how to  | -1            |
+|                                        | extend the domain                                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**AMR**
 
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |
@@ -24,6 +110,14 @@ castro
 | ``use_custom_knapsack_weights``        | should we have state data for custom load-balancing     | 0             |
 |                                        | weighting?                                              |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**hydrodynamics**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
 | ``difmag``                             | the coefficient of the artificial viscosity             | 0.1           |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``small_dens``                         | the small density cutoff.  Densities below this value   | -1.e200       |
@@ -180,6 +274,79 @@ castro
 |                                        | 2 = second order TVD, 3 = 3rd order TVD, 4 = 4th order  |               |
 |                                        | RK                                                      |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**reactions**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``dtnuc_e``                            | Limit the timestep based on how much the burning can    | 1.e200        |
+|                                        | change the internal energy of a zone. The timestep is   |               |
+|                                        | equal to {\tt dtnuc}  $\cdot\,(e / \dot{e})$.           |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``dtnuc_X``                            | Limit the timestep based on how much the burning can    | 1.e200        |
+|                                        | change the species mass fractions of a zone. The        |               |
+|                                        | timestep is equal to {\tt dtnuc}  $\cdot\,(X /          |               |
+|                                        | \dot{X})$.                                              |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``dtnuc_X_threshold``                  | If we are using the timestep limiter based on changes   | 1.e-3         |
+|                                        | in $X$, set a threshold on the species abundance below  |               |
+|                                        | which the limiter is not applied. This helps prevent    |               |
+|                                        | the timestep from becoming very small due to changes in |               |
+|                                        | trace species.                                          |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``dxnuc``                              | limit the zone size based on how much the burning can   | 1.e200        |
+|                                        | change the internal energy of a zone. The zone size on  |               |
+|                                        | the finest level must be smaller than {\tt dxnuc}       |               |
+|                                        | $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the    |               |
+|                                        | sound speed. This ensures that the sound-crossing time  |               |
+|                                        | is smaller than the nuclear energy injection timescale. |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``dxnuc_max``                          | Disable limiting based on dxnuc above this threshold.   | 1.e200        |
+|                                        | This allows zones that have already ignited or are      |               |
+|                                        | about to ignite to be de-refined.                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``max_dxnuc_lev``                      | Disable limiting based on dxnuc above this AMR level.   | -1            |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``do_react``                           | permits reactions to be turned on and off -- mostly for | -1            |
+|                                        | efficiency's sake                                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``react_T_min``                        | minimum temperature for allowing reactions to occur in  | 0.0           |
+|                                        | a zone                                                  |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``react_T_max``                        | maximum temperature for allowing reactions to occur in  | 1.e200        |
+|                                        | a zone                                                  |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``react_rho_min``                      | minimum density for allowing reactions to occur in a    | 0.0           |
+|                                        | zone                                                    |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``react_rho_max``                      | maximum density for allowing reactions to occur in a    | 1.e200        |
+|                                        | zone                                                    |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``disable_shock_burning``              | disable burning inside hydrodynamic shock regions       | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**refinement**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``do_special_tagging``                 |                                                         | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``spherical_star``                     |                                                         | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**timestep control**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
 | ``fixed_dt``                           | a fixed timestep to use for all steps (negative turns   | -1.0          |
 |                                        | it off)                                                 |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -241,130 +408,27 @@ castro
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``sdc_iters``                          | Number of iterations for the SDC advance.               | 2             |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``dtnuc_e``                            | Limit the timestep based on how much the burning can    | 1.e200        |
-|                                        | change the internal energy of a zone. The timestep is   |               |
-|                                        | equal to {\tt dtnuc}  $\cdot\,(e / \dot{e})$.           |               |
+
+
+
+**parallelization**
+
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``dtnuc_X``                            | Limit the timestep based on how much the burning can    | 1.e200        |
-|                                        | change the species mass fractions of a zone. The        |               |
-|                                        | timestep is equal to {\tt dtnuc}  $\cdot\,(X /          |               |
-|                                        | \dot{X})$.                                              |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``dtnuc_X_threshold``                  | If we are using the timestep limiter based on changes   | 1.e-3         |
-|                                        | in $X$, set a threshold on the species abundance below  |               |
-|                                        | which the limiter is not applied. This helps prevent    |               |
-|                                        | the timestep from becoming very small due to changes in |               |
-|                                        | trace species.                                          |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``dxnuc``                              | limit the zone size based on how much the burning can   | 1.e200        |
-|                                        | change the internal energy of a zone. The zone size on  |               |
-|                                        | the finest level must be smaller than {\tt dxnuc}       |               |
-|                                        | $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the    |               |
-|                                        | sound speed. This ensures that the sound-crossing time  |               |
-|                                        | is smaller than the nuclear energy injection timescale. |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``dxnuc_max``                          | Disable limiting based on dxnuc above this threshold.   | 1.e200        |
-|                                        | This allows zones that have already ignited or are      |               |
-|                                        | about to ignite to be de-refined.                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``max_dxnuc_lev``                      | Disable limiting based on dxnuc above this AMR level.   | -1            |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``do_react``                           | permits reactions to be turned on and off -- mostly for | -1            |
-|                                        | efficiency's sake                                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``react_T_min``                        | minimum temperature for allowing reactions to occur in  | 0.0           |
-|                                        | a zone                                                  |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``react_T_max``                        | maximum temperature for allowing reactions to occur in  | 1.e200        |
-|                                        | a zone                                                  |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``react_rho_min``                      | minimum density for allowing reactions to occur in a    | 0.0           |
-|                                        | zone                                                    |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``react_rho_max``                      | maximum density for allowing reactions to occur in a    | 1.e200        |
-|                                        | zone                                                    |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``disable_shock_burning``              | disable burning inside hydrodynamic shock regions       | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_temp``                       | enable thermal diffusion                                | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_enth``                       | enable enthalpy diffusion                               | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_spec``                       | enable species diffusion                                | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_vel``                        | enable velocity diffusion                               | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_cutoff_density``             | set a cutoff density for diffusion -- we zero the term  | -1.e200       |
-|                                        | out below this density                                  |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_cond_scale_fac``             | scaling factor for conductivity                         | 1.0           |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``do_grav``                            | permits gravity calculation to be turned on and off     | -1            |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``moving_center``                      | to we recompute the center used for the multipole       | 0             |
-|                                        | gravity solve each step?                                |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``grav_source_type``                   | determines how the gravitational source term is added   | 4             |
-|                                        | to the momentum and energy state variables.             |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``do_rotation``                        | permits rotation calculation to be turned on and off    | -1            |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``rotational_period``                  | the rotation period for the corotating frame            | -1.e200       |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``rotational_dPdt``                    | the rotation periods time evolution---this allows the   | 0.0           |
-|                                        | rotation rate to change durning the simulation time     |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``rotation_include_centrifugal``       | permits the centrifugal terms in the rotation to be     | 1             |
-|                                        | turned on and off                                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``rotation_include_coriolis``          | permits the Coriolis terms in the rotation to be turned | 1             |
-|                                        | on and off                                              |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``rotation_include_domegadt``          | permits the d(omega)/dt terms in the rotation to be     | 1             |
-|                                        | turned on and off                                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``state_in_rotating_frame``            | Which reference frame to measure the state variables    | 1             |
-|                                        | with respect to. The standard in the literature when    |               |
-|                                        | using a rotating reference frame is to measure the      |               |
-|                                        | state variables with respect to an observer fixed in    |               |
-|                                        | that rotating frame. If this option is disabled by      |               |
-|                                        | setting it to 0, the state variables will be measured   |               |
-|                                        | with respect to an observer fixed in the inertial frame |               |
-|                                        | (but the frame will still rotate).                      |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``rot_source_type``                    | determines how the rotation source terms are added to   | 4             |
-|                                        | the momentum and energy equations                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``implicit_rotation_update``           | we can do a implicit solution of the rotation update to | 1             |
-|                                        | allow for better coupling of the Coriolis terms         |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``rot_axis``                           | the coordinate axis ($x=1$, $y=2$, $z=3$) for the       | 3             |
-|                                        | rotation vector                                         |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``use_point_mass``                     | include a central point mass                            | 1             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``point_mass``                         | mass of the point mass                                  | 0.0           |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``point_mass_fix_solution``            | if we have a central point mass, we can prevent mass    | 0             |
-|                                        | from building up in the zones adjacent to it by keeping |               |
-|                                        | their density constant and adding their mass to the     |               |
-|                                        | point mass object                                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
 | ``do_acc``                             | determines whether we use accelerators for specific     | -1            |
 |                                        | loops                                                   |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``bndry_func_thread_safe``             |                                                         | 1             |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``grown_factor``                       | the factor by which to extend the domain upon restart   | 1             |
-|                                        | for embiggening                                         |               |
+
+
+
+**diagnostics, I/O**
+
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``star_at_center``                     | used with the embiggening routines to determine how to  | -1            |
-|                                        | extend the domain                                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``do_special_tagging``                 |                                                         | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``spherical_star``                     |                                                         | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
 | ``print_fortran_warnings``             | display warnings in Fortran90 routines                  | (0, 1)        |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``print_update_diagnostics``           | display information about updates to the state (how     | (0, 1)        |
@@ -404,14 +468,32 @@ castro
 |                                        | checkpoint) and you set it to value greater than this   |               |
 |                                        | default value.                                          |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``do_tracer_particles``                | permits tracer particle calculation to be turned on and | 0             |
-|                                        | off                                                     |               |
+
+
+
+**diffusion**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``diffuse_temp``                       | enable thermal diffusion                                | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``diffuse_enth``                       | enable enthalpy diffusion                               | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``diffuse_spec``                       | enable species diffusion                                | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``diffuse_vel``                        | enable velocity diffusion                               | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``diffuse_cutoff_density``             | set a cutoff density for diffusion -- we zero the term  | -1.e200       |
+|                                        | out below this density                                  |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``diffuse_cond_scale_fac``             | scaling factor for conductivity                         | 1.0           |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
 
-diffusion
----------
+namespace: ``diffusion``
+------------------------
 
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |
@@ -424,8 +506,8 @@ diffusion
 
 
 
-gravity
--------
+namespace: ``gravity``
+----------------------
 
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |
@@ -479,8 +561,8 @@ gravity
 
 
 
-particles
----------
+namespace: ``particles``
+------------------------
 
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |

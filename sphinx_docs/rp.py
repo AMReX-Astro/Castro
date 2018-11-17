@@ -80,7 +80,20 @@ def make_rest_table(param_files):
                     line = f.readline()
                     continue
 
+
+            # look for category definition
             if line.startswith("#------"):
+
+                # the next line should be the category definition
+                line = f.readline()
+                index = line.find(":")
+                category = line[index+1:]
+
+                # following this is another #---------
+                line = f.readline()
+                if not line.startswith("#------"):
+                    sys.exit("ERROR: category block not formatted correctly")
+
                 line = f.readline()
                 continue
 
@@ -105,8 +118,8 @@ def make_rest_table(param_files):
 
                 current_param.default = fields[2].replace("_", "\_")
                 current_param.description = descr
-                current_param.category = category
-                current_param.namespace = namespace
+                current_param.category = category.strip()
+                current_param.namespace = namespace.strip()
                 descr = r""
 
                 # store the current parameter in the list
@@ -120,29 +133,38 @@ def make_rest_table(param_files):
     for nm in sorted(namespaces):
 
         # print the heading
-
-        params = [q for q in params_list if q.namespace == nm]
-
-        nmlen = len(nm)
-        print(nm)
+        heading_name = r"namespace: ``{}``".format(nm)
+        nmlen = len(heading_name)
+        print(heading_name)
         print(nmlen*"-" + "\n")
 
-        print(main_header.strip())
+        # now group by category
+        categories = list(set([q.category for q in params_list if q.namespace == nm]))
 
-        for p in params:
-            desc = list(textwrap.wrap(p.description.strip(), WRAP_LEN))
-            if len(desc) == 0:
-                desc = [""]
+        for c in categories:
 
-            for n, d in enumerate(desc):
-                if n == 0:
-                    print(entry.format("``"+p.var+"``", d, p.default).strip())
-                else:
-                    print(entry.format(" ", d, " ").strip())
+            # print the subheading
+            if c != "":
+                print("**{}**\n".format(c))
 
-            print(separator.strip())
+            params = [q for q in params_list if q.namespace == nm and q.category == c]
 
-        print("\n\n")
+            print(main_header.strip())
+
+            for p in params:
+                desc = list(textwrap.wrap(p.description.strip(), WRAP_LEN))
+                if len(desc) == 0:
+                    desc = [""]
+
+                for n, d in enumerate(desc):
+                    if n == 0:
+                        print(entry.format("``"+p.var+"``", d, p.default).strip())
+                    else:
+                        print(entry.format(" ", d, " ").strip())
+
+                print(separator.strip())
+
+            print("\n\n")
 
 if __name__ == "__main__":
 
