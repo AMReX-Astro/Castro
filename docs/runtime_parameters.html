@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>driver &mdash; Castro 18.11
+  <title>namespace: castro &mdash; Castro 18.11
  documentation</title>
   
 
@@ -93,8 +93,12 @@
 <li class="toctree-l1"><a class="reference internal" href="inputs.html">Input Files</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="rp_intro.html">Runtime Parameters</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="rp_intro.html#introduction-to-runtime-parameters">Introduction to Runtime Parameters</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="rp_intro.html#removed-runtime-parameters">Removed Runtime Parameters</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rp_intro.html#removed-runtime-parameters">Removed Runtime Parameters</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="rp_intro.html#parameters-by-namespace">Parameters by Namespace</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">namespace: <code class="docutils literal notranslate"><span class="pre">castro</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#namespace-diffusion">namespace: <code class="docutils literal notranslate"><span class="pre">diffusion</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#namespace-gravity">namespace: <code class="docutils literal notranslate"><span class="pre">gravity</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#namespace-particles">namespace: <code class="docutils literal notranslate"><span class="pre">particles</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -173,7 +177,7 @@
         
           <li><a href="rp_intro.html">Runtime Parameters</a> &raquo;</li>
         
-      <li>driver</li>
+      <li>namespace: <code class="docutils literal notranslate"><span class="pre">castro</span></code></li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -226,8 +230,9 @@
     margin-right: 4px;  /* make room for the exclamation icon */
 }
 </style>
-<div class="section" id="driver">
-<h1>driver<a class="headerlink" href="#driver" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="namespace-castro">
+<h1>namespace: <code class="docutils literal notranslate"><span class="pre">castro</span></code><a class="headerlink" href="#namespace-castro" title="Permalink to this headline">¶</a></h1>
+<p><strong>parallelization</strong></p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="36%" />
@@ -241,385 +246,76 @@
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">&#64;namespace:</span></code></td>
-<td>&#160;</td>
-<td>Castro</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">state_interp_order</span></code></td>
-<td>highest order used in interpolation</td>
-<td>1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">lin_limit_state_interp</span></code></td>
-<td>how to do limiting of the state data when interpolating
-0: only prevent new extrema 1: preserve linear
-combinations of state variables</td>
-<td>0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">state_nghost</span></code></td>
-<td>Number of ghost zones for state data to have. Note that
-if you are using radiation, choosing this to be zero
-will be overridden since radiation needs at least one
-ghost zone.</td>
-<td>0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_reflux</span></code></td>
-<td>do we do the hyperbolic reflux at coarse-fine
-interfaces?</td>
-<td>1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">update_sources_after_reflux</span></code></td>
-<td>whether to re-compute new-time source terms after a
-reflux</td>
-<td>1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">use_custom_knapsack_weights</span></code></td>
-<td>should we have state data for custom load-balancing
-weighting?</td>
-<td>0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">difmag</span></code></td>
-<td>the coefficient of the artificial viscosity</td>
-<td>0.1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">small_dens</span></code></td>
-<td>the small density cutoff.  Densities below this value
-will be reset</td>
-<td>-1.e200</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">small_temp</span></code></td>
-<td>the small temperature cutoff.  Temperatures below this
-value will be reset</td>
-<td>-1.e200</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">small_pres</span></code></td>
-<td>the small pressure cutoff.  Pressures below this value
-will be reset</td>
-<td>-1.e200</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">small_ener</span></code></td>
-<td>the small specific internal energy cutoff.  Internal
-energies below this value will be reset</td>
-<td>-1.e200</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_hydro</span></code></td>
-<td>permits hydro to be turned on and off for running pure
-rad problems</td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_acc</span></code></td>
+<td>determines whether we use accelerators for specific
+loops</td>
 <td>-1</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">do_ctu</span></code></td>
-<td>do we do the CTU unsplit method or a method-of-lines
-approach?</td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">bndry_func_thread_safe</span></code></td>
+<td>&#160;</td>
 <td>1</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">fourth_order</span></code></td>
-<td>do we do fourth-order accurate MOL hydro?</td>
+</tbody>
+</table>
+<p><strong>particles</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_tracer_particles</span></code></td>
+<td>permits tracer particle calculation to be turned on and
+off</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">add_ext_src</span></code></td>
-<td>if true, define an additional source term</td>
-<td>0</td>
+</tbody>
+</table>
+<p><strong>refinement</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">hybrid_hydro</span></code></td>
-<td>whether to use the hybrid advection scheme that updates
-z-angular momentum, cylindrical momentum, and azimuthal
-momentum (3D only)</td>
-<td>0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">ppm_type</span></code></td>
-<td>reconstruction type: 0: piecewise linear; 1: classic
-Colella &amp; Woodward ppm; 2: extrema-preserving ppm</td>
-<td>1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">ppm_temp_fix</span></code></td>
-<td>various methods of giving temperature a larger role in
-the reconstruction—see Zingale &amp; Katz 2015</td>
-<td>0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">ppm_predict_gammae</span></code></td>
-<td>do we construct $gamma_e = p/(rho e) + 1$ and bring
-it to the interfaces for additional thermodynamic
-information (this is the Colella &amp; Glaz technique) or
-do we use $(rho e)$ (the classic castrobehavior).
-Note this also uses $tau = 1/rho$ instead of $rho$.</td>
-<td>0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">ppm_reference_eigenvectors</span></code></td>
-<td>do we use the reference state in evaluating the
-eigenvectors?</td>
-<td>0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">plm_iorder</span></code></td>
-<td>for piecewise linear, reconstruction order to use</td>
-<td>2</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">hybrid_riemann</span></code></td>
-<td>do we drop from our regular Riemann solver to HLL when
-we are in shocks to avoid the odd-even decoupling
-instability?</td>
-<td>0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">riemann_solver</span></code></td>
-<td>which Riemann solver do we use: 0: Colella, Glaz, &amp;
-Ferguson (a two-shock solver); 1: Colella &amp; Glaz (a
-two-shock solver) 2: HLLC</td>
-<td>0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">cg_maxiter</span></code></td>
-<td>for the Colella &amp; Glaz Riemann solver, the maximum
-number of iterations to take when solving for the star
-state</td>
-<td>12</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">cg_tol</span></code></td>
-<td>for the Colella &amp; Glaz Riemann solver, the tolerance
-to demand in finding the star state</td>
-<td>1.0e-5</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">cg_blend</span></code></td>
-<td>for the Colella &amp; Glaz Riemann solver, what to do if
-we do not converge to a solution for the star state. 0
-= do nothing; print iterations and exit 1 = revert to
-the original guess for p-star 2 = do a bisection search
-for another 2 * cg_maxiter iterations.</td>
-<td>2</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">use_eos_in_riemann</span></code></td>
-<td>should we use the EOS in the Riemann solver to ensure
-thermodynamic consistency?</td>
-<td>0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">use_flattening</span></code></td>
-<td>flatten the reconstructed profiles around shocks to
-prevent them from becoming too thin</td>
-<td>1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">transverse_use_eos</span></code></td>
-<td>after we add the transverse correction to the interface
-states, replace the predicted pressure with an EOS call
-(using $e$ and $rho$).</td>
-<td>0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">transverse_reset_density</span></code></td>
-<td>if the transverse interface state correction, if the
-new density is negative, then replace all of the
-interface quantities with their values without the
-transverse correction.</td>
-<td>1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">transverse_reset_rhoe</span></code></td>
-<td>if the interface state for $(rho e)$ is negative after
-we add the transverse terms, then replace the interface
-value of $(rho e)$ with a value constructed from the
-$(rho e)$ evolution equation</td>
-<td>0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">dual_energy_eta1</span></code></td>
-<td>Threshold value of (E - K) / E such that above eta1,
-the hydrodynamic pressure is derived from E - K;
-otherwise, we use the internal energy variable UEINT.</td>
-<td>1.0e0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">dual_energy_eta2</span></code></td>
-<td>Threshold value of (E - K) / E such that above eta2, we
-update the internal energy variable UEINT to match E -
-K. Below this, UEINT remains unchanged.</td>
-<td>1.0e-4</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">use_pslope</span></code></td>
-<td>for the piecewise linear reconstruction, do we subtract
-off $(rho g)$ from the pressure before limiting?</td>
-<td>1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">fix_mass_flux</span></code></td>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_special_tagging</span></code></td>
 <td>&#160;</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">limit_fluxes_on_small_dens</span></code></td>
-<td>Should we limit the density fluxes so that we do not
-create small densities?</td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">spherical_star</span></code></td>
+<td>&#160;</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">density_reset_method</span></code></td>
-<td>Which method to use when resetting a negative/small
-density 1 = Reset to characteristics of adjacent zone
-with largest density 2 = Use average of all adjacent
-zones for all state variables 3 = Reset to the original
-zone state before the hydro update</td>
-<td>1</td>
+</tbody>
+</table>
+<p><strong>reactions</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">allow_small_energy</span></code></td>
-<td>Whether or not to allow the internal energy to be less
-than the internal energy corresponding to small_temp</td>
-<td>1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">do_sponge</span></code></td>
-<td>permits sponge to be turned on and off</td>
-<td>0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sponge_implicit</span></code></td>
-<td>if we are using the sponge, whether to use the implicit
-solve for it</td>
-<td>1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">source_term_predictor</span></code></td>
-<td>extrapolate the source terms (gravity and rotation) to
-$n+1/2$ timelevel for use in the interface state
-prediction</td>
-<td>0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">first_order_hydro</span></code></td>
-<td>set the flattening parameter to zero to force the
-reconstructed profiles to be flat, resulting in a
-first-order method</td>
-<td>0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">xl_ext_bc_type</span></code></td>
-<td>if we are doing an external -x boundary condition, who
-do we interpret it?</td>
-<td>“”</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">xr_ext_bc_type</span></code></td>
-<td>if we are doing an external +x boundary condition, who
-do we interpret it?</td>
-<td>“”</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">yl_ext_bc_type</span></code></td>
-<td>if we are doing an external -y boundary condition, who
-do we interpret it?</td>
-<td>“”</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">yr_ext_bc_type</span></code></td>
-<td>if we are doing an external +y boundary condition, who
-do we interpret it?</td>
-<td>“”</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">zl_ext_bc_type</span></code></td>
-<td>if we are doing an external -z boundary condition, who
-do we interpret it?</td>
-<td>“”</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">zr_ext_bc_type</span></code></td>
-<td>if we are doing an external +z boundary condition, who
-do we interpret it?</td>
-<td>“”</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">hse_zero_vels</span></code></td>
-<td>if we are doing HSE boundary conditions, do we zero the
-velocity?</td>
-<td>0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">hse_interp_temp</span></code></td>
-<td>if we are doing HSE boundary conditions, should we get
-the temperature via interpolation (using model_parser)
-or hold it constant?</td>
-<td>0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">hse_reflect_vels</span></code></td>
-<td>if we are doing HSE boundary conditions, how do we
-treat the velocity? reflect? or outflow?</td>
-<td>0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">mol_order</span></code></td>
-<td>integration order for MOL integration 1 = first order,
-2 = second order TVD, 3 = 3rd order TVD, 4 = 4th order
-RK</td>
-<td>2</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">fixed_dt</span></code></td>
-<td>a fixed timestep to use for all steps (negative turns
-it off)</td>
-<td>-1.0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">initial_dt</span></code></td>
-<td>the initial timestep (negative uses the step returned
-from the timestep constraints)</td>
-<td>-1.0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">dt_cutoff</span></code></td>
-<td>the smallest valid timestep—if we go below this, we
-abort</td>
-<td>0.0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">max_dt</span></code></td>
-<td>the largest valid timestep—limit all timesteps to be
-no larger than this</td>
-<td>1.e200</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">cfl</span></code></td>
-<td>the effective Courant number to use—we will not allow
-the hydrodynamic waves to cross more than this fraction
-of a zone over a single timestep</td>
-<td>0.8</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">init_shrink</span></code></td>
-<td>a factor by which to reduce the first timestep from
-that requested by the timestep estimators</td>
-<td>1.0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">change_max</span></code></td>
-<td>the maximum factor by which the timestep can increase
-from one step to the next.</td>
-<td>1.1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">plot_per_is_exact</span></code></td>
-<td>enforce that the AMR plot interval must be hit exactly</td>
-<td>0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">small_plot_per_is_exact</span></code></td>
-<td>enforce that the AMR small plot interval must be hit
-exactly</td>
-<td>0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">use_retry</span></code></td>
-<td>Retry a timestep if it violated the timestep-limiting
-criteria over the course of an advance. The criteria
-will suggest a new timestep that satisfies the
-criteria, and we will do subcycled timesteps on the
-same level until we reach the original target time.</td>
-<td>0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">retry_tolerance</span></code></td>
-<td>Tolerance to use when evaluating whether to do a retry.
-The timestep suggested by the retry will be multiplied
-by (1 + this factor) before comparing the actual
-timestep to it. If set to some number slightly larger
-than zero, then this prevents retries that are caused
-by small numerical differences.</td>
-<td>0.02</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">retry_neg_dens_factor</span></code></td>
-<td>If we’re doing retries, set the target threshold for
-changes in density if a retry is triggered by a
-negative density. If this is set to a negative number
-then it will disable retries using this criterion.</td>
-<td>1.e-1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">retry_subcycle_factor</span></code></td>
-<td>When performing a retry, the factor to multiply the
-current timestep by when trying again.</td>
-<td>0.5</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">use_post_step_regrid</span></code></td>
-<td>Check for a possible post-timestep regrid if certain
-stability criteria were violated.</td>
-<td>0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">max_subcycles</span></code></td>
-<td>Do not permit more subcycled timesteps than this
-parameter. Set to a negative value to disable this
-criterion.</td>
-<td>10</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">clamp_subcycles</span></code></td>
-<td>If we do request more than the maximum number of
-subcycles, should we fail, or should we clamp to that
-maximum number and perform that many?</td>
-<td>1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_iters</span></code></td>
-<td>Number of iterations for the SDC advance.</td>
-<td>2</td>
-</tr>
+</thead>
+<tbody valign="top">
 <tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">dtnuc_e</span></code></td>
 <td>Limit the timestep based on how much the burning can
 change the internal energy of a zone. The timestep is
@@ -689,6 +385,286 @@ zone</td>
 <td>disable burning inside hydrodynamic shock regions</td>
 <td>0</td>
 </tr>
+</tbody>
+</table>
+<p><strong>hydrodynamics</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">difmag</span></code></td>
+<td>the coefficient of the artificial viscosity</td>
+<td>0.1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">small_dens</span></code></td>
+<td>the small density cutoff.  Densities below this value
+will be reset</td>
+<td>-1.e200</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">small_temp</span></code></td>
+<td>the small temperature cutoff.  Temperatures below this
+value will be reset</td>
+<td>-1.e200</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">small_pres</span></code></td>
+<td>the small pressure cutoff.  Pressures below this value
+will be reset</td>
+<td>-1.e200</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">small_ener</span></code></td>
+<td>the small specific internal energy cutoff.  Internal
+energies below this value will be reset</td>
+<td>-1.e200</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">do_hydro</span></code></td>
+<td>permits hydro to be turned on and off for running pure
+rad problems</td>
+<td>-1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_ctu</span></code></td>
+<td>do we do the CTU unsplit method or a method-of-lines
+approach?</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">fourth_order</span></code></td>
+<td>do we do fourth-order accurate MOL hydro?</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">add_ext_src</span></code></td>
+<td>if true, define an additional source term</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">hybrid_hydro</span></code></td>
+<td>whether to use the hybrid advection scheme that updates
+z-angular momentum, cylindrical momentum, and azimuthal
+momentum (3D only)</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">ppm_type</span></code></td>
+<td>reconstruction type: 0: piecewise linear; 1: classic
+Colella &amp; Woodward ppm; 2: extrema-preserving ppm</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">ppm_temp_fix</span></code></td>
+<td>various methods of giving temperature a larger role in
+the reconstruction—see Zingale &amp; Katz 2015</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">ppm_predict_gammae</span></code></td>
+<td>do we construct $gamma_e = p/(rho e) + 1$ and bring
+it to the interfaces for additional thermodynamic
+information (this is the Colella &amp; Glaz technique) or
+do we use $(rho e)$ (the classic castrobehavior).
+Note this also uses $tau = 1/rho$ instead of $rho$.</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">ppm_reference_eigenvectors</span></code></td>
+<td>do we use the reference state in evaluating the
+eigenvectors?</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">plm_iorder</span></code></td>
+<td>for piecewise linear, reconstruction order to use</td>
+<td>2</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">hybrid_riemann</span></code></td>
+<td>do we drop from our regular Riemann solver to HLL when
+we are in shocks to avoid the odd-even decoupling
+instability?</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">riemann_solver</span></code></td>
+<td>which Riemann solver do we use: 0: Colella, Glaz, &amp;
+Ferguson (a two-shock solver); 1: Colella &amp; Glaz (a
+two-shock solver) 2: HLLC</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">cg_maxiter</span></code></td>
+<td>for the Colella &amp; Glaz Riemann solver, the maximum
+number of iterations to take when solving for the star
+state</td>
+<td>12</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">cg_tol</span></code></td>
+<td>for the Colella &amp; Glaz Riemann solver, the tolerance
+to demand in finding the star state</td>
+<td>1.0e-5</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">cg_blend</span></code></td>
+<td>for the Colella &amp; Glaz Riemann solver, what to do if
+we do not converge to a solution for the star state. 0
+= do nothing; print iterations and exit 1 = revert to
+the original guess for p-star 2 = do a bisection search
+for another 2 * cg_maxiter iterations.</td>
+<td>2</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">use_eos_in_riemann</span></code></td>
+<td>should we use the EOS in the Riemann solver to ensure
+thermodynamic consistency?</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">use_flattening</span></code></td>
+<td>flatten the reconstructed profiles around shocks to
+prevent them from becoming too thin</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">transverse_use_eos</span></code></td>
+<td>after we add the transverse correction to the interface
+states, replace the predicted pressure with an EOS call
+(using $e$ and $rho$).</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">transverse_reset_density</span></code></td>
+<td>if the transverse interface state correction, if the
+new density is negative, then replace all of the
+interface quantities with their values without the
+transverse correction.</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">transverse_reset_rhoe</span></code></td>
+<td>if the interface state for $(rho e)$ is negative after
+we add the transverse terms, then replace the interface
+value of $(rho e)$ with a value constructed from the
+$(rho e)$ evolution equation</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">dual_energy_eta1</span></code></td>
+<td>Threshold value of (E - K) / E such that above eta1,
+the hydrodynamic pressure is derived from E - K;
+otherwise, we use the internal energy variable UEINT.</td>
+<td>1.0e0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">dual_energy_eta2</span></code></td>
+<td>Threshold value of (E - K) / E such that above eta2, we
+update the internal energy variable UEINT to match E -
+K. Below this, UEINT remains unchanged.</td>
+<td>1.0e-4</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">use_pslope</span></code></td>
+<td>for the piecewise linear reconstruction, do we subtract
+off $(rho g)$ from the pressure before limiting?</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">fix_mass_flux</span></code></td>
+<td>&#160;</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">limit_fluxes_on_small_dens</span></code></td>
+<td>Should we limit the density fluxes so that we do not
+create small densities?</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">density_reset_method</span></code></td>
+<td>Which method to use when resetting a negative/small
+density 1 = Reset to characteristics of adjacent zone
+with largest density 2 = Use average of all adjacent
+zones for all state variables 3 = Reset to the original
+zone state before the hydro update</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">allow_small_energy</span></code></td>
+<td>Whether or not to allow the internal energy to be less
+than the internal energy corresponding to small_temp</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_sponge</span></code></td>
+<td>permits sponge to be turned on and off</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sponge_implicit</span></code></td>
+<td>if we are using the sponge, whether to use the implicit
+solve for it</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">source_term_predictor</span></code></td>
+<td>extrapolate the source terms (gravity and rotation) to
+$n+1/2$ timelevel for use in the interface state
+prediction</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">first_order_hydro</span></code></td>
+<td>set the flattening parameter to zero to force the
+reconstructed profiles to be flat, resulting in a
+first-order method</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">xl_ext_bc_type</span></code></td>
+<td>if we are doing an external -x boundary condition, who
+do we interpret it?</td>
+<td>“”</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">xr_ext_bc_type</span></code></td>
+<td>if we are doing an external +x boundary condition, who
+do we interpret it?</td>
+<td>“”</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">yl_ext_bc_type</span></code></td>
+<td>if we are doing an external -y boundary condition, who
+do we interpret it?</td>
+<td>“”</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">yr_ext_bc_type</span></code></td>
+<td>if we are doing an external +y boundary condition, who
+do we interpret it?</td>
+<td>“”</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">zl_ext_bc_type</span></code></td>
+<td>if we are doing an external -z boundary condition, who
+do we interpret it?</td>
+<td>“”</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">zr_ext_bc_type</span></code></td>
+<td>if we are doing an external +z boundary condition, who
+do we interpret it?</td>
+<td>“”</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">hse_zero_vels</span></code></td>
+<td>if we are doing HSE boundary conditions, do we zero the
+velocity?</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">hse_interp_temp</span></code></td>
+<td>if we are doing HSE boundary conditions, should we get
+the temperature via interpolation (using model_parser)
+or hold it constant?</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">hse_reflect_vels</span></code></td>
+<td>if we are doing HSE boundary conditions, how do we
+treat the velocity? reflect? or outflow?</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">mol_order</span></code></td>
+<td>integration order for MOL integration 1 = first order,
+2 = second order TVD, 3 = 3rd order TVD, 4 = 4th order
+RK</td>
+<td>2</td>
+</tr>
+</tbody>
+</table>
+<p><strong>diffusion</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
+</tr>
+</thead>
+<tbody valign="top">
 <tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">diffuse_temp</span></code></td>
 <td>enable thermal diffusion</td>
 <td>0</td>
@@ -714,6 +690,284 @@ out below this density</td>
 <td>scaling factor for conductivity</td>
 <td>1.0</td>
 </tr>
+</tbody>
+</table>
+<p><strong>timestep control</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">fixed_dt</span></code></td>
+<td>a fixed timestep to use for all steps (negative turns
+it off)</td>
+<td>-1.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">initial_dt</span></code></td>
+<td>the initial timestep (negative uses the step returned
+from the timestep constraints)</td>
+<td>-1.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">dt_cutoff</span></code></td>
+<td>the smallest valid timestep—if we go below this, we
+abort</td>
+<td>0.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">max_dt</span></code></td>
+<td>the largest valid timestep—limit all timesteps to be
+no larger than this</td>
+<td>1.e200</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">cfl</span></code></td>
+<td>the effective Courant number to use—we will not allow
+the hydrodynamic waves to cross more than this fraction
+of a zone over a single timestep</td>
+<td>0.8</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">init_shrink</span></code></td>
+<td>a factor by which to reduce the first timestep from
+that requested by the timestep estimators</td>
+<td>1.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">change_max</span></code></td>
+<td>the maximum factor by which the timestep can increase
+from one step to the next.</td>
+<td>1.1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">plot_per_is_exact</span></code></td>
+<td>enforce that the AMR plot interval must be hit exactly</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">small_plot_per_is_exact</span></code></td>
+<td>enforce that the AMR small plot interval must be hit
+exactly</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">use_retry</span></code></td>
+<td>Retry a timestep if it violated the timestep-limiting
+criteria over the course of an advance. The criteria
+will suggest a new timestep that satisfies the
+criteria, and we will do subcycled timesteps on the
+same level until we reach the original target time.</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">retry_tolerance</span></code></td>
+<td>Tolerance to use when evaluating whether to do a retry.
+The timestep suggested by the retry will be multiplied
+by (1 + this factor) before comparing the actual
+timestep to it. If set to some number slightly larger
+than zero, then this prevents retries that are caused
+by small numerical differences.</td>
+<td>0.02</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">retry_neg_dens_factor</span></code></td>
+<td>If we’re doing retries, set the target threshold for
+changes in density if a retry is triggered by a
+negative density. If this is set to a negative number
+then it will disable retries using this criterion.</td>
+<td>1.e-1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">retry_subcycle_factor</span></code></td>
+<td>When performing a retry, the factor to multiply the
+current timestep by when trying again.</td>
+<td>0.5</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">use_post_step_regrid</span></code></td>
+<td>Check for a possible post-timestep regrid if certain
+stability criteria were violated.</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">max_subcycles</span></code></td>
+<td>Do not permit more subcycled timesteps than this
+parameter. Set to a negative value to disable this
+criterion.</td>
+<td>10</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">clamp_subcycles</span></code></td>
+<td>If we do request more than the maximum number of
+subcycles, should we fail, or should we clamp to that
+maximum number and perform that many?</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_iters</span></code></td>
+<td>Number of iterations for the SDC advance.</td>
+<td>2</td>
+</tr>
+</tbody>
+</table>
+<p><strong>diagnostics, I/O</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">print_fortran_warnings</span></code></td>
+<td>display warnings in Fortran90 routines</td>
+<td>(0, 1)</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">print_update_diagnostics</span></code></td>
+<td>display information about updates to the state (how
+much mass, momentum, energy added)</td>
+<td>(0, 1)</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">track_grid_losses</span></code></td>
+<td>calculate losses of material through physical grid
+boundaries</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sum_interval</span></code></td>
+<td>how often (number of coarse timesteps) to compute
+integral sums (for runtime diagnostics)</td>
+<td>-1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sum_per</span></code></td>
+<td>how often (simulation time) to compute integral sums
+(for runtime diagnostics)</td>
+<td>-1.0e0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">show_center_of_mass</span></code></td>
+<td>display center of mass diagnostics</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">hard_cfl_limit</span></code></td>
+<td>abort if we exceed CFL = 1 over the cource of a
+timestep</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">job_name</span></code></td>
+<td>a string describing the simulation that will be copied
+into the plotfile’s {tt job_info} file</td>
+<td>“”</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">output_at_completion</span></code></td>
+<td>write a final plotfile and checkpoint upon completion</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_time</span></code></td>
+<td>Do we want to reset the time in the checkpoint? This
+ONLY takes effect if amr.regrid_on_restart = 1 and
+amr.checkpoint_on_restart = 1, (which require that
+max_step and stop_time be less than the value in the
+checkpoint) and you set it to value greater than this
+default value.</td>
+<td>-1.e200</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_step</span></code></td>
+<td>Do we want to reset the number of steps in the
+checkpoint? This ONLY takes effect if
+amr.regrid_on_restart = 1 and
+amr.checkpoint_on_restart = 1, (which require that
+max_step and stop_time be less than the value in the
+checkpoint) and you set it to value greater than this
+default value.</td>
+<td>-1</td>
+</tr>
+</tbody>
+</table>
+<p><strong>AMR</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">state_interp_order</span></code></td>
+<td>highest order used in interpolation</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">lin_limit_state_interp</span></code></td>
+<td>how to do limiting of the state data when interpolating
+0: only prevent new extrema 1: preserve linear
+combinations of state variables</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">state_nghost</span></code></td>
+<td>Number of ghost zones for state data to have. Note that
+if you are using radiation, choosing this to be zero
+will be overridden since radiation needs at least one
+ghost zone.</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">do_reflux</span></code></td>
+<td>do we do the hyperbolic reflux at coarse-fine
+interfaces?</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">update_sources_after_reflux</span></code></td>
+<td>whether to re-compute new-time source terms after a
+reflux</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">use_custom_knapsack_weights</span></code></td>
+<td>should we have state data for custom load-balancing
+weighting?</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>embiggening</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">grown_factor</span></code></td>
+<td>the factor by which to extend the domain upon restart
+for embiggening</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">star_at_center</span></code></td>
+<td>used with the embiggening routines to determine how to
+extend the domain</td>
+<td>-1</td>
+</tr>
+</tbody>
+</table>
+<p><strong>gravity and rotation</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
+</tr>
+</thead>
+<tbody valign="top">
 <tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_grav</span></code></td>
 <td>permits gravity calculation to be turned on and off</td>
 <td>-1</td>
@@ -797,144 +1051,51 @@ their density constant and adding their mass to the
 point mass object</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_acc</span></code></td>
-<td>determines whether we use accelerators for specific
-loops</td>
-<td>-1</td>
+</tbody>
+</table>
+</div>
+<div class="section" id="namespace-diffusion">
+<h1>namespace: <code class="docutils literal notranslate"><span class="pre">diffusion</span></code><a class="headerlink" href="#namespace-diffusion" title="Permalink to this headline">¶</a></h1>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">bndry_func_thread_safe</span></code></td>
-<td>&#160;</td>
-<td>1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">grown_factor</span></code></td>
-<td>the factor by which to extend the domain upon restart
-for embiggening</td>
-<td>1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">star_at_center</span></code></td>
-<td>used with the embiggening routines to determine how to
-extend the domain</td>
-<td>-1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_special_tagging</span></code></td>
-<td>&#160;</td>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">v</span></code></td>
+<td>the level of verbosity for the diffusion solve (higher
+number means more output)</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">spherical_star</span></code></td>
-<td>&#160;</td>
-<td>0</td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">mlmg_maxorder</span></code></td>
+<td>Use MLMG as the operator</td>
+<td>4</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">print_fortran_warnings</span></code></td>
-<td>display warnings in Fortran90 routines</td>
-<td>(0,</td>
+</tbody>
+</table>
+</div>
+<div class="section" id="namespace-gravity">
+<h1>namespace: <code class="docutils literal notranslate"><span class="pre">gravity</span></code><a class="headerlink" href="#namespace-gravity" title="Permalink to this headline">¶</a></h1>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">print_update_diagnostics</span></code></td>
-<td>display information about updates to the state (how
-much mass, momentum, energy added)</td>
-<td>(0,</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">track_grid_losses</span></code></td>
-<td>calculate losses of material through physical grid
-boundaries</td>
-<td>0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sum_interval</span></code></td>
-<td>how often (number of coarse timesteps) to compute
-integral sums (for runtime diagnostics)</td>
-<td>-1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sum_per</span></code></td>
-<td>how often (simulation time) to compute integral sums
-(for runtime diagnostics)</td>
-<td>-1.0e0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">show_center_of_mass</span></code></td>
-<td>display center of mass diagnostics</td>
-<td>0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">hard_cfl_limit</span></code></td>
-<td>abort if we exceed CFL = 1 over the cource of a
-timestep</td>
-<td>1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">job_name</span></code></td>
-<td>a string describing the simulation that will be copied
-into the plotfile’s {tt job_info} file</td>
-<td>“”</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">output_at_completion</span></code></td>
-<td>write a final plotfile and checkpoint upon completion</td>
-<td>1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_time</span></code></td>
-<td>Do we want to reset the time in the checkpoint? This
-ONLY takes effect if amr.regrid_on_restart = 1 and
-amr.checkpoint_on_restart = 1, (which require that
-max_step and stop_time be less than the value in the
-checkpoint) and you set it to value greater than this
-default value.</td>
-<td>-1.e200</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_step</span></code></td>
-<td>Do we want to reset the number of steps in the
-checkpoint? This ONLY takes effect if
-amr.regrid_on_restart = 1 and
-amr.checkpoint_on_restart = 1, (which require that
-max_step and stop_time be less than the value in the
-checkpoint) and you set it to value greater than this
-default value.</td>
-<td>-1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">do_tracer_particles</span></code></td>
-<td>permits tracer particle calculation to be turned on and
-off</td>
-<td>0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">&#64;namespace:</span></code></td>
-<td>&#160;</td>
-<td>Castro</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">(v,</span></code></td>
-<td>the level of verbosity for the tracer particle (0 or 1)</td>
-<td>int</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">particle_init_file</span></code></td>
-<td>the name of an input file containing the total particle
-number and the initial position of each particle.</td>
-<td>“”</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">particle_restart_file</span></code></td>
-<td>the name of a file with new particles at restart</td>
-<td>“”</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">restart_from_nonparticle_chkfile</span></code></td>
-<td>to restart from a checkpoint that was written with {tt
-USE_PARTICLES}=FALSE</td>
-<td>0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">particle_output_file</span></code></td>
-<td>the name of timestamp files.</td>
-<td>“”</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">timestamp_dir</span></code></td>
-<td>the name of a directory in which timestamp files are
-stored.</td>
-<td>“”</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">timestamp_density</span></code></td>
-<td>whether the local densities at given positions of
-particles are stored in output files</td>
-<td>1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">timestamp_temperature</span></code></td>
-<td>whether the local temperatures at given positions of
-particles are stored in output files</td>
-<td>0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">&#64;namespace:</span></code></td>
-<td>&#160;</td>
-<td>Gravity</td>
-</tr>
+</thead>
+<tbody valign="top">
 <tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">gravity_type</span></code></td>
 <td>what type</td>
 <td>“fillme”</td>
@@ -954,16 +1115,16 @@ false, since this method is slow.</td>
 resolution</td>
 <td>1</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">(max_multipole_order,</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">max_multipole_order</span></code></td>
 <td>the maximum mulitpole order to use for multipole BCs
 when doing Poisson gravity</td>
-<td>int</td>
+<td>0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">(v,</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">v</span></code></td>
 <td>the level of verbosity for the gravity solve (higher
 number means more output on the status of the solve /
 multigrid</td>
-<td>int</td>
+<td>0</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">no_sync</span></code></td>
 <td>do we perform the synchronization at coarse-fine
@@ -1011,18 +1172,60 @@ the potential, rather than constructing it directly?</td>
 <td>Do N-Solve?</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">&#64;namespace:</span></code></td>
-<td>&#160;</td>
-<td>Diffusion</td>
+</tbody>
+</table>
+</div>
+<div class="section" id="namespace-particles">
+<h1>namespace: <code class="docutils literal notranslate"><span class="pre">particles</span></code><a class="headerlink" href="#namespace-particles" title="Permalink to this headline">¶</a></h1>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">(v,</span></code></td>
-<td>the level of verbosity for the diffusion solve (higher
-number means more output)</td>
-<td>int</td>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">v</span></code></td>
+<td>the level of verbosity for the tracer particle (0 or 1)</td>
+<td>0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">mlmg_maxorder</span></code></td>
-<td>Use MLMG as the operator</td>
-<td>4</td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">particle_init_file</span></code></td>
+<td>the name of an input file containing the total particle
+number and the initial position of each particle.</td>
+<td>“”</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">particle_restart_file</span></code></td>
+<td>the name of a file with new particles at restart</td>
+<td>“”</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">restart_from_nonparticle_chkfile</span></code></td>
+<td>to restart from a checkpoint that was written with {tt
+USE_PARTICLES}=FALSE</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">particle_output_file</span></code></td>
+<td>the name of timestamp files.</td>
+<td>“”</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">timestamp_dir</span></code></td>
+<td>the name of a directory in which timestamp files are
+stored.</td>
+<td>“”</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">timestamp_density</span></code></td>
+<td>whether the local densities at given positions of
+particles are stored in output files</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">timestamp_temperature</span></code></td>
+<td>whether the local temperatures at given positions of
+particles are stored in output files</td>
+<td>0</td>
 </tr>
 </tbody>
 </table>

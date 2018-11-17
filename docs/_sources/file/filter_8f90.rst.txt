@@ -1,4 +1,0 @@
-File filter.f90
-===============
-
-.. doxygenfile:: filter.f90

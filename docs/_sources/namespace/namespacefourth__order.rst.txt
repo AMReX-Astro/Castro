@@ -1,4 +1,0 @@
-Namespace fourth_order
-======================
-
-.. doxygennamespace:: fourth_order

@@ -1,4 +1,0 @@
-File bc_fill_1d.F90
-===================
-
-.. doxygenfile:: bc_fill_1d.F90

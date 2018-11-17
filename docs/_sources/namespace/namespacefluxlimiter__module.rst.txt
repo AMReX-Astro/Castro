@@ -1,4 +1,0 @@
-Namespace fluxlimiter_module
-============================
-
-.. doxygennamespace:: fluxlimiter_module

@@ -1,4 +1,0 @@
-Namespace ppm_module
-====================
-
-.. doxygennamespace:: ppm_module

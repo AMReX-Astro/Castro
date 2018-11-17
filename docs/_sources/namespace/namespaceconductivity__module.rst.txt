@@ -1,4 +1,0 @@
-Namespace conductivity_module
-=============================
-
-.. doxygennamespace:: conductivity_module

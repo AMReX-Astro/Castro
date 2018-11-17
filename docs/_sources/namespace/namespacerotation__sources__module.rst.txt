@@ -1,4 +1,0 @@
-Namespace rotation_sources_module
-=================================
-
-.. doxygennamespace:: rotation_sources_module

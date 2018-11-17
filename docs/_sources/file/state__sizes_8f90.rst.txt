@@ -1,4 +1,0 @@
-File state_sizes.f90
-====================
-
-.. doxygenfile:: state_sizes.f90

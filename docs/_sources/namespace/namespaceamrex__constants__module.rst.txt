@@ -1,4 +1,0 @@
-Namespace amrex_constants_module
-================================
-
-.. doxygennamespace:: amrex_constants_module

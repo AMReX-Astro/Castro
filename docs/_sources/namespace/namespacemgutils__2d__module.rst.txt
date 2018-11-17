@@ -1,4 +1,0 @@
-Namespace mgutils_2d_module
-===========================
-
-.. doxygennamespace:: mgutils_2d_module

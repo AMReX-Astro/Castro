@@ -1,4 +1,0 @@
-File MGFLD_1d.f90
-=================
-
-.. doxygenfile:: MGFLD_1d.f90

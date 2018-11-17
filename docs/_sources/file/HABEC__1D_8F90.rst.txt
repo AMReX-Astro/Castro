@@ -1,4 +1,0 @@
-File HABEC_1D.F90
-=================
-
-.. doxygenfile:: HABEC_1D.F90

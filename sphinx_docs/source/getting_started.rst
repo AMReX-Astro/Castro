@@ -37,7 +37,7 @@ is installed on your machine—we recommend version 1.7.x or higher.
    machine to point to the path name where you have put AMReX.
    You can add this to your ``.bashrc`` as::
 
-       export AMREX_HOME={\em /path/to/amrex/}
+       export AMREX_HOME=/path/to/amrex/
 
    where you replace ``/path/to/amrex/`` will the full path to the
    ``amrex/`` directory.

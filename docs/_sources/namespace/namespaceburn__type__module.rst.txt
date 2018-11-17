@@ -1,4 +1,0 @@
-Namespace burn_type_module
-==========================
-
-.. doxygennamespace:: burn_type_module

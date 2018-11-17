@@ -1,4 +1,0 @@
-Namespace model_parser_module
-=============================
-
-.. doxygennamespace:: model_parser_module

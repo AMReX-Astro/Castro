@@ -1,4 +1,0 @@
-Namespace castro_sums_module
-============================
-
-.. doxygennamespace:: castro_sums_module

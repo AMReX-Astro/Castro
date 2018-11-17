@@ -1,4 +1,0 @@
-Namespace filter_module
-=======================
-
-.. doxygennamespace:: filter_module

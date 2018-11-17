@@ -1,4 +1,0 @@
-Namespace riemann_module
-========================
-
-.. doxygennamespace:: riemann_module

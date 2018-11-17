@@ -1,4 +1,0 @@
-Namespace react_util_module
-===========================
-
-.. doxygennamespace:: react_util_module

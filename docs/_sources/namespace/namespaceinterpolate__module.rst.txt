@@ -1,4 +1,0 @@
-Namespace interpolate_module
-============================
-
-.. doxygennamespace:: interpolate_module

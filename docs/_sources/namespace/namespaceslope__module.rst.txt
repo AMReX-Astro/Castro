@@ -1,4 +1,0 @@
-Namespace slope_module
-======================
-
-.. doxygennamespace:: slope_module

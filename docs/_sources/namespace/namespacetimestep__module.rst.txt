@@ -1,4 +1,0 @@
-Namespace timestep_module
-=========================
-
-.. doxygennamespace:: timestep_module

@@ -1,4 +1,0 @@
-File RadPlotvar_1d.f90
-======================
-
-.. doxygenfile:: RadPlotvar_1d.f90

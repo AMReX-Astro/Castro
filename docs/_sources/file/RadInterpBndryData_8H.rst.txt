@@ -1,4 +1,0 @@
-File RadInterpBndryData.H
-=========================
-
-.. doxygenfile:: RadInterpBndryData.H

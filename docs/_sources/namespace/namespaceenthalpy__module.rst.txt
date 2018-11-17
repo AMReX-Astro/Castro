@@ -1,4 +1,0 @@
-Namespace enthalpy_module
-=========================
-
-.. doxygennamespace:: enthalpy_module

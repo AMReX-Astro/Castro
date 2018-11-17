@@ -1,4 +1,0 @@
-Namespace habec_module
-======================
-
-.. doxygennamespace:: habec_module

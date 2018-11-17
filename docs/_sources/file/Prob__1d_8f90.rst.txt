@@ -1,4 +1,0 @@
-File Prob_1d.f90
-================
-
-.. doxygenfile:: Prob_1d.f90

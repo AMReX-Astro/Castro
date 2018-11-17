@@ -1,4 +1,0 @@
-Namespace network
-=================
-
-.. doxygennamespace:: network

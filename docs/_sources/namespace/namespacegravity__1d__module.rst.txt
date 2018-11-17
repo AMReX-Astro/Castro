@@ -1,4 +1,0 @@
-Namespace gravity_1d_module
-===========================
-
-.. doxygennamespace:: gravity_1d_module

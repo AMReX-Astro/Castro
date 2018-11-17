@@ -1,4 +1,0 @@
-File Castro_sources.cpp
-=======================
-
-.. doxygenfile:: Castro_sources.cpp

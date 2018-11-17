@@ -1,4 +1,0 @@
-File ext_src_2d.f90
-===================
-
-.. doxygenfile:: ext_src_2d.f90

@@ -245,7 +245,7 @@ In the code, the objective is to evolve the state from the old time,
 
    #. Check for NaNs in the initial state, ``S_old``.
 
-#. *React :math:`\Delta t/2`.* [strang_react_first_half()]
+#. *React* :math:`\Delta t/2` [``strang_react_first_half()`` ]
 
    Update the solution due to the effect of reactions over half a time
    step. The integration method and system of equations used here is
@@ -294,7 +294,7 @@ In the code, the objective is to evolve the state from the old time,
    reactions.
 
 #. [strang:oldsource] *Construct time-level :math:`n` sources and apply*
-   [``construct_old_gravity()``, ``do_old_sources()``]
+   [``construct_old_gravity()``, ``do_old_sources()`` ]
 
    The time level :math:`n` sources are computed, and added to the
    StateData ``Source_Type``. The sources are then applied
@@ -436,12 +436,12 @@ In the code, the objective is to evolve the state from the old time,
 
    These quantities are computed using ``S_new``.
 
-#. [strang:newsource] *Correct the source terms with the :math:`n+1` contribution*
-   [``construct_new_gravity()``, ``do_new_sources``]
+#. [strang:newsource] *Correct the source terms with the n+1
+   contribution* [``construct_new_gravity()``, ``do_new_sources`` ]
 
    Previously we added :math:`\Delta t\, \Sb(\Ub^\star)` to the state, when
-   we really want a time-centered approach, :math:`(\Delta t/2)[\Sb(\Ub^\star
-       + \Sb(\Ub^{n+1,(b)})]`. We fix that here.
+   we really want a time-centered approach, 
+   :math:`(\Delta t/2)[\Sb(\Ub^\star + \Sb(\Ub^{n+1,(b)})]` . We fix that here.
 
    We start by computing the source term vector :math:`\Sb(\Ub^{n+1,(b)})`
    using the updated state, :math:`\Ub^{n+1,(b)}`. We then compute the
@@ -453,7 +453,7 @@ In the code, the objective is to evolve the state from the old time,
    In the process of updating the sources, we update the temperature to
    make it consistent with the new state.
 
-#. *React :math:`\Delta t/2`.* [strang_react_second_half()]
+#. *React* :math:`\Delta t/2` [``strang_react_second_half()``]
 
    We do the final :math:`\dt/2` reacting on the state, begining with :math:`\Ub^{n+1,(c)}` to
    give us the final state on this level, :math:`\Ub^{n+1}`.

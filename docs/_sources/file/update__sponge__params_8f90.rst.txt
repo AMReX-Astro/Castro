@@ -1,4 +1,0 @@
-File update_sponge_params.f90
-=============================
-
-.. doxygenfile:: update_sponge_params.f90

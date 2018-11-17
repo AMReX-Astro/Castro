@@ -1,4 +1,0 @@
-Namespace generic_fill_module
-=============================
-
-.. doxygennamespace:: generic_fill_module

@@ -1,4 +1,0 @@
-Namespace meth_params_module
-============================
-
-.. doxygennamespace:: meth_params_module

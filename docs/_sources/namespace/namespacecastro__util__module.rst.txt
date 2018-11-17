@@ -1,4 +1,0 @@
-Namespace castro_util_module
-============================
-
-.. doxygennamespace:: castro_util_module

@@ -1,4 +1,0 @@
-Namespace tagging_module
-========================
-
-.. doxygennamespace:: tagging_module

@@ -1,4 +1,0 @@
-Namespace eos_type_module
-=========================
-
-.. doxygennamespace:: eos_type_module

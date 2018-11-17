@@ -1,4 +1,0 @@
-Namespace multid_slope_module
-=============================
-
-.. doxygennamespace:: multid_slope_module

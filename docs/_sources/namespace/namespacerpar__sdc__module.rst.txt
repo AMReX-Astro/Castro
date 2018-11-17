@@ -1,4 +1,0 @@
-Namespace rpar_sdc_module
-=========================
-
-.. doxygennamespace:: rpar_sdc_module

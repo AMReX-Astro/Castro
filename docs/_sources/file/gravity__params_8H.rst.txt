@@ -1,4 +1,0 @@
-File gravity_params.H
-=====================
-
-.. doxygenfile:: gravity_params.H

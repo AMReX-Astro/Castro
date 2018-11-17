@@ -1,4 +1,0 @@
-File Castro_ctu_3d.F90
-======================
-
-.. doxygenfile:: Castro_ctu_3d.F90

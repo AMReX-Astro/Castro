@@ -1,4 +1,0 @@
-Namespace amrinfo_module
-========================
-
-.. doxygennamespace:: amrinfo_module
