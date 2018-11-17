@@ -86,7 +86,7 @@
             
             
               <p class="caption"><span class="caption-text">Castro basics</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction to Castro</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
@@ -94,7 +94,14 @@
 <li class="toctree-l1"><a class="reference internal" href="rp_intro.html">Runtime Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="coding_conventions.html">Coding Conventions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
@@ -118,7 +125,6 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
-<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API</span></p>
@@ -400,6 +406,27 @@ we consider the original inputs file to look like:</p>
 <span class="n">castro</span><span class="o">.</span><span class="n">star_at_center</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="n">amr</span><span class="o">.</span><span class="n">ref_ratio</span> <span class="o">=</span> <span class="mi">2</span> <span class="mi">4</span> <span class="mi">4</span> <span class="mi">4</span> <span class="mi">4</span>
 </pre></div>
+</div>
+<p>Some results:</p>
+<div class="figure" id="id3">
+<img alt="_images/corner.png" src="_images/corner.png" />
+<p class="caption"><span class="caption-text">Data from checkpoint file before and after the domain has been
+coarsened and grown. This case uses <code class="docutils literal notranslate"><span class="pre">star_at_center</span></code> = 0 and
+<code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code> = 2. The first grown example has <code class="docutils literal notranslate"><span class="pre">grown_factor</span></code> =
+2, the second has <code class="docutils literal notranslate"><span class="pre">grown_factor</span></code> = 3. In all figures the level 0
+grids are shown in white, the level 1 grids in red, the level 2
+grids in yellow, and in the grown figures, the level 3 grids are in
+pink.</span></p>
+</div>
+<div class="figure" id="id4">
+<img alt="_images/center.png" src="_images/center.png" />
+<p class="caption"><span class="caption-text">Data from checkpoint file before and after the domain has been
+coarsened and grown. This case uses <code class="docutils literal notranslate"><span class="pre">star_at_center</span></code> = 1 and
+<code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code> = 2. The first grown example has <code class="docutils literal notranslate"><span class="pre">grown_factor</span></code> =
+2, the second has <code class="docutils literal notranslate"><span class="pre">grown_factor</span></code> = 3. In all figures the level 0
+grids are shown in white, the level 1 grids in red, the level 2
+grids in yellow, and in the grown figures, the level 3 grids are in
+pink.</span></p>
 </div>
 </div>
 </div>

@@ -192,7 +192,9 @@ then an inputs file for restart would look like::
    amr.ref_ratio = 2 4 4 4 4
 
 
-.. figure: corner.png
+Some results:
+
+.. figure:: corner.png
 
    Data from checkpoint file before and after the domain has been
    coarsened and grown. This case uses ``star_at_center`` = 0 and
@@ -202,7 +204,7 @@ then an inputs file for restart would look like::
    grids in yellow, and in the grown figures, the level 3 grids are in
    pink.
 
-.. figure: center.png
+.. figure:: center.png
 
    Data from checkpoint file before and after the domain has been
    coarsened and grown. This case uses ``star_at_center`` = 1 and

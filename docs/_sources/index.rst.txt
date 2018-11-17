@@ -18,7 +18,16 @@ Castro: an adaptive mesh compressible hydrodynamics code
    rp_intro
    FlowChart
    software
+   creating_a_problem
+   io
+   visualization
    faq
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Castro reference
+
+   coding_conventions
    Hydrodynamics
    gravity
    diffusion
@@ -29,7 +38,6 @@ Castro: an adaptive mesh compressible hydrodynamics code
    AMR
    ConvertCheckpoint
    MAESTRO_restart
-   visualization
    Verification
 
 .. toctree::
