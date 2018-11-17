@@ -1,95 +1,6 @@
 namespace: ``castro``
 ---------------------
 
-**parallelization**
-
-+----------------------------------------+---------------------------------------------------------+---------------+
-| parameter                              | description                                             | default value |
-+========================================+=========================================================+===============+
-| ``do_acc``                             | determines whether we use accelerators for specific     | -1            |
-|                                        | loops                                                   |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``bndry_func_thread_safe``             |                                                         | 1             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-
-
-
-**particles**
-
-+----------------------------------------+---------------------------------------------------------+---------------+
-| parameter                              | description                                             | default value |
-+========================================+=========================================================+===============+
-| ``do_tracer_particles``                | permits tracer particle calculation to be turned on and | 0             |
-|                                        | off                                                     |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-
-
-
-**refinement**
-
-+----------------------------------------+---------------------------------------------------------+---------------+
-| parameter                              | description                                             | default value |
-+========================================+=========================================================+===============+
-| ``do_special_tagging``                 |                                                         | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``spherical_star``                     |                                                         | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-
-
-
-**reactions**
-
-+----------------------------------------+---------------------------------------------------------+---------------+
-| parameter                              | description                                             | default value |
-+========================================+=========================================================+===============+
-| ``dtnuc_e``                            | Limit the timestep based on how much the burning can    | 1.e200        |
-|                                        | change the internal energy of a zone. The timestep is   |               |
-|                                        | equal to {\tt dtnuc}  $\cdot\,(e / \dot{e})$.           |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``dtnuc_X``                            | Limit the timestep based on how much the burning can    | 1.e200        |
-|                                        | change the species mass fractions of a zone. The        |               |
-|                                        | timestep is equal to {\tt dtnuc}  $\cdot\,(X /          |               |
-|                                        | \dot{X})$.                                              |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``dtnuc_X_threshold``                  | If we are using the timestep limiter based on changes   | 1.e-3         |
-|                                        | in $X$, set a threshold on the species abundance below  |               |
-|                                        | which the limiter is not applied. This helps prevent    |               |
-|                                        | the timestep from becoming very small due to changes in |               |
-|                                        | trace species.                                          |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``dxnuc``                              | limit the zone size based on how much the burning can   | 1.e200        |
-|                                        | change the internal energy of a zone. The zone size on  |               |
-|                                        | the finest level must be smaller than {\tt dxnuc}       |               |
-|                                        | $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the    |               |
-|                                        | sound speed. This ensures that the sound-crossing time  |               |
-|                                        | is smaller than the nuclear energy injection timescale. |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``dxnuc_max``                          | Disable limiting based on dxnuc above this threshold.   | 1.e200        |
-|                                        | This allows zones that have already ignited or are      |               |
-|                                        | about to ignite to be de-refined.                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``max_dxnuc_lev``                      | Disable limiting based on dxnuc above this AMR level.   | -1            |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``do_react``                           | permits reactions to be turned on and off -- mostly for | -1            |
-|                                        | efficiency's sake                                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``react_T_min``                        | minimum temperature for allowing reactions to occur in  | 0.0           |
-|                                        | a zone                                                  |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``react_T_max``                        | maximum temperature for allowing reactions to occur in  | 1.e200        |
-|                                        | a zone                                                  |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``react_rho_min``                      | minimum density for allowing reactions to occur in a    | 0.0           |
-|                                        | zone                                                    |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``react_rho_max``                      | maximum density for allowing reactions to occur in a    | 1.e200        |
-|                                        | zone                                                    |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``disable_shock_burning``              | disable burning inside hydrodynamic shock regions       | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-
-
-
 **hydrodynamics**
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -254,23 +165,15 @@ namespace: ``castro``
 
 
 
-**diffusion**
+**parallelization**
 
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |
 +========================================+=========================================================+===============+
-| ``diffuse_temp``                       | enable thermal diffusion                                | 0             |
+| ``do_acc``                             | determines whether we use accelerators for specific     | -1            |
+|                                        | loops                                                   |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_enth``                       | enable enthalpy diffusion                               | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_spec``                       | enable species diffusion                                | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_vel``                        | enable velocity diffusion                               | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_cutoff_density``             | set a cutoff density for diffusion -- we zero the term  | -1.e200       |
-|                                        | out below this density                                  |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_cond_scale_fac``             | scaling factor for conductivity                         | 1.0           |
+| ``bndry_func_thread_safe``             |                                                         | 1             |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
@@ -344,6 +247,133 @@ namespace: ``castro``
 
 
 
+**reactions**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``dtnuc_e``                            | Limit the timestep based on how much the burning can    | 1.e200        |
+|                                        | change the internal energy of a zone. The timestep is   |               |
+|                                        | equal to {\tt dtnuc}  $\cdot\,(e / \dot{e})$.           |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``dtnuc_X``                            | Limit the timestep based on how much the burning can    | 1.e200        |
+|                                        | change the species mass fractions of a zone. The        |               |
+|                                        | timestep is equal to {\tt dtnuc}  $\cdot\,(X /          |               |
+|                                        | \dot{X})$.                                              |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``dtnuc_X_threshold``                  | If we are using the timestep limiter based on changes   | 1.e-3         |
+|                                        | in $X$, set a threshold on the species abundance below  |               |
+|                                        | which the limiter is not applied. This helps prevent    |               |
+|                                        | the timestep from becoming very small due to changes in |               |
+|                                        | trace species.                                          |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``dxnuc``                              | limit the zone size based on how much the burning can   | 1.e200        |
+|                                        | change the internal energy of a zone. The zone size on  |               |
+|                                        | the finest level must be smaller than {\tt dxnuc}       |               |
+|                                        | $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the    |               |
+|                                        | sound speed. This ensures that the sound-crossing time  |               |
+|                                        | is smaller than the nuclear energy injection timescale. |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``dxnuc_max``                          | Disable limiting based on dxnuc above this threshold.   | 1.e200        |
+|                                        | This allows zones that have already ignited or are      |               |
+|                                        | about to ignite to be de-refined.                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``max_dxnuc_lev``                      | Disable limiting based on dxnuc above this AMR level.   | -1            |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``do_react``                           | permits reactions to be turned on and off -- mostly for | -1            |
+|                                        | efficiency's sake                                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``react_T_min``                        | minimum temperature for allowing reactions to occur in  | 0.0           |
+|                                        | a zone                                                  |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``react_T_max``                        | maximum temperature for allowing reactions to occur in  | 1.e200        |
+|                                        | a zone                                                  |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``react_rho_min``                      | minimum density for allowing reactions to occur in a    | 0.0           |
+|                                        | zone                                                    |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``react_rho_max``                      | maximum density for allowing reactions to occur in a    | 1.e200        |
+|                                        | zone                                                    |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``disable_shock_burning``              | disable burning inside hydrodynamic shock regions       | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**AMR**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``state_interp_order``                 | highest order used in interpolation                     | 1             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``lin_limit_state_interp``             | how to do limiting of the state data when interpolating | 0             |
+|                                        | 0: only prevent new extrema 1: preserve linear          |               |
+|                                        | combinations of state variables                         |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``state_nghost``                       | Number of ghost zones for state data to have. Note that | 0             |
+|                                        | if you are using radiation, choosing this to be zero    |               |
+|                                        | will be overridden since radiation needs at least one   |               |
+|                                        | ghost zone.                                             |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``do_reflux``                          | do we do the hyperbolic reflux at coarse-fine           | 1             |
+|                                        | interfaces?                                             |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``update_sources_after_reflux``        | whether to re-compute new-time source terms after a     | 1             |
+|                                        | reflux                                                  |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``use_custom_knapsack_weights``        | should we have state data for custom load-balancing     | 0             |
+|                                        | weighting?                                              |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**particles**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``do_tracer_particles``                | permits tracer particle calculation to be turned on and | 0             |
+|                                        | off                                                     |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**diffusion**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``diffuse_temp``                       | enable thermal diffusion                                | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``diffuse_enth``                       | enable enthalpy diffusion                               | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``diffuse_spec``                       | enable species diffusion                                | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``diffuse_vel``                        | enable velocity diffusion                               | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``diffuse_cutoff_density``             | set a cutoff density for diffusion -- we zero the term  | -1.e200       |
+|                                        | out below this density                                  |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``diffuse_cond_scale_fac``             | scaling factor for conductivity                         | 1.0           |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**embiggening**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``grown_factor``                       | the factor by which to extend the domain upon restart   | 1             |
+|                                        | for embiggening                                         |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``star_at_center``                     | used with the embiggening routines to determine how to  | -1            |
+|                                        | extend the domain                                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
 **diagnostics, I/O**
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -387,48 +417,6 @@ namespace: ``castro``
 |                                        | max\_step and stop\_time be less than the value in the  |               |
 |                                        | checkpoint) and you set it to value greater than this   |               |
 |                                        | default value.                                          |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-
-
-
-**AMR**
-
-+----------------------------------------+---------------------------------------------------------+---------------+
-| parameter                              | description                                             | default value |
-+========================================+=========================================================+===============+
-| ``state_interp_order``                 | highest order used in interpolation                     | 1             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``lin_limit_state_interp``             | how to do limiting of the state data when interpolating | 0             |
-|                                        | 0: only prevent new extrema 1: preserve linear          |               |
-|                                        | combinations of state variables                         |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``state_nghost``                       | Number of ghost zones for state data to have. Note that | 0             |
-|                                        | if you are using radiation, choosing this to be zero    |               |
-|                                        | will be overridden since radiation needs at least one   |               |
-|                                        | ghost zone.                                             |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``do_reflux``                          | do we do the hyperbolic reflux at coarse-fine           | 1             |
-|                                        | interfaces?                                             |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``update_sources_after_reflux``        | whether to re-compute new-time source terms after a     | 1             |
-|                                        | reflux                                                  |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``use_custom_knapsack_weights``        | should we have state data for custom load-balancing     | 0             |
-|                                        | weighting?                                              |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-
-
-
-**embiggening**
-
-+----------------------------------------+---------------------------------------------------------+---------------+
-| parameter                              | description                                             | default value |
-+========================================+=========================================================+===============+
-| ``grown_factor``                       | the factor by which to extend the domain upon restart   | 1             |
-|                                        | for embiggening                                         |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``star_at_center``                     | used with the embiggening routines to determine how to  | -1            |
-|                                        | extend the domain                                       |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
@@ -488,6 +476,18 @@ namespace: ``castro``
 |                                        | from building up in the zones adjacent to it by keeping |               |
 |                                        | their density constant and adding their mass to the     |               |
 |                                        | point mass object                                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**refinement**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``do_special_tagging``                 |                                                         | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``spherical_star``                     |                                                         | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 

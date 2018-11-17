@@ -326,14 +326,14 @@ The gridding algorithm proceeds in this order:
    multiple of ``amr.blocking_factor``, then the grids will be
    redefined, at each level independently, so that the maximum length
    of a grid at level :math:`\ell`, in any dimension, is
-   ``amr.max_grid_size``[:math:`\ell`] / 2.
+   ``amr.max_grid_size`` [:math:`\ell`] / 2.
 
 #. Finally, if ``amr.refine_grid_layout = 1``, and there are still
    more processors than grids, and if ``amr.max_grid_size`` / 4 is a
    multiple of ``amr.blocking_factor``, then the grids will be
    redefined, at each level independently, so that the maximum length
    of a grid at level :math:`\ell`, in any dimension, is
-   ``amr.max_grid_size``[:math:`\ell`] / 4.
+   ``amr.max_grid_size`` [:math:`\ell`] / 4.
 
 Simulation Time
 ---------------
