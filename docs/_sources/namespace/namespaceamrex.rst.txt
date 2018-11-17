@@ -1,0 +1,4 @@
+Namespace amrex
+===============
+
+.. doxygennamespace:: amrex
