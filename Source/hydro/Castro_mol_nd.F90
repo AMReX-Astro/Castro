@@ -135,7 +135,6 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   integer :: ngf
   integer :: It_lo(3), It_hi(3)
-  integer :: st_lo(3), st_hi(3)
   integer :: shk_lo(3), shk_hi(3)
 
   real(rt) :: div1
@@ -146,10 +145,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   ngf = 1
 
   It_lo = lo(:) - dg(:)
-  It_hi = hi(:) + dg(:)
-
-  st_lo = lo(:) - 2*dg(:)
-  st_hi = hi(:) + 2*dg(:)
+  It_hi = hi(:) + 2*dg(:)
 
   shk_lo(:) = lo(:) - dg(:)
   shk_hi(:) = hi(:) + dg(:)
