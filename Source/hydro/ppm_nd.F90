@@ -13,7 +13,7 @@ module ppm_module
 
   private
 
-  public ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
+  public ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
 
 contains
 
@@ -21,7 +21,7 @@ contains
                                 s, s_lo, s_hi, nc, n, &
                                 flatn, f_lo, f_hi, &
                                 qm, qm_lo, qm_hi, &
-                                qp, qp_lo, qp_hi) bind(c, name='ca_ppm_reconstruct')
+                                qp, qp_lo, qp_hi, ncq, nq) bind(c, name='ca_ppm_reconstruct')
 
     ! this routine does the reconstruction of the zone data into
     ! parabola.  The loops are over zone centers and for zone center,
@@ -33,6 +33,11 @@ contains
     ! to the appropriate edges, such that qm(i,j,k,1) is the left
     ! state on the i-1/2 interface.  This is used for method-of-lines
     ! integration methods.
+
+    ! here s has nc components and we reconstruct component n
+
+    ! we store the result in the arrays qm and qp, in component nq out
+    ! of ncq components
 
 #ifndef AMREX_USE_GPU
     use amrex_error_module, only: amrex_error
@@ -47,12 +52,12 @@ contains
     integer, intent(in   ) :: f_lo(3), f_hi(3)
     integer, intent(in   ) :: qm_lo(3), qm_hi(3)
     integer, intent(in   ) :: qp_lo(3), qp_hi(3)
-    integer, intent(in   ), value :: n, nc
+    integer, intent(in   ), value :: n, nc, nq, ncq
 
     real(rt), intent(in   ) :: s(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), nc)
     real(rt), intent(in   ) :: flatn(f_lo(1):f_hi(1), f_lo(2):f_hi(2), f_lo(3):f_hi(3))
-    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),AMREX_SPACEDIM)
-    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),AMREX_SPACEDIM)
+    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),ncq,AMREX_SPACEDIM)
+    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),ncq,AMREX_SPACEDIM)
 
     ! local
     integer :: i, j, k
@@ -173,13 +178,13 @@ contains
 
              if (put_on_edges == 1) then
                 ! right state at i-1/2
-                qp(i,j,k,1) = sm
+                qp(i,j,k,nq,1) = sm
 
                 ! left state at i+1/2
-                qm(i+1,j,k,1) = sp
+                qm(i+1,j,k,nq,1) = sp
              else
-                qp(i,j,k,1) = sp
-                qm(i,j,k,1) = sm
+                qp(i,j,k,nq,1) = sp
+                qm(i,j,k,nq,1) = sm
              endif
 
           end do
@@ -278,13 +283,13 @@ contains
              if (put_on_edges == 1) then
 
                 ! right state on j-1/2
-                qp(i,j,k,2) = sm
+                qp(i,j,k,nq,2) = sm
 
                 ! left state on j+1/2
-                qm(i,j+1,k,2) = sp
+                qm(i,j+1,k,nq,2) = sp
              else
-                qp(i,j,k,2) = sp
-                qm(i,j,k,2) = sm
+                qp(i,j,k,nq,2) = sp
+                qm(i,j,k,nq,2) = sm
              endif
 
           end do
@@ -384,14 +389,14 @@ contains
              if (put_on_edges == 1) then
 
                 ! right state at k-1/2
-                qp(i,j,k,3) = sm
+                qp(i,j,k,nq,3) = sm
 
                 ! left state at k+1/2
-                qm(i,j,k+1,3) = sp
+                qm(i,j,k+1,nq,3) = sp
 
              else
-                qp(i,j,k,3) = sp
-                qm(i,j,k,3) = sm
+                qp(i,j,k,nq,3) = sp
+                qm(i,j,k,nq,3) = sm
              endif
 
           end do
@@ -399,7 +404,7 @@ contains
     end do
 #endif
 
-  end subroutine ppm_reconstruct
+  end subroutine ca_ppm_reconstruct
 
 
   subroutine ppm_int_profile(lo, hi, &

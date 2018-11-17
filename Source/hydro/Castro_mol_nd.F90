@@ -46,7 +46,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
   use flatten_module, only: uflatten
   use riemann_module, only: cmpflx
-  use ppm_module, only : ppm_reconstruct
+  use ppm_module, only : ca_ppm_reconstruct
   use amrex_fort_module, only : rt => amrex_real
 #ifdef RADIATION
   use rad_params_module, only : ngroups
@@ -131,10 +131,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   real(rt)        , pointer:: shk(:,:,:)
 
   ! temporary interface values of the parabola
-  real(rt)        , pointer :: sm(:,:,:,:), sp(:,:,:,:)
-
-  real(rt)        , pointer :: qxm(:,:,:,:), qym(:,:,:,:), qzm(:,:,:,:)
-  real(rt)        , pointer :: qxp(:,:,:,:), qyp(:,:,:,:), qzp(:,:,:,:)
+  real(rt)        , pointer :: qm(:,:,:,:,:), qp(:,:,:,:,:)
 
   integer :: ngf
   integer :: It_lo(3), It_hi(3)
@@ -142,7 +139,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   integer :: shk_lo(3), shk_hi(3)
 
   real(rt) :: div1
-  integer :: i, j, k, n
+  integer :: i, j, k, n, idir
 
   type (eos_t) :: eos_state
 
@@ -178,19 +175,9 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #endif
 #endif
 
-  call bl_allocate(sm, st_lo, st_hi, AMREX_SPACEDIM)
-  call bl_allocate(sp, st_lo, st_hi, AMREX_SPACEDIM)
-  call bl_allocate(qxm, It_lo, It_hi, NQ)
-  call bl_allocate(qxp, It_lo, It_hi, NQ)
+  call bl_allocate(qm, It_lo(1),It_hi(1), It_lo(2),It_hi(2), It_lo(3),It_hi(3), 1,NQ, 1,AMREX_SPACEDIM)
+  call bl_allocate(qp, It_lo(1),It_hi(1), It_lo(2),It_hi(2), It_lo(3),It_hi(3), 1,NQ, 1,AMREX_SPACEDIM)
 
-#if AMREX_SPACEDIM >= 2
-  call bl_allocate(qym, It_lo, It_hi, NQ)
-  call bl_allocate(qyp, It_lo, It_hi, NQ)
-#endif
-#if AMREX_SPACEDIM == 3
-  call bl_allocate(qzm, It_lo, It_hi, NQ)
-  call bl_allocate(qzp, It_lo, It_hi, NQ)
-#endif
 
   call bl_allocate(shk, shk_lo, shk_hi)
 
@@ -244,133 +231,49 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
 
   do n = 1, NQ
-     call ppm_reconstruct(lo-dg, hi+dg, 0, &
+     call ppm_reconstruct(lo-dg, hi+dg, 1, &
                           q, q_lo, q_hi, NQ, n, &
                           flatn, q_lo, q_hi, &
-                          sm, sp, st_lo, st_hi)
-
-     ! Construct the interface states -- this is essentially just a
-     ! reshuffling of interface states from zone-center indexing to
-     ! edge-centered indexing
-     do k = lo(3)-dg(3), hi(3)+dg(3)
-        do j = lo(2)-dg(2), hi(2)+dg(2)
-           do i = lo(1)-1, hi(1)+1
-
-              ! x-edges
-
-              ! left state at i-1/2 interface
-              qxm(i,j,k,n) = sp(i-1,j,k,1)
-
-              ! right state at i-1/2 interface
-              qxp(i,j,k,n) = sm(i,j,k,1)
-
-#if AMREX_SPACEDIM >= 2
-              ! y-edges
-
-              ! left state at j-1/2 interface
-              qym(i,j,k,n) = sp(i,j-1,k,2)
-
-              ! right state at j-1/2 interface
-              qyp(i,j,k,n) = sm(i,j,k,2)
-#endif
-
-#if AMREX_SPACEDIM == 3
-              ! z-edges
-
-              ! left state at k-1/2 interface
-              qzm(i,j,k,n) = sp(i,j,k-1,3)
-
-              ! right state at k-1/2 interface
-              qzp(i,j,k,n) = sm(i,j,k,3)
-#endif
-
-           enddo
-        enddo
-     enddo
+                          qm, It_lo, It_hi, &
+                          qp, It_lo, It_hi, NQ, n)
 
      ! use T to define p
      if (ppm_temp_fix == 1) then
-        do k = lo(3)-dg(3), hi(3)+dg(3)
-           do j = lo(2)-dg(2), hi(2)+dg(2)
-              do i = lo(1)-1, hi(1)+1
+        do idir = 1, AMREX_SPACEDIM
+           do k = lo(3)-dg(3), hi(3)+dg(3)
+              do j = lo(2)-dg(2), hi(2)+dg(2)
+                 do i = lo(1)-1, hi(1)+1
 
-                 eos_state%rho    = qxp(i,j,k,QRHO)
-                 eos_state%T      = qxp(i,j,k,QTEMP)
-                 eos_state%xn(:)  = qxp(i,j,k,QFS:QFS-1+nspec)
-                 eos_state%aux(:) = qxp(i,j,k,QFX:QFX-1+naux)
+                    eos_state%rho    = qp(i,j,k,QRHO,idir)
+                    eos_state%T      = qp(i,j,k,QTEMP,idir)
+                    eos_state%xn(:)  = qp(i,j,k,QFS:QFS-1+nspec,idir)
+                    eos_state%aux(:) = qp(i,j,k,QFX:QFX-1+naux,idir)
 
-                 call eos(eos_input_rt, eos_state)
+                    call eos(eos_input_rt, eos_state)
 
-                 qxp(i,j,k,QPRES) = eos_state%p
-                 qxp(i,j,k,QREINT) = qxp(i,j,k,QRHO)*eos_state%e
-                 ! should we try to do something about Gamma_! on interface?
+                    qp(i,j,k,QPRES,idir) = eos_state%p
+                    qp(i,j,k,QREINT,idir) = qp(i,j,k,QRHO,idir)*eos_state%e
+                    ! should we try to do something about Gamma_! on interface?
 
-                 eos_state%rho    = qxm(i,j,k,QRHO)
-                 eos_state%T      = qxm(i,j,k,QTEMP)
-                 eos_state%xn(:)  = qxm(i,j,k,QFS:QFS-1+nspec)
-                 eos_state%aux(:) = qxm(i,j,k,QFX:QFX-1+naux)
+                    eos_state%rho    = qm(i,j,k,QRHO,idir)
+                    eos_state%T      = qm(i,j,k,QTEMP,idir)
+                    eos_state%xn(:)  = qm(i,j,k,QFS:QFS-1+nspec,idir)
+                    eos_state%aux(:) = qm(i,j,k,QFX:QFX-1+naux,idir)
 
-                 call eos(eos_input_rt, eos_state)
+                    call eos(eos_input_rt, eos_state)
 
-                 qxm(i,j,k,QPRES) = eos_state%p
-                 qxm(i,j,k,QREINT) = qxm(i,j,k,QRHO)*eos_state%e
-                 ! should we try to do something about Gamma_! on interface?
+                    qm(i,j,k,QPRES,idir) = eos_state%p
+                    qm(i,j,k,QREINT,idir) = qm(i,j,k,QRHO,idir)*eos_state%e
+                    ! should we try to do something about Gamma_! on interface?
 
-#if AMREX_SPACEDIM >= 2
-                 eos_state%rho    = qyp(i,j,k,QRHO)
-                 eos_state%T      = qyp(i,j,k,QTEMP)
-                 eos_state%xn(:)  = qyp(i,j,k,QFS:QFS-1+nspec)
-                 eos_state%aux(:) = qyp(i,j,k,QFX:QFX-1+naux)
-
-                 call eos(eos_input_rt, eos_state)
-
-                 qyp(i,j,k,QPRES) = eos_state%p
-                 qyp(i,j,k,QREINT) = qyp(i,j,k,QRHO)*eos_state%e
-                 ! should we try to do something about Gamma_! on interface?
-
-                 eos_state%rho    = qym(i,j,k,QRHO)
-                 eos_state%T      = qym(i,j,k,QTEMP)
-                 eos_state%xn(:)  = qym(i,j,k,QFS:QFS-1+nspec)
-                 eos_state%aux(:) = qym(i,j,k,QFX:QFX-1+naux)
-
-                 call eos(eos_input_rt, eos_state)
-
-                 qym(i,j,k,QPRES) = eos_state%p
-                 qym(i,j,k,QREINT) = qym(i,j,k,QRHO)*eos_state%e
-                 ! should we try to do something about Gamma_! on interface?
-#endif
-
-#if AMREX_SPACEDIM == 3
-                 eos_state%rho    = qzp(i,j,k,QRHO)
-                 eos_state%T      = qzp(i,j,k,QTEMP)
-                 eos_state%xn(:)  = qzp(i,j,k,QFS:QFS-1+nspec)
-                 eos_state%aux(:) = qzp(i,j,k,QFX:QFX-1+naux)
-
-                 call eos(eos_input_rt, eos_state)
-
-                 qzp(i,j,k,QPRES) = eos_state%p
-                 qzp(i,j,k,QREINT) = qzp(i,j,k,QRHO)*eos_state%e
-                 ! should we try to do something about Gamma_! on interface?
-
-                 eos_state%rho    = qzm(i,j,k,QRHO)
-                 eos_state%T      = qzm(i,j,k,QTEMP)
-                 eos_state%xn(:)  = qzm(i,j,k,QFS:QFS-1+nspec)
-                 eos_state%aux(:) = qzm(i,j,k,QFX:QFX-1+naux)
-
-                 call eos(eos_input_rt, eos_state)
-
-                 qzm(i,j,k,QPRES) = eos_state%p
-                 qzm(i,j,k,QREINT) = qzm(i,j,k,QRHO)*eos_state%e
-                 ! should we try to do something about Gamma_! on interface?
-#endif
-
+                 end do
               end do
            end do
         end do
-     endif
+     end if
 
      ! Compute F^x at kc (k3d)
-     call cmpflx(qxm, qxp, It_lo, It_hi, &
+     call cmpflx(qm(:,:,:,:,1), qp(:,:,:,:,1), It_lo, It_hi, &
                  flux1, flux1_lo, flux1_hi, &
                  q1, flux1_lo, flux1_hi, &  ! temporary
 #ifdef RADIATION
@@ -383,7 +286,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
 #if AMREX_SPACEDIM >= 2
      ! Compute F^y at kc (k3d)
-     call cmpflx(qym, qyp, It_lo, It_hi, &
+     call cmpflx(qm(:,:,:,:,2), qp(:,:,:,:,2), It_lo, It_hi, &
                  flux2, flux2_lo, flux2_hi, &
                  q2, flux2_lo, flux2_hi, &  ! temporary
 #ifdef RADIATION
@@ -398,7 +301,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #if AMREX_SPACEDIM == 3
      ! Compute F^z at kc (k3d)
 
-     call cmpflx(qzm, qzp, It_lo, It_hi, &
+     call cmpflx(qm(:,:,:,:,3), qp(:,:,:,:,3), It_lo, It_hi, &
                  flux3, flux3_lo, flux3_hi, &
                  q3, flux3_lo, flux3_hi,  &
 #ifdef RADIATION
@@ -414,20 +317,9 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   call bl_deallocate(flatn)
 
-  call bl_deallocate(sm)
-  call bl_deallocate(sp)
-  call bl_deallocate(qxm)
-  call bl_deallocate(qxp)
+  call bl_deallocate(qm)
+  call bl_deallocate(qp)
 
-#if AMREX_SPACEDIM >= 2
-  call bl_deallocate(qym)
-  call bl_deallocate(qyp)
-#endif
-
-#if AMREX_SPACEDIM == 3
-  call bl_deallocate(qzm)
-  call bl_deallocate(qzp)
-#endif
 
   call bl_deallocate(shk)
 
