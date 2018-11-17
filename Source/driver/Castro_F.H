@@ -174,8 +174,8 @@ extern "C"
   void ca_compute_cfl(const int* lo, const int* hi,
                       const BL_FORT_FAB_ARG_ANYD(q),
                       const BL_FORT_FAB_ARG_ANYD(qaux),
-                      const amrex::Real* dt, const amrex::Real* dx,
-                      amrex::Real* courno, const int* verbose);
+                      const amrex::Real dt, const amrex::Real* dx,
+                      amrex::Real* courno, const int verbose);
 
   void ca_check_initial_species
     (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(state));
@@ -509,26 +509,26 @@ extern "C"
 #endif
      const amrex::Real* dx, const amrex::Real* dt_old, amrex::Real* dt);
 
-#ifdef AMREX_USE_CUDA
-  void ca_divu
+  void divu
     (const int* lo, const int* hi,
-     const amrex::Real* dx,
      BL_FORT_FAB_ARG_3D(q),
+     const amrex::Real* dx,
      BL_FORT_FAB_ARG_3D(div));
 
-  void ca_uflaten
+#ifdef AMREX_USE_CUDA
+  void ca_uflaten_cuda
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(q),
      BL_FORT_FAB_ARG_3D(flatn));
 
-  void ca_ppm_reconstruct
+  void ca_ppm_reconstruct_cuda
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(q),
      BL_FORT_FAB_ARG_3D(flatn),
      BL_FORT_FAB_ARG_3D(qm),
      BL_FORT_FAB_ARG_3D(qp));
 
-  void ca_construct_flux
+  void ca_construct_flux_cuda
     (const int* lo, const int* hi,
      const int* domlo, const int* domhi,
      const amrex::Real* dx, const amrex::Real dt,
@@ -542,7 +542,7 @@ extern "C"
      BL_FORT_FAB_ARG_3D(flux),
      BL_FORT_FAB_ARG_3D(area));
 
-  void ca_construct_hydro_update
+  void ca_construct_hydro_update_cuda
     (const int* lo, const int* hi,
      const amrex::Real* dx, const amrex::Real dt,
      BL_FORT_FAB_ARG_3D(qx),
@@ -756,13 +756,13 @@ extern "C"
   void ca_fill_rotational_potential
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(phi),
-     const amrex::Real* dx, const amrex::Real& time);
+     const amrex::Real* dx, const amrex::Real time);
 
   void ca_fill_rotational_acceleration
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(rot),
      const BL_FORT_FAB_ARG_3D(state),
-     const amrex::Real* dx, const amrex::Real& time);
+     const amrex::Real* dx, const amrex::Real time);
 
   void ca_rsrc
     (const int* lo, const int* hi,
@@ -772,13 +772,12 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(s_old),
      BL_FORT_FAB_ARG_3D(source),
      const BL_FORT_FAB_ARG_3D(vol),
-     const amrex::Real* dx, const amrex::Real& dt, const amrex::Real* time);
+     const amrex::Real* dx, const amrex::Real dt, const amrex::Real time);
 
   void ca_corrrsrc
     (const int* lo, const int* hi,
      const int* domlo, const int* domhi,
-     const BL_FORT_FAB_ARG_3D(phi_old),
-     const BL_FORT_FAB_ARG_3D(phi_new),
+     const BL_FORT_FAB_ARG_3D(phi),
      const BL_FORT_FAB_ARG_3D(rot_old),
      const BL_FORT_FAB_ARG_3D(rot_new),
      const BL_FORT_FAB_ARG_3D(S_old),
@@ -787,7 +786,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(xflux),
      const BL_FORT_FAB_ARG_3D(yflux),
      const BL_FORT_FAB_ARG_3D(zflux),
-     const amrex::Real* dx, const amrex::Real& dt, const amrex::Real* time,
+     const amrex::Real* dx, const amrex::Real dt, const amrex::Real time,
      const BL_FORT_FAB_ARG_3D(volume));
 
 #endif
@@ -833,8 +832,8 @@ extern "C"
      BL_FORT_FAB_ARG_3D(reactions),
      BL_FORT_FAB_ARG_3D(weights),
      const BL_FORT_IFAB_ARG_3D(mask),
-     const amrex::Real& time, const amrex::Real& dt_react, const int& strang_half,
-     int* burn_success);
+     const amrex::Real time, const amrex::Real dt_react, const int strang_half,
+     amrex::Real* burn_failure);
 #endif
 #endif
 

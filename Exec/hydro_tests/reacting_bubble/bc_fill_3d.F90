@@ -33,7 +33,7 @@ contains
     integer i,j,k,n,iter,MAX_ITER,l
     real(rt)         z
     real(rt)         pres_above,pres_below,pres_want,pres_zone
-    real(rt)         drho,dpdr,temperature,eint,pressure,species(3),density
+    real(rt)         drho,dpdr,temperature,eint,pressure,species(nspec),density
     real(rt)         TOL
     logical converged_hse
 
@@ -48,106 +48,109 @@ contains
     enddo
 
 
+    do n = 1, NVAR
 
-    !  ZLO
-    if ( bc(3,1,n) == EXT_DIR .and. adv_l3 < domlo(3)) then
+       !  ZLO
+       if ( bc(3,1,n) == EXT_DIR .and. adv_l3 < domlo(3)) then
 
-       ! this do loop counts backwards since we want to work downward
-       do k = domlo(3)-1, adv_l3, -1
-          z = xlo(3) + delta(3)*(dble(k-adv_l3) + 0.5e0_rt)
+          ! this do loop counts backwards since we want to work downward
+          do k = domlo(3)-1, adv_l3, -1
+             z = xlo(3) + delta(3)*(dble(k-adv_l3) + 0.5e0_rt)
 
-          do j = adv_l2, adv_h2
-             do i = adv_l1, adv_h1
+             do j = adv_l2, adv_h2
+                do i = adv_l1, adv_h1
 
-                ! set all the variables even though we're testing on URHO
-                if (n .eq. URHO) then
+                   ! set all the variables even though we're testing on URHO
+                   if (n .eq. URHO) then
 
-                   density = interpolate(z,npts_model,model_r, &
-                                         model_state(:,idens_model))
-                   temperature = interpolate(z,npts_model,model_r, &
-                                             model_state(:,itemp_model))
-                   do l = 1, nspec
-                      species(l) = interpolate(z,npts_model,model_r, &
-                                               model_state(:,ispec_model-1+l))
-                   enddo
+                      density = interpolate(z,npts_model,model_r, &
+                           model_state(:,idens_model))
+                      temperature = interpolate(z,npts_model,model_r, &
+                           model_state(:,itemp_model))
+                      do l = 1, nspec
+                         species(l) = interpolate(z,npts_model,model_r, &
+                              model_state(:,ispec_model-1+l))
+                      enddo
 
-                   ! extrap normal momentum causes pi=0 at boundary
-                   !                     adv(i,j,UMY) = adv(i,domlo(2),UMY)
+                      ! extrap normal momentum causes pi=0 at boundary
+                      !                     adv(i,j,UMY) = adv(i,domlo(2),UMY)
 
-                   ! zero normal momentum causes pi waves to pass through
-                   adv(i,j,k,UMZ) = ZERO
+                      ! zero normal momentum causes pi waves to pass through
+                      adv(i,j,k,UMZ) = ZERO
 
-                   ! zero transverse momentum
-                   adv(i,j,k,UMX) = ZERO
-                   adv(i,j,k,UMY) = ZERO
+                      ! zero transverse momentum
+                      adv(i,j,k,UMX) = ZERO
+                      adv(i,j,k,UMY) = ZERO
 
-                   eos_state%rho = density
-                   eos_state%T = temperature
-                   eos_state%xn(:) = species(:)
+                      eos_state%rho = density
+                      eos_state%T = temperature
+                      eos_state%xn(:) = species(:)
 
-                   call eos(eos_input_rt, eos_state)
+                      call eos(eos_input_rt, eos_state)
 
-                   adv(i,j,k,URHO) = density
-                   adv(i,j,k,UEINT) = density*eos_state%e
-                   adv(i,j,k,UEDEN) = density*eos_state%e + HALF*sum(adv(i,j,k,UMX:UMZ)**2)/density
-                   adv(i,j,k,UTEMP) = temperature
-                   adv(i,j,k,UFS:UFS-1+nspec) = density*species
+                      adv(i,j,k,URHO) = density
+                      adv(i,j,k,UEINT) = density*eos_state%e
+                      adv(i,j,k,UEDEN) = density*eos_state%e + HALF*sum(adv(i,j,k,UMX:UMZ)**2)/density
+                      adv(i,j,k,UTEMP) = temperature
+                      adv(i,j,k,UFS:UFS-1+nspec) = density*species
 
 
-                endif
+                   endif
 
-             enddo
-          enddo
-       enddo
-    endif
+                end do
+             end do
+          end do
+       endif
 
-    ! ZHI
-    if ( bc(3,2,n) == EXT_DIR .and. adv_h3 > domhi(3)) then
+       ! ZHI
+       if ( bc(3,2,n) == EXT_DIR .and. adv_h3 > domhi(3)) then
 
-       do k = domhi(3)+1, adv_h3
-          z = xlo(3) + delta(3)*(dble(k-adv_l3) + 0.5e0_rt)
+          do k = domhi(3)+1, adv_h3
+             z = xlo(3) + delta(3)*(dble(k-adv_l3) + 0.5e0_rt)
 
-          do j = adv_l2, adv_h2
-             do i = adv_l1, adv_h1
+             do j = adv_l2, adv_h2
+                do i = adv_l1, adv_h1
 
-                ! set all the variables even though we're testing on URHO
-                if (n .eq. URHO) then
+                   ! set all the variables even though we're testing on URHO
+                   if (n .eq. URHO) then
 
-                   density = interpolate(z,npts_model,model_r, &
-                                         model_state(:,idens_model))
-                   temperature = interpolate(z,npts_model,model_r, &
-                                             model_state(:,itemp_model))
-                   do l = 1, nspec
-                      species(l) = interpolate(z,npts_model,model_r, &
-                                               model_state(:,ispec_model-1+l))
-                   enddo
+                      density = interpolate(z,npts_model,model_r, &
+                           model_state(:,idens_model))
+                      temperature = interpolate(z,npts_model,model_r, &
+                           model_state(:,itemp_model))
+                      do l = 1, nspec
+                         species(l) = interpolate(z,npts_model,model_r, &
+                              model_state(:,ispec_model-1+l))
+                      enddo
 
-                   ! extrap normal momentum
-                   adv(i,j,k,UMZ) = adv(i,j,domhi(3),UMZ)
+                      ! extrap normal momentum
+                      adv(i,j,k,UMZ) = adv(i,j,domhi(3),UMZ)
 
-                   ! zero transverse momentum
-                   adv(i,j,k,UMX) = ZERO
-                   adv(i,j,k,UMY) = ZERO
+                      ! zero transverse momentum
+                      adv(i,j,k,UMX) = ZERO
+                      adv(i,j,k,UMY) = ZERO
 
-                   eos_state%rho = density
-                   eos_state%T = temperature
-                   eos_state%xn(:) = species(:)
+                      eos_state%rho = density
+                      eos_state%T = temperature
+                      eos_state%xn(:) = species(:)
 
-                   call eos(eos_input_rt, eos_state)
+                      call eos(eos_input_rt, eos_state)
 
-                   adv(i,j,k,URHO) = density
-                   adv(i,j,k,UEINT) = density*eos_state%e
-                   adv(i,j,k,UEDEN) = density*eos_state%e + HALF*sum(adv(i,j,k,UMX:UMZ)**2)/density
-                   adv(i,j,k,UTEMP) = temperature
-                   adv(i,j,k,UFS:UFS-1+nspec) = density*species(:)
+                      adv(i,j,k,URHO) = density
+                      adv(i,j,k,UEINT) = density*eos_state%e
+                      adv(i,j,k,UEDEN) = density*eos_state%e + HALF*sum(adv(i,j,k,UMX:UMZ)**2)/density
+                      adv(i,j,k,UTEMP) = temperature
+                      adv(i,j,k,UFS:UFS-1+nspec) = density*species(:)
 
-                end if
+                   end if
 
-             enddo
-          enddo
-       enddo
+                end do
+             end do
+          end do
 
-    endif
+       endif
+
+    end do
 
   end subroutine ca_hypfill
 
@@ -223,7 +226,7 @@ contains
     include 'AMReX_bc_types.fi'
 
     integer :: grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3
-    integer :: bc(3,2,*)
+    integer :: bc(3,2)
     integer :: domlo(3), domhi(3)
     real(rt)         delta(3), xlo(3), time
     real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
@@ -254,7 +257,7 @@ contains
     include 'AMReX_bc_types.fi'
 
     integer :: grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3
-    integer :: bc(3,2,*)
+    integer :: bc(3,2)
     integer :: domlo(3), domhi(3)
     real(rt)         delta(3), xlo(3), time
     real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
@@ -286,7 +289,7 @@ contains
     include 'AMReX_bc_types.fi'
 
     integer :: grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3
-    integer :: bc(3,2,*)
+    integer :: bc(3,2)
     integer :: domlo(3), domhi(3)
     real(rt)         delta(3), xlo(3), time
     real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
@@ -319,7 +322,7 @@ contains
     include 'AMReX_bc_types.fi'
 
     integer :: react_l1,react_l2,react_l3,react_h1,react_h2,react_h3
-    integer :: bc(3,2,*)
+    integer :: bc(3,2)
     integer :: domlo(3), domhi(3)
     real(rt)         delta(3), xlo(3), time
     real(rt)         react(react_l1:react_h1,react_l2:react_h2,react_l3:react_h3)
@@ -350,7 +353,7 @@ contains
     include 'AMReX_bc_types.fi'
 
     integer          :: phi_l1,phi_l2,phi_l3,phi_h1,phi_h2,phi_h3
-    integer          :: bc(3,2,*)
+    integer          :: bc(3,2)
     integer          :: domlo(3), domhi(3)
     real(rt)         :: delta(3), xlo(3), time
     real(rt)         :: phi(phi_l1:phi_h1,phi_l2:phi_h2,phi_l3:phi_h3)
