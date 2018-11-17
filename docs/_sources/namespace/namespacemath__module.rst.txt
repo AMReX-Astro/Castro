@@ -1,4 +1,0 @@
-Namespace math_module
-=====================
-
-.. doxygennamespace:: math_module

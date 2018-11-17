@@ -1,4 +1,0 @@
-Namespace reactions_module
-==========================
-
-.. doxygennamespace:: reactions_module

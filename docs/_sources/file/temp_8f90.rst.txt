@@ -1,4 +1,0 @@
-File temp.f90
-=============
-
-.. doxygenfile:: temp.f90

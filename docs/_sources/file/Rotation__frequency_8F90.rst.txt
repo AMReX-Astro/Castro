@@ -1,4 +1,0 @@
-File Rotation_frequency.F90
-===========================
-
-.. doxygenfile:: Rotation_frequency.F90

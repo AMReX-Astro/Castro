@@ -1,4 +1,0 @@
-File trace_ppm_nd.F90
-=====================
-
-.. doxygenfile:: trace_ppm_nd.F90

@@ -1,4 +1,0 @@
-Namespace io_module
-===================
-
-.. doxygennamespace:: io_module

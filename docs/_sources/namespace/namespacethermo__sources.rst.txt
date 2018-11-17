@@ -1,4 +1,0 @@
-Namespace thermo_sources
-========================
-
-.. doxygennamespace:: thermo_sources

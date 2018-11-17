@@ -1,4 +1,0 @@
-Namespace viscosity_module
-==========================
-
-.. doxygennamespace:: viscosity_module

@@ -1,4 +1,0 @@
-Namespace sponge_module
-=======================
-
-.. doxygennamespace:: sponge_module

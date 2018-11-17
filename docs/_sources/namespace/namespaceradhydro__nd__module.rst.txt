@@ -1,4 +1,0 @@
-Namespace radhydro_nd_module
-============================
-
-.. doxygennamespace:: radhydro_nd_module

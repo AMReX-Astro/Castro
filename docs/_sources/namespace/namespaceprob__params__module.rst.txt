@@ -1,4 +1,0 @@
-Namespace prob_params_module
-============================
-
-.. doxygennamespace:: prob_params_module

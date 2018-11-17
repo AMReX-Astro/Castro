@@ -1,4 +1,0 @@
-File RAD_2D.F90
-===============
-
-.. doxygenfile:: RAD_2D.F90

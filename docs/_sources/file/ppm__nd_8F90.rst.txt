@@ -1,4 +1,0 @@
-File ppm_nd.F90
-===============
-
-.. doxygenfile:: ppm_nd.F90

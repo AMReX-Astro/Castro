@@ -1,4 +1,0 @@
-Namespace rad_params_module
-===========================
-
-.. doxygennamespace:: rad_params_module

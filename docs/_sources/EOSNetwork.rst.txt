@@ -196,7 +196,7 @@ needs to supply:
    specific enthalpy with respect to mass fraction at constant
    :math:`T` and :math:`p`. This is commonly computed as:
 
-   .. math:: \xi_k = e_{X_k} + \frac{1}{p_\rho} \left (\frac{p}{\rho^2} - e_\rho \right ) p_{X_k}\enskip .
+   .. math:: \xi_k = e_{X_k} + \frac{1}{p_\rho} \left (\frac{p}{\rho^2} - e_\rho \right ) p_{X_k}
 
    with
 
@@ -210,7 +210,8 @@ needs to supply:
               &=& -\frac{\bar{A}^2}{A_k}
                 \left .\frac{\partial p}{\partial \bar{A}} \right |_{\rho, T, \bar{Z}} +
                 \frac{\bar{A}}{A_k} \left (Z_k - \bar{Z} \right )
-                \left . \frac{\partial p}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}\enskip,\end{aligned}
+                \left . \frac{\partial p}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
+      \end{aligned}
 
    .. math::
 
@@ -222,6 +223,7 @@ needs to supply:
               &=& -\frac{\bar{A}^2}{A_k}
               \left . \frac{\partial e }{\partial \bar{A}} \right |_{\rho, T, \bar{Z}} +
               \frac{\bar{A}}{A_k} \left (Z_k - \bar{Z}\right )
-              \left .\frac{\partial e}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}\enskip.\end{aligned}
+              \left .\frac{\partial e}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
+      \end{aligned}
 
 (see :raw-latex:`\cite{maestro:III}`, Appendix A).

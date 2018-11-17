@@ -1,4 +1,0 @@
-File sums_nd.F90
-================
-
-.. doxygenfile:: sums_nd.F90

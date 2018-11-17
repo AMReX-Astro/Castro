@@ -1,4 +1,0 @@
-File RadInterpBndryData_1d.F90
-==============================
-
-.. doxygenfile:: RadInterpBndryData_1d.F90

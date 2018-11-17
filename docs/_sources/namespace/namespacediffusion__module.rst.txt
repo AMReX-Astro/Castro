@@ -1,4 +1,0 @@
-Namespace diffusion_module
-==========================
-
-.. doxygennamespace:: diffusion_module

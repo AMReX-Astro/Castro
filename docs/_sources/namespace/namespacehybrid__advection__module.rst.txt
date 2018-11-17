@@ -1,4 +1,0 @@
-Namespace hybrid_advection_module
-=================================
-
-.. doxygennamespace:: hybrid_advection_module

@@ -1,4 +1,0 @@
-Namespace ctu_advection_module
-==============================
-
-.. doxygennamespace:: ctu_advection_module
