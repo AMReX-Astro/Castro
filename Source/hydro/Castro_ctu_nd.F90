@@ -88,7 +88,7 @@ contains
 #if AMREX_SPACEDIM >= 2
     use transverse_module
 #endif
-    use ppm_module, only : ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
+    use ppm_module, only : ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
     use slope_module, only : uslope, pslope
 #if AMREX_SPACEDIM == 2
     use multid_slope_module, only : multid_slope
@@ -368,10 +368,11 @@ contains
        do n = 1, NQ
           if (.not. reconstruct_state(n)) cycle
 
-          call ppm_reconstruct(lo-dg, hi+dg, 0, &
-                               q, qd_lo, qd_hi, NQ, n, &
-                               flatn, qd_lo, qd_hi, &
-                               sm, sp, glo, ghi)
+          call ca_ppm_reconstruct(lo-dg, hi+dg, 0, &
+                                  q, qd_lo, qd_hi, NQ, n, &
+                                  flatn, qd_lo, qd_hi, &
+                                  sm, glo, ghi, &
+                                  sp, glo, ghi, 1, 1)
 
           call ppm_int_profile(lo-dg, hi+dg, &
                                q, qd_lo, qd_hi, NQ, n, &
@@ -384,10 +385,11 @@ contains
 
 
        if (ppm_temp_fix /= 1) then
-          call ppm_reconstruct(lo-dg, hi+dg, 0, &
-                               qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
-                               flatn, qd_lo, qd_hi, &
-                               sm, sp, glo, ghi)
+          call ca_ppm_reconstruct(lo-dg, hi+dg, 0, &
+                                  qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
+                                  flatn, qd_lo, qd_hi, &
+                                  sm, glo, ghi, &
+                                  sp, glo, ghi, 1, 1)
 
           call ppm_int_profile(lo-dg, hi+dg, &
                                qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
@@ -408,10 +410,11 @@ contains
        ! source terms
        do n = 1, QVAR
           if (source_nonzero(n)) then
-             call ppm_reconstruct(lo-dg, hi+dg, 0, &
-                                  srcQ, src_lo, src_hi, QVAR, n, &
-                                  flatn, qd_lo, qd_hi, &
-                                  sm, sp, glo, ghi)
+             call ca_ppm_reconstruct(lo-dg, hi+dg, 0, &
+                                     srcQ, src_lo, src_hi, QVAR, n, &
+                                     flatn, qd_lo, qd_hi, &
+                                     sm, glo, ghi, &
+                                     sp, glo, ghi, 1, 1)
 
              call ppm_int_profile(lo-dg, hi+dg, &
                                   srcQ, src_lo, src_hi, QVAR, n, &

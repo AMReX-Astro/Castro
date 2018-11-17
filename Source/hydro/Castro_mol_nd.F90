@@ -231,11 +231,11 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
 
   do n = 1, NQ
-     call ppm_reconstruct(lo-dg, hi+dg, 1, &
-                          q, q_lo, q_hi, NQ, n, &
-                          flatn, q_lo, q_hi, &
-                          qm, It_lo, It_hi, &
-                          qp, It_lo, It_hi, NQ, n)
+     call ca_ppm_reconstruct(lo-dg, hi+dg, 1, &
+                             q, q_lo, q_hi, NQ, n, &
+                             flatn, q_lo, q_hi, &
+                             qm, It_lo, It_hi, &
+                             qp, It_lo, It_hi, NQ, n)
 
      ! use T to define p
      if (ppm_temp_fix == 1) then
