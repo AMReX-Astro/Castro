@@ -27,6 +27,7 @@ Castro: an adaptive mesh compressible hydrodynamics code
    :maxdepth: 1
    :caption: Castro reference
 
+   coding_conventions
    Hydrodynamics
    gravity
    diffusion

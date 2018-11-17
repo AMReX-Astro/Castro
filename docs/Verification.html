@@ -8,7 +8,8 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Verification &mdash; Castro 2.2 documentation</title>
+  <title>Verification &mdash; Castro 18.11
+ documentation</title>
   
 
   
@@ -30,7 +31,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="File list" href="filelist.html" />
-    <link rel="prev" title="Visualization" href="visualization.html" /> 
+    <link rel="prev" title="Restarting from Maestro" href="MAESTRO_restart.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -59,7 +60,8 @@
             
             
               <div class="version">
-                2.2
+                18.11
+
               </div>
             
           
@@ -84,7 +86,7 @@
             
             
               <p class="caption"><span class="caption-text">Castro basics</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction to Castro</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
@@ -92,7 +94,14 @@
 <li class="toctree-l1"><a class="reference internal" href="rp_intro.html">Runtime Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="coding_conventions.html">Coding Conventions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
@@ -103,7 +112,6 @@
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
 <li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
-<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Verification</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#hydrodynamics-test-problems">Hydrodynamics Test Problems</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#sods-problem-and-other-shock-tube-problems">Sod’s Problem (and Other Shock Tube Problems)</a><ul>
@@ -520,7 +528,7 @@ and the references therein)
 is to convert the explosion energy into a pressure contained within a
 certain volume, <span class="math notranslate nohighlight">\(V_\mathrm{init}\)</span>, of radius <span class="math notranslate nohighlight">\(r_\mathrm{init}\)</span> as</p>
 <div class="math notranslate nohighlight">
-\[p_\mathrm{init} = \frac{(\gamma - 1) E_\mathrm{exp}}{V_\mathrm{init}} \enskip .\]</div>
+\[p_\mathrm{init} = \frac{(\gamma - 1) E_\mathrm{exp}}{V_\mathrm{init}}\]</div>
 <p>This pressure is then deposited in all of the cells where <span class="math notranslate nohighlight">\(r &lt;
 r_\mathrm{init}\)</span>.</p>
 <p>To further minimize any grid effects, we do subsampling
@@ -652,7 +660,7 @@ the flux-limiters, to prevent it from exceeding <span class="math notranslate no
 the radiation energy equation. The radiation energy density is
 initialized at time <span class="math notranslate nohighlight">\(t = t_0\)</span> to a Gaussian distribution:</p>
 <div class="math notranslate nohighlight">
-\[E_R = (E_R)_0 \exp \left \{ - \frac{1}{4 D t_0} |r - r_0|^2 \right \} \enskip .\]</div>
+\[E_R = (E_R)_0 \exp \left \{ - \frac{1}{4 D t_0} |r - r_0|^2 \right \}\]</div>
 <p>As the radiation diffuses, the overall distribution will remain
 Gaussian, with the time-dependent solution of:</p>
 <div class="math notranslate nohighlight">
@@ -719,7 +727,7 @@ Details of its use are provided in the BoxLib&nbsp;User’s Guide.</p>
         <a href="filelist.html" class="btn btn-neutral float-right" title="File list" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="visualization.html" class="btn btn-neutral" title="Visualization" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="MAESTRO_restart.html" class="btn btn-neutral" title="Restarting from Maestro" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
