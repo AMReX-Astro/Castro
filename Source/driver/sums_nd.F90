@@ -387,9 +387,11 @@ contains
   subroutine ca_sumproduct(lo,hi,f1,f1_lo,f1_hi,f2,f2_lo,f2_hi,dx,&
                            vol,v_lo,v_hi,product) bind(C, name="ca_sumproduct")
 
+    !$gpu
+    
     use amrex_constants_module, only : ZERO
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
@@ -403,8 +405,6 @@ contains
     real(rt), intent(in) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
     integer          :: i, j, k
-
-    product = ZERO
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)

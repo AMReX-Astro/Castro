@@ -3,6 +3,8 @@
 # Ideally this shows the movement of a flame front.
 #
 # Written by Blaire Ness
+#
+# Last updated May 2018
 
 from __future__ import print_function
 

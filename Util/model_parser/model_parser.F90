@@ -42,7 +42,7 @@ module model_parser_module
   real (rt), allocatable, save :: model_state(:,:)
   real (rt), allocatable, save :: model_r(:)
 
-#ifdef CUDA
+#ifdef AMREX_USE_CUDA
   attributes(managed) :: model_state, model_r, npts_model
 #endif
 

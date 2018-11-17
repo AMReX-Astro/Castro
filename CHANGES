@@ -1,4 +1,29 @@
-# changes since last release
+changes since last release
+
+# 18.11
+
+  -- we've restructured the CTU solver to no longer use a slab
+     approach in 3d.  This is in preparation for offloading the solver
+     to GPUs.
+
+  -- a few minor bugs were fixed in the transverse routines of the CTU
+     solver with radiation
+
+
+# 18.10
+
+  -- fixed handling of external BCs (#402)
+
+  -- unified some CUDA hydro solver code with the method-of-lines code
+
+  -- offloaded gravity source terms, rotation, reactions, and sponge
+     to GPUs with CUDA
+
+  -- merged the different dimensional versions of the CTU consup
+     routine into a single routine (#399)
+
+  -- removed the unsafe option "allow_negative_energy"
+
 
 # 18.09
 

@@ -157,7 +157,7 @@ Castro::restart (Amr&     papa,
 
       int ns = desc_lst[State_Type].nComp();
       int ng = desc_lst[State_Type].nExtra();
-      MultiFab* new_data = new MultiFab(grids,dmap,ns,ng);
+      MultiFab new_data(grids,dmap,ns,ng);
       MultiFab& chk_data = get_state_data(State_Type).newData();
 
 #if (BL_SPACEDIM == 1)
@@ -168,11 +168,11 @@ Castro::restart (Amr&     papa,
 
       for (int n = 0; n < ns; n++) {
 	if (n < Ymom)
-	  MultiFab::Copy(*new_data, chk_data, n,   n, 1, ng);
+	  MultiFab::Copy(new_data, chk_data, n,   n, 1, ng);
 	else if (n == Ymom || n == Zmom)
-	  new_data->setVal(0.0, n, 1, ng);
+	  new_data.setVal(0.0, n, 1, ng);
 	else
-	  MultiFab::Copy(*new_data, chk_data, n-2, n, 1, ng);
+	  MultiFab::Copy(new_data, chk_data, n-2, n, 1, ng);
       }
 
 #elif (BL_SPACEDIM == 2)
@@ -182,18 +182,18 @@ Castro::restart (Amr&     papa,
 
       for (int n = 0; n < ns; n++) {
 	if (n < Zmom)
-	  MultiFab::Copy(*new_data, chk_data, n,   n, 1, ng);
+	  MultiFab::Copy(new_data, chk_data, n,   n, 1, ng);
 	else if (n == Zmom)
-	  new_data->setVal(0.0, n, 1, ng);
+	  new_data.setVal(0.0, n, 1, ng);
 	else
-	  MultiFab::Copy(*new_data, chk_data, n-1, n, 1, ng);
+	  MultiFab::Copy(new_data, chk_data, n-1, n, 1, ng);
       }
 
 #endif
 
       // Now swap the pointers.
 
-      get_state_data(State_Type).replaceNewData(new_data);
+      get_state_data(State_Type).replaceNewData(std::move(new_data));
 
     }
  
@@ -695,6 +695,8 @@ Castro::writeJobInfo (const std::string& dir)
 #ifdef _OPENMP
   jobInfoFile << "number of threads:       " << omp_get_max_threads() << "\n";
 #endif
+  jobInfoFile << "\n";
+  jobInfoFile << "hydro tile size:         " << hydro_tile_size << "\n";
 
   jobInfoFile << "\n";
   jobInfoFile << "CPU time used since start of simulation (CPU-hours): " <<

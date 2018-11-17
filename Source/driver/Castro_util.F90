@@ -29,6 +29,8 @@ contains
     integer  :: domlo(3), domhi(3)
     integer  :: dir
 
+    !$gpu
+
     idx = [ i, j, k ]
 
     dx(:) = dx_level(:,amr_level)
@@ -126,7 +128,7 @@ contains
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, &
-         UTEMP, small_temp, allow_negative_energy, allow_small_energy, &
+         UTEMP, small_temp, allow_small_energy, &
          dual_energy_eta2
     use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_fort_module, only : rt => amrex_real
@@ -153,10 +155,6 @@ contains
     ! a call to the EOS using the small temperature.
     ! If so, reset it using the current temperature,
     ! assuming it is at least as large as small_temp.
-    ! Note that allow_small_energy .eq. 0 overrides
-    ! allow_negative_energy .eq. 0 since a negative
-    ! energy is of course smaller than the smallest
-    ! allowed energy.
 
     if (allow_small_energy .eq. 0) then
 
@@ -225,7 +223,7 @@ contains
           enddo
        enddo
 
-    else if (allow_negative_energy .eq. 0) then
+    else
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
@@ -275,7 +273,7 @@ contains
 
                       eint_new = eos_state % e
 
-#ifndef AMREX_USE_CUDA                      
+#ifndef AMREX_USE_CUDA
                       if (verbose .gt. 0) then
                          print *,'   '
                          print *,'>>> Warning: Castro_util.F90::reset_internal_energy  ',i,j,k
@@ -295,26 +293,6 @@ contains
           enddo
        enddo
 
-       ! If (allow_negative_energy .eq. 1) and (allow_small_energy .eq. 1)
-       ! then just reset (rho e) from (rho E)
-    else
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-
-                rhoInv = ONE/u(i,j,k,URHO)
-                Up = u(i,j,k,UMX) * rhoInv
-                Vp = u(i,j,k,UMY) * rhoInv
-                Wp = u(i,j,k,UMZ) * rhoInv
-                ke = HALF * (Up**2 + Vp**2 + Wp**2)
-
-                u(i,j,k,UEINT) = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
-
-             enddo
-          enddo
-       enddo
-
     endif
 
   end subroutine ca_reset_internal_e
@@ -327,7 +305,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_input_re, eos_t
     use meth_params_module, only: NVAR, URHO, UEDEN, UEINT, UTEMP, &
-         UFS, UFX, allow_negative_energy
+         UFS, UFX
     use amrex_constants_module, only: ZERO, ONE
     use amrex_error_module
     use amrex_fort_module, only: rt => amrex_real
@@ -347,7 +325,7 @@ contains
 
     ! First check the inputs for validity.
 
-#ifndef AMREX_USE_CUDA    
+#ifndef AMREX_USE_CUDA
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
@@ -360,7 +338,7 @@ contains
                 call amrex_error("Error:: compute_temp_nd.f90")
              end if
 
-             if (allow_negative_energy .eq. 0 .and. state(i,j,k,UEINT) <= ZERO) then
+             if (state(i,j,k,UEINT) <= ZERO) then
                 print *,'   '
                 print *,'>>> Warning: Castro_util.F90::ca_compute_temp ',i,j,k
                 print *,'>>> ... negative (rho e) ',state(i,j,k,UEINT)
@@ -394,7 +372,7 @@ contains
     enddo
 
   end subroutine ca_compute_temp
-  
+
 
 
   subroutine ca_check_initial_species(lo, hi, state, state_lo, state_hi) bind(c,name='ca_check_initial_species')
@@ -420,7 +398,7 @@ contains
 
              spec_sum = sum(state(i,j,k,UFS:UFS+nspec-1))
 
-#ifndef AMREX_USE_CUDA             
+#ifndef AMREX_USE_CUDA
              if (abs(state(i,j,k,URHO)-spec_sum) .gt. 1.e-8_rt * state(i,j,k,URHO)) then
 
                 print *,'Sum of (rho X)_i vs rho at (i,j,k): ',i,j,k,spec_sum,state(i,j,k,URHO)
@@ -479,7 +457,7 @@ contains
 
   ! Given 3D spatial coordinates, return the cell-centered zone indices closest to it.
   ! Optionally we can also be edge-centered in any of the directions.
-  
+
   function position_to_index(loc) result(index)
 
     use amrinfo_module, only: amr_level
@@ -492,15 +470,15 @@ contains
 
     index(1:dim)   = NINT(loc(1:dim) / dx_level(1:dim,amr_level))
     index(dim+1:3) = 0
-    
-  end function position_to_index  
+
+  end function position_to_index
 
 
 
   ! Given 3D indices (i,j,k) and a direction dir, return the
   ! area of the face perpendicular to direction d. We assume
   ! the coordinates perpendicular to the dir axies are edge-centered.
-  ! Note that Castro has no support for angular coordinates, so 
+  ! Note that Castro has no support for angular coordinates, so
   ! this function only provides Cartesian in 1D/2D/3D, Cylindrical (R-Z)
   ! in 2D, and Spherical in 1D.
 
@@ -635,7 +613,7 @@ contains
 
 
   ! Given 3D cell-centered indices (i,j,k), return the volume of the zone.
-  ! Note that Castro has no support for angular coordinates, so 
+  ! Note that Castro has no support for angular coordinates, so
   ! this function only provides Cartesian in 1D/2D/3D, Cylindrical (R-Z)
   ! in 2D, and Spherical in 1D.
 
@@ -687,7 +665,7 @@ contains
        if (dim .eq. 2) then
 
           volume = TWO * M_PI * (HALF * (loc_l(1) + loc_r(1))) * dx(1) * dx(2)
-          
+
 #ifndef AMREX_USE_CUDA
        else
 
@@ -708,7 +686,7 @@ contains
        if (dim .eq. 1) then
 
           volume = FOUR3RD * M_PI * (loc_r(1)**3 - loc_l(1)**3)
-          
+
 #ifndef AMREX_USE_CUDA
        else
 
@@ -812,7 +790,7 @@ contains
        do k = -1*dg(3),1*dg(3)
           do j = -1*dg(2),1*dg(2)
              do i = -1*dg(1),1*dg(1)
-                data(i,j,k) = data(i,j,k) - cen 
+                data(i,j,k) = data(i,j,k) - cen
              end do
           end do
        end do
@@ -884,7 +862,7 @@ contains
     real(rt) :: x,y,z,r
     real(rt) :: x_mom,y_mom,z_mom,radial_mom
 
-#ifndef AMREX_USE_CUDA    
+#ifndef AMREX_USE_CUDA
     if (dim .eq. 1) call amrex_error("Error: cannot do ca_compute_avgstate in 1D.")
 #endif
 
@@ -910,7 +888,7 @@ contains
              radial_state(URHO,index) = radial_state(URHO,index) &
                                       + vol(i,j,k)*state(i,j,k,URHO)
              !
-             ! Store the radial component of the momentum in the 
+             ! Store the radial component of the momentum in the
              ! UMX, UMY and UMZ components for now.
              !
              x_mom = state(i,j,k,UMX)

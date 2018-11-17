@@ -223,6 +223,36 @@ end subroutine ca_get_ngdnv
 ! ::: ----------------------------------------------------------------
 ! :::
 
+subroutine ca_amrinfo_init() bind(C, name="ca_amrinfo_init")
+
+    use amrinfo_module, only: amr_level, amr_iteration, amr_ncycle, amr_time, amr_dt
+
+    allocate(amr_level)
+    amr_level = 0
+    allocate(amr_iteration)
+    amr_iteration = 0
+    allocate(amr_ncycle)
+    amr_ncycle = 0
+    allocate(amr_time)
+    amr_time = 0.0d0
+    allocate(amr_dt)
+    amr_dt = 0.0d0
+
+end subroutine ca_amrinfo_init
+
+subroutine ca_amrinfo_finalize() bind(C, name="ca_amrinfo_finalize")
+
+    use amrinfo_module, only: amr_level, amr_iteration, amr_ncycle, amr_time, amr_dt
+
+    deallocate(amr_level)
+    deallocate(amr_iteration)
+    deallocate(amr_ncycle)
+    deallocate(amr_time)
+    deallocate(amr_dt)
+
+end subroutine ca_amrinfo_finalize
+
+
 subroutine ca_set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in) &
      bind(C, name="ca_set_amr_info")
 
@@ -564,11 +594,8 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
   ! Update device variables
 
   !$acc update &
-  !$acc device(NVAR) &
-  !$acc device(NQ) &
   !$acc device(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX) &
   !$acc device(USHK) &
-  !$acc device(QVAR) &
   !$acc device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME) &
   !$acc device(QFA, QFS, QFX) &
   !$acc device(NQAUX, QGAMC, QC, QDPDR, QDPDE) &
@@ -630,6 +657,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   allocate(SlipWall)
   allocate(NoSlipWall)
 
+  allocate(coord_type)
   allocate(center(3))
   allocate(problo(3))
   allocate(probhi(3))
@@ -980,6 +1008,37 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
 #endif
 
 end subroutine ca_get_sponge_params
+
+subroutine ca_allocate_sponge_params() bind(C, name="ca_allocate_sponge_params")
+
+    ! allocate sponge parameters
+
+    use sponge_module
+    allocate(sponge_lower_factor, sponge_upper_factor)
+    allocate(sponge_lower_radius, sponge_upper_radius)
+    allocate(sponge_lower_density, sponge_upper_density)
+    allocate(sponge_lower_pressure, sponge_upper_pressure)
+    allocate(sponge_target_velocity(3))
+    allocate(sponge_timescale)
+
+
+
+end subroutine ca_allocate_sponge_params
+
+subroutine ca_deallocate_sponge_params() bind(C, name="ca_deallocate_sponge_params")
+
+    ! deallocate sponge parameters
+
+    use sponge_module
+
+    deallocate(sponge_lower_factor, sponge_upper_factor)
+    deallocate(sponge_lower_radius, sponge_upper_radius)
+    deallocate(sponge_lower_density, sponge_upper_density)
+    deallocate(sponge_lower_pressure, sponge_upper_pressure)
+    deallocate(sponge_target_velocity)
+    deallocate(sponge_timescale)
+
+end subroutine ca_deallocate_sponge_params
 #endif
 
 #ifdef POINTMASS

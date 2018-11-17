@@ -4,6 +4,7 @@ CEXE_sources += Prob.cpp
 FEXE_headers += Problem_F.H
 CEXE_headers += Problem.H
 CEXE_headers += Problem_Derives.H
+CEXE_headers += Problem_Derive.H
 FEXE_headers += Problem_Derive_F.H
 
 CEXE_headers += Castro_prob_err_list.H
@@ -12,10 +13,12 @@ FEXE_headers += Castro_prob_err_F.H
 
 ifneq ($(DIMENSION_AGNOSTIC), TRUE)
   ca_F90EXE_sources += bc_fill_$(DIM)d.F90
+  ca_F90EXE_sources += bc_ext_fill_$(DIM)d.F90
   ca_f90EXE_sources += Prob_$(DIM)d.f90
   ca_f90EXE_sources += problem_tagging_$(DIM)d.f90
 else
   ca_F90EXE_sources += bc_fill_nd.F90
+  ca_F90EXE_sources += bc_ext_fill_nd.F90
   ca_F90EXE_sources += Prob_nd.F90
   ca_F90EXE_sources += problem_tagging_nd.F90
 endif
@@ -23,8 +26,3 @@ endif
 ca_f90EXE_sources += problem_derive_nd.f90
 ca_f90EXE_sources += Problem.f90
 
-ifneq ($(DIMENSION_AGNOSTIC), TRUE)
-ifneq ($(USE_CUDA), TRUE)
-    ca_F90EXE_sources += bc_ext_fill_$(DIM)d.F90
-endif
-endif
