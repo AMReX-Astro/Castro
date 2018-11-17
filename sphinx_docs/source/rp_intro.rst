@@ -100,6 +100,9 @@ The following runtime parameters have been removed for Castro.
    (removed in commit: 213f4ffc53463141084551c7be4b37a2720229aa)
 
 
+Parameters by Namespace
+=======================
+
 .. toctree::
 
    runtime_parameters

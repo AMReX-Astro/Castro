@@ -1,8 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from __future__ import print_function
 
 import os
+import re
 import sys
 import textwrap
 
@@ -30,13 +31,14 @@ class Parameter(object):
         self.default = ""
         self.description = []
         self.category = ""
+        self.namespace=""
 
     def value(self):
         """ the value is what we sort based on """
         return self.category + "." + self.var
 
-    def __cmp__(self, other):
-        return cmp(self.value(), other.value())
+    def __lt__(self, other):
+        self.value() < other.value()
 
 
 def make_rest_table(param_files):
@@ -54,6 +56,7 @@ def make_rest_table(param_files):
             sys.exit("ERROR: {} does not exist".format(pf))
 
         descr = r""
+        category = ""
 
         # read in the file
         line = f.readline()
@@ -68,6 +71,15 @@ def make_rest_table(param_files):
                 line = f.readline()
                 continue
 
+            if line.startswith("@"):
+                # this is a command -- we only know namespace
+                fields = line.split()
+                if fields[0].startswith("@namespace"):
+                    namespace = fields[1].strip()
+                    category = ""
+                    line = f.readline()
+                    continue
+
             if line.startswith("#------"):
                 line = f.readline()
                 continue
@@ -81,13 +93,20 @@ def make_rest_table(param_files):
 
             else:
                 current_param = Parameter()
-                line_list = line.split()
 
-                current_param.var = line_list[0]
-                current_param.default = line_list[2].replace("_", "\_")
+                # this splits the line into separate fields.  A field
+                # is a single word or a pair in parentheses like "(a,
+                # b)"
+                fields = re.findall(r'[\w\"\+\.-]+|\([\w+\.-]+\s*,\s*[\w\+\.-]+\)', line) 
+
+                current_param.var = fields[0]
+                if current_param.var.startswith("("):
+                    current_param.var = re.findall(r"\w+", fields[0])[0]
+
+                current_param.default = fields[2].replace("_", "\_")
                 current_param.description = descr
                 current_param.category = category
-
+                current_param.namespace = namespace
                 descr = r""
 
                 # store the current parameter in the list
@@ -96,17 +115,17 @@ def make_rest_table(param_files):
             line = f.readline()
 
 
-    categories = sorted (set([q.category for q in params_list]))
+    namespaces = list(set([q.namespace for q in params_list]))
 
-    for c in categories:
+    for nm in sorted(namespaces):
 
         # print the heading
 
-        params = [q for q in params_list if q.category == c]
+        params = [q for q in params_list if q.namespace == nm]
 
-        clen = len(c)
-        print(c)
-        print(clen*"=" + "\n")
+        nmlen = len(nm)
+        print(nm)
+        print(nmlen*"-" + "\n")
 
         print(main_header.strip())
 

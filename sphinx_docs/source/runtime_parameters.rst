@@ -1,11 +1,9 @@
-driver
-======
+castro
+------
 
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |
 +========================================+=========================================================+===============+
-| ``@namespace:``                        |                                                         | Castro        |
-+----------------------------------------+---------------------------------------------------------+---------------+
 | ``state_interp_order``                 | highest order used in interpolation                     | 1             |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``lin_limit_state_interp``             | how to do limiting of the state data when interpolating | 0             |
@@ -367,9 +365,9 @@ driver
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``spherical_star``                     |                                                         | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``print_fortran_warnings``             | display warnings in Fortran90 routines                  | (0,           |
+| ``print_fortran_warnings``             | display warnings in Fortran90 routines                  | (0, 1)        |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``print_update_diagnostics``           | display information about updates to the state (how     | (0,           |
+| ``print_update_diagnostics``           | display information about updates to the state (how     | (0, 1)        |
 |                                        | much mass, momentum, energy added)                      |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``track_grid_losses``                  | calculate losses of material through physical grid      | 0             |
@@ -409,31 +407,29 @@ driver
 | ``do_tracer_particles``                | permits tracer particle calculation to be turned on and | 0             |
 |                                        | off                                                     |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``@namespace:``                        |                                                         | Castro        |
+
+
+
+diffusion
+---------
+
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``(v,``                                | the level of verbosity for the tracer particle (0 or 1) | int           |
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``v``                                  | the level of verbosity for the diffusion solve (higher  | 0             |
+|                                        | number means more output)                               |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``particle_init_file``                 | the name of an input file containing the total particle | ""            |
-|                                        | number and the initial position of each particle.       |               |
+| ``mlmg_maxorder``                      | Use MLMG as the operator                                | 4             |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``particle_restart_file``              | the name of a file with new particles at restart        | ""            |
+
+
+
+gravity
+-------
+
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``restart_from_nonparticle_chkfile``   | to restart from a checkpoint that was written with {\tt | 0             |
-|                                        | USE\_PARTICLES}=FALSE                                   |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``particle_output_file``               | the name of timestamp files.                            | ""            |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``timestamp_dir``                      | the name of a directory in which timestamp files are    | ""            |
-|                                        | stored.                                                 |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``timestamp_density``                  | whether the local densities at given positions of       | 1             |
-|                                        | particles are stored in output files                    |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``timestamp_temperature``              | whether the local temperatures at given positions of    | 0             |
-|                                        | particles are stored in output files                    |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``@namespace:``                        |                                                         | Gravity       |
-+----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
 | ``gravity_type``                       | what type                                               | "fillme"      |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``const_grav``                         | if doing constant gravity, what is the acceleration     | 0.0           |
@@ -445,10 +441,10 @@ driver
 | ``drdxfac``                            | ratio of dr for monopole gravity binning to grid        | 1             |
 |                                        | resolution                                              |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``(max_multipole_order,``              | the maximum mulitpole order to use for multipole BCs    | int           |
+| ``max_multipole_order``                | the maximum mulitpole order to use for multipole BCs    | 0             |
 |                                        | when doing Poisson gravity                              |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``(v,``                                | the level of verbosity for the gravity solve (higher    | int           |
+| ``v``                                  | the level of verbosity for the gravity solve (higher    | 0             |
 |                                        | number means more output on the status of the solve /   |               |
 |                                        | multigrid                                               |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -480,12 +476,35 @@ driver
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``mlmg_nsolve``                        | Do N-Solve?                                             | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``@namespace:``                        |                                                         | Diffusion     |
+
+
+
+particles
+---------
+
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``(v,``                                | the level of verbosity for the diffusion solve (higher  | int           |
-|                                        | number means more output)                               |               |
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``v``                                  | the level of verbosity for the tracer particle (0 or 1) | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``mlmg_maxorder``                      | Use MLMG as the operator                                | 4             |
+| ``particle_init_file``                 | the name of an input file containing the total particle | ""            |
+|                                        | number and the initial position of each particle.       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``particle_restart_file``              | the name of a file with new particles at restart        | ""            |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``restart_from_nonparticle_chkfile``   | to restart from a checkpoint that was written with {\tt | 0             |
+|                                        | USE\_PARTICLES}=FALSE                                   |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``particle_output_file``               | the name of timestamp files.                            | ""            |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``timestamp_dir``                      | the name of a directory in which timestamp files are    | ""            |
+|                                        | stored.                                                 |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``timestamp_density``                  | whether the local densities at given positions of       | 1             |
+|                                        | particles are stored in output files                    |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``timestamp_temperature``              | whether the local temperatures at given positions of    | 0             |
+|                                        | particles are stored in output files                    |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
