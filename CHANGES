@@ -22,6 +22,12 @@ changes since last release
      future, the full fourth order method will be merged which will be
      a better replacement.
 
+  -- fixed a bug in the CUDA version of the MOL integrator -- it was
+     setting the interface states incorrectly.
+
+  -- rewrote the reconstruction routines to eliminate temporary arrays
+     to make them GPU friendly
+
 # 18.11
 
   -- we've restructured the CTU solver to no longer use a slab
