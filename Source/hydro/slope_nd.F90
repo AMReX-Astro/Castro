@@ -52,14 +52,9 @@ contains
 
     integer :: i, j, k
 
-    real(rt) :: dlft, drgt, slop, dq1
-
-    real(rt), pointer:: dsgn(:,:,:), dlim(:,:,:), df(:,:,:), dcen(:,:,:)
-
-    call bl_allocate(dsgn, lo-2*dg, hi+2*dg)
-    call bl_allocate(dlim, lo-2*dg, hi+2*dg)
-    call bl_allocate(  df, lo-2*dg, hi+2*dg)
-    call bl_allocate(dcen, lo-2*dg, hi+2*dg)
+    real(rt) :: dlft, drgt, dsgn, dcen, dlim, slop, dq1
+    real(rt) :: dlftp1, drgtp1, dfp1
+    real(rt) :: dlftm1, drgtm1, dfm1
 
     if (plm_iorder == 1) then
 
@@ -82,59 +77,80 @@ contains
        ! Compute slopes in first coordinate direction
        do k = lo(3)-dg(3), hi(3)+dg(3)
           do j = lo(2)-dg(2), hi(2)+dg(2)
-
-             ! First compute Fromm slopes
-             do i = lo(1)-2, hi(1)+2
-                dlft = TWO*(q(i ,j,k,n) - q(i-1,j,k,n))
-                drgt = TWO*(q(i+1,j,k,n) - q(i ,j,k,n))
-                dcen(i,j,k) = FOURTH * (dlft+drgt)
-                dsgn(i,j,k) = sign(ONE, dcen(i,j,k))
-                slop = min( abs(dlft), abs(drgt) )
-                if (dlft*drgt .ge. ZERO) then
-                   dlim(i,j,k) = slop
-                else
-                   dlim(i,j,k) = ZERO
-                endif
-                df(i,j,k) = dsgn(i,j,k)*min( dlim(i,j,k), abs(dcen(i,j,k)) )
-             end do
-
-             ! Now compute limited fourth order slopes
              do i = lo(1)-1, hi(1)+1
-                dq1 = FOUR3RD*dcen(i,j,k) - SIXTH*(df(i+1,j,k) + df(i-1,j,k))
-                dqx(i,j,k,n) = flatn(i,j,k)*dsgn(i,j,k)*min(dlim(i,j,k),abs(dq1))
-             end do
 
+                ! First compute Fromm slopes
+
+                ! df at i+1
+                dlftp1 = TWO*(q(i+1,j,k,n) - q(i,j,k,n))
+                drgtp1 = TWO*(q(i+2,j,k,n) - q(i+1,j,k,n))
+                dcen = FOURTH * (dlftp1 + drgtp1)
+                dsgn = sign(ONE, dcen)
+                slop = min(abs(dlftp1), abs(drgtp1))
+                dlim = merge(slop, ZERO, dlftp1*drgtp1 >= ZERO)
+                dfp1 = dsgn*min(dlim, abs(dcen))
+
+                ! df at i-1
+                dlftm1 = TWO*(q(i-1,j,k,n) - q(i-2,j,k,n))
+                drgtm1 = TWO*(q(i,j,k,n) - q(i-1,j,k,n))
+                dcen = FOURTH * (dlftm1 + drgtm1)
+                dsgn = sign(ONE, dcen)
+                slop = min(abs(dlftm1), abs(drgtm1))
+                dlim = merge(slop, ZERO, dlftm1*drgtm1 >= ZERO)
+                dfm1 = dsgn*min(dlim, abs(dcen))
+
+                ! Now compute limited fourth order slopes at i
+                dlft = drgtm1
+                drgt = dlftp1
+                dcen = FOURTH * (dlft + drgt)
+                dsgn = sign(ONE, dcen)
+                slop = min(abs(dlft), abs(drgt))
+                dlim = merge(slop, ZERO, dlft*drgt >= ZERO)
+
+                dq1 = FOUR3RD*dcen - SIXTH*(dfp1 + dfm1)
+                dqx(i,j,k,n) = flatn(i,j,k)*dsgn*min(dlim, abs(dq1))
+
+             end do
           end do
        end do
 
 #if (AMREX_SPACEDIM >= 2)
        ! Compute slopes in second coordinate direction
        do k = lo(3)-dg(3), hi(3)+dg(3)
-          do j = lo(2)-2*dg(2), hi(2)+2*dg(2)
+          do j = lo(2)-dg(2), hi(2)+dg(2)
              do i = lo(1)-1, hi(1)+1
 
                 ! First compute Fromm slopes
-                dlft = TWO*(q(i,j ,k,n) - q(i,j-1,k,n))
-                drgt = TWO*(q(i,j+1,k,n) - q(i,j ,k,n))
-                dcen(i,j,k) = FOURTH * (dlft+drgt)
-                dsgn(i,j,k) = sign( ONE, dcen(i,j,k) )
-                slop = min( abs(dlft), abs(drgt) )
-                if (dlft*drgt .ge. ZERO) then
-                   dlim(i,j,k) = slop
-                else
-                   dlim(i,j,k) = ZERO
-                endif
-                df(i,j,k) = dsgn(i,j,k)*min( dlim(i,j,k), abs(dcen(i,j,k)) )
-             end do
-          end do
-       end do
 
-       do k = lo(3)-dg(3), hi(3)+dg(3)
-          do j = lo(2)-dg(2), hi(2)+dg(2)
-             do i = lo(1)-1, hi(1)+1
-                ! Now compute limited fourth order slopes
-                dq1 = FOUR3RD*dcen(i,j,k) - SIXTH*( df(i,j+1,k) + df(i,j-1,k) )
-                dqy(i,j,k,n) = flatn(i,j,k)*dsgn(i,j,k)*min(dlim(i,j,k), abs(dq1))
+                ! df at j+1
+                dlftp1 = TWO*(q(i,j+1,k,n) - q(i,j,k,n))
+                drgtp1 = TWO*(q(i,j+2,k,n) - q(i,j+1,k,n))
+                dcen = FOURTH * (dlftp1 + drgtp1)
+                dsgn = sign(ONE, dcen)
+                slop = min(abs(dlftp1), abs(drgtp1))
+                dlim = merge(slop, ZERO, dlftp1*drgtp1 >= ZERO)
+                dfp1 = dsgn*min(dlim, abs(dcen))
+
+                ! df at j-1
+                dlftm1 = TWO*(q(i,j-1,k,n) - q(i,j-2,k,n))
+                drgtm1 = TWO*(q(i,j,k,n) - q(i,j-1,k,n))
+                dcen = FOURTH * (dlftm1 + drgtm1)
+                dsgn = sign(ONE, dcen)
+                slop = min(abs(dlftm1), abs(drgtm1))
+                dlim = merge(slop, ZERO, dlftm1*drgtm1 >= ZERO)
+                dfm1 = dsgn*min(dlim, abs(dcen))
+
+                ! Now compute limited fourth order slopes at j
+                dlft = drgtm1
+                drgt = dlftp1
+                dcen = FOURTH * (dlft + drgt)
+                dsgn = sign(ONE, dcen)
+                slop = min(abs(dlft), abs(drgt))
+                dlim = merge(slop, ZERO, dlft*drgt >= ZERO)
+
+                dq1 = FOUR3RD*dcen - SIXTH*(dfp1 + dfm1)
+                dqy(i,j,k,n) = flatn(i,j,k)*dsgn*min(dlim, abs(dq1))
+
              end do
           end do
        end do
@@ -142,42 +158,45 @@ contains
 
 #if (AMREX_SPACEDIM == 3)
        ! Compute slopes in third coordinate direction
-       do k = lo(3)-2, hi(3)+2
+       do k = lo(3)-1, hi(3)+1
           do j = lo(2)-1, hi(2)+1
              do i = lo(1)-1, hi(1)+1
 
                 ! First compute Fromm slopes
-                dlft = TWO*(q(i,j,k ,n) - q(i,j,k-1,n))
-                drgt = TWO*(q(i,j,k+1,n) - q(i,j,k, n))
-                dcen(i,j,k) = FOURTH * (dlft+drgt)
-                dsgn(i,j,k) = sign(ONE, dcen(i,j,k))
-                slop = min( abs(dlft), abs(drgt) )
-                if (dlft*drgt .ge. ZERO) then
-                   dlim(i,j,k) = slop
-                else
-                   dlim(i,j,k) = ZERO
-                endif
-                df(i,j,k) = dsgn(i,j,k)*min( dlim(i,j,k), abs(dcen(i,j,k)) )
-             end do
-          end do
-       end do
 
-       do k = lo(3)-1, hi(3)+1
-          do j = lo(2)-1, hi(2)+1
-             do i = lo(1)-1, hi(1)+1
-                ! Now compute limited fourth order slopes
-                dq1 = FOUR3RD*dcen(i,j,k) - SIXTH*(df(i,j,k+1) + df(i,j,k-1))
-                dqz(i,j,k,n) = flatn(i,j,k)*dsgn(i,j,k)*min(dlim(i,j,k),abs(dq1))
+                ! df at k+1
+                dlftp1 = TWO*(q(i,j,k+1,n) - q(i,j,k,n))
+                drgtp1 = TWO*(q(i,j,k+2,n) - q(i,j,k+1,n))
+                dcen = FOURTH * (dlftp1 + drgtp1)
+                dsgn = sign(ONE, dcen)
+                slop = min(abs(dlftp1), abs(drgtp1))
+                dlim = merge(slop, ZERO, dlftp1*drgtp1 >= ZERO)
+                dfp1 = dsgn*min(dlim, abs(dcen))
+
+                ! df at k-1
+                dlftm1 = TWO*(q(i,j,k-1,n) - q(i,j,k-2,n))
+                drgtm1 = TWO*(q(i,j,k,n) - q(i,j,k-1,n))
+                dcen = FOURTH * (dlftm1 + drgtm1)
+                dsgn = sign(ONE, dcen)
+                slop = min(abs(dlftm1), abs(drgtm1))
+                dlim = merge(slop, ZERO, dlftm1*drgtm1 >= ZERO)
+                dfm1 = dsgn*min(dlim, abs(dcen))
+
+                ! Now compute limited fourth order slopes at k
+                dlft = drgtm1
+                drgt = dlftp1
+                dcen = FOURTH * (dlft + drgt)
+                dsgn = sign(ONE, dcen)
+                slop = min(abs(dlft), abs(drgt))
+                dlim = merge(slop, ZERO, dlft*drgt >= ZERO)
+
+                dq1 = FOUR3RD*dcen - SIXTH*(dfp1 + dfm1)
+                dqz(i,j,k,n) = flatn(i,j,k)*dsgn*min(dlim, abs(dq1))
              end do
           end do
        end do
 #endif
     end if
-
-    call bl_deallocate(dsgn)
-    call bl_deallocate(dlim)
-    call bl_deallocate(  df)
-    call bl_deallocate(dcen)
 
   end subroutine uslope
 
