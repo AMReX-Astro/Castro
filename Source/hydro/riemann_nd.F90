@@ -1592,7 +1592,6 @@ contains
     ! need to know the pressure and velocity on the interface for the
     ! pdV term in the internal energy update.
 
-    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, &
                                    Symmetry, SlipWall, NoSlipWall
 
