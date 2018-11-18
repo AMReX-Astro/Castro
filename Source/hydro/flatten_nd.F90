@@ -152,6 +152,7 @@ contains
        end do
     end do
 
+#if AMREX_SPACEDIM >= 2
     ! y-direction flattening coef
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -207,7 +208,9 @@ contains
           end do
        end do
     end do
+#endif
 
+#if AMREX_SPACEDIM == 3
     ! z-direction flattening coef
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -262,6 +265,7 @@ contains
           enddo
        enddo
     enddo
+#endif
 
   end subroutine ca_uflatten
 
