@@ -44,7 +44,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
                                     divu, normalize_species_fluxes, calc_pdivu, &
                                     scale_flux, apply_av
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
-  use flatten_module, only: uflatten
+  use flatten_module, only: ca_uflatten
   use riemann_module, only: cmpflx
   use ppm_module, only : ca_ppm_reconstruct
   use amrex_fort_module, only : rt => amrex_real
@@ -219,8 +219,9 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   if (first_order_hydro == 1) then
      flatn = ZERO
   elseif (use_flattening == 1) then
-     call uflatten(lo - ngf*dg, hi + ngf*dg, &
-                   q, flatn, q_lo, q_hi, QPRES)
+     call ca_uflatten(lo - ngf*dg, hi + ngf*dg, &
+                      q, q_lo, q_hi, &
+                      flatn, q_lo, q_hi, QPRES)
   else
      flatn = ONE
   endif

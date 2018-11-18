@@ -2259,7 +2259,7 @@ contains
                                    first_order_hydro
     use advection_util_module, only : divu
     use amrex_constants_module, only : ZERO, ONE
-    use flatten_module, only: uflatten
+    use flatten_module, only: ca_uflatten
     use prob_params_module, only : mom_flux_has_p, dg, coord_type
 #ifdef RADIATION
     use rad_params_module, only : ngroups
@@ -2363,6 +2363,9 @@ contains
 
     ! Automatic arrays for workspace
     real(rt)        , pointer:: flatn(:,:,:)
+#ifdef RADIATION
+    real(rt)        , pointer:: flatg(:,:,:)
+#endif
     real(rt)        , pointer:: div(:,:,:)
 
     ! Edge-centered primitive variables (Riemann state)
@@ -2398,20 +2401,31 @@ contains
 
     ! Compute flattening coefficient for slope calculations.
     call bl_allocate( flatn, q_lo, q_hi)
-
+#ifdef RADIATION
+    call bl_allocate( flatg, q_lo, q_hi)
+#endif
     if (first_order_hydro == 1) then
        flatn = ZERO
     elseif (use_flattening == 1) then
+       call ca_uflatten(lo-dg*ngf, hi+dg*ngf, &
+                        q, q_lo, q_hi, &
+                        flatn, q_lo, q_hi, QPRES)
 #ifdef RADIATION
+       call ca_uflatten(lo-dg*ngf, hi+dg*ngf, &
+                        q, q_lo, q_hi, &
+                        flatg, q_lo, q_hi, QPTOT)
+
        call rad_flatten(lo-dg*ngf, hi+dg*ngf, &
-                        q, flatn, q_lo, q_hi)
-#else
-       call uflatten(lo-dg*ngf, hi+dg*ngf, &
-                     q, flatn, q_lo, q_hi, QPRES)
+                        q, q_lo, q_hi, &
+                        flatn, q_lo, q_hi, &
+                        flatg, q_lo, q_hi)
 #endif
     else
        flatn = ONE
     endif
+#ifdef RADIATION
+    call bl_deallocate(flatg)
+#endif
 
     ! Compute hyperbolic fluxes using unsplit Godunov
     call umeth(q, q_lo, q_hi, &

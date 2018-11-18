@@ -26,7 +26,6 @@ contains
                     qpd_lo, qpd_hi, &
                     lo, hi)
 
-    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only: NQ, plm_iorder
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO, FOUR3RD, FOURTH, SIXTH
 
@@ -216,7 +215,6 @@ contains
                     src, src_lo, src_hi, &
                     lo, hi, dx)
 
-    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : QRHO, QPRES, QU, QV, QW, NQ, QVAR, plm_iorder
     use amrex_constants_module, only : ZERO, FOURTH, FOUR3RD, HALF, TWO, ONE, SIXTH
 

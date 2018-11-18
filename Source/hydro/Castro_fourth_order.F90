@@ -43,7 +43,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
                                     divu, normalize_species_fluxes, calc_pdivu
   use amrex_error_module
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
-  use flatten_module, only: uflatten
+  use flatten_module, only: ca_uflatten
   use riemann_module, only: riemann_state
   use riemann_util_module, only: compute_flux_q
   use fourth_order
@@ -240,8 +240,9 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   call bl_allocate(flatn, q_bar_lo, q_bar_hi)
 
   if (use_flattening == 1) then
-     call uflatten(lo - ngf*dg, hi + ngf*dg, &
-                   q_bar, flatn, q_bar_lo, q_bar_hi, QPRES)
+     call ca_uflatten(lo - ngf*dg, hi + ngf*dg, &
+                      q_bar, q_bar_lo, q_bar_hi, &
+                      flatn, q_bar_lo, q_bar_hi, QPRES)
   else
      flatn = ONE
   endif
