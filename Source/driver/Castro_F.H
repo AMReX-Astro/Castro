@@ -526,7 +526,7 @@ extern "C"
      BL_FORT_FAB_ARG_3D(q), const int, const int,
      BL_FORT_FAB_ARG_3D(flatn),
      BL_FORT_FAB_ARG_3D(qm),
-     BL_FORT_FAB_ARG_3D(qp));
+     BL_FORT_FAB_ARG_3D(qp), const int, const int);
 
   void ca_construct_flux_cuda
     (const int* lo, const int* hi,
