@@ -1,7 +1,6 @@
 module slope_module
 
   use amrex_fort_module, only : rt => amrex_real
-  use prob_params_module, only : dg
 
   implicit none
 
@@ -58,9 +57,9 @@ contains
 
     if (plm_iorder == 1) then
 
-       do k = lo(3)-dg(3), hi(3)+dg(3)
-          do j = lo(2)-dg(2), hi(2)+dg(2)
-             do i = lo(1)-1, hi(1)+1
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
                 dqx(i,j,k,n) = ZERO
 #if AMREX_SPACEDIM >= 2
                 dqy(i,j,k,n) = ZERO
@@ -75,9 +74,9 @@ contains
     else
 
        ! Compute slopes in first coordinate direction
-       do k = lo(3)-dg(3), hi(3)+dg(3)
-          do j = lo(2)-dg(2), hi(2)+dg(2)
-             do i = lo(1)-1, hi(1)+1
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
                 ! First compute Fromm slopes
 
@@ -116,9 +115,9 @@ contains
 
 #if (AMREX_SPACEDIM >= 2)
        ! Compute slopes in second coordinate direction
-       do k = lo(3)-dg(3), hi(3)+dg(3)
-          do j = lo(2)-dg(2), hi(2)+dg(2)
-             do i = lo(1)-1, hi(1)+1
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
                 ! First compute Fromm slopes
 
@@ -158,9 +157,9 @@ contains
 
 #if (AMREX_SPACEDIM == 3)
        ! Compute slopes in third coordinate direction
-       do k = lo(3)-1, hi(3)+1
-          do j = lo(2)-1, hi(2)+1
-             do i = lo(1)-1, hi(1)+1
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
                 ! First compute Fromm slopes
 
@@ -253,9 +252,9 @@ contains
 
     if (plm_iorder == 1) then
 
-       do k = lo(3)-dg(3), hi(3)+dg(3)
-          do j = lo(2)-dg(2), hi(2)+dg(2)
-             do i = lo(1)-1, hi(1)+1
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
                 dqx(i,j,k,QPRES) = ZERO
 #if AMREX_SPACEDIM >= 2
                 dqy(i,j,k,QPRES) = ZERO
@@ -269,9 +268,9 @@ contains
 
     else
        ! Compute slopes in first coordinate direction
-       do k = lo(3)-dg(3), hi(3)+dg(3)
-          do j = lo(2)-dg(2), hi(2)+dg(2)
-             do i = lo(1)-1, hi(1)+1
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
                 ! First compute Fromm slopes
 
@@ -322,9 +321,9 @@ contains
 
 #if AMREX_SPACEDIM >= 2
        ! Compute slopes in second coordinate direction
-       do k = lo(3)-dg(3), hi(3)+dg(3)
-          do j = lo(2)-1, hi(2)+1
-             do i = lo(1)-1, hi(1)+1
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
                 ! First compute Fromm slopes
 
@@ -376,9 +375,9 @@ contains
 
 #if AMREX_SPACEDIM == 3
        ! Compute slopes in third coordinate direction
-       do k = lo(3)-1, hi(3)+1
-          do j = lo(2)-1, hi(2)+1
-             do i = lo(1)-1, hi(1)+1
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
                 ! First compute Fromm slopes
 

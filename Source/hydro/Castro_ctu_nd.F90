@@ -520,7 +520,7 @@ contains
                          dqz, &
 #endif
                          glo, ghi, &
-                         lo, hi)
+                         lo-dg, hi+dg)
           end do
 
           if (use_pslope == 1) then
@@ -535,7 +535,7 @@ contains
 #endif
                          glo, ghi, &
                          srcQ, src_lo, src_hi, &
-                         lo, hi, dx)
+                         lo-dg, hi+dg, dx)
           endif
 
        elseif (plm_iorder == -2) then
