@@ -530,7 +530,7 @@ extern "C"
   void ca_uflatten
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(q),
-     BL_FORT_FAB_ARG_3D(flatn), const int* pres_comp);
+     BL_FORT_FAB_ARG_3D(flatn), int pres_comp);
 
   void ca_ppm_reconstruct
     (const int* lo, const int* hi, int put_on_edges,
