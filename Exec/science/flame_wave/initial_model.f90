@@ -117,7 +117,7 @@ contains
 
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
-    use network, only : nspec, network_species_index, spec_names
+    use network, only : nspec, network_species_index
     use fundamental_constants_module, only: Gconst
     use meth_params_module, only : const_grav
 
@@ -130,9 +130,7 @@ contains
     integer, intent(in) :: model_num
     real(rt) :: xmin, xmax
 
-    integer :: i, n
-
-    real (rt) :: slope_T, slope_xn(nspec)
+    integer :: i
 
     real (rt) :: pres_base, entropy_base
 
@@ -158,8 +156,6 @@ contains
     integer :: index_base
 
     logical :: isentropic, flipped
-
-    integer :: narg
 
     type (eos_t) :: eos_state
 
