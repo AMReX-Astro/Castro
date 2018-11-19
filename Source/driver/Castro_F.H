@@ -73,6 +73,17 @@ extern "C"
 #ifdef SHOCK_VAR
      const int& Shock,
 #endif
+#ifdef MHD
+     const int& QMAGX_in, const int& QMAGY_in, const int& QMAGZ_in,
+#endif
+#ifdef RADIATION
+     const int& QPTOT_in, const int& QREITOT_in, const int& QRAD_in,
+#endif
+     const int& QRHO_in,
+     const int& QU_in, const int& QV_in, const int& QW_in,
+     const int& QGAME_in, const int& QPRES_in, const int& QREINT_in,
+     const int& QTEMP_in,
+     const int& QFA_in, const int& QFS_in, const int& QFX_in,
      const int* gravity_type, const int& gravity_type_len);
 
   void ca_finalize_meth_params();
