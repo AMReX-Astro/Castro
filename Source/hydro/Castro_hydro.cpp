@@ -498,20 +498,21 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
       // Compute flattening coefficient for slope calculations.
 #pragma gpu
-      ca_uflaten_cuda
+      ca_uflatten
           (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
            BL_TO_FORTRAN_ANYD(q[mfi]),
-           BL_TO_FORTRAN_ANYD(flatn[mfi]));
+           BL_TO_FORTRAN_ANYD(flatn[mfi]), QPRES+1);
 
       // Do PPM reconstruction to the zone edges.
       int put_on_edges = 1;
+
 #pragma gpu
       ca_ppm_reconstruct
           (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()), put_on_edges,
-           BL_TO_FORTRAN_ANYD(q[mfi]),
+           BL_TO_FORTRAN_ANYD(q[mfi]), NQ, 1, NQ,
            BL_TO_FORTRAN_ANYD(flatn[mfi]),
            BL_TO_FORTRAN_ANYD(qm[mfi]),
-           BL_TO_FORTRAN_ANYD(qp[mfi]));
+           BL_TO_FORTRAN_ANYD(qp[mfi]), NQ, 1, NQ);
 
   } // MFIter loop
 

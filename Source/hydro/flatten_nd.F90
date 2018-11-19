@@ -67,7 +67,7 @@ contains
 
   subroutine ca_uflatten(lo, hi, &
                          q, q_lo, q_hi, &
-                         flatn, f_lo, f_hi, pres_comp) bind(c,name='ca_uflaten')
+                         flatn, f_lo, f_hi, pres_comp) bind(c,name='ca_uflatten')
 
     use amrex_constants_module, only: ZERO, ONE
     use amrex_fort_module, only: rt => amrex_real
@@ -81,7 +81,7 @@ contains
     integer,  intent(in   ) :: f_lo(3), f_hi(3)
     real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(inout) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
-    integer, intent(in) :: pres_comp
+    integer, intent(in), value :: pres_comp
 
     integer :: i, j, k, ishft
 

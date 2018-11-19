@@ -233,90 +233,87 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   endif
 
 
-  do n = 1, NQ
-     call ca_ppm_reconstruct(lo-dg, hi+dg, 1, &
-                             q, q_lo, q_hi, NQ, n, &
-                             flatn, q_lo, q_hi, &
-                             qm, It_lo, It_hi, &
-                             qp, It_lo, It_hi, NQ, n)
+  call ca_ppm_reconstruct(lo-dg, hi+dg, 1, &
+                          q, q_lo, q_hi, NQ, 1, NQ, &
+                          flatn, q_lo, q_hi, &
+                          qm, It_lo, It_hi, &
+                          qp, It_lo, It_hi, NQ, 1, NQ)
 
-     ! use T to define p
-     if (ppm_temp_fix == 1) then
-        do idir = 1, AMREX_SPACEDIM
-           do k = lo(3)-dg(3), hi(3)+dg(3)
-              do j = lo(2)-dg(2), hi(2)+dg(2)
-                 do i = lo(1)-1, hi(1)+1
+  ! use T to define p
+  if (ppm_temp_fix == 1) then
+     do idir = 1, AMREX_SPACEDIM
+        do k = lo(3)-dg(3), hi(3)+dg(3)
+           do j = lo(2)-dg(2), hi(2)+dg(2)
+              do i = lo(1)-1, hi(1)+1
 
-                    eos_state%rho    = qp(i,j,k,QRHO,idir)
-                    eos_state%T      = qp(i,j,k,QTEMP,idir)
-                    eos_state%xn(:)  = qp(i,j,k,QFS:QFS-1+nspec,idir)
-                    eos_state%aux(:) = qp(i,j,k,QFX:QFX-1+naux,idir)
+                 eos_state%rho    = qp(i,j,k,QRHO,idir)
+                 eos_state%T      = qp(i,j,k,QTEMP,idir)
+                 eos_state%xn(:)  = qp(i,j,k,QFS:QFS-1+nspec,idir)
+                 eos_state%aux(:) = qp(i,j,k,QFX:QFX-1+naux,idir)
 
-                    call eos(eos_input_rt, eos_state)
+                 call eos(eos_input_rt, eos_state)
 
-                    qp(i,j,k,QPRES,idir) = eos_state%p
-                    qp(i,j,k,QREINT,idir) = qp(i,j,k,QRHO,idir)*eos_state%e
-                    ! should we try to do something about Gamma_! on interface?
+                 qp(i,j,k,QPRES,idir) = eos_state%p
+                 qp(i,j,k,QREINT,idir) = qp(i,j,k,QRHO,idir)*eos_state%e
+                 ! should we try to do something about Gamma_! on interface?
 
-                    eos_state%rho    = qm(i,j,k,QRHO,idir)
-                    eos_state%T      = qm(i,j,k,QTEMP,idir)
-                    eos_state%xn(:)  = qm(i,j,k,QFS:QFS-1+nspec,idir)
-                    eos_state%aux(:) = qm(i,j,k,QFX:QFX-1+naux,idir)
+                 eos_state%rho    = qm(i,j,k,QRHO,idir)
+                 eos_state%T      = qm(i,j,k,QTEMP,idir)
+                 eos_state%xn(:)  = qm(i,j,k,QFS:QFS-1+nspec,idir)
+                 eos_state%aux(:) = qm(i,j,k,QFX:QFX-1+naux,idir)
 
-                    call eos(eos_input_rt, eos_state)
+                 call eos(eos_input_rt, eos_state)
 
-                    qm(i,j,k,QPRES,idir) = eos_state%p
-                    qm(i,j,k,QREINT,idir) = qm(i,j,k,QRHO,idir)*eos_state%e
-                    ! should we try to do something about Gamma_! on interface?
+                 qm(i,j,k,QPRES,idir) = eos_state%p
+                 qm(i,j,k,QREINT,idir) = qm(i,j,k,QRHO,idir)*eos_state%e
+                 ! should we try to do something about Gamma_! on interface?
 
-                 end do
               end do
            end do
         end do
-     end if
+     end do
+  end if
 
-     ! Compute F^x at kc (k3d)
-     call cmpflx(qm(:,:,:,:,1), qp(:,:,:,:,1), It_lo, It_hi, &
-                 flux1, flux1_lo, flux1_hi, &
-                 q1, flux1_lo, flux1_hi, &  ! temporary
+  ! Compute F^x at kc (k3d)
+  call cmpflx(qm(:,:,:,:,1), qp(:,:,:,:,1), It_lo, It_hi, &
+              flux1, flux1_lo, flux1_hi, &
+              q1, flux1_lo, flux1_hi, &  ! temporary
 #ifdef RADIATION
-                 rflx, flux1_lo, flux1_hi, &
+              rflx, flux1_lo, flux1_hi, &
 #endif
-                 qaux, qa_lo, qa_hi, &
-                 shk, shk_lo, shk_hi, &
-                 1, [lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], domlo, domhi)
+              qaux, qa_lo, qa_hi, &
+              shk, shk_lo, shk_hi, &
+              1, [lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], domlo, domhi)
 
 
 #if AMREX_SPACEDIM >= 2
-     ! Compute F^y at kc (k3d)
-     call cmpflx(qm(:,:,:,:,2), qp(:,:,:,:,2), It_lo, It_hi, &
-                 flux2, flux2_lo, flux2_hi, &
-                 q2, flux2_lo, flux2_hi, &  ! temporary
+  ! Compute F^y at kc (k3d)
+  call cmpflx(qm(:,:,:,:,2), qp(:,:,:,:,2), It_lo, It_hi, &
+              flux2, flux2_lo, flux2_hi, &
+              q2, flux2_lo, flux2_hi, &  ! temporary
 #ifdef RADIATION
-                 rfly, flux2_lo, flux2_hi, &
+              rfly, flux2_lo, flux2_hi, &
 #endif
-                 qaux, qa_lo, qa_hi, &
-                 shk, shk_lo, shk_hi, &
-                 2, [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], domlo, domhi)
+              qaux, qa_lo, qa_hi, &
+              shk, shk_lo, shk_hi, &
+              2, [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], domlo, domhi)
 #endif
 
 
 #if AMREX_SPACEDIM == 3
-     ! Compute F^z at kc (k3d)
+  ! Compute F^z at kc (k3d)
 
-     call cmpflx(qm(:,:,:,:,3), qp(:,:,:,:,3), It_lo, It_hi, &
-                 flux3, flux3_lo, flux3_hi, &
-                 q3, flux3_lo, flux3_hi,  &
+  call cmpflx(qm(:,:,:,:,3), qp(:,:,:,:,3), It_lo, It_hi, &
+              flux3, flux3_lo, flux3_hi, &
+              q3, flux3_lo, flux3_hi,  &
 #ifdef RADIATION
-                 rflz, flux3_lo, flux3_hi, &
+              rflz, flux3_lo, flux3_hi, &
 #endif
-                 qaux, qa_lo, qa_hi, &
-                 shk, shk_lo, shk_hi, &
-                 3, [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], domlo, domhi)
+              qaux, qa_lo, qa_hi, &
+              shk, shk_lo, shk_hi, &
+              3, [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], domlo, domhi)
 
 #endif
-
-  end do
 
   call bl_deallocate(flatn)
 

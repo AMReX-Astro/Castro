@@ -34,8 +34,6 @@ castro.ppm_reference_eigenvectors = 1
 
 castro.use_flattening = 1
 
-castro.allow_negative_energy = 0
-
 castro.small_temp = 5.e5
 
 gravity.gravity_type = ConstantGrav

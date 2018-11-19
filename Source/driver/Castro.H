@@ -593,6 +593,8 @@ public:
 #endif
 
     static int       NUM_STATE;
+
+    // conservative variable index keys
     static int       Density, Xmom, Ymom, Zmom, Eden, Eint, Temp;
 #ifdef HYBRID_MOMENTUM
     static int       Rmom, Lmom, Pmom;
@@ -600,14 +602,28 @@ public:
 #ifdef SHOCK_VAR
     static int       Shock;
 #endif
+
+    static int       FirstAdv,  NumAdv;
+    static int       FirstSpec, NumSpec;
+    static int       FirstAux,  NumAux;
+
+    // primitive variable index keys
+    static int       QRHO, QU, QV, QW;
+    static int       QGAME, QPRES, QREINT, QTEMP;
+    static int       QFA, QFS, QFX;
+#ifdef MHD
+    static int       QMAGX, QMAGY, QMAGZ;
+#endif
+#ifdef RADIATION
+    static int       QPTOT, QREITOT, QRAD;
+#endif
+
+    // variable counts
     static int       QVAR;
     static int       NQAUX;
     static int       NQ;
     static int       NGDNV;
 
-    static int       FirstAdv,  NumAdv;
-    static int       FirstSpec, NumSpec;
-    static int       FirstAux,  NumAux;
 
     static amrex::Vector<std::string> source_names;
 
