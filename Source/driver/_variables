@@ -40,7 +40,7 @@
    auxiliary              QFX          QFX       QVAR           (naux, NumAux)      None
    total-pressure         QPTOT        QPTOT     None             1                 RADIATION
    total-reint            QREITOT      QREITOT   None             1                 RADIATION
-   radiation              QRAD         QRAD      None           ngroups             RADIATION
+   radiation              QRAD         QRAD      None           (ngroups, NGROUPS)  RADIATION
 
 
 # the auxiliary quantities

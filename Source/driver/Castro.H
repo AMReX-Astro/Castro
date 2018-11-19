@@ -615,7 +615,7 @@ public:
     static int       QMAGX, QMAGY, QMAGZ;
 #endif
 #ifdef RADIATION
-    static int       QPTOT, QREITOT, QRAD
+    static int       QPTOT, QREITOT, QRAD;
 #endif
 
     // variable counts
