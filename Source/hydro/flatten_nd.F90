@@ -67,7 +67,7 @@ contains
 
   subroutine ca_uflatten(lo, hi, &
                          q, q_lo, q_hi, &
-                         flatn, f_lo, f_hi, pres_comp) bind(c,name='ca_uflaten')
+                         flatn, f_lo, f_hi, pres_comp) bind(c,name='ca_uflatten')
 
     use amrex_constants_module, only: ZERO, ONE
     use amrex_fort_module, only: rt => amrex_real
