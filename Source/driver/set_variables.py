@@ -52,6 +52,7 @@ end subroutine check_equal
 
 class Index(object):
     """an index that we want to set"""
+
     def __init__(self, name, f90_var, default_group=None, iset=None,
                  also_adds_to=None, count=1, cxx_var=None, ifdef=None):
         """ parameters:
@@ -105,7 +106,7 @@ class Index(object):
             sstr += "  {} = {}\n".format(self.f90_var, val)
 
         if self.cxx_var is not None:
-            sstr += "  call check_equal({},{}+1)\n".format(self.f90_var, self.cxx_var)
+            sstr += "  call check_equal({},{}_in+1)\n".format(self.f90_var, self.cxx_var)
         if self.ifdef is not None:
             sstr += "#endif\n"
         sstr += "\n"
@@ -165,7 +166,8 @@ class Counter(object):
 
     def get_set_string(self):
         """return the Fortran needed to set this as a parameter"""
-        return "integer, parameter :: {} = {}".format(self.name, self.get_value(offset=self.starting_val))
+        return "integer, parameter :: {} = {}".format(
+            self.name, self.get_value(offset=self.starting_val))
 
 
 def doit(variables_file, defines, nadv,
@@ -268,9 +270,9 @@ def doit(variables_file, defines, nadv,
                         if i.ifdef is not None:
                             sub += "#ifdef {}\n".format(i.ifdef)
                         if n == len(cxx_all)-1:
-                            sub += "           {} {} &\n".format(" "*len(subname), i.cxx_var)
+                            sub += "           {} {}_in &\n".format(" "*len(subname), i.cxx_var)
                         else:
-                            sub += "           {} {}, &\n".format(" "*len(subname), i.cxx_var)
+                            sub += "           {} {}_in, &\n".format(" "*len(subname), i.cxx_var)
                         if i.ifdef is not None:
                             sub += "#endif\n"
 
@@ -289,7 +291,7 @@ def doit(variables_file, defines, nadv,
                     continue
                 if i.ifdef is not None:
                     sub += "#ifdef {}\n".format(i.ifdef)
-                sub += "  integer, intent(in) :: {}\n".format(i.cxx_var)
+                sub += "  integer, intent(in) :: {}_in\n".format(i.cxx_var)
                 if i.ifdef is not None:
                     sub += "#endif\n"
             sub += "\n"
@@ -351,13 +353,20 @@ def doit(variables_file, defines, nadv,
         ss.write("end module state_sizes_module\n")
 
 
-    # write the C++ include
+    # write the C++ includes
     conserved_indices = [q for q in indices if q.iset == "conserved" and q.cxx_var is not None]
 
     with open("set_conserved.H", "w") as f:
         f.write("  int cnt = 0;\n")
         for c in conserved_indices:
             f.write(c.get_cxx_set_string())
+
+    primitive_indices = [q for q in indices if q.iset == "primitive" and q.cxx_var is not None]
+
+    with open("set_primitive.H", "w") as f:
+        f.write("  int cnt = 0;\n")
+        for p in primitive_indices:
+            f.write(p.get_cxx_set_string())
 
 
 if __name__ == "__main__":
