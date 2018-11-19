@@ -527,17 +527,17 @@ extern "C"
      BL_FORT_FAB_ARG_3D(div));
 
 #ifdef AMREX_USE_CUDA
-  void ca_uflaten_cuda
+  void ca_uflatten
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(q),
-     BL_FORT_FAB_ARG_3D(flatn));
+     BL_FORT_FAB_ARG_3D(flatn), const int* pres_comp);
 
   void ca_ppm_reconstruct
-    (const int* lo, const int* hi, const int,
-     BL_FORT_FAB_ARG_3D(q), const int, const int,
+    (const int* lo, const int* hi, int put_on_edges,
+     BL_FORT_FAB_ARG_3D(q), int nc, int nstart, int nend,
      BL_FORT_FAB_ARG_3D(flatn),
      BL_FORT_FAB_ARG_3D(qm),
-     BL_FORT_FAB_ARG_3D(qp), const int, const int);
+     BL_FORT_FAB_ARG_3D(qp), int nqc, int nqstart, int nqend);
 
   void ca_construct_flux_cuda
     (const int* lo, const int* hi,
