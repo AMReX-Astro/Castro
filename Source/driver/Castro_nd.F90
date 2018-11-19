@@ -479,7 +479,7 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   integer, intent(in) :: gravity_type_len
   integer, intent(in) :: gravity_type_in(gravity_type_len)
 #ifdef HYBRID_MOMENTUM
-  integer, intent(in) :: Rmom
+  integer, intent(in) :: Rmom_in
 #endif
 
   integer :: iadv, ispec
