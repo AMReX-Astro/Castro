@@ -1472,7 +1472,8 @@ Castro::computeNewDt (int                   finest_level,
                 lastDtPlotLimited = 1;
                 lastDtBeforePlotLimiting = dt_0;
                 dt_0 = std::max(epsDt, newPlotDt);
-                amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next plot interval.\n";
+                if (verbose)
+                    amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next plot interval.\n";
             }
 
         }
@@ -1503,7 +1504,8 @@ Castro::computeNewDt (int                   finest_level,
                 lastDtPlotLimited = 1;
                 lastDtBeforePlotLimiting = dt_0;
                 dt_0 = std::max(epsDt, newSmallPlotDt);
-                amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next smallplot interval.\n";
+                if (verbose)
+                    amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next smallplot interval.\n";
             }
 
         }
@@ -1518,7 +1520,8 @@ Castro::computeNewDt (int                   finest_level,
     if (stop_time >= 0.0) {
         if ((cur_time + dt_0) > (stop_time - eps)) {
             dt_0 = stop_time - cur_time;
-            amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the stop_time.\n";
+            if (verbose)
+                amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the stop_time.\n";
         }
     }
 
