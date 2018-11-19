@@ -369,10 +369,10 @@ contains
           if (.not. reconstruct_state(n)) cycle
 
           call ca_ppm_reconstruct(lo-dg, hi+dg, 0, &
-                                  q, qd_lo, qd_hi, NQ, n, &
+                                  q, qd_lo, qd_hi, NQ, n, n, &
                                   flatn, qd_lo, qd_hi, &
                                   sm, glo, ghi, &
-                                  sp, glo, ghi, 1, 1)
+                                  sp, glo, ghi, 1, 1, 1)
 
           call ppm_int_profile(lo-dg, hi+dg, &
                                q, qd_lo, qd_hi, NQ, n, &
@@ -386,10 +386,10 @@ contains
 
        if (ppm_temp_fix /= 1) then
           call ca_ppm_reconstruct(lo-dg, hi+dg, 0, &
-                                  qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
+                                  qaux, qa_lo, qa_hi, NQAUX, QGAMC, QGAMC, &
                                   flatn, qd_lo, qd_hi, &
                                   sm, glo, ghi, &
-                                  sp, glo, ghi, 1, 1)
+                                  sp, glo, ghi, 1, 1, 1)
 
           call ppm_int_profile(lo-dg, hi+dg, &
                                qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
@@ -411,10 +411,10 @@ contains
        do n = 1, QVAR
           if (source_nonzero(n)) then
              call ca_ppm_reconstruct(lo-dg, hi+dg, 0, &
-                                     srcQ, src_lo, src_hi, QVAR, n, &
+                                     srcQ, src_lo, src_hi, QVAR, n, n, &
                                      flatn, qd_lo, qd_hi, &
                                      sm, glo, ghi, &
-                                     sp, glo, ghi, 1, 1)
+                                     sp, glo, ghi, 1, 1, 1)
 
              call ppm_int_profile(lo-dg, hi+dg, &
                                   srcQ, src_lo, src_hi, QVAR, n, &
