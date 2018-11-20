@@ -46,6 +46,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
   use flatten_module, only: ca_uflatten
   use riemann_module, only: cmpflx
+  use riemann_util_module, only : store_godunov_state
   use ppm_module, only : ca_ppm_reconstruct
   use amrex_fort_module, only : rt => amrex_real
 #ifdef RADIATION
@@ -117,6 +118,10 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   real(rt)        , pointer:: div(:,:,:)
 
   ! Edge-centered primitive variables (Riemann state)
+  real(rt)        , pointer:: q_int(:,:,:,:)
+#ifdef RADIATION
+  real(rt)        , pointer:: lambda_int(:,:,:,:)
+#endif
   real(rt)        , pointer:: q1(:,:,:,:)
   real(rt)        , pointer:: q2(:,:,:,:)
   real(rt)        , pointer:: q3(:,:,:,:)
@@ -151,6 +156,11 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   shk_hi(:) = hi(:) + dg(:)
 
   call bl_allocate(   div, lo, hi+dg)
+
+  call bl_allocate(q_int, It_lo, It_hi, NQ)
+#ifdef RADIATION
+  call bl_allocate(lambda_int, It_lo(1), It_hi(1), It_lo(2), It_hi(2), It_lo(3), It_lhi(3), 0, ngroups-1)
+#endif
 
   call bl_allocate(q1, flux1_lo, flux1_hi, NGDNV)
 #if AMREX_SPACEDIM >= 2
@@ -277,26 +287,42 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   ! Compute F^x at kc (k3d)
   call cmpflx(qm(:,:,:,:,1), qp(:,:,:,:,1), It_lo, It_hi, &
               flux1, flux1_lo, flux1_hi, &
-              q1, flux1_lo, flux1_hi, &  ! temporary
+              q_int, It_lo, It_hi, &
 #ifdef RADIATION
               rflx, flux1_lo, flux1_hi, &
+              lambda_int, It_lo, It_hi, &
 #endif
               qaux, qa_lo, qa_hi, &
               shk, shk_lo, shk_hi, &
               1, [lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], domlo, domhi)
 
+  call store_godunov_state(lo, [hi(1)+1, hi(2), hi(3)], &
+                           q_int, It_lo, It_hi, &
+#ifdef RADIATION
+                           lambda_int, It_lo, It_hi, &
+#endif
+                           q1, flux1_lo, flux1_hi)
 
 #if AMREX_SPACEDIM >= 2
   ! Compute F^y at kc (k3d)
   call cmpflx(qm(:,:,:,:,2), qp(:,:,:,:,2), It_lo, It_hi, &
               flux2, flux2_lo, flux2_hi, &
-              q2, flux2_lo, flux2_hi, &  ! temporary
+              q_int, It_lo, It_hi, &  ! temporary
 #ifdef RADIATION
               rfly, flux2_lo, flux2_hi, &
+              lambda_int, It_lo, It_hi, &
 #endif
               qaux, qa_lo, qa_hi, &
               shk, shk_lo, shk_hi, &
               2, [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], domlo, domhi)
+
+  call store_godunov_state(lo, [hi(1), hi(2)+1, hi(3)], &
+                           q_int, It_lo, It_hi, &
+#ifdef RADIATION
+                           lambda_int, It_lo, It_hi, &
+#endif
+                           q2, flux2_lo, flux2_hi)
+
 #endif
 
 
@@ -305,21 +331,34 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   call cmpflx(qm(:,:,:,:,3), qp(:,:,:,:,3), It_lo, It_hi, &
               flux3, flux3_lo, flux3_hi, &
-              q3, flux3_lo, flux3_hi,  &
+              q_int, It_lo, It_hi, &
 #ifdef RADIATION
               rflz, flux3_lo, flux3_hi, &
+              lambda_int, It_lo, It_hi, &
 #endif
               qaux, qa_lo, qa_hi, &
               shk, shk_lo, shk_hi, &
               3, [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], domlo, domhi)
 
+  call store_godunov_state(lo, [hi(1), hi(2)+1, hi(3)], &
+                           q_int, It_lo, It_hi, &
+#ifdef RADIATION
+                           lambda_int, It_lo, It_hi, &
 #endif
+                           q3, flux3_lo, flux3_hi)
+
+#endif
+
 
   call bl_deallocate(flatn)
 
   call bl_deallocate(qm)
   call bl_deallocate(qp)
 
+  call bl_deallocate(q_int)
+#ifdef RADIATION
+  call bl_deallocate(lambda_int)
+#endif
 
   call bl_deallocate(shk)
 

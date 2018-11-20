@@ -35,9 +35,10 @@ contains
 
   subroutine cmpflx(qm, qp, qpd_lo, qpd_hi, &
                     flx, flx_lo, flx_hi, &
-                    qgdnv, q_lo, q_hi, &
+                    qint, q_lo, q_hi, &
 #ifdef RADIATION
                     rflx, rflx_lo, rflx_hi, &
+                    lambda_int, li_lo, li_hi, &
 #endif
                     qaux, qa_lo, qa_hi, &
                     shk, s_lo, s_hi, &
@@ -70,23 +71,17 @@ contains
     real(rt), intent(inout) :: qm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
     real(rt), intent(inout) :: qp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
 
-    real(rt), intent(inout) ::    flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR)
-    real(rt), intent(inout) ::   qgdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NGDNV)
+    real(rt), intent(inout) :: flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR)
+    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
 
 #ifdef RADIATION
     integer, intent(in) :: rflx_lo(3), rflx_hi(3)
     real(rt), intent(inout) :: rflx(rflx_lo(1):rflx_hi(1), rflx_lo(2):rflx_hi(2), rflx_lo(3):rflx_hi(3),0:ngroups-1)
+    integer, intent(inout) :: lambda_int(li_lo(1),li_hi(1), li_lo(2):li_hi(2), li_lo(3):li_hi(3), 0:ngroups-1)
 #endif
 
-    ! qaux come in dimensioned as the full box, so we use k3d here to
-    ! index it in z
-
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-
     real(rt), intent(in) ::  shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
-
-    real(rt), pointer :: qint(:,:,:,:)
-    real(rt), pointer :: lambda_int(:,:,:,:)
 
     ! local variables
 
@@ -176,11 +171,6 @@ contains
     if (riemann_solver == 0) then
        ! Colella, Glaz, & Ferguson solver
 
-       call bl_allocate(qint, q_lo, q_hi, NQ)
-#ifdef RADIATION
-       call bl_allocate(lambda_int, q_lo, q_hi, ngroups)
-#endif
-
        call riemannus(qm, qp, qpd_lo, qpd_hi, &
                       qaux, qa_lo, qa_hi, &
                       qint, q_lo, q_hi, &
@@ -190,38 +180,30 @@ contains
                       idir, lo, hi, &
                       domlo, domhi)
 
-       call compute_flux_q(idir, qint, q_lo, q_hi, &
+       call compute_flux_q(lo, hi, &
+                           qint, q_lo, q_hi, &
                            flx, flx_lo, flx_hi, &
 #ifdef RADIATION
                            lambda_int, q_lo, q_hi, &
                            rflx, rflx_lo, rflx_hi, &
 #endif
-                           qgdnv, q_lo, q_hi, &
-                           lo, hi)
+                           idir)
 
-       call bl_deallocate(qint)
-#ifdef RADIATION
-       call bl_deallocate(lambda_int)
-#endif
 
     elseif (riemann_solver == 1) then
        ! Colella & Glaz solver
 
 #ifndef RADIATION
-       call bl_allocate(qint, q_lo, q_hi, NQ)
-
        call riemanncg(qm, qp, qpd_lo, qpd_hi, &
                       qaux, qa_lo, qa_hi, &
                       qint, q_lo, q_hi, &
                       idir, lo, hi, &
                       domlo, domhi)
 
-       call compute_flux_q(idir, qint, q_lo, q_hi, &
+       call compute_flux_q(lo, hi, &
+                           qint, q_lo, q_hi, &
                            flx, flx_lo, flx_hi, &
-                           qgdnv, q_lo, q_hi, &
-                           lo, hi)
-
-       call bl_deallocate(qint)
+                           idir)
 #else
 #ifndef AMREX_USE_CUDA
        call amrex_error("ERROR: CG solver does not support radiaiton")
@@ -233,7 +215,7 @@ contains
        call HLLC(qm, qp, qpd_lo, qpd_hi, &
                  qaux, qa_lo, qa_hi, &
                  flx, flx_lo, flx_hi, &
-                 qgdnv, q_lo, q_hi, &
+                 qint, q_lo, q_hi, &
                  idir, lo, hi, &
                  domlo, domhi)
 #ifndef AMREX_USE_CUDA
@@ -1572,7 +1554,7 @@ contains
   subroutine HLLC(ql, qr, qpd_lo, qpd_hi, &
                   qaux, qa_lo, qa_hi, &
                   uflx, uflx_lo, uflx_hi, &
-                  qgdnv, q_lo, q_hi, &
+                  qint, q_lo, q_hi, &
                   idir, lo, hi, &
                   domlo, domhi)
 
@@ -1604,7 +1586,7 @@ contains
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
     real(rt), intent(inout) :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),uflx_lo(3):uflx_hi(3),NVAR)
-    real(rt), intent(inout) :: qgdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
 
     integer :: i, j, k
 
@@ -1785,9 +1767,9 @@ contains
              rgdnv = frac*rstar + (ONE - frac)*ro
              regdnv = frac*estar + (ONE - frac)*reo
 
-             qgdnv(i,j,k,iu) = frac*ustar + (ONE - frac)*uo
-             qgdnv(i,j,k,GDPRES) = frac*pstar + (ONE - frac)*po
-             qgdnv(i,j,k,GDGAME) = qgdnv(i,j,k,GDPRES)/regdnv + ONE
+             qint(i,j,k,iu) = frac*ustar + (ONE - frac)*uo
+             qint(i,j,k,QPRES) = frac*pstar + (ONE - frac)*po
+             qint(i,j,k,QGAME) = qint(i,j,k,QPRES)/regdnv + ONE
 
 
              ! now we do the HLLC construction
