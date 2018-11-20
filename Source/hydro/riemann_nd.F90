@@ -292,6 +292,8 @@ contains
                            qaux, qa_lo, qa_hi, &
                            idir, lo, hi, domlo, domhi)
 
+    ! just compute the hydrodynamic state on the interfaces
+    ! don't compute the fluxes
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use eos_module, only: eos
@@ -540,11 +542,11 @@ contains
 
     real(rt), parameter :: weakwv = 1.e-3_rt
 
+#ifndef AMREX_USE_CUDA
     real(rt), pointer :: pstar_hist(:), pstar_hist_extra(:)
+#endif
 
     type (eos_t) :: eos_state
-
-    real(rt), pointer :: us1d(:)
 
     real(rt) :: u_adv
 
@@ -612,9 +614,10 @@ contains
     tol = cg_tol
     iter_max = cg_maxiter
 
+#ifndef AMREX_USE_CUDA
     call bl_allocate(pstar_hist, 1,iter_max)
     call bl_allocate(pstar_hist_extra, 1,2*iter_max)
-    call bl_allocate(us1d, lo(1), hi(1))
+#endif
 
     do k = lo(3), hi(3)
        bnd_fac_z = ONE
@@ -808,7 +811,9 @@ contains
                 err = abs(pstar - pstar_old)
                 if (err < tol*pstar) converged = .true.
 
+#ifndef AMREX_USE_CUDA
                 pstar_hist(iter) = pstar
+#endif
 
                 iter = iter + 1
 
@@ -842,6 +847,9 @@ contains
 
                 else if (cg_blend == 2) then
 
+                   ! we don't store the history if we are in CUDA, so
+                   ! we can't do this
+#ifndef AMREX_USE_CUDA
                    ! first try to find a reasonable bounds
                    pstarl = minval(pstar_hist(iter_max-5:iter_max))
                    pstaru = maxval(pstar_hist(iter_max-5:iter_max))
@@ -854,7 +862,6 @@ contains
 
                    if (.not. converged) then
 
-#ifndef AMREX_USE_CUDA
                       print *, 'pstar history: '
                       do iter = 1, iter_max
                          print *, iter, pstar_hist(iter)
@@ -868,9 +875,9 @@ contains
                       print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
                       print *, 'cavg, smallc:', cavg, csmall
                       call amrex_error("ERROR: non-convergence in the Riemann solver")
-#endif
-                   endif
 
+                   endif
+#endif
                 else
 
 #ifndef AMREX_USE_CUDA
@@ -1025,18 +1032,14 @@ contains
              ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
              qint(i,j,k,QREINT) = qint(i,j,k,QPRES)/(qint(i,j,k,QGAME) - ONE)
 
-             us1d(i) = ustar
-          end do
+             ! advected quantities -- only the contact matters
+             do ipassive = 1, npassive
+                n  = upass_map(ipassive)
+                nqp = qpass_map(ipassive)
 
-          ! advected quantities -- only the contact matters
-          do ipassive = 1, npassive
-             n  = upass_map(ipassive)
-             nqp = qpass_map(ipassive)
-
-             do i = lo(1), hi(1)
-                if (us1d(i) > ZERO) then
+                if (ustar > ZERO) then
                    qint(i,j,k,nqp) = ql(i,j,k,nqp)
-                else if (us1d(i) < ZERO) then
+                else if (ustar < ZERO) then
                    qint(i,j,k,nqp) = qr(i,j,k,nqp)
                 else
                    qavg = HALF * (ql(i,j,k,nqp) + qr(i,j,k,nqp))
@@ -1048,9 +1051,10 @@ contains
        end do
     end do
 
+#ifndef AMREX_USE_CUDA
     call bl_deallocate(pstar_hist)
     call bl_deallocate(pstar_hist_extra)
-    call bl_deallocate(us1d)
+#endif
 
   end subroutine riemanncg
 
@@ -1127,8 +1131,6 @@ contains
     real(rt) :: gamcgl, gamcgr
 #endif
 
-    real(rt), pointer :: us1d(:)
-
     real(rt) :: u_adv
 
     integer :: iu, iv1, iv2, im1, im2, im3, sx, sy, sz
@@ -1139,7 +1141,6 @@ contains
     type(eos_t) :: eos_state
     real(rt), dimension(nspec) :: xn
 
-    call bl_allocate(us1d, lo(1), hi(1))
 
     ! set integer pointers for the normal and transverse velocity and
     ! momentum
@@ -1545,21 +1546,14 @@ contains
 
              qint(i,j,k,iu) = u_adv
 
-             ! store this for vectorization
-             us1d(i) = ustar
+             ! passively advected quantities
+             do ipassive = 1, npassive
+                n  = upass_map(ipassive)
+                nqp = qpass_map(ipassive)
 
-          end do
-
-          ! passively advected quantities
-          do ipassive = 1, npassive
-             n  = upass_map(ipassive)
-             nqp = qpass_map(ipassive)
-
-             !dir$ ivdep
-             do i = lo(1), hi(1)
-                if (us1d(i) > ZERO) then
+                if (ustar > ZERO) then
                    qint(i,j,k,nqp) = ql(i,j,k,nqp)
-                else if (us1d(i) < ZERO) then
+                else if (ustar < ZERO) then
                    qint(i,j,k,nqp) = qr(i,j,k,nqp)
                 else
                    qavg = HALF * (ql(i,j,k,nqp) + qr(i,j,k,nqp))
@@ -1571,8 +1565,6 @@ contains
 
        end do
     end do
-
-    call bl_deallocate(us1d)
 
   end subroutine riemannus
 
