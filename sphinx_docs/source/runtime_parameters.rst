@@ -1,6 +1,159 @@
 namespace: ``castro``
 ---------------------
 
+**particles**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``do_tracer_particles``                | permits tracer particle calculation to be turned on and | 0             |
+|                                        | off                                                     |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**diagnostics, I/O**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``print_fortran_warnings``             | display warnings in Fortran90 routines                  | (0, 1)        |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``print_update_diagnostics``           | display information about updates to the state (how     | (0, 1)        |
+|                                        | much mass, momentum, energy added)                      |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``track_grid_losses``                  | calculate losses of material through physical grid      | 0             |
+|                                        | boundaries                                              |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``sum_interval``                       | how often (number of coarse timesteps) to compute       | -1            |
+|                                        | integral sums (for runtime diagnostics)                 |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``sum_per``                            | how often (simulation time) to compute integral sums    | -1.0e0        |
+|                                        | (for runtime diagnostics)                               |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``show_center_of_mass``                | display center of mass diagnostics                      | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``hard_cfl_limit``                     | abort if we exceed CFL = 1 over the cource of a         | 1             |
+|                                        | timestep                                                |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``job_name``                           | a string describing the simulation that will be copied  | ""            |
+|                                        | into the plotfile's {\tt job\_info} file                |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``output_at_completion``               | write a final plotfile and checkpoint upon completion   | 1             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``reset_checkpoint_time``              | Do we want to reset the time in the checkpoint? This    | -1.e200       |
+|                                        | ONLY takes effect if amr.regrid\_on\_restart = 1 and    |               |
+|                                        | amr.checkpoint\_on\_restart = 1, (which require that    |               |
+|                                        | max\_step and stop\_time be less than the value in the  |               |
+|                                        | checkpoint) and you set it to value greater than this   |               |
+|                                        | default value.                                          |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``reset_checkpoint_step``              | Do we want to reset the number of steps in the          | -1            |
+|                                        | checkpoint? This ONLY takes effect if                   |               |
+|                                        | amr.regrid\_on\_restart = 1 and                         |               |
+|                                        | amr.checkpoint\_on\_restart = 1, (which require that    |               |
+|                                        | max\_step and stop\_time be less than the value in the  |               |
+|                                        | checkpoint) and you set it to value greater than this   |               |
+|                                        | default value.                                          |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**refinement**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``do_special_tagging``                 |                                                         | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``spherical_star``                     |                                                         | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**embiggening**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``grown_factor``                       | the factor by which to extend the domain upon restart   | 1             |
+|                                        | for embiggening                                         |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``star_at_center``                     | used with the embiggening routines to determine how to  | -1            |
+|                                        | extend the domain                                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**timestep control**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``fixed_dt``                           | a fixed timestep to use for all steps (negative turns   | -1.0          |
+|                                        | it off)                                                 |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``initial_dt``                         | the initial timestep (negative uses the step returned   | -1.0          |
+|                                        | from the timestep constraints)                          |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``dt_cutoff``                          | the smallest valid timestep---if we go below this, we   | 0.0           |
+|                                        | abort                                                   |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``max_dt``                             | the largest valid timestep---limit all timesteps to be  | 1.e200        |
+|                                        | no larger than this                                     |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``cfl``                                | the effective Courant number to use---we will not allow | 0.8           |
+|                                        | the hydrodynamic waves to cross more than this fraction |               |
+|                                        | of a zone over a single timestep                        |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``init_shrink``                        | a factor by which to reduce the first timestep from     | 1.0           |
+|                                        | that requested by the timestep estimators               |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``change_max``                         | the maximum factor by which the timestep can increase   | 1.1           |
+|                                        | from one step to the next.                              |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``plot_per_is_exact``                  | enforce that the AMR plot interval must be hit exactly  | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``small_plot_per_is_exact``            | enforce that the AMR small plot interval must be hit    | 0             |
+|                                        | exactly                                                 |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``use_retry``                          | Retry a timestep if it violated the timestep-limiting   | 0             |
+|                                        | criteria over the course of an advance. The criteria    |               |
+|                                        | will suggest a new timestep that satisfies the          |               |
+|                                        | criteria, and we will do subcycled timesteps on the     |               |
+|                                        | same level until we reach the original target time.     |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``retry_tolerance``                    | Tolerance to use when evaluating whether to do a retry. | 0.02          |
+|                                        | The timestep suggested by the retry will be multiplied  |               |
+|                                        | by (1 + this factor) before comparing the actual        |               |
+|                                        | timestep to it. If set to some number slightly larger   |               |
+|                                        | than zero, then this prevents retries that are caused   |               |
+|                                        | by small numerical differences.                         |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``retry_neg_dens_factor``              | If we're doing retries, set the target threshold for    | 1.e-1         |
+|                                        | changes in density if a retry is triggered by a         |               |
+|                                        | negative density. If this is set to a negative number   |               |
+|                                        | then it will disable retries using this criterion.      |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``retry_subcycle_factor``              | When performing a retry, the factor to multiply the     | 0.5           |
+|                                        | current timestep by when trying again.                  |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``use_post_step_regrid``               | Check for a possible post-timestep regrid if certain    | 0             |
+|                                        | stability criteria were violated.                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``max_subcycles``                      | Do not permit more subcycled timesteps than this        | 10            |
+|                                        | parameter. Set to a negative value to disable this      |               |
+|                                        | criterion.                                              |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``clamp_subcycles``                    | If we do request more than the maximum number of        | 1             |
+|                                        | subcycles, should we fail, or should we clamp to that   |               |
+|                                        | maximum number and perform that many?                   |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``sdc_iters``                          | Number of iterations for the SDC advance.               | 2             |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
 **hydrodynamics**
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -165,6 +318,19 @@ namespace: ``castro``
 
 
 
+**parallelization**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``do_acc``                             | determines whether we use accelerators for specific     | -1            |
+|                                        | loops                                                   |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``bndry_func_thread_safe``             |                                                         | 1             |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
 **AMR**
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -193,71 +359,76 @@ namespace: ``castro``
 
 
 
-**timestep control**
+**reactions**
 
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |
 +========================================+=========================================================+===============+
-| ``fixed_dt``                           | a fixed timestep to use for all steps (negative turns   | -1.0          |
-|                                        | it off)                                                 |               |
+| ``dtnuc_e``                            | Limit the timestep based on how much the burning can    | 1.e200        |
+|                                        | change the internal energy of a zone. The timestep is   |               |
+|                                        | equal to {\tt dtnuc}  $\cdot\,(e / \dot{e})$.           |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``initial_dt``                         | the initial timestep (negative uses the step returned   | -1.0          |
-|                                        | from the timestep constraints)                          |               |
+| ``dtnuc_X``                            | Limit the timestep based on how much the burning can    | 1.e200        |
+|                                        | change the species mass fractions of a zone. The        |               |
+|                                        | timestep is equal to {\tt dtnuc}  $\cdot\,(X /          |               |
+|                                        | \dot{X})$.                                              |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``dt_cutoff``                          | the smallest valid timestep---if we go below this, we   | 0.0           |
-|                                        | abort                                                   |               |
+| ``dtnuc_X_threshold``                  | If we are using the timestep limiter based on changes   | 1.e-3         |
+|                                        | in $X$, set a threshold on the species abundance below  |               |
+|                                        | which the limiter is not applied. This helps prevent    |               |
+|                                        | the timestep from becoming very small due to changes in |               |
+|                                        | trace species.                                          |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``max_dt``                             | the largest valid timestep---limit all timesteps to be  | 1.e200        |
-|                                        | no larger than this                                     |               |
+| ``dxnuc``                              | limit the zone size based on how much the burning can   | 1.e200        |
+|                                        | change the internal energy of a zone. The zone size on  |               |
+|                                        | the finest level must be smaller than {\tt dxnuc}       |               |
+|                                        | $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the    |               |
+|                                        | sound speed. This ensures that the sound-crossing time  |               |
+|                                        | is smaller than the nuclear energy injection timescale. |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``cfl``                                | the effective Courant number to use---we will not allow | 0.8           |
-|                                        | the hydrodynamic waves to cross more than this fraction |               |
-|                                        | of a zone over a single timestep                        |               |
+| ``dxnuc_max``                          | Disable limiting based on dxnuc above this threshold.   | 1.e200        |
+|                                        | This allows zones that have already ignited or are      |               |
+|                                        | about to ignite to be de-refined.                       |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``init_shrink``                        | a factor by which to reduce the first timestep from     | 1.0           |
-|                                        | that requested by the timestep estimators               |               |
+| ``max_dxnuc_lev``                      | Disable limiting based on dxnuc above this AMR level.   | -1            |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``change_max``                         | the maximum factor by which the timestep can increase   | 1.1           |
-|                                        | from one step to the next.                              |               |
+| ``do_react``                           | permits reactions to be turned on and off -- mostly for | -1            |
+|                                        | efficiency's sake                                       |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``plot_per_is_exact``                  | enforce that the AMR plot interval must be hit exactly  | 0             |
+| ``react_T_min``                        | minimum temperature for allowing reactions to occur in  | 0.0           |
+|                                        | a zone                                                  |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``small_plot_per_is_exact``            | enforce that the AMR small plot interval must be hit    | 0             |
-|                                        | exactly                                                 |               |
+| ``react_T_max``                        | maximum temperature for allowing reactions to occur in  | 1.e200        |
+|                                        | a zone                                                  |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``use_retry``                          | Retry a timestep if it violated the timestep-limiting   | 0             |
-|                                        | criteria over the course of an advance. The criteria    |               |
-|                                        | will suggest a new timestep that satisfies the          |               |
-|                                        | criteria, and we will do subcycled timesteps on the     |               |
-|                                        | same level until we reach the original target time.     |               |
+| ``react_rho_min``                      | minimum density for allowing reactions to occur in a    | 0.0           |
+|                                        | zone                                                    |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``retry_tolerance``                    | Tolerance to use when evaluating whether to do a retry. | 0.02          |
-|                                        | The timestep suggested by the retry will be multiplied  |               |
-|                                        | by (1 + this factor) before comparing the actual        |               |
-|                                        | timestep to it. If set to some number slightly larger   |               |
-|                                        | than zero, then this prevents retries that are caused   |               |
-|                                        | by small numerical differences.                         |               |
+| ``react_rho_max``                      | maximum density for allowing reactions to occur in a    | 1.e200        |
+|                                        | zone                                                    |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``retry_neg_dens_factor``              | If we're doing retries, set the target threshold for    | 1.e-1         |
-|                                        | changes in density if a retry is triggered by a         |               |
-|                                        | negative density. If this is set to a negative number   |               |
-|                                        | then it will disable retries using this criterion.      |               |
+| ``disable_shock_burning``              | disable burning inside hydrodynamic shock regions       | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``retry_subcycle_factor``              | When performing a retry, the factor to multiply the     | 0.5           |
-|                                        | current timestep by when trying again.                  |               |
+
+
+
+**diffusion**
+
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``use_post_step_regrid``               | Check for a possible post-timestep regrid if certain    | 0             |
-|                                        | stability criteria were violated.                       |               |
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``diffuse_temp``                       | enable thermal diffusion                                | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``max_subcycles``                      | Do not permit more subcycled timesteps than this        | 10            |
-|                                        | parameter. Set to a negative value to disable this      |               |
-|                                        | criterion.                                              |               |
+| ``diffuse_enth``                       | enable enthalpy diffusion                               | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``clamp_subcycles``                    | If we do request more than the maximum number of        | 1             |
-|                                        | subcycles, should we fail, or should we clamp to that   |               |
-|                                        | maximum number and perform that many?                   |               |
+| ``diffuse_spec``                       | enable species diffusion                                | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``sdc_iters``                          | Number of iterations for the SDC advance.               | 2             |
+| ``diffuse_vel``                        | enable velocity diffusion                               | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``diffuse_cutoff_density``             | set a cutoff density for diffusion -- we zero the term  | -1.e200       |
+|                                        | out below this density                                  |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``diffuse_cond_scale_fac``             | scaling factor for conductivity                         | 1.0           |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
@@ -317,177 +488,6 @@ namespace: ``castro``
 |                                        | from building up in the zones adjacent to it by keeping |               |
 |                                        | their density constant and adding their mass to the     |               |
 |                                        | point mass object                                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-
-
-
-**diagnostics, I/O**
-
-+----------------------------------------+---------------------------------------------------------+---------------+
-| parameter                              | description                                             | default value |
-+========================================+=========================================================+===============+
-| ``print_fortran_warnings``             | display warnings in Fortran90 routines                  | (0, 1)        |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``print_update_diagnostics``           | display information about updates to the state (how     | (0, 1)        |
-|                                        | much mass, momentum, energy added)                      |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``track_grid_losses``                  | calculate losses of material through physical grid      | 0             |
-|                                        | boundaries                                              |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``sum_interval``                       | how often (number of coarse timesteps) to compute       | -1            |
-|                                        | integral sums (for runtime diagnostics)                 |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``sum_per``                            | how often (simulation time) to compute integral sums    | -1.0e0        |
-|                                        | (for runtime diagnostics)                               |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``show_center_of_mass``                | display center of mass diagnostics                      | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``hard_cfl_limit``                     | abort if we exceed CFL = 1 over the cource of a         | 1             |
-|                                        | timestep                                                |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``job_name``                           | a string describing the simulation that will be copied  | ""            |
-|                                        | into the plotfile's {\tt job\_info} file                |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``output_at_completion``               | write a final plotfile and checkpoint upon completion   | 1             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``reset_checkpoint_time``              | Do we want to reset the time in the checkpoint? This    | -1.e200       |
-|                                        | ONLY takes effect if amr.regrid\_on\_restart = 1 and    |               |
-|                                        | amr.checkpoint\_on\_restart = 1, (which require that    |               |
-|                                        | max\_step and stop\_time be less than the value in the  |               |
-|                                        | checkpoint) and you set it to value greater than this   |               |
-|                                        | default value.                                          |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``reset_checkpoint_step``              | Do we want to reset the number of steps in the          | -1            |
-|                                        | checkpoint? This ONLY takes effect if                   |               |
-|                                        | amr.regrid\_on\_restart = 1 and                         |               |
-|                                        | amr.checkpoint\_on\_restart = 1, (which require that    |               |
-|                                        | max\_step and stop\_time be less than the value in the  |               |
-|                                        | checkpoint) and you set it to value greater than this   |               |
-|                                        | default value.                                          |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-
-
-
-**particles**
-
-+----------------------------------------+---------------------------------------------------------+---------------+
-| parameter                              | description                                             | default value |
-+========================================+=========================================================+===============+
-| ``do_tracer_particles``                | permits tracer particle calculation to be turned on and | 0             |
-|                                        | off                                                     |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-
-
-
-**reactions**
-
-+----------------------------------------+---------------------------------------------------------+---------------+
-| parameter                              | description                                             | default value |
-+========================================+=========================================================+===============+
-| ``dtnuc_e``                            | Limit the timestep based on how much the burning can    | 1.e200        |
-|                                        | change the internal energy of a zone. The timestep is   |               |
-|                                        | equal to {\tt dtnuc}  $\cdot\,(e / \dot{e})$.           |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``dtnuc_X``                            | Limit the timestep based on how much the burning can    | 1.e200        |
-|                                        | change the species mass fractions of a zone. The        |               |
-|                                        | timestep is equal to {\tt dtnuc}  $\cdot\,(X /          |               |
-|                                        | \dot{X})$.                                              |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``dtnuc_X_threshold``                  | If we are using the timestep limiter based on changes   | 1.e-3         |
-|                                        | in $X$, set a threshold on the species abundance below  |               |
-|                                        | which the limiter is not applied. This helps prevent    |               |
-|                                        | the timestep from becoming very small due to changes in |               |
-|                                        | trace species.                                          |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``dxnuc``                              | limit the zone size based on how much the burning can   | 1.e200        |
-|                                        | change the internal energy of a zone. The zone size on  |               |
-|                                        | the finest level must be smaller than {\tt dxnuc}       |               |
-|                                        | $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the    |               |
-|                                        | sound speed. This ensures that the sound-crossing time  |               |
-|                                        | is smaller than the nuclear energy injection timescale. |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``dxnuc_max``                          | Disable limiting based on dxnuc above this threshold.   | 1.e200        |
-|                                        | This allows zones that have already ignited or are      |               |
-|                                        | about to ignite to be de-refined.                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``max_dxnuc_lev``                      | Disable limiting based on dxnuc above this AMR level.   | -1            |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``do_react``                           | permits reactions to be turned on and off -- mostly for | -1            |
-|                                        | efficiency's sake                                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``react_T_min``                        | minimum temperature for allowing reactions to occur in  | 0.0           |
-|                                        | a zone                                                  |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``react_T_max``                        | maximum temperature for allowing reactions to occur in  | 1.e200        |
-|                                        | a zone                                                  |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``react_rho_min``                      | minimum density for allowing reactions to occur in a    | 0.0           |
-|                                        | zone                                                    |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``react_rho_max``                      | maximum density for allowing reactions to occur in a    | 1.e200        |
-|                                        | zone                                                    |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``disable_shock_burning``              | disable burning inside hydrodynamic shock regions       | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-
-
-
-**refinement**
-
-+----------------------------------------+---------------------------------------------------------+---------------+
-| parameter                              | description                                             | default value |
-+========================================+=========================================================+===============+
-| ``do_special_tagging``                 |                                                         | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``spherical_star``                     |                                                         | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-
-
-
-**diffusion**
-
-+----------------------------------------+---------------------------------------------------------+---------------+
-| parameter                              | description                                             | default value |
-+========================================+=========================================================+===============+
-| ``diffuse_temp``                       | enable thermal diffusion                                | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_enth``                       | enable enthalpy diffusion                               | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_spec``                       | enable species diffusion                                | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_vel``                        | enable velocity diffusion                               | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_cutoff_density``             | set a cutoff density for diffusion -- we zero the term  | -1.e200       |
-|                                        | out below this density                                  |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_cond_scale_fac``             | scaling factor for conductivity                         | 1.0           |
-+----------------------------------------+---------------------------------------------------------+---------------+
-
-
-
-**embiggening**
-
-+----------------------------------------+---------------------------------------------------------+---------------+
-| parameter                              | description                                             | default value |
-+========================================+=========================================================+===============+
-| ``grown_factor``                       | the factor by which to extend the domain upon restart   | 1             |
-|                                        | for embiggening                                         |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``star_at_center``                     | used with the embiggening routines to determine how to  | -1            |
-|                                        | extend the domain                                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-
-
-
-**parallelization**
-
-+----------------------------------------+---------------------------------------------------------+---------------+
-| parameter                              | description                                             | default value |
-+========================================+=========================================================+===============+
-| ``do_acc``                             | determines whether we use accelerators for specific     | -1            |
-|                                        | loops                                                   |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``bndry_func_thread_safe``             |                                                         | 1             |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
