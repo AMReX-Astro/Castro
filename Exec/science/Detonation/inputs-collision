@@ -4,13 +4,13 @@
 max_step = 100000
 stop_time = 3.5
 
+amr.probin_file = probin-collision
+
 geometry.is_periodic = 0
 geometry.coord_sys   = 0
 geometry.prob_lo     = 0.0
 geometry.prob_hi     = 1.6384e9
 amr.n_cell           = 256
-
-amr.subcycling_mode = None
 
 castro.use_retry = 1
 castro.max_subcycles = 128
@@ -60,8 +60,6 @@ amr.write_plotfile_with_checkpoint = 0
 castro.plot_per_is_exact = 1
 castro.small_plot_per_is_exact = 1
 castro.output_at_completion = 1
-
-amr.probin_file = probin-collision
 
 amr.message_int = 1
 castro.use_stopping_criterion = 1
