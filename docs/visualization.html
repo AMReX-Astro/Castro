@@ -30,7 +30,7 @@
   <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Frequently Asked Questions" href="faq.html" />
+    <link rel="next" title="amrvis" href="vis_tools.html" />
     <link rel="prev" title="Parallel I/O" href="io.html" /> 
 
   
@@ -98,15 +98,14 @@
 <li class="toctree-l1"><a class="reference internal" href="io.html">Parallel I/O</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Visualization</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#controlling-whats-in-the-plotfile">Controlling What’s in the PlotFile</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#amrvis">amrvis</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#visit">VisIt</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#yt">yt</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#castro-specific-data">Castro-Specific Data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#interacting-with-yt-command-line-and-scripting">Interacting with yt: Command Line and Scripting</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#yt-basics">yt&nbsp;Basics</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#data-containers-and-selection">Data Containers and Selection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#grid-inspection">Grid Inspection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#example-scripts">Example Scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#plotfile-variables">Plotfile Variables</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#problem-specific-plotfile-variables">problem-specific plotfile variables</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#visualization-tools">Visualization Tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vis_tools.html">amrvis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vis_tools.html#visit">VisIt</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vis_tools.html#yt">yt</a></li>
 </ul>
 </li>
 </ul>
@@ -212,21 +211,6 @@
     margin-top: -19px;
 }
 
-/* nice headers on first paragraph of info/warning boxes */
-.admonition .first {
-    margin: -12px;
-    padding: 6px 12px;
-    margin-bottom: 12px;
-    color: #fff;
-    line-height: 1;
-    display: block;
-}
-.admonition.warning .first {
-    background: #f0b37e;
-}
-.admonition.note .first {
-    background: #6ab0de;
-}
 .admonition > p:before {
     margin-right: 4px;  /* make room for the exclamation icon */
 }
@@ -270,466 +254,358 @@ derived variables that Castro&nbsp;knows about by doing:</p>
 </div></blockquote>
 </div></blockquote>
 </div>
-<div class="section" id="amrvis">
-<h2>amrvis<a class="headerlink" href="#amrvis" title="Permalink to this headline">¶</a></h2>
-<p>Our favorite visualization tool is amrvis. We heartily encourage you
-to build the amrvis2d and amrvis3d executables, and to try using them
-to visualize your data. A very useful feature is View/Dataset, which
-allows you to actually view the numbers – this can be handy for
-debugging. You can modify how many levels of data you want to see,
-whether you want to see the grid boxes or not, what palette you use,
-etc.</p>
-<p>If you like to have amrvis display a certain variable, at a certain
-scale, when you first bring up each plotfile (you can always change it
-once the amrvis window is open), you can modify the amrvis.defaults
-file in your directory to have amrvis default to these settings every
-time you run it. The directories CoreCollapse, HSE_test, Sod and
-Sedov have amrvis.defaults files in them. If you are working in a new
-run directory, simply copy one of these and modify it.</p>
+<div class="section" id="plotfile-variables">
+<h2>Plotfile Variables<a class="headerlink" href="#plotfile-variables" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="28%" />
+<col width="41%" />
+<col width="31%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">variable name</th>
+<th class="head">description</th>
+<th class="head">units</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">angular_momentum_x</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">angular_momentum_y</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">angular_momentum_z</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">density</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">diff_coeff</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">diff_term</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">divu</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">eint_e</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">eint_E</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">entropy</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">enuc</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">Ertot</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">Frcomx</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">Frlabx</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">Gamma_1</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">grav_x</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">grav_y</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">grav_z</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">inertial_angular_momentum_x</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">inertial_angular_momentum_y</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">inertial_angular_momentum_z</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">inertial_momentum_x</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">inertial_momentum_y</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">inertial_momentum_z</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">inertial_radial_momentum_x</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">inertial_radial_momentum_y</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">inertial_radial_momentum_z</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">kineng</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">lambda</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">lmom</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">logden</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">MachNumber</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">maggrav</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">magmom</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">magvel</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">magvort</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">omegadot_ar36</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">phiEff</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">phiEffPM_P</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">phiEffPM_S</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">phiGrav</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">phiRot</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">pmom</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">pressure</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rad</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">rad0</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">radvel</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">rho_ar36</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rmom</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">rot_x</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rot_y</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">rot_z</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">secondarymask</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">Shock</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">soundspeed</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">StateErr</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">Temp</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">thermal_cond</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">tpert</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">t_sound_t_enuc</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">uminusc</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">uplusc</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">X(ar36)</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">xmom</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">x_velocity</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">Ye</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">ymom</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">y_velocity</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">zmom</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">z_velocity</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="problem-specific-plotfile-variables">
+<h3>problem-specific plotfile variables<a class="headerlink" href="#problem-specific-plotfile-variables" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils">
+<colgroup>
+<col width="28%" />
+<col width="41%" />
+<col width="31%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">variable name</th>
+<th class="head">description</th>
+<th class="head">units</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">analytic</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">pi</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">pioverp0</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">primarymask</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">secondarymask</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">Terror</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">Texact</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+</tbody>
+</table>
 </div>
-<div class="section" id="visit">
-<h2>VisIt<a class="headerlink" href="#visit" title="Permalink to this headline">¶</a></h2>
-<p>VisIt is also a great visualization tool, and it directly handles our
-plotfile format (which it calls Boxlib). For more information check
-out visit.llnl.gov.</p>
-<p>[Useful tip:] To use the Boxlib3D plugin, select it from File
-<span class="math notranslate nohighlight">\(\rightarrow\)</span> Open file <span class="math notranslate nohighlight">\(\rightarrow\)</span> Open file as type Boxlib, and
-then the key is to read the Header file, plt00000/Header, for example,
-rather than telling to to read plt00000.</p>
 </div>
-<div class="section" id="yt">
-<h2>yt<a class="headerlink" href="#yt" title="Permalink to this headline">¶</a></h2>
-<p>yt is a free and open-source software that provides data analysis and
-publication-level visualization tools for astrophysical simulation
-results such as those Castro produces. As yt is script-based, it’s not
-as easy to use as VisIt, and certainly not as easy as amrvis, but the
-images can be worth it! Here we do not flesh out yt, but give an
-overview intended to get a person started. Full documentation and
-explanations from which this section was adapted can be found at
-<a class="reference external" href="http://yt-project.org/doc/index.html">http://yt-project.org/doc/index.html</a>.</p>
-<div class="section" id="castro-specific-data">
-<h3>Castro-Specific Data<a class="headerlink" href="#castro-specific-data" title="Permalink to this headline">¶</a></h3>
-<p>yt was originally created for simple analysis and visualization of
-data from the Enzo code. Since, it has grown to include support for a
-variety of codes, including Castro. However, yt will still sometimes
-make assumptions, especially about data field names, that favor Enzo
-and cause errors with Castro data. These problems can usually be
-avoided by taking care to specify the data fields desired in
-visualization. For example, Enzo’s density field is called
-“Density”, and is the default for many plotting mechanisms when the
-user does not specify the field. However, Castro does not have a field
-called “Density”; instead, the density field is called “density.”
-If a user does not specify a field while plotting with Castro data,
-chances are that yt will try (and fail) to find “Density” and return
-an error. As you will see in the examples, however, there is a way to
-create your own fields from existing ones. You can use these derived
-fields as you would use any other field.</p>
-<p>There are also a few imperatives when it comes to reading in your
-Castro simulation data and associated information. First and foremost
-is that the inputs file for the simulation <strong>must</strong> exist in the same
-directory as where the plotfile directory is located, and it <strong>must</strong>
-be named “<strong>inputs</strong>.” yt reads information from the inputs file such
-as the number of levels in the simulation run, the number of cells,
-the domain dimensions, and the simulation time. yt&nbsp;will also
-optionally parse the probin file for pertinent information if it is
-similarly included with the name “<strong>probin</strong>” in the same directory as
-the plotfile of interest. When specifying a plotfile as the data
-source for plots, you may simply call it by its directory name, rather
-than using the Header file as in VisIt. As a final caveat, the
-existence of the job_info file within the plotfile directory is what
-currently distinguishes Castro data from MAESTRO data in yt; unless
-you like surprises, we suggest you ensure your plotfile has one.</p>
-</div>
-<div class="section" id="interacting-with-yt-command-line-and-scripting">
-<h3>Interacting with yt: Command Line and Scripting<a class="headerlink" href="#interacting-with-yt-command-line-and-scripting" title="Permalink to this headline">¶</a></h3>
-<p>ytis written completely in python (if you don’t have python, yt&nbsp;will
-install it for you) and there are a number of different ways to
-interact with it, including a web-based gui. Here we will cover
-command-line yt&nbsp;and scripts/the python interactive prompt, but other
-methods are outlined on the yt&nbsp;webpage at
-<a class="reference external" href="http://yt-project.org/doc/interacting/index.html">http://yt-project.org/doc/interacting/index.html</a>.</p>
-<p>The first step in starting up yt&nbsp;is to activate the yt&nbsp;environment:</p>
-<p>$ source $YT_DEST/bin/activate</p>
-<p>From the command line you can create simple plots, perform simple
-volume renderings, print the statistics of a field for your data set,
-and do a few other things. Try $ yt to see a list of commands,
-and $ yt <span class="math notranslate nohighlight">\(&lt;\)</span>command<span class="math notranslate nohighlight">\(&gt;\)</span> –help
-to see the details of a command. The command line is the easiest way
-to get quick, preliminary plots – but the simplicity comes at a
-price, as yt&nbsp;will make certain assumptions for you. We could plot a
-projection of density along the x-axis for the plotfile (yt&nbsp;calls it a
-parameter file) plt_def_00020 by doing the following:</p>
-<p>$ yt plot -p -a 0 -f density plt_def_00020</p>
-<p>Or a temperature-based volume rendering with 14 contours:</p>
-<p>$ yt render -f Temp –contours 14 plt_def_00020</p>
-<p>Any plots created from the command line will be saved into a
-subdirectory called “frames.” The command line is nice for fast
-visualization without immersing yourself too much in the data, but
-usually you’ll want to specify and control more details about your
-plots. This can be done either through scripts or the python
-interactive prompt. You can combine the two by running scripts within
-the interactive prompt by the command</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> execfile(‘script.py’)</p>
-<p>which will leave you in the interactive prompt, allowing you to
-explore the data objects you’ve created in your script and debug
-errors you may encounter. While in the yt&nbsp;environment, you can access
-the interactive prompt by $ <em>python</em> or the shortcut</p>
-<p>$ pyyt</p>
-<p>Once you’re in the yt environment and in a .py script or the
-interactive prompt, there are a couple of points to know about the
-general layout of yt scripting. Usually there are five sections to a
-yt script:</p>
-<ol class="arabic simple">
-<li>Import modules</li>
-<li>Load parameter files and saved objects</li>
-<li>Define variables</li>
-<li>Create and modify data objects, image arrays, plots,
-etc. <span class="math notranslate nohighlight">\(\rightarrow\)</span> this is the meat of the script</li>
-<li>Save images and objects</li>
-</ol>
-<p>Note that neither saving nor loading objects is necessary, but can be
-useful when the creation of these objects is time-consuming, which is
-often the case during identification of clumps or contours.</p>
-</div>
-<div class="section" id="yt-basics">
-<h3>yt&nbsp;Basics<a class="headerlink" href="#yt-basics" title="Permalink to this headline">¶</a></h3>
-<p>The first thing you will always want to do is to import yt:</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> from yt.mods import *</p>
-<p>Under certain circumstances you will be required to import more, as we
-will see in some of the examples, but this covers most of it,
-including all of the primary functions and data objects provided by
-yt. Next, you’ll need yt&nbsp;to access the plotfile you’re interested in
-analyzing. Remember, you must have the “inputs” file in the same
-directory:</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> ds = load(‘plt_def_00020’)</p>
-<p>When this line is executed, it will print out some key parameters from
-the simulation. However, in order to access information about all of
-the fluid quantities in the simulation, we must use the “index”
-object. (Note that for yt versions earlier than 3.0, this information
-was contained in the “hierarchy” object; for these versions, replace
-pf.index with pf. h in the following examples. The “hierarchy” object
-was removed in yt-3.0 and its associated functionality for accessing data
-was moved directly to the datasets themselves.) It contains the geometry
-of the grid zones, their parentage relationships, and the fluid states
-within each one. It is easily created:</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> ds.index</p>
-<p>Upon execution, yt&nbsp;may print out a number of lines saying it’s adding
-unknown fields to the list of fields. This is because Castro has
-different names for fields than what yt&nbsp;expects. We can see what
-fields exist through the commands</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> print ds.index.field_list</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> print ds.index.derived_field_list</p>
-<p>There may not be any derived fields for Castro data. We can find out
-the number of grids and cells at each level, the simulation time, and
-information about the finest resolution cells:</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> ds.index.print_stats()</p>
-<p>The dataset itself also stores a number of associated methods; for example,
-you can find the value and location of the maximum of a field in the domain:</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> value, location = ds.find_max(‘density’)</p>
-<p>(Note that in yt versions before 3.0, this type of method was primarily
-associated with the hierarchy object and was accessed with ds.h.find_max.)</p>
-<p>The list goes on. A full list of methods and attributes associated
-with the index object (and most any yt&nbsp;object or function) can be
-accessed by the help function:</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> help(pf.index)</p>
-<p>You can also use <span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> <em>dir()</em> on an object or
-function to find out which names it defines. Don’t be shy about
-searching the yt&nbsp;documentation for help. Note that creating the
-index object in its own line is not always needed before calling
-functions like find_max; yt&nbsp;will construct it automatically if it
-does not already exist.</p>
-</div>
-<div class="section" id="data-containers-and-selection">
-<h3>Data Containers and Selection<a class="headerlink" href="#data-containers-and-selection" title="Permalink to this headline">¶</a></h3>
-<p>Sometimes, you’ll want to select, analyze, or plot only portions of
-your simulation data. To that end, yt&nbsp;includes a way to create data
-“containers” that select data based on geometric bounds or fluid
-quantity values. There are many, including rays, cylinders, and clumps
-(some in the examples, all described in the documentation), but the
-easiest to create is a sphere, centered on the location of the maximum
-density cell we found above:</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> my_data_container = ds.sphere(location, (5.0e4, ‘km’))</p>
-<p>Here, specify that the radius is in units of kilometers using a dimensionful
-quantity. When specifying distances in yt, the default is to use the
-simulation-native unit named “code_length”, which for Castro is “cm”, and
-if you just put in 5.0e4 instead of (5.0e4, ‘km’), you will get a 50,000 cm radius.
-The pf.index.print_stats() command lists available units. We can access the data
-within the container:</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> print my_data_container[‘density’]</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> print my_data_container.quantities[‘Extrema’]([‘density’, ‘pressure’])</p>
-<p>When the creation of objects is time-consuming, it can be convenient
-to save objects so they can be used in another session. To save an
-object as part of the .yt file affiliated with the index:</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> pf.index.save_object(my_data_container, ‘sphere_to_analyze_later’)</p>
-<p>Once it has been saved, it can be easily loaded later:</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> sphere_to_analyze = pf.index.load_object(‘sphere_to_analyze_later’)</p>
-</div>
-<div class="section" id="grid-inspection">
-<h3>Grid Inspection<a class="headerlink" href="#grid-inspection" title="Permalink to this headline">¶</a></h3>
-<p>yt&nbsp;also allows for detailed grid inspection. The index object
-possesses an array of grids, from which we can select and examine
-specific ones:</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> print pf.index.grids</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> my_grid = pf.index.grids[4]</p>
-<p>Each grid is a data object that carries information about its
-location, parentage relationships (grids within which it resides, and
-grids that reside within it, at least in part), fluid quantities, and
-more. Here are some of the commands:</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> print my_grid.Level</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> print my_grid_ActiveDimensions</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> print my_grid.LeftEdge</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> print my_grid.RightEdge</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> print my_grid.dds</p>
-<p>(dds is the size of each cell within the grid).</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> print my_grid.Parent</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> print my_grid.Children[2].LeftEdge</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span> print my_grid[‘Density’]</p>
-<p>You can examine which cells within the grid have been refined with the
-child_mask attribute, a representative array set to zero everywhere
-there is finer resolution.To find the fraction of your grid that isn’t
-further refined:</p>
-<p><span class="math notranslate nohighlight">\(&gt;&gt;&gt;\)</span>print my_grid.child_mask.sum()/float(my_grid.ActiveDimensions.prod())</p>
-<p>Rather than go into detail about the many possibilities for plotting
-in yt, we’ll provide some examples.</p>
-</div>
-<div class="section" id="example-scripts">
-<h3>Example Scripts<a class="headerlink" href="#example-scripts" title="Permalink to this headline">¶</a></h3>
-<p>In these examples, we investigate 3-D simulation data of two stars
-orbiting in the center of the domain, which is a box of sides
-<span class="math notranslate nohighlight">\(10^{10}\:cm\)</span>.</p>
-<p><em># Pressure Contours</em></p>
-<p>from yt.mods import *</p>
-<p>pf = load(‘plt00020’)</p>
-<p>field = ‘pressure’</p>
-<p>pf.index</p>
-<p><em># Most Castro fields have no inherent units, so we add them in,
-in the form of a raw string</em></p>
-<p><em># with some LaTeX-style formatting.</em></p>
-<p>pf.field_info[field]._units = r‘\rm{Ba}’</p>
-<p><em># SlicePlot parameters include: parameter file, axis, field, window width (effectively the</em></p>
-<p><em># x and y zoom), and fontsize. We can also create projections with ProjectionPlot().</em></p>
-<p>p = SlicePlot(pf, ‘z’, field, width=((5.0e9, ‘cm’), (3.0e9, ‘cm’)),</p>
-<p>fontsize=13)</p>
-<p><em># Zlim is the range of the colorbar. In other words, the range of the data we want to display.</em></p>
-<p><em># Names for many colormaps can be found at wiki.scipy.org/Cookbook/Matplotlib/Show_colormaps.</em></p>
-<p>p.set_zlim(field, 2.85e13, 2.95e13)</p>
-<p>p.set_cmap(field, ‘jet’)</p>
-<p><em># Here we add 5 density contour lines within certain limits on top of the image. We overlay</em></p>
-<p><em># our finest grids with a transparency of 0.2 (lower is more transparent). We add a quiver</em></p>
-<p><em># plot with arrows every 16 pixels with x_velocity in the x-direction and y_velocity in</em></p>
-<p><em># the y-direction. We also mark the center with an ‘x’ and label one of our stars.</em></p>
-<p>p.annotate_contour(‘density’, clim=(1.05e-4, 1.16e-4), ncont=5, label=False)</p>
-<p>p.annotate_grids(alpha=0.2, min_level=2)</p>
-<p>p.annotate_quiver(‘x_velocity’, ‘y_velocity’, factor=16)</p>
-<p>p.annotate_marker([5.0e9, 5.0e9], marker=‘x’)</p>
-<p>p.annotate_point([5.95e9, 5.1e9], ‘Star!’)</p>
-<p><em># This saves the plot to a file with the given prefix. We can alternatively specify</em></p>
-<p><em># the entire filename.</em></p>
-<p>p.save(‘contours.press_den_’)</p>
-<div class="figure" id="id1">
-<a class="reference internal image-reference" href="_images/Slice_z_pressure.png"><img alt="Pressure slice with annotations" src="_images/Slice_z_pressure.png" style="width: 6in;" /></a>
-<p class="caption"><span class="caption-text">Pressure slice with annotations</span></p>
-</div>
-<p><em>#————————</em></p>
-<p><em># Volume Rendering</em></p>
-<p>from yt.mods import *</p>
-<p>pf = load(‘plt00020’)</p>
-<p>field = ‘pressure’
-dd = pf.all_data()</p>
-<p><em># We take the log of the extrema of the pressure field, as well as a couple other interesting</em></p>
-<p><em># value ranges we’d like to visualize.</em></p>
-<p>h_mi, h_ma = dd.quantities[‘Extrema’](field)[0]</p>
-<p>h_mi, h_ma = np.log10(h_mi), np.log10(h_ma)</p>
-<p>s_mi, s_ma = np.log10(2.90e13), np.log10(3.10e13)</p>
-<p>pf.index</p>
-<p><em># We deal in terms of logarithms here because we have such a large range of values.</em></p>
-<p><em># It can make things easier, but is not necessary.</em></p>
-<p>pf.field_info[field].take_log=True</p>
-<p><em># This is what we use to visualize volumes. There are a couple of other, more complex</em></p>
-<p><em># ways. We set the range of values we’re interested in and the number of bins in the</em></p>
-<p><em># function. Make sure to have a lot of bins if your data spans many orders of magnitude!</em></p>
-<p><em># Our raw data ranges from about :math:`10^{13}` to :math:`10^{22}`.</em></p>
-<p>tf = ColorTransferFunction((h_mi-1, h_ma+1), nbins=1.0e6)</p>
-<p><em># Here we add several layers to our function, either one at a time or in groups. We</em></p>
-<p><em># specify the value-center and width of the layer. We can manipulate the color by</em></p>
-<p><em># individually setting the colormaps and ranges to spread them over. We can also</em></p>
-<p><em># change the transparency, which will usually take some time to get perfect.</em></p>
-<p>tf.sample_colormap(np.log10(2.0e21), 0.006, col_bounds=[h_mi,h_ma],</p>
-<p>alpha=[27.0], colormap=‘RdBu_r’)</p>
-<p>tf.sample_colormap(np.log10(2.0e19), 0.001, col_bounds=[h_mi,h_ma],</p>
-<p>alpha=[5.5], colormap=‘RdBu_r’)</p>
-<p>tf.add_layers(6, mi=np.log10(2.95e13), ma=s_ma,</p>
-<p>col_bounds=[s_mi,s_ma],</p>
-<p>alpha=19*na.ones(6,dtype=‘float64’), colormap=‘RdBu_r’)</p>
-<p>tf.sample_colormap(np.log10(2.95e13), 0.000005, col_bounds=[s_mi,s_ma],</p>
-<p>alpha=[13.0], colormap=‘RdBu_r’)</p>
-<p>tf.sample_colormap(np.log10(2.90e13), 0.000007, col_bounds=[s_mi,s_ma],</p>
-<p>alpha=[11.5], colormap=‘RdBu_r’)</p>
-<p>tf.sample_colormap(np.log10(2.85e13), 0.000008, col_bounds=[s_mi,s_ma],</p>
-<p>alpha=[9.5], colormap=‘RdBu_r’)</p>
-<p><em># By default each color channel is only opaque to itself. If we set grey_opacity=True,</em></p>
-<p><em># this is no longer the case. This is good to use if we want to obscure the inner</em></p>
-<p><em># portions of our rendering. Here it only makes a minor change, as we must set our</em></p>
-<p><em># alpha values for the outer layers higher to see a strong effect.</em></p>
-<p>tf.grey_opacity=True</p>
-<p><em># Volume rendering uses a camera object which centers the view at the coordinates we’ve</em></p>
-<p><em># called ‘c.’ ‘L’ is the normal vector (automatically normalized) between the camera</em></p>
-<p><em># position and ‘c,’ and ‘W’ determines the width of the image—again, like a zoom.</em></p>
-<p><em># ‘Nvec’ is the number of pixels in the x and y directions, so it determines the actual</em></p>
-<p><em># size of the image.</em></p>
-<p>c = [5.0e9, 5.0e9, 5.0e9]</p>
-<p>L = [0.15, 1.0, 0.40]</p>
-<p>W = (pf.domain_right_edge - pf.domain_left_edge)*0.5</p>
-<p>Nvec = 768</p>
-<p><em># ‘no_ghost’ is an optimization option that can speed up calculations greatly, but can</em></p>
-<p><em># also create artifacts at grid edges and affect smoothness. For our data, there is no</em></p>
-<p><em># speed difference, so we opt for a better-looking image.</em></p>
-<p>cam = pf.camera(c, L, W, (Nvec,Nvec), transfer_function = tf,</p>
-<p>fields=[field], pf=pf, no_ghost=False)</p>
-<p><em># Obtain an image! However, we’ll want to annotate it with some other things before</em></p>
-<p><em># saving it.</em></p>
-<p>im = cam.snapshot()</p>
-<p><em># Here we draw a box around our stars, and visualize the gridding of the top two levels.</em></p>
-<p><em># Note that draw_grids returns a new image while draw_box does not. Also, add_</em></p>
-<p><em># background_color in front of draw_box is necessary to make the box appear over</em></p>
-<p><em># blank space (draw_grids calls this internally). For draw_box we specify the left</em></p>
-<p><em># (lower) and right(upper) bounds as well its color and transparency.</em></p>
-<p>im.add_background_color(‘black’, inline=True)</p>
-<p>cam.draw_box(im, np.array([3.0e9, 4.0e9, 4.0e9]),</p>
-<p>np.array([7.0e9, 6.0e9, 6.0e9]), np.array([1.0, 1.0, 1.0, 0.14]))</p>
-<p>im = cam.draw_grids(im, alpha=0.12, min_level=2)</p>
-<p>im = cam.draw_grids(im, alpha=0.03, min_level=1, max_level=1)</p>
-<p><em># ‘im’ is an image array rather than a plot object, so we save it using a different</em></p>
-<p><em># function. There are others, such as ‘write_bitmap.’</em></p>
-<p>im.write_png(‘pressure_shell_volume.png’)</p>
-<div class="figure" id="id2">
-<a class="reference internal image-reference" href="_images/volume.png"><img alt="Volume rendering" src="_images/volume.png" style="width: 3.5in;" /></a>
-<p class="caption"><span class="caption-text">Volume rendering</span></p>
-</div>
-<p><em>#————————</em></p>
-<p><em># Isocontour Rendering</em></p>
-<p><em># Here we extract isocontours using some extra modules and plot them using matplotlib.</em></p>
-<p>from mpl_toolkits.mplot3d import Axes3D</p>
-<p>from mpl_toolkits.mplot3d.art3d import Poly3DCollection</p>
-<p>import matplotlib.pyplot as plt</p>
-<p>from yt.mods import *</p>
-<p>pf = load(‘plt00020’)</p>
-<p>field = ‘pressure’</p>
-<p>field_weight = ‘magvel’</p>
-<p>contour_value = 2.83e13</p>
-<p>domain = pf.all_data()</p>
-<p><em># This object identifies isocontours at a given value for a given field. It returns</em></p>
-<p><em># the vertices of the triangles in that isocontour. It requires a data source, which</em></p>
-<p><em># can be an object—but here we just give it all of our data. Here we find a pressure</em></p>
-<p><em># isocontour and color it the magnitude of velocity over the same contour.</em></p>
-<p>surface = pf.surface(domain, field, contour_value)</p>
-<p>colors = apply_colormap(np.log10(surface[field_weight]), cmap_name=‘RdBu’)</p>
-<p>fig = plt.figure()</p>
-<p>ax = fig.gca(projection=‘3d’)</p>
-<p>p3dc = Poly3DCollection(surface.triangles, linewidth=0.0)</p>
-<p>p3dc.set_facecolors(colors[0,:,:]/255.)</p>
-<p>ax.add_collection(p3dc)</p>
-<p><em># By setting the scaling on the plot to be the same in all directions (using the x scale),</em></p>
-<p><em># we ensure that no warping or stretching of the data occurs.</em></p>
-<p>ax.auto_scale_xyz(surface.vertices[0,:], surface.vertices[0,:],</p>
-<p>surface.vertices[0,:])</p>
-<p>ax.set_aspect(1.0)</p>
-<p>plt.savefig(‘pres_magvel_isocontours.png’)</p>
-<div class="figure" id="id3">
-<a class="reference internal image-reference" href="_images/isocontours.png"><img alt="Pressure isocontour rendering colored with velocity magnitude" src="_images/isocontours.png" style="width: 4in;" /></a>
-<p class="caption"><span class="caption-text">Pressure isocontour rendering colored with velocity magnitude</span></p>
-</div>
-<p><em>#————————</em></p>
-<p><em>#1-D and 2-D Profiles</em></p>
-<p><em># Line plots and phase plots can be useful for analyzing data in detail.</em></p>
-<p>from yt.mods import *</p>
-<p>pf = load(‘plt00020’)</p>
-<p>pf.index</p>
-<p><em># Just like with the pressure_contours script, we can set the units for fields that</em></p>
-<p><em># have none.</em></p>
-<p>pf.field_info[‘magvel’]._units = r‘\rm{cm}/rm{s}’</p>
-<p>pf.field_info[‘kineng’]._units = r‘\rm{ergs}’</p>
-<p><em># We can create new fields from existing ones. ytassumes all units are in cgs, and</em></p>
-<p><em># does not do any unit conversions on its own (but we can make it). Creating new fields</em></p>
-<p><em># requires us to define a function that acts on our data and returns the new data,</em></p>
-<p><em># then call add_field while supplying the field name, the function the data comes from,</em></p>
-<p><em># and the units. Here, we create new fields simply to rename our data to make the plot</em></p>
-<p><em># look prettier.</em></p>
-<p>def _newT(field, data):</p>
-<p>return data[‘t’]</p>
-<p>add_field(‘X’, function=_newT, units=r‘\rm{domain} rm{fraction}’)</p>
-<p>def _newDen(field, data):</p>
-<p>return data[‘density’]</p>
-<p>add_field(‘Density’, function=_newDen, units=r‘\rm{g}/rm{cm}^{3}’)</p>
-<p><em># PlotCollections are one of the most commonly used tools in yt, alongside SlicePlots and</em></p>
-<p><em># ProjectionPlots. They are useful when we want to create multiple plots from the same</em></p>
-<p><em># parameter file, linked by common characteristics such as the colormap, its bounds, and</em></p>
-<p><em># the image width. It is easy to create 1-D line plots and 2-D phase plots through a</em></p>
-<p><em># PlotCollection, but we can also create thin projections and so on. When we create a</em></p>
-<p><em># PlotCollection, it is empty, and only requires the parameter file and the ’center’ that</em></p>
-<p><em># will be supplied to plots like slices and sphere plots.</em></p>
-<p>pc = PlotCollection(pf, ‘c’)</p>
-<p><em># Now we add a ray—a sample of our data field along a line between two points we define</em></p>
-<p><em># in the function call.</em></p>
-<p>ray = pc.add_ray([0.0, 5.0e9, 5.0e9],[1.e10, 5.0e9, 5.0e9], ‘magvel’)</p>
-<p><em># This is where our derived fields come in handy. Our ray is drawn along the x-axis</em></p>
-<p><em># through the center of the domain, but by default the fraction of the ray we have gone</em></p>
-<p><em># along is called ‘t.’ We now have the same data in another field we called ‘X,’ whose</em></p>
-<p><em># name makes more sense, so we’ll reassign the ray’s first field to be that. If we wanted,</em></p>
-<p>(<em># we could also reassign names to ‘magvel’ and ‘kineng.’</em></p>
-<p>ray.fields = [‘X’, ‘magvel’]</p>
-<p><em># Next, we’ll create a phase plot. The function requires a data source, and we can’t</em></p>
-<p><em># just hand it our parameter file, but as a substitute we can quickly create an object</em></p>
-<p><em># that spans our entire domain (or use the method in the isocontour example). The</em></p>
-<p><em># specifications of the region (a box) are the center, left bound, and right bound.</em></p>
-<p>region = pf.region([5.0e9, 5.0e9, 5.0e9], [0.0, 0.0, 0.0],</p>
-<p>[1.0e10, 1.0e10, 1.0e10])</p>
-<p><em># The phase object accepts a data source, fields, a weight, a number of bins along both</em></p>
-<p><em># axes, and several other things, including its own colormap, logarithm options,</em></p>
-<p><em># normalization options, and an accumulation option. The first field is binned onto</em></p>
-<p><em># the x-axis, the second field is binned onto the y-axis, and the third field is</em></p>
-<p><em># binned with the colormap onto the other two. Subsequent fields go into an underlying</em></p>
-<p><em># profile and do not appear on the image.</em></p>
-<p>phase = pc.add_phase_object(region, [‘Density’, ‘magvel’,‘kineng’], weight=None,</p>
-<p>x_bins=288, y_bins=288)</p>
-<p>pc.save(‘profile’)</p>
-<div class="figure" id="id4">
-<a class="reference internal image-reference" href="_images/LineQueryPlot_0_t_magvel.png"><img alt="Density/velocity magnitude/kinetic energy phase plot" src="_images/LineQueryPlot_0_t_magvel.png" style="width: 4in;" /></a>
-<p class="caption"><span class="caption-text">Density/velocity magnitude/kinetic energy phase plot</span></p>
-</div>
-<div class="figure" id="id5">
-<a class="reference internal image-reference" href="_images/Profile2D_1_Density_magvel_kineng.png"><img alt="Density/velocity magnitude/kinetic energy phase plot" src="_images/Profile2D_1_Density_magvel_kineng.png" style="width: 4in;" /></a>
-<p class="caption"><span class="caption-text">Density/velocity magnitude/kinetic energy phase plot</span></p>
-</div>
-<p><em>#————————</em></p>
-<p><em>#Off-Axis Projection</em></p>
-<p><em># If we don’t want to take a projection (this can be done for a slice as well) along</em></p>
-<p><em># one of the coordinate axes, we can take one from any direction using an</em></p>
-<p><em># OffAxisProjectionPlot. To accomplish the task of setting the view up, the plot</em></p>
-<p><em># requires some of the same parameters as the camera object: a normal vector, center,</em></p>
-<p><em># width, and field, and optionally we can set no_ghost (default is False). The normal</em></p>
-<p><em># vector is automatically normalized as in the case of the camera. The plot also</em></p>
-<p><em># requires a depth—that is, how much data we want to sample along the line of sight,</em></p>
-<p><em># centered around the center. In this case ‘c’ is a shortcut for the domain center.</em></p>
-<p>pf = load(‘plt00020’)</p>
-<p>field = ‘density’</p>
-<p>L = [0.25, 0.9, 0.40]</p>
-<p>plot = OffAxisProjectionPlot(pf, L, field, center=‘c’,</p>
-<p>width=(5.0e9, 4.0e9), depth=3.0e9)</p>
-<p><em># Here we customize our newly created plot, dictating the font, colormap, and title.</em></p>
-<p><em># Logarithmic data is used by default for this plot, so we turn it off.</em></p>
-<p>plot.set_font({‘family’:‘Bitstream Vera Sans’, ‘style’:‘italic’,</p>
-<p>‘weight’:‘normal’, ‘size’:14, ‘color’:‘red’})</p>
-<p>plot.set_log(field, False)</p>
-<p>plot.set_cmap(field, ‘jet’)</p>
-<p>plot.annotate_title(‘Off-Axis Density Projection’)</p>
-<p><em># The actual size of the image can also be set. Note that the units are in inches.</em></p>
-<p>plot.set_window_size(8.0)</p>
-<p>plot.save(‘off_axis_density’)</p>
-<div class="figure" id="id6">
-<a class="reference internal image-reference" href="_images/OffAxisProjection_density.png"><img alt="Off-axis density projection" src="_images/OffAxisProjection_density.png" style="width: 4in;" /></a>
-<p class="caption"><span class="caption-text">Off-axis density projection</span></p>
-</div>
+<div class="section" id="visualization-tools">
+<h2>Visualization Tools<a class="headerlink" href="#visualization-tools" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="vis_tools.html">amrvis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vis_tools.html#visit">VisIt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vis_tools.html#yt">yt</a></li>
+</ul>
 </div>
 </div>
 </div>
@@ -742,7 +618,7 @@ dd = pf.all_data()</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="faq.html" class="btn btn-neutral float-right" title="Frequently Asked Questions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="vis_tools.html" class="btn btn-neutral float-right" title="amrvis" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="io.html" class="btn btn-neutral" title="Parallel I/O" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
