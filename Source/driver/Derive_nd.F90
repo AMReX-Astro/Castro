@@ -366,6 +366,7 @@ contains
     use amrex_constants_module, only: HALF
     use math_module, only: cross_product ! function
     use amrex_fort_module, only : rt => amrex_real
+    use prob_params_module, only: center
 
     implicit none
 
@@ -383,11 +384,11 @@ contains
     !$gpu
 
     do k = lo(3), hi(3)
-       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3)
+       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3) - center(3)
        do j = lo(2), hi(2)
-          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2)
+          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2) - center(2)
           do i = lo(1), hi(1)
-             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1)
+             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1) - center(1)
 
              rho = u(i,j,k,1)
              mom = u(i,j,k,2:4)
@@ -411,6 +412,7 @@ contains
     use amrex_constants_module, only: HALF
     use math_module, only: cross_product ! function
     use amrex_fort_module, only : rt => amrex_real
+    use prob_params_module, only: center
 
     implicit none
 
@@ -428,11 +430,11 @@ contains
     !$gpu
 
     do k = lo(3), hi(3)
-       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3)
+       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3) - center(3)
        do j = lo(2), hi(2)
-          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2)
+          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2) - center(2)
           do i = lo(1), hi(1)
-             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1)
+             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1) - center(1)
 
              rho = u(i,j,k,1)
              mom = u(i,j,k,2:4)
@@ -456,6 +458,7 @@ contains
     use amrex_constants_module, only: HALF
     use math_module, only: cross_product ! function
     use amrex_fort_module, only : rt => amrex_real
+    use prob_params_module, only: center
 
     implicit none
 
@@ -473,11 +476,11 @@ contains
     !$gpu
 
     do k = lo(3), hi(3)
-       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3)
+       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3) - center(3)
        do j = lo(2), hi(2)
-          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2)
+          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2) - center(2)
           do i = lo(1), hi(1)
-             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1)
+             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1) - center(1)
 
              rho = u(i,j,k,1)
              mom = u(i,j,k,2:4)
