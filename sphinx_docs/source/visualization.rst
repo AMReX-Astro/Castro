@@ -44,9 +44,10 @@ Native variables
 
 These variables come directly from the ``StateData``, either the
 ``State_Type`` (for the hydrodynamic variables), ``Reactions_Type``
-(for the nuclear energy generation quantities). ``PhiGrav_Type`` and ``Gravity_Type``
-(for the gravity quantities), and ``PhiRot_Type`` and ``Rotation_Type``
-(for the rotation quantities)
+(for the nuclear energy generation quantities). ``PhiGrav_Type`` and
+``Gravity_Type`` (for the gravity quantities), ``PhiRot_Type`` and
+``Rotation_Type`` (for the rotation quantities) and ``Rad_Type`` (for
+radiation quantities).
 
 
 +-----------------------------------+---------------------------------------------------+--------------------------------------+
@@ -97,6 +98,10 @@ These variables come directly from the ``StateData``, either the
 +-----------------------------------+---------------------------------------------------+--------------------------------------+
 | ``Shock``                         | Shock flag (= 1 if a zone has a shock;            | --                                   |
 |                                   | defined for ``SHOCK``)                            |                                      |
++-----------------------------------+---------------------------------------------------+--------------------------------------+
+| ``rad``, ``rad0``, ``rad1``,      | Radiation energy density                          |                                      |
+| ...                               | (for multigroup radiation, each group has its     |                                      |
+|                                   | own variable)                                     |                                      |
 +-----------------------------------+---------------------------------------------------+--------------------------------------+
 
 
@@ -165,10 +170,6 @@ Derived variables
 | ``pressure``                      | Total pressure, including ions, electrons,        | ``derpres``                 | :math:`{\rm dyn~cm^{-2}}`            |
 |                                   | and radiation (for non radhydro problems)         |                             |                                      |
 +-----------------------------------+---------------------------------------------------+-----------------------------+--------------------------------------+
-| ``rad``, ``rad0``, ``rad1``,      | Radiation energy density                          |                             |                                      |
-| ...                               | (for multigroup radiation, each group has its     |                             |                                      |
-|                                   | own variable)                                     |                             |                                      |
-+-----------------------------------+---------------------------------------------------+-----------------------------+--------------------------------------+
 | ``radvel``                        | Radial velocity (measured with respect to         | ``derradialvel``            | :math:`\cms`                         |
 |                                   | `center`),                                        |                             |                                      |
 |                                   | :math:`(xu + yv + zw)/r`                          |                             |                                      |
@@ -186,7 +187,7 @@ Derived variables
 +-----------------------------------+---------------------------------------------------+-----------------------------+--------------------------------------+
 | ``uplusc``                        | (only for 1D) x-velocity + sound speed            | ``deruplusc``               | :math:`\cms`                         |
 +-----------------------------------+---------------------------------------------------+-----------------------------+--------------------------------------+
-| ``X(NN)``                         | Mass fraction of species NN                       | ``derspec``                 | --                                   |
+| ``X(q)``                          | Mass fraction of species q                        | ``derspec``                 | --                                   |
 |                                   | :math:`X_k = (\rho X_k)/\rho`                     |                             |                                      |
 +-----------------------------------+---------------------------------------------------+-----------------------------+--------------------------------------+
 | ``x_velocity``,                   | Fluid velocity,                                   | ``dervel``                  | :math:`\cms`                         |

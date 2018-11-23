@@ -18,7 +18,7 @@ the different code paths.
    controlled by castro.do_ctu.
 
    -  Corner-transport upwind (CTU): this implements the unsplit,
-      characteristic tracing method of :raw-latex:`\cite{colella:1990}`.
+      characteristic tracing method of :cite:`colella:1990`.
 
    -  Method of lines (MOL): this discretizes the space part of
       our system without any characteristic tracing and uses an
@@ -307,7 +307,7 @@ In the code, the objective is to evolve the state from the old time,
    #. sponge : the sponge is a damping term added to
       the momentum equation that is designed to drive the velocities to
       zero over some timescale. Our implementation of the sponge
-      follows that of Maestro :raw-latex:`\cite{maestro:III}`
+      follows that of Maestro :cite:`maestro:III`
 
    #. external sources : users can define problem-specific sources
       in the ``ext_src_?d.f90`` file. Sources for the different
@@ -383,7 +383,7 @@ In the code, the objective is to evolve the state from the old time,
    the state after burning, :math:`\Ub^\star` (``Sborder``). There
    are two approaches we use, the corner transport upwind (CTU) method
    that uses characteristic tracing as described in
-   :raw-latex:`\cite{colella:1990}`, and a method-of-lines approach. The choice is
+   :cite:`colella:1990`, and a method-of-lines approach. The choice is
    determined by the parameter castro.do_ctu.
 
    #. CTU method:

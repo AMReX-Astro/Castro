@@ -215,7 +215,7 @@ control the gridding.
 As described later, the user defines Fortran subroutines which tag
 individual cells at a given level if they need refinement. This list
 of tagged cells is sent to a grid generation routine, which uses the
-Berger-Rigoutsos algorithm :raw-latex:`\cite{br-refine}` to create rectangular
+Berger-Rigoutsos algorithm :cite:`br-refine` to create rectangular
 grids that contain the tagged cells.
 
 The relevant runtime parameters are:

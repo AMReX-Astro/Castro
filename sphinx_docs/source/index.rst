@@ -48,6 +48,10 @@ Castro: an adaptive mesh compressible hydrodynamics code
    classlist
    namespacelist
 
+.. toctree::
+
+   references
+
 Indices and tables
 ==================
 
