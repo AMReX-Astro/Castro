@@ -186,7 +186,7 @@ Here we present the AMR algorithm for the compressible equations with
 self-gravity. The gravity component of the algorithm is closely
 related to (but not identical to) that in Miniati and Colella, JCP,
 2007. The content here is largely based on the content in the original
-Castro paper (:raw-latex:`\cite{castro_I}`). The most significant difference is the
+Castro paper (:cite:`castro_I`). The most significant difference is the
 addition of a different strategy for when to employ the synchronization;
 but regardless of whether the original or new strategy is used, the fundamental
 synchronization step is identical.

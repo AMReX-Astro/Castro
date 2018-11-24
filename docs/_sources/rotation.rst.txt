@@ -338,4 +338,4 @@ implicitly (e.g., the velocity in the Coriolis force for the zone
 depends on the updated momentum). The energy update is unchanged.
 
 A detailed discussion of these options and some verification
-tests is presented in :raw-latex:`\cite{katz:2016}`.
+tests is presented in :cite:`katz:2016`.

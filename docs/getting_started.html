@@ -127,6 +127,9 @@
 <li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
 <li class="toctree-l1"><a class="reference internal" href="namespacelist.html">Namespace list</a></li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
 
             
           
@@ -271,7 +274,7 @@ Add the following to your .bashrc:</p>
 <li><p class="first">(optional) An additional repository, Microphysics, is
 available at the starkiller-astro github page. This add
 additional reaction networks and EOSes and can be cloned following
-the same procedure as above <a class="footnote-reference" href="#id13" id="id1">[1]</a>:</p>
+the same procedure as above <a class="footnote-reference" href="#id8" id="id1">[1]</a>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">starkiller</span><span class="o">-</span><span class="n">astro</span><span class="o">/</span><span class="n">Microphysics</span><span class="o">.</span><span class="n">git</span>
 </pre></div>
 </div>
@@ -357,7 +360,7 @@ files are used for restarting the code.</p>
 <h2>Visualization of the Results<a class="headerlink" href="#visualization-of-the-results" title="Permalink to this headline">¶</a></h2>
 <p>There are several options for visualizing the data. The popular VisIt
 package supports the AMReX file format natively, as does the yt python
-package <a class="footnote-reference" href="#id14" id="id2">[2]</a>. The standard tool used within the AMReX-community is
+package <a class="footnote-reference" href="#id9" id="id2">[2]</a>. The standard tool used within the AMReX-community is
 Amrvis, which we demonstrate here. Amrvis is available on github.</p>
 <ol class="arabic">
 <li><p class="first">Get Amrvis:</p>
@@ -439,7 +442,7 @@ problems are:</p>
 <p>A pressureless cloud collapse that is a standard test problem for
 gravity. An analytic solution that describes the radius of the
 sphere as a function of time is found in Colgate and
-White <a href="#id3"><span class="problematic" id="id4">:raw-latex:`\cite{colgwhite}`</span></a>. This problem is also found
+White <a class="reference internal" href="references.html#colgwhite" id="id3">[ColgateWhite66]</a>. This problem is also found
 in the FLASH User’s Guide.</p>
 </li>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">hydrostatic_adjust</span></code>:</p>
@@ -470,13 +473,13 @@ atmosphere.  This uses the multigamma EOS.</p>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">oddeven</span></code>:</p>
 <p>A grid-aligned shock hitting a very small density perturbation.
 This demonstrates the odd-even decoupling problem discussed in
-<a href="#id5"><span class="problematic" id="id6">:raw-latex:`\cite{quirk1997}`</span></a>. This setup serves to test the
+<a class="reference internal" href="references.html#quirk1997" id="id4">[Qui97]</a>. This setup serves to test the
 castro.hybrid_riemann option to hydrodynamics.</p>
 </li>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">reacting_bubble</span></code>:</p>
 <p>A reacting bubble in a stratified white dwarf atmosphere. This
 problem was featured in the Maestro&nbsp;reaction
-paper <a href="#id7"><span class="problematic" id="id8">:raw-latex:`\cite{maestro:III}`</span></a>.</p>
+paper <a class="reference internal" href="references.html#maestro-iii" id="id5">[AlmgrenBellNonakaZingale08]</a>.</p>
 </li>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">RT</span></code>:</p>
 <p>A single-model Rayleigh-Taylor instability problem.</p>
@@ -485,7 +488,7 @@ paper <a href="#id7"><span class="problematic" id="id8">:raw-latex:`\cite{maestr
 </li>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">Sedov</span></code>:</p>
 <p>The standard Sedov-Taylor blast wave problem. This setup was used
-in the first Castro paper <a href="#id9"><span class="problematic" id="id10">:raw-latex:`\cite{castro_I}`</span></a>.</p>
+in the first Castro paper <a class="reference internal" href="references.html#castro-i" id="id6">[AlmgrenBecknerBell+10]</a>.</p>
 </li>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">Sod</span></code>:</p>
 <p>A one-dimensional shock tube setup, including the classic Sod
@@ -494,7 +497,7 @@ problem. This setup was used in the original Castro paper.</p>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">Sod_stellar</span></code>:</p>
 <p>A version of the Sod shock tube for the general stellar equation
 of state. This setup and the included inputs files was used
-in <a href="#id11"><span class="problematic" id="id12">:raw-latex:`\cite{zingalekatz}`</span></a>.</p>
+in <a class="reference internal" href="references.html#zingalekatz" id="id7">[ZingaleKatz15]</a>.</p>
 </li>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">toy_convect</span></code>:</p>
 <p>A simple nova-like convection problem with an external heating
@@ -514,7 +517,7 @@ and write a custom diagnostics routine.</p>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">unit_tests</span></code>:</p>
 </li>
 </ul>
-<table class="docutils footnote" frame="void" id="id13" rules="none">
+<table class="docutils footnote" frame="void" id="id8" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>Note: previously the radiation
@@ -522,7 +525,7 @@ solver was distributed separately as <code class="docutils literal notranslate">
 but this has been merged into the main Castro respository</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id14" rules="none">
+<table class="docutils footnote" frame="void" id="id9" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td>Each of these will recognize it as the

@@ -243,7 +243,7 @@ problems are:
      A pressureless cloud collapse that is a standard test problem for
      gravity. An analytic solution that describes the radius of the
      sphere as a function of time is found in Colgate and
-     White :raw-latex:`\cite{colgwhite}`. This problem is also found
+     White :cite:`colgwhite`. This problem is also found
      in the FLASH User’s Guide.
 
    * ``hydrostatic_adjust``:
@@ -275,14 +275,14 @@ problems are:
 
      A grid-aligned shock hitting a very small density perturbation.
      This demonstrates the odd-even decoupling problem discussed in
-     :raw-latex:`\cite{quirk1997}`. This setup serves to test the
+     :cite:`quirk1997`. This setup serves to test the
      castro.hybrid_riemann option to hydrodynamics.
 
    * ``reacting_bubble``:
 
      A reacting bubble in a stratified white dwarf atmosphere. This
      problem was featured in the Maestro reaction
-     paper :raw-latex:`\cite{maestro:III}`.
+     paper :cite:`maestro:III`.
 
    * ``RT``:
 
@@ -293,7 +293,7 @@ problems are:
    * ``Sedov``:
 
      The standard Sedov-Taylor blast wave problem. This setup was used
-     in the first Castro paper :raw-latex:`\cite{castro_I}`.
+     in the first Castro paper :cite:`castro_I`.
 
    * ``Sod``:
 
@@ -304,7 +304,7 @@ problems are:
 
      A version of the Sod shock tube for the general stellar equation
      of state. This setup and the included inputs files was used
-     in :raw-latex:`\cite{zingalekatz}`.
+     in :cite:`zingalekatz`.
 
    * ``toy_convect``:
 

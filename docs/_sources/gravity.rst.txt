@@ -26,7 +26,7 @@ There are two types of solves that we discuss with AMR:
    boundary conditions for the current-level-solve.
 
 The overall integration strategy is unchanged from the discussion in
-:raw-latex:`\cite{castro_I}`. Briefly:
+:cite:`castro_I`. Briefly:
 
 -  At the beginning of a simulation, we do a multilevel composite
    solve (if ``gravity.no_composite`` = 0).
@@ -300,7 +300,7 @@ Poisson Boundary Conditions: 3D
 
 The following describes methods for doing isolated boundary
 conditions. The best reference for Castro’s implementation of this
-is :raw-latex:`\cite{katz:2016}`.
+is :cite:`katz:2016`.
 
 -  **Multipole Expansion**
 
@@ -453,8 +453,8 @@ applied to the monopole approximation only when ``USE_GR`` = TRUE is
 set in the ``GNUmakefile``.
 
 The formulae of GR-correction here are based on
-:raw-latex:`\cite{grbk1}`. For detailed physics, please refer to
-:raw-latex:`\cite{grbk2}`. For describing very strong gravitational
+:cite:`grbk1`. For detailed physics, please refer to
+:cite:`grbk2`. For describing very strong gravitational
 field, we need to use Einstein field equations
 
 .. math::
@@ -614,7 +614,7 @@ the hydrodynamics system. The main parameter here is
   change in energy at cell edges, using the hydrodynamical mass
   fluxes, permitting total energy to be conserved (excluding possible
   losses at open domain boundaries). See
-  :raw-latex:`\cite{katzthesis}` for some more details.
+  :cite:`katzthesis` for some more details.
 
 .. [1]
    Note: The ``PrescribedGrav``

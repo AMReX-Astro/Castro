@@ -226,4 +226,4 @@ needs to supply:
               \left .\frac{\partial e}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
       \end{aligned}
 
-(see :raw-latex:`\cite{maestro:III}`, Appendix A).
+(see :cite:`maestro:III`, Appendix A).

@@ -129,6 +129,9 @@
 <li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
 <li class="toctree-l1"><a class="reference internal" href="namespacelist.html">Namespace list</a></li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
 
             
           
@@ -378,7 +381,7 @@ problem_tagging_3d.f90 to our work directory and set it up as follows:</p>
 self-gravity. The gravity component of the algorithm is closely
 related to (but not identical to) that in Miniati and Colella, JCP,
 2007. The content here is largely based on the content in the original
-Castro&nbsp;paper (<a href="#id1"><span class="problematic" id="id2">:raw-latex:`\cite{castro_I}`</span></a>). The most significant difference is the
+Castro paper (<a class="reference internal" href="references.html#castro-i" id="id1">[AlmgrenBecknerBell+10]</a>). The most significant difference is the
 addition of a different strategy for when to employ the synchronization;
 but regardless of whether the original or new strategy is used, the fundamental
 synchronization step is identical.</p>
@@ -521,7 +524,7 @@ we do the AMR synchronization after a fine timestep, we first subtract
 the previously applied new-time source terms to both the coarse and the
 fine level, then do the flux correction and associated gravitational
 sync solve, and then re-compute the new-time source terms on both the
-coarse and the fine level <a class="footnote-reference" href="#id6" id="id3">[1]</a>. In this way, we get almost
+coarse and the fine level <a class="footnote-reference" href="#id5" id="id2">[1]</a>. In this way, we get almost
 the ideal behavior – if we aren’t subcycling, then we get essentially
 the same state at the end of the fine timestep as we would in a code
 that explicitly had no subcycling. The cost is re-computing the new-time
@@ -532,7 +535,7 @@ re-computing <span class="math notranslate nohighlight">\(\rho \mathbf{g}\)</spa
 <span class="math notranslate nohighlight">\(\mathbf{g}\)</span> itself (say, for self-gravity). If you believe that the
 error in not recomputing the source terms is sufficiently low, or the
 computational cost of computing them too high, you can disable this
-behavior <a class="footnote-reference" href="#id7" id="id4">[2]</a> using the
+behavior <a class="footnote-reference" href="#id6" id="id3">[2]</a> using the
 code parameter castro.update_sources_after_reflux.</p>
 <p>Note that at present nuclear reactions are not enabled as part of this
 scheme, and at present are not automatically updated after an AMR
@@ -575,7 +578,7 @@ to the flux register and the normal contribution to the flux register
 for just that timestep. This is true because in Castro, we assume that
 the fluxes provided by the hydrodynamic solver are piecewise-constant
 over the timestep, which is all that is needed to be second-order
-accurate in time if the fluxes are time centered <a class="footnote-reference" href="#id8" id="id5">[3]</a>. So it is fair to say
+accurate in time if the fluxes are time centered <a class="footnote-reference" href="#id7" id="id4">[3]</a>. So it is fair to say
 that halfway through the coarse timestep, half of the coarse flux has
 been advected, and we can mathematically split the flux register into
 two contributions that have equal weighting from the coarse flux. (In
@@ -635,10 +638,10 @@ the flux mismatch until the end of the level 0 timestep.) The
 synchronization no longer needs to be called at the end of any coarser
 level’s timestep because it will already be up to date as a result of
 the synchronizations applied at the end of the fine level timesteps.</p>
-<table class="docutils footnote" frame="void" id="id6" rules="none">
+<table class="docutils footnote" frame="void" id="id5" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3">[1]</a></td><td>In the absence of a global field like
+<tr><td class="label"><a class="fn-backref" href="#id2">[1]</a></td><td>In the absence of a global field like
 the gravitational potential, this would only need to be done on the
 coarse level, as we always assume that the solution on the fine grid is
 correct and average it down to the coarse grid. In Castro&nbsp;we do it by
@@ -649,10 +652,10 @@ global force fields, you don’t bother updating the fine level. If this
 is important to the science you want to do, please let the Castro&nbsp;developers know and we can look into it.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id7" rules="none">
+<table class="docutils footnote" frame="void" id="id6" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id4">[2]</a></td><td>in general it may be desirable for this to be a
+<tr><td class="label"><a class="fn-backref" href="#id3">[2]</a></td><td>in general it may be desirable for this to be a
 source-term specific setting, so that some source terms that are cheap
 or physically important are re-computed after a synchronization can be
 set to update, while others can be disabled. If this is important for
@@ -660,10 +663,10 @@ your science application, please let the developers know, as this would
 be a straightforward extension of the current architecture.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id8" rules="none">
+<table class="docutils footnote" frame="void" id="id7" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id5">[3]</a></td><td>If this scheme
+<tr><td class="label"><a class="fn-backref" href="#id4">[3]</a></td><td>If this scheme
 is generalized to higher-order methods, in principle all one would need
 to do is integrate the fluxes until <span class="math notranslate nohighlight">\(\Delta t / 2\)</span>, which is what we are
 doing here for the constant-in-time flux case.</td></tr>

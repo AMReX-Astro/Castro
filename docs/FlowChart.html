@@ -132,6 +132,9 @@
 <li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
 <li class="toctree-l1"><a class="reference internal" href="namespacelist.html">Namespace list</a></li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
 
             
           
@@ -230,7 +233,7 @@ explicit coupling of the burning and hydro is done. Within the
 Strang code path, there are two methods for doing the hydrodynamics,
 controlled by castro.do_ctu.<ul>
 <li>Corner-transport upwind (CTU): this implements the unsplit,
-characteristic tracing method of <a href="#id1"><span class="problematic" id="id2">:raw-latex:`\cite{colella:1990}`</span></a>.</li>
+characteristic tracing method of <a class="reference internal" href="references.html#colella-1990" id="id1">[Colella90]</a>.</li>
 <li>Method of lines (MOL): this discretizes the space part of
 our system without any characteristic tracing and uses an
 ODE integrator to advance the state. Multiple stages can be done,
@@ -355,7 +358,7 @@ coarse-fine interfaces. This cleans up the memory used during
 the step.</li>
 <li>If <code class="docutils literal notranslate"><span class="pre">castro.track_grid_losses</span></code> is set, then we
 also add up the mass that left through the boundary over this
-step. <a class="footnote-reference" href="#id9" id="id3">[1]</a></li>
+step. <a class="footnote-reference" href="#id6" id="id2">[1]</a></li>
 <li>Free any memory allocated for the level advance.</li>
 </ul>
 </li>
@@ -476,7 +479,7 @@ intermediate state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(a)}\)
 <li><p class="first">sponge : the sponge is a damping term added to
 the momentum equation that is designed to drive the velocities to
 zero over some timescale. Our implementation of the sponge
-follows that of Maestro <a href="#id4"><span class="problematic" id="id5">:raw-latex:`\cite{maestro:III}`</span></a></p>
+follows that of Maestro <a class="reference internal" href="references.html#maestro-iii" id="id3">[AlmgrenBellNonakaZingale08]</a></p>
 </li>
 <li><p class="first">external sources : users can define problem-specific sources
 in the <code class="docutils literal notranslate"><span class="pre">ext_src_?d.f90</span></code> file. Sources for the different
@@ -539,7 +542,7 @@ complex time-integration schemes.</p>
 the state after burning, <span class="math notranslate nohighlight">\(\Ub^\star\)</span> (<code class="docutils literal notranslate"><span class="pre">Sborder</span></code>). There
 are two approaches we use, the corner transport upwind (CTU) method
 that uses characteristic tracing as described in
-<a href="#id6"><span class="problematic" id="id7">:raw-latex:`\cite{colella:1990}`</span></a>, and a method-of-lines approach. The choice is
+<a class="reference internal" href="references.html#colella-1990" id="id4">[Colella90]</a>, and a method-of-lines approach. The choice is
 determined by the parameter castro.do_ctu.</p>
 <ol class="arabic">
 <li><p class="first">CTU method:</p>
@@ -590,7 +593,7 @@ using the updated state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(
 correction, <span class="math notranslate nohighlight">\((\Delta t/2)[\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)]\)</span> to
 add to <span class="math notranslate nohighlight">\(\Ub^{n+1,(b)}\)</span> to give us the properly time-centered source,
 and the fully updated state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(c)}\)</span>. This correction is stored
-in the new_sources MultiFab <a class="footnote-reference" href="#id10" id="id8">[2]</a>.</p>
+in the new_sources MultiFab <a class="footnote-reference" href="#id7" id="id5">[2]</a>.</p>
 <p>In the process of updating the sources, we update the temperature to
 make it consistent with the new state.</p>
 </li>
@@ -994,19 +997,19 @@ term at the new time. As discussed above, this will be used in the
 next iteration to approximate the time-centered source term.</p>
 </li>
 </ol>
-<table class="docutils footnote" frame="void" id="id9" rules="none">
+<table class="docutils footnote" frame="void" id="id6" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3">[1]</a></td><td>Note: this functionality assumes that only the
+<tr><td class="label"><a class="fn-backref" href="#id2">[1]</a></td><td>Note: this functionality assumes that only the
 coarse grid touches the physical boundary. It does not use
 any use masks to prevent double counting if multiple levels
 touch the boundary.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id10" rules="none">
+<table class="docutils footnote" frame="void" id="id7" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id8">[2]</a></td><td>The correction for gravity is slightly different since we directly compute the time-centered gravitational source term using the hydrodynamic fluxes.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id5">[2]</a></td><td>The correction for gravity is slightly different since we directly compute the time-centered gravitational source term using the hydrodynamic fluxes.</td></tr>
 </tbody>
 </table>
 </div>

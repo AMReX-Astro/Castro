@@ -131,6 +131,9 @@
 <li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
 <li class="toctree-l1"><a class="reference internal" href="namespacelist.html">Namespace list</a></li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
 
             
           
@@ -217,6 +220,30 @@
 </style>
 <div class="section" id="namespace-castro">
 <h1>namespace: <code class="docutils literal notranslate"><span class="pre">castro</span></code><a class="headerlink" href="#namespace-castro" title="Permalink to this headline">¶</a></h1>
+<p><strong>refinement</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_special_tagging</span></code></td>
+<td>&#160;</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">spherical_star</span></code></td>
+<td>&#160;</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
 <p><strong>hydrodynamics</strong></p>
 <table border="1" class="docutils">
 <colgroup>
@@ -481,6 +508,249 @@ RK</td>
 </tr>
 </tbody>
 </table>
+<p><strong>gravity and rotation</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_grav</span></code></td>
+<td>permits gravity calculation to be turned on and off</td>
+<td>-1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">moving_center</span></code></td>
+<td>to we recompute the center used for the multipole
+gravity solve each step?</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">grav_source_type</span></code></td>
+<td>determines how the gravitational source term is added
+to the momentum and energy state variables.</td>
+<td>4</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">do_rotation</span></code></td>
+<td>permits rotation calculation to be turned on and off</td>
+<td>-1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rotational_period</span></code></td>
+<td>the rotation period for the corotating frame</td>
+<td>-1.e200</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">rotational_dPdt</span></code></td>
+<td>the rotation periods time evolution—this allows the
+rotation rate to change durning the simulation time</td>
+<td>0.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rotation_include_centrifugal</span></code></td>
+<td>permits the centrifugal terms in the rotation to be
+turned on and off</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">rotation_include_coriolis</span></code></td>
+<td>permits the Coriolis terms in the rotation to be turned
+on and off</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rotation_include_domegadt</span></code></td>
+<td>permits the d(omega)/dt terms in the rotation to be
+turned on and off</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">state_in_rotating_frame</span></code></td>
+<td>Which reference frame to measure the state variables
+with respect to. The standard in the literature when
+using a rotating reference frame is to measure the
+state variables with respect to an observer fixed in
+that rotating frame. If this option is disabled by
+setting it to 0, the state variables will be measured
+with respect to an observer fixed in the inertial frame
+(but the frame will still rotate).</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rot_source_type</span></code></td>
+<td>determines how the rotation source terms are added to
+the momentum and energy equations</td>
+<td>4</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">implicit_rotation_update</span></code></td>
+<td>we can do a implicit solution of the rotation update to
+allow for better coupling of the Coriolis terms</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rot_axis</span></code></td>
+<td>the coordinate axis ($x=1$, $y=2$, $z=3$) for the
+rotation vector</td>
+<td>3</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">use_point_mass</span></code></td>
+<td>include a central point mass</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">point_mass</span></code></td>
+<td>mass of the point mass</td>
+<td>0.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">point_mass_fix_solution</span></code></td>
+<td>if we have a central point mass, we can prevent mass
+from building up in the zones adjacent to it by keeping
+their density constant and adding their mass to the
+point mass object</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>diffusion</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">diffuse_temp</span></code></td>
+<td>enable thermal diffusion</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">diffuse_enth</span></code></td>
+<td>enable enthalpy diffusion</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">diffuse_spec</span></code></td>
+<td>enable species diffusion</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">diffuse_vel</span></code></td>
+<td>enable velocity diffusion</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">diffuse_cutoff_density</span></code></td>
+<td>set a cutoff density for diffusion – we zero the term
+out below this density</td>
+<td>-1.e200</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">diffuse_cond_scale_fac</span></code></td>
+<td>scaling factor for conductivity</td>
+<td>1.0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>embiggening</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">grown_factor</span></code></td>
+<td>the factor by which to extend the domain upon restart
+for embiggening</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">star_at_center</span></code></td>
+<td>used with the embiggening routines to determine how to
+extend the domain</td>
+<td>-1</td>
+</tr>
+</tbody>
+</table>
+<p><strong>diagnostics, I/O</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">print_fortran_warnings</span></code></td>
+<td>display warnings in Fortran90 routines</td>
+<td>(0, 1)</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">print_update_diagnostics</span></code></td>
+<td>display information about updates to the state (how
+much mass, momentum, energy added)</td>
+<td>(0, 1)</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">track_grid_losses</span></code></td>
+<td>calculate losses of material through physical grid
+boundaries</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sum_interval</span></code></td>
+<td>how often (number of coarse timesteps) to compute
+integral sums (for runtime diagnostics)</td>
+<td>-1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sum_per</span></code></td>
+<td>how often (simulation time) to compute integral sums
+(for runtime diagnostics)</td>
+<td>-1.0e0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">show_center_of_mass</span></code></td>
+<td>display center of mass diagnostics</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">hard_cfl_limit</span></code></td>
+<td>abort if we exceed CFL = 1 over the cource of a
+timestep</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">job_name</span></code></td>
+<td>a string describing the simulation that will be copied
+into the plotfile’s {tt job_info} file</td>
+<td>“”</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">output_at_completion</span></code></td>
+<td>write a final plotfile and checkpoint upon completion</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_time</span></code></td>
+<td>Do we want to reset the time in the checkpoint? This
+ONLY takes effect if amr.regrid_on_restart = 1 and
+amr.checkpoint_on_restart = 1, (which require that
+max_step and stop_time be less than the value in the
+checkpoint) and you set it to value greater than this
+default value.</td>
+<td>-1.e200</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_step</span></code></td>
+<td>Do we want to reset the number of steps in the
+checkpoint? This ONLY takes effect if
+amr.regrid_on_restart = 1 and
+amr.checkpoint_on_restart = 1, (which require that
+max_step and stop_time be less than the value in the
+checkpoint) and you set it to value greater than this
+default value.</td>
+<td>-1</td>
+</tr>
+</tbody>
+</table>
 <p><strong>AMR</strong></p>
 <table border="1" class="docutils">
 <colgroup>
@@ -525,6 +795,112 @@ reflux</td>
 <tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">use_custom_knapsack_weights</span></code></td>
 <td>should we have state data for custom load-balancing
 weighting?</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>particles</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_tracer_particles</span></code></td>
+<td>permits tracer particle calculation to be turned on and
+off</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>reactions</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">dtnuc_e</span></code></td>
+<td>Limit the timestep based on how much the burning can
+change the internal energy of a zone. The timestep is
+equal to {tt dtnuc}  $cdot,(e / dot{e})$.</td>
+<td>1.e200</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">dtnuc_X</span></code></td>
+<td>Limit the timestep based on how much the burning can
+change the species mass fractions of a zone. The
+timestep is equal to {tt dtnuc}  $cdot,(X /
+dot{X})$.</td>
+<td>1.e200</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">dtnuc_X_threshold</span></code></td>
+<td>If we are using the timestep limiter based on changes
+in $X$, set a threshold on the species abundance below
+which the limiter is not applied. This helps prevent
+the timestep from becoming very small due to changes in
+trace species.</td>
+<td>1.e-3</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">dxnuc</span></code></td>
+<td>limit the zone size based on how much the burning can
+change the internal energy of a zone. The zone size on
+the finest level must be smaller than {tt dxnuc}
+$cdot, c_scdot (e / dot{e})$, where $c_s$ is the
+sound speed. This ensures that the sound-crossing time
+is smaller than the nuclear energy injection timescale.</td>
+<td>1.e200</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">dxnuc_max</span></code></td>
+<td>Disable limiting based on dxnuc above this threshold.
+This allows zones that have already ignited or are
+about to ignite to be de-refined.</td>
+<td>1.e200</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">max_dxnuc_lev</span></code></td>
+<td>Disable limiting based on dxnuc above this AMR level.</td>
+<td>-1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_react</span></code></td>
+<td>permits reactions to be turned on and off – mostly for
+efficiency’s sake</td>
+<td>-1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">react_T_min</span></code></td>
+<td>minimum temperature for allowing reactions to occur in
+a zone</td>
+<td>0.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">react_T_max</span></code></td>
+<td>maximum temperature for allowing reactions to occur in
+a zone</td>
+<td>1.e200</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">react_rho_min</span></code></td>
+<td>minimum density for allowing reactions to occur in a
+zone</td>
+<td>0.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">react_rho_max</span></code></td>
+<td>maximum density for allowing reactions to occur in a
+zone</td>
+<td>1.e200</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">disable_shock_burning</span></code></td>
+<td>disable burning inside hydrodynamic shock regions</td>
 <td>0</td>
 </tr>
 </tbody>
@@ -637,379 +1013,6 @@ maximum number and perform that many?</td>
 <tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_iters</span></code></td>
 <td>Number of iterations for the SDC advance.</td>
 <td>2</td>
-</tr>
-</tbody>
-</table>
-<p><strong>gravity and rotation</strong></p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="36%" />
-<col width="51%" />
-<col width="13%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">parameter</th>
-<th class="head">description</th>
-<th class="head">default value</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_grav</span></code></td>
-<td>permits gravity calculation to be turned on and off</td>
-<td>-1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">moving_center</span></code></td>
-<td>to we recompute the center used for the multipole
-gravity solve each step?</td>
-<td>0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">grav_source_type</span></code></td>
-<td>determines how the gravitational source term is added
-to the momentum and energy state variables.</td>
-<td>4</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">do_rotation</span></code></td>
-<td>permits rotation calculation to be turned on and off</td>
-<td>-1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rotational_period</span></code></td>
-<td>the rotation period for the corotating frame</td>
-<td>-1.e200</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">rotational_dPdt</span></code></td>
-<td>the rotation periods time evolution—this allows the
-rotation rate to change durning the simulation time</td>
-<td>0.0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rotation_include_centrifugal</span></code></td>
-<td>permits the centrifugal terms in the rotation to be
-turned on and off</td>
-<td>1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">rotation_include_coriolis</span></code></td>
-<td>permits the Coriolis terms in the rotation to be turned
-on and off</td>
-<td>1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rotation_include_domegadt</span></code></td>
-<td>permits the d(omega)/dt terms in the rotation to be
-turned on and off</td>
-<td>1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">state_in_rotating_frame</span></code></td>
-<td>Which reference frame to measure the state variables
-with respect to. The standard in the literature when
-using a rotating reference frame is to measure the
-state variables with respect to an observer fixed in
-that rotating frame. If this option is disabled by
-setting it to 0, the state variables will be measured
-with respect to an observer fixed in the inertial frame
-(but the frame will still rotate).</td>
-<td>1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rot_source_type</span></code></td>
-<td>determines how the rotation source terms are added to
-the momentum and energy equations</td>
-<td>4</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">implicit_rotation_update</span></code></td>
-<td>we can do a implicit solution of the rotation update to
-allow for better coupling of the Coriolis terms</td>
-<td>1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rot_axis</span></code></td>
-<td>the coordinate axis ($x=1$, $y=2$, $z=3$) for the
-rotation vector</td>
-<td>3</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">use_point_mass</span></code></td>
-<td>include a central point mass</td>
-<td>1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">point_mass</span></code></td>
-<td>mass of the point mass</td>
-<td>0.0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">point_mass_fix_solution</span></code></td>
-<td>if we have a central point mass, we can prevent mass
-from building up in the zones adjacent to it by keeping
-their density constant and adding their mass to the
-point mass object</td>
-<td>0</td>
-</tr>
-</tbody>
-</table>
-<p><strong>diagnostics, I/O</strong></p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="36%" />
-<col width="51%" />
-<col width="13%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">parameter</th>
-<th class="head">description</th>
-<th class="head">default value</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">print_fortran_warnings</span></code></td>
-<td>display warnings in Fortran90 routines</td>
-<td>(0, 1)</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">print_update_diagnostics</span></code></td>
-<td>display information about updates to the state (how
-much mass, momentum, energy added)</td>
-<td>(0, 1)</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">track_grid_losses</span></code></td>
-<td>calculate losses of material through physical grid
-boundaries</td>
-<td>0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sum_interval</span></code></td>
-<td>how often (number of coarse timesteps) to compute
-integral sums (for runtime diagnostics)</td>
-<td>-1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sum_per</span></code></td>
-<td>how often (simulation time) to compute integral sums
-(for runtime diagnostics)</td>
-<td>-1.0e0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">show_center_of_mass</span></code></td>
-<td>display center of mass diagnostics</td>
-<td>0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">hard_cfl_limit</span></code></td>
-<td>abort if we exceed CFL = 1 over the cource of a
-timestep</td>
-<td>1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">job_name</span></code></td>
-<td>a string describing the simulation that will be copied
-into the plotfile’s {tt job_info} file</td>
-<td>“”</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">output_at_completion</span></code></td>
-<td>write a final plotfile and checkpoint upon completion</td>
-<td>1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_time</span></code></td>
-<td>Do we want to reset the time in the checkpoint? This
-ONLY takes effect if amr.regrid_on_restart = 1 and
-amr.checkpoint_on_restart = 1, (which require that
-max_step and stop_time be less than the value in the
-checkpoint) and you set it to value greater than this
-default value.</td>
-<td>-1.e200</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_step</span></code></td>
-<td>Do we want to reset the number of steps in the
-checkpoint? This ONLY takes effect if
-amr.regrid_on_restart = 1 and
-amr.checkpoint_on_restart = 1, (which require that
-max_step and stop_time be less than the value in the
-checkpoint) and you set it to value greater than this
-default value.</td>
-<td>-1</td>
-</tr>
-</tbody>
-</table>
-<p><strong>particles</strong></p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="36%" />
-<col width="51%" />
-<col width="13%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">parameter</th>
-<th class="head">description</th>
-<th class="head">default value</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_tracer_particles</span></code></td>
-<td>permits tracer particle calculation to be turned on and
-off</td>
-<td>0</td>
-</tr>
-</tbody>
-</table>
-<p><strong>reactions</strong></p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="36%" />
-<col width="51%" />
-<col width="13%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">parameter</th>
-<th class="head">description</th>
-<th class="head">default value</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">dtnuc_e</span></code></td>
-<td>Limit the timestep based on how much the burning can
-change the internal energy of a zone. The timestep is
-equal to {tt dtnuc}  $cdot,(e / dot{e})$.</td>
-<td>1.e200</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">dtnuc_X</span></code></td>
-<td>Limit the timestep based on how much the burning can
-change the species mass fractions of a zone. The
-timestep is equal to {tt dtnuc}  $cdot,(X /
-dot{X})$.</td>
-<td>1.e200</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">dtnuc_X_threshold</span></code></td>
-<td>If we are using the timestep limiter based on changes
-in $X$, set a threshold on the species abundance below
-which the limiter is not applied. This helps prevent
-the timestep from becoming very small due to changes in
-trace species.</td>
-<td>1.e-3</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">dxnuc</span></code></td>
-<td>limit the zone size based on how much the burning can
-change the internal energy of a zone. The zone size on
-the finest level must be smaller than {tt dxnuc}
-$cdot, c_scdot (e / dot{e})$, where $c_s$ is the
-sound speed. This ensures that the sound-crossing time
-is smaller than the nuclear energy injection timescale.</td>
-<td>1.e200</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">dxnuc_max</span></code></td>
-<td>Disable limiting based on dxnuc above this threshold.
-This allows zones that have already ignited or are
-about to ignite to be de-refined.</td>
-<td>1.e200</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">max_dxnuc_lev</span></code></td>
-<td>Disable limiting based on dxnuc above this AMR level.</td>
-<td>-1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_react</span></code></td>
-<td>permits reactions to be turned on and off – mostly for
-efficiency’s sake</td>
-<td>-1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">react_T_min</span></code></td>
-<td>minimum temperature for allowing reactions to occur in
-a zone</td>
-<td>0.0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">react_T_max</span></code></td>
-<td>maximum temperature for allowing reactions to occur in
-a zone</td>
-<td>1.e200</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">react_rho_min</span></code></td>
-<td>minimum density for allowing reactions to occur in a
-zone</td>
-<td>0.0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">react_rho_max</span></code></td>
-<td>maximum density for allowing reactions to occur in a
-zone</td>
-<td>1.e200</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">disable_shock_burning</span></code></td>
-<td>disable burning inside hydrodynamic shock regions</td>
-<td>0</td>
-</tr>
-</tbody>
-</table>
-<p><strong>refinement</strong></p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="36%" />
-<col width="51%" />
-<col width="13%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">parameter</th>
-<th class="head">description</th>
-<th class="head">default value</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_special_tagging</span></code></td>
-<td>&#160;</td>
-<td>0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">spherical_star</span></code></td>
-<td>&#160;</td>
-<td>0</td>
-</tr>
-</tbody>
-</table>
-<p><strong>diffusion</strong></p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="36%" />
-<col width="51%" />
-<col width="13%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">parameter</th>
-<th class="head">description</th>
-<th class="head">default value</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">diffuse_temp</span></code></td>
-<td>enable thermal diffusion</td>
-<td>0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">diffuse_enth</span></code></td>
-<td>enable enthalpy diffusion</td>
-<td>0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">diffuse_spec</span></code></td>
-<td>enable species diffusion</td>
-<td>0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">diffuse_vel</span></code></td>
-<td>enable velocity diffusion</td>
-<td>0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">diffuse_cutoff_density</span></code></td>
-<td>set a cutoff density for diffusion – we zero the term
-out below this density</td>
-<td>-1.e200</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">diffuse_cond_scale_fac</span></code></td>
-<td>scaling factor for conductivity</td>
-<td>1.0</td>
-</tr>
-</tbody>
-</table>
-<p><strong>embiggening</strong></p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="36%" />
-<col width="51%" />
-<col width="13%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">parameter</th>
-<th class="head">description</th>
-<th class="head">default value</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">grown_factor</span></code></td>
-<td>the factor by which to extend the domain upon restart
-for embiggening</td>
-<td>1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">star_at_center</span></code></td>
-<td>used with the embiggening routines to determine how to
-extend the domain</td>
-<td>-1</td>
 </tr>
 </tbody>
 </table>

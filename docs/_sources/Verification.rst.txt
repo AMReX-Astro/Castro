@@ -13,12 +13,12 @@ shock tube. The left and right primitive-variable states are specified
 and the solution evolves until a user-specified end time. For a simple
 discontinuity, the exact solution can be found from an exact Riemann
 solver. For this problem, the exact solutions were computed with the
-exact Riemann solver from Toro :raw-latex:`\cite{toro:1997}`, Chapter 4.
+exact Riemann solver from Toro :cite:`toro:1997`, Chapter 4.
 
 Sod’s Problem
 ~~~~~~~~~~~~~
 
-The Sod problem :raw-latex:`\cite{sod:1978}` is a simple shock tube problem that
+The Sod problem :cite:`sod:1978` is a simple shock tube problem that
 exhibits a shock, contact discontinuity, and a rarefaction wave.
 The initial conditions are:
 
@@ -118,7 +118,7 @@ Double Rarefaction
 ~~~~~~~~~~~~~~~~~~
 
 The double rarefaction is the “Test 2” problem described by Toro
-:raw-latex:`\cite{toro:1997}`, Chapter 6. In this test, the center of the domain
+:cite:`toro:1997`, Chapter 6. In this test, the center of the domain
 is evacuated as two rarefaction waves propagate in each direction, outward
 from the center. It is difficult to get the internal energy to
 behave at the center of the domain because we are creating a vacuum.
@@ -186,7 +186,7 @@ Strong Shock
 ~~~~~~~~~~~~
 
 The strong shock test is the “Test 3” problem described by Toro
-:raw-latex:`\cite{toro:1997}`, Chapter 6. In this test, a large pressure jump
+:cite:`toro:1997`, Chapter 6. In this test, a large pressure jump
 at the initial interface creates a very strong rightward moving
 shock, followed very closely by a contact discontinuity.
 The initial conditions are:
@@ -256,7 +256,7 @@ The Sedov (or Sedov-Taylor) blast wave is a standard hydrodynamics
 test problem. A large amount of energy is placed into a very small
 volume, driving a spherical (or cylindrical in 2-d Cartesian
 coordinates) blast wave. Analytic solutions were found by Sedov
-:raw-latex:`\cite{sedov:1959}`.
+:cite:`sedov:1959`.
 
 A cylindrical blast wave (e.g. a point explosion in a 2-d plane) can
 be modeled in 2-d Cartesian coordinates. A spherical blast wave can
@@ -264,7 +264,7 @@ be modeled in 1-d spherical, 2-d axisymmetric (cylindrical :math:`r`-:math:`z`),
 Cartesian coordinates. This provides a good test on the geometric
 factors in the hydrodynamics solver.
 We use a publically available code, sedov3.f
-:raw-latex:`\cite{timmes_sedov_code}`, to generate the analytic solutions.
+:cite:`timmes_sedov_code`, to generate the analytic solutions.
 
 The Castro implementation of the Sedov problem is in Exec/hydro_tests/Sedov.
 A number of different inputs/probin files are provided, corresponding
@@ -278,7 +278,7 @@ is to be deposited into a single point, in a medium of uniform ambient
 density, :math:`\rho_\mathrm{ambient}`, and pressure, :math:`p_\mathrm{ambient}`.
 Initializing the problem can be difficult because the small volume is
 typically only a cell in extent. This can lead to grid imprinting in
-the solution. A standard solution (see for example :raw-latex:`\cite{omang:2006}`
+the solution. A standard solution (see for example :cite:`omang:2006`
 and the references therein)
 is to convert the explosion energy into a pressure contained within a
 certain volume, :math:`V_\mathrm{init}`, of radius :math:`r_\mathrm{init}` as
@@ -397,7 +397,7 @@ Radiation Test Problems
 
 There are two photon radiation solvers in Castro—a gray solver and a
 multigroup solver. The gray solver follows the algorithm outlined
-in :raw-latex:`\cite{howellgreenough:2003}`. We use the notation described in that
+in :cite:`howellgreenough:2003`. We use the notation described in that
 paper. In particular, the radiation energy equation takes the form
 of:
 
@@ -449,7 +449,7 @@ each case, the gas energy and radiation field will evolve until
 thermal equilibrium is achieved.
 
 Our implementation of this problem follows that of
-:raw-latex:`\cite{swestymyra:2009}`.
+:cite:`swestymyra:2009`.
 
 .. figure:: radiating_source.png
    :alt: radiatin source 
@@ -470,12 +470,12 @@ frequency-dependent opacity makes the domain optically thin for high
 frequecies and optically thick for low frequency. At long times, the
 solution will be a combination of the blackbody radiation from the
 ambient medium plus the radiation that propagated from the hot sphere.
-An analytic solution exists :raw-latex:`\cite{graziani:2008}` which gives the
+An analytic solution exists :cite:`graziani:2008` which gives the
 radiation energy as a function of energy group at a specified time and
 distance from the radiating sphere.
 
 Our implementation of this problem is in Exec/radiation_tests/RadSphere and
-follows that of :raw-latex:`\cite{swestymyra:2009}`. The routine that computes
+follows that of :cite:`swestymyra:2009`. The routine that computes
 the analytic solution is provided as analytic.f90.
 
 .. figure:: radiating_sphere.png

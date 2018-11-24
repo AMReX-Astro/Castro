@@ -145,6 +145,9 @@
 <li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
 <li class="toctree-l1"><a class="reference internal" href="namespacelist.html">Namespace list</a></li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
 
             
           
@@ -267,8 +270,8 @@ several main data structures that hold the state.</p>
 e.g., <code class="docutils literal notranslate"><span class="pre">uin</span></code>, <code class="docutils literal notranslate"><span class="pre">uout</span></code>. The <code class="docutils literal notranslate"><span class="pre">NVAR</span></code>
 components for the state data in the array are accessed using
 integer keys defined in <a class="reference external" href="#table:consints">[table:consints]</a>.</p>
-<table border="1" class="docutils" id="id29">
-<caption><span class="caption-text">[table:consints] The integer variables to index the conservative state array</span><a class="headerlink" href="#id29" title="Permalink to this table">¶</a></caption>
+<table border="1" class="docutils" id="id16">
+<caption><span class="caption-text">[table:consints] The integer variables to index the conservative state array</span><a class="headerlink" href="#id16" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="32%" />
 <col width="32%" />
@@ -751,7 +754,7 @@ keys for the different quantities are listed in Table&nbsp;<a class="reference e
 <p>This has two benefits. First, for a general equation of state,
 carrying around an additional thermodynamic quantity allows us to
 avoid equation of state calls (in particular, in the Riemann solver,
-see e.g.&nbsp;<a href="#id1"><span class="problematic" id="id2">:raw-latex:`\cite{colglaz}`</span></a>). Second, it is sometimes the case that the
+see e.g. <a class="reference internal" href="references.html#colglaz" id="id1">[ColellaGlaz85]</a>). Second, it is sometimes the case that the
 internal energy calculated as</p>
 <div class="math notranslate nohighlight">
 \[e_T \equiv E - \frac{1}{2} \mathbf{v}^2\]</div>
@@ -763,15 +766,14 @@ other source terms, these can indirectly alter the value of the
 internal energy if obtained from the total energy.</p>
 <p>To provide a more reasonable internal energy for defining the
 thermodynamic state, we have implemented the dual energy formalism
-from ENZO <a href="#id3"><span class="problematic" id="id4">:raw-latex:`\cite{bryan:1995,bryan:2014}`</span></a>, where we switch between <span class="math notranslate nohighlight">\((\rho
-e)\)</span> and <span class="math notranslate nohighlight">\((\rho e_T)\)</span> depending on the local state of the fluid. To do
-so, we define parameters <span class="math notranslate nohighlight">\(\eta_1\)</span>, <span class="math notranslate nohighlight">\(\eta_2\)</span>, and <span class="math notranslate nohighlight">\(\eta_3\)</span>,
-corresponding to the code parameters
-castro.dual_energy_eta1,
-castro.dual_energy_eta2, and
-castro.dual_energy_eta3. We then consider the ratio <span class="math notranslate nohighlight">\(e_T
-/ E\)</span>, the ratio of the internal energy (derived from the total energy)
-to the total energy. These parameters are used as follows:</p>
+from ENZO <a class="reference internal" href="references.html#bryan-1995" id="id2">[BryanNormanStone+95]</a>, <a class="reference internal" href="references.html#bryan-2014" id="id3">[BryanNormanOShea+14]</a>, where we switch
+between <span class="math notranslate nohighlight">\((\rho e)\)</span> and <span class="math notranslate nohighlight">\((\rho e_T)\)</span> depending on the local
+state of the fluid. To do so, we define parameters <span class="math notranslate nohighlight">\(\eta_1\)</span>,
+<span class="math notranslate nohighlight">\(\eta_2\)</span>, and <span class="math notranslate nohighlight">\(\eta_3\)</span>, corresponding to the code
+parameters castro.dual_energy_eta1, castro.dual_energy_eta2, and
+castro.dual_energy_eta3. We then consider the ratio <span class="math notranslate nohighlight">\(e_T / E\)</span>,
+the ratio of the internal energy (derived from the total energy) to
+the total energy. These parameters are used as follows:</p>
 <ul>
 <li><p class="first"><span class="math notranslate nohighlight">\(\eta_1\)</span>: If <span class="math notranslate nohighlight">\(e_T &gt; \eta_1 E\)</span>, then we use <span class="math notranslate nohighlight">\(e_T\)</span> for the purpose
 of calculating the pressure in the hydrodynamics update. Otherwise,
@@ -973,7 +975,7 @@ vector, dividing by <span class="math notranslate nohighlight">\(\rho\)</span></
 <p>We also compute the flattening coefficient, <span class="math notranslate nohighlight">\(\chi\in[0,1]\)</span>, used in
 the edge state prediction to further limit slopes near strong shocks.
 We use the same flattening procedure described in the the the original
-PPM paper&nbsp;<a href="#id5"><span class="problematic" id="id6">:raw-latex:`\cite{ppm}`</span></a> and the Flash paper&nbsp;<a href="#id7"><span class="problematic" id="id8">:raw-latex:`\cite{flash}`</span></a>.
+PPM paper <a class="reference internal" href="references.html#ppm" id="id4">[ColellaWoodward84]</a> and the Flash paper <a class="reference internal" href="references.html#flash" id="id5">[FryxellOlsonRicker+00]</a>.
 A flattening coefficient of 1 indicates that no additional limiting
 takes place; a flattening coefficient of 0 means we effectively drop
 order to a first-order Godunov scheme (this convention is opposite of
@@ -1017,15 +1019,15 @@ near shocks (0 or 1; default 1)</li>
 <p>We wish to compute a left and right state of primitive variables at
 each edge to be used as inputs to the Riemann problem. There
 are several reconstruction techniques, a piecewise
-linear method that follows the description in Colella (1990)&nbsp;<a href="#id9"><span class="problematic" id="id10">:raw-latex:`\cite{colella:1990}`</span></a>,
-the classic PPM limiters&nbsp;<a href="#id11"><span class="problematic" id="id12">:raw-latex:`\cite{ppm}`</span></a>, and the new PPM limiters introduced
-in Colella &amp; Sekora (2008)&nbsp;<a href="#id13"><span class="problematic" id="id14">:raw-latex:`\cite{colellasekora}`</span></a>. The choice of
+linear method that follows the description in <a class="reference internal" href="references.html#colella-1990" id="id6">[Colella90]</a>,
+the classic PPM limiters <a class="reference internal" href="references.html#ppm" id="id7">[ColellaWoodward84]</a>, and the new PPM limiters introduced
+in <a class="reference internal" href="references.html#colellasekora" id="id8">[ColellaSekora08]</a>. The choice of
 limiters is determined by castro.ppm_type.</p>
 <p>For the new PPM limiters, we have further modified the method
-of&nbsp;<a href="#id15"><span class="problematic" id="id16">:raw-latex:`\cite{colellasekora}`</span></a> to eliminate sensitivity due to roundoff error
+of <a class="reference internal" href="references.html#colellasekora" id="id9">[ColellaSekora08]</a> to eliminate sensitivity due to roundoff error
 (modifications via personal communication with Colella).</p>
 <p>We also use characteristic tracing with corner coupling in 3D, as
-described in Miller &amp; Colella (2002)&nbsp;<a href="#id17"><span class="problematic" id="id18">:raw-latex:`\cite{millercolella:2002}`</span></a>. We
+described in Miller &amp; Colella (2002) <a class="reference internal" href="references.html#millercolella-2002" id="id10">[MillerColella02]</a>. We
 give full details of the new PPM algorithm, as it has not appeared before
 in the literature, and summarize the developments from Miller &amp;
 Colella.</p>
@@ -1239,7 +1241,7 @@ its transverse update.</li>
 <div class="section" id="riemann-problem">
 <h3>Riemann Problem<a class="headerlink" href="#riemann-problem" title="Permalink to this headline">¶</a></h3>
 <p>Castro has three main options for the Riemann solver—the
-Colella &amp; Glaz solver <a href="#id19"><span class="problematic" id="id20">:raw-latex:`\cite{colglaz}`</span></a> (the same solver used
+Colella &amp; Glaz solver <a class="reference internal" href="references.html#colglaz" id="id11">[ColellaGlaz85]</a> (the same solver used
 by Flash), a simpler solver described in an unpublished
 manuscript by Colella, Glaz, &amp; Ferguson, and an HLLC
 solver. The first two are both
@@ -1327,8 +1329,8 @@ geometries because it relies on the pressure term being part of the flux
 in the momentum equation.</li>
 </ul>
 <p>The default is to use the solver based on an unpublished Colella,
-Glaz, &amp; Ferguson manuscript (it also appears in <a href="#id21"><span class="problematic" id="id22">:raw-latex:`\cite{pember:1996}`</span></a>),
-as described in the original Castro paper <a href="#id23"><span class="problematic" id="id24">:raw-latex:`\cite{castro_I}`</span></a>.</p>
+Glaz, &amp; Ferguson manuscript (it also appears in <a class="reference internal" href="references.html#pember-1996" id="id12">[PGC96]</a>),
+as described in the original Castro paper <a class="reference internal" href="references.html#castro-i" id="id13">[AlmgrenBecknerBell+10]</a>.</p>
 <p>The Colella &amp; Glaz solver is iterative, and two runtime parameters are used
 to control its behavior:</p>
 <ul>
@@ -1434,7 +1436,7 @@ cases. Additionally, it is not specified at all how to reset momenta
 in such a case. Consequently, we desired to improve the situation by
 limiting fluxes such that negative densities could not occur, so that
 such a reset would in practice always be avoided. Our solution
-implements the positivity-preserving method of <a href="#id25"><span class="problematic" id="id26">:raw-latex:`\cite{hu:2013}`</span></a>. This
+implements the positivity-preserving method of <a class="reference internal" href="references.html#hu-2013" id="id14">[HuAdamsShu13]</a>. This
 behavior is controlled by
 castro.limit_fluxes_on_small_dens.</p>
 <p>A hydrodynamical update to a zone can be broken down into an update
@@ -1464,7 +1466,7 @@ hold. In regions where the density is not at risk of going negative,
 <span class="math notranslate nohighlight">\(\theta \approx 1\)</span> and the original hydrodynamic update is recovered.
 Further discussion, including a proof of the method, a description of
 multi-dimensional effects, and test verification problems, can be
-found in <a href="#id27"><span class="problematic" id="id28">:raw-latex:`\cite{hu:2013}`</span></a>.</p>
+found in <a class="reference internal" href="references.html#hu-2013" id="id15">[HuAdamsShu13]</a>.</p>
 </div>
 </div>
 </div>

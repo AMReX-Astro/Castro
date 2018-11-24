@@ -99,6 +99,8 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Visualization</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#controlling-whats-in-the-plotfile">Controlling What’s in the PlotFile</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#plotfile-variables">Plotfile Variables</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#native-variables">Native variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#derived-variables">Derived variables</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#problem-specific-plotfile-variables">problem-specific plotfile variables</a></li>
 </ul>
 </li>
@@ -132,6 +134,9 @@
 <li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
 <li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
 <li class="toctree-l1"><a class="reference internal" href="namespacelist.html">Namespace list</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 
             
@@ -256,6 +261,14 @@ derived variables that Castro&nbsp;knows about by doing:</p>
 </div>
 <div class="section" id="plotfile-variables">
 <h2>Plotfile Variables<a class="headerlink" href="#plotfile-variables" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="native-variables">
+<h3>Native variables<a class="headerlink" href="#native-variables" title="Permalink to this headline">¶</a></h3>
+<p>These variables come directly from the <code class="docutils literal notranslate"><span class="pre">StateData</span></code>, either the
+<code class="docutils literal notranslate"><span class="pre">State_Type</span></code> (for the hydrodynamic variables), <code class="docutils literal notranslate"><span class="pre">Reactions_Type</span></code>
+(for the nuclear energy generation quantities). <code class="docutils literal notranslate"><span class="pre">PhiGrav_Type</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Gravity_Type</span></code> (for the gravity quantities), <code class="docutils literal notranslate"><span class="pre">PhiRot_Type</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Rotation_Type</span></code> (for the rotation quantities) and <code class="docutils literal notranslate"><span class="pre">Rad_Type</span></code> (for
+radiation quantities).</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="28%" />
@@ -269,288 +282,295 @@ derived variables that Castro&nbsp;knows about by doing:</p>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">angular_momentum_x</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">angular_momentum_y</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">angular_momentum_z</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">density</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">diff_coeff</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">diff_term</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">divu</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">eint_e</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">eint_E</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">entropy</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">enuc</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">Ertot</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">Frcomx</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">Frlabx</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">Gamma_1</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">grav_x</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">grav_y</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">grav_z</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">inertial_angular_momentum_x</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">inertial_angular_momentum_y</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">inertial_angular_momentum_z</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">inertial_momentum_x</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">inertial_momentum_y</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">inertial_momentum_z</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">inertial_radial_momentum_x</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">inertial_radial_momentum_y</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">inertial_radial_momentum_z</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">kineng</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">lambda</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">lmom</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">logden</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">MachNumber</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">maggrav</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">magmom</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">magvel</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">magvort</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">omegadot_ar36</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">phiEff</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">phiEffPM_P</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">phiEffPM_S</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">phiGrav</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">phiRot</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">pmom</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">pressure</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rad</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">rad0</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">radvel</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">rho_ar36</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rmom</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">rot_x</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rot_y</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">rot_z</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">secondarymask</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">Shock</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">soundspeed</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">StateErr</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">Temp</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">thermal_cond</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">tpert</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">t_sound_t_enuc</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">uminusc</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">uplusc</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">X(ar36)</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">density</span></code></td>
+<td>Mass density, <span class="math notranslate nohighlight">\(\rho\)</span></td>
+<td><span class="math notranslate nohighlight">\(\gcc\)</span></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">xmom</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">x_velocity</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">Ye</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
+<td>x-momentum, <span class="math notranslate nohighlight">\((\rho u)\)</span></td>
+<td><span class="math notranslate nohighlight">\({\rm g~cm^{-2}~s^{-1}}\)</span></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">ymom</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
+<td>y-momentum, <span class="math notranslate nohighlight">\((\rho v)\)</span></td>
+<td><span class="math notranslate nohighlight">\({\rm g~cm^{-2}~s^{-1}}\)</span></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">y_velocity</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">zmom</span></code></td>
+<td>z-momentum, <span class="math notranslate nohighlight">\((\rho w)\)</span></td>
+<td><span class="math notranslate nohighlight">\({\rm g~cm^{-2}~s^{-1}}\)</span></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">zmom</span></code></td>
-<td>&#160;</td>
-<td>&#160;</td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rho_E</span></code></td>
+<td>Total energy density</td>
+<td><span class="math notranslate nohighlight">\({\rm erg~cm^{-3}}\)</span></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">z_velocity</span></code></td>
-<td>&#160;</td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">rho_e</span></code></td>
+<td>Internal energy density</td>
+<td><span class="math notranslate nohighlight">\({\rm erg~cm^{-3}}\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">Temp</span></code></td>
+<td>Temperature</td>
+<td><span class="math notranslate nohighlight">\({\rm K}\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">rho_X</span></code>
+(where X is any of the species
+defined in the network)</td>
+<td>Mass density of species X</td>
+<td><span class="math notranslate nohighlight">\(\gcc\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">omegadot_X</span></code>
+(where X is any of the species
+defined in the network)</td>
+<td>Creation rate of species X
+<span class="math notranslate nohighlight">\(\omegadot_k = DX_k/Dt\)</span></td>
+<td><span class="math notranslate nohighlight">\({\rm s^{-1}}\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">enuc</span></code></td>
+<td>Nuclear energy generation rate / gram</td>
+<td><span class="math notranslate nohighlight">\({\rm erg~g^{-1}~s^{-1}}\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rho_enuc</span></code></td>
+<td>Nuclear energy generation rate density</td>
+<td><span class="math notranslate nohighlight">\({\rm erg~cm^{-3}~s^{-1}}\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">phiGrav</span></code></td>
+<td>Gravitational potential</td>
+<td><span class="math notranslate nohighlight">\({\rm erg~g^{-1}}\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">grav_x</span></code>, <code class="docutils literal notranslate"><span class="pre">grav_y</span></code>,
+<code class="docutils literal notranslate"><span class="pre">grav_z</span></code></td>
+<td>Gravitational acceleration</td>
+<td><span class="math notranslate nohighlight">\({\rm cm~s^{-2}}\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">phiRot</span></code></td>
+<td>Effective centrifugal potential</td>
+<td><span class="math notranslate nohighlight">\({\rm erg~g^{-1}}\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rot_x</span></code>. <code class="docutils literal notranslate"><span class="pre">rot_y</span></code>, <code class="docutils literal notranslate"><span class="pre">rot_z</span></code></td>
+<td>Rotational acceleration</td>
+<td><span class="math notranslate nohighlight">\({\rm cm~s^{-2}}\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">rmom</span></code></td>
+<td>Radial momentum (defined for
+<code class="docutils literal notranslate"><span class="pre">HYBRID_MOMENTUM</span></code>)</td>
+<td><span class="math notranslate nohighlight">\({\rm g~cm^{-2}~s^{-1}}\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">lmom</span></code></td>
+<td>Angular momentum (<span class="math notranslate nohighlight">\(\theta\)</span>; defined for
+<code class="docutils literal notranslate"><span class="pre">HYBRID_MOMENTUM</span></code>)</td>
+<td><span class="math notranslate nohighlight">\({\rm g~cm^{-2}~s^{-1}}\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">pmom</span></code></td>
+<td>z-momentum (defined for <code class="docutils literal notranslate"><span class="pre">HYBRID_MOMENTUM</span></code>)</td>
+<td><span class="math notranslate nohighlight">\({\rm g~cm^{-2}~s^{-1}}\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">Shock</span></code></td>
+<td>Shock flag (= 1 if a zone has a shock;
+defined for <code class="docutils literal notranslate"><span class="pre">SHOCK</span></code>)</td>
+<td>–</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">rad</span></code>, <code class="docutils literal notranslate"><span class="pre">rad0</span></code>, <code class="docutils literal notranslate"><span class="pre">rad1</span></code>,
+…</td>
+<td>Radiation energy density
+(for multigroup radiation, each group has its
+own variable)</td>
 <td>&#160;</td>
 </tr>
 </tbody>
 </table>
+</div>
+<div class="section" id="derived-variables">
+<h3>Derived variables<a class="headerlink" href="#derived-variables" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="33%" />
+<col width="19%" />
+<col width="25%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">variable name</th>
+<th class="head">description</th>
+<th class="head">derive routine</th>
+<th class="head">units</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">angular_momentum_x</span></code>,
+<code class="docutils literal notranslate"><span class="pre">angular_momentum_y</span></code>,
+<code class="docutils literal notranslate"><span class="pre">angular_momentum_z</span></code></td>
+<td>Angular momentum / volume in the x, y, or z dir
+computed as <span class="math notranslate nohighlight">\([(\rho \ub) \times {\bf r}]_n\)</span>
+where <span class="math notranslate nohighlight">\({\bf r}\)</span> is the distance from the
+origin and <span class="math notranslate nohighlight">\(n\)</span> is either x, y, or z</td>
+<td><code class="docutils literal notranslate"><span class="pre">derangmomx</span></code>,
+<code class="docutils literal notranslate"><span class="pre">derangmomy</span></code>,
+<code class="docutils literal notranslate"><span class="pre">derangmomz</span></code></td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">diff_coeff</span></code></td>
+<td>Thermal diffusion coefficient,
+<span class="math notranslate nohighlight">\(\kth/(\rho c_v)\)</span></td>
+<td><code class="docutils literal notranslate"><span class="pre">derdiffcoeff</span></code></td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">diff_term</span></code></td>
+<td><span class="math notranslate nohighlight">\(\nabla\cdot(\kth\nabla T)\)</span></td>
+<td><code class="docutils literal notranslate"><span class="pre">derdiffterm</span></code></td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">divu</span></code></td>
+<td><span class="math notranslate nohighlight">\(\nabla \cdot \ub\)</span></td>
+<td><code class="docutils literal notranslate"><span class="pre">derdivu</span></code></td>
+<td><span class="math notranslate nohighlight">\({\rm s^{-1}}\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">eint_e</span></code></td>
+<td>Specific internal energy computed from the
+conserved <span class="math notranslate nohighlight">\((\rho e)\)</span> state variable as
+<span class="math notranslate nohighlight">\(e = (\rho e)/\rho\)</span></td>
+<td><code class="docutils literal notranslate"><span class="pre">dereint2</span></code></td>
+<td><span class="math notranslate nohighlight">\({\rm erg~g^{-1}}\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">eint_E</span></code></td>
+<td>Specific internal energy computed from the
+total energy and momentum conserved state as
+<span class="math notranslate nohighlight">\(e=[(\rho E)-\frac{1}{2}(\rho \ub^2)]/\rho\)</span></td>
+<td><code class="docutils literal notranslate"><span class="pre">dereint1</span></code></td>
+<td><span class="math notranslate nohighlight">\({\rm erg~g^{-1}}\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">entropy</span></code></td>
+<td>Specific entropy, <span class="math notranslate nohighlight">\(s\)</span>, computed as
+<span class="math notranslate nohighlight">\(s = s(\rho, e, X_k)\)</span>, where <cite>e</cite> is
+computed from <span class="math notranslate nohighlight">\((\rho e)\)</span></td>
+<td><code class="docutils literal notranslate"><span class="pre">derentropy</span></code></td>
+<td><span class="math notranslate nohighlight">\({\rm erg~g^{-1}~K^{-1}}\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">Ertot</span></code></td>
+<td>Total radiation energy density
+(for multigroup radiation problems)</td>
+<td><code class="docutils literal notranslate"><span class="pre">derertot</span></code></td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">Frcomx</span></code>, <code class="docutils literal notranslate"><span class="pre">Frcomy</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Frcomz</span></code></td>
+<td>Comoving radiation flux</td>
+<td><code class="docutils literal notranslate"><span class="pre">Radiation.cpp</span></code></td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">Frlabx</span></code>, <code class="docutils literal notranslate"><span class="pre">Frlaby</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Frlabz</span></code></td>
+<td>Lab-frame radiation flux</td>
+<td><code class="docutils literal notranslate"><span class="pre">Radiation.cpp</span></code></td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">Gamma_1</span></code></td>
+<td>Adiabatic index,
+<span class="math notranslate nohighlight">\(d\log p/d\log \rho|_s\)</span></td>
+<td><code class="docutils literal notranslate"><span class="pre">dergamma1</span></code></td>
+<td>–</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">kineng</span></code></td>
+<td>Kinetic energy density,
+<span class="math notranslate nohighlight">\(K = \frac{1}{2} |(\rho \ub)|^2\)</span></td>
+<td><code class="docutils literal notranslate"><span class="pre">derkineng</span></code></td>
+<td><span class="math notranslate nohighlight">\({\rm erg~cm^{-3}}\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">lambda</span></code></td>
+<td>Radiation flux limiter</td>
+<td>&#160;</td>
+<td>–</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">logden</span></code></td>
+<td><span class="math notranslate nohighlight">\(\log_{10} \rho\)</span></td>
+<td><code class="docutils literal notranslate"><span class="pre">derlogten</span></code></td>
+<td>dimensionless, assuming <span class="math notranslate nohighlight">\(\rho\)</span>
+is in CGS</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">MachNumber</span></code></td>
+<td>Fluid Mach number, <span class="math notranslate nohighlight">\(|\ub|/c_s\)</span></td>
+<td><code class="docutils literal notranslate"><span class="pre">dermachnumber</span></code></td>
+<td>–</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">maggrav</span></code></td>
+<td>Gravitational acceleration magnitude</td>
+<td><code class="docutils literal notranslate"><span class="pre">dermaggrav</span></code></td>
+<td><span class="math notranslate nohighlight">\({\rm cm~s^{-2}}\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">magmom</span></code></td>
+<td>Momentum density magnitude,
+<span class="math notranslate nohighlight">\(|\rho \ub|\)</span></td>
+<td><code class="docutils literal notranslate"><span class="pre">dermagmom</span></code></td>
+<td><span class="math notranslate nohighlight">\({\rm g~cm^{-2}~s^{-1}}\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">magvel</span></code></td>
+<td>Velocity magnitude, <span class="math notranslate nohighlight">\(|\ub|\)</span></td>
+<td><code class="docutils literal notranslate"><span class="pre">dermagvel</span></code></td>
+<td><span class="math notranslate nohighlight">\(\cms\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">magvort</span></code></td>
+<td>Vorticity magnitude, <span class="math notranslate nohighlight">\(|\nabla\times\ub|\)</span></td>
+<td><code class="docutils literal notranslate"><span class="pre">dermagvort</span></code></td>
+<td><span class="math notranslate nohighlight">\({\rm s^{-1}}\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">pressure</span></code></td>
+<td>Total pressure, including ions, electrons,
+and radiation (for non radhydro problems)</td>
+<td><code class="docutils literal notranslate"><span class="pre">derpres</span></code></td>
+<td><span class="math notranslate nohighlight">\({\rm dyn~cm^{-2}}\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">radvel</span></code></td>
+<td>Radial velocity (measured with respect to
+<cite>center</cite>),
+<span class="math notranslate nohighlight">\((xu + yv + zw)/r\)</span></td>
+<td><code class="docutils literal notranslate"><span class="pre">derradialvel</span></code></td>
+<td><span class="math notranslate nohighlight">\(\cms\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">soundspeed</span></code></td>
+<td>Sound speed</td>
+<td><code class="docutils literal notranslate"><span class="pre">dersoundspeed</span></code></td>
+<td><span class="math notranslate nohighlight">\(\cms\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">StateErr</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">thermal_cond</span></code></td>
+<td>Thermal conductivity, <span class="math notranslate nohighlight">\(\kth\)</span></td>
+<td><code class="docutils literal notranslate"><span class="pre">dercond</span></code></td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">t_sound_t_enuc</span></code></td>
+<td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">derenuctimescale</span></code></td>
+<td>–</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">uminusc</span></code></td>
+<td>(only for 1D) x-velocity <span class="math notranslate nohighlight">\(-\)</span> sound
+speed</td>
+<td><code class="docutils literal notranslate"><span class="pre">deruminusc</span></code></td>
+<td><span class="math notranslate nohighlight">\(\cms\)</span></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">uplusc</span></code></td>
+<td>(only for 1D) x-velocity + sound speed</td>
+<td><code class="docutils literal notranslate"><span class="pre">deruplusc</span></code></td>
+<td><span class="math notranslate nohighlight">\(\cms\)</span></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">X(q)</span></code></td>
+<td>Mass fraction of species q
+<span class="math notranslate nohighlight">\(X_k = (\rho X_k)/\rho\)</span></td>
+<td><code class="docutils literal notranslate"><span class="pre">derspec</span></code></td>
+<td>–</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">x_velocity</span></code>,
+<code class="docutils literal notranslate"><span class="pre">y_velocity</span></code>,
+<code class="docutils literal notranslate"><span class="pre">z_velocity</span></code></td>
+<td>Fluid velocity,
+<span class="math notranslate nohighlight">\(\ub = (\rho \ub)/\rho\)</span></td>
+<td><code class="docutils literal notranslate"><span class="pre">dervel</span></code></td>
+<td><span class="math notranslate nohighlight">\(\cms\)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
 <div class="section" id="problem-specific-plotfile-variables">
 <h3>problem-specific plotfile variables<a class="headerlink" href="#problem-specific-plotfile-variables" title="Permalink to this headline">¶</a></h3>
 <table border="1" class="docutils">
@@ -591,6 +611,40 @@ derived variables that Castro&nbsp;knows about by doing:</p>
 <td>&#160;</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">Texact</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">inertial_angular_momentum_x</span></code>,
+<code class="docutils literal notranslate"><span class="pre">inertial_angular_momentum_y</span></code>,
+<code class="docutils literal notranslate"><span class="pre">inertial_angular_momentum_z</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">inertial_momentum_x</span></code>,
+<code class="docutils literal notranslate"><span class="pre">inertial_momentum_y</span></code>,
+<code class="docutils literal notranslate"><span class="pre">inertial_momentum_z</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">inertial_radial_momentum_x</span></code>,
+<code class="docutils literal notranslate"><span class="pre">inertial_radial_momentum_y</span></code>,
+<code class="docutils literal notranslate"><span class="pre">inertial_radial_momentum_z</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">phiEff</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">phiEffPM_P</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">phiEffPM_S</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">tpert</span></code></td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>

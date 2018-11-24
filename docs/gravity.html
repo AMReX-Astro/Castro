@@ -141,6 +141,9 @@
 <li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
 <li class="toctree-l1"><a class="reference internal" href="namespacelist.html">Namespace list</a></li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
 
             
           
@@ -245,7 +248,7 @@ interfaces, the data from the coarse levels acts as Dirichlet
 boundary conditions for the current-level-solve.</li>
 </ul>
 <p>The overall integration strategy is unchanged from the discussion in
-<a href="#id1"><span class="problematic" id="id2">:raw-latex:`\cite{castro_I}`</span></a>. Briefly:</p>
+<a class="reference internal" href="references.html#castro-i" id="id1">[AlmgrenBecknerBell+10]</a>. Briefly:</p>
 <ul>
 <li><p class="first">At the beginning of a simulation, we do a multilevel composite
 solve (if <code class="docutils literal notranslate"><span class="pre">gravity.no_composite</span></code> = 0).</p>
@@ -487,7 +490,7 @@ outwards from the center to get <span class="math notranslate nohighlight">\(\ph
 <span id="sec-poisson-3d-bcs"></span><h4>Poisson Boundary Conditions: 3D<a class="headerlink" href="#poisson-boundary-conditions-3d" title="Permalink to this headline">¶</a></h4>
 <p>The following describes methods for doing isolated boundary
 conditions. The best reference for Castro’s implementation of this
-is <a href="#id3"><span class="problematic" id="id4">:raw-latex:`\cite{katz:2016}`</span></a>.</p>
+is <a class="reference internal" href="references.html#katz-2016" id="id2">[KatzZingaleCalder+16]</a>.</p>
 <ul>
 <li><p class="first"><strong>Multipole Expansion</strong></p>
 <p>In 3D, by default, we use a multipole expansion to estimate the value
@@ -584,7 +587,7 @@ setting <code class="docutils literal notranslate"><span class="pre">gravity.dir
 </div>
 <div class="section" id="prescribedgrav">
 <h3><code class="docutils literal notranslate"><span class="pre">PrescribedGrav</span></code><a class="headerlink" href="#prescribedgrav" title="Permalink to this headline">¶</a></h3>
-<p>With PrescribedGrav <a class="footnote-reference" href="#id13" id="id5">[1]</a>, gravity can be defined as a function that is
+<p>With PrescribedGrav <a class="footnote-reference" href="#id8" id="id3">[1]</a>, gravity can be defined as a function that is
 specified by the user. The option is allowed in 2D and 3D. To define
 the gravity vector, copy <code class="docutils literal notranslate"><span class="pre">prescribe_grav_nd.f90</span></code> from
 <code class="docutils literal notranslate"><span class="pre">Source/gravity/</span></code> to your run directory. The makefile system will
@@ -620,14 +623,14 @@ back to the grid). This calculation is done in
 <div class="section" id="gr-correction">
 <h2>GR correction<a class="headerlink" href="#gr-correction" title="Permalink to this headline">¶</a></h2>
 <p>In the cases of compact objects or very massive stars, the general
-relativity (GR) effect starts to play a role <a class="footnote-reference" href="#id14" id="id6">[2]</a>. First, we consider
+relativity (GR) effect starts to play a role <a class="footnote-reference" href="#id9" id="id4">[2]</a>. First, we consider
 the hydrostatic equilibrium due to effects of GR then derive
 GR-correction term for Newtonian gravity.  The correction term is
 applied to the monopole approximation only when <code class="docutils literal notranslate"><span class="pre">USE_GR</span></code> = TRUE is
 set in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.</p>
 <p>The formulae of GR-correction here are based on
-<a href="#id7"><span class="problematic" id="id8">:raw-latex:`\cite{grbk1}`</span></a>. For detailed physics, please refer to
-<a href="#id9"><span class="problematic" id="id10">:raw-latex:`\cite{grbk2}`</span></a>. For describing very strong gravitational
+[grbk1]. For detailed physics, please refer to
+[grbk2]. For describing very strong gravitational
 field, we need to use Einstein field equations</p>
 <div class="math notranslate nohighlight">
 \[\label{field}
@@ -750,20 +753,20 @@ of the source term at the cell center, but this method evaluates the
 change in energy at cell edges, using the hydrodynamical mass
 fluxes, permitting total energy to be conserved (excluding possible
 losses at open domain boundaries). See
-<a href="#id11"><span class="problematic" id="id12">:raw-latex:`\cite{katzthesis}`</span></a> for some more details.</li>
+<a class="reference internal" href="references.html#katzthesis" id="id7">[Katz16]</a> for some more details.</li>
 </ul>
-<table class="docutils footnote" frame="void" id="id13" rules="none">
+<table class="docutils footnote" frame="void" id="id8" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id5">[1]</a></td><td>Note: The <code class="docutils literal notranslate"><span class="pre">PrescribedGrav</span></code>
+<tr><td class="label"><a class="fn-backref" href="#id3">[1]</a></td><td>Note: The <code class="docutils literal notranslate"><span class="pre">PrescribedGrav</span></code>
 option and text here were contributed by Jan Frederik Engels of
 University of Gottingen.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id14" rules="none">
+<table class="docutils footnote" frame="void" id="id9" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id6">[2]</a></td><td>Note: The GR
+<tr><td class="label"><a class="fn-backref" href="#id4">[2]</a></td><td>Note: The GR
 code and text here were contributed by Ken Chen of Univ. of
 Minnesota.</td></tr>
 </tbody>

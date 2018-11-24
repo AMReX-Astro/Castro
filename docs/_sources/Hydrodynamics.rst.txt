@@ -414,7 +414,7 @@ We augment the above system with an internal energy equation:
 This has two benefits. First, for a general equation of state,
 carrying around an additional thermodynamic quantity allows us to
 avoid equation of state calls (in particular, in the Riemann solver,
-see e.g. :raw-latex:`\cite{colglaz}`). Second, it is sometimes the case that the
+see e.g. :cite:`colglaz`). Second, it is sometimes the case that the
 internal energy calculated as
 
 .. math:: e_T \equiv E - \frac{1}{2} \mathbf{v}^2
@@ -428,15 +428,14 @@ internal energy if obtained from the total energy.
 
 To provide a more reasonable internal energy for defining the
 thermodynamic state, we have implemented the dual energy formalism
-from ENZO :raw-latex:`\cite{bryan:1995,bryan:2014}`, where we switch between :math:`(\rho
-e)` and :math:`(\rho e_T)` depending on the local state of the fluid. To do
-so, we define parameters :math:`\eta_1`, :math:`\eta_2`, and :math:`\eta_3`,
-corresponding to the code parameters
-castro.dual_energy_eta1,
-castro.dual_energy_eta2, and
-castro.dual_energy_eta3. We then consider the ratio :math:`e_T
-/ E`, the ratio of the internal energy (derived from the total energy)
-to the total energy. These parameters are used as follows:
+from ENZO :cite:`bryan:1995`, :cite:`bryan:2014`, where we switch
+between :math:`(\rho e)` and :math:`(\rho e_T)` depending on the local
+state of the fluid. To do so, we define parameters :math:`\eta_1`,
+:math:`\eta_2`, and :math:`\eta_3`, corresponding to the code
+parameters castro.dual_energy_eta1, castro.dual_energy_eta2, and
+castro.dual_energy_eta3. We then consider the ratio :math:`e_T / E`,
+the ratio of the internal energy (derived from the total energy) to
+the total energy. These parameters are used as follows:
 
 -  :math:`\eta_1`: If :math:`e_T > \eta_1 E`, then we use :math:`e_T` for the purpose
    of calculating the pressure in the hydrodynamics update. Otherwise,
@@ -662,7 +661,7 @@ We compute the primtive variables from the conserved variables.
 We also compute the flattening coefficient, :math:`\chi\in[0,1]`, used in
 the edge state prediction to further limit slopes near strong shocks.
 We use the same flattening procedure described in the the the original
-PPM paper :raw-latex:`\cite{ppm}` and the Flash paper :raw-latex:`\cite{flash}`.
+PPM paper :cite:`ppm` and the Flash paper :cite:`flash`.
 A flattening coefficient of 1 indicates that no additional limiting
 takes place; a flattening coefficient of 0 means we effectively drop
 order to a first-order Godunov scheme (this convention is opposite of
@@ -709,17 +708,17 @@ Edge State Prediction
 We wish to compute a left and right state of primitive variables at
 each edge to be used as inputs to the Riemann problem. There
 are several reconstruction techniques, a piecewise
-linear method that follows the description in Colella (1990) :raw-latex:`\cite{colella:1990}`,
-the classic PPM limiters :raw-latex:`\cite{ppm}`, and the new PPM limiters introduced
-in Colella & Sekora (2008) :raw-latex:`\cite{colellasekora}`. The choice of
+linear method that follows the description in :cite:`colella:1990`,
+the classic PPM limiters :cite:`ppm`, and the new PPM limiters introduced
+in :cite:`colellasekora`. The choice of
 limiters is determined by castro.ppm_type.
 
 For the new PPM limiters, we have further modified the method
-of :raw-latex:`\cite{colellasekora}` to eliminate sensitivity due to roundoff error
+of :cite:`colellasekora` to eliminate sensitivity due to roundoff error
 (modifications via personal communication with Colella).
 
 We also use characteristic tracing with corner coupling in 3D, as
-described in Miller & Colella (2002) :raw-latex:`\cite{millercolella:2002}`. We
+described in Miller & Colella (2002) :cite:`millercolella:2002`. We
 give full details of the new PPM algorithm, as it has not appeared before
 in the literature, and summarize the developments from Miller &
 Colella.
@@ -953,7 +952,7 @@ Riemann Problem
 ---------------
 
 Castro has three main options for the Riemann solver—the
-Colella & Glaz solver :raw-latex:`\cite{colglaz}` (the same solver used
+Colella & Glaz solver :cite:`colglaz` (the same solver used
 by Flash), a simpler solver described in an unpublished
 manuscript by Colella, Glaz, & Ferguson, and an HLLC
 solver. The first two are both
@@ -1063,8 +1062,8 @@ parameters apply:
       in the momentum equation.
 
    The default is to use the solver based on an unpublished Colella,
-   Glaz, & Ferguson manuscript (it also appears in :raw-latex:`\cite{pember:1996}`),
-   as described in the original Castro paper :raw-latex:`\cite{castro_I}`.
+   Glaz, & Ferguson manuscript (it also appears in :cite:`pember:1996`),
+   as described in the original Castro paper :cite:`castro_I`.
 
    The Colella & Glaz solver is iterative, and two runtime parameters are used
    to control its behavior:
@@ -1179,7 +1178,7 @@ cases. Additionally, it is not specified at all how to reset momenta
 in such a case. Consequently, we desired to improve the situation by
 limiting fluxes such that negative densities could not occur, so that
 such a reset would in practice always be avoided. Our solution
-implements the positivity-preserving method of :raw-latex:`\cite{hu:2013}`. This
+implements the positivity-preserving method of :cite:`hu:2013`. This
 behavior is controlled by
 castro.limit_fluxes_on_small_dens.
 
@@ -1212,4 +1211,4 @@ hold. In regions where the density is not at risk of going negative,
 :math:`\theta \approx 1` and the original hydrodynamic update is recovered.
 Further discussion, including a proof of the method, a description of
 multi-dimensional effects, and test verification problems, can be
-found in :raw-latex:`\cite{hu:2013}`.
+found in :cite:`hu:2013`.
