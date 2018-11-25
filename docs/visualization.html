@@ -216,6 +216,21 @@
     margin-top: -19px;
 }
 
+/* nice headers on first paragraph of info/warning boxes */
+.admonition .first {
+    margin: -12px;
+    padding: 6px 12px;
+    margin-bottom: 12px;
+    color: #fff;
+    line-height: 1;
+    display: block;
+}
+.admonition.warning .first {
+    background: #f0b37e;
+}
+.admonition.note .first {
+    background: #6ab0de;
+}
 .admonition > p:before {
     margin-right: 4px;  /* make room for the exclamation icon */
 }
@@ -381,10 +396,10 @@ own variable)</td>
 <h3>Derived variables<a class="headerlink" href="#derived-variables" title="Permalink to this headline">¶</a></h3>
 <table border="1" class="docutils">
 <colgroup>
-<col width="23%" />
+<col width="22%" />
 <col width="33%" />
 <col width="19%" />
-<col width="25%" />
+<col width="26%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">variable name</th>
@@ -404,18 +419,18 @@ origin and <span class="math notranslate nohighlight">\(n\)</span> is either x, 
 <td><code class="docutils literal notranslate"><span class="pre">derangmomx</span></code>,
 <code class="docutils literal notranslate"><span class="pre">derangmomy</span></code>,
 <code class="docutils literal notranslate"><span class="pre">derangmomz</span></code></td>
-<td>&#160;</td>
+<td><span class="math notranslate nohighlight">\({\rm g~cm^{-1}~s^{-1}\)</span></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">diff_coeff</span></code></td>
 <td>Thermal diffusion coefficient,
 <span class="math notranslate nohighlight">\(\kth/(\rho c_v)\)</span></td>
 <td><code class="docutils literal notranslate"><span class="pre">derdiffcoeff</span></code></td>
-<td>&#160;</td>
+<td><span class="math notranslate nohighlight">\({\rm cm^2~s^{-1}}\)</span></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">diff_term</span></code></td>
 <td><span class="math notranslate nohighlight">\(\nabla\cdot(\kth\nabla T)\)</span></td>
 <td><code class="docutils literal notranslate"><span class="pre">derdiffterm</span></code></td>
-<td>&#160;</td>
+<td><span class="math notranslate nohighlight">\({\rm erg~cm^{-3}~s^{-1}}\)</span></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">divu</span></code></td>
 <td><span class="math notranslate nohighlight">\(\nabla \cdot \ub\)</span></td>
@@ -536,7 +551,7 @@ and radiation (for non radhydro problems)</td>
 <tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">thermal_cond</span></code></td>
 <td>Thermal conductivity, <span class="math notranslate nohighlight">\(\kth\)</span></td>
 <td><code class="docutils literal notranslate"><span class="pre">dercond</span></code></td>
-<td>&#160;</td>
+<td><span class="math notranslate nohighlight">\({\rm erg~cm^{-1}~s^{-1}~K^{-1}}\)</span></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">t_sound_t_enuc</span></code></td>
 <td>&#160;</td>

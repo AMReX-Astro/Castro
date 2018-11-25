@@ -2,18 +2,18 @@
 Preface
 *******
 
-Welcome to the Castro User’s Guide!
+Welcome to the Castro User’s Guide!
 
 In this User’s Guide we describe how to download and run Castro, a
 massively parallel code that solves the multicomponent compressible
 hydrodynamic equations for astrophysical flows including self-gravity,
-nuclear reactions and radiation. Castro uses an Eulerian grid and
+nuclear reactions and radiation. Castro uses an Eulerian grid and
 incorporates adaptive mesh refinement (AMR). Our approach to AMR uses
 a nested hierarchy of logically-rectangular grids with simultaneous
 refinement in both space and time, utilizing the
-AMReX library.
+AMReX library.
 
-The core algorithms in Castro are described in a series of papers:
+The core algorithms in Castro are described in a series of papers:
 
   * *CASTRO: A New Compressible Astrophysical Solver. I. Hydrodynamics
     and Self-gravity*, A. S. Almgren, V. E. Beckner, J. B. Bell,
@@ -48,30 +48,28 @@ including the CCSE and Stony Brook University.
 
 Castro *core developers* are those who have made substantial
 contributions to the code. The process for becoming a core developer
-is described in the README.md in the Castro root directory.
+is described in the `README.md <https://github.com/AMReX-Astro/Castro/blob/master/README.md>`_ in the Castro root directory.
 Current Castro core developers are:
 
-    Ann Almgren
-    Maria G. Barrios Sazo
-    John Bell
-    Vince Beckner
-    Marc Day
-    Max Katz
-    Mike Lijewski
-    Chris Malone
-    Andy Nonaka
-    Don Willcox
-    Weiqun Zhang
-    Michael Zingale
+  * Ann Almgren
+  * Maria G. Barrios Sazo
+  * John Bell
+  * Vince Beckner
+  * Marc Day
+  * Max Katz
+  * Mike Lijewski
+  * Chris Malone
+  * Andy Nonaka
+  * Don Willcox
+  * Weiqun Zhang
+  * Michael Zingale
 
 All Castro development takes place on the project’s github
-page
-
-https://github.com/AMReX-Astro/Castro
+page, https://github.com/AMReX-Astro/Castro
 
 External contributions are welcomed. Fork the Castro repo, modify your
 local copy, and issue a pull-request to the AMReX-Astro/Castro
-project. Further guidelines are given in the README.md file.
+project. Further guidelines are given in the ``README.md`` file.
 
 To get help, subscribe to the *castro-help* google group mailing list:
 https://groups.google.com/forum/#!forum/castro-help
@@ -81,8 +79,9 @@ Acknowledging and Citing Castro
 
 If you use Castro in your research, we would appreciate it if you
 cited the relevant code papers describing its design, features, and
-testing. A list of these can be found in the
-`CITATION <https://github.com/AMReX-Astro/Castro/blob/master/CITATION>`__ file in the root ``Castro/`` directory.
+testing. A list of these can be found in the `CITATION
+<https://github.com/AMReX-Astro/Castro/blob/master/CITATION>`_ file in
+the root ``Castro/`` directory.
 
 The development Castro is supported by the science application
 interests of the contributors. There is a lot of effort behind the

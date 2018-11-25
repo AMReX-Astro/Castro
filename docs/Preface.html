@@ -204,22 +204,37 @@
     margin-top: -19px;
 }
 
+/* nice headers on first paragraph of info/warning boxes */
+.admonition .first {
+    margin: -12px;
+    padding: 6px 12px;
+    margin-bottom: 12px;
+    color: #fff;
+    line-height: 1;
+    display: block;
+}
+.admonition.warning .first {
+    background: #f0b37e;
+}
+.admonition.note .first {
+    background: #6ab0de;
+}
 .admonition > p:before {
     margin-right: 4px;  /* make room for the exclamation icon */
 }
 </style>
 <div class="section" id="preface">
 <h1>Preface<a class="headerlink" href="#preface" title="Permalink to this headline">¶</a></h1>
-<p>Welcome to the Castro&nbsp;User’s Guide!</p>
+<p>Welcome to the Castro User’s Guide!</p>
 <p>In this User’s Guide we describe how to download and run Castro, a
 massively parallel code that solves the multicomponent compressible
 hydrodynamic equations for astrophysical flows including self-gravity,
-nuclear reactions and radiation. Castro&nbsp;uses an Eulerian grid and
+nuclear reactions and radiation. Castro uses an Eulerian grid and
 incorporates adaptive mesh refinement (AMR). Our approach to AMR uses
 a nested hierarchy of logically-rectangular grids with simultaneous
 refinement in both space and time, utilizing the
-AMReX&nbsp;library.</p>
-<p>The core algorithms in Castro&nbsp;are described in a series of papers:</p>
+AMReX library.</p>
+<p>The core algorithms in Castro are described in a series of papers:</p>
 <blockquote>
 <div><ul class="simple">
 <li><em>CASTRO: A New Compressible Astrophysical Solver. I. Hydrodynamics
@@ -255,35 +270,37 @@ National Laboratory. Castro development is done collaboratively,
 including the CCSE and Stony Brook University.</p>
 <p>Castro <em>core developers</em> are those who have made substantial
 contributions to the code. The process for becoming a core developer
-is described in the README.md in the Castro root directory.
+is described in the <a class="reference external" href="https://github.com/AMReX-Astro/Castro/blob/master/README.md">README.md</a> in the Castro root directory.
 Current Castro core developers are:</p>
 <blockquote>
-<div>Ann Almgren
-Maria G. Barrios Sazo
-John Bell
-Vince Beckner
-Marc Day
-Max Katz
-Mike Lijewski
-Chris Malone
-Andy Nonaka
-Don Willcox
-Weiqun Zhang
-Michael Zingale</div></blockquote>
+<div><ul class="simple">
+<li>Ann Almgren</li>
+<li>Maria G. Barrios Sazo</li>
+<li>John Bell</li>
+<li>Vince Beckner</li>
+<li>Marc Day</li>
+<li>Max Katz</li>
+<li>Mike Lijewski</li>
+<li>Chris Malone</li>
+<li>Andy Nonaka</li>
+<li>Don Willcox</li>
+<li>Weiqun Zhang</li>
+<li>Michael Zingale</li>
+</ul>
+</div></blockquote>
 <p>All Castro development takes place on the project’s github
-page</p>
-<p><a class="reference external" href="https://github.com/AMReX-Astro/Castro">https://github.com/AMReX-Astro/Castro</a></p>
+page, <a class="reference external" href="https://github.com/AMReX-Astro/Castro">https://github.com/AMReX-Astro/Castro</a></p>
 <p>External contributions are welcomed. Fork the Castro repo, modify your
 local copy, and issue a pull-request to the AMReX-Astro/Castro
-project. Further guidelines are given in the README.md file.</p>
+project. Further guidelines are given in the <code class="docutils literal notranslate"><span class="pre">README.md</span></code> file.</p>
 <p>To get help, subscribe to the <em>castro-help</em> google group mailing list:
 <a class="reference external" href="https://groups.google.com/forum/#!forum/castro-help">https://groups.google.com/forum/#!forum/castro-help</a></p>
 <div class="section" id="acknowledging-and-citing-castro">
 <h2>Acknowledging and Citing Castro<a class="headerlink" href="#acknowledging-and-citing-castro" title="Permalink to this headline">¶</a></h2>
 <p>If you use Castro in your research, we would appreciate it if you
 cited the relevant code papers describing its design, features, and
-testing. A list of these can be found in the
-<a class="reference external" href="https://github.com/AMReX-Astro/Castro/blob/master/CITATION">CITATION</a> file in the root <code class="docutils literal notranslate"><span class="pre">Castro/</span></code> directory.</p>
+testing. A list of these can be found in the <a class="reference external" href="https://github.com/AMReX-Astro/Castro/blob/master/CITATION">CITATION</a> file in
+the root <code class="docutils literal notranslate"><span class="pre">Castro/</span></code> directory.</p>
 <p>The development Castro is supported by the science application
 interests of the contributors. There is a lot of effort behind the
 scenes: testing, optimization, development of new features, bug
