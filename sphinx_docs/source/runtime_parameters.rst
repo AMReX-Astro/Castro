@@ -1,14 +1,118 @@
 namespace: ``castro``
 ---------------------
 
-**refinement**
+**timestep control**
 
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |
 +========================================+=========================================================+===============+
-| ``do_special_tagging``                 |                                                         | 0             |
+| ``fixed_dt``                           | a fixed timestep to use for all steps (negative turns   | -1.0          |
+|                                        | it off)                                                 |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``spherical_star``                     |                                                         | 0             |
+| ``initial_dt``                         | the initial timestep (negative uses the step returned   | -1.0          |
+|                                        | from the timestep constraints)                          |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``dt_cutoff``                          | the smallest valid timestep---if we go below this, we   | 0.0           |
+|                                        | abort                                                   |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``max_dt``                             | the largest valid timestep---limit all timesteps to be  | 1.e200        |
+|                                        | no larger than this                                     |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``cfl``                                | the effective Courant number to use---we will not allow | 0.8           |
+|                                        | the hydrodynamic waves to cross more than this fraction |               |
+|                                        | of a zone over a single timestep                        |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``init_shrink``                        | a factor by which to reduce the first timestep from     | 1.0           |
+|                                        | that requested by the timestep estimators               |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``change_max``                         | the maximum factor by which the timestep can increase   | 1.1           |
+|                                        | from one step to the next.                              |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``plot_per_is_exact``                  | enforce that the AMR plot interval must be hit exactly  | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``small_plot_per_is_exact``            | enforce that the AMR small plot interval must be hit    | 0             |
+|                                        | exactly                                                 |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``use_retry``                          | Retry a timestep if it violated the timestep-limiting   | 0             |
+|                                        | criteria over the course of an advance. The criteria    |               |
+|                                        | will suggest a new timestep that satisfies the          |               |
+|                                        | criteria, and we will do subcycled timesteps on the     |               |
+|                                        | same level until we reach the original target time.     |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``retry_tolerance``                    | Tolerance to use when evaluating whether to do a retry. | 0.02          |
+|                                        | The timestep suggested by the retry will be multiplied  |               |
+|                                        | by (1 + this factor) before comparing the actual        |               |
+|                                        | timestep to it. If set to some number slightly larger   |               |
+|                                        | than zero, then this prevents retries that are caused   |               |
+|                                        | by small numerical differences.                         |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``retry_neg_dens_factor``              | If we're doing retries, set the target threshold for    | 1.e-1         |
+|                                        | changes in density if a retry is triggered by a         |               |
+|                                        | negative density. If this is set to a negative number   |               |
+|                                        | then it will disable retries using this criterion.      |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``retry_subcycle_factor``              | When performing a retry, the factor to multiply the     | 0.5           |
+|                                        | current timestep by when trying again.                  |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``use_post_step_regrid``               | Check for a possible post-timestep regrid if certain    | 0             |
+|                                        | stability criteria were violated.                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``max_subcycles``                      | Do not permit more subcycled timesteps than this        | 10            |
+|                                        | parameter. Set to a negative value to disable this      |               |
+|                                        | criterion.                                              |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``clamp_subcycles``                    | If we do request more than the maximum number of        | 1             |
+|                                        | subcycles, should we fail, or should we clamp to that   |               |
+|                                        | maximum number and perform that many?                   |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``sdc_iters``                          | Number of iterations for the SDC advance.               | 2             |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**diagnostics, I/O**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``print_fortran_warnings``             | display warnings in Fortran90 routines                  | (0, 1)        |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``print_update_diagnostics``           | display information about updates to the state (how     | (0, 1)        |
+|                                        | much mass, momentum, energy added)                      |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``track_grid_losses``                  | calculate losses of material through physical grid      | 0             |
+|                                        | boundaries                                              |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``sum_interval``                       | how often (number of coarse timesteps) to compute       | -1            |
+|                                        | integral sums (for runtime diagnostics)                 |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``sum_per``                            | how often (simulation time) to compute integral sums    | -1.0e0        |
+|                                        | (for runtime diagnostics)                               |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``show_center_of_mass``                | display center of mass diagnostics                      | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``hard_cfl_limit``                     | abort if we exceed CFL = 1 over the cource of a         | 1             |
+|                                        | timestep                                                |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``job_name``                           | a string describing the simulation that will be copied  | ""            |
+|                                        | into the plotfile's {\tt job\_info} file                |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``output_at_completion``               | write a final plotfile and checkpoint upon completion   | 1             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``reset_checkpoint_time``              | Do we want to reset the time in the checkpoint? This    | -1.e200       |
+|                                        | ONLY takes effect if amr.regrid\_on\_restart = 1 and    |               |
+|                                        | amr.checkpoint\_on\_restart = 1, (which require that    |               |
+|                                        | max\_step and stop\_time be less than the value in the  |               |
+|                                        | checkpoint) and you set it to value greater than this   |               |
+|                                        | default value.                                          |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``reset_checkpoint_step``              | Do we want to reset the number of steps in the          | -1            |
+|                                        | checkpoint? This ONLY takes effect if                   |               |
+|                                        | amr.regrid\_on\_restart = 1 and                         |               |
+|                                        | amr.checkpoint\_on\_restart = 1, (which require that    |               |
+|                                        | max\_step and stop\_time be less than the value in the  |               |
+|                                        | checkpoint) and you set it to value greater than this   |               |
+|                                        | default value.                                          |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
@@ -177,65 +281,6 @@ namespace: ``castro``
 
 
 
-**gravity and rotation**
-
-+----------------------------------------+---------------------------------------------------------+---------------+
-| parameter                              | description                                             | default value |
-+========================================+=========================================================+===============+
-| ``do_grav``                            | permits gravity calculation to be turned on and off     | -1            |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``moving_center``                      | to we recompute the center used for the multipole       | 0             |
-|                                        | gravity solve each step?                                |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``grav_source_type``                   | determines how the gravitational source term is added   | 4             |
-|                                        | to the momentum and energy state variables.             |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``do_rotation``                        | permits rotation calculation to be turned on and off    | -1            |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``rotational_period``                  | the rotation period for the corotating frame            | -1.e200       |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``rotational_dPdt``                    | the rotation periods time evolution---this allows the   | 0.0           |
-|                                        | rotation rate to change durning the simulation time     |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``rotation_include_centrifugal``       | permits the centrifugal terms in the rotation to be     | 1             |
-|                                        | turned on and off                                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``rotation_include_coriolis``          | permits the Coriolis terms in the rotation to be turned | 1             |
-|                                        | on and off                                              |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``rotation_include_domegadt``          | permits the d(omega)/dt terms in the rotation to be     | 1             |
-|                                        | turned on and off                                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``state_in_rotating_frame``            | Which reference frame to measure the state variables    | 1             |
-|                                        | with respect to. The standard in the literature when    |               |
-|                                        | using a rotating reference frame is to measure the      |               |
-|                                        | state variables with respect to an observer fixed in    |               |
-|                                        | that rotating frame. If this option is disabled by      |               |
-|                                        | setting it to 0, the state variables will be measured   |               |
-|                                        | with respect to an observer fixed in the inertial frame |               |
-|                                        | (but the frame will still rotate).                      |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``rot_source_type``                    | determines how the rotation source terms are added to   | 4             |
-|                                        | the momentum and energy equations                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``implicit_rotation_update``           | we can do a implicit solution of the rotation update to | 1             |
-|                                        | allow for better coupling of the Coriolis terms         |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``rot_axis``                           | the coordinate axis ($x=1$, $y=2$, $z=3$) for the       | 3             |
-|                                        | rotation vector                                         |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``use_point_mass``                     | include a central point mass                            | 1             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``point_mass``                         | mass of the point mass                                  | 0.0           |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``point_mass_fix_solution``            | if we have a central point mass, we can prevent mass    | 0             |
-|                                        | from building up in the zones adjacent to it by keeping |               |
-|                                        | their density constant and adding their mass to the     |               |
-|                                        | point mass object                                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-
-
-
 **diffusion**
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -267,81 +312,6 @@ namespace: ``castro``
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``star_at_center``                     | used with the embiggening routines to determine how to  | -1            |
 |                                        | extend the domain                                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-
-
-
-**diagnostics, I/O**
-
-+----------------------------------------+---------------------------------------------------------+---------------+
-| parameter                              | description                                             | default value |
-+========================================+=========================================================+===============+
-| ``print_fortran_warnings``             | display warnings in Fortran90 routines                  | (0, 1)        |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``print_update_diagnostics``           | display information about updates to the state (how     | (0, 1)        |
-|                                        | much mass, momentum, energy added)                      |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``track_grid_losses``                  | calculate losses of material through physical grid      | 0             |
-|                                        | boundaries                                              |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``sum_interval``                       | how often (number of coarse timesteps) to compute       | -1            |
-|                                        | integral sums (for runtime diagnostics)                 |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``sum_per``                            | how often (simulation time) to compute integral sums    | -1.0e0        |
-|                                        | (for runtime diagnostics)                               |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``show_center_of_mass``                | display center of mass diagnostics                      | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``hard_cfl_limit``                     | abort if we exceed CFL = 1 over the cource of a         | 1             |
-|                                        | timestep                                                |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``job_name``                           | a string describing the simulation that will be copied  | ""            |
-|                                        | into the plotfile's {\tt job\_info} file                |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``output_at_completion``               | write a final plotfile and checkpoint upon completion   | 1             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``reset_checkpoint_time``              | Do we want to reset the time in the checkpoint? This    | -1.e200       |
-|                                        | ONLY takes effect if amr.regrid\_on\_restart = 1 and    |               |
-|                                        | amr.checkpoint\_on\_restart = 1, (which require that    |               |
-|                                        | max\_step and stop\_time be less than the value in the  |               |
-|                                        | checkpoint) and you set it to value greater than this   |               |
-|                                        | default value.                                          |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``reset_checkpoint_step``              | Do we want to reset the number of steps in the          | -1            |
-|                                        | checkpoint? This ONLY takes effect if                   |               |
-|                                        | amr.regrid\_on\_restart = 1 and                         |               |
-|                                        | amr.checkpoint\_on\_restart = 1, (which require that    |               |
-|                                        | max\_step and stop\_time be less than the value in the  |               |
-|                                        | checkpoint) and you set it to value greater than this   |               |
-|                                        | default value.                                          |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-
-
-
-**AMR**
-
-+----------------------------------------+---------------------------------------------------------+---------------+
-| parameter                              | description                                             | default value |
-+========================================+=========================================================+===============+
-| ``state_interp_order``                 | highest order used in interpolation                     | 1             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``lin_limit_state_interp``             | how to do limiting of the state data when interpolating | 0             |
-|                                        | 0: only prevent new extrema 1: preserve linear          |               |
-|                                        | combinations of state variables                         |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``state_nghost``                       | Number of ghost zones for state data to have. Note that | 0             |
-|                                        | if you are using radiation, choosing this to be zero    |               |
-|                                        | will be overridden since radiation needs at least one   |               |
-|                                        | ghost zone.                                             |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``do_reflux``                          | do we do the hyperbolic reflux at coarse-fine           | 1             |
-|                                        | interfaces?                                             |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``update_sources_after_reflux``        | whether to re-compute new-time source terms after a     | 1             |
-|                                        | reflux                                                  |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``use_custom_knapsack_weights``        | should we have state data for custom load-balancing     | 0             |
-|                                        | weighting?                                              |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
@@ -410,71 +380,30 @@ namespace: ``castro``
 
 
 
-**timestep control**
+**AMR**
 
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |
 +========================================+=========================================================+===============+
-| ``fixed_dt``                           | a fixed timestep to use for all steps (negative turns   | -1.0          |
-|                                        | it off)                                                 |               |
+| ``state_interp_order``                 | highest order used in interpolation                     | 1             |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``initial_dt``                         | the initial timestep (negative uses the step returned   | -1.0          |
-|                                        | from the timestep constraints)                          |               |
+| ``lin_limit_state_interp``             | how to do limiting of the state data when interpolating | 0             |
+|                                        | 0: only prevent new extrema 1: preserve linear          |               |
+|                                        | combinations of state variables                         |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``dt_cutoff``                          | the smallest valid timestep---if we go below this, we   | 0.0           |
-|                                        | abort                                                   |               |
+| ``state_nghost``                       | Number of ghost zones for state data to have. Note that | 0             |
+|                                        | if you are using radiation, choosing this to be zero    |               |
+|                                        | will be overridden since radiation needs at least one   |               |
+|                                        | ghost zone.                                             |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``max_dt``                             | the largest valid timestep---limit all timesteps to be  | 1.e200        |
-|                                        | no larger than this                                     |               |
+| ``do_reflux``                          | do we do the hyperbolic reflux at coarse-fine           | 1             |
+|                                        | interfaces?                                             |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``cfl``                                | the effective Courant number to use---we will not allow | 0.8           |
-|                                        | the hydrodynamic waves to cross more than this fraction |               |
-|                                        | of a zone over a single timestep                        |               |
+| ``update_sources_after_reflux``        | whether to re-compute new-time source terms after a     | 1             |
+|                                        | reflux                                                  |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``init_shrink``                        | a factor by which to reduce the first timestep from     | 1.0           |
-|                                        | that requested by the timestep estimators               |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``change_max``                         | the maximum factor by which the timestep can increase   | 1.1           |
-|                                        | from one step to the next.                              |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``plot_per_is_exact``                  | enforce that the AMR plot interval must be hit exactly  | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``small_plot_per_is_exact``            | enforce that the AMR small plot interval must be hit    | 0             |
-|                                        | exactly                                                 |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``use_retry``                          | Retry a timestep if it violated the timestep-limiting   | 0             |
-|                                        | criteria over the course of an advance. The criteria    |               |
-|                                        | will suggest a new timestep that satisfies the          |               |
-|                                        | criteria, and we will do subcycled timesteps on the     |               |
-|                                        | same level until we reach the original target time.     |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``retry_tolerance``                    | Tolerance to use when evaluating whether to do a retry. | 0.02          |
-|                                        | The timestep suggested by the retry will be multiplied  |               |
-|                                        | by (1 + this factor) before comparing the actual        |               |
-|                                        | timestep to it. If set to some number slightly larger   |               |
-|                                        | than zero, then this prevents retries that are caused   |               |
-|                                        | by small numerical differences.                         |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``retry_neg_dens_factor``              | If we're doing retries, set the target threshold for    | 1.e-1         |
-|                                        | changes in density if a retry is triggered by a         |               |
-|                                        | negative density. If this is set to a negative number   |               |
-|                                        | then it will disable retries using this criterion.      |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``retry_subcycle_factor``              | When performing a retry, the factor to multiply the     | 0.5           |
-|                                        | current timestep by when trying again.                  |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``use_post_step_regrid``               | Check for a possible post-timestep regrid if certain    | 0             |
-|                                        | stability criteria were violated.                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``max_subcycles``                      | Do not permit more subcycled timesteps than this        | 10            |
-|                                        | parameter. Set to a negative value to disable this      |               |
-|                                        | criterion.                                              |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``clamp_subcycles``                    | If we do request more than the maximum number of        | 1             |
-|                                        | subcycles, should we fail, or should we clamp to that   |               |
-|                                        | maximum number and perform that many?                   |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``sdc_iters``                          | Number of iterations for the SDC advance.               | 2             |
+| ``use_custom_knapsack_weights``        | should we have state data for custom load-balancing     | 0             |
+|                                        | weighting?                                              |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
@@ -488,6 +417,77 @@ namespace: ``castro``
 |                                        | loops                                                   |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``bndry_func_thread_safe``             |                                                         | 1             |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**gravity and rotation**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``do_grav``                            | permits gravity calculation to be turned on and off     | -1            |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``moving_center``                      | to we recompute the center used for the multipole       | 0             |
+|                                        | gravity solve each step?                                |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``grav_source_type``                   | determines how the gravitational source term is added   | 4             |
+|                                        | to the momentum and energy state variables.             |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``do_rotation``                        | permits rotation calculation to be turned on and off    | -1            |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``rotational_period``                  | the rotation period for the corotating frame            | -1.e200       |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``rotational_dPdt``                    | the rotation periods time evolution---this allows the   | 0.0           |
+|                                        | rotation rate to change durning the simulation time     |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``rotation_include_centrifugal``       | permits the centrifugal terms in the rotation to be     | 1             |
+|                                        | turned on and off                                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``rotation_include_coriolis``          | permits the Coriolis terms in the rotation to be turned | 1             |
+|                                        | on and off                                              |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``rotation_include_domegadt``          | permits the d(omega)/dt terms in the rotation to be     | 1             |
+|                                        | turned on and off                                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``state_in_rotating_frame``            | Which reference frame to measure the state variables    | 1             |
+|                                        | with respect to. The standard in the literature when    |               |
+|                                        | using a rotating reference frame is to measure the      |               |
+|                                        | state variables with respect to an observer fixed in    |               |
+|                                        | that rotating frame. If this option is disabled by      |               |
+|                                        | setting it to 0, the state variables will be measured   |               |
+|                                        | with respect to an observer fixed in the inertial frame |               |
+|                                        | (but the frame will still rotate).                      |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``rot_source_type``                    | determines how the rotation source terms are added to   | 4             |
+|                                        | the momentum and energy equations                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``implicit_rotation_update``           | we can do a implicit solution of the rotation update to | 1             |
+|                                        | allow for better coupling of the Coriolis terms         |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``rot_axis``                           | the coordinate axis ($x=1$, $y=2$, $z=3$) for the       | 3             |
+|                                        | rotation vector                                         |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``use_point_mass``                     | include a central point mass                            | 1             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``point_mass``                         | mass of the point mass                                  | 0.0           |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``point_mass_fix_solution``            | if we have a central point mass, we can prevent mass    | 0             |
+|                                        | from building up in the zones adjacent to it by keeping |               |
+|                                        | their density constant and adding their mass to the     |               |
+|                                        | point mass object                                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**refinement**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``do_special_tagging``                 |                                                         | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``spherical_star``                     |                                                         | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
