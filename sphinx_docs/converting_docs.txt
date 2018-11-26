@@ -1,0 +1,39 @@
+This is how we convert the LaTeX docs to Sphinx.  We want to do so in
+a way that preserves the ability to use LaTeX macros in math mode in
+the Sphinx.  Since we are using MathJax to render the HTML, we do this
+by adding a javascript file with the macros defined.
+
+1. convert the .tex files to .rst
+
+   Use the pandoc.sh script to do this.  First create a file called
+   "textsymbols.tex" that has all of the LaTeX newcommands that apply
+   only in TEXT MODE (not math).  These will just be converted inplace
+   in the .rst, since they are not rendered by math.
+
+   The script will send this textsymbols.tex into sphinx along with
+   each .tex file.  Any special commands in math mode will be left
+   intact.
+
+   The .rst will be put into docs_new/.  Copy them into the Sphinx source/
+   directory.
+
+2. To create "newcommands" for the math rendering, we use the mathjax_config variable,
+   which can be set to a dictionary with parameters for mathjax.
+
+   https://www.sphinx-doc.org/en/master/usage/extensions/math.html?highlight=math#confval-mathjax_config
+
+   In particular, latex newcommands to into {'TeX': {'Macros': {}}}
+
+   This code put into conf.py handles it:
+
+mathjax_config = {'TeX': {'Macros': {}}}
+
+with open('mathsymbols.tex', 'r') as f:
+    for line in f:
+        macros = re.findall(r'\\newcommand{\\(.*?)}(\[(\d)\])?{(.+)}', line)
+        for macro in macros:
+            if len(macro[1]) == 0:
+                mathjax_config['TeX']['Macros'][macro[0]] = "{"+macro[3]+"}"
+            else:
+                mathjax_config['TeX']['Macros'][macro[0]] = ["{"+macro[3]+"}", int(macro[2])]
+

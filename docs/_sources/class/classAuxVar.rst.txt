@@ -1,0 +1,4 @@
+Class AuxVar
+============
+
+.. doxygenclass:: AuxVar

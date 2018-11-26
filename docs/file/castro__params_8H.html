@@ -1,0 +1,897 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File castro_params.H &mdash; Castro 18.11
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File castro_queries.H" href="castro__queries_8H.html" />
+    <link rel="prev" title="File castro_job_info_tests.H" href="castro__job__info__tests_8H.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                18.11
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="CastroBld_8cpp.html">File CastroBld.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CastroParticles_8cpp.html">File CastroParticles.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro_8H.html">File Castro.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro_8cpp.html">File Castro.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__F_8H.html">File Castro_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__advance_8cpp.html">File Castro_advance.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__diffusion_8cpp.html">File Castro_diffusion.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__error_8cpp.html">File Castro_error.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__error__F_8H.html">File Castro_error_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__external_8cpp.html">File Castro_external.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__gravity_8cpp.html">File Castro_gravity.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__hybrid_8cpp.html">File Castro_hybrid.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__hydro_8cpp.html">File Castro_hydro.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__io_8H.html">File Castro_io.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__io_8cpp.html">File Castro_io.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__pointmass_8cpp.html">File Castro_pointmass.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__prob__err_8cpp.html">File Castro_prob_err.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__prob__err__F_8H.html">File Castro_prob_err_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__prob__err__list_8H.html">File Castro_prob_err_list.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__radiation_8cpp.html">File Castro_radiation.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__react_8cpp.html">File Castro_react.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__rotation_8cpp.html">File Castro_rotation.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__setup_8cpp.html">File Castro_setup.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__sources_8cpp.html">File Castro_sources.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__sponge_8cpp.html">File Castro_sponge.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__thermo_8cpp.html">File Castro_thermo.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Derive_8H.html">File Derive.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Derive_8cpp.html">File Derive.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Derive__F_8H.html">File Derive_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Diffusion_8H.html">File Diffusion.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Diffusion_8cpp.html">File Diffusion.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="DumpModel1d_8H.html">File DumpModel1d.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="DumpModel1d_8cpp.html">File DumpModel1d.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gravity_8H.html">File Gravity.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gravity_8cpp.html">File Gravity.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gravity__F_8H.html">File Gravity_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HABEC__F_8H.html">File HABEC_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HypreABec_8H.html">File HypreABec.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HypreABec_8cpp.html">File HypreABec.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HypreExtMultiABec_8cpp.html">File HypreExtMultiABec.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HypreMultiABec_8H.html">File HypreMultiABec.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HypreMultiABec_8cpp.html">File HypreMultiABec.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MGFLDRadSolver_8cpp.html">File MGFLDRadSolver.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MGFLD_8cpp.html">File MGFLD.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MGRadBndry_8H.html">File MGRadBndry.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MGRadBndry_8cpp.html">File MGRadBndry.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NGBndry_8H.html">File NGBndry.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Prob_8cpp.html">File Prob.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Problem_8H.html">File Problem.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Problem__Derive_8H.html">File Problem_Derive.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Problem__Derive__F_8H.html">File Problem_Derive_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Problem__Derives_8H.html">File Problem_Derives.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Problem__F_8H.html">File Problem_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RADINTERPBNDRYDATA__F_8H.html">File RADINTERPBNDRYDATA_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RAD__F_8H.html">File RAD_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadBndryData_8H.html">File RadBndryData.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadBndryData_8cpp.html">File RadBndryData.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadBndry_8H.html">File RadBndry.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadBndry_8cpp.html">File RadBndry.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadBoundCond_8H.html">File RadBoundCond.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadInterpBndryData_8H.html">File RadInterpBndryData.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadInterpBndryData_8cpp.html">File RadInterpBndryData.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadMultiGroup_8cpp.html">File RadMultiGroup.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadPlotvar_8cpp.html">File RadPlotvar.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadSolve_8H.html">File RadSolve.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadSolve_8cpp.html">File RadSolve.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadTests_8H.html">File RadTests.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadTypes_8H.html">File RadTypes.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Radiation_8H.html">File Radiation.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Radiation_8cpp.html">File Radiation.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SGFLD_8cpp.html">File SGFLD.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SGRadSolver_8cpp.html">File SGRadSolver.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="castro__defaults_8H.html">File castro_defaults.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="castro__job__info__tests_8H.html">File castro_job_info_tests.H</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File castro_params.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="castro__queries_8H.html">File castro_queries.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="diffusion__defaults_8H.html">File diffusion_defaults.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="diffusion__job__info__tests_8H.html">File diffusion_job_info_tests.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="diffusion__params_8H.html">File diffusion_params.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="diffusion__queries_8H.html">File diffusion_queries.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="energy__diagnostics_8cpp.html">File energy_diagnostics.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gravity__defaults_8H.html">File gravity_defaults.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gravity__job__info__tests_8H.html">File gravity_job_info_tests.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gravity__params_8H.html">File gravity_params.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gravity__queries_8H.html">File gravity_queries.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main_8cpp.html">File main.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="particles__defaults_8H.html">File particles_defaults.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="particles__job__info__tests_8H.html">File particles_job_info_tests.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="particles__params_8H.html">File particles_params.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="particles__queries_8H.html">File particles_queries.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sum__integrated__quantities_8cpp.html">File sum_integrated_quantities.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sum__utils_8cpp.html">File sum_utils.cpp</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../namespacelist.html">Namespace list</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+      <li>File castro_params.H</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/castro__params_8H.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+/* nice headers on first paragraph of info/warning boxes */
+.admonition .first {
+    margin: -12px;
+    padding: 6px 12px;
+    margin-bottom: 12px;
+    color: #fff;
+    line-height: 1;
+    display: block;
+}
+.admonition.warning .first {
+    background: #f0b37e;
+}
+.admonition.note .first {
+    background: #6ab0de;
+}
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="file-castro-params-h">
+<h1>File castro_params.H<a class="headerlink" href="#file-castro-params-h" title="Permalink to this headline">¶</a></h1>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Variables</p>
+<dl class="member">
+<dt id="_CPPv3N6Castro18state_interp_orderE">
+<span class="target" id="castro__params_8H_1a08f25695e5e103340ba94df4bf48a20b"></span>int <code class="descname">state_interp_order</code> = 1<a class="headerlink" href="#_CPPv3N6Castro18state_interp_orderE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro22lin_limit_state_interpE">
+<span class="target" id="castro__params_8H_1ae642714f108b13248959bc636c19f640"></span>int <code class="descname">lin_limit_state_interp</code> = 0<a class="headerlink" href="#_CPPv3N6Castro22lin_limit_state_interpE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro12state_nghostE">
+<span class="target" id="castro__params_8H_1ae168cf148279591fa535c5637f909c8b"></span>int <code class="descname">state_nghost</code> = 0<a class="headerlink" href="#_CPPv3N6Castro12state_nghostE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro9do_refluxE">
+<span class="target" id="castro__params_8H_1ae710bcedc3770657052cdf887d84ae30"></span>int <code class="descname">do_reflux</code> = 1<a class="headerlink" href="#_CPPv3N6Castro9do_refluxE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro27update_sources_after_refluxE">
+<span class="target" id="castro__params_8H_1acbe92e112c14af942b3d1f421bcfeadb"></span>int <code class="descname">update_sources_after_reflux</code> = 1<a class="headerlink" href="#_CPPv3N6Castro27update_sources_after_refluxE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro27use_custom_knapsack_weightsE">
+<span class="target" id="castro__params_8H_1ab7ee231f5e95993cf4dc492b6cdeda4b"></span>int <code class="descname">use_custom_knapsack_weights</code> = 0<a class="headerlink" href="#_CPPv3N6Castro27use_custom_knapsack_weightsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro6difmagE">
+<span class="target" id="castro__params_8H_1ab1c89a12e8d3f79fcba0e8b2337020dc"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">difmag</code> = 0.1<a class="headerlink" href="#_CPPv3N6Castro6difmagE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro10small_densE">
+<span class="target" id="castro__params_8H_1a4df4e23012114f6cb4b821d84f002610"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">small_dens</code> = -1.e200<a class="headerlink" href="#_CPPv3N6Castro10small_densE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro10small_tempE">
+<span class="target" id="castro__params_8H_1aac10330abc799739a997cd0998663fa8"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">small_temp</code> = -1.e200<a class="headerlink" href="#_CPPv3N6Castro10small_tempE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro10small_presE">
+<span class="target" id="castro__params_8H_1acf4cc0e735c35adada21999dea45c7dc"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">small_pres</code> = -1.e200<a class="headerlink" href="#_CPPv3N6Castro10small_presE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro10small_enerE">
+<span class="target" id="castro__params_8H_1a62c62366542a79fe196d7c933e911aeb"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">small_ener</code> = -1.e200<a class="headerlink" href="#_CPPv3N6Castro10small_enerE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro8do_hydroE">
+<span class="target" id="castro__params_8H_1ac629ff9126c8a9e4cf8486d330a9115b"></span>int <code class="descname">do_hydro</code> = -1<a class="headerlink" href="#_CPPv3N6Castro8do_hydroE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro6do_ctuE">
+<span class="target" id="castro__params_8H_1a0d23e454de74f403d1023ecf72a36e87"></span>int <code class="descname">do_ctu</code> = 1<a class="headerlink" href="#_CPPv3N6Castro6do_ctuE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro12fourth_orderE">
+<span class="target" id="castro__params_8H_1aca7ac4f0410c66913b6de0baaa3dbabe"></span>int <code class="descname">fourth_order</code> = 0<a class="headerlink" href="#_CPPv3N6Castro12fourth_orderE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro11add_ext_srcE">
+<span class="target" id="castro__params_8H_1a4a3dd5f554df21ac84b4d6d21684627b"></span>int <code class="descname">add_ext_src</code> = 0<a class="headerlink" href="#_CPPv3N6Castro11add_ext_srcE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro12hybrid_hydroE">
+<span class="target" id="castro__params_8H_1a00c9a29476955c24d7ce890a8d442f41"></span>int <code class="descname">hybrid_hydro</code> = 0<a class="headerlink" href="#_CPPv3N6Castro12hybrid_hydroE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro8ppm_typeE">
+<span class="target" id="castro__params_8H_1ad7f1db24afd986a7b86e47976bcc754b"></span>int <code class="descname">ppm_type</code> = 1<a class="headerlink" href="#_CPPv3N6Castro8ppm_typeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro12ppm_temp_fixE">
+<span class="target" id="castro__params_8H_1ae01f2c7bb822574c8c1667a909f5094c"></span>int <code class="descname">ppm_temp_fix</code> = 0<a class="headerlink" href="#_CPPv3N6Castro12ppm_temp_fixE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro18ppm_predict_gammaeE">
+<span class="target" id="castro__params_8H_1a8823d2ccc1821b289767dac1ffaefe3c"></span>int <code class="descname">ppm_predict_gammae</code> = 0<a class="headerlink" href="#_CPPv3N6Castro18ppm_predict_gammaeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro26ppm_reference_eigenvectorsE">
+<span class="target" id="castro__params_8H_1af34d84dfd4f5b5a5c152fdf41ac9466a"></span>int <code class="descname">ppm_reference_eigenvectors</code> = 0<a class="headerlink" href="#_CPPv3N6Castro26ppm_reference_eigenvectorsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro10plm_iorderE">
+<span class="target" id="castro__params_8H_1a725453e9cf074230880b5c1eaed8498e"></span>int <code class="descname">plm_iorder</code> = 2<a class="headerlink" href="#_CPPv3N6Castro10plm_iorderE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro14hybrid_riemannE">
+<span class="target" id="castro__params_8H_1a4c0a63fdfb53ebd738ab8d89dd666152"></span>int <code class="descname">hybrid_riemann</code> = 0<a class="headerlink" href="#_CPPv3N6Castro14hybrid_riemannE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro14riemann_solverE">
+<span class="target" id="castro__params_8H_1ae61a62b0a518241dd331dbe4bd1c2efc"></span>int <code class="descname">riemann_solver</code> = 0<a class="headerlink" href="#_CPPv3N6Castro14riemann_solverE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro10cg_maxiterE">
+<span class="target" id="castro__params_8H_1ac60b279974655e962c2474032de481f3"></span>int <code class="descname">cg_maxiter</code> = 12<a class="headerlink" href="#_CPPv3N6Castro10cg_maxiterE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro6cg_tolE">
+<span class="target" id="castro__params_8H_1adb2ce015670ba030edc9ddcf5efa450e"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">cg_tol</code> = 1.0e-5<a class="headerlink" href="#_CPPv3N6Castro6cg_tolE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro8cg_blendE">
+<span class="target" id="castro__params_8H_1a3f43ca39cbe7dbfec4306cab70a68de2"></span>int <code class="descname">cg_blend</code> = 2<a class="headerlink" href="#_CPPv3N6Castro8cg_blendE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro18use_eos_in_riemannE">
+<span class="target" id="castro__params_8H_1a469179e2312003fdd77569c091243423"></span>int <code class="descname">use_eos_in_riemann</code> = 0<a class="headerlink" href="#_CPPv3N6Castro18use_eos_in_riemannE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro14use_flatteningE">
+<span class="target" id="castro__params_8H_1a5f2b704f436fd6cb689649b073724aa9"></span>int <code class="descname">use_flattening</code> = 1<a class="headerlink" href="#_CPPv3N6Castro14use_flatteningE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro18transverse_use_eosE">
+<span class="target" id="castro__params_8H_1a78c0b402fa918603cf6b0e00476b384e"></span>int <code class="descname">transverse_use_eos</code> = 0<a class="headerlink" href="#_CPPv3N6Castro18transverse_use_eosE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro24transverse_reset_densityE">
+<span class="target" id="castro__params_8H_1a6473ac557b679968a4dbe03c3eccb3d0"></span>int <code class="descname">transverse_reset_density</code> = 1<a class="headerlink" href="#_CPPv3N6Castro24transverse_reset_densityE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro21transverse_reset_rhoeE">
+<span class="target" id="castro__params_8H_1aed3246417fb63dcb2519c31e69c40f4f"></span>int <code class="descname">transverse_reset_rhoe</code> = 0<a class="headerlink" href="#_CPPv3N6Castro21transverse_reset_rhoeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro16dual_energy_eta1E">
+<span class="target" id="castro__params_8H_1aee3a4cc5150951a6ba2688b01f2f898b"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">dual_energy_eta1</code> = 1.0e0<a class="headerlink" href="#_CPPv3N6Castro16dual_energy_eta1E" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro16dual_energy_eta2E">
+<span class="target" id="castro__params_8H_1a154c15b46e85891a31af1abd72f35ac8"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">dual_energy_eta2</code> = 1.0e-4<a class="headerlink" href="#_CPPv3N6Castro16dual_energy_eta2E" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro10use_pslopeE">
+<span class="target" id="castro__params_8H_1a9f8064219ae86fcd1838ac22f66e2e60"></span>int <code class="descname">use_pslope</code> = 1<a class="headerlink" href="#_CPPv3N6Castro10use_pslopeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro13fix_mass_fluxE">
+<span class="target" id="castro__params_8H_1ad0c01df25a7ca5d9dc42746203593ca6"></span>int <code class="descname">fix_mass_flux</code> = 0<a class="headerlink" href="#_CPPv3N6Castro13fix_mass_fluxE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro26limit_fluxes_on_small_densE">
+<span class="target" id="castro__params_8H_1a4f0f60d2c924e23f5d8eaf4b059a849c"></span>int <code class="descname">limit_fluxes_on_small_dens</code> = 0<a class="headerlink" href="#_CPPv3N6Castro26limit_fluxes_on_small_densE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro20density_reset_methodE">
+<span class="target" id="castro__params_8H_1ac09a8d3cb51e75b6384f419c256f22e3"></span>int <code class="descname">density_reset_method</code> = 1<a class="headerlink" href="#_CPPv3N6Castro20density_reset_methodE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro18allow_small_energyE">
+<span class="target" id="castro__params_8H_1ae7ff83810afddbd2b9b5aefa1aaf37e5"></span>int <code class="descname">allow_small_energy</code> = 1<a class="headerlink" href="#_CPPv3N6Castro18allow_small_energyE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro9do_spongeE">
+<span class="target" id="castro__params_8H_1aed150e5c26f0f5efe86101c588ee046a"></span>int <code class="descname">do_sponge</code> = 0<a class="headerlink" href="#_CPPv3N6Castro9do_spongeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro15sponge_implicitE">
+<span class="target" id="castro__params_8H_1ac9779c65b9cbdbe6d0b6e7a1646d7fa6"></span>int <code class="descname">sponge_implicit</code> = 1<a class="headerlink" href="#_CPPv3N6Castro15sponge_implicitE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro21source_term_predictorE">
+<span class="target" id="castro__params_8H_1a0f64e8157a972bd3b289bdeec70df4d0"></span>int <code class="descname">source_term_predictor</code> = 0<a class="headerlink" href="#_CPPv3N6Castro21source_term_predictorE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro17first_order_hydroE">
+<span class="target" id="castro__params_8H_1aa92725177f3b1e54b24a8be39d2ba5f0"></span>int <code class="descname">first_order_hydro</code> = 0<a class="headerlink" href="#_CPPv3N6Castro17first_order_hydroE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro14xl_ext_bc_typeE">
+<span class="target" id="castro__params_8H_1ad29c71b01e4de3700c5e163a7ba5b3b8"></span>std::string <code class="descname">xl_ext_bc_type</code> = &quot;&quot;<a class="headerlink" href="#_CPPv3N6Castro14xl_ext_bc_typeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro14xr_ext_bc_typeE">
+<span class="target" id="castro__params_8H_1a2420c6526e3c3f033effca006b9418fe"></span>std::string <code class="descname">xr_ext_bc_type</code> = &quot;&quot;<a class="headerlink" href="#_CPPv3N6Castro14xr_ext_bc_typeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro14yl_ext_bc_typeE">
+<span class="target" id="castro__params_8H_1a52436d8896132b1b5c6a17968bb085e5"></span>std::string <code class="descname">yl_ext_bc_type</code> = &quot;&quot;<a class="headerlink" href="#_CPPv3N6Castro14yl_ext_bc_typeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro14yr_ext_bc_typeE">
+<span class="target" id="castro__params_8H_1ab7f563e2557bf0e07d3384302e049e6a"></span>std::string <code class="descname">yr_ext_bc_type</code> = &quot;&quot;<a class="headerlink" href="#_CPPv3N6Castro14yr_ext_bc_typeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro14zl_ext_bc_typeE">
+<span class="target" id="castro__params_8H_1a29ce5ba90b856792b03489a1fca13570"></span>std::string <code class="descname">zl_ext_bc_type</code> = &quot;&quot;<a class="headerlink" href="#_CPPv3N6Castro14zl_ext_bc_typeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro14zr_ext_bc_typeE">
+<span class="target" id="castro__params_8H_1a873df4fb61e7c360790e95653721185e"></span>std::string <code class="descname">zr_ext_bc_type</code> = &quot;&quot;<a class="headerlink" href="#_CPPv3N6Castro14zr_ext_bc_typeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro13hse_zero_velsE">
+<span class="target" id="castro__params_8H_1ade4ea8944b8a3b70f1a239f7ce5b954c"></span>int <code class="descname">hse_zero_vels</code> = 0<a class="headerlink" href="#_CPPv3N6Castro13hse_zero_velsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro15hse_interp_tempE">
+<span class="target" id="castro__params_8H_1a23a78b73a53f26c4cdad90971899436a"></span>int <code class="descname">hse_interp_temp</code> = 0<a class="headerlink" href="#_CPPv3N6Castro15hse_interp_tempE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro16hse_reflect_velsE">
+<span class="target" id="castro__params_8H_1a998497448180acfe55d9681d400b48c9"></span>int <code class="descname">hse_reflect_vels</code> = 0<a class="headerlink" href="#_CPPv3N6Castro16hse_reflect_velsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro9mol_orderE">
+<span class="target" id="castro__params_8H_1a133c36f04ec875092a1048a3b6f066a0"></span>int <code class="descname">mol_order</code> = 2<a class="headerlink" href="#_CPPv3N6Castro9mol_orderE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro8fixed_dtE">
+<span class="target" id="castro__params_8H_1a517df6f888728ea08f511fcf9cb6c882"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">fixed_dt</code> = -1.0<a class="headerlink" href="#_CPPv3N6Castro8fixed_dtE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro10initial_dtE">
+<span class="target" id="castro__params_8H_1a82703e57f1919dd030d3e132f6915f23"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">initial_dt</code> = -1.0<a class="headerlink" href="#_CPPv3N6Castro10initial_dtE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro9dt_cutoffE">
+<span class="target" id="castro__params_8H_1a74702cb735f399e4cd63b5a57f653042"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">dt_cutoff</code> = 0.0<a class="headerlink" href="#_CPPv3N6Castro9dt_cutoffE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro6max_dtE">
+<span class="target" id="castro__params_8H_1af021b3f4d3f6b0a5e2ff8942f4d52fdd"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">max_dt</code> = 1.e200<a class="headerlink" href="#_CPPv3N6Castro6max_dtE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro3cflE">
+<span class="target" id="castro__params_8H_1a15d5777dc7002abb2272310fda4d5b64"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">cfl</code> = 0.8<a class="headerlink" href="#_CPPv3N6Castro3cflE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro11init_shrinkE">
+<span class="target" id="castro__params_8H_1a7e03bb8d0383b77b8d124df384cdc5f0"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">init_shrink</code> = 1.0<a class="headerlink" href="#_CPPv3N6Castro11init_shrinkE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro10change_maxE">
+<span class="target" id="castro__params_8H_1a5b2dd144134e4bc7f8a9c476da8b7e34"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">change_max</code> = 1.1<a class="headerlink" href="#_CPPv3N6Castro10change_maxE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro17plot_per_is_exactE">
+<span class="target" id="castro__params_8H_1a0ead0253dd995cf0f03a3355feaa243e"></span>int <code class="descname">plot_per_is_exact</code> = 0<a class="headerlink" href="#_CPPv3N6Castro17plot_per_is_exactE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro23small_plot_per_is_exactE">
+<span class="target" id="castro__params_8H_1af26652361c924ee1ff2711dbdfd925c9"></span>int <code class="descname">small_plot_per_is_exact</code> = 0<a class="headerlink" href="#_CPPv3N6Castro23small_plot_per_is_exactE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro9use_retryE">
+<span class="target" id="castro__params_8H_1ae95ea12a48fc690fdb547d5738f64f49"></span>int <code class="descname">use_retry</code> = 0<a class="headerlink" href="#_CPPv3N6Castro9use_retryE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro15retry_toleranceE">
+<span class="target" id="castro__params_8H_1ac8f33f498accbe6e0c796299b14d4e55"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">retry_tolerance</code> = 0.02<a class="headerlink" href="#_CPPv3N6Castro15retry_toleranceE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro21retry_neg_dens_factorE">
+<span class="target" id="castro__params_8H_1a1a2191b4dcaa6e44d9822d5115be73e0"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">retry_neg_dens_factor</code> = 1.e-1<a class="headerlink" href="#_CPPv3N6Castro21retry_neg_dens_factorE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro21retry_subcycle_factorE">
+<span class="target" id="castro__params_8H_1abfa392800b019c6932e1963e4da82b32"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">retry_subcycle_factor</code> = 0.5<a class="headerlink" href="#_CPPv3N6Castro21retry_subcycle_factorE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro20use_post_step_regridE">
+<span class="target" id="castro__params_8H_1acf1a51fbba54c1f0d113441e1ef5cf25"></span>int <code class="descname">use_post_step_regrid</code> = 0<a class="headerlink" href="#_CPPv3N6Castro20use_post_step_regridE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro13max_subcyclesE">
+<span class="target" id="castro__params_8H_1a7d2288bcda82ff619570dbf429fa8acd"></span>int <code class="descname">max_subcycles</code> = 10<a class="headerlink" href="#_CPPv3N6Castro13max_subcyclesE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro15clamp_subcyclesE">
+<span class="target" id="castro__params_8H_1ac72b4802987f9d82d2a3c39db95c9dac"></span>int <code class="descname">clamp_subcycles</code> = 1<a class="headerlink" href="#_CPPv3N6Castro15clamp_subcyclesE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro9sdc_itersE">
+<span class="target" id="castro__params_8H_1af4996b92e4e5db8d5c85675cf98c2c60"></span>int <code class="descname">sdc_iters</code> = 2<a class="headerlink" href="#_CPPv3N6Castro9sdc_itersE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro7dtnuc_eE">
+<span class="target" id="castro__params_8H_1a70598e2d6f916a104299f5bfdcba3ced"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">dtnuc_e</code> = 1.e200<a class="headerlink" href="#_CPPv3N6Castro7dtnuc_eE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro7dtnuc_XE">
+<span class="target" id="castro__params_8H_1a4cd7dfa52995be76d872adff5df39130"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">dtnuc_X</code> = 1.e200<a class="headerlink" href="#_CPPv3N6Castro7dtnuc_XE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro17dtnuc_X_thresholdE">
+<span class="target" id="castro__params_8H_1a3bb9882ac675c1cbdab38006aee1badb"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">dtnuc_X_threshold</code> = 1.e-3<a class="headerlink" href="#_CPPv3N6Castro17dtnuc_X_thresholdE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro5dxnucE">
+<span class="target" id="castro__params_8H_1aa0440bd9be25521b31defe0165ef89b7"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">dxnuc</code> = 1.e200<a class="headerlink" href="#_CPPv3N6Castro5dxnucE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro9dxnuc_maxE">
+<span class="target" id="castro__params_8H_1aa2fd363461655b49dda0ab4cc4b60883"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">dxnuc_max</code> = 1.e200<a class="headerlink" href="#_CPPv3N6Castro9dxnuc_maxE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro13max_dxnuc_levE">
+<span class="target" id="castro__params_8H_1abf9a0c022dff24dd616248b8e6b58e18"></span>int <code class="descname">max_dxnuc_lev</code> = -1<a class="headerlink" href="#_CPPv3N6Castro13max_dxnuc_levE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro8do_reactE">
+<span class="target" id="castro__params_8H_1a470855cad46bc7029720bcd8432a7430"></span>int <code class="descname">do_react</code> = -1<a class="headerlink" href="#_CPPv3N6Castro8do_reactE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro11react_T_minE">
+<span class="target" id="castro__params_8H_1ac0605ba6fc1b592d29f8c69db7a6951e"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">react_T_min</code> = 0.0<a class="headerlink" href="#_CPPv3N6Castro11react_T_minE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro11react_T_maxE">
+<span class="target" id="castro__params_8H_1ae7f6a648677a46cd3907cb272c60cafd"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">react_T_max</code> = 1.e200<a class="headerlink" href="#_CPPv3N6Castro11react_T_maxE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro13react_rho_minE">
+<span class="target" id="castro__params_8H_1ac19233929008bca8a5ae4fafa64b78d6"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">react_rho_min</code> = 0.0<a class="headerlink" href="#_CPPv3N6Castro13react_rho_minE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro13react_rho_maxE">
+<span class="target" id="castro__params_8H_1a305d46df3d0b648610a124f9825cb4f0"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">react_rho_max</code> = 1.e200<a class="headerlink" href="#_CPPv3N6Castro13react_rho_maxE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro21disable_shock_burningE">
+<span class="target" id="castro__params_8H_1a3202029913aaef719b8624c650ae57b5"></span>int <code class="descname">disable_shock_burning</code> = 0<a class="headerlink" href="#_CPPv3N6Castro21disable_shock_burningE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro7do_gravE">
+<span class="target" id="castro__params_8H_1a431c97ed6f24d4416703efe33c22ace0"></span>int <code class="descname">do_grav</code> = -1<a class="headerlink" href="#_CPPv3N6Castro7do_gravE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro13moving_centerE">
+<span class="target" id="castro__params_8H_1a3b37721d3e11891ca1ee53c282e42aa4"></span>int <code class="descname">moving_center</code> = 0<a class="headerlink" href="#_CPPv3N6Castro13moving_centerE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro16grav_source_typeE">
+<span class="target" id="castro__params_8H_1ad704501a0fe8c44568776f1919d046c1"></span>int <code class="descname">grav_source_type</code> = 4<a class="headerlink" href="#_CPPv3N6Castro16grav_source_typeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro11do_rotationE">
+<span class="target" id="castro__params_8H_1ab1e0a1578d7874c08dc8fb2909eeade9"></span>int <code class="descname">do_rotation</code> = -1<a class="headerlink" href="#_CPPv3N6Castro11do_rotationE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro6do_accE">
+<span class="target" id="castro__params_8H_1a9a7b83e7d780bbc95578db03792148c7"></span>int <code class="descname">do_acc</code> = -1<a class="headerlink" href="#_CPPv3N6Castro6do_accE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro22bndry_func_thread_safeE">
+<span class="target" id="castro__params_8H_1a38269c4f401dbe9899a149992a6692a0"></span>int <code class="descname">bndry_func_thread_safe</code> = 1<a class="headerlink" href="#_CPPv3N6Castro22bndry_func_thread_safeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro12grown_factorE">
+<span class="target" id="castro__params_8H_1aa09515b777e39ca4762456aedfd8db1c"></span>int <code class="descname">grown_factor</code> = 1<a class="headerlink" href="#_CPPv3N6Castro12grown_factorE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro14star_at_centerE">
+<span class="target" id="castro__params_8H_1a2b38f2047bf81b7158690ea9bee25236"></span>int <code class="descname">star_at_center</code> = -1<a class="headerlink" href="#_CPPv3N6Castro14star_at_centerE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro18do_special_taggingE">
+<span class="target" id="castro__params_8H_1a829e7a912aa3a577ec98ff72f25fac76"></span>int <code class="descname">do_special_tagging</code> = 0<a class="headerlink" href="#_CPPv3N6Castro18do_special_taggingE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro14spherical_starE">
+<span class="target" id="castro__params_8H_1af99dbc17a042f6c3c7b45b217415aef4"></span>int <code class="descname">spherical_star</code> = 0<a class="headerlink" href="#_CPPv3N6Castro14spherical_starE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro22print_fortran_warningsE">
+<span class="target" id="castro__params_8H_1a0032d4da5c2a02f5f5b4bed5196ccb34"></span>int <code class="descname">print_fortran_warnings</code> = 0<a class="headerlink" href="#_CPPv3N6Castro22print_fortran_warningsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro24print_update_diagnosticsE">
+<span class="target" id="castro__params_8H_1aeab516662fe9ba9478d7e47974db9a71"></span>int <code class="descname">print_update_diagnostics</code> = 0<a class="headerlink" href="#_CPPv3N6Castro24print_update_diagnosticsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro17track_grid_lossesE">
+<span class="target" id="castro__params_8H_1a82e081af73f6ad8d90c8c2e213806a0b"></span>int <code class="descname">track_grid_losses</code> = 0<a class="headerlink" href="#_CPPv3N6Castro17track_grid_lossesE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro12sum_intervalE">
+<span class="target" id="castro__params_8H_1ac277d3a058f0f1d052b6c6ae3ac1e733"></span>int <code class="descname">sum_interval</code> = -1<a class="headerlink" href="#_CPPv3N6Castro12sum_intervalE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro7sum_perE">
+<span class="target" id="castro__params_8H_1afea3257a149126c4f520c5454babefac"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">sum_per</code> = -1.0e0<a class="headerlink" href="#_CPPv3N6Castro7sum_perE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro19show_center_of_massE">
+<span class="target" id="castro__params_8H_1adf7daa55a88f54aef6fdcf60d4f9aeb7"></span>int <code class="descname">show_center_of_mass</code> = 0<a class="headerlink" href="#_CPPv3N6Castro19show_center_of_massE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro14hard_cfl_limitE">
+<span class="target" id="castro__params_8H_1abba5bcad7fb11f4b2704be21cd608962"></span>int <code class="descname">hard_cfl_limit</code> = 1<a class="headerlink" href="#_CPPv3N6Castro14hard_cfl_limitE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro8job_nameE">
+<span class="target" id="castro__params_8H_1ab32b04848c534e20cc2decf993ee2cc6"></span>std::string <code class="descname">job_name</code> = &quot;&quot;<a class="headerlink" href="#_CPPv3N6Castro8job_nameE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro20output_at_completionE">
+<span class="target" id="castro__params_8H_1a9a58611e84d55b4519163596e49d195c"></span>int <code class="descname">output_at_completion</code> = 1<a class="headerlink" href="#_CPPv3N6Castro20output_at_completionE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro21reset_checkpoint_timeE">
+<span class="target" id="castro__params_8H_1afc89befbe91c6fbe231d091cec08d562"></span><a class="reference internal" href="../namespace/namespaceamrex.html#_CPPv35amrex" title="amrex">amrex</a>::Real <code class="descname">reset_checkpoint_time</code> = -1.e200<a class="headerlink" href="#_CPPv3N6Castro21reset_checkpoint_timeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N6Castro21reset_checkpoint_stepE">
+<span class="target" id="castro__params_8H_1a8468986c7dd3ae67f48ed7ae010edf70"></span>int <code class="descname">reset_checkpoint_step</code> = -1<a class="headerlink" href="#_CPPv3N6Castro21reset_checkpoint_stepE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="castro__queries_8H.html" class="btn btn-neutral float-right" title="File castro_queries.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="castro__job__info__tests_8H.html" class="btn btn-neutral" title="File castro_job_info_tests.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

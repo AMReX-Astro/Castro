@@ -1,0 +1,509 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File RadTypes.H &mdash; Castro 18.11
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File Radiation.H" href="Radiation_8H.html" />
+    <link rel="prev" title="File RadTests.H" href="RadTests_8H.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                18.11
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="CastroBld_8cpp.html">File CastroBld.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CastroParticles_8cpp.html">File CastroParticles.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro_8H.html">File Castro.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro_8cpp.html">File Castro.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__F_8H.html">File Castro_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__advance_8cpp.html">File Castro_advance.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__diffusion_8cpp.html">File Castro_diffusion.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__error_8cpp.html">File Castro_error.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__error__F_8H.html">File Castro_error_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__external_8cpp.html">File Castro_external.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__gravity_8cpp.html">File Castro_gravity.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__hybrid_8cpp.html">File Castro_hybrid.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__hydro_8cpp.html">File Castro_hydro.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__io_8H.html">File Castro_io.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__io_8cpp.html">File Castro_io.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__pointmass_8cpp.html">File Castro_pointmass.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__prob__err_8cpp.html">File Castro_prob_err.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__prob__err__F_8H.html">File Castro_prob_err_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__prob__err__list_8H.html">File Castro_prob_err_list.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__radiation_8cpp.html">File Castro_radiation.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__react_8cpp.html">File Castro_react.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__rotation_8cpp.html">File Castro_rotation.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__setup_8cpp.html">File Castro_setup.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__sources_8cpp.html">File Castro_sources.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__sponge_8cpp.html">File Castro_sponge.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__thermo_8cpp.html">File Castro_thermo.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Derive_8H.html">File Derive.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Derive_8cpp.html">File Derive.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Derive__F_8H.html">File Derive_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Diffusion_8H.html">File Diffusion.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Diffusion_8cpp.html">File Diffusion.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="DumpModel1d_8H.html">File DumpModel1d.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="DumpModel1d_8cpp.html">File DumpModel1d.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gravity_8H.html">File Gravity.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gravity_8cpp.html">File Gravity.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gravity__F_8H.html">File Gravity_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HABEC__F_8H.html">File HABEC_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HypreABec_8H.html">File HypreABec.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HypreABec_8cpp.html">File HypreABec.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HypreExtMultiABec_8cpp.html">File HypreExtMultiABec.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HypreMultiABec_8H.html">File HypreMultiABec.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HypreMultiABec_8cpp.html">File HypreMultiABec.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MGFLDRadSolver_8cpp.html">File MGFLDRadSolver.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MGFLD_8cpp.html">File MGFLD.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MGRadBndry_8H.html">File MGRadBndry.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MGRadBndry_8cpp.html">File MGRadBndry.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NGBndry_8H.html">File NGBndry.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Prob_8cpp.html">File Prob.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Problem_8H.html">File Problem.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Problem__Derive_8H.html">File Problem_Derive.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Problem__Derive__F_8H.html">File Problem_Derive_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Problem__Derives_8H.html">File Problem_Derives.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Problem__F_8H.html">File Problem_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RADINTERPBNDRYDATA__F_8H.html">File RADINTERPBNDRYDATA_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RAD__F_8H.html">File RAD_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadBndryData_8H.html">File RadBndryData.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadBndryData_8cpp.html">File RadBndryData.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadBndry_8H.html">File RadBndry.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadBndry_8cpp.html">File RadBndry.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadBoundCond_8H.html">File RadBoundCond.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadInterpBndryData_8H.html">File RadInterpBndryData.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadInterpBndryData_8cpp.html">File RadInterpBndryData.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadMultiGroup_8cpp.html">File RadMultiGroup.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadPlotvar_8cpp.html">File RadPlotvar.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadSolve_8H.html">File RadSolve.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadSolve_8cpp.html">File RadSolve.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadTests_8H.html">File RadTests.H</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File RadTypes.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Radiation_8H.html">File Radiation.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Radiation_8cpp.html">File Radiation.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SGFLD_8cpp.html">File SGFLD.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SGRadSolver_8cpp.html">File SGRadSolver.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="castro__defaults_8H.html">File castro_defaults.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="castro__job__info__tests_8H.html">File castro_job_info_tests.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="castro__params_8H.html">File castro_params.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="castro__queries_8H.html">File castro_queries.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="diffusion__defaults_8H.html">File diffusion_defaults.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="diffusion__job__info__tests_8H.html">File diffusion_job_info_tests.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="diffusion__params_8H.html">File diffusion_params.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="diffusion__queries_8H.html">File diffusion_queries.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="energy__diagnostics_8cpp.html">File energy_diagnostics.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gravity__defaults_8H.html">File gravity_defaults.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gravity__job__info__tests_8H.html">File gravity_job_info_tests.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gravity__params_8H.html">File gravity_params.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gravity__queries_8H.html">File gravity_queries.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main_8cpp.html">File main.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="particles__defaults_8H.html">File particles_defaults.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="particles__job__info__tests_8H.html">File particles_job_info_tests.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="particles__params_8H.html">File particles_params.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="particles__queries_8H.html">File particles_queries.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sum__integrated__quantities_8cpp.html">File sum_integrated_quantities.cpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sum__utils_8cpp.html">File sum_utils.cpp</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../namespacelist.html">Namespace list</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+      <li>File RadTypes.H</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/RadTypes_8H.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+/* nice headers on first paragraph of info/warning boxes */
+.admonition .first {
+    margin: -12px;
+    padding: 6px 12px;
+    margin-bottom: 12px;
+    color: #fff;
+    line-height: 1;
+    display: block;
+}
+.admonition.warning .first {
+    background: #f0b37e;
+}
+.admonition.note .first {
+    background: #6ab0de;
+}
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="file-radtypes-h">
+<h1>File RadTypes.H<a class="headerlink" href="#file-radtypes-h" title="Permalink to this headline">¶</a></h1>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Enums</p>
+<dl class="type">
+<dt id="_CPPv38RadNames">
+<span class="target" id="RadTypes_8H_1a177cd489a527e7f752cfb1e8b9996831"></span><em class="property">enum </em><code class="descname">RadNames</code><a class="headerlink" href="#_CPPv38RadNames" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><em>Values:</em></p>
+<dl class="enumerator">
+<dt id="_CPPv33Rad">
+<span class="target" id="RadTypes_8H_1a177cd489a527e7f752cfb1e8b9996831a62b9cfac049a9ca37f908f22d618b763"></span><code class="descname">Rad</code> = 0<a class="headerlink" href="#_CPPv33Rad" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="type">
+<dt id="_CPPv39TestNames">
+<span class="target" id="RadTypes_8H_1adc339505875de2a7f5dbb1cd6baf06b6"></span><em class="property">enum </em><code class="descname">TestNames</code><a class="headerlink" href="#_CPPv39TestNames" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><em>Values:</em></p>
+<dl class="enumerator">
+<dt id="_CPPv35Test0">
+<span class="target" id="RadTypes_8H_1adc339505875de2a7f5dbb1cd6baf06b6a16574001d8bd3306edf6ce00fd312229"></span><code class="descname">Test0</code> =  0<a class="headerlink" href="#_CPPv35Test0" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="enumerator">
+<dt id="_CPPv35Test1">
+<span class="target" id="RadTypes_8H_1adc339505875de2a7f5dbb1cd6baf06b6a8f7ddaa6e5a35785325536f670dff30e"></span><code class="descname">Test1</code> =  1<a class="headerlink" href="#_CPPv35Test1" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="enumerator">
+<dt id="_CPPv35Test2">
+<span class="target" id="RadTypes_8H_1adc339505875de2a7f5dbb1cd6baf06b6a5cae0e991126116b060be9fe79c7a761"></span><code class="descname">Test2</code> =  2<a class="headerlink" href="#_CPPv35Test2" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="enumerator">
+<dt id="_CPPv35Test3">
+<span class="target" id="RadTypes_8H_1adc339505875de2a7f5dbb1cd6baf06b6a773f003a39478f97b876edaba169c3ab"></span><code class="descname">Test3</code> =  3<a class="headerlink" href="#_CPPv35Test3" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="enumerator">
+<dt id="_CPPv35Test4">
+<span class="target" id="RadTypes_8H_1adc339505875de2a7f5dbb1cd6baf06b6a2b6cb6f7e7f4f68085a48cf78efbaa4b"></span><code class="descname">Test4</code> =  4<a class="headerlink" href="#_CPPv35Test4" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="enumerator">
+<dt id="_CPPv35Test5">
+<span class="target" id="RadTypes_8H_1adc339505875de2a7f5dbb1cd6baf06b6a9ff267af852937b35b028c15f9352dfa"></span><code class="descname">Test5</code> =  5<a class="headerlink" href="#_CPPv35Test5" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="enumerator">
+<dt id="_CPPv35Test6">
+<span class="target" id="RadTypes_8H_1adc339505875de2a7f5dbb1cd6baf06b6aef422941a67f30f74463fbe71b9a894d"></span><code class="descname">Test6</code> =  6<a class="headerlink" href="#_CPPv35Test6" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="enumerator">
+<dt id="_CPPv35Test7">
+<span class="target" id="RadTypes_8H_1adc339505875de2a7f5dbb1cd6baf06b6aa444f62c380555b6b58810a45850f0a9"></span><code class="descname">Test7</code> =  7<a class="headerlink" href="#_CPPv35Test7" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="enumerator">
+<dt id="_CPPv35Test8">
+<span class="target" id="RadTypes_8H_1adc339505875de2a7f5dbb1cd6baf06b6a942e44aa8c3283fccfb6a8e000846e8d"></span><code class="descname">Test8</code> =  8<a class="headerlink" href="#_CPPv35Test8" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="enumerator">
+<dt id="_CPPv35Test9">
+<span class="target" id="RadTypes_8H_1adc339505875de2a7f5dbb1cd6baf06b6a2e2362a7628916658c8b06dac8aa8896"></span><code class="descname">Test9</code> =  9<a class="headerlink" href="#_CPPv35Test9" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="enumerator">
+<dt id="_CPPv36Test10">
+<span class="target" id="RadTypes_8H_1adc339505875de2a7f5dbb1cd6baf06b6a48805a36c018f13fbdacef959776c62e"></span><code class="descname">Test10</code> = 10<a class="headerlink" href="#_CPPv36Test10" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="enumerator">
+<dt id="_CPPv36Test11">
+<span class="target" id="RadTypes_8H_1adc339505875de2a7f5dbb1cd6baf06b6a078cd200b0b8bc519fce8b3fecddb7b8"></span><code class="descname">Test11</code> = 11<a class="headerlink" href="#_CPPv36Test11" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="enumerator">
+<dt id="_CPPv36Test12">
+<span class="target" id="RadTypes_8H_1adc339505875de2a7f5dbb1cd6baf06b6ab532d37addab0e9b08d40186a2451cbf"></span><code class="descname">Test12</code> = 12<a class="headerlink" href="#_CPPv36Test12" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="enumerator">
+<dt id="_CPPv36Test13">
+<span class="target" id="RadTypes_8H_1adc339505875de2a7f5dbb1cd6baf06b6a8fcb19243d1aaab5dd912c5f47356835"></span><code class="descname">Test13</code> = 13<a class="headerlink" href="#_CPPv36Test13" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="enumerator">
+<dt id="_CPPv36Test14">
+<span class="target" id="RadTypes_8H_1adc339505875de2a7f5dbb1cd6baf06b6adc3c06ad86d282a90bbabea6384b1e90"></span><code class="descname">Test14</code> = 14<a class="headerlink" href="#_CPPv36Test14" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="enumerator">
+<dt id="_CPPv36Test15">
+<span class="target" id="RadTypes_8H_1adc339505875de2a7f5dbb1cd6baf06b6a5ea040eabe2b3db99d7ad8a3b19b5ee0"></span><code class="descname">Test15</code> = 15<a class="headerlink" href="#_CPPv36Test15" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="enumerator">
+<dt id="_CPPv36Test16">
+<span class="target" id="RadTypes_8H_1adc339505875de2a7f5dbb1cd6baf06b6af3ac08a9d2c5e89d3996f2b5af429c88"></span><code class="descname">Test16</code> = 16<a class="headerlink" href="#_CPPv36Test16" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="enumerator">
+<dt id="_CPPv36Test17">
+<span class="target" id="RadTypes_8H_1adc339505875de2a7f5dbb1cd6baf06b6a960188ac20d7aaea96338b6eb3b70428"></span><code class="descname">Test17</code> = 17<a class="headerlink" href="#_CPPv36Test17" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="enumerator">
+<dt id="_CPPv36Test18">
+<span class="target" id="RadTypes_8H_1adc339505875de2a7f5dbb1cd6baf06b6a37e75f7c44d7a16bed15239389751d84"></span><code class="descname">Test18</code> = 18<a class="headerlink" href="#_CPPv36Test18" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="enumerator">
+<dt id="_CPPv36Test19">
+<span class="target" id="RadTypes_8H_1adc339505875de2a7f5dbb1cd6baf06b6a47cf57db68b0fce3f94bbe0196fc055e"></span><code class="descname">Test19</code> = 19<a class="headerlink" href="#_CPPv36Test19" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="enumerator">
+<dt id="_CPPv36Test20">
+<span class="target" id="RadTypes_8H_1adc339505875de2a7f5dbb1cd6baf06b6a6aba5c67a79208f4aaeed80a7fde6d8c"></span><code class="descname">Test20</code> = 20<a class="headerlink" href="#_CPPv36Test20" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Radiation_8H.html" class="btn btn-neutral float-right" title="File Radiation.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="RadTests_8H.html" class="btn btn-neutral" title="File RadTests.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
