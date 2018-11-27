@@ -1,0 +1,4 @@
+File energy_diagnostics.cpp
+===========================
+
+.. doxygenfile:: energy_diagnostics.cpp

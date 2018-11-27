@@ -22,6 +22,8 @@ changes since last release
      Also, fixed an edge case where this custom distribution map could
      cause a numerical overflow and code crash. (#382)
 
+  -- the documentation was converted to sphinx
+
 # 18.11
 
   -- we've restructured the CTU solver to no longer use a slab

@@ -53,3 +53,6 @@ Exec/**/set_conserved.H
 *.bak
 
 Backtrace.*
+
+sphinx_docs/build
+sphinx_docs/doxy_files
