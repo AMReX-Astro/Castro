@@ -1,6 +1,111 @@
 namespace: ``castro``
 ---------------------
 
+**diffusion**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``diffuse_temp``                       | enable thermal diffusion                                | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``diffuse_enth``                       | enable enthalpy diffusion                               | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``diffuse_spec``                       | enable species diffusion                                | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``diffuse_vel``                        | enable velocity diffusion                               | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``diffuse_cutoff_density``             | set a cutoff density for diffusion -- we zero the term  | -1.e200       |
+|                                        | out below this density                                  |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``diffuse_cond_scale_fac``             | scaling factor for conductivity                         | 1.0           |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**parallelization**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``do_acc``                             | determines whether we use accelerators for specific     | -1            |
+|                                        | loops                                                   |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``bndry_func_thread_safe``             |                                                         | 1             |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**gravity and rotation**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``do_grav``                            | permits gravity calculation to be turned on and off     | -1            |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``moving_center``                      | to we recompute the center used for the multipole       | 0             |
+|                                        | gravity solve each step?                                |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``grav_source_type``                   | determines how the gravitational source term is added   | 4             |
+|                                        | to the momentum and energy state variables.             |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``do_rotation``                        | permits rotation calculation to be turned on and off    | -1            |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``rotational_period``                  | the rotation period for the corotating frame            | -1.e200       |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``rotational_dPdt``                    | the rotation periods time evolution---this allows the   | 0.0           |
+|                                        | rotation rate to change durning the simulation time     |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``rotation_include_centrifugal``       | permits the centrifugal terms in the rotation to be     | 1             |
+|                                        | turned on and off                                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``rotation_include_coriolis``          | permits the Coriolis terms in the rotation to be turned | 1             |
+|                                        | on and off                                              |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``rotation_include_domegadt``          | permits the d(omega)/dt terms in the rotation to be     | 1             |
+|                                        | turned on and off                                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``state_in_rotating_frame``            | Which reference frame to measure the state variables    | 1             |
+|                                        | with respect to. The standard in the literature when    |               |
+|                                        | using a rotating reference frame is to measure the      |               |
+|                                        | state variables with respect to an observer fixed in    |               |
+|                                        | that rotating frame. If this option is disabled by      |               |
+|                                        | setting it to 0, the state variables will be measured   |               |
+|                                        | with respect to an observer fixed in the inertial frame |               |
+|                                        | (but the frame will still rotate).                      |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``rot_source_type``                    | determines how the rotation source terms are added to   | 4             |
+|                                        | the momentum and energy equations                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``implicit_rotation_update``           | we can do a implicit solution of the rotation update to | 1             |
+|                                        | allow for better coupling of the Coriolis terms         |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``rot_axis``                           | the coordinate axis ($x=1$, $y=2$, $z=3$) for the       | 3             |
+|                                        | rotation vector                                         |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``use_point_mass``                     | include a central point mass                            | 1             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``point_mass``                         | mass of the point mass                                  | 0.0           |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``point_mass_fix_solution``            | if we have a central point mass, we can prevent mass    | 0             |
+|                                        | from building up in the zones adjacent to it by keeping |               |
+|                                        | their density constant and adding their mass to the     |               |
+|                                        | point mass object                                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**refinement**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``do_special_tagging``                 |                                                         | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``spherical_star``                     |                                                         | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
 **timestep control**
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -70,6 +175,53 @@ namespace: ``castro``
 
 
 
+**diagnostics, I/O**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``print_fortran_warnings``             | display warnings in Fortran90 routines                  | (0, 1)        |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``print_update_diagnostics``           | display information about updates to the state (how     | (0, 1)        |
+|                                        | much mass, momentum, energy added)                      |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``track_grid_losses``                  | calculate losses of material through physical grid      | 0             |
+|                                        | boundaries                                              |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``sum_interval``                       | how often (number of coarse timesteps) to compute       | -1            |
+|                                        | integral sums (for runtime diagnostics)                 |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``sum_per``                            | how often (simulation time) to compute integral sums    | -1.0e0        |
+|                                        | (for runtime diagnostics)                               |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``show_center_of_mass``                | display center of mass diagnostics                      | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``hard_cfl_limit``                     | abort if we exceed CFL = 1 over the cource of a         | 1             |
+|                                        | timestep                                                |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``job_name``                           | a string describing the simulation that will be copied  | ""            |
+|                                        | into the plotfile's {\tt job\_info} file                |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``output_at_completion``               | write a final plotfile and checkpoint upon completion   | 1             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``reset_checkpoint_time``              | Do we want to reset the time in the checkpoint? This    | -1.e200       |
+|                                        | ONLY takes effect if amr.regrid\_on\_restart = 1 and    |               |
+|                                        | amr.checkpoint\_on\_restart = 1, (which require that    |               |
+|                                        | max\_step and stop\_time be less than the value in the  |               |
+|                                        | checkpoint) and you set it to value greater than this   |               |
+|                                        | default value.                                          |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``reset_checkpoint_step``              | Do we want to reset the number of steps in the          | -1            |
+|                                        | checkpoint? This ONLY takes effect if                   |               |
+|                                        | amr.regrid\_on\_restart = 1 and                         |               |
+|                                        | amr.checkpoint\_on\_restart = 1, (which require that    |               |
+|                                        | max\_step and stop\_time be less than the value in the  |               |
+|                                        | checkpoint) and you set it to value greater than this   |               |
+|                                        | default value.                                          |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
 **particles**
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -77,65 +229,6 @@ namespace: ``castro``
 +========================================+=========================================================+===============+
 | ``do_tracer_particles``                | permits tracer particle calculation to be turned on and | 0             |
 |                                        | off                                                     |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-
-
-
-**gravity and rotation**
-
-+----------------------------------------+---------------------------------------------------------+---------------+
-| parameter                              | description                                             | default value |
-+========================================+=========================================================+===============+
-| ``do_grav``                            | permits gravity calculation to be turned on and off     | -1            |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``moving_center``                      | to we recompute the center used for the multipole       | 0             |
-|                                        | gravity solve each step?                                |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``grav_source_type``                   | determines how the gravitational source term is added   | 4             |
-|                                        | to the momentum and energy state variables.             |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``do_rotation``                        | permits rotation calculation to be turned on and off    | -1            |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``rotational_period``                  | the rotation period for the corotating frame            | -1.e200       |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``rotational_dPdt``                    | the rotation periods time evolution---this allows the   | 0.0           |
-|                                        | rotation rate to change durning the simulation time     |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``rotation_include_centrifugal``       | permits the centrifugal terms in the rotation to be     | 1             |
-|                                        | turned on and off                                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``rotation_include_coriolis``          | permits the Coriolis terms in the rotation to be turned | 1             |
-|                                        | on and off                                              |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``rotation_include_domegadt``          | permits the d(omega)/dt terms in the rotation to be     | 1             |
-|                                        | turned on and off                                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``state_in_rotating_frame``            | Which reference frame to measure the state variables    | 1             |
-|                                        | with respect to. The standard in the literature when    |               |
-|                                        | using a rotating reference frame is to measure the      |               |
-|                                        | state variables with respect to an observer fixed in    |               |
-|                                        | that rotating frame. If this option is disabled by      |               |
-|                                        | setting it to 0, the state variables will be measured   |               |
-|                                        | with respect to an observer fixed in the inertial frame |               |
-|                                        | (but the frame will still rotate).                      |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``rot_source_type``                    | determines how the rotation source terms are added to   | 4             |
-|                                        | the momentum and energy equations                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``implicit_rotation_update``           | we can do a implicit solution of the rotation update to | 1             |
-|                                        | allow for better coupling of the Coriolis terms         |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``rot_axis``                           | the coordinate axis ($x=1$, $y=2$, $z=3$) for the       | 3             |
-|                                        | rotation vector                                         |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``use_point_mass``                     | include a central point mass                            | 1             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``point_mass``                         | mass of the point mass                                  | 0.0           |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``point_mass_fix_solution``            | if we have a central point mass, we can prevent mass    | 0             |
-|                                        | from building up in the zones adjacent to it by keeping |               |
-|                                        | their density constant and adding their mass to the     |               |
-|                                        | point mass object                                       |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
@@ -189,6 +282,20 @@ namespace: ``castro``
 |                                        | zone                                                    |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``disable_shock_burning``              | disable burning inside hydrodynamic shock regions       | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**embiggening**
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``grown_factor``                       | the factor by which to extend the domain upon restart   | 1             |
+|                                        | for embiggening                                         |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``star_at_center``                     | used with the embiggening routines to determine how to  | -1            |
+|                                        | extend the domain                                       |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
@@ -357,40 +464,6 @@ namespace: ``castro``
 
 
 
-**diffusion**
-
-+----------------------------------------+---------------------------------------------------------+---------------+
-| parameter                              | description                                             | default value |
-+========================================+=========================================================+===============+
-| ``diffuse_temp``                       | enable thermal diffusion                                | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_enth``                       | enable enthalpy diffusion                               | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_spec``                       | enable species diffusion                                | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_vel``                        | enable velocity diffusion                               | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_cutoff_density``             | set a cutoff density for diffusion -- we zero the term  | -1.e200       |
-|                                        | out below this density                                  |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_cond_scale_fac``             | scaling factor for conductivity                         | 1.0           |
-+----------------------------------------+---------------------------------------------------------+---------------+
-
-
-
-**parallelization**
-
-+----------------------------------------+---------------------------------------------------------+---------------+
-| parameter                              | description                                             | default value |
-+========================================+=========================================================+===============+
-| ``do_acc``                             | determines whether we use accelerators for specific     | -1            |
-|                                        | loops                                                   |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``bndry_func_thread_safe``             |                                                         | 1             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-
-
-
 **AMR**
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -415,79 +488,6 @@ namespace: ``castro``
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``use_custom_knapsack_weights``        | should we have state data for custom load-balancing     | 0             |
 |                                        | weighting?                                              |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-
-
-
-**embiggening**
-
-+----------------------------------------+---------------------------------------------------------+---------------+
-| parameter                              | description                                             | default value |
-+========================================+=========================================================+===============+
-| ``grown_factor``                       | the factor by which to extend the domain upon restart   | 1             |
-|                                        | for embiggening                                         |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``star_at_center``                     | used with the embiggening routines to determine how to  | -1            |
-|                                        | extend the domain                                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-
-
-
-**diagnostics, I/O**
-
-+----------------------------------------+---------------------------------------------------------+---------------+
-| parameter                              | description                                             | default value |
-+========================================+=========================================================+===============+
-| ``print_fortran_warnings``             | display warnings in Fortran90 routines                  | (0, 1)        |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``print_update_diagnostics``           | display information about updates to the state (how     | (0, 1)        |
-|                                        | much mass, momentum, energy added)                      |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``track_grid_losses``                  | calculate losses of material through physical grid      | 0             |
-|                                        | boundaries                                              |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``sum_interval``                       | how often (number of coarse timesteps) to compute       | -1            |
-|                                        | integral sums (for runtime diagnostics)                 |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``sum_per``                            | how often (simulation time) to compute integral sums    | -1.0e0        |
-|                                        | (for runtime diagnostics)                               |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``show_center_of_mass``                | display center of mass diagnostics                      | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``hard_cfl_limit``                     | abort if we exceed CFL = 1 over the cource of a         | 1             |
-|                                        | timestep                                                |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``job_name``                           | a string describing the simulation that will be copied  | ""            |
-|                                        | into the plotfile's {\tt job\_info} file                |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``output_at_completion``               | write a final plotfile and checkpoint upon completion   | 1             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``reset_checkpoint_time``              | Do we want to reset the time in the checkpoint? This    | -1.e200       |
-|                                        | ONLY takes effect if amr.regrid\_on\_restart = 1 and    |               |
-|                                        | amr.checkpoint\_on\_restart = 1, (which require that    |               |
-|                                        | max\_step and stop\_time be less than the value in the  |               |
-|                                        | checkpoint) and you set it to value greater than this   |               |
-|                                        | default value.                                          |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``reset_checkpoint_step``              | Do we want to reset the number of steps in the          | -1            |
-|                                        | checkpoint? This ONLY takes effect if                   |               |
-|                                        | amr.regrid\_on\_restart = 1 and                         |               |
-|                                        | amr.checkpoint\_on\_restart = 1, (which require that    |               |
-|                                        | max\_step and stop\_time be less than the value in the  |               |
-|                                        | checkpoint) and you set it to value greater than this   |               |
-|                                        | default value.                                          |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-
-
-
-**refinement**
-
-+----------------------------------------+---------------------------------------------------------+---------------+
-| parameter                              | description                                             | default value |
-+========================================+=========================================================+===============+
-| ``do_special_tagging``                 |                                                         | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``spherical_star``                     |                                                         | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 

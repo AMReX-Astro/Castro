@@ -81,7 +81,7 @@ source_suffix = '.rst'
 numpydoc_show_class_members = False
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = 'index_docs'
 
 # General information about the project.
 project = 'Castro'
