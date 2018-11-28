@@ -1,0 +1,4 @@
+Class BndryAuxVar
+=================
+
+.. doxygenclass:: BndryAuxVar

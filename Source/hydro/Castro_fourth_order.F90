@@ -290,7 +290,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   ! we cannot get away with the first-order construction that we pull
   ! from qaux in the Riemann solver
 
-  call riemann_state(qxm, qxp, q_lo, q_hi, &
+  call riemann_state(qxm, qxp, q_lo, q_hi, 1, 1, &
                      qx_avg, q_lo, q_hi, &
                      qaux, qa_lo, qa_hi, &
                      1, &
@@ -306,7 +306,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
 
 #if AMREX_SPACEDIM >= 2
-  call riemann_state(qym, qyp, q_lo, q_hi, &
+  call riemann_state(qym, qyp, q_lo, q_hi, 1, 1, &
                      qy_avg, q_lo, q_hi, &
                      qaux, qa_lo, qa_hi, &
                      2, &
@@ -322,7 +322,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 #endif
 
 #if AMREX_SPACEDIM == 3
-  call riemann_state(qzm, qzp, q_lo, q_hi, &
+  call riemann_state(qzm, qzp, q_lo, q_hi, 1, 1, &
                      qz_avg, q_lo, q_hi, &
                      qaux, qa_lo, qa_hi, &
                      3, &

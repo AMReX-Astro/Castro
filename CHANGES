@@ -28,6 +28,9 @@ changes since last release
   -- rewrote the reconstruction routines to eliminate temporary arrays
      to make them GPU friendly
 
+  -- the documentation was converted to sphinx
+
+
 # 18.11
 
   -- we've restructured the CTU solver to no longer use a slab

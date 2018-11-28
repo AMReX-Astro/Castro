@@ -1,0 +1,4 @@
+File particles_params.H
+=======================
+
+.. doxygenfile:: particles_params.H
