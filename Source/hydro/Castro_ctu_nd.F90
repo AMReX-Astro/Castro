@@ -665,7 +665,7 @@ contains
     ! 1-d code path
     !==========================================================================
     ! Solve Riemann problem, compute xflux from improved predicted states
-    call cmpflx(qxm, qxp, fglo, fghi, &
+    call cmpflx(qxm, qxp, fglo, fghi, 1, 1, &
                 flux1, f1_lo, f1_hi, &
                 q1, q1_lo, q1_hi, &
 #ifdef RADIATION
@@ -694,7 +694,7 @@ contains
     !         gamc, csml, c                : +-4
     !         shk                          : +-1
     ! Outputs: fx, ugdnvx, pgdnvx, gegdnvx : xface, +-1 at y
-    call cmpflx(qxm, qxp, fglo, fghi, &
+    call cmpflx(qxm, qxp, fglo, fghi, 1, 1, &
                 fx, glo, ghi, &
                 qgdnvx, fglo, fghi, &
 #ifdef RADIATION
@@ -715,7 +715,7 @@ contains
     !         gamc, csml, c                : +-4
     !         shk                          : +-1
     ! Outputs: fy, ugdnvy, pgdnvy, gegdnvy : yface, +-1 at x
-    call cmpflx(qym, qyp, fglo, fghi, &
+    call cmpflx(qym, qyp, fglo, fghi, 1, 1, &
                 fy, glo, ghi, &
                 q2, q2_lo, q2_hi, &
 #ifdef RADIATION
@@ -745,7 +745,7 @@ contains
     ! Solve the final Riemann problem across the x-interfaces with the
     ! full unsplit states.  The resulting flux through the x-interfaces
     ! is flux1
-    call cmpflx(ql, qr, fglo, fghi, &
+    call cmpflx(ql, qr, fglo, fghi, 1, 1, &
                 flux1, f1_lo, f1_hi, &
                 q1, q1_lo, q1_hi, &
 #ifdef RADIATION
@@ -777,7 +777,7 @@ contains
     ! Solve the final Riemann problem across the y-interfaces with the
     ! full unsplit states.  The resulting flux through the y-interfaces
     ! is flux2
-    call cmpflx(ql, qr, fglo, fghi, &
+    call cmpflx(ql, qr, fglo, fghi, 1, 1, &
                 flux2, f2_lo, f2_hi, &
                 q2, q2_lo, q2_hi, &
 #ifdef RADIATION
@@ -813,7 +813,7 @@ contains
     !         gamc, csml, c                : +-4
     !         shk                          : +-1
     ! Outputs: fx, ugdnvx, pgdnvx, gegdnvx : xface, +-1 at y & z
-    call cmpflx(qxm, qxp, fglo, fghi, &
+    call cmpflx(qxm, qxp, fglo, fghi, 1, 1, &
                 fx, glo, ghi, &
                 qgdnvx, fglo, fghi, &
 #ifdef RADIATION
@@ -858,7 +858,7 @@ contains
     !         gamc, csml, c                : +-4
     !         shk                          : +-1
     ! Outputs: fy, ugdnvy, pgdnvy, gegdnvy : yface, +-1 at x & z
-    call cmpflx(qym, qyp, fglo, fghi, &
+    call cmpflx(qym, qyp, fglo, fghi, 1, 1, &
                 fy, glo, ghi, &
                 qgdnvy, fglo, fghi, &
 #ifdef RADIATION
@@ -903,7 +903,7 @@ contains
     !         gamc, csml, c                : +-4
     !         shk                          : +-1
     ! Outputs: fz, ugdnvz, pgdnvz, gegdnvz : zface, +-1 at x & y
-    call cmpflx(qzm, qzp, fglo, fghi, &
+    call cmpflx(qzm, qzp, fglo, fghi, 1, 1, &
                 fz, glo, ghi, &
                 qgdnvz, fglo, fghi, &
 #ifdef RADIATION
@@ -955,7 +955,7 @@ contains
     !         gamc, csml, c                    : +-4
     !         shk                              : +-1
     ! Outputs: fyz, ugdnvyz, pgdnvyz, gegdnvyz : yface, +-1 at x, +-0 at z
-    call cmpflx(qmyz, qpyz, fglo, fghi, &
+    call cmpflx(qmyz, qpyz, fglo, fghi, 1, 1, &
                 fyz, glo, ghi, &
                 qgdnvyz, fglo, fghi, &
 #ifdef RADIATION
@@ -977,7 +977,7 @@ contains
     !         gamc, csml, c                    : +-4
     !         shk                              : +-1
     ! Outputs: fzy, ugdnvzy, pgdnvzy, gegdnvzy : zface, +-1 at x, +-0 at y
-    call cmpflx(qmzy, qpzy, fglo, fghi, &
+    call cmpflx(qmzy, qpzy, fglo, fghi, 1, 1, &
                 fzy, glo, ghi, &
                 qgdnvzy, fglo, fghi, &
 #ifdef RADIATION
@@ -1027,7 +1027,7 @@ contains
     !         gamc, csml, c                   : +-4
     !         shk                             : +-1
     ! Outputs: flux1, ugdnvx, pgdnvx, gegdnvx : xface, +-0 at y & z
-    call cmpflx(qxl, qxr, fglo, fghi, &
+    call cmpflx(qxl, qxr, fglo, fghi, 1, 1, &
                 flux1, f1_lo, f1_hi, &
                 qgdnvx, fglo, fghi, &
 #ifdef RADIATION
@@ -1063,7 +1063,7 @@ contains
     !         gamc, csml, c                    : +-4
     !         shk                              : +-1
     ! Outputs: fzx, ugdnvzx, pgdnvzx, gegdnvzx : zface, +-0 at x, +-1 at y
-    call cmpflx(qmzx, qpzx, fglo, fghi, &
+    call cmpflx(qmzx, qpzx, fglo, fghi, 1, 1, &
                 fzx, glo, ghi, &
                 qgdnvzx, fglo, fghi, &
 #ifdef RADIATION
@@ -1085,7 +1085,7 @@ contains
     !         gamc, csml, c                    : +-4
     !         shk                              : +-1
     ! Outputs: fxz, ugdnvxz, pgdnvxz, gegdnvxz : xface, +-1 at y, +-0 at z
-    call cmpflx(qmxz, qpxz, fglo, fghi, &
+    call cmpflx(qmxz, qpxz, fglo, fghi, 1, 1, &
                 fxz, glo, ghi, &
                 qgdnvxz, fglo, fghi, &
 #ifdef RADIATION
@@ -1136,7 +1136,7 @@ contains
     !         gamc, csml, c                   : +-4
     !         shk                             : +-1
     ! Outputs: flux2, ugdnvy, pgdnvy, gegdnvy : yface, +-0 at x & y
-    call cmpflx(qyl, qyr, fglo, fghi, &
+    call cmpflx(qyl, qyr, fglo, fghi, 1, 1, &
                 flux2, f2_lo, f2_hi, &
                 qgdnvy, fglo, fghi, &
 #ifdef RADIATION
@@ -1173,7 +1173,7 @@ contains
     !         gamc, csml, c                    : +-4
     !         shk                              : +-1
     ! Outputs: fxy, ugdnvxy, pgdnvxy, gegdnvxy : xface, +-0 at y, +-1 at z
-    call cmpflx(qmxy, qpxy, fglo, fghi, &
+    call cmpflx(qmxy, qpxy, fglo, fghi, 1, 1, &
                 fxy, glo, ghi, &
                 qgdnvxy, fglo, fghi, &
 #ifdef RADIATION
@@ -1195,7 +1195,7 @@ contains
     !         gamc, csml, c                    : +-4
     !         shk                              : +-1
     ! Outputs: fyx, ugdnvyx, pgdnvyx, gegdnvyx : yface, +-0 at x, +-1 at z
-    call cmpflx(qmyx, qpyx, fglo, fghi, &
+    call cmpflx(qmyx, qpyx, fglo, fghi, 1, 1, &
                 fyx, glo, ghi, &
                 qgdnvyx, fglo, fghi, &
 #ifdef RADIATION
@@ -1245,7 +1245,7 @@ contains
     !         gamc, csml, c                   : +-4
     !         shk                             : +-1
     ! Outputs: flux3, ugdnvz, pgdnvz, gegdnvz : zface, +-0 at x & y
-    call cmpflx(qzl, qzr, fglo, fghi, &
+    call cmpflx(qzl, qzr, fglo, fghi, 1, 1, &
                 flux3, f3_lo, f3_hi, &
                 qgdnvz, fglo, fghi, &
 #ifdef RADIATION

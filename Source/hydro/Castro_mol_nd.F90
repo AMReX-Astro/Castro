@@ -269,7 +269,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   end if
 
   ! Compute F^x at kc (k3d)
-  call cmpflx(qm(:,:,:,:,1), qp(:,:,:,:,1), It_lo, It_hi, &
+  call cmpflx(qm, qp, It_lo, It_hi, AMREX_SPACEDIM, 1, &
               flux1, flux1_lo, flux1_hi, &
               q1, flux1_lo, flux1_hi, &  ! temporary
 #ifdef RADIATION
@@ -282,7 +282,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
 #if AMREX_SPACEDIM >= 2
   ! Compute F^y at kc (k3d)
-  call cmpflx(qm(:,:,:,:,2), qp(:,:,:,:,2), It_lo, It_hi, &
+  call cmpflx(qm, qp, It_lo, It_hi, AMREX_SPACEDIM, 2, &
               flux2, flux2_lo, flux2_hi, &
               q2, flux2_lo, flux2_hi, &  ! temporary
 #ifdef RADIATION
@@ -297,7 +297,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #if AMREX_SPACEDIM == 3
   ! Compute F^z at kc (k3d)
 
-  call cmpflx(qm(:,:,:,:,3), qp(:,:,:,:,3), It_lo, It_hi, &
+  call cmpflx(qm, qp, It_lo, It_hi, AMREX_SPACEDIM, 3, &
               flux3, flux3_lo, flux3_hi, &
               q3, flux3_lo, flux3_hi,  &
 #ifdef RADIATION
