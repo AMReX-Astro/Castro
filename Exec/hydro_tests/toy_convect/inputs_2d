@@ -24,8 +24,6 @@ castro.add_ext_src   = 1
 castro.do_grav = 1
 castro.do_sponge = 1
 
-castro.allow_negative_energy = 0
-
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -1.04263053e9
 
@@ -40,12 +38,12 @@ castro.sum_interval   = 1       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 
-# REFINEMENT / REGRIDDING 
+# REFINEMENT / REGRIDDING
 amr.max_level       = 4       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
 amr.blocking_factor = 4       # block factor in grid generation
-amr.max_grid_size   = 64 
+amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES

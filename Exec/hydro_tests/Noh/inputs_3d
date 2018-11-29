@@ -21,7 +21,6 @@ castro.hi_bc       =  2   2   2
 # WHICH PHYSICS
 castro.do_hydro = 1
 castro.ppm_type = 1
-castro.allow_negative_energy = 0
 
 castro.small_dens = 1.0e-6
 castro.small_temp = 1.0e-6

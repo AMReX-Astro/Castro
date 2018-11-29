@@ -32,8 +32,6 @@ castro.do_grav  = 1
 castro.do_react = 0
 castro.do_sponge = 1
 
-castro.allow_negative_energy = 0
-
 gravity.gravity_type = MonopoleGrav
 gravity.drdxfac = 2
 

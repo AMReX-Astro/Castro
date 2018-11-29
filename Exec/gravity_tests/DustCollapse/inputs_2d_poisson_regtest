@@ -4,7 +4,7 @@ max_step = 20
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0 0
 geometry.coord_sys   = 1
-geometry.prob_lo     = 0.   0. 
+geometry.prob_lo     = 0.   0.
 geometry.prob_hi     = 7.5e8 7.5e8
 
 amr.n_cell           =  256  256
@@ -22,7 +22,6 @@ castro.do_hydro      = 1
 castro.do_react      = 0
 castro.add_ext_src   = 0
 castro.do_sponge     = 0
-castro.allow_negative_energy = 0
 castro.ppm_type      = 2
 castro.do_grav       = 1
 gravity.gravity_type = PoissonGrav
@@ -31,7 +30,7 @@ gravity.drdxfac      = 1
 
 gravity.rel_tol = 1.e-9
 
-# RELEVANT FOR EOS 
+# RELEVANT FOR EOS
 castro.small_temp    = 1.e-3
 castro.small_dens    = 1.e-6
 
@@ -47,7 +46,7 @@ castro.v              = 0       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 #amr.grid_log        = grdlog  # name of grid logging file
 
-# REFINEMENT / REGRIDDING 
+# REFINEMENT / REGRIDDING
 amr.max_level       = 2         # maximum level number allowed
 castro.dual_energy_eta2 = 1.e-4 # this is the default
 

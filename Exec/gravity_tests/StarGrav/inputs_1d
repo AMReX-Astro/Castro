@@ -9,7 +9,7 @@ stop_time = 1.0
 geometry.is_periodic = 0
 geometry.coord_sys = 2       # spherical coordinates
 
-geometry.prob_lo   =  0.  
+geometry.prob_lo   =  0.
 geometry.prob_hi   =  2.5e8
 
 amr.n_cell         =  640
@@ -31,8 +31,6 @@ castro.do_hydro = 1
 castro.do_grav  = 1
 castro.do_react = 0
 castro.do_sponge = 1
-
-castro.allow_negative_energy = 0
 
 gravity.gravity_type = MonopoleGrav
 gravity.drdxfac = 2
