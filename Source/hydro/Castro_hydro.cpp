@@ -87,7 +87,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 	  FArrayBox &statein  = Sborder[mfi];
 	  FArrayBox &stateout = S_new[mfi];
 
-	  FArrayBox &source_in  = sources_for_hydro[mfi];
 	  FArrayBox &source_out = hydro_source[mfi];
 
 #ifdef RADIATION
@@ -293,7 +292,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
     hydro_source.setVal(0.0);
   }
 
-  int finest_level = parent->finestLevel();
 
   const Real *dx = geom.CellSize();
 
@@ -357,9 +355,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	FArrayBox &Erout = Er_new[mfi];
 #endif
 
-	FArrayBox& vol = volume[mfi];
-
-	// Allocate fabs for fluxes
+	// All cate fabs for fluxes
 	for (int i = 0; i < AMREX_SPACEDIM ; i++)  {
 	  const Box& bxtmp = amrex::surroundingNodes(bx,i);
 	  flux[i].resize(bxtmp,NUM_STATE);
@@ -648,9 +644,6 @@ Castro::cons_to_prim(const Real time)
     }
 #endif
 
-    const int* domain_lo = geom.Domain().loVect();
-    const int* domain_hi = geom.Domain().hiVect();
-
     MultiFab& S_new = get_new_data(State_Type);
 
 #ifdef _OPENMP
@@ -710,9 +703,6 @@ Castro::cons_to_prim_fourth(const Real time)
 {
   // convert the conservative state cell averages to primitive cell
   // averages with 4th order accuracy
-
-    const int* domain_lo = geom.Domain().loVect();
-    const int* domain_hi = geom.Domain().hiVect();
 
     MultiFab& S_new = get_new_data(State_Type);
 

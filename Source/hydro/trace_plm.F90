@@ -69,12 +69,12 @@ contains
     real(rt) :: drho, dun, dut, dutt, dp, drhoe
 
     real(rt) :: enth, alpham, alphap, alpha0r, alpha0e
-    real(rt) :: alpha0un, alpha0ut, alpha0utt
+    real(rt) :: alpha0ut, alpha0utt
     real(rt) :: apright, amright, azrright, azeright
-    real(rt) :: azun1rght, azut1rght, azutt1rght
+    real(rt) :: azut1rght, azutt1rght
     real(rt) :: apleft, amleft, azrleft, azeleft
-    real(rt) :: azun1left, azut1left, azutt1left
-    real(rt) :: acmprght, acmpleft, acmpbot, acmptop
+    real(rt) :: azut1left, azutt1left
+    real(rt) :: acmprght, acmpleft
     real(rt) :: spzero
     real(rt) :: rho_ref, un_ref, ut_ref, utt_ref, p_ref, rhoe_ref
     real(rt) :: e(3)

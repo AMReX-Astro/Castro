@@ -441,33 +441,32 @@ Castro::valid_zones_to_burn(MultiFab& State)
     amrex::Vector<Real> small_limiters;
     amrex::Vector<Real> large_limiters;
 
-    int ng = 0;
     bool local = true;
 
     Real small_dens = small;
     Real large_dens = large;
 
     if (limit_small_rho) {
-        Real small_dens = State.min(Density, 0, local);
-        small_limiters.push_back(small_dens);
+      small_dens = State.min(Density, 0, local);
+      small_limiters.push_back(small_dens);
     }
 
     if (limit_large_rho) {
-        Real large_dens = State.max(Density, 0, local);
-        large_limiters.push_back(large_dens);
+      large_dens = State.max(Density, 0, local);
+      large_limiters.push_back(large_dens);
     }
 
     Real small_T = small;
     Real large_T = large;
 
     if (limit_small_T) {
-        Real small_T = State.min(Temp, 0, local);
-        small_limiters.push_back(small_T);
+      small_T = State.min(Temp, 0, local);
+      small_limiters.push_back(small_T);
     }
 
     if (limit_large_T) {
-        Real large_T = State.max(Temp, 0, local);
-        large_limiters.push_back(large_T);
+      large_T = State.max(Temp, 0, local);
+      large_limiters.push_back(large_T);
     }
 
     // Now do the reductions. We're being careful here
