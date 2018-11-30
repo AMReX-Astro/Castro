@@ -47,9 +47,9 @@ contains
     ! Knobs for detection of strong shock
     real(rt)        , parameter :: shktst = 0.33e0_rt, zcut1 = 0.75e0_rt, zcut2 = 0.85e0_rt, dzcut = ONE/(zcut2-zcut1)
 
-    call bl_allocate(dp ,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
-    call bl_allocate(z  ,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
-    call bl_allocate(chi,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
+    call bl_allocate(dp, lo(:)-dg(:), hi(:)+dg(:))
+    call bl_allocate(z, lo(:)-dg(:), hi(:)+dg(:))
+    call bl_allocate(chi, lo(:)-dg(:), hi(:)+dg(:))
 
     ! x-direction flattening coef
     do k = lo(3), hi(3)
@@ -187,7 +187,7 @@ contains
 
     call uflatten(lo, hi, q, flatn, q_lo, q_hi, QPTOT)
 
-    call bl_allocate(flatg, q_lo(1), q_hi(1), q_lo(2), q_hi(2), q_lo(3), q_hi(3))
+    call bl_allocate(flatg, q_lo, q_hi)
     call uflatten(lo, hi, q, flatg, q_lo, q_hi, QPRES)
 
     do k = lo(3), hi(3)

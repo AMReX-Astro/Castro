@@ -1155,7 +1155,6 @@ contains
     real(rt), intent(inout) :: cond(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
     real(rt), intent(in) :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
-    real(rt)         :: coeff
     integer          :: i, j, k
 
     type(eos_t) :: eos_state
@@ -1172,12 +1171,12 @@ contains
              call eos(eos_input_re,eos_state)
 
              if (eos_state%rho > diffuse_cutoff_density) then
-                call conductivity(eos_state, coeff)
+                call conductivity(eos_state)
              else
-                coeff = ZERO
+                eos_state % conductivity = ZERO
              endif
 
-             cond(i,j,k,1) = coeff
+             cond(i,j,k,1) = eos_state % conductivity
 
           enddo
        enddo
@@ -1214,7 +1213,6 @@ contains
     real(rt), intent(inout) :: diff(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
     real(rt), intent(in) :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
-    real(rt)         :: coeff
     integer          :: i, j, k
 
     type(eos_t) :: eos_state
@@ -1231,12 +1229,12 @@ contains
              call eos(eos_input_re,eos_state)
 
              if (eos_state%rho > diffuse_cutoff_density) then
-                call conductivity(eos_state, coeff)
+                call conductivity(eos_state)
              else
-                coeff = ZERO
+                eos_state % conductivity = ZERO
              endif
 
-             diff(i,j,k,1) = coeff/(eos_state%rho * eos_state%cv)
+             diff(i,j,k,1) = eos_state % conductivity/(eos_state%rho * eos_state%cv)
 
           enddo
        enddo

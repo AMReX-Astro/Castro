@@ -13,16 +13,15 @@ contains
 
   end subroutine actual_conductivity_init
 
-  subroutine actual_conductivity(eos_state, therm_cond)
+  subroutine actual_conductivity(eos_state)
     
     use extern_probin_module, only: const_conductivity
 
     implicit none
 
-    type (eos_t), intent(in) :: eos_state
-    real (kind=rt), intent(inout) :: therm_cond
+    type (eos_t), intent(inout) :: eos_state
 
-    therm_cond = const_conductivity
+    eos_state % conductivity = const_conductivity
     
   end subroutine actual_conductivity
 

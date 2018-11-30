@@ -567,6 +567,10 @@ Castro::Castro (Amr&            papa,
 #endif
 #endif
 
+   if (Knapsack_Weight_Type > 0) {
+    get_new_data(Knapsack_Weight_Type).setVal(1.0);
+   }
+
 #ifdef DIFFUSION
       // diffusion is a static object, only alloc if not already there
       if (diffusion == 0)
@@ -1977,8 +1981,8 @@ Castro::post_regrid (int lbase,
 		   amrex::InterpFromCoarseLevel(*grad_phi_fine[n], time, *grad_phi_coarse[n],
 						0, 0, 1,
 						parent->Geom(level-1), parent->Geom(level),
-						gp_phys_bc, gp_phys_bc, parent->refRatio(level-1),
-						gp_interp, gp_bcs);
+						gp_phys_bc, 0, gp_phys_bc, 0, parent->refRatio(level-1),
+						gp_interp, gp_bcs, 0);
 	       }
 
 	   }
