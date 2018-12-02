@@ -137,7 +137,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   integer :: It_lo(3), It_hi(3)
   integer :: shk_lo(3), shk_hi(3)
 
-  integer :: i, j, k, n
+  integer :: idir, i, j, k, n
 
   type (eos_t) :: eos_state
 
