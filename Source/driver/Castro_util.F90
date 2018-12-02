@@ -304,7 +304,7 @@ contains
     use network, only: nspec, naux
     use eos_module, only: eos
     use eos_type_module, only: eos_input_re, eos_t
-    use meth_params_module, only: NVAR, URHO, UEDEN, UEINT, UTEMP, &
+    use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, &
          UFS, UFX
     use amrex_constants_module, only: ZERO, ONE
     use amrex_error_module

@@ -74,7 +74,7 @@ contains
                    domlo, domhi)
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : QVAR, NQ, NVAR, QPRES, QRHO, QU, QW, &
+    use meth_params_module, only : QVAR, NQ, NVAR, &
                                    QFS, QFX, QTEMP, QREINT, &
                                    QC, QGAMC, NQAUX, QGAME, QREINT, &
                                    NGDNV, GDU, GDV, GDW, GDPRES, &
@@ -189,7 +189,7 @@ contains
 #endif
     real(rt) :: hdtdx, hdtdy, hdtdz
 
-    integer :: i, j, k, iwave, idim, n
+    integer :: i, j, k, iwave, n
 
     real(rt), pointer :: dqx(:,:,:,:), dqy(:,:,:,:), dqz(:,:,:,:)
 

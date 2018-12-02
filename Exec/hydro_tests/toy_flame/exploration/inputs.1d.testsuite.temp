@@ -4,10 +4,10 @@ max_step = 250
 stop_time    = 0.1
 
 # PROBLEM SIZE & GEOMETRY
-geometry.is_periodic = 0   
+geometry.is_periodic = 0
 geometry.coord_sys   = 0        # 0 => cart, 1 => RZ  2=>spherical
-geometry.prob_lo     = 0   
-geometry.prob_hi     = 102.4 
+geometry.prob_lo     = 0
+geometry.prob_hi     = 102.4
 amr.n_cell           = 1024
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -15,8 +15,8 @@ amr.n_cell           = 1024
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  3 
-castro.hi_bc       =  2 
+castro.lo_bc       =  3
+castro.hi_bc       =  2
 
 # WHICH PHYSICS
 castro.do_hydro = 1
@@ -26,8 +26,6 @@ castro.diffuse_temp = 1
 castro.diffuse_cutoff_density = 1.e-2
 
 castro.ppm_type = 1
-
-castro.allow_negative_energy = 0
 
 # TIME STEP CONTROL
 castro.cfl            = 0.6     # cfl number for hyperbolic system
@@ -41,7 +39,7 @@ amr.data_log          = "toy_flame.log"
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 
-# REFINEMENT / REGRIDDING 
+# REFINEMENT / REGRIDDING
 amr.max_level       = 1       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
