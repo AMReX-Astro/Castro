@@ -1631,6 +1631,8 @@ contains
     real(rt) :: U_hllc_state(nvar), U_state(nvar), F_state(nvar)
     real(rt) :: S_l, S_r, S_c
 
+    real(rt) :: q_zone(NQ)
+
     if (idir == 1) then
        iu = QU
        iv1 = QV
@@ -1818,12 +1820,14 @@ contains
 
              if (S_r <= ZERO) then
                 ! R region
-                call cons_state(qr(i,j,k,:,comp), U_state)
+                q_zone(:) = qr(i,j,k,:,comp)
+                call cons_state(q_zone, U_state)
                 call compute_flux(idir, bnd_fac, U_state, pr, F_state)
 
              else if (S_r > ZERO .and. S_c <= ZERO) then
                 ! R* region
-                call cons_state(qr(i,j,k,:,comp), U_state)
+                q_zone(:) = qr(i,j,k,:,comp)
+                call cons_state(q_zone, U_state)
                 call compute_flux(idir, bnd_fac, U_state, pr, F_state)
 
                 call HLLC_state(idir, S_r, S_c, qr(i,j,k,:,comp), U_hllc_state)
@@ -1833,7 +1837,8 @@ contains
 
              else if (S_c > ZERO .and. S_l < ZERO) then
                 ! L* region
-                call cons_state(ql(i,j,k,:,comp), U_state)
+                q_zone(:) = ql(i,j,k,:,comp)
+                call cons_state(q_zone, U_state)
                 call compute_flux(idir, bnd_fac, U_state, pl, F_state)
 
                 call HLLC_state(idir, S_l, S_c, ql(i,j,k,:,comp), U_hllc_state)
@@ -1843,7 +1848,8 @@ contains
 
              else
                 ! L region
-                call cons_state(ql(i,j,k,:,comp), U_state)
+                q_zone(:) = ql(i,j,k,:,comp)
+                call cons_state(q_zone, U_state)
                 call compute_flux(idir, bnd_fac, U_state, pl, F_state)
 
              endif
