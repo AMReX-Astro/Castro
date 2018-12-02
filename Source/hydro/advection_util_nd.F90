@@ -18,7 +18,7 @@ contains
                                         frac_change,verbose) bind(c,name='ca_enforce_minimum_density')
 
     use network, only : nspec, naux
-    use meth_params_module, only : NVAR, URHO, UEINT, UEDEN, small_dens, density_reset_method
+    use meth_params_module, only : NVAR, URHO, small_dens, density_reset_method
     use amrex_constants_module, only : ZERO
 #ifndef AMREX_USE_GPU
     use amrex_error_module, only: amrex_error
@@ -798,7 +798,7 @@ contains
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
     use meth_params_module, only: NVAR, NQ, URHO, small_dens, cfl
-    use prob_params_module, only: dim, dg
+    use prob_params_module, only: dim
     use amrex_mempool_module, only: bl_allocate, bl_deallocate
 
     implicit none
@@ -1580,7 +1580,7 @@ contains
 
     ! this computes the *node-centered* divergence
 
-    use meth_params_module, only : QU, QV, QW, NQ, GDPRES, GDU, GDV, GDW
+    use meth_params_module, only : NQ, GDPRES, GDU, GDV, GDW
     use amrex_constants_module, only : HALF
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -1791,7 +1791,7 @@ contains
                                             bind(c,name='ca_construct_hydro_update_cuda')
 
     use amrex_constants_module, only: HALF, ONE
-    use meth_params_module, only: NVAR, UEINT, NGDNV, GDPRES, GDU, GDV, GDW
+    use meth_params_module, only: NVAR, NGDNV
     use prob_params_module, only: dg
 
     implicit none

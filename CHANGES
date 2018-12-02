@@ -12,6 +12,9 @@ changes since last release
   -- we now apply the source terms for PLM before the transverse
      routines.  This is more consistent with the PPM version.
 
+  -- the angular momentum in the plotfile is not computed with respect
+     to the center array initialized in the probinit
+
   -- fixed a bug in 2-d with rotation -- we were adding the source
      terms to the out-of-plane velocity twice in the prediction of the
      interface states, resulting in an overall first-order
@@ -23,6 +26,9 @@ changes since last release
      cause a numerical overflow and code crash. (#382)
 
   -- the documentation was converted to sphinx
+
+  -- changed the interface to the conductivity routines so the conductivity
+     is not part of eos_t (#431)
 
 # 18.11
 

@@ -481,8 +481,7 @@ contains
     use amrex_error_module
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, &
-                                   Symmetry, SlipWall, NoSlipWall, &
-                                   mom_flux_has_p
+                                   Symmetry, SlipWall, NoSlipWall
     use network, only : nspec, naux
     use eos_type_module
     use eos_module
@@ -512,7 +511,7 @@ contains
     real(rt) :: ustar
     real(rt) :: rl, ul, v1l, v2l, pl, rel
     real(rt) :: rr, ur, v1r, v2r, pr, rer
-    real(rt) :: wl, wr, rhoetot
+    real(rt) :: wl, wr
 
     real(rt) :: rstar, cstar, pstar
     real(rt) :: ro, uo, po, co, gamco
@@ -536,7 +535,7 @@ contains
     real(rt) :: pstar_old
     real(rt) :: taul, taur, tauo
     real(rt) :: ustar_r, ustar_l, ustar_r_old, ustar_l_old
-    real(rt) :: pstarl, pstarc, pstaru, pfuncc, pfuncu
+    real(rt) :: pstarl, pstaru
 
     real(rt), parameter :: weakwv = 1.e-3_rt
 
@@ -1073,8 +1072,7 @@ contains
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, &
-                                   Symmetry, SlipWall, NoSlipWall, &
-                                   mom_flux_has_p
+                                   Symmetry, SlipWall, NoSlipWall
     use eos_type_module, only : eos_t, eos_input_rp
     use eos_module, only : eos
     use network, only : nspec
@@ -1109,7 +1107,7 @@ contains
     real(rt) :: regdnv
     real(rt) :: rl, ul, v1l, v2l, pl, rel
     real(rt) :: rr, ur, v1r, v2r, pr, rer
-    real(rt) :: wl, wr, rhoetot, scr
+    real(rt) :: wl, wr, scr
     real(rt) :: rstar, cstar, estar, pstar, ustar
     real(rt) :: ro, uo, po, reo, co, gamco, entho, drho
     real(rt) :: sgnm, spin, spout, ushock, frac
@@ -1897,8 +1895,6 @@ contains
     ! local variables
 
     integer  :: i, j, k
-    integer  :: is_shock
-    real(rt) :: cl, cr
 
     integer :: n, nqp, ipassive
 

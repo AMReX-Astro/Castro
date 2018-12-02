@@ -35,7 +35,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   use amrex_error_module
   use amrex_mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, GDPRES, &
-                                 UTEMP, UEINT, USHK, GDU, GDV, GDW, UMX, &
+                                 UTEMP, USHK, UMX, &
                                  use_flattening, QPRES, NQAUX, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
                                  first_order_hydro, difmag, hybrid_riemann, &
@@ -137,8 +137,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   integer :: It_lo(3), It_hi(3)
   integer :: shk_lo(3), shk_hi(3)
 
-  real(rt) :: div1
-  integer :: i, j, k, n, idir
+  integer :: i, j, k, n
 
   type (eos_t) :: eos_state
 

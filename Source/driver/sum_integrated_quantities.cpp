@@ -217,9 +217,9 @@ Castro::sum_integrated_quantities ()
 	    }
 
 	    if (show_center_of_mass) {
-	        for (int i = 0; i <= 2; i++) {
-		  com[i]     = com[i] / mass;
-		  com_vel[i] = mom[i] / mass;
+	        for (int idir = 0; idir <= 2; idir++) {
+		  com[idir]     = com[idir] / mass;
+		  com_vel[idir] = mom[idir] / mass;
 		}
 
 		std::cout << "TIME= " << time << " CENTER OF MASS X-LOC = " << com[0]     << '\n';

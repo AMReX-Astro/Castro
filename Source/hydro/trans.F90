@@ -41,12 +41,13 @@ contains
                                  GDERADS, GDLAMS, &
                                  QCG, QGAMCG, QLAMS, &
 #endif
-                                 URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, &
+                                 URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                  NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
                                  small_pres, small_temp, &
                                  npassive, upass_map, qpass_map, &
-                                 ppm_predict_gammae, &
-                                 transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
+                                 transverse_reset_density, transverse_reset_rhoe, &
+                                 ppm_predict_gammae
+
 #ifdef RADIATION
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : Edd_factor
@@ -97,7 +98,7 @@ contains
     integer i, j, k, n, nqp, ipassive
 
     real(rt)         rhoinv
-    real(rt)         rrnew, rr
+    real(rt)         rrnew
     real(rt)         rrry, rrly, rrrz, rrlz
     real(rt)         rury, ruly, rurz, rulz
     real(rt)         rvry, rvly, rvrz, rvlz
@@ -868,12 +869,13 @@ contains
                                  GDERADS, GDLAMS, &
                                  QCG, QGAMCG, QLAMS, &
 #endif
-                                 URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, &
+                                 URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                  NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
                                  small_pres, small_temp, &
                                  npassive, upass_map, qpass_map, &
-                                 ppm_predict_gammae, &
-                                 transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
+                                 transverse_reset_density, transverse_reset_rhoe, &
+                                 ppm_predict_gammae
+
 #ifdef RADIATION
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : Edd_factor
@@ -914,7 +916,7 @@ contains
     integer i, j, k, n, nqp, ipassive
 
     real(rt)         rhoinv
-    real(rt)         rrnew, rr
+    real(rt)         rrnew
     real(rt)         rrrx, rrlx, rrrz, rrlz
     real(rt)         rurx, rulx, rurz, rulz
     real(rt)         rvrx, rvlx, rvrz, rvlz
@@ -1559,12 +1561,13 @@ contains
                                    GDERADS, GDLAMS, &
                                    QCG, QGAMCG, QLAMS, &
 #endif
-                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, &
+                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                    NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
                                    small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
-                                   ppm_predict_gammae, &
-                                   transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
+                                   transverse_reset_density, transverse_reset_rhoe, &
+                                   ppm_predict_gammae
+
 #ifdef RADIATION
     use rad_params_module, only : ngroups
     use fluxlimiter_module, only : Edd_factor
@@ -1601,7 +1604,7 @@ contains
     integer i, j, k, n, nqp, ipassive
 
     real(rt)         rhoinv
-    real(rt)         rrnew, rr
+    real(rt)         rrnew
     real(rt)         rrrx, rrry, rrlx, rrly
     real(rt)         rurx, rury, rulx, ruly
     real(rt)         rvrx, rvry, rvlx, rvly
@@ -2238,12 +2241,13 @@ contains
                                    GDERADS, GDLAMS, &
                                    QCG, QGAMCG, QLAMS, &
 #endif
-                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, &
+                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                    NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
                                    small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
-                                   ppm_predict_gammae, &
-                                   transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
+                                   transverse_reset_density, transverse_reset_rhoe, &
+                                   ppm_predict_gammae
+
 #ifdef RADIATION
     use rad_params_module, only : ngroups
     use fluxlimiter_module, only : Edd_factor
@@ -2669,12 +2673,13 @@ contains
                                    GDERADS, GDLAMS, &
                                    QCG, QGAMCG, QLAMS, &
 #endif
-                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, &
+                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                    NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
                                    small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
-                                   ppm_predict_gammae, &
-                                   transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
+                                   transverse_reset_density, transverse_reset_rhoe, &
+                                   ppm_predict_gammae
+
 #ifdef RADIATION
     use rad_params_module, only : ngroups
     use fluxlimiter_module, only : Edd_factor
@@ -3099,12 +3104,13 @@ contains
                                    GDERADS, GDLAMS, &
                                    QCG, QGAMCG, QLAMS, &
 #endif
-                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, &
+                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                    NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
                                    small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
-                                   ppm_predict_gammae, &
-                                   transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
+                                   transverse_reset_density, transverse_reset_rhoe, &
+                                   ppm_predict_gammae
+
 #ifdef RADIATION
     use rad_params_module, only : ngroups
     use fluxlimiter_module, only : Edd_factor
@@ -3508,23 +3514,10 @@ contains
   use network, only : nspec, naux
   use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
                                  QPRES, QREINT, QGAME, QFS, QFX, &
-                                 QC, QGAMC, &
-#ifdef RADIATION
-                                 qrad, qradhi, qptot, qreitot, &
-                                 fspace_type, comoving, &
-                                 GDERADS, GDLAMS, &
-                                 QCG, QGAMCG, QLAMS, &
-#endif
-                                 URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, &
-                                 NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
                                  small_pres, small_temp, &
-                                 npassive, upass_map, qpass_map, &
                                  ppm_predict_gammae, &
                                  transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
-#ifdef RADIATION
-  use rad_params_module, only : ngroups
-  use fluxlimiter_module, only : Edd_factor
-#endif
+
   use eos_module, only: eos
   use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
 
