@@ -89,6 +89,8 @@ contains
     real(rt), pointer :: qint(:,:,:,:)
     real(rt), pointer :: lambda_int(:,:,:,:)
 
+    real(rt) :: ql_zone(NQ), qr_zone(NQ), flx_zone(NVAR)
+
     ! local variables
 
     integer i, j, k
@@ -274,9 +276,11 @@ contains
                       cr = qaux(i,j,k,QC)
                    end select
 
-                   call HLL(qm(i,j,k,:,comp), qp(i,j,k,:,comp), cl, cr, &
-                            idir, flx(i,j,k,:))
 
+                   ql_zone(:) = qm(i,j,k,:,comp)
+                   qr_zone(:) = qp(i,j,k,:,comp)
+                   call HLL(ql_zone, qr_zone, cl, cr, idir, flx_zone)
+                   flx(i,j,k,:) = flx_zone(:)
                 endif
 
              end do
@@ -1830,7 +1834,7 @@ contains
                 call cons_state(q_zone, U_state)
                 call compute_flux(idir, bnd_fac, U_state, pr, F_state)
 
-                call HLLC_state(idir, S_r, S_c, qr(i,j,k,:,comp), U_hllc_state)
+                call HLLC_state(idir, S_r, S_c, q_zone, U_hllc_state)
 
                 ! correct the flux
                 F_state(:) = F_state(:) + S_r*(U_hllc_state(:) - U_state(:))
@@ -1841,7 +1845,7 @@ contains
                 call cons_state(q_zone, U_state)
                 call compute_flux(idir, bnd_fac, U_state, pl, F_state)
 
-                call HLLC_state(idir, S_l, S_c, ql(i,j,k,:,comp), U_hllc_state)
+                call HLLC_state(idir, S_l, S_c, q_zone, U_hllc_state)
 
                 ! correct the flux
                 F_state(:) = F_state(:) + S_l*(U_hllc_state(:) - U_state(:))
