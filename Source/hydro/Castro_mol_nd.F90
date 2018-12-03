@@ -46,6 +46,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
   use flatten_module, only: ca_uflatten
   use riemann_module, only: cmpflx
+
   use riemann_util_module, only : store_godunov_state
   use ppm_module, only : ca_ppm_reconstruct
   use amrex_fort_module, only : rt => amrex_real
@@ -321,7 +322,6 @@ subroutine ca_mol_single_stage(lo, hi, time, &
                            lambda_int, It_lo, It_hi, &
 #endif
                            q2, flux2_lo, flux2_hi)
-
 #endif
 
 
@@ -354,11 +354,11 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   call bl_deallocate(qm)
   call bl_deallocate(qp)
 
+
   call bl_deallocate(q_int)
 #ifdef RADIATION
   call bl_deallocate(lambda_int)
 #endif
-
   call bl_deallocate(shk)
 
 
