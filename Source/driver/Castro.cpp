@@ -76,6 +76,28 @@ int          Castro::Lmom          = -1;
 int          Castro::Pmom          = -1;
 #endif
 
+int          Castro::QRHO = -1;
+int          Castro::QU = -1;
+int          Castro::QV = -1;
+int          Castro::QW = -1;
+int          Castro::QGAME = -1;
+int          Castro::QPRES = -1;
+int          Castro::QREINT = -1;
+int          Castro::QTEMP = -1;
+int          Castro::QFA = -1;
+int          Castro::QFS = -1;
+int          Castro::QFX = -1;
+#ifdef MHD
+int          Castro::QMAGX = -1;
+int          Castro::QMAGY = -1;
+int          Castro::QMAGZ = -1;
+#endif
+#ifdef RADIATION
+int          Castro::QPTOT = -1;
+int          Castro::QREITOT = -1;
+int          Castro::QRAD = -1;
+#endif
+
 int          Castro::NumSpec       = 0;
 int          Castro::FirstSpec     = -1;
 
