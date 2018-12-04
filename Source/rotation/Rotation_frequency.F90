@@ -59,7 +59,7 @@ contains
   function get_domegadt(time) result(domegadt)
 
     use prob_params_module, only: coord_type
-    use meth_params_module, only: rot_period, rot_period_dot, rot_axis
+    use meth_params_module, only: rot_period, rot_period_dot
     use amrex_constants_module, only: ZERO, TWO, M_PI
 
     use amrex_fort_module, only : rt => amrex_real

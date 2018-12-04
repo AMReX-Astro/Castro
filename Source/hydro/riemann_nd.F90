@@ -89,6 +89,8 @@ contains
     real(rt), pointer :: qint(:,:,:,:)
     real(rt), pointer :: lambda_int(:,:,:,:)
 
+    real(rt) :: ql_zone(NQ), qr_zone(NQ), flx_zone(NVAR)
+
     ! local variables
 
     integer i, j, k
@@ -274,9 +276,10 @@ contains
                       cr = qaux(i,j,k,QC)
                    end select
 
-                   call HLL(qm(i,j,k,:,comp), qp(i,j,k,:,comp), cl, cr, &
-                            idir, flx(i,j,k,:))
-
+                   ql_zone(:) = qm(i,j,k,:,comp)
+                   qr_zone(:) = qp(i,j,k,:,comp)
+                   call HLL(ql_zone, qr_zone, cl, cr, idir, flx_zone)
+                   flx(i,j,k,:) = flx_zone(:)
                 endif
 
              end do
@@ -482,8 +485,7 @@ contains
     use amrex_error_module
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, &
-                                   Symmetry, SlipWall, NoSlipWall, &
-                                   mom_flux_has_p
+                                   Symmetry, SlipWall, NoSlipWall
     use network, only : nspec, naux
     use eos_type_module
     use eos_module
@@ -513,7 +515,7 @@ contains
     real(rt) :: ustar
     real(rt) :: rl, ul, v1l, v2l, pl, rel
     real(rt) :: rr, ur, v1r, v2r, pr, rer
-    real(rt) :: wl, wr, rhoetot
+    real(rt) :: wl, wr
 
     real(rt) :: rstar, cstar, pstar
     real(rt) :: ro, uo, po, co, gamco
@@ -537,7 +539,7 @@ contains
     real(rt) :: pstar_old
     real(rt) :: taul, taur, tauo
     real(rt) :: ustar_r, ustar_l, ustar_r_old, ustar_l_old
-    real(rt) :: pstarl, pstarc, pstaru, pfuncc, pfuncu
+    real(rt) :: pstarl, pstaru
 
     real(rt), parameter :: weakwv = 1.e-3_rt
 
@@ -1082,8 +1084,7 @@ contains
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, &
-                                   Symmetry, SlipWall, NoSlipWall, &
-                                   mom_flux_has_p
+                                   Symmetry, SlipWall, NoSlipWall
     use eos_type_module, only : eos_t, eos_input_rp
     use eos_module, only : eos
     use network, only : nspec
@@ -1119,7 +1120,7 @@ contains
     real(rt) :: regdnv
     real(rt) :: rl, ul, v1l, v2l, pl, rel
     real(rt) :: rr, ur, v1r, v2r, pr, rer
-    real(rt) :: wl, wr, rhoetot, scr
+    real(rt) :: wl, wr, scr
     real(rt) :: rstar, cstar, estar, pstar, ustar
     real(rt) :: ro, uo, po, reo, co, gamco, entho, drho
     real(rt) :: sgnm, spin, spout, ushock, frac
@@ -1680,6 +1681,8 @@ contains
     real(rt) :: U_hllc_state(nvar), U_state(nvar), F_state(nvar)
     real(rt) :: S_l, S_r, S_c
 
+    real(rt) :: q_zone(NQ)
+
     if (idir == 1) then
        iu = QU
        iv1 = QV
@@ -1873,32 +1876,36 @@ contains
 
              if (S_r <= ZERO) then
                 ! R region
-                call cons_state(qr(i,j,k,:,comp), U_state)
+                q_zone(:) = qr(i,j,k,:,comp)
+                call cons_state(q_zone, U_state)
                 call compute_flux(idir, bnd_fac, U_state, pr, F_state)
 
              else if (S_r > ZERO .and. S_c <= ZERO) then
                 ! R* region
-                call cons_state(qr(i,j,k,:,comp), U_state)
+                q_zone(:) = qr(i,j,k,:,comp)
+                call cons_state(q_zone, U_state)
                 call compute_flux(idir, bnd_fac, U_state, pr, F_state)
 
-                call HLLC_state(idir, S_r, S_c, qr(i,j,k,:,comp), U_hllc_state)
+                call HLLC_state(idir, S_r, S_c, q_zone, U_hllc_state)
 
                 ! correct the flux
                 F_state(:) = F_state(:) + S_r*(U_hllc_state(:) - U_state(:))
 
              else if (S_c > ZERO .and. S_l < ZERO) then
                 ! L* region
-                call cons_state(ql(i,j,k,:,comp), U_state)
+                q_zone(:) = ql(i,j,k,:,comp)
+                call cons_state(q_zone, U_state)
                 call compute_flux(idir, bnd_fac, U_state, pl, F_state)
 
-                call HLLC_state(idir, S_l, S_c, ql(i,j,k,:,comp), U_hllc_state)
+                call HLLC_state(idir, S_l, S_c, q_zone, U_hllc_state)
 
                 ! correct the flux
                 F_state(:) = F_state(:) + S_l*(U_hllc_state(:) - U_state(:))
 
              else
                 ! L region
-                call cons_state(ql(i,j,k,:,comp), U_state)
+                q_zone(:) = ql(i,j,k,:,comp)
+                call cons_state(q_zone, U_state)
                 call compute_flux(idir, bnd_fac, U_state, pl, F_state)
 
              endif
@@ -1942,8 +1949,6 @@ contains
     ! local variables
 
     integer  :: i, j, k
-    integer  :: is_shock
-    real(rt) :: cl, cr
 
     integer :: n, nqp, ipassive
 

@@ -35,7 +35,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   use amrex_error_module
   use amrex_mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, GDPRES, &
-                                 UTEMP, UEINT, USHK, GDU, GDV, GDW, UMX, &
+                                 UTEMP, USHK, UMX, &
                                  use_flattening, QPRES, NQAUX, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
                                  first_order_hydro, difmag, hybrid_riemann, &
@@ -133,15 +133,13 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   ! temporary interface values of the parabola
   real(rt)        , pointer :: qm(:,:,:,:,:), qp(:,:,:,:,:)
-
   real(rt)        , pointer :: dqx(:,:,:,:), dqy(:,:,:,:), dqz(:,:,:,:)
 
   integer :: ngf
   integer :: It_lo(3), It_hi(3)
   integer :: shk_lo(3), shk_hi(3)
 
-  real(rt) :: div1
-  integer :: i, j, k, n, idir
+  integer :: idir, i, j, k, n
 
   type (eos_t) :: eos_state
 
@@ -173,6 +171,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   call bl_allocate(rflz, flux3_lo, flux3_hi, ngroups)
 #endif
 #endif
+
 
   if (ppm_type == 0) then
      call bl_allocate(dqx, st_lo, st_hi, NQ)
@@ -339,7 +338,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   end if
 
   ! Compute F^x at kc (k3d)
-  call cmpflx(qm(:,:,:,:,1), qp(:,:,:,:,1), It_lo, It_hi, &
+  call cmpflx(qm, qp, It_lo, It_hi, AMREX_SPACEDIM, 1, &
               flux1, flux1_lo, flux1_hi, &
               q1, flux1_lo, flux1_hi, &  ! temporary
 #ifdef RADIATION
@@ -352,7 +351,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
 #if AMREX_SPACEDIM >= 2
   ! Compute F^y at kc (k3d)
-  call cmpflx(qm(:,:,:,:,2), qp(:,:,:,:,2), It_lo, It_hi, &
+  call cmpflx(qm, qp, It_lo, It_hi, AMREX_SPACEDIM, 2, &
               flux2, flux2_lo, flux2_hi, &
               q2, flux2_lo, flux2_hi, &  ! temporary
 #ifdef RADIATION
@@ -367,7 +366,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #if AMREX_SPACEDIM == 3
   ! Compute F^z at kc (k3d)
 
-  call cmpflx(qm(:,:,:,:,3), qp(:,:,:,:,3), It_lo, It_hi, &
+  call cmpflx(qm, qp, It_lo, It_hi, AMREX_SPACEDIM, 3, &
               flux3, flux3_lo, flux3_hi, &
               q3, flux3_lo, flux3_hi,  &
 #ifdef RADIATION
@@ -380,6 +379,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #endif
 
   call bl_deallocate(flatn)
+
 
   if (ppm_type == 0) then
      call bl_deallocate(dqx)

@@ -29,8 +29,6 @@ castro.use_flattening = 1
 
 castro.riemann_solver = 1
 
-castro.allow_negative_energy = 0
-
 
 # TIME STEP CONTROL
 castro.cfl            = 0.8     # cfl number for hyperbolic system

@@ -187,7 +187,7 @@ contains
     use network, only : nspec, naux
 
     use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, &
-                                   QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFX, QFS, &
+                                   QREINT, QPRES, QGAME, QC, QGAMC, &
                                    small_dens, small_pres, &
                                    ppm_type, &
                                    ppm_reference_eigenvectors, &
@@ -256,8 +256,8 @@ contains
     real(rt) :: gam_g
 
     real(rt) :: drho, dptot, drhoe_g
-    real(rt) :: dup, dvp, dptotp
-    real(rt) :: dum, dvm, dptotm
+    real(rt) :: dup, dptotp
+    real(rt) :: dum, dptotm
 
     real(rt) :: rho_ref, un_ref, p_ref, rhoe_g_ref, h_g_ref
 
@@ -278,12 +278,12 @@ contains
 
     hdt = HALF * dt
 
-
+#if AMREX_SPACEDIM == 1
     fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
          .and. (lo(1) == domlo(1))
     fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
          .and. (hi(1) == domhi(1))
-
+#endif
 
     !=========================================================================
     ! PPM CODE
@@ -618,7 +618,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, &
-                                   QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFX, QFS, &
+                                   QREINT, QPRES, QGAME, QC, QGAMC, &
                                    small_dens, small_pres, &
                                    ppm_type, &
                                    ppm_reference_eigenvectors, &
@@ -688,8 +688,8 @@ contains
 
     real(rt) :: dptot
     real(rt) :: dge, dtau, dtaum, dtaup
-    real(rt) :: dup, dvp, dptotp
-    real(rt) :: dum, dvm, dptotm
+    real(rt) :: dup, dptotp
+    real(rt) :: dum, dptotm
 
     real(rt) :: rho_ref, un_ref, p_ref, rhoe_g_ref
     real(rt) :: tau_ref
@@ -699,7 +699,7 @@ contains
 
     real(rt) :: alpham, alphap, alpha0r, alpha0e_g
     real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
-    real(rt) :: tau_s, e_s
+    real(rt) :: tau_s
 
     logical :: fix_mass_flux_lo, fix_mass_flux_hi
 
@@ -712,12 +712,12 @@ contains
 
     hdt = HALF * dt
 
-
+#if AMREX_SPACEDIM == 1
     fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
          .and. (lo(1) == domlo(1))
     fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
          .and. (hi(1) == domhi(1))
-
+#endif
 
     !=========================================================================
     ! PPM CODE
@@ -1074,7 +1074,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, &
-                                   QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFX, QFS, &
+                                   QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFS, QFX, &
                                    small_dens, small_pres, &
                                    ppm_type, &
                                    ppm_reference_eigenvectors, &
@@ -1147,9 +1147,9 @@ contains
     real(rt) :: gam_g, game
 
     real(rt) :: drho, dptot
-    real(rt) :: de, dge, dtau, dtaum, dtaup
-    real(rt) :: dup, dvp, dptotp
-    real(rt) :: dum, dvm, dptotm
+    real(rt) :: dtau, dtaum, dtaup
+    real(rt) :: dup, dptotp
+    real(rt) :: dum, dptotm
     real(rt) :: dT0, dTp, dTm
     real(rt) :: p_r, p_T
 
@@ -1161,7 +1161,7 @@ contains
 
     real(rt) :: alpham, alphap, alpha0r, alpha0e_g
     real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
-    real(rt) :: tau_s, e_s
+    real(rt) :: tau_s
 
     logical :: fix_mass_flux_lo, fix_mass_flux_hi
 
@@ -1174,11 +1174,12 @@ contains
 
     hdt = HALF * dt
 
-
+#if AMREX_SPACEDIM == 1
     fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
          .and. (lo(1) == domlo(1))
     fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
          .and. (hi(1) == domhi(1))
+#endif
 
 
     !=========================================================================
