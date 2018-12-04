@@ -137,6 +137,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   integer :: ngf
   integer :: It_lo(3), It_hi(3)
+  integer :: dq_lo(3), dq_hi(3)
   integer :: shk_lo(3), shk_hi(3)
 
   integer :: idir, i, j, k, n
@@ -147,6 +148,9 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   It_lo = lo(:) - dg(:)
   It_hi = hi(:) + 2*dg(:)
+
+  dq_lo = lo(:) - 2*dg(:)
+  dq_hi = hi(:) + 2*dg(:)
 
   shk_lo(:) = lo(:) - dg(:)
   shk_hi(:) = hi(:) + dg(:)
@@ -174,12 +178,12 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
 
   if (ppm_type == 0) then
-     call bl_allocate(dqx, It_lo, It_hi, NQ)
+     call bl_allocate(dqx, dq_lo, dq_hi, NQ)
 #if AMREX_SPACEDIM >= 2
-     call bl_allocate(dqy, It_lo, It_hi, NQ)
+     call bl_allocate(dqy, dq_lo, dq_hi, NQ)
 #endif
 #if AMREX_SPACEDIM == 3
-     call bl_allocate(dqz, It_lo, It_hi, NQ)
+     call bl_allocate(dqz, dq_lo, dq_hi, NQ)
 #endif
   end if
 
@@ -245,7 +249,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #if AMREX_SPACEDIM == 3
                     dqz, &
 #endif
-                    It_lo, It_hi, &
+                    dq_lo, dq_hi, &
                     lo, hi)
      end do
 
