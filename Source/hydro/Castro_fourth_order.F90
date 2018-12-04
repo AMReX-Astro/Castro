@@ -45,7 +45,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
   use amrex_error_module
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
-  use flatten_module, only: uflatten
+  use flatten_module, only: ca_uflatten
   use riemann_module, only: riemann_state
   use riemann_util_module, only: compute_flux_q
   use fourth_order
@@ -253,8 +253,9 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   call bl_allocate(flatn, q_bar_lo, q_bar_hi)
 
   if (use_flattening == 1) then
-     call uflatten(lo - ngf*dg, hi + ngf*dg, &
-                   q_bar, flatn, q_bar_lo, q_bar_hi, QPRES)
+     call ca_uflatten(lo - ngf*dg, hi + ngf*dg, &
+                      q_bar, q_bar_lo, q_bar_hi, &
+                      flatn, q_bar_lo, q_bar_hi, QPRES)
   else
      flatn = ONE
   endif
@@ -300,50 +301,42 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   ! solve the Riemann problems -- we just require the interface state
   ! at this point
 
-  ! note that the Riemann solver is written to work in slabs, so we
-  ! need to pass the k index for both the state and flux separately.
+  ! TODO: we should explicitly compute a gamma with this state, since
+  ! we cannot get away with the first-order construction that we pull
+  ! from qaux in the Riemann solver
 
-  do k = lo(3)-dg(3), hi(3)+dg(3)
+  call riemann_state(qxm, qxp, q_lo, q_hi, &
+                     qx_avg, q_lo, q_hi, &
+                     qaux, qa_lo, qa_hi, &
+                     1, [lo(1), lo(2)-dg(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], domlo, domhi)
 
-     call riemann_state(qxm, qxp, q_lo, q_hi, &
-                        qx_avg, q_lo, q_hi, &
-                        qaux, qa_lo, qa_hi, &
-                        1, [lo(1), lo(2)-dg(2), k], [hi(1)+1, hi(2)+dg(2), k], domlo, domhi)
-
-     call compute_flux_q(1, qx_avg, q_lo, q_hi, &
-                         flx_avg, q_lo, q_hi, &
-                         qgdnvx_avg, q_lo, q_hi, &
-                         [lo(1), lo(2)-dg(2), k], [hi(1)+1, hi(2)+dg(2), k])
-  enddo
+  call compute_flux_q(1, qx_avg, q_lo, q_hi, &
+                      flx_avg, q_lo, q_hi, &
+                      qgdnvx_avg, q_lo, q_hi, &
+                      [lo(1), lo(2)-dg(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)])
 
 #if AMREX_SPACEDIM >= 2
-  do k = lo(3)-dg(3), hi(3)+dg(3)
+  call riemann_state(qym, qyp, q_lo, q_hi, &
+                     qy_avg, q_lo, q_hi, &
+                     qaux, qa_lo, qa_hi, &
+                     2, [lo(1)-1, lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+1, hi(3)+dg(3)], domlo, domhi)
 
-     call riemann_state(qym, qyp, q_lo, q_hi, &
-                        qy_avg, q_lo, q_hi, &
-                        qaux, qa_lo, qa_hi, &
-                        2, [lo(1)-1, lo(2), k], [hi(1)+1, hi(2)+1, k], domlo, domhi)
-
-     call compute_flux_q(2, qy_avg, q_lo, q_hi, &
-                         fly_avg, q_lo, q_hi, &
-                         qgdnvy_avg, q_lo, q_hi, &
-                         [lo(1)-1, lo(2), k], [hi(1)+1, hi(2)+1, k])
-  enddo
+  call compute_flux_q(2, qy_avg, q_lo, q_hi, &
+                      fly_avg, q_lo, q_hi, &
+                      qgdnvy_avg, q_lo, q_hi, &
+                      [lo(1)-1, lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+1, hi(3)+dg(3)])
 #endif
 
 #if AMREX_SPACEDIM == 3
-  do k = lo(3), hi(3)+dg(3)
+  call riemann_state(qzm, qzp, q_lo, q_hi, &
+                     qz_avg, q_lo, q_hi, &
+                     qaux, qa_lo, qa_hi, &
+                     3, [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1], domlo, domhi)
 
-     call riemann_state(qzm, qzp, q_lo, q_hi, &
-                        qz_avg, q_lo, q_hi, &
-                        qaux, qa_lo, qa_hi, &
-                        3, [lo(1)-1, lo(2)-1, k], [hi(1)+1, hi(2)+1, k], domlo, domhi)
-
-     call compute_flux_q(3, qz_avg, q_lo, q_hi, &
-                         flz_avg, q_lo, q_hi, &
-                         qgdnvz_avg, q_lo, q_hi, &
-                         [lo(1)-1, lo(2)-1, k], [hi(1)+1, hi(2)+1, k])
-  enddo
+  call compute_flux_q(3, qz_avg, q_lo, q_hi, &
+                      flz_avg, q_lo, q_hi, &
+                      qgdnvz_avg, q_lo, q_hi, &
+                      [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1])
 #endif
 
 

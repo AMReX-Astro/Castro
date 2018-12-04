@@ -62,7 +62,6 @@ castro.do_hydro       = 1
 castro.do_radiation   = 1
 castro.do_reflux      = 1       # 1 => do refluxing
 castro.do_react       = 0       # reactions?
-castro.allow_negative_energy = 1
 
 #castro.difmag = 0.1  # default: 0.1
 

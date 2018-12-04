@@ -444,7 +444,6 @@ contains
                         q,     q_lo,   q_hi, &
                         qaux, qa_lo,  qa_hi) bind(c,name='ca_ctoprim')
 
-    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use actual_network, only : nspec, naux
     use eos_module, only : eos
     use eos_type_module, only : eos_t, eos_input_re
@@ -640,7 +639,6 @@ contains
                           src, src_lo, src_hi, &
                           srcQ,srQ_lo, srQ_hi) bind(c,name='ca_srctoprim')
 
-    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use actual_network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, &
                                    QVAR, QRHO, QU, QV, QW, NQ, &

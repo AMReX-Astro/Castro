@@ -1,0 +1,4 @@
+Class ProxyGeometry
+===================
+
+.. doxygenclass:: ProxyGeometry

@@ -192,6 +192,8 @@ Castro::variableSetUp ()
 
   NUM_STATE = cnt;
 
+#include "set_primitive.H"
+
   // Define NUM_GROW from the f90 module.
   ca_get_method_params(&NUM_GROW);
 
@@ -225,6 +227,17 @@ Castro::variableSetUp ()
 #ifdef SHOCK_VAR
 		       Shock,
 #endif
+#ifdef MHD
+                       QMAGX, QMAGY, QMAGZ,
+#endif
+#ifdef RADIATION
+                       QPTOT, QREITOT, QRAD,
+#endif
+                       QRHO,
+                       QU, QV, QW,
+                       QGAME, QPRES, QREINT,
+                       QTEMP,
+                       QFA, QFS, QFX,
 		       gravity_type_name.dataPtr(), gravity_type_length);
 
   // Get the number of primitive variables from Fortran.

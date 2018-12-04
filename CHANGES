@@ -1,5 +1,10 @@
 changes since last release
 
+  -- removed ppm_type = 2.  This was not used for science simulations
+     because it was never shown to be completely stable.  In the near
+     future, the full fourth order method will be merged which will be
+     a better replacement.
+
   -- a bug was fixed in the 1-d SDC integration -- we were not
      applying the reactive source terms to the hydrodynamics interface
      prediction.
@@ -16,6 +21,8 @@ changes since last release
      map not generating a useful distribution map for the reactions.
      Also, fixed an edge case where this custom distribution map could
      cause a numerical overflow and code crash. (#382)
+
+  -- the documentation was converted to sphinx
 
 # 18.11
 

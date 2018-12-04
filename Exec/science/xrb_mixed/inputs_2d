@@ -27,8 +27,6 @@ castro.add_ext_src   = 0
 castro.do_grav = 1
 castro.do_sponge = 1
 
-castro.allow_negative_energy = 0
-
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -2.45e14
 

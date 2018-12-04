@@ -6,51 +6,6 @@ module riemann_util_module
 
 contains
 
-  pure function bc_test(idir, i, j, domlo, domhi) result (f)
-
-    use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
-
-    integer, intent(in) :: idir, i, j, domlo(*), domhi(*)
-    integer :: f
-
-    ! Enforce that fluxes through a symmetry plane or wall are hard zero.
-    f = 1
-
-    if (idir == 1) then
-       if (i == domlo(1) .and. &
-            (physbc_lo(1) == Symmetry .or. &
-             physbc_lo(1) == SlipWall .or. &
-             physbc_lo(1) == NoSlipWall) ) then
-          f = 0
-       endif
-
-       if (i == domhi(1)+1 .and. &
-            (physbc_hi(1) == Symmetry .or. &
-             physbc_hi(1) == SlipWall .or. &
-             physbc_hi(1) == NoSlipWall) ) then
-          f = 0
-       endif
-    end if
-
-    if (idir == 2) then
-       if (j == domlo(2) .and. &
-            (physbc_lo(2) == Symmetry .or. &
-             physbc_lo(2) == SlipWall .or. &
-             physbc_lo(2) == NoSlipWall) ) then
-          f = 0
-       endif
-
-       if (j == domhi(2)+1 .and. &
-            (physbc_hi(2) == Symmetry .or. &
-             physbc_hi(2) == SlipWall .or. &
-             physbc_hi(2) == NoSlipWall) ) then
-          f = 0
-       end if
-    endif
-
-  end function bc_test
-
-
   pure subroutine wsqge(p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax)
 
     ! compute the lagrangian wave speeds -- this is the approximate
