@@ -174,12 +174,12 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
 
   if (ppm_type == 0) then
-     call bl_allocate(dqx, st_lo, st_hi, NQ)
+     call bl_allocate(dqx, It_lo, It_hi, NQ)
 #if AMREX_SPACEDIM >= 2
-     call bl_allocate(dqy, st_lo, st_hi, NQ)
+     call bl_allocate(dqy, It_lo, It_hi, NQ)
 #endif
 #if AMREX_SPACEDIM == 3
-     call bl_allocate(dqz, st_lo, st_hi, NQ)
+     call bl_allocate(dqz, It_lo, It_hi, NQ)
 #endif
   end if
 
@@ -245,7 +245,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #if AMREX_SPACEDIM == 3
                     dqz, &
 #endif
-                    st_lo, st_hi, &
+                    It_lo, It_hi, &
                     lo, hi)
      end do
 
@@ -389,6 +389,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #if AMREX_SPACEDIM == 3
      call bl_deallocate(dqz)
 #endif
+  end if
 
   call bl_deallocate(qm)
   call bl_deallocate(qp)

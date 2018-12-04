@@ -81,6 +81,7 @@ int          Castro::QU = -1;
 int          Castro::QV = -1;
 int          Castro::QW = -1;
 int          Castro::QGAME = -1;
+int          Castro::QGC = -1;
 int          Castro::QPRES = -1;
 int          Castro::QREINT = -1;
 int          Castro::QTEMP = -1;

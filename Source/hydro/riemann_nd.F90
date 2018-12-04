@@ -1279,8 +1279,8 @@ contains
 
 #ifndef RADIATION
              if (use_reconstructed_gamma1 == 1) then
-                gamcl = ql(i,j,k,QGC)
-                gamcr = qr(i,j,k,QGC)
+                gamcl = ql(i,j,k,QGC,comp)
+                gamcr = qr(i,j,k,QGC,comp)
              else
                 if (compute_interface_gamma) then
 
@@ -1288,7 +1288,7 @@ contains
                    ! -- use this to find the gamma used in the sound speed
                    eos_state % p = pl
                    eos_state % rho = rl
-                   eos_state % xn(:) = ql(i,j,k,QFS:QFS-1+nspec)
+                   eos_state % xn(:) = ql(i,j,k,QFS:QFS-1+nspec,comp)
                    eos_state % T = 100.0 ! initial guess
 
                    call eos(eos_input_rp, eos_state)
@@ -1297,7 +1297,7 @@ contains
 
                    eos_state % p = pr
                    eos_state % rho = rr
-                   eos_state % xn(:) = qr(i,j,k,QFS:QFS-1+nspec)
+                   eos_state % xn(:) = qr(i,j,k,QFS:QFS-1+nspec,comp)
                    eos_state % T = 100.0 ! initial guess
 
                    call eos(eos_input_rp, eos_state)
@@ -1770,8 +1770,8 @@ contains
              cavg = HALF*(qaux(i,j,k,QC) + qaux(i-sx,j-sy,k-sz,QC))
 
              if (use_reconstructed_gamma1 == 1) then
-                gamcl = ql(i,j,k,QGC)
-                gamcr = qr(i,j,k,QGC)
+                gamcl = ql(i,j,k,QGC,comp)
+                gamcr = qr(i,j,k,QGC,comp)
              else
                 gamcl = qaux(i-sx,j-sy,k-sz,QGAMC)
                 gamcr = qaux(i,j,k,QGAMC)

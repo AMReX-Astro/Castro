@@ -235,7 +235,7 @@ Castro::variableSetUp ()
 #endif
                        QRHO,
                        QU, QV, QW,
-                       QGAME, QPRES, QREINT,
+                       QGAME, QGC, QPRES, QREINT,
                        QTEMP,
                        QFA, QFS, QFX,
 		       gravity_type_name.dataPtr(), gravity_type_length);

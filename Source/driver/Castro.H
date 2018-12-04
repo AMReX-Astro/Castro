@@ -630,7 +630,7 @@ public:
 
     // primitive variable index keys
     static int       QRHO, QU, QV, QW;
-    static int       QGAME, QPRES, QREINT, QTEMP;
+    static int       QGAME, QGC, QPRES, QREINT, QTEMP;
     static int       QFA, QFS, QFX;
 #ifdef MHD
     static int       QMAGX, QMAGY, QMAGZ;

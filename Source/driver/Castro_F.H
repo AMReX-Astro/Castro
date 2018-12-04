@@ -81,7 +81,7 @@ extern "C"
 #endif
      const int& QRHO_in,
      const int& QU_in, const int& QV_in, const int& QW_in,
-     const int& QGAME_in, const int& QPRES_in, const int& QREINT_in,
+     const int& QGAME_in, const int& QGC_in, const int& QPRES_in, const int& QREINT_in,
      const int& QTEMP_in,
      const int& QFA_in, const int& QFS_in, const int& QFX_in,
      const int* gravity_type, const int& gravity_type_len);

@@ -26,8 +26,8 @@ module meth_params_module
   integer, allocatable, save :: USHK
 
   ! primitive variables
-  integer, allocatable, save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
-  integer, allocatable, save :: QGAMC, QC, QDPDR, QDPDE, QGC
+  integer, allocatable, save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME, QGC
+  integer, allocatable, save :: QGAMC, QC, QDPDR, QDPDE
 #ifdef RADIATION
   integer, allocatable, save :: QGAMCG, QCG, QLAMS
 #endif
@@ -77,7 +77,7 @@ module meth_params_module
 #ifdef AMREX_USE_CUDA
   attributes(managed) :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
   attributes(managed) :: USHK
-  attributes(managed) :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
+  attributes(managed) :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME, QGC
   attributes(managed) :: QGAMC, QC, QDPDR, QDPDE
 #ifdef RADIATION
   attributes(managed) :: QGAMCG, QCG, QLAMS
@@ -96,7 +96,7 @@ module meth_params_module
   !$acc create(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS,UFX) &
   !$acc create(USHK) &
   !$acc create(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP) &
-  !$acc create(QC, QDPDR, QDPDE, QGAMC, QGAME) &
+  !$acc create(QC, QDPDR, QDPDE, QGAMC, QGAME, QGC) &
 #ifdef RADIATION
   !$acc create(QGAMCG, QCG, QLAMS) &
   !$acc create(QRAD, QRADHI, QPTOT, QREITOT) &
@@ -439,7 +439,7 @@ contains
 
     allocate(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX)
     allocate(USHK)
-    allocate(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME)
+    allocate(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME, QGC)
     allocate(QGAMC, QC, QDPDR, QDPDE)
 #ifdef RADIATION
     allocate(QGAMCG, QCG, QLAMS)
@@ -829,7 +829,7 @@ contains
 
     deallocate(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX)
     deallocate(USHK)
-    deallocate(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME)
+    deallocate(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME, QGC)
     deallocate(QGAMC, QC, QDPDR, QDPDE)
 #ifdef RADIATION
     deallocate(QGAMCG, QCG, QLAMS)
