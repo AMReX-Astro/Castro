@@ -413,7 +413,7 @@ contains
                                    NGDNV, GDRHO, GDPRES, GDGAME, &
                                    GDRHO, GDU, GDV, GDW, &
 #ifdef RADIATION
-                                   qrad, fspace_type, &
+                                   QRAD, fspace_type, &
                                    GDERADS, GDLAMS, &
 #endif
                                    npassive, upass_map, qpass_map
@@ -569,7 +569,7 @@ contains
                                    QC, QGAMC, &
                                    NGDNV, GDRHO, GDPRES, GDGAME, &
 #ifdef RADIATION
-                                   GDERADS, GDLAMS, &
+                                   QRAD, GDERADS, GDLAMS, &
 #endif
                                    GDRHO, GDU, GDV, GDW
 

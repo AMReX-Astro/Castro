@@ -159,7 +159,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   call bl_allocate(q_int, It_lo, It_hi, NQ)
 #ifdef RADIATION
-  call bl_allocate(lambda_int, It_lo(1), It_hi(1), It_lo(2), It_hi(2), It_lo(3), It_lhi(3), 0, ngroups-1)
+  call bl_allocate(lambda_int, It_lo(1), It_hi(1), It_lo(2), It_hi(2), It_lo(3), It_hi(3), 0, ngroups-1)
 #endif
 
   call bl_allocate(q1, flux1_lo, flux1_hi, NGDNV)

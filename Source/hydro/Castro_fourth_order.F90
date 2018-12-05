@@ -50,6 +50,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   use amrex_fort_module, only : rt => amrex_real
 #ifdef HYBRID_MOMENTUM
   use hybrid_advection_module, only : add_hybrid_advection_source
+  use riemann_util_module, only : store_godunov_state
 #endif
   use eos_type_module, only : eos_t, eos_input_rt
   use eos_module, only : eos
