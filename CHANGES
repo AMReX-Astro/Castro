@@ -1,4 +1,4 @@
-changes since last release
+# 18.12
 
   -- removed ppm_type = 2.  This was not used for science simulations
      because it was never shown to be completely stable.  In the near
