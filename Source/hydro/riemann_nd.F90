@@ -410,7 +410,7 @@ contains
        ! Colella, Glaz, & Ferguson solver
 
 #ifdef RADIATION
-       call bl_allocate(lambda_int, q_lo, q_hi, ngroups)
+       call bl_allocate(lambda_int, q_lo(1), q_hi(1), q_lo(2), q_hi(2), q_lo(3), q_hi(3), 0, ngroups-1)
 #endif
 
        call riemannus(qm, qp, qpd_lo, qpd_hi, nc, comp, &

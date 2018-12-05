@@ -662,6 +662,9 @@ contains
 #endif
 
     call bl_allocate(q_int, fglo, fghi, NQ)
+#ifdef RADIATION
+    call bl_allocate(lambda_int, fglo(1), fghi(1), fglo(2), fghi(2), fglo(3), fghi(3), 0, ngroups-1)
+#endif
 
     !-------------------------------------------------------------------------!
     ! Some notes on the work index (i.e., lo and hi arguments near the end    !
