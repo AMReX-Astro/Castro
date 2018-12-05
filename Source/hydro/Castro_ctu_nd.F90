@@ -74,7 +74,7 @@ contains
                    domlo, domhi)
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : QVAR, NQ, NVAR, QPRES, QRHO, QU, QW, &
+    use meth_params_module, only : QVAR, NQ, NVAR, &
                                    QFS, QFX, QTEMP, QREINT, &
                                    QC, QGAMC, NQAUX, QGAME, QREINT, &
                                    NGDNV, GDU, GDV, GDW, GDPRES, &
@@ -88,7 +88,7 @@ contains
 #if AMREX_SPACEDIM >= 2
     use transverse_module
 #endif
-    use ppm_module, only : ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
+    use ppm_module, only : ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
     use slope_module, only : uslope, pslope
 #if AMREX_SPACEDIM == 2
     use multid_slope_module, only : multid_slope
@@ -184,12 +184,12 @@ contains
 
     real(rt) :: dxinv, dyinv, dzinv
     real(rt) :: dtdx, dtdy, dtdz, hdt
-#ifdef AMREX_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
     real(rt) :: cdtdx, cdtdy, cdtdz
 #endif
     real(rt) :: hdtdx, hdtdy, hdtdz
 
-    integer :: i, j, k, iwave, idim, n
+    integer :: i, j, k, iwave, n
 
     real(rt), pointer :: dqx(:,:,:,:), dqy(:,:,:,:), dqz(:,:,:,:)
 
@@ -197,10 +197,9 @@ contains
     real(rt), pointer :: Ip_src(:,:,:,:,:,:), Im_src(:,:,:,:,:,:)
     real(rt), pointer :: Ip_gc(:,:,:,:,:,:), Im_gc(:,:,:,:,:,:)
 
-    real(rt)        , pointer :: shk(:,:,:)
+    real(rt), pointer :: shk(:,:,:)
 
-    real(rt)        , pointer :: sxm(:,:,:), sym(:,:,:), szm(:,:,:)
-    real(rt)        , pointer :: sxp(:,:,:), syp(:,:,:), szp(:,:,:)
+    real(rt), pointer :: sm(:,:,:,:), sp(:,:,:,:)
 
     ! Left and right state arrays (edge centered, cell centered)
     double precision, dimension(:,:,:,:), pointer :: &
@@ -337,16 +336,8 @@ contains
 #endif
 
 
-    call bl_allocate(sxm, glo, ghi)
-    call bl_allocate(sxp, glo, ghi)
-#if AMREX_SPACEDIM >= 2
-    call bl_allocate(sym, glo, ghi)
-    call bl_allocate(syp, glo, ghi)
-#endif
-#if AMREX_SPACEDIM == 3
-    call bl_allocate(szm, glo, ghi)
-    call bl_allocate(szp, glo, ghi)
-#endif
+    call bl_allocate(sm, glo, ghi, AMREX_SPACEDIM)
+    call bl_allocate(sp, glo, ghi, AMREX_SPACEDIM)
 
     ! we don't need to reconstruct all of the NQ state variables,
     ! depending on how we are tracing
@@ -377,60 +368,36 @@ contains
        do n = 1, NQ
           if (.not. reconstruct_state(n)) cycle
 
-          call ppm_reconstruct(q, qd_lo, qd_hi, NQ, n, &
-                               flatn, qd_lo, qd_hi, &
-                               sxm, sxp, &
-#if AMREX_SPACEDIM >= 2
-                               sym, syp, &
-#endif
-#if AMREX_SPACEDIM == 3
-                               szm, szp, &
-#endif
-                               glo, ghi, &
-                               lo, hi, dx)
+          call ca_ppm_reconstruct(lo-dg, hi+dg, 0, &
+                                  q, qd_lo, qd_hi, NQ, n, n, &
+                                  flatn, qd_lo, qd_hi, &
+                                  sm, glo, ghi, &
+                                  sp, glo, ghi, 1, 1, 1)
 
-          call ppm_int_profile(q, qd_lo, qd_hi, NQ, n, &
+          call ppm_int_profile(lo-dg, hi+dg, &
+                               q, qd_lo, qd_hi, NQ, n, &
                                q, qd_lo, qd_hi, &
                                qaux, qa_lo, qa_hi, &
-                               sxm, sxp, &
-#if AMREX_SPACEDIM >= 2
-                               sym, syp, &
-#endif
-#if AMREX_SPACEDIM == 3
-                               szm, szp, &
-#endif
-                               glo, ghi, &
+                               sm, sp, glo, ghi, &
                                Ip, Im, glo, ghi, NQ, n, &
-                               lo, hi, dx, dt)
+                               dx, dt)
        end do
 
 
        if (ppm_temp_fix /= 1) then
-          call ppm_reconstruct(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
-                               flatn, qd_lo, qd_hi, &
-                               sxm, sxp, &
-#if AMREX_SPACEDIM >= 2
-                               sym, syp, &
-#endif
-#if AMREX_SPACEDIM == 3
-                               szm, szp, &
-#endif
-                               glo, ghi, &
-                               lo, hi, dx)
+          call ca_ppm_reconstruct(lo-dg, hi+dg, 0, &
+                                  qaux, qa_lo, qa_hi, NQAUX, QGAMC, QGAMC, &
+                                  flatn, qd_lo, qd_hi, &
+                                  sm, glo, ghi, &
+                                  sp, glo, ghi, 1, 1, 1)
 
-          call ppm_int_profile(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
+          call ppm_int_profile(lo-dg, hi+dg, &
+                               qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
                                q, qd_lo, qd_hi, &
                                qaux, qa_lo, qa_hi, &
-                               sxm, sxp, &
-#if AMREX_SPACEDIM >= 2
-                               sym, syp, &
-#endif
-#if AMREX_SPACEDIM == 3
-                               szm, szp, &
-#endif
-                               glo, ghi, &
+                               sm, sp, glo, ghi, &
                                Ip_gc, Im_gc, glo, ghi, 1, 1, &
-                               lo, hi, dx, dt)
+                               dx, dt)
        else
 
           ! temperature-based PPM
@@ -443,31 +410,19 @@ contains
        ! source terms
        do n = 1, QVAR
           if (source_nonzero(n)) then
-             call ppm_reconstruct(srcQ, src_lo, src_hi, QVAR, n, &
-                                  flatn, qd_lo, qd_hi, &
-                                  sxm, sxp, &
-#if AMREX_SPACEDIM >= 2
-                                  sym, syp, &
-#endif
-#if AMREX_SPACEDIM == 3
-                                  szm, szp, &
-#endif
-                                  glo, ghi, &
-                                  lo, hi, dx)
+             call ca_ppm_reconstruct(lo-dg, hi+dg, 0, &
+                                     srcQ, src_lo, src_hi, QVAR, n, n, &
+                                     flatn, qd_lo, qd_hi, &
+                                     sm, glo, ghi, &
+                                     sp, glo, ghi, 1, 1, 1)
 
-             call ppm_int_profile(srcQ, src_lo, src_hi, QVAR, n, &
+             call ppm_int_profile(lo-dg, hi+dg, &
+                                  srcQ, src_lo, src_hi, QVAR, n, &
                                   q, qd_lo, qd_hi, &
                                   qaux, qa_lo, qa_hi, &
-                                  sxm, sxp, &
-#if AMREX_SPACEDIM >= 2
-                                  sym, syp, &
-#endif
-#if AMREX_SPACEDIM == 3
-                                  szm, szp, &
-#endif
-                                  glo, ghi, &
+                                  sm, sp, glo, ghi, &
                                   Ip_src, Im_src, glo, ghi, QVAR, n, &
-                                  lo, hi, dx, dt)
+                                  dx, dt)
           else
              Ip_src(glo(1):ghi(1),glo(2):ghi(2),glo(3):ghi(3),:,:,n) = ZERO
              Im_src(glo(1):ghi(1),glo(2):ghi(2),glo(3):ghi(3),:,:,n) = ZERO
@@ -565,7 +520,7 @@ contains
                          dqz, &
 #endif
                          glo, ghi, &
-                         lo, hi)
+                         lo-dg, hi+dg)
           end do
 
           if (use_pslope == 1) then
@@ -580,7 +535,7 @@ contains
 #endif
                          glo, ghi, &
                          srcQ, src_lo, src_hi, &
-                         lo, hi, dx)
+                         lo-dg, hi+dg, dx)
           endif
 
        elseif (plm_iorder == -2) then
@@ -611,9 +566,7 @@ contains
 #if (AMREX_SPACEDIM < 3)
                       dloga, dloga_lo, dloga_hi, &
 #endif
-#if (AMREX_SPACEDIM == 1)
                       SrcQ, src_lo, Src_hi, &
-#endif
                       lo, hi, domlo, domhi, &
                       dx, dt)
 
@@ -624,9 +577,7 @@ contains
 #if (AMREX_SPACEDIM < 3)
                       dloga, dloga_lo, dloga_hi, &
 #endif
-#if (AMREX_SPACEDIM == 1)
                       SrcQ, src_lo, Src_hi, &
-#endif
                       lo, hi, domlo, domhi, &
                       dx, dt)
 
@@ -635,6 +586,7 @@ contains
                       qaux, qa_lo, qa_hi, &
                       dqz, glo, ghi, &
                       qzm, qzp, fglo, fghi, &
+                      SrcQ, src_lo, Src_hi, &
                       lo, hi, domlo, domhi, &
                       dx, dt)
 #endif
@@ -661,16 +613,8 @@ contains
     end if
 
     ! Deallocate arrays
-    call bl_deallocate(sxm)
-    call bl_deallocate(sxp)
-#if AMREX_SPACEDIM >= 2
-    call bl_deallocate(sym)
-    call bl_deallocate(syp)
-#endif
-#if AMREX_SPACEDIM == 3
-    call bl_deallocate(szm)
-    call bl_deallocate(szp)
-#endif
+    call bl_deallocate(sm)
+    call bl_deallocate(sp)
 
 #if AMREX_SPACEDIM == 3
     call bl_allocate( qmxy, fglo, fghi, NQ)
@@ -721,7 +665,7 @@ contains
     ! 1-d code path
     !==========================================================================
     ! Solve Riemann problem, compute xflux from improved predicted states
-    call cmpflx(qxm, qxp, fglo, fghi, &
+    call cmpflx(qxm, qxp, fglo, fghi, 1, 1, &
                 flux1, f1_lo, f1_hi, &
                 q1, q1_lo, q1_hi, &
 #ifdef RADIATION
@@ -750,7 +694,7 @@ contains
     !         gamc, csml, c                : +-4
     !         shk                          : +-1
     ! Outputs: fx, ugdnvx, pgdnvx, gegdnvx : xface, +-1 at y
-    call cmpflx(qxm, qxp, fglo, fghi, &
+    call cmpflx(qxm, qxp, fglo, fghi, 1, 1, &
                 fx, glo, ghi, &
                 qgdnvx, fglo, fghi, &
 #ifdef RADIATION
@@ -771,7 +715,7 @@ contains
     !         gamc, csml, c                : +-4
     !         shk                          : +-1
     ! Outputs: fy, ugdnvy, pgdnvy, gegdnvy : yface, +-1 at x
-    call cmpflx(qym, qyp, fglo, fghi, &
+    call cmpflx(qym, qyp, fglo, fghi, 1, 1, &
                 fy, glo, ghi, &
                 q2, q2_lo, q2_hi, &
 #ifdef RADIATION
@@ -789,19 +733,19 @@ contains
     ! Outputs: qm, qp                      : xface, +-0 at y
     call transy(qxm, ql, qxp, qr, fglo, fghi, &
                 qaux, qa_lo, qa_hi, &
-                fy, glo, ghi, &
+                fy, &
 #ifdef RADIATION
-                rfy, glo, ghi, &
+                rfy, &
 #endif
+                glo, ghi, &
                 q2, q2_lo, q2_hi, &
-                srcQ, src_lo, src_hi, &
-                hdt, hdtdy, &
-                lo(1)-1, hi(1)+1, lo(2), hi(2))
+                hdtdy, &
+                [lo(1), lo(2), 0], [hi(1), hi(2), 0])
 
     ! Solve the final Riemann problem across the x-interfaces with the
     ! full unsplit states.  The resulting flux through the x-interfaces
     ! is flux1
-    call cmpflx(ql, qr, fglo, fghi, &
+    call cmpflx(ql, qr, fglo, fghi, 1, 1, &
                 flux1, f1_lo, f1_hi, &
                 q1, q1_lo, q1_hi, &
 #ifdef RADIATION
@@ -819,21 +763,21 @@ contains
     ! Outputs: qm, qp                      : yface, +-0 at x
     call transx(qym, ql, qyp, qr, fglo, fghi, &
                 qaux, qa_lo, qa_hi, &
-                fx, glo, ghi, &
+                fx, &
 #ifdef RADIATION
-                rfx, glo, ghi, &
+                rfx, &
 #endif
+                glo, ghi, &
                 qgdnvx, fglo, fghi, &
-                srcQ, src_lo, src_hi, &
-                hdt, hdtdx, &
                 area1, area1_lo, area1_hi, &
                 vol, vol_lo, vol_hi, &
-                lo(1), hi(1), lo(2)-1, hi(2)+1)
+                hdt, hdtdx, &
+                [lo(1), lo(2), 0], [hi(1), hi(2), 0])
 
     ! Solve the final Riemann problem across the y-interfaces with the
     ! full unsplit states.  The resulting flux through the y-interfaces
     ! is flux2
-    call cmpflx(ql, qr, fglo, fghi, &
+    call cmpflx(ql, qr, fglo, fghi, 1, 1, &
                 flux2, f2_lo, f2_hi, &
                 q2, q2_lo, q2_hi, &
 #ifdef RADIATION
@@ -869,7 +813,7 @@ contains
     !         gamc, csml, c                : +-4
     !         shk                          : +-1
     ! Outputs: fx, ugdnvx, pgdnvx, gegdnvx : xface, +-1 at y & z
-    call cmpflx(qxm, qxp, fglo, fghi, &
+    call cmpflx(qxm, qxp, fglo, fghi, 1, 1, &
                 fx, glo, ghi, &
                 qgdnvx, fglo, fghi, &
 #ifdef RADIATION
@@ -896,7 +840,7 @@ contains
 #endif
                 glo, ghi, &
                 qgdnvx, fglo, fghi, &
-                cdtdx, lo, hi)
+                hdt, cdtdx, lo, hi)
 
     nullify(fx, qgdnvx)
 #ifdef RADIATION
@@ -914,7 +858,7 @@ contains
     !         gamc, csml, c                : +-4
     !         shk                          : +-1
     ! Outputs: fy, ugdnvy, pgdnvy, gegdnvy : yface, +-1 at x & z
-    call cmpflx(qym, qyp, fglo, fghi, &
+    call cmpflx(qym, qyp, fglo, fghi, 1, 1, &
                 fy, glo, ghi, &
                 qgdnvy, fglo, fghi, &
 #ifdef RADIATION
@@ -959,7 +903,7 @@ contains
     !         gamc, csml, c                : +-4
     !         shk                          : +-1
     ! Outputs: fz, ugdnvz, pgdnvz, gegdnvz : zface, +-1 at x & y
-    call cmpflx(qzm, qzp, fglo, fghi, &
+    call cmpflx(qzm, qzp, fglo, fghi, 1, 1, &
                 fz, glo, ghi, &
                 qgdnvz, fglo, fghi, &
 #ifdef RADIATION
@@ -1011,7 +955,7 @@ contains
     !         gamc, csml, c                    : +-4
     !         shk                              : +-1
     ! Outputs: fyz, ugdnvyz, pgdnvyz, gegdnvyz : yface, +-1 at x, +-0 at z
-    call cmpflx(qmyz, qpyz, fglo, fghi, &
+    call cmpflx(qmyz, qpyz, fglo, fghi, 1, 1, &
                 fyz, glo, ghi, &
                 qgdnvyz, fglo, fghi, &
 #ifdef RADIATION
@@ -1033,7 +977,7 @@ contains
     !         gamc, csml, c                    : +-4
     !         shk                              : +-1
     ! Outputs: fzy, ugdnvzy, pgdnvzy, gegdnvzy : zface, +-1 at x, +-0 at y
-    call cmpflx(qmzy, qpzy, fglo, fghi, &
+    call cmpflx(qmzy, qpzy, fglo, fghi, 1, 1, &
                 fzy, glo, ghi, &
                 qgdnvzy, fglo, fghi, &
 #ifdef RADIATION
@@ -1068,7 +1012,6 @@ contains
                  glo, ghi, &
                  qgdnvyz, fglo, fghi, &
                  qgdnvzy, fglo, fghi, &
-                 srcQ, src_lo, src_hi, &
                  hdt, hdtdy, hdtdz, lo, hi)
 
     nullify(fyz, qgdnvyz)
@@ -1084,7 +1027,7 @@ contains
     !         gamc, csml, c                   : +-4
     !         shk                             : +-1
     ! Outputs: flux1, ugdnvx, pgdnvx, gegdnvx : xface, +-0 at y & z
-    call cmpflx(qxl, qxr, fglo, fghi, &
+    call cmpflx(qxl, qxr, fglo, fghi, 1, 1, &
                 flux1, f1_lo, f1_hi, &
                 qgdnvx, fglo, fghi, &
 #ifdef RADIATION
@@ -1120,7 +1063,7 @@ contains
     !         gamc, csml, c                    : +-4
     !         shk                              : +-1
     ! Outputs: fzx, ugdnvzx, pgdnvzx, gegdnvzx : zface, +-0 at x, +-1 at y
-    call cmpflx(qmzx, qpzx, fglo, fghi, &
+    call cmpflx(qmzx, qpzx, fglo, fghi, 1, 1, &
                 fzx, glo, ghi, &
                 qgdnvzx, fglo, fghi, &
 #ifdef RADIATION
@@ -1142,7 +1085,7 @@ contains
     !         gamc, csml, c                    : +-4
     !         shk                              : +-1
     ! Outputs: fxz, ugdnvxz, pgdnvxz, gegdnvxz : xface, +-1 at y, +-0 at z
-    call cmpflx(qmxz, qpxz, fglo, fghi, &
+    call cmpflx(qmxz, qpxz, fglo, fghi, 1, 1, &
                 fxz, glo, ghi, &
                 qgdnvxz, fglo, fghi, &
 #ifdef RADIATION
@@ -1177,7 +1120,6 @@ contains
                  glo, ghi, &
                  qgdnvxz, fglo, fghi, &
                  qgdnvzx, fglo, fghi, &
-                 srcQ, src_lo, src_hi, &
                  hdt, hdtdx, hdtdz, lo, hi)
 
 
@@ -1194,7 +1136,7 @@ contains
     !         gamc, csml, c                   : +-4
     !         shk                             : +-1
     ! Outputs: flux2, ugdnvy, pgdnvy, gegdnvy : yface, +-0 at x & y
-    call cmpflx(qyl, qyr, fglo, fghi, &
+    call cmpflx(qyl, qyr, fglo, fghi, 1, 1, &
                 flux2, f2_lo, f2_hi, &
                 qgdnvy, fglo, fghi, &
 #ifdef RADIATION
@@ -1231,7 +1173,7 @@ contains
     !         gamc, csml, c                    : +-4
     !         shk                              : +-1
     ! Outputs: fxy, ugdnvxy, pgdnvxy, gegdnvxy : xface, +-0 at y, +-1 at z
-    call cmpflx(qmxy, qpxy, fglo, fghi, &
+    call cmpflx(qmxy, qpxy, fglo, fghi, 1, 1, &
                 fxy, glo, ghi, &
                 qgdnvxy, fglo, fghi, &
 #ifdef RADIATION
@@ -1253,7 +1195,7 @@ contains
     !         gamc, csml, c                    : +-4
     !         shk                              : +-1
     ! Outputs: fyx, ugdnvyx, pgdnvyx, gegdnvyx : yface, +-0 at x, +-1 at z
-    call cmpflx(qmyx, qpyx, fglo, fghi, &
+    call cmpflx(qmyx, qpyx, fglo, fghi, 1, 1, &
                 fyx, glo, ghi, &
                 qgdnvyx, fglo, fghi, &
 #ifdef RADIATION
@@ -1288,7 +1230,6 @@ contains
                  glo, ghi, &
                  qgdnvxy, fglo, fghi, &
                  qgdnvyx, fglo, fghi, &
-                 srcQ, src_lo, src_hi,&
                  hdt, hdtdx, hdtdy, lo, hi)
 
     nullify(fxy, qgdnvxy)
@@ -1304,7 +1245,7 @@ contains
     !         gamc, csml, c                   : +-4
     !         shk                             : +-1
     ! Outputs: flux3, ugdnvz, pgdnvz, gegdnvz : zface, +-0 at x & y
-    call cmpflx(qzl, qzr, fglo, fghi, &
+    call cmpflx(qzl, qzr, fglo, fghi, 1, 1, &
                 flux3, f3_lo, f3_hi, &
                 qgdnvz, fglo, fghi, &
 #ifdef RADIATION
@@ -2318,7 +2259,7 @@ contains
                                    first_order_hydro
     use advection_util_module, only : divu
     use amrex_constants_module, only : ZERO, ONE
-    use flatten_module, only: uflatten
+    use flatten_module, only: ca_uflatten
     use prob_params_module, only : mom_flux_has_p, dg, coord_type
 #ifdef RADIATION
     use rad_params_module, only : ngroups
@@ -2422,6 +2363,9 @@ contains
 
     ! Automatic arrays for workspace
     real(rt)        , pointer:: flatn(:,:,:)
+#ifdef RADIATION
+    real(rt)        , pointer:: flatg(:,:,:)
+#endif
     real(rt)        , pointer:: div(:,:,:)
 
     ! Edge-centered primitive variables (Riemann state)
@@ -2457,20 +2401,31 @@ contains
 
     ! Compute flattening coefficient for slope calculations.
     call bl_allocate( flatn, q_lo, q_hi)
-
+#ifdef RADIATION
+    call bl_allocate( flatg, q_lo, q_hi)
+#endif
     if (first_order_hydro == 1) then
        flatn = ZERO
     elseif (use_flattening == 1) then
+       call ca_uflatten(lo-dg*ngf, hi+dg*ngf, &
+                        q, q_lo, q_hi, &
+                        flatn, q_lo, q_hi, QPRES)
 #ifdef RADIATION
+       call ca_uflatten(lo-dg*ngf, hi+dg*ngf, &
+                        q, q_lo, q_hi, &
+                        flatg, q_lo, q_hi, QPTOT)
+
        call rad_flatten(lo-dg*ngf, hi+dg*ngf, &
-                        q, flatn, q_lo, q_hi)
-#else
-       call uflatten(lo-dg*ngf, hi+dg*ngf, &
-                     q, flatn, q_lo, q_hi, QPRES)
+                        q, q_lo, q_hi, &
+                        flatn, q_lo, q_hi, &
+                        flatg, q_lo, q_hi)
 #endif
     else
        flatn = ONE
     endif
+#ifdef RADIATION
+    call bl_deallocate(flatg)
+#endif
 
     ! Compute hyperbolic fluxes using unsplit Godunov
     call umeth(q, q_lo, q_hi, &

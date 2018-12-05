@@ -81,9 +81,6 @@ castro.limit_fluxes_on_small_dens = 1
 castro.small_temp = 1.e5                           # Minimum allowable temperature (K)
 castro.small_dens = 1.e-5                          # Minimum allowable density (g / cm**3)
 
-castro.allow_negative_energy = 0                   # Disable the possibility of having a negative energy
-
-castro.dual_energy_update_E_from_e = 0             # Don't update the total energy using the internal energy
 castro.dual_energy_eta1 = 1.0e-3                   # Threshold for when to use the internal energy in calculating pressure
 castro.dual_energy_eta2 = 1.0e-1                   # Threshold for when to use (E - K) in updating internal energy
 

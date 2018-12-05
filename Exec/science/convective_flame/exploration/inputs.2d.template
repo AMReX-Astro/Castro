@@ -41,7 +41,6 @@ castro.use_flattening = 1
 
 castro.riemann_solver = 0
 
-castro.allow_negative_energy = 0
 castro.print_fortran_warnings = 1
 
 gravity.gravity_type = ConstantGrav

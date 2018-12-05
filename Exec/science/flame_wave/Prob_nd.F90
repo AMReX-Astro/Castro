@@ -241,13 +241,13 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   real(rt), intent(in) :: xlo(3), xhi(3), time, delta(3)
   real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
 
-  real(rt) :: dist, x, y, z, r, height
+  real(rt) :: x, y, z, r, height
   integer :: i, j, k, n
 
   real(rt) :: temppres(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3))
 
   type (eos_t) :: eos_state
-  real(rt) :: sum_excess, sum_excess2, current_fuel, f
+  real(rt) :: f
 
   do k = lo(3), hi(3)
      z = problo(3) + (dble(k)+HALF)*delta(3)

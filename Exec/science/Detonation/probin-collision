@@ -4,7 +4,7 @@
 
   dens = 5.d6
   cfrac = 0.5d0
-  ofrac = 0.5d0
+  ofrac = 0.45d0
 
   smallx = 1.e-12
 
@@ -13,7 +13,7 @@
   w_T = 0.d0
   center_T = 0.d0
 
-  vel = 1.0d8
+  vel = 2.0d8
 
   fill_ambient_bc = T
 /
@@ -26,7 +26,7 @@
   max_denerr_lev = 0
 
   tempgrad_rel = 0.5
-  max_tempgrad_rel_lev = 0
+  max_tempgrad_rel_lev = 20
 
   dengrad_rel = 0.5
   max_dengrad_rel_lev = 0
