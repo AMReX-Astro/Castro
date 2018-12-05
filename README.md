@@ -22,12 +22,14 @@ Running this will clone the repositories and create a file
 `castro_exports.sh` which you can source or copy to your `.bashrc`
 to define the necessary environment variables.
 
-The User's Guide in `Castro/Docs/` (type `make` to build from
-LaTeX source) will guide you through running your first problem.
+The User's Guide in written in re-structured text using Sphinx, with
+the source in `Castro/sphinx_docs/` and the HTML output in
+`Castro/docs/` (type `make html` to build from source).  You can find
+the online guide at:
 
-A PDF of the User's Guide can be found at
+https://amrex-astro.github.io/Castro/sphinx/index_docs.html
 
-http://bender.astro.sunysb.edu/Castro/staging/Castro/Docs/CastroUserGuide.pdf
+The Getting Started section should guide you through your first run.
 
 
 ## Call Graph

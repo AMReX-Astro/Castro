@@ -1,5 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-stop_time = 2.0                 
+stop_time = 2.0
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 1   1
@@ -26,7 +26,6 @@ castro.hi_bc       =  0   0
 # WHICH PHYSICS
 castro.do_hydro = 1
 castro.ppm_type = 1
-castro.allow_negative_energy = 0
 castro.small_temp = 1.e-4
 castro.small_dens = 1.e-4
 
@@ -42,7 +41,7 @@ castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 amr.grid_log          = grid_diag.out   # name of grid logging file
 
-# REFINEMENT / REGRIDDING 
+# REFINEMENT / REGRIDDING
 amr.ref_ratio       = 2 2 2 2   # refinement ratio
 amr.regrid_int      = 2 2 2 2   # how often to regrid
 amr.blocking_factor = 4         # block factor in grid generation
@@ -58,7 +57,7 @@ amr.plot_files_output = 1
 amr.plot_file       = plt       # root name of plotfile
 amr.plot_per        = 0.1       # time between plotfiles
 
-amr.plot_vars = ALL 
+amr.plot_vars = ALL
 
 # PROBIN FILENAME
 amr.probin_file = probin

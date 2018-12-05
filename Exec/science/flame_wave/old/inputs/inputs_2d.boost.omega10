@@ -36,8 +36,6 @@ castro.ppm_reference_eigenvectors = 1
 castro.ppm_trace_sources = 1
 castro.grav_source_type = 2
 
-castro.allow_negative_energy = 0
-
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -2.0e14
 
