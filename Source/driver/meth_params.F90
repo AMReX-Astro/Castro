@@ -62,7 +62,7 @@ module meth_params_module
   logical         , save :: outflow_data_allocated
   real(rt)        , save :: max_dist
 
-  character(len=:), allocatable :: gravity_type
+  character(len=:), allocatable, save :: gravity_type
 
   ! these flags are for interpreting the EXT_DIR BCs
   integer, parameter :: EXT_UNDEFINED = -1
@@ -89,7 +89,7 @@ module meth_params_module
 #ifdef RADIATION
   attributes(managed) :: GDLAMS, GDERADS
 #endif
-  ! attributes(managed) :: gravity_type
+  attributes(managed) :: gravity_type
   attributes(managed) :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 #endif
 
@@ -430,7 +430,7 @@ contains
 #ifdef RADIATION
     allocate(GDLAMS, GDERADS)
 #endif
-    ! allocate(gravity_type)
+    allocate(gravity_type)
     allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
     allocate(const_grav)
