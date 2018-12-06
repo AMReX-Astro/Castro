@@ -1598,7 +1598,7 @@ contains
 #endif
 
     real(rt)        , intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    real(rt)        , intent(in) :: div(lo(1):hi(1)+1,lo(2):hi(2)+1,lo(3):hi(3)+1)
+    real(rt)        , intent(in) :: div(lo(1):hi(1)+1,lo(2):hi(2)+dg(2),lo(3):hi(3)+dg(3))
     real(rt)        , intent(in) :: dx(3), dt
 
 #ifdef RADIATION
@@ -1663,75 +1663,22 @@ contains
                     vol, vol_lo, vol_hi, &
                     dx, pdivu, lo, hi)
 
-    do n = 1, NVAR
 
-       if ( n == UTEMP ) then
+    call apply_av(lo, [hi(1)+1, hi(2), hi(3)], 1, dx, &
+                  div, lo, hi+dg, &
+                  uin, uin_lo, uin_hi, &
+                  flux1, flux1_lo, flux1_hi)
 
-          flux1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
-#if AMREX_SPACEDIM >= 2
-          flux2(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
-#endif
-#if AMREX_SPACEDIM == 3
-          flux3(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
-#endif
+    call apply_av(lo, [hi(1), hi(2)+1, hi(3)], 2, dx, &
+                  div, lo, hi+dg, &
+                  uin, uin_lo, uin_hi, &
+                  flux2, flux2_lo, flux2_hi)
 
-#ifdef SHOCK_VAR
-       else if ( n == USHK ) then
+    call apply_av(lo, [hi(1), hi(2), hi(3)+1], 3, dx, &
+                  div, lo, hi+dg, &
+                  uin, uin_lo, uin_hi, &
+                  flux3, flux3_lo, flux3_hi)
 
-          flux1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
-#if AMREX_SPACEDIM >= 2
-          flux2(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
-#endif
-#if AMREX_SPACEDIM == 3
-          flux3(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
-#endif
-#endif
-
-       else
-
-          do k = lo(3),hi(3)
-             do j = lo(2),hi(2)
-                do i = lo(1),hi(1)+1
-                   div1 = FOURTH*(div(i,j,k) + div(i,j+dg(2),k) + &
-                                  div(i,j,k+dg(3)) + div(i,j+dg(2),k+dg(3)))
-                   div1 = difmag*min(ZERO, div1)
-
-                   flux1(i,j,k,n) = flux1(i,j,k,n) + dx(1) * div1 * (uin(i,j,k,n)-uin(i-1,j,k,n))
-                enddo
-             enddo
-          enddo
-
-#if AMREX_SPACEDIM >= 2
-          do k = lo(3),hi(3)
-             do j = lo(2),hi(2)+1
-                do i = lo(1),hi(1)
-                   div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + &
-                                  div(i,j,k+dg(3)) + div(i+1,j,k+dg(3)))
-                   div1 = difmag*min(ZERO, div1)
-
-                   flux2(i,j,k,n) = flux2(i,j,k,n) + dx(2) * div1 * (uin(i,j,k,n)-uin(i,j-1,k,n))
-                enddo
-             enddo
-          enddo
-#endif
-
-#if AMREX_SPACEDIM == 3
-          do k = lo(3),hi(3)+1
-             do j = lo(2),hi(2)
-                do i = lo(1),hi(1)
-                   div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + &
-                                  div(i,j+1,k) + div(i+1,j+1,k))
-                   div1 = difmag*min(ZERO, div1)
-
-                   flux3(i,j,k,n) = flux3(i,j,k,n) + dx(3) * div1 * (uin(i,j,k,n)-uin(i,j,k-1,n))
-                enddo
-             enddo
-          enddo
-#endif
-
-       endif
-
-    enddo
 
 #ifdef RADIATION
     do g=0,ngroups-1
