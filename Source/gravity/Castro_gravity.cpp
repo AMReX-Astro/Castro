@@ -1,5 +1,6 @@
 #include "Castro.H"
 #include "Castro_F.H"
+#include <AMReX_CudaDevice.H>
 
 #ifdef SELF_GRAVITY
 #include "Gravity.H"
@@ -254,6 +255,16 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state, Rea
                 BL_TO_FORTRAN_ANYD(source[mfi]),
                 AMREX_REAL_ANYD(dx),dt,time);
 
+//     ca_gsrc((bx.loVect()), (bx.hiVect()),
+//             (domlo), (domhi),
+//             BL_TO_FORTRAN_3D(state[mfi]),
+// #ifdef SELF_GRAVITY
+//             BL_TO_FORTRAN_3D(phi_old[mfi]),
+//             BL_TO_FORTRAN_3D(grav_old[mfi]),
+// #endif
+//             BL_TO_FORTRAN_3D(source[mfi]),
+//             ZFILL(dx),dt,time);
+//
     }
 
 }
@@ -339,6 +350,7 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
                         BL_TO_FORTRAN_ANYD((*mass_fluxes[2])[mfi]),
                         BL_TO_FORTRAN_ANYD(source[mfi]),
                         AMREX_REAL_ANYD(dx),dt,time);
+
 
         }
     }

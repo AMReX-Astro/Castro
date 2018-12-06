@@ -1437,7 +1437,7 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
                    radial_mass.dataPtr(),
                    radial_vol.dataPtr(),
 #endif
-           ZFILL(geom.ProbLo()),n1d,drdxfac,level);
+           ZFILL(geom.ProbLo()),&n1d,&drdxfac,&level);
 	}
 
 #ifdef _OPENMP
@@ -2160,10 +2160,6 @@ Gravity::set_mass_offset (Real time, bool multi_level)
 	if (verbose > 1 && ParallelDescriptor::IOProcessor())
 	    std::cout << "Defining average density to be " << mass_offset << std::endl;
 
-		mass_offset = mass_offset / geom.ProbSize();
-		if (verbose && ParallelDescriptor::IOProcessor())
-			std::cout << "Defining average density to be " << mass_offset << std::endl;
-
 		Real diff = std::abs(mass_offset - old_mass_offset);
 		Real eps = 1.e-10 * std::abs(old_mass_offset);
 		if (diff > eps && old_mass_offset > 0)
@@ -2361,7 +2357,7 @@ Gravity::make_radial_gravity(int level, Real time,
 			FArrayBox& fab = S[mfi];
             // don't offload as sums radial_mass and radial_vol
     		ca_compute_radial_mass(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-						ZFILL(dx), dr,
+						dx, &dr,
 				       BL_TO_FORTRAN_ANYD(fab),
 #ifdef _OPENMP
 				       priv_radial_mass[tid].dataPtr(),
@@ -2370,18 +2366,18 @@ Gravity::make_radial_gravity(int level, Real time,
 				       radial_mass[lev].dataPtr(),
 				       radial_vol[lev].dataPtr(),
 #endif
-				       ZFILL(geom.ProbLo()),n1d,drdxfac,lev);
+				       ZFILL(geom.ProbLo()),&n1d,&drdxfac,&lev);
 
 #ifdef GR_GRAV
     		ca_compute_avgpres(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                    ZFILL(dx), dr,
+                    dx, &dr,
 				   BL_TO_FORTRAN_ANYD(fab),
 #ifdef _OPENMP
 				   priv_radial_pres[tid].dataPtr(),
 #else
 				   radial_pres[lev].dataPtr(),
 #endif
-				   ZFILL(geom.ProbLo()),n1d,drdxfac,lev);
+				   ZFILL(geom.ProbLo()),&n1d,&drdxfac,&lev);
 #endif
 	    }
 
