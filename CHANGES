@@ -1,6 +1,7 @@
 changes since last release:
 
-
+  -- the CTU hydro solver no longer does any allocation in any of the
+     support routines -- it is all done in the top-level driver.
 
 # 18.12
 
