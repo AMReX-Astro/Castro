@@ -1,7 +1,5 @@
 changes since last release:
 
-  -- fixed a bug in the CUDA version of the MOL integrator -- it was
-     setting the interface states incorrectly.
 
 
 # 18.12
