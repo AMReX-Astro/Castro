@@ -88,7 +88,7 @@ extern "C"
 
   void ca_finalize_meth_params();
 
-  void ca_set_castro_method_params();
+  void ca_set_castro_method_params(const int* gravity_type_len);
 
   void ca_init_godunov_indices();
 

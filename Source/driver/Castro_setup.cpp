@@ -216,7 +216,7 @@ Castro::variableSetUp ()
 
 
   // Read in the input values to Fortran.
-  ca_set_castro_method_params();
+  ca_set_castro_method_params(&gravity_type_length);
 
   // set the conserved, primitive, aux, and godunov indices in Fortran
   ca_set_method_params(dm, Density, Xmom,
