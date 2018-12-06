@@ -1251,10 +1251,13 @@ contains
   end subroutine limit_hydro_fluxes_on_small_dens
 
 
-  subroutine shock(q, qd_lo, qd_hi, shk, s_lo, s_hi, lo, hi, dx)
+  subroutine shock(lo, hi, &
+                   q, qd_lo, qd_hi, &
+                   shk, s_lo, s_hi, &
+                   dx)
 
     use meth_params_module, only : QPRES, QU, QV, QW, NQ
-    use prob_params_module, only : coord_type, dg
+    use prob_params_module, only : coord_type
     use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
@@ -1292,15 +1295,15 @@ contains
     dyinv = ONE/dx(2)
     dzinv = ONE/dx(3)
 
-#ifndef AMREX_USE_CUDA    
+#ifndef AMREX_USE_CUDA
     if (coord_type /= 0) then
        call amrex_error("ERROR: invalid geometry in shock()")
     endif
 #endif
 
-    do k = lo(3)-dg(3), hi(3)+dg(3)
-       do j = lo(2)-dg(2), hi(2)+dg(2)
-          do i = lo(1)-dg(1), hi(1)+dg(1)
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
              ! construct div{U}
              if (coord_type == 0) then
@@ -1333,7 +1336,7 @@ contains
                 rp = dble(i + 1 + HALF)*dx(1)
 
                 divU = HALF*(rp**2*q(i+1,j,k,QU) - rm**2*q(i-1,j,k,QU))/(rc**2*dx(1))
-                
+
 #ifndef AMREX_USE_CUDA
              else
                 call amrex_error("ERROR: invalid coord_type in shock")
@@ -1359,8 +1362,8 @@ contains
                 py_post = q(i,j+1,k,QPRES)
              endif
 #else
-             py_pre = 0.0_rt
-             py_post = 0.0_rt
+             py_pre = ZERO
+             py_post = ZERO
 #endif
 
 #if (AMREX_SPACEDIM == 3)
@@ -1372,8 +1375,8 @@ contains
                 pz_post = q(i,j,k+1,QPRES)
              endif
 #else
-             pz_pre = 0.0_rt
-             pz_post = 0.0_rt
+             pz_pre = ZERO
+             pz_post = ZERO
 #endif
 
              ! use compression to create unit vectors for the shock direction
@@ -1381,12 +1384,12 @@ contains
 #if (AMREX_SPACEDIM >= 2)
              e_y = (q(i,j+1,k,QV) - q(i,j-1,k,QV))**2
 #else
-             e_y = 0.0_rt
+             e_y = ZERO
 #endif
 #if (AMREX_SPACEDIM == 3)
              e_z = (q(i,j,k+1,QW) - q(i,j,k-1,QW))**2
 #else
-             e_z = 0.0_rt
+             e_z = ZERO
 #endif
              d = ONE/(e_x + e_y + e_z + small)
 

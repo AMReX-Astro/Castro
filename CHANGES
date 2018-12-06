@@ -1,3 +1,9 @@
+changes since last release:
+
+  -- fixed a bug in the CUDA version of the MOL integrator -- it was
+     setting the interface states incorrectly.
+
+
 # 18.12
 
   -- removed ppm_type = 2.  This was not used for science simulations
@@ -25,10 +31,14 @@
      Also, fixed an edge case where this custom distribution map could
      cause a numerical overflow and code crash. (#382)
 
+  -- rewrote the reconstruction routines to eliminate temporary arrays
+     to make them GPU friendly
+
   -- the documentation was converted to sphinx
 
   -- changed the interface to the conductivity routines so the conductivity
      is not part of eos_t (#431)
+
 
 # 18.11
 
