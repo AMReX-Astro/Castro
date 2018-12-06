@@ -104,7 +104,10 @@ contains
 #ifdef SHOCK_VAR
     use meth_params_module, only : USHK
 #endif
-    use advection_util_module, only : shock
+    use advection_util_module, only : shock, apply_av
+#ifdef RADIATION
+    use advection_util_module, only : apply_av_rad
+#endif
     use prob_params_module, only : dg
 
     implicit none
@@ -1669,62 +1672,37 @@ contains
                   uin, uin_lo, uin_hi, &
                   flux1, flux1_lo, flux1_hi)
 
+#if AMREX_SPACEDIM >= 2
     call apply_av(lo, [hi(1), hi(2)+1, hi(3)], 2, dx, &
                   div, lo, hi+dg, &
                   uin, uin_lo, uin_hi, &
                   flux2, flux2_lo, flux2_hi)
-
+#endif
+#if AMREX_SPACEDIM == 3
     call apply_av(lo, [hi(1), hi(2), hi(3)+1], 3, dx, &
                   div, lo, hi+dg, &
                   uin, uin_lo, uin_hi, &
                   flux3, flux3_lo, flux3_hi)
-
+#endif
 
 #ifdef RADIATION
-    do g=0,ngroups-1
-       do k = lo(3),hi(3)
-          do j = lo(2),hi(2)
-             do i = lo(1),hi(1)+1
-                div1 = FOURTH*(div(i,j,k) + div(i,j+dg(2),k) + &
-                               div(i,j,k+dg(3)) + div(i,j+dg(2),k+dg(3)))
-                div1 = difmag*min(ZERO, div1)
-
-                radflux1(i,j,k,g) = radflux1(i,j,k,g) + dx(1)*div1*(Erin(i,j,k,g)-Erin(i-1,j,k,g))
-             enddo
-          enddo
-       enddo
-    enddo
+    call apply_av_rad(lo, [hi(1)+1, hi(2), hi(3)], 1, dx, &
+                      div, lo, hi+dg, &
+                      Erin, Erin_lo, Erin_hi, &
+                      radflux1, radflux1_lo, radflux1_hi)
 
 #if AMREX_SPACEDIM >= 2
-    do g=0,ngroups-1
-       do k = lo(3),hi(3)
-          do j = lo(2),hi(2)+1
-             do i = lo(1),hi(1)
-                div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + &
-                               div(i,j,k+dg(3)) + div(i+1,j,k+dg(3)))
-                div1 = difmag*min(ZERO, div1)
-
-                radflux2(i,j,k,g) = radflux2(i,j,k,g) + dx(2)*div1*(Erin(i,j,k,g)-Erin(i,j-1,k,g))
-             enddo
-          enddo
-       enddo
-    enddo
+    call apply_av_rad(lo, [hi(1), hi(2)+1, hi(3)], 2, dx, &
+                      div, lo, hi+dg, &
+                      Erin, Erin_lo, Erin_hi, &
+                      radflux2, radflux2_lo, radflux2_hi)
 #endif
 
 #if AMREX_SPACEDIM == 3
-    do g=0,ngroups-1
-       do k = lo(3),hi(3)+1
-          do j = lo(2),hi(2)
-             do i = lo(1),hi(1)
-                div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + &
-                               div(i,j+1,k) + div(i+1,j+1,k))
-                div1 = difmag*min(ZERO, div1)
-
-                radflux3(i,j,k,g) = radflux3(i,j,k,g) + dx(3)*div1*(Erin(i,j,k,g)-Erin(i,j,k-1,g))
-             enddo
-          enddo
-       enddo
-    enddo
+    call apply_av_rad(lo, [hi(1), hi(2), hi(3)+1], 3, dx, &
+                      div, lo, hi+dg, &
+                      Erin, Erin_lo, Erin_hi, &
+                      radflux3, radflux3_lo, radflux3_hi)
 #endif
 #endif
 
