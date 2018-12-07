@@ -332,7 +332,7 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 #if (AMREX_SPACEDIM >= 2)
                 BL_TO_FORTRAN_ANYD(gravy[mfi]),
 #if (AMREX_SPACEDIM == 3)
-                BL_TO_FORTRAN_ANYD(gravz[mfi])),
+                BL_TO_FORTRAN_ANYD(gravz[mfi]),
 #endif
 #endif
                 BL_TO_FORTRAN_ANYD(phi_center[mfi]));

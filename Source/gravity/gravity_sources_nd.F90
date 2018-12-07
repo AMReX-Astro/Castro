@@ -403,13 +403,16 @@ contains
 #ifdef SELF_GRAVITY
                 if (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" .and. get_g_from_phi == 1) ) then
 
-                   SrEcorr = SrEcorr + (ONE / dt) * ((flux1(i        ,j,k) * HALF * (phi(i-1,j,k) + phi(i,j,k)) - &
-                        flux1(i+1*dg(1),j,k) * HALF * (phi(i+1,j,k) + phi(i,j,k)) + &
-                        flux2(i,j        ,k) * HALF * (phi(i,j-1,k) + phi(i,j,k)) - &
-                        flux2(i,j+1*dg(2),k) * HALF * (phi(i,j+1,k) + phi(i,j,k)) + &
-                        flux3(i,j,k        ) * HALF * (phi(i,j,k-1) + phi(i,j,k)) - &
-                        flux3(i,j,k+1*dg(3)) * HALF * (phi(i,j,k+1) + phi(i,j,k))) / vol(i,j,k) - &
-                        (rhon - rhoo) * phi(i,j,k))
+                   SrEcorr = SrEcorr + (ONE / dt) * ( - (rhon - rhoo) * phi(i,j,k) + (flux1(i,j,k) * HALF * (phi(i-1,j,k) + phi(i,j,k)) - &
+                        flux1(i+1*dg(1),j,k) * HALF * (phi(i+1,j,k) + phi(i,j,k))) / vol(i,j,k))
+#if (AMREX_SPACEDIM >= 2)
+                   SrEcorr = SrEcorr + (ONE / dt) * (flux2(i,j,k) * HALF * (phi(i,j-1,k) + phi(i,j,k)) - &
+                        flux2(i,j+1*dg(2),k) * HALF * (phi(i,j+1,k) + phi(i,j,k))) / vol(i,j,k)
+#if (AMREX_SPACEDIM == 3)
+                   SrEcorr = SrEcorr + (ONE / dt) * (flux3(i,j,k) * HALF * (phi(i,j,k-1) + phi(i,j,k)) - &
+                        flux3(i,j,k+1*dg(3)) * HALF * (phi(i,j,k+1) + phi(i,j,k))) / vol(i,j,k)
+#endif
+#endif
 
                 else
 
