@@ -123,8 +123,8 @@ contains
     fac = dble(drdxfac)
     dx_frac = dx(1) / fac
 
-    j = lo(2)
-    k = lo(3)
+    j = r_lo(2)
+    k = r_lo(3)
 
     do i = lo(1), hi(1)
 
@@ -339,7 +339,7 @@ contains
 
              ! Linear interpolation or extrapolation
              slope = ( radial_phi(index+1) - radial_phi(index) ) / dr
-             phi(i) = radial_phi(index) + slope * xi
+             phi(i,j,k) = radial_phi(index) + slope * xi
 
           else if (index == numpts_1d-1) then
 
