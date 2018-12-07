@@ -56,9 +56,10 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 # CHECKPOINT FILES
 amr.check_file      = chk_3d_  # root name of checkpoint file
 amr.check_int       = 100000        # number of timesteps between checkpoints
+amr.checkpoint_files_output = 0
 
 # PLOTFILES
-amr.plot_file       = plt_3d_  # root name of plotfile
+amr.plot_file       = gpu_3d_  # root name of plotfile
 amr.plot_int        = 100000        # number of timesteps between plotfiles
 amr.derive_plot_vars = NONE
 

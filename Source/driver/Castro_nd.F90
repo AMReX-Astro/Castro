@@ -580,7 +580,7 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
 
   call bl_pd_is_ioproc(ioproc)
 
-  allocate(character(len=gravity_type_len) :: gravity_type)
+  ! allocate(character(len=gravity_type_len) :: gravity_type)
 
   do i = 1, gravity_type_len
      gravity_type(i:i) = char(gravity_type_in(i))

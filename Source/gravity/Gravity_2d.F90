@@ -93,10 +93,10 @@ contains
 
     integer , intent(in   ) :: lo(3), hi(3)
     real(rt), intent(in   ) :: dx(3)
-    real(rt), value, intent(in   ) :: dr
+    real(rt), intent(in   ) :: dr
     real(rt), intent(in   ) :: problo(3)
 
-    integer , value, intent(in   ) :: n1d, drdxfac, level
+    integer , intent(in   ) :: n1d, drdxfac, level
     real(rt), intent(inout) :: radial_mass(0:n1d-1)
     real(rt), intent(inout) :: radial_vol (0:n1d-1)
 

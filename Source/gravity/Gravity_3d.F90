@@ -65,10 +65,10 @@ contains
 
     integer , intent(in   ) :: lo(3), hi(3)
     real(rt), intent(in   ) :: dx(3)
-    real(rt), value, intent(in   ) :: dr
+    real(rt), intent(in   ) :: dr
     real(rt), intent(in   ) :: problo(3)
 
-    integer , value, intent(in   ) :: n1d, drdxfac, level
+    integer , intent(in   ) :: n1d, drdxfac, level
     real(rt), intent(inout) :: radial_mass(0:n1d-1)
     real(rt), intent(inout) :: radial_vol (0:n1d-1)
 
@@ -378,7 +378,7 @@ contains
 
 
   subroutine ca_compute_direct_sum_bc (lo, hi, dx, &
-       symmetry_type, bc_lo, bc_hi, &
+       symmetry_type, lo_bc, hi_bc, &
        rho, r_lo, r_hi, &
        vol, v_lo, v_hi, &
        problo, probhi, &
@@ -400,8 +400,8 @@ contains
     real(rt), intent(in   ) :: dx(3), bcdx(3)
     real(rt), intent(in   ) :: problo(3), probhi(3)
 
-    integer , value, intent(in   ) :: symmetry_type
-    integer , intent(in   ) :: bc_lo(3), bc_hi(3)
+    integer , intent(in   ) :: symmetry_type
+    integer , intent(in   ) :: lo_bc(3), hi_bc(3)
 
     real(rt), intent(out) :: bcXYLo(bclo(1):bchi(1),bclo(2):bchi(2))
     real(rt), intent(out) :: bcXYHi(bclo(1):bchi(1),bclo(2):bchi(2))
@@ -426,12 +426,12 @@ contains
     doSymmetricAdd      = .false.
 
     do b = 1, 3
-       if ( bc_lo(b) .eq. symmetry_type ) then
+       if ( lo_bc(b) .eq. symmetry_type ) then
           doSymmetricAddLo(b) = .true.
           doSymmetricAdd           = .true.
        endif
 
-       if ( bc_hi(b) .eq. symmetry_type ) then
+       if ( hi_bc(b) .eq. symmetry_type ) then
           doSymmetricAddHi(b) = .true.
           doSymmetricAdd           = .true.
        endif
@@ -740,8 +740,6 @@ contains
     real(rt)         :: x, y, z, r
     real(rt)         :: rho, dV
     real(rt)         :: bcTerm
-
-    !$gpu
 
     ! Add contributions from any symmetric boundaries.
 

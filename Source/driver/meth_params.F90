@@ -407,12 +407,14 @@ module meth_params_module
 
 contains
 
-  subroutine ca_set_castro_method_params() bind(C, name="ca_set_castro_method_params")
+  subroutine ca_set_castro_method_params(gravity_type_len) bind(C, name="ca_set_castro_method_params")
 
     use amrex_parmparse_module, only: amrex_parmparse_build, amrex_parmparse_destroy, amrex_parmparse
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
+
+    integer, intent(in) :: gravity_type_len
 
     type (amrex_parmparse) :: pp
 
@@ -430,7 +432,7 @@ contains
 #ifdef RADIATION
     allocate(GDLAMS, GDERADS)
 #endif
-    allocate(gravity_type)
+    allocate(character(len=gravity_type_len)::gravity_type)
     allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
     allocate(const_grav)

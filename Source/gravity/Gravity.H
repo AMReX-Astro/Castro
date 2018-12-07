@@ -4,10 +4,6 @@
 #include <AMReX_AmrLevel.H>
 #include <AMReX_MLLinOp.H>
 
-#ifdef AMREX_USE_CUDA
-#include <AMReX_CudaAllocators.H>
-#endif
-
 class Gravity {
 
 public:
@@ -88,12 +84,7 @@ public:
 
   void average_fine_ec_onto_crse_ec(int level, int is_new);
 
-  void make_radial_gravity(int level, amrex::Real time,
-#ifdef AMREX_USE_CUDA
-    amrex::Vector<amrex::Real, amrex::CudaManagedAllocator<amrex::Real>>& radial_grav);
-#else
-    amrex::Vector<amrex::Real>& radial_grav);
-#endif
+  void make_radial_gravity(int level, amrex::Real time, amrex::Vector<amrex::Real>& radial_grav);
 
   void interpolate_monopole_grav(int level,
 #ifdef AMREX_USE_CUDA
@@ -170,22 +161,12 @@ protected:
 
   static int   test_solves;
   static amrex::Real  mass_offset;
-#ifdef AMREX_USE_CUDA
-    amrex::Vector< amrex::Vector<amrex::Real, amrex::CudaManagedAllocator<amrex::Real> > > radial_grav_old;
-    amrex::Vector< amrex::Vector<amrex::Real, amrex::CudaManagedAllocator<amrex::Real> > > radial_grav_new;
-    amrex::Vector< amrex::Vector<amrex::Real, amrex::CudaManagedAllocator<amrex::Real> > > radial_mass;
-    amrex::Vector< amrex::Vector<amrex::Real, amrex::CudaManagedAllocator<amrex::Real> > > radial_vol;
+  static amrex::Vector< amrex::Vector<amrex::Real> > radial_grav_old;
+  static amrex::Vector< amrex::Vector<amrex::Real> > radial_grav_new;
+  static amrex::Vector< amrex::Vector<amrex::Real> > radial_mass;
+  static amrex::Vector< amrex::Vector<amrex::Real> > radial_vol;
 #ifdef GR_GRAV
-    amrex::Vector< amrex::Vector<amrex::Real, amrex::CudaManagedAllocator<amrex::Real> > > radial_pres;
-#endif
-#else
-    static amrex::Vector< amrex::Vector<amrex::Real> > radial_grav_old;
-    static amrex::Vector< amrex::Vector<amrex::Real> > radial_grav_new;
-    static amrex::Vector< amrex::Vector<amrex::Real> > radial_mass;
-    static amrex::Vector< amrex::Vector<amrex::Real> > radial_vol;
-#ifdef GR_GRAV
-      static amrex::Vector< amrex::Vector<amrex::Real> > radial_pres;
-#endif
+  static amrex::Vector< amrex::Vector<amrex::Real> > radial_pres;
 #endif
   static int   stencil_type;
 
