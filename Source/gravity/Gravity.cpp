@@ -2256,19 +2256,19 @@ Gravity::make_radial_gravity(int level, Real time,
         const Real t_new = LevelData[lev]->get_state_data(State_Type).curTime();
         const Real eps   = (t_new - t_old) * 1.e-6;
 
-	const int NUM_STATE = LevelData[lev]->get_new_data(State_Type).nComp();
+    	const int NUM_STATE = LevelData[lev]->get_new_data(State_Type).nComp();
 
         // Create MultiFab with NUM_STATE components and no ghost cells
         MultiFab S(grids[lev],dmap[lev],NUM_STATE,0);
 
-	if ( eps == 0.0 )
-	{
+    	if ( eps == 0.0 )
+    	{
             // Old and new time are identical; this should only happen if
             // dt is smaller than roundoff compared to the current time,
             // in which case we're probably in trouble anyway,
             // but we will still handle it gracefully here.
             S.copy(LevelData[lev]->get_new_data(State_Type),0,0,NUM_STATE);
-	}
+    	}
         else if ( std::abs(time-t_old) < eps)
         {
             S.copy(LevelData[lev]->get_old_data(State_Type),0,0,NUM_STATE);
@@ -2302,10 +2302,10 @@ Gravity::make_radial_gravity(int level, Real time,
 
         if (lev < level)
         {
-	    Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
-	    const MultiFab& mask = fine_level->build_fine_mask();
-	    for (int n = 0; n < NUM_STATE; ++n)
-		MultiFab::Multiply(S, mask, 0, n, 1, 0);
+    	    Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
+    	    const MultiFab& mask = fine_level->build_fine_mask();
+    	    for (int n = 0; n < NUM_STATE; ++n)
+    		MultiFab::Multiply(S, mask, 0, n, 1, 0);
         }
 
         int n1d = radial_mass[lev].size();
@@ -2321,20 +2321,20 @@ Gravity::make_radial_gravity(int level, Real time,
         Real dr = dx[0] / double(drdxfac);
 
 #if ! defined(AMREX_USE_CUDA) && defined( _OPENMP)
-	int nthreads = omp_get_max_threads();
+    	int nthreads = omp_get_max_threads();
 
 #ifdef GR_GRAV
-	Vector< Vector<Real> > priv_radial_pres(nthreads);
+    	Vector< Vector<Real> > priv_radial_pres(nthreads);
 #endif
-	Vector< Vector<Real> > priv_radial_mass(nthreads);
-	Vector< Vector<Real> > priv_radial_vol (nthreads);
-	for (int i=0; i<nthreads; i++) {
+    	Vector< Vector<Real> > priv_radial_mass(nthreads);
+    	Vector< Vector<Real> > priv_radial_vol (nthreads);
+    	for (int i=0; i<nthreads; i++) {
 #ifdef GR_GRAV
-	    priv_radial_pres[i].resize(n1d,0.0);
+    	    priv_radial_pres[i].resize(n1d,0.0);
 #endif
-	    priv_radial_mass[i].resize(n1d,0.0);
-	    priv_radial_vol [i].resize(n1d,0.0);
-	}
+    	    priv_radial_mass[i].resize(n1d,0.0);
+    	    priv_radial_vol [i].resize(n1d,0.0);
+    	}
 #pragma omp parallel
 #endif
 	{
@@ -2346,7 +2346,7 @@ Gravity::make_radial_gravity(int level, Real time,
 	        const Box& bx = mfi.tilebox();
 		    FArrayBox& fab = S[mfi];
 
-		ca_compute_radial_mass(bx.loVect(), bx.hiVect(), dx, &dr,
+    		ca_compute_radial_mass(bx.loVect(), bx.hiVect(), dx, &dr,
 				       BL_TO_FORTRAN_ANYD(fab),
 #ifdef _OPENMP
 				       priv_radial_mass[tid].dataPtr(),
@@ -2358,7 +2358,7 @@ Gravity::make_radial_gravity(int level, Real time,
 				       geom.ProbLo(),&n1d,&drdxfac,&lev);
 
 #ifdef GR_GRAV
-		ca_compute_avgpres(bx.loVect(), bx.hiVect(), dx, &dr,
+    		ca_compute_avgpres(bx.loVect(), bx.hiVect(), dx, &dr,
 				   BL_TO_FORTRAN_ANYD(fab),
 #ifdef _OPENMP
 				   priv_radial_pres[tid].dataPtr(),
@@ -2373,13 +2373,13 @@ Gravity::make_radial_gravity(int level, Real time,
 #pragma omp barrier
 #pragma omp for
 	    for (int i=0; i<n1d; i++) {
-		for (int it=0; it<nthreads; it++) {
+    		for (int it=0; it<nthreads; it++) {
 #ifdef GR_GRAV
 	            radial_pres[lev][i] += priv_radial_pres[it][i];
 #endif
 	            radial_mass[lev][i] += priv_radial_mass[it][i];
-		    radial_vol [lev][i] += priv_radial_vol [it][i];
-		}
+    		    radial_vol [lev][i] += priv_radial_vol [it][i];
+    		}
 	    }
 #endif
 	}

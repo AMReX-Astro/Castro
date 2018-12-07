@@ -82,8 +82,6 @@ contains
     real(rt)         :: vol_frac, drinv
     real(rt)         :: lo_i,lo_j,lo_k
 
-    !$gpu
-
     if (( abs(center(1) - problo(1)) .lt. 1.e-2_rt * dx(1) ) .and. &
          ( abs(center(2) - problo(2)) .lt. 1.e-2_rt * dx(2) ) .and. &
          ( abs(center(3) - problo(3)) .lt. 1.e-2_rt * dx(3) ) ) then

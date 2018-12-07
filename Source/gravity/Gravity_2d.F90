@@ -119,15 +119,17 @@ contains
     dx_frac = dx(1) / fac
     dy_frac = dx(2) / fac
 
-    k = lo(3)
+    k = r_lo(3)
+
+    vol_frac_fac = TWO * M_PI * dx_frac * dy_frac * octant_factor
 
     do j = lo(2), hi(2)
        yc = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
+       lo_j = problo(2) + dble(j)*dx(2) - center(2)
 
        do i = lo(1), hi(1)
           xc = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
-
-          vol_frac_fac = TWO * M_PI * dx_frac * dy_frac * octant_factor
+          lo_i = problo(1) + dble(i)*dx(1) - center(1)
 
           r = sqrt(xc**2  + yc**2)
           index = int(r/dr)
@@ -135,26 +137,24 @@ contains
           if (index .gt. n1d-1) then
 
              if (level .eq. 0) then
-                ! #ifndef AMREX_USE_CUDA
-                !                 print *,'   '
-                !                 print *,'>>> Error: Gravity_2d::ca_compute_radial_mass ',i,j
-                !                 print *,'>>> ... index too big: ', index,' > ',n1d-1
-                !                 print *,'>>> ... at (i,j)     : ',i,j
-                !                 print *,'    '
-                !                 call amrex_error("Error:: Gravity_2d.f90 :: ca_compute_radial_mass")
-                ! #endif
+#ifndef AMREX_USE_CUDA
+                print *,'   '
+                print *,'>>> Error: Gravity_2d::ca_compute_radial_mass ',i,j
+                print *,'>>> ... index too big: ', index,' > ',n1d-1
+                print *,'>>> ... at (i,j)     : ',i,j
+                print *,'    '
+                call amrex_error("Error:: Gravity_2d.f90 :: ca_compute_radial_mass")
+#endif
              end if
 
           else
 
              ! Note that we assume we are in r-z coordinates in 2d or we wouldn't be
              !      doing monopole gravity
-             lo_i = problo(1) + dble(i)*dx(1) - center(1)
-             lo_j = problo(2) + dble(j)*dx(2) - center(2)
              do ii = 0,drdxfac-1
                 xx  = lo_i + (dble(ii  )+HALF)*dx_frac
-                rlo = lo_i +  dble(ii  )       *dx_frac
-                rhi = lo_i +  dble(ii+1)       *dx_frac
+                ! rlo = lo_i +  dble(ii  )       *dx_frac
+                ! rhi = lo_i +  dble(ii+1)       *dx_frac
                 vol_frac = vol_frac_fac * xx
                 do jj = 0,drdxfac-1
                    yy = lo_j + (dble(jj)+HALF)*dy_frac

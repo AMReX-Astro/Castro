@@ -754,8 +754,12 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(grav_old),
      const BL_FORT_FAB_ARG_3D(grav_new),
      const BL_FORT_FAB_ARG_3D(gravx),
+#if (AMREX_SPACEDIM >= 2)
      const BL_FORT_FAB_ARG_3D(gravy),
+#if (AMREX_SPACEDIM == 3)
      const BL_FORT_FAB_ARG_3D(gravz),
+#endif
+#endif
 #endif
      const BL_FORT_FAB_ARG_3D(volume),
      const BL_FORT_FAB_ARG_3D(xflux),
@@ -769,10 +773,14 @@ extern "C"
    (const int* lo, const int* hi,
     const int* domlo, const int* domhi,
     const BL_FORT_FAB_ARG_3D(grav),
-    const BL_FORT_FAB_ARG_3D(phi),
     const BL_FORT_FAB_ARG_3D(gravx),
+#if (AMREX_SPACEDIM >= 2)
     const BL_FORT_FAB_ARG_3D(gravy),
-    const BL_FORT_FAB_ARG_3D(gravz));
+#if (AMREX_SPACEDIM == 3)
+    const BL_FORT_FAB_ARG_3D(gravz),
+#endif
+#endif
+    const BL_FORT_FAB_ARG_3D(phi));
 #endif
 #endif
 

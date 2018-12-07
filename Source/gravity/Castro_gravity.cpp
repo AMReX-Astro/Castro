@@ -301,8 +301,12 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
     MultiFab gravz;
 
     gravx.define(getEdgeBoxArray(0), dmap, 1, 0);
+#if (AMREX_SPACEDIM >= 2)
     gravy.define(getEdgeBoxArray(1), dmap, 1, 0);
+#if (AMREX_SPACEDIM == 3)
     gravz.define(getEdgeBoxArray(2), dmap, 1, 0);
+#endif
+#endif
 
 #endif
 
@@ -324,10 +328,14 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
                 ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
                 ARLIM_3D(domlo), ARLIM_3D(domhi),
                 BL_TO_FORTRAN_ANYD(grav_center[mfi]),
-                BL_TO_FORTRAN_ANYD(phi_center[mfi]),
                 BL_TO_FORTRAN_ANYD(gravx[mfi]),
+#if (AMREX_SPACEDIM >= 2)
                 BL_TO_FORTRAN_ANYD(gravy[mfi]),
-                BL_TO_FORTRAN_ANYD(gravz[mfi]));
+#if (AMREX_SPACEDIM == 3)
+                BL_TO_FORTRAN_ANYD(gravz[mfi])),
+#endif
+#endif
+                BL_TO_FORTRAN_ANYD(phi_center[mfi]));
 #endif
 
 #pragma gpu
@@ -341,8 +349,12 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
                         BL_TO_FORTRAN_ANYD(grav_old[mfi]),
                         BL_TO_FORTRAN_ANYD(grav_new[mfi]),
                         BL_TO_FORTRAN_ANYD(gravx[mfi]),
+#if (AMREX_SPACEDIM >= 2)
                         BL_TO_FORTRAN_ANYD(gravy[mfi]),
+#if (AMREX_SPACEDIM == 3)
                         BL_TO_FORTRAN_ANYD(gravz[mfi]),
+#endif
+#endif
 #endif
                         BL_TO_FORTRAN_ANYD(volume[mfi]),
                         BL_TO_FORTRAN_ANYD((*mass_fluxes[0])[mfi]),

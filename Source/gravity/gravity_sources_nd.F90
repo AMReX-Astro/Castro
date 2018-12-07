@@ -175,8 +175,12 @@ contains
        gold,go_lo,go_hi, &
        gnew,gn_lo,gn_hi, &
        gravx,gx_lo,gx_hi, &
+#if (AMREX_SPACEDIM >= 2)
        gravy,gy_lo,gy_hi, &
+#if (AMREX_SPACEDIM == 3)
        gravz,gz_lo,gz_hi, &
+#endif
+#endif
 #endif
        vol,vol_lo,vol_hi, &
        flux1,f1_lo,f1_hi, &
@@ -216,8 +220,12 @@ contains
     integer, intent(in)     :: go_lo(3), go_hi(3)
     integer, intent(in)     :: gn_lo(3), gn_hi(3)
     integer, intent(in)     :: gx_lo(3), gx_hi(3)
+#if (AMREX_SPACEDIM >= 2)
     integer, intent(in)     :: gy_lo(3), gy_hi(3)
+#if (AMREX_SPACEDIM == 3)
     integer, intent(in)     :: gz_lo(3), gz_hi(3)
+#endif
+#endif
 #endif
     integer, intent(in)     :: vol_lo(3), vol_hi(3)
     integer, intent(in)     :: f1_lo(3), f1_hi(3)
@@ -245,8 +253,12 @@ contains
     ! edge-centered gravity
 
     real(rt), intent(in)    :: gravx(gx_lo(1):gx_hi(1),gx_lo(2):gx_hi(2),gx_lo(3):gx_hi(3))
+#if (AMREX_SPACEDIM >= 2)
     real(rt), intent(in)    :: gravy(gy_lo(1):gy_hi(1),gy_lo(2):gy_hi(2),gy_lo(3):gy_hi(3))
+#if (AMREX_SPACEDIM == 3)
     real(rt), intent(in)    :: gravz(gz_lo(1):gz_hi(1),gz_lo(2):gz_hi(2),gz_lo(3):gz_hi(3))
+#endif
+#endif
 #endif
 
     ! Cell volume
@@ -406,12 +418,16 @@ contains
                    ! gravitational acceleration. It relies on the concept that, to second order,
                    ! g_{i+1/2} = -( phi_{i+1} - phi_{i} ) / dx.
 
-                   SrEcorr = SrEcorr + hdtInv * ( flux1(i        ,j,k) * gravx(i  ,j,k) * dx(1) + &
-                        flux1(i+1*dg(1),j,k) * gravx(i+1,j,k) * dx(1) + &
-                        flux2(i,j        ,k) * gravy(i,j  ,k) * dx(2) + &
-                        flux2(i,j+1*dg(2),k) * gravy(i,j+1,k) * dx(2) + &
-                        flux3(i,j,k        ) * gravz(i,j,k  ) * dx(3) + &
+                   SrEcorr = SrEcorr + hdtInv * ( flux1(i,j,k) * gravx(i  ,j,k) * dx(1) + &
+                        flux1(i+1*dg(1),j,k) * gravx(i+1,j,k) * dx(1) ) / vol(i,j,k)
+#if (AMREX_SPACEDIM >= 2)
+                   SrEcorr = SrEcorr + hdtInv * ( flux2(i,j,k) * gravy(i,j  ,k) * dx(2) + &
+                        flux2(i,j+1*dg(2),k) * gravy(i,j+1,k) * dx(2) ) / vol(i,j,k)
+#if (AMREX_SPACEDIM == 3)
+                   SrEcorr = SrEcorr + hdtInv * ( flux3(i,j,k) * gravz(i,j,k  ) * dx(3) + &
                         flux3(i,j,k+1*dg(3)) * gravz(i,j,k+1) * dx(3) ) / vol(i,j,k)
+#endif
+#endif
 
                 endif
 #else
@@ -454,10 +470,14 @@ contains
   subroutine ca_make_edge_centered_gravity(lo,hi, &
        domlo, domhi, &
        grav, g_lo, g_hi, &
-       phi, p_lo, p_hi, &
        gravx,gx_lo,gx_hi, &
+#if (AMREX_SPACEDIM >= 2)
        gravy,gy_lo,gy_hi, &
-       gravz,gz_lo,gz_hi) bind(C, name="ca_make_edge_centered_gravity")
+#if (AMREX_SPACEDIM == 3)
+       gravz,gz_lo,gz_hi, &
+#endif
+#endif
+       phi, p_lo, p_hi) bind(C, name="ca_make_edge_centered_gravity")
 
     use amrex_fort_module, only: rt => amrex_real
     use amrex_error_module
@@ -473,14 +493,22 @@ contains
     integer, intent(in)     :: g_lo(3), g_hi(3)
     integer, intent(in)     :: p_lo(3), p_hi(3)
     integer, intent(in)     :: gx_lo(3), gx_hi(3)
+#if (AMREX_SPACEDIM >= 2)
     integer, intent(in)     :: gy_lo(3), gy_hi(3)
+#if (AMREX_SPACEDIM == 3)
     integer, intent(in)     :: gz_lo(3), gz_hi(3)
+#endif
+#endif
 
     real(rt), intent(in)    :: grav(g_lo(1):g_hi(1),g_lo(2):g_hi(2),g_lo(3):g_hi(3),3)
     real(rt), intent(inout)    :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
     real(rt), intent(inout)    :: gravx(gx_lo(1):gx_hi(1),gx_lo(2):gx_hi(2),gx_lo(3):gx_hi(3))
+#if (AMREX_SPACEDIM >= 2)
     real(rt), intent(inout)    :: gravy(gy_lo(1):gy_hi(1),gy_lo(2):gy_hi(2),gy_lo(3):gy_hi(3))
+#if (AMREX_SPACEDIM == 3)
     real(rt), intent(inout)    :: gravz(gz_lo(1):gz_hi(1),gz_lo(2):gz_hi(2),gz_lo(3):gz_hi(3))
+#endif
+#endif
 
     integer  :: i, j, k
 
@@ -548,6 +576,7 @@ contains
              enddo
           enddo
 
+#if (AMREX_SPACEDIM >= 2)
           do k = lo(3), hi(3)
              do j = lo(2), hi(2)+1*dg(2)
                 do i = lo(1), hi(1)
@@ -556,6 +585,7 @@ contains
              enddo
           enddo
 
+#if (AMREX_SPACEDIM == 3)
           do k = lo(3), hi(3)+1*dg(3)
              do j = lo(2), hi(2)
                 do i = lo(1), hi(1)
@@ -563,6 +593,8 @@ contains
                 enddo
              enddo
           enddo
+#endif
+#endif
 
        endif
 
