@@ -181,7 +181,7 @@ protected:
 #endif
 
 #ifdef POINTMASS
-    void add_pointmass_to_gravity (int level, amrex::MultiFab& phi, amrex::MultiFab& grav_vector, amrex::Real point_mass);
+    void add_pointmass_to_gravity (int level, amrex::MultiFab& phi, amrex::MultiFab& grav_vector, const amrex::Real point_mass);
 #endif
 
 private:

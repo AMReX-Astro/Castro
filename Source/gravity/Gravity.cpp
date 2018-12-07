@@ -2165,7 +2165,7 @@ Gravity::set_mass_offset (Real time, bool multi_level)
 
 #ifdef POINTMASS
 void
-Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vector, Real point_mass)
+Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vector, const Real point_mass)
 {
    const Real* dx     = parent->Geom(level).CellSize();
    const Real* problo = parent->Geom(level).ProbLo();
