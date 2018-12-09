@@ -250,45 +250,47 @@ subroutine ca_mol_single_stage(lo, hi, time, &
                     dqz, &
 #endif
                     dq_lo, dq_hi, &
-                    lo, hi)
+                    lo-dg, hi+dg)
      end do
 
      do n = 1, NQ
 
         ! extrapolate to the two edges for each zone
+        ! TODO: I think we don't need these loops this big
         do k = lo(3)-dg(3), hi(3)+dg(3)
            do j = lo(2)-dg(2), hi(2)+dg(2)
               do i = lo(1)-1, hi(1)+1
 
-                 ! left state at i-1/2 interface
-                 qm(i,j,k,n,1) = q(i-1,j,k,n) + HALF*dqx(i-1,j,k,n)
+                 ! x-edges
+                 if (i >= lo(1)) then
+                    ! left state at i-1/2 interface
+                    qm(i,j,k,n,1) = q(i-1,j,k,n) + HALF*dqx(i-1,j,k,n)
 
-                 ! right state at i-1/2 interface
-                 qp(i,j,k,n,1) = q(i,j,k,n) - HALF*dqx(i,j,k,n)
+                    ! right state at i-1/2 interface
+                    qp(i,j,k,n,1) = q(i,j,k,n) - HALF*dqx(i,j,k,n)
+                 end if
 
 #if BL_SPACEDIM >= 2
                  ! y-edges
+                 if (j >= lo(2)) then
+                    ! left state at j-1/2 interface
+                    qm(i,j,k,n,2) = q(i,j-1,k,n) + HALF*dqy(i,j-1,k,n)
 
-                 ! left state at j-1/2 interface
-                 qm(i,j,k,n,2) = q(i,j-1,k,n) + HALF*dqy(i,j-1,k,n)
-
-                 ! right state at j-1/2 interface
-                 qp(i,j,k,n,2) = q(i,j,k,n) - HALF*dqy(i,j,k,n)
+                    ! right state at j-1/2 interface
+                    qp(i,j,k,n,2) = q(i,j,k,n) - HALF*dqy(i,j,k,n)
+                 end if
 #endif
 
 #if BL_SPACEDIM == 3
                  ! z-edges
+                 if (k >= lo(3)) then
 
-                 ! left state.  We are filling the km slot here.  In
-                 ! the next k iteration, we will have swapped km and
-                 ! kc, so this will then be the left state for kc.  So
-                 ! we are relying on the coming swap to make the
-                 ! states align.  This also means that the first pass
-                 ! through the k loop we do nothing.
-                 qm(i,j,k,n,3) = q(i,j,k,n) + HALF*dqz(i,j,k,n)
+                    ! left state at k-1/2 interface
+                    qm(i,j,k,n,3) = q(i,j,k,n) + HALF*dqz(i,j,k,n)
 
-                 ! right state at k3d-1/2 interface
-                 qp(i,j,k,n,3) = q(i,j,k,n) - HALF*dqz(i,j,k,n)
+                    ! right state at k-1/2 interface
+                    qp(i,j,k,n,3) = q(i,j,k,n) - HALF*dqz(i,j,k,n)
+                 end if
 #endif
 
               end do
