@@ -446,7 +446,8 @@ contains
        ! compute the interface states
 
 #ifdef RADIATION
-       call trace_ppm_rad(1, q, qd_lo, qd_hi, &
+       call trace_ppm_rad(lo-dg, hi+dg, &
+                          1, q, qd_lo, qd_hi, &
                           qaux, qa_lo, qa_hi, &
                           Ip, Im, Ip_src, Im_src, glo, ghi, &
                           qxm, qxp, fglo, fghi, &
@@ -457,7 +458,8 @@ contains
                           dx, dt)
 
 #if AMREX_SPACEDIM >= 2
-       call trace_ppm_rad(2, q, qd_lo, qd_hi, &
+       call trace_ppm_rad(lo-dg, hi+dg, &
+                          2, q, qd_lo, qd_hi, &
                           qaux, qa_lo, qa_hi, &
                           Ip, Im, Ip_src, Im_src, glo, ghi, &
                           qym, qyp, fglo, fghi, &
@@ -469,7 +471,8 @@ contains
 #endif
 
 #if AMREX_SPACEDIM == 3
-       call trace_ppm_rad(3, q, qd_lo, qd_hi, &
+       call trace_ppm_rad(lo-dg, hi+dg, &
+                          3, q, qd_lo, qd_hi, &
                           qaux, qa_lo, qa_hi, &
                           Ip, Im, Ip_src, Im_src, glo, ghi, &
                           qzm, qzp, fglo, fghi, &
@@ -478,7 +481,8 @@ contains
 #endif
 
 #else
-       call trace_ppm(1, q, qd_lo, qd_hi, &
+       call trace_ppm(lo-dg, hi+dg, &
+                      1, q, qd_lo, qd_hi, &
                       qaux, qa_lo, qa_hi, &
                       Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
                       qxm, qxp, fglo, fghi, &
@@ -489,7 +493,8 @@ contains
                       dx, dt)
 
 #if AMREX_SPACEDIM >= 2
-       call trace_ppm(2, q, qd_lo, qd_hi, &
+       call trace_ppm(lo-dg, hi+dg, &
+                      2, q, qd_lo, qd_hi, &
                       qaux, qa_lo, qa_hi, &
                       Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
                       qym, qyp, fglo, fghi, &
@@ -501,7 +506,8 @@ contains
 #endif
 
 #if AMREX_SPACEDIM == 3
-       call trace_ppm(3, q, qd_lo, qd_hi, &
+       call trace_ppm(lo-dg, hi+dg, &
+                      3, q, qd_lo, qd_hi, &
                       qaux, qa_lo, qa_hi, &
                       Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
                       qzm, qzp, fglo, fghi, &

@@ -16,15 +16,19 @@ module trace_ppm_module
 
 contains
 
-  subroutine trace_ppm(idir, q, qd_lo, qd_hi, &
+  subroutine trace_ppm(lo, hi, &
+                       idir, q, qd_lo, qd_hi, &
                        qaux, qa_lo, qa_hi, &
                        Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
                        qm, qp, qs_lo, qs_hi, &
 #if (AMREX_SPACEDIM < 3)
                        dloga, dloga_lo, dloga_hi, &
 #endif
-                       lo, hi, domlo, domhi, &
+                       vlo, vhi, domlo, domhi, &
                        dx, dt)
+
+    ! here, lo and hi are the range we loop over -- this can include ghost cells
+    ! vlo and vhi are the bounds of the valid box (no ghost cells)
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NQAUX, QVAR, ppm_predict_gammae, &
@@ -42,6 +46,7 @@ contains
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
     integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: vlo(3), vhi(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
@@ -85,14 +90,14 @@ contains
        ! components below, so don't process them here.
        if (n == QU .or. n == QV .or. n == QW) cycle
 
-       do k = lo(3)-dg(3), hi(3)+dg(3)
-          do j = lo(2)-dg(2), hi(2)+dg(2)
-             do i = lo(1)-1, hi(1)+1
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
                 ! Plus state on face i
-                if ((idir == 1 .and. i >= lo(1)) .or. &
-                    (idir == 2 .and. j >= lo(2)) .or. &
-                    (idir == 3 .and. k >= lo(3))) then
+                if ((idir == 1 .and. i >= vlo(1)) .or. &
+                    (idir == 2 .and. j >= vlo(2)) .or. &
+                    (idir == 3 .and. k >= vlo(3))) then
 
                    un = q(i,j,k,QU-1+idir)
 
@@ -111,15 +116,15 @@ contains
                 end if
 
                 ! Minus state on face i+1
-                if (idir == 1 .and. i <= hi(1)) then
+                if (idir == 1 .and. i <= vhi(1)) then
                    un = q(i,j,k,QU-1+idir)
                    qm(i+1,j,k,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
                    qm(i+1,j,k,n) = qm(i+1,j,k,n) + HALF*dt*Ip_src(i,j,k,idir,2,n)
-                else if (idir == 2 .and. j <= hi(2)) then
+                else if (idir == 2 .and. j <= vhi(2)) then
                    un = q(i,j,k,QU-1+idir)
                    qm(i,j+1,k,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
                    qm(i,j+1,k,n) = qm(i,j+1,k,n) + HALF*dt*Ip_src(i,j,k,idir,2,n)
-                else if (idir == 3 .and. k <= hi(3)) then
+                else if (idir == 3 .and. k <= vhi(3)) then
                    un = q(i,j,k,QU-1+idir)
                    qm(i,j,k+1,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
                    qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*Ip_src(i,j,k,idir,2,n)
@@ -128,8 +133,8 @@ contains
              end do
 
 #if AMREX_SPACEDIM == 1
-             if (fix_mass_flux_hi) qp(hi(1)+1,j,k,n) = q(hi(1)+1,j,k,n)
-             if (fix_mass_flux_lo) qm(lo(1),j,k,n) = q(lo(1)-1,j,k,n)
+             if (fix_mass_flux_hi) qp(vhi(1)+1,j,k,n) = q(vhi(1)+1,j,k,n)
+             if (fix_mass_flux_lo) qm(vlo(1),j,k,n) = q(vlo(1)-1,j,k,n)
 #endif
           end do
        end do
@@ -138,35 +143,38 @@ contains
 
     if (ppm_temp_fix < 3) then
        if (ppm_predict_gammae == 0) then
-          call trace_ppm_rhoe(idir, q, qd_lo, qd_hi, &
+          call trace_ppm_rhoe(lo, hi, &
+                              idir, q, qd_lo, qd_hi, &
                               qaux, qa_lo, qa_hi, &
                               Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
                               qm, qp, qs_lo, qs_hi, &
 #if (AMREX_SPACEDIM < 3)
                               dloga, dloga_lo, dloga_hi, &
 #endif
-                              lo, hi, domlo, domhi, &
+                              vlo, vhi, domlo, domhi, &
                               dx, dt)
        else
-          call trace_ppm_gammae(idir, q, qd_lo, qd_hi, &
+          call trace_ppm_gammae(lo, hi, &
+                                idir, q, qd_lo, qd_hi, &
                                 qaux, qa_lo, qa_hi, &
                                 Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
                                 qm, qp, qs_lo, qs_hi, &
 #if (AMREX_SPACEDIM < 3)
                                 dloga, dloga_lo, dloga_hi, &
 #endif
-                                lo, hi, domlo, domhi, &
+                                vlo, vhi, domlo, domhi, &
                                 dx, dt)
        end if
     else
-       call trace_ppm_temp(idir, q, qd_lo, qd_hi, &
+       call trace_ppm_temp(lo, hi, &
+                           idir, q, qd_lo, qd_hi, &
                            qaux, qa_lo, qa_hi, &
                            Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
                            qm, qp, qs_lo, qs_hi, &
 #if (AMREX_SPACEDIM < 3)
                            dloga, dloga_lo, dloga_hi, &
 #endif
-                           lo, hi, domlo, domhi, &
+                           vlo, vhi, domlo, domhi, &
                            dx, dt)
     end if
 
@@ -174,14 +182,15 @@ contains
 
 
 
-  subroutine trace_ppm_rhoe(idir, q, qd_lo, qd_hi, &
+  subroutine trace_ppm_rhoe(lo, hi, &
+                            idir, q, qd_lo, qd_hi, &
                             qaux, qa_lo, qa_hi, &
                             Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
                             qm, qp, qs_lo, qs_hi, &
 #if (AMREX_SPACEDIM < 3)
                             dloga, dloga_lo, dloga_hi, &
 #endif
-                            lo, hi, domlo, domhi, &
+                            vlo, vhi, domlo, domhi, &
                             dx, dt)
 
     use network, only : nspec, naux
@@ -205,6 +214,7 @@ contains
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
     integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: vlo(3), vhi(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
@@ -280,9 +290,9 @@ contains
 
 #if AMREX_SPACEDIM == 1
     fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
-         .and. (lo(1) == domlo(1))
+         .and. (vlo(1) == domlo(1))
     fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
-         .and. (hi(1) == domhi(1))
+         .and. (vhi(1) == domhi(1))
 #endif
 
     !=========================================================================
@@ -326,9 +336,9 @@ contains
     endif
 
     ! Trace to left and right edges using upwind PPM
-    do k = lo(3)-dg(3), hi(3)+dg(3)
-       do j = lo(2)-dg(2), hi(2)+dg(2)
-          do i = lo(1)-1, hi(1)+1
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
              rho = q(i,j,k,QRHO)
 
@@ -350,9 +360,9 @@ contains
              ! plus state on face i
              !-------------------------------------------------------------------
 
-             if ((idir == 1 .and. i >= lo(1)) .or. &
-                 (idir == 2 .and. j >= lo(2)) .or. &
-                 (idir == 3 .and. k >= lo(3))) then
+             if ((idir == 1 .and. i >= vlo(1)) .or. &
+                 (idir == 2 .and. j >= vlo(2)) .or. &
+                 (idir == 3 .and. k >= vlo(3))) then
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the left --
@@ -448,9 +458,9 @@ contains
              !-------------------------------------------------------------------
              ! minus state on face i + 1
              !-------------------------------------------------------------------
-             if ((idir == 1 .and. i <= hi(1)) .or. &
-                 (idir == 2 .and. j <= hi(2)) .or. &
-                 (idir == 3 .and. k <= hi(3))) then
+             if ((idir == 1 .and. i <= vhi(1)) .or. &
+                 (idir == 2 .and. j <= vhi(2)) .or. &
+                 (idir == 3 .and. k <= vhi(3))) then
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the right
@@ -563,7 +573,7 @@ contains
                 sourcp = sourcr*csq
                 source = sourcp*h_g
 
-                if (i <= hi(1)) then
+                if (i <= vhi(1)) then
 
                    qm(i+1,j,k,QRHO) = qm(i+1,j,k,QRHO) + sourcr
                    qm(i+1,j,k,QRHO) = max(qm(i+1,j,k,QRHO), small_dens)
@@ -571,7 +581,7 @@ contains
                    qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source
                 end if
 
-                if (i >= lo(1)) then
+                if (i >= vlo(1)) then
 
                    qp(i,j,k,QRHO) = qp(i,j,k,QRHO) + sourcr
                    qp(i,j,k,QRHO) = max(qp(i,j,k,QRHO), small_dens)
@@ -585,18 +595,18 @@ contains
 #if (AMREX_SPACEDIM == 1)
              ! Enforce constant mass flux rate if specified
              if (fix_mass_flux_lo) then
-                qm(lo(1),j,k,QRHO  ) = q(domlo(1)-1,j,k,QRHO)
-                qm(lo(1),j,k,QUN   ) = q(domlo(1)-1,j,k,QUN )
-                qm(lo(1),j,k,QPRES ) = q(domlo(1)-1,j,k,QPRES)
-                qm(lo(1),j,k,QREINT) = q(domlo(1)-1,j,k,QREINT)
+                qm(vlo(1),j,k,QRHO  ) = q(domlo(1)-1,j,k,QRHO)
+                qm(vlo(1),j,k,QUN   ) = q(domlo(1)-1,j,k,QUN )
+                qm(vlo(1),j,k,QPRES ) = q(domlo(1)-1,j,k,QPRES)
+                qm(vlo(1),j,k,QREINT) = q(domlo(1)-1,j,k,QREINT)
              end if
 
              ! Enforce constant mass flux rate if specified
              if (fix_mass_flux_hi) then
-                qp(hi(1)+1,j,k,QRHO  ) = q(domhi(1)+1,j,k,QRHO)
-                qp(hi(1)+1,j,k,QUN   ) = q(domhi(1)+1,j,k,QUN  )
-                qp(hi(1)+1,j,k,QPRES ) = q(domhi(1)+1,j,k,QPRES)
-                qp(hi(1)+1,j,k,QREINT) = q(domhi(1)+1,j,k,QREINT)
+                qp(vhi(1)+1,j,k,QRHO  ) = q(domhi(1)+1,j,k,QRHO)
+                qp(vhi(1)+1,j,k,QUN   ) = q(domhi(1)+1,j,k,QUN  )
+                qp(vhi(1)+1,j,k,QPRES ) = q(domhi(1)+1,j,k,QPRES)
+                qp(vhi(1)+1,j,k,QREINT) = q(domhi(1)+1,j,k,QREINT)
              end if
 #endif
           end do
@@ -606,14 +616,15 @@ contains
 
   end subroutine trace_ppm_rhoe
 
-  subroutine trace_ppm_gammae(idir, q, qd_lo, qd_hi, &
+  subroutine trace_ppm_gammae(lo, hi, &
+                              idir, q, qd_lo, qd_hi, &
                               qaux, qa_lo, qa_hi, &
                               Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
                               qm, qp, qs_lo, qs_hi, &
 #if (AMREX_SPACEDIM < 3)
                               dloga, dloga_lo, dloga_hi, &
 #endif
-                              lo, hi, domlo, domhi, &
+                              vlo, vhi, domlo, domhi, &
                               dx, dt)
 
     use network, only : nspec, naux
@@ -636,6 +647,7 @@ contains
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
     integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: vlo(3), vhi(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
@@ -714,9 +726,9 @@ contains
 
 #if AMREX_SPACEDIM == 1
     fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
-         .and. (lo(1) == domlo(1))
+         .and. (vlo(1) == domlo(1))
     fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
-         .and. (hi(1) == domhi(1))
+         .and. (vhi(1) == domhi(1))
 #endif
 
     !=========================================================================
@@ -760,9 +772,9 @@ contains
     endif
 
     ! Trace to left and right edges using upwind PPM
-    do k = lo(3)-dg(3), hi(3)+dg(3)
-       do j = lo(2)-dg(2), hi(2)+dg(2)
-          do i = lo(1)-1, hi(1)+1
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
              gfactor = ONE ! to help compiler resolve ANTI dependence
 
@@ -787,9 +799,9 @@ contains
              ! plus state on face i
              !-------------------------------------------------------------------
 
-             if ((idir == 1 .and. i >= lo(1)) .or. &
-                 (idir == 2 .and. j >= lo(2)) .or. &
-                 (idir == 3 .and. k >= lo(3))) then
+             if ((idir == 1 .and. i >= vlo(1)) .or. &
+                 (idir == 2 .and. j >= vlo(2)) .or. &
+                 (idir == 3 .and. k >= vlo(3))) then
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the left --
@@ -890,9 +902,9 @@ contains
              !-------------------------------------------------------------------
              ! minus state on face i + 1
              !-------------------------------------------------------------------
-             if ((idir == 1 .and. i <= hi(1)) .or. &
-                 (idir == 2 .and. j <= hi(2)) .or. &
-                 (idir == 3 .and. k <= hi(3))) then
+             if ((idir == 1 .and. i <= vhi(1)) .or. &
+                 (idir == 2 .and. j <= vhi(2)) .or. &
+                 (idir == 3 .and. k <= vhi(3))) then
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the right
@@ -1021,14 +1033,14 @@ contains
                 sourcp = sourcr*csq
                 source = sourcp*h_g
 
-                if (i <= hi(1)) then
+                if (i <= vhi(1)) then
                    qm(i+1,j,k,QRHO) = qm(i+1,j,k,QRHO) + sourcr
                    qm(i+1,j,k,QRHO) = max(qm(i+1,j,k,QRHO), small_dens)
                    qm(i+1,j,k,QPRES) = qm(i+1,j,k,QPRES) + sourcp
                    qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source
                 end if
 
-                if (i >= lo(1)) then
+                if (i >= vlo(1)) then
                    qp(i,j,k,QRHO) = qp(i,j,k,QRHO) + sourcr
                    qp(i,j,k,QRHO) = max(qp(i,j,k,QRHO), small_dens)
                    qp(i,j,k,QPRES) = qp(i,j,k,QPRES) + sourcp
@@ -1041,18 +1053,18 @@ contains
 #if (AMREX_SPACEDIM == 1)
              ! Enforce constant mass flux rate if specified
              if (fix_mass_flux_lo) then
-                qm(lo(1),j,k,QRHO  ) = q(domlo(1)-1,j,k,QRHO)
-                qm(lo(1),j,k,QUN   ) = q(domlo(1)-1,j,k,QUN )
-                qm(lo(1),j,k,QPRES ) = q(domlo(1)-1,j,k,QPRES)
-                qm(lo(1),j,k,QREINT) = q(domlo(1)-1,j,k,QREINT)
+                qm(vlo(1),j,k,QRHO  ) = q(domlo(1)-1,j,k,QRHO)
+                qm(vlo(1),j,k,QUN   ) = q(domlo(1)-1,j,k,QUN )
+                qm(vlo(1),j,k,QPRES ) = q(domlo(1)-1,j,k,QPRES)
+                qm(vlo(1),j,k,QREINT) = q(domlo(1)-1,j,k,QREINT)
              end if
 
              ! Enforce constant mass flux rate if specified
              if (fix_mass_flux_hi) then
-                qp(hi(1)+1,j,k,QRHO  ) = q(domhi(1)+1,j,k,QRHO)
-                qp(hi(1)+1,j,k,QUN   ) = q(domhi(1)+1,j,k,QUN  )
-                qp(hi(1)+1,j,k,QPRES ) = q(domhi(1)+1,j,k,QPRES)
-                qp(hi(1)+1,j,k,QREINT) = q(domhi(1)+1,j,k,QREINT)
+                qp(vhi(1)+1,j,k,QRHO  ) = q(domhi(1)+1,j,k,QRHO)
+                qp(vhi(1)+1,j,k,QUN   ) = q(domhi(1)+1,j,k,QUN  )
+                qp(vhi(1)+1,j,k,QPRES ) = q(domhi(1)+1,j,k,QPRES)
+                qp(vhi(1)+1,j,k,QREINT) = q(domhi(1)+1,j,k,QREINT)
              end if
 #endif
           end do
@@ -1062,15 +1074,16 @@ contains
   end subroutine trace_ppm_gammae
 
 
-  subroutine trace_ppm_temp(idir, q, qd_lo, qd_hi, &
-                       qaux, qa_lo, qa_hi, &
-                       Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
-                       qm, qp, qs_lo, qs_hi, &
+  subroutine trace_ppm_temp(lo, hi, &
+                            idir, q, qd_lo, qd_hi, &
+                            qaux, qa_lo, qa_hi, &
+                            Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
+                            qm, qp, qs_lo, qs_hi, &
 #if (AMREX_SPACEDIM < 3)
-                       dloga, dloga_lo, dloga_hi, &
+                            dloga, dloga_lo, dloga_hi, &
 #endif
-                       lo, hi, domlo, domhi, &
-                       dx, dt)
+                            vlo, vhi, domlo, domhi, &
+                            dx, dt)
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, &
@@ -1094,6 +1107,7 @@ contains
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
     integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: vlo(3), vhi(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
@@ -1176,9 +1190,9 @@ contains
 
 #if AMREX_SPACEDIM == 1
     fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
-         .and. (lo(1) == domlo(1))
+         .and. (vlo(1) == domlo(1))
     fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
-         .and. (hi(1) == domhi(1))
+         .and. (vhi(1) == domhi(1))
 #endif
 
 
@@ -1223,9 +1237,9 @@ contains
     endif
 
     ! Trace to left and right edges using upwind PPM
-    do k = lo(3)-dg(3), hi(3)+dg(3)
-       do j = lo(2)-dg(2), hi(2)+dg(2)
-          do i = lo(1)-1, hi(1)+1
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
              gfactor = ONE ! to help compiler resolve ANTI dependence
 
@@ -1251,9 +1265,9 @@ contains
              ! plus state on face i
              !-------------------------------------------------------------------
 
-             if ((idir == 1 .and. i >= lo(1)) .or. &
-                 (idir == 2 .and. j >= lo(2)) .or. &
-                 (idir == 3 .and. k >= lo(3))) then
+             if ((idir == 1 .and. i >= vlo(1)) .or. &
+                 (idir == 2 .and. j >= vlo(2)) .or. &
+                 (idir == 3 .and. k >= vlo(3))) then
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the left --
@@ -1376,9 +1390,9 @@ contains
              !-------------------------------------------------------------------
              ! minus state on face i + 1
              !-------------------------------------------------------------------
-             if ((idir == 1 .and. i <= hi(1)) .or. &
-                 (idir == 2 .and. j <= hi(2)) .or. &
-                 (idir == 3 .and. k <= hi(3))) then
+             if ((idir == 1 .and. i <= vhi(1)) .or. &
+                 (idir == 2 .and. j <= vhi(2)) .or. &
+                 (idir == 3 .and. k <= vhi(3))) then
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the right
@@ -1535,14 +1549,14 @@ contains
                 sourcp = sourcr*csq
                 source = sourcp*h_g
 
-                if (i <= hi(1)) then
+                if (i <= vhi(1)) then
                    qm(i+1,j,k,QRHO) = qm(i+1,j,k,QRHO) + sourcr
                    qm(i+1,j,k,QRHO) = max(qm(i+1,j,k,QRHO), small_dens)
                    qm(i+1,j,k,QPRES) = qm(i+1,j,k,QPRES) + sourcp
                    qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source
                 end if
 
-                if (i >= lo(1)) then
+                if (i >= vlo(1)) then
                    qp(i,j,k,QRHO) = qp(i,j,k,QRHO) + sourcr
                    qp(i,j,k,QRHO) = max(qp(i,j,k,QRHO), small_dens)
                    qp(i,j,k,QPRES) = qp(i,j,k,QPRES) + sourcp
@@ -1555,18 +1569,18 @@ contains
 #if (AMREX_SPACEDIM == 1)
              ! Enforce constant mass flux rate if specified
              if (fix_mass_flux_lo) then
-                qm(lo(1),j,k,QRHO  ) = q(domlo(1)-1,j,k,QRHO)
-                qm(lo(1),j,k,QUN   ) = q(domlo(1)-1,j,k,QUN )
-                qm(lo(1),j,k,QPRES ) = q(domlo(1)-1,j,k,QPRES)
-                qm(lo(1),j,k,QREINT) = q(domlo(1)-1,j,k,QREINT)
+                qm(vlo(1),j,k,QRHO  ) = q(domlo(1)-1,j,k,QRHO)
+                qm(vlo(1),j,k,QUN   ) = q(domlo(1)-1,j,k,QUN )
+                qm(vlo(1),j,k,QPRES ) = q(domlo(1)-1,j,k,QPRES)
+                qm(vlo(1),j,k,QREINT) = q(domlo(1)-1,j,k,QREINT)
              end if
 
              ! Enforce constant mass flux rate if specified
              if (fix_mass_flux_hi) then
-                qp(hi(1)+1,j,k,QRHO  ) = q(domhi(1)+1,j,k,QRHO)
-                qp(hi(1)+1,j,k,QUN   ) = q(domhi(1)+1,j,k,QUN  )
-                qp(hi(1)+1,j,k,QPRES ) = q(domhi(1)+1,j,k,QPRES)
-                qp(hi(1)+1,j,k,QREINT) = q(domhi(1)+1,j,k,QREINT)
+                qp(vhi(1)+1,j,k,QRHO  ) = q(domhi(1)+1,j,k,QRHO)
+                qp(vhi(1)+1,j,k,QUN   ) = q(domhi(1)+1,j,k,QUN  )
+                qp(vhi(1)+1,j,k,QPRES ) = q(domhi(1)+1,j,k,QPRES)
+                qp(vhi(1)+1,j,k,QREINT) = q(domhi(1)+1,j,k,QREINT)
              end if
 #endif
           end do
@@ -1574,13 +1588,13 @@ contains
     end do
 
     ! we predicted T, now make p, (rho e) consistent
-    do k = lo(3)-dg(3), hi(3)-dg(3)
-       do j = lo(2)-dg(2), hi(2)+dg(2)
-          do i = lo(1)-1, hi(1)+1
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
-             if ((idir == 1 .and. i >= lo(1)) .or. &
-                 (idir == 2 .and. j >= lo(2)) .or. &
-                 (idir == 3 .and. k >= lo(3))) then
+             if ((idir == 1 .and. i >= vlo(1)) .or. &
+                 (idir == 2 .and. j >= vlo(2)) .or. &
+                 (idir == 3 .and. k >= vlo(3))) then
 
                 ! plus face
                 eos_state%T     = qp(i,j,k,QTEMP)
@@ -1596,7 +1610,7 @@ contains
                 qp(i,j,k,QPRES) = max(qp(i,j,k,QPRES), small_pres)
              end if
 
-             if (idir == 1 .and. i <= hi(1)) then
+             if (idir == 1 .and. i <= vhi(1)) then
 
                 ! minus face
                 eos_state%T     = qm(i+1,j,k,QTEMP)
@@ -1609,7 +1623,7 @@ contains
                 qm(i+1,j,k,QPRES) = max(small_pres, eos_state%p)
                 qm(i+1,j,k,QREINT) = qm(i+1,j,k,QRHO)*eos_state%e
 
-             else if (idir == 2 .and. j <= hi(2)) then
+             else if (idir == 2 .and. j <= vhi(2)) then
 
                 ! minus face
                 eos_state%T     = qm(i,j+1,k,QTEMP)
@@ -1622,7 +1636,7 @@ contains
                 qm(i,j+1,k,QPRES) = max(small_pres, eos_state%p)
                 qm(i,j+1,k,QREINT) = qm(i,j+1,k,QRHO)*eos_state%e
 
-             else if (idir == 3 .and. k <= hi(3)) then
+             else if (idir == 3 .and. k <= vhi(3)) then
 
                 ! minus face
                 eos_state%T     = qm(i,j,k+1,QTEMP)
