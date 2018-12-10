@@ -6,9 +6,9 @@ module bc_ext_fill_module
   use amrex_filcc_module, only: filccn
   use interpolate_module, only: interpolate_sub
   use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, &
-                                UEDEN, UEINT, UFS, UTEMP, const_grav, &
-                                hse_zero_vels, hse_interp_temp, hse_reflect_vels, &
-                                xl_ext, xr_ext, EXT_HSE, EXT_INTERP
+       UEDEN, UEINT, UFS, UTEMP, const_grav, &
+       hse_zero_vels, hse_interp_temp, hse_reflect_vels, &
+       xl_ext, xr_ext, EXT_HSE, EXT_INTERP
 
   implicit none
 
@@ -27,8 +27,8 @@ contains
   ! constant gravity
 
   subroutine ext_fill(adv, adv_l1, adv_h1, &
-                      domlo, domhi, delta, xlo, time, bc) &
-                      bind(C, name="ext_fill")
+       domlo, domhi, delta, xlo, time, bc) &
+       bind(C, name="ext_fill")
 
     use prob_params_module, only: problo
     use eos_module, only: eos
@@ -64,149 +64,149 @@ contains
              ! we will fill all the variables when we consider URHO
              if (n == URHO) then
 
-                   ! we are integrating along a column at constant i.
-                   ! Make sure that our starting state is well-defined
-                   dens_above = adv(domlo(1),URHO)
+                ! we are integrating along a column at constant i.
+                ! Make sure that our starting state is well-defined
+                dens_above = adv(domlo(1),URHO)
 
-                   ! sometimes, we might be working in a corner
-                   ! where the ghost cells above us have not yet
-                   ! been initialized.  In that case, take the info
-                   ! from the initial model
-                   if (dens_above == ZERO) then
-                      x = problo(1) + delta(1)*(dble(domlo(1)) + HALF)
+                ! sometimes, we might be working in a corner
+                ! where the ghost cells above us have not yet
+                ! been initialized.  In that case, take the info
+                ! from the initial model
+                if (dens_above == ZERO) then
+                   x = problo(1) + delta(1)*(dble(domlo(1)) + HALF)
 
-                      call interpolate_sub(dens_above, x,npts_model,model_r, &
-                                           model_state(:,idens_model))
+                   call interpolate_sub(dens_above, x,npts_model,model_r, &
+                        model_state(:,idens_model))
 
-                      call interpolate_sub(temp_above, x,npts_model,model_r, &
-                                           model_state(:,itemp_model))
+                   call interpolate_sub(temp_above, x,npts_model,model_r, &
+                        model_state(:,itemp_model))
 
-                      do m = 1, nspec
-                         call interpolate_sub(X_zone(m), x,npts_model,model_r, &
-                                              model_state(:,ispec_model-1+m))
-                      enddo
+                   do m = 1, nspec
+                      call interpolate_sub(X_zone(m), x,npts_model,model_r, &
+                           model_state(:,ispec_model-1+m))
+                   enddo
 
+                else
+                   temp_above = adv(domlo(1),UTEMP)
+                   X_zone(:) = adv(domlo(1),UFS:UFS-1+nspec)/dens_above
+                endif
+
+                ! keep track of the density at the base of the domain
+                dens_base = dens_above
+
+                ! get pressure in this zone (the initial above zone)
+                eos_state%rho = dens_above
+                eos_state%T = temp_above
+                eos_state%xn(:) = X_zone(:)
+
+                call eos(eos_input_rt, eos_state)
+
+                eint = eos_state%e
+                pres_above = eos_state%p
+
+                ! integrate downward
+                do j = domlo(1)-1, adv_l1, -1
+                   x = problo(1) + delta(1)*(dble(j) + HALF)
+
+                   ! HSE integration to get density, pressure
+
+                   ! initial guesses
+                   dens_zone = dens_above
+
+                   ! temperature and species held constant in BCs
+                   if (hse_interp_temp == 1) then
+                      call interpolate_sub(temp_zone, x,npts_model,model_r, &
+                           model_state(:,itemp_model))
                    else
-                      temp_above = adv(domlo(1),UTEMP)
-                      X_zone(:) = adv(domlo(1),UFS:UFS-1+nspec)/dens_above
+                      temp_zone = temp_above
                    endif
 
-                   ! keep track of the density at the base of the domain
-                   dens_base = dens_above
-
-                   ! get pressure in this zone (the initial above zone)
-                   eos_state%rho = dens_above
-                   eos_state%T = temp_above
-                   eos_state%xn(:) = X_zone(:)
-
-                   call eos(eos_input_rt, eos_state)
-
-                   eint = eos_state%e
-                   pres_above = eos_state%p
-
-                   ! integrate downward
-                   do j = domlo(1)-1, adv_l1, -1
-                      x = problo(1) + delta(1)*(dble(j) + HALF)
-
-                      ! HSE integration to get density, pressure
-
-                      ! initial guesses
-                      dens_zone = dens_above
-
-                      ! temperature and species held constant in BCs
-                      if (hse_interp_temp == 1) then
-                         call interpolate_sub(temp_zone, x,npts_model,model_r, &
-                                              model_state(:,itemp_model))
-                      else
-                         temp_zone = temp_above
-                      endif
-
-                      converged_hse = .FALSE.
+                   converged_hse = .FALSE.
 
 
-                      do iter = 1, MAX_ITER
+                   do iter = 1, MAX_ITER
 
-                         ! pressure needed from HSE
-                         p_want = pres_above - &
-                              delta(1)*HALF*(dens_zone + dens_above)*const_grav
+                      ! pressure needed from HSE
+                      p_want = pres_above - &
+                           delta(1)*HALF*(dens_zone + dens_above)*const_grav
 
-                         ! pressure from EOS
-                         eos_state%rho = dens_zone
-                         eos_state%T = temp_zone
-                         eos_state%xn(:) = X_zone(:)
-
-                         call eos(eos_input_rt, eos_state)
-
-                         pres_zone = eos_state%p
-                         dpdr = eos_state%dpdr
-                         eint = eos_state%e
-
-                         ! Newton-Raphson - we want to zero A = p_want - p(rho)
-                         A = p_want - pres_zone
-                         drho = A/(dpdr + HALF*delta(1)*const_grav)
-
-                         dens_zone = max(0.9_rt*dens_zone, &
-                              min(dens_zone + drho, 1.1_rt*dens_zone))
-
-                         ! convergence?
-                         if (abs(drho) < TOL*dens_zone) then
-                            converged_hse = .TRUE.
-                            exit
-                         endif
-
-                      enddo
-
-#ifndef AMREX_USE_CUDA
-                      if (.not. converged_hse) then
-                         print *, "j, domlo(2): ", j, domlo(1)
-                         print *, "p_want:    ", p_want
-                         print *, "dens_zone: ", dens_zone
-                         print *, "temp_zone: ", temp_zone
-                         print *, "drho:      ", drho
-                         print *, " "
-                         print *, "column info: "
-                         print *, "   dens: ", adv(j:domlo(1),URHO)
-                         print *, "   temp: ", adv(j:domlo(1),UTEMP)
-                         call amrex_error("ERROR in bc_ext_fill_1d: failure to converge in -X BC")
-                      endif
-#endif
-
-                      ! velocity
-                      if (hse_zero_vels == 1) then
-
-                         ! zero normal momentum causes pi waves to pass through
-                         adv(j,UMX) = ZERO
-                      else
-
-                         if (hse_reflect_vels == 1) then
-                            adv(j,UMX) = -dens_zone*(adv(domlo(1),UMX)/dens_base)
-                         else
-                            adv(j,UMX) = dens_zone*(adv(domlo(1),UMX)/dens_base)
-                         endif
-                      endif
-
+                      ! pressure from EOS
                       eos_state%rho = dens_zone
                       eos_state%T = temp_zone
-                      eos_state%xn(:) = X_zone
-                      
+                      eos_state%xn(:) = X_zone(:)
+
                       call eos(eos_input_rt, eos_state)
 
                       pres_zone = eos_state%p
+                      dpdr = eos_state%dpdr
                       eint = eos_state%e
 
-                      ! store the final state
-                      adv(j,URHO) = dens_zone
-                      adv(j,UEINT) = dens_zone*eint
-                      adv(j,UEDEN) = dens_zone*eint + &
-                           HALF*sum(adv(j,UMX:UMZ)**2)/dens_zone
-                      adv(j,UTEMP) = temp_zone
-                      adv(j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
+                      ! Newton-Raphson - we want to zero A = p_want - p(rho)
+                      A = p_want - pres_zone
+                      drho = A/(dpdr + HALF*delta(1)*const_grav)
 
-                      ! for the next zone
-                      dens_above = dens_zone
-                      pres_above = pres_zone
+                      dens_zone = max(0.9_rt*dens_zone, &
+                           min(dens_zone + drho, 1.1_rt*dens_zone))
+
+                      ! convergence?
+                      if (abs(drho) < TOL*dens_zone) then
+                         converged_hse = .TRUE.
+                         exit
+                      endif
 
                    enddo
+
+#ifndef AMREX_USE_CUDA
+                   if (.not. converged_hse) then
+                      print *, "j, domlo(2): ", j, domlo(1)
+                      print *, "p_want:    ", p_want
+                      print *, "dens_zone: ", dens_zone
+                      print *, "temp_zone: ", temp_zone
+                      print *, "drho:      ", drho
+                      print *, " "
+                      print *, "column info: "
+                      print *, "   dens: ", adv(j:domlo(1),URHO)
+                      print *, "   temp: ", adv(j:domlo(1),UTEMP)
+                      call amrex_error("ERROR in bc_ext_fill_1d: failure to converge in -X BC")
+                   endif
+#endif
+
+                   ! velocity
+                   if (hse_zero_vels == 1) then
+
+                      ! zero normal momentum causes pi waves to pass through
+                      adv(j,UMX) = ZERO
+                   else
+
+                      if (hse_reflect_vels == 1) then
+                         adv(j,UMX) = -dens_zone*(adv(domlo(1),UMX)/dens_base)
+                      else
+                         adv(j,UMX) = dens_zone*(adv(domlo(1),UMX)/dens_base)
+                      endif
+                   endif
+
+                   eos_state%rho = dens_zone
+                   eos_state%T = temp_zone
+                   eos_state%xn(:) = X_zone
+
+                   call eos(eos_input_rt, eos_state)
+
+                   pres_zone = eos_state%p
+                   eint = eos_state%e
+
+                   ! store the final state
+                   adv(j,URHO) = dens_zone
+                   adv(j,UEINT) = dens_zone*eint
+                   adv(j,UEDEN) = dens_zone*eint + &
+                        HALF*sum(adv(j,UMX:UMZ)**2)/dens_zone
+                   adv(j,UTEMP) = temp_zone
+                   adv(j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
+
+                   ! for the next zone
+                   dens_above = dens_zone
+                   pres_above = pres_zone
+
+                enddo
 
              endif  ! n == URHO
 
@@ -215,41 +215,41 @@ contains
              do j = domlo(1)-1, adv_l1, -1
                 x = problo(1) + delta(1)*(dble(j) + HALF)
 
-                   ! set all the variables even though we're testing on URHO
-                   if (n == URHO) then
+                ! set all the variables even though we're testing on URHO
+                if (n == URHO) then
 
-                      call interpolate_sub(dens_zone, x,npts_model,model_r, &
-                                           model_state(:,idens_model))
+                   call interpolate_sub(dens_zone, x,npts_model,model_r, &
+                        model_state(:,idens_model))
 
-                      call interpolate_sub(temp_zone, x,npts_model,model_r, &
-                                           model_state(:,itemp_model))
+                   call interpolate_sub(temp_zone, x,npts_model,model_r, &
+                        model_state(:,itemp_model))
 
-                      do q = 1, nspec
-                         call interpolate_sub(X_zone(q), x,npts_model,model_r, &
-                                              model_state(:,ispec_model-1+q))
-                      enddo
+                   do q = 1, nspec
+                      call interpolate_sub(X_zone(q), x,npts_model,model_r, &
+                           model_state(:,ispec_model-1+q))
+                   enddo
 
-                      ! extrap normal momentum
-                      adv(j,UMX) = ZERO
+                   ! extrap normal momentum
+                   adv(j,UMX) = ZERO
 
-                      eos_state%rho = dens_zone
-                      eos_state%T = temp_zone
-                      eos_state%xn(:) = X_zone
+                   eos_state%rho = dens_zone
+                   eos_state%T = temp_zone
+                   eos_state%xn(:) = X_zone
 
-                      call eos(eos_input_rt, eos_state)
+                   call eos(eos_input_rt, eos_state)
 
-                      pres_zone = eos_state%p
-                      eint = eos_state%e
+                   pres_zone = eos_state%p
+                   eint = eos_state%e
 
-                      adv(j,URHO) = dens_zone
-                      adv(j,UEINT) = dens_zone*eint
-                      adv(j,UEDEN) = dens_zone*eint + &
-                           HALF*sum(adv(j,UMX:UMZ)**2)/dens_zone
-                      adv(j,UTEMP) = temp_zone
-                      adv(j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
-                   endif
+                   adv(j,URHO) = dens_zone
+                   adv(j,UEINT) = dens_zone*eint
+                   adv(j,UEDEN) = dens_zone*eint + &
+                        HALF*sum(adv(j,UMX:UMZ)**2)/dens_zone
+                   adv(j,UTEMP) = temp_zone
+                   adv(j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
+                endif
 
-                enddo
+             enddo
           endif  ! xl_ext check
 
 
@@ -269,43 +269,43 @@ contains
              do j = domhi(1)+1, adv_h1
                 x = problo(1) + delta(1)*(dble(j) + HALF)
 
-                   ! set all the variables even though we're testing on URHO
-                   if (n == URHO) then
+                ! set all the variables even though we're testing on URHO
+                if (n == URHO) then
 
-                      call interpolate_sub(dens_zone, x,npts_model,model_r, &
-                                           model_state(:,idens_model))
+                   call interpolate_sub(dens_zone, x,npts_model,model_r, &
+                        model_state(:,idens_model))
 
-                      call interpolate_sub(temp_zone, x,npts_model,model_r, &
-                                           model_state(:,itemp_model))
+                   call interpolate_sub(temp_zone, x,npts_model,model_r, &
+                        model_state(:,itemp_model))
 
-                      do q = 1, nspec
-                         call interpolate_sub(X_zone(q), x,npts_model,model_r, &
-                                              model_state(:,ispec_model-1+q))
-                      enddo
+                   do q = 1, nspec
+                      call interpolate_sub(X_zone(q), x,npts_model,model_r, &
+                           model_state(:,ispec_model-1+q))
+                   enddo
 
 
-                      ! extrap normal momentum
-                      adv(j,UMX) = ZERO
+                   ! extrap normal momentum
+                   adv(j,UMX) = ZERO
 
-                      eos_state%rho = dens_zone
-                      eos_state%T = temp_zone
-                      eos_state%xn(:) = X_zone
+                   eos_state%rho = dens_zone
+                   eos_state%T = temp_zone
+                   eos_state%xn(:) = X_zone
 
-                      call eos(eos_input_rt, eos_state)
+                   call eos(eos_input_rt, eos_state)
 
-                      pres_zone = eos_state%p
-                      eint = eos_state%e
+                   pres_zone = eos_state%p
+                   eint = eos_state%e
 
-                      adv(j,URHO) = dens_zone
-                      adv(j,UEINT) = dens_zone*eint
-                      adv(j,UEDEN) = dens_zone*eint + &
-                           HALF*sum(adv(j,UMX:UMZ)**2)/dens_zone
-                      adv(j,UTEMP) = temp_zone
-                      adv(j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
+                   adv(j,URHO) = dens_zone
+                   adv(j,UEINT) = dens_zone*eint
+                   adv(j,UEDEN) = dens_zone*eint + &
+                        HALF*sum(adv(j,UMX:UMZ)**2)/dens_zone
+                   adv(j,UTEMP) = temp_zone
+                   adv(j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
 
-                   endif
+                endif
 
-                enddo
+             enddo
           endif  ! xr_ext check
 
        endif
@@ -315,9 +315,9 @@ contains
   end subroutine ext_fill
 
 
-  AMREX_LAUNCH subroutine ext_denfill(adv,adv_l1,adv_h1, &
-                                      domlo,domhi,delta,xlo,time,bc) &
-                                      bind(C, name="ext_denfill")
+  subroutine ext_denfill(adv,adv_l1,adv_h1, &
+       domlo,domhi,delta,xlo,time,bc) &
+       bind(C, name="ext_denfill")
 
     use prob_params_module, only: problo
     use interpolate_module

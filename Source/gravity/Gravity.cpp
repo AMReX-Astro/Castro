@@ -2527,18 +2527,18 @@ Gravity::make_radial_gravity(int level, Real time,
 Vector<std::unique_ptr<MultiFab> >
 Gravity::get_rhs (int crse_level, int nlevs, int is_new)
 {
-    Vector<std::unique_ptr<MultiFab> > rhs(nlevs);
+	Vector<std::unique_ptr<MultiFab> > rhs(nlevs);
 
-    for (int ilev = 0; ilev < nlevs; ++ilev)
-    {
-	int amr_lev = ilev + crse_level;
-	rhs[ilev].reset(new MultiFab(grids[amr_lev],dmap[amr_lev],1,0));
-	MultiFab& state = (is_new == 1) ?
-	    LevelData[amr_lev]->get_new_data(State_Type) :
-	    LevelData[amr_lev]->get_old_data(State_Type);
-	MultiFab::Copy(*rhs[ilev], state, Density,0,1,0);
-    }
-    return rhs;
+	for (int ilev = 0; ilev < nlevs; ++ilev)
+	{
+		int amr_lev = ilev + crse_level;
+		rhs[ilev].reset(new MultiFab(grids[amr_lev],dmap[amr_lev],1,0));
+		MultiFab& state = (is_new == 1) ?
+		                  LevelData[amr_lev]->get_new_data(State_Type) :
+		                  LevelData[amr_lev]->get_old_data(State_Type);
+		MultiFab::Copy(*rhs[ilev], state, Density,0,1,0);
+	}
+	return rhs;
 }
 
 void

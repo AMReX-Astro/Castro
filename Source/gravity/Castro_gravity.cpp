@@ -338,9 +338,9 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
                 BL_TO_FORTRAN_ANYD(phi_center[mfi]));
 #endif
 
-#pragma gpu
-            ca_corrgsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                        AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
+// #pragma gpu
+            ca_corrgsrc((bx.loVect()),(bx.hiVect()),
+                        (domlo), (domhi),
                         BL_TO_FORTRAN_ANYD(state_old[mfi]),
                         BL_TO_FORTRAN_ANYD(state_new[mfi]),
 #ifdef SELF_GRAVITY
@@ -361,7 +361,7 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
                         BL_TO_FORTRAN_ANYD((*mass_fluxes[1])[mfi]),
                         BL_TO_FORTRAN_ANYD((*mass_fluxes[2])[mfi]),
                         BL_TO_FORTRAN_ANYD(source[mfi]),
-                        AMREX_REAL_ANYD(dx),dt,time);
+                        ZFILL(dx),dt,time);
 
 
         }

@@ -765,7 +765,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(xflux),
      const BL_FORT_FAB_ARG_3D(yflux),
      const BL_FORT_FAB_ARG_3D(zflux),
-     const BL_FORT_FAB_ARG_3D(source),
+     BL_FORT_FAB_ARG_3D(source),
      const amrex::Real* dx, const amrex::Real dt, const amrex::Real time);
 
 #ifdef SELF_GRAVITY
