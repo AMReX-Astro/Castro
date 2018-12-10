@@ -12,7 +12,8 @@ module trace_plm_module
 
 contains
 
-  subroutine trace_plm(idir, q, q_lo, q_hi, &
+  subroutine trace_plm(lo, hi, &
+                       idir, q, q_lo, q_hi, &
                        qaux, qa_lo, qa_hi, &
                        dq, dq_lo, dq_hi, &
                        qm, qp, qpd_lo, qpd_hi, &
@@ -20,8 +21,11 @@ contains
                        dloga, dloga_lo, dloga_hi, &
 #endif
                        SrcQ, src_lo, Src_hi, &
-                       lo, hi, domlo, domhi, &
+                       vlo, vhi, domlo, domhi, &
                        dx, dt)
+
+    ! here, lo and hi are the range we loop over -- this can include ghost cells
+    ! vlo and vhi are the bounds of the valid box (no ghost cells)
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, QC, &
@@ -44,6 +48,7 @@ contains
 #endif
     integer, intent(in) :: src_lo(3), src_hi(3)
     integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: vlo(3), vhi(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
     real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
@@ -93,9 +98,9 @@ contains
 #endif
 
     fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
-         .and. (lo(1) == domlo(1))
+         .and. (vlo(1) == domlo(1))
     fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
-         .and. (hi(1) == domhi(1))
+         .and. (vhi(1) == domhi(1))
 
     if (idir == 1) then
        QUN = QU
@@ -115,9 +120,9 @@ contains
 
     ! construct the right state on the i interface
 
-    do k = lo(3)-dg(3), hi(3)+dg(3)
-       do j = lo(2)-dg(2), hi(2)+dg(2)
-          do i = lo(1)-1, hi(1)+1
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
              cc = qaux(i,j,k,QC)
              csq = cc**2
@@ -168,9 +173,9 @@ contains
              azut1rght = trace_fac2*alpha0ut
              azutt1rght = trace_fac2*alpha0utt
 
-             if ((idir == 1 .and. i >= lo(1)) .or. &
-                 (idir == 2 .and. j >= lo(2)) .or. &
-                 (idir == 3 .and. k >= lo(3))) then
+             if ((idir == 1 .and. i >= vlo(1)) .or. &
+                 (idir == 2 .and. j >= vlo(2)) .or. &
+                 (idir == 3 .and. k >= vlo(3))) then
 
                 qp(i,j,k,QRHO) = max(small_dens, rho_ref + apright + amright + azrright)
                 qp(i,j,k,QUN) = un_ref + (apright - amright)*cc/rho
@@ -212,7 +217,7 @@ contains
              azut1left = trace_fac2*alpha0ut
              azutt1left = trace_fac2*alpha0utt
 
-             if (idir == 1 .and. i <= hi(1)) then
+             if (idir == 1 .and. i <= vhi(1)) then
                 qm(i+1,j,k,QRHO) = max(small_dens, rho_ref + apleft + amleft + azrleft)
                 qm(i+1,j,k,QUN) = un_ref + (apleft - amleft)*cc/rho
                 qm(i+1,j,k,QUT) = ut_ref + azut1left
@@ -228,7 +233,7 @@ contains
                 qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + HALF*dt*srcQ(i,j,k,QREINT)
                 qm(i+1,j,k,QPRES) = qm(i+1,j,k,QPRES ) + HALF*dt*srcQ(i,j,k,QPRES)
 
-             else if (idir == 2 .and. j <= hi(2)) then
+             else if (idir == 2 .and. j <= vhi(2)) then
                 qm(i,j+1,k,QRHO) = max(small_dens, rho_ref + apleft + amleft + azrleft)
                 qm(i,j+1,k,QUN) = un_ref + (apleft - amleft)*cc/rho
                 qm(i,j+1,k,QUT) = ut_ref + azut1left
@@ -244,7 +249,7 @@ contains
                 qm(i,j+1,k,QREINT) = qm(i,j+1,k,QREINT) + HALF*dt*srcQ(i,j,k,QREINT)
                 qm(i,j+1,k,QPRES) = qm(i,j+1,k,QPRES ) + HALF*dt*srcQ(i,j,k,QPRES)
 
-             else if (idir == 3 .and. k <= hi(3)) then
+             else if (idir == 3 .and. k <= vhi(3)) then
                 qm(i,j,k+1,QRHO) = max(small_dens, rho_ref + apleft + amleft + azrleft)
                 qm(i,j,k+1,QUN) = un_ref + (apleft - amleft)*cc/rho
                 qm(i,j,k+1,QUT) = ut_ref + azut1left
@@ -272,13 +277,13 @@ contains
                 sourcp = sourcr*csq
                 source = sourcp*enth
 
-                if (i <= hi(1)) then
+                if (i <= vhi(1)) then
                    qm(i+1,j,k,QRHO) = qm(i+1,j,k,QRHO) + sourcr
                    qm(i+1,j,k,QRHO) = max(qm(i+1,j,k,QRHO), small_dens)
                    qm(i+1,j,k,QPRES) = qm(i+1,j,k,QPRES) + sourcp
                    qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source
                 end if
-                if (i >= lo(1)) then
+                if (i >= vlo(1)) then
                    qp(i,j,k,QRHO) = qp(i,j,k,QRHO) + sourcr
                    qp(i,j,k,QRHO) = max(qp(i,j,k,QRHO), small_dens)
                    qp(i,j,k,QPRES) = qp(i,j,k,QPRES) + sourcp
@@ -290,18 +295,18 @@ contains
 #if (AMREX_SPACEDIM == 1)
              ! Enforce constant mass flux rate if specified
              if (fix_mass_flux_lo) then
-                qm(lo(1),j,k,QRHO  ) = q(domlo(1)-1,j,k,QRHO)
-                qm(lo(1),j,k,QUN   ) = q(domlo(1)-1,j,k,QUN )
-                qm(lo(1),j,k,QPRES ) = q(domlo(1)-1,j,k,QPRES)
-                qm(lo(1),j,k,QREINT) = q(domlo(1)-1,j,k,QREINT)
+                qm(vlo(1),j,k,QRHO  ) = q(domlo(1)-1,j,k,QRHO)
+                qm(vlo(1),j,k,QUN   ) = q(domlo(1)-1,j,k,QUN )
+                qm(vlo(1),j,k,QPRES ) = q(domlo(1)-1,j,k,QPRES)
+                qm(vlo(1),j,k,QREINT) = q(domlo(1)-1,j,k,QREINT)
              end if
 
              ! Enforce constant mass flux rate if specified
              if (fix_mass_flux_hi) then
-                qp(hi(1)+1,j,k,QRHO  ) = q(domhi(1)+1,j,k,QRHO)
-                qp(hi(1)+1,j,k,QUN    ) = q(domhi(1)+1,j,k,QUN )
-                qp(hi(1)+1,j,k,QPRES ) = q(domhi(1)+1,j,k,QPRES)
-                qp(hi(1)+1,j,k,QREINT) = q(domhi(1)+1,j,k,QREINT)
+                qp(vhi(1)+1,j,k,QRHO  ) = q(domhi(1)+1,j,k,QRHO)
+                qp(vhi(1)+1,j,k,QUN    ) = q(domhi(1)+1,j,k,QUN )
+                qp(vhi(1)+1,j,k,QPRES ) = q(domhi(1)+1,j,k,QPRES)
+                qp(vhi(1)+1,j,k,QREINT) = q(domhi(1)+1,j,k,QREINT)
              end if
 #endif
 
@@ -317,14 +322,14 @@ contains
        ! components above, so don't process them here.
        if (n == QU .or. n == QV .or. n == QW) cycle
 
-       do k = lo(3)-dg(3), hi(3)+dg(3)
-          do j = lo(2)-dg(2), hi(2)+dg(2)
-             do i = lo(1)-1, hi(1)+1
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
                 ! Right state
-                if ((idir == 1 .and. i >= lo(1)) .or. &
-                    (idir == 2 .and. j >= lo(2)) .or. &
-                    (idir == 3 .and. k >= lo(3))) then
+                if ((idir == 1 .and. i >= vlo(1)) .or. &
+                    (idir == 2 .and. j >= vlo(2)) .or. &
+                    (idir == 3 .and. k >= vlo(3))) then
 
                    un = q(i,j,k,QUN)
                    spzero = merge(-ONE, un*dtdx, un >= ZERO)
@@ -337,18 +342,18 @@ contains
                 spzero = merge(un*dtdx, ONE, un >= ZERO)
                 acmpleft = HALF*(ONE - spzero )*dq(i,j,k,n)
 
-                if (idir == 1 .and. i <= hi(1)) then
+                if (idir == 1 .and. i <= vhi(1)) then
                    qm(i+1,j,k,n) = q(i,j,k,n) + acmpleft + HALF*dt*srcQ(i,j,k,n)
-                else if (idir == 2 .and. j <= hi(2)) then
+                else if (idir == 2 .and. j <= vhi(2)) then
                    qm(i,j+1,k,n) = q(i,j,k,n) + acmpleft + HALF*dt*srcQ(i,j,k,n)
-                else if (idir == 3 .and. k <= hi(3)) then
+                else if (idir == 3 .and. k <= vhi(3)) then
                    qm(i,j,k+1,n) = q(i,j,k,n) + acmpleft + HALF*dt*srcQ(i,j,k,n)
                 endif
              enddo
 
 #if (AMREX_SPACEDIM == 1)
-             if (fix_mass_flux_hi) qp(hi(1)+1,j,k,n) = q(hi(1)+1,j,k,n)
-             if (fix_mass_flux_lo) qm(lo(1),j,k,n) = q(lo(1)-1,j,k,n)
+             if (fix_mass_flux_hi) qp(vhi(1)+1,j,k,n) = q(vhi(1)+1,j,k,n)
+             if (fix_mass_flux_lo) qm(vlo(1),j,k,n) = q(vlo(1)-1,j,k,n)
 #endif
 
           end do

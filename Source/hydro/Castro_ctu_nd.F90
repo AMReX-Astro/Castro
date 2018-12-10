@@ -575,7 +575,8 @@ contains
 
        ! compute the interface states
 
-       call trace_plm(1, q, qd_lo, qd_hi, &
+       call trace_plm(lo-dg, hi+dg, &
+                      1, q, qd_lo, qd_hi, &
                       qaux, qa_lo, qa_hi, &
                       dqx, glo, ghi, &
                       qxm, qxp, fglo, fghi, &
@@ -586,7 +587,8 @@ contains
                       lo, hi, domlo, domhi, &
                       dx, dt)
 
-       call trace_plm(2, q, qd_lo, qd_hi, &
+       call trace_plm(lo-dg, hi+dg, &
+                      2, q, qd_lo, qd_hi, &
                       qaux, qa_lo, qa_hi, &
                       dqy, glo, ghi, &
                       qym, qyp, fglo, fghi, &
@@ -598,7 +600,8 @@ contains
                       dx, dt)
 
 #if AMREX_SPACEDIM == 3
-       call trace_plm(3, q, qd_lo, qd_hi, &
+       call trace_plm(lo-dg, hi+dg, &
+                      3, q, qd_lo, qd_hi, &
                       qaux, qa_lo, qa_hi, &
                       dqz, glo, ghi, &
                       qzm, qzp, fglo, fghi, &
