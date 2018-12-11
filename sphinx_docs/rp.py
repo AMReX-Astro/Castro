@@ -6,6 +6,7 @@ import os
 import re
 import sys
 import textwrap
+from more_itertools import unique_everseen
 
 main_header = """
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -39,16 +40,6 @@ class Parameter(object):
 
     def __lt__(self, other):
         self.value() < other.value()
-
-
-def list_unique(iterable):
-    # Turn an iterable into a list of unique elements.
-    # Maintains the order of elements in the iterable.
-    x = []
-    for i in iterable:
-        if not i in x:
-            x.append(i)
-    return x
 
 
 def make_rest_table(param_files):
@@ -138,7 +129,7 @@ def make_rest_table(param_files):
             line = f.readline()
 
 
-    namespaces = list_unique([q.namespace for q in params_list])
+    namespaces = list(unique_everseen([q.namespace for q in params_list]))
 
     for nm in sorted(namespaces):
 
@@ -149,7 +140,7 @@ def make_rest_table(param_files):
         print(nmlen*"-" + "\n")
 
         # now group by category
-        categories = list_unique([q.category for q in params_list if q.namespace == nm])
+        categories = list(unique_everseen([q.category for q in params_list if q.namespace == nm]))
 
         for c in categories:
 
