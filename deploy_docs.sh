@@ -62,15 +62,19 @@ cd out
 git config user.name "Travis CI"
 git config user.email "$COMMIT_AUTHOR_EMAIL"
 
-#if git diff-index --quiet HEAD; then
-#    exit 0
-#fi
-
 echo "doing git add/commit/push"
 
 # Commit the "changes", i.e. the new version.
 # The delta will show diffs between new and old versions.
 git add --all
+
+# Exit if there are no docs changes
+if git diff --staged --quiet; then
+   echo "exiting with no docs changes"
+   exit 0
+fi
+
+# Otherwise, commit and push
 git commit -m "Deploy to GitHub Pages: ${SHA}"
 git push $SSH_REPO $TARGET_BRANCH
 cd ..
