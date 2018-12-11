@@ -68,8 +68,8 @@ fi
 # Commit the "changes", i.e. the new version.
 # The delta will show diffs between new and old versions.
 git add --all
-git commit -m "Deploy to GitHub Pages: ${SHA}" || true
-git push $SSH_REPO $TARGET_BRANCH || true
+git commit -m "Deploy to GitHub Pages: ${SHA}"
+git push $SSH_REPO $TARGET_BRANCH
 cd ..
 
 # Kill the ssh-agent
