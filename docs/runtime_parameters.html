@@ -201,7 +201,7 @@
             
   <div class="section" id="namespace-castro">
 <h1>namespace: <code class="docutils literal notranslate"><span class="pre">castro</span></code><a class="headerlink" href="#namespace-castro" title="Permalink to this headline">¶</a></h1>
-<p><strong>diffusion</strong></p>
+<p><strong>AMR</strong></p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="36%" />
@@ -215,34 +215,41 @@
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">diffuse_temp</span></code></td>
-<td>enable thermal diffusion</td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">state_interp_order</span></code></td>
+<td>highest order used in interpolation</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">lin_limit_state_interp</span></code></td>
+<td>how to do limiting of the state data when interpolating
+0: only prevent new extrema 1: preserve linear
+combinations of state variables</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">diffuse_enth</span></code></td>
-<td>enable enthalpy diffusion</td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">state_nghost</span></code></td>
+<td>Number of ghost zones for state data to have. Note that
+if you are using radiation, choosing this to be zero
+will be overridden since radiation needs at least one
+ghost zone.</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">diffuse_spec</span></code></td>
-<td>enable species diffusion</td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">do_reflux</span></code></td>
+<td>do we do the hyperbolic reflux at coarse-fine
+interfaces?</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">update_sources_after_reflux</span></code></td>
+<td>whether to re-compute new-time source terms after a
+reflux</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">use_custom_knapsack_weights</span></code></td>
+<td>should we have state data for custom load-balancing
+weighting?</td>
 <td>0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">diffuse_vel</span></code></td>
-<td>enable velocity diffusion</td>
-<td>0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">diffuse_cutoff_density</span></code></td>
-<td>set a cutoff density for diffusion – we zero the term
-out below this density</td>
-<td>-1.e200</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">diffuse_cond_scale_fac</span></code></td>
-<td>scaling factor for conductivity</td>
-<td>1.0</td>
 </tr>
 </tbody>
 </table>
-<p><strong>gravity and rotation</strong></p>
+<p><strong>parallelization</strong></p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="36%" />
@@ -256,88 +263,14 @@ out below this density</td>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_grav</span></code></td>
-<td>permits gravity calculation to be turned on and off</td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_acc</span></code></td>
+<td>determines whether we use accelerators for specific
+loops</td>
 <td>-1</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">moving_center</span></code></td>
-<td>to we recompute the center used for the multipole
-gravity solve each step?</td>
-<td>0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">grav_source_type</span></code></td>
-<td>determines how the gravitational source term is added
-to the momentum and energy state variables.</td>
-<td>4</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">do_rotation</span></code></td>
-<td>permits rotation calculation to be turned on and off</td>
-<td>-1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rotational_period</span></code></td>
-<td>the rotation period for the corotating frame</td>
-<td>-1.e200</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">rotational_dPdt</span></code></td>
-<td>the rotation periods time evolution—this allows the
-rotation rate to change durning the simulation time</td>
-<td>0.0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rotation_include_centrifugal</span></code></td>
-<td>permits the centrifugal terms in the rotation to be
-turned on and off</td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">bndry_func_thread_safe</span></code></td>
+<td>&#160;</td>
 <td>1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">rotation_include_coriolis</span></code></td>
-<td>permits the Coriolis terms in the rotation to be turned
-on and off</td>
-<td>1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rotation_include_domegadt</span></code></td>
-<td>permits the d(omega)/dt terms in the rotation to be
-turned on and off</td>
-<td>1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">state_in_rotating_frame</span></code></td>
-<td>Which reference frame to measure the state variables
-with respect to. The standard in the literature when
-using a rotating reference frame is to measure the
-state variables with respect to an observer fixed in
-that rotating frame. If this option is disabled by
-setting it to 0, the state variables will be measured
-with respect to an observer fixed in the inertial frame
-(but the frame will still rotate).</td>
-<td>1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rot_source_type</span></code></td>
-<td>determines how the rotation source terms are added to
-the momentum and energy equations</td>
-<td>4</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">implicit_rotation_update</span></code></td>
-<td>we can do a implicit solution of the rotation update to
-allow for better coupling of the Coriolis terms</td>
-<td>1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rot_axis</span></code></td>
-<td>the coordinate axis (<span class="math notranslate nohighlight">\(x=1\)</span>, <span class="math notranslate nohighlight">\(y=2\)</span>,
-<span class="math notranslate nohighlight">\(z=3\)</span>) for the rotation vector</td>
-<td>3</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">use_point_mass</span></code></td>
-<td>include a central point mass</td>
-<td>1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">point_mass</span></code></td>
-<td>mass of the point mass</td>
-<td>0.0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">point_mass_fix_solution</span></code></td>
-<td>if we have a central point mass, we can prevent mass
-from building up in the zones adjacent to it by keeping
-their density constant and adding their mass to the
-point mass object</td>
-<td>0</td>
 </tr>
 </tbody>
 </table>
@@ -359,83 +292,6 @@ point mass object</td>
 <td>permits tracer particle calculation to be turned on and
 off</td>
 <td>0</td>
-</tr>
-</tbody>
-</table>
-<p><strong>diagnostics, I/O</strong></p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="36%" />
-<col width="51%" />
-<col width="13%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">parameter</th>
-<th class="head">description</th>
-<th class="head">default value</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">print_fortran_warnings</span></code></td>
-<td>display warnings in Fortran90 routines</td>
-<td>(0, 1)</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">print_update_diagnostics</span></code></td>
-<td>display information about updates to the state (how
-much mass, momentum, energy added)</td>
-<td>(0, 1)</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">track_grid_losses</span></code></td>
-<td>calculate losses of material through physical grid
-boundaries</td>
-<td>0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sum_interval</span></code></td>
-<td>how often (number of coarse timesteps) to compute
-integral sums (for runtime diagnostics)</td>
-<td>-1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sum_per</span></code></td>
-<td>how often (simulation time) to compute integral sums
-(for runtime diagnostics)</td>
-<td>-1.0e0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">show_center_of_mass</span></code></td>
-<td>display center of mass diagnostics</td>
-<td>0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">hard_cfl_limit</span></code></td>
-<td>abort if we exceed CFL = 1 over the cource of a
-timestep</td>
-<td>1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">job_name</span></code></td>
-<td>a string describing the simulation that will be copied
-into the plotfile’s <code class="docutils literal notranslate"><span class="pre">job_info</span></code> file</td>
-<td>“”</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">output_at_completion</span></code></td>
-<td>write a final plotfile and checkpoint upon completion</td>
-<td>1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_time</span></code></td>
-<td>Do we want to reset the time in the checkpoint? This
-ONLY takes effect if amr.regrid_on_restart = 1 and
-amr.checkpoint_on_restart = 1, (which require that
-max_step and stop_time be less than the value in the
-checkpoint) and you set it to value greater than this
-default value.</td>
-<td>-1.e200</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_step</span></code></td>
-<td>Do we want to reset the number of steps in the
-checkpoint? This ONLY takes effect if
-amr.regrid_on_restart = 1 and
-amr.checkpoint_on_restart = 1, (which require that
-max_step and stop_time be less than the value in the
-checkpoint) and you set it to value greater than this
-default value.</td>
-<td>-1</td>
 </tr>
 </tbody>
 </table>
@@ -704,7 +560,7 @@ RK</td>
 </tr>
 </tbody>
 </table>
-<p><strong>parallelization</strong></p>
+<p><strong>diffusion</strong></p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="36%" />
@@ -718,197 +574,107 @@ RK</td>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_acc</span></code></td>
-<td>determines whether we use accelerators for specific
-loops</td>
-<td>-1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">bndry_func_thread_safe</span></code></td>
-<td>&#160;</td>
-<td>1</td>
-</tr>
-</tbody>
-</table>
-<p><strong>AMR</strong></p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="36%" />
-<col width="51%" />
-<col width="13%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">parameter</th>
-<th class="head">description</th>
-<th class="head">default value</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">state_interp_order</span></code></td>
-<td>highest order used in interpolation</td>
-<td>1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">lin_limit_state_interp</span></code></td>
-<td>how to do limiting of the state data when interpolating
-0: only prevent new extrema 1: preserve linear
-combinations of state variables</td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">diffuse_temp</span></code></td>
+<td>enable thermal diffusion</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">state_nghost</span></code></td>
-<td>Number of ghost zones for state data to have. Note that
-if you are using radiation, choosing this to be zero
-will be overridden since radiation needs at least one
-ghost zone.</td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">diffuse_enth</span></code></td>
+<td>enable enthalpy diffusion</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">do_reflux</span></code></td>
-<td>do we do the hyperbolic reflux at coarse-fine
-interfaces?</td>
-<td>1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">update_sources_after_reflux</span></code></td>
-<td>whether to re-compute new-time source terms after a
-reflux</td>
-<td>1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">use_custom_knapsack_weights</span></code></td>
-<td>should we have state data for custom load-balancing
-weighting?</td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">diffuse_spec</span></code></td>
+<td>enable species diffusion</td>
 <td>0</td>
 </tr>
-</tbody>
-</table>
-<p><strong>refinement</strong></p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="36%" />
-<col width="51%" />
-<col width="13%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">parameter</th>
-<th class="head">description</th>
-<th class="head">default value</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_special_tagging</span></code></td>
-<td>&#160;</td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">diffuse_vel</span></code></td>
+<td>enable velocity diffusion</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">spherical_star</span></code></td>
-<td>&#160;</td>
-<td>0</td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">diffuse_cutoff_density</span></code></td>
+<td>set a cutoff density for diffusion – we zero the term
+out below this density</td>
+<td>-1.e200</td>
 </tr>
-</tbody>
-</table>
-<p><strong>timestep control</strong></p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="36%" />
-<col width="51%" />
-<col width="13%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">parameter</th>
-<th class="head">description</th>
-<th class="head">default value</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">fixed_dt</span></code></td>
-<td>a fixed timestep to use for all steps (negative turns
-it off)</td>
-<td>-1.0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">initial_dt</span></code></td>
-<td>the initial timestep (negative uses the step returned
-from the timestep constraints)</td>
-<td>-1.0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">dt_cutoff</span></code></td>
-<td>the smallest valid timestep—if we go below this, we
-abort</td>
-<td>0.0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">max_dt</span></code></td>
-<td>the largest valid timestep—limit all timesteps to be
-no larger than this</td>
-<td>1.e200</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">cfl</span></code></td>
-<td>the effective Courant number to use—we will not allow
-the hydrodynamic waves to cross more than this fraction
-of a zone over a single timestep</td>
-<td>0.8</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">init_shrink</span></code></td>
-<td>a factor by which to reduce the first timestep from
-that requested by the timestep estimators</td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">diffuse_cond_scale_fac</span></code></td>
+<td>scaling factor for conductivity</td>
 <td>1.0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">change_max</span></code></td>
-<td>the maximum factor by which the timestep can increase
-from one step to the next.</td>
-<td>1.1</td>
+</tbody>
+</table>
+<p><strong>diagnostics, I/O</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">plot_per_is_exact</span></code></td>
-<td>enforce that the AMR plot interval must be hit exactly</td>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">print_fortran_warnings</span></code></td>
+<td>display warnings in Fortran90 routines</td>
+<td>(0, 1)</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">print_update_diagnostics</span></code></td>
+<td>display information about updates to the state (how
+much mass, momentum, energy added)</td>
+<td>(0, 1)</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">track_grid_losses</span></code></td>
+<td>calculate losses of material through physical grid
+boundaries</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">small_plot_per_is_exact</span></code></td>
-<td>enforce that the AMR small plot interval must be hit
-exactly</td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sum_interval</span></code></td>
+<td>how often (number of coarse timesteps) to compute
+integral sums (for runtime diagnostics)</td>
+<td>-1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sum_per</span></code></td>
+<td>how often (simulation time) to compute integral sums
+(for runtime diagnostics)</td>
+<td>-1.0e0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">show_center_of_mass</span></code></td>
+<td>display center of mass diagnostics</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">use_retry</span></code></td>
-<td>Retry a timestep if it violated the timestep-limiting
-criteria over the course of an advance. The criteria
-will suggest a new timestep that satisfies the
-criteria, and we will do subcycled timesteps on the
-same level until we reach the original target time.</td>
-<td>0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">retry_tolerance</span></code></td>
-<td>Tolerance to use when evaluating whether to do a retry.
-The timestep suggested by the retry will be multiplied
-by (1 + this factor) before comparing the actual
-timestep to it. If set to some number slightly larger
-than zero, then this prevents retries that are caused
-by small numerical differences.</td>
-<td>0.02</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">retry_neg_dens_factor</span></code></td>
-<td>If we’re doing retries, set the target threshold for
-changes in density if a retry is triggered by a
-negative density. If this is set to a negative number
-then it will disable retries using this criterion.</td>
-<td>1.e-1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">retry_subcycle_factor</span></code></td>
-<td>When performing a retry, the factor to multiply the
-current timestep by when trying again.</td>
-<td>0.5</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">use_post_step_regrid</span></code></td>
-<td>Check for a possible post-timestep regrid if certain
-stability criteria were violated.</td>
-<td>0</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">max_subcycles</span></code></td>
-<td>Do not permit more subcycled timesteps than this
-parameter. Set to a negative value to disable this
-criterion.</td>
-<td>10</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">clamp_subcycles</span></code></td>
-<td>If we do request more than the maximum number of
-subcycles, should we fail, or should we clamp to that
-maximum number and perform that many?</td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">hard_cfl_limit</span></code></td>
+<td>abort if we exceed CFL = 1 over the cource of a
+timestep</td>
 <td>1</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_iters</span></code></td>
-<td>Number of iterations for the SDC advance.</td>
-<td>2</td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">job_name</span></code></td>
+<td>a string describing the simulation that will be copied
+into the plotfile’s <code class="docutils literal notranslate"><span class="pre">job_info</span></code> file</td>
+<td>“”</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">output_at_completion</span></code></td>
+<td>write a final plotfile and checkpoint upon completion</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_time</span></code></td>
+<td>Do we want to reset the time in the checkpoint? This
+ONLY takes effect if amr.regrid_on_restart = 1 and
+amr.checkpoint_on_restart = 1, (which require that
+max_step and stop_time be less than the value in the
+checkpoint) and you set it to value greater than this
+default value.</td>
+<td>-1.e200</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_step</span></code></td>
+<td>Do we want to reset the number of steps in the
+checkpoint? This ONLY takes effect if
+amr.regrid_on_restart = 1 and
+amr.checkpoint_on_restart = 1, (which require that
+max_step and stop_time be less than the value in the
+checkpoint) and you set it to value greater than this
+default value.</td>
+<td>-1</td>
 </tr>
 </tbody>
 </table>
@@ -1021,6 +787,240 @@ for embiggening</td>
 <td>used with the embiggening routines to determine how to
 extend the domain</td>
 <td>-1</td>
+</tr>
+</tbody>
+</table>
+<p><strong>refinement</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_special_tagging</span></code></td>
+<td>&#160;</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">spherical_star</span></code></td>
+<td>&#160;</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>gravity and rotation</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_grav</span></code></td>
+<td>permits gravity calculation to be turned on and off</td>
+<td>-1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">moving_center</span></code></td>
+<td>to we recompute the center used for the multipole
+gravity solve each step?</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">grav_source_type</span></code></td>
+<td>determines how the gravitational source term is added
+to the momentum and energy state variables.</td>
+<td>4</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">do_rotation</span></code></td>
+<td>permits rotation calculation to be turned on and off</td>
+<td>-1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rotational_period</span></code></td>
+<td>the rotation period for the corotating frame</td>
+<td>-1.e200</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">rotational_dPdt</span></code></td>
+<td>the rotation periods time evolution—this allows the
+rotation rate to change durning the simulation time</td>
+<td>0.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rotation_include_centrifugal</span></code></td>
+<td>permits the centrifugal terms in the rotation to be
+turned on and off</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">rotation_include_coriolis</span></code></td>
+<td>permits the Coriolis terms in the rotation to be turned
+on and off</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rotation_include_domegadt</span></code></td>
+<td>permits the d(omega)/dt terms in the rotation to be
+turned on and off</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">state_in_rotating_frame</span></code></td>
+<td>Which reference frame to measure the state variables
+with respect to. The standard in the literature when
+using a rotating reference frame is to measure the
+state variables with respect to an observer fixed in
+that rotating frame. If this option is disabled by
+setting it to 0, the state variables will be measured
+with respect to an observer fixed in the inertial frame
+(but the frame will still rotate).</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rot_source_type</span></code></td>
+<td>determines how the rotation source terms are added to
+the momentum and energy equations</td>
+<td>4</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">implicit_rotation_update</span></code></td>
+<td>we can do a implicit solution of the rotation update to
+allow for better coupling of the Coriolis terms</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">rot_axis</span></code></td>
+<td>the coordinate axis (<span class="math notranslate nohighlight">\(x=1\)</span>, <span class="math notranslate nohighlight">\(y=2\)</span>,
+<span class="math notranslate nohighlight">\(z=3\)</span>) for the rotation vector</td>
+<td>3</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">use_point_mass</span></code></td>
+<td>include a central point mass</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">point_mass</span></code></td>
+<td>mass of the point mass</td>
+<td>0.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">point_mass_fix_solution</span></code></td>
+<td>if we have a central point mass, we can prevent mass
+from building up in the zones adjacent to it by keeping
+their density constant and adding their mass to the
+point mass object</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>timestep control</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">fixed_dt</span></code></td>
+<td>a fixed timestep to use for all steps (negative turns
+it off)</td>
+<td>-1.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">initial_dt</span></code></td>
+<td>the initial timestep (negative uses the step returned
+from the timestep constraints)</td>
+<td>-1.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">dt_cutoff</span></code></td>
+<td>the smallest valid timestep—if we go below this, we
+abort</td>
+<td>0.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">max_dt</span></code></td>
+<td>the largest valid timestep—limit all timesteps to be
+no larger than this</td>
+<td>1.e200</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">cfl</span></code></td>
+<td>the effective Courant number to use—we will not allow
+the hydrodynamic waves to cross more than this fraction
+of a zone over a single timestep</td>
+<td>0.8</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">init_shrink</span></code></td>
+<td>a factor by which to reduce the first timestep from
+that requested by the timestep estimators</td>
+<td>1.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">change_max</span></code></td>
+<td>the maximum factor by which the timestep can increase
+from one step to the next.</td>
+<td>1.1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">plot_per_is_exact</span></code></td>
+<td>enforce that the AMR plot interval must be hit exactly</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">small_plot_per_is_exact</span></code></td>
+<td>enforce that the AMR small plot interval must be hit
+exactly</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">use_retry</span></code></td>
+<td>Retry a timestep if it violated the timestep-limiting
+criteria over the course of an advance. The criteria
+will suggest a new timestep that satisfies the
+criteria, and we will do subcycled timesteps on the
+same level until we reach the original target time.</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">retry_tolerance</span></code></td>
+<td>Tolerance to use when evaluating whether to do a retry.
+The timestep suggested by the retry will be multiplied
+by (1 + this factor) before comparing the actual
+timestep to it. If set to some number slightly larger
+than zero, then this prevents retries that are caused
+by small numerical differences.</td>
+<td>0.02</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">retry_neg_dens_factor</span></code></td>
+<td>If we’re doing retries, set the target threshold for
+changes in density if a retry is triggered by a
+negative density. If this is set to a negative number
+then it will disable retries using this criterion.</td>
+<td>1.e-1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">retry_subcycle_factor</span></code></td>
+<td>When performing a retry, the factor to multiply the
+current timestep by when trying again.</td>
+<td>0.5</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">use_post_step_regrid</span></code></td>
+<td>Check for a possible post-timestep regrid if certain
+stability criteria were violated.</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">max_subcycles</span></code></td>
+<td>Do not permit more subcycled timesteps than this
+parameter. Set to a negative value to disable this
+criterion.</td>
+<td>10</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">clamp_subcycles</span></code></td>
+<td>If we do request more than the maximum number of
+subcycles, should we fail, or should we clamp to that
+maximum number and perform that many?</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_iters</span></code></td>
+<td>Number of iterations for the SDC advance.</td>
+<td>2</td>
 </tr>
 </tbody>
 </table>
