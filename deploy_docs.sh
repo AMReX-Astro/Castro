@@ -55,8 +55,6 @@ cd ../
 
 mkdir -p out/docs/
 mv sphinx_docs/build/html/* out/docs
-ls -l out
-ls -l out/docs
 touch out/.nojekyll
 
 # Now let's go have some fun with the cloned repo
@@ -67,6 +65,7 @@ git config user.email "$COMMIT_AUTHOR_EMAIL"
 echo "doing git index"
 
 git diff-index HEAD
+echo $?
 
 if git diff-index --quiet HEAD; then
     exit 0
