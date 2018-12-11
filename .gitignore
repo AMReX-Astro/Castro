@@ -48,6 +48,7 @@ Exec/**/helm_table.dat
 Exec/**/state_sizes.f90
 Exec/**/set_indices.F90
 Exec/**/set_conserved.H
+Exec/**/set_primitive.H
 
 *.hack
 *.bak
