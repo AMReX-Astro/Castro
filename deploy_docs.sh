@@ -21,6 +21,7 @@ gpg --output ../id_rsa_travis --batch --passphrase $DECRYPT_GITHUB_AUTH --decryp
 chmod 600 ../id_rsa_travis
 eval `ssh-agent -s`
 ssh-add ../id_rsa_travis
+ls ../id_rsa_travis
 
 # Clone the existing gh-pages for this repo into out/
 # Create a new empty branch if gh-pages doesn't exist yet (should only happen on first deply)
@@ -54,6 +55,8 @@ cd ../
 
 mkdir -p out/docs/
 mv sphinx_docs/build/html/* out/docs
+ls -l out
+ls -l out/docs
 touch out/.nojekyll
 
 # Now let's go have some fun with the cloned repo
