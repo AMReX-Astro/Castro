@@ -64,7 +64,7 @@ git config user.email "$COMMIT_AUTHOR_EMAIL"
 
 echo "doing git index"
 
-git diff-index HEAD
+git diff-index --quiet HEAD
 echo $?
 
 if git diff-index --quiet HEAD; then
