@@ -42,6 +42,8 @@ class Parameter(object):
 
 
 def list_unique(iterable):
+    # Turn an iterable into a list of unique elements.
+    # Maintains the order of elements in the iterable.
     x = []
     for i in iterable:
         if not i in x:
