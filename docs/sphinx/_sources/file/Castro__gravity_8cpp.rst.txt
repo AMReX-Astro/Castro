@@ -1,4 +1,0 @@
-File Castro_gravity.cpp
-=======================
-
-.. doxygenfile:: Castro_gravity.cpp

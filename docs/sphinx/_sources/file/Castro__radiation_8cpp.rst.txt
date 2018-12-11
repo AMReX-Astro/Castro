@@ -1,4 +1,0 @@
-File Castro_radiation.cpp
-=========================
-
-.. doxygenfile:: Castro_radiation.cpp

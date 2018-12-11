@@ -9,20 +9,16 @@ Currently, Castro supports contant, solid-body rotation about a fixed
 (in space and time) axis in 2D and 3D by transforming the evolution
 equations to the rotating frame of reference.
 
-To include rotation you must set
-
-::
+To include rotation you must set::
 
     USE_ROTATION = TRUE
 
-in the GNUMakefile. Rotation can then be enabled via
-
-::
+in the ``GNUMakefile``. Rotation can then be enabled via::
 
     castro.do_rotation = 1
 
 in the inputs file. The rotational period must then be set via
-castro.rotational_period. The rotational period is internally
+``castro.rotational_period``. The rotational period is internally
 converted to an angular frequency for use in the source term
 equations.
 

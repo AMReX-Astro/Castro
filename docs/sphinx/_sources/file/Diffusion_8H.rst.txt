@@ -1,4 +1,0 @@
-File Diffusion.H
-================
-
-.. doxygenfile:: Diffusion.H

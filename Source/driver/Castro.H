@@ -810,9 +810,30 @@ protected:
 
     void enforce_consistent_e (amrex::MultiFab& S);
 
+    //
+    // This routine sets the density in S_new to be larger than the density floor.
+    // Note that it will operate everywhere on S_new, including ghost zones.
+    // S_old is present so that, after the hydro call, we know what the old density
+    // was so that we have a reference for comparison. If you are calling it elsewhere
+    // and there's no meaningful reference state, just pass in the same MultiFab twice.
+
+    // The return value is the the negative fractional change in the state that has the
+    // largest magnitude. If there is no reference state, this is meaningless.
+    //
     amrex::Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new, int ng);
 
+    //
+    // Given State_Type state data, perform a number of cleaning steps to make
+    // sure the data is sensible. The return value is the same as the return
+    // value of enforce_min_density.
+    //
     amrex::Real clean_state (int is_new, amrex::MultiFab& state, int ng);
+
+    //
+    // this is the "preferred" clean_state interface -- it will work
+    // directly on the StateData.  is_new=0 means the old data is used,
+    // is_new=1 means the new data is used.
+    //
     amrex::Real clean_state (int is_new, int ng);
 
     amrex::Real clean_state (amrex::MultiFab& state);
@@ -823,6 +844,9 @@ protected:
 
     void buildMetrics ();
 
+    //
+    // Initialize the MultiFabs and flux registers that live as class members.
+    //
     void initMFs ();
 
     // integrate derived quantities over domain
