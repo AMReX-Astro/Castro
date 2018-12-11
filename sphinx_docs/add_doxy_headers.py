@@ -46,6 +46,18 @@ def make_method_header(description="", parameters=[]):
     return boilerplate
 
 
+def make_variable_docstring(description):
+    description = re.sub(r"//", "", description)
+
+    if description == "":
+        return ""
+    else:
+        return f"""/**
+* {description}
+*/
+"""
+
+
 def process_header_file(filename):
 
     output_data = ""
@@ -107,7 +119,7 @@ def process_header_file(filename):
                                     data[last_index:m.start()]):
             pass
 
-        if comments:
+        if comments and (m.start() - comments.end() - last_index) < 2:
             # print(comments.span())
             output_data += data[last_index:last_index + comments.start()]
             method_header = make_method_header(comments.group(1), parameters)
@@ -122,40 +134,44 @@ def process_header_file(filename):
 
     output_data += data[last_index:]
 
-    # data = output_data
-    # output_data = ""
-    # last_index = 0
-    #
-    # re_variable = re.compile(
-    #     r"^[ \t]*[~\w:*& ]+\(([\w\: \,&\n\t_=\<>\-.]*)\)", flags=re.MULTILINE)
-    #
-    # # markup variables
-    # for m in re.finditer(re_variable, data):
-    #     # print("match = ", m.group(1))
-    #
-    #     parameters = m.group(1).split(",")
-    #     parameters = [param.strip() for param in parameters]
-    #     parameters = [param for param in parameters if param != ""]
-    #
-    #     comments = None
-    #     for comments in re.finditer(re_comments,
-    #                                 data[last_index:m.start()]):
-    #         pass
-    #
-    #     if comments:
-    #         # print(comments.span())
-    #         output_data += data[last_index:last_index + comments.start()]
-    #         method_header = make_method_header(comments.group(1), parameters)
-    #         last_index = m.start()
-    #
-    #     else:
-    #         output_data += data[last_index:m.start()]
-    #         method_header = make_method_header("", parameters)
-    #         last_index = m.start()
-    #
-    #     output_data += method_header
-    #
-    # output_data += data[last_index:]
+    data = output_data
+    output_data = ""
+    last_index = 0
+
+    re_comments = re.compile(
+        r"[ \t]*(\/\/[ \t]*[\S ^\n]*?)\n^[ \t]*[^/\w]+", flags=re.MULTILINE)
+
+    re_variable = re.compile(
+        r"^[ \t]*[~\w:*& ]+;", flags=re.MULTILINE)
+
+    # markup variables
+    for m in re.finditer(re_variable, data):
+
+        if " return " in m.group(0):
+            continue
+
+        comments = None
+        for comments in re.finditer(re_comments,
+                                    data[last_index:m.start()+1]):
+            pass
+
+        # print(data[last_index:m.start()-1])
+
+        if comments:
+            print(comments.group(1), m.start(), comments.end()+last_index)
+
+        if comments and (m.start() - comments.end() - last_index) < 1:
+            output_data += data[last_index:last_index + comments.start()]
+            variable_header = make_variable_docstring(comments.group(1))
+            output_data += variable_header
+            last_index = m.start()
+
+        else:
+            output_data += data[last_index:m.start()]
+            last_index = m.start()
+
+
+    output_data += data[last_index:]
 
     output_filename = filename + ".doxygen"
 
