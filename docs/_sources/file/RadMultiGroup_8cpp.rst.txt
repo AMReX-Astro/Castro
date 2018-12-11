@@ -1,0 +1,4 @@
+File RadMultiGroup.cpp
+======================
+
+.. doxygenfile:: RadMultiGroup.cpp

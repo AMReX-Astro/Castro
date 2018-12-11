@@ -1,0 +1,4 @@
+Class HypreMultiABec
+====================
+
+.. doxygenclass:: HypreMultiABec

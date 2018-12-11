@@ -1,0 +1,4 @@
+Class RadBoundCond
+==================
+
+.. doxygenclass:: RadBoundCond
