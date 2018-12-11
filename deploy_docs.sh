@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e # Exit with nonzero exit code if anything fails
 
-# Then we Build and deploy the sphinx documentation
+# Build the documentation from the SOURCE_BRANCH
+# and push it to TARGET_BRANCH.
 SOURCE_BRANCH="development"
 TARGET_BRANCH="gh-pages"
 
