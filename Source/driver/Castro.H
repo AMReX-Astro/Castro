@@ -1736,6 +1736,8 @@ protected:
  *  Inlines.
 
 */
+inline
+int
 Castro::numGrow()
 {
     return NUM_GROW;
@@ -1748,12 +1750,12 @@ Castro::Area ()
     return area;
 }
 
-inline
-amrex::MultiFab&
 
 /**
 * @param dir
 */
+inline
+amrex::MultiFab&
 Castro::Area (int dir)
 {
     return area[dir];
@@ -1766,12 +1768,12 @@ Castro::Volume ()
     return volume;
 }
 
-inline
-Castro&
 
 /**
 * @param lev
 */
+inline
+Castro&
 Castro::getLevel (int lev)
 {
     return *(Castro *) &parent->getLevel(lev);
