@@ -1,4 +1,0 @@
-Class CrseBndryAuxVar
-=====================
-
-.. doxygenclass:: CrseBndryAuxVar

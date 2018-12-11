@@ -1,4 +1,0 @@
-File HypreABec.cpp
-==================
-
-.. doxygenfile:: HypreABec.cpp
