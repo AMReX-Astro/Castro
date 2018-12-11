@@ -62,14 +62,9 @@ cd out
 git config user.name "Travis CI"
 git config user.email "$COMMIT_AUTHOR_EMAIL"
 
-echo "doing git index"
-
-git diff-index --quiet HEAD
-echo $?
-
-if git diff-index --quiet HEAD; then
-    exit 0
-fi
+#if git diff-index --quiet HEAD; then
+#    exit 0
+#fi
 
 echo "doing git add/commit/push"
 
