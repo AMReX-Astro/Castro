@@ -1,4 +1,3 @@
-
 #ifndef WIN32
 #include <unistd.h>
 #endif
@@ -181,12 +180,8 @@ Real         Castro::startCPUTime = 0.0;
 int          Castro::Knapsack_Weight_Type = -1;
 int          Castro::num_state_type = 0;
 
-
-///
-/// @note
-/// Castro::variableSetUp is in Castro_setup.cpp
-/// variableCleanUp is called once at the end of a simulation
-///
+// Castro::variableSetUp is in Castro_setup.cpp
+// variableCleanUp is called once at the end of a simulation
 void
 Castro::variableCleanUp ()
 {
@@ -672,11 +667,8 @@ Castro::buildMetrics ()
     wall_time_start = 0.0;
 }
 
+// Initialize the MultiFabs and flux registers that live as class members.
 
-///
-/// @note
-/// Initialize the MultiFabs and flux registers that live as class members.
-///
 void
 Castro::initMFs()
 {
@@ -1092,12 +1084,10 @@ Castro::init (AmrLevel &old)
 
 }
 
-
-///
-/// @note
-/// This version inits the data on a new level that did not
-/// exist before regridding.
-///
+//
+// This version inits the data on a new level that did not
+// exist before regridding.
+//
 void
 Castro::init ()
 {
@@ -3551,11 +3541,8 @@ Castro::build_interior_boundary_mask (int ng)
     return imf;
 }
 
+// Fill a version of the state with ng ghost zones from the state data.
 
-///
-/// @note
-/// Fill a version of the state with ng ghost zones from the state data.
-///
 void
 Castro::expand_state(MultiFab& S, Real time, int iclean, int ng)
 {
@@ -3642,13 +3629,10 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux)
 #endif
 
 
+// Given State_Type state data, perform a number of cleaning steps to make
+// sure the data is sensible. The return value is the same as the return
+// value of enforce_min_density.
 
-///
-/// @note
-/// Given State_Type state data, perform a number of cleaning steps to make
-/// sure the data is sensible. The return value is the same as the return
-/// value of enforce_min_density.
-///
 Real
 Castro::clean_state(MultiFab& state) {
 

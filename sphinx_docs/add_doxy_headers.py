@@ -9,6 +9,8 @@ def make_class_header(class_name, description):
     # remove // from description
     description = re.sub(r"//", "", description).strip()
     description = re.sub(r"\n", "\n///", description)
+    class_name = re.sub(r"{", "", class_name).strip()
+    class_name = class_name.split(':')[0].strip()
 
     boilerplate = f"""
 ///
@@ -104,7 +106,7 @@ def process_header_file(filename):
                                         data[last_index:m.start()]):
                 pass
 
-            if comments:
+            if comments and (m.start() - comments.end() - last_index) < 2:
                 output_data += data[last_index:last_index + comments.start()]
                 class_header = make_class_header(m.group(1), comments.group(1))
             else:
@@ -122,7 +124,7 @@ def process_header_file(filename):
     last_index = 0
 
     re_prototype = re.compile(
-        r"(?:^[\w&:*\t ]+\n)*^[ \t]*[~\w:*& ]+\(([\w\: \,&\n\t_=\<>\-.]*)\)", flags=re.MULTILINE)
+        r"(?:^[\w&:*\t ]+\n)*^[ \t]*[~\w:*& <>]+\(([*\w\: \,&\n\t_=\<>\-.]*)\)", flags=re.MULTILINE)
 
     # markup methods
     for m in re.finditer(re_prototype, data):
@@ -160,7 +162,7 @@ def process_header_file(filename):
         r"^[ \t]*(\/\/[ \t]*[\S \n]*?)\n^(?![ \t]*\/\/)", flags=re.MULTILINE)
 
     re_variable = re.compile(
-        r"^[ \t]*[~\w:*& <>]+;", flags=re.MULTILINE)
+        r"^[ \t]*[~\w:*& <>\[\]]+;", flags=re.MULTILINE)
 
     # markup variables
     for m in re.finditer(re_variable, data):

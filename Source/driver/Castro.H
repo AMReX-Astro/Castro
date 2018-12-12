@@ -136,9 +136,11 @@ public:
                             amrex::VisMF::How         how,
                             bool               dump_old) override;
 
-    // A string written as the first item in writePlotFile() at
-    // level zero. It is so we can distinguish between different
-    // types of plot files. For Castro it has the form: Castro-Vnnn
+///
+/// A string written as the first item in writePlotFile() at
+/// level zero. It is so we can distinguish between different
+/// types of plot files. For Castro it has the form: Castro-Vnnn
+///
     virtual std::string thePlotFileType () const override;
 
     virtual void setPlotVariables () override;
@@ -233,9 +235,10 @@ public:
 /// @param restart_file
 ///
     void ParticlePostRestart (const std::string& restart_file);
-    //
-    // Derived quantities associated with particles
-    //
+
+///
+/// Derived quantities associated with particles
+///
     std::unique_ptr<amrex::MultiFab> ParticleDerive (const std::string& name,
 						     amrex::Real           time,
 						     int            ngrow);
@@ -866,14 +869,16 @@ public:
 ///
     void problem_post_tagging_hook (amrex::TagBoxArray& tags, int clearval, int tagval, amrex::Real time);
 
-    // Returns a MultiFab containing the derived data for this level.
-    // If ngrow>0 the MultiFab is built on the appropriately grown BoxArray.
+///
+/// Returns a MultiFab containing the derived data for this level.
+// If ngrow>0 the MultiFab is built on the appropriately grown BoxArray.
+///
     virtual std::unique_ptr<amrex::MultiFab> derive (const std::string& name,
 						     amrex::Real        time,
 						     int                ngrow) override;
 
-    // This version of derive() fills the dcomp'th component of mf with the derived quantity.
-
+///
+/// This version of derive() fills the dcomp'th component of mf with the derived quantity.
 ///
 /// @param name
 /// @param time
@@ -1317,7 +1322,7 @@ public:
 
     static int       NUM_STATE;
 
-    // conservative variable index keys
+    /// conservative variable index keys
     static int       Density, Xmom, Ymom, Zmom, Eden, Eint, Temp;
 #ifdef HYBRID_MOMENTUM
     static int       Rmom, Lmom, Pmom;
@@ -1330,7 +1335,7 @@ public:
     static int       FirstSpec, NumSpec;
     static int       FirstAux,  NumAux;
 
-    // primitive variable index keys
+    /// primitive variable index keys
     static int       QRHO, QU, QV, QW;
     static int       QGAME, QPRES, QREINT, QTEMP;
     static int       QFA, QFS, QFX;
@@ -1590,17 +1595,16 @@ protected:
 ///
     void enforce_consistent_e (amrex::MultiFab& S);
 
-    //
-    // This routine sets the density in S_new to be larger than the density floor.
-    // Note that it will operate everywhere on S_new, including ghost zones.
-    // S_old is present so that, after the hydro call, we know what the old density
-    // was so that we have a reference for comparison. If you are calling it elsewhere
-    // and there's no meaningful reference state, just pass in the same MultiFab twice.
-
-    // The return value is the the negative fractional change in the state that has the
-    // largest magnitude. If there is no reference state, this is meaningless.
-    //
-
+///
+/// This routine sets the density in S_new to be larger than the density floor.
+/// Note that it will operate everywhere on S_new, including ghost zones.
+/// S_old is present so that, after the hydro call, we know what the old density
+/// was so that we have a reference for comparison. If you are calling it elsewhere
+/// and there's no meaningful reference state, just pass in the same MultiFab twice.
+///
+/// The return value is the the negative fractional change in the state that has the
+/// largest magnitude. If there is no reference state, this is meaningless.
+///
 ///
 /// @param S_old
 /// @param S_new
@@ -1608,12 +1612,11 @@ protected:
 ///
     amrex::Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new, int ng);
 
-    //
-    // Given State_Type state data, perform a number of cleaning steps to make
-    // sure the data is sensible. The return value is the same as the return
-    // value of enforce_min_density.
-    //
-
+///
+/// Given State_Type state data, perform a number of cleaning steps to make
+/// sure the data is sensible. The return value is the same as the return
+/// value of enforce_min_density.
+///
 ///
 /// @param is_new
 /// @param state
@@ -1621,12 +1624,11 @@ protected:
 ///
     amrex::Real clean_state (int is_new, amrex::MultiFab& state, int ng);
 
-    //
-    // this is the "preferred" clean_state interface -- it will work
-    // directly on the StateData.  is_new=0 means the old data is used,
-    // is_new=1 means the new data is used.
-    //
-
+///
+/// this is the "preferred" clean_state interface -- it will work
+/// directly on the StateData.  is_new=0 means the old data is used,
+/// is_new=1 means the new data is used.
+///
 ///
 /// @param is_new
 /// @param ng
@@ -1655,9 +1657,8 @@ protected:
 ///
     void initMFs ();
 
-    // integrate derived quantities over domain
-
-
+///
+/// integrate derived quantities over domain
 ///
 /// @param name
 /// @param time
@@ -1735,8 +1736,10 @@ protected:
 ///
     static amrex::Real      frac_change;
 
-    // For keeping track of fluid quantities lost at physical grid boundaries.
-    // This should persist through restarts, but right now only on level 0.
+///
+/// For keeping track of fluid quantities lost at physical grid boundaries.
+/// This should persist through restarts, but right now only on level 0.
+///
     static const int n_lost = 8;
     amrex::Real             material_lost_through_boundary_cumulative[n_lost];
     amrex::Real             material_lost_through_boundary_temp[n_lost];
@@ -1799,7 +1802,6 @@ protected:
 
 
     // counters for various retries in Castro
-
 
 ///
 /// subcycle capability
