@@ -7,54 +7,59 @@ import sys
 def make_class_header(class_name, description):
 
     # remove // from description
-    description = re.sub(r"//", "", description)
+    description = re.sub(r"//", "", description).strip()
+    description = re.sub(r"\n", "\n///", description)
 
     boilerplate = f"""
-/**
- * @class {class_name}
- * @brief {description}
- */"""
+///
+/// @class {class_name}
+/// @brief {description}
+///"""
 
     return boilerplate
 
 
 def make_method_header(description="", parameters=[]):
     # remove // from description
-    description = re.sub(r"//", "", description)
+    description = re.sub(r"//", "", description).strip()
+    description = re.sub(r"\n", "\n///", description)
+
+    boilerplate = ""
 
     if description != "":
 
-        boilerplate = f"""
-/**
- * {description}
-     """
-    else:
-        if parameters == []:
-            return ""
-
-        boilerplate = f"""
-/**"""
-
-    for param in parameters:
         boilerplate += f"""
-* @param {(param.split('=')[0].strip()).split(' ')[-1]}"""
+///
+/// {description}
+///
+"""
+    elif parameters != []:
+        boilerplate += """
+///
+"""
 
-    boilerplate += r"""
-*/
+    if parameters != []:
+        for param in parameters:
+            boilerplate += f"""/// @param {(param.split('=')[0].strip()).split(' ')[-1]}
+"""
+
+        boilerplate += r"""///
 """
 
     return boilerplate
 
 
 def make_variable_docstring(description):
-    description = re.sub(r"//", "", description)
+    description = re.sub(r"//", "", description).strip()
+    description = re.sub(r"\n", "\n///", description)
 
     if description == "":
         return ""
     else:
-        return f"""/**
-* {description}
-*/
+        return f"""
+///
+/// {description}
+///
 """
 
 
@@ -81,7 +86,6 @@ def process_header_file(filename):
                                         data[last_index:m.start()]):
                 pass
 
-            # print(f"match = {m.group(0)}")
             if comments:
                 output_data += data[last_index:last_index + comments.start()]
                 class_header = make_class_header(m.group(1), comments.group(1))
@@ -99,12 +103,8 @@ def process_header_file(filename):
     output_data = ""
     last_index = 0
 
-    # print(re.findall(re_comments, data))
-
     re_prototype = re.compile(
         r"(?:^[\w&:*\t ]+\n)*^[ \t]*[~\w:*& ]+\(([\w\: \,&\n\t_=\<>\-.]*)\)", flags=re.MULTILINE)
-
-    # print(re.findall(re_prototype, data))
 
     # markup methods
     for m in re.finditer(re_prototype, data):
@@ -139,13 +139,15 @@ def process_header_file(filename):
     last_index = 0
 
     re_comments = re.compile(
-        r"[ \t]*(\/\/[ \t]*[\S ^\n]*?)\n^[ \t]*[^/\w]+", flags=re.MULTILINE)
+        r"^[ \t]*(\/\/[ \t]*[\S \n]*?)\n^(?![ \t]*\/\/)", flags=re.MULTILINE)
 
     re_variable = re.compile(
-        r"^[ \t]*[~\w:*& ]+;", flags=re.MULTILINE)
+        r"^[ \t]*[~\w:*& <>]+;", flags=re.MULTILINE)
 
     # markup variables
     for m in re.finditer(re_variable, data):
+
+        # print("match =", m.group(0))
 
         if " return " in m.group(0):
             continue
@@ -157,8 +159,8 @@ def process_header_file(filename):
 
         # print(data[last_index:m.start()-1])
 
-        if comments:
-            print(comments.group(1), m.start(), comments.end()+last_index)
+        # if comments:
+        #     print(comments.group(0), m.start(), comments.end()+last_index)
 
         if comments and (m.start() - comments.end() - last_index) < 1:
             output_data += data[last_index:last_index + comments.start()]
@@ -183,8 +185,8 @@ def process_header_file(filename):
 
 def process_cpp_file(filename):
 
-    output_data = r"""/** @file
-*/
+    output_data = r"""/// @file
+///
 """
 
     # find comments in lines above
