@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e # Exit with nonzero exit code if anything fails
 
-# Then we Build and deploy the sphinx documentation
+# Build the documentation from the SOURCE_BRANCH
+# and push it to TARGET_BRANCH.
 SOURCE_BRANCH="development"
 TARGET_BRANCH="gh-pages"
 
@@ -21,6 +22,7 @@ gpg --output ../id_rsa_travis --batch --passphrase $DECRYPT_GITHUB_AUTH --decryp
 chmod 600 ../id_rsa_travis
 eval `ssh-agent -s`
 ssh-add ../id_rsa_travis
+ls ../id_rsa_travis
 
 # Clone the existing gh-pages for this repo into out/
 # Create a new empty branch if gh-pages doesn't exist yet (should only happen on first deply)
@@ -61,13 +63,19 @@ cd out
 git config user.name "Travis CI"
 git config user.email "$COMMIT_AUTHOR_EMAIL"
 
-if git diff-index --quiet HEAD; then
-    exit 0
-fi
+echo "doing git add/commit/push"
 
 # Commit the "changes", i.e. the new version.
 # The delta will show diffs between new and old versions.
 git add --all
+
+# Exit if there are no docs changes
+if git diff --staged --quiet; then
+   echo "exiting with no docs changes"
+   exit 0
+fi
+
+# Otherwise, commit and push
 git commit -m "Deploy to GitHub Pages: ${SHA}"
 git push $SSH_REPO $TARGET_BRANCH
 cd ..
