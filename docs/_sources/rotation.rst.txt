@@ -24,55 +24,55 @@ equations.
 
 The axis of rotation currently depends on the dimensionality of the
 problem and the value of coord_sys; in all cases, however, the
-default axis of rotation points from center, which is typically
-defined in a Prob_$(DIM)d.f90 routine, to the typical “vertical
+default axis of rotation points from ``center``, which is typically
+defined in a ``Prob_$(DIM)d.f90`` routine, to the typical “vertical
 direction.” The vertical direction is defined as follows:
 
--  2D
+* 2D
 
-   -  coord_sys = 0, (x,y): out of the (x,y)-plane along the “z”-axis
+  * ``coord_sys = 0``, (x,y): out of the (x,y)-plane along the “z”-axis
 
-   -  coord_sys = 1, (r,z): along the z-axis
+  * ``coord_sys = 1``, (r,z): along the z-axis
 
--  3D
+* 3D
 
-   -  coord_sys = 0, (x,y,z): along the z-axis
+  * ``coord_sys = 0``, (x,y,z): along the z-axis
 
 To change these defaults, modify the omega vector in the
-ca_rotate routine found in the Rotate_$(DIM)d.f90 file.
+``ca_rotate`` routine found in the ``Rotate_$(DIM)d.f90`` file.
 
 The main parameters that affect rotation are:
 
--  castro.do_rotation : include rotation as a forcing
+-  ``castro.do_rotation`` : include rotation as a forcing
    term (0 or 1; default: 0)
 
--  castro.rotational_period : period (s) of rotation
+-  ``castro.rotational_period`` : period (s) of rotation
    (default: 0.0)
 
--  castro.rotational_dPdt : d(period) / dt for rotation
+-  ``castro.rotational_dPdt`` : d(period) / dt for rotation
    (default: 0.0)
 
--  castro.rotation_include_centrifugal : whether to
+-  ``castro.rotation_include_centrifugal`` : whether to
    include the centrifugal forcing (default: 1)
 
--  castro.rotation_include_coriolis : whether to
+-  ``castro.rotation_include_coriolis`` : whether to
    include the Coriolis forcing (default: 1)
 
--  castro.rotation_include_domegadt : whether to
+-  ``castro.rotation_include_domegadt`` : whether to
    include the forcing from the time derivative of the rotation
    frequency (default: 1)
 
--  castro.state_in_rotating_frame : whether state
+-  ``castro.state_in_rotating_frame`` : whether state
    variables are measured in the rotating frame (default: 1)
 
--  castro.rot_source_type : method of updating the
+-  ``castro.rot_source_type`` : method of updating the
    energy during a rotation update (default: 4)
 
--  castro.implicit_rotation_update : for the Coriolis
+-  ``castro.implicit_rotation_update`` : for the Coriolis
    term, which mixes momenta in the source term, whether we should
    solve for the update implicitly (default: 1)
 
--  castro.rot_axis : rotation axis (default: 3
+-  ``castro.rot_axis`` : rotation axis (default: 3
    (Cartesian); 2 (cylindrical))
 
 For completeness, we show below a derivation of the source terms that
@@ -91,13 +91,13 @@ Coordinate transformation to rotating frame
    :math:`{\bf r} = \tilde{\bf{r}} + {\bf l}`
 
 Consider an inertial reference frame :math:`C` and a non-inertial
-reference frame :math:`\widetilde{C}` whose origins are separated by the
-vector :math:`\boldsymbol{l}` (see Figure \ `[fig:sec:rot:frames] <#fig:sec:rot:frames>`__). The non-inertial frame is rotating about the axis
-:math:`\ob` with a *constant* angular velocity :math:`\omega`;
-furthermore, we assume the *direction* of the rotational axis is
-fixed. Consider a fluid element at the point :math:`P` whose location is
-given by :math:`\rb` in :math:`C` and by :math:`\rbt` in
-:math:`\widetilde{C}`:
+reference frame :math:`\widetilde{C}` whose origins are separated by
+the vector :math:`\boldsymbol{l}` (see the figure above). The
+non-inertial frame is rotating about the axis :math:`\ob` with a
+*constant* angular velocity :math:`\omega`; furthermore, we assume the
+*direction* of the rotational axis is fixed. Consider a fluid element
+at the point :math:`P` whose location is given by :math:`\rb` in
+:math:`C` and by :math:`\rbt` in :math:`\widetilde{C}`:
 
 .. math:: \rb = \rbt + \boldsymbol{l},
 
@@ -196,12 +196,12 @@ the terms in the rotating frame from `[eq:a] <#eq:a>`__, we have from `[eq:mom1]
 
 .. math::
 
-   \begin{aligned}
-       \rho\left(\frac{D\vbt}{Dt} + 2\ob\times\vbt + \ob\times\left[\ob\times\rbt\right]\right) - \rho\vb\nablab\cdot\vb &=& -\rho\vb\cdot\nablab\vb - \nablab p + \rho\gb \nonumber \\
-       \rho\left(\frac{\partial\vbt}{\partial t} + \vbt\cdot\nablab\vbt\right) &=& -\nablab p + \rho\gb - 2\rho\ob\times\vbt - \rho\ob\times\left[\ob\times\rbt\right] \nonumber \\
-     \frac{\partial\left(\rho\vbt\right)}{\partial t} &=& -\nablab\cdot\left(\rho\vbt\vbt\right) - \nablab p + \rho\gb - 2\rho\ob\times\vbt \nonumber \\
-     & & -\ \rho\ob\times\left[\ob\times\rbt\right]\label{eq:mom-rot}
-     \end{aligned}
+   \begin{align}
+       \rho\left(\frac{D\vbt}{Dt} + 2\ob\times\vbt + \ob\times\left[\ob\times\rbt\right]\right) - \rho\vb\nablab\cdot\vb &= -\rho\vb\cdot\nablab\vb - \nablab p + \rho\gb \nonumber \\
+       \rho\left(\frac{\partial\vbt}{\partial t} + \vbt\cdot\nablab\vbt\right) &= -\nablab p + \rho\gb - 2\rho\ob\times\vbt - \rho\ob\times\left[\ob\times\rbt\right] \nonumber \\
+     \frac{\partial\left(\rho\vbt\right)}{\partial t} &= -\nablab\cdot\left(\rho\vbt\vbt\right) - \nablab p + \rho\gb - 2\rho\ob\times\vbt \nonumber \\
+     &  -\ \rho\ob\times\left[\ob\times\rbt\right]\label{eq:mom-rot}
+     \end{align}
 
 or
 

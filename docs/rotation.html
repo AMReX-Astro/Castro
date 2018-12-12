@@ -215,45 +215,45 @@ converted to an angular frequency for use in the source term
 equations.</p>
 <p>The axis of rotation currently depends on the dimensionality of the
 problem and the value of coord_sys; in all cases, however, the
-default axis of rotation points from center, which is typically
-defined in a Prob_$(DIM)d.f90 routine, to the typical “vertical
+default axis of rotation points from <code class="docutils literal notranslate"><span class="pre">center</span></code>, which is typically
+defined in a <code class="docutils literal notranslate"><span class="pre">Prob_$(DIM)d.f90</span></code> routine, to the typical “vertical
 direction.” The vertical direction is defined as follows:</p>
 <ul class="simple">
 <li>2D<ul>
-<li>coord_sys = 0, (x,y): out of the (x,y)-plane along the “z”-axis</li>
-<li>coord_sys = 1, (r,z): along the z-axis</li>
+<li><code class="docutils literal notranslate"><span class="pre">coord_sys</span> <span class="pre">=</span> <span class="pre">0</span></code>, (x,y): out of the (x,y)-plane along the “z”-axis</li>
+<li><code class="docutils literal notranslate"><span class="pre">coord_sys</span> <span class="pre">=</span> <span class="pre">1</span></code>, (r,z): along the z-axis</li>
 </ul>
 </li>
 <li>3D<ul>
-<li>coord_sys = 0, (x,y,z): along the z-axis</li>
+<li><code class="docutils literal notranslate"><span class="pre">coord_sys</span> <span class="pre">=</span> <span class="pre">0</span></code>, (x,y,z): along the z-axis</li>
 </ul>
 </li>
 </ul>
 <p>To change these defaults, modify the omega vector in the
-ca_rotate routine found in the Rotate_$(DIM)d.f90 file.</p>
+<code class="docutils literal notranslate"><span class="pre">ca_rotate</span></code> routine found in the <code class="docutils literal notranslate"><span class="pre">Rotate_$(DIM)d.f90</span></code> file.</p>
 <p>The main parameters that affect rotation are:</p>
 <ul class="simple">
-<li>castro.do_rotation : include rotation as a forcing
+<li><code class="docutils literal notranslate"><span class="pre">castro.do_rotation</span></code> : include rotation as a forcing
 term (0 or 1; default: 0)</li>
-<li>castro.rotational_period : period (s) of rotation
+<li><code class="docutils literal notranslate"><span class="pre">castro.rotational_period</span></code> : period (s) of rotation
 (default: 0.0)</li>
-<li>castro.rotational_dPdt : d(period) / dt for rotation
+<li><code class="docutils literal notranslate"><span class="pre">castro.rotational_dPdt</span></code> : d(period) / dt for rotation
 (default: 0.0)</li>
-<li>castro.rotation_include_centrifugal : whether to
+<li><code class="docutils literal notranslate"><span class="pre">castro.rotation_include_centrifugal</span></code> : whether to
 include the centrifugal forcing (default: 1)</li>
-<li>castro.rotation_include_coriolis : whether to
+<li><code class="docutils literal notranslate"><span class="pre">castro.rotation_include_coriolis</span></code> : whether to
 include the Coriolis forcing (default: 1)</li>
-<li>castro.rotation_include_domegadt : whether to
+<li><code class="docutils literal notranslate"><span class="pre">castro.rotation_include_domegadt</span></code> : whether to
 include the forcing from the time derivative of the rotation
 frequency (default: 1)</li>
-<li>castro.state_in_rotating_frame : whether state
+<li><code class="docutils literal notranslate"><span class="pre">castro.state_in_rotating_frame</span></code> : whether state
 variables are measured in the rotating frame (default: 1)</li>
-<li>castro.rot_source_type : method of updating the
+<li><code class="docutils literal notranslate"><span class="pre">castro.rot_source_type</span></code> : method of updating the
 energy during a rotation update (default: 4)</li>
-<li>castro.implicit_rotation_update : for the Coriolis
+<li><code class="docutils literal notranslate"><span class="pre">castro.implicit_rotation_update</span></code> : for the Coriolis
 term, which mixes momenta in the source term, whether we should
 solve for the update implicitly (default: 1)</li>
-<li>castro.rot_axis : rotation axis (default: 3
+<li><code class="docutils literal notranslate"><span class="pre">castro.rot_axis</span></code> : rotation axis (default: 3
 (Cartesian); 2 (cylindrical))</li>
 </ul>
 <p>For completeness, we show below a derivation of the source terms that
@@ -270,13 +270,13 @@ non-inertial frame <span class="math notranslate nohighlight">\(\tilde{C}\)</spa
 <span class="math notranslate nohighlight">\({\bf r} = \tilde{\bf{r}} + {\bf l}\)</span></span></p>
 </div>
 <p>Consider an inertial reference frame <span class="math notranslate nohighlight">\(C\)</span> and a non-inertial
-reference frame <span class="math notranslate nohighlight">\(\widetilde{C}\)</span> whose origins are separated by the
-vector <span class="math notranslate nohighlight">\(\boldsymbol{l}\)</span> (see Figure&nbsp;<a class="reference external" href="#fig:sec:rot:frames">[fig:sec:rot:frames]</a>). The non-inertial frame is rotating about the axis
-<span class="math notranslate nohighlight">\(\ob\)</span> with a <em>constant</em> angular velocity <span class="math notranslate nohighlight">\(\omega\)</span>;
-furthermore, we assume the <em>direction</em> of the rotational axis is
-fixed. Consider a fluid element at the point <span class="math notranslate nohighlight">\(P\)</span> whose location is
-given by <span class="math notranslate nohighlight">\(\rb\)</span> in <span class="math notranslate nohighlight">\(C\)</span> and by <span class="math notranslate nohighlight">\(\rbt\)</span> in
-<span class="math notranslate nohighlight">\(\widetilde{C}\)</span>:</p>
+reference frame <span class="math notranslate nohighlight">\(\widetilde{C}\)</span> whose origins are separated by
+the vector <span class="math notranslate nohighlight">\(\boldsymbol{l}\)</span> (see the figure above). The
+non-inertial frame is rotating about the axis <span class="math notranslate nohighlight">\(\ob\)</span> with a
+<em>constant</em> angular velocity <span class="math notranslate nohighlight">\(\omega\)</span>; furthermore, we assume the
+<em>direction</em> of the rotational axis is fixed. Consider a fluid element
+at the point <span class="math notranslate nohighlight">\(P\)</span> whose location is given by <span class="math notranslate nohighlight">\(\rb\)</span> in
+<span class="math notranslate nohighlight">\(C\)</span> and by <span class="math notranslate nohighlight">\(\rbt\)</span> in <span class="math notranslate nohighlight">\(\widetilde{C}\)</span>:</p>
 <div class="math notranslate nohighlight">
 \[\rb = \rbt + \boldsymbol{l},\]</div>
 <p>or in component notation</p>
@@ -344,12 +344,12 @@ rotating frame:</p>
 <p>Using the continuity equation, <a class="reference external" href="#eq:cont-rot-total">[eq:cont-rot-total]</a>, and substituting for
 the terms in the rotating frame from <a class="reference external" href="#eq:a">[eq:a]</a>, we have from <a class="reference external" href="#eq:mom1">[eq:mom1]</a>:</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{aligned}
-    \rho\left(\frac{D\vbt}{Dt} + 2\ob\times\vbt + \ob\times\left[\ob\times\rbt\right]\right) - \rho\vb\nablab\cdot\vb &amp;=&amp; -\rho\vb\cdot\nablab\vb - \nablab p + \rho\gb \nonumber \\
-    \rho\left(\frac{\partial\vbt}{\partial t} + \vbt\cdot\nablab\vbt\right) &amp;=&amp; -\nablab p + \rho\gb - 2\rho\ob\times\vbt - \rho\ob\times\left[\ob\times\rbt\right] \nonumber \\
-  \frac{\partial\left(\rho\vbt\right)}{\partial t} &amp;=&amp; -\nablab\cdot\left(\rho\vbt\vbt\right) - \nablab p + \rho\gb - 2\rho\ob\times\vbt \nonumber \\
-  &amp; &amp; -\ \rho\ob\times\left[\ob\times\rbt\right]\label{eq:mom-rot}
-  \end{aligned}\end{split}\]</div>
+\[\begin{split}\begin{align}
+    \rho\left(\frac{D\vbt}{Dt} + 2\ob\times\vbt + \ob\times\left[\ob\times\rbt\right]\right) - \rho\vb\nablab\cdot\vb &amp;= -\rho\vb\cdot\nablab\vb - \nablab p + \rho\gb \nonumber \\
+    \rho\left(\frac{\partial\vbt}{\partial t} + \vbt\cdot\nablab\vbt\right) &amp;= -\nablab p + \rho\gb - 2\rho\ob\times\vbt - \rho\ob\times\left[\ob\times\rbt\right] \nonumber \\
+  \frac{\partial\left(\rho\vbt\right)}{\partial t} &amp;= -\nablab\cdot\left(\rho\vbt\vbt\right) - \nablab p + \rho\gb - 2\rho\ob\times\vbt \nonumber \\
+  &amp;  -\ \rho\ob\times\left[\ob\times\rbt\right]\label{eq:mom-rot}
+  \end{align}\end{split}\]</div>
 <p>or</p>
 <div class="math notranslate nohighlight">
 \[\label{eq:mom-rot-tot}
