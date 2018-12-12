@@ -1,4 +1,6 @@
-
+///
+/// @file Castro.cpp
+///
 #ifndef WIN32
 #include <unistd.h>
 #endif
@@ -142,7 +144,9 @@ Diffusion*    Castro::diffusion  = 0;
 #ifdef RADIATION
 int          Castro::do_radiation = -1;
 
-// the radiation object
+///
+/// the radiation object
+///
 Radiation*   Castro::radiation = 0;
 #endif
 
@@ -181,8 +185,10 @@ Real         Castro::startCPUTime = 0.0;
 int          Castro::Knapsack_Weight_Type = -1;
 int          Castro::num_state_type = 0;
 
-// Note: Castro::variableSetUp is in Castro_setup.cpp
-// variableCleanUp is called once at the end of a simulation
+///
+/// Note: Castro::variableSetUp is in Castro_setup.cpp
+/// variableCleanUp is called once at the end of a simulation
+///
 void
 Castro::variableCleanUp ()
 {
