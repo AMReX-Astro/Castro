@@ -1,4 +1,0 @@
-File Castro_diffusion.cpp
-=========================
-
-.. doxygenfile:: Castro_diffusion.cpp

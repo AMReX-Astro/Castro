@@ -1,13 +1,13 @@
 language: python
 
 python:
-  - "3.6"
+  - "3.7-dev"
 
 before_install:
   - export PATH=$(echo $PATH | tr ':' "\n" | sed '/\/opt\/python/d' | tr "\n" ":" | sed "s|::|:|g")
-  - pwd
-  - cd ~/; git clone https://github.com/amrex-codes/amrex
-  - cd ~/; git clone https://github.com/amrex-codes/regression_testing
+#  - pwd
+#  - cd ~/; git clone https://github.com/amrex-codes/amrex
+#  - cd ~/; git clone https://github.com/amrex-codes/regression_testing
 
 
 addons:
@@ -17,8 +17,11 @@ addons:
       - gfortran
       - libgmp-dev
       - libmpfr-dev
+      - pandoc
+      - doxygen
 
 install:
+  - pip install -r requirements.txt
 
 before_script:
   - export AMREX_HOME=~/amrex
@@ -28,7 +31,7 @@ script:
   - pwd
 
 # after_success:
-#   - travis-sphinx deploy
+  - ./deploy_docs.sh
 
 # deploy:
 #   provider: pages
