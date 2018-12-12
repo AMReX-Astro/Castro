@@ -136,10 +136,9 @@ public:
                             amrex::VisMF::How         how,
                             bool               dump_old) override;
 
-    /*A string written as the first item in writePlotFile() at
-               level zero. It is so we can distinguish between different
-               types of plot files. For Castro it has the form: Castro-Vnnn
-    */
+    // A string written as the first item in writePlotFile() at
+    // level zero. It is so we can distinguish between different
+    // types of plot files. For Castro it has the form: Castro-Vnnn
     virtual std::string thePlotFileType () const override;
 
     virtual void setPlotVariables () override;

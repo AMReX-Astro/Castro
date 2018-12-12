@@ -45,9 +45,9 @@ Castro: an adaptive mesh compressible hydrodynamics code
    :maxdepth: 1
    :caption: API
 
-   filelist
+   .. filelist
    classlist
-   namespacelist
+   .. namespacelist
 
 .. toctree::
 

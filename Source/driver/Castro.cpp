@@ -1,6 +1,4 @@
-///
-/// @file Castro.cpp
-///
+
 #ifndef WIN32
 #include <unistd.h>
 #endif
@@ -144,9 +142,7 @@ Diffusion*    Castro::diffusion  = 0;
 #ifdef RADIATION
 int          Castro::do_radiation = -1;
 
-///
-/// the radiation object
-///
+// the radiation object
 Radiation*   Castro::radiation = 0;
 #endif
 
@@ -185,8 +181,10 @@ Real         Castro::startCPUTime = 0.0;
 int          Castro::Knapsack_Weight_Type = -1;
 int          Castro::num_state_type = 0;
 
+
 ///
-/// Note: Castro::variableSetUp is in Castro_setup.cpp
+/// @note
+/// Castro::variableSetUp is in Castro_setup.cpp
 /// variableCleanUp is called once at the end of a simulation
 ///
 void
@@ -674,8 +672,11 @@ Castro::buildMetrics ()
     wall_time_start = 0.0;
 }
 
-// Initialize the MultiFabs and flux registers that live as class members.
 
+///
+/// @note
+/// Initialize the MultiFabs and flux registers that live as class members.
+///
 void
 Castro::initMFs()
 {
@@ -1091,10 +1092,12 @@ Castro::init (AmrLevel &old)
 
 }
 
-//
-// This version inits the data on a new level that did not
-// exist before regridding.
-//
+
+///
+/// @note
+/// This version inits the data on a new level that did not
+/// exist before regridding.
+///
 void
 Castro::init ()
 {
@@ -1579,7 +1582,7 @@ Castro::computeInitialDt (int                   finest_level,
 
     Real dt_0 = 1.0e+100;
     int n_factor = 1;
-    ///TODO/DEBUG: This will need to change for optimal subcycling.
+    // TODO/DEBUG: This will need to change for optimal subcycling.
     for (i = 0; i <= finest_level; i++)
     {
         dt_level[i] = getLevel(i).initialTimeStep();
@@ -3548,8 +3551,11 @@ Castro::build_interior_boundary_mask (int ng)
     return imf;
 }
 
-// Fill a version of the state with ng ghost zones from the state data.
 
+///
+/// @note
+/// Fill a version of the state with ng ghost zones from the state data.
+///
 void
 Castro::expand_state(MultiFab& S, Real time, int iclean, int ng)
 {
@@ -3636,10 +3642,13 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux)
 #endif
 
 
-// Given State_Type state data, perform a number of cleaning steps to make
-// sure the data is sensible. The return value is the same as the return
-// value of enforce_min_density.
 
+///
+/// @note
+/// Given State_Type state data, perform a number of cleaning steps to make
+/// sure the data is sensible. The return value is the same as the return
+/// value of enforce_min_density.
+///
 Real
 Castro::clean_state(MultiFab& state) {
 

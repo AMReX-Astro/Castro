@@ -49,6 +49,24 @@ def make_method_header(description="", parameters=[]):
     return boilerplate
 
 
+def make_method_doxycomment(description=""):
+    # remove // from description
+    description = re.sub(r"//", "", description).strip()
+    description = re.sub(r"\n", "\n///", description)
+
+    if description == "":
+        return ""
+
+    else:
+
+        return f"""
+///
+/// @note
+/// {description}
+///
+"""
+
+
 def make_variable_docstring(description):
     description = re.sub(r"//", "", description).strip()
     description = re.sub(r"\n", "\n///", description)
@@ -154,7 +172,7 @@ def process_header_file(filename):
 
         comments = None
         for comments in re.finditer(re_comments,
-                                    data[last_index:m.start()+1]):
+                                    data[last_index:m.start() + 1]):
             pass
 
         # print(data[last_index:m.start()-1])
@@ -172,7 +190,6 @@ def process_header_file(filename):
             output_data += data[last_index:m.start()]
             last_index = m.start()
 
-
     output_data += data[last_index:]
 
     output_filename = filename + ".doxygen"
@@ -185,16 +202,14 @@ def process_header_file(filename):
 
 def process_cpp_file(filename):
 
-    output_data = r"""/// @file
-///
-"""
+    output_data = ""
 
     # find comments in lines above
     re_comments = re.compile(
         r"[ \t]*(\/\/[ \t]*[\S ^\n]*?)\n^[ \t]*[^\/]", flags=re.MULTILINE)
 
     re_prototype = re.compile(
-        r"^\w*\n^\w[~\w:*& ]+\(([\w\: \,&\n\t_=<>.]*)\)\n?[\s\S]*?\n?{", flags=re.MULTILINE)
+        r"^\w*\n^\w[~\w:*& ]+\([\w\: \,&\n\t_=<>.]*\)\n?[\s\S]*?\n?{", flags=re.MULTILINE)
 
     with open(filename) as input_file:
         data = input_file.read()
@@ -202,11 +217,6 @@ def process_cpp_file(filename):
         last_index = 0
 
         for m in re.finditer(re_prototype, data):
-            # print("match = ", m.group(1))
-
-            parameters = m.group(1).split(",")
-            parameters = [param.strip() for param in parameters]
-            parameters = [param for param in parameters if param != ""]
 
             comments = None
 
@@ -216,13 +226,12 @@ def process_cpp_file(filename):
 
             if comments and (m.start() - comments.end() - last_index) < 3:
                 output_data += data[last_index:last_index + comments.start()]
-                method_header = make_method_header(
-                    comments.group(1), parameters)
+                method_header = make_method_doxycomment(comments.group(1))
                 last_index = m.start()
 
             else:
                 output_data += data[last_index:m.start()]
-                method_header = make_method_header("", parameters)
+                method_header = make_method_doxycomment("")
                 last_index = m.start()
 
             output_data += method_header
