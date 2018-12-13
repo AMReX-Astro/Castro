@@ -308,7 +308,8 @@ public:
     virtual void init (amrex::AmrLevel& old) override;
 
 ///
-/// Initialize data on this level after regridding if old level did not previously exist
+/// Initialize data on this level after regridding if old level did not
+/// previously exist
 ///
     virtual void init () override;
 
@@ -697,7 +698,7 @@ public:
     amrex::Real initialTimeStep ();
 
 ///
-/// Compute initial `dt'.
+/// Compute initial ``dt``.
 ///
 /// @param finest_level
 /// @param sub_cycle
@@ -714,7 +715,7 @@ public:
                                    amrex::Real                  stop_time) override;
 
 ///
-/// Compute new `dt'.
+/// Compute new ``dt``.
 ///
 /// @param finest_level
 /// @param sub_cycle
@@ -802,8 +803,9 @@ public:
     void post_grown_restart ();
 
 #ifdef DO_PROBLEM_POST_SIMULATION
-    // Do work at the end of the simulation -- before the last outputs
 
+///
+/// Do work at the end of the simulation -- before the last outputs
 ///
 /// @param amr_level
 ///
@@ -872,7 +874,7 @@ public:
 
 ///
 /// Returns a MultiFab containing the derived data for this level.
-// If ngrow>0 the MultiFab is built on the appropriately grown BoxArray.
+/// If ngrow>0 the MultiFab is built on the appropriately grown BoxArray.
 ///
     virtual std::unique_ptr<amrex::MultiFab> derive (const std::string& name,
 						     amrex::Real        time,
@@ -1453,8 +1455,8 @@ protected:
 
 
 ///
-/// Source term representing hydrodynamics update -- this should just be
-///     -div{F(U)} -- no source terms
+/// Source term representing hydrodynamics update - this should just be
+///     \f$-\nabla\cdot \{F(U)\}\f$ - no source terms
 ///
     amrex::MultiFab hydro_source;
 
@@ -1605,7 +1607,6 @@ protected:
 ///
 /// The return value is the the negative fractional change in the state that has the
 /// largest magnitude. If there is no reference state, this is meaningless.
-///
 ///
 /// @param S_old
 /// @param S_new

@@ -84,7 +84,7 @@ public:
   static amrex::Real flatten_pp_threshold;
   static int pure_hydro;
 
-  static int do_real_eos;  ///< if 0,  c_v = const_c_v * (rho**m) * (temp**(-n))
+  static int do_real_eos;  ///< if 0,  \f$c_v = const_{c_v} \rho^m T^{-n}\f$
 
 
   static amrex::Real const_c_v, const_kappa_p, const_kappa_r, const_scattering;
@@ -516,7 +516,7 @@ protected:
                amrex::FArrayBox& state, const amrex::Box& reg);
 
 ///
-/// temp contains frhoe on input:
+/// temp contains frhoe on input
 ///
 /// @param fkp
 /// @param temp
@@ -542,7 +542,7 @@ protected:
 			      int igroup = 0);
 
 ///
-/// temp contains temp on input:
+/// temp contains temp on input
 ///
 /// @param fkp
 /// @param temp
@@ -632,7 +632,7 @@ protected:
 			   int igroup = 0);
 
 ///
-// multigroup methods
+/// multigroup methods
 ///
 /// @param verbose
 ///
@@ -837,7 +837,6 @@ protected:
 /// @param thetaY
 /// @param mugT
 /// @param mugY
-/// @param amrex::Tuple<amrex::MultiFab
 /// @param lambda
 /// @param solver
 /// @param mgbd
@@ -884,7 +883,7 @@ protected:
 /// @param grids
 /// @param derat
 /// @param dT
-/// @param amrex::Real&dye
+/// @param dye
 /// @param level
 ///
   void state_energy_update(amrex::MultiFab& state, const amrex::MultiFab& rhoe, const amrex::MultiFab& Ye,
@@ -1067,9 +1066,9 @@ protected:
   int limiter;          ///< 0: no limiter, 2: Lev-Pom limiter
                         ///< 12: Bruenn, 22: square root, 32: Minerbo
 
-  int closure;      ///< 0: f = lambda, 1: f = 1/3,
-                    ///< 2: f = 1-2*lambda, 3: f = lambda+(lambda*R)^2
-                    ///< 4: f = 1/3 + 2/3*(lambda*R)^2
+  int closure;      ///< 0: \f$f = \lambda\f$, 1: \f$f = 1/3\f$,
+                    ///< 2: \f$f = 1-2\lambda\f$, 3: \f$f = \lambda+(\lambda R)^2\f$
+                    ///< 4: \f$f = 1/3 + 2/3 (\lambda R)^2\f$
 
   int update_planck;     ///< after this number of iterations, lag planck
   int update_rosseland;  ///< after this number of iterations, lag rosseland
