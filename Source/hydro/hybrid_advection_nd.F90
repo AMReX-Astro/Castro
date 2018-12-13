@@ -5,10 +5,16 @@ module hybrid_advection_module
 
 contains
 
-  ! Takes the initial linear momentum data in a state and converts it
-  ! to the hybrid momenta.
 
+  !>
+  !! @param[in] lo integer
+  !! @param[in] s_lo integer
+  !! @param[inout] state real(rt)
+  !!
   subroutine ca_init_hybrid_momentum(lo, hi, state, s_lo, s_hi) bind(C, name='ca_init_hybrid_momentum')
+
+    ! Takes the initial linear momentum data in a state and converts it
+    ! to the hybrid momenta.
 
     use meth_params_module, only: NVAR, UMR, UMP, UMX, UMZ
     use castro_util_module, only: position
@@ -40,9 +46,18 @@ contains
 
 
 
-  ! Fill a sources array with the source terms in the hybrid momentum equations.
 
+
+  !>
+  !! @param[in] lo integer
+  !! @param[in] s_lo integer
+  !! @param[in] e_lo integer
+  !! @param[in] state real(rt)
+  !! @param[inout] ext_src real(rt)
+  !!
   subroutine ca_hybrid_hydro_source(lo, hi, state, s_lo, s_hi, ext_src, e_lo, e_hi, mult_factor) bind(C,name='ca_hybrid_hydro_source')
+
+    ! Fill a sources array with the source terms in the hybrid momentum equations.
 
     use amrex_constants_module, only: ONE
     use meth_params_module, only: NVAR, URHO, UMR, UML
@@ -83,9 +98,12 @@ contains
 
 
 
-  ! Convert a linear momentum into the "hybrid" scheme
-  ! that has radial and angular components.
 
+  !> @brief Convert a linear momentum into the "hybrid" scheme
+  !! that has radial and angular components.
+  !!
+  !! @param[in] loc real(rt)
+  !!
   function linear_to_hybrid(loc, mom_in) result(mom_out)
 
     use amrex_constants_module, only: ZERO
@@ -118,8 +136,11 @@ contains
 
 
 
-  ! Convert a "hybrid" momentum into a linear one.
 
+  !> @brief Convert a "hybrid" momentum into a linear one.
+  !!
+  !! @param[in] loc real(rt)
+  !!
   function hybrid_to_linear(loc, mom_in) result(mom_out)
 
     use amrex_constants_module, only: ZERO
@@ -144,9 +165,15 @@ contains
 
 
 
-  ! Update hybrid momenta to account for source term to linear momenta.
 
+
+  !> @brief Update hybrid momenta to account for source term to linear momenta.
+  !!
+  !! @param[in] loc real(rt)
+  !! @param[inout] mom real(rt)
+  !!
   subroutine add_hybrid_momentum_source(loc, mom, source)
+
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -168,6 +195,11 @@ contains
 
   end subroutine add_hybrid_momentum_source
 
+
+  !>
+  !! @param[in] loc real(rt)
+  !! @param[inout] mom real(rt)
+  !!
   subroutine set_hybrid_momentum_source(loc, mom, source)
 
     use amrex_fort_module, only : rt => amrex_real
@@ -270,10 +302,10 @@ contains
 
 
   subroutine add_hybrid_advection_source(lo, hi, dt, &
-                                         update, u_lo, u_hi, &
-                                         qx, qx_lo, qx_hi, &
-                                         qy, qy_lo, qy_hi, &
-                                         qz, qz_lo, qz_hi)
+       update, u_lo, u_hi, &
+       qx, qx_lo, qx_hi, &
+       qy, qy_lo, qy_hi, &
+       qz, qz_lo, qz_hi)
 
     use meth_params_module, only: NVAR, NGDNV, GDPRES, UMR
     use prob_params_module, only: center, dx_level
@@ -308,7 +340,7 @@ contains
              R = sqrt( loc(1)**2 + loc(2)**2 )
 
              update(i,j,k,UMR) = update(i,j,k,UMR) - ( (loc(1) / R) * (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx(1) + &
-                                                       (loc(2) / R) * (qy(i,j+1,k,GDPRES) - qy(i,j,k,GDPRES)) / dx(2) )
+                  (loc(2) / R) * (qy(i,j+1,k,GDPRES) - qy(i,j,k,GDPRES)) / dx(2) )
 
           enddo
        enddo
@@ -318,9 +350,17 @@ contains
 
 
 
-  ! Update state to account for hybrid advection.
 
+
+
+  !>
+  !! @param[in] lo integer
+  !! @param[in] state_lo integer
+  !! @param[inout] state real(rt)
+  !!
   subroutine ca_hybrid_update(lo, hi, state, state_lo, state_hi) bind(C, name='ca_hybrid_update')
+
+    ! Update state to account for hybrid advection.
 
     use amrex_constants_module, only: HALF, ONE
     use meth_params_module, only: URHO, UMR, UMP, UMX, UMZ, UEDEN, NVAR

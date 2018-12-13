@@ -7,13 +7,13 @@ module enthalpy_module
 
 contains
 
-  ! This routine defines enthalpy from the EOS
-
+  !> @brief This routine defines enthalpy from the EOS
+  !!
   subroutine make_enthalpy(lo,hi, &
-                           state,s_lo,s_hi, &
-                           enth ,e_lo,e_hi) &
-                           bind(C, name="make_enthalpy")
-    
+       state,s_lo,s_hi, &
+       enth ,e_lo,e_hi) &
+       bind(C, name="make_enthalpy")
+
     use amrex_constants_module
     use network, only: nspec, naux
     use meth_params_module, only : NVAR, URHO, UTEMP, UEINT, UFS, UFX, diffuse_cutoff_density
@@ -64,5 +64,5 @@ contains
     enddo
 
   end subroutine make_enthalpy
-  
+
 end module enthalpy_module

@@ -5,7 +5,7 @@ module ppm_module
   ! integration under the characteristic domain of the parabola
 
   use amrex_constants_module, only: ZERO, HALF, ONE, TWO, SIXTH, &
-                                    TWO3RD, THREE, SIX, SEVEN12TH, TWELFTH
+       TWO3RD, THREE, SIX, SEVEN12TH, TWELFTH
   use prob_params_module, only : dg
   use amrex_fort_module, only : rt => amrex_real
 
@@ -17,27 +17,39 @@ module ppm_module
 
 contains
 
+
+  !> @brief this routine does the reconstruction of the zone data into
+  !! parabola.  The loops are over zone centers and for zone center,
+  !! it will compute the left and right values of the parabola and
+  !! store these in the qm and qp arrays.  If put_on_edges = 0, then
+  !! this storage is done by zone so the parabola information for a
+  !! zone can then be used in ppm_int_profile to compute the
+  !! integrals.  If put_on_edges = 1, then we copy this information
+  !! to the appropriate edges, such that qm(i,j,k,1) is the left
+  !! state on the i-1/2 interface.  This is used for method-of-lines
+  !! integration methods.
+  !!
+  !! here s has nc components and we reconstruct component n
+  !!
+  !! we store the result in the arrays qm and qp, in component nq out
+  !! of ncq components
+  !! @param[in] lo integer
+  !! @param[in] s_lo integer
+  !! @param[in] f_lo integer
+  !! @param[in] qm_lo integer
+  !! @param[in] qp_lo integer
+  !! @param[in] s real(rt)
+  !! @param[in] flatn real(rt)
+  !! @param[inout] qm real(rt)
+  !! @param[inout] qp real(rt)
+  !!
   subroutine ca_ppm_reconstruct(lo, hi, put_on_edges, &
-                                s, s_lo, s_hi, nc, nstart, nend, &
-                                flatn, f_lo, f_hi, &
-                                qm, qm_lo, qm_hi, &
-                                qp, qp_lo, qp_hi, ncq, nqstart, nqend) bind(c, name='ca_ppm_reconstruct')
+       s, s_lo, s_hi, nc, nstart, nend, &
+       flatn, f_lo, f_hi, &
+       qm, qm_lo, qm_hi, &
+       qp, qp_lo, qp_hi, ncq, nqstart, nqend) bind(c, name='ca_ppm_reconstruct')
 
-    ! this routine does the reconstruction of the zone data into
-    ! parabola.  The loops are over zone centers and for zone center,
-    ! it will compute the left and right values of the parabola and
-    ! store these in the qm and qp arrays.  If put_on_edges = 0, then
-    ! this storage is done by zone so the parabola information for a
-    ! zone can then be used in ppm_int_profile to compute the
-    ! integrals.  If put_on_edges = 1, then we copy this information
-    ! to the appropriate edges, such that qm(i,j,k,1) is the left
-    ! state on the i-1/2 interface.  This is used for method-of-lines
-    ! integration methods.
 
-    ! here s has nc components and we reconstruct component n
-
-    ! we store the result in the arrays qm and qp, in component nq out
-    ! of ncq components
 
 #ifndef AMREX_USE_GPU
     use amrex_error_module, only: amrex_error
@@ -74,16 +86,16 @@ contains
 
 #ifndef AMREX_USE_GPU
     if ((s_lo(1) > lo(1)-3) .or. &
-        (dim >= 2 .and. s_lo(2) > lo(2)-3) .or. &
-        (dim == 3 .and. s_lo(3) > lo(3)-3)) then
+         (dim >= 2 .and. s_lo(2) > lo(2)-3) .or. &
+         (dim == 3 .and. s_lo(3) > lo(3)-3)) then
        print *,'Low bounds of array: ',s_lo(1), s_lo(2),s_lo(3)
        print *,'Low bounds of  loop: ',lo(1),lo(2),lo(3)
        call amrex_error("Need more ghost cells on array in ppm_type1")
     end if
 
     if ((s_hi(1) < hi(1)+3) .or. &
-        (dim >= 2 .and. s_hi(2) < hi(2)+3) .or. &
-        (dim == 3 .and. s_hi(3) < hi(3)+3)) then
+         (dim >= 2 .and. s_hi(2) < hi(2)+3) .or. &
+         (dim == 3 .and. s_hi(3) < hi(3)+3)) then
        print *,'Hi  bounds of array: ',s_hi(1), s_hi(2), s_hi(3)
        print *,'Hi  bounds of  loop: ',hi(1),hi(2),hi(3)
        call amrex_error("Need more ghost cells on array in ppm_type1")
@@ -99,9 +111,9 @@ contains
        n = nstart + ic
        nq = nqstart + ic
 
-       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        ! x-direction
-       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
@@ -201,9 +213,9 @@ contains
        end do
 
 #if AMREX_SPACEDIM >= 2
-       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        ! y-direction
-       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
@@ -307,9 +319,9 @@ contains
 #endif
 
 #if AMREX_SPACEDIM == 3
-       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        ! z-direction
-       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
@@ -418,13 +430,34 @@ contains
   end subroutine ca_ppm_reconstruct
 
 
+
+  !>
+  !! @param[in] s_lo integer
+  !! @param[in] ncomp integer
+  !! @param[in] n integer
+  !! @param[in] icomp integer
+  !! @param[in] ic integer
+  !! @param[in] qd_lo integer
+  !! @param[in] qa_lo integer
+  !! @param[in] sd_lo integer
+  !! @param[in] I_lo integer
+  !! @param[in] lo integer
+  !! @param[in] s real(rt)
+  !! @param[in] q real(rt)
+  !! @param[in] qaux real(rt)
+  !! @param[in] sm_in real(rt)
+  !! @param[in] sp_in real(rt)
+  !! @param[inout] Ip real(rt)
+  !! @param[inout] Im real(rt)
+  !! @param[in] dx real(rt)
+  !!
   subroutine ppm_int_profile(lo, hi, &
-                             s, s_lo, s_hi, ncomp, n, &
-                             q, qd_lo, qd_hi, &
-                             qaux, qa_lo, qa_hi, &
-                             sm_in, sp_in, sd_lo, sd_hi, &
-                             Ip, Im, I_lo, I_hi, icomp, ic, &
-                             dx, dt)
+       s, s_lo, s_hi, ncomp, n, &
+       q, qd_lo, qd_hi, &
+       qaux, qa_lo, qa_hi, &
+       sm_in, sp_in, sd_lo, sd_hi, &
+       Ip, Im, I_lo, I_hi, icomp, ic, &
+       dx, dt)
 
     use meth_params_module, only : NQAUX, QC, NQ, QU, QV, QW
 
@@ -465,9 +498,9 @@ contains
     dtdz = dt/dx(3)
 #endif
 
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! x-direction
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -534,9 +567,9 @@ contains
     end do
 
 #if (AMREX_SPACEDIM >= 2)
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! y-direction
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -556,7 +589,7 @@ contains
              if (speed <= ZERO) then
                 Ip(i,j,k,2,1,ic) = sp
                 Im(i,j,k,2,1,ic) = sm + &
-                  HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
+                     HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
              else
                 Ip(i,j,k,2,1,ic) = sp - &
                      HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
@@ -597,9 +630,9 @@ contains
 #endif
 
 #if (AMREX_SPACEDIM == 3)
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! z-direction
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -661,8 +694,17 @@ contains
   end subroutine ppm_int_profile
 
 
+
+  !>
+  !! @param[in] lo integer
+  !! @param[in] I_lo integer
+  !! @param[inout] Ip real(rt)
+  !! @param[inout] Im real(rt)
+  !! @param[inout] Ip_gc real(rt)
+  !! @param[inout] Im_gc real(rt)
+  !!
   subroutine ppm_reconstruct_with_eos(lo, hi, &
-                                      Ip, Im, Ip_gc, Im_gc, I_lo, I_hi)
+       Ip, Im, Ip_gc, Im_gc, I_lo, I_hi)
 
     use meth_params_module, only : NQ, QRHO, QTEMP, QPRES, QREINT, QFS, QFX
     use eos_type_module, only : eos_t, eos_input_rt

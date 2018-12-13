@@ -57,9 +57,6 @@ end subroutine ca_eos_finalize
 !!
 subroutine ca_extern_init(name,namlen) bind(C, name="ca_extern_init")
 
-  ! initialize the external runtime parameters in
-  ! extern_probin_module
-
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
@@ -405,8 +402,6 @@ end subroutine ca_set_amr_info
 !!
 subroutine ca_get_method_params(nGrowHyp) bind(C, name="ca_get_method_params")
 
-  ! Passing data from f90 back to C++
-
   use meth_params_module, only: NHYP
   use amrex_fort_module, only: rt => amrex_real
 
@@ -464,8 +459,6 @@ end subroutine allocate_outflow_data
 subroutine set_old_outflow_data(radial,time,np,nc) &
      bind(C, name="set_old_outflow_data")
 
-  ! Passing data from C++ to f90
-
   use meth_params_module, only: outflow_data_old, outflow_data_old_time
   use amrex_fort_module, only: rt => amrex_real
 
@@ -500,8 +493,6 @@ end subroutine set_old_outflow_data
 !!
 subroutine set_new_outflow_data(radial,time,np,nc) &
      bind(C, name="set_new_outflow_data")
-
-  ! Passing data from C++ to f90
 
   use meth_params_module, only: outflow_data_new, outflow_data_new_time
   use amrex_fort_module, only: rt => amrex_real
@@ -810,8 +801,6 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
      problo_in, probhi_in, center_in) &
      bind(C, name="ca_set_problem_params")
 
-  ! Passing data from C++ into f90
-
   use amrex_constants_module, only: ZERO
   use amrex_error_module
   use prob_params_module
@@ -923,6 +912,10 @@ end subroutine ca_set_problem_params
 
 
 !>
+!! @note Sometimes this routine can get called multiple
+!! times upon initialization; in this case, just to
+!! be safe, we'll deallocate and start again.
+!!
 !! @note Binds to C function ``ca_set_grid_info``
 !!
 !! @param[in] max_level_in integer
@@ -949,10 +942,6 @@ subroutine ca_set_grid_info(max_level_in, dx_level_in, domlo_in, domhi_in, &
   integer,  intent(in) :: blocking_factor_in(0:max_level_in)
 
   integer :: lev, dir
-
-  ! Sometimes this routine can get called multiple
-  ! times upon initialization; in this case, just to
-  ! be safe, we'll deallocate and start again.
 
   if (allocated(dx_level)) then
      deallocate(dx_level)
@@ -1011,8 +1000,6 @@ end subroutine ca_set_grid_info
 !!
 subroutine ca_get_tagging_params(name, namlen) &
      bind(C, name="ca_get_tagging_params")
-
-  ! Initialize the tagging parameters
 
   use tagging_module
   use amrex_error_module
@@ -1131,8 +1118,6 @@ end subroutine ca_get_tagging_params
 !!
 subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params")
 
-  ! Initialize the sponge parameters
-
   use sponge_module
   use amrex_error_module
   use amrex_fort_module, only: rt => amrex_real
@@ -1235,8 +1220,6 @@ end subroutine ca_get_sponge_params
 !!
 subroutine ca_allocate_sponge_params() bind(C, name="ca_allocate_sponge_params")
 
-  ! allocate sponge parameters
-
   use sponge_module
   allocate(sponge_lower_factor, sponge_upper_factor)
   allocate(sponge_lower_radius, sponge_upper_radius)
@@ -1255,8 +1238,6 @@ end subroutine ca_allocate_sponge_params
 !! @note Binds to C function ``ca_deallocate_sponge_params``
 !!
 subroutine ca_deallocate_sponge_params() bind(C, name="ca_deallocate_sponge_params")
-
-  ! deallocate sponge parameters
 
   use sponge_module
 
