@@ -8,13 +8,14 @@ def make_class_header(class_name, description):
 
     # remove // from description
     description = re.sub(r"//", "", description).strip()
-    description = re.sub(r"\n", "\n///", description)
+    description = re.sub(r"\n[ ]*", "\n/// ", description)
     class_name = re.sub(r"{", "", class_name).strip()
     class_name = class_name.split(':')[0].strip()
 
     boilerplate = f"""
 ///
 /// @class {class_name}
+///
 /// @brief {description}
 ///"""
 
@@ -24,7 +25,7 @@ def make_class_header(class_name, description):
 def make_method_header(description="", parameters=[]):
     # remove // from description
     description = re.sub(r"//", "", description).strip()
-    description = re.sub(r"\n", "\n///", description)
+    description = re.sub(r"\n[ ]*", "\n/// ", description)
 
     boilerplate = ""
 
@@ -54,7 +55,7 @@ def make_method_header(description="", parameters=[]):
 def make_method_doxycomment(description=""):
     # remove // from description
     description = re.sub(r"//", "", description).strip()
-    description = re.sub(r"\n", "\n///", description)
+    description = re.sub(r"\n[ ]*", "\n/// ", description)
 
     if description == "":
         return ""
@@ -71,7 +72,7 @@ def make_method_doxycomment(description=""):
 
 def make_variable_docstring(description):
     description = re.sub(r"//", "", description).strip()
-    description = re.sub(r"\n", "\n///", description)
+    description = re.sub(r"\n[ ]*", "\n/// ", description)
 
     if description == "":
         return ""
@@ -245,12 +246,112 @@ def process_cpp_file(filename):
     with open(output_filename, 'w+') as output_file:
         output_file.write(output_data)
 
+def make_subroutine_header(description="", binds_to="", parameters=[]):
+    description = re.sub(r"!", "", description).strip()
+    description = re.sub(r"\n[ ]*", "\n!! ", description)
+
+    if description == "" and binds_to == "" and parameters == []:
+        return ""
+
+    boilerplate = """
+!> """
+    if description != "":
+        boilerplate += f"""@brief {description}
+!!
+"""
+    else:
+        boilerplate += """
+"""
+
+    if binds_to != "":
+        boilerplate += f"""!! @note Binds to C function ``{binds_to.strip()}``
+!!
+"""
+
+    if parameters != []:
+
+        for (type, intent, vars) in parameters:
+            vars = vars.split(",")
+            for v in vars:
+                boilerplate += f"""!! @param[{intent.strip()}] {v.strip()} {type.strip()}
+"""
+
+        boilerplate += """!!
+"""
+
+    return boilerplate
+
+
+def process_fortran_file(filename):
+    output_data = ""
+
+    re_subroutine = re.compile(r"^[ \t]*subroutine \S+\([\w ,&\n]*\)(?:[ &\n]*bind\(C, *name *= ?\"(\w+)\")?", flags=re.MULTILINE)
+
+    re_end_subroutine = re.compile(r"^[ \t]*end subroutine", flags=re.MULTILINE)
+
+    re_comments = re.compile(r"^[ \t]*!([\S \n]*?)(?=^[ \t]*[^!]*$)", flags=re.MULTILINE)
+
+    re_parameters = re.compile(r"^[ \t]*([\w()]+) *, *intent *\( *(in|out|inout) *\) *:: *([\w, ]+)", flags=re.MULTILINE)
+
+    with open(filename) as input_file:
+        data = input_file.read()
+
+        last_index = 0
+
+        for m in re.finditer(re_subroutine, data):
+
+            subroutine_end = re.search(re_end_subroutine, data[m.end():]).start() + m.end()
+
+            # print("match = ", m.group(1))
+
+            # assume comments are after the prototype
+            comments = re.search(re_comments, data[m.end():subroutine_end])
+
+            parameters = re.findall(re_parameters, data[m.end():subroutine_end])
+            # print(parameters)
+
+            if comments and comments.start() <= 3:
+                # print("comments = ", comments.group(1), "binding = ", m.group(1))
+                output_data += data[last_index:m.start()]
+                # print("groups = ", m.groups())
+                if m.groups()[0] is not None:
+                    subroutine_header = make_subroutine_header(comments.group(1), binds_to=m.group(1), parameters=parameters)
+                else:
+                    subroutine_header = make_subroutine_header(comments.group(1), parameters=parameters)
+
+
+                # print("header = ", subroutine_header)
+            else:
+                output_data += data[last_index:m.start()]
+                # print(m.groups())
+                if m.groups()[0] is not None:
+                    subroutine_header = make_subroutine_header(binds_to=m.group(1), parameters=parameters)
+                else:
+                    subroutine_header = make_subroutine_header(parameters=parameters)
+
+
+            last_index = subroutine_end
+
+
+            output_data += subroutine_header
+            output_data += data[m.start():subroutine_end]
+
+        output_data += data[last_index:]
+
+
+    output_filename = filename + ".doxygen"
+
+    with open(output_filename, 'w+') as output_file:
+        output_file.write(output_data)
+
+
 
 if __name__ == "__main__":
     filename = sys.argv[1]
-    # print(filename[])
 
     if filename[-2:] == ".H":
         process_header_file(filename)
     elif filename[-4:] == ".cpp":
         process_cpp_file(filename)
+    elif filename[-4:].lower() == ".f90":
+        process_fortran_file(filename)

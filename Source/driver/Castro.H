@@ -70,6 +70,7 @@ enum sources { ext_src = 0,
 
 ///
 /// @class Castro
+///
 /// @brief AmrLevel-derived class for hyperbolic conservation equations for stellar media
 ///
 class Castro
@@ -86,12 +87,12 @@ public:
 ///
 /// The basic constructor.
 ///
-/// @param papa
-/// @param lev
-/// @param level_geom
-/// @param bl
-/// @param dm
-/// @param time
+/// @param papa parent amrex::Amr object
+/// @param lev which level are we on
+/// @param level_geom level geometry
+/// @param bl BoxArray object
+/// @param dm the mapping
+/// @param time current time
 ///
     Castro (amrex::Amr&            papa,
             int             lev,
@@ -108,7 +109,7 @@ public:
 ///
 /// Restart from a checkpoint file.
 ///
-/// @param papa
+/// @param papa parent amrex::Amr object
 /// @param is
 /// @param bReadSpecial
 ///
@@ -148,8 +149,8 @@ public:
 ///
 /// Write a plotfile to specified directory.
 ///
-/// @param dir
-/// @param os
+/// @param dir directory to write to
+/// @param os output stream
 /// @param how
 ///
     virtual void writePlotFile (const std::string& dir,
@@ -157,8 +158,8 @@ public:
                                 amrex::VisMF::How     how) override;
 
 ///
-/// @param dir
-/// @param os
+/// @param dir directory to write to
+/// @param os output stream
 /// @param how
 ///
     virtual void writeSmallPlotFile (const std::string& dir,
@@ -166,8 +167,8 @@ public:
 				     amrex::VisMF::How     how) override;
 
 ///
-/// @param dir
-/// @param os
+/// @param dir directory to write to
+/// @param os output stream
 /// @param how
 /// @param is_small
 ///
@@ -178,7 +179,7 @@ public:
 
 
 ///
-/// @param dir
+/// @param dir directory to write to
 ///
     void writeJobInfo (const std::string& dir);
 
@@ -218,21 +219,21 @@ public:
 ///
 /// Write particles in checkpoint directories
 ///
-/// @param dir
+/// @param dir directory containing checkpoint
 ///
     void ParticleCheckPoint (const std::string& dir);
 
 ///
 /// Write particles in plotfile directories
 ///
-/// @param dir
+/// @param dir directory containing plotfile
 ///
     void ParticlePlotFile (const std::string& dir);
 
 ///
 /// How to initialize at restart
 ///
-/// @param restart_file
+/// @param restart_file path to restart file
 ///
     void ParticlePostRestart (const std::string& restart_file);
 
@@ -254,8 +255,8 @@ public:
 /// Advance the particles by dt
 ///
 /// @param iteration
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 ///
     void advance_particles (int iteration, amrex::Real time, amrex::Real dt);
 
@@ -272,7 +273,7 @@ public:
     amrex::MultiFab* Area ();
 
 ///
-/// @param dir
+/// @param dir direction of normal
 ///
     amrex::MultiFab& Area (int dir);
 
@@ -284,16 +285,16 @@ public:
 ///
 /// Return the n'th fluxes MultiFab.
 ///
-/// @param dir
+/// @param dir direction in which to find the fluxes along
 ///
     amrex::MultiFab& Fluxes (int dir);
 
 ///
 /// Set time levels of state data.
 ///
-/// @param time
-/// @param dt_old
-/// @param dt_new
+/// @param time current time
+/// @param dt_old old timestep
+/// @param dt_new new timestep
 ///
     virtual void setTimeLevel (amrex::Real time,
                                amrex::Real dt_old,
@@ -319,8 +320,8 @@ public:
 ///
 /// Advance grids at this level in time.
 ///
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 /// @param iteration
 /// @param ncycle
 ///
@@ -332,8 +333,8 @@ public:
 #ifndef AMREX_USE_CUDA
 
 ///
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 /// @param amr_iteration
 /// @param amr_ncycle
 ///
@@ -345,8 +346,8 @@ public:
 
 
 ///
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 /// @param amr_iteration
 /// @param amr_ncycle
 ///
@@ -358,8 +359,8 @@ public:
 #ifndef AMREX_USE_CUDA
 
 ///
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 /// @param amr_iteration
 /// @param amr_ncycle
 ///
@@ -367,8 +368,8 @@ public:
 
 
 ///
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 /// @param amr_iteration
 /// @param amr_ncycle
 ///
@@ -377,8 +378,8 @@ public:
 
 
 ///
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 /// @param amr_iteration
 /// @param amr_ncycle
 ///
@@ -386,8 +387,8 @@ public:
 
 
 ///
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 /// @param amr_iteration
 /// @param amr_ncycle
 ///
@@ -395,8 +396,8 @@ public:
 
 
 ///
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 /// @param amr_iteration
 /// @param amr_ncycle
 ///
@@ -404,8 +405,8 @@ public:
 
 
 ///
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 /// @param amr_iteration
 /// @param amr_ncycle
 ///
@@ -413,37 +414,37 @@ public:
 
 
 ///
-/// @param time
+/// @param time current time
 ///
     void cons_to_prim(const amrex::Real time);
 
 #ifndef AMREX_USE_CUDA
 
 ///
-/// @param time
+/// @param time current time
 ///
     void cons_to_prim_fourth(const amrex::Real time);
 #endif
 
 
 ///
-/// @param dt
+/// @param dt timestep
 ///
     void check_for_cfl_violation(const amrex::Real dt);
 
 #ifndef AMREX_USE_CUDA
 
 ///
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 ///
     void construct_hydro_source(amrex::Real time, amrex::Real dt);
 #endif
 
 
 ///
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 ///
     void construct_mol_hydro_source(amrex::Real time, amrex::Real dt);
 
@@ -478,8 +479,8 @@ public:
 ///
 /// @param source
 /// @param state
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 /// @param amr_iteration
 /// @param amr_ncycle
 ///
@@ -490,8 +491,8 @@ public:
 /// @param src
 /// @param source
 /// @param state
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 /// @param amr_iteration
 /// @param amr_ncycle
 ///
@@ -502,8 +503,8 @@ public:
 /// @param source
 /// @param state_old
 /// @param state_new
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 /// @param amr_iteration
 /// @param amr_ncycle
 ///
@@ -515,8 +516,8 @@ public:
 /// @param source
 /// @param state_old
 /// @param state_new
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 /// @param amr_iteration
 /// @param amr_ncycle
 ///
@@ -532,7 +533,7 @@ public:
 
 
 ///
-/// @param dt
+/// @param dt timestep
 /// @param is_new
 ///
     void print_all_source_changes(amrex::Real dt, bool is_new);
@@ -548,7 +549,7 @@ public:
 /// @param S_new
 /// @param src_old
 /// @param src_new
-/// @param dt
+/// @param dt timestep
 ///
     void time_center_source_terms (amrex::MultiFab& S_new,
 				   amrex::MultiFab& src_old,
@@ -560,8 +561,8 @@ public:
 ///
 /// @param source
 /// @param state
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 ///
     void construct_old_sponge_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
 
@@ -570,8 +571,8 @@ public:
 /// @param source
 /// @param state_old
 /// @param state_new
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 ///
     void construct_new_sponge_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
@@ -584,8 +585,8 @@ public:
 ///
 /// @param source
 /// @param state
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 ///
     void construct_old_ext_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
 
@@ -594,15 +595,15 @@ public:
 /// @param source
 /// @param state_old
 /// @param state_new
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 ///
     void construct_new_ext_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
 
 ///
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 /// @param S_old
 /// @param S_new
 /// @param ext_src
@@ -613,8 +614,8 @@ public:
 ///
 /// @param source
 /// @param state
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 ///
     void construct_old_thermo_source(amrex::MultiFab& source, amrex::MultiFab& state,
                                      amrex::Real time, amrex::Real dt);
@@ -624,16 +625,16 @@ public:
 /// @param source
 /// @param state_old
 /// @param state_new
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 ///
     void construct_new_thermo_source(amrex::MultiFab& source, amrex::MultiFab& state_old,
                                      amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
 
 ///
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 /// @param S_old
 /// @param S_new
 /// @param ext_src
@@ -648,7 +649,7 @@ public:
 ///
 /// @param amr_iteration
 /// @param amr_ncycle
-/// @param time
+/// @param time current time
 ///
     void construct_old_gravity(int amr_iteration, int amr_ncycle,
 			       amrex::Real time);
@@ -657,7 +658,7 @@ public:
 ///
 /// @param amr_iteration
 /// @param amr_ncycle
-/// @param time
+/// @param time current time
 ///
     void construct_new_gravity(int amr_iteration, int amr_ncycle,
 			       amrex::Real time);
@@ -666,8 +667,8 @@ public:
 ///
 /// @param source
 /// @param state
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 ///
     void construct_old_gravity_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
 
@@ -676,8 +677,8 @@ public:
 /// @param source
 /// @param state_old
 /// @param state_new
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 ///
     void construct_new_gravity_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 #endif
@@ -686,7 +687,7 @@ public:
 ///
 /// Estimate time step.
 ///
-/// @param dt_old
+/// @param dt_old previous timestep
 ///
     amrex::Real estTimeStep (amrex::Real dt_old);
 
@@ -770,7 +771,7 @@ public:
 ///
 /// Check whether we want to do a regrid.
 ///
-/// @param time
+/// @param time current time
 ///
     void check_for_post_regrid (amrex::Real time);
 
@@ -816,7 +817,7 @@ public:
 /// @param tb
 /// @param clearval
 /// @param tagval
-/// @param time
+/// @param time current time
 /// @param n_error_buf
 /// @param ngrow
 ///
@@ -834,7 +835,7 @@ public:
 /// @param tags
 /// @param clearval
 /// @param setval
-/// @param time
+/// @param time current time
 ///
     void apply_problem_tags (amrex::TagBoxArray& tags, int clearval, int setval, amrex::Real time);
 
@@ -845,7 +846,7 @@ public:
 /// @param tags
 /// @param clearval
 /// @param setval
-/// @param time
+/// @param time current time
 /// @param j
 ///
     void apply_tagging_func (amrex::TagBoxArray& tags, int clearval, int setval, amrex::Real time, int j);
@@ -857,7 +858,7 @@ public:
 /// @param tags
 /// @param clearval
 /// @param tagval
-/// @param time
+/// @param time current time
 ///
     void problem_pre_tagging_hook (amrex::TagBoxArray& tags, int clearval, int tagval, amrex::Real time);
 
@@ -865,7 +866,7 @@ public:
 /// @param tags
 /// @param clearval
 /// @param tagval
-/// @param time
+/// @param time current time
 ///
     void problem_post_tagging_hook (amrex::TagBoxArray& tags, int clearval, int tagval, amrex::Real time);
 
@@ -881,7 +882,7 @@ public:
 /// This version of derive() fills the dcomp'th component of mf with the derived quantity.
 ///
 /// @param name
-/// @param time
+/// @param time current time
 /// @param mf
 /// @param dcomp
 ///
@@ -900,8 +901,8 @@ public:
 /// @param reactions
 /// @param mask
 /// @param weights
-/// @param time
-/// @param dt_react
+/// @param time current time
+/// @param dt_react reaction timestep
 /// @param strang_half
 /// @param ngrow
 ///
@@ -915,28 +916,28 @@ public:
 
 
 ///
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 ///
     void strang_react_first_half(amrex::Real time, amrex::Real dt);
 
 
 ///
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 ///
     void strang_react_second_half(amrex::Real time, amrex::Real dt);
 #else
 
 ///
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 ///
     void react_state(amrex::Real time, amrex::Real dt);
 
 ///
 /// @param source
-/// @param dt
+/// @param dt timestep
 ///
     void get_react_source_prim(amrex::MultiFab& source, amrex::Real dt);
 #endif
@@ -945,8 +946,8 @@ public:
 ///
 /// @param state
 /// @param react_mf
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 ///
     void strang_chem (amrex::MultiFab&  state,
                       amrex::MultiFab&  react_mf,
@@ -965,8 +966,8 @@ public:
 ///
 /// @param source
 /// @param state
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 ///
     void construct_old_rotation_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
 
@@ -975,8 +976,8 @@ public:
 /// @param source
 /// @param state_old
 /// @param state_new
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 ///
     void construct_new_rotation_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
@@ -985,7 +986,7 @@ public:
 /// @param phi
 /// @param rot
 /// @param state
-/// @param time
+/// @param time current time
 ///
     void fill_rotation_field(amrex::MultiFab& phi, amrex::MultiFab& rot, amrex::MultiFab& state, amrex::Real time);
 #endif
@@ -1011,7 +1012,7 @@ public:
 
 ///
 /// @param State
-/// @param ng
+/// @param ng number of ghost cells
 ///
     void computeTemp (amrex::MultiFab& State, int ng);
 
@@ -1019,7 +1020,7 @@ public:
 
 
 ///
-/// @param dt
+/// @param dt timestep
 ///
     void swap_state_time_levels (const amrex::Real dt);
 
@@ -1028,8 +1029,8 @@ public:
 ///
 /// @param source
 /// @param state
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 ///
     void construct_old_diff_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
 
@@ -1037,21 +1038,21 @@ public:
 /// @param source
 /// @param state_old
 /// @param state_new
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 ///
     void construct_new_diff_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
 
 ///
-/// @param time
+/// @param time current time
 /// @param state
 /// @param DiffTerm
 ///
     void getTempDiffusionTerm (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& DiffTerm);
 
 ///
-/// @param time
+/// @param time current time
 /// @param state
 /// @param DiffTerm
 ///
@@ -1059,7 +1060,7 @@ public:
 #if (BL_SPACEDIM == 1)
 
 ///
-/// @param time
+/// @param time current time
 /// @param state
 /// @param DiffTerm
 ///
@@ -1068,7 +1069,7 @@ public:
 #if (BL_SPACEDIM == 1)
 
 ///
-/// @param time
+/// @param time current time
 /// @param state
 /// @param ViscousTermforMomentum
 /// @param ViscousTermforEnergy
@@ -1076,21 +1077,21 @@ public:
     void getViscousTerm (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& ViscousTermforMomentum, amrex::MultiFab& ViscousTermforEnergy);
 
 ///
-/// @param time
+/// @param time current time
 /// @param state
 /// @param ViscousTerm
 ///
     void getFirstViscousTerm (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& ViscousTerm);
 
 ///
-/// @param time
+/// @param time current time
 /// @param state
 /// @param ViscousTerm
 ///
     void getSecndViscousTerm (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& ViscousTerm);
 
 ///
-/// @param time
+/// @param time current time
 /// @param state
 /// @param ViscousTermforEnergy
 ///
@@ -1144,7 +1145,7 @@ public:
 /// @param S_new
 /// @param OldRotationTerm
 /// @param cur_time
-/// @param dt
+/// @param dt timestep
 ///
   void time_center_rotation(amrex::MultiFab& S_new, amrex::MultiFab& OldRotationTerm, amrex::Real cur_time, amrex::Real dt);
 #endif
@@ -1152,7 +1153,7 @@ public:
 
 ///
 /// @param name
-/// @param time
+/// @param time current time
 /// @param local
 /// @param finemask
 ///
@@ -1161,7 +1162,7 @@ public:
 
 ///
 /// @param name
-/// @param time
+/// @param time current time
 /// @param local
 ///
     amrex::Real volWgtSquaredSum (const std::string& name, amrex::Real time, bool local=false);
@@ -1169,7 +1170,7 @@ public:
 
 ///
 /// @param name
-/// @param time
+/// @param time current time
 /// @param idir
 /// @param local
 ///
@@ -1178,7 +1179,7 @@ public:
 
 ///
 /// @param name
-/// @param time
+/// @param time current time
 /// @param idir1
 /// @param idir2
 /// @param local
@@ -1196,7 +1197,7 @@ public:
 
 ///
 /// @param name
-/// @param time
+/// @param time current time
 /// @param idir
 /// @param side
 /// @param bdir
@@ -1207,7 +1208,7 @@ public:
 
 ///
 /// @param name
-/// @param time
+/// @param time current time
 /// @param side
 /// @param bdir
 /// @param local
@@ -1218,7 +1219,7 @@ public:
 ///
 /// @param name1
 /// @param name2
-/// @param time
+/// @param time current time
 /// @param local
 ///
     amrex::Real volProductSum (const std::string& name1, const std::string& name2, amrex::Real time, bool local=false);
@@ -1226,7 +1227,7 @@ public:
 
 ///
 /// @param name
-/// @param time
+/// @param time current time
 /// @param idir
 /// @param local
 ///
@@ -1242,8 +1243,8 @@ public:
 ///
 /// @param source
 /// @param state
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 ///
     void construct_old_hybrid_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
 
@@ -1252,8 +1253,8 @@ public:
 /// @param source
 /// @param state_old
 /// @param state_new
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 ///
     void construct_new_hybrid_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
@@ -1285,17 +1286,17 @@ public:
 /// @param is_new
 /// @param state
 /// @param source
-/// @param dt
-/// @param ng
+/// @param dt timestep
+/// @param ng number of ghost cells
 ///
     void apply_source_to_state (int is_new, amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng = 0);
 
 
 ///
 /// @param S
-/// @param time
+/// @param time current time
 /// @param iclean
-/// @param ng
+/// @param ng number of ghost cells
 ///
     void expand_state(amrex::MultiFab& S, amrex::Real time, int iclean, int ng);
 
@@ -1310,8 +1311,8 @@ public:
 #ifdef AUX_UPDATE
 
 ///
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 ///
     void advance_aux(amrex::Real time, amrex::Real dt);
 #endif
@@ -1388,7 +1389,7 @@ protected:
     amrex::Vector<std::unique_ptr<amrex::iMultiFab> > ib_mask;
 
 ///
-/// @param ng
+/// @param ng number of ghost cells
 ///
     amrex::iMultiFab& build_interior_boundary_mask (int ng);
 
@@ -1585,7 +1586,7 @@ protected:
 
 ///
 /// @param S_new
-/// @param ng
+/// @param ng number of ghost cells
 ///
     void normalize_species (amrex::MultiFab& S_new, int ng);
 
@@ -1608,7 +1609,7 @@ protected:
 ///
 /// @param S_old
 /// @param S_new
-/// @param ng
+/// @param ng number of ghost cells
 ///
     amrex::Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new, int ng);
 
@@ -1620,7 +1621,7 @@ protected:
 ///
 /// @param is_new
 /// @param state
-/// @param ng
+/// @param ng number of ghost cells
 ///
     amrex::Real clean_state (int is_new, amrex::MultiFab& state, int ng);
 
@@ -1631,7 +1632,7 @@ protected:
 ///
 ///
 /// @param is_new
-/// @param ng
+/// @param ng number of ghost cells
 ///
     amrex::Real clean_state (int is_new, int ng);
 
@@ -1661,7 +1662,7 @@ protected:
 /// integrate derived quantities over domain
 ///
 /// @param name
-/// @param time
+/// @param time current time
 /// @param local
 ///
     amrex::Real sumDerive (const std::string& name, amrex::Real time, bool local=false);
@@ -1674,7 +1675,7 @@ protected:
 
 ///
 /// @param S
-/// @param time
+/// @param time current time
 ///
     void define_new_center (amrex::MultiFab& S, amrex::Real time);
     void write_center ();
@@ -1683,8 +1684,8 @@ protected:
 #ifdef POINTMASS
 
 ///
-/// @param time
-/// @param dt
+/// @param time current time
+/// @param dt timestep
 ///
     void pointmass_update(amrex::Real time, amrex::Real dt);
 #endif

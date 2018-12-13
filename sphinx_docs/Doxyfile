@@ -256,7 +256,7 @@ OPTIMIZE_OUTPUT_JAVA   = NO
 # sources. Doxygen will then generate output that is tailored for Fortran.
 # The default value is: NO.
 
-OPTIMIZE_FOR_FORTRAN   = NO
+OPTIMIZE_FOR_FORTRAN   = YES
 
 # Set the OPTIMIZE_OUTPUT_VHDL tag to YES if your project consists of VHDL
 # sources. Doxygen will then generate output that is tailored for VHDL.
@@ -806,7 +806,9 @@ INPUT_ENCODING         = UTF-8
 # *.f, *.for, *.tcl, *.vhd, *.vhdl, *.ucf and *.qsf.
 
 FILE_PATTERNS          = *.H \
-                        *.cpp
+                        *.cpp \
+                        *.F90 \
+                        *.f90
 
 # The RECURSIVE tag can be used to specify whether or not subdirectories should
 # be searched for input files as well.
@@ -837,7 +839,8 @@ EXCLUDE_SYMLINKS       = NO
 # Note that the wildcards are matched against the file with absolute path, so to
 # exclude all test directories for example use the pattern */test/*
 
-EXCLUDE_PATTERNS       =
+EXCLUDE_PATTERNS       = *HABEC*.F90 *RAD*.F90 *bc_ext_fill*.F90 *bc_fill*.F90 \
+                         *problem_tagging_*.f90 *fourth_order.F90
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
