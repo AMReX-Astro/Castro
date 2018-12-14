@@ -48,14 +48,19 @@ contains
   ! ::
 
 
+  !> @brief Given a radial mass distribution, this computes the gravitational
+  !! acceleration as a function of radius by computing the mass enclosed
+  !! in successive spherical shells.
+  !!
+  !! @param[in] mass    radial mass distribution
+  !! @param[in] den
+  !! @param[inout] grav    gravitational acceleration as a function of radius
+  !! @param[in] max_radius
+  !! @param[in] dr
+  !! @param[in] numpts_1d
+  !!
   subroutine ca_integrate_grav (mass,den,grav,max_radius,dr,numpts_1d) &
        bind(C, name="ca_integrate_grav")
-
-    ! Given a radial mass distribution, this computes the gravitational
-    ! acceleration as a function of radius by computing the mass enclosed
-    ! in successive spherical shells.
-    ! Inputs: mass(r), dr, numpts_1d
-    ! Outputs: grav(r)
 
     use fundamental_constants_module, only : Gconst
     use amrex_constants_module
@@ -136,36 +141,40 @@ contains
   ! ::
 
 
-
+  !> @brief Integrates radial mass elements of a spherically symmetric
+  !! mass distribution to calculate both the gravitational acceleration,
+  !! grav, and the gravitational potential, phi. Here the mass variable
+  !! gives the mass contained in each radial shell.
+  !!
+  !! The convention in Castro for Poisson's equation is
+  !!
+  !!     laplacian(phi) = 4*pi*G*rho
+  !!
+  !! The gravitational acceleration is then
+  !! \f[
+  !!     g(r) = -G M(r) / r^2
+  !! \f]
+  !! where \f$M(r)\f$ is the mass interior to radius r.
+  !!
+  !! The strategy for calculating the potential is to calculate the potential
+  !! at the boundary assuming all the mass is enclosed:
+  !! \f[
+  !!     \phi(R) = -G M / R
+  !! \f]
+  !! Then, the potential in all other zones can be found using
+  !! \f[
+  !!     \frac{d(\phi)}{dr} = g   \; \Rightarrow \;
+  !!     \phi(r < R) = \phi(R) - \int(g \dr)
+  !! \f]
+  !!
+  !! @param[in] mass    radial mass distribution
+  !! @param[inout] grav radial gravitational acceleration
+  !! @param[in] dr      radial cell spacing
+  !! @param[in] numpts_1d   number of points in radial direction
+  !! @param[inout] phi      radial gravitational potential
+  !!
   subroutine ca_integrate_phi (mass,grav,phi,dr,numpts_1d) &
        bind(C, name="ca_integrate_phi")
-
-    ! Integrates radial mass elements of a spherically symmetric
-    ! mass distribution to calculate both the gravitational acceleration,
-    ! grav, and the gravitational potential, phi. Here the mass variable
-    ! gives the mass contained in each radial shell.
-    !
-    ! The convention in Castro for Poisson's equation is
-    !
-    !     laplacian(phi) = 4*pi*G*rho
-    !
-    ! The gravitational acceleration is then
-    !
-    !     g(r) = -G*M(r) / r**2
-    !
-    ! where M(r) is the mass interior to radius r.
-    !
-    ! The strategy for calculating the potential is to calculate the potential
-    ! at the boundary assuming all the mass is enclosed:
-    !
-    !     phi(R) = -G * M / R
-    !
-    ! Then, the potential in all other zones can be found using
-    !
-    !     d(phi)/dr = g    ==>    phi(r < R) = phi(R) - int(g * dr)
-    !
-    ! Inputs: mass, grav, dr, numpts_1d
-    ! Outputs: phi
 
     use fundamental_constants_module, only : Gconst
 
@@ -204,12 +213,18 @@ contains
   ! :: ----------------------------------------------------------
   ! ::
 
+
+  !> @brief Same as ca_integrate_grav above, but includes general relativistic effects.
+  !!
+  !! @param[in] rho
+  !! @param[in] mass
+  !! @param[in] pressure
+  !! @param[in] dr
+  !! @param[in] numpts_1d
+  !! @param[inout] grav
+  !!
   subroutine ca_integrate_gr_grav (rho,mass,pres,grav,dr,numpts_1d) &
        bind(C, name="ca_integrate_gr_grav")
-
-    ! Same as ca_integrate_grav above, but includes general relativistic effects.
-    ! Inputs: rho, mass, pressure, dr, numpts_1d
-    ! Outputs: grav
 
     use fundamental_constants_module, only : Gconst, c_light
     use amrex_constants_module
