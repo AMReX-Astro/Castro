@@ -12,23 +12,23 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      update_flux, uf_lo, uf_hi, &
      dx, dt, &
      flx, flx_lo, flx_hi, &
-     #if AMREX_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
      fly, fly_lo, fly_hi, &
-     #endif
-     #if AMREX_SPACEDIM == 3
+#endif
+#if AMREX_SPACEDIM == 3
      flz, flz_lo, flz_hi, &
-     #endif
+#endif
      area1, area1_lo, area1_hi, &
-     #if AMREX_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
      area2, area2_lo, area2_hi, &
-     #endif
-     #if AMREX_SPACEDIM == 3
+#endif
+#if AMREX_SPACEDIM == 3
      area3, area3_lo, area3_hi, &
-     #endif
-     #if AMREX_SPACEDIM < 3
+#endif
+#if AMREX_SPACEDIM < 3
      pradial, p_lo, p_hi, &
      dloga, dloga_lo, dloga_hi, &
-     #endif
+#endif
      vol, vol_lo, vol_hi, &
      verbose) bind(C, name="ca_fourth_single_stage")
 

@@ -12,23 +12,23 @@ subroutine ca_mol_single_stage(lo, hi, time, &
      update_flux, uf_lo, uf_hi, &
      dx, dt, &
      flux1, flux1_lo, flux1_hi, &
-     #if AMREX_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
      flux2, flux2_lo, flux2_hi, &
-     #endif
-     #if AMREX_SPACEDIM == 3
+#endif
+#if AMREX_SPACEDIM == 3
      flux3, flux3_lo, flux3_hi, &
-     #endif
+#endif
      area1, area1_lo, area1_hi, &
-     #if AMREX_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
      area2, area2_lo, area2_hi, &
-     #endif
-     #if AMREX_SPACEDIM == 3
+#endif
+#if AMREX_SPACEDIM == 3
      area3, area3_lo, area3_hi, &
-     #endif
-     #if AMREX_SPACEDIM < 3
+#endif
+#if AMREX_SPACEDIM < 3
      pradial, p_lo, p_hi, &
      dloga, dloga_lo, dloga_hi, &
-     #endif
+#endif
      vol, vol_lo, vol_hi, &
      verbose) bind(C, name="ca_mol_single_stage")
 
