@@ -6,15 +6,14 @@ module hybrid_advection_module
 contains
 
 
-  !>
+  !> @brief  Takes the initial linear momentum data in a state and converts it
+  !! to the hybrid momenta.
+  !!
   !! @param[in] lo integer
   !! @param[in] s_lo integer
   !! @param[inout] state real(rt)
   !!
   subroutine ca_init_hybrid_momentum(lo, hi, state, s_lo, s_hi) bind(C, name='ca_init_hybrid_momentum')
-
-    ! Takes the initial linear momentum data in a state and converts it
-    ! to the hybrid momenta.
 
     use meth_params_module, only: NVAR, UMR, UMP, UMX, UMZ
     use castro_util_module, only: position
@@ -48,7 +47,9 @@ contains
 
 
 
-  !>
+  !> @brief Fill a sources array with the source terms in the hybrid momentum
+  !! equations.
+  !!
   !! @param[in] lo integer
   !! @param[in] s_lo integer
   !! @param[in] e_lo integer
@@ -56,9 +57,6 @@ contains
   !! @param[inout] ext_src real(rt)
   !!
   subroutine ca_hybrid_hydro_source(lo, hi, state, s_lo, s_hi, ext_src, e_lo, e_hi, mult_factor) bind(C,name='ca_hybrid_hydro_source')
-
-    ! Fill a sources array with the source terms in the hybrid momentum equations.
-
     use amrex_constants_module, only: ONE
     use meth_params_module, only: NVAR, URHO, UMR, UML
     use prob_params_module, only: center
@@ -353,14 +351,13 @@ contains
 
 
 
-  !>
+  !> @brief Update state to account for hybrid advection.
+  !!
   !! @param[in] lo integer
   !! @param[in] state_lo integer
   !! @param[inout] state real(rt)
   !!
   subroutine ca_hybrid_update(lo, hi, state, state_lo, state_hi) bind(C, name='ca_hybrid_update')
-
-    ! Update state to account for hybrid advection.
 
     use amrex_constants_module, only: HALF, ONE
     use meth_params_module, only: URHO, UMR, UMP, UMX, UMZ, UEDEN, NVAR

@@ -695,7 +695,11 @@ contains
 
 
 
-  !>
+  !> @brief temperature-based PPM -- if desired, take the Ip(T)/Im(T)
+  !! constructed above and use the EOS to overwrite Ip(p)/Im(p)
+  !! get an edge-based gam1 here if we didn't get it from the EOS
+  !! call above (for ppm_temp_fix = 1)
+  !!
   !! @param[in] lo integer
   !! @param[in] I_lo integer
   !! @param[inout] Ip real(rt)
@@ -722,11 +726,6 @@ contains
     integer :: iwave, idim, i, j, k
 
     type(eos_t) :: eos_state
-
-    ! temperature-based PPM -- if desired, take the Ip(T)/Im(T)
-    ! constructed above and use the EOS to overwrite Ip(p)/Im(p)
-    ! get an edge-based gam1 here if we didn't get it from the EOS
-    ! call above (for ppm_temp_fix = 1)
 
     do iwave = 1, 3
        do idim = 1, AMREX_SPACEDIM

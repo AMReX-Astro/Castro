@@ -1632,8 +1632,6 @@ contains
        idir, lo, hi, &
        domlo, domhi)
 
-
-
     use prob_params_module, only : physbc_lo, physbc_hi, &
          Symmetry, SlipWall, NoSlipWall
 

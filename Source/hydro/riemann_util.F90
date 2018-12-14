@@ -92,7 +92,6 @@ contains
        gdot, gmin, gmax, &
        pstar, gamstar, converged, pstar_hist_extra)
 
-
     use meth_params_module, only : cg_maxiter, cg_tol
 
     real(rt)        , intent(inout) :: pstar_lo, pstar_hi

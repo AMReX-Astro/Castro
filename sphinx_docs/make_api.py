@@ -20,7 +20,7 @@ with open(outfile_path, 'w') as outfile:
 =========
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    """
     for subdir in sorted(os.listdir(rootdir)):
