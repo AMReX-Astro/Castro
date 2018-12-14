@@ -360,8 +360,6 @@ def process_fortran_file(filename):
             last_index = subroutine_end
 
 
-
-
         output_data += data[last_index:]
 
     data = output_data
@@ -374,8 +372,6 @@ def process_fortran_file(filename):
 
     for m in re.finditer(re_function, data):
 
-        # print("match = ",m.group(0))
-
         function_end = re.search(re_end_function, data[m.end():]).start() + m.end()
 
         # assume comments are before the prototype
@@ -384,11 +380,7 @@ def process_fortran_file(filename):
                                     data[last_index:m.start() + 1]):
             pass
 
-        # if comments:
-        #     print("comments = ", m.start() - last_index - comments.end(), comments.group(1))
-
         parameters = re.findall(re_parameters, data[m.end():function_end])
-
 
 
         if comments and (m.start() - last_index - comments.end()) <= 3:

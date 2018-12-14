@@ -9,74 +9,70 @@ Currently, Castro supports contant, solid-body rotation about a fixed
 (in space and time) axis in 2D and 3D by transforming the evolution
 equations to the rotating frame of reference.
 
-To include rotation you must set
-
-::
+To include rotation you must set::
 
     USE_ROTATION = TRUE
 
-in the GNUMakefile. Rotation can then be enabled via
-
-::
+in the ``GNUMakefile``. Rotation can then be enabled via::
 
     castro.do_rotation = 1
 
 in the inputs file. The rotational period must then be set via
-castro.rotational_period. The rotational period is internally
+``castro.rotational_period``. The rotational period is internally
 converted to an angular frequency for use in the source term
 equations.
 
 The axis of rotation currently depends on the dimensionality of the
 problem and the value of coord_sys; in all cases, however, the
-default axis of rotation points from center, which is typically
-defined in a Prob_$(DIM)d.f90 routine, to the typical “vertical
+default axis of rotation points from ``center``, which is typically
+defined in a ``Prob_$(DIM)d.f90`` routine, to the typical “vertical
 direction.” The vertical direction is defined as follows:
 
--  2D
+* 2D
 
-   -  coord_sys = 0, (x,y): out of the (x,y)-plane along the “z”-axis
+  * ``coord_sys = 0``, (x,y): out of the (x,y)-plane along the “z”-axis
 
-   -  coord_sys = 1, (r,z): along the z-axis
+  * ``coord_sys = 1``, (r,z): along the z-axis
 
--  3D
+* 3D
 
-   -  coord_sys = 0, (x,y,z): along the z-axis
+  * ``coord_sys = 0``, (x,y,z): along the z-axis
 
 To change these defaults, modify the omega vector in the
-ca_rotate routine found in the Rotate_$(DIM)d.f90 file.
+``ca_rotate`` routine found in the ``Rotate_$(DIM)d.f90`` file.
 
 The main parameters that affect rotation are:
 
--  castro.do_rotation : include rotation as a forcing
+-  ``castro.do_rotation`` : include rotation as a forcing
    term (0 or 1; default: 0)
 
--  castro.rotational_period : period (s) of rotation
+-  ``castro.rotational_period`` : period (s) of rotation
    (default: 0.0)
 
--  castro.rotational_dPdt : d(period) / dt for rotation
+-  ``castro.rotational_dPdt`` : d(period) / dt for rotation
    (default: 0.0)
 
--  castro.rotation_include_centrifugal : whether to
+-  ``castro.rotation_include_centrifugal`` : whether to
    include the centrifugal forcing (default: 1)
 
--  castro.rotation_include_coriolis : whether to
+-  ``castro.rotation_include_coriolis`` : whether to
    include the Coriolis forcing (default: 1)
 
--  castro.rotation_include_domegadt : whether to
+-  ``castro.rotation_include_domegadt`` : whether to
    include the forcing from the time derivative of the rotation
    frequency (default: 1)
 
--  castro.state_in_rotating_frame : whether state
+-  ``castro.state_in_rotating_frame`` : whether state
    variables are measured in the rotating frame (default: 1)
 
--  castro.rot_source_type : method of updating the
+-  ``castro.rot_source_type`` : method of updating the
    energy during a rotation update (default: 4)
 
--  castro.implicit_rotation_update : for the Coriolis
+-  ``castro.implicit_rotation_update`` : for the Coriolis
    term, which mixes momenta in the source term, whether we should
    solve for the update implicitly (default: 1)
 
--  castro.rot_axis : rotation axis (default: 3
+-  ``castro.rot_axis`` : rotation axis (default: 3
    (Cartesian); 2 (cylindrical))
 
 For completeness, we show below a derivation of the source terms that
@@ -95,13 +91,13 @@ Coordinate transformation to rotating frame
    :math:`{\bf r} = \tilde{\bf{r}} + {\bf l}`
 
 Consider an inertial reference frame :math:`C` and a non-inertial
-reference frame :math:`\widetilde{C}` whose origins are separated by the
-vector :math:`\boldsymbol{l}` (see Figure \ `[fig:sec:rot:frames] <#fig:sec:rot:frames>`__). The non-inertial frame is rotating about the axis
-:math:`\ob` with a *constant* angular velocity :math:`\omega`;
-furthermore, we assume the *direction* of the rotational axis is
-fixed. Consider a fluid element at the point :math:`P` whose location is
-given by :math:`\rb` in :math:`C` and by :math:`\rbt` in
-:math:`\widetilde{C}`:
+reference frame :math:`\widetilde{C}` whose origins are separated by
+the vector :math:`\boldsymbol{l}` (see the figure above). The
+non-inertial frame is rotating about the axis :math:`\ob` with a
+*constant* angular velocity :math:`\omega`; furthermore, we assume the
+*direction* of the rotational axis is fixed. Consider a fluid element
+at the point :math:`P` whose location is given by :math:`\rb` in
+:math:`C` and by :math:`\rbt` in :math:`\widetilde{C}`:
 
 .. math:: \rb = \rbt + \boldsymbol{l},
 
@@ -200,12 +196,12 @@ the terms in the rotating frame from `[eq:a] <#eq:a>`__, we have from `[eq:mom1]
 
 .. math::
 
-   \begin{aligned}
-       \rho\left(\frac{D\vbt}{Dt} + 2\ob\times\vbt + \ob\times\left[\ob\times\rbt\right]\right) - \rho\vb\nablab\cdot\vb &=& -\rho\vb\cdot\nablab\vb - \nablab p + \rho\gb \nonumber \\
-       \rho\left(\frac{\partial\vbt}{\partial t} + \vbt\cdot\nablab\vbt\right) &=& -\nablab p + \rho\gb - 2\rho\ob\times\vbt - \rho\ob\times\left[\ob\times\rbt\right] \nonumber \\
-     \frac{\partial\left(\rho\vbt\right)}{\partial t} &=& -\nablab\cdot\left(\rho\vbt\vbt\right) - \nablab p + \rho\gb - 2\rho\ob\times\vbt \nonumber \\
-     & & -\ \rho\ob\times\left[\ob\times\rbt\right]\label{eq:mom-rot}
-     \end{aligned}
+   \begin{align}
+       \rho\left(\frac{D\vbt}{Dt} + 2\ob\times\vbt + \ob\times\left[\ob\times\rbt\right]\right) - \rho\vb\nablab\cdot\vb &= -\rho\vb\cdot\nablab\vb - \nablab p + \rho\gb \nonumber \\
+       \rho\left(\frac{\partial\vbt}{\partial t} + \vbt\cdot\nablab\vbt\right) &= -\nablab p + \rho\gb - 2\rho\ob\times\vbt - \rho\ob\times\left[\ob\times\rbt\right] \nonumber \\
+     \frac{\partial\left(\rho\vbt\right)}{\partial t} &= -\nablab\cdot\left(\rho\vbt\vbt\right) - \nablab p + \rho\gb - 2\rho\ob\times\vbt \nonumber \\
+     &-\ \rho\ob\times\left[\ob\times\rbt\right]\label{eq:mom-rot}
+     \end{align}
 
 or
 
@@ -230,11 +226,11 @@ mulitplying by :math:`\rho\vbt`:
 
 .. math::
 
-   \begin{aligned}
-       \rho\vbt\cdot\frac{D\vbt}{Dt} &=& -\vbt\cdot\nablab p + \rho\vbt\cdot\gb - 2\rho\vbt\cdot\left[\ob\times\vbt\right] - \rho\vbt\cdot\left\{\ob\times\left[\ob\times\rbt\right]\right\} \nonumber \\
-       \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} - \frac{1}{2}\vbt\cdot\vbt\frac{D\rho}{Dt} &=& -\vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right] \nonumber \\
-       \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} &=& -\frac{1}{2}\rho\vbt\cdot\vbt\nablab\cdot\vbt - \vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right]. \label{eq:ekin-rot-total}
-     \end{aligned}
+   \begin{align}
+       \rho\vbt\cdot\frac{D\vbt}{Dt} &= -\vbt\cdot\nablab p + \rho\vbt\cdot\gb - 2\rho\vbt\cdot\left[\ob\times\vbt\right] - \rho\vbt\cdot\left\{\ob\times\left[\ob\times\rbt\right]\right\} \nonumber \\
+       \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} - \frac{1}{2}\vbt\cdot\vbt\frac{D\rho}{Dt} &= -\vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right] \nonumber \\
+       \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} &= -\frac{1}{2}\rho\vbt\cdot\vbt\nablab\cdot\vbt - \vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right]. \label{eq:ekin-rot-total}
+     \end{align}
 
 The internal energy is simply advected, and, from the first law of
 thermodynamics, can change due to :math:`pdV` work:
@@ -250,10 +246,11 @@ get the evolution of the total specific energy in the rotating frame,
 
 .. math::
 
-   \begin{aligned}
-       \frac{D\left(\rho e\right)}{Dt} + \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} &=& -\left(\rho e + p + \frac{1}{2}\rho\vbt\cdot\vbt\right)\nablab\cdot\vbt - \vbt\cdot\nablab p + \rho\vbt\cdot\gb -\rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right]\nonumber \\
-       \frac{D\left(\rho \widetilde{E}\right)}{Dt} &=& -\rho\widetilde{E}\nablab\cdot\vbt - \nablab\cdot\left(p\vbt\right) + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right] \label{eq:etot-rot-total}
-     \end{aligned}
+   \begin{align}
+       \frac{D\left(\rho e\right)}{Dt} + \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} &= -\left(\rho e + p + \frac{1}{2}\rho\vbt\cdot\vbt\right)\nablab\cdot\vbt - \vbt\cdot\nablab p \\
+                     & + \rho\vbt\cdot\gb -\rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right]\nonumber \\
+       \frac{D\left(\rho \widetilde{E}\right)}{Dt} &= -\rho\widetilde{E}\nablab\cdot\vbt - \nablab\cdot\left(p\vbt\right) + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right] \label{eq:etot-rot-total}
+     \end{align}
 
 or
 
@@ -274,11 +271,11 @@ reference:
 
 .. math::
 
-   \begin{aligned}
-       \frac{\partial\rho}{\partial t} &=& -\nablab\cdot\left(\rho\vb\right) \label{eq:cont-rot-switch} \\
-       \frac{\partial \left(\rho\vb\right)}{\partial t} &=& -\nablab\cdot\left(\rho\vb\vb\right) - \nablab p + \rho\gb - 2\rho\ob\times\vb - \rho\left(\ob\cdot\rb\right)\ob + \rho\omega^2\rb \label{eq:mom-rot-switch} \\
-       \frac{\partial\left(\rho E\right)}{\partial t} &=& -\nablab\cdot\left(\rho E\vb + p\vb\right) + \rho\vb\cdot\gb - \rho\left(\ob\cdot\rb\right)\left(\ob\cdot\vb\right) + \rho\omega^2\left(\vb\cdot\rb\right). \label{eq:etot-rot-switch}
-     \end{aligned}
+   \begin{align}
+       \frac{\partial\rho}{\partial t} &= -\nablab\cdot\left(\rho\vb\right) \label{eq:cont-rot-switch} \\
+       \frac{\partial \left(\rho\vb\right)}{\partial t} &= -\nablab\cdot\left(\rho\vb\vb\right) - \nablab p + \rho\gb - 2\rho\ob\times\vb - \rho\left(\ob\cdot\rb\right)\ob + \rho\omega^2\rb \label{eq:mom-rot-switch} \\
+       \frac{\partial\left(\rho E\right)}{\partial t} &= -\nablab\cdot\left(\rho E\vb + p\vb\right) + \rho\vb\cdot\gb - \rho\left(\ob\cdot\rb\right)\left(\ob\cdot\vb\right) + \rho\omega^2\left(\vb\cdot\rb\right). \label{eq:etot-rot-switch}
+     \end{align}
 
 Adding the forcing to the hydrodynamics
 =======================================
@@ -291,48 +288,48 @@ these values are all analogous to the way that gravity is used to
 update the momentum and energy. For the most part, the differences are
 in how the energy update is done:
 
--  castro.rot_source_type = 1 : we use a
-   standard predictor-corrector formalism for updating the momentum and
-   energy. Specifically, our first update is equal to :math:`\Delta t \times
-     \mathbf{S}^n` , where :math:`\mathbf{S}^n` is the value of the source
-   terms at the old-time (which is usually called time-level :math:`n`). At
-   the end of the timestep, we do a corrector step where we subtract
-   off :math:`\Delta t / 2 \times \mathbf{S}^n` and add on :math:`\Delta t / 2
-     \times \mathbf{S}^{n+1}`, so that at the end of the timestep the
-   source term is properly time centered.
+* ``castro.rot_source_type = 1`` : we use a standard
+  predictor-corrector formalism for updating the momentum and
+  energy. Specifically, our first update is equal to :math:`\Delta t \times \mathbf{S}^n` ,
+  where :math:`\mathbf{S}^n` is the value of
+  the source terms at the old-time (which is usually called time-level
+  :math:`n`). At the end of the timestep, we do a corrector step where
+  we subtract off :math:`\Delta t / 2 \times \mathbf{S}^n` and add on
+  :math:`\Delta t / 2 \times \mathbf{S}^{n+1}`, so that at the end of
+  the timestep the source term is properly time centered.
 
--  castro.rot_source_type = 2 : we do something very
-   similar to 1. The major difference is that when evaluating the
-   energy source term at the new time (which is equal to :math:`\mathbf{u}
-     \cdot \mathbf{S}^{n+1}_{\rho \mathbf{u}}`, where the latter is the
-   momentum source term evaluated at the new time), we first update the
-   momentum, rather than using the value of :math:`\mathbf{u}` before
-   entering the rotation source terms. This permits a tighter coupling
-   between the momentum and energy update and we have seen that it
-   usually results in a more accurate evolution.
+* ``castro.rot_source_type = 2`` : we do something very similar
+  to 1. The major difference is that when evaluating the energy source
+  term at the new time (which is equal to
+  :math:`\mathbf{u} \cdot \mathbf{S}^{n+1}_{\rho \mathbf{u}}`, where the latter is the
+  momentum source term evaluated at the new time), we first update the
+  momentum, rather than using the value of :math:`\mathbf{u}` before
+  entering the rotation source terms. This permits a tighter coupling
+  between the momentum and energy update and we have seen that it
+  usually results in a more accurate evolution.
 
--  castro.rot_source_type = 3 : we do the same momentum
-   update as the previous two, but for the energy update, we put all of
-   the work into updating the kinetic energy alone. In particular, we
-   explicitly ensure that :math:`(rho e)` maintains the same, and update
-   :math:`(rho K)` with the work due to rotation, adding the new kinetic
-   energy to the old internal energy to determine the final total gas
-   energy. The physical motivation is that work should be done on the
-   velocity, and should not directly update the temperature – only
-   indirectly through things like shocks.
+* ``castro.rot_source_type = 3`` : we do the same momentum update as
+  the previous two, but for the energy update, we put all of the work
+  into updating the kinetic energy alone. In particular, we explicitly
+  ensure that :math:`(rho e)` maintains the same, and update
+  :math:`(rho K)` with the work due to rotation, adding the new
+  kinetic energy to the old internal energy to determine the final
+  total gas energy. The physical motivation is that work should be
+  done on the velocity, and should not directly update the temperature
+  – only indirectly through things like shocks.
 
--  castro.rot_source_type = 4 : the energy update is done
-   in a “conservative” fashion. The previous methods all evaluate
-   the value of the source term at the cell center, but this method
-   evaluates the change in energy at cell edges, using the
-   hydrodynamical mass fluxes, permitting total energy to be conserved
-   (excluding possible losses at open domain boundaries). Additionally,
-   the velocity update is slightly different—for the corrector step,
-   we note that there is an implicit coupling between the velocity
-   components, and we directly solve this coupled equation, which
-   results in a slightly better coupling and a more accurate evolution.
+* ``castro.rot_source_type = 4`` : the energy update is done in a
+   “conservative” fashion. The previous methods all evaluate the value
+   of the source term at the cell center, but this method evaluates
+   the change in energy at cell edges, using the hydrodynamical mass
+   fluxes, permitting total energy to be conserved (excluding possible
+   losses at open domain boundaries). Additionally, the velocity
+   update is slightly different—for the corrector step, we note that
+   there is an implicit coupling between the velocity components, and
+   we directly solve this coupled equation, which results in a
+   slightly better coupling and a more accurate evolution.
 
-The other major option is castro.implicit_rotation_update.
+The other major option is ``castro.implicit_rotation_update``.
 This does the update of the Coriolis term in the momentum equation
 implicitly (e.g., the velocity in the Coriolis force for the zone
 depends on the updated momentum). The energy update is unchanged.
