@@ -187,6 +187,9 @@ public:
 ///
 /// Define data descriptors.
 ///
+/// ::variableSetUp is called in the constructor of Amr.cpp, so
+/// it should get called every time we start or restart a job
+///
     static void variableSetUp ();
 
 ///
@@ -196,6 +199,9 @@ public:
 
 ///
 /// Cleanup data descriptors at end of run.
+///
+/// ::variableSetUp is in Castro_setup.cpp
+/// variableCleanUp is called once at the end of a simulation
 ///
     static void variableCleanUp ();
 
@@ -321,10 +327,17 @@ public:
 ///
 /// Advance grids at this level in time.
 ///
-/// @param time current time
-/// @param dt timestep
-/// @param iteration
-/// @param ncycle
+/// The main driver for a single level.  This will do either the SDC
+/// algorithm or the Strang-split reactions algorithm.
+///
+/// @param time     the current simulation time
+/// @param dt   the timestep to advance (e.g., go from time to
+///                    time + dt)
+/// @param iteration    where we are in the current AMR subcycle.  Each
+///                    level will take a number of steps to reach the
+///                    final time of the coarser level below it.  This
+///                    counter starts at 1
+/// @param ncycle   the number of subcycles at this level
 ///
     virtual amrex::Real advance (amrex::Real time,
                           amrex::Real dt,
@@ -333,6 +346,11 @@ public:
 
 #ifndef AMREX_USE_CUDA
 
+///
+/// this routine will advance the old state data (called S_old here)
+/// to the new time, for a single level.  The new data is called
+/// S_new here.  The update includes reactions (if we are not doing
+/// SDC), hydro, and the source terms.
 ///
 /// @param time current time
 /// @param dt timestep
@@ -346,6 +364,14 @@ public:
 #endif
 
 
+///
+/// This routine will advance the old state data (called S_old here)
+/// to the new time, for a single level.  The new data is called
+/// S_new here.  The update includes reactions (if we are not doing
+/// SDC), hydro, and the source terms.
+///
+/// @note the time that passes through here is the time for the
+/// current stage
 ///
 /// @param time current time
 /// @param dt timestep
@@ -415,12 +441,18 @@ public:
 
 
 ///
+/// convert the conservative state cell averages to primitive cell
+/// averages
+///
 /// @param time current time
 ///
     void cons_to_prim(const amrex::Real time);
 
 #ifndef AMREX_USE_CUDA
 
+///
+/// convert the conservative state cell averages to primitive cell
+/// averages with 4th order accuracy
 ///
 /// @param time current time
 ///
@@ -436,6 +468,9 @@ public:
 #ifndef AMREX_USE_CUDA
 
 ///
+/// this constructs the hydrodynamic source (essentially the flux
+/// divergence) using the CTU framework for unsplit hydrodynamics
+///
 /// @param time current time
 /// @param dt timestep
 ///
@@ -443,6 +478,10 @@ public:
 #endif
 
 
+///
+/// this constructs the hydrodynamic source (essentially the flux
+/// divergence) using method of lines integration.  The output, as a
+/// update to the state, is stored in the k_mol array of multifabs.
 ///
 /// @param time current time
 /// @param dt timestep
@@ -487,7 +526,8 @@ public:
 ///
     void do_old_sources(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
 
-
+///
+/// Construct the old-time sources.
 ///
 /// @param src
 /// @param source
@@ -511,7 +551,8 @@ public:
 ///
     void do_new_sources(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
 
-
+///
+/// Construct the new-time sources.
 ///
 /// @param src
 /// @param source
@@ -524,15 +565,30 @@ public:
 ///
     void construct_new_source(int src, amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
 
+///
+/// Evaluate diagnostics quantities describing the effect of an
+/// update on the state. The optional parameter local determines
+/// whether we want to do this calculation globally over all processes
+/// or locally just on this processor. The latter is useful if you
+/// are evaluating the contribution from multiple source changes at once
+/// and want to amortize the cost of the parallel reductions.
+/// Note that the resultant output is volume-weighted.
+///
     amrex::Vector<amrex::Real> evaluate_source_change(amrex::MultiFab& update, amrex::Real dt, bool local = false);
 
-
+///
+/// Print the change due to a given source term update.
+/// We assume here that the input array is lined up with
+/// the NUM_STATE components of State_Type because we are
+/// interested in printing changes to energy, mass, etc.
 ///
 /// @param update
 ///
     void print_source_change(amrex::Vector<amrex::Real> update);
 
-
+///
+/// For the old-time or new-time sources update, evaluate the change in the state
+/// for all source terms, then pring the results.
 ///
 /// @param dt timestep
 /// @param is_new
@@ -540,6 +596,15 @@ public:
     void print_all_source_changes(amrex::Real dt, bool is_new);
 
 
+///
+/// Obtain the sum of all source terms.
+///
+/// this computes advective_source + 1/2 (old source + new source)
+///
+/// @note the advective source is defined as -div{F}
+///
+/// the time-centering is accomplished since new source is defined
+/// to be 1/2 (new source - old source) generally.
 ///
 /// @param source
 ///
@@ -748,6 +813,14 @@ public:
 ///
 /// Passes some data about the grid to a Fortran module.
 ///
+/// Send refinement data to Fortran. We do it here
+/// because now the grids have been initialized and
+/// we need this data for setting up the problem.
+///
+/// @note this routine will always get called
+/// on level 0, even if we are doing a restart,
+/// so it is safe to put this here.
+///
     void setGridInfo();
 
 ///
@@ -938,6 +1011,8 @@ public:
     void react_state(amrex::Real time, amrex::Real dt);
 
 ///
+/// Obtain the effective source term due to reactions on the primitive variables
+///
 /// @param source
 /// @param dt timestep
 ///
@@ -1018,6 +1093,29 @@ public:
 ///
     void computeTemp (amrex::MultiFab& State, int ng);
 
+///
+/// Optionally predict the source terms to t + dt/2,
+/// which is the time-level n+1/2 value, To do this we use a
+/// lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so
+/// S_{n+1/2} = S_n + (dt / 2) * dS/dt_n. We'll add the S_n
+/// terms later; now we add the second term. We defer the
+/// multiplication by dt / 2 to initialize_do_advance since
+/// for a retry we may not yet know at this point what the
+/// advance timestep is.
+///
+/// Note that since for dS/dt we want (S^{n+1} - S^{n}) / dt,
+/// we only need to take twice the new-time source term, since in
+/// the predictor-corrector approach, the new-time source term is
+/// 1/2 * S^{n+1} - 1/2 * S^{n}. This is untrue in general for the
+/// non-momentum sources, so for safety we'll only apply it to the
+/// momentum sources.
+///
+/// Note that if the old data doesn't exist yet (e.g. it is
+/// the first step of the simulation) FillPatch will just
+/// return the new data, so this is a valid operation and
+/// the result will be zero, so there is no source term
+/// prediction in the first step.
+///
     void apply_source_term_predictor();
 
 
@@ -1198,6 +1296,11 @@ public:
 
 
 ///
+/// This function is a clone of locWgtSum except that it only sums over one half of the domain.
+/// The lower half corresponds to side == 0, and the upper half corresponds to side == 1.
+/// The argument idir (x == 0, y == 1, z == 2) gives the direction to location weight by,
+/// and the argument bdir gives the direction along which to bisect.
+///
 /// @param name
 /// @param time current time
 /// @param idir
@@ -1208,6 +1311,11 @@ public:
     amrex::Real locWgtSumOneSide (const std::string& name, amrex::Real time, int idir, int side, int bdir, bool local=false);
 
 
+///
+/// This function is a clone of volWgtSum except it computes the result only on half of the domain.
+/// The lower half corresponds to side == 0 and the upper half corresponds to side == 1.
+/// The argument bdir gives the direction along which to bisect.
+/// Only designed to work in Cartesian geometries.
 ///
 /// @param name
 /// @param time current time

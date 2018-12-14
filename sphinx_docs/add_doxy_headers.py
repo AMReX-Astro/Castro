@@ -320,7 +320,7 @@ def process_fortran_file(filename):
 
     re_comments = re.compile(r"^[ \t]*!([\S \n]*?)(?=^[ \t]*[^!]*$)", flags=re.MULTILINE)
 
-    re_parameters = re.compile(r"^[ \t]*([\w()]+) *, *intent *\( *(in|out|inout) *\) *:: *([\w, ]+)", flags=re.MULTILINE)
+    re_parameters = re.compile(r"^[ \t]*([\w() ]+) *, *intent *\( *(in|out|inout) *\) *:: *([\w, ]+)", flags=re.MULTILINE)
 
     with open(filename) as input_file:
         data = input_file.read()

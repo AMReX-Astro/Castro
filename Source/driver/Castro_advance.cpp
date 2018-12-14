@@ -191,7 +191,7 @@ Castro::do_advance (Real time,
 
     check_for_nan(S_old);
 
-    // Since we are Strang splitting the reactions, do them now 
+    // Since we are Strang splitting the reactions, do them now
 
 
 #ifdef REACTIONS
@@ -366,7 +366,7 @@ Castro::do_advance_mol (Real time,
   // S_new here.  The update includes reactions (if we are not doing
   // SDC), hydro, and the source terms.
 
-  // NOTE: the time that passes through here is the time for the 
+  // NOTE: the time that passes through here is the time for the
   // current stage
 
   BL_PROFILE("Castro::do_advance()");
@@ -406,7 +406,7 @@ Castro::do_advance_mol (Real time,
   }
 
 
-  // Construct the "old-time" sources from Sborder.  Since we are 
+  // Construct the "old-time" sources from Sborder.  Since we are
   // working from Sborder, this will actually evaluate the sources
   // using the current stage's starting point.
 
@@ -458,7 +458,7 @@ Castro::do_advance_mol (Real time,
     }
 #endif
 
-    // hack: copy the source to the new data too, so fillpatch doesn't have to 
+    // hack: copy the source to the new data too, so fillpatch doesn't have to
     // worry about time
     MultiFab::Copy(new_source, old_source, 0, 0, NUM_STATE, 0);
 
@@ -512,7 +512,7 @@ Castro::do_advance_mol (Real time,
 
   // we just finished the last stage of the MOL integration.
   // Construct S_new now using the weighted sum of the k_mol
-  // updates -- this will include both the advective and 
+  // updates -- this will include both the advective and
   // source terms
 
   // Apply the update -- we need to build on Sburn, so
@@ -883,7 +883,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     qaux.define(grids, dmap, NQAUX, NUM_GROW);
     if (do_ctu)
       src_q.define(grids, dmap, QVAR, NUM_GROW);
-    if (fourth_order) 
+    if (fourth_order)
       q_bar.define(grids, dmap, NQ, NUM_GROW);
 
     if (!do_ctu) {
@@ -1051,7 +1051,7 @@ Castro::retry_advance(Real& time, Real dt, int amr_iteration, int amr_ncycle)
             std::cout << std::endl;
         }
 
-        // Restore the original values of the state data.        
+        // Restore the original values of the state data.
 
         for (int k = 0; k < num_state_type; k++) {
 
