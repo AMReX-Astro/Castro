@@ -27,13 +27,13 @@ with open(outfile_path, 'w') as outfile:
         if not os.path.isdir(os.path.join(rootdir, subdir)):
             continue
 
-        output_data += f"""{subdir}_files
-   """
-        subdir_file_name = f"source/{subdir}_files.rst"
+        output_data += """{}_files
+   """.format(subdir)
+        subdir_file_name = "source/{}_files.rst".format(subdir)
 
         with open(subdir_file_name, 'w') as subdir_file:
 
-            subdir_output_data = f"{subdir.capitalize()}\n"
+            subdir_output_data = "{}\n".format(subdir.capitalize())
             subdir_output_data += "=" * len(subdir)
             subdir_output_data += """
 
@@ -50,8 +50,8 @@ with open(outfile_path, 'w') as outfile:
                 rst_name = re.sub("_", "__", f)
                 rst_name = re.sub("\.", "_8", rst_name)
 
-                subdir_output_data += f"""file/{rst_name}
-   """
+                subdir_output_data += """file/{}
+   """.format(rst_name)
 
             subdir_file.write(subdir_output_data)
 
