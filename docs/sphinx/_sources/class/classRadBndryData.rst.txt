@@ -1,4 +1,0 @@
-Class RadBndryData
-==================
-
-.. doxygenclass:: RadBndryData

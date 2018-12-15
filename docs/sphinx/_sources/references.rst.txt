@@ -1,6 +1,0 @@
-**********
-References
-**********
-
-.. bibliography:: refs.bib
-

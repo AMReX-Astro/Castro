@@ -5,14 +5,40 @@ Gravity
 Introduction
 ============
 
+Gravity Types
+--------------------
+
+Castro can incorporate gravity as a constant, monopole approximation,
+or a full Poisson solve. To enable gravity in the code, set::
+
+    USE_GRAV = TRUE
+
+in the ``GNUmakefile``, and then turn it on in the inputs file
+via ``castro.do_grav`` = 1. If you want to incorporate a point mass
+(through ``castro.point_mass``), you must have::
+
+    USE_POINTMASS = TRUE
+
+in the ``GNUmakefile``.
+
+There are currently four options for how gravity is calculated,
+controlled by setting ``gravity.gravity_type``. The options are
+``ConstantGrav``, ``PoissonGrav``, ``MonopoleGrav`` or
+``PrescribedGrav``. Again, these are only relevant if ``USE_GRAV =
+TRUE`` in the ``GNUmakefile`` and ``castro.do_grav`` = 1 in the inputs
+file. If both of these are set then the user is required to specify
+the gravity type in the inputs file or the program will abort.
+
 Integration Strategy
 --------------------
 
 Castro uses subcycling to integrate levels at different timesteps.
-The gravity algorithm needs to respect this. Self-gravity is computed
-via multigrid. At coarse-fine interfaces, the stencil used in the
-Laplacian understands the coarse-fine interface and is different than
-the stencil used in the interior.
+The gravity algorithm needs to respect this to obtain full accuracy.
+When self-gravity is computed via a multigrid solve
+(``gravity.gravity_type = PoissonGrav``), we correct for this (though
+not for other gravity types). At coarse-fine interfaces, the stencil
+used in the Laplacian understands the coarse-fine interface and is
+different than the stencil used in the interior.
 
 There are two types of solves that we discuss with AMR:
 
@@ -25,8 +51,8 @@ There are two types of solves that we discuss with AMR:
    interfaces, the data from the coarse levels acts as Dirichlet
    boundary conditions for the current-level-solve.
 
-The overall integration strategy is unchanged from the discussion in
-:cite:`castro_I`. Briefly:
+The overall integration strategy is as follows, and is similar to
+the discussion in :cite:`castro_I`. Briefly:
 
 -  At the beginning of a simulation, we do a multilevel composite
    solve (if ``gravity.no_composite`` = 0).
@@ -69,29 +95,6 @@ all time.
 
 Controls
 --------
-
-Castro can incorporate gravity as a constant, monopole approximation,
-or a full Poisson solve. To enable gravity in the code, set::
-
-    USE_GRAV = TRUE
-
-in the ``GNUmakefile``, and then turn it on in the inputs file
-via ``castro.do_grav`` = 1. If you want to incorporate a point mass
-(through ``castro.point_mass``), you must have::
-
-    USE_POINTMASS = TRUE
-
-in the ``GNUmakefile``.
-
-There are currently four options for how gravity is calculated,
-controlled by setting ``gravity.gravity_type``. The options are
-``ConstantGrav``, ``PoissonGrav``, ``MonopoleGrav`` or
-``PrescribedGrav``. Again, these are only relevant if ``USE_GRAV =
-TRUE`` in the ``GNUmakefile`` and ``castro.do_grav`` = 1 in the inputs
-file. If both of these are set then the user is required to specify
-the gravity type in the inputs file or the program will abort.
-
-Some additional notes:
 
 -  For the full Poisson solver
    (``gravity.gravity_type`` = ``PoissonGrav``), the behavior

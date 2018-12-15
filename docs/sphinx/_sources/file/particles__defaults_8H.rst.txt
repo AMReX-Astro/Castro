@@ -1,4 +1,0 @@
-File particles_defaults.H
-=========================
-
-.. doxygenfile:: particles_defaults.H

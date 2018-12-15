@@ -80,11 +80,11 @@ ppm_type                     int           1                  y
 # reconstruction---see Zingale \& Katz 2015
 ppm_temp_fix                 int           0                  y
 
-# do we construct $\gamma_e = p/(\rho e) + 1$ and bring it
+# do we construct :math:`\gamma_e = p/(\rho e) + 1` and bring it
 # to the interfaces for additional thermodynamic information
-# (this is the Colella \& Glaz technique) or do we use $(\rho e)$
+# (this is the Colella \& Glaz technique) or do we use :math:`(\rho e)`
 # (the classic \castro\ behavior).  Note this also uses
-# $\tau = 1/\rho$ instead of $\rho$.
+# :math:`\tau = 1/\rho` instead of :math:`\rho`.
 ppm_predict_gammae           int           0                  y
 
 # do we use the reference state in evaluating the eigenvectors?
@@ -127,7 +127,7 @@ use_eos_in_riemann           int           0                  y
 use_flattening               int           1                  y
 
 # after we add the transverse correction to the interface states, replace
-# the predicted pressure with an EOS call (using $e$ and $\rho$).
+# the predicted pressure with an EOS call (using :math:`e` and :math:`\rho`).
 transverse_use_eos           int           0                  y
 
 # if the transverse interface state correction, if the new density is
@@ -135,9 +135,9 @@ transverse_use_eos           int           0                  y
 # values without the transverse correction.
 transverse_reset_density     int           1                  y
 
-# if the interface state for $(\rho e)$ is negative after we add the
-# transverse terms, then replace the interface value of $(\rho e)$
-# with a value constructed from the $(\rho e)$ evolution equation
+# if the interface state for :math:`(\rho e)` is negative after we add the
+# transverse terms, then replace the interface value of :math:`(\rho e)`
+# with a value constructed from the :math:`(\rho e)` evolution equation
 transverse_reset_rhoe        int           0                  y
 
 # Threshold value of (E - K) / E such that above eta1, the hydrodynamic
@@ -150,7 +150,7 @@ dual_energy_eta1             Real          1.0e0              y
 # remains unchanged.
 dual_energy_eta2             Real          1.0e-4             y
 
-# for the piecewise linear reconstruction, do we subtract off $(\rho g)$
+# for the piecewise linear reconstruction, do we subtract off :math:`(\rho g)`
 # from the pressure before limiting?
 use_pslope                   int           1                  y
 
@@ -175,7 +175,7 @@ do_sponge                    int           0                  y
 # if we are using the sponge, whether to use the implicit solve for it
 sponge_implicit              int           1                  y
 
-# extrapolate the source terms (gravity and rotation) to $n+1/2$
+# extrapolate the source terms (gravity and rotation) to :math:`n+1/2`
 # timelevel for use in the interface state prediction
 source_term_predictor        int           0
 
@@ -297,12 +297,12 @@ sdc_iters                    int           2
 
 # Limit the timestep based on how much the burning can change the internal
 # energy of a zone. The timestep is equal to
-# {\tt dtnuc}  $\cdot\,(e / \dot{e})$.
+# ``dtnuc``  :math:`\cdot\,(e / \dot{e})`.
 dtnuc_e                      Real          1.e200             y
 
 # Limit the timestep based on how much the burning can change the species
 # mass fractions of a zone. The timestep is equal to
-# {\tt dtnuc}  $\cdot\,(X / \dot{X})$.
+# ``dtnuc``  :math:`\cdot\,(X / \dot{X})`.
 dtnuc_X                      Real          1.e200             y
 
 # If we are using the timestep limiter based on changes in $X$, set a threshold
@@ -312,7 +312,7 @@ dtnuc_X_threshold            Real          1.e-3              y
 
 # limit the zone size based on how much the burning can change the internal
 # energy of a zone. The zone size on the finest level must be smaller than
-# {\tt dxnuc} $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the sound speed.
+# ``dxnuc`` :math:`\cdot\, c_s\cdot (e / \dot{e})`, where :math:`c_s` is the sound speed.
 # This ensures that the sound-crossing time is smaller than the
 # nuclear energy injection timescale.
 dxnuc                        Real          1.e200             y
@@ -415,7 +415,7 @@ rot_source_type              int           4                  y        ROTATION
 # for better coupling of the Coriolis terms
 implicit_rotation_update     int           1                  y        ROTATION
 
-# the coordinate axis ($x=1$, $y=2$, $z=3$) for the rotation vector
+# the coordinate axis (:math:`x=1`, :math:`y=2`, :math:`z=3`) for the rotation vector
 rot_axis                     int           3                  y        ROTATION
 
 # include a central point mass
@@ -486,7 +486,7 @@ show_center_of_mass          int           0
 hard_cfl_limit               int           1
 
 # a string describing the simulation that will be copied into the
-# plotfile's {\tt job\_info} file
+# plotfile's ``job_info`` file
 job_name                     string        ""
 
 # write a final plotfile and checkpoint upon completion
@@ -527,7 +527,7 @@ particle_init_file           string        ""
 # the name of a file with new particles at restart 
 particle_restart_file        string        ""
 
-# to restart from a checkpoint that was written with {\tt USE\_PARTICLES}=FALSE 
+# to restart from a checkpoint that was written with ``USE_PARTICLES`` =FALSE 
 restart_from_nonparticle_chkfile     int      0
 
 # the name of timestamp files.

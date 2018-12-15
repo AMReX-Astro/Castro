@@ -1,4 +1,0 @@
-File Castro_hybrid.cpp
-======================
-
-.. doxygenfile:: Castro_hybrid.cpp

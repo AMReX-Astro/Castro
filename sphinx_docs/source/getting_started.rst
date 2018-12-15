@@ -133,7 +133,7 @@ Running the Code
 #. Castro takes an input file that overrides the runtime parameter defaults.
    The code is run as::
 
-       Castro2d.Linux.gcc.gfortran.ex inputs.2d.cyl_in_cartcoords
+       ./Castro2d.Linux.gcc.gfortran.ex inputs.2d.cyl_in_cartcoords
 
    This will run the 2-d cylindrical Sedov problem in Cartesian
    (:math:`x`-:math:`y` coordinates). You can see other possible
