@@ -1,4 +1,0 @@
-File MGRadBndry.cpp
-===================
-
-.. doxygenfile:: MGRadBndry.cpp

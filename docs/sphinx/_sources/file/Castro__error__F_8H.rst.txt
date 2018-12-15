@@ -1,4 +1,0 @@
-File Castro_error_F.H
-=====================
-
-.. doxygenfile:: Castro_error_F.H

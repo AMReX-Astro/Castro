@@ -1,4 +1,0 @@
-File RadSolve.cpp
-=================
-
-.. doxygenfile:: RadSolve.cpp

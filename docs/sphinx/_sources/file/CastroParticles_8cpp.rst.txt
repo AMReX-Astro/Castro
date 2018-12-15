@@ -1,4 +1,0 @@
-File CastroParticles.cpp
-========================
-
-.. doxygenfile:: CastroParticles.cpp

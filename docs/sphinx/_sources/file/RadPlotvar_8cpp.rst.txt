@@ -1,4 +1,0 @@
-File RadPlotvar.cpp
-===================
-
-.. doxygenfile:: RadPlotvar.cpp

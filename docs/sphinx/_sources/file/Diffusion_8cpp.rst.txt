@@ -1,4 +1,0 @@
-File Diffusion.cpp
-==================
-
-.. doxygenfile:: Diffusion.cpp
