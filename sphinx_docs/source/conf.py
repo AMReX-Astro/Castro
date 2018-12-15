@@ -54,11 +54,7 @@ extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinxcontrib.bibtex',
     'sphinx.ext.autosummary',
-    'nbsphinx',
     'numpydoc',
-    'sphinx.ext.inheritance_diagram',
-    'sphinx.ext.graphviz',
-    'IPython.sphinxext.ipython_console_highlighting',
     'sphinx.ext.githubpages',
     'breathe']
 
@@ -81,7 +77,7 @@ source_suffix = '.rst'
 numpydoc_show_class_members = False
 
 # The master toctree document.
-master_doc = 'index_docs'
+master_doc = 'index'
 
 # General information about the project.
 project = 'Castro'

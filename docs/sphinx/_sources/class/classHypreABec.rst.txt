@@ -1,4 +1,0 @@
-Class HypreABec
-===============
-
-.. doxygenclass:: HypreABec

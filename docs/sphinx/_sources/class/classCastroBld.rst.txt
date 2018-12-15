@@ -1,4 +1,0 @@
-Class CastroBld
-===============
-
-.. doxygenclass:: CastroBld

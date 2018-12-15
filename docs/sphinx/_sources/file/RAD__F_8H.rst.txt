@@ -1,4 +1,0 @@
-File RAD_F.H
-============
-
-.. doxygenfile:: RAD_F.H
