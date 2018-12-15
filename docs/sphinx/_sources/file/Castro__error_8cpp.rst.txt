@@ -1,4 +1,0 @@
-File Castro_error.cpp
-=====================
-
-.. doxygenfile:: Castro_error.cpp

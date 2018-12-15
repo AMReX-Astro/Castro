@@ -1,4 +1,0 @@
-File Castro_setup.cpp
-=====================
-
-.. doxygenfile:: Castro_setup.cpp

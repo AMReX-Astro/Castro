@@ -6,6 +6,7 @@ import os
 import re
 import sys
 import textwrap
+from more_itertools import unique_everseen
 
 main_header = """
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -128,7 +129,7 @@ def make_rest_table(param_files):
             line = f.readline()
 
 
-    namespaces = list(set([q.namespace for q in params_list]))
+    namespaces = list(unique_everseen([q.namespace for q in params_list]))
 
     for nm in sorted(namespaces):
 
@@ -139,7 +140,7 @@ def make_rest_table(param_files):
         print(nmlen*"-" + "\n")
 
         # now group by category
-        categories = list(set([q.category for q in params_list if q.namespace == nm]))
+        categories = list(unique_everseen([q.category for q in params_list if q.namespace == nm]))
 
         for c in categories:
 

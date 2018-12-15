@@ -1,4 +1,0 @@
-Class RadBndryBld
-=================
-
-.. doxygenclass:: RadBndryBld

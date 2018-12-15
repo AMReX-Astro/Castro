@@ -1,4 +1,0 @@
-File SGRadSolver.cpp
-====================
-
-.. doxygenfile:: SGRadSolver.cpp
