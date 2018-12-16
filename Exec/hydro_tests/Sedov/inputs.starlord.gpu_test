@@ -48,3 +48,4 @@ amr.plot_int=10
 
 # PROBIN FILENAME
 amr.probin_file = probin.starlord
+amr.derive_plot_vars = pressure
