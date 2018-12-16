@@ -1542,7 +1542,7 @@ contains
     use rad_params_module, only : ngroups, nugroup, dlognu
     use radhydro_nd_module, only : advect_in_fspace
     use fluxlimiter_module, only : Edd_factor
-    use advection_util_module, only : apply_av
+    use advection_util_module, only : apply_av_rad
 #endif
 #ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only : add_hybrid_advection_source
