@@ -252,8 +252,8 @@ several main data structures that hold the state.</p>
 e.g., <code class="docutils literal notranslate"><span class="pre">uin</span></code>, <code class="docutils literal notranslate"><span class="pre">uout</span></code>. The <code class="docutils literal notranslate"><span class="pre">NVAR</span></code>
 components for the state data in the array are accessed using
 integer keys defined in <a class="reference external" href="#table:consints">[table:consints]</a>.</p>
-<table border="1" class="docutils" id="id16">
-<caption><span class="caption-text">[table:consints] The integer variables to index the conservative state array</span><a class="headerlink" href="#id16" title="Permalink to this table">¶</a></caption>
+<table border="1" class="docutils" id="id19">
+<caption><span class="caption-text">[table:consints] The integer variables to index the conservative state array</span><a class="headerlink" href="#id19" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="32%" />
 <col width="32%" />
@@ -1453,18 +1453,37 @@ found in <a class="reference internal" href="references.html#hu-2013" id="id15">
 </div>
 <div class="section" id="hybrid-momentum">
 <h2>Hybrid Momentum<a class="headerlink" href="#hybrid-momentum" title="Permalink to this headline">¶</a></h2>
-<div class="figure" id="id17">
+<p>Castro implements the hybrid momentum scheme of <a class="reference internal" href="references.html#byerly-2014" id="id16">[ByerlyAdelsteinLelbachTohlineMarcello14]</a>.
+In particular, this switches from using the Cartesian momenta,
+<span class="math notranslate nohighlight">\((\rho u)\)</span>, <span class="math notranslate nohighlight">\((\rho v)\)</span>, and <span class="math notranslate nohighlight">\((\rho w)\)</span>, to a
+cylindrical momentum set, <span class="math notranslate nohighlight">\((\rho v_R)\)</span>, <span class="math notranslate nohighlight">\((\rho R v_\phi)\)</span>,
+and <span class="math notranslate nohighlight">\((\rho v_z)\)</span>.  This latter component is identical to the
+Cartesian value.  We translate between these sets of momentum throughout the code,
+ultimately doing the conservative update in terms of the cylindrical momentum.  Additional
+source terms appear in this formulation, which are written out in <a class="reference internal" href="references.html#byerly-2014" id="id17">[ByerlyAdelsteinLelbachTohlineMarcello14]</a>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem gives a good test for this.  This problem
+originated with <a class="reference internal" href="references.html#papaloizoupringle" id="id18">[PapaloizouPringle84]</a>.  The
+problem is initialized as a torus with constant specific angular
+momentum, as shown below:</p>
+<div class="figure" id="id20">
 <img alt="rotating torus initial density" src="_images/rotating_torus_00000_density.png" />
 <p class="caption"><span class="caption-text">Initial density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem with
 <span class="math notranslate nohighlight">\(64^3\)</span> zones.</span></p>
 </div>
-<div class="figure" id="id18">
+<p>For the standard hydrodynamics algorithm, the torus gets disrupted and
+spreads out into a disk:</p>
+<div class="figure" id="id21">
 <img alt="rotating torus normal hydro" src="_images/rotating_torus_00200_density.png" />
 <p class="caption"><span class="caption-text">Density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem after 200
 timesteps, using <span class="math notranslate nohighlight">\(64^3\)</span> zones.  Notice that the initial torus
 has become disrupted into a disk.</span></p>
 </div>
-<div class="figure" id="id19">
+<p>The hybrid momentum algorithm is enabled by setting:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_HYBRID_MOMENTUM</span> <span class="o">=</span> <span class="n">TRUE</span>
+</pre></div>
+</div>
+<p>in your <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.  With this enabled, we see that the torus remains intact:</p>
+<div class="figure" id="id22">
 <img alt="rotating torus with hybrid momentum" src="_images/rotating_torus_hybrid_00200_density.png" />
 <p class="caption"><span class="caption-text">Density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem after 200
 timesteps with the hybrid momentum algorithm, using <span class="math notranslate nohighlight">\(64^3\)</span>
