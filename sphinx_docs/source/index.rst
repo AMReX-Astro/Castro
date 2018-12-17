@@ -31,6 +31,7 @@ Castro: an adaptive mesh compressible hydrodynamics code
    Hydrodynamics
    gravity
    diffusion
+   rad
    rotation
    radiation
    Particles
@@ -46,7 +47,7 @@ Castro: an adaptive mesh compressible hydrodynamics code
 
    filelist
    classlist
-   namespacelist
+   .. namespacelist
 
 .. toctree::
 
