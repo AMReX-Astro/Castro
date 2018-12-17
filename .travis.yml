@@ -1,3 +1,5 @@
+dist: xenial
+
 language: python
 
 python:
@@ -13,8 +15,8 @@ before_install:
 addons:
    apt:
       packages:
-      - g++-6
-      - gfortran-6
+      - g++
+      - gfortran
       - libgmp-dev
       - libmpfr-dev
       - pandoc
