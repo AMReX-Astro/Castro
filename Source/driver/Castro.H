@@ -179,6 +179,8 @@ public:
 
 
 ///
+/// Write job info to file
+///
 /// @param dir directory to write to
 ///
     void writeJobInfo (const std::string& dir);
@@ -274,10 +276,12 @@ public:
 
 
 ///
-/// Get problem metrics.
+///
 ///
     amrex::MultiFab* Area ();
 
+///
+/// Area of the multifab with surface normal along `dir`
 ///
 /// @param dir direction of normal
 ///
@@ -309,7 +313,7 @@ public:
 ///
 /// Initialize data on this level from another Castro (during regrid).
 ///
-/// @param old
+/// @param old  amrex::AmrLevel object to use to initialize data
 ///
     virtual void init (amrex::AmrLevel& old) override;
 
@@ -352,10 +356,14 @@ public:
 /// S_new here.  The update includes reactions (if we are not doing
 /// SDC), hydro, and the source terms.
 ///
-/// @param time current time
-/// @param dt timestep
-/// @param amr_iteration
-/// @param amr_ncycle
+/// @param time     the current simulation time
+/// @param dt       the timestep to advance (e.g., go from time to
+///                    time + dt)
+/// @param amr_iteration    where we are in the current AMR subcycle.  Each
+///                    level will take a number of steps to reach the
+///                    final time of the coarser level below it.  This
+///                    counter starts at 1
+/// @param amr_ncycle   the number of subcycles at this level
 ///
     amrex::Real do_advance (amrex::Real time,
                      amrex::Real dt,
@@ -373,10 +381,14 @@ public:
 /// @note the time that passes through here is the time for the
 /// current stage
 ///
-/// @param time current time
-/// @param dt timestep
-/// @param amr_iteration
-/// @param amr_ncycle
+/// @param time     the current simulation time
+/// @param dt       the timestep to advance (e.g., go from time to
+///                    time + dt)
+/// @param amr_iteration    where we are in the current AMR subcycle.  Each
+///                    level will take a number of steps to reach the
+///                    final time of the coarser level below it.  This
+///                    counter starts at 1
+/// @param amr_ncycle   the number of subcycles at this level
 ///
     amrex::Real do_advance_mol (amrex::Real time,
                      amrex::Real dt,
@@ -386,56 +398,80 @@ public:
 #ifndef AMREX_USE_CUDA
 
 ///
-/// @param time current time
-/// @param dt timestep
-/// @param amr_iteration
-/// @param amr_ncycle
+/// @param time     the current simulation time
+/// @param dt       the timestep to advance (e.g., go from time to
+///                    time + dt)
+/// @param amr_iteration    where we are in the current AMR subcycle.  Each
+///                    level will take a number of steps to reach the
+///                    final time of the coarser level below it.  This
+///                    counter starts at 1
+/// @param amr_ncycle   the number of subcycles at this level
 ///
     bool retry_advance (amrex::Real& time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
 
 ///
-/// @param time current time
-/// @param dt timestep
-/// @param amr_iteration
-/// @param amr_ncycle
+/// @param time     the current simulation time
+/// @param dt       the timestep to advance (e.g., go from time to
+///                    time + dt)
+/// @param amr_iteration    where we are in the current AMR subcycle.  Each
+///                    level will take a number of steps to reach the
+///                    final time of the coarser level below it.  This
+///                    counter starts at 1
+/// @param amr_ncycle   the number of subcycles at this level
 ///
     amrex::Real subcycle_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 #endif
 
 
 ///
-/// @param time current time
-/// @param dt timestep
-/// @param amr_iteration
-/// @param amr_ncycle
+/// @param time     the current simulation time
+/// @param dt       the timestep to advance (e.g., go from time to
+///                    time + dt)
+/// @param amr_iteration    where we are in the current AMR subcycle.  Each
+///                    level will take a number of steps to reach the
+///                    final time of the coarser level below it.  This
+///                    counter starts at 1
+/// @param amr_ncycle   the number of subcycles at this level
 ///
     void initialize_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
 
 ///
-/// @param time current time
-/// @param dt timestep
-/// @param amr_iteration
-/// @param amr_ncycle
+/// @param time     the current simulation time
+/// @param dt       the timestep to advance (e.g., go from time to
+///                    time + dt)
+/// @param amr_iteration    where we are in the current AMR subcycle.  Each
+///                    level will take a number of steps to reach the
+///                    final time of the coarser level below it.  This
+///                    counter starts at 1
+/// @param amr_ncycle   the number of subcycles at this level
 ///
     void finalize_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
 
 ///
-/// @param time current time
-/// @param dt timestep
-/// @param amr_iteration
-/// @param amr_ncycle
+/// @param time     the current simulation time
+/// @param dt       the timestep to advance (e.g., go from time to
+///                    time + dt)
+/// @param amr_iteration    where we are in the current AMR subcycle.  Each
+///                    level will take a number of steps to reach the
+///                    final time of the coarser level below it.  This
+///                    counter starts at 1
+/// @param amr_ncycle   the number of subcycles at this level
 ///
     void initialize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
 
 ///
-/// @param time current time
-/// @param dt timestep
-/// @param amr_iteration
-/// @param amr_ncycle
+/// @param time     the current simulation time
+/// @param dt       the timestep to advance (e.g., go from time to
+///                    time + dt)
+/// @param amr_iteration    where we are in the current AMR subcycle.  Each
+///                    level will take a number of steps to reach the
+///                    final time of the coarser level below it.  This
+///                    counter starts at 1
+/// @param amr_ncycle   the number of subcycles at this level
 ///
     void finalize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
@@ -444,7 +480,7 @@ public:
 /// convert the conservative state cell averages to primitive cell
 /// averages
 ///
-/// @param time current time
+/// @param time     current time
 ///
     void cons_to_prim(const amrex::Real time);
 
@@ -454,7 +490,7 @@ public:
 /// convert the conservative state cell averages to primitive cell
 /// averages with 4th order accuracy
 ///
-/// @param time current time
+/// @param time     current time
 ///
     void cons_to_prim_fourth(const amrex::Real time);
 #endif
@@ -483,15 +519,17 @@ public:
 /// divergence) using method of lines integration.  The output, as a
 /// update to the state, is stored in the k_mol array of multifabs.
 ///
-/// @param time current time
-/// @param dt timestep
+/// @param time     current time
+/// @param dt   timestep
 ///
     void construct_mol_hydro_source(amrex::Real time, amrex::Real dt);
 
 
 ///
-/// @param state
-/// @param check_ghost
+/// Check for NaNs in the given MultiFab
+///
+/// @param state    MultiFab to check
+/// @param check_ghost  do we check the ghost cells?
 ///
     void check_for_nan(amrex::MultiFab& state, int check_ghost=0);
 
@@ -519,10 +557,14 @@ public:
 ///
 /// @param source
 /// @param state
-/// @param time current time
-/// @param dt timestep
-/// @param amr_iteration
-/// @param amr_ncycle
+/// @param time     the current simulation time
+/// @param dt       the timestep to advance (e.g., go from time to
+///                    time + dt)
+/// @param amr_iteration    where we are in the current AMR subcycle.  Each
+///                    level will take a number of steps to reach the
+///                    final time of the coarser level below it.  This
+///                    counter starts at 1
+/// @param amr_ncycle   the number of subcycles at this level
 ///
     void do_old_sources(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
 
@@ -532,10 +574,14 @@ public:
 /// @param src
 /// @param source
 /// @param state
-/// @param time current time
-/// @param dt timestep
-/// @param amr_iteration
-/// @param amr_ncycle
+/// @param time     the current simulation time
+/// @param dt       the timestep to advance (e.g., go from time to
+///                    time + dt)
+/// @param amr_iteration    where we are in the current AMR subcycle.  Each
+///                    level will take a number of steps to reach the
+///                    final time of the coarser level below it.  This
+///                    counter starts at 1
+/// @param amr_ncycle   the number of subcycles at this level
 ///
     void construct_old_source(int src, amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
 
@@ -544,10 +590,14 @@ public:
 /// @param source
 /// @param state_old
 /// @param state_new
-/// @param time current time
-/// @param dt timestep
-/// @param amr_iteration
-/// @param amr_ncycle
+/// @param time     the current simulation time
+/// @param dt       the timestep to advance (e.g., go from time to
+///                    time + dt)
+/// @param amr_iteration    where we are in the current AMR subcycle.  Each
+///                    level will take a number of steps to reach the
+///                    final time of the coarser level below it.  This
+///                    counter starts at 1
+/// @param amr_ncycle   the number of subcycles at this level
 ///
     void do_new_sources(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
 
@@ -558,10 +608,14 @@ public:
 /// @param source
 /// @param state_old
 /// @param state_new
-/// @param time current time
-/// @param dt timestep
-/// @param amr_iteration
-/// @param amr_ncycle
+/// @param time     the current simulation time
+/// @param dt       the timestep to advance (e.g., go from time to
+///                    time + dt)
+/// @param amr_iteration    where we are in the current AMR subcycle.  Each
+///                    level will take a number of steps to reach the
+///                    final time of the coarser level below it.  This
+///                    counter starts at 1
+/// @param amr_ncycle   the number of subcycles at this level
 ///
     void construct_new_source(int src, amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
 
@@ -976,8 +1030,8 @@ public:
 /// @param reactions
 /// @param mask
 /// @param weights
-/// @param time current time
-/// @param dt_react reaction timestep
+/// @param time     current time
+/// @param dt_react     reaction timestep
 /// @param strang_half
 /// @param ngrow
 ///
@@ -991,8 +1045,8 @@ public:
 
 
 ///
-/// @param time current time
-/// @param dt timestep
+/// @param time     current time
+/// @param dt   timestep
 ///
     void strang_react_first_half(amrex::Real time, amrex::Real dt);
 
@@ -1043,8 +1097,8 @@ public:
 ///
 /// @param source
 /// @param state
-/// @param time current time
-/// @param dt timestep
+/// @param time     current time
+/// @param dt   timestep
 ///
     void construct_old_rotation_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
 
@@ -1296,7 +1350,7 @@ public:
 
 
 ///
-/// This function is a clone of locWgtSum except that it only sums over one half of the domain.
+/// This function is a clone of ::locWgtSum except that it only sums over one half of the domain.
 /// The lower half corresponds to side == 0, and the upper half corresponds to side == 1.
 /// The argument idir (x == 0, y == 1, z == 2) gives the direction to location weight by,
 /// and the argument bdir gives the direction along which to bisect.
@@ -1312,10 +1366,11 @@ public:
 
 
 ///
-/// This function is a clone of volWgtSum except it computes the result only on half of the domain.
+/// This function is a clone of ::volWgtSum except it computes the result only on half of the domain.
 /// The lower half corresponds to side == 0 and the upper half corresponds to side == 1.
 /// The argument bdir gives the direction along which to bisect.
-/// Only designed to work in Cartesian geometries.
+///
+/// @note Only designed to work in Cartesian geometries.
 ///
 /// @param name
 /// @param time current time
@@ -1707,9 +1762,9 @@ protected:
     void enforce_consistent_e (amrex::MultiFab& S);
 
 ///
-/// This routine sets the density in S_new to be larger than the density floor.
-/// Note that it will operate everywhere on S_new, including ghost zones.
-/// S_old is present so that, after the hydro call, we know what the old density
+/// This routine sets the density in ``S_new`` to be larger than the density floor.
+/// Note that it will operate everywhere on ``S_new``, including ghost zones.
+/// ``S_old`` is present so that, after the hydro call, we know what the old density
 /// was so that we have a reference for comparison. If you are calling it elsewhere
 /// and there's no meaningful reference state, just pass in the same MultiFab twice.
 ///
@@ -1723,10 +1778,9 @@ protected:
     amrex::Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new, int ng);
 
 ///
-/// Given State_Type state data, perform a number of cleaning steps to make
+/// Given ``State_Type`` state data, perform a number of cleaning steps to make
 /// sure the data is sensible. The return value is the same as the return
 /// value of enforce_min_density.
-///
 ///
 /// @param is_new
 /// @param state
@@ -1736,12 +1790,12 @@ protected:
 
 ///
 /// this is the "preferred" clean_state interface -- it will work
-/// directly on the StateData.  is_new=0 means the old data is used,
-/// is_new=1 means the new data is used.
+/// directly on the StateData.  ``is_new``=0 means the old data is used,
+/// ``is_new``=1 means the new data is used.
 ///
 ///
-/// @param is_new
-/// @param ng number of ghost cells
+/// @param is_new   do we use new (0) or old (1) data?
+/// @param ng   number of ghost cells
 ///
     amrex::Real clean_state (int is_new, int ng);
 
@@ -1784,7 +1838,7 @@ protected:
 
 ///
 /// @param S
-/// @param time current time
+/// @param time     current time
 ///
     void define_new_center (amrex::MultiFab& S, amrex::Real time);
     void write_center ();
@@ -1793,8 +1847,8 @@ protected:
 #ifdef POINTMASS
 
 ///
-/// @param time current time
-/// @param dt timestep
+/// @param time     current time
+/// @param dt   timestep
 ///
     void pointmass_update(amrex::Real time, amrex::Real dt);
 #endif
