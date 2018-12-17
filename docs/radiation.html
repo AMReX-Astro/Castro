@@ -105,6 +105,10 @@
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rad.html">Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rad.html#the-interface-states">The Interface States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rad.html#alternative">Alternative?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rad.html#gamma-e-system"><span class="math notranslate nohighlight">\(\gamma_e\)</span> system</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Radiation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
@@ -156,7 +160,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
 <li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
-<li class="toctree-l1"><a class="reference internal" href="namespacelist.html">Namespace list</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
@@ -228,7 +231,7 @@
 <h1>Radiation<a class="headerlink" href="#radiation" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>Castro&nbsp;has three radiation solvers:</p>
+<p>Castro has three radiation solvers:</p>
 <ul class="simple">
 <li>SingleGroupSolver: this solver does not have radiation
 pressre. It is pure hydro plus radiation diffusion. This is only
@@ -246,20 +249,20 @@ and the opacity can be frequency-dependent.</li>
 <p>The gray solver has a comoving frame mode and a mixed frame mode,
 whereas the MG solver uses the comoving frame approach. More details
 about the formulation and algorithm can be found in the series of
-Castro&nbsp;papers.</p>
+Castro papers.</p>
 </div>
 <div class="section" id="getting-started">
 <h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="getting-the-code">
 <h3>Getting the Code<a class="headerlink" href="#getting-the-code" title="Permalink to this headline">¶</a></h3>
-<p>The Castro&nbsp;radiation solver is part of the main Castro&nbsp;git repo,
-so you already have all the Castro&nbsp;code and problem setups
+<p>The Castro radiation solver is part of the main Castro git repo,
+so you already have all the Castro code and problem setups
 to exercise radiation. The only other requirement is a copy
-of the Hypre&nbsp;library. Hypre&nbsp;provides the algebraic multigrid
+of the Hypre library. Hypre provides the algebraic multigrid
 solvers used by the implicit radiation update. You can get
 a copy at <a class="reference external" href="https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html">https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html</a>. You will need to follow their installation instructions.</p>
 <p>In addition to the environment variables you set for the main
-Castro&nbsp;hydrodynamics problems, you also need to tell the code
+Castro hydrodynamics problems, you also need to tell the code
 where to find Hypre. This is done via one of two variables:</p>
 <ul class="simple">
 <li>the environment variable HYPRE_DIR should
@@ -291,7 +294,7 @@ compile in, and link the the radiation code.</li>
 <h2>Microphysics: EOS, Network, and Opacity<a class="headerlink" href="#microphysics-eos-network-and-opacity" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="eos">
 <h3>EOS<a class="headerlink" href="#eos" title="Permalink to this headline">¶</a></h3>
-<p>Castro&nbsp;provides several types of equation of state (EOS), including
+<p>Castro provides several types of equation of state (EOS), including
 gamma-law and Helmholtz. To use the gamma-law EOS, set</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">EOS_DIR</span> <span class="p">:</span><span class="o">=</span> <span class="n">gamma_law_general</span>
 </pre></div>
@@ -334,23 +337,23 @@ the appropriate composition for your problem.</p>
 <p>where <span class="math notranslate nohighlight">\(\kappa\)</span> is either Planck or Rosseland mean absorption
 coefficients, <span class="math notranslate nohighlight">\(\rho\)</span> is density, <span class="math notranslate nohighlight">\(T\)</span> is temperature, <span class="math notranslate nohighlight">\(\nu\)</span> is
 frequency, and <span class="math notranslate nohighlight">\(m\)</span>, <span class="math notranslate nohighlight">\(n\)</span> and <span class="math notranslate nohighlight">\(p\)</span> are constants. For the gray solver,
-<span class="math notranslate nohighlight">\(p = 0\)</span>. If Equation&nbsp;(<a class="reference external" href="#eq:kappa">[eq:kappa]</a>) is sufficient, set</p>
+<span class="math notranslate nohighlight">\(p = 0\)</span>. If Equation (<a class="reference external" href="#eq:kappa">[eq:kappa]</a>) is sufficient, set</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Opacity_dir</span> <span class="p">:</span><span class="o">=</span> <span class="n">null</span>
 </pre></div>
 </div>
 <p>in GNUmakefile. Otherwise, put your own opacity in
 and set
 the input parameter, radiation.use_opacity_table_module = 1 (see
-§&nbsp;<a class="reference external" href="#sec:opacpars">3.3.1</a>).</p>
+§ <a class="reference external" href="#sec:opacpars">3.3.1</a>).</p>
 <p>Some notes:</p>
 <ul>
 <li><p class="first">Here, <span class="math notranslate nohighlight">\(\kappa\)</span> has units of <span class="math notranslate nohighlight">\(\mathrm{cm}^{-1}\)</span>. Some papers or
 texts may instead have an implicit density factor in <span class="math notranslate nohighlight">\(\kappa\)</span>,
 yielding units <span class="math notranslate nohighlight">\(\mathrm{cm}^2~\mathrm{g}^{-1}\)</span>.</p>
 </li>
-<li><p class="first">Castro&nbsp;allows for two temperatures (different radiation and gas
+<li><p class="first">Castro allows for two temperatures (different radiation and gas
 temperature, so <span class="math notranslate nohighlight">\(E_\mathrm{r} \ne a T_\mathrm{gas}^4\)</span>).
-Correspondingly, Castro&nbsp;cares about both the Planck mean,
+Correspondingly, Castro cares about both the Planck mean,
 <span class="math notranslate nohighlight">\(\kappa_P\)</span>, and Rosseland mean, <span class="math notranslate nohighlight">\(\kappa_R\)</span>, opacities—these have
 different weightings.</p>
 <p>If we set <span class="math notranslate nohighlight">\(\kappa_P \Delta x \gg 1\)</span> (<span class="math notranslate nohighlight">\(\kappa_P\)</span> is really large),
@@ -372,7 +375,7 @@ Opacity_dir (which is set in GNUmakefile) will be used to
 compute opacities. If this is set to 1, the following parameters
 for opacities will be ignored.</p>
 </li>
-<li><p class="first">For the Planck mean opacity of the form in Eq.&nbsp;(<a class="reference external" href="#eq:kappa">[eq:kappa]</a>),
+<li><p class="first">For the Planck mean opacity of the form in Eq. (<a class="reference external" href="#eq:kappa">[eq:kappa]</a>),
 the following parameters set the coefficient and exponents:</p>
 <ul class="simple">
 <li>radiation.const_kappa_p = -1.0</li>
@@ -381,7 +384,7 @@ the following parameters set the coefficient and exponents:</p>
 <li>radiation.kappa_p_exp_p = 0.0</li>
 </ul>
 </li>
-<li><p class="first">For the Rosseland mean opacity of the form in Eq.&nbsp;(<a class="reference external" href="#eq:kappa">[eq:kappa]</a>),
+<li><p class="first">For the Rosseland mean opacity of the form in Eq. (<a class="reference external" href="#eq:kappa">[eq:kappa]</a>),
 the following parameters set the coefficient and exponents:</p>
 <ul class="simple">
 <li>radiation.const_kappa_r = -1.0</li>
@@ -390,7 +393,7 @@ the following parameters set the coefficient and exponents:</p>
 <li>radiation.kappa_r_exp_p = 0.0</li>
 </ul>
 </li>
-<li><p class="first">For the scattering coefficient of the form in Eq.&nbsp;(<a class="reference external" href="#eq:kappa">[eq:kappa]</a>),
+<li><p class="first">For the scattering coefficient of the form in Eq. (<a class="reference external" href="#eq:kappa">[eq:kappa]</a>),
 the following parameters set the coefficient and exponents:</p>
 <ul class="simple">
 <li>radiation.const_scattering = 0.0</li>
@@ -480,8 +483,8 @@ This flag is ignored when the mixed-frame gray solver is used.</p>
 <li><p class="first">radiation.limiter = 2</p>
 <p>Possible values are:</p>
 <ul class="simple">
-<li>&nbsp;0: No flux limiter</li>
-<li>&nbsp;2: Approximate limiter of Levermore &amp; Pomraning</li>
+<li>0: No flux limiter</li>
+<li>2: Approximate limiter of Levermore &amp; Pomraning</li>
 <li>12: Bruenn’s limiter</li>
 <li>22: Larsen’s square root limiter</li>
 <li>32: Minerbo’s limiter</li>
@@ -520,11 +523,11 @@ the radiative flux then becomes</p>
 \[F_r^{(0)} = -\frac{c\lambda}{\chi_R} \nabla E_r^{(0)} \rightarrow
   -\frac{c}{\chi_R}\frac{\chi_R E_r^{(0)}}{|\nabla E_r^{0}|}
     \nabla E_r^{(0)} = -c E_r^{0}\]</div>
-<p>See Krumholz et al.&nbsp;2007 for some discussion on this.</p>
+<p>See Krumholz et al. 2007 for some discussion on this.</p>
 </div>
 <div class="section" id="boundary-conditions">
 <h3>Boundary Conditions<a class="headerlink" href="#boundary-conditions" title="Permalink to this headline">¶</a></h3>
-<p>Castro&nbsp;needs to know about the boundary conditions for both
+<p>Castro needs to know about the boundary conditions for both
 the hydrodynamics and radiation portions of the evolution.</p>
 <div class="section" id="hydrodynamics-evolution">
 <h4>Hydrodynamics Evolution<a class="headerlink" href="#hydrodynamics-evolution" title="Permalink to this headline">¶</a></h4>
@@ -554,7 +557,7 @@ each coordinate direction. Possible values are:</p>
 <li><p class="first">101 <em>Dirchlet</em>:</p>
 <p>Specify the radiation energy density on the boundary.
 For gray radiation, this could be <span class="math notranslate nohighlight">\(E_r = a T^4\)</span>.</p>
-<p>For multigroup radiation, Castro&nbsp;stores the energy density as
+<p>For multigroup radiation, Castro stores the energy density as
 <span class="math notranslate nohighlight">\(\mathrm{erg}~\mathrm{cm}^{-3}\)</span>, so the total radiation energy
 can be found by simply summing over the groups. So if you want
 to set the radiation BCs using the Planck function, you simply
@@ -563,7 +566,7 @@ for an example.</p>
 </li>
 <li><p class="first">102 <em>Neumann</em>:</p>
 <p>Here, you specify the radiation flux on the boundary. For gray
-radiation, this is the expression given in the gray Castro&nbsp;paper
+radiation, this is the expression given in the gray Castro paper
 (Eq. 7, 8),</p>
 <div class="math notranslate nohighlight">
 \[F_r = - \frac{c\lambda}{\kappa_R} \nabla E_r\]</div>
@@ -572,7 +575,7 @@ radiation, this is the expression given in the gray Castro&nbsp;paper
 a vacuum (like stellar irradiation), then <span class="math notranslate nohighlight">\(\kappa \rightarrow 0\)</span>, leaving</p>
 <div class="math notranslate nohighlight">
 \[F_r = -c E_r\]</div>
-<p>(see §&nbsp;<a class="reference external" href="#sec:fluxlimiter">4.2</a>) in that case.</p>
+<p>(see § <a class="reference external" href="#sec:fluxlimiter">4.2</a>) in that case.</p>
 </li>
 <li><p class="first">104 <em>Marshak</em> (vacuum):</p>
 <p>Here, you specify the incident flux and the outside is a vacuum.
@@ -860,7 +863,7 @@ performance of the solvers usually depends on problems and the
 computer. So it is worth trying a few solvers to find out which one
 is best for your problem and computer.</p>
 <p>radsolve.level_solver_flag: the linear solver
-in Hypre&nbsp;to use. The available choices are:</p>
+in Hypre to use. The available choices are:</p>
 <ul class="simple">
 <li>0: SMG</li>
 <li>1: PFMG (<span class="math notranslate nohighlight">\(\ge\)</span> 2-d only)</li>
@@ -907,7 +910,7 @@ is different that the specify internal energy of the gas <span class="math notra
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>at the moment, we
 don’t have a way to allow for the EOS to provide radiation pressure
-if the Castro&nbsp;radiation is used solely for neutrinos, but this is
+if the Castro radiation is used solely for neutrinos, but this is
 something that could be added easily.</td></tr>
 </tbody>
 </table>

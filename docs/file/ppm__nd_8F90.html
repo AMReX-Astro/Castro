@@ -1,0 +1,367 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File ppm_nd.F90 &mdash; Castro 18.12
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File riemann_nd.F90" href="riemann__nd_8F90.html" />
+    <link rel="prev" title="File multid_slope_2d.f90" href="multid__slope__2d_8f90.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                18.12
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html">Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#the-interface-states">The Interface States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#alternative">Alternative?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#gamma-e-system"><span class="math notranslate nohighlight">\(\gamma_e\)</span> system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../hydro_files.html">Hydro</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Castro__ctu__nd_8F90.html">File Castro_ctu_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__mol__nd_8F90.html">File Castro_mol_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="advection__util__nd_8F90.html">File advection_util_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="flatten__nd_8F90.html">File flatten_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hybrid__advection__nd_8F90.html">File hybrid_advection_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="multid__slope__2d_8f90.html">File multid_slope_2d.f90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File ppm_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="riemann__nd_8F90.html">File riemann_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="riemann__util_8F90.html">File riemann_util.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="slope__nd_8F90.html">File slope_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trace__plm_8F90.html">File trace_plm.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trace__ppm_8F90.html">File trace_ppm.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trans_8F90.html">File trans.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../hydro_files.html">Hydro</a> &raquo;</li>
+        
+      <li>File ppm_nd.F90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/ppm__nd_8F90.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-ppm-nd-f90">
+<h1>File ppm_nd.F90<a class="headerlink" href="#file-ppm-nd-f90" title="Permalink to this headline">¶</a></h1>
+<dl class="type">
+<dt id="_CPPv310ppm_module">
+<span id="_CPPv210ppm_module"></span><span id="ppm_module"></span><span class="target" id="namespaceppm__module"></span><em class="property">namespace </em><code class="descname">ppm_module</code><a class="headerlink" href="#_CPPv310ppm_module" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt>
+<span class="target" id="namespaceppm__module_1a67804ae6549d62f55e1449425001d70f"></span><code class="descname">subroutine, public ppm_module::ca_ppm_reconstruct(lo lo, hi hi, put_on_edges put_on_edges, s s, s_lo s_lo, s_hi s_hi, nc nc, nstart nstart, nend nend, flatn flatn, f_lo f_lo, f_hi f_hi, qm qm, qm_lo qm_lo, qm_hi qm_hi, qp qp, qp_lo qp_lo, qp_hi qp_hi, ncq ncq, nqstart nqstart, nqend nqend)</code></dt>
+<dd><p>this routine does the reconstruction of the zone data into parabola. The loops are over zone centers and for zone center, it will compute the left and right values of the parabola and store these in the qm and qp arrays. If put_on_edges = 0, then this storage is done by zone so the parabola information for a zone can then be used in ppm_int_profile to compute the integrals. If put_on_edges = 1, then we copy this information to the appropriate edges, such that qm(i,j,k,1) is the left state on the i-1/2 interface. This is used for method-of-lines integration methods. </p>
+<p>here s has nc components and we reconstruct component n</p>
+<p>we store the result in the arrays qm and qp, in component nq out of ncq components <dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">s_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">f_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">qm_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">qp_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">s</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">flatn</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">qm</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">qp</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="namespaceppm__module_1a3b1ced944081f202d4345dd8897c8fc4"></span><code class="descname">subroutine, public ppm_module::ppm_int_profile(lo lo, hi hi, s s, s_lo s_lo, s_hi s_hi, ncomp ncomp, n n, q q, qd_lo qd_lo, qd_hi qd_hi, qaux qaux, qa_lo qa_lo, qa_hi qa_hi, sm_in sm_in, sp_in sp_in, sd_lo sd_lo, sd_hi sd_hi, Ip Ip, Im Im, I_lo I_lo, I_hi I_hi, icomp icomp, ic ic, dx dx, dt dt)</code></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">s_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">ncomp</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">n</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">icomp</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">ic</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">qd_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">qa_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">sd_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">I_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">s</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">q</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">qaux</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">sm_in</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">sp_in</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">Ip</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">Im</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">dx</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="namespaceppm__module_1a73a67a7c38bb2733eaec2e310a1184c0"></span><code class="descname">subroutine, public ppm_module::ppm_reconstruct_with_eos(lo lo, hi hi, Ip Ip, Im Im, Ip_gc Ip_gc, Im_gc Im_gc, I_lo I_lo, I_hi I_hi)</code></dt>
+<dd><p>temperature-based PPM  if desired, take the Ip(T)/Im(T) constructed above and use the EOS to overwrite Ip(p)/Im(p) get an edge-based gam1 here if we didn’t get it from the EOS call above (for ppm_temp_fix = 1) </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">I_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">Ip</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">Im</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">Ip_gc</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">Im_gc</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="riemann__nd_8F90.html" class="btn btn-neutral float-right" title="File riemann_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="multid__slope__2d_8f90.html" class="btn btn-neutral" title="File multid_slope_2d.f90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

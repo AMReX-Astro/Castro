@@ -1,0 +1,4 @@
+File rotation_sources_nd.F90
+============================
+
+.. doxygenfile:: rotation_sources_nd.F90

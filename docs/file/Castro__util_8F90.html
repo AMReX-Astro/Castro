@@ -1,0 +1,527 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File Castro_util.F90 &mdash; Castro 18.12
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File Derive.H" href="Derive_8H.html" />
+    <link rel="prev" title="File Castro_nd.F90" href="Castro__nd_8F90.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                18.12
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html">Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#the-interface-states">The Interface States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#alternative">Alternative?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#gamma-e-system"><span class="math notranslate nohighlight">\(\gamma_e\)</span> system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../driver_files.html">Driver</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Castro_8H.html">File Castro.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__io_8H.html">File Castro_io.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__nd_8F90.html">File Castro_nd.F90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File Castro_util.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Derive_8H.html">File Derive.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Derive__nd_8F90.html">File Derive_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGutils__1d_8F90.html">File MGutils_1d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGutils__2d_8F90.html">File MGutils_2d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Tagging__nd_8F90.html">File Tagging_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="amrinfo_8F90.html">File amrinfo.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="check__for__nan_8f90.html">File check_for_nan.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filcc__nd_8F90.html">File filcc_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generic__fill_8F90.html">File generic_fill.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="interpolate_8F90.html">File interpolate.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="io_8f90.html">File io.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="math_8F90.html">File math.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="meth__params_8F90.html">File meth_params.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="prob__params_8F90.html">File prob_params.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sums__nd_8F90.html">File sums_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timestep_8F90.html">File timestep.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../driver_files.html">Driver</a> &raquo;</li>
+        
+      <li>File Castro_util.F90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/Castro__util_8F90.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-castro-util-f90">
+<h1>File Castro_util.F90<a class="headerlink" href="#file-castro-util-f90" title="Permalink to this headline">¶</a></h1>
+<dl class="type">
+<dt id="_CPPv318castro_util_module">
+<span id="_CPPv218castro_util_module"></span><span id="castro_util_module"></span><span class="target" id="namespacecastro__util__module"></span><em class="property">namespace </em><code class="descname">castro_util_module</code><a class="headerlink" href="#_CPPv318castro_util_module" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt>
+<span class="target" id="namespacecastro__util__module_1a89e1f4939c246bdcc7b605566bbc6ead"></span><code class="descname">real(rt) function, dimension(3) castro_util_module::position(i i, j j, k k, ccx ccx, ccy ccy, ccz ccz)</code></dt>
+<dd><p>Given 3D indices (i,j,k), return the cell-centered spatial position. Optionally we can also be edge-centered in any of the directions. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3N18castro_util_module23ca_enforce_consistent_eE2lo2hi5state4s_lo4s_hi">
+<span id="_CPPv2N18castro_util_module23ca_enforce_consistent_eE2lo2hi5state4s_lo4s_hi"></span><span id="castro_util_module::ca_enforce_consistent_e__lo.hi.state.s_lo.s_hi"></span><span class="target" id="namespacecastro__util__module_1a3c94ea0461c05bdcfb084550828b3587"></span>subroutine <code class="descname">ca_enforce_consistent_e</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv3N18castro_util_module23ca_enforce_consistent_eE2lo2hi5state4s_lo4s_hi" title="castro_util_module::ca_enforce_consistent_e::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module23ca_enforce_consistent_eE2lo2hi5state4s_lo4s_hi" title="castro_util_module::ca_enforce_consistent_e::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module23ca_enforce_consistent_eE2lo2hi5state4s_lo4s_hi" title="castro_util_module::ca_enforce_consistent_e::state">state</a> <em>state</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module23ca_enforce_consistent_eE2lo2hi5state4s_lo4s_hi" title="castro_util_module::ca_enforce_consistent_e::s_lo">s_lo</a> <em>s_lo</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module23ca_enforce_consistent_eE2lo2hi5state4s_lo4s_hi" title="castro_util_module::ca_enforce_consistent_e::s_hi">s_hi</a> <em>s_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N18castro_util_module23ca_enforce_consistent_eE2lo2hi5state4s_lo4s_hi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">s_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3N18castro_util_module19ca_reset_internal_eE2lo2hi1u4u_lo4u_hi7verbose">
+<span id="_CPPv2N18castro_util_module19ca_reset_internal_eE2lo2hi1u4u_lo4u_hi7verbose"></span><span id="castro_util_module::ca_reset_internal_e__lo.hi.u.u_lo.u_hi.verbose"></span><span class="target" id="namespacecastro__util__module_1a9e7079d09002f000efcf746682088489"></span>subroutine <code class="descname">ca_reset_internal_e</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv3N18castro_util_module19ca_reset_internal_eE2lo2hi1u4u_lo4u_hi7verbose" title="castro_util_module::ca_reset_internal_e::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module19ca_reset_internal_eE2lo2hi1u4u_lo4u_hi7verbose" title="castro_util_module::ca_reset_internal_e::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module19ca_reset_internal_eE2lo2hi1u4u_lo4u_hi7verbose" title="castro_util_module::ca_reset_internal_e::u">u</a> <em>u</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module19ca_reset_internal_eE2lo2hi1u4u_lo4u_hi7verbose" title="castro_util_module::ca_reset_internal_e::u_lo">u_lo</a> <em>u_lo</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module19ca_reset_internal_eE2lo2hi1u4u_lo4u_hi7verbose" title="castro_util_module::ca_reset_internal_e::u_hi">u_hi</a> <em>u_hi</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module19ca_reset_internal_eE2lo2hi1u4u_lo4u_hi7verbose" title="castro_util_module::ca_reset_internal_e::verbose">verbose</a> <em>verbose</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N18castro_util_module19ca_reset_internal_eE2lo2hi1u4u_lo4u_hi7verbose" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">u_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">u</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3N18castro_util_module15ca_compute_tempE2lo2hi5state4s_lo4s_hi">
+<span id="_CPPv2N18castro_util_module15ca_compute_tempE2lo2hi5state4s_lo4s_hi"></span><span id="castro_util_module::ca_compute_temp__lo.hi.state.s_lo.s_hi"></span><span class="target" id="namespacecastro__util__module_1acab6ac907e99188a5527558cbfcf5ca0"></span>subroutine <code class="descname">ca_compute_temp</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv3N18castro_util_module15ca_compute_tempE2lo2hi5state4s_lo4s_hi" title="castro_util_module::ca_compute_temp::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module15ca_compute_tempE2lo2hi5state4s_lo4s_hi" title="castro_util_module::ca_compute_temp::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module15ca_compute_tempE2lo2hi5state4s_lo4s_hi" title="castro_util_module::ca_compute_temp::state">state</a> <em>state</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module15ca_compute_tempE2lo2hi5state4s_lo4s_hi" title="castro_util_module::ca_compute_temp::s_lo">s_lo</a> <em>s_lo</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module15ca_compute_tempE2lo2hi5state4s_lo4s_hi" title="castro_util_module::ca_compute_temp::s_hi">s_hi</a> <em>s_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N18castro_util_module15ca_compute_tempE2lo2hi5state4s_lo4s_hi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">s_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3N18castro_util_module24ca_check_initial_speciesE2lo2hi5state8state_lo8state_hi">
+<span id="_CPPv2N18castro_util_module24ca_check_initial_speciesE2lo2hi5state8state_lo8state_hi"></span><span id="castro_util_module::ca_check_initial_species__lo.hi.state.state_lo.state_hi"></span><span class="target" id="namespacecastro__util__module_1ad88f088964aa8f03f495d61784dbfdd5"></span>subroutine <code class="descname">ca_check_initial_species</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv3N18castro_util_module24ca_check_initial_speciesE2lo2hi5state8state_lo8state_hi" title="castro_util_module::ca_check_initial_species::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module24ca_check_initial_speciesE2lo2hi5state8state_lo8state_hi" title="castro_util_module::ca_check_initial_species::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module24ca_check_initial_speciesE2lo2hi5state8state_lo8state_hi" title="castro_util_module::ca_check_initial_species::state">state</a> <em>state</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module24ca_check_initial_speciesE2lo2hi5state8state_lo8state_hi" title="castro_util_module::ca_check_initial_species::state_lo">state_lo</a> <em>state_lo</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module24ca_check_initial_speciesE2lo2hi5state8state_lo8state_hi" title="castro_util_module::ca_check_initial_species::state_hi">state_hi</a> <em>state_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N18castro_util_module24ca_check_initial_speciesE2lo2hi5state8state_lo8state_hi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">state_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3N18castro_util_module20ca_normalize_speciesE2lo2hi1u4u_lo4u_hi">
+<span id="_CPPv2N18castro_util_module20ca_normalize_speciesE2lo2hi1u4u_lo4u_hi"></span><span id="castro_util_module::ca_normalize_species__lo.hi.u.u_lo.u_hi"></span><span class="target" id="namespacecastro__util__module_1a17c63c0f44ed00da052af9372484c85a"></span>subroutine <code class="descname">ca_normalize_species</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv3N18castro_util_module20ca_normalize_speciesE2lo2hi1u4u_lo4u_hi" title="castro_util_module::ca_normalize_species::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module20ca_normalize_speciesE2lo2hi1u4u_lo4u_hi" title="castro_util_module::ca_normalize_species::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module20ca_normalize_speciesE2lo2hi1u4u_lo4u_hi" title="castro_util_module::ca_normalize_species::u">u</a> <em>u</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module20ca_normalize_speciesE2lo2hi1u4u_lo4u_hi" title="castro_util_module::ca_normalize_species::u_lo">u_lo</a> <em>u_lo</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module20ca_normalize_speciesE2lo2hi1u4u_lo4u_hi" title="castro_util_module::ca_normalize_species::u_hi">u_hi</a> <em>u_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N18castro_util_module20ca_normalize_speciesE2lo2hi1u4u_lo4u_hi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">u_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">u</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="namespacecastro__util__module_1a630e9cb506d8359674050d7646fe2dfa"></span><code class="descname">integer function, dimension(3) castro_util_module::position_to_index(loc loc)</code></dt>
+<dd><p>Given 3D spatial coordinates, return the cell-centered zone indices closest to it. Optionally we can also be edge-centered in any of the directions. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">loc</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="namespacecastro__util__module_1a9ab4ebd6c190454c97861d956de59f39"></span><code class="descname">real(rt) function castro_util_module::area(i i, j j, k k, dir dir)</code></dt>
+<dd><p>Given 3D indices (i,j,k) and a direction dir, return the area of the face perpendicular to direction d. We assume the coordinates perpendicular to the dir axies are edge-centered. Note that <a class="reference internal" href="Castro_8H.html#classCastro"><span class="std std-ref">Castro</span></a> has no support for angular coordinates, so this function only provides Cartesian in 1D/2D/3D, Cylindrical (R-Z) in 2D, and Spherical in 1D. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">i</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">j</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">k</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">dir</span></code>: integer </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="namespacecastro__util__module_1a0f3f97c23348e71e7a489b60c40f9e66"></span><code class="descname">real(rt) function castro_util_module::volume(i i, j j, k k)</code></dt>
+<dd><p>Given 3D cell-centered indices (i,j,k), return the volume of the zone. Note that <a class="reference internal" href="Castro_8H.html#classCastro"><span class="std std-ref">Castro</span></a> has no support for angular coordinates, so this function only provides Cartesian in 1D/2D/3D, Cylindrical (R-Z) in 2D, and Spherical in 1D. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">i</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">j</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">k</span></code>: integer </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="namespacecastro__util__module_1a60f30bf10f474bb9d6b1c552299b0c63"></span><code class="descname">logical function castro_util_module::is_domain_corner(idx idx)</code></dt>
+<dd><p>Given an index, determine whether it is on a domain corner or not. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">idx</span></code>: integer </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3N18castro_util_module13ca_get_centerE10center_out">
+<span id="_CPPv2N18castro_util_module13ca_get_centerE10center_out"></span><span id="castro_util_module::ca_get_center__center_out"></span><span class="target" id="namespacecastro__util__module_1aa8fd13b4209db5aa6071c165712690db"></span>subroutine <code class="descname">ca_get_center</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv3N18castro_util_module13ca_get_centerE10center_out" title="castro_util_module::ca_get_center::center_out">center_out</a> <em>center_out</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N18castro_util_module13ca_get_centerE10center_out" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd>Binds to C function <code class="docutils literal notranslate"><span class="pre">ca_get_center</span></code></dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">center_out</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3N18castro_util_module13ca_set_centerE9center_in">
+<span id="_CPPv2N18castro_util_module13ca_set_centerE9center_in"></span><span id="castro_util_module::ca_set_center__center_in"></span><span class="target" id="namespacecastro__util__module_1a3ff46dcc1cf7e9e71110edb6ac3f001d"></span>subroutine <code class="descname">ca_set_center</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv3N18castro_util_module13ca_set_centerE9center_in" title="castro_util_module::ca_set_center::center_in">center_in</a> <em>center_in</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N18castro_util_module13ca_set_centerE9center_in" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd>Binds to C function <code class="docutils literal notranslate"><span class="pre">ca_set_center</span></code></dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">center_in</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3N18castro_util_module14ca_find_centerE4data10new_center4icen2dx6problo">
+<span id="_CPPv2N18castro_util_module14ca_find_centerE4data10new_center4icen2dx6problo"></span><span id="castro_util_module::ca_find_center__data.new_center.icen.dx.problo"></span><span class="target" id="namespacecastro__util__module_1ac55509b6561c5b2daa1b04ae3e7b865a"></span>subroutine <code class="descname">ca_find_center</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv3N18castro_util_module14ca_find_centerE4data10new_center4icen2dx6problo" title="castro_util_module::ca_find_center::data">data</a> <em>data</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module14ca_find_centerE4data10new_center4icen2dx6problo" title="castro_util_module::ca_find_center::new_center">new_center</a> <em>new_center</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module14ca_find_centerE4data10new_center4icen2dx6problo" title="castro_util_module::ca_find_center::icen">icen</a> <em>icen</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module14ca_find_centerE4data10new_center4icen2dx6problo" title="castro_util_module::ca_find_center::dx">dx</a> <em>dx</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module14ca_find_centerE4data10new_center4icen2dx6problo" title="castro_util_module::ca_find_center::problo">problo</a> <em>problo</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N18castro_util_module14ca_find_centerE4data10new_center4icen2dx6problo" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd>Binds to C function <code class="docutils literal notranslate"><span class="pre">ca_find_center</span></code></dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">data</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">new_center</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">dx</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3N18castro_util_module19ca_compute_avgstateE2lo2hi2dx2dr2nc5state4s_lo4s_hi12radial_state3vol4v_lo4v_hi10radial_vol6problo9numpts_1d">
+<span id="_CPPv2N18castro_util_module19ca_compute_avgstateE2lo2hi2dx2dr2nc5state4s_lo4s_hi12radial_state3vol4v_lo4v_hi10radial_vol6problo9numpts_1d"></span><span id="castro_util_module::ca_compute_avgstate__lo.hi.dx.dr.nc.state.s_lo.s_hi.radial_state.vol.v_lo.v_hi.radial_vol.problo.numpts_1d"></span><span class="target" id="namespacecastro__util__module_1afa01e6456f32e4f2636be877ceca62d2"></span>subroutine <code class="descname">ca_compute_avgstate</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv3N18castro_util_module19ca_compute_avgstateE2lo2hi2dx2dr2nc5state4s_lo4s_hi12radial_state3vol4v_lo4v_hi10radial_vol6problo9numpts_1d" title="castro_util_module::ca_compute_avgstate::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module19ca_compute_avgstateE2lo2hi2dx2dr2nc5state4s_lo4s_hi12radial_state3vol4v_lo4v_hi10radial_vol6problo9numpts_1d" title="castro_util_module::ca_compute_avgstate::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module19ca_compute_avgstateE2lo2hi2dx2dr2nc5state4s_lo4s_hi12radial_state3vol4v_lo4v_hi10radial_vol6problo9numpts_1d" title="castro_util_module::ca_compute_avgstate::dx">dx</a> <em>dx</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module19ca_compute_avgstateE2lo2hi2dx2dr2nc5state4s_lo4s_hi12radial_state3vol4v_lo4v_hi10radial_vol6problo9numpts_1d" title="castro_util_module::ca_compute_avgstate::dr">dr</a> <em>dr</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module19ca_compute_avgstateE2lo2hi2dx2dr2nc5state4s_lo4s_hi12radial_state3vol4v_lo4v_hi10radial_vol6problo9numpts_1d" title="castro_util_module::ca_compute_avgstate::nc">nc</a> <em>nc</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module19ca_compute_avgstateE2lo2hi2dx2dr2nc5state4s_lo4s_hi12radial_state3vol4v_lo4v_hi10radial_vol6problo9numpts_1d" title="castro_util_module::ca_compute_avgstate::state">state</a> <em>state</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module19ca_compute_avgstateE2lo2hi2dx2dr2nc5state4s_lo4s_hi12radial_state3vol4v_lo4v_hi10radial_vol6problo9numpts_1d" title="castro_util_module::ca_compute_avgstate::s_lo">s_lo</a> <em>s_lo</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module19ca_compute_avgstateE2lo2hi2dx2dr2nc5state4s_lo4s_hi12radial_state3vol4v_lo4v_hi10radial_vol6problo9numpts_1d" title="castro_util_module::ca_compute_avgstate::s_hi">s_hi</a> <em>s_hi</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module19ca_compute_avgstateE2lo2hi2dx2dr2nc5state4s_lo4s_hi12radial_state3vol4v_lo4v_hi10radial_vol6problo9numpts_1d" title="castro_util_module::ca_compute_avgstate::radial_state">radial_state</a> <em>radial_state</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module19ca_compute_avgstateE2lo2hi2dx2dr2nc5state4s_lo4s_hi12radial_state3vol4v_lo4v_hi10radial_vol6problo9numpts_1d" title="castro_util_module::ca_compute_avgstate::vol">vol</a> <em>vol</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module19ca_compute_avgstateE2lo2hi2dx2dr2nc5state4s_lo4s_hi12radial_state3vol4v_lo4v_hi10radial_vol6problo9numpts_1d" title="castro_util_module::ca_compute_avgstate::v_lo">v_lo</a> <em>v_lo</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module19ca_compute_avgstateE2lo2hi2dx2dr2nc5state4s_lo4s_hi12radial_state3vol4v_lo4v_hi10radial_vol6problo9numpts_1d" title="castro_util_module::ca_compute_avgstate::v_hi">v_hi</a> <em>v_hi</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module19ca_compute_avgstateE2lo2hi2dx2dr2nc5state4s_lo4s_hi12radial_state3vol4v_lo4v_hi10radial_vol6problo9numpts_1d" title="castro_util_module::ca_compute_avgstate::radial_vol">radial_vol</a> <em>radial_vol</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module19ca_compute_avgstateE2lo2hi2dx2dr2nc5state4s_lo4s_hi12radial_state3vol4v_lo4v_hi10radial_vol6problo9numpts_1d" title="castro_util_module::ca_compute_avgstate::problo">problo</a> <em>problo</em>, <a class="reference internal" href="#_CPPv3N18castro_util_module19ca_compute_avgstateE2lo2hi2dx2dr2nc5state4s_lo4s_hi12radial_state3vol4v_lo4v_hi10radial_vol6problo9numpts_1d" title="castro_util_module::ca_compute_avgstate::numpts_1d">numpts_1d</a> <em>numpts_1d</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N18castro_util_module19ca_compute_avgstateE2lo2hi2dx2dr2nc5state4s_lo4s_hi12radial_state3vol4v_lo4v_hi10radial_vol6problo9numpts_1d" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd>Binds to C function <code class="docutils literal notranslate"><span class="pre">ca_compute_avgstate</span></code></dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">dx</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">numpts_1d</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">radial_state</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">radial_vol</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">s_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">v_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">vol</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="namespacecastro__util__module_1a9647b2c3ec84992bef4566315fe8cff2"></span><code class="descname">real(rt) function, dimension(3) castro_util_module::linear_to_angular_momentum(loc loc, mom mom)</code></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">loc</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Derive_8H.html" class="btn btn-neutral float-right" title="File Derive.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Castro__nd_8F90.html" class="btn btn-neutral" title="File Castro_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,4 +1,0 @@
-Namespace @9
-============
-
-.. doxygennamespace:: @9

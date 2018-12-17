@@ -30,7 +30,7 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Class CrseBndryAuxVar" href="classCrseBndryAuxVar.html" />
+    <link rel="next" title="Class Diffusion" href="classDiffusion.html" />
     <link rel="prev" title="Class Castro" href="classCastro.html" /> 
 
   
@@ -105,6 +105,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html">Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#the-interface-states">The Interface States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#alternative">Alternative?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#gamma-e-system"><span class="math notranslate nohighlight">\(\gamma_e\)</span> system</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
@@ -118,20 +122,13 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../filelist.html">File list</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../classlist.html">Class list</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="classAuxVar.html">Class AuxVar</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classAuxVarBox.html">Class AuxVarBox</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classAuxVar_1_1Connex.html">Class AuxVar::Connex</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classBndryAuxVar.html">Class BndryAuxVar</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classBndryAuxVarBase.html">Class BndryAuxVarBase</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classCastro.html">Class Castro</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Class CastroBld</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classCrseBndryAuxVar.html">Class CrseBndryAuxVar</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classDiffusion.html">Class Diffusion</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classGradPhiPhysBCFunct.html">Class GradPhiPhysBCFunct</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classGravity.html">Class Gravity</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classHypreABec.html">Class HypreABec</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classHypreExtMultiABec.html">Class HypreExtMultiABec</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classHypreMultiABec.html">Class HypreMultiABec</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classMGRadBndry.html">Class MGRadBndry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classMGRadBndryBld.html">Class MGRadBndryBld</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classNGBndry.html">Class NGBndry</a></li>
@@ -147,7 +144,6 @@
 <li class="toctree-l2"><a class="reference internal" href="classRadiation.html">Class Radiation</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../namespacelist.html">Namespace list</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
@@ -222,7 +218,30 @@
 <dl class="class">
 <dt id="_CPPv39CastroBld">
 <span id="_CPPv29CastroBld"></span><span id="CastroBld"></span><span class="target" id="classCastroBld"></span><em class="property">class </em><code class="descname">CastroBld</code> : <em class="property">public</em> LevelBld<a class="headerlink" href="#_CPPv39CastroBld" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Private Functions</p>
+<dl class="function">
+<dt id="_CPPv3N9CastroBld13variableSetUpEv">
+<span id="_CPPv2N9CastroBld13variableSetUpEv"></span><span id="CastroBld::variableSetUp"></span><span class="target" id="classCastroBld_1a7e3471453e18ba706c23f011886c7852"></span>void <code class="descname">variableSetUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N9CastroBld13variableSetUpEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3N9CastroBld15variableCleanUpEv">
+<span id="_CPPv2N9CastroBld15variableCleanUpEv"></span><span id="CastroBld::variableCleanUp"></span><span class="target" id="classCastroBld_1a105b730a244b592c2b6234a1d1490352"></span>void <code class="descname">variableCleanUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N9CastroBld15variableCleanUpEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3N9CastroBldclEv">
+<span id="_CPPv2N9CastroBldclEv"></span><span id="CastroBld::call-operator"></span><span class="target" id="classCastroBld_1ad78fd33d3680ea7555957a3b3483190f"></span>AmrLevel *<code class="descname">operator()</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N9CastroBldclEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3N9CastroBldclER3AmriRK8GeometryRK8BoxArrayRK19DistributionMapping4Real">
+<span id="_CPPv2N9CastroBldclER3AmriRK8GeometryRK8BoxArrayRK19DistributionMapping4Real"></span><span id="CastroBld::call-operator__AmrR.i.GeometryCR.BoxArrayCR.DistributionMappingCR.Real"></span><span class="target" id="classCastroBld_1aed4024a47fe6a82f6ae21c5c28b2c061"></span>AmrLevel *<code class="descname">operator()</code><span class="sig-paren">(</span>Amr &amp;<em>papa</em>, int <em>lev</em>, <em class="property">const</em> Geometry &amp;<em>level_geom</em>, <em class="property">const</em> BoxArray &amp;<em>ba</em>, <em class="property">const</em> DistributionMapping &amp;<em>dm</em>, Real <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N9CastroBldclER3AmriRK8GeometryRK8BoxArrayRK19DistributionMapping4Real" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
 
 </div>
 
@@ -234,7 +253,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="classCrseBndryAuxVar.html" class="btn btn-neutral float-right" title="Class CrseBndryAuxVar" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="classDiffusion.html" class="btn btn-neutral float-right" title="Class Diffusion" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="classCastro.html" class="btn btn-neutral" title="Class Castro" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

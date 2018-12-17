@@ -105,6 +105,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html">Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#the-interface-states">The Interface States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#alternative">Alternative?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#gamma-e-system"><span class="math notranslate nohighlight">\(\gamma_e\)</span> system</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
@@ -118,20 +122,13 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../filelist.html">File list</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../classlist.html">Class list</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="classAuxVar.html">Class AuxVar</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classAuxVarBox.html">Class AuxVarBox</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classAuxVar_1_1Connex.html">Class AuxVar::Connex</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classBndryAuxVar.html">Class BndryAuxVar</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classBndryAuxVarBase.html">Class BndryAuxVarBase</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classCastro.html">Class Castro</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classCastroBld.html">Class CastroBld</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classCrseBndryAuxVar.html">Class CrseBndryAuxVar</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classDiffusion.html">Class Diffusion</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classGradPhiPhysBCFunct.html">Class GradPhiPhysBCFunct</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classGravity.html">Class Gravity</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classHypreABec.html">Class HypreABec</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classHypreExtMultiABec.html">Class HypreExtMultiABec</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classHypreMultiABec.html">Class HypreMultiABec</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classMGRadBndry.html">Class MGRadBndry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classMGRadBndryBld.html">Class MGRadBndryBld</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classNGBndry.html">Class NGBndry</a></li>
@@ -147,7 +144,6 @@
 <li class="toctree-l2"><a class="reference internal" href="classRadiation.html">Class Radiation</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../namespacelist.html">Namespace list</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
@@ -222,7 +218,28 @@
 <dl class="class">
 <dt id="_CPPv313ProxyGeometry">
 <span id="_CPPv213ProxyGeometry"></span><span id="ProxyGeometry"></span><span class="target" id="classProxyGeometry"></span><em class="property">class </em><code class="descname">ProxyGeometry</code><a class="headerlink" href="#_CPPv313ProxyGeometry" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="function">
+<dt id="_CPPv3N13ProxyGeometry13ProxyGeometryERKN5amrex8GeometryE">
+<span id="_CPPv2N13ProxyGeometry13ProxyGeometryERKN5amrex8GeometryE"></span><span id="ProxyGeometry::ProxyGeometry__amrex::GeometryCR"></span><span class="target" id="classProxyGeometry_1a5f24e2e352273da102d99570be93972f"></span><code class="descname">ProxyGeometry</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Geometry &amp;<em>g</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N13ProxyGeometry13ProxyGeometryERKN5amrex8GeometryE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3NK13ProxyGeometrycvN5amrex8GeometryEEv">
+<span id="_CPPv2NK13ProxyGeometrycvN5amrex8GeometryEEv"></span><span id="ProxyGeometry::castto-amrex::Geometry-operatorC"></span><span class="target" id="classProxyGeometry_1a91e3467593f030787ba8de77f42eded1"></span><code class="descname">operator amrex::Geometry</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv3NK13ProxyGeometrycvN5amrex8GeometryEEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Protected Attributes</p>
+<dl class="member">
+<dt id="_CPPv3N13ProxyGeometry3m_gE">
+<span id="_CPPv2N13ProxyGeometry3m_gE"></span><span id="ProxyGeometry::m_g__amrex::GeometryCR"></span><span class="target" id="classProxyGeometry_1a6d962760c4856c88a3496605551bd2c9"></span><em class="property">const</em> amrex::Geometry &amp;<code class="descname">m_g</code><a class="headerlink" href="#_CPPv3N13ProxyGeometry3m_gE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
 
 </div>
 

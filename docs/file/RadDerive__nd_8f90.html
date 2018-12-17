@@ -1,0 +1,358 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File RadDerive_nd.f90 &mdash; Castro 18.12
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File RadEOS_1d.f90" href="RadEOS__1d_8f90.html" />
+    <link rel="prev" title="File RadBndry_3d.f90" href="RadBndry__3d_8f90.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                18.12
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html">Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#the-interface-states">The Interface States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#alternative">Alternative?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#gamma-e-system"><span class="math notranslate nohighlight">\(\gamma_e\)</span> system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../radiation_files.html">Radiation</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="CastroRad__1d_8f90.html">File CastroRad_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="CastroRad__2d_8f90.html">File CastroRad_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="CastroRad__3d_8f90.html">File CastroRad_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="DumpModel1d_8H.html">File DumpModel1d.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HypreABec_8H.html">File HypreABec.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLD__1d_8f90.html">File MGFLD_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLD__2d_8f90.html">File MGFLD_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLD__3d_8f90.html">File MGFLD_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLDneut__1d_8f90.html">File MGFLDneut_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLDneut__2d_8f90.html">File MGFLDneut_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLDneut__3d_8f90.html">File MGFLDneut_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGRadBndry_8H.html">File MGRadBndry.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="NGBndry_8H.html">File NGBndry.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadBndry_8H.html">File RadBndry.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadBndry__1d_8f90.html">File RadBndry_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadBndry__2d_8f90.html">File RadBndry_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadBndry__3d_8f90.html">File RadBndry_3d.f90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File RadDerive_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadEOS__1d_8f90.html">File RadEOS_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadEOS__2d_8f90.html">File RadEOS_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadEOS__3d_8f90.html">File RadEOS_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadHydro__nd_8f90.html">File RadHydro_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadPlotvar__1d_8f90.html">File RadPlotvar_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadPlotvar__2d_8f90.html">File RadPlotvar_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadPlotvar__3d_8f90.html">File RadPlotvar_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadSolve_8H.html">File RadSolve.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadTests_8H.html">File RadTests.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadTypes_8H.html">File RadTypes.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Rad__nd_8f90.html">File Rad_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Radiation_8H.html">File Radiation.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="blackbody_8f90.html">File blackbody.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filt__prim__1d_8f90.html">File filt_prim_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filt__prim__2d_8f90.html">File filt_prim_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filt__prim__3d_8f90.html">File filt_prim_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filter_8f90.html">File filter.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fluxlimiter_8f90.html">File fluxlimiter.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="kavg_8F90.html">File kavg.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rad__params_8f90.html">File rad_params.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rad__util_8f90.html">File rad_util.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trace__ppm__rad__nd_8F90.html">File trace_ppm_rad_nd.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../radiation_files.html">Radiation</a> &raquo;</li>
+        
+      <li>File RadDerive_nd.f90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/RadDerive__nd_8f90.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-radderive-nd-f90">
+<h1>File RadDerive_nd.f90<a class="headerlink" href="#file-radderive-nd-f90" title="Permalink to this headline">¶</a></h1>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt id="_CPPv310ca_derneut4neut4n_lo4n_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no">
+<span id="_CPPv210ca_derneut4neut4n_lo4n_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no"></span><span id="ca_derneut__neut.n_lo.n_hi.nv.dat.d_lo.d_hi.ncomp.lo.hi.domlo.domhi.dx.xlo.time.dt.bc.level.grid_no"></span><span class="target" id="RadDerive__nd_8f90_1a76018cf3eadf796b3f51d086b2881915"></span>subroutine <code class="descname">ca_derneut</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv310ca_derneut4neut4n_lo4n_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derneut::neut">neut</a> <em>neut</em>, <a class="reference internal" href="#_CPPv310ca_derneut4neut4n_lo4n_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derneut::n_lo">n_lo</a> <em>n_lo</em>, <a class="reference internal" href="#_CPPv310ca_derneut4neut4n_lo4n_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derneut::n_hi">n_hi</a> <em>n_hi</em>, <a class="reference internal" href="#_CPPv310ca_derneut4neut4n_lo4n_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derneut::nv">nv</a> <em>nv</em>, <a class="reference internal" href="#_CPPv310ca_derneut4neut4n_lo4n_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derneut::dat">dat</a> <em>dat</em>, <a class="reference internal" href="#_CPPv310ca_derneut4neut4n_lo4n_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derneut::d_lo">d_lo</a> <em>d_lo</em>, <a class="reference internal" href="#_CPPv310ca_derneut4neut4n_lo4n_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derneut::d_hi">d_hi</a> <em>d_hi</em>, <a class="reference internal" href="#_CPPv310ca_derneut4neut4n_lo4n_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derneut::ncomp">ncomp</a> <em>ncomp</em>, <a class="reference internal" href="#_CPPv310ca_derneut4neut4n_lo4n_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derneut::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv310ca_derneut4neut4n_lo4n_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derneut::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv310ca_derneut4neut4n_lo4n_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derneut::domlo">domlo</a> <em>domlo</em>, <a class="reference internal" href="#_CPPv310ca_derneut4neut4n_lo4n_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derneut::domhi">domhi</a> <em>domhi</em>, <a class="reference internal" href="#_CPPv310ca_derneut4neut4n_lo4n_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derneut::dx">dx</a> <em>dx</em>, <a class="reference internal" href="#_CPPv310ca_derneut4neut4n_lo4n_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derneut::xlo">xlo</a> <em>xlo</em>, <a class="reference internal" href="#_CPPv310ca_derneut4neut4n_lo4n_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derneut::time">time</a> <em>time</em>, <a class="reference internal" href="#_CPPv310ca_derneut4neut4n_lo4n_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derneut::dt">dt</a> <em>dt</em>, <a class="reference internal" href="#_CPPv310ca_derneut4neut4n_lo4n_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derneut::bc">bc</a> <em>bc</em>, <a class="reference internal" href="#_CPPv310ca_derneut4neut4n_lo4n_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derneut::level">level</a> <em>level</em>, <a class="reference internal" href="#_CPPv310ca_derneut4neut4n_lo4n_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derneut::grid_no">grid_no</a> <em>grid_no</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv310ca_derneut4neut4n_lo4n_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv311ca_derrhoyl5rhoyl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no">
+<span id="_CPPv211ca_derrhoyl5rhoyl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no"></span><span id="ca_derrhoyl__rhoyl.y_lo.y_hi.nv.dat.d_lo.d_hi.ncomp.lo.hi.domlo.domhi.dx.xlo.time.dt.bc.level.grid_no"></span><span class="target" id="RadDerive__nd_8f90_1a5425c8d470a6af56b7ec56109a310a78"></span>subroutine <code class="descname">ca_derrhoyl</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv311ca_derrhoyl5rhoyl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derrhoyl::rhoyl">rhoyl</a> <em>rhoyl</em>, <a class="reference internal" href="#_CPPv311ca_derrhoyl5rhoyl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derrhoyl::y_lo">y_lo</a> <em>y_lo</em>, <a class="reference internal" href="#_CPPv311ca_derrhoyl5rhoyl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derrhoyl::y_hi">y_hi</a> <em>y_hi</em>, <a class="reference internal" href="#_CPPv311ca_derrhoyl5rhoyl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derrhoyl::nv">nv</a> <em>nv</em>, <a class="reference internal" href="#_CPPv311ca_derrhoyl5rhoyl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derrhoyl::dat">dat</a> <em>dat</em>, <a class="reference internal" href="#_CPPv311ca_derrhoyl5rhoyl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derrhoyl::d_lo">d_lo</a> <em>d_lo</em>, <a class="reference internal" href="#_CPPv311ca_derrhoyl5rhoyl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derrhoyl::d_hi">d_hi</a> <em>d_hi</em>, <a class="reference internal" href="#_CPPv311ca_derrhoyl5rhoyl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derrhoyl::ncomp">ncomp</a> <em>ncomp</em>, <a class="reference internal" href="#_CPPv311ca_derrhoyl5rhoyl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derrhoyl::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv311ca_derrhoyl5rhoyl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derrhoyl::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv311ca_derrhoyl5rhoyl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derrhoyl::domlo">domlo</a> <em>domlo</em>, <a class="reference internal" href="#_CPPv311ca_derrhoyl5rhoyl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derrhoyl::domhi">domhi</a> <em>domhi</em>, <a class="reference internal" href="#_CPPv311ca_derrhoyl5rhoyl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derrhoyl::dx">dx</a> <em>dx</em>, <a class="reference internal" href="#_CPPv311ca_derrhoyl5rhoyl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derrhoyl::xlo">xlo</a> <em>xlo</em>, <a class="reference internal" href="#_CPPv311ca_derrhoyl5rhoyl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derrhoyl::time">time</a> <em>time</em>, <a class="reference internal" href="#_CPPv311ca_derrhoyl5rhoyl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derrhoyl::dt">dt</a> <em>dt</em>, <a class="reference internal" href="#_CPPv311ca_derrhoyl5rhoyl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derrhoyl::bc">bc</a> <em>bc</em>, <a class="reference internal" href="#_CPPv311ca_derrhoyl5rhoyl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derrhoyl::level">level</a> <em>level</em>, <a class="reference internal" href="#_CPPv311ca_derrhoyl5rhoyl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derrhoyl::grid_no">grid_no</a> <em>grid_no</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv311ca_derrhoyl5rhoyl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv38ca_deryl2yl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no">
+<span id="_CPPv28ca_deryl2yl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no"></span><span id="ca_deryl__yl.y_lo.y_hi.nv.dat.d_lo.d_hi.ncomp.lo.hi.domlo.domhi.dx.xlo.time.dt.bc.level.grid_no"></span><span class="target" id="RadDerive__nd_8f90_1ab65aa28cca3d41fb6d46b7e76ff5c5b3"></span>subroutine <code class="descname">ca_deryl</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv38ca_deryl2yl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_deryl::yl">yl</a> <em>yl</em>, <a class="reference internal" href="#_CPPv38ca_deryl2yl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_deryl::y_lo">y_lo</a> <em>y_lo</em>, <a class="reference internal" href="#_CPPv38ca_deryl2yl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_deryl::y_hi">y_hi</a> <em>y_hi</em>, <a class="reference internal" href="#_CPPv38ca_deryl2yl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_deryl::nv">nv</a> <em>nv</em>, <a class="reference internal" href="#_CPPv38ca_deryl2yl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_deryl::dat">dat</a> <em>dat</em>, <a class="reference internal" href="#_CPPv38ca_deryl2yl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_deryl::d_lo">d_lo</a> <em>d_lo</em>, <a class="reference internal" href="#_CPPv38ca_deryl2yl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_deryl::d_hi">d_hi</a> <em>d_hi</em>, <a class="reference internal" href="#_CPPv38ca_deryl2yl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_deryl::ncomp">ncomp</a> <em>ncomp</em>, <a class="reference internal" href="#_CPPv38ca_deryl2yl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_deryl::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv38ca_deryl2yl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_deryl::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv38ca_deryl2yl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_deryl::domlo">domlo</a> <em>domlo</em>, <a class="reference internal" href="#_CPPv38ca_deryl2yl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_deryl::domhi">domhi</a> <em>domhi</em>, <a class="reference internal" href="#_CPPv38ca_deryl2yl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_deryl::dx">dx</a> <em>dx</em>, <a class="reference internal" href="#_CPPv38ca_deryl2yl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_deryl::xlo">xlo</a> <em>xlo</em>, <a class="reference internal" href="#_CPPv38ca_deryl2yl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_deryl::time">time</a> <em>time</em>, <a class="reference internal" href="#_CPPv38ca_deryl2yl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_deryl::dt">dt</a> <em>dt</em>, <a class="reference internal" href="#_CPPv38ca_deryl2yl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_deryl::bc">bc</a> <em>bc</em>, <a class="reference internal" href="#_CPPv38ca_deryl2yl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_deryl::level">level</a> <em>level</em>, <a class="reference internal" href="#_CPPv38ca_deryl2yl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_deryl::grid_no">grid_no</a> <em>grid_no</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv38ca_deryl2yl4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv310ca_derynue1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no">
+<span id="_CPPv210ca_derynue1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no"></span><span id="ca_derynue__y.y_lo.y_hi.nv.dat.d_lo.d_hi.ncomp.lo.hi.domlo.domhi.dx.xlo.time.dt.bc.level.grid_no"></span><span class="target" id="RadDerive__nd_8f90_1a7068733bdf30b1557acc263c52ef1c4f"></span>subroutine <code class="descname">ca_derynue</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv310ca_derynue1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynue::y">y</a> <em>y</em>, <a class="reference internal" href="#_CPPv310ca_derynue1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynue::y_lo">y_lo</a> <em>y_lo</em>, <a class="reference internal" href="#_CPPv310ca_derynue1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynue::y_hi">y_hi</a> <em>y_hi</em>, <a class="reference internal" href="#_CPPv310ca_derynue1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynue::nv">nv</a> <em>nv</em>, <a class="reference internal" href="#_CPPv310ca_derynue1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynue::dat">dat</a> <em>dat</em>, <a class="reference internal" href="#_CPPv310ca_derynue1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynue::d_lo">d_lo</a> <em>d_lo</em>, <a class="reference internal" href="#_CPPv310ca_derynue1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynue::d_hi">d_hi</a> <em>d_hi</em>, <a class="reference internal" href="#_CPPv310ca_derynue1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynue::ncomp">ncomp</a> <em>ncomp</em>, <a class="reference internal" href="#_CPPv310ca_derynue1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynue::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv310ca_derynue1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynue::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv310ca_derynue1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynue::domlo">domlo</a> <em>domlo</em>, <a class="reference internal" href="#_CPPv310ca_derynue1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynue::domhi">domhi</a> <em>domhi</em>, <a class="reference internal" href="#_CPPv310ca_derynue1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynue::dx">dx</a> <em>dx</em>, <a class="reference internal" href="#_CPPv310ca_derynue1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynue::xlo">xlo</a> <em>xlo</em>, <a class="reference internal" href="#_CPPv310ca_derynue1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynue::time">time</a> <em>time</em>, <a class="reference internal" href="#_CPPv310ca_derynue1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynue::dt">dt</a> <em>dt</em>, <a class="reference internal" href="#_CPPv310ca_derynue1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynue::bc">bc</a> <em>bc</em>, <a class="reference internal" href="#_CPPv310ca_derynue1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynue::level">level</a> <em>level</em>, <a class="reference internal" href="#_CPPv310ca_derynue1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynue::grid_no">grid_no</a> <em>grid_no</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv310ca_derynue1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv311ca_derynuae1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no">
+<span id="_CPPv211ca_derynuae1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no"></span><span id="ca_derynuae__y.y_lo.y_hi.nv.dat.d_lo.d_hi.ncomp.lo.hi.domlo.domhi.dx.xlo.time.dt.bc.level.grid_no"></span><span class="target" id="RadDerive__nd_8f90_1a8c5dc486b35e441989ccb4aad42f5369"></span>subroutine <code class="descname">ca_derynuae</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv311ca_derynuae1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynuae::y">y</a> <em>y</em>, <a class="reference internal" href="#_CPPv311ca_derynuae1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynuae::y_lo">y_lo</a> <em>y_lo</em>, <a class="reference internal" href="#_CPPv311ca_derynuae1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynuae::y_hi">y_hi</a> <em>y_hi</em>, <a class="reference internal" href="#_CPPv311ca_derynuae1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynuae::nv">nv</a> <em>nv</em>, <a class="reference internal" href="#_CPPv311ca_derynuae1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynuae::dat">dat</a> <em>dat</em>, <a class="reference internal" href="#_CPPv311ca_derynuae1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynuae::d_lo">d_lo</a> <em>d_lo</em>, <a class="reference internal" href="#_CPPv311ca_derynuae1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynuae::d_hi">d_hi</a> <em>d_hi</em>, <a class="reference internal" href="#_CPPv311ca_derynuae1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynuae::ncomp">ncomp</a> <em>ncomp</em>, <a class="reference internal" href="#_CPPv311ca_derynuae1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynuae::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv311ca_derynuae1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynuae::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv311ca_derynuae1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynuae::domlo">domlo</a> <em>domlo</em>, <a class="reference internal" href="#_CPPv311ca_derynuae1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynuae::domhi">domhi</a> <em>domhi</em>, <a class="reference internal" href="#_CPPv311ca_derynuae1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynuae::dx">dx</a> <em>dx</em>, <a class="reference internal" href="#_CPPv311ca_derynuae1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynuae::xlo">xlo</a> <em>xlo</em>, <a class="reference internal" href="#_CPPv311ca_derynuae1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynuae::time">time</a> <em>time</em>, <a class="reference internal" href="#_CPPv311ca_derynuae1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynuae::dt">dt</a> <em>dt</em>, <a class="reference internal" href="#_CPPv311ca_derynuae1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynuae::bc">bc</a> <em>bc</em>, <a class="reference internal" href="#_CPPv311ca_derynuae1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynuae::level">level</a> <em>level</em>, <a class="reference internal" href="#_CPPv311ca_derynuae1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="ca_derynuae::grid_no">grid_no</a> <em>grid_no</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv311ca_derynuae1y4y_lo4y_hi2nv3dat4d_lo4d_hi5ncomp2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv311ca_derertot2Et5Et_lo5Et_hi8ncomp_Et2Er5Er_lo5Er_hi8ncomp_Er2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no">
+<span id="_CPPv211ca_derertot2Et5Et_lo5Et_hi8ncomp_Et2Er5Er_lo5Er_hi8ncomp_Er2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no"></span><span id="ca_derertot__Et.Et_lo.Et_hi.ncomp_Et.Er.Er_lo.Er_hi.ncomp_Er.lo.hi.domlo.domhi.dx.xlo.time.dt.bc.level.grid_no"></span><span class="target" id="RadDerive__nd_8f90_1a7403edf63ec5d18094448f26f66abf23"></span>subroutine <code class="descname">ca_derertot</code><span class="sig-paren">(</span>Et <em>Et</em>, Et_lo <em>Et_lo</em>, Et_hi <em>Et_hi</em>, ncomp_Et <em>ncomp_Et</em>, Er <em>Er</em>, Er_lo <em>Er_lo</em>, Er_hi <em>Er_hi</em>, ncomp_Er <em>ncomp_Er</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv311ca_derertotF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi" title="ca_derertot::lo">lo</a> <em>lo</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv311ca_derertotF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi" title="ca_derertot::hi">hi</a> <em>hi</em>, domlo <em>domlo</em>, domhi <em>domhi</em>, dx <em>dx</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv311ca_derertotF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi" title="ca_derertot::xlo">xlo</a> <em>xlo</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv311ca_derertotF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi" title="ca_derertot::time">time</a> <em>time</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv311ca_derertotF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi" title="ca_derertot::dt">dt</a> <em>dt</em>, bc <em>bc</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv311ca_derertotF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi" title="ca_derertot::level">level</a> <em>level</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv311ca_derertotF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi" title="ca_derertot::grid_no">grid_no</a> <em>grid_no</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv311ca_derertot2Et5Et_lo5Et_hi8ncomp_Et2Er5Er_lo5Er_hi8ncomp_Er2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv310ca_derenue4Enue7Enue_lo7Enue_hi10ncomp_Enue2Er5Er_lo5Er_hi8ncomp_Er2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no">
+<span id="_CPPv210ca_derenue4Enue7Enue_lo7Enue_hi10ncomp_Enue2Er5Er_lo5Er_hi8ncomp_Er2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no"></span><span id="ca_derenue__Enue.Enue_lo.Enue_hi.ncomp_Enue.Er.Er_lo.Er_hi.ncomp_Er.lo.hi.domlo.domhi.dx.xlo.time.dt.bc.level.grid_no"></span><span class="target" id="RadDerive__nd_8f90_1a427cbed7e70ec4db0e33910af78dca66"></span>subroutine <code class="descname">ca_derenue</code><span class="sig-paren">(</span>Enue <em>Enue</em>, Enue_lo <em>Enue_lo</em>, Enue_hi <em>Enue_hi</em>, ncomp_Enue <em>ncomp_Enue</em>, Er <em>Er</em>, Er_lo <em>Er_lo</em>, Er_hi <em>Er_hi</em>, ncomp_Er <em>ncomp_Er</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv310ca_derenueF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi" title="ca_derenue::lo">lo</a> <em>lo</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv310ca_derenueF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi" title="ca_derenue::hi">hi</a> <em>hi</em>, domlo <em>domlo</em>, domhi <em>domhi</em>, dx <em>dx</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv310ca_derenueF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi" title="ca_derenue::xlo">xlo</a> <em>xlo</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv310ca_derenueF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi" title="ca_derenue::time">time</a> <em>time</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv310ca_derenueF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi" title="ca_derenue::dt">dt</a> <em>dt</em>, bc <em>bc</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv310ca_derenueF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi" title="ca_derenue::level">level</a> <em>level</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv310ca_derenueF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi" title="ca_derenue::grid_no">grid_no</a> <em>grid_no</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv310ca_derenue4Enue7Enue_lo7Enue_hi10ncomp_Enue2Er5Er_lo5Er_hi8ncomp_Er2lo2hi5domlo5domhi2dx3xlo4time2dt2bc5level7grid_no" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv311ca_derenuae5Enuae8Enuae_lo8Enuae_hi11ncomp_Enuae2Er5Er_lo5Er_hi8ncomp_Er2lo2hi5domlo5domhi">
+<span id="_CPPv211ca_derenuae5Enuae8Enuae_lo8Enuae_hi11ncomp_Enuae2Er5Er_lo5Er_hi8ncomp_Er2lo2hi5domlo5domhi"></span><span id="ca_derenuae__Enuae.Enuae_lo.Enuae_hi.ncomp_Enuae.Er.Er_lo.Er_hi.ncomp_Er.lo.hi.domlo.domhi"></span><span class="target" id="RadDerive__nd_8f90_1a00bfa52cee17cebca80448d460d62e7f"></span>subroutine <code class="descname">ca_derenuae</code><span class="sig-paren">(</span>Enuae <em>Enuae</em>, Enuae_lo <em>Enuae_lo</em>, Enuae_hi <em>Enuae_hi</em>, ncomp_Enuae <em>ncomp_Enuae</em>, Er <em>Er</em>, Er_lo <em>Er_lo</em>, Er_hi <em>Er_hi</em>, ncomp_Er <em>ncomp_Er</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv311ca_derenuaeF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi" title="ca_derenuae::lo">lo</a> <em>lo</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv311ca_derenuaeF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi" title="ca_derenuae::hi">hi</a> <em>hi</em>, domlo <em>domlo</em>, domhi <em>domhi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv311ca_derenuae5Enuae8Enuae_lo8Enuae_hi11ncomp_Enuae2Er5Er_lo5Er_hi8ncomp_Er2lo2hi5domlo5domhi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="RadEOS__1d_8f90.html" class="btn btn-neutral float-right" title="File RadEOS_1d.f90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="RadBndry__3d_8f90.html" class="btn btn-neutral" title="File RadBndry_3d.f90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -2,6 +2,16 @@ File list
 =========
 
 .. toctree::
-   :glob:
+   :maxdepth: 2
 
-   file/*
+   diffusion_files
+   driver_files
+   gravity_files
+   hydro_files
+   particles_files
+   problems_files
+   radiation_files
+   reactions_files
+   rotation_files
+   sources_files
+   

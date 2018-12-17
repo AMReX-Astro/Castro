@@ -1,0 +1,433 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File Diffusion_nd.f90 &mdash; Castro 18.12
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File Enthalpy_nd.f90" href="Enthalpy__nd_8f90.html" />
+    <link rel="prev" title="File Diffusion.H" href="Diffusion_8H.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                18.12
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html">Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#the-interface-states">The Interface States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#alternative">Alternative?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#gamma-e-system"><span class="math notranslate nohighlight">\(\gamma_e\)</span> system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../diffusion_files.html">Diffusion</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Diffusion_8H.html">File Diffusion.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File Diffusion_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Enthalpy__nd_8f90.html">File Enthalpy_nd.f90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../diffusion_files.html">Diffusion</a> &raquo;</li>
+        
+      <li>File Diffusion_nd.f90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/Diffusion__nd_8f90.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-diffusion-nd-f90">
+<h1>File Diffusion_nd.f90<a class="headerlink" href="#file-diffusion-nd-f90" title="Permalink to this headline">¶</a></h1>
+<dl class="type">
+<dt id="_CPPv316diffusion_module">
+<span id="_CPPv216diffusion_module"></span><span id="diffusion_module"></span><span class="target" id="namespacediffusion__module"></span><em class="property">namespace </em><code class="descname">diffusion_module</code><a class="headerlink" href="#_CPPv316diffusion_module" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt id="_CPPv3N16diffusion_module17ca_tempdiffextrapE2lo2hi4tdif4t_lo4t_hi">
+<span id="_CPPv2N16diffusion_module17ca_tempdiffextrapE2lo2hi4tdif4t_lo4t_hi"></span><span id="diffusion_module::ca_tempdiffextrap__lo.hi.tdif.t_lo.t_hi"></span><span class="target" id="namespacediffusion__module_1a8ebea0289d7b66fe02eb49e4b424effe"></span>subroutine <code class="descname">ca_tempdiffextrap</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv3N16diffusion_module17ca_tempdiffextrapE2lo2hi4tdif4t_lo4t_hi" title="diffusion_module::ca_tempdiffextrap::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_tempdiffextrapE2lo2hi4tdif4t_lo4t_hi" title="diffusion_module::ca_tempdiffextrap::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_tempdiffextrapE2lo2hi4tdif4t_lo4t_hi" title="diffusion_module::ca_tempdiffextrap::tdif">tdif</a> <em>tdif</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_tempdiffextrapE2lo2hi4tdif4t_lo4t_hi" title="diffusion_module::ca_tempdiffextrap::t_lo">t_lo</a> <em>t_lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_tempdiffextrapE2lo2hi4tdif4t_lo4t_hi" title="diffusion_module::ca_tempdiffextrap::t_hi">t_hi</a> <em>t_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N16diffusion_module17ca_tempdiffextrapE2lo2hi4tdif4t_lo4t_hi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>this routine extrapolates the temperature diffusion term into the ghostcells </p>
+<p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd>Binds to C function <code class="docutils literal notranslate"><span class="pre">ca_tempdiffextrap</span></code></dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">t_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">tdif</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3N16diffusion_module18ca_fill_spec_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi">
+<span id="_CPPv2N16diffusion_module18ca_fill_spec_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi"></span><span id="diffusion_module::ca_fill_spec_coeff__lo.hi.state.s_lo.s_hi.coefx.cx_lo.cx_hi.coefy.cy_lo.cy_hi.coefz.cz_lo.cz_hi"></span><span class="target" id="namespacediffusion__module_1adc15e61f05965293fe81e850433990b2"></span>subroutine <code class="descname">ca_fill_spec_coeff</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv3N16diffusion_module18ca_fill_spec_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_spec_coeff::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module18ca_fill_spec_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_spec_coeff::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module18ca_fill_spec_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_spec_coeff::state">state</a> <em>state</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module18ca_fill_spec_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_spec_coeff::s_lo">s_lo</a> <em>s_lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module18ca_fill_spec_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_spec_coeff::s_hi">s_hi</a> <em>s_hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module18ca_fill_spec_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_spec_coeff::coefx">coefx</a> <em>coefx</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module18ca_fill_spec_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_spec_coeff::cx_lo">cx_lo</a> <em>cx_lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module18ca_fill_spec_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_spec_coeff::cx_hi">cx_hi</a> <em>cx_hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module18ca_fill_spec_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_spec_coeff::coefy">coefy</a> <em>coefy</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module18ca_fill_spec_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_spec_coeff::cy_lo">cy_lo</a> <em>cy_lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module18ca_fill_spec_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_spec_coeff::cy_hi">cy_hi</a> <em>cy_hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module18ca_fill_spec_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_spec_coeff::coefz">coefz</a> <em>coefz</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module18ca_fill_spec_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_spec_coeff::cz_lo">cz_lo</a> <em>cz_lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module18ca_fill_spec_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_spec_coeff::cz_hi">cz_hi</a> <em>cz_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N16diffusion_module18ca_fill_spec_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>This routine fills the species diffusion coefficients on the edges of a zone by calling the cell-centered conductivity routine and averaging to the interfaces. </p>
+<p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd>Binds to C function <code class="docutils literal notranslate"><span class="pre">ca_fill_spec_coeff</span></code></dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">s_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">cx_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">coefx</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">coefy</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">coefz</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3N16diffusion_module17ca_fill_temp_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi">
+<span id="_CPPv2N16diffusion_module17ca_fill_temp_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi"></span><span id="diffusion_module::ca_fill_temp_cond__lo.hi.state.s_lo.s_hi.coefx.cx_lo.cx_hi.coefy.cy_lo.cy_hi.coefz.cz_lo.cz_hi"></span><span class="target" id="namespacediffusion__module_1a6e8e0958c7a0b90ae39ea1468548794e"></span>subroutine <code class="descname">ca_fill_temp_cond</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_temp_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_temp_cond::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_temp_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_temp_cond::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_temp_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_temp_cond::state">state</a> <em>state</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_temp_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_temp_cond::s_lo">s_lo</a> <em>s_lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_temp_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_temp_cond::s_hi">s_hi</a> <em>s_hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_temp_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_temp_cond::coefx">coefx</a> <em>coefx</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_temp_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_temp_cond::cx_lo">cx_lo</a> <em>cx_lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_temp_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_temp_cond::cx_hi">cx_hi</a> <em>cx_hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_temp_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_temp_cond::coefy">coefy</a> <em>coefy</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_temp_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_temp_cond::cy_lo">cy_lo</a> <em>cy_lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_temp_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_temp_cond::cy_hi">cy_hi</a> <em>cy_hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_temp_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_temp_cond::coefz">coefz</a> <em>coefz</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_temp_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_temp_cond::cz_lo">cz_lo</a> <em>cz_lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_temp_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_temp_cond::cz_hi">cz_hi</a> <em>cz_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N16diffusion_module17ca_fill_temp_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>This routine fills the thermal conductivity on the edges of a zone by calling the cell-centered conductivity routine and averaging to the interfaces. </p>
+<p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd>Binds to C function <code class="docutils literal notranslate"><span class="pre">ca_fill_temp_cond</span></code></dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">s_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">cx_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">coefx</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">coefy</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">coefz</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3N16diffusion_module17ca_fill_enth_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi">
+<span id="_CPPv2N16diffusion_module17ca_fill_enth_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi"></span><span id="diffusion_module::ca_fill_enth_cond__lo.hi.state.s_lo.s_hi.coefx.cx_lo.cx_hi.coefy.cy_lo.cy_hi.coefz.cz_lo.cz_hi"></span><span class="target" id="namespacediffusion__module_1ac23f369cbdc2e9134231b2c7ce86bb47"></span>subroutine <code class="descname">ca_fill_enth_cond</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_enth_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_enth_cond::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_enth_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_enth_cond::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_enth_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_enth_cond::state">state</a> <em>state</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_enth_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_enth_cond::s_lo">s_lo</a> <em>s_lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_enth_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_enth_cond::s_hi">s_hi</a> <em>s_hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_enth_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_enth_cond::coefx">coefx</a> <em>coefx</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_enth_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_enth_cond::cx_lo">cx_lo</a> <em>cx_lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_enth_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_enth_cond::cx_hi">cx_hi</a> <em>cx_hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_enth_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_enth_cond::coefy">coefy</a> <em>coefy</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_enth_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_enth_cond::cy_lo">cy_lo</a> <em>cy_lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_enth_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_enth_cond::cy_hi">cy_hi</a> <em>cy_hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_enth_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_enth_cond::coefz">coefz</a> <em>coefz</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_enth_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_enth_cond::cz_lo">cz_lo</a> <em>cz_lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module17ca_fill_enth_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_enth_cond::cz_hi">cz_hi</a> <em>cz_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N16diffusion_module17ca_fill_enth_condE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>This routine fills the coefficient of grad(enthalpy) on the edges of a zone by calling the cell-centered conductivity routine and averaging to the interfaces. </p>
+<p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd>Binds to C function <code class="docutils literal notranslate"><span class="pre">ca_fill_enth_cond</span></code></dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">s_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">cx_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">coefx</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">coefy</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">coefz</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3N16diffusion_module24ca_fill_first_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi">
+<span id="_CPPv2N16diffusion_module24ca_fill_first_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi"></span><span id="diffusion_module::ca_fill_first_visc_coeff__lo.hi.state.s_lo.s_hi.coefx.cx_lo.cx_hi.coefy.cy_lo.cy_hi.coefz.cz_lo.cz_hi"></span><span class="target" id="namespacediffusion__module_1a132a4eac9abf2879c9338a15cbbc261f"></span>subroutine <code class="descname">ca_fill_first_visc_coeff</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_first_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_first_visc_coeff::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_first_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_first_visc_coeff::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_first_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_first_visc_coeff::state">state</a> <em>state</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_first_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_first_visc_coeff::s_lo">s_lo</a> <em>s_lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_first_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_first_visc_coeff::s_hi">s_hi</a> <em>s_hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_first_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_first_visc_coeff::coefx">coefx</a> <em>coefx</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_first_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_first_visc_coeff::cx_lo">cx_lo</a> <em>cx_lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_first_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_first_visc_coeff::cx_hi">cx_hi</a> <em>cx_hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_first_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_first_visc_coeff::coefy">coefy</a> <em>coefy</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_first_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_first_visc_coeff::cy_lo">cy_lo</a> <em>cy_lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_first_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_first_visc_coeff::cy_hi">cy_hi</a> <em>cy_hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_first_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_first_visc_coeff::coefz">coefz</a> <em>coefz</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_first_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_first_visc_coeff::cz_lo">cz_lo</a> <em>cz_lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_first_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_first_visc_coeff::cz_hi">cz_hi</a> <em>cz_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N16diffusion_module24ca_fill_first_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>This routine fills the viscous coefficients “mu” on the edges of a zone by calling the cell-centered coefficient routine and averaging to the interfaces. </p>
+<p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd>Binds to C function <code class="docutils literal notranslate"><span class="pre">ca_fill_first_visc_coeff</span></code></dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">s_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">cx_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">coefx</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">coefy</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">coefz</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3N16diffusion_module24ca_fill_secnd_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi">
+<span id="_CPPv2N16diffusion_module24ca_fill_secnd_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi"></span><span id="diffusion_module::ca_fill_secnd_visc_coeff__lo.hi.state.s_lo.s_hi.coefx.cx_lo.cx_hi.coefy.cy_lo.cy_hi.coefz.cz_lo.cz_hi"></span><span class="target" id="namespacediffusion__module_1a7a4571ebe6c7aa5ea0ba82c309018cfb"></span>subroutine <code class="descname">ca_fill_secnd_visc_coeff</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_secnd_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_secnd_visc_coeff::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_secnd_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_secnd_visc_coeff::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_secnd_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_secnd_visc_coeff::state">state</a> <em>state</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_secnd_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_secnd_visc_coeff::s_lo">s_lo</a> <em>s_lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_secnd_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_secnd_visc_coeff::s_hi">s_hi</a> <em>s_hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_secnd_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_secnd_visc_coeff::coefx">coefx</a> <em>coefx</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_secnd_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_secnd_visc_coeff::cx_lo">cx_lo</a> <em>cx_lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_secnd_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_secnd_visc_coeff::cx_hi">cx_hi</a> <em>cx_hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_secnd_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_secnd_visc_coeff::coefy">coefy</a> <em>coefy</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_secnd_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_secnd_visc_coeff::cy_lo">cy_lo</a> <em>cy_lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_secnd_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_secnd_visc_coeff::cy_hi">cy_hi</a> <em>cy_hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_secnd_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_secnd_visc_coeff::coefz">coefz</a> <em>coefz</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_secnd_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_secnd_visc_coeff::cz_lo">cz_lo</a> <em>cz_lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module24ca_fill_secnd_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="diffusion_module::ca_fill_secnd_visc_coeff::cz_hi">cz_hi</a> <em>cz_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N16diffusion_module24ca_fill_secnd_visc_coeffE2lo2hi5state4s_lo4s_hi5coefx5cx_lo5cx_hi5coefy5cy_lo5cy_hi5coefz5cz_lo5cz_hi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd>Binds to C function <code class="docutils literal notranslate"><span class="pre">ca_fill_secnd_visc_coeff</span></code></dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">s_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">cx_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">coefx</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">coefy</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">coefz</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3N16diffusion_module20ca_compute_div_tau_uE2lo2hi9div_tau_u4d_lo4d_hi5state4s_lo4s_hi2dx10coord_type">
+<span id="_CPPv2N16diffusion_module20ca_compute_div_tau_uE2lo2hi9div_tau_u4d_lo4d_hi5state4s_lo4s_hi2dx10coord_type"></span><span id="diffusion_module::ca_compute_div_tau_u__lo.hi.div_tau_u.d_lo.d_hi.state.s_lo.s_hi.dx.coord_type"></span><span class="target" id="namespacediffusion__module_1a640a72eb4bd0b81223063624e1e60e7f"></span>subroutine <code class="descname">ca_compute_div_tau_u</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv3N16diffusion_module20ca_compute_div_tau_uE2lo2hi9div_tau_u4d_lo4d_hi5state4s_lo4s_hi2dx10coord_type" title="diffusion_module::ca_compute_div_tau_u::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module20ca_compute_div_tau_uE2lo2hi9div_tau_u4d_lo4d_hi5state4s_lo4s_hi2dx10coord_type" title="diffusion_module::ca_compute_div_tau_u::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module20ca_compute_div_tau_uE2lo2hi9div_tau_u4d_lo4d_hi5state4s_lo4s_hi2dx10coord_type" title="diffusion_module::ca_compute_div_tau_u::div_tau_u">div_tau_u</a> <em>div_tau_u</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module20ca_compute_div_tau_uE2lo2hi9div_tau_u4d_lo4d_hi5state4s_lo4s_hi2dx10coord_type" title="diffusion_module::ca_compute_div_tau_u::d_lo">d_lo</a> <em>d_lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module20ca_compute_div_tau_uE2lo2hi9div_tau_u4d_lo4d_hi5state4s_lo4s_hi2dx10coord_type" title="diffusion_module::ca_compute_div_tau_u::d_hi">d_hi</a> <em>d_hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module20ca_compute_div_tau_uE2lo2hi9div_tau_u4d_lo4d_hi5state4s_lo4s_hi2dx10coord_type" title="diffusion_module::ca_compute_div_tau_u::state">state</a> <em>state</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module20ca_compute_div_tau_uE2lo2hi9div_tau_u4d_lo4d_hi5state4s_lo4s_hi2dx10coord_type" title="diffusion_module::ca_compute_div_tau_u::s_lo">s_lo</a> <em>s_lo</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module20ca_compute_div_tau_uE2lo2hi9div_tau_u4d_lo4d_hi5state4s_lo4s_hi2dx10coord_type" title="diffusion_module::ca_compute_div_tau_u::s_hi">s_hi</a> <em>s_hi</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module20ca_compute_div_tau_uE2lo2hi9div_tau_u4d_lo4d_hi5state4s_lo4s_hi2dx10coord_type" title="diffusion_module::ca_compute_div_tau_u::dx">dx</a> <em>dx</em>, <a class="reference internal" href="#_CPPv3N16diffusion_module20ca_compute_div_tau_uE2lo2hi9div_tau_u4d_lo4d_hi5state4s_lo4s_hi2dx10coord_type" title="diffusion_module::ca_compute_div_tau_u::coord_type">coord_type</a> <em>coord_type</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N16diffusion_module20ca_compute_div_tau_uE2lo2hi9div_tau_u4d_lo4d_hi5state4s_lo4s_hi2dx10coord_type" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd>Binds to C function <code class="docutils literal notranslate"><span class="pre">ca_compute_div_tau_u</span></code></dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">d_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">s_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">div_tau_u</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">dx</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">coord_type</span></code>: integer </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Enthalpy__nd_8f90.html" class="btn btn-neutral float-right" title="File Enthalpy_nd.f90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Diffusion_8H.html" class="btn btn-neutral" title="File Diffusion.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

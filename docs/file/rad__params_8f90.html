@@ -1,0 +1,446 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File rad_params.f90 &mdash; Castro 18.12
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File rad_util.f90" href="rad__util_8f90.html" />
+    <link rel="prev" title="File kavg.F90" href="kavg_8F90.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                18.12
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html">Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#the-interface-states">The Interface States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#alternative">Alternative?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#gamma-e-system"><span class="math notranslate nohighlight">\(\gamma_e\)</span> system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../radiation_files.html">Radiation</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="CastroRad__1d_8f90.html">File CastroRad_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="CastroRad__2d_8f90.html">File CastroRad_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="CastroRad__3d_8f90.html">File CastroRad_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="DumpModel1d_8H.html">File DumpModel1d.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HypreABec_8H.html">File HypreABec.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLD__1d_8f90.html">File MGFLD_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLD__2d_8f90.html">File MGFLD_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLD__3d_8f90.html">File MGFLD_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLDneut__1d_8f90.html">File MGFLDneut_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLDneut__2d_8f90.html">File MGFLDneut_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLDneut__3d_8f90.html">File MGFLDneut_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGRadBndry_8H.html">File MGRadBndry.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="NGBndry_8H.html">File NGBndry.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadBndry_8H.html">File RadBndry.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadBndry__1d_8f90.html">File RadBndry_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadBndry__2d_8f90.html">File RadBndry_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadBndry__3d_8f90.html">File RadBndry_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadDerive__nd_8f90.html">File RadDerive_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadEOS__1d_8f90.html">File RadEOS_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadEOS__2d_8f90.html">File RadEOS_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadEOS__3d_8f90.html">File RadEOS_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadHydro__nd_8f90.html">File RadHydro_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadPlotvar__1d_8f90.html">File RadPlotvar_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadPlotvar__2d_8f90.html">File RadPlotvar_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadPlotvar__3d_8f90.html">File RadPlotvar_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadSolve_8H.html">File RadSolve.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadTests_8H.html">File RadTests.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadTypes_8H.html">File RadTypes.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Rad__nd_8f90.html">File Rad_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Radiation_8H.html">File Radiation.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="blackbody_8f90.html">File blackbody.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filt__prim__1d_8f90.html">File filt_prim_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filt__prim__2d_8f90.html">File filt_prim_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filt__prim__3d_8f90.html">File filt_prim_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filter_8f90.html">File filter.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fluxlimiter_8f90.html">File fluxlimiter.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="kavg_8F90.html">File kavg.F90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File rad_params.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rad__util_8f90.html">File rad_util.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trace__ppm__rad__nd_8F90.html">File trace_ppm_rad_nd.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../radiation_files.html">Radiation</a> &raquo;</li>
+        
+      <li>File rad_params.f90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/rad__params_8f90.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-rad-params-f90">
+<h1>File rad_params.f90<a class="headerlink" href="#file-rad-params-f90" title="Permalink to this headline">¶</a></h1>
+<dl class="type">
+<dt id="_CPPv317rad_params_module">
+<span id="_CPPv217rad_params_module"></span><span id="rad_params_module"></span><span class="target" id="namespacerad__params__module"></span><em class="property">namespace </em><code class="descname">rad_params_module</code><a class="headerlink" href="#_CPPv317rad_params_module" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt>
+<span class="target" id="namespacerad__params__module_1a102509552e302ee1ac8aeb616333cefb"></span><code class="descname">integer function rad_params_module::get_ispec(g g)</code></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Variables</p>
+<dl class="member">
+<dt>
+<span class="target" id="namespacerad__params__module_1a3d020f2173e7dfde30ce9cc222f7324d"></span><code class="descname">integer, save rad_params_module::current_group</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerad__params__module_1ac0c32b2619a94d35d5dde41dba926f5d"></span><code class="descname">integer, save rad_params_module::ng0</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerad__params__module_1a13675632f4aa9a036af807247676c54c"></span><code class="descname">integer, save rad_params_module::ng1</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerad__params__module_1a180bcc6272c14818eb99542a146df4ef"></span><code class="descname">integer, save rad_params_module::nnuspec</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerad__params__module_1ab32110e682591ea536423de14897f97e"></span><code class="descname">integer, save rad_params_module::nradspec</code> = 1</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerad__params__module_1a55dcbc400f49a92c805613502566ce26"></span><code class="descname">real(rt), dimension(:), allocatable, save rad_params_module::nugroup</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerad__params__module_1a3dc788af8ad8899172c956d41fde19c8"></span><code class="descname">real(rt), dimension(:), allocatable, save rad_params_module::dnugroup</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerad__params__module_1af3ed1c0c25fd796b12a524c698772074"></span><code class="descname">real(rt), dimension(:), allocatable, save rad_params_module::xnu</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerad__params__module_1a1bf5f3a0bf716f5910f50ada3c3239e7"></span><code class="descname">real(rt), dimension(:), allocatable, save rad_params_module::dlognu</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerad__params__module_1aafd30e9073149bb220262d24b1412782"></span><code class="descname">real(rt), dimension(:), allocatable, save rad_params_module::erg2rhoye</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerad__params__module_1a1146fde58a6c51fb9b8a11d6e7e6bffb"></span><code class="descname">real(rt), dimension(:), allocatable, save rad_params_module::lognugroup</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerad__params__module_1aa841e019ae978ff742e34969b358ca95"></span><code class="descname">real(rt), save rad_params_module::pi</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerad__params__module_1af8f84c4d52e66aa485383d4151757e50"></span><code class="descname">real(rt), save rad_params_module::clight</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerad__params__module_1a2f35ddd56799cc1d1e0a20aeb36d8998"></span><code class="descname">real(rt), save rad_params_module::hplanck</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerad__params__module_1a4f2bfa3df4ce243abc26efae95de68d1"></span><code class="descname">real(rt), save rad_params_module::kboltz</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerad__params__module_1a2ab5a74781c6c14075f4b4df3ee7be4b"></span><code class="descname">real(rt), save rad_params_module::stefbol</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerad__params__module_1a4d519fdf18e497096b4d20e51bc06cbd"></span><code class="descname">real(rt), save rad_params_module::arad</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerad__params__module_1a4e39482b84e488fceed141f9f18a680f"></span><code class="descname">real(rt), save rad_params_module::avogadro</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerad__params__module_1ab4d0ace3e34d111cd5baa6a80df16bf3"></span><code class="descname">real(rt), save rad_params_module::hz2mev</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerad__params__module_1a57b6dc9b93a549cf9fdb97d8d2313d03"></span><code class="descname">real(rt), save rad_params_module::mev2erg</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerad__params__module_1ac5c3576507953d29063edc3baa94ad23"></span><code class="descname">real(rt), save rad_params_module::tiny</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerad__params__module_1ae81e186eaa6b91762b7e452a0b69065d"></span><code class="descname">real(rt), save rad_params_module::radtoe</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerad__params__module_1a9703510db5f1538111ae47277b81ac43"></span><code class="descname">real(rt), save rad_params_module::etafactor</code></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="rad__util_8f90.html" class="btn btn-neutral float-right" title="File rad_util.f90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="kavg_8F90.html" class="btn btn-neutral" title="File kavg.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

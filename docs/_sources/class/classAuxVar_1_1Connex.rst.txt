@@ -1,4 +1,0 @@
-Class AuxVar::Connex
-====================
-
-.. doxygenclass:: AuxVar::Connex

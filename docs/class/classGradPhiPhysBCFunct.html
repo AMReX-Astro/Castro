@@ -105,6 +105,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html">Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#the-interface-states">The Interface States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#alternative">Alternative?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#gamma-e-system"><span class="math notranslate nohighlight">\(\gamma_e\)</span> system</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
@@ -118,20 +122,13 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../filelist.html">File list</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../classlist.html">Class list</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="classAuxVar.html">Class AuxVar</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classAuxVarBox.html">Class AuxVarBox</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classAuxVar_1_1Connex.html">Class AuxVar::Connex</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classBndryAuxVar.html">Class BndryAuxVar</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classBndryAuxVarBase.html">Class BndryAuxVarBase</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classCastro.html">Class Castro</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classCastroBld.html">Class CastroBld</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classCrseBndryAuxVar.html">Class CrseBndryAuxVar</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classDiffusion.html">Class Diffusion</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Class GradPhiPhysBCFunct</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classGravity.html">Class Gravity</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classHypreABec.html">Class HypreABec</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classHypreExtMultiABec.html">Class HypreExtMultiABec</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classHypreMultiABec.html">Class HypreMultiABec</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classMGRadBndry.html">Class MGRadBndry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classMGRadBndryBld.html">Class MGRadBndryBld</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classNGBndry.html">Class NGBndry</a></li>
@@ -147,7 +144,6 @@
 <li class="toctree-l2"><a class="reference internal" href="classRadiation.html">Class Radiation</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../namespacelist.html">Namespace list</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
@@ -222,7 +218,32 @@
 <dl class="class">
 <dt id="_CPPv318GradPhiPhysBCFunct">
 <span id="_CPPv218GradPhiPhysBCFunct"></span><span id="GradPhiPhysBCFunct"></span><span class="target" id="classGradPhiPhysBCFunct"></span><em class="property">class </em><code class="descname">GradPhiPhysBCFunct</code> : <em class="property">public</em> PhysBCFunctBase<a class="headerlink" href="#_CPPv318GradPhiPhysBCFunct" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="function">
+<dt id="_CPPv3N18GradPhiPhysBCFunct18GradPhiPhysBCFunctEv">
+<span id="_CPPv2N18GradPhiPhysBCFunct18GradPhiPhysBCFunctEv"></span><span id="GradPhiPhysBCFunct::GradPhiPhysBCFunct"></span><span class="target" id="classGradPhiPhysBCFunct_1a30f1ecaf958512a705e00152f94e1c9f"></span><code class="descname">GradPhiPhysBCFunct</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N18GradPhiPhysBCFunct18GradPhiPhysBCFunctEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3N18GradPhiPhysBCFunct12FillBoundaryERN5amrex8MultiFabEiiN5amrex4RealEi">
+<span id="_CPPv2N18GradPhiPhysBCFunct12FillBoundaryERN5amrex8MultiFabEiiN5amrex4RealEi"></span><span id="GradPhiPhysBCFunct::FillBoundary__amrex::MultiFabR.i.i.amrex::Real.i"></span><span class="target" id="classGradPhiPhysBCFunct_1a15c213f5166bbc0d00c1a9e069edc74d"></span>void <code class="descname">FillBoundary</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>mf</em>, int <em>dcomp</em>, int <em>ncomp</em>, amrex::Real <em>time</em>, int <em>bccomp</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N18GradPhiPhysBCFunct12FillBoundaryERN5amrex8MultiFabEiiN5amrex4RealEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">mf</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">dcomp</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">ncomp</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">bccomp</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+</dd></dl>
 
 </div>
 

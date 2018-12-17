@@ -105,6 +105,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html">Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#the-interface-states">The Interface States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#alternative">Alternative?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#gamma-e-system"><span class="math notranslate nohighlight">\(\gamma_e\)</span> system</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
@@ -118,20 +122,13 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../filelist.html">File list</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../classlist.html">Class list</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="classAuxVar.html">Class AuxVar</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classAuxVarBox.html">Class AuxVarBox</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classAuxVar_1_1Connex.html">Class AuxVar::Connex</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classBndryAuxVar.html">Class BndryAuxVar</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classBndryAuxVarBase.html">Class BndryAuxVarBase</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classCastro.html">Class Castro</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classCastroBld.html">Class CastroBld</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classCrseBndryAuxVar.html">Class CrseBndryAuxVar</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classDiffusion.html">Class Diffusion</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classGradPhiPhysBCFunct.html">Class GradPhiPhysBCFunct</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classGravity.html">Class Gravity</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classHypreABec.html">Class HypreABec</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classHypreExtMultiABec.html">Class HypreExtMultiABec</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classHypreMultiABec.html">Class HypreMultiABec</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classMGRadBndry.html">Class MGRadBndry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classMGRadBndryBld.html">Class MGRadBndryBld</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Class NGBndry</a></li>
@@ -147,7 +144,6 @@
 <li class="toctree-l2"><a class="reference internal" href="classRadiation.html">Class Radiation</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../namespacelist.html">Namespace list</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
@@ -223,6 +219,99 @@
 <dt id="_CPPv37NGBndry">
 <span id="_CPPv27NGBndry"></span><span id="NGBndry"></span><span class="target" id="classNGBndry"></span><em class="property">class </em><code class="descname">NGBndry</code> : <em class="property">public</em> <a class="reference internal" href="classRadInterpBndryData.html#_CPPv318RadInterpBndryData" title="RadInterpBndryData">RadInterpBndryData</a><a class="headerlink" href="#_CPPv37NGBndry" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Subclassed by <a class="reference internal" href="../file/MGRadBndry_8H.html#classMGRadBndry"><span class="std std-ref">MGRadBndry</span></a>, <a class="reference internal" href="../file/RadBndry_8H.html#classRadBndry"><span class="std std-ref">RadBndry</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="function">
+<dt id="_CPPv3N7NGBndry7NGBndryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE">
+<span id="_CPPv2N7NGBndry7NGBndryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE"></span><span id="NGBndry::NGBndry__amrex::BoxArrayCR.amrex::DistributionMappingCR.i.amrex::GeometryCR"></span><span class="target" id="classNGBndry_1a5299c28d18798f3362c84267b0809b98"></span><code class="descname">NGBndry</code><span class="sig-paren">(</span><em class="property">const</em> amrex::BoxArray &amp;<em>_grids</em>, <em class="property">const</em> amrex::DistributionMapping &amp;<em>_dmap</em>, int <em>_ncomp</em>, <em class="property">const</em> amrex::Geometry &amp;<em>_geom</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N7NGBndry7NGBndryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">_grids</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">_dmap</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">_ncomp</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">_geom</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">_grids</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">_dmap</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">_ncomp</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">_geom</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3N7NGBndry17setBndryFluxCondsERKN5amrex5BCRecEK7BC_Mode">
+<span id="_CPPv2N7NGBndry17setBndryFluxCondsERKN5amrex5BCRecEK7BC_Mode"></span><span id="NGBndry::setBndryFluxConds__amrex::BCRecCR.BC_ModeC"></span><span class="target" id="classNGBndry_1a1be60281dc393a03d1fa6f2bad40a273"></span><em class="property">virtual</em> void <code class="descname">setBndryFluxConds</code><span class="sig-paren">(</span><em class="property">const</em> amrex::BCRec &amp;<em>bc</em>, <em class="property">const</em> <a class="reference internal" href="../file/NGBndry_8H.html#_CPPv37BC_Mode" title="BC_Mode">BC_Mode</a> <em>phys_bc_mode</em> = <a class="reference internal" href="../file/NGBndry_8H.html#_CPPv316Inhomogeneous_BC" title="Inhomogeneous_BC">Inhomogeneous_BC</a><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv3N7NGBndry17setBndryFluxCondsERKN5amrex5BCRecEK7BC_Mode" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">bc</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">phys_bc_mode</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3NK7NGBndry10bndryTypesERKN5amrex11OrientationE">
+<span id="_CPPv2NK7NGBndry10bndryTypesERKN5amrex11OrientationE"></span><span id="NGBndry::bndryTypes__amrex::OrientationCRC"></span><span class="target" id="classNGBndry_1a3088012767c20afebd2eee6f2486161f"></span><em class="property">const</em> amrex::Vector&lt;std::unique_ptr&lt;amrex::BaseFab&lt;int&gt;&gt;&gt; &amp;<code class="descname">bndryTypes</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Orientation &amp;<em>_face</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv3NK7NGBndry10bndryTypesERKN5amrex11OrientationE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">_face</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3NK7NGBndry10mixedBndryERKN5amrex11OrientationE">
+<span id="_CPPv2NK7NGBndry10mixedBndryERKN5amrex11OrientationE"></span><span id="NGBndry::mixedBndry__amrex::OrientationCRC"></span><span class="target" id="classNGBndry_1a8380903c363878d2e87f646d420193dd"></span><em class="property">virtual</em> int <code class="descname">mixedBndry</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Orientation &amp;<em>_face</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv3NK7NGBndry10mixedBndryERKN5amrex11OrientationE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">_face</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Protected Attributes</p>
+<dl class="member">
+<dt id="_CPPv3N7NGBndry11bctypearrayE">
+<span id="_CPPv2N7NGBndry11bctypearrayE"></span><span id="NGBndry::bctypearray__amrex::Vector:std::unique_ptr:amrex::BaseFab:i:::A"></span><span class="target" id="classNGBndry_1a2df1dbe1efbac31d1260582c660cba1c"></span>amrex::Vector&lt;std::unique_ptr&lt;amrex::BaseFab&lt;int&gt;&gt;&gt; <code class="descname">bctypearray</code>[2 * <code class="descname">BL_SPACEDIM</code>]<a class="headerlink" href="#_CPPv3N7NGBndry11bctypearrayE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>If used, these arrays must be built/deleted by a derived class: </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Private Functions</p>
+<dl class="function">
+<dt id="_CPPv3N7NGBndry7NGBndryERK7NGBndry">
+<span id="_CPPv2N7NGBndry7NGBndryERK7NGBndry"></span><span id="NGBndry::NGBndry__NGBndryCR"></span><span class="target" id="classNGBndry_1a82a8a81e1aa556d9994ad4f62356b875"></span><code class="descname">NGBndry</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv3N7NGBndry7NGBndryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE" title="NGBndry::NGBndry">NGBndry</a> &amp;<em>src</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N7NGBndry7NGBndryERK7NGBndry" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">src</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3N7NGBndryaSERK7NGBndry">
+<span id="_CPPv2N7NGBndryaSERK7NGBndry"></span><span id="NGBndry::assign-operator__NGBndryCR"></span><span class="target" id="classNGBndry_1a33ce0ed3952176b25a30d518a8287868"></span><a class="reference internal" href="#_CPPv37NGBndry" title="NGBndry">NGBndry</a> &amp;<code class="descname">operator=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv37NGBndry" title="NGBndry">NGBndry</a> &amp;<em>src</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N7NGBndryaSERK7NGBndry" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
 </dd></dl>
 
 </div>

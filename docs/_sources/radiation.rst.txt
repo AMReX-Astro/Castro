@@ -5,7 +5,7 @@ Radiation
 Introduction
 ============
 
-Castro has three radiation solvers:
+Castro has three radiation solvers:
 
 -  SingleGroupSolver: this solver does not have radiation
    pressre. It is pure hydro plus radiation diffusion. This is only
@@ -25,7 +25,7 @@ Castro has three radiation solvers:
 The gray solver has a comoving frame mode and a mixed frame mode,
 whereas the MG solver uses the comoving frame approach. More details
 about the formulation and algorithm can be found in the series of
-Castro papers.
+Castro papers.
 
 Getting Started
 ===============
@@ -33,15 +33,15 @@ Getting Started
 Getting the Code
 ----------------
 
-The Castro radiation solver is part of the main Castro git repo,
-so you already have all the Castro code and problem setups
+The Castro radiation solver is part of the main Castro git repo,
+so you already have all the Castro code and problem setups
 to exercise radiation. The only other requirement is a copy
-of the Hypre library. Hypre provides the algebraic multigrid
+of the Hypre library. Hypre provides the algebraic multigrid
 solvers used by the implicit radiation update. You can get
 a copy at https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html. You will need to follow their installation instructions.
 
 In addition to the environment variables you set for the main
-Castro hydrodynamics problems, you also need to tell the code
+Castro hydrodynamics problems, you also need to tell the code
 where to find Hypre. This is done via one of two variables:
 
 -  the environment variable HYPRE_DIR should
@@ -77,7 +77,7 @@ Microphysics: EOS, Network, and Opacity
 EOS
 ---
 
-Castro provides several types of equation of state (EOS), including
+Castro provides several types of equation of state (EOS), including
 gamma-law and Helmholtz. To use the gamma-law EOS, set
 
 ::
@@ -126,7 +126,7 @@ By default, we assume that
 where :math:`\kappa` is either Planck or Rosseland mean absorption
 coefficients, :math:`\rho` is density, :math:`T` is temperature, :math:`\nu` is
 frequency, and :math:`m`, :math:`n` and :math:`p` are constants. For the gray solver,
-:math:`p = 0`. If Equation (\ `[eq:kappa] <#eq:kappa>`__) is sufficient, set
+:math:`p = 0`. If Equation (\ `[eq:kappa] <#eq:kappa>`__) is sufficient, set
 
 ::
 
@@ -135,7 +135,7 @@ frequency, and :math:`m`, :math:`n` and :math:`p` are constants. For the gray so
 in GNUmakefile. Otherwise, put your own opacity in
 and set
 the input parameter, radiation.use_opacity_table_module = 1 (see
-§ \ `3.3.1 <#sec:opacpars>`__).
+§ \ `3.3.1 <#sec:opacpars>`__).
 
 Some notes:
 
@@ -143,9 +143,9 @@ Some notes:
    texts may instead have an implicit density factor in :math:`\kappa`,
    yielding units :math:`\mathrm{cm}^2~\mathrm{g}^{-1}`.
 
--  Castro allows for two temperatures (different radiation and gas
+-  Castro allows for two temperatures (different radiation and gas
    temperature, so :math:`E_\mathrm{r} \ne a T_\mathrm{gas}^4`).
-   Correspondingly, Castro cares about both the Planck mean,
+   Correspondingly, Castro cares about both the Planck mean,
    :math:`\kappa_P`, and Rosseland mean, :math:`\kappa_R`, opacities—these have
    different weightings.
 
@@ -173,7 +173,7 @@ The parameters describing the opacity include:
    compute opacities. If this is set to 1, the following parameters
    for opacities will be ignored.
 
--  For the Planck mean opacity of the form in Eq. (\ `[eq:kappa] <#eq:kappa>`__),
+-  For the Planck mean opacity of the form in Eq. (\ `[eq:kappa] <#eq:kappa>`__),
    the following parameters set the coefficient and exponents:
 
    -  radiation.const_kappa_p = -1.0
@@ -184,7 +184,7 @@ The parameters describing the opacity include:
 
    -  radiation.kappa_p_exp_p = 0.0
 
--  For the Rosseland mean opacity of the form in Eq. (\ `[eq:kappa] <#eq:kappa>`__),
+-  For the Rosseland mean opacity of the form in Eq. (\ `[eq:kappa] <#eq:kappa>`__),
    the following parameters set the coefficient and exponents:
 
    -  radiation.const_kappa_r = -1.0
@@ -195,7 +195,7 @@ The parameters describing the opacity include:
 
    -  radiation.kappa_r_exp_p = 0.0
 
--  For the scattering coefficient of the form in Eq. (\ `[eq:kappa] <#eq:kappa>`__),
+-  For the scattering coefficient of the form in Eq. (\ `[eq:kappa] <#eq:kappa>`__),
    the following parameters set the coefficient and exponents:
 
    -  radiation.const_scattering = 0.0
@@ -304,9 +304,9 @@ Flux Limiter and Closure
 
    Possible values are:
 
-   -   0: No flux limiter
+   -   0: No flux limiter
 
-   -   2: Approximate limiter of Levermore & Pomraning
+   -   2: Approximate limiter of Levermore & Pomraning
 
    -  12: Bruenn’s limiter
 
@@ -357,12 +357,12 @@ the radiative flux then becomes
      -\frac{c}{\chi_R}\frac{\chi_R E_r^{(0)}}{|\nabla E_r^{0}|}
        \nabla E_r^{(0)} = -c E_r^{0}
 
-See Krumholz et al. 2007 for some discussion on this.
+See Krumholz et al. 2007 for some discussion on this.
 
 Boundary Conditions
 -------------------
 
-Castro needs to know about the boundary conditions for both
+Castro needs to know about the boundary conditions for both
 the hydrodynamics and radiation portions of the evolution.
 
 Hydrodynamics Evolution
@@ -400,7 +400,7 @@ equation. They do not affect hydrodynamic boundaries.
       Specify the radiation energy density on the boundary.
       For gray radiation, this could be :math:`E_r = a T^4`.
 
-      For multigroup radiation, Castro stores the energy density as
+      For multigroup radiation, Castro stores the energy density as
       :math:`\mathrm{erg}~\mathrm{cm}^{-3}`, so the total radiation energy
       can be found by simply summing over the groups. So if you want
       to set the radiation BCs using the Planck function, you simply
@@ -410,7 +410,7 @@ equation. They do not affect hydrodynamic boundaries.
    -  102 *Neumann*:
 
       Here, you specify the radiation flux on the boundary. For gray
-      radiation, this is the expression given in the gray Castro paper
+      radiation, this is the expression given in the gray Castro paper
       (Eq. 7, 8),
 
       .. math:: F_r = - \frac{c\lambda}{\kappa_R} \nabla E_r
@@ -422,7 +422,7 @@ equation. They do not affect hydrodynamic boundaries.
 
       .. math:: F_r = -c E_r
 
-      (see § \ `4.2 <#sec:fluxlimiter>`__) in that case.
+      (see § \ `4.2 <#sec:fluxlimiter>`__) in that case.
 
    -  104 *Marshak* (vacuum):
 
@@ -480,39 +480,39 @@ iteration for convenience. The parameters for the inner iteration are
 irrelevant to the gray solver.
 
 radiation.maxiter = 50
-    | 
+    |
     | Maximal number of outer iteration steps.
 
 radiation.miniter = 1
-    | 
+    |
     | Minimal number of outer iteration steps.
 
 radiation.reltol = 1.e-6
-    | 
+    |
     | Relative tolerance for the outer iteration.
 
 radiation.abstol = 0.0
-    | 
+    |
     | Absolute tolerance for the outer iteration.
 
 radiation.maxInIter = 30
-    | 
+    |
     | Maximal number of inner iteration steps.
 
 radiation.minInIter = 1
-    | 
+    |
     | Minimal number of inner iteration steps.
 
 radiation.relInTol = 1.e-4
-    | 
+    |
     | Relative tolerance for the inner iteration.
 
 radiation.absInTol = 0.0
-    | 
+    |
     | Absolute tolerance for the inner iteration.
 
 radiation.convergence_check_type = 0
-    | 
+    |
     | For the MG solver only. This specifiy the way of checking the
       convergence of an outer iteration. Possible values are
 
@@ -531,29 +531,29 @@ Parameters for Gray Solver
 --------------------------
 
 radiation.comoving = 1
-    | 
+    |
     | Do we use the comoving frame approach?
 
 radiation.Er_Lorentz_term = 1
-    | 
+    |
     | If the mixed-frame approach is taken, this parameter decides whether
       Lorentz transformation terms are retained.
 
 radiation.delta_temp = 1.0
-    | 
+    |
     | This is used in computing numerical derivativas with respect to :math:`T`.
       So it should be a small number compared with :math:`T`, but not too small.
 
 radiation.update_limiter = 1000
-    | 
+    |
     | Stop updating flux limiter after update_limiter iteration steps.
 
 radiation.update_planck = 1000
-    | 
+    |
     | Stop updating Planck mean opacity after update_planck iteration steps.
 
 radiation.update_rosseland = 1000
-    | 
+    |
     | Stop updating Rosseland mean opacity after update_rosseland iteration steps.
 
 Grouping in the MG Solver
@@ -563,11 +563,11 @@ We provide two methods of setting up groups based upon logarithmic
 spacing. In both methods, you must provide:
 
 radiation.nGroups
-    | 
+    |
     | Number of groups.
 
 radiation.lowestGroupHz
-    | 
+    |
     | Frequency of the lower bound for the first group.
 
 In addition, if the parameter groupGrowFactor is provided, then
@@ -588,34 +588,34 @@ Parameters for MG Solver
 ------------------------
 
 radiation.delta_e_rat_dt_tol = 100.0
-    | 
+    |
     | Maximally allowed relative change in :math:`e` during one time step.
 
 radiation.delta_T_rat_dt_tol = 100.0
-    | 
+    |
     | Maximally allowed relative change in :math:`T` during one time step.
 
 radiation.delta_Ye_dt_tol = 100.0
-    | 
+    |
     | Maximally allowed absolute change in :math:`Y_e` during one tim estep.
 
 radiation.fspace_advection_type = 2
-    | 
+    |
     | Possible value is 1 or 2. The latter is better.
 
 radiation.integrate_Planck = 1
-    | 
+    |
     | If 1, integrate Planck function for each group. For the first
       group, the lower bound in the integration is assumed to be 0 no
       matter what the grouping is. For the last group, the upper bound in
       the integration is assumed to be :math:`\infty`.
 
 radiation.matter_update_type = 0
-    | 
+    |
     | How to update matter. 0 is proabaly the best.
 
 radiation.accelerate = 2
-    | 
+    |
     | The inner iteration of the MG solver usually requires an
       acceleration scheme. Choices are
 
@@ -626,24 +626,24 @@ radiation.accelerate = 2
     -  2: Gray acceleration
 
 radiation.skipAccelAllowed = 0
-    | 
+    |
     | If it is set to 1, skip acceleration if it does not help.
 
 radiation.n_bisect = 1000
-    | 
+    |
     | Do bisection for the outer iteration after n_bisec iteration steps.
 
 radiation.use_dkdT = 1
-    | 
+    |
     | If it is 1, :math:`\frac{\partial \kappa}{\partial T}` is retained in the
       Jacobi matrix for the outer (Newton) iteration.
 
 radiation.update_opacity = 1000
-    | 
+    |
     | Stop updating opacities after update_opacity outer iteration steps.
 
 radiation.inner_update_limiter = 0
-    | 
+    |
     | Stop updating flux limiter after inner_update_limiter inner
       iteration steps. If it is 0, the limiter is lagged by one outer
       iteration. If it is -1, the limiter is lagged by one time step. If
@@ -662,7 +662,7 @@ computer. So it is worth trying a few solvers to find out which one
 is best for your problem and computer.
 
 radsolve.level_solver_flag: the linear solver
-in Hypre to use. The available choices are:
+in Hypre to use. The available choices are:
 
 -  0: SMG
 
@@ -726,5 +726,5 @@ is different that the specify internal energy of the gas :math:`\mathrm{erg~g^{-
 .. [1]
    at the moment, we
    don’t have a way to allow for the EOS to provide radiation pressure
-   if the Castro radiation is used solely for neutrinos, but this is
+   if the Castro radiation is used solely for neutrinos, but this is
    something that could be added easily.

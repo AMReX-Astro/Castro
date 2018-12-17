@@ -105,6 +105,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html">Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#the-interface-states">The Interface States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#alternative">Alternative?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#gamma-e-system"><span class="math notranslate nohighlight">\(\gamma_e\)</span> system</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
@@ -118,20 +122,13 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../filelist.html">File list</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../classlist.html">Class list</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="classAuxVar.html">Class AuxVar</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classAuxVarBox.html">Class AuxVarBox</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classAuxVar_1_1Connex.html">Class AuxVar::Connex</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classBndryAuxVar.html">Class BndryAuxVar</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classBndryAuxVarBase.html">Class BndryAuxVarBase</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classCastro.html">Class Castro</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classCastroBld.html">Class CastroBld</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classCrseBndryAuxVar.html">Class CrseBndryAuxVar</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classDiffusion.html">Class Diffusion</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classGradPhiPhysBCFunct.html">Class GradPhiPhysBCFunct</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classGravity.html">Class Gravity</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classHypreABec.html">Class HypreABec</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classHypreExtMultiABec.html">Class HypreExtMultiABec</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classHypreMultiABec.html">Class HypreMultiABec</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classMGRadBndry.html">Class MGRadBndry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classMGRadBndryBld.html">Class MGRadBndryBld</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classNGBndry.html">Class NGBndry</a></li>
@@ -147,7 +144,6 @@
 <li class="toctree-l2"><a class="reference internal" href="classRadiation.html">Class Radiation</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../namespacelist.html">Namespace list</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
@@ -222,7 +218,38 @@
 <dl class="class">
 <dt id="_CPPv312RadBoundCond">
 <span id="_CPPv212RadBoundCond"></span><span id="RadBoundCond"></span><span class="target" id="classRadBoundCond"></span><em class="property">class </em><code class="descname">RadBoundCond</code><a class="headerlink" href="#_CPPv312RadBoundCond" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="function">
+<dt id="_CPPv3N12RadBoundCond12RadBoundCondEv">
+<span id="_CPPv2N12RadBoundCond12RadBoundCondEv"></span><span id="RadBoundCond::RadBoundCond"></span><span class="target" id="classRadBoundCond_1a34f4a9cfe2b3dfdacc490eeb310a8868"></span><code class="descname">RadBoundCond</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N12RadBoundCond12RadBoundCondEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3N12RadBoundCond12RadBoundCondEi">
+<span id="_CPPv2N12RadBoundCond12RadBoundCondEi"></span><span id="RadBoundCond::RadBoundCond__i"></span><span class="target" id="classRadBoundCond_1ac541b1c2f250cf3964456c06223c9264"></span><code class="descname">RadBoundCond</code><span class="sig-paren">(</span>int <em>_bctype</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N12RadBoundCond12RadBoundCondEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3NK12RadBoundCondcviEv">
+<span id="_CPPv2NK12RadBoundCondcviEv"></span><span id="RadBoundCond::castto-i-operatorC"></span><span class="target" id="classRadBoundCond_1ab5d2c022c5455472b402adf32eff6aba"></span><code class="descname">operator int</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv3NK12RadBoundCondcviEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv3N12RadBoundCondaSEKi">
+<span id="_CPPv2N12RadBoundCondaSEKi"></span><span id="RadBoundCond::assign-operator__iC"></span><span class="target" id="classRadBoundCond_1aa9a4156e5d7fd0671b337e7cc9511938"></span><a class="reference internal" href="#_CPPv312RadBoundCond" title="RadBoundCond">RadBoundCond</a> &amp;<code class="descname">operator=</code><span class="sig-paren">(</span><em class="property">const</em> int <em>_bctype</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N12RadBoundCondaSEKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Private Members</p>
+<dl class="member">
+<dt id="_CPPv3N12RadBoundCond6bctypeE">
+<span id="_CPPv2N12RadBoundCond6bctypeE"></span><span id="RadBoundCond::bctype__i"></span><span class="target" id="classRadBoundCond_1a770514c72977d6fd331014be164c99df"></span>int <code class="descname">bctype</code><a class="headerlink" href="#_CPPv3N12RadBoundCond6bctypeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
 
 </div>
 

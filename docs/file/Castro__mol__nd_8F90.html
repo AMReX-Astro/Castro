@@ -1,0 +1,309 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File Castro_mol_nd.F90 &mdash; Castro 18.12
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File advection_util_nd.F90" href="advection__util__nd_8F90.html" />
+    <link rel="prev" title="File Castro_ctu_nd.F90" href="Castro__ctu__nd_8F90.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                18.12
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html">Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#the-interface-states">The Interface States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#alternative">Alternative?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rad.html#gamma-e-system"><span class="math notranslate nohighlight">\(\gamma_e\)</span> system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../hydro_files.html">Hydro</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Castro__ctu__nd_8F90.html">File Castro_ctu_nd.F90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File Castro_mol_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="advection__util__nd_8F90.html">File advection_util_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="flatten__nd_8F90.html">File flatten_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hybrid__advection__nd_8F90.html">File hybrid_advection_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="multid__slope__2d_8f90.html">File multid_slope_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ppm__nd_8F90.html">File ppm_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="riemann__nd_8F90.html">File riemann_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="riemann__util_8F90.html">File riemann_util.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="slope__nd_8F90.html">File slope_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trace__plm_8F90.html">File trace_plm.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trace__ppm_8F90.html">File trace_ppm.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trans_8F90.html">File trans.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../hydro_files.html">Hydro</a> &raquo;</li>
+        
+      <li>File Castro_mol_nd.F90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/Castro__mol__nd_8F90.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-castro-mol-nd-f90">
+<h1>File Castro_mol_nd.F90<a class="headerlink" href="#file-castro-mol-nd-f90" title="Permalink to this headline">¶</a></h1>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt id="_CPPv319ca_mol_single_stage2lo2hi4time5domlo5domhi12stage_weight3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi1q4q_lo4q_hi4qaux5qa_lo5qa_hi4srcU6srU_lo6srU_hi6update7updt_lo7updt_hi11update_flux5uf_lo5uf_hi2dx2dt5flux18flux1_lo8flux1_hi">
+<span id="_CPPv219ca_mol_single_stage2lo2hi4time5domlo5domhi12stage_weight3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi1q4q_lo4q_hi4qaux5qa_lo5qa_hi4srcU6srU_lo6srU_hi6update7updt_lo7updt_hi11update_flux5uf_lo5uf_hi2dx2dt5flux18flux1_lo8flux1_hi"></span><span id="ca_mol_single_stage__lo.hi.time.domlo.domhi.stage_weight.uin.uin_lo.uin_hi.uout.uout_lo.uout_hi.q.q_lo.q_hi.qaux.qa_lo.qa_hi.srcU.srU_lo.srU_hi.update.updt_lo.updt_hi.update_flux.uf_lo.uf_hi.dx.dt.flux1.flux1_lo.flux1_hi"></span><span class="target" id="Castro__mol__nd_8F90_1a9ad7211a8957b1cd954935b1262fb8c3"></span>subroutine <code class="descname">ca_mol_single_stage</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__F_8H.html#_CPPv319ca_mol_single_stageA_KiA_KiPKN5amrex4RealEA_KiA_KiPKN5amrex4RealEK25BL_FORT_FAB_ARG_3DstateinF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D1qEF18BL_FORT_FAB_ARG_3D4qauxEK22BL_FORT_FAB_ARG_3DsrcUF18BL_FORT_FAB_ARG_3D6updateEF18BL_FORT_FAB_ARG_3D11update_fluxEA_KN5amrex4RealEPKN5amrex4RealEF6D_DECLF18BL_FORT_FAB_ARG_3D5flux1EF18BL_FORT_FAB_ARG_3D5flux2EF18BL_FORT_FAB_ARG_3D5flux3EEF18BL_FORT_FAB_ARG_3D7pradialEF6D_DECLFK18BL_FORT_FAB_ARG_3D5area1EFK18BL_FORT_FAB_ARG_3D5area2EFK18BL_FORT_FAB_ARG_3D5area3EEF18BL_FORT_FAB_ARG_3D5dlogaEK24BL_FORT_FAB_ARG_3DvolumeRKi" title="ca_mol_single_stage::lo">lo</a> <em>lo</em>, <a class="reference internal" href="Castro__F_8H.html#_CPPv319ca_mol_single_stageA_KiA_KiPKN5amrex4RealEA_KiA_KiPKN5amrex4RealEK25BL_FORT_FAB_ARG_3DstateinF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D1qEF18BL_FORT_FAB_ARG_3D4qauxEK22BL_FORT_FAB_ARG_3DsrcUF18BL_FORT_FAB_ARG_3D6updateEF18BL_FORT_FAB_ARG_3D11update_fluxEA_KN5amrex4RealEPKN5amrex4RealEF6D_DECLF18BL_FORT_FAB_ARG_3D5flux1EF18BL_FORT_FAB_ARG_3D5flux2EF18BL_FORT_FAB_ARG_3D5flux3EEF18BL_FORT_FAB_ARG_3D7pradialEF6D_DECLFK18BL_FORT_FAB_ARG_3D5area1EFK18BL_FORT_FAB_ARG_3D5area2EFK18BL_FORT_FAB_ARG_3D5area3EEF18BL_FORT_FAB_ARG_3D5dlogaEK24BL_FORT_FAB_ARG_3DvolumeRKi" title="ca_mol_single_stage::hi">hi</a> <em>hi</em>, <a class="reference internal" href="Castro__F_8H.html#_CPPv319ca_mol_single_stageA_KiA_KiPKN5amrex4RealEA_KiA_KiPKN5amrex4RealEK25BL_FORT_FAB_ARG_3DstateinF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D1qEF18BL_FORT_FAB_ARG_3D4qauxEK22BL_FORT_FAB_ARG_3DsrcUF18BL_FORT_FAB_ARG_3D6updateEF18BL_FORT_FAB_ARG_3D11update_fluxEA_KN5amrex4RealEPKN5amrex4RealEF6D_DECLF18BL_FORT_FAB_ARG_3D5flux1EF18BL_FORT_FAB_ARG_3D5flux2EF18BL_FORT_FAB_ARG_3D5flux3EEF18BL_FORT_FAB_ARG_3D7pradialEF6D_DECLFK18BL_FORT_FAB_ARG_3D5area1EFK18BL_FORT_FAB_ARG_3D5area2EFK18BL_FORT_FAB_ARG_3D5area3EEF18BL_FORT_FAB_ARG_3D5dlogaEK24BL_FORT_FAB_ARG_3DvolumeRKi" title="ca_mol_single_stage::time">time</a> <em>time</em>, <a class="reference internal" href="Castro__F_8H.html#_CPPv319ca_mol_single_stageA_KiA_KiPKN5amrex4RealEA_KiA_KiPKN5amrex4RealEK25BL_FORT_FAB_ARG_3DstateinF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D1qEF18BL_FORT_FAB_ARG_3D4qauxEK22BL_FORT_FAB_ARG_3DsrcUF18BL_FORT_FAB_ARG_3D6updateEF18BL_FORT_FAB_ARG_3D11update_fluxEA_KN5amrex4RealEPKN5amrex4RealEF6D_DECLF18BL_FORT_FAB_ARG_3D5flux1EF18BL_FORT_FAB_ARG_3D5flux2EF18BL_FORT_FAB_ARG_3D5flux3EEF18BL_FORT_FAB_ARG_3D7pradialEF6D_DECLFK18BL_FORT_FAB_ARG_3D5area1EFK18BL_FORT_FAB_ARG_3D5area2EFK18BL_FORT_FAB_ARG_3D5area3EEF18BL_FORT_FAB_ARG_3D5dlogaEK24BL_FORT_FAB_ARG_3DvolumeRKi" title="ca_mol_single_stage::domlo">domlo</a> <em>domlo</em>, <a class="reference internal" href="Castro__F_8H.html#_CPPv319ca_mol_single_stageA_KiA_KiPKN5amrex4RealEA_KiA_KiPKN5amrex4RealEK25BL_FORT_FAB_ARG_3DstateinF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D1qEF18BL_FORT_FAB_ARG_3D4qauxEK22BL_FORT_FAB_ARG_3DsrcUF18BL_FORT_FAB_ARG_3D6updateEF18BL_FORT_FAB_ARG_3D11update_fluxEA_KN5amrex4RealEPKN5amrex4RealEF6D_DECLF18BL_FORT_FAB_ARG_3D5flux1EF18BL_FORT_FAB_ARG_3D5flux2EF18BL_FORT_FAB_ARG_3D5flux3EEF18BL_FORT_FAB_ARG_3D7pradialEF6D_DECLFK18BL_FORT_FAB_ARG_3D5area1EFK18BL_FORT_FAB_ARG_3D5area2EFK18BL_FORT_FAB_ARG_3D5area3EEF18BL_FORT_FAB_ARG_3D5dlogaEK24BL_FORT_FAB_ARG_3DvolumeRKi" title="ca_mol_single_stage::domhi">domhi</a> <em>domhi</em>, <a class="reference internal" href="Castro__F_8H.html#_CPPv319ca_mol_single_stageA_KiA_KiPKN5amrex4RealEA_KiA_KiPKN5amrex4RealEK25BL_FORT_FAB_ARG_3DstateinF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D1qEF18BL_FORT_FAB_ARG_3D4qauxEK22BL_FORT_FAB_ARG_3DsrcUF18BL_FORT_FAB_ARG_3D6updateEF18BL_FORT_FAB_ARG_3D11update_fluxEA_KN5amrex4RealEPKN5amrex4RealEF6D_DECLF18BL_FORT_FAB_ARG_3D5flux1EF18BL_FORT_FAB_ARG_3D5flux2EF18BL_FORT_FAB_ARG_3D5flux3EEF18BL_FORT_FAB_ARG_3D7pradialEF6D_DECLFK18BL_FORT_FAB_ARG_3D5area1EFK18BL_FORT_FAB_ARG_3D5area2EFK18BL_FORT_FAB_ARG_3D5area3EEF18BL_FORT_FAB_ARG_3D5dlogaEK24BL_FORT_FAB_ARG_3DvolumeRKi" title="ca_mol_single_stage::stage_weight">stage_weight</a> <em>stage_weight</em>, uin <em>uin</em>, uin_lo <em>uin_lo</em>, uin_hi <em>uin_hi</em>, uout <em>uout</em>, uout_lo <em>uout_lo</em>, uout_hi <em>uout_hi</em>, q <em>q</em>, q_lo <em>q_lo</em>, q_hi <em>q_hi</em>, qaux <em>qaux</em>, qa_lo <em>qa_lo</em>, qa_hi <em>qa_hi</em>, srcU <em>srcU</em>, srU_lo <em>srU_lo</em>, srU_hi <em>srU_hi</em>, update <em>update</em>, updt_lo <em>updt_lo</em>, updt_hi <em>updt_hi</em>, update_flux <em>update_flux</em>, uf_lo <em>uf_lo</em>, uf_hi <em>uf_hi</em>, <a class="reference internal" href="Castro__F_8H.html#_CPPv319ca_mol_single_stageA_KiA_KiPKN5amrex4RealEA_KiA_KiPKN5amrex4RealEK25BL_FORT_FAB_ARG_3DstateinF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D1qEF18BL_FORT_FAB_ARG_3D4qauxEK22BL_FORT_FAB_ARG_3DsrcUF18BL_FORT_FAB_ARG_3D6updateEF18BL_FORT_FAB_ARG_3D11update_fluxEA_KN5amrex4RealEPKN5amrex4RealEF6D_DECLF18BL_FORT_FAB_ARG_3D5flux1EF18BL_FORT_FAB_ARG_3D5flux2EF18BL_FORT_FAB_ARG_3D5flux3EEF18BL_FORT_FAB_ARG_3D7pradialEF6D_DECLFK18BL_FORT_FAB_ARG_3D5area1EFK18BL_FORT_FAB_ARG_3D5area2EFK18BL_FORT_FAB_ARG_3D5area3EEF18BL_FORT_FAB_ARG_3D5dlogaEK24BL_FORT_FAB_ARG_3DvolumeRKi" title="ca_mol_single_stage::dx">dx</a> <em>dx</em>, <a class="reference internal" href="Castro__F_8H.html#_CPPv319ca_mol_single_stageA_KiA_KiPKN5amrex4RealEA_KiA_KiPKN5amrex4RealEK25BL_FORT_FAB_ARG_3DstateinF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D1qEF18BL_FORT_FAB_ARG_3D4qauxEK22BL_FORT_FAB_ARG_3DsrcUF18BL_FORT_FAB_ARG_3D6updateEF18BL_FORT_FAB_ARG_3D11update_fluxEA_KN5amrex4RealEPKN5amrex4RealEF6D_DECLF18BL_FORT_FAB_ARG_3D5flux1EF18BL_FORT_FAB_ARG_3D5flux2EF18BL_FORT_FAB_ARG_3D5flux3EEF18BL_FORT_FAB_ARG_3D7pradialEF6D_DECLFK18BL_FORT_FAB_ARG_3D5area1EFK18BL_FORT_FAB_ARG_3D5area2EFK18BL_FORT_FAB_ARG_3D5area3EEF18BL_FORT_FAB_ARG_3D5dlogaEK24BL_FORT_FAB_ARG_3DvolumeRKi" title="ca_mol_single_stage::dt">dt</a> <em>dt</em>, flux1 <em>flux1</em>, flux1_lo <em>flux1_lo</em>, flux1_hi <em>flux1_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv319ca_mol_single_stage2lo2hi4time5domlo5domhi12stage_weight3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi1q4q_lo4q_hi4qaux5qa_lo5qa_hi4srcU6srU_lo6srU_hi6update7updt_lo7updt_hi11update_flux5uf_lo5uf_hi2dx2dt5flux18flux1_lo8flux1_hi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>advection routines in support of method of lines integration </p>
+</dd></dl>
+
+</div>
+<dl class="type">
+<dt id="_CPPv315mol_module_cuda">
+<span id="_CPPv215mol_module_cuda"></span><span id="mol_module_cuda"></span><span class="target" id="namespacemol__module__cuda"></span><em class="property">namespace </em><code class="descname">mol_module_cuda</code><a class="headerlink" href="#_CPPv315mol_module_cuda" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt id="_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi">
+<span id="_CPPv2N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi"></span><span id="mol_module_cuda::ca_construct_flux_cuda__lo.hi.domlo.domhi.dx.dt.idir.uin.uin_lo.uin_hi.div.div_lo.div_hi.qaux.qa_lo.qa_hi.qm.qm_lo.qm_hi.qp.qp_lo.qp_hi.qint.qe_lo.qe_hi.flux.f_lo.f_hi.area.a_lo.a_hi"></span><span class="target" id="namespacemol__module__cuda_1a059a1b3e6218ab6c17a3c44826af1a0c"></span>subroutine <code class="descname">ca_construct_flux_cuda</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::domlo">domlo</a> <em>domlo</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::domhi">domhi</a> <em>domhi</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::dx">dx</a> <em>dx</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::dt">dt</a> <em>dt</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::idir">idir</a> <em>idir</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::uin">uin</a> <em>uin</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::uin_lo">uin_lo</a> <em>uin_lo</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::uin_hi">uin_hi</a> <em>uin_hi</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::div">div</a> <em>div</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::div_lo">div_lo</a> <em>div_lo</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::div_hi">div_hi</a> <em>div_hi</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::qaux">qaux</a> <em>qaux</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::qa_lo">qa_lo</a> <em>qa_lo</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::qa_hi">qa_hi</a> <em>qa_hi</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::qm">qm</a> <em>qm</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::qm_lo">qm_lo</a> <em>qm_lo</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::qm_hi">qm_hi</a> <em>qm_hi</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::qp">qp</a> <em>qp</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::qp_lo">qp_lo</a> <em>qp_lo</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::qp_hi">qp_hi</a> <em>qp_hi</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::qint">qint</a> <em>qint</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::qe_lo">qe_lo</a> <em>qe_lo</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::qe_hi">qe_hi</a> <em>qe_hi</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::flux">flux</a> <em>flux</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::f_lo">f_lo</a> <em>f_lo</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::f_hi">f_hi</a> <em>f_hi</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::area">area</a> <em>area</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::a_lo">a_lo</a> <em>a_lo</em>, <a class="reference internal" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="mol_module_cuda::ca_construct_flux_cuda::a_hi">a_hi</a> <em>a_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N15mol_module_cuda22ca_construct_flux_cudaE2lo2hi5domlo5domhi2dx2dt4idir3uin6uin_lo6uin_hi3div6div_lo6div_hi4qaux5qa_lo5qa_hi2qm5qm_lo5qm_hi2qp5qp_lo5qp_hi4qint5qe_lo5qe_hi4flux4f_lo4f_hi4area4a_lo4a_hi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="advection__util__nd_8F90.html" class="btn btn-neutral float-right" title="File advection_util_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Castro__ctu__nd_8F90.html" class="btn btn-neutral" title="File Castro_ctu_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

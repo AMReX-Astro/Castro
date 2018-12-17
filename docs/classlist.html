@@ -30,8 +30,8 @@
   <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Class AuxVar" href="class/classAuxVar.html" />
-    <link rel="prev" title="File sum_utils.cpp" href="file/sum__utils_8cpp.html" /> 
+    <link rel="next" title="Class Castro" href="class/classCastro.html" />
+    <link rel="prev" title="File update_sponge_params.f90" href="file/update__sponge__params_8f90.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -105,6 +105,10 @@
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rad.html">Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rad.html#the-interface-states">The Interface States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rad.html#alternative">Alternative?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rad.html#gamma-e-system"><span class="math notranslate nohighlight">\(\gamma_e\)</span> system</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
@@ -118,20 +122,13 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Class list</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="class/classAuxVar.html">Class AuxVar</a></li>
-<li class="toctree-l2"><a class="reference internal" href="class/classAuxVarBox.html">Class AuxVarBox</a></li>
-<li class="toctree-l2"><a class="reference internal" href="class/classAuxVar_1_1Connex.html">Class AuxVar::Connex</a></li>
-<li class="toctree-l2"><a class="reference internal" href="class/classBndryAuxVar.html">Class BndryAuxVar</a></li>
-<li class="toctree-l2"><a class="reference internal" href="class/classBndryAuxVarBase.html">Class BndryAuxVarBase</a></li>
 <li class="toctree-l2"><a class="reference internal" href="class/classCastro.html">Class Castro</a></li>
 <li class="toctree-l2"><a class="reference internal" href="class/classCastroBld.html">Class CastroBld</a></li>
-<li class="toctree-l2"><a class="reference internal" href="class/classCrseBndryAuxVar.html">Class CrseBndryAuxVar</a></li>
 <li class="toctree-l2"><a class="reference internal" href="class/classDiffusion.html">Class Diffusion</a></li>
 <li class="toctree-l2"><a class="reference internal" href="class/classGradPhiPhysBCFunct.html">Class GradPhiPhysBCFunct</a></li>
 <li class="toctree-l2"><a class="reference internal" href="class/classGravity.html">Class Gravity</a></li>
 <li class="toctree-l2"><a class="reference internal" href="class/classHypreABec.html">Class HypreABec</a></li>
 <li class="toctree-l2"><a class="reference internal" href="class/classHypreExtMultiABec.html">Class HypreExtMultiABec</a></li>
-<li class="toctree-l2"><a class="reference internal" href="class/classHypreMultiABec.html">Class HypreMultiABec</a></li>
 <li class="toctree-l2"><a class="reference internal" href="class/classMGRadBndry.html">Class MGRadBndry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="class/classMGRadBndryBld.html">Class MGRadBndryBld</a></li>
 <li class="toctree-l2"><a class="reference internal" href="class/classNGBndry.html">Class NGBndry</a></li>
@@ -147,7 +144,6 @@
 <li class="toctree-l2"><a class="reference internal" href="class/classRadiation.html">Class Radiation</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="namespacelist.html">Namespace list</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
@@ -219,20 +215,13 @@
 <h1>Class list<a class="headerlink" href="#class-list" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="class/classAuxVar.html">Class AuxVar</a></li>
-<li class="toctree-l1"><a class="reference internal" href="class/classAuxVarBox.html">Class AuxVarBox</a></li>
-<li class="toctree-l1"><a class="reference internal" href="class/classAuxVar_1_1Connex.html">Class AuxVar::Connex</a></li>
-<li class="toctree-l1"><a class="reference internal" href="class/classBndryAuxVar.html">Class BndryAuxVar</a></li>
-<li class="toctree-l1"><a class="reference internal" href="class/classBndryAuxVarBase.html">Class BndryAuxVarBase</a></li>
 <li class="toctree-l1"><a class="reference internal" href="class/classCastro.html">Class Castro</a></li>
 <li class="toctree-l1"><a class="reference internal" href="class/classCastroBld.html">Class CastroBld</a></li>
-<li class="toctree-l1"><a class="reference internal" href="class/classCrseBndryAuxVar.html">Class CrseBndryAuxVar</a></li>
 <li class="toctree-l1"><a class="reference internal" href="class/classDiffusion.html">Class Diffusion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="class/classGradPhiPhysBCFunct.html">Class GradPhiPhysBCFunct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="class/classGravity.html">Class Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="class/classHypreABec.html">Class HypreABec</a></li>
 <li class="toctree-l1"><a class="reference internal" href="class/classHypreExtMultiABec.html">Class HypreExtMultiABec</a></li>
-<li class="toctree-l1"><a class="reference internal" href="class/classHypreMultiABec.html">Class HypreMultiABec</a></li>
 <li class="toctree-l1"><a class="reference internal" href="class/classMGRadBndry.html">Class MGRadBndry</a></li>
 <li class="toctree-l1"><a class="reference internal" href="class/classMGRadBndryBld.html">Class MGRadBndryBld</a></li>
 <li class="toctree-l1"><a class="reference internal" href="class/classNGBndry.html">Class NGBndry</a></li>
@@ -258,10 +247,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="class/classAuxVar.html" class="btn btn-neutral float-right" title="Class AuxVar" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="class/classCastro.html" class="btn btn-neutral float-right" title="Class Castro" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="file/sum__utils_8cpp.html" class="btn btn-neutral" title="File sum_utils.cpp" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="file/update__sponge__params_8f90.html" class="btn btn-neutral" title="File update_sponge_params.f90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
