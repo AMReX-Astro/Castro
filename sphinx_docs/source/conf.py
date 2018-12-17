@@ -64,7 +64,8 @@ breathe_projects = {
 
 breathe_default_project = "castro"
 
-breathe_default_members = ('members', 'undoc-members')
+breathe_default_members = ('members', 'undoc-members', 'protected-members',
+   'private-members')
 
 breathe_doxygen_config_options = { 'EXTRACT_ALL': 'YES',
 'SHOW_USED_FILES': 'YES', 'RECURSIVE': 'YES'
