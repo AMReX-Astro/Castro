@@ -1212,3 +1212,29 @@ hold. In regions where the density is not at risk of going negative,
 Further discussion, including a proof of the method, a description of
 multi-dimensional effects, and test verification problems, can be
 found in :cite:`hu:2013`.
+
+
+Hybrid Momentum
+===============
+
+.. figure:: rotating_torus_00000_density.png
+   :alt: rotating torus initial density
+
+   Initial density (log scale) for the ``rotating_torus`` problem with
+   :math:`64^3` zones.
+
+.. figure:: rotating_torus_00200_density.png
+   :alt: rotating torus normal hydro
+
+   Density (log scale) for the ``rotating_torus`` problem after 200
+   timesteps, using :math:`64^3` zones.  Notice that the initial torus
+   has become disrupted into a disk.
+
+.. figure:: rotating_torus_hybrid_00200_density.png
+   :alt: rotating torus with hybrid momentum
+
+   Density (log scale) for the ``rotating_torus`` problem after 200
+   timesteps with the hybrid momentum algorithm, using :math:`64^3`
+   zones.  With this angular-momentum preserving scheme we see that
+   the initial torus is largely intact.
+
