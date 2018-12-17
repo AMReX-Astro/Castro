@@ -840,7 +840,7 @@ EXCLUDE_SYMLINKS       = NO
 # exclude all test directories for example use the pattern */test/*
 
 EXCLUDE_PATTERNS       = *HABEC*.F90 *RAD*.F90 *bc_ext_fill*.F90 *bc_fill*.F90 \
-                         *problem_tagging_*.f90 *fourth_order.F90
+                         *problem_tagging_*.f90 *fourth_order.F90 HypreMultiABec*
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the

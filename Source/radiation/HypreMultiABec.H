@@ -52,10 +52,6 @@ class AuxVar {
     bool same_target(const Connex& c) {
       return ((other != NULL)
               ? (other == c.other)
-
-///
-/// @param c.other
-///
               : (c.other == NULL && level == c.level && index == c.index));
     }
 
@@ -189,10 +185,6 @@ class BndryAuxVarBase {
 /// @param dm
 ///
   BndryAuxVarBase (const amrex::DistributionMapping& dm)
-
-///
-/// @param dm
-///
       : distributionMap(dm) {}
 
 ///
