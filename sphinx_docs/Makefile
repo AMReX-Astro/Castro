@@ -24,7 +24,7 @@ html:
 	./rp.py > source/runtime_parameters.rst
 	doxygen Doxyfile
 	breathe-apidoc --o source doxy_files/xml -g class,file
-	python make_api.py
+	python3 make_api.py
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 # Catch-all target: route all unknown targets to Sphinx using the new
@@ -32,5 +32,5 @@ html:
 %: Makefile
 	doxygen Doxyfile
 	breathe-apidoc --o source doxy_files/xml -g class,file
-	python make_api.py
+	python3 make_api.py
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
