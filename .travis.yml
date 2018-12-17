@@ -13,8 +13,8 @@ before_install:
 addons:
    apt:
       packages:
-      - g++
-      - gfortran
+      - g++-7
+      - gfortran-7
       - libgmp-dev
       - libmpfr-dev
       - pandoc
