@@ -126,6 +126,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#flux-limiting">Flux Limiting</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#hybrid-momentum">Hybrid Momentum</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
@@ -1448,6 +1449,27 @@ hold. In regions where the density is not at risk of going negative,
 Further discussion, including a proof of the method, a description of
 multi-dimensional effects, and test verification problems, can be
 found in <a class="reference internal" href="references.html#hu-2013" id="id15">[HuAdamsShu13]</a>.</p>
+</div>
+</div>
+<div class="section" id="hybrid-momentum">
+<h2>Hybrid Momentum<a class="headerlink" href="#hybrid-momentum" title="Permalink to this headline">¶</a></h2>
+<div class="figure" id="id17">
+<img alt="rotating torus initial density" src="_images/rotating_torus_00000_density.png" />
+<p class="caption"><span class="caption-text">Initial density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem with
+<span class="math notranslate nohighlight">\(64^3\)</span> zones.</span></p>
+</div>
+<div class="figure" id="id18">
+<img alt="rotating torus normal hydro" src="_images/rotating_torus_00200_density.png" />
+<p class="caption"><span class="caption-text">Density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem after 200
+timesteps, using <span class="math notranslate nohighlight">\(64^3\)</span> zones.  Notice that the initial torus
+has become disrupted into a disk.</span></p>
+</div>
+<div class="figure" id="id19">
+<img alt="rotating torus with hybrid momentum" src="_images/rotating_torus_hybrid_00200_density.png" />
+<p class="caption"><span class="caption-text">Density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem after 200
+timesteps with the hybrid momentum algorithm, using <span class="math notranslate nohighlight">\(64^3\)</span>
+zones.  With this angular-momentum preserving scheme we see that
+the initial torus is largely intact.</span></p>
 </div>
 </div>
 </div>
