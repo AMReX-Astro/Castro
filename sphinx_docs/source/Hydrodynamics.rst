@@ -1212,3 +1212,52 @@ hold. In regions where the density is not at risk of going negative,
 Further discussion, including a proof of the method, a description of
 multi-dimensional effects, and test verification problems, can be
 found in :cite:`hu:2013`.
+
+
+Hybrid Momentum
+===============
+
+Castro implements the hybrid momentum scheme of :cite:`byerly:2014`.
+In particular, this switches from using the Cartesian momenta,
+:math:`(\rho u)`, :math:`(\rho v)`, and :math:`(\rho w)`, to a
+cylindrical momentum set, :math:`(\rho v_R)`, :math:`(\rho R v_\phi)`,
+and :math:`(\rho v_z)`.  This latter component is identical to the
+Cartesian value.  We translate between these sets of momentum throughout the code,
+ultimately doing the conservative update in terms of the cylindrical momentum.  Additional
+source terms appear in this formulation, which are written out in :cite:`byerly:2014`.
+
+The ``rotating_torus`` problem gives a good test for this.  This problem
+originated with :cite:`papaloizoupringle`.  The
+problem is initialized as a torus with constant specific angular
+momentum, as shown below:
+
+.. figure:: rotating_torus_00000_density.png
+   :alt: rotating torus initial density
+
+   Initial density (log scale) for the ``rotating_torus`` problem with
+   :math:`64^3` zones.
+
+For the standard hydrodynamics algorithm, the torus gets disrupted and
+spreads out into a disk:
+
+.. figure:: rotating_torus_00200_density.png
+   :alt: rotating torus normal hydro
+
+   Density (log scale) for the ``rotating_torus`` problem after 200
+   timesteps, using :math:`64^3` zones.  Notice that the initial torus
+   has become disrupted into a disk.
+
+The hybrid momentum algorithm is enabled by setting::
+
+   USE_HYBRID_MOMENTUM = TRUE
+
+in your ``GNUmakefile``.  With this enabled, we see that the torus remains intact:
+
+.. figure:: rotating_torus_hybrid_00200_density.png
+   :alt: rotating torus with hybrid momentum
+
+   Density (log scale) for the ``rotating_torus`` problem after 200
+   timesteps with the hybrid momentum algorithm, using :math:`64^3`
+   zones.  With this angular-momentum preserving scheme we see that
+   the initial torus is largely intact.
+

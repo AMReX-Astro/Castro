@@ -9,6 +9,7 @@ module riemann_module
                                  QPRES, QGAME, QREINT, QFS, QFX, &
                                  QC, QGAMC, QGC, &
                                  NGDNV, GDRHO, GDPRES, GDGAME, &
+
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, &
                                  GDERADS, QGAMCG, QLAMS, QREITOT, &
@@ -16,10 +17,11 @@ module riemann_module
                                  npassive, upass_map, qpass_map, &
                                  small_dens, small_pres, small_temp, &
                                  use_eos_in_riemann, use_reconstructed_gamma1
+
   use riemann_util_module
 
 #ifdef RADIATION
-    use rad_params_module, only : ngroups
+  use rad_params_module, only : ngroups
 #endif
 
   implicit none
@@ -34,14 +36,14 @@ module riemann_module
 contains
 
   subroutine cmpflx(qm, qp, qpd_lo, qpd_hi, nc, comp, &
-                    flx, flx_lo, flx_hi, &
-                    qgdnv, q_lo, q_hi, &
+       flx, flx_lo, flx_hi, &
+       qgdnv, q_lo, q_hi, &
 #ifdef RADIATION
-                    rflx, rflx_lo, rflx_hi, &
+       rflx, rflx_lo, rflx_hi, &
 #endif
-                    qaux, qa_lo, qa_hi, &
-                    shk, s_lo, s_hi, &
-                    idir, lo, hi, domlo, domhi)
+       qaux, qa_lo, qa_hi, &
+       shk, s_lo, s_hi, &
+       idir, lo, hi, domlo, domhi)
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use eos_module, only: eos
@@ -194,13 +196,13 @@ contains
                       domlo, domhi, .false.)
 
        call compute_flux_q(idir, qint, q_lo, q_hi, &
-                           flx, flx_lo, flx_hi, &
+            flx, flx_lo, flx_hi, &
 #ifdef RADIATION
-                           lambda_int, q_lo, q_hi, &
-                           rflx, rflx_lo, rflx_hi, &
+            lambda_int, q_lo, q_hi, &
+            rflx, rflx_lo, rflx_hi, &
 #endif
-                           qgdnv, q_lo, q_hi, &
-                           lo, hi)
+            qgdnv, q_lo, q_hi, &
+            lo, hi)
 
        call bl_deallocate(qint)
 #ifdef RADIATION
@@ -214,15 +216,15 @@ contains
        call bl_allocate(qint, q_lo, q_hi, NQ)
 
        call riemanncg(qm, qp, qpd_lo, qpd_hi, nc, comp, &
-                      qaux, qa_lo, qa_hi, &
-                      qint, q_lo, q_hi, &
-                      idir, lo, hi, &
-                      domlo, domhi)
+            qaux, qa_lo, qa_hi, &
+            qint, q_lo, q_hi, &
+            idir, lo, hi, &
+            domlo, domhi)
 
        call compute_flux_q(idir, qint, q_lo, q_hi, &
-                           flx, flx_lo, flx_hi, &
-                           qgdnv, q_lo, q_hi, &
-                           lo, hi)
+            flx, flx_lo, flx_hi, &
+            qgdnv, q_lo, q_hi, &
+            lo, hi)
 
        call bl_deallocate(qint)
 #else
@@ -234,11 +236,11 @@ contains
     elseif (riemann_solver == 2) then
        ! HLLC
        call HLLC(qm, qp, qpd_lo, qpd_hi, nc, comp, &
-                 qaux, qa_lo, qa_hi, &
-                 flx, flx_lo, flx_hi, &
-                 qgdnv, q_lo, q_hi, &
-                 idir, lo, hi, &
-                 domlo, domhi)
+            qaux, qa_lo, qa_hi, &
+            flx, flx_lo, flx_hi, &
+            qgdnv, q_lo, q_hi, &
+            idir, lo, hi, &
+            domlo, domhi)
 #ifndef AMREX_USE_CUDA
     else
        call amrex_error("ERROR: invalid value of riemann_solver")
@@ -291,6 +293,21 @@ contains
   end subroutine cmpflx
 
 
+
+  !>
+  !! @param[in] qpd_lo integer
+  !! @param[in] q_lo integer
+  !! @param[in] qa_lo integer
+  !! @param[in] idir integer
+  !! @param[in] lo integer
+  !! @param[in] domlo integer
+  !! @param[in] nc integer
+  !! @param[in] comp integer
+  !! @param[inout] qm real(rt)
+  !! @param[inout] qp real(rt)
+  !! @param[inout] qint real(rt)
+  !! @param[in] qaux real(rt)
+  !!
   subroutine riemann_state(qm, qp, qpd_lo, qpd_hi, nc, comp, &
                            qint, q_lo, q_hi, &
                            qaux, qa_lo, qa_hi, &
@@ -433,13 +450,13 @@ contains
 #endif
 
        call riemannus(qm, qp, qpd_lo, qpd_hi, nc, comp, &
-                      qaux, qa_lo, qa_hi, &
-                      qint, q_lo, q_hi, &
+            qaux, qa_lo, qa_hi, &
+            qint, q_lo, q_hi, &
 #ifdef RADIATION
-                      lambda_int, q_lo, q_hi, &
+            lambda_int, q_lo, q_hi, &
 #endif
-                      idir, lo, hi, &
-                      domlo, domhi, compute_interface_gamma)
+            idir, lo, hi, &
+            domlo, domhi, compute_interface_gamma)
 
 #ifdef RADIATION
        call bl_deallocate(lambda_int)
@@ -450,10 +467,10 @@ contains
 
 #ifndef RADIATION
        call riemanncg(qm, qp, qpd_lo, qpd_hi, nc, comp, &
-                      qaux, qa_lo, qa_hi, &
-                      qint, q_lo, q_hi, &
-                      idir, lo, hi, &
-                      domlo, domhi)
+            qaux, qa_lo, qa_hi, &
+            qint, q_lo, q_hi, &
+            idir, lo, hi, &
+            domlo, domhi)
 #else
 #ifndef AMREX_USE_CUDA
        call amrex_error("ERROR: CG solver does not support radiaiton")
@@ -470,22 +487,36 @@ contains
 
 
 
+
+  !> @brief this implements the approximate Riemann solver of Colella & Glaz
+  !! (1985)
+  !!
+  !! this version is dimension agnostic -- for 1- and 2-d, set kc,
+  !! kflux, and k3d to 0
+  !!
+  !! @param[in] qpd_lo integer
+  !! @param[in] qa_lo integer
+  !! @param[in] q_lo integer
+  !! @param[in] idir integer
+  !! @param[in] lo integer
+  !! @param[in] domlo integer
+  !! @param[in] nc integer
+  !! @param[in] comp integer
+  !! @param[in] ql real(rt)
+  !! @param[in] qr real(rt)
+  !! @param[in] qaux real(rt)
+  !! @param[inout] qint real(rt)
+  !!
   subroutine riemanncg(ql, qr, qpd_lo, qpd_hi, nc, comp, &
-                       qaux, qa_lo, qa_hi, &
-                       qint, q_lo, q_hi, &
-                       idir, lo, hi, &
-                       domlo, domhi)
-
-    ! this implements the approximate Riemann solver of Colella & Glaz
-    ! (1985)
-
-    ! this version is dimension agnostic -- for 1- and 2-d, set kc,
-    ! kflux, and k3d to 0
+       qaux, qa_lo, qa_hi, &
+       qint, q_lo, q_hi, &
+       idir, lo, hi, &
+       domlo, domhi)
 
     use amrex_error_module
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, &
-                                   Symmetry, SlipWall, NoSlipWall
+         Symmetry, SlipWall, NoSlipWall
     use network, only : nspec, naux
     use eos_type_module
     use eos_module
@@ -555,7 +586,7 @@ contains
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
     real(rt) :: bnd_fac_x, bnd_fac_y, bnd_fac_z
 
-#ifndef AMREX_USE_CUDA 
+#ifndef AMREX_USE_CUDA
     if (cg_blend == 2 .and. cg_maxiter < 5) then
 
        call amrex_error("Error: need cg_maxiter >= 5 to do a bisection search on secant iteration failure.")
@@ -751,10 +782,10 @@ contains
 
              ! get the shock speeds -- this computes W_s from CG Eq. 34
              call wsqge(pl, taul, gamel, gdot,  &
-                        gamstar, pstar, wlsq, clsql, gmin, gmax)
+                  gamstar, pstar, wlsq, clsql, gmin, gmax)
 
              call wsqge(pr, taur, gamer, gdot,  &
-                        gamstar, pstar, wrsq, clsqr, gmin, gmax)
+                  gamstar, pstar, wrsq, clsqr, gmin, gmax)
 
              pstar_old = pstar
 
@@ -779,10 +810,10 @@ contains
              do while ((iter <= iter_max .and. .not. converged) .or. iter <= 2)
 
                 call wsqge(pl, taul, gamel, gdot,  &
-                           gamstar, pstar, wlsq, clsql, gmin, gmax)
+                     gamstar, pstar, wlsq, clsql, gmin, gmax)
 
                 call wsqge(pr, taur, gamer, gdot,  &
-                           gamstar, pstar, wrsq, clsqr, gmin, gmax)
+                     gamstar, pstar, wrsq, clsqr, gmin, gmax)
 
                 ! NOTE: these are really the inverses of the wave speeds!
                 wl = ONE / sqrt(wlsq)
@@ -858,10 +889,10 @@ contains
                    pstaru = maxval(pstar_hist(iter_max-5:iter_max))
 
                    call pstar_bisection(pstarl, pstaru, &
-                                        ul, pl, taul, gamel, clsql, &
-                                        ur, pr, taur, gamer, clsqr, &
-                                        gdot, gmin, gmax, &
-                                        pstar, gamstar, converged, pstar_hist_extra)
+                        ul, pl, taul, gamel, clsql, &
+                        ur, pr, taur, gamer, clsqr, &
+                        gdot, gmin, gmax, &
+                        pstar, gamstar, converged, pstar_hist_extra)
 
                    if (.not. converged) then
 
@@ -944,7 +975,7 @@ contains
              ! about, get the value of gamstar and wosq across the wave we
              ! are dealing with.
              call wsqge(po, tauo, gameo, gdot,   &
-                        gamstar, pstar, wosq, clsq, gmin, gmax)
+                  gamstar, pstar, wosq, clsq, gmin, gmax)
 
              sgnm = sign(ONE, ustar)
 
@@ -1066,25 +1097,23 @@ contains
   end subroutine riemanncg
 
 
-  !===========================================================================
-  ! Colella, Glaz, and Ferguson solver
-  !
-  ! this is a 2-shock solver that uses a very simple approximation for the
-  ! star state, and carries an auxiliary jump condition for (rho e) to
-  ! deal with a real gas
-  !===========================================================================
+  !> @brief Colella, Glaz, and Ferguson solver
+  !!
+  !! this is a 2-shock solver that uses a very simple approximation for the
+  !! star state, and carries an auxiliary jump condition for (rho e) to
+  !! deal with a real gas
   subroutine riemannus(ql, qr, qpd_lo, qpd_hi, nc, comp, &
-                       qaux, qa_lo, qa_hi, &
-                       qint, q_lo, q_hi, &
+       qaux, qa_lo, qa_hi, &
+       qint, q_lo, q_hi, &
 #ifdef RADIATION
-                       lambda_int, l_lo, l_hi, &
+       lambda_int, l_lo, l_hi, &
 #endif
-                       idir, lo, hi, &
-                       domlo, domhi, compute_interface_gamma)
+       idir, lo, hi, &
+       domlo, domhi, compute_interface_gamma)
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, &
-                                   Symmetry, SlipWall, NoSlipWall
+         Symmetry, SlipWall, NoSlipWall
     use eos_type_module, only : eos_t, eos_input_rp
     use eos_module, only : eos
     use network, only : nspec
@@ -1555,7 +1584,7 @@ contains
                    xn(:) = qr(i,j,k,QFS:QFS-1+nspec,comp)
                 else
                    xn(:) = HALF*(ql(i,j,k,QFS:QFS-1+nspec,comp) + &
-                                 qr(i,j,k,QFS:QFS-1+nspec,comp))
+                        qr(i,j,k,QFS:QFS-1+nspec,comp))
                 endif
 
                 eos_state % rho = qint(i,j,k,QRHO)
@@ -1623,23 +1652,38 @@ contains
   end subroutine riemannus
 
 
+
+  !> @brief this is an implementation of the HLLC solver described in Toro's
+  !! book.  it uses the simplest estimate of the wave speeds, since
+  !! those should work for a general EOS.  We also initially do the
+  !! CGF Riemann construction to get pstar and ustar, since we'll
+  !! need to know the pressure and velocity on the interface for the
+  !! pdV term in the internal energy update.
+  !!
+  !! @param[in] qpd_lo integer
+  !! @param[in] qa_lo integer
+  !! @param[in] uflx_lo integer
+  !! @param[in] q_lo integer
+  !! @param[in] idir integer
+  !! @param[in] lo integer
+  !! @param[in] domlo integer
+  !! @param[in] nc integer
+  !! @param[in] comp integer
+  !! @param[in] ql real(rt)
+  !! @param[in] qr real(rt)
+  !! @param[in] qaux real(rt)
+  !! @param[inout] uflx real(rt)
+  !! @param[inout] qgdnv real(rt)
+  !!
   subroutine HLLC(ql, qr, qpd_lo, qpd_hi, nc, comp, &
-                  qaux, qa_lo, qa_hi, &
-                  uflx, uflx_lo, uflx_hi, &
-                  qgdnv, q_lo, q_hi, &
-                  idir, lo, hi, &
-                  domlo, domhi)
-
-
-    ! this is an implementation of the HLLC solver described in Toro's
-    ! book.  it uses the simplest estimate of the wave speeds, since
-    ! those should work for a general EOS.  We also initially do the
-    ! CGF Riemann construction to get pstar and ustar, since we'll
-    ! need to know the pressure and velocity on the interface for the
-    ! pdV term in the internal energy update.
+       qaux, qa_lo, qa_hi, &
+       uflx, uflx_lo, uflx_hi, &
+       qgdnv, q_lo, q_hi, &
+       idir, lo, hi, &
+       domlo, domhi)
 
     use prob_params_module, only : physbc_lo, physbc_hi, &
-                                   Symmetry, SlipWall, NoSlipWall
+         Symmetry, SlipWall, NoSlipWall
 
     implicit none
 
@@ -1919,12 +1963,27 @@ contains
 
 
 
+
+  !>
+  !! @param[in] qm_lo integer
+  !! @param[in] qp_lo integer
+  !! @param[in] qe_lo integer
+  !! @param[in] flx_lo integer
+  !! @param[in] qa_lo integer
+  !! @param[in] lo integer
+  !! @param[in] domlo integer
+  !! @param[in] qm real(rt)
+  !! @param[in] qp real(rt)
+  !! @param[inout] qint real(rt)
+  !! @param[inout] flx real(rt)
+  !! @param[in] qaux real(rt)
+  !!
   subroutine cmpflx_cuda(lo, hi, domlo, domhi, idir, &
-                         qm, qm_lo, qm_hi, &
-                         qp, qp_lo, qp_hi, &
-                         qint, qe_lo, qe_hi, &
-                         flx, flx_lo, flx_hi, &
-                         qaux, qa_lo, qa_hi)
+       qm, qm_lo, qm_hi, &
+       qp, qp_lo, qp_hi, &
+       qint, qe_lo, qe_hi, &
+       flx, flx_lo, flx_hi, &
+       qaux, qa_lo, qa_hi)
 
     use network, only: nspec, naux
     use amrex_fort_module, only: rt => amrex_real

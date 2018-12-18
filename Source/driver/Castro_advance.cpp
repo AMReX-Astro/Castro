@@ -1330,7 +1330,7 @@ Castro::retry_advance(Real& time, Real dt, int amr_iteration, int amr_ncycle)
             std::cout << std::endl;
         }
 
-        // Restore the original values of the state data.        
+        // Restore the original values of the state data.
 
         for (int k = 0; k < num_state_type; k++) {
 

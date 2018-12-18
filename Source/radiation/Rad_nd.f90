@@ -1,10 +1,9 @@
 
-! ::: -----------------------------------------------------------
-! ::: This routine is called at problem setup time and is used
-! ::: to initialize values of physical constants used by the
-! ::: radiation package.
-! ::: -----------------------------------------------------------
-
+!! -----------------------------------------------------------
+!> @brief This routine is called at problem setup time and is used
+!! to initialize values of physical constants used by the
+!! radiation package.
+!! -----------------------------------------------------------
 subroutine ca_initradconstants(p, c, h, k, s, a, m, J_is_used) bind(C, name="ca_initradconstants")
 
   use fundamental_constants_module, only : c_fcm=>c_light, h_fcm=>hplanck, &
@@ -79,13 +78,13 @@ subroutine ca_initsinglegroup(ngr) bind(C, name="ca_initsinglegroup")
   enddo
 end subroutine ca_initsinglegroup
 
-! ::: -----------------------------------------------------------
-! ::: This routine is called at problem setup time and is used
-! ::: to initialize the arrays nugroup and dnugroup in
-! ::: probdata with the neutrino group energies and widths.
-! :::
-! ::: The widths are used to derive neutrino spectrum for plot files
-! ::: -----------------------------------------------------------
+!! -----------------------------------------------------------
+!> @brief This routine is called at problem setup time and is used
+!! to initialize the arrays nugroup and dnugroup in
+!! probdata with the neutrino group energies and widths.
+!!
+!! The widths are used to derive neutrino spectrum for plot files
+!! -----------------------------------------------------------
 subroutine ca_initgroups(nugr, dnugr, ngr, ngr0, ngr1)
 
   use rad_params_module, only: ngroups, ng0, ng1, nugroup, dnugroup
@@ -195,7 +194,7 @@ subroutine ca_initgroups3(nugr, dnugr, dlognugr, xnugr, ngr, ngr0, ngr1)
 
 end subroutine ca_initgroups3
 
-! ::: -----------------------------------------------------------
+!! -----------------------------------------------------------
 
 subroutine ca_setgroup(igroup)
 
@@ -209,7 +208,7 @@ subroutine ca_setgroup(igroup)
 
 end subroutine ca_setgroup
 
-! ::: -----------------------------------------------------------
+!! -----------------------------------------------------------
 
 subroutine ca_inelastic_sct (lo, hi, &
      uu,uu_lo,uu_hi, &
@@ -257,7 +256,7 @@ subroutine ca_inelastic_sct (lo, hi, &
 
 end subroutine ca_inelastic_sct
 
-! ::: -----------------------------------------------------------
+!! -----------------------------------------------------------
 
 subroutine ca_compute_scattering(lo, hi, &
      kps,kps_lo,kps_hi, &
@@ -344,7 +343,7 @@ subroutine ca_compute_scattering_2(lo, hi, &
            end do
         end do
      end do
-  else 
+  else
      do k = lo(3), hi(3)
         do j = lo(2), hi(2)
            do i = lo(1), hi(1)

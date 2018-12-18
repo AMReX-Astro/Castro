@@ -18,16 +18,19 @@ clean:
 	rm -rf build doxy_files source/class source/file source/namespace
 	rm -f source/classlist.rst source/filelist.rst source/namespacelist.rst
 	rm -rf ../docs
+	rm -rf source/*_files.rst
 
 html:
 	./rp.py > source/runtime_parameters.rst
 	doxygen Doxyfile
-	breathe-apidoc --o source doxy_files/xml
+	breathe-apidoc --o source doxy_files/xml -g class,file
+	python3 make_api.py
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
 	doxygen Doxyfile
-	breathe-apidoc --o source doxy_files/xml
+	breathe-apidoc --o source doxy_files/xml -g class,file
+	python3 make_api.py
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)

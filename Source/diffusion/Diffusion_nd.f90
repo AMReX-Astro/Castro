@@ -7,11 +7,19 @@ module diffusion_module
 
 contains
 
+
+  !> @brief this routine extrapolates the temperature diffusion term into the
+  !! ghostcells
+  !!
+  !! @note Binds to C function ``ca_tempdiffextrap``
+  !!
+  !! @param[in] lo integer
+  !! @param[in] t_lo integer
+  !! @param[inout] tdif real(rt)
+  !!
   subroutine ca_tempdiffextrap(lo, hi, tdif, t_lo, t_hi) &
        bind(C, name="ca_tempdiffextrap")
 
-    ! this routine extrapolates the temperature diffusion term into the
-    ! ghostcells
 
     use prob_params_module, only: dg
 
@@ -193,11 +201,20 @@ contains
   end subroutine ca_tempdiffextrap
 
 
-  
-  ! This routine fills the species diffusion coefficients on the edges of a zone
-  ! by calling the cell-centered conductivity routine and averaging to
-  ! the interfaces
-
+  !> @brief This routine fills the species diffusion coefficients on the edges of a zone
+  !! by calling the cell-centered conductivity routine and averaging to
+  !! the interfaces
+  !!
+  !! @note Binds to C function ``ca_fill_spec_coeff``
+  !!
+  !! @param[in] lo integer
+  !! @param[in] s_lo integer
+  !! @param[in] cx_lo integer
+  !! @param[in] state real(rt)
+  !! @param[inout] coefx real(rt)
+  !! @param[inout] coefy real(rt)
+  !! @param[inout] coefz real(rt)
+  !!
   subroutine ca_fill_spec_coeff(lo,hi, &
        state,s_lo,s_hi, &
        coefx,cx_lo,cx_hi, &
@@ -281,16 +298,30 @@ contains
 
   end subroutine ca_fill_spec_coeff
 
-  ! This routine fills the thermal conductivity on the edges of a zone
-  ! by calling the cell-centered conductivity routine and averaging to
-  ! the interfaces
-  
+
+
+  !> @brief This routine fills the thermal conductivity on the edges of a zone
+  !! by calling the cell-centered conductivity routine and averaging to
+  !! the interfaces
+  !!
+  !! @note Binds to C function ``ca_fill_temp_cond``
+  !!
+  !! @param[in] lo integer
+  !! @param[in] s_lo integer
+  !! @param[in] cx_lo integer
+  !! @param[in] state real(rt)
+  !! @param[inout] coefx real(rt)
+  !! @param[inout] coefy real(rt)
+  !! @param[inout] coefz real(rt)
+  !!
   subroutine ca_fill_temp_cond(lo,hi, &
        state,s_lo,s_hi, &
        coefx,cx_lo,cx_hi, &
        coefy,cy_lo,cy_hi, &
        coefz,cz_lo,cz_hi) &
        bind(C, name="ca_fill_temp_cond")
+
+
 
     use amrex_constants_module
     use network, only: nspec, naux
@@ -374,16 +405,30 @@ contains
 
   end subroutine ca_fill_temp_cond
 
-  ! This routine fills the coefficient of grad(enthalpy) on the edges of a zone
-  ! by calling the cell-centered conductivity routine and averaging to
-  ! the interfaces
-  
+
+
+
+  !> @brief This routine fills the coefficient of grad(enthalpy) on the edges of a zone
+  !! by calling the cell-centered conductivity routine and averaging to
+  !! the interfaces
+  !!
+  !! @note Binds to C function ``ca_fill_enth_cond``
+  !!
+  !! @param[in] lo integer
+  !! @param[in] s_lo integer
+  !! @param[in] cx_lo integer
+  !! @param[in] state real(rt)
+  !! @param[inout] coefx real(rt)
+  !! @param[inout] coefy real(rt)
+  !! @param[inout] coefz real(rt)
+  !!
   subroutine ca_fill_enth_cond(lo,hi, &
        state,s_lo,s_hi, &
        coefx,cx_lo,cx_hi, &
        coefy,cy_lo,cy_hi, &
        coefz,cz_lo,cz_hi) &
        bind(C, name="ca_fill_enth_cond")
+
 
     use amrex_constants_module
     use network, only: nspec, naux
@@ -462,15 +507,29 @@ contains
 
   end subroutine ca_fill_enth_cond
 
-  ! This routine fills the viscous coefficients "mu" on the edges of a zone
-  ! by calling the cell-centered coefficient routine and averaging to
-  ! the interfaces
-  
+
+
+
+  !> @brief This routine fills the viscous coefficients "mu" on the edges of a zone
+  !! by calling the cell-centered coefficient routine and averaging to
+  !! the interfaces
+  !!
+  !! @note Binds to C function ``ca_fill_first_visc_coeff``
+  !!
+  !! @param[in] lo integer
+  !! @param[in] s_lo integer
+  !! @param[in] cx_lo integer
+  !! @param[in] state real(rt)
+  !! @param[inout] coefx real(rt)
+  !! @param[inout] coefy real(rt)
+  !! @param[inout] coefz real(rt)
+  !!
   subroutine ca_fill_first_visc_coeff(lo,hi, &
        state,s_lo,s_hi, &
        coefx,cx_lo,cx_hi, &
        coefy,cy_lo,cy_hi, &
        coefz,cz_lo,cz_hi) bind(C, name="ca_fill_first_visc_coeff")
+
 
     use amrex_constants_module
     use network, only: nspec, naux
@@ -545,7 +604,19 @@ contains
   end subroutine ca_fill_first_visc_coeff
 
 
-  
+
+
+  !>
+  !! @note Binds to C function ``ca_fill_secnd_visc_coeff``
+  !!
+  !! @param[in] lo integer
+  !! @param[in] s_lo integer
+  !! @param[in] cx_lo integer
+  !! @param[in] state real(rt)
+  !! @param[inout] coefx real(rt)
+  !! @param[inout] coefy real(rt)
+  !! @param[inout] coefz real(rt)
+  !!
   subroutine ca_fill_secnd_visc_coeff(lo,hi, &
        state,s_lo,s_hi, &
        coefx,cx_lo,cx_hi, &
@@ -631,7 +702,17 @@ contains
   end subroutine ca_fill_secnd_visc_coeff
 
 
-  
+  !>
+  !! @note Binds to C function ``ca_compute_div_tau_u``
+  !!
+  !! @param[in] lo integer
+  !! @param[in] d_lo integer
+  !! @param[in] s_lo integer
+  !! @param[out] div_tau_u real(rt)
+  !! @param[in] state real(rt)
+  !! @param[in] dx real(rt)
+  !! @param[in] coord_type integer
+  !!
   subroutine ca_compute_div_tau_u(lo,hi,&
        div_tau_u,d_lo,d_hi, &
        state,s_lo,s_hi,dx,coord_type) bind(C, name="ca_compute_div_tau_u")
@@ -748,5 +829,5 @@ contains
     deallocate(mu,kappa)
 
   end subroutine ca_compute_div_tau_u
-  
+
 end module diffusion_module

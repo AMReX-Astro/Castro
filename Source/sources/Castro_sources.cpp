@@ -386,7 +386,7 @@ Castro::print_all_source_changes(Real dt, bool is_new)
     });
 #endif
 
-} 
+}
 
 // Obtain the sum of all source terms.
 
@@ -395,7 +395,7 @@ Castro::sum_of_sources(MultiFab& source)
 {
 
   // this computes advective_source + 1/2 (old source + new source)
-  // 
+  //
   // Note: the advective source is defined as -div{F}
   //
   // the time-centering is accomplished since new source is defined
