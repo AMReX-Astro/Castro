@@ -188,7 +188,7 @@ contains
                       eos_state%rho = dens_zone
                       eos_state%T = temp_zone
                       eos_state%xn(:) = X_zone
-                      
+
                       call eos(eos_input_rt, eos_state)
 
                       pres_zone = eos_state%p
@@ -315,7 +315,7 @@ contains
   end subroutine ext_fill
 
 
-  AMREX_LAUNCH subroutine ext_denfill(adv,adv_l1,adv_h1, &
+  subroutine ext_denfill(adv,adv_l1,adv_h1, &
                                       domlo,domhi,delta,xlo,time,bc) &
                                       bind(C, name="ext_denfill")
 

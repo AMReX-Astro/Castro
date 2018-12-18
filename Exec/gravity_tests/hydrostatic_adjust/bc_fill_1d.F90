@@ -15,14 +15,14 @@ contains
     use probdata_module, only: hse_rho_top, hse_t_top, hse_X_top, &
          hse_eint_top, hse_p_top
     use network, only: nspec
-    
+
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     include 'AMReX_bc_types.fi'
 
     integer          :: adv_l1,adv_h1
-    integer          :: bc(1,2,*)
+    integer          :: bc(1,2,NVAR)
     integer          :: domlo(1), domhi(1)
     real(rt)         :: delta(1), xlo(1), time
     real(rt)         :: adv(adv_l1:adv_h1,NVAR)
@@ -62,7 +62,7 @@ contains
 
   subroutine ca_denfill(adv,adv_l1,adv_h1, &
                         domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_denfill")
-    
+
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
@@ -85,7 +85,7 @@ contains
                           domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_gravxfill")
 
     use probdata_module
-    
+
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
@@ -105,7 +105,7 @@ contains
        domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_gravyfill")
 
     use probdata_module
-    
+
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
@@ -125,7 +125,7 @@ contains
                           domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_gravzfill")
 
     use probdata_module
-    
+
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
