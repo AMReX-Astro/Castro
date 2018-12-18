@@ -9,25 +9,25 @@ module gravity_3D_module
 contains
 
   subroutine ca_test_residual(lo, hi, &
-       rhs, rhl1, rhl2, rhl3, rhh1, rhh2, rhh3, &
-       ecx, ecxl1, ecxl2, ecxl3, ecxh1, ecxh2, ecxh3, &
-       ecy, ecyl1, ecyl2, ecyl3, ecyh1, ecyh2, ecyh3, &
-       ecz, eczl1, eczl2, eczl3, eczh1, eczh2, eczh3, &
+       rhs, rhlo, rhhi, &
+       ecx, ecxl1o, ecxhi, &
+       ecy, ecylo, ecyhi, &
+       ecz, eczlo, eczhi, &
        dx,problo,coord_type) bind(C, name="ca_test_residual")
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer , intent(in   ) :: lo(3),hi(3)
-    integer , intent(in   ) :: coord_type
-    integer , intent(in   ) :: rhl1, rhl2, rhl3, rhh1, rhh2, rhh3
-    integer , intent(in   ) :: ecxl1, ecxl2, ecxl3, ecxh1, ecxh2, ecxh3
-    integer , intent(in   ) :: ecyl1, ecyl2, ecyl3, ecyh1, ecyh2, ecyh3
-    integer , intent(in   ) :: eczl1, eczl2, eczl3, eczh1, eczh2, eczh3
-    real(rt), intent(inout) :: rhs(rhl1:rhh1,rhl2:rhh2,rhl3:rhh3)
-    real(rt), intent(in   ) :: ecx(ecxl1:ecxh1,ecxl2:ecxh2, ecxl3:ecxh3)
-    real(rt), intent(in   ) :: ecy(ecyl1:ecyh1,ecyl2:ecyh2, ecyl3:ecyh3)
-    real(rt), intent(in   ) :: ecz(eczl1:eczh1,eczl2:eczh2, eczl3:eczh3)
+    integer , value, intent(in   ) :: coord_type
+    integer , intent(in   ) :: rhlo(3), rhhi(3)
+    integer , intent(in   ) :: ecxlo(3), ecxhi(3)
+    integer , intent(in   ) :: ecylo(3), ecyhi(3)
+    integer , intent(in   ) :: eczlo(3), eczhi(3)
+    real(rt), intent(inout) :: rhs(rhlo(1):rhhi(1),rhlo(2):rhhi(2),rhlo(3):rhhi(3))
+    real(rt), intent(in   ) :: ecx(ecxlo(1):ecxhi(1),ecxlo(2):ecxhi(2),ecxlo(3):ecxhi(3))
+    real(rt), intent(in   ) :: ecy(ecylo(1):ecyhi(1),ecylo(2):ecyhi(2),ecylo(3):ecyhi(3))
+    real(rt), intent(in   ) :: ecz(eczlo(1):eczhi(1),eczlo(2):eczhi(2),eczlo(3):eczhi(3))
     real(rt), intent(in   ) :: dx(3),problo(3)
 
     ! Local variables
@@ -456,7 +456,7 @@ contains
 
                    locb(3) = problo(3)
                    dz2 = (loc(3) - locb(3))**2
-                   
+
                    r = ( dx2 + dy2 + dz2 )**HALF
 
                    bcXYLo(l,m) = bcXYLo(l,m) - Gconst * rho(i,j,k) * vol(i,j,k) / r
@@ -505,7 +505,7 @@ contains
                    locb(3) = problo(3) + (dble(n)+HALF) * bcdx(3)
                 endif
                 dz2 = (loc(3) - locb(3))**2
-                
+
                 do l = bclo(1), bchi(1)
                    if (l .eq. bclo(1)) then
                       locb(1) = problo(1)

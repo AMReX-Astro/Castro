@@ -9,8 +9,8 @@ module gravity_1D_module
 contains
 
   subroutine ca_test_residual(lo, hi, &
-       rhs, rhl1, rhh1,  &
-       ecx, ecxl1, ecxh1, &
+       rhs, rhlo, rhhi,  &
+       ecx, ecxlo, ecxhi, &
        dx, problo, coord_type) bind(C, name="ca_test_residual")
 
     use amrex_constants_module
@@ -18,24 +18,27 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer , intent(in   ) :: lo(1),hi(1)
-    integer , intent(in   ) :: rhl1, rhh1
-    integer , intent(in   ) :: ecxl1, ecxh1
-    integer , intent(in   ) :: coord_type
-    real(rt), intent(inout) :: rhs(rhl1:rhh1)
-    real(rt), intent(in   ) :: ecx(ecxl1:ecxh1)
-    real(rt), intent(in   ) :: dx(1),problo(1)
+    integer , intent(in   ) :: lo(3),hi(3)
+    integer , intent(in   ) :: rhlo(3), rhhi(3)
+    integer , intent(in   ) :: ecxlo(3), ecxhi(3)
+    integer , value, intent(in   ) :: coord_type
+    real(rt), intent(inout) :: rhs(rhlo(1):rhhi(1),rhlo(2):rhhi(2),rhlo(3):rhhi(3))
+    real(rt), intent(in   ) :: ecx(ecxlo(1):ecxhi(1),ecxlo(2):ecxhi(2),ecxlo(3):ecxhi(3))
+    real(rt), intent(in   ) :: dx(3),problo(3)
 
     real(rt)         :: lapphi
     real(rt)         :: rlo,rhi,rcen
-    integer          :: i
+    integer          :: i, j, k
+
+    j = lo(2)
+    k = lo(3)
 
     ! Cartesian
     if (coord_type .eq. 0) then
 
        do i=lo(1),hi(1)
-          lapphi = (ecx(i+1)-ecx(i)) / dx(1)
-          rhs(i) = rhs(i) - lapphi
+          lapphi = (ecx(i+1,j,k)-ecx(i,j,k))) / dx(1)
+          rhs(i,j,k)) = rhs(i,j,k)) - lapphi
        enddo
 
        ! r-z
@@ -45,8 +48,8 @@ contains
           rlo  = problo(1) + dble(i)*dx(1)
           rhi  = rlo + dx(1)
           rcen = HALF * (rlo+rhi)
-          lapphi = (rhi*ecx(i+1)-rlo*ecx(i)) / (rcen*dx(1))
-          rhs(i) = rhs(i) - lapphi
+          lapphi = (rhi*ecx(i+1,j,k))-rlo*ecx(i,j,k))) / (rcen*dx(1))
+          rhs(i,j,k)) = rhs(i,j,k)) - lapphi
        enddo
 
        ! spherical
@@ -56,8 +59,8 @@ contains
           rlo  = problo(1) + dble(i)*dx(1)
           rhi  = rlo + dx(1)
           rcen = HALF * (rlo+rhi)
-          lapphi = (rhi**2 * ecx(i+1)-rlo**2 * ecx(i)) / (rcen**2 * dx(1))
-          rhs(i) = rhs(i) - lapphi
+          lapphi = (rhi**2 * ecx(i+1,j,k))-rlo**2 * ecx(i,j,k))) / (rcen**2 * dx(1))
+          rhs(i,j,k)) = rhs(i,j,k)) - lapphi
        enddo
 
     else
