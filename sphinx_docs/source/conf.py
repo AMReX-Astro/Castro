@@ -64,6 +64,13 @@ breathe_projects = {
 
 breathe_default_project = "castro"
 
+breathe_default_members = ('members', 'undoc-members', 'protected-members',
+   'private-members')
+
+breathe_doxygen_config_options = { 'EXTRACT_ALL': 'YES',
+'SHOW_USED_FILES': 'YES', 'RECURSIVE': 'YES'
+    }
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 

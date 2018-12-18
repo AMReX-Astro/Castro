@@ -5,7 +5,7 @@ Rotation
 Introduction
 ============
 
-Currently, Castro supports contant, solid-body rotation about a fixed
+Currently, Castro supports contant, solid-body rotation about a fixed
 (in space and time) axis in 2D and 3D by transforming the evolution
 equations to the rotating frame of reference.
 
@@ -300,7 +300,7 @@ in how the energy update is done:
 
 * ``castro.rot_source_type = 2`` : we do something very similar
   to 1. The major difference is that when evaluating the energy source
-  term at the new time (which is equal to 
+  term at the new time (which is equal to
   :math:`\mathbf{u} \cdot \mathbf{S}^{n+1}_{\rho \mathbf{u}}`, where the latter is the
   momentum source term evaluated at the new time), we first update the
   momentum, rather than using the value of :math:`\mathbf{u}` before

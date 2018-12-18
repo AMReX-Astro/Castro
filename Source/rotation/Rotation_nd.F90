@@ -13,10 +13,16 @@ module rotation_module
 
 contains
 
-  ! Given a velocity vector in the inertial frame, transform it to a
-  ! velocity vector in the rotating frame.
 
+  !> @brief Given a velocity vector in the inertial frame, transform it to a
+  !! velocity vector in the rotating frame.
+  !!
+  !! @param[in] idx integer
+  !! @param[in] time real(rt)
+  !! @param[inout] v real(rt)
+  !!
   subroutine inertial_to_rotational_velocity(idx, time, v, idir)
+
 
     use prob_params_module, only: center
     use castro_util_module, only: position ! function
@@ -59,12 +65,13 @@ contains
 
 
 
-  ! Given a position and velocity, calculate
-  ! the rotational acceleration. This is the sum of:
-  ! the Coriolis force (-2 omega x v),
-  ! the centrifugal force (- omega x ( omega x r)),
-  ! and a changing rotation rate (-d(omega)/dt x r).
 
+  !> @brief Given a position and velocity, calculate
+  !! the rotational acceleration. This is the sum of:
+  !! the Coriolis force (-2 omega x v),
+  !! the centrifugal force (- omega x ( omega x r)),
+  !! and a changing rotation rate (-d(omega)/dt x r).
+  !!
   function rotational_acceleration(r, v, time, centrifugal, coriolis, domegadt) result(Sr)
 
     use amrex_constants_module, only: ZERO, TWO
@@ -180,8 +187,9 @@ contains
 
 
 
-  ! Construct rotational potential, phi_R = -1/2 | omega x r |**2
 
+  !> @brief Construct rotational potential, phi_R = -1/2 | omega x r |**2
+  !!
   function rotational_potential(r, time) result(phi)
 
     use amrex_constants_module, only: ZERO, HALF
@@ -223,6 +231,15 @@ contains
 
 
 
+
+  !>
+  !! @note Binds to C function ``ca_fill_rotational_potential``
+  !!
+  !! @param[in] lo integer
+  !! @param[in] phi_lo integer
+  !! @param[inout] phi real(rt)
+  !! @param[in] dx real(rt)
+  !!
   subroutine ca_fill_rotational_potential(lo,hi,phi,phi_lo,phi_hi,dx,time) &
        bind(C, name="ca_fill_rotational_potential")
 
@@ -263,6 +280,17 @@ contains
 
 
 
+
+  !>
+  !! @note Binds to C function ``ca_fill_rotational_acceleration``
+  !!
+  !! @param[in] lo integer
+  !! @param[in] rot_lo integer
+  !! @param[in] state_lo integer
+  !! @param[inout] rot real(rt)
+  !! @param[in] state real(rt)
+  !! @param[in] dx real(rt)
+  !!
   subroutine ca_fill_rotational_acceleration(lo,hi,rot,rot_lo,rot_hi,state,state_lo,state_hi,dx,time) &
        bind(C, name="ca_fill_rotational_acceleration")
 

@@ -106,8 +106,7 @@ module probdata_module
 
   ! Binary orbit properties
 
-  double precision, save :: r_P_initial, r_S_initial, a_P_initial, a_S_initial, a  
-  double precision, save :: v_P_r, v_S_r, v_P_phi, v_S_phi, v_P, v_S
+  double precision, save :: r_P_initial, r_S_initial, a
   double precision, save :: center_P_initial(3), center_S_initial(3)
   double precision, save :: orbital_eccentricity = 0.0d0
   double precision, save :: orbital_angle = 0.0d0

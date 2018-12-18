@@ -105,7 +105,7 @@ if itag = CLEAR (these are mapped to 1 and 0, respectively).
 
     for errfunc[k] from k = 1 ... N
         // Three possibilities for itag: SET or CLEAR or remaining unchanged
-        call errfunc[k](itag)  
+        call errfunc[k](itag)
     end for
 
 In particular, notice that there is an order dependence of this operation; if errfunc[2]
@@ -141,9 +141,9 @@ problem_tagging_3d.f90 to our work directory and set it up as follows:
       use bl_constants_module, only: ZERO, HALF
       use prob_params_module, only: center
       use meth_params_module, only: URHO, UMX, UMY, UMZ, UEDEN, NVAR
-     
+
       implicit none
-      
+
       integer         ,intent(in   ) :: lo(3),hi(3)
       integer         ,intent(in   ) :: state_l1,state_l2,state_l3, &
                                         state_h1,state_h2,state_h3
@@ -174,7 +174,7 @@ problem_tagging_3d.f90 to our work directory and set it up as follows:
             enddo
          enddo
       enddo
-      
+
     end subroutine set_problem_tags
 
 .. _sec:amr_synchronization:
@@ -263,7 +263,7 @@ The synchronization consists of two parts:
 
    .. math::
 
-      R \equiv  4 \pi G \rho^{\star,c-f} - \Delta^{c-f} \; \overline{\phi}^{c-f} 
+      R \equiv  4 \pi G \rho^{\star,c-f} - \Delta^{c-f} \; \overline{\phi}^{c-f}
       = - 4 \pi G (\delta \rho)^c - (\nabla \cdot \delta F_\phi ) |_c   .
 
    Then we solve
@@ -290,7 +290,7 @@ The synchronization consists of two parts:
 
       .. math::
 
-         \delta {F_\phi}^{cc-c} = \delta F_\phi^{cc-c} 
+         \delta {F_\phi}^{cc-c} = \delta F_\phi^{cc-c}
          + \sum A^c \frac{\partial (\delta \phi)^{c-f}}{\partial n}  .
 
    The gravity synchronization algorithm can be disabled with

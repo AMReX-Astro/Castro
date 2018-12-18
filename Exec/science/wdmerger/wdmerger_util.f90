@@ -464,6 +464,8 @@ contains
 
     integer :: lev
 
+    double precision :: v_P_r, v_S_r, v_P_phi, v_S_phi, v_P, v_S
+
     omega = get_omega(ZERO)
 
     ! Safety check: ensure that if we have a symmetric lower boundary, that the
