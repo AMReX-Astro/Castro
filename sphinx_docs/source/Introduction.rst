@@ -6,7 +6,7 @@ Castro is a adaptive mesh, radiation hydrodynamics code that is
 designed to model astrophysical reacting flows on massively parallel
 computers.
 
-The major capabilities:
+Castro's major capabilities:
 
   * 1-, 2-, and 3-dimensional unsplit, 2nd-order hydrodynamics
 

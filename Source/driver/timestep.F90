@@ -8,9 +8,19 @@ module timestep_module
 
 contains
 
-  ! Courant-condition limited timestep
 
+  !> @brief Courant-condition limited timestep
+  !!
+  !! @note Binds to C function ``ca_estdt``
+  !!
+  !! @param[in] lo integer
+  !! @param[in] u_lo integer
+  !! @param[in] u real(rt)
+  !! @param[in] dx real(rt)
+  !! @param[inout] dt real(rt)
+  !!
   subroutine ca_estdt(lo,hi,u,u_lo,u_hi,dx,dt) bind(C, name="ca_estdt")
+
 
     use network, only: nspec, naux
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, do_ctu
@@ -74,7 +84,7 @@ contains
                 uz = vel(3)
              endif
 #endif
-             
+
              c = eos_state % cs
 
              dt1 = dx(1)/(c + abs(ux))
@@ -110,15 +120,31 @@ contains
 
   end subroutine ca_estdt
 
-  ! Reactions-limited timestep
-
 #ifdef REACTIONS
+
+  !> @brief Reactions-limited timestep
+  !!
+  !! @note Binds to C function ``ca_estdt_burning``
+  !!
+  !! @param[in] so_lo integer
+  !! @param[in] sn_lo integer
+  !! @param[in] ro_lo integer
+  !! @param[in] rn_lo integer
+  !! @param[in] lo integer
+  !! @param[in] sold real(rt)
+  !! @param[in] snew real(rt)
+  !! @param[in] rold real(rt)
+  !! @param[in] rnew real(rt)
+  !! @param[in] dx real(rt)
+  !! @param[inout] dt real(rt)
+  !!
   subroutine ca_estdt_burning(lo, hi, sold, so_lo, so_hi, &
-                              snew, sn_lo, sn_hi, &
-                              rold, ro_lo, ro_hi, &
-                              rnew, rn_lo, rn_hi, &
-                              dx, dt_old, dt) &
-                              bind(C, name="ca_estdt_burning")
+       snew, sn_lo, sn_hi, &
+       rold, ro_lo, ro_hi, &
+       rnew, rn_lo, rn_hi, &
+       dx, dt_old, dt) &
+       bind(C, name="ca_estdt_burning")
+
 
     use amrex_constants_module, only: HALF, ONE
     use network, only: nspec, naux, aion
@@ -166,7 +192,7 @@ contains
     ! dtnuc_e * (e / (de/dt)).  If the timestep factor dtnuc is
     ! equal to 1, this says that we don't want the
     ! internal energy to change by any more than its current
-    ! magnitude in the next timestep. 
+    ! magnitude in the next timestep.
     !
     ! If dtnuc is less than one, it controls the fraction we will
     ! allow the internal energy to change in this timestep due to
@@ -252,9 +278,19 @@ contains
   end subroutine ca_estdt_burning
 #endif
 
-  ! Diffusion-limited timestep
 
 #ifdef DIFFUSION
+
+  !> @brief Diffusion-limited timestep
+  !!
+  !! @note Binds to C function ``ca_estdt_temp_diffusion``
+  !!
+  !! @param[in] lo integer
+  !! @param[in] s_lo integer
+  !! @param[in] state real(rt)
+  !! @param[in] dx real(rt)
+  !! @param[inout] dt real(rt)
+  !!
   subroutine ca_estdt_temp_diffusion(lo,hi,state,s_lo,s_hi,dx,dt) &
        bind(C, name="ca_estdt_temp_diffusion")
 
@@ -333,6 +369,16 @@ contains
 
   end subroutine ca_estdt_temp_diffusion
 
+
+  !>
+  !! @note Binds to C function ``ca_estdt_enth_diffusion``
+  !!
+  !! @param[in] lo integer
+  !! @param[in] s_lo integer
+  !! @param[in] state real(rt)
+  !! @param[in] dx real(rt)
+  !! @param[inout] dt real(rt)
+  !!
   subroutine ca_estdt_enth_diffusion(lo,hi,state,s_lo,s_hi,dx,dt) &
        bind(C, name="ca_estdt_enth_diffusion")
 
@@ -412,21 +458,21 @@ contains
 #endif
 
 
-  ! Check whether the last timestep violated any of our stability criteria.
-  ! If so, suggest a new timestep which would not.
 
   subroutine ca_check_timestep(lo, hi, s_old, so_lo, so_hi, &
-                               s_new, sn_lo, sn_hi, &
+       s_new, sn_lo, sn_hi, &
 #ifdef REACTIONS
-                               r_old, ro_lo, ro_hi, &
-                               r_new, rn_lo, rn_hi, &
+       r_old, ro_lo, ro_hi, &
+       r_new, rn_lo, rn_hi, &
 #endif
-                               dx, dt_old, dt_new) &
-                               bind(C, name="ca_check_timestep")
+       dx, dt_old, dt_new) &
+       bind(C, name="ca_check_timestep")
 
+    ! Check whether the last timestep violated any of our stability criteria.
+    ! If so, suggest a new timestep which would not.
     use amrex_constants_module, only: HALF, ONE
     use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, UFS, UFX, UMX, UMZ, &
-                                  cfl, do_hydro
+         cfl, do_hydro
 #ifdef REACTIONS
     use meth_params_module, only: dtnuc_e, dtnuc_X, dtnuc_X_threshold, do_react
     use extern_probin_module, only: small_x
