@@ -63,7 +63,7 @@ Fortran
   ``ca_deallocate_sponge_params``) at the beginning and end of the main program.
 
 - Temporary variables must be defined outside of function calls. E.g. if a
-  function calls ``contain foo(x(a:b)/y)``, you need to define a new variable
+  function call contains ``foo(x(a:b)/y)``, you need to define a new variable
   ``z = x(a:b)/y`` then pass this into the function as ``foo(z)``.
 
   - If you don’t do this, you may see the error ``Array reshaping is not supported
