@@ -208,6 +208,8 @@ contains
 
     real(rt) :: R
 
+    !$gpu
+
     R = sqrt( loc(1)**2 + loc(2)**2 )
 
     ! This is analogous to the conversion of linear momentum to hybrid momentum.

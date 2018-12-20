@@ -94,7 +94,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 	    gravity->test_level_grad_phi_prev(level);
 
 	}
- 
+
     }
 
     // Define the old gravity vector.
@@ -243,16 +243,17 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state, Rea
     for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
     {
 	const Box& bx = mfi.tilebox();
-
-	ca_gsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		ARLIM_3D(domlo), ARLIM_3D(domhi),
+    
+#pragma gpu
+	ca_gsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+		AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
 		BL_TO_FORTRAN_ANYD(state[mfi]),
 #ifdef SELF_GRAVITY
 		BL_TO_FORTRAN_ANYD(phi_old[mfi]),
 		BL_TO_FORTRAN_ANYD(grav_old[mfi]),
 #endif
 		BL_TO_FORTRAN_ANYD(source[mfi]),
-		ZFILL(dx),dt,&time);
+		AMREX_REAL_ANYD(dx),dt,time);
 
     }
 

@@ -19,8 +19,7 @@ contains
     use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_error_module
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type
-    use math_module, only: cross_product
-    use castro_util_module, only: position
+    use castro_util_module, only: position ! function
     use prob_params_module, only: center
 #ifdef HYBRID_MOMENTUM
     use meth_params_module, only: UMR, UMP
@@ -48,7 +47,8 @@ contains
     real(rt), intent(in)    :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3),3)
 #endif
     real(rt), intent(inout) :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
-    real(rt), intent(in)    :: dx(3), dt, time
+    real(rt), intent(in)    :: dx(3)
+    real(rt), intent(in), value :: dt, time
 
     real(rt) :: rho, rhoInv
     real(rt) :: Sr(3), SrE
@@ -58,19 +58,21 @@ contains
     integer  :: i, j, k
 
     ! Temporary array for holding the update to the state.
-    
+
     real(rt) :: src(NVAR)
 
     ! Temporary array for seeing what the new state would be if the update were applied here.
 
     real(rt) :: snew(NVAR)
 
+    !$gpu
+
     ! Initialize the update and temporary state to zero. We only need to do this once outside
     ! the loop, since the array access pattern is consistent across loop iterations.
 
-    Sr(:) = ZERO
-    src(:) = ZERO
-    snew(:) = ZERO
+    Sr(1:3) = ZERO
+    src(1:NVAR) = ZERO
+    snew(1:NVAR) = ZERO
 
     ! For constant gravity, we can just initialize the gravitational acceleration here.
 
@@ -95,12 +97,12 @@ contains
              loc = position(i,j,k) - center
 
              src = ZERO
-             snew = uold(i,j,k,:)
+             snew = uold(i,j,k,1:NVAR)
 
              old_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoInv
 
 #ifdef SELF_GRAVITY
-             Sr = rho * grav(i,j,k,:)
+             Sr = rho * grav(i,j,k,1:3)
 #else
              Sr(dim) = rho * const_grav
 #endif
@@ -138,11 +140,11 @@ contains
                 ! Here we use the same approach as grav_source_type == 2.
 
                 SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
-
+#ifndef AMREX_USE_CUDA
              else
 
                 call amrex_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
-
+#endif
              end if
 
              src(UEDEN) = SrE
@@ -151,7 +153,7 @@ contains
 
              ! Add to the outgoing source array.
 
-             source(i,j,k,:) = source(i,j,k,:) + src
+             source(i,j,k,1:NVAR) = source(i,j,k,1:NVAR) + src
 
           enddo
        enddo
