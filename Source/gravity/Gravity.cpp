@@ -41,6 +41,7 @@ Real Gravity::mass_offset    =  0.0;
 
 static Real Ggravity = 0.;
 
+// #ifndef AMREX_USE_CUDA
 Vector< Vector<Real> > Gravity::radial_grav_old(MAX_LEV);
 Vector< Vector<Real> > Gravity::radial_grav_new(MAX_LEV);
 Vector< Vector<Real> > Gravity::radial_mass(MAX_LEV);
@@ -48,6 +49,7 @@ Vector< Vector<Real> > Gravity::radial_vol(MAX_LEV);
 #ifdef GR_GRAV
 Vector< Vector<Real> > Gravity::radial_pres(MAX_LEV);
 #endif
+// #endif
 
 Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
   :
@@ -72,6 +74,16 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
      if (gravity_type == "PoissonGrav") init_multipole_grav();
 #endif
      max_rhs = 0.0;
+
+// #ifdef AMREX_USE_CUDA
+//      radial_grav_old.resize(MAX_LEV);
+//      radial_grav_new.resize(MAX_LEV);
+//      radial_mass.resize(MAX_LEV);
+//      radial_vol.resize(MAX_LEV);
+// #ifdef GR_GRAV
+//      radial_pres.resize(MAX_LEV);
+// #endif
+// #endif
 }
 
 Gravity::~Gravity() {}
@@ -1322,7 +1334,13 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector, Multi
 }
 
 void
-Gravity::interpolate_monopole_grav(int level, Vector<Real>& radial_grav, MultiFab& grav_vector)
+Gravity::interpolate_monopole_grav(int level,
+// #ifdef AMREX_USE_CUDA
+//                                    Vector<Real,CudaManagedAllocator<Real> >& radial_grav,
+// #else
+                                   Vector<Real>& radial_grav,
+// #endif
+                                   MultiFab& grav_vector)
 {
     int n1d = radial_grav.size();
 
@@ -1354,10 +1372,17 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 
     int n1d = drdxfac*numpts_at_level;
 
-    Vector<Real> radial_mass(n1d,0.0);
-    Vector<Real> radial_vol(n1d,0.0);
-    Vector<Real> radial_phi(n1d,0.0);
+// #ifdef AMREX_USE_CUDA
+// 	Vector<Real, CudaManagedAllocator<Real> > radial_mass(n1d,0.0);
+// 	Vector<Real, CudaManagedAllocator<Real> > radial_vol(n1d,0.0);
+// 	Vector<Real, CudaManagedAllocator<Real> > radial_phi(n1d,0.0);
+//     Vector<Real, CudaManagedAllocator<Real> > radial_grav(n1d+1,0.0);
+// #else
+	Vector<Real> radial_mass(n1d,0.0);
+	Vector<Real> radial_vol(n1d,0.0);
+	Vector<Real> radial_phi(n1d,0.0);
     Vector<Real> radial_grav(n1d+1,0.0);
+// #endif
 
     const Geometry& geom = parent->Geom(level);
     const Real* dx   = geom.CellSize();
@@ -1383,8 +1408,10 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 	for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
-	    ca_compute_radial_mass(bx.loVect(), bx.hiVect(),dx,&dr,
-				   BL_TO_FORTRAN(Rhs[mfi]),
+// #pragma gpu
+	    ca_compute_radial_mass(ARLIM_3D(bx.loVect()),
+                   ARLIM_3D(bx.hiVect()),dx,dr,
+				   BL_TO_FORTRAN_ANYD(Rhs[mfi]),
 #ifdef _OPENMP
 				   priv_radial_mass[tid].dataPtr(),
 				   priv_radial_vol[tid].dataPtr(),
@@ -1392,7 +1419,7 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 				   radial_mass.dataPtr(),
 				   radial_vol.dataPtr(),
 #endif
-				   geom.ProbLo(),&n1d,&drdxfac,&level);
+				   geom.ProbLo(),n1d,drdxfac,level);
 	}
 
 #ifdef _OPENMP
@@ -2100,11 +2127,11 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vect
    for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi)
    {
        const Box& bx = mfi.growntilebox();
-
-       pm_add_to_grav(ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()),
-                      &point_mass,BL_TO_FORTRAN_ANYD(phi[mfi]),
+#pragma gpu
+       pm_add_to_grav(AMREX_INT_ANYD(bx.loVect()),AMREX_INT_ANYD(bx.hiVect()),
+                      point_mass,BL_TO_FORTRAN_ANYD(phi[mfi]),
 		      BL_TO_FORTRAN_ANYD(grav_vector[mfi]),
-                      ZFILL(problo),ZFILL(dx));
+                      AMREX_REAL_ANYD(problo),AMREX_REAL_ANYD(dx));
    }
 }
 #endif
@@ -2157,7 +2184,12 @@ Gravity::computeAvg (int level, MultiFab* mf, bool mask)
 #endif
 
 void
-Gravity::make_radial_gravity(int level, Real time, Vector<Real>& radial_grav)
+Gravity::make_radial_gravity(int level, Real time,
+// #ifdef AMREX_USE_CUDA
+//                              Vector<Real, CudaManagedAllocator<Real> >& radial_grav)
+// #else
+                             Vector<Real>&radial_grav)
+// #endif
 {
     BL_PROFILE("Gravity::make_radial_gravity()");
 
@@ -2261,16 +2293,17 @@ Gravity::make_radial_gravity(int level, Real time, Vector<Real>& radial_grav)
 	        const Box& bx = mfi.tilebox();
 		FArrayBox& fab = S[mfi];
 
-		ca_compute_radial_mass(bx.loVect(), bx.hiVect(), dx, &dr,
-				       BL_TO_FORTRAN(fab),
+		ca_compute_radial_mass(ARLIM_3D(bx.loVect()),
+                   ARLIM_3D(bx.hiVect()),dx,dr,
+				   BL_TO_FORTRAN_ANYD(fab),
 #ifdef _OPENMP
-				       priv_radial_mass[tid].dataPtr(),
-				       priv_radial_vol[tid].dataPtr(),
+				   priv_radial_mass[tid].dataPtr(),
+				   priv_radial_vol[tid].dataPtr(),
 #else
-				       radial_mass[lev].dataPtr(),
-				       radial_vol[lev].dataPtr(),
+				   radial_mass[lev].dataPtr(),
+				   radial_vol[lev].dataPtr(),
 #endif
-				       geom.ProbLo(),&n1d,&drdxfac,&lev);
+				   geom.ProbLo(),n1d,drdxfac,level);
 
 #ifdef GR_GRAV
 		ca_compute_avgpres(bx.loVect(), bx.hiVect(), dx, &dr,

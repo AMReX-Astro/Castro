@@ -77,7 +77,7 @@ contains
 
 
   subroutine ca_compute_radial_mass (lo,hi,dx,dr,&
-       state,r_l1,r_l2,r_h1,r_h2, &
+       state,r_lo,r_hi, &
        radial_mass,radial_vol,problo, &
        n1d,drdxfac,level) bind(C, name="ca_compute_radial_mass")
 
@@ -88,16 +88,17 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer , intent(in   ) :: lo(2),hi(2)
-    real(rt), intent(in   ) :: dx(2),dr
-    real(rt), intent(in   ) :: problo(2)
+    integer , intent(in   ) :: lo(3),hi(3)
+    integer , intent(in   ) :: r_lo(3),r_hi(3)
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), value, intent(in   ) :: dr
+    real(rt), intent(in   ) :: problo(3)
 
-    integer , intent(in   ) :: n1d,drdxfac,level
+    integer , value, intent(in   ) :: n1d,drdxfac,level
     real(rt), intent(inout) :: radial_mass(0:n1d-1)
     real(rt), intent(inout) :: radial_vol (0:n1d-1)
 
-    integer , intent(in   ) :: r_l1,r_l2,r_h1,r_h2
-    real(rt), intent(in   ) :: state(r_l1:r_h1,r_l2:r_h2,NVAR)
+    real(rt), intent(in   ) :: state(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),NVAR)
 
     integer          :: i,j,index
     integer          :: ii,jj
@@ -129,12 +130,14 @@ contains
           if (index .gt. n1d-1) then
 
              if (level .eq. 0) then
+#ifndef AMREX_USE_CUDA
                 print *,'   '
                 print *,'>>> Error: Gravity_2d::ca_compute_radial_mass ',i,j
                 print *,'>>> ... index too big: ', index,' > ',n1d-1
                 print *,'>>> ... at (i,j)     : ',i,j
                 print *,'    '
                 call amrex_error("Error:: Gravity_2d.f90 :: ca_compute_radial_mass")
+#endif
              end if
 
           else
@@ -153,7 +156,7 @@ contains
                    r = sqrt(xx**2  + yy**2)
                    index = int(r/dr)
                    if (index .le. n1d-1) then
-                      radial_mass(index) = radial_mass(index) + vol_frac*state(i,j,URHO)
+                      radial_mass(index) = radial_mass(index) + vol_frac*state(i,j,k,URHO)
                       radial_vol (index) = radial_vol (index) + vol_frac
                    end if
                 end do

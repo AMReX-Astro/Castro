@@ -50,7 +50,7 @@ contains
 
 
   subroutine ca_compute_radial_mass (lo,hi,dx,dr,&
-       state,r_l1,r_l2,r_l3,r_h1,r_h2,r_h3,&
+       state,r_lo,r_hi,&
        radial_mass,radial_vol,problo,&
        n1d,drdxfac,level) bind(C, name="ca_compute_radial_mass")
 
@@ -62,15 +62,16 @@ contains
     implicit none
 
     integer , intent(in   ) :: lo(3),hi(3)
-    real(rt), intent(in   ) :: dx(3),dr
+    integer , intent(in   ) :: r_lo(3),r_hi(3)
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), value, intent(in   ) :: dr
     real(rt), intent(in   ) :: problo(3)
 
-    integer , intent(in   ) :: n1d,drdxfac,level
+    integer , value, intent(in   ) :: n1d,drdxfac,level
     real(rt), intent(inout) :: radial_mass(0:n1d-1)
     real(rt), intent(inout) :: radial_vol (0:n1d-1)
 
-    integer , intent(in   ) :: r_l1,r_l2,r_l3,r_h1,r_h2,r_h3
-    real(rt), intent(in   ) :: state(r_l1:r_h1,r_l2:r_h2,r_l3:r_h3,NVAR)
+    real(rt), intent(in   ) :: state(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),NVAR)
 
     integer          :: i,j,k,index
     integer          :: ii,jj,kk
@@ -114,11 +115,13 @@ contains
              if (index .gt. n1d-1) then
 
                 if (level .eq. 0) then
+#ifndef AMREX_USE_CUDA
                    print *,'   '
                    print *,'>>> Error: Gravity_3d::ca_compute_radial_mass ',i,j,k
                    print *,'>>> ... index too big: ', index,' > ',n1d-1
                    print *,'>>> ... at (i,j,k)   : ',i,j,k
                    call amrex_error("Error:: Gravity_3d.f90 :: ca_compute_radial_mass")
+#endif
                 end if
 
              else
