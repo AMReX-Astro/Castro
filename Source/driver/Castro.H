@@ -67,7 +67,6 @@ enum sources { ext_src = 0,
 #endif
 	       num_src };
 
-<<<<<<< HEAD
 
 // time integration method
 
@@ -78,8 +77,6 @@ enum int_method { CornerTransportUpwind = 0,
 //
 // AmrLevel-derived class for hyperbolic conservation equations for stellar media
 //
-=======
->>>>>>> development
 
 ///
 /// @class Castro
@@ -532,21 +529,20 @@ public:
     void construct_hydro_source(amrex::Real time, amrex::Real dt);
 #endif
 
-<<<<<<< HEAD
-    void construct_mol_hydro_source(amrex::Real time, amrex::Real dt, amrex::MultiFab& A_update);
-=======
+
+
+
 
 ///
 /// this constructs the hydrodynamic source (essentially the flux
-/// divergence) using method of lines integration.  The output, as a
-/// update to the state, is stored in the k_mol array of multifabs.
+/// divergence) using method of lines integration.  The output, is the
+/// divergence of the fluxes, A = -div{F(U)}
 ///
 /// @param time     current time
 /// @param dt   timestep
+/// @param A_update   divergence of the fluxes
 ///
-    void construct_mol_hydro_source(amrex::Real time, amrex::Real dt);
->>>>>>> development
-
+    void construct_mol_hydro_source(amrex::Real time, amrex::Real dt, amrex::MultiFab& A_update);
 
 ///
 /// Check for NaNs in the given MultiFab
@@ -1163,17 +1159,21 @@ public:
 ///
     void reset_internal_energy (amrex::MultiFab& State);
 
-<<<<<<< HEAD
-    void computeTemp (int is_new, int ng);
 
-=======
 
 ///
-/// @param State
+/// @param is_new   do we use the old or new StateData?
 /// @param ng number of ghost cells
 ///
->>>>>>> development
-    void computeTemp (amrex::MultiFab& State, int ng);
+    void computeTemp (int is_new, int ng);
+
+
+///
+/// @param state     the state to operate on
+/// @param ng number of ghost cells
+///
+    void computeTemp(amrex::MultiFab& state, int ng);
+
 
 ///
 /// Optionally predict the source terms to t + dt/2,
@@ -1743,7 +1743,7 @@ protected:
     static amrex::Vector<amrex::Real> b_mol;
     static amrex::Vector<amrex::Real> c_mol;
 
-<<<<<<< HEAD
+
     //
     // Storage for the SDC time integration
 
@@ -1767,13 +1767,10 @@ protected:
     static int SDC_NODES;
     static amrex::Vector<amrex::Real> dt_sdc;
 
-    // Wall time that we started the timestep
-=======
 
 ///
 /// Wall time that we started the timestep
 ///
->>>>>>> development
     amrex::Real wall_time_start;
 
 
