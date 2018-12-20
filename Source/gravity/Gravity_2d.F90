@@ -100,7 +100,7 @@ contains
 
     real(rt), intent(in   ) :: state(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),NVAR)
 
-    integer          :: i,j,index
+    integer          :: i,j,k,index
     integer          :: ii,jj
     real(rt)         :: xc,yc,r,octant_factor
     real(rt)         :: fac,xx,yy,dx_frac,dy_frac,vol_frac,vol_frac_fac
@@ -115,6 +115,7 @@ contains
     fac  = dble(drdxfac)
     dx_frac = dx(1) / fac
     dy_frac = dx(2) / fac
+    k = lo(3)
 
     do j = lo(2), hi(2)
        yc = problo(2) + (dble(j)+HALF) * dx(2) - center(2)

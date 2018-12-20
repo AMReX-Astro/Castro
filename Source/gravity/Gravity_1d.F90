@@ -96,7 +96,7 @@ contains
 
     real(rt), intent(in   ) :: state(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),NVAR)
 
-    integer          :: i, index
+    integer          :: i, j, k, index
     integer          :: ii
     real(rt)         :: r
     real(rt)         :: dx_frac, fac, vol
@@ -114,6 +114,8 @@ contains
 
     fac = dble(drdxfac)
     dx_frac = dx(1) / fac
+    j = lo(2)
+    k = lo(3)
 
     do i = lo(1), hi(1)
 

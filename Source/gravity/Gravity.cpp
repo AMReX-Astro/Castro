@@ -2172,9 +2172,10 @@ Gravity::computeAvg (int level, MultiFab* mf, bool mask)
         // Note that this routine will do a volume weighted sum of
         // whatever quantity is passed in, not strictly the "mass".
         //
-	ca_summass(ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_ANYD(fab),
-		   dx,BL_TO_FORTRAN_ANYD((*volume[level])[mfi]),&s);
-        sum += s;
+#pragma gpu
+	ca_summass(AMREX_INT_ANYD(lo),AMREX_INT_ANYD(hi),BL_TO_FORTRAN_ANYD(fab),
+		   AMREX_REAL_ANYD(dx),BL_TO_FORTRAN_ANYD((*volume[level])[mfi]),AMREX_MFITER_REDUCE_SUM(&sum));
+        // sum += s;
     }
 
     ParallelDescriptor::ReduceRealSum(sum);
