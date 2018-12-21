@@ -155,20 +155,24 @@ contains
 
 
   subroutine ca_unweight_edges(lo, hi, &
-       ec, ecl1, ecl2, ech1, ech2, dx, coord_type, idir) &
+       ec, eclo, echi, dx, coord_type, idir) &
        bind(C, name="ca_unweight_edges")
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) ::  lo(2),hi(2)
-    integer, intent(in) :: ecl1, ecl2, ech1, ech2
-    integer, intent(in) :: coord_type, idir
-    real(rt), intent(inout) :: ec(ecl1:ech1,ecl2:ech2)
-    real(rt), intent(in) :: dx(2)
+    integer, intent(in) ::  lo(3),hi(3)
+    integer, intent(in) :: eclo(3), echi(3)
+    integer, value, intent(in) :: coord_type, idir
+    real(rt), intent(inout) :: ec(eclo(1):echi(1),eclo(2):echi(2),eclo(3):echi(3))
+    real(rt), intent(in) :: dx(3)
 
     real(rt)         :: r
-    integer          :: i,j
+    integer          :: i,j,k
+
+    !$gpu
+
+    k = lo(3)
 
     ! r-z
     if (coord_type .eq. 1) then
@@ -179,7 +183,7 @@ contains
              if (i .ne. 0) then
                 r = dble(i)*dx(1)
                 do j = lo(2),hi(2)
-                   ec(i,j) = ec(i,j) / r
+                   ec(i,j,k) = ec(i,j,k) / r
                 enddo
              end if
           enddo
@@ -188,7 +192,7 @@ contains
           do i = lo(1), hi(1)
              r = (dble(i)+0.5e0_rt) * dx(1)
              do j = lo(2),hi(2)
-                ec(i,j) = ec(i,j) / r
+                ec(i,j,k) = ec(i,j,k) / r
              enddo
           enddo
        end if

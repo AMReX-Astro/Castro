@@ -168,20 +168,24 @@ contains
 
 
   subroutine ca_unweight_edges(lo, hi, &
-       ecx, ecxl1, ecxh1, dx, coord_type, idir) &
+       ecx, ecxlo, ecxhi, dx, coord_type, idir) &
        bind(C, name="ca_unweight_edges")
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: lo(1),hi(1)
-    integer, intent(in) :: ecxl1, ecxh1
-    integer, intent(in) :: coord_type, idir
-    real(rt), intent(inout) :: ecx(ecxl1:ecxh1)
-    real(rt), intent(in) :: dx(1)
+    integer, intent(in) :: lo(3),hi(3)
+    integer, intent(in) :: ecxlo(3), ecxhi(3)
+    integer, value, intent(in) :: coord_type, idir
+    real(rt), intent(inout) :: ecx(ecxlo(1):ecxhi(1),ecxlo(2):ecxhi(2),ecxlo(3):ecxhi(3))
+    real(rt), intent(in) :: dx(3)
 
     real(rt)         r
-    integer i
+    integer i,j,k
+
+    !$gpu
+    j = lo(2)
+    k = lo(3)
 
     ! r-z
     if (coord_type .eq. 1) then
@@ -189,7 +193,7 @@ contains
        ! On edges
        do i=lo(1),hi(1)
           r = abs(dble(i))*dx(1)
-          if (i.ne.0) ecx(i) = ecx(i) / r
+          if (i.ne.0) ecx(i,j,k) = ecx(i,j,k) / r
        enddo
 
        ! spherical
@@ -198,7 +202,7 @@ contains
        ! On edges
        do i=lo(1),hi(1)
           r = dble(i)*dx(1)
-          if (i.ne.0) ecx(i) = ecx(i) / r**2
+          if (i.ne.0) ecx(i,j,k) = ecx(i,j,k) / r**2
        enddo
 
 #ifndef AMREX_USE_CUDA

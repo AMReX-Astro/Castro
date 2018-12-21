@@ -32,7 +32,7 @@ contains
          call amrex_error("Error:: MGutils_3d.F90 :: ca_weight_cc")
   #endif
 
-    end subroutine ca_unweight_cc
+    end subroutine ca_weight_cc
 
 
   subroutine ca_unweight_cc(lo, hi, &
@@ -56,6 +56,29 @@ contains
 #endif
 
   end subroutine ca_unweight_cc
+
+
+  subroutine ca_unweight_edges(lo, hi, &
+       ec, eclo, echi, dx, coord_type, idir) &
+       bind(C, name="ca_unweight_edges")
+
+    use amrex_fort_module, only : rt => amrex_real
+    implicit none
+
+    integer, intent(in) ::  lo(3),hi(3)
+    integer, intent(in) :: eclo(3), echi(3)
+    integer, value, intent(in) :: coord_type, idir
+    real(rt), intent(inout) :: ec(eclo(1):echi(1),eclo(2):echi(2),eclo(3):echi(3))
+    real(rt), intent(in) :: dx(3)
+
+    !$gpu
+
+#ifndef AMREX_USE_CUDA
+       print *,'Should not be here '
+       call amrex_error("Error:: MGutils_3d.f90 :: ca_unweight_edges")
+#endif
+
+  end subroutine ca_unweight_edges
 
 
 end module MGutils_3D_module
