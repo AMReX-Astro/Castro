@@ -75,27 +75,29 @@ contains
 
 
   subroutine ca_weight_cc(lo, hi, &
-       cc, cl1, ch1,  &
+       cc, clo, chi,  &
        dx, coord_type) bind(C, name="ca_weight_cc")
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: lo(1),hi(1)
-    integer, intent(in) ::cl1, ch1
-    integer, intent(in) ::coord_type
-    real(rt), intent(inout) ::cc(cl1:ch1)
-    real(rt), intent(in) :: dx(1)
+    integer, intent(in) :: lo(3),hi(3)
+    integer, intent(in) ::clo(3), chi(3)
+    integer, value, intent(in) ::coord_type
+    real(rt), intent(inout) ::cc(clo(1):chi(1),clo(2):chi(2),clo(3):chi(3))
+    real(rt), intent(in) :: dx(3)
 
     real(rt)         r
-    integer i
+    integer i,j,k
+
+    !$gpu
 
     ! r-z
     if (coord_type .eq. 1) then
 
        do i=lo(1),hi(1)
           r = (dble(i)+0.5e0_rt) * dx(1)
-          cc(i) = cc(i) * r
+          cc(i,j,k) = cc(i,j,k) * r
        enddo
 
        ! spherical
@@ -103,7 +105,7 @@ contains
 
        do i=lo(1),hi(1)
           r = (dble(i)+0.5e0_rt) * dx(1)
-          cc(i) = cc(i) * r**2
+          cc(i,j,k) = cc(i,j,k) * r**2
        enddo
 
 #ifndef AMREX_USE_CUDA

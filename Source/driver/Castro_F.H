@@ -138,8 +138,8 @@ extern "C"
 
   void ca_weight_cc
     (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG(cc),
-     const amrex::Real* dx, const int* coord_type);
+     BL_FORT_FAB_ARG_3D(cc),
+     const amrex::Real* dx, const int coord_type);
 
   void ca_unweight_cc
     (const int* lo, const int* hi,
