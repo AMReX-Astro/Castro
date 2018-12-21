@@ -2514,9 +2514,8 @@ Gravity::sanity_check (int level)
 		    shrunk_domain.growHi(dir,-1);
 	    }
 	}
-	BoxArray shrunk_domain_ba(shrunk_domain);
-	if (!shrunk_domain_ba.contains(grids[level]))
-	    amrex::Error("Oops -- don't know how to set boundary conditions for grids at this level that touch the domain boundary!");
+        if (!shrunk_domain.contains(grids[level].minimalBox()))
+            amrex::Error("Oops -- don't know how to set boundary conditions for grids at this level that touch the domain boundary!");
     }
 }
 
