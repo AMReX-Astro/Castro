@@ -354,7 +354,9 @@ contains
   !> @brief Update state to account for hybrid advection.
   !!
   !! @param[in] lo integer
+  !! @param[in] hi integer
   !! @param[in] state_lo integer
+  !! @param[in] state_hi integer
   !! @param[inout] state real(rt)
   !!
   subroutine ca_hybrid_update(lo, hi, state, state_lo, state_hi) bind(C, name='ca_hybrid_update')
