@@ -27,10 +27,10 @@ contains
 
       !$gpu
 
-  #ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_CUDA
          print *,'Should not be here '
          call amrex_error("Error:: MGutils_3d.F90 :: ca_weight_cc")
-  #endif
+#endif
 
     end subroutine ca_weight_cc
 
