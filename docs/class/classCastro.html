@@ -215,7 +215,7 @@
 <dl class="class">
 <dt id="_CPPv36Castro">
 <span id="_CPPv26Castro"></span><span id="Castro"></span><span class="target" id="classCastro"></span><em class="property">class </em><code class="descname">Castro</code> : <em class="property">public</em> AmrLevel<a class="headerlink" href="#_CPPv36Castro" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>AmrLevel-derived class for hyperbolic conservation equations for stellar media. </p>
+<dd><p><code class="docutils literal notranslate"><span class="pre">AmrLevel</span></code>-derived class for hyperbolic conservation equations for stellar media </p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="function">
@@ -231,10 +231,10 @@
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">papa</span></code>: parent amrex::Amr object </li>
+<li><code class="docutils literal notranslate"><span class="pre">papa</span></code>: parent <code class="docutils literal notranslate"><span class="pre">amrex::Amr</span></code> object </li>
 <li><code class="docutils literal notranslate"><span class="pre">lev</span></code>: which level are we on </li>
 <li><code class="docutils literal notranslate"><span class="pre">level_geom</span></code>: level geometry </li>
-<li><code class="docutils literal notranslate"><span class="pre">bl</span></code>: BoxArray object </li>
+<li><code class="docutils literal notranslate"><span class="pre">bl</span></code>: <code class="docutils literal notranslate"><span class="pre">BoxArray</span></code> object </li>
 <li><code class="docutils literal notranslate"><span class="pre">dm</span></code>: the mapping </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
 </ul>
@@ -256,7 +256,7 @@
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">papa</span></code>: parent amrex::Amr object </li>
+<li><code class="docutils literal notranslate"><span class="pre">papa</span></code>: parent <code class="docutils literal notranslate"><span class="pre">amrex::Amr</span></code> object </li>
 <li><code class="docutils literal notranslate"><span class="pre">is</span></code>: </li>
 <li><code class="docutils literal notranslate"><span class="pre">bReadSpecial</span></code>: </li>
 </ul>
@@ -268,11 +268,11 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro23set_state_in_checkpointERN5amrex6VectorIiEE">
 <span id="_CPPv2N6Castro23set_state_in_checkpointERN5amrex6VectorIiEE"></span><span id="Castro::set_state_in_checkpoint__amrex::Vector:i:R"></span><span class="target" id="classCastro_1a8db63ed0233c1af47be942416ecfe088"></span>void <code class="descname">set_state_in_checkpoint</code><span class="sig-paren">(</span>amrex::Vector&lt;int&gt; &amp;<em>state_in_checkpoint</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro23set_state_in_checkpointERN5amrex6VectorIiEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>This is called only when we restart from an old checkpoint.</p>
+<dd><p>This is called only when we restart from an old checkpoint. Sets the Vector <code class="docutils literal notranslate"><span class="pre">state_in_checkpoint</span></code> depending on the input version and type.</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">state_in_checkpoint</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">state_in_checkpoint</span></code>: Vector of integer flags describing the state </li>
 </ul>
 </dd>
 </dl>
@@ -282,14 +282,14 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro10checkPointERKNSt6stringERNSt7ostreamEN5amrex5VisMF3HowEb">
 <span id="_CPPv2N6Castro10checkPointERKNSt6stringERNSt7ostreamEN5amrex5VisMF3HowEb"></span><span id="Castro::checkPoint__ssCR.osR.amrex::VisMF::How.b"></span><span class="target" id="classCastro_1a6bc36cdc28c5258ed83719bd7efcf6b5"></span>void <code class="descname">checkPoint</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>dir</em>, std::ostream &amp;<em>os</em>, amrex::VisMF::How <em>how</em>, bool <em>dump_old</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro10checkPointERKNSt6stringERNSt7ostreamEN5amrex5VisMF3HowEb" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Call amrex::AmrLevel::checkPoint and then add radiation info</p>
+<dd><p>Call <code class="docutils literal notranslate"><span class="pre">amrex::AmrLevel::checkPoint</span></code> and then add radiation info</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">dir</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">os</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">how</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">dump_old</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">dir</span></code>: Directory to store checkpoint in </li>
+<li><code class="docutils literal notranslate"><span class="pre">os</span></code>: <code class="docutils literal notranslate"><span class="pre">std::ostream</span></code> object </li>
+<li><code class="docutils literal notranslate"><span class="pre">how</span></code>: <code class="docutils literal notranslate"><span class="pre">V</span></code>isMF::How`` object </li>
+<li><code class="docutils literal notranslate"><span class="pre">dump_old</span></code>: boolean </li>
 </ul>
 </dd>
 </dl>
@@ -316,7 +316,7 @@
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">dir</span></code>: directory to write to </li>
 <li><code class="docutils literal notranslate"><span class="pre">os</span></code>: output stream </li>
-<li><code class="docutils literal notranslate"><span class="pre">how</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">how</span></code>: <code class="docutils literal notranslate"><span class="pre">VisMF::How</span></code> object </li>
 </ul>
 </dd>
 </dl>
@@ -331,7 +331,7 @@
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">dir</span></code>: directory to write to </li>
 <li><code class="docutils literal notranslate"><span class="pre">os</span></code>: output stream </li>
-<li><code class="docutils literal notranslate"><span class="pre">how</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">how</span></code>: <code class="docutils literal notranslate"><span class="pre">VisMF::How</span></code> object </li>
 </ul>
 </dd>
 </dl>
@@ -346,8 +346,8 @@
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">dir</span></code>: directory to write to </li>
 <li><code class="docutils literal notranslate"><span class="pre">os</span></code>: output stream </li>
-<li><code class="docutils literal notranslate"><span class="pre">how</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">is_small</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">how</span></code>: <code class="docutils literal notranslate"><span class="pre">VisMF::How</span></code> object </li>
+<li><code class="docutils literal notranslate"><span class="pre">is_small</span></code>: integer </li>
 </ul>
 </dd>
 </dl>
@@ -477,7 +477,7 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro10do_advanceEN5amrex4RealEN5amrex4RealEii">
 <span id="_CPPv2N6Castro10do_advanceEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::do_advance__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1aa5887b4028b1d437cd2eea672cd379a3"></span>Real <code class="descname">do_advance</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro10do_advanceEN5amrex4RealEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>this routine will advance the old state data (called S_old here) to the new time, for a single level. The new data is called S_new here. The update includes reactions (if we are not doing SDC), hydro, and the source terms.</p>
+<dd><p>this routine will advance the old state data (called <code class="docutils literal notranslate"><span class="pre">S_old</span></code> here) to the new time, for a single level. The new data is called <code class="docutils literal notranslate"><span class="pre">S_new</span></code> here. The update includes reactions (if we are not doing SDC), hydro, and the source terms.</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
@@ -494,7 +494,7 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro14do_advance_molEN5amrex4RealEN5amrex4RealEii">
 <span id="_CPPv2N6Castro14do_advance_molEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::do_advance_mol__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a9b18b86e6db9c452db63143b662dfcbc"></span>Real <code class="descname">do_advance_mol</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro14do_advance_molEN5amrex4RealEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>This routine will advance the old state data (called S_old here) to the new time, for a single level. The new data is called S_new here. The update includes reactions (if we are not doing SDC), hydro, and the source terms.</p>
+<dd><p>This routine will advance the old state data (called <code class="docutils literal notranslate"><span class="pre">S_old</span></code> here) to the new time, for a single level. The new data is called <code class="docutils literal notranslate"><span class="pre">S_new</span></code> here. The update includes reactions (if we are not doing SDC), hydro, and the source terms.</p>
 <p><dl class="docutils">
 <dt><strong>Note</strong></dt>
 <dd>the time that passes through here is the time for the current stage</dd>
@@ -513,7 +513,8 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro13retry_advanceERN5amrex4RealEN5amrex4RealEii">
 <span id="_CPPv2N6Castro13retry_advanceERN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::retry_advance__amrex::RealR.amrex::Real.i.i"></span><span class="target" id="classCastro_1a3aa6a39a77124eb195b7e1282c61ca95"></span>bool <code class="descname">retry_advance</code><span class="sig-paren">(</span>amrex::Real &amp;<em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro13retry_advanceERN5amrex4RealEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Should we retry advancing the simulation? By default, we don’t do a retry unless the criteria are violated.</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </li>
@@ -529,7 +530,8 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro16subcycle_advanceEN5amrex4RealEN5amrex4RealEii">
 <span id="_CPPv2N6Castro16subcycle_advanceEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::subcycle_advance__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1af8f356b2bd95a8f0e2ef673e2a5480b5"></span>Real <code class="descname">subcycle_advance</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro16subcycle_advanceEN5amrex4RealEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Subcyles until we’ve reached the target time, <code class="docutils literal notranslate"><span class="pre">time</span></code> + <code class="docutils literal notranslate"><span class="pre">dt</span></code>. The last timestep will be shortened if needed so that it does not overshoot the ending time.</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </li>
@@ -545,7 +547,8 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro18initialize_advanceEN5amrex4RealEN5amrex4RealEii">
 <span id="_CPPv2N6Castro18initialize_advanceEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::initialize_advance__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a57915e33d4e6efb96fe1800cb64d6cd8"></span>void <code class="descname">initialize_advance</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro18initialize_advanceEN5amrex4RealEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>This is run at the start of an ::advance on a single level. It sets up all the necessary arrays and data containers, ensures the data is valid and makes copies of the MultiFabs in the old and new state in case a retry is performed.</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </li>
@@ -561,7 +564,8 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro16finalize_advanceEN5amrex4RealEN5amrex4RealEii">
 <span id="_CPPv2N6Castro16finalize_advanceEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::finalize_advance__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a87c03e2e81eed5f3ec44111edc0ed5f6"></span>void <code class="descname">finalize_advance</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro16finalize_advanceEN5amrex4RealEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>If required, adds material lost in timestep to cumulative losses, does refluxing, and clears arrays/data containers initialized at start of the level’s advance.</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </li>
@@ -577,7 +581,8 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro21initialize_do_advanceEN5amrex4RealEN5amrex4RealEii">
 <span id="_CPPv2N6Castro21initialize_do_advanceEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::initialize_do_advance__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a97609e81bb39cb77605b524a7aa0c297"></span>void <code class="descname">initialize_do_advance</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro21initialize_do_advanceEN5amrex4RealEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Performed at the start of ::do_advance, resets flags and ensures required ghost zones are filled.</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </li>
@@ -593,7 +598,8 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro19finalize_do_advanceEN5amrex4RealEN5amrex4RealEii">
 <span id="_CPPv2N6Castro19finalize_do_advanceEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::finalize_do_advance__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a383beb5d9db6bd4844776de69fba7d29"></span>void <code class="descname">finalize_do_advance</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro19finalize_do_advanceEN5amrex4RealEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Performed at the end of ::do_advance, cleans up temporary data created by ::initialize_do_advance</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </li>
@@ -609,7 +615,7 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro12cons_to_primEKN5amrex4RealE">
 <span id="_CPPv2N6Castro12cons_to_primEKN5amrex4RealE"></span><span id="Castro::cons_to_prim__amrex::RealC"></span><span class="target" id="classCastro_1ae74116b5d29ad41d05b50c1d0488573a"></span>void <code class="descname">cons_to_prim</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Real <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro12cons_to_primEKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>convert the conservative state cell averages to primitive cell averages</p>
+<dd><p>Convert the conservative state cell averages to primitive cell averages</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
@@ -637,7 +643,8 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro23check_for_cfl_violationEKN5amrex4RealE">
 <span id="_CPPv2N6Castro23check_for_cfl_violationEKN5amrex4RealE"></span><span id="Castro::check_for_cfl_violation__amrex::RealC"></span><span class="target" id="classCastro_1ace26f4e04218c4252ed138eaee776187"></span>void <code class="descname">check_for_cfl_violation</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro23check_for_cfl_violationEKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Check to see if the CFL condition has been violated</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </li>
@@ -665,7 +672,7 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro26construct_mol_hydro_sourceEN5amrex4RealEN5amrex4RealE">
 <span id="_CPPv2N6Castro26construct_mol_hydro_sourceEN5amrex4RealEN5amrex4RealE"></span><span id="Castro::construct_mol_hydro_source__amrex::Real.amrex::Real"></span><span class="target" id="classCastro_1a0c0bedb40118c9f48fcfe503cd2ea0ca"></span>void <code class="descname">construct_mol_hydro_source</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro26construct_mol_hydro_sourceEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>this constructs the hydrodynamic source (essentially the flux divergence) using method of lines integration. The output, as a update to the state, is stored in the k_mol array of multifabs.</p>
+<dd><p>this constructs the hydrodynamic source (essentially the flux divergence) using method of lines integration. The output, as a update to the state, is stored in the <code class="docutils literal notranslate"><span class="pre">k_mol</span></code> array of multifabs.</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
@@ -695,10 +702,11 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro11source_flagEi">
 <span id="_CPPv2N6Castro11source_flagEi"></span><span id="Castro::source_flag__i"></span><span class="target" id="classCastro_1aa8efdb0a68d9f55662b58e7978258dd1"></span>bool <code class="descname">source_flag</code><span class="sig-paren">(</span>int <em>src</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro11source_flagEi" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Returns true if flag corresponding to source type <code class="docutils literal notranslate"><span class="pre">src</span></code> is set.</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">src</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">src</span></code>: integer, index corresponding to source type </li>
 </ul>
 </dd>
 </dl>
@@ -708,16 +716,18 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro13apply_sourcesEv">
 <span id="_CPPv2N6Castro13apply_sourcesEv"></span><span id="Castro::apply_sources"></span><span class="target" id="classCastro_1ae30602fdb2f82a845acf8ac31de82f05"></span>bool <code class="descname">apply_sources</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro13apply_sourcesEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dd><p>Returns whether any sources are actually applied. </p>
+</dd></dl>
 
 <dl class="function">
 <dt id="_CPPv3N6Castro14do_old_sourcesERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii">
 <span id="_CPPv2N6Castro14do_old_sourcesERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::do_old_sources__amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a17c9e719677ec00561b1b981e207a9c4"></span>void <code class="descname">do_old_sources</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em> = -1, int <em>amr_ncycle</em> = -1<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro14do_old_sourcesERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Construct source terms at old time</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save sources to </li>
+<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: Current state </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </li>
 <li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: the timestep to advance (e.g., go from time to time + dt) </li>
 <li><code class="docutils literal notranslate"><span class="pre">amr_iteration</span></code>: where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </li>
@@ -731,13 +741,13 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro20construct_old_sourceEiRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii">
 <span id="_CPPv2N6Castro20construct_old_sourceEiRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::construct_old_source__i.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a62e7bc7bddb78fa57dfca2c0883cda8c"></span>void <code class="descname">construct_old_source</code><span class="sig-paren">(</span>int <em>src</em>, amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em> = -1, int <em>amr_ncycle</em> = -1<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro20construct_old_sourceEiRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Construct the old-time sources.</p>
+<dd><p>Construct the old-time source</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">src</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">src</span></code>: integer corresponding to source type to construct </li>
+<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save sources to </li>
+<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: State data </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </li>
 <li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: the timestep to advance (e.g., go from time to time + dt) </li>
 <li><code class="docutils literal notranslate"><span class="pre">amr_iteration</span></code>: where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </li>
@@ -751,12 +761,13 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro14do_new_sourcesERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii">
 <span id="_CPPv2N6Castro14do_new_sourcesERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::do_new_sources__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a0c6decd6ddd45bf329eec23d7e33f249"></span>void <code class="descname">do_new_sources</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state_old</em>, amrex::MultiFab &amp;<em>state_new</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em> = -1, int <em>amr_ncycle</em> = -1<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro14do_new_sourcesERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Construct new time sources</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">state_old</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">state_new</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save sources to </li>
+<li><code class="docutils literal notranslate"><span class="pre">state_old</span></code>: Old state </li>
+<li><code class="docutils literal notranslate"><span class="pre">state_new</span></code>: New state </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </li>
 <li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: the timestep to advance (e.g., go from time to time + dt) </li>
 <li><code class="docutils literal notranslate"><span class="pre">amr_iteration</span></code>: where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </li>
@@ -774,12 +785,12 @@
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">src</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">state_old</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">state_new</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">src</span></code>: Integer corresponding to type of source to construct </li>
+<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save source to </li>
+<li><code class="docutils literal notranslate"><span class="pre">state_old</span></code>: Old state </li>
+<li><code class="docutils literal notranslate"><span class="pre">state_new</span></code>: New state </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </li>
-<li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: the timestep to advance (e.g., go from time to time + dt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: t he timestep to advance (e.g., go from time to time + dt) </li>
 <li><code class="docutils literal notranslate"><span class="pre">amr_iteration</span></code>: where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </li>
 <li><code class="docutils literal notranslate"><span class="pre">amr_ncycle</span></code>: the number of subcycles at this level </li>
 </ul>
@@ -791,17 +802,27 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro22evaluate_source_changeERN5amrex8MultiFabEN5amrex4RealEb">
 <span id="_CPPv2N6Castro22evaluate_source_changeERN5amrex8MultiFabEN5amrex4RealEb"></span><span id="Castro::evaluate_source_change__amrex::MultiFabR.amrex::Real.b"></span><span class="target" id="classCastro_1abb5ed5dd0104a94cdaf7db9c4e0062ef"></span>Vector&lt;Real&gt; <code class="descname">evaluate_source_change</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>update</em>, amrex::Real <em>dt</em>, bool <em>local</em> = false<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro22evaluate_source_changeERN5amrex8MultiFabEN5amrex4RealEb" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Evaluate diagnostics quantities describing the effect of an update on the state. The optional parameter local determines whether we want to do this calculation globally over all processes or locally just on this processor. The latter is useful if you are evaluating the contribution from multiple source changes at once and want to amortize the cost of the parallel reductions. Note that the resultant output is volume-weighted. </p>
+<dd><p>Evaluate diagnostics quantities describing the effect of an update on the state. The optional parameter local determines whether we want to do this calculation globally over all processes or locally just on this processor. The latter is useful if you are evaluating the contribution from multiple source changes at once and want to amortize the cost of the parallel reductions. Note that the resultant output is volume-weighted.</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">update</span></code>: MultiFab containing source </li>
+<li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </li>
+<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: boolean, do we want to do this calculation globally over all processes or locally just on this processor? </li>
+</ul>
+</dd>
+</dl>
+</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="_CPPv3N6Castro19print_source_changeEN5amrex6VectorIN5amrex4RealEEE">
 <span id="_CPPv2N6Castro19print_source_changeEN5amrex6VectorIN5amrex4RealEEE"></span><span id="Castro::print_source_change__amrex::Vector:amrex::Real:"></span><span class="target" id="classCastro_1a9421e73b92c8f79cf42ecc1c789678f5"></span>void <code class="descname">print_source_change</code><span class="sig-paren">(</span>amrex::Vector&lt;amrex::Real&gt; <em>update</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro19print_source_changeEN5amrex6VectorIN5amrex4RealEEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Print the change due to a given source term update. We assume here that the input array is lined up with the NUM_STATE components of State_Type because we are interested in printing changes to energy, mass, etc.</p>
+<dd><p>Print the change due to a given source term update. We assume here that the input array is lined up with the <code class="docutils literal notranslate"><span class="pre">NUM_STATE</span></code> components of <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> because we are interested in printing changes to energy, mass, etc.</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">update</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">update</span></code>: Real Vector of changes </li>
 </ul>
 </dd>
 </dl>
@@ -811,12 +832,12 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro24print_all_source_changesEN5amrex4RealEb">
 <span id="_CPPv2N6Castro24print_all_source_changesEN5amrex4RealEb"></span><span id="Castro::print_all_source_changes__amrex::Real.b"></span><span class="target" id="classCastro_1a8cfafb9a4cfb41c6a2a2bcf34159fa43"></span>void <code class="descname">print_all_source_changes</code><span class="sig-paren">(</span>amrex::Real <em>dt</em>, bool <em>is_new</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro24print_all_source_changesEN5amrex4RealEb" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>For the old-time or new-time sources update, evaluate the change in the state for all source terms, then pring the results.</p>
+<dd><p>For the old-time or new-time sources update, evaluate the change in the state for all source terms, then print the results.</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </li>
-<li><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: boolean, do we get the new or old state data? </li>
 </ul>
 </dd>
 </dl>
@@ -831,13 +852,13 @@
 <p><p>the time-centering is accomplished since new source is defined to be 1/2 (new source - old source) generally.</p>
 <dl class="docutils">
 <dt><strong>Note</strong></dt>
-<dd>the advective source is defined as -div{F}</dd>
+<dd>the advective source is defined as <span class="math notranslate nohighlight">\(-\nabla\cdot F\)</span></dd>
 </dl>
 </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab of source terms to be summed </li>
 </ul>
 </dd>
 </dl>
@@ -847,12 +868,13 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro24time_center_source_termsERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE">
 <span id="_CPPv2N6Castro24time_center_source_termsERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE"></span><span id="Castro::time_center_source_terms__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real"></span><span class="target" id="classCastro_1addfdab91d6d071a2e52c08ad675f4e77"></span>void <code class="descname">time_center_source_terms</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>S_new</em>, amrex::MultiFab &amp;<em>src_old</em>, amrex::MultiFab &amp;<em>src_new</em>, amrex::Real <em>dt</em> = 1.0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro24time_center_source_termsERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Center source terms in time, storing in <code class="docutils literal notranslate"><span class="pre">S_new</span></code></p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">S_new</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">src_old</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">src_new</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">S_new</span></code>: MultiFab to store centered sources in </li>
+<li><code class="docutils literal notranslate"><span class="pre">src_old</span></code>: Old source term </li>
+<li><code class="docutils literal notranslate"><span class="pre">src_new</span></code>: New source term </li>
 <li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </li>
 </ul>
 </dd>
@@ -863,11 +885,12 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro24construct_old_ext_sourceERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
 <span id="_CPPv2N6Castro24construct_old_ext_sourceERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="Castro::construct_old_ext_source__amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="classCastro_1a91f614f927f06159b324ddebd43fd688"></span>void <code class="descname">construct_old_ext_source</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro24construct_old_ext_sourceERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Create external source terms at old timestep</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save source terms to </li>
+<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: Old state </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
 <li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </li>
 </ul>
@@ -879,12 +902,13 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro24construct_new_ext_sourceERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
 <span id="_CPPv2N6Castro24construct_new_ext_sourceERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="Castro::construct_new_ext_source__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="classCastro_1a49cf9fc8ed1e005804beeae044af15eb"></span>void <code class="descname">construct_new_ext_source</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state_old</em>, amrex::MultiFab &amp;<em>state_new</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro24construct_new_ext_sourceERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Create external source terms at new timestep</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">state_old</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">state_new</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save source terms to </li>
+<li><code class="docutils literal notranslate"><span class="pre">state_old</span></code>: Old state </li>
+<li><code class="docutils literal notranslate"><span class="pre">state_new</span></code>: New state </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
 <li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </li>
 </ul>
@@ -896,14 +920,15 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro15fill_ext_sourceEN5amrex4RealEN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE">
 <span id="_CPPv2N6Castro15fill_ext_sourceEN5amrex4RealEN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="Castro::fill_ext_source__amrex::Real.amrex::Real.amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR"></span><span class="target" id="classCastro_1ac12f9c1aa74683a515409dab74eb3e47"></span>void <code class="descname">fill_ext_source</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, amrex::MultiFab &amp;<em>S_old</em>, amrex::MultiFab &amp;<em>S_new</em>, amrex::MultiFab &amp;<em>ext_src</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro15fill_ext_sourceEN5amrex4RealEN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Fill <code class="docutils literal notranslate"><span class="pre">ext_src</span></code> with external sources</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
 <li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </li>
-<li><code class="docutils literal notranslate"><span class="pre">S_old</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">S_new</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">ext_src</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">S_old</span></code>: Old state </li>
+<li><code class="docutils literal notranslate"><span class="pre">S_new</span></code>: New state </li>
+<li><code class="docutils literal notranslate"><span class="pre">ext_src</span></code>: MultiFab to save sources to </li>
 </ul>
 </dd>
 </dl>
@@ -913,11 +938,12 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro27construct_old_thermo_sourceERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
 <span id="_CPPv2N6Castro27construct_old_thermo_sourceERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="Castro::construct_old_thermo_source__amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="classCastro_1a0ab91882aef79f71943e52aa4a190000"></span>void <code class="descname">construct_old_thermo_source</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro27construct_old_thermo_sourceERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Construct thermal sources at old timestep</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save sources to </li>
+<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: Old state </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
 <li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </li>
 </ul>
@@ -929,12 +955,13 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro27construct_new_thermo_sourceERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
 <span id="_CPPv2N6Castro27construct_new_thermo_sourceERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="Castro::construct_new_thermo_source__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="classCastro_1a406601c87519b9f5fabe4a2adc9f45c4"></span>void <code class="descname">construct_new_thermo_source</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state_old</em>, amrex::MultiFab &amp;<em>state_new</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro27construct_new_thermo_sourceERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Construct thermal sources at new timestep</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">state_old</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">state_new</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save sources to </li>
+<li><code class="docutils literal notranslate"><span class="pre">state_old</span></code>: Old state </li>
+<li><code class="docutils literal notranslate"><span class="pre">state_new</span></code>: New state </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
 <li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </li>
 </ul>
@@ -946,14 +973,15 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro18fill_thermo_sourceEN5amrex4RealEN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE">
 <span id="_CPPv2N6Castro18fill_thermo_sourceEN5amrex4RealEN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="Castro::fill_thermo_source__amrex::Real.amrex::Real.amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR"></span><span class="target" id="classCastro_1aec0d6feaa1e8ddd5bfb1589ff202f582"></span>void <code class="descname">fill_thermo_source</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, amrex::MultiFab &amp;<em>S_old</em>, amrex::MultiFab &amp;<em>S_new</em>, amrex::MultiFab &amp;<em>ext_src</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro18fill_thermo_sourceEN5amrex4RealEN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Fill <code class="docutils literal notranslate"><span class="pre">ext_src</span></code> with thermal sources</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
 <li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </li>
-<li><code class="docutils literal notranslate"><span class="pre">S_old</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">S_new</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">ext_src</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">S_old</span></code>: Old state </li>
+<li><code class="docutils literal notranslate"><span class="pre">S_new</span></code>: New state </li>
+<li><code class="docutils literal notranslate"><span class="pre">ext_src</span></code>: MultiFab to fill with sources </li>
 </ul>
 </dd>
 </dl>
@@ -987,12 +1015,12 @@
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">finest_level</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">finest_level</span></code>: Index of finest level </li>
 <li><code class="docutils literal notranslate"><span class="pre">sub_cycle</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">n_cycle</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">dt_level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">stop_time</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">n_cycle</span></code>: the number of subcycles at this level </li>
+<li><code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code>: Vector of refinement ratios between levels </li>
+<li><code class="docutils literal notranslate"><span class="pre">dt_level</span></code>: Real Vector, will contain initial timestep at each level. </li>
+<li><code class="docutils literal notranslate"><span class="pre">stop_time</span></code>: End time of simulation </li>
 </ul>
 </dd>
 </dl>
@@ -1006,14 +1034,14 @@
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">finest_level</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">finest_level</span></code>: Index of finest level </li>
 <li><code class="docutils literal notranslate"><span class="pre">sub_cycle</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">n_cycle</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">n_cycle</span></code>: the number of subcycles at this level </li>
+<li><code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code>: Vector of refinement ratios between levels </li>
 <li><code class="docutils literal notranslate"><span class="pre">dt_min</span></code>: </li>
 <li><code class="docutils literal notranslate"><span class="pre">dt_level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">stop_time</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">post_regrid_flag</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">stop_time</span></code>: End time of simulation </li>
+<li><code class="docutils literal notranslate"><span class="pre">post_regrid_flag</span></code>: Have we done regridding yet? </li>
 </ul>
 </dd>
 </dl>
@@ -1057,7 +1085,7 @@
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">iteration</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">iteration</span></code>: where we are in the current AMR subcycle </li>
 </ul>
 </dd>
 </dl>
@@ -1120,7 +1148,7 @@
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">stop_time</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">stop_time</span></code>: End time of simulation </li>
 </ul>
 </dd>
 </dl>
@@ -1130,7 +1158,7 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro18post_grown_restartEv">
 <span id="_CPPv2N6Castro18post_grown_restartEv"></span><span id="Castro::post_grown_restart"></span><span class="target" id="classCastro_1a853a6a3e3c8b75e1ed876bde15dd19f9"></span>void <code class="descname">post_grown_restart</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro18post_grown_restartEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Do work after restart with grown_factor &gt; 1 </p>
+<dd><p>Do work after restart with <code class="docutils literal notranslate"><span class="pre">grown_factor</span></code> &gt; 1 </p>
 </dd></dl>
 
 <dl class="function">
@@ -1140,12 +1168,12 @@
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">tb</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">clearval</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">tagval</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">tb</span></code>: TagBoxArray of tags </li>
+<li><code class="docutils literal notranslate"><span class="pre">clearval</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">tagval</span></code>: integer </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
-<li><code class="docutils literal notranslate"><span class="pre">n_error_buf</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">ngrow</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">n_error_buf</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">ngrow</span></code>: Number of ghost cells </li>
 </ul>
 </dd>
 </dl>
@@ -1155,11 +1183,11 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro18apply_problem_tagsERN5amrex11TagBoxArrayEiiN5amrex4RealE">
 <span id="_CPPv2N6Castro18apply_problem_tagsERN5amrex11TagBoxArrayEiiN5amrex4RealE"></span><span id="Castro::apply_problem_tags__amrex::TagBoxArrayR.i.i.amrex::Real"></span><span class="target" id="classCastro_1ad55c8251a0ed778ef0dad823210a76b9"></span>void <code class="descname">apply_problem_tags</code><span class="sig-paren">(</span>amrex::TagBoxArray &amp;<em>tags</em>, int <em>clearval</em>, int <em>setval</em>, amrex::Real <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro18apply_problem_tagsERN5amrex11TagBoxArrayEiiN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Apply the set_problem_tags routine.</p>
+<dd><p>Apply the <a class="reference internal" href="../file/Castro__error__F_8H.html#Castro__error__F_8H_1ae5afa8f337f5db9ae88b7c7075759746"><span class="std std-ref">set_problem_tags</span></a> routine.</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">tags</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">tags</span></code>: TagBoxArray of tags </li>
 <li><code class="docutils literal notranslate"><span class="pre">clearval</span></code>: </li>
 <li><code class="docutils literal notranslate"><span class="pre">setval</span></code>: </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
@@ -1176,11 +1204,11 @@
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">tags</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">tags</span></code>: TagBoxArray of tags </li>
 <li><code class="docutils literal notranslate"><span class="pre">clearval</span></code>: </li>
 <li><code class="docutils literal notranslate"><span class="pre">setval</span></code>: </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
-<li><code class="docutils literal notranslate"><span class="pre">j</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">j</span></code>: integer </li>
 </ul>
 </dd>
 </dl>
@@ -1194,7 +1222,7 @@
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">tags</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">tags</span></code>: TagBoxArray of tags </li>
 <li><code class="docutils literal notranslate"><span class="pre">clearval</span></code>: </li>
 <li><code class="docutils literal notranslate"><span class="pre">tagval</span></code>: </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
@@ -1210,7 +1238,7 @@
 <dd><p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">tags</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">tags</span></code>: TagBoxArray of tags </li>
 <li><code class="docutils literal notranslate"><span class="pre">clearval</span></code>: </li>
 <li><code class="docutils literal notranslate"><span class="pre">tagval</span></code>: </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
@@ -1223,7 +1251,17 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro6deriveERKNSt6stringEN5amrex4RealEi">
 <span id="_CPPv2N6Castro6deriveERKNSt6stringEN5amrex4RealEi"></span><span id="Castro::derive__ssCR.amrex::Real.i"></span><span class="target" id="classCastro_1ac59730bc704a4079e49c950da28eec73"></span><em class="property">virtual</em> std::unique_ptr&lt;amrex::MultiFab&gt; <code class="descname">derive</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, amrex::Real <em>time</em>, int <em>ngrow</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro6deriveERKNSt6stringEN5amrex4RealEi" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Returns a MultiFab containing the derived data for this level. If ngrow&gt;0 the MultiFab is built on the appropriately grown BoxArray. </p>
+<dd><p>Returns a MultiFab containing the derived data for this level. If ngrow&gt;0 the MultiFab is built on the appropriately grown BoxArray.</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: Name of derived data </li>
+<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: Current time </li>
+<li><code class="docutils literal notranslate"><span class="pre">ngrow</span></code>: Number of ghost cells </li>
+</ul>
+</dd>
+</dl>
+</p>
 </dd></dl>
 
 <dl class="function">
@@ -1233,10 +1271,10 @@
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: Name of quantity to derive </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
-<li><code class="docutils literal notranslate"><span class="pre">mf</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">dcomp</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">mf</span></code>: MultiFab to store derived quantity in </li>
+<li><code class="docutils literal notranslate"><span class="pre">dcomp</span></code>: index of component of <code class="docutils literal notranslate"><span class="pre">mf</span></code> to fill with derived quantity </li>
 </ul>
 </dd>
 </dl>
@@ -1246,10 +1284,11 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro21reset_internal_energyERN5amrex8MultiFabE">
 <span id="_CPPv2N6Castro21reset_internal_energyERN5amrex8MultiFabE"></span><span id="Castro::reset_internal_energy__amrex::MultiFabR"></span><span class="target" id="classCastro_1a1c02c886b949ffc6ad96b9f001bb5d8c"></span>void <code class="descname">reset_internal_energy</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>State</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro21reset_internal_energyERN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Reset the internal energy</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">State</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">State</span></code>: Current state </li>
 </ul>
 </dd>
 </dl>
@@ -1259,10 +1298,11 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro11computeTempERN5amrex8MultiFabEi">
 <span id="_CPPv2N6Castro11computeTempERN5amrex8MultiFabEi"></span><span id="Castro::computeTemp__amrex::MultiFabR.i"></span><span class="target" id="classCastro_1a4517678ad077ba5e039a7cdfb9fad4e3"></span>void <code class="descname">computeTemp</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>State</em>, int <em>ng</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro11computeTempERN5amrex8MultiFabEi" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Compute the current temperature</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">State</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">State</span></code>: Current state </li>
 <li><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </li>
 </ul>
 </dd>
@@ -1273,15 +1313,16 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro27apply_source_term_predictorEv">
 <span id="_CPPv2N6Castro27apply_source_term_predictorEv"></span><span id="Castro::apply_source_term_predictor"></span><span class="target" id="classCastro_1ab1d52945088c7fdbf354e75aa43a8def"></span>void <code class="descname">apply_source_term_predictor</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro27apply_source_term_predictorEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Optionally predict the source terms to t + dt/2, which is the time-level n+1/2 value, To do this we use a lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so S_{n+1/2} = S_n + (dt / 2) * dS/dt_n. We’ll add the S_n terms later; now we add the second term. We defer the multiplication by dt / 2 to initialize_do_advance since for a retry we may not yet know at this point what the advance timestep is.</p>
-<p>Note that since for dS/dt we want (S^{n+1} - S^{n}) / dt, we only need to take twice the new-time source term, since in the predictor-corrector approach, the new-time source term is 1/2 * S^{n+1} - 1/2 * S^{n}. This is untrue in general for the non-momentum sources, so for safety we’ll only apply it to the momentum sources.</p>
-<p>Note that if the old data doesn’t exist yet (e.g. it is the first step of the simulation) FillPatch will just return the new data, so this is a valid operation and the result will be zero, so there is no source term prediction in the first step. </p>
+<dd><p>Optionally predict the source terms to <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">+</span> <span class="pre">dt/2</span></code>, which is the time-level <code class="docutils literal notranslate"><span class="pre">n+1/2</span></code> value, To do this we use a lagged predictor estimate: <span class="math notranslate nohighlight">\( \frac{dS}{dt_n} = (S_n - S_{n-1}) / dt \)</span>, so <span class="math notranslate nohighlight">\( S_{n+1/2} = S_n + (dt / 2) \frac{dS}{dt_n} \)</span>. We’ll add the <code class="docutils literal notranslate"><span class="pre">S_n</span></code> terms later; now we add the second term. We defer the multiplication by <code class="docutils literal notranslate"><span class="pre">dt</span> <span class="pre">/</span> <span class="pre">2</span></code> to ::initialize_do_advance since for a retry we may not yet know at this point what the advance timestep is.</p>
+<p>Note that since for <code class="docutils literal notranslate"><span class="pre">dS/dt</span></code> we want <span class="math notranslate nohighlight">\( (S^{n+1} - S^{n}) / dt \)</span>, we only need to take twice the new-time source term, since in the predictor-corrector approach, the new-time source term is <span class="math notranslate nohighlight">\( \frac{1}{2} S^{n+1} - \frac{1}{2} S^{n} \)</span>. This is untrue in general for the non-momentum sources, so for safety we’ll only apply it to the momentum sources.</p>
+<p>Note that if the old data doesn’t exist yet (e.g. it is the first step of the simulation) <code class="docutils literal notranslate"><span class="pre">FillPatch</span></code> will just return the new data, so this is a valid operation and the result will be zero, so there is no source term prediction in the first step. </p>
 </dd></dl>
 
 <dl class="function">
 <dt id="_CPPv3N6Castro22swap_state_time_levelsEKN5amrex4RealE">
 <span id="_CPPv2N6Castro22swap_state_time_levelsEKN5amrex4RealE"></span><span id="Castro::swap_state_time_levels__amrex::RealC"></span><span class="target" id="classCastro_1aef8e45ccb243d726effd82dddc824cb4"></span>void <code class="descname">swap_state_time_levels</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro22swap_state_time_levelsEKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>This is a hack to make sure that we only ever have new data for certain state types that only ever need new time data; by doing a swap now, we’ll guarantee that <a class="reference internal" href="../file/Castro_8H.html#classCastro_1a8ef4ee7c4347ce493def85f9f329e535"><span class="std std-ref">allocOldData()</span></a> does nothing. We do this because we never need the old data, so we don’t want to allocate memory for it.</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </li>
@@ -1294,13 +1335,14 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro9volWgtSumERKNSt6stringEN5amrex4RealEbb">
 <span id="_CPPv2N6Castro9volWgtSumERKNSt6stringEN5amrex4RealEbb"></span><span id="Castro::volWgtSum__ssCR.amrex::Real.b.b"></span><span class="target" id="classCastro_1abe42b03a0f97aea8c5d15668ec58395e"></span>Real <code class="descname">volWgtSum</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, amrex::Real <em>time</em>, bool <em>local</em> = false, bool <em>finemask</em> = true<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro9volWgtSumERKNSt6stringEN5amrex4RealEbb" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Volume weighted sum of given quantity</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: Name of quantity </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
-<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">finemask</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: boolean, is sum local (over each patch) or over entire MultiFab? </li>
+<li><code class="docutils literal notranslate"><span class="pre">finemask</span></code>: boolean, should we build a mask to exclude finer levels? </li>
 </ul>
 </dd>
 </dl>
@@ -1310,12 +1352,13 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro16volWgtSquaredSumERKNSt6stringEN5amrex4RealEb">
 <span id="_CPPv2N6Castro16volWgtSquaredSumERKNSt6stringEN5amrex4RealEb"></span><span id="Castro::volWgtSquaredSum__ssCR.amrex::Real.b"></span><span class="target" id="classCastro_1a242a84ce7fbfc230af382d5aed878ad6"></span>Real <code class="descname">volWgtSquaredSum</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, amrex::Real <em>time</em>, bool <em>local</em> = false<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro16volWgtSquaredSumERKNSt6stringEN5amrex4RealEb" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Volume weight sum of (given quantity) squared</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: Name of quantity </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
-<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: boolean, is sum local (over each patch) or over entire MultiFab? </li>
 </ul>
 </dd>
 </dl>
@@ -1325,13 +1368,14 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro9locWgtSumERKNSt6stringEN5amrex4RealEib">
 <span id="_CPPv2N6Castro9locWgtSumERKNSt6stringEN5amrex4RealEib"></span><span id="Castro::locWgtSum__ssCR.amrex::Real.i.b"></span><span class="target" id="classCastro_1ab60dbe0128ccd6ff83cc262dd22a7587"></span>Real <code class="descname">locWgtSum</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, amrex::Real <em>time</em>, int <em>idir</em>, bool <em>local</em> = false<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro9locWgtSumERKNSt6stringEN5amrex4RealEib" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Sum weighted by volume multiplied by distance from center in given direction</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: Name of quantity </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
-<li><code class="docutils literal notranslate"><span class="pre">idir</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">idir</span></code>: Axis along which to compute distance from center </li>
+<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: boolean, is sum local (over each patch) or over entire MultiFab? </li>
 </ul>
 </dd>
 </dl>
@@ -1341,14 +1385,15 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro11locWgtSum2DERKNSt6stringEN5amrex4RealEiib">
 <span id="_CPPv2N6Castro11locWgtSum2DERKNSt6stringEN5amrex4RealEiib"></span><span id="Castro::locWgtSum2D__ssCR.amrex::Real.i.i.b"></span><span class="target" id="classCastro_1a2fb410514cc7266992731ca804330506"></span>Real <code class="descname">locWgtSum2D</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, amrex::Real <em>time</em>, int <em>idir1</em>, int <em>idir2</em>, bool <em>local</em> = false<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro11locWgtSum2DERKNSt6stringEN5amrex4RealEiib" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Sum weighted by volume multiplied by product of distances from center in two given directions</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: Name of quantity </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
-<li><code class="docutils literal notranslate"><span class="pre">idir1</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">idir2</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">idir1</span></code>: First direction </li>
+<li><code class="docutils literal notranslate"><span class="pre">idir2</span></code>: Second direction </li>
+<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: boolean, is sum local (over each patch) or over entire MultiFab? </li>
 </ul>
 </dd>
 </dl>
@@ -1358,12 +1403,13 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro11volWgtSumMFERKN5amrex8MultiFabEib">
 <span id="_CPPv2N6Castro11volWgtSumMFERKN5amrex8MultiFabEib"></span><span id="Castro::volWgtSumMF__amrex::MultiFabCR.i.b"></span><span class="target" id="classCastro_1acf48dabddb1149df0ddde1212efaa16e"></span>Real <code class="descname">volWgtSumMF</code><span class="sig-paren">(</span><em class="property">const</em> amrex::MultiFab &amp;<em>mf</em>, int <em>comp</em>, bool <em>local</em> = false<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro11volWgtSumMFERKN5amrex8MultiFabEib" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Volume weighted sum of given component of multifab</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">mf</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">comp</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">mf</span></code>: MultiFab to sum </li>
+<li><code class="docutils literal notranslate"><span class="pre">comp</span></code>: Component to sum </li>
+<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: boolean, is sum local (over each patch) or over entire MultiFab? </li>
 </ul>
 </dd>
 </dl>
@@ -1377,12 +1423,12 @@
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: Name of quantity </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
-<li><code class="docutils literal notranslate"><span class="pre">idir</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">side</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">bdir</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">idir</span></code>: direction to weight by </li>
+<li><code class="docutils literal notranslate"><span class="pre">side</span></code>: lower half (0) or upper half (1) </li>
+<li><code class="docutils literal notranslate"><span class="pre">bdir</span></code>: Direction along which to bisect </li>
+<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: boolean, is sum local (over each patch) or over entire MultiFab? </li>
 </ul>
 </dd>
 </dl>
@@ -1398,11 +1444,11 @@
 <dd>Only designed to work in Cartesian geometries.</dd>
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: Name of quantity </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
-<li><code class="docutils literal notranslate"><span class="pre">side</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">bdir</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">side</span></code>: lower half (0) or upper half (1) </li>
+<li><code class="docutils literal notranslate"><span class="pre">bdir</span></code>: Direction along which to bisect </li>
+<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: boolean, is sum local (over each patch) or over entire MultiFab? </li>
 </ul>
 </dd>
 </dl>
@@ -1412,13 +1458,14 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro13volProductSumERKNSt6stringERKNSt6stringEN5amrex4RealEb">
 <span id="_CPPv2N6Castro13volProductSumERKNSt6stringERKNSt6stringEN5amrex4RealEb"></span><span id="Castro::volProductSum__ssCR.ssCR.amrex::Real.b"></span><span class="target" id="classCastro_1a6e857c7295d58f93bfed0e581e164633"></span>Real <code class="descname">volProductSum</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name1</em>, <em class="property">const</em> std::string &amp;<em>name2</em>, amrex::Real <em>time</em>, bool <em>local</em> = false<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro13volProductSumERKNSt6stringERKNSt6stringEN5amrex4RealEb" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Volume weighted sum of the product of two quantities</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">name1</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">name2</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">name1</span></code>: Name of first quantity </li>
+<li><code class="docutils literal notranslate"><span class="pre">name2</span></code>: Name of second quantity </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
-<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: boolean, is sum local (over each patch) or over entire MultiFab? </li>
 </ul>
 </dd>
 </dl>
@@ -1428,13 +1475,14 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro13locSquaredSumERKNSt6stringEN5amrex4RealEib">
 <span id="_CPPv2N6Castro13locSquaredSumERKNSt6stringEN5amrex4RealEib"></span><span id="Castro::locSquaredSum__ssCR.amrex::Real.i.b"></span><span class="target" id="classCastro_1a41dd1f78cdc82bdbcac7ecc4be9e5cdc"></span>Real <code class="descname">locSquaredSum</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, amrex::Real <em>time</em>, int <em>idir</em>, bool <em>local</em> = false<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro13locSquaredSumERKNSt6stringEN5amrex4RealEib" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Location weighted sum of (quantity) squared</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: Name of quantity </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
-<li><code class="docutils literal notranslate"><span class="pre">idir</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">idir</span></code>: Direction along which to weight </li>
+<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: boolean, is sum local (over each patch) or over entire MultiFab? </li>
 </ul>
 </dd>
 </dl>
@@ -1459,12 +1507,13 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro21apply_source_to_stateEiRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi">
 <span id="_CPPv2N6Castro21apply_source_to_stateEiRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi"></span><span id="Castro::apply_source_to_state__i.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.i"></span><span class="target" id="classCastro_1af44701c9e65ced82b74bd5985dbc43e6"></span>void <code class="descname">apply_source_to_state</code><span class="sig-paren">(</span>int <em>is_new</em>, amrex::MultiFab &amp;<em>state</em>, amrex::MultiFab &amp;<em>source</em>, amrex::Real <em>dt</em>, int <em>ng</em> = 0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro21apply_source_to_stateEiRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Add source terms to <code class="docutils literal notranslate"><span class="pre">state</span></code></p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: do we use new (0) or old (1) data? </li>
+<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: State </li>
+<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: Source terms </li>
 <li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </li>
 <li><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </li>
 </ul>
@@ -1476,12 +1525,15 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro12expand_stateERN5amrex8MultiFabEN5amrex4RealEii">
 <span id="_CPPv2N6Castro12expand_stateERN5amrex8MultiFabEN5amrex4RealEii"></span><span id="Castro::expand_state__amrex::MultiFabR.amrex::Real.i.i"></span><span class="target" id="classCastro_1aa857abb6df443b5c78f507aa10182e0a"></span>void <code class="descname">expand_state</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>S</em>, amrex::Real <em>time</em>, int <em>iclean</em>, int <em>ng</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro12expand_stateERN5amrex8MultiFabEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Fill a version of the state with <code class="docutils literal notranslate"><span class="pre">ng</span></code> ghost zones from the state data.</p>
+<p>S is the multifab we are filling with <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> <code class="docutils literal notranslate"><span class="pre">StateData</span></code>, including a ghost cell fill at the end. Before we do the fill, we do a <code class="docutils literal notranslate"><span class="pre">clean_state</span></code> on the <code class="docutils literal notranslate"><span class="pre">State_Type</span> <span class="pre">data</span></code><p>. iclean = 0 means clean the “old” time data, iclean = 1 means clean the “new time</p>
+<p>data”, and iclean = 2 means clean both the old and new time data (in case we are interpolating in time). For any other value, no cleaning is done </p>
+<dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">S</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">S</span></code>: MultiFab to be filled </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
-<li><code class="docutils literal notranslate"><span class="pre">iclean</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">iclean</span></code>: What data do we clean? </li>
 <li><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </li>
 </ul>
 </dd>
@@ -1523,7 +1575,7 @@
 <dt id="_CPPv3N6Castro15variableCleanUpEv">
 <span id="_CPPv2N6Castro15variableCleanUpEv"></span><span id="Castro::variableCleanUp"></span><span class="target" id="classCastro_1a73bd8cedd12a691d6166be6c41cced83"></span>void <code class="descname">variableCleanUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro15variableCleanUpEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Cleanup data descriptors at end of run.</p>
-<p>::variableSetUp is in Castro_setup.cpp variableCleanUp is called once at the end of a simulation </p>
+<p>::variableSetUp is in <code class="docutils literal notranslate"><span class="pre">Castro_setup.cpp</span></code> <code class="docutils literal notranslate"><span class="pre">variableCleanUp</span></code> is called once at the end of a simulation </p>
 </dd></dl>
 
 <dl class="function">
@@ -1740,7 +1792,8 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro6refluxEii">
 <span id="_CPPv2N6Castro6refluxEii"></span><span id="Castro::reflux__i.i"></span><span class="target" id="classCastro_1a2926ab6d2efafafe4604859bdf918451"></span>void <code class="descname">reflux</code><span class="sig-paren">(</span>int <em>crse_level</em>, int <em>fine_level</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro6refluxEii" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Do refluxing</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">crse_level</span></code>: </li>
@@ -1754,10 +1807,11 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro17normalize_speciesERN5amrex8MultiFabEi">
 <span id="_CPPv2N6Castro17normalize_speciesERN5amrex8MultiFabEi"></span><span id="Castro::normalize_species__amrex::MultiFabR.i"></span><span class="target" id="classCastro_1aef491536973549d00a86e8b24a20dd95"></span>void <code class="descname">normalize_species</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>S_new</em>, int <em>ng</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro17normalize_speciesERN5amrex8MultiFabEi" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Normalize species fractions so they sum to 1</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">S_new</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">S_new</span></code>: State </li>
 <li><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </li>
 </ul>
 </dd>
@@ -1768,10 +1822,13 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro20enforce_consistent_eERN5amrex8MultiFabE">
 <span id="_CPPv2N6Castro20enforce_consistent_eERN5amrex8MultiFabE"></span><span id="Castro::enforce_consistent_e__amrex::MultiFabR"></span><span class="target" id="classCastro_1ade69dce123381b03723ec579175cc57d"></span>void <code class="descname">enforce_consistent_e</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>S</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro20enforce_consistent_eERN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Enforces <div class="math notranslate nohighlight">
+\[ \rho E = \rho e + \frac{1}{2} \rho (u^2 + v^2 + w^2) \]</div>
+</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">S</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">S</span></code>: State </li>
 </ul>
 </dd>
 </dl>
@@ -1786,8 +1843,8 @@
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">S_old</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">S_new</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">S_old</span></code>: Old state </li>
+<li><code class="docutils literal notranslate"><span class="pre">S_new</span></code>: New state </li>
 <li><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </li>
 </ul>
 </dd>
@@ -1802,8 +1859,8 @@
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: do we use new (0) or old (1) data? </li>
+<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: State data </li>
 <li><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </li>
 </ul>
 </dd>
@@ -1814,7 +1871,8 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro11clean_stateEii">
 <span id="_CPPv2N6Castro11clean_stateEii"></span><span id="Castro::clean_state__i.i"></span><span class="target" id="classCastro_1af0fcf3fd93f859f9c58274525881d2be"></span>Real <code class="descname">clean_state</code><span class="sig-paren">(</span>int <em>is_new</em>, int <em>ng</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro11clean_stateEii" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>this is the “preferred” clean_state interface  it will work directly on the StateData. <code class="docutils literal notranslate"><span class="pre">is_new</span></code>=0 means the old data is used, <code class="docutils literal notranslate"><span class="pre">is_new</span></code>=1 means the new data is used.</p>
+<dd><p>Given <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> state data, perform a number of cleaning steps to make sure the data is sensible. The return value is the same as the return value of enforce_min_density.</p>
+<p>this is the “preferred” clean_state interface  it will work directly on the StateData. <code class="docutils literal notranslate"><span class="pre">is_new</span></code>=0 means the old data is used, <code class="docutils literal notranslate"><span class="pre">is_new</span></code>=1 means the new data is used.</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
@@ -1829,10 +1887,11 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro11clean_stateERN5amrex8MultiFabE">
 <span id="_CPPv2N6Castro11clean_stateERN5amrex8MultiFabE"></span><span id="Castro::clean_state__amrex::MultiFabR"></span><span class="target" id="classCastro_1a8ccf88b2c60a098dbc63bd8f2480149f"></span>amrex::Real <code class="descname">clean_state</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro11clean_stateERN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Given <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> state data, perform a number of cleaning steps to make sure the data is sensible. The return value is the same as the return value of ::enforce_min_density.</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: State data </li>
 </ul>
 </dd>
 </dl>
@@ -1842,15 +1901,17 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro7avgDownEv">
 <span id="_CPPv2N6Castro7avgDownEv"></span><span id="Castro::avgDown"></span><span class="target" id="classCastro_1adf119b47628856bd6e0eab20bebbcbcf"></span>void <code class="descname">avgDown</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro7avgDownEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dd><p>Average new state from <code class="docutils literal notranslate"><span class="pre">level+1</span></code> down to <code class="docutils literal notranslate"><span class="pre">level</span></code> </p>
+</dd></dl>
 
 <dl class="function">
 <dt id="_CPPv3N6Castro7avgDownEi">
 <span id="_CPPv2N6Castro7avgDownEi"></span><span id="Castro::avgDown__i"></span><span class="target" id="classCastro_1ac0548c704ca716e59d594fa60895985b"></span>void <code class="descname">avgDown</code><span class="sig-paren">(</span>int <em>state_indx</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro7avgDownEi" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Average given component of new state from <code class="docutils literal notranslate"><span class="pre">level+1</span></code> down to <code class="docutils literal notranslate"><span class="pre">level</span></code></p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">state_indx</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">state_indx</span></code>: Index of state to average down </li>
 </ul>
 </dd>
 </dl>
@@ -1875,7 +1936,7 @@
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: Name of quantity to integrate </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
 <li><code class="docutils literal notranslate"><span class="pre">local</span></code>: </li>
 </ul>
@@ -1887,7 +1948,8 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro25sum_integrated_quantitiesEv">
 <span id="_CPPv2N6Castro25sum_integrated_quantitiesEv"></span><span id="Castro::sum_integrated_quantities"></span><span class="target" id="classCastro_1a8c89c73957506f1d4a537b48e4317b01"></span>void <code class="descname">sum_integrated_quantities</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro25sum_integrated_quantitiesEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dd><p>Calculates volume weight sums of variables and prints to screen </p>
+</dd></dl>
 
 <dl class="function">
 <dt id="_CPPv3N6Castro10write_infoEv">
@@ -2187,7 +2249,8 @@
 <dl class="function">
 <dt id="_CPPv3N6Castro10getCPUTimeEv">
 <span id="_CPPv2N6Castro10getCPUTimeEv"></span><span id="Castro::getCPUTime"></span><span class="target" id="classCastro_1ab4779928cd57a87193fe8f1f7512fdf2"></span>Real <code class="descname">getCPUTime</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv3N6Castro10getCPUTimeEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dd><p>Get total CPU time </p>
+</dd></dl>
 
 </div>
 <div class="breathe-sectiondef docutils container">
@@ -2884,7 +2947,8 @@
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
     
 

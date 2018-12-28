@@ -226,13 +226,14 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity7GravityEPN5amrex3AmrEiPN5amrex5BCRecEi">
 <span id="_CPPv2N7Gravity7GravityEPN5amrex3AmrEiPN5amrex5BCRecEi"></span><span id="Gravity::Gravity__amrex::AmrP.i.amrex::BCRecP.i"></span><span class="target" id="classGravity_1abe8f44802d38219bbeb34bfa244fc31e"></span><code class="descname">Gravity</code><span class="sig-paren">(</span>amrex::Amr *<em>Parent</em>, int <em>_finest_level</em>, amrex::BCRec *<em>_phys_bc</em>, int <em>_Density</em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Constructor</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">Parent</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">_finest_level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">_phys_bc</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">_Density</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">Parent</span></code>: Parent <code class="docutils literal notranslate"><span class="pre">Amr</span></code> object </li>
+<li><code class="docutils literal notranslate"><span class="pre">_finest_level</span></code>: finest level </li>
+<li><code class="docutils literal notranslate"><span class="pre">_phys_bc</span></code>: <code class="docutils literal notranslate"><span class="pre">BCRec</span></code> object, physical boundary conditions </li>
+<li><code class="docutils literal notranslate"><span class="pre">_Density</span></code>: index of density component </li>
 </ul>
 </dd>
 </dl>
@@ -242,12 +243,14 @@
 <dl class="function">
 <dt id="_CPPv3N7GravityD0Ev">
 <span id="_CPPv2N7GravityD0Ev"></span><span id="Gravity::~Gravity"></span><span class="target" id="classGravity_1a6fcaf5f5f0d4672c4a1d97a3102e053a"></span><code class="descname">~Gravity</code><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
-<dd></dd></dl>
+<dd><p>Deconstructor </p>
+</dd></dl>
 
 <dl class="function">
 <dt id="_CPPv3N7Gravity11read_paramsEv">
 <span id="_CPPv2N7Gravity11read_paramsEv"></span><span id="Gravity::read_params"></span><span class="target" id="classGravity_1a6069f195122b406d09303ee22a7c8f0c"></span>void <code class="descname">read_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
-<dd></dd></dl>
+<dd><p>Read gravity-related parameters from parameter file </p>
+</dd></dl>
 
 <dl class="function">
 <dt id="_CPPv3N7Gravity22output_job_info_paramsERNSt7ostreamE">
@@ -255,7 +258,7 @@
 <dd><p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">jobInfoFile</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">jobInfoFile</span></code>: std::ostream object </li>
 </ul>
 </dd>
 </dl>
@@ -265,10 +268,11 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity21set_numpts_in_gravityEi">
 <span id="_CPPv2N7Gravity21set_numpts_in_gravityEi"></span><span id="Gravity::set_numpts_in_gravity__i"></span><span class="target" id="classGravity_1adf7c071b4fdedea8349636fc674d3610"></span>void <code class="descname">set_numpts_in_gravity</code><span class="sig-paren">(</span>int <em>numpts</em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Set <code class="docutils literal notranslate"><a class="reference internal" href="#classGravity"><span class="std std-ref"><span class="pre">Gravity</span></span></a></code> object’s <code class="docutils literal notranslate"><span class="pre">numpts_at_level</span></code> variable.</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">numpts</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">numpts</span></code>: number of points </li>
 </ul>
 </dd>
 </dl>
@@ -278,46 +282,65 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity13install_levelEiPN5amrex8AmrLevelERN5amrex8MultiFabEPN5amrex8MultiFabE">
 <span id="_CPPv2N7Gravity13install_levelEiPN5amrex8AmrLevelERN5amrex8MultiFabEPN5amrex8MultiFabE"></span><span id="Gravity::install_level__i.amrex::AmrLevelP.amrex::MultiFabR.amrex::MultiFabP"></span><span class="target" id="classGravity_1aff69c6ba49044528ce55c068a217055f"></span>void <code class="descname">install_level</code><span class="sig-paren">(</span>int <em>level</em>, amrex::AmrLevel *<em>level_data</em>, amrex::MultiFab &amp;<em>volume</em>, amrex::MultiFab *<em>area</em><span class="sig-paren">)</span><br /></dt>
-<dd></dd></dl>
+<dd><p>Setup gravity at level <code class="docutils literal notranslate"><span class="pre">level</span></code>.</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: integer, level number </li>
+<li><code class="docutils literal notranslate"><span class="pre">level_data</span></code>: <code class="docutils literal notranslate"><span class="pre">AmrLevel</span></code> object containing state data at that level </li>
+<li><code class="docutils literal notranslate"><span class="pre">volume</span></code>: MultiFab, volume elements of cells </li>
+<li><code class="docutils literal notranslate"><span class="pre">area</span></code>: MultiFab, area elements of cells </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="_CPPv3N7Gravity16get_gravity_typeEv">
 <span id="_CPPv2N7Gravity16get_gravity_typeEv"></span><span id="Gravity::get_gravity_type"></span><span class="target" id="classGravity_1ac1111ad311c18e7134d528cee52d55f7"></span>std::string <code class="descname">get_gravity_type</code><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
-<dd></dd></dl>
+<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">gravity_type</span></code> </p>
+</dd></dl>
 
 <dl class="function">
 <dt id="_CPPv3N7Gravity19get_max_solve_levelEv">
 <span id="_CPPv2N7Gravity19get_max_solve_levelEv"></span><span id="Gravity::get_max_solve_level"></span><span class="target" id="classGravity_1ac4877092ceb2ab6e203ed67703b9b08e"></span>int <code class="descname">get_max_solve_level</code><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
-<dd></dd></dl>
+<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">max_solve_level</span></code> </p>
+</dd></dl>
 
 <dl class="function">
 <dt id="_CPPv3N7Gravity6NoSyncEv">
 <span id="_CPPv2N7Gravity6NoSyncEv"></span><span id="Gravity::NoSync"></span><span class="target" id="classGravity_1adfaecdab2be564bab494067c5e108f1d"></span>int <code class="descname">NoSync</code><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
-<dd></dd></dl>
+<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">no_sync</span></code> </p>
+</dd></dl>
 
 <dl class="function">
 <dt id="_CPPv3N7Gravity11NoCompositeEv">
 <span id="_CPPv2N7Gravity11NoCompositeEv"></span><span id="Gravity::NoComposite"></span><span class="target" id="classGravity_1ac11d16a91195fbd220fc03b87bdd213e"></span>int <code class="descname">NoComposite</code><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
-<dd></dd></dl>
+<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">no_composite</span></code> </p>
+</dd></dl>
 
 <dl class="function">
 <dt id="_CPPv3N7Gravity21DoCompositeCorrectionEv">
 <span id="_CPPv2N7Gravity21DoCompositeCorrectionEv"></span><span id="Gravity::DoCompositeCorrection"></span><span class="target" id="classGravity_1a77c7d155d9abfffe10bb529f20a29b76"></span>int <code class="descname">DoCompositeCorrection</code><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
-<dd></dd></dl>
+<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">do_composite_phi_correction</span></code> </p>
+</dd></dl>
 
 <dl class="function">
 <dt id="_CPPv3N7Gravity22test_results_of_solvesEv">
 <span id="_CPPv2N7Gravity22test_results_of_solvesEv"></span><span id="Gravity::test_results_of_solves"></span><span class="target" id="classGravity_1a1e23dadc99e7bde2dbe3ddd96c78d18d"></span>int <code class="descname">test_results_of_solves</code><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
-<dd></dd></dl>
+<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">test_solves</span></code> </p>
+</dd></dl>
 
 <dl class="function">
 <dt id="_CPPv3N7Gravity15set_mass_offsetEN5amrex4RealEb">
 <span id="_CPPv2N7Gravity15set_mass_offsetEN5amrex4RealEb"></span><span id="Gravity::set_mass_offset__amrex::Real.b"></span><span class="target" id="classGravity_1a19a1c857a6f55e7daed25c2c7b113bcb"></span>void <code class="descname">set_mass_offset</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, bool <em>multi_level</em> = true<span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Set the <code class="docutils literal notranslate"><span class="pre">mass_offset</span></code></p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">multi_level</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: Current time </li>
+<li><code class="docutils literal notranslate"><span class="pre">multi_level</span></code>: boolean, do we iterate over all levels or mask off fine grids? </li>
 </ul>
 </dd>
 </dl>
@@ -327,21 +350,40 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity17get_grad_phi_prevEi">
 <span id="_CPPv2N7Gravity17get_grad_phi_prevEi"></span><span id="Gravity::get_grad_phi_prev__i"></span><span class="target" id="classGravity_1a3d570b5fe855fccdff2e7c7c56b76fb0"></span>Vector&lt;std::unique_ptr&lt;MultiFab&gt;&gt; &amp;<code class="descname">get_grad_phi_prev</code><span class="sig-paren">(</span>int <em>level</em><span class="sig-paren">)</span><br /></dt>
-<dd></dd></dl>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">grad_phi_prev</span></code> at given level</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: level index </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="_CPPv3N7Gravity17get_grad_phi_currEi">
 <span id="_CPPv2N7Gravity17get_grad_phi_currEi"></span><span id="Gravity::get_grad_phi_curr__i"></span><span class="target" id="classGravity_1a4fc3447e0224d3526658c3e87866b4f2"></span>Vector&lt;std::unique_ptr&lt;MultiFab&gt;&gt; &amp;<code class="descname">get_grad_phi_curr</code><span class="sig-paren">(</span>int <em>level</em><span class="sig-paren">)</span><br /></dt>
-<dd></dd></dl>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">grad_phi_curr</span></code> at given level</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: level index </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="_CPPv3N7Gravity22get_grad_phi_prev_compEii">
 <span id="_CPPv2N7Gravity22get_grad_phi_prev_compEii"></span><span id="Gravity::get_grad_phi_prev_comp__i.i"></span><span class="target" id="classGravity_1a1114489e950fdb28314fcf8d930282ae"></span>MultiFab *<code class="descname">get_grad_phi_prev_comp</code><span class="sig-paren">(</span>int <em>level</em>, int <em>comp</em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Return given component of <code class="docutils literal notranslate"><span class="pre">grad_phi_prev</span></code> at given level</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">comp</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: level index </li>
+<li><code class="docutils literal notranslate"><span class="pre">comp</span></code>: component index </li>
 </ul>
 </dd>
 </dl>
@@ -351,11 +393,12 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity18plus_grad_phi_currEiRN5amrex6VectorINSt10unique_ptrIN5amrex8MultiFabEEEEE">
 <span id="_CPPv2N7Gravity18plus_grad_phi_currEiRN5amrex6VectorINSt10unique_ptrIN5amrex8MultiFabEEEEE"></span><span id="Gravity::plus_grad_phi_curr__i.amrex::Vector:std::unique_ptr:amrex::MultiFab::R"></span><span class="target" id="classGravity_1ad8e605bd62ad5935caf8e0bfc2f9fcaa"></span>void <code class="descname">plus_grad_phi_curr</code><span class="sig-paren">(</span>int <em>level</em>, amrex::Vector&lt;std::unique_ptr&lt;amrex::MultiFab&gt;&gt; &amp;<em>addend</em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">grad_phi_curr</span></code> at given level plus the given vector</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">addend</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: level index </li>
+<li><code class="docutils literal notranslate"><span class="pre">addend</span></code>: Vector of MultiFabs to add to grad phi </li>
 </ul>
 </dd>
 </dl>
@@ -365,10 +408,11 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity14swapTimeLevelsEi">
 <span id="_CPPv2N7Gravity14swapTimeLevelsEi"></span><span id="Gravity::swapTimeLevels__i"></span><span class="target" id="classGravity_1a49175c8beb9c0bb05c966d3c8a457714"></span>void <code class="descname">swapTimeLevels</code><span class="sig-paren">(</span>int <em>level</em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Swap <code class="docutils literal notranslate"><span class="pre">grad_phi_prev</span></code> with <code class="docutils literal notranslate"><span class="pre">grad_phi_curr</span></code> at given level at set new <code class="docutils literal notranslate"><span class="pre">grad_phi_curr</span></code> to 1.e50.</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: level index </li>
 </ul>
 </dd>
 </dl>
@@ -384,13 +428,14 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity13solve_for_phiEiRN5amrex8MultiFabERKN5amrex6VectorIPN5amrex8MultiFabEEEi">
 <span id="_CPPv2N7Gravity13solve_for_phiEiRN5amrex8MultiFabERKN5amrex6VectorIPN5amrex8MultiFabEEEi"></span><span id="Gravity::solve_for_phi__i.amrex::MultiFabR.amrex::Vector:amrex::MultiFabP:CR.i"></span><span class="target" id="classGravity_1a37ad9f53a26eb6b17cb19304abfa18ee"></span>void <code class="descname">solve_for_phi</code><span class="sig-paren">(</span>int <em>level</em>, amrex::MultiFab &amp;<em>phi</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>grad_phi</em>, int <em>is_new</em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Solve Poisson’s equation to find the gravitational potential</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">phi</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">grad_phi</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: level index </li>
+<li><code class="docutils literal notranslate"><span class="pre">phi</span></code>: MultiFab to store gravitational potential in </li>
+<li><code class="docutils literal notranslate"><span class="pre">grad_phi</span></code>: Vector of MultiFabs, <span class="math notranslate nohighlight">\( \nabla \Phi \)</span> </li>
+<li><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: do we use state data at current time (1) or old time (0)? </li>
 </ul>
 </dd>
 </dl>
@@ -400,14 +445,15 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity19solve_for_delta_phiEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEE">
 <span id="_CPPv2N7Gravity19solve_for_delta_phiEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEE"></span><span id="Gravity::solve_for_delta_phi__i.i.amrex::Vector:amrex::MultiFabP:CR.amrex::Vector:amrex::MultiFabP:CR.amrex::Vector:amrex::Vector:amrex::MultiFabP::CR"></span><span class="target" id="classGravity_1af3dd8b55d14d1b2012ae4726b36f274b"></span>void <code class="descname">solve_for_delta_phi</code><span class="sig-paren">(</span>int <em>crse_level</em>, int <em>fine_level</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>rhs</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>delta_phi</em>, <em class="property">const</em> amrex::Vector&lt;amrex::Vector&lt;amrex::MultiFab *&gt;&gt; &amp;<em>grad_delta_phi</em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Find delta phi</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">crse_level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">fine_level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">rhs</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">delta_phi</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">grad_delta_phi</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">crse_level</span></code>: index of coarse level </li>
+<li><code class="docutils literal notranslate"><span class="pre">fine_level</span></code>: index of fine level </li>
+<li><code class="docutils literal notranslate"><span class="pre">rhs</span></code>: Vector of MultiFabs with right hand side source terms </li>
+<li><code class="docutils literal notranslate"><span class="pre">delta_phi</span></code>: Vector of MultiFabs delta phi will be saved to </li>
+<li><code class="docutils literal notranslate"><span class="pre">grad_delta_phi</span></code>: Vector of MultiFabs, gradient of delta phi </li>
 </ul>
 </dd>
 </dl>
@@ -417,11 +463,12 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity12gravity_syncEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEE">
 <span id="_CPPv2N7Gravity12gravity_syncEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEE"></span><span id="Gravity::gravity_sync__i.i.amrex::Vector:amrex::MultiFabP:CR.amrex::Vector:amrex::MultiFabP:CR"></span><span class="target" id="classGravity_1a0d5d355f09450256664231c775a71e73"></span>void <code class="descname">gravity_sync</code><span class="sig-paren">(</span>int <em>crse_level</em>, int <em>fine_level</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>drho</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>dphi</em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Sync gravity across levels</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">crse_level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">fine_level</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">crse_level</span></code>: index of coarse level </li>
+<li><code class="docutils literal notranslate"><span class="pre">fine_level</span></code>: index of fine level </li>
 <li><code class="docutils literal notranslate"><span class="pre">drho</span></code>: </li>
 <li><code class="docutils literal notranslate"><span class="pre">dphi</span></code>: </li>
 </ul>
@@ -433,12 +480,13 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity28multilevel_solve_for_new_phiEiii">
 <span id="_CPPv2N7Gravity28multilevel_solve_for_new_phiEiii"></span><span id="Gravity::multilevel_solve_for_new_phi__i.i.i"></span><span class="target" id="classGravity_1a349e06c20dd1409bf600bd7276a544e7"></span>void <code class="descname">multilevel_solve_for_new_phi</code><span class="sig-paren">(</span>int <em>level</em>, int <em>finest_level</em>, int <em>use_previous_phi_as_guess</em> = 0<span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Multilevel solve for new phi from base level to finest level</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">finest_level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">use_previous_phi_as_guess</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: Base level index </li>
+<li><code class="docutils literal notranslate"><span class="pre">finest_level</span></code>: Fine level index </li>
+<li><code class="docutils literal notranslate"><span class="pre">use_previous_phi_as_guess</span></code>: integer, should we use the previous phi as a guess? </li>
 </ul>
 </dd>
 </dl>
@@ -448,14 +496,15 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity23actual_multilevel_solveEiiRKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEEii">
 <span id="_CPPv2N7Gravity23actual_multilevel_solveEiiRKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEEii"></span><span id="Gravity::actual_multilevel_solve__i.i.amrex::Vector:amrex::Vector:amrex::MultiFabP::CR.i.i"></span><span class="target" id="classGravity_1a1798197dab3f1c57833e0fafa93696f4"></span>void <code class="descname">actual_multilevel_solve</code><span class="sig-paren">(</span>int <em>level</em>, int <em>finest_level</em>, <em class="property">const</em> amrex::Vector&lt;amrex::Vector&lt;amrex::MultiFab *&gt;&gt; &amp;<em>grad_phi</em>, int <em>is_new</em>, int <em>use_previous_phi_as_guess</em> = 0<span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Actually do the multilevel solve for new phi from base level to finest level</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">finest_level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">grad_phi</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">use_previous_phi_as_guess</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: Base level index </li>
+<li><code class="docutils literal notranslate"><span class="pre">finest_level</span></code>: Fine level index </li>
+<li><code class="docutils literal notranslate"><span class="pre">grad_phi</span></code>: gradient of phi </li>
+<li><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: Should we use the new state (1) or previous state (0)? </li>
+<li><code class="docutils literal notranslate"><span class="pre">use_previous_phi_as_guess</span></code>: integer, should we use the previous phi as a guess? </li>
 </ul>
 </dd>
 </dl>
@@ -465,12 +514,13 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity10computeAvgEiPN5amrex8MultiFabEb">
 <span id="_CPPv2N7Gravity10computeAvgEiPN5amrex8MultiFabEb"></span><span id="Gravity::computeAvg__i.amrex::MultiFabP.b"></span><span class="target" id="classGravity_1ad19004f2c401204093ec0608a7704659"></span>amrex::Real <code class="descname">computeAvg</code><span class="sig-paren">(</span>int <em>level</em>, amrex::MultiFab *<em>mf</em>, bool <em>mask</em> = true<span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Returns the volume weighted average of <code class="docutils literal notranslate"><span class="pre">mf</span></code> at the given level</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">mf</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">mask</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: index of AMR level </li>
+<li><code class="docutils literal notranslate"><span class="pre">mf</span></code>: MultiFab to be averaged </li>
+<li><code class="docutils literal notranslate"><span class="pre">mask</span></code>: boolean, should we mask finer levels? </li>
 </ul>
 </dd>
 </dl>
@@ -480,14 +530,15 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity32create_comp_minus_level_grad_phiEiRN5amrex8MultiFabERKN5amrex6VectorIPN5amrex8MultiFabEEERN5amrex8MultiFabERN5amrex6VectorINSt10unique_ptrIN5amrex8MultiFabEEEEE">
 <span id="_CPPv2N7Gravity32create_comp_minus_level_grad_phiEiRN5amrex8MultiFabERKN5amrex6VectorIPN5amrex8MultiFabEEERN5amrex8MultiFabERN5amrex6VectorINSt10unique_ptrIN5amrex8MultiFabEEEEE"></span><span id="Gravity::create_comp_minus_level_grad_phi__i.amrex::MultiFabR.amrex::Vector:amrex::MultiFabP:CR.amrex::MultiFabR.amrex::Vector:std::unique_ptr:amrex::MultiFab::R"></span><span class="target" id="classGravity_1a99c8f1c62660a09614d203ab809dc04e"></span>void <code class="descname">create_comp_minus_level_grad_phi</code><span class="sig-paren">(</span>int <em>level</em>, amrex::MultiFab &amp;<em>comp_phi</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>comp_gphi</em>, amrex::MultiFab &amp;<em>cml_phi</em>, amrex::Vector&lt;std::unique_ptr&lt;amrex::MultiFab&gt;&gt; &amp;<em>cml_gphi</em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Compute the difference between level and composite solves</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">comp_phi</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">comp_gphi</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">cml_phi</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">cml_gphi</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: level index </li>
+<li><code class="docutils literal notranslate"><span class="pre">comp_phi</span></code>: MultiFab containing computed phi </li>
+<li><code class="docutils literal notranslate"><span class="pre">comp_gphi</span></code>: Vector of MultiFabs containing computed grad phi </li>
+<li><code class="docutils literal notranslate"><span class="pre">cml_phi</span></code>: MultiFab, computed minus level phi </li>
+<li><code class="docutils literal notranslate"><span class="pre">cml_gphi</span></code>: Vector of MultiFabs, computed minus level grad phi </li>
 </ul>
 </dd>
 </dl>
@@ -497,12 +548,13 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity10GetCrsePhiEiRN5amrex8MultiFabEN5amrex4RealE">
 <span id="_CPPv2N7Gravity10GetCrsePhiEiRN5amrex8MultiFabEN5amrex4RealE"></span><span id="Gravity::GetCrsePhi__i.amrex::MultiFabR.amrex::Real"></span><span class="target" id="classGravity_1a3102719dfc6a286432419c57a6132583"></span>void <code class="descname">GetCrsePhi</code><span class="sig-paren">(</span>int <em>level</em>, amrex::MultiFab &amp;<em>phi_crse</em>, amrex::Real <em>time</em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Get coarse phi on level <code class="docutils literal notranslate"><span class="pre">level</span></code>-1</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">phi_crse</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: level index of fine data </li>
+<li><code class="docutils literal notranslate"><span class="pre">phi_crse</span></code>: MultiFab to contain coarse phi </li>
+<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: Current time </li>
 </ul>
 </dd>
 </dl>
@@ -512,12 +564,13 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity19get_old_grav_vectorEiRN5amrex8MultiFabEN5amrex4RealE">
 <span id="_CPPv2N7Gravity19get_old_grav_vectorEiRN5amrex8MultiFabEN5amrex4RealE"></span><span id="Gravity::get_old_grav_vector__i.amrex::MultiFabR.amrex::Real"></span><span class="target" id="classGravity_1afd769b96df67586649b086de75bd25fd"></span>void <code class="descname">get_old_grav_vector</code><span class="sig-paren">(</span>int <em>level</em>, amrex::MultiFab &amp;<em>grav_vector</em>, amrex::Real <em>time</em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Get old gravity vector</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">grav_vector</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: Level index </li>
+<li><code class="docutils literal notranslate"><span class="pre">grav_vector</span></code>: MultiFab containing gravity vector </li>
+<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: Current time </li>
 </ul>
 </dd>
 </dl>
@@ -527,12 +580,13 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity19get_new_grav_vectorEiRN5amrex8MultiFabEN5amrex4RealE">
 <span id="_CPPv2N7Gravity19get_new_grav_vectorEiRN5amrex8MultiFabEN5amrex4RealE"></span><span id="Gravity::get_new_grav_vector__i.amrex::MultiFabR.amrex::Real"></span><span class="target" id="classGravity_1a517300a35456457611f7dffcdda34870"></span>void <code class="descname">get_new_grav_vector</code><span class="sig-paren">(</span>int <em>level</em>, amrex::MultiFab &amp;<em>grav_vector</em>, amrex::Real <em>time</em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Get new gravity vector</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">grav_vector</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: Level index </li>
+<li><code class="docutils literal notranslate"><span class="pre">grav_vector</span></code>: MultiFab containing gravity vector </li>
+<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: Current time </li>
 </ul>
 </dd>
 </dl>
@@ -584,8 +638,8 @@
 <dd><p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: Level index </li>
+<li><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: Use new state data (1) or old state data (0)? </li>
 </ul>
 </dd>
 </dl>
@@ -595,12 +649,13 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity19make_radial_gravityEiN5amrex4RealERN5amrex6VectorIN5amrex4RealEEE">
 <span id="_CPPv2N7Gravity19make_radial_gravityEiN5amrex4RealERN5amrex6VectorIN5amrex4RealEEE"></span><span id="Gravity::make_radial_gravity__i.amrex::Real.amrex::Vector:amrex::Real:R"></span><span class="target" id="classGravity_1a6f689ce215824e078ae82fd4f2469558"></span>void <code class="descname">make_radial_gravity</code><span class="sig-paren">(</span>int <em>level</em>, amrex::Real <em>time</em>, amrex::Vector&lt;amrex::Real&gt; &amp;<em>radial_grav</em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Make radial gravity</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">radial_grav</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: Level index </li>
+<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: Current time </li>
+<li><code class="docutils literal notranslate"><span class="pre">radial_grav</span></code>: Vector containing gravity in radial direction </li>
 </ul>
 </dd>
 </dl>
@@ -610,12 +665,13 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity25interpolate_monopole_gravEiRN5amrex6VectorIN5amrex4RealEEERN5amrex8MultiFabE">
 <span id="_CPPv2N7Gravity25interpolate_monopole_gravEiRN5amrex6VectorIN5amrex4RealEEERN5amrex8MultiFabE"></span><span id="Gravity::interpolate_monopole_grav__i.amrex::Vector:amrex::Real:R.amrex::MultiFabR"></span><span class="target" id="classGravity_1ac4a4a611f59dd889de6dec6f06889d0f"></span>void <code class="descname">interpolate_monopole_grav</code><span class="sig-paren">(</span>int <em>level</em>, amrex::Vector&lt;amrex::Real&gt; &amp;<em>radial_grav</em>, amrex::MultiFab &amp;<em>grav_vector</em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Interpolate monopole gravitational field in the radial direction</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">radial_grav</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">grav_vector</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: Level index </li>
+<li><code class="docutils literal notranslate"><span class="pre">radial_grav</span></code>: Radial gravity </li>
+<li><code class="docutils literal notranslate"><span class="pre">grav_vector</span></code>: <a class="reference internal" href="#classGravity"><span class="std std-ref">Gravity</span></a> vector </li>
 </ul>
 </dd>
 </dl>
@@ -628,10 +684,10 @@
 <dd><p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">grav</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">phi</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: Level index </li>
+<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: Current time </li>
+<li><code class="docutils literal notranslate"><span class="pre">grav</span></code>: Gravitational acceleration </li>
+<li><code class="docutils literal notranslate"><span class="pre">phi</span></code>: Gravitational potential </li>
 </ul>
 </dd>
 </dl>
@@ -641,13 +697,14 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity15make_radial_phiEiRKN5amrex8MultiFabERN5amrex8MultiFabEi">
 <span id="_CPPv2N7Gravity15make_radial_phiEiRKN5amrex8MultiFabERN5amrex8MultiFabEi"></span><span id="Gravity::make_radial_phi__i.amrex::MultiFabCR.amrex::MultiFabR.i"></span><span class="target" id="classGravity_1a2a0dcf24d4098beb82ca2f81402b83cd"></span>void <code class="descname">make_radial_phi</code><span class="sig-paren">(</span>int <em>level</em>, <em class="property">const</em> amrex::MultiFab &amp;<em>Rhs</em>, amrex::MultiFab &amp;<em>phi</em>, int <em>fill_interior</em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Integrate radially outward to find radial gravitational potential</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">Rhs</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">phi</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">fill_interior</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: Current level </li>
+<li><code class="docutils literal notranslate"><span class="pre">Rhs</span></code>: density (rhs of Poisson’s equation) </li>
+<li><code class="docutils literal notranslate"><span class="pre">phi</span></code>: Non-radial gravitational potential </li>
+<li><code class="docutils literal notranslate"><span class="pre">fill_interior</span></code>: integer </li>
 </ul>
 </dd>
 </dl>
@@ -657,7 +714,8 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity10make_mg_bcEv">
 <span id="_CPPv2N7Gravity10make_mg_bcEv"></span><span id="Gravity::make_mg_bc"></span><span class="target" id="classGravity_1afe42c53b873e967735b52f6e9523be95"></span>void <code class="descname">make_mg_bc</code><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
-<dd></dd></dl>
+<dd><p>Make multigrid boundary conditions </p>
+</dd></dl>
 
 </div>
 <div class="breathe-sectiondef docutils container">
@@ -665,12 +723,13 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity16applyMetricTermsEiRN5amrex8MultiFabERKN5amrex6VectorIPN5amrex8MultiFabEEE">
 <span id="_CPPv2N7Gravity16applyMetricTermsEiRN5amrex8MultiFabERKN5amrex6VectorIPN5amrex8MultiFabEEE"></span><span id="Gravity::applyMetricTerms__i.amrex::MultiFabR.amrex::Vector:amrex::MultiFabP:CR"></span><span class="target" id="classGravity_1a7ff3ff5f3032293c678fcc3a927caed9"></span>void <code class="descname">applyMetricTerms</code><span class="sig-paren">(</span>int <em>level</em>, amrex::MultiFab &amp;<em>Rhs</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>coeffs</em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Modify Rhs and coeffs with the appropriate metric terms.</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">Rhs</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">coeffs</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: Level index </li>
+<li><code class="docutils literal notranslate"><span class="pre">Rhs</span></code>: MultiFab </li>
+<li><code class="docutils literal notranslate"><span class="pre">coeffs</span></code>: Vector of MultiFabs </li>
 </ul>
 </dd>
 </dl>
@@ -683,8 +742,8 @@
 <dd><p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">cc</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: Index of level </li>
+<li><code class="docutils literal notranslate"><span class="pre">cc</span></code>: Cell-centered data </li>
 </ul>
 </dd>
 </dl>
@@ -697,8 +756,8 @@
 <dd><p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">edges</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: Index of level </li>
+<li><code class="docutils literal notranslate"><span class="pre">edges</span></code>: Edge-based data </li>
 </ul>
 </dd>
 </dl>
@@ -860,12 +919,13 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity7get_rhsEiii">
 <span id="_CPPv2N7Gravity7get_rhsEiii"></span><span id="Gravity::get_rhs__i.i.i"></span><span class="target" id="classGravity_1a1ffdcd9b792db4d53f30745bb8eef042"></span>Vector&lt;std::unique_ptr&lt;MultiFab&gt;&gt; <code class="descname">get_rhs</code><span class="sig-paren">(</span>int <em>crse_level</em>, int <em>nlevs</em>, int <em>is_new</em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Get the rhs</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">crse_level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">nlevs</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">crse_level</span></code>: Index of coarse level </li>
+<li><code class="docutils literal notranslate"><span class="pre">nlevs</span></code>: Number of levels </li>
+<li><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: Use new (1) or old (0) state data </li>
 </ul>
 </dd>
 </dl>
@@ -875,10 +935,11 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity12sanity_checkEi">
 <span id="_CPPv2N7Gravity12sanity_checkEi"></span><span id="Gravity::sanity_check__i"></span><span class="target" id="classGravity_1a46368f0b449d04582cf1b68871a25a5b"></span>void <code class="descname">sanity_check</code><span class="sig-paren">(</span>int <em>level</em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>This is a sanity check on whether we are trying to fill multipole boundary conditiosn for grids at this level &gt; 0  this case is not currently supported. Here we shrink the domain at this level by 1 in any direction which is not symmetry or periodic, then ask if the grids at this level are contained in the shrunken domain. If not, then grids at this level touch the domain boundary and we must abort.</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: Level index </li>
 </ul>
 </dd>
 </dl>
@@ -888,19 +949,19 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity22actual_solve_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPKN5amrex8MultiFabEEERKN5amrex6VectorINSt5arrayIPN5amrex8MultiFabE14AMREX_SPACEDIMEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEPCKN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
 <span id="_CPPv2N7Gravity22actual_solve_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPKN5amrex8MultiFabEEERKN5amrex6VectorINSt5arrayIPN5amrex8MultiFabE14AMREX_SPACEDIMEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEPCKN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="Gravity::actual_solve_with_mlmg__i.i.amrex::Vector:amrex::MultiFabP:CR.amrex::Vector:amrex::MultiFabCP:CR.amrex::Vector:std::array:amrex::MultiFabP.AMREX_SPACEDIM::CR.amrex::Vector:amrex::MultiFabP:CR.amrex::MultiFabCPC.amrex::Real.amrex::Real"></span><span class="target" id="classGravity_1a9f234ae779308ad39a5b9b086c08d4d7"></span>Real <code class="descname">actual_solve_with_mlmg</code><span class="sig-paren">(</span>int <em>crse_level</em>, int <em>fine_level</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>phi</em>, <em class="property">const</em> amrex::Vector&lt;<em class="property">const</em> amrex::MultiFab *&gt; &amp;<em>rhs</em>, <em class="property">const</em> amrex::Vector&lt;std::array&lt;amrex::MultiFab *, AMREX_SPACEDIM&gt;&gt; &amp;<em>grad_phi</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>res</em>, <em class="property">const</em> amrex::MultiFab *<em class="property">const</em> <em>crse_bcdata</em>, amrex::Real <em>rel_eps</em>, amrex::Real <em>abs_eps</em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Do multigrid solve</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">crse_level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">fine_level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">phi</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">rhs</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">amrex::Vector&lt;std::array&lt;amrex::MultiFab*</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">grad_phi</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">crse_level</span></code>: Coarse level index </li>
+<li><code class="docutils literal notranslate"><span class="pre">fine_level</span></code>: Fine level index </li>
+<li><code class="docutils literal notranslate"><span class="pre">phi</span></code>: Gravitational potential </li>
+<li><code class="docutils literal notranslate"><span class="pre">rhs</span></code>: Right hand side </li>
+<li><code class="docutils literal notranslate"><span class="pre">grad_phi</span></code>: Grad phi </li>
 <li><code class="docutils literal notranslate"><span class="pre">res</span></code>: </li>
 <li><code class="docutils literal notranslate"><span class="pre">crse_bcdata</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">rel_eps</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">abs_eps</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">rel_eps</span></code>: Relative tolerance </li>
+<li><code class="docutils literal notranslate"><span class="pre">abs_eps</span></code>: Absolute tolerance </li>
 </ul>
 </dd>
 </dl>
@@ -910,16 +971,17 @@
 <dl class="function">
 <dt id="_CPPv3N7Gravity19solve_phi_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEN5amrex4RealE">
 <span id="_CPPv2N7Gravity19solve_phi_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEN5amrex4RealE"></span><span id="Gravity::solve_phi_with_mlmg__i.i.amrex::Vector:amrex::MultiFabP:CR.amrex::Vector:amrex::MultiFabP:CR.amrex::Vector:amrex::Vector:amrex::MultiFabP::CR.amrex::Vector:amrex::MultiFabP:CR.amrex::Real"></span><span class="target" id="classGravity_1a0b01c61225c3791fcf86385caf26f4a3"></span>Real <code class="descname">solve_phi_with_mlmg</code><span class="sig-paren">(</span>int <em>crse_level</em>, int <em>fine_level</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>phi</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>rhs</em>, <em class="property">const</em> amrex::Vector&lt;amrex::Vector&lt;amrex::MultiFab *&gt;&gt; &amp;<em>grad_phi</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>res</em>, amrex::Real <em>time</em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>Do multigrid solve to find phi</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">crse_level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">fine_level</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">phi</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">rhs</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">grad_phi</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">crse_level</span></code>: Coarse level index </li>
+<li><code class="docutils literal notranslate"><span class="pre">fine_level</span></code>: Fine level index </li>
+<li><code class="docutils literal notranslate"><span class="pre">phi</span></code>: Gravitational potential </li>
+<li><code class="docutils literal notranslate"><span class="pre">rhs</span></code>: Right hand side source term </li>
+<li><code class="docutils literal notranslate"><span class="pre">grad_phi</span></code>: Grad phi </li>
 <li><code class="docutils literal notranslate"><span class="pre">res</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: Current time </li>
 </ul>
 </dd>
 </dl>
@@ -932,7 +994,8 @@
 <dl class="class">
 <dt id="_CPPv318GradPhiPhysBCFunct">
 <span id="_CPPv218GradPhiPhysBCFunct"></span><span id="GradPhiPhysBCFunct"></span><span class="target" id="classGradPhiPhysBCFunct"></span><em class="property">class </em><code class="descname">GradPhiPhysBCFunct</code> : <em class="property">public</em> PhysBCFunctBase<br /></dt>
-<dd><em>#include &lt;Gravity.H&gt;</em><div class="breathe-sectiondef docutils container">
+<dd><em>#include &lt;Gravity.H&gt;</em><p>A physical boundary condition function for grad phi. </p>
+<div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="function">
 <dt id="_CPPv3N18GradPhiPhysBCFunct18GradPhiPhysBCFunctEv">
@@ -942,14 +1005,15 @@
 <dl class="function">
 <dt id="_CPPv3N18GradPhiPhysBCFunct12FillBoundaryERN5amrex8MultiFabEiiN5amrex4RealEi">
 <span id="_CPPv2N18GradPhiPhysBCFunct12FillBoundaryERN5amrex8MultiFabEiiN5amrex4RealEi"></span><span id="GradPhiPhysBCFunct::FillBoundary__amrex::MultiFabR.i.i.amrex::Real.i"></span><span class="target" id="classGradPhiPhysBCFunct_1a15c213f5166bbc0d00c1a9e069edc74d"></span>void <code class="descname">FillBoundary</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>mf</em>, int <em>dcomp</em>, int <em>ncomp</em>, amrex::Real <em>time</em>, int <em>bccomp</em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
+<dd><p>We should never need to actually fill physical ghost zones for grad phi, so this does nothing</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">mf</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">dcomp</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">ncomp</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">bccomp</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">mf</span></code>: MultiFab </li>
+<li><code class="docutils literal notranslate"><span class="pre">dcomp</span></code>: destonation component </li>
+<li><code class="docutils literal notranslate"><span class="pre">ncomp</span></code>: Number of components </li>
+<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: Current time </li>
+<li><code class="docutils literal notranslate"><span class="pre">bccomp</span></code>: Boundary conditions component </li>
 </ul>
 </dd>
 </dl>
@@ -1006,7 +1070,8 @@
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
     
 
