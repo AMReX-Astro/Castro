@@ -71,7 +71,7 @@ enum sources { ext_src = 0,
 ///
 /// @class Castro
 ///
-/// @brief AmrLevel-derived class for hyperbolic conservation equations for stellar media
+/// @brief ``AmrLevel``-derived class for hyperbolic conservation equations for stellar media
 ///
 class Castro
     :
@@ -87,12 +87,12 @@ public:
 ///
 /// The basic constructor.
 ///
-/// @param papa parent amrex::Amr object
-/// @param lev which level are we on
+/// @param papa     parent ``amrex::Amr`` object
+/// @param lev      which level are we on
 /// @param level_geom level geometry
-/// @param bl BoxArray object
-/// @param dm the mapping
-/// @param time current time
+/// @param bl       ``BoxArray`` object
+/// @param dm       the mapping
+/// @param time     current time
 ///
     Castro (amrex::Amr&            papa,
             int             lev,
@@ -109,7 +109,7 @@ public:
 ///
 /// Restart from a checkpoint file.
 ///
-/// @param papa parent amrex::Amr object
+/// @param papa             parent ``amrex::Amr`` object
 /// @param is
 /// @param bReadSpecial
 ///
@@ -119,18 +119,21 @@ public:
 
 ///
 /// This is called only when we restart from an old checkpoint.
+/// Sets the Vector `state_in_checkpoint` depending on the input
+/// version and type.
 ///
-/// @param state_in_checkpoint
+/// @param state_in_checkpoint      Vector of integer flags
+///                                 describing the state
 ///
     virtual void set_state_in_checkpoint (amrex::Vector<int>& state_in_checkpoint) override;
 
 ///
-/// Call amrex::AmrLevel::checkPoint and then add radiation info
+/// Call ``amrex::AmrLevel::checkPoint`` and then add radiation info
 ///
-/// @param dir
-/// @param os
-/// @param how
-/// @param dump_old
+/// @param dir          Directory to store checkpoint in
+/// @param os           ``std::ostream`` object
+/// @param how          `V`isMF::How`` object
+/// @param dump_old     boolean
 ///
     virtual void checkPoint(const std::string& dir,
                             std::ostream&      os,
@@ -149,28 +152,28 @@ public:
 ///
 /// Write a plotfile to specified directory.
 ///
-/// @param dir directory to write to
-/// @param os output stream
-/// @param how
+/// @param dir  directory to write to
+/// @param os   output stream
+/// @param how  ``VisMF::How`` object
 ///
     virtual void writePlotFile (const std::string& dir,
                                 ostream&       os,
                                 amrex::VisMF::How     how) override;
 
 ///
-/// @param dir directory to write to
-/// @param os output stream
-/// @param how
+/// @param dir  directory to write to
+/// @param os   output stream
+/// @param how  ``VisMF::How`` object
 ///
     virtual void writeSmallPlotFile (const std::string& dir,
 				     ostream&       os,
 				     amrex::VisMF::How     how) override;
 
 ///
-/// @param dir directory to write to
-/// @param os output stream
-/// @param how
-/// @param is_small
+/// @param dir      directory to write to
+/// @param os       output stream
+/// @param how      ``VisMF::How`` object
+/// @param is_small integer
 ///
     void plotFileOutput(const std::string& dir,
                         ostream& os,
@@ -181,7 +184,7 @@ public:
 ///
 /// Write job info to file
 ///
-/// @param dir directory to write to
+/// @param dir  directory to write to
 ///
     void writeJobInfo (const std::string& dir);
 
@@ -202,8 +205,8 @@ public:
 ///
 /// Cleanup data descriptors at end of run.
 ///
-/// ::variableSetUp is in Castro_setup.cpp
-/// variableCleanUp is called once at the end of a simulation
+/// ::variableSetUp is in ``Castro_setup.cpp``
+/// ``variableCleanUp`` is called once at the end of a simulation
 ///
     static void variableCleanUp ();
 
@@ -227,26 +230,30 @@ public:
 ///
 /// Write particles in checkpoint directories
 ///
-/// @param dir directory containing checkpoint
+/// @param dir  directory containing checkpoint
 ///
     void ParticleCheckPoint (const std::string& dir);
 
 ///
 /// Write particles in plotfile directories
 ///
-/// @param dir directory containing plotfile
+/// @param dir  directory containing plotfile
 ///
     void ParticlePlotFile (const std::string& dir);
 
 ///
 /// How to initialize at restart
 ///
-/// @param restart_file path to restart file
+/// @param restart_file     path to restart file
 ///
     void ParticlePostRestart (const std::string& restart_file);
 
 ///
 /// Derived quantities associated with particles
+///
+/// @param name         name of particle variable to derive
+/// @param time         current time
+/// @param ngrow        Number of ghost cells
 ///
     std::unique_ptr<amrex::MultiFab> ParticleDerive (const std::string& name,
 						     amrex::Real           time,
@@ -262,9 +269,9 @@ public:
 ///
 /// Advance the particles by dt
 ///
-/// @param iteration
-/// @param time current time
-/// @param dt timestep
+/// @param iteration    where we are in the current AMR subcycle
+/// @param time         current time
+/// @param dt           timestep
 ///
     void advance_particles (int iteration, amrex::Real time, amrex::Real dt);
 
@@ -281,9 +288,9 @@ public:
     amrex::MultiFab* Area ();
 
 ///
-/// Area of the multifab with surface normal along `dir`
+/// Area of the multifab with surface normal along ``dir``
 ///
-/// @param dir direction of normal
+/// @param dir  direction of normal
 ///
     amrex::MultiFab& Area (int dir);
 
@@ -295,16 +302,16 @@ public:
 ///
 /// Return the n'th fluxes MultiFab.
 ///
-/// @param dir direction in which to find the fluxes along
+/// @param dir  direction in which to find the fluxes along
 ///
     amrex::MultiFab& Fluxes (int dir);
 
 ///
 /// Set time levels of state data.
 ///
-/// @param time current time
-/// @param dt_old old timestep
-/// @param dt_new new timestep
+/// @param time         current time
+/// @param dt_old       old timestep
+/// @param dt_new       new timestep
 ///
     virtual void setTimeLevel (amrex::Real time,
                                amrex::Real dt_old,
@@ -335,7 +342,7 @@ public:
 /// algorithm or the Strang-split reactions algorithm.
 ///
 /// @param time     the current simulation time
-/// @param dt   the timestep to advance (e.g., go from time to
+/// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
 /// @param iteration    where we are in the current AMR subcycle.  Each
 ///                    level will take a number of steps to reach the
@@ -351,9 +358,9 @@ public:
 #ifndef AMREX_USE_CUDA
 
 ///
-/// this routine will advance the old state data (called S_old here)
+/// this routine will advance the old state data (called ``S_old`` here)
 /// to the new time, for a single level.  The new data is called
-/// S_new here.  The update includes reactions (if we are not doing
+/// ``S_new`` here.  The update includes reactions (if we are not doing
 /// SDC), hydro, and the source terms.
 ///
 /// @param time     the current simulation time
@@ -373,9 +380,9 @@ public:
 
 
 ///
-/// This routine will advance the old state data (called S_old here)
+/// This routine will advance the old state data (called ``S_old`` here)
 /// to the new time, for a single level.  The new data is called
-/// S_new here.  The update includes reactions (if we are not doing
+/// ``S_new`` here.  The update includes reactions (if we are not doing
 /// SDC), hydro, and the source terms.
 ///
 /// @note the time that passes through here is the time for the
@@ -398,6 +405,9 @@ public:
 #ifndef AMREX_USE_CUDA
 
 ///
+/// Should we retry advancing the simulation? By default, we
+/// don't do a retry unless the criteria are violated.
+///
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
@@ -410,6 +420,10 @@ public:
     bool retry_advance (amrex::Real& time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
 
+///
+/// Subcyles until we've reached the target time, ``time`` + ``dt``.
+/// The last timestep will be shortened if needed so that
+/// it does not overshoot the ending time.
 ///
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
@@ -425,6 +439,11 @@ public:
 
 
 ///
+/// This is run at the start of an ::advance on a single level.
+/// It sets up all the necessary arrays and data containers,
+/// ensures the data is valid and makes copies of the MultiFabs
+/// in the old and new state in case a retry is performed.
+///
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
@@ -437,6 +456,10 @@ public:
     void initialize_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
 
+///
+/// If required, adds material lost in timestep to cumulative
+/// losses, does refluxing, and clears arrays/data containers
+/// initialized at start of the level's advance.
 ///
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
@@ -451,6 +474,9 @@ public:
 
 
 ///
+/// Performed at the start of ::do_advance, resets flags and
+/// ensures required ghost zones are filled.
+///
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
@@ -463,6 +489,9 @@ public:
     void initialize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
 
+///
+/// Performed at the end of ::do_advance, cleans up temporary data
+/// created by ::initialize_do_advance
 ///
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
@@ -477,7 +506,7 @@ public:
 
 
 ///
-/// convert the conservative state cell averages to primitive cell
+/// Convert the conservative state cell averages to primitive cell
 /// averages
 ///
 /// @param time     current time
@@ -497,6 +526,8 @@ public:
 
 
 ///
+/// Check to see if the CFL condition has been violated
+///
 /// @param dt timestep
 ///
     void check_for_cfl_violation(const amrex::Real dt);
@@ -507,8 +538,8 @@ public:
 /// this constructs the hydrodynamic source (essentially the flux
 /// divergence) using the CTU framework for unsplit hydrodynamics
 ///
-/// @param time current time
-/// @param dt timestep
+/// @param time     current time
+/// @param dt       timestep
 ///
     void construct_hydro_source(amrex::Real time, amrex::Real dt);
 #endif
@@ -517,10 +548,10 @@ public:
 ///
 /// this constructs the hydrodynamic source (essentially the flux
 /// divergence) using method of lines integration.  The output, as a
-/// update to the state, is stored in the k_mol array of multifabs.
+/// update to the state, is stored in the ``k_mol`` array of multifabs.
 ///
 /// @param time     current time
-/// @param dt   timestep
+/// @param dt       timestep
 ///
     void construct_mol_hydro_source(amrex::Real time, amrex::Real dt);
 
@@ -528,7 +559,7 @@ public:
 ///
 /// Check for NaNs in the given MultiFab
 ///
-/// @param state    MultiFab to check
+/// @param state        MultiFab to check
 /// @param check_ghost  do we check the ghost cells?
 ///
     void check_for_nan(amrex::MultiFab& state, int check_ghost=0);
@@ -536,27 +567,36 @@ public:
 #ifdef SDC
 
 ///
-/// @param u
-/// @param q
-/// @param qaux
+/// Calculate primitive variables from given conserved variables
+///
+/// @param u        MultiFab of conserved variables
+/// @param q        MultiFab to save primitive variables to
+/// @param qaux     MultiFab of auxiliary variables
 ///
     void cons_to_prim(amrex::MultiFab& u, amrex::MultiFab& q, amrex::MultiFab& qaux);
 #endif
 
 
 ///
-/// @param src
+/// Returns true if flag corresponding to source type ``src`` is set.
+///
+/// @param src      integer, index corresponding to source type
 ///
     bool source_flag(int src);
 
+///
+/// Returns whether any sources are actually applied.
+///
     bool apply_sources();
 
     static int get_output_at_completion();
 
 
 ///
-/// @param source
-/// @param state
+/// Construct source terms at old time
+///
+/// @param source   MultiFab to save sources to
+/// @param state    Current state
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
@@ -569,11 +609,11 @@ public:
     void do_old_sources(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
 
 ///
-/// Construct the old-time sources.
+/// Construct the old-time source
 ///
-/// @param src
-/// @param source
-/// @param state
+/// @param src      integer corresponding to source type to construct
+/// @param source   MultiFab to save sources to
+/// @param state    State data
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
@@ -587,9 +627,11 @@ public:
 
 
 ///
-/// @param source
-/// @param state_old
-/// @param state_new
+/// Construct new time sources
+///
+/// @param source   MultiFab to save sources to
+/// @param state_old    Old state
+/// @param state_new    New state
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
@@ -604,12 +646,12 @@ public:
 ///
 /// Construct the new-time sources.
 ///
-/// @param src
-/// @param source
-/// @param state_old
-/// @param state_new
-/// @param time     the current simulation time
-/// @param dt       the timestep to advance (e.g., go from time to
+/// @param src          Integer corresponding to type of source to construct
+/// @param source       MultiFab to save source to
+/// @param state_old    Old state
+/// @param state_new    New state
+/// @param time         the current simulation time
+/// @param dt       t   he timestep to advance (e.g., go from time to
 ///                    time + dt)
 /// @param amr_iteration    where we are in the current AMR subcycle.  Each
 ///                    level will take a number of steps to reach the
@@ -628,24 +670,30 @@ public:
 /// and want to amortize the cost of the parallel reductions.
 /// Note that the resultant output is volume-weighted.
 ///
+/// @param update   MultiFab containing source
+/// @param dt       timestep
+/// @param local    boolean, do we want to do this calculation
+///                 globally over all processes
+///                 or locally just on this processor?
+///
     amrex::Vector<amrex::Real> evaluate_source_change(amrex::MultiFab& update, amrex::Real dt, bool local = false);
 
 ///
 /// Print the change due to a given source term update.
 /// We assume here that the input array is lined up with
-/// the NUM_STATE components of State_Type because we are
+/// the ``NUM_STATE`` components of ``State_Type`` because we are
 /// interested in printing changes to energy, mass, etc.
 ///
-/// @param update
+/// @param update       Real Vector of changes
 ///
     void print_source_change(amrex::Vector<amrex::Real> update);
 
 ///
 /// For the old-time or new-time sources update, evaluate the change in the state
-/// for all source terms, then pring the results.
+/// for all source terms, then print the results.
 ///
-/// @param dt timestep
-/// @param is_new
+/// @param dt       timestep
+/// @param is_new   boolean, do we get the new or old state data?
 ///
     void print_all_source_changes(amrex::Real dt, bool is_new);
 
@@ -655,21 +703,23 @@ public:
 ///
 /// this computes advective_source + 1/2 (old source + new source)
 ///
-/// @note the advective source is defined as -div{F}
+/// @note the advective source is defined as \f$-\nabla\cdot F\f$
 ///
 /// the time-centering is accomplished since new source is defined
 /// to be 1/2 (new source - old source) generally.
 ///
-/// @param source
+/// @param source       MultiFab of source terms to be summed
 ///
     void sum_of_sources(amrex::MultiFab& source);
 
 
 ///
-/// @param S_new
-/// @param src_old
-/// @param src_new
-/// @param dt timestep
+/// Center source terms in time, storing in ``S_new``
+///
+/// @param S_new    MultiFab to store centered sources in
+/// @param src_old  Old source term
+/// @param src_new  New source term
+/// @param dt       timestep
 ///
     void time_center_source_terms (amrex::MultiFab& S_new,
 				   amrex::MultiFab& src_old,
@@ -679,85 +729,107 @@ public:
 #ifdef SPONGE
 
 ///
-/// @param source
-/// @param state
-/// @param time current time
-/// @param dt timestep
+/// Construct sponge source terms at old timestep
+///
+/// @param source   MultiFab to save source terms to
+/// @param state    Old state
+/// @param time     current time
+/// @param dt       timestep
 ///
     void construct_old_sponge_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
 
 
 ///
-/// @param source
-/// @param state_old
-/// @param state_new
-/// @param time current time
-/// @param dt timestep
+/// Construct sponge source terms at new timestep
+///
+/// @param source       MultiFab to save source terms to
+/// @param state_old    Old state
+/// @param state_new    New state
+/// @param time         current time
+/// @param dt           timestep
 ///
     void construct_new_sponge_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
+///
+/// Allocate sponge parameters
+///
     static void sponge_init();
 
+///
+/// Deallocate sponge parameters
+///
     static void sponge_finalize();
 #endif
 
 
 ///
-/// @param source
-/// @param state
-/// @param time current time
-/// @param dt timestep
+/// Create external source terms at old timestep
+///
+/// @param source   MultiFab to save source terms to
+/// @param state    Old state
+/// @param time     current time
+/// @param dt       timestep
 ///
     void construct_old_ext_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
 
 
 ///
-/// @param source
-/// @param state_old
-/// @param state_new
-/// @param time current time
-/// @param dt timestep
+/// Create external source terms at new timestep
+///
+/// @param source       MultiFab to save source terms to
+/// @param state_old    Old state
+/// @param state_new    New state
+/// @param time         current time
+/// @param dt           timestep
 ///
     void construct_new_ext_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
 
 ///
-/// @param time current time
-/// @param dt timestep
-/// @param S_old
-/// @param S_new
-/// @param ext_src
+/// Fill ``ext_src`` with external sources
+///
+/// @param time     current time
+/// @param dt       timestep
+/// @param S_old    Old state
+/// @param S_new    New state
+/// @param ext_src MultiFab to save sources to
 ///
     void fill_ext_source(amrex::Real time, amrex::Real dt, amrex::MultiFab& S_old, amrex::MultiFab& S_new, amrex::MultiFab& ext_src);
 
 
 ///
-/// @param source
-/// @param state
-/// @param time current time
-/// @param dt timestep
+/// Construct thermal sources at old timestep
+///
+/// @param source   MultiFab to save sources to
+/// @param state    Old state
+/// @param time     current time
+/// @param dt       timestep
 ///
     void construct_old_thermo_source(amrex::MultiFab& source, amrex::MultiFab& state,
                                      amrex::Real time, amrex::Real dt);
 
 
 ///
-/// @param source
-/// @param state_old
-/// @param state_new
-/// @param time current time
-/// @param dt timestep
+/// Construct thermal sources at new timestep
+///
+/// @param source       MultiFab to save sources to
+/// @param state_old    Old state
+/// @param state_new    New state
+/// @param time         current time
+/// @param dt           timestep
 ///
     void construct_new_thermo_source(amrex::MultiFab& source, amrex::MultiFab& state_old,
                                      amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
 
 ///
-/// @param time current time
-/// @param dt timestep
-/// @param S_old
-/// @param S_new
-/// @param ext_src
+/// Fill ``ext_src`` with thermal sources
+///
+/// @param time     current time
+/// @param dt       timestep
+/// @param S_old    Old state
+/// @param S_new    New state
+/// @param ext_src  MultiFab to fill with sources
 ///
     void fill_thermo_source(amrex::Real time, amrex::Real dt,
                             amrex::MultiFab& S_old, amrex::MultiFab& S_new,
@@ -767,38 +839,46 @@ public:
 #ifdef SELF_GRAVITY
 
 ///
-/// @param amr_iteration
-/// @param amr_ncycle
-/// @param time current time
+/// Construct gravitational field at old timestep
+///
+/// @param amr_iteration    where we are in the current AMR subcycle
+/// @param amr_ncycle       the number of subcycles at this level
+/// @param time             current time
 ///
     void construct_old_gravity(int amr_iteration, int amr_ncycle,
 			       amrex::Real time);
 
 
 ///
-/// @param amr_iteration
-/// @param amr_ncycle
-/// @param time current time
+/// Construct gravitational field at new timestep
+///
+/// @param amr_iteration    where we are in the current AMR subcycle
+/// @param amr_ncycle       the number of subcycles at this level
+/// @param time             current time
 ///
     void construct_new_gravity(int amr_iteration, int amr_ncycle,
 			       amrex::Real time);
 #endif
 
 ///
-/// @param source
-/// @param state
-/// @param time current time
-/// @param dt timestep
+/// Construct gravitational source terms at old timestep
+///
+/// @param source   MultiFab to save sources to
+/// @param state    Old state
+/// @param time     current time
+/// @param dt       timestep
 ///
     void construct_old_gravity_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
 
 
 ///
-/// @param source
-/// @param state_old
-/// @param state_new
-/// @param time current time
-/// @param dt timestep
+/// Construct gravitational source terms at new timestep
+///
+/// @param source       MultiFab to save sources to
+/// @param state_old    Old state
+/// @param state_new    New state
+/// @param time         current time
+/// @param dt           timestep
 ///
     void construct_new_gravity_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 #endif
@@ -807,7 +887,7 @@ public:
 ///
 /// Estimate time step.
 ///
-/// @param dt_old previous timestep
+/// @param dt_old   previous timestep
 ///
     amrex::Real estTimeStep (amrex::Real dt_old);
 
@@ -819,12 +899,12 @@ public:
 ///
 /// Compute initial ``dt``.
 ///
-/// @param finest_level
+/// @param finest_level     Index of finest level
 /// @param sub_cycle
-/// @param n_cycle
-/// @param ref_ratio
-/// @param dt_level
-/// @param stop_time
+/// @param n_cycle          the number of subcycles at this level
+/// @param ref_ratio        Vector of refinement ratios between levels
+/// @param dt_level         Real Vector, will contain initial timestep at each level.
+/// @param stop_time        End time of simulation
 ///
     virtual void computeInitialDt (int                   finest_level,
                                    int                   sub_cycle,
@@ -836,14 +916,14 @@ public:
 ///
 /// Compute new ``dt``.
 ///
-/// @param finest_level
+/// @param finest_level     Index of finest level
 /// @param sub_cycle
-/// @param n_cycle
-/// @param ref_ratio
+/// @param n_cycle          the number of subcycles at this level
+/// @param ref_ratio        Vector of refinement ratios between levels
 /// @param dt_min
 /// @param dt_level
-/// @param stop_time
-/// @param post_regrid_flag
+/// @param stop_time        End time of simulation
+/// @param post_regrid_flag Have we done regridding yet?
 ///
     virtual void computeNewDt (int                   finest_level,
                                int                   sub_cycle,
@@ -885,7 +965,7 @@ public:
 ///
 /// Do work after timestep().
 ///
-/// @param iteration
+/// @param iteration    where we are in the current AMR subcycle
 ///
     virtual void post_timestep (int iteration) override;
 
@@ -899,7 +979,7 @@ public:
 ///
 /// Check whether we want to do a regrid.
 ///
-/// @param time current time
+/// @param time     current time
 ///
     void check_for_post_regrid (amrex::Real time);
 
@@ -920,19 +1000,19 @@ public:
 ///
 /// Do work after init().
 ///
-/// @param stop_time
+/// @param stop_time    End time of simulation
 ///
     virtual void post_init (amrex::Real stop_time) override;
 
 ///
-/// Do work after restart with grown_factor > 1
+/// Do work after restart with ``grown_factor`` > 1
 ///
     void post_grown_restart ();
 
 #ifdef DO_PROBLEM_POST_SIMULATION
 
 ///
-/// Do work at the end of the simulation -- before the last outputs
+/// Do work at the end of the simulation - before the last outputs
 ///
 /// @param amr_level
 ///
@@ -943,12 +1023,12 @@ public:
 ///
 /// Error estimation for regridding.
 ///
-/// @param tb
-/// @param clearval
-/// @param tagval
-/// @param time current time
-/// @param n_error_buf
-/// @param ngrow
+/// @param tb           TagBoxArray of tags
+/// @param clearval     integer
+/// @param tagval       integer
+/// @param time         current time
+/// @param n_error_buf  integer
+/// @param ngrow        Number of ghost cells
 ///
     virtual void errorEst (amrex::TagBoxArray& tb,
                            int          clearval,
@@ -959,12 +1039,12 @@ public:
 
 
 ///
-/// Apply the set_problem_tags routine.
+/// Apply the ::set_problem_tags routine.
 ///
-/// @param tags
+/// @param tags         TagBoxArray of tags
 /// @param clearval
 /// @param setval
-/// @param time current time
+/// @param time         current time
 ///
     void apply_problem_tags (amrex::TagBoxArray& tags, int clearval, int setval, amrex::Real time);
 
@@ -972,11 +1052,11 @@ public:
 ///
 /// Apply a given tagging function.
 ///
-/// @param tags
+/// @param tags         TagBoxArray of tags
 /// @param clearval
 /// @param setval
-/// @param time current time
-/// @param j
+/// @param time         current time
+/// @param j            integer
 ///
     void apply_tagging_func (amrex::TagBoxArray& tags, int clearval, int setval, amrex::Real time, int j);
 
@@ -984,24 +1064,28 @@ public:
 ///
 /// Hooks for problem-specific operations before and after applying custom tagging.
 ///
-/// @param tags
+/// @param tags     TagBoxArray of tags
 /// @param clearval
 /// @param tagval
-/// @param time current time
+/// @param time     current time
 ///
     void problem_pre_tagging_hook (amrex::TagBoxArray& tags, int clearval, int tagval, amrex::Real time);
 
 ///
-/// @param tags
+/// @param tags     TagBoxArray of tags
 /// @param clearval
 /// @param tagval
-/// @param time current time
+/// @param time     current time
 ///
     void problem_post_tagging_hook (amrex::TagBoxArray& tags, int clearval, int tagval, amrex::Real time);
 
 ///
 /// Returns a MultiFab containing the derived data for this level.
 /// If ngrow>0 the MultiFab is built on the appropriately grown BoxArray.
+///
+/// @param name     Name of derived data
+/// @param time     Current time
+/// @param ngrow    Number of ghost cells
 ///
     virtual std::unique_ptr<amrex::MultiFab> derive (const std::string& name,
 						     amrex::Real        time,
@@ -1010,10 +1094,10 @@ public:
 ///
 /// This version of derive() fills the dcomp'th component of mf with the derived quantity.
 ///
-/// @param name
-/// @param time current time
-/// @param mf
-/// @param dcomp
+/// @param name         Name of quantity to derive
+/// @param time         current time
+/// @param mf           MultiFab to store derived quantity in
+/// @param dcomp        index of component of `mf` to fill with derived quantity
 ///
     virtual void derive (const std::string& name,
 			 amrex::Real               time,
@@ -1026,14 +1110,16 @@ public:
 #ifndef SDC
 
 ///
-/// @param state
-/// @param reactions
+/// React state through a single reaction timestep, saving reaction source terms to ``reactions`` MultiFab. This is the non-SDC version.
+///
+/// @param state        Current state
+/// @param reactions    MultiFab to save reaction sources to
 /// @param mask
 /// @param weights
-/// @param time     current time
+/// @param time         current time
 /// @param dt_react     reaction timestep
-/// @param strang_half
-/// @param ngrow
+/// @param strang_half  Is this a Strang-split half timestep?
+/// @param ngrow        Number of ghost cells
 ///
     void react_state(amrex::MultiFab& state,
 		     amrex::MultiFab& reactions,
@@ -1045,30 +1131,36 @@ public:
 
 
 ///
+/// React through first half timestep
+///
 /// @param time     current time
-/// @param dt   timestep
+/// @param dt       timestep
 ///
     void strang_react_first_half(amrex::Real time, amrex::Real dt);
 
 
 ///
-/// @param time current time
-/// @param dt timestep
+/// React through second half stimestep
+///
+/// @param time     current time
+/// @param dt       timestep
 ///
     void strang_react_second_half(amrex::Real time, amrex::Real dt);
 #else
 
 ///
-/// @param time current time
-/// @param dt timestep
+/// SDC version of react state. Reacts the current state through a single timestep.
+///
+/// @param time     current time
+/// @param dt       timestep
 ///
     void react_state(amrex::Real time, amrex::Real dt);
 
 ///
 /// Obtain the effective source term due to reactions on the primitive variables
 ///
-/// @param source
-/// @param dt timestep
+/// @param source   MultiFab to save source term to
+/// @param dt       timestep
 ///
     void get_react_source_prim(amrex::MultiFab& source, amrex::Real dt);
 #endif
@@ -1077,8 +1169,8 @@ public:
 ///
 /// @param state
 /// @param react_mf
-/// @param time current time
-/// @param dt timestep
+/// @param time     current time
+/// @param dt       timestep
 ///
     void strang_chem (amrex::MultiFab&  state,
                       amrex::MultiFab&  react_mf,
@@ -1087,7 +1179,9 @@ public:
 
 
 ///
-/// @param State
+/// Are there any zones in ``State`` that can burn?
+///
+/// @param State    State MultiFab
 ///
     bool valid_zones_to_burn(amrex::MultiFab& State);
 #endif
@@ -1095,29 +1189,35 @@ public:
 #ifdef ROTATION
 
 ///
-/// @param source
-/// @param state
+/// Construct rotation source terms at old time
+///
+/// @param source   MultiFab to save source terms to
+/// @param state    Old state
 /// @param time     current time
-/// @param dt   timestep
+/// @param dt       timestep
 ///
     void construct_old_rotation_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
 
 
 ///
-/// @param source
-/// @param state_old
-/// @param state_new
-/// @param time current time
-/// @param dt timestep
+/// Construct rotation source terms at new time.
+///
+/// @param source       MultiFab to save source terms to
+/// @param state_old    Old State
+/// @param state_new    New State
+/// @param time         current time
+/// @param dt           timestep
 ///
     void construct_new_rotation_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
 
 ///
-/// @param phi
-/// @param rot
-/// @param state
-/// @param time current time
+/// Fill rotational potential and acceleration
+///
+/// @param phi      Rotational potential
+/// @param rot      Rotational acceleration
+/// @param state    Current state
+/// @param time     current time
 ///
     void fill_rotation_field(amrex::MultiFab& phi, amrex::MultiFab& rot, amrex::MultiFab& state, amrex::Real time);
 #endif
@@ -1126,8 +1226,8 @@ public:
 
 ///
 /// @param S_new
-/// @param iteration
-/// @param ncycle
+/// @param iteration    where we are in the current AMR subcycle
+/// @param ncycle       the number of subcycles at this level
 ///
     void final_radiation_call (amrex::MultiFab& S_new,
                                int iteration,
@@ -1136,36 +1236,41 @@ public:
 
 
 ///
-/// @param State
+/// Reset the internal energy
+///
+/// @param State    Current state
 ///
     void reset_internal_energy (amrex::MultiFab& State);
 
 
 ///
-/// @param State
-/// @param ng number of ghost cells
+/// Compute the current temperature
+///
+/// @param State    Current state
+/// @param ng       number of ghost cells
 ///
     void computeTemp (amrex::MultiFab& State, int ng);
 
 ///
-/// Optionally predict the source terms to t + dt/2,
-/// which is the time-level n+1/2 value, To do this we use a
-/// lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so
-/// S_{n+1/2} = S_n + (dt / 2) * dS/dt_n. We'll add the S_n
+/// Optionally predict the source terms to ``t + dt/2``,
+/// which is the time-level ``n+1/2`` value, To do this we use a
+/// lagged predictor estimate: \f$ \frac{dS}{dt_n} = (S_n - S_{n-1}) / dt \f$, so
+/// \f$ S_{n+1/2} = S_n + (dt / 2) \frac{dS}{dt_n} \f$. We'll add the ``S_n``
 /// terms later; now we add the second term. We defer the
-/// multiplication by dt / 2 to initialize_do_advance since
+/// multiplication by ``dt / 2`` to ::initialize_do_advance since
 /// for a retry we may not yet know at this point what the
 /// advance timestep is.
 ///
-/// Note that since for dS/dt we want (S^{n+1} - S^{n}) / dt,
+/// Note that since for ``dS/dt`` we want \f$ (S^{n+1} - S^{n}) / dt \f$,
 /// we only need to take twice the new-time source term, since in
 /// the predictor-corrector approach, the new-time source term is
-/// 1/2 * S^{n+1} - 1/2 * S^{n}. This is untrue in general for the
+/// \f$ \frac{1}{2} S^{n+1} - \frac{1}{2} S^{n} \f$. This is
+/// untrue in general for the
 /// non-momentum sources, so for safety we'll only apply it to the
 /// momentum sources.
 ///
 /// Note that if the old data doesn't exist yet (e.g. it is
-/// the first step of the simulation) FillPatch will just
+/// the first step of the simulation) ``FillPatch`` will just
 /// return the new data, so this is a valid operation and
 /// the result will be zero, so there is no source term
 /// prediction in the first step.
@@ -1174,112 +1279,145 @@ public:
 
 
 ///
-/// @param dt timestep
+/// This is a hack to make sure that we only
+/// ever have new data for certain state types that only
+/// ever need new time data; by doing a swap now, we'll
+/// guarantee that allocOldData() does nothing. We do
+/// this because we never need the old data, so we
+/// don't want to allocate memory for it.
+///
+/// @param dt   timestep
 ///
     void swap_state_time_levels (const amrex::Real dt);
 
 #ifdef DIFFUSION
 
 ///
-/// @param source
-/// @param state
-/// @param time current time
-/// @param dt timestep
+/// Construct diffusion source at old time
+///
+/// @param source   MultiFab to save source terms to
+/// @param state    Old state
+/// @param time     current time
+/// @param dt       timestep
 ///
     void construct_old_diff_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
 
 ///
-/// @param source
-/// @param state_old
-/// @param state_new
-/// @param time current time
-/// @param dt timestep
+/// Construct diffusion source at new time
+///
+/// @param source       MultiFab to save source terms to
+/// @param state_old    Old state
+/// @param state_new    New state
+/// @param time         current time
+/// @param dt           timestep
 ///
     void construct_new_diff_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
 
 ///
-/// @param time current time
-/// @param state
-/// @param DiffTerm
+/// Get thermal conductivity diffusion term at given time
+///
+/// @param time     current time
+/// @param state    Current state
+/// @param DiffTerm MultiFab to save term to
 ///
     void getTempDiffusionTerm (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& DiffTerm);
 
 ///
-/// @param time current time
-/// @param state
-/// @param DiffTerm
+/// Get enthalpy conductivity diffusion term at given time
+///
+/// @param time     current time
+/// @param state    Current state
+/// @param DiffTerm MultiFab to save term to
 ///
     void getEnthDiffusionTerm (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& DiffTerm);
 #if (BL_SPACEDIM == 1)
 
 ///
-/// @param time current time
-/// @param state
-/// @param DiffTerm
+/// Get species' diffusion terms at given time
+///
+/// @param time     current time
+/// @param state    Current state
+/// @param DiffTerm MultiFab to save term to
 ///
     void getSpecDiffusionTerm (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& DiffTerm);
 #endif
 #if (BL_SPACEDIM == 1)
 
 ///
-/// @param time current time
-/// @param state
-/// @param ViscousTermforMomentum
-/// @param ViscousTermforEnergy
+/// Get viscous term at given time
+///
+/// @param time                     current time
+/// @param state                    Current state
+/// @param ViscousTermforMomentum   Viscous term for momentum equation
+/// @param ViscousTermforEnergy     Viscous term for energy equation
 ///
     void getViscousTerm (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& ViscousTermforMomentum, amrex::MultiFab& ViscousTermforEnergy);
 
 ///
-/// @param time current time
-/// @param state
-/// @param ViscousTerm
+///
+///
+/// @param time         current time
+/// @param state        Current state
+/// @param ViscousTerm  MultiFab to save term to
 ///
     void getFirstViscousTerm (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& ViscousTerm);
 
 ///
-/// @param time current time
-/// @param state
-/// @param ViscousTerm
+///
+///
+/// @param time         current time
+/// @param state        Current state
+/// @param ViscousTerm  MultiFab to save term to
 ///
     void getSecndViscousTerm (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& ViscousTerm);
 
 ///
-/// @param time current time
-/// @param state
-/// @param ViscousTermforEnergy
+/// @param time                     current time
+/// @param state                    Current state
+/// @param ViscousTermforEnergy     MultiFab to save term to
 ///
     void getViscousTermForEnergy (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& ViscousTermforEnergy);
 #endif
 
 ///
-/// @param ext_src
-/// @param source
-/// @param DiffTerm
-/// @param t
-/// @param mult_factor
+/// Calculate temperature or enthalpty diffusion terms and add to ``ext_src`` (multiplied by ``mult_factor``).
 ///
-    void add_temp_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& source, amrex::MultiFab& DiffTerm, amrex::Real t, amrex::Real mult_factor = 1.0);
+/// @param ext_src      Source terms to add diffusion sources to
+/// @param state        Current state
+/// @param DiffTerm     MultiFab to save diffusion sources to
+/// @param t            Current time
+/// @param mult_factor  Real, factor to multiply diffusion
+///                     sources by before adding to other sources.
+///
+    void add_temp_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& state, amrex::MultiFab& DiffTerm, amrex::Real t, amrex::Real mult_factor = 1.0);
 #if (BL_SPACEDIM == 1)
 
 ///
-/// @param ext_src
-/// @param source
-/// @param DiffTerm
-/// @param t
-/// @param mult_factor
+/// Calculate species' diffusion source terms and add to ``ext_src``
 ///
-    void add_spec_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& source, amrex::MultiFab& DiffTerm, amrex::Real t, amrex::Real mult_factor = 1.0);
+/// @param ext_src      MultiFab of source terms to add diffusion terms to
+/// @param state        Current state
+/// @param DiffTerm     MultiFab to save diffusion terms to
+/// @param t            Current time
+/// @param mult_factor  Real, factor to multiply diffusion term
+///                     by before addding to other sources
+///
+    void add_spec_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& state, amrex::MultiFab& DiffTerm, amrex::Real t, amrex::Real mult_factor = 1.0);
 #endif
 #if (BL_SPACEDIM == 1)
 
 ///
-/// @param ext_src
-/// @param state
-/// @param ViscousTermforMomentum
-/// @param ViscousTermforEnergy
-/// @param t
-/// @param mult_factor
+/// Calculate viscous source terms and add to ``ext_src``
+///
+/// @param ext_src                  MultiFab to add viscous sources to
+/// @param state                    Current state
+/// @param ViscousTermforMomentum   MultiFab to save viscous term in momentum equation to
+/// @param ViscousTermforEnergy     MultiFab to save viscous term in energy equation to
+/// @param t                        Current time
+/// @param mult_factor              Real factor to multiply
+///                                 diffusion terms by before
+///                                 adding to other sources.
 ///
     void add_viscous_term_to_source   (amrex::MultiFab& ext_src, amrex::MultiFab& state, amrex::MultiFab& ViscousTermforMomentum,
                                        amrex::MultiFab& ViscousTermforEnergy, amrex::Real t, amrex::Real mult_factor = 1.0);
@@ -1289,62 +1427,76 @@ public:
 #ifdef ROTATION
 
 ///
-/// @param ext_src
-/// @param RotationTerm
-/// @param old_time
+/// Calculate rotation source term and add to ``ext_src``
+///
+/// @param ext_src          MultiFab to add rotation term to
+/// @param RotationTerm     MultiFab to save rotation term to
+/// @param old_time         Old time
 ///
   void add_rotation_to_source(amrex::MultiFab& ext_src, amrex::MultiFab& RotationTerm, amrex::Real old_time);
 
 ///
+/// Center rotation source term in time
+///
 /// @param S_new
 /// @param OldRotationTerm
-/// @param cur_time
-/// @param dt timestep
+/// @param cur_time         Current time
+/// @param dt               timestep
 ///
   void time_center_rotation(amrex::MultiFab& S_new, amrex::MultiFab& OldRotationTerm, amrex::Real cur_time, amrex::Real dt);
 #endif
 
 
 ///
-/// @param name
-/// @param time current time
-/// @param local
-/// @param finemask
+/// Volume weighted sum of given quantity
+///
+/// @param name         Name of quantity
+/// @param time         current time
+/// @param local        boolean, is sum local (over each patch) or over entire MultiFab?
+/// @param finemask     boolean, should we build a mask to exclude finer levels?
 ///
     amrex::Real volWgtSum (const std::string& name, amrex::Real time, bool local=false, bool finemask=true);
 
 
 ///
-/// @param name
-/// @param time current time
-/// @param local
+/// Volume weight sum of (given quantity) squared
+///
+/// @param name     Name of quantity
+/// @param time     current time
+/// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
 ///
     amrex::Real volWgtSquaredSum (const std::string& name, amrex::Real time, bool local=false);
 
 
 ///
-/// @param name
-/// @param time current time
-/// @param idir
-/// @param local
+/// Sum weighted by volume multiplied by distance from center in given direction
+///
+/// @param name     Name of quantity
+/// @param time     current time
+/// @param idir     Axis along which to compute distance from center
+/// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
 ///
     amrex::Real locWgtSum (const std::string& name, amrex::Real time, int idir, bool local=false);
 
 
 ///
-/// @param name
-/// @param time current time
-/// @param idir1
-/// @param idir2
-/// @param local
+/// Sum weighted by volume multiplied by product of distances from center in two given directions
+///
+/// @param name     Name of quantity
+/// @param time     current time
+/// @param idir1    First direction
+/// @param idir2    Second direction
+/// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
 ///
     amrex::Real locWgtSum2D (const std::string& name, amrex::Real time, int idir1, int idir2, bool local=false);
 
 
 ///
-/// @param mf
-/// @param comp
-/// @param local
+/// Volume weighted sum of given component of multifab
+///
+/// @param mf       MultiFab to sum
+/// @param comp     Component to sum
+/// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
 ///
     amrex::Real volWgtSumMF (const amrex::MultiFab& mf, int comp, bool local=false);
 
@@ -1355,12 +1507,12 @@ public:
 /// The argument idir (x == 0, y == 1, z == 2) gives the direction to location weight by,
 /// and the argument bdir gives the direction along which to bisect.
 ///
-/// @param name
-/// @param time current time
-/// @param idir
-/// @param side
-/// @param bdir
-/// @param local
+/// @param name     Name of quantity
+/// @param time     current time
+/// @param idir     direction to weight by
+/// @param side     lower half (0) or upper half (1)
+/// @param bdir     Direction along which to bisect
+/// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
 ///
     amrex::Real locWgtSumOneSide (const std::string& name, amrex::Real time, int idir, int side, int bdir, bool local=false);
 
@@ -1372,29 +1524,33 @@ public:
 ///
 /// @note Only designed to work in Cartesian geometries.
 ///
-/// @param name
-/// @param time current time
-/// @param side
-/// @param bdir
-/// @param local
+/// @param name     Name of quantity
+/// @param time     current time
+/// @param side     lower half (0) or upper half (1)
+/// @param bdir     Direction along which to bisect
+/// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
 ///
     amrex::Real volWgtSumOneSide (const std::string& name, amrex::Real time, int side, int bdir, bool local=false);
 
 
 ///
-/// @param name1
-/// @param name2
-/// @param time current time
-/// @param local
+/// Volume weighted sum of the product of two quantities
+///
+/// @param name1    Name of first quantity
+/// @param name2    Name of second quantity
+/// @param time     current time
+/// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
 ///
     amrex::Real volProductSum (const std::string& name1, const std::string& name2, amrex::Real time, bool local=false);
 
 
 ///
-/// @param name
-/// @param time current time
-/// @param idir
-/// @param local
+/// Location weighted sum of (quantity) squared
+///
+/// @param name     Name of quantity
+/// @param time     current time
+/// @param idir     Direction along which to weight
+/// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
 ///
     amrex::Real locSquaredSum (const std::string& name, amrex::Real time, int idir, bool local=false);
 
@@ -1406,34 +1562,42 @@ public:
 #ifdef HYBRID_MOMENTUM
 
 ///
-/// @param source
-/// @param state
-/// @param time current time
-/// @param dt timestep
+/// Construct hybrid source terms at old time
+///
+/// @param source   MultiFab to save source to
+/// @param state    Old state
+/// @param time     current time
+/// @param dt       timestep
 ///
     void construct_old_hybrid_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
 
 
 ///
-/// @param source
-/// @param state_old
-/// @param state_new
-/// @param time current time
-/// @param dt timestep
+/// Construct hybrid source terms at new time
+///
+/// @param source       MultiFab to save source to
+/// @param state_old    Old state
+/// @param state_new    New state
+/// @param time         current time
+/// @param dt           timestep
 ///
     void construct_new_hybrid_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
 
 ///
-/// @param state
-/// @param source
+/// Fill ``source`` with hybrid source terms
+///
+/// @param state        Current state
+/// @param source       MultiFab to save source to
 /// @param mult_factor
 ///
     void fill_hybrid_hydro_source(amrex::MultiFab& state, amrex::MultiFab& source, const amrex::Real mult_factor);
 
 
 ///
-/// @param state
+/// Update state to account for hybrid advection
+///
+/// @param state    Current state
 ///
     void hybrid_sync(amrex::MultiFab& state);
 #endif
@@ -1448,27 +1612,44 @@ public:
 
 
 ///
-/// @param is_new
-/// @param state
-/// @param source
-/// @param dt timestep
-/// @param ng number of ghost cells
+/// Add source terms to ``state``
+///
+/// @param is_new   do we use new (0) or old (1) data?
+/// @param state    State
+/// @param source   Source terms
+/// @param dt       timestep
+/// @param ng       number of ghost cells
 ///
     void apply_source_to_state (int is_new, amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng = 0);
 
 
 ///
-/// @param S
-/// @param time current time
-/// @param iclean
-/// @param ng number of ghost cells
+/// Fill a version of the state with ``ng`` ghost zones from the state data.
+///
+/// S is the multifab we are filling with ``State_Type`` ``StateData``,
+/// including a ghost cell fill at the end.  Before we do the fill,
+/// we do a ``clean_state`` on the ``State_Type data``.  iclean = 0 means
+/// clean the "old" time data, iclean = 1 means clean the "new time
+/// data", and iclean = 2 means clean both the old and new time data
+/// (in case we are interpolating in time).  For any other value, no
+/// cleaning is done
+
+// note: we don't clean ghost cells here, since we are doing a fill
+// right afterwards
+///
+/// @param S        MultiFab to be filled
+/// @param time     current time
+/// @param iclean   What data do we clean?
+/// @param ng       number of ghost cells
 ///
     void expand_state(amrex::MultiFab& S, amrex::Real time, int iclean, int ng);
 
 #ifdef SELF_GRAVITY
 
 ///
-/// @param is_new
+/// Calculate state in radial direction by averaging
+///
+/// @param is_new   do we use new (0) or old (1) data?
 ///
     void make_radial_data (int is_new);
 #endif
@@ -1476,8 +1657,10 @@ public:
 #ifdef AUX_UPDATE
 
 ///
-/// @param time current time
-/// @param dt timestep
+/// Calculate auxiliary variables at new timestep
+///
+/// @param time     current time
+/// @param dt       timestep
 ///
     void advance_aux(amrex::Real time, amrex::Real dt);
 #endif
@@ -1743,6 +1926,8 @@ protected:
 
 
 ///
+/// Do refluxing
+///
 /// @param crse_level
 /// @param fine_level
 ///
@@ -1750,14 +1935,21 @@ protected:
 
 
 ///
-/// @param S_new
-/// @param ng number of ghost cells
+/// Normalize species fractions so they sum to 1
+///
+/// @param S_new    State
+/// @param ng       number of ghost cells
 ///
     void normalize_species (amrex::MultiFab& S_new, int ng);
 
 
 ///
-/// @param S
+/// Enforces
+/// \f[
+/// \rho E = \rho e + \frac{1}{2} \rho (u^2 + v^2 + w^2)
+/// \f]
+///
+/// @param S  State
 ///
     void enforce_consistent_e (amrex::MultiFab& S);
 
@@ -1771,9 +1963,9 @@ protected:
 /// The return value is the the negative fractional change in the state that has the
 /// largest magnitude. If there is no reference state, this is meaningless.
 ///
-/// @param S_old
-/// @param S_new
-/// @param ng number of ghost cells
+/// @param S_old        Old state
+/// @param S_new        New state
+/// @param ng           number of ghost cells
 ///
     amrex::Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new, int ng);
 
@@ -1782,12 +1974,16 @@ protected:
 /// sure the data is sensible. The return value is the same as the return
 /// value of enforce_min_density.
 ///
-/// @param is_new
-/// @param state
-/// @param ng number of ghost cells
+/// @param is_new   do we use new (0) or old (1) data?
+/// @param state    State data
+/// @param ng       number of ghost cells
 ///
     amrex::Real clean_state (int is_new, amrex::MultiFab& state, int ng);
 
+///
+/// Given ``State_Type`` state data, perform a number of cleaning steps to make
+/// sure the data is sensible. The return value is the same as the return
+/// value of enforce_min_density.
 ///
 /// this is the "preferred" clean_state interface -- it will work
 /// directly on the StateData.  ``is_new``=0 means the old data is used,
@@ -1795,21 +1991,30 @@ protected:
 ///
 ///
 /// @param is_new   do we use new (0) or old (1) data?
-/// @param ng   number of ghost cells
+/// @param ng       number of ghost cells
 ///
     amrex::Real clean_state (int is_new, int ng);
 
 
 ///
-/// @param state
+/// Given ``State_Type`` state data, perform a number of cleaning steps to make
+/// sure the data is sensible. The return value is the same as the return
+/// value of ::enforce_min_density.
+///
+/// @param state    State data
 ///
     amrex::Real clean_state (amrex::MultiFab& state);
 
+///
+/// Average new state from ``level+1`` down to ``level``
+///
     void avgDown ();
 
 
 ///
-/// @param state_indx
+/// Average given component of new state from ``level+1`` down to ``level``
+///
+/// @param state_indx   Index of state to average down
 ///
     void avgDown (int state_indx);
 
@@ -1824,12 +2029,15 @@ protected:
 ///
 /// integrate derived quantities over domain
 ///
-/// @param name
-/// @param time current time
+/// @param name     Name of quantity to integrate
+/// @param time     current time
 /// @param local
 ///
     amrex::Real sumDerive (const std::string& name, amrex::Real time, bool local=false);
 
+///
+/// Calculates volume weight sums of variables and prints to screen
+///
     void sum_integrated_quantities ();
 
     void write_info ();
@@ -1837,7 +2045,9 @@ protected:
 #ifdef SELF_GRAVITY
 
 ///
-/// @param S
+/// Find the position of the "center" by interpolating from data at cell centers
+///
+/// @param S        Current state
 /// @param time     current time
 ///
     void define_new_center (amrex::MultiFab& S, amrex::Real time);
@@ -1848,7 +2058,7 @@ protected:
 
 ///
 /// @param time     current time
-/// @param dt   timestep
+/// @param dt       timestep
 ///
     void pointmass_update(amrex::Real time, amrex::Real dt);
 #endif
@@ -1916,6 +2126,9 @@ protected:
     static amrex::Real      previousCPUTimeUsed;
     static amrex::Real      startCPUTime;
 
+///
+/// Get total CPU time
+///
     static amrex::Real getCPUTime();
 
     bool             FillPatchedOldState_ok;
