@@ -38,8 +38,11 @@
    do_constant_volume_burn = T
 
    rtol_spec = 1.e-10
-   rtol_enuc = 1.e-8
-   rtol_temp = 1.e-8
+   rtol_enuc = 1.e-10
+   rtol_temp = 1.e-10
+   atol_spec = 1.e-10
+   atol_enuc = 1.e-10
+   atol_temp = 1.e-10
    use_tables = T
    jacobian = 2
 /
