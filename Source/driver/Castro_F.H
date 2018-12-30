@@ -202,8 +202,8 @@ extern "C"
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new));
 
   void ca_get_center(amrex::Real* center);
-  void ca_set_center(amrex::Real* center);
-  void ca_find_center(amrex::Real* data, amrex::Real* center, int* icen,
+  void ca_set_center(const amrex::Real* center);
+  void ca_find_center(amrex::Real* data, amrex::Real* center, const int* icen,
 		      const amrex::Real* dx, const amrex::Real* problo);
 
   void ca_compute_temp

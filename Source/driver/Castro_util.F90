@@ -85,7 +85,8 @@ contains
 
 
 
-  !>
+  !> Enforces (rho E) = (rho e) + 1/2 rho (u^2 + v^2 + w^2)
+  !!
   !! @param[in] lo integer
   !! @param[in] s_lo integer
   !! @param[inout] state real(rt)

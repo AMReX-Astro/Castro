@@ -355,7 +355,7 @@ Castro::print_source_change(Vector<Real> update)
 }
 
 // For the old-time or new-time sources update, evaluate the change in the state
-// for all source terms, then pring the results.
+// for all source terms, then print the results.
 
 void
 Castro::print_all_source_changes(Real dt, bool is_new)
