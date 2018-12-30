@@ -319,12 +319,12 @@ Castro::restart (Amr&     papa,
        } else if (star_at_center == 1) {
 
           Box domain(geom.Domain());
-          int d,lo=0,hi=0;
+          int lo=0, hi=0;
           if (Geometry::IsRZ()) {
              if (grown_factor != 2) 
                 amrex::Abort("Must have grown_factor = 2");
 
-             d = 0;
+             int d = 0;
              int dlen =  domain.size()[d];
              lo = 0;
              hi = dlen/2;
@@ -442,9 +442,9 @@ Castro::restart (Amr&     papa,
         parent->setCumTime(reset_checkpoint_time);
 
         for (int n = 0; n < num_state_type; ++n) {
-            StateData& state = get_state_data(n);
-            state.setOldTimeLevel(reset_checkpoint_time-dt);
-            state.setNewTimeLevel(reset_checkpoint_time   );
+            StateData& cur_state = get_state_data(n);
+            cur_state.setOldTimeLevel(reset_checkpoint_time-dt);
+            cur_state.setNewTimeLevel(reset_checkpoint_time   );
         }
 
     }
@@ -695,6 +695,8 @@ Castro::writeJobInfo (const std::string& dir)
 #ifdef _OPENMP
   jobInfoFile << "number of threads:       " << omp_get_max_threads() << "\n";
 #endif
+  jobInfoFile << "\n";
+  jobInfoFile << "hydro tile size:         " << hydro_tile_size << "\n";
 
   jobInfoFile << "\n";
   jobInfoFile << "CPU time used since start of simulation (CPU-hours): " <<

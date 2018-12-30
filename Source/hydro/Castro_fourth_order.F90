@@ -1,49 +1,49 @@
-! advection routines in support of method of lines integration
-
+!> @brief advection routines in support of method of lines integration
+!!
 subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
-                                  stage_weight, &
-                                  uin, uin_lo, uin_hi, &
-                                  uout, uout_lo, uout_hi, &
-                                  q, q_lo, q_hi, &
-                                  q_bar, q_bar_lo, q_bar_hi, &
-                                  qaux, qa_lo, qa_hi, &
-                                  srcU, srU_lo, srU_hi, &
-                                  update, updt_lo, updt_hi, &
-                                  update_flux, uf_lo, uf_hi, &
-                                  dx, dt, &
-                                  flx, flx_lo, flx_hi, &
+     stage_weight, &
+     uin, uin_lo, uin_hi, &
+     uout, uout_lo, uout_hi, &
+     q, q_lo, q_hi, &
+     q_bar, q_bar_lo, q_bar_hi, &
+     qaux, qa_lo, qa_hi, &
+     srcU, srU_lo, srU_hi, &
+     update, updt_lo, updt_hi, &
+     update_flux, uf_lo, uf_hi, &
+     dx, dt, &
+     flx, flx_lo, flx_hi, &
 #if AMREX_SPACEDIM >= 2
-                                  fly, fly_lo, fly_hi, &
+     fly, fly_lo, fly_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-                                  flz, flz_lo, flz_hi, &
+     flz, flz_lo, flz_hi, &
 #endif
-                                  area1, area1_lo, area1_hi, &
+     area1, area1_lo, area1_hi, &
 #if AMREX_SPACEDIM >= 2
-                                  area2, area2_lo, area2_hi, &
+     area2, area2_lo, area2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-                                  area3, area3_lo, area3_hi, &
+     area3, area3_lo, area3_hi, &
 #endif
 #if AMREX_SPACEDIM < 3
-                                  pradial, p_lo, p_hi, &
-                                  dloga, dloga_lo, dloga_hi, &
+     pradial, p_lo, p_hi, &
+     dloga, dloga_lo, dloga_hi, &
 #endif
-                                  vol, vol_lo, vol_hi, &
-                                  verbose) bind(C, name="ca_fourth_single_stage")
+     vol, vol_lo, vol_hi, &
+     verbose) bind(C, name="ca_fourth_single_stage")
 
   use amrex_mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, NQAUX, GDPRES, &
-                                 UTEMP, UEINT, USHK, GDU, GDV, GDW, UMX, &
-                                 use_flattening, QPRES, NQAUX, &
-                                 QTEMP, QFS, QFX, QREINT, QRHO, &
-                                 first_order_hydro, difmag, hybrid_riemann, &
-                                 limit_fluxes_on_small_dens, ppm_temp_fix
+       UTEMP, UEINT, USHK, GDU, GDV, GDW, UMX, &
+       use_flattening, QPRES, NQAUX, &
+       QTEMP, QFS, QFX, QREINT, QRHO, &
+       first_order_hydro, difmag, hybrid_riemann, &
+       limit_fluxes_on_small_dens, ppm_temp_fix
   use advection_util_module, only : limit_hydro_fluxes_on_small_dens, shock, &
-                                    divu, normalize_species_fluxes, calc_pdivu
+       divu, normalize_species_fluxes, calc_pdivu
   use amrex_error_module
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
-  use flatten_module, only: uflatten
+  use flatten_module, only: ca_uflatten
   use riemann_module, only: riemann_state
   use riemann_util_module, only: compute_flux_q
   use fourth_order
@@ -240,8 +240,9 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   call bl_allocate(flatn, q_bar_lo, q_bar_hi)
 
   if (use_flattening == 1) then
-     call uflatten(lo - ngf*dg, hi + ngf*dg, &
-                   q_bar, flatn, q_bar_lo, q_bar_hi, QPRES)
+     call ca_uflatten(lo - ngf*dg, hi + ngf*dg, &
+          q_bar, q_bar_lo, q_bar_hi, &
+          flatn, q_bar_lo, q_bar_hi, QPRES)
   else
      flatn = ONE
   endif
@@ -256,27 +257,27 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
      ! x-interfaces
      call states(1, &
-                 q, q_lo, q_hi, NQ, n, &
-                 flatn, q_bar_lo, q_bar_hi, &
-                 qxm, qxp, q_lo, q_hi, &
-                 lo, hi)
+          q, q_lo, q_hi, NQ, n, &
+          flatn, q_bar_lo, q_bar_hi, &
+          qxm, qxp, q_lo, q_hi, &
+          lo, hi)
 
 #if AMREX_SPACEDIM >= 2
      ! y-interfaces
      call states(2, &
-                 q, q_lo, q_hi, NQ, n, &
-                 flatn, q_bar_lo, q_bar_hi, &
-                 qym, qyp, q_lo, q_hi, &
-                 lo, hi)
+          q, q_lo, q_hi, NQ, n, &
+          flatn, q_bar_lo, q_bar_hi, &
+          qym, qyp, q_lo, q_hi, &
+          lo, hi)
 #endif
 
 #if AMREX_SPACEDIM == 3
      ! z-interfaces
      call states(3, &
-                 q, q_lo, q_hi, NQ, n, &
-                 flatn, q_bar_lo, q_bar_hi, &
-                 qzm, qzp, q_lo, q_hi, &
-                 lo, hi)
+          q, q_lo, q_hi, NQ, n, &
+          flatn, q_bar_lo, q_bar_hi, &
+          qzm, qzp, q_lo, q_hi, &
+          lo, hi)
 #endif
 
   enddo
@@ -287,54 +288,42 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   ! solve the Riemann problems -- we just require the interface state
   ! at this point
 
-  ! note that the Riemann solver is written to work in slabs, so we
-  ! need to pass the k index for both the state and flux separately.
-
   ! TODO: we should explicitly compute a gamma with this state, since
   ! we cannot get away with the first-order construction that we pull
   ! from qaux in the Riemann solver
 
-  do k = lo(3)-dg(3), hi(3)+dg(3)
+  call riemann_state(qxm, qxp, q_lo, q_hi, 1, 1, &
+       qx_avg, q_lo, q_hi, &
+       qaux, qa_lo, qa_hi, &
+       1, [lo(1), lo(2)-dg(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], domlo, domhi)
 
-     call riemann_state(qxm, qxp, q_lo, q_hi, &
-                        qx_avg, q_lo, q_hi, &
-                        qaux, qa_lo, qa_hi, &
-                        1, lo(1), hi(1)+1, lo(2)-dg(2), hi(2)+dg(2), k, k, k, domlo, domhi)
-
-     call compute_flux_q(1, qx_avg, q_lo, q_hi, &
-                         flx_avg, q_lo, q_hi, &
-                         qgdnvx_avg, q_lo, q_hi, &
-                         lo(1), hi(1)+1, lo(2)-dg(2), hi(2)+dg(2), k, k, k)
-  enddo
+  call compute_flux_q(1, qx_avg, q_lo, q_hi, &
+       flx_avg, q_lo, q_hi, &
+       qgdnvx_avg, q_lo, q_hi, &
+       [lo(1), lo(2)-dg(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)])
 
 #if AMREX_SPACEDIM >= 2
-  do k = lo(3)-dg(3), hi(3)+dg(3)
+  call riemann_state(qym, qyp, q_lo, q_hi, 1, 1, &
+       qy_avg, q_lo, q_hi, &
+       qaux, qa_lo, qa_hi, &
+       2, [lo(1)-1, lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+1, hi(3)+dg(3)], domlo, domhi)
 
-     call riemann_state(qym, qyp, q_lo, q_hi, &
-                        qy_avg, q_lo, q_hi, &
-                        qaux, qa_lo, qa_hi, &
-                        2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, k, k, k, domlo, domhi)
-
-     call compute_flux_q(2, qy_avg, q_lo, q_hi, &
-                         fly_avg, q_lo, q_hi, &
-                         qgdnvy_avg, q_lo, q_hi, &
-                         lo(1)-1, hi(1)+1, lo(2), hi(2)+1, k, k, k)
-  enddo
+  call compute_flux_q(2, qy_avg, q_lo, q_hi, &
+       fly_avg, q_lo, q_hi, &
+       qgdnvy_avg, q_lo, q_hi, &
+       [lo(1)-1, lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+1, hi(3)+dg(3)])
 #endif
 
 #if AMREX_SPACEDIM == 3
-  do k = lo(3), hi(3)+dg(3)
+  call riemann_state(qzm, qzp, q_lo, q_hi, 1, 1, &
+       qz_avg, q_lo, q_hi, &
+       qaux, qa_lo, qa_hi, &
+       3, [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1], domlo, domhi)
 
-     call riemann_state(qzm, qzp, q_lo, q_hi, &
-                        qz_avg, q_lo, q_hi, &
-                        qaux, qa_lo, qa_hi, &
-                        3, lo(1)-1, hi(1)+1, lo(2)-1, hi(2)+1, k, k, k, domlo, domhi)
-
-     call compute_flux_q(3, qz_avg, q_lo, q_hi, &
-                         flz_avg, q_lo, q_hi, &
-                         qgdnvz_avg, q_lo, q_hi, &
-                         lo(1)-1, hi(1)+1, lo(2)-1, hi(2)+1, k, k, k)
-  enddo
+  call compute_flux_q(3, qz_avg, q_lo, q_hi, &
+       flz_avg, q_lo, q_hi, &
+       qgdnvz_avg, q_lo, q_hi, &
+       [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1])
 #endif
 
 
@@ -418,29 +407,23 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
   ! compute face-centered fluxes
   ! these will be stored in flx, fly, flz
-  do k = lo(3), hi(3)
-     call compute_flux_q(1, qx_fc, q_lo, q_hi, &
-                         flx, flx_lo, flx_hi, &
-                         qgdnvx, flx_lo, flx_hi, &
-                         lo(1), hi(1)+1, lo(2), hi(2), k, k, k)
-  enddo
+  call compute_flux_q(1, qx_fc, q_lo, q_hi, &
+       flx, flx_lo, flx_hi, &
+       qgdnvx, flx_lo, flx_hi, &
+       [lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)])
 
 #if AMREX_SPACEDIM >= 2
-  do k = lo(3), hi(3)
-     call compute_flux_q(2, qy_fc, q_lo, q_hi, &
-                         fly, fly_lo, fly_hi, &
-                         qgdnvy, fly_lo, fly_hi, &
-                         lo(1), hi(1), lo(2), hi(2)+1, k, k, k)
-  enddo
+  call compute_flux_q(2, qy_fc, q_lo, q_hi, &
+       fly, fly_lo, fly_hi, &
+       qgdnvy, fly_lo, fly_hi, &
+       [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)])
 #endif
 
 #if AMREX_SPACEDIM == 3
-  do k = lo(3), hi(3)+1
-     call compute_flux_q(3, qz_fc, q_lo, q_hi, &
-                         flz, flz_lo, flz_hi, &
-                         qgdnvz, flz_lo, flz_hi, &
-                         lo(1), hi(1), lo(2), hi(2), k, k, k)
-  enddo
+  call compute_flux_q(3, qz_fc, q_lo, q_hi, &
+       flz, flz_lo, flz_hi, &
+       qgdnvz, flz_lo, flz_hi, &
+       [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1])
 #endif
 
 
@@ -548,7 +531,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
   ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
   call divu(lo, hi+dg, q, q_lo, q_hi, &
-            dx, div, lo, hi+dg)
+       dx, div, lo, hi+dg)
 
   do n = 1, NVAR
 
@@ -581,7 +564,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
               do i = lo(1), hi(1)+1
 
                  div1 = FOURTH*(div(i,j,k) + div(i,j+dg(2),k) + &
-                                div(i,j,k+dg(3)) + div(i,j+dg(2),k+dg(3)))
+                      div(i,j,k+dg(3)) + div(i,j+dg(2),k+dg(3)))
                  div1 = difmag*min(ZERO, div1)
 
                  flx(i,j,k,n) = flx(i,j,k,n) + &
@@ -594,7 +577,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
            do j = lo(2), hi(2)+1
               do i = lo(1), hi(1)
                  div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + &
-                                div(i,j,k+dg(3)) + div(i+1,j,k+dg(3)))
+                      div(i,j,k+dg(3)) + div(i+1,j,k+dg(3)))
                  div1 = difmag*min(ZERO, div1)
 
                  fly(i,j,k,n) = fly(i,j,k,n) + &
@@ -608,7 +591,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
            do j = lo(2), hi(2)
               do i = lo(1), hi(1)
                  div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + &
-                                div(i,j+1,k) + div(i+1,j+1,k))
+                      div(i,j+1,k) + div(i+1,j+1,k))
                  div1 = difmag*min(ZERO, div1)
 
                  flz(i,j,k,n) = flz(i,j,k,n) + &
@@ -617,7 +600,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
            enddo
         enddo
 #endif
-#endif  
+#endif
      endif
 
   enddo
@@ -645,13 +628,13 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 #elif AMREX_SPACEDIM == 2
               update(i,j,k,n) = update(i,j,k,n) + &
                    (flx(i,j,k,n) * area1(i,j,k) - flx(i+1,j,k,n) * area1(i+1,j,k) + &
-                    fly(i,j,k,n) * area2(i,j,k) - fly(i,j+1,k,n) * area2(i,j+1,k) ) / vol(i,j,k)
+                   fly(i,j,k,n) * area2(i,j,k) - fly(i,j+1,k,n) * area2(i,j+1,k) ) / vol(i,j,k)
 
 #else
               update(i,j,k,n) = update(i,j,k,n) + &
                    (flx(i,j,k,n) * area1(i,j,k) - flx(i+1,j,k,n) * area1(i+1,j,k) + &
-                    fly(i,j,k,n) * area2(i,j,k) - fly(i,j+1,k,n) * area2(i,j+1,k) + &
-                    flz(i,j,k,n) * area3(i,j,k) - flz(i,j,k+1,n) * area3(i,j,k+1) ) / vol(i,j,k)
+                   fly(i,j,k,n) * area2(i,j,k) - fly(i,j+1,k,n) * area2(i,j+1,k) + &
+                   flz(i,j,k,n) * area3(i,j,k) - flz(i,j,k+1,n) * area3(i,j,k+1) ) / vol(i,j,k)
 #endif
 
 #if AMREX_SPACEDIM == 1
@@ -683,10 +666,10 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 #if AMREX_SPACEDIM == 3
 #ifdef HYBRID_MOMENTUM
   call add_hybrid_advection_source(lo, hi, dt, &
-                                   update, uout_lo, uout_hi, &
-                                   qgdnvx, flx_lo, flx_hi, &
-                                   qgdnvy, fly_lo, fly_hi, &
-                                   qgdnvz, flz_lo, flz_hi)
+       update, uout_lo, uout_hi, &
+       qgdnvx, flx_lo, flx_hi, &
+       qgdnvy, fly_lo, fly_hi, &
+       qgdnvz, flz_lo, flz_hi)
 #endif
 #endif
 

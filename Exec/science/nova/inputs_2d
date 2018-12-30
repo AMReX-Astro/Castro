@@ -17,6 +17,10 @@ amr.n_cell           = 256    512
 castro.lo_bc       =  0   1
 castro.hi_bc       =  0   2
 
+castro.yl_ext_bc_type = "hse"
+castro.hse_interp_temp = 1
+castro.hse_reflect_vels = 1
+
 # WHICH PHYSICS
 castro.do_hydro = 1
 castro.do_react = 1
@@ -29,8 +33,6 @@ castro.riemann_solver = 0
 castro.ppm_reference_eigenvectors = 1
 
 castro.use_flattening = 1
-
-castro.allow_negative_energy = 0
 
 castro.small_temp = 5.e5
 

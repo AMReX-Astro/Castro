@@ -1,4 +1,3 @@
-
 #ifndef WIN32
 #include <unistd.h>
 #endif
@@ -74,6 +73,28 @@ int          Castro::Zmom          = -1;
 int          Castro::Rmom          = -1;
 int          Castro::Lmom          = -1;
 int          Castro::Pmom          = -1;
+#endif
+
+int          Castro::QRHO = -1;
+int          Castro::QU = -1;
+int          Castro::QV = -1;
+int          Castro::QW = -1;
+int          Castro::QGAME = -1;
+int          Castro::QPRES = -1;
+int          Castro::QREINT = -1;
+int          Castro::QTEMP = -1;
+int          Castro::QFA = -1;
+int          Castro::QFS = -1;
+int          Castro::QFX = -1;
+#ifdef MHD
+int          Castro::QMAGX = -1;
+int          Castro::QMAGY = -1;
+int          Castro::QMAGZ = -1;
+#endif
+#ifdef RADIATION
+int          Castro::QPTOT = -1;
+int          Castro::QREITOT = -1;
+int          Castro::QRAD = -1;
 #endif
 
 int          Castro::NumSpec       = 0;
@@ -159,7 +180,7 @@ Real         Castro::startCPUTime = 0.0;
 int          Castro::Knapsack_Weight_Type = -1;
 int          Castro::num_state_type = 0;
 
-// Note: Castro::variableSetUp is in Castro_setup.cpp
+// Castro::variableSetUp is in Castro_setup.cpp
 // variableCleanUp is called once at the end of a simulation
 void
 Castro::variableCleanUp ()
@@ -544,6 +565,10 @@ Castro::Castro (Amr&            papa,
    react_src_new.setVal(0.0, NUM_GROW);
 #endif
 #endif
+
+   if (Knapsack_Weight_Type > 0) {
+    get_new_data(Knapsack_Weight_Type).setVal(1.0);
+   }
 
 #ifdef DIFFUSION
       // diffusion is a static object, only alloc if not already there
@@ -1349,11 +1374,9 @@ Castro::computeNewDt (int                   finest_level,
     if (level > 0)
         return;
 
-    int i;
-
     Real dt_0 = 1.0e+100;
     int n_factor = 1;
-    for (i = 0; i <= finest_level; i++)
+    for (int i = 0; i <= finest_level; i++)
     {
         Castro& adv_level = getLevel(i);
         dt_min[i] = adv_level.estTimeStep(dt_level[i]);
@@ -1366,7 +1389,7 @@ Castro::computeNewDt (int                   finest_level,
           //
           // Limit dt's by pre-regrid dt
           //
-          for (i = 0; i <= finest_level; i++)
+          for (int i = 0; i <= finest_level; i++)
           {
               dt_min[i] = std::min(dt_min[i],dt_level[i]);
           }
@@ -1388,7 +1411,7 @@ Castro::computeNewDt (int                   finest_level,
           }
           else {
 
-              for (i = 0; i <= finest_level; i++)
+              for (int i = 0; i <= finest_level; i++)
               {
                   if (verbose && ParallelDescriptor::IOProcessor())
                       if (dt_min[i] > change_max*dt_level[i])
@@ -1428,7 +1451,7 @@ Castro::computeNewDt (int                   finest_level,
     //
     // Find the minimum over all levels
     //
-    for (i = 0; i <= finest_level; i++)
+    for (int i = 0; i <= finest_level; i++)
     {
         n_factor *= n_cycle[i];
         dt_0 = std::min(dt_0,n_factor*dt_min[i]);
@@ -1468,7 +1491,8 @@ Castro::computeNewDt (int                   finest_level,
                 lastDtPlotLimited = 1;
                 lastDtBeforePlotLimiting = dt_0;
                 dt_0 = std::max(epsDt, newPlotDt);
-                amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next plot interval.\n";
+                if (verbose)
+                    amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next plot interval.\n";
             }
 
         }
@@ -1499,7 +1523,8 @@ Castro::computeNewDt (int                   finest_level,
                 lastDtPlotLimited = 1;
                 lastDtBeforePlotLimiting = dt_0;
                 dt_0 = std::max(epsDt, newSmallPlotDt);
-                amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next smallplot interval.\n";
+                if (verbose)
+                    amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next smallplot interval.\n";
             }
 
         }
@@ -1514,12 +1539,13 @@ Castro::computeNewDt (int                   finest_level,
     if (stop_time >= 0.0) {
         if ((cur_time + dt_0) > (stop_time - eps)) {
             dt_0 = stop_time - cur_time;
-            amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the stop_time.\n";
+            if (verbose)
+                amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the stop_time.\n";
         }
     }
 
     n_factor = 1;
-    for (i = 0; i <= finest_level; i++)
+    for (int i = 0; i <= finest_level; i++)
     {
         n_factor *= n_cycle[i];
         dt_level[i] = dt_0/n_factor;
@@ -1546,7 +1572,7 @@ Castro::computeInitialDt (int                   finest_level,
 
     Real dt_0 = 1.0e+100;
     int n_factor = 1;
-    ///TODO/DEBUG: This will need to change for optimal subcycling.
+    // TODO/DEBUG: This will need to change for optimal subcycling.
     for (i = 0; i <= finest_level; i++)
     {
         dt_level[i] = getLevel(i).initialTimeStep();
@@ -1940,8 +1966,8 @@ Castro::post_regrid (int lbase,
 		   amrex::InterpFromCoarseLevel(*grad_phi_fine[n], time, *grad_phi_coarse[n],
 						0, 0, 1,
 						parent->Geom(level-1), parent->Geom(level),
-						gp_phys_bc, gp_phys_bc, parent->refRatio(level-1),
-						gp_interp, gp_bcs);
+						gp_phys_bc, 0, gp_phys_bc, 0, parent->refRatio(level-1),
+						gp_interp, gp_bcs, 0);
 	       }
 
 	   }
@@ -2307,7 +2333,7 @@ Castro::reflux(int crse_level, int fine_level)
 	Castro& crse_lev = getLevel(lev-1);
 	Castro& fine_lev = getLevel(lev);
 
-	MultiFab& state = crse_lev.get_new_data(State_Type);
+	MultiFab& crse_state = crse_lev.get_new_data(State_Type);
 
 	// Clear out the data that's not on coarse-fine boundaries so that this register only
 	// modifies the fluxes on coarse-fine interfaces.
@@ -2316,7 +2342,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 	// Trigger the actual reflux on the coarse level now.
 
-	reg->Reflux(state, crse_lev.volume, 1.0, 0, 0, NUM_STATE, crse_lev.geom);
+	reg->Reflux(crse_state, crse_lev.volume, 1.0, 0, 0, NUM_STATE, crse_lev.geom);
 
 	// Store the density change, for the gravity sync.
 
@@ -2369,7 +2395,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 	    reg->ClearInternalBorders(crse_lev.geom);
 
-	    reg->Reflux(state, dr, 1.0, 0, Xmom, 1, crse_lev.geom);
+	    reg->Reflux(crse_state, dr, 1.0, 0, Xmom, 1, crse_lev.geom);
 
 	    if (update_sources_after_reflux) {
 

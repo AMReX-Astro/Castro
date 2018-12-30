@@ -366,6 +366,7 @@ contains
     use amrex_constants_module, only: HALF
     use math_module, only: cross_product ! function
     use amrex_fort_module, only : rt => amrex_real
+    use prob_params_module, only: center
 
     implicit none
 
@@ -383,11 +384,11 @@ contains
     !$gpu
 
     do k = lo(3), hi(3)
-       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3)
+       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3) - center(3)
        do j = lo(2), hi(2)
-          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2)
+          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2) - center(2)
           do i = lo(1), hi(1)
-             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1)
+             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1) - center(1)
 
              rho = u(i,j,k,1)
              mom = u(i,j,k,2:4)
@@ -411,6 +412,7 @@ contains
     use amrex_constants_module, only: HALF
     use math_module, only: cross_product ! function
     use amrex_fort_module, only : rt => amrex_real
+    use prob_params_module, only: center
 
     implicit none
 
@@ -428,11 +430,11 @@ contains
     !$gpu
 
     do k = lo(3), hi(3)
-       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3)
+       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3) - center(3)
        do j = lo(2), hi(2)
-          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2)
+          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2) - center(2)
           do i = lo(1), hi(1)
-             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1)
+             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1) - center(1)
 
              rho = u(i,j,k,1)
              mom = u(i,j,k,2:4)
@@ -456,6 +458,7 @@ contains
     use amrex_constants_module, only: HALF
     use math_module, only: cross_product ! function
     use amrex_fort_module, only : rt => amrex_real
+    use prob_params_module, only: center
 
     implicit none
 
@@ -473,11 +476,11 @@ contains
     !$gpu
 
     do k = lo(3), hi(3)
-       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3)
+       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3) - center(3)
        do j = lo(2), hi(2)
-          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2)
+          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2) - center(2)
           do i = lo(1), hi(1)
-             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1)
+             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1) - center(1)
 
              rho = u(i,j,k,1)
              mom = u(i,j,k,2:4)
@@ -1155,7 +1158,6 @@ contains
     real(rt), intent(inout) :: cond(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
     real(rt), intent(in) :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
-    real(rt)         :: coeff
     integer          :: i, j, k
 
     type(eos_t) :: eos_state
@@ -1172,12 +1174,12 @@ contains
              call eos(eos_input_re,eos_state)
 
              if (eos_state%rho > diffuse_cutoff_density) then
-                call conductivity(eos_state, coeff)
+                call conductivity(eos_state)
              else
-                coeff = ZERO
+                eos_state % conductivity = ZERO
              endif
 
-             cond(i,j,k,1) = coeff
+             cond(i,j,k,1) = eos_state % conductivity
 
           enddo
        enddo
@@ -1214,7 +1216,6 @@ contains
     real(rt), intent(inout) :: diff(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
     real(rt), intent(in) :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
-    real(rt)         :: coeff
     integer          :: i, j, k
 
     type(eos_t) :: eos_state
@@ -1231,12 +1232,12 @@ contains
              call eos(eos_input_re,eos_state)
 
              if (eos_state%rho > diffuse_cutoff_density) then
-                call conductivity(eos_state, coeff)
+                call conductivity(eos_state)
              else
-                coeff = ZERO
+                eos_state % conductivity = ZERO
              endif
 
-             diff(i,j,k,1) = coeff/(eos_state%rho * eos_state%cv)
+             diff(i,j,k,1) = eos_state % conductivity/(eos_state%rho * eos_state%cv)
 
           enddo
        enddo

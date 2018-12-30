@@ -1,0 +1,44 @@
+dist: xenial
+
+language: python
+
+python:
+  - "3.7-dev"
+
+before_install:
+  - export PATH=$(echo $PATH | tr ':' "\n" | sed '/\/opt\/python/d' | tr "\n" ":" | sed "s|::|:|g")
+#  - pwd
+#  - cd ~/; git clone https://github.com/amrex-codes/amrex
+#  - cd ~/; git clone https://github.com/amrex-codes/regression_testing
+
+
+addons:
+   apt:
+      packages:
+      - g++
+      - gfortran
+      - libgmp-dev
+      - libmpfr-dev
+      - pandoc
+      - doxygen
+
+install:
+  - pip install -r requirements.txt
+
+before_script:
+  - export AMREX_HOME=~/amrex
+
+script:
+  - ls -l
+  - pwd
+
+# after_success:
+  - ./deploy_docs.sh
+
+# deploy:
+#   provider: pages
+#   skip-cleanup: true
+#   github-token: $GITHUB_TOKEN
+#   keep-history: true
+#   on:
+#     branch: master

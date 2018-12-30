@@ -1,6 +1,6 @@
 !!  Create a 1-d hydrostatic, atmosphere with an isothermal region
 !!  (T_star) representing the NS, a hyperbolic tangent rise to a
-!!  peak temperature (T_base) representing the base of an accreted
+!!  peak temperature (T_hi) representing the base of an accreted
 !!  layer, an isoentropic profile down to a lower temperature (T_lo),
 !!  and then isothermal. This can serve as an initial model for a
 !!  nova or XRB.
@@ -9,24 +9,30 @@
 !!
 !!         ^
 !!         |
-!!  T_base +        /\
-!!         |       /  \
-!!         |      /  . \
-!!  T_star +-----+      \
-!!         |     .   .   \
-!!         |              \
-!!         |     .   .     \
-!!  T_lo   +                +-----------
-!!         |     .   .
-!!         +-----+---+---------------> r
-!!         |      \  /
-!!         |      atm_delta
+!!  T_hi   +            /\
+!!         |           /  \
+!!         |          /  . \
+!!  T_star +---------+      \
+!!         |         .   .   \
+!!         |                  \
+!!         |         .   .     \
+!!  T_lo   +                    +-----------
+!!         |         .   .
+!!         +---------+---+---------------> r
+!!         |         \  /
+!!         |       atm_delta
 !!         |< H_star>|
 !!
-!!  We take dens_base, the density at the base of the isentropic layer
-!!  as input.  The composition is "ash" in the lower isothermal region
-!!  and "fuel" in the isentropic and upper isothermal regions.  In the
-!!  linear transition region, we linearly interpolate the composition.
+!!
+!!                   ^
+!!                   |
+!!                   +-- dens_base
+!!
+!!  dens_base is the density at a height H_star -- just below the rise
+!!  in T up to the peak T_hi.  The composition is "ash" in the lower
+!!  isothermal region and "fuel" in the isentropic and upper
+!!  isothermal regions.  In the transition region, we apply the same
+!!  hyperbolic tangent profile to interpolate the composition.
 !!
 !!  The fuel and ash compositions are specified by the fuel?_name,
 !!  fuel?_frac and ash?_name, ash?_frac parameters (name of the species
@@ -40,536 +46,534 @@
 !!  P(i-1) = P_eos(rho(i-1), T(i-1), X(i-1)
 !!
 
-!!
-!! this uses the model_parser_module to store the result
+! this version allows for mutiple initial models
 
-subroutine init_1d_tanh(nx, xmin, xmax)
 
-  use amrex_constants_module
+module initial_model_module
+
   use amrex_fort_module, only : rt => amrex_real
-  use amrex_error_module
-  use eos_module, only: eos
-  use eos_type_module, only: eos_t, eos_input_rt
-  use network, only : nspec, network_species_index, spec_names
-  use fundamental_constants_module, only: Gconst
-  use model_parser_module
-  use probdata_module
-  use meth_params_module, only : const_grav
+  use network, only : nspec
 
   implicit none
 
-  integer, intent(in) :: nx
-  real(rt) :: xmin, xmax
+  ! integer keys for indexing the model_state array
+  integer, parameter :: nvars_model = 3 + nspec
+  integer, parameter :: idens_model = 1
+  integer, parameter :: itemp_model = 2
+  integer, parameter :: ipres_model = 3
+  integer, parameter :: ispec_model = 4
 
-  integer :: i, n
+  ! number of points in the model file
+  integer, save :: gen_npts_model, num_models
 
-  real (rt) :: slope_T, slope_xn(nspec)
+  ! arrays for storing the model data -- we have an extra index here
+  ! which is the model number
+  real(rt), allocatable, save :: gen_model_state(:,:,:)
+  real(rt), allocatable, save :: gen_model_r(:,:)
 
-  real (rt) :: pres_base, entropy_base
-  real (rt), DIMENSION(nspec) :: xn_base, xn_star
+  type :: model_t
 
-  real :: A, B
+     real(rt) :: xn_base(nspec)
+     real(rt) :: xn_star(nspec)
+     real(rt) :: xn_perturb(nspec)
 
-  ! we'll get the composition from the network module
-  ! we allow for 3 different species separately in the fuel and ash
-  integer :: ifuel1, ifuel2, ifuel3
-  integer :: iash1, iash2, iash3
-  logical :: species_defined
+     real(rt) :: dens_base
+     real(rt) :: T_star
+     real(rt) :: T_hi
+     real(rt) :: T_lo
 
-  real (rt) :: dCoord
+     real(rt) :: H_star
+     real(rt) :: atm_delta
 
-  real (rt) :: dens_zone, temp_zone, pres_zone, entropy
-  real (rt) :: dpd, dpt, dsd, dst
+     real(rt) :: low_density_cutoff
 
-  real (rt) :: p_want, drho, dtemp, delx
+     logical :: index_base_from_temp
 
-  real (rt), parameter :: TOL = 1.e-10
+  end type model_t
 
-  integer, parameter :: MAX_ITER = 250
+contains
 
-  integer :: iter
+  subroutine init_model_data(nx, num_models_in)
 
-  logical :: converged_hse, fluff
+    implicit none
 
-  real (rt), dimension(nspec) :: xn
+    integer, intent(in) :: nx, num_models_in
 
-  integer :: index_base
+    ! allocate storage for the model data
+    allocate (gen_model_state(nx, nvars_model, num_models_in))
+    allocate (gen_model_r(nx, num_models_in))
 
-  logical :: isentropic
+    gen_npts_model = nx
+    num_models = num_models_in
 
-  integer :: narg
+  end subroutine init_model_data
 
-  type (eos_t) :: eos_state
 
-  real(rt) :: sumX
+  subroutine init_1d_tanh(nx, xmin, xmax, model_params, model_num)
 
-  ! get the species indices
-  species_defined = .true.
-  ifuel1 = network_species_index(trim(fuel1_name))
-  if (ifuel1 < 0) species_defined = .false.
+    use amrex_constants_module
+    use amrex_error_module
+    use amrex_fort_module, only : rt => amrex_real
 
-  if (fuel2_name /= "") then
-     ifuel2 = network_species_index(trim(fuel2_name))
-     if (ifuel2 < 0) species_defined = .false.
-  endif
+    use eos_module, only: eos
+    use eos_type_module, only: eos_t, eos_input_rt
+    use network, only : nspec, network_species_index, spec_names
+    use fundamental_constants_module, only: Gconst
+    use meth_params_module, only : const_grav
 
-  if (fuel3_name /= "") then
-     ifuel3 = network_species_index(trim(fuel3_name))
-     if (ifuel3 < 0) species_defined = .false.
-  endif
+    use amrex_paralleldescriptor_module, only: parallel_IOProcessor => amrex_pd_ioprocessor
 
+    implicit none
 
-  iash1 = network_species_index(trim(ash1_name))
-  if (iash1 < 0) species_defined = .false.
+    integer, intent(in) :: nx
+    type(model_t), intent(in) :: model_params
+    integer, intent(in) :: model_num
+    real(rt) :: xmin, xmax
 
-  if (ash2_name /= "") then
-     iash2 = network_species_index(trim(ash2_name))
-     if (iash2 < 0) species_defined = .false.
-  endif
+    integer :: i, n
 
-  if (ash3_name /= "") then
-     iash3 = network_species_index(trim(ash3_name))
-     if (iash3 < 0) species_defined = .false.
-  endif
+    real (rt) :: slope_T, slope_xn(nspec)
 
-  if (.not. species_defined) then
-     print *, ifuel1, ifuel2, ifuel3
-     print *, iash1, iash2, iash3
-     call amrex_error("ERROR: species not defined")
-  endif
+    real (rt) :: pres_base, entropy_base
 
+    real :: A, B
 
+    real (rt) :: dCoord
 
-  ! set the composition of the underlying star
-  xn_star(:) = smallx
-  xn_star(iash1) = ash1_frac
-  if (ash2_name /= "") xn_star(iash2) = ash2_frac
-  if (ash3_name /= "") xn_star(iash3) = ash3_frac
+    real (rt) :: dens_zone, temp_zone, pres_zone, entropy
+    real (rt) :: dpd, dpt, dsd, dst
 
-  ! and the composition of the accreted layer
-  xn_base(:) = smallx
-  xn_base(ifuel1) = fuel1_frac
-  if (fuel2_name /= "") xn_base(ifuel2) = fuel2_frac
-  if (fuel3_name /= "") xn_base(ifuel3) = fuel3_frac
+    real (rt) :: p_want, drho, dtemp, delx
 
-  ! check if they sum to 1
-  if (abs(sum(xn_star) - ONE) > nspec*smallx) then
-     call amrex_error("ERROR: ash mass fractions don't sum to 1")
-  endif
+    real (rt), parameter :: TOL = 1.e-10
 
-  if (abs(sum(xn_base) - ONE) > nspec*smallx) then
-     call amrex_error("ERROR: fuel mass fractions don't sum to 1")
-  endif
+    integer, parameter :: MAX_ITER = 250
 
+    integer :: iter
 
+    logical :: converged_hse, fluff
 
-!-----------------------------------------------------------------------------
-! Create a 1-d uniform grid that is identical to the mesh that we are
-! mapping onto, and then we want to force it into HSE on that mesh.
-!-----------------------------------------------------------------------------
+    real (rt), dimension(nspec) :: xn
 
-  ! allocate the storage in the model_parser module
-  allocate(model_r(nx))
-  allocate(model_state(nx,nvars_model))
-  npts_model = nx
+    integer :: index_base
 
-  ! compute the coordinates of the new gridded function
-  dCoord = (xmax - xmin) / dble(nx)
+    logical :: isentropic, flipped
 
-  do i = 1, nx
-     model_r(i)  = xmin + (dble(i) - HALF)*dCoord
-  enddo
+    integer :: narg
 
+    type (eos_t) :: eos_state
 
-  ! find the index of the base height
-  index_base = -1
-  do i = 1, nx
-     if (model_r(i) >= xmin + H_star + atm_delta) then
-        index_base = i+1
-        exit
-     endif
-  enddo
+    real(rt) :: sumX, xc
 
-  if (index_base == -1) then
-     print *, 'ERROR: base_height not found on grid'
-     call amrex_error('ERROR: invalid base_height')
-  endif
 
+    !-----------------------------------------------------------------------------
+    ! Create a 1-d uniform grid that is identical to the mesh that we are
+    ! mapping onto, and then we want to force it into HSE on that mesh.
+    !-----------------------------------------------------------------------------
 
-!-----------------------------------------------------------------------------
-! put the model onto our new uniform grid
-!-----------------------------------------------------------------------------
+    gen_npts_model = nx
 
-  fluff = .false.
+    ! compute the coordinates of the new gridded function
+    dCoord = (xmax - xmin) / dble(nx)
 
-  ! determine the conditions at the base
-  eos_state%T     = T_base
-  eos_state%rho   = dens_base
-  eos_state%xn(:) = xn_base(:)
+    do i = 1, nx
+       gen_model_r(i, model_num)  = xmin + (dble(i) - HALF)*dCoord
+    enddo
 
-  call eos(eos_input_rt, eos_state)
 
-  ! store the conditions at the base -- we'll use the entropy later
-  ! to constrain the isentropic layer
-  pres_base = eos_state%p
-  entropy_base = eos_state%s
+    ! find the index of the base height
+    index_base = -1
+    do i = 1, nx
+       if (gen_model_r(i, model_num) >= xmin + model_params % H_star) then
+          index_base = i+1
+          exit
+       endif
+    enddo
 
-  print *, 'entropy_base = ', entropy_base
-  print *, 'pres_base = ', pres_base
+    if (index_base == -1) then
+       print *, 'ERROR: base_height not found on grid'
+       call amrex_error('ERROR: invalid base_height')
+    endif
 
-  ! set an initial temperature profile and composition
-  do i = 1, nx
 
-     ! hyperbolic tangent transition:
-     model_state(i,ispec_model:ispec_model-1+nspec) = xn_star(1:nspec) + &
-          HALF*(xn_base(1:nspec) - xn_star(1:nspec))* &
-          (ONE + tanh((model_r(i) - (xmin + H_star - atm_delta) + atm_delta)/atm_delta))
+    !-----------------------------------------------------------------------------
+    ! put the model onto our new uniform grid
+    !-----------------------------------------------------------------------------
+    fluff = .false.
 
-     ! force them to sum to 1
-     sumX = sum(model_state(i,ispec_model:ispec_model-1+nspec))
-     model_state(i,ispec_model:ispec_model-1+nspec) = model_state(i,ispec_model:ispec_model-1+nspec) / sumX
+    ! determine the conditions at the base -- this is below the atmosphere
+    eos_state%T     = model_params % T_star
+    eos_state%rho   = model_params % dens_base
+    eos_state%xn(:) = model_params % xn_star(:)
 
-     model_state(i,itemp_model) = T_star + HALF*(T_base - T_star)* &
-          (ONE + tanh((model_r(i) - (xmin + H_star - atm_delta) + atm_delta)/atm_delta))
+    call eos(eos_input_rt, eos_state)
 
+    ! store the conditions at the base -- we'll use the entropy later
+    ! to constrain the isentropic layer
+    pres_base = eos_state%p
 
-     ! the density and pressure will be determined via HSE,
-     ! for now, set them to the base conditions
-     model_state(i,idens_model) = dens_base
-     model_state(i,ipres_model) = pres_base
+    ! set an initial temperature profile and composition
+    print *, "in model stuff", model_params % T_hi
 
-  enddo
+    do i = 1, nx
 
+       xc = gen_model_r(i,model_num) - (xmin + model_params % H_star) - 1.5_rt * model_params % atm_delta
 
-  if (index_base_from_temp) then
-     ! find the index of the base height -- look at the temperature for this
-     index_base = -1
-     do i = 1, nx
-        !if (model_r(i) >= xmin + H_star + atm_delta) then
-        if (model_state(i,itemp_model) > 0.9995*T_base) then
-           index_base = i+1
-           exit
-        endif
-     enddo
+       ! hyperbolic tangent transition:
+       gen_model_state(i,ispec_model:ispec_model-1+nspec,model_num) = model_params % xn_star(1:nspec) + &
+            HALF*(model_params % xn_base(1:nspec) - model_params % xn_star(1:nspec))* &
+            (ONE + tanh(xc/(HALF*model_params % atm_delta)))
 
-     if (index_base == -1) then
-        print *, 'ERROR: base_height not found on grid'
-        call amrex_error('ERROR: invalid base_height')
-     endif
-  endif
+       ! force them to sum to 1
+       sumX = sum(gen_model_state(i,ispec_model:ispec_model-1+nspec,model_num))
+       gen_model_state(i,ispec_model:ispec_model-1+nspec,model_num) = gen_model_state(i,ispec_model:ispec_model-1+nspec,model_num) / sumX
 
-  print *, 'index_base = ', index_base
+       gen_model_state(i,itemp_model,model_num) = model_params % T_star + &
+            HALF*(model_params % T_hi - model_params % T_star)* &
+            (ONE + tanh(xc/(HALF*model_params % atm_delta)))
 
-  ! make the base thermodynamics consistent for this base point -- that is
-  ! what we will integrate from!
-  eos_state%rho = model_state(index_base,idens_model)
-  eos_state%T = model_state(index_base,itemp_model)
-  eos_state%xn(:) = model_state(index_base,ispec_model:ispec_model-1+nspec)
+       gen_model_state(1:index_base,itemp_model,model_num) = model_params % T_star
 
-  call eos(eos_input_rt, eos_state)
+       ! the density and pressure will be determined via HSE,
+       ! for now, set them to the base conditions
+       gen_model_state(i,idens_model,model_num) = model_params % dens_base
+       gen_model_state(i,ipres_model,model_num) = pres_base
 
-  model_state(index_base,ipres_model) = eos_state%p
+    enddo
 
+    ! make the base thermodynamics consistent for this base point -- that is
+    ! what we will integrate from!
+    eos_state%rho = gen_model_state(index_base,idens_model,model_num)
+    eos_state%T = gen_model_state(index_base,itemp_model,model_num)
+    eos_state%xn(:) = gen_model_state(index_base,ispec_model:ispec_model-1+nspec,model_num)
 
-!-----------------------------------------------------------------------------
-! HSE + entropy solve
-!-----------------------------------------------------------------------------
+    call eos(eos_input_rt, eos_state)
 
-! the HSE state will be done putting creating an isentropic state until
-! the temperature goes below T_lo -- then we will do isothermal.
-! also, once the density goes below low_density_cutoff, we stop HSE
+    gen_model_state(index_base,ipres_model,model_num) = eos_state%p
 
-  isentropic = .true.
 
-  !---------------------------------------------------------------------------
-  ! integrate up
-  !---------------------------------------------------------------------------
-  do i = index_base+1, nx
+    !-----------------------------------------------------------------------------
+    ! HSE + entropy solve
+    !-----------------------------------------------------------------------------
 
-     delx = model_r(i) - model_r(i-1)
+    ! the HSE state will be done putting creating an isentropic state until
+    ! the temperature goes below T_lo -- then we will do isothermal.
+    ! also, once the density goes below low_density_cutoff, we stop HSE
 
-     ! we've already set initial guesses for density, temperature, and
-     ! composition
-     dens_zone = model_state(i,idens_model)
-     temp_zone = model_state(i,itemp_model)
-     xn(:) = model_state(i,ispec_model:nvars_model)
+    isentropic = .false.
+    flipped = .false.   ! we start out isothermal and then 'flip' to isentropic
 
+    !---------------------------------------------------------------------------
+    ! integrate up
+    !---------------------------------------------------------------------------
+    do i = index_base+1, nx
 
-     !-----------------------------------------------------------------------
-     ! iteration loop
-     !-----------------------------------------------------------------------
+       if ((gen_model_r(i,model_num) > xmin + model_params % H_star + 3.0_rt * model_params % atm_delta) .and. .not. flipped) then
+          isentropic = .true.
+          flipped = .true.
 
-     ! start off the Newton loop by saying that the zone has not converged
-     converged_hse = .FALSE.
+          ! now we need to know the entropy we are confining ourselves to
+          eos_state % rho = gen_model_state(i-1,idens_model,model_num)
+          eos_state % T = gen_model_state(i-1,itemp_model,model_num)
+          eos_state % xn(:) = gen_model_state(i-1,ispec_model:ispec_model-1+nspec,model_num)
 
-     if (.not. fluff) then
+          call eos(eos_input_rt, eos_state)
 
-        do iter = 1, MAX_ITER
+          entropy_base = eos_state % s
 
-           if (isentropic) then
 
-              ! get the pressure we want from the HSE equation, just the
-              ! zone below the current.  Note, we are using an average of
-              ! the density of the two zones as an approximation of the
-              ! interface value -- this means that we need to iterate for
-              ! find the density and pressure that are consistent
+          if (parallel_IOProcessor()) then
+             print *, "base density = ", eos_state % rho, eos_state % T
+          endif
+       endif
 
-              ! furthermore, we need to get the entropy that we need,
-              ! which will come from adjusting the temperature in
-              ! addition to the density.
+       delx = gen_model_r(i,model_num) - gen_model_r(i-1,model_num)
 
-              ! HSE differencing
-              p_want = model_state(i-1,ipres_model) + &
-                   delx*0.5*(dens_zone + model_state(i-1,idens_model))*const_grav
+       ! we've already set initial guesses for density, temperature, and
+       ! composition
+       dens_zone = gen_model_state(i,idens_model,model_num)
+       temp_zone = gen_model_state(i,itemp_model,model_num)
+       xn(:) = gen_model_state(i,ispec_model:nvars_model,model_num)
 
 
+       !-----------------------------------------------------------------------
+       ! iteration loop
+       !-----------------------------------------------------------------------
 
-              ! now we have two functions to zero:
-              !   A = p_want - p(rho,T)
-              !   B = entropy_base - s(rho,T)
-              ! We use a two dimensional Taylor expansion and find the deltas
-              ! for both density and temperature
+       ! start off the Newton loop by saying that the zone has not converged
+       converged_hse = .FALSE.
 
+       if (.not. fluff) then
 
-              ! now we know the pressure and the entropy that we want, so we
-              ! need to find the temperature and density through a two
-              ! dimensional root find
+          do iter = 1, MAX_ITER
 
-              ! (t, rho) -> (p, s)
-              eos_state%T     = temp_zone
-              eos_state%rho   = dens_zone
-              eos_state%xn(:) = xn(:)
+             if (isentropic) then
 
-              call eos(eos_input_rt, eos_state)
+                ! get the pressure we want from the HSE equation, just the
+                ! zone below the current.  Note, we are using an average of
+                ! the density of the two zones as an approximation of the
+                ! interface value -- this means that we need to iterate for
+                ! find the density and pressure that are consistent
 
-              entropy = eos_state%s
-              pres_zone = eos_state%p
+                ! furthermore, we need to get the entropy that we need,
+                ! which will come from adjusting the temperature in
+                ! addition to the density.
 
-              dpt = eos_state%dpdt
-              dpd = eos_state%dpdr
-              dst = eos_state%dsdt
-              dsd = eos_state%dsdr
+                ! HSE differencing
+                p_want = gen_model_state(i-1,ipres_model,model_num) + &
+                     delx*0.5*(dens_zone + gen_model_state(i-1,idens_model,model_num))*const_grav
 
-              A = p_want - pres_zone
-              B = entropy_base - entropy
 
-              dtemp = ((dsd/(dpd-0.5*delx*const_grav))*A - B)/ &
-                   (dsd*dpt/(dpd -0.5*delx*const_grav) - dst)
+                ! now we have two functions to zero:
+                !   A = p_want - p(rho,T)
+                !   B = entropy_base - s(rho,T)
+                ! We use a two dimensional Taylor expansion and find the deltas
+                ! for both density and temperature
 
-              drho = (A - dpt*dtemp)/(dpd - 0.5*delx*const_grav)
 
-              dens_zone = max(0.9_rt*dens_zone, &
-                   min(dens_zone + drho, 1.1_rt*dens_zone))
+                ! now we know the pressure and the entropy that we want, so we
+                ! need to find the temperature and density through a two
+                ! dimensional root find
 
-              temp_zone = max(0.9_rt*temp_zone, &
-                   min(temp_zone + dtemp, 1.1_rt*temp_zone))
+                ! (t, rho) -> (p, s)
+                eos_state%T     = temp_zone
+                eos_state%rho   = dens_zone
+                eos_state%xn(:) = xn(:)
 
+                call eos(eos_input_rt, eos_state)
 
-              ! check if the density falls below our minimum cut-off --
-              ! if so, floor it
-              if (dens_zone < low_density_cutoff) then
+                entropy = eos_state%s
+                pres_zone = eos_state%p
 
-                 dens_zone = low_density_cutoff
-                 temp_zone = T_lo
-                 converged_hse = .TRUE.
-                 fluff = .TRUE.
-                 exit
+                dpt = eos_state%dpdt
+                dpd = eos_state%dpdr
+                dst = eos_state%dsdt
+                dsd = eos_state%dsdr
 
-              endif
+                A = p_want - pres_zone
+                B = entropy_base - entropy
 
-              ! if (A < TOL .and. B < ETOL) then
-              if (abs(drho) < TOL*dens_zone .and. &
-                  abs(dtemp) < TOL*temp_zone) then
-                 converged_hse = .TRUE.
-                 exit
-              endif
+                dtemp = ((dsd/(dpd-0.5*delx*const_grav))*A - B)/ &
+                     (dsd*dpt/(dpd -0.5*delx*const_grav) - dst)
 
-           else
+                drho = (A - dpt*dtemp)/(dpd - 0.5*delx*const_grav)
 
-              ! do isothermal
-              p_want = model_state(i-1,ipres_model) + &
-                   delx*0.5*(dens_zone + model_state(i-1,idens_model))*const_grav
+                dens_zone = max(0.9_rt*dens_zone, &
+                     min(dens_zone + drho, 1.1_rt*dens_zone))
 
-              temp_zone = T_lo
+                temp_zone = max(0.9_rt*temp_zone, &
+                     min(temp_zone + dtemp, 1.1_rt*temp_zone))
 
-              ! (t, rho) -> (p)
-              eos_state%T   = temp_zone
-              eos_state%rho = dens_zone
-              eos_state%xn(:) = xn(:)
 
-              call eos(eos_input_rt, eos_state)
+                ! check if the density falls below our minimum cut-off --
+                ! if so, floor it
+                if (dens_zone < model_params % low_density_cutoff) then
 
-              entropy = eos_state%s
-              pres_zone = eos_state%p
+                   dens_zone = model_params % low_density_cutoff
+                   temp_zone = model_params % T_lo
+                   converged_hse = .TRUE.
+                   fluff = .TRUE.
+                   exit
 
-              dpd = eos_state%dpdr
+                endif
 
-              drho = (p_want - pres_zone)/(dpd - 0.5*delx*const_grav)
+                ! if (A < TOL .and. B < ETOL) then
+                if (abs(drho) < TOL*dens_zone .and. &
+                     abs(dtemp) < TOL*temp_zone) then
+                   converged_hse = .TRUE.
+                   exit
+                endif
 
-              dens_zone = max(0.9*dens_zone, &
-                   min(dens_zone + drho, 1.1*dens_zone))
+             else
 
-              if (abs(drho) < TOL*dens_zone) then
-                 converged_hse = .TRUE.
-                 exit
-              endif
+                ! do isothermal
+                p_want = gen_model_state(i-1,ipres_model,model_num) + &
+                     delx*0.5*(dens_zone + gen_model_state(i-1,idens_model,model_num))*const_grav
 
-              if (dens_zone < low_density_cutoff) then
+                if (gen_model_r(i,model_num) > xmin + model_params % H_star + 3.0_rt * model_params % atm_delta) then
+                   temp_zone = model_params % T_lo
+                endif
 
-                 dens_zone = low_density_cutoff
-                 temp_zone = T_lo
-                 converged_hse = .TRUE.
-                 fluff = .TRUE.
-                 exit
+                ! (t, rho) -> (p)
+                eos_state%T   = temp_zone
+                eos_state%rho = dens_zone
+                eos_state%xn(:) = xn(:)
 
-              endif
+                call eos(eos_input_rt, eos_state)
 
-           endif
+                entropy = eos_state%s
+                pres_zone = eos_state%p
 
-           if (temp_zone < T_lo) then
-              temp_zone = T_lo
-              isentropic = .false.
-           endif
+                dpd = eos_state%dpdr
 
-        enddo
+                drho = (p_want - pres_zone)/(dpd - 0.5*delx*const_grav)
 
+                dens_zone = max(0.9*dens_zone, &
+                     min(dens_zone + drho, 1.1*dens_zone))
 
-        if (.NOT. converged_hse) then
+                if (abs(drho) < TOL*dens_zone) then
+                   converged_hse = .TRUE.
+                   exit
+                endif
 
-           print *, 'Error zone', i, ' did not converge in init_1d'
-           print *, 'integrate up'
-           print *, dens_zone, temp_zone
-           print *, p_want, entropy_base, entropy
-           print *, drho, dtemp
-           call amrex_error('Error: HSE non-convergence')
+                if (dens_zone < model_params % low_density_cutoff) then
 
-        endif
+                   dens_zone = model_params % low_density_cutoff
+                   temp_zone = model_params % T_lo
+                   converged_hse = .TRUE.
+                   fluff = .TRUE.
+                   exit
 
-     else
-        dens_zone = low_density_cutoff
-        temp_zone = T_lo
-     endif
+                endif
 
+             endif
 
-     ! call the EOS one more time for this zone and then go on to the next
-     ! (t, rho) -> (p)
-     eos_state%T     = temp_zone
-     eos_state%rho   = dens_zone
-     eos_state%xn(:) = xn(:)
+             if (temp_zone < model_params % T_lo) then
+                temp_zone = model_params % T_lo
+                isentropic = .false.
+             endif
 
-     call eos(eos_input_rt, eos_state)
+          enddo
 
-     pres_zone = eos_state%p
 
-     ! update the thermodynamics in this zone
-     model_state(i,idens_model) = dens_zone
-     model_state(i,itemp_model) = temp_zone
-     model_state(i,ipres_model) = pres_zone
+          if (.NOT. converged_hse) then
 
+             print *, 'Error zone', i, ' did not converge in init_1d'
+             print *, 'integrate up'
+             print *, dens_zone, temp_zone
+             print *, p_want, entropy_base, entropy
+             print *, drho, dtemp
+             call amrex_error('Error: HSE non-convergence')
 
-     ! to make this process converge faster, set the density in the
-     ! next zone to the density in this zone
-     ! model_state(i+1,idens_model) = dens_zone
+          endif
 
-  enddo
+       else
+          dens_zone = model_params % low_density_cutoff
+          temp_zone = model_params % T_lo
+       endif
 
 
-  !---------------------------------------------------------------------------
-  ! integrate down -- using the temperature profile defined above
-  !---------------------------------------------------------------------------
-  do i = index_base-1, 1, -1
+       ! call the EOS one more time for this zone and then go on to the next
+       ! (t, rho) -> (p)
+       eos_state%T     = temp_zone
+       eos_state%rho   = dens_zone
+       eos_state%xn(:) = xn(:)
 
-     delx = model_r(i+1) - model_r(i)
+       call eos(eos_input_rt, eos_state)
 
-     ! we already set the temperature and composition profiles
-     temp_zone = model_state(i,itemp_model)
-     xn(:) = model_state(i,ispec_model:nvars_model)
+       pres_zone = eos_state%p
 
-     ! use our previous initial guess for density
-     dens_zone = model_state(i+1,idens_model)
+       ! update the thermodynamics in this zone
+       gen_model_state(i,idens_model,model_num) = dens_zone
+       gen_model_state(i,itemp_model,model_num) = temp_zone
+       gen_model_state(i,ipres_model,model_num) = pres_zone
 
 
-     !-----------------------------------------------------------------------
-     ! iteration loop
-     !-----------------------------------------------------------------------
+       ! to make this process converge faster, set the density in the
+       ! next zone to the density in this zone
+       ! gen_model_state(i+1,idens_model) = dens_zone
 
-     ! start off the Newton loop by saying that the zone has not converged
-     converged_hse = .FALSE.
+    enddo
 
-     do iter = 1, MAX_ITER
 
-        ! get the pressure we want from the HSE equation, just the
-        ! zone below the current.  Note, we are using an average of
-        ! the density of the two zones as an approximation of the
-        ! interface value -- this means that we need to iterate for
-        ! find the density and pressure that are consistent
+    !---------------------------------------------------------------------------
+    ! integrate down -- using the temperature profile defined above
+    !---------------------------------------------------------------------------
+    do i = index_base-1, 1, -1
 
-        ! HSE differencing
-        p_want = model_state(i+1,ipres_model) - &
-             delx*0.5*(dens_zone + model_state(i+1,idens_model))*const_grav
+       delx = gen_model_r(i+1,model_num) - gen_model_r(i,model_num)
 
+       ! we already set the temperature and composition profiles
+       temp_zone = gen_model_state(i,itemp_model,model_num)
+       xn(:) = gen_model_state(i,ispec_model:nvars_model,model_num)
 
-        ! we will take the temperature already defined in model_state
-        ! so we only need to zero:
-        !   A = p_want - p(rho)
+       ! use our previous initial guess for density
+       dens_zone = gen_model_state(i+1,idens_model,model_num)
 
-        ! (t, rho) -> (p)
-        eos_state%T     = temp_zone
-        eos_state%rho   = dens_zone
-        eos_state%xn(:) = xn(:)
 
-        call eos(eos_input_rt, eos_state)
+       !-----------------------------------------------------------------------
+       ! iteration loop
+       !-----------------------------------------------------------------------
 
-        pres_zone = eos_state%p
+       ! start off the Newton loop by saying that the zone has not converged
+       converged_hse = .FALSE.
 
-        dpd = eos_state%dpdr
+       do iter = 1, MAX_ITER
 
-        A = p_want - pres_zone
+          ! get the pressure we want from the HSE equation, just the
+          ! zone below the current.  Note, we are using an average of
+          ! the density of the two zones as an approximation of the
+          ! interface value -- this means that we need to iterate for
+          ! find the density and pressure that are consistent
 
-        drho = A/(dpd + 0.5*delx*const_grav)
+          ! HSE differencing
+          p_want = gen_model_state(i+1,ipres_model,model_num) - &
+               delx*0.5*(dens_zone + gen_model_state(i+1,idens_model,model_num))*const_grav
 
-        dens_zone = max(0.9_rt*dens_zone, &
-             min(dens_zone + drho, 1.1_rt*dens_zone))
 
+          ! we will take the temperature already defined in gen_model_state
+          ! so we only need to zero:
+          !   A = p_want - p(rho)
 
-        if (abs(drho) < TOL*dens_zone) then
-           converged_hse = .TRUE.
-           exit
-        endif
+          ! (t, rho) -> (p)
+          eos_state%T     = temp_zone
+          eos_state%rho   = dens_zone
+          eos_state%xn(:) = xn(:)
 
-     enddo
+          call eos(eos_input_rt, eos_state)
 
-     if (.NOT. converged_hse) then
+          pres_zone = eos_state%p
 
-        print *, 'Error zone', i, ' did not converge in init_1d'
-        print *, 'integrate down'
-        print *, dens_zone, temp_zone
-        print *, p_want
-        print *, drho
-        call amrex_error('Error: HSE non-convergence')
+          dpd = eos_state%dpdr
 
-     endif
+          A = p_want - pres_zone
 
+          drho = A/(dpd + 0.5*delx*const_grav)
 
-     ! call the EOS one more time for this zone and then go on to the next
-     ! (t, rho) -> (p)
-     eos_state%T     = temp_zone
-     eos_state%rho   = dens_zone
-     eos_state%xn(:) = xn(:)
+          dens_zone = max(0.9_rt*dens_zone, &
+               min(dens_zone + drho, 1.1_rt*dens_zone))
 
-     call eos(eos_input_rt, eos_state)
 
-     pres_zone = eos_state%p
+          if (abs(drho) < TOL*dens_zone) then
+             converged_hse = .TRUE.
+             exit
+          endif
 
-     ! update the thermodynamics in this zone
-     model_state(i,idens_model) = dens_zone
-     model_state(i,itemp_model) = temp_zone
-     model_state(i,ipres_model) = pres_zone
+       enddo
 
-  enddo
+       if (.NOT. converged_hse) then
 
-  do i = 1, nx
-     print *, model_r(i), model_state(i,idens_model), model_state(i,ispec_model:ispec_model-1+nspec)
-  enddo
+          print *, 'Error zone', i, ' did not converge in init_1d'
+          print *, 'integrate down'
+          print *, dens_zone, temp_zone
+          print *, p_want
+          print *, drho
+          call amrex_error('Error: HSE non-convergence')
 
-end subroutine init_1d_tanh
+       endif
+
+
+       ! call the EOS one more time for this zone and then go on to the next
+       ! (t, rho) -> (p)
+       eos_state%T     = temp_zone
+       eos_state%rho   = dens_zone
+       eos_state%xn(:) = xn(:)
+
+       call eos(eos_input_rt, eos_state)
+
+       pres_zone = eos_state%p
+
+       ! update the thermodynamics in this zone
+       gen_model_state(i,idens_model,model_num) = dens_zone
+       gen_model_state(i,itemp_model,model_num) = temp_zone
+       gen_model_state(i,ipres_model,model_num) = pres_zone
+
+    enddo
+
+    !do i = 1, nx
+    !   print *, gen_model_r(i), gen_model_state(i,idens_model), gen_model_state(i,ispec_model:ispec_model-1+nspec)
+    !enddo
+
+  end subroutine init_1d_tanh
+
+end module initial_model_module

@@ -6,55 +6,23 @@ module riemann_util_module
 
 contains
 
-  pure function bc_test(idir, i, j, domlo, domhi) result (f)
 
-    use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
-
-    integer, intent(in) :: idir, i, j, domlo(*), domhi(*)
-    integer :: f
-
-    ! Enforce that fluxes through a symmetry plane or wall are hard zero.
-    f = 1
-
-    if (idir == 1) then
-       if (i == domlo(1) .and. &
-            (physbc_lo(1) == Symmetry .or. &
-             physbc_lo(1) == SlipWall .or. &
-             physbc_lo(1) == NoSlipWall) ) then
-          f = 0
-       endif
-
-       if (i == domhi(1)+1 .and. &
-            (physbc_hi(1) == Symmetry .or. &
-             physbc_hi(1) == SlipWall .or. &
-             physbc_hi(1) == NoSlipWall) ) then
-          f = 0
-       endif
-    end if
-
-    if (idir == 2) then
-       if (j == domlo(2) .and. &
-            (physbc_lo(2) == Symmetry .or. &
-             physbc_lo(2) == SlipWall .or. &
-             physbc_lo(2) == NoSlipWall) ) then
-          f = 0
-       endif
-
-       if (j == domhi(2)+1 .and. &
-            (physbc_hi(2) == Symmetry .or. &
-             physbc_hi(2) == SlipWall .or. &
-             physbc_hi(2) == NoSlipWall) ) then
-          f = 0
-       end if
-    endif
-
-  end function bc_test
-
-
+  !> @brief compute the lagrangian wave speeds -- this is the approximate
+  !! version for the Colella & Glaz algorithm
+  !!
+  !! @param[in] p real(rt)
+  !! @param[in] v real(rt)
+  !! @param[in] gam real(rt)
+  !! @param[in] gdot real(rt)
+  !! @param[in] pstar real(rt)
+  !! @param[in] csq real(rt)
+  !! @param[in] gmin real(rt)
+  !! @param[in] gmax real(rt)
+  !! @param[out] wsq real(rt)
+  !! @param[out] gstar real(rt)
+  !!
   pure subroutine wsqge(p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax)
 
-    ! compute the lagrangian wave speeds -- this is the approximate
-    ! version for the Colella & Glaz algorithm
 
     real(rt)        , intent(in) :: p,v,gam,gdot,pstar,csq,gmin,gmax
     real(rt)        , intent(out) :: wsq, gstar
@@ -90,18 +58,39 @@ contains
   end subroutine wsqge
 
 
-  pure subroutine pstar_bisection(pstar_lo, pstar_hi, &
-                                  ul, pl, taul, gamel, clsql, &
-                                  ur, pr, taur, gamer, clsqr, &
-                                  gdot, gmin, gmax, &
-                                  pstar, gamstar, converged, pstar_hist_extra)
 
-    ! we want to zero
-    ! f(p*) = u*_l(p*) - u*_r(p*)
-    ! we'll do bisection
-    !
-    ! this version is for the approximate Colella & Glaz 
-    ! version
+  !> @brief we want to zero
+  !! f(p*) = u*_l(p*) - u*_r(p*)
+  !! we'll do bisection
+  !!
+  !! this version is for the approximate Colella & Glaz
+  !! version
+  !!
+  !! @param[inout] pstar_lo real(rt)
+  !! @param[inout] pstar_hi real(rt)
+  !! @param[in] ul real(rt)
+  !! @param[in] pl real(rt)
+  !! @param[in] taul real(rt)
+  !! @param[in] gamel real(rt)
+  !! @param[in] clsql real(rt)
+  !! @param[in] ur real(rt)
+  !! @param[in] pr real(rt)
+  !! @param[in] taur real(rt)
+  !! @param[in] gamer real(rt)
+  !! @param[in] clsqr real(rt)
+  !! @param[in] gdot real(rt)
+  !! @param[in] gmin real(rt)
+  !! @param[in] gmax real(rt)
+  !! @param[out] pstar real(rt)
+  !! @param[out] gamstar real(rt)
+  !! @param[out] converged logical
+  !! @param[out] pstar_hist_extra real(rt)
+  !!
+  pure subroutine pstar_bisection(pstar_lo, pstar_hi, &
+       ul, pl, taul, gamel, clsql, &
+       ur, pr, taur, gamer, clsqr, &
+       gdot, gmin, gmax, &
+       pstar, gamstar, converged, pstar_hist_extra)
 
     use meth_params_module, only : cg_maxiter, cg_tol
 
@@ -121,10 +110,10 @@ contains
 
     ! lo bounds
     call wsqge(pl, taul, gamel, gdot,  &
-               gamstar, pstar_lo, wlsq, clsql, gmin, gmax)
+         gamstar, pstar_lo, wlsq, clsql, gmin, gmax)
 
     call wsqge(pr, taur, gamer, gdot,  &
-               gamstar, pstar_lo, wrsq, clsqr, gmin, gmax)
+         gamstar, pstar_lo, wrsq, clsqr, gmin, gmax)
 
     wl = ONE / sqrt(wlsq)
     wr = ONE / sqrt(wrsq)
@@ -137,10 +126,10 @@ contains
 
     ! hi bounds
     call wsqge(pl, taul, gamel, gdot,  &
-               gamstar, pstar_hi, wlsq, clsql, gmin, gmax)
+         gamstar, pstar_hi, wlsq, clsql, gmin, gmax)
 
     call wsqge(pr, taur, gamer, gdot,  &
-               gamstar, pstar_hi, wrsq, clsqr, gmin, gmax)
+         gamstar, pstar_hi, wrsq, clsqr, gmin, gmax)
 
     wl = ONE / sqrt(wlsq)
     wr = ONE / sqrt(wrsq)
@@ -159,10 +148,10 @@ contains
        pstar_hist_extra(iter) = pstar_c
 
        call wsqge(pl, taul, gamel, gdot,  &
-                  gamstar, pstar_c, wlsq, clsql, gmin, gmax)
+            gamstar, pstar_c, wlsq, clsql, gmin, gmax)
 
        call wsqge(pr, taur, gamer, gdot,  &
-                  gamstar, pstar_c, wrsq, clsqr, gmin, gmax)
+            gamstar, pstar_c, wrsq, clsqr, gmin, gmax)
 
        wl = ONE / sqrt(wlsq)
        wr = ONE / sqrt(wrsq)
@@ -192,11 +181,17 @@ contains
   end subroutine pstar_bisection
 
 
+
+  !>
+  !! @param[in] ql real(rt)
+  !! @param[inout] f real(rt)
+  !! @param[in] idir integer
+  !!
   subroutine HLL(ql, qr, cl, cr, idir, f)
 
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
-                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
-                                   npassive, upass_map, qpass_map
+         URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
+         npassive, upass_map, qpass_map
     use prob_params_module, only : mom_flux_has_p
 
     use amrex_fort_module, only : rt => amrex_real
@@ -348,6 +343,11 @@ contains
   end subroutine HLL
 
 
+
+  !>
+  !! @param[in] q real(rt)
+  !! @param[out] U real(rt)
+  !!
   pure subroutine cons_state(q, U)
 
     use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QREINT, &
@@ -383,6 +383,14 @@ contains
   end subroutine cons_state
 
 
+
+  !>
+  !! @param[in] idir integer
+  !! @param[in] S_k real(rt)
+  !! @param[in] S_c real(rt)
+  !! @param[in] q real(rt)
+  !! @param[out] U real(rt)
+  !!
   pure subroutine HLLC_state(idir, S_k, S_c, q, U)
 
     use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QREINT, QPRES, &
@@ -436,31 +444,31 @@ contains
 
   end subroutine HLLC_state
 
+  !> @brief given a primitive state, compute the flux in direction idir
+  !!
   subroutine compute_flux_q(idir, qint, q_lo, q_hi, &
-                            F, F_lo, F_hi, &
+       F, F_lo, F_hi, &
 #ifdef RADIATION
-                            lambda, l_lo, l_hi, &
-                            rF, rF_lo, rF_hi, &
+       lambda, l_lo, l_hi, &
+       rF, rF_lo, rF_hi, &
 #endif
-                            qgdnv, qg_lo, qg_hi, &
-                            ilo, ihi, jlo, jhi, kc, kflux, k3d)
-
-    ! given a primitive state, compute the flux in direction idir
+       qgdnv, qg_lo, qg_hi, &
+       lo, hi)
 
     use prob_params_module, only : mom_flux_has_p
     use meth_params_module, only : NQ, NVAR, NQAUX, &
-                                   URHO, UMX, UMY, UMZ, &
-                                   UEDEN, UEINT, UFS, UFX, &
-                                   QRHO, QU, QV, QW, &
-                                   QPRES, QGAME, QREINT, QFS, QFX, &
-                                   QC, QGAMC, &
-                                   NGDNV, GDRHO, GDPRES, GDGAME, &
-                                   GDRHO, GDU, GDV, GDW, &
+         URHO, UMX, UMY, UMZ, &
+         UEDEN, UEINT, UFS, UFX, &
+         QRHO, QU, QV, QW, &
+         QPRES, QGAME, QREINT, QFS, QFX, &
+         QC, QGAMC, &
+         NGDNV, GDRHO, GDPRES, GDGAME, &
+         GDRHO, GDU, GDV, GDW, &
 #ifdef RADIATION
-                                   qrad, fspace_type, &
-                                   GDERADS, GDLAMS, &
+         qrad, fspace_type, &
+         GDERADS, GDLAMS, &
 #endif
-                                   npassive, upass_map, qpass_map
+         npassive, upass_map, qpass_map
 #ifdef RADIATION
     use fluxlimiter_module, only : Edd_factor
     use rad_params_module, only : ngroups
@@ -485,13 +493,13 @@ contains
     real(rt), intent(in) :: lambda(l_lo(1):l_hi(1), l_lo(2):l_hi(2), l_lo(3):l_hi(3), 0:ngroups-1)
     real(rt), intent(out) :: rF(rF_lo(1):rF_hi(1), rF_lo(2):rF_hi(2), rF_lo(3):rF_hi(3), 0:ngroups-1)
 #endif
-    integer, intent(in) :: ilo, ihi, jlo, jhi, kc, kflux, k3d
+    integer, intent(in) :: lo(3), hi(3)
 
     integer :: iu, iv1, iv2, im1, im2, im3
     integer :: g, n, ipassive, nqp
     real(rt) :: u_adv, rhoetot
     real(rt) :: eddf, f1
-    integer :: i, j
+    integer :: i, j, k
 
     real(rt) :: F_zone(NVAR), qgdnv_zone(NGDNV)
 
@@ -518,76 +526,87 @@ contains
        im3 = UMY
     end if
 
-    do j = jlo, jhi
-       do i = ilo, ihi
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
-          u_adv = qint(i,j,kc,iu)
+             u_adv = qint(i,j,k,iu)
 
-          ! Compute fluxes, order as conserved state (not q)
-          F(i,j,kflux,URHO) = qint(i,j,kc,QRHO)*u_adv
+             ! Compute fluxes, order as conserved state (not q)
+             F(i,j,k,URHO) = qint(i,j,k,QRHO)*u_adv
 
-          F(i,j,kflux,im1) = F(i,j,kflux,URHO)*qint(i,j,kc,iu)
-          if (mom_flux_has_p(idir) % comp(im1)) then
-             F(i,j,kflux,im1) = F(i,j,kflux,im1) + qint(i,j,kc,QPRES)
-          endif
-          F(i,j,kflux,im2) = F(i,j,kflux,URHO)*qint(i,j,kc,iv1)
-          F(i,j,kflux,im3) = F(i,j,kflux,URHO)*qint(i,j,kc,iv2)
+             F(i,j,k,im1) = F(i,j,k,URHO)*qint(i,j,k,iu)
+             if (mom_flux_has_p(idir) % comp(im1)) then
+                F(i,j,k,im1) = F(i,j,k,im1) + qint(i,j,k,QPRES)
+             endif
+             F(i,j,k,im2) = F(i,j,k,URHO)*qint(i,j,k,iv1)
+             F(i,j,k,im3) = F(i,j,k,URHO)*qint(i,j,k,iv2)
 
-          rhoetot = qint(i,j,kc,QREINT) + &
-               HALF*qint(i,j,kc,QRHO)*(qint(i,j,kc,iu)**2 + qint(i,j,kc,iv1)**2 + qint(i,j,kc,iv2)**2)
+             rhoetot = qint(i,j,k,QREINT) + &
+                  HALF*qint(i,j,k,QRHO)*(qint(i,j,k,iu)**2 + &
+                  qint(i,j,k,iv1)**2 + &
+                  qint(i,j,k,iv2)**2)
 
-          F(i,j,kflux,UEDEN) = u_adv*(rhoetot + qint(i,j,kc,QPRES))
-          F(i,j,kflux,UEINT) = u_adv*qint(i,j,kc,QREINT)
+             F(i,j,k,UEDEN) = u_adv*(rhoetot + qint(i,j,k,QPRES))
+             F(i,j,k,UEINT) = u_adv*qint(i,j,k,QREINT)
 
 #ifdef RADIATION
-          if (fspace_type == 1) then
-             do g=0,ngroups-1
-                eddf = Edd_factor(lambda(i,j,kc,g))
-                f1 = 0.5e0_rt*(1.e0_rt-eddf)
-                rF(i,j,kflux,g) = (1.e0_rt + f1) * qint(i,j,kc,QRAD+g) * u_adv
-             end do
-          else ! type 2
-             do g=0,ngroups-1
-                rF(i,j,kflux,g) = qint(i,j,kc,QRAD+g) * u_adv
-             end do
-          end if
+             if (fspace_type == 1) then
+                do g=0,ngroups-1
+                   eddf = Edd_factor(lambda(i,j,k,g))
+                   f1 = 0.5e0_rt*(1.e0_rt-eddf)
+                   rF(i,j,k,g) = (1.e0_rt + f1) * qint(i,j,k,QRAD+g) * u_adv
+                end do
+             else ! type 2
+                do g=0,ngroups-1
+                   rF(i,j,k,g) = qint(i,j,k,QRAD+g) * u_adv
+                end do
+             end if
 #endif
 
-          ! passively advected quantities
-          do ipassive = 1, npassive
-             n  = upass_map(ipassive)
-             nqp = qpass_map(ipassive)
+             ! passively advected quantities
+             do ipassive = 1, npassive
+                n  = upass_map(ipassive)
+                nqp = qpass_map(ipassive)
 
-             F(i,j,kflux,n) = F(i,j,kflux,URHO)*qint(i,j,kc,nqp)
-          enddo
+                F(i,j,k,n) = F(i,j,k,URHO)*qint(i,j,k,nqp)
+             enddo
 
-          ! store the subset of the Godunov state
-          qgdnv(i,j,kc,GDRHO) = qint(i,j,kc,QRHO)
-          qgdnv(i,j,kc,GDU) = qint(i,j,kc,QU)
-          qgdnv(i,j,kc,GDV) = qint(i,j,kc,QV)
-          qgdnv(i,j,kc,GDW) = qint(i,j,kc,QW)
-          qgdnv(i,j,kc,GDPRES) = qint(i,j,kc,QPRES)
-          qgdnv(i,j,kc,GDGAME) = qint(i,j,kc,QGAME)
+             ! store the subset of the Godunov state
+             qgdnv(i,j,k,GDRHO) = qint(i,j,k,QRHO)
+             qgdnv(i,j,k,GDU) = qint(i,j,k,QU)
+             qgdnv(i,j,k,GDV) = qint(i,j,k,QV)
+             qgdnv(i,j,k,GDW) = qint(i,j,k,QW)
+             qgdnv(i,j,k,GDPRES) = qint(i,j,k,QPRES)
+             qgdnv(i,j,k,GDGAME) = qint(i,j,k,QGAME)
 #ifdef RADIATION
-          qgdnv(i,j,kc,GDLAMS:GDLAMS-1+ngroups) = lambda(i,j,kc,:)
-          qgdnv(i,j,kc,GDERADS:GDERADS-1+ngroups) = qint(i,j,kc,QRAD:QRAD-1+ngroups)
+             qgdnv(i,j,k,GDLAMS:GDLAMS-1+ngroups) = lambda(i,j,k,:)
+             qgdnv(i,j,k,GDERADS:GDERADS-1+ngroups) = qint(i,j,k,QRAD:QRAD-1+ngroups)
 #endif
 
 #ifdef HYBRID_MOMENTUM
-          ! the hybrid routine uses the Godunov indices, not the full NQ state
-          F_zone(:) = F(i,j,kflux,:)
-          qgdnv_zone(:) = qgdnv(i,j,kc,:)
-          call compute_hybrid_flux(qgdnv_zone, F_zone, idir, [i, j, k3d])
-          F(i,j,kflux,:) = F_zone(:)
+             ! the hybrid routine uses the Godunov indices, not the full NQ state
+             F_zone(:) = F(i,j,k,:)
+             qgdnv_zone(:) = qgdnv(i,j,k,:)
+             call compute_hybrid_flux(qgdnv_zone, F_zone, idir, [i, j, k])
+             F(i,j,k,:) = F_zone(:)
 #endif
-
-       enddo
-    enddo
+          end do
+       end do
+    end do
 
   end subroutine compute_flux_q
 
+
+  !> @brief given a conserved state, compute the flux in direction idir
+  !!
+  !! @param[in] idir integer
+  !! @param[in] bnd_fac integer
+  !! @param[in] U real(rt)
+  !! @param[in] p real(rt)
+  !! @param[out] F real(rt)
+  !!
   pure subroutine compute_flux(idir, bnd_fac, U, p, F)
-    ! given a conserved state, compute the flux in direction idir
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
          npassive, upass_map

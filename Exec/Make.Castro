@@ -76,6 +76,10 @@ ifeq ($(USE_SYSTEM_BLAS), TRUE)
   LIBRARIES += $(BLAS_LIBRARY)
 endif
 
+ifeq ($(USE_CUDA),TRUE)
+  USE_GPU_PRAGMA = TRUE
+endif
+
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
 
 all: build_status $(executable)
@@ -137,6 +141,17 @@ endif
 ifeq ($(USE_REACT), TRUE)
   Bdirs += Source/reactions
   DEFINES += -DREACTIONS
+endif
+
+ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
+  DEFINES += -DREACT_SPARSE_JACOBIAN
+
+  # The following is sometimes useful to turn on for debugging sparse J indices
+  # (if a get/set/scale is called with (row, col) not in the sparse J, stop)
+  # Otherwise, set/scale do nothing, and get returns 0.
+  ifeq ($(USE_SPARSE_STOP_ON_OOB), TRUE)
+    DEFINES += -DSPARSE_STOP_ON_OOB
+  endif
 endif
 
 ifeq ($(USE_SDC), TRUE)
@@ -474,7 +489,7 @@ include $(AMREX_HOME)/Tools/GNUMake/Make.rules
 clean::
 	$(SILENT) $(RM) extern.F90
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
-	$(RM) set_conserved.H set_indices.F90 state_sizes.f90
+	$(RM) set_conserved.H set_primitive.H set_indices.F90 state_sizes.f90
 
 # Older versions of CASTRO generated a "network.f90" file when using
 # the general_null network, which conflicts with our generalized

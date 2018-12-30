@@ -1,4 +1,53 @@
-# changes since last release
+# 18.12
+
+  -- fixed a bug in the CUDA version of the MOL integrator -- it was
+     setting the interface states incorrectly.
+
+  -- removed ppm_type = 2.  This was not used for science simulations
+     because it was never shown to be completely stable.  In the near
+     future, the full fourth order method will be merged which will be
+     a better replacement.
+
+  -- a bug was fixed in the 1-d SDC integration -- we were not
+     applying the reactive source terms to the hydrodynamics interface
+     prediction.
+
+  -- we now apply the source terms for PLM before the transverse
+     routines.  This is more consistent with the PPM version.
+
+  -- the angular momentum in the plotfile is not computed with respect
+     to the center array initialized in the probinit
+
+  -- fixed a bug in 2-d with rotation -- we were adding the source
+     terms to the out-of-plane velocity twice in the prediction of the
+     interface states, resulting in an overall first-order
+     approximation there.
+
+  -- fixed an issue that resulted in the custom knapsack distribution
+     map not generating a useful distribution map for the reactions.
+     Also, fixed an edge case where this custom distribution map could
+     cause a numerical overflow and code crash. (#382)
+
+  -- the documentation was converted to sphinx
+
+  -- changed the interface to the conductivity routines so the conductivity
+     is not part of eos_t (#431)
+
+# 18.11
+
+  -- we've restructured the CTU solver to no longer use a slab
+     approach in 3d.  This is in preparation for offloading the solver
+     to GPUs.
+
+  -- a few minor bugs were fixed in the transverse routines of the CTU
+     solver with radiation
+
+  -- simplified conductivity interface to match the eos interface by
+     moving the conductivity variable in the arguments into the eos
+     type.
+
+
+# 18.10
 
   -- fixed handling of external BCs (#402)
 
