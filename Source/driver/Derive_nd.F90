@@ -1096,8 +1096,8 @@ contains
     ! This routine will calculate the divergence of velocity.
     !
 
-    use amrex_constants_module, only : ZERO, HALF
-    use prob_params_module, only: dg
+    use amrex_constants_module, only : ZERO, HALF, ONE
+    use prob_params_module, only: dg, problo, coord_type
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -1113,7 +1113,7 @@ contains
 
     integer          :: i, j, k
     real(rt)         :: ulo, uhi, vlo, vhi, wlo, whi
-
+    real(rt)         :: r, rm1, rp1
     !$gpu
 
     do k = lo(3), hi(3)
@@ -1125,13 +1125,35 @@ contains
              vlo = dat(i,j-1*dg(2),k,3) / dat(i,j-1*dg(2),k,1)
              whi = dat(i,j,k+1*dg(3),4) / dat(i,j,k+1*dg(3),1)
              wlo = dat(i,j,k-1*dg(3),4) / dat(i,j,k-1*dg(3),1)
-             divu(i,j,k,1) = HALF * (uhi-ulo) / delta(1)
-             if (delta(2) > ZERO) then
+
+             if (coord_type == 0) then
+                ! Cartesian divergence
+
+                divu(i,j,k,1) = HALF * (uhi-ulo) / delta(1)
+#if AMREX_SPACEDIM >= 2
                 divu(i,j,k,1) = divu(i,j,k,1) + HALF * (vhi-vlo) / delta(2)
-             endif
-             if (delta(3) > ZERO) then
+#endif
+#if AMREX_SPACEDIM == 3
                 divu(i,j,k,1) = divu(i,j,k,1) + HALF * (whi-wlo) / delta(3)
-             endif
+#endif
+             else if (coord_type == 1) then
+                ! axisymmetric divergence -- defined only for 2-d axisymmetric
+                r = dble(i + HALF)*delta(1) + problo(1)
+                rm1 = dble(i - ONE + HALF)*delta(1) + problo(1)
+                rp1 = dble(i + ONE + HALF)*delta(1) + problo(1)
+
+                divu(i,j,k,1) = HALF*(rp1*uhi - rm1*ulo)/(r*delta(1)) + &
+                                HALF*(vhi - vlo)/delta(2)
+
+             else if (coord_type == 2) then
+                r = dble(i + HALF)*delta(1) + problo(1)
+                rm1 = dble(i - ONE + HALF)*delta(1) + problo(1)
+                rp1 = dble(i + ONE + HALF)*delta(1) + problo(1)
+
+                divu(i,j,k,1) = HALF*(rp1**2*uhi - rm1**2*ulo)/(r**2 * delta(1))
+
+             end if
+
           end do
        end do
     end do
