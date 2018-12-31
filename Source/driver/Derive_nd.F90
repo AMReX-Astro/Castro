@@ -977,8 +977,8 @@ contains
     ! This routine will calculate vorticity
     !     
 
-    use amrex_constants_module, only : ZERO, HALF
-    use prob_params_module, only: dg
+    use amrex_constants_module, only : ZERO, HALF, ONE
+    use prob_params_module, only: dg, problo, coord_type
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -994,6 +994,7 @@ contains
 
     integer          :: i, j, k
     real(rt)         :: uy, uz, vx, vz, wx, wy, v1, v2, v3
+    real(rt)         :: vr_z, vphi_z, rvphi_r, vz_r, r, rm1, rp1
 
     !$gpu
 
@@ -1007,31 +1008,81 @@ contains
     !
     ! Calculate vorticity.
     !
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
+    if (coord_type == 0) then
+       ! Cartesian
 
-             vx = HALF * (dat(i+1*dg(1),j,k,3) / dat(i+1*dg(1),j,k,1) - dat(i-1*dg(1),j,k,3) / dat(i-1*dg(1),j,k,1)) / delta(1)
-             wx = HALF * (dat(i+1*dg(1),j,k,4) / dat(i+1*dg(1),j,k,1) - dat(i-1*dg(1),j,k,4) / dat(i-1*dg(1),j,k,1)) / delta(1)
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
-             if (delta(2) > ZERO) then
+                ! dv/dx and dw/dx
+                vx = HALF * (dat(i+1*dg(1),j,k,3) / dat(i+1*dg(1),j,k,1) - dat(i-1*dg(1),j,k,3) / dat(i-1*dg(1),j,k,1)) / delta(1)
+                wx = HALF * (dat(i+1*dg(1),j,k,4) / dat(i+1*dg(1),j,k,1) - dat(i-1*dg(1),j,k,4) / dat(i-1*dg(1),j,k,1)) / delta(1)
+
+#if AMREX_SPACEDIM >= 2
+                ! du/dy and dw/dy
                 uy = HALF * (dat(i,j+1*dg(2),k,2) / dat(i,j+1*dg(2),k,1) - dat(i,j-1*dg(2),k,2) / dat(i,j-1*dg(2),k,1)) / delta(2)
                 wy = HALF * (dat(i,j+1*dg(2),k,4) / dat(i,j+1*dg(2),k,1) - dat(i,j-1*dg(2),k,4) / dat(i,j-1*dg(2),k,1)) / delta(2)
-             endif
+#endif
 
-             if (delta(3) > ZERO) then
+#if AMREX_SPACEDIM == 3
+                ! du/dz and dv/dz
                 uz = HALF * (dat(i,j,k+1*dg(3),2) / dat(i,j,k+1*dg(3),1) - dat(i,j,k-1*dg(3),2) / dat(i,j,k-1*dg(3),1)) / delta(3)
                 vz = HALF * (dat(i,j,k+1*dg(3),3) / dat(i,j,k+1*dg(3),1) - dat(i,j,k-1*dg(3),3) / dat(i,j,k-1*dg(3),1)) / delta(3)
-             endif
+#endif
 
-             v1 = wy - vz
-             v2 = uz - wx
-             v3 = vx - uy
-             vort(i,j,k,1) = sqrt(v1*v1 + v2*v2 + v3*v3)
+                ! curl in Cartesian coords
+                v1 = wy - vz
+                v2 = uz - wx
+                v3 = vx - uy
+                vort(i,j,k,1) = sqrt(v1*v1 + v2*v2 + v3*v3)
 
+             end do
           end do
        end do
-    end do
+
+    else if (coord_type == 1) then
+       ! 2-d axisymmetric -- the coordinate ordering is r, z, phi
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                r = dble(i + HALF)*delta(1) + problo(1)
+                rm1 = dble(i - ONE + HALF)*delta(1) + problo(1)
+                rp1 = dble(i + ONE + HALF)*delta(1) + problo(1)
+
+                ! dv_r/dz
+                vr_z = HALF * (dat(i,j+1,k,2) / dat(i,j+1,k,1) - &
+                               dat(i,j-1,k,2) / dat(i,j-1,k,1)) / delta(2)
+
+                ! dv_phi/dz
+                vphi_z = HALF * (dat(i,j+1,k,4) / dat(i,j+1,k,1) - &
+                                 dat(i,j-1,k,4) / dat(i,j-1,k,1)) / delta(2)
+
+                ! d (r v_phi)/dr
+                rvphi_r = HALF * (rp1 * dat(i+1,j,k,4) / dat(i+1,j,k,1) - &
+                                  rm1 * dat(i-1,j,k,4) / dat(i-1,j,k,1)) / delta(1)
+
+                ! dv_z/dr
+                vz_r = HALF * (dat(i+1,j,k,3) / dat(i+1,j,k,1) - &
+                               dat(i-1,j,k,3) / dat(i-1,j,k,1)) / delta(1)
+
+                vort(i,j,k,1) = sqrt(vphi_z**2 + (vr_z - vz_r)**2 + (rvphi_r/r)**2)
+             end do
+          end do
+       end do
+
+    else if (coord_type == 2) then
+       ! 1-d spherical -- we don't really have a vorticity in this case
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                vort(i,j,k,1) = ZERO
+             end do
+          end do
+       end do
+
+    endif
 
   end subroutine dermagvort
 
