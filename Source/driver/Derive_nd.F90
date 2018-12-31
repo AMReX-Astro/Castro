@@ -1328,9 +1328,10 @@ contains
     !
 
     use meth_params_module, only: UTEMP
-    use prob_params_module, only: dim
+    use prob_params_module, only: problo, coord_type
     use diffusion_module, only : ca_fill_temp_cond
     use amrex_fort_module, only : rt => amrex_real
+    use amrex_constants_module, only : ZERO, HALF, ONE
 
     implicit none
 
@@ -1345,7 +1346,10 @@ contains
 
     real(rt), allocatable  :: coeff_x(:,:,:), coeff_y(:,:,:), coeff_z(:,:,:)
     real(rt) :: diff_term
+    real(rt) :: kgradT_xhi, kgradT_xlo, kgradT_yhi, kgradT_ylo, kgradT_zhi, kgradT_zlo
     integer          :: i, j, k
+
+    real(rt) :: r, rp1, rm1
 
     ! allocate space for edge-centered conductivities
     allocate(coeff_x(d_lo(1):d_hi(1), d_lo(2):d_hi(2), d_lo(3):d_hi(3)))
@@ -1363,23 +1367,43 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             ! x
-             diff_term = &
-                  coeff_x(i+1,j,k)*(state(i+1,j,k,UTEMP) - state(i,  j,k,UTEMP))/delta(1) - &
-                  coeff_x(i  ,j,k)*(state(i  ,j,k,UTEMP) - state(i-1,j,k,UTEMP))/delta(1)
+             kgradT_xhi = coeff_x(i+1,j,k)*(state(i+1,j,k,UTEMP) - state(i,  j,k,UTEMP))/delta(1)
+             kgradT_xlo = coeff_x(i  ,j,k)*(state(i  ,j,k,UTEMP) - state(i-1,j,k,UTEMP))/delta(1)
+#if AMREX_SPACEDIM >= 2
+             kgradT_yhi = coeff_y(i,j+1,k)*(state(i,j+1,k,UTEMP) - state(i,j  ,k,UTEMP))/delta(2)
+             kgradT_ylo = coeff_y(i,j  ,k)*(state(i,j,  k,UTEMP) - state(i,j-1,k,UTEMP))/delta(2)
+#endif
+#if AMREX_SPACEDIM == 3
+             kgradT_zhi = coeff_z(i,j,k+1)*(state(i,j,k+1,UTEMP) - state(i,j,k  ,UTEMP))/delta(3)
+             kgradT_zlo = coeff_z(i,j,k  )*(state(i,j,k  ,UTEMP) - state(i,j,k-1,UTEMP))/delta(3)
+#endif
 
-             ! y
-             if (dim >= 2) then
-                diff_term = diff_term + &
-                     coeff_y(i,j+1,k)*(state(i,j+1,k,UTEMP) - state(i,j  ,k,UTEMP))/delta(2) - &
-                     coeff_y(i,j  ,k)*(state(i,j,  k,UTEMP) - state(i,j-1,k,UTEMP))/delta(2)
-             endif
-             
-             ! z
-             if (dim == 3) then
-                diff_term = diff_term + &
-                     coeff_z(i,j,k+1)*(state(i,j,k+1,UTEMP) - state(i,j,k  ,UTEMP))/delta(3) - &
-                     coeff_z(i,j,k  )*(state(i,j,k  ,UTEMP) - state(i,j,k-1,UTEMP))/delta(3)
+             if (coord_type == 0) then
+                diff_term = (kgradT_xhi - kgradT_xlo)/delta(1)
+#if AMREX_SPACEDIM >= 2
+                diff_term = diff_term + (kgradT_yhi - kgradT_ylo)/delta(2)
+#endif
+#if AMREX_SPACEDIM == 3
+                diff_term = diff_term + (kgradT_zhi = kgradT_zlo)/delta(3)&
+#endif
+
+             else if (coord_type == 1) then
+                ! axisymmetric coords (2-d)
+                r = dble(i + HALF)*delta(1) + problo(1)
+                rm1 = dble(i - ONE + HALF)*delta(1) + problo(1)
+                rp1 = dble(i + ONE + HALF)*delta(1) + problo(1)
+
+                diff_term = (rp1*kgradT_xhi - rm1*kgradT_xlo)/(r*delta(1)) + &
+                            (kgradT_yhi - kgradT_ylo)/delta(2)
+
+             else if (coord_type == 2) then
+                ! spherical coords (1-d)
+                r = dble(i + HALF)*delta(1) + problo(1)
+                rm1 = dble(i - ONE + HALF)*delta(1) + problo(1)
+                rp1 = dble(i + ONE + HALF)*delta(1) + problo(1)
+
+                diff_term = (rp1**2*kgradT_xhi - rm1**2*kgradT_xlo)/(r**2*delta(1))
+
              endif
 
              diff(i,j,k,1) = diff_term
