@@ -804,6 +804,14 @@ Castro::variableSetUp ()
     derive_lst.addComponent(spec_string,desc_lst,State_Type,Density,1);
     derive_lst.addComponent(spec_string,desc_lst,State_Type,FirstSpec+i,1);
   }
+
+  //
+  // Abar
+  //
+  derive_lst.add("abar",IndexType::TheCellType(),1,ca_derabar,the_same_box);
+  derive_lst.addComponent("abar",desc_lst,State_Type,Density,1);
+  derive_lst.addComponent("abar",desc_lst,State_Type,FirstSpec,NumSpec);
+
   //
   // Velocities
   //

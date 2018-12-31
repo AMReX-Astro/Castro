@@ -934,6 +934,48 @@ contains
   end subroutine derspec
 
 
+  subroutine derabar(abar,a_lo,a_hi,nv, &
+                     dat,d_lo,d_hi,nc,lo,hi,domlo, &
+                     domhi,delta,xlo) bind(C, name="derabar")
+    !
+    ! This routine derives the mass fractions of the species.
+    !
+    use amrex_fort_module, only : rt => amrex_real
+    use network, only : nspec, aion
+    use amrex_constants_module, only : ONE
+
+    implicit none
+
+    integer, intent(in), value :: nv, nc
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: a_lo(3), a_hi(3)
+    integer, intent(in) :: d_lo(3), d_hi(3)
+    integer, intent(in) :: domlo(3), domhi(3)
+    real(rt), intent(in) :: delta(3), xlo(3)
+    real(rt), intent(inout) :: abar(a_lo(1):a_hi(1),a_lo(2):a_hi(2),a_lo(3):a_hi(3),nv)
+    real(rt), intent(in) ::  dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+
+    ! abar(...,1) is density
+    ! abar(...,2:) are (rho X)
+
+    integer          :: i, j, k
+
+    real(rt) :: xn(nspec)
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             xn(:) = dat(i,j,k,2:)/dat(i,j,k,1)
+             abar(i,j,k,1) = ONE/(sum(xn(:)/aion(:)))
+          end do
+       end do
+    end do
+
+  end subroutine derabar
+
+
 
   subroutine derlogden(logden,l_lo,l_hi,nd, &
                           dat,d_lo,d_hi,nc, &
