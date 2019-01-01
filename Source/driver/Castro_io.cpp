@@ -522,6 +522,8 @@ Castro::checkPoint(const std::string& dir,
 
 	    CastroHeaderFile << "Checkpoint version: " << current_version << std::endl;
 	    CastroHeaderFile.close();
+
+            writeJobInfo(dir);
 	}
 
         // If we have limited this last timestep to hit a plot interval,
