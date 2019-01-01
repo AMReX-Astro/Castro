@@ -1,3 +1,20 @@
+# changes since the last release
+
+  -- The User's Guide is now automatically built from the development
+     branch using travis.
+
+  -- we now store the job_info file in the checkpoints (#450)
+
+  -- we now automatically generate Doxygen docs along with the User's
+     Guide and have started adding docstrings throughout the
+     code. (#461)
+
+  -- The MG solver was optimized a bit (#464)
+
+  -- we removed ppm_type = 2.  This was never really used and not as
+     robust as ppm_type = 1.  The forthcoming 4th order method will
+     take its place. (#442)
+
 # 18.12
 
   -- fixed a bug in the CUDA version of the MOL integrator -- it was
