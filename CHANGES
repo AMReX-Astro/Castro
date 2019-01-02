@@ -1,3 +1,9 @@
+# changes since the last release
+
+  -- The plotfile quantities divu and magvort were fixed in
+     axisymmetric coordinates and diff_term was fixed in all
+     geometries.  (#446, 448, 449, 472)
+
 # 19.01
 
   -- The User's Guide is now automatically built from the development
