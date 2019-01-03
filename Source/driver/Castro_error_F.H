@@ -77,6 +77,16 @@ extern "C"
      const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* problo,
      const amrex::Real* time, const int* level);
 
+  void ca_enucerror
+    (int* tag, const int* tag_lo, const int* tag_hi,
+     const int* tagval, const int* clearval,
+     BL_FORT_FAB_ARG_3D(state),
+     const int* lo, const int* hi,
+     const int* ncomp,
+     const int* domlo, const int* domhi,
+     const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* problo,
+     const amrex::Real* time, const int* level);
+
   void ca_mfracerror
     (int* tag, const int* tag_lo, const int* tag_hi,
      const int* tagval, const int* clearval,
