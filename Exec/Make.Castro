@@ -35,6 +35,12 @@ USE_ALL_CASTRO ?= TRUE
 
 USE_AMR_CORE ?= TRUE
 
+# hack for now -- CUDA processing doesn't respect functions blocked by
+# ifdefs, so we need to define EXTRA_THERMO
+ifeq ($(USE_CUDA),TRUE)
+  DEFINES += -DEXTRA_THERMO
+endif
+
 # backwards compatibility
 ifdef Network_dir
   ifndef NETWORK_DIR

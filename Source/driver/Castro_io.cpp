@@ -522,6 +522,8 @@ Castro::checkPoint(const std::string& dir,
 
 	    CastroHeaderFile << "Checkpoint version: " << current_version << std::endl;
 	    CastroHeaderFile.close();
+
+            writeJobInfo(dir);
 	}
 
         // If we have limited this last timestep to hit a plot interval,
@@ -827,6 +829,48 @@ Castro::writeJobInfo (const std::string& dir)
     jobInfoFile << "   -z: " << names_bc[lo_bc_out[2]] << "\n";
     jobInfoFile << "   +z: " << names_bc[hi_bc_out[2]] << "\n";
   }
+
+  jobInfoFile << "\n\n";
+
+  jobInfoFile << " Domain geometry info\n";
+
+  jobInfoFile << "     geometry.is_periodic: ";
+  for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
+    jobInfoFile << geom.isPeriodic(dir) << " ";
+  }
+  jobInfoFile << "\n";
+
+  jobInfoFile << "     geometry.coord_sys:   " << Geometry::Coord() << "\n";
+
+  jobInfoFile << "     geometry.prob_lo:     ";
+  for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
+    jobInfoFile << geom.ProbLo(dir) << " ";
+  }
+  jobInfoFile << "\n";
+
+  jobInfoFile << "     geometry.prob_hi:     ";
+  for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
+    jobInfoFile << geom.ProbHi(dir) << " ";
+  }
+  jobInfoFile << "\n";
+
+  jobInfoFile << "     amr.n_cell:           ";
+  const int*  domain_lo = geom.Domain().loVect();
+  const int*  domain_hi = geom.Domain().hiVect();
+  for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
+    jobInfoFile << domain_hi[dir] - domain_lo[dir] + 1 << " ";
+  }
+  jobInfoFile << "\n";
+
+  int max_level = parent->maxLevel();
+  jobInfoFile << "     amr.max_level:        " << max_level << "\n";
+
+  jobInfoFile << "     amr.ref_ratio:        ";
+  for (int lev = 1; lev <= max_level; lev++) {
+    IntVect ref_ratio = parent->refRatio(lev-1);
+    jobInfoFile << ref_ratio[0] << " ";
+  }
+  jobInfoFile << "\n";
 
   jobInfoFile << "\n\n";
 
