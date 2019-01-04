@@ -362,6 +362,11 @@ diffuse_vel                  int           0                  n     DIFFUSION
 # set a cutoff density for diffusion -- we zero the term out below this density
 diffuse_cutoff_density       Real          -1.e200            y     DIFFUSION
 
+# secondary cutoff density -- there will be a linear dropoff in the diffusion
+# coefficient between this and the primary cutoff density. This should be the
+# larger of the two
+diffuse_cutoff_density_hi    Real          -1.e200            y     DIFFUSION
+
 # scaling factor for conductivity
 diffuse_cond_scale_fac       Real          1.0                y     DIFFUSION
 
