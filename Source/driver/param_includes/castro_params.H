@@ -121,6 +121,8 @@ static int grown_factor;
 static int star_at_center;
 static int do_special_tagging;
 static int spherical_star;
+static int verbose;
+static bool dump_old;
 static int print_fortran_warnings;
 static int print_update_diagnostics;
 static int track_grid_losses;

@@ -2090,9 +2090,7 @@ protected:
 #endif
 
     static bool      signalStopJob;
-    static bool      dump_old;
     static int       radius_grow;
-    static int       verbose;
     static amrex::ErrorList err_list;
     static int              num_err_list_default;
     static amrex::BCRec     phys_bc;

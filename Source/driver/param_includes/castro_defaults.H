@@ -121,6 +121,8 @@ int         Castro::grown_factor = 1;
 int         Castro::star_at_center = -1;
 int         Castro::do_special_tagging = 0;
 int         Castro::spherical_star = 0;
+int         Castro::verbose = 0;
+bool        Castro::dump_old = false;
 #ifdef AMREX_DEBUG
 int         Castro::print_fortran_warnings = 1;
 #else
