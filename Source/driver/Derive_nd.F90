@@ -1139,7 +1139,7 @@ contains
     !
 
     use amrex_constants_module, only : ZERO
-    use meth_params_module, only: diffuse_cutoff_density, &
+    use meth_params_module, only: diffuse_cutoff_density, diffuse_cutoff_density_hi, &
                                   URHO, UEINT, UTEMP, UFS, UFX
     use eos_type_module, only: eos_input_re, eos_t
     use eos_module, only: eos
@@ -1161,6 +1161,7 @@ contains
     integer          :: i, j, k
 
     type(eos_t) :: eos_state
+    real(rt) :: multiplier
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -1175,6 +1176,12 @@ contains
 
              if (eos_state%rho > diffuse_cutoff_density) then
                 call conductivity(eos_state)
+
+                if (eos_state%rho < diffuse_cutoff_density_hi) then
+                    multiplier = (eos_state%rho - diffuse_cutoff_density) / &
+                            (diffuse_cutoff_density_hi - diffuse_cutoff_density)
+                    eos_state % conductivity = eos_state % conductivity * multiplier
+                endif
              else
                 eos_state % conductivity = ZERO
              endif
@@ -1197,7 +1204,7 @@ contains
     !
 
     use amrex_constants_module, only : ZERO
-    use meth_params_module, only: diffuse_cutoff_density, &
+    use meth_params_module, only: diffuse_cutoff_density, diffuse_cutoff_density_hi, &
                                   URHO, UEINT, UTEMP, UFS, UFX
     use eos_type_module, only: eos_input_re, eos_t
     use eos_module, only: eos
@@ -1219,6 +1226,7 @@ contains
     integer          :: i, j, k
 
     type(eos_t) :: eos_state
+    real(rt) :: multiplier
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -1233,6 +1241,12 @@ contains
 
              if (eos_state%rho > diffuse_cutoff_density) then
                 call conductivity(eos_state)
+
+                if (eos_state%rho < diffuse_cutoff_density_hi) then
+                    multiplier = (eos_state%rho - diffuse_cutoff_density) / &
+                            (diffuse_cutoff_density_hi - diffuse_cutoff_density)
+                    eos_state % conductivity = eos_state % conductivity * multiplier
+                endif
              else
                 eos_state % conductivity = ZERO
              endif
