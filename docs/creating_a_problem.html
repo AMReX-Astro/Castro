@@ -221,6 +221,16 @@ reading in an initial model (usually through the
 <code class="docutils literal notranslate"><span class="pre">model_parser_module</span></code>—see the <code class="docutils literal notranslate"><span class="pre">toy_convect</span></code> problem
 setup for an example). The parameters that are initialized
 here are those stored in the <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">many problems set the value of the <code class="docutils literal notranslate"><span class="pre">center()</span></code> array
+from <code class="docutils literal notranslate"><span class="pre">prob_params_module</span></code> here.  This is used to note the
+center of the problem (which does not necessarily need to be
+the center of the domain, e.g., for axisymmetric problems).
+<code class="docutils literal notranslate"><span class="pre">center</span></code> is used in source terms (including rotation and
+gravity) and in computing some of the derived variables (like
+angular momentum).</p>
+</div>
 </li>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">ca_initdata()</span></code>:</p>
 <p>This routine will initialize the state data for a single grid.

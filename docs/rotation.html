@@ -219,6 +219,13 @@ problem and the value of coord_sys; in all cases, however, the
 default axis of rotation points from <code class="docutils literal notranslate"><span class="pre">center</span></code>, which is typically
 defined in a <code class="docutils literal notranslate"><span class="pre">Prob_$(DIM)d.f90</span></code> routine, to the typical “vertical
 direction.” The vertical direction is defined as follows:</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">make sure you have set the <code class="docutils literal notranslate"><span class="pre">center()</span></code> variable
+appropriately for you problem.  This can be done either by directly
+setting it in the <code class="docutils literal notranslate"><span class="pre">prob_params_module</span></code> or via the
+<code class="docutils literal notranslate"><span class="pre">castro.center</span></code> runtime parameter.</p>
+</div>
 <ul class="simple">
 <li>2D<ul>
 <li><code class="docutils literal notranslate"><span class="pre">coord_sys</span> <span class="pre">=</span> <span class="pre">0</span></code>, (x,y): out of the (x,y)-plane along the “z”-axis</li>

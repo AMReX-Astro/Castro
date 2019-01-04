@@ -114,8 +114,8 @@ Derived variables
 +===================================+===================================================+=============================+=========================================+
 | ``angular_momentum_x``,           | Angular momentum / volume in the x, y, or z dir   | ``derangmomx``,             | :math:`{\rm g~cm^{-1}~s^{-1}`           |
 | ``angular_momentum_y``,           | computed as :math:`[(\rho \ub) \times {\bf r}]_n` | ``derangmomy``,             |                                         |
-| ``angular_momentum_z``            | where :math:`{\bf r}` is the distance from the    | ``derangmomz``              |                                         |
-|                                   | origin and :math:`n` is either x, y, or z         |                             |                                         |
+| ``angular_momentum_z``            | where :math:`{\bf r}` is the distance from        | ``derangmomz``              |                                         |
+|                                   | ``center`` and :math:`n` is either x, y, or z     |                             |                                         |
 +-----------------------------------+---------------------------------------------------+-----------------------------+-----------------------------------------+
 | ``diff_coeff``                    | Thermal diffusion coefficient,                    | ``derdiffcoeff``            | :math:`{\rm cm^2~s^{-1}}`               |
 |                                   | :math:`\kth/(\rho c_v)`                           |                             |                                         |
