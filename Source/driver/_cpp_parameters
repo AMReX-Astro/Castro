@@ -310,20 +310,6 @@ dtnuc_X                      Real          1.e200             y
 # prevent the timestep from becoming very small due to changes in trace species.
 dtnuc_X_threshold            Real          1.e-3              y
 
-# limit the zone size based on how much the burning can change the internal
-# energy of a zone. The zone size on the finest level must be smaller than
-# ``dxnuc`` :math:`\cdot\, c_s\cdot (e / \dot{e})`, where :math:`c_s` is the sound speed.
-# This ensures that the sound-crossing time is smaller than the
-# nuclear energy injection timescale.
-dxnuc                        Real          1.e200             y
-
-# Disable limiting based on dxnuc above this threshold. This allows zones that
-# have already ignited or are about to ignite to be de-refined.
-dxnuc_max                    Real          1.e200             y
-
-# Disable limiting based on dxnuc above this AMR level.
-max_dxnuc_lev                int          -1                  y
-
 # permits reactions to be turned on and off -- mostly for efficiency's sake
 do_react                     int          -1                  y
 

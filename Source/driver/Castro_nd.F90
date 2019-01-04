@@ -1028,7 +1028,8 @@ subroutine ca_get_tagging_params(name, namlen) &
        max_temperr_lev, max_tempgrad_lev, max_tempgrad_rel_lev, &
        raderr, radgrad, radgrad_rel, &
        max_raderr_lev, max_radgrad_lev, max_radgrad_rel_lev, &
-       enucerr, max_enucerr_lev
+       enucerr, max_enucerr_lev, &
+       dxnuc_min, dxnuc_max, max_dxnuc_lev
 
   ! Set namelist defaults
   denerr = 1.e20_rt
@@ -1075,6 +1076,10 @@ subroutine ca_get_tagging_params(name, namlen) &
 
   enucerr = 1.e200_rt
   max_enucerr_lev = -1
+
+  dxnuc_min = 1.e200_rt
+  dxnuc_max = 1.e200_rt
+  max_dxnuc_lev = -1
 
   ! create the filename
 #ifndef AMREX_USE_CUDA

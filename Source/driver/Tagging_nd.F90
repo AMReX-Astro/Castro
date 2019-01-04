@@ -19,6 +19,21 @@ module tagging_module
   integer, save ::  max_raderr_lev,   max_radgrad_lev, max_radgrad_rel_lev
   integer, save ::  max_enucerr_lev
 
+  ! limit the zone size based on how much the burning can change the
+  ! internal energy of a zone. The zone size on the finest level must
+  ! be smaller than dxnuc * c_s * (e/ \dot{e}) where c_s is the sound
+  ! speed.  This ensures that the sound-crossing time is smaller than
+  ! the nuclear energy injection timescale.
+  real(rt), save :: dxnuc_min
+
+  ! Disable limiting based on dxnuc above this threshold. This allows
+  !  zones that have already ignited or are about to ignite to be
+  !  de-refined.
+  real(rt), save :: dxnuc_max
+
+  ! Disable limiting based on dxnuc above this AMR level.
+  integer, save :: max_dxnuc_lev
+
   public
 
 contains
@@ -562,7 +577,6 @@ contains
                          delta,xlo,problo,time,level) &
                          bind(C, name="ca_nucerror")
 
-    use meth_params_module, only: dxnuc, dxnuc_max, max_dxnuc_lev
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -579,7 +593,7 @@ contains
 
     ! Disable if we're not utilizing this tagging
 
-    if (dxnuc > 1.e199_rt) return
+    if (dxnuc_min > 1.e199_rt) return
 
     if (level .lt. max_dxnuc_lev) then
 
@@ -587,7 +601,7 @@ contains
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
 
-                if (t(i,j,k,1) > dxnuc .and. t(i,j,k,1) < dxnuc_max) then
+                if (t(i,j,k,1) > dxnuc_min .and. t(i,j,k,1) < dxnuc_max) then
 
                    tag(i,j,k) = set
 
