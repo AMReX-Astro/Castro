@@ -249,8 +249,6 @@ Castro::read_params ()
 #include <castro_queries.H>
 
     pp.query("v",verbose);
-    pp.query("sum_interval",sum_interval);
-
     pp.query("dump_old",dump_old);
 
     // Get boundary conditions
