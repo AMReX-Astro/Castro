@@ -150,6 +150,10 @@ def make_rest_table(param_files):
 
             params = [q for q in params_list if q.namespace == nm and q.category == c]
 
+            # print the index stuff
+            fmt = ["{}.{}".format(nm, q.var) for q in params]
+            print(".. index:: {}\n\n".format(" ".join(fmt)))
+
             print(main_header.strip())
 
             for p in params:
