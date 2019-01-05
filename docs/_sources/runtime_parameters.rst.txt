@@ -3,6 +3,9 @@ namespace: ``castro``
 
 **AMR**
 
+.. index:: castro.state_interp_order castro.lin_limit_state_interp castro.state_nghost castro.do_reflux castro.update_sources_after_reflux castro.use_custom_knapsack_weights
+
+
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |
 +========================================+=========================================================+===============+
@@ -30,6 +33,9 @@ namespace: ``castro``
 
 
 **hydrodynamics**
+
+.. index:: castro.difmag castro.small_dens castro.small_temp castro.small_pres castro.small_ener castro.do_hydro castro.do_ctu castro.fourth_order castro.add_ext_src castro.hybrid_hydro castro.ppm_type castro.ppm_temp_fix castro.ppm_predict_gammae castro.ppm_reference_eigenvectors castro.plm_iorder castro.hybrid_riemann castro.riemann_solver castro.cg_maxiter castro.cg_tol castro.cg_blend castro.use_eos_in_riemann castro.use_flattening castro.transverse_use_eos castro.transverse_reset_density castro.transverse_reset_rhoe castro.dual_energy_eta1 castro.dual_energy_eta2 castro.use_pslope castro.fix_mass_flux castro.limit_fluxes_on_small_dens castro.density_reset_method castro.allow_small_energy castro.do_sponge castro.sponge_implicit castro.source_term_predictor castro.first_order_hydro castro.xl_ext_bc_type castro.xr_ext_bc_type castro.yl_ext_bc_type castro.yr_ext_bc_type castro.zl_ext_bc_type castro.zr_ext_bc_type castro.hse_zero_vels castro.hse_interp_temp castro.hse_reflect_vels castro.mol_order
+
 
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |
@@ -197,6 +203,9 @@ namespace: ``castro``
 
 **timestep control**
 
+.. index:: castro.fixed_dt castro.initial_dt castro.dt_cutoff castro.max_dt castro.cfl castro.init_shrink castro.change_max castro.plot_per_is_exact castro.small_plot_per_is_exact castro.use_retry castro.retry_tolerance castro.retry_neg_dens_factor castro.retry_subcycle_factor castro.use_post_step_regrid castro.max_subcycles castro.clamp_subcycles castro.sdc_iters
+
+
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |
 +========================================+=========================================================+===============+
@@ -266,6 +275,9 @@ namespace: ``castro``
 
 **reactions**
 
+.. index:: castro.dtnuc_e castro.dtnuc_X castro.dtnuc_X_threshold castro.dxnuc castro.dxnuc_max castro.max_dxnuc_lev castro.do_react castro.react_T_min castro.react_T_max castro.react_rho_min castro.react_rho_max castro.disable_shock_burning
+
+
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |
 +========================================+=========================================================+===============+
@@ -320,6 +332,9 @@ namespace: ``castro``
 
 **diffusion**
 
+.. index:: castro.diffuse_temp castro.diffuse_enth castro.diffuse_spec castro.diffuse_vel castro.diffuse_cutoff_density castro.diffuse_cond_scale_fac
+
+
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |
 +========================================+=========================================================+===============+
@@ -340,6 +355,9 @@ namespace: ``castro``
 
 
 **gravity and rotation**
+
+.. index:: castro.do_grav castro.moving_center castro.grav_source_type castro.do_rotation castro.rotational_period castro.rotational_dPdt castro.rotation_include_centrifugal castro.rotation_include_coriolis castro.rotation_include_domegadt castro.state_in_rotating_frame castro.rot_source_type castro.implicit_rotation_update castro.rot_axis castro.use_point_mass castro.point_mass castro.point_mass_fix_solution
+
 
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |
@@ -400,6 +418,9 @@ namespace: ``castro``
 
 **parallelization**
 
+.. index:: castro.do_acc castro.bndry_func_thread_safe
+
+
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |
 +========================================+=========================================================+===============+
@@ -412,6 +433,9 @@ namespace: ``castro``
 
 
 **embiggening**
+
+.. index:: castro.grown_factor castro.star_at_center
+
 
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |
@@ -427,6 +451,9 @@ namespace: ``castro``
 
 **refinement**
 
+.. index:: castro.do_special_tagging castro.spherical_star
+
+
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |
 +========================================+=========================================================+===============+
@@ -438,6 +465,9 @@ namespace: ``castro``
 
 
 **diagnostics, I/O**
+
+.. index:: castro.v castro.dump_old castro.print_fortran_warnings castro.print_update_diagnostics castro.track_grid_losses castro.sum_interval castro.sum_per castro.show_center_of_mass castro.hard_cfl_limit castro.job_name castro.output_at_completion castro.reset_checkpoint_time castro.reset_checkpoint_step
+
 
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |
@@ -490,6 +520,9 @@ namespace: ``castro``
 
 **particles**
 
+.. index:: castro.do_tracer_particles
+
+
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |
 +========================================+=========================================================+===============+
@@ -501,6 +534,9 @@ namespace: ``castro``
 
 namespace: ``diffusion``
 ------------------------
+
+.. index:: diffusion.v diffusion.mlmg_maxorder
+
 
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |
@@ -515,6 +551,9 @@ namespace: ``diffusion``
 
 namespace: ``gravity``
 ----------------------
+
+.. index:: gravity.gravity_type gravity.const_grav gravity.direct_sum_bcs gravity.drdxfac gravity.max_multipole_order gravity.v gravity.no_sync gravity.no_composite gravity.do_composite_phi_correction gravity.max_solve_level gravity.get_g_from_phi gravity.mlmg_max_fmg_iter gravity.mlmg_agglomeration gravity.mlmg_consolidation gravity.mlmg_nsolve
+
 
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |
@@ -570,6 +609,9 @@ namespace: ``gravity``
 
 namespace: ``particles``
 ------------------------
+
+.. index:: particles.v particles.particle_init_file particles.particle_restart_file particles.restart_from_nonparticle_chkfile particles.particle_output_file particles.timestamp_dir particles.timestamp_density particles.timestamp_temperature
+
 
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |
