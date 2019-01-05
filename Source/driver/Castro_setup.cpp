@@ -199,22 +199,6 @@ Castro::variableSetUp ()
 
   const Real run_strt = ParallelDescriptor::second() ;
 
-
-  // we want const_grav in F90, get it here from parmparse, since it
-  // it not in the Castro namespace
-  ParmParse pp("gravity");
-
-  // Pass in the name of the gravity type we're using -- we do this
-  // manually, since the Fortran parmparse doesn't support strings
-  std::string gravity_type = "none";
-  pp.query("gravity_type", gravity_type);
-  const int gravity_type_length = gravity_type.length();
-  Vector<int> gravity_type_name(gravity_type_length);
-
-  for (int i = 0; i < gravity_type_length; i++)
-    gravity_type_name[i] = gravity_type[i];
-
-
   // Read in the input values to Fortran.
   ca_set_castro_method_params();
 
@@ -237,8 +221,7 @@ Castro::variableSetUp ()
                        QU, QV, QW,
                        QGAME, QPRES, QREINT,
                        QTEMP,
-                       QFA, QFS, QFX,
-		       gravity_type_name.dataPtr(), gravity_type_length);
+                       QFA, QFS, QFX);
 
   // Get the number of primitive variables from Fortran.
   ca_get_qvar(&QVAR);

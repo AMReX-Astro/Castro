@@ -553,7 +553,7 @@ timestamp_temperature        int           0
 @namespace: gravity Gravity static
 
 # what type 
-gravity_type                 string        "fillme"
+gravity_type                 string        "fillme"           y
 
 
 # if doing constant gravity, what is the acceleration

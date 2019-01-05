@@ -62,8 +62,6 @@ module meth_params_module
   logical         , save :: outflow_data_allocated
   real(rt)        , save :: max_dist
 
-  character(len=:), allocatable :: gravity_type
-
   ! these flags are for interpreting the EXT_DIR BCs
   integer, parameter :: EXT_UNDEFINED = -1
   integer, parameter :: EXT_HSE = 1
@@ -184,6 +182,7 @@ module meth_params_module
   integer,  allocatable, save :: do_acc
   integer,  allocatable, save :: grown_factor
   integer,  allocatable, save :: track_grid_losses
+  character (len=:), allocatable, save :: gravity_type
   real(rt), allocatable, save :: const_grav
   integer,  allocatable, save :: get_g_from_phi
 
@@ -293,6 +292,7 @@ attributes(managed) :: point_mass_fix_solution
 attributes(managed) :: do_acc
 attributes(managed) :: grown_factor
 attributes(managed) :: track_grid_losses
+
 attributes(managed) :: const_grav
 attributes(managed) :: get_g_from_phi
 #endif
@@ -431,12 +431,15 @@ contains
 #endif
     allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
+    allocate(character(len=1)::gravity_type)
+    gravity_type = "fillme";
     allocate(const_grav)
     const_grav = 0.0d0;
     allocate(get_g_from_phi)
     get_g_from_phi = 0;
 
     call amrex_parmparse_build(pp, "gravity")
+    call pp%query("gravity_type", gravity_type)
     call pp%query("const_grav", const_grav)
     call pp%query("get_g_from_phi", get_g_from_phi)
     call amrex_parmparse_destroy(pp)
@@ -715,8 +718,7 @@ contains
     !$acc device(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
     !$acc device(implicit_rotation_update, rot_axis, use_point_mass) &
     !$acc device(point_mass, point_mass_fix_solution, do_acc) &
-    !$acc device(grown_factor, track_grid_losses, const_grav) &
-    !$acc device(get_g_from_phi)
+    !$acc device(grown_factor, track_grid_losses, const_grav, get_g_from_phi)
 
 
     ! now set the external BC flags
@@ -1028,6 +1030,9 @@ contains
     end if
     if (allocated(track_grid_losses)) then
         deallocate(track_grid_losses)
+    end if
+    if (allocated(gravity_type)) then
+        deallocate(gravity_type)
     end if
     if (allocated(const_grav)) then
         deallocate(const_grav)
