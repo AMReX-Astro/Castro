@@ -4,6 +4,11 @@
      axisymmetric coordinates and diff_term was fixed in all
      geometries.  (#446, 448, 449, 472)
 
+  -- abar is a new derived variable (#470)
+
+  -- the job_info file now stores domain information (#451), and the
+     job_info files is also stored in checkpoints now too (#450)
+
 # 19.01
 
   -- The User's Guide is now automatically built from the development

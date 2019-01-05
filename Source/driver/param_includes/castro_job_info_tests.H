@@ -116,6 +116,8 @@ jobInfoFile << (Castro::grown_factor == 1 ? "    " : "[*] ") << "castro.grown_fa
 jobInfoFile << (Castro::star_at_center == -1 ? "    " : "[*] ") << "castro.star_at_center = " << Castro::star_at_center << std::endl;
 jobInfoFile << (Castro::do_special_tagging == 0 ? "    " : "[*] ") << "castro.do_special_tagging = " << Castro::do_special_tagging << std::endl;
 jobInfoFile << (Castro::spherical_star == 0 ? "    " : "[*] ") << "castro.spherical_star = " << Castro::spherical_star << std::endl;
+jobInfoFile << (Castro::verbose == 0 ? "    " : "[*] ") << "castro.verbose = " << Castro::verbose << std::endl;
+jobInfoFile << (Castro::dump_old == false ? "    " : "[*] ") << "castro.dump_old = " << Castro::dump_old << std::endl;
 jobInfoFile << (Castro::print_fortran_warnings == 0 ? "    " : "[*] ") << "castro.print_fortran_warnings = " << Castro::print_fortran_warnings << std::endl;
 jobInfoFile << (Castro::print_update_diagnostics == 0 ? "    " : "[*] ") << "castro.print_update_diagnostics = " << Castro::print_update_diagnostics << std::endl;
 jobInfoFile << (Castro::track_grid_losses == 0 ? "    " : "[*] ") << "castro.track_grid_losses = " << Castro::track_grid_losses << std::endl;

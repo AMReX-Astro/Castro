@@ -121,6 +121,8 @@ pp.query("grown_factor", grown_factor);
 pp.query("star_at_center", star_at_center);
 pp.query("do_special_tagging", do_special_tagging);
 pp.query("spherical_star", spherical_star);
+pp.query("v", verbose);
+pp.query("dump_old", dump_old);
 pp.query("print_fortran_warnings", print_fortran_warnings);
 pp.query("print_update_diagnostics", print_update_diagnostics);
 pp.query("track_grid_losses", track_grid_losses);

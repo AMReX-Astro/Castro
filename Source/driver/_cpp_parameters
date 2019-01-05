@@ -464,6 +464,12 @@ spherical_star               int           0
 # category: diagnostics, I/O
 #-----------------------------------------------------------------------------
 
+# verbosity level (higher numbers mean more output)
+(v, verbose)                 int           0
+
+# do we dump the old state into the checkpoint files too?
+dump_old                     bool          false
+
 # display warnings in Fortran90 routines
 print_fortran_warnings       int           (0, 1)
 
@@ -547,7 +553,7 @@ timestamp_temperature        int           0
 @namespace: gravity Gravity static
 
 # what type 
-gravity_type                 string        "fillme"
+gravity_type                 string        "fillme"           y
 
 
 # if doing constant gravity, what is the acceleration
