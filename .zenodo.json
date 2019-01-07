@@ -1,7 +1,7 @@
 {
     "creators": [
         {
-            "affilition": "Center for Computational Sciences and Engineering, Lawrence Berkeley National Laboratory",
+            "affiliation": "Center for Computational Sciences and Engineering, Lawrence Berkeley National Laboratory",
             "name": "Almgren, Ann",
             "orcid": "0000-0003-2103-312X"
         },
@@ -10,7 +10,7 @@
             "name": "Barrios Sazo, Maria"
         },
         {
-            "affilition": "Center for Computational Sciences and Engineering, Lawrence Berkeley National Laboratory",
+            "affiliation": "Center for Computational Sciences and Engineering, Lawrence Berkeley National Laboratory",
             "name": "Bell, John"
         },
         {
@@ -19,17 +19,19 @@
             "orcid": "0000-0002-1530-781X"
         },
         {
+            "affiliation": "NVIDIA Corp",
             "name": "Katz, Maximilian",
             "orcid": "0000-0003-0439-4556"
         },
         {
-            "affilition": "Center for Computational Sciences and Engineering, Lawrence Berkeley National Laboratory",
+            "affiliation": "Center for Computational Sciences and Engineering, Lawrence Berkeley National Laboratory",
             "name": "Willcox, Donald",
             "orcid": "0000-0003-2300-5165"
         },
         {
-            "affilition": "Center for Computational Sciences and Engineering, Lawrence Berkeley National Laboratory",
-            "name": "Zhang, Weiqun"
+            "affilitaion": "Center for Computational Sciences and Engineering, Lawrence Berkeley National Laboratory",
+            "name": "Zhang, Weiqun",
+            "orcid": "0000-0001-8092-1974"
         },
         {
             "affiliation": "Department of Physics and Astronomy, Stony Brook University",
