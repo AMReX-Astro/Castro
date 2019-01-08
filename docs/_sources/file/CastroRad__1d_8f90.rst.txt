@@ -1,4 +1,0 @@
-File CastroRad_1d.f90
-=====================
-
-.. doxygenfile:: CastroRad_1d.f90

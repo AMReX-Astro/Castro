@@ -1,4 +1,0 @@
-File slope_nd.F90
-=================
-
-.. doxygenfile:: slope_nd.F90

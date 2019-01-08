@@ -1,4 +1,0 @@
-File MGFLDRadSolver.cpp
-=======================
-
-.. doxygenfile:: MGFLDRadSolver.cpp

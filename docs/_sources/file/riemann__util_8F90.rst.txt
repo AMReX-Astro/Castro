@@ -1,4 +1,0 @@
-File riemann_util.F90
-=====================
-
-.. doxygenfile:: riemann_util.F90

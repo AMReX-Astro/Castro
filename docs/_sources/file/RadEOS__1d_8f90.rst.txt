@@ -1,4 +1,0 @@
-File RadEOS_1d.f90
-==================
-
-.. doxygenfile:: RadEOS_1d.f90

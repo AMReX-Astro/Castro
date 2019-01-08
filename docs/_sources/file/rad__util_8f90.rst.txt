@@ -1,4 +1,0 @@
-File rad_util.f90
-=================
-
-.. doxygenfile:: rad_util.f90

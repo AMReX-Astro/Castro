@@ -1,4 +1,0 @@
-File trans.F90
-==============
-
-.. doxygenfile:: trans.F90

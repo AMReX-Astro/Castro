@@ -1,4 +1,0 @@
-File blackbody.f90
-==================
-
-.. doxygenfile:: blackbody.f90
