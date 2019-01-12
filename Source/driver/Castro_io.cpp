@@ -100,9 +100,31 @@ Castro::restart (Amr&     papa,
 
             lastDtPlotLimited = 1;
             dtHeaderFile >> lastDtBeforePlotLimiting;
+            dtHeaderFile.close();
 
         }
 
+    }
+
+    // Check if we have the same state variables
+
+    if (ParallelDescriptor::IOProcessor()) {
+
+      std::ifstream StateListFile;
+      std::string FullPathStateList = papa.theRestartFile();
+      FullPathStateList += "/state_names.txt";
+      StateListFile.open(FullPathStateList.c_str(), std::ios::in);
+
+      if (StateListFile.good()) {
+        std::string var;
+        for (int n = 0; n < NUM_STATE; n++) {
+          StateListFile >> var;
+          if (var != desc_lst[State_Type].name(n)) {
+            amrex::Error("state variables do not agree");
+          }
+        }
+        StateListFile.close();
+      }
     }
 
     ParallelDescriptor::Bcast(&lastDtPlotLimited, 1, ParallelDescriptor::IOProcessorNumber());
@@ -524,6 +546,17 @@ Castro::checkPoint(const std::string& dir,
 	    CastroHeaderFile.close();
 
             writeJobInfo(dir);
+
+            // output the list of state variables, so we can do a sanity check on restart
+            std::ofstream StateListFile;
+            std::string FullPathStateList = dir;
+            FullPathStateList += "/state_names.txt";
+            StateListFile.open(FullPathStateList.c_str(), std::ios::out);
+
+            for (int n = 0; n < NUM_STATE; n++) {
+              StateListFile << desc_lst[State_Type].name(n) << "\n";
+            }
+            StateListFile.close();
 	}
 
         // If we have limited this last timestep to hit a plot interval,

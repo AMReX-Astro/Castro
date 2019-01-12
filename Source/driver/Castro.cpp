@@ -47,9 +47,6 @@ using namespace amrex;
 
 bool         Castro::signalStopJob = false;
 
-bool         Castro::dump_old      = false;
-
-int          Castro::verbose       = 0;
 ErrorList    Castro::err_list;
 int          Castro::num_err_list_default = 0;
 int          Castro::radius_grow   = 1;
@@ -251,11 +248,6 @@ Castro::read_params ()
     ParmParse pp("castro");
 
 #include <castro_queries.H>
-
-    pp.query("v",verbose);
-    pp.query("sum_interval",sum_interval);
-
-    pp.query("dump_old",dump_old);
 
     // Get boundary conditions
     Vector<int> lo_bc(BL_SPACEDIM), hi_bc(BL_SPACEDIM);
