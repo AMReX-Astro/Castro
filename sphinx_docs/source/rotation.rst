@@ -5,7 +5,7 @@ Rotation
 Introduction
 ============
 
-Currently, Castro supports contant, solid-body rotation about a fixed
+Currently, Castro supports contant, solid-body rotation about a fixed
 (in space and time) axis in 2D and 3D by transforming the evolution
 equations to the rotating frame of reference.
 
@@ -27,6 +27,11 @@ problem and the value of coord_sys; in all cases, however, the
 default axis of rotation points from ``center``, which is typically
 defined in a ``Prob_$(DIM)d.f90`` routine, to the typical “vertical
 direction.” The vertical direction is defined as follows:
+
+.. note:: make sure you have set the ``center()`` variable
+   appropriately for you problem.  This can be done either by directly
+   setting it in the ``prob_params_module`` or via the
+   ``castro.center`` runtime parameter.
 
 * 2D
 
@@ -300,7 +305,7 @@ in how the energy update is done:
 
 * ``castro.rot_source_type = 2`` : we do something very similar
   to 1. The major difference is that when evaluating the energy source
-  term at the new time (which is equal to 
+  term at the new time (which is equal to
   :math:`\mathbf{u} \cdot \mathbf{S}^{n+1}_{\rho \mathbf{u}}`, where the latter is the
   momentum source term evaluated at the new time), we first update the
   momentum, rather than using the value of :math:`\mathbf{u}` before

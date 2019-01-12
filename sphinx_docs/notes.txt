@@ -1,8 +1,0 @@
-In mathjax, we can define newcommands via:
-
-https://gist.github.com/fKunstner/48c4e1024365c876ab644b20b0356554
-
-this uses mathjax_config
-
-
-

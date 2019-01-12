@@ -1,48 +1,48 @@
-! advection routines in support of method of lines integration
-
+!> @brief advection routines in support of method of lines integration
+!!
 subroutine ca_mol_single_stage(lo, hi, time, &
-                               domlo, domhi, &
-                               stage_weight, &
-                               uin, uin_lo, uin_hi, &
-                               uout, uout_lo, uout_hi, &
-                               q, q_lo, q_hi, &
-                               qaux, qa_lo, qa_hi, &
-                               srcU, srU_lo, srU_hi, &
-                               update, updt_lo, updt_hi, &
-                               update_flux, uf_lo, uf_hi, &
-                               dx, dt, &
-                               flux1, flux1_lo, flux1_hi, &
+     domlo, domhi, &
+     stage_weight, &
+     uin, uin_lo, uin_hi, &
+     uout, uout_lo, uout_hi, &
+     q, q_lo, q_hi, &
+     qaux, qa_lo, qa_hi, &
+     srcU, srU_lo, srU_hi, &
+     update, updt_lo, updt_hi, &
+     update_flux, uf_lo, uf_hi, &
+     dx, dt, &
+     flux1, flux1_lo, flux1_hi, &
 #if AMREX_SPACEDIM >= 2
-                               flux2, flux2_lo, flux2_hi, &
+     flux2, flux2_lo, flux2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-                               flux3, flux3_lo, flux3_hi, &
+     flux3, flux3_lo, flux3_hi, &
 #endif
-                               area1, area1_lo, area1_hi, &
+     area1, area1_lo, area1_hi, &
 #if AMREX_SPACEDIM >= 2
-                               area2, area2_lo, area2_hi, &
+     area2, area2_lo, area2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-                               area3, area3_lo, area3_hi, &
+     area3, area3_lo, area3_hi, &
 #endif
 #if AMREX_SPACEDIM < 3
-                               pradial, p_lo, p_hi, &
-                               dloga, dloga_lo, dloga_hi, &
+     pradial, p_lo, p_hi, &
+     dloga, dloga_lo, dloga_hi, &
 #endif
-                               vol, vol_lo, vol_hi, &
-                               verbose) bind(C, name="ca_mol_single_stage")
+     vol, vol_lo, vol_hi, &
+     verbose) bind(C, name="ca_mol_single_stage")
 
   use amrex_error_module
   use amrex_mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, GDPRES, &
-                                 UTEMP, USHK, UMX, &
-                                 use_flattening, QPRES, NQAUX, &
-                                 QTEMP, QFS, QFX, QREINT, QRHO, &
-                                 first_order_hydro, difmag, hybrid_riemann, &
-                                 limit_fluxes_on_small_dens, ppm_type, ppm_temp_fix
+       UTEMP, USHK, UMX, &
+       use_flattening, QPRES, NQAUX, &
+       QTEMP, QFS, QFX, QREINT, QRHO, &
+       first_order_hydro, difmag, hybrid_riemann, &
+       limit_fluxes_on_small_dens, ppm_type, ppm_temp_fix
   use advection_util_module, only : limit_hydro_fluxes_on_small_dens, shock, &
-                                    divu, normalize_species_fluxes, calc_pdivu, &
-                                    scale_flux, apply_av
+       divu, normalize_species_fluxes, calc_pdivu, &
+       scale_flux, apply_av
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
   use flatten_module, only: ca_uflatten
   use riemann_module, only: cmpflx
@@ -194,39 +194,39 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #endif
 
 #ifdef SHOCK_VAR
-    uout(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), USHK) = ZERO
+  uout(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), USHK) = ZERO
 
-    call shock(lo-dg, hi+dg, &
-               q, q_lo, q_hi, &
-               shk, shk_lo, shk_hi, &
-               dx)
+  call shock(lo-dg, hi+dg, &
+             q, q_lo, q_hi, &
+             shk, shk_lo, shk_hi, &
+             dx)
 
-    ! Store the shock data for future use in the burning step.
+  ! Store the shock data for future use in the burning step.
 
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             uout(i,j,k,USHK) = shk(i,j,k)
-          enddo
-       enddo
-    enddo
+  do k = lo(3), hi(3)
+     do j = lo(2), hi(2)
+        do i = lo(1), hi(1)
+           uout(i,j,k,USHK) = shk(i,j,k)
+        enddo
+     enddo
+  enddo
 
-    ! Discard it locally if we don't need it in the hydro update.
+  ! Discard it locally if we don't need it in the hydro update.
 
-    if (hybrid_riemann /= 1) then
-       shk(:,:,:) = ZERO
-    endif
+  if (hybrid_riemann /= 1) then
+     shk(:,:,:) = ZERO
+  endif
 #else
-    ! multidimensional shock detection -- this will be used to do the
-    ! hybrid Riemann solver
-    if (hybrid_riemann == 1) then
-       call shock(lo-dg, hi+dg, &
-                  q, q_lo, q_hi, &
-                  shk, shk_lo, shk_hi, &
-                  dx)
-    else
-       shk(:,:,:) = ZERO
-    endif
+  ! multidimensional shock detection -- this will be used to do the
+  ! hybrid Riemann solver
+  if (hybrid_riemann == 1) then
+     call shock(lo-dg, hi+dg, &
+                q, q_lo, q_hi, &
+                shk, shk_lo, shk_hi, &
+                dx)
+  else
+     shk(:,:,:) = ZERO
+  endif
 #endif
 
   ! Compute flattening coefficient for slope calculations.
@@ -236,18 +236,18 @@ subroutine ca_mol_single_stage(lo, hi, time, &
      flatn = ZERO
   elseif (use_flattening == 1) then
      call ca_uflatten(lo - ngf*dg, hi + ngf*dg, &
-                      q, q_lo, q_hi, &
-                      flatn, q_lo, q_hi, QPRES)
+          q, q_lo, q_hi, &
+          flatn, q_lo, q_hi, QPRES)
   else
      flatn = ONE
   endif
 
 
   call ca_ppm_reconstruct(lo-dg, hi+dg, 1, &
-                          q, q_lo, q_hi, NQ, 1, NQ, &
-                          flatn, q_lo, q_hi, &
-                          qm, It_lo, It_hi, &
-                          qp, It_lo, It_hi, NQ, 1, NQ)
+       q, q_lo, q_hi, NQ, 1, NQ, &
+       flatn, q_lo, q_hi, &
+       qm, It_lo, It_hi, &
+       qp, It_lo, It_hi, NQ, 1, NQ)
 
   ! use T to define p
   if (ppm_temp_fix == 1) then
@@ -364,7 +364,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
   call divu(lo, hi+dg, q, q_lo, q_hi, &
-            dx, div, lo, hi+dg)
+       dx, div, lo, hi+dg)
 
   do n = 1, NVAR
 
@@ -393,39 +393,39 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   end do
 
   call apply_av(flux1_lo, flux1_hi, 1, dx, &
-                div, lo, hi+dg, &
-                uin, uin_lo, uin_hi, &
-                flux1, flux1_lo, flux1_hi)
+       div, lo, hi+dg, &
+       uin, uin_lo, uin_hi, &
+       flux1, flux1_lo, flux1_hi)
 
 #if AMREX_SPACEDIM >= 2
   call apply_av(flux2_lo, flux2_hi, 2, dx, &
-                div, lo, hi+dg, &
-                uin, uin_lo, uin_hi, &
-                flux2, flux2_lo, flux2_hi)
+       div, lo, hi+dg, &
+       uin, uin_lo, uin_hi, &
+       flux2, flux2_lo, flux2_hi)
 #endif
 
 #if AMREX_SPACEDIM == 3
   call apply_av(flux3_lo, flux3_hi, 3, dx, &
-                div, lo, hi+dg, &
-                uin, uin_lo, uin_hi, &
-                flux3, flux3_lo, flux3_hi)
+       div, lo, hi+dg, &
+       uin, uin_lo, uin_hi, &
+       flux3, flux3_lo, flux3_hi)
 #endif
 
   if (limit_fluxes_on_small_dens == 1) then
      call limit_hydro_fluxes_on_small_dens(uin,uin_lo,uin_hi, &
-                                           q,q_lo,q_hi, &
-                                           vol,vol_lo,vol_hi, &
-                                           flux1,flux1_lo,flux1_hi, &
-                                           area1,area1_lo,area1_hi, &
+          q,q_lo,q_hi, &
+          vol,vol_lo,vol_hi, &
+          flux1,flux1_lo,flux1_hi, &
+          area1,area1_lo,area1_hi, &
 #if AMREX_SPACEDIM >= 2
-                                           flux2,flux2_lo,flux2_hi, &
-                                           area2,area2_lo,area2_hi, &
+          flux2,flux2_lo,flux2_hi, &
+          area2,area2_lo,area2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-                                           flux3,flux3_lo,flux3_hi, &
-                                           area3,area3_lo,area3_hi, &
+          flux3,flux3_lo,flux3_hi, &
+          area3,area3_lo,area3_hi, &
 #endif
-                                           lo,hi,dt,dx)
+          lo,hi,dt,dx)
 
   endif
 
@@ -453,13 +453,13 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #elif AMREX_SPACEDIM == 2
               update(i,j,k,n) = update(i,j,k,n) + &
                    (flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) + &
-                    flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) ) / vol(i,j,k)
+                   flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) ) / vol(i,j,k)
 
 #else
               update(i,j,k,n) = update(i,j,k,n) + &
                    (flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) + &
-                    flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) + &
-                    flux3(i,j,k,n) * area3(i,j,k) - flux3(i,j,k+1,n) * area3(i,j,k+1) ) / vol(i,j,k)
+                   flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) + &
+                   flux3(i,j,k,n) * area3(i,j,k) - flux3(i,j,k+1,n) * area3(i,j,k+1) ) / vol(i,j,k)
 #endif
 
 #if AMREX_SPACEDIM == 1
@@ -491,10 +491,10 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #if AMREX_SPACEDIM == 3
 #ifdef HYBRID_MOMENTUM
   call add_hybrid_advection_source(lo, hi, dt, &
-                                   update, uout_lo, uout_hi, &
-                                   q1, flux1_lo, flux1_hi, &
-                                   q2, flux2_lo, flux2_hi, &
-                                   q3, flux3_lo, flux3_hi)
+       update, uout_lo, uout_hi, &
+       q1, flux1_lo, flux1_hi, &
+       q2, flux2_lo, flux2_hi, &
+       q3, flux3_lo, flux3_hi)
 #endif
 #endif
 
@@ -561,15 +561,15 @@ module mol_module_cuda
 contains
 
   subroutine ca_construct_flux_cuda(lo, hi, domlo, domhi, dx, dt, idir, &
-                                    uin, uin_lo, uin_hi, &
-                                    div, div_lo, div_hi, &
-                                    qaux, qa_lo, qa_hi, &
-                                    qm, qm_lo, qm_hi, &
-                                    qp, qp_lo, qp_hi, &
-                                    qint, qe_lo, qe_hi, &
-                                    flux, f_lo, f_hi, &
-                                    area, a_lo, a_hi) &
-                                    bind(c,name='ca_construct_flux_cuda')
+       uin, uin_lo, uin_hi, &
+       div, div_lo, div_hi, &
+       qaux, qa_lo, qa_hi, &
+       qm, qm_lo, qm_hi, &
+       qp, qp_lo, qp_hi, &
+       qint, qe_lo, qe_hi, &
+       flux, f_lo, f_hi, &
+       area, a_lo, a_hi) &
+       bind(c,name='ca_construct_flux_cuda')
 
     use amrex_fort_module, only: rt => amrex_real
     use meth_params_module, only: NVAR, NGDNV, NQAUX, NQ
@@ -604,7 +604,7 @@ contains
     !$gpu
 
     call cmpflx_cuda(lo, hi, domlo, domhi, idir, qm, qm_lo, qm_hi, qp, qp_lo, qp_hi, &
-                     qint, qe_lo, qe_hi, flux, f_lo, f_hi, qaux, qa_lo, qa_hi)
+         qint, qe_lo, qe_hi, flux, f_lo, f_hi, qaux, qa_lo, qa_hi)
     call apply_av(lo, hi, idir, dx, div, div_lo, div_hi, uin, uin_lo, uin_hi, flux, f_lo, f_hi)
     call normalize_species_fluxes(lo, hi, flux, f_lo, f_hi)
     call scale_flux(lo, hi, flux, f_lo, f_hi, area, a_lo, a_hi, dt)
