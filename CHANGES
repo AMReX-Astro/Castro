@@ -1,6 +1,5 @@
 changes since last release:
 
-
   -- the CTU hydro solver no longer does any allocation in any of the
      support routines -- it is all done in the top-level
      driver. (#455)
@@ -41,7 +40,6 @@ changes since last release:
   -- we removed ppm_type = 2.  This was never really used and not as
      robust as ppm_type = 1.  The forthcoming 4th order method will
      take its place. (#442)
->>>>>>> development
 
 # 18.12
 
