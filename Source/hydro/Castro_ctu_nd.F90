@@ -677,7 +677,8 @@ contains
     ! 1-d code path
     !==========================================================================
     ! Solve Riemann problem, compute xflux from improved predicted states
-    call cmpflx(qxm, qxp, fglo, fghi, 1, 1, &
+    call cmpflx(lo, hi+dg(:), &
+                qxm, qxp, fglo, fghi, 1, 1, &
                 flux1, f1_lo, f1_hi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -686,8 +687,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                1, lo, hi+dg(:), &
-                domlo, domhi)
+                1, domlo, domhi)
 
   call store_godunov_state(lo, hi+dg(:), &
                            q_int, fglo, fghi, &
@@ -714,7 +714,8 @@ contains
     !         gamc, csml, c                : +-4
     !         shk                          : +-1
     ! Outputs: fx, ugdnvx, pgdnvx, gegdnvx : xface, +-1 at y
-    call cmpflx(qxm, qxp, fglo, fghi, 1, 1, &
+    call cmpflx([lo(1), lo(2)-1, 0], [hi(1)+1, hi(2)+1, 0], &
+                qxm, qxp, fglo, fghi, 1, 1, &
                 fx, glo, ghi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -723,8 +724,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                1, [lo(1), lo(2)-1, 0], [hi(1)+1, hi(2)+1, 0], &
-                domlo, domhi)
+                1, domlo, domhi)
 
     call store_godunov_state([lo(1), lo(2)-1, 0], [hi(1)+1, hi(2)+1, 0], &
                              q_int, fglo, fghi, &
@@ -743,7 +743,8 @@ contains
     !         gamc, csml, c                : +-4
     !         shk                          : +-1
     ! Outputs: fy, ugdnvy, pgdnvy, gegdnvy : yface, +-1 at x
-    call cmpflx(qym, qyp, fglo, fghi, 1, 1, &
+    call cmpflx([lo(1)-1, lo(2), 0], [hi(1)+1, hi(2)+1, 0], &
+                qym, qyp, fglo, fghi, 1, 1, &
                 fy, glo, ghi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -752,8 +753,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                2, [lo(1)-1, lo(2), 0], [hi(1)+1, hi(2)+1, 0], &
-                domlo, domhi)
+                2, domlo, domhi)
 
     call store_godunov_state([lo(1)-1, lo(2), 0], [hi(1)+1, hi(2)+1, 0], &
                              q_int, fglo, fghi, &
@@ -781,7 +781,8 @@ contains
     ! Solve the final Riemann problem across the x-interfaces with the
     ! full unsplit states.  The resulting flux through the x-interfaces
     ! is flux1
-    call cmpflx(ql, qr, fglo, fghi, 1, 1, &
+    call cmpflx([lo(1), lo(2), 0], [hi(1)+1, hi(2), 0], &
+                ql, qr, fglo, fghi, 1, 1, &
                 flux1, f1_lo, f1_hi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -790,8 +791,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                1, [lo(1), lo(2), 0], [hi(1)+1, hi(2), 0], &
-                domlo, domhi)
+                1, domlo, domhi)
 
     call store_godunov_state([lo(1), lo(2), 0], [hi(1)+1, hi(2), 0], &
                              q_int, fglo, fghi, &
@@ -821,7 +821,8 @@ contains
     ! Solve the final Riemann problem across the y-interfaces with the
     ! full unsplit states.  The resulting flux through the y-interfaces
     ! is flux2
-    call cmpflx(ql, qr, fglo, fghi, 1, 1, &
+    call cmpflx([lo(1), lo(2), 0], [hi(1), hi(2)+1, 0], &
+                ql, qr, fglo, fghi, 1, 1, &
                 flux2, f2_lo, f2_hi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -830,8 +831,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                2, [lo(1), lo(2), 0], [hi(1), hi(2)+1, 0], &
-                domlo, domhi)
+                2, domlo, domhi)
 
     call store_godunov_state([lo(1), lo(2), 0], [hi(1), hi(2)+1, 0], &
                              q_int, fglo, fghi, &
@@ -865,7 +865,8 @@ contains
     !         gamc, csml, c                : +-4
     !         shk                          : +-1
     ! Outputs: fx, ugdnvx, pgdnvx, gegdnvx : xface, +-1 at y & z
-    call cmpflx(qxm, qxp, fglo, fghi, 1, 1, &
+    call cmpflx([lo(1), lo(2)-dg(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
+                qxm, qxp, fglo, fghi, 1, 1, &
                 fx, glo, ghi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -874,8 +875,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                1, [lo(1), lo(2)-dg(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
-                domlo, domhi)
+                1, domlo, domhi)
 
     call store_godunov_state([lo(1), lo(2)-dg(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
                              q_int, fglo, fghi, &
@@ -918,7 +918,8 @@ contains
     !         gamc, csml, c                : +-4
     !         shk                          : +-1
     ! Outputs: fy, ugdnvy, pgdnvy, gegdnvy : yface, +-1 at x & z
-    call cmpflx(qym, qyp, fglo, fghi, 1, 1, &
+    call cmpflx([lo(1)-1, lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
+                qym, qyp, fglo, fghi, 1, 1, &
                 fy, glo, ghi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -927,8 +928,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                2, [lo(1)-1, lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
-                domlo, domhi)
+                2, domlo, domhi)
 
     call store_godunov_state([lo(1)-1, lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
                              q_int, fglo, fghi, &
@@ -971,7 +971,8 @@ contains
     !         gamc, csml, c                : +-4
     !         shk                          : +-1
     ! Outputs: fz, ugdnvz, pgdnvz, gegdnvz : zface, +-1 at x & y
-    call cmpflx(qzm, qzp, fglo, fghi, 1, 1, &
+    call cmpflx([lo(1)-1, lo(2)-dg(2), lo(3)], [ hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
+                qzm, qzp, fglo, fghi, 1, 1, &
                 fz, glo, ghi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -980,8 +981,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                3, [lo(1)-1, lo(2)-dg(2), lo(3)], [ hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
-                domlo, domhi)
+                3, domlo, domhi)
 
     call store_godunov_state([lo(1)-1, lo(2)-dg(2), lo(3)], [ hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
                              q_int, fglo, fghi, &
@@ -1031,7 +1031,8 @@ contains
     !         gamc, csml, c                    : +-4
     !         shk                              : +-1
     ! Outputs: fyz, ugdnvyz, pgdnvyz, gegdnvyz : yface, +-1 at x, +-0 at z
-    call cmpflx(qmyz, qpyz, fglo, fghi, 1, 1, &
+    call cmpflx([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
+                qmyz, qpyz, fglo, fghi, 1, 1, &
                 fyz, glo, ghi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -1040,8 +1041,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                2, [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
-                domlo, domhi)
+                2, domlo, domhi)
 
     call store_godunov_state([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
                              q_int, fglo, fghi, &
@@ -1061,7 +1061,8 @@ contains
     !         gamc, csml, c                    : +-4
     !         shk                              : +-1
     ! Outputs: fzy, ugdnvzy, pgdnvzy, gegdnvzy : zface, +-1 at x, +-0 at y
-    call cmpflx(qmzy, qpzy, fglo, fghi, 1, 1, &
+    call cmpflx([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+dg(3)], &
+                qmzy, qpzy, fglo, fghi, 1, 1, &
                 fzy, glo, ghi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -1070,8 +1071,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                3, [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+dg(3)], &
-                domlo, domhi)
+                3, domlo, domhi)
 
     call store_godunov_state([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+dg(3)], &
                              q_int, fglo, fghi, &
@@ -1119,7 +1119,8 @@ contains
     !         gamc, csml, c                   : +-4
     !         shk                             : +-1
     ! Outputs: flux1, ugdnvx, pgdnvx, gegdnvx : xface, +-0 at y & z
-    call cmpflx(qxl, qxr, fglo, fghi, 1, 1, &
+    call cmpflx(lo, [hi(1)+1, hi(2), hi(3)], &
+                qxl, qxr, fglo, fghi, 1, 1, &
                 flux1, f1_lo, f1_hi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -1128,8 +1129,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                1, lo, [hi(1)+1, hi(2), hi(3)], &
-                domlo, domhi)
+                1, domlo, domhi)
 
     call store_godunov_state(lo, [hi(1)+1, hi(2), hi(3)], &
                              q_int, fglo, fghi, &
@@ -1156,7 +1156,8 @@ contains
     !         gamc, csml, c                    : +-4
     !         shk                              : +-1
     ! Outputs: fzx, ugdnvzx, pgdnvzx, gegdnvzx : zface, +-0 at x, +-1 at y
-    call cmpflx(qmzx, qpzx, fglo, fghi, 1, 1, &
+    call cmpflx([lo(1), lo(2)-dg(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
+                qmzx, qpzx, fglo, fghi, 1, 1, &
                 fzx, glo, ghi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -1165,8 +1166,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                3, [lo(1), lo(2)-dg(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
-                domlo, domhi)
+                3, domlo, domhi)
 
     call store_godunov_state([lo(1), lo(2)-dg(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
                              q_int, fglo, fghi, &
@@ -1186,7 +1186,8 @@ contains
     !         gamc, csml, c                    : +-4
     !         shk                              : +-1
     ! Outputs: fxz, ugdnvxz, pgdnvxz, gegdnvxz : xface, +-1 at y, +-0 at z
-    call cmpflx(qmxz, qpxz, fglo, fghi, 1, 1, &
+    call cmpflx([lo(1), lo(2)-dg(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
+                qmxz, qpxz, fglo, fghi, 1, 1, &
                 fxz, glo, ghi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -1195,8 +1196,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                1, [lo(1), lo(2)-dg(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
-                domlo, domhi)
+                1, domlo, domhi)
 
     call store_godunov_state([lo(1), lo(2)-dg(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
                              q_int, fglo, fghi, &
@@ -1245,7 +1245,8 @@ contains
     !         gamc, csml, c                   : +-4
     !         shk                             : +-1
     ! Outputs: flux2, ugdnvy, pgdnvy, gegdnvy : yface, +-0 at x & y
-    call cmpflx(qyl, qyr, fglo, fghi, 1, 1, &
+    call cmpflx([lo(1), lo(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)], &
+                qyl, qyr, fglo, fghi, 1, 1, &
                 flux2, f2_lo, f2_hi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -1254,8 +1255,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                2, [lo(1), lo(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)], &
-                domlo, domhi)
+                2, domlo, domhi)
 
     call store_godunov_state([lo(1), lo(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)], &
                              q_int, fglo, fghi, &
@@ -1283,7 +1283,8 @@ contains
     !         gamc, csml, c                    : +-4
     !         shk                              : +-1
     ! Outputs: fxy, ugdnvxy, pgdnvxy, gegdnvxy : xface, +-0 at y, +-1 at z
-    call cmpflx(qmxy, qpxy, fglo, fghi, 1, 1, &
+    call cmpflx([lo(1), lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2), hi(3)+dg(3)], &
+                qmxy, qpxy, fglo, fghi, 1, 1, &
                 fxy, glo, ghi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -1292,8 +1293,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                1, [lo(1), lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2), hi(3)+dg(3)], &
-                domlo, domhi)
+                1, domlo, domhi)
 
     call store_godunov_state([lo(1), lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2), hi(3)+dg(3)], &
                              q_int, fglo, fghi, &
@@ -1314,7 +1314,8 @@ contains
     !         gamc, csml, c                    : +-4
     !         shk                              : +-1
     ! Outputs: fyx, ugdnvyx, pgdnvyx, gegdnvyx : yface, +-0 at x, +-1 at z
-    call cmpflx(qmyx, qpyx, fglo, fghi, 1, 1, &
+    call cmpflx([lo(1), lo(2), lo(3)-dg(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
+                qmyx, qpyx, fglo, fghi, 1, 1, &
                 fyx, glo, ghi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -1323,8 +1324,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                2, [lo(1), lo(2), lo(3)-dg(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
-                domlo, domhi)
+                2, domlo, domhi)
 
     call store_godunov_state([lo(1), lo(2), lo(3)-dg(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
                              q_int, fglo, fghi, &
@@ -1372,7 +1372,8 @@ contains
     !         gamc, csml, c                   : +-4
     !         shk                             : +-1
     ! Outputs: flux3, ugdnvz, pgdnvz, gegdnvz : zface, +-0 at x & y
-    call cmpflx(qzl, qzr, fglo, fghi, 1, 1, &
+    call cmpflx([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+dg(3)], &
+                qzl, qzr, fglo, fghi, 1, 1, &
                 flux3, f3_lo, f3_hi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -1381,8 +1382,7 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
-                3, [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+dg(3)], &
-                domlo, domhi)
+                3, domlo, domhi)
 
     call store_godunov_state([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+dg(3)], &
                              q_int, fglo, fghi, &
