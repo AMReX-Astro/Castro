@@ -9,6 +9,14 @@
   -- the job_info file now stores domain information (#451), and the
      job_info files is also stored in checkpoints now too (#450)
 
+  -- we can now refine on enuc -- the nuclear energy generation rate.
+     This is controlled by the parameters (in the &tagging probin
+     namespace) enucerr, and max_enucerr_lev.  We also moved the dxnuc
+     tagging parameters from inputs to probin, where they are now
+     named dxnuc_min (formerly castro.dxnuc), dxnuc_max, and
+     max_dxnuc_lev.  (#364, #437, #473)
+
+
 # 19.01
 
   -- The User's Guide is now automatically built from the development
