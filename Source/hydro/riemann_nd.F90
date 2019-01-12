@@ -34,14 +34,15 @@ module riemann_module
 contains
 
   subroutine cmpflx(qm, qp, qpd_lo, qpd_hi, nc, comp, &
-       flx, flx_lo, flx_hi, &
-       qgdnv, q_lo, q_hi, &
+                    flx, flx_lo, flx_hi, &
+                    qint, q_lo, q_hi, &
 #ifdef RADIATION
-       rflx, rflx_lo, rflx_hi, &
+                    rflx, rflx_lo, rflx_hi, &
+                    lambda_int, li_lo, li_hi, &
 #endif
-       qaux, qa_lo, qa_hi, &
-       shk, s_lo, s_hi, &
-       idir, lo, hi, domlo, domhi)
+                    qaux, qa_lo, qa_hi, &
+                    shk, s_lo, s_hi, &
+                    idir, lo, hi, domlo, domhi)
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use eos_module, only: eos
@@ -71,23 +72,18 @@ contains
     real(rt), intent(inout) :: qm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ,nc)
     real(rt), intent(inout) :: qp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ,nc)
 
-    real(rt), intent(inout) ::    flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR)
-    real(rt), intent(inout) ::   qgdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NGDNV)
+    real(rt), intent(inout) :: flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR)
+    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
 
 #ifdef RADIATION
     integer, intent(in) :: rflx_lo(3), rflx_hi(3)
     real(rt), intent(inout) :: rflx(rflx_lo(1):rflx_hi(1), rflx_lo(2):rflx_hi(2), rflx_lo(3):rflx_hi(3),0:ngroups-1)
+    integer, intent(in) :: li_lo(3), li_hi(3)
+    real(rt), intent(inout) :: lambda_int(li_lo(1),li_hi(1), li_lo(2):li_hi(2), li_lo(3):li_hi(3), 0:ngroups-1)
 #endif
 
-    ! qaux come in dimensioned as the full box, so we use k3d here to
-    ! index it in z
-
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-
     real(rt), intent(in) ::  shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
-
-    real(rt), pointer :: qint(:,:,:,:)
-    real(rt), pointer :: lambda_int(:,:,:,:)
 
     real(rt) :: ql_zone(NQ), qr_zone(NQ), flx_zone(NVAR)
 
@@ -179,11 +175,6 @@ contains
     if (riemann_solver == 0) then
        ! Colella, Glaz, & Ferguson solver
 
-       call bl_allocate(qint, q_lo, q_hi, NQ)
-#ifdef RADIATION
-       call bl_allocate(lambda_int, q_lo, q_hi, ngroups)
-#endif
-
        call riemannus(qm, qp, qpd_lo, qpd_hi, nc, comp, &
             qaux, qa_lo, qa_hi, &
             qint, q_lo, q_hi, &
@@ -193,38 +184,29 @@ contains
             idir, lo, hi, &
             domlo, domhi)
 
-       call compute_flux_q(idir, qint, q_lo, q_hi, &
-            flx, flx_lo, flx_hi, &
+       call compute_flux_q(lo, hi, &
+                           qint, q_lo, q_hi, &
+                           flx, flx_lo, flx_hi, &
 #ifdef RADIATION
-            lambda_int, q_lo, q_hi, &
-            rflx, rflx_lo, rflx_hi, &
+                           lambda_int, q_lo, q_hi, &
+                           rflx, rflx_lo, rflx_hi, &
 #endif
-            qgdnv, q_lo, q_hi, &
-            lo, hi)
-
-       call bl_deallocate(qint)
-#ifdef RADIATION
-       call bl_deallocate(lambda_int)
-#endif
+                           idir)
 
     elseif (riemann_solver == 1) then
        ! Colella & Glaz solver
 
 #ifndef RADIATION
-       call bl_allocate(qint, q_lo, q_hi, NQ)
-
        call riemanncg(qm, qp, qpd_lo, qpd_hi, nc, comp, &
             qaux, qa_lo, qa_hi, &
             qint, q_lo, q_hi, &
             idir, lo, hi, &
             domlo, domhi)
 
-       call compute_flux_q(idir, qint, q_lo, q_hi, &
-            flx, flx_lo, flx_hi, &
-            qgdnv, q_lo, q_hi, &
-            lo, hi)
-
-       call bl_deallocate(qint)
+       call compute_flux_q(lo, hi, &
+                           qint, q_lo, q_hi, &
+                           flx, flx_lo, flx_hi, &
+                           idir)
 #else
 #ifndef AMREX_USE_CUDA
        call amrex_error("ERROR: CG solver does not support radiaiton")
@@ -234,11 +216,11 @@ contains
     elseif (riemann_solver == 2) then
        ! HLLC
        call HLLC(qm, qp, qpd_lo, qpd_hi, nc, comp, &
-            qaux, qa_lo, qa_hi, &
-            flx, flx_lo, flx_hi, &
-            qgdnv, q_lo, q_hi, &
-            idir, lo, hi, &
-            domlo, domhi)
+                 qaux, qa_lo, qa_hi, &
+                 flx, flx_lo, flx_hi, &
+                 qint, q_lo, q_hi, &
+                 idir, lo, hi, &
+                 domlo, domhi)
 #ifndef AMREX_USE_CUDA
     else
        call amrex_error("ERROR: invalid value of riemann_solver")
@@ -312,6 +294,8 @@ contains
        qaux, qa_lo, qa_hi, &
        idir, lo, hi, domlo, domhi)
 
+    ! just compute the hydrodynamic state on the interfaces
+    ! don't compute the fluxes
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use eos_module, only: eos
@@ -440,7 +424,7 @@ contains
        ! Colella, Glaz, & Ferguson solver
 
 #ifdef RADIATION
-       call bl_allocate(lambda_int, q_lo, q_hi, ngroups)
+       call bl_allocate(lambda_int, q_lo(1), q_hi(1), q_lo(2), q_hi(2), q_lo(3), q_hi(3), 0, ngroups-1)
 #endif
 
        call riemannus(qm, qp, qpd_lo, qpd_hi, nc, comp, &
@@ -568,11 +552,11 @@ contains
 
     real(rt), parameter :: weakwv = 1.e-3_rt
 
+#ifndef AMREX_USE_CUDA
     real(rt), pointer :: pstar_hist(:), pstar_hist_extra(:)
+#endif
 
     type (eos_t) :: eos_state
-
-    real(rt), pointer :: us1d(:)
 
     real(rt) :: u_adv
 
@@ -640,9 +624,10 @@ contains
     tol = cg_tol
     iter_max = cg_maxiter
 
+#ifndef AMREX_USE_CUDA
     call bl_allocate(pstar_hist, 1,iter_max)
     call bl_allocate(pstar_hist_extra, 1,2*iter_max)
-    call bl_allocate(us1d, lo(1), hi(1))
+#endif
 
     do k = lo(3), hi(3)
        bnd_fac_z = ONE
@@ -836,7 +821,9 @@ contains
                 err = abs(pstar - pstar_old)
                 if (err < tol*pstar) converged = .true.
 
+#ifndef AMREX_USE_CUDA
                 pstar_hist(iter) = pstar
+#endif
 
                 iter = iter + 1
 
@@ -870,6 +857,9 @@ contains
 
                 else if (cg_blend == 2) then
 
+                   ! we don't store the history if we are in CUDA, so
+                   ! we can't do this
+#ifndef AMREX_USE_CUDA
                    ! first try to find a reasonable bounds
                    pstarl = minval(pstar_hist(iter_max-5:iter_max))
                    pstaru = maxval(pstar_hist(iter_max-5:iter_max))
@@ -882,7 +872,6 @@ contains
 
                    if (.not. converged) then
 
-#ifndef AMREX_USE_CUDA
                       print *, 'pstar history: '
                       do iter = 1, iter_max
                          print *, iter, pstar_hist(iter)
@@ -896,9 +885,9 @@ contains
                       print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
                       print *, 'cavg, smallc:', cavg, csmall
                       call amrex_error("ERROR: non-convergence in the Riemann solver")
-#endif
-                   endif
 
+                   endif
+#endif
                 else
 
 #ifndef AMREX_USE_CUDA
@@ -1053,18 +1042,14 @@ contains
              ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
              qint(i,j,k,QREINT) = qint(i,j,k,QPRES)/(qint(i,j,k,QGAME) - ONE)
 
-             us1d(i) = ustar
-          end do
+             ! advected quantities -- only the contact matters
+             do ipassive = 1, npassive
+                n  = upass_map(ipassive)
+                nqp = qpass_map(ipassive)
 
-          ! advected quantities -- only the contact matters
-          do ipassive = 1, npassive
-             n  = upass_map(ipassive)
-             nqp = qpass_map(ipassive)
-
-             do i = lo(1), hi(1)
-                if (us1d(i) > ZERO) then
+                if (ustar > ZERO) then
                    qint(i,j,k,nqp) = ql(i,j,k,nqp,comp)
-                else if (us1d(i) < ZERO) then
+                else if (ustar < ZERO) then
                    qint(i,j,k,nqp) = qr(i,j,k,nqp,comp)
                 else
                    qavg = HALF * (ql(i,j,k,nqp,comp) + qr(i,j,k,nqp,comp))
@@ -1076,9 +1061,10 @@ contains
        end do
     end do
 
+#ifndef AMREX_USE_CUDA
     call bl_deallocate(pstar_hist)
     call bl_deallocate(pstar_hist_extra)
-    call bl_deallocate(us1d)
+#endif
 
   end subroutine riemanncg
 
@@ -1152,8 +1138,6 @@ contains
     real(rt) :: gamcgl, gamcgr
 #endif
 
-    real(rt), pointer :: us1d(:)
-
     real(rt) :: u_adv
 
     integer :: iu, iv1, iv2, im1, im2, im3, sx, sy, sz
@@ -1164,7 +1148,6 @@ contains
     type(eos_t) :: eos_state
     real(rt), dimension(nspec) :: xn
 
-    call bl_allocate(us1d, lo(1), hi(1))
 
     ! set integer pointers for the normal and transverse velocity and
     ! momentum
@@ -1570,21 +1553,14 @@ contains
 
              qint(i,j,k,iu) = u_adv
 
-             ! store this for vectorization
-             us1d(i) = ustar
+             ! passively advected quantities
+             do ipassive = 1, npassive
+                n  = upass_map(ipassive)
+                nqp = qpass_map(ipassive)
 
-          end do
-
-          ! passively advected quantities
-          do ipassive = 1, npassive
-             n  = upass_map(ipassive)
-             nqp = qpass_map(ipassive)
-
-             !dir$ ivdep
-             do i = lo(1), hi(1)
-                if (us1d(i) > ZERO) then
+                if (ustar > ZERO) then
                    qint(i,j,k,nqp) = ql(i,j,k,nqp,comp)
-                else if (us1d(i) < ZERO) then
+                else if (ustar < ZERO) then
                    qint(i,j,k,nqp) = qr(i,j,k,nqp,comp)
                 else
                    qavg = HALF * (ql(i,j,k,nqp,comp) + qr(i,j,k,nqp,comp))
@@ -1597,10 +1573,7 @@ contains
        end do
     end do
 
-    call bl_deallocate(us1d)
-
   end subroutine riemannus
-
 
 
   !> @brief this is an implementation of the HLLC solver described in Toro's
@@ -1626,11 +1599,11 @@ contains
   !! @param[inout] qgdnv real(rt)
   !!
   subroutine HLLC(ql, qr, qpd_lo, qpd_hi, nc, comp, &
-       qaux, qa_lo, qa_hi, &
-       uflx, uflx_lo, uflx_hi, &
-       qgdnv, q_lo, q_hi, &
-       idir, lo, hi, &
-       domlo, domhi)
+                  qaux, qa_lo, qa_hi, &
+                  uflx, uflx_lo, uflx_hi, &
+                  qint, q_lo, q_hi, &
+                  idir, lo, hi, &
+                  domlo, domhi)
 
     use prob_params_module, only : physbc_lo, physbc_hi, &
          Symmetry, SlipWall, NoSlipWall
@@ -1653,7 +1626,7 @@ contains
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
     real(rt), intent(inout) :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),uflx_lo(3):uflx_hi(3),NVAR)
-    real(rt), intent(inout) :: qgdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
 
     integer :: i, j, k
 
@@ -1836,9 +1809,9 @@ contains
              rgdnv = frac*rstar + (ONE - frac)*ro
              regdnv = frac*estar + (ONE - frac)*reo
 
-             qgdnv(i,j,k,iu) = frac*ustar + (ONE - frac)*uo
-             qgdnv(i,j,k,GDPRES) = frac*pstar + (ONE - frac)*po
-             qgdnv(i,j,k,GDGAME) = qgdnv(i,j,k,GDPRES)/regdnv + ONE
+             qint(i,j,k,iu) = frac*ustar + (ONE - frac)*uo
+             qint(i,j,k,QPRES) = frac*pstar + (ONE - frac)*po
+             qint(i,j,k,QGAME) = qint(i,j,k,QPRES)/regdnv + ONE
 
 
              ! now we do the HLLC construction

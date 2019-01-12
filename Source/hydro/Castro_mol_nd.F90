@@ -46,6 +46,8 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
   use flatten_module, only: ca_uflatten
   use riemann_module, only: cmpflx
+
+  use riemann_util_module, only : store_godunov_state
   use ppm_module, only : ca_ppm_reconstruct
   use amrex_fort_module, only : rt => amrex_real
 #ifdef RADIATION
@@ -117,6 +119,10 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   real(rt)        , pointer:: div(:,:,:)
 
   ! Edge-centered primitive variables (Riemann state)
+  real(rt)        , pointer:: q_int(:,:,:,:)
+#ifdef RADIATION
+  real(rt)        , pointer:: lambda_int(:,:,:,:)
+#endif
   real(rt)        , pointer:: q1(:,:,:,:)
   real(rt)        , pointer:: q2(:,:,:,:)
   real(rt)        , pointer:: q3(:,:,:,:)
@@ -150,6 +156,11 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   shk_hi(:) = hi(:) + dg(:)
 
   call bl_allocate(   div, lo, hi+dg)
+
+  call bl_allocate(q_int, It_lo, It_hi, NQ)
+#ifdef RADIATION
+  call bl_allocate(lambda_int, It_lo(1), It_hi(1), It_lo(2), It_hi(2), It_lo(3), It_hi(3), 0, ngroups-1)
+#endif
 
   call bl_allocate(q1, flux1_lo, flux1_hi, NGDNV)
 #if AMREX_SPACEDIM >= 2
@@ -185,7 +196,10 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #ifdef SHOCK_VAR
   uout(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), USHK) = ZERO
 
-  call shock(q, q_lo, q_hi, shk, shk_lo, shk_hi, lo, hi, dx)
+  call shock(lo-dg, hi+dg, &
+             q, q_lo, q_hi, &
+             shk, shk_lo, shk_hi, &
+             dx)
 
   ! Store the shock data for future use in the burning step.
 
@@ -206,7 +220,10 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   ! multidimensional shock detection -- this will be used to do the
   ! hybrid Riemann solver
   if (hybrid_riemann == 1) then
-     call shock(q, q_lo, q_hi, shk, shk_lo, shk_hi, lo, hi, dx)
+     call shock(lo-dg, hi+dg, &
+                q, q_lo, q_hi, &
+                shk, shk_lo, shk_hi, &
+                dx)
   else
      shk(:,:,:) = ZERO
   endif
@@ -269,27 +286,42 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   ! Compute F^x at kc (k3d)
   call cmpflx(qm, qp, It_lo, It_hi, AMREX_SPACEDIM, 1, &
-       flux1, flux1_lo, flux1_hi, &
-       q1, flux1_lo, flux1_hi, &  ! temporary
+              flux1, flux1_lo, flux1_hi, &
+              q_int, It_lo, It_hi, &
 #ifdef RADIATION
-       rflx, flux1_lo, flux1_hi, &
+              rflx, flux1_lo, flux1_hi, &
+              lambda_int, It_lo, It_hi, &
 #endif
-       qaux, qa_lo, qa_hi, &
-       shk, shk_lo, shk_hi, &
-       1, [lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], domlo, domhi)
+              qaux, qa_lo, qa_hi, &
+              shk, shk_lo, shk_hi, &
+              1, [lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], domlo, domhi)
 
+  call store_godunov_state(lo, [hi(1)+1, hi(2), hi(3)], &
+                           q_int, It_lo, It_hi, &
+#ifdef RADIATION
+                           lambda_int, It_lo, It_hi, &
+#endif
+                           q1, flux1_lo, flux1_hi)
 
 #if AMREX_SPACEDIM >= 2
   ! Compute F^y at kc (k3d)
   call cmpflx(qm, qp, It_lo, It_hi, AMREX_SPACEDIM, 2, &
-       flux2, flux2_lo, flux2_hi, &
-       q2, flux2_lo, flux2_hi, &  ! temporary
+              flux2, flux2_lo, flux2_hi, &
+              q_int, It_lo, It_hi, &  ! temporary
 #ifdef RADIATION
-       rfly, flux2_lo, flux2_hi, &
+              rfly, flux2_lo, flux2_hi, &
+              lambda_int, It_lo, It_hi, &
 #endif
-       qaux, qa_lo, qa_hi, &
-       shk, shk_lo, shk_hi, &
-       2, [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], domlo, domhi)
+              qaux, qa_lo, qa_hi, &
+              shk, shk_lo, shk_hi, &
+              2, [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], domlo, domhi)
+
+  call store_godunov_state(lo, [hi(1), hi(2)+1, hi(3)], &
+                           q_int, It_lo, It_hi, &
+#ifdef RADIATION
+                           lambda_int, It_lo, It_hi, &
+#endif
+                           q2, flux2_lo, flux2_hi)
 #endif
 
 
@@ -297,16 +329,25 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   ! Compute F^z at kc (k3d)
 
   call cmpflx(qm, qp, It_lo, It_hi, AMREX_SPACEDIM, 3, &
-       flux3, flux3_lo, flux3_hi, &
-       q3, flux3_lo, flux3_hi,  &
+              flux3, flux3_lo, flux3_hi, &
+              q_int, It_lo, It_hi, &
 #ifdef RADIATION
-       rflz, flux3_lo, flux3_hi, &
+              rflz, flux3_lo, flux3_hi, &
+              lambda_int, It_lo, It_hi, &
 #endif
-       qaux, qa_lo, qa_hi, &
-       shk, shk_lo, shk_hi, &
-       3, [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], domlo, domhi)
+              qaux, qa_lo, qa_hi, &
+              shk, shk_lo, shk_hi, &
+              3, [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], domlo, domhi)
+
+  call store_godunov_state(lo, [hi(1), hi(2)+1, hi(3)], &
+                           q_int, It_lo, It_hi, &
+#ifdef RADIATION
+                           lambda_int, It_lo, It_hi, &
+#endif
+                           q3, flux3_lo, flux3_hi)
 
 #endif
+
 
   call bl_deallocate(flatn)
 
@@ -314,6 +355,10 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   call bl_deallocate(qp)
 
 
+  call bl_deallocate(q_int)
+#ifdef RADIATION
+  call bl_deallocate(lambda_int)
+#endif
   call bl_deallocate(shk)
 
 
