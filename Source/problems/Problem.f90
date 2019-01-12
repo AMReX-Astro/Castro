@@ -1,8 +1,12 @@
 ! problem-specific Fortran stuff goes here
 
+
+!> @brief called by the IO processor during checkpoint
+!!
+!! @note Binds to C function ``problem_checkpoint``
+!!
 subroutine problem_checkpoint(int_dir_name, len) bind(C, name="problem_checkpoint")
 
-  ! called by the IO processor during checkpoint
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -23,9 +27,13 @@ subroutine problem_checkpoint(int_dir_name, len) bind(C, name="problem_checkpoin
 end subroutine problem_checkpoint
 
 
+
+!> @brief called by ALL processors during restart
+!!
+!! @note Binds to C function ``problem_restart``
+!!
 subroutine problem_restart(int_dir_name, len) bind(C, name="problem_restart")
 
-  ! called by ALL processors during restart 
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none

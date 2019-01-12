@@ -15,7 +15,7 @@ the first three (name, type, default) are mandatory:
   name: the name of the parameter.  This will be the same name as the
     variable in C++ unless a pair is specified as (name, cpp_name)
 
-  type: the C++ data type (int, Real, string)
+  type: the C++ data type (int, bool, Real, string)
 
   default: the default value.  If specified as a pair, (a, b), then
     the first value is the normal default and the second is for
@@ -138,6 +138,8 @@ class Param(object):
 
         if self.dtype == "int":
             tstr = "int         {}::{}".format(self.cpp_class, self.cpp_var_name)
+        elif self.dtype == "bool":
+            tstr = "bool        {}::{}".format(self.cpp_class, self.cpp_var_name)
         elif self.dtype == "Real":
             tstr = "amrex::Real {}::{}".format(self.cpp_class, self.cpp_var_name)
         elif self.dtype == "string":
@@ -262,6 +264,8 @@ class Param(object):
 
         if self.dtype == "int":
             tstr = "{} int {};\n".format(static, self.cpp_var_name)
+        elif self.dtype == "bool":
+            tstr = "{} bool {};\n".format(static, self.cpp_var_name)
         elif self.dtype == "Real":
             tstr = "{} amrex::Real {};\n".format(static, self.cpp_var_name)
         elif self.dtype == "string":

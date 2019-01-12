@@ -208,9 +208,6 @@ castro.dtnuc_X = 0.1
 # Which method to use for estimating de/dt and dX/dt
 castro.dtnuc_mode = 1
 
-# Limit zone size based on nuclear burning considerations
-castro.dxnuc = 0.1
-
 # Minimum temperature for allowing nuclear burning
 castro.react_T_min = 1.0e8
 

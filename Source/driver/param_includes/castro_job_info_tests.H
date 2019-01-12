@@ -97,9 +97,6 @@ jobInfoFile << (Castro::sdc_iters == 2 ? "    " : "[*] ") << "castro.sdc_iters =
 jobInfoFile << (Castro::dtnuc_e == 1.e200 ? "    " : "[*] ") << "castro.dtnuc_e = " << Castro::dtnuc_e << std::endl;
 jobInfoFile << (Castro::dtnuc_X == 1.e200 ? "    " : "[*] ") << "castro.dtnuc_X = " << Castro::dtnuc_X << std::endl;
 jobInfoFile << (Castro::dtnuc_X_threshold == 1.e-3 ? "    " : "[*] ") << "castro.dtnuc_X_threshold = " << Castro::dtnuc_X_threshold << std::endl;
-jobInfoFile << (Castro::dxnuc == 1.e200 ? "    " : "[*] ") << "castro.dxnuc = " << Castro::dxnuc << std::endl;
-jobInfoFile << (Castro::dxnuc_max == 1.e200 ? "    " : "[*] ") << "castro.dxnuc_max = " << Castro::dxnuc_max << std::endl;
-jobInfoFile << (Castro::max_dxnuc_lev == -1 ? "    " : "[*] ") << "castro.max_dxnuc_lev = " << Castro::max_dxnuc_lev << std::endl;
 jobInfoFile << (Castro::do_react == -1 ? "    " : "[*] ") << "castro.do_react = " << Castro::do_react << std::endl;
 jobInfoFile << (Castro::react_T_min == 0.0 ? "    " : "[*] ") << "castro.react_T_min = " << Castro::react_T_min << std::endl;
 jobInfoFile << (Castro::react_T_max == 1.e200 ? "    " : "[*] ") << "castro.react_T_max = " << Castro::react_T_max << std::endl;
@@ -116,6 +113,8 @@ jobInfoFile << (Castro::grown_factor == 1 ? "    " : "[*] ") << "castro.grown_fa
 jobInfoFile << (Castro::star_at_center == -1 ? "    " : "[*] ") << "castro.star_at_center = " << Castro::star_at_center << std::endl;
 jobInfoFile << (Castro::do_special_tagging == 0 ? "    " : "[*] ") << "castro.do_special_tagging = " << Castro::do_special_tagging << std::endl;
 jobInfoFile << (Castro::spherical_star == 0 ? "    " : "[*] ") << "castro.spherical_star = " << Castro::spherical_star << std::endl;
+jobInfoFile << (Castro::verbose == 0 ? "    " : "[*] ") << "castro.verbose = " << Castro::verbose << std::endl;
+jobInfoFile << (Castro::dump_old == false ? "    " : "[*] ") << "castro.dump_old = " << Castro::dump_old << std::endl;
 jobInfoFile << (Castro::print_fortran_warnings == 0 ? "    " : "[*] ") << "castro.print_fortran_warnings = " << Castro::print_fortran_warnings << std::endl;
 jobInfoFile << (Castro::print_update_diagnostics == 0 ? "    " : "[*] ") << "castro.print_update_diagnostics = " << Castro::print_update_diagnostics << std::endl;
 jobInfoFile << (Castro::track_grid_losses == 0 ? "    " : "[*] ") << "castro.track_grid_losses = " << Castro::track_grid_losses << std::endl;
