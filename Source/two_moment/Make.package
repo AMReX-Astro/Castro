@@ -28,11 +28,13 @@ ca_F90EXE_sources += derive_two_moment_nd.F90
   ca_f90EXE_sources += ProgramHeaderModule.f90
 
 # In Modules/Library
+  ca_f90EXE_sources += LagrangePolynomialsModule.f90
   ca_f90EXE_sources += QuadratureModule.f90
   ca_f90EXE_sources += ReferenceElementModuleE.f90
   ca_f90EXE_sources += ReferenceElementModuleX.f90
   ca_f90EXE_sources += ReferenceElementModule.f90
   ca_f90EXE_sources += PolynomialBasisModule_Lagrange.f90
+  ca_f90EXE_sources += PolynomialBasisModuleX_Lagrange.f90
   ca_f90EXE_sources += ReferenceElementModuleX_Lagrange.f90
   ca_f90EXE_sources += ReferenceElementModuleE_Lagrange.f90
   ca_f90EXE_sources += ReferenceElementModule_Lagrange.f90
