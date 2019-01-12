@@ -275,7 +275,7 @@ namespace: ``castro``
 
 **reactions**
 
-.. index:: castro.dtnuc_e, castro.dtnuc_X, castro.dtnuc_X_threshold, castro.dxnuc, castro.dxnuc_max, castro.max_dxnuc_lev, castro.do_react, castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.disable_shock_burning
+.. index:: castro.dtnuc_e, castro.dtnuc_X, castro.dtnuc_X_threshold, castro.do_react, castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.disable_shock_burning
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -295,20 +295,6 @@ namespace: ``castro``
 |                                        | which the limiter is not applied. This helps prevent    |               |
 |                                        | the timestep from becoming very small due to changes in |               |
 |                                        | trace species.                                          |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``dxnuc``                              | limit the zone size based on how much the burning can   | 1.e200        |
-|                                        | change the internal energy of a zone. The zone size on  |               |
-|                                        | the finest level must be smaller than ``dxnuc``         |               |
-|                                        | :math:`\cdot\, c_s\cdot (e / \dot{e})`, where           |               |
-|                                        | :math:`c_s` is the sound speed. This ensures that the   |               |
-|                                        | sound-crossing time is smaller than the nuclear energy  |               |
-|                                        | injection timescale.                                    |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``dxnuc_max``                          | Disable limiting based on dxnuc above this threshold.   | 1.e200        |
-|                                        | This allows zones that have already ignited or are      |               |
-|                                        | about to ignite to be de-refined.                       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``max_dxnuc_lev``                      | Disable limiting based on dxnuc above this AMR level.   | -1            |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``do_react``                           | permits reactions to be turned on and off -- mostly for | -1            |
 |                                        | efficiency's sake                                       |               |

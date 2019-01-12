@@ -660,52 +660,32 @@ the timestep from becoming very small due to changes in
 trace species.</td>
 <td>1.e-3</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">dxnuc</span></code></td>
-<td>limit the zone size based on how much the burning can
-change the internal energy of a zone. The zone size on
-the finest level must be smaller than <code class="docutils literal notranslate"><span class="pre">dxnuc</span></code>
-<span class="math notranslate nohighlight">\(\cdot\, c_s\cdot (e / \dot{e})\)</span>, where
-<span class="math notranslate nohighlight">\(c_s\)</span> is the sound speed. This ensures that the
-sound-crossing time is smaller than the nuclear energy
-injection timescale.</td>
-<td>1.e200</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">dxnuc_max</span></code></td>
-<td>Disable limiting based on dxnuc above this threshold.
-This allows zones that have already ignited or are
-about to ignite to be de-refined.</td>
-<td>1.e200</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">max_dxnuc_lev</span></code></td>
-<td>Disable limiting based on dxnuc above this AMR level.</td>
-<td>-1</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_react</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">do_react</span></code></td>
 <td>permits reactions to be turned on and off – mostly for
 efficiency’s sake</td>
 <td>-1</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">react_T_min</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">react_T_min</span></code></td>
 <td>minimum temperature for allowing reactions to occur in
 a zone</td>
 <td>0.0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">react_T_max</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">react_T_max</span></code></td>
 <td>maximum temperature for allowing reactions to occur in
 a zone</td>
 <td>1.e200</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">react_rho_min</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">react_rho_min</span></code></td>
 <td>minimum density for allowing reactions to occur in a
 zone</td>
 <td>0.0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">react_rho_max</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">react_rho_max</span></code></td>
 <td>maximum density for allowing reactions to occur in a
 zone</td>
 <td>1.e200</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">disable_shock_burning</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">disable_shock_burning</span></code></td>
 <td>disable burning inside hydrodynamic shock regions</td>
 <td>0</td>
 </tr>
