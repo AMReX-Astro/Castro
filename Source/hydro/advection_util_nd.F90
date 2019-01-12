@@ -1257,10 +1257,13 @@ contains
   !! The spirit of this follows the shock detection in Colella &
   !! Woodward (1984)
   !!
-  subroutine shock(q, qd_lo, qd_hi, shk, s_lo, s_hi, lo, hi, dx)
+  subroutine shock(lo, hi, &
+                   q, qd_lo, qd_hi, &
+                   shk, s_lo, s_hi, &
+                   dx)
 
     use meth_params_module, only : QPRES, QU, QV, QW, NQ
-    use prob_params_module, only : coord_type, dg
+    use prob_params_module, only : coord_type
     use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
@@ -1297,9 +1300,9 @@ contains
     endif
 #endif
 
-    do k = lo(3)-dg(3), hi(3)+dg(3)
-       do j = lo(2)-dg(2), hi(2)+dg(2)
-          do i = lo(1)-dg(1), hi(1)+dg(1)
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
              ! construct div{U}
              if (coord_type == 0) then
@@ -1358,8 +1361,8 @@ contains
                 py_post = q(i,j+1,k,QPRES)
              endif
 #else
-             py_pre = 0.0_rt
-             py_post = 0.0_rt
+             py_pre = ZERO
+             py_post = ZERO
 #endif
 
 #if (AMREX_SPACEDIM == 3)
@@ -1371,8 +1374,8 @@ contains
                 pz_post = q(i,j,k+1,QPRES)
              endif
 #else
-             pz_pre = 0.0_rt
-             pz_post = 0.0_rt
+             pz_pre = ZERO
+             pz_post = ZERO
 #endif
 
              ! use compression to create unit vectors for the shock direction
@@ -1380,12 +1383,12 @@ contains
 #if (AMREX_SPACEDIM >= 2)
              e_y = (q(i,j+1,k,QV) - q(i,j-1,k,QV))**2
 #else
-             e_y = 0.0_rt
+             e_y = ZERO
 #endif
 #if (AMREX_SPACEDIM == 3)
              e_z = (q(i,j,k+1,QW) - q(i,j,k-1,QW))**2
 #else
-             e_z = 0.0_rt
+             e_z = ZERO
 #endif
              d = ONE/(e_x + e_y + e_z + small)
 

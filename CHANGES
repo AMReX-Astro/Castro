@@ -1,3 +1,10 @@
+<<<<<<< HEAD
+changes since last release:
+
+  -- fixed a bug in the CUDA version of the MOL integrator -- it was
+     setting the interface states incorrectly.
+
+=======
 # changes since the last release
 
   -- The plotfile quantities divu and magvort were fixed in
@@ -33,6 +40,7 @@
   -- we removed ppm_type = 2.  This was never really used and not as
      robust as ppm_type = 1.  The forthcoming 4th order method will
      take its place. (#442)
+>>>>>>> development
 
 # 18.12
 
@@ -69,10 +77,14 @@
      Also, fixed an edge case where this custom distribution map could
      cause a numerical overflow and code crash. (#382)
 
+  -- rewrote the reconstruction routines to eliminate temporary arrays
+     to make them GPU friendly
+
   -- the documentation was converted to sphinx
 
   -- changed the interface to the conductivity routines so the conductivity
      is not part of eos_t (#431)
+
 
 # 18.11
 
