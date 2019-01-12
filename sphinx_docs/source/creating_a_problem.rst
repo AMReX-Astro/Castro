@@ -33,6 +33,14 @@ The purpose of these files is:
       setup for an example). The parameters that are initialized
       here are those stored in the ``probdata_module``.
 
+      .. note:: many problems set the value of the ``center()`` array
+         from ``prob_params_module`` here.  This is used to note the
+         center of the problem (which does not necessarily need to be
+         the center of the domain, e.g., for axisymmetric problems).
+         ``center`` is used in source terms (including rotation and
+         gravity) and in computing some of the derived variables (like
+         angular momentum).
+
    -  ``ca_initdata()``:
 
       This routine will initialize the state data for a single grid.

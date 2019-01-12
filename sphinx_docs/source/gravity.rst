@@ -8,7 +8,7 @@ Introduction
 Gravity Types
 --------------------
 
-Castro can incorporate gravity as a constant, monopole approximation,
+Castro can incorporate gravity as a constant, monopole approximation,
 or a full Poisson solve. To enable gravity in the code, set::
 
     USE_GRAV = TRUE
@@ -28,6 +28,12 @@ controlled by setting ``gravity.gravity_type``. The options are
 TRUE`` in the ``GNUmakefile`` and ``castro.do_grav`` = 1 in the inputs
 file. If both of these are set then the user is required to specify
 the gravity type in the inputs file or the program will abort.
+
+.. note:: make sure you have set the ``center()`` variable
+   appropriately for you problem.  This can be done either by directly
+   setting it in the ``prob_params_module`` or via the
+   ``castro.center`` runtime parameter.
+
 
 Integration Strategy
 --------------------
@@ -248,7 +254,7 @@ spherically-symmetric fashion.
    does not create new maxima or minima.
 
    The default resolution of the radial arrays at a level is the grid
-   cell spacing at that level, i.e., :math:`\Delta r = \Delta x`. 
+   cell spacing at that level, i.e., :math:`\Delta r = \Delta x`.
    For increased accuracy, one can define ``gravity.drdxfac`` as a number
    greater than :math:`1` (:math:`2` or :math:`4` are recommended) and
    the spacing of the radial array will then satisfy :math:`\Delta x /

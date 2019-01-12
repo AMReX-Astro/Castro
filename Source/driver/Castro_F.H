@@ -83,8 +83,7 @@ extern "C"
      const int& QU_in, const int& QV_in, const int& QW_in,
      const int& QGAME_in, const int& QPRES_in, const int& QREINT_in,
      const int& QTEMP_in,
-     const int& QFA_in, const int& QFS_in, const int& QFX_in,
-     const int* gravity_type, const int& gravity_type_len);
+     const int& QFA_in, const int& QFS_in, const int& QFX_in);
 
   void ca_finalize_meth_params();
 
@@ -202,8 +201,8 @@ extern "C"
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new));
 
   void ca_get_center(amrex::Real* center);
-  void ca_set_center(amrex::Real* center);
-  void ca_find_center(amrex::Real* data, amrex::Real* center, int* icen,
+  void ca_set_center(const amrex::Real* center);
+  void ca_find_center(amrex::Real* data, amrex::Real* center, const int* icen,
 		      const amrex::Real* dx, const amrex::Real* problo);
 
   void ca_compute_temp

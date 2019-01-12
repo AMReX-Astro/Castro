@@ -13,12 +13,21 @@
 
 #if (BL_SPACEDIM == 1)
 
+///
+/// @class DumpModel
+/// @brief
+///
 class DumpModel {
 
  public:
 
   DumpModel();
 
+
+///
+/// @param parent
+/// @param force_dump
+///
   void dump(class Amr* parent, int force_dump = 0);
 
  private:
