@@ -247,7 +247,7 @@ Gravity::read_params ()
     }
 }
 
-void 
+void
 Gravity::output_job_info_params(std::ostream& jobInfoFile)
 {
 #include "gravity_job_info_tests.H"
@@ -589,7 +589,7 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
 
     // Do multi-level solve for delta_phi.
 
-    solve_for_delta_phi(crse_level, fine_level, 
+    solve_for_delta_phi(crse_level, fine_level,
 			amrex::GetVecOfPtrs(rhs),
 			amrex::GetVecOfPtrs(delta_phi),
 			amrex::GetVecOfVecOfPtrs(ec_gdPhi));
@@ -1253,7 +1253,7 @@ Gravity::test_composite_phi (int crse_level)
                         amrex::GetVecOfPtrs(rhs),
                         grad_phi_null,
                         amrex::GetVecOfPtrs(res),
-                        time);        
+                        time);
 
     // Average residual from fine to coarse level before printing the norm
     for (int amr_lev = finest_level-1; amr_lev >= 0; --amr_lev)
@@ -1529,7 +1529,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 
 	// Create a local copy of the RHS so that we can mask it.
 
-        MultiFab source(Rhs[lev - crse_level]->boxArray(), 
+        MultiFab source(Rhs[lev - crse_level]->boxArray(),
 			Rhs[lev - crse_level]->DistributionMap(), 1, 0);
 
 	MultiFab::Copy(source, *Rhs[lev - crse_level], 0, 0, 1, 0);
@@ -2477,9 +2477,8 @@ Gravity::sanity_check (int level)
 		    shrunk_domain.growHi(dir,-1);
 	    }
 	}
-	BoxArray shrunk_domain_ba(shrunk_domain);
-	if (!shrunk_domain_ba.contains(grids[level]))
-	    amrex::Error("Oops -- don't know how to set boundary conditions for grids at this level that touch the domain boundary!");
+        if (!shrunk_domain.contains(grids[level].minimalBox()))
+            amrex::Error("Oops -- don't know how to set boundary conditions for grids at this level that touch the domain boundary!");
     }
 }
 
@@ -2540,9 +2539,9 @@ Gravity::update_max_rhs()
 
 	    for (int i = 0; i < BL_SPACEDIM ; i++) {
 		coeffs[lev][i].reset(new MultiFab(amrex::convert(grids[lev],
-                                                                 IntVect::TheDimensionVector(i)),                                   
+                                                                 IntVect::TheDimensionVector(i)),
                                                   dmap[lev], 1, 0));
-						  
+
 		coeffs[lev][i]->setVal(1.0);
 	    }
 
@@ -2607,7 +2606,7 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
         GetCrsePhi(crse_level, CPhi, time);
         crse_bcdata = &CPhi;
     }
-        
+
     Real rel_eps = rel_tol[fine_level];
 
     // The absolute tolerance is determined by the error tolerance
@@ -2617,7 +2616,7 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
     // density on the domain. This will automatically be zero for
     // non-periodic BCs. And this also accounts for the metric
     // terms that are applied in non-Cartesian coordinates.
-    
+
     Real abs_eps = abs_tol[fine_level] * max_rhs;
 
     Vector<const MultiFab*> crhs{rhs.begin(), rhs.end()};
@@ -2676,7 +2675,7 @@ Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
     Real final_resnorm = -1.0;
 
     int nlevs = fine_level-crse_level+1;
-    
+
     Vector<Geometry> gmv;
     Vector<BoxArray> bav;
     Vector<DistributionMapping> dmv;
@@ -2699,7 +2698,7 @@ Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
     {
         mlpoisson.setCoarseFineBC(crse_bcdata, parent->refRatio(crse_level-1)[0]);
     }
-        
+
     for (int ilev = 0; ilev < nlevs; ++ilev)
     {
         mlpoisson.setLevelBC(ilev, phi[ilev]);

@@ -255,7 +255,7 @@ contains
   subroutine composition(state)
 
     use amrex_constants_module, only: ONE
-    use network, only: aion, aion_inv, zion
+    use network, only: aion_inv, zion
 
     implicit none
 

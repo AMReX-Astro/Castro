@@ -1,0 +1,6 @@
+Sphinx
+sphinx_rtd_theme
+breathe
+sphinxcontrib_bibtex
+numpydoc
+more_itertools

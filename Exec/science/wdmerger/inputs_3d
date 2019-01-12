@@ -205,9 +205,6 @@ castro.dtnuc_e = 0.1
 # Limit timestep based on nuclear burning considerations (changes in species)
 castro.dtnuc_X = 0.1
 
-# Limit zone size based on nuclear burning considerations
-castro.dxnuc = 0.1
-
 # Minimum temperature for allowing nuclear burning
 castro.react_T_min = 1.0e8
 

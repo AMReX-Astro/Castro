@@ -8,14 +8,14 @@
 using namespace amrex;
 
 void
-Castro::apply_source_to_state(int is_new, MultiFab& state, MultiFab& source, Real dt, int ng)
+Castro::apply_source_to_state(int is_new, MultiFab& target_state, MultiFab& source, Real dt, int ng)
 {
     AMREX_ASSERT(source.nGrow() >= ng);
-    AMREX_ASSERT(state.nGrow() >= ng);
+    AMREX_ASSERT(target_state.nGrow() >= ng);
 
-    MultiFab::Saxpy(state, dt, source, 0, 0, NUM_STATE, ng);
+    MultiFab::Saxpy(target_state, dt, source, 0, 0, NUM_STATE, ng);
 
-    clean_state(is_new, state.nGrow());
+    clean_state(is_new, target_state.nGrow());
 }
 
 void
@@ -81,7 +81,7 @@ Castro::source_flag(int src)
 }
 
 void
-Castro::do_old_sources(MultiFab& source, MultiFab& state, Real time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::do_old_sources(MultiFab& source, MultiFab& state_in, Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
 
     BL_PROFILE("Castro::do_old_sources()");
@@ -93,7 +93,7 @@ Castro::do_old_sources(MultiFab& source, MultiFab& state, Real time, Real dt, in
     source.setVal(0.0, source.nGrow());
 
     for (int n = 0; n < num_src; ++n)
-        construct_old_source(n, source, state, time, dt, amr_iteration, amr_ncycle);
+        construct_old_source(n, source, state_in, time, dt, amr_iteration, amr_ncycle);
 
     // The individual source terms only calculate the source on the valid domain.
     // FillPatch to get valid data in the ghost zones.
@@ -175,7 +175,7 @@ Castro::do_new_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
 }
 
 void
-Castro::construct_old_source(int src, MultiFab& source, MultiFab& state, Real time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::construct_old_source(int src, MultiFab& source, MultiFab& state_in, Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
     BL_ASSERT(src >= 0 && src < num_src);
 
@@ -183,39 +183,39 @@ Castro::construct_old_source(int src, MultiFab& source, MultiFab& state, Real ti
 
 #ifdef SPONGE
     case sponge_src:
-	construct_old_sponge_source(source, state, time, dt);
+	construct_old_sponge_source(source, state_in, time, dt);
 	break;
 #endif
 
     case ext_src:
-	construct_old_ext_source(source, state, time, dt);
+	construct_old_ext_source(source, state_in, time, dt);
 	break;
 
     case thermo_src:
-        construct_old_thermo_source(source, state, time, dt);
+        construct_old_thermo_source(source, state_in, time, dt);
         break;
 
 #ifdef DIFFUSION
     case diff_src:
-	construct_old_diff_source(source, state, time, dt);
+	construct_old_diff_source(source, state_in, time, dt);
 	break;
 #endif
 
 #ifdef HYBRID_MOMENTUM
     case hybrid_src:
-	construct_old_hybrid_source(source, state, time, dt);
+	construct_old_hybrid_source(source, state_in, time, dt);
 	break;
 #endif
 
 #ifdef GRAVITY
     case grav_src:
-	construct_old_gravity_source(source, state, time, dt);
+	construct_old_gravity_source(source, state_in, time, dt);
 	break;
 #endif
 
 #ifdef ROTATION
     case rot_src:
-	construct_old_rotation_source(source, state, time, dt);
+	construct_old_rotation_source(source, state_in, time, dt);
 	break;
 #endif
 
@@ -354,7 +354,7 @@ Castro::print_source_change(Vector<Real> update)
 }
 
 // For the old-time or new-time sources update, evaluate the change in the state
-// for all source terms, then pring the results.
+// for all source terms, then print the results.
 
 void
 Castro::print_all_source_changes(Real dt, bool is_new)
@@ -385,7 +385,7 @@ Castro::print_all_source_changes(Real dt, bool is_new)
     });
 #endif
 
-} 
+}
 
 // Obtain the sum of all source terms.
 
@@ -394,7 +394,7 @@ Castro::sum_of_sources(MultiFab& source)
 {
 
   // this computes advective_source + 1/2 (old source + new source)
-  // 
+  //
   // Note: the advective source is defined as -div{F}
   //
   // the time-centering is accomplished since new source is defined

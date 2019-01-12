@@ -17,7 +17,4 @@ module probdata_module
   ! Domain stuff
   double precision, save :: center(3)
 
-  ! lower boundary
-  logical         , save :: interp_BC, zero_vels
-
 end module probdata_module
