@@ -1,21 +1,21 @@
-amr.max_level       = 0
-amr.n_cell          = 64 64 64
+amr.max_level       = 0 
+amr.n_cell          = 64 64 64 
 
 #amr.max_level       = 1
 #amr.n_cell          = 32 32 32
 
-max_step = 1
+#max_step = 1000 
 
-castro.max_dt = 1.e-8
+castro.max_dt = 1.e-5
 
 # ------------------  THORNADO-SPECIFIC INPUTS -------------------
 thornado.eL     = 0
-thornado.eR     = 20
+thornado.eR     = 300
 thornado.ndimse = 10
-thornado.zoome  = 1.0
+thornado.zoome  = 1.4
 
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-stop_time =  1.e-4
+stop_time =  5.e-3
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0 0 0
@@ -23,11 +23,11 @@ geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     =  -1.e7     -1.e7     -1.e7
 geometry.prob_hi     = 1.e7    1.e7    1.e7 # 100km
 
-amr.max_grid_size   = 64
+#amr.max_grid_size   = 32 
 #amr.max_grid_size   = 256
 fabarray.mfiter_tile_size = 1024 1024 1024
 
-#amr.restart = "thorn_chk08200"
+#amr.restart = "thorn_chk00516"
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -73,13 +73,13 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 1
 amr.check_file      = thorn_chk  # root name of checkpoint file
-#amr.check_int       = 200         # number of timesteps between checkpoints
-amr.check_int       = 1000000
+amr.check_int       = 200         # number of timesteps between checkpoints
+#amr.check_int       = 1000000
 
 # PLOTFILES
 amr.plot_files_output = 1
 amr.plot_file       = thorn_plt  # root name of plotfile
-amr.plot_int        = 1000000          # number of timesteps between plotfiles
+amr.plot_int        = 200          # number of timesteps between plotfiles
 
 # Good way to trap errors
 amrex.fpe_trap_invalid =  1

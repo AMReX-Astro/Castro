@@ -56,7 +56,7 @@
     integer  :: interp_type
 
     ! No interpolation
-    ! interp_type = 0 
+    interp_type = 0 
 
     ! Use conserved variables for interpolation
     ! interp_type = 1 
@@ -65,7 +65,7 @@
     ! interp_type = 2 
 
     ! Use primitive variables (rho, T, Ye) for interpolation
-    interp_type = 3 
+    ! interp_type = 3 
 
     ! Conversion to thornado units
     conv_dens = Gram / Centimeter**3

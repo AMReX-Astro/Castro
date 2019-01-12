@@ -4,7 +4,7 @@ PROFILE    = FALSE
 DEBUG      = FALSE
 OPTIMIZE   = TRUE 
 
-DIM        = 2
+DIM        = 3
 
 COMP	   = gnu
 
@@ -12,7 +12,7 @@ USE_MPI    = TRUE
 USE_OMP    = FALSE
 
 USE_HDF5   = TRUE
-HDF5_HOME  ?= /usr/local/Cellar/hdf5/1.10.3
+HDF5_HOME  ?= /usr/local/Cellar/hdf5/1.10.4
 
 USE_THORNADO = TRUE
 

@@ -13,6 +13,7 @@ contains
     use eos_type_module, only: eos_t
     use actual_eos_module, only: eos_name
     use network
+    use actual_network
 
     implicit none
 
