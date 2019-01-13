@@ -32,6 +32,8 @@ contains
 
     real(rt)         :: alpha, beta
 
+    !$gpu
+
     ! First predict a value of game across the shock
 
     ! CG Eq. 31
@@ -210,6 +212,8 @@ contains
 
     real(rt)        , parameter :: small = 1.e-10_rt
 
+    !$gpu
+
     select case (idir)
     case (1)
        ivel = QU
@@ -359,6 +363,8 @@ contains
 
     integer :: ipassive, n, nq
 
+    !$gpu
+
     U(URHO) = q(QRHO)
 
     ! since we advect all 3 velocity components regardless of dimension, this
@@ -404,6 +410,8 @@ contains
 
     real(rt)         :: hllc_factor, u_k
     integer :: ipassive, n, nq
+
+    !$gpu
 
     if (idir == 1) then
        u_k = q(QU)
@@ -500,6 +508,8 @@ contains
     integer :: i, j, k
 
     real(rt) :: F_zone(NVAR), qgdnv_zone(NGDNV)
+
+    !$gpu
 
     if (idir == 1) then
        iu = QU
@@ -686,6 +696,8 @@ contains
 
     integer :: ipassive, n
     real(rt)         :: u_flx
+
+    !$gpu
 
     if (idir == 1) then
        u_flx = U(UMX)/U(URHO)

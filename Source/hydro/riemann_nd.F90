@@ -96,6 +96,8 @@ contains
     real(rt) :: cl, cr
     type (eos_t) :: eos_state
 
+    !$gpu
+
 #ifdef RADIATION
 #ifndef AMREX_USE_CUDA
     if (hybrid_riemann == 1) then
@@ -560,6 +562,8 @@ contains
     integer :: iu, iv1, iv2, im1, im2, im3, sx, sy, sz
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
     real(rt) :: bnd_fac_x, bnd_fac_y, bnd_fac_z
+
+    !$gpu
 
 #ifndef AMREX_USE_CUDA
     if (cg_blend == 2 .and. cg_maxiter < 5) then
@@ -1144,6 +1148,7 @@ contains
     type(eos_t) :: eos_state
     real(rt), dimension(nspec) :: xn
 
+    !$gpu
 
     ! set integer pointers for the normal and transverse velocity and
     ! momentum
@@ -1645,6 +1650,8 @@ contains
     real(rt) :: S_l, S_r, S_c
 
     real(rt) :: q_zone(NQ)
+
+    !$gpu
 
     if (idir == 1) then
        iu = QU
