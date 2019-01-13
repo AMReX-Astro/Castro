@@ -231,19 +231,16 @@ in time.</p>
 </div>
 <p>To complete the setup, a thermal conductivity must be specified. The
 interface for the conductivity is:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">subroutine</span> <span class="n">thermal_conductivity</span><span class="p">(</span><span class="n">eos_state</span><span class="p">,</span> <span class="n">therm_cond</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">subroutine</span> <span class="n">actual_conductivity</span><span class="p">(</span><span class="n">eos_state</span><span class="p">)</span>
 
-  <span class="n">use</span> <span class="n">extern_probin_module</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">const_conductivity</span>
-
-  <span class="nb">type</span> <span class="p">(</span><span class="n">eos_t</span><span class="p">),</span> <span class="n">intent</span><span class="p">(</span><span class="ow">in</span><span class="p">)</span> <span class="p">::</span> <span class="n">eos_state</span>
-  <span class="n">real</span> <span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="n">dp_t</span><span class="p">),</span> <span class="n">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="p">::</span> <span class="n">therm_cond</span>
+  <span class="nb">type</span> <span class="p">(</span><span class="n">eos_t</span><span class="p">),</span> <span class="n">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="p">::</span> <span class="n">eos_state</span>
 </pre></div>
 </div>
 <p>The density, temperature, and mass fractions come in through the
-eos_state type. An EOS call is done in Castro just before the call to
+<code class="docutils literal notranslate"><span class="pre">eos_state</span></code> type. An EOS call is done in Castro just before the call to
 <code class="docutils literal notranslate"><span class="pre">thermal_conductivity</span></code>, so you can assume that the entire state is
-consistent.</p>
-<p>There are two conductivity routines provided with Castro by default:</p>
+consistent.  The conductivity is filled in <code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">conductivity</span></code>.</p>
+<p id="index-0">There are two conductivity routines provided with Castro by default:</p>
 <ul>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">constant</span></code> : A simple constant thermal conductivity. This can be
 selected by setting:</p>
@@ -273,15 +270,23 @@ This is selected by setting:</p>
 <p>in the <code class="docutils literal notranslate"><span class="pre">&amp;extern</span></code> namelist of your probin.</p>
 </li>
 </ul>
-<p>The diffusion approximation breaks down at the surface of stars,
+<p id="index-1">The diffusion approximation breaks down at the surface of stars,
 where the density rapidly drops and the mean free path becomes
 large. In those instances, you should use the flux limited diffusion
 module in Castro to evolve a radiation field. However, if your
 interest is only on the diffusion in the interior, you can use
-the <code class="docutils literal notranslate"><span class="pre">castro.diffuse_cutoff_density</span></code> parameter to specify a density,
+the parameters:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">castro.diffuse_cutoff_density</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">castro.diffuse_cutoff_density_hi</span></code></li>
+</ul>
+</div></blockquote>
+<p>to specify a density,
 below which, diffusion is not modeled. This is implemented in the
-code by zeroing out the conductivity and skipping the estimation
-of the timestep limit in these zones.</p>
+code by linearly scaling the conductivity to zero between these limits, e.g.,</p>
+<div class="math notranslate nohighlight">
+\[\kth = \kth \cdot \frac{\rho - \mathtt{castro.diffuse\_cutoff\_density}}{\mathtt{castro.diffuse\_cutoff\_density\_hi} - \mathtt{castro.diffuse\_cutoff\_density}}\]</div>
 <p>A simple test problem that sets up a Gaussian temperature profile
 and does pure diffusion is provided as <code class="docutils literal notranslate"><span class="pre">diffusion_test</span></code>.</p>
 </div>

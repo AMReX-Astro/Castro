@@ -47,17 +47,16 @@ A pure diffusion problem (with no hydrodynamics) can be run by setting::
 To complete the setup, a thermal conductivity must be specified. The
 interface for the conductivity is::
 
-      subroutine thermal_conductivity(eos_state, therm_cond)
+      subroutine actual_conductivity(eos_state)
 
-        use extern_probin_module, only: const_conductivity
-
-        type (eos_t), intent(in) :: eos_state
-        real (kind=dp_t), intent(inout) :: therm_cond
+        type (eos_t), intent(inout) :: eos_state
 
 The density, temperature, and mass fractions come in through the
-eos_state type. An EOS call is done in Castro just before the call to
+``eos_state`` type. An EOS call is done in Castro just before the call to
 ``thermal_conductivity``, so you can assume that the entire state is
-consistent.
+consistent.  The conductivity is filled in ``eos_state % conductivity``.
+
+.. index:: CONDUCTIVITY_DIR
 
 There are two conductivity routines provided with Castro by default:
 
@@ -88,15 +87,27 @@ There are two conductivity routines provided with Castro by default:
 
    in the ``&extern`` namelist of your probin.
 
+.. index:: castro.diffusion_cutoff_density, castro.diffusion_cutoff_density_hi
+
 The diffusion approximation breaks down at the surface of stars,
 where the density rapidly drops and the mean free path becomes
 large. In those instances, you should use the flux limited diffusion
 module in Castro to evolve a radiation field. However, if your
 interest is only on the diffusion in the interior, you can use
-the ``castro.diffuse_cutoff_density`` parameter to specify a density,
+the parameters:
+
+ * ``castro.diffuse_cutoff_density``
+
+ * ``castro.diffuse_cutoff_density_hi``
+
+to specify a density,
 below which, diffusion is not modeled. This is implemented in the
-code by zeroing out the conductivity and skipping the estimation
-of the timestep limit in these zones.
+code by linearly scaling the conductivity to zero between these limits, e.g.,
+
+.. math::
+
+   \kth = \kth \cdot \frac{\rho - \mathtt{castro.diffuse\_cutoff\_density}}{\mathtt{castro.diffuse\_cutoff\_density\_hi} - \mathtt{castro.diffuse\_cutoff\_density}}
+
 
 A simple test problem that sets up a Gaussian temperature profile
 and does pure diffusion is provided as ``diffusion_test``.
