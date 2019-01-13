@@ -16,6 +16,11 @@
      named dxnuc_min (formerly castro.dxnuc), dxnuc_max, and
      max_dxnuc_lev.  (#364, #437, #473)
 
+  -- The diffusion cutoff now is a linear ramp instead of a
+     discontinous cutoff.  For densities less than
+     diffuse_cutoff_density_hi, the transport coefficient is scaled
+     linearly until the density reaches diffuse_cutoff_density, where
+     it is zero.
 
 # 19.01
 
