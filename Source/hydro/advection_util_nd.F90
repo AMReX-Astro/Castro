@@ -1256,9 +1256,9 @@ contains
   !! Woodward (1984)
   !!
   subroutine ca_shock(lo, hi, &
-                      q, qd_lo, qd_hi, &
-                      shk, s_lo, s_hi, &
-                      dx) bind(C, name="ca_shock")
+       q, qd_lo, qd_hi, &
+       shk, s_lo, s_hi, &
+       dx) bind(C, name="ca_shock")
 
     use meth_params_module, only : QPRES, QU, QV, QW, NQ
     use prob_params_module, only : coord_type
@@ -1418,7 +1418,7 @@ contains
        enddo
     enddo
 
-  end subroutine shock
+  end subroutine ca_shock
 
   ! :::
   ! ::: ------------------------------------------------------------------
