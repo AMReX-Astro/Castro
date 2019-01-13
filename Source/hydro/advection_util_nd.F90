@@ -1255,10 +1255,10 @@ contains
   !! The spirit of this follows the shock detection in Colella &
   !! Woodward (1984)
   !!
-  subroutine shock(lo, hi, &
-                   q, qd_lo, qd_hi, &
-                   shk, s_lo, s_hi, &
-                   dx)
+  subroutine ca_shock(lo, hi, &
+                      q, qd_lo, qd_hi, &
+                      shk, s_lo, s_hi, &
+                      dx) bind(C, name="ca_shock")
 
     use meth_params_module, only : QPRES, QU, QV, QW, NQ
     use prob_params_module, only : coord_type
@@ -1287,6 +1287,8 @@ contains
     real(rt), parameter :: eps = 0.33e0_rt
 
     real(rt) :: rm, rc, rp
+
+    !$gpu
 
     dxinv = ONE/dx(1)
     dyinv = ONE/dx(2)

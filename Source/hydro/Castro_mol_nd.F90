@@ -196,10 +196,10 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #ifdef SHOCK_VAR
   uout(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), USHK) = ZERO
 
-  call shock(lo-dg, hi+dg, &
-             q, q_lo, q_hi, &
-             shk, shk_lo, shk_hi, &
-             dx)
+  call ca_shock(lo-dg, hi+dg, &
+                q, q_lo, q_hi, &
+                shk, shk_lo, shk_hi, &
+                dx)
 
   ! Store the shock data for future use in the burning step.
 
@@ -220,10 +220,10 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   ! multidimensional shock detection -- this will be used to do the
   ! hybrid Riemann solver
   if (hybrid_riemann == 1) then
-     call shock(lo-dg, hi+dg, &
-                q, q_lo, q_hi, &
-                shk, shk_lo, shk_hi, &
-                dx)
+     call ca_shock(lo-dg, hi+dg, &
+                   q, q_lo, q_hi, &
+                   shk, shk_lo, shk_hi, &
+                   dx)
   else
      shk(:,:,:) = ZERO
   endif
@@ -564,15 +564,16 @@ module mol_module_cuda
 contains
 
   subroutine ca_construct_flux_cuda(lo, hi, domlo, domhi, dx, dt, idir, &
-       uin, uin_lo, uin_hi, &
-       div, div_lo, div_hi, &
-       qaux, qa_lo, qa_hi, &
-       qm, qm_lo, qm_hi, &
-       qp, qp_lo, qp_hi, &
-       qint, qe_lo, qe_hi, &
-       flux, f_lo, f_hi, &
-       area, a_lo, a_hi) &
-       bind(c,name='ca_construct_flux_cuda')
+                                    uin, uin_lo, uin_hi, &
+                                    div, div_lo, div_hi, &
+                                    qaux, qa_lo, qa_hi, &
+                                    shk, sk_lo, sk_hi, &
+                                    qm, qm_lo, qm_hi, &
+                                    qp, qp_lo, qp_hi, &
+                                    qint, qe_lo, qe_hi, &
+                                    flux, f_lo, f_hi, &
+                                    area, a_lo, a_hi) &
+                                    bind(c,name='ca_construct_flux_cuda')
 
     use amrex_fort_module, only: rt => amrex_real
     use meth_params_module, only: NVAR, NGDNV, NQAUX, NQ
@@ -587,6 +588,7 @@ contains
     integer,  intent(in   ) :: uin_lo(3), uin_hi(3)
     integer,  intent(in   ) :: div_lo(3), div_hi(3)
     integer,  intent(in   ) :: qa_lo(3), qa_hi(3)
+    integer,  intent(in   ) :: sk_lo(3), sk_hi(3)
     integer,  intent(in   ) :: qm_lo(3), qm_hi(3)
     integer,  intent(in   ) :: qp_lo(3), qp_hi(3)
     integer,  intent(in   ) :: qe_lo(3), qe_hi(3)
@@ -596,6 +598,7 @@ contains
     real(rt), intent(in   ) :: uin(uin_lo(1):uin_hi(1), uin_lo(2):uin_hi(2), uin_lo(3):uin_hi(3), NVAR)
     real(rt), intent(in   ) :: div(div_lo(1):div_hi(1), div_lo(2):div_hi(2), div_lo(3):div_hi(3))
     real(rt), intent(in   ) :: qaux(qa_lo(1):qa_hi(1), qa_lo(2):qa_hi(2), qa_lo(3):qa_hi(3), NQAUX)
+    real(rt), intent(in   ) :: shk(sk_lo(1):sk_hi(1), sk_lo(2):sk_hi(2), sk_lo(3):sk_hi(3))
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ,AMREX_SPACEDIM)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ,AMREX_SPACEDIM)
     real(rt), intent(inout) :: qint(qe_lo(1):qe_hi(1), qe_lo(2):qe_hi(2), qe_lo(3):qe_hi(3), NGDNV)

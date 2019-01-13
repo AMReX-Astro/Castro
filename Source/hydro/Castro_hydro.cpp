@@ -461,6 +461,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
   MultiFab qp;
   qp.define(grids, dmap, AMREX_SPACEDIM*NQ, 2);
 
+  MultiFab shk;
+  shk.define(grids, dmap, 1, 1);
+
   MultiFab flux[AMREX_SPACEDIM];
   MultiFab qe[AMREX_SPACEDIM];
 
@@ -478,7 +481,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
       const Box& obx = mfi.growntilebox(1);
 
       // Compute divergence of velocity field.
-
 #pragma gpu
       divu(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
            BL_TO_FORTRAN_ANYD(q[mfi]),
@@ -502,6 +504,14 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
            BL_TO_FORTRAN_ANYD(flatn[mfi]),
            BL_TO_FORTRAN_ANYD(qm[mfi]),
            BL_TO_FORTRAN_ANYD(qp[mfi]), NQ, 1, NQ);
+
+      // Compute the shk variable
+#pragma gpu
+      ca_shock
+        (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+         BL_TO_FORTRAN_ANYD(q[mfi]),
+         BL_TO_FORTRAN_ANYD(shk[mfi]),
+         AMREX_REAL_ANYD(dx));
 
   } // MFIter loop
 
@@ -527,6 +537,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
                BL_TO_FORTRAN_ANYD(Sborder[mfi]),
                BL_TO_FORTRAN_ANYD(div[mfi]),
                BL_TO_FORTRAN_ANYD(qaux[mfi]),
+               BL_TO_FORTRAN_ANYD(shk[mfi]),
                BL_TO_FORTRAN_ANYD(qm[mfi]),
                BL_TO_FORTRAN_ANYD(qp[mfi]),
                BL_TO_FORTRAN_ANYD(qe[idir][mfi]),
