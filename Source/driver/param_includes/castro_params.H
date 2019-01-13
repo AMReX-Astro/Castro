@@ -3,6 +3,34 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
+#ifdef DIFFUSION
+static int diffuse_temp;
+static int diffuse_enth;
+static int diffuse_spec;
+static int diffuse_vel;
+static amrex::Real diffuse_cutoff_density;
+static amrex::Real diffuse_cutoff_density_hi;
+static amrex::Real diffuse_cond_scale_fac;
+#endif
+#ifdef AMREX_PARTICLES
+static int do_tracer_particles;
+#endif
+#ifdef ROTATION
+static amrex::Real rotational_period;
+static amrex::Real rotational_dPdt;
+static int rotation_include_centrifugal;
+static int rotation_include_coriolis;
+static int rotation_include_domegadt;
+static int state_in_rotating_frame;
+static int rot_source_type;
+static int implicit_rotation_update;
+static int rot_axis;
+#endif
+#ifdef POINTMASS
+static int use_point_mass;
+static amrex::Real point_mass;
+static int point_mass_fix_solution;
+#endif
 static int state_interp_order;
 static int lin_limit_state_interp;
 static int state_nghost;
@@ -75,9 +103,6 @@ static int sdc_iters;
 static amrex::Real dtnuc_e;
 static amrex::Real dtnuc_X;
 static amrex::Real dtnuc_X_threshold;
-static amrex::Real dxnuc;
-static amrex::Real dxnuc_max;
-static int max_dxnuc_lev;
 static int do_react;
 static amrex::Real react_T_min;
 static amrex::Real react_T_max;
@@ -94,6 +119,8 @@ static int grown_factor;
 static int star_at_center;
 static int do_special_tagging;
 static int spherical_star;
+static int verbose;
+static bool dump_old;
 static int print_fortran_warnings;
 static int print_update_diagnostics;
 static int track_grid_losses;
@@ -105,31 +132,3 @@ static std::string job_name;
 static int output_at_completion;
 static amrex::Real reset_checkpoint_time;
 static int reset_checkpoint_step;
-#ifdef AMREX_PARTICLES
-static int do_tracer_particles;
-#endif
-#ifdef ROTATION
-static amrex::Real rotational_period;
-static amrex::Real rotational_dPdt;
-static int rotation_include_centrifugal;
-static int rotation_include_coriolis;
-static int rotation_include_domegadt;
-static int state_in_rotating_frame;
-static int rot_source_type;
-static int implicit_rotation_update;
-static int rot_axis;
-#endif
-#ifdef POINTMASS
-static int use_point_mass;
-static amrex::Real point_mass;
-static int point_mass_fix_solution;
-#endif
-#ifdef DIFFUSION
-static int diffuse_temp;
-static int diffuse_enth;
-static int diffuse_spec;
-static int diffuse_vel;
-static amrex::Real diffuse_cutoff_density;
-static amrex::Real diffuse_cutoff_density_hi;
-static amrex::Real diffuse_cond_scale_fac;
-#endif

@@ -3,18 +3,36 @@ module tagging_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  real(rt)        , save ::    denerr,   dengrad, dengrad_rel
-  real(rt)        , save ::    enterr,   entgrad, entgrad_rel
-  real(rt)        , save ::    velerr,   velgrad, velgrad_rel
-  real(rt)        , save ::   temperr,  tempgrad, tempgrad_rel
-  real(rt)        , save ::  presserr, pressgrad, pressgrad_rel
-  real(rt)        , save ::    raderr,   radgrad, radgrad_rel
-  integer         , save ::  max_denerr_lev,   max_dengrad_lev, max_dengrad_rel_lev
-  integer         , save ::  max_enterr_lev,   max_entgrad_lev, max_entgrad_rel_lev
-  integer         , save ::  max_velerr_lev,   max_velgrad_lev, max_velgrad_rel_lev
-  integer         , save ::  max_temperr_lev,  max_tempgrad_lev, max_tempgrad_rel_lev
-  integer         , save ::  max_presserr_lev, max_pressgrad_lev, max_pressgrad_rel_lev
-  integer         , save ::  max_raderr_lev,   max_radgrad_lev, max_radgrad_rel_lev
+  real(rt), save ::    denerr,   dengrad, dengrad_rel
+  real(rt), save ::    enterr,   entgrad, entgrad_rel
+  real(rt), save ::    velerr,   velgrad, velgrad_rel
+  real(rt), save ::   temperr,  tempgrad, tempgrad_rel
+  real(rt), save ::  presserr, pressgrad, pressgrad_rel
+  real(rt), save ::    raderr,   radgrad, radgrad_rel
+  real(rt), save ::   enucerr
+
+  integer, save ::  max_denerr_lev,   max_dengrad_lev, max_dengrad_rel_lev
+  integer, save ::  max_enterr_lev,   max_entgrad_lev, max_entgrad_rel_lev
+  integer, save ::  max_velerr_lev,   max_velgrad_lev, max_velgrad_rel_lev
+  integer, save ::  max_temperr_lev,  max_tempgrad_lev, max_tempgrad_rel_lev
+  integer, save ::  max_presserr_lev, max_pressgrad_lev, max_pressgrad_rel_lev
+  integer, save ::  max_raderr_lev,   max_radgrad_lev, max_radgrad_rel_lev
+  integer, save ::  max_enucerr_lev
+
+  ! limit the zone size based on how much the burning can change the
+  ! internal energy of a zone. The zone size on the finest level must
+  ! be smaller than dxnuc * c_s * (e/ \dot{e}) where c_s is the sound
+  ! speed.  This ensures that the sound-crossing time is smaller than
+  ! the nuclear energy injection timescale.
+  real(rt), save :: dxnuc_min
+
+  ! Disable limiting based on dxnuc above this threshold. This allows
+  !  zones that have already ignited or are about to ignite to be
+  !  de-refined.
+  real(rt), save :: dxnuc_max
+
+  ! Disable limiting based on dxnuc above this AMR level.
+  integer, save :: max_dxnuc_lev
 
   public
 
@@ -544,6 +562,7 @@ contains
 
   end subroutine ca_enterror
 
+#ifdef REACTIONS
   ! ::: -----------------------------------------------------------
   ! ::: This routine will tag cells based on the sound crossing time
   ! ::: relative to the nuclear energy injection timescale.
@@ -558,7 +577,6 @@ contains
                          delta,xlo,problo,time,level) &
                          bind(C, name="ca_nucerror")
 
-    use meth_params_module, only: dxnuc, dxnuc_max, max_dxnuc_lev
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -575,7 +593,7 @@ contains
 
     ! Disable if we're not utilizing this tagging
 
-    if (dxnuc > 1.e199_rt) return
+    if (dxnuc_min > 1.e199_rt) return
 
     if (level .lt. max_dxnuc_lev) then
 
@@ -583,7 +601,7 @@ contains
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
 
-                if (t(i,j,k,1) > dxnuc .and. t(i,j,k,1) < dxnuc_max) then
+                if (t(i,j,k,1) > dxnuc_min .and. t(i,j,k,1) < dxnuc_max) then
 
                    tag(i,j,k) = set
 
@@ -598,7 +616,48 @@ contains
   end subroutine ca_nucerror
 
 
+  ! ::: -----------------------------------------------------------
+  ! ::: This routine will tag high error cells based on the nuclear
+  ! ::: energy generation rate
+  ! ::: -----------------------------------------------------------
 
+  subroutine ca_enucerror(tag,taglo,taghi, &
+                          set,clear, &
+                          enuc,enuclo,enuchi, &
+                          lo,hi,nd,domlo,domhi, &
+                          delta,xlo,problo,time,level) &
+                          bind(C, name="ca_enucerror")
+
+    use prob_params_module, only: dg
+    use amrex_fort_module, only : rt => amrex_real
+
+    implicit none
+
+    integer, intent(in) :: set, clear, nd, level
+    integer, intent(in) :: taglo(3), taghi(3)
+    integer, intent(in) :: enuclo(3), enuchi(3)
+    integer, intent(in) :: lo(3), hi(3), domlo(3), domhi(3)
+    integer, intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+    real(rt), intent(in) :: enuc(enuclo(1):enuchi(1),enuclo(2):enuchi(2),enuclo(3):enuchi(3),nd)
+    real(rt), intent(in) :: delta(3), xlo(3), problo(3), time
+
+    integer          :: i, j, k
+
+    ! Tag on regions of high nuclear energy generation rate
+    if (level .lt. max_enucerr_lev) then
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                if (enuc(i,j,k,1) .ge. enucerr) then
+                   tag(i,j,k) = set
+                endif
+             enddo
+          enddo
+       enddo
+    endif
+
+  end subroutine ca_enucerror
+#endif
 
   ! Routines for retrieving the maximum tagging level.
 
