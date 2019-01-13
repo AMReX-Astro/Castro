@@ -318,7 +318,7 @@ namespace: ``castro``
 
 **diffusion**
 
-.. index:: castro.diffuse_temp, castro.diffuse_enth, castro.diffuse_spec, castro.diffuse_vel, castro.diffuse_cutoff_density, castro.diffuse_cond_scale_fac
+.. index:: castro.diffuse_temp, castro.diffuse_enth, castro.diffuse_spec, castro.diffuse_vel, castro.diffuse_cutoff_density, castro.diffuse_cutoff_density_hi, castro.diffuse_cond_scale_fac
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -334,6 +334,11 @@ namespace: ``castro``
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``diffuse_cutoff_density``             | set a cutoff density for diffusion -- we zero the term  | -1.e200       |
 |                                        | out below this density                                  |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``diffuse_cutoff_density_hi``          | secondary cutoff density -- there will be a linear      | -1.e200       |
+|                                        | dropoff in the diffusion coefficient between this and   |               |
+|                                        | the primary cutoff density. This should be the larger   |               |
+|                                        | of the two                                              |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``diffuse_cond_scale_fac``             | scaling factor for conductivity                         | 1.0           |
 +----------------------------------------+---------------------------------------------------------+---------------+
