@@ -224,7 +224,8 @@ contains
 
     use amrex_constants_module
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UTEMP, UEINT, UFS, UFX, diffuse_cutoff_density
+    use meth_params_module, only : NVAR, URHO, UTEMP, UEINT, UFS, UFX, diffuse_cutoff_density, &
+       diffuse_cutoff_density_hi
     use prob_params_module, only : dg
     use conductivity_module
     use eos_type_module
@@ -262,6 +263,11 @@ contains
              if (eos_state%rho > diffuse_cutoff_density) then
                 call conductivity(eos_state)
                 coeff = eos_state % conductivity / eos_state%cp
+
+                if (eos_state%rho < diffuse_cutoff_density_hi) then
+                    coeff = coeff * (eos_state%rho - diffuse_cutoff_density) / &
+                            (diffuse_cutoff_density_hi - diffuse_cutoff_density)
+                endif
              else
                 coeff = ZERO
              endif
@@ -326,7 +332,8 @@ contains
     use amrex_constants_module
     use network, only: nspec, naux
     use meth_params_module, only : NVAR, URHO, UTEMP, UEINt, UFS, UFX, &
-         diffuse_cutoff_density, diffuse_cond_scale_fac, small_temp
+         diffuse_cutoff_density, diffuse_cutoff_density_hi, diffuse_cond_scale_fac, &
+         small_temp
     use prob_params_module, only : dg
     use conductivity_module
     use eos_type_module
@@ -347,6 +354,7 @@ contains
     real(rt)         :: coef_cc(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1)
 
     type (eos_t) :: eos_state
+    real(rt) :: multiplier
 
     ! fill the cell-centered conductivity
 
@@ -368,8 +376,13 @@ contains
              endif
 
              if (eos_state%rho > diffuse_cutoff_density) then
-
                 call conductivity(eos_state)
+
+                if (eos_state%rho < diffuse_cutoff_density_hi) then
+                    multiplier = (eos_state%rho - diffuse_cutoff_density) / &
+                            (diffuse_cutoff_density_hi - diffuse_cutoff_density)
+                    eos_state % conductivity = eos_state % conductivity * multiplier
+                endif
              else
                 eos_state % conductivity = ZERO
              endif
@@ -432,7 +445,8 @@ contains
 
     use amrex_constants_module
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UTEMP, UEINT, UFS, UFX, diffuse_cutoff_density
+    use meth_params_module, only : NVAR, URHO, UTEMP, UEINT, UFS, UFX, &
+        diffuse_cutoff_density, diffuse_cutoff_density_hi
     use prob_params_module, only : dg
     use conductivity_module
     use eos_type_module
@@ -471,6 +485,11 @@ contains
              if (eos_state%rho > diffuse_cutoff_density) then
                 call conductivity(eos_state)
                 cond = eos_state % conductivity / eos_state%cp
+
+                if (eos_state%rho < diffuse_cutoff_density_hi) then
+                    cond = cond * (eos_state%rho - diffuse_cutoff_density) / &
+                            (diffuse_cutoff_density_hi - diffuse_cutoff_density)
+                endif
              else
                 cond = ZERO
              endif
@@ -533,7 +552,8 @@ contains
 
     use amrex_constants_module
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UTEMP, UFS, UFX, diffuse_cutoff_density
+    use meth_params_module, only : NVAR, URHO, UTEMP, UFS, UFX, &
+        diffuse_cutoff_density, diffuse_cutoff_density_hi
     use prob_params_module, only : dg
     use viscosity_module
     use eos_type_module
@@ -568,6 +588,11 @@ contains
 
              if (eos_state%rho > diffuse_cutoff_density) then
                 call viscous_coeff(eos_state, coeff)
+
+                if (eos_state%rho < diffuse_cutoff_density_hi) then
+                    coeff = coeff * (eos_state%rho - diffuse_cutoff_density) / &
+                            (diffuse_cutoff_density_hi - diffuse_cutoff_density)
+                endif
              else
                 coeff = ZERO
              endif
@@ -625,7 +650,8 @@ contains
 
     use amrex_constants_module
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UTEMP, UFS, UFX, diffuse_cutoff_density
+    use meth_params_module, only : NVAR, URHO, UTEMP, UFS, UFX, &
+        diffuse_cutoff_density, diffuse_cutoff_density_hi
     use prob_params_module, only : dg
     use viscosity_module
     use eos_type_module
@@ -663,6 +689,11 @@ contains
 
              if (eos_state%rho > diffuse_cutoff_density) then
                 call viscous_coeff(eos_state, mu)
+
+                if (eos_state%rho < diffuse_cutoff_density_hi) then
+                    mu = mu * (eos_state%rho - diffuse_cutoff_density) / &
+                            (diffuse_cutoff_density_hi - diffuse_cutoff_density)
+                endif
              else
                 mu = ZERO
              endif

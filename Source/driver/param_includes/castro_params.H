@@ -9,6 +9,7 @@ static int diffuse_enth;
 static int diffuse_spec;
 static int diffuse_vel;
 static amrex::Real diffuse_cutoff_density;
+static amrex::Real diffuse_cutoff_density_hi;
 static amrex::Real diffuse_cond_scale_fac;
 #endif
 #ifdef AMREX_PARTICLES
