@@ -6,7 +6,7 @@ module advection_util_module
   private
 
   public ca_enforce_minimum_density, ca_compute_cfl, ca_ctoprim, ca_srctoprim, dflux, &
-       limit_hydro_fluxes_on_small_dens, shock, divu, calc_pdivu, normalize_species_fluxes, &
+       limit_hydro_fluxes_on_small_dens, ca_shock, divu, calc_pdivu, normalize_species_fluxes, &
        scale_flux, apply_av, ca_construct_hydro_update_cuda
 
 contains
@@ -1278,7 +1278,7 @@ contains
     integer :: i, j, k
 
     real(rt) :: dxinv, dyinv, dzinv
-    real(rt) :: divU
+    real(rt) :: div_u
     real(rt) :: px_pre, px_post, py_pre, py_post, pz_pre, pz_post
     real(rt) :: e_x, e_y, e_z, d
     real(rt) :: p_pre, p_post, pjump
@@ -1307,12 +1307,12 @@ contains
              ! construct div{U}
              if (coord_type == 0) then
                 ! Cartesian
-                divU = HALF*(q(i+1,j,k,QU) - q(i-1,j,k,QU))*dxinv
+                div_u = HALF*(q(i+1,j,k,QU) - q(i-1,j,k,QU))*dxinv
 #if (AMREX_SPACEDIM >= 2)
-                divU = divU + HALF*(q(i,j+1,k,QV) - q(i,j-1,k,QV))*dyinv
+                div_u = div_u + HALF*(q(i,j+1,k,QV) - q(i,j-1,k,QV))*dyinv
 #endif
 #if (AMREX_SPACEDIM == 3)
-                divU = divU + HALF*(q(i,j,k+1,QW) - q(i,j,k-1,QW))*dzinv
+                div_u = div_u + HALF*(q(i,j,k+1,QW) - q(i,j,k-1,QW))*dzinv
 #endif
              elseif (coord_type == 1) then
                 ! r-z
@@ -1321,10 +1321,10 @@ contains
                 rp = dble(i + 1 + HALF)*dx(1)
 
 #if (AMREX_SPACEDIM == 1)
-                divU = HALF*(rp*q(i+1,j,k,QU) - rm*q(i-1,j,k,QU))/(rc*dx(1))
+                div_u = HALF*(rp*q(i+1,j,k,QU) - rm*q(i-1,j,k,QU))/(rc*dx(1))
 #endif
 #if (AMREX_SPACEDIM == 2)
-                divU = HALF*(rp*q(i+1,j,k,QU) - rm*q(i-1,j,k,QU))/(rc*dx(1)) + &
+                div_u = HALF*(rp*q(i+1,j,k,QU) - rm*q(i-1,j,k,QU))/(rc*dx(1)) + &
                      HALF*(q(i,j+1,k,QV) - q(i,j-1,k,QV))/dx(2)
 #endif
 
@@ -1334,7 +1334,7 @@ contains
                 rm = dble(i - 1 + HALF)*dx(1)
                 rp = dble(i + 1 + HALF)*dx(1)
 
-                divU = HALF*(rp**2*q(i+1,j,k,QU) - rm**2*q(i-1,j,k,QU))/(rc**2*dx(1))
+                div_u = HALF*(rp**2*q(i+1,j,k,QU) - rm**2*q(i-1,j,k,QU))/(rc**2*dx(1))
 
 #ifndef AMREX_USE_CUDA
              else
@@ -1408,7 +1408,7 @@ contains
                 pjump = eps - (p_post - p_pre)/p_pre
              endif
 
-             if (pjump < ZERO .and. divU < ZERO) then
+             if (pjump < ZERO .and. div_u < ZERO) then
                 shk(i,j,k) = ONE
              else
                 shk(i,j,k) = ZERO

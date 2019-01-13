@@ -102,7 +102,7 @@ contains
 #ifdef SHOCK_VAR
     use meth_params_module, only : USHK
 #endif
-    use advection_util_module, only : shock
+    use advection_util_module, only : ca_shock
     use prob_params_module, only : dg
 
     implicit none

@@ -40,7 +40,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
        QTEMP, QFS, QFX, QREINT, QRHO, &
        first_order_hydro, difmag, hybrid_riemann, &
        limit_fluxes_on_small_dens, ppm_type, ppm_temp_fix
-  use advection_util_module, only : limit_hydro_fluxes_on_small_dens, shock, &
+  use advection_util_module, only : limit_hydro_fluxes_on_small_dens, ca_shock, &
        divu, normalize_species_fluxes, calc_pdivu, &
        scale_flux, apply_av
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
@@ -578,7 +578,7 @@ contains
     use amrex_fort_module, only: rt => amrex_real
     use meth_params_module, only: NVAR, NGDNV, NQAUX, NQ
     use advection_util_module, only: apply_av, normalize_species_fluxes, scale_flux
-    use riemann_module, only: cmpflx_cuda
+    use riemann_module, only: cmpflx
 
     implicit none
 
@@ -616,7 +616,7 @@ contains
                 flux, f_lo, f_hi, &
                 qint, qe_lo, qe_hi, &
                 qaux, qa_lo, qa_hi, &
-                shk, s_lo, s_hi, &
+                shk, sk_lo, sk_hi, &
                 idir, domlo, domhi)
 
     call apply_av(lo, hi, idir, dx, div, div_lo, div_hi, uin, uin_lo, uin_hi, flux, f_lo, f_hi)

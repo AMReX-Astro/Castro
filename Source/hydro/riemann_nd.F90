@@ -491,14 +491,19 @@ contains
        domlo, domhi)
 
     use amrex_error_module
+#ifndef AMREX_USE_CUDA
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
+#endif
     use prob_params_module, only : physbc_lo, physbc_hi, &
          Symmetry, SlipWall, NoSlipWall
     use network, only : nspec, naux
     use eos_type_module
     use eos_module
     use meth_params_module, only : cg_maxiter, cg_tol, cg_blend
-    use riemann_util_module, only : wsqge, pstar_bisection
+#ifndef AMREX_USE_CUDA
+    use riemann_util_module, only : pstar_bisection
+#endif
+    use riemann_util_module, only : wsqge
 
     implicit none
 
