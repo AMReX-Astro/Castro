@@ -11,7 +11,8 @@ contains
   !===========================================================================
   ! transx
   !===========================================================================
-  subroutine transx(qym, qymo, qyp, qypo, &
+  subroutine transx(lo, hi, &
+                    qym, qymo, qyp, qypo, &
 #if AMREX_SPACEDIM == 3
                     qzm, qzmo, qzp, qzpo, &
 #endif
@@ -27,7 +28,11 @@ contains
                     area1, area1_lo, area1_hi, &
                     vol, vol_lo, vol_hi, &
 #endif
-                    hdt, cdtdx, lo, hi)
+                    hdt, cdtdx, &
+                    vlo, vhi)
+
+    ! here, lo and hi are the bounds we are looping over, which may include ghost cells
+    ! vlo and vhi are the bounds of the valid box
 
   use amrex_constants_module, only : ZERO, ONE, HALF
 
@@ -63,6 +68,7 @@ contains
     integer, intent(in) :: fx_lo(3), fx_hi(3)
     integer, intent(in) :: qx_lo(3), qx_hi(3)
     integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: vlo(3), vhi(3)
 #if AMREX_SPACEDIM == 2
     integer, intent(in) :: area1_lo(3), area1_hi(3)
     integer, intent(in) :: vol_lo(3), vol_hi(3)
@@ -142,10 +148,10 @@ contains
        ! since we merge 2- and 3-d, be sure not to update any velocities
        if (nqp == QU .or. nqp == QV .or. nqp == QW) cycle
 
-       do k = lo(3)-dg(3), hi(3)+dg(3)
-          do j = lo(2)-1, hi(2)+1
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                if (j >= lo(2)) then
+                if (j >= vlo(2)) then
 #if AMREX_SPACEDIM == 2
                    rrnew = qyp(i,j,k,QRHO) - hdt*(area1(i+1,j,k)*fx(i+1,j,k,URHO) - &
                                                   area1(i,j,k)*fx(i,j,k,URHO))/vol(i,j,k)
@@ -160,7 +166,7 @@ contains
 #endif
                 end if
 
-                if (j <= hi(2)) then
+                if (j <= vhi(2)) then
 #if AMREX_SPACEDIM == 2
                    rrnew = qym(i,j+1,k,QRHO) - hdt*(area1(i+1,j,k)*fx(i+1,j,k,URHO) - &
                                                     area1(i,j,k)*fx(i,j,k,URHO))/vol(i,j,k)
@@ -184,8 +190,8 @@ contains
     ! for the fluid variables
     !-------------------------------------------------------------------
 
-    do k = lo(3)-dg(3), hi(3)+dg(3)
-       do j = lo(2)-1, hi(2)+1
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
              pgp  = qx(i+1,j,k,GDPRES)
@@ -261,7 +267,7 @@ contains
              ! qypo state
              !----------------------------------------------------------------
 
-             if (j >= lo(2)) then
+             if (j >= vlo(2)) then
 
                 ! Convert to conservation form
                 rrry = qyp(i,j,k,QRHO)
@@ -407,7 +413,7 @@ contains
              ! qymo state
              !-------------------------------------------------------------------
 
-             if (j <= hi(2)) then
+             if (j <= vhi(2)) then
 
                 ! Convert to conservation form
                 rrly = qym(i,j+1,k,QRHO)
@@ -557,16 +563,16 @@ contains
        ! since we merge 2- and 3-d, be sure not to update any velocities
        if (nqp == QU .or. nqp == QV .or. nqp == QW) cycle
 
-       do k = lo(3)-1, hi(3)+1
-          do j = lo(2)-1, hi(2)+1
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                if (k >= lo(3)) then
+                if (k >= vlo(3)) then
                    rrnew = qzp(i,j,k,QRHO) - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
                    compu = qzp(i,j,k,QRHO)*qzp(i,j,k,nqp) - cdtdx*(fx(i+1,j,k,n) - fx(i,j,k,n))
                    qzpo(i,j,k,nqp) = compu/rrnew
                 endif
 
-                if (k <= hi(3)) then
+                if (k <= vhi(3)) then
                    rrnew = qzm(i,j,k+1,QRHO) - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
                    compu = qzm(i,j,k+1,QRHO)*qzm(i,j,k+1,nqp) - cdtdx*(fx(i+1,j,k,n) - fx(i,j,k,n))
                    qzmo(i,j,k+1,nqp) = compu/rrnew
@@ -583,8 +589,8 @@ contains
     ! for the fluid variables
     !-------------------------------------------------------------------
 
-    do k = lo(3)-1, hi(3)+1
-       do j = lo(2)-1, hi(2)+1
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
              pgp  = qx(i+1,j,k,GDPRES)
@@ -645,7 +651,7 @@ contains
              ! qzpo state
              !-------------------------------------------------------------------
 
-             if (k >= lo(3)) then
+             if (k >= vlo(3)) then
 
                 ! Convert to conservation form
                 rrrz = qzp(i,j,k,QRHO)
@@ -741,7 +747,7 @@ contains
              ! qzmo state
              !-------------------------------------------------------------------
 
-             if (k <= hi(3)) then
+             if (k <= vhi(3)) then
 
                 ! Convert to conservation form
                 rrlz = qzm(i,j,k+1,QRHO)
@@ -842,7 +848,8 @@ contains
   !===========================================================================
   ! transy
   !===========================================================================
-  subroutine transy(qxm, qxmo, qxp, qxpo, &
+  subroutine transy(lo, hi, &
+                    qxm, qxmo, qxp, qxpo, &
 #if AMREX_SPACEDIM == 3
                     qzm, qzmo, qzp, qzpo, &
 #endif
@@ -854,8 +861,11 @@ contains
 #endif
                     fy_lo, fy_hi, &
                     qy, qy_lo, qy_hi, &
-                    cdtdy, lo, hi)
+                    cdtdy, &
+                    vlo, vhi)
 
+    ! here, lo and hi are the bounds we are looping over, which may include ghost cells
+    ! vlo and vhi are the bounds of the valid box
 
   use amrex_constants_module, only : ZERO, ONE, HALF
 
@@ -889,6 +899,7 @@ contains
     integer, intent(in) :: fy_lo(3),fy_hi(3)
     integer, intent(in) :: qy_lo(3),qy_hi(3)
     integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: vlo(3), vhi(3)
 
 #ifdef RADIATION
     real(rt), intent(in) :: rfy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
@@ -960,16 +971,16 @@ contains
        ! since we merge 2- and 3-d, be sure not to update any velocities
        if (nqp == QU .or. nqp == QV .or. nqp == QW) cycle
 
-       do k = lo(3)-dg(3), hi(3)+dg(3)
+       do k = lo(3), hi(3)
           do j = lo(2), hi(2)
-             do i = lo(1)-1, hi(1)+1
-                if (i >= lo(1)) then
+             do i = lo(1), hi(1)
+                if (i >= vlo(1)) then
                    rrnew = qxp(i,j,k,QRHO) - cdtdy*(fy(i,j+1,k,URHO) - fy(i,j,k,URHO))
                    compu = qxp(i,j,k,QRHO)*qxp(i,j,k,nqp) - cdtdy*(fy(i,j+1,k,n) - fy(i,j,k,n))
                    qxpo(i,j,k,nqp) = compu/rrnew
                 endif
 
-                if (i <= hi(1)) then
+                if (i <= vhi(1)) then
                    rrnew = qxm(i+1,j,k,QRHO) - cdtdy*(fy(i,j+1,k,URHO) - fy(i,j,k,URHO))
                    compu = qxm(i+1,j,k,QRHO)*qxm(i+1,j,k,nqp) - cdtdy*(fy(i,j+1,k,n) - fy(i,j,k,n))
                    qxmo(i+1,j,k,nqp) = compu/rrnew
@@ -985,9 +996,9 @@ contains
     ! for the fluid variables
     !-------------------------------------------------------------------
 
-    do k = lo(3)-dg(3), hi(3)+dg(3)
+    do k = lo(3), hi(3)
        do j = lo(2), hi(2)
-          do i = lo(1)-1, hi(1)+1
+          do i = lo(1), hi(1)
 
              pgp  = qy(i,j+1,k,GDPRES)
              pgm  = qy(i,j  ,k,GDPRES)
@@ -1047,7 +1058,7 @@ contains
              ! qxpo state
              !-------------------------------------------------------------
 
-             if (i >= lo(1)) then
+             if (i >= vlo(1)) then
 
                 ! Convert to conservation form
                 rrrx = qxp(i,j,k,QRHO)
@@ -1142,7 +1153,7 @@ contains
              ! qxmo state
              !-------------------------------------------------------------------
 
-             if (i <= hi(1)) then
+             if (i <= vhi(1)) then
 
                 ! Convert to conservation form
                 rrlx = qxm(i+1,j,k,QRHO)
@@ -1253,16 +1264,16 @@ contains
        ! since we merge 2- and 3-d, be sure not to update any velocities
        if (nqp == QU .or. nqp == QV .or. nqp == QW) cycle
 
-       do k = lo(3)-1, hi(3)+1
+       do k = lo(3), hi(3)
           do j = lo(2), hi(2)
-             do i = lo(1)-1, hi(1)+1
-                if (k >= lo(3)) then
+             do i = lo(1), hi(1)
+                if (k >= vlo(3)) then
                    rrnew = qzp(i,j,k,QRHO) - cdtdy*(fy(i,j+1,k,URHO) - fy(i,j,k,URHO))
                    compu = qzp(i,j,k,QRHO)*qzp(i,j,k,nqp) - cdtdy*(fy(i,j+1,k,n) - fy(i,j,k,n))
                    qzpo(i,j,k,nqp) = compu/rrnew
                 end if
 
-                if (k <= hi(3)) then
+                if (k <= vhi(3)) then
                    rrnew = qzm(i,j,k+1,QRHO) - cdtdy*(fy(i,j+1,k,URHO) - fy(i,j,k,URHO))
                    compu = qzm(i,j,k+1,QRHO)*qzm(i,j,k+1,nqp) - cdtdy*(fy(i,j+1,k,n) - fy(i,j,k,n))
                    qzmo(i,j,k+1,nqp) = compu/rrnew
@@ -1278,9 +1289,9 @@ contains
     ! for the fluid variables
     !-------------------------------------------------------------------
 
-    do k = lo(3)-1, hi(3)+1
+    do k = lo(3), hi(3)
        do j = lo(2), hi(2)
-          do i = lo(1)-1, hi(1)+1
+          do i = lo(1), hi(1)
 
              pgp  = qy(i,j+1,k,GDPRES)
              pgm  = qy(i,j  ,k,GDPRES)
@@ -1341,7 +1352,7 @@ contains
              ! qzpo states
              !-------------------------------------------------------------------
 
-             if (k >= lo(3)) then
+             if (k >= vlo(3)) then
 
                 ! Convert to conservation form
                 rrrz = qzp(i,j,k,QRHO)
@@ -1436,7 +1447,7 @@ contains
              ! qzmo state
              !-------------------------------------------------------------------
 
-             if (k <= hi(3)) then
+             if (k <= vhi(3)) then
 
                 ! Convert to conservation form
                 rrlz = qzm(i,j,k+1,QRHO)
@@ -1538,7 +1549,8 @@ contains
   !===========================================================================
   ! transz
   !===========================================================================
-  subroutine transz(qxm, qxmo, qxp, qxpo, &
+  subroutine transz(lo, hi, &
+                    qxm, qxmo, qxp, qxpo, &
                     qym, qymo, qyp, qypo, q_lo, q_hi, &
                     qaux, qa_lo, qa_hi, &
                     fz, &
@@ -1547,7 +1559,11 @@ contains
 #endif
                     fz_lo, fz_hi, &
                     qz, qz_lo, qz_hi, &
-                    cdtdz, lo, hi)
+                    cdtdz, &
+                    vlo, vhi)
+
+    ! here, lo and hi are the bounds we are looping over, which may include ghost cells
+    ! vlo and vhi are the bounds of the valid box
 
     use amrex_constants_module, only : ZERO, ONE, HALF
 
@@ -1581,6 +1597,7 @@ contains
     integer, intent(in) :: fz_lo(3), fz_hi(3)
     integer, intent(in) :: qz_lo(3), qz_hi(3)
     integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: vlo(3), vhi(3)
 
 #ifdef RADIATION
     real(rt), intent(in) :: rfz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
@@ -1646,15 +1663,15 @@ contains
        nqp = qpass_map(ipassive)
 
         do k = lo(3), hi(3)
-          do j = lo(2)-1, hi(2)+1
-             do i = lo(1)-1, hi(1)+1
-                if (i >= lo(1)) then
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                if (i >= vlo(1)) then
                    rrnew = qxp(i,j,k,QRHO) - cdtdz*(fz(i,j,k+1,URHO) - fz(i,j,k,URHO))
                    compu = qxp(i,j,k,QRHO)*qxp(i,j,k,nqp) - cdtdz*(fz(i,j,k+1,n) - fz(i,j,k,n))
                    qxpo(i,j,k,nqp) = compu/rrnew
                 end if
 
-                if (i <= hi(1)) then
+                if (i <= vhi(1)) then
                    rrnew = qxm(i+1,j,k,QRHO) - cdtdz*(fz(i,j,k+1,URHO) - fz(i,j,k,URHO))
                    compu = qxm(i+1,j,k,QRHO)*qxm(i+1,j,k,nqp) - cdtdz*(fz(i,j,k+1,n) - fz(i,j,k,n))
                    qxmo(i+1,j,k,nqp) = compu/rrnew
@@ -1671,8 +1688,8 @@ contains
     !-------------------------------------------------------------------
 
     do k = lo(3), hi(3)
-       do j = lo(2)-1, hi(2)+1
-          do i = lo(1)-1, hi(1)+1
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
              pgp  = qz(i,j,k+1,GDPRES)
              pgm  = qz(i,j,k,GDPRES)
@@ -1732,7 +1749,7 @@ contains
              ! qxpo state
              !-------------------------------------------------------------------
 
-             if (i >= lo(1)) then
+             if (i >= vlo(1)) then
 
                 ! Convert to conservation form
                 rrrx = qxp(i,j,k,QRHO)
@@ -1826,7 +1843,7 @@ contains
              ! qxmo state
              !-------------------------------------------------------------------
 
-             if (i <= hi(1)) then
+             if (i <= vhi(1)) then
 
                 ! Convert to conservation form
                 rrlx = qxm(i+1,j,k,QRHO)
@@ -1933,15 +1950,15 @@ contains
        nqp = qpass_map(ipassive)
 
        do k = lo(3), hi(3)
-          do j = lo(2)-1, hi(2)+1
-             do i = lo(1)-1, hi(1)+1
-                if (j >= lo(2)) then
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                if (j >= vlo(2)) then
                    rrnew = qyp(i,j,k,QRHO) - cdtdz*(fz(i,j,k+1,URHO) - fz(i,j,k,URHO))
                    compu = qyp(i,j,k,QRHO)*qyp(i,j,k,nqp) - cdtdz*(fz(i,j,k+1,n) - fz(i,j,k,n))
                    qypo(i,j,k,nqp) = compu/rrnew
                 end if
 
-                if (j <= hi(2)) then
+                if (j <= vhi(2)) then
                    rrnew = qym(i,j+1,k,QRHO) - cdtdz*(fz(i,j,k+1,URHO) - fz(i,j,k,URHO))
                    compu = qym(i,j+1,k,QRHO)*qym(i,j+1,k,nqp) - cdtdz*(fz(i,j,k+1,n) - fz(i,j,k,n))
                    qymo(i,j+1,k,nqp) = compu/rrnew
@@ -1958,8 +1975,8 @@ contains
     !-------------------------------------------------------------------
 
     do k = lo(3), hi(3)
-       do j = lo(2)-1, hi(2)+1
-          do i = lo(1)-1, hi(1)+1
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
              pgp  = qz(i,j,k+1,GDPRES)
              pgm  = qz(i,j,k,GDPRES)
@@ -2018,7 +2035,7 @@ contains
              ! qypo state
              !-------------------------------------------------------------------
 
-             if (j >= lo(2)) then
+             if (j >= vlo(2)) then
 
                 ! Convert to conservation form
                 rrry = qyp(i,j,k,QRHO)
@@ -2113,7 +2130,7 @@ contains
              ! qymo state
              !-------------------------------------------------------------------
 
-             if (j <= hi(2)) then
+             if (j <= vhi(2)) then
 
                 ! Convert to conservation form
                 rrly = qym(i,j+1,k,QRHO)
@@ -2212,7 +2229,8 @@ contains
   !===========================================================================
   ! transyz
   !===========================================================================
-  subroutine transyz(qm, qmo, qp, qpo, q_lo, q_hi, &
+  subroutine transyz(lo, hi, &
+                     qm, qmo, qp, qpo, q_lo, q_hi, &
                      qaux, qa_lo, qa_hi, &
                      fyz, &
 #ifdef RADIATION
@@ -2226,8 +2244,11 @@ contains
                      fz_lo, fz_hi, &
                      qy, qy_lo, qy_hi, &
                      qz, qz_lo, qz_hi, &
-                     hdt, cdtdy, cdtdz, lo, hi)
+                     hdt, cdtdy, cdtdz, &
+                     vlo, vhi)
 
+    ! here, lo and hi are the bounds we are looping over, which may include ghost cells
+    ! vlo and vhi are the bounds of the valid box
 
     use amrex_constants_module, only : ZERO, ONE, HALF
 
@@ -2263,6 +2284,7 @@ contains
     integer, intent(in) :: qy_lo(3),qy_hi(3)
     integer, intent(in) :: qz_lo(3),qz_hi(3)
     integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: vlo(3), vhi(3)
 
     real(rt), intent(in) :: hdt, cdtdy, cdtdz
 
@@ -2316,9 +2338,9 @@ contains
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
-             do i = lo(1)-1, hi(1)+1
+             do i = lo(1), hi(1)
 
-                if (i >= lo(1)) then
+                if (i >= vlo(1)) then
                    rrr = qp(i,j,k,QRHO)
                    compr = rrr*qp(i,j,k,nqp)
                    rrnewr = rrr - cdtdy*(fyz(i,j+1,k,URHO) - fyz(i,j,k,URHO)) &
@@ -2329,7 +2351,7 @@ contains
                    qpo(i  ,j,k,nqp) = compnr/rrnewr
                 end if
 
-                if (i <= hi(1)) then
+                if (i <= vhi(1)) then
                    rrl = qm(i+1,j,k,QRHO)
                    compl = rrl*qm(i+1,j,k,nqp)
                    rrnewl = rrl - cdtdy*(fyz(i,j+1,k,URHO) - fyz(i,j,k,URHO)) &
@@ -2352,7 +2374,7 @@ contains
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
-          do i = lo(1)-1, hi(1)+1
+          do i = lo(1), hi(1)
 
              pgyp  = qy(i,j+1,k,GDPRES)
              pgym  = qy(i,j,k,GDPRES)
@@ -2438,7 +2460,7 @@ contains
              ! qxpo state
              !-------------------------------------------------------------------
 
-             if (i >= lo(1)) then
+             if (i >= vlo(1)) then
                 ! Convert to conservation form
                 rrr = qp(i,j,k,QRHO)
                 rur = rrr*qp(i,j,k,QU)
@@ -2539,7 +2561,7 @@ contains
              ! qxmo state
              !-------------------------------------------------------------------
 
-             if (i <= hi(1)) then
+             if (i <= vhi(1)) then
 
                 ! Convert to conservation form
                 rrl = qm(i+1,j,k,QRHO)
@@ -2644,7 +2666,8 @@ contains
   !===========================================================================
   ! transxz
   !===========================================================================
-  subroutine transxz(qm, qmo, qp, qpo, q_lo, q_hi, &
+  subroutine transxz(lo, hi, &
+                     qm, qmo, qp, qpo, q_lo, q_hi, &
                      qaux, qa_lo, qa_hi, &
                      fxz, &
 #ifdef RADIATION
@@ -2658,8 +2681,11 @@ contains
                      fz_lo, fz_hi, &
                      qx, qx_lo, qx_hi, &
                      qz, qz_lo, qz_hi, &
-                     hdt, cdtdx, cdtdz, lo, hi)
+                     hdt, cdtdx, cdtdz, &
+                     vlo, vhi)
 
+    ! here, lo and hi are the bounds we are looping over, which may include ghost cells
+    ! vlo and vhi are the bounds of the valid box
 
     use amrex_constants_module, only : ZERO, ONE, HALF
 
@@ -2695,6 +2721,7 @@ contains
     integer, intent(in) :: qx_lo(3),qx_hi(3)
     integer, intent(in) :: qz_lo(3),qz_hi(3)
     integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: vlo(3), vhi(3)
 
     real(rt), intent(in) :: hdt, cdtdx, cdtdz
 
@@ -2747,9 +2774,9 @@ contains
        nqp = qpass_map(ipassive)
 
        do k = lo(3), hi(3)
-          do j = lo(2)-1, hi(2)+1
+          do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                if (j >= lo(2)) then
+                if (j >= vlo(2)) then
                    rrr = qp(i,j,k,QRHO)
                    compr = rrr*qp(i,j,k,nqp)
                    rrnewr = rrr - cdtdx*(fxz(i+1,j,k,URHO) - fxz(i,j,k,URHO)) &
@@ -2760,7 +2787,7 @@ contains
                    qpo(i,j  ,k,nqp) = compnr/rrnewr
                 end if
 
-                if (j <= hi(2)) then
+                if (j <= vhi(2)) then
                    rrl = qm(i,j+1,k,QRHO)
                    compl = rrl*qm(i,j+1,k,nqp)
                    rrnewl = rrl - cdtdx*(fxz(i+1,j,k,URHO) - fxz(i,j,k,URHO)) &
@@ -2781,7 +2808,7 @@ contains
     !-------------------------------------------------------------------
 
     do k = lo(3), hi(3)
-       do j = lo(2)-1, hi(2)+1
+       do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
              pgxp  = qx(i+1,j,k,GDPRES)
@@ -2868,7 +2895,7 @@ contains
              ! qypo state
              !-------------------------------------------------------------------
 
-             if (j >= lo(2)) then
+             if (j >= vlo(2)) then
 
                 ! Convert to conservation form
                 rrr = qp(i,j,k,QRHO)
@@ -2969,7 +2996,7 @@ contains
              ! qymo state
              !-------------------------------------------------------------------
 
-             if (j <= hi(2)) then
+             if (j <= vhi(2)) then
 
                 ! Convert to conservation form
                 rrl = qm(i,j+1,k,QRHO)
@@ -3075,7 +3102,8 @@ contains
   !===========================================================================
   ! transxy
   !===========================================================================
-  subroutine transxy(qm, qmo, qp, qpo, q_lo, q_hi, &
+  subroutine transxy(lo, hi, &
+                     qm, qmo, qp, qpo, q_lo, q_hi, &
                      qaux, qa_lo, qa_hi, &
                      fxy, &
 #ifdef RADIATION
@@ -3089,8 +3117,11 @@ contains
                      fy_lo, fy_hi, &
                      qx, qx_lo, qx_hi, &
                      qy, qy_lo, qy_hi, &
-                     hdt, cdtdx, cdtdy, lo, hi)
+                     hdt, cdtdx, cdtdy, &
+                     vlo, vhi)
 
+    ! here, lo and hi are the bounds we are looping over, which may include ghost cells
+    ! vlo and vhi are the bounds of the valid box
 
     use amrex_constants_module, only : ZERO, ONE, HALF
 
@@ -3126,6 +3157,7 @@ contains
     integer, intent(in) :: qx_lo(3), qx_hi(3)
     integer, intent(in) :: qy_lo(3), qy_hi(3)
     integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: vlo(3), vhi(3)
 
     real(rt), intent(in) :: hdt, cdtdx, cdtdy
 
@@ -3177,10 +3209,10 @@ contains
        n  = upass_map(ipassive)
        nqp = qpass_map(ipassive)
 
-       do k = lo(3)-1, hi(3)+1
+       do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                if (k >= lo(3)) then
+                if (k >= vlo(3)) then
                    rrr = qp(i,j,k,QRHO)
                    compr = rrr*qp(i,j,k,nqp)
                    rrnewr = rrr - cdtdx*(fxy(i+1,j,k,URHO) - fxy(i,j,k,URHO)) &
@@ -3191,7 +3223,7 @@ contains
                    qpo(i,j,k,nqp) = compnr/rrnewr
                 end if
 
-                if (k <= hi(3)) then
+                if (k <= vhi(3)) then
                    rrl = qm(i,j,k+1,QRHO)
                    compl = rrl*qm(i,j,k+1,nqp)
                    rrnewl = rrl - cdtdx*(fxy(i+1,j,k,URHO) - fxy(i,j,k,URHO)) &
@@ -3216,7 +3248,7 @@ contains
     ! qzpo state
     !-------------------------------------------------------------------
 
-    do k = lo(3)-1, hi(3)+1
+    do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
@@ -3300,7 +3332,7 @@ contains
              end if
 #endif
 
-             if (k >= lo(3)) then
+             if (k >= vlo(3)) then
 
                 ! Convert to conservation form
                 rrr = qp(i,j,k,QRHO)
@@ -3404,7 +3436,7 @@ contains
              ! qzmo state
              !-------------------------------------------------------------------
 
-             if (k <= hi(3)) then
+             if (k <= vhi(3)) then
 
                 ! Convert to conservation form
                 rrl = qm(i,j,k+1,QRHO)
