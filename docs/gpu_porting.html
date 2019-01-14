@@ -358,9 +358,9 @@ variables, but before the main body of the function.</li>
 <li>Run under <code class="docutils literal notranslate"><span class="pre">cuda-gdb</span></code></li>
 <li>Turn off GPU offloading for some part of the code with</li>
 </ul>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">Device</span><span class="o">::</span><span class="n">endDeviceLaunchRegion</span><span class="p">();</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">Gpu</span><span class="o">::</span><span class="n">setLaunchRegion</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
 <span class="p">...</span> <span class="p">;</span>
-<span class="n">Device</span><span class="o">::</span><span class="n">beginDeviceLaunchRegion</span><span class="p">();</span>
+<span class="n">Gpu</span><span class="o">::</span><span class="n">setLaunchRegion</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
