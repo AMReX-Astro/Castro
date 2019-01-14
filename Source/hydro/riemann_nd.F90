@@ -46,7 +46,6 @@ contains
                     shk, s_lo, s_hi, &
                     idir, lo, hi, domlo, domhi)
 
-    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use network, only: nspec, naux
@@ -295,10 +294,12 @@ contains
   !!
   subroutine riemann_state(qm, qp, qpd_lo, qpd_hi, nc, comp, &
                            qint, q_lo, q_hi, &
+#ifdef RADIATION
+                           lambda_int, l_lo, l_hi, &
+#endif
                            qaux, qa_lo, qa_hi, &
                            idir, lo, hi, domlo, domhi, compute_gammas)
 
-    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use network, only: nspec, naux
@@ -327,13 +328,15 @@ contains
     real(rt), intent(inout) :: qp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ,nc)
 
     real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+#ifdef RADIATION
+    integer, intent(in) :: l_lo(3), l_hi(3)
+    real(rt), intent(inout) :: lambda_int(l_lo(1):l_hi(1),l_lo(2):l_hi(2),l_lo(3):l_hi(3),0:ngroups-1)
+#endif
 
     ! qaux come in dimensioned as the full box, so we use k3d here to
     ! index it in z
 
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-
-    real(rt), pointer :: lambda_int(:,:,:,:)
 
     ! local variables
 
@@ -430,10 +433,6 @@ contains
     if (riemann_solver == 0) then
        ! Colella, Glaz, & Ferguson solver
 
-#ifdef RADIATION
-       call bl_allocate(lambda_int, q_lo(1), q_hi(1), q_lo(2), q_hi(2), q_lo(3), q_hi(3), 0, ngroups-1)
-#endif
-
        call riemannus(qm, qp, qpd_lo, qpd_hi, nc, comp, &
             qaux, qa_lo, qa_hi, &
             qint, q_lo, q_hi, &
@@ -442,10 +441,6 @@ contains
 #endif
             idir, lo, hi, &
             domlo, domhi, compute_interface_gamma)
-
-#ifdef RADIATION
-       call bl_deallocate(lambda_int)
-#endif
 
     elseif (riemann_solver == 1) then
        ! Colella & Glaz solver
@@ -1098,7 +1093,6 @@ contains
        idir, lo, hi, &
        domlo, domhi, compute_interface_gamma)
 
-    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, &
          Symmetry, SlipWall, NoSlipWall
     use eos_type_module, only : eos_t, eos_input_rp

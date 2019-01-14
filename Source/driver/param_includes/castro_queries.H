@@ -9,6 +9,7 @@ pp.query("diffuse_enth", diffuse_enth);
 pp.query("diffuse_spec", diffuse_spec);
 pp.query("diffuse_vel", diffuse_vel);
 pp.query("diffuse_cutoff_density", diffuse_cutoff_density);
+pp.query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi);
 pp.query("diffuse_cond_scale_fac", diffuse_cond_scale_fac);
 #endif
 #ifdef AMREX_PARTICLES

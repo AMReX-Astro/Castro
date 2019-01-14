@@ -167,6 +167,7 @@ module meth_params_module
   real(rt), allocatable, save :: react_rho_max
   integer,  allocatable, save :: disable_shock_burning
   real(rt), allocatable, save :: diffuse_cutoff_density
+  real(rt), allocatable, save :: diffuse_cutoff_density_hi
   real(rt), allocatable, save :: diffuse_cond_scale_fac
   integer,  allocatable, save :: do_grav
   integer,  allocatable, save :: grav_source_type
@@ -254,6 +255,9 @@ attributes(managed) :: react_rho_max
 attributes(managed) :: disable_shock_burning
 #ifdef DIFFUSION
 attributes(managed) :: diffuse_cutoff_density
+#endif
+#ifdef DIFFUSION
+attributes(managed) :: diffuse_cutoff_density_hi
 #endif
 #ifdef DIFFUSION
 attributes(managed) :: diffuse_cond_scale_fac
@@ -365,6 +369,9 @@ attributes(managed) :: get_g_from_phi
   !$acc create(diffuse_cutoff_density) &
 #endif
 #ifdef DIFFUSION
+  !$acc create(diffuse_cutoff_density_hi) &
+#endif
+#ifdef DIFFUSION
   !$acc create(diffuse_cond_scale_fac) &
 #endif
   !$acc create(do_grav) &
@@ -460,6 +467,8 @@ contains
 #ifdef DIFFUSION
     allocate(diffuse_cutoff_density)
     diffuse_cutoff_density = -1.d200;
+    allocate(diffuse_cutoff_density_hi)
+    diffuse_cutoff_density_hi = -1.d200;
     allocate(diffuse_cond_scale_fac)
     diffuse_cond_scale_fac = 1.0d0;
 #endif
@@ -629,6 +638,7 @@ contains
     call amrex_parmparse_build(pp, "castro")
 #ifdef DIFFUSION
     call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
+    call pp%query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi)
     call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
 #endif
 #ifdef ROTATION
@@ -737,14 +747,15 @@ contains
     !$acc device(cfl, dtnuc_e, dtnuc_X) &
     !$acc device(dtnuc_X_threshold, do_react, react_T_min) &
     !$acc device(react_T_max, react_rho_min, react_rho_max) &
-    !$acc device(disable_shock_burning, diffuse_cutoff_density, diffuse_cond_scale_fac) &
-    !$acc device(do_grav, grav_source_type, do_rotation) &
-    !$acc device(rot_period, rot_period_dot, rotation_include_centrifugal) &
-    !$acc device(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
-    !$acc device(rot_source_type, implicit_rotation_update, rot_axis) &
-    !$acc device(use_point_mass, point_mass, point_mass_fix_solution) &
-    !$acc device(do_acc, grown_factor, track_grid_losses) &
-    !$acc device(const_grav, get_g_from_phi)
+    !$acc device(disable_shock_burning, diffuse_cutoff_density, diffuse_cutoff_density_hi) &
+    !$acc device(diffuse_cond_scale_fac, do_grav, grav_source_type) &
+    !$acc device(do_rotation, rot_period, rot_period_dot) &
+    !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
+    !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
+    !$acc device(rot_axis, use_point_mass, point_mass) &
+    !$acc device(point_mass_fix_solution, do_acc, grown_factor) &
+    !$acc device(track_grid_losses, const_grav) &
+    !$acc device(get_g_from_phi)
 
 
     ! now set the external BC flags
@@ -1011,6 +1022,9 @@ contains
     end if
     if (allocated(diffuse_cutoff_density)) then
         deallocate(diffuse_cutoff_density)
+    end if
+    if (allocated(diffuse_cutoff_density_hi)) then
+        deallocate(diffuse_cutoff_density_hi)
     end if
     if (allocated(diffuse_cond_scale_fac)) then
         deallocate(diffuse_cond_scale_fac)
