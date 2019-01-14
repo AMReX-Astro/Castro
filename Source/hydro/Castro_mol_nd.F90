@@ -47,7 +47,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   use flatten_module, only: ca_uflatten
   use riemann_module, only: cmpflx
 
-  use riemann_util_module, only : store_godunov_state
+  use riemann_util_module, only : ca_store_godunov_state
   use ppm_module, only : ca_ppm_reconstruct
   use amrex_fort_module, only : rt => amrex_real
 #ifdef RADIATION
@@ -297,12 +297,12 @@ subroutine ca_mol_single_stage(lo, hi, time, &
               shk, shk_lo, shk_hi, &
               1, domlo, domhi)
 
-  call store_godunov_state(lo, [hi(1)+1, hi(2), hi(3)], &
-                           q_int, It_lo, It_hi, &
+  call ca_store_godunov_state(lo, [hi(1)+1, hi(2), hi(3)], &
+                              q_int, It_lo, It_hi, &
 #ifdef RADIATION
-                           lambda_int, It_lo, It_hi, &
+                              lambda_int, It_lo, It_hi, &
 #endif
-                           q1, flux1_lo, flux1_hi)
+                              q1, flux1_lo, flux1_hi)
 
 #if AMREX_SPACEDIM >= 2
   ! Compute F^y at kc (k3d)
@@ -318,12 +318,12 @@ subroutine ca_mol_single_stage(lo, hi, time, &
               shk, shk_lo, shk_hi, &
               2, domlo, domhi)
 
-  call store_godunov_state(lo, [hi(1), hi(2)+1, hi(3)], &
-                           q_int, It_lo, It_hi, &
+  call ca_store_godunov_state(lo, [hi(1), hi(2)+1, hi(3)], &
+                              q_int, It_lo, It_hi, &
 #ifdef RADIATION
-                           lambda_int, It_lo, It_hi, &
+                              lambda_int, It_lo, It_hi, &
 #endif
-                           q2, flux2_lo, flux2_hi)
+                              q2, flux2_lo, flux2_hi)
 #endif
 
 
@@ -342,12 +342,12 @@ subroutine ca_mol_single_stage(lo, hi, time, &
               shk, shk_lo, shk_hi, &
               3, domlo, domhi)
 
-  call store_godunov_state(lo, [hi(1), hi(2)+1, hi(3)], &
-                           q_int, It_lo, It_hi, &
+  call ca_store_godunov_state(lo, [hi(1), hi(2)+1, hi(3)], &
+                              q_int, It_lo, It_hi, &
 #ifdef RADIATION
-                           lambda_int, It_lo, It_hi, &
+                              lambda_int, It_lo, It_hi, &
 #endif
-                           q3, flux3_lo, flux3_hi)
+                              q3, flux3_lo, flux3_hi)
 
 #endif
 
