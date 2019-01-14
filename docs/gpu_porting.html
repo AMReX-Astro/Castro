@@ -243,49 +243,42 @@ this, the code is liable to segfault</li>
 </div>
 <div class="section" id="fortran">
 <h2>Fortran<a class="headerlink" href="#fortran" title="Permalink to this headline">¶</a></h2>
-<ul>
-<li><p class="first">the routine must only operate on a single zone in <code class="docutils literal notranslate"><span class="pre">lo:hi</span></code>.</p>
 <ul class="simple">
+<li>the routine must only operate on a single zone in <code class="docutils literal notranslate"><span class="pre">lo:hi</span></code>.<ul>
 <li>even for temporary arrays, you cannot write to an <code class="docutils literal notranslate"><span class="pre">i+1</span></code> zone
 (e.g. when doing limiting) – this will cause a race condition.
 If necessary do extra computation to avoid the temporaries</li>
 </ul>
 </li>
-<li><p class="first">mark the routine with <code class="docutils literal notranslate"><span class="pre">!$gpu</span></code></p>
-<ul class="simple">
+<li>mark the routine with <code class="docutils literal notranslate"><span class="pre">!$gpu</span></code><ul>
 <li>If you get the error <code class="docutils literal notranslate"><span class="pre">nvlink</span> <span class="pre">error:</span> <span class="pre">Undefined</span> <span class="pre">reference</span> <span class="pre">to</span>
 <span class="pre">'foo_device'</span> <span class="pre">in</span> <span class="pre">'tmp_build_dir/o/3d.pgi.CUDA.EXE/bar.o'</span></code>, then
 you’ve probably forgotten to do this.</li>
 </ul>
 </li>
-<li><p class="first">If a module defines its own variables, these variables need to be
+<li>If a module defines its own variables, these variables need to be
 <code class="docutils literal notranslate"><span class="pre">allocatable</span></code> (even if they are scalars) and marked as
 <code class="docutils literal notranslate"><span class="pre">attributes(managed)</span></code>. Additional routines may be needed to
 allocate these variables before they’re used and deallocate them
-when they’re no longer needed.</p>
-<ul class="simple">
-<li>Examples of this can be seen for the sponge parameters. These are</li>
-</ul>
-<blockquote>
-<div><p>marked as <code class="docutils literal notranslate"><span class="pre">allocatable</span></code> and <code class="docutils literal notranslate"><span class="pre">attributes(managed)</span></code> in
+when they’re no longer needed.<ul>
+<li>Examples of this can be seen for the sponge parameters. These are
+marked as <code class="docutils literal notranslate"><span class="pre">allocatable</span></code> and <code class="docutils literal notranslate"><span class="pre">attributes(managed)</span></code> in
 <code class="docutils literal notranslate"><span class="pre">sponge_nd.F90</span></code>, and therefore must be allocated (by
 <code class="docutils literal notranslate"><span class="pre">ca_allocate_sponge_params</span></code>) and deallocated (by
 <code class="docutils literal notranslate"><span class="pre">ca_deallocate_sponge_params</span></code>) at the beginning and end of the
-main program.</p>
-</div></blockquote>
+main program.</li>
+</ul>
 </li>
-<li><p class="first">Temporary variables must be defined outside of function calls. E.g. if a
+<li>Temporary variables must be defined outside of function calls. E.g. if a
 function call contains <code class="docutils literal notranslate"><span class="pre">foo(x(a:b)/y)</span></code>, you need to define a new variable
-<code class="docutils literal notranslate"><span class="pre">z</span> <span class="pre">=</span> <span class="pre">x(a:b)/y</span></code> then pass this into the function as <code class="docutils literal notranslate"><span class="pre">foo(z)</span></code>.</p>
-<ul class="simple">
+<code class="docutils literal notranslate"><span class="pre">z</span> <span class="pre">=</span> <span class="pre">x(a:b)/y</span></code> then pass this into the function as <code class="docutils literal notranslate"><span class="pre">foo(z)</span></code>.<ul>
 <li>If you don’t do this, you may see the error <code class="docutils literal notranslate"><span class="pre">Array</span> <span class="pre">reshaping</span> <span class="pre">is</span>
 <span class="pre">not</span> <span class="pre">supported</span> <span class="pre">for</span> <span class="pre">device</span> <span class="pre">subprogram</span> <span class="pre">calls</span></code></li>
 </ul>
 </li>
-<li><p class="first">If importing a function from another module, make sure to put the
+<li>If importing a function from another module, make sure to put the
 import within the function/subroutine, and put <code class="docutils literal notranslate"><span class="pre">!</span> <span class="pre">function</span></code> at the
-end of the line, e.g.</p>
-</li>
+end of the line, e.g.</li>
 </ul>
 <div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">use </span><span class="n">my_module</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">my_func</span> <span class="c">! function</span>
 </pre></div>
