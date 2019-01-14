@@ -184,10 +184,14 @@ How to debug
 ------------
 
 - Run under ``cuda-memcheck``
+
 - Run under ``cuda-gdb``
+
 - Turn off GPU offloading for some part of the code with
 .. code-block:: c++
 
-    Device::endDeviceLaunchRegion();
+    Gpu::setLaunchRegion(0);
     ... ;
-    Device::beginDeviceLaunchRegion();
+    Gpu::setLaunchRegion(1);
+
+
