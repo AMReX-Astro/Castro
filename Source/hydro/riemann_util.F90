@@ -616,12 +616,12 @@ contains
 
   end subroutine compute_flux_q
 
-  pure subroutine store_godunov_state(lo, hi, &
-                                      qint, qi_lo, qi_hi, &
+  subroutine ca_store_godunov_state(lo, hi, &
+                                    qint, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                      lambda, l_lo, l_hi, &
+                                    lambda, l_lo, l_hi, &
 #endif
-                                      qgdnv, qg_lo, qg_hi)
+                                    qgdnv, qg_lo, qg_hi) bind(C, name="ca_store_godunov_state")
 
     use meth_params_module, only : NQ, NVAR, NQAUX, &
                                    URHO, UMX, UMY, UMZ, &
@@ -651,6 +651,8 @@ contains
 
     integer :: i, j, k
 
+    !$gpu
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -671,7 +673,7 @@ contains
        end do
     end do
 
-  end subroutine store_godunov_state
+  end subroutine ca_store_godunov_state
 
 
 

@@ -92,7 +92,7 @@ contains
     use multid_slope_module, only : multid_slope
 #endif
     use riemann_module, only: cmpflx
-    use riemann_util_module, only : store_godunov_state
+    use riemann_util_module, only : ca_store_godunov_state
 #ifdef RADIATION
     use rad_params_module, only : ngroups
     use trace_ppm_rad_module, only : trace_ppm_rad
@@ -689,12 +689,12 @@ contains
                 shk, glo, ghi, &
                 1, domlo, domhi)
 
-  call store_godunov_state(lo, hi+dg(:), &
-                           q_int, fglo, fghi, &
+  call ca_store_godunov_state(lo, hi+dg(:), &
+                              q_int, fglo, fghi, &
 #ifdef RADIATION
-                           lambda_int, fglo, fghi, &
+                              lambda_int, fglo, fghi, &
 #endif
-                           q1, q1_lo, q1_hi)
+                              q1, q1_lo, q1_hi)
 
 #endif
 
@@ -726,12 +726,12 @@ contains
                 shk, glo, ghi, &
                 1, domlo, domhi)
 
-    call store_godunov_state([lo(1), lo(2)-1, 0], [hi(1)+1, hi(2)+1, 0], &
-                             q_int, fglo, fghi, &
+    call ca_store_godunov_state([lo(1), lo(2)-1, 0], [hi(1)+1, hi(2)+1, 0], &
+                                q_int, fglo, fghi, &
 #ifdef RADIATION
-                             lambda_int, fglo, fghi, &
+                                lambda_int, fglo, fghi, &
 #endif
-                             qgdnvx, fglo, fghi)
+                                qgdnvx, fglo, fghi)
 
     fy     =>     ftmp2
 #ifdef RADIATION
@@ -755,12 +755,12 @@ contains
                 shk, glo, ghi, &
                 2, domlo, domhi)
 
-    call store_godunov_state([lo(1)-1, lo(2), 0], [hi(1)+1, hi(2)+1, 0], &
-                             q_int, fglo, fghi, &
+    call ca_store_godunov_state([lo(1)-1, lo(2), 0], [hi(1)+1, hi(2)+1, 0], &
+                                q_int, fglo, fghi, &
 #ifdef RADIATION
-                             lambda_int, fglo, fghi, &
+                                lambda_int, fglo, fghi, &
 #endif
-                             q2, q2_lo, q2_hi)
+                                q2, q2_lo, q2_hi)
 
     ! add the transverse flux difference in y to the x states
     ! Inputs: qxm, qxp                     : xface, +-1 at y
@@ -793,12 +793,12 @@ contains
                 shk, glo, ghi, &
                 1, domlo, domhi)
 
-    call store_godunov_state([lo(1), lo(2), 0], [hi(1)+1, hi(2), 0], &
-                             q_int, fglo, fghi, &
+    call ca_store_godunov_state([lo(1), lo(2), 0], [hi(1)+1, hi(2), 0], &
+                                q_int, fglo, fghi, &
 #ifdef RADIATION
-                             lambda_int, fglo, fghi, &
+                                lambda_int, fglo, fghi, &
 #endif
-                             q1, q1_lo, q1_hi)
+                                q1, q1_lo, q1_hi)
 
     ! add the transverse flux difference in x to the y states
     ! Inputs: qym, qyp                     : yface, +-1 at x
@@ -833,12 +833,12 @@ contains
                 shk, glo, ghi, &
                 2, domlo, domhi)
 
-    call store_godunov_state([lo(1), lo(2), 0], [hi(1), hi(2)+1, 0], &
-                             q_int, fglo, fghi, &
+    call ca_store_godunov_state([lo(1), lo(2), 0], [hi(1), hi(2)+1, 0], &
+                                q_int, fglo, fghi, &
 #ifdef RADIATION
-                             lambda_int, fglo, fghi, &
+                                lambda_int, fglo, fghi, &
 #endif
-                             q2, q2_lo, q2_hi)
+                                q2, q2_lo, q2_hi)
 
     nullify(fx, fy, qgdnvx)
 #ifdef RADIATION
@@ -877,12 +877,12 @@ contains
                 shk, glo, ghi, &
                 1, domlo, domhi)
 
-    call store_godunov_state([lo(1), lo(2)-dg(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
-                             q_int, fglo, fghi, &
+    call ca_store_godunov_state([lo(1), lo(2)-dg(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
+                                q_int, fglo, fghi, &
 #ifdef RADIATION
-                             lambda_int, fglo, fghi, &
+                                lambda_int, fglo, fghi, &
 #endif
-                             qgdnvx, fglo, fghi)
+                                qgdnvx, fglo, fghi)
 
     ! add the transverse flux difference in x to the y and z states
     ! Inputs: qym, qyp                     : yface, +-1 at x & z
@@ -930,12 +930,12 @@ contains
                 shk, glo, ghi, &
                 2, domlo, domhi)
 
-    call store_godunov_state([lo(1)-1, lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
-                             q_int, fglo, fghi, &
+    call ca_store_godunov_state([lo(1)-1, lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
+                                q_int, fglo, fghi, &
 #ifdef RADIATION
-                             lambda_int, fglo, fghi, &
+                                lambda_int, fglo, fghi, &
 #endif
-                             qgdnvy, fglo, fghi)
+                                qgdnvy, fglo, fghi)
 
     ! add the transverse flux difference in y to the x and z states
     ! Inputs: qxm, qxp                     : xface, +-1 at y & z
@@ -983,12 +983,12 @@ contains
                 shk, glo, ghi, &
                 3, domlo, domhi)
 
-    call store_godunov_state([lo(1)-1, lo(2)-dg(2), lo(3)], [ hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
-                             q_int, fglo, fghi, &
+    call ca_store_godunov_state([lo(1)-1, lo(2)-dg(2), lo(3)], [ hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
+                                q_int, fglo, fghi, &
 #ifdef RADIATION
-                             lambda_int, fglo, fghi, &
+                                lambda_int, fglo, fghi, &
 #endif
-                             qgdnvz, fglo, fghi)
+                                qgdnvz, fglo, fghi)
 
     ! add the transverse flux difference in z to the x and y states
     ! Inputs: qxm, qxp                     : xface, +-1 at y & z
@@ -1043,12 +1043,12 @@ contains
                 shk, glo, ghi, &
                 2, domlo, domhi)
 
-    call store_godunov_state([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
-                             q_int, fglo, fghi, &
+    call ca_store_godunov_state([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
+                                q_int, fglo, fghi, &
 #ifdef RADIATION
-                             lambda_int, fglo, fghi, &
+                                lambda_int, fglo, fghi, &
 #endif
-                             qgdnvyz, fglo, fghi)
+                                qgdnvyz, fglo, fghi)
 
     fzy      =>      ftmp2
 #ifdef RADIATION
@@ -1073,12 +1073,12 @@ contains
                 shk, glo, ghi, &
                 3, domlo, domhi)
 
-    call store_godunov_state([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+dg(3)], &
-                             q_int, fglo, fghi, &
+    call ca_store_godunov_state([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+dg(3)], &
+                                q_int, fglo, fghi, &
 #ifdef RADIATION
-                             lambda_int, fglo, fghi, &
+                                lambda_int, fglo, fghi, &
 #endif
-                             qgdnvzy, fglo, fghi)
+                                qgdnvzy, fglo, fghi)
 
     qxl => ql
     qxr => qr
@@ -1131,12 +1131,12 @@ contains
                 shk, glo, ghi, &
                 1, domlo, domhi)
 
-    call store_godunov_state(lo, [hi(1)+1, hi(2), hi(3)], &
-                             q_int, fglo, fghi, &
+    call ca_store_godunov_state(lo, [hi(1)+1, hi(2), hi(3)], &
+                                q_int, fglo, fghi, &
 #ifdef RADIATION
-                             lambda_int, fglo, fghi, &
+                                lambda_int, fglo, fghi, &
 #endif
-                             q1, q1_lo, q1_hi)
+                                q1, q1_lo, q1_hi)
 
     nullify(qgdnvx)
     nullify(qxl, qxr)
@@ -1168,12 +1168,12 @@ contains
                 shk, glo, ghi, &
                 3, domlo, domhi)
 
-    call store_godunov_state([lo(1), lo(2)-dg(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
-                             q_int, fglo, fghi, &
+    call ca_store_godunov_state([lo(1), lo(2)-dg(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
+                                q_int, fglo, fghi, &
 #ifdef RADIATION
-                             lambda_int, fglo, fghi, &
+                                lambda_int, fglo, fghi, &
 #endif
-                             qgdnvzx, fglo, fghi)
+                                qgdnvzx, fglo, fghi)
 
     fxz      =>      ftmp2
 #ifdef RADIATION
@@ -1198,12 +1198,12 @@ contains
                 shk, glo, ghi, &
                 1, domlo, domhi)
 
-    call store_godunov_state([lo(1), lo(2)-dg(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
-                             q_int, fglo, fghi, &
+    call ca_store_godunov_state([lo(1), lo(2)-dg(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
+                                q_int, fglo, fghi, &
 #ifdef RADIATION
-                             lambda_int, fglo, fghi, &
+                                lambda_int, fglo, fghi, &
 #endif
-                             qgdnvxz, fglo, fghi)
+                                qgdnvxz, fglo, fghi)
 
     qyl => ql
     qyr => qr
@@ -1257,12 +1257,12 @@ contains
                 shk, glo, ghi, &
                 2, domlo, domhi)
 
-    call store_godunov_state([lo(1), lo(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)], &
-                             q_int, fglo, fghi, &
+    call ca_store_godunov_state([lo(1), lo(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)], &
+                                q_int, fglo, fghi, &
 #ifdef RADIATION
-                             lambda_int, fglo, fghi, &
+                                lambda_int, fglo, fghi, &
 #endif
-                             q2, q2_lo, q2_hi)
+                                q2, q2_lo, q2_hi)
 
     nullify(qgdnvy)
     nullify(qyl,qyr)
@@ -1295,12 +1295,12 @@ contains
                 shk, glo, ghi, &
                 1, domlo, domhi)
 
-    call store_godunov_state([lo(1), lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2), hi(3)+dg(3)], &
-                             q_int, fglo, fghi, &
+    call ca_store_godunov_state([lo(1), lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2), hi(3)+dg(3)], &
+                                q_int, fglo, fghi, &
 #ifdef RADIATION
-                             lambda_int, fglo, fghi, &
+                                lambda_int, fglo, fghi, &
 #endif
-                             qgdnvxy, fglo, fghi)
+                                qgdnvxy, fglo, fghi)
 
 
     fyx      =>      ftmp2
@@ -1326,12 +1326,12 @@ contains
                 shk, glo, ghi, &
                 2, domlo, domhi)
 
-    call store_godunov_state([lo(1), lo(2), lo(3)-dg(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
-                             q_int, fglo, fghi, &
+    call ca_store_godunov_state([lo(1), lo(2), lo(3)-dg(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
+                                q_int, fglo, fghi, &
 #ifdef RADIATION
-                             lambda_int, fglo, fghi, &
+                                lambda_int, fglo, fghi, &
 #endif
-                             qgdnvyx, fglo, fghi)
+                                qgdnvyx, fglo, fghi)
 
     qzl => ql
     qzr => qr
@@ -1384,12 +1384,12 @@ contains
                 shk, glo, ghi, &
                 3, domlo, domhi)
 
-    call store_godunov_state([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+dg(3)], &
-                             q_int, fglo, fghi, &
+    call ca_store_godunov_state([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+dg(3)], &
+                                q_int, fglo, fghi, &
 #ifdef RADIATION
-                             lambda_int, fglo, fghi, &
+                                lambda_int, fglo, fghi, &
 #endif
-                             q3, q3_lo, q3_hi)
+                                q3, q3_lo, q3_hi)
 
     nullify(qgdnvz)
     nullify(qzl,qzr)

@@ -50,7 +50,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   use amrex_fort_module, only : rt => amrex_real
 #ifdef HYBRID_MOMENTUM
   use hybrid_advection_module, only : add_hybrid_advection_source
-  use riemann_util_module, only : store_godunov_state
+  use riemann_util_module, only : ca_store_godunov_state
 #endif
   use eos_type_module, only : eos_t, eos_input_rt
   use eos_module, only : eos
@@ -648,17 +648,17 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   call bl_allocate(qgdnvy, q_lo, q_hi, NGDNV)
   call bl_allocate(qgdnvz, q_lo, q_hi, NGDNV)
 
-  call store_godunov_state(lo, hi+dg, &
-                           qx_avg, q_lo, q_hi, &
-                           qgdnvx, q_lo, q_hi)
+  call ca_store_godunov_state(lo, hi+dg, &
+                              qx_avg, q_lo, q_hi, &
+                              qgdnvx, q_lo, q_hi)
 
-  call store_godunov_state(lo, hi+dg, &
-                           qy_avg, q_lo, q_hi, &
-                           qgdnvy, q_lo, q_hi)
+  call ca_store_godunov_state(lo, hi+dg, &
+                              qy_avg, q_lo, q_hi, &
+                              qgdnvy, q_lo, q_hi)
 
-  call store_godunov_state(lo, hi+dg, &
-                           qz_avg, q_lo, q_hi, &
-                           qgdnvz, q_lo, q_hi)
+  call ca_store_godunov_state(lo, hi+dg, &
+                              qz_avg, q_lo, q_hi, &
+                              qgdnvz, q_lo, q_hi)
 
   call add_hybrid_advection_source(lo, hi, dt, &
                                    update, uout_lo, uout_hi, &

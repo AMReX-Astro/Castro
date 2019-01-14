@@ -544,6 +544,14 @@ extern "C"
      BL_FORT_FAB_ARG_3D(shk),
      const amrex::Real* dx);
 
+  void ca_store_godunov_state
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(qint),
+#ifdef RADIATION
+     BL_FORT_FAB_ARG_3D(lambda_int),
+#endif
+     BL_FORT_FAB_ARG_3D(qgdnv));
+
   void ca_construct_flux_cuda
     (const int* lo, const int* hi,
      const int* domlo, const int* domhi,
