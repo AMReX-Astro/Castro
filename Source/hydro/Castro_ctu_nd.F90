@@ -102,7 +102,7 @@ contains
 #ifdef SHOCK_VAR
     use meth_params_module, only : USHK
 #endif
-    use advection_util_module, only : shock
+    use advection_util_module, only : ca_shock
     use prob_params_module, only : dg
 
     implicit none
@@ -309,10 +309,10 @@ contains
 #ifdef SHOCK_VAR
     uout(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),USHK) = ZERO
 
-    call shock(lo-dg, hi+dg, &
-               q, qd_lo, qd_hi, &
-               shk, glo, ghi, &
-               dx)
+    call ca_shock(lo-dg, hi+dg, &
+                  q, qd_lo, qd_hi, &
+                  shk, glo, ghi, &
+                  dx)
 
     ! Store the shock data for future use in the burning step.
 
@@ -333,10 +333,10 @@ contains
     ! multidimensional shock detection -- this will be used to do the
     ! hybrid Riemann solver
     if (hybrid_riemann == 1) then
-       call shock(lo-dg, hi+dg, &
-                  q, qd_lo, qd_hi, &
-                  shk, glo, ghi, &
-                  dx)
+       call ca_shock(lo-dg, hi+dg, &
+                     q, qd_lo, qd_hi, &
+                     shk, glo, ghi, &
+                     dx)
     else
        shk(:,:,:) = ZERO
     endif
