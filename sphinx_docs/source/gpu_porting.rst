@@ -194,4 +194,7 @@ How to debug
     ... ;
     Gpu::setLaunchRegion(1);
 
+- Run with ``CUDA_LAUNCH_BLOCKING=1``.  This means that only one
+  kernel will run at a time.  This can help identify if there are race
+  conditions.
 
