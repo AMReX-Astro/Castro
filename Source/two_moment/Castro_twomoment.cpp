@@ -45,7 +45,7 @@ Castro::init_thornado()
 
        ca_get_thornado_node_averages(&thornado_nplotvar);
 
-       char buf[10];
+       char buf[12];
 
        int n_each = thornado_nplotvar/4;
 
