@@ -363,6 +363,11 @@ variables, but before the main body of the function.</li>
 <span class="n">Gpu</span><span class="o">::</span><span class="n">setLaunchRegion</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
 </pre></div>
 </div>
+<ul class="simple">
+<li>Run with <code class="docutils literal notranslate"><span class="pre">CUDA_LAUNCH_BLOCKING=1</span></code>.  This means that only one
+kernel will run at a time.  This can help identify if there are race
+conditions.</li>
+</ul>
 </div>
 </div>
 
