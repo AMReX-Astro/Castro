@@ -1428,7 +1428,7 @@ contains
   !!
   subroutine divu(lo, hi, &
        q, q_lo, q_hi, &
-       dx, div, div_lo, div_hi) bind(c, name='divu')
+       dx, div, div_lo, div_hi) bind(C, name='divu')
 
     use meth_params_module, only : QU, QV, QW, NQ
     use amrex_constants_module, only : HALF, FOURTH, ONE, ZERO
