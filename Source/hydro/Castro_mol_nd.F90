@@ -285,7 +285,8 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   end if
 
   ! Compute F^x at kc (k3d)
-  call cmpflx(qm, qp, It_lo, It_hi, AMREX_SPACEDIM, 1, &
+  call cmpflx([lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], &
+              qm, qp, It_lo, It_hi, AMREX_SPACEDIM, 1, &
               flux1, flux1_lo, flux1_hi, &
               q_int, It_lo, It_hi, &
 #ifdef RADIATION
@@ -294,7 +295,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #endif
               qaux, qa_lo, qa_hi, &
               shk, shk_lo, shk_hi, &
-              1, [lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], domlo, domhi)
+              1, domlo, domhi)
 
   call store_godunov_state(lo, [hi(1)+1, hi(2), hi(3)], &
                            q_int, It_lo, It_hi, &
@@ -305,7 +306,8 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
 #if AMREX_SPACEDIM >= 2
   ! Compute F^y at kc (k3d)
-  call cmpflx(qm, qp, It_lo, It_hi, AMREX_SPACEDIM, 2, &
+  call cmpflx([lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], &
+              qm, qp, It_lo, It_hi, AMREX_SPACEDIM, 2, &
               flux2, flux2_lo, flux2_hi, &
               q_int, It_lo, It_hi, &  ! temporary
 #ifdef RADIATION
@@ -314,7 +316,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #endif
               qaux, qa_lo, qa_hi, &
               shk, shk_lo, shk_hi, &
-              2, [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], domlo, domhi)
+              2, domlo, domhi)
 
   call store_godunov_state(lo, [hi(1), hi(2)+1, hi(3)], &
                            q_int, It_lo, It_hi, &
@@ -328,7 +330,8 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #if AMREX_SPACEDIM == 3
   ! Compute F^z at kc (k3d)
 
-  call cmpflx(qm, qp, It_lo, It_hi, AMREX_SPACEDIM, 3, &
+  call cmpflx([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], &
+              qm, qp, It_lo, It_hi, AMREX_SPACEDIM, 3, &
               flux3, flux3_lo, flux3_hi, &
               q_int, It_lo, It_hi, &
 #ifdef RADIATION
@@ -337,7 +340,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #endif
               qaux, qa_lo, qa_hi, &
               shk, shk_lo, shk_hi, &
-              3, [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], domlo, domhi)
+              3, domlo, domhi)
 
   call store_godunov_state(lo, [hi(1), hi(2)+1, hi(3)], &
                            q_int, It_lo, It_hi, &
