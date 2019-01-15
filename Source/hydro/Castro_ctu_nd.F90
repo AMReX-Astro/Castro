@@ -206,6 +206,7 @@ contains
     real(rt), pointer :: lambda_int(:,:,:,:)
 #endif
 
+
     ! Left and right state arrays (edge centered, cell centered)
     double precision, dimension(:,:,:,:), pointer :: &
          qxm, qym, qzm, qxp, qyp, qzp, ql, qr, &
@@ -441,67 +442,73 @@ contains
        ! compute the interface states
 
 #ifdef RADIATION
-       call trace_ppm_rad(1, q, qd_lo, qd_hi, &
-            qaux, qa_lo, qa_hi, &
-            Ip, Im, Ip_src, Im_src, glo, ghi, &
-            qxm, qxp, fglo, fghi, &
+       call trace_ppm_rad(lo-dg, hi+dg, &
+                          1, q, qd_lo, qd_hi, &
+                          qaux, qa_lo, qa_hi, &
+                          Ip, Im, Ip_src, Im_src, glo, ghi, &
+                          qxm, qxp, fglo, fghi, &
 #if AMREX_SPACEDIM <= 2
-            dloga, dloga_lo, dloga_hi, &
+                          dloga, dloga_lo, dloga_hi, &
 #endif
-            lo, hi, domlo, domhi, &
-            dx, dt)
+                          lo, hi, domlo, domhi, &
+                          dx, dt)
 
 #if AMREX_SPACEDIM >= 2
-       call trace_ppm_rad(2, q, qd_lo, qd_hi, &
-            qaux, qa_lo, qa_hi, &
-            Ip, Im, Ip_src, Im_src, glo, ghi, &
-            qym, qyp, fglo, fghi, &
+       call trace_ppm_rad(lo-dg, hi+dg, &
+                          2, q, qd_lo, qd_hi, &
+                          qaux, qa_lo, qa_hi, &
+                          Ip, Im, Ip_src, Im_src, glo, ghi, &
+                          qym, qyp, fglo, fghi, &
 #if AMREX_SPACEDIM == 2
-            dloga, dloga_lo, dloga_hi, &
+                          dloga, dloga_lo, dloga_hi, &
 #endif
-            lo, hi, domlo, domhi, &
-            dx, dt)
+                          lo, hi, domlo, domhi, &
+                          dx, dt)
 #endif
 
 #if AMREX_SPACEDIM == 3
-       call trace_ppm_rad(3, q, qd_lo, qd_hi, &
-            qaux, qa_lo, qa_hi, &
-            Ip, Im, Ip_src, Im_src, glo, ghi, &
-            qzm, qzp, fglo, fghi, &
-            lo, hi, domlo, domhi, &
-            dx, dt)
+       call trace_ppm_rad(lo-dg, hi+dg, &
+                          3, q, qd_lo, qd_hi, &
+                          qaux, qa_lo, qa_hi, &
+                          Ip, Im, Ip_src, Im_src, glo, ghi, &
+                          qzm, qzp, fglo, fghi, &
+                          lo, hi, domlo, domhi, &
+                          dx, dt)
 #endif
 
 #else
-       call trace_ppm(1, q, qd_lo, qd_hi, &
-            qaux, qa_lo, qa_hi, &
-            Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
-            qxm, qxp, fglo, fghi, &
+       call trace_ppm(lo-dg, hi+dg, &
+                      1, q, qd_lo, qd_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
+                      qxm, qxp, fglo, fghi, &
 #if AMREX_SPACEDIM <= 2
-            dloga, dloga_lo, dloga_hi, &
+                      dloga, dloga_lo, dloga_hi, &
 #endif
-            lo, hi, domlo, domhi, &
-            dx, dt)
+                      lo, hi, domlo, domhi, &
+                      dx, dt)
 
 #if AMREX_SPACEDIM >= 2
-       call trace_ppm(2, q, qd_lo, qd_hi, &
-            qaux, qa_lo, qa_hi, &
-            Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
-            qym, qyp, fglo, fghi, &
+       call trace_ppm(lo-dg, hi+dg, &
+                      2, q, qd_lo, qd_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
+                      qym, qyp, fglo, fghi, &
 #if AMREX_SPACEDIM == 2
-            dloga, dloga_lo, dloga_hi, &
+                      dloga, dloga_lo, dloga_hi, &
 #endif
-            lo, hi, domlo, domhi, &
-            dx, dt)
+                      lo, hi, domlo, domhi, &
+                      dx, dt)
 #endif
 
 #if AMREX_SPACEDIM == 3
-       call trace_ppm(3, q, qd_lo, qd_hi, &
-            qaux, qa_lo, qa_hi, &
-            Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
-            qzm, qzp, fglo, fghi, &
-            lo, hi, domlo, domhi, &
-            dx, dt)
+       call trace_ppm(lo-dg, hi+dg, &
+                      3, q, qd_lo, qd_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
+                      qzm, qzp, fglo, fghi, &
+                      lo, hi, domlo, domhi, &
+                      dx, dt)
 #endif
 
 #endif
@@ -566,36 +573,39 @@ contains
 
        ! compute the interface states
 
-       call trace_plm(1, q, qd_lo, qd_hi, &
-            qaux, qa_lo, qa_hi, &
-            dqx, glo, ghi, &
-            qxm, qxp, fglo, fghi, &
+       call trace_plm(lo-dg, hi+dg, &
+                      1, q, qd_lo, qd_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      dqx, glo, ghi, &
+                      qxm, qxp, fglo, fghi, &
 #if (AMREX_SPACEDIM < 3)
-            dloga, dloga_lo, dloga_hi, &
+                      dloga, dloga_lo, dloga_hi, &
 #endif
-            SrcQ, src_lo, Src_hi, &
-            lo, hi, domlo, domhi, &
-            dx, dt)
+                      SrcQ, src_lo, Src_hi, &
+                      lo, hi, domlo, domhi, &
+                      dx, dt)
 
-       call trace_plm(2, q, qd_lo, qd_hi, &
-            qaux, qa_lo, qa_hi, &
-            dqy, glo, ghi, &
-            qym, qyp, fglo, fghi, &
+       call trace_plm(lo-dg, hi+dg, &
+                      2, q, qd_lo, qd_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      dqy, glo, ghi, &
+                      qym, qyp, fglo, fghi, &
 #if (AMREX_SPACEDIM < 3)
-            dloga, dloga_lo, dloga_hi, &
+                      dloga, dloga_lo, dloga_hi, &
 #endif
-            SrcQ, src_lo, Src_hi, &
-            lo, hi, domlo, domhi, &
-            dx, dt)
+                      SrcQ, src_lo, Src_hi, &
+                      lo, hi, domlo, domhi, &
+                      dx, dt)
 
 #if AMREX_SPACEDIM == 3
-       call trace_plm(3, q, qd_lo, qd_hi, &
-            qaux, qa_lo, qa_hi, &
-            dqz, glo, ghi, &
-            qzm, qzp, fglo, fghi, &
-            SrcQ, src_lo, Src_hi, &
-            lo, hi, domlo, domhi, &
-            dx, dt)
+       call trace_plm(lo-dg, hi+dg, &
+                      3, q, qd_lo, qd_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      dqz, glo, ghi, &
+                      qzm, qzp, fglo, fghi, &
+                      SrcQ, src_lo, Src_hi, &
+                      lo, hi, domlo, domhi, &
+                      dx, dt)
 #endif
 
     end if  ! ppm test
@@ -1469,58 +1479,59 @@ contains
 
 
   subroutine consup(uin, uin_lo, uin_hi, &
-       q, q_lo, q_hi, &
-       uout, uout_lo, uout_hi, &
-       update, updt_lo, updt_hi, &
-       flux1, flux1_lo, flux1_hi, &
+                    q, q_lo, q_hi, &
+                    uout, uout_lo, uout_hi, &
+                    update, updt_lo, updt_hi, &
+                    flux1, flux1_lo, flux1_hi, &
 #if AMREX_SPACEDIM >= 2
-       flux2, flux2_lo, flux2_hi, &
+                    flux2, flux2_lo, flux2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-       flux3, flux3_lo, flux3_hi, &
+                    flux3, flux3_lo, flux3_hi, &
 #endif
 #ifdef RADIATION
-       Erin, Erin_lo, Erin_hi, &
-       Erout, Erout_lo, Erout_hi, &
-       radflux1, radflux1_lo, radflux1_hi, &
+                    Erin, Erin_lo, Erin_hi, &
+                    Erout, Erout_lo, Erout_hi, &
+                    radflux1, radflux1_lo, radflux1_hi, &
 #if AMREX_SPACEDIM >= 2
-       radflux2, radflux2_lo, radflux2_hi, &
+                    radflux2, radflux2_lo, radflux2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-       radflux3, radflux3_lo, radflux3_hi, &
+                    radflux3, radflux3_lo, radflux3_hi, &
 #endif
-       nstep_fsp, &
+                    nstep_fsp, &
 #endif
-       qx, qx_lo, qx_hi, &
+                    qx, qx_lo, qx_hi, &
 #if AMREX_SPACEDIM >= 2
-       qy, qy_lo, qy_hi, &
+                    qy, qy_lo, qy_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-       qz, qz_lo, qz_hi, &
+                    qz, qz_lo, qz_hi, &
 #endif
-       area1, area1_lo, area1_hi, &
+                    area1, area1_lo, area1_hi, &
 #if AMREX_SPACEDIM >= 2
-       area2, area2_lo, area2_hi, &
+                    area2, area2_lo, area2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-       area3, area3_lo, area3_hi, &
+                    area3, area3_lo, area3_hi, &
 #endif
-       vol,vol_lo,vol_hi, &
-       div, lo, hi, dx, dt, &
-       mass_lost, xmom_lost, ymom_lost, zmom_lost, &
-       eden_lost, xang_lost, yang_lost, zang_lost, &
-       verbose)
+                    vol,vol_lo,vol_hi, &
+                    div, div_lo, div_hi, &
+                    lo, hi, dx, dt, &
+                    mass_lost, xmom_lost, ymom_lost, zmom_lost, &
+                    eden_lost, xang_lost, yang_lost, zang_lost, &
+                    verbose)
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-         UEDEN, UEINT, UTEMP, NGDNV, NQ, &
-         GDPRES, &
+                                   UEDEN, UEINT, UTEMP, NGDNV, NQ, &
+                                   GDPRES, &
 #ifdef RADIATION
-         fspace_type, comoving, &
-         GDU, GDV, GDW, GDLAMS, GDERADS, &
+                                   fspace_type, comoving, &
+                                   GDU, GDV, GDW, GDLAMS, GDERADS, &
 #endif
-         track_grid_losses, limit_fluxes_on_small_dens
-    use advection_util_module, only : limit_hydro_fluxes_on_small_dens, normalize_species_fluxes, calc_pdivu
+                                   track_grid_losses, limit_fluxes_on_small_dens
+    use advection_util_module, only : limit_hydro_fluxes_on_small_dens, normalize_species_fluxes, calc_pdivu, apply_av
     use castro_util_module, only : position, linear_to_angular_momentum
     use prob_params_module, only : mom_flux_has_p, domlo_level, domhi_level, center, dg, coord_type
     use amrinfo_module, only : amr_level
@@ -1528,6 +1539,7 @@ contains
     use rad_params_module, only : ngroups, nugroup, dlognu
     use radhydro_nd_module, only : advect_in_fspace
     use fluxlimiter_module, only : Edd_factor
+    use advection_util_module, only : apply_av_rad
 #endif
 #ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only : add_hybrid_advection_source
@@ -1556,7 +1568,7 @@ contains
 #endif
     integer, intent(in) ::    qx_lo(3),    qx_hi(3)
     integer, intent(in) ::   vol_lo(3),   vol_hi(3)
-
+    integer, intent(in) ::   div_lo(3),   div_hi(3)
 #ifdef RADIATION
     integer, intent(in) :: Erout_lo(3), Erout_hi(3)
     integer, intent(in) :: Erin_lo(3), Erin_hi(3)
@@ -1571,7 +1583,6 @@ contains
 #endif
 
     integer, intent(in) :: verbose
-
 
     real(rt)        , intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
     real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
@@ -1595,7 +1606,7 @@ contains
 #endif
 
     real(rt)        , intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    real(rt)        , intent(in) :: div(lo(1):hi(1)+1,lo(2):hi(2)+1,lo(3):hi(3)+1)
+    real(rt)        , intent(in) :: div(div_lo(1):div_hi(1),div_lo(2):div_hi(2),div_lo(3):div_hi(3))
     real(rt)        , intent(in) :: dx(3), dt
 
 #ifdef RADIATION
@@ -1660,121 +1671,64 @@ contains
          vol, vol_lo, vol_hi, &
          dx, pdivu, lo, hi)
 
-    do n = 1, NVAR
+    ! zero out shock and temp fluxes -- these are physically meaningless here
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
-       if ( n == UTEMP ) then
-
-          flux1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
-#if AMREX_SPACEDIM >= 2
-          flux2(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
-#endif
-#if AMREX_SPACEDIM == 3
-          flux3(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
-#endif
-
-#ifdef SHOCK_VAR
-       else if ( n == USHK ) then
-
-          flux1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
-#if AMREX_SPACEDIM >= 2
-          flux2(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
-#endif
-#if AMREX_SPACEDIM == 3
-          flux3(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
-#endif
-#endif
-
-       else
-
-          do k = lo(3),hi(3)
-             do j = lo(2),hi(2)
-                do i = lo(1),hi(1)+1
-                   div1 = FOURTH*(div(i,j,k) + div(i,j+dg(2),k) + &
-                        div(i,j,k+dg(3)) + div(i,j+dg(2),k+dg(3)))
-                   div1 = difmag*min(ZERO, div1)
-
-                   flux1(i,j,k,n) = flux1(i,j,k,n) + dx(1) * div1 * (uin(i,j,k,n)-uin(i-1,j,k,n))
-                enddo
-             enddo
-          enddo
+             flux1(i,j,k,UTEMP) = ZERO
+             flux1(i,j,k,USHK) = ZERO
 
 #if AMREX_SPACEDIM >= 2
-          do k = lo(3),hi(3)
-             do j = lo(2),hi(2)+1
-                do i = lo(1),hi(1)
-                   div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + &
-                        div(i,j,k+dg(3)) + div(i+1,j,k+dg(3)))
-                   div1 = difmag*min(ZERO, div1)
-
-                   flux2(i,j,k,n) = flux2(i,j,k,n) + dx(2) * div1 * (uin(i,j,k,n)-uin(i,j-1,k,n))
-                enddo
-             enddo
-          enddo
+             flux2(i,j,k,UTEMP) = ZERO
+             flux2(i,j,k,USHK) = ZERO
 #endif
 
 #if AMREX_SPACEDIM == 3
-          do k = lo(3),hi(3)+1
-             do j = lo(2),hi(2)
-                do i = lo(1),hi(1)
-                   div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + &
-                        div(i,j+1,k) + div(i+1,j+1,k))
-                   div1 = difmag*min(ZERO, div1)
-
-                   flux3(i,j,k,n) = flux3(i,j,k,n) + dx(3) * div1 * (uin(i,j,k,n)-uin(i,j,k-1,n))
-                enddo
-             enddo
-          enddo
+             flux3(i,j,k,UTEMP) = ZERO
+             flux3(i,j,k,USHK) = ZERO
 #endif
 
-       endif
+          end do
+       end do
+    end do
 
-    enddo
+    call apply_av(lo, [hi(1)+1, hi(2), hi(3)], 1, dx, &
+                  div, div_lo, div_hi, &
+                  uin, uin_lo, uin_hi, &
+                  flux1, flux1_lo, flux1_hi)
+
+#if AMREX_SPACEDIM >= 2
+    call apply_av(lo, [hi(1), hi(2)+1, hi(3)], 2, dx, &
+                  div, div_lo, div_hi, &
+                  uin, uin_lo, uin_hi, &
+                  flux2, flux2_lo, flux2_hi)
+#endif
+#if AMREX_SPACEDIM == 3
+    call apply_av(lo, [hi(1), hi(2), hi(3)+1], 3, dx, &
+                  div, div_lo, div_hi, &
+                  uin, uin_lo, uin_hi, &
+                  flux3, flux3_lo, flux3_hi)
+#endif
 
 #ifdef RADIATION
-    do g=0,ngroups-1
-       do k = lo(3),hi(3)
-          do j = lo(2),hi(2)
-             do i = lo(1),hi(1)+1
-                div1 = FOURTH*(div(i,j,k) + div(i,j+dg(2),k) + &
-                     div(i,j,k+dg(3)) + div(i,j+dg(2),k+dg(3)))
-                div1 = difmag*min(ZERO, div1)
-
-                radflux1(i,j,k,g) = radflux1(i,j,k,g) + dx(1)*div1*(Erin(i,j,k,g)-Erin(i-1,j,k,g))
-             enddo
-          enddo
-       enddo
-    enddo
+   call apply_av_rad(lo, [hi(1)+1, hi(2), hi(3)], 1, dx, &
+                      div, lo, hi+dg, &
+                      Erin, Erin_lo, Erin_hi, &
+                      radflux1, radflux1_lo, radflux1_hi)
 
 #if AMREX_SPACEDIM >= 2
-    do g=0,ngroups-1
-       do k = lo(3),hi(3)
-          do j = lo(2),hi(2)+1
-             do i = lo(1),hi(1)
-                div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + &
-                     div(i,j,k+dg(3)) + div(i+1,j,k+dg(3)))
-                div1 = difmag*min(ZERO, div1)
-
-                radflux2(i,j,k,g) = radflux2(i,j,k,g) + dx(2)*div1*(Erin(i,j,k,g)-Erin(i,j-1,k,g))
-             enddo
-          enddo
-       enddo
-    enddo
+    call apply_av_rad(lo, [hi(1), hi(2)+1, hi(3)], 2, dx, &
+                      div, lo, hi+dg, &
+                      Erin, Erin_lo, Erin_hi, &
+                      radflux2, radflux2_lo, radflux2_hi)
 #endif
 
 #if AMREX_SPACEDIM == 3
-    do g=0,ngroups-1
-       do k = lo(3),hi(3)+1
-          do j = lo(2),hi(2)
-             do i = lo(1),hi(1)
-                div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + &
-                     div(i,j+1,k) + div(i+1,j+1,k))
-                div1 = difmag*min(ZERO, div1)
-
-                radflux3(i,j,k,g) = radflux3(i,j,k,g) + dx(3)*div1*(Erin(i,j,k,g)-Erin(i,j,k-1,g))
-             enddo
-          enddo
-       enddo
-    enddo
+    call apply_av_rad(lo, [hi(1), hi(2), hi(3)+1], 3, dx, &
+                      div, lo, hi+dg, &
+                      Erin, Erin_lo, Erin_hi, &
+                      radflux3, radflux3_lo, radflux3_hi)
 #endif
 #endif
 
@@ -2622,47 +2576,48 @@ contains
 
     ! Conservative update
     call consup(uin, uin_lo, uin_hi, &
-         q, q_lo, q_hi, &
-         uout, uout_lo, uout_hi, &
-         update, updt_lo, updt_hi, &
-         flux1, flux1_lo, flux1_hi, &
+                q, q_lo, q_hi, &
+                uout, uout_lo, uout_hi, &
+                update, updt_lo, updt_hi, &
+                flux1, flux1_lo, flux1_hi, &
 #if AMREX_SPACEDIM >= 2
-         flux2, flux2_lo, flux2_hi, &
+                flux2, flux2_lo, flux2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-         flux3, flux3_lo, flux3_hi, &
+                flux3, flux3_lo, flux3_hi, &
 #endif
 #ifdef RADIATION
-         Erin, Erin_lo, Erin_hi, &
-         Erout, Erout_lo, Erout_hi, &
-         radflux1, radflux1_lo, radflux1_hi, &
+                Erin, Erin_lo, Erin_hi, &
+                Erout, Erout_lo, Erout_hi, &
+                radflux1, radflux1_lo, radflux1_hi, &
 #if AMREX_SPACEDIM >= 2
-         radflux2, radflux2_lo, radflux2_hi, &
+                radflux2, radflux2_lo, radflux2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-         radflux3, radflux3_lo, radflux3_hi, &
+                radflux3, radflux3_lo, radflux3_hi, &
 #endif
-         nstep_fsp, &
+                nstep_fsp, &
 #endif
-         q1, q1_lo, q1_hi, &
+                q1, q1_lo, q1_hi, &
 #if AMREX_SPACEDIM >= 2
-         q2, q2_lo, q2_hi, &
+                q2, q2_lo, q2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-         q3, q3_lo, q3_hi, &
+                q3, q3_lo, q3_hi, &
 #endif
-         area1, area1_lo, area1_hi, &
+                area1, area1_lo, area1_hi, &
 #if AMREX_SPACEDIM >= 2
-         area2, area2_lo, area2_hi, &
+                area2, area2_lo, area2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-         area3, area3_lo, area3_hi, &
+                area3, area3_lo, area3_hi, &
 #endif
-         vol, vol_lo, vol_hi, &
-         div, lo, hi, delta, dt, &
-         mass_lost,xmom_lost,ymom_lost,zmom_lost, &
-         eden_lost,xang_lost,yang_lost,zang_lost, &
-         verbose)
+                vol, vol_lo, vol_hi, &
+                div, lo, hi+dg, &
+                lo, hi, delta, dt, &
+                mass_lost,xmom_lost,ymom_lost,zmom_lost, &
+                eden_lost,xang_lost,yang_lost,zang_lost, &
+                verbose)
 
 
 #if AMREX_SPACEDIM == 1
