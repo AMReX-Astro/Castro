@@ -6,8 +6,11 @@ module advection_util_module
   private
 
   public ca_enforce_minimum_density, ca_compute_cfl, ca_ctoprim, ca_srctoprim, dflux, &
-       limit_hydro_fluxes_on_small_dens, ca_shock, divu, calc_pdivu, normalize_species_fluxes, &
-       scale_flux, apply_av, ca_construct_hydro_update_cuda
+         limit_hydro_fluxes_on_small_dens, ca_shock, divu, calc_pdivu, normalize_species_fluxes, &
+         scale_flux, apply_av, ca_construct_hydro_update_cuda
+#ifdef RADIATION
+  public apply_av_rad
+#endif
 
 contains
 
@@ -1704,7 +1707,7 @@ contains
        flux, f_lo, f_hi) bind(c, name="apply_av")
 
     use amrex_constants_module, only: ZERO, FOURTH
-    use meth_params_module, only: NVAR, UTEMP, USHK
+    use meth_params_module, only: NVAR, UTEMP, USHK, difmag
     use prob_params_module, only: dg
 
     implicit none
@@ -1723,8 +1726,6 @@ contains
     integer :: i, j, k, n
 
     real(rt) :: div1
-
-    real(rt), parameter :: difmag = 0.1d0
 
     !$gpu
 
@@ -1758,7 +1759,7 @@ contains
                    div1 = FOURTH * (div(i,j        ,k) + div(i+1*dg(1),j        ,k) + &
                         div(i,j+1*dg(2),k) + div(i+1*dg(1),j+1*dg(2),k))
                    div1 = difmag * min(ZERO, div1)
-                   div1 = div1 * (uin(i,j,k,n)-uin(i,j,k-1*dg(3),n))
+                   div1 = div1 * (uin(i,j,k,n) - uin(i,j,k-1*dg(3),n))
 
                 end if
 
@@ -1772,6 +1773,74 @@ contains
 
   end subroutine apply_av
 
+#ifdef RADIATION
+  subroutine apply_av_rad(lo, hi, idir, dx, &
+                          div, div_lo, div_hi, &
+                          Erin, Ein_lo, Ein_hi, &
+                          radflux, rf_lo, rf_hi) bind(c, name="apply_av_rad")
+
+    use amrex_constants_module, only: ZERO, FOURTH
+    use meth_params_module, only: NVAR, UTEMP, USHK, difmag
+    use prob_params_module, only: dg
+    use rad_params_module, only : ngroups
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: div_lo(3), div_hi(3)
+    integer,  intent(in   ) :: Ein_lo(3), Ein_hi(3)
+    integer,  intent(in   ) :: rf_lo(3), rf_hi(3)
+    real(rt), intent(in   ) :: dx(3)
+    integer,  intent(in   ), value :: idir
+
+    real(rt), intent(in   ) :: div(div_lo(1):div_hi(1),div_lo(2):div_hi(2),div_lo(3):div_hi(3))
+    real(rt), intent(in   ) :: Erin(Ein_lo(1):Ein_hi(1),Ein_lo(2):Ein_hi(2),Ein_lo(3):Ein_hi(3),0:ngroups-1)
+    real(rt), intent(inout) :: radflux(rf_lo(1):rf_hi(1),rf_lo(2):rf_hi(2),rf_lo(3):rf_hi(3),0:ngroups-1)
+
+    integer :: i, j, k, n
+
+    real(rt) :: div1
+
+    !$gpu
+
+    do n = 0, ngroups-1
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                if (idir .eq. 1) then
+
+                   div1 = FOURTH * (div(i,j,k        ) + div(i,j+1*dg(2),k        ) + &
+                                    div(i,j,k+1*dg(3)) + div(i,j+1*dg(2),k+1*dg(3)))
+                   div1 = difmag * min(ZERO, div1)
+                   div1 = div1 * (Erin(i,j,k,n) - Erin(i-1*dg(1),j,k,n))
+
+                else if (idir .eq. 2) then
+
+                   div1 = FOURTH * (div(i,j,k        ) + div(i+1*dg(1),j,k        ) + &
+                                    div(i,j,k+1*dg(3)) + div(i+1*dg(1),j,k+1*dg(3)))
+                   div1 = difmag * min(ZERO, div1)
+                   div1 = div1 * (Erin(i,j,k,n) - Erin(i,j-1*dg(2),k,n))
+
+                else
+
+                   div1 = FOURTH * (div(i,j        ,k) + div(i+1*dg(1),j        ,k) + &
+                                    div(i,j+1*dg(2),k) + div(i+1*dg(1),j+1*dg(2),k))
+                   div1 = difmag * min(ZERO, div1)
+                   div1 = div1 * (Erin(i,j,k,n) - Erin(i,j,k-1*dg(3),n))
+
+                end if
+
+                radflux(i,j,k,n) = radflux(i,j,k,n) + dx(idir) * div1
+
+             end do
+          end do
+       end do
+
+    end do
+
+  end subroutine apply_av_rad
+#endif
 
 
   subroutine ca_construct_hydro_update_cuda(lo, hi, dx, dt, &
