@@ -1677,16 +1677,22 @@ contains
           do i = lo(1), hi(1)
 
              flux1(i,j,k,UTEMP) = ZERO
+#ifdef SHOCK_VAR
              flux1(i,j,k,USHK) = ZERO
+#endif
 
 #if AMREX_SPACEDIM >= 2
              flux2(i,j,k,UTEMP) = ZERO
+#ifdef SHOCK_VAR
              flux2(i,j,k,USHK) = ZERO
+#endif
 #endif
 
 #if AMREX_SPACEDIM == 3
              flux3(i,j,k,UTEMP) = ZERO
+#ifdef SHOCK_VAR
              flux3(i,j,k,USHK) = ZERO
+#endif
 #endif
 
           end do
