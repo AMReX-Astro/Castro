@@ -1671,6 +1671,27 @@ contains
          vol, vol_lo, vol_hi, &
          dx, pdivu, lo, hi)
 
+    ! zero out shock and temp fluxes -- these are physically meaningless here
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             flux1(i,j,k,UTEMP) = ZERO
+             flux1(i,j,k,USHK) = ZERO
+
+#if AMREX_SPACEDIM >= 2
+             flux2(i,j,k,UTEMP) = ZERO
+             flux2(i,j,k,USHK) = ZERO
+#endif
+
+#if AMREX_SPACEDIM == 3
+             flux3(i,j,k,UTEMP) = ZERO
+             flux3(i,j,k,USHK) = ZERO
+#endif
+
+          end do
+       end do
+    end do
 
     call apply_av(lo, [hi(1)+1, hi(2), hi(3)], 1, dx, &
                   div, div_lo, div_hi, &
