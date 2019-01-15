@@ -554,7 +554,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 end subroutine ca_mol_single_stage
 
 
-
+#ifndef RADIATION
 module mol_module_cuda
 
   use amrex_fort_module, only: rt => amrex_real
@@ -626,3 +626,4 @@ contains
   end subroutine ca_construct_flux_cuda
 
 end module mol_module_cuda
+#endif

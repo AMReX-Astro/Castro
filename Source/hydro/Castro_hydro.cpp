@@ -446,8 +446,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
   }  // end of omp parallel region
 
 #else
-
   // CUDA version
+
+#ifndef RADIATION
 
   MultiFab flatn;
   flatn.define(grids, dmap, 1, 1);
@@ -591,7 +592,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
   } // MFIter loop
 
-#endif
+#endif // RADIATION
+
+#endif // CUDA check
 
   BL_PROFILE_VAR_STOP(CA_UMDRV);
 
