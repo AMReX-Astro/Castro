@@ -571,28 +571,16 @@ contains
                 end do
              end if
 #endif
-          end do
-       end do
-    end do
 
-    ! passively advected quantities
-    do ipassive = 1, npassive
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
+             ! passively advected quantities
+             do ipassive = 1, npassive
                 n  = upass_map(ipassive)
                 nqp = qpass_map(ipassive)
 
                 F(i,j,k,n) = F(i,j,k,URHO)*qint(i,j,k,nqp)
              end do
-          end do
-       end do
-    end do
 
 #ifdef HYBRID_MOMENTUM
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
 
              ! the hybrid routine uses the Godunov indices, not the full NQ state
              qgdnv_zone(GDRHO) = qint(i,j,k,QRHO)
@@ -609,10 +597,10 @@ contains
              F_zone(:) = F(i,j,k,:)
              call compute_hybrid_flux(qgdnv_zone, F_zone, idir, [i, j, k])
              F(i,j,k,:) = F_zone(:)
+#endif
           end do
        end do
     end do
-#endif
 
   end subroutine compute_flux_q
 

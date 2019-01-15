@@ -1147,7 +1147,7 @@ contains
 
     real(rt) :: u_adv
 
-    integer :: iu, iv1, iv2, im1, im2, im3, sx, sy, sz
+    integer :: iu, iv1, iv2, im1, im2, im3
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
     real(rt) :: bnd_fac_x, bnd_fac_y, bnd_fac_z
     real(rt) :: wwinv, roinv, co2inv
@@ -1167,9 +1167,6 @@ contains
        im1 = UMX
        im2 = UMY
        im3 = UMZ
-       sx = 1
-       sy = 0
-       sz = 0
     else if (idir == 2) then
        iu = QV
        iv1 = QU
@@ -1177,9 +1174,6 @@ contains
        im1 = UMY
        im2 = UMX
        im3 = UMZ
-       sx = 0
-       sy = 1
-       sz = 0
     else
        iu = QW
        iv1 = QU
@@ -1187,9 +1181,6 @@ contains
        im1 = UMZ
        im2 = UMX
        im3 = UMY
-       sx = 0
-       sy = 0
-       sz = 1
     end if
 
     special_bnd_lo = (physbc_lo(idir) == Symmetry &
@@ -1235,8 +1226,16 @@ contains
              ! ------------------------------------------------------------------
 
 #ifdef RADIATION
-             laml(:) = qaux(i-sx,j-sy,k-sz,QLAMS:QLAMS+ngroups-1)
-             lamr(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
+             if (idir == 1) then
+                laml(:) = qaux(i-1,j,k,QLAMS:QLAMS+ngroups-1)
+                lamr(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
+             else if (idir == 2) then
+                laml(:) = qaux(i,j-1,k,QLAMS:QLAMS+ngroups-1)
+                lamr(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
+             else
+                laml(:) = qaux(i,j,k-1,QLAMS:QLAMS+ngroups-1)
+                lamr(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
+             end if
 #endif
 
              rl = max(ql(i,j,k,QRHO,comp), small_dens)
@@ -1279,14 +1278,34 @@ contains
              ! estimate the star state: pstar, ustar
              ! ------------------------------------------------------------------
 
-             csmall = max( small, max( small * qaux(i,j,k,QC) , small * qaux(i-sx,j-sy,k-sz,QC))  )
-             cavg = HALF*(qaux(i,j,k,QC) + qaux(i-sx,j-sy,k-sz,QC))
-             gamcl = qaux(i-sx,j-sy,k-sz,QGAMC)
-             gamcr = qaux(i,j,k,QGAMC)
+             if (idir == 1) then
+                csmall = max( small, max( small * qaux(i,j,k,QC) , small * qaux(i-1,j,k,QC))  )
+                cavg = HALF*(qaux(i,j,k,QC) + qaux(i-1,j,k,QC))
+                gamcl = qaux(i-1,j,k,QGAMC)
+                gamcr = qaux(i,j,k,QGAMC)
 #ifdef RADIATION
-             gamcgl = qaux(i-sx,j-sy,k-sz,QGAMCG)
-             gamcgr = qaux(i,j,k,QGAMCG)
+                gamcgl = qaux(i-1,j,k,QGAMCG)
+                gamcgr = qaux(i,j,k,QGAMCG)
 #endif
+             else if (idir == 2) then
+                csmall = max( small, max( small * qaux(i,j,k,QC) , small * qaux(i,j-1,k,QC))  )
+                cavg = HALF*(qaux(i,j,k,QC) + qaux(i,j-1,k,QC))
+                gamcl = qaux(i,j-1,k,QGAMC)
+                gamcr = qaux(i,j,k,QGAMC)
+#ifdef RADIATION
+                gamcgl = qaux(i,j-1,k,QGAMCG)
+                gamcgr = qaux(i,j,k,QGAMCG)
+#endif
+             else
+                csmall = max( small, max( small * qaux(i,j,k,QC) , small * qaux(i,j,k-1,QC))  )
+                cavg = HALF*(qaux(i,j,k,QC) + qaux(i,j,k-1,QC))
+                gamcl = qaux(i,j,k-1,QGAMC)
+                gamcr = qaux(i,j,k,QGAMC)
+#ifdef RADIATION
+                gamcgl = qaux(i,j,k-1,QGAMCG)
+                gamcgr = qaux(i,j,k,QGAMCG)
+#endif
+             end if
 
              wsmall = small_dens*csmall
 
