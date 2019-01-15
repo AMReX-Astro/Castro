@@ -33,7 +33,8 @@ module riemann_module
 
 contains
 
-  subroutine cmpflx(qm, qp, qpd_lo, qpd_hi, nc, comp, &
+  subroutine cmpflx(lo, hi, &
+                    qm, qp, qpd_lo, qpd_hi, nc, comp, &
                     flx, flx_lo, flx_hi, &
                     qint, q_lo, q_hi, &
 #ifdef RADIATION
@@ -42,7 +43,7 @@ contains
 #endif
                     qaux, qa_lo, qa_hi, &
                     shk, s_lo, s_hi, &
-                    idir, lo, hi, domlo, domhi)
+                    idir, domlo, domhi)
 
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
@@ -53,6 +54,13 @@ contains
 
     implicit none
 
+    ! note: lo, hi necessarily the limits of the valid (no ghost
+    ! cells) domain, but could be hi+1 in some dimensions.  We rely on
+    ! the caller to specific the interfaces over which to solve the
+    ! Riemann problems
+
+    integer, intent(in) :: lo(3), hi(3)
+
     integer, intent(in) :: qpd_lo(3), qpd_hi(3)
     integer, intent(in) :: flx_lo(3), flx_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
@@ -60,11 +68,7 @@ contains
     integer, intent(in) :: s_lo(3), s_hi(3)
 
     integer, intent(in) :: idir
-    ! note: lo, hi necessarily the limits of the valid (no ghost
-    ! cells) domain, but could be hi+1 in some dimensions.  We rely on
-    ! the caller to specific the interfaces over which to solve the
-    ! Riemann problems
-    integer, intent(in) :: lo(3), hi(3)
+
     integer, intent(in) :: domlo(3),domhi(3)
     integer, intent(in) :: nc, comp
 
@@ -487,14 +491,19 @@ contains
        domlo, domhi)
 
     use amrex_error_module
+#ifndef AMREX_USE_CUDA
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
+#endif
     use prob_params_module, only : physbc_lo, physbc_hi, &
          Symmetry, SlipWall, NoSlipWall
     use network, only : nspec, naux
     use eos_type_module
     use eos_module
     use meth_params_module, only : cg_maxiter, cg_tol, cg_blend
-    use riemann_util_module, only : wsqge, pstar_bisection
+#ifndef AMREX_USE_CUDA
+    use riemann_util_module, only : pstar_bisection
+#endif
+    use riemann_util_module, only : wsqge
 
     implicit none
 

@@ -39,7 +39,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
        QTEMP, QFS, QFX, QREINT, QRHO, &
        first_order_hydro, difmag, hybrid_riemann, &
        limit_fluxes_on_small_dens, ppm_temp_fix
-  use advection_util_module, only : limit_hydro_fluxes_on_small_dens, shock, &
+  use advection_util_module, only : limit_hydro_fluxes_on_small_dens, ca_shock, &
        divu, normalize_species_fluxes, calc_pdivu
   use amrex_error_module
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
@@ -50,7 +50,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   use amrex_fort_module, only : rt => amrex_real
 #ifdef HYBRID_MOMENTUM
   use hybrid_advection_module, only : add_hybrid_advection_source
-  use riemann_util_module, only : store_godunov_state
+  use riemann_util_module, only : ca_store_godunov_state
 #endif
   use eos_type_module, only : eos_t, eos_input_rt
   use eos_module, only : eos
@@ -201,10 +201,10 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 #ifdef SHOCK_VAR
   uout(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), USHK) = ZERO
 
-  call shock(lo-dg, hi+dg, &
-             q_bar, q_bar_lo, q_bar_hi, &
-             shk, shk_lo, shk_hi, &
-             dx)
+  call ca_shock(lo-dg, hi+dg, &
+                q_bar, q_bar_lo, q_bar_hi, &
+                shk, shk_lo, shk_hi, &
+                dx)
 
   ! Store the shock data for future use in the burning step.
 
@@ -225,10 +225,10 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   ! multidimensional shock detection -- this will be used to do the
   ! hybrid Riemann solver
   if (hybrid_riemann == 1) then
-     call shock(lo-dg, hi+dg, &
-                q_bar, q_bar_lo, q_bar_hi, &
-                shk, shk_lo, shk_hi, &
-                dx)
+     call ca_shock(lo-dg, hi+dg, &
+                   q_bar, q_bar_lo, q_bar_hi, &
+                   shk, shk_lo, shk_hi, &
+                   dx)
   else
      shk(:,:,:) = ZERO
   endif
@@ -648,17 +648,17 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   call bl_allocate(qgdnvy, q_lo, q_hi, NGDNV)
   call bl_allocate(qgdnvz, q_lo, q_hi, NGDNV)
 
-  call store_godunov_state(lo, hi+dg, &
-                           qx_avg, q_lo, q_hi, &
-                           qgdnvx, q_lo, q_hi)
+  call ca_store_godunov_state(lo, hi+dg, &
+                              qx_avg, q_lo, q_hi, &
+                              qgdnvx, q_lo, q_hi)
 
-  call store_godunov_state(lo, hi+dg, &
-                           qy_avg, q_lo, q_hi, &
-                           qgdnvy, q_lo, q_hi)
+  call ca_store_godunov_state(lo, hi+dg, &
+                              qy_avg, q_lo, q_hi, &
+                              qgdnvy, q_lo, q_hi)
 
-  call store_godunov_state(lo, hi+dg, &
-                           qz_avg, q_lo, q_hi, &
-                           qgdnvz, q_lo, q_hi)
+  call ca_store_godunov_state(lo, hi+dg, &
+                              qz_avg, q_lo, q_hi, &
+                              qgdnvz, q_lo, q_hi)
 
   call add_hybrid_advection_source(lo, hi, dt, &
                                    update, uout_lo, uout_hi, &

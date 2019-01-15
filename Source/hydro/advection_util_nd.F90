@@ -6,7 +6,7 @@ module advection_util_module
   private
 
   public ca_enforce_minimum_density, ca_compute_cfl, ca_ctoprim, ca_srctoprim, dflux, &
-         limit_hydro_fluxes_on_small_dens, shock, divu, calc_pdivu, normalize_species_fluxes, &
+         limit_hydro_fluxes_on_small_dens, ca_shock, divu, calc_pdivu, normalize_species_fluxes, &
          scale_flux, apply_av, ca_construct_hydro_update_cuda
 #ifdef RADIATION
   public apply_av_rad
@@ -1258,10 +1258,10 @@ contains
   !! The spirit of this follows the shock detection in Colella &
   !! Woodward (1984)
   !!
-  subroutine shock(lo, hi, &
-                   q, qd_lo, qd_hi, &
-                   shk, s_lo, s_hi, &
-                   dx)
+  subroutine ca_shock(lo, hi, &
+       q, qd_lo, qd_hi, &
+       shk, s_lo, s_hi, &
+       dx) bind(C, name="ca_shock")
 
     use meth_params_module, only : QPRES, QU, QV, QW, NQ
     use prob_params_module, only : coord_type
@@ -1419,7 +1419,7 @@ contains
        enddo
     enddo
 
-  end subroutine shock
+  end subroutine ca_shock
 
   ! :::
   ! ::: ------------------------------------------------------------------
@@ -1429,7 +1429,7 @@ contains
   !!
   subroutine divu(lo, hi, &
        q, q_lo, q_hi, &
-       dx, div, div_lo, div_hi) bind(c, name='divu')
+       dx, div, div_lo, div_hi) bind(C, name='divu')
 
     use meth_params_module, only : QU, QV, QW, NQ
     use amrex_constants_module, only : HALF, FOURTH, ONE, ZERO
