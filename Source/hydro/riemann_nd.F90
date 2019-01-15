@@ -58,6 +58,7 @@ contains
     ! cells) domain, but could be hi+1 in some dimensions.  We rely on
     ! the caller to specific the interfaces over which to solve the
     ! Riemann problems
+
     integer, intent(in) :: lo(3), hi(3)
 
     integer, intent(in) :: qpd_lo(3), qpd_hi(3)
@@ -67,6 +68,7 @@ contains
     integer, intent(in) :: s_lo(3), s_hi(3)
 
     integer, intent(in) :: idir
+
     integer, intent(in) :: domlo(3),domhi(3)
     integer, intent(in) :: nc, comp
 

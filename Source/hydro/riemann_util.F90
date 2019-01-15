@@ -624,6 +624,20 @@ contains
 
   end subroutine compute_flux_q
 
+
+  !> @brief this copies the full interface state (NQ -- one for each primitive
+  !! variable) over to a smaller subset of size NGDNV for use later in the
+  !! hydro advancement.
+  !!
+  !! @param[in] lo integer
+  !! @param[in] hi integer
+  !! @param[in] qi_lo integer
+  !! @param[in] qi_hi integer
+  !! @param[in] qg_lo integer
+  !! @param[in] qg_hi integer
+  !! @param[in] qint real(rt)
+  !! @param[out] qgdnv real(rt)
+  !!
   subroutine ca_store_godunov_state(lo, hi, &
                                     qint, qi_lo, qi_hi, &
 #ifdef RADIATION

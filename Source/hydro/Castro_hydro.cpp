@@ -464,16 +464,15 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
   MultiFab shk;
   shk.define(grids, dmap, 1, 1);
 
-  // can this be replaced with a single FAB in the loop?
-  MultiFab qi_tmp;
-  qi_tmp.define(grids, dmap, NQ, 1);
 
   MultiFab flux[AMREX_SPACEDIM];
   MultiFab qe[AMREX_SPACEDIM];
+  MultiFab qi[AMREX_SPACEDIM];
 
   for (int i = 0; i < AMREX_SPACEDIM; ++i) {
       flux[i].define(getEdgeBoxArray(i), dmap, NUM_STATE, 0);
       qe[i].define(getEdgeBoxArray(i), dmap, NGDNV, 0);
+      qi[i].define(getEdgeBoxArray(i), dmap, NQ, 0);
   }
 
 
@@ -544,14 +543,14 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
                BL_TO_FORTRAN_ANYD(shk[mfi]),
                BL_TO_FORTRAN_ANYD(qm[mfi]),
                BL_TO_FORTRAN_ANYD(qp[mfi]),
-               BL_TO_FORTRAN_ANYD(qi_tmp[mfi]),
+               BL_TO_FORTRAN_ANYD(qi[idir][mfi]),
                BL_TO_FORTRAN_ANYD(flux[idir][mfi]),
                BL_TO_FORTRAN_ANYD(area[idir][mfi]));
 
 #pragma gpu
           ca_store_godunov_state
             (AMREX_INT_ANYD(ebx.loVect()), AMREX_INT_ANYD(ebx.hiVect()),
-             BL_TO_FORTRAN_ANYD(qi_tmp[mfi]),
+             BL_TO_FORTRAN_ANYD(qi[idir][mfi]),
              BL_TO_FORTRAN_ANYD(qe[idir][mfi]));
 
           // Store the fluxes from this advance -- we weight them by the
@@ -639,6 +638,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	});
 #endif
     }
+
 
 }
 
