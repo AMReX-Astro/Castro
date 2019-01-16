@@ -17,14 +17,7 @@ contains
   subroutine uslope(lo, hi, &
                     q, qd_lo, qd_hi, n, &
                     flatn, f_lo, f_hi, &
-                    dqx, &
-#if AMREX_SPACEDIM >= 2
-                    dqy, &
-#endif
-#if AMREX_SPACEDIM == 3
-                    dqz, &
-#endif
-                    qpd_lo, qpd_hi)
+                    dq, qpd_lo, qpd_hi)
 
     use meth_params_module, only: NQ, plm_iorder
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO, FOUR3RD, FOURTH, SIXTH
@@ -39,13 +32,7 @@ contains
 
     real(rt), intent(in) :: q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
     real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
-    real(rt), intent(inout) :: dqx(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
-#if AMREX_SPACEDIM >= 2
-    real(rt), intent(inout) :: dqy(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
-#endif
-#if AMREX_SPACEDIM == 3
-    real(rt), intent(inout) :: dqz(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
-#endif
+    real(rt), intent(inout) :: dq(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ,AMREX_SPACEDIM)
     integer, intent(in) :: lo(3), hi(3)
 
     integer :: i, j, k
@@ -59,12 +46,12 @@ contains
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                dqx(i,j,k,n) = ZERO
+                dq(i,j,k,n,1) = ZERO
 #if AMREX_SPACEDIM >= 2
-                dqy(i,j,k,n) = ZERO
+                dq(i,j,k,n,2) = ZERO
 #endif
 #if AMREX_SPACEDIM == 3
-                dqz(i,j,k,n) = ZERO
+                dq(i,j,k,n,3) = ZERO
 #endif
              end do
           end do
@@ -106,7 +93,7 @@ contains
                 dlim = merge(slop, ZERO, dlft*drgt >= ZERO)
 
                 dq1 = FOUR3RD*dcen - SIXTH*(dfp1 + dfm1)
-                dqx(i,j,k,n) = flatn(i,j,k)*dsgn*min(dlim, abs(dq1))
+                dq(i,j,k,n,1) = flatn(i,j,k)*dsgn*min(dlim, abs(dq1))
 
              end do
           end do
@@ -147,7 +134,7 @@ contains
                 dlim = merge(slop, ZERO, dlft*drgt >= ZERO)
 
                 dq1 = FOUR3RD*dcen - SIXTH*(dfp1 + dfm1)
-                dqy(i,j,k,n) = flatn(i,j,k)*dsgn*min(dlim, abs(dq1))
+                dq(i,j,k,n,2) = flatn(i,j,k)*dsgn*min(dlim, abs(dq1))
 
              end do
           end do
@@ -189,7 +176,7 @@ contains
                 dlim = merge(slop, ZERO, dlft*drgt >= ZERO)
 
                 dq1 = FOUR3RD*dcen - SIXTH*(dfp1 + dfm1)
-                dqz(i,j,k,n) = flatn(i,j,k)*dsgn*min(dlim, abs(dq1))
+                dq(i,j,k,n,3) = flatn(i,j,k)*dsgn*min(dlim, abs(dq1))
              end do
           end do
        end do
@@ -205,14 +192,7 @@ contains
   subroutine pslope(lo, hi, &
                     q, q_lo, q_hi, &
                     flatn, f_lo, f_hi, &
-                    dqx, &
-#if AMREX_SPACEDIM >= 2
-                    dqy, &
-#endif
-#if AMREX_SPACEDIM == 3
-                    dqz, &
-#endif
-                    qpd_lo, qpd_hi, &
+                    dq, qpd_lo, qpd_hi, &
                     src, src_lo, src_hi, &
                     dx)
 
@@ -230,13 +210,7 @@ contains
 
     real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
-    real(rt), intent(inout) :: dqx(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
-#if AMREX_SPACEDIM >= 2
-    real(rt), intent(inout) :: dqy(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
-#endif
-#if AMREX_SPACEDIM == 3
-    real(rt), intent(inout) :: dqz(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
-#endif
+    real(rt), intent(inout) :: dq(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ,AMREX_SPACEDIM)
     real(rt), intent(in) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
     real(rt), intent(in) :: dx(3)
 
@@ -254,12 +228,12 @@ contains
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                dqx(i,j,k,QPRES) = ZERO
+                dq(i,j,k,QPRES,1) = ZERO
 #if AMREX_SPACEDIM >= 2
-                dqy(i,j,k,QPRES) = ZERO
+                dq(i,j,k,QPRES,2) = ZERO
 #endif
 #if AMREX_SPACEDIM == 3
-                dqz(i,j,k,QPRES) = ZERO
+                dq(i,j,k,QPRES,3) = ZERO
 #endif
              end do
           end do
@@ -311,8 +285,8 @@ contains
                 dlim = merge(TWO * min(abs(dlft), abs(drgt)), ZERO, dlft*drgt >= ZERO)
 
                 dp1 = FOUR3RD*dcen - SIXTH*(dfp1 + dfm1)
-                dqx(i,j,k,QPRES) = flatn(i,j,k)*dsgn*min(dlim, abs(dp1))
-                dqx(i,j,k,QPRES) = dqx(i,j,k,QPRES) + q(i,j,k,QRHO)*src(i,j,k,QU)*dx(1)
+                dq(i,j,k,QPRES,1) = flatn(i,j,k)*dsgn*min(dlim, abs(dp1))
+                dq(i,j,k,QPRES,1) = dq(i,j,k,QPRES,1) + q(i,j,k,QRHO)*src(i,j,k,QU)*dx(1)
 
              end do
           end do
@@ -365,8 +339,8 @@ contains
                 dlim = merge(TWO * min(abs(dlft), abs(drgt)), ZERO, dlft*drgt >= ZERO)
 
                 dp1 = FOUR3RD*dcen - SIXTH*(dfp1 + dfm1)
-                dqy(i,j,k,QPRES) = flatn(i,j,k)*dsgn*min(dlim, abs(dp1))
-                dqy(i,j,k,QPRES) = dqy(i,j,k,QPRES) + q(i,j,k,QRHO)*src(i,j,k,QV)*dx(2)
+                dq(i,j,k,QPRES,2) = flatn(i,j,k)*dsgn*min(dlim, abs(dp1))
+                dq(i,j,k,QPRES,2) = dq(i,j,k,QPRES,2) + q(i,j,k,QRHO)*src(i,j,k,QV)*dx(2)
              end do
           end do
        end do
@@ -419,8 +393,8 @@ contains
                 dlim = merge(TWO * min(abs(dlft), abs(drgt)), ZERO, dlft*drgt >= ZERO)
 
                 dp1 = FOUR3RD*dcen - SIXTH*(dfp1 + dfm1)
-                dqz(i,j,k,QPRES) = flatn(i,j,k)*dsgn*min(dlim, abs(dp1))
-                dqz(i,j,k,QPRES) = dqz(i,j,k,QPRES) + q(i,j,k,QRHO)*src(i,j,k,QW)*dx(3)
+                dq(i,j,k,QPRES,3) = flatn(i,j,k)*dsgn*min(dlim, abs(dp1))
+                dq(i,j,k,QPRES,3) = dq(i,j,k,QPRES,3) + q(i,j,k,QRHO)*src(i,j,k,QW)*dx(3)
              end do
           end do
        end do

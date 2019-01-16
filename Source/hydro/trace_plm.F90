@@ -54,7 +54,7 @@ contains
     real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) ::  dq(dq_lo(1):dq_hi(1),dq_lo(2):dq_hi(2),dq_lo(3):dq_hi(3),NQ)
+    real(rt), intent(in) ::  dq(dq_lo(1):dq_hi(1),dq_lo(2):dq_hi(2),dq_lo(3):dq_hi(3),NQ,AMREX_SPACEDIM)
 
     real(rt), intent(inout) :: qm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
     real(rt), intent(inout) :: qp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
@@ -134,12 +134,12 @@ contains
              rhoe = q(i,j,k,QREINT)
              enth = (rhoe+p)/(rho*csq)
 
-             drho = dq(i,j,k,QRHO)
-             dun = dq(i,j,k,QUN)
-             dut = dq(i,j,k,QUT)
-             dutt = dq(i,j,k,QUTT)
-             dp = dq(i,j,k,QPRES)
-             drhoe = dq(i,j,k,QREINT)
+             drho = dq(i,j,k,QRHO,idir)
+             dun = dq(i,j,k,QUN,idir)
+             dut = dq(i,j,k,QUT,idir)
+             dutt = dq(i,j,k,QUTT,idir)
+             dp = dq(i,j,k,QPRES,idir)
+             drhoe = dq(i,j,k,QREINT,idir)
 
              alpham = HALF*(dp/(rho*cc) - dun)*(rho/cc)
              alphap = HALF*(dp/(rho*cc) + dun)*(rho/cc)
@@ -333,14 +333,14 @@ contains
 
                    un = q(i,j,k,QUN)
                    spzero = merge(-ONE, un*dtdx, un >= ZERO)
-                   acmprght = HALF*(-ONE - spzero)*dq(i,j,k,n)
+                   acmprght = HALF*(-ONE - spzero)*dq(i,j,k,n,idir)
                    qp(i,j,k,n) = q(i,j,k,n) + acmprght + HALF*dt*srcQ(i,j,k,n)
                 endif
 
                 ! Left state
                 un = q(i,j,k,QUN)
                 spzero = merge(un*dtdx, ONE, un >= ZERO)
-                acmpleft = HALF*(ONE - spzero )*dq(i,j,k,n)
+                acmpleft = HALF*(ONE - spzero )*dq(i,j,k,n,idir)
 
                 if (idir == 1 .and. i <= vhi(1)) then
                    qm(i+1,j,k,n) = q(i,j,k,n) + acmpleft + HALF*dt*srcQ(i,j,k,n)
