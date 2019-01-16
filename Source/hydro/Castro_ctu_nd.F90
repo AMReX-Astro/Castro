@@ -215,40 +215,49 @@ contains
           if (.not. reconstruct_state(n)) cycle
 
           call ca_ppm_reconstruct(lo-dg, hi+dg, 0, &
-               q, qd_lo, qd_hi, NQ, n, n, &
-               flatn, qd_lo, qd_hi, &
-               sm, glo, ghi, &
-               sp, glo, ghi, 1, 1, 1)
+                                  q, qd_lo, qd_hi, NQ, n, n, &
+                                  flatn, f_lo, f_hi, &
+                                  sm, sm_lo, sm_hi, &
+                                  sp, sp_lo, sp_hi, &
+                                  1, 1, 1)
 
           call ppm_int_profile(lo-dg, hi+dg, &
-               q, qd_lo, qd_hi, NQ, n, &
-               q, qd_lo, qd_hi, &
-               qaux, qa_lo, qa_hi, &
-               sm, sp, glo, ghi, &
-               Ip, Im, glo, ghi, NQ, n, &
-               dx, dt)
+                               q, qd_lo, qd_hi, NQ, n, &
+                               q, qd_lo, qd_hi, &
+                               qaux, qa_lo, qa_hi, &
+                               sm, sm_lo, sm_hi, &
+                               sp, sp_lo, sp_hi, &
+                               Ip, Ip_lo, Ip_hi, &
+                               Im, Im_lo, Im_hi, NQ, n, &
+                               dx, dt)
        end do
 
 
        if (ppm_temp_fix /= 1) then
           call ca_ppm_reconstruct(lo-dg, hi+dg, 0, &
-               qaux, qa_lo, qa_hi, NQAUX, QGAMC, QGAMC, &
-               flatn, qd_lo, qd_hi, &
-               sm, glo, ghi, &
-               sp, glo, ghi, 1, 1, 1)
+                                  qaux, qa_lo, qa_hi, NQAUX, QGAMC, QGAMC, &
+                                  flatn, f_lo, f_hi, &
+                                  sm, sm_lo, sm_hi, &
+                                  sp, sp_lo, sp_hi, &
+                                  1, 1, 1)
 
           call ppm_int_profile(lo-dg, hi+dg, &
-               qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
-               q, qd_lo, qd_hi, &
-               qaux, qa_lo, qa_hi, &
-               sm, sp, glo, ghi, &
-               Ip_gc, Im_gc, glo, ghi, 1, 1, &
-               dx, dt)
+                               qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
+                               q, qd_lo, qd_hi, &
+                               qaux, qa_lo, qa_hi, &
+                               sm, sm_lo, sm_hi, &
+                               sp, sp_lo, sp_hi, &
+                               Ip_gc, Ipg_lo, Ipg_hi, &
+                               Im_gc, Img_lo, Img_hi, 1, 1, &
+                               dx, dt)
        else
 
           ! temperature-based PPM
           call ppm_reconstruct_with_eos(lo-dg, hi+dg, &
-               Ip, Im, Ip_gc, Im_gc, glo, ghi)
+                                        Ip, Ip_lo, Ip_hi, &
+                                        Im, Im_lo, Im_hi, &
+                                        Ip_gc, Ipg_lo, Ipg_hi, &
+                                        Im_gc, Img_lo, Img_hi)
 
        end if
 
@@ -257,21 +266,24 @@ contains
        do n = 1, QVAR
           if (source_nonzero(n)) then
              call ca_ppm_reconstruct(lo-dg, hi+dg, 0, &
-                  srcQ, src_lo, src_hi, QVAR, n, n, &
-                  flatn, qd_lo, qd_hi, &
-                  sm, glo, ghi, &
-                  sp, glo, ghi, 1, 1, 1)
+                                     srcQ, src_lo, src_hi, QVAR, n, n, &
+                                     flatn, f_lo, f_hi, &
+                                     sm, sm_lo, sm_hi, &
+                                     sp, sp_lo, sp_hi, &
+                                     1, 1, 1)
 
              call ppm_int_profile(lo-dg, hi+dg, &
-                  srcQ, src_lo, src_hi, QVAR, n, &
-                  q, qd_lo, qd_hi, &
-                  qaux, qa_lo, qa_hi, &
-                  sm, sp, glo, ghi, &
-                  Ip_src, Im_src, glo, ghi, QVAR, n, &
-                  dx, dt)
+                                  srcQ, src_lo, src_hi, QVAR, n, &
+                                  q, qd_lo, qd_hi, &
+                                  qaux, qa_lo, qa_hi, &
+                                  sm, sm_lo, sm_hi, &
+                                  sp, sp_lo, sp_hi, &
+                                  Ip_src, Ips_lo, Ips_hi, &
+                                  Im_src, Ims_lo, Ims_hi, QVAR, n, &
+                                  dx, dt)
           else
-             Ip_src(glo(1):ghi(1),glo(2):ghi(2),glo(3):ghi(3),:,:,n) = ZERO
-             Im_src(glo(1):ghi(1),glo(2):ghi(2),glo(3):ghi(3),:,:,n) = ZERO
+             Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),:,:,n) = ZERO
+             Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),:,:,n) = ZERO
           endif
 
        enddo
@@ -283,8 +295,12 @@ contains
        call trace_ppm_rad(lo-dg, hi+dg, &
                           1, q, qd_lo, qd_hi, &
                           qaux, qa_lo, qa_hi, &
-                          Ip, Im, Ip_src, Im_src, glo, ghi, &
-                          qxm, qxp, fglo, fghi, &
+                          Ip, Ip_lo, Ip_hi, &
+                          Im, Im_lo, Im_hi, &
+                          Ip_src, Ips_lo, Ips_hi, &
+                          Im_src, Ims_lo, Ims_hi, &
+                          qxm, qxm_lo, qxm_hi, &
+                          qxp, qxp_lo, qxp_hi, &
 #if AMREX_SPACEDIM <= 2
                           dloga, dloga_lo, dloga_hi, &
 #endif
@@ -295,8 +311,12 @@ contains
        call trace_ppm_rad(lo-dg, hi+dg, &
                           2, q, qd_lo, qd_hi, &
                           qaux, qa_lo, qa_hi, &
-                          Ip, Im, Ip_src, Im_src, glo, ghi, &
-                          qym, qyp, fglo, fghi, &
+                          Ip, Ip_lo, Ip_hi, &
+                          Im, Im_lo, Im_hi, &
+                          Ip_src, Ips_lo, Ips_hi, &
+                          Im_src, Ims_lo, Ims_hi, &
+                          qym, qym_lo, qym_hi, &
+                          qyp, qyp_lo, qyp_hi, &
 #if AMREX_SPACEDIM == 2
                           dloga, dloga_lo, dloga_hi, &
 #endif
@@ -308,8 +328,12 @@ contains
        call trace_ppm_rad(lo-dg, hi+dg, &
                           3, q, qd_lo, qd_hi, &
                           qaux, qa_lo, qa_hi, &
-                          Ip, Im, Ip_src, Im_src, glo, ghi, &
-                          qzm, qzp, fglo, fghi, &
+                          Ip, Ip_lo, Ip_hi, &
+                          Im, Im_lo, Im_hi, &
+                          Ip_src, Ips_lo, Ips_hi, &
+                          Im_src, Ims_lo, Ims_hi, &
+                          qzm, qzm_lo, qzm_hi, &
+                          qzp, qzp_lo, qzp_hi, &
                           lo, hi, domlo, domhi, &
                           dx, dt)
 #endif
@@ -318,8 +342,14 @@ contains
        call trace_ppm(lo-dg, hi+dg, &
                       1, q, qd_lo, qd_hi, &
                       qaux, qa_lo, qa_hi, &
-                      Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
-                      qxm, qxp, fglo, fghi, &
+                      Ip, Ip_lo, Ip_hi, &
+                      Im, Im_lo, Im_hi, &
+                      Ip_src, Ips_lo, Ips_hi, &
+                      Im_src, Ims_lo, Ims_hi, &
+                      Ip_gc, Ipg_lo, Ipg_hi, &
+                      Im_gc, Img_lo, Img_hi, &
+                      qxm, qxm_lo, qxm_hi, &
+                      qxp, qxp_lo, qxp_hi, &
 #if AMREX_SPACEDIM <= 2
                       dloga, dloga_lo, dloga_hi, &
 #endif
@@ -330,8 +360,14 @@ contains
        call trace_ppm(lo-dg, hi+dg, &
                       2, q, qd_lo, qd_hi, &
                       qaux, qa_lo, qa_hi, &
-                      Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
-                      qym, qyp, fglo, fghi, &
+                      Ip, Ip_lo, Ip_hi, &
+                      Im, Im_lo, Im_hi, &
+                      Ip_src, Ips_lo, Ips_hi, &
+                      Im_src, Ims_lo, Ims_hi, &
+                      Ip_gc, Ipg_lo, Ipg_hi, &
+                      Im_gc, Img_lo, Img_hi, &
+                      qym, qym_lo, qym_hi, &
+                      qyp, qyp_lo, qyp_hi, &
 #if AMREX_SPACEDIM == 2
                       dloga, dloga_lo, dloga_hi, &
 #endif
@@ -343,8 +379,14 @@ contains
        call trace_ppm(lo-dg, hi+dg, &
                       3, q, qd_lo, qd_hi, &
                       qaux, qa_lo, qa_hi, &
-                      Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, glo, ghi, &
-                      qzm, qzp, fglo, fghi, &
+                      Ip, Ip_lo, Ip_hi, &
+                      Im, Im_lo, Im_hi, &
+                      Ip_src, Ips_lo, Ips_hi, &
+                      Im_src, Ims_lo, Ims_hi, &
+                      Ip_gc, Ipg_lo, Ipg_hi, &
+                      Im_gc, Img_lo, Img_hi, &
+                      qzm, qzm_lo, qzm_hi, &
+                      qzp, qzp_lo, qzp_hi, &
                       lo, hi, domlo, domhi, &
                       dx, dt)
 #endif
@@ -364,15 +406,15 @@ contains
              if (.not. reconstruct_state(n)) cycle
              call uslope(lo-dg, hi+dg, &
                          q, qd_lo, qd_hi, n, &
-                         flatn, qd_lo, qd_hi, &
-                         dq, glo, ghi)
+                         flatn, f_lo, f_hi, &
+                         dq, dq_lo, dq_hi)
           end do
 
           if (use_pslope == 1) then
              call pslope(lo-dg, hi+dg, &
                          q, qd_lo, qd_hi, &
-                         flatn, qd_lo, qd_hi, &
-                         dq, glo, ghi, &
+                         flatn, f_lo, f_hi, &
+                         dq, dq_lo, dq_hi, &
                          srcQ, src_lo, src_hi, &
                          dx)
           endif
@@ -384,8 +426,9 @@ contains
        call trace_plm(lo-dg, hi+dg, &
                       1, q, qd_lo, qd_hi, &
                       qaux, qa_lo, qa_hi, &
-                      dq, glo, ghi, &
-                      qxm, qxp, fglo, fghi, &
+                      dq, dq_lo, dq_hi, &
+                      qxm, qxm_lo, qxm_hi, &
+                      qxp, qxp_lo, qxp_hi, &
 #if (AMREX_SPACEDIM < 3)
                       dloga, dloga_lo, dloga_hi, &
 #endif
@@ -396,8 +439,9 @@ contains
        call trace_plm(lo-dg, hi+dg, &
                       2, q, qd_lo, qd_hi, &
                       qaux, qa_lo, qa_hi, &
-                      dq, glo, ghi, &
-                      qym, qyp, fglo, fghi, &
+                      dq, dq_lo, dq_hi, &
+                      qym, qym_lo, qym_hi, &
+                      qyp, qyp_lo, qyp_hi, &
 #if (AMREX_SPACEDIM < 3)
                       dloga, dloga_lo, dloga_hi, &
 #endif
@@ -409,8 +453,9 @@ contains
        call trace_plm(lo-dg, hi+dg, &
                       3, q, qd_lo, qd_hi, &
                       qaux, qa_lo, qa_hi, &
-                      dq, glo, ghi, &
-                      qzm, qzp, fglo, fghi, &
+                      dq, dq_lo, dq_hi, &
+                      qzm, qzm_lo, qzm_hi, &
+                      qzp, qzp_lo, qzp_hi, &
                       SrcQ, src_lo, Src_hi, &
                       lo, hi, domlo, domhi, &
                       dx, dt)
@@ -2532,6 +2577,7 @@ contains
     real(rt), pointer :: shk(:,:,:)
 
     real(rt), pointer :: sm(:,:,:,:), sp(:,:,:,:)
+    real(rt), pointer :: dq(:,:,:,:)
 
     ! Left and right state arrays (edge centered, cell centered)
     double precision, dimension(:,:,:,:), pointer :: &
