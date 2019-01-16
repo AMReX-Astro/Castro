@@ -14,7 +14,8 @@ contains
   ! ::: ------------------------------------------------------------------
   ! :::
 
-  subroutine uslope(q, qd_lo, qd_hi, n, &
+  subroutine uslope(lo, hi, &
+                    q, qd_lo, qd_hi, n, &
                     flatn, f_lo, f_hi, &
                     dqx, &
 #if AMREX_SPACEDIM >= 2
@@ -23,8 +24,7 @@ contains
 #if AMREX_SPACEDIM == 3
                     dqz, &
 #endif
-                    qpd_lo, qpd_hi, &
-                    lo, hi)
+                    qpd_lo, qpd_hi)
 
     use meth_params_module, only: NQ, plm_iorder
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO, FOUR3RD, FOURTH, SIXTH
@@ -202,7 +202,8 @@ contains
   ! ::: ------------------------------------------------------------------
   ! :::
 
-  subroutine pslope(q, q_lo, q_hi, &
+  subroutine pslope(lo, hi, &
+                    q, q_lo, q_hi, &
                     flatn, f_lo, f_hi, &
                     dqx, &
 #if AMREX_SPACEDIM >= 2
@@ -213,7 +214,7 @@ contains
 #endif
                     qpd_lo, qpd_hi, &
                     src, src_lo, src_hi, &
-                    lo, hi, dx)
+                    dx)
 
     use meth_params_module, only : QRHO, QPRES, QU, QV, QW, NQ, QVAR, plm_iorder
     use amrex_constants_module, only : ZERO, FOURTH, FOUR3RD, HALF, TWO, ONE, SIXTH
