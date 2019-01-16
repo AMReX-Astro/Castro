@@ -356,6 +356,9 @@ contains
 
     use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QREINT, &
          NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
+#ifdef SHOCK_VAR
+         USHK, &
+#endif
          npassive, upass_map, qpass_map
 
     real(rt)        , intent(in)  :: q(QVAR)
@@ -380,6 +383,10 @@ contains
     ! checking happy
     U(UTEMP) = ZERO
 
+#ifdef SHOCK_VAR
+    U(USHK) = ZERO
+#endif
+
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -401,12 +408,15 @@ contains
 
     use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QREINT, QPRES, &
          NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
+#ifdef SHOCK_VAR
+         USHK, &
+#endif
          npassive, upass_map, qpass_map
 
     integer, intent(in) :: idir
-    real(rt)        , intent(in)  :: S_k, S_c
-    real(rt)        , intent(in)  :: q(QVAR)
-    real(rt)        , intent(out) :: U(NVAR)
+    real(rt), intent(in)  :: S_k, S_c
+    real(rt), intent(in)  :: q(QVAR)
+    real(rt), intent(out) :: U(NVAR)
 
     real(rt)         :: hllc_factor, u_k
     integer :: ipassive, n, nq
@@ -443,6 +453,10 @@ contains
     U(UEINT) = hllc_factor*q(QREINT)/q(QRHO)
 
     U(UTEMP) = ZERO  ! we don't evolve T
+
+#ifdef SHOCK_VAR
+    U(USHK) = ZERO
+#endif
 
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
@@ -698,6 +712,9 @@ contains
   pure subroutine compute_flux(idir, bnd_fac, U, p, F)
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
+#ifdef SHOCK_VAR
+         USHK, &
+#endif
          npassive, upass_map
     use prob_params_module, only : mom_flux_has_p
 
@@ -739,6 +756,10 @@ contains
     F(UEDEN) = (U(UEDEN) + p)*u_flx
 
     F(UTEMP) = ZERO
+
+#ifdef SHOCK_VAR
+    F(USHK) = ZERO
+#endif
 
     do ipassive = 1, npassive
        n = upass_map(ipassive)
