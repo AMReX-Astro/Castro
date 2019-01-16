@@ -150,45 +150,28 @@ contains
     logical :: source_nonzero(QVAR)
     logical :: reconstruct_state(NQ)
 
+    logical :: compute_shock
+
     hdt = HALF*dt
 
     ! multidimensional shock detection
 
 #ifdef SHOCK_VAR
-    uout(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),USHK) = ZERO
-
-    call ca_shock(lo, hi, &
-                  q, qd_lo, qd_hi, &
-                  shk, sk_lo, sk_hi, &
-                  dx)
-
-    ! Store the shock data for future use in the burning step.
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             uout(i,j,k,USHK) = shk(i,j,k)
-          enddo
-       enddo
-    enddo
-
-    ! Discard it locally if we don't need it in the hydro update.
-
-    if (hybrid_riemann /= 1) then
-       shk(:,:,:) = ZERO
-    endif
+    compute_shock = .true.
 #else
+    compute_shock = .false.
+#endif
+
     ! multidimensional shock detection -- this will be used to do the
     ! hybrid Riemann solver
-    if (hybrid_riemann == 1) then
+    if (hybrid_riemann == 1 .or. compute_shock) then
        call ca_shock(lo, hi, &
                      q, qd_lo, qd_hi, &
                      shk, sk_lo, sk_hi, &
                      dx)
     else
-       shk(:,:,:) = ZERO
+       shk(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)) = ZERO
     endif
-#endif
 
     ! we don't need to reconstruct all of the NQ state variables,
     ! depending on how we are tracing
@@ -202,11 +185,14 @@ contains
        reconstruct_state(QTEMP) = .false.
     endif
 
-    ! preprocess the sources -- we don't want to trace under a source that is empty
+    ! preprocess the sources -- we don't want to trace under a source
+    ! that is empty.  Note, we need to do this check over the entire
+    ! grid, to be sure, e.g., use vlo:vhi.  We cannot rely on lo:hi,
+    ! since that may just be a single zone on the GPU.
     if (ppm_type > 0) then
        do n = 1, QVAR
-          if (minval(srcQ(lo(1)-2:hi(1)+2,lo(2)-2*dg(2):hi(2)+2*dg(2),lo(3)-2*dg(3):hi(3)+2*dg(3),n)) == ZERO .and. &
-               maxval(srcQ(lo(1)-2:hi(1)+2,lo(2)-2*dg(2):hi(2)+2*dg(2),lo(3)-2*dg(3):hi(3)+2*dg(3),n)) == ZERO) then
+          if (minval(srcQ(vlo(1)-2:vhi(1)+2,vlo(2)-2*dg(2):vhi(2)+2*dg(2),vlo(3)-2*dg(3):vhi(3)+2*dg(3),n)) == ZERO .and. &
+              maxval(srcQ(vlo(1)-2:vhi(1)+2,vlo(2)-2*dg(2):vhi(2)+2*dg(2),vlo(3)-2*dg(3):vhi(3)+2*dg(3),n)) == ZERO) then
              source_nonzero(n) = .false.
           else
              source_nonzero(n) = .true.
@@ -287,8 +273,8 @@ contains
                                   Im_src, Ims_lo, Ims_hi, QVAR, n, &
                                   dx, dt)
           else
-             Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),:,:,n) = ZERO
-             Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),:,:,n) = ZERO
+             Ip_src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:,:,n) = ZERO
+             Im_src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:,:,n) = ZERO
           endif
 
        enddo
@@ -2769,6 +2755,8 @@ contains
     call divu(lo, hi+dg, q, q_lo, q_hi, dx, div, lo, hi+dg)
 
     ! Conservative update
+    ! TODO: store the shock variable in uout
+
     call consup(uin, uin_lo, uin_hi, &
                 q, q_lo, q_hi, &
                 uout, uout_lo, uout_hi, &
