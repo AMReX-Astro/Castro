@@ -521,32 +521,33 @@ contains
           ! Compute all slopes
           do n = 1, NQ
              if (.not. reconstruct_state(n)) cycle
-             call uslope(q, qd_lo, qd_hi, n, &
-                  flatn, qd_lo, qd_hi, &
-                  dqx, &
+             call uslope(lo-dg, hi+dg, &
+                         q, qd_lo, qd_hi, n, &
+                         flatn, qd_lo, qd_hi, &
+                         dqx, &
 #if AMREX_SPACEDIM >= 2
-                  dqy, &
+                         dqy, &
 #endif
 #if AMREX_SPACEDIM == 3
-                  dqz, &
+                         dqz, &
 #endif
-                  glo, ghi, &
-                  lo-dg, hi+dg)
+                         glo, ghi)
           end do
 
           if (use_pslope == 1) then
-             call pslope(q, qd_lo, qd_hi, &
-                  flatn, qd_lo, qd_hi, &
-                  dqx, &
+             call pslope(lo-dg, hi+dg, &
+                         q, qd_lo, qd_hi, &
+                         flatn, qd_lo, qd_hi, &
+                         dqx, &
 #if AMREX_SPACEDIM >= 2
-                  dqy, &
+                         dqy, &
 #endif
 #if AMREX_SPACEDIM == 3
-                  dqz, &
+                         dqz, &
 #endif
-                  glo, ghi, &
-                  srcQ, src_lo, src_hi, &
-                  lo-dg, hi+dg, dx)
+                         glo, ghi, &
+                         srcQ, src_lo, src_hi, &
+                         dx)
           endif
 
        end if
