@@ -88,9 +88,6 @@ contains
 #endif
     use ppm_module, only : ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
     use slope_module, only : uslope, pslope
-#if AMREX_SPACEDIM == 2
-    use multid_slope_module, only : multid_slope
-#endif
     use riemann_module, only: cmpflx
     use riemann_util_module, only : ca_store_godunov_state
 #ifdef RADIATION
@@ -524,51 +521,35 @@ contains
           ! Compute all slopes
           do n = 1, NQ
              if (.not. reconstruct_state(n)) cycle
-             call uslope(q, qd_lo, qd_hi, n, &
-                  flatn, qd_lo, qd_hi, &
-                  dqx, &
+             call uslope(lo-dg, hi+dg, &
+                         q, qd_lo, qd_hi, n, &
+                         flatn, qd_lo, qd_hi, &
+                         dqx, &
 #if AMREX_SPACEDIM >= 2
-                  dqy, &
+                         dqy, &
 #endif
 #if AMREX_SPACEDIM == 3
-                  dqz, &
+                         dqz, &
 #endif
-                  glo, ghi, &
-                  lo-dg, hi+dg)
+                         glo, ghi)
           end do
 
           if (use_pslope == 1) then
-             call pslope(q, qd_lo, qd_hi, &
-                  flatn, qd_lo, qd_hi, &
-                  dqx, &
+             call pslope(lo-dg, hi+dg, &
+                         q, qd_lo, qd_hi, &
+                         flatn, qd_lo, qd_hi, &
+                         dqx, &
 #if AMREX_SPACEDIM >= 2
-                  dqy, &
+                         dqy, &
 #endif
 #if AMREX_SPACEDIM == 3
-                  dqz, &
+                         dqz, &
 #endif
-                  glo, ghi, &
-                  srcQ, src_lo, src_hi, &
-                  lo-dg, hi+dg, dx)
+                         glo, ghi, &
+                         srcQ, src_lo, src_hi, &
+                         dx)
           endif
 
-       elseif (plm_iorder == -2) then
-
-#if AMREX_SPACEDIM == 2
-          ! these are also piecewise linear, but it uses a multidimensional
-          ! reconstruction based on the BDS advection method to construct
-          ! the x- and y-slopes together
-          do n = 1, NQ
-             if (.not. reconstruct_state(n)) cycle
-             call multid_slope(q, qd_lo, qd_hi, NQ, n, &
-                  flatn, &
-                  dqx, dqy, glo, ghi, &
-                  dx(1), dx(2), &
-                  lo(1), lo(2), hi(1), hi(2))
-          end do
-#else
-          call amrex_error("ERROR: multidimension reconstruction not supported")
-#endif
        end if
 
        ! compute the interface states
