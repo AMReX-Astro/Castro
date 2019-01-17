@@ -400,26 +400,24 @@ contains
        call amrex_error("ppm_type <=0 is not supported in with radiation")
 #endif
 #endif
-       if (plm_iorder > 0) then
-          ! Compute all slopes
-          do n = 1, NQ
-             if (.not. reconstruct_state(n)) cycle
-             call uslope(lo, hi, &
-                         q, qd_lo, qd_hi, n, &
-                         flatn, f_lo, f_hi, &
-                         dq, dq_lo, dq_hi)
-          end do
+       ! Compute all slopes
+       do n = 1, NQ
+          if (.not. reconstruct_state(n)) cycle
+          call uslope(lo, hi, &
+                      q, qd_lo, qd_hi, n, &
+                      flatn, f_lo, f_hi, &
+                      dq, dq_lo, dq_hi)
+       end do
 
-          if (use_pslope == 1) then
-             call pslope(lo, hi, &
-                         q, qd_lo, qd_hi, &
-                         flatn, f_lo, f_hi, &
-                         dq, dq_lo, dq_hi, &
-                         srcQ, src_lo, src_hi, &
-                         dx)
-          endif
+       if (use_pslope == 1) then
+          call pslope(lo, hi, &
+                      q, qd_lo, qd_hi, &
+                      flatn, f_lo, f_hi, &
+                      dq, dq_lo, dq_hi, &
+                      srcQ, src_lo, src_hi, &
+                      dx)
+       endif
 
-       end if
 
        ! compute the interface states
 
@@ -429,7 +427,7 @@ contains
                       dq, dq_lo, dq_hi, &
                       qxm, qxm_lo, qxm_hi, &
                       qxp, qxp_lo, qxp_hi, &
-#if (AMREX_SPACEDIM < 3)
+#if AMREX_SPACEDIM < 3
                       dloga, dloga_lo, dloga_hi, &
 #endif
                       SrcQ, src_lo, src_hi, &
@@ -443,7 +441,7 @@ contains
                       dq, dq_lo, dq_hi, &
                       qym, qym_lo, qym_hi, &
                       qyp, qyp_lo, qyp_hi, &
-#if (AMREX_SPACEDIM < 3)
+#if AMREX_SPACEDIM < 3
                       dloga, dloga_lo, dloga_hi, &
 #endif
                       SrcQ, src_lo, src_hi, &
@@ -2568,7 +2566,7 @@ contains
     real(rt), pointer :: shk(:,:,:)
 
     real(rt), pointer :: sm(:,:,:,:), sp(:,:,:,:)
-    real(rt), pointer :: dq(:,:,:,:)
+    real(rt), pointer :: dq(:,:,:,:,:)
 
     ! Left and right state arrays (edge centered, cell centered)
     double precision, dimension(:,:,:,:), pointer :: &
@@ -2655,7 +2653,7 @@ contains
     call bl_allocate ( Im_gc, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,AMREX_SPACEDIM,1,3,1,1)
 
     ! only needed for PLM -- maybe we can piggyback on the others?
-    call bl_allocate ( dq, glo(1),ghi(1), glo(2),ghi(2), glo(3),ghi(3), NQ, AMREX_SPACEDIM)
+    call bl_allocate ( dq, glo(1),ghi(1), glo(2),ghi(2), glo(3),ghi(3), 1, NQ, 1, AMREX_SPACEDIM)
 
     ! for the hybrid Riemann solver
     call bl_allocate(shk, glo, ghi)
@@ -2850,3 +2848,4 @@ contains
   end subroutine ca_ctu_update
 
 end module ctu_module
+ 

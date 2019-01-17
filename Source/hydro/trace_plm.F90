@@ -18,7 +18,7 @@ contains
                        dq, dq_lo, dq_hi, &
                        qm, qm_lo, qm_hi, &
                        qp, qp_lo, qp_hi, &
-#if (AMREX_SPACEDIM < 3)
+#if AMREX_SPACEDIM < 3
                        dloga, dloga_lo, dloga_hi, &
 #endif
                        SrcQ, src_lo, src_hi, &
