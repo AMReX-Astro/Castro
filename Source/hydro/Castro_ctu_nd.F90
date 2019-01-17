@@ -65,7 +65,6 @@ contains
 
     ! everything in this routine has the same lo:hi requirements (we fill one ghost cell)
 
-    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : QVAR, NQ, NVAR, &
                                    QFS, QFX, QTEMP, QREINT, &
                                    QC, QGAMC, NQAUX, QGAME, QREINT, &
@@ -73,17 +72,12 @@ contains
                                    ppm_type, ppm_predict_gammae, &
                                    plm_iorder, use_pslope, ppm_temp_fix, &
                                    hybrid_riemann
-    use network, only : nspec, naux
-    use eos_type_module, only: eos_t, eos_input_rt
-    use eos_module, only: eos
     use trace_plm_module, only : trace_plm
 #if AMREX_SPACEDIM >= 2
     use transverse_module
 #endif
     use ppm_module, only : ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
     use slope_module, only : uslope, pslope
-    use riemann_module, only: cmpflx
-    use riemann_util_module, only : ca_store_godunov_state
 #ifdef RADIATION
     use rad_params_module, only : ngroups
     use trace_ppm_rad_module, only : trace_ppm_rad
@@ -548,30 +542,18 @@ contains
                                    QFS, QFX, QTEMP, QREINT, &
                                    QC, QGAMC, NQAUX, QGAME, QREINT, &
                                    NGDNV, GDU, GDV, GDW, GDPRES, &
-                                   ppm_type, ppm_predict_gammae, &
-                                   plm_iorder, use_pslope, ppm_temp_fix, &
                                    hybrid_riemann
-    use network, only : nspec, naux
-    use eos_type_module, only: eos_t, eos_input_rt
-    use eos_module, only: eos
-    use trace_plm_module, only : trace_plm
 #if AMREX_SPACEDIM >= 2
     use transverse_module
 #endif
-    use ppm_module, only : ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
-    use slope_module, only : uslope, pslope
     use riemann_module, only: cmpflx
     use riemann_util_module, only : ca_store_godunov_state
 #ifdef RADIATION
     use rad_params_module, only : ngroups
-    use trace_ppm_rad_module, only : trace_ppm_rad
-#else
-    use trace_ppm_module, only : trace_ppm
 #endif
 #ifdef SHOCK_VAR
     use meth_params_module, only : USHK
 #endif
-    use advection_util_module, only : ca_shock
     use prob_params_module, only : dg
 
     implicit none
@@ -711,8 +693,6 @@ contains
     ! these will be the temporary arrays we actually allocate space for
     double precision, dimension(:,:,:,:), pointer :: ftmp1, ftmp2, rftmp1, rftmp2
     double precision, dimension(:,:,:,:), pointer :: qgdnvtmp1, qgdnvtmp2
-
-    type (eos_t) :: eos_state
 
     integer :: fglo(3), fghi(3), glo(3), ghi(3)
 
