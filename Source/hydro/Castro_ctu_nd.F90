@@ -124,8 +124,9 @@ contains
     integer, intent(in) :: qzm_lo(3), qzm_hi(3)
     integer, intent(in) :: qzp_lo(3), qzp_hi(3)
 #endif
+#if AMREX_SPACEDIM < 3
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
-
+#endif
     real(rt), intent(in) :: dx(3), dt
     integer, intent(in) :: domlo(3), domhi(3)
 
@@ -155,9 +156,9 @@ contains
     real(rt), intent(inout) :: qzm(qzm_lo(1):qzm_hi(1), qzm_lo(2):qzm_hi(2), qzm_lo(3):qzm_hi(3), NQ)
     real(rt), intent(inout) :: qzp(qzp_lo(1):qzp_hi(1), qzp_lo(2):qzp_hi(2), qzp_lo(3):qzp_hi(3), NQ)
 #endif
-
+#if AMREX_SPACEDIM < 3
     real(rt), intent(in) :: dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
-
+#endif
     real(rt) :: hdt
     integer :: i, j, k, n
 
