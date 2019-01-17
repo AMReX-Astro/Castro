@@ -395,6 +395,9 @@ contains
 
     use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QREINT, QPRES, &
          NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
+#ifdef SHOCK_VAR
+         USHK, &
+#endif
          npassive, upass_map, qpass_map
 
     integer, intent(in) :: idir
@@ -435,6 +438,10 @@ contains
     U(UEINT) = hllc_factor*q(QREINT)/q(QRHO)
 
     U(UTEMP) = ZERO  ! we don't evolve T
+
+#ifdef SHOCK_VAR
+    U(USHK) = ZERO
+#endif
 
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
@@ -697,6 +704,9 @@ contains
   pure subroutine compute_flux(idir, bnd_fac, U, p, F)
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
+#ifdef SHOCK_VAR
+         USHK, &
+#endif
          npassive, upass_map
     use prob_params_module, only : mom_flux_has_p
 
@@ -736,6 +746,10 @@ contains
     F(UEDEN) = (U(UEDEN) + p)*u_flx
 
     F(UTEMP) = ZERO
+
+#ifdef SHOCK_VAR
+    F(USHK) = ZERO
+#endif
 
     do ipassive = 1, npassive
        n = upass_map(ipassive)
