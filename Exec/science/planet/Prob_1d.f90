@@ -20,7 +20,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   namelist /fortin/ model_name, apply_vel_field, &
        velpert_scale, velpert_amplitude, velpert_height_loc, num_vortices, &
        shear_height_loc, shear_amplitude, &
-       cutoff_density, interp_BC, zero_vels
+       cutoff_density
 
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
@@ -43,8 +43,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   velpert_height_loc = 6.5d3
   num_vortices = 1
   cutoff_density = 50.d0
-  interp_BC = .false.
-  zero_vels = .false.
   shear_height_loc = 0.0d0
   
   ! Read namelists

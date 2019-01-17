@@ -462,6 +462,25 @@ extern "C"
 
     }
 
+
+    void ca_derabar(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
+                    const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
+                    const int* lo, const int* hi,
+                    const int* domain_lo, const int* domain_hi,
+                    const Real* delta, const Real* xlo,
+                    const Real* time, const Real* dt, const int* bcrec, 
+                    const int* level, const int* grid_no)
+    {
+
+#pragma gpu
+        derabar(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
+                data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
+                AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
+                AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+
+    }
+
     void ca_dermagvort(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
                        const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
                        const int* lo, const int* hi,

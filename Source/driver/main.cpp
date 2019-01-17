@@ -41,6 +41,7 @@ main (int   argc,
     // Make sure to catch new failures.
     //
     amrex::Initialize(argc,argv);
+    {
 
     // Refuse to continue if we did not provide an inputs file.
 
@@ -257,6 +258,7 @@ main (int   argc,
     BL_PROFILE_VAR_STOP(pmain);
     BL_PROFILE_SET_RUN_TIME(dRunTime2);
 
+    }
     amrex::Finalize();
 
     return 0;

@@ -19,6 +19,10 @@
 
 &tagging 
 
+  ! Limit zone size based on nuclear burning considerations
+  dxnuc_min = 0.01
+
+
 /
 
 &sponge

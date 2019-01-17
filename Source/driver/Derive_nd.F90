@@ -366,6 +366,7 @@ contains
     use amrex_constants_module, only: HALF
     use math_module, only: cross_product ! function
     use amrex_fort_module, only : rt => amrex_real
+    use prob_params_module, only: center
 
     implicit none
 
@@ -383,11 +384,11 @@ contains
     !$gpu
 
     do k = lo(3), hi(3)
-       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3)
+       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3) - center(3)
        do j = lo(2), hi(2)
-          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2)
+          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2) - center(2)
           do i = lo(1), hi(1)
-             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1)
+             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1) - center(1)
 
              rho = u(i,j,k,1)
              mom = u(i,j,k,2:4)
@@ -411,6 +412,7 @@ contains
     use amrex_constants_module, only: HALF
     use math_module, only: cross_product ! function
     use amrex_fort_module, only : rt => amrex_real
+    use prob_params_module, only: center
 
     implicit none
 
@@ -428,11 +430,11 @@ contains
     !$gpu
 
     do k = lo(3), hi(3)
-       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3)
+       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3) - center(3)
        do j = lo(2), hi(2)
-          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2)
+          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2) - center(2)
           do i = lo(1), hi(1)
-             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1)
+             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1) - center(1)
 
              rho = u(i,j,k,1)
              mom = u(i,j,k,2:4)
@@ -456,6 +458,7 @@ contains
     use amrex_constants_module, only: HALF
     use math_module, only: cross_product ! function
     use amrex_fort_module, only : rt => amrex_real
+    use prob_params_module, only: center
 
     implicit none
 
@@ -473,11 +476,11 @@ contains
     !$gpu
 
     do k = lo(3), hi(3)
-       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3)
+       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3) - center(3)
        do j = lo(2), hi(2)
-          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2)
+          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2) - center(2)
           do i = lo(1), hi(1)
-             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1)
+             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1) - center(1)
 
              rho = u(i,j,k,1)
              mom = u(i,j,k,2:4)
@@ -931,6 +934,48 @@ contains
   end subroutine derspec
 
 
+  subroutine derabar(abar,a_lo,a_hi,nv, &
+                     dat,d_lo,d_hi,nc,lo,hi,domlo, &
+                     domhi,delta,xlo) bind(C, name="derabar")
+    !
+    ! This routine derives the mass fractions of the species.
+    !
+    use amrex_fort_module, only : rt => amrex_real
+    use network, only : nspec, aion
+    use amrex_constants_module, only : ONE
+
+    implicit none
+
+    integer, intent(in), value :: nv, nc
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: a_lo(3), a_hi(3)
+    integer, intent(in) :: d_lo(3), d_hi(3)
+    integer, intent(in) :: domlo(3), domhi(3)
+    real(rt), intent(in) :: delta(3), xlo(3)
+    real(rt), intent(inout) :: abar(a_lo(1):a_hi(1),a_lo(2):a_hi(2),a_lo(3):a_hi(3),nv)
+    real(rt), intent(in) ::  dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+
+    ! abar(...,1) is density
+    ! abar(...,2:) are (rho X)
+
+    integer          :: i, j, k
+
+    real(rt) :: xn(nspec)
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             xn(:) = dat(i,j,k,2:)/dat(i,j,k,1)
+             abar(i,j,k,1) = ONE/(sum(xn(:)/aion(:)))
+          end do
+       end do
+    end do
+
+  end subroutine derabar
+
+
 
   subroutine derlogden(logden,l_lo,l_hi,nd, &
                           dat,d_lo,d_hi,nc, &
@@ -974,8 +1019,8 @@ contains
     ! This routine will calculate vorticity
     !     
 
-    use amrex_constants_module, only : ZERO, HALF
-    use prob_params_module, only: dg
+    use amrex_constants_module, only : ZERO, HALF, ONE
+    use prob_params_module, only: dg, problo, coord_type
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -991,6 +1036,7 @@ contains
 
     integer          :: i, j, k
     real(rt)         :: uy, uz, vx, vz, wx, wy, v1, v2, v3
+    real(rt)         :: vr_z, vphi_z, rvphi_r, vz_r, r, rm1, rp1
 
     !$gpu
 
@@ -1004,31 +1050,81 @@ contains
     !
     ! Calculate vorticity.
     !
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
+    if (coord_type == 0) then
+       ! Cartesian
 
-             vx = HALF * (dat(i+1*dg(1),j,k,3) / dat(i+1*dg(1),j,k,1) - dat(i-1*dg(1),j,k,3) / dat(i-1*dg(1),j,k,1)) / delta(1)
-             wx = HALF * (dat(i+1*dg(1),j,k,4) / dat(i+1*dg(1),j,k,1) - dat(i-1*dg(1),j,k,4) / dat(i-1*dg(1),j,k,1)) / delta(1)
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
-             if (delta(2) > ZERO) then
+                ! dv/dx and dw/dx
+                vx = HALF * (dat(i+1*dg(1),j,k,3) / dat(i+1*dg(1),j,k,1) - dat(i-1*dg(1),j,k,3) / dat(i-1*dg(1),j,k,1)) / delta(1)
+                wx = HALF * (dat(i+1*dg(1),j,k,4) / dat(i+1*dg(1),j,k,1) - dat(i-1*dg(1),j,k,4) / dat(i-1*dg(1),j,k,1)) / delta(1)
+
+#if AMREX_SPACEDIM >= 2
+                ! du/dy and dw/dy
                 uy = HALF * (dat(i,j+1*dg(2),k,2) / dat(i,j+1*dg(2),k,1) - dat(i,j-1*dg(2),k,2) / dat(i,j-1*dg(2),k,1)) / delta(2)
                 wy = HALF * (dat(i,j+1*dg(2),k,4) / dat(i,j+1*dg(2),k,1) - dat(i,j-1*dg(2),k,4) / dat(i,j-1*dg(2),k,1)) / delta(2)
-             endif
+#endif
 
-             if (delta(3) > ZERO) then
+#if AMREX_SPACEDIM == 3
+                ! du/dz and dv/dz
                 uz = HALF * (dat(i,j,k+1*dg(3),2) / dat(i,j,k+1*dg(3),1) - dat(i,j,k-1*dg(3),2) / dat(i,j,k-1*dg(3),1)) / delta(3)
                 vz = HALF * (dat(i,j,k+1*dg(3),3) / dat(i,j,k+1*dg(3),1) - dat(i,j,k-1*dg(3),3) / dat(i,j,k-1*dg(3),1)) / delta(3)
-             endif
+#endif
 
-             v1 = wy - vz
-             v2 = uz - wx
-             v3 = vx - uy
-             vort(i,j,k,1) = sqrt(v1*v1 + v2*v2 + v3*v3)
+                ! curl in Cartesian coords
+                v1 = wy - vz
+                v2 = uz - wx
+                v3 = vx - uy
+                vort(i,j,k,1) = sqrt(v1*v1 + v2*v2 + v3*v3)
 
+             end do
           end do
        end do
-    end do
+
+    else if (coord_type == 1) then
+       ! 2-d axisymmetric -- the coordinate ordering is r, z, phi
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                r = dble(i + HALF)*delta(1) + problo(1)
+                rm1 = dble(i - ONE + HALF)*delta(1) + problo(1)
+                rp1 = dble(i + ONE + HALF)*delta(1) + problo(1)
+
+                ! dv_r/dz
+                vr_z = HALF * (dat(i,j+1,k,2) / dat(i,j+1,k,1) - &
+                               dat(i,j-1,k,2) / dat(i,j-1,k,1)) / delta(2)
+
+                ! dv_phi/dz
+                vphi_z = HALF * (dat(i,j+1,k,4) / dat(i,j+1,k,1) - &
+                                 dat(i,j-1,k,4) / dat(i,j-1,k,1)) / delta(2)
+
+                ! d (r v_phi)/dr
+                rvphi_r = HALF * (rp1 * dat(i+1,j,k,4) / dat(i+1,j,k,1) - &
+                                  rm1 * dat(i-1,j,k,4) / dat(i-1,j,k,1)) / delta(1)
+
+                ! dv_z/dr
+                vz_r = HALF * (dat(i+1,j,k,3) / dat(i+1,j,k,1) - &
+                               dat(i-1,j,k,3) / dat(i-1,j,k,1)) / delta(1)
+
+                vort(i,j,k,1) = sqrt(vphi_z**2 + (vr_z - vz_r)**2 + (rvphi_r/r)**2)
+             end do
+          end do
+       end do
+
+    else if (coord_type == 2) then
+       ! 1-d spherical -- we don't really have a vorticity in this case
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                vort(i,j,k,1) = ZERO
+             end do
+          end do
+       end do
+
+    endif
 
   end subroutine dermagvort
 
@@ -1042,8 +1138,8 @@ contains
     ! This routine will calculate the divergence of velocity.
     !
 
-    use amrex_constants_module, only : ZERO, HALF
-    use prob_params_module, only: dg
+    use amrex_constants_module, only : ZERO, HALF, ONE
+    use prob_params_module, only: dg, problo, coord_type
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -1059,7 +1155,7 @@ contains
 
     integer          :: i, j, k
     real(rt)         :: ulo, uhi, vlo, vhi, wlo, whi
-
+    real(rt)         :: r, rm1, rp1
     !$gpu
 
     do k = lo(3), hi(3)
@@ -1071,13 +1167,35 @@ contains
              vlo = dat(i,j-1*dg(2),k,3) / dat(i,j-1*dg(2),k,1)
              whi = dat(i,j,k+1*dg(3),4) / dat(i,j,k+1*dg(3),1)
              wlo = dat(i,j,k-1*dg(3),4) / dat(i,j,k-1*dg(3),1)
-             divu(i,j,k,1) = HALF * (uhi-ulo) / delta(1)
-             if (delta(2) > ZERO) then
+
+             if (coord_type == 0) then
+                ! Cartesian divergence
+
+                divu(i,j,k,1) = HALF * (uhi-ulo) / delta(1)
+#if AMREX_SPACEDIM >= 2
                 divu(i,j,k,1) = divu(i,j,k,1) + HALF * (vhi-vlo) / delta(2)
-             endif
-             if (delta(3) > ZERO) then
+#endif
+#if AMREX_SPACEDIM == 3
                 divu(i,j,k,1) = divu(i,j,k,1) + HALF * (whi-wlo) / delta(3)
-             endif
+#endif
+             else if (coord_type == 1) then
+                ! axisymmetric divergence -- defined only for 2-d axisymmetric
+                r = dble(i + HALF)*delta(1) + problo(1)
+                rm1 = dble(i - ONE + HALF)*delta(1) + problo(1)
+                rp1 = dble(i + ONE + HALF)*delta(1) + problo(1)
+
+                divu(i,j,k,1) = HALF*(rp1*uhi - rm1*ulo)/(r*delta(1)) + &
+                                HALF*(vhi - vlo)/delta(2)
+
+             else if (coord_type == 2) then
+                r = dble(i + HALF)*delta(1) + problo(1)
+                rm1 = dble(i - ONE + HALF)*delta(1) + problo(1)
+                rp1 = dble(i + ONE + HALF)*delta(1) + problo(1)
+
+                divu(i,j,k,1) = HALF*(rp1**2*uhi - rm1**2*ulo)/(r**2 * delta(1))
+
+             end if
+
           end do
        end do
     end do
@@ -1136,7 +1254,7 @@ contains
     !
 
     use amrex_constants_module, only : ZERO
-    use meth_params_module, only: diffuse_cutoff_density, &
+    use meth_params_module, only: diffuse_cutoff_density, diffuse_cutoff_density_hi, &
                                   URHO, UEINT, UTEMP, UFS, UFX
     use eos_type_module, only: eos_input_re, eos_t
     use eos_module, only: eos
@@ -1155,10 +1273,10 @@ contains
     real(rt), intent(inout) :: cond(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
     real(rt), intent(in) :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
-    real(rt)         :: coeff
     integer          :: i, j, k
 
     type(eos_t) :: eos_state
+    real(rt) :: multiplier
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -1172,12 +1290,18 @@ contains
              call eos(eos_input_re,eos_state)
 
              if (eos_state%rho > diffuse_cutoff_density) then
-                call conductivity(eos_state, coeff)
+                call conductivity(eos_state)
+
+                if (eos_state%rho < diffuse_cutoff_density_hi) then
+                    multiplier = (eos_state%rho - diffuse_cutoff_density) / &
+                            (diffuse_cutoff_density_hi - diffuse_cutoff_density)
+                    eos_state % conductivity = eos_state % conductivity * multiplier
+                endif
              else
-                coeff = ZERO
+                eos_state % conductivity = ZERO
              endif
 
-             cond(i,j,k,1) = coeff
+             cond(i,j,k,1) = eos_state % conductivity
 
           enddo
        enddo
@@ -1195,7 +1319,7 @@ contains
     !
 
     use amrex_constants_module, only : ZERO
-    use meth_params_module, only: diffuse_cutoff_density, &
+    use meth_params_module, only: diffuse_cutoff_density, diffuse_cutoff_density_hi, &
                                   URHO, UEINT, UTEMP, UFS, UFX
     use eos_type_module, only: eos_input_re, eos_t
     use eos_module, only: eos
@@ -1214,10 +1338,10 @@ contains
     real(rt), intent(inout) :: diff(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
     real(rt), intent(in) :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
-    real(rt)         :: coeff
     integer          :: i, j, k
 
     type(eos_t) :: eos_state
+    real(rt) :: multiplier
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -1231,12 +1355,18 @@ contains
              call eos(eos_input_re,eos_state)
 
              if (eos_state%rho > diffuse_cutoff_density) then
-                call conductivity(eos_state, coeff)
+                call conductivity(eos_state)
+
+                if (eos_state%rho < diffuse_cutoff_density_hi) then
+                    multiplier = (eos_state%rho - diffuse_cutoff_density) / &
+                            (diffuse_cutoff_density_hi - diffuse_cutoff_density)
+                    eos_state % conductivity = eos_state % conductivity * multiplier
+                endif
              else
-                coeff = ZERO
+                eos_state % conductivity = ZERO
              endif
 
-             diff(i,j,k,1) = coeff/(eos_state%rho * eos_state%cv)
+             diff(i,j,k,1) = eos_state % conductivity/(eos_state%rho * eos_state%cv)
 
           enddo
        enddo
@@ -1254,9 +1384,10 @@ contains
     !
 
     use meth_params_module, only: UTEMP
-    use prob_params_module, only: dim
+    use prob_params_module, only: problo, coord_type
     use diffusion_module, only : ca_fill_temp_cond
     use amrex_fort_module, only : rt => amrex_real
+    use amrex_constants_module, only : ZERO, HALF, ONE
 
     implicit none
 
@@ -1271,7 +1402,10 @@ contains
 
     real(rt), allocatable  :: coeff_x(:,:,:), coeff_y(:,:,:), coeff_z(:,:,:)
     real(rt) :: diff_term
+    real(rt) :: kgradT_xhi, kgradT_xlo, kgradT_yhi, kgradT_ylo, kgradT_zhi, kgradT_zlo
     integer          :: i, j, k
+
+    real(rt) :: r, rp1, rm1
 
     ! allocate space for edge-centered conductivities
     allocate(coeff_x(d_lo(1):d_hi(1), d_lo(2):d_hi(2), d_lo(3):d_hi(3)))
@@ -1289,23 +1423,43 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             ! x
-             diff_term = &
-                  coeff_x(i+1,j,k)*(state(i+1,j,k,UTEMP) - state(i,  j,k,UTEMP))/delta(1) - &
-                  coeff_x(i  ,j,k)*(state(i  ,j,k,UTEMP) - state(i-1,j,k,UTEMP))/delta(1)
+             kgradT_xhi = coeff_x(i+1,j,k)*(state(i+1,j,k,UTEMP) - state(i,  j,k,UTEMP))/delta(1)
+             kgradT_xlo = coeff_x(i  ,j,k)*(state(i  ,j,k,UTEMP) - state(i-1,j,k,UTEMP))/delta(1)
+#if AMREX_SPACEDIM >= 2
+             kgradT_yhi = coeff_y(i,j+1,k)*(state(i,j+1,k,UTEMP) - state(i,j  ,k,UTEMP))/delta(2)
+             kgradT_ylo = coeff_y(i,j  ,k)*(state(i,j,  k,UTEMP) - state(i,j-1,k,UTEMP))/delta(2)
+#endif
+#if AMREX_SPACEDIM == 3
+             kgradT_zhi = coeff_z(i,j,k+1)*(state(i,j,k+1,UTEMP) - state(i,j,k  ,UTEMP))/delta(3)
+             kgradT_zlo = coeff_z(i,j,k  )*(state(i,j,k  ,UTEMP) - state(i,j,k-1,UTEMP))/delta(3)
+#endif
 
-             ! y
-             if (dim >= 2) then
-                diff_term = diff_term + &
-                     coeff_y(i,j+1,k)*(state(i,j+1,k,UTEMP) - state(i,j  ,k,UTEMP))/delta(2) - &
-                     coeff_y(i,j  ,k)*(state(i,j,  k,UTEMP) - state(i,j-1,k,UTEMP))/delta(2)
-             endif
-             
-             ! z
-             if (dim == 3) then
-                diff_term = diff_term + &
-                     coeff_z(i,j,k+1)*(state(i,j,k+1,UTEMP) - state(i,j,k  ,UTEMP))/delta(3) - &
-                     coeff_z(i,j,k  )*(state(i,j,k  ,UTEMP) - state(i,j,k-1,UTEMP))/delta(3)
+             if (coord_type == 0) then
+                diff_term = (kgradT_xhi - kgradT_xlo)/delta(1)
+#if AMREX_SPACEDIM >= 2
+                diff_term = diff_term + (kgradT_yhi - kgradT_ylo)/delta(2)
+#endif
+#if AMREX_SPACEDIM == 3
+                diff_term = diff_term + (kgradT_zhi = kgradT_zlo)/delta(3)&
+#endif
+
+             else if (coord_type == 1) then
+                ! axisymmetric coords (2-d)
+                r = dble(i + HALF)*delta(1) + problo(1)
+                rm1 = dble(i - ONE + HALF)*delta(1) + problo(1)
+                rp1 = dble(i + ONE + HALF)*delta(1) + problo(1)
+
+                diff_term = (rp1*kgradT_xhi - rm1*kgradT_xlo)/(r*delta(1)) + &
+                            (kgradT_yhi - kgradT_ylo)/delta(2)
+
+             else if (coord_type == 2) then
+                ! spherical coords (1-d)
+                r = dble(i + HALF)*delta(1) + problo(1)
+                rm1 = dble(i - ONE + HALF)*delta(1) + problo(1)
+                rp1 = dble(i + ONE + HALF)*delta(1) + problo(1)
+
+                diff_term = (rp1**2*kgradT_xhi - rm1**2*kgradT_xlo)/(r**2*delta(1))
+
              endif
 
              diff(i,j,k,1) = diff_term

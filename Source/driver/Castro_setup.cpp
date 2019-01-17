@@ -212,26 +212,12 @@ Castro::variableSetUp ()
 
   NUM_STATE = cnt;
 
+#include "set_primitive.H"
+
   // Define NUM_GROW from the f90 module.
   ca_get_method_params(&NUM_GROW);
 
   const Real run_strt = ParallelDescriptor::second() ;
-
-
-  // we want const_grav in F90, get it here from parmparse, since it
-  // it not in the Castro namespace
-  ParmParse pp("gravity");
-
-  // Pass in the name of the gravity type we're using -- we do this
-  // manually, since the Fortran parmparse doesn't support strings
-  std::string gravity_type = "none";
-  pp.query("gravity_type", gravity_type);
-  const int gravity_type_length = gravity_type.length();
-  Vector<int> gravity_type_name(gravity_type_length);
-
-  for (int i = 0; i < gravity_type_length; i++)
-    gravity_type_name[i] = gravity_type[i];
-
 
   // Read in the input values to Fortran.
   ca_set_castro_method_params();
@@ -245,7 +231,17 @@ Castro::variableSetUp ()
 #ifdef SHOCK_VAR
 		       Shock,
 #endif
-		       gravity_type_name.dataPtr(), gravity_type_length);
+#ifdef MHD
+                       QMAGX, QMAGY, QMAGZ,
+#endif
+#ifdef RADIATION
+                       QPTOT, QREITOT, QRAD,
+#endif
+                       QRHO,
+                       QU, QV, QW,
+                       QGAME, QPRES, QREINT,
+                       QTEMP,
+                       QFA, QFS, QFX);
 
   // Get the number of primitive variables from Fortran.
   ca_get_qvar(&QVAR);
@@ -839,6 +835,14 @@ Castro::variableSetUp ()
     derive_lst.addComponent(spec_string,desc_lst,State_Type,Density,1);
     derive_lst.addComponent(spec_string,desc_lst,State_Type,FirstSpec+i,1);
   }
+
+  //
+  // Abar
+  //
+  derive_lst.add("abar",IndexType::TheCellType(),1,ca_derabar,the_same_box);
+  derive_lst.addComponent("abar",desc_lst,State_Type,Density,1);
+  derive_lst.addComponent("abar",desc_lst,State_Type,FirstSpec,NumSpec);
+
   //
   // Velocities
   //

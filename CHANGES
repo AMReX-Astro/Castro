@@ -1,4 +1,91 @@
-changes since last release
+changes since last release:
+
+  -- the CTU hydro solver no longer does any allocation in any of the
+     support routines -- it is all done in the top-level
+     driver. (#455)
+
+  -- The CTU solver now makes explicit the range of cells looped over
+     in the transverse routines (#456)
+
+  -- The plotfile quantities divu and magvort were fixed in
+     axisymmetric coordinates and diff_term was fixed in all
+     geometries.  (#446, 448, 449, 472)
+
+  -- abar is a new derived variable (#470)
+
+  -- the job_info file now stores domain information (#451), and the
+     job_info files is also stored in checkpoints now too (#450)
+
+  -- we can now refine on enuc -- the nuclear energy generation rate.
+     This is controlled by the parameters (in the &tagging probin
+     namespace) enucerr, and max_enucerr_lev.  We also moved the dxnuc
+     tagging parameters from inputs to probin, where they are now
+     named dxnuc_min (formerly castro.dxnuc), dxnuc_max, and
+     max_dxnuc_lev.  (#364, #437, #473)
+
+  -- The diffusion cutoff now is a linear ramp instead of a
+     discontinous cutoff.  For densities less than
+     diffuse_cutoff_density_hi, the transport coefficient is scaled
+     linearly until the density reaches diffuse_cutoff_density, where
+     it is zero.
+
+# 19.01
+
+  -- The User's Guide is now automatically built from the development
+     branch using travis.
+
+  -- we now store the job_info file in the checkpoints (#450)
+
+  -- we now automatically generate Doxygen docs along with the User's
+     Guide and have started adding docstrings throughout the
+     code. (#461)
+
+  -- The MG solver was optimized a bit (#464)
+
+  -- we removed ppm_type = 2.  This was never really used and not as
+     robust as ppm_type = 1.  The forthcoming 4th order method will
+     take its place. (#442)
+
+# 18.12
+
+  -- fixed a bug in the CUDA version of the MOL integrator -- it was
+     setting the interface states incorrectly.
+
+  -- removed ppm_type = 2.  This was not used for science simulations
+     because it was never shown to be completely stable.  In the near
+     future, the full fourth order method will be merged which will be
+     a better replacement.
+
+  -- a bug was fixed in the 1-d SDC integration -- we were not
+     applying the reactive source terms to the hydrodynamics interface
+     prediction.
+
+  -- we now apply the source terms for PLM before the transverse
+     routines.  This is more consistent with the PPM version.
+
+  -- the angular momentum in the plotfile is not computed with respect
+     to the center array initialized in the probinit
+
+  -- fixed a bug in 2-d with rotation -- we were adding the source
+     terms to the out-of-plane velocity twice in the prediction of the
+     interface states, resulting in an overall first-order
+     approximation there.
+
+  -- fixed an issue that resulted in the custom knapsack distribution
+     map not generating a useful distribution map for the reactions.
+     Also, fixed an edge case where this custom distribution map could
+     cause a numerical overflow and code crash. (#382)
+
+  -- rewrote the reconstruction routines to eliminate temporary arrays
+     to make them GPU friendly
+
+  -- the documentation was converted to sphinx
+
+  -- changed the interface to the conductivity routines so the conductivity
+     is not part of eos_t (#431)
+
+
+# 18.11
 
   -- we've restructured the CTU solver to no longer use a slab
      approach in 3d.  This is in preparation for offloading the solver
@@ -6,6 +93,10 @@ changes since last release
 
   -- a few minor bugs were fixed in the transverse routines of the CTU
      solver with radiation
+
+  -- simplified conductivity interface to match the eos interface by
+     moving the conductivity variable in the arguments into the eos
+     type.
 
 
 # 18.10
