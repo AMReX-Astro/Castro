@@ -441,6 +441,7 @@ contains
                       vlo, vhi, domlo, domhi, &
                       dx, dt)
 
+#if AMREX_SPACEDIM >= 2
        call trace_plm(lo, hi, &
                       2, q, qd_lo, qd_hi, &
                       qaux, qa_lo, qa_hi, &
@@ -453,6 +454,7 @@ contains
                       SrcQ, src_lo, Src_hi, &
                       vlo, vhi, domlo, domhi, &
                       dx, dt)
+#endif
 
 #if AMREX_SPACEDIM == 3
        call trace_plm(lo, hi, &
