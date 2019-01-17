@@ -58,6 +58,9 @@ contains
                                qzp, qzp_lo, qzp_hi, &
 #endif
                                dx, dt, &
+#if AMREX_SPACEDIM < 3
+                               dloga, dloga_lo, dloga_hi, &
+#endif
                                domlo, domhi)
 
     ! everything in this routine has the same lo:hi requirements (we fill one ghost cell)
@@ -113,10 +116,15 @@ contains
     integer, intent(in) :: sp_lo(3), sp_hi(3)
     integer, intent(in) :: qxm_lo(3), qxm_hi(3)
     integer, intent(in) :: qxp_lo(3), qxp_hi(3)
+#if AMREX_SPACEDIM >= 2
     integer, intent(in) :: qym_lo(3), qym_hi(3)
     integer, intent(in) :: qyp_lo(3), qyp_hi(3)
+#endif
+#if AMREX_SPACEDIM == 3
     integer, intent(in) :: qzm_lo(3), qzm_hi(3)
     integer, intent(in) :: qzp_lo(3), qzp_hi(3)
+#endif
+    integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 
     real(rt), intent(in) :: dx(3), dt
     integer, intent(in) :: domlo(3), domhi(3)
@@ -139,10 +147,16 @@ contains
 
     real(rt), intent(inout) :: qxm(qxm_lo(1):qxm_hi(1), qxm_lo(2):qxm_hi(2), qxm_lo(3):qxm_hi(3), NQ)
     real(rt), intent(inout) :: qxp(qxp_lo(1):qxp_hi(1), qxp_lo(2):qxp_hi(2), qxp_lo(3):qxp_hi(3), NQ)
+#if AMREX_SPACEDIM >= 2
     real(rt), intent(inout) :: qym(qym_lo(1):qym_hi(1), qym_lo(2):qym_hi(2), qym_lo(3):qym_hi(3), NQ)
     real(rt), intent(inout) :: qyp(qyp_lo(1):qyp_hi(1), qyp_lo(2):qyp_hi(2), qyp_lo(3):qyp_hi(3), NQ)
+#endif
+#if AMREX_SPACEDIM == 3
     real(rt), intent(inout) :: qzm(qzm_lo(1):qzm_hi(1), qzm_lo(2):qzm_hi(2), qzm_lo(3):qzm_hi(3), NQ)
     real(rt), intent(inout) :: qzp(qzp_lo(1):qzp_hi(1), qzp_lo(2):qzp_hi(2), qzp_lo(3):qzp_hi(3), NQ)
+#endif
+
+    real(rt), intent(in) :: dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 
     real(rt) :: hdt
     integer :: i, j, k, n
@@ -523,7 +537,6 @@ contains
 #endif
 #if AMREX_SPACEDIM <= 2
                                 vol, vol_lo, vol_hi, &
-                                dloga, dloga_lo, dloga_hi, &
 #endif
                                 domlo, domhi)
 
@@ -568,10 +581,14 @@ contains
     integer, intent(in) :: sk_lo(3), sk_hi(3)
     integer, intent(in) :: qxm_lo(3), qxm_hi(3)
     integer, intent(in) :: qxp_lo(3), qxp_hi(3)
+#if AMREX_SPACEDIM >= 2
     integer, intent(in) :: qym_lo(3), qym_hi(3)
     integer, intent(in) :: qyp_lo(3), qyp_hi(3)
+#endif
+#if AMREX_SPACEDIM == 3
     integer, intent(in) :: qzm_lo(3), qzm_hi(3)
     integer, intent(in) :: qzp_lo(3), qzp_hi(3)
+#endif
 
     integer, intent(in) :: uout_lo(3), uout_hi(3)
     integer, intent(in) :: q1_lo(3), q1_hi(3)
@@ -592,7 +609,6 @@ contains
 #endif
 #if AMREX_SPACEDIM <= 2
     integer, intent(in) :: vol_lo(3), vol_hi(3)
-    integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
 
 #ifdef RADIATION
@@ -615,11 +631,14 @@ contains
 
     real(rt), intent(inout) :: qxm(qxm_lo(1):qxm_hi(1), qxm_lo(2):qxm_hi(2), qxm_lo(3):qxm_hi(3), NQ)
     real(rt), intent(inout) :: qxp(qxp_lo(1):qxp_hi(1), qxp_lo(2):qxp_hi(2), qxp_lo(3):qxp_hi(3), NQ)
+#if AMREX_SPACEDIM >= 2
     real(rt), intent(inout) :: qym(qym_lo(1):qym_hi(1), qym_lo(2):qym_hi(2), qym_lo(3):qym_hi(3), NQ)
     real(rt), intent(inout) :: qyp(qyp_lo(1):qyp_hi(1), qyp_lo(2):qyp_hi(2), qyp_lo(3):qyp_hi(3), NQ)
+#endif
+#if AMREX_SPACEDIM == 3
     real(rt), intent(inout) :: qzm(qzm_lo(1):qzm_hi(1), qzm_lo(2):qzm_hi(2), qzm_lo(3):qzm_hi(3), NQ)
     real(rt), intent(inout) :: qzp(qzp_lo(1):qzp_hi(1), qzp_lo(2):qzp_hi(2), qzp_lo(3):qzp_hi(3), NQ)
-
+#endif
     real(rt), intent(inout) ::  uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
     real(rt), intent(inout) :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3),NVAR)
     real(rt), intent(inout) ::    q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NGDNV)
@@ -642,7 +661,6 @@ contains
 #endif
 #endif
 #if AMREX_SPACEDIM <= 2
-    real(rt), intent(in) :: dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
     real(rt), intent(in) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
     real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
 #endif
@@ -2689,6 +2707,9 @@ contains
                            qzp, fglo, fghi, &
 #endif
                            dx, dt, &
+#if AMREX_SPACEDIM < 3
+                           dloga, dloga_lo, dloga_hi, &
+#endif
                            domlo, domhi)
 
     call bl_deallocate ( Ip)
@@ -2755,7 +2776,6 @@ contains
 #endif
 #if AMREX_SPACEDIM < 3
                             vol, vol_lo, vol_hi, &
-                            dloga, dloga_lo, dloga_hi, &
 #endif
                             domlo, domhi)
 
