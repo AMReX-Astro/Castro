@@ -21,7 +21,7 @@ contains
 #if (AMREX_SPACEDIM < 3)
                        dloga, dloga_lo, dloga_hi, &
 #endif
-                       SrcQ, src_lo, Src_hi, &
+                       SrcQ, src_lo, src_hi, &
                        vlo, vhi, domlo, domhi, &
                        dx, dt)
 

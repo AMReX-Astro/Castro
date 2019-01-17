@@ -126,7 +126,7 @@ contains
 
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    real(rt), intent(in) :: flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
     real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
 
     real(rt), intent(inout) :: shk(sk_lo(1):sk_hi(1), sk_lo(2):sk_hi(2), sk_lo(3):sk_hi(3))
@@ -432,7 +432,7 @@ contains
 #if (AMREX_SPACEDIM < 3)
                       dloga, dloga_lo, dloga_hi, &
 #endif
-                      SrcQ, src_lo, Src_hi, &
+                      SrcQ, src_lo, src_hi, &
                       vlo, vhi, domlo, domhi, &
                       dx, dt)
 
@@ -446,7 +446,7 @@ contains
 #if (AMREX_SPACEDIM < 3)
                       dloga, dloga_lo, dloga_hi, &
 #endif
-                      SrcQ, src_lo, Src_hi, &
+                      SrcQ, src_lo, src_hi, &
                       vlo, vhi, domlo, domhi, &
                       dx, dt)
 #endif
@@ -458,7 +458,7 @@ contains
                       dq, dq_lo, dq_hi, &
                       qzm, qzm_lo, qzm_hi, &
                       qzp, qzp_lo, qzp_hi, &
-                      SrcQ, src_lo, Src_hi, &
+                      SrcQ, src_lo, src_hi, &
                       vlo, vhi, domlo, domhi, &
                       dx, dt)
 #endif
