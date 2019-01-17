@@ -2782,6 +2782,19 @@ contains
 #endif
                             domlo, domhi)
 
+    call bl_deallocate(qxm)
+    call bl_deallocate(qxp)
+#if AMREX_SPACEDIM >= 2
+    call bl_deallocate(qym)
+    call bl_deallocate(qyp)
+#endif
+#if AMREX_SPACEDIM == 3
+    call bl_deallocate(qzm)
+    call bl_deallocate(qzp)
+#endif
+
+    call bl_deallocate(shk)
+
     ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
     call divu(lo, hi+dg, q, q_lo, q_hi, dx, div, lo, hi+dg)
 
