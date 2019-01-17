@@ -458,7 +458,10 @@ contains
     use prob_params_module, only : mom_flux_has_p
     use meth_params_module, only : NQ, NVAR, NQAUX, &
          URHO, UMX, UMY, UMZ, &
-         UEDEN, UEINT, UFS, UFX, &
+         UEDEN, UEINT, UFS, UFX, UTEMP, &
+#ifdef SHOCK_VAR
+         USHK, &
+#endif
          QRHO, QU, QV, QW, &
          QPRES, QGAME, QREINT, QFS, QFX, &
          QC, QGAMC, &
@@ -547,6 +550,11 @@ contains
 
              F(i,j,k,UEDEN) = u_adv*(rhoetot + qint(i,j,k,QPRES))
              F(i,j,k,UEINT) = u_adv*qint(i,j,k,QREINT)
+
+             F(i,j,k,UTEMP) = ZERO
+#ifdef SHOCK_VAR
+             F(i,j,k,USHK) = ZERO
+#endif
 
 #ifdef RADIATION
              if (fspace_type == 1) then
