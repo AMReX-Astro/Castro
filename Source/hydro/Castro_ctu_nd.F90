@@ -1736,18 +1736,18 @@ contains
     call bl_allocate(pdivu, lo, hi)
 
     call calc_pdivu(lo, hi, &
-         qx, qx_lo, qx_hi, &
-         area1, area1_lo, area1_hi, &
+                    qx, qx_lo, qx_hi, &
+                    area1, area1_lo, area1_hi, &
 #if AMREX_SPACEDIM >= 2
-         qy, qy_lo, qy_hi, &
-         area2, area2_lo, area2_hi, &
+                    qy, qy_lo, qy_hi, &
+                    area2, area2_lo, area2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-         qz, qz_lo, qz_hi, &
-         area3, area3_lo, area3_hi, &
+                    qz, qz_lo, qz_hi, &
+                    area3, area3_lo, area3_hi, &
 #endif
-         vol, vol_lo, vol_hi, &
-         dx, pdivu, lo, hi)
+                    vol, vol_lo, vol_hi, &
+                    dx, pdivu, lo, hi)
 
     ! zero out shock and temp fluxes -- these are physically meaningless here
     do k = lo(3), hi(3)
@@ -1818,19 +1818,19 @@ contains
 
     if (limit_fluxes_on_small_dens == 1) then
        call limit_hydro_fluxes_on_small_dens(uin,uin_lo,uin_hi, &
-            q,q_lo,q_hi, &
-            vol,vol_lo,vol_hi, &
-            flux1,flux1_lo,flux1_hi, &
-            area1,area1_lo,area1_hi, &
+                                             q,q_lo,q_hi, &
+                                             vol,vol_lo,vol_hi, &
+                                             flux1,flux1_lo,flux1_hi, &
+                                             area1,area1_lo,area1_hi, &
 #if AMREX_SPACEDIM >= 2
-            flux2,flux2_lo,flux2_hi, &
-            area2,area2_lo,area2_hi, &
+                                             flux2,flux2_lo,flux2_hi, &
+                                             area2,area2_lo,area2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-            flux3,flux3_lo,flux3_hi, &
-            area3,area3_lo,area3_hi, &
+                                             flux3,flux3_lo,flux3_hi, &
+                                             area3,area3_lo,area3_hi, &
 #endif
-            lo,hi,dt,dx)
+                                             lo,hi,dt,dx)
 
     endif
 
