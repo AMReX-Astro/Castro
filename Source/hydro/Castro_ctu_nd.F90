@@ -499,6 +499,403 @@ contains
 #if AMREX_SPACEDIM == 3
                                 qzm, qzm_lo, qzm_hi, &
                                 qzp, qzp_lo, qzp_hi, &
+#endif
+                                uout, uout_lo, uout_hi, &
+                                flux1, f1_lo, f1_hi, &
+#if AMREX_SPACEDIM >= 2
+                                flux2, f2_lo, f2_hi, &
+#endif
+#if AMREX_SPACEDIM == 3
+                                flux3, f3_lo, f3_hi, &
+#endif
+#ifdef RADIATION
+                                rflux1, rf1_lo, rf1_hi, &
+#if AMREX_SPACEDIM >= 2
+                                rflux2, rf2_lo, rf2_hi, &
+#endif
+#if AMREX_SPACEDIM == 3
+                                rflux3, rf3_lo, rf3_hi, &
+#endif
+#endif
+                                q1, q1_lo, q1_hi, &
+#if AMREX_SPACEDIM >= 2
+                                q2, q2_lo, q2_hi, &
+#endif
+#if AMREX_SPACEDIM == 3
+                                q3, q3_lo, q3_hi, &
+#endif
+#if AMREX_SPACEDIM <= 2
+                                area1, area1_lo, area1_hi, &
+#endif
+#if AMREX_SPACEDIM == 2
+                                area2, area2_lo, area2_hi, &
+#endif
+#if AMREX_SPACEDIM <= 2
+                                vol, vol_lo, vol_hi, &
+#endif
+                                domlo, domhi)
+
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
+    use meth_params_module, only : QVAR, NQ, NVAR, &
+                                   QFS, QFX, QTEMP, QREINT, &
+                                   QC, QGAMC, NQAUX, QGAME, QREINT, &
+                                   NGDNV, GDU, GDV, GDW, GDPRES, &
+                                   hybrid_riemann
+#if AMREX_SPACEDIM >= 2
+    use transverse_module
+#endif
+    use riemann_module, only: cmpflx
+    use riemann_util_module, only : ca_store_godunov_state
+#ifdef RADIATION
+    use rad_params_module, only : ngroups
+#endif
+#ifdef SHOCK_VAR
+    use meth_params_module, only : USHK
+#endif
+    use prob_params_module, only : dg
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+
+    integer, intent(in) :: qd_lo(3), qd_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
+
+    integer, intent(in) :: sk_lo(3), sk_hi(3)
+    integer, intent(in) :: qxm_lo(3), qxm_hi(3)
+    integer, intent(in) :: qxp_lo(3), qxp_hi(3)
+#if AMREX_SPACEDIM >= 2
+<<<<<<< HEAD
+       call trace_ppm_rad(lo, hi, &
+                          2, q, qd_lo, qd_hi, &
+                          qaux, qa_lo, qa_hi, &
+                          Ip, Ip_lo, Ip_hi, &
+                          Im, Im_lo, Im_hi, &
+                          Ip_src, Ips_lo, Ips_hi, &
+                          Im_src, Ims_lo, Ims_hi, &
+                          qym, qym_lo, qym_hi, &
+                          qyp, qyp_lo, qyp_hi, &
+#if AMREX_SPACEDIM == 2
+                          dloga, dloga_lo, dloga_hi, &
+#endif
+                          vlo, vhi, domlo, domhi, &
+                          dx, dt)
+=======
+    integer, intent(in) :: qym_lo(3), qym_hi(3)
+    integer, intent(in) :: qyp_lo(3), qyp_hi(3)
+#endif
+#if AMREX_SPACEDIM == 3
+    integer, intent(in) :: qzm_lo(3), qzm_hi(3)
+    integer, intent(in) :: qzp_lo(3), qzp_hi(3)
+>>>>>>> development
+#endif
+
+    integer, intent(in) :: uout_lo(3), uout_hi(3)
+    integer, intent(in) :: q1_lo(3), q1_hi(3)
+    integer, intent(in) :: f1_lo(3), f1_hi(3)
+#if AMREX_SPACEDIM >= 2
+    integer, intent(in) :: q2_lo(3), q2_hi(3)
+    integer, intent(in) :: f2_lo(3), f2_hi(3)
+#endif
+#if AMREX_SPACEDIM == 3
+<<<<<<< HEAD
+       call trace_ppm_rad(lo, hi, &
+                          3, q, qd_lo, qd_hi, &
+                          qaux, qa_lo, qa_hi, &
+                          Ip, Ip_lo, Ip_hi, &
+                          Im, Im_lo, Im_hi, &
+                          Ip_src, Ips_lo, Ips_hi, &
+                          Im_src, Ims_lo, Ims_hi, &
+                          qzm, qzm_lo, qzm_hi, &
+                          qzp, qzp_lo, qzp_hi, &
+                          vlo, vhi, domlo, domhi, &
+                          dx, dt)
+#endif
+
+#else
+       call trace_ppm(lo, hi, &
+                      1, q, qd_lo, qd_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      Ip, Ip_lo, Ip_hi, &
+                      Im, Im_lo, Im_hi, &
+                      Ip_src, Ips_lo, Ips_hi, &
+                      Im_src, Ims_lo, Ims_hi, &
+                      Ip_gc, Ipg_lo, Ipg_hi, &
+                      Im_gc, Img_lo, Img_hi, &
+                      qxm, qxm_lo, qxm_hi, &
+                      qxp, qxp_lo, qxp_hi, &
+=======
+    integer, intent(in) :: f3_lo(3), f3_hi(3)
+    integer, intent(in) :: q3_lo(3), q3_hi(3)
+#endif
+>>>>>>> development
+#if AMREX_SPACEDIM <= 2
+    integer, intent(in) :: area1_lo(3), area1_hi(3)
+#endif
+<<<<<<< HEAD
+                      vlo, vhi, domlo, domhi, &
+                      dx, dt)
+
+#if AMREX_SPACEDIM >= 2
+       call trace_ppm(lo, hi, &
+                      2, q, qd_lo, qd_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      Ip, Ip_lo, Ip_hi, &
+                      Im, Im_lo, Im_hi, &
+                      Ip_src, Ips_lo, Ips_hi, &
+                      Im_src, Ims_lo, Ims_hi, &
+                      Ip_gc, Ipg_lo, Ipg_hi, &
+                      Im_gc, Img_lo, Img_hi, &
+                      qym, qym_lo, qym_hi, &
+                      qyp, qyp_lo, qyp_hi, &
+=======
+>>>>>>> development
+#if AMREX_SPACEDIM == 2
+    integer, intent(in) :: area2_lo(3), area2_hi(3)
+#endif
+<<<<<<< HEAD
+                      vlo, vhi, domlo, domhi, &
+                      dx, dt)
+=======
+#if AMREX_SPACEDIM <= 2
+    integer, intent(in) :: vol_lo(3), vol_hi(3)
+>>>>>>> development
+#endif
+
+#ifdef RADIATION
+    integer, intent(in) :: rf1_lo(3), rf1_hi(3)
+#if AMREX_SPACEDIM >= 2
+    integer, intent(in) :: rf2_lo(3), rf2_hi(3)
+#endif
+#if AMREX_SPACEDIM == 3
+<<<<<<< HEAD
+       call trace_ppm(lo, hi, &
+                      3, q, qd_lo, qd_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      Ip, Ip_lo, Ip_hi, &
+                      Im, Im_lo, Im_hi, &
+                      Ip_src, Ips_lo, Ips_hi, &
+                      Im_src, Ims_lo, Ims_hi, &
+                      Ip_gc, Ipg_lo, Ipg_hi, &
+                      Im_gc, Img_lo, Img_hi, &
+                      qzm, qzm_lo, qzm_hi, &
+                      qzp, qzp_lo, qzp_hi, &
+                      vlo, vhi, domlo, domhi, &
+                      dx, dt)
+=======
+    integer, intent(in) :: rf3_lo(3), rf3_hi(3)
+>>>>>>> development
+#endif
+#endif
+    integer, intent(in) :: domlo(3), domhi(3)
+
+    real(rt), intent(in) :: dx(3), dt
+
+    real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+
+    real(rt), intent(in) :: shk(sk_lo(1):sk_hi(1), sk_lo(2):sk_hi(2), sk_lo(3):sk_hi(3))
+
+    real(rt), intent(inout) :: qxm(qxm_lo(1):qxm_hi(1), qxm_lo(2):qxm_hi(2), qxm_lo(3):qxm_hi(3), NQ)
+    real(rt), intent(inout) :: qxp(qxp_lo(1):qxp_hi(1), qxp_lo(2):qxp_hi(2), qxp_lo(3):qxp_hi(3), NQ)
+#if AMREX_SPACEDIM >= 2
+    real(rt), intent(inout) :: qym(qym_lo(1):qym_hi(1), qym_lo(2):qym_hi(2), qym_lo(3):qym_hi(3), NQ)
+    real(rt), intent(inout) :: qyp(qyp_lo(1):qyp_hi(1), qyp_lo(2):qyp_hi(2), qyp_lo(3):qyp_hi(3), NQ)
+#endif
+#if AMREX_SPACEDIM == 3
+    real(rt), intent(inout) :: qzm(qzm_lo(1):qzm_hi(1), qzm_lo(2):qzm_hi(2), qzm_lo(3):qzm_hi(3), NQ)
+    real(rt), intent(inout) :: qzp(qzp_lo(1):qzp_hi(1), qzp_lo(2):qzp_hi(2), qzp_lo(3):qzp_hi(3), NQ)
+#endif
+<<<<<<< HEAD
+       ! Compute all slopes
+       do n = 1, NQ
+          if (.not. reconstruct_state(n)) cycle
+          call uslope(lo, hi, &
+                      q, qd_lo, qd_hi, n, &
+                      flatn, f_lo, f_hi, &
+                      dq, dq_lo, dq_hi)
+       end do
+
+       if (use_pslope == 1) then
+          call pslope(lo, hi, &
+                      q, qd_lo, qd_hi, &
+                      flatn, f_lo, f_hi, &
+                      dq, dq_lo, dq_hi, &
+                      srcQ, src_lo, src_hi, &
+                      dx)
+       endif
+
+=======
+    real(rt), intent(inout) ::  uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
+    real(rt), intent(inout) :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3),NVAR)
+    real(rt), intent(inout) ::    q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NGDNV)
+#if AMREX_SPACEDIM >= 2
+    real(rt), intent(inout) :: flux2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3),NVAR)
+    real(rt), intent(inout) ::    q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NGDNV)
+#endif
+#if AMREX_SPACEDIM == 3
+    real(rt), intent(inout) :: flux3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3),NVAR)
+    real(rt), intent(inout) ::    q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NGDNV)
+#endif
+
+#ifdef RADIATION
+    real(rt), intent(inout) :: rflux1(rf1_lo(1):rf1_hi(1),rf1_lo(2):rf1_hi(2),rf1_lo(3):rf1_hi(3),0:ngroups-1)
+#if AMREX_SPACEDIM >= 2
+    real(rt), intent(inout) :: rflux2(rf2_lo(1):rf2_hi(1),rf2_lo(2):rf2_hi(2),rf2_lo(3):rf2_hi(3),0:ngroups-1)
+#endif
+#if AMREX_SPACEDIM == 3
+    real(rt), intent(inout) :: rflux3(rf3_lo(1):rf3_hi(1),rf3_lo(2):rf3_hi(2),rf3_lo(3):rf3_hi(3),0:ngroups-1)
+#endif
+#endif
+#if AMREX_SPACEDIM <= 2
+    real(rt), intent(in) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
+    real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+#endif
+#if AMREX_SPACEDIM == 2
+    real(rt), intent(in) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2),area2_lo(3):area2_hi(3))
+#endif
+
+    real(rt) :: dxinv, dyinv, dzinv
+    real(rt) :: dtdx, dtdy, dtdz, hdt
+#if AMREX_SPACEDIM == 3
+    real(rt) :: cdtdx, cdtdy, cdtdz
+#endif
+    real(rt) :: hdtdx, hdtdy, hdtdz
+>>>>>>> development
+
+    integer :: i, j, k, iwave, n
+
+<<<<<<< HEAD
+       call trace_plm(lo, hi, &
+                      1, q, qd_lo, qd_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      dq, dq_lo, dq_hi, &
+                      qxm, qxm_lo, qxm_hi, &
+                      qxp, qxp_lo, qxp_hi, &
+#if AMREX_SPACEDIM < 3
+                      dloga, dloga_lo, dloga_hi, &
+#endif
+                      SrcQ, src_lo, src_hi, &
+                      vlo, vhi, domlo, domhi, &
+                      dx, dt)
+
+#if AMREX_SPACEDIM >= 2
+       call trace_plm(lo, hi, &
+                      2, q, qd_lo, qd_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      dq, dq_lo, dq_hi, &
+                      qym, qym_lo, qym_hi, &
+                      qyp, qyp_lo, qyp_hi, &
+#if AMREX_SPACEDIM < 3
+                      dloga, dloga_lo, dloga_hi, &
+#endif
+                      SrcQ, src_lo, src_hi, &
+                      vlo, vhi, domlo, domhi, &
+                      dx, dt)
+#endif
+
+#if AMREX_SPACEDIM == 3
+       call trace_plm(lo, hi, &
+                      3, q, qd_lo, qd_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      dq, dq_lo, dq_hi, &
+                      qzm, qzm_lo, qzm_hi, &
+                      qzp, qzp_lo, qzp_hi, &
+                      SrcQ, src_lo, src_hi, &
+                      vlo, vhi, domlo, domhi, &
+                      dx, dt)
+=======
+    real(rt), pointer :: q_int(:,:,:,:)
+
+#ifdef RADIATION
+    real(rt), pointer :: lambda_int(:,:,:,:)
+#endif
+
+
+    ! Left and right state arrays (edge centered, cell centered)
+    double precision, dimension(:,:,:,:), pointer :: &
+         ql, qr, &
+         qmxy, qpxy, qmxz, qpxz, qmyx, qpyx, &
+         qmyz, qpyz, qmzx, qpzx, qmzy, qpzy, &
+         qxl, qxr, qyl, qyr, qzl, qzr
+
+    double precision, dimension(:,:,:,:), pointer:: &
+         fx, fy, fz, fxy, fxz, fyx, fyz, fzx, fzy
+
+#ifdef RADIATION
+    double precision, dimension(:,:,:,:), pointer:: &
+         rfx, rfy, rfz, rfxy, rfxz, rfyx, rfyz, rfzx, rfzy
+>>>>>>> development
+#endif
+
+    double precision, dimension(:,:,:,:), pointer:: &
+         qgdnvx, qgdnvy, qgdnvz, &
+         qgdnvxy, qgdnvxz, &
+         qgdnvyx, qgdnvyz, &
+         qgdnvzx, qgdnvzy
+
+<<<<<<< HEAD
+  end subroutine ctu_normal_states
+
+
+  !> @brief Compute hyperbolic fluxes using unsplit second
+  !! order Godunov integrator.
+  !!
+  !! @todo we can get rid of the the different temporary q Godunov
+  !! state arrays
+  !!
+  !! @param[in] q            (const)  input state, primitives
+  !! @param[in] qaux         (const)  auxiliary hydro data
+  !! @param[in] flatn        (const)  flattening parameter
+  !! @param[in] srcQ         (const)  primitive variable source
+  !! @param[in] dx           (const)  grid spacing in X, Y, Z direction
+  !! @param[in] dt           (const)  time stepsize
+  !! @param[inout] flux1        (modify) flux in X direction on X edges
+  !! @param[inout] flux2        (modify) flux in Y direction on Y edges
+  !! @param[inout] flux3        (modify) flux in Z direction on Z edges
+  !! @param[inout] q1           (modify) Godunov interface state in X
+  !! @param[inout] q2           (modify) Godunov interface state in Y
+  !! @param[inout] q3           (modify) Godunov interface state in Z
+  !!
+  subroutine ctu_compute_fluxes(lo, hi, &
+                                q, qd_lo, qd_hi, &
+                                qaux, qa_lo, qa_hi, &
+                                dx, dt, &
+                                shk, sk_lo, sk_hi, &
+                                qxm, qxm_lo, qxm_hi, &
+                                qxp, qxp_lo, qxp_hi, &
+#if AMREX_SPACEDIM >= 2
+                                qym, qym_lo, qym_hi, &
+                                qyp, qyp_lo, qyp_hi, &
+=======
+    ! these will be the temporary arrays we actually allocate space for
+    double precision, dimension(:,:,:,:), pointer :: ftmp1, ftmp2, rftmp1, rftmp2
+    double precision, dimension(:,:,:,:), pointer :: qgdnvtmp1, qgdnvtmp2
+
+    integer :: fglo(3), fghi(3), glo(3), ghi(3)
+
+    fglo = lo - dg(:)  ! face + one ghost
+    fghi = hi + 2*dg(:)
+
+    glo = lo - dg(:)  ! one ghost,  this can be used for face-based arrays too
+    ghi = hi + dg(:)
+
+    ! Local constants
+    dxinv = ONE/dx(1)
+    dtdx = dt*dxinv
+    hdtdx = HALF*dtdx
+
+#if AMREX_SPACEDIM >= 2
+    dyinv = ONE/dx(2)
+    dtdy = dt*dyinv
+    hdtdy = HALF*dtdy
+>>>>>>> development
+#endif
+
+#if AMREX_SPACEDIM == 3
+<<<<<<< HEAD
+                                qzm, qzm_lo, qzm_hi, &
+                                qzp, qzp_lo, qzp_hi, &
                                 qmxy, qmxy_lo, qmxy_hi, &
                                 qpxy, qpxy_lo, qpxy_hi, &
                                 qmxz, qmxz_lo, qmxz_hi, &
@@ -587,6 +984,19 @@ contains
 
     integer, intent(in) :: qd_lo(3), qd_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
+=======
+    dzinv = ONE/dx(3)
+    dtdz = dt*dzinv
+    hdtdz = HALF*dtdz
+    cdtdx = dtdx*THIRD
+    cdtdy = dtdy*THIRD
+    cdtdz = dtdz*THIRD
+#endif
+
+    hdt = HALF*dt
+
+
+>>>>>>> development
 
     integer, intent(in) :: sk_lo(3), sk_hi(3)
     integer, intent(in) :: qxm_lo(3), qxm_hi(3)
@@ -789,8 +1199,11 @@ contains
     cdtdz = dtdz*THIRD
 #endif
 
+<<<<<<< HEAD
     hdt = HALF*dt
 
+=======
+>>>>>>> development
 
     !-------------------------------------------------------------------------!
     ! Some notes on the work index (i.e., lo and hi arguments near the end    !
@@ -1575,6 +1988,51 @@ contains
     nullify(qzl,qzr)
 #endif
 
+<<<<<<< HEAD
+=======
+    call bl_deallocate(q_int)
+#ifdef RADIATION
+    call bl_deallocate(lambda_int)
+#endif
+
+#if AMREX_SPACEDIM >= 2
+    call bl_deallocate ( ql)
+    call bl_deallocate ( qr)
+#endif
+
+#if AMREX_SPACEDIM == 3
+    call bl_deallocate ( qmxy)
+    call bl_deallocate ( qpxy)
+
+    call bl_deallocate ( qmxz)
+    call bl_deallocate ( qpxz)
+
+    call bl_deallocate ( qmzx)
+    call bl_deallocate ( qpzx)
+
+    call bl_deallocate ( qmzy)
+    call bl_deallocate ( qpzy)
+
+    call bl_deallocate ( qmyx)
+    call bl_deallocate ( qpyx)
+
+    call bl_deallocate ( qmyz)
+    call bl_deallocate ( qpyz)
+#endif
+
+#if AMREX_SPACEDIM >= 2
+    call bl_deallocate ( ftmp1)
+    call bl_deallocate ( ftmp2)
+
+#ifdef RADIATION
+    call bl_deallocate (rftmp1)
+    call bl_deallocate (rftmp2)
+#endif
+
+    call bl_deallocate(qgdnvtmp1)
+    call bl_deallocate(qgdnvtmp2)
+#endif
+>>>>>>> development
 
   end subroutine ctu_compute_fluxes
 
@@ -2595,7 +3053,10 @@ contains
 
     integer :: fglo(3), fghi(3), glo(3), ghi(3)
 
+<<<<<<< HEAD
     ! for computing the normal states
+=======
+>>>>>>> development
     real(rt), pointer :: Ip(:,:,:,:,:,:), Im(:,:,:,:,:,:)
     real(rt), pointer :: Ip_src(:,:,:,:,:,:), Im_src(:,:,:,:,:,:)
     real(rt), pointer :: Ip_gc(:,:,:,:,:,:), Im_gc(:,:,:,:,:,:)
@@ -2608,6 +3069,7 @@ contains
     ! Left and right state arrays (edge centered, cell centered)
     double precision, dimension(:,:,:,:), pointer :: &
          qxm, qym, qzm, qxp, qyp, qzp
+<<<<<<< HEAD
 
     ! for the transverse corrections
     real(rt), pointer :: q_int(:,:,:,:)
@@ -2628,6 +3090,8 @@ contains
     double precision, dimension(:,:,:,:), pointer :: ftmp1, ftmp2, rftmp1, rftmp2
     double precision, dimension(:,:,:,:), pointer :: qgdnvtmp1, qgdnvtmp2
 
+=======
+>>>>>>> development
 
     call bl_allocate(   div, lo, hi+dg)
 
@@ -2766,6 +3230,7 @@ contains
 
     call bl_deallocate( flatn)
 
+<<<<<<< HEAD
 
 #if AMREX_SPACEDIM == 3
     call bl_allocate( qmxy, fglo, fghi, NQ)
@@ -2807,6 +3272,8 @@ contains
 #endif
 
 
+=======
+>>>>>>> development
     ! Compute hyperbolic fluxes using unsplit Godunov
     call ctu_compute_fluxes(lo, hi, &
                             q, q_lo, q_hi, &
@@ -2822,6 +3289,7 @@ contains
 #if AMREX_SPACEDIM == 3
                             qzm, fglo, fghi, &
                             qzp, fglo, fghi, &
+<<<<<<< HEAD
                             qmxy, fglo, fghi, &
                             qpxy, fglo, fghi, &
                             qmxz, fglo, fghi, &
@@ -2850,6 +3318,8 @@ contains
                             q_int, fglo, fghi, &
 #ifdef RADIATION
                             lambda_int, fglo, fghi, &
+=======
+>>>>>>> development
 #endif
                             uout, uout_lo, uout_hi, &
                             flux1, flux1_lo, flux1_hi, &
@@ -2896,6 +3366,7 @@ contains
     call bl_deallocate(qzm)
     call bl_deallocate(qzp)
 #endif
+<<<<<<< HEAD
 
     call bl_deallocate(q_int)
 #ifdef RADIATION
@@ -2940,6 +3411,8 @@ contains
     call bl_deallocate(qgdnvtmp2)
 #endif
 
+=======
+>>>>>>> development
 
     ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
     call divu(lo, hi+dg, q, q_lo, q_hi, dx, div, lo, hi+dg)
