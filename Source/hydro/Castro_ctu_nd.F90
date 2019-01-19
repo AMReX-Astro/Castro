@@ -948,7 +948,7 @@ contains
                 qaux, qa_lo, qa_hi, &
                 fx, ft1_lo, ft1_hi, &
 #ifdef RADIATION
-                rf1, rft1_lo, rft1_hi, &
+                rfx, rft1_lo, rft1_hi, &
 #endif
                 qgdnvx, qg1_lo, qg1_hi, &
                 area1, area1_lo, area1_hi, &
