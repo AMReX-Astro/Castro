@@ -16,11 +16,12 @@ contains
                        idir, q, q_lo, q_hi, &
                        qaux, qa_lo, qa_hi, &
                        dq, dq_lo, dq_hi, &
-                       qm, qp, qpd_lo, qpd_hi, &
-#if (AMREX_SPACEDIM < 3)
+                       qm, qm_lo, qm_hi, &
+                       qp, qp_lo, qp_hi, &
+#if AMREX_SPACEDIM < 3
                        dloga, dloga_lo, dloga_hi, &
 #endif
-                       SrcQ, src_lo, Src_hi, &
+                       SrcQ, src_lo, src_hi, &
                        vlo, vhi, domlo, domhi, &
                        dx, dt)
 
@@ -42,7 +43,8 @@ contains
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: dq_lo(3), dq_hi(3)
-    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
 #if (AMREX_SPACEDIM < 3)
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
@@ -54,10 +56,10 @@ contains
     real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) ::  dq(dq_lo(1):dq_hi(1),dq_lo(2):dq_hi(2),dq_lo(3):dq_hi(3),NQ)
+    real(rt), intent(in) ::  dq(dq_lo(1):dq_hi(1),dq_lo(2):dq_hi(2),dq_lo(3):dq_hi(3),NQ,AMREX_SPACEDIM)
 
-    real(rt), intent(inout) :: qm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
-    real(rt), intent(inout) :: qp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
+    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
 
 #if (AMREX_SPACEDIM < 3)
     real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
@@ -134,12 +136,12 @@ contains
              rhoe = q(i,j,k,QREINT)
              enth = (rhoe+p)/(rho*csq)
 
-             drho = dq(i,j,k,QRHO)
-             dun = dq(i,j,k,QUN)
-             dut = dq(i,j,k,QUT)
-             dutt = dq(i,j,k,QUTT)
-             dp = dq(i,j,k,QPRES)
-             drhoe = dq(i,j,k,QREINT)
+             drho = dq(i,j,k,QRHO,idir)
+             dun = dq(i,j,k,QUN,idir)
+             dut = dq(i,j,k,QUT,idir)
+             dutt = dq(i,j,k,QUTT,idir)
+             dp = dq(i,j,k,QPRES,idir)
+             drhoe = dq(i,j,k,QREINT,idir)
 
              alpham = HALF*(dp/(rho*cc) - dun)*(rho/cc)
              alphap = HALF*(dp/(rho*cc) + dun)*(rho/cc)
@@ -333,14 +335,14 @@ contains
 
                    un = q(i,j,k,QUN)
                    spzero = merge(-ONE, un*dtdx, un >= ZERO)
-                   acmprght = HALF*(-ONE - spzero)*dq(i,j,k,n)
+                   acmprght = HALF*(-ONE - spzero)*dq(i,j,k,n,idir)
                    qp(i,j,k,n) = q(i,j,k,n) + acmprght + HALF*dt*srcQ(i,j,k,n)
                 endif
 
                 ! Left state
                 un = q(i,j,k,QUN)
                 spzero = merge(un*dtdx, ONE, un >= ZERO)
-                acmpleft = HALF*(ONE - spzero )*dq(i,j,k,n)
+                acmpleft = HALF*(ONE - spzero )*dq(i,j,k,n,idir)
 
                 if (idir == 1 .and. i <= vhi(1)) then
                    qm(i+1,j,k,n) = q(i,j,k,n) + acmpleft + HALF*dt*srcQ(i,j,k,n)
