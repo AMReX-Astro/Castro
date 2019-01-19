@@ -609,8 +609,6 @@ contains
 
     !$gpu
 
-    !call cmpflx_cuda(lo, hi, domlo, domhi, idir, qm, qm_lo, qm_hi, qp, qp_lo, qp_hi, &
-    !     qint, qe_lo, qe_hi, flux, f_lo, f_hi, qaux, qa_lo, qa_hi)
     call cmpflx(lo, hi, &
                 qm, qp, qm_lo, qm_hi, AMREX_SPACEDIM, idir, &
                 flux, f_lo, f_hi, &
