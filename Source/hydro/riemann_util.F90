@@ -32,6 +32,8 @@ contains
 
     real(rt)         :: alpha, beta
 
+    !$gpu
+
     ! First predict a value of game across the shock
 
     ! CG Eq. 31
@@ -210,6 +212,8 @@ contains
 
     real(rt)        , parameter :: small = 1.e-10_rt
 
+    !$gpu
+
     select case (idir)
     case (1)
        ivel = QU
@@ -352,12 +356,17 @@ contains
 
     use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QREINT, &
          NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
+#ifdef SHOCK_VAR
+         USHK, &
+#endif
          npassive, upass_map, qpass_map
 
     real(rt)        , intent(in)  :: q(QVAR)
     real(rt)        , intent(out) :: U(NVAR)
 
     integer :: ipassive, n, nq
+
+    !$gpu
 
     U(URHO) = q(QRHO)
 
@@ -373,6 +382,10 @@ contains
     ! we don't care about T here, but initialize it to make NaN
     ! checking happy
     U(UTEMP) = ZERO
+
+#ifdef SHOCK_VAR
+    U(USHK) = ZERO
+#endif
 
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
@@ -401,12 +414,14 @@ contains
          npassive, upass_map, qpass_map
 
     integer, intent(in) :: idir
-    real(rt)        , intent(in)  :: S_k, S_c
-    real(rt)        , intent(in)  :: q(QVAR)
-    real(rt)        , intent(out) :: U(NVAR)
+    real(rt), intent(in)  :: S_k, S_c
+    real(rt), intent(in)  :: q(QVAR)
+    real(rt), intent(out) :: U(NVAR)
 
     real(rt)         :: hllc_factor, u_k
     integer :: ipassive, n, nq
+
+    !$gpu
 
     if (idir == 1) then
        u_k = q(QU)
@@ -511,6 +526,8 @@ contains
 
     real(rt) :: F_zone(NVAR), qgdnv_zone(NGDNV)
 
+    !$gpu
+
     if (idir == 1) then
        iu = QU
        iv1 = QV
@@ -576,28 +593,16 @@ contains
                 end do
              end if
 #endif
-          end do
-       end do
-    end do
 
-    ! passively advected quantities
-    do ipassive = 1, npassive
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
+             ! passively advected quantities
+             do ipassive = 1, npassive
                 n  = upass_map(ipassive)
                 nqp = qpass_map(ipassive)
 
                 F(i,j,k,n) = F(i,j,k,URHO)*qint(i,j,k,nqp)
              end do
-          end do
-       end do
-    end do
 
 #ifdef HYBRID_MOMENTUM
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
 
              ! the hybrid routine uses the Godunov indices, not the full NQ state
              qgdnv_zone(GDRHO) = qint(i,j,k,QRHO)
@@ -614,15 +619,16 @@ contains
              F_zone(:) = F(i,j,k,:)
              call compute_hybrid_flux(qgdnv_zone, F_zone, idir, [i, j, k])
              F(i,j,k,:) = F_zone(:)
+#endif
           end do
        end do
     end do
-#endif
 
   end subroutine compute_flux_q
 
-  !> @brief this copies the full interface state (NQ -- one for each primitive 
-  !! variable) over to a smaller subset of size NGDNV for use later in the 
+
+  !> @brief this copies the full interface state (NQ -- one for each primitive
+  !! variable) over to a smaller subset of size NGDNV for use later in the
   !! hydro advancement.
   !!
   !! @param[in] lo integer
@@ -668,6 +674,8 @@ contains
     real(rt), intent(inout) :: qgdnv(qg_lo(1):qg_hi(1), qg_lo(2):qg_hi(2), qg_lo(3):qg_hi(3), NGDNV)
 
     integer :: i, j, k
+
+    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -717,6 +725,8 @@ contains
 
     integer :: ipassive, n
     real(rt)         :: u_flx
+
+    !$gpu
 
     if (idir == 1) then
        u_flx = U(UMX)/U(URHO)
