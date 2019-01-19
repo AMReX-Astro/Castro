@@ -6,8 +6,11 @@ module advection_util_module
   private
 
   public ca_enforce_minimum_density, ca_compute_cfl, ca_ctoprim, ca_srctoprim, dflux, &
-         limit_hydro_fluxes_on_small_dens, shock, divu, calc_pdivu, normalize_species_fluxes, avisc, &
+         limit_hydro_fluxes_on_small_dens, ca_shock, divu, calc_pdivu, normalize_species_fluxes, avisc, &
          scale_flux, apply_av, ca_construct_hydro_update_cuda
+#ifdef RADIATION
+  public apply_av_rad
+#endif
 
 contains
 
@@ -1257,10 +1260,10 @@ contains
   !! The spirit of this follows the shock detection in Colella &
   !! Woodward (1984)
   !!
-  subroutine shock(lo, hi, &
-                   q, qd_lo, qd_hi, &
-                   shk, s_lo, s_hi, &
-                   dx)
+  subroutine ca_shock(lo, hi, &
+       q, qd_lo, qd_hi, &
+       shk, s_lo, s_hi, &
+       dx) bind(C, name="ca_shock")
 
     use meth_params_module, only : QPRES, QU, QV, QW, NQ
     use prob_params_module, only : coord_type
@@ -1280,7 +1283,7 @@ contains
     integer :: i, j, k
 
     real(rt) :: dxinv, dyinv, dzinv
-    real(rt) :: divU
+    real(rt) :: div_u
     real(rt) :: px_pre, px_post, py_pre, py_post, pz_pre, pz_post
     real(rt) :: e_x, e_y, e_z, d
     real(rt) :: p_pre, p_post, pjump
@@ -1289,6 +1292,8 @@ contains
     real(rt), parameter :: eps = 0.33e0_rt
 
     real(rt) :: rm, rc, rp
+
+    !$gpu
 
     dxinv = ONE/dx(1)
     dyinv = ONE/dx(2)
@@ -1307,12 +1312,12 @@ contains
              ! construct div{U}
              if (coord_type == 0) then
                 ! Cartesian
-                divU = HALF*(q(i+1,j,k,QU) - q(i-1,j,k,QU))*dxinv
+                div_u = HALF*(q(i+1,j,k,QU) - q(i-1,j,k,QU))*dxinv
 #if (AMREX_SPACEDIM >= 2)
-                divU = divU + HALF*(q(i,j+1,k,QV) - q(i,j-1,k,QV))*dyinv
+                div_u = div_u + HALF*(q(i,j+1,k,QV) - q(i,j-1,k,QV))*dyinv
 #endif
 #if (AMREX_SPACEDIM == 3)
-                divU = divU + HALF*(q(i,j,k+1,QW) - q(i,j,k-1,QW))*dzinv
+                div_u = div_u + HALF*(q(i,j,k+1,QW) - q(i,j,k-1,QW))*dzinv
 #endif
              elseif (coord_type == 1) then
                 ! r-z
@@ -1321,10 +1326,10 @@ contains
                 rp = dble(i + 1 + HALF)*dx(1)
 
 #if (AMREX_SPACEDIM == 1)
-                divU = HALF*(rp*q(i+1,j,k,QU) - rm*q(i-1,j,k,QU))/(rc*dx(1))
+                div_u = HALF*(rp*q(i+1,j,k,QU) - rm*q(i-1,j,k,QU))/(rc*dx(1))
 #endif
 #if (AMREX_SPACEDIM == 2)
-                divU = HALF*(rp*q(i+1,j,k,QU) - rm*q(i-1,j,k,QU))/(rc*dx(1)) + &
+                div_u = HALF*(rp*q(i+1,j,k,QU) - rm*q(i-1,j,k,QU))/(rc*dx(1)) + &
                      HALF*(q(i,j+1,k,QV) - q(i,j-1,k,QV))/dx(2)
 #endif
 
@@ -1334,7 +1339,7 @@ contains
                 rm = dble(i - 1 + HALF)*dx(1)
                 rp = dble(i + 1 + HALF)*dx(1)
 
-                divU = HALF*(rp**2*q(i+1,j,k,QU) - rm**2*q(i-1,j,k,QU))/(rc**2*dx(1))
+                div_u = HALF*(rp**2*q(i+1,j,k,QU) - rm**2*q(i-1,j,k,QU))/(rc**2*dx(1))
 
 #ifndef AMREX_USE_CUDA
              else
@@ -1408,7 +1413,7 @@ contains
                 pjump = eps - (p_post - p_pre)/p_pre
              endif
 
-             if (pjump < ZERO .and. divU < ZERO) then
+             if (pjump < ZERO .and. div_u < ZERO) then
                 shk(i,j,k) = ONE
              else
                 shk(i,j,k) = ZERO
@@ -1418,7 +1423,7 @@ contains
        enddo
     enddo
 
-  end subroutine shock
+  end subroutine ca_shock
 
   ! :::
   ! ::: ------------------------------------------------------------------
@@ -1428,7 +1433,7 @@ contains
   !!
   subroutine divu(lo, hi, &
        q, q_lo, q_hi, &
-       dx, div, div_lo, div_hi) bind(c, name='divu')
+       dx, div, div_lo, div_hi) bind(C, name='divu')
 
     use meth_params_module, only : QU, QV, QW, NQ
     use amrex_constants_module, only : HALF, FOURTH, ONE, ZERO
@@ -1808,7 +1813,7 @@ contains
        flux, f_lo, f_hi) bind(c, name="apply_av")
 
     use amrex_constants_module, only: ZERO, FOURTH
-    use meth_params_module, only: NVAR, UTEMP, USHK
+    use meth_params_module, only: NVAR, UTEMP, USHK, difmag
     use prob_params_module, only: dg
 
     implicit none
@@ -1827,8 +1832,6 @@ contains
     integer :: i, j, k, n
 
     real(rt) :: div1
-
-    real(rt), parameter :: difmag = 0.1d0
 
     !$gpu
 
@@ -1862,7 +1865,7 @@ contains
                    div1 = FOURTH * (div(i,j        ,k) + div(i+1*dg(1),j        ,k) + &
                         div(i,j+1*dg(2),k) + div(i+1*dg(1),j+1*dg(2),k))
                    div1 = difmag * min(ZERO, div1)
-                   div1 = div1 * (uin(i,j,k,n)-uin(i,j,k-1*dg(3),n))
+                   div1 = div1 * (uin(i,j,k,n) - uin(i,j,k-1*dg(3),n))
 
                 end if
 
@@ -1876,6 +1879,74 @@ contains
 
   end subroutine apply_av
 
+#ifdef RADIATION
+  subroutine apply_av_rad(lo, hi, idir, dx, &
+                          div, div_lo, div_hi, &
+                          Erin, Ein_lo, Ein_hi, &
+                          radflux, rf_lo, rf_hi) bind(c, name="apply_av_rad")
+
+    use amrex_constants_module, only: ZERO, FOURTH
+    use meth_params_module, only: NVAR, UTEMP, USHK, difmag
+    use prob_params_module, only: dg
+    use rad_params_module, only : ngroups
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: div_lo(3), div_hi(3)
+    integer,  intent(in   ) :: Ein_lo(3), Ein_hi(3)
+    integer,  intent(in   ) :: rf_lo(3), rf_hi(3)
+    real(rt), intent(in   ) :: dx(3)
+    integer,  intent(in   ), value :: idir
+
+    real(rt), intent(in   ) :: div(div_lo(1):div_hi(1),div_lo(2):div_hi(2),div_lo(3):div_hi(3))
+    real(rt), intent(in   ) :: Erin(Ein_lo(1):Ein_hi(1),Ein_lo(2):Ein_hi(2),Ein_lo(3):Ein_hi(3),0:ngroups-1)
+    real(rt), intent(inout) :: radflux(rf_lo(1):rf_hi(1),rf_lo(2):rf_hi(2),rf_lo(3):rf_hi(3),0:ngroups-1)
+
+    integer :: i, j, k, n
+
+    real(rt) :: div1
+
+    !$gpu
+
+    do n = 0, ngroups-1
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                if (idir .eq. 1) then
+
+                   div1 = FOURTH * (div(i,j,k        ) + div(i,j+1*dg(2),k        ) + &
+                                    div(i,j,k+1*dg(3)) + div(i,j+1*dg(2),k+1*dg(3)))
+                   div1 = difmag * min(ZERO, div1)
+                   div1 = div1 * (Erin(i,j,k,n) - Erin(i-1*dg(1),j,k,n))
+
+                else if (idir .eq. 2) then
+
+                   div1 = FOURTH * (div(i,j,k        ) + div(i+1*dg(1),j,k        ) + &
+                                    div(i,j,k+1*dg(3)) + div(i+1*dg(1),j,k+1*dg(3)))
+                   div1 = difmag * min(ZERO, div1)
+                   div1 = div1 * (Erin(i,j,k,n) - Erin(i,j-1*dg(2),k,n))
+
+                else
+
+                   div1 = FOURTH * (div(i,j        ,k) + div(i+1*dg(1),j        ,k) + &
+                                    div(i,j+1*dg(2),k) + div(i+1*dg(1),j+1*dg(2),k))
+                   div1 = difmag * min(ZERO, div1)
+                   div1 = div1 * (Erin(i,j,k,n) - Erin(i,j,k-1*dg(3),n))
+
+                end if
+
+                radflux(i,j,k,n) = radflux(i,j,k,n) + dx(idir) * div1
+
+             end do
+          end do
+       end do
+
+    end do
+
+  end subroutine apply_av_rad
+#endif
 
 
   subroutine ca_construct_hydro_update_cuda(lo, hi, dx, dt, &
