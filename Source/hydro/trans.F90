@@ -68,12 +68,12 @@ contains
 #endif
 
     integer, intent(in) :: qym_lo(3), qym_hi(3)
-    integer, intent(in) :: qyp_lo(3), qyp_hi(3
+    integer, intent(in) :: qyp_lo(3), qyp_hi(3)
     integer, intent(in) :: qymo_lo(3), qymo_hi(3)
     integer, intent(in) :: qypo_lo(3), qypo_hi(3)
 #if AMREX_SPACEDIM == 3
     integer, intent(in) :: qzm_lo(3), qzm_hi(3)
-    integer, intent(in) :: qzp_lo(3), qzp_hi(3
+    integer, intent(in) :: qzp_lo(3), qzp_hi(3)
     integer, intent(in) :: qzmo_lo(3), qzmo_hi(3)
     integer, intent(in) :: qzpo_lo(3), qzpo_hi(3)
 #endif
@@ -2277,18 +2277,19 @@ contains
   ! transyz
   !===========================================================================
   subroutine transyz(lo, hi, &
-                     qm, qmo, qp, qpo, q_lo, q_hi, &
+                     qm, qm_lo, qm_hi, &
+                     qmo, qmo_lo, qmo_hi, &
+                     qp, qp_lo, qp_hi, &
+                     qpo, qpo_lo, qpo_hi, &
                      qaux, qa_lo, qa_hi, &
-                     fyz, &
+                     fyz, fyz_lo, fyz_hi, &
 #ifdef RADIATION
-                     rfyz, &
+                     rfyz, rfyz_lo, rfyz_hi, &
 #endif
-                     fy_lo, fy_hi, &
-                     fzy, &
+                     fzy, fzy_lo, fzy_hi, &
 #ifdef RADIATION
-                     rfzy, &
+                     rfzy, rfzy_lo, rfzy_hi, &
 #endif
-                     fz_lo, fz_hi, &
                      qy, qy_lo, qy_hi, &
                      qz, qz_lo, qz_hi, &
                      hdt, cdtdy, cdtdz, &
@@ -2324,31 +2325,36 @@ contains
     use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
 
 
-    integer, intent(in) :: q_lo(3),q_hi(3)
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qmo_lo(3), qmo_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
+    integer, intent(in) :: qpo_lo(3), qpo_hi(3)
     integer, intent(in) :: qa_lo(3),qa_hi(3)
-    integer, intent(in) :: fy_lo(3),fy_hi(3)
-    integer, intent(in) :: fz_lo(3),fz_hi(3)
-    integer, intent(in) :: qy_lo(3),qy_hi(3)
-    integer, intent(in) :: qz_lo(3),qz_hi(3)
+    integer, intent(in) :: fyz_lo(3), fyz_hi(3)
+    integer, intent(in) :: fzy_lo(3), fzy_hi(3)
+    integer, intent(in) :: qy_lo(3), qy_hi(3)
+    integer, intent(in) :: qz_lo(3), qz_hi(3)
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: vlo(3), vhi(3)
 
     real(rt), intent(in) :: hdt, cdtdy, cdtdz
 
 #ifdef RADIATION
-    real(rt), intent(in) :: rfyz(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
-    real(rt), intent(in) :: rfzy(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
+    integer, intent(in) :: rfyz_lo(3), rfyz_hi(3)
+    integer, intent(in) :: rfzy_lo(3), rfzy_hi(3)
+    real(rt), intent(in) :: rfyz(fyz_lo(1):fyz_hi(1),fyz_lo(2):fyz_hi(2),fyz_lo(3):fyz_hi(3),0:ngroups-1)
+    real(rt), intent(in) :: rfzy(fzy_lo(1):fzy_hi(1),fzy_lo(2):fzy_hi(2),fzy_lo(3):fzy_hi(3),0:ngroups-1)
 #endif
 
-    real(rt), intent(in) :: qm(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(in) :: qp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(out) :: qmo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(out) :: qpo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
+    real(rt), intent(in) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
+    real(rt), intent(out) :: qmo(qmo_lo(1):qmo_hi(1),qmo_lo(2):qmo_hi(2),qmo_lo(3):qmo_hi(3),NQ)
+    real(rt), intent(out) :: qpo(qpo_lo(1):qpo_hi(1),qpo_lo(2):qpo_hi(2),qpo_lo(3):qpo_hi(3),NQ)
 
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) :: fyz(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
-    real(rt), intent(in) :: fzy(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
+    real(rt), intent(in) :: fyz(fyz_lo(1):fyz_hi(1),fyz_lo(2):fyz_hi(2),fyz_lo(3):fyz_hi(3),NVAR)
+    real(rt), intent(in) :: fzy(fzy_lo(1):fzy_hi(1),fzy_lo(2):fzy_hi(2),fzy_lo(3):fzy_hi(3),NVAR)
     real(rt), intent(in) :: qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
     real(rt), intent(in) :: qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
 
@@ -2365,8 +2371,8 @@ contains
     real(rt)         compr, compl, compnr, compnl
 
 #ifdef RADIATION
-    real(rt)         :: dmy, dmz, dre
-    real(rt)        , dimension(0:ngroups-1) :: der, lambda, lugey, lugez, lgey, lgez, &
+    real(rt) :: dmy, dmz, dre
+    real(rt), dimension(0:ngroups-1) :: der, lambda, lugey, lugez, lgey, lgez, &
          err, ernewr, erl, ernewl, ergzp, ergyp, ergzm, ergym
     real(rt)         eddf, f1
     integer :: g
@@ -2714,18 +2720,19 @@ contains
   ! transxz
   !===========================================================================
   subroutine transxz(lo, hi, &
-                     qm, qmo, qp, qpo, q_lo, q_hi, &
+                     qm, qm_lo, qm_hi, &
+                     qmo, qmo_lo, qmo_hi, &
+                     qp, qp_lo, qp_hi, &
+                     qpo, qpo_lo, qpo_hi, &
                      qaux, qa_lo, qa_hi, &
-                     fxz, &
+                     fxz, fxz_lo, fxz_hi, &
 #ifdef RADIATION
-                     rfxz, &
+                     rfxz, rfxz_lo, rfxz_hi, &
 #endif
-                     fx_lo, fx_hi, &
-                     fzx, &
+                     fzx, fzx_lo, fzx_hi, &
 #ifdef RADIATION
-                     rfzx, &
+                     rfzx, rfzx_lo, rfzx_hi, &
 #endif
-                     fz_lo, fz_hi, &
                      qx, qx_lo, qx_hi, &
                      qz, qz_lo, qz_hi, &
                      hdt, cdtdx, cdtdz, &
@@ -2761,7 +2768,10 @@ contains
     use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
 
 
-    integer, intent(in) :: q_lo(3),q_hi(3)
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qmo_lo(3), qmo_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
+    integer, intent(in) :: qpo_lo(3), qpo_hi(3)
     integer, intent(in) :: qa_lo(3),qa_hi(3)
     integer, intent(in) :: fx_lo(3),fx_hi(3)
     integer, intent(in) :: fz_lo(3),fz_hi(3)
@@ -2773,14 +2783,16 @@ contains
     real(rt), intent(in) :: hdt, cdtdx, cdtdz
 
 #ifdef RADIATION
-    real(rt), intent(in) :: rfxz(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
-    real(rt), intent(in) :: rfzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
+    integer, intent(in) :: rfx_lo(3), rfx_hi(3)
+    integer, intent(in) :: rfz_lo(3), rfz_hi(3)
+    real(rt), intent(in) :: rfxz(rfx_lo(1):rfx_hi(1),rfx_lo(2):rfx_hi(2),rfx_lo(3):rfx_hi(3),0:ngroups-1)
+    real(rt), intent(in) :: rfzx(rfz_lo(1):rfz_hi(1),rfz_lo(2):rfz_hi(2),rfz_lo(3):rfz_hi(3),0:ngroups-1)
 #endif
 
-    real(rt), intent(in) :: qm(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(in) :: qp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(out) :: qmo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(out) :: qpo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
+    real(rt), intent(in) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
+    real(rt), intent(out) :: qmo(qmo_lo(1):qmo_hi(1),qmo_lo(2):qmo_hi(2),qmo_lo(3):qmo_hi(3),NQ)
+    real(rt), intent(out) :: qpo(qpo_lo(1):qpo_hi(1),qpo_lo(2):qpo_hi(2),qpo_lo(3):qpo_hi(3),NQ)
 
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
@@ -2802,10 +2814,10 @@ contains
     real(rt)         compr, compl, compnr, compnl
 
 #ifdef RADIATION
-    real(rt)         :: dmx, dmz, dre
-    real(rt)        , dimension(0:ngroups-1) :: der, lambda, lugex, lugez, lgex, lgez, &
+    real(rt) :: dmx, dmz, dre
+    real(rt), dimension(0:ngroups-1) :: der, lambda, lugex, lugez, lgex, lgez, &
          err, ernewr, erl, ernewl, ergzp, ergxp, ergzm,  ergxm
-    real(rt)         eddf, f1
+    real(rt) :: eddf, f1
     integer :: g
 #endif
 
@@ -3150,18 +3162,19 @@ contains
   ! transxy
   !===========================================================================
   subroutine transxy(lo, hi, &
-                     qm, qmo, qp, qpo, q_lo, q_hi, &
+                     qm, qm_lo, qm_hi, &
+                     qmo, qmo_lo, qmo_hi, &
+                     qp, qp_lo, qp_hi, &
+                     qpo, qpo_lo, qpo_hi, &
                      qaux, qa_lo, qa_hi, &
-                     fxy, &
+                     fxy, fxy_lo, fxy_hi, &
 #ifdef RADIATION
-                     rfxy, &
+                     rfxy, rfxy_lo, rfxy_hi, &
 #endif
-                     fx_lo, fx_hi, &
-                     fyx, &
+                     fyx, fyx_lo, fyx_hi, &
 #ifdef RADIATION
-                     rfyx, &
+                     rfyx, rfyx_lo, rfyx_hi, &
 #endif
-                     fy_lo, fy_hi, &
                      qx, qx_lo, qx_hi, &
                      qy, qy_lo, qy_hi, &
                      hdt, cdtdx, cdtdy, &
@@ -3197,10 +3210,13 @@ contains
     use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
 
 
-    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qmo_lo(3), qmo_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
+    integer, intent(in) :: qpo_lo(3), qpo_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: fx_lo(3), fx_hi(3)
-    integer, intent(in) :: fy_lo(3), fy_hi(3)
+    integer, intent(in) :: fxy_lo(3), fxy_hi(3)
+    integer, intent(in) :: fyx_lo(3), fyx_hi(3)
     integer, intent(in) :: qx_lo(3), qx_hi(3)
     integer, intent(in) :: qy_lo(3), qy_hi(3)
     integer, intent(in) :: lo(3), hi(3)
@@ -3209,19 +3225,21 @@ contains
     real(rt), intent(in) :: hdt, cdtdx, cdtdy
 
 #ifdef RADIATION
-    real(rt), intent(in) :: rfxy(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
-    real(rt), intent(in) :: rfyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
+    integer, intent(in) :: rfxy_lo(3), rfxy_hi(3)
+    integer, intent(in) :: rfyx_lo(3), rfyx_hi(3)
+    real(rt), intent(in) :: rfxy(rfxy_lo(1):rfxy_hi(1),rfxy_lo(2):rfxy_hi(2),rfxy_lo(3):rfxy_hi(3),0:ngroups-1)
+    real(rt), intent(in) :: rfyx(rfyx_lo(1):rfyx_hi(1),rfyx_lo(2):rfyx_hi(2),rfyx_lo(3):rfyx_hi(3),0:ngroups-1)
 #endif
 
-    real(rt), intent(in) ::   qm(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(in) ::   qp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(out) :: qmo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(out) :: qpo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) ::   qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
+    real(rt), intent(in) ::   qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
+    real(rt), intent(out) :: qmo(qmo_lo(1):qmo_hi(1),qmo_lo(2):qmo_hi(2),qmo_lo(3):qmo_hi(3),NQ)
+    real(rt), intent(out) :: qpo(qpo_lo(1):qpo_hi(1),qpo_lo(2):qpo_hi(2),qpo_lo(3):qpo_hi(3),NQ)
 
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) :: fxy(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
-    real(rt), intent(in) :: fyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
+    real(rt), intent(in) :: fxy(fxy_lo(1):fxy_hi(1),fxy_lo(2):fxy_hi(2),fxy_lo(3):fxy_hi(3),NVAR)
+    real(rt), intent(in) :: fyx(fyx_lo(1):fyx_hi(1),fyx_lo(2):fyx_hi(2),fyx_lo(3):fyx_hi(3),NVAR)
     real(rt), intent(in) :: qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
     real(rt), intent(in) :: qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
 
@@ -3238,8 +3256,8 @@ contains
     real(rt)         compr, compl, compnr, compnl
 
 #ifdef RADIATION
-    real(rt)         :: dmx, dmy, dre
-    real(rt)        , dimension(0:ngroups-1) :: der, lambda, lugex, lugey, lgex, lgey, &
+    real(rt) :: dmx, dmy, dre
+    real(rt), dimension(0:ngroups-1) :: der, lambda, lugex, lugey, lgex, lgey, &
          err, ernewr, erl, ernewl, ergxp, ergyp, ergxm, ergym
     real(rt)         eddf, f1
     integer :: g

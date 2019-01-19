@@ -513,11 +513,11 @@ contains
                                 qpzy, qpzy_lo, qpzy_hi, &
 #endif
 #if AMREX_SPACEDIM >= 2
-                                ftmp1, f1_lo, f1_hi, &
-                                ftmp2, f2_lo, f2_hi, &
+                                ftmp1, ft1_lo, ft1_hi, &
+                                ftmp2, ft2_lo, ft2_hi, &
 #ifdef RADIATION
-                                rftmp1, rf1_lo, rf1_hi, &
-                                rftmp2, rf2_lo, rf2_hi, &
+                                rftmp1, rft1_lo, rft1_hi, &
+                                rftmp2, rft2_lo, rft2_hi, &
 #endif
                                 qgdnvtmp1. qg1_lo, qg2_hi, &
                                 qgdnvtmp2, qg2_lo, qg2_hi, &
@@ -610,11 +610,11 @@ contains
     integer, intent(in) :: qpzy_lo(3), qpzy_hi(3)
 #endif
 #if AMREX_SPACEDIM >= 2
-    integer, intent(in) :: f1_lo(3), f1_hi(3)
-    integer, intent(in) :: f2_lo(3), f2_hi(3)
+    integer, intent(in) :: ft1_lo(3), ft1_hi(3)
+    integer, intent(in) :: ft2_lo(3), ft2_hi(3)
 #ifdef RADIATION
-    integer, intent(in) :: rf1_lo(3), rf1_hi(3)
-    integer, intent(in) :: rf2_lo(3), rf2_hi(3)
+    integer, intent(in) :: rft1_lo(3), rft1_hi(3)
+    integer, intent(in) :: rft2_lo(3), rft2_hi(3)
 #endif
     integer, intent(in) :: qg1_lo(3), qg2_hi(3)
     integer, intent(in) :: qg2_lo(3), qg2_hi(3)
@@ -686,11 +686,11 @@ contains
     real(rt), intent(inout) :: qpzy(qpzy_lo(1):qpzy_hi(1), qpzy_lo(2):qpzy_hi(2), qpzy_lo(3):qpzy_hi(3), NQ)
 #endif
 #if AMREX_SPACEDIM >= 2
-    real(rt), intent(inout) :: ftmp1(f1_lo(1):f1_hi(1), f1_lo(2):f1_hi(2), f1_lo(3):f1_hi(3), NVAR)
-    real(rt), intent(inout) :: ftmp2(f2_lo(1):f2_hi(1), f2_lo(2):f2_hi(2), f2_lo(3):f2_hi(3), NVAR)
+    real(rt), intent(inout) :: ftmp1(ft1_lo(1):ft1_hi(1), ft1_lo(2):ft1_hi(2), ft1_lo(3):ft1_hi(3), NVAR)
+    real(rt), intent(inout) :: ftmp2(ft2_lo(1):ft2_hi(1), ft2_lo(2):ft2_hi(2), ft2_lo(3):ft2_hi(3), NVAR)
 #ifdef RADIATION
-    real(rt), intent(inout) :: rftmp1(rf1_lo(1):rf1_hi(1), rf1_lo(2):rf1_hi(2), rf1_lo(3):rf1_hi(3), 0:ngroups-1)
-    real(rt), intent(inout) :: rftmp2(rf2_lo(1):rf2_hi(1), rf2_lo(2):rf2_hi(2), rf2_lo(3):rf2_hi(3), 0:ngroups-1)
+    real(rt), intent(inout) :: rftmp1(rft1_lo(1):rft1_hi(1), rft1_lo(2):rft1_hi(2), rft1_lo(3):rft1_hi(3), 0:ngroups-1)
+    real(rt), intent(inout) :: rftmp2(rft2_lo(1):rft2_hi(1), rft2_lo(2):rft2_hi(2), rft2_lo(3):rft2_hi(3), 0:ngroups-1)
 #endif
     real(rt), intent(inout) :: qgdnvtmp1(qg1_lo(1):qg2_hi(1), qg1_lo(2):qg2_hi(2), qg1_lo(3):qg2_hi(3), NGDNV)
     real(rt), intent(inout) :: qgdnvtmp2(qg2_lo(1):qg2_hi(1), qg2_lo(2):qg2_hi(2), qg2_lo(3):qg2_hi(3), NGDNV)
@@ -824,10 +824,10 @@ contains
     call cmpflx([lo(1), lo(2)-1, 0], [hi(1)+1, hi(2)+1, 0], &
                 qxm, qxm_lo, qxm_hi, &
                 qxp, qxp_lo, qxp_hi, 1, 1, &
-                fx, f1_lo, f1_hi, &
+                fx, ft1_lo, ft1_hi, &
                 q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                rfx, rf1_lo, rf1_hi, &
+                rfx, rft1_lo, rft1_hi, &
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
@@ -854,10 +854,10 @@ contains
     call cmpflx([lo(1)-1, lo(2), 0], [hi(1)+1, hi(2)+1, 0], &
                 qym, qym_lo, qym_hi, &
                 qyp, qyp_lo, qyp_hi, 1, 1, &
-                fy, f2_lo, f2_hi, &
+                fy, ft2_lo, ft2_hi, &
                 q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                rfy, rf2_lo, rf2_hi, &
+                rfy, rft2_lo, rft2_hi, &
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
@@ -882,9 +882,9 @@ contains
                 qxp, qxp_lo, qxp_hi, &
                 qr, qr_lo, qr_hi, &
                 qaux, qa_lo, qa_hi, &
-                fy, f2_lo, f2_hi, &
+                fy, ft2_lo, ft2_hi, &
 #ifdef RADIATION
-                rfy, rf2_lo, rf2_hi, &
+                rfy, rft2_lo, rft2_hi, &
 #endif
                 q2, q2_lo, q2_hi, &
                 hdtdy, &
@@ -924,9 +924,9 @@ contains
                 qyp, qyp_lo. qyp_hi, &
                 qr, qr_lo, qr_hi, &
                 qaux, qa_lo, qa_hi, &
-                fx, f1_lo, f1_hi, &
+                fx, ft1_lo, ft1_hi, &
 #ifdef RADIATION
-                rf1, rf1_lo, rf1_hi, &
+                rf1, rft1_lo, rft1_hi, &
 #endif
                 qgdnvx, qg1_lo, qg1_hi, &
                 area1, area1_lo, area1_hi, &
@@ -985,10 +985,10 @@ contains
     call cmpflx([lo(1), lo(2)-dg(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
                 qxm, qxm_lo, qxm_hi, &
                 qxp, qxp_lo, qxp_hi, 1, 1, &
-                fx, f1_lo, f1_hi, &
+                fx, ft1_lo, ft1_hi, &
                 q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                rfx, rf1_lo, rf1_hi, &
+                rfx, rft1_lo, rft1_hi, &
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
@@ -1019,9 +1019,9 @@ contains
                 qzp, qzp_lo, qzp_hi, &
                 qpzx, qpzx_lo, qpzx_hi, &
                 qaux, qa_lo, qa_hi, &
-                fx, f1_lo, f1_hi, &
+                fx, ft1_lo, ft1_hi, &
 #ifdef RADIATION
-                rfx, rf1_lo, rf1_hi, &
+                rfx, rft1_lo, rft1_hi, &
 #endif
                 qgdnvx, qg1_lo, qg1_hi, &
                 hdt, cdtdx, &
@@ -1046,10 +1046,10 @@ contains
     call cmpflx([lo(1)-1, lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
                 qym, qym_lo, qym_hi, &
                 qyp, qyp_lo, qyp_hi, 1, 1, &
-                fy, f1_lo, f1_hi, &
+                fy, ft1_lo, ft1_hi, &
                 q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                rfy, rf1_lo, rf1_hi, &
+                rfy, rft1_lo, rft1_hi, &
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
@@ -1080,9 +1080,9 @@ contains
                 qzp, qzp_lo, qzp_hi, &
                 qpzy, qpzy_lo, qpzy_hi, &
                 qaux, qa_lo, qa_hi, &
-                fy, f1_lo, f1_hi, &
+                fy, ft1_lo, ft1_hi, &
 #ifdef RADIATION
-                rfy, rf1_lo, rf1_hi, &
+                rfy, rft1_lo, rft1_hi, &
 #endif
                 qgdnvy, qg1_lo, qg1_hi, &
                 cdtdy, &
@@ -1107,10 +1107,10 @@ contains
     call cmpflx([lo(1)-1, lo(2)-dg(2), lo(3)], [ hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
                 qzm, qzm_lo, qzm_hi, &
                 qzp, qzp_lo, qzp_hi, 1, 1, &
-                fz, f1_lo, f1_hi, &
+                fz, ft1_lo, ft1_hi, &
                 q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                rfz, rf1_lo, rf1_hi, &
+                rfz, rft1_lo, rft1_hi, &
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
@@ -1141,9 +1141,9 @@ contains
                 qyp, qyp_lo, qyp_hi, &
                 qpyz, qpyz_lo, qpyz_hi, &
                 qaux, qa_lo, qa_hi, &
-                fz, f1_lo, f1_hi, &
+                fz, ft1_lo, ft1_hi, &
 #ifdef RADIATION
-                rfz, rf1_lo, rf1_hi, &
+                rfz, rft1_lo, rft1_hi, &
 #endif
                 qgdnvz, qg1_lo, qg1_hi, &
                 cdtdz, &
@@ -1175,10 +1175,10 @@ contains
     call cmpflx([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
                 qmyz, qmyz_lo, qmyz_hi, &
                 qpyz, qpyz_lo, qpyz_hi, 1, 1, &
-                fyz, f1_lo, f1_hi, &
+                fyz, ft1_lo, ft1_hi, &
                 q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                rfyz, rf1_lo, rf1_hi, &
+                rfyz, rft1_lo, rft1_hi, &
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
@@ -1206,10 +1206,10 @@ contains
     call cmpflx([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+dg(3)], &
                 qmzy, qmzy_lo, qmzy_hi, &
                 qpzy, qpzy_lo, qpzy_hi, 1, 1, &
-                fzy, f2_lo, f2_hi, &
+                fzy, ft2_lo, ft2_hi, &
                 q_int, qi_lo, q1_hi, &
 #ifdef RADIATION
-                rfzy, rf2_lo, rf2_hi, &
+                rfzy, rft2_lo, rft2_hi, &
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
@@ -1234,20 +1234,21 @@ contains
     !         srcQ                            : +-1
     ! Outputs: qxl, qxr                       : xface, +-0 at y & z
     call transyz([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], &
-                 qxm, qxl, qxp, qxr, fglo, fghi, &
+                 qxm, qxm_lo, qxm_hi, &
+                 qxl, ql_lo, ql_hi, &
+                 qxp, qxp_lo, qxp_hi, &
+                 qxr, qr_lo, qr_hi, &
                  qaux, qa_lo, qa_hi, &
-                 fyz, &
+                 fyz, ft1_lo, ft1_hi, &
 #ifdef RADIATION
-                 rfyz, &
+                 rfyz, rft1_lo, rft1_hi, &
 #endif
-                 glo, ghi, &
-                 fzy, &
+                 fzy, ft2_lo, ft2_hi, &
 #ifdef RADIATION
-                 rfzy, &
+                 rfzy, rft2_lo, rft2_hi, &
 #endif
-                 glo, ghi, &
-                 qgdnvyz, fglo, fghi, &
-                 qgdnvzy, fglo, fghi, &
+                 qgdnvyz, qg1_lo, qg1_hi, &
+                 qgdnvzy, qg2_lo, qg2_hi, &
                  hdt, hdtdy, hdtdz, &
                  lo, hi)
 
@@ -1265,21 +1266,22 @@ contains
     !         shk                             : +-1
     ! Outputs: flux1, ugdnvx, pgdnvx, gegdnvx : xface, +-0 at y & z
     call cmpflx(lo, [hi(1)+1, hi(2), hi(3)], &
-                qxl, qxr, fglo, fghi, 1, 1, &
+                qxl, ql_lo, ql_hi, &
+                qxr, qr_lo, qr_hi, 1, 1, &
                 flux1, f1_lo, f1_hi, &
-                q_int, fglo, fghi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
                 rflux1, rf1_lo, rf1_hi, &
                 lambda_int, fglo, fghi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 1, domlo, domhi)
 
     call ca_store_godunov_state(lo, [hi(1)+1, hi(2), hi(3)], &
-                                q_int, fglo, fghi, &
+                                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                lambda_int, fglo, fghi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
                                 q1, q1_lo, q1_hi)
 
@@ -1303,22 +1305,22 @@ contains
     ! Outputs: fzx, ugdnvzx, pgdnvzx, gegdnvzx : zface, +-0 at x, +-1 at y
     call cmpflx([lo(1), lo(2)-dg(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
                 qmzx, qpzx, fglo, fghi, 1, 1, &
-                fzx, glo, ghi, &
-                q_int, fglo, fghi, &
+                fzx, ft1_lo, ft1_hi, &
+                q_int, gi_lo, gi_hi, &
 #ifdef RADIATION
-                rfzx, glo, ghi, &
-                lambda_int, fglo, fghi, &
+                rfzx, rft1_lo, rft1_hi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 3, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2)-dg(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
-                                q_int, fglo, fghi, &
+                                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                lambda_int, fglo, fghi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
-                                qgdnvzx, fglo, fghi)
+                                qgdnvzx, qg1_lo, qg1_hi)
 
     fxz      =>      ftmp2
 #ifdef RADIATION
@@ -1333,22 +1335,22 @@ contains
     ! Outputs: fxz, ugdnvxz, pgdnvxz, gegdnvxz : xface, +-1 at y, +-0 at z
     call cmpflx([lo(1), lo(2)-dg(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
                 qmxz, qpxz, fglo, fghi, 1, 1, &
-                fxz, glo, ghi, &
-                q_int, fglo, fghi, &
+                fxz, ft2_lo, ft2_hi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                rfxz, glo, ghi, &
-                lambda_int, fglo, fghi, &
+                rfxz, rft2_lo, rft2_hi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 1, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2)-dg(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
-                                q_int, fglo, fghi, &
+                                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                lambda_int, fglo, fghi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
-                                qgdnvxz, fglo, fghi)
+                                qgdnvxz, qg2_lo, qg2_hi)
 
     qyl => ql
     qyr => qr
@@ -1361,20 +1363,21 @@ contains
     !         srcQ                            : +-1
     ! Outputs: qyl, qyr                       : yface, +-0 at x & z
     call transxz([lo(1), lo(2)-1, lo(3)], [hi(1), hi(2)+1, hi(3)], &
-                 qym, qyl, qyp, qyr, fglo, fghi, &
+                 qym, qym_lo, qym_hi, &
+                 qyl, ql_lo, ql_hi, &
+                 qyp, qyp_lo, qyp_hi, &
+                 qyr, qr_lo, qr_hi, &
                  qaux, qa_lo, qa_hi, &
-                 fxz, &
+                 fxz, ft2_lo, ft2_hi, &
 #ifdef RADIATION
-                 rfxz, &
+                 rfxz, rft2_lo, rft2_hi, &
 #endif
-                 glo, ghi, &
-                 fzx, &
+                 fzx, ft1_lo, ft1_hi, &
 #ifdef RADIATION
-                 rfzx, &
+                 rfzx, rft1_lo, rft1_hi, &
 #endif
-                 glo, ghi, &
-                 qgdnvxz, fglo, fghi, &
-                 qgdnvzx, fglo, fghi, &
+                 qgdnvxz, qg2_lo, qg2_hi, &
+                 qgdnvzx, qg1_lo, qg1_hi, &
                  hdt, hdtdx, hdtdz, &
                  lo, hi)
 
@@ -1392,21 +1395,22 @@ contains
     !         shk                             : +-1
     ! Outputs: flux2, ugdnvy, pgdnvy, gegdnvy : yface, +-0 at x & y
     call cmpflx([lo(1), lo(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)], &
-                qyl, qyr, fglo, fghi, 1, 1, &
+                qyl, ql_lo, ql_hi, &
+                qyr, qr_lo, qr_hi, 1, 1, &
                 flux2, f2_lo, f2_hi, &
-                q_int, fglo, fghi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
                 rflux2, rf2_lo, rf2_hi, &
-                lambda_int, fglo, fghi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 2, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)], &
-                                q_int, fglo, fghi, &
+                                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                lambda_int, fglo, fghi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
                                 q2, q2_lo, q2_hi)
 
@@ -1430,23 +1434,24 @@ contains
     !         shk                              : +-1
     ! Outputs: fxy, ugdnvxy, pgdnvxy, gegdnvxy : xface, +-0 at y, +-1 at z
     call cmpflx([lo(1), lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2), hi(3)+dg(3)], &
-                qmxy, qpxy, fglo, fghi, 1, 1, &
-                fxy, glo, ghi, &
-                q_int, fglo, fghi, &
+                qmxy, qmxy_lo, qmxy_hi, &
+                qpxy, qpxy_lo, qpxy_hi, 1, 1, &
+                fxy, ft1_lo, ft1_hi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                rfxy, glo, ghi, &
-                lambda_int, fglo, fghi, &
+                rfxy, rft1_lo, rft1_hi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 1, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2), hi(3)+dg(3)], &
-                                q_int, fglo, fghi, &
+                                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                lambda_int, fglo, fghi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
-                                qgdnvxy, fglo, fghi)
+                                qgdnvxy, qg1_lo, qg1_hi)
 
 
     fyx      =>      ftmp2
@@ -1461,23 +1466,24 @@ contains
     !         shk                              : +-1
     ! Outputs: fyx, ugdnvyx, pgdnvyx, gegdnvyx : yface, +-0 at x, +-1 at z
     call cmpflx([lo(1), lo(2), lo(3)-dg(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
-                qmyx, qpyx, fglo, fghi, 1, 1, &
-                fyx, glo, ghi, &
-                q_int, fglo, fghi, &
+                qmyx, qmyx_lo, qmyx_hi, &
+                qpyx, qpyx_lo, qpyx_hi, 1, 1, &
+                fyx, ft2_lo, ft2_hi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                rfyx, glo, ghi, &
-                lambda_int, fglo, fghi, &
+                rfyx, rft2_lo, rft2_hi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 2, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2), lo(3)-dg(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
-                                q_int, fglo, fghi, &
+                                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                lambda_int, fglo, fghi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
-                                qgdnvyx, fglo, fghi)
+                                qgdnvyx, qg2_lo, qg2_hi)
 
     qzl => ql
     qzr => qr
@@ -1490,20 +1496,21 @@ contains
     !         srcQ                            : +-1
     ! Outputs: qzl, qzr                       : zface, +-0 at x & y
     call transxy([lo(1), lo(2), lo(3)-1], [hi(1), hi(2), hi(3)+1], &
-                 qzm, qzl, qzp, qzr, fglo, fghi, &
+                 qzm, qzm_lo, qzm_hi, &
+                 qzl, ql_lo, ql_hi, &
+                 qzp, qzp_lo, qzp_hi, &
+                 qzr, qr_lo, qr_hi, &
                  qaux, qa_lo, qa_hi, &
-                 fxy, &
+                 fxy, ft1_lo, ft1_hi, &
 #ifdef RADIATION
-                 rfxy, &
+                 rfxy, rft1_lo, rft1_hi, &
 #endif
-                 glo, ghi, &
-                 fyx,&
+                 fyx, ft2_lo, ft2_hi, &
 #ifdef RADIATION
-                 rfyx, &
+                 rfyx, rft2_lo, rft2_hi, &
 #endif
-                 glo, ghi, &
-                 qgdnvxy, fglo, fghi, &
-                 qgdnvyx, fglo, fghi, &
+                 qgdnvxy, qg1_lo, qg1_hi, &
+                 qgdnvyx, qg2_lo, qg2_hi, &
                  hdt, hdtdx, hdtdy, &
                  lo, hi)
 
@@ -1521,21 +1528,22 @@ contains
     !         shk                             : +-1
     ! Outputs: flux3, ugdnvz, pgdnvz, gegdnvz : zface, +-0 at x & y
     call cmpflx([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+dg(3)], &
-                qzl, qzr, fglo, fghi, 1, 1, &
+                qzl, ql_lo, ql_hi, &
+                qzr, qr_lo, qr_hi, 1, 1, &
                 flux3, f3_lo, f3_hi, &
-                q_int, fglo, fghi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
                 rflux3, rf3_lo, rf3_hi, &
-                lambda_int, fglo, fghi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 3, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+dg(3)], &
-                                q_int, fglo, fghi, &
+                                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                lambda_int, fglo, fghi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
                                 q3, q3_lo, q3_hi)
 
