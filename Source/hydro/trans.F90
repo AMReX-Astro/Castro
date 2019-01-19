@@ -414,7 +414,7 @@ contains
                    qypo(i,j,k,QGAME) = qyp(i,j,k,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qypo, q_lo, q_hi, i, j, k)
+                call reset_edge_state_thermo(qypo, qypo_lo, qypo_hi, i, j, k)
 
 #ifdef RADIATION
                 qypo(i,j,k,qrad:qradhi) = ernewr(:)
@@ -548,7 +548,7 @@ contains
                    qymo(i,j+1,k,QGAME) = qym(i,j+1,k,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qymo, q_lo, q_hi, i, j+1, k)
+                call reset_edge_state_thermo(qymo, qymo_lo, qymo_hi, i, j+1, k)
 
 #ifdef RADIATION
                 qymo(i,j+1,k,qrad:qradhi) = ernewl(:)
@@ -749,7 +749,7 @@ contains
                    qzpo(i,j,k,QGAME) = qzp(i,j,k,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qzpo, q_lo, q_hi, i, j, k)
+                call reset_edge_state_thermo(qzpo, qzpo_lo, qzpo_hi, i, j, k)
 
 #ifdef RADIATION
                 qzpo(i,j,k,qrad:qradhi) = ernewr(:)
@@ -844,7 +844,7 @@ contains
                    qzmo(i,j,k+1,QGAME) = qzm(i,j,k+1,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qzmo, q_lo, q_hi, i, j, k+1)
+                call reset_edge_state_thermo(qzmo, qzmo_lo, qzmo_hi, i, j, k+1)
 
 #ifdef RADIATION
                 qzmo(i,j,k+1,qrad:qradhi) = ernewl(:)
@@ -866,7 +866,7 @@ contains
   !===========================================================================
   subroutine transy(lo, hi, &
                     qxm, qxm_lo, qxm_hi, &
-                    qxmo, qmxo_lo, qmxo_hi, &
+                    qxmo, qxmo_lo, qxmo_hi, &
                     qxp, qxp_lo, qxp_hi, &
                     qxpo, qxpo_lo, qxpo_hi, &
 #if AMREX_SPACEDIM == 3
@@ -1171,7 +1171,7 @@ contains
                    qxpo(i,j,k,QGAME) = qxp(i,j,k,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qxpo, q_lo, q_hi, i, j, k)
+                call reset_edge_state_thermo(qxpo, qxpo_lo, qxpo_hi, i, j, k)
 
 #ifdef RADIATION
                 qxpo(i,j,k,qrad:qradhi) = ernewr(:)
@@ -1265,7 +1265,7 @@ contains
                    qxmo(i+1,j,k,QGAME) = qxm(i+1,j,k,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qxmo, q_lo, q_hi, i+1, j, k)
+                call reset_edge_state_thermo(qxmo, qxmo_lo, qxmo_hi, i+1, j, k)
 
 #ifdef RADIATION
                 qxmo(i+1,j,k,qrad:qradhi) = ernewl(:)
@@ -1465,7 +1465,7 @@ contains
                    qzpo(i,j,k,QGAME) = qzp(i,j,k,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qzpo, q_lo, q_hi, i, j, k)
+                call reset_edge_state_thermo(qzpo, qzpo_lo, qzpo_hi, i, j, k)
 
 #ifdef RADIATION
                 qzpo(i,j,k,qrad:qradhi) = ernewr(:)
@@ -1560,7 +1560,7 @@ contains
                    qzmo(i,j,k+1,QGAME) = qzm(i,j,k+1,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qzmo, q_lo, q_hi, i, j, k+1)
+                call reset_edge_state_thermo(qzmo, qzmo_lo, qzmo_hi, i, j, k+1)
 
 #ifdef RADIATION
                 qzmo(i,j,k+1,qrad:qradhi) = ernewl(:)
@@ -1877,7 +1877,7 @@ contains
                    qxpo(i,j,k,QGAME) = qxp(i,j,k,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qxpo, q_lo, q_hi, i, j, k)
+                call reset_edge_state_thermo(qxpo, qxpo_lo, qxpo_hi, i, j, k)
 
 #ifdef RADIATION
                 qxpo(i,j,k,qrad:qradhi) = ernewrx(:)
@@ -1969,7 +1969,7 @@ contains
                    qxmo(i+1,j,k,QGAME) = qxm(i+1,j,k,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qxmo, q_lo, q_hi, i+1, j, k)
+                call reset_edge_state_thermo(qxmo, qxmo_lo, qxmo_hi, i+1, j, k)
 
 #ifdef RADIATION
                 qxmo(i+1,j,k,qrad:qradhi) = ernewlx(:)
@@ -2163,7 +2163,7 @@ contains
                    qypo(i,j,k,QGAME) = qyp(i,j,k,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qypo, q_lo, q_hi, i, j, k)
+                call reset_edge_state_thermo(qypo, qypo_lo, qypo_hi, i, j, k)
 
 #ifdef RADIATION
                 qypo(i,j,k,qrad:qradhi) = ernewry(:)
@@ -2258,7 +2258,7 @@ contains
                    qymo(i,j+1,k,QGAME) = qym(i,j+1,k,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qymo, q_lo, q_hi, i, j+1, k)
+                call reset_edge_state_thermo(qymo, qymo_lo, qymo_hi, i, j+1, k)
 
 #ifdef RADIATION
                 qymo(i,j+1,k,qrad:qradhi) = ernewly(:)
@@ -2600,7 +2600,7 @@ contains
 
                 qpo(i,j,k,QPRES) = max(qpo(i,j,k,QPRES), small_pres)
 
-                call reset_edge_state_thermo(qpo, q_lo, q_hi, i, j, k)
+                call reset_edge_state_thermo(qpo, qpo_lo, qpo_hi, i, j, k)
 
 #ifdef RADIATION
                 qpo(i,j,k,qrad:qradhi) = ernewr(:)
@@ -2700,7 +2700,7 @@ contains
 
                 qmo(i+1,j,k,QPRES) = max(qmo(i+1,j,k,QPRES), small_pres)
 
-                call reset_edge_state_thermo(qmo, q_lo, q_hi, i+1, j, k)
+                call reset_edge_state_thermo(qmo, qmo_lo, qmo_hi, i+1, j, k)
 
 #ifdef RADIATION
                 qmo(i+1,j,k,qrad:qradhi) = ernewl(:)
@@ -2773,8 +2773,8 @@ contains
     integer, intent(in) :: qp_lo(3), qp_hi(3)
     integer, intent(in) :: qpo_lo(3), qpo_hi(3)
     integer, intent(in) :: qa_lo(3),qa_hi(3)
-    integer, intent(in) :: fx_lo(3),fx_hi(3)
-    integer, intent(in) :: fz_lo(3),fz_hi(3)
+    integer, intent(in) :: fxz_lo(3), fxz_hi(3)
+    integer, intent(in) :: fzx_lo(3), fzx_hi(3)
     integer, intent(in) :: qx_lo(3),qx_hi(3)
     integer, intent(in) :: qz_lo(3),qz_hi(3)
     integer, intent(in) :: lo(3), hi(3)
@@ -2783,10 +2783,10 @@ contains
     real(rt), intent(in) :: hdt, cdtdx, cdtdz
 
 #ifdef RADIATION
-    integer, intent(in) :: rfx_lo(3), rfx_hi(3)
-    integer, intent(in) :: rfz_lo(3), rfz_hi(3)
-    real(rt), intent(in) :: rfxz(rfx_lo(1):rfx_hi(1),rfx_lo(2):rfx_hi(2),rfx_lo(3):rfx_hi(3),0:ngroups-1)
-    real(rt), intent(in) :: rfzx(rfz_lo(1):rfz_hi(1),rfz_lo(2):rfz_hi(2),rfz_lo(3):rfz_hi(3),0:ngroups-1)
+    integer, intent(in) :: rfxz_lo(3), rfxz_hi(3)
+    integer, intent(in) :: rfzx_lo(3), rfzx_hi(3)
+    real(rt), intent(in) :: rfxz(rfxz_lo(1):rfxz_hi(1),rfxz_lo(2):rfxz_hi(2),rfxz_lo(3):rfxz_hi(3),0:ngroups-1)
+    real(rt), intent(in) :: rfzx(rfzx_lo(1):rfzx_hi(1),rfzx_lo(2):rfzx_hi(2),rfzx_lo(3):rfzx_hi(3),0:ngroups-1)
 #endif
 
     real(rt), intent(in) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
@@ -2796,8 +2796,8 @@ contains
 
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) :: fxz(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
-    real(rt), intent(in) :: fzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
+    real(rt), intent(in) :: fxz(fxz_lo(1):fxz_hi(1),fxz_lo(2):fxz_hi(2),fxz_lo(3):fxz_hi(3),NVAR)
+    real(rt), intent(in) :: fzx(fzx_lo(1):fzx_hi(1),fzx_lo(2):fzx_hi(2),fzx_lo(3):fzx_hi(3),NVAR)
     real(rt), intent(in) :: qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
     real(rt), intent(in) :: qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
 
@@ -3042,7 +3042,7 @@ contains
 
                 qpo(i,j,k,QPRES) = max(qpo(i,j,k,QPRES), small_pres)
 
-                call reset_edge_state_thermo(qpo, q_lo, q_hi, i, j, k)
+                call reset_edge_state_thermo(qpo, qpo_lo, qpo_hi, i, j, k)
 
 #ifdef RADIATION
                 qpo(i,j,k,qrad:qradhi) = ernewr(:)
@@ -3142,7 +3142,7 @@ contains
 
                 qmo(i,j+1,k,QPRES) = max(qmo(i,j+1,k,QPRES), small_pres)
 
-                call reset_edge_state_thermo(qmo, q_lo, q_hi, i, j+1, k)
+                call reset_edge_state_thermo(qmo, qmo_lo, qmo_hi, i, j+1, k)
 
 #ifdef RADIATION
                 qmo(i,j+1,k,qrad:qradhi) = ernewl(:)
@@ -3487,7 +3487,7 @@ contains
 
                 qpo(i,j,k,QPRES) = max(qpo(i,j,k,QPRES), small_pres)
 
-                call reset_edge_state_thermo(qpo, q_lo, q_hi, i, j, k)
+                call reset_edge_state_thermo(qpo, qpo_lo, qpo_hi, i, j, k)
 
 #ifdef RADIATION
                 qpo(i,j,k,qrad:qradhi) = ernewr(:)
@@ -3588,7 +3588,7 @@ contains
 
                 qmo(i,j,k+1,QPRES) = max(qmo(i,j,k+1,QPRES), small_pres)
 
-                call reset_edge_state_thermo(qmo, q_lo, q_hi, i, j, k+1)
+                call reset_edge_state_thermo(qmo, qmo_lo, qmo_hi, i, j, k+1)
 
 #ifdef RADIATION
                 qmo(i,j,k+1,qrad:qradhi) = ernewl(:)

@@ -519,13 +519,15 @@ contains
                                 rftmp1, rft1_lo, rft1_hi, &
                                 rftmp2, rft2_lo, rft2_hi, &
 #endif
-                                qgdnvtmp1. qg1_lo, qg2_hi, &
+                                qgdnvtmp1, qg1_lo, qg1_hi, &
                                 qgdnvtmp2, qg2_lo, qg2_hi, &
                                 ql, ql_lo, ql_hi, &
                                 qr, qr_lo, qr_hi, &
 #endif
                                 q_int, qi_lo, qi_hi, &
+#ifdef RADIATION
                                 lambda_int, li_lo, li_hi, &
+#endif
                                 uout, uout_lo, uout_hi, &
                                 flux1, f1_lo, f1_hi, &
 #if AMREX_SPACEDIM >= 2
@@ -616,14 +618,15 @@ contains
     integer, intent(in) :: rft1_lo(3), rft1_hi(3)
     integer, intent(in) :: rft2_lo(3), rft2_hi(3)
 #endif
-    integer, intent(in) :: qg1_lo(3), qg2_hi(3)
+    integer, intent(in) :: qg1_lo(3), qg1_hi(3)
     integer, intent(in) :: qg2_lo(3), qg2_hi(3)
     integer, intent(in) :: ql_lo(3), ql_hi(3)
     integer, intent(in) :: qr_lo(3), qr_hi(3)
 #endif
     integer, intent(in) :: qi_lo(3), qi_hi(3)
+#ifdef RADIATION
     integer, intent(in) :: li_lo(3), li_hi(3)
-
+#endif
     integer, intent(in) :: uout_lo(3), uout_hi(3)
     integer, intent(in) :: q1_lo(3), q1_hi(3)
     integer, intent(in) :: f1_lo(3), f1_hi(3)
@@ -686,20 +689,21 @@ contains
     real(rt), intent(inout) :: qpzy(qpzy_lo(1):qpzy_hi(1), qpzy_lo(2):qpzy_hi(2), qpzy_lo(3):qpzy_hi(3), NQ)
 #endif
 #if AMREX_SPACEDIM >= 2
-    real(rt), intent(inout) :: ftmp1(ft1_lo(1):ft1_hi(1), ft1_lo(2):ft1_hi(2), ft1_lo(3):ft1_hi(3), NVAR)
-    real(rt), intent(inout) :: ftmp2(ft2_lo(1):ft2_hi(1), ft2_lo(2):ft2_hi(2), ft2_lo(3):ft2_hi(3), NVAR)
+    real(rt), intent(inout), target :: ftmp1(ft1_lo(1):ft1_hi(1), ft1_lo(2):ft1_hi(2), ft1_lo(3):ft1_hi(3), NVAR)
+    real(rt), intent(inout), target :: ftmp2(ft2_lo(1):ft2_hi(1), ft2_lo(2):ft2_hi(2), ft2_lo(3):ft2_hi(3), NVAR)
 #ifdef RADIATION
-    real(rt), intent(inout) :: rftmp1(rft1_lo(1):rft1_hi(1), rft1_lo(2):rft1_hi(2), rft1_lo(3):rft1_hi(3), 0:ngroups-1)
-    real(rt), intent(inout) :: rftmp2(rft2_lo(1):rft2_hi(1), rft2_lo(2):rft2_hi(2), rft2_lo(3):rft2_hi(3), 0:ngroups-1)
+    real(rt), intent(inout), target :: rftmp1(rft1_lo(1):rft1_hi(1), rft1_lo(2):rft1_hi(2), rft1_lo(3):rft1_hi(3), 0:ngroups-1)
+    real(rt), intent(inout), target :: rftmp2(rft2_lo(1):rft2_hi(1), rft2_lo(2):rft2_hi(2), rft2_lo(3):rft2_hi(3), 0:ngroups-1)
 #endif
-    real(rt), intent(inout) :: qgdnvtmp1(qg1_lo(1):qg2_hi(1), qg1_lo(2):qg2_hi(2), qg1_lo(3):qg2_hi(3), NGDNV)
-    real(rt), intent(inout) :: qgdnvtmp2(qg2_lo(1):qg2_hi(1), qg2_lo(2):qg2_hi(2), qg2_lo(3):qg2_hi(3), NGDNV)
-    real(rt), intent(inout) :: ql(ql_lo(1):ql_hi(1), ql_lo(2):ql_hi(2), ql_lo(3):ql_hi(3), NQ)
-    real(rt), intent(inout) :: qr(qr_lo(1):qr_hi(1), qr_lo(2):qr_hi(2), qr_lo(3):qr_hi(3), NQ)
+    real(rt), intent(inout), target :: qgdnvtmp1(qg1_lo(1):qg2_hi(1), qg1_lo(2):qg2_hi(2), qg1_lo(3):qg2_hi(3), NGDNV)
+    real(rt), intent(inout), target :: qgdnvtmp2(qg2_lo(1):qg2_hi(1), qg2_lo(2):qg2_hi(2), qg2_lo(3):qg2_hi(3), NGDNV)
+    real(rt), intent(inout), target :: ql(ql_lo(1):ql_hi(1), ql_lo(2):ql_hi(2), ql_lo(3):ql_hi(3), NQ)
+    real(rt), intent(inout), target :: qr(qr_lo(1):qr_hi(1), qr_lo(2):qr_hi(2), qr_lo(3):qr_hi(3), NQ)
 #endif
     real(rt), intent(inout) :: q_int(qi_lo(1):qi_hi(1), qi_lo(2):qi_hi(2), qi_lo(3):qi_hi(3), NQ)
+#ifdef RADIATION
     real(rt), intent(inout) :: lambda_int(li_lo(1):li_hi(1), li_lo(2):li_hi(2), li_lo(3):li_hi(3), 0:ngroups-1)
-
+#endif
     real(rt), intent(inout) ::  uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
     real(rt), intent(inout) :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3),NVAR)
     real(rt), intent(inout) ::    q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NGDNV)
@@ -740,6 +744,24 @@ contains
 
 
     integer :: fglo(3), fghi(3), glo(3), ghi(3)
+
+    ! Left and right state arrays (edge centered, cell centered)
+    double precision, dimension(:,:,:,:), pointer :: &
+         qxl, qxr, qyl, qyr, qzl, qzr
+
+    double precision, dimension(:,:,:,:), pointer:: &
+         qgdnvx, qgdnvy, qgdnvz, &
+         qgdnvxy, qgdnvxz, &
+         qgdnvyx, qgdnvyz, &
+         qgdnvzx, qgdnvzy
+
+    double precision, dimension(:,:,:,:), pointer:: &
+         fx, fy, fz, fxy, fxz, fyx, fyz, fzx, fzy
+
+#ifdef RADIATION
+    double precision, dimension(:,:,:,:), pointer:: &
+         rfx, rfy, rfz, rfxy, rfxz, rfyx, rfyz, rfzx, rfzy
+#endif
 
     fglo = lo - dg(:)  ! face + one ghost
     fghi = hi + 2*dg(:)
@@ -790,7 +812,7 @@ contains
                 q_int, fglo, fghi, &
 #ifdef RADIATION
                 rflux1, rf1_lo, rf1_hi, &
-                lambda_int, li_lo, li_ghi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, sk_lo, sk_hi, &
@@ -1304,9 +1326,10 @@ contains
     !         shk                              : +-1
     ! Outputs: fzx, ugdnvzx, pgdnvzx, gegdnvzx : zface, +-0 at x, +-1 at y
     call cmpflx([lo(1), lo(2)-dg(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
-                qmzx, qpzx, fglo, fghi, 1, 1, &
+                qmzx, qmzx_lo, qmzx_hi, &
+                qpzx, qpzx_lo, qpzx_hi, 1, 1, &
                 fzx, ft1_lo, ft1_hi, &
-                q_int, gi_lo, gi_hi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
                 rfzx, rft1_lo, rft1_hi, &
                 lambda_int, li_lo, li_hi, &
@@ -1334,7 +1357,8 @@ contains
     !         shk                              : +-1
     ! Outputs: fxz, ugdnvxz, pgdnvxz, gegdnvxz : xface, +-1 at y, +-0 at z
     call cmpflx([lo(1), lo(2)-dg(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
-                qmxz, qpxz, fglo, fghi, 1, 1, &
+                qmxz, qmxz_lo, qmxz_hi, &
+                qpxz, qpxz_lo, qpxz_hi, 1, 1, &
                 fxz, ft2_lo, ft2_hi, &
                 q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
@@ -2597,22 +2621,8 @@ contains
     double precision, dimension(:,:,:,:), pointer :: &
          ql, qr, &
          qmxy, qpxy, qmxz, qpxz, qmyx, qpyx, &
-         qmyz, qpyz, qmzx, qpzx, qmzy, qpzy, &
-         qxl, qxr, qyl, qyr, qzl, qzr
+         qmyz, qpyz, qmzx, qpzx, qmzy, qpzy
 
-    double precision, dimension(:,:,:,:), pointer:: &
-         fx, fy, fz, fxy, fxz, fyx, fyz, fzx, fzy
-
-#ifdef RADIATION
-    double precision, dimension(:,:,:,:), pointer:: &
-         rfx, rfy, rfz, rfxy, rfxz, rfyx, rfyz, rfzx, rfzy
-#endif
-
-    double precision, dimension(:,:,:,:), pointer:: &
-         qgdnvx, qgdnvy, qgdnvz, &
-         qgdnvxy, qgdnvxz, &
-         qgdnvyx, qgdnvyz, &
-         qgdnvzx, qgdnvzy
 
     ! these will be the temporary arrays we actually allocate space for
     double precision, dimension(:,:,:,:), pointer :: ftmp1, ftmp2, rftmp1, rftmp2
@@ -2832,13 +2842,15 @@ contains
                             rftmp1, glo, ghi, &
                             rftmp2, glo, ghi, &
 #endif
-                            qgdnvtmp1. fglo, fghi, &
+                            qgdnvtmp1, fglo, fghi, &
                             qgdnvtmp2, fglo, fghi, &
                             ql, fglo, fghi, &
                             qr, fglo, fghi, &
 #endif
                             q_int, fglo, fghi, &
+#ifdef RADIATION
                             lambda_int, fglo, fghi, &
+#endif
                             uout, uout_lo, uout_hi, &
                             flux1, flux1_lo, flux1_hi, &
 #if AMREX_SPACEDIM >= 2
