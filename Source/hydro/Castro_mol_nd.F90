@@ -138,7 +138,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   ! temporary interface values of the parabola
   real(rt)        , pointer :: qm(:,:,:,:,:), qp(:,:,:,:,:)
-  real(rt)        , pointer :: dqx(:,:,:,:), dqy(:,:,:,:), dqz(:,:,:,:)
+  real(rt)        , pointer :: dq(:,:,:,:,:)
 
   integer :: ngf
   integer :: It_lo(3), It_hi(3)
@@ -188,13 +188,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
 
   if (ppm_type == 0) then
-     call bl_allocate(dqx, dq_lo, dq_hi, NQ)
-#if AMREX_SPACEDIM >= 2
-     call bl_allocate(dqy, dq_lo, dq_hi, NQ)
-#endif
-#if AMREX_SPACEDIM == 3
-     call bl_allocate(dqz, dq_lo, dq_hi, NQ)
-#endif
+     call bl_allocate ( dq, dq_lo(1),dq_hi(1), dq_lo(2),dq_hi(2), dq_lo(3),dq_hi(3), 1, NQ, 1, AMREX_SPACEDIM)
   end if
 
   call bl_allocate(qm, It_lo(1),It_hi(1), It_lo(2),It_hi(2), It_lo(3),It_hi(3), 1,NQ, 1,AMREX_SPACEDIM)
@@ -245,8 +239,8 @@ subroutine ca_mol_single_stage(lo, hi, time, &
      flatn = ZERO
   elseif (use_flattening == 1) then
      call ca_uflatten(lo - ngf*dg, hi + ngf*dg, &
-          q, q_lo, q_hi, &
-          flatn, q_lo, q_hi, QPRES)
+                      q, q_lo, q_hi, &
+                      flatn, q_lo, q_hi, QPRES)
   else
      flatn = ONE
   endif
@@ -256,17 +250,10 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   if (ppm_type == 0)  then
      do n = 1, NQ
         ! piecewise linear slopes
-        call uslope(q, q_lo, q_hi, n, &
+        call uslope(lo-dg, hi+dg, &
+                    q, q_lo, q_hi, n, &
                     flatn, q_lo, q_hi, &
-                    dqx, &
-#if AMREX_SPACEDIM >= 2
-                    dqy, &
-#endif
-#if AMREX_SPACEDIM == 3
-                    dqz, &
-#endif
-                    dq_lo, dq_hi, &
-                    lo-dg, hi+dg)
+                    dq, dq_lo, dq_hi)
      end do
 
      do n = 1, NQ
@@ -280,20 +267,20 @@ subroutine ca_mol_single_stage(lo, hi, time, &
                  ! x-edges
                  if (i >= lo(1)) then
                     ! left state at i-1/2 interface
-                    qm(i,j,k,n,1) = q(i-1,j,k,n) + HALF*dqx(i-1,j,k,n)
+                    qm(i,j,k,n,1) = q(i-1,j,k,n) + HALF*dq(i-1,j,k,n,1)
 
                     ! right state at i-1/2 interface
-                    qp(i,j,k,n,1) = q(i,j,k,n) - HALF*dqx(i,j,k,n)
+                    qp(i,j,k,n,1) = q(i,j,k,n) - HALF*dq(i,j,k,n,1)
                  end if
 
 #if BL_SPACEDIM >= 2
                  ! y-edges
                  if (j >= lo(2)) then
                     ! left state at j-1/2 interface
-                    qm(i,j,k,n,2) = q(i,j-1,k,n) + HALF*dqy(i,j-1,k,n)
+                    qm(i,j,k,n,2) = q(i,j-1,k,n) + HALF*dq(i,j-1,k,n,2)
 
                     ! right state at j-1/2 interface
-                    qp(i,j,k,n,2) = q(i,j,k,n) - HALF*dqy(i,j,k,n)
+                    qp(i,j,k,n,2) = q(i,j,k,n) - HALF*dq(i,j,k,n,2)
                  end if
 #endif
 
@@ -302,10 +289,10 @@ subroutine ca_mol_single_stage(lo, hi, time, &
                  if (k >= lo(3)) then
 
                     ! left state at k-1/2 interface
-                    qm(i,j,k,n,3) = q(i,j,k,n) + HALF*dqz(i,j,k,n)
+                    qm(i,j,k,n,3) = q(i,j,k,n) + HALF*dq(i,j,k,n,3)
 
                     ! right state at k-1/2 interface
-                    qp(i,j,k,n,3) = q(i,j,k,n) - HALF*dqz(i,j,k,n)
+                    qp(i,j,k,n,3) = q(i,j,k,n) - HALF*dq(i,j,k,n,3)
                  end if
 #endif
 
@@ -431,13 +418,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
 
   if (ppm_type == 0) then
-     call bl_deallocate(dqx)
-#if AMREX_SPACEDIM >= 2
-     call bl_deallocate(dqy)
-#endif
-#if AMREX_SPACEDIM == 3
-     call bl_deallocate(dqz)
-#endif
+     call bl_deallocate(dq)
   end if
 
   call bl_deallocate(qm)
