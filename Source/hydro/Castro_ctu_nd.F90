@@ -943,7 +943,7 @@ contains
     call transx([lo(1), lo(2)-1, 0], [hi(1), hi(2)+1, 0], &
                 qym, qym_lo, qym_hi, &
                 ql, ql_lo, ql_hi, &
-                qyp, qyp_lo. qyp_hi, &
+                qyp, qyp_lo, qyp_hi, &
                 qr, qr_lo, qr_hi, &
                 qaux, qa_lo, qa_hi, &
                 fx, ft1_lo, ft1_hi, &
