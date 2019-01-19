@@ -499,6 +499,34 @@ contains
 #if AMREX_SPACEDIM == 3
                                 qzm, qzm_lo, qzm_hi, &
                                 qzp, qzp_lo, qzp_hi, &
+                                qmxy, qmxy_lo, qmxy_hi, &
+                                qpxy, qpxy_lo, qpxy_hi, &
+                                qmxz, qmxz_lo, qmxz_hi, &
+                                qpxz, qpxz_lo, qpxz_hi, &
+                                qmyx, qmyx_lo, qmyx_hi, &
+                                qpyx, qpyx_lo, qpyx_hi, &
+                                qmyz, qmyz_lo, qmyz_hi, &
+                                qpyz, qpyz_lo, qpyz_hi, &
+                                qmzx, qmzx_lo, qmzx_hi, &
+                                qpzx, qpzx_lo, qpzx_hi, &
+                                qmzy, qmzy_lo, qmzy_hi, &
+                                qpzy, qpzy_lo, qpzy_hi, &
+#endif
+#if AMREX_SPACEDIM >= 2
+                                ftmp1, ft1_lo, ft1_hi, &
+                                ftmp2, ft2_lo, ft2_hi, &
+#ifdef RADIATION
+                                rftmp1, rft1_lo, rft1_hi, &
+                                rftmp2, rft2_lo, rft2_hi, &
+#endif
+                                qgdnvtmp1, qg1_lo, qg1_hi, &
+                                qgdnvtmp2, qg2_lo, qg2_hi, &
+                                ql, ql_lo, ql_hi, &
+                                qr, qr_lo, qr_hi, &
+#endif
+                                q_int, qi_lo, qi_hi, &
+#ifdef RADIATION
+                                lambda_int, li_lo, li_hi, &
 #endif
                                 uout, uout_lo, uout_hi, &
                                 flux1, f1_lo, f1_hi, &
@@ -535,7 +563,6 @@ contains
 #endif
                                 domlo, domhi)
 
-    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : QVAR, NQ, NVAR, &
                                    QFS, QFX, QTEMP, QREINT, &
                                    QC, QGAMC, NQAUX, QGAME, QREINT, &
@@ -560,167 +587,6 @@ contains
 
     integer, intent(in) :: qd_lo(3), qd_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
-
-    integer, intent(in) :: sk_lo(3), sk_hi(3)
-    integer, intent(in) :: qxm_lo(3), qxm_hi(3)
-    integer, intent(in) :: qxp_lo(3), qxp_hi(3)
-#if AMREX_SPACEDIM >= 2
-    integer, intent(in) :: qym_lo(3), qym_hi(3)
-    integer, intent(in) :: qyp_lo(3), qyp_hi(3)
-#endif
-#if AMREX_SPACEDIM == 3
-    integer, intent(in) :: qzm_lo(3), qzm_hi(3)
-    integer, intent(in) :: qzp_lo(3), qzp_hi(3)
-#endif
-
-    integer, intent(in) :: uout_lo(3), uout_hi(3)
-    integer, intent(in) :: q1_lo(3), q1_hi(3)
-    integer, intent(in) :: f1_lo(3), f1_hi(3)
-#if AMREX_SPACEDIM >= 2
-    integer, intent(in) :: q2_lo(3), q2_hi(3)
-    integer, intent(in) :: f2_lo(3), f2_hi(3)
-#endif
-#if AMREX_SPACEDIM == 3
-    integer, intent(in) :: f3_lo(3), f3_hi(3)
-    integer, intent(in) :: q3_lo(3), q3_hi(3)
-#endif
-#if AMREX_SPACEDIM <= 2
-    integer, intent(in) :: area1_lo(3), area1_hi(3)
-#endif
-#if AMREX_SPACEDIM == 2
-    integer, intent(in) :: area2_lo(3), area2_hi(3)
-#endif
-#if AMREX_SPACEDIM <= 2
-    integer, intent(in) :: vol_lo(3), vol_hi(3)
-#endif
-
-#ifdef RADIATION
-    integer, intent(in) :: rf1_lo(3), rf1_hi(3)
-#if AMREX_SPACEDIM >= 2
-    integer, intent(in) :: rf2_lo(3), rf2_hi(3)
-#endif
-#if AMREX_SPACEDIM == 3
-    integer, intent(in) :: rf3_lo(3), rf3_hi(3)
-#endif
-#endif
-    integer, intent(in) :: domlo(3), domhi(3)
-
-    real(rt), intent(in) :: dx(3), dt
-
-    real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-
-    real(rt), intent(in) :: shk(sk_lo(1):sk_hi(1), sk_lo(2):sk_hi(2), sk_lo(3):sk_hi(3))
-
-    real(rt), intent(inout) :: qxm(qxm_lo(1):qxm_hi(1), qxm_lo(2):qxm_hi(2), qxm_lo(3):qxm_hi(3), NQ)
-    real(rt), intent(inout) :: qxp(qxp_lo(1):qxp_hi(1), qxp_lo(2):qxp_hi(2), qxp_lo(3):qxp_hi(3), NQ)
-#if AMREX_SPACEDIM >= 2
-    real(rt), intent(inout) :: qym(qym_lo(1):qym_hi(1), qym_lo(2):qym_hi(2), qym_lo(3):qym_hi(3), NQ)
-    real(rt), intent(inout) :: qyp(qyp_lo(1):qyp_hi(1), qyp_lo(2):qyp_hi(2), qyp_lo(3):qyp_hi(3), NQ)
-#endif
-#if AMREX_SPACEDIM == 3
-    real(rt), intent(inout) :: qzm(qzm_lo(1):qzm_hi(1), qzm_lo(2):qzm_hi(2), qzm_lo(3):qzm_hi(3), NQ)
-    real(rt), intent(inout) :: qzp(qzp_lo(1):qzp_hi(1), qzp_lo(2):qzp_hi(2), qzp_lo(3):qzp_hi(3), NQ)
-#endif
-    real(rt), intent(inout) ::  uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
-    real(rt), intent(inout) :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3),NVAR)
-    real(rt), intent(inout) ::    q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NGDNV)
-#if AMREX_SPACEDIM >= 2
-    real(rt), intent(inout) :: flux2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3),NVAR)
-    real(rt), intent(inout) ::    q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NGDNV)
-#endif
-#if AMREX_SPACEDIM == 3
-    real(rt), intent(inout) :: flux3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3),NVAR)
-    real(rt), intent(inout) ::    q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NGDNV)
-#endif
-
-#ifdef RADIATION
-    real(rt), intent(inout) :: rflux1(rf1_lo(1):rf1_hi(1),rf1_lo(2):rf1_hi(2),rf1_lo(3):rf1_hi(3),0:ngroups-1)
-#if AMREX_SPACEDIM >= 2
-    real(rt), intent(inout) :: rflux2(rf2_lo(1):rf2_hi(1),rf2_lo(2):rf2_hi(2),rf2_lo(3):rf2_hi(3),0:ngroups-1)
-#endif
-#if AMREX_SPACEDIM == 3
-    real(rt), intent(inout) :: rflux3(rf3_lo(1):rf3_hi(1),rf3_lo(2):rf3_hi(2),rf3_lo(3):rf3_hi(3),0:ngroups-1)
-#endif
-#endif
-#if AMREX_SPACEDIM <= 2
-    real(rt), intent(in) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
-    real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-#endif
-#if AMREX_SPACEDIM == 2
-    real(rt), intent(in) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2),area2_lo(3):area2_hi(3))
-#endif
-
-    real(rt) :: dxinv, dyinv, dzinv
-    real(rt) :: dtdx, dtdy, dtdz, hdt
-#if AMREX_SPACEDIM == 3
-    real(rt) :: cdtdx, cdtdy, cdtdz
-#endif
-    real(rt) :: hdtdx, hdtdy, hdtdz
-
-    integer :: i, j, k, iwave, n
-
-    real(rt), pointer :: q_int(:,:,:,:)
-
-#ifdef RADIATION
-    real(rt), pointer :: lambda_int(:,:,:,:)
-#endif
-
-
-    ! Left and right state arrays (edge centered, cell centered)
-    double precision, dimension(:,:,:,:), pointer :: &
-         ql, qr, &
-         qmxy, qpxy, qmxz, qpxz, qmyx, qpyx, &
-         qmyz, qpyz, qmzx, qpzx, qmzy, qpzy, &
-         qxl, qxr, qyl, qyr, qzl, qzr
-
-    double precision, dimension(:,:,:,:), pointer:: &
-         fx, fy, fz, fxy, fxz, fyx, fyz, fzx, fzy
-
-#ifdef RADIATION
-    double precision, dimension(:,:,:,:), pointer:: &
-         rfx, rfy, rfz, rfxy, rfxz, rfyx, rfyz, rfzx, rfzy
-#endif
-
-    double precision, dimension(:,:,:,:), pointer:: &
-         qgdnvx, qgdnvy, qgdnvz, &
-         qgdnvxy, qgdnvxz, &
-         qgdnvyx, qgdnvyz, &
-         qgdnvzx, qgdnvzy
-
-    ! these will be the temporary arrays we actually allocate space for
-    double precision, dimension(:,:,:,:), pointer :: ftmp1, ftmp2, rftmp1, rftmp2
-    double precision, dimension(:,:,:,:), pointer :: qgdnvtmp1, qgdnvtmp2
-
-    integer :: fglo(3), fghi(3), glo(3), ghi(3)
-
-    fglo = lo - dg(:)  ! face + one ghost
-    fghi = hi + 2*dg(:)
-
-    glo = lo - dg(:)  ! one ghost,  this can be used for face-based arrays too
-    ghi = hi + dg(:)
-
-    ! Local constants
-    dxinv = ONE/dx(1)
-    dtdx = dt*dxinv
-    hdtdx = HALF*dtdx
-
-#if AMREX_SPACEDIM >= 2
-    dyinv = ONE/dx(2)
-    dtdy = dt*dyinv
-    hdtdy = HALF*dtdy
-#endif
-
-#if AMREX_SPACEDIM == 3
-    dzinv = ONE/dx(3)
-    dtdz = dt*dzinv
-    hdtdz = HALF*dtdz
-    cdtdx = dtdx*THIRD
-    cdtdy = dtdy*THIRD
-    cdtdz = dtdz*THIRD
-#endif
-
-    hdt = HALF*dt
 
     integer, intent(in) :: sk_lo(3), sk_hi(3)
     integer, intent(in) :: qxm_lo(3), qxm_hi(3)
