@@ -793,8 +793,8 @@ contains
     !==========================================================================
     ! Solve Riemann problem, compute xflux from improved predicted states
     call cmpflx(lo, hi+dg(:), &
-                qxm, fglo, fghi, &
-                qxp, fglo, fghi, 1, 1, &
+                qxm, qxm_lo, qxm_hi, &
+                qxp, qxp_lo, qxp_hi, 1, 1, &
                 flux1, f1_lo, f1_hi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -831,8 +831,8 @@ contains
     !         shk                          : +-1
     ! Outputs: fx, ugdnvx, pgdnvx, gegdnvx : xface, +-1 at y
     call cmpflx([lo(1), lo(2)-1, 0], [hi(1)+1, hi(2)+1, 0], &
-                qxm, fglo, fghi, &
-                qxp, fglo, fghi, 1, 1, &
+                qxm, qxm_lo, qxm_hi, &
+                qxp, qxp_lo, qxp_hi, 1, 1, &
                 fx, glo, ghi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -861,8 +861,8 @@ contains
     !         shk                          : +-1
     ! Outputs: fy, ugdnvy, pgdnvy, gegdnvy : yface, +-1 at x
     call cmpflx([lo(1)-1, lo(2), 0], [hi(1)+1, hi(2)+1, 0], &
-                qym, fglo, fghi, &
-                qyp, fglo, fghi, 1, 1, &
+                qym, qym_lo, qym_hi, &
+                qyp, qyp_lo, qyp_hi, 1, 1, &
                 fy, glo, ghi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -886,9 +886,9 @@ contains
     !         gamc                         : +-4
     ! Outputs: qm, qp                      : xface, +-0 at y
     call transy([lo(1)-1, lo(2), 0], [hi(1)+1, hi(2), 0], &
-                qxm, fglo, fghi, &
+                qxm, qxm_lo, qxm_hi, &
                 ql, fglo, fghi, &
-                qxp, fglo, fghi, &
+                qxp, qxp_lo, qxp_hi, &
                 qr, fglo, fghi, &
                 qaux, qa_lo, qa_hi, &
                 fy, glo, ghi, &
@@ -928,9 +928,9 @@ contains
     !         gamc                         : +-4
     ! Outputs: qm, qp                      : yface, +-0 at x
     call transx([lo(1), lo(2)-1, 0], [hi(1), hi(2)+1, 0], &
-                qym, fglo, fghi, &
+                qym, qym_lo, qym_hi, &
                 ql, fglo, fghi, &
-                qyp, fglo, fghi, &
+                qyp, qyp_lo, qyp_hi, &
                 qr, fglo, fghi, &
                 qaux, qa_lo, qa_hi, &
                 fx, glo, ghi, &
@@ -992,8 +992,8 @@ contains
     !         shk                          : +-1
     ! Outputs: fx, ugdnvx, pgdnvx, gegdnvx : xface, +-1 at y & z
     call cmpflx([lo(1), lo(2)-dg(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
-                qxm, fglo, fghi, &
-                qxp, fglo, fghi, 1, 1, &
+                qxm, qxm_lo, qxm_hi, &
+                qxp, qxp_lo, qxp_hi, 1, 1, &
                 fx, glo, ghi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -1019,13 +1019,13 @@ contains
     ! Outputs: qmyx, qpyx                  : yface, +-0 at x, +-1 at z
     !          qmzx, qpzx                  : zface, +-0 at x, +-1 at y
     call transx([lo(1), lo(2)-1, lo(3)-1], [hi(1), hi(2)+1, hi(3)+1], &
-                qym, fglo, fghi, &
+                qym, qym_lo, qym_hi, &
                 qmyx, qmyx_lo, qmyx_hi, &
-                qyp, fglo, fghi, &
+                qyp, qyp_lo, qyp_hi, &
                 qpyx, qpyx_lo, qpyx_hi, &
-                qzm, fglo, fghi, &
+                qzm, qzp_lo, qzp_hi, &
                 qmzx, qmzx_lo, qmzx_hi, &
-                qzp, fglo, fghi, &
+                qzp, qzp_lo, qzp_hi, &
                 qpzx, qpzx_lo, qpzx_hi, &
                 qaux, qa_lo, qa_hi, &
                 fx, glo, ghi, &
@@ -1053,8 +1053,8 @@ contains
     !         shk                          : +-1
     ! Outputs: fy, ugdnvy, pgdnvy, gegdnvy : yface, +-1 at x & z
     call cmpflx([lo(1)-1, lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
-                qym, fglo, fghi, &
-                qyp, fglo, fghi, 1, 1, &
+                qym, qym_lo, qym_hi, &
+                qyp, qyp_lo, qyp_hi, 1, 1, &
                 fy, glo, ghi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -1080,13 +1080,13 @@ contains
     ! Outputs: qmxy, qpxy                  : xface, +-0 at y, +-1 at z
     !          qmzy, qpzy                  : zface, +-0 at y, +-1 at x
     call transy([lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2), hi(3)+1], &
-                qxm, fglo, fghi, &
+                qxm, qxm_lo, qxm_hi, &
                 qmxy, qmxy_lo, qmxy_hi, &
-                qxp, fglo, fghi, &
+                qxp, qxp_lo, qxp_hi, &
                 qpxy, qpxy_lo, qpxy_hi, &
-                qzm, fglo, fghi, &
+                qzm, qzm_lo, qzm_hi, &
                 qmzy, qmzy_lo, qmzy_hi, &
-                qzp, fglo, fghi, &
+                qzp, qzp_lo, qzp_hi, &
                 qpzy, qpzy_lo, qpzy_hi, &
                 qaux, qa_lo, qa_hi, &
                 fy, glo, ghi, &
@@ -1114,8 +1114,8 @@ contains
     !         shk                          : +-1
     ! Outputs: fz, ugdnvz, pgdnvz, gegdnvz : zface, +-1 at x & y
     call cmpflx([lo(1)-1, lo(2)-dg(2), lo(3)], [ hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
-                qzm, fglo, fghi, &
-                qzp, fglo, fghi, 1, 1, &
+                qzm, qzm_lo, qzm_hi, &
+                qzp, qzp_lo, qzp_hi, 1, 1, &
                 fz, glo, ghi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -1141,13 +1141,13 @@ contains
     ! Outputs: qmxz, qpxz                  : xface, +-0 at z, +-1 at y
     !          qmyz, qpyz                  : yface, +-0 at z, +-1 at x
     call transz([lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)], &
-                qxm, fglo, fghi, &
+                qxm, qxm_lo, qxm_hi, &
                 qmxz, qmxz_lo, qmxz_hi, &
-                qxp, fglo, fghi, &
+                qxp, qxp_lo, qxp_hi, &
                 qpxz, qpxz_lo, qpxz_hi, &
-                qym, fglo, fghi, &
+                qym, qym_lo, qym_hi, &
                 qmyz, qmyz_lo, qmyz_hi, &
-                qyp, fglo, fghi, &
+                qyp, qyp_lo, qyp_hi, &
                 qpyz, qpyz_lo, qpyz_hi, &
                 qaux, qa_lo, qa_hi, &
                 fz, glo, ghi, &
@@ -1243,9 +1243,9 @@ contains
     !         srcQ                            : +-1
     ! Outputs: qxl, qxr                       : xface, +-0 at y & z
     call transyz([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], &
-                 qxm, fglo, fghi, &
+                 qxm, qxp_lo, qxp_hi, &
                  qxl, fglo, fghi, &
-                 qxp, fglo, fghi, &
+                 qxp, qxp_lo, qxp_hi, &
                  qxr, fglo, fghi, &
                  qaux, qa_lo, qa_hi, &
                  fyz, glo, ghi, &
@@ -1374,9 +1374,9 @@ contains
     !         srcQ                            : +-1
     ! Outputs: qyl, qyr                       : yface, +-0 at x & z
     call transxz([lo(1), lo(2)-1, lo(3)], [hi(1), hi(2)+1, hi(3)], &
-                 qym, fglo, fghi, &
+                 qym, qym_lo, qym_hi, &
                  qyl, fglo, fghi, &
-                 qyp, fglo, fghi, &
+                 qyp, qyp_lo, qyp_hi, &
                  qyr, fglo, fghi, &
                  qaux, qa_lo, qa_hi, &
                  fxz, glo, ghi, &
@@ -1507,9 +1507,9 @@ contains
     !         srcQ                            : +-1
     ! Outputs: qzl, qzr                       : zface, +-0 at x & y
     call transxy([lo(1), lo(2), lo(3)-1], [hi(1), hi(2), hi(3)+1], &
-                 qzm, fglo, fghi, &
+                 qzm, qzm_lo, qzm_hi, &
                  qzl, fglo, fghi, &
-                 qzp, fglo, fghi, &
+                 qzp, qzp_lo, qzp_hi, &
                  qzr, fglo, fghi, &
                  qaux, qa_lo, qa_hi, &
                  fxy, glo, ghi, &
