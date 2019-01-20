@@ -513,6 +513,8 @@ contains
                                 qpzy, qpzy_lo, qpzy_hi, &
 #endif
 #if AMREX_SPACEDIM >= 2
+                                qgdnvtmp1, qg1_lo, qg1_hi, &
+                                qgdnvtmp2, qg2_lo, qg2_hi, &
                                 ql, ql_lo, ql_hi, &
                                 qr, qr_lo, qr_hi, &
 #endif
@@ -605,6 +607,8 @@ contains
     integer, intent(in) :: qpzy_lo(3), qpzy_hi(3)
 #endif
 #if AMREX_SPACEDIM >= 2
+    integer, intent(in) :: qg1_lo(3), qg1_hi(3)
+    integer, intent(in) :: qg2_lo(3), qg2_hi(3)
     integer, intent(in) :: ql_lo(3), ql_hi(3)
     integer, intent(in) :: qr_lo(3), qr_hi(3)
 #endif
@@ -674,6 +678,8 @@ contains
     real(rt), intent(inout) :: qpzy(qpzy_lo(1):qpzy_hi(1), qpzy_lo(2):qpzy_hi(2), qpzy_lo(3):qpzy_hi(3), NQ)
 #endif
 #if AMREX_SPACEDIM >= 2
+    real(rt), intent(inout), target :: qgdnvtmp1(qg1_lo(1):qg1_hi(1), qg1_lo(2):qg1_hi(2), qg1_lo(3):qg1_hi(3), NGDNV)
+    real(rt), intent(inout), target :: qgdnvtmp2(qg2_lo(1):qg2_hi(1), qg2_lo(2):qg2_hi(2), qg2_lo(3):qg2_hi(3), NGDNV)
     real(rt), intent(inout), target :: ql(ql_lo(1):ql_hi(1), ql_lo(2):ql_hi(2), ql_lo(3):ql_hi(3), NQ)
     real(rt), intent(inout), target :: qr(qr_lo(1):qr_hi(1), qr_lo(2):qr_hi(2), qr_lo(3):qr_hi(3), NQ)
 #endif
@@ -724,6 +730,12 @@ contains
          qxl, qxr, qyl, qyr, qzl, qzr
 
     double precision, dimension(:,:,:,:), pointer:: &
+         qgdnvx, qgdnvy, qgdnvz, &
+         qgdnvxy, qgdnvxz, &
+         qgdnvyx, qgdnvyz, &
+         qgdnvzx, qgdnvzy
+
+    double precision, dimension(:,:,:,:), pointer:: &
          fx, fy, fz, fxy, fxz, fyx, fyz, fzx, fzy
 
 #ifdef RADIATION
@@ -731,15 +743,8 @@ contains
          rfx, rfy, rfz, rfxy, rfxz, rfyx, rfyz, rfzx, rfzy
 #endif
 
-    double precision, dimension(:,:,:,:), pointer:: &
-         qgdnvx, qgdnvy, qgdnvz, &
-         qgdnvxy, qgdnvxz, &
-         qgdnvyx, qgdnvyz, &
-         qgdnvzx, qgdnvzy
 
-    ! these will be the temporary arrays we actually allocate space for
     double precision, dimension(:,:,:,:), pointer :: ftmp1, ftmp2, rftmp1, rftmp2
-    double precision, dimension(:,:,:,:), pointer :: qgdnvtmp1, qgdnvtmp2
 
     integer :: fglo(3), fghi(3), glo(3), ghi(3)
 
@@ -779,8 +784,6 @@ contains
     call bl_allocate ( rftmp1, glo(1), ghi(1), glo(2), ghi(2), glo(3), ghi(3), 0, ngroups-1)
     call bl_allocate ( rftmp2, glo(1), ghi(1), glo(2), ghi(2), glo(3), ghi(3), 0, ngroups-1)
 #endif
-    call bl_allocate ( qgdnvtmp1, fglo, fghi, NGDNV)
-    call bl_allocate ( qgdnvtmp2, fglo, fghi, NGDNV)
 #endif
 
 
@@ -853,7 +856,7 @@ contains
 #ifdef RADIATION
                                 lambda_int, li_lo, li_hi, &
 #endif
-                                qgdnvx, fglo, fghi)
+                                qgdnvx, qg1_lo, qg1_hi)
 
     fy     =>     ftmp2
 #ifdef RADIATION
@@ -942,7 +945,7 @@ contains
 #ifdef RADIATION
                 rfx, glo, ghi, &
 #endif
-                qgdnvx, fglo, fghi, &
+                qgdnvx, qg1_lo, qg1_hi, &
                 area1, area1_lo, area1_hi, &
                 vol, vol_lo, vol_hi, &
                 hdt, hdtdx, &
@@ -1014,7 +1017,7 @@ contains
 #ifdef RADIATION
                                 lambda_int, li_lo, li_hi, &
 #endif
-                                qgdnvx, fglo, fghi)
+                                qgdnvx, qg1_lo, qg1_hi)
 
     ! add the transverse flux difference in x to the y and z states
     ! Inputs: qym, qyp                     : yface, +-1 at x & z
@@ -1037,7 +1040,7 @@ contains
 #ifdef RADIATION
                 rfx, glo, ghi, &
 #endif
-                qgdnvx, fglo, fghi, &
+                qgdnvx, qg1_lo, qg1_hi, &
                 hdt, cdtdx, &
                 lo, hi)
 
@@ -1075,7 +1078,7 @@ contains
 #ifdef RADIATION
                                 lambda_int, li_lo, li_hi, &
 #endif
-                                qgdnvy, fglo, fghi)
+                                qgdnvy, qg1_lo, qg1_hi)
 
     ! add the transverse flux difference in y to the x and z states
     ! Inputs: qxm, qxp                     : xface, +-1 at y & z
@@ -1098,7 +1101,7 @@ contains
 #ifdef RADIATION
                 rfy, glo, ghi, &
 #endif
-                qgdnvy, fglo, fghi, &
+                qgdnvy, qg1_lo, qg1_hi, &
                 cdtdy, &
                 lo, hi)
 
@@ -1136,7 +1139,7 @@ contains
 #ifdef RADIATION
                                 lambda_int, li_lo, li_hi, &
 #endif
-                                qgdnvz, fglo, fghi)
+                                qgdnvz, qg1_lo, qg1_hi)
 
     ! add the transverse flux difference in z to the x and y states
     ! Inputs: qxm, qxp                     : xface, +-1 at y & z
@@ -1159,7 +1162,7 @@ contains
 #ifdef RADIATION
                 rfz, glo, ghi, &
 #endif
-                qgdnvz, fglo, fghi, &
+                qgdnvz, qg1_lo, qg1_hi, &
                 cdtdz, &
                 lo, hi)
 
@@ -1204,7 +1207,7 @@ contains
 #ifdef RADIATION
                                 lambda_int, li_lo, li_hi, &
 #endif
-                                qgdnvyz, fglo, fghi)
+                                qgdnvyz, qg1_lo, qg1_hi)
 
     fzy      =>      ftmp2
 #ifdef RADIATION
@@ -1235,7 +1238,7 @@ contains
 #ifdef RADIATION
                                 lambda_int, li_lo, li_hi, &
 #endif
-                                qgdnvzy, fglo, fghi)
+                                qgdnvzy, qg2_lo, qg2_hi)
 
     qxl => ql
     qxr => qr
@@ -1261,8 +1264,8 @@ contains
 #ifdef RADIATION
                  rfzy, glo, ghi, &
 #endif
-                 qgdnvyz, fglo, fghi, &
-                 qgdnvzy, fglo, fghi, &
+                 qgdnvyz, qg1_lo, qg1_hi, &
+                 qgdnvzy, qg2_lo, qg2_hi, &
                  hdt, hdtdy, hdtdz, &
                  lo, hi)
 
@@ -1272,7 +1275,7 @@ contains
     nullify(rfyz, rfzy)
 #endif
 
-    qgdnvx  =>  qgdnvtmp1
+    !qgdnvx  =>  qgdnvtmp1
 
     ! now compute the final x fluxes, F^x
     ! Inputs: qxl, qxr                        : xface, +-0 at y & z
@@ -1299,7 +1302,7 @@ contains
 #endif
                                 q1, q1_lo, q1_hi)
 
-    nullify(qgdnvx)
+    !nullify(qgdnvx)
     nullify(qxl, qxr)
 
     !
@@ -1335,7 +1338,7 @@ contains
 #ifdef RADIATION
                                 lambda_int, li_lo, li_hi, &
 #endif
-                                qgdnvzx, fglo, fghi)
+                                qgdnvzx, qg1_lo, qg1_hi)
 
     fxz      =>      ftmp2
 #ifdef RADIATION
@@ -1366,7 +1369,7 @@ contains
 #ifdef RADIATION
                                 lambda_int, li_lo, li_hi, &
 #endif
-                                qgdnvxz, fglo, fghi)
+                                qgdnvxz, qg2_lo, qg2_hi)
 
     qyl => ql
     qyr => qr
@@ -1392,8 +1395,8 @@ contains
 #ifdef RADIATION
                  rfzx, glo, ghi, &
 #endif
-                 qgdnvxz, fglo, fghi, &
-                 qgdnvzx, fglo, fghi, &
+                 qgdnvxz, qg2_lo, qg2_hi, &
+                 qgdnvzx, qg1_lo, qg1_hi, &
                  hdt, hdtdx, hdtdz, &
                  lo, hi)
 
@@ -1403,7 +1406,7 @@ contains
     nullify(rfzx, rfxz)
 #endif
 
-    qgdnvy  =>  qgdnvtmp1
+    !qgdnvy  =>  qgdnvtmp1
 
     ! now compute the final y fluxes F^y
     ! Inputs: qyl, qyr                        : yface, +-0 at x & y
@@ -1430,7 +1433,7 @@ contains
 #endif
                                 q2, q2_lo, q2_hi)
 
-    nullify(qgdnvy)
+    !nullify(qgdnvy)
     nullify(qyl,qyr)
 
     !
@@ -1467,7 +1470,7 @@ contains
 #ifdef RADIATION
                                 lambda_int, li_lo, li_hi, &
 #endif
-                                qgdnvxy, fglo, fghi)
+                                qgdnvxy, qg1_lo, qg1_hi)
 
 
     fyx      =>      ftmp2
@@ -1499,7 +1502,7 @@ contains
 #ifdef RADIATION
                                 lambda_int, li_lo, li_hi, &
 #endif
-                                qgdnvyx, fglo, fghi)
+                                qgdnvyx, qg2_lo, qg2_hi)
 
     qzl => ql
     qzr => qr
@@ -1525,8 +1528,8 @@ contains
 #ifdef RADIATION
                  rfyx, glo, ghi, &
 #endif
-                 qgdnvxy, fglo, fghi, &
-                 qgdnvyx, fglo, fghi, &
+                 qgdnvxy, qg1_lo, qg1_hi, &
+                 qgdnvyx, qg2_lo, qg2_hi, &
                  hdt, hdtdx, hdtdy, &
                  lo, hi)
 
@@ -1536,7 +1539,7 @@ contains
     nullify(rfxy, rfyx)
 #endif
 
-    qgdnvz  =>  qgdnvtmp1
+    !qgdnvz  =>  qgdnvtmp1
 
     ! Compute the final z fluxes F^z
     ! Inputs: qzl, qzr                        : zface, +-0 at x & y
@@ -1563,7 +1566,7 @@ contains
 #endif
                                 q3, q3_lo, q3_hi)
 
-    nullify(qgdnvz)
+    !nullify(qgdnvz)
     nullify(qzl,qzr)
 #endif
 
@@ -1575,9 +1578,6 @@ contains
     call bl_deallocate (rftmp1)
     call bl_deallocate (rftmp2)
 #endif
-
-    call bl_deallocate(qgdnvtmp1)
-    call bl_deallocate(qgdnvtmp2)
 #endif
 
   end subroutine ctu_compute_fluxes
@@ -2620,10 +2620,16 @@ contains
     real(rt), pointer :: lambda_int(:,:,:,:)
 #endif
 
+
+    ! Left and right state arrays (edge centered, cell centered)
     double precision, dimension(:,:,:,:), pointer :: &
          ql, qr, &
          qmxy, qpxy, qmxz, qpxz, qmyx, qpyx, &
          qmyz, qpyz, qmzx, qpzx, qmzy, qpzy
+
+
+    ! these will be the temporary arrays we actually allocate space for
+    double precision, dimension(:,:,:,:), pointer :: qgdnvtmp1, qgdnvtmp2
 
     call bl_allocate(   div, lo, hi+dg)
 
@@ -2783,6 +2789,9 @@ contains
 #endif
 
 #if AMREX_SPACEDIM >= 2
+    call bl_allocate(qgdnvtmp1, fglo, fghi, NGDNV)
+    call bl_allocate(qgdnvtmp2, fglo, fghi, NGDNV)
+
     call bl_allocate( ql, fglo, fghi, NQ)
     call bl_allocate( qr, fglo, fghi, NQ)
 #endif
@@ -2821,6 +2830,8 @@ contains
                             qpzy, fglo, fghi, &
 #endif
 #if AMREX_SPACEDIM >= 2
+                            qgdnvtmp1, fglo, fghi, &
+                            qgdnvtmp2, fglo, fghi, &
                             ql, fglo, fghi, &
                             qr, fglo, fghi, &
 #endif
@@ -2882,6 +2893,8 @@ contains
 #if AMREX_SPACEDIM >= 2
     call bl_deallocate(ql)
     call bl_deallocate(qr)
+    call bl_deallocate(qgdnvtmp1)
+    call bl_deallocate(qgdnvtmp2)
 #endif
 
 #if AMREX_SPACEDIM == 3
