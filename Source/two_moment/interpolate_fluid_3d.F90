@@ -32,6 +32,7 @@
 
     ! For interpolation
     real(rt) :: xslope(ns), yslope(ns), zslope(ns)
+    real(rt) :: xyslope(ns), xzslope(ns), yzslope(ns)
     real(rt) :: Sval(ns)
     real(rt) :: dlft(ns), drgt(ns), dcen(ns), dlim, dsgn
 
@@ -48,6 +49,8 @@
     real(rt) :: fac(ns),fac_all
     real(rt) :: delta_S_slope(ns)
     real(rt) :: delta_S_val(ns)
+    real(rt) :: S_lll(ns),S_llh(ns),S_lhl(ns),S_lhh(ns)
+    real(rt) :: S_hll(ns),S_hlh(ns),S_hhl(ns),S_hhh(ns)
 
     real(rt) :: x(n_fluid_dof)
     real(rt) :: y(n_fluid_dof)
@@ -65,7 +68,11 @@
     ! interp_type = 2 
 
     ! Use primitive variables (rho, T, Ye) for interpolation
-    interp_type = 3 
+    ! interp_type = 3
+
+    ! Use primitive variables (rho, T, Ye) for interpolation -- first fill the corners
+    !     of the cell then use bilinear interpolation
+    interp_type = 4
 
     ! Conversion to thornado units
     conv_dens = Gram / Centimeter**3
@@ -366,26 +373,27 @@
     ! ************************************************************************************
     ! Interpolate from the Castro "S" arrays into Thornado "uCF" arrays 
     !    using the primitive variables (rho, E, Ye) if (interp_type .eq. 2)
-    !    using the primitive variables (rho, E, Ye) if (interp_type .eq. 3)
+    !    using the primitive variables (rho, T, Ye) if (interp_type .eq. 3 or 4)
     ! ************************************************************************************
-    else if (interp_type .eq. 2 .or. interp_type .eq. 3) then
+    else if (interp_type .eq. 2 .or. &
+             interp_type .eq. 3 .or. &
+             interp_type .eq. 4) then
 
        ! Convert (rho E) to E and (rho Y) to Y for interpolation
-       do kc = lo(3)-ng,hi(3)+ng
-       do jc = lo(2)-ng,hi(2)+ng
-       do ic = lo(1)-ng,hi(1)+ng
+       do kc = lo(3)-ng-1,hi(3)+ng+1
+       do jc = lo(2)-ng-1,hi(2)+ng+1
+       do ic = lo(1)-ng-1,hi(1)+ng+1
           S(ic,jc,kc,UEDEN) = S(ic,jc,kc,UEDEN) / S(ic,jc,kc,URHO)
           S(ic,jc,kc,UFX  ) = S(ic,jc,kc,UFX  ) / S(ic,jc,kc,URHO)
        end do
        end do
        end do
 
-
        ! Create temperature of the original (un-interpolated) data
        if (interp_type .eq. 3) then
-          do kc = lo(3)-ng,hi(3)+ng
-          do jc = lo(2)-ng,hi(2)+ng
-          do ic = lo(1)-ng,hi(1)+ng
+          do kc = lo(3)-ng-1,hi(3)+ng+1
+          do jc = lo(2)-ng-1,hi(2)+ng+1
+          do ic = lo(1)-ng-1,hi(1)+ng+1
 
              rho_in(1) = S(ic,jc,kc,URHO ) * conv_dens
              E_in  (1) = S(ic,jc,kc,UEDEN) * (conv_enr / conv_dens)
@@ -400,62 +408,64 @@
           end do
        end if
 
-       do kc = lo(3)-ng,hi(3)+ng
-       do jc = lo(2)-ng,hi(2)+ng
-       do ic = lo(1)-ng,hi(1)+ng
+       if (interp_type.eq.2 .or. interp_type.eq.3) then
 
-         ! Define limited second-order slopes in x-direction
-         dlft(:) = (S(ic  ,jc,kc,:) - S(ic-1,jc,kc,:)) * two
-         drgt(:) = (S(ic+1,jc,kc,:) - S(ic  ,jc,kc,:)) * two
-         dcen(:) = (S(ic+1,jc,kc,:) - S(ic-1,jc,kc,:)) * half
+          do kc = lo(3)-ng,hi(3)+ng
+          do jc = lo(2)-ng,hi(2)+ng
+          do ic = lo(1)-ng,hi(1)+ng
 
-         do n = 1, ns
-            dsgn = sign(one, dcen(n))
-            xslope(n) = min( abs(dlft(n)), abs(drgt(n)) )
-            if (dlft(n) * drgt(n) .ge. zero) then
-               dlim = xslope(n)
-            else
-               dlim = zero
-            endif
-            xslope(n) = dsgn * min( dlim, abs(dcen(n)) )
-         end do
+            ! Define limited second-order slopes in x-direction
+            dlft(:) = (S(ic  ,jc,kc,:) - S(ic-1,jc,kc,:)) * two
+            drgt(:) = (S(ic+1,jc,kc,:) - S(ic  ,jc,kc,:)) * two
+            dcen(:) = (S(ic+1,jc,kc,:) - S(ic-1,jc,kc,:)) * half
 
-         ! Define limited second-order slopes in y-direction
-         dlft(:) = (S(ic,jc  ,kc,:) - S(ic,jc-1,kc,:)) * two
-         drgt(:) = (S(ic,jc+1,kc,:) - S(ic,jc  ,kc,:)) * two
-         dcen(:) = (S(ic,jc+1,kc,:) - S(ic,jc-1,kc,:)) * half
+            do n = 1, ns
+               dsgn = sign(one, dcen(n))
+               xslope(n) = min( abs(dlft(n)), abs(drgt(n)) )
+               if (dlft(n) * drgt(n) .ge. zero) then
+                  dlim = xslope(n)
+               else
+                  dlim = zero
+               endif
+               xslope(n) = dsgn * min( dlim, abs(dcen(n)) )
+            end do
 
-         do n = 1, ns
-            dsgn = sign(one, dcen(n))
-            yslope(n) = min( abs(dlft(n)), abs(drgt(n)) )
-            if (dlft(n) * drgt(n) .ge. zero) then
-               dlim = yslope(n)
-            else
-               dlim = zero
-            endif
-            yslope(n) = dsgn * min( dlim, abs(dcen(n)) )
-         end do
+            ! Define limited second-order slopes in y-direction
+            dlft(:) = (S(ic,jc  ,kc,:) - S(ic,jc-1,kc,:)) * two
+            drgt(:) = (S(ic,jc+1,kc,:) - S(ic,jc  ,kc,:)) * two
+            dcen(:) = (S(ic,jc+1,kc,:) - S(ic,jc-1,kc,:)) * half
+   
+            do n = 1, ns
+               dsgn = sign(one, dcen(n))
+               yslope(n) = min( abs(dlft(n)), abs(drgt(n)) )
+               if (dlft(n) * drgt(n) .ge. zero) then
+                  dlim = yslope(n)
+               else
+                  dlim = zero
+               endif
+               yslope(n) = dsgn * min( dlim, abs(dcen(n)) )
+            end do
 
-         ! Define limited second-order slopes in z-direction
-         dlft(:) = (S(ic,jc,kc  ,:) - S(ic,jc,kc-1,:)) * two
-         drgt(:) = (S(ic,jc,kc+1,:) - S(ic,jc,kc  ,:)) * two
-         dcen(:) = (S(ic,jc,kc+1,:) - S(ic,jc,kc-1,:)) * half
+            ! Define limited second-order slopes in z-direction
+            dlft(:) = (S(ic,jc,kc  ,:) - S(ic,jc,kc-1,:)) * two
+            drgt(:) = (S(ic,jc,kc+1,:) - S(ic,jc,kc  ,:)) * two
+            dcen(:) = (S(ic,jc,kc+1,:) - S(ic,jc,kc-1,:)) * half
 
-         do n = 1, ns
-            dsgn = sign(one, dcen(n))
-            zslope(n) = min( abs(dlft(n)), abs(drgt(n)) )
-            if (dlft(n) * drgt(n) .ge. zero) then
-               dlim = zslope(n)
-            else
-               dlim = zero
-            endif
-            zslope(n) = dsgn * min( dlim, abs(dcen(n)) )
-         end do
+            do n = 1, ns
+               dsgn = sign(one, dcen(n))
+               zslope(n) = min( abs(dlft(n)), abs(drgt(n)) )
+               if (dlft(n) * drgt(n) .ge. zero) then
+                  dlim = zslope(n)
+               else
+                  dlim = zero
+               endif
+               zslope(n) = dsgn * min( dlim, abs(dcen(n)) )
+            end do
 
-         fac(:) = 1.d0
-  
-         ! Limit the slopes so that we can't overshoot corner values
-         do n = 1, ns
+            fac(:) = 1.d0
+   
+            ! Limit the slopes so that we can't overshoot corner values
+            do n = 1, ns
 
             if (n.eq.URHO .or. n.eq.UFX .or. &
                   (interp_type.eq.2 .and. n.eq.UEDEN) .or. &
@@ -595,66 +605,169 @@
                end if
 
             end if ! if n = URHO or UEDEN/UTEMP or UFX
-         end do ! n = 1,ns
+            end do ! n = 1,ns
 
-         fac_all = fac(1) 
-         do n = 2,ns
-            fac_all = min(fac_all,fac(n))
-         end do
+            fac_all = fac(1) 
+            do n = 2,ns
+               fac_all = min(fac_all,fac(n))
+            end do
 
-         xslope(:) = fac_all * xslope(:)
-         yslope(:) = fac_all * yslope(:)
+            xslope(:) = fac_all * xslope(:)
+            yslope(:) = fac_all * yslope(:)
+            zslope(:) = fac_all * zslope(:)
 
-         !   S spatial indices start at lo - (number of ghost zones)
-         ! uCF spatial indices start at 1 - (number of ghost zones)
-         i = ic - lo(1) + 1
-         j = jc - lo(2) + 1
-         k = kc - lo(3) + 1
+            !   S spatial indices start at lo - (number of ghost zones)
+            ! uCF spatial indices start at 1 - (number of ghost zones)
+            i = ic - lo(1) + 1
+            j = jc - lo(2) + 1
+            k = kc - lo(3) + 1
 
-         do ind = 1, n_fluid_dof
+            do ind = 1, n_fluid_dof
 
-            Sval(:) = S(ic,jc,kc,:) + x(ind)*xslope(:) + y(ind)*yslope(:) + z(ind)*zslope(:)
+               Sval(:) = S(ic,jc,kc,:) + x(ind)*xslope(:) + y(ind)*yslope(:) + z(ind)*zslope(:)
 
-            rho_in(1) = Sval(URHO ) * conv_dens
-            Ye_in (1) = Sval(UFX)   * (AtomicMassUnit/Gram)
+               rho_in(1) = Sval(URHO ) * conv_dens
+               Ye_in (1) = Sval(UFX)   * (AtomicMassUnit/Gram)
 
-            ! Sanity check to make sure interpolation keeps us in range EOS is happy with
-            if (interp_type .eq. 2) then
+               ! Sanity check to make sure interpolation keeps us in range EOS is happy with
+               if (interp_type .eq. 2) then
+   
+                  E_in  (1) = Sval(UEDEN) * (conv_enr / conv_dens)
+                  call ComputeTemperatureFromSpecificInternalEnergy_TABLE( rho_in, E_in, Ye_in, T_out)
+                  Sval(UEDEN) = Sval(UEDEN) * Sval(URHO)
 
-               E_in  (1) = Sval(UEDEN) * (conv_enr / conv_dens)
-               call ComputeTemperatureFromSpecificInternalEnergy_TABLE( rho_in, E_in, Ye_in, T_out)
-               Sval(UEDEN) = Sval(UEDEN) * Sval(URHO)
+               ! Create E from interpolated T
+               else if (interp_type .eq. 3) then
+   
+                  T_in  (1) = Sval(UTEMP) * Kelvin
+                  call ComputeThermodynamicStates_Primitive_TABLE(rho_in, T_in, Ye_in, &
+                                                                  Epervol_out, Epermass_out, Ne_out )
+                  Sval(UEDEN) = Epervol_out(1) / conv_enr
+               end if
 
-            ! Create E from interpolated T
-            else if (interp_type .eq. 3) then
+               ! Make sure to pass the conserved variables to thornado
+               Sval(UFX  ) = Sval(UFX  ) * Sval(URHO)
 
+               ! Thornado uses units where c = G = k = 1, Meter = 1
+               uCF(ind,i,j,k,iCF_D)  = Sval(URHO)  * conv_dens
+               uCF(ind,i,j,k,iCF_S1) = Sval(UMX)   * conv_mom
+               uCF(ind,i,j,k,iCF_S2) = Sval(UMY)   * conv_mom
+               uCF(ind,i,j,k,iCF_S3) = Sval(UMZ)   * conv_mom
+               uCF(ind,i,j,k,iCF_E)  = Sval(UEDEN) * conv_enr
+               uCF(ind,i,j,k,iCF_Ne) = Sval(UFX)   * conv_ne
+
+            end do ! do ind
+
+          end do
+          end do
+          end do
+
+       else
+
+          if (interp_type.ne.4) then
+            print *,"IF I GOT HERE THEN -- OOPS!"
+            stop
+          end if
+
+          do kc = lo(3)-ng,hi(3)+ng
+          do jc = lo(2)-ng,hi(2)+ng
+          do ic = lo(1)-ng,hi(1)+ng
+
+            ! Define values at all four corners of the cell
+
+            S_hhh(:) = 0.125d0 * ( S(ic,jc  ,kc  ,:) + S(ic+1,jc  ,kc  ,:) &
+                                  +S(ic,jc+1,kc  ,:) + S(ic+1,jc+1,kc  ,:) &
+                                  +S(ic,jc  ,kc+1,:) + S(ic+1,jc  ,kc+1,:) &
+                                  +S(ic,jc+1,kc+1,:) + S(ic+1,jc+1,kc+1,:) )
+            S_lhh(:) = 0.125d0 * ( S(ic,jc  ,kc  ,:) + S(ic-1,jc  ,kc  ,:) &
+                                  +S(ic,jc+1,kc  ,:) + S(ic-1,jc+1,kc  ,:) &
+                                  +S(ic,jc  ,kc+1,:) + S(ic-1,jc  ,kc+1,:) &
+                                  +S(ic,jc+1,kc+1,:) + S(ic-1,jc+1,kc+1,:) )
+            S_hlh(:) = 0.125d0 * ( S(ic,jc  ,kc  ,:) + S(ic+1,jc  ,kc  ,:) &
+                                  +S(ic,jc-1,kc  ,:) + S(ic+1,jc-1,kc  ,:) &
+                                  +S(ic,jc  ,kc+1,:) + S(ic+1,jc  ,kc+1,:) &
+                                  +S(ic,jc-1,kc+1,:) + S(ic+1,jc-1,kc+1,:) )
+            S_llh(:) = 0.125d0 * ( S(ic,jc  ,kc  ,:) + S(ic-1,jc  ,kc  ,:) &
+                                  +S(ic,jc-1,kc  ,:) + S(ic-1,jc-1,kc  ,:) &
+                                  +S(ic,jc  ,kc+1,:) + S(ic-1,jc  ,kc+1,:) &
+                                  +S(ic,jc-1,kc+1,:) + S(ic-1,jc-1,kc+1,:) )
+            S_hhl(:) = 0.125d0 * ( S(ic,jc  ,kc  ,:) + S(ic+1,jc  ,kc  ,:) &
+                                  +S(ic,jc+1,kc  ,:) + S(ic+1,jc+1,kc  ,:) &
+                                  +S(ic,jc  ,kc+1,:) + S(ic+1,jc  ,kc-1,:) &
+                                  +S(ic,jc+1,kc+1,:) + S(ic+1,jc+1,kc-1,:) )
+            S_lhl(:) = 0.125d0 * ( S(ic,jc  ,kc  ,:) + S(ic-1,jc  ,kc  ,:) &
+                                  +S(ic,jc+1,kc  ,:) + S(ic-1,jc+1,kc  ,:) &
+                                  +S(ic,jc  ,kc+1,:) + S(ic-1,jc  ,kc-1,:) &
+                                  +S(ic,jc+1,kc+1,:) + S(ic-1,jc+1,kc-1,:) )
+            S_hll(:) = 0.125d0 * ( S(ic,jc  ,kc  ,:) + S(ic+1,jc  ,kc  ,:) &
+                                  +S(ic,jc-1,kc  ,:) + S(ic+1,jc-1,kc  ,:) &
+                                  +S(ic,jc  ,kc+1,:) + S(ic+1,jc  ,kc-1,:) &
+                                  +S(ic,jc-1,kc+1,:) + S(ic+1,jc-1,kc-1,:) )
+            S_lll(:) = 0.125d0 * ( S(ic,jc  ,kc  ,:) + S(ic-1,jc  ,kc  ,:) &
+                                  +S(ic,jc-1,kc  ,:) + S(ic-1,jc-1,kc  ,:) &
+                                  +S(ic,jc  ,kc+1,:) + S(ic-1,jc  ,kc-1,:) &
+                                  +S(ic,jc-1,kc+1,:) + S(ic-1,jc-1,kc-1,:) )
+
+             xslope(:) = 0.25d0 * (S_hhh(:) + S_hlh(:) - S_lhh(:) - S_llh(:) + &
+                                   S_hhl(:) + S_hll(:) - S_lhl(:) - S_lll(:))
+             yslope(:) = 0.25d0 * (S_hhh(:) + S_lhh(:) - S_hlh(:) - S_llh(:) + &
+                                   S_hhl(:) + S_lhl(:) - S_hll(:) - S_lll(:))
+             zslope(:) = 0.25d0 * (S_hhh(:) + S_lhh(:) + S_hlh(:) + S_llh(:) - &
+                                   S_hhl(:) - S_lhl(:) - S_hll(:) - S_llh(:))
+
+            xyslope(:) = 0.5d0  * (S_hhh(:) + S_llh(:) - S_hlh(:) - S_lhh(:) + &
+                                   S_hhl(:) + S_lll(:) - S_hll(:) - S_lhl(:) )
+            xzslope(:) = 0.5d0  * (S_hhh(:) + S_lhl(:) - S_hhl(:) - S_lhh(:) + &
+                                   S_hlh(:) + S_lll(:) - S_hll(:) - S_llh(:) )
+            yzslope(:) = 0.5d0  * (S_hhh(:) + S_hll(:) - S_hhl(:) - S_hlh(:) + &
+                                   S_lhh(:) + S_lll(:) - S_lhl(:) - S_llh(:) )
+
+            !   S spatial indices start at lo - (number of ghost zones)
+            ! uCF spatial indices start at 1 - (number of ghost zones)
+            i = ic - lo(1) + 1
+            j = jc - lo(2) + 1
+            k = kc - lo(3) + 1
+   
+            do ind = 1, n_fluid_dof
+
+               Sval(:) = S(ic,jc,kc,:) + x(ind)*xslope(:) + y(ind)*yslope(:) + z(ind)*zslope(:) + &
+                                         x(ind)*y(ind)*xyslope(:) + &
+                                         x(ind)*z(ind)*xzslope(:) + &
+                                         y(ind)*z(ind)*yzslope(:) 
+   
+               rho_in(1) = Sval(URHO ) * conv_dens
+               Ye_in (1) = Sval(UFX)   * (AtomicMassUnit/Gram)
+   
+               ! Create E from interpolated T
+   
                T_in  (1) = Sval(UTEMP) * Kelvin
                call ComputeThermodynamicStates_Primitive_TABLE(rho_in, T_in, Ye_in, &
                                                                Epervol_out, Epermass_out, Ne_out )
                Sval(UEDEN) = Epervol_out(1) / conv_enr
-            end if
 
-            ! Make sure to pass the conserved variables to thornado
-            Sval(UFX  ) = Sval(UFX  ) * Sval(URHO)
+               ! Make sure to pass the conserved variables to thornado
+               Sval(UFX  ) = Sval(UFX  ) * Sval(URHO)
+   
+               ! Thornado uses units where c = G = k = 1, Meter = 1
+               uCF(ind,i,j,k,iCF_D)  = Sval(URHO)  * conv_dens
+               uCF(ind,i,j,k,iCF_S1) = Sval(UMX)   * conv_mom
+               uCF(ind,i,j,k,iCF_S2) = Sval(UMY)   * conv_mom
+               uCF(ind,i,j,k,iCF_S3) = Sval(UMZ)   * conv_mom
+               uCF(ind,i,j,k,iCF_E)  = Sval(UEDEN) * conv_enr
+               uCF(ind,i,j,k,iCF_Ne) = Sval(UFX)   * conv_ne
 
-            ! Thornado uses units where c = G = k = 1, Meter = 1
-            uCF(ind,i,j,k,iCF_D)  = Sval(URHO)  * conv_dens
-            uCF(ind,i,j,k,iCF_S1) = Sval(UMX)   * conv_mom
-            uCF(ind,i,j,k,iCF_S2) = Sval(UMY)   * conv_mom
-            uCF(ind,i,j,k,iCF_S3) = Sval(UMZ)   * conv_mom
-            uCF(ind,i,j,k,iCF_E)  = Sval(UEDEN) * conv_enr
-            uCF(ind,i,j,k,iCF_Ne) = Sval(UFX)   * conv_ne
+            end do ! do ind
 
-         end do ! do ind
+          end do
+          end do
+          end do
 
-       end do
-       end do
-       end do
+       end if ! interp_type = 4
 
        ! Convert E back to (rho E) and Y back to (rho Y) 
-       do kc = lo(3)-ng,hi(3)+ng
-       do jc = lo(2)-ng,hi(2)+ng
-       do ic = lo(1)-ng,hi(1)+ng
+       do kc = lo(3)-ng-1,hi(3)+ng+1
+       do jc = lo(2)-ng-1,hi(2)+ng+1
+       do ic = lo(1)-ng-1,hi(1)+ng+1
           S(ic,jc,kc,UEDEN) = S(ic,jc,kc,UEDEN) * S(ic,jc,kc,URHO)
           S(ic,jc,kc,UFX  ) = S(ic,jc,kc,UFX  ) * S(ic,jc,kc,URHO)
        end do
