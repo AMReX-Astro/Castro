@@ -499,6 +499,18 @@ contains
 #if AMREX_SPACEDIM == 3
                                 qzm, qzm_lo, qzm_hi, &
                                 qzp, qzp_lo, qzp_hi, &
+                                qmxy, qmxy_lo, qmxy_hi, &
+                                qpxy, qpxy_lo, qpxy_hi, &
+                                qmxz, qmxz_lo, qmxz_hi, &
+                                qpxz, qpxz_lo, qpxz_hi, &
+                                qmyx, qmyx_lo, qmyx_hi, &
+                                qpyx, qpyx_lo, qpyx_hi, &
+                                qmyz, qmyz_lo, qmyz_hi, &
+                                qpyz, qpyz_lo, qpyz_hi, &
+                                qmzx, qmzx_lo, qmzx_hi, &
+                                qpzx, qpzx_lo, qpzx_hi, &
+                                qmzy, qmzy_lo, qmzy_hi, &
+                                qpzy, qpzy_lo, qpzy_hi, &
 #endif
                                 uout, uout_lo, uout_hi, &
                                 flux1, f1_lo, f1_hi, &
@@ -571,6 +583,18 @@ contains
 #if AMREX_SPACEDIM == 3
     integer, intent(in) :: qzm_lo(3), qzm_hi(3)
     integer, intent(in) :: qzp_lo(3), qzp_hi(3)
+    integer, intent(in) :: qmxy_lo(3), qmxy_hi(3)
+    integer, intent(in) :: qpxy_lo(3), qpxy_hi(3)
+    integer, intent(in) :: qmxz_lo(3), qmxz_hi(3)
+    integer, intent(in) :: qpxz_lo(3), qpxz_hi(3)
+    integer, intent(in) :: qmyx_lo(3), qmyx_hi(3)
+    integer, intent(in) :: qpyx_lo(3), qpyx_hi(3)
+    integer, intent(in) :: qmyz_lo(3), qmyz_hi(3)
+    integer, intent(in) :: qpyz_lo(3), qpyz_hi(3)
+    integer, intent(in) :: qmzx_lo(3), qmzx_hi(3)
+    integer, intent(in) :: qpzx_lo(3), qpzx_hi(3)
+    integer, intent(in) :: qmzy_lo(3), qmzy_hi(3)
+    integer, intent(in) :: qpzy_lo(3), qpzy_hi(3)
 #endif
 
     integer, intent(in) :: uout_lo(3), uout_hi(3)
@@ -621,6 +645,18 @@ contains
 #if AMREX_SPACEDIM == 3
     real(rt), intent(inout) :: qzm(qzm_lo(1):qzm_hi(1), qzm_lo(2):qzm_hi(2), qzm_lo(3):qzm_hi(3), NQ)
     real(rt), intent(inout) :: qzp(qzp_lo(1):qzp_hi(1), qzp_lo(2):qzp_hi(2), qzp_lo(3):qzp_hi(3), NQ)
+    real(rt), intent(inout) :: qmxy(qmxy_lo(1):qmxy_hi(1), qmxy_lo(2):qmxy_hi(2), qmxy_lo(3):qmxy_hi(3), NQ)
+    real(rt), intent(inout) :: qpxy(qpxy_lo(1):qpxy_hi(1), qpxy_lo(2):qpxy_hi(2), qpxy_lo(3):qpxy_hi(3), NQ)
+    real(rt), intent(inout) :: qmxz(qmxz_lo(1):qmxz_hi(1), qmxz_lo(2):qmxz_hi(2), qmxz_lo(3):qmxz_hi(3), NQ)
+    real(rt), intent(inout) :: qpxz(qpxz_lo(1):qpxz_hi(1), qpxz_lo(2):qpxz_hi(2), qpxz_lo(3):qpxz_hi(3), NQ)
+    real(rt), intent(inout) :: qmyx(qmyx_lo(1):qmyx_hi(1), qmyx_lo(2):qmyx_hi(2), qmyx_lo(3):qmyx_hi(3), NQ)
+    real(rt), intent(inout) :: qpyx(qpyx_lo(1):qpyx_hi(1), qpyx_lo(2):qpyx_hi(2), qpyx_lo(3):qpyx_hi(3), NQ)
+    real(rt), intent(inout) :: qmyz(qmyz_lo(1):qmyz_hi(1), qmyz_lo(2):qmyz_hi(2), qmyz_lo(3):qmyz_hi(3), NQ)
+    real(rt), intent(inout) :: qpyz(qpyz_lo(1):qpyz_hi(1), qpyz_lo(2):qpyz_hi(2), qpyz_lo(3):qpyz_hi(3), NQ)
+    real(rt), intent(inout) :: qmzx(qmzx_lo(1):qmzx_hi(1), qmzx_lo(2):qmzx_hi(2), qmzx_lo(3):qmzx_hi(3), NQ)
+    real(rt), intent(inout) :: qpzx(qpzx_lo(1):qpzx_hi(1), qpzx_lo(2):qpzx_hi(2), qpzx_lo(3):qpzx_hi(3), NQ)
+    real(rt), intent(inout) :: qmzy(qmzy_lo(1):qmzy_hi(1), qmzy_lo(2):qmzy_hi(2), qmzy_lo(3):qmzy_hi(3), NQ)
+    real(rt), intent(inout) :: qpzy(qpzy_lo(1):qpzy_hi(1), qpzy_lo(2):qpzy_hi(2), qpzy_lo(3):qpzy_hi(3), NQ)
 #endif
     real(rt), intent(inout) ::  uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
     real(rt), intent(inout) :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3),NVAR)
@@ -670,8 +706,6 @@ contains
     ! Left and right state arrays (edge centered, cell centered)
     double precision, dimension(:,:,:,:), pointer :: &
          ql, qr, &
-         qmxy, qpxy, qmxz, qpxz, qmyx, qpyx, &
-         qmyz, qpyz, qmzx, qpzx, qmzy, qpzy, &
          qxl, qxr, qyl, qyr, qzl, qzr
 
     double precision, dimension(:,:,:,:), pointer:: &
@@ -722,27 +756,6 @@ contains
 
     hdt = HALF*dt
 
-
-
-#if AMREX_SPACEDIM == 3
-    call bl_allocate( qmxy, fglo, fghi, NQ)
-    call bl_allocate( qpxy, fglo, fghi, NQ)
-
-    call bl_allocate( qmxz, fglo, fghi, NQ)
-    call bl_allocate( qpxz, fglo, fghi, NQ)
-
-    call bl_allocate( qmyx, fglo, fghi, NQ)
-    call bl_allocate( qpyx, fglo, fghi, NQ)
-
-    call bl_allocate( qmyz, fglo, fghi, NQ)
-    call bl_allocate( qpyz, fglo, fghi, NQ)
-
-    call bl_allocate( qmzx, fglo, fghi, NQ)
-    call bl_allocate( qpzx, fglo, fghi, NQ)
-
-    call bl_allocate( qmzy, fglo, fghi, NQ)
-    call bl_allocate( qpzy, fglo, fghi, NQ)
-#endif
 
 #if AMREX_SPACEDIM >= 2
     call bl_allocate( ftmp1, glo, ghi, NVAR)
@@ -1007,13 +1020,13 @@ contains
     !          qmzx, qpzx                  : zface, +-0 at x, +-1 at y
     call transx([lo(1), lo(2)-1, lo(3)-1], [hi(1), hi(2)+1, hi(3)+1], &
                 qym, fglo, fghi, &
-                qmyx, fglo, fghi, &
+                qmyx, qmyx_lo, qmyx_hi, &
                 qyp, fglo, fghi, &
-                qpyx, fglo, fghi, &
+                qpyx, qpyx_lo, qpyx_hi, &
                 qzm, fglo, fghi, &
-                qmzx, fglo, fghi, &
+                qmzx, qmzx_lo, qmzx_hi, &
                 qzp, fglo, fghi, &
-                qpzx, fglo, fghi, &
+                qpzx, qpzx_lo, qpzx_hi, &
                 qaux, qa_lo, qa_hi, &
                 fx, glo, ghi, &
 #ifdef RADIATION
@@ -1068,13 +1081,13 @@ contains
     !          qmzy, qpzy                  : zface, +-0 at y, +-1 at x
     call transy([lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2), hi(3)+1], &
                 qxm, fglo, fghi, &
-                qmxy, fglo, fghi, &
+                qmxy, qmxy_lo, qmxy_hi, &
                 qxp, fglo, fghi, &
-                qpxy, fglo, fghi, &
+                qpxy, qpxy_lo, qpxy_hi, &
                 qzm, fglo, fghi, &
-                qmzy, fglo, fghi, &
+                qmzy, qmzy_lo, qmzy_hi, &
                 qzp, fglo, fghi, &
-                qpzy, fglo, fghi, &
+                qpzy, qpzy_lo, qpzy_hi, &
                 qaux, qa_lo, qa_hi, &
                 fy, glo, ghi, &
 #ifdef RADIATION
@@ -1129,13 +1142,13 @@ contains
     !          qmyz, qpyz                  : yface, +-0 at z, +-1 at x
     call transz([lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)], &
                 qxm, fglo, fghi, &
-                qmxz, fglo, fghi, &
+                qmxz, qmxz_lo, qmxz_hi, &
                 qxp, fglo, fghi, &
-                qpxz, fglo, fghi, &
+                qpxz, qpxz_lo, qpxz_hi, &
                 qym, fglo, fghi, &
-                qmyz, fglo, fghi, &
+                qmyz, qmyz_lo, qmyz_hi, &
                 qyp, fglo, fghi, &
-                qpyz, fglo, fghi, &
+                qpyz, qpyz_lo, qpyz_hi, &
                 qaux, qa_lo, qa_hi, &
                 fz, glo, ghi, &
 #ifdef RADIATION
@@ -1169,8 +1182,8 @@ contains
     !         shk                              : +-1
     ! Outputs: fyz, ugdnvyz, pgdnvyz, gegdnvyz : yface, +-1 at x, +-0 at z
     call cmpflx([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
-                qmyz, fglo, fghi, &
-                qpyz, fglo, fghi, 1, 1, &
+                qmyz, qmyz_lo, qmyz_hi, &
+                qpyz, qpyz_lo, qpyz_hi, 1, 1, &
                 fyz, glo, ghi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -1200,8 +1213,8 @@ contains
     !         shk                              : +-1
     ! Outputs: fzy, ugdnvzy, pgdnvzy, gegdnvzy : zface, +-1 at x, +-0 at y
     call cmpflx([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+dg(3)], &
-                qmzy, fglo, fghi, &
-                qpzy, fglo, fghi, 1, 1, &
+                qmzy, qmzy_lo, qmzy_hi, &
+                qpzy, qpzy_lo, qpzy_hi, 1, 1, &
                 fzy, glo, ghi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -1300,8 +1313,8 @@ contains
     !         shk                              : +-1
     ! Outputs: fzx, ugdnvzx, pgdnvzx, gegdnvzx : zface, +-0 at x, +-1 at y
     call cmpflx([lo(1), lo(2)-dg(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
-                qmzx, fglo, fghi, &
-                qpzx, fglo, fghi, 1, 1, &
+                qmzx, qmzx_lo, qmzx_hi, &
+                qpzx, qpzx_lo, qpzx_hi, 1, 1, &
                 fzx, glo, ghi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -1331,8 +1344,8 @@ contains
     !         shk                              : +-1
     ! Outputs: fxz, ugdnvxz, pgdnvxz, gegdnvxz : xface, +-1 at y, +-0 at z
     call cmpflx([lo(1), lo(2)-dg(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
-                qmxz, fglo, fghi, &
-                qpxz, fglo, fghi, 1, 1, &
+                qmxz, qmxz_lo, qmxz_hi, &
+                qpxz, qpxz_lo, qpxz_hi, 1, 1, &
                 fxz, glo, ghi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -1432,8 +1445,8 @@ contains
     !         shk                              : +-1
     ! Outputs: fxy, ugdnvxy, pgdnvxy, gegdnvxy : xface, +-0 at y, +-1 at z
     call cmpflx([lo(1), lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2), hi(3)+dg(3)], &
-                qmxy, fglo, fghi, &
-                qpxy, fglo, fghi, 1, 1, &
+                qmxy, qmxy_lo, qmxy_hi, &
+                qpxy, qpxy_lo, qpxy_hi, 1, 1, &
                 fxy, glo, ghi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -1464,8 +1477,8 @@ contains
     !         shk                              : +-1
     ! Outputs: fyx, ugdnvyx, pgdnvyx, gegdnvyx : yface, +-0 at x, +-1 at z
     call cmpflx([lo(1), lo(2), lo(3)-dg(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
-                qmyx, fglo, fghi, &
-                qpyx, fglo, fghi, 1, 1, &
+                qmyx, qmyx_lo, qmyx_hi, &
+                qpyx, qpyx_lo, qpyx_hi, 1, 1, &
                 fyx, glo, ghi, &
                 q_int, fglo, fghi, &
 #ifdef RADIATION
@@ -1559,25 +1572,6 @@ contains
     call bl_deallocate ( qr)
 #endif
 
-#if AMREX_SPACEDIM == 3
-    call bl_deallocate ( qmxy)
-    call bl_deallocate ( qpxy)
-
-    call bl_deallocate ( qmxz)
-    call bl_deallocate ( qpxz)
-
-    call bl_deallocate ( qmzx)
-    call bl_deallocate ( qpzx)
-
-    call bl_deallocate ( qmzy)
-    call bl_deallocate ( qpzy)
-
-    call bl_deallocate ( qmyx)
-    call bl_deallocate ( qpyx)
-
-    call bl_deallocate ( qmyz)
-    call bl_deallocate ( qpyz)
-#endif
 
 #if AMREX_SPACEDIM >= 2
     call bl_deallocate ( ftmp1)
@@ -2624,6 +2618,10 @@ contains
     double precision, dimension(:,:,:,:), pointer :: &
          qxm, qym, qzm, qxp, qyp, qzp
 
+    double precision, dimension(:,:,:,:), pointer :: &
+         qmxy, qpxy, qmxz, qpxz, qmyx, qpyx, &
+         qmyz, qpyz, qmzx, qpzx, qmzy, qpzy
+
     call bl_allocate(   div, lo, hi+dg)
 
     q1_lo = flux1_lo - dg
@@ -2761,6 +2759,26 @@ contains
 
     call bl_deallocate( flatn)
 
+#if AMREX_SPACEDIM == 3
+    call bl_allocate( qmxy, fglo, fghi, NQ)
+    call bl_allocate( qpxy, fglo, fghi, NQ)
+
+    call bl_allocate( qmxz, fglo, fghi, NQ)
+    call bl_allocate( qpxz, fglo, fghi, NQ)
+
+    call bl_allocate( qmyx, fglo, fghi, NQ)
+    call bl_allocate( qpyx, fglo, fghi, NQ)
+
+    call bl_allocate( qmyz, fglo, fghi, NQ)
+    call bl_allocate( qpyz, fglo, fghi, NQ)
+
+    call bl_allocate( qmzx, fglo, fghi, NQ)
+    call bl_allocate( qpzx, fglo, fghi, NQ)
+
+    call bl_allocate( qmzy, fglo, fghi, NQ)
+    call bl_allocate( qpzy, fglo, fghi, NQ)
+#endif
+
     ! Compute hyperbolic fluxes using unsplit Godunov
     call ctu_compute_fluxes(lo, hi, &
                             q, q_lo, q_hi, &
@@ -2776,6 +2794,18 @@ contains
 #if AMREX_SPACEDIM == 3
                             qzm, fglo, fghi, &
                             qzp, fglo, fghi, &
+                            qmxy, fglo, fghi, &
+                            qpxy, fglo, fghi, &
+                            qmxz, fglo, fghi, &
+                            qpxz, fglo, fghi, &
+                            qmyx, fglo, fghi, &
+                            qpyx, fglo, fghi, &
+                            qmyz, fglo, fghi, &
+                            qpyz, fglo, fghi, &
+                            qmzx, fglo, fghi, &
+                            qpzx, fglo, fghi, &
+                            qmzy, fglo, fghi, &
+                            qpzy, fglo, fghi, &
 #endif
                             uout, uout_lo, uout_hi, &
                             flux1, flux1_lo, flux1_hi, &
@@ -2821,6 +2851,24 @@ contains
 #if AMREX_SPACEDIM == 3
     call bl_deallocate(qzm)
     call bl_deallocate(qzp)
+
+    call bl_deallocate ( qmxy)
+    call bl_deallocate ( qpxy)
+
+    call bl_deallocate ( qmxz)
+    call bl_deallocate ( qpxz)
+
+    call bl_deallocate ( qmzx)
+    call bl_deallocate ( qpzx)
+
+    call bl_deallocate ( qmzy)
+    call bl_deallocate ( qpzy)
+
+    call bl_deallocate ( qmyx)
+    call bl_deallocate ( qpyx)
+
+    call bl_deallocate ( qmyz)
+    call bl_deallocate ( qpyz)
 #endif
 
     ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
