@@ -286,7 +286,8 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   ! Compute F^x at kc (k3d)
   call cmpflx([lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], &
-              qm, qp, It_lo, It_hi, AMREX_SPACEDIM, 1, &
+              qm, It_lo, It_hi, &
+              qp, It_lo, It_hi, AMREX_SPACEDIM, 1, &
               flux1, flux1_lo, flux1_hi, &
               q_int, It_lo, It_hi, &
 #ifdef RADIATION
@@ -307,7 +308,8 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #if AMREX_SPACEDIM >= 2
   ! Compute F^y at kc (k3d)
   call cmpflx([lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], &
-              qm, qp, It_lo, It_hi, AMREX_SPACEDIM, 2, &
+              qm, It_lo, It_hi, &
+              qp, It_lo, It_hi, AMREX_SPACEDIM, 2, &
               flux2, flux2_lo, flux2_hi, &
               q_int, It_lo, It_hi, &  ! temporary
 #ifdef RADIATION
@@ -331,7 +333,8 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   ! Compute F^z at kc (k3d)
 
   call cmpflx([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], &
-              qm, qp, It_lo, It_hi, AMREX_SPACEDIM, 3, &
+              qm, It_lo, It_hi, &
+              qp, It_lo, It_hi, AMREX_SPACEDIM, 3, &
               flux3, flux3_lo, flux3_hi, &
               q_int, It_lo, It_hi, &
 #ifdef RADIATION
@@ -610,7 +613,8 @@ contains
     !$gpu
 
     call cmpflx(lo, hi, &
-                qm, qp, qm_lo, qm_hi, AMREX_SPACEDIM, idir, &
+                qm, qm_lo, qm_hi, &
+                qp, qp_lo, qp_hi, AMREX_SPACEDIM, idir, &
                 flux, f_lo, f_hi, &
                 qint, qe_lo, qe_hi, &
                 qaux, qa_lo, qa_hi, &
