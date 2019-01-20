@@ -810,7 +810,7 @@ contains
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 1, domlo, domhi)
 
   call ca_store_godunov_state(lo, hi+dg(:), &
@@ -848,7 +848,7 @@ contains
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 1, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2)-1, 0], [hi(1)+1, hi(2)+1, 0], &
@@ -878,7 +878,7 @@ contains
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 2, domlo, domhi)
 
     call ca_store_godunov_state([lo(1)-1, lo(2), 0], [hi(1)+1, hi(2)+1, 0], &
@@ -920,7 +920,7 @@ contains
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 1, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2), 0], [hi(1)+1, hi(2), 0], &
@@ -964,7 +964,7 @@ contains
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 2, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2), 0], [hi(1), hi(2)+1, 0], &
@@ -1009,7 +1009,7 @@ contains
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 1, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2)-dg(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
@@ -1070,7 +1070,7 @@ contains
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 2, domlo, domhi)
 
     call ca_store_godunov_state([lo(1)-1, lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
@@ -1131,7 +1131,7 @@ contains
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 3, domlo, domhi)
 
     call ca_store_godunov_state([lo(1)-1, lo(2)-dg(2), lo(3)], [ hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
@@ -1199,7 +1199,7 @@ contains
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 2, domlo, domhi)
 
     call ca_store_godunov_state([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
@@ -1230,7 +1230,7 @@ contains
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 3, domlo, domhi)
 
     call ca_store_godunov_state([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+dg(3)], &
@@ -1292,7 +1292,7 @@ contains
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 1, domlo, domhi)
 
     call ca_store_godunov_state(lo, [hi(1)+1, hi(2), hi(3)], &
@@ -1330,7 +1330,7 @@ contains
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 3, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2)-dg(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
@@ -1361,7 +1361,7 @@ contains
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 1, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2)-dg(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
@@ -1423,7 +1423,7 @@ contains
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 2, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)], &
@@ -1462,7 +1462,7 @@ contains
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 1, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2), hi(3)+dg(3)], &
@@ -1494,7 +1494,7 @@ contains
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 2, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2), lo(3)-dg(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
@@ -1556,7 +1556,7 @@ contains
                 lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, glo, ghi, &
+                shk, sk_lo, sk_hi, &
                 3, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+dg(3)], &
