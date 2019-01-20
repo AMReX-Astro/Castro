@@ -1031,7 +1031,7 @@ contains
                 qmyx, qmyx_lo, qmyx_hi, &
                 qyp, qyp_lo, qyp_hi, &
                 qpyx, qpyx_lo, qpyx_hi, &
-                qzm, qzp_lo, qzp_hi, &
+                qzm, qzm_lo, qzm_hi, &
                 qmzx, qmzx_lo, qmzx_hi, &
                 qzp, qzp_lo, qzp_hi, &
                 qpzx, qpzx_lo, qpzx_hi, &
