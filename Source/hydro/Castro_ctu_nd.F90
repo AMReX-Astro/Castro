@@ -516,6 +516,10 @@ contains
                                 ql, ql_lo, ql_hi, &
                                 qr, qr_lo, qr_hi, &
 #endif
+                                q_int, qi_lo, qi_hi, &
+#ifdef RADIATION
+                                lambda_int, li_lo, li_hi, &
+#endif
                                 uout, uout_lo, uout_hi, &
                                 flux1, f1_lo, f1_hi, &
 #if AMREX_SPACEDIM >= 2
@@ -604,6 +608,10 @@ contains
     integer, intent(in) :: ql_lo(3), ql_hi(3)
     integer, intent(in) :: qr_lo(3), qr_hi(3)
 #endif
+    integer, intent(in) :: qi_lo(3), qi_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: li_lo(3), li_hi(3)
+#endif
     integer, intent(in) :: uout_lo(3), uout_hi(3)
     integer, intent(in) :: q1_lo(3), q1_hi(3)
     integer, intent(in) :: f1_lo(3), f1_hi(3)
@@ -669,6 +677,10 @@ contains
     real(rt), intent(inout), target :: ql(ql_lo(1):ql_hi(1), ql_lo(2):ql_hi(2), ql_lo(3):ql_hi(3), NQ)
     real(rt), intent(inout), target :: qr(qr_lo(1):qr_hi(1), qr_lo(2):qr_hi(2), qr_lo(3):qr_hi(3), NQ)
 #endif
+    real(rt), intent(inout) :: q_int(qi_lo(1):qi_hi(1), qi_lo(2):qi_hi(2), qi_lo(3):qi_hi(3), NQ)
+#ifdef RADIATION
+    real(rt), intent(inout) :: lambda_int(li_lo(1):li_hi(1), li_lo(2):li_hi(2), li_lo(3):li_hi(3), 0:ngroups-1)
+#endif
     real(rt), intent(inout) ::  uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
     real(rt), intent(inout) :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3),NVAR)
     real(rt), intent(inout) ::    q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NGDNV)
@@ -706,13 +718,6 @@ contains
     real(rt) :: hdtdx, hdtdy, hdtdz
 
     integer :: i, j, k, iwave, n
-
-    real(rt), pointer :: q_int(:,:,:,:)
-
-#ifdef RADIATION
-    real(rt), pointer :: lambda_int(:,:,:,:)
-#endif
-
 
     ! Left and right state arrays (edge centered, cell centered)
     double precision, dimension(:,:,:,:), pointer :: &
@@ -778,11 +783,6 @@ contains
     call bl_allocate ( qgdnvtmp2, fglo, fghi, NGDNV)
 #endif
 
-    call bl_allocate(q_int, fglo, fghi, NQ)
-#ifdef RADIATION
-    call bl_allocate(lambda_int, fglo(1), fghi(1), fglo(2), fghi(2), fglo(3), fghi(3), 0, ngroups-1)
-#endif
-
 
     !-------------------------------------------------------------------------!
     ! Some notes on the work index (i.e., lo and hi arguments near the end    !
@@ -801,19 +801,19 @@ contains
                 qxm, qxm_lo, qxm_hi, &
                 qxp, qxp_lo, qxp_hi, 1, 1, &
                 flux1, f1_lo, f1_hi, &
-                q_int, fglo, fghi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
                 rflux1, rf1_lo, rf1_hi, &
-                lambda_int, fglo, fghi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
                 1, domlo, domhi)
 
   call ca_store_godunov_state(lo, hi+dg(:), &
-                              q_int, fglo, fghi, &
+                              q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                              lambda_int, fglo, fghi, &
+                              lambda_int, li_lo, li_hi, &
 #endif
                               q1, q1_lo, q1_hi)
 
@@ -839,19 +839,19 @@ contains
                 qxm, qxm_lo, qxm_hi, &
                 qxp, qxp_lo, qxp_hi, 1, 1, &
                 fx, glo, ghi, &
-                q_int, fglo, fghi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
                 rfx, glo, ghi, &
-                lambda_int, fglo, fghi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
                 1, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2)-1, 0], [hi(1)+1, hi(2)+1, 0], &
-                                q_int, fglo, fghi, &
+                                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                lambda_int, fglo, fghi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
                                 qgdnvx, fglo, fghi)
 
@@ -869,19 +869,19 @@ contains
                 qym, qym_lo, qym_hi, &
                 qyp, qyp_lo, qyp_hi, 1, 1, &
                 fy, glo, ghi, &
-                q_int, fglo, fghi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
                 rfy, glo, ghi, &
-                lambda_int, fglo, fghi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
                 2, domlo, domhi)
 
     call ca_store_godunov_state([lo(1)-1, lo(2), 0], [hi(1)+1, hi(2)+1, 0], &
-                                q_int, fglo, fghi, &
+                                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                lambda_int, fglo, fghi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
                                 q2, q2_lo, q2_hi)
 
@@ -911,19 +911,19 @@ contains
                 ql, ql_lo, ql_hi, &
                 qr, qr_lo, qr_hi, 1, 1, &
                 flux1, f1_lo, f1_hi, &
-                q_int, fglo, fghi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
                 rflux1, rf1_lo, rf1_hi, &
-                lambda_int, fglo, fghi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
                 1, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2), 0], [hi(1)+1, hi(2), 0], &
-                                q_int, fglo, fghi, &
+                                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                lambda_int, fglo, fghi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
                                 q1, q1_lo, q1_hi)
 
@@ -955,19 +955,19 @@ contains
                 ql, ql_lo, ql_hi, &
                 qr, qr_lo, qr_hi, 1, 1, &
                 flux2, f2_lo, f2_hi, &
-                q_int, fglo, fghi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
                 rflux2, rf2_lo, rf2_hi, &
-                lambda_int, fglo, fghi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
                 2, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2), 0], [hi(1), hi(2)+1, 0], &
-                                q_int, fglo, fghi, &
+                                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                lambda_int, fglo, fghi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
                                 q2, q2_lo, q2_hi)
 
@@ -1000,19 +1000,19 @@ contains
                 qxm, qxm_lo, qxm_hi, &
                 qxp, qxp_lo, qxp_hi, 1, 1, &
                 fx, glo, ghi, &
-                q_int, fglo, fghi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
                 rfx, glo, ghi, &
-                lambda_int, fglo, fghi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
                 1, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2)-dg(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
-                                q_int, fglo, fghi, &
+                                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                lambda_int, fglo, fghi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
                                 qgdnvx, fglo, fghi)
 
@@ -1061,19 +1061,19 @@ contains
                 qym, qym_lo, qym_hi, &
                 qyp, qyp_lo, qyp_hi, 1, 1, &
                 fy, glo, ghi, &
-                q_int, fglo, fghi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
                 rfy, glo, ghi, &
-                lambda_int, fglo, fghi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
                 2, domlo, domhi)
 
     call ca_store_godunov_state([lo(1)-1, lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
-                                q_int, fglo, fghi, &
+                                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                lambda_int, fglo, fghi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
                                 qgdnvy, fglo, fghi)
 
@@ -1122,19 +1122,19 @@ contains
                 qzm, qzm_lo, qzm_hi, &
                 qzp, qzp_lo, qzp_hi, 1, 1, &
                 fz, glo, ghi, &
-                q_int, fglo, fghi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
                 rfz, glo, ghi, &
-                lambda_int, fglo, fghi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
                 3, domlo, domhi)
 
     call ca_store_godunov_state([lo(1)-1, lo(2)-dg(2), lo(3)], [ hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
-                                q_int, fglo, fghi, &
+                                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                lambda_int, fglo, fghi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
                                 qgdnvz, fglo, fghi)
 
@@ -1190,19 +1190,19 @@ contains
                 qmyz, qmyz_lo, qmyz_hi, &
                 qpyz, qpyz_lo, qpyz_hi, 1, 1, &
                 fyz, glo, ghi, &
-                q_int, fglo, fghi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
                 rfyz, glo, ghi, &
-                lambda_int, fglo, fghi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
                 2, domlo, domhi)
 
     call ca_store_godunov_state([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
-                                q_int, fglo, fghi, &
+                                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                lambda_int, fglo, fghi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
                                 qgdnvyz, fglo, fghi)
 
@@ -1221,19 +1221,19 @@ contains
                 qmzy, qmzy_lo, qmzy_hi, &
                 qpzy, qpzy_lo, qpzy_hi, 1, 1, &
                 fzy, glo, ghi, &
-                q_int, fglo, fghi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
                 rfzy, glo, ghi, &
-                lambda_int, fglo, fghi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
                 3, domlo, domhi)
 
     call ca_store_godunov_state([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+dg(3)], &
-                                q_int, fglo, fghi, &
+                                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                lambda_int, fglo, fghi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
                                 qgdnvzy, fglo, fghi)
 
@@ -1283,19 +1283,19 @@ contains
                 qxl, ql_lo, ql_hi, &
                 qxr, qr_lo, qr_hi, 1, 1, &
                 flux1, f1_lo, f1_hi, &
-                q_int, fglo, fghi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
                 rflux1, rf1_lo, rf1_hi, &
-                lambda_int, fglo, fghi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
                 1, domlo, domhi)
 
     call ca_store_godunov_state(lo, [hi(1)+1, hi(2), hi(3)], &
-                                q_int, fglo, fghi, &
+                                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                lambda_int, fglo, fghi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
                                 q1, q1_lo, q1_hi)
 
@@ -1321,19 +1321,19 @@ contains
                 qmzx, qmzx_lo, qmzx_hi, &
                 qpzx, qpzx_lo, qpzx_hi, 1, 1, &
                 fzx, glo, ghi, &
-                q_int, fglo, fghi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
                 rfzx, glo, ghi, &
-                lambda_int, fglo, fghi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
                 3, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2)-dg(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
-                                q_int, fglo, fghi, &
+                                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                lambda_int, fglo, fghi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
                                 qgdnvzx, fglo, fghi)
 
@@ -1352,19 +1352,19 @@ contains
                 qmxz, qmxz_lo, qmxz_hi, &
                 qpxz, qpxz_lo, qpxz_hi, 1, 1, &
                 fxz, glo, ghi, &
-                q_int, fglo, fghi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
                 rfxz, glo, ghi, &
-                lambda_int, fglo, fghi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
                 1, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2)-dg(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
-                                q_int, fglo, fghi, &
+                                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                lambda_int, fglo, fghi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
                                 qgdnvxz, fglo, fghi)
 
@@ -1414,19 +1414,19 @@ contains
                 qyl, ql_lo, ql_hi, &
                 qyr, qr_lo, qr_hi, 1, 1, &
                 flux2, f2_lo, f2_hi, &
-                q_int, fglo, fghi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
                 rflux2, rf2_lo, rf2_hi, &
-                lambda_int, fglo, fghi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
                 2, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)], &
-                                q_int, fglo, fghi, &
+                                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                lambda_int, fglo, fghi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
                                 q2, q2_lo, q2_hi)
 
@@ -1453,19 +1453,19 @@ contains
                 qmxy, qmxy_lo, qmxy_hi, &
                 qpxy, qpxy_lo, qpxy_hi, 1, 1, &
                 fxy, glo, ghi, &
-                q_int, fglo, fghi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
                 rfxy, glo, ghi, &
-                lambda_int, fglo, fghi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
                 1, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2), hi(3)+dg(3)], &
-                                q_int, fglo, fghi, &
+                                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                lambda_int, fglo, fghi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
                                 qgdnvxy, fglo, fghi)
 
@@ -1485,19 +1485,19 @@ contains
                 qmyx, qmyx_lo, qmyx_hi, &
                 qpyx, qpyx_lo, qpyx_hi, 1, 1, &
                 fyx, glo, ghi, &
-                q_int, fglo, fghi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
                 rfyx, glo, ghi, &
-                lambda_int, fglo, fghi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
                 2, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2), lo(3)-dg(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
-                                q_int, fglo, fghi, &
+                                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                lambda_int, fglo, fghi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
                                 qgdnvyx, fglo, fghi)
 
@@ -1547,29 +1547,24 @@ contains
                 qzl, ql_lo, ql_hi, &
                 qzr, qr_lo, qr_hi, 1, 1, &
                 flux3, f3_lo, f3_hi, &
-                q_int, fglo, fghi, &
+                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
                 rflux3, rf3_lo, rf3_hi, &
-                lambda_int, fglo, fghi, &
+                lambda_int, li_lo, li_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, glo, ghi, &
                 3, domlo, domhi)
 
     call ca_store_godunov_state([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+dg(3)], &
-                                q_int, fglo, fghi, &
+                                q_int, qi_lo, qi_hi, &
 #ifdef RADIATION
-                                lambda_int, fglo, fghi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
                                 q3, q3_lo, q3_hi)
 
     nullify(qgdnvz)
     nullify(qzl,qzr)
-#endif
-
-    call bl_deallocate(q_int)
-#ifdef RADIATION
-    call bl_deallocate(lambda_int)
 #endif
 
 #if AMREX_SPACEDIM >= 2
@@ -2604,6 +2599,7 @@ contains
 
     integer :: fglo(3), fghi(3), glo(3), ghi(3)
 
+    ! for computing the normal states
     real(rt), pointer :: Ip(:,:,:,:,:,:), Im(:,:,:,:,:,:)
     real(rt), pointer :: Ip_src(:,:,:,:,:,:), Im_src(:,:,:,:,:,:)
     real(rt), pointer :: Ip_gc(:,:,:,:,:,:), Im_gc(:,:,:,:,:,:)
@@ -2616,6 +2612,13 @@ contains
     ! Left and right state arrays (edge centered, cell centered)
     double precision, dimension(:,:,:,:), pointer :: &
          qxm, qym, qzm, qxp, qyp, qzp
+
+    ! for the transverse corrections
+    real(rt), pointer :: q_int(:,:,:,:)
+
+#ifdef RADIATION
+    real(rt), pointer :: lambda_int(:,:,:,:)
+#endif
 
     double precision, dimension(:,:,:,:), pointer :: &
          ql, qr, &
@@ -2784,6 +2787,10 @@ contains
     call bl_allocate( qr, fglo, fghi, NQ)
 #endif
 
+    call bl_allocate(q_int, fglo, fghi, NQ)
+#ifdef RADIATION
+    call bl_allocate(lambda_int, fglo(1), fghi(1), fglo(2), fghi(2), fglo(3), fghi(3), 0, ngroups-1)
+#endif
 
     ! Compute hyperbolic fluxes using unsplit Godunov
     call ctu_compute_fluxes(lo, hi, &
@@ -2816,6 +2823,10 @@ contains
 #if AMREX_SPACEDIM >= 2
                             ql, fglo, fghi, &
                             qr, fglo, fghi, &
+#endif
+                            q_int, fglo, fghi, &
+#ifdef RADIATION
+                            lambda_int, fglo, fghi, &
 #endif
                             uout, uout_lo, uout_hi, &
                             flux1, flux1_lo, flux1_hi, &
@@ -2861,6 +2872,11 @@ contains
 #if AMREX_SPACEDIM == 3
     call bl_deallocate(qzm)
     call bl_deallocate(qzp)
+#endif
+
+    call bl_deallocate(q_int)
+#ifdef RADIATION
+    call bl_deallocate(lambda_int)
 #endif
 
 #if AMREX_SPACEDIM >= 2
