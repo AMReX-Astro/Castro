@@ -33,7 +33,7 @@ contains
                     vol, vol_lo, vol_hi, &
 #endif
                     hdt, cdtdx, &
-                    vlo, vhi)
+                    vlo, vhi) bind(C, name="transx")
 
     ! here, lo and hi are the bounds we are looping over, which may include ghost cells
     ! vlo and vhi are the bounds of the valid box
@@ -94,7 +94,7 @@ contains
     real(rt) :: rfx(rfx_lo(1):rfx_hi(1),rfx_lo(2):rfx_hi(2),rfx_lo(3):rfx_hi(3),0:ngroups-1)
 #endif
 
-    real(rt), intent(in) :: hdt, cdtdx
+    real(rt), intent(in), value :: hdt, cdtdx
 
     real(rt), intent(in) :: qym(qym_lo(1):qym_hi(1),qym_lo(2):qym_hi(2),qym_lo(3):qym_hi(3),NQ)
     real(rt), intent(in) :: qyp(qyp_lo(1):qyp_hi(1),qyp_lo(2):qyp_hi(2),qyp_lo(3):qyp_hi(3),NQ)
@@ -882,7 +882,7 @@ contains
 #endif
                     qy, qy_lo, qy_hi, &
                     cdtdy, &
-                    vlo, vhi)
+                    vlo, vhi) bind(C, name="transy")
 
     ! here, lo and hi are the bounds we are looping over, which may include ghost cells
     ! vlo and vhi are the bounds of the valid box
@@ -937,7 +937,7 @@ contains
     real(rt), intent(in) :: rfy(rfy_lo(1):rfy_hi(1),rfy_lo(2):rfy_hi(2),rfy_lo(3):rfy_hi(3),0:ngroups-1)
 #endif
 
-    real(rt), intent(in) :: cdtdy
+    real(rt), intent(in), value :: cdtdy
 
     real(rt), intent(in) :: qxm(qxm_lo(1):qxm_hi(1),qxm_lo(2):qxm_hi(2),qxm_lo(3):qxm_hi(3),NQ)
     real(rt), intent(in) :: qxp(qxp_lo(1):qxp_hi(1),qxp_lo(2):qxp_hi(2),qxp_lo(3):qxp_hi(3),NQ)
@@ -1597,7 +1597,7 @@ contains
 #endif
                     qz, qz_lo, qz_hi, &
                     cdtdz, &
-                    vlo, vhi)
+                    vlo, vhi) bind(C, name="transz")
 
     ! here, lo and hi are the bounds we are looping over, which may include ghost cells
     ! vlo and vhi are the bounds of the valid box
@@ -1650,7 +1650,7 @@ contains
     real(rt), intent(in) :: rfz(rfz_lo(1):rfz_hi(1),rfz_lo(2):rfz_hi(2),rfz_lo(3):rfz_hi(3),0:ngroups-1)
 #endif
 
-    real(rt), intent(in) :: cdtdz
+    real(rt), intent(in), value :: cdtdz
 
     real(rt), intent(in) :: qxm(qxm_lo(1):qxm_hi(1),qxm_lo(2):qxm_hi(2),qxm_lo(3):qxm_hi(3),NQ)
     real(rt), intent(in) :: qxp(qxp_lo(1):qxp_hi(1),qxp_lo(2):qxp_hi(2),qxp_lo(3):qxp_hi(3),NQ)
@@ -2293,7 +2293,7 @@ contains
                      qy, qy_lo, qy_hi, &
                      qz, qz_lo, qz_hi, &
                      hdt, cdtdy, cdtdz, &
-                     vlo, vhi)
+                     vlo, vhi) bind(C, name="transyz")
 
     ! here, lo and hi are the bounds we are looping over, which may include ghost cells
     ! vlo and vhi are the bounds of the valid box
@@ -2337,7 +2337,7 @@ contains
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: vlo(3), vhi(3)
 
-    real(rt), intent(in) :: hdt, cdtdy, cdtdz
+    real(rt), intent(in), value :: hdt, cdtdy, cdtdz
 
 #ifdef RADIATION
     integer, intent(in) :: rfyz_lo(3), rfyz_hi(3)
@@ -2736,7 +2736,7 @@ contains
                      qx, qx_lo, qx_hi, &
                      qz, qz_lo, qz_hi, &
                      hdt, cdtdx, cdtdz, &
-                     vlo, vhi)
+                     vlo, vhi) bind(C, name="transxz")
 
     ! here, lo and hi are the bounds we are looping over, which may include ghost cells
     ! vlo and vhi are the bounds of the valid box
@@ -2780,7 +2780,7 @@ contains
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: vlo(3), vhi(3)
 
-    real(rt), intent(in) :: hdt, cdtdx, cdtdz
+    real(rt), intent(in), value :: hdt, cdtdx, cdtdz
 
 #ifdef RADIATION
     integer, intent(in) :: rfxz_lo(3), rfxz_hi(3)
@@ -3178,7 +3178,7 @@ contains
                      qx, qx_lo, qx_hi, &
                      qy, qy_lo, qy_hi, &
                      hdt, cdtdx, cdtdy, &
-                     vlo, vhi)
+                     vlo, vhi) bind(C, name="transxy")
 
     ! here, lo and hi are the bounds we are looping over, which may include ghost cells
     ! vlo and vhi are the bounds of the valid box
@@ -3222,7 +3222,7 @@ contains
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: vlo(3), vhi(3)
 
-    real(rt), intent(in) :: hdt, cdtdx, cdtdy
+    real(rt), intent(in), value :: hdt, cdtdx, cdtdy
 
 #ifdef RADIATION
     integer, intent(in) :: rfxy_lo(3), rfxy_hi(3)
