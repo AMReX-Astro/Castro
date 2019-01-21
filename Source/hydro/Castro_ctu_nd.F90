@@ -61,7 +61,7 @@ contains
 #if AMREX_SPACEDIM < 3
                                dloga, dloga_lo, dloga_hi, &
 #endif
-                               domlo, domhi)
+                               domlo, domhi) bind(C, name="ctu_normal_states")
 
     ! everything in this routine has the same lo:hi requirements (we fill one ghost cell)
 
@@ -121,7 +121,8 @@ contains
 #if AMREX_SPACEDIM < 3
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
-    real(rt), intent(in) :: dx(3), dt
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(in), value :: dt
     integer, intent(in) :: domlo(3), domhi(3)
 
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
@@ -1575,17 +1576,17 @@ contains
        flatn = ZERO
     elseif (use_flattening == 1) then
        call ca_uflatten(lo-dg, hi+dg, &
-            q, q_lo, q_hi, &
-            flatn, q_lo, q_hi, QPRES)
+                        q, q_lo, q_hi, &
+                        flatn, q_lo, q_hi, QPRES)
 #ifdef RADIATION
        call ca_uflatten(lo-dg, hi+dg, &
-            q, q_lo, q_hi, &
-            flatg, q_lo, q_hi, QPTOT)
+                        q, q_lo, q_hi, &
+                        flatg, q_lo, q_hi, QPTOT)
 
        call rad_flatten(lo-dg, hi+dg, &
-            q, q_lo, q_hi, &
-            flatn, q_lo, q_hi, &
-            flatg, q_lo, q_hi)
+                        q, q_lo, q_hi, &
+                        flatn, q_lo, q_hi, &
+                        flatg, q_lo, q_hi)
 #endif
     else
        flatn = ONE
