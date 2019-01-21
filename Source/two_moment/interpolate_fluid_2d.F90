@@ -53,6 +53,7 @@
     real(rt) :: x(n_fluid_dof)
     real(rt) :: y(n_fluid_dof)
     real(rt) :: z(n_fluid_dof)
+    real(rt) :: xt, yt
 
     integer  :: interp_type
 
@@ -511,20 +512,24 @@
             S_ll(:) = 0.25d0 * ( S(ic,jc  ,:) + S(ic-1,jc  ,:) &
                                 +S(ic,jc-1,:) + S(ic-1,jc-1,:) )
 
-             xslope(:) = 0.5d0 * (S_hh(:) + S_hl(:) - S_lh(:) - S_ll(:))
-             yslope(:) = 0.5d0 * (S_hh(:) + S_lh(:) - S_hl(:) - S_ll(:))
-            xyslope(:) =         (S_hh(:) + S_ll(:) - S_hl(:) - S_lh(:))
+             xslope(:) = (S_hl(:) - S_ll(:))
+             yslope(:) = (S_lh(:) - S_ll(:))
+            xyslope(:) = (S_hh(:) - S_lh(:)) - (S_hl(:) - S_ll(:))
 
             !   S spatial indices start at lo - (number of ghost zones)
             ! uCF spatial indices start at 1 - (number of ghost zones)
             i = ic - lo(1) + 1
             j = jc - lo(2) + 1
             k = 1
-   
+
             do ind = 1, n_fluid_dof
 
-               Sval(:) = S(ic,jc,:) + x(ind)*xslope(:) + y(ind)*yslope(:) + x(ind)*y(ind)*xyslope(:)
-   
+               ! x(ind) and y(ind) are relative to the cell center - here we define
+               ! xt and yt to be relative to the lower left corner
+               xt = 0.5d0 + x(ind)
+               yt = 0.5d0 + y(ind)
+               Sval(:) = S_ll(:)    + xt*xslope(:) + yt*yslope(:) + xt*yt*xyslope(:)
+
                rho_in(1) = Sval(URHO ) * conv_dens
                Ye_in (1) = Sval(UFX)   * (AtomicMassUnit/Gram)
    
