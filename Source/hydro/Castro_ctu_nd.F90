@@ -487,7 +487,9 @@ contains
     use advection_util_module, only : limit_hydro_fluxes_on_small_dens, normalize_species_fluxes, apply_av
     use amrinfo_module, only : amr_level
     use amrex_constants_module, only : ZERO, ONE, TWO, FOURTH, HALF
-
+#ifdef RADIATION
+    use rad_params_module, only : ngroups
+#endif
     integer, intent(in) ::       lo(3),       hi(3)
     integer, intent(in), value :: idir
     integer, intent(in) ::   uin_lo(3),   uin_hi(3)
@@ -540,7 +542,7 @@ contains
 
 #ifdef RADIATION
    call apply_av_rad(lo, hi, idir, dx, &
-                     div, lo, hi+dg, &
+                     div, lo, hi, &
                      Erin, Erin_lo, Erin_hi, &
                      radflux, radflux_lo, radflux_hi)
 #endif
