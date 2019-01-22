@@ -1741,7 +1741,7 @@ contains
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: div_lo(3), div_hi(3)
     integer,  intent(in   ) :: Ein_lo(3), Ein_hi(3)
-    integer,  intent(in   ) :: rf_lo(3), rf_hi(3)
+   integer,  intent(in   ) :: rf_lo(3), rf_hi(3)
     real(rt), intent(in   ) :: dx(3)
     integer,  intent(in   ), value :: idir
 

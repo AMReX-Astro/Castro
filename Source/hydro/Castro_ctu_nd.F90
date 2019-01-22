@@ -84,9 +84,6 @@ contains
 #else
     use trace_ppm_module, only : trace_ppm
 #endif
-#ifdef SHOCK_VAR
-    use meth_params_module, only : USHK
-#endif
     use advection_util_module, only : ca_shock
     use prob_params_module, only : dg
 
@@ -489,7 +486,14 @@ contains
     use amrex_constants_module, only : ZERO, ONE, TWO, FOURTH, HALF
 #ifdef RADIATION
     use rad_params_module, only : ngroups
+    use advection_util_module, only : apply_av_rad
 #endif
+#ifdef SHOCK_VAR
+    use meth_params_module, only : USHK
+#endif
+
+    implicit none
+
     integer, intent(in) ::       lo(3),       hi(3)
     integer, intent(in), value :: idir
     integer, intent(in) ::   uin_lo(3),   uin_hi(3)
@@ -514,8 +518,8 @@ contains
     real(rt), intent(in), value :: dt
 
 #ifdef RADIATION
-    real(rt)          Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
-    real(rt)         radflux(radflux_lo(1):radflux_hi(1),radflux_lo(2):radflux_hi(2),radflux_lo(3):radflux_hi(3),0:ngroups-1)
+    real(rt), intent(in) :: Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
+    real(rt), intent(inout) :: radflux(radflux_lo(1):radflux_hi(1),radflux_lo(2):radflux_hi(2),radflux_lo(3):radflux_hi(3),0:ngroups-1)
 #endif
 
     real(rt)         :: div1, volinv
