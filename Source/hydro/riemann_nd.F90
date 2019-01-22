@@ -110,7 +110,7 @@ contains
     call ca_store_godunov_state(lo, hi, &
                                 qint, q_lo, q_hi, &
 #ifdef RADIATION
-                                lambda, l_lo, l_hi, &
+                                lambda_int, li_lo, li_hi, &
 #endif
                                 qgdnv, qg_lo, qg_hi)
 
