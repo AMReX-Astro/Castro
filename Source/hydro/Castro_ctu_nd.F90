@@ -666,30 +666,44 @@ contains
     ! zero out shock and temp fluxes -- these are physically meaningless here
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
+          do i = lo(1), hi(1)+1
 
              flux1(i,j,k,UTEMP) = ZERO
 #ifdef SHOCK_VAR
              flux1(i,j,k,USHK) = ZERO
 #endif
 
+          end do
+       end do
+    end do
+
 #if AMREX_SPACEDIM >= 2
+    ! zero out shock and temp fluxes -- these are physically meaningless here
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)+1
+          do i = lo(1), hi(1)
              flux2(i,j,k,UTEMP) = ZERO
 #ifdef SHOCK_VAR
              flux2(i,j,k,USHK) = ZERO
 #endif
+          end do
+       end do
+    end do
 #endif
 
 #if AMREX_SPACEDIM == 3
+    ! zero out shock and temp fluxes -- these are physically meaningless here
+    do k = lo(3), hi(3)+1
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
              flux3(i,j,k,UTEMP) = ZERO
 #ifdef SHOCK_VAR
              flux3(i,j,k,USHK) = ZERO
 #endif
-#endif
-
           end do
        end do
     end do
+#endif
 
     call apply_av(lo, [hi(1)+1, hi(2), hi(3)], 1, dx, &
                   div, div_lo, div_hi, &
