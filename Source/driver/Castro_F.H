@@ -632,8 +632,8 @@ extern "C"
      amrex::Real& zang_lost);
 
   void ctu_normal_states
-     (const int lo[], const int hi[],
-      const int vlo[], const int vhi[],
+     (const int* lo, const int* hi,
+      const int* vlo, const int* vhi,
       const BL_FORT_FAB_ARG_3D(q),
       const BL_FORT_FAB_ARG_3D(flatn),
       const BL_FORT_FAB_ARG_3D(qaux),
@@ -662,10 +662,10 @@ extern "C"
 #if AMREX_SPACEDIM < 3
       const BL_FORT_FAB_ARG_3D(dloga),
 #endif
-      const int domlo[], const int domhi[]);
+      const int* domlo, const int* domhi);
 
 
-  void transx(const int lo[], const int hi[],
+  void transx(const int* lo, const int* hi,
               const BL_FORT_FAB_ARG_3D(qym),
               BL_FORT_FAB_ARG_3D(qymo),
               const BL_FORT_FAB_ARG_3D(qyp),
@@ -687,9 +687,9 @@ extern "C"
               const BL_FORT_FAB_ARG_3D(vol),
 #endif
               const amrex::Real hdt, const amrex::Real cdtdx, 
-              const int vlo[], const int vhi[]);
+              const int* vlo, const int* vhi);
 
-  void transy(const int lo[], const int hi[],
+  void transy(const int* lo, const int* hi,
               const BL_FORT_FAB_ARG_3D(qxm),
               BL_FORT_FAB_ARG_3D(qxmo),
               const BL_FORT_FAB_ARG_3D(qxp),
@@ -707,9 +707,9 @@ extern "C"
 #endif
               const BL_FORT_FAB_ARG_3D(qy),
               const amrex::Real cdtdy,
-              const int vlo[], const int vhi[]);
+              const int* vlo, const int* vhi);
 
-  void transz(const int lo[], const int hi[],
+  void transz(const int* lo, const int* hi,
               const BL_FORT_FAB_ARG_3D(qxm),
               BL_FORT_FAB_ARG_3D(qxmo),
               const BL_FORT_FAB_ARG_3D(qxp),
@@ -727,9 +727,9 @@ extern "C"
 #endif
               const BL_FORT_FAB_ARG_3D(qz),
               const amrex::Real cdtdz,
-              const int vlo[], const int vhi[]);
+              const int* vlo, const int* vhi);
 
-  void transyz(const int lo[], const int hi[],
+  void transyz(const int* lo, const int* hi,
                const BL_FORT_FAB_ARG_3D(qm),
                BL_FORT_FAB_ARG_3D(qmo),
                const BL_FORT_FAB_ARG_3D(qp),
@@ -746,9 +746,9 @@ extern "C"
                const BL_FORT_FAB_ARG_3D(qy),
                const BL_FORT_FAB_ARG_3D(qz),
                const amrex::Real hdt, const amrex::Real cdtdy, const amrex::Real cdtdz,
-               const int vlo[], const int vhi[]);
+               const int* vlo, const int* vhi);
 
-  void transxz(const int lo[], const int hi[],
+  void transxz(const int* lo, const int* hi,
                const BL_FORT_FAB_ARG_3D(qm),
                BL_FORT_FAB_ARG_3D(qmo),
                const BL_FORT_FAB_ARG_3D(qp),
@@ -765,9 +765,9 @@ extern "C"
                const BL_FORT_FAB_ARG_3D(qx),
                const BL_FORT_FAB_ARG_3D(qz),
                const amrex::Real hdt, const amrex::Real cdtdx, const amrex::Real cdtdz,
-               const int vlo[], const int vhi[]);
+               const int* vlo, const int* vhi);
 
-  void transxy(const int lo[], const int hi[],
+  void transxy(const int* lo, const int* hi,
                const BL_FORT_FAB_ARG_3D(qm),
                BL_FORT_FAB_ARG_3D(qmo),
                const BL_FORT_FAB_ARG_3D(qp),
@@ -784,7 +784,7 @@ extern "C"
                const BL_FORT_FAB_ARG_3D(qx),
                const BL_FORT_FAB_ARG_3D(qy),
                const amrex::Real hdt, const amrex::Real cdtdx, const amrex::Real cdtdy,
-               const int vlo[], const int vhi[]);
+               const int* vlo, const int* vhi);
 
 
   void ca_make_fourth_average(const int lo[], const int hi[],
