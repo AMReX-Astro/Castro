@@ -478,6 +478,7 @@ contains
 #endif
                               area, area_lo, area_hi, &
                               vol, vol_lo, vol_hi, &
+                              div, div_lo, div_hi, &
                               dx, dt)
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
@@ -494,12 +495,11 @@ contains
     integer, intent(in) :: flux_lo(3), flux_hi(3)
     integer, intent(in) :: area_lo(3), area_hi(3)
     integer, intent(in) ::   vol_lo(3),   vol_hi(3)
+    integer, intent(in) :: div_lo(3), div_hi(3)
 #ifdef RADIATION
     integer, intent(in) :: Erin_lo(3), Erin_hi(3)
     integer, intent(in) :: radflux_lo(3), radflux_hi(3)
 #endif
-
-    integer, intent(in) :: verbose
 
     real(rt), intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
     real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
@@ -507,6 +507,7 @@ contains
     real(rt), intent(inout) :: flux(flux_lo(1):flux_hi(1),flux_lo(2):flux_hi(2),flux_lo(3):flux_hi(3),NVAR)
     real(rt), intent(in) :: area(area_lo(1):area_hi(1),area_lo(2):area_hi(2),area_lo(3):area_hi(3))
     real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+    real(rt), intent(in) :: div(div_lo(1):div_hi(1),div_lo(2):div_hi(2),div_lo(3):div_hi(3))
     real(rt), intent(in) :: dx(3)
     real(rt), intent(in), value :: dt
 
@@ -2492,6 +2493,7 @@ contains
 #endif
                           area1, area1_lo, area1_hi, &
                           vol, vol_lo, vol_hi, &
+                          div, lo, hi+dg, &
                           dx, dt)
 
 #if AMREX_SPACEDIM >= 2
@@ -2506,6 +2508,7 @@ contains
 #endif
                           area2, area2_lo, area2_hi, &
                           vol, vol_lo, vol_hi, &
+                          div, lo, hi+dg, &
                           dx, dt)
 #endif
 
@@ -2521,6 +2524,7 @@ contains
 #endif
                           area3, area3_lo, area3_hi, &
                           vol, vol_lo, vol_hi, &
+                          div, lo, hi+dg, &
                           dx, dt)
 #endif
 
