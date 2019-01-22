@@ -468,34 +468,17 @@ contains
 
 
   subroutine ctu_clean_fluxes(lo, hi, &
+                              idir, &
                               uin, uin_lo, uin_hi, &
                               q, q_lo, q_hi, &
-                              flux1, flux1_lo, flux1_hi, &
-#if AMREX_SPACEDIM >= 2
-                              flux2, flux2_lo, flux2_hi, &
-#endif
-#if AMREX_SPACEDIM == 3
-                              flux3, flux3_lo, flux3_hi, &
-#endif
+                              flux, flux_lo, flux_hi, &
 #ifdef RADIATION
                               Erin, Erin_lo, Erin_hi, &
-                              radflux1, radflux1_lo, radflux1_hi, &
-#if AMREX_SPACEDIM >= 2
-                              radflux2, radflux2_lo, radflux2_hi, &
+                              radflux, radflux_lo, radflux_hi, &
 #endif
-#if AMREX_SPACEDIM == 3
-                              radflux3, radflux3_lo, radflux3_hi, &
-#endif
-#endif
-                              area1, area1_lo, area1_hi, &
-#if AMREX_SPACEDIM >= 2
-                              area2, area2_lo, area2_hi, &
-#endif
-#if AMREX_SPACEDIM == 3
-                              area3, area3_lo, area3_hi, &
-#endif
+                              area, area_lo, area_hi, &
                               vol, vol_lo, vol_hi, &
-                              lo, hi, dx, dt)
+                              dx, dt)
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UTEMP, NGDNV, NQ, &
@@ -505,28 +488,15 @@ contains
     use amrex_constants_module, only : ZERO, ONE, TWO, FOURTH, HALF
 
     integer, intent(in) ::       lo(3),       hi(3)
+    integer, intent(in), value :: idir
     integer, intent(in) ::   uin_lo(3),   uin_hi(3)
     integer, intent(in) ::     q_lo(3),     q_hi(3)
-    integer, intent(in) :: flux1_lo(3), flux1_hi(3)
-    integer, intent(in) :: area1_lo(3), area1_hi(3)
-#if AMREX_SPACEDIM >= 2
-    integer, intent(in) :: flux2_lo(3), flux2_hi(3)
-    integer, intent(in) :: area2_lo(3), area2_hi(3)
-#endif
-#if AMREX_SPACEDIM == 3
-    integer, intent(in) :: flux3_lo(3), flux3_hi(3)
-    integer, intent(in) :: area3_lo(3), area3_hi(3)
-#endif
+    integer, intent(in) :: flux_lo(3), flux_hi(3)
+    integer, intent(in) :: area_lo(3), area_hi(3)
     integer, intent(in) ::   vol_lo(3),   vol_hi(3)
 #ifdef RADIATION
     integer, intent(in) :: Erin_lo(3), Erin_hi(3)
-    integer, intent(in) :: radflux1_lo(3), radflux1_hi(3)
-#if AMREX_SPACEDIM >= 2
-    integer, intent(in) :: radflux2_lo(3), radflux2_hi(3)
-#endif
-#if AMREX_SPACEDIM == 3
-    integer, intent(in) :: radflux3_lo(3), radflux3_hi(3)
-#endif
+    integer, intent(in) :: radflux_lo(3), radflux_hi(3)
 #endif
 
     integer, intent(in) :: verbose
@@ -534,131 +504,59 @@ contains
     real(rt), intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
     real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
 
-    real(rt), intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
-    real(rt), intent(in) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
-
-#if AMREX_SPACEDIM >= 2
-    real(rt), intent(inout) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
-    real(rt), intent(in) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2),area2_lo(3):area2_hi(3))
-#endif
-
-#if AMREX_SPACEDIM == 3
-    real(rt), intent(inout) :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
-    real(rt), intent(in) :: area3(area3_lo(1):area3_hi(1),area3_lo(2):area3_hi(2),area3_lo(3):area3_hi(3))
-#endif
-
+    real(rt), intent(inout) :: flux(flux_lo(1):flux_hi(1),flux_lo(2):flux_hi(2),flux_lo(3):flux_hi(3),NVAR)
+    real(rt), intent(in) :: area(area_lo(1):area_hi(1),area_lo(2):area_hi(2),area_lo(3):area_hi(3))
     real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    real(rt), intent(in) :: dx(3), dt
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(in), value :: dt
 
 #ifdef RADIATION
     real(rt)          Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
-    real(rt)         radflux1(radflux1_lo(1):radflux1_hi(1),radflux1_lo(2):radflux1_hi(2),radflux1_lo(3):radflux1_hi(3),0:ngroups-1)
-#if AMREX_SPACEDIM >= 2
-    real(rt)         radflux2(radflux2_lo(1):radflux2_hi(1),radflux2_lo(2):radflux2_hi(2),radflux2_lo(3):radflux2_hi(3),0:ngroups-1)
-#endif
-#if AMREX_SPACEDIM == 3
-    real(rt)         radflux3(radflux3_lo(1):radflux3_hi(1),radflux3_lo(2):radflux3_hi(2),radflux3_lo(3):radflux3_hi(3),0:ngroups-1)
-#endif
-
+    real(rt)         radflux(radflux_lo(1):radflux_hi(1),radflux_lo(2):radflux_hi(2),radflux_lo(3):radflux_hi(3),0:ngroups-1)
 #endif
 
     real(rt)         :: div1, volinv
     integer          :: i, j, g, k, n
     integer          :: domlo(3), domhi(3)
-    real(rt)         :: loc(3), ang_mom(3)
 
     ! zero out shock and temp fluxes -- these are physically meaningless here
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             flux1(i,j,k,UTEMP) = ZERO
+             flux(i,j,k,UTEMP) = ZERO
 #ifdef SHOCK_VAR
-             flux1(i,j,k,USHK) = ZERO
+             flux(i,j,k,USHK) = ZERO
 #endif
-
-#if AMREX_SPACEDIM >= 2
-             flux2(i,j,k,UTEMP) = ZERO
-#ifdef SHOCK_VAR
-             flux2(i,j,k,USHK) = ZERO
-#endif
-#endif
-
-#if AMREX_SPACEDIM == 3
-             flux3(i,j,k,UTEMP) = ZERO
-#ifdef SHOCK_VAR
-             flux3(i,j,k,USHK) = ZERO
-#endif
-#endif
-
           end do
        end do
     end do
 
-    call apply_av(lo, [hi(1)+1, hi(2), hi(3)], 1, dx, &
+    call apply_av(lo, hi, idir, dx, &
                   div, div_lo, div_hi, &
                   uin, uin_lo, uin_hi, &
-                  flux1, flux1_lo, flux1_hi)
-
-#if AMREX_SPACEDIM >= 2
-    call apply_av(lo, [hi(1), hi(2)+1, hi(3)], 2, dx, &
-                  div, div_lo, div_hi, &
-                  uin, uin_lo, uin_hi, &
-                  flux2, flux2_lo, flux2_hi)
-#endif
-#if AMREX_SPACEDIM == 3
-    call apply_av(lo, [hi(1), hi(2), hi(3)+1], 3, dx, &
-                  div, div_lo, div_hi, &
-                  uin, uin_lo, uin_hi, &
-                  flux3, flux3_lo, flux3_hi)
-#endif
+                  flux, flux_lo, flux_hi)
 
 #ifdef RADIATION
-   call apply_av_rad(lo, [hi(1)+1, hi(2), hi(3)], 1, dx, &
-                      div, lo, hi+dg, &
-                      Erin, Erin_lo, Erin_hi, &
-                      radflux1, radflux1_lo, radflux1_hi)
-
-#if AMREX_SPACEDIM >= 2
-    call apply_av_rad(lo, [hi(1), hi(2)+1, hi(3)], 2, dx, &
-                      div, lo, hi+dg, &
-                      Erin, Erin_lo, Erin_hi, &
-                      radflux2, radflux2_lo, radflux2_hi)
-#endif
-
-#if AMREX_SPACEDIM == 3
-    call apply_av_rad(lo, [hi(1), hi(2), hi(3)+1], 3, dx, &
-                      div, lo, hi+dg, &
-                      Erin, Erin_lo, Erin_hi, &
-                      radflux3, radflux3_lo, radflux3_hi)
-#endif
+   call apply_av_rad(lo, hi, idir, dx, &
+                     div, lo, hi+dg, &
+                     Erin, Erin_lo, Erin_hi, &
+                     radflux, radflux_lo, radflux_hi)
 #endif
 
     if (limit_fluxes_on_small_dens == 1) then
-       call limit_hydro_fluxes_on_small_dens(uin,uin_lo,uin_hi, &
-                                             q,q_lo,q_hi, &
-                                             vol,vol_lo,vol_hi, &
-                                             flux1,flux1_lo,flux1_hi, &
-                                             area1,area1_lo,area1_hi, &
-#if AMREX_SPACEDIM >= 2
-                                             flux2,flux2_lo,flux2_hi, &
-                                             area2,area2_lo,area2_hi, &
-#endif
-#if AMREX_SPACEDIM == 3
-                                             flux3,flux3_lo,flux3_hi, &
-                                             area3,area3_lo,area3_hi, &
-#endif
-                                             lo,hi,dt,dx)
+       call limit_hydro_fluxes_on_small_dens(lo, hi, &
+                                             idir, &
+                                             uin, uin_lo, uin_hi, &
+                                             q, q_lo, q_hi, &
+                                             vol, vol_lo, vol_hi, &
+                                             flux, flux_lo, flux_hi, &
+                                             area, area_lo, area_hi, &
+                                             dt, dx)
 
     endif
 
-    call normalize_species_fluxes(flux1_lo, flux1_hi, flux1, flux1_lo,flux1_hi)
-#if AMREX_SPACEDIM >= 2
-    call normalize_species_fluxes(flux2_lo, flux2_hi, flux2, flux2_lo,flux2_hi)
-#endif
-#if AMREX_SPACEDIM == 3
-    call normalize_species_fluxes(flux3_lo, flux3_hi, flux3, flux3_lo, flux3_hi)
-#endif
+    call normalize_species_fluxes(lo, hi, flux, flux_lo, flux_hi)
 
   end subroutine ctu_clean_fluxes
 
@@ -2580,6 +2478,51 @@ contains
 
     ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
     call divu(lo, hi+dg, q, q_lo, q_hi, dx, div, lo, hi+dg)
+
+
+    ! clean up the fluxes
+    call ctu_clean_fluxes([lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], &
+                          1, &
+                          uin, uin_lo, uin_hi, &
+                          q, q_lo, q_hi, &
+                          flux1, flux1_lo, flux1_hi, &
+#ifdef RADIATION
+                          Erin, Erin_lo, Erin_hi, &
+                          radflux1, radflux1_lo, radflux1_hi, &
+#endif
+                          area1, area1_lo, area1_hi, &
+                          vol, vol_lo, vol_hi, &
+                          dx, dt)
+
+#if AMREX_SPACEDIM >= 2
+    call ctu_clean_fluxes([lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], &
+                          2, &
+                          uin, uin_lo, uin_hi, &
+                          q, q_lo, q_hi, &
+                          flux2, flux2_lo, flux2_hi, &
+#ifdef RADIATION
+                          Erin, Erin_lo, Erin_hi, &
+                          radflux2, radflux2_lo, radflux2_hi, &
+#endif
+                          area2, area2_lo, area2_hi, &
+                          vol, vol_lo, vol_hi, &
+                          dx, dt)
+#endif
+
+#if AMREX_SPACEDIM == 3
+    call ctu_clean_fluxes([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], &
+                          3, &
+                          uin, uin_lo, uin_hi, &
+                          q, q_lo, q_hi, &
+                          flux3, flux3_lo, flux3_hi, &
+#ifdef RADIATION
+                          Erin, Erin_lo, Erin_hi, &
+                          radflux3, radflux3_lo, radflux3_hi, &
+#endif
+                          area3, area3_lo, area3_hi, &
+                          vol, vol_lo, vol_hi, &
+                          dx, dt)
+#endif
 
     ! Conservative update
     ! TODO: store the shock variable in uout

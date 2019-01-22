@@ -792,20 +792,14 @@ contains
   !!
   !! We implement the flux limiter on a dimension-by-dimension basis, starting with the x-direction.
   !!
-  subroutine limit_hydro_fluxes_on_small_dens(u,u_lo,u_hi, &
-       q,q_lo,q_hi, &
-       vol,vol_lo,vol_hi, &
-       flux1,flux1_lo,flux1_hi, &
-       area1,area1_lo,area1_hi, &
-#if (AMREX_SPACEDIM >= 2)
-       flux2,flux2_lo,flux2_hi, &
-       area2,area2_lo,area2_hi, &
-#endif
-#if (AMREX_SPACEDIM == 3)
-       flux3,flux3_lo,flux3_hi, &
-       area3,area3_lo,area3_hi, &
-#endif
-       lo,hi,dt,dx)
+  subroutine limit_hydro_fluxes_on_small_dens(lo, hi, &
+                                              idir, &
+                                              u, u_lo, u_hi, &
+                                              q, q_lo, q_hi, &
+                                              vol, vol_lo, vol_hi, &
+                                              flux, flux_lo, flux_hi, &
+                                              area, area_lo, area_hi, &
+                                              dt, dx)
 
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
@@ -816,56 +810,33 @@ contains
     implicit none
 
     integer, intent(in) :: u_lo(3), u_hi(3)
+    integer, intent(in) :: idir
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: vol_lo(3), vol_hi(3)
     integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: flux1_lo(3), flux1_hi(3)
-    integer, intent(in) :: area1_lo(3), area1_hi(3)
-#if (AMREX_SPACEDIM >= 2)
-    integer, intent(in) :: flux2_lo(3), flux2_hi(3)
-    integer, intent(in) :: area2_lo(3), area2_hi(3)
-#endif
-#if (AMREX_SPACEDIM == 3)
-    integer, intent(in) :: flux3_lo(3), flux3_hi(3)
-    integer, intent(in) :: area3_lo(3), area3_hi(3)
-#endif
-
+    integer, intent(in) :: flux_lo(3), flux_hi(3)
+    integer, intent(in) :: area_lo(3), area_hi(3)
     real(rt), intent(in   ) :: dt, dx(3)
 
     real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
     real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    real(rt), intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
-    real(rt), intent(in   ) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
-#if (AMREX_SPACEDIM >= 2)
-    real(rt), intent(inout) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
-    real(rt), intent(in   ) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2),area2_lo(3):area2_hi(3))
-#endif
-#if (AMREX_SPACEDIM == 3)
-    real(rt), intent(inout) :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
-    real(rt), intent(in   ) :: area3(area3_lo(1):area3_hi(1),area3_lo(2):area3_hi(2),area3_lo(3):area3_hi(3))
-#endif
+    real(rt), intent(inout) :: flux(flux_lo(1):flux_hi(1),flux_lo(2):flux_hi(2),flux_lo(3):flux_hi(3),NVAR)
+    real(rt), intent(in   ) :: area(area_lo(1):area_hi(1),area_lo(2):area_hi(2),area_lo(3):area_hi(3))
 
-    real(rt), pointer :: thetap(:,:,:), thetam(:,:,:)
+    real(rt) :: thetap, thetam
 
     integer  :: i, j, k
 
     real(rt) :: alpha_x, alpha_y, alpha_z
     real(rt) :: rho, drho, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhoLF, drhoLF, dtdx, theta
-    integer  :: dir
 
     real(rt), parameter :: density_floor_tolerance = 1.1_rt
     real(rt) :: density_floor
 
-    call bl_allocate(thetap,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
-    call bl_allocate(thetam,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
-
-    thetap(:,:,:) = ONE
-    thetam(:,:,:) = ONE
-
-    dir = 1
-
-    dtdx = dt / dx(1)
+    alpha_x = (ONE / dim)
+    alpha_y = (ONE / dim)
+    alpha_z = (ONE / dim)
 
     ! The density floor is the small density, modified by a small factor.
     ! In practice numerical error can cause the density that is created
@@ -878,20 +849,22 @@ contains
     ! Whether or not to include pressure in the cell-centered fluxes we calculate
     ! will depend on which dimensionality and coordinate system we are in.
 
-    alpha_x = (ONE / dim)
-    alpha_y = (ONE / dim)
-    alpha_z = (ONE / dim)
 
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1) - 1, hi(1) + 1
+    if (idir == 1) then
 
-             ! Note that this loop includes one ghost zone on either side of the current
-             ! bounds, but we only need a one-sided limiter for lo(1)-1 and hi(1)+1.
+       ! x-direction
+       dtdx = dt / dx(1)
 
-             ! First we'll do the plus state, which is on the left edge of the zone.
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
-             if (i .ge. lo(1)) then
+                thetap = ONE
+                thetam = ONE
+
+                ! We only need a one-sided limiter for lo(1)-1 and hi(1)+1.
+
+                ! First we'll do the plus state, which is on the left edge of the zone.
 
                 ! Obtain the one-sided update to the density, based on Hu et al., Eq. 11.
                 ! Note that the sign convention for the notation is opposite to our convention
@@ -901,327 +874,316 @@ contains
 
                 ! Don't do this if the density is already under the floor.
 
-                if (u(i,j,k,URHO) < density_floor) cycle
+                if (u(i,j,k,URHO) >= density_floor) then
 
-                rho = u(i,j,k,URHO) + TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * flux1(i,j,k,URHO)
+                   rho = u(i,j,k,URHO) + &
+                        TWO * (dt / alpha_x) * (area(i,j,k) / vol(i,j,k)) * flux(i,j,k,URHO)
 
-                if (rho < density_floor) then
+                   if (rho < density_floor) then
 
-                   ! Construct the Lax-Friedrichs flux on the interface (Equation 12).
-                   ! Note that we are using the information from Equation 9 to obtain the
-                   ! effective maximum wave speed, (|u| + c)_max = CFL / lambda where
-                   ! lambda = dt/(dx * alpha); alpha = 1 in 1D and may be chosen somewhat
-                   ! freely in multi-D as long as alpha_x + alpha_y + alpha_z = 1.
+                      ! Construct the Lax-Friedrichs flux on the interface (Equation 12).
+                      ! Note that we are using the information from Equation 9 to obtain the
+                      ! effective maximum wave speed, (|u| + c)_max = CFL / lambda where
+                      ! lambda = dt/(dx * alpha); alpha = 1 in 1D and may be chosen somewhat
+                      ! freely in multi-D as long as alpha_x + alpha_y + alpha_z = 1.
 
-                   fluxL = dflux(u(i-1,j,k,:), q(i-1,j,k,:), dir, [i-1, j, k])
-                   fluxR = dflux(u(i  ,j,k,:), q(i  ,j,k,:), dir, [i  , j, k])
-                   fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_x) * (u(i-1,j,k,:) - u(i,j,k,:)))
+                      fluxL = dflux(u(i-1,j,k,:), q(i-1,j,k,:), idir, [i-1, j, k])
+                      fluxR = dflux(u(i  ,j,k,:), q(i  ,j,k,:), idir, [i  , j, k])
+                      fluxLF = HALF * (fluxL(:) + fluxR(:) + &
+                           (cfl / dtdx / alpha_x) * (u(i-1,j,k,:) - u(i,j,k,:)))
 
-                   ! Limit the Lax-Friedrichs flux so that it doesn't cause a density < density_floor.
-                   ! To do this, first, construct the density change corresponding to the LF density flux.
-                   ! Then, if this update would create a density that is less than density_floor, scale all
-                   ! fluxes linearly such that the density flux gives density_floor when applied.
+                      ! Limit the Lax-Friedrichs flux so that it
+                      ! doesn't cause a density < density_floor.  To
+                      ! do this, first, construct the density change
+                      ! corresponding to the LF density flux.  Then,
+                      ! if this update would create a density that is
+                      ! less than density_floor, scale all fluxes
+                      ! linearly such that the density flux gives
+                      ! density_floor when applied.
 
-                   drhoLF = TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
+                      drhoLF = TWO * (dt / alpha_x) * (area(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
 
-                   if (u(i,j,k,URHO) + drhoLF < density_floor) then
-                      fluxLF = fluxLF * abs((density_floor - u(i,j,k,URHO)) / drhoLF)
+                      if (u(i,j,k,URHO) + drhoLF < density_floor) then
+                         fluxLF = fluxLF * abs((density_floor - u(i,j,k,URHO)) / drhoLF)
+                      endif
+
+                      ! Obtain the final density corresponding to the LF flux.
+
+                      rhoLF = u(i,j,k,URHO) + TWO * (dt / alpha_x) * (area(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
+
+                      ! Solve for theta from (1 - theta) * rhoLF + theta * rho = density_floor.
+
+                      thetap = (density_floor - rhoLF) / (rho - rhoLF)
+
                    endif
-
-                   ! Obtain the final density corresponding to the LF flux.
-
-                   rhoLF = u(i,j,k,URHO) + TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
-
-                   ! Solve for theta from (1 - theta) * rhoLF + theta * rho = density_floor.
-
-                   thetap(i,j,k) = (density_floor - rhoLF) / (rho - rhoLF)
 
                 endif
 
-             endif
+                ! Now do the minus state, which is on the right edge of the zone.
+                ! This uses the same logic as the above, so we don't replicate the comments.
 
-             ! Now do the minus state, which is on the right edge of the zone.
-             ! This uses the same logic as the above, so we don't replicate the comments.
+                if (u(i-1,j,k,URHO) >= density_floor) then
 
-             if (i .le. hi(1)) then
+                   rho = u(i-1,j,k,URHO) - &
+                        TWO * (dt / alpha_x) * (area(i,j,k) / vol(i-1,j,k)) * flux(i,j,k,URHO)
 
-                if (u(i,j,k,URHO) < density_floor) cycle
+                   if (rho < density_floor) then
 
-                rho = u(i,j,k,URHO) - TWO * (dt / alpha_x) * (area1(i+1,j,k) / vol(i,j,k)) * flux1(i+1,j,k,URHO)
+                      fluxL = dflux(u(i-1  ,j,k,:), q(i-1  ,j,k,:), idir, [i-1  , j, k])
+                      fluxR = dflux(u(i,j,k,:), q(i,j,k,:), idir, [i, j, k])
+                      fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_x) * (u(i-1,j,k,:) - u(i,j,k,:)))
 
-                if (rho < density_floor) then
+                      drhoLF = -TWO * (dt / alpha_x) * (area(i,j,k) / vol(i-1,j,k)) * fluxLF(URHO)
 
-                   fluxL = dflux(u(i  ,j,k,:), q(i  ,j,k,:), dir, [i  , j, k])
-                   fluxR = dflux(u(i+1,j,k,:), q(i+1,j,k,:), dir, [i+1, j, k])
-                   fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_x) * (u(i,j,k,:) - u(i+1,j,k,:)))
+                      if (u(i-1,j,k,URHO) + drhoLF < density_floor) then
+                         fluxLF = fluxLF * abs((density_floor - u(i-1,j,k,URHO)) / drhoLF)
+                      endif
 
-                   drhoLF = -TWO * (dt / alpha_x) * (area1(i+1,j,k) / vol(i,j,k)) * fluxLF(URHO)
+                      rhoLF = u(i-1,j,k,URHO) - &
+                           TWO * (dt / alpha_x) * (area(i,j,k) / vol(i-1,j,k)) * fluxLF(URHO)
 
-                   if (u(i,j,k,URHO) + drhoLF < density_floor) then
-                      fluxLF = fluxLF * abs((density_floor - u(i,j,k,URHO)) / drhoLF)
+                      thetam = (density_floor - rhoLF) / (rho - rhoLF)
+
                    endif
-
-                   rhoLF = u(i,j,k,URHO) - TWO * (dt / alpha_x) * (area1(i+1,j,k) / vol(i,j,k)) * fluxLF(URHO)
-
-                   thetam(i,j,k) = (density_floor - rhoLF) / (rho - rhoLF)
 
                 endif
 
-             endif
+                ! Now figure out the limiting values of theta. Each
+                ! zone center has a thetap and thetam, but we want a
+                ! nodal value of theta that is the strongest of the
+                ! two limiters in each case.  Then, limit the flux
+                ! accordingly.
+
+
+                ! If an adjacent zone has a floor-violating density,
+                ! set the flux to zero and move on.  At that point,
+                ! the only thing to do is wait for a reset at a later
+                ! point.
+
+                if (u(i,j,k,URHO) < density_floor .or. u(i-1,j,k,URHO) < density_floor) then
+
+                   flux(i,j,k,:) = ZERO
+                   cycle
+
+                endif
+
+                theta = min(thetam, thetap)
+
+                fluxL = dflux(u(i-1,j,k,:), q(i-1,j,k,:), idir, [i-1, j, k])
+                fluxR = dflux(u(i  ,j,k,:), q(i  ,j,k,:), idir, [i  , j, k])
+                fluxLF(:) = HALF * (fluxL(:) + fluxR(:) + &
+                     (cfl / dtdx / alpha_x) * (u(i-1,j,k,:) - u(i,j,k,:)))
+
+                ! Ensure that the fluxes don't violate the floor.
+
+                drhoLF = TWO * (dt / alpha_x) * (area(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
+
+                if (u(i,j,k,URHO) + drhoLF < density_floor) then
+                   fluxLF(:) = fluxLF(:) * abs((density_floor - u(i,j,k,URHO)) / drhoLF)
+                else if (u(i-1,j,k,URHO) - drhoLF < density_floor) then
+                   fluxLF(:) = fluxLF(:) * abs((density_floor - u(i-1,j,k,URHO)) / drhoLF)
+                endif
+
+                flux(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux(i,j,k,:)
+
+                drho = TWO * (dt / alpha_x) * (area(i,j,k) / vol(i,j,k)) * flux(i,j,k,URHO)
+
+                if (u(i,j,k,URHO) + drho < density_floor) then
+                   flux(i,j,k,:) = flux(i,j,k,:) * abs((density_floor - u(i,j,k,URHO)) / drho)
+                else if (u(i-1,j,k,URHO) - drho < density_floor) then
+                   flux(i,j,k,:) = flux(i,j,k,:) * abs((density_floor - u(i-1,j,k,URHO)) / drho)
+                endif
+
+             enddo
+          enddo
+       enddo
+
+    else if (idir == 2) then
+
+       ! do the y-direction. The logic is all the same as for the x-direction,
+       ! so the comments are skipped.
+
+       dtdx = dt / dx(2)
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                thetap = ONE
+                thetam = ONE
+
+                if (u(i,j,k,URHO) >= density_floor) then
+
+                   rho = u(i,j,k,URHO) + &
+                        TWO * (dt / alpha_y) * (area(i,j,k) / vol(i,j,k)) * flux(i,j,k,URHO)
+
+                   if (rho < density_floor) then
+
+                      fluxL = dflux(u(i,j-1,k,:), q(i,j-1,k,:), idir, [i, j-1, k])
+                      fluxR = dflux(u(i,j  ,k,:), q(i,j  ,k,:), idir, [i, j  , k])
+                      fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_y) * (u(i,j-1,k,:) - u(i,j,k,:)))
+
+                      drhoLF = TWO * (dt / alpha_y) * (area(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
+
+                      if (u(i,j,k,URHO) + drhoLF < density_floor) then
+                         fluxLF = fluxLF * abs((density_floor - u(i,j,k,URHO)) / drhoLF)
+                      endif
+
+                      rhoLF = u(i,j,k,URHO) + TWO * (dt / alpha_y) * (area(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
+
+                      thetap = (density_floor - rhoLF) / (rho - rhoLF)
+
+                   endif
+
+                endif
+
+                if (u(i,j-1,k,URHO) >= density_floor) then
+
+                   rho = u(i,j-1,k,URHO) - TWO * (dt / alpha_y) * (area(i,j,k) / vol(i,j-1,k)) * flux(i,j,k,URHO)
+
+                   if (rho < density_floor) then
+
+                      fluxL = dflux(u(i,j-1,k,:), q(i,j-1,k,:), idir, [i, j-1, k])
+                      fluxR = dflux(u(i,j  ,k,:), q(i,j  ,k,:), idir, [i, j  , k])
+                      fluxLF = HALF * (fluxL(:) + fluxR(:) + &
+                           (cfl / dtdx / alpha_y) * (u(i,j-1,k,:) - u(i,j,k,:)))
+
+                      drhoLF = -TWO * (dt / alpha_y) * (area(i,j,k) / vol(i,j-1,k)) * fluxLF(URHO)
+
+                      if (u(i,j-1,k,URHO) + drhoLF < density_floor) then
+                         fluxLF = fluxLF * abs((density_floor - u(i,j-1,k,URHO)) / drhoLF)
+                      endif
+
+                      rhoLF = u(i,j-1,k,URHO) - &
+                           TWO * (dt / alpha_y) * (area(i,j,k) / vol(i,j-1,k)) * fluxLF(URHO)
+
+                      thetam = (density_floor - rhoLF) / (rho - rhoLF)
+
+                   endif
+
+                endif
+
+                if (u(i,j,k,URHO) < density_floor .or. u(i,j-1,k,URHO) < density_floor) then
+
+                   flux(i,j,k,:) = ZERO
+                   cycle
+
+                endif
+
+                theta = min(thetam, thetap)
+
+                fluxL = dflux(u(i,j-1,k,:), q(i,j-1,k,:), idir, [i, j-1, k])
+                fluxR = dflux(u(i,j  ,k,:), q(i,j  ,k,:), idir, [i, j  , k])
+                fluxLF(:) = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_y) * (u(i,j-1,k,:) - u(i,j,k,:)))
+
+                drhoLF = TWO * (dt / alpha_y) * (area(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
+
+                if (u(i,j,k,URHO) + drhoLF < density_floor) then
+                   fluxLF(:) = fluxLF(:) * abs((density_floor - u(i,j,k,URHO)) / drhoLF)
+                else if (u(i,j-1,k,URHO) - drhoLF < density_floor) then
+                   fluxLF(:) = fluxLF(:) * abs((density_floor - u(i,j-1,k,URHO)) / drhoLF)
+                endif
+
+                flux(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux(i,j,k,:)
+
+                drho = TWO * (dt / alpha_y) * (area(i,j,k) / vol(i,j,k)) * flux(i,j,k,URHO)
+
+                if (u(i,j,k,URHO) + drho < density_floor) then
+                   flux(i,j,k,:) = flux(i,j,k,:) * abs((density_floor - u(i,j,k,URHO)) / drho)
+                else if (u(i,j-1,k,URHO) - drho < density_floor) then
+                   flux(i,j,k,:) = flux(i,j,k,:) * abs((density_floor - u(i,j-1,k,URHO)) / drho)
+                endif
+
+             enddo
+          enddo
+       enddo
+
+    else if (idir == 3) then
+
+       ! do the z-direction. The logic is all the same as for the x-direction,
+       ! so the comments are skipped.
+
+       dtdx = dt / dx(3)
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                thetap = ONE
+                thetam = ONE
+
+                if (u(i,j,k,URHO) >= density_floor) then
+
+                   rho = u(i,j,k,URHO) + &
+                        TWO * (dt / alpha_z) * (area(i,j,k) / vol(i,j,k)) * flux(i,j,k,URHO)
+
+                   if (rho < density_floor) then
+
+                      fluxL = dflux(u(i,j,k-1,:), q(i,j,k-1,:), idir, [i, j, k-1])
+                      fluxR = dflux(u(i,j,k  ,:), q(i,j,k  ,:), idir, [i, j, k  ])
+                      fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_z) * (u(i,j,k-1,:) - u(i,j,k,:)))
+
+                      drhoLF = TWO * (dt / alpha_z) * (area(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
+
+                      if (u(i,j,k,URHO) + drhoLF < density_floor) then
+                         fluxLF = fluxLF * abs((density_floor - u(i,j,k,URHO)) / drhoLF)
+                      endif
+
+                      rhoLF = u(i,j,k,URHO) + TWO * (dt / alpha_z) * (area(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
+
+                      thetap = (density_floor - rhoLF) / (rho - rhoLF)
+
+                   endif
+
+                endif
+
+                if (u(i,j,k-1,URHO) >= density_floor) then
+
+                   rho = u(i,j,k-1,URHO) - &
+                        TWO * (dt / alpha_z) * (area(i,j,k) / vol(i,j,k-1)) * flux(i,j,k,URHO)
+
+                   if (rho < density_floor) then
+
+                      fluxL = dflux(u(i,j,k-1,:), q(i,j,k-1,:), idir, [i, j, k-1])
+                      fluxR = dflux(u(i,j,k  ,:), q(i,j,k  ,:), idir, [i, j, k  ])
+                      fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_z) * (u(i,j,k-1,:) - u(i,j,k,:)))
+
+                      drhoLF = -TWO * (dt / alpha_z) * (area(i,j,k) / vol(i,j,k-1)) * fluxLF(URHO)
+
+                      if (u(i,j,k-1,URHO) + drhoLF < density_floor) then
+                         fluxLF = fluxLF * abs((density_floor - u(i,j,k-1,URHO)) / drhoLF)
+                      endif
+
+                      rhoLF = u(i,j,k-1,URHO) - TWO * (dt / alpha_z) * (area(i,j,k) / vol(i,j,k-1)) * fluxLF(URHO)
+
+                      thetam = (density_floor - rhoLF) / (rho - rhoLF)
+
+                   endif
+
+                endif
 
           enddo
        enddo
     enddo
 
-    ! Now figure out the limiting values of theta. Each zone center has a thetap and thetam,
-    ! but we want a nodal value of theta that is the strongest of the two limiters in each case.
-    ! Then, limit the flux accordingly.
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1) + 1
-
-             ! If an adjacent zone has a floor-violating density, set the flux to zero and move on.
-             ! At that point, the only thing to do is wait for a reset at a later point.
-
-             if (u(i,j,k,URHO) < density_floor .or. u(i-1,j,k,URHO) < density_floor) then
-
-                flux1(i,j,k,:) = ZERO
-                cycle
-
-             endif
-
-             theta = min(thetam(i-1,j,k), thetap(i,j,k))
-
-             fluxL = dflux(u(i-1,j,k,:), q(i-1,j,k,:), dir, [i-1, j, k])
-             fluxR = dflux(u(i  ,j,k,:), q(i  ,j,k,:), dir, [i  , j, k])
-             fluxLF(:) = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_x) * (u(i-1,j,k,:) - u(i,j,k,:)))
-
-             ! Ensure that the fluxes don't violate the floor.
-
-             drhoLF = TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
-
-             if (u(i,j,k,URHO) + drhoLF < density_floor) then
-                fluxLF(:) = fluxLF(:) * abs((density_floor - u(i,j,k,URHO)) / drhoLF)
-             else if (u(i-1,j,k,URHO) - drhoLF < density_floor) then
-                fluxLF(:) = fluxLF(:) * abs((density_floor - u(i-1,j,k,URHO)) / drhoLF)
-             endif
-
-             flux1(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux1(i,j,k,:)
-
-             drho = TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * flux1(i,j,k,URHO)
-
-             if (u(i,j,k,URHO) + drho < density_floor) then
-                flux1(i,j,k,:) = flux1(i,j,k,:) * abs((density_floor - u(i,j,k,URHO)) / drho)
-             else if (u(i-1,j,k,URHO) - drho < density_floor) then
-                flux1(i,j,k,:) = flux1(i,j,k,:) * abs((density_floor - u(i-1,j,k,URHO)) / drho)
-             endif
-
-          enddo
-       enddo
-    enddo
-
-    ! Now do the y-direction. The logic is all the same as for the x-direction,
-    ! so the comments are skipped.
-
-#if (AMREX_SPACEDIM >= 2)
-    thetap(:,:,:) = ONE
-    thetam(:,:,:) = ONE
-
-    dir = 2
-
-    dtdx = dt / dx(2)
-
-    do k = lo(3), hi(3)
-       do j = lo(2) - 1, hi(2) + 1
-          do i = lo(1), hi(1)
-
-             if (j .ge. lo(2)) then
-
-                if (u(i,j,k,URHO) < density_floor) cycle
-
-                rho = u(i,j,k,URHO) + TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * flux2(i,j,k,URHO)
-
-                if (rho < density_floor) then
-
-                   fluxL = dflux(u(i,j-1,k,:), q(i,j-1,k,:), dir, [i, j-1, k])
-                   fluxR = dflux(u(i,j  ,k,:), q(i,j  ,k,:), dir, [i, j  , k])
-                   fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_y) * (u(i,j-1,k,:) - u(i,j,k,:)))
-
-                   drhoLF = TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
-
-                   if (u(i,j,k,URHO) + drhoLF < density_floor) then
-                      fluxLF = fluxLF * abs((density_floor - u(i,j,k,URHO)) / drhoLF)
-                   endif
-
-                   rhoLF = u(i,j,k,URHO) + TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
-
-                   thetap(i,j,k) = (density_floor - rhoLF) / (rho - rhoLF)
-
-                endif
-
-             endif
-
-             if (j .le. hi(2)) then
-
-                if (u(i,j,k,URHO) < density_floor) cycle
-
-                rho = u(i,j,k,URHO) - TWO * (dt / alpha_y) * (area2(i,j+1,k) / vol(i,j,k)) * flux2(i,j+1,k,URHO)
-
-                if (rho < density_floor) then
-
-                   fluxL = dflux(u(i,j  ,k,:), q(i,j  ,k,:), dir, [i, j  , k])
-                   fluxR = dflux(u(i,j+1,k,:), q(i,j+1,k,:), dir, [i, j+1, k])
-                   fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_y) * (u(i,j,k,:) - u(i,j+1,k,:)))
-
-                   drhoLF = -TWO * (dt / alpha_y) * (area2(i,j+1,k) / vol(i,j,k)) * fluxLF(URHO)
-
-                   if (u(i,j,k,URHO) + drhoLF < density_floor) then
-                      fluxLF = fluxLF * abs((density_floor - u(i,j,k,URHO)) / drhoLF)
-                   endif
-
-                   rhoLF = u(i,j,k,URHO) - TWO * (dt / alpha_y) * (area2(i,j+1,k) / vol(i,j,k)) * fluxLF(URHO)
-
-                   thetam(i,j,k) = (density_floor - rhoLF) / (rho - rhoLF)
-
-                endif
-
-             endif
-
-          enddo
-       enddo
-    enddo
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2) + 1
-          do i = lo(1), hi(1)
-
-             if (u(i,j,k,URHO) < density_floor .or. u(i,j-1,k,URHO) < density_floor) then
-
-                flux2(i,j,k,:) = ZERO
-                cycle
-
-             endif
-
-             theta = min(thetam(i,j-1,k), thetap(i,j,k))
-
-             fluxL = dflux(u(i,j-1,k,:), q(i,j-1,k,:), dir, [i, j-1, k])
-             fluxR = dflux(u(i,j  ,k,:), q(i,j  ,k,:), dir, [i, j  , k])
-             fluxLF(:) = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_y) * (u(i,j-1,k,:) - u(i,j,k,:)))
-
-             drhoLF = TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
-
-             if (u(i,j,k,URHO) + drhoLF < density_floor) then
-                fluxLF(:) = fluxLF(:) * abs((density_floor - u(i,j,k,URHO)) / drhoLF)
-             else if (u(i,j-1,k,URHO) - drhoLF < density_floor) then
-                fluxLF(:) = fluxLF(:) * abs((density_floor - u(i,j-1,k,URHO)) / drhoLF)
-             endif
-
-             flux2(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux2(i,j,k,:)
-
-             drho = TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * flux2(i,j,k,URHO)
-
-             if (u(i,j,k,URHO) + drho < density_floor) then
-                flux2(i,j,k,:) = flux2(i,j,k,:) * abs((density_floor - u(i,j,k,URHO)) / drho)
-             else if (u(i,j-1,k,URHO) - drho < density_floor) then
-                flux2(i,j,k,:) = flux2(i,j,k,:) * abs((density_floor - u(i,j-1,k,URHO)) / drho)
-             endif
-
-          enddo
-       enddo
-    enddo
-
-#endif
-
-    ! Now do the z-direction. The logic is all the same as for the x-direction,
-    ! so the comments are skipped.
-
-#if (AMREX_SPACEDIM == 3)
-    thetap(:,:,:) = ONE
-    thetam(:,:,:) = ONE
-
-    dir = 3
-
-    dtdx = dt / dx(3)
-
-    do k = lo(3) - 1, hi(3) + 1
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             if (k .ge. lo(3)) then
-
-                if (u(i,j,k,URHO) < density_floor) cycle
-
-                rho = u(i,j,k,URHO) + TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * flux3(i,j,k,URHO)
-
-                if (rho < density_floor) then
-
-                   fluxL = dflux(u(i,j,k-1,:), q(i,j,k-1,:), dir, [i, j, k-1])
-                   fluxR = dflux(u(i,j,k  ,:), q(i,j,k  ,:), dir, [i, j, k  ])
-                   fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_z) * (u(i,j,k-1,:) - u(i,j,k,:)))
-
-                   drhoLF = TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
-
-                   if (u(i,j,k,URHO) + drhoLF < density_floor) then
-                      fluxLF = fluxLF * abs((density_floor - u(i,j,k,URHO)) / drhoLF)
-                   endif
-
-                   rhoLF = u(i,j,k,URHO) + TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
-
-                   thetap(i,j,k) = (density_floor - rhoLF) / (rho - rhoLF)
-
-                endif
-
-             endif
-
-             if (k .le. hi(3)) then
-
-                if (u(i,j,k,URHO) < density_floor) cycle
-
-                rho = u(i,j,k,URHO) - TWO * (dt / alpha_z) * (area3(i,j,k+1) / vol(i,j,k)) * flux3(i,j,k+1,URHO)
-
-                if (rho < density_floor) then
-
-                   fluxL = dflux(u(i,j,k  ,:), q(i,j,k  ,:), dir, [i, j, k  ])
-                   fluxR = dflux(u(i,j,k+1,:), q(i,j,k+1,:), dir, [i, j, k+1])
-                   fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_z) * (u(i,j,k,:) - u(i,j,k+1,:)))
-
-                   drhoLF = -TWO * (dt / alpha_z) * (area3(i,j,k+1) / vol(i,j,k)) * fluxLF(URHO)
-
-                   if (u(i,j,k,URHO) + drhoLF < density_floor) then
-                      fluxLF = fluxLF * abs((density_floor - u(i,j,k,URHO)) / drhoLF)
-                   endif
-
-                   rhoLF = u(i,j,k,URHO) - TWO * (dt / alpha_z) * (area3(i,j,k+1) / vol(i,j,k)) * fluxLF(URHO)
-
-                   thetam(i,j,k) = (density_floor - rhoLF) / (rho - rhoLF)
-
-                endif
-
-             endif
-
-          enddo
-       enddo
-    enddo
-
-    do k = lo(3), hi(3) + 1
+    do k = lo(3), hi(3) 
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
              if (u(i,j,k,URHO) < density_floor .or. u(i,j,k-1,URHO) < density_floor) then
 
-                flux3(i,j,k,:) = ZERO
+                flux(i,j,k,:) = ZERO
                 cycle
 
              endif
 
              theta = min(thetam(i,j,k-1), thetap(i,j,k))
 
-             fluxL = dflux(u(i,j,k-1,:), q(i,j,k-1,:), dir, [i, j, k-1])
-             fluxR = dflux(u(i,j,k  ,:), q(i,j,k  ,:), dir, [i, j, k  ])
+             fluxL = dflux(u(i,j,k-1,:), q(i,j,k-1,:), idir, [i, j, k-1])
+             fluxR = dflux(u(i,j,k  ,:), q(i,j,k  ,:), idir, [i, j, k  ])
              fluxLF(:) = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_z) * (u(i,j,k-1,:) - u(i,j,k,:)))
 
-             drhoLF = TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
+             drhoLF = TWO * (dt / alpha_z) * (area(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
 
              if (u(i,j,k,URHO) + drhoLF < density_floor) then
                 fluxLF(:) = fluxLF(:) * abs((density_floor - u(i,j,k,URHO)) / drhoLF)
@@ -1229,24 +1191,19 @@ contains
                 fluxLF(:) = fluxLF(:) * abs((density_floor - u(i,j,k-1,URHO)) / drhoLF)
              endif
 
-             flux3(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux3(i,j,k,:)
+             flux(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux(i,j,k,:)
 
-             drho = TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * flux3(i,j,k,URHO)
+             drho = TWO * (dt / alpha_z) * (area(i,j,k) / vol(i,j,k)) * flux(i,j,k,URHO)
 
              if (u(i,j,k,URHO) + drho < density_floor) then
-                flux3(i,j,k,:) = flux3(i,j,k,:) * abs((density_floor - u(i,j,k,URHO)) / drho)
+                flux(i,j,k,:) = flux(i,j,k,:) * abs((density_floor - u(i,j,k,URHO)) / drho)
              else if (u(i,j,k-1,URHO) - drho < density_floor) then
-                flux3(i,j,k,:) = flux3(i,j,k,:) * abs((density_floor - u(i,j,k-1,URHO)) / drho)
+                flux(i,j,k,:) = flux(i,j,k,:) * abs((density_floor - u(i,j,k-1,URHO)) / drho)
              endif
 
           enddo
        enddo
     enddo
-
-#endif
-
-    call bl_deallocate(thetap)
-    call bl_deallocate(thetam)
 
   end subroutine limit_hydro_fluxes_on_small_dens
 
