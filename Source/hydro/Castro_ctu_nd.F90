@@ -1758,7 +1758,7 @@ contains
                              flux1, flux1_lo, flux1_hi, &
                              q_int, fglo, fghi, &
 #ifdef RADIATION
-                             rflux1, rflux1_lo, rflux1_hi, &
+                             radflux1, radflux1_lo, radflux1_hi, &
                              lambda_int, fglo, fghi, &
 #endif
                              q1, q1_lo, q1_hi, &
@@ -1850,7 +1850,7 @@ contains
                              flux1, flux1_lo, flux1_hi, &
                              q_int, fglo, fghi, &
 #ifdef RADIATION
-                             rflux1, rflux1_lo, rflux1_hi, &
+                             radflux1, radflux1_lo, radflux1_hi, &
                              lambda_int, fglo, fghi, &
 #endif
                              q1, q1_lo, q1_hi, &
@@ -1888,7 +1888,7 @@ contains
                              flux2, flux2_lo, flux2_hi, &
                              q_int, fglo, fghi, &
 #ifdef RADIATION
-                             rflux2, rflux2_lo, rflux2_hi, &
+                             radflux2, radflux2_lo, radflux2_hi, &
                              lambda_int, fglo, fghi, &
 #endif
                              q2, q2_lo, q2_hi, &
@@ -2180,7 +2180,7 @@ contains
                              flux1, flux1_lo, flux1_hi, &
                              q_int, fglo, fghi, &
 #ifdef RADIATION
-                             rflux1, rflux1_lo, rflux1_hi, &
+                             radflux1, radflux1_lo, radflux1_hi, &
                              lambda_int, fglo, fghi, &
 #endif
                              q1, q1_lo, q1_hi, &
@@ -2293,7 +2293,7 @@ contains
                               flux2, flux2_lo, flux2_hi, &
                               q_int, fglo, fghi, &
 #ifdef RADIATION
-                              rflux2, rflux2_lo, rflux2_hi, &
+                              radflux2, radflux2_lo, radflux2_hi, &
                               lambda_int, fglo, fghi, &
 #endif
                               q2, q2_lo, q2_hi, &
@@ -2407,7 +2407,7 @@ contains
                              flux3, flux3_lo, flux3_hi, &
                              q_int, fglo, fghi, &
 #ifdef RADIATION
-                             rflux3, rflux3_lo, rflux3_hi, &
+                             radflux3, radflux3_lo, radflux3_hi, &
                              lambda_int, fglo, fghi, &
 #endif
                              q3, q3_lo, q3_hi, &
