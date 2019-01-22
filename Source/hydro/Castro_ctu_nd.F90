@@ -1759,10 +1759,10 @@ contains
                              q_int, fglo, fghi, &
 #ifdef RADIATION
                              rflux1, rflux1_lo, rflux1_hi, &
-                             lambda_int, li_lo, li_hi, &
+                             lambda_int, fglo, fghi, &
 #endif
                              q1, q1_lo, q1_hi, &
-                             qaux, glo, ghi, &
+                             qaux, qa_lo, qa_hi, &
                              shk, glo, ghi, &
                              1, domlo, domhi)
 #endif
