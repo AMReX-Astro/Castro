@@ -542,7 +542,7 @@ contains
 
 #ifdef RADIATION
    call apply_av_rad(lo, hi, idir, dx, &
-                     div, lo, hi, &
+                     div, div_lo, div_hi, &
                      Erin, Erin_lo, Erin_hi, &
                      radflux, radflux_lo, radflux_hi)
 #endif
