@@ -28,15 +28,99 @@ module riemann_module
 
   private
 
-  public :: riemanncg, riemannus, hllc, cmpflx, riemann_state
+  public :: riemanncg, riemannus, hllc, cmpflx, cmpflx_plus_godunov, riemann_state
 
   real(rt), parameter :: smallu = 1.e-12_rt
   real(rt), parameter :: small = 1.e-8_rt
 
 contains
 
+  subroutine cmpflx_plus_godunov(lo, hi, &
+                                 qm, qm_lo, qm_hi, &
+                                 qp, qp_lo, qp_hi, nc, comp, &
+                                 flx, flx_lo, flx_hi, &
+                                 qint, q_lo, q_hi, &
+#ifdef RADIATION
+                                 rflx, rflx_lo, rflx_hi, &
+                                 lambda_int, li_lo, li_hi, &
+#endif
+                                 qgdnv, qg_lo, qg_hi, &
+                                 qaux, qa_lo, qa_hi, &
+                                 shk, s_lo, s_hi, &
+                                 idir, domlo, domhi)
+
+    use eos_module, only: eos
+    use eos_type_module, only: eos_t, eos_input_re
+    use network, only: nspec, naux
+    use amrex_error_module
+    use amrex_fort_module, only : rt => amrex_real
+    use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver
+
+    implicit none
+
+    ! note: lo, hi necessarily the limits of the valid (no ghost
+    ! cells) domain, but could be hi+1 in some dimensions.  We rely on
+    ! the caller to specific the interfaces over which to solve the
+    ! Riemann problems
+
+    integer, intent(in) :: lo(3), hi(3)
+
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
+    integer, intent(in) :: flx_lo(3), flx_hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
+    integer, intent(in) :: s_lo(3), s_hi(3)
+    integer, intent(in) :: qg_lo(3), qg_hi(3)
+
+    integer, intent(in) :: idir
+
+    integer, intent(in) :: domlo(3),domhi(3)
+    integer, intent(in) :: nc, comp
+
+    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ,nc)
+    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ,nc)
+
+    real(rt), intent(inout) :: flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR)
+    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+
+#ifdef RADIATION
+    integer, intent(in) :: rflx_lo(3), rflx_hi(3)
+    real(rt), intent(inout) :: rflx(rflx_lo(1):rflx_hi(1), rflx_lo(2):rflx_hi(2), rflx_lo(3):rflx_hi(3),0:ngroups-1)
+    integer, intent(in) :: li_lo(3), li_hi(3)
+    real(rt), intent(inout) :: lambda_int(li_lo(1),li_hi(1), li_lo(2):li_hi(2), li_lo(3):li_hi(3), 0:ngroups-1)
+#endif
+
+    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt), intent(in) ::  shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
+
+    real(rt), intent(inout) :: qgdnv(qg_lo(1):qg_hi(1), qg_lo(2):qg_hi(2), qg_lo(3):qg_hi(3), NGDNV)
+
+    call cmpflx(lo, hi, &
+                qm, qm_lo, qm_hi, &
+                qp, qp_lo, qp_hi, nc, comp, &
+                flx, flx_lo, flx_hi, &
+                qint, q_lo, q_hi, &
+#ifdef RADIATION
+                rflx, rflx_lo, rflx_hi, &
+                lambda_int, li_lo, li_hi, &
+#endif
+                qaux, qa_lo, qa_hi, &
+                shk, s_lo, s_hi, &
+                idir, domlo, domhi)
+
+    call ca_store_godunov_state(lo, hi, &
+                                qint, q_lo, q_hi, &
+#ifdef RADIATION
+                                lambda_int, li_lo, li_hi, &
+#endif
+                                qgdnv, qg_lo, qg_hi)
+
+  end subroutine cmpflx_plus_godunov
+
   subroutine cmpflx(lo, hi, &
-                    qm, qp, qpd_lo, qpd_hi, nc, comp, &
+                    qm, qm_lo, qm_hi, &
+                    qp, qp_lo, qp_hi, nc, comp, &
                     flx, flx_lo, flx_hi, &
                     qint, q_lo, q_hi, &
 #ifdef RADIATION
@@ -63,7 +147,8 @@ contains
 
     integer, intent(in) :: lo(3), hi(3)
 
-    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
     integer, intent(in) :: flx_lo(3), flx_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
@@ -74,8 +159,8 @@ contains
     integer, intent(in) :: domlo(3),domhi(3)
     integer, intent(in) :: nc, comp
 
-    real(rt), intent(inout) :: qm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ,nc)
-    real(rt), intent(inout) :: qp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ,nc)
+    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ,nc)
+    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ,nc)
 
     real(rt), intent(inout) :: flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR)
     real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
@@ -182,7 +267,8 @@ contains
     if (riemann_solver == 0) then
        ! Colella, Glaz, & Ferguson solver
 
-       call riemannus(qm, qp, qpd_lo, qpd_hi, nc, comp, &
+       call riemannus(qm, qm_lo, qm_hi, &
+                      qp, qp_lo, qp_hi, nc, comp, &
                       qaux, qa_lo, qa_hi, &
                       qint, q_lo, q_hi, &
 #ifdef RADIATION
@@ -204,11 +290,12 @@ contains
        ! Colella & Glaz solver
 
 #ifndef RADIATION
-       call riemanncg(qm, qp, qpd_lo, qpd_hi, nc, comp, &
-            qaux, qa_lo, qa_hi, &
-            qint, q_lo, q_hi, &
-            idir, lo, hi, &
-            domlo, domhi)
+       call riemanncg(qm, qm_lo, qm_hi, &
+                      qp, qp_lo, qp_hi, nc, comp, &
+                      qaux, qa_lo, qa_hi, &
+                      qint, q_lo, q_hi, &
+                      idir, lo, hi, &
+                      domlo, domhi)
 
        call compute_flux_q(lo, hi, &
                            qint, q_lo, q_hi, &
@@ -222,7 +309,8 @@ contains
 
     elseif (riemann_solver == 2) then
        ! HLLC
-       call HLLC(qm, qp, qpd_lo, qpd_hi, nc, comp, &
+       call HLLC(qm, qm_lo, qm_hi, &
+                 qp, qp_lo, qp_hi, nc, comp, &
                  qaux, qa_lo, qa_hi, &
                  flx, flx_lo, flx_hi, &
                  qint, q_lo, q_hi, &
@@ -298,7 +386,8 @@ contains
   !! @param[inout] qint real(rt)
   !! @param[in] qaux real(rt)
   !!
-  subroutine riemann_state(qm, qp, qpd_lo, qpd_hi, nc, comp, &
+  subroutine riemann_state(qm, qm_lo, qm_hi, &
+                           qp, qp_lo, qp_hi, nc, comp, &
                            qint, q_lo, q_hi, &
 #ifdef RADIATION
                            lambda_int, l_lo, l_hi, &
@@ -315,7 +404,8 @@ contains
 
     implicit none
 
-    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
 
@@ -330,8 +420,8 @@ contains
 
     logical, intent(in), optional :: compute_gammas
 
-    real(rt), intent(inout) :: qm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ,nc)
-    real(rt), intent(inout) :: qp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ,nc)
+    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ,nc)
+    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ,nc)
 
     real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
 #ifdef RADIATION
@@ -439,24 +529,26 @@ contains
     if (riemann_solver == 0) then
        ! Colella, Glaz, & Ferguson solver
 
-       call riemannus(qm, qp, qpd_lo, qpd_hi, nc, comp, &
-            qaux, qa_lo, qa_hi, &
-            qint, q_lo, q_hi, &
+       call riemannus(qm, qm_lo, qm_hi, &
+                      qp, qp_lo, qp_hi, nc, comp, &
+                      qaux, qa_lo, qa_hi, &
+                      qint, q_lo, q_hi, &
 #ifdef RADIATION
-            lambda_int, q_lo, q_hi, &
+                      lambda_int, q_lo, q_hi, &
 #endif
-            idir, lo, hi, &
-            domlo, domhi, compute_interface_gamma)
+                      idir, lo, hi, &
+                      domlo, domhi, compute_interface_gamma)
 
     elseif (riemann_solver == 1) then
        ! Colella & Glaz solver
 
 #ifndef RADIATION
-       call riemanncg(qm, qp, qpd_lo, qpd_hi, nc, comp, &
-            qaux, qa_lo, qa_hi, &
-            qint, q_lo, q_hi, &
-            idir, lo, hi, &
-            domlo, domhi)
+       call riemanncg(qm, qm_lo, qm_hi, &
+                      qp, qp_lo, qp_hi, nc, comp, &
+                      qaux, qa_lo, qa_hi, &
+                      qint, q_lo, q_hi, &
+                      idir, lo, hi, &
+                      domlo, domhi)
 #else
 #ifndef AMREX_USE_CUDA
        call amrex_error("ERROR: CG solver does not support radiaiton")
@@ -493,11 +585,12 @@ contains
   !! @param[in] qaux real(rt)
   !! @param[inout] qint real(rt)
   !!
-  subroutine riemanncg(ql, qr, qpd_lo, qpd_hi, nc, comp, &
-       qaux, qa_lo, qa_hi, &
-       qint, q_lo, q_hi, &
-       idir, lo, hi, &
-       domlo, domhi)
+  subroutine riemanncg(ql, ql_lo, ql_hi, &
+                       qr, qr_lo, qr_hi, nc, comp, &
+                       qaux, qa_lo, qa_hi, &
+                       qint, q_lo, q_hi, &
+                       idir, lo, hi, &
+                       domlo, domhi)
 
     use amrex_error_module
 #ifndef AMREX_USE_CUDA
@@ -516,15 +609,16 @@ contains
 
     implicit none
 
-    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: ql_lo(3), ql_hi(3)
+    integer, intent(in) :: qr_lo(3), qr_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: idir, lo(3), hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
     integer, intent(in) :: nc, comp
 
-    real(rt), intent(in) :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ,nc)
-    real(rt), intent(in) :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ,nc)
+    real(rt), intent(in) :: ql(ql_lo(1):ql_hi(1),ql_lo(2):ql_hi(2),ql_lo(3):ql_hi(3),NQ,nc)
+    real(rt), intent(in) :: qr(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),NQ,nc)
 
     ! note: qaux comes in dimensioned as the fully box, so use k3d to
     ! index in z
@@ -1097,24 +1191,26 @@ contains
   !! this is a 2-shock solver that uses a very simple approximation for the
   !! star state, and carries an auxiliary jump condition for (rho e) to
   !! deal with a real gas
-  subroutine riemannus(ql, qr, qpd_lo, qpd_hi, nc, comp, &
-       qaux, qa_lo, qa_hi, &
-       qint, q_lo, q_hi, &
+  subroutine riemannus(ql, ql_lo, ql_hi, &
+                       qr, qr_lo, qr_hi, nc, comp, &
+                       qaux, qa_lo, qa_hi, &
+                       qint, q_lo, q_hi, &
 #ifdef RADIATION
-       lambda_int, l_lo, l_hi, &
+                       lambda_int, l_lo, l_hi, &
 #endif
-       idir, lo, hi, &
-       domlo, domhi, compute_interface_gamma)
+                       idir, lo, hi, &
+                       domlo, domhi, compute_interface_gamma)
 
     use prob_params_module, only : physbc_lo, physbc_hi, &
-         Symmetry, SlipWall, NoSlipWall
+                                   Symmetry, SlipWall, NoSlipWall
     use eos_type_module, only : eos_t, eos_input_rp
     use eos_module, only : eos
     use network, only : nspec
 
     implicit none
 
-    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: ql_lo(3), ql_hi(3)
+    integer, intent(in) :: qr_lo(3), qr_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: idir, lo(3), hi(3)
@@ -1126,8 +1222,8 @@ contains
 #endif
 
     logical, intent(in) :: compute_interface_gamma
-    real(rt), intent(in) :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ,nc)
-    real(rt), intent(in) :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ,nc)
+    real(rt), intent(in) :: ql(ql_lo(1):ql_hi(1),ql_lo(2):ql_hi(2),ql_lo(3):ql_hi(3),NQ,nc)
+    real(rt), intent(in) :: qr(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),NQ,nc)
 
     ! note: qaux comes in dimensioned as the fully box, so use k3d to
     ! index in z
@@ -1669,7 +1765,8 @@ contains
   !! @param[inout] uflx real(rt)
   !! @param[inout] qgdnv real(rt)
   !!
-  subroutine HLLC(ql, qr, qpd_lo, qpd_hi, nc, comp, &
+  subroutine HLLC(ql, ql_lo, ql_hi, &
+                  qr, qr_lo, qr_hi, nc, comp, &
                   qaux, qa_lo, qa_hi, &
                   uflx, uflx_lo, uflx_hi, &
                   qint, q_lo, q_hi, &
@@ -1681,7 +1778,8 @@ contains
 
     implicit none
 
-    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: ql_lo(3), ql_hi(3)
+    integer, intent(in) :: qr_lo(3), qr_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: uflx_lo(3), uflx_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
@@ -1689,8 +1787,8 @@ contains
     integer, intent(in) :: domlo(3), domhi(3)
     integer, intent(in) :: nc, comp
 
-    real(rt), intent(in) :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ,nc)
-    real(rt), intent(in) :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ,nc)
+    real(rt), intent(in) :: ql(ql_lo(1):ql_hi(1),ql_lo(2):ql_hi(2),ql_lo(3):ql_hi(3),NQ,nc)
+    real(rt), intent(in) :: qr(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),NQ,nc)
 
     ! note: qaux comes in dimensioned as the fully box, so use k3d to
     ! index in z
