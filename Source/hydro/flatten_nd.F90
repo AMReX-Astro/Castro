@@ -71,7 +71,6 @@ contains
 
     use amrex_constants_module, only: ZERO, ONE
     use amrex_fort_module, only: rt => amrex_real
-    use prob_params_module, only: dg
     use meth_params_module, only: NQ, QU, QV, QW
 
     implicit none

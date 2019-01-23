@@ -3609,11 +3609,11 @@ contains
   use amrex_constants_module, only : ZERO, ONE, HALF
 
   use network, only : nspec, naux
-  use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
+  use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, &
                                  QPRES, QREINT, QGAME, QFS, QFX, &
                                  small_pres, small_temp, &
                                  ppm_predict_gammae, &
-                                 transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
+                                 transverse_use_eos, transverse_reset_rhoe
 
   use eos_module, only: eos
   use eos_type_module, only: eos_input_rt, eos_input_re, eos_t

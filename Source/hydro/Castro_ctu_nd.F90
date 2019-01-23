@@ -476,7 +476,7 @@ contains
                               area, area_lo, area_hi, &
                               vol, vol_lo, vol_hi, &
                               div, div_lo, div_hi, &
-                              dx, dt)
+                              dx, dt) bind(C, name="ctu_clean_fluxes")
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UTEMP, NGDNV, NQ, &
@@ -567,51 +567,50 @@ contains
   end subroutine ctu_clean_fluxes
 
 
-
-  subroutine consup(lo, hi, &
-                    uin, uin_lo, uin_hi, &
-                    q, q_lo, q_hi, &
-                    shk,  sk_lo, sk_hi, &
-                    uout, uout_lo, uout_hi, &
-                    update, updt_lo, updt_hi, &
-                    flux1, flux1_lo, flux1_hi, &
+  subroutine ctu_consup(lo, hi, &
+                        uin, uin_lo, uin_hi, &
+                        q, q_lo, q_hi, &
+                        shk,  sk_lo, sk_hi, &
+                        uout, uout_lo, uout_hi, &
+                        update, updt_lo, updt_hi, &
+                        flux1, flux1_lo, flux1_hi, &
 #if AMREX_SPACEDIM >= 2
-                    flux2, flux2_lo, flux2_hi, &
+                        flux2, flux2_lo, flux2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-                    flux3, flux3_lo, flux3_hi, &
+                        flux3, flux3_lo, flux3_hi, &
 #endif
 #ifdef RADIATION
-                    Erin, Erin_lo, Erin_hi, &
-                    Erout, Erout_lo, Erout_hi, &
-                    radflux1, radflux1_lo, radflux1_hi, &
+                        Erin, Erin_lo, Erin_hi, &
+                        Erout, Erout_lo, Erout_hi, &
+                        radflux1, radflux1_lo, radflux1_hi, &
 #if AMREX_SPACEDIM >= 2
-                    radflux2, radflux2_lo, radflux2_hi, &
+                        radflux2, radflux2_lo, radflux2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-                    radflux3, radflux3_lo, radflux3_hi, &
+                        radflux3, radflux3_lo, radflux3_hi, &
 #endif
-                    nstep_fsp, &
+                        nstep_fsp, &
 #endif
-                    qx, qx_lo, qx_hi, &
+                        qx, qx_lo, qx_hi, &
 #if AMREX_SPACEDIM >= 2
-                    qy, qy_lo, qy_hi, &
+                        qy, qy_lo, qy_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-                    qz, qz_lo, qz_hi, &
+                        qz, qz_lo, qz_hi, &
 #endif
-                    area1, area1_lo, area1_hi, &
+                        area1, area1_lo, area1_hi, &
 #if AMREX_SPACEDIM >= 2
-                    area2, area2_lo, area2_hi, &
+                        area2, area2_lo, area2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-                    area3, area3_lo, area3_hi, &
+                        area3, area3_lo, area3_hi, &
 #endif
-                    vol,vol_lo,vol_hi, &
-                    div, div_lo, div_hi, &
-                    pdivu, pdivu_lo, pdivu_hi, &
-                    dx, dt, &
-                    verbose)
+                        vol,vol_lo,vol_hi, &
+                        div, div_lo, div_hi, &
+                        pdivu, pdivu_lo, pdivu_hi, &
+                        dx, dt, &
+                        verbose) bind(C, name="ctu_consup")
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UTEMP, NGDNV, NQ, &
@@ -1069,7 +1068,7 @@ contains
     endif
 #endif
 
-  end subroutine consup
+  end subroutine ctu_consup
 
 
   subroutine ca_track_grid_losses(lo, hi, &
@@ -1081,7 +1080,8 @@ contains
                                   flux3, flux3_lo, flux3_hi, &
 #endif
                                   mass_lost, xmom_lost, ymom_lost, zmom_lost, &
-                                  eden_lost, xang_lost, yang_lost, zang_lost)
+                                  eden_lost, xang_lost, yang_lost, zang_lost) &
+                                  bind(C, name="ca_track_grid_losses")
 
 
     use meth_params_module, only : URHO, UMX, UMY, UMZ, UEDEN, NVAR
@@ -2486,50 +2486,50 @@ contains
 
     call bl_allocate(pdivu, lo, hi)
 
-    call consup(lo, hi, &
-                uin, uin_lo, uin_hi, &
-                q, q_lo, q_hi, &
-                shk, glo, ghi, &
-                uout, uout_lo, uout_hi, &
-                update, updt_lo, updt_hi, &
-                flux1, flux1_lo, flux1_hi, &
+    call ctu_consup(lo, hi, &
+                    uin, uin_lo, uin_hi, &
+                    q, q_lo, q_hi, &
+                    shk, glo, ghi, &
+                    uout, uout_lo, uout_hi, &
+                    update, updt_lo, updt_hi, &
+                    flux1, flux1_lo, flux1_hi, &
 #if AMREX_SPACEDIM >= 2
-                flux2, flux2_lo, flux2_hi, &
+                    flux2, flux2_lo, flux2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-                flux3, flux3_lo, flux3_hi, &
+                    flux3, flux3_lo, flux3_hi, &
 #endif
 #ifdef RADIATION
-                Erin, Erin_lo, Erin_hi, &
-                Erout, Erout_lo, Erout_hi, &
-                radflux1, radflux1_lo, radflux1_hi, &
+                    Erin, Erin_lo, Erin_hi, &
+                    Erout, Erout_lo, Erout_hi, &
+                    radflux1, radflux1_lo, radflux1_hi, &
 #if AMREX_SPACEDIM >= 2
-                radflux2, radflux2_lo, radflux2_hi, &
+                    radflux2, radflux2_lo, radflux2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-                radflux3, radflux3_lo, radflux3_hi, &
+                    radflux3, radflux3_lo, radflux3_hi, &
 #endif
-                nstep_fsp, &
+                    nstep_fsp, &
 #endif
-                q1, q1_lo, q1_hi, &
+                    q1, q1_lo, q1_hi, &
 #if AMREX_SPACEDIM >= 2
-                q2, q2_lo, q2_hi, &
+                    q2, q2_lo, q2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-                q3, q3_lo, q3_hi, &
+                    q3, q3_lo, q3_hi, &
 #endif
-                area1, area1_lo, area1_hi, &
+                    area1, area1_lo, area1_hi, &
 #if AMREX_SPACEDIM >= 2
-                area2, area2_lo, area2_hi, &
+                    area2, area2_lo, area2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-                area3, area3_lo, area3_hi, &
+                    area3, area3_lo, area3_hi, &
 #endif
-                vol, vol_lo, vol_hi, &
-                div, lo, hi+dg, &
-                pdivu, lo, hi, &
-                dx, dt, &
-                verbose)
+                    vol, vol_lo, vol_hi, &
+                    div, lo, hi+dg, &
+                    pdivu, lo, hi, &
+                    dx, dt, &
+                    verbose)
 
     call bl_deallocate(pdivu)
     call bl_deallocate(shk)
