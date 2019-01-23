@@ -1311,7 +1311,7 @@ contains
                            eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_ctu_update")
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : NQ, QVAR, QPRES, NQAUX, NVAR, NHYP, NGDNV, GDPRES, &
+    use meth_params_module, only : NQ, QVAR, QPRES, NQAUX, NVAR, NHYP, NGDNV, GDPRES, UMX, &
 #ifdef RADIATION
                                    QPTOT, &
 #endif
