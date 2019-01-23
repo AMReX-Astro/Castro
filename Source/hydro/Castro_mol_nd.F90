@@ -632,8 +632,15 @@ contains
                 idir, domlo, domhi)
 
     call apply_av(lo, hi, idir, dx, div, div_lo, div_hi, uin, uin_lo, uin_hi, flux, f_lo, f_hi)
+
     call normalize_species_fluxes(lo, hi, flux, f_lo, f_hi)
-    call scale_flux(lo, hi, flux, f_lo, f_hi, area, a_lo, a_hi, dt)
+
+    call scale_flux(lo, hi, &
+#if AMREX_SPACEDIM == 1
+                    qint, qe_lo, qe_hi, &
+#endif
+                    flux, f_lo, f_hi, &
+                    area, a_lo, a_hi, dt)
 
   end subroutine ca_construct_flux_cuda
 
