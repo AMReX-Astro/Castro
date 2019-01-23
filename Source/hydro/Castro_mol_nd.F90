@@ -524,7 +524,12 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   ! Scale the fluxes for the form we expect later in refluxing.
 
-  call scale_flux(flux1_lo, flux1_hi, flux1, flux1_lo, flux1_hi, area1, area1_lo, area1_hi, dt)
+  call scale_flux(flux1_lo, flux1_hi, &
+#if AMREX_SPACEDIM == 1
+                  q1, flux1_lo, flux1_hi, &
+#endif
+                  flux1, flux1_lo, flux1_hi, area1, area1_lo, area1_hi, dt)
+
 #if AMREX_SPACEDIM >= 2
   call scale_flux(flux2_lo, flux2_hi, flux2, flux2_lo, flux2_hi, area2, area2_lo, area2_hi, dt)
 #endif
@@ -532,17 +537,6 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   call scale_flux(flux3_lo, flux3_hi, flux3, flux3_lo, flux3_hi, area3, area3_lo, area3_hi, dt)
 #endif
 
-#if AMREX_SPACEDIM == 1
-  if (coord_type .eq. 0) then
-     do k = lo(3), hi(3)
-        do j = lo(2), hi(2)
-           do i = lo(1), hi(1) + 1
-              flux1(i,j,k,UMX) = flux1(i,j,k,UMX) + dt * area1(i,j,k) * q1(i,j,k,GDPRES)
-           enddo
-        enddo
-     enddo
-  endif
-#endif
 
 #if AMREX_SPACEDIM < 3
   if (coord_type > 0) then

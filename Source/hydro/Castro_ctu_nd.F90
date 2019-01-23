@@ -622,7 +622,7 @@ contains
 #endif
                                    track_grid_losses, limit_fluxes_on_small_dens
     use advection_util_module, only : limit_hydro_fluxes_on_small_dens, normalize_species_fluxes, calc_pdivu, apply_av
-    use prob_params_module, only : mom_flux_has_p, center, dg, coord_type
+    use prob_params_module, only : mom_flux_has_p, center, dg
 #ifdef RADIATION
     use rad_params_module, only : ngroups, nugroup, dlognu
     use radhydro_nd_module, only : advect_in_fspace
@@ -1311,18 +1311,19 @@ contains
                            eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_ctu_update")
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : NQ, QVAR, QPRES, NQAUX, NVAR, NHYP, NGDNV, UMX, GDPRES, &
+    use meth_params_module, only : NQ, QVAR, QPRES, NQAUX, NVAR, NHYP, NGDNV, GDPRES, &
 #ifdef RADIATION
                                    QPTOT, &
 #endif
                                    use_flattening, first_order_hydro, track_grid_losses
-    use advection_util_module, only : divu
+    use advection_util_module, only : divu, scale_flux
     use amrex_constants_module, only : ZERO, ONE
     use flatten_module, only: ca_uflatten
     use prob_params_module, only : mom_flux_has_p, dg, coord_type
 #ifdef RADIATION
     use rad_params_module, only : ngroups
     use flatten_module, only : rad_flatten
+    use advection_util_module, only: scale_rad_flux
 #endif
     use riemann_module, only: cmpflx_plus_godunov
 #if AMREX_SPACEDIM >= 2
@@ -2535,84 +2536,42 @@ contains
 
 
     ! Scale the fluxes for the form we expect later in refluxing.
-
-    do n = 1, NVAR
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1) + 1
-                flux1(i,j,k,n) = dt * flux1(i,j,k,n) * area1(i,j,k)
+    call scale_flux(lo, [hi(1)+1, hi(2), hi(3)], &
 #if AMREX_SPACEDIM == 1
-                ! Correct the momentum flux with the grad p part.
-                if (coord_type .eq. 0 .and. n == UMX) then
-                   flux1(i,j,k,n) = flux1(i,j,k,n) + dt * area1(i,j,k) * qx(i,j,k,GDPRES)
-                endif
+                    q1, q1_lo, q1_hi, &
 #endif
-             enddo
-          enddo
-       enddo
-    enddo
+                    flux1, flux1_lo, flux1_hi, &
+                    area1, area1_lo, area1_hi, dt)
 
 #if AMREX_SPACEDIM >= 2
-    do n = 1, NVAR
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2) + 1
-             do i = lo(1), hi(1)
-                flux2(i,j,k,n) = dt * flux2(i,j,k,n) * area2(i,j,k)
-             enddo
-          enddo
-       enddo
-    enddo
+    call scale_flux(lo, [hi(1), hi(2)+1, hi(3)], &
+                    flux2, flux2_lo, flux2_hi, &
+                    area2, area2_lo, area2_hi, dt)
 #endif
 
 #if AMREX_SPACEDIM == 3
-    do n = 1, NVAR
-       do k = lo(3), hi(3) + 1
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                flux3(i,j,k,n) = dt * flux3(i,j,k,n) * area3(i,j,k)
-             enddo
-          enddo
-       enddo
-    enddo
+    call scale_flux(lo, [hi(1), hi(2), hi(3)+1], &
+                    flux3, flux3_lo, flux3_hi, &
+                    area3, area3_lo, area3_hi, dt)
 #endif
 
 #ifdef RADIATION
-    do g = 0, ngroups-1
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1) + 1
-                radflux1(i,j,k,g) = dt * radflux1(i,j,k,g) * area1(i,j,k)
-             enddo
-          enddo
-       enddo
-    enddo
+    call scale_rad_flux(lo, [hi(1)+1, hi(2), hi(3)], &
+                        radflux1, radflux1_lo, radflux1_hi, &
+                        area1, area1_lo, area1_hi, dt)
 
 #if AMREX_SPACEDIM >= 2
-    do g = 0, ngroups-1
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2) + 1
-             do i = lo(1), hi(1)
-                radflux2(i,j,k,g) = dt * radflux2(i,j,k,g) * area2(i,j,k)
-             enddo
-          enddo
-       enddo
-    enddo
+    call scale_rad_flux(lo, [hi(1), hi(2)+1, hi(3)], &
+                        radflux2, radflux2_lo, radflux2_hi, &
+                        area2, area2_lo, area2_hi, dt)
 #endif
 
 #if AMREX_SPACEDIM == 3
-    do g = 0, ngroups-1
-       do k = lo(3), hi(3) + 1
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                radflux3(i,j,k,g) = dt * radflux3(i,j,k,g) * area3(i,j,k)
-             enddo
-          enddo
-       enddo
-    enddo
+    call scale_rad_flux(lo, [hi(1), hi(2), hi(3)+1], &
+                        radflux3, radflux3_lo, radflux3_hi, &
+                        area3, area3_lo, area3_hi, dt)
 #endif
-
 #endif
-
 
     ! Add up some diagnostic quantities. Note that we are not dividing by the cell volume.
 

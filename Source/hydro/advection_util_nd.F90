@@ -9,7 +9,7 @@ module advection_util_module
          limit_hydro_fluxes_on_small_dens, ca_shock, divu, calc_pdivu, normalize_species_fluxes, &
          scale_flux, apply_av, ca_construct_hydro_update_cuda
 #ifdef RADIATION
-  public apply_av_rad
+  public apply_av_rad, scale_rad_flux
 #endif
 
 contains
@@ -1877,20 +1877,30 @@ contains
 
 
 
-  subroutine scale_flux(lo, hi, flux, f_lo, f_hi, area, a_lo, a_hi, dt) bind(c, name="scale_flux")
+  subroutine scale_flux(lo, hi, &
+#if AMREX_SPACEDIM == 1
+                        qint, qi_lo, qi_hi, &
+#endif
+                        flux, f_lo, f_hi, &
+                        area, a_lo, a_hi, dt) bind(c, name="scale_flux")
 
-    use meth_params_module, only: NVAR
-
+    use meth_params_module, only: NVAR, UMX, GDPRES, NGDNV
+    use prob_params_module, only : coord_type
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
+#if AMREX_SPACEDIM == 1
+    integer,  intent(in   ) :: qi_lo(3), qi_hi(3)
+#endif
     integer,  intent(in   ) :: f_lo(3), f_hi(3)
     integer,  intent(in   ) :: a_lo(3), a_hi(3)
     real(rt), intent(in   ), value :: dt
 
     real(rt), intent(inout) :: flux(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3),NVAR)
     real(rt), intent(in   ) :: area(a_lo(1):a_hi(1),a_lo(2):a_hi(2),a_lo(3):a_hi(3))
-
+#if AMREX_SPACEDIM == 1
+    real(rt), intent(in   ) :: qint(qi_lo(1):qi_hi(1), qi_lo(1):qi_hi(1), qi_lo(1):qi_hi(1), NGDNV)
+#endif
     integer :: i, j, k, n
 
     !$gpu
@@ -1900,11 +1910,51 @@ contains
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
                 flux(i,j,k,n) = dt * flux(i,j,k,n) * area(i,j,k)
+#if AMREX_SPACEDIM == 1
+                ! Correct the momentum flux with the grad p part.
+                if (coord_type == 0 .and. n == UMX) then
+                   flux(i,j,k,n) = flux(i,j,k,n) + dt * area(i,j,k) * qint(i,j,k,GDPRES)
+                endif
+#endif
              enddo
           enddo
        enddo
     enddo
 
   end subroutine scale_flux
+
+#ifdef RADIATION
+  subroutine scale_rad_flux(lo, hi, &
+                            rflux, rf_lo, rf_hi, &
+                            area, a_lo, a_hi, dt) bind(c, name="scale_rad_flux")
+
+    use rad_params_module, only : ngroups
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: rf_lo(3), rf_hi(3)
+    integer,  intent(in   ) :: a_lo(3), a_hi(3)
+    real(rt), intent(in   ), value :: dt
+
+    real(rt), intent(inout) :: rflux(rf_lo(1):rf_hi(1),rf_lo(2):rf_hi(2),rf_lo(3):rf_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: area(a_lo(1):a_hi(1),a_lo(2):a_hi(2),a_lo(3):a_hi(3))
+
+    integer :: i, j, k, g
+
+    !$gpu
+
+    do g = 0, ngroups-1
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                rflux(i,j,k,g) = dt * rflux(i,j,k,g) * area(i,j,k)
+             enddo
+          enddo
+       enddo
+    enddo
+
+  end subroutine scale_rad_flux
+#endif
 
 end module advection_util_module
