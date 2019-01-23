@@ -1899,7 +1899,7 @@ contains
     real(rt), intent(inout) :: flux(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3),NVAR)
     real(rt), intent(in   ) :: area(a_lo(1):a_hi(1),a_lo(2):a_hi(2),a_lo(3):a_hi(3))
 #if AMREX_SPACEDIM == 1
-    real(rt), intent(in   ) :: qint(qi_lo(1):qi_hi(1), qi_lo(1):qi_hi(1), qi_lo(1):qi_hi(1), NGDNV)
+    real(rt), intent(in   ) :: qint(qi_lo(1):qi_hi(1), qi_lo(2):qi_hi(2), qi_lo(3):qi_hi(3), NGDNV)
 #endif
     integer :: i, j, k, n
 
