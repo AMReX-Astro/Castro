@@ -1923,6 +1923,41 @@ contains
 
   end subroutine scale_flux
 
+  subroutine store_pradial(lo, hi, &
+                           qint, qi_lo, qi_hi, &
+                           pradial, p_lo, p_hi, dt) bind(C, name="store_pradial")
+
+    use meth_params_module, only: GDPRES, mom_flux_has_p
+    use prob_params_module, only : coord_type
+
+    implicit none
+
+#if AMREX_SPACEDIM == 1
+    if (coord_type > 0) then
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                pradial(i,j,k) = qint(i,j,k,GDPRES) * dt
+             end do
+          end do
+       end do
+    end if
+#endif
+
+#if AMREX_SPACEDIM == 2
+    if (.not. mom_flux_has_p(1)%comp(UMX)) then
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                pradial(i,j,k) = qint(i,j,k,GDPRES) * dt
+             end do
+          end do
+       end do
+    end if
+#endif
+
+  end subroutine store_pradial
+
 #ifdef RADIATION
   subroutine scale_rad_flux(lo, hi, &
                             rflux, rf_lo, rf_hi, &

@@ -2570,6 +2570,10 @@ contains
 #endif
 #endif
 
+    call store_pradial(lo, [hi(1)+1, hi(2), hi(3)], &
+                       q1, q1_lo, q1_hi, &
+                       pradial, p_lo, p_hi)
+
     ! Add up some diagnostic quantities. Note that we are not dividing by the cell volume.
 
     if (track_grid_losses .eq. 1) then
@@ -2586,18 +2590,6 @@ contains
                                  eden_lost, xang_lost, yang_lost, zang_lost)
 
     endif
-
-
-#if AMREX_SPACEDIM == 1
-    if (coord_type > 0) then
-       pradial(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)) = q1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),GDPRES) * dt
-    end if
-#endif
-#if AMREX_SPACEDIM == 2
-    if (.not. mom_flux_has_p(1)%comp(UMX)) then
-       pradial(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)) = q1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),GDPRES) * dt
-    end if
-#endif
 
     call bl_deallocate(   div)
 
