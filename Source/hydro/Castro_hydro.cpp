@@ -270,6 +270,47 @@ Castro::construct_hydro_source(Real time, Real dt)
                               BL_TO_FORTRAN_ANYD(shk),
                               2, ARLIM(domain_lo), ARLIM(domain_hi));
 
+          // add the transverse flux difference in x to the y states
+          // [lo(1), lo(2)-1, 0], [hi(1), hi(2)+1, 0]
+          const Box& txbx = mfi.growntilebox(IntVect(AMREX_D_DECL(0,1,0)));
+
+          // ftmp1 = fx
+          // rftmp1 = rfx
+          // qgdnvtmp1 = qgdnvx
+          transx(ARLIM(txbx.loVect()), ARLIM(txbx.hiVect()),
+                 BL_TO_FORTRAN_ANYD(qym[mfi]),
+                 BL_TO_FORTRAN_ANYD(ql[mfi]),
+                 BL_TO_FORTRAN_ANYD(qyp[mfi]),
+                 BL_TO_FORTRAN_ANYD(qr[mfi)),
+                 BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                 BL_TO_FORTRAN_ANYD(ftmp1[mfi]),
+#ifdef RADIATION
+                 BL_TO_FORTRAN_ANYD(rftmp1[mfi]),
+#endif
+                 BL_TO_FORTRAN_ANYD(qgdnvtmp1[mfi]),
+                 BL_TO_FORTRAN_ANYD(area[0][mfi]),
+                 BL_TO_FORTRAN_ANYD(volume[mfi]),
+                 hdt, hdtdx, &
+                 ARLIM(lo), ARLIM(hi));
+
+          // solve the final Riemann problem axross the x-interfaces
+          // [lo(1), lo(2), 0], [hi(1)+1, hi(2), 0]
+          const Box& cxbx2 = mfi.nodaltilebox(0);
+
+          cmpflx_plus_godunov(ARLIM(cxbx2.loVect()), ARLIM(cxbx2.hiVect()),
+                              BL_TO_FORTRAN_ANYD(ql[mfi]),
+                              BL_TO_FORTRAN_ANYD(qr[mfi]), 1, 1
+                              BL_TO_FORTRAN_ANYD(flux1[mfi]),
+                              BL_TO_FORTRAN_ANYD(q_int[mfi]),
+#ifdef RADIATION
+                              BL_TO_FORTRAN_ANYD(radflux1[mfi]),
+                              BL_TO_FORTRAN_ANYD(lambda_int[mfi]),
+#endif
+                              BL_TO_FORTRAN_ANYD(q1[mfi]),
+                              BL_TO_FORTRAN_ANYD(qaux),
+                              BL_TO_FORTRAN_ANYD(shk),
+                              1, ARLIM(domain_lo), ARLIM(domain_hi));
+
           // add the transverse flux difference in y to the x states
           // [lo(1)-1, lo(2), 0], [hi(1)+1, hi(2), 0]
           const Box& tybx = mfi.growntilebox(IntVect(AMREX_D_DECL(1,0,0)));
@@ -307,6 +348,8 @@ Castro::construct_hydro_source(Real time, Real dt)
                               BL_TO_FORTRAN_ANYD(qaux),
                               BL_TO_FORTRAN_ANYD(shk),
                               1, ARLIM(domain_lo), ARLIM(domain_hi));
+
+          
 
 #endif // 2-d
 
