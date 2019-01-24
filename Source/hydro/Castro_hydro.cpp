@@ -79,10 +79,15 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       for (MFIter mfi(S_new,hydro_tile_size); mfi.isValid(); ++mfi)
       {
-	  const Box& bx    = mfi.tilebox();
 
-	  const int* lo = bx.loVect();
-	  const int* hi = bx.hiVect();
+        // the valid region box
+        const Box& bx    = mfi.tilebox();
+
+        const Box& obx = mfi.growntilebox(1);
+
+
+//	  const int* lo = bx.loVect();
+//	  const int* hi = bx.hiVect();
 
 	  FArrayBox &statein  = Sborder[mfi];
 	  FArrayBox &stateout = S_new[mfi];
@@ -110,42 +115,167 @@ Castro::construct_hydro_source(Real time, Real dt)
 	  }
 #endif
 
-	  ca_ctu_update
-	    (ARLIM_3D(lo), ARLIM_3D(hi), &is_finest_level, &time,
-	     ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
-	     BL_TO_FORTRAN_ANYD(statein), 
-	     BL_TO_FORTRAN_ANYD(stateout),
+// 	  ca_ctu_update
+// 	    (ARLIM_3D(lo), ARLIM_3D(hi), &is_finest_level, &time,
+// 	     ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
+// 	     BL_TO_FORTRAN_ANYD(statein), 
+// 	     BL_TO_FORTRAN_ANYD(stateout),
+// #ifdef RADIATION
+// 	     BL_TO_FORTRAN_ANYD(Er), 
+// 	     BL_TO_FORTRAN_ANYD(Erout),
+// #endif
+// 	     BL_TO_FORTRAN_ANYD(q[mfi]),
+// 	     BL_TO_FORTRAN_ANYD(qaux[mfi]),
+// 	     BL_TO_FORTRAN_ANYD(src_q[mfi]),
+// 	     BL_TO_FORTRAN_ANYD(source_out),
+// 	     ZFILL(dx), &dt,
+// 	     D_DECL(BL_TO_FORTRAN_ANYD(flux[0]),
+// 		    BL_TO_FORTRAN_ANYD(flux[1]),
+// 		    BL_TO_FORTRAN_ANYD(flux[2])),
+// #ifdef RADIATION
+// 	     D_DECL(BL_TO_FORTRAN_ANYD(rad_flux[0]),
+// 		    BL_TO_FORTRAN_ANYD(rad_flux[1]),
+// 		    BL_TO_FORTRAN_ANYD(rad_flux[2])),
+// #endif
+// 	     D_DECL(BL_TO_FORTRAN_ANYD(area[0][mfi]),
+// 		    BL_TO_FORTRAN_ANYD(area[1][mfi]),
+// 		    BL_TO_FORTRAN_ANYD(area[2][mfi])),
+// #if (AMREX_SPACEDIM < 3)
+// 	     BL_TO_FORTRAN_ANYD(pradial),
+// 	     BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
+// #endif
+// 	     BL_TO_FORTRAN_ANYD(volume[mfi]),
+// 	     verbose,
+// #ifdef RADIATION
+// 	     &priv_nstep_fsp,
+// #endif
+// 	     mass_lost, xmom_lost, ymom_lost, zmom_lost,
+// 	     eden_lost, xang_lost, yang_lost, zang_lost);
+
+
+          // compute the flattening coefficient
+
+          if (first_order_hydro == 1) {
+            flatn[mfi].setVal(0.0, 1);
+          } else if (use_flattening == 1) {
 #ifdef RADIATION
-	     BL_TO_FORTRAN_ANYD(Er), 
-	     BL_TO_FORTRAN_ANYD(Erout),
+            rad_flatten(ARLIM_3D(obx.loVect()), ARLIM_3D(obx.hiVect()),
+                        BL_TO_FORTRAN_ANYD(q[mfi]),
+                        BL_TO_FORTRAN_ANYD(flatn[mfi]),
+                        BL_TO_FORTRAN_ANYD(flatg[mfi]));
+#else
+            ca_flatten(ARLIM_3D(obx.loVect()), ARLIM_3D(obx.hiVect()),
+                       BL_TO_FORTRAN_ANYD(q[mfi]),
+                       BL_TO_FORTRAN_ANYD(flatn[mfi]));
 #endif
-	     BL_TO_FORTRAN_ANYD(q[mfi]),
-	     BL_TO_FORTRAN_ANYD(qaux[mfi]),
-	     BL_TO_FORTRAN_ANYD(src_q[mfi]),
-	     BL_TO_FORTRAN_ANYD(source_out),
-	     ZFILL(dx), &dt,
-	     D_DECL(BL_TO_FORTRAN_ANYD(flux[0]),
-		    BL_TO_FORTRAN_ANYD(flux[1]),
-		    BL_TO_FORTRAN_ANYD(flux[2])),
-#ifdef RADIATION
-	     D_DECL(BL_TO_FORTRAN_ANYD(rad_flux[0]),
-		    BL_TO_FORTRAN_ANYD(rad_flux[1]),
-		    BL_TO_FORTRAN_ANYD(rad_flux[2])),
+          } else {
+            flatn[mfi].setVal(1.0, 1);
+          }
+
+
+          // flatg is no longer needed here
+
+          ctu_normal_states(ARLIM_3D(obx.loVect()), ARLIM_3D(obx.hiVect()),
+                            ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+                            BL_TO_FORTRAN_ANYD(q[mfi]),
+                            BL_TO_FORTRAN_ANYD(flatn[mfi]),
+                            BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                            BL_TO_FORTRAN_ANYD(src_q[mfi]),
+                            BL_TO_FORTRAN_ANYD(shk[mfi]),
+                            BL_TO_FORTRAN_ANYD(Ip[mfi]),
+                            BL_TO_FORTRAN_ANYD(Im[mfi]),
+                            BL_TO_FORTRAN_ANYD(Ip_src[mfi]),
+                            BL_TO_FORTRAN_ANYD(Im_src[mfi]),
+                            BL_TO_FORTRAN_ANYD(Ip_gc[mfi]),
+                            BL_TO_FORTRAN_ANYD(Im_gc[mfi]),
+                            BL_TO_FORTRAN_ANYD(dq[mfi]),
+                            BL_TO_FORTRAN_ANYD(sm[mfi]),
+                            BL_TO_FORTRAN_ANYD(sp[mfi]),
+                            BL_TO_FORTRAN_ANYD(qxm[mfi]),
+                            BL_TO_FORTRAN_ANYD(qxp[mfi]),
+#if AMREX_SPACEDIM >= 2
+                            BL_TO_FORTRAN_ANYD(qym[mfi]),
+                            BL_TO_FORTRAN_ANYD(qyp[mfi]),
 #endif
-	     D_DECL(BL_TO_FORTRAN_ANYD(area[0][mfi]),
-		    BL_TO_FORTRAN_ANYD(area[1][mfi]),
-		    BL_TO_FORTRAN_ANYD(area[2][mfi])),
+#if AMREX_SPACEDIM == 3
+                            BL_TO_FORTRAN_ANYD(qzm[mfi]),
+                            BL_TO_FORTRAN_ANYD(qzp[mfi]),
+#endif
+                            ZFILL(dx), dt,
 #if (AMREX_SPACEDIM < 3)
-	     BL_TO_FORTRAN_ANYD(pradial),
-	     BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
+                            BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
 #endif
-	     BL_TO_FORTRAN_ANYD(volume[mfi]),
-	     verbose,
+                            ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+
+          // Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, dq, sm, sp, flatn no longer needed here
+
+          const Box& nxbx = mfi.nodaltilebox(0);
+
+#if AMREX_SPACEDIM == 1
+          cmpflx_plus_godunov(ARLIM(nxbx.loVect()), ARLIM(nxbx.hiVect()),
+                              BL_TO_FORTRAN_ANDYD(qym[mfi]),
+                              BL_TO_FORTRAN_ANDYD(qyp[mfi]), 1, 1
+                              BL_TO_FORTRAN_ANDYD(flux[0]),
+                              BL_TO_FORTRAN_ANDYD(q_int[mfi]),
 #ifdef RADIATION
-	     &priv_nstep_fsp,
+                              BL_TO_FORTRAN_ANYD(rad_flux[0]),
+                              BL_TO_FORTRAN_ANYD(lambda_int[mfi]),
 #endif
-	     mass_lost, xmom_lost, ymom_lost, zmom_lost,
-	     eden_lost, xang_lost, yang_lost, zang_lost);
+                              BL_TO_FORTRAN_ANYD(q1[mfi]),
+                              BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                              BL_TO_FORTRAN_ANYD(shk[mfi]),
+                              1, ARLIM_3D(domain_lo), ARLIM_3d(domain_hi));
+
+#endif // 1-d
+
+#if AMREX_SPACEDIM == 2
+          // [lo(1), lo(2)-1, 0], [hi(1)+1, hi(2)+1, 0]
+          const Box& cxbx = mfi.grownnodaltilebox(0,IntVect(AMREX_D_DECL(0,1,0)));
+
+          // ftmp1 = fx
+          // rftmp1 = rfx
+          // qgdnvtmp1 = qgdnxv
+          cmpflx_plus_godunov(ARLIM(cxbx.loVect()), ARLIM(cxbx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(qxm[mfi]),
+                              BL_TO_FORTRAN_ANYD(qxp[mfi]), 1, 1
+                              BL_TO_FORTRAN_ANYD(fmp1[mfi]),
+                              BL_TO_FORTRAN_ANYD(q_int[mfi]),
+#ifdef RADIATION
+                              BL_TO_FORTRAN_ANYD(rtmp1[mfi]),
+                              BL_TO_FORTRAN_ANYD(lambda_int[mfi]),
+#endif
+                              BL_TO_FORTRAN_ANYD(qgdnvtmp1[mfi]),
+                              BL_TO_FORTRAN_ANYD(qaux),
+                              BL_TO_FORTRAN_ANYD(shk),
+                              1, ARLIM(domain_lo), ARLIM(domain_hi));
+
+          // [lo(1)-1, lo(2), 0], [hi(1)+1, hi(2)+1, 0]
+          const Box& cybx = mfi.grownnodaltilebox(1,IntVect(AMREX_D_DECL(1,0,0)));
+
+          // ftmp2 = fy
+          // rftmp2 = rfy
+          cmpflx_plus_godunov(ARLIM(cybx.loVect()), ARLIM(cybx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(qym[mfi]),
+                              BL_TO_FORTRAN_ANYD(qyp[mfi]), 1, 1
+                              BL_TO_FORTRAN_ANYD(fmp2[mfi]),
+                              BL_TO_FORTRAN_ANYD(q_int[mfi]),
+#ifdef RADIATION
+                              BL_TO_FORTRAN_ANYD(rtmp2[mfi]),
+                              BL_TO_FORTRAN_ANYD(lambda_int[mfi]),
+#endif
+                              BL_TO_FORTRAN_ANYD(q2[mfi]),
+                              BL_TO_FORTRAN_ANYD(qaux),
+                              BL_TO_FORTRAN_ANYD(shk),
+                              2, ARLIM(domain_lo), ARLIM(domain_hi));
+
+          // add the transverse flux difference in y to the x states
+
+#endif // 2-d
+
+#if AMREX_SPACEDIM == 3
+
+
+#endif
 
 	  // Store the fluxes from this advance.
 	  // For normal integration we want to add the fluxes from this advance

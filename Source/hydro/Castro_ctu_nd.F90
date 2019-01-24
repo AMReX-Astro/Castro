@@ -1533,18 +1533,15 @@ contains
     if (first_order_hydro == 1) then
        flatn = ZERO
     elseif (use_flattening == 1) then
-       call ca_uflatten(lo-dg, hi+dg, &
-                        q, q_lo, q_hi, &
-                        flatn, q_lo, q_hi, QPRES)
 #ifdef RADIATION
-       call ca_uflatten(lo-dg, hi+dg, &
-                        q, q_lo, q_hi, &
-                        flatg, q_lo, q_hi, QPTOT)
-
        call rad_flatten(lo-dg, hi+dg, &
                         q, q_lo, q_hi, &
                         flatn, q_lo, q_hi, &
                         flatg, q_lo, q_hi)
+#else
+       call ca_uflatten(lo-dg, hi+dg, &
+                        q, q_lo, q_hi, &
+                        flatn, q_lo, q_hi, QPRES)
 #endif
     else
        flatn = ONE
