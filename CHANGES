@@ -29,6 +29,10 @@ changes since last release:
      linearly until the density reaches diffuse_cutoff_density, where
      it is zero.
 
+# 19.01.4
+
+  -- fixed the .zenodo.json
+
 # 19.01
 
   -- The User's Guide is now automatically built from the development
