@@ -374,8 +374,8 @@ Castro::construct_hydro_source(Real time, Real dt)
 #if AMREX_SPACEDIM == 2
 
     const amrex::Real hdt = 0.5*dt;
-    const amrex::Real hdtdx = dt/dx[0];
-    const amrex::Real hdtdy = dt/dx[1];
+    const amrex::Real hdtdx = 0.5*dt/dx[0];
+    const amrex::Real hdtdy = 0.5*dt/dx[1];
 
 
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
