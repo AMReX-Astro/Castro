@@ -158,14 +158,8 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=5):
     rhopre = M0 / (Mpre * np.sqrt(Tpre))  # Eq. 40
     vpre = M0/rhopre
     thetapre = ((Km-3.*gamma*M0**2/rhopre-3.*Tpre*rhopre) / (gamma*P0))**0.25  # Eq. 41
-    #plot(xpre, Tpre)
-    #plot(xpre, thetapre)
-    #plot(xpre, Mpre)
-    #plot(xpre, vpre)
-    # plot(xpre, rhopre)
-    # draw()
-    # show()
 
+    
     # Step 3a
     # i= 1
     eps = -1.0e-10
@@ -201,14 +195,8 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=5):
     Mrel = Mrel[::-1]
     vrel = vrel[::-1]
     rhorel = rhorel[::-1]
-    # plot(xrel, Trel)
-    # plot(xrel, thetarel)
-    # plot(xrel, Mrel)
-    # plot(xrel, vrel)
-    # plot(xrel, rhorel)
-    # draw()
-    # show()
 
+    
     # Step 4
     print('')
     print('thetapre[-1]=', thetapre[-1], '  thetarel[0]=', thetarel[0])
@@ -265,8 +253,7 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=5):
         print('Jump in rho:', rhopre[ilast], rhorel[irel])
         
         
-        #This mess shifts it so x=0 is the shock. I hope
-        
+        #This shifts it so x=0 is the shock.      
 
         x0   =  x0 - xpre[ilast+1]
         xpre =  xpre - xpre[ilast+1]
@@ -297,7 +284,6 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=5):
         theta = np.append(theta,theta1)
         rho = np.append(rho,rho1)
         v = np.append(v,v1)
-        #plot(x,rho)
     
         
         
