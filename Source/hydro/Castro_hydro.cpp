@@ -354,10 +354,10 @@ Castro::construct_hydro_source(Real time, Real dt)
       const Box& nxbx = mfi.nodaltilebox(0);
 
       cmpflx_plus_godunov(ARLIM_3D(nxbx.loVect()), ARLIM_3D(nxbx.hiVect()),
-                          BL_TO_FORTRAN_ANDYD(qym[mfi]),
-                          BL_TO_FORTRAN_ANDYD(qyp[mfi]), 1, 1,
-                          BL_TO_FORTRAN_ANDYD(flux[0][mfi]),
-                          BL_TO_FORTRAN_ANDYD(q_int[mfi]),
+                          BL_TO_FORTRAN_ANYD(qxm[mfi]),
+                          BL_TO_FORTRAN_ANYD(qxp[mfi]), 1, 1,
+                          BL_TO_FORTRAN_ANYD(flux[0][mfi]),
+                          BL_TO_FORTRAN_ANYD(q_int[mfi]),
 #ifdef RADIATION
                           BL_TO_FORTRAN_ANYD(rad_flux[0][mfi]),
                           BL_TO_FORTRAN_ANYD(lambda_int[mfi]),
@@ -365,7 +365,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(qe[0][mfi]),
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           BL_TO_FORTRAN_ANYD(shk[mfi]),
-                          1, ARLIM_3D(domain_lo), ARLIM_3d(domain_hi));
+                          1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
 
     }
 
