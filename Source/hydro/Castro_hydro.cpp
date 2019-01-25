@@ -124,12 +124,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 
 #ifdef _OPENMP
-#ifdef RADIATION
-#pragma omp parallel reduction(max:nstep_fsp)
-#else
-#pragma omp parallel reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
-                     reduction(+:eden_lost,xang_lost,yang_lost,zang_lost)
-#endif
+#pragma omp parallel
 #endif
   {
 
@@ -243,103 +238,115 @@ Castro::construct_hydro_source(Real time, Real dt)
 
     }
 
-    // Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, dq, sm, sp, flatn no longer needed here
-    Ip.clear();
-    Im.clear();
-    Ip_src.clear();
-    Im_src.clear();
-    Ip_gc.clear();
-    Im_gc.clear();
-    dq.clear();
-    sm.clear();
-    sp.clear();
-    flatn.clear();
+  } // OpenMP region
+
+  // Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, dq, sm, sp, flatn no longer needed here
+  Ip.clear();
+  Im.clear();
+  Ip_src.clear();
+  Im_src.clear();
+  Ip_gc.clear();
+  Im_gc.clear();
+  dq.clear();
+  sm.clear();
+  sp.clear();
+  flatn.clear();
 #ifdef RADIATION
-    flatg.clear();
+  flatg.clear();
 #endif
 
 
-    MultiFab flux[BL_SPACEDIM];
-    MultiFab qe[BL_SPACEDIM];
+  MultiFab flux[BL_SPACEDIM];
+  MultiFab qe[BL_SPACEDIM];
 #ifdef RADIATION
-    MultiFab rad_flux[BL_SPACEDIM];
+  MultiFab rad_flux[BL_SPACEDIM];
 #endif
 
 #if AMREX_SPACEDIM <= 2
-    MultiFab pradial;
+  MultiFab pradial;
 #endif
 
-    for (int i = 0; i < BL_SPACEDIM; ++i) {
-      flux[i].define(getEdgeBoxArray(i), dmap, NUM_STATE, 0);
-      qe[i].define(getEdgeBoxArray(i), dmap, NGDNV, 1);
+  for (int i = 0; i < BL_SPACEDIM; ++i) {
+    flux[i].define(getEdgeBoxArray(i), dmap, NUM_STATE, 0);
+    qe[i].define(getEdgeBoxArray(i), dmap, NGDNV, 1);
 #ifdef RADIATION
-      rad_flux[i].define(getEdgeBoxArray(i), dmap, Radiation::nGroups, 0);
+    rad_flux[i].define(getEdgeBoxArray(i), dmap, Radiation::nGroups, 0);
 #endif
 #if AMREX_SPACEDIM <= 2
-      if (i == 0) {
-        // technically, we only need this for non-Cartesian geometry
-        pradial.define(getEdgeBoxArray(i), dmap, 1, 0);
-      }
-#endif
+    if (i == 0) {
+      // technically, we only need this for non-Cartesian geometry
+      pradial.define(getEdgeBoxArray(i), dmap, 1, 0);
     }
+#endif
+  }
 
 
 #if AMREX_SPACEDIM >= 2
-    MultiFab ftmp1;
-    ftmp1.define(grids, dmap, NUM_STATE, 1);
+  MultiFab ftmp1;
+  ftmp1.define(grids, dmap, NUM_STATE, 1);
 
-    MultiFab ftmp2;
-    ftmp2.define(grids, dmap, NUM_STATE, 1);
-
-#ifdef RADIATION
-    MultiFab rftmp1;
-    rftmp1.define(grids, dmap, Radiation::nGroups, 1);
-
-    MultiFab rftmp2;
-    rftmp2.define(grids, dmap, Radiation::nGroups, 1);
-#endif
-
-    MultiFab qgdnvtmp1;
-    qgdnvtmp1.define(grids, dmap, NGDNV, 2);
-
-    MultiFab qgdnvtmp2;
-    qgdnvtmp2.define(grids, dmap, NGDNV, 2);
-
-    MultiFab ql;
-    ql.define(grids, dmap, NQ, 2);
-
-    MultiFab qr;
-    qr.define(grids, dmap, NQ, 2);
-
-#endif
-
-    MultiFab q_int;
-    q_int.define(grids, dmap, NQ, 2);
+  MultiFab ftmp2;
+  ftmp2.define(grids, dmap, NUM_STATE, 1);
 
 #ifdef RADIATION
-    MultiFab lambda_int;
-    lambda_int.define(grids, dmap, Radiation::nGroups, 2);
+  MultiFab rftmp1;
+  rftmp1.define(grids, dmap, Radiation::nGroups, 1);
+
+  MultiFab rftmp2;
+  rftmp2.define(grids, dmap, Radiation::nGroups, 1);
+#endif
+
+  MultiFab qgdnvtmp1;
+  qgdnvtmp1.define(grids, dmap, NGDNV, 2);
+
+  MultiFab qgdnvtmp2;
+  qgdnvtmp2.define(grids, dmap, NGDNV, 2);
+
+  MultiFab ql;
+  ql.define(grids, dmap, NQ, 2);
+
+  MultiFab qr;
+  qr.define(grids, dmap, NQ, 2);
+
+#endif
+
+  MultiFab q_int;
+  q_int.define(grids, dmap, NQ, 2);
+
+#ifdef RADIATION
+  MultiFab lambda_int;
+  lambda_int.define(grids, dmap, Radiation::nGroups, 2);
 #endif
 
 #if AMREX_SPACEDIM == 3
-    MultiFab qmxy;
-    MultiFab qpxy;
+  MultiFab qmxy;
+  MultiFab qpxy;
 
-    MultiFab qmxz;
-    MultiFab qpxz;
+  MultiFab qmxz;
+  MultiFab qpxz;
 
-    MultiFab qmyx;
-    MultiFab qpyx;
+  MultiFab qmyx;
+  MultiFab qpyx;
 
-    MultiFab qmyz;
-    MultiFab qpyz;
+  MultiFab qmyz;
+  MultiFab qpyz;
 
-    MultiFab qmzx;
-    MultiFab qpzx;
+  MultiFab qmzx;
+  MultiFab qpzx;
 
-    MultiFab qmzy;
-    MultiFab qpzy;
+  MultiFab qmzy;
+  MultiFab qpzy;
 #endif
+
+#ifdef _OPENMP
+#ifdef RADIATION
+#pragma omp parallel reduction(max:nstep_fsp)
+#else
+#pragma omp parallel reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
+                     reduction(+:eden_lost,xang_lost,yang_lost,zang_lost)
+#endif
+#endif
+  {
 
 #if AMREX_SPACEDIM == 1
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
@@ -585,7 +592,6 @@ Castro::construct_hydro_source(Real time, Real dt)
                ZFILL(dx), dt);
   }
 
-  pdivu.clear();
 
   // scale the fluxes and store them
   for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
