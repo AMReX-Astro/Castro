@@ -9,7 +9,7 @@ module flatten_module
 
   public :: ca_uflatten
 #ifdef RADIATION
-  public :: rad_flatten
+  public :: ca_rad_flatten
 #endif
 
 contains
@@ -36,7 +36,7 @@ contains
 
     real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt)        , intent(inout) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
-    real(rt)        , intent(in) :: flatg(fg_lo(1):fg_hi(1),fg_lo(2):fg_hi(2),fg_lo(3):fg_hi(3))
+    real(rt)        , intent(inout) :: flatg(fg_lo(1):fg_hi(1),fg_lo(2):fg_hi(2),fg_lo(3):fg_hi(3))
 
     integer :: i, j, k
 
@@ -70,7 +70,7 @@ contains
        end do
     end do
 
-  end subroutine rad_flatten
+  end subroutine ca_rad_flatten
 #endif
 
 

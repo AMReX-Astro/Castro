@@ -1313,7 +1313,7 @@ contains
     use prob_params_module, only : mom_flux_has_p, dg, coord_type
 #ifdef RADIATION
     use rad_params_module, only : ngroups
-    use flatten_module, only : rad_flatten
+    use flatten_module, only : ca_rad_flatten
     use advection_util_module, only: scale_rad_flux
 #endif
     use riemann_module, only: cmpflx_plus_godunov
@@ -1526,10 +1526,10 @@ contains
        flatn = ZERO
     elseif (use_flattening == 1) then
 #ifdef RADIATION
-       call rad_flatten(lo-dg, hi+dg, &
-                        q, q_lo, q_hi, &
-                        flatn, q_lo, q_hi, &
-                        flatg, q_lo, q_hi)
+       call ca_rad_flatten(lo-dg, hi+dg, &
+                           q, q_lo, q_hi, &
+                           flatn, q_lo, q_hi, &
+                           flatg, q_lo, q_hi)
 #else
        call ca_uflatten(lo-dg, hi+dg, &
                         q, q_lo, q_hi, &

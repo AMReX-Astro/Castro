@@ -128,8 +128,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
   {
 
-    int priv_nstep_fsp = -1;
-
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       // the valid region box
@@ -347,6 +345,8 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 #endif
   {
+
+    int priv_nstep_fsp = -1;
 
 #if AMREX_SPACEDIM == 1
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
