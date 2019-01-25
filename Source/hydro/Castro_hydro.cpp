@@ -142,9 +142,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       const Box& obx = mfi.growntilebox(1);
 
-      const int* lo = bx.loVect();
-      const int* hi = bx.hiVect();
-
       // 	  ca_ctu_update
       // 	    (ARLIM_3D(lo), ARLIM_3D(hi), &is_finest_level, &time,
       // 	     ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
@@ -189,10 +186,10 @@ Castro::construct_hydro_source(Real time, Real dt)
         flatn[mfi].setVal(0.0, 1);
       } else if (use_flattening == 1) {
 #ifdef RADIATION
-        rad_flatten(ARLIM_3D(obx.loVect()), ARLIM_3D(obx.hiVect()),
-                    BL_TO_FORTRAN_ANYD(q[mfi]),
-                    BL_TO_FORTRAN_ANYD(flatn[mfi]),
-                    BL_TO_FORTRAN_ANYD(flatg[mfi]));
+        ca_rad_flatten(ARLIM_3D(obx.loVect()), ARLIM_3D(obx.hiVect()),
+                       BL_TO_FORTRAN_ANYD(q[mfi]),
+                       BL_TO_FORTRAN_ANYD(flatn[mfi]),
+                       BL_TO_FORTRAN_ANYD(flatg[mfi]));
 #else
         ca_uflatten(ARLIM_3D(obx.loVect()), ARLIM_3D(obx.hiVect()),
                     BL_TO_FORTRAN_ANYD(q[mfi]),
@@ -256,16 +253,6 @@ Castro::construct_hydro_source(Real time, Real dt)
     dq.clear();
     sm.clear();
     sp.clear();
-    qxm.clear();
-    qxp.clear();
-#if AMREX_SPACEDIM >= 2
-    qym.clear();
-    qyp.clear();
-#endif
-#if AMREX_SPACEDIM == 3
-    qzm.clear();
-    qzp.clear();
-#endif
     flatn.clear();
 #ifdef RADIATION
     flatg.clear();
@@ -284,7 +271,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
     for (int i = 0; i < BL_SPACEDIM; ++i) {
       flux[i].define(getEdgeBoxArray(i), dmap, NUM_STATE, 0);
-      qe[i].define(getEdgeBoxArray(i), dmap, NGDNV, 0);
+      qe[i].define(getEdgeBoxArray(i), dmap, NGDNV, 1);
 #ifdef RADIATION
       rad_flux[i].define(getEdgeBoxArray(i), dmap, Radiation::nGroups, 0);
 #endif
@@ -299,25 +286,39 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 #if AMREX_SPACEDIM >= 2
     MultiFab ftmp1;
-    ftmp1.define(grids, dmap, NUM_STATE, 2);
+    ftmp1.define(grids, dmap, NUM_STATE, 1);
 
     MultiFab ftmp2;
+    ftmp2.define(grids, dmap, NUM_STATE, 1);
 
 #ifdef RADIATION
     MultiFab rftmp1;
+    rftmp1.define(grids, dmap, Radiation::nGroups, 1);
+
     MultiFab rftmp2;
+    rftmp2.define(grids, dmap, Radiation::nGroups, 1);
 #endif
 
     MultiFab qgdnvtmp1;
+    qgdnvtmp1.define(grids, dmap, NGDNV, 2);
+
     MultiFab qgdnvtmp2;
+    qgdnvtmp2.define(grids, dmap, NGDNV, 2);
 
     MultiFab ql;
+    ql.define(grids, dmap, NQ, 2);
+
     MultiFab qr;
+    qr.define(grids, dmap, NQ, 2);
+
 #endif
 
     MultiFab q_int;
+    q_int.define(grids, dmap, NQ, 2);
+
 #ifdef RADIATION
     MultiFab lambda_int;
+    lambda_int.define(grids, dmap, Radiation::nGroups, 2);
 #endif
 
 #if AMREX_SPACEDIM == 3
@@ -381,7 +382,7 @@ Castro::construct_hydro_source(Real time, Real dt)
       cmpflx_plus_godunov(ARLIM_3D(cxbx.loVect()), ARLIM_3D(cxbx.hiVect()),
                           BL_TO_FORTRAN_ANYD(qxm[mfi]),
                           BL_TO_FORTRAN_ANYD(qxp[mfi]), 1, 1,
-                           BL_TO_FORTRAN_ANYD(ftmp1[mfi]),
+                          BL_TO_FORTRAN_ANYD(ftmp1[mfi]),
                           BL_TO_FORTRAN_ANYD(q_int[mfi]),
 #ifdef RADIATION
                           BL_TO_FORTRAN_ANYD(rftmp1[mfi]),
@@ -407,7 +408,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(ftmp2[mfi]),
                           BL_TO_FORTRAN_ANYD(q_int[mfi]),
 #ifdef RADIATION
-                          BL_TO_FORTRAN_ANYD(rtmp2[mfi]),
+                          BL_TO_FORTRAN_ANYD(rftmp2[mfi]),
                           BL_TO_FORTRAN_ANYD(lambda_int[mfi]),
 #endif
                           BL_TO_FORTRAN_ANYD(qe[1][mfi]),
@@ -447,14 +448,13 @@ Castro::construct_hydro_source(Real time, Real dt)
       // solve the final Riemann problem axross the x-interfaces
       // [lo(1), lo(2), 0], [hi(1)+1, hi(2), 0]
       const Box& cxbx2 = mfi.nodaltilebox(0);
-
       cmpflx_plus_godunov(ARLIM_3D(cxbx2.loVect()), ARLIM_3D(cxbx2.hiVect()),
                           BL_TO_FORTRAN_ANYD(ql[mfi]),
                           BL_TO_FORTRAN_ANYD(qr[mfi]), 1, 1,
                           BL_TO_FORTRAN_ANYD(flux[0][mfi]),
                           BL_TO_FORTRAN_ANYD(q_int[mfi]),
 #ifdef RADIATION
-                          BL_TO_FORTRAN_ANYD(radflux[0][mfi]),
+                          BL_TO_FORTRAN_ANYD(rad_flux[0][mfi]),
                           BL_TO_FORTRAN_ANYD(lambda_int[mfi]),
 #endif
                           BL_TO_FORTRAN_ANYD(qe[0][mfi]),
@@ -500,14 +500,13 @@ Castro::construct_hydro_source(Real time, Real dt)
       // solve the final Riemann problem axross the y-interfaces
       // [lo(1), lo(2), 0], [hi(1), hi(2)+1, 0]
       const Box& cybx2 = mfi.nodaltilebox(1);
-
       cmpflx_plus_godunov(ARLIM_3D(cybx2.loVect()), ARLIM_3D(cybx2.hiVect()),
                           BL_TO_FORTRAN_ANYD(ql[mfi]),
                           BL_TO_FORTRAN_ANYD(qr[mfi]), 1, 1,
                           BL_TO_FORTRAN_ANYD(flux[1][mfi]),
                           BL_TO_FORTRAN_ANYD(q_int[mfi]),
 #ifdef RADIATION
-                          BL_TO_FORTRAN_ANYD(radflux[1][mfi]),
+                          BL_TO_FORTRAN_ANYD(rad_flux[1][mfi]),
                           BL_TO_FORTRAN_ANYD(lambda_int[mfi]),
 #endif
                           BL_TO_FORTRAN_ANYD(qe[1][mfi]),
@@ -541,7 +540,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                        BL_TO_FORTRAN_ANYD(flux[idir][mfi]),
 #ifdef RADIATION
                        BL_TO_FORTRAN_ANYD(Erborder[mfi]),
-                       BL_TO_FORTRAN_ANYD(radflux[idir][mfi]),
+                       BL_TO_FORTRAN_ANYD(rad_flux[idir][mfi]),
 #endif
                        BL_TO_FORTRAN_ANYD(area[idir][mfi]),
                        BL_TO_FORTRAN_ANYD(volume[mfi]),
@@ -569,11 +568,11 @@ Castro::construct_hydro_source(Real time, Real dt)
                       BL_TO_FORTRAN_ANYD(flux[2][mfi])),
 #ifdef RADIATION
                BL_TO_FORTRAN_ANYD(Erborder[mfi]),
-               BL_TO_FORTRAN_ANYD(Er_out[mfi]),
+               BL_TO_FORTRAN_ANYD(Er_new[mfi]),
                D_DECL(BL_TO_FORTRAN_ANYD(rad_flux[0][mfi]),
                       BL_TO_FORTRAN_ANYD(rad_flux[1][mfi]),
                       BL_TO_FORTRAN_ANYD(rad_flux[2][mfi])),
-               nstep_fsp,
+               &priv_nstep_fsp,
 #endif
                D_DECL(BL_TO_FORTRAN_ANYD(qe[0][mfi]),
                       BL_TO_FORTRAN_ANYD(qe[1][mfi]),

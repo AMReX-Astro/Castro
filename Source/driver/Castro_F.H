@@ -527,8 +527,14 @@ extern "C"
 
   void ca_uflatten
     (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(q),
+     const BL_FORT_FAB_ARG_3D(q),
      BL_FORT_FAB_ARG_3D(flatn), int pres_comp);
+
+  void ca_rad_flatten
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(q),
+     BL_FORT_FAB_ARG_3D(flatn),
+     BL_FORT_FAB_ARG_3D(flatg));
 
   void ctu_clean_fluxes
     (const int* lo, const int* hi,
