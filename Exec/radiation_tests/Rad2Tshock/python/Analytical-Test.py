@@ -5,8 +5,7 @@ with a user inputed plotfile, will produce graphs of the solutions to density an
 vs the plot files.
 """
 import sys, getopt
-from numpy import *
-from pylab import *
+import numpy as np
 from scipy import optimize, integrate
 import yt
 import argparse
@@ -36,14 +35,14 @@ def OneTShock(P0, gamma, M0):  # Lowrie & Rauenzahn 07
         return 12.*(gamma-1.)**2*T1*(3.+gamma*P0*(1.+7.*T1**4))
     def rho1_f(T1):
         f1 = f1_f(T1)
-        return (f1+sqrt(f1**2+f2_f(T1))) / (6.*(gamma-1.)*T1)
+        return (f1+np.sqrt(f1**2+f2_f(T1))) / (6.*(gamma-1.)*T1)
     def Eq13(T1): 
         rho1 = rho1_f(T1)
         return 3.0*rho1*(rho1*T1-1.) + gamma*P0*rho1*(T1**4-1.) - 3.*gamma*(rho1-1.)*M0**2
     def T1_smallP0():
         return (1.-gamma+2.*gamma*M0**2) * (2.+(gamma-1.)*M0**2) / ((gamma+1.)*M0)**2
     def T1_bigP0():
-        M0s = M0 / sqrt(4.*P0/9.)
+        M0s = M0 / np.sqrt(4.*P0/9.)
         return (8.*M0s**2-1.)/7.
     T1min = T1_smallP0()
     T1max = T1_bigP0()
@@ -68,17 +67,17 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=5):
         return T/(gamma*(gamma-1.))
 
     Cp = 1./(gamma-1.)
-    M_ISP = 1.0/sqrt(gamma)  # Eq. 28
+    M_ISP = 1.0/np.sqrt(gamma)  # Eq. 28
     Km = 3.*(gamma*M0**2+1.) + gamma*P0 # Eq. 16
     
     def rho_f(T, theta, s): # Eq. 17
         b = Km - gamma*P0*theta**4
         ac4 = 36.*gamma*M0**2*T 
-        return (b + s*sqrt(b**2-ac4))/(6.*T)
+        return (b + s*np.sqrt(b**2-ac4))/(6.*T)
 
     def dTdtheta(T, theta, rho, M, v, s):  # Eq. 54
         b = Km - gamma*P0*theta**4
-        d = sqrt(b**2 - 36.*gamma*M0**2*T)
+        d = np.sqrt(b**2 - 36.*gamma*M0**2*T)
         drhodT = - (rho + s*(3.*gamma*M0**2)/d) / T
         drhodtheta = -(2./3.)*P0*gamma*theta**3/T*(1.+s*b/d)
         c1 = M0/(24.*P0*kappa*rho**2*theta**3)
@@ -88,7 +87,7 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=5):
         dFdT = c2 * (4.*v*theta**3*dGdT - 12.*sigma*(gamma*M**2-1.)*T**3)
         dFdtheta = c2 * (4.*v*theta**3*dGdtheta + 12.*sigma*(gamma*M**2-1.)*theta**3)
         S1 = dFdT - dGdtheta 
-        S2 = sqrt((dFdT-dGdtheta)**2 + 4.*dGdT*dFdtheta) 
+        S2 = np.sqrt((dFdT-dGdtheta)**2 + 4.*dGdT*dFdtheta) 
         dTdtheta_tmp = (S1 + S2) / (2.*dGdT)
         drhodtheta_full = drhodtheta + drhodT * dTdtheta_tmp
         if (drhodtheta > 0.0):
@@ -101,7 +100,7 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=5):
 
     def dxTdM(xT, M): # Eq. 37
         T = xT[1]
-        rho = M0 / (M * sqrt(T))  # Eq. 40
+        rho = M0 / (M * np.sqrt(T))  # Eq. 40
         v = M0/rho
         th4 = (Km-3.*gamma*M0**2/rho-3.*T*rho) / (gamma*P0)  # Eq. 41
         r = 3.*rho*sigma*(th4-T**4) # Eq. 25
@@ -122,7 +121,7 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=5):
     rho0 = 1.0
  
     rho1, v1, T1 = OneTShock(P0=P0, gamma=gamma, M0=M0)
-    M1 = v1 / sqrt(T1)
+    M1 = v1 / np.sqrt(T1)
     theta1 = T1
     print('THIS IS A TEST rho1, v1, theta1, T1=', rho1, v1, theta1, T1)
     # which branch?
@@ -139,7 +138,7 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=5):
     T0_eps = T0 + eps * dTdtheta(T0, theta0, rho0, M0, v0, s0)
     rho0_eps = rho_f(T0_eps, theta0_eps, s0)
     v0_eps = M0 / rho0_eps
-    M0_eps = v0_eps / sqrt(T0_eps)
+    M0_eps = v0_eps / np.sqrt(T0_eps)
     print('       %10s %10s %10s %10s %10s' % ('rho', 'v', 'M', 'T', 'theta'))
     print('0    : %.8f %.8f %.8f %.8f %.8f' % (rho0, v0, M0, T0, theta0))
     print('0,eps: %.8f %.8f %.8f %.8f %.8f' % (rho0_eps, v0_eps, M0_eps, T0_eps, theta0_eps))
@@ -151,12 +150,12 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=5):
 
     # Step 2c
     eps_ASP = 1.0e-6
-    Mpre = linspace(M0_eps, 1.+eps_ASP, num=50000)
+    Mpre = np.linspace(M0_eps, 1.+eps_ASP, num=50000)
     xT0 = [x0_eps, T0_eps]
     xTpre = integrate.odeint(dxTdM, xT0, Mpre, mxstep=100000)
     xpre = xTpre[:,0]
     Tpre = xTpre[:,1]
-    rhopre = M0 / (Mpre * sqrt(Tpre))  # Eq. 40
+    rhopre = M0 / (Mpre * np.sqrt(Tpre))  # Eq. 40
     vpre = M0/rhopre
     thetapre = ((Km-3.*gamma*M0**2/rhopre-3.*Tpre*rhopre) / (gamma*P0))**0.25  # Eq. 41
     #plot(xpre, Tpre)
@@ -174,7 +173,7 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=5):
     T1_eps = T1 + eps * dTdtheta(T1, theta1, rho1, M1, v1, s1)
     rho1_eps = rho_f(T1_eps, theta1_eps, s1)
     v1_eps = M0 / rho1_eps
-    M1_eps = v1_eps / sqrt(T1_eps)
+    M1_eps = v1_eps / np.sqrt(T1_eps)
     print('')
     print('       %10s %10s %10s %10s %10s' % ('rho', 'v', 'M', 'T', 'theta'))
     print('1    : %.8f %.8f %.8f %.8f %.8f' % (rho1, v1, M1, T1, theta1))
@@ -187,12 +186,12 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=5):
 
     # Step 3c
     # resolution
-    Mrel = linspace(M1_eps, 1.-eps_ASP, num=50000)
+    Mrel = np.linspace(M1_eps, 1.-eps_ASP, num=50000)
     xT0 = [x1_eps, T1_eps]
     xTrel = integrate.odeint(dxTdM, xT0, Mrel, mxstep=100000)
     xrel = xTrel[:,0]
     Trel = xTrel[:,1]
-    rhorel = M0 / (Mrel * sqrt(Trel))  # Eq. 40
+    rhorel = M0 / (Mrel * np.sqrt(Trel))  # Eq. 40
     vrel = M0/rhorel
     thetarel = ((Km-3.*gamma*M0**2/rhorel-3.*Trel*rhorel) / (gamma*P0))**0.25  # Eq. 41
     # Reverse the solution
@@ -225,7 +224,7 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=5):
         irels=[]
         errs=[]
         while irel<Lrel and thetarel[irel] <= thetapre[-1]:
-            index, = where(thetapre >= thetarel[irel])
+            index, = np.where(thetapre >= thetarel[irel])
             ilast = index[0]-1
             
             rhop = rhopre[ilast]
@@ -252,12 +251,12 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=5):
             bar = vs*(rhos*Es+ps)
             err2 = abs(foo-bar)/min(foo,bar) 
             
-            errs.append(sqrt(err1**2+err2**2))
+            errs.append(np.sqrt(err1**2+err2**2))
             ilasts.append(ilast)
             irels.append(irel)
             irel += 1
 
-        ierr = array(errs).argmin()
+        ierr = np.array(errs).argmin()
         ilast = ilasts[ierr]
         irel = irels[ierr]
         print('min relative error in jump conditions =', min(errs))
@@ -273,31 +272,31 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=5):
         xpre =  xpre - xpre[ilast+1]
         x1   =  x1 - xrel[irel]
         xrel =  xrel - xrel[irel]
-        x    =  append(xpre[0:ilast+1], xrel[irel:])
+        x    =  np.append(xpre[0:ilast+1], xrel[irel:])
         
         
         
-        T = append(Tpre[0:ilast+1], Trel[irel:])
-        theta = append(thetapre[0:ilast+1], thetarel[irel:])
-        M = append(Mpre[0:ilast+1], Mrel[irel:])
-        v = append(vpre[0:ilast+1], vrel[irel:])
-        rho = append(rhopre[0:ilast+1], rhorel[irel:])
+        T = np.append(Tpre[0:ilast+1], Trel[irel:])
+        theta = np.append(thetapre[0:ilast+1], thetarel[irel:])
+        M = np.append(Mpre[0:ilast+1], Mrel[irel:])
+        v = np.append(vpre[0:ilast+1], vrel[irel:])
+        rho = np.append(rhopre[0:ilast+1], rhorel[irel:])
         
         print('test:')
         print('testx0',x0)
         print('testx1', x1)
         
-        x = append(x0,x)
-        T = append(T0,T)
-        theta = append(theta0,theta)
-        rho = append(rho0,rho)
-        v = append(v0,v)
+        x = np.append(x0,x)
+        T = np.append(T0,T)
+        theta = np.append(theta0,theta)
+        rho = np.append(rho0,rho)
+        v = np.append(v0,v)
     
-        x = append(x,x1)
-        T = append(T,T1)
-        theta = append(theta,theta1)
-        rho = append(rho,rho1)
-        v = append(v,v1)
+        x = np.append(x,x1)
+        T = np.append(T,T1)
+        theta = np.append(theta,theta1)
+        rho = np.append(rho,rho1)
+        v = np.append(v,v1)
         #plot(x,rho)
     
         
@@ -324,16 +323,16 @@ if __name__ == "__main__":
 
         x1 = np.array(x1) - x1[max_index]
         plt.figure(1)
-        plt.plot(x1,temp1, '-.', label="simulation")
-        plt.plot(x_sol*1e5, T_sol*100, '--', label="solution")
-        legend()
+        plt.plot(x1,temp1, '.', label="Simulation")
+        plt.plot(x_sol*1e5, T_sol*100, '-', label="Solution")
+        plt.legend()
         plt.savefig("{}_Temp_Test.png".format(os.path.basename(args.plotfile)))
 
         
         t1, x1, rho1 = get_x_var(args.plotfile, "density")
         x1 = np.array(x1) - x1[max_index]
         plt.figure(2)
-        plt.plot(x1, rho1, '-.', label='1d_sim')
-        plt.plot(x_sol*1e5, rho_sol*5.459690277750901e-13,'--',label='solution')
-        legend()
+        plt.plot(x1, rho1, '.', label='Simulation')
+        plt.plot(x_sol*1e5, rho_sol*5.459690277750901e-13,'-',label='Solution')
+        plt.legend()
         plt.savefig("{}_Density_Test.png".format(os.path.basename(args.plotfile)))
