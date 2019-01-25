@@ -336,4 +336,4 @@ if __name__ == "__main__":
         plt.plot(x1, rho1, '-.', label='1d_sim')
         plt.plot(x_sol*1e5, rho_sol*5.459690277750901e-13,'--',label='solution')
         legend()
-        plt.savefig("{}_Desnity_Test.png".format(os.path.basename(args.plotfile)))
+        plt.savefig("{}_Density_Test.png".format(os.path.basename(args.plotfile)))
