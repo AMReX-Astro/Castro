@@ -1,5 +1,9 @@
 #!/usr/bin/python
-
+"""
+This is a script to run the analytical solution of Rad2TShock. This will take that solution and
+with a user inputed plotfile, will produce graphs of the solutions to density and temperature
+vs the plot files.
+"""
 import sys, getopt
 from numpy import *
 from pylab import *
