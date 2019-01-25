@@ -607,26 +607,22 @@ contains
                         area3, area3_lo, area3_hi, &
 #endif
                         vol,vol_lo,vol_hi, &
-                        div, div_lo, div_hi, &
                         pdivu, pdivu_lo, pdivu_hi, &
-                        dx, dt, &
-                        verbose) bind(C, name="ctu_consup")
+                        dx, dt) bind(C, name="ctu_consup")
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UTEMP, NGDNV, NQ, &
-                                   GDPRES, &
 #ifdef RADIATION
                                    fspace_type, comoving, &
                                    GDU, GDV, GDW, GDLAMS, GDERADS, &
 #endif
-                                   track_grid_losses, limit_fluxes_on_small_dens
-    use advection_util_module, only : limit_hydro_fluxes_on_small_dens, normalize_species_fluxes, calc_pdivu, apply_av
+                                   GDPRES
+    use advection_util_module, only : calc_pdivu
     use prob_params_module, only : mom_flux_has_p, center, dg
 #ifdef RADIATION
     use rad_params_module, only : ngroups, nugroup, dlognu
     use radhydro_nd_module, only : advect_in_fspace
     use fluxlimiter_module, only : Edd_factor
-    use advection_util_module, only : apply_av_rad
 #endif
 #ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only : add_hybrid_advection_source
@@ -656,7 +652,6 @@ contains
 #endif
     integer, intent(in) ::    qx_lo(3),    qx_hi(3)
     integer, intent(in) ::   vol_lo(3),   vol_hi(3)
-    integer, intent(in) ::   div_lo(3),   div_hi(3)
     integer, intent(in) ::   pdivu_lo(3),   pdivu_hi(3)
 #ifdef RADIATION
     integer, intent(in) :: Erout_lo(3), Erout_hi(3)
@@ -670,8 +665,6 @@ contains
 #endif
     integer, intent(inout) :: nstep_fsp
 #endif
-
-    integer, intent(in) :: verbose
 
     real(rt), intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
     real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
@@ -696,9 +689,9 @@ contains
 #endif
 
     real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    real(rt), intent(in) :: div(div_lo(1):div_hi(1),div_lo(2):div_hi(2),div_lo(3):div_hi(3))
     real(rt), intent(inout) :: pdivu(pdivu_lo(1):pdivu_hi(1),pdivu_lo(2):pdivu_hi(2),pdivu_lo(3):pdivu_hi(3))
-    real(rt), intent(in) :: dx(3), dt
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(in), value :: dt
 
 #ifdef RADIATION
     real(rt), intent(in) :: Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
@@ -713,10 +706,9 @@ contains
 
 #endif
 
-    real(rt)         :: div1, volinv
-    integer          :: i, j, g, k, n
-    integer          :: domlo(3), domhi(3)
-
+    integer :: i, j, g, k, n
+    integer :: domlo(3), domhi(3)
+    real(rt) :: volInv
 
 #ifdef RADIATION
     real(rt), dimension(0:ngroups-1) :: Erscale
@@ -743,18 +735,18 @@ contains
 #endif
 
     call calc_pdivu(lo, hi, &
-                    qx, qx_lo, qx_hi, &
-                    area1, area1_lo, area1_hi, &
+         qx, qx_lo, qx_hi, &
+         area1, area1_lo, area1_hi, &
 #if AMREX_SPACEDIM >= 2
-                    qy, qy_lo, qy_hi, &
-                    area2, area2_lo, area2_hi, &
+         qy, qy_lo, qy_hi, &
+         area2, area2_lo, area2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-                    qz, qz_lo, qz_hi, &
-                    area3, area3_lo, area3_hi, &
+         qz, qz_lo, qz_hi, &
+         area3, area3_lo, area3_hi, &
 #endif
-                    vol, vol_lo, vol_hi, &
-                    dx, pdivu, lo, hi)
+         vol, vol_lo, vol_hi, &
+         dx, pdivu, lo, hi)
 
 
     ! For hydro, we will create an update source term that is
@@ -1303,7 +1295,6 @@ contains
                            dloga, dloga_lo, dloga_hi, &
 #endif
                            vol, vol_lo, vol_hi, &
-                           verbose, &
 #ifdef RADIATION
                            nstep_fsp, &
 #endif
@@ -1316,7 +1307,7 @@ contains
                                    QPTOT, &
 #endif
                                    use_flattening, first_order_hydro, track_grid_losses
-    use advection_util_module, only : divu, scale_flux
+    use advection_util_module, only : divu, scale_flux, store_pradial
     use amrex_constants_module, only : ZERO, ONE
     use flatten_module, only: ca_uflatten
     use prob_params_module, only : mom_flux_has_p, dg, coord_type
@@ -1336,7 +1327,7 @@ contains
     integer, intent(inout) :: nstep_fsp
 #endif
     integer, intent(in) :: is_finest_level
-    integer, intent(in) :: lo(3), hi(3), verbose
+    integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
     integer, intent(in) :: uin_lo(3), uin_hi(3)
     integer, intent(in) :: uout_lo(3), uout_hi(3)
@@ -1420,7 +1411,8 @@ contains
     real(rt)        , intent(inout) :: pradial(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
 #endif
 
-    real(rt)        , intent(in) :: dx(3), dt, time
+    real(rt)        , intent(in) :: dx(3)
+    real(rt), intent(in), value :: dt, time
 
     real(rt)        , intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
     real(rt)        , intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
@@ -2523,10 +2515,8 @@ contains
                     area3, area3_lo, area3_hi, &
 #endif
                     vol, vol_lo, vol_hi, &
-                    div, lo, hi+dg, &
                     pdivu, lo, hi, &
-                    dx, dt, &
-                    verbose)
+                    dx, dt)
 
     call bl_deallocate(pdivu)
     call bl_deallocate(shk)
@@ -2570,9 +2560,11 @@ contains
 #endif
 #endif
 
+#if AMREX_SPACEDIM <= 2
     call store_pradial(lo, [hi(1)+1, hi(2), hi(3)], &
                        q1, q1_lo, q1_hi, &
-                       pradial, p_lo, p_hi)
+                       pradial, p_lo, p_hi, dt)
+#endif
 
     ! Add up some diagnostic quantities. Note that we are not dividing by the cell volume.
 

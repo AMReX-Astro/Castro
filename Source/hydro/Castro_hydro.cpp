@@ -278,7 +278,7 @@ Castro::construct_hydro_source(Real time, Real dt)
     MultiFab rad_flux[BL_SPACEDIM];
 #endif
 
-#if AMREX_SPACEDIM < 2
+#if AMREX_SPACEDIM <= 2
     MultiFab pradial;
 #endif
 
@@ -288,7 +288,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 #ifdef RADIATION
       rad_flux[i].define(getEdgeBoxArray(i), dmap, Radiation::nGroups, 0);
 #endif
-#if AMREX_SPACEDIM < 2
+#if AMREX_SPACEDIM <= 2
       if (i == 0) {
         // technically, we only need this for non-Cartesian geometry
         pradial.define(getEdgeBoxArray(i), dmap, 1, 0);
@@ -299,6 +299,8 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 #if AMREX_SPACEDIM >= 2
     MultiFab ftmp1;
+    ftmp1.define(grids, dmap, NUM_STATE, 2);
+
     MultiFab ftmp2;
 
 #ifdef RADIATION
@@ -345,7 +347,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       cmpflx_plus_godunov(ARLIM_3D(nxbx.loVect()), ARLIM_3D(nxbx.hiVect()),
                           BL_TO_FORTRAN_ANDYD(qym[mfi]),
-                          BL_TO_FORTRAN_ANDYD(qyp[mfi]), 1, 1
+                          BL_TO_FORTRAN_ANDYD(qyp[mfi]), 1, 1,
                           BL_TO_FORTRAN_ANDYD(flux[0][mfi]),
                           BL_TO_FORTRAN_ANDYD(q_int[mfi]),
 #ifdef RADIATION
@@ -362,26 +364,32 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif // 1-d
 
 #if AMREX_SPACEDIM == 2
+
+    const amrex::Real hdt = 0.5*dt;
+    const amrex::Real hdtdx = dt/dx[0];
+    const amrex::Real hdtdy = dt/dx[1];
+
+
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
       // compute F^x
       // [lo(1), lo(2)-1, 0], [hi(1)+1, hi(2)+1, 0]
-      const Box& cxbx = mfi.grownnodaltilebox(0,IntVect(AMREX_D_DECL(0,1,0)));
+      const Box& cxbx = mfi.grownnodaltilebox(0, IntVect(AMREX_D_DECL(0,1,0)));
 
       // ftmp1 = fx
       // rftmp1 = rfx
       // qgdnvtmp1 = qgdnxv
       cmpflx_plus_godunov(ARLIM_3D(cxbx.loVect()), ARLIM_3D(cxbx.hiVect()),
                           BL_TO_FORTRAN_ANYD(qxm[mfi]),
-                          BL_TO_FORTRAN_ANYD(qxp[mfi]), 1, 1
-                          BL_TO_FORTRAN_ANYD(fmp1[mfi]),
+                          BL_TO_FORTRAN_ANYD(qxp[mfi]), 1, 1,
+                           BL_TO_FORTRAN_ANYD(ftmp1[mfi]),
                           BL_TO_FORTRAN_ANYD(q_int[mfi]),
 #ifdef RADIATION
-                          BL_TO_FORTRAN_ANYD(rtmp1[mfi]),
+                          BL_TO_FORTRAN_ANYD(rftmp1[mfi]),
                           BL_TO_FORTRAN_ANYD(lambda_int[mfi]),
 #endif
                           BL_TO_FORTRAN_ANYD(qgdnvtmp1[mfi]),
-                          BL_TO_FORTRAN_ANYD(qaux),
-                          BL_TO_FORTRAN_ANYD(shk),
+                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                          BL_TO_FORTRAN_ANYD(shk[mfi]),
                           1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
     }
 
@@ -395,22 +403,24 @@ Castro::construct_hydro_source(Real time, Real dt)
       // rftmp2 = rfy
       cmpflx_plus_godunov(ARLIM_3D(cybx.loVect()), ARLIM_3D(cybx.hiVect()),
                           BL_TO_FORTRAN_ANYD(qym[mfi]),
-                          BL_TO_FORTRAN_ANYD(qyp[mfi]), 1, 1
-                          BL_TO_FORTRAN_ANYD(fmp2[mfi]),
+                          BL_TO_FORTRAN_ANYD(qyp[mfi]), 1, 1,
+                          BL_TO_FORTRAN_ANYD(ftmp2[mfi]),
                           BL_TO_FORTRAN_ANYD(q_int[mfi]),
 #ifdef RADIATION
                           BL_TO_FORTRAN_ANYD(rtmp2[mfi]),
                           BL_TO_FORTRAN_ANYD(lambda_int[mfi]),
 #endif
                           BL_TO_FORTRAN_ANYD(qe[1][mfi]),
-                          BL_TO_FORTRAN_ANYD(qaux),
-                          BL_TO_FORTRAN_ANYD(shk),
+                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                          BL_TO_FORTRAN_ANYD(shk[mfi]),
                           2, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
     }
 
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       // add the transverse flux difference in y to the x states
+      const Box& bx = mfi.validbox();
+
       // [lo(1)-1, lo(2), 0], [hi(1)+1, hi(2), 0]
       const Box& tybx = mfi.growntilebox(IntVect(AMREX_D_DECL(1,0,0)));
 
@@ -420,15 +430,15 @@ Castro::construct_hydro_source(Real time, Real dt)
              BL_TO_FORTRAN_ANYD(qxm[mfi]),
              BL_TO_FORTRAN_ANYD(ql[mfi]),
              BL_TO_FORTRAN_ANYD(qxp[mfi]),
-             BL_TO_FORTRAN_ANYD(qr[mfi)),
+             BL_TO_FORTRAN_ANYD(qr[mfi]),
              BL_TO_FORTRAN_ANYD(qaux[mfi]),
              BL_TO_FORTRAN_ANYD(ftmp2[mfi]),
 #ifdef RADIATION
              BL_TO_FORTRAN_ANYD(rftmp2[mfi]),
 #endif
              BL_TO_FORTRAN_ANYD(qe[1][mfi]),
-             hdtdy, &
-             lo, hi);
+             hdtdy,
+             ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()));
     }
 
 
@@ -440,7 +450,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       cmpflx_plus_godunov(ARLIM_3D(cxbx2.loVect()), ARLIM_3D(cxbx2.hiVect()),
                           BL_TO_FORTRAN_ANYD(ql[mfi]),
-                          BL_TO_FORTRAN_ANYD(qr[mfi]), 1, 1
+                          BL_TO_FORTRAN_ANYD(qr[mfi]), 1, 1,
                           BL_TO_FORTRAN_ANYD(flux[0][mfi]),
                           BL_TO_FORTRAN_ANYD(q_int[mfi]),
 #ifdef RADIATION
@@ -448,8 +458,8 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(lambda_int[mfi]),
 #endif
                           BL_TO_FORTRAN_ANYD(qe[0][mfi]),
-                          BL_TO_FORTRAN_ANYD(qaux),
-                          BL_TO_FORTRAN_ANYD(shk),
+                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                          BL_TO_FORTRAN_ANYD(shk[mfi]),
                           1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
     }
 
@@ -457,17 +467,20 @@ Castro::construct_hydro_source(Real time, Real dt)
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       // add the transverse flux difference in x to the y states
+      const Box& bx = mfi.validbox();
+
       // [lo(1), lo(2)-1, 0], [hi(1), hi(2)+1, 0]
       const Box& txbx = mfi.growntilebox(IntVect(AMREX_D_DECL(0,1,0)));
 
       // ftmp1 = fx
       // rftmp1 = rfx
       // qgdnvtmp1 = qgdnvx
+
       transx(ARLIM_3D(txbx.loVect()), ARLIM_3D(txbx.hiVect()),
              BL_TO_FORTRAN_ANYD(qym[mfi]),
              BL_TO_FORTRAN_ANYD(ql[mfi]),
              BL_TO_FORTRAN_ANYD(qyp[mfi]),
-             BL_TO_FORTRAN_ANYD(qr[mfi)),
+             BL_TO_FORTRAN_ANYD(qr[mfi]),
              BL_TO_FORTRAN_ANYD(qaux[mfi]),
              BL_TO_FORTRAN_ANYD(ftmp1[mfi]),
 #ifdef RADIATION
@@ -476,8 +489,8 @@ Castro::construct_hydro_source(Real time, Real dt)
              BL_TO_FORTRAN_ANYD(qgdnvtmp1[mfi]),
              BL_TO_FORTRAN_ANYD(area[0][mfi]),
              BL_TO_FORTRAN_ANYD(volume[mfi]),
-             hdt, hdtdx, &
-             ARLIM_3D(lo), ARLIM_3D(hi));
+             hdt, hdtdx,
+             ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()));
 
     }
 
@@ -488,9 +501,9 @@ Castro::construct_hydro_source(Real time, Real dt)
       // [lo(1), lo(2), 0], [hi(1), hi(2)+1, 0]
       const Box& cybx2 = mfi.nodaltilebox(1);
 
-      cmpflx_plus_godunov(ARLIM_3D(cxbx2.loVect()), ARLIM_3D(cxbx2.hiVect()),
+      cmpflx_plus_godunov(ARLIM_3D(cybx2.loVect()), ARLIM_3D(cybx2.hiVect()),
                           BL_TO_FORTRAN_ANYD(ql[mfi]),
-                          BL_TO_FORTRAN_ANYD(qr[mfi]), 1, 1
+                          BL_TO_FORTRAN_ANYD(qr[mfi]), 1, 1,
                           BL_TO_FORTRAN_ANYD(flux[1][mfi]),
                           BL_TO_FORTRAN_ANYD(q_int[mfi]),
 #ifdef RADIATION
@@ -498,8 +511,8 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(lambda_int[mfi]),
 #endif
                           BL_TO_FORTRAN_ANYD(qe[1][mfi]),
-                          BL_TO_FORTRAN_ANYD(qaux),
-                          BL_TO_FORTRAN_ANYD(shk),
+                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                          BL_TO_FORTRAN_ANYD(shk[mfi]),
                           2, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
     }
 
@@ -538,6 +551,9 @@ Castro::construct_hydro_source(Real time, Real dt)
   }
 
 
+  MultiFab pdivu;
+  pdivu.define(grids, dmap, 1, 0);
+
   // conservative update
   for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
     const Box& bx = mfi.tilebox();
@@ -566,12 +582,11 @@ Castro::construct_hydro_source(Real time, Real dt)
                       BL_TO_FORTRAN_ANYD(area[1][mfi]),
                       BL_TO_FORTRAN_ANYD(area[2][mfi])),
                BL_TO_FORTRAN_ANYD(volume[mfi]),
-               BL_TO_FORTRAN_ANYD(div[mfi]),
                BL_TO_FORTRAN_ANYD(pdivu[mfi]),
-               ZFILL(dx), dt, &
-               verbose)
+               ZFILL(dx), dt);
+  }
 
-      }
+  pdivu.clear();
 
   // scale the fluxes and store them
   for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {

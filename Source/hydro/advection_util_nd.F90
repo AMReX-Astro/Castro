@@ -7,7 +7,7 @@ module advection_util_module
 
   public ca_enforce_minimum_density, ca_compute_cfl, ca_ctoprim, ca_srctoprim, dflux, &
          limit_hydro_fluxes_on_small_dens, ca_shock, divu, calc_pdivu, normalize_species_fluxes, &
-         scale_flux, apply_av, ca_construct_hydro_update_cuda
+         scale_flux, apply_av, store_pradial, ca_construct_hydro_update_cuda
 #ifdef RADIATION
   public apply_av_rad, scale_rad_flux
 #endif
@@ -1927,10 +1927,20 @@ contains
                            qint, qi_lo, qi_hi, &
                            pradial, p_lo, p_hi, dt) bind(C, name="store_pradial")
 
-    use meth_params_module, only: GDPRES, mom_flux_has_p
-    use prob_params_module, only : coord_type
+    use meth_params_module, only: GDPRES, NGDNV, UMX
+    use prob_params_module, only : coord_type, mom_flux_has_p
 
     implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: qi_lo(3), qi_hi(3)
+    integer, intent(in) :: p_lo(3), p_hi(3)
+
+    real(rt), intent(in) :: qint(qi_lo(1):qi_hi(1), qi_lo(2):qi_hi(2), qi_lo(3):qi_hi(3), NGDNV)
+    real(rt), intent(out) :: pradial(p_lo(1):p_hi(1), p_lo(2):p_hi(2), p_lo(3):p_hi(3))
+    real(rt), intent(in), value :: dt
+
+    integer :: i, j, k
 
 #if AMREX_SPACEDIM == 1
     if (coord_type > 0) then
