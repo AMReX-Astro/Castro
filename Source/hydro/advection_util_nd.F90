@@ -1024,7 +1024,7 @@ contains
 
              if (rho < density_floor) then
 
-                rhoLF = u(i,j,k,URHO) + TWO * (dt / alpha_x) * (area2(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
+                rhoLF = u(i,j,k,URHO) + TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
 
                 thetam = (density_floor - rhoLF) / (rho - rhoLF)
 
@@ -1097,7 +1097,7 @@ contains
 
              if (rho < density_floor) then
 
-                rhoLF = u(i,j,k,URHO) + TWO * (dt / alpha_x) * (area3(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
+                rhoLF = u(i,j,k,URHO) + TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
 
                 thetam = (density_floor - rhoLF) / (rho - rhoLF)
 
