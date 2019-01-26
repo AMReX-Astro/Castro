@@ -597,7 +597,8 @@ extern "C"
   void store_pradial
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(qe),
-     BL_FORT_FAB_ARG_3D(pradial));
+     BL_FORT_FAB_ARG_3D(pradial),
+     const amrex::Real dt);
 
   void ca_track_grid_losses
     (const int* lo, const int* hi,
