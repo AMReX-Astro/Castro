@@ -924,7 +924,9 @@ contains
 
              ! Obtain the one-sided update to the density, based on Hu et al., Eq. 11.
 
-             rho = u(i-1,j,k,URHO) - TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * flux1(i,j,k,URHO)
+             drho = TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * flux1(i,j,k,URHO)
+
+             rho = u(i-1,j,k,URHO) - drho
 
              if (rho < density_floor) then
 
@@ -940,7 +942,7 @@ contains
 
              ! Now do the minus state.
 
-             rho = u(i,j,k,URHO) + TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * flux1(i,j,k,URHO)
+             rho = u(i,j,k,URHO) + drho
 
              if (rho < density_floor) then
 
@@ -1006,7 +1008,9 @@ contains
              thetap = ONE
              thetam = ONE
 
-             rho = u(i,j-1,k,URHO) - TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * flux2(i,j,k,URHO)
+             drho = TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * flux2(i,j,k,URHO)
+
+             rho = u(i,j-1,k,URHO) - drho
 
              if (rho < density_floor) then
 
@@ -1016,7 +1020,7 @@ contains
 
              endif
 
-             rho = u(i,j,k,URHO) + TWO * (dt / alpha_x) * (area2(i,j,k) / vol(i,j,k)) * flux2(i,j,k,URHO)
+             rho = u(i,j,k,URHO) + drho
 
              if (rho < density_floor) then
 
@@ -1077,7 +1081,9 @@ contains
              thetap = ONE
              thetam = ONE
 
-             rho = u(i,j,k-1,URHO) - TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * flux3(i,j,k,URHO)
+             drho = TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * flux3(i,j,k,URHO)
+
+             rho = u(i,j,k-1,URHO) - drho
 
              if (rho < density_floor) then
 
@@ -1087,7 +1093,7 @@ contains
 
              endif
 
-             rho = u(i,j,k,URHO) + TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * flux3(i,j,k,URHO)
+             rho = u(i,j,k,URHO) + drho
 
              if (rho < density_floor) then
 
