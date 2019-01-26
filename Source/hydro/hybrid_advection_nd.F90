@@ -260,6 +260,7 @@ contains
        u_adv = state(GDW)
 #ifndef AMREX_USE_CUDA
     else
+       print *, idir
        call amrex_error("Error: unknown direction in compute_hybrid_flux.")
 #endif
     endif
