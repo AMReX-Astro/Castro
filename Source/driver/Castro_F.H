@@ -681,7 +681,7 @@ extern "C"
   void ca_ctu_update
     (const int    lo[], const int    hi[],
      const int* is_finest_level,
-     const amrex::Real* time,
+     const amrex::Real time,
      const int domlo[], const int domhi[],
      const BL_FORT_FAB_ARG_3D(state),
      BL_FORT_FAB_ARG_3D(stateout),
@@ -693,7 +693,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(qaux),
      const BL_FORT_FAB_ARG_3D(src_q),
      BL_FORT_FAB_ARG_3D(update),
-     const amrex::Real dx[], const amrex::Real* dt,
+     const amrex::Real dx[], const amrex::Real dt,
      D_DECL(BL_FORT_FAB_ARG_3D(xflux),
             BL_FORT_FAB_ARG_3D(yflux),
             BL_FORT_FAB_ARG_3D(zflux)),
@@ -702,17 +702,14 @@ extern "C"
             BL_FORT_FAB_ARG_3D(ryflux),
             BL_FORT_FAB_ARG_3D(rzflux)),
 #endif
-#if (BL_SPACEDIM < 3)
-     BL_FORT_FAB_ARG_3D(pradial),
-#endif
      D_DECL(const BL_FORT_FAB_ARG_3D(xarea),
             const BL_FORT_FAB_ARG_3D(yarea),
             const BL_FORT_FAB_ARG_3D(zarea)),
 #if (BL_SPACEDIM < 3)
+     BL_FORT_FAB_ARG_3D(pradial),
      const BL_FORT_FAB_ARG_3D(dloga),
 #endif
      const BL_FORT_FAB_ARG_3D(volume),
-     const int&  verbose,
 #ifdef RADIATION
      const int* priv_nstep_fsp,
 #endif
