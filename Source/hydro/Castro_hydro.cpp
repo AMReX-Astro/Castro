@@ -318,22 +318,40 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 #if AMREX_SPACEDIM == 3
   MultiFab qmxy;
+  qmxy.define(grids, dmap, NQ, 2);
+;
   MultiFab qpxy;
+  qpxy.define(grids, dmap, NQ, 2);
 
   MultiFab qmxz;
+  qmxz.define(grids, dmap, NQ, 2);
+
   MultiFab qpxz;
+  qpxz.define(grids, dmap, NQ, 2);
 
   MultiFab qmyx;
+  qmyx.define(grids, dmap, NQ, 2);
+
   MultiFab qpyx;
+  qpyx.define(grids, dmap, NQ, 2);
 
   MultiFab qmyz;
+  qmyz.define(grids, dmap, NQ, 2);
+
   MultiFab qpyz;
+  qpyz.define(grids, dmap, NQ, 2);
 
   MultiFab qmzx;
+  qmzx.define(grids, dmap, NQ, 2);
+
   MultiFab qpzx;
+  qpzx.define(grids, dmap, NQ, 2);
 
   MultiFab qmzy;
+  qmzy.define(grids, dmap, NQ, 2);
+
   MultiFab qpzy;
+  qpzy.define(grids, dmap, NQ, 2);
 #endif
 
 #ifdef _OPENMP
@@ -527,37 +545,290 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 #if AMREX_SPACEDIM == 3
 
+    const amrex::Real hdt = 0.5*dt;
+
+    const amrex::Real hdtdx = 0.5*dt/dx[0];
+    const amrex::Real hdtdy = 0.5*dt/dx[1];
+    const amrex::Real hdtdz = 0.5*dt/dx[2];
+
+    const amrex::Real cdtdx = third*dt/dx[0];
+    const amrex::Real cdtdy = third*dt/dx[1];
+    const amrex::Real cdtdz = third*dt/dx[2];
+
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+      // compute F^x
+      // [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1]
+      const Box& cxbx = mfi.grownnodaltilebox(0, IntVect(AMREX_D_DECL(0,1,1)));
+
+      // ftmp1 = fx
+      // rftmp1 = rfx
+      // qgdnvtmp1 = qgdnxv
+      cmpflx_plus_godunov(ARLIM_3D(cxbx.loVect()), ARLIM_3D(cxbx.hiVect()),
+                          BL_TO_FORTRAN_ANYD(qxm[mfi]),
+                          BL_TO_FORTRAN_ANYD(qxp[mfi]), 1, 1,
+                          BL_TO_FORTRAN_ANYD(ftmp1[mfi]),
+                          BL_TO_FORTRAN_ANYD(q_int[mfi]),
+#ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(rftmp1[mfi]),
+                          BL_TO_FORTRAN_ANYD(lambda_int[mfi]),
+#endif
+                          BL_TO_FORTRAN_ANYD(qgdnvtmp1[mfi]),
+                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                          BL_TO_FORTRAN_ANYD(shk[mfi]),
+                          1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+    }
+
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+      // add the transverse flux difference in x to the y and z states
+      const Box& bx = mfi.validbox();
+
+      // [lo(1), lo(2)-1, lo(3)-1], [hi(1), hi(2)+1, hi(3)+1]
+      const Box& txbx = mfi.growntilebox(IntVect(AMREX_D_DECL(0,1,1)));
+
+      // ftmp1 = fx
+      // rftmp1 = rfx
+      // qgdnvtmp1 = qgdnvx
+      transx(ARLIM_3D(txbx.loVect()), ARLIM_3D(txbx.hiVect()),
+             BL_TO_FORTRAN_ANYD(qym[mfi]),
+             BL_TO_FORTRAN_ANYD(qmyx[mfi]),
+             BL_TO_FORTRAN_ANYD(qyp[mfi]),
+             BL_TO_FORTRAN_ANYD(qpyx[mfi]),
+             BL_TO_FORTRAN_ANYD(qzm[mfi]),
+             BL_TO_FORTRAN_ANYD(qmzx[mfi]),
+             BL_TO_FORTRAN_ANYD(qzp[mfi]),
+             BL_TO_FORTRAN_ANYD(qpzx[mfi]),
+             BL_TO_FORTRAN_ANYD(qaux[mfi]),
+             BL_TO_FORTRAN_ANYD(ftmp1[mfi]),
+#ifdef RADIATION
+             BL_TO_FORTRAN_ANYD(rftmp1[mfi]),
+#endif
+             BL_TO_FORTRAN_ANYD(qgdnvtmp1[mfi]),
+             hdt, cdtdx,
+             ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()));
+
+    }
+
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+      // compute F^y
+      // [lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1]
+      const Box& cybx = mfi.grownnodaltilebox(1,IntVect(AMREX_D_DECL(1,0,1)));
+
+      // ftmp1 = fy
+      // rftmp1 = rfy
+      // qgdnvtmp1 = qgdnvy
+      cmpflx_plus_godunov(ARLIM_3D(cybx.loVect()), ARLIM_3D(cybx.hiVect()),
+                          BL_TO_FORTRAN_ANYD(qym[mfi]),
+                          BL_TO_FORTRAN_ANYD(qyp[mfi]), 1, 1,
+                          BL_TO_FORTRAN_ANYD(ftmp1[mfi]),
+                          BL_TO_FORTRAN_ANYD(q_int[mfi]),
+#ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(rftmp1[mfi]),
+                          BL_TO_FORTRAN_ANYD(lambda_int[mfi]),
+#endif
+                          BL_TO_FORTRAN_ANYD(qgdnvtmp1[mfi]),
+                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                          BL_TO_FORTRAN_ANYD(shk[mfi]),
+                          2, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+    }
+
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+      // add the transverse flux difference in y to the x and z states
+      const Box& bx = mfi.validbox();
+
+      // [lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2), lo(3)+1]
+      const Box& tybx = mfi.growntilebox(IntVect(AMREX_D_DECL(1,0,1)));
+
+      // ftmp1 = fy
+      // rftmp1 = rfy
+      // qgdnvtmp1 = qgdnvy
+      transy(ARLIM_3D(tybx.loVect()), ARLIM_3D(tybx.hiVect()),
+             BL_TO_FORTRAN_ANYD(qxm[mfi]),
+             BL_TO_FORTRAN_ANYD(qmxy[mfi]),
+             BL_TO_FORTRAN_ANYD(qxp[mfi]),
+             BL_TO_FORTRAN_ANYD(qpxy[mfi]),
+             BL_TO_FORTRAN_ANYD(qzm[mfi]),
+             BL_TO_FORTRAN_ANYD(qmzy[mfi]),
+             BL_TO_FORTRAN_ANYD(qzp[mfi]),
+             BL_TO_FORTRAN_ANYD(qpzy[mfi]),
+             BL_TO_FORTRAN_ANYD(qaux[mfi]),
+             BL_TO_FORTRAN_ANYD(ftmp1[mfi]),
+#ifdef RADIATION
+             BL_TO_FORTRAN_ANYD(rftmp1[mfi]),
+#endif
+             BL_TO_FORTRAN_ANYD(qgdnvtmp1[mfi]),
+             cdtdy,
+             ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()));
+    }
+
+
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+      // compute F^z
+      // [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1]
+      const Box& czbx = mfi.grownnodaltilebox(2,IntVect(AMREX_D_DECL(1,1,0)));
+
+      // ftmp1 = fz
+      // rftmp1 = rfz
+      // qgdnvtmp1 = qgdnvz
+      cmpflx_plus_godunov(ARLIM_3D(cybx.loVect()), ARLIM_3D(cybx.hiVect()),
+                          BL_TO_FORTRAN_ANYD(qzm[mfi]),
+                          BL_TO_FORTRAN_ANYD(qzp[mfi]), 1, 1,
+                          BL_TO_FORTRAN_ANYD(ftmp1[mfi]),
+                          BL_TO_FORTRAN_ANYD(q_int[mfi]),
+#ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(rftmp1[mfi]),
+                          BL_TO_FORTRAN_ANYD(lambda_int[mfi]),
+#endif
+                          BL_TO_FORTRAN_ANYD(qgdnvtmp1[mfi]),
+                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                          BL_TO_FORTRAN_ANYD(shk[mfi]),
+                          3, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+    }
+
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+      // add the transverse flux difference in z to the x and y states
+      const Box& bx = mfi.validbox();
+
+      // [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, lo(3)]
+      const Box& tybx = mfi.growntilebox(IntVect(AMREX_D_DECL(1,1,0)));
+
+      // ftmp1 = fz
+      // rftmp1 = rfz
+      // qgdnvtmp1 = qgdnvz
+      transz(ARLIM_3D(tybx.loVect()), ARLIM_3D(tybx.hiVect()),
+             BL_TO_FORTRAN_ANYD(qxm[mfi]),
+             BL_TO_FORTRAN_ANYD(qmxz[mfi]),
+             BL_TO_FORTRAN_ANYD(qxp[mfi]),
+             BL_TO_FORTRAN_ANYD(qpxz[mfi]),
+             BL_TO_FORTRAN_ANYD(qym[mfi]),
+             BL_TO_FORTRAN_ANYD(qmyz[mfi]),
+             BL_TO_FORTRAN_ANYD(qyp[mfi]),
+             BL_TO_FORTRAN_ANYD(qpyz[mfi]),
+             BL_TO_FORTRAN_ANYD(qaux[mfi]),
+             BL_TO_FORTRAN_ANYD(ftmp1[mfi]),
+#ifdef RADIATION
+             BL_TO_FORTRAN_ANYD(rftmp1[mfi]),
+#endif
+             BL_TO_FORTRAN_ANYD(qgdnvtmp1[mfi]),
+             cdtdz,
+             ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()));
+    }
+
+    // we now have q?zx, q?yx, q?zy, q?xy, q?yz, q?xz
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+      // compute F^{y|z}
+      // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+1, hi(3)]
+      const Box& cybx = mfi.grownnodaltilebox(1,IntVect(AMREX_D_DECL(1,0,0)));
+
+      // ftmp1 = fyz
+      // rftmp1 = rfyz
+      // qgdnvtmp1 = qgdnvyz
+      cmpflx_plus_godunov(ARLIM_3D(cybx.loVect()), ARLIM_3D(cybx.hiVect()),
+                          BL_TO_FORTRAN_ANYD(qmyz[mfi]),
+                          BL_TO_FORTRAN_ANYD(qpyz[mfi]), 1, 1,
+                          BL_TO_FORTRAN_ANYD(ftmp1[mfi]),
+                          BL_TO_FORTRAN_ANYD(q_int[mfi]),
+#ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(rftmp1[mfi]),
+                          BL_TO_FORTRAN_ANYD(lambda_int[mfi]),
+#endif
+                          BL_TO_FORTRAN_ANYD(qgdnvtmp1[mfi]),
+                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                          BL_TO_FORTRAN_ANYD(shk[mfi]),
+                          2, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+    }
+
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+      // compute F^{z|y}
+      // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+1]
+      const Box& czbx = mfi.grownnodaltilebox(2,IntVect(AMREX_D_DECL(1,0,0)));
+
+      // ftmp2 = fzy
+      // rftmp2 = rfzy
+      // qgdnvtmp2 = qgdnvzy
+      cmpflx_plus_godunov(ARLIM_3D(czbx.loVect()), ARLIM_3D(czbx.hiVect()),
+                          BL_TO_FORTRAN_ANYD(qmzy[mfi]),
+                          BL_TO_FORTRAN_ANYD(qpzy[mfi]), 1, 1,
+                          BL_TO_FORTRAN_ANYD(ftmp2[mfi]),
+                          BL_TO_FORTRAN_ANYD(q_int[mfi]),
+#ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(rftmp2[mfi]),
+                          BL_TO_FORTRAN_ANYD(lambda_int[mfi]),
+#endif
+                          BL_TO_FORTRAN_ANYD(qgdnvtmp2[mfi]),
+                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                          BL_TO_FORTRAN_ANYD(shk[mfi]),
+                          3, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+    }
+
+
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+      const Box& bx = mfi.validbox();
+
+      // compute the corrected x interface states
+      // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)]
+      const Box& tyzbx = mfi.growntilebox(IntVect(AMREX_D_DECL(1,0,0)));
+
+      transyz(ARLIM_3D(tyzbx.loVect()), ARLIM_3D(tyzbc.hiVect()),
+              BL_TO_FORTRAN_ANYD(qxm[mfi]),
+              BL_TO_FORTRAN_ANYD(ql[mfi]),
+              BL_TO_FORTRAN_ANYD(qxp[mfi]),
+              BL_TO_FORTRAN_ANYD(qr[mfi]),
+              BL_TO_FORTRAN_ANYD(qaux[mfi]),
+              BL_TO_FORTRAN_ANYD(ftmp1[mfi]),
+#ifdef RADIATION
+              BL_TO_FORTRAN_ANYD(rftmp1[mfi]),
+#endif
+              BL_TO_FORTRAN_ANYD(ftmp2[mfi]),
+#ifdef RADIATION
+              BL_TO_FORTRAN_ANYD(rftmp2[mfi]),
+#endif
+              BL_TO_FORTRAN_ANYD(qgdnvtmp1[mfi]),
+              BL_TO_FORTRAN_ANYD(qgdnvtmp2[mfi]),
+              hdt, hdtdy, hdtdz, &
+              ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()));
+
+$$$$$$
+
 
 #endif // 3-d
 
 
-  // clean the fluxes 
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
-    for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+    // clean the fluxes 
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
-      const Box& nbx = mfi.nodaltilebox(idir);
+      for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
-      int idir_f = idir + 1;
+        const Box& nbx = mfi.nodaltilebox(idir);
 
-      ctu_clean_fluxes(ARLIM_3D(nbx.loVect()), ARLIM_3D(nbx.hiVect()),
-                       idir_f,
-                       BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-                       BL_TO_FORTRAN_ANYD(q[mfi]),
-                       BL_TO_FORTRAN_ANYD(flux[idir][mfi]),
+        int idir_f = idir + 1;
+
+        ctu_clean_fluxes(ARLIM_3D(nbx.loVect()), ARLIM_3D(nbx.hiVect()),
+                         idir_f,
+                         BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+                         BL_TO_FORTRAN_ANYD(q[mfi]),
+                         BL_TO_FORTRAN_ANYD(flux[idir][mfi]),
 #ifdef RADIATION
-                       BL_TO_FORTRAN_ANYD(Erborder[mfi]),
-                       BL_TO_FORTRAN_ANYD(rad_flux[idir][mfi]),
+                         BL_TO_FORTRAN_ANYD(Erborder[mfi]),
+                         BL_TO_FORTRAN_ANYD(rad_flux[idir][mfi]),
 #endif
-                       BL_TO_FORTRAN_ANYD(area[idir][mfi]),
-                       BL_TO_FORTRAN_ANYD(volume[mfi]),
-                       BL_TO_FORTRAN_ANYD(div[mfi]),
-                       ZFILL(dx), dt);
+                         BL_TO_FORTRAN_ANYD(area[idir][mfi]),
+                         BL_TO_FORTRAN_ANYD(volume[mfi]),
+                         BL_TO_FORTRAN_ANYD(div[mfi]),
+                         ZFILL(dx), dt);
+      }
     }
-  }
 
 
-  MultiFab pdivu;
+    MultiFab pdivu;
   pdivu.define(grids, dmap, 1, 0);
 
   // conservative update
