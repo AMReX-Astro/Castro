@@ -106,6 +106,9 @@ Core developers will be recognized in the following ways:
 
   * listed in the User's Guide and website as a core developer
 
+  * listed in the author list on the Zenodo DOI for the project
+    (as given in the .zenodo.json file)
+
   * invited to co-author general code papers / proceedings describing
     Castro, its performance, etc.  (Note: science papers will always
     be left to the science leads to determine authorship).
