@@ -1010,6 +1010,8 @@ contains
 
                 theta = min(thetam, thetap)
 
+                flux(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux(i,j,k,:)
+
                 drho = flux_coef * flux(i,j,k,URHO)
 
                 if (u(i,j,k,URHO) + drho < density_floor) then
