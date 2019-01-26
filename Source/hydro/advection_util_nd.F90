@@ -848,7 +848,7 @@ contains
 
     integer  :: i, j, k
 
-    real(rt) :: alpha_x, alpha_y, alpha_z
+    real(rt) :: alpha_x, alpha_y, alpha_z, flux_coef
     real(rt) :: rho, drho, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhoLF, drhoLF, dtdx, theta, thetap, thetam
     integer  :: dir
 
@@ -905,7 +905,8 @@ contains
              ! This is not required in the Hu et al. paper because they are only attempting to enforce
              ! positivity. Our extra requirement on rho > density_floor requires this.
 
-             drhoLF = TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
+             flux_coef = TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k))
+             drhoLF = flux_coef * fluxLF(URHO)
 
              if (u(i,j,k,URHO) + drhoLF < density_floor) then
                 fluxLF(:) = fluxLF(:) * abs((density_floor - u(i,j,k,URHO)) / drhoLF)
@@ -924,7 +925,8 @@ contains
 
              ! Obtain the one-sided update to the density, based on Hu et al., Eq. 11.
 
-             drho = TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * flux1(i,j,k,URHO)
+             drho = flux_coef * flux1(i,j,k,URHO)
+             drhoLF = flux_coef * fluxLF(URHO)
 
              rho = u(i-1,j,k,URHO) - drho
 
@@ -932,7 +934,7 @@ contains
 
                 ! Obtain the final density corresponding to the LF flux.
 
-                rhoLF = u(i-1,j,k,URHO) - TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
+                rhoLF = u(i-1,j,k,URHO) - drhoLF
 
                 ! Solve for theta from (1 - theta) * rhoLF + theta * rho = density_floor.
 
@@ -946,7 +948,7 @@ contains
 
              if (rho < density_floor) then
 
-                rhoLF = u(i,j,k,URHO) + TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
+                rhoLF = u(i,j,k,URHO) + drhoLF
 
                 thetam = (density_floor - rhoLF) / (rho - rhoLF)
 
@@ -962,7 +964,7 @@ contains
 
              ! Now, apply our requirement that the final flux cannot violate the density floor.
 
-             drho = TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * flux1(i,j,k,URHO)
+             drho = flux_coef * flux1(i,j,k,URHO)
 
              if (u(i,j,k,URHO) + drho < density_floor) then
                 flux1(i,j,k,:) = flux1(i,j,k,:) * abs((density_floor - u(i,j,k,URHO)) / drho)
@@ -997,7 +999,8 @@ contains
              fluxR = dflux(u(i,j  ,k,:), q(i,j  ,k,:), dir, [i, j  , k])
              fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_y) * (u(i,j-1,k,:) - u(i,j,k,:)))
 
-             drhoLF = TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
+             flux_coef = TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k))
+             drhoLF = flux_coef * fluxLF(URHO)
 
              if (u(i,j,k,URHO) + drhoLF < density_floor) then
                 fluxLF(:) = fluxLF(:) * abs((density_floor - u(i,j,k,URHO)) / drhoLF)
@@ -1008,13 +1011,14 @@ contains
              thetap = ONE
              thetam = ONE
 
-             drho = TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * flux2(i,j,k,URHO)
+             drho = flux_coef * flux2(i,j,k,URHO)
+             drhoLF = flux_coef * fluxLF(URHO)
 
              rho = u(i,j-1,k,URHO) - drho
 
              if (rho < density_floor) then
 
-                rhoLF = u(i,j-1,k,URHO) - TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
+                rhoLF = u(i,j-1,k,URHO) - drhoLF
 
                 thetap = (density_floor - rhoLF) / (rho - rhoLF)
 
@@ -1024,7 +1028,7 @@ contains
 
              if (rho < density_floor) then
 
-                rhoLF = u(i,j,k,URHO) + TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
+                rhoLF = u(i,j,k,URHO) + drhoLF
 
                 thetam = (density_floor - rhoLF) / (rho - rhoLF)
 
@@ -1034,7 +1038,7 @@ contains
 
              flux2(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux2(i,j,k,:)
 
-             drho = TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * flux2(i,j,k,URHO)
+             drho = flux_coef * flux2(i,j,k,URHO)
 
              if (u(i,j,k,URHO) + drho < density_floor) then
                 flux2(i,j,k,:) = flux2(i,j,k,:) * abs((density_floor - u(i,j,k,URHO)) / drho)
@@ -1070,7 +1074,8 @@ contains
              fluxR = dflux(u(i,j,k  ,:), q(i,j,k  ,:), dir, [i, j, k-1])
              fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_z) * (u(i,j,k-1,:) - u(i,j,k,:)))
 
-             drhoLF = TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
+             flux_coef = TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k))
+             drhoLF = flux_coef * fluxLF(URHO)
 
              if (u(i,j,k,URHO) + drhoLF < density_floor) then
                 fluxLF(:) = fluxLF(:) * abs((density_floor - u(i,j,k,URHO)) / drhoLF)
@@ -1081,13 +1086,14 @@ contains
              thetap = ONE
              thetam = ONE
 
-             drho = TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * flux3(i,j,k,URHO)
+             drho = flux_coef * flux3(i,j,k,URHO)
+             drhoLF = flux_coef * fluxLF(URHO)
 
              rho = u(i,j,k-1,URHO) - drho
 
              if (rho < density_floor) then
 
-                rhoLF = u(i,j,k-1,URHO) - TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
+                rhoLF = u(i,j,k-1,URHO) - drhoLF
 
                 thetap = (density_floor - rhoLF) / (rho - rhoLF)
 
@@ -1097,7 +1103,7 @@ contains
 
              if (rho < density_floor) then
 
-                rhoLF = u(i,j,k,URHO) + TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
+                rhoLF = u(i,j,k,URHO) + drhoLF
 
                 thetam = (density_floor - rhoLF) / (rho - rhoLF)
 
@@ -1107,7 +1113,7 @@ contains
 
              flux3(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux3(i,j,k,:)
 
-             drho = TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * flux3(i,j,k,URHO)
+             drho = flux_coef * flux3(i,j,k,URHO)
 
              if (u(i,j,k,URHO) + drho < density_floor) then
                 flux3(i,j,k,:) = flux3(i,j,k,:) * abs((density_floor - u(i,j,k,URHO)) / drho)
