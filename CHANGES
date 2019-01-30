@@ -1,5 +1,8 @@
 changes since last release:
 
+  -- The flux limiter used with the options limit_fluxes_on_low_dens
+     was not implemented correctly.  This has been fixed.  (PR #493)
+
   -- the CTU hydro solver no longer does any allocation in any of the
      support routines -- it is all done in the top-level
      driver. (#455)
@@ -28,6 +31,10 @@ changes since last release:
      diffuse_cutoff_density_hi, the transport coefficient is scaled
      linearly until the density reaches diffuse_cutoff_density, where
      it is zero.
+
+# 19.01.4
+
+  -- fixed the .zenodo.json
 
 # 19.01
 

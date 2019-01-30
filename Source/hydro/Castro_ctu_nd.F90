@@ -84,9 +84,6 @@ contains
 #else
     use trace_ppm_module, only : trace_ppm
 #endif
-#ifdef SHOCK_VAR
-    use meth_params_module, only : USHK
-#endif
     use advection_util_module, only : ca_shock
     use prob_params_module, only : dg
 
@@ -467,7 +464,112 @@ contains
   end subroutine ctu_normal_states
 
 
-  subroutine consup(uin, uin_lo, uin_hi, &
+  subroutine ctu_clean_fluxes(lo, hi, &
+                              idir, &
+                              uin, uin_lo, uin_hi, &
+                              q, q_lo, q_hi, &
+                              flux, flux_lo, flux_hi, &
+#ifdef RADIATION
+                              Erin, Erin_lo, Erin_hi, &
+                              radflux, radflux_lo, radflux_hi, &
+#endif
+                              area, area_lo, area_hi, &
+                              vol, vol_lo, vol_hi, &
+                              div, div_lo, div_hi, &
+                              dx, dt)
+
+    use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
+                                   UEDEN, UEINT, UTEMP, NGDNV, NQ, &
+                                   limit_fluxes_on_small_dens
+    use advection_util_module, only : limit_hydro_fluxes_on_small_dens, normalize_species_fluxes, apply_av
+    use amrex_constants_module, only : ZERO, ONE, TWO, FOURTH, HALF
+#ifdef RADIATION
+    use rad_params_module, only : ngroups
+    use advection_util_module, only : apply_av_rad
+#endif
+#ifdef SHOCK_VAR
+    use meth_params_module, only : USHK
+#endif
+
+    implicit none
+
+    integer, intent(in) ::       lo(3),       hi(3)
+    integer, intent(in), value :: idir
+    integer, intent(in) ::   uin_lo(3),   uin_hi(3)
+    integer, intent(in) ::     q_lo(3),     q_hi(3)
+    integer, intent(in) :: flux_lo(3), flux_hi(3)
+    integer, intent(in) :: area_lo(3), area_hi(3)
+    integer, intent(in) ::   vol_lo(3),   vol_hi(3)
+    integer, intent(in) :: div_lo(3), div_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: Erin_lo(3), Erin_hi(3)
+    integer, intent(in) :: radflux_lo(3), radflux_hi(3)
+#endif
+
+    real(rt), intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
+    real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+
+    real(rt), intent(inout) :: flux(flux_lo(1):flux_hi(1),flux_lo(2):flux_hi(2),flux_lo(3):flux_hi(3),NVAR)
+    real(rt), intent(in) :: area(area_lo(1):area_hi(1),area_lo(2):area_hi(2),area_lo(3):area_hi(3))
+    real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+    real(rt), intent(in) :: div(div_lo(1):div_hi(1),div_lo(2):div_hi(2),div_lo(3):div_hi(3))
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(in), value :: dt
+
+#ifdef RADIATION
+    real(rt), intent(in) :: Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
+    real(rt), intent(inout) :: radflux(radflux_lo(1):radflux_hi(1),radflux_lo(2):radflux_hi(2),radflux_lo(3):radflux_hi(3),0:ngroups-1)
+#endif
+
+    real(rt)         :: div1, volinv
+    integer          :: i, j, g, k, n
+    integer          :: domlo(3), domhi(3)
+
+    ! zero out shock and temp fluxes -- these are physically meaningless here
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             flux(i,j,k,UTEMP) = ZERO
+#ifdef SHOCK_VAR
+             flux(i,j,k,USHK) = ZERO
+#endif
+          end do
+       end do
+    end do
+
+    call apply_av(lo, hi, idir, dx, &
+                  div, div_lo, div_hi, &
+                  uin, uin_lo, uin_hi, &
+                  flux, flux_lo, flux_hi)
+
+#ifdef RADIATION
+   call apply_av_rad(lo, hi, idir, dx, &
+                     div, div_lo, div_hi, &
+                     Erin, Erin_lo, Erin_hi, &
+                     radflux, radflux_lo, radflux_hi)
+#endif
+
+    if (limit_fluxes_on_small_dens == 1) then
+       call limit_hydro_fluxes_on_small_dens(lo, hi, &
+                                             idir, &
+                                             uin, uin_lo, uin_hi, &
+                                             q, q_lo, q_hi, &
+                                             vol, vol_lo, vol_hi, &
+                                             flux, flux_lo, flux_hi, &
+                                             area, area_lo, area_hi, &
+                                             dt, dx)
+
+    endif
+
+    call normalize_species_fluxes(lo, hi, flux, flux_lo, flux_hi)
+
+  end subroutine ctu_clean_fluxes
+
+
+
+  subroutine consup(lo, hi, &
+                    uin, uin_lo, uin_hi, &
                     q, q_lo, q_hi, &
                     shk,  sk_lo, sk_hi, &
                     uout, uout_lo, uout_hi, &
@@ -507,12 +609,10 @@ contains
 #endif
                     vol,vol_lo,vol_hi, &
                     div, div_lo, div_hi, &
-                    lo, hi, dx, dt, &
-                    mass_lost, xmom_lost, ymom_lost, zmom_lost, &
-                    eden_lost, xang_lost, yang_lost, zang_lost, &
+                    pdivu, pdivu_lo, pdivu_hi, &
+                    dx, dt, &
                     verbose)
 
-    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UTEMP, NGDNV, NQ, &
                                    GDPRES, &
@@ -522,9 +622,7 @@ contains
 #endif
                                    track_grid_losses, limit_fluxes_on_small_dens
     use advection_util_module, only : limit_hydro_fluxes_on_small_dens, normalize_species_fluxes, calc_pdivu, apply_av
-    use castro_util_module, only : position, linear_to_angular_momentum
-    use prob_params_module, only : mom_flux_has_p, domlo_level, domhi_level, center, dg, coord_type
-    use amrinfo_module, only : amr_level
+    use prob_params_module, only : mom_flux_has_p, center, dg
 #ifdef RADIATION
     use rad_params_module, only : ngroups, nugroup, dlognu
     use radhydro_nd_module, only : advect_in_fspace
@@ -560,6 +658,7 @@ contains
     integer, intent(in) ::    qx_lo(3),    qx_hi(3)
     integer, intent(in) ::   vol_lo(3),   vol_hi(3)
     integer, intent(in) ::   div_lo(3),   div_hi(3)
+    integer, intent(in) ::   pdivu_lo(3),   pdivu_hi(3)
 #ifdef RADIATION
     integer, intent(in) :: Erout_lo(3), Erout_hi(3)
     integer, intent(in) :: Erin_lo(3), Erin_hi(3)
@@ -599,43 +698,40 @@ contains
 
     real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     real(rt), intent(in) :: div(div_lo(1):div_hi(1),div_lo(2):div_hi(2),div_lo(3):div_hi(3))
+    real(rt), intent(inout) :: pdivu(pdivu_lo(1):pdivu_hi(1),pdivu_lo(2):pdivu_hi(2),pdivu_lo(3):pdivu_hi(3))
     real(rt), intent(in) :: dx(3), dt
 
 #ifdef RADIATION
-    real(rt)          Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
-    real(rt)         Erout(Erout_lo(1):Erout_hi(1),Erout_lo(2):Erout_hi(2),Erout_lo(3):Erout_hi(3),0:ngroups-1)
-    real(rt)         radflux1(radflux1_lo(1):radflux1_hi(1),radflux1_lo(2):radflux1_hi(2),radflux1_lo(3):radflux1_hi(3),0:ngroups-1)
+    real(rt), intent(in) :: Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
+    real(rt), intent(inout) :: Erout(Erout_lo(1):Erout_hi(1),Erout_lo(2):Erout_hi(2),Erout_lo(3):Erout_hi(3),0:ngroups-1)
+    real(rt), intent(in) :: radflux1(radflux1_lo(1):radflux1_hi(1),radflux1_lo(2):radflux1_hi(2),radflux1_lo(3):radflux1_hi(3),0:ngroups-1)
 #if AMREX_SPACEDIM >= 2
-    real(rt)         radflux2(radflux2_lo(1):radflux2_hi(1),radflux2_lo(2):radflux2_hi(2),radflux2_lo(3):radflux2_hi(3),0:ngroups-1)
+    real(rt), intent(in) :: radflux2(radflux2_lo(1):radflux2_hi(1),radflux2_lo(2):radflux2_hi(2),radflux2_lo(3):radflux2_hi(3),0:ngroups-1)
 #endif
 #if AMREX_SPACEDIM == 3
-    real(rt)         radflux3(radflux3_lo(1):radflux3_hi(1),radflux3_lo(2):radflux3_hi(2),radflux3_lo(3):radflux3_hi(3),0:ngroups-1)
+    real(rt), intent(in) :: radflux3(radflux3_lo(1):radflux3_hi(1),radflux3_lo(2):radflux3_hi(2),radflux3_lo(3):radflux3_hi(3),0:ngroups-1)
 #endif
 
 #endif
-
-    real(rt)        , intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
-    real(rt)        , intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
 
     real(rt)         :: div1, volinv
     integer          :: i, j, g, k, n
     integer          :: domlo(3), domhi(3)
-    real(rt)         :: loc(3), ang_mom(3)
+
 
 #ifdef RADIATION
-    real(rt)        , dimension(0:ngroups-1) :: Erscale
-    real(rt)        , dimension(0:ngroups-1) :: ustar, af
-    real(rt)         :: Eddf, Eddfxm, Eddfxp, Eddfym, Eddfyp, Eddfzm, Eddfzp
-    real(rt)         :: f1, f2, f1xm, f1xp, f1ym, f1yp, f1zm, f1zp
-    real(rt)         :: Gf1E(3)
-    real(rt)         :: ux, uy, uz, divu, lamc, Egdc
-    real(rt)         :: dudx(3), dudy(3), dudz(3), nhat(3), GnDotu(3), nnColonDotGu
-    real(rt)         :: dprdx, dprdy, dprdz, ek1, ek2, dek, dpdx
-    real(rt)         :: urho_new
-    real(rt)         :: umx_new1, umy_new1, umz_new1
-    real(rt)         :: umx_new2, umy_new2, umz_new2
+    real(rt), dimension(0:ngroups-1) :: Erscale
+    real(rt), dimension(0:ngroups-1) :: ustar, af
+    real(rt) :: Eddf, Eddfxm, Eddfxp, Eddfym, Eddfyp, Eddfzm, Eddfzp
+    real(rt) :: f1, f2, f1xm, f1xp, f1ym, f1yp, f1zm, f1zp
+    real(rt) :: Gf1E(3)
+    real(rt) :: ux, uy, uz, divu, lamc, Egdc
+    real(rt) :: dudx(3), dudy(3), dudz(3), nhat(3), GnDotu(3), nnColonDotGu
+    real(rt) :: dprdx, dprdy, dprdz, ek1, ek2, dek, dpdx
+    real(rt) :: urho_new
+    real(rt) :: umx_new1, umy_new1, umz_new1
+    real(rt) :: umx_new2, umy_new2, umz_new2
 #endif
-    real(rt)        , pointer:: pdivu(:,:,:)
 
 #ifdef RADIATION
     if (ngroups .gt. 1) then
@@ -646,8 +742,6 @@ contains
        end if
     end if
 #endif
-
-    call bl_allocate(pdivu, lo, hi)
 
     call calc_pdivu(lo, hi, &
                     qx, qx_lo, qx_hi, &
@@ -663,112 +757,6 @@ contains
                     vol, vol_lo, vol_hi, &
                     dx, pdivu, lo, hi)
 
-    ! zero out shock and temp fluxes -- these are physically meaningless here
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)+1
-
-             flux1(i,j,k,UTEMP) = ZERO
-#ifdef SHOCK_VAR
-             flux1(i,j,k,USHK) = ZERO
-#endif
-
-          end do
-       end do
-    end do
-
-#if AMREX_SPACEDIM >= 2
-    ! zero out shock and temp fluxes -- these are physically meaningless here
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)+1
-          do i = lo(1), hi(1)
-             flux2(i,j,k,UTEMP) = ZERO
-#ifdef SHOCK_VAR
-             flux2(i,j,k,USHK) = ZERO
-#endif
-          end do
-       end do
-    end do
-#endif
-
-#if AMREX_SPACEDIM == 3
-    ! zero out shock and temp fluxes -- these are physically meaningless here
-    do k = lo(3), hi(3)+1
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             flux3(i,j,k,UTEMP) = ZERO
-#ifdef SHOCK_VAR
-             flux3(i,j,k,USHK) = ZERO
-#endif
-          end do
-       end do
-    end do
-#endif
-
-    call apply_av(lo, [hi(1)+1, hi(2), hi(3)], 1, dx, &
-                  div, div_lo, div_hi, &
-                  uin, uin_lo, uin_hi, &
-                  flux1, flux1_lo, flux1_hi)
-
-#if AMREX_SPACEDIM >= 2
-    call apply_av(lo, [hi(1), hi(2)+1, hi(3)], 2, dx, &
-                  div, div_lo, div_hi, &
-                  uin, uin_lo, uin_hi, &
-                  flux2, flux2_lo, flux2_hi)
-#endif
-#if AMREX_SPACEDIM == 3
-    call apply_av(lo, [hi(1), hi(2), hi(3)+1], 3, dx, &
-                  div, div_lo, div_hi, &
-                  uin, uin_lo, uin_hi, &
-                  flux3, flux3_lo, flux3_hi)
-#endif
-
-#ifdef RADIATION
-   call apply_av_rad(lo, [hi(1)+1, hi(2), hi(3)], 1, dx, &
-                      div, lo, hi+dg, &
-                      Erin, Erin_lo, Erin_hi, &
-                      radflux1, radflux1_lo, radflux1_hi)
-
-#if AMREX_SPACEDIM >= 2
-    call apply_av_rad(lo, [hi(1), hi(2)+1, hi(3)], 2, dx, &
-                      div, lo, hi+dg, &
-                      Erin, Erin_lo, Erin_hi, &
-                      radflux2, radflux2_lo, radflux2_hi)
-#endif
-
-#if AMREX_SPACEDIM == 3
-    call apply_av_rad(lo, [hi(1), hi(2), hi(3)+1], 3, dx, &
-                      div, lo, hi+dg, &
-                      Erin, Erin_lo, Erin_hi, &
-                      radflux3, radflux3_lo, radflux3_hi)
-#endif
-#endif
-
-    if (limit_fluxes_on_small_dens == 1) then
-       call limit_hydro_fluxes_on_small_dens(uin,uin_lo,uin_hi, &
-                                             q,q_lo,q_hi, &
-                                             vol,vol_lo,vol_hi, &
-                                             flux1,flux1_lo,flux1_hi, &
-                                             area1,area1_lo,area1_hi, &
-#if AMREX_SPACEDIM >= 2
-                                             flux2,flux2_lo,flux2_hi, &
-                                             area2,area2_lo,area2_hi, &
-#endif
-#if AMREX_SPACEDIM == 3
-                                             flux3,flux3_lo,flux3_hi, &
-                                             area3,area3_lo,area3_hi, &
-#endif
-                                             lo,hi,dt,dx)
-
-    endif
-
-    call normalize_species_fluxes(flux1_lo, flux1_hi, flux1, flux1_lo,flux1_hi)
-#if AMREX_SPACEDIM >= 2
-    call normalize_species_fluxes(flux2_lo, flux2_hi, flux2, flux2_lo,flux2_hi)
-#endif
-#if AMREX_SPACEDIM == 3
-    call normalize_species_fluxes(flux3_lo, flux3_hi, flux3, flux3_lo, flux3_hi)
-#endif
 
     ! For hydro, we will create an update source term that is
     ! essentially the flux divergence.  This can be added with dt to
@@ -1081,246 +1069,197 @@ contains
     endif
 #endif
 
-    ! Scale the fluxes for the form we expect later in refluxing.
+  end subroutine consup
 
-    do n = 1, NVAR
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1) + 1
-                flux1(i,j,k,n) = dt * flux1(i,j,k,n) * area1(i,j,k)
-#if AMREX_SPACEDIM == 1
-                ! Correct the momentum flux with the grad p part.
-                if (coord_type .eq. 0 .and. n == UMX) then
-                   flux1(i,j,k,n) = flux1(i,j,k,n) + dt * area1(i,j,k) * qx(i,j,k,GDPRES)
-                endif
-#endif
-             enddo
-          enddo
-       enddo
-    enddo
 
+  subroutine ca_track_grid_losses(lo, hi, &
+                                  flux1, flux1_lo, flux1_hi, &
 #if AMREX_SPACEDIM >= 2
-    do n = 1, NVAR
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2) + 1
-             do i = lo(1), hi(1)
-                flux2(i,j,k,n) = dt * flux2(i,j,k,n) * area2(i,j,k)
-             enddo
-          enddo
-       enddo
-    enddo
+                                  flux2, flux2_lo, flux2_hi, &
 #endif
+#if AMREX_SPACEDIM == 3
+                                  flux3, flux3_lo, flux3_hi, &
+#endif
+                                  mass_lost, xmom_lost, ymom_lost, zmom_lost, &
+                                  eden_lost, xang_lost, yang_lost, zang_lost)
+
+
+    use meth_params_module, only : URHO, UMX, UMY, UMZ, UEDEN, NVAR
+    use amrinfo_module, only : amr_level
+    use prob_params_module, only : domlo_level, domhi_level, center
+    use castro_util_module, only : position, linear_to_angular_momentum
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: flux1_lo(3), flux1_hi(3)
+    real(rt), intent(in) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
+#if AMREX_SPACEDIM >= 2
+    integer, intent(in) :: flux2_lo(3), flux2_hi(3)
+    real(rt), intent(in) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
+#endif
+#if AMREX_SPACEDIM == 3
+    integer, intent(in) :: flux3_lo(3), flux3_hi(3)
+    real(rt), intent(in) :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
+#endif
+
+    real(rt), intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
+    real(rt), intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
+
+    real(rt)         :: loc(3), ang_mom(3)
+    integer :: domlo(3), domhi(3)
+    integer :: i, j, k
+
+    domlo = domlo_level(:,amr_level)
+    domhi = domhi_level(:,amr_level)
 
 #if AMREX_SPACEDIM == 3
-    do n = 1, NVAR
-       do k = lo(3), hi(3) + 1
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                flux3(i,j,k,n) = dt * flux3(i,j,k,n) * area3(i,j,k)
-             enddo
+    if (lo(3) .le. domlo(3) .and. hi(3) .ge. domlo(3)) then
+
+       k = domlo(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             loc = position(i,j,k,ccz=.false.)
+
+             mass_lost = mass_lost - flux3(i,j,k,URHO)
+             xmom_lost = xmom_lost - flux3(i,j,k,UMX)
+             ymom_lost = ymom_lost - flux3(i,j,k,UMY)
+             zmom_lost = zmom_lost - flux3(i,j,k,UMZ)
+             eden_lost = eden_lost - flux3(i,j,k,UEDEN)
+
+             ang_mom   = linear_to_angular_momentum(loc - center, flux3(i,j,k,UMX:UMZ))
+             xang_lost = xang_lost - ang_mom(1)
+             yang_lost = yang_lost - ang_mom(2)
+             zang_lost = zang_lost - ang_mom(3)
+
           enddo
        enddo
-    enddo
-#endif
-
-#ifdef RADIATION
-    do g = 0, ngroups-1
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1) + 1
-                radflux1(i,j,k,g) = dt * radflux1(i,j,k,g) * area1(i,j,k)
-             enddo
-          enddo
-       enddo
-    enddo
-
-#if AMREX_SPACEDIM >= 2
-    do g = 0, ngroups-1
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2) + 1
-             do i = lo(1), hi(1)
-                radflux2(i,j,k,g) = dt * radflux2(i,j,k,g) * area2(i,j,k)
-             enddo
-          enddo
-       enddo
-    enddo
-#endif
-
-#if AMREX_SPACEDIM == 3
-    do g = 0, ngroups-1
-       do k = lo(3), hi(3) + 1
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                radflux3(i,j,k,g) = dt * radflux3(i,j,k,g) * area3(i,j,k)
-             enddo
-          enddo
-       enddo
-    enddo
-#endif
-
-#endif
-
-
-    ! Add up some diagnostic quantities. Note that we are not dividing by the cell volume.
-
-    if (track_grid_losses .eq. 1) then
-
-       domlo = domlo_level(:,amr_level)
-       domhi = domhi_level(:,amr_level)
-
-#if AMREX_SPACEDIM == 3
-       if (lo(3) .le. domlo(3) .and. hi(3) .ge. domlo(3)) then
-
-          k = domlo(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-
-                loc = position(i,j,k,ccz=.false.)
-
-                mass_lost = mass_lost - flux3(i,j,k,URHO)
-                xmom_lost = xmom_lost - flux3(i,j,k,UMX)
-                ymom_lost = ymom_lost - flux3(i,j,k,UMY)
-                zmom_lost = zmom_lost - flux3(i,j,k,UMZ)
-                eden_lost = eden_lost - flux3(i,j,k,UEDEN)
-
-                ang_mom   = linear_to_angular_momentum(loc - center, flux3(i,j,k,UMX:UMZ))
-                xang_lost = xang_lost - ang_mom(1)
-                yang_lost = yang_lost - ang_mom(2)
-                zang_lost = zang_lost - ang_mom(3)
-
-             enddo
-          enddo
-
-       endif
-
-       if (lo(3) .le. domhi(3) .and. hi(3) .ge. domhi(3)) then
-
-          k = domhi(3) + 1
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-
-                loc = position(i,j,k,ccz=.false.)
-
-                mass_lost = mass_lost + flux3(i,j,k,URHO)
-                xmom_lost = xmom_lost + flux3(i,j,k,UMX)
-                ymom_lost = ymom_lost + flux3(i,j,k,UMY)
-                zmom_lost = zmom_lost + flux3(i,j,k,UMZ)
-                eden_lost = eden_lost + flux3(i,j,k,UEDEN)
-
-                ang_mom   = linear_to_angular_momentum(loc - center, flux3(i,j,k,UMX:UMZ))
-                xang_lost = xang_lost + ang_mom(1)
-                yang_lost = yang_lost + ang_mom(2)
-                zang_lost = zang_lost + ang_mom(3)
-
-             enddo
-          enddo
-
-       endif
-#endif
-
-#if AMREX_SPACEDIM >= 2
-       if (lo(2) .le. domlo(2) .and. hi(2) .ge. domlo(2)) then
-
-          j = domlo(2)
-          do k = lo(3), hi(3)
-             do i = lo(1), hi(1)
-
-                loc = position(i,j,k,ccy=.false.)
-
-                mass_lost = mass_lost - flux2(i,j,k,URHO)
-                xmom_lost = xmom_lost - flux2(i,j,k,UMX)
-                ymom_lost = ymom_lost - flux2(i,j,k,UMY)
-                zmom_lost = zmom_lost - flux2(i,j,k,UMZ)
-                eden_lost = eden_lost - flux2(i,j,k,UEDEN)
-
-                ang_mom   = linear_to_angular_momentum(loc - center, flux2(i,j,k,UMX:UMZ))
-                xang_lost = xang_lost - ang_mom(1)
-                yang_lost = yang_lost - ang_mom(2)
-                zang_lost = zang_lost - ang_mom(3)
-
-             enddo
-          enddo
-
-       endif
-
-       if (lo(2) .le. domhi(2) .and. hi(2) .ge. domhi(2)) then
-
-          j = domhi(2) + 1
-          do k = lo(3), hi(3)
-             do i = lo(1), hi(1)
-
-                loc = position(i,j,k,ccy=.false.)
-
-                mass_lost = mass_lost + flux2(i,j,k,URHO)
-                xmom_lost = xmom_lost + flux2(i,j,k,UMX)
-                ymom_lost = ymom_lost + flux2(i,j,k,UMY)
-                zmom_lost = zmom_lost + flux2(i,j,k,UMZ)
-                eden_lost = eden_lost + flux2(i,j,k,UEDEN)
-
-                ang_mom   = linear_to_angular_momentum(loc - center, flux2(i,j,k,UMX:UMZ))
-                xang_lost = xang_lost + ang_mom(1)
-                yang_lost = yang_lost + ang_mom(2)
-                zang_lost = zang_lost + ang_mom(3)
-
-             enddo
-          enddo
-
-       endif
-#endif
-
-       if (lo(1) .le. domlo(1) .and. hi(1) .ge. domlo(1)) then
-
-          i = domlo(1)
-          do k = lo(3), hi(3)
-             do j = lo(2), hi(2)
-
-                loc = position(i,j,k,ccx=.false.)
-
-                mass_lost = mass_lost - flux1(i,j,k,URHO)
-                xmom_lost = xmom_lost - flux1(i,j,k,UMX)
-                ymom_lost = ymom_lost - flux1(i,j,k,UMY)
-                zmom_lost = zmom_lost - flux1(i,j,k,UMZ)
-                eden_lost = eden_lost - flux1(i,j,k,UEDEN)
-
-                ang_mom   = linear_to_angular_momentum(loc - center, flux1(i,j,k,UMX:UMZ))
-                xang_lost = xang_lost - ang_mom(1)
-                yang_lost = yang_lost - ang_mom(2)
-                zang_lost = zang_lost - ang_mom(3)
-
-             enddo
-          enddo
-
-       endif
-
-       if (lo(1) .le. domhi(1) .and. hi(1) .ge. domhi(1)) then
-
-          i = domhi(1) + 1
-          do k = lo(3), hi(3)
-             do j = lo(2), hi(2)
-
-                loc = position(i,j,k,ccx=.false.)
-
-                mass_lost = mass_lost + flux1(i,j,k,URHO)
-                xmom_lost = xmom_lost + flux1(i,j,k,UMX)
-                ymom_lost = ymom_lost + flux1(i,j,k,UMY)
-                zmom_lost = zmom_lost + flux1(i,j,k,UMZ)
-                eden_lost = eden_lost + flux1(i,j,k,UEDEN)
-
-                ang_mom   = linear_to_angular_momentum(loc - center, flux1(i,j,k,UMX:UMZ))
-                xang_lost = xang_lost + ang_mom(1)
-                yang_lost = yang_lost + ang_mom(2)
-                zang_lost = zang_lost + ang_mom(3)
-
-             enddo
-          enddo
-
-       endif
 
     endif
 
-    call bl_deallocate(pdivu)
+    if (lo(3) .le. domhi(3) .and. hi(3) .ge. domhi(3)) then
 
-  end subroutine consup
+       k = domhi(3) + 1
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             loc = position(i,j,k,ccz=.false.)
+
+             mass_lost = mass_lost + flux3(i,j,k,URHO)
+             xmom_lost = xmom_lost + flux3(i,j,k,UMX)
+             ymom_lost = ymom_lost + flux3(i,j,k,UMY)
+             zmom_lost = zmom_lost + flux3(i,j,k,UMZ)
+             eden_lost = eden_lost + flux3(i,j,k,UEDEN)
+
+             ang_mom   = linear_to_angular_momentum(loc - center, flux3(i,j,k,UMX:UMZ))
+             xang_lost = xang_lost + ang_mom(1)
+             yang_lost = yang_lost + ang_mom(2)
+             zang_lost = zang_lost + ang_mom(3)
+
+          enddo
+       enddo
+
+    endif
+#endif
+
+#if AMREX_SPACEDIM >= 2
+    if (lo(2) .le. domlo(2) .and. hi(2) .ge. domlo(2)) then
+
+       j = domlo(2)
+       do k = lo(3), hi(3)
+          do i = lo(1), hi(1)
+
+             loc = position(i,j,k,ccy=.false.)
+
+             mass_lost = mass_lost - flux2(i,j,k,URHO)
+             xmom_lost = xmom_lost - flux2(i,j,k,UMX)
+             ymom_lost = ymom_lost - flux2(i,j,k,UMY)
+             zmom_lost = zmom_lost - flux2(i,j,k,UMZ)
+             eden_lost = eden_lost - flux2(i,j,k,UEDEN)
+
+             ang_mom   = linear_to_angular_momentum(loc - center, flux2(i,j,k,UMX:UMZ))
+             xang_lost = xang_lost - ang_mom(1)
+             yang_lost = yang_lost - ang_mom(2)
+             zang_lost = zang_lost - ang_mom(3)
+
+          enddo
+       enddo
+
+    endif
+
+    if (lo(2) .le. domhi(2) .and. hi(2) .ge. domhi(2)) then
+
+       j = domhi(2) + 1
+       do k = lo(3), hi(3)
+          do i = lo(1), hi(1)
+
+             loc = position(i,j,k,ccy=.false.)
+
+             mass_lost = mass_lost + flux2(i,j,k,URHO)
+             xmom_lost = xmom_lost + flux2(i,j,k,UMX)
+             ymom_lost = ymom_lost + flux2(i,j,k,UMY)
+             zmom_lost = zmom_lost + flux2(i,j,k,UMZ)
+             eden_lost = eden_lost + flux2(i,j,k,UEDEN)
+
+             ang_mom   = linear_to_angular_momentum(loc - center, flux2(i,j,k,UMX:UMZ))
+             xang_lost = xang_lost + ang_mom(1)
+             yang_lost = yang_lost + ang_mom(2)
+             zang_lost = zang_lost + ang_mom(3)
+
+          enddo
+       enddo
+
+    endif
+#endif
+
+    if (lo(1) .le. domlo(1) .and. hi(1) .ge. domlo(1)) then
+
+       i = domlo(1)
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+
+             loc = position(i,j,k,ccx=.false.)
+
+             mass_lost = mass_lost - flux1(i,j,k,URHO)
+             xmom_lost = xmom_lost - flux1(i,j,k,UMX)
+             ymom_lost = ymom_lost - flux1(i,j,k,UMY)
+             zmom_lost = zmom_lost - flux1(i,j,k,UMZ)
+             eden_lost = eden_lost - flux1(i,j,k,UEDEN)
+
+             ang_mom   = linear_to_angular_momentum(loc - center, flux1(i,j,k,UMX:UMZ))
+             xang_lost = xang_lost - ang_mom(1)
+             yang_lost = yang_lost - ang_mom(2)
+             zang_lost = zang_lost - ang_mom(3)
+
+          enddo
+       enddo
+
+    endif
+
+    if (lo(1) .le. domhi(1) .and. hi(1) .ge. domhi(1)) then
+
+       i = domhi(1) + 1
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+
+             loc = position(i,j,k,ccx=.false.)
+
+             mass_lost = mass_lost + flux1(i,j,k,URHO)
+             xmom_lost = xmom_lost + flux1(i,j,k,UMX)
+             ymom_lost = ymom_lost + flux1(i,j,k,UMY)
+             zmom_lost = zmom_lost + flux1(i,j,k,UMZ)
+             eden_lost = eden_lost + flux1(i,j,k,UEDEN)
+
+             ang_mom   = linear_to_angular_momentum(loc - center, flux1(i,j,k,UMX:UMZ))
+             xang_lost = xang_lost + ang_mom(1)
+             yang_lost = yang_lost + ang_mom(2)
+             zang_lost = zang_lost + ang_mom(3)
+
+          enddo
+       enddo
+
+    endif
+
+  end subroutine ca_track_grid_losses
 
 
   subroutine ca_ctu_update(lo, hi, is_finest_level, time, &
@@ -1372,18 +1311,19 @@ contains
                            eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_ctu_update")
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : NQ, QVAR, QPRES, NQAUX, NVAR, NHYP, NGDNV, UMX, GDPRES, &
+    use meth_params_module, only : NQ, QVAR, QPRES, NQAUX, NVAR, NHYP, NGDNV, GDPRES, UMX, &
 #ifdef RADIATION
                                    QPTOT, &
 #endif
-                                   use_flattening, first_order_hydro
-    use advection_util_module, only : divu
+                                   use_flattening, first_order_hydro, track_grid_losses
+    use advection_util_module, only : divu, scale_flux
     use amrex_constants_module, only : ZERO, ONE
     use flatten_module, only: ca_uflatten
     use prob_params_module, only : mom_flux_has_p, dg, coord_type
 #ifdef RADIATION
     use rad_params_module, only : ngroups
     use flatten_module, only : rad_flatten
+    use advection_util_module, only: scale_rad_flux
 #endif
     use riemann_module, only: cmpflx_plus_godunov
 #if AMREX_SPACEDIM >= 2
@@ -1522,6 +1462,8 @@ contains
     real(rt), pointer :: lambda_int(:,:,:,:)
 #endif
 
+    real(rt)        , pointer:: pdivu(:,:,:)
+
 
     ! Left and right state arrays (edge centered, cell centered)
     double precision, dimension(:,:,:,:), pointer :: &
@@ -1559,6 +1501,8 @@ contains
     real(rt) :: cdtdx, cdtdy, cdtdz
 #endif
     real(rt) :: hdtdx, hdtdy, hdtdz
+
+    integer :: i, j, k, n
 
     call bl_allocate(   div, lo, hi+dg)
 
@@ -2490,10 +2434,60 @@ contains
     ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
     call divu(lo, hi+dg, q, q_lo, q_hi, dx, div, lo, hi+dg)
 
-    ! Conservative update
-    ! TODO: store the shock variable in uout
 
-    call consup(uin, uin_lo, uin_hi, &
+    ! clean up the fluxes
+    call ctu_clean_fluxes([lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], &
+                          1, &
+                          uin, uin_lo, uin_hi, &
+                          q, q_lo, q_hi, &
+                          flux1, flux1_lo, flux1_hi, &
+#ifdef RADIATION
+                          Erin, Erin_lo, Erin_hi, &
+                          radflux1, radflux1_lo, radflux1_hi, &
+#endif
+                          area1, area1_lo, area1_hi, &
+                          vol, vol_lo, vol_hi, &
+                          div, lo, hi+dg, &
+                          dx, dt)
+
+#if AMREX_SPACEDIM >= 2
+    call ctu_clean_fluxes([lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], &
+                          2, &
+                          uin, uin_lo, uin_hi, &
+                          q, q_lo, q_hi, &
+                          flux2, flux2_lo, flux2_hi, &
+#ifdef RADIATION
+                          Erin, Erin_lo, Erin_hi, &
+                          radflux2, radflux2_lo, radflux2_hi, &
+#endif
+                          area2, area2_lo, area2_hi, &
+                          vol, vol_lo, vol_hi, &
+                          div, lo, hi+dg, &
+                          dx, dt)
+#endif
+
+#if AMREX_SPACEDIM == 3
+    call ctu_clean_fluxes([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], &
+                          3, &
+                          uin, uin_lo, uin_hi, &
+                          q, q_lo, q_hi, &
+                          flux3, flux3_lo, flux3_hi, &
+#ifdef RADIATION
+                          Erin, Erin_lo, Erin_hi, &
+                          radflux3, radflux3_lo, radflux3_hi, &
+#endif
+                          area3, area3_lo, area3_hi, &
+                          vol, vol_lo, vol_hi, &
+                          div, lo, hi+dg, &
+                          dx, dt)
+#endif
+
+    ! Conservative update
+
+    call bl_allocate(pdivu, lo, hi)
+
+    call consup(lo, hi, &
+                uin, uin_lo, uin_hi, &
                 q, q_lo, q_hi, &
                 shk, glo, ghi, &
                 uout, uout_lo, uout_hi, &
@@ -2533,14 +2527,68 @@ contains
 #endif
                 vol, vol_lo, vol_hi, &
                 div, lo, hi+dg, &
-                lo, hi, dx, dt, &
-                mass_lost,xmom_lost,ymom_lost,zmom_lost, &
-                eden_lost,xang_lost,yang_lost,zang_lost, &
+                pdivu, lo, hi, &
+                dx, dt, &
                 verbose)
 
-
+    call bl_deallocate(pdivu)
     call bl_deallocate(shk)
 
+
+    ! Scale the fluxes for the form we expect later in refluxing.
+    call scale_flux(lo, [hi(1)+1, hi(2), hi(3)], &
+#if AMREX_SPACEDIM == 1
+                    q1, q1_lo, q1_hi, &
+#endif
+                    flux1, flux1_lo, flux1_hi, &
+                    area1, area1_lo, area1_hi, dt)
+
+#if AMREX_SPACEDIM >= 2
+    call scale_flux(lo, [hi(1), hi(2)+1, hi(3)], &
+                    flux2, flux2_lo, flux2_hi, &
+                    area2, area2_lo, area2_hi, dt)
+#endif
+
+#if AMREX_SPACEDIM == 3
+    call scale_flux(lo, [hi(1), hi(2), hi(3)+1], &
+                    flux3, flux3_lo, flux3_hi, &
+                    area3, area3_lo, area3_hi, dt)
+#endif
+
+#ifdef RADIATION
+    call scale_rad_flux(lo, [hi(1)+1, hi(2), hi(3)], &
+                        radflux1, radflux1_lo, radflux1_hi, &
+                        area1, area1_lo, area1_hi, dt)
+
+#if AMREX_SPACEDIM >= 2
+    call scale_rad_flux(lo, [hi(1), hi(2)+1, hi(3)], &
+                        radflux2, radflux2_lo, radflux2_hi, &
+                        area2, area2_lo, area2_hi, dt)
+#endif
+
+#if AMREX_SPACEDIM == 3
+    call scale_rad_flux(lo, [hi(1), hi(2), hi(3)+1], &
+                        radflux3, radflux3_lo, radflux3_hi, &
+                        area3, area3_lo, area3_hi, dt)
+#endif
+#endif
+
+    ! Add up some diagnostic quantities. Note that we are not dividing by the cell volume.
+
+    if (track_grid_losses .eq. 1) then
+
+       call ca_track_grid_losses(lo, hi, &
+                                 flux1, flux1_lo, flux1_hi, &
+#if AMREX_SPACEDIM >= 2
+                                 flux2, flux2_lo, flux2_hi, &
+#endif
+#if AMREX_SPACEDIM == 3
+                                 flux3, flux3_lo, flux3_hi, &
+#endif
+                                 mass_lost, xmom_lost, ymom_lost, zmom_lost, &
+                                 eden_lost, xang_lost, yang_lost, zang_lost)
+
+    endif
 
 
 #if AMREX_SPACEDIM == 1

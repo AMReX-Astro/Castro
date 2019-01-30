@@ -466,39 +466,55 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   end do
 
   call apply_av(flux1_lo, flux1_hi, 1, dx, &
-       div, lo, hi+dg, &
-       uin, uin_lo, uin_hi, &
-       flux1, flux1_lo, flux1_hi)
+                div, lo, hi+dg, &
+                uin, uin_lo, uin_hi, &
+                flux1, flux1_lo, flux1_hi)
 
 #if AMREX_SPACEDIM >= 2
   call apply_av(flux2_lo, flux2_hi, 2, dx, &
-       div, lo, hi+dg, &
-       uin, uin_lo, uin_hi, &
-       flux2, flux2_lo, flux2_hi)
+                div, lo, hi+dg, &
+                uin, uin_lo, uin_hi, &
+                flux2, flux2_lo, flux2_hi)
 #endif
 
 #if AMREX_SPACEDIM == 3
   call apply_av(flux3_lo, flux3_hi, 3, dx, &
-       div, lo, hi+dg, &
-       uin, uin_lo, uin_hi, &
-       flux3, flux3_lo, flux3_hi)
+                div, lo, hi+dg, &
+                uin, uin_lo, uin_hi, &
+                flux3, flux3_lo, flux3_hi)
 #endif
 
   if (limit_fluxes_on_small_dens == 1) then
-     call limit_hydro_fluxes_on_small_dens(uin,uin_lo,uin_hi, &
-          q,q_lo,q_hi, &
-          vol,vol_lo,vol_hi, &
-          flux1,flux1_lo,flux1_hi, &
-          area1,area1_lo,area1_hi, &
+     call limit_hydro_fluxes_on_small_dens(flux1_lo, flux1_hi, &
+                                           1, &
+                                           uin, uin_lo, uin_hi, &
+                                           q, q_lo, q_hi, &
+                                           vol, vol_lo, vol_hi, &
+                                           flux1, flux1_lo, flux1_hi, &
+                                           area1, area1_lo, area1_hi, &
+                                           dt, dx)
+
 #if AMREX_SPACEDIM >= 2
-          flux2,flux2_lo,flux2_hi, &
-          area2,area2_lo,area2_hi, &
+     call limit_hydro_fluxes_on_small_dens(flux2_lo, flux2_hi, &
+                                           2, &
+                                           uin, uin_lo, uin_hi, &
+                                           q, q_lo, q_hi, &
+                                           vol, vol_lo, vol_hi, &
+                                           flux2, flux2_lo, flux2_hi, &
+                                           area2, area2_lo, area2_hi, &
+                                           dt, dx)
 #endif
+
 #if AMREX_SPACEDIM == 3
-          flux3,flux3_lo,flux3_hi, &
-          area3,area3_lo,area3_hi, &
+     call limit_hydro_fluxes_on_small_dens(flux3_lo, flux3_hi, &
+                                           3, &
+                                           uin, uin_lo, uin_hi, &
+                                           q, q_lo, q_hi, &
+                                           vol, vol_lo, vol_hi, &
+                                           flux3, flux3_lo, flux3_hi, &
+                                           area3, area3_lo, area3_hi, &
+                                           dt, dx)
 #endif
-          lo,hi,dt,dx)
 
   endif
 
@@ -575,7 +591,12 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   ! Scale the fluxes for the form we expect later in refluxing.
 
-  call scale_flux(flux1_lo, flux1_hi, flux1, flux1_lo, flux1_hi, area1, area1_lo, area1_hi, dt)
+  call scale_flux(flux1_lo, flux1_hi, &
+#if AMREX_SPACEDIM == 1
+                  q1, flux1_lo, flux1_hi, &
+#endif
+                  flux1, flux1_lo, flux1_hi, area1, area1_lo, area1_hi, dt)
+
 #if AMREX_SPACEDIM >= 2
   call scale_flux(flux2_lo, flux2_hi, flux2, flux2_lo, flux2_hi, area2, area2_lo, area2_hi, dt)
 #endif
@@ -583,17 +604,6 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   call scale_flux(flux3_lo, flux3_hi, flux3, flux3_lo, flux3_hi, area3, area3_lo, area3_hi, dt)
 #endif
 
-#if AMREX_SPACEDIM == 1
-  if (coord_type .eq. 0) then
-     do k = lo(3), hi(3)
-        do j = lo(2), hi(2)
-           do i = lo(1), hi(1) + 1
-              flux1(i,j,k,UMX) = flux1(i,j,k,UMX) + dt * area1(i,j,k) * q1(i,j,k,GDPRES)
-           enddo
-        enddo
-     enddo
-  endif
-#endif
 
 #if AMREX_SPACEDIM < 3
   if (coord_type > 0) then
@@ -689,8 +699,15 @@ contains
                 idir, domlo, domhi)
 
     call apply_av(lo, hi, idir, dx, div, div_lo, div_hi, uin, uin_lo, uin_hi, flux, f_lo, f_hi)
+
     call normalize_species_fluxes(lo, hi, flux, f_lo, f_hi)
-    call scale_flux(lo, hi, flux, f_lo, f_hi, area, a_lo, a_hi, dt)
+
+    call scale_flux(lo, hi, &
+#if AMREX_SPACEDIM == 1
+                    qint, qe_lo, qe_hi, &
+#endif
+                    flux, f_lo, f_hi, &
+                    area, a_lo, a_hi, dt)
 
   end subroutine ca_construct_flux_cuda
 
