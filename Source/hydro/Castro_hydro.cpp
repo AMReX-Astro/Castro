@@ -367,7 +367,7 @@ Castro::construct_hydro_source(Real time, Real dt)
     int priv_nstep_fsp = -1;
 
 #if AMREX_SPACEDIM == 1
-    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
 
       const Box& nxbx = mfi.nodaltilebox(0);
 
@@ -396,7 +396,7 @@ Castro::construct_hydro_source(Real time, Real dt)
     const amrex::Real hdtdy = 0.5*dt/dx[1];
 
 
-    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
       // compute F^x
       // [lo(1), lo(2)-1, 0], [hi(1)+1, hi(2)+1, 0]
       const Box& cxbx = mfi.grownnodaltilebox(0, IntVect(AMREX_D_DECL(0,1,0)));
@@ -419,7 +419,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                           1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
     }
 
-    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
 
       // compute F^y
       // [lo(1)-1, lo(2), 0], [hi(1)+1, hi(2)+1, 0]
@@ -442,7 +442,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                           2, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
     }
 
-    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
 
       // add the transverse flux difference in y to the x states
 
@@ -482,7 +482,7 @@ Castro::construct_hydro_source(Real time, Real dt)
     }
 
 
-    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
 
       // add the transverse flux difference in x to the y states
       // [lo(1), lo(2)-1, 0], [hi(1), hi(2)+1, 0]
