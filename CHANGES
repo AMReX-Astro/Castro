@@ -1,5 +1,8 @@
 changes since last release:
 
+  -- The flux limiter used with the options limit_fluxes_on_low_dens
+     was not implemented correctly.  This has been fixed.  (PR #493)
+
   -- the CTU hydro solver no longer does any allocation in any of the
      support routines -- it is all done in the top-level
      driver. (#455)

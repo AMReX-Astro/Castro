@@ -73,9 +73,6 @@ contains
                                    plm_iorder, use_pslope, ppm_temp_fix, &
                                    hybrid_riemann
     use trace_plm_module, only : trace_plm
-#if AMREX_SPACEDIM >= 2
-    use transverse_module
-#endif
     use ppm_module, only : ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
     use slope_module, only : uslope, pslope
 #ifdef RADIATION
@@ -1062,7 +1059,6 @@ contains
 
   end subroutine ctu_consup
 
-
   subroutine ca_track_grid_losses(lo, hi, &
                                   flux1, flux1_lo, flux1_hi, &
 #if AMREX_SPACEDIM >= 2
@@ -1307,6 +1303,7 @@ contains
                                    QPTOT, &
 #endif
                                    use_flattening, first_order_hydro, track_grid_losses
+
     use advection_util_module, only : divu, scale_flux, store_pradial
     use amrex_constants_module, only : ZERO, ONE
     use flatten_module, only: ca_uflatten
@@ -1774,19 +1771,18 @@ contains
     !         fy, ugdnvy, pgdnvy, gegdnvy  : yface, +-1 at x
     !         gamc                         : +-4
     ! Outputs: qm, qp                      : xface, +-0 at y
-    call transy([lo(1)-1, lo(2), 0], [hi(1)+1, hi(2), 0], &
-                qxm, fglo, fghi, &
-                ql, fglo, fghi, &
-                qxp, fglo, fghi, &
-                qr, fglo, fghi, &
-                qaux, qa_lo, qa_hi, &
-                fy, glo, ghi, &
+    call transy_on_xstates(lo, [hi(1)+1, hi(2), 0], &
+                           qxm, fglo, fghi, &
+                           ql, fglo, fghi, &
+                           qxp, fglo, fghi, &
+                           qr, fglo, fghi, &
+                           qaux, qa_lo, qa_hi, &
+                           fy, glo, ghi, &
 #ifdef RADIATION
-                rfy, glo, ghi, &
+                           rfy, glo, ghi, &
 #endif
-                q2, q2_lo, q2_hi, &
-                hdtdy, &
-                lo, hi)
+                           q2, q2_lo, q2_hi, &
+                           hdtdy)
 
     ! Solve the final Riemann problem across the x-interfaces with the
     ! full unsplit states.  The resulting flux through the x-interfaces
@@ -1810,21 +1806,20 @@ contains
     !         fx, ugdnvx, pgdnvx, gegdnvx  : xface, +-1 at y
     !         gamc                         : +-4
     ! Outputs: qm, qp                      : yface, +-0 at x
-    call transx([lo(1), lo(2)-1, 0], [hi(1), hi(2)+1, 0], &
-                qym, fglo, fghi, &
-                ql, fglo, fghi, &
-                qyp, fglo, fghi, &
-                qr, fglo, fghi, &
-                qaux, qa_lo, qa_hi, &
-                fx, glo, ghi, &
+    call transx_on_ystates(lo, [hi(1), hi(2)+1, 0], &
+                           qym, fglo, fghi, &
+                           ql, fglo, fghi, &
+                           qyp, fglo, fghi, &
+                           qr, fglo, fghi, &
+                           qaux, qa_lo, qa_hi, &
+                           fx, glo, ghi, &
 #ifdef RADIATION
-                rfx, glo, ghi, &
+                           rfx, glo, ghi, &
 #endif
-                qgdnvx, fglo, fghi, &
-                area1, area1_lo, area1_hi, &
-                vol, vol_lo, vol_hi, &
-                hdt, hdtdx, &
-                lo, hi)
+                           qgdnvx, fglo, fghi, &
+                           area1, area1_lo, area1_hi, &
+                           vol, vol_lo, vol_hi, &
+                           hdt, hdtdx)
 
     ! Solve the final Riemann problem across the y-interfaces with the
     ! full unsplit states.  The resulting flux through the y-interfaces
@@ -1889,23 +1884,31 @@ contains
     !         gamc                         : +-4
     ! Outputs: qmyx, qpyx                  : yface, +-0 at x, +-1 at z
     !          qmzx, qpzx                  : zface, +-0 at x, +-1 at y
-    call transx([lo(1), lo(2)-1, lo(3)-1], [hi(1), hi(2)+1, hi(3)+1], &
-                qym, fglo, fghi, &
-                qmyx, fglo, fghi, &
-                qyp, fglo, fghi, &
-                qpyx, fglo, fghi, &
-                qzm, fglo, fghi, &
-                qmzx, fglo, fghi, &
-                qzp, fglo, fghi, &
-                qpzx, fglo, fghi, &
-                qaux, qa_lo, qa_hi, &
-                fx, glo, ghi, &
+    call transx_on_ystates([lo(1), lo(2), lo(3)-1], [hi(1), hi(2)+1, hi(3)+1], &
+                           qym, fglo, fghi, &
+                           qmyx, fglo, fghi, &
+                           qyp, fglo, fghi, &
+                           qpyx, fglo, fghi, &
+                           qaux, qa_lo, qa_hi, &
+                           fx, glo, ghi, &
 #ifdef RADIATION
-                rfx, glo, ghi, &
+                           rfx, glo, ghi, &
 #endif
-                qgdnvx, fglo, fghi, &
-                hdt, cdtdx, &
-                lo, hi)
+                           qgdnvx, fglo, fghi, &
+                           hdt, cdtdx)
+
+    call transx_on_zstates([lo(1), lo(2)-1, lo(3)], [hi(1), hi(2)+1, hi(3)+1], &
+                           qzm, fglo, fghi, &
+                           qmzx, fglo, fghi, &
+                           qzp, fglo, fghi, &
+                           qpzx, fglo, fghi, &
+                           qaux, qa_lo, qa_hi, &
+                           fx, glo, ghi, &
+#ifdef RADIATION
+                           rfx, glo, ghi, &
+#endif
+                           qgdnvx, fglo, fghi, &
+                           hdt, cdtdx)
 
     nullify(fx, qgdnvx)
 #ifdef RADIATION
@@ -1944,23 +1947,31 @@ contains
     !         gamc                         : +-4
     ! Outputs: qmxy, qpxy                  : xface, +-0 at y, +-1 at z
     !          qmzy, qpzy                  : zface, +-0 at y, +-1 at x
-    call transy([lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2), hi(3)+1], &
-                qxm, fglo, fghi, &
-                qmxy, fglo, fghi, &
-                qxp, fglo, fghi, &
-                qpxy, fglo, fghi, &
-                qzm, fglo, fghi, &
-                qmzy, fglo, fghi, &
-                qzp, fglo, fghi, &
-                qpzy, fglo, fghi, &
-                qaux, qa_lo, qa_hi, &
-                fy, glo, ghi, &
+    call transy_on_xstates([lo(1), lo(2), lo(3)-1], [hi(1)+1, hi(2), hi(3)+1], &
+                           qxm, fglo, fghi, &
+                           qmxy, fglo, fghi, &
+                           qxp, fglo, fghi, &
+                           qpxy, fglo, fghi, &
+                           qaux, qa_lo, qa_hi, &
+                           fy, glo, ghi, &
 #ifdef RADIATION
-                rfy, glo, ghi, &
+                           rfy, glo, ghi, &
 #endif
-                qgdnvy, fglo, fghi, &
-                cdtdy, &
-                lo, hi)
+                           qgdnvy, fglo, fghi, &
+                           cdtdy)
+
+    call transy_on_zstates([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+1], &
+                           qzm, fglo, fghi, &
+                           qmzy, fglo, fghi, &
+                           qzp, fglo, fghi, &
+                           qpzy, fglo, fghi, &
+                           qaux, qa_lo, qa_hi, &
+                           fy, glo, ghi, &
+#ifdef RADIATION
+                           rfy, glo, ghi, &
+#endif
+                           qgdnvy, fglo, fghi, &
+                           cdtdy)
 
     nullify(fy, qgdnvy)
 #ifdef RADIATION
@@ -1999,23 +2010,31 @@ contains
     !         gamc                         : +-4
     ! Outputs: qmxz, qpxz                  : xface, +-0 at z, +-1 at y
     !          qmyz, qpyz                  : yface, +-0 at z, +-1 at x
-    call transz([lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)], &
-                qxm, fglo, fghi, &
-                qmxz, fglo, fghi, &
-                qxp, fglo, fghi, &
-                qpxz, fglo, fghi, &
-                qym, fglo, fghi, &
-                qmyz, fglo, fghi, &
-                qyp, fglo, fghi, &
-                qpyz, fglo, fghi, &
-                qaux, qa_lo, qa_hi, &
-                fz, glo, ghi, &
+    call transz_on_xstates([lo(1), lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)], &
+                           qxm, fglo, fghi, &
+                           qmxz, fglo, fghi, &
+                           qxp, fglo, fghi, &
+                           qpxz, fglo, fghi, &
+                           qaux, qa_lo, qa_hi, &
+                           fz, glo, ghi, &
 #ifdef RADIATION
-                rfz, glo, ghi, &
+                           rfz, glo, ghi, &
 #endif
-                qgdnvz, fglo, fghi, &
-                cdtdz, &
-                lo, hi)
+                           qgdnvz, fglo, fghi, &
+                           cdtdz)
+
+    call transz_on_ystates([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+1, hi(3)], &
+                           qym, fglo, fghi, &
+                           qmyz, fglo, fghi, &
+                           qyp, fglo, fghi, &
+                           qpyz, fglo, fghi, &
+                           qaux, qa_lo, qa_hi, &
+                           fz, glo, ghi, &
+#ifdef RADIATION
+                           rfz, glo, ghi, &
+#endif
+                           qgdnvz, fglo, fghi, &
+                           cdtdz)
 
     nullify(fz, qgdnvz)
 #ifdef RADIATION
@@ -2089,7 +2108,7 @@ contains
     !         gamc, grav, rot                 : +-4
     !         srcQ                            : +-1
     ! Outputs: qxl, qxr                       : xface, +-0 at y & z
-    call transyz([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], &
+    call transyz([lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], &
                  qxm, fglo, fghi, &
                  qxl, fglo, fghi, &
                  qxp, fglo, fghi, &
@@ -2105,8 +2124,7 @@ contains
 #endif
                  qgdnvyz, fglo, fghi, &
                  qgdnvzy, fglo, fghi, &
-                 hdt, hdtdy, hdtdz, &
-                 lo, hi)
+                 hdt, hdtdy, hdtdz)
 
     nullify(fyz, qgdnvyz)
     nullify(fzy, qgdnvzy)
@@ -2202,7 +2220,7 @@ contains
     !         gamc, grav, rot                 : +-4
     !         srcQ                            : +-1
     ! Outputs: qyl, qyr                       : yface, +-0 at x & z
-    call transxz([lo(1), lo(2)-1, lo(3)], [hi(1), hi(2)+1, hi(3)], &
+    call transxz([lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], &
                  qym, fglo, fghi, &
                  qyl, fglo, fghi, &
                  qyp, fglo, fghi, &
@@ -2218,8 +2236,7 @@ contains
 #endif
                  qgdnvxz, fglo, fghi, &
                  qgdnvzx, fglo, fghi, &
-                 hdt, hdtdx, hdtdz, &
-                 lo, hi)
+                 hdt, hdtdx, hdtdz)
 
     nullify(fzx, qgdnvzx)
     nullify(fxz, qgdnvxz)
@@ -2316,7 +2333,7 @@ contains
     !         gamc, grav, rot                 : +-4
     !         srcQ                            : +-1
     ! Outputs: qzl, qzr                       : zface, +-0 at x & y
-    call transxy([lo(1), lo(2), lo(3)-1], [hi(1), hi(2), hi(3)+1], &
+    call transxy([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], &
                  qzm, fglo, fghi, &
                  qzl, fglo, fghi, &
                  qzp, fglo, fghi, &
@@ -2332,8 +2349,7 @@ contains
 #endif
                  qgdnvxy, fglo, fghi, &
                  qgdnvyx, fglo, fghi, &
-                 hdt, hdtdx, hdtdy, &
-                 lo, hi)
+                 hdt, hdtdx, hdtdy)
 
     nullify(fxy, qgdnvxy)
     nullify(fyx, qgdnvyx)
