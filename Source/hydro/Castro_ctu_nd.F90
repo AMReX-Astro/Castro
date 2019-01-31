@@ -1834,8 +1834,7 @@ contains
                            qgdnvx, fglo, fghi, &
                            area1, area1_lo, area1_hi, &
                            vol, vol_lo, vol_hi, &
-                           hdt, hdtdx, &
-                           lo, hi)
+                           hdt, hdtdx)
 
     ! Solve the final Riemann problem across the y-interfaces with the
     ! full unsplit states.  The resulting flux through the y-interfaces
