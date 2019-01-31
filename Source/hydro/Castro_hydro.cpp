@@ -445,35 +445,28 @@ Castro::construct_hydro_source(Real time, Real dt)
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       // add the transverse flux difference in y to the x states
-      const Box& bx = mfi.validbox();
 
-      // [lo(1)-1, lo(2), 0], [hi(1)+1, hi(2), 0]
-      const Box& tybx = mfi.growntilebox(IntVect(AMREX_D_DECL(1,0,0)));
+      // [lo(1), lo(2), 0], [hi(1)+1, hi(2), 0]
+      const Box& nbx = mfi.nodaltilebox(0);
 
       // ftmp2 = fy
       // rftmp2 = rfy
-      transy(ARLIM_3D(tybx.loVect()), ARLIM_3D(tybx.hiVect()),
-             BL_TO_FORTRAN_ANYD(qxm[mfi]),
-             BL_TO_FORTRAN_ANYD(ql[mfi]),
-             BL_TO_FORTRAN_ANYD(qxp[mfi]),
-             BL_TO_FORTRAN_ANYD(qr[mfi]),
-             BL_TO_FORTRAN_ANYD(qaux[mfi]),
-             BL_TO_FORTRAN_ANYD(ftmp2[mfi]),
+      transy_on_xstates(ARLIM_3D(nbx.loVect()), ARLIM_3D(nbx.hiVect()),
+                        BL_TO_FORTRAN_ANYD(qxm[mfi]),
+                        BL_TO_FORTRAN_ANYD(ql[mfi]),
+                        BL_TO_FORTRAN_ANYD(qxp[mfi]),
+                        BL_TO_FORTRAN_ANYD(qr[mfi]),
+                        BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                        BL_TO_FORTRAN_ANYD(ftmp2[mfi]),
 #ifdef RADIATION
-             BL_TO_FORTRAN_ANYD(rftmp2[mfi]),
+                        BL_TO_FORTRAN_ANYD(rftmp2[mfi]),
 #endif
-             BL_TO_FORTRAN_ANYD(qe[1][mfi]),
-             hdtdy,
-             ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()));
-    }
-
-
-    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+                        BL_TO_FORTRAN_ANYD(qe[1][mfi]),
+                        hdtdy);
 
       // solve the final Riemann problem axross the x-interfaces
-      // [lo(1), lo(2), 0], [hi(1)+1, hi(2), 0]
-      const Box& cxbx2 = mfi.nodaltilebox(0);
-      cmpflx_plus_godunov(ARLIM_3D(cxbx2.loVect()), ARLIM_3D(cxbx2.hiVect()),
+
+      cmpflx_plus_godunov(ARLIM_3D(nbx.loVect()), ARLIM_3D(nbx.hiVect()),
                           BL_TO_FORTRAN_ANYD(ql[mfi]),
                           BL_TO_FORTRAN_ANYD(qr[mfi]), 1, 1,
                           BL_TO_FORTRAN_ANYD(flux[0][mfi]),
@@ -492,40 +485,31 @@ Castro::construct_hydro_source(Real time, Real dt)
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       // add the transverse flux difference in x to the y states
-      const Box& bx = mfi.validbox();
-
       // [lo(1), lo(2)-1, 0], [hi(1), hi(2)+1, 0]
-      const Box& txbx = mfi.growntilebox(IntVect(AMREX_D_DECL(0,1,0)));
+      const Box& nbx = mfi.nodaltilebox(1);
 
       // ftmp1 = fx
       // rftmp1 = rfx
       // qgdnvtmp1 = qgdnvx
 
-      transx(ARLIM_3D(txbx.loVect()), ARLIM_3D(txbx.hiVect()),
-             BL_TO_FORTRAN_ANYD(qym[mfi]),
-             BL_TO_FORTRAN_ANYD(ql[mfi]),
-             BL_TO_FORTRAN_ANYD(qyp[mfi]),
-             BL_TO_FORTRAN_ANYD(qr[mfi]),
-             BL_TO_FORTRAN_ANYD(qaux[mfi]),
-             BL_TO_FORTRAN_ANYD(ftmp1[mfi]),
+      transx_on_ystates(ARLIM_3D(nbx.loVect()), ARLIM_3D(nbx.hiVect()),
+                        BL_TO_FORTRAN_ANYD(qym[mfi]),
+                        BL_TO_FORTRAN_ANYD(ql[mfi]),
+                        BL_TO_FORTRAN_ANYD(qyp[mfi]),
+                        BL_TO_FORTRAN_ANYD(qr[mfi]),
+                        BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                        BL_TO_FORTRAN_ANYD(ftmp1[mfi]),
 #ifdef RADIATION
-             BL_TO_FORTRAN_ANYD(rftmp1[mfi]),
+                        BL_TO_FORTRAN_ANYD(rftmp1[mfi]),
 #endif
-             BL_TO_FORTRAN_ANYD(qgdnvtmp1[mfi]),
-             BL_TO_FORTRAN_ANYD(area[0][mfi]),
-             BL_TO_FORTRAN_ANYD(volume[mfi]),
-             hdt, hdtdx,
-             ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()));
-
-    }
-
-
-    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+                        BL_TO_FORTRAN_ANYD(qgdnvtmp1[mfi]),
+                        BL_TO_FORTRAN_ANYD(area[0][mfi]),
+                        BL_TO_FORTRAN_ANYD(volume[mfi]),
+                        hdt, hdtdx);
 
       // solve the final Riemann problem axross the y-interfaces
-      // [lo(1), lo(2), 0], [hi(1), hi(2)+1, 0]
-      const Box& cybx2 = mfi.nodaltilebox(1);
-      cmpflx_plus_godunov(ARLIM_3D(cybx2.loVect()), ARLIM_3D(cybx2.hiVect()),
+
+      cmpflx_plus_godunov(ARLIM_3D(nbx.loVect()), ARLIM_3D(nbx.hiVect()),
                           BL_TO_FORTRAN_ANYD(ql[mfi]),
                           BL_TO_FORTRAN_ANYD(qr[mfi]), 1, 1,
                           BL_TO_FORTRAN_ANYD(flux[1][mfi]),
