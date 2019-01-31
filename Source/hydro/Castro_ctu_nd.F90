@@ -73,9 +73,6 @@ contains
                                    plm_iorder, use_pslope, ppm_temp_fix, &
                                    hybrid_riemann
     use trace_plm_module, only : trace_plm
-#if AMREX_SPACEDIM >= 2
-    use transverse_module
-#endif
     use ppm_module, only : ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
     use slope_module, only : uslope, pslope
 #ifdef RADIATION
@@ -1796,8 +1793,7 @@ contains
                            rfy, glo, ghi, &
 #endif
                            q2, q2_lo, q2_hi, &
-                           hdtdy, &
-                           lo, hi)
+                           hdtdy)
 
     ! Solve the final Riemann problem across the x-interfaces with the
     ! full unsplit states.  The resulting flux through the x-interfaces
@@ -1923,8 +1919,7 @@ contains
                            rfx, glo, ghi, &
 #endif
                            qgdnvx, fglo, fghi, &
-                           hdt, cdtdx, &
-                           lo, hi)
+                           hdt, cdtdx)
 
     nullify(fx, qgdnvx)
 #ifdef RADIATION
@@ -1974,8 +1969,7 @@ contains
                            rfy, glo, ghi, &
 #endif
                            qgdnvy, fglo, fghi, &
-                           cdtdy, &
-                           lo, hi)
+                           cdtdy)
 
     call transy_on_zstates([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+1], &
                            qzm, fglo, fghi, &
@@ -1988,8 +1982,7 @@ contains
                            rfy, glo, ghi, &
 #endif
                            qgdnvy, fglo, fghi, &
-                           cdtdy, &
-                           lo, hi)
+                           cdtdy)
 
     nullify(fy, qgdnvy)
 #ifdef RADIATION
@@ -2039,8 +2032,7 @@ contains
                            rfz, glo, ghi, &
 #endif
                            qgdnvz, fglo, fghi, &
-                           cdtdz, &
-                           lo, hi)
+                           cdtdz)
 
     call transz_on_ystates([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+1, hi(3)], &
                            qym, fglo, fghi, &
@@ -2053,8 +2045,7 @@ contains
                            rfz, glo, ghi, &
 #endif
                            qgdnvz, fglo, fghi, &
-                           cdtdz, &
-                           lo, hi)
+                           cdtdz)
 
     nullify(fz, qgdnvz)
 #ifdef RADIATION
@@ -2144,8 +2135,7 @@ contains
 #endif
                  qgdnvyz, fglo, fghi, &
                  qgdnvzy, fglo, fghi, &
-                 hdt, hdtdy, hdtdz, &
-                 lo, hi)
+                 hdt, hdtdy, hdtdz)
 
     nullify(fyz, qgdnvyz)
     nullify(fzy, qgdnvzy)
@@ -2257,8 +2247,7 @@ contains
 #endif
                  qgdnvxz, fglo, fghi, &
                  qgdnvzx, fglo, fghi, &
-                 hdt, hdtdx, hdtdz, &
-                 lo, hi)
+                 hdt, hdtdx, hdtdz)
 
     nullify(fzx, qgdnvzx)
     nullify(fxz, qgdnvxz)
@@ -2371,8 +2360,7 @@ contains
 #endif
                  qgdnvxy, fglo, fghi, &
                  qgdnvyx, fglo, fghi, &
-                 hdt, hdtdx, hdtdy, &
-                 lo, hi)
+                 hdt, hdtdx, hdtdy)
 
     nullify(fxy, qgdnvxy)
     nullify(fyx, qgdnvyx)

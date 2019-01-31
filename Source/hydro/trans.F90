@@ -614,8 +614,7 @@ contains
                                rfx, rfx_lo, rfx_hi, &
 #endif
                                qx, qx_lo, qx_hi, &
-                               hdt, cdtdx, &
-                               vlo, vhi) bind(C, name="transx_on_zstates")
+                               hdt, cdtdx) bind(C, name="transx_on_zstates")
 
     ! here, lo and hi are the bounds of the edges we are looping over
 
@@ -659,7 +658,6 @@ contains
 #endif
     integer, intent(in) :: qx_lo(3), qx_hi(3)
     integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: vlo(3), vhi(3)
 
 #ifdef RADIATION
     real(rt) :: rfx(rfx_lo(1):rfx_hi(1),rfx_lo(2):rfx_hi(2),rfx_lo(3):rfx_hi(3),0:ngroups-1)
@@ -1058,8 +1056,7 @@ contains
                                rfy, rfy_lo, rfy_hi, &
 #endif
                                qy, qy_lo, qy_hi, &
-                               cdtdy, &
-                               vlo, vhi) bind(C, name="transy_on_xstates")
+                               cdtdy) bind(C, name="transy_on_xstates")
 
     ! here, lo and hi are the bounds of the edges we are looping over
 
@@ -1101,7 +1098,6 @@ contains
 #endif
     integer, intent(in) :: qy_lo(3),qy_hi(3)
     integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: vlo(3), vhi(3)
 
 #ifdef RADIATION
     real(rt), intent(in) :: rfy(rfy_lo(1):rfy_hi(1),rfy_lo(2):rfy_hi(2),rfy_lo(3):rfy_hi(3),0:ngroups-1)
@@ -1494,11 +1490,10 @@ contains
                                rfy, rfy_lo, rfy_hi, &
 #endif
                                qy, qy_lo, qy_hi, &
-                               cdtdy, &
-                               vlo, vhi) bind(C, name="transy_on_zstates")
+                               cdtdy) bind(C, name="transy_on_zstates")
 
-    ! here, lo and hi are the bounds we are looping over, which may include ghost cells
-    ! vlo and vhi are the bounds of the valid box
+    ! here, lo and hi are the bounds of edges we are looping over
+
 
     use amrex_constants_module, only : ZERO, ONE, HALF
 
@@ -1537,7 +1532,6 @@ contains
 #endif
     integer, intent(in) :: qy_lo(3),qy_hi(3)
     integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: vlo(3), vhi(3)
 
 #ifdef RADIATION
     real(rt), intent(in) :: rfy(rfy_lo(1):rfy_hi(1),rfy_lo(2):rfy_hi(2),rfy_lo(3):rfy_hi(3),0:ngroups-1)
@@ -1938,11 +1932,9 @@ contains
                                rfz, rfz_lo, rfz_hi, &
 #endif
                                qz, qz_lo, qz_hi, &
-                               cdtdz, &
-                               vlo, vhi) bind(C, name="transz_on_xstates")
+                               cdtdz) bind(C, name="transz_on_xstates")
 
-    ! here, lo and hi are the bounds we are looping over, which may include ghost cells
-    ! vlo and vhi are the bounds of the valid box
+    ! here, lo and hi are the bounds of edges we are looping over
 
     use amrex_constants_module, only : ZERO, ONE, HALF
 
@@ -1982,7 +1974,6 @@ contains
 #endif
     integer, intent(in) :: qz_lo(3), qz_hi(3)
     integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: vlo(3), vhi(3)
 
 #ifdef RADIATION
     real(rt), intent(in) :: rfz(rfz_lo(1):rfz_hi(1),rfz_lo(2):rfz_hi(2),rfz_lo(3):rfz_hi(3),0:ngroups-1)
@@ -2370,11 +2361,9 @@ contains
                                rfz, rfz_lo, rfz_hi, &
 #endif
                                qz, qz_lo, qz_hi, &
-                               cdtdz, &
-                               vlo, vhi) bind(C, name="transz_on_ystates")
+                               cdtdz) bind(C, name="transz_on_ystates")
 
-    ! here, lo and hi are the bounds we are looping over, which may include ghost cells
-    ! vlo and vhi are the bounds of the valid box
+    ! here, lo and hi are the bounds of edges we are looping over
 
     use amrex_constants_module, only : ZERO, ONE, HALF
 
@@ -2414,7 +2403,6 @@ contains
 #endif
     integer, intent(in) :: qz_lo(3), qz_hi(3)
     integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: vlo(3), vhi(3)
 
 #ifdef RADIATION
     real(rt), intent(in) :: rfz(rfz_lo(1):rfz_hi(1),rfz_lo(2):rfz_hi(2),rfz_lo(3):rfz_hi(3),0:ngroups-1)
@@ -2810,8 +2798,7 @@ contains
 #endif
                      qy, qy_lo, qy_hi, &
                      qz, qz_lo, qz_hi, &
-                     hdt, cdtdy, cdtdz, &
-                     vlo, vhi) bind(C, name="transyz")
+                     hdt, cdtdy, cdtdz) bind(C, name="transyz")
 
     ! here, lo and hi are the bounds of the x interfaces we are looping over
 
@@ -2852,7 +2839,6 @@ contains
     integer, intent(in) :: qy_lo(3), qy_hi(3)
     integer, intent(in) :: qz_lo(3), qz_hi(3)
     integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: vlo(3), vhi(3)
 
     real(rt), intent(in), value :: hdt, cdtdy, cdtdz
 
@@ -3321,8 +3307,7 @@ contains
 #endif
                      qx, qx_lo, qx_hi, &
                      qz, qz_lo, qz_hi, &
-                     hdt, cdtdx, cdtdz, &
-                     vlo, vhi) bind(C, name="transxz")
+                     hdt, cdtdx, cdtdz) bind(C, name="transxz")
 
     ! here, lo and hi are the bounds of the y interfaces we are looping over
 
@@ -3363,7 +3348,6 @@ contains
     integer, intent(in) :: qx_lo(3),qx_hi(3)
     integer, intent(in) :: qz_lo(3),qz_hi(3)
     integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: vlo(3), vhi(3)
 
     real(rt), intent(in), value :: hdt, cdtdx, cdtdz
 
@@ -3831,11 +3815,10 @@ contains
 #endif
                      qx, qx_lo, qx_hi, &
                      qy, qy_lo, qy_hi, &
-                     hdt, cdtdx, cdtdy, &
-                     vlo, vhi) bind(C, name="transxy")
+                     hdt, cdtdx, cdtdy) bind(C, name="transxy")
 
-    ! here, lo and hi are the bounds we are looping over, which may include ghost cells
-    ! vlo and vhi are the bounds of the valid box
+    ! here, lo and hi are the bounds of edges we are looping over
+
 
     use amrex_constants_module, only : ZERO, ONE, HALF
 
@@ -3874,7 +3857,6 @@ contains
     integer, intent(in) :: qx_lo(3), qx_hi(3)
     integer, intent(in) :: qy_lo(3), qy_hi(3)
     integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: vlo(3), vhi(3)
 
     real(rt), intent(in), value :: hdt, cdtdx, cdtdy
 
