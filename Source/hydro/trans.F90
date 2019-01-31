@@ -9,74 +9,61 @@ module transverse_module
 contains
 
   !===========================================================================
-  ! transx
+  ! transx routines
   !===========================================================================
-  subroutine transx(lo, hi, &
-                    qym, qym_lo, qym_hi, &
-                    qymo, qymo_lo, qymo_hi, &
-                    qyp, qyp_lo, qyp_hi, &
-                    qypo, qypo_lo, qypo_hi, &
-#if AMREX_SPACEDIM == 3
-                    qzm, qzm_lo, qzm_hi, &
-                    qzmo, qzmo_lo, qzmo_hi, &
-                    qzp, qzp_lo, qzp_hi, &
-                    qzpo, qzpo_lo, qzpo_hi, &
-#endif
-                    qaux, qa_lo, qa_hi, &
-                    fx, fx_lo, fx_hi, &
+  subroutine transx_on_ystates(lo, hi, &
+                               qym, qym_lo, qym_hi, &
+                               qymo, qymo_lo, qymo_hi, &
+                               qyp, qyp_lo, qyp_hi, &
+                               qypo, qypo_lo, qypo_hi, &
+                               qaux, qa_lo, qa_hi, &
+                               fx, fx_lo, fx_hi, &
 #ifdef RADIATION
-                    rfx, rfx_lo, rfx_hi, &
+                               rfx, rfx_lo, rfx_hi, &
 #endif
-                    qx, qx_lo, qx_hi, &
+                               qx, qx_lo, qx_hi, &
 #if AMREX_SPACEDIM == 2
-                    area1, area1_lo, area1_hi, &
-                    vol, vol_lo, vol_hi, &
+                               area1, area1_lo, area1_hi, &
+                               vol, vol_lo, vol_hi, &
 #endif
-                    hdt, cdtdx, &
-                    vlo, vhi) bind(C, name="transx")
+                               hdt, cdtdx, &
+                               vlo, vhi) bind(C, name="transx_on_ystates")
 
-    ! here, lo and hi are the bounds we are looping over, which may include ghost cells
-    ! vlo and vhi are the bounds of the valid box
+    ! here, lo and hi are the bounds of the interfaces we are looping over
 
-  use amrex_constants_module, only : ZERO, ONE, HALF
+    use amrex_constants_module, only : ZERO, ONE, HALF
 
-  use network, only : nspec, naux
-  use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                 QPRES, QREINT, QGAME, QFS, QFX, &
-                                 QC, QGAMC, &
+    use network, only : nspec, naux
+    use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
+                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   QC, QGAMC, &
 #ifdef RADIATION
-                                 qrad, qradhi, qptot, qreitot, &
-                                 fspace_type, comoving, &
-                                 GDERADS, GDLAMS, &
-                                 QCG, QGAMCG, QLAMS, &
+                                   qrad, qradhi, qptot, qreitot, &
+                                   fspace_type, comoving, &
+                                   GDERADS, GDLAMS, &
+                                   QCG, QGAMCG, QLAMS, &
 #endif
-                                 URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
-                                 NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
-                                 small_pres, small_temp, &
-                                 npassive, upass_map, qpass_map, &
-                                 transverse_reset_density, transverse_reset_rhoe, &
-                                 ppm_predict_gammae
+                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
+                                   NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
+                                   small_pres, small_temp, &
+                                   npassive, upass_map, qpass_map, &
+                                   transverse_reset_density, transverse_reset_rhoe, &
+                                   ppm_predict_gammae
 
 #ifdef RADIATION
-  use rad_params_module, only : ngroups
-  use fluxlimiter_module, only : Edd_factor
+    use rad_params_module, only : ngroups
+    use fluxlimiter_module, only : Edd_factor
 #endif
-  use eos_module, only: eos
-  use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
+    use eos_module, only: eos
+    use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
 #if AMREX_SPACEDIM == 2
-  use prob_params_module, only : mom_flux_has_p
+    use prob_params_module, only : mom_flux_has_p
 #endif
 
     integer, intent(in) :: qym_lo(3), qym_hi(3)
     integer, intent(in) :: qyp_lo(3), qyp_hi(3)
     integer, intent(in) :: qymo_lo(3), qymo_hi(3)
     integer, intent(in) :: qypo_lo(3), qypo_hi(3)
-#if AMREX_SPACEDIM == 3
-    integer, intent(in) :: qzm_lo(3), qzm_hi(3)
-    integer, intent(in) :: qzp_lo(3), qzp_hi(3)
-    integer, intent(in) :: qzmo_lo(3), qzmo_hi(3)
-    integer, intent(in) :: qzpo_lo(3), qzpo_hi(3)
-#endif
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: fx_lo(3), fx_hi(3)
 #ifdef RADIATION
@@ -98,20 +85,12 @@ contains
 
     real(rt), intent(in) :: qym(qym_lo(1):qym_hi(1),qym_lo(2):qym_hi(2),qym_lo(3):qym_hi(3),NQ)
     real(rt), intent(in) :: qyp(qyp_lo(1):qyp_hi(1),qyp_lo(2):qyp_hi(2),qyp_lo(3):qyp_hi(3),NQ)
-#if AMREX_SPACEDIM == 3
-    real(rt), intent(in) :: qzm(qzm_lo(1):qzm_hi(1),qzm_lo(2):qzm_hi(2),qzm_lo(3):qzm_hi(3),NQ)
-    real(rt), intent(in) :: qzp(qzp_lo(1):qzp_hi(1),qzp_lo(2):qzp_hi(2),qzp_lo(3):qzp_hi(3),NQ)
-#endif
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(in) :: fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
     real(rt), intent(in) :: qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
 
     real(rt), intent(out) :: qymo(qymo_lo(1):qymo_hi(1),qymo_lo(2):qymo_hi(2),qymo_lo(3):qymo_hi(3),NQ)
     real(rt), intent(out) :: qypo(qypo_lo(1):qypo_hi(1),qypo_lo(2):qypo_hi(2),qypo_lo(3):qypo_hi(3),NQ)
-#if AMREX_SPACEDIM == 3
-    real(rt), intent(out) :: qzmo(qzmo_lo(1):qzmo_hi(1),qzmo_lo(2):qzmo_hi(2),qzmo_lo(3):qzmo_hi(3),NQ)
-    real(rt), intent(out) :: qzpo(qzpo_lo(1):qzpo_hi(1),qzpo_lo(2):qzpo_hi(2),qzpo_lo(3):qzpo_hi(3),NQ)
-#endif
 #if AMREX_SPACEDIM == 2
     real(rt), intent(in) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
     real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
@@ -121,18 +100,18 @@ contains
 
     real(rt)         rhoinv
     real(rt)         rrnew
-    real(rt)         rrry, rrly, rrrz, rrlz
-    real(rt)         rury, ruly, rurz, rulz
-    real(rt)         rvry, rvly, rvrz, rvlz
-    real(rt)         rwry, rwly, rwrz, rwlz
-    real(rt)         ekenry, ekenly, ekenrz, ekenlz
-    real(rt)         rery, rely, rerz, relz
-    real(rt)         rrnewry, rrnewly, rrnewrz, rrnewlz
-    real(rt)         runewry, runewly, runewrz, runewlz
-    real(rt)         rvnewry, rvnewly, rvnewrz, rvnewlz
-    real(rt)         rwnewry, rwnewly, rwnewrz, rwnewlz
-    real(rt)         renewry, renewly, renewrz, renewlz
-    real(rt)         pnewry, pnewly, pnewrz, pnewlz
+    real(rt)         rrry, rrly
+    real(rt)         rury, ruly
+    real(rt)         rvry, rvly
+    real(rt)         rwry, rwly
+    real(rt)         ekenry, ekenly
+    real(rt)         rery, rely
+    real(rt)         rrnewry, rrnewly
+    real(rt)         runewry, runewly
+    real(rt)         rvnewry, rvnewly
+    real(rt)         rwnewry, rwnewly
+    real(rt)         renewry, renewly
+    real(rt)         pnewry, pnewly
     real(rt)         rhoekenry, rhoekenly, rhoekenrz, rhoekenlz
     real(rt)         pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
     real(rt)         compu
@@ -147,10 +126,6 @@ contains
 #endif
 
     logical :: reset_state
-
-    !==========================================================================
-    ! work on qy*
-    !==========================================================================
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -562,10 +537,112 @@ contains
        end do
     end do
 
-#if AMREX_SPACEDIM == 3
-    !==========================================================================
-    ! work on qz*
-    !==========================================================================
+  end subroutine transx_on_ystates
+
+  subroutine transx_on_zstates(lo, hi, &
+                               qzm, qzm_lo, qzm_hi, &
+                               qzmo, qzmo_lo, qzmo_hi, &
+                               qzp, qzp_lo, qzp_hi, &
+                               qzpo, qzpo_lo, qzpo_hi, &
+                               qaux, qa_lo, qa_hi, &
+                               fx, fx_lo, fx_hi, &
+#ifdef RADIATION
+                               rfx, rfx_lo, rfx_hi, &
+#endif
+                               qx, qx_lo, qx_hi, &
+                               hdt, cdtdx, &
+                               vlo, vhi) bind(C, name="transx_on_zstates")
+
+    ! here, lo and hi are the bounds of the edges we are looping over
+
+  use amrex_constants_module, only : ZERO, ONE, HALF
+
+  use network, only : nspec, naux
+  use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
+                                 QPRES, QREINT, QGAME, QFS, QFX, &
+                                 QC, QGAMC, &
+#ifdef RADIATION
+                                 qrad, qradhi, qptot, qreitot, &
+                                 fspace_type, comoving, &
+                                 GDERADS, GDLAMS, &
+                                 QCG, QGAMCG, QLAMS, &
+#endif
+                                 URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
+                                 NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
+                                 small_pres, small_temp, &
+                                 npassive, upass_map, qpass_map, &
+                                 transverse_reset_density, transverse_reset_rhoe, &
+                                 ppm_predict_gammae
+
+#ifdef RADIATION
+  use rad_params_module, only : ngroups
+  use fluxlimiter_module, only : Edd_factor
+#endif
+  use eos_module, only: eos
+  use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
+#if AMREX_SPACEDIM == 2
+  use prob_params_module, only : mom_flux_has_p
+#endif
+
+    integer, intent(in) :: qzm_lo(3), qzm_hi(3)
+    integer, intent(in) :: qzp_lo(3), qzp_hi(3)
+    integer, intent(in) :: qzmo_lo(3), qzmo_hi(3)
+    integer, intent(in) :: qzpo_lo(3), qzpo_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
+    integer, intent(in) :: fx_lo(3), fx_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: rfx_lo(3), rfx_hi(3)
+#endif
+    integer, intent(in) :: qx_lo(3), qx_hi(3)
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: vlo(3), vhi(3)
+
+#ifdef RADIATION
+    real(rt) :: rfx(rfx_lo(1):rfx_hi(1),rfx_lo(2):rfx_hi(2),rfx_lo(3):rfx_hi(3),0:ngroups-1)
+#endif
+
+    real(rt), intent(in), value :: hdt, cdtdx
+
+    real(rt), intent(in) :: qzm(qzm_lo(1):qzm_hi(1),qzm_lo(2):qzm_hi(2),qzm_lo(3):qzm_hi(3),NQ)
+    real(rt), intent(in) :: qzp(qzp_lo(1):qzp_hi(1),qzp_lo(2):qzp_hi(2),qzp_lo(3):qzp_hi(3),NQ)
+    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt), intent(in) :: fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
+    real(rt), intent(in) :: qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
+
+    real(rt), intent(out) :: qzmo(qzmo_lo(1):qzmo_hi(1),qzmo_lo(2):qzmo_hi(2),qzmo_lo(3):qzmo_hi(3),NQ)
+    real(rt), intent(out) :: qzpo(qzpo_lo(1):qzpo_hi(1),qzpo_lo(2):qzpo_hi(2),qzpo_lo(3):qzpo_hi(3),NQ)
+
+    integer i, j, k, n, nqp, ipassive
+
+    real(rt)         rhoinv
+    real(rt)         rrnew
+    real(rt)         rrrz, rrlz
+    real(rt)         rurz, rulz
+    real(rt)         rvrz, rvlz
+    real(rt)         rwrz, rwlz
+    real(rt)         ekenrz, ekenlz
+    real(rt)         rerz, relz
+    real(rt)         rrnewrz, rrnewlz
+    real(rt)         runewrz, runewlz
+    real(rt)         rvnewrz, rvnewlz
+    real(rt)         rwnewrz, rwnewlz
+    real(rt)         renewrz, renewlz
+    real(rt)         pnewrz, pnewlz
+    real(rt)         rhoekenrz, rhoekenlz
+    real(rt)         pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    real(rt)         compu
+    real(rt)         :: gamc
+
+#ifdef RADIATION
+    real(rt)         :: dre, dmom, divu
+    real(rt)        , dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
+         lamge, luge, der
+    real(rt)         eddf, f1, ugc
+    integer :: g
+#endif
+
+    logical :: reset_state
+
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -857,73 +934,60 @@ contains
           end do
        end do
     end do
-#endif
 
-  end subroutine transx
+  end subroutine transx_on_zstates
+
 
   !===========================================================================
-  ! transy
+  ! transy routines
   !===========================================================================
-  subroutine transy(lo, hi, &
-                    qxm, qxm_lo, qxm_hi, &
-                    qxmo, qxmo_lo, qxmo_hi, &
-                    qxp, qxp_lo, qxp_hi, &
-                    qxpo, qxpo_lo, qxpo_hi, &
-#if AMREX_SPACEDIM == 3
-                    qzm, qzm_lo, qzm_hi, &
-                    qzmo, qzmo_lo, qzmo_hi, &
-                    qzp, qzp_lo, qzp_hi, &
-                    qzpo, qzpo_lo, qzpo_hi, &
-#endif
-                    qaux, qa_lo, qa_hi, &
-                    fy, fy_lo, fy_hi, &
+  subroutine transy_on_xstates(lo, hi, &
+                               qxm, qxm_lo, qxm_hi, &
+                               qxmo, qxmo_lo, qxmo_hi, &
+                               qxp, qxp_lo, qxp_hi, &
+                               qxpo, qxpo_lo, qxpo_hi, &
+                               qaux, qa_lo, qa_hi, &
+                               fy, fy_lo, fy_hi, &
 #ifdef RADIATION
-                    rfy, rfy_lo, rfy_hi, &
+                               rfy, rfy_lo, rfy_hi, &
 #endif
-                    qy, qy_lo, qy_hi, &
-                    cdtdy, &
-                    vlo, vhi) bind(C, name="transy")
+                               qy, qy_lo, qy_hi, &
+                               cdtdy, &
+                               vlo, vhi) bind(C, name="transy_on_xstates")
 
-    ! here, lo and hi are the bounds we are looping over, which may include ghost cells
-    ! vlo and vhi are the bounds of the valid box
+    ! here, lo and hi are the bounds of the edges we are looping over
 
-  use amrex_constants_module, only : ZERO, ONE, HALF
+    use amrex_constants_module, only : ZERO, ONE, HALF
 
-  use network, only : nspec, naux
-  use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                 QPRES, QREINT, QGAME, QFS, QFX, &
-                                 QC, QGAMC, &
+    use network, only : nspec, naux
+    use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
+                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   QC, QGAMC, &
 #ifdef RADIATION
-                                 qrad, qradhi, qptot, qreitot, &
-                                 fspace_type, comoving, &
-                                 GDERADS, GDLAMS, &
-                                 QCG, QGAMCG, QLAMS, &
+                                   qrad, qradhi, qptot, qreitot, &
+                                   fspace_type, comoving, &
+                                   GDERADS, GDLAMS, &
+                                   QCG, QGAMCG, QLAMS, &
 #endif
-                                 URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
-                                 NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
-                                 small_pres, small_temp, &
-                                 npassive, upass_map, qpass_map, &
-                                 transverse_reset_density, transverse_reset_rhoe, &
-                                 ppm_predict_gammae
+                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
+                                   NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
+                                   small_pres, small_temp, &
+                                   npassive, upass_map, qpass_map, &
+                                   transverse_reset_density, transverse_reset_rhoe, &
+                                   ppm_predict_gammae
 
 #ifdef RADIATION
-  use rad_params_module, only : ngroups
-  use fluxlimiter_module, only : Edd_factor
+    use rad_params_module, only : ngroups
+    use fluxlimiter_module, only : Edd_factor
 #endif
-  use eos_module, only: eos
-  use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
+    use eos_module, only: eos
+    use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
 
 
     integer, intent(in) :: qxm_lo(3), qxm_hi(3)
     integer, intent(in) :: qxp_lo(3), qxp_hi(3)
     integer, intent(in) :: qxmo_lo(3), qxmo_hi(3)
     integer, intent(in) :: qxpo_lo(3), qxpo_hi(3)
-#if AMREX_SPACEDIM == 3
-    integer, intent(in) :: qzm_lo(3), qzm_hi(3)
-    integer, intent(in) :: qzp_lo(3), qzp_hi(3)
-    integer, intent(in) :: qzmo_lo(3), qzmo_hi(3)
-    integer, intent(in) :: qzpo_lo(3), qzpo_hi(3)
-#endif
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: fy_lo(3), fy_hi(3)
 #ifdef RADIATION
@@ -941,38 +1005,30 @@ contains
 
     real(rt), intent(in) :: qxm(qxm_lo(1):qxm_hi(1),qxm_lo(2):qxm_hi(2),qxm_lo(3):qxm_hi(3),NQ)
     real(rt), intent(in) :: qxp(qxp_lo(1):qxp_hi(1),qxp_lo(2):qxp_hi(2),qxp_lo(3):qxp_hi(3),NQ)
-#if AMREX_SPACEDIM == 3
-    real(rt), intent(in) :: qzm(qzm_lo(1):qzm_hi(1),qzm_lo(2):qzm_hi(2),qzm_lo(3):qzm_hi(3),NQ)
-    real(rt), intent(in) :: qzp(qzp_lo(1):qzp_hi(1),qzp_lo(2):qzp_hi(2),qzp_lo(3):qzp_hi(3),NQ)
-#endif
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(in) :: fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
     real(rt), intent(in) :: qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
 
     real(rt), intent(out) :: qxmo(qxmo_lo(1):qxmo_hi(1),qxmo_lo(2):qxmo_hi(2),qxmo_lo(3):qxmo_hi(3),NQ)
     real(rt), intent(out) :: qxpo(qxpo_lo(1):qxpo_hi(1),qxpo_lo(2):qxpo_hi(2),qxpo_lo(3):qxpo_hi(3),NQ)
-#if AMREX_SPACEDIM == 3
-    real(rt), intent(out) :: qzmo(qzmo_lo(1):qzmo_hi(1),qzmo_lo(2):qzmo_hi(2),qzmo_lo(3):qzmo_hi(3),NQ)
-    real(rt), intent(out) :: qzpo(qzpo_lo(1):qzpo_hi(1),qzpo_lo(2):qzpo_hi(2),qzpo_lo(3):qzpo_hi(3),NQ)
-#endif
 
     integer i, j, k, n, nqp, ipassive
 
     real(rt)         rhoinv
     real(rt)         rrnew
-    real(rt)         rrrx, rrlx, rrrz, rrlz
-    real(rt)         rurx, rulx, rurz, rulz
-    real(rt)         rvrx, rvlx, rvrz, rvlz
-    real(rt)         rwrx, rwlx, rwrz, rwlz
-    real(rt)         ekenrx, ekenlx, ekenrz, ekenlz
-    real(rt)         rerx, relx, rerz, relz
-    real(rt)         rrnewrx, rrnewlx, rrnewrz, rrnewlz
-    real(rt)         runewrx, runewlx, runewrz, runewlz
-    real(rt)         rvnewrx, rvnewlx, rvnewrz, rvnewlz
-    real(rt)         rwnewrx, rwnewlx, rwnewrz, rwnewlz
-    real(rt)         renewrx, renewlx, renewrz, renewlz
-    real(rt)         pnewrx, pnewlx, pnewrz, pnewlz
-    real(rt)         rhoekenrx, rhoekenlx, rhoekenrz, rhoekenlz
+    real(rt)         rrrx, rrlx
+    real(rt)         rurx, rulx
+    real(rt)         rvrx, rvlx
+    real(rt)         rwrx, rwlx
+    real(rt)         ekenrx, ekenlx
+    real(rt)         rerx, relx
+    real(rt)         rrnewrx, rrnewlx
+    real(rt)         runewrx, runewlx
+    real(rt)         rvnewrx, rvnewlx
+    real(rt)         rwnewrx, rwnewlx
+    real(rt)         renewrx, renewlx
+    real(rt)         pnewrx, pnewlx
+    real(rt)         rhoekenrx, rhoekenlx
     real(rt)         pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
     real(rt)         compu
     real(rt)         :: gamc
@@ -987,9 +1043,6 @@ contains
 
     logical :: reset_state
 
-    !=========================================================================
-    ! work on qx*
-    !=========================================================================
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -1279,10 +1332,110 @@ contains
        end do
     end do
 
-#if AMREX_SPACEDIM == 3
-    !=========================================================================
-    ! work on qz*
-    !=========================================================================
+  end subroutine transy_on_xstates
+
+  subroutine transy_on_zstates(lo, hi, &
+                               qzm, qzm_lo, qzm_hi, &
+                               qzmo, qzmo_lo, qzmo_hi, &
+                               qzp, qzp_lo, qzp_hi, &
+                               qzpo, qzpo_lo, qzpo_hi, &
+                               qaux, qa_lo, qa_hi, &
+                               fy, fy_lo, fy_hi, &
+#ifdef RADIATION
+                               rfy, rfy_lo, rfy_hi, &
+#endif
+                               qy, qy_lo, qy_hi, &
+                               cdtdy, &
+                               vlo, vhi) bind(C, name="transy_on_zstates")
+
+    ! here, lo and hi are the bounds we are looping over, which may include ghost cells
+    ! vlo and vhi are the bounds of the valid box
+
+    use amrex_constants_module, only : ZERO, ONE, HALF
+
+    use network, only : nspec, naux
+    use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
+                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   QC, QGAMC, &
+#ifdef RADIATION
+                                   qrad, qradhi, qptot, qreitot, &
+                                   fspace_type, comoving, &
+                                   GDERADS, GDLAMS, &
+                                   QCG, QGAMCG, QLAMS, &
+#endif
+                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
+                                   NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
+                                   small_pres, small_temp, &
+                                   npassive, upass_map, qpass_map, &
+                                   transverse_reset_density, transverse_reset_rhoe, &
+                                   ppm_predict_gammae
+
+#ifdef RADIATION
+    use rad_params_module, only : ngroups
+    use fluxlimiter_module, only : Edd_factor
+#endif
+    use eos_module, only: eos
+    use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
+
+    integer, intent(in) :: qzm_lo(3), qzm_hi(3)
+    integer, intent(in) :: qzp_lo(3), qzp_hi(3)
+    integer, intent(in) :: qzmo_lo(3), qzmo_hi(3)
+    integer, intent(in) :: qzpo_lo(3), qzpo_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
+    integer, intent(in) :: fy_lo(3), fy_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: rfy_lo(3), rfy_hi(3)
+#endif
+    integer, intent(in) :: qy_lo(3),qy_hi(3)
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: vlo(3), vhi(3)
+
+#ifdef RADIATION
+    real(rt), intent(in) :: rfy(rfy_lo(1):rfy_hi(1),rfy_lo(2):rfy_hi(2),rfy_lo(3):rfy_hi(3),0:ngroups-1)
+#endif
+
+    real(rt), intent(in), value :: cdtdy
+
+    real(rt), intent(in) :: qzm(qzm_lo(1):qzm_hi(1),qzm_lo(2):qzm_hi(2),qzm_lo(3):qzm_hi(3),NQ)
+    real(rt), intent(in) :: qzp(qzp_lo(1):qzp_hi(1),qzp_lo(2):qzp_hi(2),qzp_lo(3):qzp_hi(3),NQ)
+    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt), intent(in) :: fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
+    real(rt), intent(in) :: qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
+
+    real(rt), intent(out) :: qzmo(qzmo_lo(1):qzmo_hi(1),qzmo_lo(2):qzmo_hi(2),qzmo_lo(3):qzmo_hi(3),NQ)
+    real(rt), intent(out) :: qzpo(qzpo_lo(1):qzpo_hi(1),qzpo_lo(2):qzpo_hi(2),qzpo_lo(3):qzpo_hi(3),NQ)
+
+    integer i, j, k, n, nqp, ipassive
+
+    real(rt)         rhoinv
+    real(rt)         rrnew
+    real(rt)         rrrz, rrlz
+    real(rt)         rurz, rulz
+    real(rt)         rvrz, rvlz
+    real(rt)         rwrz, rwlz
+    real(rt)         ekenrz, ekenlz
+    real(rt)         rerz, relz
+    real(rt)         rrnewrz, rrnewlz
+    real(rt)         runewrz, runewlz
+    real(rt)         rvnewrz, rvnewlz
+    real(rt)         rwnewrz, rwnewlz
+    real(rt)         renewrz, renewlz
+    real(rt)         pnewrz, pnewlz
+    real(rt)         rhoekenrx, rhoekenlx, rhoekenrz, rhoekenlz
+    real(rt)         pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    real(rt)         compu
+    real(rt)         :: gamc
+
+#ifdef RADIATION
+    real(rt)         :: dre, dmom
+    real(rt)        , dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
+         lamge, luge, der
+    real(rt)         eddf, f1, ugc
+    integer :: g
+#endif
+
+    logical :: reset_state
+
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -1573,31 +1726,28 @@ contains
           end do
        end do
     end do
-#endif
 
-  end subroutine transy
+  end subroutine transy_on_zstates
+
 
 #if AMREX_SPACEDIM == 3
   !===========================================================================
-  ! transz
+  ! transz routines
   !===========================================================================
-  subroutine transz(lo, hi, &
-                    qxm, qxm_lo, qxm_hi, &
-                    qxmo, qxmo_lo, qxmo_hi, &
-                    qxp, qxp_lo, qxp_hi, &
-                    qxpo, qxpo_lo, qxpo_hi, &
-                    qym, qym_lo, qym_hi, &
-                    qymo, qymo_lo, qymo_hi, &
-                    qyp, qyp_lo, qyp_hi, &
-                    qypo, qypo_lo, qypo_hi, &
-                    qaux, qa_lo, qa_hi, &
-                    fz, fz_lo, fz_hi, &
+
+  subroutine transz_on_xstates(lo, hi, &
+                               qxm, qxm_lo, qxm_hi, &
+                               qxmo, qxmo_lo, qxmo_hi, &
+                               qxp, qxp_lo, qxp_hi, &
+                               qxpo, qxpo_lo, qxpo_hi, &
+                               qaux, qa_lo, qa_hi, &
+                               fz, fz_lo, fz_hi, &
 #ifdef RADIATION
-                    rfz, rfz_lo, rfz_hi, &
+                               rfz, rfz_lo, rfz_hi, &
 #endif
-                    qz, qz_lo, qz_hi, &
-                    cdtdz, &
-                    vlo, vhi) bind(C, name="transz")
+                               qz, qz_lo, qz_hi, &
+                               cdtdz, &
+                               vlo, vhi) bind(C, name="transz_on_xstates")
 
     ! here, lo and hi are the bounds we are looping over, which may include ghost cells
     ! vlo and vhi are the bounds of the valid box
@@ -1633,10 +1783,6 @@ contains
     integer, intent(in) :: qxmo_lo(3), qxmo_hi(3)
     integer, intent(in) :: qxp_lo(3), qxp_hi(3)
     integer, intent(in) :: qxpo_lo(3), qxpo_hi(3)
-    integer, intent(in) :: qym_lo(3), qym_hi(3)
-    integer, intent(in) :: qymo_lo(3), qymo_hi(3)
-    integer, intent(in) :: qyp_lo(3), qyp_hi(3)
-    integer, intent(in) :: qypo_lo(3), qypo_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: fz_lo(3), fz_hi(3)
 #ifdef RADIATION
@@ -1654,34 +1800,30 @@ contains
 
     real(rt), intent(in) :: qxm(qxm_lo(1):qxm_hi(1),qxm_lo(2):qxm_hi(2),qxm_lo(3):qxm_hi(3),NQ)
     real(rt), intent(in) :: qxp(qxp_lo(1):qxp_hi(1),qxp_lo(2):qxp_hi(2),qxp_lo(3):qxp_hi(3),NQ)
-    real(rt), intent(in) :: qym(qym_lo(1):qym_hi(1),qym_lo(2):qym_hi(2),qym_lo(3):qym_hi(3),NQ)
-    real(rt), intent(in) :: qyp(qyp_lo(1):qyp_hi(1),qyp_lo(2):qyp_hi(2),qyp_lo(3):qyp_hi(3),NQ)
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(in) :: fz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
     real(rt), intent(in) :: qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
 
     real(rt), intent(out) :: qxmo(qxmo_lo(1):qxmo_hi(1),qxmo_lo(2):qxmo_hi(2),qxmo_lo(3):qxmo_hi(3),NQ)
     real(rt), intent(out) :: qxpo(qxpo_lo(1):qxpo_hi(1),qxpo_lo(2):qxpo_hi(2),qxpo_lo(3):qxpo_hi(3),NQ)
-    real(rt), intent(out) :: qymo(qymo_lo(1):qymo_hi(1),qymo_lo(2):qymo_hi(2),qymo_lo(3):qymo_hi(3),NQ)
-    real(rt), intent(out) :: qypo(qypo_lo(1):qypo_hi(1),qypo_lo(2):qypo_hi(2),qypo_lo(3):qypo_hi(3),NQ)
 
     integer i, j, k, n, nqp, ipassive
 
     real(rt)         rhoinv
     real(rt)         rrnew
-    real(rt)         rrrx, rrry, rrlx, rrly
-    real(rt)         rurx, rury, rulx, ruly
-    real(rt)         rvrx, rvry, rvlx, rvly
-    real(rt)         rwrx, rwry, rwlx, rwly
-    real(rt)         ekenrx, ekenry, ekenlx, ekenly
-    real(rt)         rerx, rery, relx, rely
-    real(rt)         rrnewrx, rrnewry, rrnewlx, rrnewly
-    real(rt)         runewrx, runewry, runewlx, runewly
-    real(rt)         rvnewrx, rvnewry, rvnewlx, rvnewly
-    real(rt)         rwnewrx, rwnewry, rwnewlx, rwnewly
-    real(rt)         renewrx, renewry, renewlx, renewly
-    real(rt)         pnewrx, pnewry, pnewlx, pnewly
-    real(rt)         rhoekenrx, rhoekenry, rhoekenlx, rhoekenly
+    real(rt)         rrrx, rrlx
+    real(rt)         rurx, rulx
+    real(rt)         rvrx, rvlx
+    real(rt)         rwrx, rwlx
+    real(rt)         ekenrx, ekenlx
+    real(rt)         rerx, relx
+    real(rt)         rrnewrx, rrnewlx
+    real(rt)         runewrx, runewlx
+    real(rt)         rvnewrx, rvnewlx
+    real(rt)         rwnewrx, rwnewlx
+    real(rt)         renewrx, renewlx
+    real(rt)         pnewrx, pnewlx
+    real(rt)         rhoekenrx, rhoekenlx
     real(rt)         pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
     real(rt)         compu
     real(rt)         :: gamc
@@ -1695,10 +1837,6 @@ contains
 #endif
 
     logical :: reset_state
-
-    !=========================================================================
-    ! work on qx*
-    !=========================================================================
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -1983,9 +2121,112 @@ contains
        end do
     end do
 
-    !=========================================================================
-    ! work on qy*
-    !=========================================================================
+  end subroutine transz_on_xstates
+
+
+  subroutine transz_on_ystates(lo, hi, &
+                               qym, qym_lo, qym_hi, &
+                               qymo, qymo_lo, qymo_hi, &
+                               qyp, qyp_lo, qyp_hi, &
+                               qypo, qypo_lo, qypo_hi, &
+                               qaux, qa_lo, qa_hi, &
+                               fz, fz_lo, fz_hi, &
+#ifdef RADIATION
+                               rfz, rfz_lo, rfz_hi, &
+#endif
+                               qz, qz_lo, qz_hi, &
+                               cdtdz, &
+                               vlo, vhi) bind(C, name="transz_on_ystates")
+
+    ! here, lo and hi are the bounds we are looping over, which may include ghost cells
+    ! vlo and vhi are the bounds of the valid box
+
+    use amrex_constants_module, only : ZERO, ONE, HALF
+
+    use network, only : nspec, naux
+    use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
+                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   QC, QGAMC, &
+#ifdef RADIATION
+                                   qrad, qradhi, qptot, qreitot, &
+                                   fspace_type, comoving, &
+                                   GDERADS, GDLAMS, &
+                                   QCG, QGAMCG, QLAMS, &
+#endif
+                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
+                                   NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
+                                   small_pres, small_temp, &
+                                   npassive, upass_map, qpass_map, &
+                                   transverse_reset_density, transverse_reset_rhoe, &
+                                   ppm_predict_gammae
+
+#ifdef RADIATION
+    use rad_params_module, only : ngroups
+    use fluxlimiter_module, only : Edd_factor
+#endif
+    use eos_module, only: eos
+    use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
+
+
+    integer, intent(in) :: qym_lo(3), qym_hi(3)
+    integer, intent(in) :: qymo_lo(3), qymo_hi(3)
+    integer, intent(in) :: qyp_lo(3), qyp_hi(3)
+    integer, intent(in) :: qypo_lo(3), qypo_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
+    integer, intent(in) :: fz_lo(3), fz_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: rfz_lo(3), rfz_hi(3)
+#endif
+    integer, intent(in) :: qz_lo(3), qz_hi(3)
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: vlo(3), vhi(3)
+
+#ifdef RADIATION
+    real(rt), intent(in) :: rfz(rfz_lo(1):rfz_hi(1),rfz_lo(2):rfz_hi(2),rfz_lo(3):rfz_hi(3),0:ngroups-1)
+#endif
+
+    real(rt), intent(in), value :: cdtdz
+
+    real(rt), intent(in) :: qym(qym_lo(1):qym_hi(1),qym_lo(2):qym_hi(2),qym_lo(3):qym_hi(3),NQ)
+    real(rt), intent(in) :: qyp(qyp_lo(1):qyp_hi(1),qyp_lo(2):qyp_hi(2),qyp_lo(3):qyp_hi(3),NQ)
+    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt), intent(in) :: fz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
+    real(rt), intent(in) :: qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
+
+    real(rt), intent(out) :: qymo(qymo_lo(1):qymo_hi(1),qymo_lo(2):qymo_hi(2),qymo_lo(3):qymo_hi(3),NQ)
+    real(rt), intent(out) :: qypo(qypo_lo(1):qypo_hi(1),qypo_lo(2):qypo_hi(2),qypo_lo(3):qypo_hi(3),NQ)
+
+    integer i, j, k, n, nqp, ipassive
+
+    real(rt)         rhoinv
+    real(rt)         rrnew
+    real(rt)         rrry, rrly
+    real(rt)         rury, ruly
+    real(rt)         rvry, rvly
+    real(rt)         rwry, rwly
+    real(rt)         ekenry, ekenly
+    real(rt)         rery, rely
+    real(rt)         rrnewry, rrnewly
+    real(rt)         runewry, runewly
+    real(rt)         rvnewry, rvnewly
+    real(rt)         rwnewry, rwnewly
+    real(rt)         renewry, renewly
+    real(rt)         pnewry, pnewly
+    real(rt)         rhoekenry, rhoekenly
+    real(rt)         pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    real(rt)         compu
+    real(rt)         :: gamc
+
+#ifdef RADIATION
+    real(rt)         :: dmz, dre
+    real(rt)        , dimension(0:ngroups-1) :: der, lambda, luge, lamge, &
+         ergp, errx, ernewrx, erry, ernewry, ergm, erlx, ernewlx, erly, ernewly
+    real(rt)         eddf, f1
+    integer :: g
+#endif
+
+    logical :: reset_state
+
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -2271,7 +2512,7 @@ contains
        end do
     end do
 
-  end subroutine transz
+  end subroutine transz_on_ystates
 
   !===========================================================================
   ! transyz

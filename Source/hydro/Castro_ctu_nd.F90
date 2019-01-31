@@ -1785,19 +1785,19 @@ contains
     !         fy, ugdnvy, pgdnvy, gegdnvy  : yface, +-1 at x
     !         gamc                         : +-4
     ! Outputs: qm, qp                      : xface, +-0 at y
-    call transy([lo(1)-1, lo(2), 0], [hi(1)+1, hi(2), 0], &
-                qxm, fglo, fghi, &
-                ql, fglo, fghi, &
-                qxp, fglo, fghi, &
-                qr, fglo, fghi, &
-                qaux, qa_lo, qa_hi, &
-                fy, glo, ghi, &
+    call transy_on_xstates([lo(1)-1, lo(2), 0], [hi(1)+1, hi(2), 0], &
+                           qxm, fglo, fghi, &
+                           ql, fglo, fghi, &
+                           qxp, fglo, fghi, &
+                           qr, fglo, fghi, &
+                           qaux, qa_lo, qa_hi, &
+                           fy, glo, ghi, &
 #ifdef RADIATION
-                rfy, glo, ghi, &
+                           rfy, glo, ghi, &
 #endif
-                q2, q2_lo, q2_hi, &
-                hdtdy, &
-                lo, hi)
+                           q2, q2_lo, q2_hi, &
+                           hdtdy, &
+                           lo, hi)
 
     ! Solve the final Riemann problem across the x-interfaces with the
     ! full unsplit states.  The resulting flux through the x-interfaces
@@ -1821,21 +1821,21 @@ contains
     !         fx, ugdnvx, pgdnvx, gegdnvx  : xface, +-1 at y
     !         gamc                         : +-4
     ! Outputs: qm, qp                      : yface, +-0 at x
-    call transx([lo(1), lo(2)-1, 0], [hi(1), hi(2)+1, 0], &
-                qym, fglo, fghi, &
-                ql, fglo, fghi, &
-                qyp, fglo, fghi, &
-                qr, fglo, fghi, &
-                qaux, qa_lo, qa_hi, &
-                fx, glo, ghi, &
+    call transx_on_ystates([lo(1), lo(2)-1, 0], [hi(1), hi(2)+1, 0], &
+                           qym, fglo, fghi, &
+                           ql, fglo, fghi, &
+                           qyp, fglo, fghi, &
+                           qr, fglo, fghi, &
+                           qaux, qa_lo, qa_hi, &
+                           fx, glo, ghi, &
 #ifdef RADIATION
-                rfx, glo, ghi, &
+                           rfx, glo, ghi, &
 #endif
-                qgdnvx, fglo, fghi, &
-                area1, area1_lo, area1_hi, &
-                vol, vol_lo, vol_hi, &
-                hdt, hdtdx, &
-                lo, hi)
+                           qgdnvx, fglo, fghi, &
+                           area1, area1_lo, area1_hi, &
+                           vol, vol_lo, vol_hi, &
+                           hdt, hdtdx, &
+                           lo, hi)
 
     ! Solve the final Riemann problem across the y-interfaces with the
     ! full unsplit states.  The resulting flux through the y-interfaces
@@ -1900,23 +1900,33 @@ contains
     !         gamc                         : +-4
     ! Outputs: qmyx, qpyx                  : yface, +-0 at x, +-1 at z
     !          qmzx, qpzx                  : zface, +-0 at x, +-1 at y
-    call transx([lo(1), lo(2)-1, lo(3)-1], [hi(1), hi(2)+1, hi(3)+1], &
-                qym, fglo, fghi, &
-                qmyx, fglo, fghi, &
-                qyp, fglo, fghi, &
-                qpyx, fglo, fghi, &
-                qzm, fglo, fghi, &
-                qmzx, fglo, fghi, &
-                qzp, fglo, fghi, &
-                qpzx, fglo, fghi, &
-                qaux, qa_lo, qa_hi, &
-                fx, glo, ghi, &
+    call transx_on_ystates([lo(1), lo(2)-1, lo(3)-1], [hi(1), hi(2)+1, hi(3)+1], &
+                           qym, fglo, fghi, &
+                           qmyx, fglo, fghi, &
+                           qyp, fglo, fghi, &
+                           qpyx, fglo, fghi, &
+                           qaux, qa_lo, qa_hi, &
+                           fx, glo, ghi, &
 #ifdef RADIATION
-                rfx, glo, ghi, &
+                           rfx, glo, ghi, &
 #endif
-                qgdnvx, fglo, fghi, &
-                hdt, cdtdx, &
-                lo, hi)
+                           qgdnvx, fglo, fghi, &
+                           hdt, cdtdx, &
+                           lo, hi)
+
+    call transx_on_zstates([lo(1), lo(2)-1, lo(3)-1], [hi(1), hi(2)+1, hi(3)+1], &
+                           qzm, fglo, fghi, &
+                           qmzx, fglo, fghi, &
+                           qzp, fglo, fghi, &
+                           qpzx, fglo, fghi, &
+                           qaux, qa_lo, qa_hi, &
+                           fx, glo, ghi, &
+#ifdef RADIATION
+                           rfx, glo, ghi, &
+#endif
+                           qgdnvx, fglo, fghi, &
+                           hdt, cdtdx, &
+                           lo, hi)
 
     nullify(fx, qgdnvx)
 #ifdef RADIATION
@@ -1955,23 +1965,33 @@ contains
     !         gamc                         : +-4
     ! Outputs: qmxy, qpxy                  : xface, +-0 at y, +-1 at z
     !          qmzy, qpzy                  : zface, +-0 at y, +-1 at x
-    call transy([lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2), hi(3)+1], &
-                qxm, fglo, fghi, &
-                qmxy, fglo, fghi, &
-                qxp, fglo, fghi, &
-                qpxy, fglo, fghi, &
-                qzm, fglo, fghi, &
-                qmzy, fglo, fghi, &
-                qzp, fglo, fghi, &
-                qpzy, fglo, fghi, &
-                qaux, qa_lo, qa_hi, &
-                fy, glo, ghi, &
+    call transy_on_xstates([lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2), hi(3)+1], &
+                           qxm, fglo, fghi, &
+                           qmxy, fglo, fghi, &
+                           qxp, fglo, fghi, &
+                           qpxy, fglo, fghi, &
+                           qaux, qa_lo, qa_hi, &
+                           fy, glo, ghi, &
 #ifdef RADIATION
-                rfy, glo, ghi, &
+                           rfy, glo, ghi, &
 #endif
-                qgdnvy, fglo, fghi, &
-                cdtdy, &
-                lo, hi)
+                           qgdnvy, fglo, fghi, &
+                           cdtdy, &
+                           lo, hi)
+
+    call transy_on_zstates([lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2), hi(3)+1], &
+                           qzm, fglo, fghi, &
+                           qmzy, fglo, fghi, &
+                           qzp, fglo, fghi, &
+                           qpzy, fglo, fghi, &
+                           qaux, qa_lo, qa_hi, &
+                           fy, glo, ghi, &
+#ifdef RADIATION
+                           rfy, glo, ghi, &
+#endif
+                           qgdnvy, fglo, fghi, &
+                           cdtdy, &
+                           lo, hi)
 
     nullify(fy, qgdnvy)
 #ifdef RADIATION
@@ -2010,23 +2030,33 @@ contains
     !         gamc                         : +-4
     ! Outputs: qmxz, qpxz                  : xface, +-0 at z, +-1 at y
     !          qmyz, qpyz                  : yface, +-0 at z, +-1 at x
-    call transz([lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)], &
-                qxm, fglo, fghi, &
-                qmxz, fglo, fghi, &
-                qxp, fglo, fghi, &
-                qpxz, fglo, fghi, &
-                qym, fglo, fghi, &
-                qmyz, fglo, fghi, &
-                qyp, fglo, fghi, &
-                qpyz, fglo, fghi, &
-                qaux, qa_lo, qa_hi, &
-                fz, glo, ghi, &
+    call transz_on_xstates([lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)], &
+                           qxm, fglo, fghi, &
+                           qmxz, fglo, fghi, &
+                           qxp, fglo, fghi, &
+                           qpxz, fglo, fghi, &
+                           qaux, qa_lo, qa_hi, &
+                           fz, glo, ghi, &
 #ifdef RADIATION
-                rfz, glo, ghi, &
+                           rfz, glo, ghi, &
 #endif
-                qgdnvz, fglo, fghi, &
-                cdtdz, &
-                lo, hi)
+                           qgdnvz, fglo, fghi, &
+                           cdtdz, &
+                           lo, hi)
+
+    call transz_on_ystates([lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)], &
+                           qym, fglo, fghi, &
+                           qmyz, fglo, fghi, &
+                           qyp, fglo, fghi, &
+                           qpyz, fglo, fghi, &
+                           qaux, qa_lo, qa_hi, &
+                           fz, glo, ghi, &
+#ifdef RADIATION
+                           rfz, glo, ghi, &
+#endif
+                           qgdnvz, fglo, fghi, &
+                           cdtdz, &
+                           lo, hi)
 
     nullify(fz, qgdnvz)
 #ifdef RADIATION
