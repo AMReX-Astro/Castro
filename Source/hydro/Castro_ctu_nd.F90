@@ -1785,7 +1785,7 @@ contains
     !         fy, ugdnvy, pgdnvy, gegdnvy  : yface, +-1 at x
     !         gamc                         : +-4
     ! Outputs: qm, qp                      : xface, +-0 at y
-    call transy_on_xstates([lo(1)-1, lo(2), 0], [hi(1)+1, hi(2), 0], &
+    call transy_on_xstates(lo, [hi(1)+1, hi(2), 0], &
                            qxm, fglo, fghi, &
                            ql, fglo, fghi, &
                            qxp, fglo, fghi, &
@@ -1821,7 +1821,7 @@ contains
     !         fx, ugdnvx, pgdnvx, gegdnvx  : xface, +-1 at y
     !         gamc                         : +-4
     ! Outputs: qm, qp                      : yface, +-0 at x
-    call transx_on_ystates([lo(1), lo(2)-1, 0], [hi(1), hi(2)+1, 0], &
+    call transx_on_ystates(lo, [hi(1), hi(2)+1, 0], &
                            qym, fglo, fghi, &
                            ql, fglo, fghi, &
                            qyp, fglo, fghi, &
@@ -1900,7 +1900,7 @@ contains
     !         gamc                         : +-4
     ! Outputs: qmyx, qpyx                  : yface, +-0 at x, +-1 at z
     !          qmzx, qpzx                  : zface, +-0 at x, +-1 at y
-    call transx_on_ystates([lo(1), lo(2)-1, lo(3)-1], [hi(1), hi(2)+1, hi(3)+1], &
+    call transx_on_ystates([lo(1), lo(2), lo(3)-1], [hi(1), hi(2)+1, hi(3)+1], &
                            qym, fglo, fghi, &
                            qmyx, fglo, fghi, &
                            qyp, fglo, fghi, &
@@ -1911,10 +1911,9 @@ contains
                            rfx, glo, ghi, &
 #endif
                            qgdnvx, fglo, fghi, &
-                           hdt, cdtdx, &
-                           lo, hi)
+                           hdt, cdtdx)
 
-    call transx_on_zstates([lo(1), lo(2)-1, lo(3)-1], [hi(1), hi(2)+1, hi(3)+1], &
+    call transx_on_zstates([lo(1), lo(2)-1, lo(3)], [hi(1), hi(2)+1, hi(3)+1], &
                            qzm, fglo, fghi, &
                            qmzx, fglo, fghi, &
                            qzp, fglo, fghi, &
@@ -1965,7 +1964,7 @@ contains
     !         gamc                         : +-4
     ! Outputs: qmxy, qpxy                  : xface, +-0 at y, +-1 at z
     !          qmzy, qpzy                  : zface, +-0 at y, +-1 at x
-    call transy_on_xstates([lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2), hi(3)+1], &
+    call transy_on_xstates([lo(1), lo(2), lo(3)-1], [hi(1)+1, hi(2), hi(3)+1], &
                            qxm, fglo, fghi, &
                            qmxy, fglo, fghi, &
                            qxp, fglo, fghi, &
@@ -1979,7 +1978,7 @@ contains
                            cdtdy, &
                            lo, hi)
 
-    call transy_on_zstates([lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2), hi(3)+1], &
+    call transy_on_zstates([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+1], &
                            qzm, fglo, fghi, &
                            qmzy, fglo, fghi, &
                            qzp, fglo, fghi, &
@@ -2030,7 +2029,7 @@ contains
     !         gamc                         : +-4
     ! Outputs: qmxz, qpxz                  : xface, +-0 at z, +-1 at y
     !          qmyz, qpyz                  : yface, +-0 at z, +-1 at x
-    call transz_on_xstates([lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)], &
+    call transz_on_xstates([lo(1), lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)], &
                            qxm, fglo, fghi, &
                            qmxz, fglo, fghi, &
                            qxp, fglo, fghi, &
@@ -2044,7 +2043,7 @@ contains
                            cdtdz, &
                            lo, hi)
 
-    call transz_on_ystates([lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)], &
+    call transz_on_ystates([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+1, hi(3)], &
                            qym, fglo, fghi, &
                            qmyz, fglo, fghi, &
                            qyp, fglo, fghi, &
@@ -2130,7 +2129,7 @@ contains
     !         gamc, grav, rot                 : +-4
     !         srcQ                            : +-1
     ! Outputs: qxl, qxr                       : xface, +-0 at y & z
-    call transyz([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], &
+    call transyz([lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], &
                  qxm, fglo, fghi, &
                  qxl, fglo, fghi, &
                  qxp, fglo, fghi, &
@@ -2243,7 +2242,7 @@ contains
     !         gamc, grav, rot                 : +-4
     !         srcQ                            : +-1
     ! Outputs: qyl, qyr                       : yface, +-0 at x & z
-    call transxz([lo(1), lo(2)-1, lo(3)], [hi(1), hi(2)+1, hi(3)], &
+    call transxz([lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], &
                  qym, fglo, fghi, &
                  qyl, fglo, fghi, &
                  qyp, fglo, fghi, &
@@ -2357,7 +2356,7 @@ contains
     !         gamc, grav, rot                 : +-4
     !         srcQ                            : +-1
     ! Outputs: qzl, qzr                       : zface, +-0 at x & y
-    call transxy([lo(1), lo(2), lo(3)-1], [hi(1), hi(2), hi(3)+1], &
+    call transxy([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], &
                  qzm, fglo, fghi, &
                  qzl, fglo, fghi, &
                  qzp, fglo, fghi, &
