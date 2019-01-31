@@ -128,7 +128,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
   {
 
-    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
 
       // the valid region box
       const Box& bx = mfi.tilebox();
