@@ -1028,7 +1028,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 
     // clean the fluxes 
-    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
 
       for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
@@ -1057,7 +1057,7 @@ Castro::construct_hydro_source(Real time, Real dt)
   pdivu.define(grids, dmap, 1, 0);
 
   // conservative update
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+  for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
     const Box& bx = mfi.tilebox();
 
     ctu_consup(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
@@ -1090,7 +1090,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 
   // scale the fluxes and store them
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+  for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
 
     for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
