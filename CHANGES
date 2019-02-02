@@ -1,4 +1,4 @@
-changes since last release:
+# 19.02
 
   -- The flux limiter used with the options limit_fluxes_on_low_dens
      was not implemented correctly.  This has been fixed.  (PR #493)
