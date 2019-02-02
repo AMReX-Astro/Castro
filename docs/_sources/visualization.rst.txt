@@ -95,10 +95,13 @@ variables appear in the regular plotfile.
 
 .. index:: amr.small_plot_vars
 
-For small plotfiles, the control that lists the variables is:
+For small plotfiles, the controls that lists the variables is:
 
   * ``amr.small_plot_vars`` : this is a list of which variables
     to include in the small plotfile.
+
+  * ``amr.derive_small_plot_vars`` : this is a list of which derived
+    variables to include in the small plotfile.
 
 
 Plotfile Variables
