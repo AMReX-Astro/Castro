@@ -858,8 +858,7 @@ extern "C"
 #endif
                const BL_FORT_FAB_ARG_3D(qy),
                const BL_FORT_FAB_ARG_3D(qz),
-               const amrex::Real hdt, const amrex::Real cdtdy, const amrex::Real cdtdz,
-               const int* vlo, const int* vhi);
+               const amrex::Real hdt, const amrex::Real cdtdy, const amrex::Real cdtdz);
 
   void transxz(const int* lo, const int* hi,
                const BL_FORT_FAB_ARG_3D(qm),
@@ -877,8 +876,7 @@ extern "C"
 #endif
                const BL_FORT_FAB_ARG_3D(qx),
                const BL_FORT_FAB_ARG_3D(qz),
-               const amrex::Real hdt, const amrex::Real cdtdx, const amrex::Real cdtdz,
-               const int* vlo, const int* vhi);
+               const amrex::Real hdt, const amrex::Real cdtdx, const amrex::Real cdtdz);
 
   void transxy(const int* lo, const int* hi,
                const BL_FORT_FAB_ARG_3D(qm),
@@ -896,8 +894,7 @@ extern "C"
 #endif
                const BL_FORT_FAB_ARG_3D(qx),
                const BL_FORT_FAB_ARG_3D(qy),
-               const amrex::Real hdt, const amrex::Real cdtdx, const amrex::Real cdtdy,
-               const int* vlo, const int* vhi);
+               const amrex::Real hdt, const amrex::Real cdtdx, const amrex::Real cdtdy);
 
 
   void ca_make_fourth_average(const int lo[], const int hi[],
