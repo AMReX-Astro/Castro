@@ -15,10 +15,10 @@ module probdata_module
 
   ! Smallest allowed velocity on the grid
   real(rt) :: smallu
-  
+
   ! Density of ambient gas around the star
   real(rt) :: ambient_density
-  
+
 contains
 
   ! This routine calls all of the other subroutines at the beginning
@@ -80,8 +80,7 @@ contains
 
     ! Read namelist to override the defaults
 
-    untin = 9 
-    open(untin,file=probin,form='formatted',status='old')
+    open(newunit=untin, file=probin, form='formatted', status='old')
     read(untin,fortin)
     close(unit=untin)
 
@@ -124,7 +123,7 @@ contains
        eos_state % rho = small_dens
        eos_state % T   = small_temp
        eos_state % xn  = 1.0e0_rt / nspec
- 
+
        call eos(eos_input_rt, eos_state)
 
        small_pres = eos_state % p
