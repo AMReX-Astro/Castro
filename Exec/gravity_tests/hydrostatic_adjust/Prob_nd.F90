@@ -1,5 +1,6 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 
+  use amrex_constants_module
   use amrex_error_module
   use probdata_module
   use prob_params_module, only: center
@@ -11,18 +12,19 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  integer :: init,namlen,untin,i,k
-  integer :: name(namlen)
+  integer, intent(in) :: init, namlen
+  integer, intent(in) :: name(namlen)
 
-  real(rt)         problo(1), probhi(1)
+  real(rt), intent(in) :: problo(1), probhi(1)
 
   type (eos_t) :: eos_state
+
+  integer :: untin, i
 
   namelist /fortin/ &
        model_name,  &
        heating_time, heating_rad, heating_peak, heating_sigma, &
        prob_type
-
 
   !
   !     Build "probin" filename -- the name of file containing fortin namelist.
@@ -32,7 +34,9 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   character probin*(maxlen)
   character (len=256) :: header_line
 
-  if (namlen .gt. maxlen) call amrex_error("probin file name too long")
+  if (namlen > maxlen) then
+     call amrex_error("probin file name too long")
+  end if
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -47,9 +51,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   prob_type = 1
 
 
-  !     Read namelists in probin file
-  untin = 9
-  open(untin,file=probin(1:namlen),form='formatted',status='old')
+  ! Read namelists in probin file
+  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
   read(untin,fortin)
   close(unit=untin)
 
@@ -71,8 +74,26 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
      hse_s(i,:) = model_state(:,ispec_model+i-1)
   enddo
 
-  center(1) = 0.0e0_rt
+#if AMREX_SPACEDIM == 1
+  center(1) = ZERO
+#elif AMREX_SPACEDIM == 2
+  ! 2-d assumes axisymmetric
+  center(1) = ZERO
+  center(2) = HALF*(problo(2) + probhi(2))
+#else
+  center(1) = HALF*(problo(1) + probhi(1))
+  center(2) = HALF*(problo(2) + probhi(2))
+  center(3) = HALF*(problo(3) + probhi(3))
+#endif
 
+#if AMREX_SPACEDIM == 1
+  xmin = problo(1)
+  if (xmin /= 0.e0_rt) then
+     call amrex_error("ERROR: xmin should be 0!")
+  endif
+
+  xmax = probhi(1)
+#elif AMREX_SPACEDIM == 2
   xmin = problo(1)
   if (xmin /= 0.e0_rt) then
      call amrex_error("ERROR: xmin should be 0!")
@@ -80,10 +101,22 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   xmax = probhi(1)
 
+  ymin = problo(2)
+  ymax = probhi(2)
+#else
+  xmin = problo(1)
+  xmax = probhi(1)
+
+  ymin = problo(2)
+  ymax = probhi(2)
+
+  zmin = problo(3)
+  zmax = probhi(3)
+#endif
+
   ! store the state at the very top of the model for the boundary
   ! conditions
   allocate (hse_X_top(nspec))
-
 
   hse_rho_top  = hse_rho(npts_model)
   hse_t_top    = hse_t(npts_model)
@@ -122,9 +155,10 @@ end subroutine amrex_probinit
 ! :::              right hand corner of grid.  (does not include
 ! :::		   ghost region).
 ! ::: -----------------------------------------------------------
-subroutine ca_initdata(level,time,lo,hi,nscal, &
-                       state,state_l1,state_h1,delta,xlo,xhi)
+subroutine ca_initdata(level, time, lo, hi, nscal, &
+                       state, state_lo, state_hi, delta, xlo, xhi)
 
+  use amrex_constants_module
   use probdata_module
   use eos_module
   use eos_type_module
@@ -136,51 +170,61 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  integer          :: level, nscal
-  integer          :: lo(1), hi(1)
-  integer          :: state_l1,state_h1
-  real(rt)         :: state(state_l1:state_h1,NVAR)
-  real(rt)         :: time, delta(1)
-  real(rt)         :: xlo(1), xhi(1)
+  integer, intent(in) :: level, nscal
+  integer, intent(in) :: lo(3), hi(3)
+  integer, intent(in) :: state_lo(3), state_hi(3)
+  real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+  real(rt), intent(in) :: time, delta(3)
+  real(rt), intent(in) :: xlo(3), xhi(3)
 
-  real(rt)         :: x,dist
-  integer          :: i,n
+  real(rt) :: x, y, z, dist
+  integer :: i, j, k, n
 
   type (eos_t) :: eos_state
 
   ! Interpolate rho, T and X
-  do i = lo(1), hi(1)
+  do k = lo(3), hi(3)
+     z = xmin + (dble(k) + HALF)*delta(3)
 
-     dist = (dble(i) + 0.5e0_rt) * delta(1)
+     do j = lo(2), hi(2)
+        y = xmin + (dble(j) + HALF)*delta(2)
 
-     state(i,URHO ) = interpolate(dist,npts_model,hse_r,hse_rho)
-     state(i,UTEMP) = interpolate(dist,npts_model,hse_r,hse_t)
+        do i = lo(1), hi(1)
+           x = xmin + (dble(i) + HALF)*delta(1)
 
-     do n= 1, nspec
-        state(i,UFS+n-1) = interpolate(dist,npts_model,hse_r, hse_s(n,:))
-     enddo
+           dist = sqrt(x*x + y*y + z*z)
 
-  enddo
+           state(i,j,k,URHO ) = interpolate(dist, npts_model, hse_r, hse_rho)
+           state(i,j,k,UTEMP) = interpolate(dist, npts_model, hse_r, hse_t)
+
+           do n= 1, nspec
+              state(i,j,k,UFS+n-1) = interpolate(dist, npts_model, hse_r, hse_s(n,:))
+           end do
+
+        end do
+     end do
+  end do
 
   ! Compute energy from rho,T and X
-  do i = lo(1), hi(1)
-     eos_state%rho = state(i,URHO)
-     eos_state%T = state(i,UTEMP)
-     eos_state%xn = state(i,UFS:UFS+nspec-1)
+  do k = lo(3), hi(3)
+     do j = lo(2), hi(2)
+        do i = lo(1), hi(1)
+           eos_state%rho = state(i,j,k,URHO)
+           eos_state%T = state(i,j,k,UTEMP)
+           eos_state%xn = state(i,j,k,UFS:UFS+nspec-1)
 
-     call eos(eos_input_rt, eos_state)
+           call eos(eos_input_rt, eos_state)
 
-     ! we'll add the density weighting shortly
-     state(i,UEINT) = eos_state%e
+           ! we'll add the density weighting shortly
+           state(i,j,k,UEINT) = eos_state%e
 
-  enddo
-
-  do i = lo(1), hi(1)
-     state(i,UMX:UMZ) = 0.e0_rt
-     state(i,UEINT) = state(i,URHO) * state(i,UEINT)
-     state(i,UEDEN) = state(i,UEINT)
-     state(i,UFS:UFS+nspec-1) = state(i,URHO) * state(i,UFS:UFS+nspec-1)
-  enddo
+           state(i,j,k,UMX:UMZ) = ZERO
+           state(i,j,k,UEINT) = state(i,j,k,URHO) * state(i,j,k,UEINT)
+           state(i,j,k,UEDEN) = state(i,j,k,UEINT)
+           state(i,j,k,UFS:UFS+nspec-1) = state(i,j,k,URHO) * state(i,j,k,UFS:UFS+nspec-1)
+        end do
+     end do
+  end do
 
 end subroutine ca_initdata
 
