@@ -15,7 +15,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   integer, intent(in) :: init, namlen
   integer, intent(in) :: name(namlen)
 
-  real(rt), intent(in) :: problo(1), probhi(1)
+  real(rt), intent(in) :: problo(3), probhi(3)
 
   type (eos_t) :: eos_state
 
