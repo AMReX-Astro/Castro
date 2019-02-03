@@ -717,7 +717,7 @@ contains
                                       Ip_gc, Ipg_lo, Ipg_hi, &
                                       Im_gc, Img_lo, Img_hi)
 
-    use meth_params_module, only : NQ, QRHO, QTEMP, QPRES, QREINT, QFS, QFX
+    use meth_params_module, only : NQ, QRHO, QTEMP, QPRES, QREINT, QFS, QFX, small_temp
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
     use network, only : nspec, naux
@@ -745,7 +745,7 @@ contains
                 do i = lo(1), hi(1)
 
                    eos_state % rho = Ip(i,j,k,idim,iwave,QRHO)
-                   eos_state % T   = Ip(i,j,k,idim,iwave,QTEMP)
+                   eos_state % T   = max(Ip(i,j,k,idim,iwave,QTEMP), small_temp)
 
                    eos_state % xn  = Ip(i,j,k,idim,iwave,QFS:QFS+nspec-1)
                    eos_state % aux = Ip(i,j,k,idim,iwave,QFX:QFX+naux-1)
@@ -758,7 +758,7 @@ contains
 
 
                    eos_state % rho = Im(i,j,k,idim,iwave,QRHO)
-                   eos_state % T   = Im(i,j,k,idim,iwave,QTEMP)
+                   eos_state % T   = max(Im(i,j,k,idim,iwave,QTEMP), small_temp)
 
                    eos_state % xn  = Im(i,j,k,idim,iwave,QFS:QFS+nspec-1)
                    eos_state % aux = Im(i,j,k,idim,iwave,QFX:QFX+naux-1)
