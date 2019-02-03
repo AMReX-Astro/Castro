@@ -1133,12 +1133,21 @@ BL_FORT_PROC_DECL(CA_INITDATA_OVERWRITE,ca_initdata_overwrite)
 #endif
 
 #ifdef RADIATION
+#ifdef AMREX_DIMENSION_AGNOSTIC
+BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
+  (const int& level, const amrex::Real& time,
+   const int* lo, const int* hi,
+   const int& num_state,
+   BL_FORT_FAB_ARG_3D(state),
+   const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* xhi);
+#else
 BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
   (const int& level, const amrex::Real& time,
    const int* lo, const int* hi,
    const int& num_state,
    BL_FORT_FAB_ARG(state),
    const amrex::Real dx[], const amrex::Real xlo[], const amrex::Real xhi[]);
+#endif
 #endif
 
 #ifdef AMREX_DIMENSION_AGNOSTIC
