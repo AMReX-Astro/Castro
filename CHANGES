@@ -54,10 +54,6 @@
 
   -- The MG solver was optimized a bit (#464)
 
-  -- we removed ppm_type = 2.  This was never really used and not as
-     robust as ppm_type = 1.  The forthcoming 4th order method will
-     take its place. (#442)
-
 # 18.12
 
   -- fixed a bug in the CUDA version of the MOL integrator -- it was
