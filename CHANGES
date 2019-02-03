@@ -1,4 +1,9 @@
-changes since last release:
+# changes since the last release
+
+  -- fixed a bug in the ppm_type = 1 reconstruction -- we were not
+     doing the initial reconstruction of temperature
+
+# 19.02
 
   -- The flux limiter used with the options limit_fluxes_on_low_dens
      was not implemented correctly.  This has been fixed.  (PR #493)

@@ -51,4 +51,4 @@ amr.plot_int        = 50
 amr.derive_plot_vars=ALL
 
 # PROBIN FILENAME
-amr.probin_file = probin.3
+amr.probin_file = probin
