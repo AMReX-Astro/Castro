@@ -1,0 +1,532 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File Gravity_nd.f90 &mdash; Castro 19.02
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File gravity_sources_nd.F90" href="gravity__sources__nd_8F90.html" />
+    <link rel="prev" title="File Gravity_3d.f90" href="Gravity__3d_8f90.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                19.02
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Plotfiles and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../gravity_files.html">Gravity</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="GR__Gravity__1d_8f90.html">File GR_Gravity_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GR__Gravity__2d_8f90.html">File GR_Gravity_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GR__Gravity__3d_8f90.html">File GR_Gravity_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity_8H.html">File Gravity.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity__1d_8f90.html">File Gravity_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity__2d_8f90.html">File Gravity_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity__3d_8f90.html">File Gravity_3d.f90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File Gravity_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gravity__sources__nd_8F90.html">File gravity_sources_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pointmass__nd_8f90.html">File pointmass_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="prescribe__grav__nd_8f90.html">File prescribe_grav_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="prescribe__phi__nd_8F90.html">File prescribe_phi_nd.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../gravity_files.html">Gravity</a> &raquo;</li>
+        
+      <li>File Gravity_nd.f90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/Gravity__nd_8f90.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-gravity-nd-f90">
+<h1>File Gravity_nd.f90<a class="headerlink" href="#file-gravity-nd-f90" title="Permalink to this headline">¶</a></h1>
+<dl class="type">
+<dt id="_CPPv414gravity_module">
+<span id="_CPPv314gravity_module"></span><span id="_CPPv214gravity_module"></span><span id="gravity_module"></span><span class="target" id="namespacegravity__module"></span><em class="property">namespace </em><code class="descname">gravity_module</code><a class="headerlink" href="#_CPPv414gravity_module" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt id="_CPPv4N14gravity_module14get_grav_constE10Gconst_out">
+<span id="_CPPv3N14gravity_module14get_grav_constE10Gconst_out"></span><span id="_CPPv2N14gravity_module14get_grav_constE10Gconst_out"></span><span id="gravity_module::get_grav_const__Gconst_out"></span><span class="target" id="namespacegravity__module_1a3c84f0572372ffed006bda6a7cd11980"></span>subroutine <code class="descname">get_grav_const</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N14gravity_module14get_grav_constE10Gconst_out" title="gravity_module::get_grav_const::Gconst_out">Gconst_out</a> <em>Gconst_out</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14gravity_module14get_grav_constE10Gconst_out" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the gravitational constant, G. </p>
+<p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd>Binds to C function <code class="docutils literal notranslate"><span class="pre">get_grav_const</span></code></dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">Gconst_out</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N14gravity_module17ca_integrate_gravE4mass3den4grav10max_radius2dr9numpts_1d">
+<span id="_CPPv3N14gravity_module17ca_integrate_gravE4mass3den4grav10max_radius2dr9numpts_1d"></span><span id="_CPPv2N14gravity_module17ca_integrate_gravE4mass3den4grav10max_radius2dr9numpts_1d"></span><span id="gravity_module::ca_integrate_grav__mass.den.grav.max_radius.dr.numpts_1d"></span><span class="target" id="namespacegravity__module_1a3543b0ac94b2d0edc3325b15a05842bf"></span>subroutine <code class="descname">ca_integrate_grav</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N14gravity_module17ca_integrate_gravE4mass3den4grav10max_radius2dr9numpts_1d" title="gravity_module::ca_integrate_grav::mass">mass</a> <em>mass</em>, <a class="reference internal" href="#_CPPv4N14gravity_module17ca_integrate_gravE4mass3den4grav10max_radius2dr9numpts_1d" title="gravity_module::ca_integrate_grav::den">den</a> <em>den</em>, <a class="reference internal" href="#_CPPv4N14gravity_module17ca_integrate_gravE4mass3den4grav10max_radius2dr9numpts_1d" title="gravity_module::ca_integrate_grav::grav">grav</a> <em>grav</em>, <a class="reference internal" href="#_CPPv4N14gravity_module17ca_integrate_gravE4mass3den4grav10max_radius2dr9numpts_1d" title="gravity_module::ca_integrate_grav::max_radius">max_radius</a> <em>max_radius</em>, <a class="reference internal" href="#_CPPv4N14gravity_module17ca_integrate_gravE4mass3den4grav10max_radius2dr9numpts_1d" title="gravity_module::ca_integrate_grav::dr">dr</a> <em>dr</em>, <a class="reference internal" href="#_CPPv4N14gravity_module17ca_integrate_gravE4mass3den4grav10max_radius2dr9numpts_1d" title="gravity_module::ca_integrate_grav::numpts_1d">numpts_1d</a> <em>numpts_1d</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14gravity_module17ca_integrate_gravE4mass3den4grav10max_radius2dr9numpts_1d" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Given a radial mass distribution, this computes the gravitational acceleration as a function of radius by computing the mass enclosed in successive spherical shells. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">mass</span></code>: radial mass distribution </li>
+<li><code class="docutils literal notranslate"><span class="pre">den</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">grav</span></code>: gravitational acceleration as a function of radius </li>
+<li><code class="docutils literal notranslate"><span class="pre">max_radius</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">dr</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">numpts_1d</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N14gravity_module16ca_integrate_phiE4mass4grav3phi2dr9numpts_1d">
+<span id="_CPPv3N14gravity_module16ca_integrate_phiE4mass4grav3phi2dr9numpts_1d"></span><span id="_CPPv2N14gravity_module16ca_integrate_phiE4mass4grav3phi2dr9numpts_1d"></span><span id="gravity_module::ca_integrate_phi__mass.grav.phi.dr.numpts_1d"></span><span class="target" id="namespacegravity__module_1a6cba08b1d444abf5ba7f4f0530a56f55"></span>subroutine <code class="descname">ca_integrate_phi</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N14gravity_module16ca_integrate_phiE4mass4grav3phi2dr9numpts_1d" title="gravity_module::ca_integrate_phi::mass">mass</a> <em>mass</em>, <a class="reference internal" href="#_CPPv4N14gravity_module16ca_integrate_phiE4mass4grav3phi2dr9numpts_1d" title="gravity_module::ca_integrate_phi::grav">grav</a> <em>grav</em>, <a class="reference internal" href="#_CPPv4N14gravity_module16ca_integrate_phiE4mass4grav3phi2dr9numpts_1d" title="gravity_module::ca_integrate_phi::phi">phi</a> <em>phi</em>, <a class="reference internal" href="#_CPPv4N14gravity_module16ca_integrate_phiE4mass4grav3phi2dr9numpts_1d" title="gravity_module::ca_integrate_phi::dr">dr</a> <em>dr</em>, <a class="reference internal" href="#_CPPv4N14gravity_module16ca_integrate_phiE4mass4grav3phi2dr9numpts_1d" title="gravity_module::ca_integrate_phi::numpts_1d">numpts_1d</a> <em>numpts_1d</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14gravity_module16ca_integrate_phiE4mass4grav3phi2dr9numpts_1d" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Integrates radial mass elements of a spherically symmetric mass distribution to calculate both the gravitational acceleration, grav, and the gravitational potential, phi. Here the mass variable gives the mass contained in each radial shell. </p>
+<p>The convention in <a class="reference internal" href="Castro_8H.html#classCastro"><span class="std std-ref">Castro</span></a> for Poisson’s equation is <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">laplacian</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span> <span class="o">=</span> <span class="mi">4</span><span class="o">*</span><span class="n">pi</span><span class="o">*</span><span class="n">G</span><span class="o">*</span><span class="n">rho</span>
+</pre></div>
+</div>
+</p>
+<p>The gravitational acceleration is then <div class="math notranslate nohighlight">
+\[ g(r) = -G M(r) / r^2 \]</div>
+ where <span class="math notranslate nohighlight">\(M(r)\)</span> is the mass interior to radius r.</p>
+<p>The strategy for calculating the potential is to calculate the potential at the boundary assuming all the mass is enclosed: <div class="math notranslate nohighlight">
+\[ \phi(R) = -G M / R \]</div>
+ Then, the potential in all other zones can be found using <div class="math notranslate nohighlight">
+\[ \frac{d(\phi)}{dr} = g \; \Rightarrow \; \phi(r &lt; R) = \phi(R) - \int(g \dr) \]</div>
+</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">mass</span></code>: radial mass distribution </li>
+<li><code class="docutils literal notranslate"><span class="pre">grav</span></code>: radial gravitational acceleration </li>
+<li><code class="docutils literal notranslate"><span class="pre">dr</span></code>: radial cell spacing </li>
+<li><code class="docutils literal notranslate"><span class="pre">numpts_1d</span></code>: number of points in radial direction </li>
+<li><code class="docutils literal notranslate"><span class="pre">phi</span></code>: radial gravitational potential </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N14gravity_module20ca_integrate_gr_gravE3rho4mass4pres4grav2dr9numpts_1d">
+<span id="_CPPv3N14gravity_module20ca_integrate_gr_gravE3rho4mass4pres4grav2dr9numpts_1d"></span><span id="_CPPv2N14gravity_module20ca_integrate_gr_gravE3rho4mass4pres4grav2dr9numpts_1d"></span><span id="gravity_module::ca_integrate_gr_grav__rho.mass.pres.grav.dr.numpts_1d"></span><span class="target" id="namespacegravity__module_1a466fbf5bec2e1bd1431a0118f8b0a723"></span>subroutine <code class="descname">ca_integrate_gr_grav</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N14gravity_module20ca_integrate_gr_gravE3rho4mass4pres4grav2dr9numpts_1d" title="gravity_module::ca_integrate_gr_grav::rho">rho</a> <em>rho</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20ca_integrate_gr_gravE3rho4mass4pres4grav2dr9numpts_1d" title="gravity_module::ca_integrate_gr_grav::mass">mass</a> <em>mass</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20ca_integrate_gr_gravE3rho4mass4pres4grav2dr9numpts_1d" title="gravity_module::ca_integrate_gr_grav::pres">pres</a> <em>pres</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20ca_integrate_gr_gravE3rho4mass4pres4grav2dr9numpts_1d" title="gravity_module::ca_integrate_gr_grav::grav">grav</a> <em>grav</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20ca_integrate_gr_gravE3rho4mass4pres4grav2dr9numpts_1d" title="gravity_module::ca_integrate_gr_grav::dr">dr</a> <em>dr</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20ca_integrate_gr_gravE3rho4mass4pres4grav2dr9numpts_1d" title="gravity_module::ca_integrate_gr_grav::numpts_1d">numpts_1d</a> <em>numpts_1d</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14gravity_module20ca_integrate_gr_gravE3rho4mass4pres4grav2dr9numpts_1d" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Same as ca_integrate_grav above, but includes general relativistic effects. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">rho</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">mass</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">pressure</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">dr</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">numpts_1d</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">grav</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N14gravity_module22init_multipole_gravityE4lnum5lo_bc5hi_bc">
+<span id="_CPPv3N14gravity_module22init_multipole_gravityE4lnum5lo_bc5hi_bc"></span><span id="_CPPv2N14gravity_module22init_multipole_gravityE4lnum5lo_bc5hi_bc"></span><span id="gravity_module::init_multipole_gravity__lnum.lo_bc.hi_bc"></span><span class="target" id="namespacegravity__module_1a2b75b1a074ef30ade5a31d5003b04ae5"></span>subroutine <code class="descname">init_multipole_gravity</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N14gravity_module22init_multipole_gravityE4lnum5lo_bc5hi_bc" title="gravity_module::init_multipole_gravity::lnum">lnum</a> <em>lnum</em>, <a class="reference internal" href="#_CPPv4N14gravity_module22init_multipole_gravityE4lnum5lo_bc5hi_bc" title="gravity_module::init_multipole_gravity::lo_bc">lo_bc</a> <em>lo_bc</em>, <a class="reference internal" href="#_CPPv4N14gravity_module22init_multipole_gravityE4lnum5lo_bc5hi_bc" title="gravity_module::init_multipole_gravity::hi_bc">hi_bc</a> <em>hi_bc</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14gravity_module22init_multipole_gravityE4lnum5lo_bc5hi_bc" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>If any of the boundaries are symmetric, we need to account for the mass that is assumed to lie on the opposite side of the symmetric axis. If the center in any direction coincides with the boundary, then we can simply double the mass as a result of that reflection. Otherwise, we need to do a more general solve. We include a logical that is set to true if any boundary is symmetric, so that we can avoid unnecessary function calls. </p>
+<p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd>Binds to C function <code class="docutils literal notranslate"><span class="pre">init_multipole_gravity</span></code></dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">lnum</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">lo_bc</span></code>: integer </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N14gravity_module20ca_put_multipole_phiE2lo2hi5domlo5domhi2dx3phi4p_lo4p_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only">
+<span id="_CPPv3N14gravity_module20ca_put_multipole_phiE2lo2hi5domlo5domhi2dx3phi4p_lo4p_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only"></span><span id="_CPPv2N14gravity_module20ca_put_multipole_phiE2lo2hi5domlo5domhi2dx3phi4p_lo4p_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only"></span><span id="gravity_module::ca_put_multipole_phi__lo.hi.domlo.domhi.dx.phi.p_lo.p_hi.lnum.qL0.qLC.qLS.qU0.qUC.qUS.npts.boundary_only"></span><span class="target" id="namespacegravity__module_1a18e038816e02720de9aa0b72a85418dc"></span>subroutine <code class="descname">ca_put_multipole_phi</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N14gravity_module20ca_put_multipole_phiE2lo2hi5domlo5domhi2dx3phi4p_lo4p_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_put_multipole_phi::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20ca_put_multipole_phiE2lo2hi5domlo5domhi2dx3phi4p_lo4p_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_put_multipole_phi::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20ca_put_multipole_phiE2lo2hi5domlo5domhi2dx3phi4p_lo4p_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_put_multipole_phi::domlo">domlo</a> <em>domlo</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20ca_put_multipole_phiE2lo2hi5domlo5domhi2dx3phi4p_lo4p_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_put_multipole_phi::domhi">domhi</a> <em>domhi</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20ca_put_multipole_phiE2lo2hi5domlo5domhi2dx3phi4p_lo4p_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_put_multipole_phi::dx">dx</a> <em>dx</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20ca_put_multipole_phiE2lo2hi5domlo5domhi2dx3phi4p_lo4p_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_put_multipole_phi::phi">phi</a> <em>phi</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20ca_put_multipole_phiE2lo2hi5domlo5domhi2dx3phi4p_lo4p_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_put_multipole_phi::p_lo">p_lo</a> <em>p_lo</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20ca_put_multipole_phiE2lo2hi5domlo5domhi2dx3phi4p_lo4p_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_put_multipole_phi::p_hi">p_hi</a> <em>p_hi</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20ca_put_multipole_phiE2lo2hi5domlo5domhi2dx3phi4p_lo4p_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_put_multipole_phi::lnum">lnum</a> <em>lnum</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20ca_put_multipole_phiE2lo2hi5domlo5domhi2dx3phi4p_lo4p_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_put_multipole_phi::qL0">qL0</a> <em>qL0</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20ca_put_multipole_phiE2lo2hi5domlo5domhi2dx3phi4p_lo4p_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_put_multipole_phi::qLC">qLC</a> <em>qLC</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20ca_put_multipole_phiE2lo2hi5domlo5domhi2dx3phi4p_lo4p_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_put_multipole_phi::qLS">qLS</a> <em>qLS</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20ca_put_multipole_phiE2lo2hi5domlo5domhi2dx3phi4p_lo4p_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_put_multipole_phi::qU0">qU0</a> <em>qU0</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20ca_put_multipole_phiE2lo2hi5domlo5domhi2dx3phi4p_lo4p_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_put_multipole_phi::qUC">qUC</a> <em>qUC</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20ca_put_multipole_phiE2lo2hi5domlo5domhi2dx3phi4p_lo4p_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_put_multipole_phi::qUS">qUS</a> <em>qUS</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20ca_put_multipole_phiE2lo2hi5domlo5domhi2dx3phi4p_lo4p_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_put_multipole_phi::npts">npts</a> <em>npts</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20ca_put_multipole_phiE2lo2hi5domlo5domhi2dx3phi4p_lo4p_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_put_multipole_phi::boundary_only">boundary_only</a> <em>boundary_only</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14gravity_module20ca_put_multipole_phiE2lo2hi5domlo5domhi2dx3phi4p_lo4p_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only">
+<span id="_CPPv3N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only"></span><span id="_CPPv2N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only"></span><span id="gravity_module::ca_compute_multipole_moments__lo.hi.domlo.domhi.dx.rho.r_lo.r_hi.vol.v_lo.v_hi.lnum.qL0.qLC.qLS.qU0.qUC.qUS.npts.boundary_only"></span><span class="target" id="namespacegravity__module_1a4a481fb174ce96b7b1801c764fafa561"></span>subroutine <code class="descname">ca_compute_multipole_moments</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_compute_multipole_moments::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv4N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_compute_multipole_moments::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv4N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_compute_multipole_moments::domlo">domlo</a> <em>domlo</em>, <a class="reference internal" href="#_CPPv4N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_compute_multipole_moments::domhi">domhi</a> <em>domhi</em>, <a class="reference internal" href="#_CPPv4N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_compute_multipole_moments::dx">dx</a> <em>dx</em>, <a class="reference internal" href="#_CPPv4N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_compute_multipole_moments::rho">rho</a> <em>rho</em>, <a class="reference internal" href="#_CPPv4N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_compute_multipole_moments::r_lo">r_lo</a> <em>r_lo</em>, <a class="reference internal" href="#_CPPv4N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_compute_multipole_moments::r_hi">r_hi</a> <em>r_hi</em>, <a class="reference internal" href="#_CPPv4N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_compute_multipole_moments::vol">vol</a> <em>vol</em>, <a class="reference internal" href="#_CPPv4N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_compute_multipole_moments::v_lo">v_lo</a> <em>v_lo</em>, <a class="reference internal" href="#_CPPv4N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_compute_multipole_moments::v_hi">v_hi</a> <em>v_hi</em>, <a class="reference internal" href="#_CPPv4N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_compute_multipole_moments::lnum">lnum</a> <em>lnum</em>, <a class="reference internal" href="#_CPPv4N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_compute_multipole_moments::qL0">qL0</a> <em>qL0</em>, <a class="reference internal" href="#_CPPv4N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_compute_multipole_moments::qLC">qLC</a> <em>qLC</em>, <a class="reference internal" href="#_CPPv4N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_compute_multipole_moments::qLS">qLS</a> <em>qLS</em>, <a class="reference internal" href="#_CPPv4N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_compute_multipole_moments::qU0">qU0</a> <em>qU0</em>, <a class="reference internal" href="#_CPPv4N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_compute_multipole_moments::qUC">qUC</a> <em>qUC</em>, <a class="reference internal" href="#_CPPv4N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_compute_multipole_moments::qUS">qUS</a> <em>qUS</em>, <a class="reference internal" href="#_CPPv4N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_compute_multipole_moments::npts">npts</a> <em>npts</em>, <a class="reference internal" href="#_CPPv4N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="gravity_module::ca_compute_multipole_moments::boundary_only">boundary_only</a> <em>boundary_only</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14gravity_module28ca_compute_multipole_momentsE2lo2hi5domlo5domhi2dx3rho4r_lo4r_hi3vol4v_lo4v_hi4lnum3qL03qLC3qLS3qU03qUC3qUS4npts13boundary_only" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="namespacegravity__module_1ab455328804ca7b0d076f7a4fb21e1ade"></span><code class="descname">real(rt) function gravity_module::factorial(n n)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N14gravity_module20fill_legendre_arraysE10legPolyArr15assocLegPolyArr1x4lnum">
+<span id="_CPPv3N14gravity_module20fill_legendre_arraysE10legPolyArr15assocLegPolyArr1x4lnum"></span><span id="_CPPv2N14gravity_module20fill_legendre_arraysE10legPolyArr15assocLegPolyArr1x4lnum"></span><span id="gravity_module::fill_legendre_arrays__legPolyArr.assocLegPolyArr.x.lnum"></span><span class="target" id="namespacegravity__module_1af48c9953798691d0e4349524fe48e896"></span>subroutine <code class="descname">fill_legendre_arrays</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N14gravity_module20fill_legendre_arraysE10legPolyArr15assocLegPolyArr1x4lnum" title="gravity_module::fill_legendre_arrays::legPolyArr">legPolyArr</a> <em>legPolyArr</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20fill_legendre_arraysE10legPolyArr15assocLegPolyArr1x4lnum" title="gravity_module::fill_legendre_arrays::assocLegPolyArr">assocLegPolyArr</a> <em>assocLegPolyArr</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20fill_legendre_arraysE10legPolyArr15assocLegPolyArr1x4lnum" title="gravity_module::fill_legendre_arrays::x">x</a> <em>x</em>, <a class="reference internal" href="#_CPPv4N14gravity_module20fill_legendre_arraysE10legPolyArr15assocLegPolyArr1x4lnum" title="gravity_module::fill_legendre_arrays::lnum">lnum</a> <em>lnum</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14gravity_module20fill_legendre_arraysE10legPolyArr15assocLegPolyArr1x4lnum" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N14gravity_module23multipole_symmetric_addE16doSymmetricAddLo16doSymmetricAddHi1x1y1z6problo6probhi3rho3vol3qU03qUC3qUS3qL03qLC3qLS4lnum4npts3nlo5index">
+<span id="_CPPv3N14gravity_module23multipole_symmetric_addE16doSymmetricAddLo16doSymmetricAddHi1x1y1z6problo6probhi3rho3vol3qU03qUC3qUS3qL03qLC3qLS4lnum4npts3nlo5index"></span><span id="_CPPv2N14gravity_module23multipole_symmetric_addE16doSymmetricAddLo16doSymmetricAddHi1x1y1z6problo6probhi3rho3vol3qU03qUC3qUS3qL03qLC3qLS4lnum4npts3nlo5index"></span><span id="gravity_module::multipole_symmetric_add__doSymmetricAddLo.doSymmetricAddHi.x.y.z.problo.probhi.rho.vol.qU0.qUC.qUS.qL0.qLC.qLS.lnum.npts.nlo.index"></span><span class="target" id="namespacegravity__module_1a64dd06599ef0be6bd3dcdecc2551848b"></span>subroutine <code class="descname">multipole_symmetric_add</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N14gravity_module23multipole_symmetric_addE16doSymmetricAddLo16doSymmetricAddHi1x1y1z6problo6probhi3rho3vol3qU03qUC3qUS3qL03qLC3qLS4lnum4npts3nlo5index" title="gravity_module::multipole_symmetric_add::doSymmetricAddLo">doSymmetricAddLo</a> <em>doSymmetricAddLo</em>, <a class="reference internal" href="#_CPPv4N14gravity_module23multipole_symmetric_addE16doSymmetricAddLo16doSymmetricAddHi1x1y1z6problo6probhi3rho3vol3qU03qUC3qUS3qL03qLC3qLS4lnum4npts3nlo5index" title="gravity_module::multipole_symmetric_add::doSymmetricAddHi">doSymmetricAddHi</a> <em>doSymmetricAddHi</em>, <a class="reference internal" href="#_CPPv4N14gravity_module23multipole_symmetric_addE16doSymmetricAddLo16doSymmetricAddHi1x1y1z6problo6probhi3rho3vol3qU03qUC3qUS3qL03qLC3qLS4lnum4npts3nlo5index" title="gravity_module::multipole_symmetric_add::x">x</a> <em>x</em>, <a class="reference internal" href="#_CPPv4N14gravity_module23multipole_symmetric_addE16doSymmetricAddLo16doSymmetricAddHi1x1y1z6problo6probhi3rho3vol3qU03qUC3qUS3qL03qLC3qLS4lnum4npts3nlo5index" title="gravity_module::multipole_symmetric_add::y">y</a> <em>y</em>, <a class="reference internal" href="#_CPPv4N14gravity_module23multipole_symmetric_addE16doSymmetricAddLo16doSymmetricAddHi1x1y1z6problo6probhi3rho3vol3qU03qUC3qUS3qL03qLC3qLS4lnum4npts3nlo5index" title="gravity_module::multipole_symmetric_add::z">z</a> <em>z</em>, <a class="reference internal" href="#_CPPv4N14gravity_module23multipole_symmetric_addE16doSymmetricAddLo16doSymmetricAddHi1x1y1z6problo6probhi3rho3vol3qU03qUC3qUS3qL03qLC3qLS4lnum4npts3nlo5index" title="gravity_module::multipole_symmetric_add::problo">problo</a> <em>problo</em>, <a class="reference internal" href="#_CPPv4N14gravity_module23multipole_symmetric_addE16doSymmetricAddLo16doSymmetricAddHi1x1y1z6problo6probhi3rho3vol3qU03qUC3qUS3qL03qLC3qLS4lnum4npts3nlo5index" title="gravity_module::multipole_symmetric_add::probhi">probhi</a> <em>probhi</em>, <a class="reference internal" href="#_CPPv4N14gravity_module23multipole_symmetric_addE16doSymmetricAddLo16doSymmetricAddHi1x1y1z6problo6probhi3rho3vol3qU03qUC3qUS3qL03qLC3qLS4lnum4npts3nlo5index" title="gravity_module::multipole_symmetric_add::rho">rho</a> <em>rho</em>, <a class="reference internal" href="#_CPPv4N14gravity_module23multipole_symmetric_addE16doSymmetricAddLo16doSymmetricAddHi1x1y1z6problo6probhi3rho3vol3qU03qUC3qUS3qL03qLC3qLS4lnum4npts3nlo5index" title="gravity_module::multipole_symmetric_add::vol">vol</a> <em>vol</em>, <a class="reference internal" href="#_CPPv4N14gravity_module23multipole_symmetric_addE16doSymmetricAddLo16doSymmetricAddHi1x1y1z6problo6probhi3rho3vol3qU03qUC3qUS3qL03qLC3qLS4lnum4npts3nlo5index" title="gravity_module::multipole_symmetric_add::qU0">qU0</a> <em>qU0</em>, <a class="reference internal" href="#_CPPv4N14gravity_module23multipole_symmetric_addE16doSymmetricAddLo16doSymmetricAddHi1x1y1z6problo6probhi3rho3vol3qU03qUC3qUS3qL03qLC3qLS4lnum4npts3nlo5index" title="gravity_module::multipole_symmetric_add::qUC">qUC</a> <em>qUC</em>, <a class="reference internal" href="#_CPPv4N14gravity_module23multipole_symmetric_addE16doSymmetricAddLo16doSymmetricAddHi1x1y1z6problo6probhi3rho3vol3qU03qUC3qUS3qL03qLC3qLS4lnum4npts3nlo5index" title="gravity_module::multipole_symmetric_add::qUS">qUS</a> <em>qUS</em>, <a class="reference internal" href="#_CPPv4N14gravity_module23multipole_symmetric_addE16doSymmetricAddLo16doSymmetricAddHi1x1y1z6problo6probhi3rho3vol3qU03qUC3qUS3qL03qLC3qLS4lnum4npts3nlo5index" title="gravity_module::multipole_symmetric_add::qL0">qL0</a> <em>qL0</em>, <a class="reference internal" href="#_CPPv4N14gravity_module23multipole_symmetric_addE16doSymmetricAddLo16doSymmetricAddHi1x1y1z6problo6probhi3rho3vol3qU03qUC3qUS3qL03qLC3qLS4lnum4npts3nlo5index" title="gravity_module::multipole_symmetric_add::qLC">qLC</a> <em>qLC</em>, <a class="reference internal" href="#_CPPv4N14gravity_module23multipole_symmetric_addE16doSymmetricAddLo16doSymmetricAddHi1x1y1z6problo6probhi3rho3vol3qU03qUC3qUS3qL03qLC3qLS4lnum4npts3nlo5index" title="gravity_module::multipole_symmetric_add::qLS">qLS</a> <em>qLS</em>, <a class="reference internal" href="#_CPPv4N14gravity_module23multipole_symmetric_addE16doSymmetricAddLo16doSymmetricAddHi1x1y1z6problo6probhi3rho3vol3qU03qUC3qUS3qL03qLC3qLS4lnum4npts3nlo5index" title="gravity_module::multipole_symmetric_add::lnum">lnum</a> <em>lnum</em>, <a class="reference internal" href="#_CPPv4N14gravity_module23multipole_symmetric_addE16doSymmetricAddLo16doSymmetricAddHi1x1y1z6problo6probhi3rho3vol3qU03qUC3qUS3qL03qLC3qLS4lnum4npts3nlo5index" title="gravity_module::multipole_symmetric_add::npts">npts</a> <em>npts</em>, <a class="reference internal" href="#_CPPv4N14gravity_module23multipole_symmetric_addE16doSymmetricAddLo16doSymmetricAddHi1x1y1z6problo6probhi3rho3vol3qU03qUC3qUS3qL03qLC3qLS4lnum4npts3nlo5index" title="gravity_module::multipole_symmetric_add::nlo">nlo</a> <em>nlo</em>, <a class="reference internal" href="#_CPPv4N14gravity_module23multipole_symmetric_addE16doSymmetricAddLo16doSymmetricAddHi1x1y1z6problo6probhi3rho3vol3qU03qUC3qUS3qL03qLC3qLS4lnum4npts3nlo5index" title="gravity_module::multipole_symmetric_add::index">index</a> <em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14gravity_module23multipole_symmetric_addE16doSymmetricAddLo16doSymmetricAddHi1x1y1z6problo6probhi3rho3vol3qU03qUC3qUS3qL03qLC3qLS4lnum4npts3nlo5index" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">lnum</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">npts</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">nlo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">index</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">x</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">y</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">z</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">problo</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">rho</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">vol</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">doSymmetricAddLo</span></code>: logical </li>
+<li><code class="docutils literal notranslate"><span class="pre">qL0</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">qLC</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">qU0</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">qUC</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N14gravity_module13multipole_addE8cosTheta8phiAngle1r3rho3vol3qL03qLC3qLS3qU03qUC3qUS4lnum4npts3nlo5index9do_parity">
+<span id="_CPPv3N14gravity_module13multipole_addE8cosTheta8phiAngle1r3rho3vol3qL03qLC3qLS3qU03qUC3qUS4lnum4npts3nlo5index9do_parity"></span><span id="_CPPv2N14gravity_module13multipole_addE8cosTheta8phiAngle1r3rho3vol3qL03qLC3qLS3qU03qUC3qUS4lnum4npts3nlo5index9do_parity"></span><span id="gravity_module::multipole_add__cosTheta.phiAngle.r.rho.vol.qL0.qLC.qLS.qU0.qUC.qUS.lnum.npts.nlo.index.do_parity"></span><span class="target" id="namespacegravity__module_1ab3f64554a20dc60786828d22a89ca372"></span>subroutine <code class="descname">multipole_add</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N14gravity_module13multipole_addE8cosTheta8phiAngle1r3rho3vol3qL03qLC3qLS3qU03qUC3qUS4lnum4npts3nlo5index9do_parity" title="gravity_module::multipole_add::cosTheta">cosTheta</a> <em>cosTheta</em>, <a class="reference internal" href="#_CPPv4N14gravity_module13multipole_addE8cosTheta8phiAngle1r3rho3vol3qL03qLC3qLS3qU03qUC3qUS4lnum4npts3nlo5index9do_parity" title="gravity_module::multipole_add::phiAngle">phiAngle</a> <em>phiAngle</em>, <a class="reference internal" href="#_CPPv4N14gravity_module13multipole_addE8cosTheta8phiAngle1r3rho3vol3qL03qLC3qLS3qU03qUC3qUS4lnum4npts3nlo5index9do_parity" title="gravity_module::multipole_add::r">r</a> <em>r</em>, <a class="reference internal" href="#_CPPv4N14gravity_module13multipole_addE8cosTheta8phiAngle1r3rho3vol3qL03qLC3qLS3qU03qUC3qUS4lnum4npts3nlo5index9do_parity" title="gravity_module::multipole_add::rho">rho</a> <em>rho</em>, <a class="reference internal" href="#_CPPv4N14gravity_module13multipole_addE8cosTheta8phiAngle1r3rho3vol3qL03qLC3qLS3qU03qUC3qUS4lnum4npts3nlo5index9do_parity" title="gravity_module::multipole_add::vol">vol</a> <em>vol</em>, <a class="reference internal" href="#_CPPv4N14gravity_module13multipole_addE8cosTheta8phiAngle1r3rho3vol3qL03qLC3qLS3qU03qUC3qUS4lnum4npts3nlo5index9do_parity" title="gravity_module::multipole_add::qL0">qL0</a> <em>qL0</em>, <a class="reference internal" href="#_CPPv4N14gravity_module13multipole_addE8cosTheta8phiAngle1r3rho3vol3qL03qLC3qLS3qU03qUC3qUS4lnum4npts3nlo5index9do_parity" title="gravity_module::multipole_add::qLC">qLC</a> <em>qLC</em>, <a class="reference internal" href="#_CPPv4N14gravity_module13multipole_addE8cosTheta8phiAngle1r3rho3vol3qL03qLC3qLS3qU03qUC3qUS4lnum4npts3nlo5index9do_parity" title="gravity_module::multipole_add::qLS">qLS</a> <em>qLS</em>, <a class="reference internal" href="#_CPPv4N14gravity_module13multipole_addE8cosTheta8phiAngle1r3rho3vol3qL03qLC3qLS3qU03qUC3qUS4lnum4npts3nlo5index9do_parity" title="gravity_module::multipole_add::qU0">qU0</a> <em>qU0</em>, <a class="reference internal" href="#_CPPv4N14gravity_module13multipole_addE8cosTheta8phiAngle1r3rho3vol3qL03qLC3qLS3qU03qUC3qUS4lnum4npts3nlo5index9do_parity" title="gravity_module::multipole_add::qUC">qUC</a> <em>qUC</em>, <a class="reference internal" href="#_CPPv4N14gravity_module13multipole_addE8cosTheta8phiAngle1r3rho3vol3qL03qLC3qLS3qU03qUC3qUS4lnum4npts3nlo5index9do_parity" title="gravity_module::multipole_add::qUS">qUS</a> <em>qUS</em>, <a class="reference internal" href="#_CPPv4N14gravity_module13multipole_addE8cosTheta8phiAngle1r3rho3vol3qL03qLC3qLS3qU03qUC3qUS4lnum4npts3nlo5index9do_parity" title="gravity_module::multipole_add::lnum">lnum</a> <em>lnum</em>, <a class="reference internal" href="#_CPPv4N14gravity_module13multipole_addE8cosTheta8phiAngle1r3rho3vol3qL03qLC3qLS3qU03qUC3qUS4lnum4npts3nlo5index9do_parity" title="gravity_module::multipole_add::npts">npts</a> <em>npts</em>, <a class="reference internal" href="#_CPPv4N14gravity_module13multipole_addE8cosTheta8phiAngle1r3rho3vol3qL03qLC3qLS3qU03qUC3qUS4lnum4npts3nlo5index9do_parity" title="gravity_module::multipole_add::nlo">nlo</a> <em>nlo</em>, <a class="reference internal" href="#_CPPv4N14gravity_module13multipole_addE8cosTheta8phiAngle1r3rho3vol3qL03qLC3qLS3qU03qUC3qUS4lnum4npts3nlo5index9do_parity" title="gravity_module::multipole_add::index">index</a> <em>index</em>, <a class="reference internal" href="#_CPPv4N14gravity_module13multipole_addE8cosTheta8phiAngle1r3rho3vol3qL03qLC3qLS3qU03qUC3qUS4lnum4npts3nlo5index9do_parity" title="gravity_module::multipole_add::do_parity">do_parity</a> <em>do_parity</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14gravity_module13multipole_addE8cosTheta8phiAngle1r3rho3vol3qL03qLC3qLS3qU03qUC3qUS4lnum4npts3nlo5index9do_parity" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">lnum</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">npts</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">nlo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">index</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">cosTheta</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">phiAngle</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">r</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">rho</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">vol</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">qL0</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">qU0</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Variables</p>
+<dl class="member">
+<dt>
+<span class="target" id="namespacegravity__module_1af412abe668c9800512f5dc8418be1df4"></span><code class="descname">real(rt), save gravity_module::volumefactor</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacegravity__module_1a5cc5b44640c2201d66699cac53b63c3b"></span><code class="descname">real(rt), save gravity_module::parityfactor</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacegravity__module_1aba0e2db97f033d248be6a98210fc96a6"></span><code class="descname">real(rt), save gravity_module::edgetolerance</code> = 1.0e-2_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacegravity__module_1af759dd01ef779f1a2bc6dd8e9161d1af"></span><code class="descname">real(rt), save gravity_module::rmax</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacegravity__module_1a9f818361e0ff6594f1e5f459dcf6e4c3"></span><code class="descname">logical, dimension(3), save gravity_module::dosymmetricaddlo</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacegravity__module_1abcc3c12ce8567f16cff6f4fc73d772be"></span><code class="descname">logical, dimension(3), save gravity_module::dosymmetricaddhi</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacegravity__module_1adaa1919828ddadca498bbc93c7c66021"></span><code class="descname">logical, save gravity_module::dosymmetricadd</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacegravity__module_1a7ca134276b2a04353aac29e58b82db40"></span><code class="descname">logical, dimension(3), save gravity_module::doreflectionlo</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacegravity__module_1a3a114b1adfa8bc4638a82437f6376eb9"></span><code class="descname">logical, dimension(3), save gravity_module::doreflectionhi</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacegravity__module_1a4dccd3330b58262f734041e439cbd5c7"></span><code class="descname">integer, save gravity_module::lnum_max</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacegravity__module_1a7af2b9a3ad040a9b77420bdd04590e68"></span><code class="descname">real(rt), dimension(:,:), allocatable, save gravity_module::factarray</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacegravity__module_1adf4194d1983de40146ababd9130ea32b"></span><code class="descname">real(rt), dimension(:), allocatable, save gravity_module::parity_q0</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacegravity__module_1aabf406a33157dc8aaca2e4a3d89e5430"></span><code class="descname">real(rt), dimension(:,:), allocatable, save gravity_module::parity_qc_qs</code></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="gravity__sources__nd_8F90.html" class="btn btn-neutral float-right" title="File gravity_sources_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Gravity__3d_8f90.html" class="btn btn-neutral" title="File Gravity_3d.f90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

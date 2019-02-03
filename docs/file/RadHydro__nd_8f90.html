@@ -1,0 +1,500 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File RadHydro_nd.f90 &mdash; Castro 19.02
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File RadPlotvar_1d.f90" href="RadPlotvar__1d_8f90.html" />
+    <link rel="prev" title="File RadEOS_3d.f90" href="RadEOS__3d_8f90.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                19.02
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Plotfiles and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../radiation_files.html">Radiation</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="CastroRad__1d_8f90.html">File CastroRad_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="CastroRad__2d_8f90.html">File CastroRad_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="CastroRad__3d_8f90.html">File CastroRad_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="DumpModel1d_8H.html">File DumpModel1d.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HypreABec_8H.html">File HypreABec.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLD__1d_8f90.html">File MGFLD_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLD__2d_8f90.html">File MGFLD_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLD__3d_8f90.html">File MGFLD_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLDneut__1d_8f90.html">File MGFLDneut_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLDneut__2d_8f90.html">File MGFLDneut_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLDneut__3d_8f90.html">File MGFLDneut_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGRadBndry_8H.html">File MGRadBndry.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="NGBndry_8H.html">File NGBndry.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadBndry_8H.html">File RadBndry.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadBndry__1d_8f90.html">File RadBndry_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadBndry__2d_8f90.html">File RadBndry_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadBndry__3d_8f90.html">File RadBndry_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadDerive__nd_8f90.html">File RadDerive_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadEOS__1d_8f90.html">File RadEOS_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadEOS__2d_8f90.html">File RadEOS_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadEOS__3d_8f90.html">File RadEOS_3d.f90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File RadHydro_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadPlotvar__1d_8f90.html">File RadPlotvar_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadPlotvar__2d_8f90.html">File RadPlotvar_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadPlotvar__3d_8f90.html">File RadPlotvar_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadSolve_8H.html">File RadSolve.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadTests_8H.html">File RadTests.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadTypes_8H.html">File RadTypes.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Rad__nd_8f90.html">File Rad_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Radiation_8H.html">File Radiation.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="blackbody_8f90.html">File blackbody.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filt__prim__1d_8f90.html">File filt_prim_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filt__prim__2d_8f90.html">File filt_prim_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filt__prim__3d_8f90.html">File filt_prim_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filter_8f90.html">File filter.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fluxlimiter_8f90.html">File fluxlimiter.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="kavg_8F90.html">File kavg.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rad__params_8f90.html">File rad_params.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rad__util_8f90.html">File rad_util.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trace__ppm__rad__nd_8F90.html">File trace_ppm_rad_nd.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../radiation_files.html">Radiation</a> &raquo;</li>
+        
+      <li>File RadHydro_nd.f90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/RadHydro__nd_8f90.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-radhydro-nd-f90">
+<h1>File RadHydro_nd.f90<a class="headerlink" href="#file-radhydro-nd-f90" title="Permalink to this headline">¶</a></h1>
+<dl class="type">
+<dt id="_CPPv418radhydro_nd_module">
+<span id="_CPPv318radhydro_nd_module"></span><span id="_CPPv218radhydro_nd_module"></span><span id="radhydro_nd_module"></span><span class="target" id="namespaceradhydro__nd__module"></span><em class="property">namespace </em><code class="descname">radhydro_nd_module</code><a class="headerlink" href="#_CPPv418radhydro_nd_module" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt id="_CPPv4N18radhydro_nd_module16advect_in_fspaceE5ustar2af2dt9nstep_fsp">
+<span id="_CPPv3N18radhydro_nd_module16advect_in_fspaceE5ustar2af2dt9nstep_fsp"></span><span id="_CPPv2N18radhydro_nd_module16advect_in_fspaceE5ustar2af2dt9nstep_fsp"></span><span id="radhydro_nd_module::advect_in_fspace__ustar.af.dt.nstep_fsp"></span><span class="target" id="namespaceradhydro__nd__module_1a4322cd239740d5892626dc2a09bdd538"></span>subroutine <code class="descname">advect_in_fspace</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N18radhydro_nd_module16advect_in_fspaceE5ustar2af2dt9nstep_fsp" title="radhydro_nd_module::advect_in_fspace::ustar">ustar</a> <em>ustar</em>, <a class="reference internal" href="#_CPPv4N18radhydro_nd_module16advect_in_fspaceE5ustar2af2dt9nstep_fsp" title="radhydro_nd_module::advect_in_fspace::af">af</a> <em>af</em>, <a class="reference internal" href="#_CPPv4N18radhydro_nd_module16advect_in_fspaceE5ustar2af2dt9nstep_fsp" title="radhydro_nd_module::advect_in_fspace::dt">dt</a> <em>dt</em>, <a class="reference internal" href="#_CPPv4N18radhydro_nd_module16advect_in_fspaceE5ustar2af2dt9nstep_fsp" title="radhydro_nd_module::advect_in_fspace::nstep_fsp">nstep_fsp</a> <em>nstep_fsp</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N18radhydro_nd_module16advect_in_fspaceE5ustar2af2dt9nstep_fsp" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N18radhydro_nd_module18update_one_speciesE1n1u1a2dx4tend8nstepmax">
+<span id="_CPPv3N18radhydro_nd_module18update_one_speciesE1n1u1a2dx4tend8nstepmax"></span><span id="_CPPv2N18radhydro_nd_module18update_one_speciesE1n1u1a2dx4tend8nstepmax"></span><span id="radhydro_nd_module::update_one_species__n.u.a.dx.tend.nstepmax"></span><span class="target" id="namespaceradhydro__nd__module_1a4227925835a35ea46c012b7bf05bf2c6"></span>subroutine <code class="descname">update_one_species</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N18radhydro_nd_module18update_one_speciesE1n1u1a2dx4tend8nstepmax" title="radhydro_nd_module::update_one_species::n">n</a> <em>n</em>, <a class="reference internal" href="#_CPPv4N18radhydro_nd_module18update_one_speciesE1n1u1a2dx4tend8nstepmax" title="radhydro_nd_module::update_one_species::u">u</a> <em>u</em>, <a class="reference internal" href="#_CPPv4N18radhydro_nd_module18update_one_speciesE1n1u1a2dx4tend8nstepmax" title="radhydro_nd_module::update_one_species::a">a</a> <em>a</em>, <a class="reference internal" href="#_CPPv4N18radhydro_nd_module18update_one_speciesE1n1u1a2dx4tend8nstepmax" title="radhydro_nd_module::update_one_species::dx">dx</a> <em>dx</em>, <a class="reference internal" href="#_CPPv4N18radhydro_nd_module18update_one_speciesE1n1u1a2dx4tend8nstepmax" title="radhydro_nd_module::update_one_species::tend">tend</a> <em>tend</em>, <a class="reference internal" href="#_CPPv4N18radhydro_nd_module18update_one_speciesE1n1u1a2dx4tend8nstepmax" title="radhydro_nd_module::update_one_species::nstepmax">nstepmax</a> <em>nstepmax</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N18radhydro_nd_module18update_one_speciesE1n1u1a2dx4tend8nstepmax" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1a751f3a826c084ab5171d2f1beb0917fc"></span><code class="descname">real(rt) function, dimension(0:n-1) radhydro_nd_module::dudt(u u, a a, dx dx, n n)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1a2c6ca7af461b52d52505d82e2774e642"></span><code class="descname">real(rt) function radhydro_nd_module::mc(r r)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N18radhydro_nd_module5weno5E3vm23vm11v3vp13vp27v_weno5">
+<span id="_CPPv3N18radhydro_nd_module5weno5E3vm23vm11v3vp13vp27v_weno5"></span><span id="_CPPv2N18radhydro_nd_module5weno5E3vm23vm11v3vp13vp27v_weno5"></span><span id="radhydro_nd_module::weno5__vm2.vm1.v.vp1.vp2.v_weno5"></span><span class="target" id="namespaceradhydro__nd__module_1a2181cc06120a9cfa1a300d873122478e"></span>subroutine <code class="descname">weno5</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N18radhydro_nd_module5weno5E3vm23vm11v3vp13vp27v_weno5" title="radhydro_nd_module::weno5::vm2">vm2</a> <em>vm2</em>, <a class="reference internal" href="#_CPPv4N18radhydro_nd_module5weno5E3vm23vm11v3vp13vp27v_weno5" title="radhydro_nd_module::weno5::vm1">vm1</a> <em>vm1</em>, <a class="reference internal" href="#_CPPv4N18radhydro_nd_module5weno5E3vm23vm11v3vp13vp27v_weno5" title="radhydro_nd_module::weno5::v">v</a> <em>v</em>, <a class="reference internal" href="#_CPPv4N18radhydro_nd_module5weno5E3vm23vm11v3vp13vp27v_weno5" title="radhydro_nd_module::weno5::vp1">vp1</a> <em>vp1</em>, <a class="reference internal" href="#_CPPv4N18radhydro_nd_module5weno5E3vm23vm11v3vp13vp27v_weno5" title="radhydro_nd_module::weno5::vp2">vp2</a> <em>vp2</em>, <a class="reference internal" href="#_CPPv4N18radhydro_nd_module5weno5E3vm23vm11v3vp13vp27v_weno5" title="radhydro_nd_module::weno5::v_weno5">v_weno5</a> <em>v_weno5</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N18radhydro_nd_module5weno5E3vm23vm11v3vp13vp27v_weno5" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N18radhydro_nd_module17inelastic_scatterE4temp1u2ks2dt8pt_index">
+<span id="_CPPv3N18radhydro_nd_module17inelastic_scatterE4temp1u2ks2dt8pt_index"></span><span id="_CPPv2N18radhydro_nd_module17inelastic_scatterE4temp1u2ks2dt8pt_index"></span><span id="radhydro_nd_module::inelastic_scatter__temp.u.ks.dt.pt_index"></span><span class="target" id="namespaceradhydro__nd__module_1a9e44723d648de944a66e882665b3aa99"></span>subroutine <code class="descname">inelastic_scatter</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N18radhydro_nd_module17inelastic_scatterE4temp1u2ks2dt8pt_index" title="radhydro_nd_module::inelastic_scatter::temp">temp</a> <em>temp</em>, <a class="reference internal" href="#_CPPv4N18radhydro_nd_module17inelastic_scatterE4temp1u2ks2dt8pt_index" title="radhydro_nd_module::inelastic_scatter::u">u</a> <em>u</em>, <a class="reference internal" href="#_CPPv4N18radhydro_nd_module17inelastic_scatterE4temp1u2ks2dt8pt_index" title="radhydro_nd_module::inelastic_scatter::ks">ks</a> <em>ks</em>, <a class="reference internal" href="#_CPPv4N18radhydro_nd_module17inelastic_scatterE4temp1u2ks2dt8pt_index" title="radhydro_nd_module::inelastic_scatter::dt">dt</a> <em>dt</em>, <a class="reference internal" href="#_CPPv4N18radhydro_nd_module17inelastic_scatterE4temp1u2ks2dt8pt_index" title="radhydro_nd_module::inelastic_scatter::pt_index">pt_index</a> <em>pt_index</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N18radhydro_nd_module17inelastic_scatterE4temp1u2ks2dt8pt_index" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Variables</p>
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1afc1ec5c93029575dca5de8b70cb1a7fe"></span><code class="descname">integer, parameter radhydro_nd_module::rk_order</code> = 3</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1ad927e7e879205fa4a65764110e4395be"></span><code class="descname">logical, parameter radhydro_nd_module::use_weno</code> = .false.</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1a1f1b8a018e75a37ea4a9ce31fce30cea"></span><code class="descname">real(rt), parameter radhydro_nd_module::cfl</code> = 0.5e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1aa591466661f493ad3e9d7bb801a4cc41"></span><code class="descname">real(rt), parameter radhydro_nd_module::onethird</code> =1.e0_rt/3.e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1addf8ba45a9ac6aea1d777fbbd252c105"></span><code class="descname">real(rt), parameter radhydro_nd_module::twothirds</code> =2.e0_rt/3.e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1a5d729102484f296641f665f20f66b0c0"></span><code class="descname">real(rt), parameter radhydro_nd_module::onesixth</code> =1.e0_rt/6.e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1a67e3c5df0f60bd7a8e9b4e30ff5fc2b0"></span><code class="descname">real(rt), parameter radhydro_nd_module::b1</code> =0.5e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1a4498d201a68b6792f37f228e8e589ae3"></span><code class="descname">real(rt), parameter radhydro_nd_module::b2</code> =1.e0_rt/16.e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1a0dca2ab1b16886d00a5c12a1d2c546e6"></span><code class="descname">real(rt), parameter radhydro_nd_module::b3</code> =0.5e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1ac8c77492f93ffa2566a6038bb4baac27"></span><code class="descname">real(rt), parameter radhydro_nd_module::b4</code> =9.e0_rt/16.e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1ab1d49664025d1be4e99fe935647ab331"></span><code class="descname">real(rt), parameter radhydro_nd_module::b5</code> =8.e0_rt/7.e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1aa2297965f8a8526c8d081fd5a4452e09"></span><code class="descname">real(rt), parameter radhydro_nd_module::b6</code> =7.e0_rt/90.e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1a049b5f541d7d97357632d2204c3704ec"></span><code class="descname">real(rt), parameter radhydro_nd_module::c20</code> =5.e0_rt/8.e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1a213e54969ec4dae4ccd884c7f5946d37"></span><code class="descname">real(rt), parameter radhydro_nd_module::c21</code> =3.e0_rt/8.e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1a30b576d4e5f1b50e73bbf30cc36f31dd"></span><code class="descname">real(rt), parameter radhydro_nd_module::c40</code> =17.e0_rt/8.e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1a993fb10658873884b45087881f961149"></span><code class="descname">real(rt), parameter radhydro_nd_module::c41</code> =9.e0_rt/8.e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1a12318f3d2cf5101bafa4d9de0e53507d"></span><code class="descname">real(rt), parameter radhydro_nd_module::c42</code> =-3.e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1a51c53e908ffbc1706963168b4b4adeb2"></span><code class="descname">real(rt), parameter radhydro_nd_module::c43</code> =0.75e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1a5f6144c12ee7aee07d4b89113b2dd22c"></span><code class="descname">real(rt), parameter radhydro_nd_module::c50</code> =-5.e0_rt/21.e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1a4cb16516b4e759fa48c75f0f4410f4d5"></span><code class="descname">real(rt), parameter radhydro_nd_module::c51</code> =2.e0_rt/7.e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1a52e8515b056bf8c4a1b30ef9529e7e17"></span><code class="descname">real(rt), parameter radhydro_nd_module::c52</code> =0.e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1a7009f70cc80a133c17dcf0e77515ceb3"></span><code class="descname">real(rt), parameter radhydro_nd_module::c53</code> =4.e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1a963816dc516088352f5968cae8d30cd4"></span><code class="descname">real(rt), parameter radhydro_nd_module::c54</code> =-64.e0_rt/21.e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1a69051e84cb5202d1b048b72e8b6839ac"></span><code class="descname">real(rt), parameter radhydro_nd_module::c60</code> =-8.e0_rt/27.e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1a4c63c448a2e69f1d92d5653c6c0428de"></span><code class="descname">real(rt), parameter radhydro_nd_module::c61</code> =-1.e0_rt/5.e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1ae83a6d3a519f4f450b04be28b53b1d46"></span><code class="descname">real(rt), parameter radhydro_nd_module::c62</code> =32.e0_rt/45.e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1ad72a2b9932de32832033812cfbfe06a5"></span><code class="descname">real(rt), parameter radhydro_nd_module::c63</code> =-32.e0_rt/45.e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1acddd8802bae8f5c1eae67d7206585137"></span><code class="descname">real(rt), parameter radhydro_nd_module::c64</code> =32.e0_rt/27.e0_rt</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespaceradhydro__nd__module_1a73c6a74e8a801e9d99b432ab9ac6e7f6"></span><code class="descname">real(rt), parameter radhydro_nd_module::c65</code> =14.e0_rt/45.e0_rt</dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="RadPlotvar__1d_8f90.html" class="btn btn-neutral float-right" title="File RadPlotvar_1d.f90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="RadEOS__3d_8f90.html" class="btn btn-neutral" title="File RadEOS_3d.f90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

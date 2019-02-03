@@ -1,0 +1,4 @@
+File kavg.F90
+=============
+
+.. doxygenfile:: kavg.F90

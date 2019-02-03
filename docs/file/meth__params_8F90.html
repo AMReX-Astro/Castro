@@ -1,0 +1,984 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File meth_params.F90 &mdash; Castro 19.02
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File prob_params.F90" href="prob__params_8F90.html" />
+    <link rel="prev" title="File math.F90" href="math_8F90.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                19.02
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Plotfiles and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../driver_files.html">Driver</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Castro_8H.html">File Castro.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__io_8H.html">File Castro_io.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__nd_8F90.html">File Castro_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__util_8F90.html">File Castro_util.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Derive_8H.html">File Derive.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Derive__nd_8F90.html">File Derive_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGutils__1d_8F90.html">File MGutils_1d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGutils__2d_8F90.html">File MGutils_2d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Tagging__nd_8F90.html">File Tagging_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="amrinfo_8F90.html">File amrinfo.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="check__for__nan_8f90.html">File check_for_nan.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filcc__nd_8F90.html">File filcc_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generic__fill_8F90.html">File generic_fill.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="interpolate_8F90.html">File interpolate.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="io_8f90.html">File io.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="math_8F90.html">File math.F90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File meth_params.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="prob__params_8F90.html">File prob_params.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sums__nd_8F90.html">File sums_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timestep_8F90.html">File timestep.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../driver_files.html">Driver</a> &raquo;</li>
+        
+      <li>File meth_params.F90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/meth__params_8F90.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-meth-params-f90">
+<h1>File meth_params.F90<a class="headerlink" href="#file-meth-params-f90" title="Permalink to this headline">¶</a></h1>
+<dl class="type">
+<dt id="_CPPv418meth_params_module">
+<span id="_CPPv318meth_params_module"></span><span id="_CPPv218meth_params_module"></span><span id="meth_params_module"></span><span class="target" id="namespacemeth__params__module"></span><em class="property">namespace </em><code class="descname">meth_params_module</code><a class="headerlink" href="#_CPPv418meth_params_module" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt id="_CPPv4N18meth_params_module27ca_set_castro_method_paramsEv">
+<span id="_CPPv3N18meth_params_module27ca_set_castro_method_paramsEv"></span><span id="_CPPv2N18meth_params_module27ca_set_castro_method_paramsEv"></span><span id="meth_params_module::ca_set_castro_method_params"></span><span class="target" id="namespacemeth__params__module_1a324b450038599a2961e63c1a7c28703d"></span>subroutine <code class="descname">ca_set_castro_method_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N18meth_params_module27ca_set_castro_method_paramsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N18meth_params_module23ca_finalize_meth_paramsEv">
+<span id="_CPPv3N18meth_params_module23ca_finalize_meth_paramsEv"></span><span id="_CPPv2N18meth_params_module23ca_finalize_meth_paramsEv"></span><span id="meth_params_module::ca_finalize_meth_params"></span><span class="target" id="namespacemeth__params__module_1acb520e14db415a3deed9fb35cfd3510f"></span>subroutine <code class="descname">ca_finalize_meth_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N18meth_params_module23ca_finalize_meth_paramsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Variables</p>
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a57983f0460cd09c954d941a6229b8a65"></span><code class="descname">integer, parameter meth_params_module::nhyp</code> = 4</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a170688818a3f78f2bb68ddf6072c3aa8"></span><code class="descname">integer, allocatable, save meth_params_module::urho</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a8501e41b77c364c257a6bda84a8ed03a"></span><code class="descname">integer, allocatable, save meth_params_module::umx</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ac1d536eeae722e1d73bd93162656ac40"></span><code class="descname">integer, allocatable, save meth_params_module::umy</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a3513fa5ae2aab7bd0716b5f6495f3bb5"></span><code class="descname">integer, allocatable, save meth_params_module::umz</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ac5a62e4ec72ed7da10434fa172004cc8"></span><code class="descname">integer, allocatable, save meth_params_module::umr</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1af0d96757f9c3c95e8b31f438662a29a0"></span><code class="descname">integer, allocatable, save meth_params_module::uml</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ac4a06a1e3e634078c3b347196964aa2b"></span><code class="descname">integer, allocatable, save meth_params_module::ump</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1acd5c007acee8635f87461614a6871262"></span><code class="descname">integer, allocatable, save meth_params_module::ueden</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a02fa28f44f13e69fd5b053a2406ec8da"></span><code class="descname">integer, allocatable, save meth_params_module::ueint</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a15d9cf74375915e5b56a5fb293859dfb"></span><code class="descname">integer, allocatable, save meth_params_module::utemp</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a676077ff02cd80f935a6c26e89181f77"></span><code class="descname">integer, allocatable, save meth_params_module::ufa</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a5c3941d27552234bd95a9a537b858a11"></span><code class="descname">integer, allocatable, save meth_params_module::ufs</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1aa3d5696e071c213a181c8c164cbe4df6"></span><code class="descname">integer, allocatable, save meth_params_module::ufx</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a98bcf1420f1e68e9da7c7a9e1b1c75df"></span><code class="descname">integer, allocatable, save meth_params_module::ushk</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a014d98119341adaad6ec5e460feb592e"></span><code class="descname">integer, allocatable, save meth_params_module::qrho</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ad6bb5f08b6ac4e48c85aa6a3bc99b40e"></span><code class="descname">integer, allocatable, save meth_params_module::qu</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a4ab1f8aaf944c7bf5ef43aefe4685ef6"></span><code class="descname">integer, allocatable, save meth_params_module::qv</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a05f60bc8e844b49ddaf9408335c36326"></span><code class="descname">integer, allocatable, save meth_params_module::qw</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ac0f6bf423bf3a29aa62f2a772e948458"></span><code class="descname">integer, allocatable, save meth_params_module::qpres</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a5df236fceeab63ff0cbdf2902935519b"></span><code class="descname">integer, allocatable, save meth_params_module::qreint</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1afbf73aa3e913bd476675a803aab13c12"></span><code class="descname">integer, allocatable, save meth_params_module::qtemp</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1addb5f3356c558c9a7ea096bdd4c5e919"></span><code class="descname">integer, allocatable, save meth_params_module::qgame</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ac0032f70a674553082fe08f60c88bf1b"></span><code class="descname">integer, allocatable, save meth_params_module::qgamc</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a8da32ad24a21080d22518424bab95a30"></span><code class="descname">integer, allocatable, save meth_params_module::qc</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a9d6d4ba1f34b51d75c1b7a5346e28e8d"></span><code class="descname">integer, allocatable, save meth_params_module::qdpdr</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a3cb6d4629d1e7c357c06197a43b11603"></span><code class="descname">integer, allocatable, save meth_params_module::qdpde</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ad353d5ef34c8621a9950cd7b16536382"></span><code class="descname">integer, allocatable, save meth_params_module::qfa</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a94233de3be4d97f0aab583397b08de10"></span><code class="descname">integer, allocatable, save meth_params_module::qfs</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1af0261a2d2e6887fc0502bdd74a017719"></span><code class="descname">integer, allocatable, save meth_params_module::qfx</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a9bc391406fdc8cc09bd46aabf1edc966"></span><code class="descname">integer, allocatable, save meth_params_module::npassive</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a1244e8620e831872dafa0180cef78b56"></span><code class="descname">integer, dimension(:), allocatable, save meth_params_module::qpass_map</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a190f250aae643f77441022e21fe150e9"></span><code class="descname">integer, dimension(:), allocatable, save meth_params_module::upass_map</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ab0c3570cf388dc4e526dce8563512e45"></span><code class="descname">integer, allocatable, save meth_params_module::gdrho</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a5e94dbc045c743a1dbe522a590bd33c0"></span><code class="descname">integer, allocatable, save meth_params_module::gdu</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a1ec268a33faaec6c000f8be12725c935"></span><code class="descname">integer, allocatable, save meth_params_module::gdv</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ad47de34f44f4aa5bc716990fd5c78e7f"></span><code class="descname">integer, allocatable, save meth_params_module::gdw</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ac9b47813d85ba1e90112ad051ea7e4e5"></span><code class="descname">integer, allocatable, save meth_params_module::gdpres</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a83922300a236f3210db566fc487bd392"></span><code class="descname">integer, allocatable, save meth_params_module::gdgame</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ab2d40c3a7ee363a8eb78f3ffae7ea445"></span><code class="descname">integer, save meth_params_module::numpts_1d</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ac1da4e2bfb5cbe21c95b8a307d713091"></span><code class="descname">real(rt), dimension(:,:), allocatable, save meth_params_module::outflow_data_old</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1abf184a34fae1f7c16326248a065c78b7"></span><code class="descname">real(rt), dimension(:,:), allocatable, save meth_params_module::outflow_data_new</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a0e22e5d4c71242b363bd698eba95cb8e"></span><code class="descname">real(rt), save meth_params_module::outflow_data_old_time</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1af989bf80a3a52682ae8ac7e303ef1023"></span><code class="descname">real(rt), save meth_params_module::outflow_data_new_time</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1abe67c6b44625f7f3c7ed271297a8838a"></span><code class="descname">logical, save meth_params_module::outflow_data_allocated</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a436682df7157642f68632ac2f25a4d45"></span><code class="descname">real(rt), save meth_params_module::max_dist</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ab00564ed25e658184f77719ff5ab44a3"></span><code class="descname">integer, parameter meth_params_module::ext_undefined</code> = -1</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1acfb334daf6d56ad21140772e2c7e6824"></span><code class="descname">integer, parameter meth_params_module::ext_hse</code> = 1</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a2e7c073cdcb1afcca0a6fd460f8846cc"></span><code class="descname">integer, parameter meth_params_module::ext_interp</code> = 2</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ae7a380d10d555b0b7a269e935e87882d"></span><code class="descname">integer, allocatable, save meth_params_module::xl_ext</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a61cba3f4c8256e01301566e29ac6c361"></span><code class="descname">integer, allocatable, save meth_params_module::yl_ext</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a622ed55a96bbb9e2d101195f1221a00a"></span><code class="descname">integer, allocatable, save meth_params_module::zl_ext</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a4edfbd718dcc5904863277ad5dd65703"></span><code class="descname">integer, allocatable, save meth_params_module::xr_ext</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a5c7bbc3ae2a98ab1ecc4d613c79c5f6e"></span><code class="descname">integer, allocatable, save meth_params_module::yr_ext</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ad16b720cc83b6c77b7dab6b50e523e1d"></span><code class="descname">integer, allocatable, save meth_params_module::zr_ext</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a1092933e6c1a9fa471deac3b1c3fb675"></span><code class="descname">real(rt), allocatable, save meth_params_module::difmag</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ae476b89f5e4253c0cfd2642bc0a5de4f"></span><code class="descname">real(rt), allocatable, save meth_params_module::small_dens</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a7d160756162ace9d89163476cf14aa8e"></span><code class="descname">real(rt), allocatable, save meth_params_module::small_temp</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a6a250f39d767ced2f5d6e03f0bbe96ba"></span><code class="descname">real(rt), allocatable, save meth_params_module::small_pres</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ac89e5d285a5b81e37ee02b95e7486e03"></span><code class="descname">real(rt), allocatable, save meth_params_module::small_ener</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a8ee2c52e011520d127a75e95c3ef28e9"></span><code class="descname">integer, allocatable, save meth_params_module::do_hydro</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a32cea07b1227f8d7841beecf8002ff3d"></span><code class="descname">integer, allocatable, save meth_params_module::do_ctu</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a624dc67b577e5ce38859fb7454d3feb4"></span><code class="descname">integer, allocatable, save meth_params_module::fourth_order</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a2d1d44c3727e7a88e39fb987fdc48810"></span><code class="descname">integer, allocatable, save meth_params_module::hybrid_hydro</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a99ed56f8fbbfab5140717016315d8350"></span><code class="descname">integer, allocatable, save meth_params_module::ppm_type</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a05887b398a5dc0a720ecc9bc3d733662"></span><code class="descname">integer, allocatable, save meth_params_module::ppm_temp_fix</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ae316f5db7b978db437913961bf318be1"></span><code class="descname">integer, allocatable, save meth_params_module::ppm_predict_gammae</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a0a9a898b3c8f49cab6ffafa50a02f654"></span><code class="descname">integer, allocatable, save meth_params_module::ppm_reference_eigenvectors</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ab28bba3365791ca4fd6f206b574e12fd"></span><code class="descname">integer, allocatable, save meth_params_module::plm_iorder</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ad56c5e60091f6baa88ffb3df60438919"></span><code class="descname">integer, allocatable, save meth_params_module::hybrid_riemann</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a9490a9806e5b537b8461b5942628e0a3"></span><code class="descname">integer, allocatable, save meth_params_module::riemann_solver</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a41b8558b49b576114efb9365bdd7eb30"></span><code class="descname">integer, allocatable, save meth_params_module::cg_maxiter</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ae841ba0e5566671b6f7b78923774b6c6"></span><code class="descname">real(rt), allocatable, save meth_params_module::cg_tol</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ae314a69cd497e8e90044be77dbbbba47"></span><code class="descname">integer, allocatable, save meth_params_module::cg_blend</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a2521ef91568a202f6e1a13a4b1fb5f14"></span><code class="descname">integer, allocatable, save meth_params_module::use_eos_in_riemann</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1aed7d45a0629d26d15bdc1e8160a99a5d"></span><code class="descname">integer, allocatable, save meth_params_module::use_flattening</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a3a1c0d1491ecc677c2ca32e1e754d5ca"></span><code class="descname">integer, allocatable, save meth_params_module::transverse_use_eos</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a75681d9bf777d0f507716538b467d172"></span><code class="descname">integer, allocatable, save meth_params_module::transverse_reset_density</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a1ebce69cf2aaaf532e19d59a8866a5e9"></span><code class="descname">integer, allocatable, save meth_params_module::transverse_reset_rhoe</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a18a2266125ce0cff76ab10182aa2809c"></span><code class="descname">real(rt), allocatable, save meth_params_module::dual_energy_eta1</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1aef6fa654e0846593b6ef026c7b7dac69"></span><code class="descname">real(rt), allocatable, save meth_params_module::dual_energy_eta2</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a01eb9841dd00d72867ed3e5fbb1d8e54"></span><code class="descname">integer, allocatable, save meth_params_module::use_pslope</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a700d7d0f95c14c708c4ab967c96aa488"></span><code class="descname">integer, allocatable, save meth_params_module::fix_mass_flux</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a5db1854065cfe5a99d04a91149132ec8"></span><code class="descname">integer, allocatable, save meth_params_module::limit_fluxes_on_small_dens</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1aa076ce06e3d90684ef93e4b6c0fbc9c7"></span><code class="descname">integer, allocatable, save meth_params_module::density_reset_method</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a7af3aae85a2982310838881730e9e102"></span><code class="descname">integer, allocatable, save meth_params_module::allow_small_energy</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1af4e79781aea45c6df311949320beff70"></span><code class="descname">integer, allocatable, save meth_params_module::do_sponge</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ab227dbcc63f4bcd3b233d06f5d99a07c"></span><code class="descname">integer, allocatable, save meth_params_module::sponge_implicit</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ac93ee17ad8ba61135582b00f3e789b66"></span><code class="descname">integer, allocatable, save meth_params_module::first_order_hydro</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ac1446bee37b4349a14c8f7809a9adcd9"></span><code class="descname">character (len=:), allocatable, save meth_params_module::xl_ext_bc_type</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a6e53cd9ee5e74a353d1a453163e76ce5"></span><code class="descname">character (len=:), allocatable, save meth_params_module::xr_ext_bc_type</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a2498787b5d79da6834bd9384f47f39de"></span><code class="descname">character (len=:), allocatable, save meth_params_module::yl_ext_bc_type</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a40f3da8b4c22968a32bec1fd700c5d2c"></span><code class="descname">character (len=:), allocatable, save meth_params_module::yr_ext_bc_type</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1aae07f2027c352d0a5b52f54c6c3595a9"></span><code class="descname">character (len=:), allocatable, save meth_params_module::zl_ext_bc_type</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ad5d3f23a9fe56e4710a7e7430da9ddb1"></span><code class="descname">character (len=:), allocatable, save meth_params_module::zr_ext_bc_type</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1afd75cb0d9bb1a4f9057a8fa85248c695"></span><code class="descname">integer, allocatable, save meth_params_module::hse_zero_vels</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1af32fdb23ad0fe244e323cc3abef60960"></span><code class="descname">integer, allocatable, save meth_params_module::hse_interp_temp</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a4dde6b913042fdd3a9551f7aae58f962"></span><code class="descname">integer, allocatable, save meth_params_module::hse_reflect_vels</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a2d3a9d92bd8974775e78eecae875f1ec"></span><code class="descname">integer, allocatable, save meth_params_module::mol_order</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1afb9c354320f7860fe4c087d9f454eb4e"></span><code class="descname">real(rt), allocatable, save meth_params_module::cfl</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a5e6bc2a7e71f8fd654390bc07577d86c"></span><code class="descname">real(rt), allocatable, save meth_params_module::dtnuc_e</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1aefaf1c7b233aabd302d34838bea3c70b"></span><code class="descname">real(rt), allocatable, save meth_params_module::dtnuc_x</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ae014bc7e75316d0f47ddd99d7d8d67c5"></span><code class="descname">real(rt), allocatable, save meth_params_module::dtnuc_x_threshold</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a2f067164f9d27e55ed08187bce5f8836"></span><code class="descname">integer, allocatable, save meth_params_module::do_react</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a4d78d4cf3e09d3a9cdcb4d04641ab288"></span><code class="descname">real(rt), allocatable, save meth_params_module::react_t_min</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ae889a22fbd1bc572daef0bc1617ac3fb"></span><code class="descname">real(rt), allocatable, save meth_params_module::react_t_max</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a7eba39b1dabc9a1ea6b53c7611bc6638"></span><code class="descname">real(rt), allocatable, save meth_params_module::react_rho_min</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a6f938f1783545b3bf083b1ffedacfb57"></span><code class="descname">real(rt), allocatable, save meth_params_module::react_rho_max</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a33240fb20cd1d451cc0243b1c855cb9e"></span><code class="descname">integer, allocatable, save meth_params_module::disable_shock_burning</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ab75998293fc78fc51f7a9c2fe1816783"></span><code class="descname">real(rt), allocatable, save meth_params_module::diffuse_cutoff_density</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1aa1486eb56283aa90a5ffe3959187a95c"></span><code class="descname">real(rt), allocatable, save meth_params_module::diffuse_cutoff_density_hi</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a88207045712c4cf15d044ef4b5f3811e"></span><code class="descname">real(rt), allocatable, save meth_params_module::diffuse_cond_scale_fac</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a57655b8eb3bbf7b0ba4ece9373b79e44"></span><code class="descname">integer, allocatable, save meth_params_module::do_grav</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a0d4e46e256fd2b0ea1bee81318bb2e3d"></span><code class="descname">integer, allocatable, save meth_params_module::grav_source_type</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a803fff830a8ff376136f5d88e144a535"></span><code class="descname">integer, allocatable, save meth_params_module::do_rotation</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a454a9459b5e38fd71d815fb9c2065a6d"></span><code class="descname">real(rt), allocatable, save meth_params_module::rot_period</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a35e9197156275e504480ff5a4f5cdb76"></span><code class="descname">real(rt), allocatable, save meth_params_module::rot_period_dot</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ae4b0b1af3668388e099f87b7604cb0d2"></span><code class="descname">integer, allocatable, save meth_params_module::rotation_include_centrifugal</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a45aef1706d09e3a9aedf1698b859df9c"></span><code class="descname">integer, allocatable, save meth_params_module::rotation_include_coriolis</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a5a8196467117c29ed708fae5b15f4ec7"></span><code class="descname">integer, allocatable, save meth_params_module::rotation_include_domegadt</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ae531d018e648c31b29989942b5da7968"></span><code class="descname">integer, allocatable, save meth_params_module::state_in_rotating_frame</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a40cb09f46b7c4c453717ca74fead79a1"></span><code class="descname">integer, allocatable, save meth_params_module::rot_source_type</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1ae3bdd88eddb743757fc741b3da28fecd"></span><code class="descname">integer, allocatable, save meth_params_module::implicit_rotation_update</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1abc4c792349544a87849ee1be34fa0992"></span><code class="descname">integer, allocatable, save meth_params_module::rot_axis</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1add4546f8aaa37999576cc2d369a059a3"></span><code class="descname">integer, allocatable, save meth_params_module::use_point_mass</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a55191220a5160856e632d5897ed246b1"></span><code class="descname">real(rt), allocatable, save meth_params_module::point_mass</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1adf071cbf4db98aa8c16628ccc3144a88"></span><code class="descname">integer, allocatable, save meth_params_module::point_mass_fix_solution</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1aa59f47dc947b88c2abb60636b0ecd038"></span><code class="descname">integer, allocatable, save meth_params_module::do_acc</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a555c55a26b7a59731aafc3223f480488"></span><code class="descname">integer, allocatable, save meth_params_module::grown_factor</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a53e575f0b2b979349d13c14c467dfff1"></span><code class="descname">integer, allocatable, save meth_params_module::track_grid_losses</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1aa3af510a5806728674002a87baaba484"></span><code class="descname">character (len=:), allocatable, save meth_params_module::gravity_type</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1a42f531390d5e1eab12971e6422bcc041"></span><code class="descname">real(rt), allocatable, save meth_params_module::const_grav</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1abea8c39887af764ce148bc2012cd2baf"></span><code class="descname">integer, allocatable, save meth_params_module::get_g_from_phi</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacemeth__params__module_1af56d1e5a37e30f2ecf883771f209d7a5"></span><code class="descname">real(rt), dimension(3), save meth_params_module::rot_vec</code></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="prob__params_8F90.html" class="btn btn-neutral float-right" title="File prob_params.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="math_8F90.html" class="btn btn-neutral" title="File math.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

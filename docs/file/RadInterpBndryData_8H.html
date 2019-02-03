@@ -1,0 +1,288 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File RadInterpBndryData.H &mdash; Castro 19.02
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                19.02
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Plotfiles and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../filelist.html">File list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>File RadInterpBndryData.H</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/RadInterpBndryData_8H.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-radinterpbndrydata-h">
+<h1>File RadInterpBndryData.H<a class="headerlink" href="#file-radinterpbndrydata-h" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="_CPPv418RadInterpBndryData">
+<span id="_CPPv318RadInterpBndryData"></span><span id="_CPPv218RadInterpBndryData"></span><span id="RadInterpBndryData"></span><span class="target" id="classRadInterpBndryData"></span><em class="property">class </em><code class="descname">RadInterpBndryData</code> : <em class="property">public</em> <a class="reference internal" href="../class/classRadBndryData.html#_CPPv412RadBndryData" title="RadBndryData">RadBndryData</a><br /></dt>
+<dd><em>#include &lt;RadInterpBndryData.H&gt;</em><p>Subclassed by <a class="reference internal" href="NGBndry_8H.html#classNGBndry"><span class="std std-ref">NGBndry</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="function">
+<dt id="_CPPv4N18RadInterpBndryData18RadInterpBndryDataEv">
+<span id="_CPPv3N18RadInterpBndryData18RadInterpBndryDataEv"></span><span id="_CPPv2N18RadInterpBndryData18RadInterpBndryDataEv"></span><span id="RadInterpBndryData::RadInterpBndryData"></span><span class="target" id="classRadInterpBndryData_1a738d186a8693e1d759ac99919fb095d2"></span><code class="descname">RadInterpBndryData</code><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N18RadInterpBndryData18RadInterpBndryDataERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE">
+<span id="_CPPv3N18RadInterpBndryData18RadInterpBndryDataERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE"></span><span id="_CPPv2N18RadInterpBndryData18RadInterpBndryDataERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE"></span><span id="RadInterpBndryData::RadInterpBndryData__amrex::BoxArrayCR.amrex::DistributionMappingCR.i.amrex::GeometryCR"></span><span class="target" id="classRadInterpBndryData_1aacb465b7216403302db3124492bc29c0"></span><code class="descname">RadInterpBndryData</code><span class="sig-paren">(</span><em class="property">const</em> amrex::BoxArray &amp;<em>_grids</em>, <em class="property">const</em> amrex::DistributionMapping &amp;<em>_dmap</em>, int <em>_ncomp</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geom</em><span class="sig-paren">)</span><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N18RadInterpBndryData13setBndryCondsERKN5amrex5BCRecERKN5amrex8GeometryEi">
+<span id="_CPPv3N18RadInterpBndryData13setBndryCondsERKN5amrex5BCRecERKN5amrex8GeometryEi"></span><span id="_CPPv2N18RadInterpBndryData13setBndryCondsERKN5amrex5BCRecERKN5amrex8GeometryEi"></span><span id="RadInterpBndryData::setBndryConds__amrex::BCRecCR.amrex::GeometryCR.i"></span><span class="target" id="classRadInterpBndryData_1ac7892b559cbfe2c625b0189d28b35d31"></span>void <code class="descname">setBndryConds</code><span class="sig-paren">(</span><em class="property">const</em> amrex::BCRec &amp;<em>phys_bc</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geom</em>, int <em>ratio</em><span class="sig-paren">)</span><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N18RadInterpBndryData13setBndryCondsERKN5amrex5BCRecERKN5amrex8GeometryERN5amrex7IntVectE">
+<span id="_CPPv3N18RadInterpBndryData13setBndryCondsERKN5amrex5BCRecERKN5amrex8GeometryERN5amrex7IntVectE"></span><span id="_CPPv2N18RadInterpBndryData13setBndryCondsERKN5amrex5BCRecERKN5amrex8GeometryERN5amrex7IntVectE"></span><span id="RadInterpBndryData::setBndryConds__amrex::BCRecCR.amrex::GeometryCR.amrex::IntVectR"></span><span class="target" id="classRadInterpBndryData_1ad8141099fff1e908f62fa1761406e326"></span><em class="property">virtual</em> void <code class="descname">setBndryConds</code><span class="sig-paren">(</span><em class="property">const</em> amrex::BCRec &amp;<em>phys_bc</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geom</em>, amrex::IntVect &amp;<em>ratio</em><span class="sig-paren">)</span> = 0<br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N18RadInterpBndryData14setBndryValuesERKN5amrex8MultiFabEiiiRKN5amrex5BCRecE">
+<span id="_CPPv3N18RadInterpBndryData14setBndryValuesERKN5amrex8MultiFabEiiiRKN5amrex5BCRecE"></span><span id="_CPPv2N18RadInterpBndryData14setBndryValuesERKN5amrex8MultiFabEiiiRKN5amrex5BCRecE"></span><span id="RadInterpBndryData::setBndryValues__amrex::MultiFabCR.i.i.i.amrex::BCRecCR"></span><span class="target" id="classRadInterpBndryData_1a402357d1456f644a3c7dfedf0a44d17e"></span>void <code class="descname">setBndryValues</code><span class="sig-paren">(</span><em class="property">const</em> amrex::MultiFab &amp;<em>mf</em>, int <em>mf_start</em>, int <em>bnd_start</em>, int <em>num_comp</em>, <em class="property">const</em> amrex::BCRec &amp;<em>phys_bc</em><span class="sig-paren">)</span><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N18RadInterpBndryData14setBndryValuesERN5amrex13BndryRegisterEiRKN5amrex8MultiFabEiiiRN5amrex7IntVectERKN5amrex5BCRecE">
+<span id="_CPPv3N18RadInterpBndryData14setBndryValuesERN5amrex13BndryRegisterEiRKN5amrex8MultiFabEiiiRN5amrex7IntVectERKN5amrex5BCRecE"></span><span id="_CPPv2N18RadInterpBndryData14setBndryValuesERN5amrex13BndryRegisterEiRKN5amrex8MultiFabEiiiRN5amrex7IntVectERKN5amrex5BCRecE"></span><span id="RadInterpBndryData::setBndryValues__amrex::BndryRegisterR.i.amrex::MultiFabCR.i.i.i.amrex::IntVectR.amrex::BCRecCR"></span><span class="target" id="classRadInterpBndryData_1a3a245359b5c5a4b063222104e1b083b9"></span>void <code class="descname">setBndryValues</code><span class="sig-paren">(</span>amrex::BndryRegister &amp;<em>crse</em>, int <em>c_start</em>, <em class="property">const</em> amrex::MultiFab &amp;<em>fine</em>, int <em>f_start</em>, int <em>bnd_start</em>, int <em>num_comp</em>, amrex::IntVect &amp;<em>ratio</em>, <em class="property">const</em> amrex::BCRec &amp;<em>phys_bc</em><span class="sig-paren">)</span><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N18RadInterpBndryData14setBndryValuesEN5amrex4RealE">
+<span id="_CPPv3N18RadInterpBndryData14setBndryValuesEN5amrex4RealE"></span><span id="_CPPv2N18RadInterpBndryData14setBndryValuesEN5amrex4RealE"></span><span id="RadInterpBndryData::setBndryValues__amrex::Real"></span><span class="target" id="classRadInterpBndryData_1a67dba1befa802208e869b016581dc547"></span>void <code class="descname">setBndryValues</code><span class="sig-paren">(</span>amrex::Real <em>bv</em><span class="sig-paren">)</span><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

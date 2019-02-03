@@ -907,7 +907,7 @@ which are given below.
 
 For the reconstruction of the interface states, the following apply:
 
-- ``castro.ppm_type`` : use piecewise linear vs PPM algorithm (0 or 1;
+-  ``castro.ppm_type`` : use piecewise linear vs PPM algorithm (0 or 1;
    default: 1).  A value of 1 is the standard piecewise parabolic
    reconstruction.
 
@@ -1112,12 +1112,12 @@ Again, note that since the source term is not time centered, this is
 not a second-order method. After the advective update, we correct the
 solution, effectively time-centering the source term.
 
+.. _sec-ppm_temp_fix:
+
 Temperature Fixes
 =================
 
 .. index:: castro.ppm_temp_fix
-
-.. _sec-ppm_temp_fix:
 
 There are a number of experimental options for improving the behavior
 of the temperature in the reconstruction and interface state

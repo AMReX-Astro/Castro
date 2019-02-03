@@ -1,0 +1,355 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File HABEC_F.H &mdash; Castro 19.02
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                19.02
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Plotfiles and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../filelist.html">File list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>File HABEC_F.H</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/HABEC__F_8H.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-habec-f-h">
+<h1>File HABEC_F.H<a class="headerlink" href="#file-habec-f-h" title="Permalink to this headline">¶</a></h1>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Defines</p>
+<dl class="macro">
+<dt id="c.RadBoundCond">
+<span class="target" id="HABEC__F_8H_1a6830780dad2d85d82a860820ce35e2e6"></span><code class="descname">RadBoundCond</code><a class="headerlink" href="#c.RadBoundCond" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt id="_CPPv46hacoefPN5amrex4RealEF15BL_FORT_FAB_ARG6acoefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealE">
+<span id="_CPPv36hacoefPN5amrex4RealEF15BL_FORT_FAB_ARG6acoefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealE"></span><span id="_CPPv26hacoefPN5amrex4RealEF15BL_FORT_FAB_ARG6acoefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealE"></span><span class="target" id="HABEC__F_8H_1a6dffe2f3ad8c4813c81632ce98bff96d"></span>void <code class="descname">hacoef</code><span class="sig-paren">(</span>amrex::Real *<em>mat</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>acoefs<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real &amp;<em>alpha</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv46hacoefPN5amrex4RealEF15BL_FORT_FAB_ARG6acoefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv46hbcoefPN5amrex4RealEF15BL_FORT_FAB_ARG6bcoefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealEPKN5amrex4RealERKi">
+<span id="_CPPv36hbcoefPN5amrex4RealEF15BL_FORT_FAB_ARG6bcoefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealEPKN5amrex4RealERKi"></span><span id="_CPPv26hbcoefPN5amrex4RealEF15BL_FORT_FAB_ARG6bcoefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealEPKN5amrex4RealERKi"></span><span class="target" id="HABEC__F_8H_1a048fa0aabf4438fb15beb2c888843e6e"></span>void <code class="descname">hbcoef</code><span class="sig-paren">(</span>amrex::Real *<em>mat</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>bcoefs<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real &amp;<em>beta</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, <em class="property">const</em> int &amp;<em>n</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv46hbcoefPN5amrex4RealEF15BL_FORT_FAB_ARG6bcoefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealEPKN5amrex4RealERKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv45hbmatPN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRK12RadBoundCondRKN5amrex4RealEK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealE">
+<span id="_CPPv35hbmatPN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRK12RadBoundCondRKN5amrex4RealEK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealE"></span><span id="_CPPv25hbmatPN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRK12RadBoundCondRKN5amrex4RealEK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealE"></span><span class="target" id="HABEC__F_8H_1a5e69a7cd76e780cbef5fe1bbdb968ee8"></span>void <code class="descname">hbmat</code><span class="sig-paren">(</span>amrex::Real *<em>mat</em>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> int &amp;<em>cdir</em>, <em class="property">const</em> <a class="reference internal" href="../class/classRadBoundCond.html#_CPPv412RadBoundCond" title="RadBoundCond">RadBoundCond</a> &amp;<em>bct</em>, <em class="property">const</em> amrex::Real &amp;<em>bcl</em>, <em class="property">const</em> BL_FORT_IFAB_ARGmask, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>bcoefs<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real &amp;<em>beta</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv45hbmatPN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRK12RadBoundCondRKN5amrex4RealEK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv46hbmat3PN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRKiPKiRKN5amrex4RealEF7ARLIM_P3floEF7ARLIM_P3fhiEK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealERKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEF7ARLIM_P3sloEF7ARLIM_P3shiE">
+<span id="_CPPv36hbmat3PN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRKiPKiRKN5amrex4RealEF7ARLIM_P3floEF7ARLIM_P3fhiEK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealERKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEF7ARLIM_P3sloEF7ARLIM_P3shiE"></span><span id="_CPPv26hbmat3PN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRKiPKiRKN5amrex4RealEF7ARLIM_P3floEF7ARLIM_P3fhiEK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealERKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEF7ARLIM_P3sloEF7ARLIM_P3shiE"></span><span class="target" id="HABEC__F_8H_1a41ced68f74765398df7f23e4e21c11f2"></span>void <code class="descname">hbmat3</code><span class="sig-paren">(</span>amrex::Real *<em>mat</em>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> int &amp;<em>cdir</em>, <em class="property">const</em> int &amp;<em>bctype</em>, <em class="property">const</em> int *<em>tf</em>, <em class="property">const</em> amrex::Real &amp;<em>bcl</em>, ARLIM_P<span class="sig-paren">(</span>flo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>fhi<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_IFAB_ARGmask, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>bcoefs<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real &amp;<em>beta</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, <em class="property">const</em> amrex::Real &amp;<em>flux_factor</em>, <em class="property">const</em> amrex::Real *<em>r</em>, <em class="property">const</em> amrex::Real *<em>spa</em>, ARLIM_P<span class="sig-paren">(</span>slo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>shi<span class="sig-paren">)</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv46hbmat3PN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRKiPKiRKN5amrex4RealEF7ARLIM_P3floEF7ARLIM_P3fhiEK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealERKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEF7ARLIM_P3sloEF7ARLIM_P3shiE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv45hbvecPN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRK12RadBoundCondRKiRKN5amrex4RealEK20BL_FORT_FAB_ARGbcvalK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealE">
+<span id="_CPPv35hbvecPN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRK12RadBoundCondRKiRKN5amrex4RealEK20BL_FORT_FAB_ARGbcvalK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealE"></span><span id="_CPPv25hbvecPN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRK12RadBoundCondRKiRKN5amrex4RealEK20BL_FORT_FAB_ARGbcvalK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealE"></span><span class="target" id="HABEC__F_8H_1aa522133c84a29368340f8adeb4d88f4b"></span>void <code class="descname">hbvec</code><span class="sig-paren">(</span>amrex::Real *<em>vec</em>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> int &amp;<em>cdir</em>, <em class="property">const</em> <a class="reference internal" href="../class/classRadBoundCond.html#_CPPv412RadBoundCond" title="RadBoundCond">RadBoundCond</a> &amp;<em>bct</em>, <em class="property">const</em> int &amp;<em>bho</em>, <em class="property">const</em> amrex::Real &amp;<em>bcl</em>, <em class="property">const</em> BL_FORT_FAB_ARGbcval, <em class="property">const</em> BL_FORT_IFAB_ARGmask, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>bcoefs<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real &amp;<em>beta</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv45hbvecPN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRK12RadBoundCondRKiRKN5amrex4RealEK20BL_FORT_FAB_ARGbcvalK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv46hbvec3PN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRKiPKiRKiRKN5amrex4RealEK20BL_FORT_FAB_ARGbcvalK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealE">
+<span id="_CPPv36hbvec3PN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRKiPKiRKiRKN5amrex4RealEK20BL_FORT_FAB_ARGbcvalK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealE"></span><span id="_CPPv26hbvec3PN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRKiPKiRKiRKN5amrex4RealEK20BL_FORT_FAB_ARGbcvalK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealE"></span><span class="target" id="HABEC__F_8H_1aa4cc7782fb45083aaa59d6b4340b0aa3"></span>void <code class="descname">hbvec3</code><span class="sig-paren">(</span>amrex::Real *<em>vec</em>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> int &amp;<em>cdir</em>, <em class="property">const</em> int &amp;<em>bctype</em>, <em class="property">const</em> int *<em>tf</em>, <em class="property">const</em> int &amp;<em>bho</em>, <em class="property">const</em> amrex::Real &amp;<em>bcl</em>, <em class="property">const</em> BL_FORT_FAB_ARGbcval, <em class="property">const</em> BL_FORT_IFAB_ARGmask, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>bcoefs<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real &amp;<em>beta</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, <em class="property">const</em> amrex::Real *<em>r</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv46hbvec3PN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRKiPKiRKiRKN5amrex4RealEK20BL_FORT_FAB_ARGbcvalK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv45hbflxF15BL_FORT_FAB_ARG4fluxEF15BL_FORT_FAB_ARG4solnEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRK12RadBoundCondRKiRKN5amrex4RealEPKN5amrex4RealEF7ARLIM_P4fsloEF7ARLIM_P4fshiEK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealERKi">
+<span id="_CPPv35hbflxF15BL_FORT_FAB_ARG4fluxEF15BL_FORT_FAB_ARG4solnEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRK12RadBoundCondRKiRKN5amrex4RealEPKN5amrex4RealEF7ARLIM_P4fsloEF7ARLIM_P4fshiEK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealERKi"></span><span id="_CPPv25hbflxF15BL_FORT_FAB_ARG4fluxEF15BL_FORT_FAB_ARG4solnEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRK12RadBoundCondRKiRKN5amrex4RealEPKN5amrex4RealEF7ARLIM_P4fsloEF7ARLIM_P4fshiEK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealERKi"></span><span class="target" id="HABEC__F_8H_1aec64a6cc6aa822a532314412c1ad18bc"></span>void <code class="descname">hbflx</code><span class="sig-paren">(</span><a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>flux<span class="sig-paren">)</span>, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>soln<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> int &amp;<em>cdir</em>, <em class="property">const</em> <a class="reference internal" href="../class/classRadBoundCond.html#_CPPv412RadBoundCond" title="RadBoundCond">RadBoundCond</a> &amp;<em>bct</em>, <em class="property">const</em> int &amp;<em>bho</em>, <em class="property">const</em> amrex::Real &amp;<em>bcl</em>, <em class="property">const</em> amrex::Real *<em>bcval</em>, ARLIM_P<span class="sig-paren">(</span>fslo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>fshi<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_IFAB_ARGmask, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>bcoefs<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real &amp;<em>beta</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, <em class="property">const</em> int &amp;<em>inhom</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv45hbflxF15BL_FORT_FAB_ARG4fluxEF15BL_FORT_FAB_ARG4solnEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRK12RadBoundCondRKiRKN5amrex4RealEPKN5amrex4RealEF7ARLIM_P4fsloEF7ARLIM_P4fshiEK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealERKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv46hbflx3F15BL_FORT_FAB_ARG4fluxEF15BL_FORT_FAB_ARG4solnEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRKiPKiRKiRKN5amrex4RealEK20BL_FORT_FAB_ARGbcvalK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealERKN5amrex4RealEPKN5amrex4RealERKiPKN5amrex4RealEF7ARLIM_P4sploEF7ARLIM_P4sphiE">
+<span id="_CPPv36hbflx3F15BL_FORT_FAB_ARG4fluxEF15BL_FORT_FAB_ARG4solnEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRKiPKiRKiRKN5amrex4RealEK20BL_FORT_FAB_ARGbcvalK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealERKN5amrex4RealEPKN5amrex4RealERKiPKN5amrex4RealEF7ARLIM_P4sploEF7ARLIM_P4sphiE"></span><span id="_CPPv26hbflx3F15BL_FORT_FAB_ARG4fluxEF15BL_FORT_FAB_ARG4solnEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRKiPKiRKiRKN5amrex4RealEK20BL_FORT_FAB_ARGbcvalK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealERKN5amrex4RealEPKN5amrex4RealERKiPKN5amrex4RealEF7ARLIM_P4sploEF7ARLIM_P4sphiE"></span><span class="target" id="HABEC__F_8H_1a123da3dd6669e99947ae4d4d2ba08c11"></span>void <code class="descname">hbflx3</code><span class="sig-paren">(</span><a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>flux<span class="sig-paren">)</span>, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>soln<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> int &amp;<em>cdir</em>, <em class="property">const</em> int &amp;<em>bctype</em>, <em class="property">const</em> int *<em>tf</em>, <em class="property">const</em> int &amp;<em>bho</em>, <em class="property">const</em> amrex::Real &amp;<em>bcl</em>, <em class="property">const</em> BL_FORT_FAB_ARGbcval, <em class="property">const</em> BL_FORT_IFAB_ARGmask, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>bcoefs<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real &amp;<em>beta</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, <em class="property">const</em> amrex::Real &amp;<em>flux_factor</em>, <em class="property">const</em> amrex::Real *<em>r</em>, <em class="property">const</em> int &amp;<em>inhom</em>, <em class="property">const</em> amrex::Real *<em>spa</em>, ARLIM_P<span class="sig-paren">(</span>splo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>sphi<span class="sig-paren">)</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv46hbflx3F15BL_FORT_FAB_ARG4fluxEF15BL_FORT_FAB_ARG4solnEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRKiPKiRKiRKN5amrex4RealEK20BL_FORT_FAB_ARGbcvalK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealERKN5amrex4RealEPKN5amrex4RealERKiPKN5amrex4RealEF7ARLIM_P4sploEF7ARLIM_P4sphiE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv46hdtermF15BL_FORT_FAB_ARG5dtermEF15BL_FORT_FAB_ARG4solnEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRK12RadBoundCondRKN5amrex4RealEK20BL_FORT_FAB_ARGbcvalK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6dcoefsEPKN5amrex4RealE">
+<span id="_CPPv36hdtermF15BL_FORT_FAB_ARG5dtermEF15BL_FORT_FAB_ARG4solnEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRK12RadBoundCondRKN5amrex4RealEK20BL_FORT_FAB_ARGbcvalK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6dcoefsEPKN5amrex4RealE"></span><span id="_CPPv26hdtermF15BL_FORT_FAB_ARG5dtermEF15BL_FORT_FAB_ARG4solnEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRK12RadBoundCondRKN5amrex4RealEK20BL_FORT_FAB_ARGbcvalK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6dcoefsEPKN5amrex4RealE"></span><span class="target" id="HABEC__F_8H_1aee04d87872ac4783f7637f7f356228c4"></span>void <code class="descname">hdterm</code><span class="sig-paren">(</span><a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>dterm<span class="sig-paren">)</span>, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>soln<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> int &amp;<em>cdir</em>, <em class="property">const</em> <a class="reference internal" href="../class/classRadBoundCond.html#_CPPv412RadBoundCond" title="RadBoundCond">RadBoundCond</a> &amp;<em>bct</em>, <em class="property">const</em> amrex::Real &amp;<em>bcl</em>, <em class="property">const</em> BL_FORT_FAB_ARGbcval, <em class="property">const</em> BL_FORT_IFAB_ARGmask, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>dcoefs<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real *<em>dx</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv46hdtermF15BL_FORT_FAB_ARG5dtermEF15BL_FORT_FAB_ARG4solnEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRK12RadBoundCondRKN5amrex4RealEK20BL_FORT_FAB_ARGbcvalK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6dcoefsEPKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv47hdterm3F15BL_FORT_FAB_ARG5dtermEF15BL_FORT_FAB_ARG4solnEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRKiPKiRKN5amrex4RealEK20BL_FORT_FAB_ARGbcvalK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6dcoefsEPKN5amrex4RealE">
+<span id="_CPPv37hdterm3F15BL_FORT_FAB_ARG5dtermEF15BL_FORT_FAB_ARG4solnEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRKiPKiRKN5amrex4RealEK20BL_FORT_FAB_ARGbcvalK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6dcoefsEPKN5amrex4RealE"></span><span id="_CPPv27hdterm3F15BL_FORT_FAB_ARG5dtermEF15BL_FORT_FAB_ARG4solnEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRKiPKiRKN5amrex4RealEK20BL_FORT_FAB_ARGbcvalK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6dcoefsEPKN5amrex4RealE"></span><span class="target" id="HABEC__F_8H_1a5184f0d6087d571cab60dd652973b0b3"></span>void <code class="descname">hdterm3</code><span class="sig-paren">(</span><a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>dterm<span class="sig-paren">)</span>, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>soln<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> int &amp;<em>cdir</em>, <em class="property">const</em> int &amp;<em>bctype</em>, <em class="property">const</em> int *<em>tf</em>, <em class="property">const</em> amrex::Real &amp;<em>bcl</em>, <em class="property">const</em> BL_FORT_FAB_ARGbcval, <em class="property">const</em> BL_FORT_IFAB_ARGmask, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>dcoefs<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real *<em>dx</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv47hdterm3F15BL_FORT_FAB_ARG5dtermEF15BL_FORT_FAB_ARG4solnEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRKiPKiRKN5amrex4RealEK20BL_FORT_FAB_ARGbcvalK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6dcoefsEPKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv44hmacPN5amrex4RealEF15BL_FORT_FAB_ARG6acoefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealE">
+<span id="_CPPv34hmacPN5amrex4RealEF15BL_FORT_FAB_ARG6acoefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealE"></span><span id="_CPPv24hmacPN5amrex4RealEF15BL_FORT_FAB_ARG6acoefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealE"></span><span class="target" id="HABEC__F_8H_1a036d07751e6f3a7884134866c4ed1c2b"></span>void <code class="descname">hmac</code><span class="sig-paren">(</span>amrex::Real *<em>mat</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>acoefs<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real &amp;<em>alpha</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv44hmacPN5amrex4RealEF15BL_FORT_FAB_ARG6acoefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv44hmbcPN5amrex4RealEF15BL_FORT_FAB_ARG6bcoefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealEPKN5amrex4RealERKi">
+<span id="_CPPv34hmbcPN5amrex4RealEF15BL_FORT_FAB_ARG6bcoefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealEPKN5amrex4RealERKi"></span><span id="_CPPv24hmbcPN5amrex4RealEF15BL_FORT_FAB_ARG6bcoefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealEPKN5amrex4RealERKi"></span><span class="target" id="HABEC__F_8H_1a6d060bd6807f9a707084e76e5053347d"></span>void <code class="descname">hmbc</code><span class="sig-paren">(</span>amrex::Real *<em>mat</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>bcoefs<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real &amp;<em>beta</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, <em class="property">const</em> int &amp;<em>n</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv44hmbcPN5amrex4RealEF15BL_FORT_FAB_ARG6bcoefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealEPKN5amrex4RealERKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv45hma2cPN5amrex4RealEF15BL_FORT_FAB_ARG7a2coefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealERKi">
+<span id="_CPPv35hma2cPN5amrex4RealEF15BL_FORT_FAB_ARG7a2coefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealERKi"></span><span id="_CPPv25hma2cPN5amrex4RealEF15BL_FORT_FAB_ARG7a2coefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealERKi"></span><span class="target" id="HABEC__F_8H_1a3520f3478bc59c915b0ec70a8c32ad81"></span>void <code class="descname">hma2c</code><span class="sig-paren">(</span>amrex::Real *<em>mat</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>a2coefs<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real &amp;<em>alpha2</em>, <em class="property">const</em> int &amp;<em>n</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv45hma2cPN5amrex4RealEF15BL_FORT_FAB_ARG7a2coefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealERKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv44hmccPN5amrex4RealEF15BL_FORT_FAB_ARG6ccoefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealEPKN5amrex4RealERKi">
+<span id="_CPPv34hmccPN5amrex4RealEF15BL_FORT_FAB_ARG6ccoefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealEPKN5amrex4RealERKi"></span><span id="_CPPv24hmccPN5amrex4RealEF15BL_FORT_FAB_ARG6ccoefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealEPKN5amrex4RealERKi"></span><span class="target" id="HABEC__F_8H_1a6f20635cf02e5efa75db3eacb85dfecb"></span>void <code class="descname">hmcc</code><span class="sig-paren">(</span>amrex::Real *<em>mat</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>ccoefs<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real &amp;<em>gamma</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, <em class="property">const</em> int &amp;<em>n</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv44hmccPN5amrex4RealEF15BL_FORT_FAB_ARG6ccoefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealEPKN5amrex4RealERKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv45hmd1cPN5amrex4RealEF15BL_FORT_FAB_ARG7d1coefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealEPKN5amrex4RealERKi">
+<span id="_CPPv35hmd1cPN5amrex4RealEF15BL_FORT_FAB_ARG7d1coefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealEPKN5amrex4RealERKi"></span><span id="_CPPv25hmd1cPN5amrex4RealEF15BL_FORT_FAB_ARG7d1coefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealEPKN5amrex4RealERKi"></span><span class="target" id="HABEC__F_8H_1a9f46614c528389209b33d5ca38856547"></span>void <code class="descname">hmd1c</code><span class="sig-paren">(</span>amrex::Real *<em>mat</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>d1coefs<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real &amp;<em>delta1</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, <em class="property">const</em> int &amp;<em>n</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv45hmd1cPN5amrex4RealEF15BL_FORT_FAB_ARG7d1coefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealEPKN5amrex4RealERKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv45hmd2cPN5amrex4RealEF15BL_FORT_FAB_ARG7d2coefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealEPKN5amrex4RealERKi">
+<span id="_CPPv35hmd2cPN5amrex4RealEF15BL_FORT_FAB_ARG7d2coefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealEPKN5amrex4RealERKi"></span><span id="_CPPv25hmd2cPN5amrex4RealEF15BL_FORT_FAB_ARG7d2coefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealEPKN5amrex4RealERKi"></span><span class="target" id="HABEC__F_8H_1a6ce6d706732c0934cca99b3e0b117444"></span>void <code class="descname">hmd2c</code><span class="sig-paren">(</span>amrex::Real *<em>mat</em>, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>d2coefs<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real &amp;<em>delta2</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, <em class="property">const</em> int &amp;<em>n</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv45hmd2cPN5amrex4RealEF15BL_FORT_FAB_ARG7d2coefsEF7ARLIM_P5regloEF7ARLIM_P5reghiERKN5amrex4RealEPKN5amrex4RealERKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv45hmmatPN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRK12RadBoundCondRKiRKN5amrex4RealEK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealE">
+<span id="_CPPv35hmmatPN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRK12RadBoundCondRKiRKN5amrex4RealEK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealE"></span><span id="_CPPv25hmmatPN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRK12RadBoundCondRKiRKN5amrex4RealEK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealE"></span><span class="target" id="HABEC__F_8H_1ac328f5d777a681a8384f36460ee14672"></span>void <code class="descname">hmmat</code><span class="sig-paren">(</span>amrex::Real *<em>mat</em>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> int &amp;<em>cdir</em>, <em class="property">const</em> <a class="reference internal" href="../class/classRadBoundCond.html#_CPPv412RadBoundCond" title="RadBoundCond">RadBoundCond</a> &amp;<em>bct</em>, <em class="property">const</em> int &amp;<em>bho</em>, <em class="property">const</em> amrex::Real &amp;<em>bcl</em>, <em class="property">const</em> BL_FORT_IFAB_ARGmask, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>bcoefs<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real &amp;<em>beta</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv45hmmatPN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRK12RadBoundCondRKiRKN5amrex4RealEK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv46hmmat3PN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRKiPKiRKiRKN5amrex4RealEF7ARLIM_P4fsloEF7ARLIM_P4fshiEK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealERKN5amrex4RealEPKN5amrex4RealEPN5amrex4RealEF7ARLIM_P4sploEF7ARLIM_P4sphiE">
+<span id="_CPPv36hmmat3PN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRKiPKiRKiRKN5amrex4RealEF7ARLIM_P4fsloEF7ARLIM_P4fshiEK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealERKN5amrex4RealEPKN5amrex4RealEPN5amrex4RealEF7ARLIM_P4sploEF7ARLIM_P4sphiE"></span><span id="_CPPv26hmmat3PN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRKiPKiRKiRKN5amrex4RealEF7ARLIM_P4fsloEF7ARLIM_P4fshiEK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealERKN5amrex4RealEPKN5amrex4RealEPN5amrex4RealEF7ARLIM_P4sploEF7ARLIM_P4sphiE"></span><span class="target" id="HABEC__F_8H_1a6b65c79883f16e108d186d69b5b12c7c"></span>void <code class="descname">hmmat3</code><span class="sig-paren">(</span>amrex::Real *<em>mat</em>, ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, <em class="property">const</em> int &amp;<em>cdir</em>, <em class="property">const</em> int &amp;<em>bctype</em>, <em class="property">const</em> int *<em>tf</em>, <em class="property">const</em> int &amp;<em>bho</em>, <em class="property">const</em> amrex::Real &amp;<em>bcl</em>, ARLIM_P<span class="sig-paren">(</span>fslo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>fshi<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_IFAB_ARGmask, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>bcoefs<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real &amp;<em>beta</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, <em class="property">const</em> amrex::Real &amp;<em>flux_factor</em>, <em class="property">const</em> amrex::Real *<em>r</em>, amrex::Real *<em>spa</em>, ARLIM_P<span class="sig-paren">(</span>splo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>sphi<span class="sig-paren">)</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv46hmmat3PN5amrex4RealEF7ARLIM_P5regloEF7ARLIM_P5reghiERKiRKiPKiRKiRKN5amrex4RealEF7ARLIM_P4fsloEF7ARLIM_P4fshiEK20BL_FORT_IFAB_ARGmaskF15BL_FORT_FAB_ARG6bcoefsERKN5amrex4RealEPKN5amrex4RealERKN5amrex4RealEPKN5amrex4RealEPN5amrex4RealEF7ARLIM_P4sploEF7ARLIM_P4sphiE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv414add_ccoef_fluxRKiPN5amrex4RealEF7ARLIM_P4erloEF7ARLIM_P4erhiEPN5amrex4RealEF7ARLIM_P4ccloEF7ARLIM_P4cchiERKN5amrex4RealEPKN5amrex4RealEPN5amrex4RealEF7ARLIM_P3floEF7ARLIM_P3fhiE">
+<span id="_CPPv314add_ccoef_fluxRKiPN5amrex4RealEF7ARLIM_P4erloEF7ARLIM_P4erhiEPN5amrex4RealEF7ARLIM_P4ccloEF7ARLIM_P4cchiERKN5amrex4RealEPKN5amrex4RealEPN5amrex4RealEF7ARLIM_P3floEF7ARLIM_P3fhiE"></span><span id="_CPPv214add_ccoef_fluxRKiPN5amrex4RealEF7ARLIM_P4erloEF7ARLIM_P4erhiEPN5amrex4RealEF7ARLIM_P4ccloEF7ARLIM_P4cchiERKN5amrex4RealEPKN5amrex4RealEPN5amrex4RealEF7ARLIM_P3floEF7ARLIM_P3fhiE"></span><span class="target" id="HABEC__F_8H_1a077e234eb12bcff1e0813a00c0eeb91d"></span>void <code class="descname">add_ccoef_flux</code><span class="sig-paren">(</span><em class="property">const</em> int &amp;<em>n</em>, amrex::Real *<em>Erborder</em>, ARLIM_P<span class="sig-paren">(</span>erlo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>erhi<span class="sig-paren">)</span>, amrex::Real *<em>ccoef</em>, ARLIM_P<span class="sig-paren">(</span>cclo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>cchi<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real &amp;<em>gamma</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, amrex::Real *<em>Flux</em>, ARLIM_P<span class="sig-paren">(</span>flo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>fhi<span class="sig-paren">)</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414add_ccoef_fluxRKiPN5amrex4RealEF7ARLIM_P4erloEF7ARLIM_P4erhiEPN5amrex4RealEF7ARLIM_P4ccloEF7ARLIM_P4cchiERKN5amrex4RealEPKN5amrex4RealEPN5amrex4RealEF7ARLIM_P3floEF7ARLIM_P3fhiE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv413set_abec_fluxF7ARLIM_P5regloEF7ARLIM_P5reghiEPiF15BL_FORT_FAB_ARG1cEF15BL_FORT_FAB_ARG1dEPKN5amrex4RealEPKN5amrex4RealEF15BL_FORT_FAB_ARG4fluxE">
+<span id="_CPPv313set_abec_fluxF7ARLIM_P5regloEF7ARLIM_P5reghiEPiF15BL_FORT_FAB_ARG1cEF15BL_FORT_FAB_ARG1dEPKN5amrex4RealEPKN5amrex4RealEF15BL_FORT_FAB_ARG4fluxE"></span><span id="_CPPv213set_abec_fluxF7ARLIM_P5regloEF7ARLIM_P5reghiEPiF15BL_FORT_FAB_ARG1cEF15BL_FORT_FAB_ARG1dEPKN5amrex4RealEPKN5amrex4RealEF15BL_FORT_FAB_ARG4fluxE"></span><span class="target" id="HABEC__F_8H_1a4ffaf0e6760be9df4e4262afaaa6da46"></span>void <code class="descname">set_abec_flux</code><span class="sig-paren">(</span>ARLIM_P<span class="sig-paren">(</span>reglo<span class="sig-paren">)</span>, ARLIM_P<span class="sig-paren">(</span>reghi<span class="sig-paren">)</span>, int *, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>c<span class="sig-paren">)</span>, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>d<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real *, <em class="property">const</em> amrex::Real *, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG">BL_FORT_FAB_ARG</a><span class="sig-paren">(</span>flux<span class="sig-paren">)</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv413set_abec_fluxF7ARLIM_P5regloEF7ARLIM_P5reghiEPiF15BL_FORT_FAB_ARG1cEF15BL_FORT_FAB_ARG1dEPKN5amrex4RealEPKN5amrex4RealEF15BL_FORT_FAB_ARG4fluxE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

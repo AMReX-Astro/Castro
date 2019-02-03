@@ -1,0 +1,4 @@
+File ext_src_1d.f90
+===================
+
+.. doxygenfile:: ext_src_1d.f90

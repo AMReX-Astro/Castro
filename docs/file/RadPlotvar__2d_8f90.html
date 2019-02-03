@@ -1,0 +1,332 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File RadPlotvar_2d.f90 &mdash; Castro 19.02
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File RadPlotvar_3d.f90" href="RadPlotvar__3d_8f90.html" />
+    <link rel="prev" title="File RadPlotvar_1d.f90" href="RadPlotvar__1d_8f90.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                19.02
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Plotfiles and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../radiation_files.html">Radiation</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="CastroRad__1d_8f90.html">File CastroRad_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="CastroRad__2d_8f90.html">File CastroRad_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="CastroRad__3d_8f90.html">File CastroRad_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="DumpModel1d_8H.html">File DumpModel1d.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HypreABec_8H.html">File HypreABec.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLD__1d_8f90.html">File MGFLD_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLD__2d_8f90.html">File MGFLD_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLD__3d_8f90.html">File MGFLD_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLDneut__1d_8f90.html">File MGFLDneut_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLDneut__2d_8f90.html">File MGFLDneut_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLDneut__3d_8f90.html">File MGFLDneut_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGRadBndry_8H.html">File MGRadBndry.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="NGBndry_8H.html">File NGBndry.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadBndry_8H.html">File RadBndry.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadBndry__1d_8f90.html">File RadBndry_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadBndry__2d_8f90.html">File RadBndry_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadBndry__3d_8f90.html">File RadBndry_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadDerive__nd_8f90.html">File RadDerive_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadEOS__1d_8f90.html">File RadEOS_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadEOS__2d_8f90.html">File RadEOS_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadEOS__3d_8f90.html">File RadEOS_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadHydro__nd_8f90.html">File RadHydro_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadPlotvar__1d_8f90.html">File RadPlotvar_1d.f90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File RadPlotvar_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadPlotvar__3d_8f90.html">File RadPlotvar_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadSolve_8H.html">File RadSolve.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadTests_8H.html">File RadTests.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadTypes_8H.html">File RadTypes.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Rad__nd_8f90.html">File Rad_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Radiation_8H.html">File Radiation.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="blackbody_8f90.html">File blackbody.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filt__prim__1d_8f90.html">File filt_prim_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filt__prim__2d_8f90.html">File filt_prim_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filt__prim__3d_8f90.html">File filt_prim_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filter_8f90.html">File filter.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fluxlimiter_8f90.html">File fluxlimiter.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="kavg_8F90.html">File kavg.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rad__params_8f90.html">File rad_params.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rad__util_8f90.html">File rad_util.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trace__ppm__rad__nd_8F90.html">File trace_ppm_rad_nd.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../radiation_files.html">Radiation</a> &raquo;</li>
+        
+      <li>File RadPlotvar_2d.f90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/RadPlotvar__2d_8f90.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-radplotvar-2d-f90">
+<h1>File RadPlotvar_2d.f90<a class="headerlink" href="#file-radplotvar-2d-f90" title="Permalink to this headline">¶</a></h1>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt id="_CPPv413ca_er_com2lab2lo2hi4Snew4S_l14S_l24S_h14S_h24Ecom5Ec_l15Ec_l25Ec_h15Ec_h21F4F_l14F_l24F_h14F_h24iflx4nflx4Elab5El_l15El_l25El_h15El_h23ier3npv">
+<span id="_CPPv313ca_er_com2lab2lo2hi4Snew4S_l14S_l24S_h14S_h24Ecom5Ec_l15Ec_l25Ec_h15Ec_h21F4F_l14F_l24F_h14F_h24iflx4nflx4Elab5El_l15El_l25El_h15El_h23ier3npv"></span><span id="_CPPv213ca_er_com2lab2lo2hi4Snew4S_l14S_l24S_h14S_h24Ecom5Ec_l15Ec_l25Ec_h15Ec_h21F4F_l14F_l24F_h14F_h24iflx4nflx4Elab5El_l15El_l25El_h15El_h23ier3npv"></span><span id="ca_er_com2lab__lo.hi.Snew.S_l1.S_l2.S_h1.S_h2.Ecom.Ec_l1.Ec_l2.Ec_h1.Ec_h2.F.F_l1.F_l2.F_h1.F_h2.iflx.nflx.Elab.El_l1.El_l2.El_h1.El_h2.ier.npv"></span><span class="target" id="RadPlotvar__2d_8f90_1a0459d9cc2b88f9238d36c3d67a6bc888"></span>subroutine <code class="descname">ca_er_com2lab</code><span class="sig-paren">(</span><a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv413ca_er_com2lab2lo2hi4Snew4S_l14S_h14Ecom5Ec_l15Ec_h11F4F_l14F_h14iflx4nflx4Elab5El_l15El_h13ier3npv" title="ca_er_com2lab::lo">lo</a> <em>lo</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv413ca_er_com2lab2lo2hi4Snew4S_l14S_h14Ecom5Ec_l15Ec_h11F4F_l14F_h14iflx4nflx4Elab5El_l15El_h13ier3npv" title="ca_er_com2lab::hi">hi</a> <em>hi</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv413ca_er_com2lab2lo2hi4Snew4S_l14S_h14Ecom5Ec_l15Ec_h11F4F_l14F_h14iflx4nflx4Elab5El_l15El_h13ier3npv" title="ca_er_com2lab::Snew">Snew</a> <em>Snew</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv413ca_er_com2lab2lo2hi4Snew4S_l14S_h14Ecom5Ec_l15Ec_h11F4F_l14F_h14iflx4nflx4Elab5El_l15El_h13ier3npv" title="ca_er_com2lab::S_l1">S_l1</a> <em>S_l1</em>, S_l2 <em>S_l2</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv413ca_er_com2lab2lo2hi4Snew4S_l14S_h14Ecom5Ec_l15Ec_h11F4F_l14F_h14iflx4nflx4Elab5El_l15El_h13ier3npv" title="ca_er_com2lab::S_h1">S_h1</a> <em>S_h1</em>, S_h2 <em>S_h2</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv413ca_er_com2lab2lo2hi4Snew4S_l14S_h14Ecom5Ec_l15Ec_h11F4F_l14F_h14iflx4nflx4Elab5El_l15El_h13ier3npv" title="ca_er_com2lab::Ecom">Ecom</a> <em>Ecom</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv413ca_er_com2lab2lo2hi4Snew4S_l14S_h14Ecom5Ec_l15Ec_h11F4F_l14F_h14iflx4nflx4Elab5El_l15El_h13ier3npv" title="ca_er_com2lab::Ec_l1">Ec_l1</a> <em>Ec_l1</em>, Ec_l2 <em>Ec_l2</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv413ca_er_com2lab2lo2hi4Snew4S_l14S_h14Ecom5Ec_l15Ec_h11F4F_l14F_h14iflx4nflx4Elab5El_l15El_h13ier3npv" title="ca_er_com2lab::Ec_h1">Ec_h1</a> <em>Ec_h1</em>, Ec_h2 <em>Ec_h2</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv413ca_er_com2lab2lo2hi4Snew4S_l14S_h14Ecom5Ec_l15Ec_h11F4F_l14F_h14iflx4nflx4Elab5El_l15El_h13ier3npv" title="ca_er_com2lab::F">F</a> <em>F</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv413ca_er_com2lab2lo2hi4Snew4S_l14S_h14Ecom5Ec_l15Ec_h11F4F_l14F_h14iflx4nflx4Elab5El_l15El_h13ier3npv" title="ca_er_com2lab::F_l1">F_l1</a> <em>F_l1</em>, F_l2 <em>F_l2</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv413ca_er_com2lab2lo2hi4Snew4S_l14S_h14Ecom5Ec_l15Ec_h11F4F_l14F_h14iflx4nflx4Elab5El_l15El_h13ier3npv" title="ca_er_com2lab::F_h1">F_h1</a> <em>F_h1</em>, F_h2 <em>F_h2</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv413ca_er_com2lab2lo2hi4Snew4S_l14S_h14Ecom5Ec_l15Ec_h11F4F_l14F_h14iflx4nflx4Elab5El_l15El_h13ier3npv" title="ca_er_com2lab::iflx">iflx</a> <em>iflx</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv413ca_er_com2lab2lo2hi4Snew4S_l14S_h14Ecom5Ec_l15Ec_h11F4F_l14F_h14iflx4nflx4Elab5El_l15El_h13ier3npv" title="ca_er_com2lab::nflx">nflx</a> <em>nflx</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv413ca_er_com2lab2lo2hi4Snew4S_l14S_h14Ecom5Ec_l15Ec_h11F4F_l14F_h14iflx4nflx4Elab5El_l15El_h13ier3npv" title="ca_er_com2lab::Elab">Elab</a> <em>Elab</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv413ca_er_com2lab2lo2hi4Snew4S_l14S_h14Ecom5Ec_l15Ec_h11F4F_l14F_h14iflx4nflx4Elab5El_l15El_h13ier3npv" title="ca_er_com2lab::El_l1">El_l1</a> <em>El_l1</em>, El_l2 <em>El_l2</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv413ca_er_com2lab2lo2hi4Snew4S_l14S_h14Ecom5Ec_l15Ec_h11F4F_l14F_h14iflx4nflx4Elab5El_l15El_h13ier3npv" title="ca_er_com2lab::El_h1">El_h1</a> <em>El_h1</em>, El_h2 <em>El_h2</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv413ca_er_com2lab2lo2hi4Snew4S_l14S_h14Ecom5Ec_l15Ec_h11F4F_l14F_h14iflx4nflx4Elab5El_l15El_h13ier3npv" title="ca_er_com2lab::ier">ier</a> <em>ier</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv413ca_er_com2lab2lo2hi4Snew4S_l14S_h14Ecom5Ec_l15Ec_h11F4F_l14F_h14iflx4nflx4Elab5El_l15El_h13ier3npv" title="ca_er_com2lab::npv">npv</a> <em>npv</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv413ca_er_com2lab2lo2hi4Snew4S_l14S_l24S_h14S_h24Ecom5Ec_l15Ec_l25Ec_h15Ec_h21F4F_l14F_l24F_h14F_h24iflx4nflx4Elab5El_l15El_l25El_h15El_h23ier3npv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv414ca_compute_fcc2lo2hi4lamx7lamx_l17lamx_l27lamx_h17lamx_h24lamy7lamy_l17lamy_l27lamy_h17lamy_h24nlam4Eddf7Eddf_l17Eddf_l27Eddf_h17Eddf_h2">
+<span id="_CPPv314ca_compute_fcc2lo2hi4lamx7lamx_l17lamx_l27lamx_h17lamx_h24lamy7lamy_l17lamy_l27lamy_h17lamy_h24nlam4Eddf7Eddf_l17Eddf_l27Eddf_h17Eddf_h2"></span><span id="_CPPv214ca_compute_fcc2lo2hi4lamx7lamx_l17lamx_l27lamx_h17lamx_h24lamy7lamy_l17lamy_l27lamy_h17lamy_h24nlam4Eddf7Eddf_l17Eddf_l27Eddf_h17Eddf_h2"></span><span id="ca_compute_fcc__lo.hi.lamx.lamx_l1.lamx_l2.lamx_h1.lamx_h2.lamy.lamy_l1.lamy_l2.lamy_h1.lamy_h2.nlam.Eddf.Eddf_l1.Eddf_l2.Eddf_h1.Eddf_h2"></span><span class="target" id="RadPlotvar__2d_8f90_1a95e2e714ce52f3c2c1dd7e760ba73328"></span>subroutine <code class="descname">ca_compute_fcc</code><span class="sig-paren">(</span><a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv414ca_compute_fcc2lo2hi4lamx7lamx_l17lamx_h14nlam4Eddf7Eddf_l17Eddf_h1" title="ca_compute_fcc::lo">lo</a> <em>lo</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv414ca_compute_fcc2lo2hi4lamx7lamx_l17lamx_h14nlam4Eddf7Eddf_l17Eddf_h1" title="ca_compute_fcc::hi">hi</a> <em>hi</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv414ca_compute_fcc2lo2hi4lamx7lamx_l17lamx_h14nlam4Eddf7Eddf_l17Eddf_h1" title="ca_compute_fcc::lamx">lamx</a> <em>lamx</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv414ca_compute_fcc2lo2hi4lamx7lamx_l17lamx_h14nlam4Eddf7Eddf_l17Eddf_h1" title="ca_compute_fcc::lamx_l1">lamx_l1</a> <em>lamx_l1</em>, lamx_l2 <em>lamx_l2</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv414ca_compute_fcc2lo2hi4lamx7lamx_l17lamx_h14nlam4Eddf7Eddf_l17Eddf_h1" title="ca_compute_fcc::lamx_h1">lamx_h1</a> <em>lamx_h1</em>, lamx_h2 <em>lamx_h2</em>, lamy <em>lamy</em>, lamy_l1 <em>lamy_l1</em>, lamy_l2 <em>lamy_l2</em>, lamy_h1 <em>lamy_h1</em>, lamy_h2 <em>lamy_h2</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv414ca_compute_fcc2lo2hi4lamx7lamx_l17lamx_h14nlam4Eddf7Eddf_l17Eddf_h1" title="ca_compute_fcc::nlam">nlam</a> <em>nlam</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv414ca_compute_fcc2lo2hi4lamx7lamx_l17lamx_h14nlam4Eddf7Eddf_l17Eddf_h1" title="ca_compute_fcc::Eddf">Eddf</a> <em>Eddf</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv414ca_compute_fcc2lo2hi4lamx7lamx_l17lamx_h14nlam4Eddf7Eddf_l17Eddf_h1" title="ca_compute_fcc::Eddf_l1">Eddf_l1</a> <em>Eddf_l1</em>, Eddf_l2 <em>Eddf_l2</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv414ca_compute_fcc2lo2hi4lamx7lamx_l17lamx_h14nlam4Eddf7Eddf_l17Eddf_h1" title="ca_compute_fcc::Eddf_h1">Eddf_h1</a> <em>Eddf_h1</em>, Eddf_h2 <em>Eddf_h2</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414ca_compute_fcc2lo2hi4lamx7lamx_l17lamx_l27lamx_h17lamx_h24lamy7lamy_l17lamy_l27lamy_h17lamy_h24nlam4Eddf7Eddf_l17Eddf_l27Eddf_h17Eddf_h2" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_l24S_h14S_h21f4f_l14f_l24f_h14f_h22Er5Er_l15Er_l25Er_h15Er_h22Fi5Fi_l15Fi_l25Fi_h15Fi_h23ifi3nfi2Fo5Fo_l15Fo_l25Fo_h15Fo_h23ifo3nfo">
+<span id="_CPPv317ca_transform_flux2lo2hi4flag4Snew4S_l14S_l24S_h14S_h21f4f_l14f_l24f_h14f_h22Er5Er_l15Er_l25Er_h15Er_h22Fi5Fi_l15Fi_l25Fi_h15Fi_h23ifi3nfi2Fo5Fo_l15Fo_l25Fo_h15Fo_h23ifo3nfo"></span><span id="_CPPv217ca_transform_flux2lo2hi4flag4Snew4S_l14S_l24S_h14S_h21f4f_l14f_l24f_h14f_h22Er5Er_l15Er_l25Er_h15Er_h22Fi5Fi_l15Fi_l25Fi_h15Fi_h23ifi3nfi2Fo5Fo_l15Fo_l25Fo_h15Fo_h23ifo3nfo"></span><span id="ca_transform_flux__lo.hi.flag.Snew.S_l1.S_l2.S_h1.S_h2.f.f_l1.f_l2.f_h1.f_h2.Er.Er_l1.Er_l2.Er_h1.Er_h2.Fi.Fi_l1.Fi_l2.Fi_h1.Fi_h2.ifi.nfi.Fo.Fo_l1.Fo_l2.Fo_h1.Fo_h2.ifo.nfo"></span><span class="target" id="RadPlotvar__2d_8f90_1a82954b24c8ed9a22c1dd75ba735f53eb"></span>subroutine <code class="descname">ca_transform_flux</code><span class="sig-paren">(</span><a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_h11f4f_l14f_h12Er5Er_l15Er_h12Fi5Fi_l15Fi_h13ifi3nfi2Fo5Fo_l15Fo_h13ifo3nfo" title="ca_transform_flux::lo">lo</a> <em>lo</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_h11f4f_l14f_h12Er5Er_l15Er_h12Fi5Fi_l15Fi_h13ifi3nfi2Fo5Fo_l15Fo_h13ifo3nfo" title="ca_transform_flux::hi">hi</a> <em>hi</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_h11f4f_l14f_h12Er5Er_l15Er_h12Fi5Fi_l15Fi_h13ifi3nfi2Fo5Fo_l15Fo_h13ifo3nfo" title="ca_transform_flux::flag">flag</a> <em>flag</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_h11f4f_l14f_h12Er5Er_l15Er_h12Fi5Fi_l15Fi_h13ifi3nfi2Fo5Fo_l15Fo_h13ifo3nfo" title="ca_transform_flux::Snew">Snew</a> <em>Snew</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_h11f4f_l14f_h12Er5Er_l15Er_h12Fi5Fi_l15Fi_h13ifi3nfi2Fo5Fo_l15Fo_h13ifo3nfo" title="ca_transform_flux::S_l1">S_l1</a> <em>S_l1</em>, S_l2 <em>S_l2</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_h11f4f_l14f_h12Er5Er_l15Er_h12Fi5Fi_l15Fi_h13ifi3nfi2Fo5Fo_l15Fo_h13ifo3nfo" title="ca_transform_flux::S_h1">S_h1</a> <em>S_h1</em>, S_h2 <em>S_h2</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_h11f4f_l14f_h12Er5Er_l15Er_h12Fi5Fi_l15Fi_h13ifi3nfi2Fo5Fo_l15Fo_h13ifo3nfo" title="ca_transform_flux::f">f</a> <em>f</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_h11f4f_l14f_h12Er5Er_l15Er_h12Fi5Fi_l15Fi_h13ifi3nfi2Fo5Fo_l15Fo_h13ifo3nfo" title="ca_transform_flux::f_l1">f_l1</a> <em>f_l1</em>, f_l2 <em>f_l2</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_h11f4f_l14f_h12Er5Er_l15Er_h12Fi5Fi_l15Fi_h13ifi3nfi2Fo5Fo_l15Fo_h13ifo3nfo" title="ca_transform_flux::f_h1">f_h1</a> <em>f_h1</em>, f_h2 <em>f_h2</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_h11f4f_l14f_h12Er5Er_l15Er_h12Fi5Fi_l15Fi_h13ifi3nfi2Fo5Fo_l15Fo_h13ifo3nfo" title="ca_transform_flux::Er">Er</a> <em>Er</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_h11f4f_l14f_h12Er5Er_l15Er_h12Fi5Fi_l15Fi_h13ifi3nfi2Fo5Fo_l15Fo_h13ifo3nfo" title="ca_transform_flux::Er_l1">Er_l1</a> <em>Er_l1</em>, Er_l2 <em>Er_l2</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_h11f4f_l14f_h12Er5Er_l15Er_h12Fi5Fi_l15Fi_h13ifi3nfi2Fo5Fo_l15Fo_h13ifo3nfo" title="ca_transform_flux::Er_h1">Er_h1</a> <em>Er_h1</em>, Er_h2 <em>Er_h2</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_h11f4f_l14f_h12Er5Er_l15Er_h12Fi5Fi_l15Fi_h13ifi3nfi2Fo5Fo_l15Fo_h13ifo3nfo" title="ca_transform_flux::Fi">Fi</a> <em>Fi</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_h11f4f_l14f_h12Er5Er_l15Er_h12Fi5Fi_l15Fi_h13ifi3nfi2Fo5Fo_l15Fo_h13ifo3nfo" title="ca_transform_flux::Fi_l1">Fi_l1</a> <em>Fi_l1</em>, Fi_l2 <em>Fi_l2</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_h11f4f_l14f_h12Er5Er_l15Er_h12Fi5Fi_l15Fi_h13ifi3nfi2Fo5Fo_l15Fo_h13ifo3nfo" title="ca_transform_flux::Fi_h1">Fi_h1</a> <em>Fi_h1</em>, Fi_h2 <em>Fi_h2</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_h11f4f_l14f_h12Er5Er_l15Er_h12Fi5Fi_l15Fi_h13ifi3nfi2Fo5Fo_l15Fo_h13ifo3nfo" title="ca_transform_flux::ifi">ifi</a> <em>ifi</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_h11f4f_l14f_h12Er5Er_l15Er_h12Fi5Fi_l15Fi_h13ifi3nfi2Fo5Fo_l15Fo_h13ifo3nfo" title="ca_transform_flux::nfi">nfi</a> <em>nfi</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_h11f4f_l14f_h12Er5Er_l15Er_h12Fi5Fi_l15Fi_h13ifi3nfi2Fo5Fo_l15Fo_h13ifo3nfo" title="ca_transform_flux::Fo">Fo</a> <em>Fo</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_h11f4f_l14f_h12Er5Er_l15Er_h12Fi5Fi_l15Fi_h13ifi3nfi2Fo5Fo_l15Fo_h13ifo3nfo" title="ca_transform_flux::Fo_l1">Fo_l1</a> <em>Fo_l1</em>, Fo_l2 <em>Fo_l2</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_h11f4f_l14f_h12Er5Er_l15Er_h12Fi5Fi_l15Fi_h13ifi3nfi2Fo5Fo_l15Fo_h13ifo3nfo" title="ca_transform_flux::Fo_h1">Fo_h1</a> <em>Fo_h1</em>, Fo_h2 <em>Fo_h2</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_h11f4f_l14f_h12Er5Er_l15Er_h12Fi5Fi_l15Fi_h13ifi3nfi2Fo5Fo_l15Fo_h13ifo3nfo" title="ca_transform_flux::ifo">ifo</a> <em>ifo</em>, <a class="reference internal" href="RadPlotvar__1d_8f90.html#_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_h11f4f_l14f_h12Er5Er_l15Er_h12Fi5Fi_l15Fi_h13ifi3nfi2Fo5Fo_l15Fo_h13ifo3nfo" title="ca_transform_flux::nfo">nfo</a> <em>nfo</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv417ca_transform_flux2lo2hi4flag4Snew4S_l14S_l24S_h14S_h21f4f_l14f_l24f_h14f_h22Er5Er_l15Er_l25Er_h15Er_h22Fi5Fi_l15Fi_l25Fi_h15Fi_h23ifi3nfi2Fo5Fo_l15Fo_l25Fo_h15Fo_h23ifo3nfo" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="RadPlotvar__3d_8f90.html" class="btn btn-neutral float-right" title="File RadPlotvar_3d.f90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="RadPlotvar__1d_8f90.html" class="btn btn-neutral" title="File RadPlotvar_1d.f90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

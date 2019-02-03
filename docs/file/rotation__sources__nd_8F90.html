@@ -1,0 +1,294 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File rotation_sources_nd.F90 &mdash; Castro 19.02
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Sources" href="../sources_files.html" />
+    <link rel="prev" title="File Rotation_nd.F90" href="Rotation__nd_8F90.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                19.02
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Plotfiles and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../rotation_files.html">Rotation</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Rotation__frequency_8F90.html">File Rotation_frequency.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Rotation__nd_8F90.html">File Rotation_nd.F90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File rotation_sources_nd.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../rotation_files.html">Rotation</a> &raquo;</li>
+        
+      <li>File rotation_sources_nd.F90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/rotation__sources__nd_8F90.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-rotation-sources-nd-f90">
+<h1>File rotation_sources_nd.F90<a class="headerlink" href="#file-rotation-sources-nd-f90" title="Permalink to this headline">¶</a></h1>
+<dl class="type">
+<dt id="_CPPv423rotation_sources_module">
+<span id="_CPPv323rotation_sources_module"></span><span id="_CPPv223rotation_sources_module"></span><span id="rotation_sources_module"></span><span class="target" id="namespacerotation__sources__module"></span><em class="property">namespace </em><code class="descname">rotation_sources_module</code><a class="headerlink" href="#_CPPv423rotation_sources_module" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt id="_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time">
+<span id="_CPPv3N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time"></span><span id="_CPPv2N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time"></span><span id="rotation_sources_module::ca_rsrc__lo.hi.domlo.domhi.phi.phi_lo.phi_hi.rot.rot_lo.rot_hi.uold.uold_lo.uold_hi.source.src_lo.src_hi.vol.vol_lo.vol_hi.dx.dt.time"></span><span class="target" id="namespacerotation__sources__module_1aa5c975357c99d00a70cffa6f78258290"></span>subroutine <code class="descname">ca_rsrc</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time" title="rotation_sources_module::ca_rsrc::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time" title="rotation_sources_module::ca_rsrc::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time" title="rotation_sources_module::ca_rsrc::domlo">domlo</a> <em>domlo</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time" title="rotation_sources_module::ca_rsrc::domhi">domhi</a> <em>domhi</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time" title="rotation_sources_module::ca_rsrc::phi">phi</a> <em>phi</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time" title="rotation_sources_module::ca_rsrc::phi_lo">phi_lo</a> <em>phi_lo</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time" title="rotation_sources_module::ca_rsrc::phi_hi">phi_hi</a> <em>phi_hi</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time" title="rotation_sources_module::ca_rsrc::rot">rot</a> <em>rot</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time" title="rotation_sources_module::ca_rsrc::rot_lo">rot_lo</a> <em>rot_lo</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time" title="rotation_sources_module::ca_rsrc::rot_hi">rot_hi</a> <em>rot_hi</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time" title="rotation_sources_module::ca_rsrc::uold">uold</a> <em>uold</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time" title="rotation_sources_module::ca_rsrc::uold_lo">uold_lo</a> <em>uold_lo</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time" title="rotation_sources_module::ca_rsrc::uold_hi">uold_hi</a> <em>uold_hi</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time" title="rotation_sources_module::ca_rsrc::source">source</a> <em>source</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time" title="rotation_sources_module::ca_rsrc::src_lo">src_lo</a> <em>src_lo</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time" title="rotation_sources_module::ca_rsrc::src_hi">src_hi</a> <em>src_hi</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time" title="rotation_sources_module::ca_rsrc::vol">vol</a> <em>vol</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time" title="rotation_sources_module::ca_rsrc::vol_lo">vol_lo</a> <em>vol_lo</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time" title="rotation_sources_module::ca_rsrc::vol_hi">vol_hi</a> <em>vol_hi</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time" title="rotation_sources_module::ca_rsrc::dx">dx</a> <em>dx</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time" title="rotation_sources_module::ca_rsrc::dt">dt</a> <em>dt</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time" title="rotation_sources_module::ca_rsrc::time">time</a> <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N23rotation_sources_module7ca_rsrcE2lo2hi5domlo5domhi3phi6phi_lo6phi_hi3rot6rot_lo6rot_hi4uold7uold_lo7uold_hi6source6src_lo6src_hi3vol6vol_lo6vol_hi2dx2dt4time" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi">
+<span id="_CPPv3N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi"></span><span id="_CPPv2N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi"></span><span id="rotation_sources_module::ca_corrrsrc__lo.hi.domlo.domhi.phi.p_lo.p_hi.rold.ro_lo.ro_hi.rnew.rn_lo.rn_hi.uold.uo_lo.uo_hi.unew.un_lo.un_hi.source.sr_lo.sr_hi.flux1.f1_lo.f1_hi.flux2.f2_lo.f2_hi.flux3.f3_lo.f3_hi.dx.dt.time.vol.vol_lo.vol_hi"></span><span class="target" id="namespacerotation__sources__module_1a368db2d67a4f4db02ab64f4844587ac3"></span>subroutine <code class="descname">ca_corrrsrc</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::domlo">domlo</a> <em>domlo</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::domhi">domhi</a> <em>domhi</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::phi">phi</a> <em>phi</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::p_lo">p_lo</a> <em>p_lo</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::p_hi">p_hi</a> <em>p_hi</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::rold">rold</a> <em>rold</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::ro_lo">ro_lo</a> <em>ro_lo</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::ro_hi">ro_hi</a> <em>ro_hi</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::rnew">rnew</a> <em>rnew</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::rn_lo">rn_lo</a> <em>rn_lo</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::rn_hi">rn_hi</a> <em>rn_hi</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::uold">uold</a> <em>uold</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::uo_lo">uo_lo</a> <em>uo_lo</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::uo_hi">uo_hi</a> <em>uo_hi</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::unew">unew</a> <em>unew</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::un_lo">un_lo</a> <em>un_lo</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::un_hi">un_hi</a> <em>un_hi</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::source">source</a> <em>source</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::sr_lo">sr_lo</a> <em>sr_lo</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::sr_hi">sr_hi</a> <em>sr_hi</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::flux1">flux1</a> <em>flux1</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::f1_lo">f1_lo</a> <em>f1_lo</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::f1_hi">f1_hi</a> <em>f1_hi</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::flux2">flux2</a> <em>flux2</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::f2_lo">f2_lo</a> <em>f2_lo</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::f2_hi">f2_hi</a> <em>f2_hi</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::flux3">flux3</a> <em>flux3</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::f3_lo">f3_lo</a> <em>f3_lo</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::f3_hi">f3_hi</a> <em>f3_hi</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::dx">dx</a> <em>dx</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::dt">dt</a> <em>dt</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::time">time</a> <em>time</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::vol">vol</a> <em>vol</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::vol_lo">vol_lo</a> <em>vol_lo</em>, <a class="reference internal" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="rotation_sources_module::ca_corrrsrc::vol_hi">vol_hi</a> <em>vol_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N23rotation_sources_module11ca_corrrsrcE2lo2hi5domlo5domhi3phi4p_lo4p_hi4rold5ro_lo5ro_hi4rnew5rn_lo5rn_hi4uold5uo_lo5uo_hi4unew5un_lo5un_hi6source5sr_lo5sr_hi5flux15f1_lo5f1_hi5flux25f2_lo5f2_hi5flux35f3_lo5f3_hi2dx2dt4time3vol6vol_lo6vol_hi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../sources_files.html" class="btn btn-neutral float-right" title="Sources" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Rotation__nd_8F90.html" class="btn btn-neutral" title="File Rotation_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

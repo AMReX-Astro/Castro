@@ -1,0 +1,4 @@
+File diffusion_queries.H
+========================
+
+.. doxygenfile:: diffusion_queries.H

@@ -1,0 +1,288 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File ext_src_2d.f90 &mdash; Castro 19.02
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File ext_src_3d.f90" href="ext__src__3d_8f90.html" />
+    <link rel="prev" title="File ext_src_1d.f90" href="ext__src__1d_8f90.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                19.02
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Plotfiles and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../sources_files.html">Sources</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="ext__src__1d_8f90.html">File ext_src_1d.f90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File ext_src_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ext__src__3d_8f90.html">File ext_src_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ext__src__nd_8F90.html">File ext_src_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sponge__nd_8F90.html">File sponge_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="thermo__nd_8F90.html">File thermo_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="update__sponge__params_8f90.html">File update_sponge_params.f90</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../sources_files.html">Sources</a> &raquo;</li>
+        
+      <li>File ext_src_2d.f90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/ext__src__2d_8f90.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-ext-src-2d-f90">
+<h1>File ext_src_2d.f90<a class="headerlink" href="#file-ext-src-2d-f90" title="Permalink to this headline">¶</a></h1>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt id="_CPPv410ca_ext_src2lo2hi9old_state12old_state_l112old_state_l212old_state_h112old_state_h29new_state12new_state_l112new_state_l212new_state_h112new_state_h23src6src_l16src_l26src_h16src_h26problo2dx4time2dt">
+<span id="_CPPv310ca_ext_src2lo2hi9old_state12old_state_l112old_state_l212old_state_h112old_state_h29new_state12new_state_l112new_state_l212new_state_h112new_state_h23src6src_l16src_l26src_h16src_h26problo2dx4time2dt"></span><span id="_CPPv210ca_ext_src2lo2hi9old_state12old_state_l112old_state_l212old_state_h112old_state_h29new_state12new_state_l112new_state_l212new_state_h112new_state_h23src6src_l16src_l26src_h16src_h26problo2dx4time2dt"></span><span id="ca_ext_src__lo.hi.old_state.old_state_l1.old_state_l2.old_state_h1.old_state_h2.new_state.new_state_l1.new_state_l2.new_state_h1.new_state_h2.src.src_l1.src_l2.src_h1.src_h2.problo.dx.time.dt"></span><span class="target" id="ext__src__2d_8f90_1ab35eacd61a21966fef27c899e6da6bda"></span>subroutine <code class="descname">ca_ext_src</code><span class="sig-paren">(</span><a class="reference internal" href="ext__src__1d_8f90.html#_CPPv410ca_ext_src2lo2hi9old_state12old_state_l112old_state_h19new_state12new_state_l112new_state_h13src6src_l16src_h16problo2dx4time2dt" title="ca_ext_src::lo">lo</a> <em>lo</em>, <a class="reference internal" href="ext__src__1d_8f90.html#_CPPv410ca_ext_src2lo2hi9old_state12old_state_l112old_state_h19new_state12new_state_l112new_state_h13src6src_l16src_h16problo2dx4time2dt" title="ca_ext_src::hi">hi</a> <em>hi</em>, <a class="reference internal" href="ext__src__1d_8f90.html#_CPPv410ca_ext_src2lo2hi9old_state12old_state_l112old_state_h19new_state12new_state_l112new_state_h13src6src_l16src_h16problo2dx4time2dt" title="ca_ext_src::old_state">old_state</a> <em>old_state</em>, <a class="reference internal" href="ext__src__1d_8f90.html#_CPPv410ca_ext_src2lo2hi9old_state12old_state_l112old_state_h19new_state12new_state_l112new_state_h13src6src_l16src_h16problo2dx4time2dt" title="ca_ext_src::old_state_l1">old_state_l1</a> <em>old_state_l1</em>, old_state_l2 <em>old_state_l2</em>, <a class="reference internal" href="ext__src__1d_8f90.html#_CPPv410ca_ext_src2lo2hi9old_state12old_state_l112old_state_h19new_state12new_state_l112new_state_h13src6src_l16src_h16problo2dx4time2dt" title="ca_ext_src::old_state_h1">old_state_h1</a> <em>old_state_h1</em>, old_state_h2 <em>old_state_h2</em>, <a class="reference internal" href="ext__src__1d_8f90.html#_CPPv410ca_ext_src2lo2hi9old_state12old_state_l112old_state_h19new_state12new_state_l112new_state_h13src6src_l16src_h16problo2dx4time2dt" title="ca_ext_src::new_state">new_state</a> <em>new_state</em>, <a class="reference internal" href="ext__src__1d_8f90.html#_CPPv410ca_ext_src2lo2hi9old_state12old_state_l112old_state_h19new_state12new_state_l112new_state_h13src6src_l16src_h16problo2dx4time2dt" title="ca_ext_src::new_state_l1">new_state_l1</a> <em>new_state_l1</em>, new_state_l2 <em>new_state_l2</em>, <a class="reference internal" href="ext__src__1d_8f90.html#_CPPv410ca_ext_src2lo2hi9old_state12old_state_l112old_state_h19new_state12new_state_l112new_state_h13src6src_l16src_h16problo2dx4time2dt" title="ca_ext_src::new_state_h1">new_state_h1</a> <em>new_state_h1</em>, new_state_h2 <em>new_state_h2</em>, <a class="reference internal" href="ext__src__1d_8f90.html#_CPPv410ca_ext_src2lo2hi9old_state12old_state_l112old_state_h19new_state12new_state_l112new_state_h13src6src_l16src_h16problo2dx4time2dt" title="ca_ext_src::src">src</a> <em>src</em>, <a class="reference internal" href="ext__src__1d_8f90.html#_CPPv410ca_ext_src2lo2hi9old_state12old_state_l112old_state_h19new_state12new_state_l112new_state_h13src6src_l16src_h16problo2dx4time2dt" title="ca_ext_src::src_l1">src_l1</a> <em>src_l1</em>, src_l2 <em>src_l2</em>, <a class="reference internal" href="ext__src__1d_8f90.html#_CPPv410ca_ext_src2lo2hi9old_state12old_state_l112old_state_h19new_state12new_state_l112new_state_h13src6src_l16src_h16problo2dx4time2dt" title="ca_ext_src::src_h1">src_h1</a> <em>src_h1</em>, src_h2 <em>src_h2</em>, <a class="reference internal" href="ext__src__1d_8f90.html#_CPPv410ca_ext_src2lo2hi9old_state12old_state_l112old_state_h19new_state12new_state_l112new_state_h13src6src_l16src_h16problo2dx4time2dt" title="ca_ext_src::problo">problo</a> <em>problo</em>, <a class="reference internal" href="ext__src__1d_8f90.html#_CPPv410ca_ext_src2lo2hi9old_state12old_state_l112old_state_h19new_state12new_state_l112new_state_h13src6src_l16src_h16problo2dx4time2dt" title="ca_ext_src::dx">dx</a> <em>dx</em>, <a class="reference internal" href="ext__src__1d_8f90.html#_CPPv410ca_ext_src2lo2hi9old_state12old_state_l112old_state_h19new_state12new_state_l112new_state_h13src6src_l16src_h16problo2dx4time2dt" title="ca_ext_src::time">time</a> <em>time</em>, <a class="reference internal" href="ext__src__1d_8f90.html#_CPPv410ca_ext_src2lo2hi9old_state12old_state_l112old_state_h19new_state12new_state_l112new_state_h13src6src_l16src_h16problo2dx4time2dt" title="ca_ext_src::dt">dt</a> <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv410ca_ext_src2lo2hi9old_state12old_state_l112old_state_l212old_state_h112old_state_h29new_state12new_state_l112new_state_l212new_state_h112new_state_h23src6src_l16src_l26src_h16src_h26problo2dx4time2dt" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="ext__src__3d_8f90.html" class="btn btn-neutral float-right" title="File ext_src_3d.f90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ext__src__1d_8f90.html" class="btn btn-neutral" title="File ext_src_1d.f90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

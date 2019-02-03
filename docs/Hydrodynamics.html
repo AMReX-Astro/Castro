@@ -145,6 +145,7 @@
 <p class="caption"><span class="caption-text">API</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
@@ -1178,15 +1179,12 @@ Miller &amp; Colella, except for the details of the Riemann solver,
 which are given below.</p>
 <p id="index-0">For the reconstruction of the interface states, the following apply:</p>
 <ul class="simple">
-<li><dl class="first docutils">
-<dt><code class="docutils literal notranslate"><span class="pre">castro.ppm_type</span></code> <span class="classifier-delimiter">:</span> <span class="classifier">use piecewise linear vs PPM algorithm (0 or 1;</span></dt>
-<dd>default: 1).  A value of 1 is the standard piecewise parabolic
-reconstruction.</dd>
-</dl>
-</li>
+<li><code class="docutils literal notranslate"><span class="pre">castro.ppm_type</span></code> : use piecewise linear vs PPM algorithm (0 or 1;
+default: 1).  A value of 1 is the standard piecewise parabolic
+reconstruction.</li>
 <li><code class="docutils literal notranslate"><span class="pre">castro.ppm_temp_fix</span></code> does various attempts to use the
 temperature in the reconstruction of the interface states.
-See <span class="xref std std-ref">sec-ppm_temp_fix</span> for an explanation of the allowed options.</li>
+See <a class="reference internal" href="#sec-ppm-temp-fix"><span class="std std-ref">Temperature Fixes</span></a> for an explanation of the allowed options.</li>
 <li><code class="docutils literal notranslate"><span class="pre">castro.ppm_predict_gammae</span></code> reconstructs <span class="math notranslate nohighlight">\(\gamma_e = p/(\rho e) + 1\)</span>
 to the interfaces and does the necessary transverse terms to aid in
 the conversion between the conserved and primitive interface states
@@ -1359,8 +1357,8 @@ solution, effectively time-centering the source term.</p>
 </div>
 </div>
 <div class="section" id="temperature-fixes">
-<h2>Temperature Fixes<a class="headerlink" href="#temperature-fixes" title="Permalink to this headline">¶</a></h2>
-<p id="sec-ppm-temp-fix"><span id="index-1"></span>There are a number of experimental options for improving the behavior
+<span id="sec-ppm-temp-fix"></span><h2>Temperature Fixes<a class="headerlink" href="#temperature-fixes" title="Permalink to this headline">¶</a></h2>
+<p id="index-1">There are a number of experimental options for improving the behavior
 of the temperature in the reconstruction and interface state
 prediction. The options are controlled by <code class="docutils literal notranslate"><span class="pre">castro.ppm_temp_fix</span></code>,
 which takes values:</p>

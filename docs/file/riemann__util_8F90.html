@@ -1,0 +1,440 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File riemann_util.F90 &mdash; Castro 19.02
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File slope_nd.F90" href="slope__nd_8F90.html" />
+    <link rel="prev" title="File riemann_nd.F90" href="riemann__nd_8F90.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                19.02
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Plotfiles and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../hydro_files.html">Hydro</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Castro__ctu__nd_8F90.html">File Castro_ctu_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__mol__nd_8F90.html">File Castro_mol_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="advection__util__nd_8F90.html">File advection_util_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="flatten__nd_8F90.html">File flatten_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hybrid__advection__nd_8F90.html">File hybrid_advection_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ppm__nd_8F90.html">File ppm_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="riemann__nd_8F90.html">File riemann_nd.F90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File riemann_util.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="slope__nd_8F90.html">File slope_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trace__plm_8F90.html">File trace_plm.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trace__ppm_8F90.html">File trace_ppm.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trans_8F90.html">File trans.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../hydro_files.html">Hydro</a> &raquo;</li>
+        
+      <li>File riemann_util.F90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/riemann__util_8F90.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-riemann-util-f90">
+<h1>File riemann_util.F90<a class="headerlink" href="#file-riemann-util-f90" title="Permalink to this headline">¶</a></h1>
+<dl class="type">
+<dt id="_CPPv419riemann_util_module">
+<span id="_CPPv319riemann_util_module"></span><span id="_CPPv219riemann_util_module"></span><span id="riemann_util_module"></span><span class="target" id="namespaceriemann__util__module"></span><em class="property">namespace </em><code class="descname">riemann_util_module</code><a class="headerlink" href="#_CPPv419riemann_util_module" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt>
+<span class="target" id="namespaceriemann__util__module_1a4a6c0d25642586e15f6385691cc499a6"></span><code class="descname">pure subroutine riemann_util_module::wsqge(p p, v v, gam gam, gdot gdot, gstar gstar, pstar pstar, wsq wsq, csq csq, gmin gmin, gmax gmax)</code></dt>
+<dd><p>compute the lagrangian wave speeds  this is the approximate version for the Colella &amp; Glaz algorithm </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">p</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">v</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">gam</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">gdot</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">pstar</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">csq</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">gmin</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">gmax</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">wsq</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">gstar</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="namespaceriemann__util__module_1a5a3eb574a936f6a18543555e08bb4dce"></span><code class="descname">pure subroutine riemann_util_module::pstar_bisection(pstar_lo pstar_lo, pstar_hi pstar_hi, ul ul, pl pl, taul taul, gamel gamel, clsql clsql, ur ur, pr pr, taur taur, gamer gamer, clsqr clsqr, gdot gdot, gmin gmin, gmax gmax, pstar pstar, gamstar gamstar, converged converged, pstar_hist_extra pstar_hist_extra)</code></dt>
+<dd><p>we want to zero f(p*) = u*_l(p*) - u*_r(p*) we’ll do bisection </p>
+<p>this version is for the approximate Colella &amp; Glaz version</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">pstar_lo</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">pstar_hi</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">ul</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">pl</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">taul</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">gamel</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">clsql</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">ur</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">pr</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">taur</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">gamer</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">clsqr</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">gdot</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">gmin</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">gmax</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">pstar</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">gamstar</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">converged</span></code>: logical </li>
+<li><code class="docutils literal notranslate"><span class="pre">pstar_hist_extra</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N19riemann_util_module3hllE2ql2qr2cl2cr4idir1f">
+<span id="_CPPv3N19riemann_util_module3hllE2ql2qr2cl2cr4idir1f"></span><span id="_CPPv2N19riemann_util_module3hllE2ql2qr2cl2cr4idir1f"></span><span id="riemann_util_module::hll__ql.qr.cl.cr.idir.f"></span><span class="target" id="namespaceriemann__util__module_1a313cede6c6b475e3c377fd56be486891"></span>subroutine <code class="descname">hll</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N19riemann_util_module3hllE2ql2qr2cl2cr4idir1f" title="riemann_util_module::hll::ql">ql</a> <em>ql</em>, <a class="reference internal" href="#_CPPv4N19riemann_util_module3hllE2ql2qr2cl2cr4idir1f" title="riemann_util_module::hll::qr">qr</a> <em>qr</em>, <a class="reference internal" href="#_CPPv4N19riemann_util_module3hllE2ql2qr2cl2cr4idir1f" title="riemann_util_module::hll::cl">cl</a> <em>cl</em>, <a class="reference internal" href="#_CPPv4N19riemann_util_module3hllE2ql2qr2cl2cr4idir1f" title="riemann_util_module::hll::cr">cr</a> <em>cr</em>, <a class="reference internal" href="#_CPPv4N19riemann_util_module3hllE2ql2qr2cl2cr4idir1f" title="riemann_util_module::hll::idir">idir</a> <em>idir</em>, <a class="reference internal" href="#_CPPv4N19riemann_util_module3hllE2ql2qr2cl2cr4idir1f" title="riemann_util_module::hll::f">f</a> <em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N19riemann_util_module3hllE2ql2qr2cl2cr4idir1f" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">ql</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">f</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">idir</span></code>: integer </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="namespaceriemann__util__module_1a028288f91872d9c2bf15766aab8200fe"></span><code class="descname">pure subroutine riemann_util_module::cons_state(q q, U U)</code></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">q</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">U</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="namespaceriemann__util__module_1a39ed28430b70f64fb5d7ff3ff4faa9b5"></span><code class="descname">pure subroutine riemann_util_module::hllc_state(idir idir, S_k S_k, S_c S_c, q q, U U)</code></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">idir</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">S_k</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">S_c</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">q</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">U</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N19riemann_util_module14compute_flux_qE2lo2hi4qint4q_lo4q_hi1F4F_lo4F_hi">
+<span id="_CPPv3N19riemann_util_module14compute_flux_qE2lo2hi4qint4q_lo4q_hi1F4F_lo4F_hi"></span><span id="_CPPv2N19riemann_util_module14compute_flux_qE2lo2hi4qint4q_lo4q_hi1F4F_lo4F_hi"></span><span id="riemann_util_module::compute_flux_q__lo.hi.qint.q_lo.q_hi.F.F_lo.F_hi"></span><span class="target" id="namespaceriemann__util__module_1abd2b15dd0c5e396301e8e1c5c8852aa4"></span>subroutine <code class="descname">compute_flux_q</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N19riemann_util_module14compute_flux_qE2lo2hi4qint4q_lo4q_hi1F4F_lo4F_hi" title="riemann_util_module::compute_flux_q::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv4N19riemann_util_module14compute_flux_qE2lo2hi4qint4q_lo4q_hi1F4F_lo4F_hi" title="riemann_util_module::compute_flux_q::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv4N19riemann_util_module14compute_flux_qE2lo2hi4qint4q_lo4q_hi1F4F_lo4F_hi" title="riemann_util_module::compute_flux_q::qint">qint</a> <em>qint</em>, <a class="reference internal" href="#_CPPv4N19riemann_util_module14compute_flux_qE2lo2hi4qint4q_lo4q_hi1F4F_lo4F_hi" title="riemann_util_module::compute_flux_q::q_lo">q_lo</a> <em>q_lo</em>, <a class="reference internal" href="#_CPPv4N19riemann_util_module14compute_flux_qE2lo2hi4qint4q_lo4q_hi1F4F_lo4F_hi" title="riemann_util_module::compute_flux_q::q_hi">q_hi</a> <em>q_hi</em>, <a class="reference internal" href="#_CPPv4N19riemann_util_module14compute_flux_qE2lo2hi4qint4q_lo4q_hi1F4F_lo4F_hi" title="riemann_util_module::compute_flux_q::F">F</a> <em>F</em>, <a class="reference internal" href="#_CPPv4N19riemann_util_module14compute_flux_qE2lo2hi4qint4q_lo4q_hi1F4F_lo4F_hi" title="riemann_util_module::compute_flux_q::F_lo">F_lo</a> <em>F_lo</em>, <a class="reference internal" href="#_CPPv4N19riemann_util_module14compute_flux_qE2lo2hi4qint4q_lo4q_hi1F4F_lo4F_hi" title="riemann_util_module::compute_flux_q::F_hi">F_hi</a> <em>F_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N19riemann_util_module14compute_flux_qE2lo2hi4qint4q_lo4q_hi1F4F_lo4F_hi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>given a primitive state, compute the flux in direction idir </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N19riemann_util_module22ca_store_godunov_stateE2lo2hi4qint5qi_lo5qi_hi">
+<span id="_CPPv3N19riemann_util_module22ca_store_godunov_stateE2lo2hi4qint5qi_lo5qi_hi"></span><span id="_CPPv2N19riemann_util_module22ca_store_godunov_stateE2lo2hi4qint5qi_lo5qi_hi"></span><span id="riemann_util_module::ca_store_godunov_state__lo.hi.qint.qi_lo.qi_hi"></span><span class="target" id="namespaceriemann__util__module_1a021bbba557aee3cbe7aa642a4e1ddcc4"></span>subroutine <code class="descname">ca_store_godunov_state</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N19riemann_util_module22ca_store_godunov_stateE2lo2hi4qint5qi_lo5qi_hi" title="riemann_util_module::ca_store_godunov_state::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv4N19riemann_util_module22ca_store_godunov_stateE2lo2hi4qint5qi_lo5qi_hi" title="riemann_util_module::ca_store_godunov_state::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv4N19riemann_util_module22ca_store_godunov_stateE2lo2hi4qint5qi_lo5qi_hi" title="riemann_util_module::ca_store_godunov_state::qint">qint</a> <em>qint</em>, <a class="reference internal" href="#_CPPv4N19riemann_util_module22ca_store_godunov_stateE2lo2hi4qint5qi_lo5qi_hi" title="riemann_util_module::ca_store_godunov_state::qi_lo">qi_lo</a> <em>qi_lo</em>, <a class="reference internal" href="#_CPPv4N19riemann_util_module22ca_store_godunov_stateE2lo2hi4qint5qi_lo5qi_hi" title="riemann_util_module::ca_store_godunov_state::qi_hi">qi_hi</a> <em>qi_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N19riemann_util_module22ca_store_godunov_stateE2lo2hi4qint5qi_lo5qi_hi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>this copies the full interface state (NQ  one for each primitive variable) over to a smaller subset of size NGDNV for use later in the hydro advancement. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">hi</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">qi_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">qi_hi</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">qg_lo</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">qg_hi</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">qint</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">qgdnv</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="namespaceriemann__util__module_1a1cde6a5e8f8d1f8e1509435fce554a38"></span><code class="descname">pure subroutine riemann_util_module::compute_flux(idir idir, bnd_fac bnd_fac, U U, p p, F F)</code></dt>
+<dd><p>given a conserved state, compute the flux in direction idir </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">idir</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">bnd_fac</span></code>: integer </li>
+<li><code class="docutils literal notranslate"><span class="pre">U</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">p</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">F</span></code>: real(rt) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="slope__nd_8F90.html" class="btn btn-neutral float-right" title="File slope_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="riemann__nd_8F90.html" class="btn btn-neutral" title="File riemann_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

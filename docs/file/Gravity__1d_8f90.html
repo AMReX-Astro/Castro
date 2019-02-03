@@ -1,0 +1,313 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File Gravity_1d.f90 &mdash; Castro 19.02
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File Gravity_2d.f90" href="Gravity__2d_8f90.html" />
+    <link rel="prev" title="File Gravity.H" href="Gravity_8H.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                19.02
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Plotfiles and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../gravity_files.html">Gravity</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="GR__Gravity__1d_8f90.html">File GR_Gravity_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GR__Gravity__2d_8f90.html">File GR_Gravity_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GR__Gravity__3d_8f90.html">File GR_Gravity_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity_8H.html">File Gravity.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File Gravity_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity__2d_8f90.html">File Gravity_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity__3d_8f90.html">File Gravity_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity__nd_8f90.html">File Gravity_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gravity__sources__nd_8F90.html">File gravity_sources_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pointmass__nd_8f90.html">File pointmass_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="prescribe__grav__nd_8f90.html">File prescribe_grav_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="prescribe__phi__nd_8F90.html">File prescribe_phi_nd.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../gravity_files.html">Gravity</a> &raquo;</li>
+        
+      <li>File Gravity_1d.f90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/Gravity__1d_8f90.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-gravity-1d-f90">
+<h1>File Gravity_1d.f90<a class="headerlink" href="#file-gravity-1d-f90" title="Permalink to this headline">¶</a></h1>
+<dl class="type">
+<dt id="_CPPv417gravity_1d_module">
+<span id="_CPPv317gravity_1d_module"></span><span id="_CPPv217gravity_1d_module"></span><span id="gravity_1d_module"></span><span class="target" id="namespacegravity__1d__module"></span><em class="property">namespace </em><code class="descname">gravity_1d_module</code><a class="headerlink" href="#_CPPv417gravity_1d_module" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt id="_CPPv4N17gravity_1d_module16ca_test_residualE2lo2hi3rhs4rhl14rhh13ecx5ecxl15ecxh12dx6problo10coord_type">
+<span id="_CPPv3N17gravity_1d_module16ca_test_residualE2lo2hi3rhs4rhl14rhh13ecx5ecxl15ecxh12dx6problo10coord_type"></span><span id="_CPPv2N17gravity_1d_module16ca_test_residualE2lo2hi3rhs4rhl14rhh13ecx5ecxl15ecxh12dx6problo10coord_type"></span><span id="gravity_1d_module::ca_test_residual__lo.hi.rhs.rhl1.rhh1.ecx.ecxl1.ecxh1.dx.problo.coord_type"></span><span class="target" id="namespacegravity__1d__module_1ae1a7bf0c489b9ab25cf222b6c8037a30"></span>subroutine <code class="descname">ca_test_residual</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N17gravity_1d_module16ca_test_residualE2lo2hi3rhs4rhl14rhh13ecx5ecxl15ecxh12dx6problo10coord_type" title="gravity_1d_module::ca_test_residual::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module16ca_test_residualE2lo2hi3rhs4rhl14rhh13ecx5ecxl15ecxh12dx6problo10coord_type" title="gravity_1d_module::ca_test_residual::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module16ca_test_residualE2lo2hi3rhs4rhl14rhh13ecx5ecxl15ecxh12dx6problo10coord_type" title="gravity_1d_module::ca_test_residual::rhs">rhs</a> <em>rhs</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module16ca_test_residualE2lo2hi3rhs4rhl14rhh13ecx5ecxl15ecxh12dx6problo10coord_type" title="gravity_1d_module::ca_test_residual::rhl1">rhl1</a> <em>rhl1</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module16ca_test_residualE2lo2hi3rhs4rhl14rhh13ecx5ecxl15ecxh12dx6problo10coord_type" title="gravity_1d_module::ca_test_residual::rhh1">rhh1</a> <em>rhh1</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module16ca_test_residualE2lo2hi3rhs4rhl14rhh13ecx5ecxl15ecxh12dx6problo10coord_type" title="gravity_1d_module::ca_test_residual::ecx">ecx</a> <em>ecx</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module16ca_test_residualE2lo2hi3rhs4rhl14rhh13ecx5ecxl15ecxh12dx6problo10coord_type" title="gravity_1d_module::ca_test_residual::ecxl1">ecxl1</a> <em>ecxl1</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module16ca_test_residualE2lo2hi3rhs4rhl14rhh13ecx5ecxl15ecxh12dx6problo10coord_type" title="gravity_1d_module::ca_test_residual::ecxh1">ecxh1</a> <em>ecxh1</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module16ca_test_residualE2lo2hi3rhs4rhl14rhh13ecx5ecxl15ecxh12dx6problo10coord_type" title="gravity_1d_module::ca_test_residual::dx">dx</a> <em>dx</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module16ca_test_residualE2lo2hi3rhs4rhl14rhh13ecx5ecxl15ecxh12dx6problo10coord_type" title="gravity_1d_module::ca_test_residual::problo">problo</a> <em>problo</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module16ca_test_residualE2lo2hi3rhs4rhl14rhh13ecx5ecxl15ecxh12dx6problo10coord_type" title="gravity_1d_module::ca_test_residual::coord_type">coord_type</a> <em>coord_type</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17gravity_1d_module16ca_test_residualE2lo2hi3rhs4rhl14rhh13ecx5ecxl15ecxh12dx6problo10coord_type" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N17gravity_1d_module22ca_compute_radial_massE2lo2hi2dx2dr5state4r_l14r_h111radial_mass10radial_vol6problo3n1d7drdxfac5level">
+<span id="_CPPv3N17gravity_1d_module22ca_compute_radial_massE2lo2hi2dx2dr5state4r_l14r_h111radial_mass10radial_vol6problo3n1d7drdxfac5level"></span><span id="_CPPv2N17gravity_1d_module22ca_compute_radial_massE2lo2hi2dx2dr5state4r_l14r_h111radial_mass10radial_vol6problo3n1d7drdxfac5level"></span><span id="gravity_1d_module::ca_compute_radial_mass__lo.hi.dx.dr.state.r_l1.r_h1.radial_mass.radial_vol.problo.n1d.drdxfac.level"></span><span class="target" id="namespacegravity__1d__module_1af686e5f79d557dff5eda30ccb6bce215"></span>subroutine <code class="descname">ca_compute_radial_mass</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N17gravity_1d_module22ca_compute_radial_massE2lo2hi2dx2dr5state4r_l14r_h111radial_mass10radial_vol6problo3n1d7drdxfac5level" title="gravity_1d_module::ca_compute_radial_mass::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module22ca_compute_radial_massE2lo2hi2dx2dr5state4r_l14r_h111radial_mass10radial_vol6problo3n1d7drdxfac5level" title="gravity_1d_module::ca_compute_radial_mass::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module22ca_compute_radial_massE2lo2hi2dx2dr5state4r_l14r_h111radial_mass10radial_vol6problo3n1d7drdxfac5level" title="gravity_1d_module::ca_compute_radial_mass::dx">dx</a> <em>dx</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module22ca_compute_radial_massE2lo2hi2dx2dr5state4r_l14r_h111radial_mass10radial_vol6problo3n1d7drdxfac5level" title="gravity_1d_module::ca_compute_radial_mass::dr">dr</a> <em>dr</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module22ca_compute_radial_massE2lo2hi2dx2dr5state4r_l14r_h111radial_mass10radial_vol6problo3n1d7drdxfac5level" title="gravity_1d_module::ca_compute_radial_mass::state">state</a> <em>state</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module22ca_compute_radial_massE2lo2hi2dx2dr5state4r_l14r_h111radial_mass10radial_vol6problo3n1d7drdxfac5level" title="gravity_1d_module::ca_compute_radial_mass::r_l1">r_l1</a> <em>r_l1</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module22ca_compute_radial_massE2lo2hi2dx2dr5state4r_l14r_h111radial_mass10radial_vol6problo3n1d7drdxfac5level" title="gravity_1d_module::ca_compute_radial_mass::r_h1">r_h1</a> <em>r_h1</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module22ca_compute_radial_massE2lo2hi2dx2dr5state4r_l14r_h111radial_mass10radial_vol6problo3n1d7drdxfac5level" title="gravity_1d_module::ca_compute_radial_mass::radial_mass">radial_mass</a> <em>radial_mass</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module22ca_compute_radial_massE2lo2hi2dx2dr5state4r_l14r_h111radial_mass10radial_vol6problo3n1d7drdxfac5level" title="gravity_1d_module::ca_compute_radial_mass::radial_vol">radial_vol</a> <em>radial_vol</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module22ca_compute_radial_massE2lo2hi2dx2dr5state4r_l14r_h111radial_mass10radial_vol6problo3n1d7drdxfac5level" title="gravity_1d_module::ca_compute_radial_mass::problo">problo</a> <em>problo</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module22ca_compute_radial_massE2lo2hi2dx2dr5state4r_l14r_h111radial_mass10radial_vol6problo3n1d7drdxfac5level" title="gravity_1d_module::ca_compute_radial_mass::n1d">n1d</a> <em>n1d</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module22ca_compute_radial_massE2lo2hi2dx2dr5state4r_l14r_h111radial_mass10radial_vol6problo3n1d7drdxfac5level" title="gravity_1d_module::ca_compute_radial_mass::drdxfac">drdxfac</a> <em>drdxfac</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module22ca_compute_radial_massE2lo2hi2dx2dr5state4r_l14r_h111radial_mass10radial_vol6problo3n1d7drdxfac5level" title="gravity_1d_module::ca_compute_radial_mass::level">level</a> <em>level</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17gravity_1d_module22ca_compute_radial_massE2lo2hi2dx2dr5state4r_l14r_h111radial_mass10radial_vol6problo3n1d7drdxfac5level" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N17gravity_1d_module18ca_put_radial_gravE2lo2hi2dx2dr4grav4g_l14g_h111radial_grav6problo3n1d5level">
+<span id="_CPPv3N17gravity_1d_module18ca_put_radial_gravE2lo2hi2dx2dr4grav4g_l14g_h111radial_grav6problo3n1d5level"></span><span id="_CPPv2N17gravity_1d_module18ca_put_radial_gravE2lo2hi2dx2dr4grav4g_l14g_h111radial_grav6problo3n1d5level"></span><span id="gravity_1d_module::ca_put_radial_grav__lo.hi.dx.dr.grav.g_l1.g_h1.radial_grav.problo.n1d.level"></span><span class="target" id="namespacegravity__1d__module_1a2b3fd66838ed9494fea9ffe8ff092c6d"></span>subroutine <code class="descname">ca_put_radial_grav</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N17gravity_1d_module18ca_put_radial_gravE2lo2hi2dx2dr4grav4g_l14g_h111radial_grav6problo3n1d5level" title="gravity_1d_module::ca_put_radial_grav::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module18ca_put_radial_gravE2lo2hi2dx2dr4grav4g_l14g_h111radial_grav6problo3n1d5level" title="gravity_1d_module::ca_put_radial_grav::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module18ca_put_radial_gravE2lo2hi2dx2dr4grav4g_l14g_h111radial_grav6problo3n1d5level" title="gravity_1d_module::ca_put_radial_grav::dx">dx</a> <em>dx</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module18ca_put_radial_gravE2lo2hi2dx2dr4grav4g_l14g_h111radial_grav6problo3n1d5level" title="gravity_1d_module::ca_put_radial_grav::dr">dr</a> <em>dr</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module18ca_put_radial_gravE2lo2hi2dx2dr4grav4g_l14g_h111radial_grav6problo3n1d5level" title="gravity_1d_module::ca_put_radial_grav::grav">grav</a> <em>grav</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module18ca_put_radial_gravE2lo2hi2dx2dr4grav4g_l14g_h111radial_grav6problo3n1d5level" title="gravity_1d_module::ca_put_radial_grav::g_l1">g_l1</a> <em>g_l1</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module18ca_put_radial_gravE2lo2hi2dx2dr4grav4g_l14g_h111radial_grav6problo3n1d5level" title="gravity_1d_module::ca_put_radial_grav::g_h1">g_h1</a> <em>g_h1</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module18ca_put_radial_gravE2lo2hi2dx2dr4grav4g_l14g_h111radial_grav6problo3n1d5level" title="gravity_1d_module::ca_put_radial_grav::radial_grav">radial_grav</a> <em>radial_grav</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module18ca_put_radial_gravE2lo2hi2dx2dr4grav4g_l14g_h111radial_grav6problo3n1d5level" title="gravity_1d_module::ca_put_radial_grav::problo">problo</a> <em>problo</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module18ca_put_radial_gravE2lo2hi2dx2dr4grav4g_l14g_h111radial_grav6problo3n1d5level" title="gravity_1d_module::ca_put_radial_grav::n1d">n1d</a> <em>n1d</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module18ca_put_radial_gravE2lo2hi2dx2dr4grav4g_l14g_h111radial_grav6problo3n1d5level" title="gravity_1d_module::ca_put_radial_grav::level">level</a> <em>level</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17gravity_1d_module18ca_put_radial_gravE2lo2hi2dx2dr4grav4g_l14g_h111radial_grav6problo3n1d5level" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N17gravity_1d_module17ca_put_radial_phiE2lo2hi5domlo5domhi2dx2dr3phi4p_l14p_h110radial_phi6problo9numpts_1d13fill_interior">
+<span id="_CPPv3N17gravity_1d_module17ca_put_radial_phiE2lo2hi5domlo5domhi2dx2dr3phi4p_l14p_h110radial_phi6problo9numpts_1d13fill_interior"></span><span id="_CPPv2N17gravity_1d_module17ca_put_radial_phiE2lo2hi5domlo5domhi2dx2dr3phi4p_l14p_h110radial_phi6problo9numpts_1d13fill_interior"></span><span id="gravity_1d_module::ca_put_radial_phi__lo.hi.domlo.domhi.dx.dr.phi.p_l1.p_h1.radial_phi.problo.numpts_1d.fill_interior"></span><span class="target" id="namespacegravity__1d__module_1a595610f43238c898c74525537d85cd78"></span>subroutine <code class="descname">ca_put_radial_phi</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N17gravity_1d_module17ca_put_radial_phiE2lo2hi5domlo5domhi2dx2dr3phi4p_l14p_h110radial_phi6problo9numpts_1d13fill_interior" title="gravity_1d_module::ca_put_radial_phi::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module17ca_put_radial_phiE2lo2hi5domlo5domhi2dx2dr3phi4p_l14p_h110radial_phi6problo9numpts_1d13fill_interior" title="gravity_1d_module::ca_put_radial_phi::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module17ca_put_radial_phiE2lo2hi5domlo5domhi2dx2dr3phi4p_l14p_h110radial_phi6problo9numpts_1d13fill_interior" title="gravity_1d_module::ca_put_radial_phi::domlo">domlo</a> <em>domlo</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module17ca_put_radial_phiE2lo2hi5domlo5domhi2dx2dr3phi4p_l14p_h110radial_phi6problo9numpts_1d13fill_interior" title="gravity_1d_module::ca_put_radial_phi::domhi">domhi</a> <em>domhi</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module17ca_put_radial_phiE2lo2hi5domlo5domhi2dx2dr3phi4p_l14p_h110radial_phi6problo9numpts_1d13fill_interior" title="gravity_1d_module::ca_put_radial_phi::dx">dx</a> <em>dx</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module17ca_put_radial_phiE2lo2hi5domlo5domhi2dx2dr3phi4p_l14p_h110radial_phi6problo9numpts_1d13fill_interior" title="gravity_1d_module::ca_put_radial_phi::dr">dr</a> <em>dr</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module17ca_put_radial_phiE2lo2hi5domlo5domhi2dx2dr3phi4p_l14p_h110radial_phi6problo9numpts_1d13fill_interior" title="gravity_1d_module::ca_put_radial_phi::phi">phi</a> <em>phi</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module17ca_put_radial_phiE2lo2hi5domlo5domhi2dx2dr3phi4p_l14p_h110radial_phi6problo9numpts_1d13fill_interior" title="gravity_1d_module::ca_put_radial_phi::p_l1">p_l1</a> <em>p_l1</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module17ca_put_radial_phiE2lo2hi5domlo5domhi2dx2dr3phi4p_l14p_h110radial_phi6problo9numpts_1d13fill_interior" title="gravity_1d_module::ca_put_radial_phi::p_h1">p_h1</a> <em>p_h1</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module17ca_put_radial_phiE2lo2hi5domlo5domhi2dx2dr3phi4p_l14p_h110radial_phi6problo9numpts_1d13fill_interior" title="gravity_1d_module::ca_put_radial_phi::radial_phi">radial_phi</a> <em>radial_phi</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module17ca_put_radial_phiE2lo2hi5domlo5domhi2dx2dr3phi4p_l14p_h110radial_phi6problo9numpts_1d13fill_interior" title="gravity_1d_module::ca_put_radial_phi::problo">problo</a> <em>problo</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module17ca_put_radial_phiE2lo2hi5domlo5domhi2dx2dr3phi4p_l14p_h110radial_phi6problo9numpts_1d13fill_interior" title="gravity_1d_module::ca_put_radial_phi::numpts_1d">numpts_1d</a> <em>numpts_1d</em>, <a class="reference internal" href="#_CPPv4N17gravity_1d_module17ca_put_radial_phiE2lo2hi5domlo5domhi2dx2dr3phi4p_l14p_h110radial_phi6problo9numpts_1d13fill_interior" title="gravity_1d_module::ca_put_radial_phi::fill_interior">fill_interior</a> <em>fill_interior</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N17gravity_1d_module17ca_put_radial_phiE2lo2hi5domlo5domhi2dx2dr3phi4p_l14p_h110radial_phi6problo9numpts_1d13fill_interior" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Gravity__2d_8f90.html" class="btn btn-neutral float-right" title="File Gravity_2d.f90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Gravity_8H.html" class="btn btn-neutral" title="File Gravity.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
