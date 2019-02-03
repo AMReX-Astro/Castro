@@ -903,17 +903,35 @@ framework, the details follow exactly as given in Section 4.2.1 in
 Miller & Colella, except for the details of the Riemann solver,
 which are given below.
 
+.. index:: castro.ppm_type, castro.ppm_temp_fix, castro.ppm_predict_gammae, castro.ppm_reference_eigenvectors
+
 For the reconstruction of the interface states, the following apply:
 
--  ``castro.ppm_type`` : use piecewise linear vs PPM algorithm
-   (0, 1, 2; default: 1)
-
-   Values of 1 and 2 are both piecewise parabolic reconstruction, with
-   2 using updated limiters that better preserve extrema.
+- ``castro.ppm_type`` : use piecewise linear vs PPM algorithm (0 or 1;
+   default: 1).  A value of 1 is the standard piecewise parabolic
+   reconstruction.
 
 -  ``castro.ppm_temp_fix`` does various attempts to use the
-   temperature in the reconstruction of the interface states. This
-   is experimental.
+   temperature in the reconstruction of the interface states.
+   The following options are available:
+
+   * ``castro.ppm_temp_fix = 0`` (default): this does reconstruction
+     and characteristic tracing on :math:`\rho, u, p, (\rho e)`.
+
+   * ``castro.ppm_temp_fix = 1``: this reconstructs :math:`T` on
+     interfaces and integrates under the parabola, but then uses the
+     EOS to convert the state to :math:`p` before doing the
+     characteristic tracing.
+
+   * ``castro.ppm_temp_fix = 2``: this does the reconstruction and
+     characteristic tracing as usual, but calls the EOS on the
+     interface states in the Riemann solver to make things
+     thermodynamically consistent (in particular, :math:`(\rho e),
+     \Gamma_1` are reset).
+
+   * ``castro.ppm_temp_fix = 3``: this does the reconstruction
+     and characteristic tracing of :math:`T`, using an eigensystem
+     with :math:`T` replacing :math:`p`.
 
 -  ``castro.ppm_predict_gammae`` reconstructs :math:`\gamma_e = p/(\rho e) + 1`
    to the interfaces and does the necessary transverse terms to aid in
