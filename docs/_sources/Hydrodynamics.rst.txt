@@ -903,7 +903,7 @@ framework, the details follow exactly as given in Section 4.2.1 in
 Miller & Colella, except for the details of the Riemann solver,
 which are given below.
 
-.. index:: castro.ppm_type, castro.ppm_temp_fix, castro.ppm_predict_gammae, castro.ppm_reference_eigenvectors
+.. index:: castro.ppm_type, castro.ppm_predict_gammae, castro.ppm_reference_eigenvectors
 
 For the reconstruction of the interface states, the following apply:
 
@@ -913,25 +913,7 @@ For the reconstruction of the interface states, the following apply:
 
 -  ``castro.ppm_temp_fix`` does various attempts to use the
    temperature in the reconstruction of the interface states.
-   The following options are available:
-
-   * ``castro.ppm_temp_fix = 0`` (default): this does reconstruction
-     and characteristic tracing on :math:`\rho, u, p, (\rho e)`.
-
-   * ``castro.ppm_temp_fix = 1``: this reconstructs :math:`T` on
-     interfaces and integrates under the parabola, but then uses the
-     EOS to convert the state to :math:`p` before doing the
-     characteristic tracing.
-
-   * ``castro.ppm_temp_fix = 2``: this does the reconstruction and
-     characteristic tracing as usual, but calls the EOS on the
-     interface states in the Riemann solver to make things
-     thermodynamically consistent (in particular, :math:`(\rho e),
-     \Gamma_1` are reset).
-
-   * ``castro.ppm_temp_fix = 3``: this does the reconstruction
-     and characteristic tracing of :math:`T`, using an eigensystem
-     with :math:`T` replacing :math:`p`.
+   See :ref:`sec-ppm_temp_fix` for an explanation of the allowed options.
 
 -  ``castro.ppm_predict_gammae`` reconstructs :math:`\gamma_e = p/(\rho e) + 1`
    to the interfaces and does the necessary transverse terms to aid in
@@ -1133,36 +1115,40 @@ solution, effectively time-centering the source term.
 Temperature Fixes
 =================
 
+.. index:: castro.ppm_temp_fix
+
+.. _sec-ppm_temp_fix:
+
 There are a number of experimental options for improving the behavior
 of the temperature in the reconstruction and interface state
-prediction. The options are controlled by castro.ppm_temp_fix,
+prediction. The options are controlled by ``castro.ppm_temp_fix``,
 which takes values:
 
--  0: the default method—temperature is not considered
+  * 0: the default method—temperature is not considered, and we do
+    reconstruction and characteristic tracing on :math:`\rho, u, p,
+    (\rho e)`.
 
--  1: do parabolic reconstruction on :math:`T`, giving
-   :math:`\mathcal{I}_{+}^{(k)}(T_i)`. We then derive the pressure and
-   internal energy (gas portion) via the equation of state as:
+  * 1: do parabolic reconstruction on :math:`T`, giving
+    :math:`\mathcal{I}_{+}^{(k)}(T_i)`. We then derive the pressure and
+    internal energy (gas portion) via the equation of state as:
 
-   .. math::
+    .. math::
 
       \begin{align}
             \mathcal{I}_{+}^{(k)}(p_i) &= p(\mathcal{I}_{+}^{(k)}(\rho_i), \mathcal{I}_{+}^{(k)}(T_i)) \\
             \mathcal{I}_{+}^{(k)}((\rho e)_i) &= (\rho e)(\mathcal{I}_{+}^{(k)}(\rho_i), \mathcal{I}_{+}^{(k)}(T_i))
           \end{align}
 
-   The remainder of the hydrodynamics algorithm then proceeds unchanged.
+    The remainder of the hydrodynamics algorithm then proceeds unchanged.
 
--  2: on entering the Riemann solver, we recompute the
-   thermodynamics on the interfaces to ensure that they are all
-   consistent. This is done by taking the interface values of
-   :math:`\rho`, :math:`e`, :math:`X_k`, and computing the corresponding pressure, :math:`p`
-   from this.
+  * 2: on entering the Riemann solver, we recompute the thermodynamics
+    on the interfaces to ensure that they are all consistent. This is
+    done by taking the interface values of :math:`\rho`, :math:`e`,
+    :math:`X_k`, and computing the corresponding pressure, :math:`p`
+    from this.
 
--  3: This does the characteristic tracing using the
-   :math:`(\tau, u, T)` eigensystem. Note: this is not widely
-   implemented—see the Sod_stellar for an
-   implementation.
+  * 3: This does the characteristic tracing using the
+    :math:`(\tau, u, T)` eigensystem. 
 
 Resets
 ======
