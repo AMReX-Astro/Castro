@@ -184,10 +184,10 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   ! Interpolate rho, T and X
   do k = lo(3), hi(3)
-     z = xmin + (dble(k) + HALF)*delta(3)
+     z = zmin + (dble(k) + HALF)*delta(3)
 
      do j = lo(2), hi(2)
-        y = xmin + (dble(j) + HALF)*delta(2)
+        y = ymin + (dble(j) + HALF)*delta(2)
 
         do i = lo(1), hi(1)
            x = xmin + (dble(i) + HALF)*delta(1)
