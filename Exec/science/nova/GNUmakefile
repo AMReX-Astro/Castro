@@ -15,6 +15,8 @@ USE_REACT        = TRUE
 
 USE_OLDPLOTPER   = TRUE
 
+DIMENSION_AGNOSTIC = TRUE
+
 ifdef MICROPHYSICS_HOME
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos

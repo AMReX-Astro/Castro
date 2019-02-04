@@ -1,4 +1,23 @@
-changes since last release:
+# changes since the last release
+
+  -- The runtime parameter castro.do_ctu was replaced by
+     castro.time_integration_method.  The allowed values are
+     0 (CTU integration), 1 (MOL), or 2 (SDC)
+
+  -- The 4th order hydro was extended to support general equations
+     of state (it is still single level only).  Artificial viscosity
+     was also added.
+
+  -- A framework for a new spectral deferred corrections method
+     was added.  This will allow for higher-order time integration.
+
+  -- fixed a bug in the ppm_type = 1 reconstruction -- we were not
+     doing the initial reconstruction of temperature
+
+# 19.02
+
+  -- The flux limiter used with the options limit_fluxes_on_low_dens
+     was not implemented correctly.  This has been fixed.  (PR #493)
 
   -- the CTU hydro solver no longer does any allocation in any of the
      support routines -- it is all done in the top-level
@@ -29,6 +48,10 @@ changes since last release:
      linearly until the density reaches diffuse_cutoff_density, where
      it is zero.
 
+# 19.01.4
+
+  -- fixed the .zenodo.json
+
 # 19.01
 
   -- The User's Guide is now automatically built from the development
@@ -42,19 +65,10 @@ changes since last release:
 
   -- The MG solver was optimized a bit (#464)
 
-  -- we removed ppm_type = 2.  This was never really used and not as
-     robust as ppm_type = 1.  The forthcoming 4th order method will
-     take its place. (#442)
-
 # 18.12
 
   -- fixed a bug in the CUDA version of the MOL integrator -- it was
      setting the interface states incorrectly.
-
-  -- removed ppm_type = 2.  This was not used for science simulations
-     because it was never shown to be completely stable.  In the near
-     future, the full fourth order method will be merged which will be
-     a better replacement.
 
   -- removed ppm_type = 2.  This was not used for science simulations
      because it was never shown to be completely stable.  In the near
@@ -105,18 +119,6 @@ changes since last release:
 
 
 # 18.10
-
-
-  -- The runtime parameter castro.do_ctu was replaced by
-     castro.time_integration_method.  The allowed values are
-     0 (CTU integration), 1 (MOL), or 2 (SDC)
-
-  -- The 4th order hydro was extended to support general equations
-     of state (it is still single level only).  Artificial viscosity
-     was also added.
-
-  -- A framework for a new spectral deferred corrections method
-     was added.  This will allow for higher-order time integration.
 
   -- fixed handling of external BCs (#402)
 

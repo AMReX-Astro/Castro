@@ -463,8 +463,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
   }  // end of omp parallel region
 
 #else
-
   // CUDA version
+
+#ifndef RADIATION
 
   MultiFab flatn;
   flatn.define(grids, dmap, 1, 1);
@@ -473,26 +474,25 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
   div.define(grids, dmap, 1, 1);
 
   MultiFab qm;
-  qm.define(grids, dmap, 3*NQ, 2);
+  qm.define(grids, dmap, AMREX_SPACEDIM*NQ, 2);
 
   MultiFab qp;
-  qp.define(grids, dmap, 3*NQ, 2);
+  qp.define(grids, dmap, AMREX_SPACEDIM*NQ, 2);
 
-  MultiFab flux[3];
-  MultiFab qe[3];
+  MultiFab shk;
+  shk.define(grids, dmap, 1, 1);
+
+
+  MultiFab flux[AMREX_SPACEDIM];
+  MultiFab qe[AMREX_SPACEDIM];
+  MultiFab qi[AMREX_SPACEDIM];
 
   for (int i = 0; i < AMREX_SPACEDIM; ++i) {
       flux[i].define(getEdgeBoxArray(i), dmap, NUM_STATE, 0);
       qe[i].define(getEdgeBoxArray(i), dmap, NGDNV, 0);
+      qi[i].define(getEdgeBoxArray(i), dmap, NQ, 0);
   }
 
-  for (int i = AMREX_SPACEDIM; i < 3; ++i) {
-      flux[i].define(grids, dmap, NUM_STATE, 0);
-      qe[i].define(grids, dmap, NUM_STATE, 0);
-
-      flux[i].setVal(0.0);
-      qe[i].setVal(0.0);
-  }
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -502,7 +502,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
       const Box& obx = mfi.growntilebox(1);
 
       // Compute divergence of velocity field.
-
 #pragma gpu
       divu(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
            BL_TO_FORTRAN_ANYD(q[mfi]),
@@ -526,6 +525,14 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
            BL_TO_FORTRAN_ANYD(flatn[mfi]),
            BL_TO_FORTRAN_ANYD(qm[mfi]),
            BL_TO_FORTRAN_ANYD(qp[mfi]), NQ, 1, NQ);
+
+      // Compute the shk variable
+#pragma gpu
+      ca_shock
+        (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+         BL_TO_FORTRAN_ANYD(q[mfi]),
+         BL_TO_FORTRAN_ANYD(shk[mfi]),
+         AMREX_REAL_ANYD(dx));
 
   } // MFIter loop
 
@@ -551,11 +558,18 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                BL_TO_FORTRAN_ANYD(Sborder[mfi]),
                BL_TO_FORTRAN_ANYD(div[mfi]),
                BL_TO_FORTRAN_ANYD(qaux[mfi]),
+               BL_TO_FORTRAN_ANYD(shk[mfi]),
                BL_TO_FORTRAN_ANYD(qm[mfi]),
                BL_TO_FORTRAN_ANYD(qp[mfi]),
-               BL_TO_FORTRAN_ANYD(qe[idir][mfi]),
+               BL_TO_FORTRAN_ANYD(qi[idir][mfi]),
                BL_TO_FORTRAN_ANYD(flux[idir][mfi]),
                BL_TO_FORTRAN_ANYD(area[idir][mfi]));
+
+#pragma gpu
+          ca_store_godunov_state
+            (AMREX_INT_ANYD(ebx.loVect()), AMREX_INT_ANYD(ebx.hiVect()),
+             BL_TO_FORTRAN_ANYD(qi[idir][mfi]),
+             BL_TO_FORTRAN_ANYD(qe[idir][mfi]));
 
           // Store the fluxes from this advance -- we weight them by the
           // integrator weight for this stage
@@ -595,7 +609,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
   } // MFIter loop
 
-#endif
+#endif // RADIATION
+
+#endif // CUDA check
 
   BL_PROFILE_VAR_STOP(CA_UMDRV);
 
@@ -642,6 +658,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 	});
 #endif
     }
+
 
 }
 

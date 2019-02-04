@@ -78,11 +78,10 @@ Fortran
   when they’re no longer needed.
 
   - Examples of this can be seen for the sponge parameters. These are
-   marked as ``allocatable`` and ``attributes(managed)`` in
-   ``sponge_nd.F90``, and therefore must be allocated (by
-   ``ca_allocate_sponge_params``) and deallocated (by
-   ``ca_deallocate_sponge_params``) at the beginning and end of the
-   main program.
+    marked as ``allocatable`` and ``attributes(managed)`` in
+    ``sponge_nd.F90``, and therefore must be allocated (by
+    ``ca_allocate_sponge_params``) and deallocated (by
+    ``ca_deallocate_sponge_params``) at the beginning and end of the
 
 - Temporary variables must be defined outside of function calls. E.g. if a
   function call contains ``foo(x(a:b)/y)``, you need to define a new variable
@@ -184,10 +183,17 @@ How to debug
 ------------
 
 - Run under ``cuda-memcheck``
+
 - Run under ``cuda-gdb``
+
 - Turn off GPU offloading for some part of the code with
 .. code-block:: c++
 
-    Device::endDeviceLaunchRegion();
+    Gpu::setLaunchRegion(0);
     ... ;
-    Device::beginDeviceLaunchRegion();
+    Gpu::setLaunchRegion(1);
+
+- Run with ``CUDA_LAUNCH_BLOCKING=1``.  This means that only one
+  kernel will run at a time.  This can help identify if there are race
+  conditions.
+

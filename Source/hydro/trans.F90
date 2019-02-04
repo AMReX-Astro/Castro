@@ -12,24 +12,28 @@ contains
   ! transx
   !===========================================================================
   subroutine transx(lo, hi, &
-                    qym, qymo, qyp, qypo, &
+                    qym, qym_lo, qym_hi, &
+                    qymo, qymo_lo, qymo_hi, &
+                    qyp, qyp_lo, qyp_hi, &
+                    qypo, qypo_lo, qypo_hi, &
 #if AMREX_SPACEDIM == 3
-                    qzm, qzmo, qzp, qzpo, &
+                    qzm, qzm_lo, qzm_hi, &
+                    qzmo, qzmo_lo, qzmo_hi, &
+                    qzp, qzp_lo, qzp_hi, &
+                    qzpo, qzpo_lo, qzpo_hi, &
 #endif
-                    q_lo, q_hi, &
                     qaux, qa_lo, qa_hi, &
-                    fx, &
+                    fx, fx_lo, fx_hi, &
 #ifdef RADIATION
-                    rfx, &
+                    rfx, rfx_lo, rfx_hi, &
 #endif
-                    fx_lo, fx_hi, &
                     qx, qx_lo, qx_hi, &
 #if AMREX_SPACEDIM == 2
                     area1, area1_lo, area1_hi, &
                     vol, vol_lo, vol_hi, &
 #endif
                     hdt, cdtdx, &
-                    vlo, vhi)
+                    vlo, vhi) bind(C, name="transx")
 
     ! here, lo and hi are the bounds we are looping over, which may include ghost cells
     ! vlo and vhi are the bounds of the valid box
@@ -63,9 +67,21 @@ contains
   use prob_params_module, only : mom_flux_has_p
 #endif
 
-    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qym_lo(3), qym_hi(3)
+    integer, intent(in) :: qyp_lo(3), qyp_hi(3)
+    integer, intent(in) :: qymo_lo(3), qymo_hi(3)
+    integer, intent(in) :: qypo_lo(3), qypo_hi(3)
+#if AMREX_SPACEDIM == 3
+    integer, intent(in) :: qzm_lo(3), qzm_hi(3)
+    integer, intent(in) :: qzp_lo(3), qzp_hi(3)
+    integer, intent(in) :: qzmo_lo(3), qzmo_hi(3)
+    integer, intent(in) :: qzpo_lo(3), qzpo_hi(3)
+#endif
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: fx_lo(3), fx_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: rfx_lo(3), rfx_hi(3)
+#endif
     integer, intent(in) :: qx_lo(3), qx_hi(3)
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: vlo(3), vhi(3)
@@ -75,26 +91,26 @@ contains
 #endif
 
 #ifdef RADIATION
-    real(rt) :: rfx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
+    real(rt) :: rfx(rfx_lo(1):rfx_hi(1),rfx_lo(2):rfx_hi(2),rfx_lo(3):rfx_hi(3),0:ngroups-1)
 #endif
 
-    real(rt), intent(in) :: hdt, cdtdx
+    real(rt), intent(in), value :: hdt, cdtdx
 
-    real(rt), intent(in) :: qym(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(in) :: qyp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) :: qym(qym_lo(1):qym_hi(1),qym_lo(2):qym_hi(2),qym_lo(3):qym_hi(3),NQ)
+    real(rt), intent(in) :: qyp(qyp_lo(1):qyp_hi(1),qyp_lo(2):qyp_hi(2),qyp_lo(3):qyp_hi(3),NQ)
 #if AMREX_SPACEDIM == 3
-    real(rt), intent(in) :: qzm(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(in) :: qzp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) :: qzm(qzm_lo(1):qzm_hi(1),qzm_lo(2):qzm_hi(2),qzm_lo(3):qzm_hi(3),NQ)
+    real(rt), intent(in) :: qzp(qzp_lo(1):qzp_hi(1),qzp_lo(2):qzp_hi(2),qzp_lo(3):qzp_hi(3),NQ)
 #endif
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(in) :: fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
     real(rt), intent(in) :: qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
 
-    real(rt), intent(out) :: qymo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(out) :: qypo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(out) :: qymo(qymo_lo(1):qymo_hi(1),qymo_lo(2):qymo_hi(2),qymo_lo(3):qymo_hi(3),NQ)
+    real(rt), intent(out) :: qypo(qypo_lo(1):qypo_hi(1),qypo_lo(2):qypo_hi(2),qypo_lo(3):qypo_hi(3),NQ)
 #if AMREX_SPACEDIM == 3
-    real(rt), intent(out) :: qzmo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(out) :: qzpo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(out) :: qzmo(qzmo_lo(1):qzmo_hi(1),qzmo_lo(2):qzmo_hi(2),qzmo_lo(3):qzmo_hi(3),NQ)
+    real(rt), intent(out) :: qzpo(qzpo_lo(1):qzpo_hi(1),qzpo_lo(2):qzpo_hi(2),qzpo_lo(3):qzpo_hi(3),NQ)
 #endif
 #if AMREX_SPACEDIM == 2
     real(rt), intent(in) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
@@ -398,7 +414,7 @@ contains
                    qypo(i,j,k,QGAME) = qyp(i,j,k,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qypo, q_lo, q_hi, i, j, k)
+                call reset_edge_state_thermo(qypo, qypo_lo, qypo_hi, i, j, k)
 
 #ifdef RADIATION
                 qypo(i,j,k,qrad:qradhi) = ernewr(:)
@@ -532,7 +548,7 @@ contains
                    qymo(i,j+1,k,QGAME) = qym(i,j+1,k,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qymo, q_lo, q_hi, i, j+1, k)
+                call reset_edge_state_thermo(qymo, qymo_lo, qymo_hi, i, j+1, k)
 
 #ifdef RADIATION
                 qymo(i,j+1,k,qrad:qradhi) = ernewl(:)
@@ -733,7 +749,7 @@ contains
                    qzpo(i,j,k,QGAME) = qzp(i,j,k,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qzpo, q_lo, q_hi, i, j, k)
+                call reset_edge_state_thermo(qzpo, qzpo_lo, qzpo_hi, i, j, k)
 
 #ifdef RADIATION
                 qzpo(i,j,k,qrad:qradhi) = ernewr(:)
@@ -828,7 +844,7 @@ contains
                    qzmo(i,j,k+1,QGAME) = qzm(i,j,k+1,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qzmo, q_lo, q_hi, i, j, k+1)
+                call reset_edge_state_thermo(qzmo, qzmo_lo, qzmo_hi, i, j, k+1)
 
 #ifdef RADIATION
                 qzmo(i,j,k+1,qrad:qradhi) = ernewl(:)
@@ -849,20 +865,24 @@ contains
   ! transy
   !===========================================================================
   subroutine transy(lo, hi, &
-                    qxm, qxmo, qxp, qxpo, &
+                    qxm, qxm_lo, qxm_hi, &
+                    qxmo, qxmo_lo, qxmo_hi, &
+                    qxp, qxp_lo, qxp_hi, &
+                    qxpo, qxpo_lo, qxpo_hi, &
 #if AMREX_SPACEDIM == 3
-                    qzm, qzmo, qzp, qzpo, &
+                    qzm, qzm_lo, qzm_hi, &
+                    qzmo, qzmo_lo, qzmo_hi, &
+                    qzp, qzp_lo, qzp_hi, &
+                    qzpo, qzpo_lo, qzpo_hi, &
 #endif
-                    q_lo, q_hi, &
                     qaux, qa_lo, qa_hi, &
-                    fy, &
+                    fy, fy_lo, fy_hi, &
 #ifdef RADIATION
-                    rfy, &
+                    rfy, rfy_lo, rfy_hi, &
 #endif
-                    fy_lo, fy_hi, &
                     qy, qy_lo, qy_hi, &
                     cdtdy, &
-                    vlo, vhi)
+                    vlo, vhi) bind(C, name="transy")
 
     ! here, lo and hi are the bounds we are looping over, which may include ghost cells
     ! vlo and vhi are the bounds of the valid box
@@ -894,34 +914,46 @@ contains
   use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
 
 
-    integer, intent(in) :: q_lo(3),q_hi(3)
-    integer, intent(in) :: qa_lo(3),qa_hi(3)
-    integer, intent(in) :: fy_lo(3),fy_hi(3)
+    integer, intent(in) :: qxm_lo(3), qxm_hi(3)
+    integer, intent(in) :: qxp_lo(3), qxp_hi(3)
+    integer, intent(in) :: qxmo_lo(3), qxmo_hi(3)
+    integer, intent(in) :: qxpo_lo(3), qxpo_hi(3)
+#if AMREX_SPACEDIM == 3
+    integer, intent(in) :: qzm_lo(3), qzm_hi(3)
+    integer, intent(in) :: qzp_lo(3), qzp_hi(3)
+    integer, intent(in) :: qzmo_lo(3), qzmo_hi(3)
+    integer, intent(in) :: qzpo_lo(3), qzpo_hi(3)
+#endif
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
+    integer, intent(in) :: fy_lo(3), fy_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: rfy_lo(3), rfy_hi(3)
+#endif
     integer, intent(in) :: qy_lo(3),qy_hi(3)
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: vlo(3), vhi(3)
 
 #ifdef RADIATION
-    real(rt), intent(in) :: rfy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
+    real(rt), intent(in) :: rfy(rfy_lo(1):rfy_hi(1),rfy_lo(2):rfy_hi(2),rfy_lo(3):rfy_hi(3),0:ngroups-1)
 #endif
 
-    real(rt), intent(in) :: cdtdy
+    real(rt), intent(in), value :: cdtdy
 
-    real(rt), intent(in) :: qxm(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(in) :: qxp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) :: qxm(qxm_lo(1):qxm_hi(1),qxm_lo(2):qxm_hi(2),qxm_lo(3):qxm_hi(3),NQ)
+    real(rt), intent(in) :: qxp(qxp_lo(1):qxp_hi(1),qxp_lo(2):qxp_hi(2),qxp_lo(3):qxp_hi(3),NQ)
 #if AMREX_SPACEDIM == 3
-    real(rt), intent(in) :: qzm(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(in) :: qzp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) :: qzm(qzm_lo(1):qzm_hi(1),qzm_lo(2):qzm_hi(2),qzm_lo(3):qzm_hi(3),NQ)
+    real(rt), intent(in) :: qzp(qzp_lo(1):qzp_hi(1),qzp_lo(2):qzp_hi(2),qzp_lo(3):qzp_hi(3),NQ)
 #endif
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(in) :: fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
     real(rt), intent(in) :: qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
 
-    real(rt), intent(out) :: qxmo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(out) :: qxpo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(out) :: qxmo(qxmo_lo(1):qxmo_hi(1),qxmo_lo(2):qxmo_hi(2),qxmo_lo(3):qxmo_hi(3),NQ)
+    real(rt), intent(out) :: qxpo(qxpo_lo(1):qxpo_hi(1),qxpo_lo(2):qxpo_hi(2),qxpo_lo(3):qxpo_hi(3),NQ)
 #if AMREX_SPACEDIM == 3
-    real(rt), intent(out) :: qzmo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(out) :: qzpo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(out) :: qzmo(qzmo_lo(1):qzmo_hi(1),qzmo_lo(2):qzmo_hi(2),qzmo_lo(3):qzmo_hi(3),NQ)
+    real(rt), intent(out) :: qzpo(qzpo_lo(1):qzpo_hi(1),qzpo_lo(2):qzpo_hi(2),qzpo_lo(3):qzpo_hi(3),NQ)
 #endif
 
     integer i, j, k, n, nqp, ipassive
@@ -1139,7 +1171,7 @@ contains
                    qxpo(i,j,k,QGAME) = qxp(i,j,k,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qxpo, q_lo, q_hi, i, j, k)
+                call reset_edge_state_thermo(qxpo, qxpo_lo, qxpo_hi, i, j, k)
 
 #ifdef RADIATION
                 qxpo(i,j,k,qrad:qradhi) = ernewr(:)
@@ -1233,7 +1265,7 @@ contains
                    qxmo(i+1,j,k,QGAME) = qxm(i+1,j,k,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qxmo, q_lo, q_hi, i+1, j, k)
+                call reset_edge_state_thermo(qxmo, qxmo_lo, qxmo_hi, i+1, j, k)
 
 #ifdef RADIATION
                 qxmo(i+1,j,k,qrad:qradhi) = ernewl(:)
@@ -1433,7 +1465,7 @@ contains
                    qzpo(i,j,k,QGAME) = qzp(i,j,k,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qzpo, q_lo, q_hi, i, j, k)
+                call reset_edge_state_thermo(qzpo, qzpo_lo, qzpo_hi, i, j, k)
 
 #ifdef RADIATION
                 qzpo(i,j,k,qrad:qradhi) = ernewr(:)
@@ -1528,7 +1560,7 @@ contains
                    qzmo(i,j,k+1,QGAME) = qzm(i,j,k+1,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qzmo, q_lo, q_hi, i, j, k+1)
+                call reset_edge_state_thermo(qzmo, qzmo_lo, qzmo_hi, i, j, k+1)
 
 #ifdef RADIATION
                 qzmo(i,j,k+1,qrad:qradhi) = ernewl(:)
@@ -1550,17 +1582,22 @@ contains
   ! transz
   !===========================================================================
   subroutine transz(lo, hi, &
-                    qxm, qxmo, qxp, qxpo, &
-                    qym, qymo, qyp, qypo, q_lo, q_hi, &
+                    qxm, qxm_lo, qxm_hi, &
+                    qxmo, qxmo_lo, qxmo_hi, &
+                    qxp, qxp_lo, qxp_hi, &
+                    qxpo, qxpo_lo, qxpo_hi, &
+                    qym, qym_lo, qym_hi, &
+                    qymo, qymo_lo, qymo_hi, &
+                    qyp, qyp_lo, qyp_hi, &
+                    qypo, qypo_lo, qypo_hi, &
                     qaux, qa_lo, qa_hi, &
-                    fz, &
+                    fz, fz_lo, fz_hi, &
 #ifdef RADIATION
-                    rfz, &
+                    rfz, rfz_lo, rfz_hi, &
 #endif
-                    fz_lo, fz_hi, &
                     qz, qz_lo, qz_hi, &
                     cdtdz, &
-                    vlo, vhi)
+                    vlo, vhi) bind(C, name="transz")
 
     ! here, lo and hi are the bounds we are looping over, which may include ghost cells
     ! vlo and vhi are the bounds of the valid box
@@ -1592,31 +1629,41 @@ contains
     use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
 
 
-    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qxm_lo(3), qxm_hi(3)
+    integer, intent(in) :: qxmo_lo(3), qxmo_hi(3)
+    integer, intent(in) :: qxp_lo(3), qxp_hi(3)
+    integer, intent(in) :: qxpo_lo(3), qxpo_hi(3)
+    integer, intent(in) :: qym_lo(3), qym_hi(3)
+    integer, intent(in) :: qymo_lo(3), qymo_hi(3)
+    integer, intent(in) :: qyp_lo(3), qyp_hi(3)
+    integer, intent(in) :: qypo_lo(3), qypo_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: fz_lo(3), fz_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: rfz_lo(3), rfz_hi(3)
+#endif
     integer, intent(in) :: qz_lo(3), qz_hi(3)
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: vlo(3), vhi(3)
 
 #ifdef RADIATION
-    real(rt), intent(in) :: rfz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
+    real(rt), intent(in) :: rfz(rfz_lo(1):rfz_hi(1),rfz_lo(2):rfz_hi(2),rfz_lo(3):rfz_hi(3),0:ngroups-1)
 #endif
 
-    real(rt), intent(in) :: cdtdz
+    real(rt), intent(in), value :: cdtdz
 
-    real(rt), intent(in) :: qxm(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(in) :: qxp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(in) :: qym(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(in) :: qyp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) :: qxm(qxm_lo(1):qxm_hi(1),qxm_lo(2):qxm_hi(2),qxm_lo(3):qxm_hi(3),NQ)
+    real(rt), intent(in) :: qxp(qxp_lo(1):qxp_hi(1),qxp_lo(2):qxp_hi(2),qxp_lo(3):qxp_hi(3),NQ)
+    real(rt), intent(in) :: qym(qym_lo(1):qym_hi(1),qym_lo(2):qym_hi(2),qym_lo(3):qym_hi(3),NQ)
+    real(rt), intent(in) :: qyp(qyp_lo(1):qyp_hi(1),qyp_lo(2):qyp_hi(2),qyp_lo(3):qyp_hi(3),NQ)
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(in) :: fz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
     real(rt), intent(in) :: qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
 
-    real(rt), intent(out) :: qxmo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(out) :: qxpo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(out) :: qymo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(out) :: qypo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(out) :: qxmo(qxmo_lo(1):qxmo_hi(1),qxmo_lo(2):qxmo_hi(2),qxmo_lo(3):qxmo_hi(3),NQ)
+    real(rt), intent(out) :: qxpo(qxpo_lo(1):qxpo_hi(1),qxpo_lo(2):qxpo_hi(2),qxpo_lo(3):qxpo_hi(3),NQ)
+    real(rt), intent(out) :: qymo(qymo_lo(1):qymo_hi(1),qymo_lo(2):qymo_hi(2),qymo_lo(3):qymo_hi(3),NQ)
+    real(rt), intent(out) :: qypo(qypo_lo(1):qypo_hi(1),qypo_lo(2):qypo_hi(2),qypo_lo(3):qypo_hi(3),NQ)
 
     integer i, j, k, n, nqp, ipassive
 
@@ -1830,7 +1877,7 @@ contains
                    qxpo(i,j,k,QGAME) = qxp(i,j,k,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qxpo, q_lo, q_hi, i, j, k)
+                call reset_edge_state_thermo(qxpo, qxpo_lo, qxpo_hi, i, j, k)
 
 #ifdef RADIATION
                 qxpo(i,j,k,qrad:qradhi) = ernewrx(:)
@@ -1922,7 +1969,7 @@ contains
                    qxmo(i+1,j,k,QGAME) = qxm(i+1,j,k,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qxmo, q_lo, q_hi, i+1, j, k)
+                call reset_edge_state_thermo(qxmo, qxmo_lo, qxmo_hi, i+1, j, k)
 
 #ifdef RADIATION
                 qxmo(i+1,j,k,qrad:qradhi) = ernewlx(:)
@@ -2116,7 +2163,7 @@ contains
                    qypo(i,j,k,QGAME) = qyp(i,j,k,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qypo, q_lo, q_hi, i, j, k)
+                call reset_edge_state_thermo(qypo, qypo_lo, qypo_hi, i, j, k)
 
 #ifdef RADIATION
                 qypo(i,j,k,qrad:qradhi) = ernewry(:)
@@ -2211,7 +2258,7 @@ contains
                    qymo(i,j+1,k,QGAME) = qym(i,j+1,k,QGAME)
                 endif
 
-                call reset_edge_state_thermo(qymo, q_lo, q_hi, i, j+1, k)
+                call reset_edge_state_thermo(qymo, qymo_lo, qymo_hi, i, j+1, k)
 
 #ifdef RADIATION
                 qymo(i,j+1,k,qrad:qradhi) = ernewly(:)
@@ -2230,22 +2277,23 @@ contains
   ! transyz
   !===========================================================================
   subroutine transyz(lo, hi, &
-                     qm, qmo, qp, qpo, q_lo, q_hi, &
+                     qm, qm_lo, qm_hi, &
+                     qmo, qmo_lo, qmo_hi, &
+                     qp, qp_lo, qp_hi, &
+                     qpo, qpo_lo, qpo_hi, &
                      qaux, qa_lo, qa_hi, &
-                     fyz, &
+                     fyz, fyz_lo, fyz_hi, &
 #ifdef RADIATION
-                     rfyz, &
+                     rfyz, rfyz_lo, rfyz_hi, &
 #endif
-                     fy_lo, fy_hi, &
-                     fzy, &
+                     fzy, fzy_lo, fzy_hi, &
 #ifdef RADIATION
-                     rfzy, &
+                     rfzy, rfzy_lo, rfzy_hi, &
 #endif
-                     fz_lo, fz_hi, &
                      qy, qy_lo, qy_hi, &
                      qz, qz_lo, qz_hi, &
                      hdt, cdtdy, cdtdz, &
-                     vlo, vhi)
+                     vlo, vhi) bind(C, name="transyz")
 
     ! here, lo and hi are the bounds we are looping over, which may include ghost cells
     ! vlo and vhi are the bounds of the valid box
@@ -2277,31 +2325,36 @@ contains
     use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
 
 
-    integer, intent(in) :: q_lo(3),q_hi(3)
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qmo_lo(3), qmo_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
+    integer, intent(in) :: qpo_lo(3), qpo_hi(3)
     integer, intent(in) :: qa_lo(3),qa_hi(3)
-    integer, intent(in) :: fy_lo(3),fy_hi(3)
-    integer, intent(in) :: fz_lo(3),fz_hi(3)
-    integer, intent(in) :: qy_lo(3),qy_hi(3)
-    integer, intent(in) :: qz_lo(3),qz_hi(3)
+    integer, intent(in) :: fyz_lo(3), fyz_hi(3)
+    integer, intent(in) :: fzy_lo(3), fzy_hi(3)
+    integer, intent(in) :: qy_lo(3), qy_hi(3)
+    integer, intent(in) :: qz_lo(3), qz_hi(3)
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: vlo(3), vhi(3)
 
-    real(rt), intent(in) :: hdt, cdtdy, cdtdz
+    real(rt), intent(in), value :: hdt, cdtdy, cdtdz
 
 #ifdef RADIATION
-    real(rt), intent(in) :: rfyz(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
-    real(rt), intent(in) :: rfzy(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
+    integer, intent(in) :: rfyz_lo(3), rfyz_hi(3)
+    integer, intent(in) :: rfzy_lo(3), rfzy_hi(3)
+    real(rt), intent(in) :: rfyz(fyz_lo(1):fyz_hi(1),fyz_lo(2):fyz_hi(2),fyz_lo(3):fyz_hi(3),0:ngroups-1)
+    real(rt), intent(in) :: rfzy(fzy_lo(1):fzy_hi(1),fzy_lo(2):fzy_hi(2),fzy_lo(3):fzy_hi(3),0:ngroups-1)
 #endif
 
-    real(rt), intent(in) :: qm(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(in) :: qp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(out) :: qmo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(out) :: qpo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
+    real(rt), intent(in) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
+    real(rt), intent(out) :: qmo(qmo_lo(1):qmo_hi(1),qmo_lo(2):qmo_hi(2),qmo_lo(3):qmo_hi(3),NQ)
+    real(rt), intent(out) :: qpo(qpo_lo(1):qpo_hi(1),qpo_lo(2):qpo_hi(2),qpo_lo(3):qpo_hi(3),NQ)
 
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) :: fyz(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
-    real(rt), intent(in) :: fzy(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
+    real(rt), intent(in) :: fyz(fyz_lo(1):fyz_hi(1),fyz_lo(2):fyz_hi(2),fyz_lo(3):fyz_hi(3),NVAR)
+    real(rt), intent(in) :: fzy(fzy_lo(1):fzy_hi(1),fzy_lo(2):fzy_hi(2),fzy_lo(3):fzy_hi(3),NVAR)
     real(rt), intent(in) :: qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
     real(rt), intent(in) :: qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
 
@@ -2318,8 +2371,8 @@ contains
     real(rt)         compr, compl, compnr, compnl
 
 #ifdef RADIATION
-    real(rt)         :: dmy, dmz, dre
-    real(rt)        , dimension(0:ngroups-1) :: der, lambda, lugey, lugez, lgey, lgez, &
+    real(rt) :: dmy, dmz, dre
+    real(rt), dimension(0:ngroups-1) :: der, lambda, lugey, lugez, lgey, lgez, &
          err, ernewr, erl, ernewl, ergzp, ergyp, ergzm, ergym
     real(rt)         eddf, f1
     integer :: g
@@ -2547,7 +2600,7 @@ contains
 
                 qpo(i,j,k,QPRES) = max(qpo(i,j,k,QPRES), small_pres)
 
-                call reset_edge_state_thermo(qpo, q_lo, q_hi, i, j, k)
+                call reset_edge_state_thermo(qpo, qpo_lo, qpo_hi, i, j, k)
 
 #ifdef RADIATION
                 qpo(i,j,k,qrad:qradhi) = ernewr(:)
@@ -2647,7 +2700,7 @@ contains
 
                 qmo(i+1,j,k,QPRES) = max(qmo(i+1,j,k,QPRES), small_pres)
 
-                call reset_edge_state_thermo(qmo, q_lo, q_hi, i+1, j, k)
+                call reset_edge_state_thermo(qmo, qmo_lo, qmo_hi, i+1, j, k)
 
 #ifdef RADIATION
                 qmo(i+1,j,k,qrad:qradhi) = ernewl(:)
@@ -2667,22 +2720,23 @@ contains
   ! transxz
   !===========================================================================
   subroutine transxz(lo, hi, &
-                     qm, qmo, qp, qpo, q_lo, q_hi, &
+                     qm, qm_lo, qm_hi, &
+                     qmo, qmo_lo, qmo_hi, &
+                     qp, qp_lo, qp_hi, &
+                     qpo, qpo_lo, qpo_hi, &
                      qaux, qa_lo, qa_hi, &
-                     fxz, &
+                     fxz, fxz_lo, fxz_hi, &
 #ifdef RADIATION
-                     rfxz, &
+                     rfxz, rfxz_lo, rfxz_hi, &
 #endif
-                     fx_lo, fx_hi, &
-                     fzx, &
+                     fzx, fzx_lo, fzx_hi, &
 #ifdef RADIATION
-                     rfzx, &
+                     rfzx, rfzx_lo, rfzx_hi, &
 #endif
-                     fz_lo, fz_hi, &
                      qx, qx_lo, qx_hi, &
                      qz, qz_lo, qz_hi, &
                      hdt, cdtdx, cdtdz, &
-                     vlo, vhi)
+                     vlo, vhi) bind(C, name="transxz")
 
     ! here, lo and hi are the bounds we are looping over, which may include ghost cells
     ! vlo and vhi are the bounds of the valid box
@@ -2714,31 +2768,36 @@ contains
     use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
 
 
-    integer, intent(in) :: q_lo(3),q_hi(3)
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qmo_lo(3), qmo_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
+    integer, intent(in) :: qpo_lo(3), qpo_hi(3)
     integer, intent(in) :: qa_lo(3),qa_hi(3)
-    integer, intent(in) :: fx_lo(3),fx_hi(3)
-    integer, intent(in) :: fz_lo(3),fz_hi(3)
+    integer, intent(in) :: fxz_lo(3), fxz_hi(3)
+    integer, intent(in) :: fzx_lo(3), fzx_hi(3)
     integer, intent(in) :: qx_lo(3),qx_hi(3)
     integer, intent(in) :: qz_lo(3),qz_hi(3)
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: vlo(3), vhi(3)
 
-    real(rt), intent(in) :: hdt, cdtdx, cdtdz
+    real(rt), intent(in), value :: hdt, cdtdx, cdtdz
 
 #ifdef RADIATION
-    real(rt), intent(in) :: rfxz(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
-    real(rt), intent(in) :: rfzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
+    integer, intent(in) :: rfxz_lo(3), rfxz_hi(3)
+    integer, intent(in) :: rfzx_lo(3), rfzx_hi(3)
+    real(rt), intent(in) :: rfxz(rfxz_lo(1):rfxz_hi(1),rfxz_lo(2):rfxz_hi(2),rfxz_lo(3):rfxz_hi(3),0:ngroups-1)
+    real(rt), intent(in) :: rfzx(rfzx_lo(1):rfzx_hi(1),rfzx_lo(2):rfzx_hi(2),rfzx_lo(3):rfzx_hi(3),0:ngroups-1)
 #endif
 
-    real(rt), intent(in) :: qm(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(in) :: qp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(out) :: qmo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(out) :: qpo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
+    real(rt), intent(in) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
+    real(rt), intent(out) :: qmo(qmo_lo(1):qmo_hi(1),qmo_lo(2):qmo_hi(2),qmo_lo(3):qmo_hi(3),NQ)
+    real(rt), intent(out) :: qpo(qpo_lo(1):qpo_hi(1),qpo_lo(2):qpo_hi(2),qpo_lo(3):qpo_hi(3),NQ)
 
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) :: fxz(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
-    real(rt), intent(in) :: fzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
+    real(rt), intent(in) :: fxz(fxz_lo(1):fxz_hi(1),fxz_lo(2):fxz_hi(2),fxz_lo(3):fxz_hi(3),NVAR)
+    real(rt), intent(in) :: fzx(fzx_lo(1):fzx_hi(1),fzx_lo(2):fzx_hi(2),fzx_lo(3):fzx_hi(3),NVAR)
     real(rt), intent(in) :: qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
     real(rt), intent(in) :: qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
 
@@ -2755,10 +2814,10 @@ contains
     real(rt)         compr, compl, compnr, compnl
 
 #ifdef RADIATION
-    real(rt)         :: dmx, dmz, dre
-    real(rt)        , dimension(0:ngroups-1) :: der, lambda, lugex, lugez, lgex, lgez, &
+    real(rt) :: dmx, dmz, dre
+    real(rt), dimension(0:ngroups-1) :: der, lambda, lugex, lugez, lgex, lgez, &
          err, ernewr, erl, ernewl, ergzp, ergxp, ergzm,  ergxm
-    real(rt)         eddf, f1
+    real(rt) :: eddf, f1
     integer :: g
 #endif
 
@@ -2983,7 +3042,7 @@ contains
 
                 qpo(i,j,k,QPRES) = max(qpo(i,j,k,QPRES), small_pres)
 
-                call reset_edge_state_thermo(qpo, q_lo, q_hi, i, j, k)
+                call reset_edge_state_thermo(qpo, qpo_lo, qpo_hi, i, j, k)
 
 #ifdef RADIATION
                 qpo(i,j,k,qrad:qradhi) = ernewr(:)
@@ -3083,7 +3142,7 @@ contains
 
                 qmo(i,j+1,k,QPRES) = max(qmo(i,j+1,k,QPRES), small_pres)
 
-                call reset_edge_state_thermo(qmo, q_lo, q_hi, i, j+1, k)
+                call reset_edge_state_thermo(qmo, qmo_lo, qmo_hi, i, j+1, k)
 
 #ifdef RADIATION
                 qmo(i,j+1,k,qrad:qradhi) = ernewl(:)
@@ -3103,22 +3162,23 @@ contains
   ! transxy
   !===========================================================================
   subroutine transxy(lo, hi, &
-                     qm, qmo, qp, qpo, q_lo, q_hi, &
+                     qm, qm_lo, qm_hi, &
+                     qmo, qmo_lo, qmo_hi, &
+                     qp, qp_lo, qp_hi, &
+                     qpo, qpo_lo, qpo_hi, &
                      qaux, qa_lo, qa_hi, &
-                     fxy, &
+                     fxy, fxy_lo, fxy_hi, &
 #ifdef RADIATION
-                     rfxy, &
+                     rfxy, rfxy_lo, rfxy_hi, &
 #endif
-                     fx_lo, fx_hi, &
-                     fyx, &
+                     fyx, fyx_lo, fyx_hi, &
 #ifdef RADIATION
-                     rfyx, &
+                     rfyx, rfyx_lo, rfyx_hi, &
 #endif
-                     fy_lo, fy_hi, &
                      qx, qx_lo, qx_hi, &
                      qy, qy_lo, qy_hi, &
                      hdt, cdtdx, cdtdy, &
-                     vlo, vhi)
+                     vlo, vhi) bind(C, name="transxy")
 
     ! here, lo and hi are the bounds we are looping over, which may include ghost cells
     ! vlo and vhi are the bounds of the valid box
@@ -3150,31 +3210,36 @@ contains
     use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
 
 
-    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qmo_lo(3), qmo_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
+    integer, intent(in) :: qpo_lo(3), qpo_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: fx_lo(3), fx_hi(3)
-    integer, intent(in) :: fy_lo(3), fy_hi(3)
+    integer, intent(in) :: fxy_lo(3), fxy_hi(3)
+    integer, intent(in) :: fyx_lo(3), fyx_hi(3)
     integer, intent(in) :: qx_lo(3), qx_hi(3)
     integer, intent(in) :: qy_lo(3), qy_hi(3)
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: vlo(3), vhi(3)
 
-    real(rt), intent(in) :: hdt, cdtdx, cdtdy
+    real(rt), intent(in), value :: hdt, cdtdx, cdtdy
 
 #ifdef RADIATION
-    real(rt), intent(in) :: rfxy(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
-    real(rt), intent(in) :: rfyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
+    integer, intent(in) :: rfxy_lo(3), rfxy_hi(3)
+    integer, intent(in) :: rfyx_lo(3), rfyx_hi(3)
+    real(rt), intent(in) :: rfxy(rfxy_lo(1):rfxy_hi(1),rfxy_lo(2):rfxy_hi(2),rfxy_lo(3):rfxy_hi(3),0:ngroups-1)
+    real(rt), intent(in) :: rfyx(rfyx_lo(1):rfyx_hi(1),rfyx_lo(2):rfyx_hi(2),rfyx_lo(3):rfyx_hi(3),0:ngroups-1)
 #endif
 
-    real(rt), intent(in) ::   qm(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(in) ::   qp(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(out) :: qmo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(out) :: qpo(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) ::   qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
+    real(rt), intent(in) ::   qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
+    real(rt), intent(out) :: qmo(qmo_lo(1):qmo_hi(1),qmo_lo(2):qmo_hi(2),qmo_lo(3):qmo_hi(3),NQ)
+    real(rt), intent(out) :: qpo(qpo_lo(1):qpo_hi(1),qpo_lo(2):qpo_hi(2),qpo_lo(3):qpo_hi(3),NQ)
 
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) :: fxy(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
-    real(rt), intent(in) :: fyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
+    real(rt), intent(in) :: fxy(fxy_lo(1):fxy_hi(1),fxy_lo(2):fxy_hi(2),fxy_lo(3):fxy_hi(3),NVAR)
+    real(rt), intent(in) :: fyx(fyx_lo(1):fyx_hi(1),fyx_lo(2):fyx_hi(2),fyx_lo(3):fyx_hi(3),NVAR)
     real(rt), intent(in) :: qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
     real(rt), intent(in) :: qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
 
@@ -3191,8 +3256,8 @@ contains
     real(rt)         compr, compl, compnr, compnl
 
 #ifdef RADIATION
-    real(rt)         :: dmx, dmy, dre
-    real(rt)        , dimension(0:ngroups-1) :: der, lambda, lugex, lugey, lgex, lgey, &
+    real(rt) :: dmx, dmy, dre
+    real(rt), dimension(0:ngroups-1) :: der, lambda, lugex, lugey, lgex, lgey, &
          err, ernewr, erl, ernewl, ergxp, ergyp, ergxm, ergym
     real(rt)         eddf, f1
     integer :: g
@@ -3422,7 +3487,7 @@ contains
 
                 qpo(i,j,k,QPRES) = max(qpo(i,j,k,QPRES), small_pres)
 
-                call reset_edge_state_thermo(qpo, q_lo, q_hi, i, j, k)
+                call reset_edge_state_thermo(qpo, qpo_lo, qpo_hi, i, j, k)
 
 #ifdef RADIATION
                 qpo(i,j,k,qrad:qradhi) = ernewr(:)
@@ -3523,7 +3588,7 @@ contains
 
                 qmo(i,j,k+1,QPRES) = max(qmo(i,j,k+1,QPRES), small_pres)
 
-                call reset_edge_state_thermo(qmo, q_lo, q_hi, i, j, k+1)
+                call reset_edge_state_thermo(qmo, qmo_lo, qmo_hi, i, j, k+1)
 
 #ifdef RADIATION
                 qmo(i,j,k+1,qrad:qradhi) = ernewl(:)

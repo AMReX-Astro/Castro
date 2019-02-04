@@ -452,12 +452,14 @@ contains
   !! @param[in] dx real(rt)
   !!
   subroutine ppm_int_profile(lo, hi, &
-       s, s_lo, s_hi, ncomp, n, &
-       q, qd_lo, qd_hi, &
-       qaux, qa_lo, qa_hi, &
-       sm_in, sp_in, sd_lo, sd_hi, &
-       Ip, Im, I_lo, I_hi, icomp, ic, &
-       dx, dt)
+                             s, s_lo, s_hi, ncomp, n, &
+                             q, qd_lo, qd_hi, &
+                             qaux, qa_lo, qa_hi, &
+                             sm_in, sm_lo, sm_hi, &
+                             sp_in, sp_lo, sp_hi, &
+                             Ip, Ip_lo, Ip_hi, &
+                             Im, Im_lo, Im_hi, icomp, ic, &
+                             dx, dt)
 
     use meth_params_module, only : NQAUX, QC, NQ, QU, QV, QW
 
@@ -468,17 +470,19 @@ contains
     integer, intent(in) :: icomp, ic
     integer, intent(in) :: qd_lo(3), qd_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: sd_lo(3), sd_hi(3)
-    integer, intent(in) ::  I_lo(3),  I_hi(3)
+    integer, intent(in) :: sm_lo(3), sm_hi(3)
+    integer, intent(in) :: sp_lo(3), sp_hi(3)
+    integer, intent(in) :: Ip_lo(3), Ip_hi(3)
+    integer, intent(in) :: Im_lo(3), Im_hi(3)
     integer, intent(in) :: lo(3), hi(3)
 
     real(rt), intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3), ncomp)
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3), NQ)
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3), NQAUX)
-    real(rt), intent(in) :: sm_in( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), AMREX_SPACEDIM)
-    real(rt), intent(in) :: sp_in( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), AMREX_SPACEDIM)
-    real(rt), intent(inout) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3, icomp)
-    real(rt), intent(inout) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3, icomp)
+    real(rt), intent(in) :: sm_in( sm_lo(1): sm_hi(1), sm_lo(2): sm_hi(2), sm_lo(3): sm_hi(3), AMREX_SPACEDIM)
+    real(rt), intent(in) :: sp_in( sp_lo(1): sp_hi(1), sp_lo(2): sp_hi(2), sp_lo(3): sp_hi(3), AMREX_SPACEDIM)
+    real(rt), intent(inout) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:AMREX_SPACEDIM,1:3, icomp)
+    real(rt), intent(inout) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:AMREX_SPACEDIM,1:3, icomp)
 
     real(rt), intent(in) :: dx(3), dt
     real(rt) :: speed
@@ -708,20 +712,26 @@ contains
   !! @param[inout] Im_gc real(rt)
   !!
   subroutine ppm_reconstruct_with_eos(lo, hi, &
-       Ip, Im, Ip_gc, Im_gc, I_lo, I_hi)
+                                      Ip, Ip_lo, Ip_hi, &
+                                      Im, Im_lo, Im_hi, &
+                                      Ip_gc, Ipg_lo, Ipg_hi, &
+                                      Im_gc, Img_lo, Img_hi)
 
-    use meth_params_module, only : NQ, QRHO, QTEMP, QPRES, QREINT, QFS, QFX
+    use meth_params_module, only : NQ, QRHO, QTEMP, QPRES, QREINT, QFS, QFX, small_temp
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
     use network, only : nspec, naux
 
     integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: I_lo(3), I_hi(3)
+    integer, intent(in) :: Ip_lo(3), Ip_hi(3)
+    integer, intent(in) :: Im_lo(3), Im_hi(3)
+    integer, intent(in) :: Ipg_lo(3), Ipg_hi(3)
+    integer, intent(in) :: Img_lo(3), Img_hi(3)
 
-    real(rt), intent(inout) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3, NQ)
-    real(rt), intent(inout) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3, NQ)
-    real(rt), intent(inout) :: Ip_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3, 1)
-    real(rt), intent(inout) :: Im_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3, 1)
+    real(rt), intent(inout) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:AMREX_SPACEDIM,1:3, NQ)
+    real(rt), intent(inout) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:AMREX_SPACEDIM,1:3, NQ)
+    real(rt), intent(inout) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:AMREX_SPACEDIM,1:3, 1)
+    real(rt), intent(inout) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:AMREX_SPACEDIM,1:3, 1)
 
     integer :: iwave, idim, i, j, k
 
@@ -735,7 +745,7 @@ contains
                 do i = lo(1), hi(1)
 
                    eos_state % rho = Ip(i,j,k,idim,iwave,QRHO)
-                   eos_state % T   = Ip(i,j,k,idim,iwave,QTEMP)
+                   eos_state % T   = max(Ip(i,j,k,idim,iwave,QTEMP), small_temp)
 
                    eos_state % xn  = Ip(i,j,k,idim,iwave,QFS:QFS+nspec-1)
                    eos_state % aux = Ip(i,j,k,idim,iwave,QFX:QFX+naux-1)
@@ -748,7 +758,7 @@ contains
 
 
                    eos_state % rho = Im(i,j,k,idim,iwave,QRHO)
-                   eos_state % T   = Im(i,j,k,idim,iwave,QTEMP)
+                   eos_state % T   = max(Im(i,j,k,idim,iwave,QTEMP), small_temp)
 
                    eos_state % xn  = Im(i,j,k,idim,iwave,QFS:QFS+nspec-1)
                    eos_state % aux = Im(i,j,k,idim,iwave,QFX:QFX+naux-1)
