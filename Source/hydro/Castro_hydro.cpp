@@ -128,7 +128,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
   {
 
-    for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       // the valid region box
       const Box& bx = mfi.tilebox();
@@ -354,6 +354,10 @@ Castro::construct_hydro_source(Real time, Real dt)
   qpzy.define(grids, dmap, NQ, 2);
 #endif
 
+  MultiFab pdivu;
+  pdivu.define(grids, dmap, 1, 0);
+
+
 #ifdef _OPENMP
 #ifdef RADIATION
 #pragma omp parallel reduction(max:nstep_fsp)
@@ -367,7 +371,7 @@ Castro::construct_hydro_source(Real time, Real dt)
     int priv_nstep_fsp = -1;
 
 #if AMREX_SPACEDIM == 1
-    for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       const Box& nxbx = mfi.nodaltilebox(0);
 
@@ -396,7 +400,7 @@ Castro::construct_hydro_source(Real time, Real dt)
     const amrex::Real hdtdy = 0.5*dt/dx[1];
 
 
-    for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
       // compute F^x
       // [lo(1), lo(2)-1, 0], [hi(1)+1, hi(2)+1, 0]
       const Box& cxbx = mfi.grownnodaltilebox(0, IntVect(AMREX_D_DECL(0,1,0)));
@@ -419,7 +423,9 @@ Castro::construct_hydro_source(Real time, Real dt)
                           1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
     }
 
-    for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+#pragma omp barrier
+
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       // compute F^y
       // [lo(1)-1, lo(2), 0], [hi(1)+1, hi(2)+1, 0]
@@ -442,7 +448,9 @@ Castro::construct_hydro_source(Real time, Real dt)
                           2, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
     }
 
-    for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+#pragma omp barrier
+
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       // add the transverse flux difference in y to the x states
 
@@ -481,8 +489,9 @@ Castro::construct_hydro_source(Real time, Real dt)
                           1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
     }
 
+#pragma omp barrier
 
-    for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       // add the transverse flux difference in x to the y states
       // [lo(1), lo(2)-1, 0], [hi(1), hi(2)+1, 0]
@@ -1033,10 +1042,10 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 #endif // 3-d
 
-
+#pragma omp barrier
 
     // clean the fluxes 
-    for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
@@ -1060,12 +1069,10 @@ Castro::construct_hydro_source(Real time, Real dt)
       }
     }
 
-
-    MultiFab pdivu;
-  pdivu.define(grids, dmap, 1, 0);
+#pragma omp barrier
 
   // conservative update
-  for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
     const Box& bx = mfi.tilebox();
 
     ctu_consup(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
@@ -1097,8 +1104,10 @@ Castro::construct_hydro_source(Real time, Real dt)
   }
 
 
+#pragma omp barrier
+
   // scale the fluxes and store them
-  for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
     for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
@@ -1161,6 +1170,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 
   if (track_grid_losses == 1) {
+#pragma omp barrier
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.tilebox();
 
