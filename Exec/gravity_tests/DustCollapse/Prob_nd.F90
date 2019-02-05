@@ -58,12 +58,17 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   ! in 2-d we are going to enforce that the lower left corner of the
   ! domain is 0.0 (i.e., we only model a quadrant)
 
+  ! in 1-d, we enforce that the center is the origin (since we are
+  ! spherical)
+
+#if AMREX_SPACEDIM == 1
+  center(1) = ZERO
+#else
   center(1) = center_x
-#if AMREX_SPACEDIM >= 2
   center(2) = center_y
-#endif
 #if AMREX_SPACEDIM == 3
   center(3) = center_z
+#endif
 #endif
 
   xmin = problo(1)
