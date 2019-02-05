@@ -61,6 +61,8 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   ! in 1-d, we enforce that the center is the origin (since we are
   ! spherical)
 
+  center(:) = ZERO
+
 #if AMREX_SPACEDIM == 1
   center(1) = ZERO
 #else
@@ -71,23 +73,43 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 #endif
 #endif
 
+#if AMREX_SPACEDIM == 1
   xmin = problo(1)
   xmax = probhi(1)
 
+  ymin = ZERO
+  ymax = ZERO
+
+  zmin = ZERO
+  zmax = ZERO
+#endif
+
 #if AMREX_SPACEDIM >= 2
+  xmin = problo(1)
+  if (xmin /= ZERO) call amrex_error("ERROR: xmin should be 0!")
+
+  xmax = probhi(1)
+
   ymin = problo(2)
+  if (ymin /= ZERO) call amrex_error("ERROR: ymin should be 0!")
+
   ymax = probhi(2)
+
+  zmin = ZERO
+  zmax = ZERO
 #endif
 
 #if AMREX_SPACEDIM == 3
+  xmin = problo(1)
+  xmax = probhi(1)
+
+  ymin = problo(2)
+  ymax = probhi(2)
+
   zmin = problo(3)
   zmax = probhi(3)
 #endif
 
-#if AMREX_SPACEDIM == 2
-  if (xmin /= ZERO) call amrex_error("ERROR: xmin should be 0!")
-  if (ymin /= ZERO) call amrex_error("ERROR: ymin should be 0!")
-#endif
 
   ! set the composition to be uniform
   allocate(X_0(nspec))
