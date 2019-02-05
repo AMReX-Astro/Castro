@@ -75,11 +75,15 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   enddo
 
 #if AMREX_SPACEDIM == 1
+  ! 1-d assumes spherical, with center at origin
   center(1) = ZERO
+  center(2) = ZERO
+  center(3) = ZERO
 #elif AMREX_SPACEDIM == 2
   ! 2-d assumes axisymmetric
   center(1) = ZERO
   center(2) = HALF*(problo(2) + probhi(2))
+  center(3) = ZERO
 #else
   center(1) = HALF*(problo(1) + probhi(1))
   center(2) = HALF*(problo(2) + probhi(2))
@@ -88,11 +92,17 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 
 #if AMREX_SPACEDIM == 1
   xmin = problo(1)
+  xmax = probhi(1)
+
   if (xmin /= 0.e0_rt) then
      call amrex_error("ERROR: xmin should be 0!")
   endif
 
-  xmax = probhi(1)
+  ymin = ZERO
+  ymax = ZERO
+  zmin = ZERO
+  zmax = ZERO
+
 #elif AMREX_SPACEDIM == 2
   xmin = problo(1)
   if (xmin /= 0.e0_rt) then
@@ -103,6 +113,10 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 
   ymin = problo(2)
   ymax = probhi(2)
+
+  zmin = ZERO
+  zmax = ZERO
+
 #else
   xmin = problo(1)
   xmax = probhi(1)
@@ -166,7 +180,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use interpolate_module
   use model_parser_module, only: npts_model
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS
-
+  use prob_params_module, only : center
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -184,15 +198,21 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   ! Interpolate rho, T and X
   do k = lo(3), hi(3)
-     z = zmin + (dble(k) + HALF)*delta(3)
+     z = zmin + (dble(k) + HALF)*delta(3) - center(3)
 
      do j = lo(2), hi(2)
-        y = ymin + (dble(j) + HALF)*delta(2)
+        y = ymin + (dble(j) + HALF)*delta(2) - center(2)
 
         do i = lo(1), hi(1)
-           x = xmin + (dble(i) + HALF)*delta(1)
+           x = xmin + (dble(i) + HALF)*delta(1) - center(1)
 
+#if AMREX_SPACEDIM == 1
+           dist = x
+#elif AMREX_SPACEDIM == 2
+           dist = sqrt(x*x + y*y)
+#else
            dist = sqrt(x*x + y*y + z*z)
+#endif
 
            state(i,j,k,URHO ) = interpolate(dist, npts_model, hse_r, hse_rho)
            state(i,j,k,UTEMP) = interpolate(dist, npts_model, hse_r, hse_t)
