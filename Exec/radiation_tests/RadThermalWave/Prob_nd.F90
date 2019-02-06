@@ -86,7 +86,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use network, only : nspec
   use eos_module, only : eos
   use eos_type_module, only : eos_t, eos_input_rt
-  use prob_params_module, only : dg
+  use prob_params_module, only : dg, coord_type
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -188,10 +188,20 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
                        rr2 = xx**2 + yy**2 + zz**2
 
-                       if (rr2 <= rexp**2) then
-                          vol_pert = vol_pert + ONE
+                       if (coord_type == 1) then
+                          ! we are axisymmetric so weight by the radial coordinate
+                          if (rr2 <= rexp**2) then
+                             vol_pert = vol_pert + xx
+                          else
+                             vol_ambient = vol_ambient + xx
+                          endif
                        else
-                          vol_ambient = vol_ambient + ONE
+                          ! Cartesian
+                          if (rr2 <= rexp**2) then
+                             vol_pert = vol_pert + ONE
+                          else
+                             vol_ambient = vol_ambient + ONE
+                          endif
                        endif
 
                     end do

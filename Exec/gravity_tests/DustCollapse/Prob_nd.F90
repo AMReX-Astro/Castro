@@ -58,31 +58,58 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   ! in 2-d we are going to enforce that the lower left corner of the
   ! domain is 0.0 (i.e., we only model a quadrant)
 
+  ! in 1-d, we enforce that the center is the origin (since we are
+  ! spherical)
+
+  center(:) = ZERO
+
+#if AMREX_SPACEDIM == 1
+  center(1) = ZERO
+#else
   center(1) = center_x
-#if AMREX_SPACEDIM >= 2
   center(2) = center_y
-#endif
 #if AMREX_SPACEDIM == 3
   center(3) = center_z
 #endif
+#endif
 
+#if AMREX_SPACEDIM == 1
   xmin = problo(1)
   xmax = probhi(1)
 
+  ymin = ZERO
+  ymax = ZERO
+
+  zmin = ZERO
+  zmax = ZERO
+#endif
+
 #if AMREX_SPACEDIM >= 2
+  xmin = problo(1)
+  if (xmin /= ZERO) call amrex_error("ERROR: xmin should be 0!")
+
+  xmax = probhi(1)
+
   ymin = problo(2)
+  if (ymin /= ZERO) call amrex_error("ERROR: ymin should be 0!")
+
   ymax = probhi(2)
+
+  zmin = ZERO
+  zmax = ZERO
 #endif
 
 #if AMREX_SPACEDIM == 3
+  xmin = problo(1)
+  xmax = probhi(1)
+
+  ymin = problo(2)
+  ymax = probhi(2)
+
   zmin = problo(3)
   zmax = probhi(3)
 #endif
 
-#if AMREX_SPACEDIM == 2
-  if (xmin /= ZERO) call amrex_error("ERROR: xmin should be 0!")
-  if (ymin /= ZERO) call amrex_error("ERROR: ymin should be 0!")
-#endif
 
   ! set the composition to be uniform
   allocate(X_0(nspec))

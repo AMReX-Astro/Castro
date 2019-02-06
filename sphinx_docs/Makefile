@@ -21,8 +21,8 @@ clean:
 
 html:
 	./rp.py > source/runtime_parameters.rst
-	#doxygen Doxyfile
-	#breathe-apidoc --o source doxy_files/xml -g class,file
+	doxygen Doxyfile
+	breathe-apidoc --o source doxy_files/xml -g class,file
 	python3 make_api.py
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 

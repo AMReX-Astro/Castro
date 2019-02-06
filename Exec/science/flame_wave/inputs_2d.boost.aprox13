@@ -49,7 +49,7 @@ castro.diffuse_cutoff_density = 5.e4
 castro.diffuse_cond_scale_fac = 10.0
 
 castro.react_rho_min = 1.e2
-castro.react_rho_max = 5.e7
+castro.react_rho_max = 1.5.e7
 
 castro.react_T_min = 6.e7
 
