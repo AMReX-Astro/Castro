@@ -16,6 +16,7 @@ contains
   subroutine ca_hypfill(adv, adv_lo, adv_hi, &
                         domlo, domhi, delta, xlo, time, bc) bind(C,name="ca_hypfill")
 
+    use amrex_filcc_module, only: amrex_filccn
     use amrex_error_module
     use meth_params_module, only : NVAR,UMX,UMY,UMZ
     use prob_params_module, only : center
@@ -234,6 +235,7 @@ contains
   subroutine ca_denfill(adv, adv_lo, adv_hi, &
                         domlo, domhi, delta, xlo, time, bc) bind(C,name="ca_denfill")
 
+    use amrex_filcc_module, only: amrex_filccn
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
@@ -253,6 +255,7 @@ contains
   subroutine ca_gravxfill(grav, grav_lo, grav_hi, &
                           domlo, domhi, delta, xlo, time, bc) bind(C,name="ca_gravxfill")
 
+    use amrex_filcc_module, only: amrex_filccn
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
@@ -270,6 +273,7 @@ contains
   subroutine ca_gravyfill(grav, grav_lo, grav_hi, &
                           domlo, domhi, delta, xlo, time, bc) bind(C,name="ca_gravyfill")
 
+    use amrex_filcc_module, only: amrex_filccn
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
@@ -287,6 +291,7 @@ contains
   subroutine ca_gravzfill(grav, grav_lo, grav_hi, &
                           domlo, domhi, delta, xlo, time, bc) bind(C,name="ca_gravzfill")
 
+    use amrex_filcc_module, only: amrex_filccn
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
@@ -304,6 +309,7 @@ contains
   subroutine ca_phigravfill(phi, phi_lo, phi_hi, &
                             domlo, domhi, delta, xlo, time, bc) bind(C,name="ca_phigravfill")
 
+    use amrex_filcc_module, only: amrex_filccn
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
