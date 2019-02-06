@@ -4,24 +4,22 @@ module probdata_module
   use amrex_fort_module, only : rt => amrex_real
   character (len=80), save  :: model_name
 
-  ! arrange storage for read_in model-- not worrying about efficiency, 
+  ! arrange storage for read_in model-- not worrying about efficiency,
   ! since this will only be called once
   real(rt)        , allocatable, save ::  hse_r(:), hse_rho(:)
   real(rt)        , allocatable, save ::  hse_t(:), hse_p(:)
   real(rt)        , allocatable, save ::  hse_s(:,:)
-  
+
   ! hold the state at the top of the initial model for the boundary
   ! conditions
   real(rt)        , save              :: hse_rho_top, hse_T_top
   real(rt)        , save              :: hse_p_top, hse_eint_top
   real(rt)        , allocatable, save :: hse_X_top(:)
-  
+
   real(rt)        , save :: xmin, xmax, ymin, ymax, zmin, zmax
-  
+
   real(rt)        , save :: heating_time, heating_rad, &
                             heating_peak, heating_sigma
-
-
 
   ! the prob_type matches MAESTRO test_basestate
   integer         , save :: prob_type

@@ -185,7 +185,7 @@ contains
     else
        reconstruct_state(QREINT) = .false.
     endif
-    if (ppm_temp_fix < 3) then
+    if (ppm_temp_fix == 0 .or. ppm_temp_fix == 2) then
        reconstruct_state(QTEMP) = .false.
     endif
 

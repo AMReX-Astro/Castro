@@ -26,7 +26,7 @@ contains
     include 'AMReX_bc_types.fi'
 
     integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
-    integer,  intent(in   ) :: bc(3,2,NVAR)
+    integer,  intent(in   ) :: bc(dim,2,NVAR)
     integer,  intent(in   ) :: domlo(3), domhi(3)
     real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3),NVAR)
@@ -67,7 +67,7 @@ contains
     include 'AMReX_bc_types.fi'
 
     integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
-    integer,  intent(in   ) :: bc(3,2,1)
+    integer,  intent(in   ) :: bc(dim,2,1)
     integer,  intent(in   ) :: domlo(3), domhi(3)
     real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3))

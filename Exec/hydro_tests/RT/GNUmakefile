@@ -5,11 +5,17 @@ DEBUG      = FALSE
 
 DIM        = 2
 
+ifeq ($(DIM), 1)
+  $(error Error: this problem is unsupported in 1D)
+endif
+
 COMP	   = gnu
 
 USE_MPI    = FALSE
 
 USE_GRAV   = TRUE
+
+DIMENSION_AGNOSTIC = TRUE
 
 # define the location of the CASTRO top directory
 CASTRO_HOME  := ../../..
