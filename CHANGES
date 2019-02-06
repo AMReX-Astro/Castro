@@ -1,5 +1,20 @@
 # changes since the last release
 
+  -- fixed a bug in the ppm_type = 1 reconstruction -- we were not
+     doing the initial reconstruction of temperature
+
+# 19.02
+
+  -- The flux limiter used with the options limit_fluxes_on_low_dens
+     was not implemented correctly.  This has been fixed.  (PR #493)
+
+  -- the CTU hydro solver no longer does any allocation in any of the
+     support routines -- it is all done in the top-level
+     driver. (#455)
+
+  -- The CTU solver now makes explicit the range of cells looped over
+     in the transverse routines (#456)
+
   -- The plotfile quantities divu and magvort were fixed in
      axisymmetric coordinates and diff_term was fixed in all
      geometries.  (#446, 448, 449, 472)
@@ -16,6 +31,15 @@
      named dxnuc_min (formerly castro.dxnuc), dxnuc_max, and
      max_dxnuc_lev.  (#364, #437, #473)
 
+  -- The diffusion cutoff now is a linear ramp instead of a
+     discontinous cutoff.  For densities less than
+     diffuse_cutoff_density_hi, the transport coefficient is scaled
+     linearly until the density reaches diffuse_cutoff_density, where
+     it is zero.
+
+# 19.01.4
+
+  -- fixed the .zenodo.json
 
 # 19.01
 
@@ -29,10 +53,6 @@
      code. (#461)
 
   -- The MG solver was optimized a bit (#464)
-
-  -- we removed ppm_type = 2.  This was never really used and not as
-     robust as ppm_type = 1.  The forthcoming 4th order method will
-     take its place. (#442)
 
 # 18.12
 

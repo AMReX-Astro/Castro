@@ -6,8 +6,8 @@ stop_time =  3.0
 geometry.is_periodic = 0       0
 geometry.coord_sys   = 1                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0       0
-geometry.prob_hi     = 8.192e4     2.048e4
-amr.n_cell           = 256         64
+geometry.prob_hi     = 1.2288e5     3.072e4
+amr.n_cell           = 768         192
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -49,19 +49,19 @@ castro.diffuse_cutoff_density = 5.e4
 castro.diffuse_cond_scale_fac = 10.0
 
 castro.react_rho_min = 1.e2
-castro.react_rho_max = 5.e7
+castro.react_rho_max = 1.5.e7
 
 castro.react_T_min = 6.e7
 
 
 # TIME STEP CONTROL
-castro.cfl            = 0.7     # cfl number for hyperbolic system
+castro.cfl            = 0.8     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
 castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
 castro.use_retry      = 1
 castro.hard_cfl_limit = 0
-
+castro.max_subcycles = 16
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
@@ -69,21 +69,26 @@ castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 
 # REFINEMENT / REGRIDDING
-amr.max_level       = 2       # maximum level number allowed
-amr.ref_ratio       = 4 4 2 2 # refinement ratio
+amr.max_level       = 3       # maximum level number allowed
+amr.ref_ratio       = 4 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
 amr.blocking_factor = 16       # block factor in grid generation
 amr.max_grid_size   = 128
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
-amr.check_file      = chk        # root name of checkpoint file
-amr.check_int       = 500        # number of timesteps between checkpoints
+amr.check_file      = flame_wave_chk        # root name of checkpoint file
+amr.check_int       = 100        # number of timesteps between checkpoints
 
 # PLOTFILES
-amr.plot_file        = plt        # root name of plotfile
-amr.plot_per         = 5.e-5      # number of seconds between plotfiles
+amr.plot_file        = flame_wave_plt        # root name of plotfile
+amr.plot_per         = 2.e-3      # number of seconds between plotfiles
 amr.derive_plot_vars = ALL
+
+amr.small_plot_file        = flame_wave_smallplt        # root name of plotfile
+amr.small_plot_per         = 5.e-5      # number of seconds between plotfiles
+amr.small_plot_vars = density Temp enuc
+amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity
 
 #PROBIN FILENAME
 amr.probin_file = probin.boost.aprox13

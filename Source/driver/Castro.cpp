@@ -1029,10 +1029,17 @@ Castro::initData ()
 
 	  Rad_new[mfi].setVal(0.0);
 
+#ifdef AMREX_DIMENSION_AGNOSTIC
+	  BL_FORT_PROC_CALL(CA_INITRAD,ca_initrad)
+	      (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), Radiation::nGroups,
+	       BL_TO_FORTRAN_ANYD(Rad_new[mfi]), ZFILL(dx),
+	       ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
+#else
 	  BL_FORT_PROC_CALL(CA_INITRAD,ca_initrad)
 	      (level, cur_time, lo, hi, Radiation::nGroups,
 	       BL_TO_FORTRAN(Rad_new[mfi]),dx,
 	       gridloc.lo(),gridloc.hi());
+#endif
 
 	  if (Radiation::nNeutrinoSpecies > 0 && Radiation::nNeutrinoGroups[0] == 0) {
 	      // Hack: running photon radiation through neutrino solver

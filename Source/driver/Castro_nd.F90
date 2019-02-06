@@ -869,6 +869,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   endif
 #endif
 
+  allocate(mom_flux_has_p(3))
 
   ! sanity check on our allocations
 #ifndef AMREX_USE_CUDA
