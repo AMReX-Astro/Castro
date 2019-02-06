@@ -1161,7 +1161,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 #ifndef SDC
       P_radial[mfi].plus(pradial[mfi], mfi.nodaltilebox(0), 0, 0, 1);
 #else
-      P_radial[mfi].copy(pradial[mfi], mfi. nodaltilebox(0),0, mfi. nodaltilebox(0), 0, 1);
+      P_radial[mfi].copy(pradial[mfi], mfi.nodaltilebox(0), 0, mfi.nodaltilebox(0), 0, 1);
 #endif
     }
 #endif

@@ -784,10 +784,6 @@ extern "C"
                          const BL_FORT_FAB_ARG_3D(rfx),
 #endif
                          const BL_FORT_FAB_ARG_3D(qx),
-#if AMREX_SPACEDIM == 2
-                         const BL_FORT_FAB_ARG_3D(area1),
-                         const BL_FORT_FAB_ARG_3D(vol),
-#endif
                          const amrex::Real hdt, const amrex::Real cdtdx);
 
   void transy_on_xstates(const int* lo, const int* hi,
