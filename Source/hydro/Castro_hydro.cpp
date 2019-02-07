@@ -1398,7 +1398,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
     int priv_nstep_fsp = -1;
     // The fourth order stuff cannot do tiling because of the Laplacian corrections
-    for (MFIter mfi(S_new, (fourth_order) ? no_tile_size : no_tile_size); mfi.isValid(); ++mfi)
+    for (MFIter mfi(S_new, (fourth_order) ? no_tile_size : hydro_tile_size); mfi.isValid(); ++mfi)
       {
 	const Box& bx  = mfi.tilebox();
 
@@ -1545,7 +1545,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (MFIter mfi(S_new, no_tile_size); mfi.isValid(); ++mfi) {
+  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       const Box& obx = mfi.growntilebox(1);
 
@@ -1589,7 +1589,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (MFIter mfi(S_new, no_tile_size); mfi.isValid(); ++mfi) {
+  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
@@ -1634,7 +1634,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (MFIter mfi(S_new, no_tile_size); mfi.isValid(); ++mfi) {
+  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       const Box& bx = mfi.tilebox();
 
@@ -1733,7 +1733,7 @@ Castro::cons_to_prim(const Real time)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(S_new, no_tile_size); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
         const Box& qbx = mfi.growntilebox(NUM_GROW);
 
@@ -1797,7 +1797,7 @@ Castro::cons_to_prim_fourth(const Real time)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(S_new, no_tile_size); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       const Box& qbx = mfi.growntilebox(NUM_GROW);
       const Box& qbxm1 = mfi.growntilebox(NUM_GROW-1);
@@ -1846,7 +1846,7 @@ Castro::cons_to_prim_fourth(const Real time)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(S_new, no_tile_size); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       const Box& qbxm1 = mfi.growntilebox(NUM_GROW-1);
 
@@ -1883,7 +1883,7 @@ Castro::check_for_cfl_violation(const Real dt)
 #ifdef _OPENMP
 #pragma omp parallel reduction(max:courno)
 #endif
-    for (MFIter mfi(S_new, no_tile_size); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
         const Box& bx = mfi.tilebox();
 
