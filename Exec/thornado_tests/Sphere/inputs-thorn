@@ -73,13 +73,13 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 1
 amr.check_file      = thorn_chk  # root name of checkpoint file
-amr.check_int       = 200         # number of timesteps between checkpoints
+amr.check_int       = 100         # number of timesteps between checkpoints
 #amr.check_int       = 1000000
 
 # PLOTFILES
 amr.plot_files_output = 1
 amr.plot_file       = thorn_plt  # root name of plotfile
-amr.plot_int        = 200          # number of timesteps between plotfiles
+amr.plot_int        = 10          # number of timesteps between plotfiles
 
 # Good way to trap errors
 amrex.fpe_trap_invalid =  1
@@ -114,18 +114,18 @@ amrex.fpe_trap_invalid =  1
 ################################################################
 ################################################################
 # HERE YOU ONLY SEE FOUR MOMENTS --- AVERAGED OVER NODES AND E
-amr.derive_plot_vars        = pressure Hx_avg Hy_avg Hz_avg J_avg
-amr.plot_vars               = density xmom ymom zmom eden eint Temp
-thornado.plot_node_averages = 0
+#amr.derive_plot_vars        = pressure Hx_avg Hy_avg Hz_avg J_avg
+#amr.plot_vars               = density xmom ymom zmom eden eint Temp
+#thornado.plot_node_averages = 0
 ################################################################
 ################################################################
 
 ################################################################
 ################################################################
 # HERE YOU SEE FOUR MOMENTS AND ALL THE THORNADO DATA
-amr.derive_plot_vars        = pressure Hx_avg Hy_avg Hz_avg J_avg
-amr.plot_vars               = ALL
-thornado.plot_node_averages = 0
+#amr.derive_plot_vars        = pressure Hx_avg Hy_avg Hz_avg J_avg
+#amr.plot_vars               = ALL
+#thornado.plot_node_averages = 0
 ################################################################
 ################################################################
 
@@ -134,7 +134,7 @@ thornado.plot_node_averages = 0
 # Here you see four moments and the node averages but not the
 #  entire thornado data
 amr.derive_plot_vars        = pressure Hx_avg Hy_avg Hz_avg J_avg
-amr.plot_vars               = density xmom ymom zmom eden eint Temp
+amr.plot_vars               = density xmom ymom zmom eden eint Temp rho_Ye
 thornado.plot_node_averages = 1
 ################################################################
 ################################################################

@@ -259,6 +259,7 @@ ifeq ($(USE_THORNADO), TRUE)
   Thdirs += $(THORNADO_HOME)/Modules/Units
   Thdirs += $(THORNADO_HOME)/Modules/EquationOfState 
   Thdirs += $(THORNADO_HOME)/Modules/Opacities 
+  Thdirs += $(THORNADO_HOME)/Modules/Library
   Thdirs += $(WEAKLIB_HOME)/Distributions/Library
   Thdirs += $(WEAKLIB_HOME)/Distributions/EOSSource
   Thdirs += $(WEAKLIB_HOME)/Distributions/OpacitySource

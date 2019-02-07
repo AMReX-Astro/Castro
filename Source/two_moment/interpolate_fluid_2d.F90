@@ -67,11 +67,11 @@
     ! interp_type = 2 
 
     ! Use primitive variables (rho, T, Ye) for interpolation
-    ! interp_type = 3 
+     interp_type = 3 
 
     ! Use primitive variables (rho, T, Ye) for interpolation -- first fill the corners
     !     of the cell then use bilinear interpolation
-    interp_type = 4
+    ! interp_type = 4
 
     if (s_lo(1) .gt. (lo(1)-ng-1) .or. s_hi(1) .lt. (hi(1)+ng+1) .or. &
         s_lo(2) .gt. (lo(2)-ng-1) .or. s_hi(2) .lt. (hi(2)+ng+1)) then
@@ -556,6 +556,7 @@
           end do
           end do
 
+          print *,"Done w Interp 4!"
        end if ! interp_type = 4
 
        ! Convert E back to (rho E) and Y back to (rho Y) 
