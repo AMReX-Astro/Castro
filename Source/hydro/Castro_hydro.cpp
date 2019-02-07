@@ -128,7 +128,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
   {
 
-    for (MFIter mfi(S_new, no_tile_size); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       // the valid region box
       const Box& bx = mfi.tilebox();
@@ -1128,7 +1128,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 #pragma omp parallel
 #endif
 #endif
-  for (MFIter mfi(S_new, no_tile_size); mfi.isValid(); ++mfi) {
+  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
     const Box& bx = mfi.tilebox();
 
     ctu_consup(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),

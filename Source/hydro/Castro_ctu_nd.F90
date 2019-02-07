@@ -743,7 +743,7 @@ contains
                     area3, area3_lo, area3_hi, &
 #endif
                     vol, vol_lo, vol_hi, &
-                    dx, pdivu, lo, hi)
+                    dx, pdivu, pdivu_lo, pdivu_hi)
 
 
     ! For hydro, we will create an update source term that is
