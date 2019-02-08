@@ -53,7 +53,9 @@ Checking for NaNs
 -----------------
 
 In the C++ code, you can check whether a FAB contains NaNs using
-the ``contains_nan()`` method::
+the ``contains_nan()`` method:
+
+.. code-block:: c++
 
    for (MFIter mfi(S, True); mfi.isValid(); ++mfi) {
 
@@ -71,7 +73,9 @@ to operate over.
 
 For Fortran code, the module ``nan_check`` has the function
 ``check_for_nan()`` that can be called in a Fortran routine to look
-for NaNs::
+for NaNs:
+
+.. code-block:: fortran
 
   subroutine check_for_nan(s, s_lo, s_hi, lo, hi, ncomp, comp)
     integer, intent(in) :: s_lo(3), s_hi(3)
