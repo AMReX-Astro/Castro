@@ -106,12 +106,15 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Debugging</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#using-the-compiler-of-other-tools">Using the compiler of other tools</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#compiler-checks">Compiler checks</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#check-for-nans">Check for NaNs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#check-for-invalid-floating-point-exceptions">Check for invalid floating point exceptions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#valgrind">Valgrind</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#thread-sanitizer">Thread Sanitizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#thread-sanitizer">Thread sanitizer</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#instrumenting-the-code">Instrumenting the Code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#instrumenting-the-code">Instrumenting the Code</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#checking-for-nans">Checking for NaNs</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#physics-issues">Physics issues</a></li>
 </ul>
 </li>
@@ -215,8 +218,8 @@ Some descriptions are given below.</p>
 This will create an executable with bounds checking and other compiler
 options enabled.  Running this sometimes will show issues.</p>
 </div>
-<div class="section" id="check-for-nans">
-<h3>Check for NaNs<a class="headerlink" href="#check-for-nans" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="check-for-invalid-floating-point-exceptions">
+<h3>Check for invalid floating point exceptions<a class="headerlink" href="#check-for-invalid-floating-point-exceptions" title="Permalink to this headline">¶</a></h3>
 <p>Compiling in debug mode also initializes uninitialized variables to
 NaN.  For optimized code, the same can be done by setting:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TEST</span> <span class="p">:</span><span class="o">=</span> <span class="n">TRUE</span>
@@ -234,11 +237,40 @@ accesses.  The valgrind documentation can give details on how to use
 it.</p>
 </div>
 <div class="section" id="thread-sanitizer">
-<h3>Thread Sanitizer<a class="headerlink" href="#thread-sanitizer" title="Permalink to this headline">¶</a></h3>
+<h3>Thread sanitizer<a class="headerlink" href="#thread-sanitizer" title="Permalink to this headline">¶</a></h3>
 </div>
 </div>
 <div class="section" id="instrumenting-the-code">
 <h2>Instrumenting the Code<a class="headerlink" href="#instrumenting-the-code" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="checking-for-nans">
+<h3>Checking for NaNs<a class="headerlink" href="#checking-for-nans" title="Permalink to this headline">¶</a></h3>
+<p>In the C++ code, you can check whether a FAB contains NaNs using
+the <code class="docutils literal notranslate"><span class="pre">contains_nan()</span></code> method:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="p">(</span><span class="n">MFIter</span> <span class="n">mfi</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="kc">True</span><span class="p">);</span> <span class="n">mfi</span><span class="o">.</span><span class="n">isValid</span><span class="p">();</span> <span class="o">++</span><span class="n">mfi</span><span class="p">)</span> <span class="p">{</span>
+
+  <span class="n">const</span> <span class="n">Box</span><span class="o">&amp;</span> <span class="n">bx</span> <span class="o">=</span> <span class="n">mf</span><span class="o">.</span><span class="n">tilebox</span><span class="p">()</span>
+
+  <span class="o">//</span> <span class="n">do</span> <span class="n">some</span> <span class="n">operations</span> <span class="n">on</span> <span class="n">S</span><span class="p">[</span><span class="n">mfi</span><span class="p">]</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">S</span><span class="p">[</span><span class="n">mfi</span><span class="p">]</span><span class="o">.</span><span class="n">contains_nan</span><span class="p">())</span> <span class="p">{</span>
+    <span class="n">amrex</span><span class="p">::</span><span class="n">Abort</span><span class="p">(</span><span class="s2">&quot;S has NaNs&quot;</span><span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>There are other versions of <code class="docutils literal notranslate"><span class="pre">contains_nan()</span></code> that can take a Box
+to operate over.</p>
+<p>For Fortran code, the module <code class="docutils literal notranslate"><span class="pre">nan_check</span></code> has the function
+<code class="docutils literal notranslate"><span class="pre">check_for_nan()</span></code> that can be called in a Fortran routine to look
+for NaNs:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">subroutine</span> <span class="n">check_for_nan</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">s_lo</span><span class="p">,</span> <span class="n">s_hi</span><span class="p">,</span> <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">ncomp</span><span class="p">,</span> <span class="n">comp</span><span class="p">)</span>
+  <span class="n">integer</span><span class="p">,</span> <span class="n">intent</span><span class="p">(</span><span class="ow">in</span><span class="p">)</span> <span class="p">::</span> <span class="n">s_lo</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">s_hi</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+  <span class="n">integer</span><span class="p">,</span> <span class="n">intent</span><span class="p">(</span><span class="ow">in</span><span class="p">)</span> <span class="p">::</span> <span class="n">lo</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">hi</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+  <span class="n">integer</span><span class="p">,</span> <span class="n">intent</span><span class="p">(</span><span class="ow">in</span><span class="p">)</span> <span class="p">::</span> <span class="n">ncomp</span>
+  <span class="n">real</span><span class="p">(</span><span class="n">rt</span><span class="p">),</span> <span class="n">intent</span><span class="p">(</span><span class="ow">in</span><span class="p">)</span> <span class="p">::</span> <span class="n">s</span><span class="p">(</span><span class="n">s_lo</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">s_lo</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">s_lo</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">ncomp</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </div>
 <div class="section" id="physics-issues">
 <h2>Physics issues<a class="headerlink" href="#physics-issues" title="Permalink to this headline">¶</a></h2>
