@@ -1479,7 +1479,7 @@ Castro::computeNewDt (int                   finest_level,
             // Note that if we are just about exactly on a multiple of plot_per,
             // then we need to be careful to avoid floating point issues.
 
-            if (dtMod > plot_per * (1.0e0 - std::numeric_limits<float>::epsilon())) {
+            if (dtMod > plot_per * (1.0e0 - std::numeric_limits<Real>::epsilon())) {
                 newPlotDt = plot_per + (plot_per - dtMod);
             }
             else {
@@ -1511,7 +1511,7 @@ Castro::computeNewDt (int                   finest_level,
 
             Real newSmallPlotDt;
 
-            if (dtMod > small_plot_per * (1.0e0 - std::numeric_limits<float>::epsilon())) {
+            if (dtMod > small_plot_per * (1.0e0 - std::numeric_limits<Real>::epsilon())) {
                 newSmallPlotDt = small_plot_per + (small_plot_per - dtMod);
             }
             else {
