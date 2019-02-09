@@ -1,15 +1,15 @@
 &fortin
 
-  model_name =  "sub_chandra.M_WD-1.00.M_He-0.040.hse.C.10240"
-  pert_temp_factor = 40.0
-  pert_rad_factor = 2.5
+  model_name =  "sub_chandra.M_WD-1.10.M_He-0.050.hse.C.2560"
+  pert_temp_factor = 80.0
+  pert_rad_factor = 8
 
 /
 
 &tagging
 
   max_dengrad_lev    = -1
-  max_denerr_lev     = 10
+  max_denerr_lev     =  3
 
   max_pressgrad_lev  = -1
   max_presserr_lev   = -1
@@ -18,10 +18,9 @@
   max_velerr_lev     = -1
 
   max_temperr_lev    = -1
-  max_tempgrad_lev   = -1
+  max_tempgrad_lev   = 10
 
   dengrad            = 1.e18
-  denerr             = 2.e8
   denerr             = 1.e0
 
   velgrad            = 1.e18
@@ -31,7 +30,8 @@
   presserr           = 1.e10
 
   temperr            = 1.d20
-  tempgrad           = 1.d20
+  tempgrad           = 100.e0
+
 
 /
 
