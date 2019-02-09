@@ -223,6 +223,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                        delta, xlo, xhi)
 
   use amrex_constants_module
+  use amrex_error_module
   use probdata_module
   use interpolate_module
   use eos_module, only : eos
