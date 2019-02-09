@@ -1533,10 +1533,10 @@ Castro::computeNewDt (int                   finest_level,
     //
     // Limit dt's by the value of stop_time.
     //
-    const Real eps = 0.001*dt_0;
+    const Real eps = std::numeric_limits<Real>::epsilon();
     Real cur_time = state[State_Type].curTime();
     if (stop_time >= 0.0) {
-        if ((cur_time + dt_0) > (stop_time - eps)) {
+        if ((cur_time + dt_0) >= (stop_time - eps)) {
             dt_0 = stop_time - cur_time;
             if (verbose)
                 amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the stop_time.\n";
