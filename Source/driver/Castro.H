@@ -68,6 +68,12 @@ enum sources { ext_src = 0,
 	       num_src };
 
 
+// time integration method
+
+enum int_method { CornerTransportUpwind = 0,
+                  MethodOfLines,
+                  SpectralDeferredCorrections };
+
 ///
 /// @class Castro
 ///

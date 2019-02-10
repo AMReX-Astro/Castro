@@ -111,7 +111,7 @@ module meth_params_module
   real(rt), allocatable, save :: small_pres
   real(rt), allocatable, save :: small_ener
   integer,  allocatable, save :: do_hydro
-  integer,  allocatable, save :: do_ctu
+  integer,  allocatable, save :: time_integration_method
   integer,  allocatable, save :: fourth_order
   integer,  allocatable, save :: limit_fourth_order
   integer,  allocatable, save :: hybrid_hydro
@@ -192,7 +192,7 @@ attributes(managed) :: small_temp
 attributes(managed) :: small_pres
 attributes(managed) :: small_ener
 attributes(managed) :: do_hydro
-attributes(managed) :: do_ctu
+attributes(managed) :: time_integration_method
 attributes(managed) :: fourth_order
 attributes(managed) :: limit_fourth_order
 attributes(managed) :: hybrid_hydro
@@ -304,7 +304,7 @@ attributes(managed) :: get_g_from_phi
   !$acc create(small_pres) &
   !$acc create(small_ener) &
   !$acc create(do_hydro) &
-  !$acc create(do_ctu) &
+  !$acc create(time_integration_method) &
   !$acc create(fourth_order) &
   !$acc create(limit_fourth_order) &
   !$acc create(hybrid_hydro) &
@@ -494,8 +494,8 @@ contains
     small_ener = -1.d200;
     allocate(do_hydro)
     do_hydro = -1;
-    allocate(do_ctu)
-    do_ctu = 1;
+    allocate(time_integration_method)
+    time_integration_method = 0;
     allocate(fourth_order)
     fourth_order = 0;
     allocate(limit_fourth_order)
@@ -633,7 +633,7 @@ contains
     call pp%query("small_pres", small_pres)
     call pp%query("small_ener", small_ener)
     call pp%query("do_hydro", do_hydro)
-    call pp%query("do_ctu", do_ctu)
+    call pp%query("time_integration_method", time_integration_method)
     call pp%query("fourth_order", fourth_order)
     call pp%query("limit_fourth_order", limit_fourth_order)
     call pp%query("hybrid_hydro", hybrid_hydro)
@@ -695,7 +695,7 @@ contains
     !$acc update &
     !$acc device(difmag, small_dens, small_temp) &
     !$acc device(small_pres, small_ener, do_hydro) &
-    !$acc device(do_ctu, fourth_order, limit_fourth_order) &
+    !$acc device(time_integration_method, fourth_order, limit_fourth_order) &
     !$acc device(hybrid_hydro, ppm_type, ppm_temp_fix) &
     !$acc device(ppm_predict_gammae, ppm_reference_eigenvectors, plm_iorder) &
     !$acc device(hybrid_riemann, riemann_solver, cg_maxiter) &
@@ -817,8 +817,8 @@ contains
     if (allocated(do_hydro)) then
         deallocate(do_hydro)
     end if
-    if (allocated(do_ctu)) then
-        deallocate(do_ctu)
+    if (allocated(time_integration_method)) then
+        deallocate(time_integration_method)
     end if
     if (allocated(fourth_order)) then
         deallocate(fourth_order)
