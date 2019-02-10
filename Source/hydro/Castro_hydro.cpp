@@ -113,10 +113,10 @@ Castro::construct_hydro_source(Real time, Real dt)
 	  ca_ctu_update
 	    (ARLIM_3D(lo), ARLIM_3D(hi), &is_finest_level, &time,
 	     ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
-	     BL_TO_FORTRAN_ANYD(statein), 
+	     BL_TO_FORTRAN_ANYD(statein),
 	     BL_TO_FORTRAN_ANYD(stateout),
 #ifdef RADIATION
-	     BL_TO_FORTRAN_ANYD(Er), 
+	     BL_TO_FORTRAN_ANYD(Er),
 	     BL_TO_FORTRAN_ANYD(Erout),
 #endif
 	     BL_TO_FORTRAN_ANYD(q[mfi]),
@@ -163,7 +163,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 	    (*fluxes    [i])[mfi].copy(    flux[i],mfi.nodaltilebox(i),0,mfi.nodaltilebox(i),0,NUM_STATE);
 #ifdef RADIATION
 	    (*rad_fluxes[i])[mfi].copy(rad_flux[i],mfi.nodaltilebox(i),0,mfi.nodaltilebox(i),0,Radiation::nGroups);
-#endif	    
+#endif
 #endif
             (*mass_fluxes[i])[mfi].copy(flux[i],mfi.nodaltilebox(i),Density,mfi.nodaltilebox(i),0,1);
 	  }
@@ -727,7 +727,7 @@ Castro::cons_to_prim(const Real time)
 #endif
 #endif
 #endif
-      
+
     }
 
 }
