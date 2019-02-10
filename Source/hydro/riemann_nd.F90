@@ -341,7 +341,6 @@ contains
     real(rt) :: cl, cr
     type (eos_t) :: eos_state
 
-<<<<<<< HEAD
     logical :: compute_interface_gamma
 
     if (present(compute_gammas)) then
@@ -349,9 +348,8 @@ contains
     else
        compute_interface_gamma = .false.
     endif
-=======
+
     !$gpu
->>>>>>> development
 
 #ifdef RADIATION
 #ifndef AMREX_USE_CUDA

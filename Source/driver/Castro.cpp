@@ -373,18 +373,11 @@ Castro::read_params ()
       }
 #endif
 
-<<<<<<< HEAD
-    // fourth order implies MOL or SDC
-    if (fourth_order == 1 && time_integration_method == CornerTransportUpwind)
-      {
-        amrex::Error("WARNING: fourth_order requires a different time_integration_method.");
-=======
     // fourth order implies do_ctu=0
     if (fourth_order == 1 && time_integration_method == CornerTransportUpwind)
       {
 	if (ParallelDescriptor::IOProcessor())
 	    amrex::Error("WARNING: fourth_order requires a different time_integration_method");
->>>>>>> development
       }
 
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
