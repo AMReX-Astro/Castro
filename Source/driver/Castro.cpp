@@ -1466,7 +1466,6 @@ Castro::computeNewDt (int                   finest_level,
 
         if (plot_per > 0.0) {
 
-            const Real epsDt = 1.e-4*dt_0;
             const Real cur_time = state[State_Type].curTime();
 
             // Calculate the new dt by comparing to the dt needed to get
@@ -1479,7 +1478,7 @@ Castro::computeNewDt (int                   finest_level,
             // Note that if we are just about exactly on a multiple of plot_per,
             // then we need to be careful to avoid floating point issues.
 
-            if (dtMod > plot_per * (1.0e0 - std::numeric_limits<float>::epsilon())) {
+            if (std::abs(dtMod - plot_per) <= std::numeric_limits<Real>::epsilon()) {
                 newPlotDt = plot_per + (plot_per - dtMod);
             }
             else {
@@ -1489,7 +1488,14 @@ Castro::computeNewDt (int                   finest_level,
             if (newPlotDt < dt_0) {
                 lastDtPlotLimited = 1;
                 lastDtBeforePlotLimiting = dt_0;
-                dt_0 = std::max(epsDt, newPlotDt);
+                dt_0 = newPlotDt;
+
+                // Avoid taking timesteps that are so small that
+                // they may cause problems in the hydrodynamics.
+
+                const Real epsDt = 1.e-4 * lastDtBeforePlotLimiting;
+                dt_0 = std::max(dt_0, epsDt);
+
                 if (verbose)
                     amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next plot interval.\n";
             }
@@ -1504,14 +1510,15 @@ Castro::computeNewDt (int                   finest_level,
 
         if (small_plot_per > 0.0) {
 
-            const Real epsDt = 1.e-4*dt_0;
             const Real cur_time = state[State_Type].curTime();
+
+            // Same logic as for plot_per_is_exact.
 
             const Real dtMod = std::fmod(cur_time, small_plot_per);
 
             Real newSmallPlotDt;
 
-            if (dtMod > small_plot_per * (1.0e0 - std::numeric_limits<float>::epsilon())) {
+            if (std::abs(dtMod - small_plot_per) <= std::numeric_limits<Real>::epsilon()) {
                 newSmallPlotDt = small_plot_per + (small_plot_per - dtMod);
             }
             else {
@@ -1521,7 +1528,11 @@ Castro::computeNewDt (int                   finest_level,
             if (newSmallPlotDt < dt_0) {
                 lastDtPlotLimited = 1;
                 lastDtBeforePlotLimiting = dt_0;
-                dt_0 = std::max(epsDt, newSmallPlotDt);
+                dt_0 = newSmallPlotDt;
+
+                const Real epsDt = 1.e-4 * lastDtBeforePlotLimiting;
+                dt_0 = std::max(dt_0, epsDt);
+
                 if (verbose)
                     amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next smallplot interval.\n";
             }
@@ -1533,10 +1544,10 @@ Castro::computeNewDt (int                   finest_level,
     //
     // Limit dt's by the value of stop_time.
     //
-    const Real eps = 0.001*dt_0;
+    const Real eps = std::numeric_limits<Real>::epsilon();
     Real cur_time = state[State_Type].curTime();
     if (stop_time >= 0.0) {
-        if ((cur_time + dt_0) > (stop_time - eps)) {
+        if ((cur_time + dt_0) >= (stop_time - eps)) {
             dt_0 = stop_time - cur_time;
             if (verbose)
                 amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the stop_time.\n";
