@@ -367,16 +367,24 @@ Castro::read_params ()
 
 #ifdef AMREX_USE_CUDA
     // not use ctu if using gpu
-    if (do_ctu == 1)
+    if (time_integration_method != MethodOfLines)
       {
-	 amrex::Error("Running with CUDA requires do_ctu = 0");
+	 amrex::Error("Running with CUDA requires time_integration_method = 1");
       }
 #endif
 
+<<<<<<< HEAD
     // fourth order implies MOL or SDC
     if (fourth_order == 1 && time_integration_method == CornerTransportUpwind)
       {
         amrex::Error("WARNING: fourth_order requires a different time_integration_method.");
+=======
+    // fourth order implies do_ctu=0
+    if (fourth_order == 1 && time_integration_method == CornerTransportUpwind)
+      {
+	if (ParallelDescriptor::IOProcessor())
+	    amrex::Error("WARNING: fourth_order requires a different time_integration_method");
+>>>>>>> development
       }
 
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)

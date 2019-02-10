@@ -863,7 +863,11 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
       const Real prev_time = state[State_Type].prevTime();
       expand_state(Sborder, prev_time, 0, NUM_GROW);
 
+<<<<<<< HEAD
     } else if (time_integration_method == MethodOfLines)  {
+=======
+    } else if (time_integration_method == MethodOfLines) {
+>>>>>>> development
       // for Method of lines, our initialization of Sborder depends on
       // which stage in the RK update we are working on
 

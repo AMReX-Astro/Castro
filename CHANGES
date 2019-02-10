@@ -11,7 +11,11 @@
   -- A framework for a new spectral deferred corrections method
      was added.  This will allow for higher-order time integration.
 
-  -- fixed a bug in the ppm_type = 1 reconstruction -- we were not
+  -- The input parameter castro.do_ctu has been renamed
+     castro.time_integration_method. The current legal values
+     are 0 (CTU, the default) and 1 (MOL).
+
+  -- fixed a bug in the ppm_temp_fix = 1 reconstruction -- we were not
      doing the initial reconstruction of temperature
 
 # 19.02
