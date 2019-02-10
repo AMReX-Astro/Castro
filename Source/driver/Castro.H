@@ -74,10 +74,6 @@ enum int_method { CornerTransportUpwind = 0,
                   MethodOfLines,
                   SpectralDeferredCorrections };
 
-//
-// AmrLevel-derived class for hyperbolic conservation equations for stellar media
-//
-
 ///
 /// @class Castro
 ///
