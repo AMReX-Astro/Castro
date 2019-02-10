@@ -1117,9 +1117,10 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     qaux.define(grids, dmap, NQAUX, NUM_GROW);
     if (time_integration_method == CornerTransportUpwind)
       src_q.define(grids, dmap, QVAR, NUM_GROW);
-    if (fourth_order)
+    if (fourth_order) {
       q_bar.define(grids, dmap, NQ, NUM_GROW);
       qaux_bar.define(grids, dmap, NQAUX, NUM_GROW);
+    }
 
     if (time_integration_method == MethodOfLines) {
       // if we are not doing CTU advection, then we are doing a method
