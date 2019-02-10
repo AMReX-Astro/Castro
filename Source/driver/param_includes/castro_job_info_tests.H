@@ -40,6 +40,7 @@ jobInfoFile << (Castro::small_ener == -1.e200 ? "    " : "[*] ") << "castro.smal
 jobInfoFile << (Castro::do_hydro == -1 ? "    " : "[*] ") << "castro.do_hydro = " << Castro::do_hydro << std::endl;
 jobInfoFile << (Castro::do_ctu == 1 ? "    " : "[*] ") << "castro.do_ctu = " << Castro::do_ctu << std::endl;
 jobInfoFile << (Castro::fourth_order == 0 ? "    " : "[*] ") << "castro.fourth_order = " << Castro::fourth_order << std::endl;
+jobInfoFile << (Castro::limit_fourth_order == 1 ? "    " : "[*] ") << "castro.limit_fourth_order = " << Castro::limit_fourth_order << std::endl;
 jobInfoFile << (Castro::add_ext_src == 0 ? "    " : "[*] ") << "castro.add_ext_src = " << Castro::add_ext_src << std::endl;
 jobInfoFile << (Castro::hybrid_hydro == 0 ? "    " : "[*] ") << "castro.hybrid_hydro = " << Castro::hybrid_hydro << std::endl;
 jobInfoFile << (Castro::ppm_type == 1 ? "    " : "[*] ") << "castro.ppm_type = " << Castro::ppm_type << std::endl;
