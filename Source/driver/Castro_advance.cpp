@@ -813,7 +813,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // Add the source term predictor.
     // This must happen before the swap.
 
-    if (time_integration_method == CornerTransportUpwind) {
+    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
         apply_source_term_predictor();
     }
 
