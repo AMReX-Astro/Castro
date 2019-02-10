@@ -259,7 +259,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 #if AMREX_SPACEDIM == 3
   MultiFab qmxy;
   qmxy.define(grids, dmap, NQ, 2);
-;
+
   MultiFab qpxy;
   qpxy.define(grids, dmap, NQ, 2);
 
