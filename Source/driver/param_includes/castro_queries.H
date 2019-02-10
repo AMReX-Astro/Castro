@@ -45,6 +45,7 @@ pp.query("small_ener", small_ener);
 pp.query("do_hydro", do_hydro);
 pp.query("time_integration_method", time_integration_method);
 pp.query("fourth_order", fourth_order);
+pp.query("limit_fourth_order", limit_fourth_order);
 pp.query("add_ext_src", add_ext_src);
 pp.query("hybrid_hydro", hybrid_hydro);
 pp.query("ppm_type", ppm_type);

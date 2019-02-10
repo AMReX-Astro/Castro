@@ -62,6 +62,9 @@ time_integration_method      int           0                  y
 # do we do fourth-order accurate MOL hydro?
 fourth_order                 int           0                  y
 
+# do we use a limiter with the fourth-order accurate reconstruction?
+limit_fourth_order           int           1                  y
+
 # if true, define an additional source term
 add_ext_src                  int           0
 
