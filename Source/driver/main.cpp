@@ -170,14 +170,7 @@ main (int   argc,
 	}
 
         if (amrptr->stepOfLastSmallPlotFile() < amrptr->levelSteps(0)) {
-
-            // We want to be sure here that the user is actually requesting
-            // small plots, we can check this if the last small plot file
-            // is non-negative.
-
-            if (amrptr->stepOfLastSmallPlotFile() >= 0)
-                amrptr->writeSmallPlotFile();
-
+            amrptr->writeSmallPlotFile();
         }
 
     }
