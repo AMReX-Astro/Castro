@@ -16,7 +16,6 @@ Castro::apply_source_to_state(int is_new, MultiFab& target_state, MultiFab& sour
     MultiFab::Saxpy(target_state, dt, source, 0, 0, NUM_STATE, ng);
 
     clean_state(is_new, target_state.nGrow());
-
 }
 
 void
