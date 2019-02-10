@@ -299,12 +299,28 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 
 
-#if AMREX_SPACEDIM == 1
 #ifdef _OPENMP
-#pragma omp parallel
+#ifdef RADIATION
+#pragma omp parallel reduction(max:nstep_fsp) \
+                     reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
+                     reduction(+:eden_lost,xang_lost,yang_lost,zang_lost)
 #endif
+#else
+#pragma omp parallel
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
+                     reduction(+:eden_lost,xang_lost,yang_lost,zang_lost)
+#endif
+#endif
+  {
+
+#ifdef RADIATION
+  int priv_nstep_fsp = -1;
+#endif
+
   for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
+#if AMREX_SPACEDIM == 1
     const Box& nxbx = mfi.nodaltilebox(0);
 
     cmpflx_plus_godunov(ARLIM_3D(nxbx.loVect()), ARLIM_3D(nxbx.hiVect()),
@@ -321,20 +337,15 @@ Castro::construct_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(shk[mfi]),
                         1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
 
-  }
-
 #endif // 1-d
+
+
 
 #if AMREX_SPACEDIM == 2
 
-  const amrex::Real hdt = 0.5*dt;
-  const amrex::Real hdtdx = 0.5*dt/dx[0];
-  const amrex::Real hdtdy = 0.5*dt/dx[1];
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+    const amrex::Real hdt = 0.5*dt;
+    const amrex::Real hdtdx = 0.5*dt/dx[0];
+    const amrex::Real hdtdy = 0.5*dt/dx[1];
 
     // compute F^x
     // [lo(1), lo(2)-1, 0], [hi(1)+1, hi(2)+1, 0]
@@ -451,27 +462,22 @@ Castro::construct_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(shk[mfi]),
                         2, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
-  }
-
-
 #endif // 2-d
+
+
 
 #if AMREX_SPACEDIM == 3
 
-  const amrex::Real hdt = 0.5*dt;
+    const amrex::Real hdt = 0.5*dt;
 
-  const amrex::Real hdtdx = 0.5*dt/dx[0];
-  const amrex::Real hdtdy = 0.5*dt/dx[1];
-  const amrex::Real hdtdz = 0.5*dt/dx[2];
+    const amrex::Real hdtdx = 0.5*dt/dx[0];
+    const amrex::Real hdtdy = 0.5*dt/dx[1];
+    const amrex::Real hdtdz = 0.5*dt/dx[2];
 
-  const amrex::Real cdtdx = dt/dx[0]/3.0;
-  const amrex::Real cdtdy = dt/dx[1]/3.0;
-  const amrex::Real cdtdz = dt/dx[2]/3.0;
+    const amrex::Real cdtdx = dt/dx[0]/3.0;
+    const amrex::Real cdtdy = dt/dx[1]/3.0;
+    const amrex::Real cdtdz = dt/dx[2]/3.0;
 
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
     // compute F^x
     // [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1]
     const Box& cxbx = mfi.grownnodaltilebox(0, IntVect(AMREX_D_DECL(0,1,1)));
@@ -899,96 +905,70 @@ Castro::construct_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(shk[mfi]),
                         3, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
 
-  }
-
 #endif // 3-d
 
 
-  // clean the fluxes 
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+    // clean the fluxes
 
     for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
-      const Box& nbx = mfi.nodaltilebox(idir);
+        const Box& nbx = mfi.nodaltilebox(idir);
 
-      int idir_f = idir + 1;
+        int idir_f = idir + 1;
 
-      ctu_clean_fluxes(ARLIM_3D(nbx.loVect()), ARLIM_3D(nbx.hiVect()),
-                       idir_f,
-                       BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-                       BL_TO_FORTRAN_ANYD(q[mfi]),
-                       BL_TO_FORTRAN_ANYD(flux[idir][mfi]),
-#ifdef RADIATION
-                       BL_TO_FORTRAN_ANYD(Erborder[mfi]),
-                       BL_TO_FORTRAN_ANYD(rad_flux[idir][mfi]),
-#endif
-                       BL_TO_FORTRAN_ANYD(area[idir][mfi]),
-                       BL_TO_FORTRAN_ANYD(volume[mfi]),
-                       BL_TO_FORTRAN_ANYD(div[mfi]),
-                       ZFILL(dx), dt);
+        ctu_clean_fluxes(ARLIM_3D(nbx.loVect()), ARLIM_3D(nbx.hiVect()),
+                         idir_f,
+                         BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+                         BL_TO_FORTRAN_ANYD(q[mfi]),
+                         BL_TO_FORTRAN_ANYD(flux[idir][mfi]),
+    #ifdef RADIATION
+                         BL_TO_FORTRAN_ANYD(Erborder[mfi]),
+                         BL_TO_FORTRAN_ANYD(rad_flux[idir][mfi]),
+    #endif
+                         BL_TO_FORTRAN_ANYD(area[idir][mfi]),
+                         BL_TO_FORTRAN_ANYD(volume[mfi]),
+                         BL_TO_FORTRAN_ANYD(div[mfi]),
+                         ZFILL(dx), dt);
+
     }
-  }
 
 
-  // conservative update
-#ifdef _OPENMP
+
+    // conservative update
+
+    const Box& bx = mfi.tilebox();
+
+    ctu_consup(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+               BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+               BL_TO_FORTRAN_ANYD(q[mfi]),
+               BL_TO_FORTRAN_ANYD(shk[mfi]),
+               BL_TO_FORTRAN_ANYD(S_new[mfi]),
+               BL_TO_FORTRAN_ANYD(hydro_source[mfi]),
+               D_DECL(BL_TO_FORTRAN_ANYD(flux[0][mfi]),
+                      BL_TO_FORTRAN_ANYD(flux[1][mfi]),
+                      BL_TO_FORTRAN_ANYD(flux[2][mfi])),
 #ifdef RADIATION
-#pragma omp parallel reduction(max:nstep_fsp)
-#else
-#pragma omp parallel
+               BL_TO_FORTRAN_ANYD(Erborder[mfi]),
+               BL_TO_FORTRAN_ANYD(Er_new[mfi]),
+               D_DECL(BL_TO_FORTRAN_ANYD(rad_flux[0][mfi]),
+                      BL_TO_FORTRAN_ANYD(rad_flux[1][mfi]),
+                      BL_TO_FORTRAN_ANYD(rad_flux[2][mfi])),
+               &priv_nstep_fsp,
 #endif
-#endif
-  {
-
-    int priv_nstep_fsp = -1;
-
-    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
-      const Box& bx = mfi.tilebox();
-
-      ctu_consup(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                 BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-                 BL_TO_FORTRAN_ANYD(q[mfi]),
-                 BL_TO_FORTRAN_ANYD(shk[mfi]),
-                 BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                 BL_TO_FORTRAN_ANYD(hydro_source[mfi]),
-                 D_DECL(BL_TO_FORTRAN_ANYD(flux[0][mfi]),
-                        BL_TO_FORTRAN_ANYD(flux[1][mfi]),
-                        BL_TO_FORTRAN_ANYD(flux[2][mfi])),
-#ifdef RADIATION
-                 BL_TO_FORTRAN_ANYD(Erborder[mfi]),
-                 BL_TO_FORTRAN_ANYD(Er_new[mfi]),
-                 D_DECL(BL_TO_FORTRAN_ANYD(rad_flux[0][mfi]),
-                        BL_TO_FORTRAN_ANYD(rad_flux[1][mfi]),
-                        BL_TO_FORTRAN_ANYD(rad_flux[2][mfi])),
-                 &priv_nstep_fsp,
-#endif
-                 D_DECL(BL_TO_FORTRAN_ANYD(qe[0][mfi]),
-                        BL_TO_FORTRAN_ANYD(qe[1][mfi]),
-                        BL_TO_FORTRAN_ANYD(qe[2][mfi])),
-                 D_DECL(BL_TO_FORTRAN_ANYD(area[0][mfi]),
-                        BL_TO_FORTRAN_ANYD(area[1][mfi]),
-                        BL_TO_FORTRAN_ANYD(area[2][mfi])),
-                 BL_TO_FORTRAN_ANYD(volume[mfi]),
-                 BL_TO_FORTRAN_ANYD(pdivu[mfi]),
-                 ZFILL(dx), dt);
-    } // MFIter loop
+               D_DECL(BL_TO_FORTRAN_ANYD(qe[0][mfi]),
+                      BL_TO_FORTRAN_ANYD(qe[1][mfi]),
+                      BL_TO_FORTRAN_ANYD(qe[2][mfi])),
+               D_DECL(BL_TO_FORTRAN_ANYD(area[0][mfi]),
+                      BL_TO_FORTRAN_ANYD(area[1][mfi]),
+                      BL_TO_FORTRAN_ANYD(area[2][mfi])),
+               BL_TO_FORTRAN_ANYD(volume[mfi]),
+               BL_TO_FORTRAN_ANYD(pdivu[mfi]),
+               ZFILL(dx), dt);
 
 #ifdef RADIATION
     nstep_fsp = std::max(nstep_fsp, priv_nstep_fsp);
 #endif
-
-  } // OMP region
-
-
-
-  // scale the fluxes and store them
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
     for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
@@ -1047,25 +1027,21 @@ Castro::construct_hydro_source(Real time, Real dt)
     }
 #endif
 
-  }
+    if (track_grid_losses == 1) {
 
+        const Box& bx = mfi.tilebox();
 
-  if (track_grid_losses == 1) {
-#ifdef _OPENMP
-#pragma omp parallel reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
-                     reduction(+:eden_lost,xang_lost,yang_lost,zang_lost)
-#endif
-    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
-      const Box& bx = mfi.tilebox();
-
-      ca_track_grid_losses(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                           D_DECL(BL_TO_FORTRAN_ANYD(flux[0][mfi]),
-                                  BL_TO_FORTRAN_ANYD(flux[1][mfi]),
-                                  BL_TO_FORTRAN_ANYD(flux[2][mfi])),
-                           mass_lost, xmom_lost, ymom_lost, zmom_lost,
-                           eden_lost, xang_lost, yang_lost, zang_lost);
+        ca_track_grid_losses(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+                             D_DECL(BL_TO_FORTRAN_ANYD(flux[0][mfi]),
+                                    BL_TO_FORTRAN_ANYD(flux[1][mfi]),
+                                    BL_TO_FORTRAN_ANYD(flux[2][mfi])),
+                             mass_lost, xmom_lost, ymom_lost, zmom_lost,
+                             eden_lost, xang_lost, yang_lost, zang_lost);
     }
-  }
+
+  } // MFIter loop
+
+  } // OMP loop
 
 
   BL_PROFILE_VAR_STOP(CA_UMDRV);
