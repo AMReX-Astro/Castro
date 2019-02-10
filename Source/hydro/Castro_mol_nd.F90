@@ -46,7 +46,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
   use flatten_module, only: ca_uflatten
   use riemann_module, only: cmpflx
-
+  use slope_module, only : uslope
   use riemann_util_module, only : ca_store_godunov_state
   use ppm_module, only : ca_ppm_reconstruct
   use amrex_fort_module, only : rt => amrex_real
@@ -138,9 +138,11 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   ! temporary interface values of the parabola
   real(rt)        , pointer :: qm(:,:,:,:,:), qp(:,:,:,:,:)
+  real(rt)        , pointer :: dq(:,:,:,:,:)
 
   integer :: ngf
   integer :: It_lo(3), It_hi(3)
+  integer :: dq_lo(3), dq_hi(3)
   integer :: shk_lo(3), shk_hi(3)
 
   integer :: idir, i, j, k, n
@@ -151,6 +153,9 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   It_lo = lo(:) - dg(:)
   It_hi = hi(:) + 2*dg(:)
+
+  dq_lo = lo(:) - 2*dg(:)
+  dq_hi = hi(:) + 2*dg(:)
 
   shk_lo(:) = lo(:) - dg(:)
   shk_hi(:) = hi(:) + dg(:)
@@ -181,17 +186,15 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #endif
 #endif
 
+
+  if (ppm_type == 0) then
+     call bl_allocate ( dq, dq_lo(1),dq_hi(1), dq_lo(2),dq_hi(2), dq_lo(3),dq_hi(3), 1, NQ, 1, AMREX_SPACEDIM)
+  end if
+
   call bl_allocate(qm, It_lo(1),It_hi(1), It_lo(2),It_hi(2), It_lo(3),It_hi(3), 1,NQ, 1,AMREX_SPACEDIM)
   call bl_allocate(qp, It_lo(1),It_hi(1), It_lo(2),It_hi(2), It_lo(3),It_hi(3), 1,NQ, 1,AMREX_SPACEDIM)
 
-
   call bl_allocate(shk, shk_lo, shk_hi)
-
-#ifndef AMREX_USE_CUDA
-  if (ppm_type == 0) then
-     call amrex_error("ERROR: method of lines integration does not support ppm_type = 0")
-  endif
-#endif
 
 #ifdef SHOCK_VAR
   uout(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), USHK) = ZERO
@@ -236,18 +239,77 @@ subroutine ca_mol_single_stage(lo, hi, time, &
      flatn = ZERO
   elseif (use_flattening == 1) then
      call ca_uflatten(lo - ngf*dg, hi + ngf*dg, &
-          q, q_lo, q_hi, &
-          flatn, q_lo, q_hi, QPRES)
+                      q, q_lo, q_hi, &
+                      flatn, q_lo, q_hi, QPRES)
   else
      flatn = ONE
   endif
 
 
-  call ca_ppm_reconstruct(lo-dg, hi+dg, 1, &
-       q, q_lo, q_hi, NQ, 1, NQ, &
-       flatn, q_lo, q_hi, &
-       qm, It_lo, It_hi, &
-       qp, It_lo, It_hi, NQ, 1, NQ)
+
+  if (ppm_type == 0)  then
+     do n = 1, NQ
+        ! piecewise linear slopes
+        call uslope(lo-dg, hi+dg, &
+                    q, q_lo, q_hi, n, &
+                    flatn, q_lo, q_hi, &
+                    dq, dq_lo, dq_hi)
+     end do
+
+     do n = 1, NQ
+
+        ! extrapolate to the two edges for each zone
+        ! TODO: I think we don't need these loops this big
+        do k = lo(3)-dg(3), hi(3)+dg(3)
+           do j = lo(2)-dg(2), hi(2)+dg(2)
+              do i = lo(1)-1, hi(1)+1
+
+                 ! x-edges
+                 if (i >= lo(1)) then
+                    ! left state at i-1/2 interface
+                    qm(i,j,k,n,1) = q(i-1,j,k,n) + HALF*dq(i-1,j,k,n,1)
+
+                    ! right state at i-1/2 interface
+                    qp(i,j,k,n,1) = q(i,j,k,n) - HALF*dq(i,j,k,n,1)
+                 end if
+
+#if BL_SPACEDIM >= 2
+                 ! y-edges
+                 if (j >= lo(2)) then
+                    ! left state at j-1/2 interface
+                    qm(i,j,k,n,2) = q(i,j-1,k,n) + HALF*dq(i,j-1,k,n,2)
+
+                    ! right state at j-1/2 interface
+                    qp(i,j,k,n,2) = q(i,j,k,n) - HALF*dq(i,j,k,n,2)
+                 end if
+#endif
+
+#if BL_SPACEDIM == 3
+                 ! z-edges
+                 if (k >= lo(3)) then
+
+                    ! left state at k-1/2 interface
+                    qm(i,j,k,n,3) = q(i,j,k,n) + HALF*dq(i,j,k,n,3)
+
+                    ! right state at k-1/2 interface
+                    qp(i,j,k,n,3) = q(i,j,k,n) - HALF*dq(i,j,k,n,3)
+                 end if
+#endif
+
+              end do
+           end do
+        end do
+
+     end do
+  else
+
+     call ca_ppm_reconstruct(lo-dg, hi+dg, 1, &
+                             q, q_lo, q_hi, NQ, 1, NQ, &
+                             flatn, q_lo, q_hi, &
+                             qm, It_lo, It_hi, &
+                             qp, It_lo, It_hi, NQ, 1, NQ)
+
+  end if
 
   ! use T to define p
   if (ppm_temp_fix == 1) then
@@ -357,14 +419,19 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   call bl_deallocate(flatn)
 
+
+  if (ppm_type == 0) then
+     call bl_deallocate(dq)
+  end if
+
   call bl_deallocate(qm)
   call bl_deallocate(qp)
-
 
   call bl_deallocate(q_int)
 #ifdef RADIATION
   call bl_deallocate(lambda_int)
 #endif
+
   call bl_deallocate(shk)
 
 
