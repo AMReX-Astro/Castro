@@ -1,5 +1,9 @@
 # changes since the last release
 
+  -- The input parameter castro.do_ctu has been renamed
+     castro.time_integration_method. The current legal values
+     are 0 (CTU, the default) and 1 (MOL).
+
   -- fixed a bug in the ppm_type = 1 reconstruction -- we were not
      doing the initial reconstruction of temperature
 
