@@ -122,9 +122,6 @@ Castro::construct_hydro_source(Real time, Real dt)
   qpzy.define(grids, dmap, NQ, 2);
 #endif
 
-  MultiFab pdivu;
-  pdivu.define(grids, dmap, 1, 0);
-
 #ifdef _OPENMP
 #ifdef RADIATION
 #pragma omp parallel reduction(max:nstep_fsp) \
@@ -896,6 +893,8 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 
 
+      AsyncFab pdivu(bx, 1);
+
       // conservative update
 
       ctu_consup(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
@@ -922,8 +921,10 @@ Castro::construct_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(area[1][mfi]),
                         BL_TO_FORTRAN_ANYD(area[2][mfi])),
                  BL_TO_FORTRAN_ANYD(volume[mfi]),
-                 BL_TO_FORTRAN_ANYD(pdivu[mfi]),
+                 BL_TO_FORTRAN_ANYD(pdivu.hostFab()),
                  ZFILL(dx), dt);
+
+      pdivu.clear();
 
   #ifdef RADIATION
       nstep_fsp = std::max(nstep_fsp, priv_nstep_fsp);
