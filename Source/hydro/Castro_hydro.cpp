@@ -335,6 +335,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 #pragma omp parallel
 #endif
   for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
     // compute F^x
     // [lo(1), lo(2)-1, 0], [hi(1)+1, hi(2)+1, 0]
     const Box& cxbx = mfi.grownnodaltilebox(0, IntVect(AMREX_D_DECL(0,1,0)));
@@ -355,12 +356,6 @@ Castro::construct_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(shk[mfi]),
                         1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
-  }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
     // compute F^y
     // [lo(1)-1, lo(2), 0], [hi(1)+1, hi(2)+1, 0]
@@ -381,22 +376,15 @@ Castro::construct_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(shk[mfi]),
                         2, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
-  }
-
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
     // add the transverse flux difference in y to the x states
 
     // [lo(1), lo(2), 0], [hi(1)+1, hi(2), 0]
-    const Box& nbx = mfi.nodaltilebox(0);
+    const Box& nxbx = mfi.nodaltilebox(0);
 
     // ftmp2 = fy
     // rftmp2 = rfy
-    transy_on_xstates(ARLIM_3D(nbx.loVect()), ARLIM_3D(nbx.hiVect()),
+    transy_on_xstates(ARLIM_3D(nxbx.loVect()), ARLIM_3D(nxbx.hiVect()),
                       BL_TO_FORTRAN_ANYD(qxm[mfi]),
                       BL_TO_FORTRAN_ANYD(ql[mfi]),
                       BL_TO_FORTRAN_ANYD(qxp[mfi]),
@@ -411,7 +399,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
     // solve the final Riemann problem axross the x-interfaces
 
-    cmpflx_plus_godunov(ARLIM_3D(nbx.loVect()), ARLIM_3D(nbx.hiVect()),
+    cmpflx_plus_godunov(ARLIM_3D(nxbx.loVect()), ARLIM_3D(nxbx.hiVect()),
                         BL_TO_FORTRAN_ANYD(ql[mfi]),
                         BL_TO_FORTRAN_ANYD(qr[mfi]), 1, 1,
                         BL_TO_FORTRAN_ANYD(flux[0][mfi]),
@@ -424,23 +412,16 @@ Castro::construct_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(shk[mfi]),
                         1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
-  }
-
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
     // add the transverse flux difference in x to the y states
     // [lo(1), lo(2)-1, 0], [hi(1), hi(2)+1, 0]
-    const Box& nbx = mfi.nodaltilebox(1);
+    const Box& nybx = mfi.nodaltilebox(1);
 
     // ftmp1 = fx
     // rftmp1 = rfx
     // qgdnvtmp1 = qgdnvx
 
-    transx_on_ystates(ARLIM_3D(nbx.loVect()), ARLIM_3D(nbx.hiVect()),
+    transx_on_ystates(ARLIM_3D(nybx.loVect()), ARLIM_3D(nybx.hiVect()),
                       BL_TO_FORTRAN_ANYD(qym[mfi]),
                       BL_TO_FORTRAN_ANYD(ql[mfi]),
                       BL_TO_FORTRAN_ANYD(qyp[mfi]),
@@ -457,7 +438,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
     // solve the final Riemann problem axross the y-interfaces
 
-    cmpflx_plus_godunov(ARLIM_3D(nbx.loVect()), ARLIM_3D(nbx.hiVect()),
+    cmpflx_plus_godunov(ARLIM_3D(nybx.loVect()), ARLIM_3D(nybx.hiVect()),
                         BL_TO_FORTRAN_ANYD(ql[mfi]),
                         BL_TO_FORTRAN_ANYD(qr[mfi]), 1, 1,
                         BL_TO_FORTRAN_ANYD(flux[1][mfi]),
@@ -511,20 +492,14 @@ Castro::construct_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(shk[mfi]),
                         1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
-  }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
     // [lo(1), lo(2), lo(3)-1], [hi(1), hi(2)+1, hi(3)+1]
-    const Box& txbx = mfi.grownnodaltilebox(1, IntVect(AMREX_D_DECL(0,0,1)));
+    const Box& txybx = mfi.grownnodaltilebox(1, IntVect(AMREX_D_DECL(0,0,1)));
 
     // ftmp1 = fx
     // rftmp1 = rfx
     // qgdnvtmp1 = qgdnvx
-    transx_on_ystates(ARLIM_3D(txbx.loVect()), ARLIM_3D(txbx.hiVect()),
+    transx_on_ystates(ARLIM_3D(txybx.loVect()), ARLIM_3D(txybx.hiVect()),
                       BL_TO_FORTRAN_ANYD(qym[mfi]),
                       BL_TO_FORTRAN_ANYD(qmyx[mfi]),
                       BL_TO_FORTRAN_ANYD(qyp[mfi]),
@@ -537,17 +512,10 @@ Castro::construct_hydro_source(Real time, Real dt)
                       BL_TO_FORTRAN_ANYD(qgdnvtmp1[mfi]),
                       hdt, cdtdx);
 
-  }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
-
     // [lo(1), lo(2)-1, lo(3)], [hi(1), hi(2)+1, hi(3)+1]
-    const Box& txbx = mfi.grownnodaltilebox(2, IntVect(AMREX_D_DECL(0,1,0)));
+    const Box& txzbx = mfi.grownnodaltilebox(2, IntVect(AMREX_D_DECL(0,1,0)));
 
-    transx_on_zstates(ARLIM_3D(txbx.loVect()), ARLIM_3D(txbx.hiVect()),
+    transx_on_zstates(ARLIM_3D(txzbx.loVect()), ARLIM_3D(txzbx.hiVect()),
                       BL_TO_FORTRAN_ANYD(qzm[mfi]),
                       BL_TO_FORTRAN_ANYD(qmzx[mfi]),
                       BL_TO_FORTRAN_ANYD(qzp[mfi]),
@@ -559,13 +527,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
                       BL_TO_FORTRAN_ANYD(qgdnvtmp1[mfi]),
                       hdt, cdtdx);
-
-  }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
     // compute F^y
     // [lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1]
@@ -587,20 +548,14 @@ Castro::construct_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(shk[mfi]),
                         2, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
-  }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
     // [lo(1), lo(2), lo(3)-1], [hi(1)+1, hi(2), lo(3)+1]
-    const Box& tybx = mfi.grownnodaltilebox(0, IntVect(AMREX_D_DECL(0,0,1)));
+    const Box& tyxbx = mfi.grownnodaltilebox(0, IntVect(AMREX_D_DECL(0,0,1)));
 
     // ftmp1 = fy
     // rftmp1 = rfy
     // qgdnvtmp1 = qgdnvy
-    transy_on_xstates(ARLIM_3D(tybx.loVect()), ARLIM_3D(tybx.hiVect()),
+    transy_on_xstates(ARLIM_3D(tyxbx.loVect()), ARLIM_3D(tyxbx.hiVect()),
                       BL_TO_FORTRAN_ANYD(qxm[mfi]),
                       BL_TO_FORTRAN_ANYD(qmxy[mfi]),
                       BL_TO_FORTRAN_ANYD(qxp[mfi]),
@@ -612,20 +567,14 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
                       BL_TO_FORTRAN_ANYD(qgdnvtmp1[mfi]),
                       cdtdy);
-  }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
     // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), lo(3)+1]
-    const Box& tybx = mfi.grownnodaltilebox(2, IntVect(AMREX_D_DECL(1,0,0)));
+    const Box& tyzbx = mfi.grownnodaltilebox(2, IntVect(AMREX_D_DECL(1,0,0)));
 
     // ftmp1 = fy
     // rftmp1 = rfy
     // qgdnvtmp1 = qgdnvy
-    transy_on_zstates(ARLIM_3D(tybx.loVect()), ARLIM_3D(tybx.hiVect()),
+    transy_on_zstates(ARLIM_3D(tyzbx.loVect()), ARLIM_3D(tyzbx.hiVect()),
                       BL_TO_FORTRAN_ANYD(qzm[mfi]),
                       BL_TO_FORTRAN_ANYD(qmzy[mfi]),
                       BL_TO_FORTRAN_ANYD(qzp[mfi]),
@@ -637,12 +586,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
                       BL_TO_FORTRAN_ANYD(qgdnvtmp1[mfi]),
                       cdtdy);
-  }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
     // compute F^z
     // [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1]
@@ -664,20 +607,14 @@ Castro::construct_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(shk[mfi]),
                         3, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
-  }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
     // [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, lo(3)]
-    const Box& tzbx = mfi.grownnodaltilebox(0, IntVect(AMREX_D_DECL(0,1,0)));
+    const Box& tzxbx = mfi.grownnodaltilebox(0, IntVect(AMREX_D_DECL(0,1,0)));
 
     // ftmp1 = fz
     // rftmp1 = rfz
     // qgdnvtmp1 = qgdnvz
-    transz_on_xstates(ARLIM_3D(tzbx.loVect()), ARLIM_3D(tzbx.hiVect()),
+    transz_on_xstates(ARLIM_3D(tzxbx.loVect()), ARLIM_3D(tzxbx.hiVect()),
                       BL_TO_FORTRAN_ANYD(qxm[mfi]),
                       BL_TO_FORTRAN_ANYD(qmxz[mfi]),
                       BL_TO_FORTRAN_ANYD(qxp[mfi]),
@@ -689,20 +626,14 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
                       BL_TO_FORTRAN_ANYD(qgdnvtmp1[mfi]),
                       cdtdz);
-  }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
     // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+1, lo(3)]
-    const Box& tzbx = mfi.grownnodaltilebox(1, IntVect(AMREX_D_DECL(1,0,0)));
+    const Box& tzybx = mfi.grownnodaltilebox(1, IntVect(AMREX_D_DECL(1,0,0)));
 
     // ftmp1 = fz
     // rftmp1 = rfz
     // qgdnvtmp1 = qgdnvz
-    transz_on_ystates(ARLIM_3D(tzbx.loVect()), ARLIM_3D(tzbx.hiVect()),
+    transz_on_ystates(ARLIM_3D(tzybx.loVect()), ARLIM_3D(tzybx.hiVect()),
                       BL_TO_FORTRAN_ANYD(qym[mfi]),
                       BL_TO_FORTRAN_ANYD(qmyz[mfi]),
                       BL_TO_FORTRAN_ANYD(qyp[mfi]),
@@ -714,28 +645,21 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
                       BL_TO_FORTRAN_ANYD(qgdnvtmp1[mfi]),
                       cdtdz);
-  }
 
+    // we now have q?zx, q?yx, q?zy, q?xy, q?yz, q?xz
 
-  // we now have q?zx, q?yx, q?zy, q?xy, q?yz, q?xz
-
-  //
-  // Use qx?, q?yz, q?zy to compute final x-flux
-  //
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+    //
+    // Use qx?, q?yz, q?zy to compute final x-flux
+    //
 
     // compute F^{y|z}
     // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+1, hi(3)]
-    const Box& cybx = mfi.grownnodaltilebox(1, IntVect(AMREX_D_DECL(1,0,0)));
+    const Box& cyzbx = mfi.grownnodaltilebox(1, IntVect(AMREX_D_DECL(1,0,0)));
 
     // ftmp1 = fyz
     // rftmp1 = rfyz
     // qgdnvtmp1 = qgdnvyz
-    cmpflx_plus_godunov(ARLIM_3D(cybx.loVect()), ARLIM_3D(cybx.hiVect()),
+    cmpflx_plus_godunov(ARLIM_3D(cyzbx.loVect()), ARLIM_3D(cyzbx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qmyz[mfi]),
                         BL_TO_FORTRAN_ANYD(qpyz[mfi]), 1, 1,
                         BL_TO_FORTRAN_ANYD(ftmp1[mfi]),
@@ -748,18 +672,15 @@ Castro::construct_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(shk[mfi]),
                         2, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
-  }
-
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
     // compute F^{z|y}
     // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+1]
-    const Box& czbx = mfi.grownnodaltilebox(2, IntVect(AMREX_D_DECL(1,0,0)));
+    const Box& czybx = mfi.grownnodaltilebox(2, IntVect(AMREX_D_DECL(1,0,0)));
 
     // ftmp2 = fzy
     // rftmp2 = rfzy
     // qgdnvtmp2 = qgdnvzy
-    cmpflx_plus_godunov(ARLIM_3D(czbx.loVect()), ARLIM_3D(czbx.hiVect()),
+    cmpflx_plus_godunov(ARLIM_3D(czybx.loVect()), ARLIM_3D(czybx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qmzy[mfi]),
                         BL_TO_FORTRAN_ANYD(qpzy[mfi]), 1, 1,
                         BL_TO_FORTRAN_ANYD(ftmp2[mfi]),
@@ -772,18 +693,12 @@ Castro::construct_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(shk[mfi]),
                         3, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
-  }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
     // compute the corrected x interface states and fluxes
     // [lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)]
-    const Box& cxbx = mfi.nodaltilebox(0);
+    const Box& fcxbx = mfi.nodaltilebox(0);
 
-    transyz(ARLIM_3D(cxbx.loVect()), ARLIM_3D(cxbx.hiVect()),
+    transyz(ARLIM_3D(fcxbx.loVect()), ARLIM_3D(fcxbx.hiVect()),
             BL_TO_FORTRAN_ANYD(qxm[mfi]),
             BL_TO_FORTRAN_ANYD(ql[mfi]),
             BL_TO_FORTRAN_ANYD(qxp[mfi]),
@@ -814,28 +729,19 @@ Castro::construct_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(shk[mfi]),
                         1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
-  }
 
-
-  //
-  // Use qy?, q?zx, q?xz to compute final y-flux
-  //
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
-
-    const Box& bx = mfi.validbox();
+    //
+    // Use qy?, q?zx, q?xz to compute final y-flux
+    //
 
     // compute F^{z|x}
     // [lo(1), lo(2)-1, lo(3)], [hi(1), hi(2)+1, hi(3)+1]
-    const Box& czbx = mfi.grownnodaltilebox(2, IntVect(AMREX_D_DECL(0,1,0)));
+    const Box& czxbx = mfi.grownnodaltilebox(2, IntVect(AMREX_D_DECL(0,1,0)));
 
     // ftmp1 = fzx
     // rftmp1 = rfzx
     // qgdnvtmp1 = qgdnvzx
-    cmpflx_plus_godunov(ARLIM_3D(czbx.loVect()), ARLIM_3D(czbx.hiVect()),
+    cmpflx_plus_godunov(ARLIM_3D(czxbx.loVect()), ARLIM_3D(czxbx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qmzx[mfi]),
                         BL_TO_FORTRAN_ANYD(qpzx[mfi]), 1, 1,
                         BL_TO_FORTRAN_ANYD(ftmp1[mfi]),
@@ -848,23 +754,15 @@ Castro::construct_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(shk[mfi]),
                         3, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
-  }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
-
-    const Box& bx = mfi.validbox();
 
     // compute F^{x|z}
     // [lo(1), lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)]
-    const Box& cxbx = mfi.grownnodaltilebox(0, IntVect(AMREX_D_DECL(0,1,0)));
+    const Box& cxzbx = mfi.grownnodaltilebox(0, IntVect(AMREX_D_DECL(0,1,0)));
 
     // ftmp2 = fxz
     // rftmp2 = rfxz
     // qgdnvtmp2 = qgdnvxz
-    cmpflx_plus_godunov(ARLIM_3D(cxbx.loVect()), ARLIM_3D(cxbx.hiVect()),
+    cmpflx_plus_godunov(ARLIM_3D(cxzbx.loVect()), ARLIM_3D(cxzbx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qmxz[mfi]),
                         BL_TO_FORTRAN_ANYD(qpxz[mfi]), 1, 1,
                         BL_TO_FORTRAN_ANYD(ftmp2[mfi]),
@@ -877,18 +775,12 @@ Castro::construct_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(shk[mfi]),
                         1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
-  }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
     // Compute the corrected y interface states and fluxes
     // [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)]
-    const Box& cybx = mfi.nodaltilebox(1);
+    const Box& fcybx = mfi.nodaltilebox(1);
 
-    transxz(ARLIM_3D(cybx.loVect()), ARLIM_3D(cybx.hiVect()),
+    transxz(ARLIM_3D(fcybx.loVect()), ARLIM_3D(fcybx.hiVect()),
             BL_TO_FORTRAN_ANYD(qym[mfi]),
             BL_TO_FORTRAN_ANYD(ql[mfi]),
             BL_TO_FORTRAN_ANYD(qyp[mfi]),
@@ -922,26 +814,18 @@ Castro::construct_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(shk[mfi]),
                         2, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
 
-  }
-
-
-  //
-  // Use qz?, q?xy, q?yx to compute final z-flux
-  //
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+    //
+    // Use qz?, q?xy, q?yx to compute final z-flux
+    //
 
     // compute F^{x|y}
     // [lo(1), lo(2), lo(3)-1], [hi(1)+1, hi(2), hi(3)+1]
-    const Box& cxbx = mfi.grownnodaltilebox(0, IntVect(AMREX_D_DECL(0,0,1)));
+    const Box& cxybx = mfi.grownnodaltilebox(0, IntVect(AMREX_D_DECL(0,0,1)));
 
     // ftmp1 = fxy
     // rftmp1 = rfxy
     // qgdnvtmp1 = qgdnvxy
-    cmpflx_plus_godunov(ARLIM_3D(cxbx.loVect()), ARLIM_3D(cxbx.hiVect()),
+    cmpflx_plus_godunov(ARLIM_3D(cxybx.loVect()), ARLIM_3D(cxybx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qmxy[mfi]),
                         BL_TO_FORTRAN_ANYD(qpxy[mfi]), 1, 1,
                         BL_TO_FORTRAN_ANYD(ftmp1[mfi]),
@@ -955,22 +839,14 @@ Castro::construct_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(shk[mfi]),
                         1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
 
-  }
-
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
-
     // compute F^{y|x}
     // [lo(1), lo(2), lo(3)-1], [hi(1), hi(2)+dg(2), hi(3)+1]
-    const Box& cybx = mfi.grownnodaltilebox(1, IntVect(AMREX_D_DECL(0,0,1)));
+    const Box& cyxbx = mfi.grownnodaltilebox(1, IntVect(AMREX_D_DECL(0,0,1)));
 
     // ftmp2 = fyx
     // rftmp2 = rfyx
     // qgdnvtmp2 = qgdnvyx
-    cmpflx_plus_godunov(ARLIM_3D(cybx.loVect()), ARLIM_3D(cybx.hiVect()),
+    cmpflx_plus_godunov(ARLIM_3D(cyxbx.loVect()), ARLIM_3D(cyxbx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qmyx[mfi]),
                         BL_TO_FORTRAN_ANYD(qpyx[mfi]), 1, 1,
                         BL_TO_FORTRAN_ANYD(ftmp2[mfi]),
@@ -984,19 +860,11 @@ Castro::construct_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(shk[mfi]),
                         2, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
 
-  }
-
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
-
     // compute the corrected z interface states and fluxes
     // [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1]
-    const Box& czbx =  mfi.nodaltilebox(2);
+    const Box& fczbx =  mfi.nodaltilebox(2);
 
-    transxy(ARLIM_3D(czbx.loVect()), ARLIM_3D(czbx.hiVect()),
+    transxy(ARLIM_3D(fczbx.loVect()), ARLIM_3D(fczbx.hiVect()),
             BL_TO_FORTRAN_ANYD(qzm[mfi]),
             BL_TO_FORTRAN_ANYD(ql[mfi]),
             BL_TO_FORTRAN_ANYD(qzp[mfi]),
@@ -1032,7 +900,6 @@ Castro::construct_hydro_source(Real time, Real dt)
                         3, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
 
   }
-
 
 #endif // 3-d
 
