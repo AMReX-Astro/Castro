@@ -58,47 +58,11 @@ Castro::construct_hydro_source(Real time, Real dt)
   // temporaries that are needed within the routines below.  Some of
   // these can be changed over to FABs later
 
-
-  MultiFab flatn;
-  flatn.define(grids, dmap, 1, 1);
-
-#ifdef RADIATION
-  MultiFab flatg;
-  flatg.define(grids, dmap, 1, 1);
-#endif
-
   MultiFab div;
   div.define(grids, dmap, 1, 1);
 
   MultiFab shk;
   shk.define(grids, dmap, 1, 1);
-
-  MultiFab Ip;
-  Ip.define(grids, dmap, AMREX_SPACEDIM*3*NQ, 1);
-
-  MultiFab Im;
-  Im.define(grids, dmap, AMREX_SPACEDIM*3*NQ, 1);
-
-  MultiFab Ip_src;
-  Ip_src.define(grids, dmap, AMREX_SPACEDIM*3*QVAR, 1);
-
-  MultiFab Im_src;
-  Im_src.define(grids, dmap, AMREX_SPACEDIM*3*QVAR, 1);
-
-  MultiFab Ip_gc;
-  Ip_gc.define(grids, dmap, AMREX_SPACEDIM*3, 1);
-
-  MultiFab Im_gc;
-  Im_gc.define(grids, dmap, AMREX_SPACEDIM*3, 1);
-
-  MultiFab dq;
-  dq.define(grids, dmap, AMREX_SPACEDIM*NQ, 1);
-
-  MultiFab sm;
-  sm.define(grids, dmap, AMREX_SPACEDIM, 1);
-
-  MultiFab sp;
-  sp.define(grids, dmap, AMREX_SPACEDIM, 1);
 
   MultiFab qxm;
   qxm.define(getEdgeBoxArray(0), dmap, NQ, 1);
@@ -132,46 +96,61 @@ Castro::construct_hydro_source(Real time, Real dt)
       // the valid region box
       const Box& bx = mfi.tilebox();
 
-      const Box& obx = mfi.growntilebox(1);
+      const Box& obx = amrex::grow(bx, 1);
 
+      AsyncFab flatn(obx, 1);
+
+#ifdef RADIATION
+      AsyncFab flatg(obx, 1);
+#endif
+      
       // compute the flattening coefficient
 
       if (first_order_hydro == 1) {
-        flatn[mfi].setVal(0.0, obx);
+        flatn.hostFab().setVal(0.0, obx);
       } else if (use_flattening == 1) {
 #ifdef RADIATION
         ca_rad_flatten(ARLIM_3D(obx.loVect()), ARLIM_3D(obx.hiVect()),
                        BL_TO_FORTRAN_ANYD(q[mfi]),
-                       BL_TO_FORTRAN_ANYD(flatn[mfi]),
-                       BL_TO_FORTRAN_ANYD(flatg[mfi]));
+                       BL_TO_FORTRAN_ANYD(flatn.hostFab()),
+                       BL_TO_FORTRAN_ANYD(flatg.hostFab()));
 #else
         ca_uflatten(ARLIM_3D(obx.loVect()), ARLIM_3D(obx.hiVect()),
                     BL_TO_FORTRAN_ANYD(q[mfi]),
-                    BL_TO_FORTRAN_ANYD(flatn[mfi]), QPRES+1);
+                    BL_TO_FORTRAN_ANYD(flatn.hostFab()), QPRES+1);
 #endif
       } else {
-        flatn[mfi].setVal(1.0, obx);
+        flatn.hostFab().setVal(1.0, obx);
       }
 
+      AsyncFab dq(obx, AMREX_SPACEDIM*NQ);
+      AsyncFab Ip(obx, AMREX_SPACEDIM*3*NQ);
+      AsyncFab Im(obx, AMREX_SPACEDIM*3*NQ);
+      AsyncFab Ip_src(obx, AMREX_SPACEDIM*3*QVAR);
+      AsyncFab Im_src(obx, AMREX_SPACEDIM*3*QVAR);
+      AsyncFab Ip_gc(obx, AMREX_SPACEDIM*3);
+      AsyncFab Im_gc(obx,AMREX_SPACEDIM*3);
+      AsyncFab sm(obx, AMREX_SPACEDIM);
+      AsyncFab sp(obx, AMREX_SPACEDIM);
 
       // flatg is no longer needed here
 
       ctu_normal_states(ARLIM_3D(obx.loVect()), ARLIM_3D(obx.hiVect()),
                         ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
                         BL_TO_FORTRAN_ANYD(q[mfi]),
-                        BL_TO_FORTRAN_ANYD(flatn[mfi]),
+                        BL_TO_FORTRAN_ANYD(flatn.hostFab()),
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(src_q[mfi]),
                         BL_TO_FORTRAN_ANYD(shk[mfi]),
-                        BL_TO_FORTRAN_ANYD(Ip[mfi]),
-                        BL_TO_FORTRAN_ANYD(Im[mfi]),
-                        BL_TO_FORTRAN_ANYD(Ip_src[mfi]),
-                        BL_TO_FORTRAN_ANYD(Im_src[mfi]),
-                        BL_TO_FORTRAN_ANYD(Ip_gc[mfi]),
-                        BL_TO_FORTRAN_ANYD(Im_gc[mfi]),
-                        BL_TO_FORTRAN_ANYD(dq[mfi]),
-                        BL_TO_FORTRAN_ANYD(sm[mfi]),
-                        BL_TO_FORTRAN_ANYD(sp[mfi]),
+                        BL_TO_FORTRAN_ANYD(Ip.hostFab()),
+                        BL_TO_FORTRAN_ANYD(Im.hostFab()),
+                        BL_TO_FORTRAN_ANYD(Ip_src.hostFab()),
+                        BL_TO_FORTRAN_ANYD(Im_src.hostFab()),
+                        BL_TO_FORTRAN_ANYD(Ip_gc.hostFab()),
+                        BL_TO_FORTRAN_ANYD(Im_gc.hostFab()),
+                        BL_TO_FORTRAN_ANYD(dq.hostFab()),
+                        BL_TO_FORTRAN_ANYD(sm.hostFab()),
+                        BL_TO_FORTRAN_ANYD(sp.hostFab()),
                         BL_TO_FORTRAN_ANYD(qxm[mfi]),
                         BL_TO_FORTRAN_ANYD(qxp[mfi]),
 #if AMREX_SPACEDIM >= 2
@@ -188,6 +167,20 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
                         ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
 
+      // Clear local Fabs
+      dq.clear();
+      Ip.clear();
+      Im.clear();
+      Ip_src.clear();
+      Im_src.clear();
+      Ip_gc.clear();
+      Im_gc.clear();
+      sm.clear();
+      sp.clear();
+      flatn.clear();
+#ifdef RADIATION
+      flatg.clear();
+#endif
 
       // compute divu -- we'll use this later when doing the artifical viscosity
       divu(ARLIM_3D(obx.loVect()), ARLIM_3D(obx.hiVect()),
@@ -199,20 +192,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 
   } // OpenMP region
 
-  // Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, dq, sm, sp, flatn no longer needed here
-  Ip.clear();
-  Im.clear();
-  Ip_src.clear();
-  Im_src.clear();
-  Ip_gc.clear();
-  Im_gc.clear();
-  dq.clear();
-  sm.clear();
-  sp.clear();
-  flatn.clear();
-#ifdef RADIATION
-  flatg.clear();
-#endif
 
 
   MultiFab flux[BL_SPACEDIM];
