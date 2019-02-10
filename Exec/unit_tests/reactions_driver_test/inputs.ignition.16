@@ -30,7 +30,7 @@ castro.do_react  = 1
 castro.do_grav   = 0
 castro.do_sponge = 0
 
-castro.do_ctu = 0
+castro.time_integration_method = 1
 
 castro.small_temp = 1.e6
 

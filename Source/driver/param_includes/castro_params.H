@@ -43,7 +43,7 @@ static amrex::Real small_temp;
 static amrex::Real small_pres;
 static amrex::Real small_ener;
 static int do_hydro;
-static int do_ctu;
+static int time_integration_method;
 static int fourth_order;
 static int add_ext_src;
 static int hybrid_hydro;

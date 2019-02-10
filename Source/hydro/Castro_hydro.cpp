@@ -689,7 +689,7 @@ Castro::cons_to_prim(const Real time)
         // Convert the source terms expressed as sources to the conserved state to those
         // expressed as sources for the primitive state.
 #ifndef AMREX_USE_CUDA
-        if (do_ctu) {
+        if (time_integration_method == CornerTransportUpwind) {
           ca_srctoprim(BL_TO_FORTRAN_BOX(qbx),
                        BL_TO_FORTRAN_ANYD(q[mfi]),
                        BL_TO_FORTRAN_ANYD(qaux[mfi]),

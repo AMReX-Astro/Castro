@@ -98,11 +98,11 @@ Castro::advance (Real time,
     // no SDC
 
 #ifndef AMREX_USE_CUDA
-    if (do_ctu) {
+    if (time_integration_method == CornerTransportUpwind) {
 
         dt_new = std::min(dt_new, subcycle_advance(time, dt, amr_iteration, amr_ncycle));
 
-    } else {
+    } else if (time_integration_method == MethodOfLines) {
 #endif
       for (int iter = 0; iter < MOL_STAGES; ++iter) {
 	mol_iteration = iter;
@@ -621,7 +621,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     // Scale the source term predictor by the current timestep.
 
 #ifndef SDC
-    if (source_term_predictor == 1) {
+    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
         sources_for_hydro.mult(0.5 * dt, NUM_GROW);
     }
 #endif
@@ -630,13 +630,13 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     // but the state data does not carry ghost zones. So we use a FillPatch
     // using the state data to give us Sborder, which does have ghost zones.
 
-    if (do_ctu) {
+    if (time_integration_method == CornerTransportUpwind) {
       // for the CTU unsplit method, we always start with the old state
       Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
       const Real prev_time = state[State_Type].prevTime();
       expand_state(Sborder, prev_time, 0, NUM_GROW);
 
-    } else {
+    } else if (time_integration_method == MethodOfLines) {
       // for Method of lines, our initialization of Sborder depends on
       // which stage in the RK update we are working on
 
@@ -813,10 +813,8 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // Add the source term predictor.
     // This must happen before the swap.
 
-    if (source_term_predictor == 1) {
-
+    if (time_integration_method == CornerTransportUpwind) {
         apply_source_term_predictor();
-
     }
 
 #else
@@ -881,14 +879,14 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     q.define(grids, dmap, NQ, NUM_GROW);
     q.setVal(0.0);
     qaux.define(grids, dmap, NQAUX, NUM_GROW);
-    if (do_ctu)
+    if (time_integration_method == CornerTransportUpwind)
       src_q.define(grids, dmap, QVAR, NUM_GROW);
     if (fourth_order) {
       q_bar.define(grids, dmap, NQ, NUM_GROW);
       qaux_bar.define(grids, dmap, NQAUX, NUM_GROW);
     }
 
-    if (!do_ctu) {
+    if (time_integration_method == MethodOfLines) {
       // if we are not doing CTU advection, then we are doing a method
       // of lines, and need storage for hte intermediate stages
       k_mol.resize(MOL_STAGES);
@@ -950,7 +948,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     q.clear();
     qaux.clear();
-    if (do_ctu)
+    if (time_integration_method == CornerTransportUpwind)
       src_q.clear();
     if (fourth_order) {
       q_bar.clear();
@@ -967,7 +965,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     if (!keep_prev_state)
         amrex::FillNull(prev_state);
 
-    if (!do_ctu) {
+    if (time_integration_method == MethodOfLines) {
       k_mol.clear();
       Sburn.clear();
     }
