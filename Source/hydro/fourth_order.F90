@@ -173,7 +173,7 @@ contains
              enddo
           enddo
 
-          endif
+       endif
 
     else if (idir == 2) then
 
