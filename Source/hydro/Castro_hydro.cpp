@@ -240,9 +240,9 @@ Castro::construct_hydro_source(Real time, Real dt)
       Array<AsyncFab, AMREX_SPACEDIM> flux{AMREX_D_DECL(AsyncFab(xbx, NUM_STATE),
                                                         AsyncFab(ybx, NUM_STATE),
                                                         AsyncFab(zbx, NUM_STATE))};
-      Array<AsyncFab, AMREX_SPACEDIM> qe{AMREX_D_DECL(AsyncFab(xbx, NGDNV),
-                                                      AsyncFab(ybx, NGDNV),
-                                                      AsyncFab(zbx, NGDNV))};
+      Array<AsyncFab, AMREX_SPACEDIM> qe{AMREX_D_DECL(AsyncFab(amrex::grow(xbx, 1), NGDNV),
+                                                      AsyncFab(amrex::grow(ybx, 1), NGDNV),
+                                                      AsyncFab(amrex::grow(zbx, 1), NGDNV))};
 #ifdef RADIATION
       Array<AsyncFab, AMREX_SPACEDIM> rad_flux{AMREX_D_DECL(AsyncFab(xbx, Radiation::nGroups),
                                                             AsyncFab(ybx, Radiation::nGroups),
