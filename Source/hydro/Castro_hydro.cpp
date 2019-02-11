@@ -334,7 +334,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                           1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
 
       // add the transverse flux difference in x to the y states
-      // [lo(1), lo(2)-1, 0], [hi(1), hi(2)+1, 0]
+      // [lo(1), lo(2), 0], [hi(1), hi(2)+1, 0]
 
       // ftmp1 = fx
       // rftmp1 = rfx
@@ -923,6 +923,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                  BL_TO_FORTRAN_ANYD(pdivu.hostFab()),
                  ZFILL(dx), dt);
 
+      shk.clear();
       pdivu.clear();
 
 #ifdef RADIATION
