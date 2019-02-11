@@ -388,7 +388,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       // compute F^x
       // [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1]
-      const Box& cxbx = mfi.grownnodaltilebox(0, IntVect(AMREX_D_DECL(0,1,1)));
+      const Box& cxbx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,1,1)));
 
       // ftmp1 = fx
       // rftmp1 = rfx
@@ -408,7 +408,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                           1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
 
       // [lo(1), lo(2), lo(3)-1], [hi(1), hi(2)+1, hi(3)+1]
-      const Box& tyxbx = mfi.grownnodaltilebox(1, IntVect(AMREX_D_DECL(0,0,1)));
+      const Box& tyxbx = amrex::grow(ybx, IntVect(AMREX_D_DECL(0,0,1)));
 
       AsyncFab qmyx(tyxbx, NQ);
       AsyncFab qpyx(tyxbx, NQ);
@@ -430,7 +430,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                         hdt, cdtdx);
 
       // [lo(1), lo(2)-1, lo(3)], [hi(1), hi(2)+1, hi(3)+1]
-      const Box& tzxbx = mfi.grownnodaltilebox(2, IntVect(AMREX_D_DECL(0,1,0)));
+      const Box& tzxbx = amrex::grow(zbx, IntVect(AMREX_D_DECL(0,1,0)));
 
       AsyncFab qmzx(tzxbx, NQ);
       AsyncFab qpzx(tzxbx, NQ);
@@ -450,7 +450,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       // compute F^y
       // [lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1]
-      const Box& cybx = mfi.grownnodaltilebox(1,IntVect(AMREX_D_DECL(1,0,1)));
+      const Box& cybx = amrex::grow(ybx, IntVect(AMREX_D_DECL(1,0,1)));
 
       // ftmp1 = fy
       // rftmp1 = rfy
@@ -470,7 +470,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                           2, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
 
       // [lo(1), lo(2), lo(3)-1], [hi(1)+1, hi(2), lo(3)+1]
-      const Box& txybx = mfi.grownnodaltilebox(0, IntVect(AMREX_D_DECL(0,0,1)));
+      const Box& txybx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,0,1)));
 
       AsyncFab qmxy(txybx, NQ);
       AsyncFab qpxy(txybx, NQ);
@@ -492,7 +492,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                         cdtdy);
 
       // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), lo(3)+1]
-      const Box& tzybx = mfi.grownnodaltilebox(2, IntVect(AMREX_D_DECL(1,0,0)));
+      const Box& tzybx = amrex::grow(zbx, IntVect(AMREX_D_DECL(1,0,0)));
 
       AsyncFab qmzy(tzybx, NQ);
       AsyncFab qpzy(tzybx, NQ);
@@ -515,7 +515,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       // compute F^z
       // [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1]
-      const Box& czbx = mfi.grownnodaltilebox(2, IntVect(AMREX_D_DECL(1,1,0)));
+      const Box& czbx = amrex::grow(zbx, IntVect(AMREX_D_DECL(1,1,0)));
 
       // ftmp1 = fz
       // rftmp1 = rfz
@@ -535,7 +535,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                           3, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
 
       // [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, lo(3)]
-      const Box& txzbx = mfi.grownnodaltilebox(0, IntVect(AMREX_D_DECL(0,1,0)));
+      const Box& txzbx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,1,0)));
 
       AsyncFab qmxz(txzbx, NQ);
       AsyncFab qpxz(txzbx, NQ);
@@ -557,7 +557,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                         cdtdz);
 
       // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+1, lo(3)]
-      const Box& tyzbx = mfi.grownnodaltilebox(1, IntVect(AMREX_D_DECL(1,0,0)));
+      const Box& tyzbx = amrex::grow(ybx, IntVect(AMREX_D_DECL(1,0,0)));
 
       AsyncFab qmyz(tyzbx, NQ);
       AsyncFab qpyz(tyzbx, NQ);
@@ -586,7 +586,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       // compute F^{y|z}
       // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+1, hi(3)]
-      const Box& cyzbx = mfi.grownnodaltilebox(1, IntVect(AMREX_D_DECL(1,0,0)));
+      const Box& cyzbx = amrex::grow(ybx, IntVect(AMREX_D_DECL(1,0,0)));
 
       // ftmp1 = fyz
       // rftmp1 = rfyz
@@ -610,7 +610,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       // compute F^{z|y}
       // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+1]
-      const Box& czybx = mfi.grownnodaltilebox(2, IntVect(AMREX_D_DECL(1,0,0)));
+      const Box& czybx = amrex::grow(zbx, IntVect(AMREX_D_DECL(1,0,0)));
 
       // ftmp2 = fzy
       // rftmp2 = rfzy
@@ -673,7 +673,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       // compute F^{z|x}
       // [lo(1), lo(2)-1, lo(3)], [hi(1), hi(2)+1, hi(3)+1]
-      const Box& czxbx = mfi.grownnodaltilebox(2, IntVect(AMREX_D_DECL(0,1,0)));
+      const Box& czxbx = amrex::grow(zbx, IntVect(AMREX_D_DECL(0,1,0)));
 
       // ftmp1 = fzx
       // rftmp1 = rfzx
@@ -697,7 +697,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       // compute F^{x|z}
       // [lo(1), lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)]
-      const Box& cxzbx = mfi.grownnodaltilebox(0, IntVect(AMREX_D_DECL(0,1,0)));
+      const Box& cxzbx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,1,0)));
 
       // ftmp2 = fxz
       // rftmp2 = rfxz
@@ -762,7 +762,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       // compute F^{x|y}
       // [lo(1), lo(2), lo(3)-1], [hi(1)+1, hi(2), hi(3)+1]
-      const Box& cxybx = mfi.grownnodaltilebox(0, IntVect(AMREX_D_DECL(0,0,1)));
+      const Box& cxybx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,0,1)));
 
       // ftmp1 = fxy
       // rftmp1 = rfxy
@@ -786,7 +786,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       // compute F^{y|x}
       // [lo(1), lo(2), lo(3)-1], [hi(1), hi(2)+dg(2), hi(3)+1]
-      const Box& cyxbx = mfi.grownnodaltilebox(1, IntVect(AMREX_D_DECL(0,0,1)));
+      const Box& cyxbx = amrex::grow(ybx, IntVect(AMREX_D_DECL(0,0,1)));
 
       // ftmp2 = fyx
       // rftmp2 = rfyx
@@ -964,17 +964,17 @@ Castro::construct_hydro_source(Real time, Real dt)
         // we want to copy the fluxes since we expect that there will not be
         // subcycling and we only want the last iteration's fluxes.
 #ifndef SDC
-        (*fluxes[idir])[mfi].plus(flux[idir].hostFab(), nbx, 0, 0, NUM_STATE);
+        (*fluxes[idir])[mfi].plus(flux[idir].hostFab(), mfi.nodaltilebox(idir), 0, 0, NUM_STATE);
 #ifdef RADIATION
-        (*rad_fluxes[idir])[mfi].plus(rad_flux[idir].hostFab(), nbx, 0, 0, Radiation::nGroups);
+        (*rad_fluxes[idir])[mfi].plus(rad_flux[idir].hostFab(), mfi.nodaltilebox(idir), 0, 0, Radiation::nGroups);
 #endif
 #else
-        (*fluxes[idir])[mfi].copy(flux[idir].hostFab(), nbx, 0, nbx, 0, NUM_STATE);
+        (*fluxes[idir])[mfi].copy(flux[idir].hostFab(), mfi.nodaltilebox(idir), 0, mfi.nodaltilebox(idir), 0, NUM_STATE);
 #ifdef RADIATION
-        (*rad_fluxes[idir])[mfi].copy(rad_flux[idir].hostFab() nbx,0, nbx, 0, Radiation::nGroups);
+        (*rad_fluxes[idir])[mfi].copy(rad_flux[idir].hostFab() mfi.nodaltilebox(idir), 0, mfi.nodaltilebox(idir), 0, Radiation::nGroups);
 #endif
 #endif
-        (*mass_fluxes[idir])[mfi].copy(flux[idir].hostFab(), nbx, Density, nbx, 0, 1);
+        (*mass_fluxes[idir])[mfi].copy(flux[idir].hostFab(), mfi.nodaltilebox(idir), Density, mfi.nodaltilebox(idir), 0, 1);
       } // idir loop
 
 #if (AMREX_SPACEDIM <= 2)
