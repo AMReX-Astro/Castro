@@ -24,7 +24,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
                     ash1_name, ash2_name, ash3_name, &
                     fuel1_frac, fuel2_frac, fuel3_frac, &
                     ash1_frac, ash2_frac, ash3_frac, &
-                    low_density_cutoff, index_base_from_temp, smallx, &
+                    low_density_cutoff, smallx, &
                     max_hse_tagging_level, max_base_tagging_level, x_refine_distance
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
@@ -77,8 +77,6 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   ash1_frac = ONE
   ash2_frac = ZERO
   ash3_frac = ZERO
-
-  index_base_from_temp = .false.
 
   low_density_cutoff = 1.d-4
 
@@ -168,8 +166,6 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   model_params % atm_delta = atm_delta
 
   model_params % low_density_cutoff = low_density_cutoff
-
-  model_params % index_base_from_temp = index_base_from_temp
 
   call init_1d_tanh(nx_model+ng, &
                     problo(AMREX_SPACEDIM)-ng*dx_model, probhi(AMREX_SPACEDIM), &

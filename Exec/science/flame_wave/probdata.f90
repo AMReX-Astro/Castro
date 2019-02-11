@@ -22,8 +22,6 @@ module probdata_module
   real (rt), save :: low_density_cutoff, smallx
   real (rt), save :: x_refine_distance
 
-  logical, save :: index_base_from_temp
-
   integer, save :: max_hse_tagging_level
   integer, save :: max_base_tagging_level
 
