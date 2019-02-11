@@ -249,21 +249,6 @@ Castro::construct_hydro_source(Real time, Real dt)
       AsyncFab qr(tbx, NQ);
 #endif
 
-#if AMREX_SPACEDIM == 3
-      AsyncFab qmxy(tbx, NQ);
-      AsyncFab qpxy(tbx, NQ);
-      AsyncFab qmxz(tbx, NQ);
-      AsyncFab qpxz(tbx, NQ);
-      AsyncFab qmyx(tbx, NQ);
-      AsyncFab qpyx(tbx, NQ);
-      AsyncFab qmyz(tbx, NQ);
-      AsyncFab qpyz(tbx, NQ);
-      AsyncFab qmzx(tbx, NQ);
-      AsyncFab qpzx(tbx, NQ);
-      AsyncFab qmzy(tbx, NQ);
-      AsyncFab qpzy(tbx, NQ);
-#endif
-
 
 
 #if AMREX_SPACEDIM == 2
@@ -424,6 +409,9 @@ Castro::construct_hydro_source(Real time, Real dt)
       // [lo(1), lo(2), lo(3)-1], [hi(1), hi(2)+1, hi(3)+1]
       const Box& txybx = mfi.grownnodaltilebox(1, IntVect(AMREX_D_DECL(0,0,1)));
 
+      AsyncFab qmyx(tbx, NQ);
+      AsyncFab qpyx(tbx, NQ);
+      
       // ftmp1 = fx
       // rftmp1 = rfx
       // qgdnvtmp1 = qgdnvx
@@ -443,6 +431,9 @@ Castro::construct_hydro_source(Real time, Real dt)
       // [lo(1), lo(2)-1, lo(3)], [hi(1), hi(2)+1, hi(3)+1]
       const Box& txzbx = mfi.grownnodaltilebox(2, IntVect(AMREX_D_DECL(0,1,0)));
 
+      AsyncFab qmzx(tbx, NQ);
+      AsyncFab qpzx(tbx, NQ);
+      
       transx_on_zstates(ARLIM_3D(txzbx.loVect()), ARLIM_3D(txzbx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qzm.hostFab()),
                         BL_TO_FORTRAN_ANYD(qmzx.hostFab()),
@@ -480,6 +471,9 @@ Castro::construct_hydro_source(Real time, Real dt)
       // [lo(1), lo(2), lo(3)-1], [hi(1)+1, hi(2), lo(3)+1]
       const Box& tyxbx = mfi.grownnodaltilebox(0, IntVect(AMREX_D_DECL(0,0,1)));
 
+      AsyncFab qmxy(tbx, NQ);
+      AsyncFab qpxy(tbx, NQ);
+      
       // ftmp1 = fy
       // rftmp1 = rfy
       // qgdnvtmp1 = qgdnvy
@@ -499,6 +493,9 @@ Castro::construct_hydro_source(Real time, Real dt)
       // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), lo(3)+1]
       const Box& tyzbx = mfi.grownnodaltilebox(2, IntVect(AMREX_D_DECL(1,0,0)));
 
+      AsyncFab qmzy(tbx, NQ);
+      AsyncFab qpzy(tbx, NQ);
+      
       // ftmp1 = fy
       // rftmp1 = rfy
       // qgdnvtmp1 = qgdnvy
@@ -539,6 +536,9 @@ Castro::construct_hydro_source(Real time, Real dt)
       // [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, lo(3)]
       const Box& tzxbx = mfi.grownnodaltilebox(0, IntVect(AMREX_D_DECL(0,1,0)));
 
+      AsyncFab qmxz(tbx, NQ);
+      AsyncFab qpxz(tbx, NQ);
+      
       // ftmp1 = fz
       // rftmp1 = rfz
       // qgdnvtmp1 = qgdnvz
@@ -558,6 +558,9 @@ Castro::construct_hydro_source(Real time, Real dt)
       // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+1, lo(3)]
       const Box& tzybx = mfi.grownnodaltilebox(1, IntVect(AMREX_D_DECL(1,0,0)));
 
+      AsyncFab qmyz(tbx, NQ);
+      AsyncFab qpyz(tbx, NQ);
+      
       // ftmp1 = fz
       // rftmp1 = rfz
       // qgdnvtmp1 = qgdnvz
@@ -601,6 +604,9 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(shk.hostFab()),
                           2, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
 
+      qmyz.clear();
+      qpyz.clear();
+
       // compute F^{z|y}
       // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+1]
       const Box& czybx = mfi.grownnodaltilebox(2, IntVect(AMREX_D_DECL(1,0,0)));
@@ -621,6 +627,9 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           BL_TO_FORTRAN_ANYD(shk.hostFab()),
                           3, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+
+      qmzy.clear();
+      qpzy.clear();
 
       // compute the corrected x interface states and fluxes
       // [lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)]
@@ -682,6 +691,9 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(shk.hostFab()),
                           3, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
 
+      qmzx.clear();
+      qpzx.clear();
+
       // compute F^{x|z}
       // [lo(1), lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)]
       const Box& cxzbx = mfi.grownnodaltilebox(0, IntVect(AMREX_D_DECL(0,1,0)));
@@ -702,6 +714,9 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           BL_TO_FORTRAN_ANYD(shk.hostFab()),
                           1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+
+      qmxz.clear();
+      qpxz.clear();
 
       // Compute the corrected y interface states and fluxes
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)]
@@ -765,6 +780,9 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(shk.hostFab()),
                           1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
 
+      qmxy.clear();
+      qpxy.clear();
+
       // compute F^{y|x}
       // [lo(1), lo(2), lo(3)-1], [hi(1), hi(2)+dg(2), hi(3)+1]
       const Box& cyxbx = mfi.grownnodaltilebox(1, IntVect(AMREX_D_DECL(0,0,1)));
@@ -785,6 +803,9 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           BL_TO_FORTRAN_ANYD(shk.hostFab()),
                           2, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+
+      qmyx.clear();
+      qpyx.clear();
 
       // compute the corrected z interface states and fluxes
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1]
