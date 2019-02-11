@@ -233,6 +233,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif // 1-d
 
 
+
 #if AMREX_SPACEDIM >= 2
       AsyncFab ftmp1(obx, NUM_STATE);
       AsyncFab ftmp2(obx, NUM_STATE);
@@ -846,6 +847,22 @@ Castro::construct_hydro_source(Real time, Real dt)
                           3, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
 
 #endif // 3-d
+
+#if AMREX_SPACEDIM >= 2
+      ftmp1.clear();
+      ftmp2.clear();
+
+#ifdef RADIATION
+      rftmp1.clear();
+      rftmp2.clear();
+#endif
+
+      qgdnvtmp1.clear();
+      qgdnvtmp2.clear();
+
+      ql.clear();
+      qr.clear();
+#endif
 
 
 
