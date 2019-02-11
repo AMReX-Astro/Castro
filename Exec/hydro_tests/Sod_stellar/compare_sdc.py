@@ -73,7 +73,6 @@ def doit(ppm_file, sdc_file, exact_file, outfile):
     if have_exact:
         ax_u.plot(exact["x"], exact["u"], color="0.5", label="exact")
     #ax_u.set_yscale("log")
-    ax_u.set_ylim(bottom=1.e-10)
 
     ax_u.get_xaxis().set_visible(False)
 
@@ -100,7 +99,7 @@ def doit(ppm_file, sdc_file, exact_file, outfile):
 
     ax_T.ticklabel_format(axis="x", style="sci", scilimits=(0,0))
 
-    f.tight_layout()
+    f.tight_layout(pad=1.2)
 
     f.savefig(outfile, dpi=100)
 
