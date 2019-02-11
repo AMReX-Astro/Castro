@@ -92,7 +92,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use eos_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP,&
                                  UEDEN, UEINT, UFS
-  use network, only : nspec
+  use network, only : nspec, network_species_index
   use model_parser_module
   use prob_params_module, only : center, problo, probhi
   use eos_type_module
@@ -109,6 +109,8 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   real(rt) :: x, y, z, dist, pres, r1, t0, zc
   integer :: i, j, k, n
+  integer :: ihe4
+  real(rt) :: X_he
 
   type(eos_t) :: eos_state
 
@@ -159,6 +161,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
      end do
   end do
 
+  ihe4 = network_species_index("helium-4")
 
   ! add a perturbation
   do k = lo(3), hi(3)
@@ -184,6 +187,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            state(i,j,k,UTEMP) = t0 * (ONE + pert_temp_factor * &
                 (0.150e0_rt * (ONE + tanh(TWO - r1))))
 
+
            state(i,j,k,UEINT) = state(i,j,k,UEINT) / state(i,j,k,URHO)
 
            do n = 1,nspec
@@ -193,6 +197,10 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            eos_state%rho = state(i,j,k,URHO)
            eos_state%T = state(i,j,k,UTEMP)
            eos_state%xn(:) = state(i,j,k,UFS:UFS-1+nspec)
+
+           ! convolve the temperature perturbation with the amount of He
+           X_he = eos_state%xn(ihe4)
+           state(i,j,k,UTEMP) = X_he * state(i,j,k,UTEMP)
 
            call eos(eos_input_rt, eos_state)
 
