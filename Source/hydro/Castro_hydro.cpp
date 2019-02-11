@@ -191,12 +191,9 @@ Castro::construct_hydro_source(Real time, Real dt)
            ZFILL(dx),
            BL_TO_FORTRAN_ANYD(div.hostFab()));
 
-      const Box& tbx = amrex::grow(bx, 2);
-      
-
-      AsyncFab q_int(tbx, NQ);
+      AsyncFab q_int(obx, NQ);
 #ifdef RADIATION
-      AsyncFab lambda_int(tbx, Radiation::nGroups);
+      AsyncFab lambda_int(obx, Radiation::nGroups);
 #endif
 
       Array<AsyncFab, AMREX_SPACEDIM> flux{AMREX_D_DECL(AsyncFab(amrex::grow(xbx, 1), NUM_STATE),
@@ -243,11 +240,11 @@ Castro::construct_hydro_source(Real time, Real dt)
       AsyncFab rftmp2(obx, Radiation::nGroups);
 #endif
 
-      AsyncFab qgdnvtmp1(tbx, NGDNV);
-      AsyncFab qgdnvtmp2(tbx, NGDNV);
+      AsyncFab qgdnvtmp1(obx, NGDNV);
+      AsyncFab qgdnvtmp2(obx, NGDNV);
 
-      AsyncFab ql(tbx, NQ);
-      AsyncFab qr(tbx, NQ);
+      AsyncFab ql(obx, NQ);
+      AsyncFab qr(obx, NQ);
 #endif
 
 
