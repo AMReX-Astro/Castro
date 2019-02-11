@@ -60,10 +60,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 #pragma omp parallel reduction(max:nstep_fsp) \
                      reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
                      reduction(+:eden_lost,xang_lost,yang_lost,zang_lost)
-#endif
 #else
-#pragma omp parallel
-#ifdef _OPENMP
 #pragma omp parallel reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
                      reduction(+:eden_lost,xang_lost,yang_lost,zang_lost)
 #endif
