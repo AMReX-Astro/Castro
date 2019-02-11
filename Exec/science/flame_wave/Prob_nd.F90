@@ -25,7 +25,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
                     fuel1_frac, fuel2_frac, fuel3_frac, &
                     ash1_frac, ash2_frac, ash3_frac, &
                     low_density_cutoff, index_base_from_temp, smallx, &
-                    max_hse_tagging_level, max_base_tagging_level
+                    max_hse_tagging_level, max_base_tagging_level, x_refine_distance
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 256
@@ -86,6 +86,8 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   max_hse_tagging_level = 2
   max_base_tagging_level = 1
+
+  x_refine_distance = probhi(1)
 
   open(newunit=untin,file=probin(1:namlen),form='formatted',status='old')
   read(untin,fortin)
