@@ -199,16 +199,16 @@ Castro::construct_hydro_source(Real time, Real dt)
       AsyncFab lambda_int(tbx, Radiation::nGroups);
 #endif
 
-      Array<AsyncFab, AMREX_SPACEDIM> flux{AMREX_D_DECL(AsyncFab(xbx, NUM_STATE),
-                                                        AsyncFab(ybx, NUM_STATE),
-                                                        AsyncFab(zbx, NUM_STATE))};
+      Array<AsyncFab, AMREX_SPACEDIM> flux{AMREX_D_DECL(AsyncFab(amrex::grow(xbx, 1), NUM_STATE),
+                                                        AsyncFab(amrex::grow(ybx, 1), NUM_STATE),
+                                                        AsyncFab(amrex::grow(zbx, 1), NUM_STATE))};
       Array<AsyncFab, AMREX_SPACEDIM> qe{AMREX_D_DECL(AsyncFab(amrex::grow(xbx, 1), NGDNV),
                                                       AsyncFab(amrex::grow(ybx, 1), NGDNV),
                                                       AsyncFab(amrex::grow(zbx, 1), NGDNV))};
 #ifdef RADIATION
-      Array<AsyncFab, AMREX_SPACEDIM> rad_flux{AMREX_D_DECL(AsyncFab(xbx, Radiation::nGroups),
-                                                            AsyncFab(ybx, Radiation::nGroups),
-                                                            AsyncFab(zbx, Radiation::nGroups))};
+      Array<AsyncFab, AMREX_SPACEDIM> rad_flux{AMREX_D_DECL(AsyncFab(amrex::grow(xbx, 1), Radiation::nGroups),
+                                                            AsyncFab(amrex::grow(ybx, 1), Radiation::nGroups),
+                                                            AsyncFab(amrex::grow(zbx, 1), Radiation::nGroups))};
 #endif
 
 #if AMREX_SPACEDIM <= 2
@@ -216,9 +216,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 
 #if AMREX_SPACEDIM == 1
-      const Box& nxbx = xbx;
-
-      cmpflx_plus_godunov(ARLIM_3D(nxbx.loVect()), ARLIM_3D(nxbx.hiVect()),
+      cmpflx_plus_godunov(ARLIM_3D(xbx.loVect()), ARLIM_3D(xbx.hiVect()),
                           BL_TO_FORTRAN_ANYD(qxm.hostFab()),
                           BL_TO_FORTRAN_ANYD(qxp.hostFab()), 1, 1,
                           BL_TO_FORTRAN_ANYD(flux[0].hostFab()),
@@ -316,13 +314,11 @@ Castro::construct_hydro_source(Real time, Real dt)
                           2, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
 
       // add the transverse flux difference in y to the x states
-
       // [lo(1), lo(2), 0], [hi(1)+1, hi(2), 0]
-      const Box& nxbx = xbx;
 
       // ftmp2 = fy
       // rftmp2 = rfy
-      transy_on_xstates(ARLIM_3D(nxbx.loVect()), ARLIM_3D(nxbx.hiVect()),
+      transy_on_xstates(ARLIM_3D(xbx.loVect()), ARLIM_3D(xbx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qxm.hostFab()),
                         BL_TO_FORTRAN_ANYD(ql.hostFab()),
                         BL_TO_FORTRAN_ANYD(qxp.hostFab()),
@@ -337,7 +333,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       // solve the final Riemann problem axross the x-interfaces
 
-      cmpflx_plus_godunov(ARLIM_3D(nxbx.loVect()), ARLIM_3D(nxbx.hiVect()),
+      cmpflx_plus_godunov(ARLIM_3D(xbx.loVect()), ARLIM_3D(xbx.hiVect()),
                           BL_TO_FORTRAN_ANYD(ql.hostFab()),
                           BL_TO_FORTRAN_ANYD(qr.hostFab()), 1, 1,
                           BL_TO_FORTRAN_ANYD(flux[0].hostFab()),
@@ -353,13 +349,12 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       // add the transverse flux difference in x to the y states
       // [lo(1), lo(2)-1, 0], [hi(1), hi(2)+1, 0]
-      const Box& nybx = ybx;
 
       // ftmp1 = fx
       // rftmp1 = rfx
       // qgdnvtmp1 = qgdnvx
 
-      transx_on_ystates(ARLIM_3D(nybx.loVect()), ARLIM_3D(nybx.hiVect()),
+      transx_on_ystates(ARLIM_3D(ybx.loVect()), ARLIM_3D(ybx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qym.hostFab()),
                         BL_TO_FORTRAN_ANYD(ql.hostFab()),
                         BL_TO_FORTRAN_ANYD(qyp.hostFab()),
@@ -376,7 +371,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       // solve the final Riemann problem axross the y-interfaces
 
-      cmpflx_plus_godunov(ARLIM_3D(nybx.loVect()), ARLIM_3D(nybx.hiVect()),
+      cmpflx_plus_godunov(ARLIM_3D(ybx.loVect()), ARLIM_3D(ybx.hiVect()),
                           BL_TO_FORTRAN_ANYD(ql.hostFab()),
                           BL_TO_FORTRAN_ANYD(qr.hostFab()), 1, 1,
                           BL_TO_FORTRAN_ANYD(flux[1].hostFab()),
@@ -629,9 +624,8 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       // compute the corrected x interface states and fluxes
       // [lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)]
-      const Box& fcxbx = mfi.nodaltilebox(0);
 
-      transyz(ARLIM_3D(fcxbx.loVect()), ARLIM_3D(fcxbx.hiVect()),
+      transyz(ARLIM_3D(xbx.loVect()), ARLIM_3D(xbx.hiVect()),
               BL_TO_FORTRAN_ANYD(qxm.hostFab()),
               BL_TO_FORTRAN_ANYD(ql.hostFab()),
               BL_TO_FORTRAN_ANYD(qxp.hostFab()),
@@ -711,9 +705,8 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       // Compute the corrected y interface states and fluxes
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)]
-      const Box& fcybx = mfi.nodaltilebox(1);
 
-      transxz(ARLIM_3D(fcybx.loVect()), ARLIM_3D(fcybx.hiVect()),
+      transxz(ARLIM_3D(ybx.loVect()), ARLIM_3D(ybx.hiVect()),
               BL_TO_FORTRAN_ANYD(qym.hostFab()),
               BL_TO_FORTRAN_ANYD(ql.hostFab()),
               BL_TO_FORTRAN_ANYD(qyp.hostFab()),
@@ -733,7 +726,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       // Compute the final F^y
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)]
-      cmpflx_plus_godunov(ARLIM_3D(cybx.loVect()), ARLIM_3D(cybx.hiVect()),
+      cmpflx_plus_godunov(ARLIM_3D(ybx.loVect()), ARLIM_3D(ybx.hiVect()),
                           BL_TO_FORTRAN_ANYD(ql.hostFab()),
                           BL_TO_FORTRAN_ANYD(qr.hostFab()), 1, 1,
                           BL_TO_FORTRAN_ANYD(flux[1].hostFab()),
@@ -795,9 +788,8 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       // compute the corrected z interface states and fluxes
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1]
-      const Box& fczbx =  mfi.nodaltilebox(2);
 
-      transxy(ARLIM_3D(fczbx.loVect()), ARLIM_3D(fczbx.hiVect()),
+      transxy(ARLIM_3D(zbx.loVect()), ARLIM_3D(zbx.hiVect()),
               BL_TO_FORTRAN_ANYD(qzm.hostFab()),
               BL_TO_FORTRAN_ANYD(ql.hostFab()),
               BL_TO_FORTRAN_ANYD(qzp.hostFab()),
@@ -818,7 +810,7 @@ Castro::construct_hydro_source(Real time, Real dt)
       // compute the final z fluxes F^z
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1]
 
-      cmpflx_plus_godunov(ARLIM_3D(czbx.loVect()), ARLIM_3D(czbx.hiVect()),
+      cmpflx_plus_godunov(ARLIM_3D(zbx.loVect()), ARLIM_3D(zbx.hiVect()),
                           BL_TO_FORTRAN_ANYD(ql.hostFab()),
                           BL_TO_FORTRAN_ANYD(qr.hostFab()), 1, 1,
                           BL_TO_FORTRAN_ANYD(flux[2].hostFab()),
