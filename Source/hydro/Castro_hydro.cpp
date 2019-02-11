@@ -166,15 +166,15 @@ Castro::construct_hydro_source(Real time, Real dt)
       AsyncFab sm(obx, AMREX_SPACEDIM);
       AsyncFab sp(obx, AMREX_SPACEDIM);
       AsyncFab shk(obx, 1);
-      AsyncFab qxm(xbx, NQ);
-      AsyncFab qxp(xbx, NQ);
+      AsyncFab qxm(obx, NQ);
+      AsyncFab qxp(obx, NQ);
 #if AMREX_SPACEDIM >= 2
-      AsyncFab qym(ybx, NQ);
-      AsyncFab qyp(ybx, NQ);
+      AsyncFab qym(obx, NQ);
+      AsyncFab qyp(obx, NQ);
 #endif
 #if AMREX_SPACEDIM == 3
-      AsyncFab qzm(zbx, NQ);
-      AsyncFab qzp(zbx, NQ);
+      AsyncFab qzm(obx, NQ);
+      AsyncFab qzp(obx, NQ);
 #endif
 
       ctu_normal_states(ARLIM_3D(obx.loVect()), ARLIM_3D(obx.hiVect()),
