@@ -32,6 +32,8 @@ castro.ppm_type = 0
 
 castro.use_flattening = 1
 
+castro.small_temp     = 1.e7
+
 castro.riemann_solver = 0
 
 # TIME STEP CONTROL
