@@ -55,44 +55,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 
   BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
 
-#if AMREX_SPACEDIM == 3
-  MultiFab qmxy;
-  qmxy.define(grids, dmap, NQ, 2);
-
-  MultiFab qpxy;
-  qpxy.define(grids, dmap, NQ, 2);
-
-  MultiFab qmxz;
-  qmxz.define(grids, dmap, NQ, 2);
-
-  MultiFab qpxz;
-  qpxz.define(grids, dmap, NQ, 2);
-
-  MultiFab qmyx;
-  qmyx.define(grids, dmap, NQ, 2);
-
-  MultiFab qpyx;
-  qpyx.define(grids, dmap, NQ, 2);
-
-  MultiFab qmyz;
-  qmyz.define(grids, dmap, NQ, 2);
-
-  MultiFab qpyz;
-  qpyz.define(grids, dmap, NQ, 2);
-
-  MultiFab qmzx;
-  qmzx.define(grids, dmap, NQ, 2);
-
-  MultiFab qpzx;
-  qpzx.define(grids, dmap, NQ, 2);
-
-  MultiFab qmzy;
-  qmzy.define(grids, dmap, NQ, 2);
-
-  MultiFab qpzy;
-  qpzy.define(grids, dmap, NQ, 2);
-#endif
-
 #ifdef _OPENMP
 #ifdef RADIATION
 #pragma omp parallel reduction(max:nstep_fsp) \
@@ -289,6 +251,21 @@ Castro::construct_hydro_source(Real time, Real dt)
       AsyncFab qr(tbx, NQ);
 #endif
 
+#if AMREX_SPACEDIM == 3
+      AsyncFab qmxy(tbx, NQ);
+      AsyncFab qpxy(tbx, NQ);
+      AsyncFab qmxz(tbx, NQ);
+      AsyncFab qpxz(tbx, NQ);
+      AsyncFab qmyx(tbx, NQ);
+      AsyncFab qpyx(tbx, NQ);
+      AsyncFab qmyz(tbx, NQ);
+      AsyncFab qpyz(tbx, NQ);
+      AsyncFab qmzx(tbx, NQ);
+      AsyncFab qpzx(tbx, NQ);
+      AsyncFab qmzy(tbx, NQ);
+      AsyncFab qpzy(tbx, NQ);
+#endif
+
 
 
 #if AMREX_SPACEDIM == 2
@@ -457,9 +434,9 @@ Castro::construct_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnvx
       transx_on_ystates(ARLIM_3D(txybx.loVect()), ARLIM_3D(txybx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qym.hostFab()),
-                        BL_TO_FORTRAN_ANYD(qmyx[mfi]),
+                        BL_TO_FORTRAN_ANYD(qmyx.hostFab()),
                         BL_TO_FORTRAN_ANYD(qyp.hostFab()),
-                        BL_TO_FORTRAN_ANYD(qpyx[mfi]),
+                        BL_TO_FORTRAN_ANYD(qpyx.hostFab()),
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(ftmp1.hostFab()),
 #ifdef RADIATION
@@ -473,9 +450,9 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       transx_on_zstates(ARLIM_3D(txzbx.loVect()), ARLIM_3D(txzbx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qzm.hostFab()),
-                        BL_TO_FORTRAN_ANYD(qmzx[mfi]),
+                        BL_TO_FORTRAN_ANYD(qmzx.hostFab()),
                         BL_TO_FORTRAN_ANYD(qzp.hostFab()),
-                        BL_TO_FORTRAN_ANYD(qpzx[mfi]),
+                        BL_TO_FORTRAN_ANYD(qpzx.hostFab()),
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(ftmp1.hostFab()),
 #ifdef RADIATION
@@ -513,9 +490,9 @@ Castro::construct_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnvy
       transy_on_xstates(ARLIM_3D(tyxbx.loVect()), ARLIM_3D(tyxbx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qxm.hostFab()),
-                        BL_TO_FORTRAN_ANYD(qmxy[mfi]),
+                        BL_TO_FORTRAN_ANYD(qmxy.hostFab()),
                         BL_TO_FORTRAN_ANYD(qxp.hostFab()),
-                        BL_TO_FORTRAN_ANYD(qpxy[mfi]),
+                        BL_TO_FORTRAN_ANYD(qpxy.hostFab()),
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(ftmp1.hostFab()),
 #ifdef RADIATION
@@ -532,9 +509,9 @@ Castro::construct_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnvy
       transy_on_zstates(ARLIM_3D(tyzbx.loVect()), ARLIM_3D(tyzbx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qzm.hostFab()),
-                        BL_TO_FORTRAN_ANYD(qmzy[mfi]),
+                        BL_TO_FORTRAN_ANYD(qmzy.hostFab()),
                         BL_TO_FORTRAN_ANYD(qzp.hostFab()),
-                        BL_TO_FORTRAN_ANYD(qpzy[mfi]),
+                        BL_TO_FORTRAN_ANYD(qpzy.hostFab()),
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(ftmp1.hostFab()),
 #ifdef RADIATION
@@ -572,9 +549,9 @@ Castro::construct_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnvz
       transz_on_xstates(ARLIM_3D(tzxbx.loVect()), ARLIM_3D(tzxbx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qxm.hostFab()),
-                        BL_TO_FORTRAN_ANYD(qmxz[mfi]),
+                        BL_TO_FORTRAN_ANYD(qmxz.hostFab()),
                         BL_TO_FORTRAN_ANYD(qxp.hostFab()),
-                        BL_TO_FORTRAN_ANYD(qpxz[mfi]),
+                        BL_TO_FORTRAN_ANYD(qpxz.hostFab()),
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(ftmp1.hostFab()),
 #ifdef RADIATION
@@ -591,9 +568,9 @@ Castro::construct_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnvz
       transz_on_ystates(ARLIM_3D(tzybx.loVect()), ARLIM_3D(tzybx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qym.hostFab()),
-                        BL_TO_FORTRAN_ANYD(qmyz[mfi]),
+                        BL_TO_FORTRAN_ANYD(qmyz.hostFab()),
                         BL_TO_FORTRAN_ANYD(qyp.hostFab()),
-                        BL_TO_FORTRAN_ANYD(qpyz[mfi]),
+                        BL_TO_FORTRAN_ANYD(qpyz.hostFab()),
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(ftmp1.hostFab()),
 #ifdef RADIATION
@@ -616,8 +593,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       // rftmp1 = rfyz
       // qgdnvtmp1 = qgdnvyz
       cmpflx_plus_godunov(ARLIM_3D(cyzbx.loVect()), ARLIM_3D(cyzbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qmyz[mfi]),
-                          BL_TO_FORTRAN_ANYD(qpyz[mfi]), 1, 1,
+                          BL_TO_FORTRAN_ANYD(qmyz.hostFab()),
+                          BL_TO_FORTRAN_ANYD(qpyz.hostFab()), 1, 1,
                           BL_TO_FORTRAN_ANYD(ftmp1.hostFab()),
                           BL_TO_FORTRAN_ANYD(q_int.hostFab()),
 #ifdef RADIATION
@@ -637,8 +614,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       // rftmp2 = rfzy
       // qgdnvtmp2 = qgdnvzy
       cmpflx_plus_godunov(ARLIM_3D(czybx.loVect()), ARLIM_3D(czybx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qmzy[mfi]),
-                          BL_TO_FORTRAN_ANYD(qpzy[mfi]), 1, 1,
+                          BL_TO_FORTRAN_ANYD(qmzy.hostFab()),
+                          BL_TO_FORTRAN_ANYD(qpzy.hostFab()), 1, 1,
                           BL_TO_FORTRAN_ANYD(ftmp2.hostFab()),
                           BL_TO_FORTRAN_ANYD(q_int.hostFab()),
 #ifdef RADIATION
@@ -698,8 +675,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       // rftmp1 = rfzx
       // qgdnvtmp1 = qgdnvzx
       cmpflx_plus_godunov(ARLIM_3D(czxbx.loVect()), ARLIM_3D(czxbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qmzx[mfi]),
-                          BL_TO_FORTRAN_ANYD(qpzx[mfi]), 1, 1,
+                          BL_TO_FORTRAN_ANYD(qmzx.hostFab()),
+                          BL_TO_FORTRAN_ANYD(qpzx.hostFab()), 1, 1,
                           BL_TO_FORTRAN_ANYD(ftmp1.hostFab()),
                           BL_TO_FORTRAN_ANYD(q_int.hostFab()),
 #ifdef RADIATION
@@ -719,8 +696,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       // rftmp2 = rfxz
       // qgdnvtmp2 = qgdnvxz
       cmpflx_plus_godunov(ARLIM_3D(cxzbx.loVect()), ARLIM_3D(cxzbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qmxz[mfi]),
-                          BL_TO_FORTRAN_ANYD(qpxz[mfi]), 1, 1,
+                          BL_TO_FORTRAN_ANYD(qmxz.hostFab()),
+                          BL_TO_FORTRAN_ANYD(qpxz.hostFab()), 1, 1,
                           BL_TO_FORTRAN_ANYD(ftmp2.hostFab()),
                           BL_TO_FORTRAN_ANYD(q_int.hostFab()),
 #ifdef RADIATION
@@ -782,8 +759,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       // rftmp1 = rfxy
       // qgdnvtmp1 = qgdnvxy
       cmpflx_plus_godunov(ARLIM_3D(cxybx.loVect()), ARLIM_3D(cxybx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qmxy[mfi]),
-                          BL_TO_FORTRAN_ANYD(qpxy[mfi]), 1, 1,
+                          BL_TO_FORTRAN_ANYD(qmxy.hostFab()),
+                          BL_TO_FORTRAN_ANYD(qpxy.hostFab()), 1, 1,
                           BL_TO_FORTRAN_ANYD(ftmp1.hostFab()),
                           BL_TO_FORTRAN_ANYD(q_int.hostFab()),
 #ifdef RADIATION
@@ -803,8 +780,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       // rftmp2 = rfyx
       // qgdnvtmp2 = qgdnvyx
       cmpflx_plus_godunov(ARLIM_3D(cyxbx.loVect()), ARLIM_3D(cyxbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qmyx[mfi]),
-                          BL_TO_FORTRAN_ANYD(qpyx[mfi]), 1, 1,
+                          BL_TO_FORTRAN_ANYD(qmyx.hostFab()),
+                          BL_TO_FORTRAN_ANYD(qpyx.hostFab()), 1, 1,
                           BL_TO_FORTRAN_ANYD(ftmp2.hostFab()),
                           BL_TO_FORTRAN_ANYD(q_int.hostFab()),
 #ifdef RADIATION
