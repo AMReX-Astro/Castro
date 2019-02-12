@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/AMReX-Astro/Castro.svg?branch=development)](https://travis-ci.org/AMReX-Astro/Castro)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2301848.svg)](https://doi.org/10.5281/zenodo.2301848)
+
 # Castro
 *an adaptive mesh, astrophysical radiation hydrodynamics simulation code*
 
@@ -22,12 +25,14 @@ Running this will clone the repositories and create a file
 `castro_exports.sh` which you can source or copy to your `.bashrc`
 to define the necessary environment variables.
 
-The User's Guide in `Castro/Docs/` (type `make` to build from
-LaTeX source) will guide you through running your first problem.
+The User's Guide in written in re-structured text using Sphinx, with
+the source in `Castro/sphinx_docs/`, and is built automatically
+via travis from the `development` branch.  You can find
+the online guide at:
 
-A PDF of the User's Guide can be found at
+https://amrex-astro.github.io/Castro/docs/index.html
 
-http://bender.astro.sunysb.edu/Castro/staging/Castro/Docs/CastroUserGuide.pdf
+The Getting Started section should guide you through your first run.
 
 
 ## Call Graph
@@ -100,6 +105,9 @@ Core developers will be recognized in the following ways:
   * invited to the group's slack team
 
   * listed in the User's Guide and website as a core developer
+
+  * listed in the author list on the Zenodo DOI for the project
+    (as given in the .zenodo.json file)
 
   * invited to co-author general code papers / proceedings describing
     Castro, its performance, etc.  (Note: science papers will always

@@ -9,6 +9,7 @@ pp.query("diffuse_enth", diffuse_enth);
 pp.query("diffuse_spec", diffuse_spec);
 pp.query("diffuse_vel", diffuse_vel);
 pp.query("diffuse_cutoff_density", diffuse_cutoff_density);
+pp.query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi);
 pp.query("diffuse_cond_scale_fac", diffuse_cond_scale_fac);
 #endif
 #ifdef AMREX_PARTICLES
@@ -102,9 +103,6 @@ pp.query("sdc_iters", sdc_iters);
 pp.query("dtnuc_e", dtnuc_e);
 pp.query("dtnuc_X", dtnuc_X);
 pp.query("dtnuc_X_threshold", dtnuc_X_threshold);
-pp.query("dxnuc", dxnuc);
-pp.query("dxnuc_max", dxnuc_max);
-pp.query("max_dxnuc_lev", max_dxnuc_lev);
 pp.query("do_react", do_react);
 pp.query("react_T_min", react_T_min);
 pp.query("react_T_max", react_T_max);
@@ -121,6 +119,8 @@ pp.query("grown_factor", grown_factor);
 pp.query("star_at_center", star_at_center);
 pp.query("do_special_tagging", do_special_tagging);
 pp.query("spherical_star", spherical_star);
+pp.query("v", verbose);
+pp.query("dump_old", dump_old);
 pp.query("print_fortran_warnings", print_fortran_warnings);
 pp.query("print_update_diagnostics", print_update_diagnostics);
 pp.query("track_grid_losses", track_grid_losses);

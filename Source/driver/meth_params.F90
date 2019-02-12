@@ -62,8 +62,6 @@ module meth_params_module
   logical         , save :: outflow_data_allocated
   real(rt)        , save :: max_dist
 
-  character(len=:), allocatable :: gravity_type
-
   ! these flags are for interpreting the EXT_DIR BCs
   integer, parameter :: EXT_UNDEFINED = -1
   integer, parameter :: EXT_HSE = 1
@@ -155,9 +153,6 @@ module meth_params_module
   real(rt), allocatable, save :: dtnuc_e
   real(rt), allocatable, save :: dtnuc_X
   real(rt), allocatable, save :: dtnuc_X_threshold
-  real(rt), allocatable, save :: dxnuc
-  real(rt), allocatable, save :: dxnuc_max
-  integer,  allocatable, save :: max_dxnuc_lev
   integer,  allocatable, save :: do_react
   real(rt), allocatable, save :: react_T_min
   real(rt), allocatable, save :: react_T_max
@@ -165,6 +160,7 @@ module meth_params_module
   real(rt), allocatable, save :: react_rho_max
   integer,  allocatable, save :: disable_shock_burning
   real(rt), allocatable, save :: diffuse_cutoff_density
+  real(rt), allocatable, save :: diffuse_cutoff_density_hi
   real(rt), allocatable, save :: diffuse_cond_scale_fac
   integer,  allocatable, save :: do_grav
   integer,  allocatable, save :: grav_source_type
@@ -184,6 +180,7 @@ module meth_params_module
   integer,  allocatable, save :: do_acc
   integer,  allocatable, save :: grown_factor
   integer,  allocatable, save :: track_grid_losses
+  character (len=:), allocatable, save :: gravity_type
   real(rt), allocatable, save :: const_grav
   integer,  allocatable, save :: get_g_from_phi
 
@@ -236,9 +233,6 @@ attributes(managed) :: cfl
 attributes(managed) :: dtnuc_e
 attributes(managed) :: dtnuc_X
 attributes(managed) :: dtnuc_X_threshold
-attributes(managed) :: dxnuc
-attributes(managed) :: dxnuc_max
-attributes(managed) :: max_dxnuc_lev
 attributes(managed) :: do_react
 attributes(managed) :: react_T_min
 attributes(managed) :: react_T_max
@@ -247,6 +241,9 @@ attributes(managed) :: react_rho_max
 attributes(managed) :: disable_shock_burning
 #ifdef DIFFUSION
 attributes(managed) :: diffuse_cutoff_density
+#endif
+#ifdef DIFFUSION
+attributes(managed) :: diffuse_cutoff_density_hi
 #endif
 #ifdef DIFFUSION
 attributes(managed) :: diffuse_cond_scale_fac
@@ -293,6 +290,7 @@ attributes(managed) :: point_mass_fix_solution
 attributes(managed) :: do_acc
 attributes(managed) :: grown_factor
 attributes(managed) :: track_grid_losses
+
 attributes(managed) :: const_grav
 attributes(managed) :: get_g_from_phi
 #endif
@@ -340,9 +338,6 @@ attributes(managed) :: get_g_from_phi
   !$acc create(dtnuc_e) &
   !$acc create(dtnuc_X) &
   !$acc create(dtnuc_X_threshold) &
-  !$acc create(dxnuc) &
-  !$acc create(dxnuc_max) &
-  !$acc create(max_dxnuc_lev) &
   !$acc create(do_react) &
   !$acc create(react_T_min) &
   !$acc create(react_T_max) &
@@ -351,6 +346,9 @@ attributes(managed) :: get_g_from_phi
   !$acc create(disable_shock_burning) &
 #ifdef DIFFUSION
   !$acc create(diffuse_cutoff_density) &
+#endif
+#ifdef DIFFUSION
+  !$acc create(diffuse_cutoff_density_hi) &
 #endif
 #ifdef DIFFUSION
   !$acc create(diffuse_cond_scale_fac) &
@@ -431,12 +429,15 @@ contains
 #endif
     allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
+    allocate(character(len=1)::gravity_type)
+    gravity_type = "fillme";
     allocate(const_grav)
     const_grav = 0.0d0;
     allocate(get_g_from_phi)
     get_g_from_phi = 0;
 
     call amrex_parmparse_build(pp, "gravity")
+    call pp%query("gravity_type", gravity_type)
     call pp%query("const_grav", const_grav)
     call pp%query("get_g_from_phi", get_g_from_phi)
     call amrex_parmparse_destroy(pp)
@@ -445,6 +446,8 @@ contains
 #ifdef DIFFUSION
     allocate(diffuse_cutoff_density)
     diffuse_cutoff_density = -1.d200;
+    allocate(diffuse_cutoff_density_hi)
+    diffuse_cutoff_density_hi = -1.d200;
     allocate(diffuse_cond_scale_fac)
     diffuse_cond_scale_fac = 1.0d0;
 #endif
@@ -572,12 +575,6 @@ contains
     dtnuc_X = 1.d200;
     allocate(dtnuc_X_threshold)
     dtnuc_X_threshold = 1.d-3;
-    allocate(dxnuc)
-    dxnuc = 1.d200;
-    allocate(dxnuc_max)
-    dxnuc_max = 1.d200;
-    allocate(max_dxnuc_lev)
-    max_dxnuc_lev = -1;
     allocate(do_react)
     do_react = -1;
     allocate(react_T_min)
@@ -606,6 +603,7 @@ contains
     call amrex_parmparse_build(pp, "castro")
 #ifdef DIFFUSION
     call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
+    call pp%query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi)
     call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
 #endif
 #ifdef ROTATION
@@ -672,9 +670,6 @@ contains
     call pp%query("dtnuc_e", dtnuc_e)
     call pp%query("dtnuc_X", dtnuc_X)
     call pp%query("dtnuc_X_threshold", dtnuc_X_threshold)
-    call pp%query("dxnuc", dxnuc)
-    call pp%query("dxnuc_max", dxnuc_max)
-    call pp%query("max_dxnuc_lev", max_dxnuc_lev)
     call pp%query("do_react", do_react)
     call pp%query("react_T_min", react_T_min)
     call pp%query("react_T_max", react_T_max)
@@ -706,17 +701,16 @@ contains
     !$acc device(first_order_hydro, hse_zero_vels, hse_interp_temp) &
     !$acc device(hse_reflect_vels, mol_order, cfl) &
     !$acc device(dtnuc_e, dtnuc_X, dtnuc_X_threshold) &
-    !$acc device(dxnuc, dxnuc_max, max_dxnuc_lev) &
     !$acc device(do_react, react_T_min, react_T_max) &
     !$acc device(react_rho_min, react_rho_max, disable_shock_burning) &
-    !$acc device(diffuse_cutoff_density, diffuse_cond_scale_fac, do_grav) &
-    !$acc device(grav_source_type, do_rotation, rot_period) &
-    !$acc device(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
-    !$acc device(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
-    !$acc device(implicit_rotation_update, rot_axis, use_point_mass) &
-    !$acc device(point_mass, point_mass_fix_solution, do_acc) &
-    !$acc device(grown_factor, track_grid_losses, const_grav) &
-    !$acc device(get_g_from_phi)
+    !$acc device(diffuse_cutoff_density, diffuse_cutoff_density_hi, diffuse_cond_scale_fac) &
+    !$acc device(do_grav, grav_source_type, do_rotation) &
+    !$acc device(rot_period, rot_period_dot, rotation_include_centrifugal) &
+    !$acc device(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
+    !$acc device(rot_source_type, implicit_rotation_update, rot_axis) &
+    !$acc device(use_point_mass, point_mass, point_mass_fix_solution) &
+    !$acc device(do_acc, grown_factor, track_grid_losses) &
+    !$acc device(const_grav, get_g_from_phi)
 
 
     ! now set the external BC flags
@@ -942,15 +936,6 @@ contains
     if (allocated(dtnuc_X_threshold)) then
         deallocate(dtnuc_X_threshold)
     end if
-    if (allocated(dxnuc)) then
-        deallocate(dxnuc)
-    end if
-    if (allocated(dxnuc_max)) then
-        deallocate(dxnuc_max)
-    end if
-    if (allocated(max_dxnuc_lev)) then
-        deallocate(max_dxnuc_lev)
-    end if
     if (allocated(do_react)) then
         deallocate(do_react)
     end if
@@ -971,6 +956,9 @@ contains
     end if
     if (allocated(diffuse_cutoff_density)) then
         deallocate(diffuse_cutoff_density)
+    end if
+    if (allocated(diffuse_cutoff_density_hi)) then
+        deallocate(diffuse_cutoff_density_hi)
     end if
     if (allocated(diffuse_cond_scale_fac)) then
         deallocate(diffuse_cond_scale_fac)
@@ -1028,6 +1016,9 @@ contains
     end if
     if (allocated(track_grid_losses)) then
         deallocate(track_grid_losses)
+    end if
+    if (allocated(gravity_type)) then
+        deallocate(gravity_type)
     end if
     if (allocated(const_grav)) then
         deallocate(const_grav)

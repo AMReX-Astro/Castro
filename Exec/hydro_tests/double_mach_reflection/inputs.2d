@@ -1,5 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 10000 
+max_step = 10000
 stop_time = 0.2
 
 #amr.restart = chk00040
@@ -7,24 +7,23 @@ stop_time = 0.2
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic =  0 0
 geometry.coord_sys   =  0       # 0 => cart
-geometry.prob_lo     =  0    0 
-geometry.prob_hi     =  4    1 
+geometry.prob_lo     =  0    0
+geometry.prob_hi     =  4    1
 
-amr.n_cell           = 1024  256 
+amr.n_cell           = 1024  256
 amr.max_grid_size    = 256
- 
+
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  1   1 
+castro.lo_bc       =  1   1
 castro.hi_bc       =  2   1
 
-# WHICH PHYSICS 
+# WHICH PHYSICS
 castro.do_hydro = 1
 castro.do_react = 0
-castro.allow_negative_energy = 0
 castro.ppm_type = 1
 casrto.riemann_solver = 2
 

@@ -12,6 +12,10 @@ void
 Castro::construct_hydro_source(Real time, Real dt)
 {
 
+  BL_PROFILE("Castro::construct_hydro_source()");
+
+  const Real strt_time = ParallelDescriptor::second();
+
   // this constructs the hydrodynamic source (essentially the flux
   // divergence) using the CTU framework for unsplit hydrodynamics
 
@@ -83,7 +87,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 	  FArrayBox &statein  = Sborder[mfi];
 	  FArrayBox &stateout = S_new[mfi];
 
-	  FArrayBox &source_in  = sources_for_hydro[mfi];
 	  FArrayBox &source_out = hydro_source[mfi];
 
 #ifdef RADIATION
@@ -244,7 +247,24 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 
     if (verbose && ParallelDescriptor::IOProcessor())
-        std::cout << std::endl << "... Leaving hydro advance" << std::endl << std::endl;
+        std::cout << "... Leaving hydro advance" << std::endl << std::endl;
+
+    if (verbose > 0)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+	Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+	if (ParallelDescriptor::IOProcessor())
+	  std::cout << "Castro::construct_hydro_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+	});
+#endif
+    }
 
 }
 #endif
@@ -255,9 +275,13 @@ void
 Castro::construct_mol_hydro_source(Real time, Real dt)
 {
 
+  BL_PROFILE("Castro::construct_mol_hydro_source()");
+
   // this constructs the hydrodynamic source (essentially the flux
   // divergence) using method of lines integration.  The output, as a
   // update to the state, is stored in the k_mol array of multifabs.
+
+  const Real strt_time = ParallelDescriptor::second();
 
   if (verbose && ParallelDescriptor::IOProcessor())
     std::cout << "... hydro MOL stage " << mol_iteration << std::endl;
@@ -268,7 +292,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
     hydro_source.setVal(0.0);
   }
 
-  int finest_level = parent->finestLevel();
 
   const Real *dx = geom.CellSize();
 
@@ -332,9 +355,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	FArrayBox &Erout = Er_new[mfi];
 #endif
 
-	FArrayBox& vol = volume[mfi];
-
-	// Allocate fabs for fluxes
+	// All cate fabs for fluxes
 	for (int i = 0; i < AMREX_SPACEDIM ; i++)  {
 	  const Box& bxtmp = amrex::surroundingNodes(bx,i);
 	  flux[i].resize(bxtmp,NUM_STATE);
@@ -425,8 +446,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
   }  // end of omp parallel region
 
 #else
-
   // CUDA version
+
+#ifndef RADIATION
 
   MultiFab flatn;
   flatn.define(grids, dmap, 1, 1);
@@ -435,26 +457,25 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
   div.define(grids, dmap, 1, 1);
 
   MultiFab qm;
-  qm.define(grids, dmap, 3*NQ, 2);
+  qm.define(grids, dmap, AMREX_SPACEDIM*NQ, 2);
 
   MultiFab qp;
-  qp.define(grids, dmap, 3*NQ, 2);
+  qp.define(grids, dmap, AMREX_SPACEDIM*NQ, 2);
 
-  MultiFab flux[3];
-  MultiFab qe[3];
+  MultiFab shk;
+  shk.define(grids, dmap, 1, 1);
+
+
+  MultiFab flux[AMREX_SPACEDIM];
+  MultiFab qe[AMREX_SPACEDIM];
+  MultiFab qi[AMREX_SPACEDIM];
 
   for (int i = 0; i < AMREX_SPACEDIM; ++i) {
       flux[i].define(getEdgeBoxArray(i), dmap, NUM_STATE, 0);
       qe[i].define(getEdgeBoxArray(i), dmap, NGDNV, 0);
+      qi[i].define(getEdgeBoxArray(i), dmap, NQ, 0);
   }
 
-  for (int i = AMREX_SPACEDIM; i < 3; ++i) {
-      flux[i].define(grids, dmap, NUM_STATE, 0);
-      qe[i].define(grids, dmap, NUM_STATE, 0);
-
-      flux[i].setVal(0.0);
-      qe[i].setVal(0.0);
-  }
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -464,7 +485,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
       const Box& obx = mfi.growntilebox(1);
 
       // Compute divergence of velocity field.
-
 #pragma gpu
       divu(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
            BL_TO_FORTRAN_ANYD(q[mfi]),
@@ -473,19 +493,29 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
       // Compute flattening coefficient for slope calculations.
 #pragma gpu
-      ca_uflaten_cuda
+      ca_uflatten
           (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
            BL_TO_FORTRAN_ANYD(q[mfi]),
-           BL_TO_FORTRAN_ANYD(flatn[mfi]));
+           BL_TO_FORTRAN_ANYD(flatn[mfi]), QPRES+1);
 
       // Do PPM reconstruction to the zone edges.
+      int put_on_edges = 1;
+
 #pragma gpu
-      ca_ppm_reconstruct_cuda
-          (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-           BL_TO_FORTRAN_ANYD(q[mfi]),
+      ca_ppm_reconstruct
+          (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()), put_on_edges,
+           BL_TO_FORTRAN_ANYD(q[mfi]), NQ, 1, NQ,
            BL_TO_FORTRAN_ANYD(flatn[mfi]),
            BL_TO_FORTRAN_ANYD(qm[mfi]),
-           BL_TO_FORTRAN_ANYD(qp[mfi]));
+           BL_TO_FORTRAN_ANYD(qp[mfi]), NQ, 1, NQ);
+
+      // Compute the shk variable
+#pragma gpu
+      ca_shock
+        (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+         BL_TO_FORTRAN_ANYD(q[mfi]),
+         BL_TO_FORTRAN_ANYD(shk[mfi]),
+         AMREX_REAL_ANYD(dx));
 
   } // MFIter loop
 
@@ -511,11 +541,18 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
                BL_TO_FORTRAN_ANYD(Sborder[mfi]),
                BL_TO_FORTRAN_ANYD(div[mfi]),
                BL_TO_FORTRAN_ANYD(qaux[mfi]),
+               BL_TO_FORTRAN_ANYD(shk[mfi]),
                BL_TO_FORTRAN_ANYD(qm[mfi]),
                BL_TO_FORTRAN_ANYD(qp[mfi]),
-               BL_TO_FORTRAN_ANYD(qe[idir][mfi]),
+               BL_TO_FORTRAN_ANYD(qi[idir][mfi]),
                BL_TO_FORTRAN_ANYD(flux[idir][mfi]),
                BL_TO_FORTRAN_ANYD(area[idir][mfi]));
+
+#pragma gpu
+          ca_store_godunov_state
+            (AMREX_INT_ANYD(ebx.loVect()), AMREX_INT_ANYD(ebx.hiVect()),
+             BL_TO_FORTRAN_ANYD(qi[idir][mfi]),
+             BL_TO_FORTRAN_ANYD(qe[idir][mfi]));
 
           // Store the fluxes from this advance -- we weight them by the
           // integrator weight for this stage
@@ -555,7 +592,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
   } // MFIter loop
 
-#endif
+#endif // RADIATION
+
+#endif // CUDA check
 
   BL_PROFILE_VAR_STOP(CA_UMDRV);
 
@@ -586,6 +625,24 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 #endif
     }
 
+    if (verbose > 0)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+	Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+	if (ParallelDescriptor::IOProcessor())
+	  std::cout << "Castro::construct_mol_hydro_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+	});
+#endif
+    }
+
+
 }
 
 
@@ -605,9 +662,6 @@ Castro::cons_to_prim(const Real time)
       radiation->compute_limiter(level, grids, Sborder, Erborder, lamborder);
     }
 #endif
-
-    const int* domain_lo = geom.Domain().loVect();
-    const int* domain_hi = geom.Domain().hiVect();
 
     MultiFab& S_new = get_new_data(State_Type);
 
@@ -668,9 +722,6 @@ Castro::cons_to_prim_fourth(const Real time)
 {
   // convert the conservative state cell averages to primitive cell
   // averages with 4th order accuracy
-
-    const int* domain_lo = geom.Domain().loVect();
-    const int* domain_hi = geom.Domain().hiVect();
 
     MultiFab& S_new = get_new_data(State_Type);
 
@@ -782,8 +833,7 @@ Castro::check_for_cfl_violation(const Real dt)
     ParallelDescriptor::ReduceRealMax(courno);
 
     if (courno > 1.0) {
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "WARNING -- EFFECTIVE CFL AT THIS LEVEL " << level << " IS " << courno << '\n';
+        amrex::Print() << "WARNING -- EFFECTIVE CFL AT LEVEL " << level << " IS " << courno << std::endl << std::endl;
 
         cfl_violation = 1;
     }

@@ -11,6 +11,8 @@
 
 &tagging
 
+ dxnuc_min = 1.0e-4
+
 /
 
 &extern

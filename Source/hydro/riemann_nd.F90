@@ -19,31 +19,34 @@ module riemann_module
   use riemann_util_module
 
 #ifdef RADIATION
-    use rad_params_module, only : ngroups
+  use rad_params_module, only : ngroups
 #endif
 
   implicit none
 
   private
 
-  public :: riemanncg, riemannus, hllc, cmpflx, riemann_state, cmpflx_cuda
+  public :: riemanncg, riemannus, hllc, cmpflx, cmpflx_plus_godunov, riemann_state
 
   real(rt), parameter :: smallu = 1.e-12_rt
   real(rt), parameter :: small = 1.e-8_rt
 
 contains
 
-  subroutine cmpflx(qm, qp, qpd_lo, qpd_hi, &
-                    flx, flx_lo, flx_hi, &
-                    qgdnv, q_lo, q_hi, &
+  subroutine cmpflx_plus_godunov(lo, hi, &
+                                 qm, qm_lo, qm_hi, &
+                                 qp, qp_lo, qp_hi, nc, comp, &
+                                 flx, flx_lo, flx_hi, &
+                                 qint, q_lo, q_hi, &
 #ifdef RADIATION
-                    rflx, rflx_lo, rflx_hi, &
+                                 rflx, rflx_lo, rflx_hi, &
+                                 lambda_int, li_lo, li_hi, &
 #endif
-                    qaux, qa_lo, qa_hi, &
-                    shk, s_lo, s_hi, &
-                    idir, lo, hi, domlo, domhi)
+                                 qgdnv, qg_lo, qg_hi, &
+                                 qaux, qa_lo, qa_hi, &
+                                 shk, s_lo, s_hi, &
+                                 idir, domlo, domhi)
 
-    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use network, only: nspec, naux
@@ -53,40 +56,124 @@ contains
 
     implicit none
 
-    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    ! note: lo, hi necessarily the limits of the valid (no ghost
+    ! cells) domain, but could be hi+1 in some dimensions.  We rely on
+    ! the caller to specific the interfaces over which to solve the
+    ! Riemann problems
+
+    integer, intent(in) :: lo(3), hi(3)
+
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
+    integer, intent(in) :: flx_lo(3), flx_hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
+    integer, intent(in) :: s_lo(3), s_hi(3)
+    integer, intent(in) :: qg_lo(3), qg_hi(3)
+
+    integer, intent(in) :: idir
+
+    integer, intent(in) :: domlo(3),domhi(3)
+    integer, intent(in) :: nc, comp
+
+    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ,nc)
+    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ,nc)
+
+    real(rt), intent(inout) :: flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR)
+    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+
+#ifdef RADIATION
+    integer, intent(in) :: rflx_lo(3), rflx_hi(3)
+    real(rt), intent(inout) :: rflx(rflx_lo(1):rflx_hi(1), rflx_lo(2):rflx_hi(2), rflx_lo(3):rflx_hi(3),0:ngroups-1)
+    integer, intent(in) :: li_lo(3), li_hi(3)
+    real(rt), intent(inout) :: lambda_int(li_lo(1),li_hi(1), li_lo(2):li_hi(2), li_lo(3):li_hi(3), 0:ngroups-1)
+#endif
+
+    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt), intent(in) ::  shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
+
+    real(rt), intent(inout) :: qgdnv(qg_lo(1):qg_hi(1), qg_lo(2):qg_hi(2), qg_lo(3):qg_hi(3), NGDNV)
+
+    call cmpflx(lo, hi, &
+                qm, qm_lo, qm_hi, &
+                qp, qp_lo, qp_hi, nc, comp, &
+                flx, flx_lo, flx_hi, &
+                qint, q_lo, q_hi, &
+#ifdef RADIATION
+                rflx, rflx_lo, rflx_hi, &
+                lambda_int, li_lo, li_hi, &
+#endif
+                qaux, qa_lo, qa_hi, &
+                shk, s_lo, s_hi, &
+                idir, domlo, domhi)
+
+    call ca_store_godunov_state(lo, hi, &
+                                qint, q_lo, q_hi, &
+#ifdef RADIATION
+                                lambda_int, li_lo, li_hi, &
+#endif
+                                qgdnv, qg_lo, qg_hi)
+
+  end subroutine cmpflx_plus_godunov
+
+  subroutine cmpflx(lo, hi, &
+                    qm, qm_lo, qm_hi, &
+                    qp, qp_lo, qp_hi, nc, comp, &
+                    flx, flx_lo, flx_hi, &
+                    qint, q_lo, q_hi, &
+#ifdef RADIATION
+                    rflx, rflx_lo, rflx_hi, &
+                    lambda_int, li_lo, li_hi, &
+#endif
+                    qaux, qa_lo, qa_hi, &
+                    shk, s_lo, s_hi, &
+                    idir, domlo, domhi)
+
+    use eos_module, only: eos
+    use eos_type_module, only: eos_t, eos_input_re
+    use network, only: nspec, naux
+    use amrex_error_module
+    use amrex_fort_module, only : rt => amrex_real
+    use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver
+
+    implicit none
+
+    ! note: lo, hi necessarily the limits of the valid (no ghost
+    ! cells) domain, but could be hi+1 in some dimensions.  We rely on
+    ! the caller to specific the interfaces over which to solve the
+    ! Riemann problems
+
+    integer, intent(in) :: lo(3), hi(3)
+
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
     integer, intent(in) :: flx_lo(3), flx_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: s_lo(3), s_hi(3)
 
     integer, intent(in) :: idir
-    ! note: lo, hi necessarily the limits of the valid (no ghost
-    ! cells) domain, but could be hi+1 in some dimensions.  We rely on
-    ! the caller to specific the interfaces over which to solve the
-    ! Riemann problems
-    integer, intent(in) :: lo(3), hi(3)
+
     integer, intent(in) :: domlo(3),domhi(3)
+    integer, intent(in) :: nc, comp
 
-    real(rt), intent(inout) :: qm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
-    real(rt), intent(inout) :: qp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ,nc)
+    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ,nc)
 
-    real(rt), intent(inout) ::    flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR)
-    real(rt), intent(inout) ::   qgdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NGDNV)
+    real(rt), intent(inout) :: flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR)
+    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
 
 #ifdef RADIATION
     integer, intent(in) :: rflx_lo(3), rflx_hi(3)
     real(rt), intent(inout) :: rflx(rflx_lo(1):rflx_hi(1), rflx_lo(2):rflx_hi(2), rflx_lo(3):rflx_hi(3),0:ngroups-1)
+    integer, intent(in) :: li_lo(3), li_hi(3)
+    real(rt), intent(inout) :: lambda_int(li_lo(1),li_hi(1), li_lo(2):li_hi(2), li_lo(3):li_hi(3), 0:ngroups-1)
 #endif
 
-    ! qaux come in dimensioned as the full box, so we use k3d here to
-    ! index it in z
-
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-
     real(rt), intent(in) ::  shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
 
-    real(rt), pointer :: qint(:,:,:,:)
-    real(rt), pointer :: lambda_int(:,:,:,:)
+    real(rt) :: ql_zone(NQ), qr_zone(NQ), flx_zone(NVAR)
 
     ! local variables
 
@@ -95,6 +182,8 @@ contains
     integer :: is_shock
     real(rt) :: cl, cr
     type (eos_t) :: eos_state
+
+    !$gpu
 
 #ifdef RADIATION
 #ifndef AMREX_USE_CUDA
@@ -133,16 +222,16 @@ contains
                 eos_state % T = 10000.0e0_rt
 
                 ! minus state
-                eos_state % rho = qm(i,j,k,QRHO)
-                eos_state % p   = qm(i,j,k,QPRES)
-                eos_state % e   = qm(i,j,k,QREINT)/qm(i,j,k,QRHO)
-                eos_state % xn  = qm(i,j,k,QFS:QFS+nspec-1)
-                eos_state % aux = qm(i,j,k,QFX:QFX+naux-1)
+                eos_state % rho = qm(i,j,k,QRHO,comp)
+                eos_state % p   = qm(i,j,k,QPRES,comp)
+                eos_state % e   = qm(i,j,k,QREINT,comp)/qm(i,j,k,QRHO,comp)
+                eos_state % xn  = qm(i,j,k,QFS:QFS+nspec-1,comp)
+                eos_state % aux = qm(i,j,k,QFX:QFX+naux-1,comp)
 
                 call eos(eos_input_re, eos_state)
 
-                qm(i,j,k,QREINT) = eos_state % e * eos_state % rho
-                qm(i,j,k,QPRES)  = eos_state % p
+                qm(i,j,k,QREINT,comp) = eos_state % e * eos_state % rho
+                qm(i,j,k,QPRES,comp)  = eos_state % p
                 !gamcm(i,j)        = eos_state % gam1
 
              end do
@@ -154,16 +243,16 @@ contains
              do i = lo(1), hi(1)
 
                 ! plus state
-                eos_state % rho = qp(i,j,k,QRHO)
-                eos_state % p   = qp(i,j,k,QPRES)
-                eos_state % e   = qp(i,j,k,QREINT)/qp(i,j,k,QRHO)
-                eos_state % xn  = qp(i,j,k,QFS:QFS+nspec-1)
-                eos_state % aux = qp(i,j,k,QFX:QFX+naux-1)
+                eos_state % rho = qp(i,j,k,QRHO,comp)
+                eos_state % p   = qp(i,j,k,QPRES,comp)
+                eos_state % e   = qp(i,j,k,QREINT,comp)/qp(i,j,k,QRHO,comp)
+                eos_state % xn  = qp(i,j,k,QFS:QFS+nspec-1,comp)
+                eos_state % aux = qp(i,j,k,QFX:QFX+naux-1,comp)
 
                 call eos(eos_input_re, eos_state)
 
-                qp(i,j,k,QREINT) = eos_state % e * eos_state % rho
-                qp(i,j,k,QPRES)  = eos_state % p
+                qp(i,j,k,QREINT,comp) = eos_state % e * eos_state % rho
+                qp(i,j,k,QPRES,comp)  = eos_state % p
                 !gamcp(i,j)        = eos_state % gam1
 
              end do
@@ -176,12 +265,8 @@ contains
     if (riemann_solver == 0) then
        ! Colella, Glaz, & Ferguson solver
 
-       call bl_allocate(qint, q_lo, q_hi, NQ)
-#ifdef RADIATION
-       call bl_allocate(lambda_int, q_lo, q_hi, ngroups)
-#endif
-
-       call riemannus(qm, qp, qpd_lo, qpd_hi, &
+       call riemannus(qm, qm_lo, qm_hi, &
+                      qp, qp_lo, qp_hi, nc, comp, &
                       qaux, qa_lo, qa_hi, &
                       qint, q_lo, q_hi, &
 #ifdef RADIATION
@@ -190,38 +275,30 @@ contains
                       idir, lo, hi, &
                       domlo, domhi)
 
-       call compute_flux_q(idir, qint, q_lo, q_hi, &
+       call compute_flux_q(lo, hi, &
+                           qint, q_lo, q_hi, &
                            flx, flx_lo, flx_hi, &
 #ifdef RADIATION
                            lambda_int, q_lo, q_hi, &
                            rflx, rflx_lo, rflx_hi, &
 #endif
-                           qgdnv, q_lo, q_hi, &
-                           lo, hi)
-
-       call bl_deallocate(qint)
-#ifdef RADIATION
-       call bl_deallocate(lambda_int)
-#endif
+                           idir)
 
     elseif (riemann_solver == 1) then
        ! Colella & Glaz solver
 
 #ifndef RADIATION
-       call bl_allocate(qint, q_lo, q_hi, NQ)
-
-       call riemanncg(qm, qp, qpd_lo, qpd_hi, &
+       call riemanncg(qm, qm_lo, qm_hi, &
+                      qp, qp_lo, qp_hi, nc, comp, &
                       qaux, qa_lo, qa_hi, &
                       qint, q_lo, q_hi, &
                       idir, lo, hi, &
                       domlo, domhi)
 
-       call compute_flux_q(idir, qint, q_lo, q_hi, &
+       call compute_flux_q(lo, hi, &
+                           qint, q_lo, q_hi, &
                            flx, flx_lo, flx_hi, &
-                           qgdnv, q_lo, q_hi, &
-                           lo, hi)
-
-       call bl_deallocate(qint)
+                           idir)
 #else
 #ifndef AMREX_USE_CUDA
        call amrex_error("ERROR: CG solver does not support radiaiton")
@@ -230,10 +307,11 @@ contains
 
     elseif (riemann_solver == 2) then
        ! HLLC
-       call HLLC(qm, qp, qpd_lo, qpd_hi, &
+       call HLLC(qm, qm_lo, qm_hi, &
+                 qp, qp_lo, qp_hi, nc, comp, &
                  qaux, qa_lo, qa_hi, &
                  flx, flx_lo, flx_hi, &
-                 qgdnv, q_lo, q_hi, &
+                 qint, q_lo, q_hi, &
                  idir, lo, hi, &
                  domlo, domhi)
 #ifndef AMREX_USE_CUDA
@@ -273,9 +351,11 @@ contains
                       cr = qaux(i,j,k,QC)
                    end select
 
-                   call HLL(qm(i,j,k,:), qp(i,j,k,:), cl, cr, &
-                            idir, flx(i,j,k,:))
 
+                   ql_zone(:) = qm(i,j,k,:,comp)
+                   qr_zone(:) = qp(i,j,k,:,comp)
+                   call HLL(ql_zone, qr_zone, cl, cr, idir, flx_zone)
+                   flx(i,j,k,:) = flx_zone(:)
                 endif
 
              end do
@@ -287,13 +367,33 @@ contains
   end subroutine cmpflx
 
 
-  subroutine riemann_state(qm, qp, qpd_lo, qpd_hi, &
+
+  !>
+  !! @param[in] qpd_lo integer
+  !! @param[in] q_lo integer
+  !! @param[in] qa_lo integer
+  !! @param[in] idir integer
+  !! @param[in] lo integer
+  !! @param[in] domlo integer
+  !! @param[in] nc integer
+  !! @param[in] comp integer
+  !! @param[inout] qm real(rt)
+  !! @param[inout] qp real(rt)
+  !! @param[inout] qint real(rt)
+  !! @param[in] qaux real(rt)
+  !!
+  subroutine riemann_state(qm, qm_lo, qm_hi, &
+                           qp, qp_lo, qp_hi, nc, comp, &
                            qint, q_lo, q_hi, &
+#ifdef RADIATION
+                           lambda_int, l_lo, l_hi, &
+#endif
                            qaux, qa_lo, qa_hi, &
                            idir, lo, hi, domlo, domhi)
 
+    ! just compute the hydrodynamic state on the interfaces
+    ! don't compute the fluxes
 
-    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use network, only: nspec, naux
@@ -303,36 +403,33 @@ contains
 
     implicit none
 
-    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
 
     integer, intent(in) :: idir
-    ! note: ilo, ihi, jlo, jhi are not necessarily the limits of the
-    ! valid (no ghost cells) domain, but could be hi+1 in some
-    ! dimensions.  We rely on the caller to specific the interfaces
-    ! over which to solve the Riemann problems
+    ! note: lo, hi are not necessarily the limits of the valid (no
+    ! ghost cells) domain, but could be hi+1 in some dimensions.  We
+    ! rely on the caller to specific the interfaces over which to
+    ! solve the Riemann problems
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
+    integer, intent(in) :: nc, comp
 
-    ! note: qm, qp, q may come in as planes (all of x,y
-    ! zones but only 2 elements in the z dir) instead of being
-    ! dimensioned the same as the full box.  We index these with kc.
-    ! flux either comes in as planes (like qm, qp, ... above), or
-    ! comes in dimensioned as the full box.  We index the flux with
-    ! kflux -- this will be set correctly for the different cases.
-
-    real(rt), intent(inout) :: qm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
-    real(rt), intent(inout) :: qp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ,nc)
+    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ,nc)
 
     real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+#ifdef RADIATION
+    integer, intent(in) :: l_lo(3), l_hi(3)
+    real(rt), intent(inout) :: lambda_int(l_lo(1):l_hi(1),l_lo(2):l_hi(2),l_lo(3):l_hi(3),0:ngroups-1)
+#endif
 
     ! qaux come in dimensioned as the full box, so we use k3d here to
     ! index it in z
 
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-
-    real(rt), pointer :: lambda_int(:,:,:,:)
 
     ! local variables
 
@@ -378,16 +475,16 @@ contains
                 eos_state % T = 10000.0e0_rt
 
                 ! minus state
-                eos_state % rho = qm(i,j,k,QRHO)
-                eos_state % p   = qm(i,j,k,QPRES)
-                eos_state % e   = qm(i,j,k,QREINT)/qm(i,j,k,QRHO)
-                eos_state % xn  = qm(i,j,k,QFS:QFS+nspec-1)
-                eos_state % aux = qm(i,j,k,QFX:QFX+naux-1)
+                eos_state % rho = qm(i,j,k,QRHO,comp)
+                eos_state % p   = qm(i,j,k,QPRES,comp)
+                eos_state % e   = qm(i,j,k,QREINT,comp)/qm(i,j,k,QRHO,comp)
+                eos_state % xn  = qm(i,j,k,QFS:QFS+nspec-1,comp)
+                eos_state % aux = qm(i,j,k,QFX:QFX+naux-1,comp)
 
                 call eos(eos_input_re, eos_state)
 
-                qm(i,j,k,QREINT) = eos_state % e * eos_state % rho
-                qm(i,j,k,QPRES)  = eos_state % p
+                qm(i,j,k,QREINT,comp) = eos_state % e * eos_state % rho
+                qm(i,j,k,QPRES,comp)  = eos_state % p
                 !gamcm(i,j)        = eos_state % gam1
 
              end do
@@ -403,16 +500,16 @@ contains
                 eos_state % T = 10000.0e0_rt
 
                 ! plus state
-                eos_state % rho = qp(i,j,k,QRHO)
-                eos_state % p   = qp(i,j,k,QPRES)
-                eos_state % e   = qp(i,j,k,QREINT)/qp(i,j,k,QRHO)
-                eos_state % xn  = qp(i,j,k,QFS:QFS+nspec-1)
-                eos_state % aux = qp(i,j,k,QFX:QFX+naux-1)
+                eos_state % rho = qp(i,j,k,QRHO,comp)
+                eos_state % p   = qp(i,j,k,QPRES,comp)
+                eos_state % e   = qp(i,j,k,QREINT,comp)/qp(i,j,k,QRHO,comp)
+                eos_state % xn  = qp(i,j,k,QFS:QFS+nspec-1,comp)
+                eos_state % aux = qp(i,j,k,QFX:QFX+naux-1,comp)
 
                 call eos(eos_input_re, eos_state)
 
-                qp(i,j,k,QREINT) = eos_state % e * eos_state % rho
-                qp(i,j,k,QPRES)  = eos_state % p
+                qp(i,j,k,QREINT,comp) = eos_state % e * eos_state % rho
+                qp(i,j,k,QPRES,comp)  = eos_state % p
                 !gamcp(i,j)        = eos_state % gam1
 
              end do
@@ -425,11 +522,8 @@ contains
     if (riemann_solver == 0) then
        ! Colella, Glaz, & Ferguson solver
 
-#ifdef RADIATION
-       call bl_allocate(lambda_int, q_lo, q_hi, ngroups)
-#endif
-
-       call riemannus(qm, qp, qpd_lo, qpd_hi, &
+       call riemannus(qm, qm_lo, qm_hi, &
+                      qp, qp_lo, qp_hi, nc, comp, &
                       qaux, qa_lo, qa_hi, &
                       qint, q_lo, q_hi, &
 #ifdef RADIATION
@@ -438,15 +532,12 @@ contains
                       idir, lo, hi, &
                       domlo, domhi)
 
-#ifdef RADIATION
-       call bl_deallocate(lambda_int)
-#endif
-
     elseif (riemann_solver == 1) then
        ! Colella & Glaz solver
 
 #ifndef RADIATION
-       call riemanncg(qm, qp, qpd_lo, qpd_hi, &
+       call riemanncg(qm, qm_lo, qm_hi, &
+                      qp, qp_lo, qp_hi, nc, comp, &
                       qaux, qa_lo, qa_hi, &
                       qint, q_lo, q_hi, &
                       idir, lo, hi, &
@@ -467,39 +558,60 @@ contains
 
 
 
-  subroutine riemanncg(ql, qr, qpd_lo, qpd_hi, &
+
+  !> @brief this implements the approximate Riemann solver of Colella & Glaz
+  !! (1985)
+  !!
+  !! this version is dimension agnostic -- for 1- and 2-d, set kc,
+  !! kflux, and k3d to 0
+  !!
+  !! @param[in] qpd_lo integer
+  !! @param[in] qa_lo integer
+  !! @param[in] q_lo integer
+  !! @param[in] idir integer
+  !! @param[in] lo integer
+  !! @param[in] domlo integer
+  !! @param[in] nc integer
+  !! @param[in] comp integer
+  !! @param[in] ql real(rt)
+  !! @param[in] qr real(rt)
+  !! @param[in] qaux real(rt)
+  !! @param[inout] qint real(rt)
+  !!
+  subroutine riemanncg(ql, ql_lo, ql_hi, &
+                       qr, qr_lo, qr_hi, nc, comp, &
                        qaux, qa_lo, qa_hi, &
                        qint, q_lo, q_hi, &
                        idir, lo, hi, &
                        domlo, domhi)
 
-    ! this implements the approximate Riemann solver of Colella & Glaz
-    ! (1985)
-
-    ! this version is dimension agnostic -- for 1- and 2-d, set kc,
-    ! kflux, and k3d to 0
-
     use amrex_error_module
+#ifndef AMREX_USE_CUDA
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
+#endif
     use prob_params_module, only : physbc_lo, physbc_hi, &
-                                   Symmetry, SlipWall, NoSlipWall, &
-                                   mom_flux_has_p
+         Symmetry, SlipWall, NoSlipWall
     use network, only : nspec, naux
     use eos_type_module
     use eos_module
     use meth_params_module, only : cg_maxiter, cg_tol, cg_blend
-    use riemann_util_module, only : wsqge, pstar_bisection
+#ifndef AMREX_USE_CUDA
+    use riemann_util_module, only : pstar_bisection
+#endif
+    use riemann_util_module, only : wsqge
 
     implicit none
 
-    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: ql_lo(3), ql_hi(3)
+    integer, intent(in) :: qr_lo(3), qr_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: idir, lo(3), hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
+    integer, intent(in) :: nc, comp
 
-    real(rt), intent(in) :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
-    real(rt), intent(in) :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    real(rt), intent(in) :: ql(ql_lo(1):ql_hi(1),ql_lo(2):ql_hi(2),ql_lo(3):ql_hi(3),NQ,nc)
+    real(rt), intent(in) :: qr(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),NQ,nc)
 
     ! note: qaux comes in dimensioned as the fully box, so use k3d to
     ! index in z
@@ -512,7 +624,7 @@ contains
     real(rt) :: ustar
     real(rt) :: rl, ul, v1l, v2l, pl, rel
     real(rt) :: rr, ur, v1r, v2r, pr, rer
-    real(rt) :: wl, wr, rhoetot
+    real(rt) :: wl, wr
 
     real(rt) :: rstar, cstar, pstar
     real(rt) :: ro, uo, po, co, gamco
@@ -536,15 +648,15 @@ contains
     real(rt) :: pstar_old
     real(rt) :: taul, taur, tauo
     real(rt) :: ustar_r, ustar_l, ustar_r_old, ustar_l_old
-    real(rt) :: pstarl, pstarc, pstaru, pfuncc, pfuncu
+    real(rt) :: pstarl, pstaru
 
     real(rt), parameter :: weakwv = 1.e-3_rt
 
+#ifndef AMREX_USE_CUDA
     real(rt), pointer :: pstar_hist(:), pstar_hist_extra(:)
+#endif
 
     type (eos_t) :: eos_state
-
-    real(rt), pointer :: us1d(:)
 
     real(rt) :: u_adv
 
@@ -552,7 +664,9 @@ contains
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
     real(rt) :: bnd_fac_x, bnd_fac_y, bnd_fac_z
 
-#ifndef AMREX_USE_CUDA 
+    !$gpu
+
+#ifndef AMREX_USE_CUDA
     if (cg_blend == 2 .and. cg_maxiter < 5) then
 
        call amrex_error("Error: need cg_maxiter >= 5 to do a bisection search on secant iteration failure.")
@@ -612,9 +726,10 @@ contains
     tol = cg_tol
     iter_max = cg_maxiter
 
+#ifndef AMREX_USE_CUDA
     call bl_allocate(pstar_hist, 1,iter_max)
     call bl_allocate(pstar_hist_extra, 1,2*iter_max)
-    call bl_allocate(us1d, lo(1), hi(1))
+#endif
 
     do k = lo(3), hi(3)
        bnd_fac_z = ONE
@@ -638,15 +753,15 @@ contains
           do i = lo(1), hi(1)
 
              ! left state
-             rl = max(ql(i,j,k,QRHO), small_dens)
+             rl = max(ql(i,j,k,QRHO,comp), small_dens)
 
              ! pick left velocities based on direction
-             ul  = ql(i,j,k,iu)
-             v1l = ql(i,j,k,iv1)
-             v2l = ql(i,j,k,iv2)
+             ul  = ql(i,j,k,iu,comp)
+             v1l = ql(i,j,k,iv1,comp)
+             v2l = ql(i,j,k,iv2,comp)
 
-             pl  = ql(i,j,k,QPRES)
-             rel = ql(i,j,k,QREINT)
+             pl  = ql(i,j,k,QPRES,comp)
+             rel = ql(i,j,k,QREINT,comp)
              gcl = qaux(i-sx,j-sy,k-sz,QGAMC)
 
              ! sometime we come in here with negative energy or pressure
@@ -659,8 +774,8 @@ contains
 
                 eos_state % T   = small_temp
                 eos_state % rho = rl
-                eos_state % xn  = ql(i,j,k,QFS:QFS-1+nspec)
-                eos_state % aux = ql(i,j,k,QFX:QFX-1+naux)
+                eos_state % xn  = ql(i,j,k,QFS:QFS-1+nspec,comp)
+                eos_state % aux = ql(i,j,k,QFX:QFX-1+naux,comp)
 
                 call eos(eos_input_rt, eos_state)
 
@@ -670,15 +785,15 @@ contains
              endif
 
              ! right state
-             rr = max(qr(i,j,k,QRHO), small_dens)
+             rr = max(qr(i,j,k,QRHO,comp), small_dens)
 
              ! pick right velocities based on direction
-             ur  = qr(i,j,k,iu)
-             v1r = qr(i,j,k,iv1)
-             v2r = qr(i,j,k,iv2)
+             ur  = qr(i,j,k,iu,comp)
+             v1r = qr(i,j,k,iv1,comp)
+             v2r = qr(i,j,k,iv2,comp)
 
-             pr  = qr(i,j,k,QPRES)
-             rer = qr(i,j,k,QREINT)
+             pr  = qr(i,j,k,QPRES,comp)
+             rer = qr(i,j,k,QREINT,comp)
              gcr = qaux(i,j,k,QGAMC)
 
              if (rer <= ZERO .or. pr < small_pres) then
@@ -688,8 +803,8 @@ contains
 
                 eos_state % T   = small_temp
                 eos_state % rho = rr
-                eos_state % xn  = qr(i,j,k,QFS:QFS-1+nspec)
-                eos_state % aux = qr(i,j,k,QFX:QFX-1+naux)
+                eos_state % xn  = qr(i,j,k,QFS:QFS-1+nspec,comp)
+                eos_state % aux = qr(i,j,k,QFX:QFX-1+naux,comp)
 
                 call eos(eos_input_rt, eos_state)
 
@@ -740,10 +855,10 @@ contains
 
              ! get the shock speeds -- this computes W_s from CG Eq. 34
              call wsqge(pl, taul, gamel, gdot,  &
-                        gamstar, pstar, wlsq, clsql, gmin, gmax)
+                  gamstar, pstar, wlsq, clsql, gmin, gmax)
 
              call wsqge(pr, taur, gamer, gdot,  &
-                        gamstar, pstar, wrsq, clsqr, gmin, gmax)
+                  gamstar, pstar, wrsq, clsqr, gmin, gmax)
 
              pstar_old = pstar
 
@@ -768,10 +883,10 @@ contains
              do while ((iter <= iter_max .and. .not. converged) .or. iter <= 2)
 
                 call wsqge(pl, taul, gamel, gdot,  &
-                           gamstar, pstar, wlsq, clsql, gmin, gmax)
+                     gamstar, pstar, wlsq, clsql, gmin, gmax)
 
                 call wsqge(pr, taur, gamer, gdot,  &
-                           gamstar, pstar, wrsq, clsqr, gmin, gmax)
+                     gamstar, pstar, wrsq, clsqr, gmin, gmax)
 
                 ! NOTE: these are really the inverses of the wave speeds!
                 wl = ONE / sqrt(wlsq)
@@ -808,7 +923,9 @@ contains
                 err = abs(pstar - pstar_old)
                 if (err < tol*pstar) converged = .true.
 
+#ifndef AMREX_USE_CUDA
                 pstar_hist(iter) = pstar
+#endif
 
                 iter = iter + 1
 
@@ -842,19 +959,21 @@ contains
 
                 else if (cg_blend == 2) then
 
+                   ! we don't store the history if we are in CUDA, so
+                   ! we can't do this
+#ifndef AMREX_USE_CUDA
                    ! first try to find a reasonable bounds
                    pstarl = minval(pstar_hist(iter_max-5:iter_max))
                    pstaru = maxval(pstar_hist(iter_max-5:iter_max))
 
                    call pstar_bisection(pstarl, pstaru, &
-                                        ul, pl, taul, gamel, clsql, &
-                                        ur, pr, taur, gamer, clsqr, &
-                                        gdot, gmin, gmax, &
-                                        pstar, gamstar, converged, pstar_hist_extra)
+                        ul, pl, taul, gamel, clsql, &
+                        ur, pr, taur, gamer, clsqr, &
+                        gdot, gmin, gmax, &
+                        pstar, gamstar, converged, pstar_hist_extra)
 
                    if (.not. converged) then
 
-#ifndef AMREX_USE_CUDA
                       print *, 'pstar history: '
                       do iter = 1, iter_max
                          print *, iter, pstar_hist(iter)
@@ -868,9 +987,9 @@ contains
                       print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
                       print *, 'cavg, smallc:', cavg, csmall
                       call amrex_error("ERROR: non-convergence in the Riemann solver")
-#endif
-                   endif
 
+                   endif
+#endif
                 else
 
 #ifndef AMREX_USE_CUDA
@@ -933,7 +1052,7 @@ contains
              ! about, get the value of gamstar and wosq across the wave we
              ! are dealing with.
              call wsqge(po, tauo, gameo, gdot,   &
-                        gamstar, pstar, wosq, clsq, gmin, gmax)
+                  gamstar, pstar, wosq, clsq, gmin, gmax)
 
              sgnm = sign(ONE, ustar)
 
@@ -1025,21 +1144,17 @@ contains
              ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
              qint(i,j,k,QREINT) = qint(i,j,k,QPRES)/(qint(i,j,k,QGAME) - ONE)
 
-             us1d(i) = ustar
-          end do
+             ! advected quantities -- only the contact matters
+             do ipassive = 1, npassive
+                n  = upass_map(ipassive)
+                nqp = qpass_map(ipassive)
 
-          ! advected quantities -- only the contact matters
-          do ipassive = 1, npassive
-             n  = upass_map(ipassive)
-             nqp = qpass_map(ipassive)
-
-             do i = lo(1), hi(1)
-                if (us1d(i) > ZERO) then
-                   qint(i,j,k,nqp) = ql(i,j,k,nqp)
-                else if (us1d(i) < ZERO) then
-                   qint(i,j,k,nqp) = qr(i,j,k,nqp)
+                if (ustar > ZERO) then
+                   qint(i,j,k,nqp) = ql(i,j,k,nqp,comp)
+                else if (ustar < ZERO) then
+                   qint(i,j,k,nqp) = qr(i,j,k,nqp,comp)
                 else
-                   qavg = HALF * (ql(i,j,k,nqp) + qr(i,j,k,nqp))
+                   qavg = HALF * (ql(i,j,k,nqp,comp) + qr(i,j,k,nqp,comp))
                    qint(i,j,k,nqp) = qavg
                 end if
              end do
@@ -1048,21 +1163,21 @@ contains
        end do
     end do
 
+#ifndef AMREX_USE_CUDA
     call bl_deallocate(pstar_hist)
     call bl_deallocate(pstar_hist_extra)
-    call bl_deallocate(us1d)
+#endif
 
   end subroutine riemanncg
 
 
-  !===========================================================================
-  ! Colella, Glaz, and Ferguson solver
-  !
-  ! this is a 2-shock solver that uses a very simple approximation for the
-  ! star state, and carries an auxiliary jump condition for (rho e) to
-  ! deal with a real gas
-  !===========================================================================
-  subroutine riemannus(ql, qr, qpd_lo, qpd_hi, &
+  !> @brief Colella, Glaz, and Ferguson solver
+  !!
+  !! this is a 2-shock solver that uses a very simple approximation for the
+  !! star state, and carries an auxiliary jump condition for (rho e) to
+  !! deal with a real gas
+  subroutine riemannus(ql, ql_lo, ql_hi, &
+                       qr, qr_lo, qr_hi, nc, comp, &
                        qaux, qa_lo, qa_hi, &
                        qint, q_lo, q_hi, &
 #ifdef RADIATION
@@ -1071,28 +1186,28 @@ contains
                        idir, lo, hi, &
                        domlo, domhi)
 
-    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, &
-                                   Symmetry, SlipWall, NoSlipWall, &
-                                   mom_flux_has_p
+                                   Symmetry, SlipWall, NoSlipWall
     use eos_type_module, only : eos_t, eos_input_rp
     use eos_module, only : eos
     use network, only : nspec
 
     implicit none
 
-    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: ql_lo(3), ql_hi(3)
+    integer, intent(in) :: qr_lo(3), qr_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: idir, lo(3), hi(3)
     integer, intent(in) :: domlo(3),domhi(3)
+    integer, intent(in) :: nc, comp
 
 #ifdef RADIATION
     integer, intent(in) :: l_lo(3), l_hi(3)
 #endif
 
-    real(rt), intent(in) :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
-    real(rt), intent(in) :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    real(rt), intent(in) :: ql(ql_lo(1):ql_hi(1),ql_lo(2):ql_hi(2),ql_lo(3):ql_hi(3),NQ,nc)
+    real(rt), intent(in) :: qr(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),NQ,nc)
 
     ! note: qaux comes in dimensioned as the fully box, so use k3d to
     ! index in z
@@ -1102,14 +1217,13 @@ contains
     real(rt), intent(inout) :: lambda_int(l_lo(1):l_hi(1),l_lo(2):l_hi(2),l_lo(3):l_hi(3),0:ngroups-1)
 #endif
 
-
     integer :: i, j, k
     integer :: n, nqp, ipassive
 
     real(rt) :: regdnv
     real(rt) :: rl, ul, v1l, v2l, pl, rel
     real(rt) :: rr, ur, v1r, v2r, pr, rer
-    real(rt) :: wl, wr, rhoetot, scr
+    real(rt) :: wl, wr, scr
     real(rt) :: rstar, cstar, estar, pstar, ustar
     real(rt) :: ro, uo, po, reo, co, gamco, entho, drho
     real(rt) :: sgnm, spin, spout, ushock, frac
@@ -1127,11 +1241,9 @@ contains
     real(rt) :: gamcgl, gamcgr
 #endif
 
-    real(rt), pointer :: us1d(:)
-
     real(rt) :: u_adv
 
-    integer :: iu, iv1, iv2, im1, im2, im3, sx, sy, sz
+    integer :: iu, iv1, iv2, im1, im2, im3
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
     real(rt) :: bnd_fac_x, bnd_fac_y, bnd_fac_z
     real(rt) :: wwinv, roinv, co2inv
@@ -1139,7 +1251,7 @@ contains
     type(eos_t) :: eos_state
     real(rt), dimension(nspec) :: xn
 
-    call bl_allocate(us1d, lo(1), hi(1))
+    !$gpu
 
     ! set integer pointers for the normal and transverse velocity and
     ! momentum
@@ -1151,9 +1263,6 @@ contains
        im1 = UMX
        im2 = UMY
        im3 = UMZ
-       sx = 1
-       sy = 0
-       sz = 0
     else if (idir == 2) then
        iu = QV
        iv1 = QU
@@ -1161,9 +1270,6 @@ contains
        im1 = UMY
        im2 = UMX
        im3 = UMZ
-       sx = 0
-       sy = 1
-       sz = 0
     else
        iu = QW
        iv1 = QU
@@ -1171,9 +1277,6 @@ contains
        im1 = UMZ
        im2 = UMX
        im3 = UMY
-       sx = 0
-       sy = 0
-       sz = 1
     end if
 
     special_bnd_lo = (physbc_lo(idir) == Symmetry &
@@ -1219,58 +1322,86 @@ contains
              ! ------------------------------------------------------------------
 
 #ifdef RADIATION
-             laml(:) = qaux(i-sx,j-sy,k-sz,QLAMS:QLAMS+ngroups-1)
-             lamr(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
+             if (idir == 1) then
+                laml(:) = qaux(i-1,j,k,QLAMS:QLAMS+ngroups-1)
+                lamr(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
+             else if (idir == 2) then
+                laml(:) = qaux(i,j-1,k,QLAMS:QLAMS+ngroups-1)
+                lamr(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
+             else
+                laml(:) = qaux(i,j,k-1,QLAMS:QLAMS+ngroups-1)
+                lamr(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
+             end if
 #endif
 
-             rl = max(ql(i,j,k,QRHO), small_dens)
+             rl = max(ql(i,j,k,QRHO,comp), small_dens)
 
              ! pick left velocities based on direction
-             ul  = ql(i,j,k,iu)
-             v1l = ql(i,j,k,iv1)
-             v2l = ql(i,j,k,iv2)
+             ul  = ql(i,j,k,iu,comp)
+             v1l = ql(i,j,k,iv1,comp)
+             v2l = ql(i,j,k,iv2,comp)
 
 #ifdef RADIATION
-             pl = ql(i,j,k,qptot)
-             rel = ql(i,j,k,qreitot)
-             erl(:) = ql(i,j,k,qrad:qradhi)
-             pl_g = ql(i,j,k,QPRES)
-             rel_g = ql(i,j,k,QREINT)
+             pl = ql(i,j,k,qptot,comp)
+             rel = ql(i,j,k,qreitot,comp)
+             erl(:) = ql(i,j,k,qrad:qradhi,comp)
+             pl_g = ql(i,j,k,QPRES,comp)
+             rel_g = ql(i,j,k,QREINT,comp)
 #else
-             pl  = max(ql(i,j,k,QPRES ), small_pres)
-             rel = ql(i,j,k,QREINT)
+             pl  = max(ql(i,j,k,QPRES,comp), small_pres)
+             rel = ql(i,j,k,QREINT,comp)
 #endif
 
-             rr = max(qr(i,j,k,QRHO), small_dens)
+             rr = max(qr(i,j,k,QRHO,comp), small_dens)
 
              ! pick right velocities based on direction
-             ur  = qr(i,j,k,iu)
-             v1r = qr(i,j,k,iv1)
-             v2r = qr(i,j,k,iv2)
+             ur  = qr(i,j,k,iu,comp)
+             v1r = qr(i,j,k,iv1,comp)
+             v2r = qr(i,j,k,iv2,comp)
 
 #ifdef RADIATION
-             pr = qr(i,j,k,qptot)
-             rer = qr(i,j,k,qreitot)
-             err(:) = qr(i,j,k,qrad:qradhi)
-             pr_g = qr(i,j,k,QPRES)
-             rer_g = qr(i,j,k,QREINT)
+             pr = qr(i,j,k,qptot,comp)
+             rer = qr(i,j,k,qreitot,comp)
+             err(:) = qr(i,j,k,qrad:qradhi,comp)
+             pr_g = qr(i,j,k,QPRES,comp)
+             rer_g = qr(i,j,k,QREINT,comp)
 #else
-             pr  = max(qr(i,j,k,QPRES), small_pres)
-             rer = qr(i,j,k,QREINT)
+             pr  = max(qr(i,j,k,QPRES,comp), small_pres)
+             rer = qr(i,j,k,QREINT,comp)
 #endif
 
              ! ------------------------------------------------------------------
              ! estimate the star state: pstar, ustar
              ! ------------------------------------------------------------------
 
-             csmall = max( small, max( small * qaux(i,j,k,QC) , small * qaux(i-sx,j-sy,k-sz,QC))  )
-             cavg = HALF*(qaux(i,j,k,QC) + qaux(i-sx,j-sy,k-sz,QC))
-             gamcl = qaux(i-sx,j-sy,k-sz,QGAMC)
-             gamcr = qaux(i,j,k,QGAMC)
+             if (idir == 1) then
+                csmall = max( small, max( small * qaux(i,j,k,QC) , small * qaux(i-1,j,k,QC))  )
+                cavg = HALF*(qaux(i,j,k,QC) + qaux(i-1,j,k,QC))
+                gamcl = qaux(i-1,j,k,QGAMC)
+                gamcr = qaux(i,j,k,QGAMC)
 #ifdef RADIATION
-             gamcgl = qaux(i-sx,j-sy,k-sz,QGAMCG)
-             gamcgr = qaux(i,j,k,QGAMCG)
+                gamcgl = qaux(i-1,j,k,QGAMCG)
+                gamcgr = qaux(i,j,k,QGAMCG)
 #endif
+             else if (idir == 2) then
+                csmall = max( small, max( small * qaux(i,j,k,QC) , small * qaux(i,j-1,k,QC))  )
+                cavg = HALF*(qaux(i,j,k,QC) + qaux(i,j-1,k,QC))
+                gamcl = qaux(i,j-1,k,QGAMC)
+                gamcr = qaux(i,j,k,QGAMC)
+#ifdef RADIATION
+                gamcgl = qaux(i,j-1,k,QGAMCG)
+                gamcgr = qaux(i,j,k,QGAMCG)
+#endif
+             else
+                csmall = max( small, max( small * qaux(i,j,k,QC) , small * qaux(i,j,k-1,QC))  )
+                cavg = HALF*(qaux(i,j,k,QC) + qaux(i,j,k-1,QC))
+                gamcl = qaux(i,j,k-1,QGAMC)
+                gamcr = qaux(i,j,k,QGAMC)
+#ifdef RADIATION
+                gamcgl = qaux(i,j,k-1,QGAMCG)
+                gamcgr = qaux(i,j,k,QGAMCG)
+#endif
+             end if
 
              wsmall = small_dens*csmall
 
@@ -1503,13 +1634,13 @@ contains
                 ! we need to know the species -- they only jump across
                 ! the contact
                 if (ustar > ZERO) then
-                   xn(:) = ql(i,j,k,QFS:QFS-1+nspec)
+                   xn(:) = ql(i,j,k,QFS:QFS-1+nspec,comp)
 
                 else if (ustar < ZERO) then
-                   xn(:) = qr(i,j,k,QFS:QFS-1+nspec)
+                   xn(:) = qr(i,j,k,QFS:QFS-1+nspec,comp)
                 else
-                   xn(:) = HALF*(ql(i,j,k,QFS:QFS-1+nspec) + &
-                                 qr(i,j,k,QFS:QFS-1+nspec))
+                   xn(:) = HALF*(ql(i,j,k,QFS:QFS-1+nspec,comp) + &
+                        qr(i,j,k,QFS:QFS-1+nspec,comp))
                 endif
 
                 eos_state % rho = qint(i,j,k,QRHO)
@@ -1545,24 +1676,17 @@ contains
 
              qint(i,j,k,iu) = u_adv
 
-             ! store this for vectorization
-             us1d(i) = ustar
+             ! passively advected quantities
+             do ipassive = 1, npassive
+                n  = upass_map(ipassive)
+                nqp = qpass_map(ipassive)
 
-          end do
-
-          ! passively advected quantities
-          do ipassive = 1, npassive
-             n  = upass_map(ipassive)
-             nqp = qpass_map(ipassive)
-
-             !dir$ ivdep
-             do i = lo(1), hi(1)
-                if (us1d(i) > ZERO) then
-                   qint(i,j,k,nqp) = ql(i,j,k,nqp)
-                else if (us1d(i) < ZERO) then
-                   qint(i,j,k,nqp) = qr(i,j,k,nqp)
+                if (ustar > ZERO) then
+                   qint(i,j,k,nqp) = ql(i,j,k,nqp,comp)
+                else if (ustar < ZERO) then
+                   qint(i,j,k,nqp) = qr(i,j,k,nqp,comp)
                 else
-                   qavg = HALF * (ql(i,j,k,nqp) + qr(i,j,k,nqp))
+                   qavg = HALF * (ql(i,j,k,nqp,comp) + qr(i,j,k,nqp,comp))
                    qint(i,j,k,nqp) = qavg
                 end if
              end do
@@ -1572,48 +1696,62 @@ contains
        end do
     end do
 
-    call bl_deallocate(us1d)
-
   end subroutine riemannus
 
 
-  subroutine HLLC(ql, qr, qpd_lo, qpd_hi, &
+  !> @brief this is an implementation of the HLLC solver described in Toro's
+  !! book.  it uses the simplest estimate of the wave speeds, since
+  !! those should work for a general EOS.  We also initially do the
+  !! CGF Riemann construction to get pstar and ustar, since we'll
+  !! need to know the pressure and velocity on the interface for the
+  !! pdV term in the internal energy update.
+  !!
+  !! @param[in] qpd_lo integer
+  !! @param[in] qa_lo integer
+  !! @param[in] uflx_lo integer
+  !! @param[in] q_lo integer
+  !! @param[in] idir integer
+  !! @param[in] lo integer
+  !! @param[in] domlo integer
+  !! @param[in] nc integer
+  !! @param[in] comp integer
+  !! @param[in] ql real(rt)
+  !! @param[in] qr real(rt)
+  !! @param[in] qaux real(rt)
+  !! @param[inout] uflx real(rt)
+  !! @param[inout] qgdnv real(rt)
+  !!
+  subroutine HLLC(ql, ql_lo, ql_hi, &
+                  qr, qr_lo, qr_hi, nc, comp, &
                   qaux, qa_lo, qa_hi, &
                   uflx, uflx_lo, uflx_hi, &
-                  qgdnv, q_lo, q_hi, &
+                  qint, q_lo, q_hi, &
                   idir, lo, hi, &
                   domlo, domhi)
 
-
-    ! this is an implementation of the HLLC solver described in Toro's
-    ! book.  it uses the simplest estimate of the wave speeds, since
-    ! those should work for a general EOS.  We also initially do the
-    ! CGF Riemann construction to get pstar and ustar, since we'll
-    ! need to know the pressure and velocity on the interface for the
-    ! pdV term in the internal energy update.
-
-    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, &
-                                   Symmetry, SlipWall, NoSlipWall
+         Symmetry, SlipWall, NoSlipWall
 
     implicit none
 
-    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: ql_lo(3), ql_hi(3)
+    integer, intent(in) :: qr_lo(3), qr_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: uflx_lo(3), uflx_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: idir, lo(3), hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
+    integer, intent(in) :: nc, comp
 
-    real(rt), intent(in) :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
-    real(rt), intent(in) :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    real(rt), intent(in) :: ql(ql_lo(1):ql_hi(1),ql_lo(2):ql_hi(2),ql_lo(3):ql_hi(3),NQ,nc)
+    real(rt), intent(in) :: qr(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),NQ,nc)
 
     ! note: qaux comes in dimensioned as the fully box, so use k3d to
     ! index in z
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
     real(rt), intent(inout) :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),uflx_lo(3):uflx_hi(3),NVAR)
-    real(rt), intent(inout) :: qgdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
 
     integer :: i, j, k
 
@@ -1634,6 +1772,10 @@ contains
 
     real(rt) :: U_hllc_state(nvar), U_state(nvar), F_state(nvar)
     real(rt) :: S_l, S_r, S_c
+
+    real(rt) :: q_zone(NQ)
+
+    !$gpu
 
     if (idir == 1) then
        iu = QU
@@ -1696,25 +1838,25 @@ contains
           !dir$ ivdep
           do i = lo(1), hi(1)
 
-             rl = max(ql(i,j,k,QRHO), small_dens)
+             rl = max(ql(i,j,k,QRHO,comp), small_dens)
 
              ! pick left velocities based on direction
-             ul  = ql(i,j,k,iu)
-             v1l = ql(i,j,k,iv1)
-             v2l = ql(i,j,k,iv2)
+             ul  = ql(i,j,k,iu,comp)
+             v1l = ql(i,j,k,iv1,comp)
+             v2l = ql(i,j,k,iv2,comp)
 
-             pl  = max(ql(i,j,k,QPRES ), small_pres)
-             rel = ql(i,j,k,QREINT)
+             pl  = max(ql(i,j,k,QPRES,comp), small_pres)
+             rel = ql(i,j,k,QREINT,comp)
 
-             rr = max(qr(i,j,k,QRHO), small_dens)
+             rr = max(qr(i,j,k,QRHO,comp), small_dens)
 
              ! pick right velocities based on direction
-             ur  = qr(i,j,k,iu)
-             v1r = qr(i,j,k,iv1)
-             v2r = qr(i,j,k,iv2)
+             ur  = qr(i,j,k,iu,comp)
+             v1r = qr(i,j,k,iv1,comp)
+             v2r = qr(i,j,k,iv2,comp)
 
-             pr  = max(qr(i,j,k,QPRES), small_pres)
-             rer = qr(i,j,k,QREINT)
+             pr  = max(qr(i,j,k,QPRES,comp), small_pres)
+             rer = qr(i,j,k,QREINT,comp)
 
              ! now we essentially do the CGF solver to get p and u on the
              ! interface, but we won't use these in any flux construction.
@@ -1794,9 +1936,9 @@ contains
              rgdnv = frac*rstar + (ONE - frac)*ro
              regdnv = frac*estar + (ONE - frac)*reo
 
-             qgdnv(i,j,k,iu) = frac*ustar + (ONE - frac)*uo
-             qgdnv(i,j,k,GDPRES) = frac*pstar + (ONE - frac)*po
-             qgdnv(i,j,k,GDGAME) = qgdnv(i,j,k,GDPRES)/regdnv + ONE
+             qint(i,j,k,iu) = frac*ustar + (ONE - frac)*uo
+             qint(i,j,k,QPRES) = frac*pstar + (ONE - frac)*po
+             qint(i,j,k,QGAME) = qint(i,j,k,QPRES)/regdnv + ONE
 
 
              ! now we do the HLLC construction
@@ -1822,32 +1964,36 @@ contains
 
              if (S_r <= ZERO) then
                 ! R region
-                call cons_state(qr(i,j,k,:), U_state)
+                q_zone(:) = qr(i,j,k,:,comp)
+                call cons_state(q_zone, U_state)
                 call compute_flux(idir, bnd_fac, U_state, pr, F_state)
 
              else if (S_r > ZERO .and. S_c <= ZERO) then
                 ! R* region
-                call cons_state(qr(i,j,k,:), U_state)
+                q_zone(:) = qr(i,j,k,:,comp)
+                call cons_state(q_zone, U_state)
                 call compute_flux(idir, bnd_fac, U_state, pr, F_state)
 
-                call HLLC_state(idir, S_r, S_c, qr(i,j,k,:), U_hllc_state)
+                call HLLC_state(idir, S_r, S_c, q_zone, U_hllc_state)
 
                 ! correct the flux
                 F_state(:) = F_state(:) + S_r*(U_hllc_state(:) - U_state(:))
 
              else if (S_c > ZERO .and. S_l < ZERO) then
                 ! L* region
-                call cons_state(ql(i,j,k,:), U_state)
+                q_zone(:) = ql(i,j,k,:,comp)
+                call cons_state(q_zone, U_state)
                 call compute_flux(idir, bnd_fac, U_state, pl, F_state)
 
-                call HLLC_state(idir, S_l, S_c, ql(i,j,k,:), U_hllc_state)
+                call HLLC_state(idir, S_l, S_c, q_zone, U_hllc_state)
 
                 ! correct the flux
                 F_state(:) = F_state(:) + S_l*(U_hllc_state(:) - U_state(:))
 
              else
                 ! L region
-                call cons_state(ql(i,j,k,:), U_state)
+                q_zone(:) = ql(i,j,k,:,comp)
+                call cons_state(q_zone, U_state)
                 call compute_flux(idir, bnd_fac, U_state, pl, F_state)
 
              endif
@@ -1858,316 +2004,5 @@ contains
     end do
 
   end subroutine HLLC
-
-
-
-  subroutine cmpflx_cuda(lo, hi, domlo, domhi, idir, &
-                         qm, qm_lo, qm_hi, &
-                         qp, qp_lo, qp_hi, &
-                         qint, qe_lo, qe_hi, &
-                         flx, flx_lo, flx_hi, &
-                         qaux, qa_lo, qa_hi)
-
-    use network, only: nspec, naux
-    use amrex_fort_module, only: rt => amrex_real
-    use amrex_constants_module, only: ZERO, HALF, ONE
-    use prob_params_module, only: physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
-
-    integer,  intent(in   ) :: qm_lo(3), qm_hi(3)
-    integer,  intent(in   ) :: qp_lo(3), qp_hi(3)
-    integer,  intent(in   ) :: qe_lo(3), qe_hi(3)
-    integer,  intent(in   ) :: flx_lo(3), flx_hi(3)
-    integer,  intent(in   ) :: qa_lo(3), qa_hi(3)
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    integer,  intent(in   ), value :: idir
-
-    real(rt), intent(in   ) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ,3)
-    real(rt), intent(in   ) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ,3)
-    real(rt), intent(inout) :: qint(qe_lo(1):qe_hi(1),qe_lo(2):qe_hi(2),qe_lo(3):qe_hi(3),NGDNV)
-    real(rt), intent(inout) :: flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR)
-    real(rt), intent(in   ) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-
-    ! local variables
-
-    integer  :: i, j, k
-    integer  :: is_shock
-    real(rt) :: cl, cr
-
-    integer :: n, nqp, ipassive
-
-    real(rt) :: regdnv
-    real(rt) :: rl, ul, v1l, v2l, pl, rel
-    real(rt) :: rr, ur, v1r, v2r, pr, rer
-    real(rt) :: wl, wr, rhoetot, scr
-    real(rt) :: rstar, cstar, estar, pstar, ustar
-    real(rt) :: ro, uo, po, reo, co, gamco, entho, drho
-    real(rt) :: sgnm, spin, spout, ushock, frac
-    real(rt) :: wsmall, csmall, smallc, gamcm, gamcp, cavg, qavg
-
-    real(rt) :: u_adv
-
-    integer :: iu, iv1, iv2, im1, im2, im3
-    logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
-    real(rt) :: bnd_fac_x, bnd_fac_y, bnd_fac_z
-    real(rt) :: wwinv, roinv, co2inv
-
-    real(rt), parameter :: small = 1.e-8_rt
-    real(rt), parameter :: small_pres = 1.e-200_rt
-
-    !$gpu
-
-    if (idir .eq. 1) then
-       iu = QU
-       iv1 = QV
-       iv2 = QW
-       im1 = UMX
-       im2 = UMY
-       im3 = UMZ
-
-    else if (idir .eq. 2) then
-       iu = QV
-       iv1 = QU
-       iv2 = QW
-       im1 = UMY
-       im2 = UMX
-       im3 = UMZ
-
-    else
-       iu = QW
-       iv1 = QU
-       iv2 = QV
-       im1 = UMZ
-       im2 = UMX
-       im3 = UMY
-    end if
-
-    special_bnd_lo = (physbc_lo(idir) .eq. Symmetry &
-         .or.         physbc_lo(idir) .eq. SlipWall &
-         .or.         physbc_lo(idir) .eq. NoSlipWall)
-    special_bnd_hi = (physbc_hi(idir) .eq. Symmetry &
-         .or.         physbc_hi(idir) .eq. SlipWall &
-         .or.         physbc_hi(idir) .eq. NoSlipWall)
-
-    if (idir .eq. 1) then
-       special_bnd_lo_x = special_bnd_lo
-       special_bnd_hi_x = special_bnd_hi
-    else
-       special_bnd_lo_x = .false.
-       special_bnd_hi_x = .false.
-    end if
-
-    do k = lo(3), hi(3)
-
-       bnd_fac_z = ONE
-       if (idir.eq.3) then
-          if ( k .eq. domlo(3)   .and. special_bnd_lo .or. &
-               k .eq. domhi(3)+1 .and. special_bnd_hi ) then
-             bnd_fac_z = ZERO
-          end if
-       end if
-
-       do j = lo(2), hi(2)
-
-          bnd_fac_y = ONE
-          if (idir .eq. 2) then
-             if ( j .eq. domlo(2)   .and. special_bnd_lo .or. &
-                  j .eq. domhi(2)+1 .and. special_bnd_hi ) then
-                bnd_fac_y = ZERO
-             end if
-          end if
-
-          do i = lo(1), hi(1)
-
-             if (idir == 1) then
-                smallc = max( small, max( small*qaux(i,j,k,QC), small * qaux(i-1,j,k,QC)) )
-                cavg   = HALF*( qaux(i,j,k,QC) + qaux(i-1,j,k,QC) )
-                gamcm  = qaux(i-1,j,k,QGAMC)
-                gamcp  = qaux(i,j,k,QGAMC)
-             elseif (idir == 2) then
-                smallc = max( small, max( small*qaux(i,j,k,QC), small * qaux(i,j-1,k,QC)) )
-                cavg   = HALF*( qaux(i,j,k,QC) + qaux(i,j-1,k,QC) )
-                gamcm  = qaux(i,j-1,k,QGAMC)
-                gamcp  = qaux(i,j,k,QGAMC)
-             else
-                smallc = max( small, max( small*qaux(i,j,k,QC), small * qaux(i,j,k-1,QC)) )
-                cavg   = HALF*( qaux(i,j,k,QC) + qaux(i,j,k-1,QC) )
-                gamcm  = qaux(i,j,k-1,QGAMC)
-                gamcp  = qaux(i,j,k,QGAMC)
-             endif
-
-             rl = max(qm(i,j,k,QRHO,idir), small_dens)
-
-             ! pick left velocities based on direction
-             ul  = qm(i,j,k,iu,idir)
-             v1l = qm(i,j,k,iv1,idir)
-             v2l = qm(i,j,k,iv2,idir)
-
-             pl  = max(qm(i,j,k,QPRES ,idir), small_pres)
-             rel =     qm(i,j,k,QREINT,idir)
-
-
-             rr  = max(qp(i,j,k,QRHO,idir), small_dens)
-
-             ! pick right velocities based on direction
-             ur  = qp(i,j,k,iu,idir)
-             v1r = qp(i,j,k,iv1,idir)
-             v2r = qp(i,j,k,iv2,idir)
-
-             pr  = max(qp(i,j,k,QPRES,idir), small_pres)
-             rer =     qp(i,j,k,QREINT,idir)
-             csmall = smallc
-             wsmall = small_dens*csmall
-             wl = max(wsmall,sqrt(abs(gamcm*pl*rl)))
-             wr = max(wsmall,sqrt(abs(gamcp*pr*rr)))
-
-             wwinv = ONE/(wl + wr)
-             pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))*wwinv
-             ustar = ((wl*ul + wr*ur) + (pl - pr))*wwinv
-
-             pstar = max(pstar,small_pres)
-             ! for symmetry preservation, if ustar is really small, then we
-             ! set it to zero
-             if (abs(ustar) < smallu*HALF*(abs(ul) + abs(ur))) then
-                ustar = ZERO
-             endif
-
-             if (ustar > ZERO) then
-                ro = rl
-                uo = ul
-                po = pl
-                reo = rel
-                gamco = gamcm
-             else if (ustar < ZERO) then
-                ro = rr
-                uo = ur
-                po = pr
-                reo = rer
-                gamco = gamcp
-             else
-                ro = HALF*(rl+rr)
-                uo = HALF*(ul+ur)
-                po = HALF*(pl+pr)
-                reo = HALF*(rel+rer)
-                gamco = HALF*(gamcm+gamcp)
-             endif
-
-             ro = max(small_dens,ro)
-
-             roinv = ONE/ro
-
-             co = sqrt(abs(gamco*po*roinv))
-             co = max(csmall,co)
-             co2inv = ONE/(co*co)
-
-             drho = (pstar - po)*co2inv
-             rstar = ro + drho
-             rstar = max(small_dens,rstar)
-
-             entho = (reo + po)*roinv*co2inv
-             estar = reo + (pstar - po)*entho
-             cstar = sqrt(abs(gamco*pstar/rstar))
-             cstar = max(cstar,csmall)
-
-             sgnm = sign(ONE,ustar)
-             spout = co - sgnm*uo
-             spin = cstar - sgnm*ustar
-             ushock = HALF*(spin + spout)
-
-             if (pstar-po > ZERO) then
-                spin = ushock
-                spout = ushock
-             endif
-
-             if (spout-spin == ZERO) then
-                scr = small*cavg
-             else
-                scr = spout-spin
-             endif
-
-             frac = (ONE + (spout + spin)/scr)*HALF
-             frac = max(ZERO,min(ONE,frac))
-
-             if (ustar > ZERO) then
-                qint(i,j,k,iv1) = v1l
-                qint(i,j,k,iv2) = v2l
-             else if (ustar < ZERO) then
-                qint(i,j,k,iv1) = v1r
-                qint(i,j,k,iv2) = v2r
-             else
-                qint(i,j,k,iv1) = HALF*(v1l+v1r)
-                qint(i,j,k,iv2) = HALF*(v2l+v2r)
-             endif
-             qint(i,j,k,GDRHO) = frac*rstar + (ONE - frac)*ro
-             qint(i,j,k,iu  ) = frac*ustar + (ONE - frac)*uo
-
-             qint(i,j,k,GDPRES) = frac*pstar + (ONE - frac)*po
-             regdnv = frac*estar + (ONE - frac)*reo
-             if (spout < ZERO) then
-                qint(i,j,k,GDRHO) = ro
-                qint(i,j,k,iu  ) = uo
-                qint(i,j,k,GDPRES) = po
-                regdnv = reo
-             endif
-
-             if (spin >= ZERO) then
-                qint(i,j,k,GDRHO) = rstar
-                qint(i,j,k,iu  ) = ustar
-                qint(i,j,k,GDPRES) = pstar
-                regdnv = estar
-             endif
-
-
-             qint(i,j,k,GDGAME) = qint(i,j,k,GDPRES)/regdnv + ONE
-             qint(i,j,k,GDPRES) = max(qint(i,j,k,GDPRES),small_pres)
-             u_adv = qint(i,j,k,iu)
-
-             ! Enforce that fluxes through a symmetry plane or wall are hard zero.
-             if ( special_bnd_lo_x .and. i.eq.domlo(1) .or. &
-                  special_bnd_hi_x .and. i.eq.domhi(1)+1 ) then
-                bnd_fac_x = ZERO
-             else
-                bnd_fac_x = ONE
-             end if
-             u_adv = u_adv * bnd_fac_x*bnd_fac_y*bnd_fac_z
-
-
-             ! Compute fluxes, order as conserved state (not q)
-             flx(i,j,k,URHO) = qint(i,j,k,GDRHO)*u_adv
-
-             flx(i,j,k,im1) = flx(i,j,k,URHO)*qint(i,j,k,iu ) + qint(i,j,k,GDPRES)
-             flx(i,j,k,im2) = flx(i,j,k,URHO)*qint(i,j,k,iv1)
-             flx(i,j,k,im3) = flx(i,j,k,URHO)*qint(i,j,k,iv2)
-
-             rhoetot = regdnv + HALF*qint(i,j,k,GDRHO)*(qint(i,j,k,iu)**2 + qint(i,j,k,iv1)**2 + qint(i,j,k,iv2)**2)
-
-             flx(i,j,k,UTEMP) = ZERO
-             flx(i,j,k,UEDEN) = u_adv*(rhoetot + qint(i,j,k,GDPRES))
-             flx(i,j,k,UEINT) = u_adv*regdnv
-
-             ! passively advected quantities
-             do ipassive = 1, npassive
-
-                n  = upass_map(ipassive)
-                nqp = qpass_map(ipassive)
-
-                if (ustar > ZERO) then
-                   flx(i,j,k,n) = flx(i,j,k,URHO)*qm(i,j,k,nqp,idir)
-
-                else if (ustar < ZERO) then
-                   flx(i,j,k,n) = flx(i,j,k,URHO)*qp(i,j,k,nqp,idir)
-
-                else
-                   qavg = HALF * (qm(i,j,k,nqp,idir) + qp(i,j,k,nqp,idir))
-                   flx(i,j,k,n) = flx(i,j,k,URHO)*qavg
-                endif
-
-             end do
-
-          end do
-       end do
-    end do
-
-  end subroutine cmpflx_cuda
 
 end module riemann_module

@@ -94,7 +94,7 @@ Castro::add_spec_diffusion_to_source (MultiFab& ext_src, MultiFab& state, MultiF
 
 #if (BL_SPACEDIM == 1)
 void
-Castro::add_viscous_term_to_source(MultiFab& ext_src, MultiFab& state, MultiFab& ViscousTermforMomentum, 
+Castro::add_viscous_term_to_source(MultiFab& ext_src, MultiFab& state, MultiFab& ViscousTermforMomentum,
                                    MultiFab& ViscousTermforEnergy, Real t, Real mult_factor)
 {
     // Define an explicit viscous term
@@ -342,8 +342,8 @@ Castro::getSpecDiffusionTerm (Real time, MultiFab& state, MultiFab& SpecDiffTerm
 
 #if (BL_SPACEDIM == 1)
 // **********************************************
-// Note: this currently just gets the term that looks like div(2 mu grad(u)) which is
-//       only part of the viscous term.  We assume that the coefficient that is filled is "2 mu"
+/// @note this currently just gets the term that looks like div(2 mu grad(u)) which is
+///       only part of the viscous term.  We assume that the coefficient that is filled is "2 mu"
 // **********************************************
 void
 Castro::getViscousTerm (Real time, MultiFab& state, MultiFab& ViscousTermforMomentum, MultiFab& ViscousTermforEnergy)

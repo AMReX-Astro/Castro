@@ -73,7 +73,17 @@ extern "C"
 #ifdef SHOCK_VAR
      const int& Shock,
 #endif
-     const int* gravity_type, const int& gravity_type_len);
+#ifdef MHD
+     const int& QMAGX_in, const int& QMAGY_in, const int& QMAGZ_in,
+#endif
+#ifdef RADIATION
+     const int& QPTOT_in, const int& QREITOT_in, const int& QRAD_in,
+#endif
+     const int& QRHO_in,
+     const int& QU_in, const int& QV_in, const int& QW_in,
+     const int& QGAME_in, const int& QPRES_in, const int& QREINT_in,
+     const int& QTEMP_in,
+     const int& QFA_in, const int& QFS_in, const int& QFX_in);
 
   void ca_finalize_meth_params();
 
@@ -191,8 +201,8 @@ extern "C"
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new));
 
   void ca_get_center(amrex::Real* center);
-  void ca_set_center(amrex::Real* center);
-  void ca_find_center(amrex::Real* data, amrex::Real* center, int* icen,
+  void ca_set_center(const amrex::Real* center);
+  void ca_find_center(amrex::Real* data, amrex::Real* center, const int* icen,
 		      const amrex::Real* dx, const amrex::Real* problo);
 
   void ca_compute_temp
@@ -516,17 +526,31 @@ extern "C"
      BL_FORT_FAB_ARG_3D(div));
 
 #ifdef AMREX_USE_CUDA
-  void ca_uflaten_cuda
+  void ca_uflatten
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(q),
-     BL_FORT_FAB_ARG_3D(flatn));
+     BL_FORT_FAB_ARG_3D(flatn), int pres_comp);
 
-  void ca_ppm_reconstruct_cuda
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(q),
+  void ca_ppm_reconstruct
+    (const int* lo, const int* hi, int put_on_edges,
+     BL_FORT_FAB_ARG_3D(q), int nc, int nstart, int nend,
      BL_FORT_FAB_ARG_3D(flatn),
      BL_FORT_FAB_ARG_3D(qm),
-     BL_FORT_FAB_ARG_3D(qp));
+     BL_FORT_FAB_ARG_3D(qp), int nqc, int nqstart, int nqend);
+
+  void ca_shock
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(q),
+     BL_FORT_FAB_ARG_3D(shk),
+     const amrex::Real* dx);
+
+  void ca_store_godunov_state
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(qint),
+#ifdef RADIATION
+     BL_FORT_FAB_ARG_3D(lambda_int),
+#endif
+     BL_FORT_FAB_ARG_3D(qgdnv));
 
   void ca_construct_flux_cuda
     (const int* lo, const int* hi,
@@ -536,6 +560,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(statein),
      BL_FORT_FAB_ARG_3D(div),
      BL_FORT_FAB_ARG_3D(qaux),
+     BL_FORT_FAB_ARG_3D(shk),
      BL_FORT_FAB_ARG_3D(qm),
      BL_FORT_FAB_ARG_3D(qp),
      BL_FORT_FAB_ARG_3D(qe),
@@ -605,6 +630,161 @@ extern "C"
      amrex::Real& xang_lost,
      amrex::Real& yang_lost,
      amrex::Real& zang_lost);
+
+  void ctu_normal_states
+     (const int* lo, const int* hi,
+      const int* vlo, const int* vhi,
+      const BL_FORT_FAB_ARG_3D(q),
+      const BL_FORT_FAB_ARG_3D(flatn),
+      const BL_FORT_FAB_ARG_3D(qaux),
+      const BL_FORT_FAB_ARG_3D(srcQ),
+      const BL_FORT_FAB_ARG_3D(shk),
+      BL_FORT_FAB_ARG_3D(Ip),
+      BL_FORT_FAB_ARG_3D(Im),
+      BL_FORT_FAB_ARG_3D(Ip_src),
+      BL_FORT_FAB_ARG_3D(Im_src),
+      BL_FORT_FAB_ARG_3D(Ip_gc),
+      BL_FORT_FAB_ARG_3D(Im_gc),
+      BL_FORT_FAB_ARG_3D(dq),
+      BL_FORT_FAB_ARG_3D(sm),
+      BL_FORT_FAB_ARG_3D(sp),
+      BL_FORT_FAB_ARG_3D(qxm),
+      BL_FORT_FAB_ARG_3D(qxp),
+#if AMREX_SPACEDIM >= 2
+      BL_FORT_FAB_ARG_3D(qym),
+      BL_FORT_FAB_ARG_3D(qyp),
+#endif
+#if AMREX_SPACEDIM == 3
+      BL_FORT_FAB_ARG_3D(qzm),
+      BL_FORT_FAB_ARG_3D(qzp),
+#endif
+      const amrex::Real* dx, const amrex::Real dt,
+#if AMREX_SPACEDIM < 3
+      const BL_FORT_FAB_ARG_3D(dloga),
+#endif
+      const int* domlo, const int* domhi);
+
+
+  void transx(const int* lo, const int* hi,
+              const BL_FORT_FAB_ARG_3D(qym),
+              BL_FORT_FAB_ARG_3D(qymo),
+              const BL_FORT_FAB_ARG_3D(qyp),
+              BL_FORT_FAB_ARG_3D(qypo),
+#if AMREX_SPACEDIM == 3
+              const BL_FORT_FAB_ARG_3D(qzm),
+              BL_FORT_FAB_ARG_3D(qzmo),
+              const BL_FORT_FAB_ARG_3D(qzp),
+              BL_FORT_FAB_ARG_3D(qzpo),
+#endif
+              const BL_FORT_FAB_ARG_3D(qaux),
+              const BL_FORT_FAB_ARG_3D(fx),
+#ifdef RADIATION
+              const BL_FORT_FAB_ARG_3D(rfx),
+#endif
+              const BL_FORT_FAB_ARG_3D(qx),
+#if AMREX_SPACEDIM == 2
+              const BL_FORT_FAB_ARG_3D(area1),
+              const BL_FORT_FAB_ARG_3D(vol),
+#endif
+              const amrex::Real hdt, const amrex::Real cdtdx, 
+              const int* vlo, const int* vhi);
+
+  void transy(const int* lo, const int* hi,
+              const BL_FORT_FAB_ARG_3D(qxm),
+              BL_FORT_FAB_ARG_3D(qxmo),
+              const BL_FORT_FAB_ARG_3D(qxp),
+              BL_FORT_FAB_ARG_3D(qxpo),
+#if AMREX_SPACEDIM == 3
+              const BL_FORT_FAB_ARG_3D(qzm),
+              BL_FORT_FAB_ARG_3D(qzmo),
+              const BL_FORT_FAB_ARG_3D(qzp),
+              BL_FORT_FAB_ARG_3D(qzpo),
+#endif
+              const BL_FORT_FAB_ARG_3D(qaux),
+              const BL_FORT_FAB_ARG_3D(fy),
+#ifdef RADIATION
+              const BL_FORT_FAB_ARG_3D(rfy),
+#endif
+              const BL_FORT_FAB_ARG_3D(qy),
+              const amrex::Real cdtdy,
+              const int* vlo, const int* vhi);
+
+  void transz(const int* lo, const int* hi,
+              const BL_FORT_FAB_ARG_3D(qxm),
+              BL_FORT_FAB_ARG_3D(qxmo),
+              const BL_FORT_FAB_ARG_3D(qxp),
+              BL_FORT_FAB_ARG_3D(qxpo),
+#if AMREX_SPACEDIM == 3
+              const BL_FORT_FAB_ARG_3D(qym),
+              BL_FORT_FAB_ARG_3D(qymo),
+              const BL_FORT_FAB_ARG_3D(qyp),
+              BL_FORT_FAB_ARG_3D(qypo),
+#endif
+              const BL_FORT_FAB_ARG_3D(qaux),
+              const BL_FORT_FAB_ARG_3D(fz),
+#ifdef RADIATION
+              const BL_FORT_FAB_ARG_3D(rfz),
+#endif
+              const BL_FORT_FAB_ARG_3D(qz),
+              const amrex::Real cdtdz,
+              const int* vlo, const int* vhi);
+
+  void transyz(const int* lo, const int* hi,
+               const BL_FORT_FAB_ARG_3D(qm),
+               BL_FORT_FAB_ARG_3D(qmo),
+               const BL_FORT_FAB_ARG_3D(qp),
+               BL_FORT_FAB_ARG_3D(qpo),
+               const BL_FORT_FAB_ARG_3D(qaux),
+               const BL_FORT_FAB_ARG_3D(fyz),
+#ifdef RADIATION
+               const BL_FORT_FAB_ARG_3D(rfyz),
+#endif
+               const BL_FORT_FAB_ARG_3D(fzy),
+#ifdef RADIATION
+               const BL_FORT_FAB_ARG_3D(rfzy),
+#endif
+               const BL_FORT_FAB_ARG_3D(qy),
+               const BL_FORT_FAB_ARG_3D(qz),
+               const amrex::Real hdt, const amrex::Real cdtdy, const amrex::Real cdtdz,
+               const int* vlo, const int* vhi);
+
+  void transxz(const int* lo, const int* hi,
+               const BL_FORT_FAB_ARG_3D(qm),
+               BL_FORT_FAB_ARG_3D(qmo),
+               const BL_FORT_FAB_ARG_3D(qp),
+               BL_FORT_FAB_ARG_3D(qpo),
+               const BL_FORT_FAB_ARG_3D(qaux),
+               const BL_FORT_FAB_ARG_3D(fxz),
+#ifdef RADIATION
+               const BL_FORT_FAB_ARG_3D(rfxz),
+#endif
+               const BL_FORT_FAB_ARG_3D(fzx),
+#ifdef RADIATION
+               const BL_FORT_FAB_ARG_3D(rfzx),
+#endif
+               const BL_FORT_FAB_ARG_3D(qx),
+               const BL_FORT_FAB_ARG_3D(qz),
+               const amrex::Real hdt, const amrex::Real cdtdx, const amrex::Real cdtdz,
+               const int* vlo, const int* vhi);
+
+  void transxy(const int* lo, const int* hi,
+               const BL_FORT_FAB_ARG_3D(qm),
+               BL_FORT_FAB_ARG_3D(qmo),
+               const BL_FORT_FAB_ARG_3D(qp),
+               BL_FORT_FAB_ARG_3D(qpo),
+               const BL_FORT_FAB_ARG_3D(qaux),
+               const BL_FORT_FAB_ARG_3D(fxy),
+#ifdef RADIATION
+               const BL_FORT_FAB_ARG_3D(rfxy),
+#endif
+               const BL_FORT_FAB_ARG_3D(fyx),
+#ifdef RADIATION
+               const BL_FORT_FAB_ARG_3D(rfyx),
+#endif
+               const BL_FORT_FAB_ARG_3D(qx),
+               const BL_FORT_FAB_ARG_3D(qy),
+               const amrex::Real hdt, const amrex::Real cdtdx, const amrex::Real cdtdy,
+               const int* vlo, const int* vhi);
 
 
   void ca_make_fourth_average(const int lo[], const int hi[],

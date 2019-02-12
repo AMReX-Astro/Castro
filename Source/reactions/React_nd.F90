@@ -18,7 +18,7 @@ contains
                             failed) bind(C, name="ca_react_state")
 
     use network           , only : nspec, naux
-    use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, &
+    use meth_params_module, only : NVAR, URHO, UEDEN, UEINT, UTEMP, &
                                    UFS
 #if naux > 0
     use meth_params_module, only : UFX
@@ -57,7 +57,6 @@ contains
     integer, intent(in), value :: strang_half
 
     type (burn_t) :: burn_state_in, burn_state_out
-    type (eos_t) :: eos_state_in, eos_state_out
 
     ! Minimum zone width
 
@@ -74,7 +73,7 @@ contains
 
     !$acc loop gang vector collapse(3) &
     !$acc private(rhoInv, delta_e, delta_rho_e) &
-    !$acc private(eos_state_in, eos_state_out, burn_state_in, burn_state_out) &
+    !$acc private(burn_state_in, burn_state_out) &
     !$acc private(i,j,k)
 
     do k = lo(3), hi(3)
@@ -192,7 +191,7 @@ contains
                   j .ge. w_lo(2) .and. j .le. w_hi(2) .and. &
                   k .ge. w_lo(3) .and. k .le. w_hi(3) ) then
 
-                weights(i,j,k) = min(ONE, dble(burn_state_out % n_rhs + 2 * burn_state_out % n_jac))
+                weights(i,j,k) = max(ONE, dble(burn_state_out % n_rhs + 2 * burn_state_out % n_jac))
 
              endif
 

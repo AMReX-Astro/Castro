@@ -6,64 +6,274 @@ module trace_ppm_module
   use prob_params_module, only : dg
   use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
+  use amrex_constants_module, only : ZERO, HALF, ONE
 
   implicit none
 
   private
 
-  public trace_ppm, trace_ppm_gammae, trace_ppm_temp
+  public trace_ppm
 
 contains
 
-  subroutine trace_ppm(idir, q, qd_lo, qd_hi, &
+  subroutine trace_ppm(lo, hi, &
+                       idir, q, qd_lo, qd_hi, &
                        qaux, qa_lo, qa_hi, &
-                       Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
-                       qm, qp, qs_lo, qs_hi, &
+                       Ip, Ip_lo, Ip_hi, &
+                       Im, Im_lo, Im_hi, &
+                       Ip_src, Ips_lo, Ips_hi, &
+                       Im_src, Ims_lo, Ims_hi, &
+                       Ip_gc, Ipg_lo, Ipg_hi, &
+                       Im_gc, Img_lo, Img_hi, &
+                       qm, qm_lo, qm_hi, &
+                       qp, qp_lo, qp_hi, &
 #if (AMREX_SPACEDIM < 3)
                        dloga, dloga_lo, dloga_hi, &
 #endif
-                       lo, hi, domlo, domhi, &
+                       vlo, vhi, domlo, domhi, &
                        dx, dt)
 
+    ! here, lo and hi are the range we loop over -- this can include ghost cells
+    ! vlo and vhi are the bounds of the valid box (no ghost cells)
+
     use network, only : nspec, naux
-    use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, &
-                                   QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFX, QFS, &
-                                   small_dens, small_pres, &
-                                   ppm_type, &
-                                   ppm_reference_eigenvectors, ppm_predict_gammae, &
-                                   npassive, qpass_map, ppm_temp_fix, &
-                                   fix_mass_flux
-    use amrex_constants_module, only : ZERO, HALF, ONE
+    use meth_params_module, only : NQ, NQAUX, QVAR, ppm_predict_gammae, &
+                                   ppm_temp_fix, QU, QV, QW, npassive, qpass_map, fix_mass_flux
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: idir
     integer, intent(in) :: qd_lo(3), qd_hi(3)
-    integer, intent(in) :: qs_lo(3),qs_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: I_lo(3), I_hi(3)
+    integer, intent(in) :: Ip_lo(3), Ip_hi(3)
+    integer, intent(in) :: Im_lo(3), Im_hi(3)
+    integer, intent(in) :: Ips_lo(3), Ips_hi(3)
+    integer, intent(in) :: Ims_lo(3), Ims_hi(3)
+    integer, intent(in) :: Ipg_lo(3), Ipg_hi(3)
+    integer, intent(in) :: Img_lo(3), Img_hi(3)
+
 #if (AMREX_SPACEDIM < 3)
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
     integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: vlo(3), vhi(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
-    real(rt), intent(in) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
+    real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
+    real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
 
-    real(rt), intent(in) :: Ip_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
-    real(rt), intent(in) :: Im_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
+    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
+    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
 
-    real(rt), intent(in) :: Ip_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,1)
-    real(rt), intent(in) :: Im_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,1)
+    real(rt), intent(in) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:AMREX_SPACEDIM,1:3,1)
+    real(rt), intent(in) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:AMREX_SPACEDIM,1:3,1)
 
-    real(rt), intent(inout) :: qm(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
-    real(rt), intent(inout) :: qp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
+    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
+    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
+#if (AMREX_SPACEDIM < 3)
+    real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
+#endif
+    real(rt), intent(in) :: dt, dx(3)
+
+
+    real(rt) :: un
+    integer :: ipassive, n, i, j, k
+
+#if AMREX_SPACEDIM == 1
+    logical :: fix_mass_flux_lo, fix_mass_flux_hi
+
+    fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
+         .and. (lo(1) == domlo(1))
+    fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
+         .and. (hi(1) == domhi(1))
+#endif
+
+    ! the passive stuff is the same regardless of the tracing
+    do ipassive = 1, npassive
+       n = qpass_map(ipassive)
+
+       ! For DIM < 3, the velocities are included in the passive
+       ! quantities.  We will deal with all 3 velocity
+       ! components below, so don't process them here.
+       if (n == QU .or. n == QV .or. n == QW) cycle
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                ! Plus state on face i
+                if ((idir == 1 .and. i >= vlo(1)) .or. &
+                    (idir == 2 .and. j >= vlo(2)) .or. &
+                    (idir == 3 .and. k >= vlo(3))) then
+
+                   un = q(i,j,k,QU-1+idir)
+
+                   ! We have
+                   !
+                   ! q_l = q_ref - Proj{(q_ref - I)}
+                   !
+                   ! and Proj{} represents the characteristic projection.
+                   ! But for these, there is only 1-wave that matters, the u
+                   ! wave, so no projection is needed.  Since we are not
+                   ! projecting, the reference state doesn't matter
+
+                   qp(i,j,k,n) = merge(q(i,j,k,n), Im(i,j,k,idir,2,n), un > ZERO)
+                   qp(i,j,k,n) = qp(i,j,k,n) + HALF*dt*Im_src(i,j,k,idir,2,n)
+
+                end if
+
+                ! Minus state on face i+1
+                if (idir == 1 .and. i <= vhi(1)) then
+                   un = q(i,j,k,QU-1+idir)
+                   qm(i+1,j,k,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
+                   qm(i+1,j,k,n) = qm(i+1,j,k,n) + HALF*dt*Ip_src(i,j,k,idir,2,n)
+                else if (idir == 2 .and. j <= vhi(2)) then
+                   un = q(i,j,k,QU-1+idir)
+                   qm(i,j+1,k,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
+                   qm(i,j+1,k,n) = qm(i,j+1,k,n) + HALF*dt*Ip_src(i,j,k,idir,2,n)
+                else if (idir == 3 .and. k <= vhi(3)) then
+                   un = q(i,j,k,QU-1+idir)
+                   qm(i,j,k+1,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
+                   qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*Ip_src(i,j,k,idir,2,n)
+                end if
+
+             end do
+
+#if AMREX_SPACEDIM == 1
+             if (fix_mass_flux_hi) qp(vhi(1)+1,j,k,n) = q(vhi(1)+1,j,k,n)
+             if (fix_mass_flux_lo) qm(vlo(1),j,k,n) = q(vlo(1)-1,j,k,n)
+#endif
+          end do
+       end do
+
+    end do
+
+    if (ppm_temp_fix < 3) then
+       if (ppm_predict_gammae == 0) then
+          call trace_ppm_rhoe(lo, hi, &
+                              idir, q, qd_lo, qd_hi, &
+                              qaux, qa_lo, qa_hi, &
+                              Ip, Ip_lo, Ip_hi, &
+                              Im, Im_lo, Im_hi, &
+                              Ip_src, Ips_lo, Ips_hi, &
+                              Im_src, Ims_lo, Ims_hi, &
+                              Ip_gc, Ipg_lo, Ipg_hi, &
+                              Im_gc, Img_lo, Img_hi, &
+                              qm, qm_lo, qm_hi, &
+                              qp, qp_lo, qp_hi, &
+#if (AMREX_SPACEDIM < 3)
+                              dloga, dloga_lo, dloga_hi, &
+#endif
+                              vlo, vhi, domlo, domhi, &
+                              dx, dt)
+       else
+          call trace_ppm_gammae(lo, hi, &
+                                idir, q, qd_lo, qd_hi, &
+                                qaux, qa_lo, qa_hi, &
+                                Ip, Ip_lo, Ip_hi, &
+                                Im, Im_lo, Im_hi, &
+                                Ip_src, Ips_lo, Ips_hi, &
+                                Im_src, Ims_lo, Ims_hi, &
+                                Ip_gc, Ipg_lo, Ipg_hi, &
+                                Im_gc, Img_lo, Img_hi, &
+                                qm, qm_lo, qm_hi, &
+                                qp, qp_lo, qp_hi, &
+#if (AMREX_SPACEDIM < 3)
+                                dloga, dloga_lo, dloga_hi, &
+#endif
+                                vlo, vhi, domlo, domhi, &
+                                dx, dt)
+       end if
+    else
+       call trace_ppm_temp(lo, hi, &
+                           idir, q, qd_lo, qd_hi, &
+                           qaux, qa_lo, qa_hi, &
+                           Ip, Ip_lo, Ip_hi, &
+                           Im, Im_lo, Im_hi, &
+                           Ip_src, Ips_lo, Ips_hi, &
+                           Im_src, Ims_lo, Ims_hi, &
+                           Ip_gc, Ipg_lo, Ipg_hi, &
+                           Im_gc, Img_lo, Img_hi, &
+                           qm, qm_lo, qm_hi, &
+                           qp, qp_lo, qp_hi, &
+#if (AMREX_SPACEDIM < 3)
+                           dloga, dloga_lo, dloga_hi, &
+#endif
+                           vlo, vhi, domlo, domhi, &
+                           dx, dt)
+    end if
+
+  end subroutine trace_ppm
+
+
+
+  subroutine trace_ppm_rhoe(lo, hi, &
+                            idir, q, qd_lo, qd_hi, &
+                            qaux, qa_lo, qa_hi, &
+                            Ip, Ip_lo, Ip_hi, &
+                            Im, Im_lo, Im_hi, &
+                            Ip_src, Ips_lo, Ips_hi, &
+                            Im_src, Ims_lo, Ims_hi, &
+                            Ip_gc, Ipg_lo, Ipg_hi, &
+                            Im_gc, Img_lo, Img_hi, &
+                            qm, qm_lo, qm_hi, &
+                            qp, qp_lo, qp_hi, &
+#if (AMREX_SPACEDIM < 3)
+                            dloga, dloga_lo, dloga_hi, &
+#endif
+                            vlo, vhi, domlo, domhi, &
+                            dx, dt)
+
+    use network, only : nspec, naux
+
+    use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, &
+                                   QREINT, QPRES, QGAME, QC, QGAMC, &
+                                   small_dens, small_pres, &
+                                   ppm_type, &
+                                   ppm_reference_eigenvectors, &
+                                   fix_mass_flux
+    use prob_params_module, only : physbc_lo, physbc_hi, Outflow
+
+    implicit none
+
+    integer, intent(in) :: idir
+    integer, intent(in) :: qd_lo(3), qd_hi(3)
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
+    integer, intent(in) :: Ip_lo(3), Ip_hi(3)
+    integer, intent(in) :: Im_lo(3), Im_hi(3)
+    integer, intent(in) :: Ips_lo(3), Ips_hi(3)
+    integer, intent(in) :: Ims_lo(3), Ims_hi(3)
+    integer, intent(in) :: Ipg_lo(3), Ipg_hi(3)
+    integer, intent(in) :: Img_lo(3), Img_hi(3)
+#if (AMREX_SPACEDIM < 3)
+    integer, intent(in) :: dloga_lo(3), dloga_hi(3)
+#endif
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: vlo(3), vhi(3)
+    integer, intent(in) :: domlo(3), domhi(3)
+
+    real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+
+    real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
+    real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
+
+    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
+    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
+
+    real(rt), intent(in) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:AMREX_SPACEDIM,1:3,1)
+    real(rt), intent(in) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:AMREX_SPACEDIM,1:3,1)
+
+    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
+    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
 #if (AMREX_SPACEDIM < 3)
     real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 #endif
@@ -71,7 +281,6 @@ contains
 
     ! Local variables
     integer :: i, j, k
-    integer :: n, ipassive
 
     real(rt) :: hdt
 
@@ -100,8 +309,8 @@ contains
     real(rt) :: gam_g
 
     real(rt) :: drho, dptot, drhoe_g
-    real(rt) :: dup, dvp, dptotp
-    real(rt) :: dum, dvm, dptotm
+    real(rt) :: dup, dptotp
+    real(rt) :: dum, dptotm
 
     real(rt) :: rho_ref, un_ref, p_ref, rhoe_g_ref, h_g_ref
 
@@ -122,12 +331,12 @@ contains
 
     hdt = HALF * dt
 
-
+#if AMREX_SPACEDIM == 1
     fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
-         .and. (lo(1) == domlo(1))
+         .and. (vlo(1) == domlo(1))
     fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
-         .and. (hi(1) == domhi(1))
-
+         .and. (vhi(1) == domhi(1))
+#endif
 
     !=========================================================================
     ! PPM CODE
@@ -170,9 +379,9 @@ contains
     endif
 
     ! Trace to left and right edges using upwind PPM
-    do k = lo(3)-dg(3), hi(3)+dg(3)
-       do j = lo(2)-dg(2), hi(2)+dg(2)
-          do i = lo(1)-1, hi(1)+1
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
              rho = q(i,j,k,QRHO)
 
@@ -194,9 +403,9 @@ contains
              ! plus state on face i
              !-------------------------------------------------------------------
 
-             if ((idir == 1 .and. i >= lo(1)) .or. &
-                 (idir == 2 .and. j >= lo(2)) .or. &
-                 (idir == 3 .and. k >= lo(3))) then
+             if ((idir == 1 .and. i >= vlo(1)) .or. &
+                 (idir == 2 .and. j >= vlo(2)) .or. &
+                 (idir == 3 .and. k >= vlo(3))) then
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the left --
@@ -292,9 +501,9 @@ contains
              !-------------------------------------------------------------------
              ! minus state on face i + 1
              !-------------------------------------------------------------------
-             if ((idir == 1 .and. i <= hi(1)) .or. &
-                 (idir == 2 .and. j <= hi(2)) .or. &
-                 (idir == 3 .and. k <= hi(3))) then
+             if ((idir == 1 .and. i <= vhi(1)) .or. &
+                 (idir == 2 .and. j <= vhi(2)) .or. &
+                 (idir == 3 .and. k <= vhi(3))) then
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the right
@@ -407,7 +616,7 @@ contains
                 sourcp = sourcr*csq
                 source = sourcp*h_g
 
-                if (i <= hi(1)) then
+                if (i <= vhi(1)) then
 
                    qm(i+1,j,k,QRHO) = qm(i+1,j,k,QRHO) + sourcr
                    qm(i+1,j,k,QRHO) = max(qm(i+1,j,k,QRHO), small_dens)
@@ -415,7 +624,7 @@ contains
                    qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source
                 end if
 
-                if (i >= lo(1)) then
+                if (i >= vlo(1)) then
 
                    qp(i,j,k,QRHO) = qp(i,j,k,QRHO) + sourcr
                    qp(i,j,k,QRHO) = max(qp(i,j,k,QRHO), small_dens)
@@ -429,138 +638,87 @@ contains
 #if (AMREX_SPACEDIM == 1)
              ! Enforce constant mass flux rate if specified
              if (fix_mass_flux_lo) then
-                qm(lo(1),j,k,QRHO  ) = q(domlo(1)-1,j,k,QRHO)
-                qm(lo(1),j,k,QUN   ) = q(domlo(1)-1,j,k,QUN )
-                qm(lo(1),j,k,QPRES ) = q(domlo(1)-1,j,k,QPRES)
-                qm(lo(1),j,k,QREINT) = q(domlo(1)-1,j,k,QREINT)
+                qm(vlo(1),j,k,QRHO  ) = q(domlo(1)-1,j,k,QRHO)
+                qm(vlo(1),j,k,QUN   ) = q(domlo(1)-1,j,k,QUN )
+                qm(vlo(1),j,k,QPRES ) = q(domlo(1)-1,j,k,QPRES)
+                qm(vlo(1),j,k,QREINT) = q(domlo(1)-1,j,k,QREINT)
              end if
 
              ! Enforce constant mass flux rate if specified
              if (fix_mass_flux_hi) then
-                qp(hi(1)+1,j,k,QRHO  ) = q(domhi(1)+1,j,k,QRHO)
-                qp(hi(1)+1,j,k,QUN   ) = q(domhi(1)+1,j,k,QUN  )
-                qp(hi(1)+1,j,k,QPRES ) = q(domhi(1)+1,j,k,QPRES)
-                qp(hi(1)+1,j,k,QREINT) = q(domhi(1)+1,j,k,QREINT)
+                qp(vhi(1)+1,j,k,QRHO  ) = q(domhi(1)+1,j,k,QRHO)
+                qp(vhi(1)+1,j,k,QUN   ) = q(domhi(1)+1,j,k,QUN  )
+                qp(vhi(1)+1,j,k,QPRES ) = q(domhi(1)+1,j,k,QPRES)
+                qp(vhi(1)+1,j,k,QREINT) = q(domhi(1)+1,j,k,QREINT)
              end if
 #endif
           end do
        end do
     end do
 
-    !-------------------------------------------------------------------------
-    ! passively advected quantities
-    !-------------------------------------------------------------------------
 
-    ! Do all of the passively advected quantities in one loop
-    do ipassive = 1, npassive
-       n = qpass_map(ipassive)
+  end subroutine trace_ppm_rhoe
 
-       ! For DIM < 3, the velocities are included in the passive
-       ! quantities.  But we already dealt with all 3 velocity
-       ! components above, so don't process them here.
-       if (n == QU .or. n == QV .or. n == QW) cycle
-
-       do k = lo(3)-dg(3), hi(3)+dg(3)
-          do j = lo(2)-dg(2), hi(2)+dg(2)
-             do i = lo(1)-1, hi(1)+1
-
-                ! Plus state on face i
-                if ((idir == 1 .and. i >= lo(1)) .or. &
-                    (idir == 2 .and. j >= lo(2)) .or. &
-                    (idir == 3 .and. k >= lo(3))) then
-
-                   un = q(i,j,k,QUN)
-
-                   ! We have
-                   !
-                   ! q_l = q_ref - Proj{(q_ref - I)}
-                   !
-                   ! and Proj{} represents the characteristic projection.
-                   ! But for these, there is only 1-wave that matters, the u
-                   ! wave, so no projection is needed.  Since we are not
-                   ! projecting, the reference state doesn't matter
-
-                   qp(i,j,k,n) = merge(q(i,j,k,n), Im(i,j,k,idir,2,n), un > ZERO)
-                endif
-
-                ! Minus state on face i+1
-                if (idir == 1 .and. i <= hi(1)) then
-                   un = q(i,j,k,QUN)
-                   qm(i+1,j,k,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
-
-                else if (idir == 2 .and. j <= hi(2)) then
-                   un = q(i,j,k,QUN)
-                   qm(i,j+1,k,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
-
-                else if (idir == 3 .and. k <= hi(3)) then
-                   un = q(i,j,k,QUN)
-                   qm(i,j,k+1,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
-
-                endif
-
-             end do
-
-#if AMREX_SPACEDIM == 1
-             if (fix_mass_flux_hi) qp(hi(1)+1,j,k,n) = q(hi(1)+1,j,k,n)
-             if (fix_mass_flux_lo) qm(lo(1),j,k,n) = q(lo(1)-1,j,k,n)
-#endif
-          end do
-       end do
-
-    end do
-
-  end subroutine trace_ppm
-
-
-  subroutine trace_ppm_gammae(idir, q, qd_lo, qd_hi, &
+  subroutine trace_ppm_gammae(lo, hi, &
+                              idir, q, qd_lo, qd_hi, &
                               qaux, qa_lo, qa_hi, &
-                              Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
-                              qm, qp, qs_lo, qs_hi, &
+                              Ip, Ip_lo, Ip_hi, &
+                              Im, Im_lo, Im_hi, &
+                              Ip_src, Ips_lo, Ips_hi, &
+                              Im_src, Ims_lo, Ims_hi, &
+                              Ip_gc, Ipg_lo, Ipg_hi, &
+                              Im_gc, Img_lo, Img_hi, &
+                              qm, qm_lo, qm_hi, &
+                              qp, qp_lo, qp_hi, &
 #if (AMREX_SPACEDIM < 3)
                               dloga, dloga_lo, dloga_hi, &
 #endif
-                              lo, hi, domlo, domhi, &
+                              vlo, vhi, domlo, domhi, &
                               dx, dt)
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, &
-                                   QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFX, QFS, &
+                                   QREINT, QPRES, QGAME, QC, QGAMC, &
                                    small_dens, small_pres, &
                                    ppm_type, &
-                                   ppm_reference_eigenvectors, ppm_predict_gammae, &
-                                   npassive, qpass_map, ppm_temp_fix, &
+                                   ppm_reference_eigenvectors, &
                                    fix_mass_flux
-    use amrex_constants_module, only : ZERO, HALF, ONE
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: idir
     integer, intent(in) :: qd_lo(3), qd_hi(3)
-    integer, intent(in) :: qs_lo(3),qs_hi(3)
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: I_lo(3), I_hi(3)
+    integer, intent(in) :: Ip_lo(3), Ip_hi(3)
+    integer, intent(in) :: Im_lo(3), Im_hi(3)
+    integer, intent(in) :: Ips_lo(3), Ips_hi(3)
+    integer, intent(in) :: Ims_lo(3), Ims_hi(3)
+    integer, intent(in) :: Ipg_lo(3), Ipg_hi(3)
+    integer, intent(in) :: Img_lo(3), Img_hi(3)
 #if (AMREX_SPACEDIM < 3)
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
     integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: vlo(3), vhi(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
-    real(rt), intent(in) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
+    real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
+    real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
 
-    real(rt), intent(in) :: Ip_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
-    real(rt), intent(in) :: Im_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
+    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
+    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
 
-    real(rt), intent(in) :: Ip_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,1)
-    real(rt), intent(in) :: Im_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,1)
+    real(rt), intent(in) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:AMREX_SPACEDIM,1:3,1)
+    real(rt), intent(in) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:AMREX_SPACEDIM,1:3,1)
 
-    real(rt), intent(inout) :: qm(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
-    real(rt), intent(inout) :: qp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
+    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
+    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
 #if (AMREX_SPACEDIM < 3)
     real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 #endif
@@ -568,7 +726,6 @@ contains
 
     ! Local variables
     integer :: i, j, k
-    integer :: n, ipassive
 
     real(rt) :: hdt
 
@@ -598,8 +755,8 @@ contains
 
     real(rt) :: dptot
     real(rt) :: dge, dtau, dtaum, dtaup
-    real(rt) :: dup, dvp, dptotp
-    real(rt) :: dum, dvm, dptotm
+    real(rt) :: dup, dptotp
+    real(rt) :: dum, dptotm
 
     real(rt) :: rho_ref, un_ref, p_ref, rhoe_g_ref
     real(rt) :: tau_ref
@@ -609,7 +766,7 @@ contains
 
     real(rt) :: alpham, alphap, alpha0r, alpha0e_g
     real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
-    real(rt) :: tau_s, e_s
+    real(rt) :: tau_s
 
     logical :: fix_mass_flux_lo, fix_mass_flux_hi
 
@@ -622,12 +779,12 @@ contains
 
     hdt = HALF * dt
 
-
+#if AMREX_SPACEDIM == 1
     fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
-         .and. (lo(1) == domlo(1))
+         .and. (vlo(1) == domlo(1))
     fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
-         .and. (hi(1) == domhi(1))
-
+         .and. (vhi(1) == domhi(1))
+#endif
 
     !=========================================================================
     ! PPM CODE
@@ -670,9 +827,9 @@ contains
     endif
 
     ! Trace to left and right edges using upwind PPM
-    do k = lo(3)-dg(3), hi(3)+dg(3)
-       do j = lo(2)-dg(2), hi(2)+dg(2)
-          do i = lo(1)-1, hi(1)+1
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
              gfactor = ONE ! to help compiler resolve ANTI dependence
 
@@ -697,9 +854,9 @@ contains
              ! plus state on face i
              !-------------------------------------------------------------------
 
-             if ((idir == 1 .and. i >= lo(1)) .or. &
-                 (idir == 2 .and. j >= lo(2)) .or. &
-                 (idir == 3 .and. k >= lo(3))) then
+             if ((idir == 1 .and. i >= vlo(1)) .or. &
+                 (idir == 2 .and. j >= vlo(2)) .or. &
+                 (idir == 3 .and. k >= vlo(3))) then
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the left --
@@ -800,9 +957,9 @@ contains
              !-------------------------------------------------------------------
              ! minus state on face i + 1
              !-------------------------------------------------------------------
-             if ((idir == 1 .and. i <= hi(1)) .or. &
-                 (idir == 2 .and. j <= hi(2)) .or. &
-                 (idir == 3 .and. k <= hi(3))) then
+             if ((idir == 1 .and. i <= vhi(1)) .or. &
+                 (idir == 2 .and. j <= vhi(2)) .or. &
+                 (idir == 3 .and. k <= vhi(3))) then
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the right
@@ -931,14 +1088,14 @@ contains
                 sourcp = sourcr*csq
                 source = sourcp*h_g
 
-                if (i <= hi(1)) then
+                if (i <= vhi(1)) then
                    qm(i+1,j,k,QRHO) = qm(i+1,j,k,QRHO) + sourcr
                    qm(i+1,j,k,QRHO) = max(qm(i+1,j,k,QRHO), small_dens)
                    qm(i+1,j,k,QPRES) = qm(i+1,j,k,QPRES) + sourcp
                    qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source
                 end if
 
-                if (i >= lo(1)) then
+                if (i >= vlo(1)) then
                    qp(i,j,k,QRHO) = qp(i,j,k,QRHO) + sourcr
                    qp(i,j,k,QRHO) = max(qp(i,j,k,QRHO), small_dens)
                    qp(i,j,k,QPRES) = qp(i,j,k,QPRES) + sourcp
@@ -951,140 +1108,90 @@ contains
 #if (AMREX_SPACEDIM == 1)
              ! Enforce constant mass flux rate if specified
              if (fix_mass_flux_lo) then
-                qm(lo(1),j,k,QRHO  ) = q(domlo(1)-1,j,k,QRHO)
-                qm(lo(1),j,k,QUN   ) = q(domlo(1)-1,j,k,QUN )
-                qm(lo(1),j,k,QPRES ) = q(domlo(1)-1,j,k,QPRES)
-                qm(lo(1),j,k,QREINT) = q(domlo(1)-1,j,k,QREINT)
+                qm(vlo(1),j,k,QRHO  ) = q(domlo(1)-1,j,k,QRHO)
+                qm(vlo(1),j,k,QUN   ) = q(domlo(1)-1,j,k,QUN )
+                qm(vlo(1),j,k,QPRES ) = q(domlo(1)-1,j,k,QPRES)
+                qm(vlo(1),j,k,QREINT) = q(domlo(1)-1,j,k,QREINT)
              end if
 
              ! Enforce constant mass flux rate if specified
              if (fix_mass_flux_hi) then
-                qp(hi(1)+1,j,k,QRHO  ) = q(domhi(1)+1,j,k,QRHO)
-                qp(hi(1)+1,j,k,QUN   ) = q(domhi(1)+1,j,k,QUN  )
-                qp(hi(1)+1,j,k,QPRES ) = q(domhi(1)+1,j,k,QPRES)
-                qp(hi(1)+1,j,k,QREINT) = q(domhi(1)+1,j,k,QREINT)
+                qp(vhi(1)+1,j,k,QRHO  ) = q(domhi(1)+1,j,k,QRHO)
+                qp(vhi(1)+1,j,k,QUN   ) = q(domhi(1)+1,j,k,QUN  )
+                qp(vhi(1)+1,j,k,QPRES ) = q(domhi(1)+1,j,k,QPRES)
+                qp(vhi(1)+1,j,k,QREINT) = q(domhi(1)+1,j,k,QREINT)
              end if
 #endif
           end do
        end do
-    end do
-
-    !-------------------------------------------------------------------------
-    ! passively advected quantities
-    !-------------------------------------------------------------------------
-
-    ! Do all of the passively advected quantities in one loop
-    do ipassive = 1, npassive
-       n = qpass_map(ipassive)
-
-       ! For DIM < 3, the velocities are included in the passive
-       ! quantities.  But we already dealt with all 3 velocity
-       ! components above, so don't process them here.
-       if (n == QU .or. n == QV .or. n == QW) cycle
-
-       do k = lo(3)-dg(3), hi(3)+dg(3)
-          do j = lo(2)-dg(2), hi(2)+dg(2)
-             do i = lo(1)-1, hi(1)+1
-
-                ! Plus state on face i
-                if ((idir == 1 .and. i >= lo(1)) .or. &
-                    (idir == 2 .and. j >= lo(2)) .or. &
-                    (idir == 3 .and. k >= lo(3))) then
-
-                   un = q(i,j,k,QUN)
-
-                   ! We have
-                   !
-                   ! q_l = q_ref - Proj{(q_ref - I)}
-                   !
-                   ! and Proj{} represents the characteristic projection.
-                   ! But for these, there is only 1-wave that matters, the u
-                   ! wave, so no projection is needed.  Since we are not
-                   ! projecting, the reference state doesn't matter
-
-                   qp(i,j,k,n) = merge(q(i,j,k,n), Im(i,j,k,idir,2,n), un > ZERO)
-                endif
-
-                ! Minus state on face i+1
-                if (idir == 1 .and. i <= hi(1)) then
-                   un = q(i,j,k,QUN)
-                   qm(i+1,j,k,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
-
-                else if (idir == 2 .and. j <= hi(2)) then
-                   un = q(i,j,k,QUN)
-                   qm(i,j+1,k,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
-
-                else if (idir == 3 .and. k <= hi(3)) then
-                   un = q(i,j,k,QUN)
-                   qm(i,j,k+1,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
-
-                endif
-
-             end do
-
-#if AMREX_SPACEDIM == 1
-             if (fix_mass_flux_hi) qp(hi(1)+1,j,k,n) = q(hi(1)+1,j,k,n)
-             if (fix_mass_flux_lo) qm(lo(1),j,k,n) = q(lo(1)-1,j,k,n)
-#endif
-          end do
-       end do
-
     end do
 
   end subroutine trace_ppm_gammae
 
 
-  subroutine trace_ppm_temp(idir, q, qd_lo, qd_hi, &
-                       qaux, qa_lo, qa_hi, &
-                       Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
-                       qm, qp, qs_lo, qs_hi, &
+  subroutine trace_ppm_temp(lo, hi, &
+                            idir, q, qd_lo, qd_hi, &
+                            qaux, qa_lo, qa_hi, &
+                            Ip, Ip_lo, Ip_hi, &
+                            Im, Im_lo, Im_hi, &
+                            Ip_src, Ips_lo, Ips_hi, &
+                            Im_src, Ims_lo, Ims_hi, &
+                            Ip_gc, Ipg_lo, Ipg_hi, &
+                            Im_gc, Img_lo, Img_hi, &
+                            qm, qm_lo, qm_hi, &
+                            qp, qp_lo, qp_hi, &
 #if (AMREX_SPACEDIM < 3)
-                       dloga, dloga_lo, dloga_hi, &
+                            dloga, dloga_lo, dloga_hi, &
 #endif
-                       lo, hi, domlo, domhi, &
-                       dx, dt)
+                            vlo, vhi, domlo, domhi, &
+                            dx, dt)
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, &
-                                   QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFX, QFS, &
+                                   QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFS, QFX, &
                                    small_dens, small_pres, &
                                    ppm_type, &
-                                   ppm_reference_eigenvectors, ppm_predict_gammae, &
-                                   npassive, qpass_map, ppm_temp_fix, &
+                                   ppm_reference_eigenvectors, &
                                    fix_mass_flux
-    use amrex_constants_module, only : ZERO, HALF, ONE
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: idir
     integer, intent(in) :: qd_lo(3), qd_hi(3)
-    integer, intent(in) :: qs_lo(3),qs_hi(3)
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: I_lo(3), I_hi(3)
+    integer, intent(in) :: Ip_lo(3), Ip_hi(3)
+    integer, intent(in) :: Im_lo(3), Im_hi(3)
+    integer, intent(in) :: Ips_lo(3), Ips_hi(3)
+    integer, intent(in) :: Ims_lo(3), Ims_hi(3)
+    integer, intent(in) :: Ipg_lo(3), Ipg_hi(3)
+    integer, intent(in) :: Img_lo(3), Img_hi(3)
+
 #if (AMREX_SPACEDIM < 3)
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
     integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: vlo(3), vhi(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
-    real(rt), intent(in) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
+    real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
+    real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
 
-    real(rt), intent(in) :: Ip_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
-    real(rt), intent(in) :: Im_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
+    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
+    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
 
-    real(rt), intent(in) :: Ip_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,1)
-    real(rt), intent(in) :: Im_gc(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:AMREX_SPACEDIM,1:3,1)
+    real(rt), intent(in) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:AMREX_SPACEDIM,1:3,1)
+    real(rt), intent(in) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:AMREX_SPACEDIM,1:3,1)
 
-    real(rt), intent(inout) :: qm(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
-    real(rt), intent(inout) :: qp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
+    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
+    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
 #if (AMREX_SPACEDIM < 3)
     real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 #endif
@@ -1092,7 +1199,6 @@ contains
 
     ! Local variables
     integer :: i, j, k
-    integer :: n, ipassive
 
     type(eos_t) :: eos_state
 
@@ -1123,9 +1229,9 @@ contains
     real(rt) :: gam_g, game
 
     real(rt) :: drho, dptot
-    real(rt) :: de, dge, dtau, dtaum, dtaup
-    real(rt) :: dup, dvp, dptotp
-    real(rt) :: dum, dvm, dptotm
+    real(rt) :: dtau, dtaum, dtaup
+    real(rt) :: dup, dptotp
+    real(rt) :: dum, dptotm
     real(rt) :: dT0, dTp, dTm
     real(rt) :: p_r, p_T
 
@@ -1137,7 +1243,7 @@ contains
 
     real(rt) :: alpham, alphap, alpha0r, alpha0e_g
     real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
-    real(rt) :: tau_s, e_s
+    real(rt) :: tau_s
 
     logical :: fix_mass_flux_lo, fix_mass_flux_hi
 
@@ -1150,11 +1256,12 @@ contains
 
     hdt = HALF * dt
 
-
+#if AMREX_SPACEDIM == 1
     fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
-         .and. (lo(1) == domlo(1))
+         .and. (vlo(1) == domlo(1))
     fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
-         .and. (hi(1) == domhi(1))
+         .and. (vhi(1) == domhi(1))
+#endif
 
 
     !=========================================================================
@@ -1198,9 +1305,9 @@ contains
     endif
 
     ! Trace to left and right edges using upwind PPM
-    do k = lo(3)-dg(3), hi(3)+dg(3)
-       do j = lo(2)-dg(2), hi(2)+dg(2)
-          do i = lo(1)-1, hi(1)+1
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
              gfactor = ONE ! to help compiler resolve ANTI dependence
 
@@ -1226,9 +1333,9 @@ contains
              ! plus state on face i
              !-------------------------------------------------------------------
 
-             if ((idir == 1 .and. i >= lo(1)) .or. &
-                 (idir == 2 .and. j >= lo(2)) .or. &
-                 (idir == 3 .and. k >= lo(3))) then
+             if ((idir == 1 .and. i >= vlo(1)) .or. &
+                 (idir == 2 .and. j >= vlo(2)) .or. &
+                 (idir == 3 .and. k >= vlo(3))) then
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the left --
@@ -1351,9 +1458,9 @@ contains
              !-------------------------------------------------------------------
              ! minus state on face i + 1
              !-------------------------------------------------------------------
-             if ((idir == 1 .and. i <= hi(1)) .or. &
-                 (idir == 2 .and. j <= hi(2)) .or. &
-                 (idir == 3 .and. k <= hi(3))) then
+             if ((idir == 1 .and. i <= vhi(1)) .or. &
+                 (idir == 2 .and. j <= vhi(2)) .or. &
+                 (idir == 3 .and. k <= vhi(3))) then
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the right
@@ -1510,14 +1617,14 @@ contains
                 sourcp = sourcr*csq
                 source = sourcp*h_g
 
-                if (i <= hi(1)) then
+                if (i <= vhi(1)) then
                    qm(i+1,j,k,QRHO) = qm(i+1,j,k,QRHO) + sourcr
                    qm(i+1,j,k,QRHO) = max(qm(i+1,j,k,QRHO), small_dens)
                    qm(i+1,j,k,QPRES) = qm(i+1,j,k,QPRES) + sourcp
                    qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source
                 end if
 
-                if (i >= lo(1)) then
+                if (i >= vlo(1)) then
                    qp(i,j,k,QRHO) = qp(i,j,k,QRHO) + sourcr
                    qp(i,j,k,QRHO) = max(qp(i,j,k,QRHO), small_dens)
                    qp(i,j,k,QPRES) = qp(i,j,k,QPRES) + sourcp
@@ -1530,94 +1637,32 @@ contains
 #if (AMREX_SPACEDIM == 1)
              ! Enforce constant mass flux rate if specified
              if (fix_mass_flux_lo) then
-                qm(lo(1),j,k,QRHO  ) = q(domlo(1)-1,j,k,QRHO)
-                qm(lo(1),j,k,QUN   ) = q(domlo(1)-1,j,k,QUN )
-                qm(lo(1),j,k,QPRES ) = q(domlo(1)-1,j,k,QPRES)
-                qm(lo(1),j,k,QREINT) = q(domlo(1)-1,j,k,QREINT)
+                qm(vlo(1),j,k,QRHO  ) = q(domlo(1)-1,j,k,QRHO)
+                qm(vlo(1),j,k,QUN   ) = q(domlo(1)-1,j,k,QUN )
+                qm(vlo(1),j,k,QPRES ) = q(domlo(1)-1,j,k,QPRES)
+                qm(vlo(1),j,k,QREINT) = q(domlo(1)-1,j,k,QREINT)
              end if
 
              ! Enforce constant mass flux rate if specified
              if (fix_mass_flux_hi) then
-                qp(hi(1)+1,j,k,QRHO  ) = q(domhi(1)+1,j,k,QRHO)
-                qp(hi(1)+1,j,k,QUN   ) = q(domhi(1)+1,j,k,QUN  )
-                qp(hi(1)+1,j,k,QPRES ) = q(domhi(1)+1,j,k,QPRES)
-                qp(hi(1)+1,j,k,QREINT) = q(domhi(1)+1,j,k,QREINT)
+                qp(vhi(1)+1,j,k,QRHO  ) = q(domhi(1)+1,j,k,QRHO)
+                qp(vhi(1)+1,j,k,QUN   ) = q(domhi(1)+1,j,k,QUN  )
+                qp(vhi(1)+1,j,k,QPRES ) = q(domhi(1)+1,j,k,QPRES)
+                qp(vhi(1)+1,j,k,QREINT) = q(domhi(1)+1,j,k,QREINT)
              end if
 #endif
           end do
        end do
     end do
 
-    !-------------------------------------------------------------------------
-    ! passively advected quantities
-    !-------------------------------------------------------------------------
-
-    ! Do all of the passively advected quantities in one loop
-    do ipassive = 1, npassive
-       n = qpass_map(ipassive)
-
-       ! For DIM < 3, the velocities are included in the passive
-       ! quantities.  But we already dealt with all 3 velocity
-       ! components above, so don't process them here.
-       if (n == QU .or. n == QV .or. n == QW) cycle
-
-       do k = lo(3)-dg(3), hi(3)+dg(3)
-          do j = lo(2)-dg(2), hi(2)+dg(2)
-             do i = lo(1)-1, hi(1)+1
-
-                ! Plus state on face i
-                if ((idir == 1 .and. i >= lo(1)) .or. &
-                    (idir == 2 .and. j >= lo(2)) .or. &
-                    (idir == 3 .and. k >= lo(3))) then
-
-                   un = q(i,j,k,QUN)
-
-                   ! We have
-                   !
-                   ! q_l = q_ref - Proj{(q_ref - I)}
-                   !
-                   ! and Proj{} represents the characteristic projection.
-                   ! But for these, there is only 1-wave that matters, the u
-                   ! wave, so no projection is needed.  Since we are not
-                   ! projecting, the reference state doesn't matter
-
-                   qp(i,j,k,n) = merge(q(i,j,k,n), Im(i,j,k,idir,2,n), un > ZERO)
-                endif
-
-                ! Minus state on face i+1
-                if (idir == 1 .and. i <= hi(1)) then
-                   un = q(i,j,k,QUN)
-                   qm(i+1,j,k,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
-
-                else if (idir == 2 .and. j <= hi(2)) then
-                   un = q(i,j,k,QUN)
-                   qm(i,j+1,k,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
-
-                else if (idir == 3 .and. k <= hi(3)) then
-                   un = q(i,j,k,QUN)
-                   qm(i,j,k+1,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
-
-                endif
-
-             end do
-
-#if AMREX_SPACEDIM == 1
-             if (fix_mass_flux_hi) qp(hi(1)+1,j,k,n) = q(hi(1)+1,j,k,n)
-             if (fix_mass_flux_lo) qm(lo(1),j,k,n) = q(lo(1)-1,j,k,n)
-#endif
-          end do
-       end do
-
-    end do
-
     ! we predicted T, now make p, (rho e) consistent
-    do k = lo(3)-dg(3), hi(3)-dg(3)
-       do j = lo(2)-dg(2), hi(2)+dg(2)
-          do i = lo(1)-1, hi(1)+1
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
-             if ((idir == 1 .and. i >= lo(1)) .or. &
-                 (idir == 2 .and. j >= lo(2)) .or. &
-                 (idir == 3 .and. k >= lo(3))) then
+             if ((idir == 1 .and. i >= vlo(1)) .or. &
+                 (idir == 2 .and. j >= vlo(2)) .or. &
+                 (idir == 3 .and. k >= vlo(3))) then
 
                 ! plus face
                 eos_state%T     = qp(i,j,k,QTEMP)
@@ -1631,9 +1676,9 @@ contains
                 qp(i,j,k,QREINT) = qp(i,j,k,QRHO)*eos_state%e
 
                 qp(i,j,k,QPRES) = max(qp(i,j,k,QPRES), small_pres)
-             endif
+             end if
 
-             if (idir == 1 .and. i <= hi(1)) then
+             if (idir == 1 .and. i <= vhi(1)) then
 
                 ! minus face
                 eos_state%T     = qm(i+1,j,k,QTEMP)
@@ -1646,7 +1691,7 @@ contains
                 qm(i+1,j,k,QPRES) = max(small_pres, eos_state%p)
                 qm(i+1,j,k,QREINT) = qm(i+1,j,k,QRHO)*eos_state%e
 
-             else if (idir == 2 .and. j <= hi(2)) then
+             else if (idir == 2 .and. j <= vhi(2)) then
 
                 ! minus face
                 eos_state%T     = qm(i,j+1,k,QTEMP)
@@ -1659,7 +1704,7 @@ contains
                 qm(i,j+1,k,QPRES) = max(small_pres, eos_state%p)
                 qm(i,j+1,k,QREINT) = qm(i,j+1,k,QRHO)*eos_state%e
 
-             else if (idir == 3 .and. k <= hi(3)) then
+             else if (idir == 3 .and. k <= vhi(3)) then
 
                 ! minus face
                 eos_state%T     = qm(i,j,k+1,QTEMP)
@@ -1672,7 +1717,7 @@ contains
                 qm(i,j,k+1,QPRES) = max(small_pres, eos_state%p)
                 qm(i,j,k+1,QREINT) = qm(i,j,k+1,QRHO)*eos_state%e
 
-             endif
+             end if
 
           end do
        end do
