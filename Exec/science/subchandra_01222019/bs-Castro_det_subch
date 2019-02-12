@@ -1,8 +1,0 @@
-#!/bin/bash -l
-#SBATCH -p regular
-#SBATCH -N 4 
-#SBATCH -t 20:00:00
-#SBATCH -J CastroSubch
-#SBATCH -o subch-pert80-amr4
-
-srun -n 96 ./Castro2d.gnu.ivybridge.MPI.ex inputs_2d
