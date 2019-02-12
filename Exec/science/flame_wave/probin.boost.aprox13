@@ -27,6 +27,8 @@
   max_hse_tagging_level = 3
   max_base_tagging_level = 2
 
+  X_min = 1.e-2
+
   x_refine_distance = 6.144e4
 /
 
