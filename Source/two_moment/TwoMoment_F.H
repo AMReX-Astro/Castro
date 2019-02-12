@@ -78,6 +78,15 @@ extern "C"
      const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
      const int* level, const int* grid_no);
 
+  void ca_der_Ye
+    (BL_FORT_FAB_ARG_3D(Ye),const int* nvar,
+     const BL_FORT_FAB_ARG_3D(U_F),const int* ncomp,
+     const int* lo, const int* hi,
+     const int* domain_lo, const int* domain_hi,
+     const amrex::Real* delta, const amrex::Real* xlo,
+     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
+     const int* level, const int* grid_no);
+
   void ca_dg_refine(const int* fblo, const int* fbhi,
                     BL_FORT_FAB_ARG_ANYD(fine),
                     const BL_FORT_FAB_ARG_ANYD(crse),

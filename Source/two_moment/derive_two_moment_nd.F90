@@ -386,4 +386,37 @@ contains
 
   end subroutine ca_der_Hz
 
+  subroutine ca_der_Ye(Ye,s_lo,s_hi,nv, &
+                       dat,d_lo,d_hi,nc,lo,hi,domlo, &
+                      domhi,delta,xlo) bind(C, name="ca_der_Ye")
+    !
+    ! This routine derives the mass fractions of the species.
+    !
+    use amrex_fort_module, only : rt => amrex_real
+
+    implicit none
+
+    integer, intent(in   ), value :: nv, nc
+    integer, intent(in   ) :: lo(3), hi(3)
+    integer, intent(in   ) :: s_lo(3), s_hi(3)
+    integer, intent(in   ) :: d_lo(3), d_hi(3)
+    integer, intent(in   ) :: domlo(3), domhi(3)
+    real(rt), intent(in   ) :: delta(3), xlo(3)
+    real(rt), intent(inout) :: Ye(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),nv)
+    real(rt), intent(in   ) ::  dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+
+    integer          :: i, j, k
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             Ye(i,j,k,1) = dat(i,j,k,2) / dat(i,j,k,1)
+          end do
+       end do
+    end do
+
+  end subroutine ca_der_Ye
+
 end module derive_thornado_module

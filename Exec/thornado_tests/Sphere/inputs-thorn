@@ -133,7 +133,7 @@ amrex.fpe_trap_invalid =  1
 ################################################################
 # Here you see four moments and the node averages but not the
 #  entire thornado data
-amr.derive_plot_vars        = pressure Hx_avg Hy_avg Hz_avg J_avg
+amr.derive_plot_vars        = pressure Hx_avg Hy_avg Hz_avg J_avg Ye
 amr.plot_vars               = density xmom ymom zmom eden eint Temp rho_Ye
 thornado.plot_node_averages = 1
 ################################################################
