@@ -109,7 +109,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   real(rt) :: x, y, z, dist, pres, r1, t0, zc
   integer :: i, j, k, n
-  integer :: ihe4
+  integer :: i_he4
   real(rt) :: X_he
 
   type(eos_t) :: eos_state
@@ -161,7 +161,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
      end do
   end do
 
-  ihe4 = network_species_index("helium-4")
+  i_he4 = network_species_index("helium-4")
 
   ! add a perturbation
   do k = lo(3), hi(3)
@@ -199,7 +199,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            eos_state%xn(:) = state(i,j,k,UFS:UFS-1+nspec)
 
            ! convolve the temperature perturbation with the amount of He
-           X_he = eos_state%xn(ihe4)
+           X_he = eos_state%xn(i_he4)
            state(i,j,k,UTEMP) = X_he * state(i,j,k,UTEMP)
 
            call eos(eos_input_rt, eos_state)
