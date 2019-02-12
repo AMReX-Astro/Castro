@@ -84,4 +84,4 @@ amr.plot_per         = 5.e-7      # number of timesteps between plotfiles
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
-amr.probin_file = probin.boost.aprox13
+amr.probin_file = probin.boost_10_10
