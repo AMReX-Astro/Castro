@@ -48,8 +48,20 @@ Exec/**/helm_table.dat
 Exec/**/state_sizes.f90
 Exec/**/set_indices.F90
 Exec/**/set_conserved.H
+Exec/**/set_primitive.H
 
 *.hack
 *.bak
 
 Backtrace.*
+
+sphinx_docs/build
+sphinx_docs/doxy_files
+sphinx_docs/class
+sphinx_docs/classlist.rst
+sphinx_docs/source/file/
+sphinx_docs/source/filelist.rst
+sphinx_docs/source/namespace/
+sphinx_docs/source/namespacelist.rst
+sphinx_docs/source/runtime_parameters.rst
+sphinx_docs/source/*_files.rst

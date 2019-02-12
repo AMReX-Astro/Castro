@@ -41,6 +41,7 @@ main (int   argc,
     // Make sure to catch new failures.
     //
     amrex::Initialize(argc,argv);
+    {
 
     // Refuse to continue if we did not provide an inputs file.
 
@@ -169,14 +170,7 @@ main (int   argc,
 	}
 
         if (amrptr->stepOfLastSmallPlotFile() < amrptr->levelSteps(0)) {
-
-            // We want to be sure here that the user is actually requesting
-            // small plots, we can check this if the last small plot file
-            // is non-negative.
-
-            if (amrptr->stepOfLastSmallPlotFile() >= 0)
-                amrptr->writeSmallPlotFile();
-
+            amrptr->writeSmallPlotFile();
         }
 
     }
@@ -257,6 +251,7 @@ main (int   argc,
     BL_PROFILE_VAR_STOP(pmain);
     BL_PROFILE_SET_RUN_TIME(dRunTime2);
 
+    }
     amrex::Finalize();
 
     return 0;

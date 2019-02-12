@@ -8,12 +8,22 @@ module timestep_module
 
 contains
 
-  ! Courant-condition limited timestep
 
+  !> @brief Courant-condition limited timestep
+  !!
+  !! @note Binds to C function ``ca_estdt``
+  !!
+  !! @param[in] lo integer
+  !! @param[in] u_lo integer
+  !! @param[in] u real(rt)
+  !! @param[in] dx real(rt)
+  !! @param[inout] dt real(rt)
+  !!
   subroutine ca_estdt(lo,hi,u,u_lo,u_hi,dx,dt) bind(C, name="ca_estdt")
 
+
     use network, only: nspec, naux
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, do_ctu
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, time_integration_method
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use prob_params_module, only: dim
@@ -74,7 +84,7 @@ contains
                 uz = vel(3)
              endif
 #endif
-             
+
              c = eos_state % cs
 
              dt1 = dx(1)/(c + abs(ux))
@@ -89,7 +99,7 @@ contains
                 dt3 = dt1
              endif
 
-             if (do_ctu == 1) then
+             if (time_integration_method == 0) then
                 call amrex_min(dt, min(dt1,dt2,dt3))
              else
                 ! method of lines constraint is tougher
@@ -110,15 +120,31 @@ contains
 
   end subroutine ca_estdt
 
-  ! Reactions-limited timestep
-
 #ifdef REACTIONS
+
+  !> @brief Reactions-limited timestep
+  !!
+  !! @note Binds to C function ``ca_estdt_burning``
+  !!
+  !! @param[in] so_lo integer
+  !! @param[in] sn_lo integer
+  !! @param[in] ro_lo integer
+  !! @param[in] rn_lo integer
+  !! @param[in] lo integer
+  !! @param[in] sold real(rt)
+  !! @param[in] snew real(rt)
+  !! @param[in] rold real(rt)
+  !! @param[in] rnew real(rt)
+  !! @param[in] dx real(rt)
+  !! @param[inout] dt real(rt)
+  !!
   subroutine ca_estdt_burning(lo, hi, sold, so_lo, so_hi, &
-                              snew, sn_lo, sn_hi, &
-                              rold, ro_lo, ro_hi, &
-                              rnew, rn_lo, rn_hi, &
-                              dx, dt_old, dt) &
-                              bind(C, name="ca_estdt_burning")
+       snew, sn_lo, sn_hi, &
+       rold, ro_lo, ro_hi, &
+       rnew, rn_lo, rn_hi, &
+       dx, dt_old, dt) &
+       bind(C, name="ca_estdt_burning")
+
 
     use amrex_constants_module, only: HALF, ONE
     use network, only: nspec, naux, aion
@@ -166,7 +192,7 @@ contains
     ! dtnuc_e * (e / (de/dt)).  If the timestep factor dtnuc is
     ! equal to 1, this says that we don't want the
     ! internal energy to change by any more than its current
-    ! magnitude in the next timestep. 
+    ! magnitude in the next timestep.
     !
     ! If dtnuc is less than one, it controls the fraction we will
     ! allow the internal energy to change in this timestep due to
@@ -252,9 +278,19 @@ contains
   end subroutine ca_estdt_burning
 #endif
 
-  ! Diffusion-limited timestep
 
 #ifdef DIFFUSION
+
+  !> @brief Diffusion-limited timestep
+  !!
+  !! @note Binds to C function ``ca_estdt_temp_diffusion``
+  !!
+  !! @param[in] lo integer
+  !! @param[in] s_lo integer
+  !! @param[in] state real(rt)
+  !! @param[in] dx real(rt)
+  !! @param[inout] dt real(rt)
+  !!
   subroutine ca_estdt_temp_diffusion(lo,hi,state,s_lo,s_hi,dx,dt) &
        bind(C, name="ca_estdt_temp_diffusion")
 
@@ -278,7 +314,7 @@ contains
 
     real(rt)         :: dt1, dt2, dt3, rho_inv
     integer          :: i, j, k
-    real(rt)         :: cond, D
+    real(rt)         :: D
 
     type (eos_t) :: eos_state
 
@@ -304,10 +340,10 @@ contains
                 call eos(eos_input_re, eos_state)
 
                 ! we also need the conductivity
-                call conductivity(eos_state, cond)
+                call conductivity(eos_state)
 
                 ! maybe we should check (and take action) on negative cv here?
-                D = cond*rho_inv/eos_state%cv
+                D = eos_state % conductivity*rho_inv/eos_state%cv
 
                 dt1 = HALF*dx(1)**2/D
 
@@ -333,6 +369,16 @@ contains
 
   end subroutine ca_estdt_temp_diffusion
 
+
+  !>
+  !! @note Binds to C function ``ca_estdt_enth_diffusion``
+  !!
+  !! @param[in] lo integer
+  !! @param[in] s_lo integer
+  !! @param[in] state real(rt)
+  !! @param[in] dx real(rt)
+  !! @param[inout] dt real(rt)
+  !!
   subroutine ca_estdt_enth_diffusion(lo,hi,state,s_lo,s_hi,dx,dt) &
        bind(C, name="ca_estdt_enth_diffusion")
 
@@ -356,7 +402,7 @@ contains
 
     real(rt)         :: dt1, dt2, dt3, rho_inv
     integer          :: i, j, k
-    real(rt)         :: cond, D
+    real(rt)         :: D
 
     type (eos_t) :: eos_state
 
@@ -382,9 +428,9 @@ contains
                 call eos(eos_input_re, eos_state)
 
                 ! we also need the conductivity
-                call conductivity(eos_state, cond)
+                call conductivity(eos_state)
 
-                D = cond*rho_inv/eos_state%cp
+                D = eos_state % conductivity*rho_inv/eos_state%cp
 
                 dt1 = HALF*dx(1)**2/D
 
@@ -412,21 +458,21 @@ contains
 #endif
 
 
-  ! Check whether the last timestep violated any of our stability criteria.
-  ! If so, suggest a new timestep which would not.
 
   subroutine ca_check_timestep(lo, hi, s_old, so_lo, so_hi, &
-                               s_new, sn_lo, sn_hi, &
+       s_new, sn_lo, sn_hi, &
 #ifdef REACTIONS
-                               r_old, ro_lo, ro_hi, &
-                               r_new, rn_lo, rn_hi, &
+       r_old, ro_lo, ro_hi, &
+       r_new, rn_lo, rn_hi, &
 #endif
-                               dx, dt_old, dt_new) &
-                               bind(C, name="ca_check_timestep")
+       dx, dt_old, dt_new) &
+       bind(C, name="ca_check_timestep")
 
+    ! Check whether the last timestep violated any of our stability criteria.
+    ! If so, suggest a new timestep which would not.
     use amrex_constants_module, only: HALF, ONE
     use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, UFS, UFX, UMX, UMZ, &
-                                  cfl, do_hydro
+         cfl, do_hydro
 #ifdef REACTIONS
     use meth_params_module, only: dtnuc_e, dtnuc_X, dtnuc_X_threshold, do_react
     use extern_probin_module, only: small_x
@@ -479,39 +525,36 @@ contains
 
              ! CFL hydrodynamic stability criterion
 
-             ! If the timestep violated (v+c) * dt / dx > 1,
+             ! If the timestep violated (v+c) * dt / dx > CFL,
              ! suggest a new timestep such that (v+c) * dt / dx <= CFL,
              ! where CFL is the user's chosen timestep constraint.
-             ! We don't use the CFL choice in the test for violation
-             ! because if we did, then even a small increase in velocity
-             ! over the timestep would be enough to trigger a retry
-             ! (and empirically we have found that this can happen
-             ! basically every timestep, which can greatly increase
-             ! the cost of a simulation for not much benefit);
-             ! but these types of issues are exactly why a user picks a
-             ! safe buffer value like CFL = 0.8 or CFL = 0.5. We only
-             ! want to trigger a retry if the timestep strongly violated
-             ! the stability criterion.
+             ! Note that this means that we'll suggest a retry even
+             ! for very small violations of the CFL criterion, which
+             ! we may not want. That is why the retry_tolerance parameter
+             ! exists when we're checking whether to do a retry: if it
+             ! is non-zero, then small violations will be tolerated.
+
+             ! This check does not enforce a CFL constraint on the
+             ! new velocity; it is only a restraint on what the initial
+             ! timestep at the old-time should have been.
 
              if (do_hydro .eq. 1) then
 
-                eos_state % rho = s_new(i,j,k,URHO )
-                eos_state % T   = s_new(i,j,k,UTEMP)
-                eos_state % e   = s_new(i,j,k,UEINT) * rhoninv
-                eos_state % xn  = s_new(i,j,k,UFS:UFS+nspec-1) * rhoninv
-                eos_state % aux = s_new(i,j,k,UFX:UFX+naux-1) * rhoninv
+                eos_state % rho = s_old(i,j,k,URHO )
+                eos_state % T   = s_old(i,j,k,UTEMP)
+                eos_state % e   = s_old(i,j,k,UEINT) * rhooinv
+                eos_state % xn  = s_old(i,j,k,UFS:UFS+nspec-1) * rhooinv
+                eos_state % aux = s_old(i,j,k,UFX:UFX+naux-1) * rhooinv
 
                 call eos(eos_input_re, eos_state)
 
-                v = HALF * (s_old(i,j,k,UMX:UMZ) * rhooinv + s_new(i,j,k,UMX:UMZ) * rhoninv)
+                v = abs(s_old(i,j,k,UMX:UMZ)) * rhooinv
 
                 c = eos_state % cs
 
-                tau_CFL = minval(dx(1:dim) / (c + abs(v(1:dim))))
+                tau_CFL = minval(dx(1:dim) / (c + v(1:dim)))
 
-                if (dt_old > tau_CFL) then
-                   dt_new = min(dt_new, cfl * tau_CFL)
-                endif
+                dt_new = min(dt_new, cfl * tau_CFL)
 
              endif
 

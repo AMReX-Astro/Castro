@@ -7,11 +7,19 @@ module diffusion_module
 
 contains
 
+
+  !> @brief this routine extrapolates the temperature diffusion term into the
+  !! ghostcells
+  !!
+  !! @note Binds to C function ``ca_tempdiffextrap``
+  !!
+  !! @param[in] lo integer
+  !! @param[in] t_lo integer
+  !! @param[inout] tdif real(rt)
+  !!
   subroutine ca_tempdiffextrap(lo, hi, tdif, t_lo, t_hi) &
        bind(C, name="ca_tempdiffextrap")
 
-    ! this routine extrapolates the temperature diffusion term into the
-    ! ghostcells
 
     use prob_params_module, only: dg
 
@@ -193,11 +201,20 @@ contains
   end subroutine ca_tempdiffextrap
 
 
-  
-  ! This routine fills the species diffusion coefficients on the edges of a zone
-  ! by calling the cell-centered conductivity routine and averaging to
-  ! the interfaces
-
+  !> @brief This routine fills the species diffusion coefficients on the edges of a zone
+  !! by calling the cell-centered conductivity routine and averaging to
+  !! the interfaces
+  !!
+  !! @note Binds to C function ``ca_fill_spec_coeff``
+  !!
+  !! @param[in] lo integer
+  !! @param[in] s_lo integer
+  !! @param[in] cx_lo integer
+  !! @param[in] state real(rt)
+  !! @param[inout] coefx real(rt)
+  !! @param[inout] coefy real(rt)
+  !! @param[inout] coefz real(rt)
+  !!
   subroutine ca_fill_spec_coeff(lo,hi, &
        state,s_lo,s_hi, &
        coefx,cx_lo,cx_hi, &
@@ -207,7 +224,8 @@ contains
 
     use amrex_constants_module
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UTEMP, UEINT, UFS, UFX, diffuse_cutoff_density
+    use meth_params_module, only : NVAR, URHO, UTEMP, UEINT, UFS, UFX, diffuse_cutoff_density, &
+       diffuse_cutoff_density_hi
     use prob_params_module, only : dg
     use conductivity_module
     use eos_type_module
@@ -243,8 +261,13 @@ contains
              call eos(eos_input_re,eos_state)
 
              if (eos_state%rho > diffuse_cutoff_density) then
-                call conductivity(eos_state, coeff)
-                coeff = coeff / eos_state%cp
+                call conductivity(eos_state)
+                coeff = eos_state % conductivity / eos_state%cp
+
+                if (eos_state%rho < diffuse_cutoff_density_hi) then
+                    coeff = coeff * (eos_state%rho - diffuse_cutoff_density) / &
+                            (diffuse_cutoff_density_hi - diffuse_cutoff_density)
+                endif
              else
                 coeff = ZERO
              endif
@@ -281,10 +304,22 @@ contains
 
   end subroutine ca_fill_spec_coeff
 
-  ! This routine fills the thermal conductivity on the edges of a zone
-  ! by calling the cell-centered conductivity routine and averaging to
-  ! the interfaces
-  
+
+
+  !> @brief This routine fills the thermal conductivity on the edges of a zone
+  !! by calling the cell-centered conductivity routine and averaging to
+  !! the interfaces
+  !!
+  !! @note Binds to C function ``ca_fill_temp_cond``
+  !!
+  !! @param[in] lo integer
+  !! @param[in] s_lo integer
+  !! @param[in] cx_lo integer
+  !! @param[in] state real(rt)
+  !! @param[inout] coefx real(rt)
+  !! @param[inout] coefy real(rt)
+  !! @param[inout] coefz real(rt)
+  !!
   subroutine ca_fill_temp_cond(lo,hi, &
        state,s_lo,s_hi, &
        coefx,cx_lo,cx_hi, &
@@ -292,10 +327,13 @@ contains
        coefz,cz_lo,cz_hi) &
        bind(C, name="ca_fill_temp_cond")
 
+
+
     use amrex_constants_module
     use network, only: nspec, naux
     use meth_params_module, only : NVAR, URHO, UTEMP, UEINt, UFS, UFX, &
-         diffuse_cutoff_density, diffuse_cond_scale_fac, small_temp
+         diffuse_cutoff_density, diffuse_cutoff_density_hi, diffuse_cond_scale_fac, &
+         small_temp
     use prob_params_module, only : dg
     use conductivity_module
     use eos_type_module
@@ -316,7 +354,7 @@ contains
     real(rt)         :: coef_cc(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1)
 
     type (eos_t) :: eos_state
-    real(rt)         :: cond
+    real(rt) :: multiplier
 
     ! fill the cell-centered conductivity
 
@@ -338,12 +376,17 @@ contains
              endif
 
              if (eos_state%rho > diffuse_cutoff_density) then
+                call conductivity(eos_state)
 
-                call conductivity(eos_state, cond)
+                if (eos_state%rho < diffuse_cutoff_density_hi) then
+                    multiplier = (eos_state%rho - diffuse_cutoff_density) / &
+                            (diffuse_cutoff_density_hi - diffuse_cutoff_density)
+                    eos_state % conductivity = eos_state % conductivity * multiplier
+                endif
              else
-                cond = ZERO
+                eos_state % conductivity = ZERO
              endif
-             coef_cc(i,j,k) = diffuse_cond_scale_fac * cond
+             coef_cc(i,j,k) = diffuse_cond_scale_fac * eos_state % conductivity
           enddo
        enddo
     enddo
@@ -375,10 +418,23 @@ contains
 
   end subroutine ca_fill_temp_cond
 
-  ! This routine fills the coefficient of grad(enthalpy) on the edges of a zone
-  ! by calling the cell-centered conductivity routine and averaging to
-  ! the interfaces
-  
+
+
+
+  !> @brief This routine fills the coefficient of grad(enthalpy) on the edges of a zone
+  !! by calling the cell-centered conductivity routine and averaging to
+  !! the interfaces
+  !!
+  !! @note Binds to C function ``ca_fill_enth_cond``
+  !!
+  !! @param[in] lo integer
+  !! @param[in] s_lo integer
+  !! @param[in] cx_lo integer
+  !! @param[in] state real(rt)
+  !! @param[inout] coefx real(rt)
+  !! @param[inout] coefy real(rt)
+  !! @param[inout] coefz real(rt)
+  !!
   subroutine ca_fill_enth_cond(lo,hi, &
        state,s_lo,s_hi, &
        coefx,cx_lo,cx_hi, &
@@ -386,9 +442,11 @@ contains
        coefz,cz_lo,cz_hi) &
        bind(C, name="ca_fill_enth_cond")
 
+
     use amrex_constants_module
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UTEMP, UEINT, UFS, UFX, diffuse_cutoff_density
+    use meth_params_module, only : NVAR, URHO, UTEMP, UEINT, UFS, UFX, &
+        diffuse_cutoff_density, diffuse_cutoff_density_hi
     use prob_params_module, only : dg
     use conductivity_module
     use eos_type_module
@@ -425,8 +483,13 @@ contains
              call eos(eos_input_re,eos_state)
 
              if (eos_state%rho > diffuse_cutoff_density) then
-                call conductivity(eos_state, cond)
-                cond = cond / eos_state%cp
+                call conductivity(eos_state)
+                cond = eos_state % conductivity / eos_state%cp
+
+                if (eos_state%rho < diffuse_cutoff_density_hi) then
+                    cond = cond * (eos_state%rho - diffuse_cutoff_density) / &
+                            (diffuse_cutoff_density_hi - diffuse_cutoff_density)
+                endif
              else
                 cond = ZERO
              endif
@@ -463,19 +526,34 @@ contains
 
   end subroutine ca_fill_enth_cond
 
-  ! This routine fills the viscous coefficients "mu" on the edges of a zone
-  ! by calling the cell-centered coefficient routine and averaging to
-  ! the interfaces
-  
+
+
+
+  !> @brief This routine fills the viscous coefficients "mu" on the edges of a zone
+  !! by calling the cell-centered coefficient routine and averaging to
+  !! the interfaces
+  !!
+  !! @note Binds to C function ``ca_fill_first_visc_coeff``
+  !!
+  !! @param[in] lo integer
+  !! @param[in] s_lo integer
+  !! @param[in] cx_lo integer
+  !! @param[in] state real(rt)
+  !! @param[inout] coefx real(rt)
+  !! @param[inout] coefy real(rt)
+  !! @param[inout] coefz real(rt)
+  !!
   subroutine ca_fill_first_visc_coeff(lo,hi, &
        state,s_lo,s_hi, &
        coefx,cx_lo,cx_hi, &
        coefy,cy_lo,cy_hi, &
        coefz,cz_lo,cz_hi) bind(C, name="ca_fill_first_visc_coeff")
 
+
     use amrex_constants_module
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UTEMP, UFS, UFX, diffuse_cutoff_density
+    use meth_params_module, only : NVAR, URHO, UTEMP, UFS, UFX, &
+        diffuse_cutoff_density, diffuse_cutoff_density_hi
     use prob_params_module, only : dg
     use viscosity_module
     use eos_type_module
@@ -510,6 +588,11 @@ contains
 
              if (eos_state%rho > diffuse_cutoff_density) then
                 call viscous_coeff(eos_state, coeff)
+
+                if (eos_state%rho < diffuse_cutoff_density_hi) then
+                    coeff = coeff * (eos_state%rho - diffuse_cutoff_density) / &
+                            (diffuse_cutoff_density_hi - diffuse_cutoff_density)
+                endif
              else
                 coeff = ZERO
              endif
@@ -546,7 +629,19 @@ contains
   end subroutine ca_fill_first_visc_coeff
 
 
-  
+
+
+  !>
+  !! @note Binds to C function ``ca_fill_secnd_visc_coeff``
+  !!
+  !! @param[in] lo integer
+  !! @param[in] s_lo integer
+  !! @param[in] cx_lo integer
+  !! @param[in] state real(rt)
+  !! @param[inout] coefx real(rt)
+  !! @param[inout] coefy real(rt)
+  !! @param[inout] coefz real(rt)
+  !!
   subroutine ca_fill_secnd_visc_coeff(lo,hi, &
        state,s_lo,s_hi, &
        coefx,cx_lo,cx_hi, &
@@ -555,7 +650,8 @@ contains
 
     use amrex_constants_module
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UTEMP, UFS, UFX, diffuse_cutoff_density
+    use meth_params_module, only : NVAR, URHO, UTEMP, UFS, UFX, &
+        diffuse_cutoff_density, diffuse_cutoff_density_hi
     use prob_params_module, only : dg
     use viscosity_module
     use eos_type_module
@@ -593,6 +689,11 @@ contains
 
              if (eos_state%rho > diffuse_cutoff_density) then
                 call viscous_coeff(eos_state, mu)
+
+                if (eos_state%rho < diffuse_cutoff_density_hi) then
+                    mu = mu * (eos_state%rho - diffuse_cutoff_density) / &
+                            (diffuse_cutoff_density_hi - diffuse_cutoff_density)
+                endif
              else
                 mu = ZERO
              endif
@@ -632,7 +733,17 @@ contains
   end subroutine ca_fill_secnd_visc_coeff
 
 
-  
+  !>
+  !! @note Binds to C function ``ca_compute_div_tau_u``
+  !!
+  !! @param[in] lo integer
+  !! @param[in] d_lo integer
+  !! @param[in] s_lo integer
+  !! @param[out] div_tau_u real(rt)
+  !! @param[in] state real(rt)
+  !! @param[in] dx real(rt)
+  !! @param[in] coord_type integer
+  !!
   subroutine ca_compute_div_tau_u(lo,hi,&
        div_tau_u,d_lo,d_hi, &
        state,s_lo,s_hi,dx,coord_type) bind(C, name="ca_compute_div_tau_u")
@@ -749,5 +860,5 @@ contains
     deallocate(mu,kappa)
 
   end subroutine ca_compute_div_tau_u
-  
+
 end module diffusion_module

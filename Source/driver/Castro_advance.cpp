@@ -98,11 +98,11 @@ Castro::advance (Real time,
     // no SDC
 
 #ifndef AMREX_USE_CUDA
-    if (do_ctu) {
+    if (time_integration_method == CornerTransportUpwind) {
 
         dt_new = std::min(dt_new, subcycle_advance(time, dt, amr_iteration, amr_ncycle));
 
-    } else {
+    } else if (time_integration_method == MethodOfLines) {
 #endif
       for (int iter = 0; iter < MOL_STAGES; ++iter) {
 	mol_iteration = iter;
@@ -191,7 +191,7 @@ Castro::do_advance (Real time,
 
     check_for_nan(S_old);
 
-    // Since we are Strang splitting the reactions, do them now 
+    // Since we are Strang splitting the reactions, do them now
 
 
 #ifdef REACTIONS
@@ -366,7 +366,7 @@ Castro::do_advance_mol (Real time,
   // S_new here.  The update includes reactions (if we are not doing
   // SDC), hydro, and the source terms.
 
-  // NOTE: the time that passes through here is the time for the 
+  // NOTE: the time that passes through here is the time for the
   // current stage
 
   BL_PROFILE("Castro::do_advance()");
@@ -406,7 +406,7 @@ Castro::do_advance_mol (Real time,
   }
 
 
-  // Construct the "old-time" sources from Sborder.  Since we are 
+  // Construct the "old-time" sources from Sborder.  Since we are
   // working from Sborder, this will actually evaluate the sources
   // using the current stage's starting point.
 
@@ -430,7 +430,6 @@ Castro::do_advance_mol (Real time,
 
       for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
-        const int idx = mfi.tileIndex();
         ca_make_cell_center(BL_TO_FORTRAN_BOX(bx),
                             BL_TO_FORTRAN_FAB(Sborder[mfi]),
                             BL_TO_FORTRAN_FAB(sources_for_hydro[mfi]));
@@ -446,7 +445,6 @@ Castro::do_advance_mol (Real time,
       // cell averages.  This loop cannot be tiled.
       for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
-        const int idx = mfi.tileIndex();
         ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
                                 BL_TO_FORTRAN_FAB(old_source[mfi]));
 
@@ -460,7 +458,7 @@ Castro::do_advance_mol (Real time,
     }
 #endif
 
-    // hack: copy the source to the new data too, so fillpatch doesn't have to 
+    // hack: copy the source to the new data too, so fillpatch doesn't have to
     // worry about time
     MultiFab::Copy(new_source, old_source, 0, 0, NUM_STATE, 0);
 
@@ -514,7 +512,7 @@ Castro::do_advance_mol (Real time,
 
   // we just finished the last stage of the MOL integration.
   // Construct S_new now using the weighted sum of the k_mol
-  // updates -- this will include both the advective and 
+  // updates -- this will include both the advective and
   // source terms
 
   // Apply the update -- we need to build on Sburn, so
@@ -623,7 +621,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     // Scale the source term predictor by the current timestep.
 
 #ifndef SDC
-    if (source_term_predictor == 1) {
+    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
         sources_for_hydro.mult(0.5 * dt, NUM_GROW);
     }
 #endif
@@ -632,13 +630,13 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     // but the state data does not carry ghost zones. So we use a FillPatch
     // using the state data to give us Sborder, which does have ghost zones.
 
-    if (do_ctu) {
+    if (time_integration_method == CornerTransportUpwind) {
       // for the CTU unsplit method, we always start with the old state
       Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
       const Real prev_time = state[State_Type].prevTime();
       expand_state(Sborder, prev_time, 0, NUM_GROW);
 
-    } else {
+    } else if (time_integration_method == MethodOfLines) {
       // for Method of lines, our initialization of Sborder depends on
       // which stage in the RK update we are working on
 
@@ -815,10 +813,8 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // Add the source term predictor.
     // This must happen before the swap.
 
-    if (source_term_predictor == 1) {
-
+    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
         apply_source_term_predictor();
-
     }
 
 #else
@@ -883,12 +879,14 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     q.define(grids, dmap, NQ, NUM_GROW);
     q.setVal(0.0);
     qaux.define(grids, dmap, NQAUX, NUM_GROW);
-    if (do_ctu)
+    if (time_integration_method == CornerTransportUpwind)
       src_q.define(grids, dmap, QVAR, NUM_GROW);
-    if (fourth_order) 
+    if (fourth_order) {
       q_bar.define(grids, dmap, NQ, NUM_GROW);
+      qaux_bar.define(grids, dmap, NQAUX, NUM_GROW);
+    }
 
-    if (!do_ctu) {
+    if (time_integration_method == MethodOfLines) {
       // if we are not doing CTU advection, then we are doing a method
       // of lines, and need storage for hte intermediate stages
       k_mol.resize(MOL_STAGES);
@@ -950,10 +948,12 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     q.clear();
     qaux.clear();
-    if (do_ctu)
+    if (time_integration_method == CornerTransportUpwind)
       src_q.clear();
-    if (fourth_order)
+    if (fourth_order) {
       q_bar.clear();
+      qaux_bar.clear();
+    }
 
 #ifdef RADIATION
     Erborder.clear();
@@ -965,7 +965,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     if (!keep_prev_state)
         amrex::FillNull(prev_state);
 
-    if (!do_ctu) {
+    if (time_integration_method == MethodOfLines) {
       k_mol.clear();
       Sburn.clear();
     }
@@ -1053,7 +1053,7 @@ Castro::retry_advance(Real& time, Real dt, int amr_iteration, int amr_ncycle)
             std::cout << std::endl;
         }
 
-        // Restore the original values of the state data.        
+        // Restore the original values of the state data.
 
         for (int k = 0; k < num_state_type; k++) {
 
@@ -1238,9 +1238,7 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
         do_advance(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle);
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
-            std::cout << std::endl;
-            std::cout << "  Subcycle completed" << std::endl;
-            std::cout << std::endl;
+            std::cout << "  Subcycle completed" << std::endl << std::endl;
         }
 
         subcycle_time += dt_subcycle;

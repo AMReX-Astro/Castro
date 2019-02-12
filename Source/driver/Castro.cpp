@@ -1,4 +1,3 @@
-
 #ifndef WIN32
 #include <unistd.h>
 #endif
@@ -48,9 +47,6 @@ using namespace amrex;
 
 bool         Castro::signalStopJob = false;
 
-bool         Castro::dump_old      = false;
-
-int          Castro::verbose       = 0;
 ErrorList    Castro::err_list;
 int          Castro::num_err_list_default = 0;
 int          Castro::radius_grow   = 1;
@@ -74,6 +70,28 @@ int          Castro::Zmom          = -1;
 int          Castro::Rmom          = -1;
 int          Castro::Lmom          = -1;
 int          Castro::Pmom          = -1;
+#endif
+
+int          Castro::QRHO = -1;
+int          Castro::QU = -1;
+int          Castro::QV = -1;
+int          Castro::QW = -1;
+int          Castro::QGAME = -1;
+int          Castro::QPRES = -1;
+int          Castro::QREINT = -1;
+int          Castro::QTEMP = -1;
+int          Castro::QFA = -1;
+int          Castro::QFS = -1;
+int          Castro::QFX = -1;
+#ifdef MHD
+int          Castro::QMAGX = -1;
+int          Castro::QMAGY = -1;
+int          Castro::QMAGZ = -1;
+#endif
+#ifdef RADIATION
+int          Castro::QPTOT = -1;
+int          Castro::QREITOT = -1;
+int          Castro::QRAD = -1;
 #endif
 
 int          Castro::NumSpec       = 0;
@@ -159,7 +177,7 @@ Real         Castro::startCPUTime = 0.0;
 int          Castro::Knapsack_Weight_Type = -1;
 int          Castro::num_state_type = 0;
 
-// Note: Castro::variableSetUp is in Castro_setup.cpp
+// Castro::variableSetUp is in Castro_setup.cpp
 // variableCleanUp is called once at the end of a simulation
 void
 Castro::variableCleanUp ()
@@ -226,11 +244,6 @@ Castro::read_params ()
     ParmParse pp("castro");
 
 #include <castro_queries.H>
-
-    pp.query("v",verbose);
-    pp.query("sum_interval",sum_interval);
-
-    pp.query("dump_old",dump_old);
 
     // Get boundary conditions
     Vector<int> lo_bc(BL_SPACEDIM), hi_bc(BL_SPACEDIM);
@@ -345,24 +358,22 @@ Castro::read_params ()
 
     // The timestep retry mechanism is currently incompatible with MOL.
 
-    if (!do_ctu && use_retry)
+    if (time_integration_method != CornerTransportUpwind && use_retry)
         amrex::Error("Method of lines integration is incompatible with the timestep retry mechanism.");
 
 #ifdef AMREX_USE_CUDA
     // not use ctu if using gpu
-    if (do_ctu == 1)
+    if (time_integration_method != MethodOfLines)
       {
-	 amrex::Error("Running with CUDA requires do_ctu = 0");
+	 amrex::Error("Running with CUDA requires time_integration_method = 1");
       }
 #endif
 
     // fourth order implies do_ctu=0
-    if (fourth_order == 1 && do_ctu == 1)
+    if (fourth_order == 1 && time_integration_method == CornerTransportUpwind)
       {
 	if (ParallelDescriptor::IOProcessor())
-	    std::cout << "WARNING: fourth_order requires do_ctu = 0.  Resetting do_ctu = 0" << std::endl;
-	do_ctu = 0;
-	pp.add("do_ctu", do_ctu);
+	    amrex::Error("WARNING: fourth_order requires a different time_integration_method");
       }
 
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
@@ -544,6 +555,10 @@ Castro::Castro (Amr&            papa,
    react_src_new.setVal(0.0, NUM_GROW);
 #endif
 #endif
+
+   if (Knapsack_Weight_Type > 0) {
+    get_new_data(Knapsack_Weight_Type).setVal(1.0);
+   }
 
 #ifdef DIFFUSION
       // diffusion is a static object, only alloc if not already there
@@ -975,10 +990,17 @@ Castro::initData ()
 
 	  Rad_new[mfi].setVal(0.0);
 
+#ifdef AMREX_DIMENSION_AGNOSTIC
+	  BL_FORT_PROC_CALL(CA_INITRAD,ca_initrad)
+	      (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), Radiation::nGroups,
+	       BL_TO_FORTRAN_ANYD(Rad_new[mfi]), ZFILL(dx),
+	       ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
+#else
 	  BL_FORT_PROC_CALL(CA_INITRAD,ca_initrad)
 	      (level, cur_time, lo, hi, Radiation::nGroups,
 	       BL_TO_FORTRAN(Rad_new[mfi]),dx,
 	       gridloc.lo(),gridloc.hi());
+#endif
 
 	  if (Radiation::nNeutrinoSpecies > 0 && Radiation::nNeutrinoGroups[0] == 0) {
 	      // Hack: running photon radiation through neutrino solver
@@ -1349,11 +1371,9 @@ Castro::computeNewDt (int                   finest_level,
     if (level > 0)
         return;
 
-    int i;
-
     Real dt_0 = 1.0e+100;
     int n_factor = 1;
-    for (i = 0; i <= finest_level; i++)
+    for (int i = 0; i <= finest_level; i++)
     {
         Castro& adv_level = getLevel(i);
         dt_min[i] = adv_level.estTimeStep(dt_level[i]);
@@ -1366,7 +1386,7 @@ Castro::computeNewDt (int                   finest_level,
           //
           // Limit dt's by pre-regrid dt
           //
-          for (i = 0; i <= finest_level; i++)
+          for (int i = 0; i <= finest_level; i++)
           {
               dt_min[i] = std::min(dt_min[i],dt_level[i]);
           }
@@ -1388,7 +1408,7 @@ Castro::computeNewDt (int                   finest_level,
           }
           else {
 
-              for (i = 0; i <= finest_level; i++)
+              for (int i = 0; i <= finest_level; i++)
               {
                   if (verbose && ParallelDescriptor::IOProcessor())
                       if (dt_min[i] > change_max*dt_level[i])
@@ -1428,7 +1448,7 @@ Castro::computeNewDt (int                   finest_level,
     //
     // Find the minimum over all levels
     //
-    for (i = 0; i <= finest_level; i++)
+    for (int i = 0; i <= finest_level; i++)
     {
         n_factor *= n_cycle[i];
         dt_0 = std::min(dt_0,n_factor*dt_min[i]);
@@ -1444,7 +1464,6 @@ Castro::computeNewDt (int                   finest_level,
 
         if (plot_per > 0.0) {
 
-            const Real epsDt = 1.e-4*dt_0;
             const Real cur_time = state[State_Type].curTime();
 
             // Calculate the new dt by comparing to the dt needed to get
@@ -1457,7 +1476,7 @@ Castro::computeNewDt (int                   finest_level,
             // Note that if we are just about exactly on a multiple of plot_per,
             // then we need to be careful to avoid floating point issues.
 
-            if (dtMod > plot_per * (1.0e0 - std::numeric_limits<float>::epsilon())) {
+            if (std::abs(dtMod - plot_per) <= std::numeric_limits<Real>::epsilon()) {
                 newPlotDt = plot_per + (plot_per - dtMod);
             }
             else {
@@ -1467,8 +1486,16 @@ Castro::computeNewDt (int                   finest_level,
             if (newPlotDt < dt_0) {
                 lastDtPlotLimited = 1;
                 lastDtBeforePlotLimiting = dt_0;
-                dt_0 = std::max(epsDt, newPlotDt);
-                amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next plot interval.\n";
+                dt_0 = newPlotDt;
+
+                // Avoid taking timesteps that are so small that
+                // they may cause problems in the hydrodynamics.
+
+                const Real epsDt = 1.e-4 * lastDtBeforePlotLimiting;
+                dt_0 = std::max(dt_0, epsDt);
+
+                if (verbose)
+                    amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next plot interval.\n";
             }
 
         }
@@ -1481,14 +1508,15 @@ Castro::computeNewDt (int                   finest_level,
 
         if (small_plot_per > 0.0) {
 
-            const Real epsDt = 1.e-4*dt_0;
             const Real cur_time = state[State_Type].curTime();
+
+            // Same logic as for plot_per_is_exact.
 
             const Real dtMod = std::fmod(cur_time, small_plot_per);
 
             Real newSmallPlotDt;
 
-            if (dtMod > small_plot_per * (1.0e0 - std::numeric_limits<float>::epsilon())) {
+            if (std::abs(dtMod - small_plot_per) <= std::numeric_limits<Real>::epsilon()) {
                 newSmallPlotDt = small_plot_per + (small_plot_per - dtMod);
             }
             else {
@@ -1498,8 +1526,13 @@ Castro::computeNewDt (int                   finest_level,
             if (newSmallPlotDt < dt_0) {
                 lastDtPlotLimited = 1;
                 lastDtBeforePlotLimiting = dt_0;
-                dt_0 = std::max(epsDt, newSmallPlotDt);
-                amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next smallplot interval.\n";
+                dt_0 = newSmallPlotDt;
+
+                const Real epsDt = 1.e-4 * lastDtBeforePlotLimiting;
+                dt_0 = std::max(dt_0, epsDt);
+
+                if (verbose)
+                    amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next smallplot interval.\n";
             }
 
         }
@@ -1509,17 +1542,18 @@ Castro::computeNewDt (int                   finest_level,
     //
     // Limit dt's by the value of stop_time.
     //
-    const Real eps = 0.001*dt_0;
+    const Real eps = std::numeric_limits<Real>::epsilon();
     Real cur_time = state[State_Type].curTime();
     if (stop_time >= 0.0) {
-        if ((cur_time + dt_0) > (stop_time - eps)) {
+        if ((cur_time + dt_0) >= (stop_time - eps)) {
             dt_0 = stop_time - cur_time;
-            amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the stop_time.\n";
+            if (verbose)
+                amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the stop_time.\n";
         }
     }
 
     n_factor = 1;
-    for (i = 0; i <= finest_level; i++)
+    for (int i = 0; i <= finest_level; i++)
     {
         n_factor *= n_cycle[i];
         dt_level[i] = dt_0/n_factor;
@@ -1546,7 +1580,7 @@ Castro::computeInitialDt (int                   finest_level,
 
     Real dt_0 = 1.0e+100;
     int n_factor = 1;
-    ///TODO/DEBUG: This will need to change for optimal subcycling.
+    // TODO/DEBUG: This will need to change for optimal subcycling.
     for (i = 0; i <= finest_level; i++)
     {
         dt_level[i] = getLevel(i).initialTimeStep();
@@ -1940,8 +1974,8 @@ Castro::post_regrid (int lbase,
 		   amrex::InterpFromCoarseLevel(*grad_phi_fine[n], time, *grad_phi_coarse[n],
 						0, 0, 1,
 						parent->Geom(level-1), parent->Geom(level),
-						gp_phys_bc, gp_phys_bc, parent->refRatio(level-1),
-						gp_interp, gp_bcs);
+						gp_phys_bc, 0, gp_phys_bc, 0, parent->refRatio(level-1),
+						gp_interp, gp_bcs, 0);
 	       }
 
 	   }
@@ -2307,7 +2341,7 @@ Castro::reflux(int crse_level, int fine_level)
 	Castro& crse_lev = getLevel(lev-1);
 	Castro& fine_lev = getLevel(lev);
 
-	MultiFab& state = crse_lev.get_new_data(State_Type);
+	MultiFab& crse_state = crse_lev.get_new_data(State_Type);
 
 	// Clear out the data that's not on coarse-fine boundaries so that this register only
 	// modifies the fluxes on coarse-fine interfaces.
@@ -2316,7 +2350,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 	// Trigger the actual reflux on the coarse level now.
 
-	reg->Reflux(state, crse_lev.volume, 1.0, 0, 0, NUM_STATE, crse_lev.geom);
+	reg->Reflux(crse_state, crse_lev.volume, 1.0, 0, 0, NUM_STATE, crse_lev.geom);
 
 	// Store the density change, for the gravity sync.
 
@@ -2369,7 +2403,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 	    reg->ClearInternalBorders(crse_lev.geom);
 
-	    reg->Reflux(state, dr, 1.0, 0, Xmom, 1, crse_lev.geom);
+	    reg->Reflux(crse_state, dr, 1.0, 0, Xmom, 1, crse_lev.geom);
 
 	    if (update_sources_after_reflux) {
 
