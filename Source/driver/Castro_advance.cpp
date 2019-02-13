@@ -182,9 +182,11 @@ Castro::do_advance (Real time,
 
     initialize_do_advance(time, dt, amr_iteration, amr_ncycle);
 
+#ifndef AMREX_USE_CUDA
     // Check for NaN's.
 
     check_for_nan(S_old);
+#endif
 
     // Since we are Strang splitting the reactions, do them now
 
@@ -282,9 +284,11 @@ Castro::do_advance (Real time,
       expand_state(S_new, cur_time, 1, S_new.nGrow());
     }
 
+#ifndef AMREX_USE_CUDA
     // Check for NaN's.
 
     check_for_nan(S_new);
+#endif
 
     // if we are done with the update do the source correction and
     // then the second half of the reactions
