@@ -982,7 +982,6 @@ bool
 Castro::retry_advance(Real& time, Real dt, int amr_iteration, int amr_ncycle)
 {
 
-    Real dt_new = 1.e200;
     Real dt_sub = 1.e200;
 
     MultiFab& S_old = get_old_data(State_Type);
