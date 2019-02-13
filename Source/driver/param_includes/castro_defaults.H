@@ -9,6 +9,7 @@ int         Castro::diffuse_enth = 0;
 int         Castro::diffuse_spec = 0;
 int         Castro::diffuse_vel = 0;
 amrex::Real Castro::diffuse_cutoff_density = -1.e200;
+amrex::Real Castro::diffuse_cutoff_density_hi = -1.e200;
 amrex::Real Castro::diffuse_cond_scale_fac = 1.0;
 #endif
 #ifdef AMREX_PARTICLES
@@ -42,8 +43,9 @@ amrex::Real Castro::small_temp = -1.e200;
 amrex::Real Castro::small_pres = -1.e200;
 amrex::Real Castro::small_ener = -1.e200;
 int         Castro::do_hydro = -1;
-int         Castro::do_ctu = 1;
+int         Castro::time_integration_method = 0;
 int         Castro::fourth_order = 0;
+int         Castro::limit_fourth_order = 1;
 int         Castro::add_ext_src = 0;
 int         Castro::hybrid_hydro = 0;
 int         Castro::ppm_type = 1;
@@ -102,9 +104,6 @@ int         Castro::sdc_iters = 2;
 amrex::Real Castro::dtnuc_e = 1.e200;
 amrex::Real Castro::dtnuc_X = 1.e200;
 amrex::Real Castro::dtnuc_X_threshold = 1.e-3;
-amrex::Real Castro::dxnuc = 1.e200;
-amrex::Real Castro::dxnuc_max = 1.e200;
-int         Castro::max_dxnuc_lev = -1;
 int         Castro::do_react = -1;
 amrex::Real Castro::react_T_min = 0.0;
 amrex::Real Castro::react_T_max = 1.e200;
@@ -121,6 +120,8 @@ int         Castro::grown_factor = 1;
 int         Castro::star_at_center = -1;
 int         Castro::do_special_tagging = 0;
 int         Castro::spherical_star = 0;
+int         Castro::verbose = 0;
+bool        Castro::dump_old = false;
 #ifdef AMREX_DEBUG
 int         Castro::print_fortran_warnings = 1;
 #else

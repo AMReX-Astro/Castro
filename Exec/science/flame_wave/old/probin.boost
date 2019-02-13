@@ -23,8 +23,6 @@
 
   low_density_cutoff = 1.d-4
 
-  index_base_from_temp = T
-
   max_hse_tagging_level = 2
   burn_tagging_min = 1.e4
   burn_tagging_max = 4.e6

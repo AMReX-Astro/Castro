@@ -1,17 +1,18 @@
 !> @brief advection routines in support of method of lines integration
 !!
 subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
-     stage_weight, &
-     uin, uin_lo, uin_hi, &
-     uout, uout_lo, uout_hi, &
-     q, q_lo, q_hi, &
-     q_bar, q_bar_lo, q_bar_hi, &
-     qaux, qa_lo, qa_hi, &
-     srcU, srU_lo, srU_hi, &
-     update, updt_lo, updt_hi, &
-     update_flux, uf_lo, uf_hi, &
-     dx, dt, &
-     flx, flx_lo, flx_hi, &
+                                  stage_weight, &
+                                  uin, uin_lo, uin_hi, &
+                                  uout, uout_lo, uout_hi, &
+                                  q, q_lo, q_hi, &
+                                  q_bar, q_bar_lo, q_bar_hi, &
+                                  qaux, qa_lo, qa_hi, &
+                                  qaux_bar, qa_bar_lo, qa_bar_hi, &
+                                  srcU, srU_lo, srU_hi, &
+                                  update, updt_lo, updt_hi, &
+                                  update_flux, uf_lo, uf_hi, &
+                                  dx, dt, &
+                                  flx, flx_lo, flx_hi, &
 #if AMREX_SPACEDIM >= 2
      fly, fly_lo, fly_hi, &
 #endif
@@ -39,8 +40,9 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
        QTEMP, QFS, QFX, QREINT, QRHO, &
        first_order_hydro, difmag, hybrid_riemann, &
        limit_fluxes_on_small_dens, ppm_temp_fix
-  use advection_util_module, only : limit_hydro_fluxes_on_small_dens, shock, &
-       divu, normalize_species_fluxes, calc_pdivu
+  use advection_util_module, only : limit_hydro_fluxes_on_small_dens, ca_shock, &
+                                    normalize_species_fluxes, avisc
+
   use amrex_error_module
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
   use flatten_module, only: ca_uflatten
@@ -50,6 +52,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   use amrex_fort_module, only : rt => amrex_real
 #ifdef HYBRID_MOMENTUM
   use hybrid_advection_module, only : add_hybrid_advection_source
+  use riemann_util_module, only : ca_store_godunov_state
 #endif
   use eos_type_module, only : eos_t, eos_input_rt
   use eos_module, only : eos
@@ -66,6 +69,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   integer, intent(in) :: q_lo(3), q_hi(3)
   integer, intent(in) :: q_bar_lo(3), q_bar_hi(3)
   integer, intent(in) :: qa_lo(3), qa_hi(3)
+  integer, intent(in) :: qa_bar_lo(3), qa_bar_hi(3)
   integer, intent(in) :: srU_lo(3), srU_hi(3)
   integer, intent(in) :: updt_lo(3), updt_hi(3)
   integer, intent(in) :: uf_lo(3), uf_hi(3)
@@ -90,6 +94,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
   real(rt), intent(inout) :: q_bar(q_bar_lo(1):q_bar_hi(1), q_bar_lo(2):q_bar_hi(2), q_bar_lo(3):q_bar_hi(3), NQ)
   real(rt), intent(inout) :: qaux(qa_lo(1):qa_hi(1), qa_lo(2):qa_hi(2), qa_lo(3):qa_hi(3), NQAUX)
+  real(rt), intent(inout) :: qaux_bar(qa_bar_lo(1):qa_bar_hi(1), qa_bar_lo(2):qa_bar_hi(2), qa_bar_lo(3):qa_bar_hi(3), NQAUX)
   real(rt), intent(in) :: srcU(srU_lo(1):srU_hi(1), srU_lo(2):srU_hi(2), srU_lo(3):srU_hi(3), NVAR)
   real(rt), intent(inout) :: update(updt_lo(1):updt_hi(1), updt_lo(2):updt_hi(2), updt_lo(3):updt_hi(3), NVAR)
   real(rt), intent(inout) :: update_flux(uf_lo(1):uf_hi(1), uf_lo(2):uf_hi(2), uf_lo(3):uf_hi(3), NVAR)
@@ -113,26 +118,24 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 #ifndef RADIATION
   ! Automatic arrays for workspace
   real(rt), pointer :: flatn(:,:,:)
-  real(rt), pointer :: div(:,:,:)
+  real(rt), pointer :: avisx(:,:,:), avisy(:,:,:), avisz(:,:,:)
 
   ! Edge-centered primitive variables (Riemann state)
   real(rt), pointer :: qx_avg(:,:,:,:)
   real(rt), pointer :: qy_avg(:,:,:,:)
   real(rt), pointer :: qz_avg(:,:,:,:)
 
-  real(rt), pointer :: qx_fc(:,:,:,:)
-  real(rt), pointer :: qy_fc(:,:,:,:)
-  real(rt), pointer :: qz_fc(:,:,:,:)
+  real(rt), pointer :: qx(:,:,:,:)
+  real(rt), pointer :: qy(:,:,:,:)
+  real(rt), pointer :: qz(:,:,:,:)
 
-  ! Temporaries (for now)
+#ifdef HYBRID_MOMENTUM
   real(rt), pointer :: qgdnvx(:,:,:,:)
   real(rt), pointer :: qgdnvy(:,:,:,:)
   real(rt), pointer :: qgdnvz(:,:,:,:)
+#endif
 
-  real(rt), pointer :: qgdnvx_avg(:,:,:,:)
-  real(rt), pointer :: qgdnvy_avg(:,:,:,:)
-  real(rt), pointer :: qgdnvz_avg(:,:,:,:)
-
+  ! Temporaries (for now)
   real(rt), pointer :: flx_avg(:,:,:,:)
   real(rt), pointer :: fly_avg(:,:,:,:)
   real(rt), pointer :: flz_avg(:,:,:,:)
@@ -147,11 +150,14 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   integer :: st_lo(3), st_hi(3)
   integer :: shk_lo(3), shk_hi(3)
 
-  real(rt) :: div1, lap
+  real(rt) :: lap
   integer :: i, j, k, n, m
 
   type (eos_t) :: eos_state
 
+  ! artifical viscosity strength
+  real(rt), parameter :: alpha = 0.3_rt
+  real(rt) :: avisc_coeff
 
   ! to do 4th order for axisymmetry, we need to derive the transformations between
   ! averages and cell-centers with the correct volume terms in the integral.
@@ -169,25 +175,25 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   shk_lo(:) = lo(:) - dg(:)
   shk_hi(:) = hi(:) + dg(:)
 
-  call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+dg(2), lo(3), hi(3)+dg(3))
+  call bl_allocate(avisx, lo, hi+dg)
+#if BL_SPACEDIM >= 2
+  call bl_allocate(avisy, lo, hi+dg)
+#endif
+#if BL_SPACEDIM == 3
+  call bl_allocate(avisz, lo, hi+dg)
+#endif
 
   call bl_allocate(qx_avg, q_lo, q_hi, NQ)
-  call bl_allocate(qx_fc, q_lo, q_hi, NQ)
-  call bl_allocate(qgdnvx, flx_lo, flx_hi, NGDNV)
-  call bl_allocate(qgdnvx_avg, q_lo, q_hi, NGDNV)
+  call bl_allocate(qx, q_lo, q_hi, NQ)
   call bl_allocate(flx_avg, q_lo, q_hi, NVAR)
 #if AMREX_SPACEDIM >= 2
   call bl_allocate(qy_avg, q_lo, q_hi, NQ)
-  call bl_allocate(qy_fc, q_lo, q_hi, NQ)
-  call bl_allocate(qgdnvy, fly_lo, fly_hi, NGDNV)
-  call bl_allocate(qgdnvy_avg, q_lo, q_hi, NGDNV)
+  call bl_allocate(qy, q_lo, q_hi, NQ)
   call bl_allocate(fly_avg, q_lo, q_hi, NVAR)
 #endif
 #if AMREX_SPACEDIM == 3
   call bl_allocate(qz_avg, q_lo, q_hi, NQ)
-  call bl_allocate(qz_fc, q_lo, q_hi, NQ)
-  call bl_allocate(qgdnvz, flz_lo, flz_hi, NGDNV)
-  call bl_allocate(qgdnvz_avg, q_lo, q_hi, NGDNV)
+  call bl_allocate(qz, q_lo, q_hi, NQ)
   call bl_allocate(flz_avg, q_lo, q_hi, NVAR)
 #endif
 
@@ -208,7 +214,10 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 #ifdef SHOCK_VAR
   uout(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), USHK) = ZERO
 
-  call shock(q_bar, q_bar_lo, q_bar_hi, shk, shk_lo, shk_hi, lo, hi, dx)
+  call ca_shock(lo-dg, hi+dg, &
+                q_bar, q_bar_lo, q_bar_hi, &
+                shk, shk_lo, shk_hi, &
+                dx)
 
   ! Store the shock data for future use in the burning step.
 
@@ -229,7 +238,10 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   ! multidimensional shock detection -- this will be used to do the
   ! hybrid Riemann solver
   if (hybrid_riemann == 1) then
-     call shock(q_bar, q_bar_lo, q_bar_hi, shk, shk_lo, shk_hi, lo, hi, dx)
+     call ca_shock(lo-dg, hi+dg, &
+                   q_bar, q_bar_lo, q_bar_hi, &
+                   shk, shk_lo, shk_hi, &
+                   dx)
   else
      shk(:,:,:) = ZERO
   endif
@@ -292,38 +304,54 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   ! we cannot get away with the first-order construction that we pull
   ! from qaux in the Riemann solver
 
-  call riemann_state(qxm, qxp, q_lo, q_hi, 1, 1, &
-       qx_avg, q_lo, q_hi, &
-       qaux, qa_lo, qa_hi, &
-       1, [lo(1), lo(2)-dg(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], domlo, domhi)
+  call riemann_state(qxm, q_lo, q_hi, &
+                     qxp, q_lo, q_hi, 1, 1, &
+                     qx_avg, q_lo, q_hi, &
+                     qaux, qa_lo, qa_hi, &
+                     1, &
+                     [lo(1), lo(2)-dg(2), lo(3)-dg(3)], &
+                     [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
+                     domlo, domhi)
 
-  call compute_flux_q(1, qx_avg, q_lo, q_hi, &
-       flx_avg, q_lo, q_hi, &
-       qgdnvx_avg, q_lo, q_hi, &
-       [lo(1), lo(2)-dg(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)])
+  call compute_flux_q([lo(1), lo(2)-dg(2), lo(3)-dg(3)], &
+                      [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
+                      qx_avg, q_lo, q_hi, &
+                      flx_avg, q_lo, q_hi, &
+                      1)
+
 
 #if AMREX_SPACEDIM >= 2
-  call riemann_state(qym, qyp, q_lo, q_hi, 1, 1, &
-       qy_avg, q_lo, q_hi, &
-       qaux, qa_lo, qa_hi, &
-       2, [lo(1)-1, lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+1, hi(3)+dg(3)], domlo, domhi)
+  call riemann_state(qym, q_lo, q_hi, &
+                     qyp, q_lo, q_hi, 1, 1, &
+                     qy_avg, q_lo, q_hi, &
+                     qaux, qa_lo, qa_hi, &
+                     2, &
+                     [lo(1)-1, lo(2), lo(3)-dg(3)], &
+                     [hi(1)+1, hi(2)+1, hi(3)+dg(3)], &
+                     domlo, domhi)
 
-  call compute_flux_q(2, qy_avg, q_lo, q_hi, &
-       fly_avg, q_lo, q_hi, &
-       qgdnvy_avg, q_lo, q_hi, &
-       [lo(1)-1, lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+1, hi(3)+dg(3)])
+  call compute_flux_q([lo(1)-1, lo(2), lo(3)-dg(3)], &
+                      [hi(1)+1, hi(2)+1, hi(3)+dg(3)], &
+                      qy_avg, q_lo, q_hi, &
+                      fly_avg, q_lo, q_hi, &
+                      2)
 #endif
 
 #if AMREX_SPACEDIM == 3
-  call riemann_state(qzm, qzp, q_lo, q_hi, 1, 1, &
-       qz_avg, q_lo, q_hi, &
-       qaux, qa_lo, qa_hi, &
-       3, [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1], domlo, domhi)
+  call riemann_state(qzm, q_lo, q_hi, &
+                     qzp, q_lo, q_hi, 1, 1, &
+                     qz_avg, q_lo, q_hi, &
+                     qaux, qa_lo, qa_hi, &
+                     3, &
+                     [lo(1)-1, lo(2)-1, lo(3)], &
+                     [hi(1)+1, hi(2)+1, hi(3)+1], &
+                     domlo, domhi)
 
-  call compute_flux_q(3, qz_avg, q_lo, q_hi, &
-       flz_avg, q_lo, q_hi, &
-       qgdnvz_avg, q_lo, q_hi, &
-       [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1])
+  call compute_flux_q([lo(1)-1, lo(2)-1, lo(3)], &
+                      [hi(1)+1, hi(2)+1, hi(3)+1], &
+                      qz_avg, q_lo, q_hi, &
+                      flz_avg, q_lo, q_hi, &
+                      3)
 #endif
 
 
@@ -362,7 +390,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 #if AMREX_SPACEDIM == 3
               lap = lap + qx_avg(i,j,k+1,n) - TWO*qx_avg(i,j,k,n) + qx_avg(i,j,k-1,n)
 #endif
-              qx_fc(i,j,k,n) = qx_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
+              qx(i,j,k,n) = qx_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
            enddo
         enddo
      enddo
@@ -379,7 +407,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 #if AMREX_SPACEDIM == 3
               lap = lap + qy_avg(i,j,k+1,n) - TWO*qy_avg(i,j,k,n) + qy_avg(i,j,k-1,n)
 #endif
-              qy_fc(i,j,k,n) = qy_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
+              qy(i,j,k,n) = qy_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
            enddo
         enddo
      enddo
@@ -396,7 +424,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
               lap = qz_avg(i+1,j,k,n) - TWO*qz_avg(i,j,k,n) + qz_avg(i-1,j,k,n)
               lap = lap + qz_avg(i,j+1,k,n) - TWO*qz_avg(i,j,k,n) + qz_avg(i,j-1,k,n)
 
-              qz_fc(i,j,k,n) = qz_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
+              qz(i,j,k,n) = qz_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
            enddo
         enddo
      enddo
@@ -407,27 +435,38 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
   ! compute face-centered fluxes
   ! these will be stored in flx, fly, flz
-  call compute_flux_q(1, qx_fc, q_lo, q_hi, &
-       flx, flx_lo, flx_hi, &
-       qgdnvx, flx_lo, flx_hi, &
-       [lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)])
+  call compute_flux_q([lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], &
+                      qx, q_lo, q_hi, &
+                      flx, flx_lo, flx_hi, &
+                      1)
 
 #if AMREX_SPACEDIM >= 2
-  call compute_flux_q(2, qy_fc, q_lo, q_hi, &
-       fly, fly_lo, fly_hi, &
-       qgdnvy, fly_lo, fly_hi, &
-       [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)])
+  call compute_flux_q([lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], &
+                      qy, q_lo, q_hi, &
+                      fly, fly_lo, fly_hi, &
+                      2)
 #endif
 
 #if AMREX_SPACEDIM == 3
-  call compute_flux_q(3, qz_fc, q_lo, q_hi, &
-       flz, flz_lo, flz_hi, &
-       qgdnvz, flz_lo, flz_hi, &
-       [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1])
+  call compute_flux_q([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], &
+                      qz, q_lo, q_hi, &
+                      flz, flz_lo, flz_hi, &
+                      3)
 #endif
 
+  call bl_deallocate(qx)
+#if AMREX_SPACEDIM >= 2
+  call bl_deallocate(qy)
+#endif
+#if AMREX_SPACEDIM == 3
+  call bl_deallocate(qz)
+#endif
 
-  ! compute the final fluxes include the transverse correction
+  ! compute the final fluxes (as an average over the interface), this
+  ! requires a transverse correction.  Note, we don't need to do anything
+  ! to get the average of the Godunov states over the interface--this is
+  ! essentially what qx_avg already is
+
   ! x-interfaces
   do n = 1, NVAR
      do k = lo(3), hi(3)
@@ -445,23 +484,6 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      enddo
   enddo
 
-  do n = 1, NGDNV
-     do k = lo(3), hi(3)
-        do j = lo(2), hi(2)
-           do i = lo(1), hi(1)+1
-
-              lap = qgdnvx_avg(i,j+1,k,n) - TWO*qgdnvx_avg(i,j,k,n) + qgdnvx_avg(i,j-1,k,n)
-#if AMREX_SPACEDIM == 3
-              lap = lap + qgdnvx_avg(i,j,k+1,n) - TWO*qgdnvx_avg(i,j,k,n) + qgdnvx_avg(i,j,k-1,n)
-#endif
-              qgdnvx(i,j,k,n) = qgdnvx(i,j,k,n) + 1.0_rt/24.0_rt * lap
-
-           enddo
-        enddo
-     enddo
-  enddo
-
-
   ! y-interfaces
   do n = 1, NVAR
      do k = lo(3), hi(3)
@@ -478,20 +500,6 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      enddo
   enddo
 
-  do n = 1, NGDNV
-     do k = lo(3), hi(3)
-        do j = lo(2), hi(2)+1
-           do i = lo(1), hi(1)
-
-              lap = qgdnvy_avg(i+1,j,k,n) - TWO*qgdnvy_avg(i,j,k,n) + qgdnvy_avg(i-1,j,k,n)
-#if AMREX_SPACEDIM == 3
-              lap = lap + qgdnvy_avg(i,j,k+1,n) - TWO*qgdnvy_avg(i,j,k,n) + qgdnvy_avg(i,j,k-1,n)
-#endif
-              qgdnvy(i,j,k,n) = qgdnvy(i,j,k,n) + 1.0_rt/24.0_rt * lap
-           enddo
-        enddo
-     enddo
-  enddo
 
 #if AMREX_SPACEDIM == 3
   ! z-interfaces
@@ -508,20 +516,6 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
         enddo
      enddo
   enddo
-
-  do n = 1, NGDNV
-     do k = lo(3), hi(3)+1
-        do j = lo(2), hi(2)
-           do i = lo(1), hi(1)
-
-              lap = qgdnvz_avg(i+1,j,k,n) - TWO*qgdnvz_avg(i,j,k,n) + qgdnvz_avg(i-1,j,k,n)
-              lap = lap + qgdnvz_avg(i,j+1,k,n) - TWO*qgdnvz_avg(i,j,k,n) + qgdnvz_avg(i,j-1,k,n)
-              qgdnvz(i,j,k,n) = qgdnvz(i,j,k,n) + 1.0_rt/24.0_rt * lap
-
-           enddo
-        enddo
-     enddo
-  enddo
 #endif
 
 #else
@@ -529,9 +523,32 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   flx(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),:) = flx_avg(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),:)
 #endif
 
+
   ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
-  call divu(lo, hi+dg, q, q_lo, q_hi, &
-       dx, div, lo, hi+dg)
+  call avisc(lo, hi, &
+             q_bar, q_bar_lo, q_bar_hi, &
+             qaux_bar, qa_bar_lo, qa_bar_hi, &
+             dx, avisx, lo, hi+dg, 1)
+
+#if BL_SPACEDIM >= 2
+  call avisc(lo, hi, &
+             q_bar, q_bar_lo, q_bar_hi, &
+             qaux_bar, qa_bar_lo, qa_bar_hi, &
+             dx, avisy, lo, hi+dg, 2)
+#endif
+
+#if BL_SPACEDIM == 3
+  call avisc(lo, hi, &
+             q_bar, q_bar_lo, q_bar_hi, &
+             qaux_bar, qa_bar_lo, qa_bar_hi, &
+             dx, avisz, lo, hi+dg, 3)
+#endif
+
+  ! avisc_coefficient is the coefficent we use.  The McCorquodale &
+  ! Colella paper suggest alpha = 0.3, but our other hydro solvers use
+  ! a coefficient on the divergence that defaults to 0.1, so we
+  ! normalize to that value, to allow for adjustments
+  avisc_coeff = alpha * (difmag / 0.1_rt)
 
   do n = 1, NVAR
 
@@ -556,19 +573,13 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 #endif
 
      else
-        ! do the artificial viscosity
-        continue
-#ifdef THIS_IS_NOT_FOURTH_ORDER_ACCURATE
+
         do k = lo(3), hi(3)
            do j = lo(2), hi(2)
               do i = lo(1), hi(1)+1
 
-                 div1 = FOURTH*(div(i,j,k) + div(i,j+dg(2),k) + &
-                      div(i,j,k+dg(3)) + div(i,j+dg(2),k+dg(3)))
-                 div1 = difmag*min(ZERO, div1)
-
                  flx(i,j,k,n) = flx(i,j,k,n) + &
-                      dx(1) * div1 * (uin(i,j,k,n) - uin(i-1,j,k,n))
+                      avisc_coeff * avisx(i,j,k) * (uin(i,j,k,n) - uin(i-1,j,k,n))
               enddo
            enddo
         enddo
@@ -576,12 +587,9 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
         do k = lo(3), hi(3)
            do j = lo(2), hi(2)+1
               do i = lo(1), hi(1)
-                 div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + &
-                      div(i,j,k+dg(3)) + div(i+1,j,k+dg(3)))
-                 div1 = difmag*min(ZERO, div1)
 
                  fly(i,j,k,n) = fly(i,j,k,n) + &
-                      dx(2) * div1 * (uin(i,j,k,n) - uin(i,j-1,k,n))
+                      avisc_coeff * avisy(i,j,k) * (uin(i,j,k,n) - uin(i,j-1,k,n))
               enddo
            enddo
         enddo
@@ -590,16 +598,12 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
         do k = lo(3), hi(3)+1
            do j = lo(2), hi(2)
               do i = lo(1), hi(1)
-                 div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + &
-                      div(i,j+1,k) + div(i+1,j+1,k))
-                 div1 = difmag*min(ZERO, div1)
 
                  flz(i,j,k,n) = flz(i,j,k,n) + &
-                      dx(3) * div1 * (uin(i,j,k,n) - uin(i,j,k-1,n))
+                      avisc_coeff * avisz(i,j,k) * (uin(i,j,k,n) - uin(i,j,k-1,n))
               enddo
            enddo
         enddo
-#endif
 #endif
      endif
 
@@ -639,7 +643,8 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
 #if AMREX_SPACEDIM == 1
               if (n == UMX) then
-                 update(i,j,k,UMX) = update(i,j,k,UMX) - ( qgdnvx(i+1,j,k,GDPRES) - qgdnvx(i,j,k,GDPRES) ) / dx(1)
+                 update(i,j,k,UMX) = update(i,j,k,UMX) - &
+                      ( qx_avg(i+1,j,k,QPRES) - qx_avg(i,j,k,QPRES) ) / dx(1)
               endif
 #endif
 
@@ -647,7 +652,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
               if (n == UMX) then
                  ! add the pressure source term for axisymmetry
                  if (coord_type > 0) then
-                    update(i,j,k,n) = update(i,j,k,n) - (qgdnvx(i+1,j,k,GDPRES) - qgdnvx(i,j,k,GDPRES))/ dx(1)
+                    update(i,j,k,n) = update(i,j,k,n) - (qx_avg(i+1,j,k,QPRES) - qx_avg(i,j,k,QPRES))/ dx(1)
                  endif
               endif
 #endif
@@ -665,11 +670,30 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
 #if AMREX_SPACEDIM == 3
 #ifdef HYBRID_MOMENTUM
+  call bl_allocate(qgdnvx, q_lo, q_hi, NGDNV)
+  call bl_allocate(qgdnvy, q_lo, q_hi, NGDNV)
+  call bl_allocate(qgdnvz, q_lo, q_hi, NGDNV)
+
+  call ca_store_godunov_state(lo, hi+dg, &
+                              qx_avg, q_lo, q_hi, &
+                              qgdnvx, q_lo, q_hi)
+
+  call ca_store_godunov_state(lo, hi+dg, &
+                              qy_avg, q_lo, q_hi, &
+                              qgdnvy, q_lo, q_hi)
+
+  call ca_store_godunov_state(lo, hi+dg, &
+                              qz_avg, q_lo, q_hi, &
+                              qgdnvz, q_lo, q_hi)
+
   call add_hybrid_advection_source(lo, hi, dt, &
-       update, uout_lo, uout_hi, &
-       qgdnvx, flx_lo, flx_hi, &
-       qgdnvy, fly_lo, fly_hi, &
-       qgdnvz, flz_lo, flz_hi)
+                                   update, uout_lo, uout_hi, &
+                                   qgdnvx, flx_lo, flx_hi, &
+                                   qgdnvy, fly_lo, fly_hi, &
+                                   qgdnvz, flz_lo, flz_hi)
+  call bl_deallocate(qgdnvx)
+  call bl_deallocate(qgdnvy)
+  call bl_deallocate(qgdnvz)
 #endif
 #endif
 
@@ -685,7 +709,8 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
 #if AMREX_SPACEDIM == 1
               if (coord_type .eq. 0 .and. n == UMX) then
-                 flx(i,j,k,n) = flx(i,j,k,n) + dt * area1(i,j,k) * qgdnvx(i,j,k,GDPRES)
+                 flx(i,j,k,n) = flx(i,j,k,n) + &
+                      dt * area1(i,j,k) * qx_avg(i,j,k,QPRES)
               endif
 #endif
 
@@ -720,29 +745,26 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
 #if AMREX_SPACEDIM < 3
   if (coord_type > 0) then
-     pradial(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)) = qgdnvx(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),GDPRES) * dt
+     pradial(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)) = &
+          qx_avg(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),QPRES) * dt
   end if
 #endif
-
-  call bl_deallocate(   div)
+  call bl_deallocate(avisx)
+#if BL_SPACEDIM >= 2
+  call bl_deallocate(avisy)
+#endif
+#if BL_SPACEDIM == 3
+  call bl_deallocate(avisz)
+#endif
 
   call bl_deallocate(qx_avg)
-  call bl_deallocate(qx_fc)
-  call bl_deallocate(qgdnvx)
-  call bl_deallocate(qgdnvx_avg)
   call bl_deallocate(flx_avg)
 #if AMREX_SPACEDIM >= 2
   call bl_deallocate(qy_avg)
-  call bl_deallocate(qy_fc)
-  call bl_deallocate(qgdnvy)
-  call bl_deallocate(qgdnvy_avg)
   call bl_deallocate(fly_avg)
 #endif
 #if AMREX_SPACEDIM == 3
   call bl_deallocate(qz_avg)
-  call bl_deallocate(qz_fc)
-  call bl_deallocate(qgdnvz)
-  call bl_deallocate(qgdnvz_avg)
   call bl_deallocate(flz_avg)
 #endif
 #else

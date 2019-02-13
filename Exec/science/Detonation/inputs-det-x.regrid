@@ -29,9 +29,10 @@ castro.transverse_reset_density = 1
 
 castro.use_flattening = 1
 
+castro.small_temp     = 1.e7
+
 castro.riemann_solver = 0
 
-castro.dxnuc = 1.0e-4
 castro.use_post_step_regrid = 1
 
 # TIME STEP CONTROL

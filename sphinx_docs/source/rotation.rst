@@ -28,6 +28,11 @@ default axis of rotation points from ``center``, which is typically
 defined in a ``Prob_$(DIM)d.f90`` routine, to the typical “vertical
 direction.” The vertical direction is defined as follows:
 
+.. note:: make sure you have set the ``center()`` variable
+   appropriately for you problem.  This can be done either by directly
+   setting it in the ``prob_params_module`` or via the
+   ``castro.center`` runtime parameter.
+
 * 2D
 
   * ``coord_sys = 0``, (x,y): out of the (x,y)-plane along the “z”-axis

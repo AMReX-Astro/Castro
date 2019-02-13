@@ -32,6 +32,8 @@ contains
 
     real(rt)         :: alpha, beta
 
+    !$gpu
+
     ! First predict a value of game across the shock
 
     ! CG Eq. 31
@@ -210,6 +212,8 @@ contains
 
     real(rt)        , parameter :: small = 1.e-10_rt
 
+    !$gpu
+
     select case (idir)
     case (1)
        ivel = QU
@@ -352,12 +356,17 @@ contains
 
     use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QREINT, &
          NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
+#ifdef SHOCK_VAR
+         USHK, &
+#endif
          npassive, upass_map, qpass_map
 
     real(rt)        , intent(in)  :: q(QVAR)
     real(rt)        , intent(out) :: U(NVAR)
 
     integer :: ipassive, n, nq
+
+    !$gpu
 
     U(URHO) = q(QRHO)
 
@@ -373,6 +382,10 @@ contains
     ! we don't care about T here, but initialize it to make NaN
     ! checking happy
     U(UTEMP) = ZERO
+
+#ifdef SHOCK_VAR
+    U(USHK) = ZERO
+#endif
 
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
@@ -395,15 +408,20 @@ contains
 
     use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QREINT, QPRES, &
          NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
+#ifdef SHOCK_VAR
+         USHK, &
+#endif
          npassive, upass_map, qpass_map
 
     integer, intent(in) :: idir
-    real(rt)        , intent(in)  :: S_k, S_c
-    real(rt)        , intent(in)  :: q(QVAR)
-    real(rt)        , intent(out) :: U(NVAR)
+    real(rt), intent(in)  :: S_k, S_c
+    real(rt), intent(in)  :: q(QVAR)
+    real(rt), intent(out) :: U(NVAR)
 
     real(rt)         :: hllc_factor, u_k
     integer :: ipassive, n, nq
+
+    !$gpu
 
     if (idir == 1) then
        u_k = q(QU)
@@ -436,6 +454,10 @@ contains
 
     U(UTEMP) = ZERO  ! we don't evolve T
 
+#ifdef SHOCK_VAR
+    U(USHK) = ZERO
+#endif
+
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
@@ -446,29 +468,34 @@ contains
 
   !> @brief given a primitive state, compute the flux in direction idir
   !!
-  subroutine compute_flux_q(idir, qint, q_lo, q_hi, &
-       F, F_lo, F_hi, &
+  subroutine compute_flux_q(lo, hi, &
+                            qint, q_lo, q_hi, &
+                            F, F_lo, F_hi, &
 #ifdef RADIATION
-       lambda, l_lo, l_hi, &
-       rF, rF_lo, rF_hi, &
+                            lambda, l_lo, l_hi, &
+                            rF, rF_lo, rF_hi, &
 #endif
-       qgdnv, qg_lo, qg_hi, &
-       lo, hi)
+                            idir)
 
     use prob_params_module, only : mom_flux_has_p
     use meth_params_module, only : NQ, NVAR, NQAUX, &
-         URHO, UMX, UMY, UMZ, &
-         UEDEN, UEINT, UFS, UFX, &
-         QRHO, QU, QV, QW, &
-         QPRES, QGAME, QREINT, QFS, QFX, &
-         QC, QGAMC, &
-         NGDNV, GDRHO, GDPRES, GDGAME, &
-         GDRHO, GDU, GDV, GDW, &
-#ifdef RADIATION
-         qrad, fspace_type, &
-         GDERADS, GDLAMS, &
+                                   URHO, UMX, UMY, UMZ, &
+                                   UEDEN, UEINT, UTEMP, &
+#ifdef SHOCK_VAR
+                                   USHK, &
 #endif
-         npassive, upass_map, qpass_map
+                                   QRHO, QU, QV, QW, &
+                                   QPRES, QGAME, QREINT, &
+                                   QC, QGAMC, &
+#ifdef HYBRID_MOMENTUM
+                                   NGDNV, GDPRES, GDGAME, &
+                                   GDRHO, GDU, GDV, GDW, &
+#endif
+#ifdef RADIATION
+                                   QRAD, fspace_type, &
+                                   GDERADS, GDLAMS, &
+#endif
+                                   npassive, upass_map, qpass_map
 #ifdef RADIATION
     use fluxlimiter_module, only : Edd_factor
     use rad_params_module, only : ngroups
@@ -484,10 +511,8 @@ contains
     integer, intent(in) :: l_lo(3), l_hi(3)
     integer, intent(in) :: rF_lo(3), rF_hi(3)
 #endif
-    integer, intent(in) :: qg_lo(3), qg_hi(3)
 
     real(rt), intent(in) :: qint(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
-    real(rt), intent(inout) :: qgdnv(qg_lo(1):qg_hi(1), qg_lo(2):qg_hi(2), qg_lo(3):qg_hi(3), NGDNV)
     real(rt), intent(out) :: F(F_lo(1):F_hi(1), F_lo(2):F_hi(2), F_lo(3):F_hi(3), NVAR)
 #ifdef RADIATION
     real(rt), intent(in) :: lambda(l_lo(1):l_hi(1), l_lo(2):l_hi(2), l_lo(3):l_hi(3), 0:ngroups-1)
@@ -501,7 +526,11 @@ contains
     real(rt) :: eddf, f1
     integer :: i, j, k
 
+#ifdef HYBRID_MOMENTUM
     real(rt) :: F_zone(NVAR), qgdnv_zone(NGDNV)
+#endif
+
+    !$gpu
 
     if (idir == 1) then
        iu = QU
@@ -550,6 +579,11 @@ contains
              F(i,j,k,UEDEN) = u_adv*(rhoetot + qint(i,j,k,QPRES))
              F(i,j,k,UEINT) = u_adv*qint(i,j,k,QREINT)
 
+             F(i,j,k,UTEMP) = ZERO
+#ifdef SHOCK_VAR
+             F(i,j,k,USHK) = ZERO
+#endif
+
 #ifdef RADIATION
              if (fspace_type == 1) then
                 do g=0,ngroups-1
@@ -570,9 +604,86 @@ contains
                 nqp = qpass_map(ipassive)
 
                 F(i,j,k,n) = F(i,j,k,URHO)*qint(i,j,k,nqp)
-             enddo
+             end do
 
-             ! store the subset of the Godunov state
+#ifdef HYBRID_MOMENTUM
+
+             ! the hybrid routine uses the Godunov indices, not the full NQ state
+             qgdnv_zone(GDRHO) = qint(i,j,k,QRHO)
+             qgdnv_zone(GDU) = qint(i,j,k,QU)
+             qgdnv_zone(GDV) = qint(i,j,k,QV)
+             qgdnv_zone(GDW) = qint(i,j,k,QW)
+             qgdnv_zone(GDPRES) = qint(i,j,k,QPRES)
+             qgdnv_zone(GDGAME) = qint(i,j,k,QGAME)
+#ifdef RADIATION
+             qgdnv_zone(GDLAMS:GDLAMS-1+ngroups) = lambda(i,j,k,:)
+             qgdnv_zone(GDERADS:GDERADS-1+ngroups) = qint(i,j,k,QRAD:QRAD-1+ngroups)
+#endif
+
+             F_zone(:) = F(i,j,k,:)
+             call compute_hybrid_flux(qgdnv_zone, F_zone, idir, [i, j, k])
+             F(i,j,k,:) = F_zone(:)
+#endif
+          end do
+       end do
+    end do
+
+  end subroutine compute_flux_q
+
+
+  !> @brief this copies the full interface state (NQ -- one for each primitive
+  !! variable) over to a smaller subset of size NGDNV for use later in the
+  !! hydro advancement.
+  !!
+  !! @param[in] lo integer
+  !! @param[in] hi integer
+  !! @param[in] qi_lo integer
+  !! @param[in] qi_hi integer
+  !! @param[in] qg_lo integer
+  !! @param[in] qg_hi integer
+  !! @param[in] qint real(rt)
+  !! @param[out] qgdnv real(rt)
+  !!
+  subroutine ca_store_godunov_state(lo, hi, &
+                                    qint, qi_lo, qi_hi, &
+#ifdef RADIATION
+                                    lambda, l_lo, l_hi, &
+#endif
+                                    qgdnv, qg_lo, qg_hi) bind(C, name="ca_store_godunov_state")
+
+    use meth_params_module, only : NQ, NVAR, NQAUX, &
+                                   URHO, &
+                                   QRHO, QU, QV, QW, &
+                                   QPRES, QGAME, &
+                                   NGDNV, GDRHO, GDPRES, GDGAME, &
+#ifdef RADIATION
+                                   QRAD, GDERADS, GDLAMS, &
+#endif
+                                   GDRHO, GDU, GDV, GDW
+
+#ifdef RADIATION
+    use rad_params_module, only : ngroups
+#endif
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: qi_lo(3), qi_hi(3)
+    integer, intent(in) :: qg_lo(3), qg_hi(3)
+    real(rt), intent(in) :: qint(qi_lo(1):qi_hi(1), qi_lo(2):qi_hi(2), qi_lo(3):qi_hi(3), NQ)
+#ifdef RADIATION
+    integer, intent(in) :: l_lo(3), l_hi(3)
+    real(rt), intent(in) :: lambda(l_lo(1):l_hi(1), l_lo(2):l_hi(2), l_lo(3):l_hi(3), 0:ngroups-1)
+#endif
+    real(rt), intent(inout) :: qgdnv(qg_lo(1):qg_hi(1), qg_lo(2):qg_hi(2), qg_lo(3):qg_hi(3), NGDNV)
+
+    integer :: i, j, k
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             ! the hybrid routine uses the Godunov indices, not the full NQ state
              qgdnv(i,j,k,GDRHO) = qint(i,j,k,QRHO)
              qgdnv(i,j,k,GDU) = qint(i,j,k,QU)
              qgdnv(i,j,k,GDV) = qint(i,j,k,QV)
@@ -584,18 +695,12 @@ contains
              qgdnv(i,j,k,GDERADS:GDERADS-1+ngroups) = qint(i,j,k,QRAD:QRAD-1+ngroups)
 #endif
 
-#ifdef HYBRID_MOMENTUM
-             ! the hybrid routine uses the Godunov indices, not the full NQ state
-             F_zone(:) = F(i,j,k,:)
-             qgdnv_zone(:) = qgdnv(i,j,k,:)
-             call compute_hybrid_flux(qgdnv_zone, F_zone, idir, [i, j, k])
-             F(i,j,k,:) = F_zone(:)
-#endif
           end do
        end do
     end do
 
-  end subroutine compute_flux_q
+  end subroutine ca_store_godunov_state
+
 
 
   !> @brief given a conserved state, compute the flux in direction idir
@@ -609,6 +714,9 @@ contains
   pure subroutine compute_flux(idir, bnd_fac, U, p, F)
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
+#ifdef SHOCK_VAR
+         USHK, &
+#endif
          npassive, upass_map
     use prob_params_module, only : mom_flux_has_p
 
@@ -619,6 +727,8 @@ contains
 
     integer :: ipassive, n
     real(rt)         :: u_flx
+
+    !$gpu
 
     if (idir == 1) then
        u_flx = U(UMX)/U(URHO)
@@ -648,6 +758,10 @@ contains
     F(UEDEN) = (U(UEDEN) + p)*u_flx
 
     F(UTEMP) = ZERO
+
+#ifdef SHOCK_VAR
+    F(USHK) = ZERO
+#endif
 
     do ipassive = 1, npassive
        n = upass_map(ipassive)

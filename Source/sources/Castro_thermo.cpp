@@ -7,7 +7,7 @@ void
 Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state, Real time, Real dt)
 {
   // we only include p divU in method of lines integration
-  if (do_ctu) return;
+  if (time_integration_method == CornerTransportUpwind) return;
 
   MultiFab thermo_src(grids, dmap, NUM_STATE, 0);
 
@@ -26,7 +26,7 @@ void
 Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
   // we only include p divU in method of lines integration
-  if (do_ctu) return;
+  if (time_integration_method == CornerTransportUpwind) return;
 
   amrex::Abort("you should not get here!");
 }

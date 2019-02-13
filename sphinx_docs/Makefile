@@ -17,7 +17,6 @@ help:
 clean:
 	rm -rf build doxy_files source/class source/file source/namespace
 	rm -f source/classlist.rst source/filelist.rst source/namespacelist.rst
-	rm -rf ../docs
 	rm -rf source/*_files.rst
 
 html:

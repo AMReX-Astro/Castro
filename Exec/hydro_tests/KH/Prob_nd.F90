@@ -151,10 +151,10 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   y1 = center(2) - (probhi(2) - problo(2)) * 0.25e0_rt
   y2 = center(2) + (probhi(2) - problo(2)) * 0.25e0_rt  
-  
+
   velz = 0.0
-  
-  !$OMP PARALLEL DO PRIVATE(i, j, k, xx, yy, zz, dens, velx, vely, velz, ramp, eos_state)
+
+  !$OMP PARALLEL DO PRIVATE(i, j, k, xx, yy, zz, dens, velx, vely, ramp, eos_state)
   do k = lo(3), hi(3)
      zz = xlo(3) + delta(3)*dble(k-lo(3)+HALF)
 

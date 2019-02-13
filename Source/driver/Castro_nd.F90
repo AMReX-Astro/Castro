@@ -578,8 +578,7 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
      QU_in, QV_in, QW_in, &
      QGAME_in, QPRES_in, QREINT_in, &
      QTEMP_in, &
-     QFA_in, QFS_in, QFX_in, &
-     gravity_type_in, gravity_type_len) &
+     QFA_in, QFS_in, QFX_in) &
      bind(C, name="ca_set_method_params")
 
   use meth_params_module
@@ -610,8 +609,6 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   integer, intent(in) :: QGAME_in, QPRES_in, QREINT_in
   integer, intent(in) :: QTEMP_in
   integer, intent(in) :: QFA_in, QFS_in, QFX_in
-  integer, intent(in) :: gravity_type_len
-  integer, intent(in) :: gravity_type_in(gravity_type_len)
 #ifdef HYBRID_MOMENTUM
   integer, intent(in) :: Rmom_in
 #endif
@@ -713,12 +710,6 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   ! This is a routine which links to the C++ ParallelDescriptor class
 
   call bl_pd_is_ioproc(ioproc)
-
-  allocate(character(len=gravity_type_len) :: gravity_type)
-
-  do i = 1, gravity_type_len
-     gravity_type(i:i) = char(gravity_type_in(i))
-  enddo
 
 #ifdef ROTATION
   rot_vec = ZERO
@@ -878,6 +869,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   endif
 #endif
 
+  allocate(mom_flux_has_p(3))
 
   ! sanity check on our allocations
 #ifndef AMREX_USE_CUDA
@@ -1027,7 +1019,9 @@ subroutine ca_get_tagging_params(name, namlen) &
        temperr, tempgrad, tempgrad_rel, &
        max_temperr_lev, max_tempgrad_lev, max_tempgrad_rel_lev, &
        raderr, radgrad, radgrad_rel, &
-       max_raderr_lev, max_radgrad_lev, max_radgrad_rel_lev
+       max_raderr_lev, max_radgrad_lev, max_radgrad_rel_lev, &
+       enucerr, max_enucerr_lev, &
+       dxnuc_min, dxnuc_max, max_dxnuc_lev
 
   ! Set namelist defaults
   denerr = 1.e20_rt
@@ -1071,6 +1065,13 @@ subroutine ca_get_tagging_params(name, namlen) &
   max_raderr_lev = -1
   max_radgrad_lev = -1
   max_radgrad_rel_lev = -1
+
+  enucerr = 1.e200_rt
+  max_enucerr_lev = -1
+
+  dxnuc_min = 1.e200_rt
+  dxnuc_max = 1.e200_rt
+  max_dxnuc_lev = -1
 
   ! create the filename
 #ifndef AMREX_USE_CUDA

@@ -56,11 +56,14 @@ small_ener                   Real         -1.e200             y
 # permits hydro to be turned on and off for running pure rad problems
 do_hydro                     int          -1                  y
 
-# do we do the CTU unsplit method or a method-of-lines approach?
-do_ctu                       int           1                  y
+# how do we advance in time? 0 = CTU + Strang, 1 = MOL + Strang
+time_integration_method      int           0                  y
 
 # do we do fourth-order accurate MOL hydro?
 fourth_order                 int           0                  y
+
+# do we use a limiter with the fourth-order accurate reconstruction?
+limit_fourth_order           int           1                  y
 
 # if true, define an additional source term
 add_ext_src                  int           0
@@ -310,20 +313,6 @@ dtnuc_X                      Real          1.e200             y
 # prevent the timestep from becoming very small due to changes in trace species.
 dtnuc_X_threshold            Real          1.e-3              y
 
-# limit the zone size based on how much the burning can change the internal
-# energy of a zone. The zone size on the finest level must be smaller than
-# ``dxnuc`` :math:`\cdot\, c_s\cdot (e / \dot{e})`, where :math:`c_s` is the sound speed.
-# This ensures that the sound-crossing time is smaller than the
-# nuclear energy injection timescale.
-dxnuc                        Real          1.e200             y
-
-# Disable limiting based on dxnuc above this threshold. This allows zones that
-# have already ignited or are about to ignite to be de-refined.
-dxnuc_max                    Real          1.e200             y
-
-# Disable limiting based on dxnuc above this AMR level.
-max_dxnuc_lev                int          -1                  y
-
 # permits reactions to be turned on and off -- mostly for efficiency's sake
 do_react                     int          -1                  y
 
@@ -361,6 +350,11 @@ diffuse_vel                  int           0                  n     DIFFUSION
 
 # set a cutoff density for diffusion -- we zero the term out below this density
 diffuse_cutoff_density       Real          -1.e200            y     DIFFUSION
+
+# secondary cutoff density -- there will be a linear dropoff in the diffusion
+# coefficient between this and the primary cutoff density. This should be the
+# larger of the two
+diffuse_cutoff_density_hi    Real          -1.e200            y     DIFFUSION
 
 # scaling factor for conductivity
 diffuse_cond_scale_fac       Real          1.0                y     DIFFUSION
@@ -464,6 +458,12 @@ spherical_star               int           0
 # category: diagnostics, I/O
 #-----------------------------------------------------------------------------
 
+# verbosity level (higher numbers mean more output)
+(v, verbose)                 int           0
+
+# do we dump the old state into the checkpoint files too?
+dump_old                     bool          false
+
 # display warnings in Fortran90 routines
 print_fortran_warnings       int           (0, 1)
 
@@ -547,7 +547,7 @@ timestamp_temperature        int           0
 @namespace: gravity Gravity static
 
 # what type 
-gravity_type                 string        "fillme"
+gravity_type                 string        "fillme"           y
 
 
 # if doing constant gravity, what is the acceleration
