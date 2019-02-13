@@ -217,7 +217,6 @@ contains
     integer :: i, j, k
 
     real(rt) :: dlft, drgt, dp1
-    real(rt) :: dm, dp, dc, dl, dfm, dfp
 
     !     Local arrays
     real(rt) :: dsgn, dlim, dcen

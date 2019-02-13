@@ -304,7 +304,7 @@ contains
     ! for pure hydro, we will only consider:
     !   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
-    real(rt) :: cc, csq, cgassq
+    real(rt) :: cc, csq
     real(rt) :: rho, un, ut, utt, p, rhoe_g, h_g
     real(rt) :: gam_g
 
@@ -749,7 +749,7 @@ contains
     ! for pure hydro, we will only consider:
     !   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
-    real(rt) :: cc, csq, cgassq, Clag
+    real(rt) :: cc, csq, Clag
     real(rt) :: rho, un, ut, utt, p, rhoe_g, h_g
     real(rt) :: gam_g, game
 
@@ -1224,7 +1224,7 @@ contains
     ! for pure hydro, we will only consider:
     !   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
-    real(rt) :: cc, csq, cgassq, Clag
+    real(rt) :: cc, csq, Clag
     real(rt) :: rho, un, ut, utt, p, rhoe_g, h_g, temp
     real(rt) :: gam_g, game
 

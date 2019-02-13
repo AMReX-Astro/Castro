@@ -1,8 +1,6 @@
 &fortin
 
-  model_name =  "sub_chandra.M_WD-1.10.M_He-0.050.hse.C.2560"
-  pert_temp_factor = 80.0
-  pert_rad_factor = 8
+  model_name =  "18m_500_s_rot_b_eq_1.hse.6144"
 
 /
 

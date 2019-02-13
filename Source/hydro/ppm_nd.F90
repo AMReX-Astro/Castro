@@ -77,7 +77,6 @@ contains
 
     real(rt) :: dsl, dsr, dsc
     real(rt) :: dsvl_l, dsvl_r
-    real(rt) :: sigma, s6
 
     ! s_{\ib,+}, s_{\ib,-}
     real(rt) :: sm, sp
