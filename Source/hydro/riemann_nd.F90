@@ -48,7 +48,7 @@ contains
                                  idir, domlo, domhi) bind(C, name="cmpflx_plus_godunov")
 
     use eos_module, only: eos
-    use eos_type_module, only: eos_t, eos_input_re
+    use eos_type_module, only: eos_t
     use network, only: nspec, naux
     use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
@@ -130,7 +130,7 @@ contains
                     idir, domlo, domhi)
 
     use eos_module, only: eos
-    use eos_type_module, only: eos_t, eos_input_re
+    use eos_type_module, only: eos_t
     use network, only: nspec, naux
     use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
@@ -302,7 +302,8 @@ contains
     use network, only: nspec, naux
     use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
-    use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver
+    use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver, &
+                                   T_guess
 
     implicit none
 
@@ -373,8 +374,8 @@ contains
              do i = lo(1), hi(1)
 
                 ! this is an initial guess for iterations, since we
-                ! can't be certain that temp is on interfaces
-                eos_state % T = 10000.0e0_rt
+                ! can't be certain what temp is on interfaces
+                eos_state % T = T_guess
 
                 ! minus state
                 eos_state % rho = qm(i,j,k,QRHO,comp)
@@ -398,8 +399,8 @@ contains
              do i = lo(1), hi(1)
 
                 ! this is an initial guess for iterations, since we
-                ! can't be certain that temp is on interfaces
-                eos_state % T = 10000.0e0_rt
+                ! can't be certain what temp is on interfaces
+                eos_state % T = T_guess
 
                 ! plus state
                 eos_state % rho = qp(i,j,k,QRHO,comp)

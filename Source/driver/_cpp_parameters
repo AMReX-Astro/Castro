@@ -331,6 +331,9 @@ react_rho_max                Real          1.e200             y
 # disable burning inside hydrodynamic shock regions
 disable_shock_burning        int           0                  y
 
+# initial guess for the temperature when inverting the EoS (e.g. when
+# calling eos_input_re)
+T_guess                     Real           1.e4               y
 
 #-----------------------------------------------------------------------------
 # category: diffusion
@@ -524,10 +527,10 @@ do_tracer_particles          int           0       n      AMREX_PARTICLES
 # the name of an input file containing the total particle number and the initial position of each particle.
 particle_init_file           string        ""
 
-# the name of a file with new particles at restart 
+# the name of a file with new particles at restart
 particle_restart_file        string        ""
 
-# to restart from a checkpoint that was written with ``USE_PARTICLES`` =FALSE 
+# to restart from a checkpoint that was written with ``USE_PARTICLES`` =FALSE
 restart_from_nonparticle_chkfile     int      0
 
 # the name of timestamp files.
@@ -546,7 +549,7 @@ timestamp_temperature        int           0
 
 @namespace: gravity Gravity static
 
-# what type 
+# what type
 gravity_type                 string        "fillme"           y
 
 
@@ -604,7 +607,7 @@ mlmg_nsolve                  int           0                  n
 
 # the level of verbosity for the diffusion solve (higher number means
 # more output)
-(v, verbose)                int            0                
+(v, verbose)                int            0
 
 # Use MLMG as the operator
 mlmg_maxorder                int           4                  n

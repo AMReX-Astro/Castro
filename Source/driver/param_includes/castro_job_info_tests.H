@@ -104,7 +104,7 @@ jobInfoFile << (Castro::react_T_min == 0.0 ? "    " : "[*] ") << "castro.react_T
 jobInfoFile << (Castro::react_T_max == 1.e200 ? "    " : "[*] ") << "castro.react_T_max = " << Castro::react_T_max << std::endl;
 jobInfoFile << (Castro::react_rho_min == 0.0 ? "    " : "[*] ") << "castro.react_rho_min = " << Castro::react_rho_min << std::endl;
 jobInfoFile << (Castro::react_rho_max == 1.e200 ? "    " : "[*] ") << "castro.react_rho_max = " << Castro::react_rho_max << std::endl;
-jobInfoFile << (Castro::disable_shock_burning == 0 ? "    " : "[*] ") << "castro.disable_shock_burning = " << Castro::disable_shock_burning << std::endl;
+jobInfoFile << (Castro::disable_shock_burning == 0 ? "    " : "[*] ") << "castro.disable_shock_burning = " << Castro::disable_shock_burning << std::endl;jobInfoFile << (Castro::T_guess == 1.e4 ? "    " : "[*] ") << "castro.T_guess = " << Castro::T_guess << std::endl;
 jobInfoFile << (Castro::do_grav == -1 ? "    " : "[*] ") << "castro.do_grav = " << Castro::do_grav << std::endl;
 jobInfoFile << (Castro::moving_center == 0 ? "    " : "[*] ") << "castro.moving_center = " << Castro::moving_center << std::endl;
 jobInfoFile << (Castro::grav_source_type == 4 ? "    " : "[*] ") << "castro.grav_source_type = " << Castro::grav_source_type << std::endl;
