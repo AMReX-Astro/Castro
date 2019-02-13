@@ -361,8 +361,6 @@ public:
                           int  iteration,
                           int  ncycle) override;
 
-#ifndef AMREX_USE_CUDA
-
 ///
 /// this routine will advance the old state data (called ``S_old`` here)
 /// to the new time, for a single level.  The new data is called
@@ -382,7 +380,6 @@ public:
                      amrex::Real dt,
                      int  amr_iteration,
                      int  amr_ncycle);
-#endif
 
 
 ///
@@ -407,8 +404,6 @@ public:
                      amrex::Real dt,
                      int  amr_iteration,
                      int  amr_ncycle);
-
-#ifndef AMREX_USE_CUDA
 
 ///
 /// Should we retry advancing the simulation? By default, we
@@ -441,7 +436,6 @@ public:
 /// @param amr_ncycle   the number of subcycles at this level
 ///
     amrex::Real subcycle_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
-#endif
 
 
 ///
@@ -538,8 +532,6 @@ public:
 ///
     void check_for_cfl_violation(const amrex::Real dt);
 
-#ifndef AMREX_USE_CUDA
-
 ///
 /// this constructs the hydrodynamic source (essentially the flux
 /// divergence) using the CTU framework for unsplit hydrodynamics
@@ -548,7 +540,6 @@ public:
 /// @param dt       timestep
 ///
     void construct_hydro_source(amrex::Real time, amrex::Real dt);
-#endif
 
 
 ///

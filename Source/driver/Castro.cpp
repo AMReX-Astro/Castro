@@ -361,14 +361,6 @@ Castro::read_params ()
     if (time_integration_method != CornerTransportUpwind && use_retry)
         amrex::Error("Method of lines integration is incompatible with the timestep retry mechanism.");
 
-#ifdef AMREX_USE_CUDA
-    // not use ctu if using gpu
-    if (time_integration_method != MethodOfLines)
-      {
-	 amrex::Error("Running with CUDA requires time_integration_method = 1");
-      }
-#endif
-
     // fourth order implies do_ctu=0
     if (fourth_order == 1 && time_integration_method == CornerTransportUpwind)
       {

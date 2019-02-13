@@ -97,20 +97,16 @@ Castro::advance (Real time,
 #else
     // no SDC
 
-#ifndef AMREX_USE_CUDA
     if (time_integration_method == CornerTransportUpwind) {
 
         dt_new = std::min(dt_new, subcycle_advance(time, dt, amr_iteration, amr_ncycle));
 
     } else if (time_integration_method == MethodOfLines) {
-#endif
       for (int iter = 0; iter < MOL_STAGES; ++iter) {
 	mol_iteration = iter;
 	dt_new = do_advance_mol(time + c_mol[iter]*dt, dt, amr_iteration, amr_ncycle);
       }
-#ifndef AMREX_USE_CUDA
     }
-#endif
 
     // Optionally kill the job at this point, if we've detected a violation.
 
@@ -162,7 +158,6 @@ Castro::advance (Real time,
 
 
 
-#ifndef AMREX_USE_CUDA
 Real
 Castro::do_advance (Real time,
                     Real dt,
@@ -351,7 +346,7 @@ Castro::do_advance (Real time,
 
     return dt;
 }
-#endif
+
 
 
 Real
@@ -977,7 +972,6 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 
 
-#ifndef AMREX_USE_CUDA
 bool
 Castro::retry_advance(Real& time, Real dt, int amr_iteration, int amr_ncycle)
 {
@@ -1315,4 +1309,3 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
     return dt_new;
 
 }
-#endif

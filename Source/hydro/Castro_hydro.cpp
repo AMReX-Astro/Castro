@@ -7,7 +7,6 @@
 
 using namespace amrex;
 
-#ifndef AMREX_USE_CUDA
 void
 Castro::construct_hydro_source(Real time, Real dt)
 {
@@ -1173,7 +1172,6 @@ Castro::construct_hydro_source(Real time, Real dt)
     }
 
 }
-#endif
 
 
 
