@@ -22,7 +22,6 @@ void Castro::problem_post_simulation(Vector<std::unique_ptr<AmrLevel> >& amr_lev
 	Castro& castro = dynamic_cast<Castro&>(*amr_level[lev]);
 
 	const Real strttime = amrex::second();
-	// const Geometry& geom     = Geom(lev);
 	const Real*     dx       = castro.geom.CellSize();
 	const Real*     plo      = castro.geom.ProbLo();
 	const Real*     phi      = castro.geom.ProbHi();
@@ -72,7 +71,7 @@ void Castro::problem_post_simulation(Vector<std::unique_ptr<AmrLevel> >& amr_lev
 		nparticles.push_back(p);
 	}
 
-	// compute the norm of the solution vs. the analytic solution
+	// compute the change in position of the particles wrt to their initial positions
 
 	auto& pmap = TracerPC->GetParticles(lev);
 
@@ -92,7 +91,7 @@ void Castro::problem_post_simulation(Vector<std::unique_ptr<AmrLevel> >& amr_lev
 			auto it = nparticles.begin();
 
 			// find the original particle and calculate change in position
-			for (it = nparticles.begin(); !match && it != nparticles.end(); ++it) {
+			for (; !match && it != nparticles.end(); ++it) {
 				if (it->m_idata.id == p.m_idata.id)
 					match = true;
 			}
