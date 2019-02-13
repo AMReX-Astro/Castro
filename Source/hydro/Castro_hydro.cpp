@@ -81,24 +81,15 @@ Castro::construct_hydro_source(Real time, Real dt)
     FArrayBox flatg;
 #endif
     FArrayBox dq;
-    FArrayBox Ip;
-    FArrayBox Im;
-    FArrayBox Ip_src;
-    FArrayBox Im_src;
-    FArrayBox Ip_gc;
-    FArrayBox Im_gc;
-    FArrayBox sm;
-    FArrayBox sp;
+    FArrayBox Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc;
+    FArrayBox sm, sp;
     FArrayBox shk;
-    FArrayBox qxm;
-    FArrayBox qxp;
+    FArrayBox qxm, qxp;
 #if AMREX_SPACEDIM >= 2
-    FArrayBox qym;
-    FArrayBox qyp;
+    FArrayBox qym, qyp;
 #endif
 #if AMREX_SPACEDIM == 3
-    FArrayBox qzm;
-    FArrayBox qzp;
+    FArrayBox qzm, qzp;
 #endif
     FArrayBox div;
     FArrayBox q_int;
@@ -106,46 +97,28 @@ Castro::construct_hydro_source(Real time, Real dt)
     FArrayBox lambda_int;
 #endif
 #if AMREX_SPACEDIM >= 2
-    FArrayBox ftmp1;
-    FArrayBox ftmp2;
-
+    FArrayBox ftmp1, ftmp2;
 #ifdef RADIATION
-    FArrayBox rftmp1;
-    FArrayBox rftmp2;
+    FArrayBox rftmp1, rftmp2;
 #endif
-
-    FArrayBox qgdnvtmp1;
-    FArrayBox qgdnvtmp2;
-
-    FArrayBox ql;
-    FArrayBox qr;
+    FArrayBox qgdnvtmp1, qgdnvtmp2;
+    FArrayBox ql, qr;
 #endif
-
-    FArrayBox flux[AMREX_SPACEDIM];
-    FArrayBox qe[AMREX_SPACEDIM];
+    FArrayBox flux[AMREX_SPACEDIM], qe[AMREX_SPACEDIM];
 #ifdef RADIATION
     FArrayBox rad_flux[AMREX_SPACEDIM];
 #endif
-
 #if AMREX_SPACEDIM <= 2
     FArrayBox pradial;
 #endif
-
 #if AMREX_SPACEDIM == 3
-    FArrayBox qmyx;
-    FArrayBox qpyx;
-    FArrayBox qmzx;
-    FArrayBox qpzx;
-    FArrayBox qmxy;
-    FArrayBox qpxy;
-    FArrayBox qmzy;
-    FArrayBox qpzy;
-    FArrayBox qmxz;
-    FArrayBox qpxz;
-    FArrayBox qmyz;
-    FArrayBox qpyz;
+    FArrayBox qmyx, qpyx;
+    FArrayBox qmzx, qpzx;
+    FArrayBox qmxy, qpxy;
+    FArrayBox qmzy, qpzy;
+    FArrayBox qmxz, qpxz;
+    FArrayBox qmyz, qpyz;
 #endif
-
     FArrayBox pdivu;
     
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
