@@ -943,6 +943,7 @@ extern "C"
      BL_FORT_FAB_ARG_3D(q),
      BL_FORT_FAB_ARG_3D(q_bar),
      BL_FORT_FAB_ARG_3D(qaux),
+     BL_FORT_FAB_ARG_3D(qaux_bar),
      const BL_FORT_FAB_ARG_3D(srcU),
      BL_FORT_FAB_ARG_3D(update),
      BL_FORT_FAB_ARG_3D(update_flux),

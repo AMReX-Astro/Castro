@@ -23,12 +23,13 @@
 
   low_density_cutoff = 1.d-4
 
-  index_base_from_temp = T
-
   cutoff_density = 5000.0
   max_hse_tagging_level = 3
   max_base_tagging_level = 2
 
+  X_min = 1.e-2
+
+  x_refine_distance = 6.144e4
 /
 
 &sponge
@@ -45,6 +46,6 @@
   rtol_spec = 1.d-6
   atol_spec = 1.d-6
 
-  react_boost = 10.0
+  react_boost = 5.0
   use_tables = T
 /

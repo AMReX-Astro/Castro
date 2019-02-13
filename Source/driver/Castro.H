@@ -68,6 +68,12 @@ enum sources { ext_src = 0,
 	       num_src };
 
 
+// time integration method
+
+enum int_method { CornerTransportUpwind = 0,
+                  MethodOfLines,
+                  SpectralDeferredCorrections };
+
 ///
 /// @class Castro
 ///
@@ -1786,7 +1792,7 @@ protected:
 /// The auxiliary primitive variable state array.
 ///
     amrex::MultiFab qaux;
-
+    amrex::MultiFab qaux_bar;
 
 ///
 /// The source terms in primitive form.
