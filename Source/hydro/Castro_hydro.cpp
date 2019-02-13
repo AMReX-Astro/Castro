@@ -146,13 +146,18 @@ Castro::construct_hydro_source(Real time, Real dt)
                        BL_TO_FORTRAN_ANYD(flatn),
                        BL_TO_FORTRAN_ANYD(flatg));
 #else
-        ca_uflatten(ARLIM_3D(obx.loVect()), ARLIM_3D(obx.hiVect()),
+#pragma gpu
+        ca_uflatten(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                     BL_TO_FORTRAN_ANYD(q[mfi]),
                     BL_TO_FORTRAN_ANYD(flatn), QPRES+1);
 #endif
       } else {
         flatn.setVal(1.0, obx);
       }
+
+#ifdef AMREX_USE_CUDA
+      Gpu::Device::streamSynchronize();
+#endif
 
       const Box& xbx = amrex::surroundingNodes(bx, 0);
       const Box& gxbx = amrex::grow(xbx, 1);
