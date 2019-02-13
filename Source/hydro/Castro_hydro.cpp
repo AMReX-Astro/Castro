@@ -542,7 +542,7 @@ Castro::construct_hydro_source(Real time, Real dt)
       const Box& tzxbx = amrex::grow(zbx, IntVect(AMREX_D_DECL(0,1,0)));
 
       qmzx.resize(tzxbx, NQ);
-      Elixir elix_qmzx = qmxz.elixir();
+      Elixir elix_qmzx = qmzx.elixir();
 
       qpzx.resize(tzxbx, NQ);
       Elixir elix_qpzx = qpzx.elixir();
