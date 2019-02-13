@@ -29,7 +29,7 @@
     use amrex_error_module, only : amrex_abort
     use meth_params_module, only : URHO,UMX,UMY,UMZ,UEINT,UEDEN,UFX,UFS
     use ProgramHeaderModule, only : nE, nDOF, nNodesX, nNodesE, swE
-    use FluidFieldsModule, only : uCF, iCF_D, iCF_S1, iCF_S2, iCF_S3, iCF_E, iCF_Ne
+    use FluidFieldsModule, only : uCF, nCF, iCF_D, iCF_S1, iCF_S2, iCF_S3, iCF_E, iCF_Ne
     use FluidFieldsModule, only : CreateFluidFields, DestroyFluidFields
     use RadiationFieldsModule, only : CreateRadiationFields,DestroyRadiationFields,nSpecies, uCR
     use TimeSteppingModule_Castro, only : Update_IMEX_PDARS
@@ -62,8 +62,11 @@
     integer  :: i,j,k,n
     integer  :: ic,jc
     integer  :: ii,id,ie,im,is,ind
+    integer  :: u_lo(3),u_hi(3)
     real(rt) :: x,y,z
     real(rt) :: conv_dens, conv_mom, conv_enr, conv_ne
+
+    real(rt), allocatable :: u0(:,:,:,:,:)
 
     integer  :: nX(3)
     integer  :: swX(3)
@@ -84,6 +87,13 @@
     swX(2) = ng
     swX(3) = 0
 
+    u_lo(1) = 1    -swX(1)
+    u_lo(2) = 1    -swX(2)
+    u_lo(3) = 1    -swX(3)
+    u_hi(1) = nX(1)+swX(1)
+    u_hi(2) = nX(2)+swX(2)
+    u_hi(3) = nX(3)+swX(3)
+
     call CreateFluidFields ( nX, swX, Verbose_Option = .FALSE. )
 
     call CreateRadiationFields ( nX, swX, nE, swE, nSpecies_Option = nSpecies, Verbose_Option = .FALSE. )
@@ -92,9 +102,12 @@
     ! Interpolate from the Castro "S" arrays into Thornado "uCF" arrays
     ! ************************************************************************************
 
+    allocate( u0(n_fluid_dof,u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nCF) ) 
+
     call interpolate_fluid (lo, hi, &
                             S , s_lo, s_hi, ns , &
-                            n_fluid_dof, ng) 
+                            u0 , u_lo, u_hi, n_fluid_dof, &
+                            ng) 
 
     ! ************************************************************************************
     ! Copy from the Castro U_R arrays into Thornado arrays from InitThornado_Patch
@@ -160,20 +173,25 @@
          dS(ic,jc,:) = 0.d0
 
          do ind = 1, n_fluid_dof
-            dS(ic,jc,URHO ) = dS(ic,jc,URHO ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_D )
-            dS(ic,jc,UMX  ) = dS(ic,jc,UMX  ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_S1)
-            dS(ic,jc,UMY  ) = dS(ic,jc,UMY  ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_S2)
-            dS(ic,jc,UEDEN) = dS(ic,jc,UEDEN) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_E )
-            dS(ic,jc,UFX  ) = dS(ic,jc,UFX  ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_Ne)
+            dS(ic,jc,URHO ) = dS(ic,jc,URHO ) + WeightsX_q(ind) * &
+               (uCF(ind,i,j,k,iCF_D ) - u0(ind,i,j,k,iCF_D ) )
+            dS(ic,jc,UMX  ) = dS(ic,jc,UMX  ) + WeightsX_q(ind) * &
+               (uCF(ind,i,j,k,iCF_S1) - u0(ind,i,j,k,iCF_S1) )
+            dS(ic,jc,UMY  ) = dS(ic,jc,UMY  ) + WeightsX_q(ind) * &
+               (uCF(ind,i,j,k,iCF_S2) - u0(ind,i,j,k,iCF_S2) )
+            dS(ic,jc,UEDEN) = dS(ic,jc,UEDEN) + WeightsX_q(ind) * &
+               (uCF(ind,i,j,k,iCF_E ) - u0(ind,i,j,k,iCF_E ) )
+            dS(ic,jc,UFX  ) = dS(ic,jc,UFX  ) + WeightsX_q(ind) * &
+               (uCF(ind,i,j,k,iCF_Ne) - u0(ind,i,j,k,iCF_Ne) )
          end do
 
-!        dS(ic,jc,URHO ) = dS(ic,jc,URHO ) / conv_dens - S(ic,jc,URHO )
-!        dS(ic,jc,UMX  ) = dS(ic,jc,UMX  ) / conv_mom  - S(ic,jc,UMX  )
-!        dS(ic,jc,UMY  ) = dS(ic,jc,UMY  ) / conv_mom  - S(ic,jc,UMY  )
-         dS(ic,jc,UEDEN) = dS(ic,jc,UEDEN) / conv_enr  - S(ic,jc,UEDEN)
-         dS(ic,jc,UFX  ) = dS(ic,jc,UFX  ) / conv_ne   - S(ic,jc,UFX  )
+!        dS(ic,jc,URHO ) = dS(ic,jc,URHO ) / conv_dens
+!        dS(ic,jc,UMX  ) = dS(ic,jc,UMX  ) / conv_mom
+!        dS(ic,jc,UMY  ) = dS(ic,jc,UMY  ) / conv_mom
+         dS(ic,jc,UEDEN) = dS(ic,jc,UEDEN) / conv_enr
+         dS(ic,jc,UFX  ) = dS(ic,jc,UFX  ) / conv_ne
 
-         dS(ic,jc,UEINT) = dS(ic,jc,UEDEN)     ! TRUE IFF NO MOMENTUM SOURCE TERMS
+         dS(ic,jc,UEINT) = dS(ic,jc,UEDEN)     ! TRUE IFF NO MOFX SOURCE TERMS
 
          do is = 1, nSpecies
          do im = 1, n_moments
@@ -194,6 +212,8 @@
 
     end do
     end do
+
+    deallocate(u0)
 
     call DestroyFluidFields 
     call DestroyRadiationFields 

@@ -1,13 +1,14 @@
 
   subroutine interpolate_fluid (lo, hi, &
                                 S , s_lo, s_hi, ns , &
-                                n_fluid_dof, ng) 
+                                u0, u_lo, u_hi, n_fluid_dof, &
+                                ng) 
 
     use amrex_constants_module, only : fourth, half, zero, one, two
     use amrex_fort_module, only : rt => amrex_real
     use amrex_error_module, only : amrex_abort
     use meth_params_module, only : URHO,UMX,UMY,UMZ,UEDEN,UFX,UTEMP
-    use FluidFieldsModule, only : uCF, iCF_D, iCF_S1, iCF_S2, iCF_S3, iCF_E, iCF_Ne
+    use FluidFieldsModule, only : uCF, nCF, iCF_D, iCF_S1, iCF_S2, iCF_S3, iCF_E, iCF_Ne
     use EquationOfStateModule_TABLE, only : ComputeTemperatureFromSpecificInternalEnergy_TABLE, &
                                             ComputeThermodynamicStates_Primitive_TABLE
     use UnitsModule, only : Gram, Centimeter, Second, AtomicMassUnit, Erg, Kelvin
@@ -17,12 +18,14 @@
     implicit none
     integer, intent(in) :: lo(2), hi(2)
     integer, intent(in) :: s_lo(2),  s_hi(2)
-    integer, intent(in) :: ns
-    integer, intent(in) ::  n_fluid_dof
+    integer, intent(in) :: u_lo(3),  u_hi(3)
+    integer, intent(in) :: ns, n_fluid_dof
     integer, intent(in) :: ng
 
     ! Conserved fluid state (rho, rho u, rho v, rho w, rho E, rho e...)
     real(rt), intent(inout) ::  S(s_lo(1):s_hi(1),s_lo(2):s_hi(2),ns) 
+
+    real(rt), intent(inout) :: u0(n_fluid_dof,u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nCF)
 
     ! Temporary variables
     integer  :: i,j,k,n
@@ -570,5 +573,26 @@
     else
       call  amrex_abort("Dont know this interp_type in interpolate fluid!")
     end if
+
+    do jc = lo(2),hi(2)
+    do ic = lo(1),hi(1)
+
+       !   S spatial indices start at lo - (number of ghost zones)
+       ! uCF spatial indices start at 1 - (number of ghost zones)
+       i = ic - lo(1) + 1
+       j = jc - lo(2) + 1
+       k = 1
+
+       ! Make this copy so we can create dS on nodes, not after S has been
+       !      averaged back to cell centers
+       u0(1:n_fluid_dof,i,j,k,iCF_D)  = uCF(1:n_fluid_dof,i,j,k,iCF_D) 
+       u0(1:n_fluid_dof,i,j,k,iCF_S1) = uCF(1:n_fluid_dof,i,j,k,iCF_S1)
+       u0(1:n_fluid_dof,i,j,k,iCF_S2) = uCF(1:n_fluid_dof,i,j,k,iCF_S2)
+       u0(1:n_fluid_dof,i,j,k,iCF_S3) = uCF(1:n_fluid_dof,i,j,k,iCF_S3)
+       u0(1:n_fluid_dof,i,j,k,iCF_E)  = uCF(1:n_fluid_dof,i,j,k,iCF_E) 
+       u0(1:n_fluid_dof,i,j,k,iCF_Ne) = uCF(1:n_fluid_dof,i,j,k,iCF_Ne)
+
+    end do
+    end do
 
   end subroutine interpolate_fluid

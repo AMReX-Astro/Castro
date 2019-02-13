@@ -28,7 +28,7 @@
     use amrex_error_module, only : amrex_abort
     use meth_params_module, only : URHO,UMX,UMY,UMZ,UEINT,UEDEN,UFX,UFS
     use ProgramHeaderModule, only : nE, nDOF, nNodesX, nNodesE, swE
-    use FluidFieldsModule, only : uCF, iCF_D, iCF_S1, iCF_S2, iCF_S3, iCF_E, iCF_Ne
+    use FluidFieldsModule, only : uCF, nCF, iCF_D, iCF_S1, iCF_S2, iCF_S3, iCF_E, iCF_Ne
     use FluidFieldsModule, only : CreateFluidFields, DestroyFluidFields
     use RadiationFieldsModule, only : CreateRadiationFields,DestroyRadiationFields,nSpecies, uCR
     use TimeSteppingModule_Castro, only : Update_IMEX_PDARS
@@ -61,7 +61,10 @@
     integer  :: i,j,k,n
     integer  :: ic,jc,kc
     integer  :: ii,id,ie,im,is,ind
+    integer  :: u_lo(3), u_hi(3)
     real(rt) :: conv_dens, conv_mom, conv_enr, conv_ne
+
+    real(rt), allocatable :: u0(:,:,:,:,:)
 
     integer  :: nX(3)
     integer  :: swX(3)
@@ -78,7 +81,12 @@
     nX(:)  = hi(:) - lo(:) + 1
     swX(:) = ng
 
-    print *,'NX ', nx(:)
+    u_lo(1) = 1    - swX(1)
+    u_lo(2) = 1    - swX(2)
+    u_lo(3) = 1    - swX(3)
+    u_hi(1) = nX(1)+ swX(1)
+    u_hi(2) = nX(2)+ swX(2)
+    u_hi(3) = nX(3)+ swX(3)
 
     call CreateFluidFields ( nX, swX, Verbose_Option = .FALSE. )
 
@@ -88,9 +96,12 @@
     ! Interpolate from the Castro "S" arrays into Thornado "uCF" arrays
     ! ************************************************************************************
 
+    allocate( u0(n_fluid_dof,u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nCF) )
+
     call interpolate_fluid (lo, hi, &
                             S , s_lo, s_hi, ns , &
-                            n_fluid_dof, ng)
+                            u0, u_lo, u_hi, n_fluid_dof, &
+                            ng)
 
     ! ************************************************************************************
     ! Copy from the Castro U_R arrays into Thornado arrays from InitThornado_Patch
@@ -160,20 +171,26 @@
          dS(ic,jc,kc,:) = 0.d0
 
          do ind = 1, n_fluid_dof
-             dS(ic,jc,kc,URHO ) = dS(ic,jc,kc,URHO ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_D ) 
-             dS(ic,jc,kc,UMX  ) = dS(ic,jc,kc,UMX  ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_S1) 
-             dS(ic,jc,kc,UMY  ) = dS(ic,jc,kc,UMY  ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_S2) 
-             dS(ic,jc,kc,UMZ  ) = dS(ic,jc,kc,UMZ  ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_S3) 
-             dS(ic,jc,kc,UEDEN) = dS(ic,jc,kc,UEDEN) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_E ) 
-             dS(ic,jc,kc,UFX  ) = dS(ic,jc,kc,UFX  ) + WeightsX_q(ind) * uCF(ind,i,j,k,iCF_Ne) 
+            dS(ic,jc,kc,URHO ) = dS(ic,jc,kc,URHO ) + WeightsX_q(ind) * &
+               (uCF(ind,i,j,k,iCF_D ) - u0(ind,i,j,k,iCF_D ) )
+            dS(ic,jc,kc,UMX  ) = dS(ic,jc,kc,UMX  ) + WeightsX_q(ind) * &
+               (uCF(ind,i,j,k,iCF_S1) - u0(ind,i,j,k,iCF_S1) )
+            dS(ic,jc,kc,UMY  ) = dS(ic,jc,kc,UMY  ) + WeightsX_q(ind) * &
+               (uCF(ind,i,j,k,iCF_S2) - u0(ind,i,j,k,iCF_S2) )
+            dS(ic,jc,kc,UMZ  ) = dS(ic,jc,kc,UMZ  ) + WeightsX_q(ind) * &
+               (uCF(ind,i,j,k,iCF_S3) - u0(ind,i,j,k,iCF_S3) )
+            dS(ic,jc,kc,UEDEN) = dS(ic,jc,kc,UEDEN) + WeightsX_q(ind) * &
+               (uCF(ind,i,j,k,iCF_E ) - u0(ind,i,j,k,iCF_E ) )
+            dS(ic,jc,kc,UFX  ) = dS(ic,jc,kc,UFX  ) + WeightsX_q(ind) * &
+               (uCF(ind,i,j,k,iCF_Ne) - u0(ind,i,j,k,iCF_Ne) )
          end do
 
-!        dS(ic,jc,kc,URHO ) = dS(ic,jc,kc,URHO ) / conv_dens - S(ic,jc,kc,URHO )
-!        dS(ic,jc,kc,UMX  ) = dS(ic,jc,kc,UMX  ) / conv_mom  - S(ic,jc,kc,UMX  )  
-!        dS(ic,jc,kc,UMY  ) = dS(ic,jc,kc,UMY  ) / conv_mom  - S(ic,jc,kc,UMY  )  
-!        dS(ic,jc,kc,UMZ  ) = dS(ic,jc,kc,UMZ  ) / conv_mom  - S(ic,jc,kc,UMZ  )  
-         dS(ic,jc,kc,UEDEN) = dS(ic,jc,kc,UEDEN) / conv_enr  - S(ic,jc,kc,UEDEN)
-         dS(ic,jc,kc,UFX  ) = dS(ic,jc,kc,UFX  ) / conv_ne   - S(ic,jc,kc,UFX  )  
+!        dS(ic,jc,kc,URHO ) = dS(ic,jc,kc,URHO ) / conv_dens
+!        dS(ic,jc,kc,UMX  ) = dS(ic,jc,kc,UMX  ) / conv_mom
+!        dS(ic,jc,kc,UMY  ) = dS(ic,jc,kc,UMY  ) / conv_mom
+!        dS(ic,jc,kc,UMZ  ) = dS(ic,jc,kc,UMZ  ) / conv_mom
+         dS(ic,jc,kc,UEDEN) = dS(ic,jc,kc,UEDEN) / conv_enr
+         dS(ic,jc,kc,UFX  ) = dS(ic,jc,kc,UFX  ) / conv_ne
 
          dS(ic,jc,kc,UEINT) = dS(ic,jc,kc,UEDEN)     ! TRUE IFF NO MOMENTUM SOURCE TERMS
 
@@ -197,6 +214,8 @@
     end do
     end do
     end do
+
+    deallocate(u0)
 
     call DestroyFluidFields
     call DestroyRadiationFields
