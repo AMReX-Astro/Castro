@@ -479,21 +479,23 @@ contains
 
     use prob_params_module, only : mom_flux_has_p
     use meth_params_module, only : NQ, NVAR, NQAUX, &
-         URHO, UMX, UMY, UMZ, &
-         UEDEN, UEINT, UFS, UFX, UTEMP, &
+                                   URHO, UMX, UMY, UMZ, &
+                                   UEDEN, UEINT, UTEMP, &
 #ifdef SHOCK_VAR
-         USHK, &
+                                   USHK, &
 #endif
-         QRHO, QU, QV, QW, &
-         QPRES, QGAME, QREINT, QFS, QFX, &
-         QC, QGAMC, &
-         NGDNV, GDRHO, GDPRES, GDGAME, &
-         GDRHO, GDU, GDV, GDW, &
+                                   QRHO, QU, QV, QW, &
+                                   QPRES, QGAME, QREINT, &
+                                   QC, QGAMC, &
+#ifdef HYBRID_MOMENTUM
+                                   NGDNV, GDPRES, GDGAME, &
+                                   GDRHO, GDU, GDV, GDW, &
+#endif
 #ifdef RADIATION
-         QRAD, fspace_type, &
-         GDERADS, GDLAMS, &
+                                   QRAD, fspace_type, &
+                                   GDERADS, GDLAMS, &
 #endif
-         npassive, upass_map, qpass_map
+                                   npassive, upass_map, qpass_map
 #ifdef RADIATION
     use fluxlimiter_module, only : Edd_factor
     use rad_params_module, only : ngroups
@@ -528,7 +530,9 @@ contains
     real(rt) :: eddf, f1
     integer :: i, j, k
 
+#ifdef HYBRID_MOMENTUM
     real(rt) :: F_zone(NVAR), qgdnv_zone(NGDNV)
+#endif
 
     logical :: do_eos
     type(eos_t) :: eos_state
@@ -675,11 +679,9 @@ contains
                                     qgdnv, qg_lo, qg_hi) bind(C, name="ca_store_godunov_state")
 
     use meth_params_module, only : NQ, NVAR, NQAUX, &
-                                   URHO, UMX, UMY, UMZ, &
-                                   UEDEN, UEINT, UFS, UFX, &
+                                   URHO, &
                                    QRHO, QU, QV, QW, &
-                                   QPRES, QGAME, QREINT, QFS, QFX, &
-                                   QC, QGAMC, &
+                                   QPRES, QGAME, &
                                    NGDNV, GDRHO, GDPRES, GDGAME, &
 #ifdef RADIATION
                                    QRAD, GDERADS, GDLAMS, &

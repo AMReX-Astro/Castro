@@ -47,7 +47,7 @@ contains
                                  qgdnv, qg_lo, qg_hi, &
                                  qaux, qa_lo, qa_hi, &
                                  shk, s_lo, s_hi, &
-                                 idir, domlo, domhi)
+                                 idir, domlo, domhi) bind(C, name="cmpflx_plus_godunov")
 
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
@@ -73,10 +73,10 @@ contains
     integer, intent(in) :: s_lo(3), s_hi(3)
     integer, intent(in) :: qg_lo(3), qg_hi(3)
 
-    integer, intent(in) :: idir
+    integer, intent(in), value :: idir
 
     integer, intent(in) :: domlo(3),domhi(3)
-    integer, intent(in) :: nc, comp
+    integer, intent(in), value :: nc, comp
 
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ,nc)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ,nc)
