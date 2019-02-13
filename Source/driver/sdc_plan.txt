@@ -76,8 +76,11 @@ None of kold, knew, or Aold need ghost cells.
 for the 4th order we will add a StateType, SDC_Source_Type, _only_ if
 castro.fourth_order = 1 and castro.time_integration_method = 2
 
-we would not add it directly to the enuc, so there is nothing to be done
+we would not add it directly to the enum, so there is nothing to be done
 if we are not using this.
 
 Then we would only keep one time level, by adding a clause in
 swap_state_time_levels()
+
+This will be used to fill the ghost cells for the RHS of the update
+(what we've been calling C).
