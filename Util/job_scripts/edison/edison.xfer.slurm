@@ -1,9 +1,15 @@
 #!/bin/ksh
-#SBATCH -M esedison
+#SBATCH --qos=xfer
 #SBATCH -J xrb-hpss-xfer
-#SBATCH -A m1938
-#SBATCH -p xfer
 #SBATCH -t 12:00:00
+#SBATCH --licenses=SCRATCH
+
+# note: you need to do
+#
+#  module laod esslurm
+#  sbatch edison.xfer.slurm
+#
+# to launch a transfer job
 
 cd $SLURM_SUBMIT_DIR
 
