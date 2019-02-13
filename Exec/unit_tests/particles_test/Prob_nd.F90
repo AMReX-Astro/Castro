@@ -80,7 +80,10 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                        delta, xlo, xhi)
 
   use probdata_module, only : vel_amp
-  use meth_params_module, only : NVAR, URHO, UMX, UMY, UFS
+  use eos_module, only : eos
+  use eos_type_module, only : eos_t, eos_input_rp
+  use network, only: nspec
+  use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
   use prob_params_module, only : problo, probhi
   use amrex_constants_module, only : ZERO, ONE, HALF
 
@@ -94,8 +97,15 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
 
   real(rt) :: x, y, xc, yc
+  real(rt) :: Xn(nspec)
 
   integer :: i, j, k
+
+  type (eos_t) :: eos_state
+
+  ! set the composition
+  Xn(:) = 0.e0_rt
+  Xn(1) = 1.e0_rt
 
   xc = HALF * (probhi(1) - problo(1))
   yc = HALF * (probhi(2) - problo(2))
@@ -115,10 +125,25 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            state(i,j,k,UMX) = -vel_amp * (y - yc)
            state(i,j,k,UMY) =  vel_amp * (x - xc)
 
-           state(i,j,k,UFS) = state(i,j,k,URHO)
+           ! compute the internal energy and temperature
+           eos_state%p = ONE
+           eos_state%rho = state(i,j,k,URHO)
+           eos_state%xn(:) = Xn
+
+           call eos(eos_input_rp, eos_state)
+
+           state(i,j,k,UEDEN) = state(i,j,k,URHO)*eos_state%e +  &
+                HALF*sum(state(i,j,k,UMX:UMY)**2)/state(i,j,k,URHO)
+
+           state(i,j,k,UEINT) = state(i,j,k,URHO)*eos_state%e
+
+           state(i,j,k,UFS:UFS-1+nspec) = state(i,j,k,URHO)*Xn(:)
 
         end do
      end do
   end do
+
+  ! write(*,*) "vel = "
+  ! write(*,*) state(:,:,:,UMX)
 
 end subroutine ca_initdata

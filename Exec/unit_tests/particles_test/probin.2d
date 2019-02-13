@@ -1,6 +1,6 @@
 &fortin
 
- vel_amp = 1.0
+ vel_amp = 1.0d0
 
 /
 

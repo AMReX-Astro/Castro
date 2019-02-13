@@ -1,6 +1,6 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 0
-stop_time = 0.001
+max_step = 100000
+stop_time = 6.28318531
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 1    1
@@ -36,6 +36,7 @@ castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
 castro.cfl            = 0.7     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1    # scale back initial timestep
 castro.change_max     = 1.1     # maximum increase in dt over successive steps
+castro.fixed_dt = 1.e-2
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
@@ -43,7 +44,7 @@ castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 
 # REFINEMENT / REGRIDDING
-amr.max_level       = 2       # maximum level number allowed
+amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2       # how often to regrid
 amr.blocking_factor = 4       # block factor in grid generation
@@ -55,7 +56,7 @@ amr.check_int       = 1000     # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = particles_plt
-amr.plot_int        = 10
+amr.plot_int        = 100
 amr.derive_plot_vars=ALL
 
 # PROBIN FILENAME

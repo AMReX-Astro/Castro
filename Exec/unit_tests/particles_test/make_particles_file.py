@@ -16,7 +16,7 @@ problo = np.array([0, 0])
 probhi = np.array([1, 1])
 
 # maximum distance from center
-max_R = np.sqrt(np.sum(0.25 * (probhi - problo)**2))
+max_R = np.max(0.5 * (probhi - problo))
 
 dr_part = max_R / n_particles
 dtheta_part = 2 * np.pi / n_particles
