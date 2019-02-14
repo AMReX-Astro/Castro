@@ -368,7 +368,7 @@ Castro::do_advance_mol (Real time,
   // NOTE: the time that passes through here is the time for the
   // current stage
 
-  BL_PROFILE("Castro::do_advance()");
+  BL_PROFILE("Castro::do_advance_mol()");
 
   //std::cout << "mol_iteration = " << mol_iteration << std::endl;
 
@@ -569,6 +569,7 @@ Castro::do_advance_mol (Real time,
 void
 Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
+    BL_PROFILE("Castro::initialize_do_advance()");
 
     // Reset the change from density resets
 
@@ -679,6 +680,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 void
 Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
+    BL_PROFILE("Castro::finalize_do_advance()");
 
 #ifdef RADIATION
     if (!do_hydro && Radiation::rad_hydro_combined) {
@@ -697,6 +699,8 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
 void
 Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
+    BL_PROFILE("Castro::initialize_advance()");
+
     // Save the current iteration.
 
     iteration = amr_iteration;
@@ -924,6 +928,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 void
 Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
+    BL_PROFILE("Castro::finalize_advance()");
 
     // Add the material lost in this timestep to the cumulative losses.
 
@@ -979,6 +984,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 bool
 Castro::retry_advance(Real& time, Real dt, int amr_iteration, int amr_ncycle)
 {
+    BL_PROFILE("Castro::retry_advance()");
 
     Real dt_new = 1.e200;
     Real dt_sub = 1.e200;
@@ -1135,6 +1141,7 @@ Castro::retry_advance(Real& time, Real dt, int amr_iteration, int amr_ncycle)
 Real
 Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int amr_ncycle)
 {
+    BL_PROFILE("Castro::subcycle_advance()");
 
     // Start the subcycle time off with the main dt,
     // unless we already came in here with an estimate
