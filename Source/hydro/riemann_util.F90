@@ -486,7 +486,7 @@ contains
 #endif
                                    QRHO, QU, QV, QW, &
                                    QPRES, QGAME, QREINT, &
-                                   QC, QGAMC, &
+                                   QC, QGAMC, QFS, &
 #ifdef HYBRID_MOMENTUM
                                    NGDNV, GDPRES, GDGAME, &
                                    GDRHO, GDU, GDV, GDW, &
