@@ -11,7 +11,8 @@ std::string inputs_name = "";
 // Prototypes
 //
 void GetInputArgs (const int argc, char** argv,
-                   string& pltfile, string& slcfile, double& xctr, double& yctr);
+                   string& pltfile, string& slcfile,
+                   double& xctr, double& yctr, double & zctr);
 
 void PrintHelp ();
 
@@ -33,8 +34,9 @@ int main(int argc, char* argv[])
 		string slcfile;
         double xctr = 0;
         double yctr = 0;
+        double zctr = 0;
 
-		GetInputArgs (argc, argv, pltfile, slcfile, xctr, yctr);
+		GetInputArgs (argc, argv, pltfile, slcfile, xctr, yctr, zctr);
 
 		// Start dataservices (no clue why we need to do this)
 		DataServices::SetBatchMode();
@@ -182,7 +184,8 @@ int main(int argc, char* argv[])
 // Parse command line arguments
 //
 void GetInputArgs ( const int argc, char** argv,
-                    string& pltfile, string& slcfile, double& xctr, double& yctr)
+                    string& pltfile, string& slcfile,
+                    double& xctr, double& yctr, double& zctr)
 {
 
 	int i = 1; // skip program name
@@ -205,6 +208,10 @@ void GetInputArgs ( const int argc, char** argv,
 		else if ( strcmp(argv[i],"--yctr") )
 		{
 			yctr = std::atof(argv[++i]);
+		}
+		else if ( strcmp(argv[i],"--zctr") )
+		{
+			zctr = std::atof(argv[++i]);
 		}
 		else
 		{
@@ -240,6 +247,7 @@ void PrintHelp ()
 	        << "\n     [-s|--slicefile] slice file : slice file          (required)"
             << "\n     [--xctr]               xctr : central x coord     (non-cartesian only)"
             << "\n     [--yctr]               yctr : central y coord     (non-cartesian only)"
+            << "\n     [--zctr]               zctr : central z coord     (non-cartesian only)"
 	        << "\n\n" << std::endl;
 
 }
