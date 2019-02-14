@@ -156,6 +156,8 @@ contains
 
     logical :: compute_shock
 
+    !$gpu
+
     hdt = HALF*dt
 
     ! multidimensional shock detection

@@ -90,6 +90,8 @@ contains
     integer :: QUN, QUT, QUTT
     real(rt) :: ref_fac, trace_fac1, trace_fac2, trace_fac3
 
+    !$gpu
+
     dtdx = dt/dx(idir)
 
 #ifndef AMREX_USE_CUDA

@@ -222,8 +222,9 @@ Castro::construct_hydro_source(Real time, Real dt)
       Elixir elix_qzp = qzp.elixir();
 #endif
 
-      ctu_normal_states(ARLIM_3D(obx.loVect()), ARLIM_3D(obx.hiVect()),
-                        ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+#pragma gpu
+      ctu_normal_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+                        AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                         BL_TO_FORTRAN_ANYD(q[mfi]),
                         BL_TO_FORTRAN_ANYD(flatn),
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
@@ -248,11 +249,15 @@ Castro::construct_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qzm),
                         BL_TO_FORTRAN_ANYD(qzp),
 #endif
-                        ZFILL(dx), dt,
+                        AMREX_REAL_ANYD(dx), dt,
 #if (AMREX_SPACEDIM < 3)
                         BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
 #endif
-                        ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+                        AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+
+#ifdef AMREX_USE_CUDA
+      Gpu::Device::synchronize();
+#endif
 
       div.resize(obx, 1);
       Elixir elix_div = div.elixir();
@@ -973,10 +978,10 @@ Castro::construct_hydro_source(Real time, Real dt)
                            BL_TO_FORTRAN_ANYD(Sborder[mfi]),
                            BL_TO_FORTRAN_ANYD(q[mfi]),
                            BL_TO_FORTRAN_ANYD(flux[idir]),
-  #ifdef RADIATION
+#ifdef RADIATION
                            BL_TO_FORTRAN_ANYD(Erborder[mfi]),
                            BL_TO_FORTRAN_ANYD(rad_flux[idir]),
-    #endif
+#endif
                            BL_TO_FORTRAN_ANYD(area[idir][mfi]),
                            BL_TO_FORTRAN_ANYD(volume[mfi]),
                            BL_TO_FORTRAN_ANYD(div),
