@@ -11,7 +11,7 @@ std::string inputs_name = "";
 // Prototypes
 //
 void GetInputArgs (const int argc, char** argv,
-                   string& pltfile, string& slcfile);
+                   string& pltfile, string& slcfile, double& xctr, double& yctr);
 
 void PrintHelp ();
 
@@ -31,8 +31,10 @@ int main(int argc, char* argv[])
 		// Input arguments
 		string pltfile;
 		string slcfile;
+        double xctr = 0;
+        double yctr = 0;
 
-		GetInputArgs (argc, argv, pltfile, slcfile);
+		GetInputArgs (argc, argv, pltfile, slcfile, xctr, yctr);
 
 		// Start dataservices (no clue why we need to do this)
 		DataServices::SetBatchMode();
@@ -126,12 +128,12 @@ int main(int argc, char* argv[])
             *it = 1;
 
         // extract the 1d data
-		for (auto l = finestLevel-1; l >= 0; l--) {
+		for (auto l = finestLevel; l >= 0; l--) {
 
             MultiFab lev_data_mf;
             data.FillVar(lev_data_mf, l, varNames, fill_comps);
 
-			for (MFIter mfi(lev_data_mf, true); mfi.isValid(); ++mfi) {
+			for (MFIter mfi(lev_data_mf); mfi.isValid(); ++mfi) {
 				const Box& bx = mfi.tilebox();
 
 				fextract1d(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
@@ -180,7 +182,7 @@ int main(int argc, char* argv[])
 // Parse command line arguments
 //
 void GetInputArgs ( const int argc, char** argv,
-                    string& pltfile, string& slcfile)
+                    string& pltfile, string& slcfile, double& xctr, double& yctr)
 {
 
 	int i = 1; // skip program name
@@ -195,6 +197,14 @@ void GetInputArgs ( const int argc, char** argv,
 		else if ( strcmp(argv[i],"-s") || strcmp(argv[i],"--slicefile") )
 		{
 			slcfile = argv[++i];
+		}
+		else if ( strcmp(argv[i],"--xctr") )
+		{
+			xctr = std::atof(argv[++i]);
+		}
+		else if ( strcmp(argv[i],"--yctr") )
+		{
+			yctr = std::atof(argv[++i]);
 		}
 		else
 		{
@@ -228,6 +238,8 @@ void PrintHelp ()
 	Print() << "\nusage: executable_name args"
 	        << "\nargs [-p|--pltfile]   plotfile   : plot file directory (required)"
 	        << "\n     [-s|--slicefile] slice file : slice file          (required)"
+            << "\n     [--xctr]               xctr : central x coord     (non-cartesian only)"
+            << "\n     [--yctr]               yctr : central y coord     (non-cartesian only)"
 	        << "\n\n" << std::endl;
 
 }
