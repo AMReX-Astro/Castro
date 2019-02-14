@@ -1101,28 +1101,54 @@ Castro::construct_hydro_source(Real time, Real dt)
         }
 #endif
 
-#ifdef AMREX_USE_CUDA
-        Gpu::Device::streamSynchronize();
-#endif
         // Store the fluxes from this advance.
 
         // For normal integration we want to add the fluxes from this advance
         // since we may be subcycling the timestep. But for SDC integration
         // we want to copy the fluxes since we expect that there will not be
         // subcycling and we only want the last iteration's fluxes.
+
+        Array4<Real> const flux_fab = (flux[idir]).array();
+        Array4<Real> fluxes_fab = (*fluxes[idir]).array(mfi);
+        const int numcomp = NUM_STATE;
+
+        AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), numcomp, i, j, k, n,
+        {
 #ifndef SDC
-        (*fluxes[idir])[mfi].plus(flux[idir], mfi.nodaltilebox(idir), 0, 0, NUM_STATE);
-#ifdef RADIATION
-        (*rad_fluxes[idir])[mfi].plus(rad_flux[idir], mfi.nodaltilebox(idir), 0, 0, Radiation::nGroups);
-#endif
+            fluxes_fab(i,j,k,n) += flux_fab(i,j,k,n);
 #else
-        (*fluxes[idir])[mfi].copy(flux[idir], mfi.nodaltilebox(idir), 0, mfi.nodaltilebox(idir), 0, NUM_STATE);
+            fluxes_fab(i,j,k,n) = flux_fab(i,j,k,n);
+#endif
+        });
+
 #ifdef RADIATION
-        (*rad_fluxes[idir])[mfi].copy(rad_flux[idir] mfi.nodaltilebox(idir), 0, mfi.nodaltilebox(idir), 0, Radiation::nGroups);
+        Array4<Real> const rad_flux_fab = (rad_flux[idir]).array();
+        Array4<Real> rad_fluxes_fab = (*rad_fluxes[idir]).array(mfi);
+        const int radcomp = Radiation::nGroups;
+
+        AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), radcomp, i, j, k, n,
+        {
+#ifndef SDC
+            rad_fluxes_fab(i,j,k,n) += rad_flux_fab(i,j,k,n);
+#else
+            rad_fluxes_fab(i,j,k,n) = rad_flux_fab(i,j,k,n);
 #endif
+        });
 #endif
-        (*mass_fluxes[idir])[mfi].copy(flux[idir], mfi.nodaltilebox(idir), Density, mfi.nodaltilebox(idir), 0, 1);
+
+        Array4<Real> mass_fluxes_fab = (*mass_fluxes[idir]).array(mfi);
+        const int dens_comp = Density;
+
+        AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), 1, i, j, k, n,
+        {
+            mass_fluxes_fab(i,j,k,0) = flux_fab(i,j,k,dens_comp);
+        });
+
       } // idir loop
+
+#ifdef AMREX_USE_CUDA
+      Gpu::Device::streamSynchronize();
+#endif
 
 #if (AMREX_SPACEDIM <= 2)
       if (!Geometry::IsCartesian()) {
