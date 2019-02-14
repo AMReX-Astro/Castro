@@ -155,10 +155,6 @@ Castro::construct_hydro_source(Real time, Real dt)
         flatn.setVal(1.0, obx);
       }
 
-#ifdef AMREX_USE_CUDA
-      Gpu::Device::streamSynchronize();
-#endif
-
       const Box& xbx = amrex::surroundingNodes(bx, 0);
       const Box& gxbx = amrex::grow(xbx, 1);
 #if AMREX_SPACEDIM >= 2
@@ -255,18 +251,19 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
                         AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
-#ifdef AMREX_USE_CUDA
-      Gpu::Device::synchronize();
-#endif
-
       div.resize(obx, 1);
       Elixir elix_div = div.elixir();
 
       // compute divu -- we'll use this later when doing the artifical viscosity
-      divu(ARLIM_3D(obx.loVect()), ARLIM_3D(obx.hiVect()),
+#pragma gpu
+      divu(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
            BL_TO_FORTRAN_ANYD(q[mfi]),
-           ZFILL(dx),
+           AMREX_REAL_ANYD(dx),
            BL_TO_FORTRAN_ANYD(div));
+
+#ifdef AMREX_USE_CUDA
+      Gpu::Device::synchronize();
+#endif
 
       q_int.resize(obx, NQ);
       Elixir elix_q_int = q_int.elixir();
@@ -319,7 +316,8 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 
 #if AMREX_SPACEDIM == 1
-      cmpflx_plus_godunov(ARLIM_3D(xbx.loVect()), ARLIM_3D(xbx.hiVect()),
+#pragma gpu
+      cmpflx_plus_godunov(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
                           BL_TO_FORTRAN_ANYD(qxm),
                           BL_TO_FORTRAN_ANYD(qxp), 1, 1,
                           BL_TO_FORTRAN_ANYD(flux[0]),
@@ -331,7 +329,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(qe[0]),
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           BL_TO_FORTRAN_ANYD(shk),
-                          1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+                          1, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
 #endif // 1-d
 
@@ -380,7 +378,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       // ftmp1 = fx
       // rftmp1 = rfx
       // qgdnvtmp1 = qgdnxv
-      cmpflx_plus_godunov(ARLIM_3D(cxbx.loVect()), ARLIM_3D(cxbx.hiVect()),
+#pragma gpu
+      cmpflx_plus_godunov(AMREX_INT_ANYD(cxbx.loVect()), AMREX_INT_ANYD(cxbx.hiVect()),
                           BL_TO_FORTRAN_ANYD(qxm),
                           BL_TO_FORTRAN_ANYD(qxp), 1, 1,
                           BL_TO_FORTRAN_ANYD(ftmp1),
@@ -392,7 +391,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(qgdnvtmp1),
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           BL_TO_FORTRAN_ANYD(shk),
-                          1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+                          1, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       // compute F^y
       // [lo(1)-1, lo(2), 0], [hi(1)+1, hi(2)+1, 0]
@@ -400,7 +399,8 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       // ftmp2 = fy
       // rftmp2 = rfy
-      cmpflx_plus_godunov(ARLIM_3D(cybx.loVect()), ARLIM_3D(cybx.hiVect()),
+#pragma gpu
+      cmpflx_plus_godunov(AMREX_INT_ANYD(cybx.loVect()), AMREX_INT_ANYD(cybx.hiVect()),
                           BL_TO_FORTRAN_ANYD(qym),
                           BL_TO_FORTRAN_ANYD(qyp), 1, 1,
                           BL_TO_FORTRAN_ANYD(ftmp2),
@@ -412,14 +412,15 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(qe[1]),
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           BL_TO_FORTRAN_ANYD(shk),
-                          2, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+                          2, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       // add the transverse flux difference in y to the x states
       // [lo(1), lo(2), 0], [hi(1)+1, hi(2), 0]
 
       // ftmp2 = fy
       // rftmp2 = rfy
-      transy_on_xstates(ARLIM_3D(xbx.loVect()), ARLIM_3D(xbx.hiVect()),
+#pragma gpu
+      transy_on_xstates(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qxm),
                         BL_TO_FORTRAN_ANYD(ql),
                         BL_TO_FORTRAN_ANYD(qxp),
@@ -434,7 +435,8 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       // solve the final Riemann problem axross the x-interfaces
 
-      cmpflx_plus_godunov(ARLIM_3D(xbx.loVect()), ARLIM_3D(xbx.hiVect()),
+#pragma gpu
+      cmpflx_plus_godunov(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
                           BL_TO_FORTRAN_ANYD(ql),
                           BL_TO_FORTRAN_ANYD(qr), 1, 1,
                           BL_TO_FORTRAN_ANYD(flux[0]),
@@ -446,7 +448,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(qe[0]),
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           BL_TO_FORTRAN_ANYD(shk),
-                          1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+                          1, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       // add the transverse flux difference in x to the y states
       // [lo(1), lo(2), 0], [hi(1), hi(2)+1, 0]
@@ -455,7 +457,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       // rftmp1 = rfx
       // qgdnvtmp1 = qgdnvx
 
-      transx_on_ystates(ARLIM_3D(ybx.loVect()), ARLIM_3D(ybx.hiVect()),
+#pragma gpu
+      transx_on_ystates(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qym),
                         BL_TO_FORTRAN_ANYD(ql),
                         BL_TO_FORTRAN_ANYD(qyp),
@@ -472,7 +475,8 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       // solve the final Riemann problem axross the y-interfaces
 
-      cmpflx_plus_godunov(ARLIM_3D(ybx.loVect()), ARLIM_3D(ybx.hiVect()),
+#pragma gpu
+      cmpflx_plus_godunov(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
                           BL_TO_FORTRAN_ANYD(ql),
                           BL_TO_FORTRAN_ANYD(qr), 1, 1,
                           BL_TO_FORTRAN_ANYD(flux[1]),
@@ -484,7 +488,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(qe[1]),
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           BL_TO_FORTRAN_ANYD(shk),
-                          2, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+                          2, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 #endif // 2-d
 
 
@@ -508,7 +512,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       // ftmp1 = fx
       // rftmp1 = rfx
       // qgdnvtmp1 = qgdnxv
-      cmpflx_plus_godunov(ARLIM_3D(cxbx.loVect()), ARLIM_3D(cxbx.hiVect()),
+#pragma gpu
+      cmpflx_plus_godunov(AMREX_INT_ANYD(cxbx.loVect()), AMREX_INT_ANYD(cxbx.hiVect()),
                           BL_TO_FORTRAN_ANYD(qxm),
                           BL_TO_FORTRAN_ANYD(qxp), 1, 1,
                           BL_TO_FORTRAN_ANYD(ftmp1),
@@ -520,7 +525,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(qgdnvtmp1),
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           BL_TO_FORTRAN_ANYD(shk),
-                          1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+                          1, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       // [lo(1), lo(2), lo(3)-1], [hi(1), hi(2)+1, hi(3)+1]
       const Box& tyxbx = amrex::grow(ybx, IntVect(AMREX_D_DECL(0,0,1)));
@@ -534,7 +539,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       // ftmp1 = fx
       // rftmp1 = rfx
       // qgdnvtmp1 = qgdnvx
-      transx_on_ystates(ARLIM_3D(tyxbx.loVect()), ARLIM_3D(tyxbx.hiVect()),
+#pragma gpu
+      transx_on_ystates(AMREX_INT_ANYD(tyxbx.loVect()), AMREX_INT_ANYD(tyxbx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qym),
                         BL_TO_FORTRAN_ANYD(qmyx),
                         BL_TO_FORTRAN_ANYD(qyp),
@@ -556,7 +562,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       qpzx.resize(tzxbx, NQ);
       Elixir elix_qpzx = qpzx.elixir();
 
-      transx_on_zstates(ARLIM_3D(tzxbx.loVect()), ARLIM_3D(tzxbx.hiVect()),
+#pragma gpu
+      transx_on_zstates(AMREX_INT_ANYD(tzxbx.loVect()), AMREX_INT_ANYD(tzxbx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qzm),
                         BL_TO_FORTRAN_ANYD(qmzx),
                         BL_TO_FORTRAN_ANYD(qzp),
@@ -576,7 +583,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       // ftmp1 = fy
       // rftmp1 = rfy
       // qgdnvtmp1 = qgdnvy
-      cmpflx_plus_godunov(ARLIM_3D(cybx.loVect()), ARLIM_3D(cybx.hiVect()),
+#pragma gpu
+      cmpflx_plus_godunov(AMREX_INT_ANYD(cybx.loVect()), AMREX_INT_ANYD(cybx.hiVect()),
                           BL_TO_FORTRAN_ANYD(qym),
                           BL_TO_FORTRAN_ANYD(qyp), 1, 1,
                           BL_TO_FORTRAN_ANYD(ftmp1),
@@ -588,7 +596,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(qgdnvtmp1),
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           BL_TO_FORTRAN_ANYD(shk),
-                          2, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+                          2, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       // [lo(1), lo(2), lo(3)-1], [hi(1)+1, hi(2), lo(3)+1]
       const Box& txybx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,0,1)));
@@ -602,7 +610,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       // ftmp1 = fy
       // rftmp1 = rfy
       // qgdnvtmp1 = qgdnvy
-      transy_on_xstates(ARLIM_3D(txybx.loVect()), ARLIM_3D(txybx.hiVect()),
+#pragma gpu
+      transy_on_xstates(AMREX_INT_ANYD(txybx.loVect()), AMREX_INT_ANYD(txybx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qxm),
                         BL_TO_FORTRAN_ANYD(qmxy),
                         BL_TO_FORTRAN_ANYD(qxp),
@@ -627,7 +636,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       // ftmp1 = fy
       // rftmp1 = rfy
       // qgdnvtmp1 = qgdnvy
-      transy_on_zstates(ARLIM_3D(tzybx.loVect()), ARLIM_3D(tzybx.hiVect()),
+#pragma gpu
+      transy_on_zstates(AMREX_INT_ANYD(tzybx.loVect()), AMREX_INT_ANYD(tzybx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qzm),
                         BL_TO_FORTRAN_ANYD(qmzy),
                         BL_TO_FORTRAN_ANYD(qzp),
@@ -647,7 +657,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       // ftmp1 = fz
       // rftmp1 = rfz
       // qgdnvtmp1 = qgdnvz
-      cmpflx_plus_godunov(ARLIM_3D(czbx.loVect()), ARLIM_3D(czbx.hiVect()),
+#pragma gpu
+      cmpflx_plus_godunov(AMREX_INT_ANYD(czbx.loVect()), AMREX_INT_ANYD(czbx.hiVect()),
                           BL_TO_FORTRAN_ANYD(qzm),
                           BL_TO_FORTRAN_ANYD(qzp), 1, 1,
                           BL_TO_FORTRAN_ANYD(ftmp1),
@@ -659,7 +670,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(qgdnvtmp1),
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           BL_TO_FORTRAN_ANYD(shk),
-                          3, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+                          3, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       // [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, lo(3)]
       const Box& txzbx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,1,0)));
@@ -673,7 +684,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       // ftmp1 = fz
       // rftmp1 = rfz
       // qgdnvtmp1 = qgdnvz
-      transz_on_xstates(ARLIM_3D(txzbx.loVect()), ARLIM_3D(txzbx.hiVect()),
+#pragma gpu
+      transz_on_xstates(AMREX_INT_ANYD(txzbx.loVect()), AMREX_INT_ANYD(txzbx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qxm),
                         BL_TO_FORTRAN_ANYD(qmxz),
                         BL_TO_FORTRAN_ANYD(qxp),
@@ -698,7 +710,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       // ftmp1 = fz
       // rftmp1 = rfz
       // qgdnvtmp1 = qgdnvz
-      transz_on_ystates(ARLIM_3D(tyzbx.loVect()), ARLIM_3D(tyzbx.hiVect()),
+#pragma gpu
+      transz_on_ystates(AMREX_INT_ANYD(tyzbx.loVect()), AMREX_INT_ANYD(tyzbx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qym),
                         BL_TO_FORTRAN_ANYD(qmyz),
                         BL_TO_FORTRAN_ANYD(qyp),
@@ -724,7 +737,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       // ftmp1 = fyz
       // rftmp1 = rfyz
       // qgdnvtmp1 = qgdnvyz
-      cmpflx_plus_godunov(ARLIM_3D(cyzbx.loVect()), ARLIM_3D(cyzbx.hiVect()),
+#pragma gpu
+      cmpflx_plus_godunov(AMREX_INT_ANYD(cyzbx.loVect()), AMREX_INT_ANYD(cyzbx.hiVect()),
                           BL_TO_FORTRAN_ANYD(qmyz),
                           BL_TO_FORTRAN_ANYD(qpyz), 1, 1,
                           BL_TO_FORTRAN_ANYD(ftmp1),
@@ -736,7 +750,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(qgdnvtmp1),
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           BL_TO_FORTRAN_ANYD(shk),
-                          2, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+                          2, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       // compute F^{z|y}
       // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+1]
@@ -745,7 +759,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       // ftmp2 = fzy
       // rftmp2 = rfzy
       // qgdnvtmp2 = qgdnvzy
-      cmpflx_plus_godunov(ARLIM_3D(czybx.loVect()), ARLIM_3D(czybx.hiVect()),
+#pragma gpu
+      cmpflx_plus_godunov(AMREX_INT_ANYD(czybx.loVect()), AMREX_INT_ANYD(czybx.hiVect()),
                           BL_TO_FORTRAN_ANYD(qmzy),
                           BL_TO_FORTRAN_ANYD(qpzy), 1, 1,
                           BL_TO_FORTRAN_ANYD(ftmp2),
@@ -757,12 +772,13 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(qgdnvtmp2),
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           BL_TO_FORTRAN_ANYD(shk),
-                          3, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+                          3, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       // compute the corrected x interface states and fluxes
       // [lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)]
 
-      transyz(ARLIM_3D(xbx.loVect()), ARLIM_3D(xbx.hiVect()),
+#pragma gpu
+      transyz(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
               BL_TO_FORTRAN_ANYD(qxm),
               BL_TO_FORTRAN_ANYD(ql),
               BL_TO_FORTRAN_ANYD(qxp),
@@ -780,7 +796,8 @@ Castro::construct_hydro_source(Real time, Real dt)
               BL_TO_FORTRAN_ANYD(qgdnvtmp2),
               hdt, hdtdy, hdtdz);
 
-      cmpflx_plus_godunov(ARLIM_3D(cxbx.loVect()), ARLIM_3D(cxbx.hiVect()),
+#pragma gpu
+      cmpflx_plus_godunov(AMREX_INT_ANYD(cxbx.loVect()), AMREX_INT_ANYD(cxbx.hiVect()),
                           BL_TO_FORTRAN_ANYD(ql),
                           BL_TO_FORTRAN_ANYD(qr), 1, 1,
                           BL_TO_FORTRAN_ANYD(flux[0]),
@@ -792,7 +809,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(qe[0]),
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           BL_TO_FORTRAN_ANYD(shk),
-                          1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+                          1, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       //
       // Use qy?, q?zx, q?xz to compute final y-flux
@@ -805,7 +822,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       // ftmp1 = fzx
       // rftmp1 = rfzx
       // qgdnvtmp1 = qgdnvzx
-      cmpflx_plus_godunov(ARLIM_3D(czxbx.loVect()), ARLIM_3D(czxbx.hiVect()),
+#pragma gpu
+      cmpflx_plus_godunov(AMREX_INT_ANYD(czxbx.loVect()), AMREX_INT_ANYD(czxbx.hiVect()),
                           BL_TO_FORTRAN_ANYD(qmzx),
                           BL_TO_FORTRAN_ANYD(qpzx), 1, 1,
                           BL_TO_FORTRAN_ANYD(ftmp1),
@@ -817,7 +835,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(qgdnvtmp1),
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           BL_TO_FORTRAN_ANYD(shk),
-                          3, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+                          3, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       // compute F^{x|z}
       // [lo(1), lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)]
@@ -826,7 +844,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       // ftmp2 = fxz
       // rftmp2 = rfxz
       // qgdnvtmp2 = qgdnvxz
-      cmpflx_plus_godunov(ARLIM_3D(cxzbx.loVect()), ARLIM_3D(cxzbx.hiVect()),
+#pragma gpu
+      cmpflx_plus_godunov(AMREX_INT_ANYD(cxzbx.loVect()), AMREX_INT_ANYD(cxzbx.hiVect()),
                           BL_TO_FORTRAN_ANYD(qmxz),
                           BL_TO_FORTRAN_ANYD(qpxz), 1, 1,
                           BL_TO_FORTRAN_ANYD(ftmp2),
@@ -838,12 +857,13 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(qgdnvtmp2),
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           BL_TO_FORTRAN_ANYD(shk),
-                          1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+                          1, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       // Compute the corrected y interface states and fluxes
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)]
 
-      transxz(ARLIM_3D(ybx.loVect()), ARLIM_3D(ybx.hiVect()),
+#pragma gpu
+      transxz(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
               BL_TO_FORTRAN_ANYD(qym),
               BL_TO_FORTRAN_ANYD(ql),
               BL_TO_FORTRAN_ANYD(qyp),
@@ -863,7 +883,8 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       // Compute the final F^y
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)]
-      cmpflx_plus_godunov(ARLIM_3D(ybx.loVect()), ARLIM_3D(ybx.hiVect()),
+#pragma gpu
+      cmpflx_plus_godunov(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
                           BL_TO_FORTRAN_ANYD(ql),
                           BL_TO_FORTRAN_ANYD(qr), 1, 1,
                           BL_TO_FORTRAN_ANYD(flux[1]),
@@ -875,7 +896,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(qe[1]),
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           BL_TO_FORTRAN_ANYD(shk),
-                          2, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+                          2, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       //
       // Use qz?, q?xy, q?yx to compute final z-flux
@@ -888,7 +909,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       // ftmp1 = fxy
       // rftmp1 = rfxy
       // qgdnvtmp1 = qgdnvxy
-      cmpflx_plus_godunov(ARLIM_3D(cxybx.loVect()), ARLIM_3D(cxybx.hiVect()),
+#pragma gpu
+      cmpflx_plus_godunov(AMREX_INT_ANYD(cxybx.loVect()), AMREX_INT_ANYD(cxybx.hiVect()),
                           BL_TO_FORTRAN_ANYD(qmxy),
                           BL_TO_FORTRAN_ANYD(qpxy), 1, 1,
                           BL_TO_FORTRAN_ANYD(ftmp1),
@@ -900,7 +922,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(qgdnvtmp1),
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           BL_TO_FORTRAN_ANYD(shk),
-                          1, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+                          1, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       // compute F^{y|x}
       // [lo(1), lo(2), lo(3)-1], [hi(1), hi(2)+dg(2), hi(3)+1]
@@ -909,7 +931,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       // ftmp2 = fyx
       // rftmp2 = rfyx
       // qgdnvtmp2 = qgdnvyx
-      cmpflx_plus_godunov(ARLIM_3D(cyxbx.loVect()), ARLIM_3D(cyxbx.hiVect()),
+#pragma gpu
+      cmpflx_plus_godunov(AMREX_INT_ANYD(cyxbx.loVect()), AMREX_INT_ANYD(cyxbx.hiVect()),
                           BL_TO_FORTRAN_ANYD(qmyx),
                           BL_TO_FORTRAN_ANYD(qpyx), 1, 1,
                           BL_TO_FORTRAN_ANYD(ftmp2),
@@ -921,12 +944,13 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(qgdnvtmp2),
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           BL_TO_FORTRAN_ANYD(shk),
-                          2, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+                          2, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       // compute the corrected z interface states and fluxes
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1]
 
-      transxy(ARLIM_3D(zbx.loVect()), ARLIM_3D(zbx.hiVect()),
+#pragma gpu
+      transxy(AMREX_INT_ANYD(zbx.loVect()), AMREX_INT_ANYD(zbx.hiVect()),
               BL_TO_FORTRAN_ANYD(qzm),
               BL_TO_FORTRAN_ANYD(ql),
               BL_TO_FORTRAN_ANYD(qzp),
@@ -947,7 +971,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       // compute the final z fluxes F^z
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1]
 
-      cmpflx_plus_godunov(ARLIM_3D(zbx.loVect()), ARLIM_3D(zbx.hiVect()),
+#pragma gpu
+      cmpflx_plus_godunov(AMREX_INT_ANYD(zbx.loVect()), AMREX_INT_ANYD(zbx.hiVect()),
                           BL_TO_FORTRAN_ANYD(ql),
                           BL_TO_FORTRAN_ANYD(qr), 1, 1,
                           BL_TO_FORTRAN_ANYD(flux[2]),
@@ -959,7 +984,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(qe[2]),
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           BL_TO_FORTRAN_ANYD(shk),
-                          3, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+                          3, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
 #endif // 3-d
 
@@ -973,7 +998,8 @@ Castro::construct_hydro_source(Real time, Real dt)
 
           int idir_f = idir + 1;
 
-          ctu_clean_fluxes(ARLIM_3D(nbx.loVect()), ARLIM_3D(nbx.hiVect()),
+#pragma gpu
+          ctu_clean_fluxes(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                            idir_f,
                            BL_TO_FORTRAN_ANYD(Sborder[mfi]),
                            BL_TO_FORTRAN_ANYD(q[mfi]),
@@ -985,7 +1011,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                            BL_TO_FORTRAN_ANYD(area[idir][mfi]),
                            BL_TO_FORTRAN_ANYD(volume[mfi]),
                            BL_TO_FORTRAN_ANYD(div),
-                           ZFILL(dx), dt);
+                           AMREX_REAL_ANYD(dx), dt);
 
       }
 
@@ -996,32 +1022,49 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       // conservative update
 
-      ctu_consup(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+#pragma gpu
+      ctu_consup(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                  BL_TO_FORTRAN_ANYD(Sborder[mfi]),
                  BL_TO_FORTRAN_ANYD(q[mfi]),
                  BL_TO_FORTRAN_ANYD(shk),
                  BL_TO_FORTRAN_ANYD(S_new[mfi]),
                  BL_TO_FORTRAN_ANYD(hydro_source[mfi]),
-                 D_DECL(BL_TO_FORTRAN_ANYD(flux[0]),
-                        BL_TO_FORTRAN_ANYD(flux[1]),
-                        BL_TO_FORTRAN_ANYD(flux[2])),
+                 BL_TO_FORTRAN_ANYD(flux[0]),
+#if AMREX_SPACEDIM >= 2
+                 BL_TO_FORTRAN_ANYD(flux[1]),
+#endif
+#if AMREX_SPACEDIM == 3
+                 BL_TO_FORTRAN_ANYD(flux[2]),
+#endif
 #ifdef RADIATION
                  BL_TO_FORTRAN_ANYD(Erborder[mfi]),
                  BL_TO_FORTRAN_ANYD(Er_new[mfi]),
-                 D_DECL(BL_TO_FORTRAN_ANYD(rad_flux[0]),
-                        BL_TO_FORTRAN_ANYD(rad_flux[1]),
-                        BL_TO_FORTRAN_ANYD(rad_flux[2])),
+                 BL_TO_FORTRAN_ANYD(rad_flux[0]),
+#if AMREX_SPACEDIM >= 2
+                 BL_TO_FORTRAN_ANYD(rad_flux[1]),
+#endif
+#if AMREX_SPACEDIM == 3
+                 BL_TO_FORTRAN_ANYD(rad_flux[2]),
+#endif
                  &priv_nstep_fsp,
 #endif
-                 D_DECL(BL_TO_FORTRAN_ANYD(qe[0]),
-                        BL_TO_FORTRAN_ANYD(qe[1]),
-                        BL_TO_FORTRAN_ANYD(qe[2])),
-                 D_DECL(BL_TO_FORTRAN_ANYD(area[0][mfi]),
-                        BL_TO_FORTRAN_ANYD(area[1][mfi]),
-                        BL_TO_FORTRAN_ANYD(area[2][mfi])),
+                 BL_TO_FORTRAN_ANYD(qe[0]),
+#if AMREX_SPACEDIM >= 2
+                 BL_TO_FORTRAN_ANYD(qe[1]),
+#endif
+#if AMREX_SPACEDIM == 3
+                 BL_TO_FORTRAN_ANYD(qe[2]),
+#endif
+                 BL_TO_FORTRAN_ANYD(area[0][mfi]),
+#if AMREX_SPACEDIM >= 2
+                 BL_TO_FORTRAN_ANYD(area[1][mfi]),
+#endif
+#if AMREX_SPACEDIM == 3
+                 BL_TO_FORTRAN_ANYD(area[2][mfi]),
+#endif
                  BL_TO_FORTRAN_ANYD(volume[mfi]),
                  BL_TO_FORTRAN_ANYD(pdivu),
-                 ZFILL(dx), dt);
+                 AMREX_REAL_ANYD(dx), dt);
 
 #ifdef RADIATION
       nstep_fsp = std::max(nstep_fsp, priv_nstep_fsp);
@@ -1031,7 +1074,8 @@ Castro::construct_hydro_source(Real time, Real dt)
 
         const Box& nbx = amrex::surroundingNodes(bx, idir);
 
-        scale_flux(ARLIM_3D(nbx.loVect()), ARLIM_3D(nbx.hiVect()),
+#pragma gpu
+        scale_flux(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
 #if AMREX_SPACEDIM == 1
                    BL_TO_FORTRAN_ANYD(qe[idir]),
 #endif
@@ -1039,7 +1083,8 @@ Castro::construct_hydro_source(Real time, Real dt)
                    BL_TO_FORTRAN_ANYD(area[idir][mfi]), dt);
 
 #ifdef RADIATION
-        scale_rad_flux(ARLIM_3D(nbx.loVect()), ARLIM_3D(nbx.hiVect()),
+#pragma gpu
+        scale_rad_flux(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                        BL_TO_FORTRAN_ANYD(rad_flux[idir]),
                        BL_TO_FORTRAN_ANYD(area[idir][mfi]), dt);
 #endif
@@ -1049,10 +1094,15 @@ Castro::construct_hydro_source(Real time, Real dt)
           // get the scaled radial pressure -- we need to treat this specially
           // TODO: we should be able to do this entirely in C++, but we need to
           // know the value of mom_flux_has_p
-          store_pradial(ARLIM_3D(nbx.loVect()), ARLIM_3D(nbx.hiVect()),
+#pragma gpu
+          store_pradial(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                         BL_TO_FORTRAN_ANYD(qe[idir]),
                         BL_TO_FORTRAN_ANYD(pradial), dt);
         }
+#endif
+
+#ifdef AMREX_USE_CUDA
+        Gpu::Device::streamSynchronize();
 #endif
         // Store the fluxes from this advance.
 

@@ -524,6 +524,8 @@ contains
     integer          :: i, j, g, k, n
     integer          :: domlo(3), domhi(3)
 
+    !$gpu
+
     ! zero out shock and temp fluxes -- these are physically meaningless here
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -722,6 +724,8 @@ contains
     real(rt) :: umx_new1, umy_new1, umz_new1
     real(rt) :: umx_new2, umy_new2, umz_new2
 #endif
+
+    !$gpu
 
 #ifdef RADIATION
     if (ngroups .gt. 1) then
