@@ -664,6 +664,8 @@ contains
     integer          :: n, iq, ipassive
     real(rt)         :: rhoinv
 
+    !$gpu
+
     srcQ(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO
 
     ! compute srcQ terms
