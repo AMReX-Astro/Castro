@@ -365,8 +365,8 @@ contains
        ! recompute the thermodynamics on the interface to make it
        ! all consistent
 
-       ! we want to take the edge states of rho, p, and X, and get
-       ! new values for gamc and (rho e) on the edges that are
+       ! we want to take the edge states of rho, e, and X, and get
+       ! new values for p on the edges that are
        ! thermodynamically consistent.
 
        do k = lo(3), hi(3)
