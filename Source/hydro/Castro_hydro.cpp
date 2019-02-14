@@ -1146,21 +1146,25 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       } // idir loop
 
-#ifdef AMREX_USE_CUDA
-      Gpu::Device::streamSynchronize();
-#endif
+#if AMREX_SPACEDIM <= 2
+      Array4<Real> P_radial_fab = P_radial.array(mfi);
+      Array4<Real> pradial_fab = pradial.array();
 
-#if (AMREX_SPACEDIM <= 2)
-      if (!Geometry::IsCartesian()) {
+      AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
+      {
 #ifndef SDC
-        P_radial[mfi].plus(pradial, mfi.nodaltilebox(0), 0, 0, 1);
+          P_radial_fab(i,j,k,0) += pradial_fab(i,j,k,0);
 #else
-        P_radial[mfi].copy(pradial, mfi.nodaltilebox(0), 0, mfi.nodaltilebox(0), 0, 1);
+          P_radial_fab(i,j,k,0) = pradial_fab(i,j,k,0);
 #endif
-      }
+      });
 #endif
 
       if (track_grid_losses == 1) {
+
+#ifdef AMREX_USE_CUDA
+          Gpu::Device::streamSynchronize();
+#endif
 
           ca_track_grid_losses(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
                                D_DECL(BL_TO_FORTRAN_ANYD(flux[0]),
