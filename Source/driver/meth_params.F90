@@ -596,7 +596,7 @@ contains
     allocate(disable_shock_burning)
     disable_shock_burning = 0;
     allocate(T_guess)
-    T_guess = 1.e4;
+    T_guess = 1.e8;
     allocate(do_grav)
     do_grav = -1;
     allocate(grav_source_type)
