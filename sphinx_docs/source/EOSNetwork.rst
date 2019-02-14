@@ -43,7 +43,7 @@ in the inputs file. Reactions are enabled by setting::
 (Note: turning reactions off for problems where they're not required can help improve
 the efficiency).
 
-It is posisble to set the maximum and minimum temperature and density for allowing
+It is possible to set the maximum and minimum temperature and density for allowing
 reactions to occur in a zone using the parameters `castro.react_T_min`,
 `castro.react_T_max`, `castro.react_rho_min` and `castro.react_rho_max`.
 
