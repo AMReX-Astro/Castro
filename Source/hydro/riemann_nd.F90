@@ -1552,7 +1552,7 @@ contains
                 eos_state % rho = qint(i,j,k,QRHO)
                 eos_state % p = qint(i,j,k,QPRES)
                 eos_state % xn(:) = xn(:)
-                eos_state % T = 1.e4  T_guess
+                eos_state % T = T_guess
 
                 call eos(eos_input_rp, eos_state)
 
