@@ -3,7 +3,7 @@
 ! or add runtime parameters, please edit _cpp_parameters and then run
 ! mk_params.sh
 
-! This module stores the runtime parameters and integer names for 
+! This module stores the runtime parameters and integer names for
 ! indexing arrays.
 !
 ! The Fortran-specific parameters are initialized in set_method_params(),
@@ -65,8 +65,8 @@ module meth_params_module
   ! these flags are for interpreting the EXT_DIR BCs
   integer, parameter :: EXT_UNDEFINED = -1
   integer, parameter :: EXT_HSE = 1
-  integer, parameter :: EXT_INTERP = 2 
-  
+  integer, parameter :: EXT_INTERP = 2
+
   integer, allocatable, save :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 
   ! Create versions of these variables on the GPU
@@ -160,6 +160,7 @@ module meth_params_module
   real(rt), allocatable, save :: react_rho_min
   real(rt), allocatable, save :: react_rho_max
   integer,  allocatable, save :: disable_shock_burning
+  real(rt), allocatable, save :: T_guess
   real(rt), allocatable, save :: diffuse_cutoff_density
   real(rt), allocatable, save :: diffuse_cutoff_density_hi
   real(rt), allocatable, save :: diffuse_cond_scale_fac
@@ -241,6 +242,7 @@ attributes(managed) :: react_T_max
 attributes(managed) :: react_rho_min
 attributes(managed) :: react_rho_max
 attributes(managed) :: disable_shock_burning
+attributes(managed) :: T_guess
 #ifdef DIFFUSION
 attributes(managed) :: diffuse_cutoff_density
 #endif
@@ -347,6 +349,7 @@ attributes(managed) :: get_g_from_phi
   !$acc create(react_rho_min) &
   !$acc create(react_rho_max) &
   !$acc create(disable_shock_burning) &
+  !$acc create(T_guess) &
 #ifdef DIFFUSION
   !$acc create(diffuse_cutoff_density) &
 #endif
@@ -592,6 +595,8 @@ contains
     react_rho_max = 1.d200;
     allocate(disable_shock_burning)
     disable_shock_burning = 0;
+    allocate(T_guess)
+    T_guess = 1.e8;
     allocate(do_grav)
     do_grav = -1;
     allocate(grav_source_type)
@@ -682,6 +687,7 @@ contains
     call pp%query("react_rho_min", react_rho_min)
     call pp%query("react_rho_max", react_rho_max)
     call pp%query("disable_shock_burning", disable_shock_burning)
+    call pp%query("T_guess", T_guess)
     call pp%query("do_grav", do_grav)
     call pp%query("grav_source_type", grav_source_type)
     call pp%query("do_rotation", do_rotation)
@@ -709,7 +715,7 @@ contains
     !$acc device(cfl, dtnuc_e, dtnuc_X) &
     !$acc device(dtnuc_X_threshold, do_react, react_T_min) &
     !$acc device(react_T_max, react_rho_min, react_rho_max) &
-    !$acc device(disable_shock_burning, diffuse_cutoff_density, diffuse_cutoff_density_hi) &
+    !$acc device(disable_shock_burning, T_guess, diffuse_cutoff_density, diffuse_cutoff_density_hi) &
     !$acc device(diffuse_cond_scale_fac, do_grav, grav_source_type) &
     !$acc device(do_rotation, rot_period, rot_period_dot) &
     !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
@@ -724,7 +730,7 @@ contains
     select case (xl_ext_bc_type)
     case ("hse", "HSE")
        xl_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        xl_ext = EXT_INTERP
     case default
        xl_ext = EXT_UNDEFINED
@@ -733,7 +739,7 @@ contains
     select case (yl_ext_bc_type)
     case ("hse", "HSE")
        yl_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        yl_ext = EXT_INTERP
     case default
        yl_ext = EXT_UNDEFINED
@@ -742,7 +748,7 @@ contains
     select case (zl_ext_bc_type)
     case ("hse", "HSE")
        zl_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        zl_ext = EXT_INTERP
     case default
        zl_ext = EXT_UNDEFINED
@@ -751,7 +757,7 @@ contains
     select case (xr_ext_bc_type)
     case ("hse", "HSE")
        xr_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        xr_ext = EXT_INTERP
     case default
        xr_ext = EXT_UNDEFINED
@@ -760,7 +766,7 @@ contains
     select case (yr_ext_bc_type)
     case ("hse", "HSE")
        yr_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        yr_ext = EXT_INTERP
     case default
        yr_ext = EXT_UNDEFINED
@@ -769,7 +775,7 @@ contains
     select case (zr_ext_bc_type)
     case ("hse", "HSE")
        zr_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        zr_ext = EXT_INTERP
     case default
        zr_ext = EXT_UNDEFINED
@@ -964,6 +970,9 @@ contains
     if (allocated(disable_shock_burning)) then
         deallocate(disable_shock_burning)
     end if
+    if (allocated(T_guess)) then
+        deallocate(T_guess)
+    end if
     if (allocated(diffuse_cutoff_density)) then
         deallocate(diffuse_cutoff_density)
     end if
@@ -1038,7 +1047,7 @@ contains
     end if
 
 
-    
+
   end subroutine ca_finalize_meth_params
 
 
@@ -1067,9 +1076,9 @@ contains
        call amrex_error("Unknown fspace_type", fspace_type)
     end if
 #endif
-    
+
     do_inelastic_scattering = (do_is_in .ne. 0)
-    
+
     if (com_in .eq. 1) then
        comoving = .true.
     else if (com_in .eq. 0) then
@@ -1079,9 +1088,9 @@ contains
        call amrex_error("Wrong value for comoving", fspace_type)
 #endif
     end if
-    
+
     flatten_pp_threshold = fppt
-    
+
     !$acc update &
     !$acc device(QRAD, QRADHI, QPTOT, QREITOT) &
     !$acc device(fspace_type) &
