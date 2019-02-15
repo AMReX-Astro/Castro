@@ -118,6 +118,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Microphysics</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#equation-of-state">Equation of State</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#standard-castro-eoses">Standard Castro&nbsp;EOSes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#runtime-parameters">Runtime Parameters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#eos-interfaces-and-parameters">EOS Interfaces and Parameters</a></li>
 </ul>
 </li>
@@ -229,6 +230,23 @@ the minimum necessary for the hydrodynamics. A fuller set of
 thermodynamic variables, for example the entropy from the
 Sackur-Tetrode equation, are calculated in the gamma_law_general
 EOS inside the Microphysics&nbsp;repository.)</p>
+</div>
+<div class="section" id="runtime-parameters">
+<h3>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Permalink to this headline">¶</a></h3>
+<p>There are a number of reactions-related parameters that can be set at runtime
+in the inputs file. Reactions are enabled by setting:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">do_react</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>(Note: turning reactions off for problems where they’re not required can help improve
+the efficiency).</p>
+<p>It is possible to set the maximum and minimum temperature and density for allowing
+reactions to occur in a zone using the parameters <cite>castro.react_T_min</cite>,
+<cite>castro.react_T_max</cite>, <cite>castro.react_rho_min</cite> and <cite>castro.react_rho_max</cite>.</p>
+<p>When inverting the EOS (e.g. by calling <cite>eos_input_re</cite>), an initial guess for
+the temperature is required. This guess is provided by the runtime parameter
+<cite>castro.T_guess</cite>, and should be set to a sensible value for each problem
+(it will vary depending on which EOS is used).</p>
 </div>
 <div class="section" id="eos-interfaces-and-parameters">
 <h3>EOS Interfaces and Parameters<a class="headerlink" href="#eos-interfaces-and-parameters" title="Permalink to this headline">¶</a></h3>
