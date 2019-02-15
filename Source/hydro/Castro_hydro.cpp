@@ -311,8 +311,10 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 
 #if AMREX_SPACEDIM <= 2
-      pradial.resize(xbx, 1);
-      Elixir elix_pradial = pradial.elixir();
+      if (!Geometry::IsCartesian()) {
+          pradial.resize(xbx, 1);
+          Elixir elix_pradial = pradial.elixir();
+      }
 #endif
 
 #if AMREX_SPACEDIM == 1
@@ -1090,7 +1092,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 
 #if AMREX_SPACEDIM <= 2
-        if (idir == 0) {
+        if (idir == 0 && !Geometry::IsCartesian()) {
           // get the scaled radial pressure -- we need to treat this specially
           // TODO: we should be able to do this entirely in C++, but we need to
           // know the value of mom_flux_has_p
@@ -1147,17 +1149,21 @@ Castro::construct_hydro_source(Real time, Real dt)
       } // idir loop
 
 #if AMREX_SPACEDIM <= 2
-      Array4<Real> const pradial_fab = pradial.array();
-      Array4<Real> P_radial_fab = P_radial.array(mfi);
+      if (!Geometry::IsCartesian()) {
 
-      AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
-      {
+          Array4<Real> const pradial_fab = pradial.array();
+          Array4<Real> P_radial_fab = P_radial.array(mfi);
+
+          AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
+          {
 #ifndef SDC
-          P_radial_fab(i,j,k,0) += pradial_fab(i,j,k,0);
+              P_radial_fab(i,j,k,0) += pradial_fab(i,j,k,0);
 #else
-          P_radial_fab(i,j,k,0) = pradial_fab(i,j,k,0);
+              P_radial_fab(i,j,k,0) = pradial_fab(i,j,k,0);
 #endif
-      });
+          });
+
+      }
 #endif
 
       if (track_grid_losses == 1) {
