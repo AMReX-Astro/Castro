@@ -1099,7 +1099,7 @@ Castro::construct_hydro_source(Real time, Real dt)
             const int prescomp = GDPRES;
 #if AMREX_SPACEDIM == 1
             if (!Geometry::IsCartesian()) {
-                AMREX_PARALLEL_FOR_3D(mfi.nodaltilebox(idir), i, j, k,
+                AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
                 {
                     pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
                 });
@@ -1108,7 +1108,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 #if AMREX_SPACEDIM == 2
             if (!mom_flux_has_p[0][0]) {
-                AMREX_PARALLEL_FOR_3D(mfi.nodaltilebox(idir), i, j, k,
+                AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
                 {
                     pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
                 });
