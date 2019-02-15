@@ -32,9 +32,9 @@ int main(int argc, char* argv[])
 		// Input arguments
 		string pltfile;
 		string slcfile;
-        double xctr = 0;
-        double yctr = 0;
-        double zctr = 0;
+		double xctr = 0.0;
+		double yctr = 0.0;
+		double zctr = 0.0;
 
 		GetInputArgs (argc, argv, pltfile, slcfile, xctr, yctr, zctr);
 
@@ -53,124 +53,190 @@ int main(int argc, char* argv[])
 
 		int finestLevel = data.FinestLevel();
 
+		const int factor = 2;
+
 		// get variable names
-		const Vector<string>& varNames = data.PlotVarNames ();
+		const Vector<string>& varNames = data.PlotVarNames();
 
 		// get the index bounds and dx.
-		const Vector<Vector<Real> >& dxLevel = data.DxLevel();
+		Box domain = data.ProbDomain()[finestLevel];
+
+        Vector<Real> dx(AMREX_SPACEDIM);
+        for (int i = 0; i < AMREX_SPACEDIM; i++)
+            dx[i] = data.ProbSize()[i] / domain.length(i);
+
+		// const Vector<Vector<Real> >& dx = data.DxLevel();
 		const Vector<Real>& problo = data.ProbLo();
 		const Vector<Real>& probhi = data.ProbHi();
 
 		// compute the size of the radially-binned array -- we'll do it to
 		// the furtherest corner of the domain
+#if (AMREX_SPACEDIM == 1)
 		double maxdist = abs(probhi[0] - problo[0]);
-		double dx_fine = *(std::min_element(dxLevel[finestLevel].begin(), dxLevel[finestLevel].end()));
+#elif (AMREX_SPACEDIM == 2)
+		double x_maxdist = max(abs(probhi[0] - xctr), abs(problo[0] - xctr));
+		double y_maxdist = max(abs(probhi[1] - yctr), abs(problo[1] - yctr));
+		double maxdist = sqrt(x_maxdist*x_maxdist + y_maxdist*y_maxdist);
+#else
+		double maxdist = max(abs(probhi[0] - problo[0]), abs(probhi[1] - problo[1]), abs(probhi[2] - problo[2]));
+#endif
 
-		auto n_bins = int(maxdist / dx_fine);
+		double dx_fine = *(std::min_element(dx.begin(), dx.end()));
 
-		Vector<Real> r(n_bins);
-		for (auto i = 0; i < n_bins; i++)
-			r[i] = (i + 0.5) * dx_fine;
+		int nbins = int(maxdist / dx_fine) / 2;
+
+		Vector<Real> r(nbins);
+
+		for (auto i = 0; i < nbins; i++)
+			r[i] = (i + 1.5) * dx_fine;
 
 		// find variable indices
-		auto dens_comp = -1;
-		auto xmom_comp = -1;
-		auto pres_comp = -1;
-		auto rhoe_comp = -1;
+		auto dens_comp = data.StateNumber("density");
+		auto xmom_comp = data.StateNumber("xmom");
+#if (AMREX_SPACEDIM >= 2)
+		auto ymom_comp = data.StateNumber("ymom");
+#endif
+#if (AMREX_SPACEDIM == 3)
+		auto zmom_comp = data.StateNumber("zmom")
+#endif
+		auto pres_comp = data.StateNumber("pressure");
+		auto rhoe_comp = data.StateNumber("rho_e");
 
-		for (auto i = 0; i < data.NComp(); ++i) {
-			if (varNames[i] == "density") dens_comp = i;
-			else if (varNames[i] == "xmom") xmom_comp = i;
-			else if (varNames[i] == "pressure") pres_comp = i;
-			else if (varNames[i] == "rho_e") rhoe_comp = i;
-		}
-
-		if (dens_comp < 0 || xmom_comp < 0 || pres_comp < 0 || rhoe_comp < 0) {
+		if (dens_comp < 0 || xmom_comp < 0 || pres_comp < 0 || rhoe_comp < 0)
 			Abort("ERROR: variable(s) not found");
-		}
+
+#if (AMREX_SPACEDIM == 3)
+		if (ymom_comp < 0 || zmom_comp < 0)
+			Abort("ERROR: variable(s) not found");
+#endif
 
 		// allocate storage for data
-		Vector<Real> dens_bin(n_bins);
-		Vector<Real> vel_bin(n_bins);
-		Vector<Real> pres_bin(n_bins);
-		Vector<Real> e_bin(n_bins);
-
-		for (auto i = 0; i < n_bins; ++i) {
-			dens_bin[i] = 0.0;
-			vel_bin[i] = 0.0;
-			pres_bin[i] = 0.0;
-			e_bin[i] = 0.0;
-		}
+		Vector<Real> dens_bin(nbins, 0.);
+		Vector<Real> vel_bin(nbins, 0.);
+		Vector<Real> pres_bin(nbins, 0.);
+		Vector<Real> e_bin(nbins, 0.);
+		Vector<int> ncount(nbins, 0);
 
 		auto r1 = 1.0;
 
-		auto rr = data.RefRatio();
+		Vector<int> rr = data.RefRatio();
 
 		// fill a multifab with the data
 		Vector<int> fill_comps(data.NComp());
 		for (auto i = 0; i < data.NComp(); i++) {
 			fill_comps[i] = i;
-        }
+		}
 
-		MultiFab data_mf;
+		const BoxArray& ba_fine = data.boxArray(finestLevel);
+		const DistributionMapping& dm_fine = data.DistributionMap(finestLevel);
+
+		MultiFab data_mf(ba_fine, dm_fine, data.NComp(), data.NGrow());
 		data.FillVar(data_mf, finestLevel, varNames, fill_comps);
 
 		// ! imask will be set to false if we've already output the data.
 		// ! Note, imask is defined in terms of the finest level.  As we loop
 		// ! over levels, we will compare to the finest level index space to
 		// ! determine if we've already output here
-        int mask_size = n_bins;
-        for (auto i = 0; i < finestLevel - 1; i++) {
-            mask_size *= rr[i];
-        }
+		int mask_size = nbins;
+		for (auto i = 0; i < finestLevel - 1; i++)
+			mask_size *= rr[i];
 
+
+#if (AMREX_SPACEDIM == 1)
 		Vector<int> imask(mask_size);
+#elif (AMREX_SPACEDIM >=2)
+		Vector<int> imask(pow(mask_size, AMREX_SPACEDIM));
+#endif
 
-        for (auto it=imask.begin(); it!=imask.end(); ++it)
-            *it = 1;
+		for (auto it=imask.begin(); it!=imask.end(); ++it)
+			*it = 1;
 
-        // extract the 1d data
-		for (auto l = finestLevel; l >= 0; l--) {
+		// extract the 1d data
+		for (int l = finestLevel; l >= 0; l--) {
 
-            MultiFab lev_data_mf;
-            data.FillVar(lev_data_mf, l, varNames, fill_comps);
+            Box level_domain = data.ProbDomain()[l];
+
+            // Vector<Real> level_dx(AMREX_SPACEDIM);
+            // for (int i = 0; i < AMREX_SPACEDIM; i++)
+            //     level_dx[i] = data.ProbSize()[i] / domain.length(i);
+            Vector<Real> level_dx = data.DxLevel()[l];
+
+			const BoxArray& ba = data.boxArray(l);
+			const DistributionMapping& dm = data.DistributionMap(l);
+
+			MultiFab lev_data_mf(ba, dm, data.NComp(), data.NGrow());
+			data.FillVar(lev_data_mf, l, varNames, fill_comps);
 
 			for (MFIter mfi(lev_data_mf); mfi.isValid(); ++mfi) {
-				const Box& bx = mfi.tilebox();
+				const Box& bx = mfi.validbox();
+				FArrayBox& fab = lev_data_mf[mfi];
 
+#if (AMREX_SPACEDIM == 1)
 				fextract1d(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 				           BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
-				           n_bins, dens_bin.dataPtr(),
+				           nbins, (*dens_bin).dataPtr(),
 				           vel_bin.dataPtr(), pres_bin.dataPtr(),
 				           e_bin.dataPtr(), imask.dataPtr(), mask_size, r1,
 				           dens_comp, xmom_comp, pres_comp, rhoe_comp);
+#elif (AMREX_SPACEDIM == 2)
+				fextract2d_cyl(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+				               BL_TO_FORTRAN_FAB(fab),
+				               nbins, dens_bin.dataPtr(),
+				               vel_bin.dataPtr(), pres_bin.dataPtr(),
+				               e_bin.dataPtr(), ncount.dataPtr(),
+				               imask.dataPtr(), mask_size, r1,
+				               dens_comp, xmom_comp, ymom_comp, pres_comp, rhoe_comp,
+				               dx_fine, level_dx.dataPtr(),
+                               rr[l-1 >=0 ? l-1 : 0], xctr, yctr);
+#else
+				fextract3d_cyl(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+				               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
+				               nbins, dens_bin.dataPtr(),
+				               vel_bin.dataPtr(), pres_bin.dataPtr(),
+				               imask.dataPtr(), mask_size, r1,
+				               dens_comp, xmom_comp, ymom_comp, zmom_comp, pres_comp,
+				               dx_fine, level_dx.dataPtr(), rr[l-1 >=0 ? l-1 : 0], xctr, yctr);
+#endif
 			}
 
-            // adjust r1 for the next lowest level
-            if (l != 1) r1 *= rr[l-1];
+			// adjust r1 for the next lowest level
+			if (l != 1) r1 *= rr[l-1];
 		}
 
-        // now open the slicefile and write out the data
-        std::ofstream slicefile;
-        slicefile.open(slcfile);
-        slicefile.precision(9);
-
-        // write the header
-        slicefile << std::setw(12) << "x" << std::setw(12) << "density" << std::setw(12) << "velocity" << std::setw(12) << "pressure" << std::setw(12) << "int. energy" << std::endl;
-
-        // write the data in columns
-        const auto SMALL = 1.e-99;
-        for (auto i = 0; i < n_bins; i++) {
-            if (abs(dens_bin[i]) < SMALL) dens_bin[i] = 0.0;
-            if (abs( vel_bin[i]) < SMALL)  vel_bin[i] = 0.0;
-            if (abs(pres_bin[i]) < SMALL) pres_bin[i] = 0.0;
-            if (abs(   e_bin[i]) < SMALL)    e_bin[i] = 0.0;
-
-            slicefile << std::setw(12) << r[i] << std::setw(12) << dens_bin[i] << std::setw(12) << vel_bin[i] << std::setw(12) << pres_bin[i] << std::setw(12) << e_bin[i] << std::endl;
-
+#if (AMREX_SPACEDIM == 2)
+		//normalize
+        for (int i = 0; i < nbins; i++) {
+            if (ncount[i] != 0) {
+                dens_bin[i] /= ncount[i];
+                vel_bin[i] /= ncount[i];
+                pres_bin[i] /= ncount[i];
+                e_bin[i] /= ncount[i];
+            }
         }
+#endif
 
-        slicefile.close();
+		// now open the slicefile and write out the data
+		std::ofstream slicefile;
+		slicefile.open(slcfile);
+		// slicefile.precision(9);
+
+		// write the header
+		slicefile << std::setw(12) << "x" << std::setw(12) << "density" << std::setw(12) << "velocity" << std::setw(12) << "pressure" << std::setw(12) << "int. energy" << std::endl;
+
+		// write the data in columns
+		const auto SMALL = 1.e-99;
+		for (auto i = 0; i < nbins; i++) {
+            // Print() << "dens_bin = " << dens_bin[i] << std::endl;
+			if (abs(dens_bin[i]) < SMALL) dens_bin[i] = 0.0;
+			if (abs( vel_bin[i]) < SMALL) vel_bin[i] = 0.0;
+			if (abs(pres_bin[i]) < SMALL) pres_bin[i] = 0.0;
+			if (abs(   e_bin[i]) < SMALL) e_bin[i] = 0.0;
+
+			slicefile << std::setw(12) << r[i] << std::setw(12) << dens_bin[i] << std::setw(12) << vel_bin[i] << std::setw(12) << pres_bin[i] << std::setw(12) << e_bin[i] << std::endl;
+
+		}
+
+		slicefile.close();
 	}
 
 
@@ -190,26 +256,26 @@ void GetInputArgs ( const int argc, char** argv,
 
 	int i = 1; // skip program name
 
-	while ( i < argc) // Skip last two: those are the files names
+	while ( i < argc - 1)
 	{
 
-		if ( !strcmp(argv[i],"-p") || !strcmp(argv[i],"--pltfile") )
+		if ( !strcmp(argv[i], "-p") || !strcmp(argv[i],"--pltfile") )
 		{
 			pltfile = argv[++i];
 		}
-		else if ( strcmp(argv[i],"-s") || strcmp(argv[i],"--slicefile") )
+		else if ( !strcmp(argv[i], "-s") || !strcmp(argv[i],"--slicefile") )
 		{
 			slcfile = argv[++i];
 		}
-		else if ( strcmp(argv[i],"--xctr") )
+		else if ( !strcmp(argv[i],"--xctr") )
 		{
 			xctr = std::atof(argv[++i]);
 		}
-		else if ( strcmp(argv[i],"--yctr") )
+		else if ( !strcmp(argv[i],"--yctr") )
 		{
 			yctr = std::atof(argv[++i]);
 		}
-		else if ( strcmp(argv[i],"--zctr") )
+		else if ( !strcmp(argv[i],"--zctr") )
 		{
 			zctr = std::atof(argv[++i]);
 		}
@@ -245,9 +311,9 @@ void PrintHelp ()
 	Print() << "\nusage: executable_name args"
 	        << "\nargs [-p|--pltfile]   plotfile   : plot file directory (required)"
 	        << "\n     [-s|--slicefile] slice file : slice file          (required)"
-            << "\n     [--xctr]               xctr : central x coord     (non-cartesian only)"
-            << "\n     [--yctr]               yctr : central y coord     (non-cartesian only)"
-            << "\n     [--zctr]               zctr : central z coord     (non-cartesian only)"
+	        << "\n     [--xctr]               xctr : central x coord     (non-cartesian only)"
+	        << "\n     [--yctr]               yctr : central y coord     (non-cartesian only)"
+	        << "\n     [--zctr]               zctr : central z coord     (non-cartesian only)"
 	        << "\n\n" << std::endl;
 
 }
