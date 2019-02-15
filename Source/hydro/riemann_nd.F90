@@ -1094,6 +1094,7 @@ contains
     use eos_type_module, only : eos_t, eos_input_rp
     use eos_module, only : eos
     use network, only : nspec
+    use meth_params_module, only: T_guess
 
     implicit none
 
@@ -1549,7 +1550,7 @@ contains
                 eos_state % rho = qint(i,j,k,QRHO)
                 eos_state % p = qint(i,j,k,QPRES)
                 eos_state % xn(:) = xn(:)
-                eos_state % T = 1.e4  ! a guess
+                eos_state % T = 1.e4  T_guess
 
                 call eos(eos_input_rp, eos_state)
 
