@@ -1147,8 +1147,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       } // idir loop
 
 #if AMREX_SPACEDIM <= 2
+      Array4<Real> const pradial_fab = pradial.array();
       Array4<Real> P_radial_fab = P_radial.array(mfi);
-      Array4<Real> pradial_fab = pradial.array();
 
       AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
       {
