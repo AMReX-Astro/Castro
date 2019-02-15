@@ -552,29 +552,45 @@ extern "C"
      const amrex::Real* dx, const amrex::Real dt);
 
   void ctu_consup
-    (const int*lo, const int* hi,
+    (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(Sborder),
      const BL_FORT_FAB_ARG_3D(q),
      const BL_FORT_FAB_ARG_3D(shk),
      BL_FORT_FAB_ARG_3D(S_new),
      BL_FORT_FAB_ARG_3D(hydro_source),
-     D_DECL(const BL_FORT_FAB_ARG_3D(flux0),
-            const BL_FORT_FAB_ARG_3D(flux1),
-            const BL_FORT_FAB_ARG_3D(flux2)),
+     const BL_FORT_FAB_ARG_3D(flux0),
+#if AMREX_SPACEDIM >= 2
+     const BL_FORT_FAB_ARG_3D(flux1),
+#endif
+#if AMREX_SPACEDIM == 3
+     const BL_FORT_FAB_ARG_3D(flux2),
+#endif
 #ifdef RADIATION
      const BL_FORT_FAB_ARG_3D(Erborder),
      BL_FORT_FAB_ARG_3D(Er_out),
-     D_DECL(const BL_FORT_FAB_ARG_3D(rad_flux0),
-            const BL_FORT_FAB_ARG_3D(rad_flux1),
-            const BL_FORT_FAB_ARG_3D(rad_flux2)),
+     const BL_FORT_FAB_ARG_3D(rad_flux0),
+#if AMREX_SPACEDIM >= 2
+     const BL_FORT_FAB_ARG_3D(rad_flux1),
+#endif
+#if AMREX_SPACEDIM == 3
+     const BL_FORT_FAB_ARG_3D(rad_flux2),
+#endif
      int* nstep_fsp,
 #endif
-     D_DECL(const BL_FORT_FAB_ARG_3D(qe0),
-            const BL_FORT_FAB_ARG_3D(qe1),
-            const BL_FORT_FAB_ARG_3D(qe2)),
-     D_DECL(const BL_FORT_FAB_ARG_3D(area0),
-            const BL_FORT_FAB_ARG_3D(area1),
-            const BL_FORT_FAB_ARG_3D(area2)),
+     const BL_FORT_FAB_ARG_3D(qe0),
+#if AMREX_SPACEDIM >= 2
+     const BL_FORT_FAB_ARG_3D(qe1),
+#endif
+#if AMREX_SPACEDIM == 3
+     const BL_FORT_FAB_ARG_3D(qe2),
+#endif
+     const BL_FORT_FAB_ARG_3D(area0),
+#if AMREX_SPACEDIM >= 2
+     const BL_FORT_FAB_ARG_3D(area1),
+#endif
+#if AMREX_SPACEDIM == 3
+     const BL_FORT_FAB_ARG_3D(area2),
+#endif
      const BL_FORT_FAB_ARG_3D(volume),
      const BL_FORT_FAB_ARG_3D(pdivu),
      const amrex::Real* dx, const amrex::Real dt);

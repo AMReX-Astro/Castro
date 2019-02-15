@@ -88,6 +88,8 @@ contains
 #if AMREX_SPACEDIM == 1
     logical :: fix_mass_flux_lo, fix_mass_flux_hi
 
+    !$gpu
+
     fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
          .and. (lo(1) == domlo(1))
     fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
@@ -328,6 +330,8 @@ contains
        call amrex_error("Error:: trace_ppm_nd.f90 :: tracexy_ppm")
     end if
 #endif
+
+    !$gpu
 
     hdt = HALF * dt
 
@@ -776,6 +780,8 @@ contains
        call amrex_error("Error:: trace_ppm_nd.f90 :: tracexy_ppm")
     end if
 #endif
+
+    !$gpu
 
     hdt = HALF * dt
 
@@ -1253,6 +1259,8 @@ contains
        call amrex_error("Error:: trace_ppm_nd.f90 :: tracexy_ppm")
     end if
 #endif
+
+    !$gpu
 
     hdt = HALF * dt
 

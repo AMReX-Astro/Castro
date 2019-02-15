@@ -125,6 +125,8 @@ contains
 
     logical :: reset_state
 
+    !$gpu
+
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
     ! transverse term and convert back to the primitive quantity
@@ -705,6 +707,8 @@ contains
 
     logical :: reset_state
 
+    !$gpu
+
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -1145,6 +1149,8 @@ contains
 
     logical :: reset_state
 
+    !$gpu
+
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -1578,6 +1584,8 @@ contains
 #endif
 
     logical :: reset_state
+
+    !$gpu
 
 
     !-------------------------------------------------------------------------
@@ -2021,6 +2029,8 @@ contains
 
     logical :: reset_state
 
+    !$gpu
+
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
     ! transverse term and convert back to the primitive quantity
@@ -2449,6 +2459,8 @@ contains
 #endif
 
     logical :: reset_state
+
+    !$gpu
 
 
     !-------------------------------------------------------------------------
@@ -2882,6 +2894,8 @@ contains
 #endif
 
     logical :: reset_state
+
+    !$gpu
 
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
@@ -3392,6 +3406,8 @@ contains
 
     logical :: reset_state
 
+    !$gpu
+
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
@@ -3901,6 +3917,8 @@ contains
 
     logical :: reset_state
 
+    !$gpu
+
     !-------------------------------------------------------------------------
     ! update all of the passively-advected quantities with the
     ! transerse term and convert back to the primitive quantity
@@ -4329,6 +4347,8 @@ contains
 
     logical :: reset
     type (eos_t) :: eos_state
+
+    !$gpu
 
     reset = .false.
 

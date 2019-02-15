@@ -94,6 +94,8 @@ contains
 
     real(rt), intent(inout) :: qgdnv(qg_lo(1):qg_hi(1), qg_lo(2):qg_hi(2), qg_lo(3):qg_hi(3), NGDNV)
 
+    !$gpu
+
     call cmpflx(lo, hi, &
                 qm, qm_lo, qm_hi, &
                 qp, qp_lo, qp_hi, nc, comp, &

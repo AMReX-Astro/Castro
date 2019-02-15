@@ -664,6 +664,8 @@ contains
     integer          :: n, iq, ipassive
     real(rt)         :: rhoinv
 
+    !$gpu
+
     srcQ(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO
 
     ! compute srcQ terms
@@ -731,6 +733,8 @@ contains
     real(rt)         :: qgdnv(NGDNV)
     logical :: cell_centered
 #endif
+
+    !$gpu
 
     ! Set everything to zero; this default matters because some
     ! quantities like temperature are not updated through fluxes.
@@ -827,9 +831,12 @@ contains
     integer  :: i, j, k
 
     real(rt) :: rho, drho, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhoLF, drhoLF, dtdx, theta, thetap, thetam, alpha, flux_coef
+    real(rt) :: uL(NVAR), uR(NVAR), qL(NQ), qR(NQ)
 
     real(rt), parameter :: density_floor_tolerance = 1.1_rt
     real(rt) :: density_floor
+
+    !$gpu
 
     ! The density floor is the small density, modified by a small factor.
     ! In practice numerical error can cause the density that is created
@@ -868,8 +875,12 @@ contains
                 ! lambda = dt/(dx * alpha); alpha = 1 in 1D and may be chosen somewhat
                 ! freely in multi-D as long as alpha_x + alpha_y + alpha_z = 1.
 
-                fluxL = dflux(u(i-1,j,k,:), q(i-1,j,k,:), idir, [i-1, j, k])
-                fluxR = dflux(u(i  ,j,k,:), q(i  ,j,k,:), idir, [i  , j, k])
+                uL = u(i-1,j,k,:)
+                uR = u(i  ,j,k,:)
+                qL = q(i-1,j,k,:)
+                qR = q(i  ,j,k,:)
+                fluxL = dflux(uL, qL, idir, [i-1, j, k])
+                fluxR = dflux(uR, qR, idir, [i  , j, k])
                 fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (u(i-1,j,k,:) - u(i,j,k,:)))
 
                 ! Limit the Lax-Friedrichs flux so that it doesn't cause a density < density_floor.
@@ -969,8 +980,12 @@ contains
 
                 endif
 
-                fluxL = dflux(u(i,j-1,k,:), q(i,j-1,k,:), idir, [i, j-1, k])
-                fluxR = dflux(u(i,j  ,k,:), q(i,j  ,k,:), idir, [i, j  , k])
+                uL = u(i,j-1,k,:)
+                uR = u(i,j  ,k,:)
+                qL = q(i,j-1,k,:)
+                qR = q(i,j  ,k,:)
+                fluxL = dflux(uL, qL, idir, [i, j-1, k])
+                fluxR = dflux(uR, qR, idir, [i, j  , k])
                 fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (u(i,j-1,k,:) - u(i,j,k,:)))
 
                 flux_coef = TWO * (dt / alpha) * (area(i,j,k) / vol(i,j,k))
@@ -1043,8 +1058,12 @@ contains
 
                 endif
 
-                fluxL = dflux(u(i,j,k-1,:), q(i,j,k-1,:), idir, [i, j, k-1])
-                fluxR = dflux(u(i,j,k  ,:), q(i,j,k  ,:), idir, [i, j, k-1])
+                uL = u(i,j,k-1,:)
+                uR = u(i,j,k  ,:)
+                qL = q(i,j,k-1,:)
+                qR = q(i,j,k  ,:)
+                fluxL = dflux(uL, qL, idir, [i, j, k-1])
+                fluxR = dflux(uR, qR, idir, [i, j, k-1])
                 fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (u(i,j,k-1,:) - u(i,j,k,:)))
 
                 flux_coef = TWO * (dt / alpha) * (area(i,j,k) / vol(i,j,k)) 
@@ -1570,6 +1589,8 @@ contains
     real(rt), intent(in) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
     integer  :: i, j, k
+
+    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
