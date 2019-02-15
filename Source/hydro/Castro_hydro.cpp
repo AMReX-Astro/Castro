@@ -1072,6 +1072,8 @@ Castro::construct_hydro_source(Real time, Real dt)
       nstep_fsp = std::max(nstep_fsp, priv_nstep_fsp);
 #endif
 
+      Array4<Real> pradial_fab = pradial.array();
+
       for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
         const Box& nbx = amrex::surroundingNodes(bx, idir);
@@ -1091,17 +1093,28 @@ Castro::construct_hydro_source(Real time, Real dt)
                        BL_TO_FORTRAN_ANYD(area[idir][mfi]), dt);
 #endif
 
-#if AMREX_SPACEDIM <= 2
-        if (idir == 0 && !Geometry::IsCartesian()) {
-          // get the scaled radial pressure -- we need to treat this specially
-          // TODO: we should be able to do this entirely in C++, but we need to
-          // know the value of mom_flux_has_p
-#pragma gpu
-          store_pradial(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                        BL_TO_FORTRAN_ANYD(qe[idir]),
-                        BL_TO_FORTRAN_ANYD(pradial), dt);
-        }
+        if (idir == 0) {
+            // get the scaled radial pressure -- we need to treat this specially
+            Array4<Real> const qex_fab = qe[idir].array();
+            const int prescomp = GDPRES;
+#if AMREX_SPACEDIM == 1
+            if (!Geometry::IsCartesian()) {
+                AMREX_PARALLEL_FOR_3D(mfi.nodaltilebox(idir), i, j, k,
+                {
+                    pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
+                });
+            }
 #endif
+
+#if AMREX_SPACEDIM == 2
+            if (!mom_flux_has_p[0][0]) {
+                AMREX_PARALLEL_FOR_3D(mfi.nodaltilebox(idir), i, j, k,
+                {
+                    pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
+                });
+            }
+#endif
+        }
 
         // Store the fluxes from this advance.
 
@@ -1151,7 +1164,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 #if AMREX_SPACEDIM <= 2
       if (!Geometry::IsCartesian()) {
 
-          Array4<Real> const pradial_fab = pradial.array();
           Array4<Real> P_radial_fab = P_radial.array(mfi);
 
           AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,

@@ -94,6 +94,17 @@ int          Castro::QREITOT = -1;
 int          Castro::QRAD = -1;
 #endif
 
+int          Castro::GDRHO = -1;
+int          Castro::GDU = -1;
+int          Castro::GDV = -1;
+int          Castro::GDW = -1;
+int          Castro::GDPRES = -1;
+int          Castro::GDGAME = -1;
+#ifdef RADIATION
+int          Castro::GDLAMS = -1;
+int          Castro::GDERADS = -1;
+#endif
+
 int          Castro::NumSpec       = 0;
 int          Castro::FirstSpec     = -1;
 
@@ -674,6 +685,26 @@ Castro::initMFs()
     if (!Geometry::IsCartesian())
 	P_radial.define(getEdgeBoxArray(0), dmap, 1, 0);
 #endif
+
+    // Keep track of which components of the momentum flux have pressure
+    if (AMREX_SPACEDIM == 1 || (AMREX_SPACEDIM == 2 && Geometry::IsRZ())) {
+        mom_flux_has_p[0][0] = false;
+    }
+    else {
+        mom_flux_has_p[0][0] = true;
+    }
+
+    mom_flux_has_p[0][1] = false;
+    mom_flux_has_p[0][2] = false;
+
+    mom_flux_has_p[1][0] = false;
+    mom_flux_has_p[1][1] = true;
+    mom_flux_has_p[1][2] = false;
+
+    mom_flux_has_p[2][0] = false;
+    mom_flux_has_p[2][1] = false;
+    mom_flux_has_p[2][2] = true;
+
 
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {

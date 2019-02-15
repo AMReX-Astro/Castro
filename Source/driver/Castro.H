@@ -1692,6 +1692,12 @@ public:
     static int       QPTOT, QREITOT, QRAD;
 #endif
 
+    // Godunov state index keys
+    static int GDRHO, GDU, GDV, GDW;
+    static int GDPRES, GDGAME;
+#ifdef RADIATION
+    static int GDLAMS, GDERADS;
+#endif
 
 ///
 /// variable counts
@@ -1828,6 +1834,10 @@ protected:
     amrex::FluxRegister phi_reg;
 #endif
 
+    // Does the momentum flux include the pressure term?
+    // First index is the coordinate direction, second
+    // index is the momentum direction.
+    amrex::Array<amrex::Array<bool, 3>, 3> mom_flux_has_p;
 
 ///
 /// Scalings for the flux registers.
