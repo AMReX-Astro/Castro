@@ -559,7 +559,7 @@ Castro::construct_hydro_source(Real time, Real dt)
       const Box& tzxbx = amrex::grow(zbx, IntVect(AMREX_D_DECL(0,1,0)));
 
       qmzx.resize(tzxbx, NQ);
-      Elixir elix_qmzx = qmxz.elixir();
+      Elixir elix_qmzx = qmzx.elixir();
 
       qpzx.resize(tzxbx, NQ);
       Elixir elix_qpzx = qpzx.elixir();
@@ -1097,6 +1097,7 @@ Castro::construct_hydro_source(Real time, Real dt)
             // get the scaled radial pressure -- we need to treat this specially
             Array4<Real> const qex_fab = qe[idir].array();
             const int prescomp = GDPRES;
+
 #if AMREX_SPACEDIM == 1
             if (!Geometry::IsCartesian()) {
                 AMREX_PARALLEL_FOR_3D(nbx, i, j, k,

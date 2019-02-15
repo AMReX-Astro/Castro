@@ -37,6 +37,8 @@ castro.ppm_type = 1
 castro.ppm_reference_eigenvectors = 1
 castro.grav_source_type = 2
 
+castro.limit_fluxes_on_small_dens = 1
+
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -1.5e14
 
@@ -44,11 +46,13 @@ castro.rotational_period = 0.0005
 castro.rotation_include_centrifugal = 0
 
 castro.diffuse_temp = 1
-castro.diffuse_cutoff_density = 5.e4
+castro.diffuse_cutoff_density_hi = 5.e4
+castro.diffuse_cutoff_density = 2.e4
+
 castro.diffuse_cond_scale_fac = 5.0
 
 castro.react_rho_min = 1.e2
-castro.react_rho_max = 1.5.e7
+castro.react_rho_max = 1.5e7
 
 castro.react_T_min = 6.e7
 

@@ -54,7 +54,7 @@ contains
     use fluxlimiter_module, only : Edd_factor
 #endif
     use eos_module, only: eos
-    use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
+    use eos_type_module, only: eos_input_rt, eos_t
 #if AMREX_SPACEDIM == 2
     use prob_params_module, only : mom_flux_has_p
 #endif
@@ -279,7 +279,7 @@ contains
              rrnewry = rrry - hdt*(area1(i+1,j,k)*fx(i+1,j,k,URHO) -  &
                                    area1(i,j,k)*fx(i,j,k,URHO))/vol(i,j,k)
 
-             ! Note that pressure may be treated specially here, depending on 
+             ! Note that pressure may be treated specially here, depending on
              ! the geometry.  Our y-interface equation for (rho u) is:
              !
              !  d(rho u)/dt + d(rho u v)/dy = - 1/r d(r rho u u)/dr - dp/dr
@@ -644,7 +644,7 @@ contains
   use fluxlimiter_module, only : Edd_factor
 #endif
   use eos_module, only: eos
-  use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
+  use eos_type_module, only: eos_input_rt, eos_t
 #if AMREX_SPACEDIM == 2
   use prob_params_module, only : mom_flux_has_p
 #endif
@@ -1088,7 +1088,7 @@ contains
     use fluxlimiter_module, only : Edd_factor
 #endif
     use eos_module, only: eos
-    use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
+    use eos_type_module, only: eos_input_rt, eos_t
 
 
     integer, intent(in) :: qxm_lo(3), qxm_hi(3)
@@ -1525,7 +1525,7 @@ contains
     use fluxlimiter_module, only : Edd_factor
 #endif
     use eos_module, only: eos
-    use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
+    use eos_type_module, only: eos_input_rt, eos_t
 
     integer, intent(in) :: qzm_lo(3), qzm_hi(3)
     integer, intent(in) :: qzp_lo(3), qzp_hi(3)
@@ -1968,7 +1968,7 @@ contains
     use fluxlimiter_module, only : Edd_factor
 #endif
     use eos_module, only: eos
-    use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
+    use eos_type_module, only: eos_input_rt, eos_t
 
 
     integer, intent(in) :: qxm_lo(3), qxm_hi(3)
@@ -2399,7 +2399,7 @@ contains
     use fluxlimiter_module, only : Edd_factor
 #endif
     use eos_module, only: eos
-    use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
+    use eos_type_module, only: eos_input_rt, eos_t
 
 
     integer, intent(in) :: qym_lo(3), qym_hi(3)
@@ -2838,7 +2838,7 @@ contains
     use fluxlimiter_module, only : Edd_factor
 #endif
     use eos_module, only: eos
-    use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
+    use eos_type_module, only: eos_input_rt, eos_t
 
 
     integer, intent(in) :: qm_lo(3), qm_hi(3)
@@ -3349,7 +3349,7 @@ contains
     use fluxlimiter_module, only : Edd_factor
 #endif
     use eos_module, only: eos
-    use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
+    use eos_type_module, only: eos_input_rt, eos_t
 
 
     integer, intent(in) :: qm_lo(3), qm_hi(3)
@@ -3860,7 +3860,7 @@ contains
     use fluxlimiter_module, only : Edd_factor
 #endif
     use eos_module, only: eos
-    use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
+    use eos_type_module, only: eos_input_rt, eos_t
 
 
     integer, intent(in) :: qm_lo(3), qm_hi(3)
@@ -3966,7 +3966,7 @@ contains
              !-------------------------------------------------------------------
              ! qzpo state
              !-------------------------------------------------------------------
-             
+
              pgxp = qx(i+1,j,k,GDPRES)
              pgxm = qx(i,j,k,GDPRES)
              ugxp = qx(i+1,j,k,GDU)
