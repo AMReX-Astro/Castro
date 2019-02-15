@@ -3,7 +3,7 @@
 ! or add runtime parameters, please edit _cpp_parameters and then run
 ! mk_params.sh
 
-! This module stores the runtime parameters and integer names for 
+! This module stores the runtime parameters and integer names for
 ! indexing arrays.
 !
 ! The Fortran-specific parameters are initialized in set_method_params(),
@@ -65,8 +65,8 @@ module meth_params_module
   ! these flags are for interpreting the EXT_DIR BCs
   integer, parameter :: EXT_UNDEFINED = -1
   integer, parameter :: EXT_HSE = 1
-  integer, parameter :: EXT_INTERP = 2 
-  
+  integer, parameter :: EXT_INTERP = 2
+
   integer, allocatable, save :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 
   ! Create versions of these variables on the GPU
@@ -111,8 +111,9 @@ module meth_params_module
   real(rt), allocatable, save :: small_pres
   real(rt), allocatable, save :: small_ener
   integer,  allocatable, save :: do_hydro
-  integer,  allocatable, save :: do_ctu
+  integer,  allocatable, save :: time_integration_method
   integer,  allocatable, save :: fourth_order
+  integer,  allocatable, save :: limit_fourth_order
   integer,  allocatable, save :: hybrid_hydro
   integer,  allocatable, save :: ppm_type
   integer,  allocatable, save :: ppm_temp_fix
@@ -159,6 +160,7 @@ module meth_params_module
   real(rt), allocatable, save :: react_rho_min
   real(rt), allocatable, save :: react_rho_max
   integer,  allocatable, save :: disable_shock_burning
+  real(rt), allocatable, save :: T_guess
   real(rt), allocatable, save :: diffuse_cutoff_density
   real(rt), allocatable, save :: diffuse_cutoff_density_hi
   real(rt), allocatable, save :: diffuse_cond_scale_fac
@@ -191,8 +193,9 @@ attributes(managed) :: small_temp
 attributes(managed) :: small_pres
 attributes(managed) :: small_ener
 attributes(managed) :: do_hydro
-attributes(managed) :: do_ctu
+attributes(managed) :: time_integration_method
 attributes(managed) :: fourth_order
+attributes(managed) :: limit_fourth_order
 attributes(managed) :: hybrid_hydro
 attributes(managed) :: ppm_type
 attributes(managed) :: ppm_temp_fix
@@ -239,6 +242,7 @@ attributes(managed) :: react_T_max
 attributes(managed) :: react_rho_min
 attributes(managed) :: react_rho_max
 attributes(managed) :: disable_shock_burning
+attributes(managed) :: T_guess
 #ifdef DIFFUSION
 attributes(managed) :: diffuse_cutoff_density
 #endif
@@ -302,8 +306,9 @@ attributes(managed) :: get_g_from_phi
   !$acc create(small_pres) &
   !$acc create(small_ener) &
   !$acc create(do_hydro) &
-  !$acc create(do_ctu) &
+  !$acc create(time_integration_method) &
   !$acc create(fourth_order) &
+  !$acc create(limit_fourth_order) &
   !$acc create(hybrid_hydro) &
   !$acc create(ppm_type) &
   !$acc create(ppm_temp_fix) &
@@ -344,6 +349,7 @@ attributes(managed) :: get_g_from_phi
   !$acc create(react_rho_min) &
   !$acc create(react_rho_max) &
   !$acc create(disable_shock_burning) &
+  !$acc create(T_guess) &
 #ifdef DIFFUSION
   !$acc create(diffuse_cutoff_density) &
 #endif
@@ -491,10 +497,12 @@ contains
     small_ener = -1.d200;
     allocate(do_hydro)
     do_hydro = -1;
-    allocate(do_ctu)
-    do_ctu = 1;
+    allocate(time_integration_method)
+    time_integration_method = 0;
     allocate(fourth_order)
     fourth_order = 0;
+    allocate(limit_fourth_order)
+    limit_fourth_order = 1;
     allocate(hybrid_hydro)
     hybrid_hydro = 0;
     allocate(ppm_type)
@@ -587,6 +595,8 @@ contains
     react_rho_max = 1.d200;
     allocate(disable_shock_burning)
     disable_shock_burning = 0;
+    allocate(T_guess)
+    T_guess = 1.e8;
     allocate(do_grav)
     do_grav = -1;
     allocate(grav_source_type)
@@ -628,8 +638,9 @@ contains
     call pp%query("small_pres", small_pres)
     call pp%query("small_ener", small_ener)
     call pp%query("do_hydro", do_hydro)
-    call pp%query("do_ctu", do_ctu)
+    call pp%query("time_integration_method", time_integration_method)
     call pp%query("fourth_order", fourth_order)
+    call pp%query("limit_fourth_order", limit_fourth_order)
     call pp%query("hybrid_hydro", hybrid_hydro)
     call pp%query("ppm_type", ppm_type)
     call pp%query("ppm_temp_fix", ppm_temp_fix)
@@ -676,6 +687,7 @@ contains
     call pp%query("react_rho_min", react_rho_min)
     call pp%query("react_rho_max", react_rho_max)
     call pp%query("disable_shock_burning", disable_shock_burning)
+    call pp%query("T_guess", T_guess)
     call pp%query("do_grav", do_grav)
     call pp%query("grav_source_type", grav_source_type)
     call pp%query("do_rotation", do_rotation)
@@ -689,35 +701,36 @@ contains
     !$acc update &
     !$acc device(difmag, small_dens, small_temp) &
     !$acc device(small_pres, small_ener, do_hydro) &
-    !$acc device(do_ctu, fourth_order, hybrid_hydro) &
-    !$acc device(ppm_type, ppm_temp_fix, ppm_predict_gammae) &
-    !$acc device(ppm_reference_eigenvectors, plm_iorder, hybrid_riemann) &
-    !$acc device(riemann_solver, cg_maxiter, cg_tol) &
-    !$acc device(cg_blend, use_eos_in_riemann, use_flattening) &
-    !$acc device(transverse_use_eos, transverse_reset_density, transverse_reset_rhoe) &
-    !$acc device(dual_energy_eta1, dual_energy_eta2, use_pslope) &
-    !$acc device(fix_mass_flux, limit_fluxes_on_small_dens, density_reset_method) &
-    !$acc device(allow_small_energy, do_sponge, sponge_implicit) &
-    !$acc device(first_order_hydro, hse_zero_vels, hse_interp_temp) &
-    !$acc device(hse_reflect_vels, mol_order, cfl) &
-    !$acc device(dtnuc_e, dtnuc_X, dtnuc_X_threshold) &
-    !$acc device(do_react, react_T_min, react_T_max) &
-    !$acc device(react_rho_min, react_rho_max, disable_shock_burning) &
-    !$acc device(diffuse_cutoff_density, diffuse_cutoff_density_hi, diffuse_cond_scale_fac) &
-    !$acc device(do_grav, grav_source_type, do_rotation) &
-    !$acc device(rot_period, rot_period_dot, rotation_include_centrifugal) &
-    !$acc device(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
-    !$acc device(rot_source_type, implicit_rotation_update, rot_axis) &
-    !$acc device(use_point_mass, point_mass, point_mass_fix_solution) &
-    !$acc device(do_acc, grown_factor, track_grid_losses) &
-    !$acc device(const_grav, get_g_from_phi)
+    !$acc device(time_integration_method, fourth_order, limit_fourth_order) &
+    !$acc device(hybrid_hydro, ppm_type, ppm_temp_fix) &
+    !$acc device(ppm_predict_gammae, ppm_reference_eigenvectors, plm_iorder) &
+    !$acc device(hybrid_riemann, riemann_solver, cg_maxiter) &
+    !$acc device(cg_tol, cg_blend, use_eos_in_riemann) &
+    !$acc device(use_flattening, transverse_use_eos, transverse_reset_density) &
+    !$acc device(transverse_reset_rhoe, dual_energy_eta1, dual_energy_eta2) &
+    !$acc device(use_pslope, fix_mass_flux, limit_fluxes_on_small_dens) &
+    !$acc device(density_reset_method, allow_small_energy, do_sponge) &
+    !$acc device(sponge_implicit, first_order_hydro, hse_zero_vels) &
+    !$acc device(hse_interp_temp, hse_reflect_vels, mol_order) &
+    !$acc device(cfl, dtnuc_e, dtnuc_X) &
+    !$acc device(dtnuc_X_threshold, do_react, react_T_min) &
+    !$acc device(react_T_max, react_rho_min, react_rho_max) &
+    !$acc device(disable_shock_burning, T_guess, diffuse_cutoff_density, diffuse_cutoff_density_hi) &
+    !$acc device(diffuse_cond_scale_fac, do_grav, grav_source_type) &
+    !$acc device(do_rotation, rot_period, rot_period_dot) &
+    !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
+    !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
+    !$acc device(rot_axis, use_point_mass, point_mass) &
+    !$acc device(point_mass_fix_solution, do_acc, grown_factor) &
+    !$acc device(track_grid_losses, const_grav) &
+    !$acc device(get_g_from_phi)
 
 
     ! now set the external BC flags
     select case (xl_ext_bc_type)
     case ("hse", "HSE")
        xl_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        xl_ext = EXT_INTERP
     case default
        xl_ext = EXT_UNDEFINED
@@ -726,7 +739,7 @@ contains
     select case (yl_ext_bc_type)
     case ("hse", "HSE")
        yl_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        yl_ext = EXT_INTERP
     case default
        yl_ext = EXT_UNDEFINED
@@ -735,7 +748,7 @@ contains
     select case (zl_ext_bc_type)
     case ("hse", "HSE")
        zl_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        zl_ext = EXT_INTERP
     case default
        zl_ext = EXT_UNDEFINED
@@ -744,7 +757,7 @@ contains
     select case (xr_ext_bc_type)
     case ("hse", "HSE")
        xr_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        xr_ext = EXT_INTERP
     case default
        xr_ext = EXT_UNDEFINED
@@ -753,7 +766,7 @@ contains
     select case (yr_ext_bc_type)
     case ("hse", "HSE")
        yr_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        yr_ext = EXT_INTERP
     case default
        yr_ext = EXT_UNDEFINED
@@ -762,7 +775,7 @@ contains
     select case (zr_ext_bc_type)
     case ("hse", "HSE")
        zr_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        zr_ext = EXT_INTERP
     case default
        zr_ext = EXT_UNDEFINED
@@ -810,11 +823,14 @@ contains
     if (allocated(do_hydro)) then
         deallocate(do_hydro)
     end if
-    if (allocated(do_ctu)) then
-        deallocate(do_ctu)
+    if (allocated(time_integration_method)) then
+        deallocate(time_integration_method)
     end if
     if (allocated(fourth_order)) then
         deallocate(fourth_order)
+    end if
+    if (allocated(limit_fourth_order)) then
+        deallocate(limit_fourth_order)
     end if
     if (allocated(hybrid_hydro)) then
         deallocate(hybrid_hydro)
@@ -954,6 +970,9 @@ contains
     if (allocated(disable_shock_burning)) then
         deallocate(disable_shock_burning)
     end if
+    if (allocated(T_guess)) then
+        deallocate(T_guess)
+    end if
     if (allocated(diffuse_cutoff_density)) then
         deallocate(diffuse_cutoff_density)
     end if
@@ -1028,7 +1047,7 @@ contains
     end if
 
 
-    
+
   end subroutine ca_finalize_meth_params
 
 
@@ -1057,9 +1076,9 @@ contains
        call amrex_error("Unknown fspace_type", fspace_type)
     end if
 #endif
-    
+
     do_inelastic_scattering = (do_is_in .ne. 0)
-    
+
     if (com_in .eq. 1) then
        comoving = .true.
     else if (com_in .eq. 0) then
@@ -1069,9 +1088,9 @@ contains
        call amrex_error("Wrong value for comoving", fspace_type)
 #endif
     end if
-    
+
     flatten_pp_threshold = fppt
-    
+
     !$acc update &
     !$acc device(QRAD, QRADHI, QPTOT, QREITOT) &
     !$acc device(fspace_type) &

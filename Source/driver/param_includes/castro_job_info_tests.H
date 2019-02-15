@@ -38,8 +38,9 @@ jobInfoFile << (Castro::small_temp == -1.e200 ? "    " : "[*] ") << "castro.smal
 jobInfoFile << (Castro::small_pres == -1.e200 ? "    " : "[*] ") << "castro.small_pres = " << Castro::small_pres << std::endl;
 jobInfoFile << (Castro::small_ener == -1.e200 ? "    " : "[*] ") << "castro.small_ener = " << Castro::small_ener << std::endl;
 jobInfoFile << (Castro::do_hydro == -1 ? "    " : "[*] ") << "castro.do_hydro = " << Castro::do_hydro << std::endl;
-jobInfoFile << (Castro::do_ctu == 1 ? "    " : "[*] ") << "castro.do_ctu = " << Castro::do_ctu << std::endl;
+jobInfoFile << (Castro::time_integration_method == 0 ? "    " : "[*] ") << "castro.time_integration_method = " << Castro::time_integration_method << std::endl;
 jobInfoFile << (Castro::fourth_order == 0 ? "    " : "[*] ") << "castro.fourth_order = " << Castro::fourth_order << std::endl;
+jobInfoFile << (Castro::limit_fourth_order == 1 ? "    " : "[*] ") << "castro.limit_fourth_order = " << Castro::limit_fourth_order << std::endl;
 jobInfoFile << (Castro::add_ext_src == 0 ? "    " : "[*] ") << "castro.add_ext_src = " << Castro::add_ext_src << std::endl;
 jobInfoFile << (Castro::hybrid_hydro == 0 ? "    " : "[*] ") << "castro.hybrid_hydro = " << Castro::hybrid_hydro << std::endl;
 jobInfoFile << (Castro::ppm_type == 1 ? "    " : "[*] ") << "castro.ppm_type = " << Castro::ppm_type << std::endl;
@@ -103,7 +104,7 @@ jobInfoFile << (Castro::react_T_min == 0.0 ? "    " : "[*] ") << "castro.react_T
 jobInfoFile << (Castro::react_T_max == 1.e200 ? "    " : "[*] ") << "castro.react_T_max = " << Castro::react_T_max << std::endl;
 jobInfoFile << (Castro::react_rho_min == 0.0 ? "    " : "[*] ") << "castro.react_rho_min = " << Castro::react_rho_min << std::endl;
 jobInfoFile << (Castro::react_rho_max == 1.e200 ? "    " : "[*] ") << "castro.react_rho_max = " << Castro::react_rho_max << std::endl;
-jobInfoFile << (Castro::disable_shock_burning == 0 ? "    " : "[*] ") << "castro.disable_shock_burning = " << Castro::disable_shock_burning << std::endl;
+jobInfoFile << (Castro::disable_shock_burning == 0 ? "    " : "[*] ") << "castro.disable_shock_burning = " << Castro::disable_shock_burning << std::endl;jobInfoFile << (Castro::T_guess == 1.e8 ? "    " : "[*] ") << "castro.T_guess = " << Castro::T_guess << std::endl;
 jobInfoFile << (Castro::do_grav == -1 ? "    " : "[*] ") << "castro.do_grav = " << Castro::do_grav << std::endl;
 jobInfoFile << (Castro::moving_center == 0 ? "    " : "[*] ") << "castro.moving_center = " << Castro::moving_center << std::endl;
 jobInfoFile << (Castro::grav_source_type == 4 ? "    " : "[*] ") << "castro.grav_source_type = " << Castro::grav_source_type << std::endl;

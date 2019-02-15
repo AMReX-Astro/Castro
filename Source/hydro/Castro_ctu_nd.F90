@@ -73,9 +73,6 @@ contains
                                    plm_iorder, use_pslope, ppm_temp_fix, &
                                    hybrid_riemann
     use trace_plm_module, only : trace_plm
-#if AMREX_SPACEDIM >= 2
-    use transverse_module
-#endif
     use ppm_module, only : ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
     use slope_module, only : uslope, pslope
 #ifdef RADIATION
@@ -159,6 +156,8 @@ contains
 
     logical :: compute_shock
 
+    !$gpu
+
     hdt = HALF*dt
 
     ! multidimensional shock detection
@@ -194,9 +193,13 @@ contains
 
     ! preprocess the sources -- we don't want to trace under a source
     ! that is empty.  Note, we need to do this check over the entire
-    ! grid, to be sure, e.g., use vlo:vhi.  We cannot rely on lo:hi,
-    ! since that may just be a single zone on the GPU.
+    ! grid, to be sure, e.g., use vlo:vhi. On the GPU, this check is
+    ! expensive and for now we just disable this optimization and eat
+    ! the cost of processing the sources, even if they're zero.
     if (ppm_type > 0) then
+#ifdef AMREX_USE_CUDA
+       source_nonzero(:) = .true.
+#else
        do n = 1, QVAR
           if (minval(srcQ(vlo(1)-2:vhi(1)+2,vlo(2)-2*dg(2):vhi(2)+2*dg(2),vlo(3)-2*dg(3):vhi(3)+2*dg(3),n)) == ZERO .and. &
               maxval(srcQ(vlo(1)-2:vhi(1)+2,vlo(2)-2*dg(2):vhi(2)+2*dg(2),vlo(3)-2*dg(3):vhi(3)+2*dg(3),n)) == ZERO) then
@@ -205,6 +208,7 @@ contains
              source_nonzero(n) = .true.
           endif
        enddo
+#endif
 
        ! Compute Ip and Im -- this does the parabolic reconstruction,
        ! limiting, and returns the integral of each profile under each
@@ -476,7 +480,7 @@ contains
                               area, area_lo, area_hi, &
                               vol, vol_lo, vol_hi, &
                               div, div_lo, div_hi, &
-                              dx, dt)
+                              dx, dt) bind(C, name="ctu_clean_fluxes")
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UTEMP, NGDNV, NQ, &
@@ -525,6 +529,8 @@ contains
     integer          :: i, j, g, k, n
     integer          :: domlo(3), domhi(3)
 
+    !$gpu
+
     ! zero out shock and temp fluxes -- these are physically meaningless here
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -567,67 +573,62 @@ contains
   end subroutine ctu_clean_fluxes
 
 
-
-  subroutine consup(lo, hi, &
-                    uin, uin_lo, uin_hi, &
-                    q, q_lo, q_hi, &
-                    shk,  sk_lo, sk_hi, &
-                    uout, uout_lo, uout_hi, &
-                    update, updt_lo, updt_hi, &
-                    flux1, flux1_lo, flux1_hi, &
+  subroutine ctu_consup(lo, hi, &
+                        uin, uin_lo, uin_hi, &
+                        q, q_lo, q_hi, &
+                        shk,  sk_lo, sk_hi, &
+                        uout, uout_lo, uout_hi, &
+                        update, updt_lo, updt_hi, &
+                        flux1, flux1_lo, flux1_hi, &
 #if AMREX_SPACEDIM >= 2
-                    flux2, flux2_lo, flux2_hi, &
+                        flux2, flux2_lo, flux2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-                    flux3, flux3_lo, flux3_hi, &
+                        flux3, flux3_lo, flux3_hi, &
 #endif
 #ifdef RADIATION
-                    Erin, Erin_lo, Erin_hi, &
-                    Erout, Erout_lo, Erout_hi, &
-                    radflux1, radflux1_lo, radflux1_hi, &
+                        Erin, Erin_lo, Erin_hi, &
+                        Erout, Erout_lo, Erout_hi, &
+                        radflux1, radflux1_lo, radflux1_hi, &
 #if AMREX_SPACEDIM >= 2
-                    radflux2, radflux2_lo, radflux2_hi, &
+                        radflux2, radflux2_lo, radflux2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-                    radflux3, radflux3_lo, radflux3_hi, &
+                        radflux3, radflux3_lo, radflux3_hi, &
 #endif
-                    nstep_fsp, &
+                        nstep_fsp, &
 #endif
-                    qx, qx_lo, qx_hi, &
+                        qx, qx_lo, qx_hi, &
 #if AMREX_SPACEDIM >= 2
-                    qy, qy_lo, qy_hi, &
+                        qy, qy_lo, qy_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-                    qz, qz_lo, qz_hi, &
+                        qz, qz_lo, qz_hi, &
 #endif
-                    area1, area1_lo, area1_hi, &
+                        area1, area1_lo, area1_hi, &
 #if AMREX_SPACEDIM >= 2
-                    area2, area2_lo, area2_hi, &
+                        area2, area2_lo, area2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-                    area3, area3_lo, area3_hi, &
+                        area3, area3_lo, area3_hi, &
 #endif
-                    vol,vol_lo,vol_hi, &
-                    div, div_lo, div_hi, &
-                    pdivu, pdivu_lo, pdivu_hi, &
-                    dx, dt, &
-                    verbose)
+                        vol, vol_lo, vol_hi, &
+                        pdivu, pdivu_lo, pdivu_hi, &
+                        dx, dt) bind(C, name="ctu_consup")
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UTEMP, NGDNV, NQ, &
-                                   GDPRES, &
 #ifdef RADIATION
                                    fspace_type, comoving, &
                                    GDU, GDV, GDW, GDLAMS, GDERADS, &
 #endif
-                                   track_grid_losses, limit_fluxes_on_small_dens
-    use advection_util_module, only : limit_hydro_fluxes_on_small_dens, normalize_species_fluxes, calc_pdivu, apply_av
+                                   GDPRES
+    use advection_util_module, only : calc_pdivu
     use prob_params_module, only : mom_flux_has_p, center, dg
 #ifdef RADIATION
     use rad_params_module, only : ngroups, nugroup, dlognu
     use radhydro_nd_module, only : advect_in_fspace
     use fluxlimiter_module, only : Edd_factor
-    use advection_util_module, only : apply_av_rad
 #endif
 #ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only : add_hybrid_advection_source
@@ -657,7 +658,6 @@ contains
 #endif
     integer, intent(in) ::    qx_lo(3),    qx_hi(3)
     integer, intent(in) ::   vol_lo(3),   vol_hi(3)
-    integer, intent(in) ::   div_lo(3),   div_hi(3)
     integer, intent(in) ::   pdivu_lo(3),   pdivu_hi(3)
 #ifdef RADIATION
     integer, intent(in) :: Erout_lo(3), Erout_hi(3)
@@ -672,34 +672,32 @@ contains
     integer, intent(inout) :: nstep_fsp
 #endif
 
-    integer, intent(in) :: verbose
-
     real(rt), intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
     real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(in) :: shk(sk_lo(1):sk_hi(1),sk_lo(2):sk_hi(2),sk_lo(3):sk_hi(3))
     real(rt), intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
     real(rt), intent(inout) :: update(updt_lo(1):updt_hi(1),updt_lo(2):updt_hi(2),updt_lo(3):updt_hi(3),NVAR)
 
-    real(rt), intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
+    real(rt), intent(in) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
     real(rt), intent(in) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
     real(rt), intent(in) ::    qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
 
 #if AMREX_SPACEDIM >= 2
-    real(rt), intent(inout) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
+    real(rt), intent(in) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
     real(rt), intent(in) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2),area2_lo(3):area2_hi(3))
     real(rt), intent(in) ::    qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
 #endif
 
 #if AMREX_SPACEDIM == 3
-    real(rt), intent(inout) :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
+    real(rt), intent(in) :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
     real(rt), intent(in) :: area3(area3_lo(1):area3_hi(1),area3_lo(2):area3_hi(2),area3_lo(3):area3_hi(3))
     real(rt), intent(in) ::    qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
 #endif
 
     real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    real(rt), intent(in) :: div(div_lo(1):div_hi(1),div_lo(2):div_hi(2),div_lo(3):div_hi(3))
     real(rt), intent(inout) :: pdivu(pdivu_lo(1):pdivu_hi(1),pdivu_lo(2):pdivu_hi(2),pdivu_lo(3):pdivu_hi(3))
-    real(rt), intent(in) :: dx(3), dt
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(in), value :: dt
 
 #ifdef RADIATION
     real(rt), intent(in) :: Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
@@ -714,10 +712,9 @@ contains
 
 #endif
 
-    real(rt)         :: div1, volinv
-    integer          :: i, j, g, k, n
-    integer          :: domlo(3), domhi(3)
-
+    integer :: i, j, g, k, n
+    integer :: domlo(3), domhi(3)
+    real(rt) :: volInv
 
 #ifdef RADIATION
     real(rt), dimension(0:ngroups-1) :: Erscale
@@ -732,6 +729,8 @@ contains
     real(rt) :: umx_new1, umy_new1, umz_new1
     real(rt) :: umx_new2, umy_new2, umz_new2
 #endif
+
+    !$gpu
 
 #ifdef RADIATION
     if (ngroups .gt. 1) then
@@ -755,7 +754,7 @@ contains
                     area3, area3_lo, area3_hi, &
 #endif
                     vol, vol_lo, vol_hi, &
-                    dx, pdivu, lo, hi)
+                    dx, pdivu, pdivu_lo, pdivu_hi)
 
 
     ! For hydro, we will create an update source term that is
@@ -1069,8 +1068,7 @@ contains
     endif
 #endif
 
-  end subroutine consup
-
+  end subroutine ctu_consup
 
   subroutine ca_track_grid_losses(lo, hi, &
                                   flux1, flux1_lo, flux1_hi, &
@@ -1081,7 +1079,8 @@ contains
                                   flux3, flux3_lo, flux3_hi, &
 #endif
                                   mass_lost, xmom_lost, ymom_lost, zmom_lost, &
-                                  eden_lost, xang_lost, yang_lost, zang_lost)
+                                  eden_lost, xang_lost, yang_lost, zang_lost) &
+                                  bind(C, name="ca_track_grid_losses")
 
 
     use meth_params_module, only : URHO, UMX, UMY, UMZ, UEDEN, NVAR
@@ -1261,1358 +1260,5 @@ contains
 
   end subroutine ca_track_grid_losses
 
-
-  subroutine ca_ctu_update(lo, hi, is_finest_level, time, &
-                           domlo, domhi, &
-                           uin, uin_lo, uin_hi, &
-                           uout, uout_lo, uout_hi, &
-#ifdef RADIATION
-                           Erin, Erin_lo, Erin_hi, &
-                           Erout, Erout_lo, Erout_hi, &
-#endif
-                           q, q_lo, q_hi, &
-                           qaux, qa_lo, qa_hi, &
-                           srcQ, srQ_lo, srQ_hi, &
-                           update, updt_lo, updt_hi, &
-                           dx, dt, &
-                           flux1, flux1_lo, flux1_hi, &
-#if AMREX_SPACEDIM >= 2
-                           flux2, flux2_lo, flux2_hi, &
-#endif
-#if AMREX_SPACEDIM == 3
-                           flux3, flux3_lo, flux3_hi, &
-#endif
-#ifdef RADIATION
-                           radflux1, radflux1_lo, radflux1_hi, &
-#if AMREX_SPACEDIM >= 2
-                           radflux2, radflux2_lo, radflux2_hi, &
-#endif
-#if AMREX_SPACEDIM == 3
-                           radflux3, radflux3_lo, radflux3_hi, &
-#endif
-#endif
-                           area1, area1_lo, area1_hi, &
-#if AMREX_SPACEDIM >= 2
-                           area2, area2_lo, area2_hi, &
-#endif
-#if AMREX_SPACEDIM == 3
-                           area3, area3_lo, area3_hi, &
-#endif
-#if AMREX_SPACEDIM <= 2
-                           pradial, p_lo, p_hi, &
-                           dloga, dloga_lo, dloga_hi, &
-#endif
-                           vol, vol_lo, vol_hi, &
-                           verbose, &
-#ifdef RADIATION
-                           nstep_fsp, &
-#endif
-                           mass_lost, xmom_lost, ymom_lost, zmom_lost, &
-                           eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_ctu_update")
-
-    use amrex_mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : NQ, QVAR, QPRES, NQAUX, NVAR, NHYP, NGDNV, GDPRES, UMX, &
-#ifdef RADIATION
-                                   QPTOT, &
-#endif
-                                   use_flattening, first_order_hydro, track_grid_losses
-    use advection_util_module, only : divu, scale_flux
-    use amrex_constants_module, only : ZERO, ONE
-    use flatten_module, only: ca_uflatten
-    use prob_params_module, only : mom_flux_has_p, dg, coord_type
-#ifdef RADIATION
-    use rad_params_module, only : ngroups
-    use flatten_module, only : rad_flatten
-    use advection_util_module, only: scale_rad_flux
-#endif
-    use riemann_module, only: cmpflx_plus_godunov
-#if AMREX_SPACEDIM >= 2
-    use transverse_module
-#endif
-
-    implicit none
-
-#ifdef RADIATION
-    integer, intent(inout) :: nstep_fsp
-#endif
-    integer, intent(in) :: is_finest_level
-    integer, intent(in) :: lo(3), hi(3), verbose
-    integer, intent(in) :: domlo(3), domhi(3)
-    integer, intent(in) :: uin_lo(3), uin_hi(3)
-    integer, intent(in) :: uout_lo(3), uout_hi(3)
-#ifdef RADIATION
-    integer, intent(in) :: Erin_lo(3), Erin_hi(3)
-    integer, intent(in) :: Erout_lo(3), Erout_hi(3)
-#endif
-    integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: srQ_lo(3), srQ_hi(3)
-    integer, intent(in) :: updt_lo(3), updt_hi(3)
-    integer, intent(in) :: flux1_lo(3), flux1_hi(3)
-#if AMREX_SPACEDIM >= 2
-    integer, intent(in) :: flux2_lo(3), flux2_hi(3)
-#endif
-#if AMREX_SPACEDIM == 3
-    integer, intent(in) :: flux3_lo(3), flux3_hi(3)
-#endif
-#ifdef RADIATION
-    integer, intent(in) :: radflux1_lo(3), radflux1_hi(3)
-#if AMREX_SPACEDIM >= 2
-    integer, intent(in) :: radflux2_lo(3), radflux2_hi(3)
-#endif
-#if AMREX_SPACEDIM == 3
-    integer, intent(in) :: radflux3_lo(3), radflux3_hi(3)
-#endif
-#endif
-    integer, intent(in) :: area1_lo(3), area1_hi(3)
-#if AMREX_SPACEDIM >= 2
-    integer, intent(in) :: area2_lo(3), area2_hi(3)
-#endif
-#if AMREX_SPACEDIM == 3
-    integer, intent(in) :: area3_lo(3), area3_hi(3)
-#endif
-    integer, intent(in) :: vol_lo(3), vol_hi(3)
-#if AMREX_SPACEDIM <= 2
-    integer, intent(in) :: p_lo(3), p_hi(3)
-    integer, intent(in) :: dloga_lo(3), dloga_hi(3)
-#endif
-
-    real(rt)        , intent(in) :: uin(uin_lo(1):uin_hi(1), uin_lo(2):uin_hi(2), uin_lo(3):uin_hi(3), NVAR)
-    real(rt)        , intent(inout) :: uout(uout_lo(1):uout_hi(1), uout_lo(2):uout_hi(2), uout_lo(3):uout_hi(3), NVAR)
-#ifdef RADIATION
-    real(rt)        , intent(in) :: Erin(Erin_lo(1):Erin_hi(1), Erin_lo(2):Erin_hi(2), Erin_lo(3):Erin_hi(3), 0:ngroups-1)
-    real(rt)        , intent(inout) :: Erout(Erout_lo(1):Erout_hi(1), Erout_lo(2):Erout_hi(2), Erout_lo(3):Erout_hi(3), 0:ngroups-1)
-#endif
-    real(rt)        , intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
-    real(rt)        , intent(in) :: qaux(qa_lo(1):qa_hi(1), qa_lo(2):qa_hi(2), qa_lo(3):qa_hi(3), NQAUX)
-    real(rt)        , intent(in) :: srcQ(srQ_lo(1):srQ_hi(1), srQ_lo(2):srQ_hi(2), srQ_lo(3):srQ_hi(3), QVAR)
-    real(rt)        , intent(inout) :: update(updt_lo(1):updt_hi(1), updt_lo(2):updt_hi(2), updt_lo(3):updt_hi(3), NVAR)
-    real(rt)        , intent(inout) :: flux1(flux1_lo(1):flux1_hi(1), flux1_lo(2):flux1_hi(2), flux1_lo(3):flux1_hi(3), NVAR)
-#if AMREX_SPACEDIM >= 2
-    real(rt)        , intent(inout) :: flux2(flux2_lo(1):flux2_hi(1), flux2_lo(2):flux2_hi(2), flux2_lo(3):flux2_hi(3), NVAR)
-#endif
-#if AMREX_SPACEDIM == 3
-    real(rt)        , intent(inout) :: flux3(flux3_lo(1):flux3_hi(1), flux3_lo(2):flux3_hi(2), flux3_lo(3):flux3_hi(3), NVAR)
-#endif
-#ifdef RADIATION
-    real(rt)        , intent(inout) :: radflux1(radflux1_lo(1):radflux1_hi(1), radflux1_lo(2):radflux1_hi(2), &
-         radflux1_lo(3):radflux1_hi(3), 0:ngroups-1)
-#if AMREX_SPACEDIM >= 2
-    real(rt)        , intent(inout) :: radflux2(radflux2_lo(1):radflux2_hi(1), radflux2_lo(2):radflux2_hi(2), &
-         radflux2_lo(3):radflux2_hi(3), 0:ngroups-1)
-#endif
-#if AMREX_SPACEDIM == 3
-    real(rt)        , intent(inout) :: radflux3(radflux3_lo(1):radflux3_hi(1), radflux3_lo(2):radflux3_hi(2), &
-         radflux3_lo(3):radflux3_hi(3), 0:ngroups-1)
-#endif
-#endif
-    real(rt)        , intent(in) :: area1(area1_lo(1):area1_hi(1), area1_lo(2):area1_hi(2), area1_lo(3):area1_hi(3))
-#if AMREX_SPACEDIM >= 2
-    real(rt)        , intent(in) :: area2(area2_lo(1):area2_hi(1), area2_lo(2):area2_hi(2), area2_lo(3):area2_hi(3))
-#endif
-#if AMREX_SPACEDIM == 3
-    real(rt)        , intent(in) :: area3(area3_lo(1):area3_hi(1), area3_lo(2):area3_hi(2), area3_lo(3):area3_hi(3))
-#endif
-    real(rt)        , intent(in) :: vol(vol_lo(1):vol_hi(1), vol_lo(2):vol_hi(2), vol_lo(3):vol_hi(3))
-
-#if AMREX_SPACEDIM < 3
-    real(rt)        , intent(in) :: dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
-    real(rt)        , intent(inout) :: pradial(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
-#endif
-
-    real(rt)        , intent(in) :: dx(3), dt, time
-
-    real(rt)        , intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
-    real(rt)        , intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
-
-    ! Automatic arrays for workspace
-    real(rt)        , pointer:: flatn(:,:,:)
-#ifdef RADIATION
-    real(rt)        , pointer:: flatg(:,:,:)
-#endif
-    real(rt)        , pointer:: div(:,:,:)
-
-    ! Edge-centered primitive variables (Riemann state)
-    real(rt)        , pointer:: q1(:,:,:,:)
-    real(rt)        , pointer:: q2(:,:,:,:)
-    real(rt)        , pointer:: q3(:,:,:,:)
-
-    integer :: q1_lo(3), q1_hi(3), q2_lo(3), q2_hi(3), q3_lo(3), q3_hi(3)
-
-    integer :: fglo(3), fghi(3), glo(3), ghi(3)
-
-    ! for computing the normal states
-    real(rt), pointer :: Ip(:,:,:,:,:,:), Im(:,:,:,:,:,:)
-    real(rt), pointer :: Ip_src(:,:,:,:,:,:), Im_src(:,:,:,:,:,:)
-    real(rt), pointer :: Ip_gc(:,:,:,:,:,:), Im_gc(:,:,:,:,:,:)
-
-    real(rt), pointer :: shk(:,:,:)
-
-    real(rt), pointer :: sm(:,:,:,:), sp(:,:,:,:)
-    real(rt), pointer :: dq(:,:,:,:,:)
-
-    ! Left and right state arrays (edge centered, cell centered)
-    double precision, dimension(:,:,:,:), pointer :: &
-         qxm, qym, qzm, qxp, qyp, qzp
-
-    ! for the transverse corrections
-    real(rt), pointer :: q_int(:,:,:,:)
-
-#ifdef RADIATION
-    real(rt), pointer :: lambda_int(:,:,:,:)
-#endif
-
-    real(rt)        , pointer:: pdivu(:,:,:)
-
-
-    ! Left and right state arrays (edge centered, cell centered)
-    double precision, dimension(:,:,:,:), pointer :: &
-         ql, qr, &
-         qmxy, qpxy, qmxz, qpxz, qmyx, qpyx, &
-         qmyz, qpyz, qmzx, qpzx, qmzy, qpzy
-
-
-    ! these will be the temporary arrays we actually allocate space for
-    double precision, dimension(:,:,:,:), pointer :: ftmp1, ftmp2, rftmp1, rftmp2
-    double precision, dimension(:,:,:,:), pointer :: qgdnvtmp1, qgdnvtmp2
-
-    ! Left and right state arrays (edge centered, cell centered)
-    double precision, dimension(:,:,:,:), pointer :: &
-         qxl, qxr, qyl, qyr, qzl, qzr
-
-    double precision, dimension(:,:,:,:), pointer:: &
-         qgdnvx, qgdnvy, qgdnvz, &
-         qgdnvxy, qgdnvxz, &
-         qgdnvyx, qgdnvyz, &
-         qgdnvzx, qgdnvzy
-
-    double precision, dimension(:,:,:,:), pointer:: &
-         fx, fy, fz, fxy, fxz, fyx, fyz, fzx, fzy
-
-#ifdef RADIATION
-    double precision, dimension(:,:,:,:), pointer:: &
-         rfx, rfy, rfz, rfxy, rfxz, rfyx, rfyz, rfzx, rfzy
-#endif
-
-
-    real(rt) :: dxinv, dyinv, dzinv
-    real(rt) :: dtdx, dtdy, dtdz, hdt
-#if AMREX_SPACEDIM == 3
-    real(rt) :: cdtdx, cdtdy, cdtdz
-#endif
-    real(rt) :: hdtdx, hdtdy, hdtdz
-
-    integer :: i, j, k, n
-
-    call bl_allocate(   div, lo, hi+dg)
-
-    q1_lo = flux1_lo - dg
-    q1_hi = flux1_hi + dg
-#if AMREX_SPACEDIM >= 2
-    q2_lo = flux2_lo - dg
-    q2_hi = flux2_hi + dg
-#endif
-#if AMREX_SPACEDIM == 3
-    q3_lo = flux3_lo - dg
-    q3_hi = flux3_hi + dg
-#endif
-
-    call bl_allocate(q1, q1_lo, q1_hi, NGDNV)
-#if AMREX_SPACEDIM >= 2
-    call bl_allocate(q2, q2_lo, q2_hi, NGDNV)
-#endif
-#if AMREX_SPACEDIM == 3
-    call bl_allocate(q3, q3_lo, q3_hi, NGDNV)
-#endif
-
-    ! Compute flattening coefficient for slope calculations.
-    call bl_allocate( flatn, q_lo, q_hi)
-#ifdef RADIATION
-    call bl_allocate( flatg, q_lo, q_hi)
-#endif
-    if (first_order_hydro == 1) then
-       flatn = ZERO
-    elseif (use_flattening == 1) then
-       call ca_uflatten(lo-dg, hi+dg, &
-                        q, q_lo, q_hi, &
-                        flatn, q_lo, q_hi, QPRES)
-#ifdef RADIATION
-       call ca_uflatten(lo-dg, hi+dg, &
-                        q, q_lo, q_hi, &
-                        flatg, q_lo, q_hi, QPTOT)
-
-       call rad_flatten(lo-dg, hi+dg, &
-                        q, q_lo, q_hi, &
-                        flatn, q_lo, q_hi, &
-                        flatg, q_lo, q_hi)
-#endif
-    else
-       flatn = ONE
-    endif
-#ifdef RADIATION
-    call bl_deallocate(flatg)
-#endif
-
-    fglo = lo - dg(:)  ! face + one ghost
-    fghi = hi + 2*dg(:)
-
-    glo = lo - dg(:)  ! one ghost,  this can be used for face-based arrays too
-    ghi = hi + dg(:)
-
-    call bl_allocate ( qxm, fglo, fghi, NQ)
-    call bl_allocate ( qxp, fglo, fghi, NQ)
-
-#if AMREX_SPACEDIM >= 2
-    call bl_allocate ( qym, fglo, fghi, NQ)
-    call bl_allocate ( qyp, fglo, fghi, NQ)
-#endif
-
-#if AMREX_SPACEDIM == 3
-    call bl_allocate ( qzm, fglo, fghi, NQ)
-    call bl_allocate ( qzp, fglo, fghi, NQ)
-#endif
-
-    ! x-index, y-index, z-index, dim, characteristics, variables
-    call bl_allocate ( Ip, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,AMREX_SPACEDIM,1,3,1,NQ)
-    call bl_allocate ( Im, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,AMREX_SPACEDIM,1,3,1,NQ)
-
-    ! for source terms
-    call bl_allocate ( Ip_src, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,AMREX_SPACEDIM,1,3,1,QVAR)
-    call bl_allocate ( Im_src, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,AMREX_SPACEDIM,1,3,1,QVAR)
-
-    ! for gamc -- needed for the reference state in eigenvectors
-    call bl_allocate ( Ip_gc, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,AMREX_SPACEDIM,1,3,1,1)
-    call bl_allocate ( Im_gc, glo(1),ghi(1),glo(2),ghi(2),glo(3),ghi(3),1,AMREX_SPACEDIM,1,3,1,1)
-
-    ! only needed for PLM -- maybe we can piggyback on the others?
-    call bl_allocate ( dq, glo(1),ghi(1), glo(2),ghi(2), glo(3),ghi(3), 1, NQ, 1, AMREX_SPACEDIM)
-
-    ! for the hybrid Riemann solver
-    call bl_allocate(shk, glo, ghi)
-
-    call bl_allocate(sm, glo, ghi, AMREX_SPACEDIM)
-    call bl_allocate(sp, glo, ghi, AMREX_SPACEDIM)
-
-    call ctu_normal_states(lo-dg, hi+dg, &
-                           lo, hi, &
-                           q, q_lo, q_hi, &
-                           flatn, q_lo, q_hi, &
-                           qaux, qa_lo, qa_hi, &
-                           srcQ, srQ_lo, srQ_hi, &
-                           shk, glo, ghi, &
-                           Ip, glo, ghi, &
-                           Im, glo, ghi, &
-                           Ip_src, glo, ghi, &
-                           Im_src, glo, ghi, &
-                           Ip_gc, glo, ghi, &
-                           Im_gc, glo, ghi, &
-                           dq, glo, ghi, &
-                           sm, glo, ghi, &
-                           sp, glo, ghi, &
-                           qxm, fglo, fghi, &
-                           qxp, fglo, fghi, &
-#if AMREX_SPACEDIM >= 2
-                           qym, fglo, fghi, &
-                           qyp, fglo, fghi, &
-#endif
-#if AMREX_SPACEDIM == 3
-                           qzm, fglo, fghi, &
-                           qzp, fglo, fghi, &
-#endif
-                           dx, dt, &
-#if AMREX_SPACEDIM < 3
-                           dloga, dloga_lo, dloga_hi, &
-#endif
-                           domlo, domhi)
-
-    call bl_deallocate ( Ip)
-    call bl_deallocate ( Im)
-
-    call bl_deallocate ( Ip_src)
-    call bl_deallocate ( Im_src)
-
-    call bl_deallocate ( Ip_gc)
-    call bl_deallocate ( Im_gc)
-
-    call bl_deallocate ( dq)
-
-    call bl_deallocate(sm)
-    call bl_deallocate(sp)
-
-    call bl_deallocate( flatn)
-
-#if AMREX_SPACEDIM == 3
-    call bl_allocate( qmxy, fglo, fghi, NQ)
-    call bl_allocate( qpxy, fglo, fghi, NQ)
-
-    call bl_allocate( qmxz, fglo, fghi, NQ)
-    call bl_allocate( qpxz, fglo, fghi, NQ)
-
-    call bl_allocate( qmyx, fglo, fghi, NQ)
-    call bl_allocate( qpyx, fglo, fghi, NQ)
-
-    call bl_allocate( qmyz, fglo, fghi, NQ)
-    call bl_allocate( qpyz, fglo, fghi, NQ)
-
-    call bl_allocate( qmzx, fglo, fghi, NQ)
-    call bl_allocate( qpzx, fglo, fghi, NQ)
-
-    call bl_allocate( qmzy, fglo, fghi, NQ)
-    call bl_allocate( qpzy, fglo, fghi, NQ)
-#endif
-
-#if AMREX_SPACEDIM >= 2
-    call bl_allocate( ftmp1, glo, ghi, NVAR)
-    call bl_allocate( ftmp2, glo, ghi, NVAR)
-#ifdef RADIATION
-    call bl_allocate ( rftmp1, glo(1), ghi(1), glo(2), ghi(2), glo(3), ghi(3), 0, ngroups-1)
-    call bl_allocate ( rftmp2, glo(1), ghi(1), glo(2), ghi(2), glo(3), ghi(3), 0, ngroups-1)
-#endif
-    call bl_allocate(qgdnvtmp1, fglo, fghi, NGDNV)
-    call bl_allocate(qgdnvtmp2, fglo, fghi, NGDNV)
-
-    call bl_allocate( ql, fglo, fghi, NQ)
-    call bl_allocate( qr, fglo, fghi, NQ)
-#endif
-
-    call bl_allocate(q_int, fglo, fghi, NQ)
-#ifdef RADIATION
-    call bl_allocate(lambda_int, fglo(1), fghi(1), fglo(2), fghi(2), fglo(3), fghi(3), 0, ngroups-1)
-#endif
-
-
-    ! Compute hyperbolic fluxes using unsplit Godunov
-
-    ! Local constants
-    dxinv = ONE/dx(1)
-    dtdx = dt*dxinv
-    hdtdx = HALF*dtdx
-
-#if AMREX_SPACEDIM >= 2
-    dyinv = ONE/dx(2)
-    dtdy = dt*dyinv
-    hdtdy = HALF*dtdy
-#endif
-
-#if AMREX_SPACEDIM == 3
-    dzinv = ONE/dx(3)
-    dtdz = dt*dzinv
-    hdtdz = HALF*dtdz
-    cdtdx = dtdx*THIRD
-    cdtdy = dtdy*THIRD
-    cdtdz = dtdz*THIRD
-#endif
-
-    hdt = HALF*dt
-
-#if AMREX_SPACEDIM == 1
-    !==========================================================================
-    ! 1-d code path
-    !==========================================================================
-    ! Solve Riemann problem, compute xflux from improved predicted states
-    call cmpflx_plus_godunov(lo, hi+dg(:), &
-                             qxm, fglo, fghi, &
-                             qxp, fglo, fghi, 1, 1, &
-                             flux1, flux1_lo, flux1_hi, &
-                             q_int, fglo, fghi, &
-#ifdef RADIATION
-                             radflux1, radflux1_lo, radflux1_hi, &
-                             lambda_int, fglo, fghi, &
-#endif
-                             q1, q1_lo, q1_hi, &
-                             qaux, qa_lo, qa_hi, &
-                             shk, glo, ghi, &
-                             1, domlo, domhi)
-#endif
-! end of 1-d path
-
-#if AMREX_SPACEDIM == 2
-    !==========================================================================
-    ! 2-d code path
-    !==========================================================================
-
-    fx     =>     ftmp1
-#ifdef RADIATION
-    rfx    =>    rftmp1
-#endif
-    qgdnvx  =>  qgdnvtmp1
-
-    ! Compute F^x
-    ! Inputs: qxm, qxp                     : xface, +-1 at y
-    !         gamc, csml, c                : +-4
-    !         shk                          : +-1
-    ! Outputs: fx, ugdnvx, pgdnvx, gegdnvx : xface, +-1 at y
-    call cmpflx_plus_godunov([lo(1), lo(2)-1, 0], [hi(1)+1, hi(2)+1, 0], &
-                             qxm, fglo, fghi, &
-                             qxp, fglo, fghi, 1, 1, &
-                             fx, glo, ghi, &
-                             q_int, fglo, fghi, &
-#ifdef RADIATION
-                             rfx, glo, ghi, &
-                             lambda_int, fglo, fghi, &
-#endif
-                             qgdnvx, fglo, fghi, &
-                             qaux, qa_lo, qa_hi, &
-                             shk, glo, ghi, &
-                             1, domlo, domhi)
-
-    fy     =>     ftmp2
-#ifdef RADIATION
-    rfy    =>    rftmp2
-#endif
-
-    ! Compute F^y
-    ! Inputs: qym, qyp                     : yface, +-1 at x
-    !         gamc, csml, c                : +-4
-    !         shk                          : +-1
-    ! Outputs: fy, ugdnvy, pgdnvy, gegdnvy : yface, +-1 at x
-    call cmpflx_plus_godunov([lo(1)-1, lo(2), 0], [hi(1)+1, hi(2)+1, 0], &
-                             qym, fglo, fghi, &
-                             qyp, fglo, fghi, 1, 1, &
-                             fy, glo, ghi, &
-                             q_int, fglo, fghi, &
-#ifdef RADIATION
-                             rfy, glo, ghi, &
-                             lambda_int, fglo, fghi, &
-#endif
-                             q2, q2_lo, q2_hi, &
-                             qaux, qa_lo, qa_hi, &
-                             shk, glo, ghi, &
-                             2, domlo, domhi)
-
-    ! add the transverse flux difference in y to the x states
-    ! Inputs: qxm, qxp                     : xface, +-1 at y
-    !         fy, ugdnvy, pgdnvy, gegdnvy  : yface, +-1 at x
-    !         gamc                         : +-4
-    ! Outputs: qm, qp                      : xface, +-0 at y
-    call transy([lo(1)-1, lo(2), 0], [hi(1)+1, hi(2), 0], &
-                qxm, fglo, fghi, &
-                ql, fglo, fghi, &
-                qxp, fglo, fghi, &
-                qr, fglo, fghi, &
-                qaux, qa_lo, qa_hi, &
-                fy, glo, ghi, &
-#ifdef RADIATION
-                rfy, glo, ghi, &
-#endif
-                q2, q2_lo, q2_hi, &
-                hdtdy, &
-                lo, hi)
-
-    ! Solve the final Riemann problem across the x-interfaces with the
-    ! full unsplit states.  The resulting flux through the x-interfaces
-    ! is flux1
-    call cmpflx_plus_godunov([lo(1), lo(2), 0], [hi(1)+1, hi(2), 0], &
-                             ql, fglo, fghi, &
-                             qr, fglo, fghi, 1, 1, &
-                             flux1, flux1_lo, flux1_hi, &
-                             q_int, fglo, fghi, &
-#ifdef RADIATION
-                             radflux1, radflux1_lo, radflux1_hi, &
-                             lambda_int, fglo, fghi, &
-#endif
-                             q1, q1_lo, q1_hi, &
-                             qaux, qa_lo, qa_hi, &
-                             shk, glo, ghi, &
-                             1, domlo, domhi)
-
-    ! add the transverse flux difference in x to the y states
-    ! Inputs: qym, qyp                     : yface, +-1 at x
-    !         fx, ugdnvx, pgdnvx, gegdnvx  : xface, +-1 at y
-    !         gamc                         : +-4
-    ! Outputs: qm, qp                      : yface, +-0 at x
-    call transx([lo(1), lo(2)-1, 0], [hi(1), hi(2)+1, 0], &
-                qym, fglo, fghi, &
-                ql, fglo, fghi, &
-                qyp, fglo, fghi, &
-                qr, fglo, fghi, &
-                qaux, qa_lo, qa_hi, &
-                fx, glo, ghi, &
-#ifdef RADIATION
-                rfx, glo, ghi, &
-#endif
-                qgdnvx, fglo, fghi, &
-                area1, area1_lo, area1_hi, &
-                vol, vol_lo, vol_hi, &
-                hdt, hdtdx, &
-                lo, hi)
-
-    ! Solve the final Riemann problem across the y-interfaces with the
-    ! full unsplit states.  The resulting flux through the y-interfaces
-    ! is flux2
-    call cmpflx_plus_godunov([lo(1), lo(2), 0], [hi(1), hi(2)+1, 0], &
-                             ql, fglo, fghi, &
-                             qr, fglo, fghi, 1, 1, &
-                             flux2, flux2_lo, flux2_hi, &
-                             q_int, fglo, fghi, &
-#ifdef RADIATION
-                             radflux2, radflux2_lo, radflux2_hi, &
-                             lambda_int, fglo, fghi, &
-#endif
-                             q2, q2_lo, q2_hi, &
-                             qaux, qa_lo, qa_hi, &
-                             shk, glo, ghi, &
-                             2, domlo, domhi)
-
-    nullify(fx, fy, qgdnvx)
-#ifdef RADIATION
-    nullify(rfx, rfy)
-#endif
-
-#endif
-! end of 2-d path
-
-
-#if AMREX_SPACEDIM == 3
-    !==========================================================================
-    ! 3-d code path
-    !==========================================================================
-
-    fx     =>     ftmp1
-#ifdef RADIATION
-    rfx    =>    rftmp1
-#endif
-    qgdnvx  =>  qgdnvtmp1
-
-    ! Compute F^x
-    ! Inputs: qxm, qxp                     : xface, +-1 at y & z
-    !         gamc, csml, c                : +-4
-    !         shk                          : +-1
-    ! Outputs: fx, ugdnvx, pgdnvx, gegdnvx : xface, +-1 at y & z
-    call cmpflx_plus_godunov([lo(1), lo(2)-dg(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
-                             qxm, fglo, fghi, &
-                             qxp, fglo, fghi, 1, 1, &
-                             fx, glo, ghi, &
-                             q_int, fglo, fghi, &
-#ifdef RADIATION
-                             rfx, glo, ghi, &
-                             lambda_int, fglo, fghi, &
-#endif
-                             qgdnvx, fglo, fghi, &
-                             qaux, qa_lo, qa_hi, &
-                             shk, glo, ghi, &
-                             1, domlo, domhi)
-
-    ! add the transverse flux difference in x to the y and z states
-    ! Inputs: qym, qyp                     : yface, +-1 at x & z
-    !         qzm, qzp                     : zface, +-1 at x & y
-    !         fx, ugdnvx, pgdnvx, gegdnvx  : xface, +-1 at y & z
-    !         gamc                         : +-4
-    ! Outputs: qmyx, qpyx                  : yface, +-0 at x, +-1 at z
-    !          qmzx, qpzx                  : zface, +-0 at x, +-1 at y
-    call transx([lo(1), lo(2)-1, lo(3)-1], [hi(1), hi(2)+1, hi(3)+1], &
-                qym, fglo, fghi, &
-                qmyx, fglo, fghi, &
-                qyp, fglo, fghi, &
-                qpyx, fglo, fghi, &
-                qzm, fglo, fghi, &
-                qmzx, fglo, fghi, &
-                qzp, fglo, fghi, &
-                qpzx, fglo, fghi, &
-                qaux, qa_lo, qa_hi, &
-                fx, glo, ghi, &
-#ifdef RADIATION
-                rfx, glo, ghi, &
-#endif
-                qgdnvx, fglo, fghi, &
-                hdt, cdtdx, &
-                lo, hi)
-
-    nullify(fx, qgdnvx)
-#ifdef RADIATION
-    nullify(rfx)
-#endif
-
-    fy     =>     ftmp1
-#ifdef RADIATION
-    rfy    =>    rftmp1
-#endif
-    qgdnvy => qgdnvtmp1
-
-    ! Compute F^y
-    ! Inputs: qym, qyp                     : yface, +-1 at x & z
-    !         gamc, csml, c                : +-4
-    !         shk                          : +-1
-    ! Outputs: fy, ugdnvy, pgdnvy, gegdnvy : yface, +-1 at x & z
-    call cmpflx_plus_godunov([lo(1)-1, lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
-                             qym, fglo, fghi, &
-                             qyp, fglo, fghi, 1, 1, &
-                             fy, glo, ghi, &
-                             q_int, fglo, fghi, &
-#ifdef RADIATION
-                             rfy, glo, ghi, &
-                             lambda_int, fglo, fghi, &
-#endif
-                             qgdnvy, fglo, fghi, &
-                             qaux, qa_lo, qa_hi, &
-                             shk, glo, ghi, &
-                             2, domlo, domhi)
-
-    ! add the transverse flux difference in y to the x and z states
-    ! Inputs: qxm, qxp                     : xface, +-1 at y & z
-    !         qzm, qzp                     : zface, +-1 at x & y
-    !         fy, ugdnvy, pgdnvy, gegdnvy  : yface, +-1 at x & z
-    !         gamc                         : +-4
-    ! Outputs: qmxy, qpxy                  : xface, +-0 at y, +-1 at z
-    !          qmzy, qpzy                  : zface, +-0 at y, +-1 at x
-    call transy([lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2), hi(3)+1], &
-                qxm, fglo, fghi, &
-                qmxy, fglo, fghi, &
-                qxp, fglo, fghi, &
-                qpxy, fglo, fghi, &
-                qzm, fglo, fghi, &
-                qmzy, fglo, fghi, &
-                qzp, fglo, fghi, &
-                qpzy, fglo, fghi, &
-                qaux, qa_lo, qa_hi, &
-                fy, glo, ghi, &
-#ifdef RADIATION
-                rfy, glo, ghi, &
-#endif
-                qgdnvy, fglo, fghi, &
-                cdtdy, &
-                lo, hi)
-
-    nullify(fy, qgdnvy)
-#ifdef RADIATION
-    nullify(rfy)
-#endif
-
-    fz      =>     ftmp1
-#ifdef RADIATION
-    rfz     =>    rftmp1
-#endif
-    qgdnvz  =>  qgdnvtmp1
-
-    ! Compute F^z
-    ! Inputs: qzm, qzp                     : zface, +-1 at x & y
-    !         gamc, csml, c                : +-4
-    !         shk                          : +-1
-    ! Outputs: fz, ugdnvz, pgdnvz, gegdnvz : zface, +-1 at x & y
-    call cmpflx_plus_godunov([lo(1)-1, lo(2)-dg(2), lo(3)], [ hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
-                             qzm, fglo, fghi, &
-                             qzp, fglo, fghi, 1, 1, &
-                             fz, glo, ghi, &
-                             q_int, fglo, fghi, &
-#ifdef RADIATION
-                             rfz, glo, ghi, &
-                             lambda_int, fglo, fghi, &
-#endif
-                             qgdnvz, fglo, fghi, &
-                             qaux, qa_lo, qa_hi, &
-                             shk, glo, ghi, &
-                             3, domlo, domhi)
-
-    ! add the transverse flux difference in z to the x and y states
-    ! Inputs: qxm, qxp                     : xface, +-1 at y & z
-    !         qym, qyp                     : yface, +-1 at x & z
-    !         fz, ugdnvz, pgdnvz, gegdnvz  : zface, +-1 at x & y
-    !         gamc                         : +-4
-    ! Outputs: qmxz, qpxz                  : xface, +-0 at z, +-1 at y
-    !          qmyz, qpyz                  : yface, +-0 at z, +-1 at x
-    call transz([lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)], &
-                qxm, fglo, fghi, &
-                qmxz, fglo, fghi, &
-                qxp, fglo, fghi, &
-                qpxz, fglo, fghi, &
-                qym, fglo, fghi, &
-                qmyz, fglo, fghi, &
-                qyp, fglo, fghi, &
-                qpyz, fglo, fghi, &
-                qaux, qa_lo, qa_hi, &
-                fz, glo, ghi, &
-#ifdef RADIATION
-                rfz, glo, ghi, &
-#endif
-                qgdnvz, fglo, fghi, &
-                cdtdz, &
-                lo, hi)
-
-    nullify(fz, qgdnvz)
-#ifdef RADIATION
-    nullify(rfz)
-#endif
-
-    ! We now have qx?, qy?, qz?
-    !         and q?zx, q?yx, q?zy, q?xy, q?yz, q?xz
-
-    !
-    ! Use qx?, q?yz, q?zy to compute final x-flux
-    !
-
-    fyz      =>      ftmp1
-#ifdef RADIATION
-    rfyz     =>     rftmp1
-#endif
-    qgdnvyz  =>  qgdnvtmp1
-
-    ! Compute F^{y|z}
-    ! Inputs: qmyz, qpyz                       : yface, +-1 at x, +-0 at z
-    !         gamc, csml, c                    : +-4
-    !         shk                              : +-1
-    ! Outputs: fyz, ugdnvyz, pgdnvyz, gegdnvyz : yface, +-1 at x, +-0 at z
-    call cmpflx_plus_godunov([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
-                             qmyz, fglo, fghi, &
-                             qpyz, fglo, fghi, 1, 1, &
-                             fyz, glo, ghi, &
-                             q_int, fglo, fghi, &
-#ifdef RADIATION
-                             rfyz, glo, ghi, &
-                             lambda_int, fglo, fghi, &
-#endif
-                             qgdnvyz, fglo, fghi, &
-                             qaux, qa_lo, qa_hi, &
-                             shk, glo, ghi, &
-                             2, domlo, domhi)
-
-    fzy      =>      ftmp2
-#ifdef RADIATION
-    rfzy     =>     rftmp2
-#endif
-    qgdnvzy  =>  qgdnvtmp2
-
-    ! Compute F^{z|y}
-    ! Inputs: qmzy, qpzy                       : zface, +-1 at x, +-0 at y
-    !         gamc, csml, c                    : +-4
-    !         shk                              : +-1
-    ! Outputs: fzy, ugdnvzy, pgdnvzy, gegdnvzy : zface, +-1 at x, +-0 at y
-    call cmpflx_plus_godunov([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+dg(3)], &
-                             qmzy, fglo, fghi, &
-                             qpzy, fglo, fghi, 1, 1, &
-                             fzy, glo, ghi, &
-                             q_int, fglo, fghi, &
-#ifdef RADIATION
-                             rfzy, glo, ghi, &
-                             lambda_int, fglo, fghi, &
-#endif
-                             qgdnvzy, fglo, fghi, &
-                             qaux, qa_lo, qa_hi, &
-                             shk, glo, ghi, &
-                             3, domlo, domhi)
-
-    qxl => ql
-    qxr => qr
-
-    ! Compute the corrected x interface states
-    ! Inputs: qxm, qxp                        : xface, +-1 at y & z
-    !         fyz, ugdnvyz, pgdnvyz, gegdnvyz : yface, +-1 at x, +-0 at z
-    !         fzy, ugdnvzy, pgdnvzy, gegdnvzy : zface, +-1 at x, +-0 at y
-    !         gamc, grav, rot                 : +-4
-    !         srcQ                            : +-1
-    ! Outputs: qxl, qxr                       : xface, +-0 at y & z
-    call transyz([lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], &
-                 qxm, fglo, fghi, &
-                 qxl, fglo, fghi, &
-                 qxp, fglo, fghi, &
-                 qxr, fglo, fghi, &
-                 qaux, qa_lo, qa_hi, &
-                 fyz, glo, ghi, &
-#ifdef RADIATION
-                 rfyz, glo, ghi, &
-#endif
-                 fzy, glo, ghi, &
-#ifdef RADIATION
-                 rfzy, glo, ghi, &
-#endif
-                 qgdnvyz, fglo, fghi, &
-                 qgdnvzy, fglo, fghi, &
-                 hdt, hdtdy, hdtdz, &
-                 lo, hi)
-
-    nullify(fyz, qgdnvyz)
-    nullify(fzy, qgdnvzy)
-#ifdef RADIATION
-    nullify(rfyz, rfzy)
-#endif
-
-    !qgdnvx  =>  qgdnvtmp1
-
-    ! now compute the final x fluxes, F^x
-    ! Inputs: qxl, qxr                        : xface, +-0 at y & z
-    !         gamc, csml, c                   : +-4
-    !         shk                             : +-1
-    ! Outputs: flux1, ugdnvx, pgdnvx, gegdnvx : xface, +-0 at y & z
-    call cmpflx_plus_godunov(lo, [hi(1)+1, hi(2), hi(3)], &
-                             qxl, fglo, fghi, &
-                             qxr, fglo, fghi, 1, 1, &
-                             flux1, flux1_lo, flux1_hi, &
-                             q_int, fglo, fghi, &
-#ifdef RADIATION
-                             radflux1, radflux1_lo, radflux1_hi, &
-                             lambda_int, fglo, fghi, &
-#endif
-                             q1, q1_lo, q1_hi, &
-                             qaux, qa_lo, qa_hi, &
-                             shk, glo, ghi, &
-                             1, domlo, domhi)
-
-    !nullify(qgdnvx)
-    nullify(qxl, qxr)
-
-    !
-    ! Use qy?, q?zx, q?xz to compute final y-flux
-    !
-
-    fzx      =>      ftmp1
-#ifdef RADIATION
-    rfzx     =>     rftmp1
-#endif
-    qgdnvzx  =>  qgdnvtmp1
-
-    ! Compute F^{z|x}
-    ! Inputs: qmzx, qpzx                       : zface, +-0 at x, +-1 at y
-    !         gamc, csml, c                    : +-4
-    !         shk                              : +-1
-    ! Outputs: fzx, ugdnvzx, pgdnvzx, gegdnvzx : zface, +-0 at x, +-1 at y
-    call cmpflx_plus_godunov([lo(1), lo(2)-dg(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
-                             qmzx, fglo, fghi, &
-                             qpzx, fglo, fghi, 1, 1, &
-                             fzx, glo, ghi, &
-                             q_int, fglo, fghi, &
-#ifdef RADIATION
-                             rfzx, glo, ghi, &
-                             lambda_int, fglo, fghi, &
-#endif
-                             qgdnvzx, fglo, fghi, &
-                             qaux, qa_lo, qa_hi, &
-                             shk, glo, ghi, &
-                             3, domlo, domhi)
-
-    fxz      =>      ftmp2
-#ifdef RADIATION
-    rfxz     =>     rftmp2
-#endif
-    qgdnvxz  =>  qgdnvtmp2
-
-    ! Compute F^{x|z} at km
-    ! Inputs: qmxz, qpxz                       : xface, +-1 at y, +-0 at z
-    !         gamc, csml, c                    : +-4
-    !         shk                              : +-1
-    ! Outputs: fxz, ugdnvxz, pgdnvxz, gegdnvxz : xface, +-1 at y, +-0 at z
-    call cmpflx_plus_godunov([lo(1), lo(2)-dg(2), lo(3)], [hi(1)+1, hi(2)+dg(2), hi(3)], &
-                             qmxz, fglo, fghi, &
-                             qpxz, fglo, fghi, 1, 1, &
-                             fxz, glo, ghi, &
-                             q_int, fglo, fghi, &
-#ifdef RADIATION
-                             rfxz, glo, ghi, &
-                             lambda_int, fglo, fghi, &
-#endif
-                             qgdnvxz, fglo, fghi, &
-                             qaux, qa_lo, qa_hi, &
-                             shk, glo, ghi, &
-                             1, domlo, domhi)
-
-    qyl => ql
-    qyr => qr
-
-    ! Compute the corrected y interface states
-    ! Inputs: qym, qyp                        : yface, +-1 at x & z
-    !         fxz, ugdnvxz, pgdnvxz, gegdnvxz : xface, +-1 at y, +-0 at z
-    !         fzx, ugdnvzx, pgdnvzx, gegdnvzx : zface, +-0 at x, +-1 at y
-    !         gamc, grav, rot                 : +-4
-    !         srcQ                            : +-1
-    ! Outputs: qyl, qyr                       : yface, +-0 at x & z
-    call transxz([lo(1), lo(2)-1, lo(3)], [hi(1), hi(2)+1, hi(3)], &
-                 qym, fglo, fghi, &
-                 qyl, fglo, fghi, &
-                 qyp, fglo, fghi, &
-                 qyr, fglo, fghi, &
-                 qaux, qa_lo, qa_hi, &
-                 fxz, glo, ghi, &
-#ifdef RADIATION
-                 rfxz, glo, ghi, &
-#endif
-                 fzx, glo, ghi, &
-#ifdef RADIATION
-                 rfzx, glo, ghi, &
-#endif
-                 qgdnvxz, fglo, fghi, &
-                 qgdnvzx, fglo, fghi, &
-                 hdt, hdtdx, hdtdz, &
-                 lo, hi)
-
-    nullify(fzx, qgdnvzx)
-    nullify(fxz, qgdnvxz)
-#ifdef RADIATION
-    nullify(rfzx, rfxz)
-#endif
-
-    !qgdnvy  =>  qgdnvtmp1
-
-    ! now compute the final y fluxes F^y
-    ! Inputs: qyl, qyr                        : yface, +-0 at x & y
-    !         gamc, csml, c                   : +-4
-    !         shk                             : +-1
-    ! Outputs: flux2, ugdnvy, pgdnvy, gegdnvy : yface, +-0 at x & y
-    call cmpflx_plus_godunov([lo(1), lo(2), lo(3)], [hi(1), hi(2)+dg(2), hi(3)], &
-                              qyl, fglo, fghi, &
-                              qyr, fglo, fghi, 1, 1, &
-                              flux2, flux2_lo, flux2_hi, &
-                              q_int, fglo, fghi, &
-#ifdef RADIATION
-                              radflux2, radflux2_lo, radflux2_hi, &
-                              lambda_int, fglo, fghi, &
-#endif
-                              q2, q2_lo, q2_hi, &
-                              qaux, qa_lo, qa_hi, &
-                              shk, glo, ghi, &
-                              2, domlo, domhi)
-
-    !nullify(qgdnvy)
-    nullify(qyl,qyr)
-
-    !
-    ! Use qz?, q?xy, q?yx to compute final z-flux
-    !
-
-    fxy      =>      ftmp1
-#ifdef RADIATION
-    rfxy     =>     rftmp1
-#endif
-    qgdnvxy  =>   qgdnvtmp1
-
-
-    ! Compute F^{x|y}
-    ! Inputs: qmxy, qpxy                       : xface, +-0 at y, +-1 at z
-    !         gamc, csml, c                    : +-4
-    !         shk                              : +-1
-    ! Outputs: fxy, ugdnvxy, pgdnvxy, gegdnvxy : xface, +-0 at y, +-1 at z
-    call cmpflx_plus_godunov([lo(1), lo(2), lo(3)-dg(3)], [hi(1)+1, hi(2), hi(3)+dg(3)], &
-                             qmxy, fglo, fghi, &
-                             qpxy, fglo, fghi, 1, 1, &
-                             fxy, glo, ghi, &
-                             q_int, fglo, fghi, &
-#ifdef RADIATION
-                             rfxy, glo, ghi, &
-                             lambda_int, fglo, fghi, &
-#endif
-                             qgdnvxy, fglo, fghi, &
-                             qaux, qa_lo, qa_hi, &
-                             shk, glo, ghi, &
-                             1, domlo, domhi)
-
-    fyx      =>      ftmp2
-#ifdef RADIATION
-    rfyx     =>     rftmp2
-#endif
-    qgdnvyx  =>  qgdnvtmp2
-
-    ! Compute F^{y|x}
-    ! Inputs: qmyx, qpyx                       : yface, +-0 at x, +-1 at z
-    !         gamc, csml, c                    : +-4
-    !         shk                              : +-1
-    ! Outputs: fyx, ugdnvyx, pgdnvyx, gegdnvyx : yface, +-0 at x, +-1 at z
-    call cmpflx_plus_godunov([lo(1), lo(2), lo(3)-dg(3)], [hi(1), hi(2)+dg(2), hi(3)+dg(3)], &
-                             qmyx, fglo, fghi, &
-                             qpyx, fglo, fghi, 1, 1, &
-                             fyx, glo, ghi, &
-                             q_int, fglo, fghi, &
-#ifdef RADIATION
-                             rfyx, glo, ghi, &
-                             lambda_int, fglo, fghi, &
-#endif
-                             qgdnvyx, fglo, fghi, &
-                             qaux, qa_lo, qa_hi, &
-                             shk, glo, ghi, &
-                             2, domlo, domhi)
-
-    qzl => ql
-    qzr => qr
-
-    ! Compute the corrected z interface states
-    ! Inputs: qzm, qzp                        : zface, +-1 at x & y
-    !         fxy, ugdnvxy, pgdnvxy, gegdnvxy : xface, +-0 at y, +-1 at z
-    !         fyx, ugdnvyx, pgdnvyx, gegdnvyx : yface, +-0 at x, +-1 at z
-    !         gamc, grav, rot                 : +-4
-    !         srcQ                            : +-1
-    ! Outputs: qzl, qzr                       : zface, +-0 at x & y
-    call transxy([lo(1), lo(2), lo(3)-1], [hi(1), hi(2), hi(3)+1], &
-                 qzm, fglo, fghi, &
-                 qzl, fglo, fghi, &
-                 qzp, fglo, fghi, &
-                 qzr, fglo, fghi, &
-                 qaux, qa_lo, qa_hi, &
-                 fxy, glo, ghi, &
-#ifdef RADIATION
-                 rfxy, glo, ghi, &
-#endif
-                 fyx, glo, ghi, &
-#ifdef RADIATION
-                 rfyx, glo, ghi, &
-#endif
-                 qgdnvxy, fglo, fghi, &
-                 qgdnvyx, fglo, fghi, &
-                 hdt, hdtdx, hdtdy, &
-                 lo, hi)
-
-    nullify(fxy, qgdnvxy)
-    nullify(fyx, qgdnvyx)
-#ifdef RADIATION
-    nullify(rfxy, rfyx)
-#endif
-
-    !qgdnvz  =>  qgdnvtmp1
-
-    ! Compute the final z fluxes F^z
-    ! Inputs: qzl, qzr                        : zface, +-0 at x & y
-    !         gamc, csml, c                   : +-4
-    !         shk                             : +-1
-    ! Outputs: flux3, ugdnvz, pgdnvz, gegdnvz : zface, +-0 at x & y
-    call cmpflx_plus_godunov([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+dg(3)], &
-                             qzl, fglo, fghi, &
-                             qzr, fglo, fghi, 1, 1, &
-                             flux3, flux3_lo, flux3_hi, &
-                             q_int, fglo, fghi, &
-#ifdef RADIATION
-                             radflux3, radflux3_lo, radflux3_hi, &
-                             lambda_int, fglo, fghi, &
-#endif
-                             q3, q3_lo, q3_hi, &
-                             qaux, qa_lo, qa_hi, &
-                             shk, glo, ghi, &
-                             3, domlo, domhi)
-
-    !nullify(qgdnvz)
-    nullify(qzl,qzr)
-#endif
-
-    call bl_deallocate(qxm)
-    call bl_deallocate(qxp)
-#if AMREX_SPACEDIM >= 2
-    call bl_deallocate(qym)
-    call bl_deallocate(qyp)
-#endif
-#if AMREX_SPACEDIM == 3
-    call bl_deallocate(qzm)
-    call bl_deallocate(qzp)
-#endif
-
-    call bl_deallocate(q_int)
-#ifdef RADIATION
-    call bl_deallocate(lambda_int)
-#endif
-
-#if AMREX_SPACEDIM >= 2
-    call bl_deallocate(ql)
-    call bl_deallocate(qr)
-#endif
-
-#if AMREX_SPACEDIM == 3
-    call bl_deallocate ( qmxy)
-    call bl_deallocate ( qpxy)
-
-    call bl_deallocate ( qmxz)
-    call bl_deallocate ( qpxz)
-
-    call bl_deallocate ( qmzx)
-    call bl_deallocate ( qpzx)
-
-    call bl_deallocate ( qmzy)
-    call bl_deallocate ( qpzy)
-
-    call bl_deallocate ( qmyx)
-    call bl_deallocate ( qpyx)
-
-    call bl_deallocate ( qmyz)
-    call bl_deallocate ( qpyz)
-#endif
-
-#if AMREX_SPACEDIM >= 2
-    call bl_deallocate ( ftmp1)
-    call bl_deallocate ( ftmp2)
-
-#ifdef RADIATION
-    call bl_deallocate (rftmp1)
-    call bl_deallocate (rftmp2)
-#endif
-
-    call bl_deallocate(qgdnvtmp1)
-    call bl_deallocate(qgdnvtmp2)
-#endif
-
-    ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
-    call divu(lo, hi+dg, q, q_lo, q_hi, dx, div, lo, hi+dg)
-
-
-    ! clean up the fluxes
-    call ctu_clean_fluxes([lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], &
-                          1, &
-                          uin, uin_lo, uin_hi, &
-                          q, q_lo, q_hi, &
-                          flux1, flux1_lo, flux1_hi, &
-#ifdef RADIATION
-                          Erin, Erin_lo, Erin_hi, &
-                          radflux1, radflux1_lo, radflux1_hi, &
-#endif
-                          area1, area1_lo, area1_hi, &
-                          vol, vol_lo, vol_hi, &
-                          div, lo, hi+dg, &
-                          dx, dt)
-
-#if AMREX_SPACEDIM >= 2
-    call ctu_clean_fluxes([lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], &
-                          2, &
-                          uin, uin_lo, uin_hi, &
-                          q, q_lo, q_hi, &
-                          flux2, flux2_lo, flux2_hi, &
-#ifdef RADIATION
-                          Erin, Erin_lo, Erin_hi, &
-                          radflux2, radflux2_lo, radflux2_hi, &
-#endif
-                          area2, area2_lo, area2_hi, &
-                          vol, vol_lo, vol_hi, &
-                          div, lo, hi+dg, &
-                          dx, dt)
-#endif
-
-#if AMREX_SPACEDIM == 3
-    call ctu_clean_fluxes([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], &
-                          3, &
-                          uin, uin_lo, uin_hi, &
-                          q, q_lo, q_hi, &
-                          flux3, flux3_lo, flux3_hi, &
-#ifdef RADIATION
-                          Erin, Erin_lo, Erin_hi, &
-                          radflux3, radflux3_lo, radflux3_hi, &
-#endif
-                          area3, area3_lo, area3_hi, &
-                          vol, vol_lo, vol_hi, &
-                          div, lo, hi+dg, &
-                          dx, dt)
-#endif
-
-    ! Conservative update
-
-    call bl_allocate(pdivu, lo, hi)
-
-    call consup(lo, hi, &
-                uin, uin_lo, uin_hi, &
-                q, q_lo, q_hi, &
-                shk, glo, ghi, &
-                uout, uout_lo, uout_hi, &
-                update, updt_lo, updt_hi, &
-                flux1, flux1_lo, flux1_hi, &
-#if AMREX_SPACEDIM >= 2
-                flux2, flux2_lo, flux2_hi, &
-#endif
-#if AMREX_SPACEDIM == 3
-                flux3, flux3_lo, flux3_hi, &
-#endif
-#ifdef RADIATION
-                Erin, Erin_lo, Erin_hi, &
-                Erout, Erout_lo, Erout_hi, &
-                radflux1, radflux1_lo, radflux1_hi, &
-#if AMREX_SPACEDIM >= 2
-                radflux2, radflux2_lo, radflux2_hi, &
-#endif
-#if AMREX_SPACEDIM == 3
-                radflux3, radflux3_lo, radflux3_hi, &
-#endif
-                nstep_fsp, &
-#endif
-                q1, q1_lo, q1_hi, &
-#if AMREX_SPACEDIM >= 2
-                q2, q2_lo, q2_hi, &
-#endif
-#if AMREX_SPACEDIM == 3
-                q3, q3_lo, q3_hi, &
-#endif
-                area1, area1_lo, area1_hi, &
-#if AMREX_SPACEDIM >= 2
-                area2, area2_lo, area2_hi, &
-#endif
-#if AMREX_SPACEDIM == 3
-                area3, area3_lo, area3_hi, &
-#endif
-                vol, vol_lo, vol_hi, &
-                div, lo, hi+dg, &
-                pdivu, lo, hi, &
-                dx, dt, &
-                verbose)
-
-    call bl_deallocate(pdivu)
-    call bl_deallocate(shk)
-
-
-    ! Scale the fluxes for the form we expect later in refluxing.
-    call scale_flux(lo, [hi(1)+1, hi(2), hi(3)], &
-#if AMREX_SPACEDIM == 1
-                    q1, q1_lo, q1_hi, &
-#endif
-                    flux1, flux1_lo, flux1_hi, &
-                    area1, area1_lo, area1_hi, dt)
-
-#if AMREX_SPACEDIM >= 2
-    call scale_flux(lo, [hi(1), hi(2)+1, hi(3)], &
-                    flux2, flux2_lo, flux2_hi, &
-                    area2, area2_lo, area2_hi, dt)
-#endif
-
-#if AMREX_SPACEDIM == 3
-    call scale_flux(lo, [hi(1), hi(2), hi(3)+1], &
-                    flux3, flux3_lo, flux3_hi, &
-                    area3, area3_lo, area3_hi, dt)
-#endif
-
-#ifdef RADIATION
-    call scale_rad_flux(lo, [hi(1)+1, hi(2), hi(3)], &
-                        radflux1, radflux1_lo, radflux1_hi, &
-                        area1, area1_lo, area1_hi, dt)
-
-#if AMREX_SPACEDIM >= 2
-    call scale_rad_flux(lo, [hi(1), hi(2)+1, hi(3)], &
-                        radflux2, radflux2_lo, radflux2_hi, &
-                        area2, area2_lo, area2_hi, dt)
-#endif
-
-#if AMREX_SPACEDIM == 3
-    call scale_rad_flux(lo, [hi(1), hi(2), hi(3)+1], &
-                        radflux3, radflux3_lo, radflux3_hi, &
-                        area3, area3_lo, area3_hi, dt)
-#endif
-#endif
-
-    ! Add up some diagnostic quantities. Note that we are not dividing by the cell volume.
-
-    if (track_grid_losses .eq. 1) then
-
-       call ca_track_grid_losses(lo, hi, &
-                                 flux1, flux1_lo, flux1_hi, &
-#if AMREX_SPACEDIM >= 2
-                                 flux2, flux2_lo, flux2_hi, &
-#endif
-#if AMREX_SPACEDIM == 3
-                                 flux3, flux3_lo, flux3_hi, &
-#endif
-                                 mass_lost, xmom_lost, ymom_lost, zmom_lost, &
-                                 eden_lost, xang_lost, yang_lost, zang_lost)
-
-    endif
-
-
-#if AMREX_SPACEDIM == 1
-    if (coord_type > 0) then
-       pradial(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)) = q1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),GDPRES) * dt
-    end if
-#endif
-#if AMREX_SPACEDIM == 2
-    if (.not. mom_flux_has_p(1)%comp(UMX)) then
-       pradial(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)) = q1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),GDPRES) * dt
-    end if
-#endif
-
-    call bl_deallocate(   div)
-
-    call bl_deallocate(    q1)
-#if AMREX_SPACEDIM >= 2
-    call bl_deallocate(    q2)
-#endif
-#if AMREX_SPACEDIM == 3
-    call bl_deallocate(    q3)
-#endif
-
-  end subroutine ca_ctu_update
-
 end module ctu_module
- 
+

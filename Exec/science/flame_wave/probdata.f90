@@ -20,8 +20,7 @@ module probdata_module
   real (rt), save :: ash1_frac, ash2_frac, ash3_frac
 
   real (rt), save :: low_density_cutoff, smallx
-
-  logical, save :: index_base_from_temp
+  real (rt), save :: x_refine_distance
 
   integer, save :: max_hse_tagging_level
   integer, save :: max_base_tagging_level

@@ -6,8 +6,8 @@ module advection_util_module
   private
 
   public ca_enforce_minimum_density, ca_compute_cfl, ca_ctoprim, ca_srctoprim, dflux, &
-         limit_hydro_fluxes_on_small_dens, ca_shock, divu, calc_pdivu, normalize_species_fluxes, &
-         scale_flux, apply_av, ca_construct_hydro_update_cuda
+         limit_hydro_fluxes_on_small_dens, ca_shock, divu, calc_pdivu, normalize_species_fluxes, avisc, &
+         scale_flux, apply_av, store_pradial, ca_construct_hydro_update_cuda
 #ifdef RADIATION
   public apply_av_rad, scale_rad_flux
 #endif
@@ -306,7 +306,7 @@ contains
        bind(C, name = "ca_compute_cfl")
 
     use amrex_constants_module, only: ZERO, ONE
-    use meth_params_module, only: NQ, QRHO, QU, QV, QW, QC, NQAUX, do_ctu
+    use meth_params_module, only: NQ, QRHO, QU, QV, QW, QC, NQAUX, time_integration_method
     use prob_params_module, only: dim
     use amrex_fort_module, only : rt => amrex_real, amrex_max
 
@@ -359,7 +359,7 @@ contains
              courmy = max( courmy, coury )
              courmz = max( courmz, courz )
 
-             if (do_ctu == 1) then
+             if (time_integration_method == 0) then
 
                 ! CTU integration constraint
 
@@ -368,7 +368,7 @@ contains
 
                    if (courx .gt. ONE) then
                       print *,'   '
-                      call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
+                      print *, "Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl"
                       print *,'>>> ... (u+c) * dt / dx > 1 ', courx
                       print *,'>>> ... at cell (i,j,k)   : ', i, j, k
                       print *,'>>> ... u, c                ', q(i,j,k,QU), qaux(i,j,k,QC)
@@ -377,7 +377,7 @@ contains
 
                    if (coury .gt. ONE) then
                       print *,'   '
-                      call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
+                      print *, "Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl"
                       print *,'>>> ... (v+c) * dt / dx > 1 ', coury
                       print *,'>>> ... at cell (i,j,k)   : ', i,j,k
                       print *,'>>> ... v, c                ', q(i,j,k,QV), qaux(i,j,k,QC)
@@ -386,7 +386,7 @@ contains
 
                    if (courz .gt. ONE) then
                       print *,'   '
-                      call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
+                      print *, "Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl"
                       print *,'>>> ... (w+c) * dt / dx > 1 ', courz
                       print *,'>>> ... at cell (i,j,k)   : ', i, j, k
                       print *,'>>> ... w, c                ', q(i,j,k,QW), qaux(i,j,k,QC)
@@ -413,7 +413,7 @@ contains
                    ! note: it might not be 1 for all RK integrators
                    if (courtmp > ONE) then
                       print *,'   '
-                      call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
+                      print *, "Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl"
                       print *,'>>> ... at cell (i,j,k)   : ', i, j, k
                       print *,'>>> ... u,v,w, c            ', q(i,j,k,QU), q(i,j,k,QV), q(i,j,k,QW), qaux(i,j,k,QC)
                       print *,'>>> ... density             ', q(i,j,k,QRHO)
@@ -428,7 +428,7 @@ contains
        enddo
     enddo
 
-    if (do_ctu == 1) then
+    if (time_integration_method == 0) then
        call amrex_max(courno, max(courmx, courmy, courmz))
     endif
 
@@ -664,6 +664,8 @@ contains
     integer          :: n, iq, ipassive
     real(rt)         :: rhoinv
 
+    !$gpu
+
     srcQ(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO
 
     ! compute srcQ terms
@@ -731,6 +733,8 @@ contains
     real(rt)         :: qgdnv(NGDNV)
     logical :: cell_centered
 #endif
+
+    !$gpu
 
     ! Set everything to zero; this default matters because some
     ! quantities like temperature are not updated through fluxes.
@@ -827,9 +831,12 @@ contains
     integer  :: i, j, k
 
     real(rt) :: rho, drho, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhoLF, drhoLF, dtdx, theta, thetap, thetam, alpha, flux_coef
+    real(rt) :: uL(NVAR), uR(NVAR), qL(NQ), qR(NQ)
 
     real(rt), parameter :: density_floor_tolerance = 1.1_rt
     real(rt) :: density_floor
+
+    !$gpu
 
     ! The density floor is the small density, modified by a small factor.
     ! In practice numerical error can cause the density that is created
@@ -868,8 +875,12 @@ contains
                 ! lambda = dt/(dx * alpha); alpha = 1 in 1D and may be chosen somewhat
                 ! freely in multi-D as long as alpha_x + alpha_y + alpha_z = 1.
 
-                fluxL = dflux(u(i-1,j,k,:), q(i-1,j,k,:), idir, [i-1, j, k])
-                fluxR = dflux(u(i  ,j,k,:), q(i  ,j,k,:), idir, [i  , j, k])
+                uL = u(i-1,j,k,:)
+                uR = u(i  ,j,k,:)
+                qL = q(i-1,j,k,:)
+                qR = q(i  ,j,k,:)
+                fluxL = dflux(uL, qL, idir, [i-1, j, k])
+                fluxR = dflux(uR, qR, idir, [i  , j, k])
                 fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (u(i-1,j,k,:) - u(i,j,k,:)))
 
                 ! Limit the Lax-Friedrichs flux so that it doesn't cause a density < density_floor.
@@ -969,8 +980,12 @@ contains
 
                 endif
 
-                fluxL = dflux(u(i,j-1,k,:), q(i,j-1,k,:), idir, [i, j-1, k])
-                fluxR = dflux(u(i,j  ,k,:), q(i,j  ,k,:), idir, [i, j  , k])
+                uL = u(i,j-1,k,:)
+                uR = u(i,j  ,k,:)
+                qL = q(i,j-1,k,:)
+                qR = q(i,j  ,k,:)
+                fluxL = dflux(uL, qL, idir, [i, j-1, k])
+                fluxR = dflux(uR, qR, idir, [i, j  , k])
                 fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (u(i,j-1,k,:) - u(i,j,k,:)))
 
                 flux_coef = TWO * (dt / alpha) * (area(i,j,k) / vol(i,j,k))
@@ -1043,8 +1058,12 @@ contains
 
                 endif
 
-                fluxL = dflux(u(i,j,k-1,:), q(i,j,k-1,:), idir, [i, j, k-1])
-                fluxR = dflux(u(i,j,k  ,:), q(i,j,k  ,:), idir, [i, j, k-1])
+                uL = u(i,j,k-1,:)
+                uR = u(i,j,k  ,:)
+                qL = q(i,j,k-1,:)
+                qR = q(i,j,k  ,:)
+                fluxL = dflux(uL, qL, idir, [i, j, k-1])
+                fluxR = dflux(uR, qR, idir, [i, j, k-1])
                 fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (u(i,j,k-1,:) - u(i,j,k,:)))
 
                 flux_coef = TWO * (dt / alpha) * (area(i,j,k) / vol(i,j,k)) 
@@ -1417,9 +1436,111 @@ contains
   end subroutine divu
 
 
+  subroutine avisc(lo, hi, &
+                   q, q_lo, q_hi, &
+                   qaux, qa_lo, qa_hi, &
+                   dx, avis, a_lo, a_hi, idir)
+
+    ! this computes the *face-centered* artifical viscosity using the
+    ! 4th order expression from McCorquodale & Colella (Eq. 35)
+
+    use meth_params_module, only : QU, QV, QW, QC, NQ, NQAUX
+    use amrex_constants_module, only : HALF, FOURTH, ONE, ZERO
+    use prob_params_module, only : dg, coord_type, problo
+    use amrex_fort_module, only : rt => amrex_real
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
+    integer, intent(in) :: a_lo(3), a_hi(3)
+    integer, intent(in) :: idir
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt), intent(inout) :: avis(a_lo(1):a_hi(1),a_lo(2):a_hi(2),a_lo(3):a_hi(3))
+
+    real(rt) :: coeff, cmin
+
+    real(rt), parameter :: beta = 0.3_rt
+
+    integer :: i, j, k
+
+    do k = lo(3), hi(3)+dg(3)
+       do j = lo(2), hi(2)+dg(2)
+          do i = lo(1), hi(1)+1
+
+             if (idir == 1) then
+
+                ! normal direction
+                avis(i,j,k) = (q(i,j,k,QU) - q(i-1,j,k,QU))/dx(1)
+#if BL_SPACEDIM >= 2
+                avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
+                     q(i,j+1,k,QV) - q(i,j-1,k,QV) + &
+                     q(i-1,j+1,k,QV) - q(i-1,j-1,k,QV))/dx(2)
+#endif
+#if BL_SPACEDIM >= 3
+                avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
+                     q(i,j,k+1,QW) - q(i,j,k-1,QW) + &
+                     q(i-1,j,k+1,QW) - q(i-1,j,k-1,QW))/dx(3)
+#endif
+
+                cmin = min(qaux(i,j,k,QC), qaux(i-1,j,k,QC))
+
+             else if (idir == 2) then
+
+                ! normal direction
+                avis(i,j,k) = (q(i,j,k,QV) - q(i,j-1,k,QV))/dx(2)
+
+                avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
+                     q(i+1,j,k,QU) - q(i-1,j,k,QU) + &
+                     q(i+1,j-1,k,QU) - q(i-1,j-1,k,QU))/dx(1)
+
+#if BL_SPACEDIM >= 3
+                avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
+                     q(i,j,k+1,QW) - q(i,j,k-1,QW) + &
+                     q(i-1,j,k+1,QW) - q(i-1,j,k-1,QW))/dx(3)
+#endif
+
+                cmin = min(qaux(i,j,k,QC), qaux(i,j-1,k,QC))
+
+             else
+
+                ! normal direction
+                avis(i,j,k) = (q(i,j,k,QW) - q(i,j,k-1,QW))/dx(1)
+
+                avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
+                     q(i,j+1,k,QV) - q(i,j-1,k,QV) + &
+                     q(i-1,j+1,k,QV) - q(i-1,j-1,k,QV))/dx(2)
+
+                avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
+                     q(i,j,k+1,QW) - q(i,j,k-1,QW) + &
+                     q(i-1,j,k+1,QW) - q(i-1,j,k-1,QW))/dx(3)
+
+                cmin = min(qaux(i,j,k,QC), qaux(i,j,k-1,QC))
+
+             endif
+
+             ! MC Eq. 36
+             coeff = min(ONE, (dx(idir)*avis(i,j,k))**2/(beta * cmin**2))
+
+             if (avis(i,j,k) < ZERO) then
+                avis(i,j,k) = dx(idir)*avis(i,j,k)*coeff
+             else
+                avis(i,j,k) = ZERO
+             endif
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine avisc
+
   ! :::
   ! ::: ------------------------------------------------------------------
   ! :::
+
 
   !> @brief this computes the *node-centered* divergence
   !!
@@ -1468,6 +1589,8 @@ contains
     real(rt), intent(in) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
     integer  :: i, j, k
+
+    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -1824,6 +1947,51 @@ contains
     enddo
 
   end subroutine scale_flux
+
+  subroutine store_pradial(lo, hi, &
+                           qint, qi_lo, qi_hi, &
+                           pradial, p_lo, p_hi, dt) bind(C, name="store_pradial")
+
+    use meth_params_module, only: GDPRES, NGDNV, UMX
+    use prob_params_module, only : coord_type, mom_flux_has_p
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: qi_lo(3), qi_hi(3)
+    integer, intent(in) :: p_lo(3), p_hi(3)
+
+    real(rt), intent(in) :: qint(qi_lo(1):qi_hi(1), qi_lo(2):qi_hi(2), qi_lo(3):qi_hi(3), NGDNV)
+    real(rt), intent(out) :: pradial(p_lo(1):p_hi(1), p_lo(2):p_hi(2), p_lo(3):p_hi(3))
+    real(rt), intent(in), value :: dt
+
+    integer :: i, j, k
+
+#if AMREX_SPACEDIM == 1
+    if (coord_type > 0) then
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                pradial(i,j,k) = qint(i,j,k,GDPRES) * dt
+             end do
+          end do
+       end do
+    end if
+#endif
+
+#if AMREX_SPACEDIM == 2
+    if (.not. mom_flux_has_p(1)%comp(UMX)) then
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                pradial(i,j,k) = qint(i,j,k,GDPRES) * dt
+             end do
+          end do
+       end do
+    end if
+#endif
+
+  end subroutine store_pradial
 
 #ifdef RADIATION
   subroutine scale_rad_flux(lo, hi, &

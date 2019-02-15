@@ -77,7 +77,6 @@ contains
 
     real(rt) :: dsl, dsr, dsc
     real(rt) :: dsvl_l, dsvl_r
-    real(rt) :: sigma, s6
 
     ! s_{\ib,+}, s_{\ib,-}
     real(rt) :: sm, sp
@@ -494,6 +493,8 @@ contains
     real(rt)         sigma, s6
     real(rt)         :: sm, sp
 
+    !$gpu
+
     dtdx = dt/dx(1)
 #if (AMREX_SPACEDIM >= 2)
     dtdy = dt/dx(2)
@@ -736,6 +737,8 @@ contains
     integer :: iwave, idim, i, j, k
 
     type(eos_t) :: eos_state
+
+    !$gpu
 
     do iwave = 1, 3
        do idim = 1, AMREX_SPACEDIM

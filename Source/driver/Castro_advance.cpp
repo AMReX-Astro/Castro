@@ -97,20 +97,16 @@ Castro::advance (Real time,
 #else
     // no SDC
 
-#ifndef AMREX_USE_CUDA
-    if (do_ctu) {
+    if (time_integration_method == CornerTransportUpwind) {
 
         dt_new = std::min(dt_new, subcycle_advance(time, dt, amr_iteration, amr_ncycle));
 
-    } else {
-#endif
+    } else if (time_integration_method == MethodOfLines) {
       for (int iter = 0; iter < MOL_STAGES; ++iter) {
 	mol_iteration = iter;
 	dt_new = do_advance_mol(time + c_mol[iter]*dt, dt, amr_iteration, amr_ncycle);
       }
-#ifndef AMREX_USE_CUDA
     }
-#endif
 
     // Optionally kill the job at this point, if we've detected a violation.
 
@@ -162,7 +158,6 @@ Castro::advance (Real time,
 
 
 
-#ifndef AMREX_USE_CUDA
 Real
 Castro::do_advance (Real time,
                     Real dt,
@@ -187,9 +182,11 @@ Castro::do_advance (Real time,
 
     initialize_do_advance(time, dt, amr_iteration, amr_ncycle);
 
+#ifndef AMREX_USE_CUDA
     // Check for NaN's.
 
     check_for_nan(S_old);
+#endif
 
     // Since we are Strang splitting the reactions, do them now
 
@@ -286,9 +283,11 @@ Castro::do_advance (Real time,
       expand_state(S_new, cur_time, 1, S_new.nGrow());
     }
 
+#ifndef AMREX_USE_CUDA
     // Check for NaN's.
 
     check_for_nan(S_new);
+#endif
 
     // if we are done with the update do the source correction and
     // then the second half of the reactions
@@ -354,7 +353,7 @@ Castro::do_advance (Real time,
 
     return dt;
 }
-#endif
+
 
 Real
 Castro::do_advance_mol (Real time,
@@ -371,7 +370,7 @@ Castro::do_advance_mol (Real time,
   // NOTE: the time that passes through here is the time for the
   // current stage
 
-  BL_PROFILE("Castro::do_advance()");
+  BL_PROFILE("Castro::do_advance_mol()");
 
   //std::cout << "mol_iteration = " << mol_iteration << std::endl;
 
@@ -572,6 +571,7 @@ Castro::do_advance_mol (Real time,
 void
 Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
+    BL_PROFILE("Castro::initialize_do_advance()");
 
     // Reset the change from density resets
 
@@ -623,7 +623,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     // Scale the source term predictor by the current timestep.
 
 #ifndef SDC
-    if (source_term_predictor == 1) {
+    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
         sources_for_hydro.mult(0.5 * dt, NUM_GROW);
     }
 #endif
@@ -632,13 +632,13 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     // but the state data does not carry ghost zones. So we use a FillPatch
     // using the state data to give us Sborder, which does have ghost zones.
 
-    if (do_ctu) {
+    if (time_integration_method == CornerTransportUpwind) {
       // for the CTU unsplit method, we always start with the old state
       Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
       const Real prev_time = state[State_Type].prevTime();
       expand_state(Sborder, prev_time, 0, NUM_GROW);
 
-    } else {
+    } else if (time_integration_method == MethodOfLines) {
       // for Method of lines, our initialization of Sborder depends on
       // which stage in the RK update we are working on
 
@@ -682,6 +682,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 void
 Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
+    BL_PROFILE("Castro::finalize_do_advance()");
 
 #ifdef RADIATION
     if (!do_hydro && Radiation::rad_hydro_combined) {
@@ -700,6 +701,8 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
 void
 Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
+    BL_PROFILE("Castro::initialize_advance()");
+
     // Save the current iteration.
 
     iteration = amr_iteration;
@@ -815,10 +818,8 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // Add the source term predictor.
     // This must happen before the swap.
 
-    if (source_term_predictor == 1) {
-
+    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
         apply_source_term_predictor();
-
     }
 
 #else
@@ -883,12 +884,14 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     q.define(grids, dmap, NQ, NUM_GROW);
     q.setVal(0.0);
     qaux.define(grids, dmap, NQAUX, NUM_GROW);
-    if (do_ctu)
+    if (time_integration_method == CornerTransportUpwind)
       src_q.define(grids, dmap, QVAR, NUM_GROW);
-    if (fourth_order)
+    if (fourth_order) {
       q_bar.define(grids, dmap, NQ, NUM_GROW);
+      qaux_bar.define(grids, dmap, NQAUX, NUM_GROW);
+    }
 
-    if (!do_ctu) {
+    if (time_integration_method == MethodOfLines) {
       // if we are not doing CTU advection, then we are doing a method
       // of lines, and need storage for hte intermediate stages
       k_mol.resize(MOL_STAGES);
@@ -927,6 +930,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 void
 Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
+    BL_PROFILE("Castro::finalize_advance()");
 
     // Add the material lost in this timestep to the cumulative losses.
 
@@ -950,10 +954,12 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     q.clear();
     qaux.clear();
-    if (do_ctu)
+    if (time_integration_method == CornerTransportUpwind)
       src_q.clear();
-    if (fourth_order)
+    if (fourth_order) {
       q_bar.clear();
+      qaux_bar.clear();
+    }
 
 #ifdef RADIATION
     Erborder.clear();
@@ -965,7 +971,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     if (!keep_prev_state)
         amrex::FillNull(prev_state);
 
-    if (!do_ctu) {
+    if (time_integration_method == MethodOfLines) {
       k_mol.clear();
       Sburn.clear();
     }
@@ -977,12 +983,11 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 
 
-#ifndef AMREX_USE_CUDA
 bool
 Castro::retry_advance(Real& time, Real dt, int amr_iteration, int amr_ncycle)
 {
+    BL_PROFILE("Castro::retry_advance()");
 
-    Real dt_new = 1.e200;
     Real dt_sub = 1.e200;
 
     MultiFab& S_old = get_old_data(State_Type);
@@ -1137,6 +1142,7 @@ Castro::retry_advance(Real& time, Real dt, int amr_iteration, int amr_ncycle)
 Real
 Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int amr_ncycle)
 {
+    BL_PROFILE("Castro::subcycle_advance()");
 
     // Start the subcycle time off with the main dt,
     // unless we already came in here with an estimate
@@ -1315,4 +1321,3 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
     return dt_new;
 
 }
-#endif

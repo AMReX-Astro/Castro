@@ -45,10 +45,10 @@ contains
                                  qgdnv, qg_lo, qg_hi, &
                                  qaux, qa_lo, qa_hi, &
                                  shk, s_lo, s_hi, &
-                                 idir, domlo, domhi)
+                                 idir, domlo, domhi) bind(C, name="cmpflx_plus_godunov")
 
     use eos_module, only: eos
-    use eos_type_module, only: eos_t, eos_input_re
+    use eos_type_module, only: eos_t
     use network, only: nspec, naux
     use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
@@ -71,10 +71,10 @@ contains
     integer, intent(in) :: s_lo(3), s_hi(3)
     integer, intent(in) :: qg_lo(3), qg_hi(3)
 
-    integer, intent(in) :: idir
+    integer, intent(in), value :: idir
 
     integer, intent(in) :: domlo(3),domhi(3)
-    integer, intent(in) :: nc, comp
+    integer, intent(in), value :: nc, comp
 
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ,nc)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ,nc)
@@ -93,6 +93,8 @@ contains
     real(rt), intent(in) ::  shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
 
     real(rt), intent(inout) :: qgdnv(qg_lo(1):qg_hi(1), qg_lo(2):qg_hi(2), qg_lo(3):qg_hi(3), NGDNV)
+
+    !$gpu
 
     call cmpflx(lo, hi, &
                 qm, qm_lo, qm_hi, &
@@ -130,7 +132,7 @@ contains
                     idir, domlo, domhi)
 
     use eos_module, only: eos
-    use eos_type_module, only: eos_t, eos_input_re
+    use eos_type_module, only: eos_t
     use network, only: nspec, naux
     use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
@@ -185,95 +187,19 @@ contains
 
     !$gpu
 
-#ifdef RADIATION
-#ifndef AMREX_USE_CUDA
-    if (hybrid_riemann == 1) then
-       call amrex_error("ERROR: hybrid Riemann not supported for radiation")
-    endif
-
-    if (riemann_solver > 0) then
-       call amrex_error("ERROR: only the CGF Riemann solver is supported for radiation")
-    endif
-#endif
-#endif
-
-#if AMREX_SPACEDIM == 1
-#ifndef AMREX_USE_CUDA
-    if (riemann_solver > 1) then
-       call amrex_error("ERROR: HLLC not implemented for 1-d")
-    endif
-#endif
-#endif
-
-    if (ppm_temp_fix == 2) then
-       ! recompute the thermodynamics on the interface to make it
-       ! all consistent
-
-       ! we want to take the edge states of rho, p, and X, and get
-       ! new values for gamc and (rho e) on the edges that are
-       ! thermodynamically consistent.
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-
-                ! this is an initial guess for iterations, since we
-                ! can't be certain that temp is on interfaces
-                eos_state % T = 10000.0e0_rt
-
-                ! minus state
-                eos_state % rho = qm(i,j,k,QRHO,comp)
-                eos_state % p   = qm(i,j,k,QPRES,comp)
-                eos_state % e   = qm(i,j,k,QREINT,comp)/qm(i,j,k,QRHO,comp)
-                eos_state % xn  = qm(i,j,k,QFS:QFS+nspec-1,comp)
-                eos_state % aux = qm(i,j,k,QFX:QFX+naux-1,comp)
-
-                call eos(eos_input_re, eos_state)
-
-                qm(i,j,k,QREINT,comp) = eos_state % e * eos_state % rho
-                qm(i,j,k,QPRES,comp)  = eos_state % p
-                !gamcm(i,j)        = eos_state % gam1
-
-             end do
-          end do
-       end do
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-
-                ! plus state
-                eos_state % rho = qp(i,j,k,QRHO,comp)
-                eos_state % p   = qp(i,j,k,QPRES,comp)
-                eos_state % e   = qp(i,j,k,QREINT,comp)/qp(i,j,k,QRHO,comp)
-                eos_state % xn  = qp(i,j,k,QFS:QFS+nspec-1,comp)
-                eos_state % aux = qp(i,j,k,QFX:QFX+naux-1,comp)
-
-                call eos(eos_input_re, eos_state)
-
-                qp(i,j,k,QREINT,comp) = eos_state % e * eos_state % rho
-                qp(i,j,k,QPRES,comp)  = eos_state % p
-                !gamcp(i,j)        = eos_state % gam1
-
-             end do
-          end do
-       end do
-
-    endif
-
-    ! Solve Riemann problem
-    if (riemann_solver == 0) then
+    ! Solve Riemann problem to get the fluxes
+    if (riemann_solver == 0 .or. riemann_solver == 1) then
        ! Colella, Glaz, & Ferguson solver
 
-       call riemannus(qm, qm_lo, qm_hi, &
-                      qp, qp_lo, qp_hi, nc, comp, &
-                      qaux, qa_lo, qa_hi, &
-                      qint, q_lo, q_hi, &
+       call riemann_state(qm, qm_lo, qm_hi, &
+                          qp, qp_lo, qp_hi, nc, comp, &
+                          qint, q_lo, q_hi, &
 #ifdef RADIATION
-                      lambda_int, q_lo, q_hi, &
+                          lambda_int, q_lo, q_hi, &
 #endif
-                      idir, lo, hi, &
-                      domlo, domhi)
+                          qaux, qa_lo, qa_hi, &
+                          idir, lo, hi, domlo, domhi)
+
 
        call compute_flux_q(lo, hi, &
                            qint, q_lo, q_hi, &
@@ -283,27 +209,6 @@ contains
                            rflx, rflx_lo, rflx_hi, &
 #endif
                            idir)
-
-    elseif (riemann_solver == 1) then
-       ! Colella & Glaz solver
-
-#ifndef RADIATION
-       call riemanncg(qm, qm_lo, qm_hi, &
-                      qp, qp_lo, qp_hi, nc, comp, &
-                      qaux, qa_lo, qa_hi, &
-                      qint, q_lo, q_hi, &
-                      idir, lo, hi, &
-                      domlo, domhi)
-
-       call compute_flux_q(lo, hi, &
-                           qint, q_lo, q_hi, &
-                           flx, flx_lo, flx_hi, &
-                           idir)
-#else
-#ifndef AMREX_USE_CUDA
-       call amrex_error("ERROR: CG solver does not support radiaiton")
-#endif
-#endif
 
     elseif (riemann_solver == 2) then
        ! HLLC
@@ -399,7 +304,8 @@ contains
     use network, only: nspec, naux
     use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
-    use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver
+    use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver, &
+                                   T_guess
 
     implicit none
 
@@ -426,9 +332,6 @@ contains
     real(rt), intent(inout) :: lambda_int(l_lo(1):l_hi(1),l_lo(2):l_hi(2),l_lo(3):l_hi(3),0:ngroups-1)
 #endif
 
-    ! qaux come in dimensioned as the full box, so we use k3d here to
-    ! index it in z
-
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
     ! local variables
@@ -437,6 +340,8 @@ contains
 
     real(rt) :: cl, cr
     type (eos_t) :: eos_state
+
+    !$gpu
 
 #ifdef RADIATION
 #ifndef AMREX_USE_CUDA
@@ -462,8 +367,8 @@ contains
        ! recompute the thermodynamics on the interface to make it
        ! all consistent
 
-       ! we want to take the edge states of rho, p, and X, and get
-       ! new values for gamc and (rho e) on the edges that are
+       ! we want to take the edge states of rho, e, and X, and get
+       ! new values for p on the edges that are
        ! thermodynamically consistent.
 
        do k = lo(3), hi(3)
@@ -471,8 +376,8 @@ contains
              do i = lo(1), hi(1)
 
                 ! this is an initial guess for iterations, since we
-                ! can't be certain that temp is on interfaces
-                eos_state % T = 10000.0e0_rt
+                ! can't be certain what temp is on interfaces
+                eos_state % T = T_guess
 
                 ! minus state
                 eos_state % rho = qm(i,j,k,QRHO,comp)
@@ -496,8 +401,8 @@ contains
              do i = lo(1), hi(1)
 
                 ! this is an initial guess for iterations, since we
-                ! can't be certain that temp is on interfaces
-                eos_state % T = 10000.0e0_rt
+                ! can't be certain what temp is on interfaces
+                eos_state % T = T_guess
 
                 ! plus state
                 eos_state % rho = qp(i,j,k,QRHO,comp)
@@ -1191,6 +1096,7 @@ contains
     use eos_type_module, only : eos_t, eos_input_rp
     use eos_module, only : eos
     use network, only : nspec
+    use meth_params_module, only: T_guess
 
     implicit none
 
@@ -1646,7 +1552,7 @@ contains
                 eos_state % rho = qint(i,j,k,QRHO)
                 eos_state % p = qint(i,j,k,QPRES)
                 eos_state % xn(:) = xn(:)
-                eos_state % T = 1.e4  ! a guess
+                eos_state % T = T_guess
 
                 call eos(eos_input_rp, eos_state)
 
