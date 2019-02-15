@@ -193,9 +193,13 @@ contains
 
     ! preprocess the sources -- we don't want to trace under a source
     ! that is empty.  Note, we need to do this check over the entire
-    ! grid, to be sure, e.g., use vlo:vhi.  We cannot rely on lo:hi,
-    ! since that may just be a single zone on the GPU.
+    ! grid, to be sure, e.g., use vlo:vhi. On the GPU, this check is
+    ! expensive and for now we just disable this optimization and eat
+    ! the cost of processing the sources, even if they're zero.
     if (ppm_type > 0) then
+#ifdef AMREX_USE_CUDA
+       source_nonzero(:) = .true.
+#else
        do n = 1, QVAR
           if (minval(srcQ(vlo(1)-2:vhi(1)+2,vlo(2)-2*dg(2):vhi(2)+2*dg(2),vlo(3)-2*dg(3):vhi(3)+2*dg(3),n)) == ZERO .and. &
               maxval(srcQ(vlo(1)-2:vhi(1)+2,vlo(2)-2*dg(2):vhi(2)+2*dg(2),vlo(3)-2*dg(3):vhi(3)+2*dg(3),n)) == ZERO) then
@@ -204,6 +208,7 @@ contains
              source_nonzero(n) = .true.
           endif
        enddo
+#endif
 
        ! Compute Ip and Im -- this does the parabolic reconstruction,
        ! limiting, and returns the integral of each profile under each
