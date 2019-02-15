@@ -567,7 +567,7 @@ Castro::variableSetUp ()
 
   // **********************************************************************
 
-  derive_lst.add("Ye",IndexType::TheCellType(),1,ca_der_Ye,the_same_box);
+  derive_lst.add("Ye",IndexType::TheCellType(),1,ca_derspec,the_same_box);
   derive_lst.addComponent("Ye",desc_lst,State_Type,Density,1);
   derive_lst.addComponent("Ye",desc_lst,State_Type,FirstSpec,1);
 
