@@ -1072,7 +1072,9 @@ Castro::construct_hydro_source(Real time, Real dt)
       nstep_fsp = std::max(nstep_fsp, priv_nstep_fsp);
 #endif
 
+#if AMREX_SPACEDIM <= 2
       Array4<Real> pradial_fab = pradial.array();
+#endif
 
       for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
