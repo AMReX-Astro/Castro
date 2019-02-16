@@ -23,6 +23,7 @@ Castro::read_thornado_params ()
 int
 Castro::init_thornado()
 {
+    // Note that these dimensions are used to allocate space for UCF and UCR
     int nDimsX   = BL_SPACEDIM;
     int nDimsE   = thornado_ndimse; // number of energy groups in thornado
     int nSpecies = THORNADO_NSPECIES;
@@ -113,16 +114,22 @@ Castro::init_thornado_data()
 
         grid_lo[0] = prob_lo[0] +  bx.smallEnd(0)  * dx[0] / 100.0; // Factor of 100 because Thornado uses m, not cm
         grid_hi[0] = prob_lo[0] + (bx.bigEnd(0)+1) * dx[0] / 100.0;
-        boxlen[0] = bx.length(0);
+        // CRSE_TWO_MOMENT
+        // boxlen[0] = bx.length(0);
+        boxlen[0] = bx.length(0)/2;
 
         grid_lo[1] = prob_lo[1] +  bx.smallEnd(1)  * dx[1] / 100.0;
         grid_hi[1] = prob_lo[1] + (bx.bigEnd(1)+1) * dx[1] / 100.0;
-        boxlen[1] = bx.length(1);
+        // CRSE_TWO_MOMENT
+        // boxlen[1] = bx.length(1);
+        boxlen[1] = bx.length(1)/2;
 
 #if (BL_SPACEDIM > 2)
         grid_lo[2] = prob_lo[2] +  bx.smallEnd(2)  * dx[2] / 100.0;
         grid_hi[2] = prob_lo[2] + (bx.bigEnd(2)+1) * dx[2] / 100.0;
-        boxlen[2] = bx.length(2);
+        // CRSE_TWO_MOMENT
+        // boxlen[2] = bx.length(2);
+        boxlen[2] = bx.length(2)/2;
 #else
         grid_lo[2] = 0.;
         grid_hi[2] = 1.;
@@ -259,59 +266,55 @@ Castro::create_thornado_source(Real dt)
     MultiFab dS(grids, dmap,  dS_new.nComp(),  dS_new.nGrow());
     MultiFab dR(grids, dmap, U_R_new.nComp(), U_R_new.nGrow());
 
-    // We only actually compute the source at level 0; otherwise we interpolate from 
-    //    the coarser level
-    if (level == 0)
-    {
-       int my_ngrow = 2;  // two fluid ghost cells
+    int my_ngrow = 2;  // two fluid ghost cells
 
-       const Real prev_time = state[State_Type].prevTime();
-       const Real  cur_time = state[State_Type].curTime();
+    const Real prev_time = state[State_Type].prevTime();
+    const Real  cur_time = state[State_Type].curTime();
 
-       // This fills the ghost cells of the fluid MultiFab which we will pass into Thornado
-       MultiFab S_border(grids, dmap, NUM_STATE, my_ngrow+1);
-       AmrLevel::FillPatch(*this, S_border, my_ngrow+1, cur_time, State_Type, 0, NUM_STATE);
+    // This fills the ghost cells of the fluid MultiFab which we will pass into Thornado
+    MultiFab S_border(grids, dmap, NUM_STATE, my_ngrow+1);
+    AmrLevel::FillPatch(*this, S_border, my_ngrow+1, cur_time, State_Type, 0, NUM_STATE);
 
-       // This fills the ghost cells of the radiation MultiFab which we will pass into Thornado
-       MultiFab R_border(grids, dmap, U_R_old.nComp(), my_ngrow);
-       AmrLevel::FillPatch(*this, R_border, my_ngrow, prev_time, Thornado_Type, 0, U_R_old.nComp());
+    // This fills the ghost cells of the radiation MultiFab which we will pass into Thornado
+    MultiFab R_border(grids, dmap, U_R_old.nComp(), my_ngrow);
+    AmrLevel::FillPatch(*this, R_border, my_ngrow, prev_time, Thornado_Type, 0, U_R_old.nComp());
 
-       const Real* dx = geom.CellSize();
+    const Real* dx = geom.CellSize();
 
-       // int n_sub = GetNSteps(dt); // From thornado
-       Real dt_CGS;
-       compute_thornado_timestep(dx, dt_CGS );
+    // int n_sub = GetNSteps(dt); // From thornado
+    Real dt_CGS;
+    compute_thornado_timestep(dx, dt_CGS );
 
-       int n_sub = 1; 
-       if (dt_CGS < dt) 
-          n_sub = int(dt / dt_CGS) + 1;
+    int n_sub = 1; 
+    if (dt_CGS < dt) 
+       n_sub = int(dt / dt_CGS) + 1;
 
-       int n_fluid_dof = THORNADO_FLUID_NDOF;
-       int n_moments   = THORNADO_NMOMENTS;
+    int n_fluid_dof = THORNADO_FLUID_NDOF;
+    int n_moments   = THORNADO_NMOMENTS;
 
-       const Real* prob_lo   = geom.ProbLo();
+    const Real* prob_lo   = geom.ProbLo();
 
-       Real dt_sub = dt / n_sub;
-       int * boxlen = new int[3];
+    Real dt_sub = dt / n_sub;
+    int * boxlen = new int[3];
 
-       amrex::Print() << "... dt_Castro   " << dt      << std::endl;
-       amrex::Print() << "... dt_Thornado " << dt_CGS  << std::endl;
-       amrex::Print() << "... dt_sub      " << dt_sub  << std::endl;
+    amrex::Print() << "... dt_Castro   " << dt      << std::endl;
+    amrex::Print() << "... dt_Thornado " << dt_CGS  << std::endl;
+    amrex::Print() << "... dt_sub      " << dt_sub  << std::endl;
 
-       Vector<Real> grid_lo(3);
-       Vector<Real> grid_hi(3);
+    Vector<Real> grid_lo(3);
+    Vector<Real> grid_hi(3);
 
-       int swX[3];
-       swX[0] = my_ngrow;
-       swX[1] = my_ngrow;
+    int swX[3];
+    swX[0] = my_ngrow;
+    swX[1] = my_ngrow;
 #if (BL_SPACEDIM > 2)
-       swX[2] = my_ngrow;
+    swX[2] = my_ngrow;
 #else
-       swX[2] = 0;
+    swX[2] = 0;
 #endif
 
-       for (int i = 0; i < n_sub; i++)
-       {
+    for (int i = 0; i < n_sub; i++)
+    {
 
           // Make sure to zero dS and dR here since we don't want to 
           //    re-add terms from the last iteration
@@ -365,34 +368,14 @@ Castro::create_thornado_source(Real dt)
           // Fill the ghost cells before taking the next dt_sub 
           S_border.FillBoundary();
           R_border.FillBoundary();
-       }
-
-       // Divide by dt so what we actually store is dS/dt and dR/dt
-       Real dt_inv = 1.0 / dt;
-       dS_new.mult(dt_inv);
-       dR_new.mult(dt_inv);
-
-       delete boxlen;
-
-    // if (level > 0) then interpolate dS and dR
-    } else {
-       const Real  cur_time = state[Thornado_Type].curTime();
-
-       int ng_to_fill = 0;
-
-       // Interpolate dS/dt and dR/dt from coarse grid
-       AmrLevel::FillCoarsePatch(dS, 0, cur_time, Thornado_Fluid_Source_Type, 0, NUM_STATE, ng_to_fill);
-       AmrLevel::FillCoarsePatch(dR, 0, cur_time, Thornado_Rad_Source_Type, 0, dR_new.nComp(), ng_to_fill);
-
-       // Store dS/dt in "dS_new" and dR/dt in "dR_new" at this level -- this is only used if we need to
-       //       interpolate to a finer level
-       MultiFab::Copy (dS_new, dS, 0, 0,   S_new.nComp(), 0); 
-       MultiFab::Copy (dR_new, dR, 0, 0, U_R_new.nComp(), 0); 
-
-       // Multiply by dt before adding to the state
-       MultiFab::Saxpy (  S_new, dt, dS, 0, 0,   S_new.nComp(), 0);
-       MultiFab::Saxpy (U_R_new, dt, dR, 0, 0, U_R_new.nComp(), 0);
     }
+
+    // Divide by dt so what we actually store is dS/dt and dR/dt
+    Real dt_inv = 1.0 / dt;
+    dS_new.mult(dt_inv);
+    dR_new.mult(dt_inv);
+
+    delete boxlen;
 
     // Copy dS_new into dS_old so that we can interpolate in time correctly 
     MultiFab::Copy(dS_old,dS_new,0,0,dS_new.nComp(),dS_new.nGrow());
