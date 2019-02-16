@@ -1546,38 +1546,57 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
       for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
-          const Box& ebx = mfi.nodaltilebox(idir);
+          const Box& nbx = mfi.nodaltilebox(idir);
 
           int idir_f = idir + 1;
 
+          // TODO: add radiation terms back to this call
 #pragma gpu
-          ca_construct_flux_cuda
-              (AMREX_INT_ANYD(ebx.loVect()), AMREX_INT_ANYD(ebx.hiVect()),
-               AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-               AMREX_REAL_ANYD(dx), dt,
-               idir_f,
-               BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-               BL_TO_FORTRAN_ANYD(div[mfi]),
+          cmpflx_plus_godunov
+              (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+               BL_TO_FORTRAN_ANYD(qm[mfi]),
+               BL_TO_FORTRAN_ANYD(qp[mfi]), AMREX_SPACEDIM, idir_f,
+               BL_TO_FORTRAN_ANYD(flux[idir][mfi]),
+               BL_TO_FORTRAN_ANYD(qi[idir][mfi]),
+               BL_TO_FORTRAN_ANYD(qe[idir][mfi]),
                BL_TO_FORTRAN_ANYD(qaux[mfi]),
                BL_TO_FORTRAN_ANYD(shk[mfi]),
-               BL_TO_FORTRAN_ANYD(qm[mfi]),
-               BL_TO_FORTRAN_ANYD(qp[mfi]),
-               BL_TO_FORTRAN_ANYD(qi[idir][mfi]),
-               BL_TO_FORTRAN_ANYD(flux[idir][mfi]),
-               BL_TO_FORTRAN_ANYD(area[idir][mfi]));
+               idir_f, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
 #pragma gpu
-          ca_store_godunov_state
-            (AMREX_INT_ANYD(ebx.loVect()), AMREX_INT_ANYD(ebx.hiVect()),
-             BL_TO_FORTRAN_ANYD(qi[idir][mfi]),
-             BL_TO_FORTRAN_ANYD(qe[idir][mfi]));
+          apply_av
+              (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+               idir_f, AMREX_REAL_ANYD(dx),
+               BL_TO_FORTRAN_ANYD(div[mfi]),
+               BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+               BL_TO_FORTRAN_ANYD(flux[idir][mfi]));
+
+#pragma gpu
+          normalize_species_fluxes
+              (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+               BL_TO_FORTRAN_ANYD(flux[idir][mfi]));
+
+#pragma gpu
+        scale_flux
+            (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+#if AMREX_SPACEDIM == 1
+             BL_TO_FORTRAN_ANYD(qe[idir][mfi]),
+#endif
+             BL_TO_FORTRAN_ANYD(flux[idir][mfi]),
+             BL_TO_FORTRAN_ANYD(area[idir][mfi]), dt);
 
           // Store the fluxes from this advance -- we weight them by the
           // integrator weight for this stage
-#ifdef AMREX_USE_CUDA
-          Cuda::Device::synchronize();  // because saxpy below is run on cpu
-#endif
-          (*fluxes[idir])[mfi].saxpy(b_mol[mol_iteration], flux[idir][mfi], ebx, ebx, 0, 0, NUM_STATE);
+
+          Array4<Real> const flux_fab = (flux[idir]).array(mfi);
+          Array4<Real> fluxes_fab = (*fluxes[idir]).array(mfi);
+          const int numcomp = NUM_STATE;
+          const Real scale = b_mol[mol_iteration];
+
+          AMREX_HOST_DEVICE_FOR_4D(nbx, numcomp, i, j, k, n,
+          {
+              fluxes_fab(i,j,k,n) = flux_fab(i,j,k,n);
+          });
 
       }
 

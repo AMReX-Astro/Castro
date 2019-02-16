@@ -693,6 +693,17 @@ extern "C"
      BL_FORT_FAB_ARG_3D(update));
 #endif
 
+  void apply_av
+    (const int* lo, const int* hi,
+     int idir, const amrex::Real* dx,
+     BL_FORT_FAB_ARG_3D(div),
+     BL_FORT_FAB_ARG_3D(Sborder),
+     BL_FORT_FAB_ARG_3D(flux));
+    
+  void normalize_species_fluxes
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(flux));
+
   void ca_ctu_update
     (const int    lo[], const int    hi[],
      const int* is_finest_level,
