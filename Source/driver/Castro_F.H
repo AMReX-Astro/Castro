@@ -83,7 +83,12 @@ extern "C"
      const int& QU_in, const int& QV_in, const int& QW_in,
      const int& QGAME_in, const int& QPRES_in, const int& QREINT_in,
      const int& QTEMP_in,
-     const int& QFA_in, const int& QFS_in, const int& QFX_in);
+     const int& QFA_in, const int& QFS_in, const int& QFX_in,
+#ifdef RADIATION
+     const int& GDLAMS_in, const int& GDERADS_in,
+#endif
+     const int& GDRHO_in, const int& GDU_in, const int& GDV_in, const int& GDW_in,
+     const int& GDPRES_in, const int& GDGAME_in);
 
   void ca_finalize_meth_params();
 
@@ -608,12 +613,6 @@ extern "C"
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(rad_flux),
      BL_FORT_FAB_ARG_3D(area),
-     const amrex::Real dt);
-
-  void store_pradial
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(qe),
-     BL_FORT_FAB_ARG_3D(pradial),
      const amrex::Real dt);
 
   void ca_track_grid_losses
