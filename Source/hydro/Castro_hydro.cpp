@@ -1465,56 +1465,99 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
 #else
   // CUDA version
+  // TODO: add radiation
 
 #ifndef RADIATION
-
-  MultiFab flatn;
-  flatn.define(grids, dmap, 1, 1);
-
-  MultiFab div;
-  div.define(grids, dmap, 1, 1);
-
-  MultiFab qm;
-  qm.define(grids, dmap, AMREX_SPACEDIM*NQ, 2);
-
-  MultiFab qp;
-  qp.define(grids, dmap, AMREX_SPACEDIM*NQ, 2);
-
-  MultiFab shk;
-  shk.define(grids, dmap, 1, 1);
-
-
-  MultiFab flux[AMREX_SPACEDIM];
-  MultiFab qe[AMREX_SPACEDIM];
-  MultiFab qi[AMREX_SPACEDIM];
-
-  for (int i = 0; i < AMREX_SPACEDIM; ++i) {
-      flux[i].define(getEdgeBoxArray(i), dmap, NUM_STATE, 0);
-      qe[i].define(getEdgeBoxArray(i), dmap, NGDNV, 0);
-      qi[i].define(getEdgeBoxArray(i), dmap, NQ, 0);
-  }
-
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
+  {
+
+  FArrayBox flatn;
+  FArrayBox div;
+  FArrayBox qm, qp;
+  FArrayBox shk;
+  FArrayBox flux[AMREX_SPACEDIM];
+  FArrayBox qe[AMREX_SPACEDIM];
+  FArrayBox qi[AMREX_SPACEDIM];
+
   for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
-      const Box& obx = mfi.growntilebox(1);
+      const Box& bx = mfi.tilebox();
+      const Box& obx = amrex::grow(bx, 1);
+      const Box& tbx = amrex::grow(bx, 2);
+
+      const Box& xbx = amrex::surroundingNodes(bx, 0);
+      const Box& gxbx = amrex::grow(xbx, 1);
+#if AMREX_SPACEDIM >= 2
+      const Box& ybx = amrex::surroundingNodes(bx, 1);
+      const Box& gybx = amrex::grow(ybx, 1);
+#endif
+#if AMREX_SPACEDIM == 3
+      const Box& zbx = amrex::surroundingNodes(bx, 2);
+      const Box& gzbx = amrex::grow(zbx, 1);
+#endif
+
+      flatn.resize(obx, 1);
+      Elixir elix_flatn = flatn.elixir();
+
+      div.resize(obx, 1);
+      Elixir elix_div = div.elixir();
+
+      qm.resize(tbx, AMREX_SPACEDIM*NQ);
+      Elixir elix_qm = qm.elixir();
+
+      qp.resize(tbx, AMREX_SPACEDIM*NQ);
+      Elixir elix_qp = qp.elixir();
+
+      shk.resize(obx, 1);
+      Elixir elix_shk = shk.elixir();
+
+      flux[0].resize(gxbx, NUM_STATE);
+      Elixir elix_flux_x = flux[0].elixir();
+
+      qe[0].resize(gxbx, NGDNV);
+      Elixir elix_qe_x = qe[0].elixir();
+
+      qi[0].resize(gxbx, NQ);
+      Elixir elix_qi_x = qi[0].elixir();
+
+#if AMREX_SPACEDIM >= 2
+      flux[1].resize(gybx, NUM_STATE);
+      Elixir elix_flux_y = flux[1].elixir();
+
+      qe[1].resize(gybx, NGDNV);
+      Elixir elix_qe_y = qe[1].elixir();
+
+      qi[1].resize(gybx, NQ);
+      Elixir elix_qi_y = qi[1].elixir();
+#endif
+
+#if AMREX_SPACEDIM == 3
+      flux[2].resize(gzbx, NUM_STATE);
+      Elixir elix_flux_z = flux[2].elixir();
+
+      qe[2].resize(gzbx, NGDNV);
+      Elixir elix_qe_z = qe[2].elixir();
+
+      qi[2].resize(gzbx, NQ);
+      Elixir elix_qi_z = qi[2].elixir();
+#endif
 
       // Compute divergence of velocity field.
 #pragma gpu
       divu(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
            BL_TO_FORTRAN_ANYD(q[mfi]),
            AMREX_REAL_ANYD(dx),
-           BL_TO_FORTRAN_ANYD(div[mfi]));
+           BL_TO_FORTRAN_ANYD(div));
 
       // Compute flattening coefficient for slope calculations.
 #pragma gpu
       ca_uflatten
           (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
            BL_TO_FORTRAN_ANYD(q[mfi]),
-           BL_TO_FORTRAN_ANYD(flatn[mfi]), QPRES+1);
+           BL_TO_FORTRAN_ANYD(flatn), QPRES+1);
 
       // Do PPM reconstruction to the zone edges.
       int put_on_edges = 1;
@@ -1523,72 +1566,62 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
       ca_ppm_reconstruct
           (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()), put_on_edges,
            BL_TO_FORTRAN_ANYD(q[mfi]), NQ, 1, NQ,
-           BL_TO_FORTRAN_ANYD(flatn[mfi]),
-           BL_TO_FORTRAN_ANYD(qm[mfi]),
-           BL_TO_FORTRAN_ANYD(qp[mfi]), NQ, 1, NQ);
+           BL_TO_FORTRAN_ANYD(flatn),
+           BL_TO_FORTRAN_ANYD(qm),
+           BL_TO_FORTRAN_ANYD(qp), NQ, 1, NQ);
 
       // Compute the shk variable
 #pragma gpu
       ca_shock
         (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
          BL_TO_FORTRAN_ANYD(q[mfi]),
-         BL_TO_FORTRAN_ANYD(shk[mfi]),
+         BL_TO_FORTRAN_ANYD(shk),
          AMREX_REAL_ANYD(dx));
-
-  } // MFIter loop
-
-
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
-          const Box& nbx = mfi.nodaltilebox(idir);
+          const Box& nbx = amrex::grow(mfi.nodaltilebox(idir), 1);
 
           int idir_f = idir + 1;
 
-          // TODO: add radiation terms back to this call
 #pragma gpu
           cmpflx_plus_godunov
               (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-               BL_TO_FORTRAN_ANYD(qm[mfi]),
-               BL_TO_FORTRAN_ANYD(qp[mfi]), AMREX_SPACEDIM, idir_f,
-               BL_TO_FORTRAN_ANYD(flux[idir][mfi]),
-               BL_TO_FORTRAN_ANYD(qi[idir][mfi]),
-               BL_TO_FORTRAN_ANYD(qe[idir][mfi]),
+               BL_TO_FORTRAN_ANYD(qm),
+               BL_TO_FORTRAN_ANYD(qp), AMREX_SPACEDIM, idir_f,
+               BL_TO_FORTRAN_ANYD(flux[idir]),
+               BL_TO_FORTRAN_ANYD(qi[idir]),
+               BL_TO_FORTRAN_ANYD(qe[idir]),
                BL_TO_FORTRAN_ANYD(qaux[mfi]),
-               BL_TO_FORTRAN_ANYD(shk[mfi]),
+               BL_TO_FORTRAN_ANYD(shk),
                idir_f, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
 #pragma gpu
           apply_av
               (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                idir_f, AMREX_REAL_ANYD(dx),
-               BL_TO_FORTRAN_ANYD(div[mfi]),
+               BL_TO_FORTRAN_ANYD(div),
                BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-               BL_TO_FORTRAN_ANYD(flux[idir][mfi]));
+               BL_TO_FORTRAN_ANYD(flux[idir]));
 
 #pragma gpu
           normalize_species_fluxes
               (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-               BL_TO_FORTRAN_ANYD(flux[idir][mfi]));
+               BL_TO_FORTRAN_ANYD(flux[idir]));
 
 #pragma gpu
         scale_flux
             (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
 #if AMREX_SPACEDIM == 1
-             BL_TO_FORTRAN_ANYD(qe[idir][mfi]),
+             BL_TO_FORTRAN_ANYD(qe[idir]),
 #endif
-             BL_TO_FORTRAN_ANYD(flux[idir][mfi]),
+             BL_TO_FORTRAN_ANYD(flux[idir]),
              BL_TO_FORTRAN_ANYD(area[idir][mfi]), dt);
 
           // Store the fluxes from this advance -- we weight them by the
           // integrator weight for this stage
 
-          Array4<Real> const flux_fab = (flux[idir]).array(mfi);
+          Array4<Real> const flux_fab = (flux[idir]).array();
           Array4<Real> fluxes_fab = (*fluxes[idir]).array(mfi);
           const int numcomp = NUM_STATE;
           const Real scale = b_mol[mol_iteration];
@@ -1600,26 +1633,16 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
       }
 
-  } // MFIter loop
-
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
-
-      const Box& bx = mfi.tilebox();
-
 #pragma gpu
       ca_construct_hydro_update_cuda
           (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
            AMREX_REAL_ANYD(dx), dt,
-           BL_TO_FORTRAN_ANYD(qe[0][mfi]),
-           BL_TO_FORTRAN_ANYD(qe[1][mfi]),
-           BL_TO_FORTRAN_ANYD(qe[2][mfi]),
-           BL_TO_FORTRAN_ANYD(flux[0][mfi]),
-           BL_TO_FORTRAN_ANYD(flux[1][mfi]),
-           BL_TO_FORTRAN_ANYD(flux[2][mfi]),
+           BL_TO_FORTRAN_ANYD(qe[0]),
+           BL_TO_FORTRAN_ANYD(qe[1]),
+           BL_TO_FORTRAN_ANYD(qe[2]),
+           BL_TO_FORTRAN_ANYD(flux[0]),
+           BL_TO_FORTRAN_ANYD(flux[1]),
+           BL_TO_FORTRAN_ANYD(flux[2]),
            BL_TO_FORTRAN_ANYD(area[0][mfi]),
            BL_TO_FORTRAN_ANYD(area[1][mfi]),
            BL_TO_FORTRAN_ANYD(area[2][mfi]),
@@ -1628,6 +1651,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
            BL_TO_FORTRAN_ANYD(k_stage[mfi]));
 
   } // MFIter loop
+
+  } // OpenMP loop
 
 #endif // RADIATION
 
