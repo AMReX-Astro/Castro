@@ -42,15 +42,14 @@ Castro::construct_hydro_source(Real time, Real dt)
   int nstep_fsp = -1;
 #endif
 
-  // note: the radiation consup currently does not fill these
-  Real mass_lost       = 0.;
-  Real xmom_lost       = 0.;
-  Real ymom_lost       = 0.;
-  Real zmom_lost       = 0.;
-  Real eden_lost       = 0.;
-  Real xang_lost       = 0.;
-  Real yang_lost       = 0.;
-  Real zang_lost       = 0.;
+  Real mass_lost = 0.;
+  Real xmom_lost = 0.;
+  Real ymom_lost = 0.;
+  Real zmom_lost = 0.;
+  Real eden_lost = 0.;
+  Real xang_lost = 0.;
+  Real yang_lost = 0.;
+  Real zang_lost = 0.;
 
   BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
 
@@ -1216,16 +1215,23 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       if (track_grid_losses == 1) {
 
-#ifdef AMREX_USE_CUDA
-          Gpu::Device::streamSynchronize();
+#pragma gpu
+          ca_track_grid_losses(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                               BL_TO_FORTRAN_ANYD(flux[0]),
+#if AMREX_SPACEDIM >= 2
+                               BL_TO_FORTRAN_ANYD(flux[1]),
 #endif
-
-          ca_track_grid_losses(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                               D_DECL(BL_TO_FORTRAN_ANYD(flux[0]),
-                                      BL_TO_FORTRAN_ANYD(flux[1]),
-                                      BL_TO_FORTRAN_ANYD(flux[2])),
-                               mass_lost, xmom_lost, ymom_lost, zmom_lost,
-                               eden_lost, xang_lost, yang_lost, zang_lost);
+#if AMREX_SPACEDIM == 3
+                               BL_TO_FORTRAN_ANYD(flux[2]),
+#endif
+                               AMREX_MFITER_REDUCE_SUM(&mass_lost),
+                               AMREX_MFITER_REDUCE_SUM(&xmom_lost),
+                               AMREX_MFITER_REDUCE_SUM(&ymom_lost),
+                               AMREX_MFITER_REDUCE_SUM(&zmom_lost),
+                               AMREX_MFITER_REDUCE_SUM(&eden_lost),
+                               AMREX_MFITER_REDUCE_SUM(&xang_lost),
+                               AMREX_MFITER_REDUCE_SUM(&yang_lost),
+                               AMREX_MFITER_REDUCE_SUM(&zang_lost));
       }
 
     } // MFIter loop
