@@ -49,6 +49,7 @@ Exec/**/state_sizes.f90
 Exec/**/set_indices.F90
 Exec/**/set_conserved.H
 Exec/**/set_primitive.H
+Exec/**/set_godunov.H
 
 *.hack
 *.bak

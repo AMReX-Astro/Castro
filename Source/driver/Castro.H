@@ -361,8 +361,6 @@ public:
                           int  iteration,
                           int  ncycle) override;
 
-#ifndef AMREX_USE_CUDA
-
 ///
 /// this routine will advance the old state data (called ``S_old`` here)
 /// to the new time, for a single level.  The new data is called
@@ -382,7 +380,6 @@ public:
                      amrex::Real dt,
                      int  amr_iteration,
                      int  amr_ncycle);
-#endif
 
 
 ///
@@ -408,13 +405,11 @@ public:
                      int  amr_iteration,
                      int  amr_ncycle);
 
-
     amrex::Real do_advance_sdc (amrex::Real time,
                      amrex::Real dt,
                      int  amr_iteration,
                      int  amr_ncycle);
 
-#ifndef AMREX_USE_CUDA
 
 ///
 /// Should we retry advancing the simulation? By default, we
@@ -447,7 +442,6 @@ public:
 /// @param amr_ncycle   the number of subcycles at this level
 ///
     amrex::Real subcycle_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
-#endif
 
 
 ///
@@ -544,8 +538,6 @@ public:
 ///
     void check_for_cfl_violation(const amrex::Real dt);
 
-#ifndef AMREX_USE_CUDA
-
 ///
 /// this constructs the hydrodynamic source (essentially the flux
 /// divergence) using the CTU framework for unsplit hydrodynamics
@@ -554,7 +546,6 @@ public:
 /// @param dt       timestep
 ///
     void construct_hydro_source(amrex::Real time, amrex::Real dt);
-#endif
 
 
 
@@ -1727,6 +1718,12 @@ public:
     static int       QPTOT, QREITOT, QRAD;
 #endif
 
+    // Godunov state index keys
+    static int GDRHO, GDU, GDV, GDW;
+    static int GDPRES, GDGAME;
+#ifdef RADIATION
+    static int GDLAMS, GDERADS;
+#endif
 
 ///
 /// variable counts
@@ -1864,6 +1861,10 @@ protected:
     amrex::FluxRegister phi_reg;
 #endif
 
+    // Does the momentum flux include the pressure term?
+    // First index is the coordinate direction, second
+    // index is the momentum direction.
+    amrex::Array<amrex::Array<bool, 3>, 3> mom_flux_has_p;
 
 ///
 /// Scalings for the flux registers.

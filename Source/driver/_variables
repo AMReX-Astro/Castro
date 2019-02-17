@@ -57,13 +57,13 @@
 
 # godunov interface states
 @set: godunov NGDNV
-   density               None          GDRHO     None            1        None
-   x-velocity            None          GDU       None            1        None
-   y-velocity            None          GDV       None            1        None
-   z-velocity            None          GDW       None            1        None
-   pressure              None          GDPRES    None            1        None
-   gamma_e               None          GDGAME    None            1        None
-   flux-limiter          None          GDLAMS    None          ngroups    RADIATION
-   radiation             None          GDERADS   None          ngroups    RADIATION
+   density               GDRHO         GDRHO     None            1                   None
+   x-velocity            GDU           GDU       None            1                   None
+   y-velocity            GDV           GDV       None            1                   None
+   z-velocity            GDW           GDW       None            1                   None
+   pressure              GDPRES        GDPRES    None            1                   None
+   gamma_e               GDGAME        GDGAME    None            1                   None
+   flux-limiter          GDLAMS        GDLAMS    None          (ngroups, NGROUPS)    RADIATION
+   radiation             GDERADS       GDERADS   None          (ngroups, NGROUPS)    RADIATION
 
 

@@ -116,6 +116,7 @@ static amrex::Real react_T_max;
 static amrex::Real react_rho_min;
 static amrex::Real react_rho_max;
 static int disable_shock_burning;
+static amrex::Real T_guess;
 static int do_grav;
 static int moving_center;
 static int grav_source_type;

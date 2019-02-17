@@ -194,6 +194,8 @@ Castro::variableSetUp ()
 
 #include "set_primitive.H"
 
+#include "set_godunov.H"
+
   // Define NUM_GROW from the f90 module.
   ca_get_method_params(&NUM_GROW);
 
@@ -221,7 +223,12 @@ Castro::variableSetUp ()
                        QU, QV, QW,
                        QGAME, QGC, QPRES, QREINT,
                        QTEMP,
-                       QFA, QFS, QFX);
+                       QFA, QFS, QFX,
+#ifdef RADIATION
+                       GDLAMS, GDERADS,
+#endif
+                       GDRHO, GDU, GDV, GDW,
+                       GDPRES, GDGAME);
 
   // Get the number of primitive variables from Fortran.
   ca_get_qvar(&QVAR);

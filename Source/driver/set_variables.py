@@ -13,7 +13,7 @@
 #
 #    * ca_set_primitive_indices: the primitive variable state
 #
-# 2. set_conserved.H
+# 2. set_conserved.H, set_primitive.H, set_godunov.H
 #
 #    This simply sets the C++ indices
 #
@@ -119,6 +119,8 @@ class Index(object):
 
         if self.iset == "primitive":
             counter = "qcnt"
+        elif self.iset == "godunov":
+            counter = "gcnt"
         else:
             counter = "cnt"
 
@@ -329,11 +331,11 @@ def doit(variables_file, odir, defines, nadv,
                             ca.increment(i.count)
 
 
-                # for variables in the "conserved" or primitive sets,
+                # for variables in the "conserved", primitive, or godunov, sets,
                 # it may be the case that the variable that defines
                 # the count is 0 (e.g. for nadv).  We need to
                 # initialize it specially then.
-                if s in ["conserved", "primitive"]:
+                if s in ["conserved", "primitive", "godunov"]:
                     sub += i.get_set_string(val, set_default=0)
                 else:
                     sub += i.get_set_string(val)
@@ -375,6 +377,13 @@ def doit(variables_file, odir, defines, nadv,
         f.write("  int qcnt = 0;\n")
         for p in primitive_indices:
             f.write(p.get_cxx_set_string())
+
+    godunov_indices = [q for q in indices if q.iset == "godunov" and q.cxx_var is not None]
+
+    with open(os.path.join(odir, "set_godunov.H"), "w") as f:
+        f.write("  int gcnt = 0;\n")
+        for g in godunov_indices:
+            f.write(g.get_cxx_set_string())
 
 
 if __name__ == "__main__":

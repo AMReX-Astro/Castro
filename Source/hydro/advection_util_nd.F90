@@ -7,7 +7,7 @@ module advection_util_module
 
   public ca_enforce_minimum_density, ca_compute_cfl, ca_ctoprim, ca_srctoprim, dflux, &
          limit_hydro_fluxes_on_small_dens, ca_shock, divu, calc_pdivu, normalize_species_fluxes, avisc, &
-         scale_flux, apply_av, store_pradial, ca_construct_hydro_update_cuda
+         scale_flux, apply_av, ca_construct_hydro_update_cuda
 #ifdef RADIATION
   public apply_av_rad, scale_rad_flux
 #endif
@@ -666,6 +666,8 @@ contains
     integer          :: n, iq, ipassive
     real(rt)         :: rhoinv
 
+    !$gpu
+
     srcQ(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO
 
     ! compute srcQ terms
@@ -733,6 +735,8 @@ contains
     real(rt)         :: qgdnv(NGDNV)
     logical :: cell_centered
 #endif
+
+    !$gpu
 
     ! Set everything to zero; this default matters because some
     ! quantities like temperature are not updated through fluxes.
@@ -829,9 +833,12 @@ contains
     integer  :: i, j, k
 
     real(rt) :: rho, drho, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhoLF, drhoLF, dtdx, theta, thetap, thetam, alpha, flux_coef
+    real(rt) :: uL(NVAR), uR(NVAR), qL(NQ), qR(NQ)
 
     real(rt), parameter :: density_floor_tolerance = 1.1_rt
     real(rt) :: density_floor
+
+    !$gpu
 
     ! The density floor is the small density, modified by a small factor.
     ! In practice numerical error can cause the density that is created
@@ -870,8 +877,12 @@ contains
                 ! lambda = dt/(dx * alpha); alpha = 1 in 1D and may be chosen somewhat
                 ! freely in multi-D as long as alpha_x + alpha_y + alpha_z = 1.
 
-                fluxL = dflux(u(i-1,j,k,:), q(i-1,j,k,:), idir, [i-1, j, k])
-                fluxR = dflux(u(i  ,j,k,:), q(i  ,j,k,:), idir, [i  , j, k])
+                uL = u(i-1,j,k,:)
+                uR = u(i  ,j,k,:)
+                qL = q(i-1,j,k,:)
+                qR = q(i  ,j,k,:)
+                fluxL = dflux(uL, qL, idir, [i-1, j, k])
+                fluxR = dflux(uR, qR, idir, [i  , j, k])
                 fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (u(i-1,j,k,:) - u(i,j,k,:)))
 
                 ! Limit the Lax-Friedrichs flux so that it doesn't cause a density < density_floor.
@@ -971,8 +982,12 @@ contains
 
                 endif
 
-                fluxL = dflux(u(i,j-1,k,:), q(i,j-1,k,:), idir, [i, j-1, k])
-                fluxR = dflux(u(i,j  ,k,:), q(i,j  ,k,:), idir, [i, j  , k])
+                uL = u(i,j-1,k,:)
+                uR = u(i,j  ,k,:)
+                qL = q(i,j-1,k,:)
+                qR = q(i,j  ,k,:)
+                fluxL = dflux(uL, qL, idir, [i, j-1, k])
+                fluxR = dflux(uR, qR, idir, [i, j  , k])
                 fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (u(i,j-1,k,:) - u(i,j,k,:)))
 
                 flux_coef = TWO * (dt / alpha) * (area(i,j,k) / vol(i,j,k))
@@ -1045,8 +1060,12 @@ contains
 
                 endif
 
-                fluxL = dflux(u(i,j,k-1,:), q(i,j,k-1,:), idir, [i, j, k-1])
-                fluxR = dflux(u(i,j,k  ,:), q(i,j,k  ,:), idir, [i, j, k-1])
+                uL = u(i,j,k-1,:)
+                uR = u(i,j,k  ,:)
+                qL = q(i,j,k-1,:)
+                qR = q(i,j,k  ,:)
+                fluxL = dflux(uL, qL, idir, [i, j, k-1])
+                fluxR = dflux(uR, qR, idir, [i, j, k-1])
                 fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (u(i,j,k-1,:) - u(i,j,k,:)))
 
                 flux_coef = TWO * (dt / alpha) * (area(i,j,k) / vol(i,j,k)) 
@@ -1573,6 +1592,8 @@ contains
 
     integer  :: i, j, k
 
+    !$gpu
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -1612,7 +1633,7 @@ contains
   !! they sum to 0.  This is essentially the CMA procedure that is
   !! defined in Plewa & Muller, 1999, A&A, 342, 179.
   !!
-  subroutine normalize_species_fluxes(lo, hi, flux, f_lo, f_hi)
+  subroutine normalize_species_fluxes(lo, hi, flux, f_lo, f_hi) bind(c, name="normalize_species_fluxes")
 
     use network, only: nspec
     use amrex_constants_module, only: ZERO, ONE
@@ -1928,51 +1949,6 @@ contains
     enddo
 
   end subroutine scale_flux
-
-  subroutine store_pradial(lo, hi, &
-                           qint, qi_lo, qi_hi, &
-                           pradial, p_lo, p_hi, dt) bind(C, name="store_pradial")
-
-    use meth_params_module, only: GDPRES, NGDNV, UMX
-    use prob_params_module, only : coord_type, mom_flux_has_p
-
-    implicit none
-
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: qi_lo(3), qi_hi(3)
-    integer, intent(in) :: p_lo(3), p_hi(3)
-
-    real(rt), intent(in) :: qint(qi_lo(1):qi_hi(1), qi_lo(2):qi_hi(2), qi_lo(3):qi_hi(3), NGDNV)
-    real(rt), intent(out) :: pradial(p_lo(1):p_hi(1), p_lo(2):p_hi(2), p_lo(3):p_hi(3))
-    real(rt), intent(in), value :: dt
-
-    integer :: i, j, k
-
-#if AMREX_SPACEDIM == 1
-    if (coord_type > 0) then
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                pradial(i,j,k) = qint(i,j,k,GDPRES) * dt
-             end do
-          end do
-       end do
-    end if
-#endif
-
-#if AMREX_SPACEDIM == 2
-    if (.not. mom_flux_has_p(1)%comp(UMX)) then
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                pradial(i,j,k) = qint(i,j,k,GDPRES) * dt
-             end do
-          end do
-       end do
-    end if
-#endif
-
-  end subroutine store_pradial
 
 #ifdef RADIATION
   subroutine scale_rad_flux(lo, hi, &

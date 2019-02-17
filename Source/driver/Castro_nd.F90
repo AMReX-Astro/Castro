@@ -578,7 +578,12 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
      QU_in, QV_in, QW_in, &
      QGAME_in, QGC_in, QPRES_in, QREINT_in, &
      QTEMP_in, &
-     QFA_in, QFS_in, QFX_in) &
+     QFA_in, QFS_in, QFX_in, &
+#ifdef RADIATION
+     GDLAMS_in, GDERADS_in, &
+#endif
+     GDRHO_in, GDU_in, GDV_in, GDW_in, &
+     GDPRES_in, GDGAME_in) &
      bind(C, name="ca_set_method_params")
 
   use meth_params_module
@@ -612,6 +617,11 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
 #ifdef HYBRID_MOMENTUM
   integer, intent(in) :: Rmom_in
 #endif
+  integer, intent(in) :: GDRHO_in, GDU_in, GDV_in, GDW_in
+  integer, intent(in) :: GDPRES_in, GDGAME_in
+#ifdef RADIATION
+  integer, intent(in) :: GDLAMS_in, GDERADS_in
+#endif
 
   integer :: iadv, ispec
 
@@ -622,7 +632,12 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   !---------------------------------------------------------------------
   ! set integer keys to index states
   !---------------------------------------------------------------------
-  call ca_set_godunov_indices()
+  call ca_set_godunov_indices( &
+#ifdef RADIATION
+       GDLAMS_in, GDERADS_in, &
+#endif
+       GDRHO_in, GDU_in, GDV_in, GDW_in, &
+       GDPRES_in, GDGAME_in)
 
   call ca_set_conserved_indices( &
 #ifdef HYBRID_MOMENTUM
