@@ -805,7 +805,7 @@ contains
                                               vol, vol_lo, vol_hi, &
                                               flux, flux_lo, flux_hi, &
                                               area, area_lo, area_hi, &
-                                              dt, dx)
+                                              dt, dx) bind(c, name="limit_hydro_fluxes_on_small_dens")
 
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
@@ -816,13 +816,14 @@ contains
     implicit none
 
     integer, intent(in) :: u_lo(3), u_hi(3)
-    integer, intent(in) :: idir
+    integer, intent(in), value :: idir
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: vol_lo(3), vol_hi(3)
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: flux_lo(3), flux_hi(3)
     integer, intent(in) :: area_lo(3), area_hi(3)
-    real(rt), intent(in   ) :: dt, dx(3)
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(in), value :: dt
 
     real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
     real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
