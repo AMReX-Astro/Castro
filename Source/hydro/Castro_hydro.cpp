@@ -1034,7 +1034,7 @@ Castro::construct_hydro_source(Real time, Real dt)
           if (limit_fluxes_on_small_dens == 1) {
 #pragma gpu
               limit_hydro_fluxes_on_small_dens
-                  (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.loVect()),
+                  (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                    idir_f,
                    BL_TO_FORTRAN_ANYD(Sborder[mfi]),
                    BL_TO_FORTRAN_ANYD(q[mfi]),
