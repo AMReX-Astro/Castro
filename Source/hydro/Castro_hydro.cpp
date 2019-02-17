@@ -1000,20 +1000,53 @@ Castro::construct_hydro_source(Real time, Real dt)
 
           int idir_f = idir + 1;
 
-#pragma gpu
-          ctu_clean_fluxes(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                           idir_f,
-                           BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-                           BL_TO_FORTRAN_ANYD(q[mfi]),
-                           BL_TO_FORTRAN_ANYD(flux[idir]),
-#ifdef RADIATION
-                           BL_TO_FORTRAN_ANYD(Erborder[mfi]),
-                           BL_TO_FORTRAN_ANYD(rad_flux[idir]),
+          Array4<Real> const flux_arr = (flux[idir]).array();
+          const int temp_comp = Temp;
+#ifdef SHOCK_VAR
+          const int shk_comp = Shock;
 #endif
-                           BL_TO_FORTRAN_ANYD(area[idir][mfi]),
-                           BL_TO_FORTRAN_ANYD(volume[mfi]),
-                           BL_TO_FORTRAN_ANYD(div),
-                           AMREX_REAL_ANYD(dx), dt);
+
+          // Zero out shock and temp fluxes -- these are physically meaningless here
+          AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
+          {
+              flux_arr(i,j,k,temp_comp) = 0.e0;
+#ifdef SHOCK_VAR
+              flux_arr(i,j,k,shk_comp) = 0.e0;
+#endif
+          });
+
+#pragma gpu
+          apply_av(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+                   idir_f, AMREX_REAL_ANYD(dx),
+                   BL_TO_FORTRAN_ANYD(div),
+                   BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+                   BL_TO_FORTRAN_ANYD(flux[idir]));
+
+#ifdef RADIATION
+#pragma gpu
+          apply_av_rad(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+                       idir_f, AMREX_REAL_ANYD(dx),
+                       BL_TO_FORTRAN_ANYD(div),
+                       BL_TO_FORTRAN_ANYD(Erborder[mfi]),
+                       BL_TO_FORTRAN_ANYD(rad_flux[idir]));
+#endif
+
+          if (limit_fluxes_on_small_dens == 1) {
+#pragma gpu
+              limit_hydro_fluxes_on_small_dens
+                  (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.loVect()),
+                   idir_f,
+                   BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+                   BL_TO_FORTRAN_ANYD(q[mfi]),
+                   BL_TO_FORTRAN_ANYD(volume[mfi]),
+                   BL_TO_FORTRAN_ANYD(flux[idir]),
+                   BL_TO_FORTRAN_ANYD(area[idir][mfi]),
+                   dt, AMREX_REAL_ANYD(dx));
+          }
+
+#pragma gpu
+          normalize_species_fluxes(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+                                   BL_TO_FORTRAN_ANYD(flux[idir]));
 
       }
 

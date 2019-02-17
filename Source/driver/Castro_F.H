@@ -541,21 +541,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(flatn),
      BL_FORT_FAB_ARG_3D(flatg));
 
-  void ctu_clean_fluxes
-    (const int* lo, const int* hi,
-     const int idir_f,
-     const BL_FORT_FAB_ARG_3D(sborder),
-     const BL_FORT_FAB_ARG_3D(q),
-     BL_FORT_FAB_ARG_3D(flux),
-#ifdef RADIATION
-     const BL_FORT_FAB_ARG_3D(Er),
-     BL_FORT_FAB_ARG_3D(radflux),
-#endif
-     const BL_FORT_FAB_ARG_3D(area),
-     const BL_FORT_FAB_ARG_3D(volume),
-     const BL_FORT_FAB_ARG_3D(div),
-     const amrex::Real* dx, const amrex::Real dt);
-
   void ctu_consup
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(Sborder),
@@ -695,11 +680,30 @@ extern "C"
 
   void apply_av
     (const int* lo, const int* hi,
-     int idir, const amrex::Real* dx,
+     const int idir, const amrex::Real* dx,
      BL_FORT_FAB_ARG_3D(div),
      BL_FORT_FAB_ARG_3D(Sborder),
      BL_FORT_FAB_ARG_3D(flux));
-    
+
+#ifdef RADIATION
+  void apply_av_rad
+    (const int* lo, const int* hi,
+     int idir, const amrex::Real* dx,
+     BL_FORT_FAB_ARG_3D(div),
+     BL_FORT_FAB_ARG_3D(Er),
+     BL_FORT_FAB_ARG_3D(radflux));
+#endif
+
+  void limit_hydro_fluxes_on_small_dens
+    (const int* lo, const int* hi,
+     const int idir,
+     BL_FORT_FAB_ARG_3D(Sborder),
+     BL_FORT_FAB_ARG_3D(q),
+     BL_FORT_FAB_ARG_3D(volume),
+     BL_FORT_FAB_ARG_3D(flux),
+     BL_FORT_FAB_ARG_3D(area),
+     const amrex::Real dt, const amrex::Real* dx);
+
   void normalize_species_fluxes
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(flux));
