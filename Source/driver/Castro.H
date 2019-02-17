@@ -1738,9 +1738,7 @@ public:
 
 #ifdef THORNADO
     static int THORNADO_NSPECIES;
-    static int THORNADO_NNODES;
     static int THORNADO_NMOMENTS;
-    static int THORNADO_FLUID_NDOF;
     static int THORNADO_RAD_NDOF;
 
     // These are the lower and upper limits of the energy groups

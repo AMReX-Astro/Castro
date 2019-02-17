@@ -21,14 +21,14 @@
                               dS, d_lo, d_hi, nds, &
                               U_R_o, U_R_o_lo, U_R_o_hi, n_uro, &
                               dR   ,    dr_lo,    dr_hi, n_urn, &
-                              n_fluid_dof, n_moments, ng) &
+                              n_moments, ng) &
                               bind(C, name="call_to_thornado")
 
     use amrex_constants_module, only : fourth, half, zero, one, two
     use amrex_fort_module, only : rt => amrex_real
     use amrex_error_module, only : amrex_abort
     use meth_params_module, only : URHO,UMX,UMY,UMZ,UEINT,UEDEN,UFX,UFS
-    use ProgramHeaderModule, only : nE, nDOF, nNodesX, nNodesE, swE
+    use ProgramHeaderModule, only : nE, nNodesE, swE
     use FluidFieldsModule, only : uCF, nCF, iCF_D, iCF_S1, iCF_S2, iCF_S3, iCF_E, iCF_Ne
     use FluidFieldsModule, only : CreateFluidFields, DestroyFluidFields
     use RadiationFieldsModule, only : CreateRadiationFields,DestroyRadiationFields,nSpecies, uCR
@@ -44,7 +44,7 @@
     integer, intent(in) ::  U_R_o_lo(2),  U_R_o_hi(2)
     integer, intent(in) ::     dr_lo(2),     dr_hi(2)
     integer, intent(in) ::  ns, nds, n_uro, n_urn
-    integer, intent(in) ::  n_fluid_dof, n_moments
+    integer, intent(in) ::  n_moments
     integer, intent(in) :: ng
     real(rt), intent(in) :: dt
 
@@ -59,8 +59,8 @@
     real(rt), intent(inout) ::     dR(   dr_lo(1):    dr_hi(1),     dr_lo(2):    dr_hi(2), 0:n_urn-1) 
 
     ! Temporary variables
-    integer  :: i,j,k,n
-    integer  :: ic,jc
+    integer  :: i,j,k,n,nu
+    integer  :: ic,jc,kc
     integer  :: ii,id,ie,im,is,ind
     integer  :: u_lo(3),u_hi(3)
     real(rt) :: x,y,z
@@ -71,17 +71,19 @@
     integer  :: nX(3)
     integer  :: swX(3)
 
-    if (ng.ne. 2) &
-      call amrex_abort("Need 2 ghost cells  n call_to_thornado!")
+    if (ng.ne.2) &
+      call amrex_abort("Need 2 ghost cells in call_to_thornado!")
 
     conv_dens = Gram / Centimeter**3
     conv_mom  = Gram / Centimeter**2 / Second
     conv_enr  = Erg / Centimeter**3
     conv_ne   = 1.d0 / Centimeter**3
 
-    nX(1) = hi(1) - lo(1) + 1
-    nX(2) = hi(2) - lo(2) + 1
+    nX(1) = (hi(1) - lo(1) + 1)/2
+    nX(2) = (hi(2) - lo(2) + 1)/2
     nX(3) = 1
+
+    print *,'NG IN CALL ',ng
 
     swX(1) = ng
     swX(2) = ng
@@ -89,10 +91,11 @@
 
     u_lo(1) = 1    -swX(1)
     u_lo(2) = 1    -swX(2)
-    u_lo(3) = 1    -swX(3)
+    u_lo(3) = 1
     u_hi(1) = nX(1)+swX(1)
     u_hi(2) = nX(2)+swX(2)
-    u_hi(3) = nX(3)+swX(3)
+    u_hi(3) = 1
+    nu      = 4
 
     call CreateFluidFields ( nX, swX, Verbose_Option = .FALSE. )
 
@@ -102,18 +105,18 @@
     ! Interpolate from the Castro "S" arrays into Thornado "uCF" arrays
     ! ************************************************************************************
 
-    allocate( u0(n_fluid_dof,u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nCF) ) 
+    allocate( u0(nu,u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nCF) ) 
 
     call interpolate_fluid (lo, hi, &
                             S , s_lo, s_hi, ns , &
-                            u0 , u_lo, u_hi, n_fluid_dof, &
+                            u0 , u_lo, u_hi, nu, &
                             ng) 
 
     ! ************************************************************************************
     ! Copy from the Castro U_R arrays into Thornado arrays from InitThornado_Patch
     ! ************************************************************************************
-    do jc = lo(2)-ng,hi(2)+ng
-    do ic = lo(1)-ng,hi(1)+ng
+    do jc = u_lo(2),u_hi(2)
+    do ic = u_lo(1),u_hi(1)
 
          ! The uCR array was allocated in CreateRadiationdFields_Conserved with 
          ! ALLOCATE &
@@ -125,18 +128,40 @@
 
          ! U_R_o spatial indices start at lo - (number of ghost zones)
          !   uCR spatial indices start at 1 - (number of ghost zones)
-         i = ic - lo(1) + 1
-         j = jc - lo(2) + 1
-         k = 1
+         i = lo(1) + 2*(ic-1)
+         j = lo(2) + 2*(jc-1)
+  
+         ! In 2-d, kc = 1
+         kc = 1
 
          do is = 1, nSpecies
          do im = 1, n_moments
          do ie = 1, nE
-         do id = 1, nDOF
-            ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
-            if (im .eq. 1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,ii)
-            if (im   >  1) uCR(id,ie,i,j,k,im,is) = U_R_o(ic,jc,ii)
+
+         do id = 1, nNodesE
+            ii   = (is-1)*(n_moments*nE*nNodesE) + (im-1)*(nE*nNodesE) + (ie-1)*nNodesE + (id-1)
+            if (im .eq. 1) uCR(id,ie,ic,jc,kc,im,is) = U_R_o(i,j,ii)
+            if (im   >  1) uCR(id,ie,ic,jc,kc,im,is) = U_R_o(i,j,ii)
          end do
+
+         do id = nNodesE+1, 2*nNodesE
+            ii   = (is-1)*(n_moments*nE*nNodesE) + (im-1)*(nE*nNodesE) + (ie-1)*nNodesE + (id-nNodesE-1)
+            if (im .eq. 1) uCR(id,ie,ic,jc,kc,im,is) = U_R_o(i+1,j,ii)
+            if (im   >  1) uCR(id,ie,ic,jc,kc,im,is) = U_R_o(i+1,j,ii)
+         end do
+
+         do id = 2*nNodesE+1, 3*nNodesE
+            ii   = (is-1)*(n_moments*nE*nNodesE) + (im-1)*(nE*nNodesE) + (ie-1)*nNodesE + (id-2*nNodesE-1)
+            if (im .eq. 1) uCR(id,ie,ic,jc,kc,im,is) = U_R_o(i,j+1,ii)
+            if (im   >  1) uCR(id,ie,ic,jc,kc,im,is) = U_R_o(i,j+1,ii)
+         end do
+
+         do id = 3*nNodesE+1, 4*nNodesE
+            ii   = (is-1)*(n_moments*nE*nNodesE) + (im-1)*(nE*nNodesE) + (ie-1)*nNodesE + (id-3*nNodesE-1)
+            if (im .eq. 1) uCR(id,ie,ic,jc,kc,im,is) = U_R_o(i+1,j+1,ii)
+            if (im   >  1) uCR(id,ie,ic,jc,kc,im,is) = U_R_o(i+1,j+1,ii)
+         end do
+
          end do
          end do
          end do
@@ -150,17 +175,14 @@
 
     call Update_IMEX_PDARS(dt*Second, uCF, uCR)
 
+    ! Zero out dS so we can accumulate weighted average in it
+    dS(:,:,:) = 0.d0
+
     ! ************************************************************************************
     ! Copy back from the thornado arrays into Castro arrays
     ! ************************************************************************************
-    do jc = lo(2),hi(2)
-    do ic = lo(1),hi(1)
-
-         ! uCR spatial indices start at 1 - ng
-         ! U_R_n spatial indices start at lo
-         i = ic - lo(1) + 1
-         j = jc - lo(2) + 1
-         k = 1
+    do jc = 1, nX(2)
+    do ic = 1, nX(1)
 
          ! We store dS as a source term which we can add to S outside of this routine
          ! We now use the weighting from thornado to convert the four node values back 
@@ -168,47 +190,98 @@
          ! 
          ! Update_IMEX_PC2 doesn't currently change the fluid density or momentum
          ! 
+         !   S spatial indices start at lo - (number of ghost zones)
+         ! uCF spatial indices start at 1 - (number of ghost zones)
+         i = lo(1) + 2*(ic-1)
+         j = lo(2) + 2*(jc-1)
 
-         ! Zero out dS so we can accumulate weighted average in it
-         dS(ic,jc,:) = 0.d0
+         ! In 2-d, kc = 1
+         kc = 1
 
-         do ind = 1, n_fluid_dof
-            dS(ic,jc,URHO ) = dS(ic,jc,URHO ) + WeightsX_q(ind) * &
-               (uCF(ind,i,j,k,iCF_D ) - u0(ind,i,j,k,iCF_D ) )
-            dS(ic,jc,UMX  ) = dS(ic,jc,UMX  ) + WeightsX_q(ind) * &
-               (uCF(ind,i,j,k,iCF_S1) - u0(ind,i,j,k,iCF_S1) )
-            dS(ic,jc,UMY  ) = dS(ic,jc,UMY  ) + WeightsX_q(ind) * &
-               (uCF(ind,i,j,k,iCF_S2) - u0(ind,i,j,k,iCF_S2) )
-            dS(ic,jc,UEDEN) = dS(ic,jc,UEDEN) + WeightsX_q(ind) * &
-               (uCF(ind,i,j,k,iCF_E ) - u0(ind,i,j,k,iCF_E ) )
-            dS(ic,jc,UFX  ) = dS(ic,jc,UFX  ) + WeightsX_q(ind) * &
-               (uCF(ind,i,j,k,iCF_Ne) - u0(ind,i,j,k,iCF_Ne) )
-         end do
+         dS(i  ,j  ,URHO ) = dS(i  ,j  ,URHO ) + (uCF(1,ic,jc,kc,iCF_D ) - u0(1,ic,jc,kc,iCF_D ) )
+         dS(i  ,j  ,UMX  ) = dS(i  ,j  ,UMX  ) + (uCF(1,ic,jc,kc,iCF_S1) - u0(1,ic,jc,kc,iCF_S1) )
+         dS(i  ,j  ,UMY  ) = dS(i  ,j  ,UMY  ) + (uCF(1,ic,jc,kc,iCF_S2) - u0(1,ic,jc,kc,iCF_S2) )
+         dS(i  ,j  ,UEDEN) = dS(i  ,j  ,UEDEN) + (uCF(1,ic,jc,kc,iCF_E ) - u0(1,ic,jc,kc,iCF_E ) )
+         dS(i  ,j  ,UFX  ) = dS(i  ,j  ,UFX  ) + (uCF(1,ic,jc,kc,iCF_Ne) - u0(1,ic,jc,kc,iCF_Ne) )
 
-!        dS(ic,jc,URHO ) = dS(ic,jc,URHO ) / conv_dens
-!        dS(ic,jc,UMX  ) = dS(ic,jc,UMX  ) / conv_mom
-!        dS(ic,jc,UMY  ) = dS(ic,jc,UMY  ) / conv_mom
-         dS(ic,jc,UEDEN) = dS(ic,jc,UEDEN) / conv_enr
-         dS(ic,jc,UFX  ) = dS(ic,jc,UFX  ) / conv_ne
+         dS(i+1,j  ,URHO ) = dS(i+1,j  ,URHO ) + (uCF(2,ic,jc,kc,iCF_D ) - u0(2,ic,jc,kc,iCF_D ) )
+         dS(i+1,j  ,UMX  ) = dS(i+1,j  ,UMX  ) + (uCF(2,ic,jc,kc,iCF_S1) - u0(2,ic,jc,kc,iCF_S1) )
+         dS(i+1,j  ,UMY  ) = dS(i+1,j  ,UMY  ) + (uCF(2,ic,jc,kc,iCF_S2) - u0(2,ic,jc,kc,iCF_S2) )
+         dS(i+1,j  ,UEDEN) = dS(i+1,j  ,UEDEN) + (uCF(2,ic,jc,kc,iCF_E ) - u0(2,ic,jc,kc,iCF_E ) )
+         dS(i+1,j  ,UFX  ) = dS(i+1,j  ,UFX  ) + (uCF(2,ic,jc,kc,iCF_Ne) - u0(2,ic,jc,kc,iCF_Ne) )
 
-         dS(ic,jc,UEINT) = dS(ic,jc,UEDEN)     ! TRUE IFF NO MOFX SOURCE TERMS
+         dS(i  ,j+1,URHO ) = dS(i  ,j+1,URHO ) + (uCF(3,ic,jc,kc,iCF_D ) - u0(3,ic,jc,kc,iCF_D ) )
+         dS(i  ,j+1,UMX  ) = dS(i  ,j+1,UMX  ) + (uCF(3,ic,jc,kc,iCF_S1) - u0(3,ic,jc,kc,iCF_S1) )
+         dS(i  ,j+1,UMY  ) = dS(i  ,j+1,UMY  ) + (uCF(3,ic,jc,kc,iCF_S2) - u0(3,ic,jc,kc,iCF_S2) )
+         dS(i  ,j+1,UEDEN) = dS(i  ,j+1,UEDEN) + (uCF(3,ic,jc,kc,iCF_E ) - u0(3,ic,jc,kc,iCF_E ) )
+         dS(i  ,j+1,UFX  ) = dS(i  ,j+1,UFX  ) + (uCF(3,ic,jc,kc,iCF_Ne) - u0(3,ic,jc,kc,iCF_Ne) )
+
+         dS(i+1,j+1,URHO ) = dS(i+1,j+1,URHO ) + (uCF(4,ic,jc,kc,iCF_D ) - u0(4,ic,jc,kc,iCF_D ) )
+         dS(i+1,j+1,UMX  ) = dS(i+1,j+1,UMX  ) + (uCF(4,ic,jc,kc,iCF_S1) - u0(4,ic,jc,kc,iCF_S1) )
+         dS(i+1,j+1,UMY  ) = dS(i+1,j+1,UMY  ) + (uCF(4,ic,jc,kc,iCF_S2) - u0(4,ic,jc,kc,iCF_S2) )
+         dS(i+1,j+1,UEDEN) = dS(i+1,j+1,UEDEN) + (uCF(4,ic,jc,kc,iCF_E ) - u0(4,ic,jc,kc,iCF_E ) )
+         dS(i+1,j+1,UFX  ) = dS(i+1,j+1,UFX  ) + (uCF(4,ic,jc,kc,iCF_Ne) - u0(4,ic,jc,kc,iCF_Ne) )
+
+    end do
+    end do
+
+    do j = lo(2),hi(2)
+    do i = lo(1),hi(1)
+
+!        dS(i,j,URHO ) = dS(i,j,URHO ) / conv_dens
+!        dS(i,j,UMX  ) = dS(i,j,UMX  ) / conv_mom
+!        dS(i,j,UMY  ) = dS(i,j,UMY  ) / conv_mom
+         dS(i,j,UEDEN) = dS(i,j,UEDEN) / conv_enr
+         dS(i,j,UFX  ) = dS(i,j,UFX  ) / conv_ne
+
+         dS(i,j,UEINT) = dS(i,j,UEDEN)     ! TRUE IFF NO MOFX SOURCE TERMS
+
+         ! Store electron molar fraction * density in the species
+         dS(i,j,UFS) = dS(i,j,UFX) * AtomicMassUnit / Gram
+
+    end do
+    end do
+
+    do jc = 1, nX(2)
+    do ic = 1, nX(1)
+
+         i = lo(1) + 2*(ic-1)
+         j = lo(2) + 2*(jc-1)
+
+         ! In 2-d, kc = 1
+         kc = 1
 
          do is = 1, nSpecies
          do im = 1, n_moments
          do ie = 1, nE
-         do id = 1, nDOF
 
-            ii   = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF + (id-1)
-            if (im .eq. 1) dR(ic,jc,ii) = uCR(id,ie,i,j,k,im,is) - U_R_o(ic,jc,ii)
-            if (im   >  1) dR(ic,jc,ii) = uCR(id,ie,i,j,k,im,is) - U_R_o(ic,jc,ii)
-
-         end do
-         end do
-         end do
+         do id = 1, nNodesE
+            ii   = (is-1)*(n_moments*nE*nNodesE) + (im-1)*(nE*nNodesE) + (ie-1)*nNodesE + (id-1)
+            if (im .eq. 1) dR(i,j,ii) = uCR(id,ie,ic,jc,kc,im,is) - U_R_o(i,j,ii)
+            if (im   >  1) dR(i,j,ii) = uCR(id,ie,ic,jc,kc,im,is) - U_R_o(i,j,ii)
          end do
 
-         ! Store electron molar fraction * density in the species
-         ds(ic,jc,UFS) = dS(ic,jc,UFX) * AtomicMassUnit / Gram
+         do id = nNodesE+1, 2*nNodesE
+            ii   = (is-1)*(n_moments*nE*nNodesE) + (im-1)*(nE*nNodesE) + (ie-1)*nNodesE + (id-nNodesE-1)
+            if (im .eq. 1) dR(i+1,j,ii) = uCR(id,ie,ic,jc,kc,im,is) - U_R_o(i+1,j,ii)
+            if (im   >  1) dR(i+1,j,ii) = uCR(id,ie,ic,jc,kc,im,is) - U_R_o(i+1,j,ii)
+         end do
+
+         do id = 2*nNodesE+1, 3*nNodesE
+            ii   = (is-1)*(n_moments*nE*nNodesE) + (im-1)*(nE*nNodesE) + (ie-1)*nNodesE + (id-2*nNodesE-1)
+            if (im .eq. 1) dR(i,j+1,ii) = uCR(id,ie,ic,jc,kc,im,is) - U_R_o(i,j+1,ii)
+            if (im   >  1) dR(i,j+1,ii) = uCR(id,ie,ic,jc,kc,im,is) - U_R_o(i,j+1,ii)
+         end do
+
+         do id = 3*nNodesE+1, 4*nNodesE
+            ii   = (is-1)*(n_moments*nE*nNodesE) + (im-1)*(nE*nNodesE) + (ie-1)*nNodesE + (id-3*nNodesE-1)
+            if (im .eq. 1) dR(i+1,j+1,ii) = uCR(id,ie,ic,jc,kc,im,is) - U_R_o(i+1,j+1,ii)
+            if (im   >  1) dR(i+1,j+1,ii) = uCR(id,ie,ic,jc,kc,im,is) - U_R_o(i+1,j+1,ii)
+         end do
+
+         end do
+         end do
+         end do
 
     end do
     end do

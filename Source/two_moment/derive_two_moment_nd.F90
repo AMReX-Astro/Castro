@@ -2,7 +2,7 @@ module derive_thornado_module
 
   use amrex_fort_module, only : rt => amrex_real
   use RadiationFieldsModule, only : nSpecies
-  use ProgramHeaderModule, only : nE, nDOF
+  use ProgramHeaderModule, only : nE, nNodesE
 
   implicit none
 
@@ -48,7 +48,7 @@ contains
 
               sum_esquared = 0.d0
 
-              do id = 1, nDOF ! radiation degrees of freedom
+              do id = 1, nNodesE ! radiation degrees of freedom
 
                 iNodeE = NodeNumberTable(1,id)
   
@@ -57,30 +57,30 @@ contains
                 sum_esquared = sum_esquared + weights_q(id) * weight_esquared
   
                 im = 1  ! J is first moment
-                ii = (is-1)*(n_moments*nE*nDOF) + &
-                     (im-1)*(nE*nDOF) + &
-                     (ie-1)*nDOF + (id-1)
+                ii = (is-1)*(n_moments*nE*nNodesE) + &
+                     (im-1)*(nE*nNodesE) + &
+                     (ie-1)*nNodesE + (id-1)
                 icomp = (is-1)*nSpecies + ie-1
                 U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) + U_R(i,j,k,ii) * weights_q(id) * weight_esquared
   
                 im = 2  ! H_x is second moment
-                ii = (is-1)*(n_moments*nE*nDOF) + &
-                     (im-1)*(nE*nDOF) + &
-                     (ie-1)*nDOF + (id-1)
+                ii = (is-1)*(n_moments*nE*nNodesE) + &
+                     (im-1)*(nE*nNodesE) + &
+                     (ie-1)*nNodesE + (id-1)
                 icomp = (is-1)*nSpecies + n_each+ie-1
                 U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) + U_R(i,j,k,ii) * weights_q(id) * weight_esquared
   
                 im = 3  ! H_x is second moment
-                ii = (is-1)*(n_moments*nE*nDOF) + &
-                     (im-1)*(nE*nDOF) + &
-                     (ie-1)*nDOF + (id-1)
+                ii = (is-1)*(n_moments*nE*nNodesE) + &
+                     (im-1)*(nE*nNodesE) + &
+                     (ie-1)*nNodesE + (id-1)
                 icomp = (is-1)*nSpecies + 2*n_each+ie-1
                 U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) + U_R(i,j,k,ii) * weights_q(id) * weight_esquared
   
                 im = 4  ! H_z is second moment
-                ii = (is-1)*(n_moments*nE*nDOF) + &
-                     (im-1)*(nE*nDOF) + &
-                     (ie-1)*nDOF + (id-1)
+                ii = (is-1)*(n_moments*nE*nNodesE) + &
+                     (im-1)*(nE*nNodesE) + &
+                     (ie-1)*nNodesE + (id-1)
                 icomp = (is-1)*nSpecies + 3*n_each+ie-1
                 U_R_avg(i,j,k,icomp) = U_R_avg(i,j,k,icomp) + U_R(i,j,k,ii) * weights_q(id) * weight_esquared
   
@@ -112,6 +112,7 @@ contains
                       domhi,delta,xlo,time,dt,bc,level,grid_no) &
                       bind(C, name="ca_der_J")
 
+    use ProgramHeaderModule   , only: nNodesE
     use ReferenceElementModule, only: weights_q, NodeNumberTable
     use GeometryFieldsModuleE , only: iGE_Ep2, uGE
 
@@ -149,10 +150,10 @@ contains
             do is = 1, nSpecies
             do ie = 1, nE
 
-              ii = (is-1)*(n_moments*nE*nDOF) + &
-                   (im-1)*(nE*nDOF) + (ie-1)*nDOF
+              ii = (is-1)*(n_moments*nE*nNodesE) + &
+                   (im-1)*(nE*nNodesE) + (ie-1)*nNodesE
 
-              do id = 1, nDOF ! radiation degrees of freedom
+              do id = 1, nNodesE
 
                  iNodeE = NodeNumberTable(1,id)
 
@@ -181,6 +182,7 @@ contains
                        domhi,delta,xlo,time,dt,bc,level,grid_no) &
                        bind(C, name="ca_der_Hx")
 
+    use ProgramHeaderModule   , only: nNodesE
     use ReferenceElementModule, only: weights_q, NodeNumberTable
     use GeometryFieldsModuleE , only: iGE_Ep2, uGE
 
@@ -218,10 +220,10 @@ contains
             do is = 1, nSpecies
             do ie = 1, nE
 
-              ii = (is-1)*(n_moments*nE*nDOF) + &
-                   (im-1)*(nE*nDOF) + (ie-1)*nDOF
+              ii = (is-1)*(n_moments*nE*nNodesE) + &
+                   (im-1)*(nE*nNodesE) + (ie-1)*nNodesE
 
-              do id = 1, nDOF ! radiation degrees of freedom
+              do id = 1, nNodesE
 
                  iNodeE = NodeNumberTable(1,id)
 
@@ -251,6 +253,7 @@ contains
                       domhi,delta,xlo,time,dt,bc,level,grid_no) &
                       bind(C, name="ca_der_Hy")
 
+    use ProgramHeaderModule   , only: nNodesE
     use ReferenceElementModule, only: weights_q, NodeNumberTable
     use GeometryFieldsModuleE , only: iGE_Ep2, uGE
 
@@ -288,10 +291,10 @@ contains
             do is = 1, nSpecies
             do ie = 1, nE
 
-              ii = (is-1)*(n_moments*nE*nDOF) + &
-                   (im-1)*(nE*nDOF) + (ie-1)*nDOF
+              ii = (is-1)*(n_moments*nE*nNodesE) + &
+                   (im-1)*(nE*nNodesE) + (ie-1)*nNodesE
 
-              do id = 1, nDOF ! radiation degrees of freedom
+              do id = 1, nNodesE
 
                  iNodeE = NodeNumberTable(1,id)
 
@@ -322,6 +325,7 @@ contains
                       domhi,delta,xlo,time,dt,bc,level,grid_no) &
                       bind(C, name="ca_der_Hz")
 
+    use ProgramHeaderModule   , only: nNodesE
     use ReferenceElementModule, only: weights_q, NodeNumberTable
     use GeometryFieldsModuleE , only: iGE_Ep2, uGE
 
@@ -359,10 +363,10 @@ contains
             do is = 1, nSpecies
             do ie = 1, nE
 
-              ii = (is-1)*(n_moments*nE*nDOF) + &
-                   (im-1)*(nE*nDOF) + (ie-1)*nDOF
+              ii = (is-1)*(n_moments*nE*nNodesE) + &
+                   (im-1)*(nE*nNodesE) + (ie-1)*nNodesE
 
-              do id = 1, nDOF ! radiation degrees of freedom
+              do id = 1, nNodesE
 
                  iNodeE = NodeNumberTable(1,id)
 

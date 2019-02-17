@@ -23,7 +23,6 @@ Castro::read_thornado_params ()
 int
 Castro::init_thornado()
 {
-    // Note that these dimensions are used to allocate space for UCF and UCR
     int nDimsX   = BL_SPACEDIM;
     int nDimsE   = thornado_ndimse; // number of energy groups in thornado
     int nSpecies = THORNADO_NSPECIES;
@@ -114,27 +113,23 @@ Castro::init_thornado_data()
 
         grid_lo[0] = prob_lo[0] +  bx.smallEnd(0)  * dx[0] / 100.0; // Factor of 100 because Thornado uses m, not cm
         grid_hi[0] = prob_lo[0] + (bx.bigEnd(0)+1) * dx[0] / 100.0;
-        // CRSE_TWO_MOMENT
-        // boxlen[0] = bx.length(0);
-        boxlen[0] = bx.length(0)/2;
+        boxlen[0] = bx.length(0) / 2;
 
         grid_lo[1] = prob_lo[1] +  bx.smallEnd(1)  * dx[1] / 100.0;
         grid_hi[1] = prob_lo[1] + (bx.bigEnd(1)+1) * dx[1] / 100.0;
-        // CRSE_TWO_MOMENT
-        // boxlen[1] = bx.length(1);
-        boxlen[1] = bx.length(1)/2;
+        boxlen[1] = bx.length(1) / 2;
 
 #if (BL_SPACEDIM > 2)
         grid_lo[2] = prob_lo[2] +  bx.smallEnd(2)  * dx[2] / 100.0;
         grid_hi[2] = prob_lo[2] + (bx.bigEnd(2)+1) * dx[2] / 100.0;
-        // CRSE_TWO_MOMENT
-        // boxlen[2] = bx.length(2);
-        boxlen[2] = bx.length(2)/2;
+        boxlen[2] = bx.length(2) / 2;
 #else
         grid_lo[2] = 0.;
         grid_hi[2] = 1.;
         boxlen[2]  = 1;
 #endif
+
+        std::cout << "BOXLEN " << boxlen[0] << " " << boxlen[1] << std::endl;
 
         InitThornado_Patch(boxlen, swX, grid_lo.dataPtr(), grid_hi.dataPtr());
 
@@ -157,6 +152,7 @@ void
 Castro::average_down_thornado_data(const MultiFab& S_fine, MultiFab& S_crse, int ncomp, 
                                    const IntVect& ratio)
 {
+#if 0
         AMREX_ASSERT(S_crse.nComp() == S_fine.nComp());
 
         const int* ratioV = ratio.getVect();
@@ -216,6 +212,7 @@ Castro::average_down_thornado_data(const MultiFab& S_fine, MultiFab& S_crse, int
             
             S_crse.copy(crse_S_fine,0,0,ncomp);
         }
+#endif
 }
 
 std::unique_ptr<MultiFab>
@@ -241,7 +238,7 @@ Castro::get_thornado_plotMF ()
 void
 Castro::create_thornado_source(Real dt)
 {
-
+    std::cout << "IN SOURCE " << std::endl;
     MultiFab& S_new = get_new_data(State_Type);
 
     MultiFab& U_R_old = get_old_data(Thornado_Type);
@@ -266,30 +263,31 @@ Castro::create_thornado_source(Real dt)
     MultiFab dS(grids, dmap,  dS_new.nComp(),  dS_new.nGrow());
     MultiFab dR(grids, dmap, U_R_new.nComp(), U_R_new.nGrow());
 
-    int my_ngrow = 2;  // two fluid ghost cells
+    int my_ngrow = 2;  // Need four fine ghost cells because need two coarse ghost cells
 
     const Real prev_time = state[State_Type].prevTime();
     const Real  cur_time = state[State_Type].curTime();
 
     // This fills the ghost cells of the fluid MultiFab which we will pass into Thornado
-    MultiFab S_border(grids, dmap, NUM_STATE, my_ngrow+1);
-    AmrLevel::FillPatch(*this, S_border, my_ngrow+1, cur_time, State_Type, 0, NUM_STATE);
+    MultiFab S_border(grids, dmap, NUM_STATE, 2*my_ngrow);
+    AmrLevel::FillPatch(*this, S_border, 2*my_ngrow, cur_time, State_Type, 0, NUM_STATE);
 
     // This fills the ghost cells of the radiation MultiFab which we will pass into Thornado
-    MultiFab R_border(grids, dmap, U_R_old.nComp(), my_ngrow);
-    AmrLevel::FillPatch(*this, R_border, my_ngrow, prev_time, Thornado_Type, 0, U_R_old.nComp());
+    MultiFab R_border(grids, dmap, U_R_old.nComp(), 2*my_ngrow);
+    AmrLevel::FillPatch(*this, R_border, 2*my_ngrow, prev_time, Thornado_Type, 0, U_R_old.nComp());
 
     const Real* dx = geom.CellSize();
+    Real dx_crse[BL_SPACEDIM];
+    for (int i = 0; i < BL_SPACEDIM; i++) dx_crse[i] = 2.*dx[i];
 
     // int n_sub = GetNSteps(dt); // From thornado
     Real dt_CGS;
-    compute_thornado_timestep(dx, dt_CGS );
+    compute_thornado_timestep(dx_crse, dt_CGS );
 
     int n_sub = 1; 
     if (dt_CGS < dt) 
        n_sub = int(dt / dt_CGS) + 1;
 
-    int n_fluid_dof = THORNADO_FLUID_NDOF;
     int n_moments   = THORNADO_NMOMENTS;
 
     const Real* prob_lo   = geom.ProbLo();
@@ -315,7 +313,6 @@ Castro::create_thornado_source(Real dt)
 
     for (int i = 0; i < n_sub; i++)
     {
-
           // Make sure to zero dS and dR here since we don't want to 
           //    re-add terms from the last iteration
           dS.setVal(0.);
@@ -328,16 +325,16 @@ Castro::create_thornado_source(Real dt)
 
               grid_lo[0] = prob_lo[0] +  bx.smallEnd(0)  * dx[0] / 100.0; // Factor of 100 because Thornado uses m, not cm
               grid_hi[0] = prob_lo[0] + (bx.bigEnd(0)+1) * dx[0] / 100.0;
-              boxlen[0] = bx.length(0);
+              boxlen[0] = bx.length(0) / 2;
    
               grid_lo[1] = prob_lo[1] +  bx.smallEnd(1)  * dx[1] / 100.0;
               grid_hi[1] = prob_lo[1] + (bx.bigEnd(1)+1) * dx[1] / 100.0;
-              boxlen[1] = bx.length(1);
+              boxlen[1] = bx.length(1) / 2;
 
 #if (BL_SPACEDIM > 2)
               grid_lo[2] = prob_lo[2] +  bx.smallEnd(2)  * dx[2] / 100.0;
               grid_hi[2] = prob_lo[2] + (bx.bigEnd(2)+1) * dx[2] / 100.0;
-              boxlen[2] = bx.length(2);
+              boxlen[2] = bx.length(2) / 2;
 #else
               grid_lo[2] = 0.;
               grid_hi[2] = 1.;
@@ -350,7 +347,7 @@ Castro::create_thornado_source(Real dt)
                                BL_TO_FORTRAN_FAB(dS[mfi]),
                                BL_TO_FORTRAN_FAB(R_border[mfi]),
                                BL_TO_FORTRAN_FAB(dR[mfi]), 
-                               &n_fluid_dof, &n_moments, &my_ngrow);
+                               &n_moments, &my_ngrow);
    
               FreeThornado_Patch();
           }

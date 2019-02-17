@@ -35,7 +35,7 @@ extern "C"
                         BL_FORT_FAB_ARG_3D(dU_F  ), const int* nds,
                         BL_FORT_FAB_ARG_3D( U_R_o), const int* n_uro,
                         BL_FORT_FAB_ARG_3D( U_R_n), const int* n_urn,
-                        int* n_fluid_dof, int* n_moments, int* my_ngrow);
+                        int* n_moments, int* my_ngrow);
 
   void ca_der_avgs_per_E
     (const int* lo, const int* hi,

@@ -182,12 +182,12 @@ end subroutine ca_initdata
 subroutine get_rad_ncomp(rad_ncomp) bind(C,name="ca_get_rad_ncomp")
 
   use RadiationFieldsModule, only : nSpecies
-  use ProgramHeaderModule, only : nE, nNodesX, nNodesE
+  use ProgramHeaderModule, only : nE, nNodesE
 
   integer :: rad_ncomp
   integer :: n_moments = 4
 
-  rad_ncomp =  nSpecies * n_moments * nE * nNodesX(1) *  nNodesX(2) * nNodesE
+  rad_ncomp =  nSpecies * n_moments * nE * nNodesE
 
 end subroutine get_rad_ncomp
 
@@ -215,7 +215,7 @@ subroutine ca_init_thornado_data(level,time,lo,hi, &
 
   use probdata_module
   use RadiationFieldsModule, only : nSpecies
-  use ProgramHeaderModule, only : nE, nDOF, nNodesX, nNodesE
+  use ProgramHeaderModule, only : nE, nNodesE
   use amrex_fort_module, only : rt => amrex_real
   use amrex_error_module
   use amrex_constants_module, only : M_PI
@@ -241,10 +241,8 @@ subroutine ca_init_thornado_data(level,time,lo,hi, &
   integer, parameter :: n_moments = 4
 
   ! local variables
-  integer :: i,j,ixnode,iynode,ienode
-  integer :: ii,ii_0,is,im,ie,id
-  integer :: nx,ny
-  real(rt) :: xcen, ycen, xnode, ynode
+  integer :: i,j,ienode
+  integer :: ii,ii_0,is,im,ie
   real(rt) :: rho_in(1), T_in(1), Ye_in(1), Evol(1), Ne_loc(1), Em_in(1), M_e(1), M_p(1), M_n(1), M_nu(1), E(1)
   ! zero it out, just in case
   rad_state = 0.0e0_rt
@@ -253,27 +251,11 @@ subroutine ca_init_thornado_data(level,time,lo,hi, &
   print *,'nSpecies  ',nSpecies
   print *,'n_moments ',n_moments
   print *,'nE        ',nE
-  print *,'nNodesX   ',nNodesX(:)
   print *,'nNodesE   ',nNodesE
-  print *,'MULT ', nSpecies * n_moments * nE * nNodesX(1) *  nNodesX(2) * nNodesE
+  print *,'MULT ', nSpecies * n_moments * nE * nNodesE
 
-  print *,'nDOF      ',nDOF
-
-  ny = nNodesE*nNodesX(1)
-  nx = nNodesE
-
-  if (nDOF .ne. ny*nNodesX(2)) then
-     print *,'nDOF is ', nDOF
-     print *,'nNodesX(1)*nNodesX(2)*nNodesE is ', nNodesX(1)*nNodesX(2)*nNodesE
-     call amrex_abort("nDOF ne nNodesX(1)*nNodesX(2)*nNodesE")
-  end if
-     
   do j = lo(2), hi(2)
-     ycen = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5e0_rt) - centy
-
      do i = lo(1), hi(1)
-
-        xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5e0_rt) - centx
         
         ! Get Castro fluid variables unit convert to thornado units
         rho_in(1) = state(i,j,URHO) * Gram / Centimeter**3
@@ -293,19 +275,12 @@ subroutine ca_init_thornado_data(level,time,lo,hi, &
         do im = 1, n_moments
         do ie = 1, nE
 
-           ii_0 = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF
+           ii_0 = (is-1)*(n_moments*nE*nNodesE) + (im-1)*(nE*nNodesE) + (ie-1)*nNodesE
 
-           do iynode = 1, nNodesX(2)
-           do ixnode = 1, nNodesX(1)
            do ienode = 1, nNodesE
  
               ! Calculate the indices
-              id = (ienode-1) + nx*(ixnode-1) + ny*(iynode-1)
-              ii = ii_0 + id
-
-              ! Calculate actual positions of the nodes used for the gaussian quadrature
-              xnode = xcen + ( float(ixnode)-1.5e0_rt )*delta(1)/sqrt(3.0e0_rt)
-              ynode = ycen + ( float(iynode)-1.5e0_rt )*delta(2)/sqrt(3.0e0_rt)
+              ii = ii_0 + (ienode-1)
 
               ! Get energy at given node coordinate via thornado subroutine
               E = NodeCoordinate( MeshE, ie, ienode)
@@ -323,8 +298,6 @@ subroutine ca_init_thornado_data(level,time,lo,hi, &
               ! H_z moment, im = 4
               if (im .eq. 4) rad_state(i,j,ii) = 0.0e0_rt
    
-           end do
-           end do
            end do
 
         end do
