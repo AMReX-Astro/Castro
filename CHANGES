@@ -1,5 +1,9 @@
 # changes since the last release
 
+  -- A new runtime parameter, T_guess, was created.  This is used as
+     the initial temperature guess when calling the EOS with inputs
+     other than rho, T, for the initial Newton iteration.
+
   -- The CTU hydrodynamics driver has been rewritten in C++
      (#498)
 
