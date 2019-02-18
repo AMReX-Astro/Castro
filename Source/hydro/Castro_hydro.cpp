@@ -260,10 +260,6 @@ Castro::construct_hydro_source(Real time, Real dt)
            AMREX_REAL_ANYD(dx),
            BL_TO_FORTRAN_ANYD(div));
 
-#ifdef AMREX_USE_CUDA
-      Gpu::Device::synchronize();
-#endif
-
       q_int.resize(obx, NQ);
       Elixir elix_q_int = q_int.elixir();
 
