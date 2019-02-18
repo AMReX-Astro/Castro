@@ -1,4 +1,4 @@
-! Process a 1-d sedov problem to produce rho, u, and p as a
+! Process a sedov problem to produce rho, u, p and e as a
 ! function of r, for comparison to the analytic solution.
 
 subroutine fextract1d(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &

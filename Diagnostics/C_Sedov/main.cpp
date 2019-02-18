@@ -55,8 +55,6 @@ int main(int argc, char* argv[])
 
 		int finestLevel = data.FinestLevel();
 
-		const int factor = 2;
-
 		// get variable names
 		const Vector<string>& varNames = data.PlotVarNames();
 
@@ -67,9 +65,9 @@ int main(int argc, char* argv[])
 		for (int i = 0; i < AMREX_SPACEDIM; i++)
 			dx[i] = data.ProbSize()[i] / domain.length(i);
 
-		// const Vector<Vector<Real> >& dx = data.DxLevel();
 		const Vector<Real>& problo = data.ProbLo();
 		const Vector<Real>& probhi = data.ProbHi();
+		Vector<int> rr = data.RefRatio();
 
 		// compute the size of the radially-binned array -- we'll do it to
 		// the furtherest corner of the domain
@@ -172,7 +170,7 @@ int main(int argc, char* argv[])
 #if (AMREX_SPACEDIM == 1)
 				fextract1d(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 				           BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
-				           nbins, (*dens_bin).dataPtr(),
+				           nbins, dens_bin.dataPtr(),
 				           vel_bin.dataPtr(), pres_bin.dataPtr(),
 				           e_bin.dataPtr(), imask.dataPtr(), mask_size, r1,
 				           dens_comp, xmom_comp, pres_comp, rhoe_comp);
@@ -327,11 +325,20 @@ void GetInputArgs ( const int argc, char** argv,
 		Abort("Missing input file");
 	}
 
+#if (AMREX_SPACEDIM == 1)
+	Print() << "Extracting slice from 1d problem" << std::endl;
+#elif (AMREX_SPACEDIM >= 2)
+	if (sphr) {
+		Print() << "Extracting slice from " << AMREX_SPACEDIM << "d spherical problem" << std::endl;
+	} else {
+		Print() << "Extracting slice from " << AMREX_SPACEDIM << "d cylindrical problem" << std::endl;
+	}
+#endif
+
 	Print() << "\nplotfile  = \"" << pltfile << "\"" << std::endl;
 	Print() << "slicefile = \"" << slcfile << "\"" << std::endl;
 	Print() << std::endl;
 }
-
 
 
 //

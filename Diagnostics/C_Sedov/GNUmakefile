@@ -29,9 +29,6 @@ INCLUDE_LOCATIONS += $(AMREX_HOME)/Src/Extern/amrdata
 include $(AMREX_HOME)/Src/Extern/amrdata/Make.package
 vpathdir += $(AMREX_HOME)/Src/Extern/amrdata
 
-# CEXE_headers += Sedov.H
-# CEXE_sources += fsedov1d.cpp
-
 include $(CASTRO_HOME)/Exec/Make.Castro
 
 fsedov.ex: $(objForExecs)
