@@ -41,6 +41,8 @@ contains
     real(rt) :: dlftp1, drgtp1, dfp1
     real(rt) :: dlftm1, drgtm1, dfm1
 
+    !$gpu
+
     if (plm_iorder == 1) then
 
        do k = lo(3), hi(3)
@@ -221,6 +223,8 @@ contains
     !     Local arrays
     real(rt) :: dsgn, dlim, dcen
     real(rt) :: dfp1, dfm1, dlftp1, drgtp1, dlftm1, drgtm1
+
+    !$gpu
 
     if (plm_iorder == 1) then
 

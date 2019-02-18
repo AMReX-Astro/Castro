@@ -156,6 +156,8 @@ contains
 
     logical :: compute_shock
 
+    !$gpu
+
     hdt = HALF*dt
 
     ! multidimensional shock detection
@@ -191,9 +193,13 @@ contains
 
     ! preprocess the sources -- we don't want to trace under a source
     ! that is empty.  Note, we need to do this check over the entire
-    ! grid, to be sure, e.g., use vlo:vhi.  We cannot rely on lo:hi,
-    ! since that may just be a single zone on the GPU.
+    ! grid, to be sure, e.g., use vlo:vhi. On the GPU, this check is
+    ! expensive and for now we just disable this optimization and eat
+    ! the cost of processing the sources, even if they're zero.
     if (ppm_type > 0) then
+#ifdef AMREX_USE_CUDA
+       source_nonzero(:) = .true.
+#else
        do n = 1, QVAR
           if (minval(srcQ(vlo(1)-2:vhi(1)+2,vlo(2)-2*dg(2):vhi(2)+2*dg(2),vlo(3)-2*dg(3):vhi(3)+2*dg(3),n)) == ZERO .and. &
               maxval(srcQ(vlo(1)-2:vhi(1)+2,vlo(2)-2*dg(2):vhi(2)+2*dg(2),vlo(3)-2*dg(3):vhi(3)+2*dg(3),n)) == ZERO) then
@@ -202,6 +208,7 @@ contains
              source_nonzero(n) = .true.
           endif
        enddo
+#endif
 
        ! Compute Ip and Im -- this does the parabolic reconstruction,
        ! limiting, and returns the integral of each profile under each
@@ -461,108 +468,6 @@ contains
   end subroutine ctu_normal_states
 
 
-  subroutine ctu_clean_fluxes(lo, hi, &
-                              idir, &
-                              uin, uin_lo, uin_hi, &
-                              q, q_lo, q_hi, &
-                              flux, flux_lo, flux_hi, &
-#ifdef RADIATION
-                              Erin, Erin_lo, Erin_hi, &
-                              radflux, radflux_lo, radflux_hi, &
-#endif
-                              area, area_lo, area_hi, &
-                              vol, vol_lo, vol_hi, &
-                              div, div_lo, div_hi, &
-                              dx, dt) bind(C, name="ctu_clean_fluxes")
-
-    use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-                                   UEDEN, UEINT, UTEMP, NGDNV, NQ, &
-                                   limit_fluxes_on_small_dens
-    use advection_util_module, only : limit_hydro_fluxes_on_small_dens, normalize_species_fluxes, apply_av
-    use amrex_constants_module, only : ZERO, ONE, TWO, FOURTH, HALF
-#ifdef RADIATION
-    use rad_params_module, only : ngroups
-    use advection_util_module, only : apply_av_rad
-#endif
-#ifdef SHOCK_VAR
-    use meth_params_module, only : USHK
-#endif
-
-    implicit none
-
-    integer, intent(in) ::       lo(3),       hi(3)
-    integer, intent(in), value :: idir
-    integer, intent(in) ::   uin_lo(3),   uin_hi(3)
-    integer, intent(in) ::     q_lo(3),     q_hi(3)
-    integer, intent(in) :: flux_lo(3), flux_hi(3)
-    integer, intent(in) :: area_lo(3), area_hi(3)
-    integer, intent(in) ::   vol_lo(3),   vol_hi(3)
-    integer, intent(in) :: div_lo(3), div_hi(3)
-#ifdef RADIATION
-    integer, intent(in) :: Erin_lo(3), Erin_hi(3)
-    integer, intent(in) :: radflux_lo(3), radflux_hi(3)
-#endif
-
-    real(rt), intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
-    real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-
-    real(rt), intent(inout) :: flux(flux_lo(1):flux_hi(1),flux_lo(2):flux_hi(2),flux_lo(3):flux_hi(3),NVAR)
-    real(rt), intent(in) :: area(area_lo(1):area_hi(1),area_lo(2):area_hi(2),area_lo(3):area_hi(3))
-    real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    real(rt), intent(in) :: div(div_lo(1):div_hi(1),div_lo(2):div_hi(2),div_lo(3):div_hi(3))
-    real(rt), intent(in) :: dx(3)
-    real(rt), intent(in), value :: dt
-
-#ifdef RADIATION
-    real(rt), intent(in) :: Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
-    real(rt), intent(inout) :: radflux(radflux_lo(1):radflux_hi(1),radflux_lo(2):radflux_hi(2),radflux_lo(3):radflux_hi(3),0:ngroups-1)
-#endif
-
-    real(rt)         :: div1, volinv
-    integer          :: i, j, g, k, n
-    integer          :: domlo(3), domhi(3)
-
-    ! zero out shock and temp fluxes -- these are physically meaningless here
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             flux(i,j,k,UTEMP) = ZERO
-#ifdef SHOCK_VAR
-             flux(i,j,k,USHK) = ZERO
-#endif
-          end do
-       end do
-    end do
-
-    call apply_av(lo, hi, idir, dx, &
-                  div, div_lo, div_hi, &
-                  uin, uin_lo, uin_hi, &
-                  flux, flux_lo, flux_hi)
-
-#ifdef RADIATION
-   call apply_av_rad(lo, hi, idir, dx, &
-                     div, div_lo, div_hi, &
-                     Erin, Erin_lo, Erin_hi, &
-                     radflux, radflux_lo, radflux_hi)
-#endif
-
-    if (limit_fluxes_on_small_dens == 1) then
-       call limit_hydro_fluxes_on_small_dens(lo, hi, &
-                                             idir, &
-                                             uin, uin_lo, uin_hi, &
-                                             q, q_lo, q_hi, &
-                                             vol, vol_lo, vol_hi, &
-                                             flux, flux_lo, flux_hi, &
-                                             area, area_lo, area_hi, &
-                                             dt, dx)
-
-    endif
-
-    call normalize_species_fluxes(lo, hi, flux, flux_lo, flux_hi)
-
-  end subroutine ctu_clean_fluxes
-
 
   subroutine ctu_consup(lo, hi, &
                         uin, uin_lo, uin_hi, &
@@ -720,6 +625,8 @@ contains
     real(rt) :: umx_new1, umy_new1, umz_new1
     real(rt) :: umx_new2, umy_new2, umz_new2
 #endif
+
+    !$gpu
 
 #ifdef RADIATION
     if (ngroups .gt. 1) then
@@ -1075,7 +982,9 @@ contains
     use meth_params_module, only : URHO, UMX, UMY, UMZ, UEDEN, NVAR
     use amrinfo_module, only : amr_level
     use prob_params_module, only : domlo_level, domhi_level, center
-    use castro_util_module, only : position, linear_to_angular_momentum
+    use castro_util_module, only: position ! function
+    use castro_util_module, only: linear_to_angular_momentum ! function
+    use amrex_fort_module, only: amrex_add
 
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: flux1_lo(3), flux1_hi(3)
@@ -1092,9 +1001,11 @@ contains
     real(rt), intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
     real(rt), intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
 
-    real(rt)         :: loc(3), ang_mom(3)
+    real(rt) :: loc(3), ang_mom(3), flux(3)
     integer :: domlo(3), domhi(3)
     integer :: i, j, k
+
+    !$gpu
 
     domlo = domlo_level(:,amr_level)
     domhi = domhi_level(:,amr_level)
@@ -1106,18 +1017,19 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             loc = position(i,j,k,ccz=.false.)
+             loc = position(i,j,k,ccz=.false.) - center
 
-             mass_lost = mass_lost - flux3(i,j,k,URHO)
-             xmom_lost = xmom_lost - flux3(i,j,k,UMX)
-             ymom_lost = ymom_lost - flux3(i,j,k,UMY)
-             zmom_lost = zmom_lost - flux3(i,j,k,UMZ)
-             eden_lost = eden_lost - flux3(i,j,k,UEDEN)
+             call amrex_add(mass_lost, -flux3(i,j,k,URHO))
+             call amrex_add(xmom_lost, -flux3(i,j,k,UMX))
+             call amrex_add(ymom_lost, -flux3(i,j,k,UMY))
+             call amrex_add(zmom_lost, -flux3(i,j,k,UMZ))
+             call amrex_add(eden_lost, -flux3(i,j,k,UEDEN))
 
-             ang_mom   = linear_to_angular_momentum(loc - center, flux3(i,j,k,UMX:UMZ))
-             xang_lost = xang_lost - ang_mom(1)
-             yang_lost = yang_lost - ang_mom(2)
-             zang_lost = zang_lost - ang_mom(3)
+             flux(:) = flux3(i,j,k,UMX:UMZ)
+             ang_mom = linear_to_angular_momentum(loc, flux)
+             call amrex_add(xang_lost, -ang_mom(1))
+             call amrex_add(yang_lost, -ang_mom(2))
+             call amrex_add(zang_lost, -ang_mom(3))
 
           enddo
        enddo
@@ -1130,18 +1042,19 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             loc = position(i,j,k,ccz=.false.)
+             loc = position(i,j,k,ccz=.false.) - center
 
-             mass_lost = mass_lost + flux3(i,j,k,URHO)
-             xmom_lost = xmom_lost + flux3(i,j,k,UMX)
-             ymom_lost = ymom_lost + flux3(i,j,k,UMY)
-             zmom_lost = zmom_lost + flux3(i,j,k,UMZ)
-             eden_lost = eden_lost + flux3(i,j,k,UEDEN)
+             call amrex_add(mass_lost, flux3(i,j,k,URHO))
+             call amrex_add(xmom_lost, flux3(i,j,k,UMX))
+             call amrex_add(ymom_lost, flux3(i,j,k,UMY))
+             call amrex_add(zmom_lost, flux3(i,j,k,UMZ))
+             call amrex_add(eden_lost, flux3(i,j,k,UEDEN))
 
-             ang_mom   = linear_to_angular_momentum(loc - center, flux3(i,j,k,UMX:UMZ))
-             xang_lost = xang_lost + ang_mom(1)
-             yang_lost = yang_lost + ang_mom(2)
-             zang_lost = zang_lost + ang_mom(3)
+             flux(:) = flux3(i,j,k,UMX:UMZ)
+             ang_mom = linear_to_angular_momentum(loc, flux)
+             call amrex_add(xang_lost, ang_mom(1))
+             call amrex_add(yang_lost, ang_mom(2))
+             call amrex_add(zang_lost, ang_mom(3))
 
           enddo
        enddo
@@ -1156,18 +1069,19 @@ contains
        do k = lo(3), hi(3)
           do i = lo(1), hi(1)
 
-             loc = position(i,j,k,ccy=.false.)
+             loc = position(i,j,k,ccy=.false.) - center
 
-             mass_lost = mass_lost - flux2(i,j,k,URHO)
-             xmom_lost = xmom_lost - flux2(i,j,k,UMX)
-             ymom_lost = ymom_lost - flux2(i,j,k,UMY)
-             zmom_lost = zmom_lost - flux2(i,j,k,UMZ)
-             eden_lost = eden_lost - flux2(i,j,k,UEDEN)
+             call amrex_add(mass_lost, -flux2(i,j,k,URHO))
+             call amrex_add(xmom_lost, -flux2(i,j,k,UMX))
+             call amrex_add(ymom_lost, -flux2(i,j,k,UMY))
+             call amrex_add(zmom_lost, -flux2(i,j,k,UMZ))
+             call amrex_add(eden_lost, -flux2(i,j,k,UEDEN))
 
-             ang_mom   = linear_to_angular_momentum(loc - center, flux2(i,j,k,UMX:UMZ))
-             xang_lost = xang_lost - ang_mom(1)
-             yang_lost = yang_lost - ang_mom(2)
-             zang_lost = zang_lost - ang_mom(3)
+             flux(:) = flux2(i,j,k,UMX:UMZ)
+             ang_mom = linear_to_angular_momentum(loc, flux)
+             call amrex_add(xang_lost, -ang_mom(1))
+             call amrex_add(yang_lost, -ang_mom(2))
+             call amrex_add(zang_lost, -ang_mom(3))
 
           enddo
        enddo
@@ -1180,18 +1094,19 @@ contains
        do k = lo(3), hi(3)
           do i = lo(1), hi(1)
 
-             loc = position(i,j,k,ccy=.false.)
+             loc = position(i,j,k,ccy=.false.) - center
 
-             mass_lost = mass_lost + flux2(i,j,k,URHO)
-             xmom_lost = xmom_lost + flux2(i,j,k,UMX)
-             ymom_lost = ymom_lost + flux2(i,j,k,UMY)
-             zmom_lost = zmom_lost + flux2(i,j,k,UMZ)
-             eden_lost = eden_lost + flux2(i,j,k,UEDEN)
+             call amrex_add(mass_lost, flux2(i,j,k,URHO))
+             call amrex_add(xmom_lost, flux2(i,j,k,UMX))
+             call amrex_add(ymom_lost, flux2(i,j,k,UMY))
+             call amrex_add(zmom_lost, flux2(i,j,k,UMZ))
+             call amrex_add(eden_lost, flux2(i,j,k,UEDEN))
 
-             ang_mom   = linear_to_angular_momentum(loc - center, flux2(i,j,k,UMX:UMZ))
-             xang_lost = xang_lost + ang_mom(1)
-             yang_lost = yang_lost + ang_mom(2)
-             zang_lost = zang_lost + ang_mom(3)
+             flux(:) = flux2(i,j,k,UMX:UMZ)
+             ang_mom = linear_to_angular_momentum(loc, flux)
+             call amrex_add(xang_lost, ang_mom(1))
+             call amrex_add(yang_lost, ang_mom(2))
+             call amrex_add(zang_lost, ang_mom(3))
 
           enddo
        enddo
@@ -1205,18 +1120,19 @@ contains
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
 
-             loc = position(i,j,k,ccx=.false.)
+             loc = position(i,j,k,ccx=.false.) - center
 
-             mass_lost = mass_lost - flux1(i,j,k,URHO)
-             xmom_lost = xmom_lost - flux1(i,j,k,UMX)
-             ymom_lost = ymom_lost - flux1(i,j,k,UMY)
-             zmom_lost = zmom_lost - flux1(i,j,k,UMZ)
-             eden_lost = eden_lost - flux1(i,j,k,UEDEN)
+             call amrex_add(mass_lost, -flux1(i,j,k,URHO))
+             call amrex_add(xmom_lost, -flux1(i,j,k,UMX))
+             call amrex_add(ymom_lost, -flux1(i,j,k,UMY))
+             call amrex_add(zmom_lost, -flux1(i,j,k,UMZ))
+             call amrex_add(eden_lost, -flux1(i,j,k,UEDEN))
 
-             ang_mom   = linear_to_angular_momentum(loc - center, flux1(i,j,k,UMX:UMZ))
-             xang_lost = xang_lost - ang_mom(1)
-             yang_lost = yang_lost - ang_mom(2)
-             zang_lost = zang_lost - ang_mom(3)
+             flux(:) = flux1(i,j,k,UMX:UMZ)
+             ang_mom = linear_to_angular_momentum(loc, flux)
+             call amrex_add(xang_lost, -ang_mom(1))
+             call amrex_add(yang_lost, -ang_mom(2))
+             call amrex_add(zang_lost, -ang_mom(3))
 
           enddo
        enddo
@@ -1229,18 +1145,19 @@ contains
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
 
-             loc = position(i,j,k,ccx=.false.)
+             loc = position(i,j,k,ccx=.false.) - center
 
-             mass_lost = mass_lost + flux1(i,j,k,URHO)
-             xmom_lost = xmom_lost + flux1(i,j,k,UMX)
-             ymom_lost = ymom_lost + flux1(i,j,k,UMY)
-             zmom_lost = zmom_lost + flux1(i,j,k,UMZ)
-             eden_lost = eden_lost + flux1(i,j,k,UEDEN)
+             call amrex_add(mass_lost, flux1(i,j,k,URHO))
+             call amrex_add(xmom_lost, flux1(i,j,k,UMX))
+             call amrex_add(ymom_lost, flux1(i,j,k,UMY))
+             call amrex_add(zmom_lost, flux1(i,j,k,UMZ))
+             call amrex_add(eden_lost, flux1(i,j,k,UEDEN))
 
-             ang_mom   = linear_to_angular_momentum(loc - center, flux1(i,j,k,UMX:UMZ))
-             xang_lost = xang_lost + ang_mom(1)
-             yang_lost = yang_lost + ang_mom(2)
-             zang_lost = zang_lost + ang_mom(3)
+             flux(:) = flux1(i,j,k,UMX:UMZ)
+             ang_mom = linear_to_angular_momentum(loc, flux)
+             call amrex_add(xang_lost, ang_mom(1))
+             call amrex_add(yang_lost, ang_mom(2))
+             call amrex_add(zang_lost, ang_mom(3))
 
           enddo
        enddo

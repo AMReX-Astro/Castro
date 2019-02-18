@@ -423,7 +423,7 @@ extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
 # state variable info
 #-------------------------------------------------------------------------------
 set_conserved.H: set_indices.F90
-	echo "set_conserved.H will be generated at the same time as set_indices/F90"
+	echo "set_conserved.H will be generated at the same time as set_indices.F90"
 
 state_sizes.f90: set_indices.F90
 	echo "state_sizes.f90 will be generated at the same time as set_indices.F90"
@@ -495,7 +495,7 @@ include $(AMREX_HOME)/Tools/GNUMake/Make.rules
 clean::
 	$(SILENT) $(RM) extern.F90
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
-	$(RM) set_conserved.H set_primitive.H set_indices.F90 state_sizes.f90
+	$(RM) set_conserved.H set_primitive.H set_godunov.H set_indices.F90 state_sizes.f90
 
 # Older versions of CASTRO generated a "network.f90" file when using
 # the general_null network, which conflicts with our generalized

@@ -143,7 +143,4 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
      end do
   end do
 
-  ! write(*,*) "vel = "
-  ! write(*,*) state(:,:,:,UMX)
-
 end subroutine ca_initdata

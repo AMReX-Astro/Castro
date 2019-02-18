@@ -48,7 +48,7 @@ contains
                                  idir, domlo, domhi) bind(C, name="cmpflx_plus_godunov")
 
     use eos_module, only: eos
-    use eos_type_module, only: eos_t, eos_input_re
+    use eos_type_module, only: eos_t
     use network, only: nspec, naux
     use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
@@ -94,6 +94,8 @@ contains
 
     real(rt), intent(inout) :: qgdnv(qg_lo(1):qg_hi(1), qg_lo(2):qg_hi(2), qg_lo(3):qg_hi(3), NGDNV)
 
+    !$gpu
+
     call cmpflx(lo, hi, &
                 qm, qm_lo, qm_hi, &
                 qp, qp_lo, qp_hi, nc, comp, &
@@ -130,7 +132,7 @@ contains
                     idir, domlo, domhi)
 
     use eos_module, only: eos
-    use eos_type_module, only: eos_t, eos_input_re
+    use eos_type_module, only: eos_t
     use network, only: nspec, naux
     use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
@@ -302,7 +304,8 @@ contains
     use network, only: nspec, naux
     use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
-    use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver
+    use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver, &
+                                   T_guess
 
     implicit none
 
@@ -364,8 +367,8 @@ contains
        ! recompute the thermodynamics on the interface to make it
        ! all consistent
 
-       ! we want to take the edge states of rho, p, and X, and get
-       ! new values for gamc and (rho e) on the edges that are
+       ! we want to take the edge states of rho, e, and X, and get
+       ! new values for p on the edges that are
        ! thermodynamically consistent.
 
        do k = lo(3), hi(3)
@@ -373,8 +376,8 @@ contains
              do i = lo(1), hi(1)
 
                 ! this is an initial guess for iterations, since we
-                ! can't be certain that temp is on interfaces
-                eos_state % T = 10000.0e0_rt
+                ! can't be certain what temp is on interfaces
+                eos_state % T = T_guess
 
                 ! minus state
                 eos_state % rho = qm(i,j,k,QRHO,comp)
@@ -398,8 +401,8 @@ contains
              do i = lo(1), hi(1)
 
                 ! this is an initial guess for iterations, since we
-                ! can't be certain that temp is on interfaces
-                eos_state % T = 10000.0e0_rt
+                ! can't be certain what temp is on interfaces
+                eos_state % T = T_guess
 
                 ! plus state
                 eos_state % rho = qp(i,j,k,QRHO,comp)
@@ -1093,6 +1096,7 @@ contains
     use eos_type_module, only : eos_t, eos_input_rp
     use eos_module, only : eos
     use network, only : nspec
+    use meth_params_module, only: T_guess
 
     implicit none
 
@@ -1548,7 +1552,7 @@ contains
                 eos_state % rho = qint(i,j,k,QRHO)
                 eos_state % p = qint(i,j,k,QPRES)
                 eos_state % xn(:) = xn(:)
-                eos_state % T = 1.e4  ! a guess
+                eos_state % T = T_guess
 
                 call eos(eos_input_rp, eos_state)
 

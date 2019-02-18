@@ -1,0 +1,207 @@
+
+############################## CASTRO INPUTS ###############################################
+
+# Name of the probin file
+amr.probin_file = probin.test
+
+############################################################################################
+# Geometry
+############################################################################################
+
+# Non-periodic boundary conditions
+geometry.is_periodic = 0 0 0
+
+# Cartesian coordinate system
+geometry.coord_sys = 0
+
+# Lower boundary limits in physical space
+geometry.prob_lo = -1.28e11 -1.28e11 -1.28e11
+
+# Upper boundary limits in physical space
+geometry.prob_hi =  1.28e11  1.28e11  1.28e11
+
+# System center of mass
+castro.center    =   0.0e0   0.0e0   0.0e0
+
+# Boundary conditions on lo x, y, and z edges
+castro.lo_bc = 2 2 2
+
+# Boundary conditions on hi x, y, and z edges
+castro.hi_bc = 2 2 2
+
+############################################################################################ 
+# Timestepping
+############################################################################################
+
+# Maximum coarse timestep
+max_step = 10000000
+
+# Simulation time to stop at
+stop_time = 30.0
+
+# Whether to use our custom stopping criteria
+castro.use_stopping_criterion = 1
+
+# Level 0 timestep below which we halt
+castro.dt_cutoff = 1.e-8
+
+# CFL number for hyperbolic system
+castro.cfl = 0.15
+
+# Scale back initial timestep by this factor
+castro.init_shrink = 0.1
+
+# Factor by which dt is allowed to change each timestep
+castro.change_max = 1.05
+
+############################################################################################ 
+# Resolution, gridding and AMR
+############################################################################################
+
+# Number of cells on the coarse grid
+amr.n_cell = 32 32 32
+
+# Maximum level number allowed
+amr.max_level = 0
+
+# Refinement ratio
+amr.ref_ratio = 4 4 4 4 4 4 4 4 4
+
+# How many coarse timesteps between regridding
+amr.regrid_int = 2
+
+# Number of buffer cells in error estimation
+amr.n_error_buf = 2 2 2 2 2 2 2 2 2 2
+
+# Maximum grid size at each level
+amr.max_grid_size = 32
+
+# Grid sizes must be a multiple of blocking factor
+amr.blocking_factor = 16
+
+############################################################################################
+# Physics to include
+############################################################################################
+
+# Whether or not to do hydrodynamics
+castro.do_hydro = 1
+
+# Whether or not to do gravity
+castro.do_grav = 1
+
+# Whether or not to do reactions
+castro.do_react = 0
+
+# Whether or not to apply the sponge
+castro.do_sponge = 1
+
+# Whether or not to apply external source terms
+castro.add_ext_src = 1
+
+# Whether or not to include the rotation source term
+castro.do_rotation = 0
+
+############################################################################################
+# PPM/Hydro options
+############################################################################################
+
+# Use a lagged predictor estimate of the source terms in the hydro
+castro.source_term_predictor = 1
+
+# Whether to use the hybrid advection technique that conserves angular momentum
+castro.hybrid_hydro = 0
+
+# Explicitly limit fluxes to avoid hitting a negative density
+castro.limit_fluxes_on_small_dens = 1
+
+############################################################################################
+# Thermodynamics
+############################################################################################
+
+# Minimum allowable temperature (K)
+castro.small_temp = 1.e5
+
+# Minimum allowable density (g / cm**3)
+castro.small_dens = 1.e-5
+
+# Disable the possibility of having a negative energy
+castro.allow_small_energy = 0
+
+############################################################################################
+# Gravity
+############################################################################################
+
+# Full self-gravity with the Poisson equation
+gravity.gravity_type = PoissonGrav
+
+# Multipole expansion includes terms up to r**(-max_multipole_order)
+gravity.max_multipole_order = 6
+
+# Tolerance for multigrid solver for phi solves
+gravity.abs_tol = 1.e-10
+
+# Use sync solve for gravity after refluxing
+gravity.no_sync = 0
+
+# Disable the use of the lagged composite correction for the potential
+gravity.do_composite_phi_correction = 0
+
+# Add a black hole point mass (1000 M_sun)
+castro.point_mass = 1.9884e36
+castro.point_mass_fix_solution = 1
+
+############################################################################################
+# Diagnostics and I/O
+############################################################################################
+
+# Diagnostics on mass/momentum/energy lost through physical ground boundaries
+castro.track_grid_losses = 1
+
+# Timesteps between computing and printing volume averaged diagnostic quantities
+castro.sum_interval = 1
+
+# Simulation time between computing and printing volume averaged diagnostic quantities
+castro.sum_per = -1.0
+
+# Whether or not to output plotfiles
+amr.plot_files_output = 1
+
+# Whether or not to output checkpoints
+amr.checkpoint_files_output = 1
+
+# Root name of checkpoint files
+amr.check_file = chk
+
+# We want to store the 'old' state data in checkpoints
+castro.dump_old = 1
+
+# Verbosity
+amr.v = 1
+castro.v = 1
+
+# Simulation time between checkpoints
+amr.check_per = 10.0
+
+# Number of timesteps between checkpoints
+amr.check_int = -1
+
+# Root name of plot files
+amr.plot_file = plt
+
+# Simulation time between plotfiles
+amr.plot_per = 10.0
+
+# Number of timesteps between plotfiles
+amr.plot_int = -1
+_
+# State variables to add to plot files
+amr.plot_vars = ALL
+
+# Derived variables to add to plot files
+amr.derive_plot_vars = ALL
+
+# Name of the diagnostic sum output files
+amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out bndy_diag.out primary_diag.out secondary_diag.out extrema_diag.out
+
+# Write out plotfile data in single precision
+fab.format = NATIVE_32
