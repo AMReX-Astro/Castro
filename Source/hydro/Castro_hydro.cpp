@@ -222,22 +222,22 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       } else {
 
-        Ip.resize(obx, AMREX_SPACEDIM*3*NQ);
+        Ip.resize(obx, 3*NQ);
         Elixir elix_Ip = Ip.elixir();
 
-        Im.resize(obx, AMREX_SPACEDIM*3*NQ);
+        Im.resize(obx, 3*NQ);
         Elixir elix_Im = Im.elixir();
 
-        Ip_src.resize(obx, AMREX_SPACEDIM*3*QVAR);
+        Ip_src.resize(obx, 3*QVAR);
         Elixir elix_Ip_src = Ip_src.elixir();
 
-        Im_src.resize(obx, AMREX_SPACEDIM*3*QVAR);
+        Im_src.resize(obx, 3*QVAR);
         Elixir elix_Im_src = Im_src.elixir();
 
-        Ip_gc.resize(obx, AMREX_SPACEDIM*3);
+        Ip_gc.resize(obx, 3);
         Elixir elix_Ip_gc = Ip_gc.elixir();
 
-        Im_gc.resize(obx,AMREX_SPACEDIM*3);
+        Im_gc.resize(obx, 3);
         Elixir elix_Im_gc = Im_gc.elixir();
 
         sm.resize(obx, AMREX_SPACEDIM);

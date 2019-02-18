@@ -303,12 +303,13 @@ subroutine ca_mol_single_stage(lo, hi, time, &
      end do
   else
 
-     call ca_ppm_reconstruct(lo-dg, hi+dg, 1, &
-                             q, q_lo, q_hi, NQ, 1, NQ, &
-                             flatn, q_lo, q_hi, &
-                             qm, It_lo, It_hi, &
-                             qp, It_lo, It_hi, NQ, 1, NQ)
-
+     do idir = 1, AMREX_SPACEDIM
+        call ca_ppm_reconstruct(lo-dg, hi+dg, 1, idir, &
+                                q, q_lo, q_hi, NQ, 1, NQ, &
+                                flatn, q_lo, q_hi, &
+                                qm, It_lo, It_hi, &
+                                qp, It_lo, It_hi, NQ, 1, NQ)
+     end do
   end if
 
   ! use T to define p
