@@ -1,39 +1,49 @@
-PRECISION = DOUBLE
-PROFILE = FALSE
-DEBUG = TRUE
-DIM = 2
+NDEBUG := t
+MPI    :=
+OMP    :=
+MKVERBOSE :=t
 
-COMP = gnu
+COMP := gfortran
 
-USE_MPI = FALSE
-USE_OMP = FALSE
 
-USE_REACT = FALSE
+# include the main Makefile stuff
+include $(AMREX_HOME)/Tools/F_mk/GMakedefs.mak
 
-USE_ACC = FALSE
+# core BoxLib directories
+BOXLIB_CORE := Src/F_BaseLib
 
-# programs to be compiled
-ALL: fsedov1d.ex
+# BoxLib stuff
+Fmpack += $(foreach dir, $(BOXLIB_CORE), $(AMREX_HOME)/$(dir)/GPackage.mak)
+Fmlocs += $(foreach dir, $(BOXLIB_CORE), $(AMREX_HOME)/$(dir))
 
-EOS_DIR := helmholtz
 
-NETWORK_DIR := aprox13
+# include the necessary GPackage.mak files that define this setup
+include $(Fmpack)
 
-Bpack   := ./Make.package
-Blocs   := .
-# EXTERN_SEARCH = .
+# vpath defines the directories to search for the source files
+VPATH_LOCATIONS += $(Fmlocs)
 
-CASTRO_HOME := ../..
 
-INCLUDE_LOCATIONS += $(AMREX_HOME)/Src/Extern/amrdata
-include $(AMREX_HOME)/Src/Extern/amrdata/Make.package
-vpathdir += $(AMREX_HOME)/Src/Extern/amrdata
 
-# CEXE_headers += Sedov.H
-# CEXE_sources += fsedov1d.cpp
+programs += fsedov1d
+#programs += fsedov2d_cart
+programs += fsedov2d_cyl_in_cartcoords
+# programs += fsedov2d_cyl_in_cylcoords
+#programs += fsedov2d_sph_in_cylcoords
+#programs += fsedov3d_cyl
+programs += fsedov3d_sph
+#programs += fsod2d
+#programs += fsod3d
 
-include $(CASTRO_HOME)/Exec/Make.Castro
 
-fsedov1d.ex: $(objForExecs)
-	@echo Linking $@ ...
-	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(libraries)
+all: $(pnames)
+
+include $(AMREX_HOME)/Tools/F_mk/GMakerules.mak
+
+%.$(suf).exe:%.f90 $(objects)
+ifdef MKVERBOSE
+	$(LINK.f90) -o $@ $< $(objects) $(libraries)
+else
+	@echo "Linking $@ ... "
+	@$(LINK.f90) -o $@ $< $(objects) $(libraries)
+endif

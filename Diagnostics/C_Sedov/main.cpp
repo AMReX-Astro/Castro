@@ -61,9 +61,9 @@ int main(int argc, char* argv[])
 		// get the index bounds and dx.
 		Box domain = data.ProbDomain()[finestLevel];
 
-        Vector<Real> dx(AMREX_SPACEDIM);
-        for (int i = 0; i < AMREX_SPACEDIM; i++)
-            dx[i] = data.ProbSize()[i] / domain.length(i);
+		Vector<Real> dx(AMREX_SPACEDIM);
+		for (int i = 0; i < AMREX_SPACEDIM; i++)
+			dx[i] = data.ProbSize()[i] / domain.length(i);
 
 		// const Vector<Vector<Real> >& dx = data.DxLevel();
 		const Vector<Real>& problo = data.ProbLo();
@@ -72,10 +72,10 @@ int main(int argc, char* argv[])
 		// compute the size of the radially-binned array -- we'll do it to
 		// the furtherest corner of the domain
 #if (AMREX_SPACEDIM == 1)
-		double maxdist = abs(probhi[0] - problo[0]);
+		double maxdist = fabs(probhi[0] - problo[0]);
 #elif (AMREX_SPACEDIM == 2)
-		double x_maxdist = max(abs(probhi[0] - xctr), abs(problo[0] - xctr));
-		double y_maxdist = max(abs(probhi[1] - yctr), abs(problo[1] - yctr));
+		double x_maxdist = max(fabs(probhi[0] - xctr), fabs(problo[0] - xctr));
+		double y_maxdist = max(fabs(probhi[1] - yctr), fabs(problo[1] - yctr));
 		double maxdist = sqrt(x_maxdist*x_maxdist + y_maxdist*y_maxdist);
 #else
 		double maxdist = max(abs(probhi[0] - problo[0]), abs(probhi[1] - problo[1]), abs(probhi[2] - problo[2]));
@@ -83,12 +83,18 @@ int main(int argc, char* argv[])
 
 		double dx_fine = *(std::min_element(dx.begin(), dx.end()));
 
-		int nbins = int(maxdist / dx_fine) / 2;
+		int nbins = int(maxdist / dx_fine);
+
+        // Print() << "maxdist = " << maxdist << ", dx_fine = " << dx_fine << ", nbins = " << nbins << std::endl;
+        //
+        // Print() << "x_maxdist = " << x_maxdist <<", y_maxdist = " << y_maxdist << std::endl;
+        //
+        // Print() << "problo = " << problo[0] << ", xctr = " << xctr <<  ", deltax = " << fabs(problo[0] - xctr) << std::endl;
 
 		Vector<Real> r(nbins);
 
 		for (auto i = 0; i < nbins; i++)
-			r[i] = (i + 1.5) * dx_fine;
+			r[i] = (i + 0.5) * dx_fine;
 
 		// find variable indices
 		auto dens_comp = data.StateNumber("density");
@@ -138,6 +144,7 @@ int main(int argc, char* argv[])
 		// ! over levels, we will compare to the finest level index space to
 		// ! determine if we've already output here
 		int mask_size = nbins;
+        Print() << "mask_size = " << mask_size << std::endl;
 		for (auto i = 0; i < finestLevel - 1; i++)
 			mask_size *= rr[i];
 
@@ -154,12 +161,11 @@ int main(int argc, char* argv[])
 		// extract the 1d data
 		for (int l = finestLevel; l >= 0; l--) {
 
-            Box level_domain = data.ProbDomain()[l];
+            int refratio = 1;
 
-            // Vector<Real> level_dx(AMREX_SPACEDIM);
-            // for (int i = 0; i < AMREX_SPACEDIM; i++)
-            //     level_dx[i] = data.ProbSize()[i] / domain.length(i);
-            Vector<Real> level_dx = data.DxLevel()[l];
+            for (int ll = 0; ll < l; ll++) refratio *= rr[ll];
+
+			Vector<Real> level_dx = data.DxLevel()[l];
 
 			const BoxArray& ba = data.boxArray(l);
 			const DistributionMapping& dm = data.DistributionMap(l);
@@ -167,9 +173,8 @@ int main(int argc, char* argv[])
 			MultiFab lev_data_mf(ba, dm, data.NComp(), data.NGrow());
 			data.FillVar(lev_data_mf, l, varNames, fill_comps);
 
-			for (MFIter mfi(lev_data_mf); mfi.isValid(); ++mfi) {
+			for (MFIter mfi(lev_data_mf, true); mfi.isValid(); ++mfi) {
 				const Box& bx = mfi.validbox();
-				FArrayBox& fab = lev_data_mf[mfi];
 
 #if (AMREX_SPACEDIM == 1)
 				fextract1d(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
@@ -180,14 +185,14 @@ int main(int argc, char* argv[])
 				           dens_comp, xmom_comp, pres_comp, rhoe_comp);
 #elif (AMREX_SPACEDIM == 2)
 				fextract2d_cyl(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				               BL_TO_FORTRAN_FAB(fab),
+				               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
 				               nbins, dens_bin.dataPtr(),
 				               vel_bin.dataPtr(), pres_bin.dataPtr(),
 				               e_bin.dataPtr(), ncount.dataPtr(),
 				               imask.dataPtr(), mask_size, r1,
 				               dens_comp, xmom_comp, ymom_comp, pres_comp, rhoe_comp,
 				               dx_fine, level_dx.dataPtr(),
-                               rr[l-1 >=0 ? l-1 : 0], xctr, yctr);
+				               refratio, xctr, yctr);
 #else
 				fextract3d_cyl(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 				               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
@@ -195,7 +200,7 @@ int main(int argc, char* argv[])
 				               vel_bin.dataPtr(), pres_bin.dataPtr(),
 				               imask.dataPtr(), mask_size, r1,
 				               dens_comp, xmom_comp, ymom_comp, zmom_comp, pres_comp,
-				               dx_fine, level_dx.dataPtr(), rr[l-1 >=0 ? l-1 : 0], xctr, yctr);
+				               dx_fine, level_dx.dataPtr(), refratio, xctr, yctr);
 #endif
 			}
 
@@ -205,28 +210,28 @@ int main(int argc, char* argv[])
 
 #if (AMREX_SPACEDIM == 2)
 		//normalize
-        for (int i = 0; i < nbins; i++) {
-            if (ncount[i] != 0) {
-                dens_bin[i] /= ncount[i];
-                vel_bin[i] /= ncount[i];
-                pres_bin[i] /= ncount[i];
-                e_bin[i] /= ncount[i];
-            }
-        }
+		for (int i = 0; i < nbins; i++) {
+			if (ncount[i] != 0) {
+				dens_bin[i] /= ncount[i];
+				vel_bin[i] /= ncount[i];
+				pres_bin[i] /= ncount[i];
+				e_bin[i] /= ncount[i];
+			}
+		}
 #endif
 
 		// now open the slicefile and write out the data
 		std::ofstream slicefile;
 		slicefile.open(slcfile);
-		// slicefile.precision(9);
+		slicefile.precision(9);
 
 		// write the header
 		slicefile << std::setw(12) << "x" << std::setw(12) << "density" << std::setw(12) << "velocity" << std::setw(12) << "pressure" << std::setw(12) << "int. energy" << std::endl;
 
 		// write the data in columns
-		const auto SMALL = 1.e-99;
+		const auto SMALL = 1.e-20;
 		for (auto i = 0; i < nbins; i++) {
-            // Print() << "dens_bin = " << dens_bin[i] << std::endl;
+			// Print() << "dens_bin = " << dens_bin[i] << std::endl;
 			if (abs(dens_bin[i]) < SMALL) dens_bin[i] = 0.0;
 			if (abs( vel_bin[i]) < SMALL) vel_bin[i] = 0.0;
 			if (abs(pres_bin[i]) < SMALL) pres_bin[i] = 0.0;

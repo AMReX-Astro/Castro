@@ -23,8 +23,6 @@ subroutine fextract1d(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
 
   integer :: ii, index
 
-  write(*,*) "imask = ", imask
-
   ! loop over all of the zones in the patch.  Here, we convert
   ! the cell-centered indices at the current level into the
   ! corresponding RANGE on the finest level, and test if we've
@@ -85,8 +83,6 @@ subroutine fextract2d_cyl(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   integer :: ii, jj, k, index
   real(rt) :: xx, yy, r_zone
 
-  ! write(*,*) "imask = ", imask
-
   ! loop over all of the zones in the patch.  Here, we convert
   ! the cell-centered indices at the current level into the
   ! corresponding RANGE on the finest level, and test if we've
@@ -105,11 +101,7 @@ subroutine fextract2d_cyl(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
            r_zone = sqrt((xx-xctr)**2 + (yy-yctr)**2)
 
            index = r_zone/dx_fine
-
-           ! write(*,*) "index = ", index
-
-           ! write(*,*) p(ii,lo(2),lo(3),dens_comp)
-
+           
            dens_bin(index) = dens_bin(index) + &
                 p(ii,jj,k,dens_comp)*r1**2
 

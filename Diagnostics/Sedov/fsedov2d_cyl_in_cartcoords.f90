@@ -1,4 +1,4 @@
-! Process a 2-d cylindrical Sedov problem in Cartesian coordinates 
+! Process a 2-d cylindrical Sedov problem in Cartesian coordinates
 ! to produce rho, u, and p as a function of r,
 ! for comparison to the analytic solution.
 
@@ -111,7 +111,7 @@ program fextract2d
 
 
   ! figure out the variable indices
-  
+
   ! density
   dens_comp = plotfile_var_index(pf, "density")
 
@@ -150,7 +150,7 @@ program fextract2d
   ! the furtherest corner of the domain
   x_maxdist = max(abs(pf%phi(1) - xctr), abs(pf%plo(1) - xctr))
   y_maxdist = max(abs(pf%phi(2) - yctr), abs(pf%plo(2) - yctr))
-  
+
   maxdist = sqrt(x_maxdist**2 + y_maxdist**2)
 
   dx_fine = minval(plotfile_get_dx(pf, pf%flevel))
@@ -174,7 +174,7 @@ program fextract2d
   imask(:,:) = .true.
 
 
-  ! allocate storage for the data 
+  ! allocate storage for the data
   allocate(dens_bin(0:nbins-1))
   allocate( vel_bin(0:nbins-1))
   allocate(pres_bin(0:nbins-1))
@@ -189,7 +189,7 @@ program fextract2d
 
   ! loop over the data, starting at the finest grid, and if we haven't
   ! already store data in that grid location (according to imask),
-  ! store it.  
+  ! store it.
 
   ! r1 is the factor between the current level grid spacing and the
   ! FINEST level
@@ -207,7 +207,7 @@ program fextract2d
 
         ! get a pointer to the current patch
         p => dataptr(pf, i, j)
-        
+
         ! loop over all of the zones in the patch.  Here, we convert
         ! the cell-centered indices at the current level into the
         ! corresponding RANGE on the finest level, and test if we've
@@ -221,7 +221,7 @@ program fextract2d
 
               if ( any(imask(ii*r1:(ii+1)*r1-1, &
                              jj*r1:(jj+1)*r1-1) ) ) then
-                 
+
                  r_zone = sqrt((xx-xctr)**2 + (yy-yctr)**2)
 
                  index = r_zone/dx_fine
@@ -245,7 +245,7 @@ program fextract2d
 
                  imask(ii*r1:(ii+1)*r1-1, &
                        jj*r1:(jj+1)*r1-1) = .false.
-                 
+
               end if
 
            end do
@@ -278,7 +278,7 @@ program fextract2d
 
   ! write the data in columns
   do i = 0, nbins-1
-     ! Use this to protect against a number being xx.e-100 
+     ! Use this to protect against a number being xx.e-100
      !   which will print without the "e"
      if (abs(dens_bin(i)) .lt. 1.d-99)  dens_bin(i) = 0.d0
      if (abs( vel_bin(i)) .lt. 1.d-99)   vel_bin(i) = 0.d0
