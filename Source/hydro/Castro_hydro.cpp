@@ -1615,7 +1615,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
       for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
-          const Box& nbx = amrex::grow(mfi.nodaltilebox(idir), 1);
+          const Box& nbx = amrex::surroundingNodes(bx, idir);
 
           int idir_f = idir + 1;
 
