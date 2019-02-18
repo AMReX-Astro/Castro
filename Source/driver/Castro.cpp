@@ -168,14 +168,14 @@ IntVect      Castro::no_tile_size(1024);
 #ifndef AMREX_USE_CUDA
 IntVect      Castro::hydro_tile_size(1024,16);
 #else
-IntVect      Castro::hydro_tile_size(1024,1024);
+IntVect      Castro::hydro_tile_size(1024,64);
 #endif
 IntVect      Castro::no_tile_size(1024,1024);
 #else
 #ifndef AMREX_USE_CUDA
 IntVect      Castro::hydro_tile_size(1024,16,16);
 #else
-IntVect      Castro::hydro_tile_size(1024,1024,1024);
+IntVect      Castro::hydro_tile_size(1024,64,64);
 #endif
 IntVect      Castro::no_tile_size(1024,1024,1024);
 #endif
