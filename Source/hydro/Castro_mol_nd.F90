@@ -138,7 +138,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   ! temporary interface values of the parabola
   real(rt)        , pointer :: qm(:,:,:,:,:), qp(:,:,:,:,:)
-  real(rt)        , pointer :: dq(:,:,:,:,:)
+  real(rt)        , pointer :: dq(:,:,:,:)
 
   integer :: ngf
   integer :: It_lo(3), It_hi(3)
@@ -188,7 +188,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
 
   if (ppm_type == 0) then
-     call bl_allocate ( dq, dq_lo(1),dq_hi(1), dq_lo(2),dq_hi(2), dq_lo(3),dq_hi(3), 1, NQ, 1, AMREX_SPACEDIM)
+     call bl_allocate ( dq, dq_lo(1),dq_hi(1), dq_lo(2),dq_hi(2), dq_lo(3),dq_hi(3), 1, NQ)
   end if
 
   call bl_allocate(qm, It_lo(1),It_hi(1), It_lo(2),It_hi(2), It_lo(3),It_hi(3), 1,NQ, 1,AMREX_SPACEDIM)
@@ -248,59 +248,84 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
 
   if (ppm_type == 0)  then
-     do n = 1, NQ
-        ! piecewise linear slopes
-        call uslope(lo-dg, hi+dg, &
-                    q, q_lo, q_hi, n, &
-                    flatn, q_lo, q_hi, &
-                    dq, dq_lo, dq_hi)
-     end do
+     do idir = 1, AMREX_SPACEDIM
 
-     do n = 1, NQ
+        do n = 1, NQ
+           ! piecewise linear slopes
+           call uslope(lo-dg, hi+dg, idir, &
+                       q, q_lo, q_hi, n, &
+                       flatn, q_lo, q_hi, &
+                       dq, dq_lo, dq_hi)
 
-        ! extrapolate to the two edges for each zone
-        ! TODO: I think we don't need these loops this big
-        do k = lo(3)-dg(3), hi(3)+dg(3)
-           do j = lo(2)-dg(2), hi(2)+dg(2)
-              do i = lo(1)-1, hi(1)+1
+        end do
 
-                 ! x-edges
-                 if (i >= lo(1)) then
-                    ! left state at i-1/2 interface
-                    qm(i,j,k,n,1) = q(i-1,j,k,n) + HALF*dq(i-1,j,k,n,1)
+        do n = 1, NQ
 
-                    ! right state at i-1/2 interface
-                    qp(i,j,k,n,1) = q(i,j,k,n) - HALF*dq(i,j,k,n,1)
-                 end if
+           ! extrapolate to the two edges for each zone
+           ! TODO: I think we don't need these loops this big
+           if (idir == 1) then
+              do k = lo(3)-dg(3), hi(3)+dg(3)
+                 do j = lo(2)-dg(2), hi(2)+dg(2)
+                    do i = lo(1)-1, hi(1)+1
+
+                       ! x-edges
+                       if (i >= lo(1)) then
+                          ! left state at i-1/2 interface
+                          qm(i,j,k,n,1) = q(i-1,j,k,n) + HALF*dq(i-1,j,k,n)
+
+                          ! right state at i-1/2 interface
+                          qp(i,j,k,n,1) = q(i,j,k,n) - HALF*dq(i,j,k,n)
+                       end if
+
+                    end do
+                 end do
+              end do
 
 #if BL_SPACEDIM >= 2
-                 ! y-edges
-                 if (j >= lo(2)) then
-                    ! left state at j-1/2 interface
-                    qm(i,j,k,n,2) = q(i,j-1,k,n) + HALF*dq(i,j-1,k,n,2)
+           else if (idir == 2) then
+              do k = lo(3)-dg(3), hi(3)+dg(3)
+                 do j = lo(2)-dg(2), hi(2)+dg(2)
+                    do i = lo(1)-1, hi(1)+1
 
-                    ! right state at j-1/2 interface
-                    qp(i,j,k,n,2) = q(i,j,k,n) - HALF*dq(i,j,k,n,2)
-                 end if
+                       ! y-edges
+                       if (j >= lo(2)) then
+                          ! left state at j-1/2 interface
+                          qm(i,j,k,n,2) = q(i,j-1,k,n) + HALF*dq(i,j-1,k,n)
+
+                          ! right state at j-1/2 interface
+                          qp(i,j,k,n,2) = q(i,j,k,n) - HALF*dq(i,j,k,n)
+                       end if
+                    end do
+                 end do
+              end do
 #endif
 
 #if BL_SPACEDIM == 3
-                 ! z-edges
-                 if (k >= lo(3)) then
+           else
 
-                    ! left state at k-1/2 interface
-                    qm(i,j,k,n,3) = q(i,j,k,n) + HALF*dq(i,j,k,n,3)
+              do k = lo(3)-dg(3), hi(3)+dg(3)
+                 do j = lo(2)-dg(2), hi(2)+dg(2)
+                    do i = lo(1)-1, hi(1)+1
 
-                    ! right state at k-1/2 interface
-                    qp(i,j,k,n,3) = q(i,j,k,n) - HALF*dq(i,j,k,n,3)
-                 end if
+                       ! z-edges
+                       if (k >= lo(3)) then
+
+                          ! left state at k-1/2 interface
+                          qm(i,j,k,n,3) = q(i,j,k,n) + HALF*dq(i,j,k,n)
+
+                          ! right state at k-1/2 interface
+                          qp(i,j,k,n,3) = q(i,j,k,n) - HALF*dq(i,j,k,n)
+                       end if
+
+                    end do
+                 end do
+              end do
 #endif
 
-              end do
-           end do
+           end if
         end do
-
      end do
+
   else
 
      do idir = 1, AMREX_SPACEDIM

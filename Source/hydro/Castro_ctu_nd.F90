@@ -488,7 +488,7 @@ contains
     real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
 
     real(rt), intent(inout) :: shk(sk_lo(1):sk_hi(1), sk_lo(2):sk_hi(2), sk_lo(3):sk_hi(3))
-    real(rt), intent(inout) :: dq(dq_lo(1):dq_hi(1), dq_lo(2):dq_hi(2), dq_lo(3):dq_hi(3), NQ, AMREX_SPACEDIM)
+    real(rt), intent(inout) :: dq(dq_lo(1):dq_hi(1), dq_lo(2):dq_hi(2), dq_lo(3):dq_hi(3), NQ)
 
     real(rt), intent(inout) :: qxm(qxm_lo(1):qxm_hi(1), qxm_lo(2):qxm_hi(2), qxm_lo(3):qxm_hi(3), NQ)
     real(rt), intent(inout) :: qxp(qxp_lo(1):qxp_hi(1), qxp_lo(2):qxp_hi(2), qxp_lo(3):qxp_hi(3), NQ)
@@ -504,7 +504,7 @@ contains
     real(rt), intent(in) :: dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 #endif
     real(rt) :: hdt
-    integer :: i, j, k, n
+    integer :: i, j, k, n, idir
 
     logical :: reconstruct_state(NQ)
 
@@ -547,65 +547,73 @@ contains
 #endif
 
     ! Compute all slopes
-    do n = 1, NQ
-       if (.not. reconstruct_state(n)) cycle
-       call uslope(lo, hi, &
-                   q, qd_lo, qd_hi, n, &
-                   flatn, f_lo, f_hi, &
-                   dq, dq_lo, dq_hi)
-    end do
+    do idir = 1, AMREX_SPACEDIM
 
-    if (use_pslope == 1) then
-       call pslope(lo, hi, &
-                   q, qd_lo, qd_hi, &
-                   flatn, f_lo, f_hi, &
-                   dq, dq_lo, dq_hi, &
-                   srcQ, src_lo, src_hi, &
-                   dx)
-    endif
+       do n = 1, NQ
+          if (.not. reconstruct_state(n)) cycle
+          call uslope(lo, hi, idir, &
+                      q, qd_lo, qd_hi, n, &
+                      flatn, f_lo, f_hi, &
+                      dq, dq_lo, dq_hi)
+       end do
+
+       if (use_pslope == 1) then
+          call pslope(lo, hi, idir, &
+                      q, qd_lo, qd_hi, &
+                      flatn, f_lo, f_hi, &
+                      dq, dq_lo, dq_hi, &
+                      srcQ, src_lo, src_hi, &
+                      dx)
+       endif
 
 
-    ! compute the interface states
+       ! compute the interface states
 
-    call trace_plm(lo, hi, &
-                   1, q, qd_lo, qd_hi, &
-                   qaux, qa_lo, qa_hi, &
-                   dq, dq_lo, dq_hi, &
-                   qxm, qxm_lo, qxm_hi, &
-                   qxp, qxp_lo, qxp_hi, &
+       if (idir == 1) then
+          call trace_plm(lo, hi, &
+                         1, q, qd_lo, qd_hi, &
+                         qaux, qa_lo, qa_hi, &
+                         dq, dq_lo, dq_hi, &
+                         qxm, qxm_lo, qxm_hi, &
+                         qxp, qxp_lo, qxp_hi, &
 #if AMREX_SPACEDIM < 3
-                   dloga, dloga_lo, dloga_hi, &
+                         dloga, dloga_lo, dloga_hi, &
 #endif
-                   SrcQ, src_lo, src_hi, &
-                   vlo, vhi, domlo, domhi, &
-                   dx, dt)
+                         SrcQ, src_lo, src_hi, &
+                         vlo, vhi, domlo, domhi, &
+                         dx, dt)
 
 #if AMREX_SPACEDIM >= 2
-    call trace_plm(lo, hi, &
-                   2, q, qd_lo, qd_hi, &
-                   qaux, qa_lo, qa_hi, &
-                   dq, dq_lo, dq_hi, &
-                   qym, qym_lo, qym_hi, &
-                   qyp, qyp_lo, qyp_hi, &
+       else if (idir == 2) then
+          call trace_plm(lo, hi, &
+                         2, q, qd_lo, qd_hi, &
+                         qaux, qa_lo, qa_hi, &
+                         dq, dq_lo, dq_hi, &
+                         qym, qym_lo, qym_hi, &
+                         qyp, qyp_lo, qyp_hi, &
 #if AMREX_SPACEDIM < 3
-                   dloga, dloga_lo, dloga_hi, &
+                         dloga, dloga_lo, dloga_hi, &
 #endif
-                   SrcQ, src_lo, src_hi, &
-                   vlo, vhi, domlo, domhi, &
-                   dx, dt)
+                         SrcQ, src_lo, src_hi, &
+                         vlo, vhi, domlo, domhi, &
+                         dx, dt)
 #endif
 
 #if AMREX_SPACEDIM == 3
-    call trace_plm(lo, hi, &
-                   3, q, qd_lo, qd_hi, &
-                   qaux, qa_lo, qa_hi, &
-                   dq, dq_lo, dq_hi, &
-                   qzm, qzm_lo, qzm_hi, &
-                   qzp, qzp_lo, qzp_hi, &
-                   SrcQ, src_lo, src_hi, &
-                   vlo, vhi, domlo, domhi, &
-                   dx, dt)
+       else
+          call trace_plm(lo, hi, &
+                         3, q, qd_lo, qd_hi, &
+                         qaux, qa_lo, qa_hi, &
+                         dq, dq_lo, dq_hi, &
+                         qzm, qzm_lo, qzm_hi, &
+                         qzp, qzp_lo, qzp_hi, &
+                         SrcQ, src_lo, src_hi, &
+                         vlo, vhi, domlo, domhi, &
+                         dx, dt)
 #endif
+       end if
+
+    end do
 
   end subroutine ctu_plm_states
 

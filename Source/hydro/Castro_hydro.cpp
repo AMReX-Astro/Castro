@@ -73,7 +73,7 @@ Castro::construct_hydro_source(Real time, Real dt)
     // and then we will resize the Fabs in each MFIter loop iteration. Then,
     // we apply an Elixir to ensure that their memory is saved until it is no
     // longer needed (only relevant for the asynchronous case, usually on GPUs).
-    
+
     FArrayBox flatn;
 #ifdef RADIATION
     FArrayBox flatg;
@@ -118,7 +118,7 @@ Castro::construct_hydro_source(Real time, Real dt)
     FArrayBox qmyz, qpyz;
 #endif
     FArrayBox pdivu;
-    
+
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       // the valid region box
@@ -192,7 +192,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       if (ppm_type == 0) {
 
-        dq.resize(obx, AMREX_SPACEDIM*NQ);
+        dq.resize(obx, NQ);
         Elixir elix_dq = dq.elixir();
 
 #pragma gpu
