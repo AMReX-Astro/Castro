@@ -246,6 +246,7 @@ Castro::construct_hydro_source(Real time, Real dt)
         sp.resize(obx, AMREX_SPACEDIM);
         Elixir elix_sp = sp.elixir();
 
+#pragma gpu
         ctu_ppm_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                        AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                        BL_TO_FORTRAN_ANYD(q[mfi]),
@@ -1629,13 +1630,19 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
       // Do PPM reconstruction to the zone edges.
       int put_on_edges = 1;
 
+      for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+
+        int idir_f = idir + 1;
+
 #pragma gpu
-      ca_ppm_reconstruct
-          (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()), put_on_edges,
+        ca_ppm_reconstruct
+          (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()), put_on_edges, idir_f,
            BL_TO_FORTRAN_ANYD(q[mfi]), NQ, 1, NQ,
            BL_TO_FORTRAN_ANYD(flatn),
            BL_TO_FORTRAN_ANYD(qm),
            BL_TO_FORTRAN_ANYD(qp), NQ, 1, NQ);
+
+      }
 
       // Compute the shk variable
 #pragma gpu
