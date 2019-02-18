@@ -1234,4 +1234,20 @@ Castro::plotFileOutput(const std::string& dir,
     std::string TheFullPath = FullPath;
     TheFullPath += BaseName;
     VisMF::Write(plotMF,TheFullPath,how,true);
+
+    if (track_grid_losses) {
+
+        // store diagnostic quantities
+        std::ofstream DiagFile;
+        std::string FullPathDiagFile = dir;
+        FullPathDiagFile += "/Diagnostics";
+        DiagFile.open(FullPathDiagFile.c_str(), std::ios::out);
+
+        for (int i = 0; i < n_lost; i++)
+            DiagFile << std::setprecision(15) << material_lost_through_boundary_cumulative[i] << std::endl;
+
+        DiagFile.close();
+
+    }
+
 }

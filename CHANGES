@@ -1,15 +1,15 @@
 # changes since the last release
 
-  -- The runtime parameter castro.do_ctu was replaced by
-     castro.time_integration_method.  The allowed values are
-     0 (CTU integration), 1 (MOL), or 2 (SDC)
-
   -- The 4th order hydro was extended to support general equations
      of state (it is still single level only).  Artificial viscosity
      was also added.
 
   -- A framework for a new spectral deferred corrections method
      was added.  This will allow for higher-order time integration.
+
+  -- A new runtime parameter, T_guess, was created.  This is used as
+     the initial temperature guess when calling the EOS with inputs
+     other than rho, T, for the initial Newton iteration.
 
   -- The CTU hydrodynamics driver has been rewritten in C++
      (#498)

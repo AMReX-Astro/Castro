@@ -1007,6 +1007,8 @@ contains
 
     real(rt) :: ang_mom(3)
 
+    !$gpu
+
     ang_mom(1) = loc(2) * mom(3) - loc(3) * mom(2)
     ang_mom(2) = loc(3) * mom(1) - loc(1) * mom(3)
     ang_mom(3) = loc(1) * mom(2) - loc(2) * mom(1)

@@ -42,15 +42,14 @@ Castro::construct_hydro_source(Real time, Real dt)
   int nstep_fsp = -1;
 #endif
 
-  // note: the radiation consup currently does not fill these
-  Real mass_lost       = 0.;
-  Real xmom_lost       = 0.;
-  Real ymom_lost       = 0.;
-  Real zmom_lost       = 0.;
-  Real eden_lost       = 0.;
-  Real xang_lost       = 0.;
-  Real yang_lost       = 0.;
-  Real zang_lost       = 0.;
+  Real mass_lost = 0.;
+  Real xmom_lost = 0.;
+  Real ymom_lost = 0.;
+  Real zmom_lost = 0.;
+  Real eden_lost = 0.;
+  Real xang_lost = 0.;
+  Real yang_lost = 0.;
+  Real zang_lost = 0.;
 
   BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
 
@@ -74,7 +73,7 @@ Castro::construct_hydro_source(Real time, Real dt)
     // and then we will resize the Fabs in each MFIter loop iteration. Then,
     // we apply an Elixir to ensure that their memory is saved until it is no
     // longer needed (only relevant for the asynchronous case, usually on GPUs).
-    
+
     FArrayBox flatn;
 #ifdef RADIATION
     FArrayBox flatg;
@@ -119,7 +118,7 @@ Castro::construct_hydro_source(Real time, Real dt)
     FArrayBox qmyz, qpyz;
 #endif
     FArrayBox pdivu;
-    
+
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       // the valid region box
@@ -166,33 +165,6 @@ Castro::construct_hydro_source(Real time, Real dt)
       const Box& gzbx = amrex::grow(zbx, 1);
 #endif
 
-      dq.resize(obx, AMREX_SPACEDIM*NQ);
-      Elixir elix_dq = dq.elixir();
-
-      Ip.resize(obx, AMREX_SPACEDIM*3*NQ);
-      Elixir elix_Ip = Ip.elixir();
-
-      Im.resize(obx, AMREX_SPACEDIM*3*NQ);
-      Elixir elix_Im = Im.elixir();
-
-      Ip_src.resize(obx, AMREX_SPACEDIM*3*QVAR);
-      Elixir elix_Ip_src = Ip_src.elixir();
-
-      Im_src.resize(obx, AMREX_SPACEDIM*3*QVAR);
-      Elixir elix_Im_src = Im_src.elixir();
-
-      Ip_gc.resize(obx, AMREX_SPACEDIM*3);
-      Elixir elix_Ip_gc = Ip_gc.elixir();
-
-      Im_gc.resize(obx,AMREX_SPACEDIM*3);
-      Elixir elix_Im_gc = Im_gc.elixir();
-
-      sm.resize(obx, AMREX_SPACEDIM);
-      Elixir elix_sm = sm.elixir();
-
-      sp.resize(obx, AMREX_SPACEDIM);
-      Elixir elix_sp = sp.elixir();
-
       shk.resize(obx, 1);
       Elixir elix_shk = shk.elixir();
 
@@ -218,38 +190,94 @@ Castro::construct_hydro_source(Real time, Real dt)
       Elixir elix_qzp = qzp.elixir();
 #endif
 
+      if (ppm_type == 0) {
+
+        dq.resize(obx, NQ);
+        Elixir elix_dq = dq.elixir();
+
 #pragma gpu
-      ctu_normal_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                        AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                        BL_TO_FORTRAN_ANYD(q[mfi]),
-                        BL_TO_FORTRAN_ANYD(flatn),
-                        BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                        BL_TO_FORTRAN_ANYD(src_q[mfi]),
-                        BL_TO_FORTRAN_ANYD(shk),
-                        BL_TO_FORTRAN_ANYD(Ip),
-                        BL_TO_FORTRAN_ANYD(Im),
-                        BL_TO_FORTRAN_ANYD(Ip_src),
-                        BL_TO_FORTRAN_ANYD(Im_src),
-                        BL_TO_FORTRAN_ANYD(Ip_gc),
-                        BL_TO_FORTRAN_ANYD(Im_gc),
-                        BL_TO_FORTRAN_ANYD(dq),
-                        BL_TO_FORTRAN_ANYD(sm),
-                        BL_TO_FORTRAN_ANYD(sp),
-                        BL_TO_FORTRAN_ANYD(qxm),
-                        BL_TO_FORTRAN_ANYD(qxp),
+        ctu_plm_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+                       AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                       BL_TO_FORTRAN_ANYD(q[mfi]),
+                       BL_TO_FORTRAN_ANYD(flatn),
+                       BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                       BL_TO_FORTRAN_ANYD(src_q[mfi]),
+                       BL_TO_FORTRAN_ANYD(shk),
+                       BL_TO_FORTRAN_ANYD(dq),
+                       BL_TO_FORTRAN_ANYD(qxm),
+                       BL_TO_FORTRAN_ANYD(qxp),
 #if AMREX_SPACEDIM >= 2
-                        BL_TO_FORTRAN_ANYD(qym),
-                        BL_TO_FORTRAN_ANYD(qyp),
+                       BL_TO_FORTRAN_ANYD(qym),
+                       BL_TO_FORTRAN_ANYD(qyp),
 #endif
 #if AMREX_SPACEDIM == 3
-                        BL_TO_FORTRAN_ANYD(qzm),
-                        BL_TO_FORTRAN_ANYD(qzp),
+                       BL_TO_FORTRAN_ANYD(qzm),
+                       BL_TO_FORTRAN_ANYD(qzp),
 #endif
-                        AMREX_REAL_ANYD(dx), dt,
+                       AMREX_REAL_ANYD(dx), dt,
 #if (AMREX_SPACEDIM < 3)
-                        BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
+                       BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
 #endif
-                        AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                       AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+
+      } else {
+
+        Ip.resize(obx, 3*NQ);
+        Elixir elix_Ip = Ip.elixir();
+
+        Im.resize(obx, 3*NQ);
+        Elixir elix_Im = Im.elixir();
+
+        Ip_src.resize(obx, 3*QVAR);
+        Elixir elix_Ip_src = Ip_src.elixir();
+
+        Im_src.resize(obx, 3*QVAR);
+        Elixir elix_Im_src = Im_src.elixir();
+
+        Ip_gc.resize(obx, 3);
+        Elixir elix_Ip_gc = Ip_gc.elixir();
+
+        Im_gc.resize(obx, 3);
+        Elixir elix_Im_gc = Im_gc.elixir();
+
+        sm.resize(obx, AMREX_SPACEDIM);
+        Elixir elix_sm = sm.elixir();
+
+        sp.resize(obx, AMREX_SPACEDIM);
+        Elixir elix_sp = sp.elixir();
+
+#pragma gpu
+        ctu_ppm_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+                       AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                       BL_TO_FORTRAN_ANYD(q[mfi]),
+                       BL_TO_FORTRAN_ANYD(flatn),
+                       BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                       BL_TO_FORTRAN_ANYD(src_q[mfi]),
+                       BL_TO_FORTRAN_ANYD(shk),
+                       BL_TO_FORTRAN_ANYD(Ip),
+                       BL_TO_FORTRAN_ANYD(Im),
+                       BL_TO_FORTRAN_ANYD(Ip_src),
+                       BL_TO_FORTRAN_ANYD(Im_src),
+                       BL_TO_FORTRAN_ANYD(Ip_gc),
+                       BL_TO_FORTRAN_ANYD(Im_gc),
+                       BL_TO_FORTRAN_ANYD(sm),
+                       BL_TO_FORTRAN_ANYD(sp),
+                       BL_TO_FORTRAN_ANYD(qxm),
+                       BL_TO_FORTRAN_ANYD(qxp),
+#if AMREX_SPACEDIM >= 2
+                       BL_TO_FORTRAN_ANYD(qym),
+                       BL_TO_FORTRAN_ANYD(qyp),
+#endif
+#if AMREX_SPACEDIM == 3
+                       BL_TO_FORTRAN_ANYD(qzm),
+                       BL_TO_FORTRAN_ANYD(qzp),
+#endif
+                       AMREX_REAL_ANYD(dx), dt,
+#if (AMREX_SPACEDIM < 3)
+                       BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
+#endif
+                       AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+      }
 
       div.resize(obx, 1);
       Elixir elix_div = div.elixir();
@@ -260,10 +288,6 @@ Castro::construct_hydro_source(Real time, Real dt)
            BL_TO_FORTRAN_ANYD(q[mfi]),
            AMREX_REAL_ANYD(dx),
            BL_TO_FORTRAN_ANYD(div));
-
-#ifdef AMREX_USE_CUDA
-      Gpu::Device::synchronize();
-#endif
 
       q_int.resize(obx, NQ);
       Elixir elix_q_int = q_int.elixir();
@@ -1216,16 +1240,23 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       if (track_grid_losses == 1) {
 
-#ifdef AMREX_USE_CUDA
-          Gpu::Device::streamSynchronize();
+#pragma gpu
+          ca_track_grid_losses(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                               BL_TO_FORTRAN_ANYD(flux[0]),
+#if AMREX_SPACEDIM >= 2
+                               BL_TO_FORTRAN_ANYD(flux[1]),
 #endif
-
-          ca_track_grid_losses(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                               D_DECL(BL_TO_FORTRAN_ANYD(flux[0]),
-                                      BL_TO_FORTRAN_ANYD(flux[1]),
-                                      BL_TO_FORTRAN_ANYD(flux[2])),
-                               mass_lost, xmom_lost, ymom_lost, zmom_lost,
-                               eden_lost, xang_lost, yang_lost, zang_lost);
+#if AMREX_SPACEDIM == 3
+                               BL_TO_FORTRAN_ANYD(flux[2]),
+#endif
+                               AMREX_MFITER_REDUCE_SUM(&mass_lost),
+                               AMREX_MFITER_REDUCE_SUM(&xmom_lost),
+                               AMREX_MFITER_REDUCE_SUM(&ymom_lost),
+                               AMREX_MFITER_REDUCE_SUM(&zmom_lost),
+                               AMREX_MFITER_REDUCE_SUM(&eden_lost),
+                               AMREX_MFITER_REDUCE_SUM(&xang_lost),
+                               AMREX_MFITER_REDUCE_SUM(&yang_lost),
+                               AMREX_MFITER_REDUCE_SUM(&zang_lost));
       }
 
     } // MFIter loop
@@ -1611,13 +1642,19 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
       // Do PPM reconstruction to the zone edges.
       int put_on_edges = 1;
 
+      for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+
+        int idir_f = idir + 1;
+
 #pragma gpu
-      ca_ppm_reconstruct
-          (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()), put_on_edges,
+        ca_ppm_reconstruct
+          (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()), put_on_edges, idir_f,
            BL_TO_FORTRAN_ANYD(q[mfi]), NQ, 1, NQ,
            BL_TO_FORTRAN_ANYD(flatn),
            BL_TO_FORTRAN_ANYD(qm),
            BL_TO_FORTRAN_ANYD(qp), NQ, 1, NQ);
+
+      }
 
       // Compute the shk variable
 #pragma gpu
@@ -1629,7 +1666,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
       for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
-          const Box& nbx = amrex::grow(mfi.nodaltilebox(idir), 1);
+          const Box& nbx = amrex::surroundingNodes(bx, idir);
 
           int idir_f = idir + 1;
 
