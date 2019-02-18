@@ -12,7 +12,8 @@ std::string inputs_name = "";
 //
 void GetInputArgs (const int argc, char** argv,
                    string& pltfile, string& slcfile,
-                   double& xctr, double& yctr, double & zctr);
+                   double& xctr, double& yctr, double & zctr,
+                   bool& sphr);
 
 void PrintHelp ();
 
@@ -35,8 +36,9 @@ int main(int argc, char* argv[])
 		double xctr = 0.0;
 		double yctr = 0.0;
 		double zctr = 0.0;
+		bool sphr = false;
 
-		GetInputArgs (argc, argv, pltfile, slcfile, xctr, yctr, zctr);
+		GetInputArgs (argc, argv, pltfile, slcfile, xctr, yctr, zctr, sphr);
 
 		// Start dataservices (no clue why we need to do this)
 		DataServices::SetBatchMode();
@@ -97,7 +99,7 @@ int main(int argc, char* argv[])
 		auto ymom_comp = data.StateNumber("ymom");
 #endif
 #if (AMREX_SPACEDIM == 3)
-		auto zmom_comp = data.StateNumber("zmom")
+		auto zmom_comp = data.StateNumber("zmom");
 #endif
 		auto pres_comp = data.StateNumber("pressure");
 		auto rhoe_comp = data.StateNumber("rho_e");
@@ -154,9 +156,9 @@ int main(int argc, char* argv[])
 		// extract the 1d data
 		for (int l = finestLevel; l >= 0; l--) {
 
-            int refratio = 1;
+			int refratio = 1;
 
-            for (int ll = 0; ll < l; ll++) refratio *= rr[ll];
+			for (int ll = 0; ll < l; ll++) refratio *= rr[ll];
 
 			Vector<Real> level_dx = data.DxLevel()[l];
 
@@ -177,23 +179,50 @@ int main(int argc, char* argv[])
 				           e_bin.dataPtr(), imask.dataPtr(), mask_size, r1,
 				           dens_comp, xmom_comp, pres_comp, rhoe_comp);
 #elif (AMREX_SPACEDIM == 2)
-				fextract2d_cyl(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
-				               nbins, dens_bin.dataPtr(),
-				               vel_bin.dataPtr(), pres_bin.dataPtr(),
-				               e_bin.dataPtr(), ncount.dataPtr(),
-				               imask.dataPtr(), mask_size, r1,
-				               dens_comp, xmom_comp, ymom_comp, pres_comp, rhoe_comp,
-				               dx_fine, level_dx.dataPtr(),
-				               xctr, yctr);
+				if (sphr) {
+
+                    fextract2d_sph(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+					               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
+					               nbins, dens_bin.dataPtr(),
+					               vel_bin.dataPtr(), pres_bin.dataPtr(),
+					               e_bin.dataPtr(), ncount.dataPtr(),
+					               imask.dataPtr(), mask_size, r1,
+					               dens_comp, xmom_comp, ymom_comp, pres_comp, rhoe_comp,
+					               dx_fine, level_dx.dataPtr(),
+					               xctr, yctr);
+
+				} else {
+					fextract2d_cyl(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+					               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
+					               nbins, dens_bin.dataPtr(),
+					               vel_bin.dataPtr(), pres_bin.dataPtr(),
+					               e_bin.dataPtr(), ncount.dataPtr(),
+					               imask.dataPtr(), mask_size, r1,
+					               dens_comp, xmom_comp, ymom_comp, pres_comp, rhoe_comp,
+					               dx_fine, level_dx.dataPtr(),
+					               xctr, yctr);
+				}
 #else
-				fextract3d_cyl(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
-				               nbins, dens_bin.dataPtr(),
-				               vel_bin.dataPtr(), pres_bin.dataPtr(),
-				               imask.dataPtr(), mask_size, r1,
-				               dens_comp, xmom_comp, ymom_comp, zmom_comp, pres_comp,
-				               dx_fine, level_dx.dataPtr(), refratio, xctr, yctr);
+				if (sphr) {
+                    fextract3d_sph(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+					               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
+					               nbins, dens_bin.dataPtr(),
+					               vel_bin.dataPtr(), pres_bin.dataPtr(),
+                                   e_bin.dataPtr(), ncount.dataPtr(),
+					               imask.dataPtr(), mask_size, r1,
+					               dens_comp, xmom_comp, ymom_comp, zmom_comp, pres_comp, rhoe_comp,
+					               dx_fine, level_dx.dataPtr(), xctr, yctr, zctr);
+
+				} else {
+					fextract3d_cyl(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+					               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
+					               nbins, dens_bin.dataPtr(),
+					               vel_bin.dataPtr(), pres_bin.dataPtr(),
+                                   ncount.dataPtr(),
+					               imask.dataPtr(), mask_size, r1,
+					               dens_comp, xmom_comp, ymom_comp, zmom_comp, pres_comp,
+					               dx_fine, level_dx.dataPtr(), refratio, xctr, yctr);
+				}
 #endif
 			}
 
@@ -201,7 +230,7 @@ int main(int argc, char* argv[])
 			if (l != 0) r1 *= rr[l-1];
 		}
 
-#if (AMREX_SPACEDIM == 2)
+#if (AMREX_SPACEDIM >= 2)
 		//normalize
 		for (int i = 0; i < nbins; i++) {
 			if (ncount[i] != 0) {
@@ -216,9 +245,9 @@ int main(int argc, char* argv[])
 		// now open the slicefile and write out the data
 		std::ofstream slicefile;
 		slicefile.open(slcfile);
-        slicefile.setf(std::ios::scientific);
+		slicefile.setf(std::ios::scientific);
 		slicefile.precision(12);
-        const auto w = 24;
+		const auto w = 24;
 
 		// write the header
 		slicefile << std::setw(w) << "x" << std::setw(w) << "density" << std::setw(w) << "velocity" << std::setw(w) << "pressure" << std::setw(w) << "int. energy" << std::endl;
@@ -250,12 +279,13 @@ int main(int argc, char* argv[])
 //
 void GetInputArgs ( const int argc, char** argv,
                     string& pltfile, string& slcfile,
-                    double& xctr, double& yctr, double& zctr)
+                    double& xctr, double& yctr, double& zctr,
+                    bool &sphr)
 {
 
 	int i = 1; // skip program name
 
-	while ( i < argc - 1)
+	while ( i < argc)
 	{
 
 		if ( !strcmp(argv[i], "-p") || !strcmp(argv[i],"--pltfile") )
@@ -277,6 +307,10 @@ void GetInputArgs ( const int argc, char** argv,
 		else if ( !strcmp(argv[i],"--zctr") )
 		{
 			zctr = std::atof(argv[++i]);
+		}
+		else if ( !strcmp(argv[i],"--sphr") )
+		{
+			sphr = true;
 		}
 		else
 		{
@@ -308,11 +342,12 @@ void GetInputArgs ( const int argc, char** argv,
 void PrintHelp ()
 {
 	Print() << "\nusage: executable_name args"
-	        << "\nargs [-p|--pltfile]   plotfile   : plot file directory (required)"
+	        << "\nargs [-p|--pltfile]     plotfile : plot file directory (required)"
 	        << "\n     [-s|--slicefile] slice file : slice file          (required)"
 	        << "\n     [--xctr]               xctr : central x coord     (non-cartesian only)"
 	        << "\n     [--yctr]               yctr : central y coord     (non-cartesian only)"
 	        << "\n     [--zctr]               zctr : central z coord     (non-cartesian only)"
+	        << "\n     [--sphr]          spherical : spherical problem"
 	        << "\n\n" << std::endl;
 
 }

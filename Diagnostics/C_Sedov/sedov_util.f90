@@ -141,14 +141,14 @@ subroutine fextract2d_sph(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) :: plo(3), phi(3), nc_p
   integer, intent(in), value :: nbins
-  real(rt), intent(in) :: p(plo(1):phi(1),plo(2):phi(2),plo(3):phi(3),1:nc_p)
+  real(rt), intent(in) :: p(plo(1):phi(1),plo(2):phi(2),plo(3):phi(3),0:nc_p-1)
   real(rt), intent(inout) :: dens_bin(0:nbins-1)
   real(rt), intent(inout) :: vel_bin(0:nbins-1)
   real(rt), intent(inout) :: pres_bin(0:nbins-1)
   real(rt), intent(inout) :: e_bin(0:nbins-1)
   integer, intent(inout) :: volcount(0:nbins-1)
-  integer, intent(in) :: mask_size(2)
-  integer, intent(inout) :: imask(0:mask_size(1)-1,0:mask_size(2)-1)
+  integer, intent(in), value :: mask_size
+  integer, intent(inout) :: imask(0:mask_size-1,0:mask_size-1)
   integer, intent(in), value :: r1, dens_comp, xmom_comp, ymom_comp, pres_comp, rhoe_comp, rr
   real(rt), intent(in), value :: dx_fine, yctr
   real(rt), intent(in) :: dx(3)
@@ -156,7 +156,7 @@ subroutine fextract2d_sph(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   integer :: ii, jj, index
   real(rt) :: xx, xl, xr, yy, yl, yr, r_zone, vol, vel
 
-  write(*,*) "imask = ", imask
+  ! write(*,*) "imask = ", imask
 
   ! loop over all of the zones in the patch.  Here, we convert
   ! the cell-centered indices at the current level into the
@@ -164,14 +164,14 @@ subroutine fextract2d_sph(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   ! stored data in any of those locations.  If we haven't then
   ! we store this level's data and mark that range as filled.
   do jj = lo(2), hi(2)
-     yy = (dble(jj) + HALF)*dx(2)/rr
-     yl = (dble(jj))*dx(2)/rr
-     yr = (dble(jj) + ONE)*dx(2)/rr
+     yy = (dble(jj) + HALF)*dx(2)
+     yl = (dble(jj))*dx(2)
+     yr = (dble(jj) + ONE)*dx(2)
 
      do ii = lo(1), hi(1)
-        xx = (dble(ii) + HALF)*dx(1)/rr
-        xl = (dble(ii))*dx(1)/rr
-        xr = (dble(ii) + ONE)*dx(1)/rr
+        xx = (dble(ii) + HALF)*dx(1)
+        xl = (dble(ii))*dx(1)
+        xr = (dble(ii) + ONE)*dx(1)
 
         if ( any(imask(ii*r1:(ii+1)*r1-1, &
              jj*r1:(jj+1)*r1-1) .eq. 1) ) then
@@ -225,13 +225,13 @@ subroutine fextract3d_cyl(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) :: plo(3), phi(3), nc_p
   integer, intent(in), value :: nbins
-  real(rt), intent(in) :: p(plo(1):phi(1),plo(2):phi(2),plo(3):phi(3),1:nc_p)
+  real(rt), intent(in) :: p(plo(1):phi(1),plo(2):phi(2),plo(3):phi(3),0:nc_p-1)
   real(rt), intent(inout) :: dens_bin(0:nbins-1)
   real(rt), intent(inout) :: vel_bin(0:nbins-1)
   real(rt), intent(inout) :: pres_bin(0:nbins-1)
   integer, intent(inout) :: ncount(0:nbins-1)
-  integer, intent(in) :: mask_size(3)
-  integer, intent(inout) :: imask(0:mask_size(1)-1,0:mask_size(2)-1,0:mask_size(3)-1)
+  integer, intent(in), value :: mask_size
+  integer, intent(inout) :: imask(0:mask_size-1,0:mask_size-1,0:mask_size-1)
   integer, intent(in), value :: r1, dens_comp, xmom_comp, ymom_comp, zmom_comp, pres_comp, rr
   real(rt), intent(in), value :: dx_fine, xctr, yctr
   real(rt), intent(in) :: dx(3)
@@ -239,7 +239,7 @@ subroutine fextract3d_cyl(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   integer :: ii, jj, kk, index
   real(rt) :: xx, yy, zz, r_zone
 
-  write(*,*) "imask = ", imask
+  ! write(*,*) "imask = ", imask
 
   ! loop over all of the zones in the patch.  Here, we convert
   ! the cell-centered indices at the current level into the
@@ -247,11 +247,11 @@ subroutine fextract3d_cyl(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   ! stored data in any of those locations.  If we haven't then
   ! we store this level's data and mark that range as filled.
   do kk = lo(3), hi(3)
-     zz = (kk + HALF)*dx(3)/rr
+     zz = (kk + HALF)*dx(3)
      do jj = lo(2), hi(2)
-        yy = (jj + HALF)*dx(2)/rr
+        yy = (jj + HALF)*dx(2)
         do ii = lo(1), hi(1)
-           xx = (ii + HALF)*dx(1)/rr
+           xx = (ii + HALF)*dx(1)
 
            if ( any(imask(ii*r1:(ii+1)*r1-1, &
                 jj*r1:(jj+1)*r1-1, &
@@ -291,7 +291,7 @@ end subroutine fextract3d_cyl
 
 subroutine fextract3d_sph(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
      vel_bin, pres_bin, e_bin, ncount, imask, mask_size, r1,&
-     dens_comp, xmom_comp, ymom_comp, zmom_comp, pres_comp, rhoe_comp, dx_fine, dx, rr, &
+     dens_comp, xmom_comp, ymom_comp, zmom_comp, pres_comp, rhoe_comp, dx_fine, dx, &
      xctr, yctr, zctr) &
      bind(C, name='fextract3d_sph')
 
@@ -303,22 +303,22 @@ subroutine fextract3d_sph(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) :: plo(3), phi(3), nc_p
   integer, intent(in), value :: nbins
-  real(rt), intent(in) :: p(plo(1):phi(1),plo(2):phi(2),plo(3):phi(3),1:nc_p)
+  real(rt), intent(in) :: p(plo(1):phi(1),plo(2):phi(2),plo(3):phi(3),0:nc_p-1)
   real(rt), intent(inout) :: dens_bin(0:nbins-1)
   real(rt), intent(inout) :: vel_bin(0:nbins-1)
   real(rt), intent(inout) :: pres_bin(0:nbins-1)
   real(rt), intent(inout) :: e_bin(0:nbins-1)
   integer, intent(inout) :: ncount(0:nbins-1)
-  integer, intent(in) :: mask_size(3)
-  integer, intent(inout) :: imask(0:mask_size(1)-1,0:mask_size(2)-1,0:mask_size(3)-1)
-  integer, intent(in), value :: r1, dens_comp, xmom_comp, ymom_comp, zmom_comp, pres_comp, rhoe_comp, rr
+  integer, intent(in), value :: mask_size
+  integer, intent(inout) :: imask(0:mask_size-1,0:mask_size-1,0:mask_size-1)
+  integer, intent(in), value :: r1, dens_comp, xmom_comp, ymom_comp, zmom_comp, pres_comp, rhoe_comp
   real(rt), intent(in), value :: dx_fine, xctr, yctr, zctr
   real(rt), intent(in) :: dx(3)
 
   integer :: ii, jj, kk, index
   real(rt) :: xx, yy, zz, r_zone, vol, vel
 
-  write(*,*) "imask = ", imask
+  ! write(*,*) "imask = ", imask
 
   ! loop over all of the zones in the patch.  Here, we convert
   ! the cell-centered indices at the current level into the
@@ -326,12 +326,12 @@ subroutine fextract3d_sph(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   ! stored data in any of those locations.  If we haven't then
   ! we store this level's data and mark that range as filled.
   do kk = lo(3), hi(3)
-     zz = (kk + HALF)*dx(3)/rr
+     zz = (dble(kk) + HALF)*dx(3)
      do jj = lo(2), hi(2)
-        yy = (jj + HALF)*dx(2)/rr
+        yy = (dble(jj) + HALF)*dx(2)
 
         do ii = lo(1), hi(1)
-           xx = (dble(ii) + HALF)*dx(1)/rr
+           xx = (dble(ii) + HALF)*dx(1)
 
            if ( any(imask(ii*r1:(ii+1)*r1-1, &
                 jj*r1:(jj+1)*r1-1, &
@@ -341,7 +341,7 @@ subroutine fextract3d_sph(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
 
               index = r_zone/dx_fine
 
-              write(*,*) p(ii,1,1,dens_comp)
+              ! write(*,*) p(ii,1,1,dens_comp)
 
               ! weight the zone's data by its size
               dens_bin(index) = dens_bin(index) + &
