@@ -13,8 +13,8 @@ USE_REACT = FALSE
 USE_ACC = FALSE
 
 # ALL: gaussian_pulse.ex
-ALL: lgt_frnt1d.ex
-# ALL: rad_shock.ex
+# ALL: lgt_frnt1d.ex
+ALL: rad_shock.ex
 # ALL: rad_source.ex
 # ALL: rad_sphere.ex
 # ALL: rad_shocktube.ex
@@ -45,19 +45,19 @@ gaussian_pulse.ex: $(objForExecs)
 lgt_frnt1d.ex: $(objForExecs)
 	@echo Linking $@ ...
 	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(libraries)
-#
-# rad_shock.ex: $(objForExecs)
-# 	@echo Linking $@ ...
-# 	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(libraries)
-#
-# rad_source.ex: $(objForExecs)
-# 	@echo Linking $@ ...
-# 	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(libraries)
-#
-# rad_sphere.ex: $(objForExecs)
-# 	@echo Linking $@ ...
-# 	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(libraries)
-#
-# rad_shocktube.ex: $(objForExecs)
-# 	@echo Linking $@ ...
-# 	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(libraries)
+
+rad_shock.ex: $(objForExecs)
+	@echo Linking $@ ...
+	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(libraries)
+
+rad_source.ex: $(objForExecs)
+	@echo Linking $@ ...
+	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(libraries)
+
+rad_sphere.ex: $(objForExecs)
+	@echo Linking $@ ...
+	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(libraries)
+
+rad_shocktube.ex: $(objForExecs)
+	@echo Linking $@ ...
+	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(libraries)

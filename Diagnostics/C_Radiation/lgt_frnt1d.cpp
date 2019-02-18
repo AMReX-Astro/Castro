@@ -25,8 +25,9 @@ int main(int argc, char* argv[])
 		string slcfile;
 		double xctr = 0.0;
 		double yctr = 0.0;
+		int dir;
 
-		GetInputArgs (argc, argv, pltfile, slcfile, xctr, yctr);
+		GetInputArgs (argc, argv, pltfile, slcfile, xctr, yctr, dir);
 
 		// Start dataservices (no clue why we need to do this)
 		DataServices::SetBatchMode();
@@ -59,9 +60,7 @@ int main(int argc, char* argv[])
 
 		// compute the size of the radially-binned array -- we'll do it to
 		// the furtherest corner of the domain
-		double x_maxdist = max(fabs(probhi[0] - xctr), fabs(problo[0] - xctr));
-		double y_maxdist = max(fabs(probhi[1] - yctr), fabs(problo[1] - yctr));
-		double maxdist = sqrt(x_maxdist*x_maxdist + y_maxdist*y_maxdist);
+		double maxdist = fabs(probhi[0] - problo[0]);
 
 		double dx_fine = *(std::min_element(dx.begin(), dx.end()));
 

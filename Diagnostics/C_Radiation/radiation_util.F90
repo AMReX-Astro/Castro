@@ -1,0 +1,306 @@
+! Process a 2-d gaussian radiation pulse
+subroutine fgaussian_pulse(lo, hi, p, plo, phi, nc_p, nbins, rad_bin, &
+     ncount, imask, mask_size, r1,&
+     rad_comp, dx, dx_fine, xctr, yctr) bind(C, name='fgaussian_pulse')
+
+  use amrex_fort_module, only : rt => amrex_real
+  use amrex_constants_module
+
+  implicit none
+
+  integer, intent(in) :: lo(3), hi(3)
+  integer, intent(in) :: plo(3), phi(3), nc_p
+  integer, intent(in), value :: nbins
+  real(rt), intent(in) :: p(plo(1):phi(1),plo(2):phi(2),plo(3):phi(3),0:nc_p-1)
+  real(rt), intent(inout) :: rad_bin(0:nbins-1)
+  integer, intent(inout) :: ncount(0:nbins-1)
+  integer, intent(inout) :: imask(0:mask_size-1,0:mask_size-1)
+  integer, intent(in), value :: mask_size, r1, rad_comp
+  real(rt), intent(in), value :: dx_fine, xctr, yctr
+  real(rt), intent(in) :: dx(3)
+
+  integer :: ii, jj, k, index
+  real(rt) :: xx, yy, r_zone
+
+  ! loop over all of the zones in the patch.  Here, we convert
+  ! the cell-centered indices at the current level into the
+  ! corresponding RANGE on the finest level, and test if we've
+  ! stored data in any of those locations.  If we haven't then
+  ! we store this level's data and mark that range as filled.
+  k = lo(3)
+  do jj = lo(2), hi(2)
+     do ii = lo(1), hi(1)
+
+        if ( any(imask(ii*r1:(ii+1)*r1-1, &
+             jj*r1:(jj+1)*r1-1) .eq. 1) ) then
+
+           r_zone = sqrt((xx-xctr)**2 + (yy-yctr)**2)
+
+           index = r_zone/dx_fine
+
+           ! weight the zone's data by its size
+           rad_bin(index) = rad_bin(index) + &
+                p(ii,jj,1,rad_comp)*r1**2
+
+           ncount(index) = ncount(index) + r1**2
+
+           imask(ii*r1:(ii+1)*r1-1, &
+                jj*r1:(jj+1)*r1-1) = 0
+
+        end if
+
+     enddo
+  enddo
+
+end subroutine fgaussian_pulse
+
+
+! Process a 1-d sedov problem to produce rho, u, and p as a
+! function of r, for comparison to the analytic solution.
+subroutine flgt_frnt1d(lo, hi, p, plo, phi, nc_p, nbins, &
+     dens_bin, vel_bin, pres_bin, rad_bin, &
+     imask, mask_size, r1,&
+     dens_comp, xmom_comp, pres_comp, &
+     rad_comp, dx, dx_fine) bind(C, name='flgt_frnt1d')
+
+  use amrex_fort_module, only : rt => amrex_real
+  use amrex_constants_module
+
+  implicit none
+
+  integer, intent(in) :: lo(3), hi(3)
+  integer, intent(in) :: plo(3), phi(3), nc_p
+  integer, intent(in), value :: nbins
+  real(rt), intent(in) :: p(plo(1):phi(1),plo(2):phi(2),plo(3):phi(3),0:nc_p-1)
+  real(rt), intent(inout) :: dens_bin(0:nbins-1)
+  real(rt), intent(inout) :: vel_bin(0:nbins-1)
+  real(rt), intent(inout) :: pres_bin(0:nbins-1)
+  real(rt), intent(inout) :: rad_bin(0:nbins-1)
+  integer, intent(inout) :: imask(0:mask_size-1)
+  integer, intent(in), value :: mask_size, r1, dens_comp, xmom_comp, pres_comp, rad_comp
+  real(rt), intent(in), value :: dx_fine
+  real(rt), intent(in) :: dx(3)
+
+  integer :: ii, j, k, index
+
+  ! loop over all of the zones in the patch.  Here, we convert
+  ! the cell-centered indices at the current level into the
+  ! corresponding RANGE on the finest level, and test if we've
+  ! stored data in any of those locations.  If we haven't then
+  ! we store this level's data and mark that range as filled.
+  k = lo(3)
+  j = lo(2)
+
+  do ii = lo(1), hi(1)
+
+     if ( any(imask(ii*r1:(ii+1)*r1-1) .eq. 1) )then
+
+        index = ii * r1
+
+        dens_bin(index:index+(r1-1)) = p(ii,1,1,dens_comp)
+
+        vel_bin(index:index+(r1-1)) = &
+             abs(p(ii,1,1,xmom_comp)) / p(ii,1,1,dens_comp)
+
+        pres_bin(index:index+(r1-1)) = p(ii,1,1,pres_comp)
+
+        rad_bin(index:index+(r1-1)) = p(ii,1,1,rad_comp)
+
+        imask(ii*r1:(ii+1)*r1-1) = 0
+
+     end if
+
+  enddo
+
+end subroutine flgt_frnt1d
+
+subroutine fradshock(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
+     vars_bin, imask, mask_size, r1, rr, dx, idir, cnt) bind(C, name='fradshock')
+
+  use amrex_fort_module, only : rt => amrex_real
+  use amrex_constants_module
+  use prob_params_module, only: dim
+
+  implicit none
+
+  integer, intent(in) :: lo(3), hi(3)
+  real(rt), intent(in) :: problo(3), probhi(3)
+  integer, intent(in) :: plo(3), phi(3), nc_p
+  integer, intent(in), value :: nbins
+  real(rt), intent(in) :: p(plo(1):phi(1),plo(2):phi(2),plo(3):phi(3),0:nc_p-1)
+  real(rt), intent(inout) :: vars_bin(0:nbins-1, 0:nc_p)
+  integer, intent(inout) :: imask(0:mask_size-1)
+  integer, intent(in), value :: mask_size, r1, rr, idir
+  integer, intent(inout) :: cnt
+  real(rt), intent(in) :: dx(3)
+
+  integer :: ii, jj, kk
+  real(rt) :: iloc, jloc, kloc, xmin, xmax, ymin, ymax, zmin, zmax
+
+  iloc = (hi(1)-lo(1)+1)/2 + lo(1)
+
+  xmin = problo(1)
+  xmax = probhi(1)
+
+#if (AMREX_SPACEDIM >= 2)
+  jloc = (hi(2)-lo(2)+1)/2 + lo(2)
+  ymin = problo(2)
+  ymax = probhi(2)
+#endif
+#if (AMREX_SPACEDIM == 3)
+  kloc = (hi(3)-lo(3)+1)/2 + lo(3)
+  zmin = problo(3)
+  zmax = probhi(3)
+#endif
+
+  select case (idir)
+
+  case (1)
+
+#if (AMREX_SPACEDIM == 1)
+     ! p => dataptr(pf, i, j)
+     jj = lo(2)
+     kk = lo(3)
+
+     do ii = lo(1), hi(1)
+        if ( any(imask(ii*r1:(ii+1)*r1-1) ) ) then
+           cnt = cnt + 1
+
+           vars_bin(cnt,1) = xmin + (ii + HALF)*dx(1)
+           vars_bin(cnt,2:) = p(ii,jj,kk,:)
+
+           imask(ii*r1:(ii+1)*r1-1) = 0
+        end if
+     end do
+
+#else
+
+     ! if the current patch stradles our slice, then get a data
+     ! pointer to it
+     if ( rr*jloc >= lo(2) .and. rr*jloc <= hi(2) .and. &
+          ( (dim .eq. 2) .or. (rr*kloc >= lo(3) .and. rr*kloc <= hi(3)) ) ) then
+        ! p => dataptr(pf, i, j)
+        jj = jloc*rr
+        if (dim .eq. 3) then
+           kk = kloc*rr
+        else
+           kk = lo(3)
+        end if
+
+        ! loop over all of the zones in the slice direction.
+        ! Here, we convert the cell-centered indices at the
+        ! current level into the corresponding RANGE on the
+        ! finest level, and test if we've stored data in any of
+        ! those locations.  If we haven't then we store this
+        ! level's data and mark that range as filled.
+        do ii = lo(1), hi(1)
+           if ( any(imask(ii*r1:(ii+1)*r1-1) .eq. 1 ) ) then
+              cnt = cnt + 1
+
+              vars_bin(cnt,1) = xmin + (ii + HALF)*dx(1)
+              vars_bin(cnt,2:) = p(ii,jj,kk,:)
+
+              imask(ii*r1:(ii+1)*r1-1) = 0
+           end if
+        end do
+
+     end if
+
+#endif
+
+  case (2)
+
+     ! if the current patch stradles our slice, then get a data
+     ! pointer to it
+     if ( rr*iloc >= lo(1) .and. rr*iloc <= hi(1) .and. &
+          ( (AMREX_SPACEDIM .eq. 2) .or. (rr*kloc >= lo(3) .and. rr*kloc <= hi(3)) ) ) then
+        ! p => dataptr(pf, i, j)
+        ii = iloc*rr
+        if (AMREX_SPACEDIM .eq. 3) then
+           kk = kloc*rr
+        else
+           kk = lo(3)
+        end if
+
+
+        ! loop over all of the zones in the slice direction.
+        ! Here, we convert the cell-centered indices at the
+        ! current level into the corresponding RANGE on the
+        ! finest level, and test if we've stored data in any of
+        ! those locations.  If we haven't then we store this
+        ! level's data and mark that range as filled.
+        do jj = lo(2), hi(2)
+           if ( any(imask(jj*r1:(jj+1)*r1-1) .eq. 1) ) then
+              cnt = cnt + 1
+
+              vars_bin(cnt,1) = ymin + (jj + HALF)*dx(2)
+              vars_bin(cnt,2:) = p(ii,jj,kk,:)
+
+              imask(jj*r1:(jj+1)*r1-1) = 0
+           end if
+        end do
+
+     end if
+
+  case (3)
+
+     ! if the current patch stradles our slice, then get a data
+     ! pointer to it
+     if ( rr*iloc >= lo(1) .and. rr*iloc <= hi(1) .and. &
+          rr*jloc >= lo(2) .and. rr*jloc <= hi(2)) then
+        ! p => dataptr(pf, i, j)
+        ii = iloc*rr
+        jj = jloc*rr
+
+
+        ! loop over all of the zones in the slice direction.
+        ! Here, we convert the cell-centered indices at the
+        ! current level into the corresponding RANGE on the
+        ! finest level, and test if we've stored data in any of
+        ! those locations.  If we haven't then we store this
+        ! level's data and mark that range as filled.
+        do kk = lo(3), hi(3)
+           if ( any(imask(kk*r1:(kk+1)*r1-1) .eq. 1) ) then
+              cnt = cnt + 1
+
+              vars_bin(cnt,1) = zmin + (kk + HALF)*dx(3)
+              vars_bin(cnt,2:) = p(ii,jj,kk,:)
+
+              imask(kk*r1:(kk+1)*r1-1) = 0
+           end if
+        end do
+
+     end if
+
+  end select
+
+  ! ! loop over all of the zones in the patch.  Here, we convert
+  ! ! the cell-centered indices at the current level into the
+  ! ! corresponding RANGE on the finest level, and test if we've
+  ! ! stored data in any of those locations.  If we haven't then
+  ! ! we store this level's data and mark that range as filled.
+  ! k = lo(3)
+  ! j = lo(2)
+  !
+  ! do ii = lo(1), hi(1)
+  !
+  !    if ( any(imask(ii*r1:(ii+1)*r1-1) .eq. 1) )then
+  !
+  !       index = ii * r1
+  !
+  !       dens_bin(index:index+(r1-1)) = p(ii,1,1,dens_comp)
+  !
+  !       vel_bin(index:index+(r1-1)) = &
+  !            abs(p(ii,1,1,xmom_comp)) / p(ii,1,1,dens_comp)
+  !
+  !       pres_bin(index:index+(r1-1)) = p(ii,1,1,pres_comp)
+  !
+  !       rad_bin(index:index+(r1-1)) = p(ii,1,1,rad_comp)
+  !
+  !       imask(ii*r1:(ii+1)*r1-1) = 0
+  !
+  !    end if
+  !
+  ! enddo
+
+end subroutine fradshock

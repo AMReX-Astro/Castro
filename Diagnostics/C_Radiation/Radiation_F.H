@@ -28,6 +28,13 @@ void flgt_frnt1d(const int* lo, const int* hi,
                  const int rad_comp, const amrex::Real* dx,
                  const amrex::Real dx_fine);
 
+void fradshock(const int* lo, const int* hi,
+               const amrex::Real* problo, const amrex::Real* probhi,
+               BL_FORT_FAB_ARG_3D(p),const int* nc_p,
+               const int nbins, amrex::Real* vars_bin,
+               int* imask, const int mask_size, const int r1, const int rr,
+               const amrex::Real* dx, const int idir, int* cnt);
+
 
 #ifdef __cplusplus
 }

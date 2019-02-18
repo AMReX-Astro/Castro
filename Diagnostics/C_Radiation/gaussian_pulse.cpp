@@ -25,8 +25,9 @@ int main(int argc, char* argv[])
 		string slcfile;
 		double xctr = 0.0;
 		double yctr = 0.0;
+        int dir;
 
-		GetInputArgs (argc, argv, pltfile, slcfile, xctr, yctr);
+		GetInputArgs (argc, argv, pltfile, slcfile, xctr, yctr, dir);
 
 		// Start dataservices (no clue why we need to do this)
 		DataServices::SetBatchMode();
@@ -75,7 +76,7 @@ int main(int argc, char* argv[])
 		// find variable indices
         Vector <int> varComps;
         const auto nvars = 1;
-        
+
         Vector<std::string> slcvarNames(nvars);
         slcvarNames[0] = "rad";
 

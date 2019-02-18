@@ -25,8 +25,9 @@ int main(int argc, char* argv[])
 		string slcfile;
 		double xctr = 0.0;
 		double yctr = 0.0;
+		int idir = 0;
 
-		GetInputArgs (argc, argv, pltfile, slcfile, xctr, yctr);
+		GetInputArgs (argc, argv, pltfile, slcfile, xctr, yctr, idir);
 
 		// Start dataservices (no clue why we need to do this)
 		DataServices::SetBatchMode();
@@ -73,18 +74,33 @@ int main(int argc, char* argv[])
 			r[i] = (i + 0.5) * dx_fine;
 
 		// find variable indices
-        Vector <int> varComps;
-        const auto nvars = 1;
-        
-        Vector<std::string> slcvarNames(nvars);
-        slcvarNames[0] = "rad";
+		Vector <int> varComps;
 
-		GetComponents(data, slcvarNames, varComps);
-        auto rad_comp = varComps[0];
+#if (AMREX_SPACEDIM == 1)
+		Vector<std::string> compVarNames = {"density", "eint_E", "Temp",
+			                            "pressure", "rad", "x_velocity"};
+#elif (AMREX_SPACEDIM == 2)
+		Vector<std::string> compVarNames = {"density",
+			                            "eint_E", "Temp", "pressure", "rad",
+			                            "x_velocity", "y_velocity"};
+#else
+		Vector<std::string> compVarNames = {"density", "eint_E", "Temp", "pressure",
+			                            "rad", "x_velocity", "y_velocity","z_velocity"};
+#endif
 
-		// allocate storage for data
-		Vector<Real> rad_bin(nbins, 0.);
-		Vector<int> ncount(nbins, 0);
+		GetComponents(data, compVarNames, varComps);
+		auto cnt = 0;
+// 		auto dens_comp = varComps[cnt++];
+// 		auto eint_comp = varComps[cnt++];
+// 		auto pres_comp = varComps[cnt++];
+// 		auto rad_comp = varComps[cnt++];
+// 		auto xvel_comp = varComps[cnt++];
+// #if (AMREX_SPACEDIM >=2)
+// 		auto yvel_comp = varComps[cnt++];
+// #endif
+// #if (AMREX_SPACEDIM == 3)
+// 		auto zvel_comp = varComps[cnt++];
+// #endif
 
 		auto r1 = 1.0;
 
@@ -99,6 +115,11 @@ int main(int argc, char* argv[])
 
 		MultiFab data_mf(ba_fine, dm_fine, data.NComp(), data.NGrow());
 		data.FillVar(data_mf, finestLevel, varNames, fill_comps);
+
+		// allocate storage for data
+		Vector<Vector<Real> > vars_bin(data.NComp()+1);
+		for(auto it=vars_bin.begin(); it!=vars_bin.end(); ++it)
+			*it = Vector<Real>(nbins, 0);
 
 		// ! imask will be set to false if we've already output the data.
 		// ! Note, imask is defined in terms of the finest level.  As we loop
@@ -118,8 +139,13 @@ int main(int argc, char* argv[])
 		for (auto it=imask.begin(); it!=imask.end(); ++it)
 			*it = 1;
 
+		cnt = 0;
+
 		// extract the 1d data
 		for (int l = finestLevel; l >= 0; l--) {
+
+			int refratio = 1;
+			for (auto lev = 0; lev < l; lev++) refratio *= rr[lev];
 
 			Vector<Real> level_dx = data.DxLevel()[l];
 
@@ -132,11 +158,12 @@ int main(int argc, char* argv[])
 			for (MFIter mfi(lev_data_mf, true); mfi.isValid(); ++mfi) {
 				const Box& bx = mfi.tilebox();
 
-				fgaussian_pulse(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				           BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
-				           nbins, rad_bin.dataPtr(), ncount.dataPtr(),
-                           imask.dataPtr(), mask_size, r1,
-				           rad_comp, ZFILL(dx), dx_fine, xctr, yctr);
+				fradshock(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+				          ZFILL(problo), ZFILL(probhi),
+				          BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
+				          nbins, vars_bin.dataPtr(),
+				          imask.dataPtr(), mask_size, r1, refratio,
+				          ZFILL(dx), idir, &cnt);
 
 			}
 
@@ -144,17 +171,19 @@ int main(int argc, char* argv[])
 			if (l != 0) r1 *= rr[l-1];
 		}
 
-		//normalize
-		for (int i = 0; i < nbins; i++) {
-			if (ncount[i] != 0)
-				rad_bin[i] /= ncount[i];
-		}
-
-
-        Vector<Vector<Real> > vars(nvars);
-        vars[0] = rad_bin;
-
-		WriteSlicefile(nbins, r, slcvarNames, vars, slcfile);
+#if (AMREX_SPACEDIM == 1)
+		Vector<std::string> slcvarNames = {"density", "x-velocity",
+			                           "int. energy", "temperature", "pressure",
+			                           "rad energy", "rad temp"};
+#elif (AMREX_SPACEDIM == 2)
+		Vector<std::string> slcvarNames = {"density", "x-velocity", "y-velocity",
+			                           "int. energy", "temperature", "pressure",
+			                           "rad energy", "rad temp"};
+#else
+		Vector<std::string> slcvarNames = {"density", "x-velocity", "y-velocity",
+			                           "z-velocity", "int. energy", "temperature", "pressure", "rad energy", "rad temp"};
+#endif
+		WriteSlicefile(nbins, r, slcvarNames, vars_bin, slcfile);
 
 	}
 
