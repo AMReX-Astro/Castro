@@ -165,33 +165,6 @@ Castro::construct_hydro_source(Real time, Real dt)
       const Box& gzbx = amrex::grow(zbx, 1);
 #endif
 
-      dq.resize(obx, AMREX_SPACEDIM*NQ);
-      Elixir elix_dq = dq.elixir();
-
-      Ip.resize(obx, AMREX_SPACEDIM*3*NQ);
-      Elixir elix_Ip = Ip.elixir();
-
-      Im.resize(obx, AMREX_SPACEDIM*3*NQ);
-      Elixir elix_Im = Im.elixir();
-
-      Ip_src.resize(obx, AMREX_SPACEDIM*3*QVAR);
-      Elixir elix_Ip_src = Ip_src.elixir();
-
-      Im_src.resize(obx, AMREX_SPACEDIM*3*QVAR);
-      Elixir elix_Im_src = Im_src.elixir();
-
-      Ip_gc.resize(obx, AMREX_SPACEDIM*3);
-      Elixir elix_Ip_gc = Ip_gc.elixir();
-
-      Im_gc.resize(obx,AMREX_SPACEDIM*3);
-      Elixir elix_Im_gc = Im_gc.elixir();
-
-      sm.resize(obx, AMREX_SPACEDIM);
-      Elixir elix_sm = sm.elixir();
-
-      sp.resize(obx, AMREX_SPACEDIM);
-      Elixir elix_sp = sp.elixir();
-
       shk.resize(obx, 1);
       Elixir elix_shk = shk.elixir();
 
@@ -217,38 +190,93 @@ Castro::construct_hydro_source(Real time, Real dt)
       Elixir elix_qzp = qzp.elixir();
 #endif
 
+      if (ppm_type == 0) {
+
+        dq.resize(obx, AMREX_SPACEDIM*NQ);
+        Elixir elix_dq = dq.elixir();
+
 #pragma gpu
-      ctu_normal_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                        AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                        BL_TO_FORTRAN_ANYD(q[mfi]),
-                        BL_TO_FORTRAN_ANYD(flatn),
-                        BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                        BL_TO_FORTRAN_ANYD(src_q[mfi]),
-                        BL_TO_FORTRAN_ANYD(shk),
-                        BL_TO_FORTRAN_ANYD(Ip),
-                        BL_TO_FORTRAN_ANYD(Im),
-                        BL_TO_FORTRAN_ANYD(Ip_src),
-                        BL_TO_FORTRAN_ANYD(Im_src),
-                        BL_TO_FORTRAN_ANYD(Ip_gc),
-                        BL_TO_FORTRAN_ANYD(Im_gc),
-                        BL_TO_FORTRAN_ANYD(dq),
-                        BL_TO_FORTRAN_ANYD(sm),
-                        BL_TO_FORTRAN_ANYD(sp),
-                        BL_TO_FORTRAN_ANYD(qxm),
-                        BL_TO_FORTRAN_ANYD(qxp),
+        ctu_plm_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+                       AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                       BL_TO_FORTRAN_ANYD(q[mfi]),
+                       BL_TO_FORTRAN_ANYD(flatn),
+                       BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                       BL_TO_FORTRAN_ANYD(src_q[mfi]),
+                       BL_TO_FORTRAN_ANYD(shk),
+                       BL_TO_FORTRAN_ANYD(dq),
+                       BL_TO_FORTRAN_ANYD(qxm),
+                       BL_TO_FORTRAN_ANYD(qxp),
 #if AMREX_SPACEDIM >= 2
-                        BL_TO_FORTRAN_ANYD(qym),
-                        BL_TO_FORTRAN_ANYD(qyp),
+                       BL_TO_FORTRAN_ANYD(qym),
+                       BL_TO_FORTRAN_ANYD(qyp),
 #endif
 #if AMREX_SPACEDIM == 3
-                        BL_TO_FORTRAN_ANYD(qzm),
-                        BL_TO_FORTRAN_ANYD(qzp),
+                       BL_TO_FORTRAN_ANYD(qzm),
+                       BL_TO_FORTRAN_ANYD(qzp),
 #endif
-                        AMREX_REAL_ANYD(dx), dt,
+                       AMREX_REAL_ANYD(dx), dt,
 #if (AMREX_SPACEDIM < 3)
-                        BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
+                       BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
 #endif
-                        AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                       AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+
+      } else {
+
+        Ip.resize(obx, AMREX_SPACEDIM*3*NQ);
+        Elixir elix_Ip = Ip.elixir();
+
+        Im.resize(obx, AMREX_SPACEDIM*3*NQ);
+        Elixir elix_Im = Im.elixir();
+
+        Ip_src.resize(obx, AMREX_SPACEDIM*3*QVAR);
+        Elixir elix_Ip_src = Ip_src.elixir();
+
+        Im_src.resize(obx, AMREX_SPACEDIM*3*QVAR);
+        Elixir elix_Im_src = Im_src.elixir();
+
+        Ip_gc.resize(obx, AMREX_SPACEDIM*3);
+        Elixir elix_Ip_gc = Ip_gc.elixir();
+
+        Im_gc.resize(obx,AMREX_SPACEDIM*3);
+        Elixir elix_Im_gc = Im_gc.elixir();
+
+        sm.resize(obx, AMREX_SPACEDIM);
+        Elixir elix_sm = sm.elixir();
+
+        sp.resize(obx, AMREX_SPACEDIM);
+        Elixir elix_sp = sp.elixir();
+
+        ctu_ppm_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+                       AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                       BL_TO_FORTRAN_ANYD(q[mfi]),
+                       BL_TO_FORTRAN_ANYD(flatn),
+                       BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                       BL_TO_FORTRAN_ANYD(src_q[mfi]),
+                       BL_TO_FORTRAN_ANYD(shk),
+                       BL_TO_FORTRAN_ANYD(Ip),
+                       BL_TO_FORTRAN_ANYD(Im),
+                       BL_TO_FORTRAN_ANYD(Ip_src),
+                       BL_TO_FORTRAN_ANYD(Im_src),
+                       BL_TO_FORTRAN_ANYD(Ip_gc),
+                       BL_TO_FORTRAN_ANYD(Im_gc),
+                       BL_TO_FORTRAN_ANYD(sm),
+                       BL_TO_FORTRAN_ANYD(sp),
+                       BL_TO_FORTRAN_ANYD(qxm),
+                       BL_TO_FORTRAN_ANYD(qxp),
+#if AMREX_SPACEDIM >= 2
+                       BL_TO_FORTRAN_ANYD(qym),
+                       BL_TO_FORTRAN_ANYD(qyp),
+#endif
+#if AMREX_SPACEDIM == 3
+                       BL_TO_FORTRAN_ANYD(qzm),
+                       BL_TO_FORTRAN_ANYD(qzp),
+#endif
+                       AMREX_REAL_ANYD(dx), dt,
+#if (AMREX_SPACEDIM < 3)
+                       BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
+#endif
+                       AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+      }
 
       div.resize(obx, 1);
       Elixir elix_div = div.elixir();
