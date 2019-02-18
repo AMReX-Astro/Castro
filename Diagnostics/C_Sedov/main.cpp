@@ -80,7 +80,11 @@ int main(int argc, char* argv[])
 		double y_maxdist = max(fabs(probhi[1] - yctr), fabs(problo[1] - yctr));
 		double maxdist = sqrt(x_maxdist*x_maxdist + y_maxdist*y_maxdist);
 #else
-		double maxdist = max(abs(probhi[0] - problo[0]), abs(probhi[1] - problo[1]), abs(probhi[2] - problo[2]));
+		double x_maxdist = max(fabs(probhi[0] - xctr), fabs(problo[0] - xctr));
+		double y_maxdist = max(fabs(probhi[1] - yctr), fabs(problo[1] - yctr));
+		double z_maxdist = max(fabs(probhi[2] - zctr), fabs(problo[2] - zctr));
+		double maxdist = sqrt(x_maxdist*x_maxdist + y_maxdist*y_maxdist +
+		                      z_maxdist*z_maxdist);
 #endif
 
 		double dx_fine = *(std::min_element(dx.begin(), dx.end()));
@@ -121,8 +125,6 @@ int main(int argc, char* argv[])
 
 		auto r1 = 1.0;
 
-		Vector<int> rr = data.RefRatio();
-
 		// fill a multifab with the data
 		Vector<int> fill_comps(data.NComp());
 		for (auto i = 0; i < data.NComp(); i++) {
@@ -156,10 +158,6 @@ int main(int argc, char* argv[])
 		// extract the 1d data
 		for (int l = finestLevel; l >= 0; l--) {
 
-			int refratio = 1;
-
-			for (int ll = 0; ll < l; ll++) refratio *= rr[ll];
-
 			Vector<Real> level_dx = data.DxLevel()[l];
 
 			const BoxArray& ba = data.boxArray(l);
@@ -181,7 +179,7 @@ int main(int argc, char* argv[])
 #elif (AMREX_SPACEDIM == 2)
 				if (sphr) {
 
-                    fextract2d_sph(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+					fextract2d_sph(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 					               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
 					               nbins, dens_bin.dataPtr(),
 					               vel_bin.dataPtr(), pres_bin.dataPtr(),
@@ -189,7 +187,7 @@ int main(int argc, char* argv[])
 					               imask.dataPtr(), mask_size, r1,
 					               dens_comp, xmom_comp, ymom_comp, pres_comp, rhoe_comp,
 					               dx_fine, level_dx.dataPtr(),
-					               xctr, yctr);
+					               yctr);
 
 				} else {
 					fextract2d_cyl(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
@@ -204,11 +202,11 @@ int main(int argc, char* argv[])
 				}
 #else
 				if (sphr) {
-                    fextract3d_sph(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+					fextract3d_sph(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 					               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
 					               nbins, dens_bin.dataPtr(),
 					               vel_bin.dataPtr(), pres_bin.dataPtr(),
-                                   e_bin.dataPtr(), ncount.dataPtr(),
+					               e_bin.dataPtr(), ncount.dataPtr(),
 					               imask.dataPtr(), mask_size, r1,
 					               dens_comp, xmom_comp, ymom_comp, zmom_comp, pres_comp, rhoe_comp,
 					               dx_fine, level_dx.dataPtr(), xctr, yctr, zctr);
@@ -218,10 +216,10 @@ int main(int argc, char* argv[])
 					               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
 					               nbins, dens_bin.dataPtr(),
 					               vel_bin.dataPtr(), pres_bin.dataPtr(),
-                                   ncount.dataPtr(),
+					               ncount.dataPtr(),
 					               imask.dataPtr(), mask_size, r1,
 					               dens_comp, xmom_comp, ymom_comp, zmom_comp, pres_comp,
-					               dx_fine, level_dx.dataPtr(), refratio, xctr, yctr);
+					               dx_fine, level_dx.dataPtr(), xctr, yctr);
 				}
 #endif
 			}
@@ -329,8 +327,8 @@ void GetInputArgs ( const int argc, char** argv,
 		Abort("Missing input file");
 	}
 
-	Print() << "\npltfile = \"" << pltfile << "\"" << std::endl;
-	Print() << "slcfile = \"" << slcfile << "\"" << std::endl;
+	Print() << "\nplotfile  = \"" << pltfile << "\"" << std::endl;
+	Print() << "slicefile = \"" << slcfile << "\"" << std::endl;
 	Print() << std::endl;
 }
 
