@@ -56,7 +56,7 @@ end subroutine fextract1d
 
 subroutine fextract2d_cyl(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
      vel_bin, pres_bin, e_bin, ncount, imask, mask_size, r1, &
-     dens_comp, xmom_comp, ymom_comp, pres_comp, rhoe_comp, dx_fine, dx, rr, &
+     dens_comp, xmom_comp, ymom_comp, pres_comp, rhoe_comp, dx_fine, dx, &
      xctr, yctr) &
      bind(C, name='fextract2d_cyl')
 
@@ -77,7 +77,7 @@ subroutine fextract2d_cyl(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   integer, intent(in), value :: mask_size
   integer, intent(inout) :: imask(0:mask_size-1,0:mask_size-1)
   integer, intent(in), value :: r1, dens_comp, xmom_comp, ymom_comp, pres_comp, rhoe_comp
-  real(rt), intent(in), value :: dx_fine, rr, xctr, yctr
+  real(rt), intent(in), value :: dx_fine, xctr, yctr
   real(rt), intent(in) :: dx(3)
 
   integer :: ii, jj, k, index
@@ -90,10 +90,10 @@ subroutine fextract2d_cyl(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   ! we store this level's data and mark that range as filled.
   k = lo(3)
   do jj = lo(2), hi(2)
-     yy = (jj + HALF)*dx(2)/rr
+     yy = (jj + HALF)*dx(2)
 
      do ii = lo(1), hi(1)
-        xx = (ii + HALF)*dx(1)/rr
+        xx = (ii + HALF)*dx(1)
 
         if ( any(imask(ii*r1:(ii+1)*r1-1, &
              jj*r1:(jj+1)*r1-1) .eq. 1) ) then
@@ -101,14 +101,14 @@ subroutine fextract2d_cyl(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
            r_zone = sqrt((xx-xctr)**2 + (yy-yctr)**2)
 
            index = r_zone/dx_fine
-           
+
            dens_bin(index) = dens_bin(index) + &
                 p(ii,jj,k,dens_comp)*r1**2
 
            vel_bin(index) = vel_bin(index) + &
                 (sqrt(p(ii,jj,k,xmom_comp)**2 + &
-                      p(ii,jj,k,ymom_comp)**2)/ &
-                      p(ii,jj,k,dens_comp))*r1**2
+                p(ii,jj,k,ymom_comp)**2)/ &
+                p(ii,jj,k,dens_comp))*r1**2
 
            pres_bin(index) = pres_bin(index) + &
                 p(ii,jj,k,pres_comp)*r1**2
@@ -119,7 +119,7 @@ subroutine fextract2d_cyl(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
            ncount(index) = ncount(index) + r1**2
 
            imask(ii*r1:(ii+1)*r1-1, &
-                 jj*r1:(jj+1)*r1-1) = 0
+                jj*r1:(jj+1)*r1-1) = 0
 
         end if
 
@@ -149,8 +149,8 @@ subroutine fextract2d_sph(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   integer, intent(inout) :: volcount(0:nbins-1)
   integer, intent(in) :: mask_size(2)
   integer, intent(inout) :: imask(0:mask_size(1)-1,0:mask_size(2)-1)
-  integer, intent(in), value :: r1, dens_comp, xmom_comp, ymom_comp, pres_comp, rhoe_comp
-  real(rt), intent(in), value :: dx_fine, yctr, rr
+  integer, intent(in), value :: r1, dens_comp, xmom_comp, ymom_comp, pres_comp, rhoe_comp, rr
+  real(rt), intent(in), value :: dx_fine, yctr
   real(rt), intent(in) :: dx(3)
 
   integer :: ii, jj, index
@@ -232,8 +232,8 @@ subroutine fextract3d_cyl(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   integer, intent(inout) :: ncount(0:nbins-1)
   integer, intent(in) :: mask_size(3)
   integer, intent(inout) :: imask(0:mask_size(1)-1,0:mask_size(2)-1,0:mask_size(3)-1)
-  integer, intent(in), value :: r1, dens_comp, xmom_comp, ymom_comp, zmom_comp, pres_comp
-  real(rt), intent(in), value :: dx_fine, rr, xctr, yctr
+  integer, intent(in), value :: r1, dens_comp, xmom_comp, ymom_comp, zmom_comp, pres_comp, rr
+  real(rt), intent(in), value :: dx_fine, xctr, yctr
   real(rt), intent(in) :: dx(3)
 
   integer :: ii, jj, kk, index
@@ -311,8 +311,8 @@ subroutine fextract3d_sph(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   integer, intent(inout) :: ncount(0:nbins-1)
   integer, intent(in) :: mask_size(3)
   integer, intent(inout) :: imask(0:mask_size(1)-1,0:mask_size(2)-1,0:mask_size(3)-1)
-  integer, intent(in), value :: r1, dens_comp, xmom_comp, ymom_comp, zmom_comp, pres_comp, rhoe_comp
-  real(rt), intent(in), value :: dx_fine, xctr, yctr, zctr, rr
+  integer, intent(in), value :: r1, dens_comp, xmom_comp, ymom_comp, zmom_comp, pres_comp, rhoe_comp, rr
+  real(rt), intent(in), value :: dx_fine, xctr, yctr, zctr
   real(rt), intent(in) :: dx(3)
 
   integer :: ii, jj, kk, index

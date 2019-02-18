@@ -85,12 +85,6 @@ int main(int argc, char* argv[])
 
 		int nbins = int(maxdist / dx_fine);
 
-        // Print() << "maxdist = " << maxdist << ", dx_fine = " << dx_fine << ", nbins = " << nbins << std::endl;
-        //
-        // Print() << "x_maxdist = " << x_maxdist <<", y_maxdist = " << y_maxdist << std::endl;
-        //
-        // Print() << "problo = " << problo[0] << ", xctr = " << xctr <<  ", deltax = " << fabs(problo[0] - xctr) << std::endl;
-
 		Vector<Real> r(nbins);
 
 		for (auto i = 0; i < nbins; i++)
@@ -144,7 +138,6 @@ int main(int argc, char* argv[])
 		// ! over levels, we will compare to the finest level index space to
 		// ! determine if we've already output here
 		int mask_size = nbins;
-        Print() << "mask_size = " << mask_size << std::endl;
 		for (auto i = 0; i < finestLevel - 1; i++)
 			mask_size *= rr[i];
 
@@ -174,7 +167,7 @@ int main(int argc, char* argv[])
 			data.FillVar(lev_data_mf, l, varNames, fill_comps);
 
 			for (MFIter mfi(lev_data_mf, true); mfi.isValid(); ++mfi) {
-				const Box& bx = mfi.validbox();
+				const Box& bx = mfi.tilebox();
 
 #if (AMREX_SPACEDIM == 1)
 				fextract1d(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
@@ -192,7 +185,7 @@ int main(int argc, char* argv[])
 				               imask.dataPtr(), mask_size, r1,
 				               dens_comp, xmom_comp, ymom_comp, pres_comp, rhoe_comp,
 				               dx_fine, level_dx.dataPtr(),
-				               refratio, xctr, yctr);
+				               xctr, yctr);
 #else
 				fextract3d_cyl(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 				               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
@@ -205,7 +198,7 @@ int main(int argc, char* argv[])
 			}
 
 			// adjust r1 for the next lowest level
-			if (l != 1) r1 *= rr[l-1];
+			if (l != 0) r1 *= rr[l-1];
 		}
 
 #if (AMREX_SPACEDIM == 2)
@@ -223,21 +216,22 @@ int main(int argc, char* argv[])
 		// now open the slicefile and write out the data
 		std::ofstream slicefile;
 		slicefile.open(slcfile);
-		slicefile.precision(9);
+        slicefile.setf(std::ios::scientific);
+		slicefile.precision(12);
+        const auto w = 24;
 
 		// write the header
-		slicefile << std::setw(12) << "x" << std::setw(12) << "density" << std::setw(12) << "velocity" << std::setw(12) << "pressure" << std::setw(12) << "int. energy" << std::endl;
+		slicefile << std::setw(w) << "x" << std::setw(w) << "density" << std::setw(w) << "velocity" << std::setw(w) << "pressure" << std::setw(w) << "int. energy" << std::endl;
 
 		// write the data in columns
 		const auto SMALL = 1.e-20;
 		for (auto i = 0; i < nbins; i++) {
-			// Print() << "dens_bin = " << dens_bin[i] << std::endl;
-			if (abs(dens_bin[i]) < SMALL) dens_bin[i] = 0.0;
-			if (abs( vel_bin[i]) < SMALL) vel_bin[i] = 0.0;
-			if (abs(pres_bin[i]) < SMALL) pres_bin[i] = 0.0;
-			if (abs(   e_bin[i]) < SMALL) e_bin[i] = 0.0;
+			if (fabs(dens_bin[i]) < SMALL) dens_bin[i] = 0.0;
+			if (fabs( vel_bin[i]) < SMALL) vel_bin[i] = 0.0;
+			if (fabs(pres_bin[i]) < SMALL) pres_bin[i] = 0.0;
+			if (fabs(   e_bin[i]) < SMALL) e_bin[i] = 0.0;
 
-			slicefile << std::setw(12) << r[i] << std::setw(12) << dens_bin[i] << std::setw(12) << vel_bin[i] << std::setw(12) << pres_bin[i] << std::setw(12) << e_bin[i] << std::endl;
+			slicefile << std::setw(w) << r[i] << std::setw(w) << dens_bin[i] << std::setw(w) << vel_bin[i] << std::setw(w) << pres_bin[i] << std::setw(w) << e_bin[i] << std::endl;
 
 		}
 

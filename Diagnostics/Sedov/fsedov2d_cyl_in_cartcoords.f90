@@ -201,12 +201,20 @@ program fextract2d
      ! the current level
      rr = product(pf%refrat(1:i-1,1))
 
+     write(*,*) "level = ", i
+
      do j = 1, nboxes(pf, i)
         lo = lwb(get_box(pf, i, j))
         hi = upb(get_box(pf, i, j))
 
         ! get a pointer to the current patch
         p => dataptr(pf, i, j)
+
+        write(*,*) "lo = ", lbound(p), "hi = ", ubound(p)
+
+        write(*,*) "r1 = ", r1
+
+        ! write(*,*) p(:,:,1,pres_comp)
 
         ! loop over all of the zones in the patch.  Here, we convert
         ! the cell-centered indices at the current level into the
@@ -225,6 +233,10 @@ program fextract2d
                  r_zone = sqrt((xx-xctr)**2 + (yy-yctr)**2)
 
                  index = r_zone/dx_fine
+
+                 ! if (r_zone < 0.1d0) then
+                 !    write(*,*) "r_zone = ", r_zone, "index = ", index
+                 ! endif
 
                  ! weight the zone's data by its size
                  dens_bin(index) = dens_bin(index) + &

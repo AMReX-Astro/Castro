@@ -28,7 +28,6 @@ void fextract2d_cyl(const int* lo, const int* hi,
                     const int ymom_comp,
                     const int pres_comp, const int rhoe_comp,
                     const amrex::Real dx_fine, const amrex::Real* dx,
-                    const amrex::Real rr,
                     const amrex::Real xctr, const amrex::Real yctr);
 
 void fextract2d_sph(const int* lo, const int* hi,
@@ -42,7 +41,7 @@ void fextract2d_sph(const int* lo, const int* hi,
                     const int ymom_comp,
                     const int pres_comp, const int rhoe_comp,
                     const amrex::Real dx_fine, const amrex::Real* dx,
-                    const amrex::Real rr,
+                    const int rr,
                     const amrex::Real yctr);
 
 void fextract3d_cyl(const int* lo, const int* hi,
@@ -56,7 +55,7 @@ void fextract3d_cyl(const int* lo, const int* hi,
                     const int ymom_comp, const int zmom_comp,
                     const int pres_comp,
                     const amrex::Real dx_fine, const amrex::Real* dx,
-                    const amrex::Real rr,
+                    const int rr,
                     const amrex::Real xctr, const amrex::Real yctr);
 
 void fextract3d_sph(const int* lo, const int* hi,
@@ -70,7 +69,7 @@ void fextract3d_sph(const int* lo, const int* hi,
                     const int ymom_comp, const int zmom_comp,
                     const int pres_comp, const int rhoe_comp,
                     const amrex::Real dx_fine, const amrex::Real* dx,
-                    const amrex::Real rr, const amrex::Real xctr,
+                    const int, const amrex::Real xctr,
                     const amrex::Real yctr, const amrex::Real zctr);
 
 #ifdef __cplusplus
