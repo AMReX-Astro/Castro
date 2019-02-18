@@ -630,7 +630,7 @@ extern "C"
 
 #ifdef AMREX_USE_CUDA
   void ca_ppm_reconstruct
-    (const int* lo, const int* hi, int put_on_edges,
+    (const int* lo, const int* hi, int put_on_edges, int idir,
      BL_FORT_FAB_ARG_3D(q), int nc, int nstart, int nend,
      BL_FORT_FAB_ARG_3D(flatn),
      BL_FORT_FAB_ARG_3D(qm),
