@@ -1704,6 +1704,7 @@ public:
 ///
     static int       QVAR;
     static int       NQAUX;
+    static int       NQSRC;
     static int       NQ;
     static int       NGDNV;
 
