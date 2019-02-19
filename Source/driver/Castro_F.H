@@ -522,7 +522,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(reactions_old),
      const BL_FORT_FAB_ARG_3D(reactions_new),
 #endif
-     const amrex::Real* dx, const amrex::Real* dt_old, amrex::Real* dt);
+     const amrex::Real* dx, const amrex::Real dt_old, amrex::Real* dt);
 
   void divu
     (const int* lo, const int* hi,
