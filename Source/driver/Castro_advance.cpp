@@ -1290,18 +1290,16 @@ Castro::retry_advance(Real& time, Real dt, int amr_iteration, int amr_ncycle)
 
         const Box& bx = mfi.tilebox();
 
-        const int* lo = bx.loVect();
-        const int* hi = bx.hiVect();
-
-        ca_check_timestep(ARLIM_3D(lo), ARLIM_3D(hi),
+#pragma gpu
+        ca_check_timestep(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                           BL_TO_FORTRAN_ANYD(S_old[mfi]),
                           BL_TO_FORTRAN_ANYD(S_new[mfi]),
 #ifdef REACTIONS
                           BL_TO_FORTRAN_ANYD(R_old[mfi]),
                           BL_TO_FORTRAN_ANYD(R_new[mfi]),
 #endif
-                          ZFILL(dx),
-                          &dt, &dt_sub);
+                          AMREX_REAL_ANYD(dx),
+                          dt, AMREX_MFITER_REDUCE_MIN(&dt_sub));
 
     }
 

@@ -460,13 +460,13 @@ contains
 
 
   subroutine ca_check_timestep(lo, hi, s_old, so_lo, so_hi, &
-       s_new, sn_lo, sn_hi, &
+                               s_new, sn_lo, sn_hi, &
 #ifdef REACTIONS
-       r_old, ro_lo, ro_hi, &
-       r_new, rn_lo, rn_hi, &
+                               r_old, ro_lo, ro_hi, &
+                               r_new, rn_lo, rn_hi, &
 #endif
-       dx, dt_old, dt_new) &
-       bind(C, name="ca_check_timestep")
+                               dx, dt_old, dt_new) &
+                               bind(C, name="ca_check_timestep")
 
     ! Check whether the last timestep violated any of our stability criteria.
     ! If so, suggest a new timestep which would not.
@@ -498,7 +498,8 @@ contains
     real(rt), intent(in) :: r_old(ro_lo(1):ro_hi(1),ro_lo(2):ro_hi(2),ro_lo(3):ro_hi(3),nspec+2)
     real(rt), intent(in) :: r_new(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+2)
 #endif
-    real(rt), intent(in) :: dx(3), dt_old
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(in), value :: dt_old
     real(rt), intent(inout) :: dt_new
 
     integer          :: i, j, k
@@ -515,6 +516,8 @@ contains
     type (eos_t)     :: eos_state
 
     real(rt), parameter :: derivative_floor = 1.e-50_rt
+
+    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
