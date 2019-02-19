@@ -2,8 +2,8 @@ ca_F90EXE_sources += radiation_util.F90
 CEXE_headers += Radiation_F.H
 CEXE_headers += Radiation.H
 
-CEXE_sources += gaussian_pulse.cpp
-#CEXE_sources += lgt_frnt1d.cpp
+#CEXE_sources += gaussian_pulse.cpp
+CEXE_sources += lgt_frnt1d.cpp
 #CEXE_sources += rad_shock.cpp
 #CEXE_sources += rad_source.cpp
 #CEXE_sources += rad_sphere.cpp

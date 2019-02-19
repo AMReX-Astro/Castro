@@ -103,14 +103,14 @@ subroutine flgt_frnt1d(lo, hi, p, plo, phi, nc_p, nbins, &
 
         index = ii * r1
 
-        dens_bin(index:index+(r1-1)) = p(ii,1,1,dens_comp)
+        dens_bin(index:index+(r1-1)) = p(ii,j,k,dens_comp)
 
         vel_bin(index:index+(r1-1)) = &
-             abs(p(ii,1,1,xmom_comp)) / p(ii,1,1,dens_comp)
+             abs(p(ii,j,k,xmom_comp)) / p(ii,j,k,dens_comp)
 
-        pres_bin(index:index+(r1-1)) = p(ii,1,1,pres_comp)
+        pres_bin(index:index+(r1-1)) = p(ii,j,k,pres_comp)
 
-        rad_bin(index:index+(r1-1)) = p(ii,1,1,rad_comp)
+        rad_bin(index:index+(r1-1)) = p(ii,j,k,rad_comp)
 
         imask(ii*r1:(ii+1)*r1-1) = 0
 
@@ -168,7 +168,7 @@ subroutine fradshock(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
      kk = lo(3)
 
      do ii = lo(1), hi(1)
-        if ( any(imask(ii*r1:(ii+1)*r1-1) ) ) then
+        if ( any(imask(ii*r1:(ii+1)*r1-1) .eq. 1) ) then
            cnt = cnt + 1
 
            vars_bin(cnt,1) = xmin + (ii + HALF)*dx(1)

@@ -25,7 +25,7 @@ VPATH_LOCATIONS += $(Fmlocs)
 
 
 
-programs += fgaussianpulse
+programs += flgt_frnt1d.f90
 
 
 all: $(pnames)
