@@ -883,7 +883,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     q.setVal(0.0);
     qaux.define(grids, dmap, NQAUX, NUM_GROW);
     if (time_integration_method == CornerTransportUpwind)
-      src_q.define(grids, dmap, QVAR, NUM_GROW);
+      src_q.define(grids, dmap, NQSRC, NUM_GROW);
     if (fourth_order) {
       q_bar.define(grids, dmap, NQ, NUM_GROW);
       qaux_bar.define(grids, dmap, NQAUX, NUM_GROW);

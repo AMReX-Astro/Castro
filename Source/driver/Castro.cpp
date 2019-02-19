@@ -118,7 +118,7 @@ int          Castro::FirstAdv      = -1;
 int          Castro::Shock         = -1;
 #endif
 
-int          Castro::QVAR          = -1;
+int          Castro::NQSRC         = -1;
 int          Castro::NQAUX         = -1;
 int          Castro::NQSRC         = -1;
 int          Castro::NQ            = -1;
@@ -3652,7 +3652,7 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux)
     BL_PROFILE("Castro::cons_to_prim()");
 
     BL_ASSERT(u.nComp() == NUM_STATE);
-    BL_ASSERT(q.nComp() == QVAR);
+    BL_ASSERT(q.nComp() == NQ);
     BL_ASSERT(u.nGrow() >= q.nGrow());
 
     int ng = q.nGrow();

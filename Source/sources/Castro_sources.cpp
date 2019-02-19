@@ -445,14 +445,14 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
 
     // Compute its primitive counterpart, q*
 
-    MultiFab q_noreact(grids, dmap, QVAR, ng);
+    MultiFab q_noreact(grids, dmap, NQ, ng);
     MultiFab qaux_noreact(grids, dmap, NQAUX, ng);
 
     cons_to_prim(S_noreact, q_noreact, qaux_noreact);
 
     // Compute the primitive version of the old state, q_old
 
-    MultiFab q_old(grids, dmap, QVAR, ng);
+    MultiFab q_old(grids, dmap, NQ, ng);
     MultiFab qaux_old(grids, dmap, NQAUX, ng);
 
     cons_to_prim(S_old, q_old, qaux_old);
@@ -460,18 +460,18 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
     // Compute the effective advective update on the primitive state.
     // A(q) = (q* - q_old)/dt
 
-    MultiFab A_prim(grids, dmap, QVAR, ng);
+    MultiFab A_prim(grids, dmap, NQ, ng);
 
     A_prim.setVal(0.0);
 
     if (dt > 0.0) {
-        MultiFab::Saxpy(A_prim,  1.0 / dt, q_noreact, 0, 0, QVAR, ng);
-	MultiFab::Saxpy(A_prim, -1.0 / dt, q_old,     0, 0, QVAR, ng);
+        MultiFab::Saxpy(A_prim,  1.0 / dt, q_noreact, 0, 0, NQ, ng);
+	MultiFab::Saxpy(A_prim, -1.0 / dt, q_old,     0, 0, NQ, ng);
     }
 
     // Compute the primitive version of the new state.
 
-    MultiFab q_new(grids, dmap, QVAR, ng);
+    MultiFab q_new(grids, dmap, NQ, ng);
     MultiFab qaux_new(grids, dmap, NQAUX, ng);
 
     cons_to_prim(S_new, q_new, qaux_new);
@@ -481,11 +481,11 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
     react_src.setVal(0.0, react_src.nGrow());
 
     if (dt > 0.0) {
-        MultiFab::Saxpy(react_src,  1.0 / dt, q_new, 0, 0, QVAR, ng);
-        MultiFab::Saxpy(react_src, -1.0 / dt, q_old, 0, 0, QVAR, ng);
+        MultiFab::Saxpy(react_src,  1.0 / dt, q_new, 0, 0, NQ, ng);
+        MultiFab::Saxpy(react_src, -1.0 / dt, q_old, 0, 0, NQ, ng);
     }
 
-    MultiFab::Saxpy(react_src, -1.0, A_prim, 0, 0, QVAR, ng);
+    MultiFab::Saxpy(react_src, -1.0, A_prim, 0, 0, NQ, ng);
 
     // Now fill all of the ghost zones.
     Real time = get_state_data(SDC_React_Type).curTime();

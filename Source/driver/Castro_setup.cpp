@@ -231,7 +231,7 @@ Castro::variableSetUp ()
                        GDPRES, GDGAME);
 
   // Get the number of primitive variables from Fortran.
-  ca_get_qvar(&QVAR);
+  ca_get_nqsrc(&NQSRC);
 
   // and the auxiliary variables
   ca_get_nqaux(&NQAUX);
@@ -381,8 +381,8 @@ Castro::variableSetUp ()
 
   store_in_checkpoint = true;
   desc_lst.addDescriptor(SDC_React_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point,NUM_GROW,QVAR,
-			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
+			 StateDescriptor::Point, NUM_GROW, NQSRC,
+			 &cell_cons_interp, state_data_extrap, store_in_checkpoint);
 #endif
 #endif
 
@@ -570,7 +570,7 @@ Castro::variableSetUp ()
 
 #ifdef SDC
 #ifdef REACTIONS
-  for (int i = 0; i < QVAR; ++i) {
+  for (int i = 0; i < NQSRC; ++i) {
       char buf[64];
       sprintf(buf, "sdc_react_source_%d", i);
       set_scalar_bc(bc,phys_bc);

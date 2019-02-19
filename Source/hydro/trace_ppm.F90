@@ -37,7 +37,7 @@ contains
     ! vlo and vhi are the bounds of the valid box (no ghost cells)
 
     use network, only : nspec, naux
-    use meth_params_module, only : NQ, NQAUX, QVAR, ppm_predict_gammae, &
+    use meth_params_module, only : NQ, NQAUX, NQSRC, ppm_predict_gammae, &
                                    ppm_temp_fix, QU, QV, QW, npassive, qpass_map, fix_mass_flux
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
 
@@ -68,8 +68,8 @@ contains
     real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:3,NQ)
     real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:3,NQ)
 
-    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,QVAR)
-    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:3,QVAR)
+    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,NQSRC)
+    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:3,NQSRC)
 
     real(rt), intent(in) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:3,1)
     real(rt), intent(in) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:3,1)
@@ -234,7 +234,7 @@ contains
 
     use network, only : nspec, naux
 
-    use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, &
+    use meth_params_module, only : NQ, NQAUX, NQSRC, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QGAME, QC, QGAMC, &
                                    small_dens, small_pres, &
                                    ppm_type, &
@@ -268,8 +268,8 @@ contains
     real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:3,NQ)
     real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:3,NQ)
 
-    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,QVAR)
-    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:3,QVAR)
+    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,NQSRC)
+    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:3,NQSRC)
 
     real(rt), intent(in) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:3,1)
     real(rt), intent(in) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:3,1)
@@ -681,7 +681,7 @@ contains
                               dx, dt)
 
     use network, only : nspec, naux
-    use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, &
+    use meth_params_module, only : NQ, NQAUX, NQSRC, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QGAME, QC, QGAMC, &
                                    small_dens, small_pres, &
                                    ppm_type, &
@@ -715,8 +715,8 @@ contains
     real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:3,NQ)
     real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:3,NQ)
 
-    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,QVAR)
-    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:3,QVAR)
+    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,NQSRC)
+    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:3,NQSRC)
 
     real(rt), intent(in) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:3,1)
     real(rt), intent(in) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:3,1)
@@ -1153,7 +1153,7 @@ contains
                             dx, dt)
 
     use network, only : nspec, naux
-    use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, &
+    use meth_params_module, only : NQ, NQAUX, NQSRC, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFS, QFX, &
                                    small_dens, small_pres, &
                                    ppm_type, &
@@ -1190,8 +1190,8 @@ contains
     real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:3,NQ)
     real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:3,NQ)
 
-    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,QVAR)
-    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:3,QVAR)
+    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,NQSRC)
+    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:3,NQSRC)
 
     real(rt), intent(in) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:3,1)
     real(rt), intent(in) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:3,1)
