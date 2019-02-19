@@ -234,6 +234,10 @@ endif
 Bpack += $(foreach dir, $(Bdirs), $(TOP)/$(dir)/Make.package)
 Blocs += $(foreach dir, $(Bdirs), $(TOP)/$(dir))
 
+ifeq ($(USE_EXTRA_THERMO), TRUE)
+   DEFINES += -DEXTRA_THERMO
+endif
+
 
 #------------------------------------------------------------------------------
 # AMReX
