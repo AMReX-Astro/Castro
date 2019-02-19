@@ -360,7 +360,6 @@ endif
 # external libraries
 #------------------------------------------------------------------------------
 
-
 ifeq ($(USE_HYPRE), TRUE)
   ifeq ($(USE_OMP), TRUE)
     INCLUDE_LOCATIONS += $(HYPRE_OMP_DIR)/include
