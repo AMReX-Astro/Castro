@@ -16,17 +16,14 @@ int main(int argc, char* argv[])
 	// timer for profiling
 	BL_PROFILE_VAR("main()", pmain);
 
-	// wallclock time
-	const Real strt_total = amrex::second();
+	// Input arguments
+	if (argc < 2)
+		Abort("Missing input file");
 
-	{
-		// Input arguments
-		string pltfile;
-		string slcfile;
-		double xctr = 0.0;
-		double yctr = 0.0;
+	// all the arguments are assumed to be plotfiles
+	for (auto i = 1; i < argc; i++) {
 
-		GetInputArgs (argc, argv, pltfile, slcfile, xctr, yctr);
+		string pltfile = argv[i];
 
 		// Start dataservices (no clue why we need to do this)
 		DataServices::SetBatchMode();
@@ -41,123 +38,54 @@ int main(int argc, char* argv[])
 		// get data from plot file
 		AmrData& data = dataServices.AmrDataRef();
 
-		int finestLevel = data.FinestLevel();
-
 		// get variable names
 		const Vector<string>& varNames = data.PlotVarNames();
 
-		// get the index bounds and dx.
-		Box domain = data.ProbDomain()[finestLevel];
-
-		Vector<Real> dx(AMREX_SPACEDIM);
-		for (int i = 0; i < AMREX_SPACEDIM; i++)
-			dx[i] = data.ProbSize()[i] / domain.length(i);
-
-		const Vector<Real>& problo = data.ProbLo();
-		const Vector<Real>& probhi = data.ProbHi();
-		Vector<int> rr = data.RefRatio();
-
-		// compute the size of the radially-binned array -- we'll do it to
-		// the furtherest corner of the domain
-		double x_maxdist = max(fabs(probhi[0] - xctr), fabs(problo[0] - xctr));
-		double y_maxdist = max(fabs(probhi[1] - yctr), fabs(problo[1] - yctr));
-		double maxdist = sqrt(x_maxdist*x_maxdist + y_maxdist*y_maxdist);
-
-		double dx_fine = *(std::min_element(dx.begin(), dx.end()));
-
-		int nbins = int(maxdist / dx_fine);
-
-		Vector<Real> r(nbins);
-
-		for (auto i = 0; i < nbins; i++)
-			r[i] = (i + 0.5) * dx_fine;
-
 		// find variable indices
-        Vector <int> varComps;
-        const auto nvars = 1;
-        
-        Vector<std::string> slcvarNames(nvars);
-        slcvarNames[0] = "rad";
+		Vector <int> varComps;
+		Vector<std::string> compVarNames = {"rho_e", "rad"};
 
-		GetComponents(data, slcvarNames, varComps);
-        auto rad_comp = varComps[0];
-
-		// allocate storage for data
-		Vector<Real> rad_bin(nbins, 0.);
-		Vector<int> ncount(nbins, 0);
-
-		auto r1 = 1.0;
+		GetComponents(data, compVarNames, varComps);
+		auto rhoe_comp = varComps[0];
+		auto rad_comp = varComps[1];
 
 		// fill a multifab with the data
 		Vector<int> fill_comps(data.NComp());
-		for (auto i = 0; i < data.NComp(); i++) {
-			fill_comps[i] = i;
-		}
+		for (auto j = 0; j < data.NComp(); j++)
+			fill_comps[j] = j;
 
-		const BoxArray& ba_fine = data.boxArray(finestLevel);
-		const DistributionMapping& dm_fine = data.DistributionMap(finestLevel);
+		auto lev = 0;
 
-		MultiFab data_mf(ba_fine, dm_fine, data.NComp(), data.NGrow());
-		data.FillVar(data_mf, finestLevel, varNames, fill_comps);
+		const BoxArray& ba = data.boxArray(lev);
+		const DistributionMapping& dm = data.DistributionMap(lev);
 
-		// ! imask will be set to false if we've already output the data.
-		// ! Note, imask is defined in terms of the finest level.  As we loop
-		// ! over levels, we will compare to the finest level index space to
-		// ! determine if we've already output here
-		int mask_size = nbins;
-		for (auto i = 0; i < finestLevel - 1; i++)
-			mask_size *= rr[i];
+		MultiFab lev_data_mf(ba, dm, data.NComp(), data.NGrow());
+		data.FillVar(lev_data_mf, lev, varNames, fill_comps);
 
+		// we only care about a single zone, so take the first box
 
-#if (AMREX_SPACEDIM == 1)
-		Vector<int> imask(mask_size);
-#elif (AMREX_SPACEDIM >=2)
-		Vector<int> imask(pow(mask_size, AMREX_SPACEDIM));
-#endif
+		// for (MFIter mfi(lev_data_mf, true); mfi.isValid(); ++mfi) {
+		MFIter mfi(lev_data_mf);
+		const Box& bx = mfi.tilebox();
 
-		for (auto it=imask.begin(); it!=imask.end(); ++it)
-			*it = 1;
+		Real rhoe, rad;
 
-		// extract the 1d data
-		for (int l = finestLevel; l >= 0; l--) {
+		fradsource(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		           BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
+		           &rhoe, &rad, rhoe_comp, rad_comp);
 
-			Vector<Real> level_dx = data.DxLevel()[l];
+		// }
 
-			const BoxArray& ba = data.boxArray(l);
-			const DistributionMapping& dm = data.DistributionMap(l);
+		const auto w = 20;
 
-			MultiFab lev_data_mf(ba, dm, data.NComp(), data.NGrow());
-			data.FillVar(lev_data_mf, l, varNames, fill_comps);
+		if (i == 1)
+			Print() << std::setw(w) << "# time," << std::setw(w) << "(rho e),"
+			        << std::setw(w) << "rad" << std::endl;
 
-			for (MFIter mfi(lev_data_mf, true); mfi.isValid(); ++mfi) {
-				const Box& bx = mfi.tilebox();
-
-				fgaussian_pulse(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				           BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
-				           nbins, rad_bin.dataPtr(), ncount.dataPtr(),
-                           imask.dataPtr(), mask_size, r1,
-				           rad_comp, ZFILL(dx), dx_fine, xctr, yctr);
-
-			}
-
-			// adjust r1 for the next lowest level
-			if (l != 0) r1 *= rr[l-1];
-		}
-
-		//normalize
-		for (int i = 0; i < nbins; i++) {
-			if (ncount[i] != 0)
-				rad_bin[i] /= ncount[i];
-		}
-
-
-        Vector<Vector<Real> > vars(nvars);
-        vars[0] = rad_bin;
-
-		WriteSlicefile(nbins, r, slcvarNames, vars, slcfile);
+		Print() << std::setw(w) << data.Time() << std::setw(w) << rhoe << std::setw(w)
+		        << rad << std::endl;
 
 	}
-
 
 	// destroy timer for profiling
 	BL_PROFILE_VAR_STOP(pmain);

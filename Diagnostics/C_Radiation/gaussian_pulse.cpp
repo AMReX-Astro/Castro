@@ -78,9 +78,12 @@ int main(int argc, char* argv[])
         const auto nvars = 1;
 
         Vector<std::string> slcvarNames(nvars);
-        slcvarNames[0] = "rad";
+        slcvarNames[0] = "density";
 
 		GetComponents(data, slcvarNames, varComps);
+
+		Print() << "varComps size = " << varComps.size() << std::endl;
+
         auto rad_comp = varComps[0];
 
 		// allocate storage for data

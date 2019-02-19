@@ -25,7 +25,7 @@ VPATH_LOCATIONS += $(Fmlocs)
 
 
 
-programs += fradsphere
+programs += fgaussianpulse
 
 
 all: $(pnames)

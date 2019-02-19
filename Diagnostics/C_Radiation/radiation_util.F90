@@ -158,7 +158,6 @@ subroutine fradshock(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
   case (1)
 
 #if (AMREX_SPACEDIM == 1)
-     ! p => dataptr(pf, i, j)
      jj = lo(2)
      kk = lo(3)
 
@@ -179,8 +178,9 @@ subroutine fradshock(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
      ! pointer to it
      if ( rr*jloc >= lo(2) .and. rr*jloc <= hi(2) .and. &
           ( (dim .eq. 2) .or. (rr*kloc >= lo(3) .and. rr*kloc <= hi(3)) ) ) then
-        ! p => dataptr(pf, i, j)
+
         jj = jloc*rr
+
         if (dim .eq. 3) then
            kk = kloc*rr
         else
@@ -213,10 +213,10 @@ subroutine fradshock(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
      ! if the current patch stradles our slice, then get a data
      ! pointer to it
      if ( rr*iloc >= lo(1) .and. rr*iloc <= hi(1) .and. &
-          ( (AMREX_SPACEDIM .eq. 2) .or. (rr*kloc >= lo(3) .and. rr*kloc <= hi(3)) ) ) then
-        ! p => dataptr(pf, i, j)
+          ( (dim .eq. 2) .or. (rr*kloc >= lo(3) .and. rr*kloc <= hi(3)) ) ) then
+
         ii = iloc*rr
-        if (AMREX_SPACEDIM .eq. 3) then
+        if (dim .eq. 3) then
            kk = kloc*rr
         else
            kk = lo(3)
@@ -248,7 +248,7 @@ subroutine fradshock(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
      ! pointer to it
      if ( rr*iloc >= lo(1) .and. rr*iloc <= hi(1) .and. &
           rr*jloc >= lo(2) .and. rr*jloc <= hi(2)) then
-        ! p => dataptr(pf, i, j)
+
         ii = iloc*rr
         jj = jloc*rr
 
@@ -274,33 +274,119 @@ subroutine fradshock(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
 
   end select
 
-  ! ! loop over all of the zones in the patch.  Here, we convert
-  ! ! the cell-centered indices at the current level into the
-  ! ! corresponding RANGE on the finest level, and test if we've
-  ! ! stored data in any of those locations.  If we haven't then
-  ! ! we store this level's data and mark that range as filled.
-  ! k = lo(3)
-  ! j = lo(2)
-  !
-  ! do ii = lo(1), hi(1)
-  !
-  !    if ( any(imask(ii*r1:(ii+1)*r1-1) .eq. 1) )then
-  !
-  !       index = ii * r1
-  !
-  !       dens_bin(index:index+(r1-1)) = p(ii,1,1,dens_comp)
-  !
-  !       vel_bin(index:index+(r1-1)) = &
-  !            abs(p(ii,1,1,xmom_comp)) / p(ii,1,1,dens_comp)
-  !
-  !       pres_bin(index:index+(r1-1)) = p(ii,1,1,pres_comp)
-  !
-  !       rad_bin(index:index+(r1-1)) = p(ii,1,1,rad_comp)
-  !
-  !       imask(ii*r1:(ii+1)*r1-1) = 0
-  !
-  !    end if
-  !
-  ! enddo
-
 end subroutine fradshock
+
+! Analysis routine for RHD_shocktube
+subroutine frhdshocktube(lo, hi, p, plo, phi, nc_p, nbins, &
+     dens_bin, vel_bin, pres_bin, rad_bin, &
+     dens_comp, xvel_comp, pres_comp, rad_comp) bind(C, name='frhdshocktube')
+
+  use amrex_fort_module, only : rt => amrex_real
+  use amrex_constants_module
+  use prob_params_module, only: dim
+
+  implicit none
+
+  integer, intent(in) :: lo(3), hi(3)
+  integer, intent(in) :: plo(3), phi(3), nc_p
+  integer, intent(in), value :: nbins
+  real(rt), intent(in) :: p(plo(1):phi(1),plo(2):phi(2),plo(3):phi(3),0:nc_p-1)
+  real(rt), intent(inout) :: dens_bin(0:nbins-1)
+  real(rt), intent(inout) :: vel_bin(0:nbins-1)
+  real(rt), intent(inout) :: pres_bin(0:nbins-1)
+  real(rt), intent(inout) :: rad_bin(0:nbins-1)
+  integer, intent(in), value :: dens_comp, xvel_comp, pres_comp, rad_comp
+
+  integer :: i, j, k
+
+  k = lo(3)
+  j = lo(2)
+  do i = lo(1), hi(1)
+
+     dens_bin(i) = p(i,j,k,dens_comp)
+     vel_bin(i) = p(i,j,k,xvel_comp)
+     pres_bin(i) = p(i,j,k,pres_comp)
+
+     ! TODO: the original version sums over groups loaded from a groupfile here?
+     rad_bin(i) = p(i,j,k,rad_comp)
+
+  enddo
+
+end subroutine frhdshocktube
+
+
+! Analysis routine for the radiation source test.
+!
+! This problem is a thermal relaxiation problem.  The domain is
+! completely uniform, so we just need to look at the state variables
+! in a single zone.
+!
+! Take a list of files and print out (rho e) and the total radiation
+! energy density in the first zone as a function of time.
+subroutine fradsource(lo, hi, p, plo, phi, nc_p, &
+     rhoe, rad, rhoe_comp, rad_comp) bind(C, name='fradsource')
+
+  use amrex_fort_module, only : rt => amrex_real
+  use amrex_constants_module
+  use prob_params_module, only: dim
+
+  implicit none
+
+  integer, intent(in) :: lo(3), hi(3)
+  integer, intent(in) :: plo(3), phi(3), nc_p
+  real(rt), intent(in) :: p(plo(1):phi(1),plo(2):phi(2),plo(3):phi(3),0:nc_p-1)
+  real(rt), intent(inout) :: rhoe, rad
+  integer, intent(in), value :: rhoe_comp, rad_comp
+
+  integer :: i, j, k
+
+  k = lo(3)
+  j = lo(2)
+  i = lo(1)
+
+  rhoe = p(i,j,k,rhoe_comp)
+  rad = p(i,j,k,rad_comp)
+
+end subroutine fradsource
+
+
+subroutine fradsphere(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
+     vars_bin, imask, mask_size, r1, rr, dx, cnt) bind(C, name='fradsphere')
+
+  use amrex_fort_module, only : rt => amrex_real
+  use amrex_constants_module
+  use prob_params_module, only: dim
+
+  implicit none
+
+  integer, intent(in) :: lo(3), hi(3)
+  real(rt), intent(in) :: problo(3), probhi(3)
+  integer, intent(in) :: plo(3), phi(3), nc_p
+  integer, intent(in), value :: nbins
+  real(rt), intent(in) :: p(plo(1):phi(1),plo(2):phi(2),plo(3):phi(3),0:nc_p-1)
+  real(rt), intent(inout) :: vars_bin(0:nbins-1, 0:nc_p)
+  integer, intent(inout) :: imask(0:mask_size-1)
+  integer, intent(in), value :: mask_size, r1, rr
+  integer, intent(inout) :: cnt
+  real(rt), intent(in) :: dx(3)
+
+  integer :: i, j, k
+  real(rt) :: rmin, rmax
+
+  rmin = problo(1)
+  rmax = probhi(1)
+
+  j = lo(2)
+  k = lo(3)
+  do i = lo(1), hi(1)
+     if ( any(imask(i*r1:(i+1)*r1-1) .eq. 1) ) then
+        cnt = cnt + 1
+
+        vars_bin(cnt,1) = rmin + (i + HALF)*dx(1)
+        vars_bin(cnt,2:) = p(i,j,k,:)
+
+        imask(i*r1:(i+1)*r1-1) = 0
+     end if
+  end do
+
+end subroutine fradsphere

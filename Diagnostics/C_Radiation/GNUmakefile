@@ -12,12 +12,12 @@ USE_REACT = FALSE
 
 USE_ACC = FALSE
 
-# ALL: gaussian_pulse.ex
+ALL: gaussian_pulse.ex
 # ALL: lgt_frnt1d.ex
-ALL: rad_shock.ex
+# ALL: rad_shock.ex
 # ALL: rad_source.ex
 # ALL: rad_sphere.ex
-# ALL: rad_shocktube.ex
+# ALL: rhd_shocktube.ex
 
 # If NEEDS_f90_SRC=TRUE, look for ${EBASE}_nd.f90
 NEEDS_f90_SRC = FALSE
@@ -58,6 +58,6 @@ rad_sphere.ex: $(objForExecs)
 	@echo Linking $@ ...
 	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(libraries)
 
-rad_shocktube.ex: $(objForExecs)
+rhd_shocktube.ex: $(objForExecs)
 	@echo Linking $@ ...
 	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(libraries)

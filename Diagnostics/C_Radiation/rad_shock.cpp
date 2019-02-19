@@ -87,21 +87,9 @@ int main(int argc, char* argv[])
 		Vector<std::string> compVarNames = {"density", "eint_E", "Temp", "pressure",
 			                            "rad", "x_velocity", "y_velocity","z_velocity"};
 #endif
-
 		GetComponents(data, compVarNames, varComps);
-		auto cnt = 0;
-// 		auto dens_comp = varComps[cnt++];
-// 		auto eint_comp = varComps[cnt++];
-// 		auto pres_comp = varComps[cnt++];
-// 		auto rad_comp = varComps[cnt++];
-// 		auto xvel_comp = varComps[cnt++];
-// #if (AMREX_SPACEDIM >=2)
-// 		auto yvel_comp = varComps[cnt++];
-// #endif
-// #if (AMREX_SPACEDIM == 3)
-// 		auto zvel_comp = varComps[cnt++];
-// #endif
 
+		auto cnt = 0;
 		auto r1 = 1.0;
 
 		// fill a multifab with the data
@@ -117,9 +105,7 @@ int main(int argc, char* argv[])
 		data.FillVar(data_mf, finestLevel, varNames, fill_comps);
 
 		// allocate storage for data
-		Vector<Vector<Real> > vars_bin(data.NComp()+1);
-		for(auto it=vars_bin.begin(); it!=vars_bin.end(); ++it)
-			*it = Vector<Real>(nbins, 0);
+		Vector<Real> vars_bin(nbins * (data.NComp()+1), 0.);
 
 		// ! imask will be set to false if we've already output the data.
 		// ! Note, imask is defined in terms of the finest level.  As we loop
@@ -128,7 +114,6 @@ int main(int argc, char* argv[])
 		int mask_size = nbins;
 		for (auto i = 0; i < finestLevel - 1; i++)
 			mask_size *= rr[i];
-
 
 #if (AMREX_SPACEDIM == 1)
 		Vector<int> imask(mask_size);
@@ -183,7 +168,18 @@ int main(int argc, char* argv[])
 		Vector<std::string> slcvarNames = {"density", "x-velocity", "y-velocity",
 			                           "z-velocity", "int. energy", "temperature", "pressure", "rad energy", "rad temp"};
 #endif
-		WriteSlicefile(nbins, r, slcvarNames, vars_bin, slcfile);
+
+		// reshape vars_bin into a vector of vectors
+		// TODO: check that I've got the indexing correct here
+		Vector<Vector<Real> > vars_array(data.NComp() + 1);
+		for (auto i = 0; i < data.NComp() + 1; i++) {
+			vars_array[i] = Vector<Real>(nbins);
+			for (auto j = 0; j < nbins; j++) {
+				vars_array[i][j] = vars_bin[i * nbins + j];
+			}
+		}
+
+		WriteSlicefile(nbins, r, slcvarNames, vars_array, slcfile);
 
 	}
 

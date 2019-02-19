@@ -108,11 +108,11 @@ program fgaussianpulse
 
 
   ! figure out the variable indices
-  
+
   ! radiation
   rad_comp = -1
   do i = 1, pf%nvars
-     if (pf%names(i) == "rad") then
+     if (pf%names(i) == "density") then
         rad_comp = i
         exit
      endif
@@ -137,7 +137,7 @@ program fgaussianpulse
   ! the furtherest corner of the domain
   x_maxdist = max(abs(pf%phi(1) - xctr), abs(pf%plo(1) - xctr))
   y_maxdist = max(abs(pf%phi(2) - yctr), abs(pf%plo(2) - yctr))
-  
+
   maxdist = sqrt(x_maxdist**2 + y_maxdist**2)
 
   dx_fine = minval(plotfile_get_dx(pf, pf%flevel))
@@ -161,7 +161,7 @@ program fgaussianpulse
   imask(:,:) = .true.
 
 
-  ! allocate storage for the data 
+  ! allocate storage for the data
   allocate(rad_bin(0:nbins-1))
   allocate(  ncount(0:nbins-1))
 
@@ -170,7 +170,7 @@ program fgaussianpulse
 
   ! loop over the data, starting at the finest grid, and if we haven't
   ! already store data in that grid location (according to imask),
-  ! store it.  
+  ! store it.
 
   ! r1 is the factor between the current level grid spacing and the
   ! FINEST level
@@ -184,13 +184,13 @@ program fgaussianpulse
 
      do j = 1, nboxes(pf, i)
         lo(:) = 1
-        hi(:) = 1        
+        hi(:) = 1
         lo = lwb(get_box(pf, i, j))
         hi = upb(get_box(pf, i, j))
 
         ! get a pointer to the current patch
         p => dataptr(pf, i, j)
-        
+
         ! loop over all of the zones in the patch.  Here, we convert
         ! the cell-centered indices at the current level into the
         ! corresponding RANGE on the finest level, and test if we've
@@ -204,7 +204,7 @@ program fgaussianpulse
 
               if ( any(imask(ii*r1:(ii+1)*r1-1, &
                              jj*r1:(jj+1)*r1-1) ) ) then
-                 
+
                  r_zone = sqrt((xx-xctr)**2 + (yy-yctr)**2)
 
                  index = r_zone/dx_fine
@@ -217,7 +217,7 @@ program fgaussianpulse
 
                  imask(ii*r1:(ii+1)*r1-1, &
                        jj*r1:(jj+1)*r1-1) = .false.
-                 
+
               end if
 
            end do
@@ -247,7 +247,7 @@ program fgaussianpulse
 
   ! write the data in columns
   do i = 0, nbins-1
-     ! Use this to protect against a number being xx.e-100 
+     ! Use this to protect against a number being xx.e-100
      !   which will print without the "e"
      if (abs(rad_bin(i)) .lt. 1.d-99) rad_bin(i) = 0.d0
      write(uno,1001) r(i), rad_bin(i)
