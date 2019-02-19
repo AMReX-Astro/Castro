@@ -72,11 +72,9 @@ int main(int argc, char* argv[])
 			r[i] = (i + 0.5) * dx_fine;
 
 		// find variable indices
-        Vector <int> varComps;
-
         Vector<std::string> compVarNames = {"density", "xmom", "pressure", "rad"};
 
-		GetComponents(data, compVarNames, varComps);
+		auto varComps = GetComponents(data, compVarNames);
 		auto dens_comp = varComps[0];
 		auto xmom_comp = varComps[1];
 		auto pres_comp = varComps[2];

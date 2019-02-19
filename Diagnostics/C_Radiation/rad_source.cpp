@@ -42,10 +42,9 @@ int main(int argc, char* argv[])
 		const Vector<string>& varNames = data.PlotVarNames();
 
 		// find variable indices
-		Vector <int> varComps;
 		Vector<std::string> compVarNames = {"rho_e", "rad"};
 
-		GetComponents(data, compVarNames, varComps);
+		auto varComps = GetComponents(data, compVarNames);
 		auto rhoe_comp = varComps[0];
 		auto rad_comp = varComps[1];
 

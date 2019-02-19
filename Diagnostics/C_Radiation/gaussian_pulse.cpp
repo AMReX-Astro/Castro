@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
 		string slcfile;
 		double xctr = 0.0;
 		double yctr = 0.0;
-        int dir;
+		int dir;
 
 		GetInputArgs (argc, argv, pltfile, slcfile, xctr, yctr, dir);
 
@@ -74,17 +74,12 @@ int main(int argc, char* argv[])
 			r[i] = (i + 0.5) * dx_fine;
 
 		// find variable indices
-        Vector <int> varComps;
-        const auto nvars = 1;
+		Vector<std::string> slcvarNames = {"density"};
+		const auto nvars = slcvarNames.size();
 
-        Vector<std::string> slcvarNames(nvars);
-        slcvarNames[0] = "density";
+		auto varComps = GetComponents(data, slcvarNames);
 
-		GetComponents(data, slcvarNames, varComps);
-
-		Print() << "varComps size = " << varComps.size() << std::endl;
-
-        auto rad_comp = varComps[0];
+		auto rad_comp = varComps[0];
 
 		// allocate storage for data
 		Vector<Real> rad_bin(nbins, 0.);
@@ -98,25 +93,16 @@ int main(int argc, char* argv[])
 			fill_comps[i] = i;
 		}
 
-		const BoxArray& ba_fine = data.boxArray(finestLevel);
-		const DistributionMapping& dm_fine = data.DistributionMap(finestLevel);
-
-		MultiFab data_mf(ba_fine, dm_fine, data.NComp(), data.NGrow());
-		data.FillVar(data_mf, finestLevel, varNames, fill_comps);
-
 		// ! imask will be set to false if we've already output the data.
 		// ! Note, imask is defined in terms of the finest level.  As we loop
 		// ! over levels, we will compare to the finest level index space to
 		// ! determine if we've already output here
-		int mask_size = nbins;
-		for (auto i = 0; i < finestLevel - 1; i++)
-			mask_size *= rr[i];
-
+		int mask_size = domain.length().max();
 
 #if (AMREX_SPACEDIM == 1)
-		Vector<int> imask(mask_size);
+             Vector<int> imask(mask_size);
 #elif (AMREX_SPACEDIM >=2)
-		Vector<int> imask(pow(mask_size, AMREX_SPACEDIM));
+             Vector<int> imask(pow(mask_size, AMREX_SPACEDIM));
 #endif
 
 		for (auto it=imask.begin(); it!=imask.end(); ++it)
@@ -137,10 +123,10 @@ int main(int argc, char* argv[])
 				const Box& bx = mfi.tilebox();
 
 				fgaussian_pulse(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				           BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
-				           nbins, rad_bin.dataPtr(), ncount.dataPtr(),
-                           imask.dataPtr(), mask_size, r1,
-				           rad_comp, ZFILL(dx), dx_fine, xctr, yctr);
+				                BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
+				                nbins, rad_bin.dataPtr(), ncount.dataPtr(),
+				                imask.dataPtr(), mask_size, r1,
+				                rad_comp, ZFILL(dx), dx_fine, xctr, yctr);
 
 			}
 
@@ -155,8 +141,8 @@ int main(int argc, char* argv[])
 		}
 
 
-        Vector<Vector<Real> > vars(nvars);
-        vars[0] = rad_bin;
+		Vector<Vector<Real> > vars(nvars);
+		vars[0] = rad_bin;
 
 		WriteSlicefile(nbins, r, slcvarNames, vars, slcfile);
 

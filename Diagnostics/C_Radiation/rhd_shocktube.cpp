@@ -75,9 +75,8 @@ int main(int argc, char* argv[])
 			x[i] = (i + 0.5) * dx_coarse;
 
 		// find variable indices
-		Vector <int> varComps;
 		Vector<std::string> compVarNames = {"density", "x_velocity", "pressure", "rad0"};
-		GetComponents(data, compVarNames, varComps);
+		auto varComps = GetComponents(data, compVarNames);
 
 		auto dens_comp = varComps[0];
 		auto velx_comp = varComps[1];

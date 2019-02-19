@@ -74,8 +74,6 @@ int main(int argc, char* argv[])
 			r[i] = (i + 0.5) * dx_fine;
 
 		// find variable indices
-		Vector <int> varComps;
-
 #if (AMREX_SPACEDIM == 1)
 		Vector<std::string> compVarNames = {"density", "eint_E", "Temp",
 			                            "pressure", "rad", "x_velocity"};
@@ -87,7 +85,7 @@ int main(int argc, char* argv[])
 		Vector<std::string> compVarNames = {"density", "eint_E", "Temp", "pressure",
 			                            "rad", "x_velocity", "y_velocity","z_velocity"};
 #endif
-		GetComponents(data, compVarNames, varComps);
+		auto varComps = GetComponents(data, compVarNames);
 
 		auto cnt = 0;
 		auto r1 = 1.0;

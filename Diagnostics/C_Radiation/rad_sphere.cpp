@@ -116,11 +116,9 @@ int main(int argc, char* argv[])
 		int nbins = domain.bigEnd()[0] - domain.smallEnd()[0] + 1;
 
 		// find variable indices
-		Vector <int> varComps;
-
 		Vector<std::string> compVarNames = {"rad0"};
 
-		GetComponents(data, compVarNames, varComps);
+		auto varComps = GetComponents(data, compVarNames);
 		auto rad_comp = varComps[0];
 
 		// allocate storage for data

@@ -22,6 +22,8 @@ subroutine fgaussian_pulse(lo, hi, p, plo, phi, nc_p, nbins, rad_bin, &
   integer :: ii, jj, k, index
   real(rt) :: xx, yy, r_zone
 
+  ! write(*,*) "lo = ", lo
+
   ! loop over all of the zones in the patch.  Here, we convert
   ! the cell-centered indices at the current level into the
   ! corresponding RANGE on the finest level, and test if we've
@@ -29,7 +31,9 @@ subroutine fgaussian_pulse(lo, hi, p, plo, phi, nc_p, nbins, rad_bin, &
   ! we store this level's data and mark that range as filled.
   k = lo(3)
   do jj = lo(2), hi(2)
+      yy = (jj + HALF)*dx(2)
      do ii = lo(1), hi(1)
+         xx = (ii + HALF)*dx(1)
 
         if ( any(imask(ii*r1:(ii+1)*r1-1, &
              jj*r1:(jj+1)*r1-1) .eq. 1) ) then
@@ -38,9 +42,11 @@ subroutine fgaussian_pulse(lo, hi, p, plo, phi, nc_p, nbins, rad_bin, &
 
            index = r_zone/dx_fine
 
+           ! write(*,*) "index = ", index, "r_zone = ", r_zone, "dx_fine = ", dx_fine
+
            ! weight the zone's data by its size
            rad_bin(index) = rad_bin(index) + &
-                p(ii,jj,1,rad_comp)*r1**2
+                p(ii,jj,k,rad_comp)*r1**2
 
            ncount(index) = ncount(index) + r1**2
 
