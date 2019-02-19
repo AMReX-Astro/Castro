@@ -51,6 +51,11 @@ end subroutine check_equal
 
 """
 
+def split_pair(pair_string):
+    """given an option of the form "(val1, val2)", split it into val1 and
+    val2"""
+    return pair_string.replace("(", "").replace(")", "").replace(" ","").split(",")
+
 class Index(object):
     """an index that we want to set"""
 
@@ -76,7 +81,7 @@ class Index(object):
 
         # count may have different names in Fortran and C++
         if count.startswith("("):
-            self.count, self.count_cxx = count.replace("(", "").replace(")", "").split(",")
+            self.count, self.count_cxx = split_pair(count)
         else:
             self.count = count
             self.count_cxx = count
@@ -216,8 +221,18 @@ def doit(variables_file, odir, defines, nadv,
                 cxx_var = fields[1]
                 f90_var = fields[2]
                 adds_to = fields[3]
-                count = fields[4].replace(" ", "").strip()
+                count = fields[4]
                 ifdef = fields[5]
+
+                # we may be fed a pair of the form (SET, DEFINE),
+                # in which case we only add to SET if we define
+                # DEFINE
+                if adds_to.startswith("("):
+                    add_set, define = split_pair(adds_to)
+                    if not define in defines:
+                        adds_to = None
+                    else:
+                        adds_to = add_set
 
                 if adds_to == "None":
                     adds_to = None
