@@ -56,7 +56,7 @@ contains
     real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) ::  dq(dq_lo(1):dq_hi(1),dq_lo(2):dq_hi(2),dq_lo(3):dq_hi(3),NQ,AMREX_SPACEDIM)
+    real(rt), intent(in) ::  dq(dq_lo(1):dq_hi(1),dq_lo(2):dq_hi(2),dq_lo(3):dq_hi(3),NQ)
 
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
@@ -89,6 +89,8 @@ contains
 
     integer :: QUN, QUT, QUTT
     real(rt) :: ref_fac, trace_fac1, trace_fac2, trace_fac3
+
+    !$gpu
 
     dtdx = dt/dx(idir)
 
@@ -136,12 +138,12 @@ contains
              rhoe = q(i,j,k,QREINT)
              enth = (rhoe+p)/(rho*csq)
 
-             drho = dq(i,j,k,QRHO,idir)
-             dun = dq(i,j,k,QUN,idir)
-             dut = dq(i,j,k,QUT,idir)
-             dutt = dq(i,j,k,QUTT,idir)
-             dp = dq(i,j,k,QPRES,idir)
-             drhoe = dq(i,j,k,QREINT,idir)
+             drho = dq(i,j,k,QRHO)
+             dun = dq(i,j,k,QUN)
+             dut = dq(i,j,k,QUT)
+             dutt = dq(i,j,k,QUTT)
+             dp = dq(i,j,k,QPRES)
+             drhoe = dq(i,j,k,QREINT)
 
              alpham = HALF*(dp/(rho*cc) - dun)*(rho/cc)
              alphap = HALF*(dp/(rho*cc) + dun)*(rho/cc)
@@ -335,14 +337,14 @@ contains
 
                    un = q(i,j,k,QUN)
                    spzero = merge(-ONE, un*dtdx, un >= ZERO)
-                   acmprght = HALF*(-ONE - spzero)*dq(i,j,k,n,idir)
+                   acmprght = HALF*(-ONE - spzero)*dq(i,j,k,n)
                    qp(i,j,k,n) = q(i,j,k,n) + acmprght + HALF*dt*srcQ(i,j,k,n)
                 endif
 
                 ! Left state
                 un = q(i,j,k,QUN)
                 spzero = merge(un*dtdx, ONE, un >= ZERO)
-                acmpleft = HALF*(ONE - spzero )*dq(i,j,k,n,idir)
+                acmpleft = HALF*(ONE - spzero )*dq(i,j,k,n)
 
                 if (idir == 1 .and. i <= vhi(1)) then
                    qm(i+1,j,k,n) = q(i,j,k,n) + acmpleft + HALF*dt*srcQ(i,j,k,n)

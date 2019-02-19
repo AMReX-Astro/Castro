@@ -94,6 +94,17 @@ int          Castro::QREITOT = -1;
 int          Castro::QRAD = -1;
 #endif
 
+int          Castro::GDRHO = -1;
+int          Castro::GDU = -1;
+int          Castro::GDV = -1;
+int          Castro::GDW = -1;
+int          Castro::GDPRES = -1;
+int          Castro::GDGAME = -1;
+#ifdef RADIATION
+int          Castro::GDLAMS = -1;
+int          Castro::GDERADS = -1;
+#endif
+
 int          Castro::NumSpec       = 0;
 int          Castro::FirstSpec     = -1;
 
@@ -157,14 +168,14 @@ IntVect      Castro::no_tile_size(1024);
 #ifndef AMREX_USE_CUDA
 IntVect      Castro::hydro_tile_size(1024,16);
 #else
-IntVect      Castro::hydro_tile_size(1024,1024);
+IntVect      Castro::hydro_tile_size(1024,64);
 #endif
 IntVect      Castro::no_tile_size(1024,1024);
 #else
 #ifndef AMREX_USE_CUDA
 IntVect      Castro::hydro_tile_size(1024,16,16);
 #else
-IntVect      Castro::hydro_tile_size(1024,1024,1024);
+IntVect      Castro::hydro_tile_size(1024,64,64);
 #endif
 IntVect      Castro::no_tile_size(1024,1024,1024);
 #endif
@@ -361,20 +372,19 @@ Castro::read_params ()
     if (time_integration_method != CornerTransportUpwind && use_retry)
         amrex::Error("Method of lines integration is incompatible with the timestep retry mechanism.");
 
-#ifdef AMREX_USE_CUDA
-    // not use ctu if using gpu
-    if (time_integration_method != MethodOfLines)
-      {
-	 amrex::Error("Running with CUDA requires time_integration_method = 1");
-      }
-#endif
-
     // fourth order implies do_ctu=0
     if (fourth_order == 1 && time_integration_method == CornerTransportUpwind)
       {
 	if (ParallelDescriptor::IOProcessor())
 	    amrex::Error("WARNING: fourth_order requires a different time_integration_method");
       }
+
+    // The CUDA MOL implementation is only supported in 3D right now.
+#if defined(AMREX_USE_CUDA) && (AMREX_SPACEDIM < 3)
+    if (time_integration_method != CornerTransportUpwind) {
+        amrex::Error("Only the CTU advance is supported for 1D/2D when using CUDA.");
+    }
+#endif
 
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
       {
@@ -413,6 +423,13 @@ Castro::read_params ()
     if (do_radiation) {
       Radiation::read_static_params();
     }
+
+    // The CUDA MOL implementation doesn't currently do radiation.
+#ifdef AMREX_USE_CUDA
+    if (do_radiation && time_integration_method != CornerTransportUpwind) {
+        amrex::Error("Radiation is currently unsupported for MOL when using CUDA.");
+    }
+#endif
 #endif
 
 #ifdef ROTATION
@@ -682,6 +699,26 @@ Castro::initMFs()
     if (!Geometry::IsCartesian())
 	P_radial.define(getEdgeBoxArray(0), dmap, 1, 0);
 #endif
+
+    // Keep track of which components of the momentum flux have pressure
+    if (AMREX_SPACEDIM == 1 || (AMREX_SPACEDIM == 2 && Geometry::IsRZ())) {
+        mom_flux_has_p[0][0] = false;
+    }
+    else {
+        mom_flux_has_p[0][0] = true;
+    }
+
+    mom_flux_has_p[0][1] = false;
+    mom_flux_has_p[0][2] = false;
+
+    mom_flux_has_p[1][0] = false;
+    mom_flux_has_p[1][1] = true;
+    mom_flux_has_p[1][2] = false;
+
+    mom_flux_has_p[2][0] = false;
+    mom_flux_has_p[2][1] = false;
+    mom_flux_has_p[2][2] = true;
+
 
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
