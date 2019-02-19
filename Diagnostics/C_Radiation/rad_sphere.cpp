@@ -20,20 +20,6 @@ void Print_Help() {
 	        << "\n\n" << std::endl;
 }
 
-template <typename T>
-Vector<size_t> sort_indexes(const Vector<T> &v) {
-
-  // initialize original index locations
-  Vector<size_t> idx(v.size());
-  iota(idx.begin(), idx.end(), 0);
-
-  // sort indexes based on comparing values in v
-  sort(idx.begin(), idx.end(),
-       [&v](size_t i1, size_t i2) {return v[i1] < v[i2];});
-
-  return idx;
-}
-
 int main(int argc, char* argv[])
 {
 
@@ -232,7 +218,7 @@ int main(int argc, char* argv[])
 		auto idx_obs = -1;
 
 		for (auto i = 0; i < cnt; i++) {
-			if (radius >= vars_bin[isv[i]*nbins] && radius < vars_bin[isv[i+1]*nbins])
+			if (radius >= vars_bin[isv[i]*(data.NComp()+1)] && radius < vars_bin[isv[i+1]*(data.NComp()+1)])
 				idx_obs = i;
 			break;
 		}
@@ -251,8 +237,8 @@ int main(int argc, char* argv[])
 		for (auto i = 0; i < ngroups; i++) {
 			Print() << std::setw(w) << varNames[rad_comp+i]
 			        << std::setw(w) << nu_groups[i]
-			        << std::setw(w) << vars_bin[isv[idx_obs]*nbins + rad_comp+i]
-			        << std::setw(w) << vars_bin[isv[idx_obs]*nbins + rad_comp+i] / dnu_groups[i] << std::endl;
+			        << std::setw(w) << vars_bin[isv[idx_obs]*(data.NComp()+1) + rad_comp+i]
+			        << std::setw(w) << vars_bin[isv[idx_obs]*(data.NComp()+1) + rad_comp+i] / dnu_groups[i] << std::endl;
 		}
 
 	}

@@ -22,8 +22,6 @@ subroutine fgaussian_pulse(lo, hi, p, plo, phi, nc_p, nbins, rad_bin, &
   integer :: ii, jj, k, index
   real(rt) :: xx, yy, r_zone
 
-  ! write(*,*) "lo = ", lo
-
   ! loop over all of the zones in the patch.  Here, we convert
   ! the cell-centered indices at the current level into the
   ! corresponding RANGE on the finest level, and test if we've
@@ -41,8 +39,6 @@ subroutine fgaussian_pulse(lo, hi, p, plo, phi, nc_p, nbins, rad_bin, &
            r_zone = sqrt((xx-xctr)**2 + (yy-yctr)**2)
 
            index = r_zone/dx_fine
-
-           ! write(*,*) "index = ", index, "r_zone = ", r_zone, "dx_fine = ", dx_fine
 
            ! weight the zone's data by its size
            rad_bin(index) = rad_bin(index) + &
@@ -120,6 +116,14 @@ subroutine flgt_frnt1d(lo, hi, p, plo, phi, nc_p, nbins, &
 
 end subroutine flgt_frnt1d
 
+! extract a 1-d slice of the data (all variables or a single variable)
+! along the specified coordinate direction from a plotfile.  The
+! plotfile can be 1-, 2-, or 3-d.
+!
+! This routine is a generalized version is based on fextract3d, but geared
+! toward the CASTRO radiating shock problem
+!
+! We read in all the variables, but only output a subset
 subroutine fradshock(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
      vars_bin, imask, mask_size, r1, rr, dx, idir, cnt) bind(C, name='fradshock')
 
@@ -171,8 +175,8 @@ subroutine fradshock(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
         if ( any(imask(ii*r1:(ii+1)*r1-1) .eq. 1) ) then
            cnt = cnt + 1
 
-           vars_bin(cnt,1) = xmin + (ii + HALF)*dx(1)
-           vars_bin(cnt,2:) = p(ii,jj,kk,:)
+           vars_bin(cnt,0) = xmin + (ii + HALF)*dx(1)
+           vars_bin(cnt,1:) = p(ii,jj,kk,:)
 
            imask(ii*r1:(ii+1)*r1-1) = 0
         end if
@@ -203,8 +207,8 @@ subroutine fradshock(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
            if ( any(imask(ii*r1:(ii+1)*r1-1) .eq. 1 ) ) then
               cnt = cnt + 1
 
-              vars_bin(cnt,1) = xmin + (ii + HALF)*dx(1)
-              vars_bin(cnt,2:) = p(ii,jj,kk,:)
+              vars_bin(cnt,0) = xmin + (ii + HALF)*dx(1)
+              vars_bin(cnt,1:) = p(ii,jj,kk,:)
 
               imask(ii*r1:(ii+1)*r1-1) = 0
            end if
@@ -239,8 +243,8 @@ subroutine fradshock(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
            if ( any(imask(jj*r1:(jj+1)*r1-1) .eq. 1) ) then
               cnt = cnt + 1
 
-              vars_bin(cnt,1) = ymin + (jj + HALF)*dx(2)
-              vars_bin(cnt,2:) = p(ii,jj,kk,:)
+              vars_bin(cnt,0) = ymin + (jj + HALF)*dx(2)
+              vars_bin(cnt,1:) = p(ii,jj,kk,:)
 
               imask(jj*r1:(jj+1)*r1-1) = 0
            end if
@@ -269,8 +273,8 @@ subroutine fradshock(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
            if ( any(imask(kk*r1:(kk+1)*r1-1) .eq. 1) ) then
               cnt = cnt + 1
 
-              vars_bin(cnt,1) = zmin + (kk + HALF)*dx(3)
-              vars_bin(cnt,2:) = p(ii,jj,kk,:)
+              vars_bin(cnt,0) = zmin + (kk + HALF)*dx(3)
+              vars_bin(cnt,1:) = p(ii,jj,kk,:)
 
               imask(kk*r1:(kk+1)*r1-1) = 0
            end if

@@ -15,7 +15,7 @@ program fradshock
   use bl_IO_module
   use plotfile_module
   use sort_d_module
-  use fundamental_constants_module, only: a_rad
+  ! use rad_params_module, only: arad
 
   implicit none
 
@@ -47,7 +47,7 @@ program fradshock
   integer :: dens_comp, xvel_comp, yvel_comp, zvel_comp, &
        pres_comp, eint_comp, rad_comp, temp_comp
 
-  real(kind=dp_t) :: xmin, xmax, ymin, ymax, zmin, zmax
+  real(kind=dp_t) :: xmin, xmax, ymin, ymax, zmin, zmax, arad
 
   unit = unit_new()
   uno =  unit_new()
@@ -106,7 +106,7 @@ program fradshock
      else
         slicefile = trim(pltfile) // ".slice"
      end if
-     
+
   endif
 
   print *, 'pltfile   = "', trim(pltfile), '"'
@@ -122,10 +122,10 @@ program fradshock
   xvel_comp = plotfile_var_index(pf, "x_velocity")
   if (dim > 1) yvel_comp = plotfile_var_index(pf, "y_velocity")
   if (dim > 2) zvel_comp = plotfile_var_index(pf, "z_velocity")
-  eint_comp = plotfile_var_index(pf, "eint_E")  
-  temp_comp = plotfile_var_index(pf, "Temp")  
-  rad_comp  = plotfile_var_index(pf, "rad")  
-  pres_comp = plotfile_var_index(pf, "pressure")  
+  eint_comp = plotfile_var_index(pf, "eint_E")
+  temp_comp = plotfile_var_index(pf, "Temp")
+  rad_comp  = plotfile_var_index(pf, "rad")
+  pres_comp = plotfile_var_index(pf, "pressure")
 
   if (dens_comp < 0 .or. xvel_comp < 0 .or. (yvel_comp < 0 .and. dim > 1) .or. &
        (zvel_comp < 0 .and. dim > 2) .or. eint_comp < 0 .or. temp_comp < 0 .or. &
@@ -158,7 +158,7 @@ program fradshock
      ymin = pf%plo(2)
      ymax = pf%phi(2)
   endif
-  
+
   if (dim == 3) then
      zmin = pf%plo(3)
      zmax = pf%phi(3)
@@ -197,7 +197,7 @@ program fradshock
      allocate(imask(flo(3):fhi(3)))
      max_points = fhi(3) - flo(3) + 1
 
-  else 
+  else
      call bl_error("invalid direction")
   endif
 
@@ -207,7 +207,7 @@ program fradshock
   ! completely refined, and allocate enough storage for that,
   ! although, we won't really need all of this
   !
-  ! note: sv(:,1) will be the coordinate information.  
+  ! note: sv(:,1) will be the coordinate information.
   ! the variables will be stored in sv(:,2:nvvs+1)
   allocate(sv(max_points,nvs+1), isv(max_points))
 
@@ -246,10 +246,10 @@ program fradshock
               do ii = lo(1), hi(1)
                  if ( any(imask(ii*r1:(ii+1)*r1-1) ) ) then
                     cnt = cnt + 1
-                    
+
                     sv(cnt,1) = xmin + (ii + HALF)*dx(1)/rr
                     sv(cnt,2:) = p(ii,jj,kk,:)
-                    
+
                     imask(ii*r1:(ii+1)*r1-1) = .false.
                  end if
               end do
@@ -303,7 +303,7 @@ program fradshock
                 kk = 1
               end if
 
-           
+
               ! loop over all of the zones in the slice direction.
               ! Here, we convert the cell-centered indices at the
               ! current level into the corresponding RANGE on the
@@ -333,7 +333,7 @@ program fradshock
               ii = iloc*rr
               jj = jloc*rr
 
-           
+
               ! loop over all of the zones in the slice direction.
               ! Here, we convert the cell-centered indices at the
               ! current level into the corresponding RANGE on the
@@ -355,7 +355,7 @@ program fradshock
 
         end select
 
-        
+
      end do
 
      ! adjust r1 for the next lowest level
@@ -370,7 +370,7 @@ program fradshock
      dirstr = "x"
   else if (idir == 2) then
      dirstr = "y"
-  else 
+  else
      dirstr = "z"
   endif
 
@@ -405,7 +405,7 @@ program fradshock
           "rad energy", "rad temp"
   endif
 
-  ! Use this to protect against a number being xx.e-100 
+  ! Use this to protect against a number being xx.e-100
   !   which will print without the "e"
   do i=1,cnt
      do j=2,nvs+1
@@ -415,26 +415,30 @@ program fradshock
      end do
   end do
 
+  ! I can't find where the fundamental_constants_module has gone, so
+  ! just going to set this to one
+  arad = 1.d0
+
   ! write the data in columns
   do i = 1, cnt
      if (dim == 1) then
         write(uno,1001) sv(isv(i),1), sv(isv(i),dens_comp+1), &
              sv(isv(i),xvel_comp+1), &
              sv(isv(i),pres_comp+1), sv(isv(i),eint_comp+1), sv(isv(i),temp_comp+1), &
-             sv(isv(i),rad_comp+1), (sv(isv(i),rad_comp+1)/a_rad)**0.25
+             sv(isv(i),rad_comp+1), (sv(isv(i),rad_comp+1)/arad)**0.25
      else if (dim == 2) then
         write(uno,1001) sv(isv(i),1), sv(isv(i),dens_comp+1), &
-             sv(isv(i),xvel_comp+1), sv(isv(i),yvel_comp+1), &  
+             sv(isv(i),xvel_comp+1), sv(isv(i),yvel_comp+1), &
              sv(isv(i),pres_comp+1), sv(isv(i),eint_comp+1), sv(isv(i),temp_comp+1), &
-             sv(isv(i),rad_comp+1), (sv(isv(i),rad_comp+1)/a_rad)**0.25
+             sv(isv(i),rad_comp+1), (sv(isv(i),rad_comp+1)/arad)**0.25
      else if (dim == 3) then
         write(uno,1001) sv(isv(i),1), sv(isv(i),dens_comp+1), &
              sv(isv(i),xvel_comp+1), sv(isv(i),yvel_comp+1), sv(isv(i),zvel_comp+1), &
              sv(isv(i),pres_comp+1), sv(isv(i),eint_comp+1), sv(isv(i),temp_comp+1), &
-             sv(isv(i),rad_comp+1), (sv(isv(i),rad_comp+1)/a_rad)**0.25
+             sv(isv(i),rad_comp+1), (sv(isv(i),rad_comp+1)/arad)**0.25
      endif
   end do
-  
+
   close(unit=uno)
 
   do i = 1, pf%flevel

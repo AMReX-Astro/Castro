@@ -5,6 +5,8 @@ MKVERBOSE :=t
 
 COMP := gfortran
 
+ca_f90EXE_sources += ../../Source/radiation/rad_params.f90
+
 
 # include the main Makefile stuff
 include $(AMREX_HOME)/Tools/F_mk/GMakedefs.mak
@@ -23,9 +25,7 @@ include $(Fmpack)
 # vpath defines the directories to search for the source files
 VPATH_LOCATIONS += $(Fmlocs)
 
-
-
-programs += flgt_frnt1d.f90
+programs += fradshock
 
 
 all: $(pnames)

@@ -5,6 +5,9 @@
 
 using namespace amrex;
 
+template <typename T>
+Vector<size_t> sort_indexes(const Vector<T> &v);
+
 void GetInputArgs ( const int argc, char** argv,
                     string& pltfile, string& slcfile,
                     double& xctr, double& yctr, int& dir);
@@ -14,6 +17,19 @@ Vector<int> GetComponents(AmrData& data, const Vector<std::string> varNames);
 void PrintHelp ();
 
 
+template <typename T>
+Vector<size_t> sort_indexes(const Vector<T> &v) {
+
+  // initialize original index locations
+  Vector<size_t> idx(v.size());
+  iota(idx.begin(), idx.end(), 0);
+
+  // sort indexes based on comparing values in v
+  sort(idx.begin(), idx.end(),
+       [&v](size_t i1, size_t i2) {return v[i1] < v[i2];});
+
+  return idx;
+}
 
 //
 // Parse command line arguments
