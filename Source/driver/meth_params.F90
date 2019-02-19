@@ -3,7 +3,7 @@
 ! or add runtime parameters, please edit _cpp_parameters and then run
 ! mk_params.sh
 
-! This module stores the runtime parameters and integer names for
+! This module stores the runtime parameters and integer names for 
 ! indexing arrays.
 !
 ! The Fortran-specific parameters are initialized in set_method_params(),
@@ -14,7 +14,7 @@ module meth_params_module
 
   use amrex_error_module
   use amrex_fort_module, only: rt => amrex_real
-  use state_sizes_module, only : nadv, NQAUX, NVAR, NGDNV, NQ, QVAR
+  use state_sizes_module, only : nadv, NQAUX, NVAR, NGDNV, NQ, NQSRC
 
   implicit none
 
@@ -65,8 +65,8 @@ module meth_params_module
   ! these flags are for interpreting the EXT_DIR BCs
   integer, parameter :: EXT_UNDEFINED = -1
   integer, parameter :: EXT_HSE = 1
-  integer, parameter :: EXT_INTERP = 2
-
+  integer, parameter :: EXT_INTERP = 2 
+  
   integer, allocatable, save :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 
   ! Create versions of these variables on the GPU
@@ -596,7 +596,7 @@ contains
     allocate(disable_shock_burning)
     disable_shock_burning = 0;
     allocate(T_guess)
-    T_guess = 1.e8;
+    T_guess = 1.d8;
     allocate(do_grav)
     do_grav = -1;
     allocate(grav_source_type)
@@ -715,22 +715,21 @@ contains
     !$acc device(cfl, dtnuc_e, dtnuc_X) &
     !$acc device(dtnuc_X_threshold, do_react, react_T_min) &
     !$acc device(react_T_max, react_rho_min, react_rho_max) &
-    !$acc device(disable_shock_burning, T_guess, diffuse_cutoff_density, diffuse_cutoff_density_hi) &
-    !$acc device(diffuse_cond_scale_fac, do_grav, grav_source_type) &
-    !$acc device(do_rotation, rot_period, rot_period_dot) &
-    !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
-    !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
-    !$acc device(rot_axis, use_point_mass, point_mass) &
-    !$acc device(point_mass_fix_solution, do_acc, grown_factor) &
-    !$acc device(track_grid_losses, const_grav) &
-    !$acc device(get_g_from_phi)
+    !$acc device(disable_shock_burning, T_guess, diffuse_cutoff_density) &
+    !$acc device(diffuse_cutoff_density_hi, diffuse_cond_scale_fac, do_grav) &
+    !$acc device(grav_source_type, do_rotation, rot_period) &
+    !$acc device(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
+    !$acc device(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
+    !$acc device(implicit_rotation_update, rot_axis, use_point_mass) &
+    !$acc device(point_mass, point_mass_fix_solution, do_acc) &
+    !$acc device(grown_factor, track_grid_losses, const_grav, get_g_from_phi)
 
 
     ! now set the external BC flags
     select case (xl_ext_bc_type)
     case ("hse", "HSE")
        xl_ext = EXT_HSE
-    case ("interp", "INTERP")
+    case ("interp", "INTERP")       
        xl_ext = EXT_INTERP
     case default
        xl_ext = EXT_UNDEFINED
@@ -739,7 +738,7 @@ contains
     select case (yl_ext_bc_type)
     case ("hse", "HSE")
        yl_ext = EXT_HSE
-    case ("interp", "INTERP")
+    case ("interp", "INTERP")       
        yl_ext = EXT_INTERP
     case default
        yl_ext = EXT_UNDEFINED
@@ -748,7 +747,7 @@ contains
     select case (zl_ext_bc_type)
     case ("hse", "HSE")
        zl_ext = EXT_HSE
-    case ("interp", "INTERP")
+    case ("interp", "INTERP")       
        zl_ext = EXT_INTERP
     case default
        zl_ext = EXT_UNDEFINED
@@ -757,7 +756,7 @@ contains
     select case (xr_ext_bc_type)
     case ("hse", "HSE")
        xr_ext = EXT_HSE
-    case ("interp", "INTERP")
+    case ("interp", "INTERP")       
        xr_ext = EXT_INTERP
     case default
        xr_ext = EXT_UNDEFINED
@@ -766,7 +765,7 @@ contains
     select case (yr_ext_bc_type)
     case ("hse", "HSE")
        yr_ext = EXT_HSE
-    case ("interp", "INTERP")
+    case ("interp", "INTERP")       
        yr_ext = EXT_INTERP
     case default
        yr_ext = EXT_UNDEFINED
@@ -775,7 +774,7 @@ contains
     select case (zr_ext_bc_type)
     case ("hse", "HSE")
        zr_ext = EXT_HSE
-    case ("interp", "INTERP")
+    case ("interp", "INTERP")       
        zr_ext = EXT_INTERP
     case default
        zr_ext = EXT_UNDEFINED
@@ -1047,7 +1046,7 @@ contains
     end if
 
 
-
+    
   end subroutine ca_finalize_meth_params
 
 
@@ -1076,9 +1075,9 @@ contains
        call amrex_error("Unknown fspace_type", fspace_type)
     end if
 #endif
-
+    
     do_inelastic_scattering = (do_is_in .ne. 0)
-
+    
     if (com_in .eq. 1) then
        comoving = .true.
     else if (com_in .eq. 0) then
@@ -1088,9 +1087,9 @@ contains
        call amrex_error("Wrong value for comoving", fspace_type)
 #endif
     end if
-
+    
     flatten_pp_threshold = fppt
-
+    
     !$acc update &
     !$acc device(QRAD, QRADHI, QPTOT, QREITOT) &
     !$acc device(fspace_type) &

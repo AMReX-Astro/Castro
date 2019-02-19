@@ -1,5 +1,9 @@
 # changes since the last release
 
+  -- renamed QVAR to NQSRC to make it clear that this is the number of
+     source terms for the primitive variable state.  We also fixed a
+     number of places where QVAR was used instead of NQ.
+
   -- A new runtime parameter, T_guess, was created.  This is used as
      the initial temperature guess when calling the EOS with inputs
      other than rho, T, for the initial Newton iteration.
