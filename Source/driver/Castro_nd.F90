@@ -287,24 +287,6 @@ end subroutine ca_get_nqaux
 
 
 !>
-!! @note Binds to C function ``ca_get_nqsrc``
-!!
-!! @param[inout] nqsrc_in integer
-!!
-subroutine ca_get_nqsrc(nqsrc_in) bind(C, name="ca_get_nqsrc")
-
-  use meth_params_module, only: NQSRC
-
-  implicit none
-
-  integer, intent(inout) :: nqsrc_in
-
-  nqsrc_in = NQSRC
-
-end subroutine ca_get_nqsrc
-
-
-!>
 !! @note Binds to C function ``ca_get_ngdnv``
 !!
 !! @param[inout] ngdnv_in integer

@@ -692,6 +692,13 @@ contains
        n = upass_map(ipassive)
        iq = qpass_map(ipassive)
 
+       ! we already accounted for velocities above
+       if (n == QU .or. n == QV .or. n == QW) cycle
+
+       ! we may not be including the ability to have species sources,
+       ! so check to make sure that we are < NQSRC
+       if (iq > NQSRC) cycle
+
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)

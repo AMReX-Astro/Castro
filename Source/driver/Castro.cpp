@@ -118,7 +118,6 @@ int          Castro::FirstAdv      = -1;
 int          Castro::Shock         = -1;
 #endif
 
-int          Castro::NQSRC         = -1;
 int          Castro::NQAUX         = -1;
 int          Castro::NQSRC         = -1;
 int          Castro::NQ            = -1;
