@@ -771,7 +771,7 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   !$acc device(USHK) &
   !$acc device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME) &
   !$acc device(QFA, QFS, QFX) &
-  !$acc device(NQAUX, QGAMC, QC, QDPDR, QDPDE) &
+  !$acc device(NQAUX, NQSRC, QGAMC, QC, QDPDR, QDPDE) &
 #ifdef RADIATION
   !$acc device(QGAMCG, QCG, QLAMS) &
 #endif
