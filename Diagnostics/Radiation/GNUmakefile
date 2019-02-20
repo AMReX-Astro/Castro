@@ -25,7 +25,7 @@ include $(Fmpack)
 # vpath defines the directories to search for the source files
 VPATH_LOCATIONS += $(Fmlocs)
 
-programs += fradshock
+programs += fradsource
 
 
 all: $(pnames)

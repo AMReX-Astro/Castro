@@ -62,8 +62,6 @@ int main(int argc, char* argv[])
 		data.FillVar(lev_data_mf, lev, varNames, fill_comps);
 
 		// we only care about a single zone, so take the first box
-
-		// for (MFIter mfi(lev_data_mf, true); mfi.isValid(); ++mfi) {
 		MFIter mfi(lev_data_mf);
 		const Box& bx = mfi.tilebox();
 
@@ -73,15 +71,16 @@ int main(int argc, char* argv[])
 		           BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
 		           &rhoe, &rad, rhoe_comp, rad_comp);
 
-		// }
-
 		const auto w = 20;
 
+		std::cout.setf(std::ios::scientific);
+		std::cout.precision(12);
+
 		if (i == 1)
-			Print() << std::setw(w) << "# time," << std::setw(w) << "(rho e),"
+			std::cout << std::setw(w) << "time" << std::setw(w) << "rho e"
 			        << std::setw(w) << "rad" << std::endl;
 
-		Print() << std::setw(w) << data.Time() << std::setw(w) << rhoe << std::setw(w)
+		std::cout << std::setw(w) << data.Time() << std::setw(w) << rhoe << std::setw(w)
 		        << rad << std::endl;
 
 	}

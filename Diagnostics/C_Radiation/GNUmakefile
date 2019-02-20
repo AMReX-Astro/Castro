@@ -14,8 +14,8 @@ USE_ACC = FALSE
 
 #ALL: gaussian_pulse.ex
 # ALL: lgt_frnt1d.ex
-ALL: rad_shock.ex
-# ALL: rad_source.ex
+# ALL: rad_shock.ex
+ALL: rad_source.ex
 # ALL: rad_sphere.ex
 # ALL: rhd_shocktube.ex
 

@@ -71,10 +71,12 @@ castro.dt_cutoff      = 1.e-20  # level 0 timestep below which we halt
 castro.sum_interval   = 1       # timesteps between computing mass
 castro.v = 1
 
-# CASTRO OPTIMIZATION PARAMETERS
-castro.do_not_use_funccount = 1
-
 # ------------------  INPUTS TO RADIATION CLASS  -------------------
+
+##### SolverType #####
+# 0: single group diffusion w/o coupling to hydro
+# 5: SGFLD       6: MGFLD
+radiation.SolverType = 5
 
 radiation.do_multilevel_init = 0 # multilevel solve to start each coarse step?
 radiation.do_multilevel_sync = 9 # multilevel sync at end of each coarse step?

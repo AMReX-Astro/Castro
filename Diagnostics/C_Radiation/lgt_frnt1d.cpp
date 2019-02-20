@@ -101,10 +101,10 @@ int main(int argc, char* argv[])
 		MultiFab data_mf(ba_fine, dm_fine, data.NComp(), data.NGrow());
 		data.FillVar(data_mf, finestLevel, varNames, fill_comps);
 
-		// ! imask will be set to false if we've already output the data.
-		// ! Note, imask is defined in terms of the finest level.  As we loop
-		// ! over levels, we will compare to the finest level index space to
-		// ! determine if we've already output here
+		// imask will be set to false if we've already output the data.
+		// Note, imask is defined in terms of the finest level.  As we loop
+		// over levels, we will compare to the finest level index space to
+		// determine if we've already output here
 		int mask_size = nbins;
 		for (auto i = 0; i < finestLevel - 1; i++)
 			mask_size *= rr[i];
@@ -129,7 +129,9 @@ int main(int argc, char* argv[])
 
 			MultiFab lev_data_mf(ba, dm, data.NComp(), data.NGrow());
 			data.FillVar(lev_data_mf, l, varNames, fill_comps);
-
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
 			for (MFIter mfi(lev_data_mf, true); mfi.isValid(); ++mfi) {
 				const Box& bx = mfi.tilebox();
 
