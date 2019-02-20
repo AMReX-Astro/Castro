@@ -29,9 +29,9 @@ subroutine fgaussian_pulse(lo, hi, p, plo, phi, nc_p, nbins, rad_bin, &
   ! we store this level's data and mark that range as filled.
   k = lo(3)
   do jj = lo(2), hi(2)
-      yy = (jj + HALF)*dx(2)
+     yy = (jj + HALF)*dx(2)
      do ii = lo(1), hi(1)
-         xx = (ii + HALF)*dx(1)
+        xx = (ii + HALF)*dx(1)
 
         if ( any(imask(ii*r1:(ii+1)*r1-1, &
              jj*r1:(jj+1)*r1-1) .eq. 1) ) then
@@ -170,12 +170,12 @@ subroutine fradshock(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
 
      do ii = lo(1), hi(1)
         if ( any(imask(ii*r1:(ii+1)*r1-1) .eq. 1) ) then
-           cnt = cnt + 1
-
            vars_bin(cnt,0) = xmin + (ii + HALF)*dx(1)
            vars_bin(cnt,1:) = p(ii,jj,kk,:)
 
            imask(ii*r1:(ii+1)*r1-1) = 0
+           cnt = cnt + 1
+
         end if
      end do
 
@@ -202,12 +202,12 @@ subroutine fradshock(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
         ! level's data and mark that range as filled.
         do ii = lo(1), hi(1)
            if ( any(imask(ii*r1:(ii+1)*r1-1) .eq. 1 ) ) then
-              cnt = cnt + 1
 
               vars_bin(cnt,0) = xmin + (ii + HALF)*dx(1)
               vars_bin(cnt,1:) = p(ii,jj,kk,:)
 
               imask(ii*r1:(ii+1)*r1-1) = 0
+              cnt = cnt + 1
            end if
         end do
 
@@ -238,12 +238,12 @@ subroutine fradshock(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
         ! level's data and mark that range as filled.
         do jj = lo(2), hi(2)
            if ( any(imask(jj*r1:(jj+1)*r1-1) .eq. 1) ) then
-              cnt = cnt + 1
 
               vars_bin(cnt,0) = ymin + (jj + HALF)*dx(2)
               vars_bin(cnt,1:) = p(ii,jj,kk,:)
 
               imask(jj*r1:(jj+1)*r1-1) = 0
+              cnt = cnt + 1
            end if
         end do
 
@@ -268,12 +268,12 @@ subroutine fradshock(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
         ! level's data and mark that range as filled.
         do kk = lo(3), hi(3)
            if ( any(imask(kk*r1:(kk+1)*r1-1) .eq. 1) ) then
-              cnt = cnt + 1
 
               vars_bin(cnt,0) = zmin + (kk + HALF)*dx(3)
               vars_bin(cnt,1:) = p(ii,jj,kk,:)
 
               imask(kk*r1:(kk+1)*r1-1) = 0
+              cnt = cnt + 1
            end if
         end do
 
@@ -356,7 +356,7 @@ end subroutine fradsource
 
 
 subroutine fradsphere(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
-     vars_bin, imask, mask_size, r1, rr, dx, cnt) bind(C, name='fradsphere')
+     vars_bin, imask, mask_size, r1, dx, cnt) bind(C, name='fradsphere')
 
   use amrex_fort_module, only : rt => amrex_real
   use amrex_constants_module
@@ -370,7 +370,7 @@ subroutine fradsphere(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
   real(rt), intent(in) :: p(plo(1):phi(1),plo(2):phi(2),plo(3):phi(3),0:nc_p-1)
   real(rt), intent(inout) :: vars_bin(0:nbins-1, 0:nc_p)
   integer, intent(inout) :: imask(0:mask_size-1)
-  integer, intent(in), value :: mask_size, r1, rr
+  integer, intent(in), value :: mask_size, r1
   integer, intent(inout) :: cnt
   real(rt), intent(in) :: dx(3)
 
@@ -383,13 +383,14 @@ subroutine fradsphere(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
   j = lo(2)
   k = lo(3)
   do i = lo(1), hi(1)
-     if ( any(imask(i*r1:(i+1)*r1-1) .eq. 1) ) then
-        cnt = cnt + 1
+     if ( any(imask(i*r1:(i+1)*r1-1) .eq. 1)) then
 
-        vars_bin(cnt,1) = rmin + (i + HALF)*dx(1)
-        vars_bin(cnt,2:) = p(i,j,k,:)
+        vars_bin(cnt,0) = rmin + (i + HALF)*dx(1)
+        vars_bin(cnt,1:) = p(i,j,k,:)
 
         imask(i*r1:(i+1)*r1-1) = 0
+        
+        cnt = cnt + 1
      end if
   end do
 

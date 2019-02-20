@@ -52,7 +52,7 @@ void fradsphere(const int* lo, const int* hi,
                const amrex::Real* problo, const amrex::Real* probhi,
                BL_FORT_FAB_ARG_3D(p),const int* nc_p,
                const int nbins, amrex::Real* vars_bin,
-               int* imask, const int mask_size, const int r1, const int rr,
+               int* imask, const int mask_size, const int r1,
                const amrex::Real* dx, int* cnt);
 
 #ifdef __cplusplus

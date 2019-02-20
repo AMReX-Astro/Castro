@@ -100,9 +100,8 @@ int main(int argc, char* argv[])
 
 		// fill a multifab with the data
 		Vector<int> fill_comps(nvars);
-		for (auto i = 0; i < nvars; i++) {
+		for (auto i = 0; i < nvars; i++)
 			fill_comps[i] = i;
-		}
 
 		// allocate storage for data
 		Vector<Real> vars_bin(nbins * (nvars + 1), 0.);

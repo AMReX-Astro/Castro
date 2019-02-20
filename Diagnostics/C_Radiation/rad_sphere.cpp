@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
 		}
 
 		Print() << "\nplotfile  = \"" << pltfile << "\"" << std::endl;
-		Print() << "group = \"" << groupfile << "\"" << std::endl;
+		Print() <<   "groupfile = \"" << groupfile << "\"" << std::endl;
 		Print() << std::endl;
 
 		// Start dataservices (no clue why we need to do this)
@@ -99,7 +99,15 @@ int main(int argc, char* argv[])
 		const Vector<Real>& probhi = data.ProbHi();
 		Vector<int> rr = data.RefRatio();
 
-		int nbins = domain.bigEnd()[0] - domain.smallEnd()[0] + 1;
+		if (radius < problo[0] || radius > probhi[0])
+			Abort("ERROR: specified observer radius outside of domain");
+
+		std::cout.setf(std::ios::scientific);
+		std::cout.precision(12);
+		std::cout << "rmin = " << problo[0] << std::endl;
+		std::cout << "rmax = " << probhi[0] << std::endl << std::endl;
+
+		int nbins = domain.length(0);
 
 		// find variable indices
 		Vector<std::string> compVarNames = {"rad0"};
@@ -107,8 +115,10 @@ int main(int argc, char* argv[])
 		auto varComps = GetComponents(data, compVarNames);
 		auto rad_comp = varComps[0];
 
+		const int nvars = data.NComp();
+
 		// allocate storage for data
-		Vector<Real> vars_bin(nbins * (data.NComp() + 1), 0.);
+		Vector<Real> vars_bin(nbins * (nvars + 1), 0.);
 		auto r1 = 1.0;
 
 		// fill a multifab with the data
@@ -139,9 +149,6 @@ int main(int argc, char* argv[])
 		// extract the 1d data
 		for (int l = finestLevel; l >= 0; l--) {
 
-			int refratio = 1;
-			for (auto lev = 0; lev < l; lev++) refratio *= rr[lev];
-
 			Vector<Real> level_dx = data.CellSize(l);
 
 			const BoxArray& ba = data.boxArray(l);
@@ -157,7 +164,7 @@ int main(int argc, char* argv[])
 				           ZFILL(problo), ZFILL(probhi),
 				           BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
 				           nbins, vars_bin.dataPtr(),
-				           imask.dataPtr(), mask_size, r1, refratio,
+				           imask.dataPtr(), mask_size, r1,
 				           ZFILL(dx), &cnt);
 			}
 
@@ -191,11 +198,11 @@ int main(int argc, char* argv[])
 		while(std::getline(group_file, line)) {
 			if (first_line) {
 
-				std::regex re("=([0-9]*)");
+				const std::regex re("=\\s*([0-9]*)");
 				std::smatch m;
 				std::regex_search(line, m, re);
 
-				ngroups = stoi(m[0].str());
+				ngroups = stoi(m[1].str());
 
 				first_line = false;
 
@@ -205,7 +212,7 @@ int main(int argc, char* argv[])
 			} else {
 
 				// read in the group centers and weights
-				int nu, dnu;
+				Real nu, dnu;
 				std::istringstream iss(line);
 				iss >> nu >> dnu;
 
@@ -227,18 +234,18 @@ int main(int argc, char* argv[])
 
 		// output all the radiation energies
 
-		const auto w = 20;
+		const auto w = 28;
 
-		Print() << std::setw(w) << "group name"
+		Print() << std::setw(15) << "group name"
 		        << std::setw(w) << "group center energy"
 		        << std::setw(w) << "E_rad(nu)*dnu (erg/cm^3)"
 		        << std::setw(w) << "E_rad(nu) (erg/cm^3/Hz)" << std::endl;
 
 		for (auto i = 0; i < ngroups; i++) {
-			Print() << std::setw(w) << varNames[rad_comp+i]
+			Print() << std::setw(15) << varNames[rad_comp+i]
 			        << std::setw(w) << nu_groups[i]
-			        << std::setw(w) << vars_bin[isv[idx_obs]*(data.NComp()+1) + rad_comp+i]
-			        << std::setw(w) << vars_bin[isv[idx_obs]*(data.NComp()+1) + rad_comp+i] / dnu_groups[i] << std::endl;
+			        << std::setw(w) << vars_bin[isv[idx_obs] + (rad_comp+i+1)*nbins]
+			        << std::setw(w) << vars_bin[isv[idx_obs] + (rad_comp+i+1)*nbins] / dnu_groups[i] << std::endl;
 		}
 
 	}
