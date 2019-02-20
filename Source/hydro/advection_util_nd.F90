@@ -693,7 +693,7 @@ contains
        iq = qpass_map(ipassive)
 
        ! we already accounted for velocities above
-       if (n == QU .or. n == QV .or. n == QW) cycle
+       if (iq == QU .or. iq == QV .or. iq == QW) cycle
 
        ! we may not be including the ability to have species sources,
        ! so check to make sure that we are < NQSRC
