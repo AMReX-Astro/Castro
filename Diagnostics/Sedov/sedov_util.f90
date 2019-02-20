@@ -13,7 +13,7 @@ subroutine fextract1d(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) :: plo(3), phi(3), nc_p
   integer, intent(in), value :: nbins
-  real(rt), intent(in) :: p(plo(1):phi(1),plo(2):phi(2),plo(3):phi(3),1:nc_p)
+  real(rt), intent(in) :: p(plo(1):phi(1),plo(2):phi(2),plo(3):phi(3),0:nc_p-1)
   real(rt), intent(inout) :: dens_bin(0:nbins-1)
   real(rt), intent(inout) :: vel_bin(0:nbins-1)
   real(rt), intent(inout) :: pres_bin(0:nbins-1)
@@ -21,32 +21,32 @@ subroutine fextract1d(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   integer, intent(inout) :: imask(0:mask_size-1)
   integer, intent(in), value :: mask_size, r1, dens_comp, xmom_comp, pres_comp, rhoe_comp
 
-  integer :: ii, index
+  integer :: i, j, k, index
 
   ! loop over all of the zones in the patch.  Here, we convert
   ! the cell-centered indices at the current level into the
   ! corresponding RANGE on the finest level, and test if we've
   ! stored data in any of those locations.  If we haven't then
   ! we store this level's data and mark that range as filled.
-  do ii = lo(1), hi(1)
+  j = lo(2)
+  k = lo(3)
+  do i = lo(1), hi(1)
 
-     if ( any(imask(ii*r1:(ii+1)*r1-1) .eq. 1) ) then
+     if ( any(imask(i*r1:(i+1)*r1-1) .eq. 1) ) then
 
-        index = ii * r1
+        index = i * r1
 
-        write(*,*) p(ii,1,1,dens_comp)
-
-        dens_bin(index:index+(r1-1)) = p(ii,1,1,dens_comp)
+        dens_bin(index:index+(r1-1)) = p(i,j,k,dens_comp)
 
         vel_bin(index:index+(r1-1)) = &
-             abs(p(ii,1,1,xmom_comp)) / p(ii,1,1,dens_comp)
+             abs(p(i,j,k,xmom_comp)) / p(i,j,k,dens_comp)
 
-        pres_bin(index:index+(r1-1)) = p(ii,1,1,pres_comp)
+        pres_bin(index:index+(r1-1)) = p(i,j,k,pres_comp)
 
         e_bin(index:index+(r1-1)) = &
-             p(ii,1,1,rhoe_comp)  / p(ii,1,1,dens_comp)
+             p(i,j,k,rhoe_comp)  / p(i,j,k,dens_comp)
 
-        imask(ii*r1:(ii+1)*r1-1) = 0
+        imask(i*r1:(i+1)*r1-1) = 0
 
      end if
 
@@ -80,7 +80,7 @@ subroutine fextract2d_cyl(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   real(rt), intent(in), value :: dx_fine, xctr, yctr
   real(rt), intent(in) :: dx(3)
 
-  integer :: ii, jj, k, index
+  integer :: i, j, k, index
   real(rt) :: xx, yy, r_zone
 
   ! loop over all of the zones in the patch.  Here, we convert
@@ -89,37 +89,37 @@ subroutine fextract2d_cyl(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   ! stored data in any of those locations.  If we haven't then
   ! we store this level's data and mark that range as filled.
   k = lo(3)
-  do jj = lo(2), hi(2)
-     yy = (jj + HALF)*dx(2)
+  do j = lo(2), hi(2)
+     yy = (j + HALF)*dx(2)
 
-     do ii = lo(1), hi(1)
-        xx = (ii + HALF)*dx(1)
+     do i = lo(1), hi(1)
+        xx = (i + HALF)*dx(1)
 
-        if ( any(imask(ii*r1:(ii+1)*r1-1, &
-             jj*r1:(jj+1)*r1-1) .eq. 1) ) then
+        if ( any(imask(i*r1:(i+1)*r1-1, &
+             j*r1:(j+1)*r1-1) .eq. 1) ) then
 
            r_zone = sqrt((xx-xctr)**2 + (yy-yctr)**2)
 
            index = r_zone/dx_fine
 
            dens_bin(index) = dens_bin(index) + &
-                p(ii,jj,k,dens_comp)*r1**2
+                p(i,j,k,dens_comp)*r1**2
 
            vel_bin(index) = vel_bin(index) + &
-                (sqrt(p(ii,jj,k,xmom_comp)**2 + &
-                p(ii,jj,k,ymom_comp)**2)/ &
-                p(ii,jj,k,dens_comp))*r1**2
+                (sqrt(p(i,j,k,xmom_comp)**2 + &
+                p(i,j,k,ymom_comp)**2)/ &
+                p(i,j,k,dens_comp))*r1**2
 
            pres_bin(index) = pres_bin(index) + &
-                p(ii,jj,k,pres_comp)*r1**2
+                p(i,j,k,pres_comp)*r1**2
 
            e_bin(index) = e_bin(index) + &
-                (p(ii,jj,k,rhoe_comp)/p(ii,jj,k,dens_comp))*r1**2
+                (p(i,j,k,rhoe_comp)/p(i,j,k,dens_comp))*r1**2
 
            ncount(index) = ncount(index) + r1**2
 
-           imask(ii*r1:(ii+1)*r1-1, &
-                jj*r1:(jj+1)*r1-1) = 0
+           imask(i*r1:(i+1)*r1-1, &
+                j*r1:(j+1)*r1-1) = 0
 
         end if
 
@@ -153,7 +153,7 @@ subroutine fextract2d_sph(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   real(rt), intent(in), value :: dx_fine, yctr
   real(rt), intent(in) :: dx(3)
 
-  integer :: ii, jj, k, index
+  integer :: i, j, k, index
   real(rt) :: xx, xl, xr, yy, yl, yr, r_zone, vol, vel
 
   ! write(*,*) "imask = ", imask
@@ -164,18 +164,18 @@ subroutine fextract2d_sph(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   ! stored data in any of those locations.  If we haven't then
   ! we store this level's data and mark that range as filled.
   k = lo(3)
-  do jj = lo(2), hi(2)
-     yy = (dble(jj) + HALF)*dx(2)
-     yl = (dble(jj))*dx(2)
-     yr = (dble(jj) + ONE)*dx(2)
+  do j = lo(2), hi(2)
+     yy = (dble(j) + HALF)*dx(2)
+     yl = (dble(j))*dx(2)
+     yr = (dble(j) + ONE)*dx(2)
 
-     do ii = lo(1), hi(1)
-        xx = (dble(ii) + HALF)*dx(1)
-        xl = (dble(ii))*dx(1)
-        xr = (dble(ii) + ONE)*dx(1)
+     do i = lo(1), hi(1)
+        xx = (dble(i) + HALF)*dx(1)
+        xl = (dble(i))*dx(1)
+        xr = (dble(i) + ONE)*dx(1)
 
-        if ( any(imask(ii*r1:(ii+1)*r1-1, &
-             jj*r1:(jj+1)*r1-1) .eq. 1) ) then
+        if ( any(imask(i*r1:(i+1)*r1-1, &
+             j*r1:(j+1)*r1-1) .eq. 1) ) then
 
            r_zone = sqrt((xx)**2 + (yy-yctr)**2)
 
@@ -185,23 +185,23 @@ subroutine fextract2d_sph(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
 
            ! weight the zone's data by its size
            dens_bin(index) = dens_bin(index) + &
-                p(ii,jj,k,dens_comp) * vol
+                p(i,j,k,dens_comp) * vol
 
-           vel = sqrt(p(ii,jj,k,xmom_comp)**2 + &
-                p(ii,jj,k,ymom_comp)**2) / &
-                p(ii,jj,k,dens_comp)
+           vel = sqrt(p(i,j,k,xmom_comp)**2 + &
+                p(i,j,k,ymom_comp)**2) / &
+                p(i,j,k,dens_comp)
            vel_bin(index) = vel_bin(index) + vel * vol
 
            pres_bin(index) = pres_bin(index) + &
-                p(ii,jj,k,pres_comp) * vol
+                p(i,j,k,pres_comp) * vol
 
            e_bin(index) = e_bin(index) + &
-                (p(ii,jj,k,rhoe_comp) / p(ii,jj,k,dens_comp)) * vol
+                (p(i,j,k,rhoe_comp) / p(i,j,k,dens_comp)) * vol
 
            volcount(index) = volcount(index) + vol
 
-           imask(ii*r1:(ii+1)*r1-1, &
-                jj*r1:(jj+1)*r1-1) = 0
+           imask(i*r1:(i+1)*r1-1, &
+                j*r1:(j+1)*r1-1) = 0
 
         end if
 
@@ -235,7 +235,7 @@ subroutine fextract3d_cyl(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   real(rt), intent(in), value :: dx_fine, xctr, yctr
   real(rt), intent(in) :: dx(3)
 
-  integer :: ii, jj, kk, index
+  integer :: i, j, k, index
   real(rt) :: xx, yy, zz, r_zone
 
   ! loop over all of the zones in the patch.  Here, we convert
@@ -243,38 +243,38 @@ subroutine fextract3d_cyl(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   ! corresponding RANGE on the finest level, and test if we've
   ! stored data in any of those locations.  If we haven't then
   ! we store this level's data and mark that range as filled.
-  do kk = lo(3), hi(3)
-     zz = (kk + HALF)*dx(3)
-     do jj = lo(2), hi(2)
-        yy = (jj + HALF)*dx(2)
-        do ii = lo(1), hi(1)
-           xx = (ii + HALF)*dx(1)
+  do k = lo(3), hi(3)
+     zz = (k + HALF)*dx(3)
+     do j = lo(2), hi(2)
+        yy = (j + HALF)*dx(2)
+        do i = lo(1), hi(1)
+           xx = (i + HALF)*dx(1)
 
-           if ( any(imask(ii*r1:(ii+1)*r1-1, &
-                jj*r1:(jj+1)*r1-1, &
-                kk*r1:(kk+1)*r1-1) .eq. 1) ) then
+           if ( any(imask(i*r1:(i+1)*r1-1, &
+                j*r1:(j+1)*r1-1, &
+                k*r1:(k+1)*r1-1) .eq. 1) ) then
 
               r_zone = sqrt((xx-xctr)**2 + (yy-yctr)**2)
 
               index = r_zone/dx_fine
 
               dens_bin(index) = dens_bin(index) + &
-                   p(ii,jj,kk,dens_comp)*r1**3
+                   p(i,j,k,dens_comp)*r1**3
 
               vel_bin(index) = vel_bin(index) + &
-                   (sqrt(p(ii,jj,kk,xmom_comp)**2 + &
-                   p(ii,jj,kk,ymom_comp)**2 + &
-                   p(ii,jj,kk,zmom_comp)**2)/ &
-                   p(ii,jj,kk,dens_comp))*r1**3
+                   (sqrt(p(i,j,k,xmom_comp)**2 + &
+                   p(i,j,k,ymom_comp)**2 + &
+                   p(i,j,k,zmom_comp)**2)/ &
+                   p(i,j,k,dens_comp))*r1**3
 
               pres_bin(index) = pres_bin(index) + &
-                   p(ii,jj,kk,pres_comp)*r1**3
+                   p(i,j,k,pres_comp)*r1**3
 
               ncount(index) = ncount(index) + r1**3
 
-              imask(ii*r1:(ii+1)*r1-1, &
-                   jj*r1:(jj+1)*r1-1, &
-                   kk*r1:(kk+1)*r1-1) = 0
+              imask(i*r1:(i+1)*r1-1, &
+                   j*r1:(j+1)*r1-1, &
+                   k*r1:(k+1)*r1-1) = 0
 
            end if
 
@@ -310,7 +310,7 @@ subroutine fextract3d_sph(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   real(rt), intent(in), value :: dx_fine, xctr, yctr, zctr
   real(rt), intent(in) :: dx(3)
 
-  integer :: ii, jj, kk, index
+  integer :: i, j, k, index
   real(rt) :: xx, yy, zz, r_zone, vol, vel
 
   ! write(*,*) "imask = ", imask
@@ -320,45 +320,45 @@ subroutine fextract3d_sph(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   ! corresponding RANGE on the finest level, and test if we've
   ! stored data in any of those locations.  If we haven't then
   ! we store this level's data and mark that range as filled.
-  do kk = lo(3), hi(3)
-     zz = (dble(kk) + HALF)*dx(3)
-     do jj = lo(2), hi(2)
-        yy = (dble(jj) + HALF)*dx(2)
+  do k = lo(3), hi(3)
+     zz = (dble(k) + HALF)*dx(3)
+     do j = lo(2), hi(2)
+        yy = (dble(j) + HALF)*dx(2)
 
-        do ii = lo(1), hi(1)
-           xx = (dble(ii) + HALF)*dx(1)
+        do i = lo(1), hi(1)
+           xx = (dble(i) + HALF)*dx(1)
 
-           if ( any(imask(ii*r1:(ii+1)*r1-1, &
-                jj*r1:(jj+1)*r1-1, &
-                kk*r1:(kk+1)*r1-1) .eq. 1) ) then
+           if ( any(imask(i*r1:(i+1)*r1-1, &
+                j*r1:(j+1)*r1-1, &
+                k*r1:(k+1)*r1-1) .eq. 1) ) then
 
               r_zone = sqrt((xx-xctr)**2 + (yy-yctr)**2 + (zz-zctr)**2)
 
               index = r_zone/dx_fine
 
-              ! write(*,*) p(ii,1,1,dens_comp)
+              ! write(*,*) p(i,1,1,dens_comp)
 
               ! weight the zone's data by its size
               dens_bin(index) = dens_bin(index) + &
-                   p(ii,jj,kk,dens_comp)*r1**3
+                   p(i,j,k,dens_comp)*r1**3
 
               vel_bin(index) = vel_bin(index) + &
-                   (sqrt(p(ii,jj,kk,xmom_comp)**2 + &
-                   p(ii,jj,kk,ymom_comp)**2 + &
-                   p(ii,jj,kk,zmom_comp)**2)/ &
-                   p(ii,jj,kk,dens_comp))*r1**3
+                   (sqrt(p(i,j,k,xmom_comp)**2 + &
+                   p(i,j,k,ymom_comp)**2 + &
+                   p(i,j,k,zmom_comp)**2)/ &
+                   p(i,j,k,dens_comp))*r1**3
 
               pres_bin(index) = pres_bin(index) + &
-                   p(ii,jj,kk,pres_comp)*r1**3
+                   p(i,j,k,pres_comp)*r1**3
 
               e_bin(index) = e_bin(index) + &
-                   (p(ii,jj,kk,rhoe_comp)/p(ii,jj,kk,dens_comp))*r1**3
+                   (p(i,j,k,rhoe_comp)/p(i,j,k,dens_comp))*r1**3
 
               ncount(index) = ncount(index) + r1**3
 
-              imask(ii*r1:(ii+1)*r1-1, &
-                   jj*r1:(jj+1)*r1-1, &
-                   kk*r1:(kk+1)*r1-1) = 0
+              imask(i*r1:(i+1)*r1-1, &
+                   j*r1:(j+1)*r1-1, &
+                   k*r1:(k+1)*r1-1) = 0
 
            end if
 
