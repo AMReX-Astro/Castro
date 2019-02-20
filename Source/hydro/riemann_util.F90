@@ -191,22 +191,22 @@ contains
   !!
   subroutine HLL(ql, qr, cl, cr, idir, f)
 
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
+    use meth_params_module, only : NQ, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
          URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
          npassive, upass_map, qpass_map
     use prob_params_module, only : mom_flux_has_p
 
     use amrex_fort_module, only : rt => amrex_real
-    real(rt)        , intent(in) :: ql(QVAR), qr(QVAR), cl, cr
-    real(rt)        , intent(inout) :: f(NVAR)
+    real(rt), intent(in) :: ql(NQ), qr(NQ), cl, cr
+    real(rt), intent(inout) :: f(NVAR)
     integer, intent(in) :: idir
 
     integer :: ivel, ivelt, iveltt, imom, imomt, imomtt
-    real(rt)         :: a1, a4, bd, bl, bm, bp, br
-    real(rt)         :: cavg, uavg
-    real(rt)         :: fl_tmp, fr_tmp
-    real(rt)         :: rhod, rhoEl, rhoEr, rhol_sqrt, rhor_sqrt
-    integer :: n, nq
+    real(rt) :: a1, a4, bd, bl, bm, bp, br
+    real(rt) :: cavg, uavg
+    real(rt) :: fl_tmp, fr_tmp
+    real(rt) :: rhod, rhoEl, rhoEr, rhol_sqrt, rhor_sqrt
+    integer :: n, nqs
 
     integer :: ipassive
 
@@ -336,12 +336,12 @@ contains
     ! passively-advected scalar fluxes
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       nqs = qpass_map(ipassive)
 
-       fl_tmp = ql(QRHO)*ql(nq)*ql(ivel)
-       fr_tmp = qr(QRHO)*qr(nq)*qr(ivel)
+       fl_tmp = ql(QRHO)*ql(nqs)*ql(ivel)
+       fr_tmp = qr(QRHO)*qr(nqs)*qr(ivel)
 
-       f(n) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(nq) - ql(QRHO)*ql(nq))
+       f(n) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(nqs) - ql(QRHO)*ql(nqs))
     enddo
 
   end subroutine HLL
@@ -354,17 +354,17 @@ contains
   !!
   pure subroutine cons_state(q, U)
 
-    use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QREINT, &
+    use meth_params_module, only: NQ, QRHO, QU, QV, QW, QREINT, &
          NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
 #ifdef SHOCK_VAR
          USHK, &
 #endif
          npassive, upass_map, qpass_map
 
-    real(rt)        , intent(in)  :: q(QVAR)
+    real(rt)        , intent(in)  :: q(NQ)
     real(rt)        , intent(out) :: U(NVAR)
 
-    integer :: ipassive, n, nq
+    integer :: ipassive, n, nqs
 
     !$gpu
 
@@ -389,8 +389,8 @@ contains
 
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
-       U(n) = q(QRHO)*q(nq)
+       nqs = qpass_map(ipassive)
+       U(n) = q(QRHO)*q(nqs)
     enddo
 
   end subroutine cons_state
@@ -406,7 +406,7 @@ contains
   !!
   pure subroutine HLLC_state(idir, S_k, S_c, q, U)
 
-    use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QREINT, QPRES, &
+    use meth_params_module, only: NQ, QRHO, QU, QV, QW, QREINT, QPRES, &
          NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
 #ifdef SHOCK_VAR
          USHK, &
@@ -415,11 +415,11 @@ contains
 
     integer, intent(in) :: idir
     real(rt), intent(in)  :: S_k, S_c
-    real(rt), intent(in)  :: q(QVAR)
+    real(rt), intent(in)  :: q(NQ)
     real(rt), intent(out) :: U(NVAR)
 
     real(rt)         :: hllc_factor, u_k
-    integer :: ipassive, n, nq
+    integer :: ipassive, n, nqs
 
     !$gpu
 
@@ -460,8 +460,8 @@ contains
 
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
-       U(n) = hllc_factor*q(nq)
+       nqs = qpass_map(ipassive)
+       U(n) = hllc_factor*q(nqs)
     enddo
 
   end subroutine HLLC_state

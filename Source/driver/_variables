@@ -24,24 +24,24 @@
 
 # the primitive variable state
 @set: primitive NQ
-   density                QRHO         QRHO      QVAR             1                 None
-   x-velocity             QU           QU        QVAR             1                 None
-   y-velocity             QV           QV        QVAR             1                 None
-   z-velocity             QW           QW        QVAR             1                 None
-   gamma_e                QGAME        QGAME     QVAR             1                 None
-   gamma_c                QGC          QGC       QVAR             1                 None
-   pressure               QPRES        QPRES     QVAR             1                 None
-   rho-e                  QREINT       QREINT    QVAR             1                 None
-   B-x                    QMAGX        QMAGX     QVAR             1                 MHD
-   B-y                    QMAGY        QMAGY     QVAR             1                 MHD
-   B-z                    QMAGZ        QMAGZ     QVAR             1                 MHD
-   temperature            QTEMP        QTEMP     QVAR             1                 None
-   advected               QFA          QFA       QVAR           (nadv, NumAdv)      None
-   species                QFS          QFS       QVAR           (nspec, NumSpec)    None
-   auxiliary              QFX          QFX       QVAR           (naux, NumAux)      None
-   total-pressure         QPTOT        QPTOT     None             1                 RADIATION
-   total-reint            QREITOT      QREITOT   None             1                 RADIATION
-   radiation              QRAD         QRAD      None           (ngroups, NGROUPS)  RADIATION
+   density                QRHO         QRHO      NQSRC                                   1                 None
+   x-velocity             QU           QU        NQSRC                                   1                 None
+   y-velocity             QV           QV        NQSRC                                   1                 None
+   z-velocity             QW           QW        NQSRC                                   1                 None
+   gamma_e                QGAME        QGAME     NQSRC                                   1                 None
+   gamma_c                QGC          QGC       NQSRC                                   1                 None
+   pressure               QPRES        QPRES     NQSRC                                   1                 None
+   rho-e                  QREINT       QREINT    NQSRC                                   1                 None
+   B-x                    QMAGX        QMAGX     NQSRC                                   1                 MHD
+   B-y                    QMAGY        QMAGY     NQSRC                                   1                 MHD
+   B-z                    QMAGZ        QMAGZ     NQSRC                                   1                 MHD
+   temperature            QTEMP        QTEMP     NQSRC                                   1                 None
+   advected               QFA          QFA       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (nadv, NumAdv)      None
+   species                QFS          QFS       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (nspec, NumSpec)    None
+   auxiliary              QFX          QFX       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (naux, NumAux)      None
+   total-pressure         QPTOT        QPTOT     None                                    1                 RADIATION
+   total-reint            QREITOT      QREITOT   None                                    1                 RADIATION
+   radiation              QRAD         QRAD      None                                  (ngroups, NGROUPS)  RADIATION
 
 
 # the auxiliary quantities

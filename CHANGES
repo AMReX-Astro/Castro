@@ -7,6 +7,16 @@
   -- A framework for a new spectral deferred corrections method
      was added.  This will allow for higher-order time integration.
 
+  -- By default, we no longer allocation storage for source terms to
+     species in the primitive variable state.  This is set via the
+     _variables file, parsed by set_variables.py.  To allow for
+     species sources, you need to set PRIM_SPECIES_HAVE_SOURCES.  This
+     is done currently for SDC.
+
+  -- renamed QVAR to NQSRC to make it clear that this is the number of
+     source terms for the primitive variable state.  We also fixed a
+     number of places where QVAR was used instead of NQ.
+
   -- A new runtime parameter, T_guess, was created.  This is used as
      the initial temperature guess when calling the EOS with inputs
      other than rho, T, for the initial Newton iteration.

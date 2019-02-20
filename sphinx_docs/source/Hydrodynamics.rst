@@ -93,10 +93,11 @@ several main data structures that hold the state.
 -  primitive variable state: these arrays generally simply called
    ``q``, and has ``NQ`` components.
 
-   .. note:: if ``RADIATION`` is defined, then there are ``QVAR``
-      components that are pure hydro out of the total ``NQ``
-      components, and the pure hydro components always come first in
-      the state array.
+   A related quantity is ``NQSRC`` which is the number of primitive variable
+   source terms.  ``NQSRC`` ≤ ``NQ``.
+
+   .. note:: if ``RADIATION`` is defined, then only the gas/hydro terms are
+      present in ``NQSRC``.  
 
    Table \ `[table:primlist] <#table:primlist>`__ gives the names of the primitive variable integer
    keys for accessing these arrays.

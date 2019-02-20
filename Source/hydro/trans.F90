@@ -33,7 +33,7 @@ contains
     use amrex_constants_module, only : ZERO, ONE, HALF
 
     use network, only : nspec, naux
-    use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
+    use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QGAME, QFS, QFX, &
                                    QC, QGAMC, &
 #ifdef RADIATION
@@ -623,7 +623,7 @@ contains
   use amrex_constants_module, only : ZERO, ONE, HALF
 
   use network, only : nspec, naux
-  use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
+  use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
                                  QPRES, QREINT, QGAME, QFS, QFX, &
                                  QC, QGAMC, &
 #ifdef RADIATION
@@ -1067,7 +1067,7 @@ contains
     use amrex_constants_module, only : ZERO, ONE, HALF
 
     use network, only : nspec, naux
-    use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
+    use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QGAME, QFS, QFX, &
                                    QC, QGAMC, &
 #ifdef RADIATION
@@ -1504,7 +1504,7 @@ contains
     use amrex_constants_module, only : ZERO, ONE, HALF
 
     use network, only : nspec, naux
-    use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
+    use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QGAME, QFS, QFX, &
                                    QC, QGAMC, &
 #ifdef RADIATION
@@ -1947,7 +1947,7 @@ contains
     use amrex_constants_module, only : ZERO, ONE, HALF
 
     use network, only : nspec, naux
-    use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
+    use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QGAME, QFS, QFX, &
                                    QC, QGAMC, &
 #ifdef RADIATION
@@ -2378,7 +2378,7 @@ contains
     use amrex_constants_module, only : ZERO, ONE, HALF
 
     use network, only : nspec, naux
-    use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
+    use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QGAME, QFS, QFX, &
                                    QC, QGAMC, &
 #ifdef RADIATION
@@ -2817,7 +2817,7 @@ contains
     use amrex_constants_module, only : ZERO, ONE, HALF
 
     use network, only : nspec, naux
-    use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
+    use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QGAME, QFS, QFX, &
                                    QC, QGAMC, &
 #ifdef RADIATION
@@ -3328,7 +3328,7 @@ contains
     use amrex_constants_module, only : ZERO, ONE, HALF
 
     use network, only : nspec, naux
-    use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
+    use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QGAME, QFS, QFX, &
                                    QC, QGAMC, &
 #ifdef RADIATION
@@ -3839,7 +3839,7 @@ contains
     use amrex_constants_module, only : ZERO, ONE, HALF
 
     use network, only : nspec, naux
-    use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
+    use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
                                    QPRES, QREINT, QGAME, QFS, QFX, &
                                    QC, QGAMC, &
 #ifdef RADIATION
@@ -4332,7 +4332,7 @@ contains
   use amrex_constants_module, only : ZERO, ONE, HALF
 
   use network, only : nspec, naux
-  use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, &
+  use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, &
                                  QPRES, QREINT, QGAME, QFS, QFX, &
                                  small_pres, small_temp, &
                                  ppm_predict_gammae, &
@@ -4343,7 +4343,7 @@ contains
 
     integer, intent(in) :: ii, jj, kk
     integer, intent(in) :: qd_lo(3), qd_hi(3)
-    real(rt)        , intent(inout) :: qedge(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    real(rt)        , intent(inout) :: qedge(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
 
     logical :: reset
     type (eos_t) :: eos_state
