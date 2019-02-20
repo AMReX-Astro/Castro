@@ -16,18 +16,47 @@ int main(int argc, char* argv[])
 	// timer for profiling
 	BL_PROFILE_VAR("main()", pmain);
 
-	// wallclock time
-	const Real strt_total = amrex::second();
-
 	{
 		// Input arguments
-		string pltfile;
-		string slcfile;
-		double xctr = 0.0;
-		double yctr = 0.0;
-		int dir;
+		string pltfile, groupfile, slcfile;
+		int j = 1; // skip program name
 
-		GetInputArgs (argc, argv, pltfile, slcfile, xctr, yctr, dir);
+		while ( j < argc)
+		{
+
+			if ( !strcmp(argv[j], "-p") || !strcmp(argv[j],"--pltfile") )
+			{
+				pltfile = argv[++j];
+			}
+			else if ( !strcmp(argv[j], "-g") || !strcmp(argv[j],"--groupfile") )
+			{
+				groupfile = argv[++j];
+			}
+			else if ( !strcmp(argv[j], "-s") || !strcmp(argv[j],"--slicefile") )
+			{
+				slcfile = argv[++j];
+			}
+			else
+			{
+				std::cout << "\n\nOption " << argv[j] << " not recognized" << std::endl;
+				PrintHelp();
+				exit ( EXIT_FAILURE );
+			}
+
+			// Go to the next parameter name
+			++j;
+		}
+
+		if (pltfile.empty() || groupfile.empty())
+		{
+			PrintHelp();
+			Abort("Missing input file");
+		}
+
+		Print() << "\nplotfile  = \"" << pltfile << "\"" << std::endl;
+		Print() <<   "groupfile = \"" << groupfile << "\"" << std::endl;
+		Print() <<   "slicefile = \"" << slcfile << "\"" << std::endl;
+		Print() << std::endl;
 
 		// Start dataservices (no clue why we need to do this)
 		DataServices::SetBatchMode();
