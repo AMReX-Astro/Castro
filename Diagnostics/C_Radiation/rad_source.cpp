@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
 
 	// Input arguments
 	if (argc < 2)
-		Abort("Missing input file");
+		Abort("ERROR: Missing plotfiles");
 
 	// all the arguments are assumed to be plotfiles
 	for (auto i = 1; i < argc; i++) {
