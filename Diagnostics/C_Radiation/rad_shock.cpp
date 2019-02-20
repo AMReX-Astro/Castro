@@ -63,14 +63,14 @@ int main(int argc, char* argv[])
 		for (int i = 0; i < AMREX_SPACEDIM; i++)
 			dx[i] = data.ProbSize()[i] / domain.length(i);
 
-		const Vector<Real>& problo = data.ProbLo();
-		const Vector<Real>& probhi = data.ProbHi();
+		Vector<Real> problo = data.ProbLo();
+		Vector<Real> probhi = data.ProbHi();
 		Vector<int> rr = data.RefRatio();
 
 		// compute the size of the radially-binned array -- we'll do it to
 		// the furtherest corner of the domain
 
-		int nbins = probhi[AMREX_SPACEDIM-1] - problo[AMREX_SPACEDIM-1] + 1;
+		int nbins = probhi[idir-1] - problo[idir-1] + 1;
 
 		double dx_fine = *(std::min_element(dx.begin(), dx.end()));
 
@@ -139,16 +139,18 @@ int main(int argc, char* argv[])
 
 			MultiFab lev_data_mf(ba, dm, nvars, data.NGrow());
 			data.FillVar(lev_data_mf, l, varNames, fill_comps);
-
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
 			for (MFIter mfi(lev_data_mf, true); mfi.isValid(); ++mfi) {
 				const Box& bx = mfi.tilebox();
 
 				fradshock(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				          ZFILL(problo), ZFILL(probhi),
+				          problo.dataPtr(), probhi.dataPtr(),
 				          BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
 				          nbins, vars_bin.dataPtr(),
 				          imask.dataPtr(), mask_size, r1, refratio,
-				          ZFILL(dx), idir, &cnt);
+				          dx.dataPtr(), idir, &cnt);
 
 			}
 
@@ -198,7 +200,13 @@ int main(int argc, char* argv[])
 		const auto w = 24;
 
 		// write the header
-		slicefile << std::setw(w) << "x";
+		if (idir == 1)
+			slicefile << std::setw(w) << "x";
+		else if (idir == 2)
+			slicefile << std::setw(w) << "y";
+		else
+			slicefile << std::setw(w) << "z";
+
 		for (auto it=slcvarNames.begin(); it!=slcvarNames.end(); ++it)
 			slicefile << std::setw(w) << *it;
 

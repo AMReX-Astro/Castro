@@ -129,7 +129,6 @@ subroutine fradshock(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
 
   use amrex_fort_module, only : rt => amrex_real
   use amrex_constants_module
-  use prob_params_module, only: dim
 
   implicit none
 
@@ -156,8 +155,6 @@ subroutine fradshock(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
   jloc = (hi(2)-lo(2)+1)/2 + lo(2)
   ymin = problo(2)
   ymax = probhi(2)
-#endif
-#if (AMREX_SPACEDIM == 3)
   kloc = (hi(3)-lo(3)+1)/2 + lo(3)
   zmin = problo(3)
   zmax = probhi(3)
@@ -187,11 +184,11 @@ subroutine fradshock(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
      ! if the current patch stradles our slice, then get a data
      ! pointer to it
      if ( rr*jloc >= lo(2) .and. rr*jloc <= hi(2) .and. &
-          ( (dim .eq. 2) .or. (rr*kloc >= lo(3) .and. rr*kloc <= hi(3)) ) ) then
+          ( (AMREX_SPACEDIM .eq. 2) .or. (rr*kloc >= lo(3) .and. rr*kloc <= hi(3)) ) ) then
 
         jj = jloc*rr
 
-        if (dim .eq. 3) then
+        if (AMREX_SPACEDIM .eq. 3) then
            kk = kloc*rr
         else
            kk = lo(3)
@@ -223,10 +220,10 @@ subroutine fradshock(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
      ! if the current patch stradles our slice, then get a data
      ! pointer to it
      if ( rr*iloc >= lo(1) .and. rr*iloc <= hi(1) .and. &
-          ( (dim .eq. 2) .or. (rr*kloc >= lo(3) .and. rr*kloc <= hi(3)) ) ) then
+          ( (AMREX_SPACEDIM .eq. 2) .or. (rr*kloc >= lo(3) .and. rr*kloc <= hi(3)) ) ) then
 
         ii = iloc*rr
-        if (dim .eq. 3) then
+        if (AMREX_SPACEDIM .eq. 3) then
            kk = kloc*rr
         else
            kk = lo(3)
@@ -293,7 +290,6 @@ subroutine frhdshocktube(lo, hi, p, plo, phi, nc_p, nbins, &
 
   use amrex_fort_module, only : rt => amrex_real
   use amrex_constants_module
-  use prob_params_module, only: dim
 
   implicit none
 
@@ -338,7 +334,6 @@ subroutine fradsource(lo, hi, p, plo, phi, nc_p, &
 
   use amrex_fort_module, only : rt => amrex_real
   use amrex_constants_module
-  use prob_params_module, only: dim
 
   implicit none
 
@@ -365,7 +360,6 @@ subroutine fradsphere(lo, hi, problo, probhi, p, plo, phi, nc_p, nbins, &
 
   use amrex_fort_module, only : rt => amrex_real
   use amrex_constants_module
-  use prob_params_module, only: dim
 
   implicit none
 
