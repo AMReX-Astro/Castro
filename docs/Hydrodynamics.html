@@ -346,12 +346,12 @@ is defined)</td>
 </li>
 <li><p class="first">primitive variable state: these arrays generally simply called
 <code class="docutils literal notranslate"><span class="pre">q</span></code>, and has <code class="docutils literal notranslate"><span class="pre">NQ</span></code> components.</p>
+<p>A related quantity is <code class="docutils literal notranslate"><span class="pre">NQSRC</span></code> which is the number of primitive variable
+source terms.  <code class="docutils literal notranslate"><span class="pre">NQSRC</span></code> ≤ <code class="docutils literal notranslate"><span class="pre">NQ</span></code>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">if <code class="docutils literal notranslate"><span class="pre">RADIATION</span></code> is defined, then there are <code class="docutils literal notranslate"><span class="pre">QVAR</span></code>
-components that are pure hydro out of the total <code class="docutils literal notranslate"><span class="pre">NQ</span></code>
-components, and the pure hydro components always come first in
-the state array.</p>
+<p class="last">if <code class="docutils literal notranslate"><span class="pre">RADIATION</span></code> is defined, then only the gas/hydro terms are
+present in <code class="docutils literal notranslate"><span class="pre">NQSRC</span></code>.</p>
 </div>
 <p>Table&nbsp;<a class="reference external" href="#table:primlist">[table:primlist]</a> gives the names of the primitive variable integer
 keys for accessing these arrays.</p>
