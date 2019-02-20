@@ -1702,8 +1702,8 @@ public:
 ///
 /// variable counts
 ///
-    static int       NQAUX;
     static int       NQSRC;
+    static int       NQAUX;
     static int       NQ;
     static int       NGDNV;
 
