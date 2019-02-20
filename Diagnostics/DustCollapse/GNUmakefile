@@ -3,14 +3,14 @@ AMREX_HOME ?= /path/to/amrex
 NDEBUG := t
 MPI    :=
 OMP    :=
-MKVERBOSE :=t 
+MKVERBOSE :=t
 COMP   := gfortran
 
 # include the main Makefile stuff
 include $(AMREX_HOME)/Tools/F_mk/GMakedefs.mak
 
 # define the packages to build these tools
-Fmdirs := Src/F_BaseLib 
+Fmdirs := Src/F_BaseLib
 
 Fmpack := $(foreach dir, $(Fmdirs),     $(AMREX_HOME)/$(dir)/GPackage.mak)
 Fmlocs := $(foreach dir, $(Fmdirs),     $(AMREX_HOME)/$(dir))
@@ -28,7 +28,6 @@ FINCLUDE_LOCATIONS += $(Fmincs)
 programs += fdustcollapse1d
 programs += fdustcollapse2d
 programs += fdustcollapse3d
-
 all: $(pnames)
 
 include $(AMREX_HOME)/Tools/F_mk/GMakerules.mak
@@ -36,7 +35,7 @@ include $(AMREX_HOME)/Tools/F_mk/GMakerules.mak
 %.$(suf).exe:%.f90 $(objects)
 ifdef MKVERBOSE
 	$(LINK.f90) -o $@ $< $(objects) $(libraries)
-else	
+else
 	@echo "Linking $@ ... "
 	@$(LINK.f90) -o $@ $< $(objects) $(libraries)
 endif

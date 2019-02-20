@@ -9,8 +9,9 @@
 program fdustcollapse3d
 
   use f2kcli
-  use amrex_error_module
+  use bl_error_module
   use plotfile_module
+  use bl_IO_module
 
   implicit none
 
@@ -19,29 +20,29 @@ program fdustcollapse3d
   integer :: i, j, ii, jj, kk
   integer :: f
 
-  real(rt) :: xx, yy, zz
+  real(kind=dp_t) :: xx, yy, zz
   integer :: rr, r1
 
   integer :: nbins
-  real(rt), allocatable :: r(:)
-  real(rt) :: maxdist, x_maxdist, y_maxdist, z_maxdist
-  real(rt) :: xctr, yctr, zctr
+  real(kind=dp_t), allocatable :: r(:)
+  real(kind=dp_t) :: maxdist, x_maxdist, y_maxdist, z_maxdist
+  real(kind=dp_t) :: xctr, yctr, zctr
 
-  real(rt) :: dx(MAX_SPACEDIM)
-  real(rt) :: dx_fine
+  real(kind=dp_t) :: dx(MAX_SPACEDIM)
+  real(kind=dp_t) :: dx_fine
 
-  real(rt) :: r_zone
+  real(kind=dp_t) :: r_zone
   integer :: index_r
 
-  real(rt), pointer :: p(:,:,:,:)
+  real(kind=dp_t), pointer :: p(:,:,:,:)
 
   integer, allocatable :: ncount(:)
-  real(rt), allocatable :: dens_bin(:)
+  real(kind=dp_t), allocatable :: dens_bin(:)
 
   integer :: dens_comp
 
-  real(rt) :: max_dens
-  real(rt) :: rho_lo,rho_hi,x,r_interface
+  real(kind=dp_t) :: max_dens
+  real(kind=dp_t) :: rho_lo,rho_hi,x,r_interface
 
   logical, allocatable :: imask(:,:,:)
   integer :: lo(MAX_SPACEDIM), hi(MAX_SPACEDIM)
@@ -87,7 +88,7 @@ program fdustcollapse3d
         read(fname,*) zctr
 
      case ('--profile')
-        profile = .true.        
+        profile = .true.
 
      case default
         exit
@@ -97,7 +98,7 @@ program fdustcollapse3d
   end do
 
   do f = farg, narg
-  
+
      call get_command_argument(f, value = fname)
 
      call build(pf, fname, unit)
@@ -131,7 +132,7 @@ program fdustcollapse3d
      x_maxdist = max(abs(pf%phi(1) - xctr), abs(pf%plo(1) - xctr))
      y_maxdist = max(abs(pf%phi(2) - yctr), abs(pf%plo(2) - yctr))
      z_maxdist = max(abs(pf%phi(3) - zctr), abs(pf%plo(3) - zctr))
-  
+
      maxdist = sqrt(x_maxdist**2 + y_maxdist**2 + z_maxdist**2)
 
      dx_fine = minval(plotfile_get_dx(pf, pf%flevel))
@@ -143,7 +144,7 @@ program fdustcollapse3d
         r(i) = (dble(i) + 0.5d0)*dx_fine
      enddo
 
-     
+
      ! imask will be set to false if we've already output the data.
      ! Note, imask is defined in terms of the finest level.  As we loop
      ! over levels, we will compare to the finest level index space to
@@ -152,7 +153,7 @@ program fdustcollapse3d
 
      imask(:,:,:) = .true.
 
-     ! allocate storage for the data 
+     ! allocate storage for the data
      allocate(dens_bin(0:nbins-1))
      allocate(  ncount(0:nbins-1))
 
@@ -161,7 +162,7 @@ program fdustcollapse3d
 
      ! loop over the data, starting at the finest grid, and if we haven't
      ! already store data in that grid location (according to imask),
-     ! store it.  
+     ! store it.
 
      ! r1 is the factor between the current level grid spacing and the
      ! FINEST level
@@ -310,7 +311,7 @@ program fdustcollapse3d
 
         ! get the basename of the file
         indslsh = index(fname, '/', back = .TRUE.)
-        
+
         if ( indslsh /= 0 ) then
            outfile = trim(fname(:indslsh-1)) // ".profile"
         else

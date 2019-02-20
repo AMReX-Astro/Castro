@@ -10,8 +10,9 @@
 program fdustcollapse2d
 
   use f2kcli
-  use amrex_error_module
+  use bl_error_module
   use plotfile_module
+  use bl_IO_module
 
   implicit none
 
@@ -20,28 +21,28 @@ program fdustcollapse2d
   integer :: i, j, ii, jj
   integer :: f
 
-  real(rt) :: xx, yy, xl, yl, xr, yr
+  real(kind=dp_t) :: xx, yy, xl, yl, xr, yr
 
   integer :: rr, r1
 
   integer :: nbins
-  real(rt), allocatable :: r(:), rl(:)
-  real(rt) :: maxdist, x_maxdist, y_maxdist
-  real(rt) :: yctr
+  real(kind=dp_t), allocatable :: r(:), rl(:)
+  real(kind=dp_t) :: maxdist, x_maxdist, y_maxdist
+  real(kind=dp_t) :: yctr
 
-  real(rt) :: dx(MAX_SPACEDIM)
-  real(rt) :: dx_fine
+  real(kind=dp_t) :: dx(MAX_SPACEDIM)
+  real(kind=dp_t) :: dx_fine
 
-  real(rt) :: r_zone, vol
-  real(rt) :: max_dens
-  real(rt) :: rho_lo,rho_hi,x,r_interface
+  real(kind=dp_t) :: r_zone, vol
+  real(kind=dp_t) :: max_dens
+  real(kind=dp_t) :: rho_lo,rho_hi,x,r_interface
 
   integer :: index_r
 
-  real(rt), pointer :: p(:,:,:,:)
+  real(kind=dp_t), pointer :: p(:,:,:,:)
 
-  real(rt), allocatable :: volcount(:)
-  real(rt), allocatable :: dens_bin(:)
+  real(kind=dp_t), allocatable :: volcount(:)
+  real(kind=dp_t), allocatable :: dens_bin(:)
 
   integer :: dens_comp
 
@@ -100,7 +101,7 @@ program fdustcollapse2d
      ! density index
      dens_comp = plotfile_var_index(pf, "density")
 
-     if (dens_comp < 0) then 
+     if (dens_comp < 0) then
         call bl_error("ERROR: variable(s) not defined")
      endif
 
@@ -119,7 +120,7 @@ program fdustcollapse2d
      ! the furtherest corner of the domain
      x_maxdist = max(abs(pf%phi(1)       ), abs(pf%plo(1)       ))
      y_maxdist = max(abs(pf%phi(2) - yctr), abs(pf%plo(2) - yctr))
-  
+
      maxdist = sqrt(x_maxdist**2 + y_maxdist**2)
 
      dx_fine = minval(plotfile_get_dx(pf, pf%flevel))
@@ -143,7 +144,7 @@ program fdustcollapse2d
 
      imask(:,:) = .true.
 
-     ! allocate storage for the data 
+     ! allocate storage for the data
      allocate(dens_bin(0:nbins-1))
      allocate(volcount(0:nbins-1))
 
@@ -152,7 +153,7 @@ program fdustcollapse2d
 
      ! loop over the data, starting at the finest grid, and if we haven't
      ! already store data in that grid location (according to imask),
-     ! store it.  
+     ! store it.
 
      ! r1 is the factor between the current level grid spacing and the
      ! FINEST level
@@ -192,9 +193,9 @@ program fdustcollapse2d
 
                  if ( any(imask(ii*r1:(ii+1)*r1-1, &
                                 jj*r1:(jj+1)*r1-1) ) ) then
-                 
+
                     r_zone = sqrt((xx)**2 + (yy-yctr)**2)
-                    
+
                     index_r = r_zone/dx_fine
 
                     vol = (xr**2 - xl**2)*(yr - yl)
@@ -207,7 +208,7 @@ program fdustcollapse2d
 
                     imask(ii*r1:(ii+1)*r1-1, &
                          jj*r1:(jj+1)*r1-1) = .false.
-                 
+
                  end if
 
               end do
@@ -231,7 +232,7 @@ program fdustcollapse2d
      !   analytic expression for the radius as a function of time
      ! t = 0.00
      if (abs(pf%tm-0.00) .le. 1.e-8) then
-         max_dens = 1.e9 
+         max_dens = 1.e9
 
      ! t = 0.01
      else if (abs(pf%tm-0.01) .le. 1.e-8) then
@@ -261,7 +262,7 @@ program fdustcollapse2d
      else if (abs(pf%tm-0.065) .le. 1.e-8) then
          max_dens = 423.447291e9
 
-     else 
+     else
          print *,'Dont know the maximum density at this time: ',pf%tm
          stop
      end if
@@ -272,6 +273,7 @@ program fdustcollapse2d
      ! place where the density drops below the threshold density
      index_r = -1
      do i = 0, nbins-1
+         ! write(*,*) i, dens_bin(i)
         if (dens_bin(i) < 0.5d0*max_dens) then
            index_r = i
            exit
@@ -302,7 +304,7 @@ program fdustcollapse2d
 
         ! get the basename of the file -- remove the trailing slash if present
         indslsh = index(fname, '/', back = .TRUE.)
-        
+
         if ( indslsh /= 0 ) then
            outfile = trim(fname(:indslsh-1)) // ".profile"
         else

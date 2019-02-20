@@ -4,7 +4,8 @@
 program fdustcollapse1d
 
   use f2kcli
-  use amrex_error_module
+  use bl_error_module
+  use bl_IO_module
   use plotfile_module
   use sort_d_module
 
@@ -20,13 +21,13 @@ program fdustcollapse1d
   integer :: cnt
   integer :: max_points
 
-  real(rt) :: dx(MAX_SPACEDIM)
+  real(kind=dp_t) :: dx(MAX_SPACEDIM)
 
   integer :: index
 
-  real(rt), pointer :: p(:,:,:,:)
+  real(kind=dp_t), pointer :: p(:,:,:,:)
 
-  real(rt), allocatable :: rcoord(:), dens(:)
+  real(kind=dp_t), allocatable :: rcoord(:), dens(:)
   integer, allocatable :: isort(:)
 
   integer :: dens_comp
@@ -35,9 +36,9 @@ program fdustcollapse1d
   integer :: lo(MAX_SPACEDIM), hi(MAX_SPACEDIM)
   integer :: flo(MAX_SPACEDIM), fhi(MAX_SPACEDIM)
 
-  real(rt) :: rmin
-  real(rt) :: max_dens
-  real(rt) :: rho_lo,rho_hi,x,r_interface
+  real(kind=dp_t) :: rmin
+  real(kind=dp_t) :: max_dens
+  real(kind=dp_t) :: rho_lo,rho_hi,x,r_interface
 
   integer :: narg, farg
   character(len=256) :: fname
@@ -74,7 +75,7 @@ program fdustcollapse1d
 
      rmin = pf%plo(1)
 
-  
+
      ! density index
      dens_comp = plotfile_var_index(pf, "density")
 
@@ -105,7 +106,7 @@ program fdustcollapse1d
 
      imask(:) = .true.
 
-     ! allocate storage for the data 
+     ! allocate storage for the data
      allocate(rcoord(max_points))
      allocate(  dens(max_points))
      allocate( isort(max_points))
@@ -116,7 +117,7 @@ program fdustcollapse1d
 
      ! loop over the data, starting at the finest grid, and if we haven't
      ! already store data in that grid location (according to imask),
-     ! store it. 
+     ! store it.
 
      cnt = 0
 
@@ -141,7 +142,7 @@ program fdustcollapse1d
 
            ! get a pointer to the current patch
            p => dataptr(pf, i, j)
-        
+
            ! loop over all of the zones in the patch.  Here, we convert
            ! the cell-centered indices at the current level into the
            ! corresponding RANGE on the finest level, and test if we've
@@ -157,7 +158,7 @@ program fdustcollapse1d
                  dens(cnt)   = p(ii,1,1,dens_comp)
 
                  imask(ii*r1:(ii+1)*r1-1) = .false.
-                 
+
               end if
 
            enddo
@@ -247,7 +248,7 @@ program fdustcollapse1d
      deallocate(imask)
 
      call destroy(pf)
-     
+
   enddo
 
 end program fdustcollapse1d
