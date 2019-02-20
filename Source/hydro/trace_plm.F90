@@ -29,7 +29,7 @@ contains
     ! vlo and vhi are the bounds of the valid box (no ghost cells)
 
     use network, only : nspec, naux
-    use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, QC, &
+    use meth_params_module, only : NQ, NQAUX, NQSRC, QRHO, QU, QV, QW, QC, &
                                    QREINT, QPRES, &
                                    npassive, qpass_map, small_dens, small_pres, &
                                    ppm_type, fix_mass_flux
@@ -64,7 +64,7 @@ contains
 #if (AMREX_SPACEDIM < 3)
     real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 #endif
-    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
+    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)
     real(rt), intent(in) :: dx(3), dt
 
     ! Local variables

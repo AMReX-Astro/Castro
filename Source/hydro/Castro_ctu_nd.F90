@@ -60,7 +60,7 @@ contains
 #endif
                             domlo, domhi) bind(C, name="ctu_ppm_states")
 
-    use meth_params_module, only : QVAR, NQ, NVAR, &
+    use meth_params_module, only : NQSRC, NQ, NVAR, &
                                    QFS, QFX, QTEMP, QREINT, &
                                    QC, QGAMC, NQAUX, QGAME, QREINT, &
                                    NGDNV, GDU, GDV, GDW, GDPRES, &
@@ -113,13 +113,13 @@ contains
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
-    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
+    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)
 
     real(rt), intent(inout) :: shk(sk_lo(1):sk_hi(1), sk_lo(2):sk_hi(2), sk_lo(3):sk_hi(3))
     real(rt), intent(inout) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:3,NQ)
     real(rt), intent(inout) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:3,NQ)
-    real(rt), intent(inout) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,QVAR)
-    real(rt), intent(inout) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:3,QVAR)
+    real(rt), intent(inout) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,NQSRC)
+    real(rt), intent(inout) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:3,NQSRC)
     real(rt), intent(inout) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:3,1)
     real(rt), intent(inout) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:3,1)
 
@@ -142,7 +142,7 @@ contains
     real(rt) :: hdt
     integer :: i, j, k, n, idir
 
-    logical :: source_nonzero(QVAR)
+    logical :: source_nonzero(NQSRC)
     logical :: reconstruct_state(NQ)
 
     logical :: compute_shock
@@ -191,7 +191,7 @@ contains
 #ifdef AMREX_USE_CUDA
     source_nonzero(:) = .true.
 #else
-    do n = 1, QVAR
+    do n = 1, NQSRC
        if (minval(srcQ(vlo(1)-2:vhi(1)+2,vlo(2)-2*dg(2):vhi(2)+2*dg(2),vlo(3)-2*dg(3):vhi(3)+2*dg(3),n)) == ZERO .and. &
            maxval(srcQ(vlo(1)-2:vhi(1)+2,vlo(2)-2*dg(2):vhi(2)+2*dg(2),vlo(3)-2*dg(3):vhi(3)+2*dg(3),n)) == ZERO) then
           source_nonzero(n) = .false.
@@ -259,23 +259,23 @@ contains
 
 
        ! source terms
-       do n = 1, QVAR
+       do n = 1, NQSRC
           if (source_nonzero(n)) then
              call ca_ppm_reconstruct(lo, hi, 0, idir, &
-                                     srcQ, src_lo, src_hi, QVAR, n, n, &
+                                     srcQ, src_lo, src_hi, NQSRC, n, n, &
                                      flatn, f_lo, f_hi, &
                                      sm, sm_lo, sm_hi, &
                                      sp, sp_lo, sp_hi, &
                                      1, 1, 1)
 
              call ppm_int_profile(lo, hi, idir, &
-                                  srcQ, src_lo, src_hi, QVAR, n, &
+                                  srcQ, src_lo, src_hi, NQSRC, n, &
                                   q, qd_lo, qd_hi, &
                                   qaux, qa_lo, qa_hi, &
                                   sm, sm_lo, sm_hi, &
                                   sp, sp_lo, sp_hi, &
                                   Ip_src, Ips_lo, Ips_hi, &
-                                  Im_src, Ims_lo, Ims_hi, QVAR, n, &
+                                  Im_src, Ims_lo, Ims_hi, NQSRC, n, &
                                   dx, dt)
           else
              Ip_src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:,n) = ZERO
@@ -445,7 +445,7 @@ contains
 #endif
                             domlo, domhi) bind(C, name="ctu_plm_states")
 
-    use meth_params_module, only : QVAR, NQ, NVAR, &
+    use meth_params_module, only : NQSRC, NQ, NVAR, &
                                    QFS, QFX, QTEMP, QREINT, &
                                    QC, QGAMC, NQAUX, QGAME, QREINT, &
                                    NGDNV, GDU, GDV, GDW, GDPRES, &
@@ -485,7 +485,7 @@ contains
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
-    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
+    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)
 
     real(rt), intent(inout) :: shk(sk_lo(1):sk_hi(1), sk_lo(2):sk_hi(2), sk_lo(3):sk_hi(3))
     real(rt), intent(inout) :: dq(dq_lo(1):dq_hi(1), dq_lo(2):dq_hi(2), dq_lo(3):dq_hi(3), NQ)
