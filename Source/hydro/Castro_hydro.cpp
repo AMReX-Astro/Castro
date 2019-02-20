@@ -228,10 +228,10 @@ Castro::construct_hydro_source(Real time, Real dt)
         Im.resize(obx, 3*NQ);
         Elixir elix_Im = Im.elixir();
 
-        Ip_src.resize(obx, 3*QVAR);
+        Ip_src.resize(obx, 3*NQSRC);
         Elixir elix_Ip_src = Ip_src.elixir();
 
-        Im_src.resize(obx, 3*QVAR);
+        Im_src.resize(obx, 3*NQSRC);
         Elixir elix_Im_src = Im_src.elixir();
 
         Ip_gc.resize(obx, 3);
@@ -1837,7 +1837,7 @@ Castro::cons_to_prim(const Real time)
         MultiFab& SDC_react_source = get_new_data(SDC_React_Type);
 
         if (do_react)
-	    src_q[mfi].plus(SDC_react_source[mfi],qbx,qbx,0,0,QVAR);
+	    src_q[mfi].plus(SDC_react_source[mfi],qbx,qbx,0,0,NQSRC);
 #endif
 #endif
 #endif

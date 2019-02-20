@@ -34,7 +34,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   use amrex_error_module
   use amrex_mempool_module, only : bl_allocate, bl_deallocate
-  use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, GDPRES, &
+  use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
        UTEMP, USHK, UMX, &
        use_flattening, QPRES, NQAUX, &
        QTEMP, QFS, QFX, QREINT, QRHO, &

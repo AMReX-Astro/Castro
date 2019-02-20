@@ -323,7 +323,7 @@ The current ``StateData`` names Castro carries are:
    data stored in checkpoints for continuity of timestepping upon restart).
 
 -  ``SDC_React_Type`` : this is used with the SDC
-   time-advancement algorithm. This stores the ``QVAR`` terms
+   time-advancement algorithm. This stores the ``NQSRC`` terms
    that describe how the primitive variables change over the timestep
    due only to reactions. These are used when predicting the interface
    states of the primitive variables for the hydrodynamics portion of the
