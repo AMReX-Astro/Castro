@@ -5,12 +5,12 @@ module model_parser_module
   ! those defined by the network
 
   ! the model file is assumed to be of the follow form:
-  ! # npts = 896                                     
+  ! # npts = 896
   ! # num of variables = 6
-  ! # density 
-  ! # temperature 
+  ! # density
+  ! # temperature
   ! # pressure
-  ! # carbon-12 
+  ! # carbon-12
   ! # oxygen-16
   ! # magnesium-24
   ! 195312.5000  5437711139.  8805500.952   .4695704813E+28  0.3  0.7  0
@@ -20,7 +20,7 @@ module model_parser_module
   ! map them into the model_state array.  We ignore anything other than
   ! density, temperature, pressure and composition.
   !
-  ! composition is assumed to be in terms of mass fractions     
+  ! composition is assumed to be in terms of mass fractions
 
   use amrex_paralleldescriptor_module, only: amrex_pd_ioprocessor
   use network
@@ -223,7 +223,7 @@ contains
   function get_model_npts(model_file)
 
     integer :: get_model_npts
-  
+
     ! look in the model file and return the number of points
     character(len=256), intent(in   ) :: model_file
 
@@ -244,7 +244,7 @@ contains
   end function get_model_npts
 
   subroutine close_model_file
-    
+
     if (model_initialized) then
        deallocate(model_r)
        deallocate(model_state)
@@ -254,5 +254,32 @@ contains
     endif
   end subroutine close_model_file
 
-end module model_parser_module
+  ! Initialize the model by passing in the number of points, r and state
+  ! directly (rather than reading from a file)
+  subroutine model_parser_init(npts, r, state)
 
+      integer, intent(in) :: npts
+      real(rt), intent(in) :: r(npts)
+      real(rt), intent(in) :: state(npts, nvars_model)
+
+      ! don't reinitialize
+      if (.not. model_initialized) then
+
+          allocate(npts_model)
+
+          npts_model = npts
+
+          ! allocate storage for the model data
+          allocate (model_state(npts_model, nvars_model))
+          allocate (model_r(npts_model))
+
+          model_r(:) = r(:)
+          model_state(:,:) = state(:,:)
+
+          model_initialized = .true.
+
+      endif
+
+  end subroutine model_parser_init
+
+end module model_parser_module
