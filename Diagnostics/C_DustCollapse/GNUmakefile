@@ -13,7 +13,7 @@ USE_REACT = FALSE
 USE_ACC = FALSE
 
 # programs to be compiled
-ALL: dustcollapse.ex
+ALL: dustcollapse_$(DIM)d.ex
 
 EOS_DIR := helmholtz
 
@@ -31,6 +31,6 @@ vpathdir += $(AMREX_HOME)/Src/Extern/amrdata
 
 include $(CASTRO_HOME)/Exec/Make.Castro
 
-dustcollapse.ex: $(objForExecs)
+dustcollapse_$(DIM)d.ex: $(objForExecs)
 	@echo Linking $@ ...
 	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(libraries)

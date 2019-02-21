@@ -1,4 +1,4 @@
-! Process a group of 1-d plotfiles from the dustcollapse problem
+! Process a group of n-d plotfiles from the dustcollapse problem
 ! and output the position of the interface as a function of time.
 !
 ! The initial dense sphere is assumed to be centered a r = 0 (x = 0).
@@ -63,7 +63,7 @@ subroutine fdustcollapse2d(lo, hi, p, plo, phi, nc_p, nbins, dens, &
   integer, intent(in), value :: nbins
   real(rt), intent(in) :: p(plo(1):phi(1),plo(2):phi(2),plo(3):phi(3),0:nc_p-1)
   real(rt), intent(inout) :: dens(0:nbins-1)
-  real(rt), intent(inout) :: volcount(0:mask_size-1)
+  real(rt), intent(inout) :: volcount(0:nbins-1)
   integer, intent(inout) :: imask(0:mask_size-1,0:mask_size-1)
   integer, intent(in), value :: mask_size, r1, dens_comp
   real(rt), intent(in) :: dx(3)
@@ -98,6 +98,7 @@ subroutine fdustcollapse2d(lo, hi, p, plo, phi, nc_p, nbins, dens, &
 
            vol = (xr**2 - xl**2)*(yr - yl)
 
+           ! weight the zone's data by its size
            dens(index) = dens(index) + p(i,j,k,dens_comp) * vol
 
            volcount(index) = volcount(index) + vol
@@ -125,7 +126,7 @@ subroutine fdustcollapse3d(lo, hi, p, plo, phi, nc_p, nbins, dens, &
   integer, intent(in), value :: nbins
   real(rt), intent(in) :: p(plo(1):phi(1),plo(2):phi(2),plo(3):phi(3),0:nc_p-1)
   real(rt), intent(inout) :: dens(0:nbins-1)
-  real(rt), intent(inout) :: ncount(0:mask_size-1)
+  real(rt), intent(inout) :: ncount(0:nbins-1)
   integer, intent(inout) :: imask(0:mask_size-1,0:mask_size-1,0:mask_size-1)
   integer, intent(in), value :: mask_size, r1, dens_comp
   real(rt), intent(in) :: dx(3)
@@ -153,9 +154,10 @@ subroutine fdustcollapse3d(lo, hi, p, plo, phi, nc_p, nbins, dens, &
                 k*r1:(k+1)*r1-1) .eq. 1) ) then
 
               r_zone = sqrt((xx-xctr)**2 + (yy-yctr)**2 + (zz-zctr)**2)
-              
+
               index = r_zone/dx_fine
 
+              ! weight the zone's data by its size
               dens(index) = dens(index) + p(i,j,k,dens_comp)*r1**3
 
               ncount(index) = ncount(index) + r1**3

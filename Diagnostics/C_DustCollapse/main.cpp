@@ -1,4 +1,16 @@
-
+//
+// Process a group of n-d plotfiles from the dustcollapse problem
+// and output the position of the interface as a function of time.
+//
+// For 2d:
+// 		The initial dense sphere is assumed to be centered a r = 0 (x = 0).
+//		We take as default that it is centered vertically at y = 0, but
+// 		this can be overridden with --yctr.
+//
+// For 3d:
+//		The initial dense sphere is assumed to be centered a x = y = z = 0,
+// 		but this can be overridden with --{x,y,z}ctr.
+//
 #include <iostream>
 #include "AMReX_DataServices.H"
 #include <DustCollapse_F.H>
@@ -51,11 +63,12 @@ int main(int argc, char* argv[])
 
 #endif
 
+	// loop over plotfiles
 	for (auto f = farg; f < argc; f++) {
 
 		string pltfile = argv[f];
 
-		// Start dataservices 
+		// Start dataservices
 		DataServices::SetBatchMode();
 
 		// Define the type of file
@@ -75,22 +88,20 @@ int main(int argc, char* argv[])
 
 		// get the index bounds and dx.
 		Box domain = data.ProbDomain()[finestLevel];
-
 		auto dx = data.CellSize(finestLevel);
-
 		const Vector<Real>& problo = data.ProbLo();
 		const Vector<Real>& probhi = data.ProbHi();
+
 		Vector<int> rr = data.RefRatio();
 
 		auto rmin = problo[0];
 
 		const auto dx_fine = *(std::min_element(dx.begin(), dx.end()));
 
+		// compute the maximum number of zones, as if we were completely refined
 #if (AMREX_SPACEDIM == 1)
 		int nbins = domain.length(0);
 #elif (AMREX_SPACEDIM == 2)
-		// compute the size of the radially-binned array -- we'll do it to
-		// the furtherest corner of the domain
 		auto x_maxdist = fmax(fabs(problo[0]), fabs(probhi[0]));
 		auto y_maxdist = fmax(fabs(problo[1] - yctr), fabs(probhi[1] - yctr));
 
@@ -98,8 +109,6 @@ int main(int argc, char* argv[])
 
 		int nbins = int(max_dist / dx_fine);
 #else
-		// compute the size of the radially-binned array -- we'll do it to
-		// the furtherest corner of the domain
 		auto x_maxdist = fmax(fabs(problo[0] - xctr), fabs(probhi[0] - xctr));
 		auto y_maxdist = fmax(fabs(problo[1] - yctr), fabs(probhi[1] - yctr));
 		auto z_maxdist = fmax(fabs(problo[2] - zctr), fabs(probhi[2] - zctr));
@@ -110,10 +119,10 @@ int main(int argc, char* argv[])
 		int nbins = int(max_dist / dx_fine);
 #endif
 
+		// radial coordinate
 		Vector<Real> r(nbins);
-
 		for (auto i = 0; i < nbins; i++)
-			r[i] = (i + 0.5) * dx_fine;
+			r[i] = (i + 0.5) * dx_fine + rmin;
 
 		// find variable indices
 		auto dens_comp = data.StateNumber("density");
@@ -125,9 +134,10 @@ int main(int argc, char* argv[])
 		Vector<Real> dens(nbins, 0.);
 		Vector<Real> volcount(nbins, 0);
 
+		// r1 is the factor between the current level grid spacing and the
+		// FINEST level
 		auto r1 = 1.0;
 
-		// fill a multifab with the data
 		Vector<int> fill_comps(data.NComp());
 		for (auto i = 0; i < data.NComp(); i++)
 			fill_comps[i] = i;
@@ -136,15 +146,15 @@ int main(int argc, char* argv[])
 		// Note, imask is defined in terms of the finest level.  As we loop
 		// over levels, we will compare to the finest level index space to
 		// determine if we've already output here
-		int mask_size = 1;
-		for (auto i = 0; i < AMREX_SPACEDIM; i++)
-			mask_size = max(mask_size, domain.length(i));
-
+		int mask_size = domain.length().max();
 		Vector<int> imask(pow(mask_size, AMREX_SPACEDIM), 1);
 
+		// counter
 		int cnt = 0;
 
-		// extract the 1d data
+		// loop over the data, starting at the finest grid, and if we haven't
+		// already stored data in that grid location (according to imask),
+		// store it.
 		for (int l = finestLevel; l >= 0; l--) {
 
 			Vector<Real> level_dx = data.DxLevel()[l];
@@ -190,7 +200,7 @@ int main(int argc, char* argv[])
 		// sort the data based on the coordinates
 		auto isv = sort_indexes(r);
 #else
-		//normalize
+		// normalize
 		for (int i = 0; i < nbins; i++)
 			if (volcount[i] != 0.)
 				dens[i] /= volcount[i];
