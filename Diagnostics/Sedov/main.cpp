@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
 
 	GetInputArgs (argc, argv, pltfile, slcfile, xctr, yctr, zctr, sphr);
 
-	// Start dataservices (no clue why we need to do this)
+	// Start dataservices
 	DataServices::SetBatchMode();
 
 	// Define the type of file
@@ -131,18 +131,8 @@ int main(int argc, char* argv[])
 	// Note, imask is defined in terms of the finest level.  As we loop
 	// over levels, we will compare to the finest level index space to
 	// determine if we've already output here
-	int mask_size = nbins;
-	for (auto i = 0; i < finestLevel - 1; i++)
-		mask_size *= rr[i];
-
-#if (AMREX_SPACEDIM == 1)
-	Vector<int> imask(mask_size);
-#elif (AMREX_SPACEDIM >=2)
-	Vector<int> imask(pow(mask_size, AMREX_SPACEDIM));
-#endif
-
-	for (auto it=imask.begin(); it!=imask.end(); ++it)
-		*it = 1;
+	int mask_size = domain.length().max();
+	Vector<int> imask(pow(mask_size, AMREX_SPACEDIM), 1);
 
 	// loop over the data, starting at the finest grid, and if we haven't
 	// already stored data in that grid location (according to imask),

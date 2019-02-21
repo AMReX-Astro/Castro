@@ -1,44 +1,63 @@
-NDEBUG := t
-MPI    :=
-OMP    :=
-MKVERBOSE :=t 
+PRECISION = DOUBLE
+PROFILE = FALSE
+DEBUG = TRUE
+DIM = 2
 
-COMP := gfortran
+COMP = gnu
 
-ca_f90EXE_sources += ../../Source/radiation/rad_params.f90
+USE_MPI = FALSE
+USE_OMP = FALSE
 
+USE_REACT = FALSE
 
-# include the main Makefile stuff
-include $(AMREX_HOME)/Tools/F_mk/GMakedefs.mak
+USE_ACC = FALSE
 
-# core BoxLib directories
-BOXLIB_CORE := Src/F_BaseLib
+# ALL: gaussian_pulse.ex
+# ALL: lgt_frnt1d.ex
+# ALL: rad_shock.ex
+# ALL: rad_source.ex
+# ALL: rad_sphere.ex
+ALL: rhd_shocktube.ex
 
-# BoxLib stuff
-Fmpack += $(foreach dir, $(BOXLIB_CORE), $(AMREX_HOME)/$(dir)/GPackage.mak)
-Fmlocs += $(foreach dir, $(BOXLIB_CORE), $(AMREX_HOME)/$(dir))
+# If NEEDS_f90_SRC=TRUE, look for ${EBASE}_nd.f90
+NEEDS_f90_SRC = FALSE
 
+EOS_DIR := helmholtz
 
-# include the necessary GPackage.mak files that define this setup
-include $(Fmpack)
+NETWORK_DIR := aprox13
 
-# vpath defines the directories to search for the source files
-VPATH_LOCATIONS += $(Fmlocs)
+Bpack   := ./Make.package
+Blocs   := .
+# EXTERN_SEARCH = .
 
-programs += frhdshocktube
+CASTRO_HOME := ../..
 
+INCLUDE_LOCATIONS += $(AMREX_HOME)/Src/Extern/amrdata
+include $(AMREX_HOME)/Src/Extern/amrdata/Make.package
+vpathdir += $(AMREX_HOME)/Src/Extern/amrdata
 
-all: $(pnames)
+include $(CASTRO_HOME)/Exec/Make.Castro
 
-include $(AMREX_HOME)/Tools/F_mk/GMakerules.mak
+gaussian_pulse.ex: $(objForExecs)
+	@echo Linking $@ ...
+	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(libraries)
 
-%.$(suf).exe:%.f90 $(objects)
-ifdef MKVERBOSE
-	$(LINK.f90) -o $@ $< $(objects) $(libraries)
-else	
-	@echo "Linking $@ ... "
-	@$(LINK.f90) -o $@ $< $(objects) $(libraries)
-endif
+lgt_frnt1d.ex: $(objForExecs)
+	@echo Linking $@ ...
+	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(libraries)
 
+rad_shock.ex: $(objForExecs)
+	@echo Linking $@ ...
+	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(libraries)
 
+rad_source.ex: $(objForExecs)
+	@echo Linking $@ ...
+	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(libraries)
 
+rad_sphere.ex: $(objForExecs)
+	@echo Linking $@ ...
+	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(libraries)
+
+rhd_shocktube.ex: $(objForExecs)
+	@echo Linking $@ ...
+	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(libraries)

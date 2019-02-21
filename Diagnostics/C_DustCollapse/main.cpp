@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
 
 		string pltfile = argv[f];
 
-		// Start dataservices (no clue why we need to do this)
+		// Start dataservices 
 		DataServices::SetBatchMode();
 
 		// Define the type of file
