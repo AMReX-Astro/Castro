@@ -3,7 +3,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   use amrex_constants_module
   use amrex_error_module
   use initial_model_module
-  use model_parser_module, only : model_r, model_state, npts_model, model_initialized
+  use model_parser_module, only : model_parser_init
   use probdata_module
   use amrex_fort_module, only : rt => amrex_real
   use network
@@ -173,16 +173,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   ! store the model in the model_parser_module since that is used in
   ! the boundary conditions
-  allocate(model_r(nx_model+ng))
-  model_r(:) = gen_model_r(:, 1)
-
-  allocate(model_state(nx_model+ng, nvars_model))
-  model_state(:, :) = gen_model_state(:, :, 1)
-
-  allocate(npts_model)
-
-  npts_model = nx_model+ng
-  model_initialized = .true.
+  call model_parser_init(nx_model+ng, gen_model_r(:,1), gen_model_state(:,:,1))
 
   ! now create a perturbed model -- we want the same base conditions
   ! a hotter temperature
