@@ -722,7 +722,8 @@ Castro::do_advance_sdc (Real time,
     if (m == 0 && sdc_iteration == 0) {
       construct_old_react_source(Sborder, *(R_old[0]));
 
-      // copy to the other notes
+      // copy to the other nodes -- since the state is the same on all
+      // nodes for sdc_iteration == 0
       for (int n = 1; n < SDC_NODES; n++) {
         MultiFab::Copy(*(R_old[n]), *(R_old[0]), 0, 0, R_old[0]->nComp(), 0);
       }

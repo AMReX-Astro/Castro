@@ -906,7 +906,7 @@ contains
                                       sdc_iteration) &
                                       bind(C, name="ca_sdc_update_centers_o4")
 
-    ! update k_m to k_n via advection -- this is a second-order accurate update
+    ! update k_m to k_n via advection -- this is a fourth-order accurate update
 
     use meth_params_module, only : NVAR
 
