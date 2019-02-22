@@ -17,8 +17,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   integer untin,i
 
-  type (eos_t) :: eos_state
-
   namelist /fortin/ centx, centy, centz
 
   !
@@ -80,7 +78,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use amrex_fort_module, only : rt => amrex_real
   use network, only: nspec
   use probdata_module
-  use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS, UFX
+  use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, UFS, UFX
 
   use UnitsModule
   use EquationOfStateModule_TABLE, only: ComputeThermodynamicStates_Primitive_TABLE
@@ -187,12 +185,12 @@ end subroutine ca_initdata
 subroutine get_rad_ncomp(rad_ncomp) bind(C,name="ca_get_rad_ncomp")
 
   use RadiationFieldsModule, only : nSpecies
-  use ProgramHeaderModule, only : nE, nDOF, nNodesX, nNodesE
+  use ProgramHeaderModule, only : nE, nNodesE
 
   integer :: rad_ncomp
   integer :: n_moments = 4
 
-  rad_ncomp =  nSpecies * n_moments * nE * nNodesX(1) *  nNodesX(2) *  nNodesX(3) * nNodesE
+  rad_ncomp =  nSpecies * n_moments * nE * nNodesE
 
 end subroutine get_rad_ncomp
 
@@ -220,12 +218,12 @@ subroutine ca_init_thornado_data(level,time,lo,hi,&
 
   use probdata_module
   use RadiationFieldsModule, only : nSpecies
-  use ProgramHeaderModule, only : nE, nDOF, nNodesX, nNodesE
+  use ProgramHeaderModule, only : nE, nNodesE
   use amrex_fort_module, only : rt => amrex_real
   use amrex_error_module
   use amrex_constants_module, only : M_PI
-  use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS, UFX
-  use MeshModule, only: MeshE, MeshX, NodeCoordinate
+  use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, UFX
+  use MeshModule, only: MeshE, NodeCoordinate
   use UnitsModule
   use EquationOfStateModule_TABLE, only: ComputeThermodynamicStates_Auxiliary_TABLE, ComputeElectronChemicalPotential_TABLE, &
                                          ComputeProtonChemicalPotential_TABLE, ComputeNeutronChemicalPotential_TABLE
@@ -249,10 +247,8 @@ subroutine ca_init_thornado_data(level,time,lo,hi,&
   integer, parameter :: n_moments = 4
 
   ! local variables
-  integer :: i,j,k,ixnode,iynode,iznode,ienode
-  integer :: ii,ii_0,is,im,ie,id
-  integer :: nx,ny,nz
-  real(rt) :: xcen, ycen, zcen, xnode, ynode, znode
+  integer :: i,j,k,ienode
+  integer :: ii,ii_0,is,im,ie
   real(rt) :: rho_in(1), T_in(1), Ye_in(1), Evol(1), Ne_loc(1), Em_in(1), M_e(1), M_p(1), M_n(1), M_nu(1), E(1)
 
   ! zero it out, just in case
@@ -262,33 +258,17 @@ subroutine ca_init_thornado_data(level,time,lo,hi,&
   print *,'nSpecies  ',nSpecies
   print *,'n_moments ',n_moments
   print *,'nE        ',nE
-  print *,'nNodesX   ',nNodesX(:)
   print *,'nNodesE   ',nNodesE
-  print *,'MULT ', nSpecies * n_moments * nE * nNodesX(1) *  nNodesX(2) *  nNodesX(3) * nNodesE
-
-  print *,'nDOF      ',nDOF
-
-  nz = nNodesE*nNodesX(1)*nNodesX(2)
-  ny = nNodesE*nNodesX(1)
-  nx = nNodesE
-
-  if (nDOF .ne. nz*nNodesX(3)) &
-     call amrex_abort("nDOE ne nNodesX(1)*nNodesX(2)*nNodesX(3)*nNodesE")
 
   do k = lo(3), hi(3)
-     zcen = xlo(3) + delta(3)*(dble(k-lo(3)) + 0.5_rt) - centz
-     
      do j = lo(2), hi(2)
-        ycen = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5_rt) - centy
-
         do i = lo(1), hi(1)
-           xcen = xlo(1) + delta(1)*(dble(i-lo(1)) + 0.5_rt) - centx
 
            ! Get Castro fluid variables unit convert to thornado units
-           rho_in(1) = state(i,j,k,URHO) * Gram / Centimeter**3
-           T_in(1) = state(i,j,k,UTEMP) * Kelvin
-           Evol(1) = state(i,j,k,UEINT) * (Erg/Centimeter**3)
-           Ne_loc(1) = state(i,j,k,UFX) / Centimeter**3
+           rho_in(1) = state(i,j,k,URHO ) * Gram / Centimeter**3
+           T_in(1)   = state(i,j,k,UTEMP) * Kelvin
+           Evol(1)   = state(i,j,k,UEINT) * (Erg/Centimeter**3)
+           Ne_loc(1) = state(i,j,k,UFX  ) / Centimeter**3
 
            ! Calculate chemical potentials via thornado subroutines
            call ComputeThermodynamicStates_Auxiliary_TABLE( rho_in, Evol, Ne_loc, T_in, Em_in, Ye_in)
@@ -302,42 +282,30 @@ subroutine ca_init_thornado_data(level,time,lo,hi,&
            do im = 1, n_moments
            do ie = 1, nE
 
-           ii_0 = (is-1)*(n_moments*nE*nDOF) + (im-1)*(nE*nDOF) + (ie-1)*nDOF
+              ii_0 = (is-1)*(n_moments*nE*nNodesE) + (im-1)*(nE*nNodesE) + (ie-1)*nNodesE
 
-           do iznode = 1, nNodesX(3)
-           do iynode = 1, nNodesX(2)
-           do ixnode = 1, nNodesX(1)
-           do ienode = 1, nNodesE
+              do ienode = 1, nNodesE
  
-              ! Calculate the indices
-              id = (ienode-1) + nx*(ixnode-1) + ny*(iynode-1) + nz*(iznode-1)
-              ii = ii_0 + id
+                 ! Calculate the indices
+                 ii = ii_0 + (ienode-1)
+   
+                 ! Get energy at given node coordinate via thornado subroutine
+                 E = NodeCoordinate( MeshE, ie, ienode)
+   
+                 ! J moment, im = 1
+                 if (im .eq. 1) &
+                         rad_state(i,j,k,ii) = max(1.0e0_rt / (exp( (E(1)-M_nu(1)) / T_in(1))  + 1.0e0_rt), 1.0d-99)
+   
+                 ! H_x moment, im = 2
+                 if (im .eq. 2) rad_state(i,j,k,ii) = 0.e0_rt
 
-              ! Calculate actual positions of the nodes used for the gaussian quadrature
-              xnode = xcen + ( float(ixnode)-1.5e0_rt )*delta(1)/sqrt(3.0e0_rt)
-              ynode = ycen + ( float(iynode)-1.5e0_rt )*delta(2)/sqrt(3.0e0_rt)
-              znode = zcen + ( float(iznode)-1.5e0_rt )*delta(3)/sqrt(3.0e0_rt)
+                 ! H_y moment, im = 3
+                 if (im .eq. 3) rad_state(i,j,k,ii) = 0.0e0_rt
+   
+                 ! H_z moment, im = 4
+                 if (im .eq. 4) rad_state(i,j,k,ii) = 0.0e0_rt
 
-              ! Get energy at given node coordinate via thornado subroutine
-              E = NodeCoordinate( MeshE, ie, ienode)
-
-              ! J moment, im = 1
-              if (im .eq. 1) &
-                      rad_state(i,j,k,ii) = max(1.0e0_rt / (exp( (E(1)-M_nu(1)) / T_in(1))  + 1.0e0_rt), 1.0d-99)
-
-              ! H_x moment, im = 2
-              if (im .eq. 2) rad_state(i,j,k,ii) = 0.e0_rt
-
-              ! H_y moment, im = 3
-              if (im .eq. 3) rad_state(i,j,k,ii) = 0.0e0_rt
-
-              ! H_z moment, im = 4
-              if (im .eq. 4) rad_state(i,j,k,ii) = 0.0e0_rt
-
-           end do
-           end do
-           end do
-           end do
+              end do
 
            end do
            end do

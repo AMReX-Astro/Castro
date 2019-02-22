@@ -129,8 +129,6 @@ Castro::init_thornado_data()
         boxlen[2]  = 1;
 #endif
 
-        std::cout << "BOXLEN " << boxlen[0] << " " << boxlen[1] << std::endl;
-
         InitThornado_Patch(boxlen, swX, grid_lo.dataPtr(), grid_hi.dataPtr());
 
         RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
@@ -238,7 +236,6 @@ Castro::get_thornado_plotMF ()
 void
 Castro::create_thornado_source(Real dt)
 {
-    std::cout << "IN SOURCE " << std::endl;
     MultiFab& S_new = get_new_data(State_Type);
 
     MultiFab& U_R_old = get_old_data(Thornado_Type);
@@ -275,6 +272,9 @@ Castro::create_thornado_source(Real dt)
     // This fills the ghost cells of the radiation MultiFab which we will pass into Thornado
     MultiFab R_border(grids, dmap, U_R_old.nComp(), 2*my_ngrow);
     AmrLevel::FillPatch(*this, R_border, 2*my_ngrow, prev_time, Thornado_Type, 0, U_R_old.nComp());
+
+    // VisMF::Write(S_border,"S");
+    // VisMF::Write(R_border,"R");
 
     const Real* dx = geom.CellSize();
     Real dx_crse[BL_SPACEDIM];

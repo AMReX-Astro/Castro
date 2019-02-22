@@ -7,9 +7,8 @@
     use amrex_constants_module, only : fourth, half, zero, one, two
     use amrex_fort_module, only : rt => amrex_real
     use amrex_error_module, only : amrex_abort
-    use meth_params_module, only : URHO,UMX,UMY,UMZ,UEDEN,UFX,UTEMP
+    use meth_params_module, only : URHO,UMX,UMY,UMZ,UEDEN,UFX
     use FluidFieldsModule    , only : uCF, nCF, iCF_D, iCF_S1, iCF_S2, iCF_S3, iCF_E, iCF_Ne
-    use RadiationFieldsModule, only : uCR
     use EquationOfStateModule_TABLE, only : ComputeTemperatureFromSpecificInternalEnergy_TABLE, &
                                             ComputeThermodynamicStates_Primitive_TABLE
     use UnitsModule, only : Gram, Centimeter, Second, AtomicMassUnit, Erg, Kelvin
@@ -29,35 +28,14 @@
     real(rt), intent(inout) :: u0(nu,u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nCF)
 
     ! Temporary variables
-    integer  :: i,j,n
+    integer  :: i,j
     integer  :: ic,jc,kc
     integer  :: ind
     real(rt) :: conv_dens, conv_mom, conv_enr, conv_ne
 
-    ! For interpolation
-    real(rt) :: xslope(ns), yslope(ns), xyslope(ns)
-    real(rt) :: Sval(ns)
-    real(rt) :: dlft(ns), drgt(ns), dcen(ns), dlim, dsgn
-
-    real(rt) :: rho_in(1)
-    real(rt) :: Ye_in(1)
-    real(rt) :: E_in(1)
-    real(rt) :: T_in(1)
-
-    real(rt) :: T_out(1)
-    real(rt) :: Ne_out(1)
-    real(rt) :: Epervol_out(1)
-    real(rt) :: Epermass_out(1)
-
-    real(rt) :: fac(ns),fac_all
-    real(rt) :: delta_S_slope(ns)
-    real(rt) :: delta_S_val(ns)
-    real(rt) :: S_ll(ns),S_lh(ns),S_hl(ns),S_hh(ns)
-
     real(rt) :: x(4)
     real(rt) :: y(4)
     real(rt) :: z(4)
-    real(rt) :: xt, yt
 
     integer  :: interp_type
 
@@ -65,31 +43,11 @@
     ! No interpolation
     interp_type = 0 
 
-    ! Use conserved variables for interpolation
-    ! interp_type = 1 
-
-    ! Use primitive variables (rho, E, Ye) for interpolation
-    ! interp_type = 2 
-
-    ! Use primitive variables (rho, T, Ye) for interpolation
-    ! interp_type = 3 
-
-    ! Use primitive variables (rho, T, Ye) for interpolation -- first fill the corners
-    !     of the cell then use bilinear interpolation
-    ! interp_type = 4
-
     if (s_lo(1) .gt. (lo(1)-ng-1) .or. s_hi(1) .lt. (hi(1)+ng+1) .or. &
         s_lo(2) .gt. (lo(2)-ng-1) .or. s_hi(2) .lt. (hi(2)+ng+1)) then
        print *,'WRONG NUMBER OF GHOST CELLS!'
        stop
     end if
-
-    print *,"SIZE OF Castro   S   ", size(S,dim=1), size(S,dim=2), size(S,dim=3)
-    print *,"SIZE OF Thornado uCF ", size(uCF,dim=1), size(uCF,dim=2), size(uCF,dim=3), &
-                                     size(uCF,dim=4), size(uCF,dim=5)
-    print *,"SIZE OF Thornado uCR ", size(uCR,dim=1), size(uCR,dim=2), size(uCR,dim=3), &
-                                     size(uCR,dim=4), size(uCR,dim=5), size(uCR,dim=6), &
-                                     size(uCR,dim=7)
 
     ! Conversion to thornado units
     conv_dens = Gram / Centimeter**3

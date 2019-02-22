@@ -83,8 +83,6 @@
     nX(2) = (hi(2) - lo(2) + 1)/2
     nX(3) = 1
 
-    print *,'NG IN CALL ',ng
-
     swX(1) = ng
     swX(2) = ng
     swX(3) = 0
@@ -140,26 +138,22 @@
 
          do id = 1, nNodesE
             ii   = (is-1)*(n_moments*nE*nNodesE) + (im-1)*(nE*nNodesE) + (ie-1)*nNodesE + (id-1)
-            if (im .eq. 1) uCR(id,ie,ic,jc,kc,im,is) = U_R_o(i,j,ii)
-            if (im   >  1) uCR(id,ie,ic,jc,kc,im,is) = U_R_o(i,j,ii)
+            uCR(id,ie,ic,jc,kc,im,is) = U_R_o(i,j,ii)
          end do
 
          do id = nNodesE+1, 2*nNodesE
             ii   = (is-1)*(n_moments*nE*nNodesE) + (im-1)*(nE*nNodesE) + (ie-1)*nNodesE + (id-nNodesE-1)
-            if (im .eq. 1) uCR(id,ie,ic,jc,kc,im,is) = U_R_o(i+1,j,ii)
-            if (im   >  1) uCR(id,ie,ic,jc,kc,im,is) = U_R_o(i+1,j,ii)
+            uCR(id,ie,ic,jc,kc,im,is) = U_R_o(i+1,j,ii)
          end do
 
          do id = 2*nNodesE+1, 3*nNodesE
             ii   = (is-1)*(n_moments*nE*nNodesE) + (im-1)*(nE*nNodesE) + (ie-1)*nNodesE + (id-2*nNodesE-1)
-            if (im .eq. 1) uCR(id,ie,ic,jc,kc,im,is) = U_R_o(i,j+1,ii)
-            if (im   >  1) uCR(id,ie,ic,jc,kc,im,is) = U_R_o(i,j+1,ii)
+            uCR(id,ie,ic,jc,kc,im,is) = U_R_o(i,j+1,ii)
          end do
 
          do id = 3*nNodesE+1, 4*nNodesE
             ii   = (is-1)*(n_moments*nE*nNodesE) + (im-1)*(nE*nNodesE) + (ie-1)*nNodesE + (id-3*nNodesE-1)
-            if (im .eq. 1) uCR(id,ie,ic,jc,kc,im,is) = U_R_o(i+1,j+1,ii)
-            if (im   >  1) uCR(id,ie,ic,jc,kc,im,is) = U_R_o(i+1,j+1,ii)
+            uCR(id,ie,ic,jc,kc,im,is) = U_R_o(i+1,j+1,ii)
          end do
 
          end do
@@ -257,26 +251,22 @@
 
          do id = 1, nNodesE
             ii   = (is-1)*(n_moments*nE*nNodesE) + (im-1)*(nE*nNodesE) + (ie-1)*nNodesE + (id-1)
-            if (im .eq. 1) dR(i,j,ii) = uCR(id,ie,ic,jc,kc,im,is) - U_R_o(i,j,ii)
-            if (im   >  1) dR(i,j,ii) = uCR(id,ie,ic,jc,kc,im,is) - U_R_o(i,j,ii)
+            dR(i,j,ii) = uCR(id,ie,ic,jc,kc,im,is) - U_R_o(i,j,ii)
          end do
 
          do id = nNodesE+1, 2*nNodesE
             ii   = (is-1)*(n_moments*nE*nNodesE) + (im-1)*(nE*nNodesE) + (ie-1)*nNodesE + (id-nNodesE-1)
-            if (im .eq. 1) dR(i+1,j,ii) = uCR(id,ie,ic,jc,kc,im,is) - U_R_o(i+1,j,ii)
-            if (im   >  1) dR(i+1,j,ii) = uCR(id,ie,ic,jc,kc,im,is) - U_R_o(i+1,j,ii)
+            dR(i+1,j,ii) = uCR(id,ie,ic,jc,kc,im,is) - U_R_o(i+1,j,ii)
          end do
 
          do id = 2*nNodesE+1, 3*nNodesE
             ii   = (is-1)*(n_moments*nE*nNodesE) + (im-1)*(nE*nNodesE) + (ie-1)*nNodesE + (id-2*nNodesE-1)
-            if (im .eq. 1) dR(i,j+1,ii) = uCR(id,ie,ic,jc,kc,im,is) - U_R_o(i,j+1,ii)
-            if (im   >  1) dR(i,j+1,ii) = uCR(id,ie,ic,jc,kc,im,is) - U_R_o(i,j+1,ii)
+            dR(i,j+1,ii) = uCR(id,ie,ic,jc,kc,im,is) - U_R_o(i,j+1,ii)
          end do
 
          do id = 3*nNodesE+1, 4*nNodesE
             ii   = (is-1)*(n_moments*nE*nNodesE) + (im-1)*(nE*nNodesE) + (ie-1)*nNodesE + (id-3*nNodesE-1)
-            if (im .eq. 1) dR(i+1,j+1,ii) = uCR(id,ie,ic,jc,kc,im,is) - U_R_o(i+1,j+1,ii)
-            if (im   >  1) dR(i+1,j+1,ii) = uCR(id,ie,ic,jc,kc,im,is) - U_R_o(i+1,j+1,ii)
+            dR(i+1,j+1,ii) = uCR(id,ie,ic,jc,kc,im,is) - U_R_o(i+1,j+1,ii)
          end do
 
          end do
