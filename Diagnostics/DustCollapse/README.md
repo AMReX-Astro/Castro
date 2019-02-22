@@ -30,6 +30,9 @@ and similarly for 3d
 ```
 ./dustcollapse_3d.exe --xctr x --yctr y --zctr z plotfile1 plotfile2
 ```
+For the 2d and 3d problems, it is also possible to print the profile to file
+by providing the argument `--profile`. This will create the profile file
+`prof.profile` in the plotfile's directory.
 
 ## Analytic solution
 

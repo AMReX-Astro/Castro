@@ -16,14 +16,14 @@ be output:
 
 Additional arguments depend on the problem:
 
-- *1d*: no additional arguments are required
-- *2d cylindrical*: extra arguents `--xctr x` and `--yctr y` giving the coordinates
+- **1d**: no additional arguments are required
+- **2d cylindrical**: extra arguents `--xctr x` and `--yctr y` giving the coordinates
 of the domain center (x,y) can be provided (both default to 0.0)
-- *2d spherical*: the argument `--sphr` *must* be provided to indicate a spherical
+- **2d spherical**: the argument `--sphr` *must* be provided to indicate a spherical
 problem, and the `--yctr y` argument can be provided to give the y coordinate of
 the domain center (defaults to 0.0)
-- *3d cylindrical*: extra arguents `--xctr x` and `--yctr y` giving the coordinates
+- **3d cylindrical**: extra arguents `--xctr x` and `--yctr y` giving the coordinates
 of the domain center (x,y) can be provided (both default to 0.0)
-- *3d spherical*: the argument `--sphr` *must* be provided to indicate a spherical
+- **3d spherical**: the argument `--sphr` *must* be provided to indicate a spherical
 problem, and extra arguents `--xctr x`, `--yctr y` and `--zctr z` giving the coordinates
 of the domain center (x,y,z) can be provided (all default to 0.0)

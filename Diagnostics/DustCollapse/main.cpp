@@ -3,13 +3,13 @@
 // and output the position of the interface as a function of time.
 //
 // For 2d:
-// 		The initial dense sphere is assumed to be centered a r = 0 (x = 0).
+//              The initial dense sphere is assumed to be centered a r = 0 (x = 0).
 //		We take as default that it is centered vertically at y = 0, but
-// 		this can be overridden with --yctr.
+//              this can be overridden with --yctr.
 //
 // For 3d:
 //		The initial dense sphere is assumed to be centered a x = y = z = 0,
-// 		but this can be overridden with --{x,y,z}ctr.
+//              but this can be overridden with --{x,y,z}ctr.
 //
 #include <iostream>
 #include "AMReX_DataServices.H"
@@ -38,6 +38,7 @@ int main(int argc, char* argv[])
 
 	auto farg = 1;
 	Real xctr, yctr, zctr = 0.0;
+	bool profile = false;
 
 #if (AMREX_SPACEDIM >= 2)
 	auto j = 1;
@@ -56,6 +57,11 @@ int main(int argc, char* argv[])
 		{
 			zctr = atof(argv[++j]);
 			farg += 2;
+		}
+		else if ( !strcmp(argv[j], "--profile")  )
+		{
+			profile = true;;
+			farg++;
 		}
 		// Go to the next parameter name
 		++j;
@@ -267,6 +273,31 @@ int main(int argc, char* argv[])
 		// output
 		Print() << "\ntime = " << data.Time() << ", r_interface = "
 		        << std::setprecision(16) << r_interface << std::endl << std::endl;
+
+		// dump out profile file
+		if (profile) {
+			string outfile_name = pltfile;
+			
+			if (pltfile.back() == '/')
+			 	outfile_name += "prof.profile";
+			else
+			 	outfile_name += "/prof.profile";
+
+			std::ofstream outfile;
+			outfile.open(outfile_name);
+			outfile.setf(std::ios::scientific);
+			outfile.precision(12);
+			const auto w = 24;
+
+			// write the header
+			outfile << std::setw(w) << "r" << std::setw(w) << "density" << std::endl;
+
+			for (auto i = 0; i < nbins; i++)
+				outfile << std::setw(w) << r[i] << std::setw(w) << ens[i] << std::endl;
+
+			outfile.close();
+
+		}
 	}
 
 	// destroy timer for profiling
