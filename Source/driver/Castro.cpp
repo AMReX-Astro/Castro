@@ -3306,7 +3306,7 @@ Castro::computeTemp(int is_new, int ng)
         if (fourth_order) {
           // note, this is working on a growntilebox, but we will not have
           // valid cell-centers in the very last ghost cell
-          ca_compute_temp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+          ca_compute_temp(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                           BL_TO_FORTRAN_ANYD(Stemp[mfi]));
         } else {
 #pragma gpu
