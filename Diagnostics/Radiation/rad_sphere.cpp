@@ -1,4 +1,7 @@
-
+//
+// Print out the radiation quantities at a specified distance from
+// the origin.  This is written for the 1-d radiating sphere problem.
+//
 #include <iostream>
 #include <regex>
 #include "AMReX_DataServices.H"

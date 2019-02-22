@@ -30,8 +30,7 @@ int main(int argc, char* argv[])
 	BL_PROFILE_VAR("main()", pmain);
 
 	// Input arguments
-	string pltfile;
-	string slcfile;
+	string pltfile, slcfile;
 	double xctr = 0.0;
 	double yctr = 0.0;
 	double zctr = 0.0;
@@ -332,10 +331,14 @@ void PrintHelp ()
 	Print() << "\nusage: executable_name args"
 	        << "\nargs [-p|--pltfile]     plotfile : plot file directory (required)"
 	        << "\n     [-s|--slicefile] slice file : slice file          (required)"
+#if (AMREX_SPACEDIM >=2)
 	        << "\n     [--xctr]               xctr : central x coord     (non-cartesian only)"
 	        << "\n     [--yctr]               yctr : central y coord     (non-cartesian only)"
+#if (AMREX_SPACEDIM==3)
 	        << "\n     [--zctr]               zctr : central z coord     (non-cartesian only)"
+#endif
 	        << "\n     [--sphr]          spherical : spherical problem"
+#endif
 	        << "\n\n" << std::endl;
 
 }

@@ -23,8 +23,7 @@ int main(int argc, char* argv[])
 		Abort("ERROR: must compile gaussian pulse diagnostic with DIM=2");
 
 	// Input arguments
-	string pltfile;
-	string slcfile;
+	string pltfile, slcfile;
 	double xctr = 0.0;
 	double yctr = 0.0;
 	int dir;

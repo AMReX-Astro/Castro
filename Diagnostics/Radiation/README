@@ -1,6 +1,0 @@
-To build one of the radiation diagnostics, comment/uncomment the
-relevant lines in the GNUMakefile AND the Make.package file.
-
-Take care that you compile with the correct dimension (i.e. set DIM
-equal to the same value it had for the code that generated the plotfile
-to be investigated).
