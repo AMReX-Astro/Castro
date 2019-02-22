@@ -247,6 +247,7 @@ contains
 
              state_new % dx = minval(dx(1:dim))
 
+             state_new % self_heat = .true.
              call actual_rhs(state_new)
 
              dedt = state_new % ydot(net_ienuc)
