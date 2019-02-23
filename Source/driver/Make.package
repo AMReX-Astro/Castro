@@ -5,6 +5,7 @@ ca_F90EXE_sources += filcc_nd.F90
 
 CEXE_sources += Castro.cpp
 CEXE_sources += Castro_advance.cpp
+CEXE_sources += Castro_advance_sdc.cpp
 CEXE_sources += Castro_setup.cpp
 CEXE_sources += Castro_error.cpp
 CEXE_sources += Castro_io.cpp
