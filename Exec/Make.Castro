@@ -419,6 +419,11 @@ ifeq ($(USE_HDF5), TRUE)
   endif
 endif
 
+ifeq ($(USE_THORNADO), TRUE)
+  LIBRARY_LOCATIONS += -L$(LAPACK_HOME)
+  LIBRARIES         += -llapack
+endif
+
 #------------------------------------------------------------------------------
 # include all of the necessary directories
 #------------------------------------------------------------------------------

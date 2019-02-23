@@ -40,6 +40,8 @@ ca_F90EXE_sources += derive_two_moment_nd.F90
   ca_f90EXE_sources += ReferenceElementModule_Lagrange.f90
   ca_f90EXE_sources += UtilitiesModule.f90
 
+  ca_f90EXE_sources += SubcellReconstructionModule.f90
+
 # In Modules/Mesh
   ca_f90EXE_sources += MeshModule.f90
 
