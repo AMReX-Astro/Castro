@@ -22,6 +22,7 @@ Driver
    file/math_8F90
    file/meth__params_8F90
    file/prob__params_8F90
+   file/sdc__util_8F90
    file/sums__nd_8F90
    file/timestep_8F90
    

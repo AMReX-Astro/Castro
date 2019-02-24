@@ -1,0 +1,343 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File sdc_util.F90 &mdash; Castro 19.02
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File sums_nd.F90" href="sums__nd_8F90.html" />
+    <link rel="prev" title="File prob_params.F90" href="prob__params_8F90.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                19.02
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Plotfiles and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../driver_files.html">Driver</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Castro_8H.html">File Castro.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__io_8H.html">File Castro_io.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__nd_8F90.html">File Castro_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__util_8F90.html">File Castro_util.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Derive_8H.html">File Derive.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Derive__nd_8F90.html">File Derive_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGutils__1d_8F90.html">File MGutils_1d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGutils__2d_8F90.html">File MGutils_2d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Tagging__nd_8F90.html">File Tagging_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="amrinfo_8F90.html">File amrinfo.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="check__for__nan_8f90.html">File check_for_nan.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filcc__nd_8F90.html">File filcc_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generic__fill_8F90.html">File generic_fill.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="interpolate_8F90.html">File interpolate.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="io_8f90.html">File io.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="math_8F90.html">File math.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="meth__params_8F90.html">File meth_params.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="prob__params_8F90.html">File prob_params.F90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File sdc_util.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sums__nd_8F90.html">File sums_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timestep_8F90.html">File timestep.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../driver_files.html">Driver</a> &raquo;</li>
+        
+      <li>File sdc_util.F90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/sdc__util_8F90.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-sdc-util-f90">
+<h1>File sdc_util.F90<a class="headerlink" href="#file-sdc-util-f90" title="Permalink to this headline">¶</a></h1>
+<dl class="type">
+<dt id="_CPPv415rpar_sdc_module">
+<span id="_CPPv315rpar_sdc_module"></span><span id="_CPPv215rpar_sdc_module"></span><span id="rpar_sdc_module"></span><span class="target" id="namespacerpar__sdc__module"></span><em class="property">namespace </em><code class="descname">rpar_sdc_module</code><a class="headerlink" href="#_CPPv415rpar_sdc_module" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Variables</p>
+<dl class="member">
+<dt>
+<span class="target" id="namespacerpar__sdc__module_1a9878aeb912febf60a58d2af32f77e718"></span><code class="descname">integer, parameter rpar_sdc_module::irp_f_source</code> = 0</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerpar__sdc__module_1af7486fb7ea18b05c07ce77b76bb8e01c"></span><code class="descname">integer, parameter rpar_sdc_module::irp_dt</code> = <a class="reference internal" href="#namespacerpar__sdc__module_1a9878aeb912febf60a58d2af32f77e718"><span class="std std-ref">irp_f_source</span></a> + nspec_evolve + 2</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerpar__sdc__module_1a4de28cd3713c4f71b718df00304d1402"></span><code class="descname">integer, parameter rpar_sdc_module::irp_mom</code> = <a class="reference internal" href="#namespacerpar__sdc__module_1af7486fb7ea18b05c07ce77b76bb8e01c"><span class="std std-ref">irp_dt</span></a> + 1</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerpar__sdc__module_1a61f7ffcba0472d91b3e8ef3905af1f69"></span><code class="descname">integer, parameter rpar_sdc_module::irp_evar</code> = <a class="reference internal" href="#namespacerpar__sdc__module_1a4de28cd3713c4f71b718df00304d1402"><span class="std std-ref">irp_mom</span></a> + 3</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerpar__sdc__module_1aef7eeebf676c4ed2e987f4f33831ed7f"></span><code class="descname">integer, parameter rpar_sdc_module::irp_spec</code> = <a class="reference internal" href="#namespacerpar__sdc__module_1a61f7ffcba0472d91b3e8ef3905af1f69"><span class="std std-ref">irp_evar</span></a> + 1</dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="namespacerpar__sdc__module_1a333bc98f813d99d855e73beac977fbab"></span><code class="descname">integer, parameter rpar_sdc_module::n_rpar</code> = nspec_evolve + 7 + (nspec - nspec_evolve)</dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="type">
+<dt id="_CPPv48sdc_util">
+<span id="_CPPv38sdc_util"></span><span id="_CPPv28sdc_util"></span><span id="sdc_util"></span><span class="target" id="namespacesdc__util"></span><em class="property">namespace </em><code class="descname">sdc_util</code><a class="headerlink" href="#_CPPv48sdc_util" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt id="_CPPv4N8sdc_util26ca_sdc_update_advection_o2E2lo2hi4dt_m3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7m_start">
+<span id="_CPPv3N8sdc_util26ca_sdc_update_advection_o2E2lo2hi4dt_m3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7m_start"></span><span id="_CPPv2N8sdc_util26ca_sdc_update_advection_o2E2lo2hi4dt_m3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7m_start"></span><span id="sdc_util::ca_sdc_update_advection_o2__lo.hi.dt_m.k_m.kmlo.kmhi.k_n.knlo.knhi.A_m.Amlo.Amhi.A_0_old.A0lo.A0hi.A_1_old.A1lo.A1hi.m_start"></span><span class="target" id="namespacesdc__util_1ae3df2a48d4fd2b071bc05bf5e3be0162"></span>subroutine <code class="descname">ca_sdc_update_advection_o2</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o2E2lo2hi4dt_m3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7m_start" title="sdc_util::ca_sdc_update_advection_o2::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o2E2lo2hi4dt_m3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7m_start" title="sdc_util::ca_sdc_update_advection_o2::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o2E2lo2hi4dt_m3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7m_start" title="sdc_util::ca_sdc_update_advection_o2::dt_m">dt_m</a> <em>dt_m</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o2E2lo2hi4dt_m3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7m_start" title="sdc_util::ca_sdc_update_advection_o2::k_m">k_m</a> <em>k_m</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o2E2lo2hi4dt_m3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7m_start" title="sdc_util::ca_sdc_update_advection_o2::kmlo">kmlo</a> <em>kmlo</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o2E2lo2hi4dt_m3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7m_start" title="sdc_util::ca_sdc_update_advection_o2::kmhi">kmhi</a> <em>kmhi</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o2E2lo2hi4dt_m3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7m_start" title="sdc_util::ca_sdc_update_advection_o2::k_n">k_n</a> <em>k_n</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o2E2lo2hi4dt_m3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7m_start" title="sdc_util::ca_sdc_update_advection_o2::knlo">knlo</a> <em>knlo</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o2E2lo2hi4dt_m3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7m_start" title="sdc_util::ca_sdc_update_advection_o2::knhi">knhi</a> <em>knhi</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o2E2lo2hi4dt_m3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7m_start" title="sdc_util::ca_sdc_update_advection_o2::A_m">A_m</a> <em>A_m</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o2E2lo2hi4dt_m3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7m_start" title="sdc_util::ca_sdc_update_advection_o2::Amlo">Amlo</a> <em>Amlo</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o2E2lo2hi4dt_m3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7m_start" title="sdc_util::ca_sdc_update_advection_o2::Amhi">Amhi</a> <em>Amhi</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o2E2lo2hi4dt_m3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7m_start" title="sdc_util::ca_sdc_update_advection_o2::A_0_old">A_0_old</a> <em>A_0_old</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o2E2lo2hi4dt_m3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7m_start" title="sdc_util::ca_sdc_update_advection_o2::A0lo">A0lo</a> <em>A0lo</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o2E2lo2hi4dt_m3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7m_start" title="sdc_util::ca_sdc_update_advection_o2::A0hi">A0hi</a> <em>A0hi</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o2E2lo2hi4dt_m3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7m_start" title="sdc_util::ca_sdc_update_advection_o2::A_1_old">A_1_old</a> <em>A_1_old</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o2E2lo2hi4dt_m3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7m_start" title="sdc_util::ca_sdc_update_advection_o2::A1lo">A1lo</a> <em>A1lo</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o2E2lo2hi4dt_m3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7m_start" title="sdc_util::ca_sdc_update_advection_o2::A1hi">A1hi</a> <em>A1hi</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o2E2lo2hi4dt_m3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7m_start" title="sdc_util::ca_sdc_update_advection_o2::m_start">m_start</a> <em>m_start</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o2E2lo2hi4dt_m3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7m_start" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start">
+<span id="_CPPv3N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start"></span><span id="_CPPv2N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start"></span><span id="sdc_util::ca_sdc_update_advection_o4__lo.hi.dt.k_m.kmlo.kmhi.k_n.knlo.knhi.A_m.Amlo.Amhi.A_0_old.A0lo.A0hi.A_1_old.A1lo.A1hi.A_2_old.A2lo.A2hi.m_start"></span><span class="target" id="namespacesdc__util_1ae337ba7af8ef22e039bb7a4cd941e419"></span>subroutine <code class="descname">ca_sdc_update_advection_o4</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start" title="sdc_util::ca_sdc_update_advection_o4::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start" title="sdc_util::ca_sdc_update_advection_o4::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start" title="sdc_util::ca_sdc_update_advection_o4::dt">dt</a> <em>dt</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start" title="sdc_util::ca_sdc_update_advection_o4::k_m">k_m</a> <em>k_m</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start" title="sdc_util::ca_sdc_update_advection_o4::kmlo">kmlo</a> <em>kmlo</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start" title="sdc_util::ca_sdc_update_advection_o4::kmhi">kmhi</a> <em>kmhi</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start" title="sdc_util::ca_sdc_update_advection_o4::k_n">k_n</a> <em>k_n</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start" title="sdc_util::ca_sdc_update_advection_o4::knlo">knlo</a> <em>knlo</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start" title="sdc_util::ca_sdc_update_advection_o4::knhi">knhi</a> <em>knhi</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start" title="sdc_util::ca_sdc_update_advection_o4::A_m">A_m</a> <em>A_m</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start" title="sdc_util::ca_sdc_update_advection_o4::Amlo">Amlo</a> <em>Amlo</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start" title="sdc_util::ca_sdc_update_advection_o4::Amhi">Amhi</a> <em>Amhi</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start" title="sdc_util::ca_sdc_update_advection_o4::A_0_old">A_0_old</a> <em>A_0_old</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start" title="sdc_util::ca_sdc_update_advection_o4::A0lo">A0lo</a> <em>A0lo</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start" title="sdc_util::ca_sdc_update_advection_o4::A0hi">A0hi</a> <em>A0hi</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start" title="sdc_util::ca_sdc_update_advection_o4::A_1_old">A_1_old</a> <em>A_1_old</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start" title="sdc_util::ca_sdc_update_advection_o4::A1lo">A1lo</a> <em>A1lo</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start" title="sdc_util::ca_sdc_update_advection_o4::A1hi">A1hi</a> <em>A1hi</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start" title="sdc_util::ca_sdc_update_advection_o4::A_2_old">A_2_old</a> <em>A_2_old</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start" title="sdc_util::ca_sdc_update_advection_o4::A2lo">A2lo</a> <em>A2lo</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start" title="sdc_util::ca_sdc_update_advection_o4::A2hi">A2hi</a> <em>A2hi</em>, <a class="reference internal" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start" title="sdc_util::ca_sdc_update_advection_o4::m_start">m_start</a> <em>m_start</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8sdc_util26ca_sdc_update_advection_o4E2lo2hi2dt3k_m4kmlo4kmhi3k_n4knlo4knhi3A_m4Amlo4Amhi7A_0_old4A0lo4A0hi7A_1_old4A1lo4A1hi7A_2_old4A2lo4A2hi7m_start" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="sums__nd_8F90.html" class="btn btn-neutral float-right" title="File sums_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="prob__params_8F90.html" class="btn btn-neutral float-left" title="File prob_params.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

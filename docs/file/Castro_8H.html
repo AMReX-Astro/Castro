@@ -144,6 +144,7 @@
 <li class="toctree-l3"><a class="reference internal" href="math_8F90.html">File math.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="meth__params_8F90.html">File meth_params.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="prob__params_8F90.html">File prob_params.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sdc__util_8F90.html">File sdc_util.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="sums__nd_8F90.html">File sums_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="timestep_8F90.html">File timestep.F90</a></li>
 </ul>
@@ -592,6 +593,11 @@
 </dd></dl>
 
 <dl class="function">
+<dt id="_CPPv4N6Castro14do_advance_sdcEN5amrex4RealEN5amrex4RealEii">
+<span id="_CPPv3N6Castro14do_advance_sdcEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro14do_advance_sdcEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::do_advance_sdc__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1af0e01b8c819a8aedbcbc128e587e385d"></span>Real <code class="descname">do_advance_sdc</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="_CPPv4N6Castro13retry_advanceERN5amrex4RealEN5amrex4RealEii">
 <span id="_CPPv3N6Castro13retry_advanceERN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro13retry_advanceERN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::retry_advance__amrex::RealR.amrex::Real.i.i"></span><span class="target" id="classCastro_1a3aa6a39a77124eb195b7e1282c61ca95"></span>bool <code class="descname">retry_advance</code><span class="sig-paren">(</span>amrex::Real &amp;<em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Should we retry advancing the simulation? By default, we don’t do a retry unless the criteria are violated.</p>
@@ -751,14 +757,15 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N6Castro26construct_mol_hydro_sourceEN5amrex4RealEN5amrex4RealE">
-<span id="_CPPv3N6Castro26construct_mol_hydro_sourceEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv2N6Castro26construct_mol_hydro_sourceEN5amrex4RealEN5amrex4RealE"></span><span id="Castro::construct_mol_hydro_source__amrex::Real.amrex::Real"></span><span class="target" id="classCastro_1a0c0bedb40118c9f48fcfe503cd2ea0ca"></span>void <code class="descname">construct_mol_hydro_source</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><br /></dt>
-<dd><p>this constructs the hydrodynamic source (essentially the flux divergence) using method of lines integration. The output, as a update to the state, is stored in the <code class="docutils literal notranslate"><span class="pre">k_mol</span></code> array of multifabs.</p>
+<dt id="_CPPv4N6Castro26construct_mol_hydro_sourceEN5amrex4RealEN5amrex4RealERN5amrex8MultiFabE">
+<span id="_CPPv3N6Castro26construct_mol_hydro_sourceEN5amrex4RealEN5amrex4RealERN5amrex8MultiFabE"></span><span id="_CPPv2N6Castro26construct_mol_hydro_sourceEN5amrex4RealEN5amrex4RealERN5amrex8MultiFabE"></span><span id="Castro::construct_mol_hydro_source__amrex::Real.amrex::Real.amrex::MultiFabR"></span><span class="target" id="classCastro_1a681ecd4de06792237515c2d7e50679ce"></span>void <code class="descname">construct_mol_hydro_source</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, amrex::MultiFab &amp;<em>A_update</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>this constructs the hydrodynamic source (essentially the flux divergence) using method of lines integration. The output, is the divergence of the fluxes, A = -div{F(U)}</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
 <li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </li>
+<li><code class="docutils literal notranslate"><span class="pre">A_update</span></code>: divergence of the fluxes </li>
 </ul>
 </dd>
 </dl>
@@ -1377,13 +1384,28 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N6Castro11computeTempERN5amrex8MultiFabEi">
-<span id="_CPPv3N6Castro11computeTempERN5amrex8MultiFabEi"></span><span id="_CPPv2N6Castro11computeTempERN5amrex8MultiFabEi"></span><span id="Castro::computeTemp__amrex::MultiFabR.i"></span><span class="target" id="classCastro_1a4517678ad077ba5e039a7cdfb9fad4e3"></span>void <code class="descname">computeTemp</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>State</em>, int <em>ng</em><span class="sig-paren">)</span><br /></dt>
+<dt id="_CPPv4N6Castro11computeTempEii">
+<span id="_CPPv3N6Castro11computeTempEii"></span><span id="_CPPv2N6Castro11computeTempEii"></span><span id="Castro::computeTemp__i.i"></span><span class="target" id="classCastro_1a9bd4c97254ff3d138cdb71bb9dacfd81"></span>void <code class="descname">computeTemp</code><span class="sig-paren">(</span>int <em>is_new</em>, int <em>ng</em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Compute the current temperature</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">State</span></code>: Current state </li>
+<li><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: do we use the old or new StateData? </li>
+<li><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N6Castro11computeTempERN5amrex8MultiFabEi">
+<span id="_CPPv3N6Castro11computeTempERN5amrex8MultiFabEi"></span><span id="_CPPv2N6Castro11computeTempERN5amrex8MultiFabEi"></span><span id="Castro::computeTemp__amrex::MultiFabR.i"></span><span class="target" id="classCastro_1a92a4dbb41b8ed26a3af29efe9d961a82"></span>void <code class="descname">computeTemp</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>state</em>, int <em>ng</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Compute the current temperature</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: the state to operate on </li>
 <li><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </li>
 </ul>
 </dd>
@@ -1623,6 +1645,11 @@
 </dd></dl>
 
 <dl class="function">
+<dt id="_CPPv4N6Castro13do_sdc_updateEiiN5amrex4RealE">
+<span id="_CPPv3N6Castro13do_sdc_updateEiiN5amrex4RealE"></span><span id="_CPPv2N6Castro13do_sdc_updateEiiN5amrex4RealE"></span><span id="Castro::do_sdc_update__i.i.amrex::Real"></span><span class="target" id="classCastro_1a7f3dd96063c61e60b681a46f569e7374"></span>void <code class="descname">do_sdc_update</code><span class="sig-paren">(</span>int <em>m1</em>, int <em>m2</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="_CPPv4N6Castro15build_fine_maskEv">
 <span id="_CPPv3N6Castro15build_fine_maskEv"></span><span id="_CPPv2N6Castro15build_fine_maskEv"></span><span id="Castro::build_fine_mask"></span><span class="target" id="classCastro_1a6be54d682a4ab76f90b6e615a2532f86"></span>MultiFab &amp;<code class="descname">build_fine_mask</code><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
 <dd></dd></dl>
@@ -1767,6 +1794,11 @@
 <dl class="member">
 <dt id="_CPPv4N6Castro5QGAMEE">
 <span id="_CPPv3N6Castro5QGAMEE"></span><span id="_CPPv2N6Castro5QGAMEE"></span><span id="Castro::QGAME__i"></span><span class="target" id="classCastro_1a34db15e9f8b15064bbbc39f71bd8a21c"></span>int <code class="descname">QGAME</code> = -1<br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N6Castro3QGCE">
+<span id="_CPPv3N6Castro3QGCE"></span><span id="_CPPv2N6Castro3QGCE"></span><span id="Castro::QGC__i"></span><span class="target" id="classCastro_1aa3afc81eee16c4ef9e4908b7d3143799"></span>int <code class="descname">QGC</code> = -1<br /></dt>
 <dd></dd></dl>
 
 <dl class="member">
@@ -2233,6 +2265,21 @@
 </dd></dl>
 
 <dl class="member">
+<dt id="_CPPv4N6Castro5k_newE">
+<span id="_CPPv3N6Castro5k_newE"></span><span id="_CPPv2N6Castro5k_newE"></span><span id="Castro::k_new__amrex::Vector:std::unique_ptr:amrex::MultiFab::"></span><span class="target" id="classCastro_1af59ffa422e0e8e803989a47f7b09c2e9"></span>amrex::Vector&lt;std::unique_ptr&lt;amrex::MultiFab&gt;&gt; <code class="descname">k_new</code><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N6Castro5A_oldE">
+<span id="_CPPv3N6Castro5A_oldE"></span><span id="_CPPv2N6Castro5A_oldE"></span><span id="Castro::A_old__amrex::Vector:std::unique_ptr:amrex::MultiFab::"></span><span class="target" id="classCastro_1a8daf40890a6bd5787e64b157552a6276"></span>amrex::Vector&lt;std::unique_ptr&lt;amrex::MultiFab&gt;&gt; <code class="descname">A_old</code><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N6Castro5A_newE">
+<span id="_CPPv3N6Castro5A_newE"></span><span id="_CPPv2N6Castro5A_newE"></span><span id="Castro::A_new__amrex::Vector:std::unique_ptr:amrex::MultiFab::"></span><span class="target" id="classCastro_1a7fe0af84e0ac6d87b0b753f03a0a9c83"></span>amrex::Vector&lt;std::unique_ptr&lt;amrex::MultiFab&gt;&gt; <code class="descname">A_new</code><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
 <dt id="_CPPv4N6Castro15wall_time_startE">
 <span id="_CPPv3N6Castro15wall_time_startE"></span><span id="_CPPv2N6Castro15wall_time_startE"></span><span id="Castro::wall_time_start__amrex::Real"></span><span class="target" id="classCastro_1a2743355ebda44722d8024289a40d0971"></span>amrex::Real <code class="descname">wall_time_start</code><br /></dt>
 <dd><p>Wall time that we started the timestep </p>
@@ -2323,6 +2370,11 @@
 </dd></dl>
 
 <dl class="member">
+<dt id="_CPPv4N6Castro16current_sdc_nodeE">
+<span id="_CPPv3N6Castro16current_sdc_nodeE"></span><span id="_CPPv2N6Castro16current_sdc_nodeE"></span><span id="Castro::current_sdc_node__i"></span><span class="target" id="classCastro_1afb08b23c0d86436aaa54010c07c58b29"></span>int <code class="descname">current_sdc_node</code><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
 <dt id="_CPPv4N6Castro13mol_iterationE">
 <span id="_CPPv3N6Castro13mol_iterationE"></span><span id="_CPPv2N6Castro13mol_iterationE"></span><span id="Castro::mol_iteration__i"></span><span class="target" id="classCastro_1a594f3eabc8768a5eca90dfaa339085cb"></span>int <code class="descname">mol_iteration</code><br /></dt>
 <dd><p>method of lines </p>
@@ -2395,6 +2447,16 @@
 <dl class="member">
 <dt id="_CPPv4N6Castro5c_molE">
 <span id="_CPPv3N6Castro5c_molE"></span><span id="_CPPv2N6Castro5c_molE"></span><span id="Castro::c_mol__Vector:Real:"></span><span class="target" id="classCastro_1a47bef4b24201ddb7126da285069a1377"></span>Vector&lt;Real&gt; <code class="descname">c_mol</code><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N6Castro9SDC_NODESE">
+<span id="_CPPv3N6Castro9SDC_NODESE"></span><span id="_CPPv2N6Castro9SDC_NODESE"></span><span id="Castro::SDC_NODES__i"></span><span class="target" id="classCastro_1ada15861b871d44d09f72c1ed30f1786b"></span>int <code class="descname">SDC_NODES</code><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N6Castro6dt_sdcE">
+<span id="_CPPv3N6Castro6dt_sdcE"></span><span id="_CPPv2N6Castro6dt_sdcE"></span><span id="Castro::dt_sdc__Vector:Real:"></span><span class="target" id="classCastro_1ae54f1eea2a39c7a305a78edf547a7b08"></span>Vector&lt;Real&gt; <code class="descname">dt_sdc</code><br /></dt>
 <dd></dd></dl>
 
 <dl class="member">
@@ -2491,6 +2553,11 @@
 <dl class="member">
 <dt id="_CPPv4N6Castro20Knapsack_Weight_TypeE">
 <span id="_CPPv3N6Castro20Knapsack_Weight_TypeE"></span><span id="_CPPv2N6Castro20Knapsack_Weight_TypeE"></span><span id="Castro::Knapsack_Weight_Type__i"></span><span class="target" id="classCastro_1a6ddec456659bed1d7c65101b462978a8"></span>int <code class="descname">Knapsack_Weight_Type</code> = -1<br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N6Castro15SDC_Source_TypeE">
+<span id="_CPPv3N6Castro15SDC_Source_TypeE"></span><span id="_CPPv2N6Castro15SDC_Source_TypeE"></span><span id="Castro::SDC_Source_Type__i"></span><span class="target" id="classCastro_1a1fff8a8ed9f370dc69bfa974c337cbbd"></span>int <code class="descname">SDC_Source_Type</code> = -1<br /></dt>
 <dd></dd></dl>
 
 <dl class="member">
