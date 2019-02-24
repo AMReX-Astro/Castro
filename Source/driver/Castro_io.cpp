@@ -49,11 +49,12 @@ using namespace amrex;
 // 4: Reactions_Type added to checkpoint; ReactHeader functionality deprecated
 // 5: SDC_Source_Type and SDC_React_Type added to checkpoint
 // 6: SDC_Source_Type removed from Castro
+// 7: Balance_Type added to the checkpoint
 
 namespace
 {
     int input_version = -1;
-    int current_version = 6;
+    int current_version = 7;
 }
 
 // I/O routines for Castro
@@ -161,6 +162,14 @@ Castro::restart (Amr&     papa,
       state[SDC_React_Type].restart(desc_lst[SDC_React_Type], state[State_Type]);
     }
 #endif
+#endif
+
+#ifdef REACTIONS
+    if (input_version < 7) { // old checkpoint without Balance_Type
+        if (rebalanced_splitting) {
+            state[Balance_Type].restart(desc_lst[Balance_Type], state[State_Type]);
+        }
+    }
 #endif
 
     // For versions < 2, we didn't store all three components
@@ -513,6 +522,14 @@ Castro::set_state_in_checkpoint (Vector<int>& state_in_checkpoint)
     }
 #endif
 #endif
+#ifdef REACTIONS
+    if (input_version < 7 && i == Balance_Type) {
+      if (rebalanced_splitting) {
+          // We are reading an old checkpoint with no Balance_Type
+          state_in_checkpoint[i] = 0;
+      }
+    }
+#endif
   }
 }
 
@@ -662,6 +679,15 @@ Castro::setPlotVariables ()
   for (int i = 0; i < desc_lst[SDC_React_Type].nComp(); i++)
       parent->deleteStatePlotVar(desc_lst[SDC_React_Type].name(i));
 #endif
+#endif
+
+  // Same for Balance_Type.
+
+#ifdef REACTIONS
+  if (rebalanced_splitting) {
+      for (int i = 0; i < desc_lst[Balance_Type].nComp(); i++)
+          parent->deleteStatePlotVar(desc_lst[Balance_Type].name(i));
+  }
 #endif
 
   ParmParse pp("castro");

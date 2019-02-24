@@ -41,8 +41,11 @@ enum StateType { State_Type = 0,
 #endif
 #ifdef SDC
 #ifdef REACTIONS
-		 SDC_React_Type
+		 SDC_React_Type,
 #endif
+#endif
+#ifdef REACTIONS
+                 Balance_Type,
 #endif
 };
 

@@ -192,49 +192,28 @@ Castro::do_advance (Real time,
 
 #ifdef REACTIONS
 #ifndef SDC
-    // For balanced splitting, calculate the balancing vector at the old time.
-    MultiFab balance_vector;
+    // For rebalanced splitting, start storing the updated balance vector.
+    // Don't worry about ghost zones, we'll handle them at the end of the step.
 
-    if (do_hydro && time_integration_method == CornerTransportUpwind && balanced_splitting) {
-        const int ncomp = Sborder.nComp();
-        const int ng = Sborder.nGrow();
-        balance_vector.define(grids, dmap, ncomp, ng);
-        balance_vector.setVal(0.0, ng);
-
-        // Calculate the RHS directly in the balance_vector to save memory.
-        react_rhs(Sborder, balance_vector);
-
-        // We will be subtracting the reaction source from the hydro source.
-        balance_vector.mult(-1.0);
-
-        // Now add the hydro source.
-        // Note that both cons_to_prim and construct_hydro_source here are
-        // separate from the later calls:
-        cons_to_prim(time);
-        construct_hydro_source(time, 0.0);
-
-        MultiFab::Add(balance_vector, hydro_source, 0, 0, ncomp, hydro_source.nGrow());
-
-        // Finally scale by half.
-        balance_vector.mult(0.5);
-
-        // Fill the boundaries (this cannot be avoided at present since the
-        // hydro source is only constructed on the valid box). Note that this
-        // will not handle the domain boundaries; but, this does not cause
-        // incorrect results. We will have the balance vector == 0 there, and
-        // so in this region we drop back to standard Strang splitting.
-        balance_vector.FillBoundary(geom.periodicity());
+    MultiFab new_balance;
+    if (do_hydro && time_integration_method == CornerTransportUpwind && rebalanced_splitting) {
+        MultiFab& balance_vector = get_new_data(Balance_Type);
+        new_balance.define(grids, dmap, NUM_STATE, balance_vector.nGrow());
+        MultiFab::Copy(new_balance, balance_vector, 0, 0, NUM_STATE, 0);
+        MultiFab::Saxpy(new_balance, 0.5 / dt, S_old, 0, 0, NUM_STATE, 0);
     }
 
     // this operates on Sborder (which is initially S_old).  The result
     // of the reactions is added directly back to Sborder.
     strang_react_first_half(prev_time, 0.5 * dt);
 
-    // For balanced splitting, add the contribution from the balance vector.
+    // For rebalanced splitting, add the contribution from the balance vector.
 
-    if (do_hydro && time_integration_method == CornerTransportUpwind && balanced_splitting) {
+    if (do_hydro && time_integration_method == CornerTransportUpwind && rebalanced_splitting) {
+        MultiFab& balance_vector = get_new_data(Balance_Type);
         MultiFab::Saxpy(Sborder, 0.5 * dt, balance_vector, 0, 0, Sborder.nComp(), Sborder.nGrow());
         clean_state(Sborder);
+        MultiFab::Saxpy(new_balance, -1.0 / dt, Sborder, 0, 0, NUM_STATE, 0);
     }
 #endif
 #endif
@@ -311,11 +290,17 @@ Castro::do_advance (Real time,
       int is_new=1;
       apply_source_to_state(is_new, S_new, hydro_source, dt);
 
-      // For balanced splitting, subtract the contribution from the balance vector.
+      // For rebalanced splitting, subtract the contribution from the balance vector.
 
-      if (time_integration_method == CornerTransportUpwind && balanced_splitting) {
+#ifndef SDC
+#ifdef REACTIONS
+      if (time_integration_method == CornerTransportUpwind && rebalanced_splitting) {
+          MultiFab& balance_vector = get_new_data(Balance_Type);
           apply_source_to_state(is_new, S_new, balance_vector, -dt, S_new.nGrow());
+          MultiFab::Saxpy(new_balance, 1.0 / dt, S_new, 0, 0, NUM_STATE, 0);
       }
+#endif
+#endif
     }
 
 
@@ -385,11 +370,17 @@ Castro::do_advance (Real time,
 #ifndef SDC
     strang_react_second_half(cur_time - 0.5 * dt, 0.5 * dt);
 
-    // For balanced splitting, add the contribution from the balance vector.
+    // For rebalanced splitting, add the contribution from the balance vector.
 
-    if (do_hydro && time_integration_method == CornerTransportUpwind && balanced_splitting) {
+    if (do_hydro && time_integration_method == CornerTransportUpwind && rebalanced_splitting) {
         int is_new = 1;
+        MultiFab& balance_vector = get_new_data(Balance_Type);
         apply_source_to_state(is_new, S_new, balance_vector, 0.5 * dt, S_new.nGrow());
+        MultiFab::Saxpy(new_balance, -0.5 / dt, S_new, 0, 0, NUM_STATE, 0);
+
+        // Now copy the update back to the stored balance data, and fill the ghost zones.
+        MultiFab::Copy(balance_vector, new_balance, 0, 0, NUM_STATE, 0);
+        AmrLevel::FillPatch(*this, balance_vector, balance_vector.nGrow(), time, Balance_Type, 0, NUM_STATE);
     }
 
     // Skip the rest of the advance if the burn was unsuccessful.

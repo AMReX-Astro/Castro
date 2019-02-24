@@ -657,6 +657,38 @@ Castro::variableSetUp ()
 			    bc, BndryFunc(ca_nullfill));
   }
 
+#ifdef REACTIONS
+  // Storage for rebalanced splitting.
+  if (rebalanced_splitting) {
+
+      store_in_checkpoint = true;
+      desc_lst.addDescriptor(Balance_Type, IndexType::TheCellType(), StateDescriptor::Point,
+                             NUM_GROW, NUM_STATE, &cell_cons_interp, state_data_extrap, store_in_checkpoint);
+
+      Vector<BCRec> balance_bcs(NUM_STATE);
+      Vector<std::string> state_type_balance_names(NUM_STATE);
+
+      for (int i = 0; i < NUM_STATE; ++i) {
+          state_type_balance_names[i] = name[i] + "_balance";
+          balance_bcs[i] = bcs[i];
+
+          // Replace inflow BCs with FOEXTRAP.
+
+          for (int j = 0; j < AMREX_SPACEDIM; ++j) {
+              if (balance_bcs[i].lo(j) == EXT_DIR)
+                  balance_bcs[i].setLo(j, FOEXTRAP);
+
+              if (balance_bcs[i].hi(j) == EXT_DIR)
+                  balance_bcs[i].setHi(j, FOEXTRAP);
+          }
+      }
+
+      desc_lst.setComponent(Balance_Type,Density,state_type_balance_names,balance_bcs,
+                            BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
+
+  }
+#endif
+
   num_state_type = desc_lst.size();
 
   //

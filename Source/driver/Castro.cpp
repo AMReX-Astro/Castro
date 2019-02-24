@@ -386,8 +386,8 @@ Castro::read_params ()
     }
 #endif
 
-    if (balanced_splitting && time_integration_method != CornerTransportUpwind) {
-        amrex::Error("Balanced splitting is only supported for the CTU advance.");
+    if (rebalanced_splitting && time_integration_method != CornerTransportUpwind) {
+        amrex::Error("Rebalanced splitting is only supported for the CTU advance.");
     }
 
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
@@ -565,6 +565,13 @@ Castro::Castro (Amr&            papa,
 
    MultiFab& reactions_new = get_new_data(Reactions_Type);
    reactions_new.setVal(0.0);
+
+   // Initialize balance vector to zero.
+
+   if (rebalanced_splitting) {
+       MultiFab& balance_new = get_new_data(Balance_Type);
+       balance_new.setVal(0.0);
+   }
 
 #endif
 
@@ -2679,6 +2686,9 @@ Castro::avgDown ()
 
 #ifdef REACTIONS
   avgDown(Reactions_Type);
+  if (rebalanced_splitting) {
+      avgDown(Balance_Type);
+  }
 #endif
 
 #ifdef SDC
@@ -3298,6 +3308,14 @@ Castro::swap_state_time_levels(const Real dt)
         if (k == SDC_React_Type)
             state[k].swapTimeLevels(0.0);
 #endif
+#endif
+
+#ifdef REACTIONS
+        if (rebalanced_splitting) {
+            if (k == Balance_Type) {
+                state[k].swapTimeLevels(0.0);
+            }
+        }
 #endif
 
         state[k].allocOldData();

@@ -112,7 +112,7 @@ module meth_params_module
   real(rt), allocatable, save :: small_ener
   integer,  allocatable, save :: do_hydro
   integer,  allocatable, save :: time_integration_method
-  integer,  allocatable, save :: balanced_splitting
+  integer,  allocatable, save :: rebalanced_splitting
   integer,  allocatable, save :: fourth_order
   integer,  allocatable, save :: limit_fourth_order
   integer,  allocatable, save :: hybrid_hydro
@@ -195,7 +195,7 @@ attributes(managed) :: small_pres
 attributes(managed) :: small_ener
 attributes(managed) :: do_hydro
 attributes(managed) :: time_integration_method
-attributes(managed) :: balanced_splitting
+attributes(managed) :: rebalanced_splitting
 attributes(managed) :: fourth_order
 attributes(managed) :: limit_fourth_order
 attributes(managed) :: hybrid_hydro
@@ -309,7 +309,7 @@ attributes(managed) :: get_g_from_phi
   !$acc create(small_ener) &
   !$acc create(do_hydro) &
   !$acc create(time_integration_method) &
-  !$acc create(balanced_splitting) &
+  !$acc create(rebalanced_splitting) &
   !$acc create(fourth_order) &
   !$acc create(limit_fourth_order) &
   !$acc create(hybrid_hydro) &
@@ -502,8 +502,8 @@ contains
     do_hydro = -1;
     allocate(time_integration_method)
     time_integration_method = 0;
-    allocate(balanced_splitting)
-    balanced_splitting = 0;
+    allocate(rebalanced_splitting)
+    rebalanced_splitting = 0;
     allocate(fourth_order)
     fourth_order = 0;
     allocate(limit_fourth_order)
@@ -644,7 +644,7 @@ contains
     call pp%query("small_ener", small_ener)
     call pp%query("do_hydro", do_hydro)
     call pp%query("time_integration_method", time_integration_method)
-    call pp%query("balanced_splitting", balanced_splitting)
+    call pp%query("rebalanced_splitting", rebalanced_splitting)
     call pp%query("fourth_order", fourth_order)
     call pp%query("limit_fourth_order", limit_fourth_order)
     call pp%query("hybrid_hydro", hybrid_hydro)
@@ -707,7 +707,7 @@ contains
     !$acc update &
     !$acc device(difmag, small_dens, small_temp) &
     !$acc device(small_pres, small_ener, do_hydro) &
-    !$acc device(time_integration_method, balanced_splitting, fourth_order) &
+    !$acc device(time_integration_method, rebalanced_splitting, fourth_order) &
     !$acc device(limit_fourth_order, hybrid_hydro, ppm_type) &
     !$acc device(ppm_temp_fix, ppm_predict_gammae, ppm_reference_eigenvectors) &
     !$acc device(plm_iorder, hybrid_riemann, riemann_solver) &
@@ -832,8 +832,8 @@ contains
     if (allocated(time_integration_method)) then
         deallocate(time_integration_method)
     end if
-    if (allocated(balanced_splitting)) then
-        deallocate(balanced_splitting)
+    if (allocated(rebalanced_splitting)) then
+        deallocate(rebalanced_splitting)
     end if
     if (allocated(fourth_order)) then
         deallocate(fourth_order)

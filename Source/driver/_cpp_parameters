@@ -59,8 +59,8 @@ do_hydro                     int          -1                  y
 # how do we advance in time? 0 = CTU + Strang, 1 = MOL + Strang
 time_integration_method      int           0                  y
 
-# for the CTU update, should we use the balanced operator splitting method?
-balanced_splitting           int           0                  y
+# for the CTU update, should we use the rebalanced operator splitting method?
+rebalanced_splitting         int           0                  y
 
 # do we do fourth-order accurate MOL hydro?
 fourth_order                 int           0                  y
