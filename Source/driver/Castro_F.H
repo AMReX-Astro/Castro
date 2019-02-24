@@ -1183,10 +1183,6 @@ extern "C"
      const amrex::Real time, const amrex::Real dt_react, const int strang_half,
      amrex::Real* burn_failure);
 #endif
-  void ca_react_rhs
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(rhs));
 #endif
 
   void ca_tempdiffextrap

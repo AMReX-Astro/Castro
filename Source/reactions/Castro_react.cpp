@@ -524,25 +524,3 @@ Castro::valid_zones_to_burn(MultiFab& State)
     return false;
 
 }
-
-
-
-void
-Castro::react_rhs(MultiFab& state, MultiFab& rhs)
-{
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(state); mfi.isValid(); ++mfi)
-    {
-        const Box& bx = mfi.validbox();
-
-#pragma gpu
-        ca_react_rhs(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                     BL_TO_FORTRAN_ANYD(state[mfi]),
-                     BL_TO_FORTRAN_ANYD(rhs[mfi]));
-
-    }
-
-}
