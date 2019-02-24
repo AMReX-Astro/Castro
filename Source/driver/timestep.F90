@@ -158,6 +158,7 @@ contains
     use eos_type_module, only: eos_t, eos_input_rt
     use burner_module, only: ok_to_burn
     use burn_type_module, only : burn_t, net_ienuc, burn_to_eos, eos_to_burn
+    use temperature_integration_module, only: self_heat
     use amrex_fort_module, only : rt => amrex_real
     use extern_probin_module, only: small_x
 
@@ -247,6 +248,7 @@ contains
 
              state_new % dx = minval(dx(1:dim))
 
+             state_new % self_heat = self_heat
              call actual_rhs(state_new)
 
              dedt = state_new % ydot(net_ienuc)
