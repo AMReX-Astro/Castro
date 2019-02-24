@@ -112,6 +112,7 @@ module meth_params_module
   real(rt), allocatable, save :: small_ener
   integer,  allocatable, save :: do_hydro
   integer,  allocatable, save :: time_integration_method
+  integer,  allocatable, save :: balanced_splitting
   integer,  allocatable, save :: fourth_order
   integer,  allocatable, save :: limit_fourth_order
   integer,  allocatable, save :: hybrid_hydro
@@ -194,6 +195,7 @@ attributes(managed) :: small_pres
 attributes(managed) :: small_ener
 attributes(managed) :: do_hydro
 attributes(managed) :: time_integration_method
+attributes(managed) :: balanced_splitting
 attributes(managed) :: fourth_order
 attributes(managed) :: limit_fourth_order
 attributes(managed) :: hybrid_hydro
@@ -307,6 +309,7 @@ attributes(managed) :: get_g_from_phi
   !$acc create(small_ener) &
   !$acc create(do_hydro) &
   !$acc create(time_integration_method) &
+  !$acc create(balanced_splitting) &
   !$acc create(fourth_order) &
   !$acc create(limit_fourth_order) &
   !$acc create(hybrid_hydro) &
@@ -499,6 +502,8 @@ contains
     do_hydro = -1;
     allocate(time_integration_method)
     time_integration_method = 0;
+    allocate(balanced_splitting)
+    balanced_splitting = 0;
     allocate(fourth_order)
     fourth_order = 0;
     allocate(limit_fourth_order)
@@ -639,6 +644,7 @@ contains
     call pp%query("small_ener", small_ener)
     call pp%query("do_hydro", do_hydro)
     call pp%query("time_integration_method", time_integration_method)
+    call pp%query("balanced_splitting", balanced_splitting)
     call pp%query("fourth_order", fourth_order)
     call pp%query("limit_fourth_order", limit_fourth_order)
     call pp%query("hybrid_hydro", hybrid_hydro)
@@ -701,28 +707,29 @@ contains
     !$acc update &
     !$acc device(difmag, small_dens, small_temp) &
     !$acc device(small_pres, small_ener, do_hydro) &
-    !$acc device(time_integration_method, fourth_order, limit_fourth_order) &
-    !$acc device(hybrid_hydro, ppm_type, ppm_temp_fix) &
-    !$acc device(ppm_predict_gammae, ppm_reference_eigenvectors, plm_iorder) &
-    !$acc device(hybrid_riemann, riemann_solver, cg_maxiter) &
-    !$acc device(cg_tol, cg_blend, use_eos_in_riemann) &
-    !$acc device(use_flattening, transverse_use_eos, transverse_reset_density) &
-    !$acc device(transverse_reset_rhoe, dual_energy_eta1, dual_energy_eta2) &
-    !$acc device(use_pslope, fix_mass_flux, limit_fluxes_on_small_dens) &
-    !$acc device(density_reset_method, allow_small_energy, do_sponge) &
-    !$acc device(sponge_implicit, first_order_hydro, hse_zero_vels) &
-    !$acc device(hse_interp_temp, hse_reflect_vels, mol_order) &
-    !$acc device(cfl, dtnuc_e, dtnuc_X) &
-    !$acc device(dtnuc_X_threshold, do_react, react_T_min) &
-    !$acc device(react_T_max, react_rho_min, react_rho_max) &
-    !$acc device(disable_shock_burning, T_guess, diffuse_cutoff_density) &
-    !$acc device(diffuse_cutoff_density_hi, diffuse_cond_scale_fac, do_grav) &
-    !$acc device(grav_source_type, do_rotation, rot_period) &
-    !$acc device(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
-    !$acc device(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
-    !$acc device(implicit_rotation_update, rot_axis, use_point_mass) &
-    !$acc device(point_mass, point_mass_fix_solution, do_acc) &
-    !$acc device(grown_factor, track_grid_losses, const_grav, get_g_from_phi)
+    !$acc device(time_integration_method, balanced_splitting, fourth_order) &
+    !$acc device(limit_fourth_order, hybrid_hydro, ppm_type) &
+    !$acc device(ppm_temp_fix, ppm_predict_gammae, ppm_reference_eigenvectors) &
+    !$acc device(plm_iorder, hybrid_riemann, riemann_solver) &
+    !$acc device(cg_maxiter, cg_tol, cg_blend) &
+    !$acc device(use_eos_in_riemann, use_flattening, transverse_use_eos) &
+    !$acc device(transverse_reset_density, transverse_reset_rhoe, dual_energy_eta1) &
+    !$acc device(dual_energy_eta2, use_pslope, fix_mass_flux) &
+    !$acc device(limit_fluxes_on_small_dens, density_reset_method, allow_small_energy) &
+    !$acc device(do_sponge, sponge_implicit, first_order_hydro) &
+    !$acc device(hse_zero_vels, hse_interp_temp, hse_reflect_vels) &
+    !$acc device(mol_order, cfl, dtnuc_e) &
+    !$acc device(dtnuc_X, dtnuc_X_threshold, do_react) &
+    !$acc device(react_T_min, react_T_max, react_rho_min) &
+    !$acc device(react_rho_max, disable_shock_burning, T_guess) &
+    !$acc device(diffuse_cutoff_density, diffuse_cutoff_density_hi, diffuse_cond_scale_fac) &
+    !$acc device(do_grav, grav_source_type, do_rotation) &
+    !$acc device(rot_period, rot_period_dot, rotation_include_centrifugal) &
+    !$acc device(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
+    !$acc device(rot_source_type, implicit_rotation_update, rot_axis) &
+    !$acc device(use_point_mass, point_mass, point_mass_fix_solution) &
+    !$acc device(do_acc, grown_factor, track_grid_losses) &
+    !$acc device(const_grav, get_g_from_phi)
 
 
     ! now set the external BC flags
@@ -824,6 +831,9 @@ contains
     end if
     if (allocated(time_integration_method)) then
         deallocate(time_integration_method)
+    end if
+    if (allocated(balanced_splitting)) then
+        deallocate(balanced_splitting)
     end if
     if (allocated(fourth_order)) then
         deallocate(fourth_order)

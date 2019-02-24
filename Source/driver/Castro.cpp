@@ -386,6 +386,10 @@ Castro::read_params ()
     }
 #endif
 
+    if (balanced_splitting && time_integration_method != CornerTransportUpwind) {
+        amrex::Error("Balanced splitting is only supported for the CTU advance.");
+    }
+
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
       {
         std::cerr << "hybrid_riemann only implemented in 2- and 3-d\n";
