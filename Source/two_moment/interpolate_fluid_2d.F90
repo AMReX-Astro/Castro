@@ -8,6 +8,7 @@
     use amrex_fort_module, only : rt => amrex_real
     use amrex_error_module, only : amrex_abort
     use meth_params_module, only : URHO,UMX,UMY,UMZ,UEDEN,UFX
+    use SubcellReconstructionModule, only: ReconstructionMatrix
     use FluidFieldsModule    , only : uCF, nCF, iCF_D, iCF_S1, iCF_S2, iCF_S3, iCF_E, iCF_Ne
     use EquationOfStateModule_TABLE, only : ComputeTemperatureFromSpecificInternalEnergy_TABLE, &
                                             ComputeThermodynamicStates_Primitive_TABLE
@@ -39,9 +40,10 @@
 
     integer  :: interp_type
 
-
-    ! No interpolation
-    interp_type = 0 
+    ! No interpolation:
+    !interp_type = 0
+    ! Use reconstruction matrix:
+    interp_type = 1
 
     if (s_lo(1) .gt. (lo(1)-ng-1) .or. s_hi(1) .lt. (hi(1)+ng+1) .or. &
         s_lo(2) .gt. (lo(2)-ng-1) .or. s_hi(2) .lt. (hi(2)+ng+1)) then
@@ -119,6 +121,74 @@
           uCF(4,ic,jc,kc,iCF_S3) = S(i+1,j+1,UMZ)   * conv_mom
           uCF(4,ic,jc,kc,iCF_E)  = S(i+1,j+1,UEDEN) * conv_enr
           uCF(4,ic,jc,kc,iCF_Ne) = S(i+1,j+1,UFX)   * conv_ne
+
+          ! Make this copy so we can create dS on nodes, not after S has been
+          !      averaged back to cell centers
+          u0(1:4,ic,jc,kc,iCF_D ) = uCF(1:4,ic,jc,kc,iCF_D )
+          u0(1:4,ic,jc,kc,iCF_S1) = uCF(1:4,ic,jc,kc,iCF_S1)
+          u0(1:4,ic,jc,kc,iCF_S2) = uCF(1:4,ic,jc,kc,iCF_S2)
+          u0(1:4,ic,jc,kc,iCF_S3) = uCF(1:4,ic,jc,kc,iCF_S3)
+          u0(1:4,ic,jc,kc,iCF_E ) = uCF(1:4,ic,jc,kc,iCF_E )
+          u0(1:4,ic,jc,kc,iCF_Ne) = uCF(1:4,ic,jc,kc,iCF_Ne)
+
+       end do
+       end do
+    ! ************************************************************************************
+    ! Use reconstruction matrix
+    ! ************************************************************************************
+    elseif (interp_type .eq. 1) then
+       do jc = u_lo(2),u_hi(2)
+       do ic = u_lo(1),u_hi(1)
+
+          !   S spatial indices start at lo - (number of ghost zones)
+          ! uCF spatial indices start at 1 - (number of ghost zones)
+          i = lo(1) + 2*(ic-1)
+          j = lo(2) + 2*(jc-1)
+
+          ! In 2-d, kc = 1
+          kc = 1
+
+          ! Thornado uses units where c = G = k = 1, Meter = 1
+
+          do ind = 1, 4
+
+             uCF(ind,ic,jc,kc,iCF_D) &
+               = ( ReconstructionMatrix  (ind,1) * S(i,  j,  URHO) &
+                   + ReconstructionMatrix(ind,2) * S(i+1,j,  URHO) &
+                   + ReconstructionMatrix(ind,3) * S(i,  j+1,URHO) &
+                   + ReconstructionMatrix(ind,4) * S(i+1,j+1,URHO) ) * conv_dens
+
+             uCF(ind,ic,jc,kc,iCF_S1) &
+               = ( ReconstructionMatrix  (ind,1) * S(i,  j,  UMX) &
+                   + ReconstructionMatrix(ind,2) * S(i+1,j,  UMX) &
+                   + ReconstructionMatrix(ind,3) * S(i,  j+1,UMX) &
+                   + ReconstructionMatrix(ind,4) * S(i+1,j+1,UMX) ) * conv_mom
+
+             uCF(ind,ic,jc,kc,iCF_S2) &
+               = ( ReconstructionMatrix  (ind,1) * S(i,  j,  UMY) &
+                   + ReconstructionMatrix(ind,2) * S(i+1,j,  UMY) &
+                   + ReconstructionMatrix(ind,3) * S(i,  j+1,UMY) &
+                   + ReconstructionMatrix(ind,4) * S(i+1,j+1,UMY) ) * conv_mom
+
+             uCF(ind,ic,jc,kc,iCF_S3) &
+               = ( ReconstructionMatrix  (ind,1) * S(i,  j,  UMZ) &
+                   + ReconstructionMatrix(ind,2) * S(i+1,j,  UMZ) &
+                   + ReconstructionMatrix(ind,3) * S(i,  j+1,UMZ) &
+                   + ReconstructionMatrix(ind,4) * S(i+1,j+1,UMZ) ) * conv_mom
+
+             uCF(ind,ic,jc,kc,iCF_E) &
+               = ( ReconstructionMatrix  (ind,1) * S(i,  j,  UEDEN) &
+                   + ReconstructionMatrix(ind,2) * S(i+1,j,  UEDEN) &
+                   + ReconstructionMatrix(ind,3) * S(i,  j+1,UEDEN) &
+                   + ReconstructionMatrix(ind,4) * S(i+1,j+1,UEDEN) ) * conv_enr
+
+             uCF(ind,ic,jc,kc,iCF_Ne) &
+               = ( ReconstructionMatrix  (ind,1) * S(i,  j,  UFX) &
+                   + ReconstructionMatrix(ind,2) * S(i+1,j,  UFX) &
+                   + ReconstructionMatrix(ind,3) * S(i,  j+1,UFX) &
+                   + ReconstructionMatrix(ind,4) * S(i+1,j+1,UFX) ) * conv_ne
+
+          end do
 
           ! Make this copy so we can create dS on nodes, not after S has been
           !      averaged back to cell centers

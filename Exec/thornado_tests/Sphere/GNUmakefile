@@ -14,6 +14,8 @@ USE_OMP    = FALSE
 USE_HDF5   = TRUE
 HDF5_HOME  ?= /usr/local/Cellar/hdf5/1.10.4
 
+LAPACK_HOME ?= /Users/pmoesta/codes/ecp/lapack-release
+
 USE_THORNADO = TRUE
 
 DEFINES += -DMOMENT_CLOSURE_MAXIMUM_ENTROPY_CB
