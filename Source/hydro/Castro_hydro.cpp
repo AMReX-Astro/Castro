@@ -18,7 +18,7 @@ Castro::construct_hydro_source(Real time, Real dt)
   // this constructs the hydrodynamic source (essentially the flux
   // divergence) using the CTU framework for unsplit hydrodynamics
 
-  if (verbose && ParallelDescriptor::IOProcessor())
+  if (verbose && ParallelDescriptor::IOProcessor() && dt > 0.0)
     std::cout << "... Entering hydro advance" << std::endl << std::endl;
 
   hydro_source.setVal(0.0);
@@ -1055,7 +1055,7 @@ Castro::construct_hydro_source(Real time, Real dt)
                        BL_TO_FORTRAN_ANYD(rad_flux[idir]));
 #endif
 
-          if (limit_fluxes_on_small_dens == 1) {
+          if (limit_fluxes_on_small_dens == 1 && dt > 0.0) {
 #pragma gpu
               limit_hydro_fluxes_on_small_dens
                   (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
@@ -1133,112 +1133,121 @@ Castro::construct_hydro_source(Real time, Real dt)
       Array4<Real> pradial_fab = pradial.array();
 #endif
 
-      for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+      // Store the fluxes from this advance.
 
-        const Box& nbx = amrex::surroundingNodes(bx, idir);
+      // We don't want to do this for dt = 0, because then we're calling
+      // into here for an instantaneous source evaluation, as in the
+      // balanced splitting mode.
+
+      if (dt > 0.0) {
+
+          for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+
+              const Box& nbx = amrex::surroundingNodes(bx, idir);
 
 #pragma gpu
-        scale_flux(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+              scale_flux(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
 #if AMREX_SPACEDIM == 1
-                   BL_TO_FORTRAN_ANYD(qe[idir]),
+                         BL_TO_FORTRAN_ANYD(qe[idir]),
 #endif
-                   BL_TO_FORTRAN_ANYD(flux[idir]),
-                   BL_TO_FORTRAN_ANYD(area[idir][mfi]), dt);
+                         BL_TO_FORTRAN_ANYD(flux[idir]),
+                         BL_TO_FORTRAN_ANYD(area[idir][mfi]), dt);
 
 #ifdef RADIATION
 #pragma gpu
-        scale_rad_flux(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                       BL_TO_FORTRAN_ANYD(rad_flux[idir]),
-                       BL_TO_FORTRAN_ANYD(area[idir][mfi]), dt);
+              scale_rad_flux(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+                             BL_TO_FORTRAN_ANYD(rad_flux[idir]),
+                             BL_TO_FORTRAN_ANYD(area[idir][mfi]), dt);
 #endif
 
-        if (idir == 0) {
-            // get the scaled radial pressure -- we need to treat this specially
-            Array4<Real> const qex_fab = qe[idir].array();
-            const int prescomp = GDPRES;
+              if (idir == 0) {
+                  // get the scaled radial pressure -- we need to treat this specially
+                  Array4<Real> const qex_fab = qe[idir].array();
+                  const int prescomp = GDPRES;
 
 #if AMREX_SPACEDIM == 1
-            if (!Geometry::IsCartesian()) {
-                AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
-                {
-                    pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
-                });
-            }
+                  if (!Geometry::IsCartesian()) {
+                      AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
+                      {
+                          pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
+                      });
+                  }
 #endif
 
 #if AMREX_SPACEDIM == 2
-            if (!mom_flux_has_p[0][0]) {
-                AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
-                {
-                    pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
-                });
-            }
+                  if (!mom_flux_has_p[0][0]) {
+                      AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
+                      {
+                          pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
+                      });
+                  }
 #endif
-        }
+              }
 
-        // Store the fluxes from this advance.
+              // For normal integration we want to add the fluxes from this advance
+              // since we may be subcycling the timestep. But for SDC integration
+              // we want to copy the fluxes since we expect that there will not be
+              // subcycling and we only want the last iteration's fluxes.
 
-        // For normal integration we want to add the fluxes from this advance
-        // since we may be subcycling the timestep. But for SDC integration
-        // we want to copy the fluxes since we expect that there will not be
-        // subcycling and we only want the last iteration's fluxes.
+              Array4<Real> const flux_fab = (flux[idir]).array();
+              Array4<Real> fluxes_fab = (*fluxes[idir]).array(mfi);
+              const int numcomp = NUM_STATE;
 
-        Array4<Real> const flux_fab = (flux[idir]).array();
-        Array4<Real> fluxes_fab = (*fluxes[idir]).array(mfi);
-        const int numcomp = NUM_STATE;
-
-        AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), numcomp, i, j, k, n,
-        {
+              AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), numcomp, i, j, k, n,
+              {
 #ifndef SDC
-            fluxes_fab(i,j,k,n) += flux_fab(i,j,k,n);
+                  fluxes_fab(i,j,k,n) += flux_fab(i,j,k,n);
 #else
-            fluxes_fab(i,j,k,n) = flux_fab(i,j,k,n);
+                  fluxes_fab(i,j,k,n) = flux_fab(i,j,k,n);
 #endif
-        });
+              });
 
 #ifdef RADIATION
-        Array4<Real> const rad_flux_fab = (rad_flux[idir]).array();
-        Array4<Real> rad_fluxes_fab = (*rad_fluxes[idir]).array(mfi);
-        const int radcomp = Radiation::nGroups;
+              Array4<Real> const rad_flux_fab = (rad_flux[idir]).array();
+              Array4<Real> rad_fluxes_fab = (*rad_fluxes[idir]).array(mfi);
+              const int radcomp = Radiation::nGroups;
 
-        AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), radcomp, i, j, k, n,
-        {
+              AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), radcomp, i, j, k, n,
+              {
 #ifndef SDC
-            rad_fluxes_fab(i,j,k,n) += rad_flux_fab(i,j,k,n);
+                  rad_fluxes_fab(i,j,k,n) += rad_flux_fab(i,j,k,n);
 #else
-            rad_fluxes_fab(i,j,k,n) = rad_flux_fab(i,j,k,n);
+                  rad_fluxes_fab(i,j,k,n) = rad_flux_fab(i,j,k,n);
 #endif
-        });
+              });
 #endif
 
-        Array4<Real> mass_fluxes_fab = (*mass_fluxes[idir]).array(mfi);
-        const int dens_comp = Density;
+              Array4<Real> mass_fluxes_fab = (*mass_fluxes[idir]).array(mfi);
+              const int dens_comp = Density;
 
-        AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), 1, i, j, k, n,
-        {
-            mass_fluxes_fab(i,j,k,0) = flux_fab(i,j,k,dens_comp);
-        });
+              AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), 1, i, j, k, n,
+              {
+                  mass_fluxes_fab(i,j,k,0) = flux_fab(i,j,k,dens_comp);
+              });
 
-      } // idir loop
+          } // idir loop
 
 #if AMREX_SPACEDIM <= 2
-      if (!Geometry::IsCartesian()) {
 
-          Array4<Real> P_radial_fab = P_radial.array(mfi);
+          if (!Geometry::IsCartesian()) {
 
-          AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
-          {
+              Array4<Real> P_radial_fab = P_radial.array(mfi);
+
+              AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
+              {
 #ifndef SDC
-              P_radial_fab(i,j,k,0) += pradial_fab(i,j,k,0);
+                  P_radial_fab(i,j,k,0) += pradial_fab(i,j,k,0);
 #else
-              P_radial_fab(i,j,k,0) = pradial_fab(i,j,k,0);
+                  P_radial_fab(i,j,k,0) = pradial_fab(i,j,k,0);
 #endif
-          });
+              });
 
-      }
+          }
+
+      } // dt > 0
 #endif
 
-      if (track_grid_losses == 1) {
+      if (track_grid_losses == 1 && dt > 0.0) {
 
 #pragma gpu
           ca_track_grid_losses(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
@@ -1292,7 +1301,7 @@ Castro::construct_hydro_source(Real time, Real dt)
   if (verbose)
     flush_output();
 
-  if (track_grid_losses)
+  if (track_grid_losses && dt > 0.0)
     {
       material_lost_through_boundary_temp[0] += mass_lost;
       material_lost_through_boundary_temp[1] += xmom_lost;
@@ -1304,7 +1313,7 @@ Castro::construct_hydro_source(Real time, Real dt)
       material_lost_through_boundary_temp[7] += zang_lost;
     }
 
-  if (print_update_diagnostics)
+  if (print_update_diagnostics && dt > 0.0)
     {
 
       bool local = true;
@@ -1326,7 +1335,7 @@ Castro::construct_hydro_source(Real time, Real dt)
     }
 #endif
 
-  if (verbose && ParallelDescriptor::IOProcessor())
+  if (verbose && ParallelDescriptor::IOProcessor() && dt > 0.0)
     std::cout << "... Leaving hydro advance" << std::endl << std::endl;
 
   if (verbose > 0)
