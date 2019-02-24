@@ -1,5 +1,8 @@
 # changes since the last release
 
+  -- Fix a bug where the self_heat parameter was not being initialized
+     for the burning timestep limiter (#521).
+
   -- By default, we no longer allocation storage for source terms to
      species in the primitive variable state.  This is set via the
      _variables file, parsed by set_variables.py.  To allow for
