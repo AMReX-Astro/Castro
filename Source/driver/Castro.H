@@ -1182,14 +1182,6 @@ public:
 /// @param State    State MultiFab
 ///
     bool valid_zones_to_burn(amrex::MultiFab& State);
-
-///
-/// Get an instantaneous evaluation of the reactions source.
-///
-/// @param state    State MultiFab
-/// @param rhs      Reactions source MultiFab
-///
-    void react_rhs(amrex::MultiFab& state, amrex::MultiFab& rhs);
 #endif
 
 #ifdef ROTATION
