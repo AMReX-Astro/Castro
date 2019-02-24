@@ -576,7 +576,7 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
 #endif
      QRHO_in, &
      QU_in, QV_in, QW_in, &
-     QGAME_in, QPRES_in, QREINT_in, &
+     QGAME_in, QGC_in, QPRES_in, QREINT_in, &
      QTEMP_in, &
      QFA_in, QFS_in, QFX_in, &
 #ifdef RADIATION
@@ -611,7 +611,7 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
 #endif
   integer, intent(in) :: QRHO_in
   integer, intent(in) :: QU_in, QV_in, QW_in
-  integer, intent(in) :: QGAME_in, QPRES_in, QREINT_in
+  integer, intent(in) :: QGAME_in, QGC_in, QPRES_in, QREINT_in
   integer, intent(in) :: QTEMP_in
   integer, intent(in) :: QFA_in, QFS_in, QFX_in
 #ifdef HYBRID_MOMENTUM
@@ -662,7 +662,7 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
 #endif
        QRHO_in, &
        QU_in, QV_in, QW_in, &
-       QGAME_in, QPRES_in, QREINT_in, &
+       QGAME_in, QGC_in, QPRES_in, QREINT_in, &
        QTEMP_in, &
        QFA_in, QFS_in, QFX_in)
 
@@ -769,7 +769,7 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   !$acc update &
   !$acc device(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX) &
   !$acc device(USHK) &
-  !$acc device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME) &
+  !$acc device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME, QGC) &
   !$acc device(QFA, QFS, QFX) &
   !$acc device(NQAUX, NQSRC, QGAMC, QC, QDPDR, QDPDE) &
 #ifdef RADIATION

@@ -29,6 +29,7 @@
    y-velocity             QV           QV        NQSRC                                   1                 None
    z-velocity             QW           QW        NQSRC                                   1                 None
    gamma_e                QGAME        QGAME     NQSRC                                   1                 None
+   gamma_c                QGC          QGC       NQSRC                                   1                 None
    pressure               QPRES        QPRES     NQSRC                                   1                 None
    rho-e                  QREINT       QREINT    NQSRC                                   1                 None
    B-x                    QMAGX        QMAGX     NQSRC                                   1                 MHD

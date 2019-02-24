@@ -77,6 +77,7 @@ int          Castro::QU = -1;
 int          Castro::QV = -1;
 int          Castro::QW = -1;
 int          Castro::QGAME = -1;
+int          Castro::QGC = -1;
 int          Castro::QPRES = -1;
 int          Castro::QREINT = -1;
 int          Castro::QTEMP = -1;
@@ -133,6 +134,8 @@ Vector< Vector<Real> > Castro::a_mol;
 Vector<Real> Castro::b_mol;
 Vector<Real> Castro::c_mol;
 
+int          Castro::SDC_NODES;
+Vector<Real> Castro::dt_sdc;
 
 #include <castro_defaults.H>
 
@@ -186,6 +189,7 @@ Real         Castro::previousCPUTimeUsed = 0.0;
 Real         Castro::startCPUTime = 0.0;
 
 int          Castro::Knapsack_Weight_Type = -1;
+int          Castro::SDC_Source_Type = -1;
 int          Castro::num_state_type = 0;
 
 // Castro::variableSetUp is in Castro_setup.cpp
@@ -2566,6 +2570,7 @@ Castro::reflux(int crse_level, int fine_level)
 
                 int is_new=1;
                 getLevel(lev).apply_source_to_state(is_new, S_new, source, -dt_advance);
+
             }
 
             // Temporarily restore the last iteration's old data for the purposes of recalculating the corrector.
@@ -3192,8 +3197,180 @@ Castro::reset_internal_energy(MultiFab& S_new)
 }
 
 void
+Castro::computeTemp(int is_new, int ng)
+{
+
+  // this is the "preferred" computeTemp interface -- it will work
+  // directly on StateData.  is_new=0 means the old data is used,
+  // is_new=1 means the new data is used.
+
+  MultiFab& State = is_new == 1 ? get_new_data(State_Type) : get_old_data(State_Type);
+
+#ifdef RADIATION
+  FArrayBox temp;
+#endif
+
+  Real time = 0.0;
+
+  if (is_new == 0) {
+    time = state[State_Type].prevTime();
+  } else {
+    time = state[State_Type].curTime();
+  }
+
+  MultiFab Stemp;
+
+  // for 4th order, the only variables that may change here are Temp
+  // and Eint.  To ensure that we don't modify values unless there is
+  // a reset for Eint, we want to store the Laplacian that we use for
+  // the cell-average -> cell-center conversion so we can use the same
+  // Laplacian to convert back, resulting only in roundoff changes if
+  // Eint is not modified.  We have to store it here, since we
+  // overwrite the grown state as we work.
+  MultiFab Eint_lap;
+
+  if (fourth_order) {
+
+    // we need to make the data live at cell-centers first
+
+    // fill Stemp with S_new.  Note, expand_state can call
+    // clean_state, which in turn calls computeTemp, and we'd be
+    // circular, so we ensure that we skip the clean state by passing
+    // -1 in for the "iclean" flag.
+
+    // we only need 2 ghost cells here, then the make_cell_center
+    // makes 1 ghost cell a valid center, we compute its temp, and
+    // then the final average results only in interior temps valid
+    Stemp.define(State.boxArray(), State.DistributionMap(), NUM_STATE, 2);
+    expand_state(Stemp, time, -1, Stemp.nGrow());
+
+    // store the Laplacian term for the internal energy
+    Eint_lap.define(State.boxArray(), State.DistributionMap(), 1, 0);
+
+    // convert to cell centers -- this will result in Stemp being
+    // cell centered only on 1 ghost cells
+    for (MFIter mfi(Stemp); mfi.isValid(); ++mfi) {
+      const Box& bx = mfi.growntilebox(1);
+      const Box& bx0 = mfi.tilebox();
+      const int idx = mfi.tileIndex();
+
+      ca_compute_lap_term(BL_TO_FORTRAN_BOX(bx0),
+                          BL_TO_FORTRAN_FAB(Stemp[mfi]),
+                          BL_TO_FORTRAN_ANYD(Eint_lap[mfi]), &Eint);
+
+      ca_make_cell_center_in_place(BL_TO_FORTRAN_BOX(bx),
+                                   BL_TO_FORTRAN_FAB(Stemp[mfi]));
+
+    }
+
+  }
+
+  if (fourth_order) {
+    reset_internal_energy(Stemp);
+  } else {
+    reset_internal_energy(State);
+  }
+
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(State,true); mfi.isValid(); ++mfi)
+    {
+
+      int num_ghost = ng;
+      if (fourth_order) {
+        // only one ghost cell is at cell-centers
+        num_ghost = 1;
+      }
+
+      const Box& bx = mfi.growntilebox(num_ghost);
+
+#ifdef RADIATION
+      if (Radiation::do_real_eos == 0) {
+	temp.resize(bx);
+	temp.copy(State[mfi],bx,Eint,bx,0,1);
+
+	ca_compute_temp_given_cv
+	  (bx.loVect(), bx.hiVect(),
+	   BL_TO_FORTRAN(temp),
+	   BL_TO_FORTRAN(State[mfi]),
+	   &Radiation::const_c_v, &Radiation::c_v_exp_m, &Radiation::c_v_exp_n);
+
+	State[mfi].copy(temp,bx,0,bx,Temp,1);
+      } else {
+#endif
+
+        // general EOS version
+
+        if (fourth_order) {
+          // note, this is working on a growntilebox, but we will not have
+          // valid cell-centers in the very last ghost cell
+          ca_compute_temp(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+                          BL_TO_FORTRAN_ANYD(Stemp[mfi]));
+        } else {
+#pragma gpu
+          ca_compute_temp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                          BL_TO_FORTRAN_ANYD(State[mfi]));
+        }
+
+#ifdef RADIATION
+      }
+#endif
+    }
+
+  if (fourth_order) {
+
+    // we need to copy back from Stemp into S_new, making it
+    // cell-average in the process.  For temperature, we will
+    // construct the Laplacian from the new state and use for the
+    // correction, since the temperature was just updated.  For the
+    // internal energy, most zones will not have been reset, so we
+    // don't want to modify them from what they were before, therefore
+    // we use the stored Laplacian computed above to convert back to
+    // cell-averages -- this is 4th-order and will be a no-op for
+    // those zones where e wasn't changed.
+
+    for (MFIter mfi(Stemp); mfi.isValid(); ++mfi) {
+
+      const Box& bx = mfi.tilebox();
+      const int idx = mfi.tileIndex();
+
+      // only temperature
+      ca_make_fourth_in_place_n(BL_TO_FORTRAN_BOX(bx),
+                                BL_TO_FORTRAN_FAB(Stemp[mfi]), &Temp);
+
+    }
+
+    // correct UEINT
+    MultiFab::Add(Stemp, Eint_lap, 0, Eint, 1, 0);
+
+    // copy back UTEMP and UEINT -- those are the only things that
+    // should have changed.
+    MultiFab::Copy(State, Stemp, Temp, Temp, 1, 0);
+    MultiFab::Copy(State, Stemp, Eint, Eint, 1, 0);
+
+    // now that we redid these, redo the ghost fill -- technically,
+    // only need this for UTEMP and UEINT, and only if ng > 0
+    if (ng > 0) {
+      AmrLevel::FillPatch(*this, State, State.nGrow(), time, State_Type, 0, NUM_STATE);
+    }
+
+    Stemp.clear();
+  }
+
+}
+
+
+void
 Castro::computeTemp(MultiFab& State, int ng)
 {
+
+  // this is the old version of computeTemp that works for an
+  // arbitrary MF.  This will not work for 4th order hydr
+  if (fourth_order) {
+    amrex::Error("this version of computeTemp does not work for 4th order -- you shouldn't have gotten here");
+  }
 
   BL_PROFILE("Castro::computeTemp()");
 
@@ -3232,7 +3409,6 @@ Castro::computeTemp(MultiFab& State, int ng)
 #endif
     }
 }
-
 
 
 void
@@ -3296,6 +3472,11 @@ Castro::swap_state_time_levels(const Real dt)
 #endif
 #endif
 
+#ifdef REACTIONS
+        if (time_integration_method == SpectralDeferredCorrections &&
+            fourth_order == 1 && k == SDC_Source_Type)
+            state[k].swapTimeLevels(0.0);
+#endif
         state[k].allocOldData();
 
         state[k].swapTimeLevels(dt);
@@ -3689,7 +3870,6 @@ Castro::clean_state(MultiFab& state) {
 
     MultiFab::Copy(temp_state, state, 0, 0, state.nComp(), state.nGrow());
 
-
 #ifndef AMREX_USE_CUDA
     Real frac_change = enforce_min_density(temp_state, state, state.nGrow());
 #else
@@ -3725,7 +3905,6 @@ Castro::clean_state(int is_new, int ng) {
   // directly on the StateData.  is_new=0 means the old data is used,
   // is_new=1 means the new data is used.
 
-
   MultiFab& state = is_new == 1 ? get_new_data(State_Type) : get_old_data(State_Type);
 
   MultiFab temp_state(state.boxArray(), state.DistributionMap(), state.nComp(), ng);
@@ -3733,6 +3912,8 @@ Castro::clean_state(int is_new, int ng) {
   MultiFab::Copy(temp_state, state, 0, 0, state.nComp(), ng);
 
   Real frac_change = clean_state(is_new, temp_state, ng);
+
+  temp_state.clear();
 
   return frac_change;
 
@@ -3750,9 +3931,8 @@ Castro::clean_state(int is_new, MultiFab& state_old, int ng) {
 #ifndef AMREX_USE_CUDA
     Real frac_change = enforce_min_density(state_old, state, ng);
 #else
-    Real frac_change = 1.e200;
+  Real frac_change = 1.e200;
 #endif
-
 
   // Ensure all species are normalized.
   normalize_species(state, ng);
@@ -3764,7 +3944,7 @@ Castro::clean_state(int is_new, MultiFab& state_old, int ng) {
 
   // Compute the temperature (note that this will also reset
   // the internal energy for consistency with the total energy).
-  computeTemp(state, ng);
+  computeTemp(is_new, ng);
 
   return frac_change;
 

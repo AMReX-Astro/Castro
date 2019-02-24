@@ -1,5 +1,12 @@
 # changes since the last release
 
+  -- The 4th order hydro was extended to support general equations
+     of state (it is still single level only).  Artificial viscosity
+     was also added.
+
+  -- A framework for a new spectral deferred corrections method
+     was added.  This will allow for higher-order time integration.
+
   -- Fix a bug where the self_heat parameter was not being initialized
      for the burning timestep limiter (#521).
 

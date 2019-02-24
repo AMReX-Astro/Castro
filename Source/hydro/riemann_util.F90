@@ -475,7 +475,7 @@ contains
                             lambda, l_lo, l_hi, &
                             rF, rF_lo, rF_hi, &
 #endif
-                            idir)
+                            idir, enforce_eos)
 
     use prob_params_module, only : mom_flux_has_p
     use meth_params_module, only : NQ, NVAR, NQAUX, &
@@ -486,7 +486,7 @@ contains
 #endif
                                    QRHO, QU, QV, QW, &
                                    QPRES, QGAME, QREINT, &
-                                   QC, QGAMC, &
+                                   QC, QGAMC, QFS, &
 #ifdef HYBRID_MOMENTUM
                                    NGDNV, GDPRES, GDGAME, &
                                    GDRHO, GDU, GDV, GDW, &
@@ -503,6 +503,9 @@ contains
 #ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only : compute_hybrid_flux
 #endif
+    use eos_type_module, only : eos_t, eos_input_rp
+    use eos_module, only : eos
+    use network, only : nspec
 
     integer, intent(in) :: idir
     integer, intent(in) :: q_lo(3), q_hi(3)
@@ -518,11 +521,12 @@ contains
     real(rt), intent(in) :: lambda(l_lo(1):l_hi(1), l_lo(2):l_hi(2), l_lo(3):l_hi(3), 0:ngroups-1)
     real(rt), intent(out) :: rF(rF_lo(1):rF_hi(1), rF_lo(2):rF_hi(2), rF_lo(3):rF_hi(3), 0:ngroups-1)
 #endif
+    logical, intent(in), optional :: enforce_eos
     integer, intent(in) :: lo(3), hi(3)
 
     integer :: iu, iv1, iv2, im1, im2, im3
     integer :: g, n, ipassive, nqp
-    real(rt) :: u_adv, rhoetot
+    real(rt) :: u_adv, rhoetot, rhoeint
     real(rt) :: eddf, f1
     integer :: i, j, k
 
@@ -530,7 +534,17 @@ contains
     real(rt) :: F_zone(NVAR), qgdnv_zone(NGDNV)
 #endif
 
+    logical :: do_eos
+    type(eos_t) :: eos_state
+
     !$gpu
+
+    if (present(enforce_eos)) then
+       do_eos = enforce_eos
+    else
+       do_eos = .false.
+    endif
+
 
     if (idir == 1) then
        iu = QU
@@ -561,6 +575,19 @@ contains
 
              u_adv = qint(i,j,k,iu)
 
+             ! if we are enforcing the EOS, then take rho, p, and X, and
+             ! compute rhoe
+             if (do_eos) then
+                eos_state % rho = qint(i,j,k,QRHO)
+                eos_state % p = qint(i,j,k,QPRES)
+                eos_state % xn(:) = qint(i,j,k,QFS:QFS-1+nspec)
+                eos_state % T = 100.0  ! initial guess
+                call eos(eos_input_rp, eos_state)
+                rhoeint = qint(i,j,k,QRHO) * eos_state % e
+             else
+                rhoeint = qint(i,j,k,QREINT)
+             endif
+
              ! Compute fluxes, order as conserved state (not q)
              F(i,j,k,URHO) = qint(i,j,k,QRHO)*u_adv
 
@@ -571,13 +598,13 @@ contains
              F(i,j,k,im2) = F(i,j,k,URHO)*qint(i,j,k,iv1)
              F(i,j,k,im3) = F(i,j,k,URHO)*qint(i,j,k,iv2)
 
-             rhoetot = qint(i,j,k,QREINT) + &
+             rhoetot = rhoeint + &
                   HALF*qint(i,j,k,QRHO)*(qint(i,j,k,iu)**2 + &
                   qint(i,j,k,iv1)**2 + &
                   qint(i,j,k,iv2)**2)
 
              F(i,j,k,UEDEN) = u_adv*(rhoetot + qint(i,j,k,QPRES))
-             F(i,j,k,UEINT) = u_adv*qint(i,j,k,QREINT)
+             F(i,j,k,UEINT) = u_adv*rhoeint
 
              F(i,j,k,UTEMP) = ZERO
 #ifdef SHOCK_VAR

@@ -83,7 +83,7 @@ extern "C"
 #endif
      const int& QRHO_in,
      const int& QU_in, const int& QV_in, const int& QW_in,
-     const int& QGAME_in, const int& QPRES_in, const int& QREINT_in,
+     const int& QGAME_in, const int& QGC_in, const int& QPRES_in, const int& QREINT_in,
      const int& QTEMP_in,
      const int& QFA_in, const int& QFS_in, const int& QFX_in,
 #ifdef RADIATION
@@ -956,14 +956,28 @@ extern "C"
 
   void ca_make_fourth_average(const int lo[], const int hi[],
                               BL_FORT_FAB_ARG_3D(q), const int* nc,
-                              BL_FORT_FAB_ARG_3D(q_bar), const int* nc_bar);
+                              const BL_FORT_FAB_ARG_3D(q_bar), const int* nc_bar);
+
+  void ca_make_fourth_average_n(const int lo[], const int hi[],
+                                BL_FORT_FAB_ARG_3D(q), const int* nc,
+                                const BL_FORT_FAB_ARG_3D(q_bar), const int* nc_bar, const int* ncomp);
 
   void ca_make_fourth_in_place(const int lo[], const int hi[],
                                BL_FORT_FAB_ARG_3D(q), const int* nc);
 
+  void ca_make_fourth_in_place_n(const int lo[], const int hi[],
+                                 BL_FORT_FAB_ARG_3D(q), const int* nc, const int* ncomp);
+
+  void ca_compute_lap_term(const int lo[], const int hi[],
+                           const BL_FORT_FAB_ARG_3D(U), const int* nc,
+                           BL_FORT_FAB_ARG_ANYD(lap), const int* ncomp);
+
   void ca_make_cell_center(const int lo[], const int hi[],
                            const BL_FORT_FAB_ARG_3D(U), const int* nc,
                            BL_FORT_FAB_ARG_3D(U_cc), const int* nc_cc);
+
+  void ca_make_cell_center_in_place(const int lo[], const int hi[],
+                                    BL_FORT_FAB_ARG_3D(q), const int* nc);
 
   void ca_mol_single_stage
     (const int    lo[], const int    hi[],
@@ -1024,6 +1038,81 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(volume),
      const int&  verbose);
 
+
+  void ca_sdc_update_advection_o2
+    (const int lo[], const int hi[],
+     const amrex::Real* time,
+     const BL_FORT_FAB_ARG_3D(k_m),
+     BL_FORT_FAB_ARG_3D(k_n),
+     BL_FORT_FAB_ARG_3D(A_m),
+     BL_FORT_FAB_ARG_3D(A_0_old),
+     BL_FORT_FAB_ARG_3D(A_1_old),
+     const int* m_start);
+
+  void ca_sdc_update_advection_o4
+    (const int lo[], const int hi[],
+     const amrex::Real* time,
+     const BL_FORT_FAB_ARG_3D(k_m),
+     BL_FORT_FAB_ARG_3D(k_n),
+     BL_FORT_FAB_ARG_3D(A_m),
+     BL_FORT_FAB_ARG_3D(A_0_old),
+     BL_FORT_FAB_ARG_3D(A_1_old),
+     BL_FORT_FAB_ARG_3D(A_2_old),
+     const int* m_start);
+
+#ifdef REACTIONS
+  void ca_sdc_update_o2
+    (const int lo[], const int hi[],
+     const amrex::Real* time,
+     const BL_FORT_FAB_ARG_3D(k_m),
+     BL_FORT_FAB_ARG_3D(k_n),
+     BL_FORT_FAB_ARG_3D(A_m),
+     BL_FORT_FAB_ARG_3D(A_0_old),
+     BL_FORT_FAB_ARG_3D(A_1_old),
+     BL_FORT_FAB_ARG_3D(R_0_old),
+     BL_FORT_FAB_ARG_3D(R_1_old),
+     const int* sdc_iteration,
+     const int* m_start);
+
+  void ca_sdc_update_centers_o4
+    (const int lo[], const int hi[],
+     const amrex::Real* time,
+     const BL_FORT_FAB_ARG_3D(U_center),
+     BL_FORT_FAB_ARG_3D(U_new_center),
+     const BL_FORT_FAB_ARG_3D(C_center),
+     const int* sdc_iteration);
+
+  void ca_sdc_conservative_update
+    (const int lo[], const int hi[],
+     const amrex::Real* time,
+     const BL_FORT_FAB_ARG_3D(U_old),
+     BL_FORT_FAB_ARG_3D(U_new),
+     const BL_FORT_FAB_ARG_3D(C),
+     const BL_FORT_FAB_ARG_3D(R_new));
+
+  void ca_sdc_compute_C4(const int lo[], const int hi[],
+                         const BL_FORT_FAB_ARG_3D(A_m),
+                         const BL_FORT_FAB_ARG_3D(A_0),
+                         const BL_FORT_FAB_ARG_3D(A_1),
+                         const BL_FORT_FAB_ARG_3D(A_2),
+                         const BL_FORT_FAB_ARG_3D(R_0),
+                         const BL_FORT_FAB_ARG_3D(R_1),
+                         const BL_FORT_FAB_ARG_3D(R_2),
+                         BL_FORT_FAB_ARG_3D(C),
+                         const int* m_start);
+
+  void ca_instantaneous_react
+    (const int lo[], const int hi[],
+     const BL_FORT_FAB_ARG_3D(state),
+     BL_FORT_FAB_ARG_3D(R));
+
+  void ca_store_reaction_state
+    (const int lo[], const int hi[],
+     const BL_FORT_FAB_ARG_3D(R_old),
+     const BL_FORT_FAB_ARG_3D(state),
+     BL_FORT_FAB_ARG_3D(R_new));
+
+#endif
 
 #ifdef RADIATION
   void ca_inelastic_sct

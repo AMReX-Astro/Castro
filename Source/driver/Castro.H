@@ -405,6 +405,12 @@ public:
                      int  amr_iteration,
                      int  amr_ncycle);
 
+    amrex::Real do_advance_sdc (amrex::Real time,
+                     amrex::Real dt,
+                     int  amr_iteration,
+                     int  amr_ncycle);
+
+
 ///
 /// Should we retry advancing the simulation? By default, we
 /// don't do a retry unless the criteria are violated.
@@ -542,16 +548,19 @@ public:
     void construct_hydro_source(amrex::Real time, amrex::Real dt);
 
 
+
+
+
 ///
 /// this constructs the hydrodynamic source (essentially the flux
-/// divergence) using method of lines integration.  The output, as a
-/// update to the state, is stored in the ``k_mol`` array of multifabs.
+/// divergence) using method of lines integration.  The output, is the
+/// divergence of the fluxes, A = -div{F(U)}
 ///
 /// @param time     current time
-/// @param dt       timestep
+/// @param dt   timestep
+/// @param A_update   divergence of the fluxes
 ///
-    void construct_mol_hydro_source(amrex::Real time, amrex::Real dt);
-
+    void construct_mol_hydro_source(amrex::Real time, amrex::Real dt, amrex::MultiFab& A_update);
 
 ///
 /// Check for NaNs in the given MultiFab
@@ -1240,13 +1249,24 @@ public:
     void reset_internal_energy (amrex::MultiFab& State);
 
 
+
 ///
 /// Compute the current temperature
 ///
-/// @param State    Current state
+/// @param is_new   do we use the old or new StateData?
+/// @param ng number of ghost cells
+///
+    void computeTemp (int is_new, int ng);
+
+
+///
+/// Compute the current temperature
+///
+/// @param state    the state to operate on
 /// @param ng       number of ghost cells
 ///
-    void computeTemp (amrex::MultiFab& State, int ng);
+    void computeTemp(amrex::MultiFab& state, int ng);
+
 
 ///
 /// Optionally predict the source terms to ``t + dt/2``,
@@ -1662,6 +1682,12 @@ public:
     void advance_aux(amrex::Real time, amrex::Real dt);
 #endif
 
+    void do_sdc_update(int m1, int m2, amrex::Real dt);
+
+#ifdef REACTIONS
+    void construct_old_react_source(amrex::MultiFab& U_state, amrex::MultiFab& R_source);
+#endif
+
 #ifdef AMREX_PARTICLES
     static amrex::AmrTracerParticleContainer* theTracerPC () { return TracerPC; }
 #endif
@@ -1683,7 +1709,7 @@ public:
 
     /// primitive variable index keys
     static int       QRHO, QU, QV, QW;
-    static int       QGAME, QPRES, QREINT, QTEMP;
+    static int       QGAME, QGC, QPRES, QREINT, QTEMP;
     static int       QFA, QFS, QFX;
 #ifdef MHD
     static int       QMAGX, QMAGY, QMAGZ;
@@ -1791,6 +1817,7 @@ protected:
     amrex::MultiFab qaux;
     amrex::MultiFab qaux_bar;
 
+
 ///
 /// The source terms in primitive form.
 ///
@@ -1897,6 +1924,30 @@ protected:
     static amrex::Vector< amrex::Vector<amrex::Real> > a_mol;
     static amrex::Vector<amrex::Real> b_mol;
     static amrex::Vector<amrex::Real> c_mol;
+
+
+    //
+    // Storage for the SDC time integration
+
+    // this is the new iterations solution at the time nodes
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > k_new;
+
+    // this is the old value of the advective update at the
+    // nodes of the time integration
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > A_old;
+
+    // this is the new value of the advective update at the
+    // nodes of the time integration
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > A_new;
+
+    // this is the old value of the reaction source at the
+    // nodes of the time integration
+#ifdef REACTIONS
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > R_old;
+#endif
+
+    static int SDC_NODES;
+    static amrex::Vector<amrex::Real> dt_sdc;
 
 
 ///
@@ -2180,6 +2231,7 @@ protected:
     static amrex::IntVect no_tile_size;
 
     static int Knapsack_Weight_Type;
+    static int SDC_Source_Type;
     static int num_state_type;
 
 
@@ -2199,6 +2251,7 @@ protected:
 /// sdc
 ///
     int sdc_iteration;
+    int current_sdc_node;
 
 
 ///

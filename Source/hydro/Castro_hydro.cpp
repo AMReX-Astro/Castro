@@ -1351,23 +1351,31 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 
 void
-Castro::construct_mol_hydro_source(Real time, Real dt)
+Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 {
 
   BL_PROFILE("Castro::construct_mol_hydro_source()");
 
   // this constructs the hydrodynamic source (essentially the flux
   // divergence) using method of lines integration.  The output, as a
-  // update to the state, is stored in the k_mol array of multifabs.
+
+  // update to the state, is stored in the multifab A_update, which is
+  // passed in
 
   const Real strt_time = ParallelDescriptor::second();
 
-  if (verbose && ParallelDescriptor::IOProcessor())
-    std::cout << "... hydro MOL stage " << mol_iteration << std::endl;
-
+  if (verbose && ParallelDescriptor::IOProcessor()) {
+    if (time_integration_method == MethodOfLines) {
+      std::cout << "... hydro MOL stage " << mol_iteration << std::endl;
+    } else if (time_integration_method == SpectralDeferredCorrections) {
+      std::cout << "... SDC iteration: " << sdc_iteration << "; current node: " << current_sdc_node << std::endl;
+    }
+  }
 
   // we'll add each stage's contribution to -div{F(U)} as we compute them
-  if (mol_iteration == 0) {
+  // (I don't think we need hydro_source anymore)
+  if ((time_integration_method == MethodOfLines && mol_iteration == 0) ||
+      (time_integration_method == SpectralDeferredCorrections && current_sdc_node == 0)) {
     hydro_source.setVal(0.0);
   }
 
@@ -1376,7 +1384,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
   MultiFab& S_new = get_new_data(State_Type);
 
-  MultiFab& k_stage = *k_mol[mol_iteration];
+  //MultiFab& k_stage = *k_mol[mol_iteration];
 
 #ifdef RADIATION
   MultiFab& Er_new = get_new_data(Rad_Type);
@@ -1427,7 +1435,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	FArrayBox &source_in  = sources_for_hydro[mfi];
 
 	// the output of this will be stored in the correct stage MF
-	FArrayBox &source_out = k_stage[mfi];
+	FArrayBox &source_out = A_update[mfi];
 	FArrayBox &source_hydro_only = hydro_source[mfi];
 
 #ifdef RADIATION
@@ -1436,7 +1444,15 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	FArrayBox &Erout = Er_new[mfi];
 #endif
 
-	// All cate fabs for fluxes
+	FArrayBox& vol = volume[mfi];
+
+        Real stage_weight = 1.0;
+
+        if (time_integration_method == MethodOfLines) {
+          stage_weight = b_mol[mol_iteration];
+        }
+
+	// Allocate fabs for fluxes
 	for (int i = 0; i < AMREX_SPACEDIM ; i++)  {
 	  const Box& bxtmp = amrex::surroundingNodes(bx,i);
 	  flux[i].resize(bxtmp,NUM_STATE);
@@ -1453,8 +1469,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
         if (fourth_order) {
           ca_fourth_single_stage
             (ARLIM_3D(lo), ARLIM_3D(hi), &time, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
-             &(b_mol[mol_iteration]),
-             BL_TO_FORTRAN_ANYD(statein),
+             &stage_weight,
+             BL_TO_FORTRAN_ANYD(statein), 
              BL_TO_FORTRAN_ANYD(stateout),
              BL_TO_FORTRAN_ANYD(q[mfi]),
              BL_TO_FORTRAN_ANYD(q_bar[mfi]),
@@ -1480,8 +1496,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
         } else {
           ca_mol_single_stage
             (ARLIM_3D(lo), ARLIM_3D(hi), &time, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
-             &(b_mol[mol_iteration]),
-             BL_TO_FORTRAN_ANYD(statein),
+             &stage_weight,
+             BL_TO_FORTRAN_ANYD(statein), 
              BL_TO_FORTRAN_ANYD(stateout),
              BL_TO_FORTRAN_ANYD(q[mfi]),
              BL_TO_FORTRAN_ANYD(qaux[mfi]),
@@ -1506,17 +1522,17 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	// Store the fluxes from this advance -- we weight them by the
 	// integrator weight for this stage
 	for (int i = 0; i < AMREX_SPACEDIM ; i++) {
-	  (*fluxes    [i])[mfi].saxpy(b_mol[mol_iteration], flux[i],
-				      mfi.nodaltilebox(i), mfi.nodaltilebox(i), 0, 0, NUM_STATE);
+	  (*fluxes[i])[mfi].saxpy(stage_weight, flux[i], 
+                                  mfi.nodaltilebox(i), mfi.nodaltilebox(i), 0, 0, NUM_STATE);
 #ifdef RADIATION
-	  (*rad_fluxes[i])[mfi].saxpy(b_mol[mol_iteration], rad_flux[i],
+	  (*rad_fluxes[i])[mfi].saxpy(stage_weight, rad_flux[i], 
 				      mfi.nodaltilebox(i), mfi.nodaltilebox(i), 0, 0, Radiation::nGroups);
 #endif
 	}
 
 #if (AMREX_SPACEDIM <= 2)
 	if (!Geometry::IsCartesian()) {
-	  P_radial[mfi].saxpy(b_mol[mol_iteration], pradial,
+	  P_radial[mfi].saxpy(stage_weight, pradial,
                               mfi.nodaltilebox(0), mfi.nodaltilebox(0), 0, 0, 1);
 	}
 #endif
@@ -1740,7 +1756,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
     {
 
       bool local = true;
-      Vector<Real> hydro_update = evaluate_source_change(k_stage, dt, local);
+      Vector<Real> hydro_update = evaluate_source_change(A_update, dt, local);
 
 #ifdef BL_LAZY
       Lazy::QueueReduction( [=] () mutable {
@@ -1929,7 +1945,6 @@ Castro::cons_to_prim_fourth(const Real time)
 
     }
 
-    check_for_nan(q_bar);
 #endif // RADIATION
 }
 #endif
