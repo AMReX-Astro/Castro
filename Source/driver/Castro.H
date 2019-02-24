@@ -44,9 +44,7 @@ enum StateType { State_Type = 0,
 		 SDC_React_Type,
 #endif
 #endif
-#ifdef REACTIONS
-                 Balance_Type,
-#endif
+                 Balance_Type
 };
 
 // Create storage for all source terms.

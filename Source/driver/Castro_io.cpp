@@ -164,13 +164,11 @@ Castro::restart (Amr&     papa,
 #endif
 #endif
 
-#ifdef REACTIONS
     if (input_version < 7) { // old checkpoint without Balance_Type
         if (rebalanced_splitting) {
             state[Balance_Type].restart(desc_lst[Balance_Type], state[State_Type]);
         }
     }
-#endif
 
     // For versions < 2, we didn't store all three components
     // of the momenta in the checkpoint when doing 1D or 2D simulations.
@@ -522,14 +520,12 @@ Castro::set_state_in_checkpoint (Vector<int>& state_in_checkpoint)
     }
 #endif
 #endif
-#ifdef REACTIONS
     if (input_version < 7 && i == Balance_Type) {
       if (rebalanced_splitting) {
           // We are reading an old checkpoint with no Balance_Type
           state_in_checkpoint[i] = 0;
       }
     }
-#endif
   }
 }
 
@@ -683,12 +679,10 @@ Castro::setPlotVariables ()
 
   // Same for Balance_Type.
 
-#ifdef REACTIONS
   if (rebalanced_splitting) {
       for (int i = 0; i < desc_lst[Balance_Type].nComp(); i++)
           parent->deleteStatePlotVar(desc_lst[Balance_Type].name(i));
   }
-#endif
 
   ParmParse pp("castro");
 

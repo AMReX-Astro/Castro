@@ -657,7 +657,6 @@ Castro::variableSetUp ()
 			    bc, BndryFunc(ca_nullfill));
   }
 
-#ifdef REACTIONS
   // Storage for rebalanced splitting.
   if (rebalanced_splitting) {
 
@@ -687,7 +686,6 @@ Castro::variableSetUp ()
                             BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
 
   }
-#endif
 
   num_state_type = desc_lst.size();
 

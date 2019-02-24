@@ -2686,9 +2686,6 @@ Castro::avgDown ()
 
 #ifdef REACTIONS
   avgDown(Reactions_Type);
-  if (rebalanced_splitting) {
-      avgDown(Balance_Type);
-  }
 #endif
 
 #ifdef SDC
@@ -2702,6 +2699,10 @@ Castro::avgDown ()
     avgDown(Rad_Type);
   }
 #endif
+
+  if (rebalanced_splitting) {
+    avgDown(Balance_Type);
+  }
 
 }
 
@@ -3310,13 +3311,11 @@ Castro::swap_state_time_levels(const Real dt)
 #endif
 #endif
 
-#ifdef REACTIONS
         if (rebalanced_splitting) {
             if (k == Balance_Type) {
                 state[k].swapTimeLevels(0.0);
             }
         }
-#endif
 
         state[k].allocOldData();
 
