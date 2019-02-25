@@ -494,7 +494,6 @@ public:
 ///
     void initialize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
-
 ///
 /// Performed at the end of ::do_advance, cleans up temporary data
 /// created by ::initialize_do_advance
@@ -509,65 +508,6 @@ public:
 /// @param amr_ncycle   the number of subcycles at this level
 ///
     void finalize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
-
-
-///
-/// Calculate primitive variables from conserved variables (uses StateData)
-///
-/// @param time     current time
-///
-    void cons_to_prim(const amrex::Real time);
-
-///
-/// Calculate primitive variables from given conserved variables
-///
-/// @param u        MultiFab of conserved variables
-/// @param q        MultiFab to save primitive variables to
-/// @param qaux     MultiFab of auxiliary variables
-///
-    void cons_to_prim(amrex::MultiFab& u, amrex::MultiFab& q, amrex::MultiFab& qaux);
-
-#ifndef AMREX_USE_CUDA
-///
-/// convert the conservative state cell averages to primitive cell
-/// averages with 4th order accuracy
-///
-/// @param time     current time
-///
-    void cons_to_prim_fourth(const amrex::Real time);
-#endif
-
-
-///
-/// Check to see if the CFL condition has been violated
-///
-/// @param dt timestep
-///
-    void check_for_cfl_violation(const amrex::Real dt);
-
-///
-/// this constructs the hydrodynamic source (essentially the flux
-/// divergence) using the CTU framework for unsplit hydrodynamics
-///
-/// @param time     current time
-/// @param dt       timestep
-///
-    void construct_hydro_source(amrex::Real time, amrex::Real dt);
-
-
-
-
-
-///
-/// this constructs the hydrodynamic source (essentially the flux
-/// divergence) using method of lines integration.  The output, is the
-/// divergence of the fluxes, A = -div{F(U)}
-///
-/// @param time     current time
-/// @param dt   timestep
-/// @param A_update   divergence of the fluxes
-///
-    void construct_mol_hydro_source(amrex::Real time, amrex::Real dt, amrex::MultiFab& A_update);
 
 ///
 /// Check for NaNs in the given MultiFab
@@ -2124,6 +2064,11 @@ protected:
 /// Keep track of which AMR iteration we're on.
 ///
     int iteration;
+
+    //
+    // Hydrodynamics
+    //
+#include <Castro_hydro.H>
 
     //
     // Static data members.

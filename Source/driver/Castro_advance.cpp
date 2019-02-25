@@ -296,7 +296,7 @@ Castro::do_advance (Real time,
       if (cfl_violation && hard_cfl_limit)
           return dt;
 
-      construct_hydro_source(time, dt);
+      construct_ctu_hydro_source(time, dt);
       int is_new=1;
       apply_source_to_state(is_new, S_new, hydro_source, dt);
 
