@@ -343,12 +343,23 @@ Castro::variableSetUp ()
 
   // Source terms -- for the CTU method, because we do characteristic
   // tracing on the source terms, we need NUM_GROW ghost cells to do
-  // the reconstruction.  For MOL, on the otherhand, we only need 1
-  // (for the fourth-order stuff).
+  // the reconstruction.  For MOL and SDC, on the other hand, we only
+  // need 1 (for the fourth-order stuff). Simplified SDC uses the CTU
+  // advance, so it behaves the same way as CTU here.
 
   store_in_checkpoint = true;
+  int source_ng;
+  if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
+      source_ng = NUM_GROW;
+  }
+  else if (time_integration_method == MethodOfLines || time_integration_method == SpectralDeferredCorrections) {
+      source_ng = 1;
+  }
+  else {
+      amrex::Error("Unknown time_integration_method");
+  }
   desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point, time_integration_method == CornerTransportUpwind ? NUM_GROW : 1, NUM_STATE,
+			 StateDescriptor::Point, source_ng, NUM_STATE,
 			 &cell_cons_interp, state_data_extrap, store_in_checkpoint);
 
 #ifdef ROTATION
@@ -375,15 +386,17 @@ Castro::variableSetUp ()
 			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
-#ifdef SDC
 #ifdef REACTIONS
-  // For SDC, we want to store the reactions source.
+  // For simplified SDC, we want to store the reactions source.
 
-  store_in_checkpoint = true;
-  desc_lst.addDescriptor(SDC_React_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point, NUM_GROW, NQSRC,
-			 &cell_cons_interp, state_data_extrap, store_in_checkpoint);
-#endif
+  if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+
+      store_in_checkpoint = true;
+      desc_lst.addDescriptor(Simplified_SDC_React_Type, IndexType::TheCellType(),
+                             StateDescriptor::Point, NUM_GROW, NQSRC,
+                             &cell_cons_interp, state_data_extrap, store_in_checkpoint);
+
+  }
 #endif
 
   Vector<BCRec>       bcs(NUM_STATE);
@@ -568,26 +581,26 @@ Castro::variableSetUp ()
   desc_lst.setComponent(Reactions_Type, NumSpec+1, "rho_enuc", bc, BndryFunc(ca_reactfill));
 #endif
 
-#ifdef SDC
 #ifdef REACTIONS
-  for (int i = 0; i < NQSRC; ++i) {
-      char buf[64];
-      sprintf(buf, "sdc_react_source_%d", i);
-      set_scalar_bc(bc,phys_bc);
+  if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+      for (int i = 0; i < NQSRC; ++i) {
+          char buf[64];
+          sprintf(buf, "sdc_react_source_%d", i);
+          set_scalar_bc(bc,phys_bc);
 
-      // Replace inflow BCs with FOEXTRAP.
+          // Replace inflow BCs with FOEXTRAP.
 
-      for (int j = 0; j < AMREX_SPACEDIM; ++j) {
-          if (bc.lo(j) == EXT_DIR)
-              bc.setLo(j, FOEXTRAP);
+          for (int j = 0; j < AMREX_SPACEDIM; ++j) {
+              if (bc.lo(j) == EXT_DIR)
+                  bc.setLo(j, FOEXTRAP);
 
-          if (bc.hi(j) == EXT_DIR)
-              bc.setHi(j, FOEXTRAP);
+              if (bc.hi(j) == EXT_DIR)
+                  bc.setHi(j, FOEXTRAP);
+          }
+
+          desc_lst.setComponent(Simplified_SDC_React_Type,i,std::string(buf),bc,BndryFunc(ca_generic_single_fill));
       }
-
-      desc_lst.setComponent(SDC_React_Type,i,std::string(buf),bc,BndryFunc(ca_generic_single_fill));
   }
-#endif
 #endif
 
 #ifdef RADIATION

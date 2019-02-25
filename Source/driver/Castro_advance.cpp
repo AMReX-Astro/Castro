@@ -52,52 +52,6 @@ Castro::advance (Real time,
 
     // Do the advance.
 
-#ifdef SDC
-    // this is the old SDC methodology
-
-    for (int n = 0; n < sdc_iters; ++n) {
-
-        sdc_iteration = n;
-
-        if (ParallelDescriptor::IOProcessor())
-	    std::cout << "\nBeginning SDC iteration " << n + 1 << " of " << sdc_iters << ".\n\n";
-
-	// First do the non-reacting advance and construct the relevant source terms.
-
-	dt_new = do_advance(time, dt, amr_iteration, amr_ncycle);
-
-#ifdef REACTIONS
-	if (do_react) {
-
-            // Do the ODE integration to capture the reaction source terms.
-
-	    react_state(time, dt);
-
-	    MultiFab& S_new = get_new_data(State_Type);
-
-            int is_new=1;
-	    clean_state(is_new, S_new.nGrow());
-
-	    // Compute the reactive source term for use in the next iteration.
-
-	    MultiFab& SDC_react_new = get_new_data(SDC_React_Type);
-	    get_react_source_prim(SDC_react_new, dt);
-
-	    // Check for NaN's.
-
-	    check_for_nan(S_new);
-
-        }
-#endif
-
-        if (ParallelDescriptor::IOProcessor())
-	    std::cout << "\nEnding SDC iteration " << n + 1 << " of " << sdc_iters << ".\n\n";
-
-    }
-
-#else
-    // we are either CTU, MOL, or the new SDC
-
     if (time_integration_method == CornerTransportUpwind) {
 
         dt_new = std::min(dt_new, subcycle_advance(time, dt, amr_iteration, amr_ncycle));
@@ -138,7 +92,48 @@ Castro::advance (Real time,
       }
 #endif
     }
+    else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+
+        for (int n = 0; n < sdc_iters; ++n) {
+
+            sdc_iteration = n;
+
+	    amrex::Print() << "\nBeginning SDC iteration " << n + 1 << " of " << sdc_iters << ".\n\n";
+
+            // First do the non-reacting advance and construct the relevant source terms.
+
+            dt_new = do_advance(time, dt, amr_iteration, amr_ncycle);
+
+#ifdef REACTIONS
+            if (do_react) {
+
+                // Do the ODE integration to capture the reaction source terms.
+
+                react_state(time, dt);
+
+                MultiFab& S_new = get_new_data(State_Type);
+
+                int is_new=1;
+                clean_state(is_new, S_new.nGrow());
+
+                // Compute the reactive source term for use in the next iteration.
+
+                MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
+                get_react_source_prim(SDC_react_new, dt);
+
+                // Check for NaN's.
+
+                check_for_nan(S_new);
+
+            }
 #endif
+
+            amrex::Print() << "\nEnding SDC iteration " << n + 1 << " of " << sdc_iters << ".\n\n";
+
+        }
+
+    }
+#endif // AMREX_USE_CUDA
 
     // Optionally kill the job at this point, if we've detected a violation.
 
@@ -148,8 +143,6 @@ Castro::advance (Real time,
     // If we didn't kill the job, reset the violation counter.
 
     cfl_violation = 0;
-
-#endif
 
     if (use_post_step_regrid)
 	check_for_post_regrid(time + dt);
@@ -224,11 +217,13 @@ Castro::do_advance (Real time,
 
 
 #ifdef REACTIONS
-#ifndef SDC
-    // this operates on Sborder (which is initially S_old).  The result
-    // of the reactions is added directly back to Sborder.
-    strang_react_first_half(prev_time, 0.5 * dt);
-#endif
+    if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
+
+        // this operates on Sborder (which is initially S_old).  The result
+        // of the reactions is added directly back to Sborder.
+        strang_react_first_half(prev_time, 0.5 * dt);
+
+    }
 #endif
 
     // Initialize the new-time data. This copy needs to come after the
@@ -237,19 +232,21 @@ Castro::do_advance (Real time,
     MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, S_new.nGrow());
 
 #ifdef REACTIONS
-#ifndef SDC
-    // Do this for the reactions as well, in case we cut the timestep
-    // short due to it being rejected.
+    if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
 
-    MultiFab& R_old = get_old_data(Reactions_Type);
-    MultiFab& R_new = get_new_data(Reactions_Type);
-    MultiFab::Copy(R_new, R_old, 0, 0, R_new.nComp(), R_new.nGrow());
+        // Do this for the reactions as well, in case we cut the timestep
+        // short due to it being rejected.
 
-    // Skip the rest of the advance if the burn was unsuccessful.
+        MultiFab& R_old = get_old_data(Reactions_Type);
+        MultiFab& R_new = get_new_data(Reactions_Type);
+        MultiFab::Copy(R_new, R_old, 0, 0, R_new.nComp(), R_new.nGrow());
 
-    if (burn_success != 1)
-        return dt;
-#endif
+        // Skip the rest of the advance if the burn was unsuccessful.
+
+        if (burn_success != 1)
+            return dt;
+
+    }
 #endif
 
     // Construct the old-time sources from Sborder.  This will already
@@ -369,14 +366,16 @@ Castro::do_advance (Real time,
     // Do the second half of the reactions.
 
 #ifdef REACTIONS
-#ifndef SDC
-    strang_react_second_half(cur_time - 0.5 * dt, 0.5 * dt);
+    if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
 
-    // Skip the rest of the advance if the burn was unsuccessful.
+        strang_react_second_half(cur_time - 0.5 * dt, 0.5 * dt);
 
-    if (burn_success != 1)
-        return dt;
-#endif
+        // Skip the rest of the advance if the burn was unsuccessful.
+
+        if (burn_success != 1)
+            return dt;
+
+    }
 #endif
 
     finalize_do_advance(time, dt, amr_iteration, amr_ncycle);
@@ -424,13 +423,12 @@ Castro::do_advance_mol (Real time,
 
   if (mol_iteration == 0) {
 
-#ifndef SDC
 #ifdef REACTIONS
     // this operates on Sborder (which is initially S_old).  The result
     // of the reactions is added directly back to Sborder.
     strang_react_first_half(prev_time, 0.5 * dt);
 #endif
-#endif
+
     // store the result of the burn in Sburn for later stages
     MultiFab::Copy(Sburn, Sborder, 0, 0, NUM_STATE, 0);
   }
@@ -585,10 +583,8 @@ Castro::do_advance_mol (Real time,
 
   // Do the second half of the reactions.
 
-#ifndef SDC
 #ifdef REACTIONS
   strang_react_second_half(cur_time - 0.5 * dt, 0.5 * dt);
-#endif
 #endif
 
   finalize_do_advance(time, dt, amr_iteration, amr_ncycle);
@@ -651,18 +647,16 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 
     // Scale the source term predictor by the current timestep.
 
-#ifndef SDC
     if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
         sources_for_hydro.mult(0.5 * dt, NUM_GROW);
     }
-#endif
 
     // For the hydrodynamics update we need to have NUM_GROW ghost
     // zones available, but the state data does not carry ghost
     // zones. So we use a FillPatch using the state data to give us
     // Sborder, which does have ghost zones.
 
-    if (time_integration_method == CornerTransportUpwind) {
+    if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
       // for the CTU unsplit method, we always start with the old state
       Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
       const Real prev_time = state[State_Type].prevTime();
@@ -853,8 +847,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     sources_for_hydro.define(grids, dmap, NUM_STATE, NUM_GROW);
     sources_for_hydro.setVal(0.0, NUM_GROW);
 
-#ifndef SDC
-
     // Add the source term predictor.
     // This must happen before the swap.
 
@@ -862,19 +854,16 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
         apply_source_term_predictor();
     }
 
-#else
-
-    // If we're doing SDC, time-center the source term (using the
+    // If we're doing simplified SDC, time-center the source term (using the
     // current iteration's old sources and the last iteration's new
     // sources). Since the "new-time" sources are just the corrector step
     // of the predictor-corrector formalism, we want to add the full
     // value of the "new-time" sources to the old-time sources to get a
     // time-centered value.
 
-    AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
-
-#endif
-
+    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
+    }
 
     // Swap the new data from the last timestep into the old state data.
 
@@ -924,8 +913,11 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     q.define(grids, dmap, NQ, NUM_GROW);
     q.setVal(0.0);
     qaux.define(grids, dmap, NQAUX, NUM_GROW);
-    if (time_integration_method == CornerTransportUpwind)
+
+    if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
       src_q.define(grids, dmap, NQSRC, NUM_GROW);
+    }
+
     if (fourth_order) {
       q_bar.define(grids, dmap, NQ, NUM_GROW);
       qaux_bar.define(grids, dmap, NQAUX, NUM_GROW);
@@ -1026,8 +1018,11 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     q.clear();
     qaux.clear();
-    if (time_integration_method == CornerTransportUpwind)
+
+    if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
       src_q.clear();
+    }
+
     if (fourth_order) {
       q_bar.clear();
       qaux_bar.clear();
@@ -1173,8 +1168,7 @@ Castro::retry_advance(Real& time, Real dt, int amr_iteration, int amr_ncycle)
                 rad_fluxes[dir]->setVal(0.0);
 #endif
 
-#ifndef SDC
-        if (source_term_predictor == 1) {
+        if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
 
             // Normally the source term predictor is done before the swap,
             // but the prev_state data is saved after the initial swap had
@@ -1205,7 +1199,6 @@ Castro::retry_advance(Real& time, Real dt, int amr_iteration, int amr_ncycle)
             }
 
         }
-#endif
 
         if (track_grid_losses)
             for (int i = 0; i < n_lost; i++)
@@ -1296,10 +1289,8 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
 
             sources_for_hydro.setVal(0.0, NUM_GROW);
 
-#ifndef SDC
-            if (source_term_predictor == 1)
+            if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1)
                 apply_source_term_predictor();
-#endif
 
             swap_state_time_levels(0.0);
 

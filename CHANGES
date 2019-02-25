@@ -1,5 +1,10 @@
 # changes since the last release
 
+  -- The old spectral deferred corrections method has been renamed
+     "simplified" SDC. It is accessed with time_integration_method = 3.
+     This still requires building with USE_SDC = TRUE, and when building
+     this way, the other time integration methods are unavailable.
+
   -- The 4th order hydro was extended to support general equations
      of state (it is still single level only).  Artificial viscosity
      was also added.

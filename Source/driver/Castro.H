@@ -39,10 +39,8 @@ enum StateType { State_Type = 0,
 #ifdef REACTIONS
                  Reactions_Type,
 #endif
-#ifdef SDC
 #ifdef REACTIONS
-		 SDC_React_Type
-#endif
+		 Simplified_SDC_React_Type
 #endif
 };
 
@@ -72,7 +70,9 @@ enum sources { ext_src = 0,
 
 enum int_method { CornerTransportUpwind = 0,
                   MethodOfLines,
-                  SpectralDeferredCorrections };
+                  SpectralDeferredCorrections,
+                  SimplifiedSpectralDeferredCorrections
+                };
 
 ///
 /// @class Castro
@@ -512,15 +512,22 @@ public:
 
 
 ///
-/// Convert the conservative state cell averages to primitive cell
-/// averages
+/// Calculate primitive variables from conserved variables (uses StateData)
 ///
 /// @param time     current time
 ///
     void cons_to_prim(const amrex::Real time);
 
-#ifndef AMREX_USE_CUDA
+///
+/// Calculate primitive variables from given conserved variables
+///
+/// @param u        MultiFab of conserved variables
+/// @param q        MultiFab to save primitive variables to
+/// @param qaux     MultiFab of auxiliary variables
+///
+    void cons_to_prim(amrex::MultiFab& u, amrex::MultiFab& q, amrex::MultiFab& qaux);
 
+#ifndef AMREX_USE_CUDA
 ///
 /// convert the conservative state cell averages to primitive cell
 /// averages with 4th order accuracy
@@ -569,19 +576,6 @@ public:
 /// @param check_ghost  do we check the ghost cells?
 ///
     void check_for_nan(amrex::MultiFab& state, int check_ghost=0);
-
-#ifdef SDC
-
-///
-/// Calculate primitive variables from given conserved variables
-///
-/// @param u        MultiFab of conserved variables
-/// @param q        MultiFab to save primitive variables to
-/// @param qaux     MultiFab of auxiliary variables
-///
-    void cons_to_prim(amrex::MultiFab& u, amrex::MultiFab& q, amrex::MultiFab& qaux);
-#endif
-
 
 ///
 /// Returns true if flag corresponding to source type ``src`` is set.
@@ -1113,10 +1107,8 @@ public:
     static int numGrow();
 
 #ifdef REACTIONS
-#ifndef SDC
-
 ///
-/// React state through a single reaction timestep, saving reaction source terms to ``reactions`` MultiFab. This is the non-SDC version.
+/// React state through a single reaction timestep, saving reaction source terms to ``reactions`` MultiFab. This is the CTU version.
 ///
 /// @param state        Current state
 /// @param reactions    MultiFab to save reaction sources to
@@ -1135,6 +1127,13 @@ public:
 		     amrex::Real dt_react,
 		     int strang_half, int  ngrow = 0);
 
+///
+/// Simplified SDC version of react_state. Reacts the current state through a single timestep.
+///
+/// @param time     current time
+/// @param dt       timestep
+///
+    void react_state(amrex::Real time, amrex::Real dt);
 
 ///
 /// React through first half timestep
@@ -1152,15 +1151,6 @@ public:
 /// @param dt       timestep
 ///
     void strang_react_second_half(amrex::Real time, amrex::Real dt);
-#else
-
-///
-/// SDC version of react state. Reacts the current state through a single timestep.
-///
-/// @param time     current time
-/// @param dt       timestep
-///
-    void react_state(amrex::Real time, amrex::Real dt);
 
 ///
 /// Obtain the effective source term due to reactions on the primitive variables
@@ -1169,8 +1159,6 @@ public:
 /// @param dt       timestep
 ///
     void get_react_source_prim(amrex::MultiFab& source, amrex::Real dt);
-#endif
-
 
 ///
 /// @param state
@@ -1182,7 +1170,6 @@ public:
                       amrex::MultiFab&  react_mf,
                       amrex::Real       time,
                       amrex::Real       dt);
-
 
 ///
 /// Are there any zones in ``State`` that can burn?

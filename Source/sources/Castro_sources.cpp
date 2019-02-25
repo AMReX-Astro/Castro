@@ -418,7 +418,6 @@ Castro::sum_of_sources(MultiFab& source)
 // Obtain the effective source term due to reactions on the primitive variables.
 
 #ifdef REACTIONS
-#ifdef SDC
 void
 Castro::get_react_source_prim(MultiFab& react_src, Real dt)
 {
@@ -488,9 +487,8 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
     MultiFab::Saxpy(react_src, -1.0, A_prim, 0, 0, NQ, ng);
 
     // Now fill all of the ghost zones.
-    Real time = get_state_data(SDC_React_Type).curTime();
-    AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), time, SDC_React_Type, 0, NUM_STATE);
+    Real time = get_state_data(Simplified_SDC_React_Type).curTime();
+    AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), time, Simplified_SDC_React_Type, 0, NUM_STATE);
 
 }
-#endif
 #endif

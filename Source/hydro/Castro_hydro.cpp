@@ -1179,7 +1179,7 @@ Castro::construct_hydro_source(Real time, Real dt)
         // Store the fluxes from this advance.
 
         // For normal integration we want to add the fluxes from this advance
-        // since we may be subcycling the timestep. But for SDC integration
+        // since we may be subcycling the timestep. But for simplified SDC integration
         // we want to copy the fluxes since we expect that there will not be
         // subcycling and we only want the last iteration's fluxes.
 
@@ -1187,28 +1187,42 @@ Castro::construct_hydro_source(Real time, Real dt)
         Array4<Real> fluxes_fab = (*fluxes[idir]).array(mfi);
         const int numcomp = NUM_STATE;
 
-        AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), numcomp, i, j, k, n,
-        {
-#ifndef SDC
-            fluxes_fab(i,j,k,n) += flux_fab(i,j,k,n);
-#else
-            fluxes_fab(i,j,k,n) = flux_fab(i,j,k,n);
-#endif
-        });
+        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+
+            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), numcomp, i, j, k, n,
+            {
+                fluxes_fab(i,j,k,n) = flux_fab(i,j,k,n);
+            });
+
+        } else {
+
+            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), numcomp, i, j, k, n,
+            {
+                fluxes_fab(i,j,k,n) += flux_fab(i,j,k,n);
+            });
+
+        }
 
 #ifdef RADIATION
         Array4<Real> const rad_flux_fab = (rad_flux[idir]).array();
         Array4<Real> rad_fluxes_fab = (*rad_fluxes[idir]).array(mfi);
         const int radcomp = Radiation::nGroups;
 
-        AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), radcomp, i, j, k, n,
-        {
-#ifndef SDC
-            rad_fluxes_fab(i,j,k,n) += rad_flux_fab(i,j,k,n);
-#else
-            rad_fluxes_fab(i,j,k,n) = rad_flux_fab(i,j,k,n);
-#endif
-        });
+        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+
+            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), radcomp, i, j, k, n,
+            {
+                rad_fluxes_fab(i,j,k,n) = rad_flux_fab(i,j,k,n);
+            });
+
+        } else {
+
+            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), radcomp, i, j, k, n,
+            {
+                rad_fluxes_fab(i,j,k,n) += rad_flux_fab(i,j,k,n);
+            });
+
+        }
 #endif
 
         Array4<Real> mass_fluxes_fab = (*mass_fluxes[idir]).array(mfi);
@@ -1226,14 +1240,21 @@ Castro::construct_hydro_source(Real time, Real dt)
 
           Array4<Real> P_radial_fab = P_radial.array(mfi);
 
-          AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
-          {
-#ifndef SDC
-              P_radial_fab(i,j,k,0) += pradial_fab(i,j,k,0);
-#else
-              P_radial_fab(i,j,k,0) = pradial_fab(i,j,k,0);
-#endif
-          });
+          if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+
+              AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
+              {
+                  P_radial_fab(i,j,k,0) = pradial_fab(i,j,k,0);
+              });
+
+          } else {
+
+              AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
+              {
+                  P_radial_fab(i,j,k,0) += pradial_fab(i,j,k,0);
+              });
+
+          }
 
       }
 #endif
@@ -1835,7 +1856,7 @@ Castro::cons_to_prim(const Real time)
 
         // Convert the source terms expressed as sources to the conserved state to those
         // expressed as sources for the primitive state.
-        if (time_integration_method == CornerTransportUpwind) {
+        if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
 #pragma gpu
             ca_srctoprim(BL_TO_FORTRAN_BOX(qbx),
                          BL_TO_FORTRAN_ANYD(q[mfi]),
@@ -1845,16 +1866,17 @@ Castro::cons_to_prim(const Real time)
         }
 
 #ifndef RADIATION
-
-        // Add in the reactions source term; only done in SDC.
-
-#ifdef SDC
 #ifdef REACTIONS
-        MultiFab& SDC_react_source = get_new_data(SDC_React_Type);
+        // Add in the reactions source term; only done in simplified SDC.
 
-        if (do_react)
-	    src_q[mfi].plus(SDC_react_source[mfi],qbx,qbx,0,0,NQSRC);
-#endif
+        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+
+            MultiFab& SDC_react_source = get_new_data(Simplified_SDC_React_Type);
+
+            if (do_react)
+                src_q[mfi].plus(SDC_react_source[mfi],qbx,qbx,0,0,NQSRC);
+
+        }
 #endif
 #endif
 

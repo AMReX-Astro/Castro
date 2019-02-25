@@ -390,6 +390,20 @@ Castro::read_params ()
     }
 #endif
 
+    // Simplified SDC currently requires USE_SDC to be defined.
+    // Also, if we have USE_SDC defined, we can't use the other
+    // time integration_methods, because only the SDC burner
+    // interface is available in Microphysics in this case.
+#ifndef SDC
+    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        amrex::Error("Simplified SDC currently requires USE_SDC=TRUE when compiling.");
+    }
+#else
+    if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
+        amrex::Error("When building with USE_SDC=TRUE, only simplified SDC can be used.");
+    }
+#endif
+
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
       {
         std::cerr << "hybrid_riemann only implemented in 2- and 3-d\n";
@@ -568,13 +582,13 @@ Castro::Castro (Amr&            papa,
 
 #endif
 
-#ifdef SDC
 #ifdef REACTIONS
    // Initialize reactions source term to zero.
 
-   MultiFab& react_src_new = get_new_data(SDC_React_Type);
-   react_src_new.setVal(0.0, NUM_GROW);
-#endif
+   if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+       MultiFab& react_src_new = get_new_data(Simplified_SDC_React_Type);
+       react_src_new.setVal(0.0, NUM_GROW);
+   }
 #endif
 
    if (Knapsack_Weight_Type > 0) {
@@ -931,11 +945,11 @@ Castro::initData ()
     React_new.setVal(0.);
 #endif
 
-#ifdef SDC
 #ifdef REACTIONS
-   MultiFab& react_src_new = get_new_data(SDC_React_Type);
-   react_src_new.setVal(0.0, NUM_GROW);
-#endif
+   if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+       MultiFab& react_src_new = get_new_data(Simplified_SDC_React_Type);
+       react_src_new.setVal(0.0, NUM_GROW);
+   }
 #endif
 
    if (Knapsack_Weight_Type > 0) {
@@ -2682,10 +2696,10 @@ Castro::avgDown ()
   avgDown(Reactions_Type);
 #endif
 
-#ifdef SDC
 #ifdef REACTIONS
-  avgDown(SDC_React_Type);
-#endif
+  if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+      avgDown(Simplified_SDC_React_Type);
+  }
 #endif
 
 #ifdef RADIATION
@@ -3465,11 +3479,12 @@ Castro::swap_state_time_levels(const Real dt)
 	// this because we never need the old data, so we
 	// don't want to allocate memory for it.
 
-#ifdef SDC
 #ifdef REACTIONS
-        if (k == SDC_React_Type)
-            state[k].swapTimeLevels(0.0);
-#endif
+        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+            if (k == Simplified_SDC_React_Type) {
+                state[k].swapTimeLevels(0.0);
+            }
+        }
 #endif
 
 #ifdef REACTIONS
@@ -3824,7 +3839,6 @@ Castro::check_for_nan(MultiFab& state, int check_ghost)
 }
 
 // Convert a MultiFab with conservative state data u to a primitive MultiFab q.
-#ifdef SDC
 void
 Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux)
 {
@@ -3852,8 +3866,6 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux)
     }
 
 }
-#endif
-
 
 // Given State_Type state data, perform a number of cleaning steps to make
 // sure the data is sensible. The return value is the same as the return
