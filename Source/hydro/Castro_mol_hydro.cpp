@@ -137,12 +137,20 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
              BL_TO_FORTRAN_ANYD(source_out),
              BL_TO_FORTRAN_ANYD(source_hydro_only),
              ZFILL(dx), &dt,
-             D_DECL(BL_TO_FORTRAN_ANYD(flux[0]),
-                    BL_TO_FORTRAN_ANYD(flux[1]),
-                    BL_TO_FORTRAN_ANYD(flux[2])),
-             D_DECL(BL_TO_FORTRAN_ANYD(area[0][mfi]),
-                    BL_TO_FORTRAN_ANYD(area[1][mfi]),
-                    BL_TO_FORTRAN_ANYD(area[2][mfi])),
+             BL_TO_FORTRAN_ANYD(flux[0]),
+#if AMREX_SPACEDIM >= 2
+             BL_TO_FORTRAN_ANYD(flux[1]),
+#endif
+#if AMREX_SPACEDIM == 3
+             BL_TO_FORTRAN_ANYD(flux[2]),
+#endif
+             BL_TO_FORTRAN_ANYD(area[0][mfi]),
+#if AMREX_SPACEDIM >= 2
+             BL_TO_FORTRAN_ANYD(area[1][mfi]),
+#endif
+#if AMREX_SPACEDIM == 3
+             BL_TO_FORTRAN_ANYD(area[2][mfi]),
+#endif
 #if (AMREX_SPACEDIM < 3)
              BL_TO_FORTRAN_ANYD(pradial),
              BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
@@ -162,12 +170,20 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
              BL_TO_FORTRAN_ANYD(source_out),
              BL_TO_FORTRAN_ANYD(source_hydro_only),
              ZFILL(dx), &dt,
-             D_DECL(BL_TO_FORTRAN_ANYD(flux[0]),
-                    BL_TO_FORTRAN_ANYD(flux[1]),
-                    BL_TO_FORTRAN_ANYD(flux[2])),
-             D_DECL(BL_TO_FORTRAN_ANYD(area[0][mfi]),
-                    BL_TO_FORTRAN_ANYD(area[1][mfi]),
-                    BL_TO_FORTRAN_ANYD(area[2][mfi])),
+             BL_TO_FORTRAN_ANYD(flux[0]),
+#if AMREX_SPACEDIM >= 2
+             BL_TO_FORTRAN_ANYD(flux[1]),
+#endif
+#if AMREX_SPACEDIM == 3
+             BL_TO_FORTRAN_ANYD(flux[2]),
+#endif
+             BL_TO_FORTRAN_ANYD(area[0][mfi]),
+#if AMREX_SPACEDIM >= 2
+             BL_TO_FORTRAN_ANYD(area[1][mfi]),
+#endif
+#if AMREX_SPACEDIM == 3
+             BL_TO_FORTRAN_ANYD(area[2][mfi]),
+#endif
 #if (AMREX_SPACEDIM < 3)
              BL_TO_FORTRAN_ANYD(pradial),
              BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
