@@ -16,7 +16,6 @@
 ///
     void cons_to_prim(amrex::MultiFab& u, amrex::MultiFab& q, amrex::MultiFab& qaux, const amrex::Real time);
 
-#ifndef AMREX_USE_CUDA
 ///
 /// convert the conservative state cell averages to primitive cell
 /// averages with 4th order accuracy
@@ -24,7 +23,6 @@
 /// @param time     current time
 ///
     void cons_to_prim_fourth(const amrex::Real time);
-#endif
 
 ///
 /// Check to see if the CFL condition has been violated

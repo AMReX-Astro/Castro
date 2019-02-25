@@ -120,7 +120,6 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux, Real time)
 
 }
 
-#ifndef AMREX_USE_CUDA
 void
 Castro::cons_to_prim_fourth(const Real time)
 {
@@ -175,8 +174,10 @@ Castro::cons_to_prim_fourth(const Real time)
 
 
     // check for NaNs
+#ifndef AMREX_USE_CUDA
     check_for_nan(q);
     check_for_nan(q_bar);
+#endif
 
 
 #ifdef _OPENMP
@@ -204,8 +205,6 @@ Castro::cons_to_prim_fourth(const Real time)
 
 #endif // RADIATION
 }
-#endif
-
 
 void
 Castro::check_for_cfl_violation(const Real dt)
