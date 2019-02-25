@@ -3840,7 +3840,7 @@ Castro::check_for_nan(MultiFab& state, int check_ghost)
 
 // Convert a MultiFab with conservative state data u to a primitive MultiFab q.
 void
-Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux)
+Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux, Real time)
 {
 
     BL_PROFILE("Castro::cons_to_prim()");
@@ -3851,6 +3851,18 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux)
 
     int ng = q.nGrow();
 
+#ifdef RADIATION
+    AmrLevel::FillPatch(*this, Erborder, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
+
+    MultiFab lamborder(grids, dmap, Radiation::nGroups, NUM_GROW);
+    if (radiation->pure_hydro) {
+      lamborder.setVal(0.0, NUM_GROW);
+    }
+    else {
+      radiation->compute_limiter(level, grids, Sborder, Erborder, lamborder);
+    }
+#endif
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -3859,9 +3871,13 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux)
         const Box& bx = mfi.growntilebox(ng);
 
 	ca_ctoprim(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		   u[mfi].dataPtr(), ARLIM_3D(u[mfi].loVect()), ARLIM_3D(u[mfi].hiVect()),
-		   q[mfi].dataPtr(), ARLIM_3D(q[mfi].loVect()), ARLIM_3D(q[mfi].hiVect()),
-		   qaux[mfi].dataPtr(), ARLIM_3D(qaux[mfi].loVect()), ARLIM_3D(qaux[mfi].hiVect()));
+		   BL_TO_FORTRAN_ANYD(u[mfi]),
+#ifdef RADIATION
+                   BL_TO_FORTRAN_ANYD(Erborder[mfi]),
+                   BL_TO_FORTRAN_ANYD(lamborder[mfi]),
+#endif
+		   BL_TO_FORTRAN_ANYD(q[mfi]),
+		   BL_TO_FORTRAN_ANYD(qaux[mfi]));
 
     }
 

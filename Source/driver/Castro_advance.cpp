@@ -118,7 +118,7 @@ Castro::advance (Real time,
                 // Compute the reactive source term for use in the next iteration.
 
                 MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
-                get_react_source_prim(SDC_react_new, dt);
+                get_react_source_prim(SDC_react_new, time, dt);
 
                 // Check for NaN's.
 

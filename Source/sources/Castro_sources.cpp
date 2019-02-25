@@ -419,7 +419,7 @@ Castro::sum_of_sources(MultiFab& source)
 
 #ifdef REACTIONS
 void
-Castro::get_react_source_prim(MultiFab& react_src, Real dt)
+Castro::get_react_source_prim(MultiFab& react_src, Real time, Real dt)
 {
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
@@ -454,7 +454,7 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
     MultiFab q_old(grids, dmap, NQ, ng);
     MultiFab qaux_old(grids, dmap, NQAUX, ng);
 
-    cons_to_prim(S_old, q_old, qaux_old);
+    cons_to_prim(S_old, q_old, qaux_old, time);
 
     // Compute the effective advective update on the primitive state.
     // A(q) = (q* - q_old)/dt
@@ -487,8 +487,8 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
     MultiFab::Saxpy(react_src, -1.0, A_prim, 0, 0, NQ, ng);
 
     // Now fill all of the ghost zones.
-    Real time = get_state_data(Simplified_SDC_React_Type).curTime();
-    AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), time, Simplified_SDC_React_Type, 0, NUM_STATE);
+    Real cur_time = get_state_data(Simplified_SDC_React_Type).curTime();
+    AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), cur_time, Simplified_SDC_React_Type, 0, NUM_STATE);
 
 }
 #endif
