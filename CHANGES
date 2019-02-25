@@ -1,5 +1,20 @@
 # changes since the last release
 
+  -- The old spectral deferred corrections method has been renamed
+     "simplified" SDC. It is accessed with time_integration_method = 3.
+     This still requires building with USE_SDC = TRUE, and when building
+     this way, the other time integration methods are unavailable.
+
+  -- The 4th order hydro was extended to support general equations
+     of state (it is still single level only).  Artificial viscosity
+     was also added.
+
+  -- A framework for a new spectral deferred corrections method
+     was added.  This will allow for higher-order time integration.
+
+  -- Fix a bug where the self_heat parameter was not being initialized
+     for the burning timestep limiter (#521).
+
   -- By default, we no longer allocation storage for source terms to
      species in the primitive variable state.  This is set via the
      _variables file, parsed by set_variables.py.  To allow for

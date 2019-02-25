@@ -1,6 +1,9 @@
 # sources used with hydro
 
 CEXE_sources += Castro_hydro.cpp
+CEXE_sources += Castro_ctu_hydro.cpp
+CEXE_sources += Castro_mol_hydro.cpp
+
 ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
   CEXE_sources += Castro_hybrid.cpp
   ca_F90EXE_sources += hybrid_advection_nd.F90
