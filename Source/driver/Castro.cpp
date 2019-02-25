@@ -3838,51 +3838,6 @@ Castro::check_for_nan(MultiFab& state, int check_ghost)
     }
 }
 
-// Convert a MultiFab with conservative state data u to a primitive MultiFab q.
-void
-Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux, Real time)
-{
-
-    BL_PROFILE("Castro::cons_to_prim()");
-
-    BL_ASSERT(u.nComp() == NUM_STATE);
-    BL_ASSERT(q.nComp() == NQ);
-    BL_ASSERT(u.nGrow() >= q.nGrow());
-
-    int ng = q.nGrow();
-
-#ifdef RADIATION
-    AmrLevel::FillPatch(*this, Erborder, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
-
-    MultiFab lamborder(grids, dmap, Radiation::nGroups, NUM_GROW);
-    if (radiation->pure_hydro) {
-      lamborder.setVal(0.0, NUM_GROW);
-    }
-    else {
-      radiation->compute_limiter(level, grids, Sborder, Erborder, lamborder);
-    }
-#endif
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(u, true); mfi.isValid(); ++mfi) {
-
-        const Box& bx = mfi.growntilebox(ng);
-
-	ca_ctoprim(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		   BL_TO_FORTRAN_ANYD(u[mfi]),
-#ifdef RADIATION
-                   BL_TO_FORTRAN_ANYD(Erborder[mfi]),
-                   BL_TO_FORTRAN_ANYD(lamborder[mfi]),
-#endif
-		   BL_TO_FORTRAN_ANYD(q[mfi]),
-		   BL_TO_FORTRAN_ANYD(qaux[mfi]));
-
-    }
-
-}
-
 // Given State_Type state data, perform a number of cleaning steps to make
 // sure the data is sensible. The return value is the same as the return
 // value of enforce_min_density.
