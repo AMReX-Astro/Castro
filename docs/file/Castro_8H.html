@@ -562,9 +562,9 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N6Castro10do_advanceEN5amrex4RealEN5amrex4RealEii">
-<span id="_CPPv3N6Castro10do_advanceEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro10do_advanceEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::do_advance__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1aa5887b4028b1d437cd2eea672cd379a3"></span>Real <code class="descname">do_advance</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><br /></dt>
-<dd><p>this routine will advance the old state data (called <code class="docutils literal notranslate"><span class="pre">S_old</span></code> here) to the new time, for a single level. The new data is called <code class="docutils literal notranslate"><span class="pre">S_new</span></code> here. The update includes reactions (if we are not doing SDC), hydro, and the source terms.</p>
+<dt id="_CPPv4N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealEii">
+<span id="_CPPv3N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::do_advance_ctu__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1adbb464e81007058d1c4fe6e15c9cfeee"></span>Real <code class="descname">do_advance_ctu</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>This routine will advance the old state data (called <code class="docutils literal notranslate"><span class="pre">S_old</span></code> here) to the new time, for a single level. The new data is called <code class="docutils literal notranslate"><span class="pre">S_new</span></code> here. The update includes reactions (if we are not doing SDC), hydro, and the source terms. The advance is doing using the CTU (corner transport upwind) approach. We also use this interface for the simplified SDC update.</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
@@ -581,7 +581,7 @@
 <dl class="function">
 <dt id="_CPPv4N6Castro14do_advance_molEN5amrex4RealEN5amrex4RealEii">
 <span id="_CPPv3N6Castro14do_advance_molEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro14do_advance_molEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::do_advance_mol__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a9b18b86e6db9c452db63143b662dfcbc"></span>Real <code class="descname">do_advance_mol</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><br /></dt>
-<dd><p>This routine will advance the old state data (called <code class="docutils literal notranslate"><span class="pre">S_old</span></code> here) to the new time, for a single level. The new data is called <code class="docutils literal notranslate"><span class="pre">S_new</span></code> here. The update includes reactions (if we are not doing SDC), hydro, and the source terms.</p>
+<dd><p>This routine will advance the old state data (called <code class="docutils literal notranslate"><span class="pre">S_old</span></code> here) to the new time, for a single level. The new data is called <code class="docutils literal notranslate"><span class="pre">S_new</span></code> here. The update includes reactions (if we are not doing SDC), hydro, and the source terms. The advance is doing using the MOL (method of lines) approach.</p>
 <p><dl class="docutils">
 <dt><strong>Note</strong></dt>
 <dd>the time that passes through here is the time for the current stage</dd>
@@ -603,9 +603,9 @@
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N6Castro13retry_advanceERN5amrex4RealEN5amrex4RealEii">
-<span id="_CPPv3N6Castro13retry_advanceERN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro13retry_advanceERN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::retry_advance__amrex::RealR.amrex::Real.i.i"></span><span class="target" id="classCastro_1a3aa6a39a77124eb195b7e1282c61ca95"></span>bool <code class="descname">retry_advance</code><span class="sig-paren">(</span>amrex::Real &amp;<em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><br /></dt>
-<dd><p>Should we retry advancing the simulation? By default, we don’t do a retry unless the criteria are violated.</p>
+<dt id="_CPPv4N6Castro17retry_advance_ctuERN5amrex4RealEN5amrex4RealEii">
+<span id="_CPPv3N6Castro17retry_advance_ctuERN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro17retry_advance_ctuERN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::retry_advance_ctu__amrex::RealR.amrex::Real.i.i"></span><span class="target" id="classCastro_1aeea21f94337a8a9f9eec64f5949a27ee"></span>bool <code class="descname">retry_advance_ctu</code><span class="sig-paren">(</span>amrex::Real &amp;<em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Should we retry advancing the simulation? By default, we don’t do a retry unless the criteria are violated. This is used only for the CTU advance.</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
@@ -620,9 +620,9 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N6Castro16subcycle_advanceEN5amrex4RealEN5amrex4RealEii">
-<span id="_CPPv3N6Castro16subcycle_advanceEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro16subcycle_advanceEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::subcycle_advance__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1af8f356b2bd95a8f0e2ef673e2a5480b5"></span>Real <code class="descname">subcycle_advance</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><br /></dt>
-<dd><p>Subcyles until we’ve reached the target time, <code class="docutils literal notranslate"><span class="pre">time</span></code> + <code class="docutils literal notranslate"><span class="pre">dt</span></code>. The last timestep will be shortened if needed so that it does not overshoot the ending time.</p>
+<dt id="_CPPv4N6Castro20subcycle_advance_ctuEN5amrex4RealEN5amrex4RealEii">
+<span id="_CPPv3N6Castro20subcycle_advance_ctuEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro20subcycle_advance_ctuEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::subcycle_advance_ctu__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1aadd4af0f0af34b5c70f3ff87a0a2aad4"></span>Real <code class="descname">subcycle_advance_ctu</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Subcyles until we’ve reached the target time, <code class="docutils literal notranslate"><span class="pre">time</span></code> + <code class="docutils literal notranslate"><span class="pre">dt</span></code>. The last timestep will be shortened if needed so that it does not overshoot the ending time. This is used only for the CTU advance.</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
