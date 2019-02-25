@@ -357,15 +357,17 @@ public:
 /// @param ncycle   the number of subcycles at this level
 ///
     virtual amrex::Real advance (amrex::Real time,
-                          amrex::Real dt,
-                          int  iteration,
-                          int  ncycle) override;
+                                 amrex::Real dt,
+                                 int  iteration,
+                                 int  ncycle) override;
 
 ///
-/// this routine will advance the old state data (called ``S_old`` here)
+/// This routine will advance the old state data (called ``S_old`` here)
 /// to the new time, for a single level.  The new data is called
 /// ``S_new`` here.  The update includes reactions (if we are not doing
-/// SDC), hydro, and the source terms.
+/// SDC), hydro, and the source terms. The advance is doing using the CTU
+/// (corner transport upwind) approach. We also use this interface for the
+/// simplified SDC update.
 ///
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
@@ -376,17 +378,17 @@ public:
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
 ///
-    amrex::Real do_advance (amrex::Real time,
-                     amrex::Real dt,
-                     int  amr_iteration,
-                     int  amr_ncycle);
-
+    amrex::Real do_advance_ctu(amrex::Real time,
+                               amrex::Real dt,
+                               int  amr_iteration,
+                               int  amr_ncycle);
 
 ///
 /// This routine will advance the old state data (called ``S_old`` here)
 /// to the new time, for a single level.  The new data is called
 /// ``S_new`` here.  The update includes reactions (if we are not doing
-/// SDC), hydro, and the source terms.
+/// SDC), hydro, and the source terms. The advance is doing using the MOL
+/// (method of lines) approach.
 ///
 /// @note the time that passes through here is the time for the
 /// current stage
@@ -401,19 +403,19 @@ public:
 /// @param amr_ncycle   the number of subcycles at this level
 ///
     amrex::Real do_advance_mol (amrex::Real time,
-                     amrex::Real dt,
-                     int  amr_iteration,
-                     int  amr_ncycle);
+                                amrex::Real dt,
+                                int  amr_iteration,
+                                int  amr_ncycle);
 
     amrex::Real do_advance_sdc (amrex::Real time,
-                     amrex::Real dt,
-                     int  amr_iteration,
-                     int  amr_ncycle);
-
+                                amrex::Real dt,
+                                int  amr_iteration,
+                                int  amr_ncycle);
 
 ///
 /// Should we retry advancing the simulation? By default, we
-/// don't do a retry unless the criteria are violated.
+/// don't do a retry unless the criteria are violated. This is
+/// used only for the CTU advance.
 ///
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
@@ -424,13 +426,13 @@ public:
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
 ///
-    bool retry_advance (amrex::Real& time, amrex::Real dt, int amr_iteration, int amr_ncycle);
-
+    bool retry_advance_ctu(amrex::Real& time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
 ///
 /// Subcyles until we've reached the target time, ``time`` + ``dt``.
 /// The last timestep will be shortened if needed so that
-/// it does not overshoot the ending time.
+/// it does not overshoot the ending time. This is used only for
+/// the CTU advance.
 ///
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
@@ -441,8 +443,7 @@ public:
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
 ///
-    amrex::Real subcycle_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
-
+    amrex::Real subcycle_advance_ctu(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
 ///
 /// This is run at the start of an ::advance on a single level.
@@ -461,7 +462,6 @@ public:
 ///
     void initialize_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
-
 ///
 /// If required, adds material lost in timestep to cumulative
 /// losses, does refluxing, and clears arrays/data containers
@@ -477,7 +477,6 @@ public:
 /// @param amr_ncycle   the number of subcycles at this level
 ///
     void finalize_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
-
 
 ///
 /// Performed at the start of ::do_advance, resets flags and
