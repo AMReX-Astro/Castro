@@ -319,6 +319,13 @@ void GetInputArgs ( const int argc, char** argv,
 
 	Print() << "\nplotfile  = \"" << pltfile << "\"" << std::endl;
 	Print() << "slicefile = \"" << slcfile << "\"" << std::endl;
+#if (AMREX_SPACEDIM >= 2)
+    Print() << "xctr = " << xctr << std::endl;
+    Print() << "yctr = " << yctr << std::endl;
+#endif
+#if (AMREX_SPACEDIM == 3)
+    Print() << "zctr = " << zctr << std::endl;
+#endif
 	Print() << std::endl;
 }
 

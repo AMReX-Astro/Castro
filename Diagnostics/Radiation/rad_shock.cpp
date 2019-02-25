@@ -34,6 +34,8 @@ int main(int argc, char* argv[])
 
 	GetInputArgs (argc, argv, pltfile, slcfile, xctr, yctr, idir);
 
+	Print() << "idir = " << idir << std::endl;
+
 	// check that idir <= DIM
 	if (idir > AMREX_SPACEDIM)
 		Abort("ERROR: idir must be <= DIM");

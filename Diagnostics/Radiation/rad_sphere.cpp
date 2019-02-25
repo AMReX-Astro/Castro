@@ -73,6 +73,7 @@ int main(int argc, char* argv[])
 
 	Print() << "\nplotfile  = \"" << pltfile << "\"" << std::endl;
 	Print() <<   "groupfile = \"" << groupfile << "\"" << std::endl;
+	Print() << 		"radius = " << radius << std::endl;
 	Print() << std::endl;
 
 	// Start dataservices

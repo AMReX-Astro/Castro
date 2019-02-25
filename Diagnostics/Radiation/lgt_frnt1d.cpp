@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
 	int dir;
 
 	GetInputArgs(argc, argv, pltfile, slcfile, xctr, yctr, dir);
-
+	
 	// Start dataservices
 	DataServices::SetBatchMode();
 

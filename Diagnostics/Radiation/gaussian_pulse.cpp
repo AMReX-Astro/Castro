@@ -30,6 +30,10 @@ int main(int argc, char* argv[])
 
 	GetInputArgs(argc, argv, pltfile, slcfile, xctr, yctr, dir);
 
+	Print() << "xctr = " << xctr << std::endl;
+	Print() << "yctr = " << yctr << std::endl;
+	Print() << std::endl;
+
 	// Start dataservices
 	DataServices::SetBatchMode();
 
