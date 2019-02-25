@@ -1,0 +1,390 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File Castro_hydro_F.H &mdash; Castro 19.02
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                19.02
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Plotfiles and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../filelist.html">File list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>File Castro_hydro_F.H</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/Castro__hydro__F_8H.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-castro-hydro-f-h">
+<h1>File Castro_hydro_F.H<a class="headerlink" href="#file-castro-hydro-f-h" title="Permalink to this headline">¶</a></h1>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt id="_CPPv410ca_ctoprimPKiPKiPKN5amrex4RealEPKiPKiPN5amrex4RealEPKiPKiPN5amrex4RealEPKiPKi">
+<span id="_CPPv310ca_ctoprimPKiPKiPKN5amrex4RealEPKiPKiPN5amrex4RealEPKiPKiPN5amrex4RealEPKiPKi"></span><span id="_CPPv210ca_ctoprimPKiPKiPKN5amrex4RealEPKiPKiPN5amrex4RealEPKiPKiPN5amrex4RealEPKiPKi"></span><span id="ca_ctoprim__iCP.iCP.amrex::RealCP.iCP.iCP.amrex::RealP.iCP.iCP.amrex::RealP.iCP.iCP"></span><span class="target" id="Castro__hydro__F_8H_1ad39b5d5f96d0fd075d7e9636b8d0d12f"></span>void <code class="descname">ca_ctoprim</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> amrex::Real *<em>u</em>, <em class="property">const</em> int *<em>u_lo</em>, <em class="property">const</em> int *<em>u_hi</em>, amrex::Real *<em>q</em>, <em class="property">const</em> int *<em>q_lo</em>, <em class="property">const</em> int *<em>q_hi</em>, amrex::Real *<em>qaux</em>, <em class="property">const</em> int *<em>qa_lo</em>, <em class="property">const</em> int *<em>qa_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv410ca_ctoprimPKiPKiPKN5amrex4RealEPKiPKiPN5amrex4RealEPKiPKiPN5amrex4RealEPKiPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv412ca_srctoprimPKiPKiPKN5amrex4RealEPKiPKiPKN5amrex4RealEPKiPKiPKN5amrex4RealEPKiPKiPN5amrex4RealEPKiPKi">
+<span id="_CPPv312ca_srctoprimPKiPKiPKN5amrex4RealEPKiPKiPKN5amrex4RealEPKiPKiPKN5amrex4RealEPKiPKiPN5amrex4RealEPKiPKi"></span><span id="_CPPv212ca_srctoprimPKiPKiPKN5amrex4RealEPKiPKiPKN5amrex4RealEPKiPKiPKN5amrex4RealEPKiPKiPN5amrex4RealEPKiPKi"></span><span id="ca_srctoprim__iCP.iCP.amrex::RealCP.iCP.iCP.amrex::RealCP.iCP.iCP.amrex::RealCP.iCP.iCP.amrex::RealP.iCP.iCP"></span><span class="target" id="Castro__hydro__F_8H_1a052bd62ee39249744e77539ef0ffbcaf"></span>void <code class="descname">ca_srctoprim</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> amrex::Real *<em>q</em>, <em class="property">const</em> int *<em>q_lo</em>, <em class="property">const</em> int *<em>q_hi</em>, <em class="property">const</em> amrex::Real *<em>qaux</em>, <em class="property">const</em> int *<em>qa_lo</em>, <em class="property">const</em> int *<em>qa_hi</em>, <em class="property">const</em> amrex::Real *<em>src</em>, <em class="property">const</em> int *<em>src_lo</em>, <em class="property">const</em> int *<em>src_hi</em>, amrex::Real *<em>srQ</em>, <em class="property">const</em> int *<em>srQ_lo</em>, <em class="property">const</em> int *<em>srQ_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv412ca_srctoprimPKiPKiPKN5amrex4RealEPKiPKiPKN5amrex4RealEPKiPKiPKN5amrex4RealEPKiPKiPN5amrex4RealEPKiPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv414ca_compute_cflPKiPKiK21BL_FORT_FAB_ARG_ANYDqK24BL_FORT_FAB_ARG_ANYDqauxKN5amrex4RealEPKN5amrex4RealEPN5amrex4RealEKi">
+<span id="_CPPv314ca_compute_cflPKiPKiK21BL_FORT_FAB_ARG_ANYDqK24BL_FORT_FAB_ARG_ANYDqauxKN5amrex4RealEPKN5amrex4RealEPN5amrex4RealEKi"></span><span id="_CPPv214ca_compute_cflPKiPKiK21BL_FORT_FAB_ARG_ANYDqK24BL_FORT_FAB_ARG_ANYDqauxKN5amrex4RealEPKN5amrex4RealEPN5amrex4RealEKi"></span><span id="ca_compute_cfl__iCP.iCP.BL_FORT_FAB_ARG_ANYDqC.BL_FORT_FAB_ARG_ANYDqauxC.amrex::RealC.amrex::RealCP.amrex::RealP.iC"></span><span class="target" id="Castro__hydro__F_8H_1a9302c5f096555e10de909d473bfedd8c"></span>void <code class="descname">ca_compute_cfl</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> BL_FORT_FAB_ARG_ANYDq, <em class="property">const</em> BL_FORT_FAB_ARG_ANYDqaux, <em class="property">const</em> amrex::Real <em>dt</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, amrex::Real *<em>courno</em>, <em class="property">const</em> int <em>verbose</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414ca_compute_cflPKiPKiK21BL_FORT_FAB_ARG_ANYDqK24BL_FORT_FAB_ARG_ANYDqauxKN5amrex4RealEPKN5amrex4RealEPN5amrex4RealEKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv44divuPKiPKiF18BL_FORT_FAB_ARG_3D1qEPKN5amrex4RealEF18BL_FORT_FAB_ARG_3D3divE">
+<span id="_CPPv34divuPKiPKiF18BL_FORT_FAB_ARG_3D1qEPKN5amrex4RealEF18BL_FORT_FAB_ARG_3D3divE"></span><span id="_CPPv24divuPKiPKiF18BL_FORT_FAB_ARG_3D1qEPKN5amrex4RealEF18BL_FORT_FAB_ARG_3D3divE"></span><span class="target" id="Castro__hydro__F_8H_1a03aa2f217e12d0c72cb85ccbf3e8d78d"></span>void <code class="descname">divu</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>q<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real *<em>dx</em>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>div<span class="sig-paren">)</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv44divuPKiPKiF18BL_FORT_FAB_ARG_3D1qEPKN5amrex4RealEF18BL_FORT_FAB_ARG_3D3divE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv411ca_uflattenPKiPKiK19BL_FORT_FAB_ARG_3DqF18BL_FORT_FAB_ARG_3D5flatnEi">
+<span id="_CPPv311ca_uflattenPKiPKiK19BL_FORT_FAB_ARG_3DqF18BL_FORT_FAB_ARG_3D5flatnEi"></span><span id="_CPPv211ca_uflattenPKiPKiK19BL_FORT_FAB_ARG_3DqF18BL_FORT_FAB_ARG_3D5flatnEi"></span><span class="target" id="Castro__hydro__F_8H_1ac3673dadeafc2d938037afa033026a4d"></span>void <code class="descname">ca_uflatten</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dq, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>flatn<span class="sig-paren">)</span>, int <em>pres_comp</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv411ca_uflattenPKiPKiK19BL_FORT_FAB_ARG_3DqF18BL_FORT_FAB_ARG_3D5flatnEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv414ca_rad_flattenPKiPKiK19BL_FORT_FAB_ARG_3DqF18BL_FORT_FAB_ARG_3D5flatnEF18BL_FORT_FAB_ARG_3D5flatgE">
+<span id="_CPPv314ca_rad_flattenPKiPKiK19BL_FORT_FAB_ARG_3DqF18BL_FORT_FAB_ARG_3D5flatnEF18BL_FORT_FAB_ARG_3D5flatgE"></span><span id="_CPPv214ca_rad_flattenPKiPKiK19BL_FORT_FAB_ARG_3DqF18BL_FORT_FAB_ARG_3D5flatnEF18BL_FORT_FAB_ARG_3D5flatgE"></span><span class="target" id="Castro__hydro__F_8H_1a9a65aa20d1f1daecd355e7f658364ec6"></span>void <code class="descname">ca_rad_flatten</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dq, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>flatn<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>flatg<span class="sig-paren">)</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414ca_rad_flattenPKiPKiK19BL_FORT_FAB_ARG_3DqF18BL_FORT_FAB_ARG_3D5flatnEF18BL_FORT_FAB_ARG_3D5flatgE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv410ctu_consupPKiPKiK25BL_FORT_FAB_ARG_3DSborderK19BL_FORT_FAB_ARG_3DqK21BL_FORT_FAB_ARG_3DshkF18BL_FORT_FAB_ARG_3D5S_newEF18BL_FORT_FAB_ARG_3D12hydro_sourceEK23BL_FORT_FAB_ARG_3Dflux0K21BL_FORT_FAB_ARG_3Dqe0K23BL_FORT_FAB_ARG_3Darea0K24BL_FORT_FAB_ARG_3DvolumeK23BL_FORT_FAB_ARG_3DpdivuPKN5amrex4RealEKN5amrex4RealE">
+<span id="_CPPv310ctu_consupPKiPKiK25BL_FORT_FAB_ARG_3DSborderK19BL_FORT_FAB_ARG_3DqK21BL_FORT_FAB_ARG_3DshkF18BL_FORT_FAB_ARG_3D5S_newEF18BL_FORT_FAB_ARG_3D12hydro_sourceEK23BL_FORT_FAB_ARG_3Dflux0K21BL_FORT_FAB_ARG_3Dqe0K23BL_FORT_FAB_ARG_3Darea0K24BL_FORT_FAB_ARG_3DvolumeK23BL_FORT_FAB_ARG_3DpdivuPKN5amrex4RealEKN5amrex4RealE"></span><span id="_CPPv210ctu_consupPKiPKiK25BL_FORT_FAB_ARG_3DSborderK19BL_FORT_FAB_ARG_3DqK21BL_FORT_FAB_ARG_3DshkF18BL_FORT_FAB_ARG_3D5S_newEF18BL_FORT_FAB_ARG_3D12hydro_sourceEK23BL_FORT_FAB_ARG_3Dflux0K21BL_FORT_FAB_ARG_3Dqe0K23BL_FORT_FAB_ARG_3Darea0K24BL_FORT_FAB_ARG_3DvolumeK23BL_FORT_FAB_ARG_3DpdivuPKN5amrex4RealEKN5amrex4RealE"></span><span class="target" id="Castro__hydro__F_8H_1a1c610242187641162063c5fd5ee63536"></span>void <code class="descname">ctu_consup</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3DSborder, <em class="property">const</em> BL_FORT_FAB_ARG_3Dq, <em class="property">const</em> BL_FORT_FAB_ARG_3Dshk, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>S_new<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>hydro_source<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dflux0, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqe0, <em class="property">const</em> BL_FORT_FAB_ARG_3Darea0, <em class="property">const</em> BL_FORT_FAB_ARG_3Dvolume, <em class="property">const</em> BL_FORT_FAB_ARG_3Dpdivu, <em class="property">const</em> amrex::Real *<em>dx</em>, <em class="property">const</em> amrex::Real <em>dt</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv410ctu_consupPKiPKiK25BL_FORT_FAB_ARG_3DSborderK19BL_FORT_FAB_ARG_3DqK21BL_FORT_FAB_ARG_3DshkF18BL_FORT_FAB_ARG_3D5S_newEF18BL_FORT_FAB_ARG_3D12hydro_sourceEK23BL_FORT_FAB_ARG_3Dflux0K21BL_FORT_FAB_ARG_3Dqe0K23BL_FORT_FAB_ARG_3Darea0K24BL_FORT_FAB_ARG_3DvolumeK23BL_FORT_FAB_ARG_3DpdivuPKN5amrex4RealEKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv410scale_fluxPKiPKiF18BL_FORT_FAB_ARG_3D4fluxEF18BL_FORT_FAB_ARG_3D4areaEKN5amrex4RealE">
+<span id="_CPPv310scale_fluxPKiPKiF18BL_FORT_FAB_ARG_3D4fluxEF18BL_FORT_FAB_ARG_3D4areaEKN5amrex4RealE"></span><span id="_CPPv210scale_fluxPKiPKiF18BL_FORT_FAB_ARG_3D4fluxEF18BL_FORT_FAB_ARG_3D4areaEKN5amrex4RealE"></span><span class="target" id="Castro__hydro__F_8H_1a0c6c97f314e805740fe76705816fae9d"></span>void <code class="descname">scale_flux</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>flux<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>area<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real <em>dt</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv410scale_fluxPKiPKiF18BL_FORT_FAB_ARG_3D4fluxEF18BL_FORT_FAB_ARG_3D4areaEKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv414scale_rad_fluxPKiPKiF18BL_FORT_FAB_ARG_3D8rad_fluxEF18BL_FORT_FAB_ARG_3D4areaEKN5amrex4RealE">
+<span id="_CPPv314scale_rad_fluxPKiPKiF18BL_FORT_FAB_ARG_3D8rad_fluxEF18BL_FORT_FAB_ARG_3D4areaEKN5amrex4RealE"></span><span id="_CPPv214scale_rad_fluxPKiPKiF18BL_FORT_FAB_ARG_3D8rad_fluxEF18BL_FORT_FAB_ARG_3D4areaEKN5amrex4RealE"></span><span class="target" id="Castro__hydro__F_8H_1a3594ffebb17bd20da2c25e1caf11681e"></span>void <code class="descname">scale_rad_flux</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>rad_flux<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>area<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real <em>dt</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414scale_rad_fluxPKiPKiF18BL_FORT_FAB_ARG_3D8rad_fluxEF18BL_FORT_FAB_ARG_3D4areaEKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv420ca_track_grid_lossesPKiPKiK23BL_FORT_FAB_ARG_3Dflux0PN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealE">
+<span id="_CPPv320ca_track_grid_lossesPKiPKiK23BL_FORT_FAB_ARG_3Dflux0PN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealE"></span><span id="_CPPv220ca_track_grid_lossesPKiPKiK23BL_FORT_FAB_ARG_3Dflux0PN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealE"></span><span id="ca_track_grid_losses__iCP.iCP.BL_FORT_FAB_ARG_3Dflux0C.amrex::RealP.amrex::RealP.amrex::RealP.amrex::RealP.amrex::RealP.amrex::RealP.amrex::RealP.amrex::RealP"></span><span class="target" id="Castro__hydro__F_8H_1ada276e41f5f91926ef210873451d1054"></span>void <code class="descname">ca_track_grid_losses</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dflux0, amrex::Real *<em>mass_lost</em>, amrex::Real *<em>xmom_lost</em>, amrex::Real *<em>ymom_lost</em>, amrex::Real *<em>zmom_lost</em>, amrex::Real *<em>eden_lost</em>, amrex::Real *<em>xang_lost</em>, amrex::Real *<em>yang_lost</em>, amrex::Real *<em>zang_lost</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv420ca_track_grid_lossesPKiPKiK23BL_FORT_FAB_ARG_3Dflux0PN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv419cmpflx_plus_godunovPKiPKiK20BL_FORT_FAB_ARG_3DqlK20BL_FORT_FAB_ARG_3DqrKiKiF18BL_FORT_FAB_ARG_3D4fluxEF18BL_FORT_FAB_ARG_3D5q_intEF18BL_FORT_FAB_ARG_3D2qeEK22BL_FORT_FAB_ARG_3DqauxK21BL_FORT_FAB_ARG_3DshkKiPKiPKi">
+<span id="_CPPv319cmpflx_plus_godunovPKiPKiK20BL_FORT_FAB_ARG_3DqlK20BL_FORT_FAB_ARG_3DqrKiKiF18BL_FORT_FAB_ARG_3D4fluxEF18BL_FORT_FAB_ARG_3D5q_intEF18BL_FORT_FAB_ARG_3D2qeEK22BL_FORT_FAB_ARG_3DqauxK21BL_FORT_FAB_ARG_3DshkKiPKiPKi"></span><span id="_CPPv219cmpflx_plus_godunovPKiPKiK20BL_FORT_FAB_ARG_3DqlK20BL_FORT_FAB_ARG_3DqrKiKiF18BL_FORT_FAB_ARG_3D4fluxEF18BL_FORT_FAB_ARG_3D5q_intEF18BL_FORT_FAB_ARG_3D2qeEK22BL_FORT_FAB_ARG_3DqauxK21BL_FORT_FAB_ARG_3DshkKiPKiPKi"></span><span class="target" id="Castro__hydro__F_8H_1a01720ce41eeba362882f75f692ca1ded"></span>void <code class="descname">cmpflx_plus_godunov</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dql, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqr, <em class="property">const</em> int <em>nc</em>, <em class="property">const</em> int <em>comp</em>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>flux<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>q_int<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qe<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqaux, <em class="property">const</em> BL_FORT_FAB_ARG_3Dshk, <em class="property">const</em> int <em>idir</em>, <em class="property">const</em> int *<em>domlo</em>, <em class="property">const</em> int *<em>domhi</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv419cmpflx_plus_godunovPKiPKiK20BL_FORT_FAB_ARG_3DqlK20BL_FORT_FAB_ARG_3DqrKiKiF18BL_FORT_FAB_ARG_3D4fluxEF18BL_FORT_FAB_ARG_3D5q_intEF18BL_FORT_FAB_ARG_3D2qeEK22BL_FORT_FAB_ARG_3DqauxK21BL_FORT_FAB_ARG_3DshkKiPKiPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv48apply_avPKiPKiKiPKN5amrex4RealEF18BL_FORT_FAB_ARG_3D3divEF18BL_FORT_FAB_ARG_3D7SborderEF18BL_FORT_FAB_ARG_3D4fluxE">
+<span id="_CPPv38apply_avPKiPKiKiPKN5amrex4RealEF18BL_FORT_FAB_ARG_3D3divEF18BL_FORT_FAB_ARG_3D7SborderEF18BL_FORT_FAB_ARG_3D4fluxE"></span><span id="_CPPv28apply_avPKiPKiKiPKN5amrex4RealEF18BL_FORT_FAB_ARG_3D3divEF18BL_FORT_FAB_ARG_3D7SborderEF18BL_FORT_FAB_ARG_3D4fluxE"></span><span class="target" id="Castro__hydro__F_8H_1ad8317f9a3d4d4ebce6c6b985163372cd"></span>void <code class="descname">apply_av</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> int <em>idir</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>div<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>Sborder<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>flux<span class="sig-paren">)</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv48apply_avPKiPKiKiPKN5amrex4RealEF18BL_FORT_FAB_ARG_3D3divEF18BL_FORT_FAB_ARG_3D7SborderEF18BL_FORT_FAB_ARG_3D4fluxE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv432limit_hydro_fluxes_on_small_densPKiPKiKiF18BL_FORT_FAB_ARG_3D7SborderEF18BL_FORT_FAB_ARG_3D1qEF18BL_FORT_FAB_ARG_3D6volumeEF18BL_FORT_FAB_ARG_3D4fluxEF18BL_FORT_FAB_ARG_3D4areaEKN5amrex4RealEPKN5amrex4RealE">
+<span id="_CPPv332limit_hydro_fluxes_on_small_densPKiPKiKiF18BL_FORT_FAB_ARG_3D7SborderEF18BL_FORT_FAB_ARG_3D1qEF18BL_FORT_FAB_ARG_3D6volumeEF18BL_FORT_FAB_ARG_3D4fluxEF18BL_FORT_FAB_ARG_3D4areaEKN5amrex4RealEPKN5amrex4RealE"></span><span id="_CPPv232limit_hydro_fluxes_on_small_densPKiPKiKiF18BL_FORT_FAB_ARG_3D7SborderEF18BL_FORT_FAB_ARG_3D1qEF18BL_FORT_FAB_ARG_3D6volumeEF18BL_FORT_FAB_ARG_3D4fluxEF18BL_FORT_FAB_ARG_3D4areaEKN5amrex4RealEPKN5amrex4RealE"></span><span class="target" id="Castro__hydro__F_8H_1a817a77a95ace73377f62880b9c521c94"></span>void <code class="descname">limit_hydro_fluxes_on_small_dens</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> int <em>idir</em>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>Sborder<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>q<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>volume<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>flux<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>area<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real <em>dt</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv432limit_hydro_fluxes_on_small_densPKiPKiKiF18BL_FORT_FAB_ARG_3D7SborderEF18BL_FORT_FAB_ARG_3D1qEF18BL_FORT_FAB_ARG_3D6volumeEF18BL_FORT_FAB_ARG_3D4fluxEF18BL_FORT_FAB_ARG_3D4areaEKN5amrex4RealEPKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv424normalize_species_fluxesPKiPKiF18BL_FORT_FAB_ARG_3D4fluxE">
+<span id="_CPPv324normalize_species_fluxesPKiPKiF18BL_FORT_FAB_ARG_3D4fluxE"></span><span id="_CPPv224normalize_species_fluxesPKiPKiF18BL_FORT_FAB_ARG_3D4fluxE"></span><span class="target" id="Castro__hydro__F_8H_1a6733ca1fa5e8973f34675fbcc6ef4c5e"></span>void <code class="descname">normalize_species_fluxes</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>flux<span class="sig-paren">)</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv424normalize_species_fluxesPKiPKiF18BL_FORT_FAB_ARG_3D4fluxE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv413ca_ctu_updateA_KiA_KiPKiKN5amrex4RealEA_KiA_KiK23BL_FORT_FAB_ARG_3DstateF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D1qEK22BL_FORT_FAB_ARG_3DqauxK23BL_FORT_FAB_ARG_3Dsrc_qF18BL_FORT_FAB_ARG_3D6updateEA_KN5amrex4RealEKN5amrex4RealEF6D_DECLF18BL_FORT_FAB_ARG_3D5xfluxEF18BL_FORT_FAB_ARG_3D5yfluxEF18BL_FORT_FAB_ARG_3D5zfluxEEF6D_DECLFK18BL_FORT_FAB_ARG_3D5xareaEFK18BL_FORT_FAB_ARG_3D5yareaEFK18BL_FORT_FAB_ARG_3D5zareaEEF18BL_FORT_FAB_ARG_3D7pradialEK23BL_FORT_FAB_ARG_3DdlogaK24BL_FORT_FAB_ARG_3DvolumeRN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealE">
+<span id="_CPPv313ca_ctu_updateA_KiA_KiPKiKN5amrex4RealEA_KiA_KiK23BL_FORT_FAB_ARG_3DstateF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D1qEK22BL_FORT_FAB_ARG_3DqauxK23BL_FORT_FAB_ARG_3Dsrc_qF18BL_FORT_FAB_ARG_3D6updateEA_KN5amrex4RealEKN5amrex4RealEF6D_DECLF18BL_FORT_FAB_ARG_3D5xfluxEF18BL_FORT_FAB_ARG_3D5yfluxEF18BL_FORT_FAB_ARG_3D5zfluxEEF6D_DECLFK18BL_FORT_FAB_ARG_3D5xareaEFK18BL_FORT_FAB_ARG_3D5yareaEFK18BL_FORT_FAB_ARG_3D5zareaEEF18BL_FORT_FAB_ARG_3D7pradialEK23BL_FORT_FAB_ARG_3DdlogaK24BL_FORT_FAB_ARG_3DvolumeRN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealE"></span><span id="_CPPv213ca_ctu_updateA_KiA_KiPKiKN5amrex4RealEA_KiA_KiK23BL_FORT_FAB_ARG_3DstateF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D1qEK22BL_FORT_FAB_ARG_3DqauxK23BL_FORT_FAB_ARG_3Dsrc_qF18BL_FORT_FAB_ARG_3D6updateEA_KN5amrex4RealEKN5amrex4RealEF6D_DECLF18BL_FORT_FAB_ARG_3D5xfluxEF18BL_FORT_FAB_ARG_3D5yfluxEF18BL_FORT_FAB_ARG_3D5zfluxEEF6D_DECLFK18BL_FORT_FAB_ARG_3D5xareaEFK18BL_FORT_FAB_ARG_3D5yareaEFK18BL_FORT_FAB_ARG_3D5zareaEEF18BL_FORT_FAB_ARG_3D7pradialEK23BL_FORT_FAB_ARG_3DdlogaK24BL_FORT_FAB_ARG_3DvolumeRN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealE"></span><span class="target" id="Castro__hydro__F_8H_1a2b76ca4a524174a730dcdf4d58c293af"></span>void <code class="descname">ca_ctu_update</code><span class="sig-paren">(</span><em class="property">const</em> int <em>lo</em>[], <em class="property">const</em> int <em>hi</em>[], <em class="property">const</em> int *<em>is_finest_level</em>, <em class="property">const</em> amrex::Real <em>time</em>, <em class="property">const</em> int <em>domlo</em>[], <em class="property">const</em> int <em>domhi</em>[], <em class="property">const</em> BL_FORT_FAB_ARG_3Dstate, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>stateout<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>q<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqaux, <em class="property">const</em> BL_FORT_FAB_ARG_3Dsrc_q, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>update<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real <em>dx</em>[], <em class="property">const</em> amrex::Real <em>dt</em>, D_DECL<span class="sig-paren">(</span>BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>xflux<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>yflux<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>zflux<span class="sig-paren">)</span><span class="sig-paren">)</span>, D_DECL<span class="sig-paren">(</span><em class="property">const</em> BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>xarea<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>yarea<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>zarea<span class="sig-paren">)</span><span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>pradial<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Ddloga, <em class="property">const</em> BL_FORT_FAB_ARG_3Dvolume, amrex::Real &amp;<em>mass_lost</em>, amrex::Real &amp;<em>xmom_lost</em>, amrex::Real &amp;<em>ymom_lost</em>, amrex::Real &amp;<em>zmom_lost</em>, amrex::Real &amp;<em>eden_lost</em>, amrex::Real &amp;<em>xang_lost</em>, amrex::Real &amp;<em>yang_lost</em>, amrex::Real &amp;<em>zang_lost</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv413ca_ctu_updateA_KiA_KiPKiKN5amrex4RealEA_KiA_KiK23BL_FORT_FAB_ARG_3DstateF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D1qEK22BL_FORT_FAB_ARG_3DqauxK23BL_FORT_FAB_ARG_3Dsrc_qF18BL_FORT_FAB_ARG_3D6updateEA_KN5amrex4RealEKN5amrex4RealEF6D_DECLF18BL_FORT_FAB_ARG_3D5xfluxEF18BL_FORT_FAB_ARG_3D5yfluxEF18BL_FORT_FAB_ARG_3D5zfluxEEF6D_DECLFK18BL_FORT_FAB_ARG_3D5xareaEFK18BL_FORT_FAB_ARG_3D5yareaEFK18BL_FORT_FAB_ARG_3D5zareaEEF18BL_FORT_FAB_ARG_3D7pradialEK23BL_FORT_FAB_ARG_3DdlogaK24BL_FORT_FAB_ARG_3DvolumeRN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv414ctu_ppm_statesPKiPKiPKiPKiK19BL_FORT_FAB_ARG_3DqK23BL_FORT_FAB_ARG_3DflatnK22BL_FORT_FAB_ARG_3DqauxK22BL_FORT_FAB_ARG_3DsrcQK21BL_FORT_FAB_ARG_3DshkF18BL_FORT_FAB_ARG_3D2IpEF18BL_FORT_FAB_ARG_3D2ImEF18BL_FORT_FAB_ARG_3D6Ip_srcEF18BL_FORT_FAB_ARG_3D6Im_srcEF18BL_FORT_FAB_ARG_3D5Ip_gcEF18BL_FORT_FAB_ARG_3D5Im_gcEF18BL_FORT_FAB_ARG_3D2smEF18BL_FORT_FAB_ARG_3D2spEF18BL_FORT_FAB_ARG_3D3qxmEF18BL_FORT_FAB_ARG_3D3qxpEPKN5amrex4RealEKN5amrex4RealEK23BL_FORT_FAB_ARG_3DdlogaPKiPKi">
+<span id="_CPPv314ctu_ppm_statesPKiPKiPKiPKiK19BL_FORT_FAB_ARG_3DqK23BL_FORT_FAB_ARG_3DflatnK22BL_FORT_FAB_ARG_3DqauxK22BL_FORT_FAB_ARG_3DsrcQK21BL_FORT_FAB_ARG_3DshkF18BL_FORT_FAB_ARG_3D2IpEF18BL_FORT_FAB_ARG_3D2ImEF18BL_FORT_FAB_ARG_3D6Ip_srcEF18BL_FORT_FAB_ARG_3D6Im_srcEF18BL_FORT_FAB_ARG_3D5Ip_gcEF18BL_FORT_FAB_ARG_3D5Im_gcEF18BL_FORT_FAB_ARG_3D2smEF18BL_FORT_FAB_ARG_3D2spEF18BL_FORT_FAB_ARG_3D3qxmEF18BL_FORT_FAB_ARG_3D3qxpEPKN5amrex4RealEKN5amrex4RealEK23BL_FORT_FAB_ARG_3DdlogaPKiPKi"></span><span id="_CPPv214ctu_ppm_statesPKiPKiPKiPKiK19BL_FORT_FAB_ARG_3DqK23BL_FORT_FAB_ARG_3DflatnK22BL_FORT_FAB_ARG_3DqauxK22BL_FORT_FAB_ARG_3DsrcQK21BL_FORT_FAB_ARG_3DshkF18BL_FORT_FAB_ARG_3D2IpEF18BL_FORT_FAB_ARG_3D2ImEF18BL_FORT_FAB_ARG_3D6Ip_srcEF18BL_FORT_FAB_ARG_3D6Im_srcEF18BL_FORT_FAB_ARG_3D5Ip_gcEF18BL_FORT_FAB_ARG_3D5Im_gcEF18BL_FORT_FAB_ARG_3D2smEF18BL_FORT_FAB_ARG_3D2spEF18BL_FORT_FAB_ARG_3D3qxmEF18BL_FORT_FAB_ARG_3D3qxpEPKN5amrex4RealEKN5amrex4RealEK23BL_FORT_FAB_ARG_3DdlogaPKiPKi"></span><span class="target" id="Castro__hydro__F_8H_1a53937bc9fb6ca6de95ecf40bcf1cb85f"></span>void <code class="descname">ctu_ppm_states</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> int *<em>vlo</em>, <em class="property">const</em> int *<em>vhi</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dq, <em class="property">const</em> BL_FORT_FAB_ARG_3Dflatn, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqaux, <em class="property">const</em> BL_FORT_FAB_ARG_3DsrcQ, <em class="property">const</em> BL_FORT_FAB_ARG_3Dshk, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>Ip<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>Im<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>Ip_src<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>Im_src<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>Ip_gc<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>Im_gc<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>sm<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>sp<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qxm<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qxp<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real *<em>dx</em>, <em class="property">const</em> amrex::Real <em>dt</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Ddloga, <em class="property">const</em> int *<em>domlo</em>, <em class="property">const</em> int *<em>domhi</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414ctu_ppm_statesPKiPKiPKiPKiK19BL_FORT_FAB_ARG_3DqK23BL_FORT_FAB_ARG_3DflatnK22BL_FORT_FAB_ARG_3DqauxK22BL_FORT_FAB_ARG_3DsrcQK21BL_FORT_FAB_ARG_3DshkF18BL_FORT_FAB_ARG_3D2IpEF18BL_FORT_FAB_ARG_3D2ImEF18BL_FORT_FAB_ARG_3D6Ip_srcEF18BL_FORT_FAB_ARG_3D6Im_srcEF18BL_FORT_FAB_ARG_3D5Ip_gcEF18BL_FORT_FAB_ARG_3D5Im_gcEF18BL_FORT_FAB_ARG_3D2smEF18BL_FORT_FAB_ARG_3D2spEF18BL_FORT_FAB_ARG_3D3qxmEF18BL_FORT_FAB_ARG_3D3qxpEPKN5amrex4RealEKN5amrex4RealEK23BL_FORT_FAB_ARG_3DdlogaPKiPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv414ctu_plm_statesPKiPKiPKiPKiK19BL_FORT_FAB_ARG_3DqK23BL_FORT_FAB_ARG_3DflatnK22BL_FORT_FAB_ARG_3DqauxK22BL_FORT_FAB_ARG_3DsrcQK21BL_FORT_FAB_ARG_3DshkF18BL_FORT_FAB_ARG_3D2dqEF18BL_FORT_FAB_ARG_3D3qxmEF18BL_FORT_FAB_ARG_3D3qxpEPKN5amrex4RealEKN5amrex4RealEK23BL_FORT_FAB_ARG_3DdlogaPKiPKi">
+<span id="_CPPv314ctu_plm_statesPKiPKiPKiPKiK19BL_FORT_FAB_ARG_3DqK23BL_FORT_FAB_ARG_3DflatnK22BL_FORT_FAB_ARG_3DqauxK22BL_FORT_FAB_ARG_3DsrcQK21BL_FORT_FAB_ARG_3DshkF18BL_FORT_FAB_ARG_3D2dqEF18BL_FORT_FAB_ARG_3D3qxmEF18BL_FORT_FAB_ARG_3D3qxpEPKN5amrex4RealEKN5amrex4RealEK23BL_FORT_FAB_ARG_3DdlogaPKiPKi"></span><span id="_CPPv214ctu_plm_statesPKiPKiPKiPKiK19BL_FORT_FAB_ARG_3DqK23BL_FORT_FAB_ARG_3DflatnK22BL_FORT_FAB_ARG_3DqauxK22BL_FORT_FAB_ARG_3DsrcQK21BL_FORT_FAB_ARG_3DshkF18BL_FORT_FAB_ARG_3D2dqEF18BL_FORT_FAB_ARG_3D3qxmEF18BL_FORT_FAB_ARG_3D3qxpEPKN5amrex4RealEKN5amrex4RealEK23BL_FORT_FAB_ARG_3DdlogaPKiPKi"></span><span class="target" id="Castro__hydro__F_8H_1a33ffdd70706fbf36b47f5986fe98dd3c"></span>void <code class="descname">ctu_plm_states</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> int *<em>vlo</em>, <em class="property">const</em> int *<em>vhi</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dq, <em class="property">const</em> BL_FORT_FAB_ARG_3Dflatn, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqaux, <em class="property">const</em> BL_FORT_FAB_ARG_3DsrcQ, <em class="property">const</em> BL_FORT_FAB_ARG_3Dshk, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>dq<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qxm<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qxp<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real *<em>dx</em>, <em class="property">const</em> amrex::Real <em>dt</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Ddloga, <em class="property">const</em> int *<em>domlo</em>, <em class="property">const</em> int *<em>domhi</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414ctu_plm_statesPKiPKiPKiPKiK19BL_FORT_FAB_ARG_3DqK23BL_FORT_FAB_ARG_3DflatnK22BL_FORT_FAB_ARG_3DqauxK22BL_FORT_FAB_ARG_3DsrcQK21BL_FORT_FAB_ARG_3DshkF18BL_FORT_FAB_ARG_3D2dqEF18BL_FORT_FAB_ARG_3D3qxmEF18BL_FORT_FAB_ARG_3D3qxpEPKN5amrex4RealEKN5amrex4RealEK23BL_FORT_FAB_ARG_3DdlogaPKiPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv417transx_on_ystatesPKiPKiK21BL_FORT_FAB_ARG_3DqymF18BL_FORT_FAB_ARG_3D4qymoEK21BL_FORT_FAB_ARG_3DqypF18BL_FORT_FAB_ARG_3D4qypoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfxK20BL_FORT_FAB_ARG_3DqxKN5amrex4RealEKN5amrex4RealE">
+<span id="_CPPv317transx_on_ystatesPKiPKiK21BL_FORT_FAB_ARG_3DqymF18BL_FORT_FAB_ARG_3D4qymoEK21BL_FORT_FAB_ARG_3DqypF18BL_FORT_FAB_ARG_3D4qypoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfxK20BL_FORT_FAB_ARG_3DqxKN5amrex4RealEKN5amrex4RealE"></span><span id="_CPPv217transx_on_ystatesPKiPKiK21BL_FORT_FAB_ARG_3DqymF18BL_FORT_FAB_ARG_3D4qymoEK21BL_FORT_FAB_ARG_3DqypF18BL_FORT_FAB_ARG_3D4qypoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfxK20BL_FORT_FAB_ARG_3DqxKN5amrex4RealEKN5amrex4RealE"></span><span class="target" id="Castro__hydro__F_8H_1a00d7ab22b7d44827e093504aaf3fdee8"></span>void <code class="descname">transx_on_ystates</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqym, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qymo<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqyp, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qypo<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqaux, <em class="property">const</em> BL_FORT_FAB_ARG_3Dfx, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqx, <em class="property">const</em> amrex::Real <em>hdt</em>, <em class="property">const</em> amrex::Real <em>cdtdx</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv417transx_on_ystatesPKiPKiK21BL_FORT_FAB_ARG_3DqymF18BL_FORT_FAB_ARG_3D4qymoEK21BL_FORT_FAB_ARG_3DqypF18BL_FORT_FAB_ARG_3D4qypoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfxK20BL_FORT_FAB_ARG_3DqxKN5amrex4RealEKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv417transx_on_zstatesPKiPKiK21BL_FORT_FAB_ARG_3DqzmF18BL_FORT_FAB_ARG_3D4qzmoEK21BL_FORT_FAB_ARG_3DqzpF18BL_FORT_FAB_ARG_3D4qzpoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfxK20BL_FORT_FAB_ARG_3DqxKN5amrex4RealEKN5amrex4RealE">
+<span id="_CPPv317transx_on_zstatesPKiPKiK21BL_FORT_FAB_ARG_3DqzmF18BL_FORT_FAB_ARG_3D4qzmoEK21BL_FORT_FAB_ARG_3DqzpF18BL_FORT_FAB_ARG_3D4qzpoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfxK20BL_FORT_FAB_ARG_3DqxKN5amrex4RealEKN5amrex4RealE"></span><span id="_CPPv217transx_on_zstatesPKiPKiK21BL_FORT_FAB_ARG_3DqzmF18BL_FORT_FAB_ARG_3D4qzmoEK21BL_FORT_FAB_ARG_3DqzpF18BL_FORT_FAB_ARG_3D4qzpoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfxK20BL_FORT_FAB_ARG_3DqxKN5amrex4RealEKN5amrex4RealE"></span><span class="target" id="Castro__hydro__F_8H_1a009e0ea29c455cc383a434b9bc4d5f1a"></span>void <code class="descname">transx_on_zstates</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqzm, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qzmo<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqzp, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qzpo<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqaux, <em class="property">const</em> BL_FORT_FAB_ARG_3Dfx, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqx, <em class="property">const</em> amrex::Real <em>hdt</em>, <em class="property">const</em> amrex::Real <em>cdtdx</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv417transx_on_zstatesPKiPKiK21BL_FORT_FAB_ARG_3DqzmF18BL_FORT_FAB_ARG_3D4qzmoEK21BL_FORT_FAB_ARG_3DqzpF18BL_FORT_FAB_ARG_3D4qzpoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfxK20BL_FORT_FAB_ARG_3DqxKN5amrex4RealEKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv417transy_on_xstatesPKiPKiK21BL_FORT_FAB_ARG_3DqxmF18BL_FORT_FAB_ARG_3D4qxmoEK21BL_FORT_FAB_ARG_3DqxpF18BL_FORT_FAB_ARG_3D4qxpoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfyK20BL_FORT_FAB_ARG_3DqyKN5amrex4RealE">
+<span id="_CPPv317transy_on_xstatesPKiPKiK21BL_FORT_FAB_ARG_3DqxmF18BL_FORT_FAB_ARG_3D4qxmoEK21BL_FORT_FAB_ARG_3DqxpF18BL_FORT_FAB_ARG_3D4qxpoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfyK20BL_FORT_FAB_ARG_3DqyKN5amrex4RealE"></span><span id="_CPPv217transy_on_xstatesPKiPKiK21BL_FORT_FAB_ARG_3DqxmF18BL_FORT_FAB_ARG_3D4qxmoEK21BL_FORT_FAB_ARG_3DqxpF18BL_FORT_FAB_ARG_3D4qxpoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfyK20BL_FORT_FAB_ARG_3DqyKN5amrex4RealE"></span><span class="target" id="Castro__hydro__F_8H_1a8aa3b70a53ae40c6933a72086036faa4"></span>void <code class="descname">transy_on_xstates</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqxm, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qxmo<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqxp, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qxpo<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqaux, <em class="property">const</em> BL_FORT_FAB_ARG_3Dfy, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqy, <em class="property">const</em> amrex::Real <em>cdtdy</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv417transy_on_xstatesPKiPKiK21BL_FORT_FAB_ARG_3DqxmF18BL_FORT_FAB_ARG_3D4qxmoEK21BL_FORT_FAB_ARG_3DqxpF18BL_FORT_FAB_ARG_3D4qxpoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfyK20BL_FORT_FAB_ARG_3DqyKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv417transy_on_zstatesPKiPKiK21BL_FORT_FAB_ARG_3DqzmF18BL_FORT_FAB_ARG_3D4qzmoEK21BL_FORT_FAB_ARG_3DqzpF18BL_FORT_FAB_ARG_3D4qzpoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfyK20BL_FORT_FAB_ARG_3DqyKN5amrex4RealE">
+<span id="_CPPv317transy_on_zstatesPKiPKiK21BL_FORT_FAB_ARG_3DqzmF18BL_FORT_FAB_ARG_3D4qzmoEK21BL_FORT_FAB_ARG_3DqzpF18BL_FORT_FAB_ARG_3D4qzpoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfyK20BL_FORT_FAB_ARG_3DqyKN5amrex4RealE"></span><span id="_CPPv217transy_on_zstatesPKiPKiK21BL_FORT_FAB_ARG_3DqzmF18BL_FORT_FAB_ARG_3D4qzmoEK21BL_FORT_FAB_ARG_3DqzpF18BL_FORT_FAB_ARG_3D4qzpoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfyK20BL_FORT_FAB_ARG_3DqyKN5amrex4RealE"></span><span class="target" id="Castro__hydro__F_8H_1a137c4ee7ab0755f33b90436480425b66"></span>void <code class="descname">transy_on_zstates</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqzm, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qzmo<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqzp, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qzpo<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqaux, <em class="property">const</em> BL_FORT_FAB_ARG_3Dfy, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqy, <em class="property">const</em> amrex::Real <em>cdtdy</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv417transy_on_zstatesPKiPKiK21BL_FORT_FAB_ARG_3DqzmF18BL_FORT_FAB_ARG_3D4qzmoEK21BL_FORT_FAB_ARG_3DqzpF18BL_FORT_FAB_ARG_3D4qzpoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfyK20BL_FORT_FAB_ARG_3DqyKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv417transz_on_xstatesPKiPKiK21BL_FORT_FAB_ARG_3DqxmF18BL_FORT_FAB_ARG_3D4qxmoEK21BL_FORT_FAB_ARG_3DqxpF18BL_FORT_FAB_ARG_3D4qxpoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfzK20BL_FORT_FAB_ARG_3DqzKN5amrex4RealE">
+<span id="_CPPv317transz_on_xstatesPKiPKiK21BL_FORT_FAB_ARG_3DqxmF18BL_FORT_FAB_ARG_3D4qxmoEK21BL_FORT_FAB_ARG_3DqxpF18BL_FORT_FAB_ARG_3D4qxpoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfzK20BL_FORT_FAB_ARG_3DqzKN5amrex4RealE"></span><span id="_CPPv217transz_on_xstatesPKiPKiK21BL_FORT_FAB_ARG_3DqxmF18BL_FORT_FAB_ARG_3D4qxmoEK21BL_FORT_FAB_ARG_3DqxpF18BL_FORT_FAB_ARG_3D4qxpoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfzK20BL_FORT_FAB_ARG_3DqzKN5amrex4RealE"></span><span class="target" id="Castro__hydro__F_8H_1ade0467184e71abb33139eef7d9241ee6"></span>void <code class="descname">transz_on_xstates</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqxm, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qxmo<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqxp, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qxpo<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqaux, <em class="property">const</em> BL_FORT_FAB_ARG_3Dfz, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqz, <em class="property">const</em> amrex::Real <em>cdtdz</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv417transz_on_xstatesPKiPKiK21BL_FORT_FAB_ARG_3DqxmF18BL_FORT_FAB_ARG_3D4qxmoEK21BL_FORT_FAB_ARG_3DqxpF18BL_FORT_FAB_ARG_3D4qxpoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfzK20BL_FORT_FAB_ARG_3DqzKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv417transz_on_ystatesPKiPKiK21BL_FORT_FAB_ARG_3DqymF18BL_FORT_FAB_ARG_3D4qymoEK21BL_FORT_FAB_ARG_3DqypF18BL_FORT_FAB_ARG_3D4qypoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfzK20BL_FORT_FAB_ARG_3DqzKN5amrex4RealE">
+<span id="_CPPv317transz_on_ystatesPKiPKiK21BL_FORT_FAB_ARG_3DqymF18BL_FORT_FAB_ARG_3D4qymoEK21BL_FORT_FAB_ARG_3DqypF18BL_FORT_FAB_ARG_3D4qypoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfzK20BL_FORT_FAB_ARG_3DqzKN5amrex4RealE"></span><span id="_CPPv217transz_on_ystatesPKiPKiK21BL_FORT_FAB_ARG_3DqymF18BL_FORT_FAB_ARG_3D4qymoEK21BL_FORT_FAB_ARG_3DqypF18BL_FORT_FAB_ARG_3D4qypoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfzK20BL_FORT_FAB_ARG_3DqzKN5amrex4RealE"></span><span class="target" id="Castro__hydro__F_8H_1a6c67d5f961bcfbbb10fffaf22ded47eb"></span>void <code class="descname">transz_on_ystates</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqym, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qymo<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqyp, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qypo<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqaux, <em class="property">const</em> BL_FORT_FAB_ARG_3Dfz, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqz, <em class="property">const</em> amrex::Real <em>cdtdz</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv417transz_on_ystatesPKiPKiK21BL_FORT_FAB_ARG_3DqymF18BL_FORT_FAB_ARG_3D4qymoEK21BL_FORT_FAB_ARG_3DqypF18BL_FORT_FAB_ARG_3D4qypoEK22BL_FORT_FAB_ARG_3DqauxK20BL_FORT_FAB_ARG_3DfzK20BL_FORT_FAB_ARG_3DqzKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv47transyzPKiPKiK20BL_FORT_FAB_ARG_3DqmF18BL_FORT_FAB_ARG_3D3qmoEK20BL_FORT_FAB_ARG_3DqpF18BL_FORT_FAB_ARG_3D3qpoEK22BL_FORT_FAB_ARG_3DqauxK21BL_FORT_FAB_ARG_3DfyzK21BL_FORT_FAB_ARG_3DfzyK20BL_FORT_FAB_ARG_3DqyK20BL_FORT_FAB_ARG_3DqzKN5amrex4RealEKN5amrex4RealEKN5amrex4RealE">
+<span id="_CPPv37transyzPKiPKiK20BL_FORT_FAB_ARG_3DqmF18BL_FORT_FAB_ARG_3D3qmoEK20BL_FORT_FAB_ARG_3DqpF18BL_FORT_FAB_ARG_3D3qpoEK22BL_FORT_FAB_ARG_3DqauxK21BL_FORT_FAB_ARG_3DfyzK21BL_FORT_FAB_ARG_3DfzyK20BL_FORT_FAB_ARG_3DqyK20BL_FORT_FAB_ARG_3DqzKN5amrex4RealEKN5amrex4RealEKN5amrex4RealE"></span><span id="_CPPv27transyzPKiPKiK20BL_FORT_FAB_ARG_3DqmF18BL_FORT_FAB_ARG_3D3qmoEK20BL_FORT_FAB_ARG_3DqpF18BL_FORT_FAB_ARG_3D3qpoEK22BL_FORT_FAB_ARG_3DqauxK21BL_FORT_FAB_ARG_3DfyzK21BL_FORT_FAB_ARG_3DfzyK20BL_FORT_FAB_ARG_3DqyK20BL_FORT_FAB_ARG_3DqzKN5amrex4RealEKN5amrex4RealEKN5amrex4RealE"></span><span class="target" id="Castro__hydro__F_8H_1afcf8907308e1af156ec238fb85cfb6ca"></span>void <code class="descname">transyz</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqm, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qmo<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqp, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qpo<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqaux, <em class="property">const</em> BL_FORT_FAB_ARG_3Dfyz, <em class="property">const</em> BL_FORT_FAB_ARG_3Dfzy, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqy, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqz, <em class="property">const</em> amrex::Real <em>hdt</em>, <em class="property">const</em> amrex::Real <em>cdtdy</em>, <em class="property">const</em> amrex::Real <em>cdtdz</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv47transyzPKiPKiK20BL_FORT_FAB_ARG_3DqmF18BL_FORT_FAB_ARG_3D3qmoEK20BL_FORT_FAB_ARG_3DqpF18BL_FORT_FAB_ARG_3D3qpoEK22BL_FORT_FAB_ARG_3DqauxK21BL_FORT_FAB_ARG_3DfyzK21BL_FORT_FAB_ARG_3DfzyK20BL_FORT_FAB_ARG_3DqyK20BL_FORT_FAB_ARG_3DqzKN5amrex4RealEKN5amrex4RealEKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv47transxzPKiPKiK20BL_FORT_FAB_ARG_3DqmF18BL_FORT_FAB_ARG_3D3qmoEK20BL_FORT_FAB_ARG_3DqpF18BL_FORT_FAB_ARG_3D3qpoEK22BL_FORT_FAB_ARG_3DqauxK21BL_FORT_FAB_ARG_3DfxzK21BL_FORT_FAB_ARG_3DfzxK20BL_FORT_FAB_ARG_3DqxK20BL_FORT_FAB_ARG_3DqzKN5amrex4RealEKN5amrex4RealEKN5amrex4RealE">
+<span id="_CPPv37transxzPKiPKiK20BL_FORT_FAB_ARG_3DqmF18BL_FORT_FAB_ARG_3D3qmoEK20BL_FORT_FAB_ARG_3DqpF18BL_FORT_FAB_ARG_3D3qpoEK22BL_FORT_FAB_ARG_3DqauxK21BL_FORT_FAB_ARG_3DfxzK21BL_FORT_FAB_ARG_3DfzxK20BL_FORT_FAB_ARG_3DqxK20BL_FORT_FAB_ARG_3DqzKN5amrex4RealEKN5amrex4RealEKN5amrex4RealE"></span><span id="_CPPv27transxzPKiPKiK20BL_FORT_FAB_ARG_3DqmF18BL_FORT_FAB_ARG_3D3qmoEK20BL_FORT_FAB_ARG_3DqpF18BL_FORT_FAB_ARG_3D3qpoEK22BL_FORT_FAB_ARG_3DqauxK21BL_FORT_FAB_ARG_3DfxzK21BL_FORT_FAB_ARG_3DfzxK20BL_FORT_FAB_ARG_3DqxK20BL_FORT_FAB_ARG_3DqzKN5amrex4RealEKN5amrex4RealEKN5amrex4RealE"></span><span class="target" id="Castro__hydro__F_8H_1abcce1e7c2d2e61cf9a338c8873597bf1"></span>void <code class="descname">transxz</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqm, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qmo<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqp, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qpo<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqaux, <em class="property">const</em> BL_FORT_FAB_ARG_3Dfxz, <em class="property">const</em> BL_FORT_FAB_ARG_3Dfzx, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqx, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqz, <em class="property">const</em> amrex::Real <em>hdt</em>, <em class="property">const</em> amrex::Real <em>cdtdx</em>, <em class="property">const</em> amrex::Real <em>cdtdz</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv47transxzPKiPKiK20BL_FORT_FAB_ARG_3DqmF18BL_FORT_FAB_ARG_3D3qmoEK20BL_FORT_FAB_ARG_3DqpF18BL_FORT_FAB_ARG_3D3qpoEK22BL_FORT_FAB_ARG_3DqauxK21BL_FORT_FAB_ARG_3DfxzK21BL_FORT_FAB_ARG_3DfzxK20BL_FORT_FAB_ARG_3DqxK20BL_FORT_FAB_ARG_3DqzKN5amrex4RealEKN5amrex4RealEKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv47transxyPKiPKiK20BL_FORT_FAB_ARG_3DqmF18BL_FORT_FAB_ARG_3D3qmoEK20BL_FORT_FAB_ARG_3DqpF18BL_FORT_FAB_ARG_3D3qpoEK22BL_FORT_FAB_ARG_3DqauxK21BL_FORT_FAB_ARG_3DfxyK21BL_FORT_FAB_ARG_3DfyxK20BL_FORT_FAB_ARG_3DqxK20BL_FORT_FAB_ARG_3DqyKN5amrex4RealEKN5amrex4RealEKN5amrex4RealE">
+<span id="_CPPv37transxyPKiPKiK20BL_FORT_FAB_ARG_3DqmF18BL_FORT_FAB_ARG_3D3qmoEK20BL_FORT_FAB_ARG_3DqpF18BL_FORT_FAB_ARG_3D3qpoEK22BL_FORT_FAB_ARG_3DqauxK21BL_FORT_FAB_ARG_3DfxyK21BL_FORT_FAB_ARG_3DfyxK20BL_FORT_FAB_ARG_3DqxK20BL_FORT_FAB_ARG_3DqyKN5amrex4RealEKN5amrex4RealEKN5amrex4RealE"></span><span id="_CPPv27transxyPKiPKiK20BL_FORT_FAB_ARG_3DqmF18BL_FORT_FAB_ARG_3D3qmoEK20BL_FORT_FAB_ARG_3DqpF18BL_FORT_FAB_ARG_3D3qpoEK22BL_FORT_FAB_ARG_3DqauxK21BL_FORT_FAB_ARG_3DfxyK21BL_FORT_FAB_ARG_3DfyxK20BL_FORT_FAB_ARG_3DqxK20BL_FORT_FAB_ARG_3DqyKN5amrex4RealEKN5amrex4RealEKN5amrex4RealE"></span><span class="target" id="Castro__hydro__F_8H_1a7105ba311698bd1b6d7fb224f1ff8ec4"></span>void <code class="descname">transxy</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqm, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qmo<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqp, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qpo<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqaux, <em class="property">const</em> BL_FORT_FAB_ARG_3Dfxy, <em class="property">const</em> BL_FORT_FAB_ARG_3Dfyx, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqx, <em class="property">const</em> BL_FORT_FAB_ARG_3Dqy, <em class="property">const</em> amrex::Real <em>hdt</em>, <em class="property">const</em> amrex::Real <em>cdtdx</em>, <em class="property">const</em> amrex::Real <em>cdtdy</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv47transxyPKiPKiK20BL_FORT_FAB_ARG_3DqmF18BL_FORT_FAB_ARG_3D3qmoEK20BL_FORT_FAB_ARG_3DqpF18BL_FORT_FAB_ARG_3D3qpoEK22BL_FORT_FAB_ARG_3DqauxK21BL_FORT_FAB_ARG_3DfxyK21BL_FORT_FAB_ARG_3DfyxK20BL_FORT_FAB_ARG_3DqxK20BL_FORT_FAB_ARG_3DqyKN5amrex4RealEKN5amrex4RealEKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv419ca_mol_single_stageA_KiA_KiPKN5amrex4RealEA_KiA_KiPKN5amrex4RealEK25BL_FORT_FAB_ARG_3DstateinF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D1qEF18BL_FORT_FAB_ARG_3D4qauxEK22BL_FORT_FAB_ARG_3DsrcUF18BL_FORT_FAB_ARG_3D6updateEF18BL_FORT_FAB_ARG_3D11update_fluxEA_KN5amrex4RealEPKN5amrex4RealEF6D_DECLF18BL_FORT_FAB_ARG_3D5flux1EF18BL_FORT_FAB_ARG_3D5flux2EF18BL_FORT_FAB_ARG_3D5flux3EEF18BL_FORT_FAB_ARG_3D7pradialEF6D_DECLFK18BL_FORT_FAB_ARG_3D5area1EFK18BL_FORT_FAB_ARG_3D5area2EFK18BL_FORT_FAB_ARG_3D5area3EEF18BL_FORT_FAB_ARG_3D5dlogaEK24BL_FORT_FAB_ARG_3DvolumeRKi">
+<span id="_CPPv319ca_mol_single_stageA_KiA_KiPKN5amrex4RealEA_KiA_KiPKN5amrex4RealEK25BL_FORT_FAB_ARG_3DstateinF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D1qEF18BL_FORT_FAB_ARG_3D4qauxEK22BL_FORT_FAB_ARG_3DsrcUF18BL_FORT_FAB_ARG_3D6updateEF18BL_FORT_FAB_ARG_3D11update_fluxEA_KN5amrex4RealEPKN5amrex4RealEF6D_DECLF18BL_FORT_FAB_ARG_3D5flux1EF18BL_FORT_FAB_ARG_3D5flux2EF18BL_FORT_FAB_ARG_3D5flux3EEF18BL_FORT_FAB_ARG_3D7pradialEF6D_DECLFK18BL_FORT_FAB_ARG_3D5area1EFK18BL_FORT_FAB_ARG_3D5area2EFK18BL_FORT_FAB_ARG_3D5area3EEF18BL_FORT_FAB_ARG_3D5dlogaEK24BL_FORT_FAB_ARG_3DvolumeRKi"></span><span id="_CPPv219ca_mol_single_stageA_KiA_KiPKN5amrex4RealEA_KiA_KiPKN5amrex4RealEK25BL_FORT_FAB_ARG_3DstateinF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D1qEF18BL_FORT_FAB_ARG_3D4qauxEK22BL_FORT_FAB_ARG_3DsrcUF18BL_FORT_FAB_ARG_3D6updateEF18BL_FORT_FAB_ARG_3D11update_fluxEA_KN5amrex4RealEPKN5amrex4RealEF6D_DECLF18BL_FORT_FAB_ARG_3D5flux1EF18BL_FORT_FAB_ARG_3D5flux2EF18BL_FORT_FAB_ARG_3D5flux3EEF18BL_FORT_FAB_ARG_3D7pradialEF6D_DECLFK18BL_FORT_FAB_ARG_3D5area1EFK18BL_FORT_FAB_ARG_3D5area2EFK18BL_FORT_FAB_ARG_3D5area3EEF18BL_FORT_FAB_ARG_3D5dlogaEK24BL_FORT_FAB_ARG_3DvolumeRKi"></span><span class="target" id="Castro__hydro__F_8H_1a91e0e0af7933b8c9856c60b834005976"></span>void <code class="descname">ca_mol_single_stage</code><span class="sig-paren">(</span><em class="property">const</em> int <em>lo</em>[], <em class="property">const</em> int <em>hi</em>[], <em class="property">const</em> amrex::Real *<em>time</em>, <em class="property">const</em> int <em>domlo</em>[], <em class="property">const</em> int <em>domhi</em>[], <em class="property">const</em> amrex::Real *<em>stage_weight</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dstatein, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>stateout<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>q<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qaux<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3DsrcU, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>update<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>update_flux<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real <em>dx</em>[], <em class="property">const</em> amrex::Real *<em>dt</em>, D_DECL<span class="sig-paren">(</span>BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>flux1<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>flux2<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>flux3<span class="sig-paren">)</span><span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>pradial<span class="sig-paren">)</span>, D_DECL<span class="sig-paren">(</span><em class="property">const</em> BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>area1<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>area2<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>area3<span class="sig-paren">)</span><span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>dloga<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dvolume, <em class="property">const</em> int &amp;<em>verbose</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv419ca_mol_single_stageA_KiA_KiPKN5amrex4RealEA_KiA_KiPKN5amrex4RealEK25BL_FORT_FAB_ARG_3DstateinF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D1qEF18BL_FORT_FAB_ARG_3D4qauxEK22BL_FORT_FAB_ARG_3DsrcUF18BL_FORT_FAB_ARG_3D6updateEF18BL_FORT_FAB_ARG_3D11update_fluxEA_KN5amrex4RealEPKN5amrex4RealEF6D_DECLF18BL_FORT_FAB_ARG_3D5flux1EF18BL_FORT_FAB_ARG_3D5flux2EF18BL_FORT_FAB_ARG_3D5flux3EEF18BL_FORT_FAB_ARG_3D7pradialEF6D_DECLFK18BL_FORT_FAB_ARG_3D5area1EFK18BL_FORT_FAB_ARG_3D5area2EFK18BL_FORT_FAB_ARG_3D5area3EEF18BL_FORT_FAB_ARG_3D5dlogaEK24BL_FORT_FAB_ARG_3DvolumeRKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv422ca_fourth_single_stageA_KiA_KiPKN5amrex4RealEA_KiA_KiPKN5amrex4RealEK25BL_FORT_FAB_ARG_3DstateinF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D1qEF18BL_FORT_FAB_ARG_3D5q_barEF18BL_FORT_FAB_ARG_3D4qauxEF18BL_FORT_FAB_ARG_3D8qaux_barEK22BL_FORT_FAB_ARG_3DsrcUF18BL_FORT_FAB_ARG_3D6updateEF18BL_FORT_FAB_ARG_3D11update_fluxEA_KN5amrex4RealEPKN5amrex4RealEF6D_DECLF18BL_FORT_FAB_ARG_3D5flux1EF18BL_FORT_FAB_ARG_3D5flux2EF18BL_FORT_FAB_ARG_3D5flux3EEF18BL_FORT_FAB_ARG_3D7pradialEF6D_DECLFK18BL_FORT_FAB_ARG_3D5area1EFK18BL_FORT_FAB_ARG_3D5area2EFK18BL_FORT_FAB_ARG_3D5area3EEF18BL_FORT_FAB_ARG_3D5dlogaEK24BL_FORT_FAB_ARG_3DvolumeRKi">
+<span id="_CPPv322ca_fourth_single_stageA_KiA_KiPKN5amrex4RealEA_KiA_KiPKN5amrex4RealEK25BL_FORT_FAB_ARG_3DstateinF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D1qEF18BL_FORT_FAB_ARG_3D5q_barEF18BL_FORT_FAB_ARG_3D4qauxEF18BL_FORT_FAB_ARG_3D8qaux_barEK22BL_FORT_FAB_ARG_3DsrcUF18BL_FORT_FAB_ARG_3D6updateEF18BL_FORT_FAB_ARG_3D11update_fluxEA_KN5amrex4RealEPKN5amrex4RealEF6D_DECLF18BL_FORT_FAB_ARG_3D5flux1EF18BL_FORT_FAB_ARG_3D5flux2EF18BL_FORT_FAB_ARG_3D5flux3EEF18BL_FORT_FAB_ARG_3D7pradialEF6D_DECLFK18BL_FORT_FAB_ARG_3D5area1EFK18BL_FORT_FAB_ARG_3D5area2EFK18BL_FORT_FAB_ARG_3D5area3EEF18BL_FORT_FAB_ARG_3D5dlogaEK24BL_FORT_FAB_ARG_3DvolumeRKi"></span><span id="_CPPv222ca_fourth_single_stageA_KiA_KiPKN5amrex4RealEA_KiA_KiPKN5amrex4RealEK25BL_FORT_FAB_ARG_3DstateinF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D1qEF18BL_FORT_FAB_ARG_3D5q_barEF18BL_FORT_FAB_ARG_3D4qauxEF18BL_FORT_FAB_ARG_3D8qaux_barEK22BL_FORT_FAB_ARG_3DsrcUF18BL_FORT_FAB_ARG_3D6updateEF18BL_FORT_FAB_ARG_3D11update_fluxEA_KN5amrex4RealEPKN5amrex4RealEF6D_DECLF18BL_FORT_FAB_ARG_3D5flux1EF18BL_FORT_FAB_ARG_3D5flux2EF18BL_FORT_FAB_ARG_3D5flux3EEF18BL_FORT_FAB_ARG_3D7pradialEF6D_DECLFK18BL_FORT_FAB_ARG_3D5area1EFK18BL_FORT_FAB_ARG_3D5area2EFK18BL_FORT_FAB_ARG_3D5area3EEF18BL_FORT_FAB_ARG_3D5dlogaEK24BL_FORT_FAB_ARG_3DvolumeRKi"></span><span class="target" id="Castro__hydro__F_8H_1a424cca6100e16412bd3fdf1fcefef71d"></span>void <code class="descname">ca_fourth_single_stage</code><span class="sig-paren">(</span><em class="property">const</em> int <em>lo</em>[], <em class="property">const</em> int <em>hi</em>[], <em class="property">const</em> amrex::Real *<em>time</em>, <em class="property">const</em> int <em>domlo</em>[], <em class="property">const</em> int <em>domhi</em>[], <em class="property">const</em> amrex::Real *<em>stage_weight</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dstatein, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>stateout<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>q<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>q_bar<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qaux<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>qaux_bar<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3DsrcU, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>update<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>update_flux<span class="sig-paren">)</span>, <em class="property">const</em> amrex::Real <em>dx</em>[], <em class="property">const</em> amrex::Real *<em>dt</em>, D_DECL<span class="sig-paren">(</span>BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>flux1<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>flux2<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>flux3<span class="sig-paren">)</span><span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>pradial<span class="sig-paren">)</span>, D_DECL<span class="sig-paren">(</span><em class="property">const</em> BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>area1<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>area2<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>area3<span class="sig-paren">)</span><span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>dloga<span class="sig-paren">)</span>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dvolume, <em class="property">const</em> int &amp;<em>verbose</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv422ca_fourth_single_stageA_KiA_KiPKN5amrex4RealEA_KiA_KiPKN5amrex4RealEK25BL_FORT_FAB_ARG_3DstateinF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D1qEF18BL_FORT_FAB_ARG_3D5q_barEF18BL_FORT_FAB_ARG_3D4qauxEF18BL_FORT_FAB_ARG_3D8qaux_barEK22BL_FORT_FAB_ARG_3DsrcUF18BL_FORT_FAB_ARG_3D6updateEF18BL_FORT_FAB_ARG_3D11update_fluxEA_KN5amrex4RealEPKN5amrex4RealEF6D_DECLF18BL_FORT_FAB_ARG_3D5flux1EF18BL_FORT_FAB_ARG_3D5flux2EF18BL_FORT_FAB_ARG_3D5flux3EEF18BL_FORT_FAB_ARG_3D7pradialEF6D_DECLFK18BL_FORT_FAB_ARG_3D5area1EFK18BL_FORT_FAB_ARG_3D5area2EFK18BL_FORT_FAB_ARG_3D5area3EEF18BL_FORT_FAB_ARG_3D5dlogaEK24BL_FORT_FAB_ARG_3DvolumeRKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv426ca_sdc_update_advection_o2A_KiA_KiPKN5amrex4RealEK21BL_FORT_FAB_ARG_3Dk_mF18BL_FORT_FAB_ARG_3D3k_nEF18BL_FORT_FAB_ARG_3D3A_mEF18BL_FORT_FAB_ARG_3D7A_0_oldEF18BL_FORT_FAB_ARG_3D7A_1_oldEPKi">
+<span id="_CPPv326ca_sdc_update_advection_o2A_KiA_KiPKN5amrex4RealEK21BL_FORT_FAB_ARG_3Dk_mF18BL_FORT_FAB_ARG_3D3k_nEF18BL_FORT_FAB_ARG_3D3A_mEF18BL_FORT_FAB_ARG_3D7A_0_oldEF18BL_FORT_FAB_ARG_3D7A_1_oldEPKi"></span><span id="_CPPv226ca_sdc_update_advection_o2A_KiA_KiPKN5amrex4RealEK21BL_FORT_FAB_ARG_3Dk_mF18BL_FORT_FAB_ARG_3D3k_nEF18BL_FORT_FAB_ARG_3D3A_mEF18BL_FORT_FAB_ARG_3D7A_0_oldEF18BL_FORT_FAB_ARG_3D7A_1_oldEPKi"></span><span class="target" id="Castro__hydro__F_8H_1a0218bceafb9925e9b33730b1f058e9fc"></span>void <code class="descname">ca_sdc_update_advection_o2</code><span class="sig-paren">(</span><em class="property">const</em> int <em>lo</em>[], <em class="property">const</em> int <em>hi</em>[], <em class="property">const</em> amrex::Real *<em>time</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dk_m, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>k_n<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>A_m<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>A_0_old<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>A_1_old<span class="sig-paren">)</span>, <em class="property">const</em> int *<em>m_start</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv426ca_sdc_update_advection_o2A_KiA_KiPKN5amrex4RealEK21BL_FORT_FAB_ARG_3Dk_mF18BL_FORT_FAB_ARG_3D3k_nEF18BL_FORT_FAB_ARG_3D3A_mEF18BL_FORT_FAB_ARG_3D7A_0_oldEF18BL_FORT_FAB_ARG_3D7A_1_oldEPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv426ca_sdc_update_advection_o4A_KiA_KiPKN5amrex4RealEK21BL_FORT_FAB_ARG_3Dk_mF18BL_FORT_FAB_ARG_3D3k_nEF18BL_FORT_FAB_ARG_3D3A_mEF18BL_FORT_FAB_ARG_3D7A_0_oldEF18BL_FORT_FAB_ARG_3D7A_1_oldEF18BL_FORT_FAB_ARG_3D7A_2_oldEPKi">
+<span id="_CPPv326ca_sdc_update_advection_o4A_KiA_KiPKN5amrex4RealEK21BL_FORT_FAB_ARG_3Dk_mF18BL_FORT_FAB_ARG_3D3k_nEF18BL_FORT_FAB_ARG_3D3A_mEF18BL_FORT_FAB_ARG_3D7A_0_oldEF18BL_FORT_FAB_ARG_3D7A_1_oldEF18BL_FORT_FAB_ARG_3D7A_2_oldEPKi"></span><span id="_CPPv226ca_sdc_update_advection_o4A_KiA_KiPKN5amrex4RealEK21BL_FORT_FAB_ARG_3Dk_mF18BL_FORT_FAB_ARG_3D3k_nEF18BL_FORT_FAB_ARG_3D3A_mEF18BL_FORT_FAB_ARG_3D7A_0_oldEF18BL_FORT_FAB_ARG_3D7A_1_oldEF18BL_FORT_FAB_ARG_3D7A_2_oldEPKi"></span><span class="target" id="Castro__hydro__F_8H_1a49c6ab0f2dad9c9f0432733f84354737"></span>void <code class="descname">ca_sdc_update_advection_o4</code><span class="sig-paren">(</span><em class="property">const</em> int <em>lo</em>[], <em class="property">const</em> int <em>hi</em>[], <em class="property">const</em> amrex::Real *<em>time</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Dk_m, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>k_n<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>A_m<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>A_0_old<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>A_1_old<span class="sig-paren">)</span>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>A_2_old<span class="sig-paren">)</span>, <em class="property">const</em> int *<em>m_start</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv426ca_sdc_update_advection_o4A_KiA_KiPKN5amrex4RealEK21BL_FORT_FAB_ARG_3Dk_mF18BL_FORT_FAB_ARG_3D3k_nEF18BL_FORT_FAB_ARG_3D3A_mEF18BL_FORT_FAB_ARG_3D7A_0_oldEF18BL_FORT_FAB_ARG_3D7A_1_oldEF18BL_FORT_FAB_ARG_3D7A_2_oldEPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

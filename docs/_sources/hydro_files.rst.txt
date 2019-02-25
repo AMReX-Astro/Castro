@@ -6,6 +6,7 @@ Hydro
 
    file/Castro__ctu__nd_8F90
    file/Castro__fourth__order_8F90
+   file/Castro__hydro_8H
    file/Castro__mol__nd_8F90
    file/advection__util__nd_8F90
    file/flatten__nd_8F90

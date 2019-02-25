@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File riemann_nd.F90 &mdash; Castro 19.02
+  <title>File Castro_hydro.H &mdash; Castro 19.02
  documentation</title>
   
 
@@ -39,8 +39,8 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File riemann_util.F90" href="riemann__util_8F90.html" />
-    <link rel="prev" title="File ppm_nd.F90" href="ppm__nd_8F90.html" /> 
+    <link rel="next" title="File Castro_mol_nd.F90" href="Castro__mol__nd_8F90.html" />
+    <link rel="prev" title="File Castro_ctu_nd.F90" href="Castro__ctu__nd_8F90.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -129,13 +129,13 @@
 <li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../hydro_files.html">Hydro</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="Castro__ctu__nd_8F90.html">File Castro_ctu_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Castro__hydro_8H.html">File Castro_hydro.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File Castro_hydro.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Castro__mol__nd_8F90.html">File Castro_mol_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="advection__util__nd_8F90.html">File advection_util_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="flatten__nd_8F90.html">File flatten_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="hybrid__advection__nd_8F90.html">File hybrid_advection_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ppm__nd_8F90.html">File ppm_nd.F90</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">File riemann_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="riemann__nd_8F90.html">File riemann_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="riemann__util_8F90.html">File riemann_util.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="slope__nd_8F90.html">File slope_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="trace__plm_8F90.html">File trace_plm.F90</a></li>
@@ -204,13 +204,13 @@
         
           <li><a href="../hydro_files.html">Hydro</a> &raquo;</li>
         
-      <li>File riemann_nd.F90</li>
+      <li>File Castro_hydro.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/riemann__nd_8F90.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/Castro__hydro_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -223,43 +223,18 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="file-riemann-nd-f90">
-<h1>File riemann_nd.F90<a class="headerlink" href="#file-riemann-nd-f90" title="Permalink to this headline">¶</a></h1>
-<dl class="type">
-<dt id="_CPPv414riemann_module">
-<span id="_CPPv314riemann_module"></span><span id="_CPPv214riemann_module"></span><span id="riemann_module"></span><span class="target" id="namespaceriemann__module"></span><em class="property">namespace </em><code class="descname">riemann_module</code><a class="headerlink" href="#_CPPv414riemann_module" title="Permalink to this definition">¶</a><br /></dt>
-<dd><div class="breathe-sectiondef docutils container">
+  <div class="section" id="file-castro-hydro-h">
+<h1>File Castro_hydro.H<a class="headerlink" href="#file-castro-hydro-h" title="Permalink to this headline">¶</a></h1>
+<div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="function">
-<dt>
-<span class="target" id="namespaceriemann__module_1af0a700b903aed55f7b33c0afcc30e253"></span><code class="descname">subroutine, public riemann_module::cmpflx_plus_godunov(lo lo, hi hi, qm qm, qm_lo qm_lo, qm_hi qm_hi, qp qp, qp_lo qp_lo, qp_hi qp_hi, nc nc, comp comp, flx flx, flx_lo flx_lo, flx_hi flx_hi, qint qint, q_lo q_lo, q_hi q_hi)</code></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt>
-<span class="target" id="namespaceriemann__module_1aa5b89d4cf10b75e86fe6ffcbf6e0c153"></span><code class="descname">subroutine, public riemann_module::cmpflx(lo lo, hi hi, qm qm, qm_lo qm_lo, qm_hi qm_hi, qp qp, qp_lo qp_lo, qp_hi qp_hi, nc nc, comp comp, flx flx, flx_lo flx_lo, flx_hi flx_hi, qint qint, q_lo q_lo, q_hi q_hi)</code></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt>
-<span class="target" id="namespaceriemann__module_1ab571bdb75f1fbf8ff71a3a94c7e89466"></span><code class="descname">subroutine, public riemann_module::riemann_state(qm qm, qm_lo qm_lo, qm_hi qm_hi, qp qp, qp_lo qp_lo, qp_hi qp_hi, nc nc, comp comp, qint qint, q_lo q_lo, q_hi q_hi)</code></dt>
-<dd><p>just compute the hydrodynamic state on the interfaces don’t compute the fluxes </p>
+<dt id="_CPPv412cons_to_primKN5amrex4RealE">
+<span id="_CPPv312cons_to_primKN5amrex4RealE"></span><span id="_CPPv212cons_to_primKN5amrex4RealE"></span><span id="cons_to_prim__amrex::RealC"></span><span class="target" id="Castro__hydro_8H_1adc449ac981eae5a90e5cb709377aac4c"></span>void <code class="descname">cons_to_prim</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Real <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv412cons_to_primKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Calculate primitive variables from conserved variables (uses StateData)</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">qpd_lo</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">q_lo</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">qa_lo</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">idir</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">lo</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">domlo</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">nc</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">comp</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">compute_gammas</span></code>: logical </li>
-<li><code class="docutils literal notranslate"><span class="pre">qm</span></code>: real(rt) </li>
-<li><code class="docutils literal notranslate"><span class="pre">qp</span></code>: real(rt) </li>
-<li><code class="docutils literal notranslate"><span class="pre">qint</span></code>: real(rt) </li>
-<li><code class="docutils literal notranslate"><span class="pre">qaux</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
 </ul>
 </dd>
 </dl>
@@ -267,25 +242,15 @@
 </dd></dl>
 
 <dl class="function">
-<dt>
-<span class="target" id="namespaceriemann__module_1a308787d250b0312b9e02c9112e5e9add"></span><code class="descname">subroutine, public riemann_module::riemanncg(ql ql, ql_lo ql_lo, ql_hi ql_hi, qr qr, qr_lo qr_lo, qr_hi qr_hi, nc nc, comp comp, qaux qaux, qa_lo qa_lo, qa_hi qa_hi, qint qint, q_lo q_lo, q_hi q_hi, idir idir, lo lo, hi hi, domlo domlo, domhi domhi)</code></dt>
-<dd><p>this implements the approximate Riemann solver of Colella &amp; Glaz (1985) </p>
-<p>this version is dimension agnostic  for 1- and 2-d, set kc, kflux, and k3d to 0</p>
+<dt id="_CPPv412cons_to_primRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE">
+<span id="_CPPv312cons_to_primRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="_CPPv212cons_to_primRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="cons_to_prim__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR"></span><span class="target" id="Castro__hydro_8H_1a2939edcba39d83569c5edbe799cb948c"></span>void <code class="descname">cons_to_prim</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>u</em>, amrex::MultiFab &amp;<em>q</em>, amrex::MultiFab &amp;<em>qaux</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv412cons_to_primRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Calculate primitive variables from given conserved variables</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">qpd_lo</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">qa_lo</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">q_lo</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">idir</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">lo</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">domlo</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">nc</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">comp</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">ql</span></code>: real(rt) </li>
-<li><code class="docutils literal notranslate"><span class="pre">qr</span></code>: real(rt) </li>
-<li><code class="docutils literal notranslate"><span class="pre">qaux</span></code>: real(rt) </li>
-<li><code class="docutils literal notranslate"><span class="pre">qint</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">u</span></code>: MultiFab of conserved variables </li>
+<li><code class="docutils literal notranslate"><span class="pre">q</span></code>: MultiFab to save primitive variables to </li>
+<li><code class="docutils literal notranslate"><span class="pre">qaux</span></code>: MultiFab of auxiliary variables </li>
 </ul>
 </dd>
 </dl>
@@ -293,33 +258,58 @@
 </dd></dl>
 
 <dl class="function">
-<dt>
-<span class="target" id="namespaceriemann__module_1a4add6b32e5e6d0196dde41b98174c899"></span><code class="descname">subroutine, public riemann_module::riemannus(ql ql, ql_lo ql_lo, ql_hi ql_hi, qr qr, qr_lo qr_lo, qr_hi qr_hi, nc nc, comp comp, qaux qaux, qa_lo qa_lo, qa_hi qa_hi, qint qint, q_lo q_lo, q_hi q_hi)</code></dt>
-<dd><p>Colella, Glaz, and Ferguson solver. </p>
-<p>this is a 2-shock solver that uses a very simple approximation for the star state, and carries an auxiliary jump condition for (rho e) to deal with a real gas </p>
-</dd></dl>
-
-<dl class="function">
-<dt>
-<span class="target" id="namespaceriemann__module_1aafd22ee689846497251938e173731264"></span><code class="descname">subroutine, public riemann_module::hllc(ql ql, ql_lo ql_lo, ql_hi ql_hi, qr qr, qr_lo qr_lo, qr_hi qr_hi, nc nc, comp comp, qaux qaux, qa_lo qa_lo, qa_hi qa_hi, uflx uflx, uflx_lo uflx_lo, uflx_hi uflx_hi, qint qint, q_lo q_lo, q_hi q_hi, idir idir, lo lo, hi hi, domlo domlo, domhi domhi)</code></dt>
-<dd><p>this is an implementation of the HLLC solver described in Toro’s book. it uses the simplest estimate of the wave speeds, since those should work for a general EOS. We also initially do the CGF Riemann construction to get pstar and ustar, since we’ll need to know the pressure and velocity on the interface for the pdV term in the internal energy update. </p>
+<dt id="_CPPv419cons_to_prim_fourthKN5amrex4RealE">
+<span id="_CPPv319cons_to_prim_fourthKN5amrex4RealE"></span><span id="_CPPv219cons_to_prim_fourthKN5amrex4RealE"></span><span id="cons_to_prim_fourth__amrex::RealC"></span><span class="target" id="Castro__hydro_8H_1a5daf6e53fbc42205d70f1c04cc00672b"></span>void <code class="descname">cons_to_prim_fourth</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Real <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv419cons_to_prim_fourthKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>convert the conservative state cell averages to primitive cell averages with 4th order accuracy</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">qpd_lo</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">qa_lo</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">uflx_lo</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">q_lo</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">idir</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">lo</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">domlo</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">nc</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">comp</span></code>: integer </li>
-<li><code class="docutils literal notranslate"><span class="pre">ql</span></code>: real(rt) </li>
-<li><code class="docutils literal notranslate"><span class="pre">qr</span></code>: real(rt) </li>
-<li><code class="docutils literal notranslate"><span class="pre">qaux</span></code>: real(rt) </li>
-<li><code class="docutils literal notranslate"><span class="pre">uflx</span></code>: real(rt) </li>
-<li><code class="docutils literal notranslate"><span class="pre">qgdnv</span></code>: real(rt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv423check_for_cfl_violationKN5amrex4RealE">
+<span id="_CPPv323check_for_cfl_violationKN5amrex4RealE"></span><span id="_CPPv223check_for_cfl_violationKN5amrex4RealE"></span><span id="check_for_cfl_violation__amrex::RealC"></span><span class="target" id="Castro__hydro_8H_1a15d7edbe81acfb713404f099e8a35640"></span>void <code class="descname">check_for_cfl_violation</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv423check_for_cfl_violationKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Check to see if the CFL condition has been violated</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv426construct_ctu_hydro_sourceN5amrex4RealEN5amrex4RealE">
+<span id="_CPPv326construct_ctu_hydro_sourceN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv226construct_ctu_hydro_sourceN5amrex4RealEN5amrex4RealE"></span><span id="construct_ctu_hydro_source__amrex::Real.amrex::Real"></span><span class="target" id="Castro__hydro_8H_1a2838598842dc51465d06b200c91eb5cb"></span>void <code class="descname">construct_ctu_hydro_source</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv426construct_ctu_hydro_sourceN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>this constructs the hydrodynamic source (essentially the flux divergence) using the CTU framework for unsplit hydrodynamics</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
+<li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv426construct_mol_hydro_sourceN5amrex4RealEN5amrex4RealERN5amrex8MultiFabE">
+<span id="_CPPv326construct_mol_hydro_sourceN5amrex4RealEN5amrex4RealERN5amrex8MultiFabE"></span><span id="_CPPv226construct_mol_hydro_sourceN5amrex4RealEN5amrex4RealERN5amrex8MultiFabE"></span><span id="construct_mol_hydro_source__amrex::Real.amrex::Real.amrex::MultiFabR"></span><span class="target" id="Castro__hydro_8H_1a3a248b8bffb01b2ea0cda01f8d77cfb7"></span>void <code class="descname">construct_mol_hydro_source</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, amrex::MultiFab &amp;<em>A_update</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv426construct_mol_hydro_sourceN5amrex4RealEN5amrex4RealERN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>this constructs the hydrodynamic source (essentially the flux divergence) using method of lines integration. The output, is the divergence of the fluxes, A = -div{F(U)}</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
+<li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </li>
+<li><code class="docutils literal notranslate"><span class="pre">A_update</span></code>: divergence of the fluxes </li>
 </ul>
 </dd>
 </dl>
@@ -327,21 +317,6 @@
 </dd></dl>
 
 </div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Variables</p>
-<dl class="member">
-<dt>
-<span class="target" id="namespaceriemann__module_1a3e47b036540c71ee1e88caa6c16c6bbe"></span><code class="descname">real(rt), parameter riemann_module::smallu</code> = 1.e-12_rt</dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt>
-<span class="target" id="namespaceriemann__module_1a6f2d428e4b8321ceb14c61b50b9f5fef"></span><code class="descname">real(rt), parameter riemann_module::small</code> = 1.e-8_rt</dt>
-<dd></dd></dl>
-
-</div>
-</dd></dl>
-
 </div>
 
 
@@ -352,10 +327,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="riemann__util_8F90.html" class="btn btn-neutral float-right" title="File riemann_util.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Castro__mol__nd_8F90.html" class="btn btn-neutral float-right" title="File Castro_mol_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="ppm__nd_8F90.html" class="btn btn-neutral float-left" title="File ppm_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="Castro__ctu__nd_8F90.html" class="btn btn-neutral float-left" title="File Castro_ctu_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
