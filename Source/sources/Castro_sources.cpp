@@ -447,7 +447,7 @@ Castro::get_react_source_prim(MultiFab& react_src, Real time, Real dt)
     MultiFab q_noreact(grids, dmap, NQ, ng);
     MultiFab qaux_noreact(grids, dmap, NQAUX, ng);
 
-    cons_to_prim(S_noreact, q_noreact, qaux_noreact);
+    cons_to_prim(S_noreact, q_noreact, qaux_noreact, time);
 
     // Compute the primitive version of the old state, q_old
 
@@ -473,7 +473,7 @@ Castro::get_react_source_prim(MultiFab& react_src, Real time, Real dt)
     MultiFab q_new(grids, dmap, NQ, ng);
     MultiFab qaux_new(grids, dmap, NQAUX, ng);
 
-    cons_to_prim(S_new, q_new, qaux_new);
+    cons_to_prim(S_new, q_new, qaux_new, time + dt);
 
     // Compute the reaction source term.
 
