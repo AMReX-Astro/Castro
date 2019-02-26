@@ -107,9 +107,11 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Coding Conventions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#general">General</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#c">C++</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#c-to-fortran">C++ to Fortran</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#fortran">Fortran</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
@@ -199,21 +201,58 @@
             
   <div class="section" id="coding-conventions">
 <h1>Coding Conventions<a class="headerlink" href="#coding-conventions" title="Permalink to this headline">¶</a></h1>
+<p>Castro development should do its best to adhere to the following coding
+style guidelines.</p>
+<div class="section" id="general">
+<h2>General<a class="headerlink" href="#general" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Indentation should be spaces, not tabs, with 4 spaces preferred.</li>
+</ul>
+</div>
 <div class="section" id="c">
 <h2>C++<a class="headerlink" href="#c" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p class="first">Conditional should appear as:</p>
+<div class="code c++ highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="n">condition</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+<span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">condition</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+<span class="k">else</span>
+<span class="p">{</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
 </div>
 <div class="section" id="c-to-fortran">
 <h2>C++ to Fortran<a class="headerlink" href="#c-to-fortran" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>Fortran routines that are called from C++ should being with <code class="docutils literal notranslate"><span class="pre">ca_</span></code>.
+<ul>
+<li><p class="first">All C to Fortran interfaces should use the ISO C binding.  The
+Fortran subroutine should use</p>
+<div class="code fortran highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">subroutine</span> <span class="n">subroutine_name</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="n">bind</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;subroutine_name)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Data passed by reference from C++ should use <code class="docutils literal notranslate"><span class="pre">*</span></code> and not <code class="docutils literal notranslate"><span class="pre">&amp;</span></code>.</p>
+</li>
+<li><p class="first">Scalars should be passed by value, using the Fortran <code class="docutils literal notranslate"><span class="pre">value</span></code> attribute.</p>
+</li>
+<li><p class="first">Fortran routines that are called from C++ should being with <code class="docutils literal notranslate"><span class="pre">ca_</span></code>.
 This is true even if these routines are also called by other
-Fortran.</li>
-<li>A separate tile <code class="docutils literal notranslate"><span class="pre">lo</span></code> and <code class="docutils literal notranslate"><span class="pre">hi</span></code> should be passed in to each
+Fortran.</p>
+</li>
+<li><p class="first">A separate tile <code class="docutils literal notranslate"><span class="pre">lo</span></code> and <code class="docutils literal notranslate"><span class="pre">hi</span></code> should be passed in to each
 subroutine, with the expectation that the Fortran subroutine will
 act exactly over the domain (lo, hi). If you want to include ghost
 zones in the calculation, include them in your box using
-<code class="docutils literal notranslate"><span class="pre">mfi.growntilebox(ng)</span></code> instead of <code class="docutils literal notranslate"><span class="pre">mfi.validbox()</span></code>.</li>
-<li>macros?</li>
+<code class="docutils literal notranslate"><span class="pre">mfi.growntilebox(ng)</span></code> instead of <code class="docutils literal notranslate"><span class="pre">mfi.validbox()</span></code>.</p>
+</li>
 </ul>
 </div>
 <div class="section" id="fortran">
@@ -223,6 +262,40 @@ zones in the calculation, include them in your box using
 checked.</li>
 <li>Use the <code class="docutils literal notranslate"><span class="pre">only</span></code> clause in module <code class="docutils literal notranslate"><span class="pre">use</span></code> statements to explicitly
 make clear what is being accessed.</li>
+</ul>
+</div>
+<div class="section" id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
+<p>A routines should use Doxygen style comments.</p>
+<ul>
+<li><p class="first">C++ functions should be documented in the header file using the style:</p>
+<div class="code c++ highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">///</span>
+<span class="o">///</span> <span class="n">Description</span> <span class="n">of</span> <span class="n">the</span> <span class="n">function</span>
+<span class="o">///</span>
+<span class="o">///</span> <span class="nd">@param</span> <span class="n">bar</span>       <span class="n">Brief</span> <span class="n">description</span> <span class="n">of</span> <span class="n">the</span> <span class="n">variable</span>
+<span class="o">///</span>
+<span class="n">void</span> <span class="n">foo</span><span class="p">(</span><span class="nb">int</span> <span class="n">bar</span><span class="p">)</span> <span class="p">{</span> <span class="o">...</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Member variables can either be documented using the above style of comment block or
+with a brief inline description:</p>
+<div class="code c++ highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">var</span><span class="p">;</span> <span class="o">///&lt;</span> <span class="n">Brief</span> <span class="n">description</span> <span class="n">after</span> <span class="n">the</span> <span class="n">variable</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Fortran functions should be documented by placing a comment block
+before their definition using the style:</p>
+<div class="code fortran highlight-default notranslate"><div class="highlight"><pre><span></span>!&gt; @brief Description of the function
+!!
+!! @param bar      Brief description of the variable
+subroutine foo(bar)
+  ...
+</pre></div>
+</div>
+<p>Documentation for modules should be similarly formatted, with the comment block again
+coming <cite>before</cite> the module definition.</p>
+</li>
 </ul>
 </div>
 </div>
