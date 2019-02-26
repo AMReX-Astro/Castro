@@ -120,6 +120,10 @@ jobInfoFile << (Castro::do_acc == -1 ? "    " : "[*] ") << "castro.do_acc = " <<
 jobInfoFile << (Castro::bndry_func_thread_safe == 1 ? "    " : "[*] ") << "castro.bndry_func_thread_safe = " << Castro::bndry_func_thread_safe << std::endl;
 jobInfoFile << (Castro::grown_factor == 1 ? "    " : "[*] ") << "castro.grown_factor = " << Castro::grown_factor << std::endl;
 jobInfoFile << (Castro::star_at_center == -1 ? "    " : "[*] ") << "castro.star_at_center = " << Castro::star_at_center << std::endl;
+jobInfoFile << (Castro::do_scf_initial_model == 0 ? "    " : "[*] ") << "castro.do_scf_initial_model = " << Castro::do_scf_initial_model << std::endl;
+jobInfoFile << (Castro::scf_d_A == 1.e9 ? "    " : "[*] ") << "castro.scf_d_A = " << Castro::scf_d_A << std::endl;
+jobInfoFile << (Castro::scf_d_B == 9.e8 ? "    " : "[*] ") << "castro.scf_d_B = " << Castro::scf_d_B << std::endl;
+jobInfoFile << (Castro::scf_relax_tol == 1.e-3 ? "    " : "[*] ") << "castro.scf_relax_tol = " << Castro::scf_relax_tol << std::endl;
 jobInfoFile << (Castro::do_special_tagging == 0 ? "    " : "[*] ") << "castro.do_special_tagging = " << Castro::do_special_tagging << std::endl;
 jobInfoFile << (Castro::spherical_star == 0 ? "    " : "[*] ") << "castro.spherical_star = " << Castro::spherical_star << std::endl;
 jobInfoFile << (Castro::verbose == 0 ? "    " : "[*] ") << "castro.verbose = " << Castro::verbose << std::endl;

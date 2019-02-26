@@ -116,7 +116,7 @@ USE_MLMG = FALSE
 ifeq ($(USE_ALL_CASTRO), TRUE)
   Bdirs := Source/driver Source/driver/param_includes \
            Source/hydro Source/problems Source/sources \
-           constants Util/model_parser
+           Source/scf constants Util/model_parser
 else
   Bdirs := constants
 endif

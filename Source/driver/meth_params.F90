@@ -187,6 +187,10 @@ module meth_params_module
   integer,  allocatable, save :: point_mass_fix_solution
   integer,  allocatable, save :: do_acc
   integer,  allocatable, save :: grown_factor
+  integer,  allocatable, save :: do_scf_initial_model
+  real(rt), allocatable, save :: scf_d_A
+  real(rt), allocatable, save :: scf_d_B
+  real(rt), allocatable, save :: scf_relax_tol
   integer,  allocatable, save :: track_grid_losses
   character (len=:), allocatable, save :: gravity_type
   real(rt), allocatable, save :: const_grav
@@ -305,6 +309,10 @@ attributes(managed) :: point_mass_fix_solution
 #endif
 attributes(managed) :: do_acc
 attributes(managed) :: grown_factor
+attributes(managed) :: do_scf_initial_model
+attributes(managed) :: scf_d_A
+attributes(managed) :: scf_d_B
+attributes(managed) :: scf_relax_tol
 attributes(managed) :: track_grid_losses
 
 attributes(managed) :: const_grav
@@ -418,6 +426,10 @@ attributes(managed) :: get_g_from_phi
 #endif
   !$acc create(do_acc) &
   !$acc create(grown_factor) &
+  !$acc create(do_scf_initial_model) &
+  !$acc create(scf_d_A) &
+  !$acc create(scf_d_B) &
+  !$acc create(scf_relax_tol) &
   !$acc create(track_grid_losses) &
   !$acc create(const_grav) &
   !$acc create(get_g_from_phi)
@@ -637,6 +649,14 @@ contains
     do_acc = -1;
     allocate(grown_factor)
     grown_factor = 1;
+    allocate(do_scf_initial_model)
+    do_scf_initial_model = 0;
+    allocate(scf_d_A)
+    scf_d_A = 1.d9;
+    allocate(scf_d_B)
+    scf_d_B = 9.d8;
+    allocate(scf_relax_tol)
+    scf_relax_tol = 1.d-3;
     allocate(track_grid_losses)
     track_grid_losses = 0;
 
@@ -729,6 +749,10 @@ contains
     call pp%query("do_rotation", do_rotation)
     call pp%query("do_acc", do_acc)
     call pp%query("grown_factor", grown_factor)
+    call pp%query("do_scf_initial_model", do_scf_initial_model)
+    call pp%query("scf_d_A", scf_d_A)
+    call pp%query("scf_d_B", scf_d_B)
+    call pp%query("scf_relax_tol", scf_relax_tol)
     call pp%query("track_grid_losses", track_grid_losses)
     call amrex_parmparse_destroy(pp)
 
@@ -760,7 +784,9 @@ contains
     !$acc device(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
     !$acc device(implicit_rotation_update, rot_axis, use_point_mass) &
     !$acc device(point_mass, point_mass_fix_solution, do_acc) &
-    !$acc device(grown_factor, track_grid_losses, const_grav, get_g_from_phi)
+    !$acc device(grown_factor, do_scf_initial_model, scf_d_A) &
+    !$acc device(scf_d_B, scf_relax_tol, track_grid_losses) &
+    !$acc device(const_grav, get_g_from_phi)
 
 
     ! now set the external BC flags
@@ -1087,6 +1113,18 @@ contains
     end if
     if (allocated(grown_factor)) then
         deallocate(grown_factor)
+    end if
+    if (allocated(do_scf_initial_model)) then
+        deallocate(do_scf_initial_model)
+    end if
+    if (allocated(scf_d_A)) then
+        deallocate(scf_d_A)
+    end if
+    if (allocated(scf_d_B)) then
+        deallocate(scf_d_B)
+    end if
+    if (allocated(scf_relax_tol)) then
+        deallocate(scf_relax_tol)
     end if
     if (allocated(track_grid_losses)) then
         deallocate(track_grid_losses)
