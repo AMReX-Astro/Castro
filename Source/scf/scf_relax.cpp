@@ -18,9 +18,6 @@ void Castro::scf_relaxation() {
 
   const Real* dx   = parent->Geom(level).CellSize();
   
-  const int* domlo = geom.Domain().loVect();
-  const int* domhi = geom.Domain().hiVect();
-
   scf_setup_relaxation(dx);
 
   // Get the phi MultiFab.
@@ -48,10 +45,9 @@ void Castro::scf_relaxation() {
 #endif    	
      for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi) {
 
-       const Box& box  = mfi.tilebox();
+       const Box& bx = mfi.tilebox();
 
-       scf_update_for_omegasq(AMREX_ARLIM_ANYD(box.loVect()), AMREX_ARLIM_ANYD(box.hiVect()),
-                              AMREX_ARLIM_ANYD(domlo), AMREX_ARLIM_ANYD(domhi),
+       scf_update_for_omegasq(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                               BL_TO_FORTRAN_ANYD(S_new[mfi]),
                               BL_TO_FORTRAN_ANYD(phi[mfi]),
                               AMREX_ZFILL(dx),
@@ -73,9 +69,11 @@ void Castro::scf_relaxation() {
 	 amrex::Error();
      }
 
+     Real omega = sqrt(omegasq);
+
      // Rotational period is 2 pi / omega.
 
-     rotational_period = 2.0 * M_PI / sqrt(omegasq);
+     rotational_period = 2.0 * M_PI / omega;
 
      // Now save the updated rotational frequency in the Fortran module.
 
@@ -92,19 +90,12 @@ void Castro::scf_relaxation() {
 #endif
      for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
 
-       const Box& box  = mfi.tilebox();
-       const int* lo   = box.loVect();
-       const int* hi   = box.hiVect();
+       const Box& bx = mfi.tilebox();
 
-       Real b = 0.0;
-
-       scf_get_bernoulli_const(ARLIM_3D(lo), ARLIM_3D(hi),
-			       ARLIM_3D(domlo), ARLIM_3D(domhi),
-			       BL_TO_FORTRAN_3D(S_new[mfi]),
-			       BL_TO_FORTRAN_3D(phi[mfi]),
-			       ZFILL(dx), &time, &b);
-
-       bernoulli += b;
+       scf_get_bernoulli_const(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+			       BL_TO_FORTRAN_ANYD(S_new[mfi]),
+			       BL_TO_FORTRAN_ANYD(phi[mfi]),
+			       AMREX_ZFILL(dx), omega, &bernoulli);
 
      }
 
@@ -125,21 +116,14 @@ void Castro::scf_relaxation() {
 #endif    	
      for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
 
-       const Box& box  = mfi.tilebox();
-       const int* lo   = box.loVect();
-       const int* hi   = box.hiVect();
+       const Box& bx = mfi.tilebox();
 
-       Real h = 0.0;
-
-       scf_construct_enthalpy(ARLIM_3D(lo), ARLIM_3D(hi),
-			      ARLIM_3D(domlo), ARLIM_3D(domhi),
-			      BL_TO_FORTRAN_3D(S_new[mfi]),
-			      BL_TO_FORTRAN_3D(phi[mfi]),
-			      BL_TO_FORTRAN_3D(enthalpy[mfi]),
-			      ZFILL(dx), &time,
-			      &bernoulli, &h);
-
-       if (h > h_max) h_max = h;
+       scf_construct_enthalpy(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+			      BL_TO_FORTRAN_ANYD(S_new[mfi]),
+			      BL_TO_FORTRAN_ANYD(phi[mfi]),
+			      BL_TO_FORTRAN_ANYD(enthalpy[mfi]),
+			      AMREX_ZFILL(dx), omega,
+			      &bernoulli, &h_max);
 
      }
 
@@ -163,60 +147,36 @@ void Castro::scf_relaxation() {
 #endif
      for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
 
-       const Box& box  = mfi.tilebox();
-       const int* lo   = box.loVect();
-       const int* hi   = box.hiVect();
+       const Box& bx = mfi.tilebox();
 
-       Real ke = 0.0;
-       Real pe = 0.0;
-       Real ie = 0.0;
-       Real m  = 0.0;
-       Real dr = 0.0;
-       Real nr = 0.0;
-       Real ns = 0.0;
-
-       scf_update_density(ARLIM_3D(lo), ARLIM_3D(hi),
-			  ARLIM_3D(domlo), ARLIM_3D(domhi),
-			  BL_TO_FORTRAN_3D(S_new[mfi]),
-			  BL_TO_FORTRAN_3D(phi[mfi]),
-			  BL_TO_FORTRAN_3D(enthalpy[mfi]),
-			  ZFILL(dx), &time, 
-			  &h_max,
-			  &ke, &pe, &ie,
-			  &m,
-			  &dr, &nr, &ns);
-
-       kin_eng += ke;
-       pot_eng += pe;
-       int_eng += ie;
-       l2_norm_resid += nr;
-       l2_norm_source += ns;
-       mass += m;
-       if (dr > delta_rho) delta_rho = dr;
+       scf_update_density(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+			  BL_TO_FORTRAN_ANYD(S_new[mfi]),
+			  BL_TO_FORTRAN_ANYD(phi[mfi]),
+			  BL_TO_FORTRAN_ANYD(enthalpy[mfi]),
+			  AMREX_ZFILL(dx), omega, h_max,
+			  &kin_eng, &pot_eng, &int_eng, &mass,
+                          &delta_rho, &l2_norm_resid, &l2_norm_source);
 
      }
 
      ParallelDescriptor::ReduceRealSum(kin_eng);
      ParallelDescriptor::ReduceRealSum(pot_eng);
      ParallelDescriptor::ReduceRealSum(int_eng);
-
+     ParallelDescriptor::ReduceRealSum(mass);
+     ParallelDescriptor::ReduceRealMax(delta_rho);
      ParallelDescriptor::ReduceRealSum(l2_norm_resid);
      ParallelDescriptor::ReduceRealSum(l2_norm_source);
 
      Real l2_norm = l2_norm_resid / l2_norm_source;
 
-     ParallelDescriptor::ReduceRealMax(delta_rho);
-
-     ParallelDescriptor::ReduceRealSum(mass);
-
 
 
      // Now check to see if we're converged.
 
-     scf_check_convergence(&kin_eng, &pot_eng, &int_eng, 
-			   &mass,
-			   &delta_rho, &l2_norm,
-			   &is_relaxed, &j);
+     scf_check_convergence(kin_eng, pot_eng, int_eng, 
+			   mass,
+			   delta_rho, l2_norm,
+			   &is_relaxed, j);
 
      //	for (int k = finest_level-1; k >= 0; k--)
      //	  getLevel(k).avgDown();

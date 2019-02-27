@@ -142,7 +142,6 @@ contains
   ! updating the rotation frequency.
   
   subroutine scf_update_for_omegasq(lo, hi, &
-                                    domlo, domhi, &
                                     state, s_lo, s_hi, &
                                     phi, p_lo, p_hi, &
                                     dx, &
@@ -150,13 +149,11 @@ contains
 
     use amrex_constants_module, only: HALF
     use meth_params_module, only: NVAR
-    use castro_util_module, only: position
     use prob_params_module, only: problo, center
 
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
     integer,  intent(in   ) :: p_lo(3), p_hi(3)
     real(rt), intent(in   ) :: dx(3)
@@ -166,7 +163,7 @@ contains
 
     integer  :: i, j, k
     integer  :: loc(3)
-    real(rt) :: omega(3), c(0:1,0:1,0:1), r(3), scale
+    real(rt) :: c(0:1,0:1,0:1), r(3), scale
 
     ! The below assumes we are rotating on the z-axis.
 
@@ -225,32 +222,28 @@ contains
 
 
   subroutine scf_get_bernoulli_const(lo, hi, &
-                                     domlo, domhi, &
                                      state, s_lo, s_hi, &
                                      phi, p_lo, p_hi, &
-                                     dx, time, bernoulli) bind(C, name='scf_get_bernoulli_const')
+                                     dx, omega, bernoulli) bind(C, name='scf_get_bernoulli_const')
 
     use amrex_constants_module, only: HALF, ONE, TWO, M_PI
     use meth_params_module, only: NVAR
-    use rotation_frequency_module, only: get_omega
-    use castro_util_module, only: position
+    use prob_params_module, only: problo, center
 
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
     integer,  intent(in   ) :: p_lo(3), p_hi(3)
-    real(rt), intent(in   ) :: dx(3), time
+    real(rt), intent(in   ) :: dx(3)
     real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     real(rt), intent(in   ) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
     real(rt), intent(inout) :: bernoulli
+    real(rt), intent(in   ), value :: omega
 
     integer  :: i, j, k
     integer  :: loc(3)
-    real(rt) :: omega(3), c(0:1,0:1,0:1), r(3)
-
-    omega = get_omega(time)
+    real(rt) :: c(0:1,0:1,0:1), r(3), scale
 
     ! The below assumes we are rotating on the z-axis.
 
@@ -264,9 +257,13 @@ contains
              if (i .ge. lo(1) .and. j .ge. lo(2) .and. k .ge. lo(3) .and. &
                  i .le. hi(1) .and. j .le. hi(2) .and. k .le. hi(3)) then
 
-                r(:) = position(i,j,k)
+                r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
+                r(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
+                r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
 
-                bernoulli = bernoulli + c(i-loc(1),j-loc(2),k-loc(3)) * (phi(i,j,k) + HALF * (r(1)**2 + r(2)**2) * omega(3)**2)
+                scale = c(i-loc(1),j-loc(2),k-loc(3))
+
+                bernoulli = bernoulli + scale * (phi(i,j,k) - omega**2 * (-HALF * (r(1)**2 + r(2)**2)))
 
              endif
 
@@ -279,37 +276,32 @@ contains
 
 
   subroutine scf_construct_enthalpy(lo, hi, &
-                                    domlo, domhi, &
                                     state, s_lo, s_hi, &
                                     phi, p_lo, p_hi, &
                                     enthalpy, h_lo, h_hi, &
-                                    dx, time, &
+                                    dx, omega, &
                                     bernoulli, h_max) bind(C, name='scf_construct_enthalpy')
 
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO, M_PI
     use meth_params_module, only: NVAR
     use prob_params_module, only: problo, center, probhi
-    use rotation_frequency_module, only: get_omega
-    use math_module, only: cross_product
 
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
     integer,  intent(in   ) :: p_lo(3), p_hi(3)
     integer,  intent(in   ) :: h_lo(3), h_hi(3)
-    real(rt), intent(in   ) :: dx(3), time
+    real(rt), intent(in   ) :: dx(3)
     real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     real(rt), intent(in   ) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
     real(rt), intent(inout) :: enthalpy(h_lo(1):h_hi(1),h_lo(2):h_hi(2),h_lo(3):h_hi(3))
     real(rt), intent(in   ) :: bernoulli
     real(rt), intent(inout) :: h_max
+    real(rt), intent(in   ), value :: omega
 
     integer  :: i, j, k
-    real(rt) :: r(3), omega(3)
-
-    omega = get_omega(time)
+    real(rt) :: r(3)
 
     ! The Bernoulli equation says that energy is conserved:
     ! enthalpy + gravitational potential + rotational potential = const
@@ -323,7 +315,7 @@ contains
           do i = lo(1), hi(1)
              r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
-             enthalpy(i,j,k) = bernoulli - phi(i,j,k) + HALF * sum(cross_product(omega, r)**2)
+             enthalpy(i,j,k) = bernoulli - phi(i,j,k) - omega**2 * (-HALF * (r(1)**2 + r(2)**2))
 
              if (enthalpy(i,j,k) > h_max) then
                 h_max = enthalpy(i,j,k)
@@ -338,14 +330,11 @@ contains
 
 
   subroutine scf_update_density(lo, hi, &
-                                domlo, domhi, &
                                 state, s_lo, s_hi, &
                                 phi, p_lo, p_hi, &
                                 enthalpy, h_lo, h_hi, &
-                                dx, time, &
-                                h_max, &
-                                kin_eng, pot_eng, int_eng, &
-                                mass, &
+                                dx, omega, h_max, &
+                                kin_eng, pot_eng, int_eng, mass, &
                                 delta_rho, l2_norm_resid, l2_norm_source) bind(C, name='scf_update_density')
 
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO, M_PI
@@ -354,36 +343,29 @@ contains
     use prob_params_module, only: problo, center, probhi
     use eos_module, only: eos
     use eos_type_module, only: eos_input_th, eos_t
-    use rotation_frequency_module, only: get_omega
-    use math_module, only: cross_product
 
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
     integer,  intent(in   ) :: p_lo(3), p_hi(3)
     integer,  intent(in   ) :: h_lo(3), h_hi(3)
-    real(rt), intent(in   ) :: dx(3), time
+    real(rt), intent(in   ) :: dx(3)
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     real(rt), intent(in   ) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
     real(rt), intent(inout) :: enthalpy(h_lo(1):h_hi(1),h_lo(2):h_hi(2),h_lo(3):h_hi(3))
-    real(rt), intent(in   ) :: h_max
-    real(rt), intent(inout) :: kin_eng, pot_eng, int_eng
-    real(rt), intent(inout) :: mass
+    real(rt), intent(inout) :: kin_eng, pot_eng, int_eng, mass
     real(rt), intent(inout) :: delta_rho, l2_norm_resid, l2_norm_source
+    real(rt), intent(in   ), value :: omega, h_max
 
     integer  :: i, j, k
     real(rt) :: r(3)
     real(rt) :: old_rho, drho
     real(rt) :: dV
-    real(rt) :: omega(3)
 
     type (eos_t) :: eos_state
 
     dV = dx(1) * dx(2) * dx(3)
-
-    omega = get_omega(time)
 
     do k = lo(3), hi(3)
        r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
@@ -436,7 +418,7 @@ contains
              l2_norm_resid = l2_norm_resid + dV * (state(i,j,k,URHO) - old_rho)**2
              l2_norm_source = l2_norm_source + dV * old_rho**2
 
-             kin_eng = kin_eng + HALF * sum(cross_product(omega, r)**2) * state(i,j,k,URHO) * dV
+             kin_eng = kin_eng + HALF * omega**2 * (r(1)**2 + r(2)**2) * state(i,j,k,URHO) * dV
 
              pot_eng = pot_eng + HALF * state(i,j,k,URHO) * phi(i,j,k) * dV
 
@@ -465,10 +447,9 @@ contains
     implicit none
 
     integer,  intent(inout) :: is_relaxed
-    integer,  intent(in   ) :: num_iterations
-
-    real(rt), intent(in) :: kin_eng, pot_eng, int_eng
-    real(rt), intent(in) :: mass, delta_rho, l2_norm
+    integer,  intent(in   ), value :: num_iterations
+    real(rt), intent(in   ), value :: kin_eng, pot_eng, int_eng
+    real(rt), intent(in   ), value :: mass, delta_rho, l2_norm
 
     real(rt) :: virial_error
 
