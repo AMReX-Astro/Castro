@@ -448,6 +448,7 @@ contains
     use amrex_constants_module, only: TWO, THREE
     use fundamental_constants_module, only: M_solar
     use meth_params_module, only: scf_relax_tol
+    use amrex_paralleldescriptor_module, only: amrex_pd_ioprocessor
 
     implicit none
 
@@ -465,20 +466,24 @@ contains
        is_relaxed = 1
     endif
 
-    write(*,*) ""
-    write(*,*) ""
-    write(*,'(A,I2)')      "   Relaxation iterations completed: ", num_iterations
-    write(*,'(A,ES8.2)')   "   Maximum change in rho (g cm**-3): ", delta_rho
-    write(*,'(A,ES8.2)')   "   L2 Norm of Residual (relative to old state): ", l2_norm
-    write(*,'(A,f6.2)')    "   Rotational period (s): ", rot_period
-    write(*,'(A,ES8.2)')   "   Kinetic energy: ", kin_eng 
-    write(*,'(A,ES9.2)')   "   Potential energy: ", pot_eng
-    write(*,'(A,ES8.2)')   "   Internal energy: ", int_eng
-    write(*,'(A,ES9.3)')   "   Virial error: ", virial_error
-    write(*,'(A,f5.3,A)')  "   Mass: ", mass / M_solar, " solar masses"
-    if (is_relaxed .eq. 1) write(*,*) "  Relaxation completed!"
-    write(*,*) ""
-    write(*,*) ""
+    if (amrex_pd_ioprocessor()) then
+
+       write(*,*) ""
+       write(*,*) ""
+       write(*,'(A,I2)')      "   Relaxation iterations completed: ", num_iterations
+       write(*,'(A,ES8.2)')   "   Maximum change in rho (g cm**-3): ", delta_rho
+       write(*,'(A,ES8.2)')   "   L2 Norm of Residual (relative to old state): ", l2_norm
+       write(*,'(A,f6.2)')    "   Rotational period (s): ", rot_period
+       write(*,'(A,ES8.2)')   "   Kinetic energy: ", kin_eng
+       write(*,'(A,ES9.2)')   "   Potential energy: ", pot_eng
+       write(*,'(A,ES8.2)')   "   Internal energy: ", int_eng
+       write(*,'(A,ES9.3)')   "   Virial error: ", virial_error
+       write(*,'(A,f5.3,A)')  "   Mass: ", mass / M_solar, " solar masses"
+       if (is_relaxed .eq. 1) write(*,*) "  Relaxation completed!"
+       write(*,*) ""
+       write(*,*) ""
+
+    end if
 
   end subroutine scf_check_convergence
 
