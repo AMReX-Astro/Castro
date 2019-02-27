@@ -2150,6 +2150,12 @@ Castro::post_init (Real stop_time)
 
 #endif
 
+    // If we're doing SCF initialization, do it here.
+
+    if (do_scf_initial_model) {
+        scf_relaxation();
+    }
+
         int nstep = parent->levelSteps(0);
 	Real dtlev = parent->dtLevel(0);
 	Real cumtime = parent->cumTime();

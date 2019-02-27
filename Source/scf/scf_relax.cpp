@@ -3,9 +3,10 @@
 
 #include "Gravity.H"
 
+using namespace amrex;
+
 #ifdef GRAVITY
 #ifdef ROTATION
-#ifdef do_problem_post_init
 void Castro::scf_relaxation() {
 
   int finest_level = parent->finestLevel();
@@ -20,28 +21,7 @@ void Castro::scf_relaxation() {
   const int* domlo = geom.Domain().loVect();
   const int* domhi = geom.Domain().hiVect();
 
-  MultiFab gcoeff(grids,1,0,Fab_allocate);
-  gcoeff.setVal(0.0);
-
-  Box box_A( IntVect(), IntVect(2, 2, 2) );
-  Box box_B( IntVect(), IntVect(2, 2, 2) );
-  Box box_C( IntVect(), IntVect(2, 2, 2) );
-
-  FArrayBox cA(box_A);
-  FArrayBox cB(box_B);
-  FArrayBox cC(box_C);
-
-  cA.setVal(0.0);
-  cB.setVal(0.0);
-  cC.setVal(0.0);
-
-  int loc_A[3] = {0};
-  int loc_B[3] = {0};
-  int loc_C[3] = {0};
-
   scf_setup_relaxation(dx);
-
-  scf_get_coeff_info(loc_A, loc_B, loc_C, cA.dataPtr(), cB.dataPtr(), cC.dataPtr());
 
   // Get the phi MultiFab.
 
@@ -85,7 +65,7 @@ void Castro::scf_relaxation() {
 
      if (omegasq < 0.0 && ParallelDescriptor::IOProcessor()) {
 	 std::cerr << "Omega squared = " << omegasq << " is negative in the relaxation step; aborting." << std::endl;
-	 BoxLib::Error();
+	 amrex::Error();
      }
 
      // Rotational period is 2 pi / omega.
@@ -94,65 +74,57 @@ void Castro::scf_relaxation() {
 
      // Now save the updated rotational frequency in the Fortran module.
 
-     set_period(&rotational_period);
+     set_rot_period(&rotational_period);
 
 
 
-     // Second step is to evaluate the Bernoulli constants.
+     // Second step is to evaluate the Bernoulli constant.
 
-     Real bernoulli_1 = 0.0;
-     Real bernoulli_2 = 0.0;
+     Real bernoulli = 0.0;
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:bernoulli_1,bernoulli_2)
+#pragma omp parallel reduction(+:bernoulli)
 #endif
-     for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi) {
+     for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
 
        const Box& box  = mfi.tilebox();
        const int* lo   = box.loVect();
        const int* hi   = box.hiVect();
 
-       Real b1 = 0.0;
-       Real b2 = 0.0;
+       Real b = 0.0;
 
        scf_get_bernoulli_const(ARLIM_3D(lo), ARLIM_3D(hi),
 			       ARLIM_3D(domlo), ARLIM_3D(domhi),
 			       BL_TO_FORTRAN_3D(S_new[mfi]),
 			       BL_TO_FORTRAN_3D(phi[mfi]),
-			       ZFILL(dx), &time, &b1, &b2);
+			       ZFILL(dx), &time, &b);
 
-       bernoulli_1 += b1;
-       bernoulli_2 += b2;
+       bernoulli += b;
 
      }
 
-     ParallelDescriptor::ReduceRealSum(bernoulli_1);
-     ParallelDescriptor::ReduceRealSum(bernoulli_2);
+     ParallelDescriptor::ReduceRealSum(bernoulli);
 
 
 
      // Third step is to construct the enthalpy field and 
-     // find the maximum enthalpy for each star.
+     // find the maximum enthalpy for the star.
 
-     Real h_max_1 = 0.0;
-     Real h_max_2 = 0.0;
+     Real h_max = 0.0;
 
-     // Define the enthalpy MultiFAB to have one component and zero ghost cells.
-
-     MultiFab enthalpy(grids,1,0,Fab_allocate);
+     MultiFab enthalpy(grids, dmap, 1, 0);
      enthalpy.setVal(0.0);
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(max:h_max_1,h_max_2)
+#pragma omp parallel reduction(max:h_max)
 #endif    	
-     for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi) {
+     for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
 
        const Box& box  = mfi.tilebox();
        const int* lo   = box.loVect();
        const int* hi   = box.hiVect();
 
-       Real h1 = 0.0;
-       Real h2 = 0.0;
+       Real h = 0.0;
 
        scf_construct_enthalpy(ARLIM_3D(lo), ARLIM_3D(hi),
 			      ARLIM_3D(domlo), ARLIM_3D(domhi),
@@ -160,34 +132,31 @@ void Castro::scf_relaxation() {
 			      BL_TO_FORTRAN_3D(phi[mfi]),
 			      BL_TO_FORTRAN_3D(enthalpy[mfi]),
 			      ZFILL(dx), &time,
-			      &bernoulli_1, &bernoulli_2, &h1, &h2);
+			      &bernoulli, &h);
 
-       if (h1 > h_max_1) h_max_1 = h1;
-       if (h2 > h_max_2) h_max_2 = h2;
+       if (h > h_max) h_max = h;
 
      }
 
-     ParallelDescriptor::ReduceRealMax(h_max_1);
-     ParallelDescriptor::ReduceRealMax(h_max_2);
+     ParallelDescriptor::ReduceRealMax(h_max);
 
      Real kin_eng = 0.0;
      Real pot_eng = 0.0;
      Real int_eng = 0.0;
      Real l2_norm_resid = 0.0;
      Real l2_norm_source = 0.0;
-     Real left_mass = 0.0;
-     Real right_mass = 0.0;
+     Real mass = 0.0;
      Real delta_rho = 0.0;
 
      // Finally, update the density using the enthalpy field.
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:kin_eng,pot_eng,int_eng)      \
-		 reduction(+:l2_norm_resid,l2_norm_source) \
-		 reduction(+:left_mass,right_mass)         \
-		 reduction(max:delta_rho)
+                     reduction(+:l2_norm_resid,l2_norm_source) \
+                     reduction(+:mass)                         \
+                     reduction(max:delta_rho)
 #endif
-     for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi) {
+     for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
 
        const Box& box  = mfi.tilebox();
        const int* lo   = box.loVect();
@@ -196,8 +165,7 @@ void Castro::scf_relaxation() {
        Real ke = 0.0;
        Real pe = 0.0;
        Real ie = 0.0;
-       Real lm = 0.0;
-       Real rm = 0.0;
+       Real m  = 0.0;
        Real dr = 0.0;
        Real nr = 0.0;
        Real ns = 0.0;
@@ -208,9 +176,9 @@ void Castro::scf_relaxation() {
 			  BL_TO_FORTRAN_3D(phi[mfi]),
 			  BL_TO_FORTRAN_3D(enthalpy[mfi]),
 			  ZFILL(dx), &time, 
-			  &h_max_1, &h_max_2,
+			  &h_max,
 			  &ke, &pe, &ie,
-			  &lm, &rm,
+			  &m,
 			  &dr, &nr, &ns);
 
        kin_eng += ke;
@@ -218,8 +186,7 @@ void Castro::scf_relaxation() {
        int_eng += ie;
        l2_norm_resid += nr;
        l2_norm_source += ns;
-       left_mass += lm;
-       right_mass += rm;
+       mass += m;
        if (dr > delta_rho) delta_rho = dr;
 
      }
@@ -235,15 +202,14 @@ void Castro::scf_relaxation() {
 
      ParallelDescriptor::ReduceRealMax(delta_rho);
 
-     ParallelDescriptor::ReduceRealSum(left_mass);
-     ParallelDescriptor::ReduceRealSum(right_mass);
+     ParallelDescriptor::ReduceRealSum(mass);
 
 
 
      // Now check to see if we're converged.
 
      scf_check_convergence(&kin_eng, &pot_eng, &int_eng, 
-			   &left_mass, &right_mass,
+			   &mass,
 			   &delta_rho, &l2_norm,
 			   &is_relaxed, &j);
 
@@ -265,6 +231,5 @@ void Castro::scf_relaxation() {
   }
 
 }
-#endif
 #endif
 #endif

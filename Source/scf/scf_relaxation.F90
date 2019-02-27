@@ -9,10 +9,10 @@ module scf_relaxation_module
   
   real(rt), save :: scf_h_max
   real(rt), save :: scf_enthalpy_min
-  real(rt), save :: scf_rpos(3,2)         ! Relative position of points A and B
-  real(rt), save :: scf_d_vector(3,2)     ! Positions of points relative to system center
-  real(rt), save :: scf_c(0:1,0:1,0:1,2)  ! Interpolation coefficients for points
-  integer,  save :: scf_rloc(3,2)         ! Indices of zones nearby to these points
+  integer,  save :: scf_rloc_A(3), scf_rloc_B(3) ! Indices of zones nearby to these points
+  real(rt), save :: scf_rpos_A(3), scf_rpos_B(3) ! Position of points A and B relative to lower left zone corner
+  real(rt), save :: scf_r_A(3), scf_r_B(3)       ! Position of points A and B relative to system center
+  real(rt), save :: scf_c_A(0:1,0:1,0:1), scf_c_B(0:1,0:1,0:1)  ! Interpolation coefficients for points
 
   type (eos_t), save :: ambient_state
 
@@ -51,43 +51,53 @@ contains
 
     ncell = NINT( (probhi - problo) / dx )
 
-    scf_d_vector(:,1) = center
-    scf_d_vector(:,2) = center
+    scf_r_A(:) = center
+    scf_r_B(:) = center
 
-    scf_d_vector(1,1) = scf_d_vector(1,1) + scf_d_A
-    scf_d_vector(3,2) = scf_d_vector(3,2) + scf_d_B
+    scf_r_A(1) = scf_r_A(1) + scf_d_A
+    scf_R_B(2) = scf_r_B(2) + scf_d_B
 
     ! Locate the zone centers that bracket each point at the 
     ! lower left corner. Note that the INT function rounds down,
     ! which is what we want here since we want the lower left.
 
-    do n = 1, 2
-       scf_rloc(:,n) = INT( (scf_d_vector(:,n) + dx(:)/TWO) / dx(:)) + ncell / 2 - 1
-    enddo
+    scf_rloc_A(:) = INT( (scf_r_A(:) + dx(:) / TWO) / dx(:)) + ncell / 2 - 1
+    scf_rloc_B(:) = INT( (scf_r_B(:) + dx(:) / TWO) / dx(:)) + ncell / 2 - 1
 
     ! Obtain the location of these points relative to the cube surrounding them.
     ! The lower left corner is at (0,0,0) and the upper right corner is at (1,1,1).
 
-    do n = 1, 2
-       pos_l = (scf_rloc(:,n) - ncell / 2 + HALF) * dx(:)
-       scf_rpos(:,n) = (scf_d_vector(:,n) - pos_l) / dx(:)
-    enddo
+    pos_l = (scf_rloc_A(:) - ncell / 2 + HALF) * dx(:)
+    scf_rpos_A(:) = (scf_r_A(:) - pos_l) / dx(:)
+
+    pos_l = (scf_rloc_B(:) - ncell / 2 + HALF) * dx(:)
+    scf_rpos_B(:) = (scf_r_B(:) - pos_l) / dx(:)
 
     ! Determine the tri-linear coefficients
 
-    do n = 1, 2
-       x = scf_rpos(1,n)
-       y = scf_rpos(2,n)
-       z = scf_rpos(3,n)
-       scf_c(0,0,0,n) = (ONE - x) * (ONE - y) * (ONE - z)
-       scf_c(1,0,0,n) = x         * (ONE - y) * (ONE - z)
-       scf_c(0,1,0,n) = (ONE - x) * y         * (ONE - z)
-       scf_c(1,1,0,n) = x         * y         * (ONE - z)
-       scf_c(0,0,1,n) = (ONE - x) * (ONE - y) * z
-       scf_c(1,0,1,n) = x         * (ONE - y) * z
-       scf_c(0,1,1,n) = (ONE - x) * y         * z
-       scf_c(1,1,1,n) = x         * y         * z
-    enddo
+    x = scf_rpos_A(1)
+    y = scf_rpos_A(2)
+    z = scf_rpos_A(3)
+    scf_c_A(0,0,0) = (ONE - x) * (ONE - y) * (ONE - z)
+    scf_c_A(1,0,0) = x         * (ONE - y) * (ONE - z)
+    scf_c_A(0,1,0) = (ONE - x) * y         * (ONE - z)
+    scf_c_A(1,1,0) = x         * y         * (ONE - z)
+    scf_c_A(0,0,1) = (ONE - x) * (ONE - y) * z
+    scf_c_A(1,0,1) = x         * (ONE - y) * z
+    scf_c_A(0,1,1) = (ONE - x) * y         * z
+    scf_c_A(1,1,1) = x         * y         * z
+
+    x = scf_rpos_B(1)
+    y = scf_rpos_B(2)
+    z = scf_rpos_B(3)
+    scf_c_B(0,0,0) = (ONE - x) * (ONE - y) * (ONE - z)
+    scf_c_B(1,0,0) = x         * (ONE - y) * (ONE - z)
+    scf_c_B(0,1,0) = (ONE - x) * y         * (ONE - z)
+    scf_c_B(1,1,0) = x         * y         * (ONE - z)
+    scf_c_B(0,0,1) = (ONE - x) * (ONE - y) * z
+    scf_c_B(1,0,1) = x         * (ONE - y) * z
+    scf_c_B(0,1,1) = (ONE - x) * y         * z
+    scf_c_B(1,1,1) = x         * y         * z
 
     ! Convert the maximum densities into maximum enthalpies.
 
@@ -137,7 +147,7 @@ contains
     use amrex_constants_module, only: ONE, TWO
     use meth_params_module, only: NVAR
     use rotation_frequency_module, only: get_omega
-    use prob_params_module, only: problo, probhi
+    use castro_util_module, only: position
 
     implicit none
 
@@ -151,19 +161,49 @@ contains
     real(rt), intent(inout) :: omegasq
 
     integer  :: i, j, k
-    real(rt) :: theta2, theta3, omega(3)
+    integer  :: loc(3)
+    real(rt) :: theta2, theta3, omega(3), c(0:1,0:1,0:1), r(3)
 
     omega = get_omega(time)
 
-    do k = scf_rloc(3,2), scf_rloc(3,2) + 1
-       do j = scf_rloc(2,2), scf_rloc(2,2) + 1
-          do i = scf_rloc(1,2), scf_rloc(1,2) + 1
+    ! The below assumes we are rotating on the z-axis.
+
+    loc = scf_rloc_A
+    c = scf_c_A
+
+    do k = loc(3), loc(3) + 1
+       do j = loc(2), loc(2) + 1
+          do i = loc(1), loc(1) + 1
+
+             if (i .ge. lo(1) .and. j .ge. lo(2) .and. k .ge. lo(3) .and. &
+                 i .le. hi(1) .and. j .le. hi(2) .and. k .le. hi(3)) then
+
+                r(:) = position(i, j, k)
+
+                omegasq = omegasq - c(i-loc(1),j-loc(2),k-loc(3)) * TWO * phi(i,j,k) / (r(1)**2 + r(2)**2)
+
+             endif
+
+          enddo
+       enddo
+    enddo
+
+    loc = scf_rloc_B
+    c = scf_c_B
+
+    do k = loc(3), loc(3) + 1
+       do j = loc(2), loc(2) + 1
+          do i = loc(1), loc(1) + 1
+
              if (i .ge. lo(1) .and. j .ge. lo(2) .and. k .ge. lo(3) .and. &
                   i .le. hi(1) .and. j .le. hi(2) .and. k .le. hi(3)) then
 
-                omegasq = omegasq + scf_c(i-scf_rloc(1,2),j-scf_rloc(2,2),k-scf_rloc(3,2),2) &
-                     * TWO * phi(i,j,k) / (sum(scf_d_vector(:,1)**2))
+                r(:) = position(i, j, k)
+
+                omegasq = omegasq - c(i-loc(1),j-loc(2),k-loc(3)) * TWO * phi(i,j,k) / (r(1)**2 + r(2)**2)
+
              endif
+
           enddo
        enddo
     enddo
@@ -181,7 +221,7 @@ contains
     use amrex_constants_module, only: HALF, ONE, TWO, M_PI
     use meth_params_module, only: NVAR
     use rotation_frequency_module, only: get_omega
-    use math_module, only: cross_product
+    use castro_util_module, only: position
 
     implicit none
 
@@ -195,18 +235,29 @@ contains
     real(rt), intent(inout) :: bernoulli
 
     integer  :: i, j, k
-    real(rt) :: omega(3)
+    integer  :: loc(3)
+    real(rt) :: omega(3), c(0:1,0:1,0:1), r(3)
 
     omega = get_omega(time)
 
-    do k = scf_rloc(3,1), scf_rloc(3,1)+1
-       do j = scf_rloc(2,1), scf_rloc(2,1)+1
-          do i = scf_rloc(1,1), scf_rloc(1,1)+1
+    ! The below assumes we are rotating on the z-axis.
+
+    loc = scf_rloc_A
+    c = scf_c_A
+
+    do k = loc(3), loc(3) + 1
+       do j = loc(2), loc(2) + 1
+          do i = loc(1), loc(1) + 1
+
              if (i .ge. lo(1) .and. j .ge. lo(2) .and. k .ge. lo(3) .and. &
                  i .le. hi(1) .and. j .le. hi(2) .and. k .le. hi(3)) then
-                bernoulli = bernoulli + scf_c(i-scf_rloc(1,1),j-scf_rloc(2,1),k-scf_rloc(3,1),1) &
-                                        * (phi(i,j,k) - HALF * sum(cross_product(omega, scf_d_vector(:,1))**2))
+
+                r(:) = position(i,j,k)
+
+                bernoulli = bernoulli + c(i-loc(1),j-loc(2),k-loc(3)) * (phi(i,j,k) + HALF * (r(1)**2 + r(2)**2) * omega(3)**2)
+
              endif
+
           enddo
        enddo
     enddo
@@ -244,7 +295,7 @@ contains
     real(rt), intent(inout) :: h_max
 
     integer  :: i, j, k
-    real(rt) :: r(3), omega(3), max_dist
+    real(rt) :: r(3), omega(3)
 
     omega = get_omega(time)
 
@@ -253,10 +304,6 @@ contains
     ! The rotational potential is equal to -1/2 | omega x r |^2.
     ! We already have the constant, so our goal is to construct the enthalpy field.
 
-    ! We don't want to check regions that aren't part of the star.
-
-    max_dist = 0.75 * max(maxval(abs(probhi-center)), maxval(abs(problo-center)))
-
     do k = lo(3), hi(3)
        r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
        do j = lo(2), hi(2)
@@ -264,14 +311,10 @@ contains
           do i = lo(1), hi(1)
              r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
-             if (sum(r**2) .lt. max_dist**2) then
+             enthalpy(i,j,k) = bernoulli - phi(i,j,k) + HALF * sum(cross_product(omega, r)**2)
 
-                enthalpy(i,j,k) = bernoulli + phi(i,j,k) + HALF * sum(cross_product(omega, r)**2)
-
-                if (enthalpy(i,j,k) > h_max) then
-                   h_max = enthalpy(i,j,k)
-                end if
-
+             if (enthalpy(i,j,k) > h_max) then
+                h_max = enthalpy(i,j,k)
              end if
 
           enddo
@@ -323,13 +366,10 @@ contains
     real(rt) :: old_rho, drho
     real(rt) :: dV
     real(rt) :: omega(3)
-    real(rt) :: max_dist
 
     type (eos_t) :: eos_state
 
     dV = dx(1) * dx(2) * dx(3)
-
-    max_dist = 0.75 * max(maxval(abs(probhi-center)), maxval(abs(problo-center)))
 
     omega = get_omega(time)
 
@@ -352,7 +392,7 @@ contains
              ! spuriously positive. So we'll only consider zones within 75%
              ! of the distance from the center.
 
-             if (enthalpy(i,j,k) > scf_enthalpy_min .and. sum(r**2) .lt. max_dist**2) then
+             if (enthalpy(i,j,k) > scf_enthalpy_min) then
 
                 eos_state % T   = state(i,j,k,UTEMP)
                 eos_state % h   = enthalpy(i,j,k)

@@ -944,6 +944,15 @@ public:
     virtual void post_init (amrex::Real stop_time) override;
 
 ///
+/// SCF initialization.
+///
+#ifdef GRAVITY
+#ifdef ROTATION
+    void scf_relaxation();
+#endif
+#endif
+
+///
 /// Do work after restart with ``grown_factor`` > 1
 ///
     void post_grown_restart ();

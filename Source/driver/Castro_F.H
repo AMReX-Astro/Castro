@@ -619,6 +619,8 @@ extern "C"
 
 #ifdef ROTATION
 
+  void set_rot_period(const amrex::Real* period);
+    
   void ca_fill_rotational_potential
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(phi),
@@ -773,6 +775,9 @@ extern "C"
 
 /* hydrodynamics */
 #include <Castro_hydro_F.H>
+
+/* SCF */
+#include <scf_relax_F.H>
 
 #ifdef __cplusplus
 }
