@@ -27,8 +27,8 @@
 			  BL_FORT_FAB_ARG_3D(enthalpy),
 			  const amrex::Real* dx, amrex::Real omega, amrex::Real h_max,
 			  amrex::Real* kin_eng, amrex::Real* pot_eng, amrex::Real* int_eng, amrex::Real* mass,
-			  amrex::Real* delta_rho, amrex::Real* l2_norm_resid, amrex::Real* l2_norm_source);
+			  amrex::Real* Linf_norm);
 
   void scf_check_convergence(amrex::Real kin_eng, amrex::Real pot_eng, amrex::Real int_eng, amrex::Real mass,
-			     amrex::Real delta_rho, amrex::Real l2_norm,
+			     amrex::Real Linf_norm,
 			     int* is_relaxed, int num_iterations);

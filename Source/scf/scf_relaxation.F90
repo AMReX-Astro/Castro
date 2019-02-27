@@ -336,7 +336,7 @@ contains
                                 enthalpy, h_lo, h_hi, &
                                 dx, omega, h_max, &
                                 kin_eng, pot_eng, int_eng, mass, &
-                                delta_rho, l2_norm_resid, l2_norm_source) bind(C, name='scf_update_density')
+                                Linf_norm) bind(C, name='scf_update_density')
 
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO, M_PI
     use meth_params_module, only: NVAR, URHO, UTEMP, UMX, UMY, UMZ, UEDEN, UEINT, UFS
@@ -356,7 +356,7 @@ contains
     real(rt), intent(in   ) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
     real(rt), intent(inout) :: enthalpy(h_lo(1):h_hi(1),h_lo(2):h_hi(2),h_lo(3):h_hi(3))
     real(rt), intent(inout) :: kin_eng, pot_eng, int_eng, mass
-    real(rt), intent(inout) :: delta_rho, l2_norm_resid, l2_norm_source
+    real(rt), intent(inout) :: Linf_norm
     real(rt), intent(in   ), value :: omega, h_max
 
     integer  :: i, j, k
@@ -414,10 +414,7 @@ contains
              ! Convergence tests and diagnostic quantities
 
              drho = abs( state(i,j,k,URHO) - old_rho ) / old_rho
-             if (drho > delta_rho) delta_rho = drho
-
-             l2_norm_resid = l2_norm_resid + dV * (state(i,j,k,URHO) - old_rho)**2
-             l2_norm_source = l2_norm_source + dV * old_rho**2
+             Linf_norm = max(Linf_norm, drho)
 
              kin_eng = kin_eng + HALF * omega**2 * (r(1)**2 + r(2)**2) * state(i,j,k,URHO) * dV
 
@@ -436,7 +433,7 @@ contains
   
 
   subroutine scf_check_convergence(kin_eng, pot_eng, int_eng, &
-                                   mass, delta_rho, l2_norm, &
+                                   mass, Linf_norm, &
                                    is_relaxed, num_iterations) bind(C, name='scf_check_convergence')
 
     use meth_params_module, only: rot_period
@@ -449,14 +446,14 @@ contains
 
     integer,  intent(inout) :: is_relaxed
     integer,  intent(in   ), value :: num_iterations
-    real(rt), intent(in   ), value :: kin_eng, pot_eng, int_eng
-    real(rt), intent(in   ), value :: mass, delta_rho, l2_norm
+    real(rt), intent(in   ), value :: kin_eng, pot_eng, int_eng, mass
+    real(rt), intent(in   ), value :: Linf_norm
 
     real(rt) :: virial_error
 
     virial_error = abs(TWO * kin_eng + pot_eng + THREE * int_eng) / abs(pot_eng)
 
-    if (l2_norm .lt. scf_relax_tol) then
+    if (Linf_norm .lt. scf_relax_tol) then
        is_relaxed = 1
     endif
 
@@ -465,8 +462,7 @@ contains
        write(*,*) ""
        write(*,*) ""
        write(*,'(A,I2)')      "   Relaxation iterations completed: ", num_iterations
-       write(*,'(A,ES8.2)')   "   Maximum change in rho (g cm**-3): ", delta_rho
-       write(*,'(A,ES8.2)')   "   L2 Norm of Residual (relative to old state): ", l2_norm
+       write(*,'(A,ES8.2)')   "   L-infinity norm of residual (relative to old state): ", Linf_norm
        write(*,'(A,f6.2)')    "   Rotational period (s): ", rot_period
        write(*,'(A,ES8.2)')   "   Kinetic energy: ", kin_eng
        write(*,'(A,ES9.2)')   "   Potential energy: ", pot_eng

@@ -140,18 +140,14 @@ void Castro::scf_relaxation() {
      Real kin_eng = 0.0;
      Real pot_eng = 0.0;
      Real int_eng = 0.0;
-     Real l2_norm_resid = 0.0;
-     Real l2_norm_source = 0.0;
      Real mass = 0.0;
-     Real delta_rho = 0.0;
+     Real Linf_norm = 0.0;
 
      // Finally, update the density using the enthalpy field.
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:kin_eng,pot_eng,int_eng)      \
-                     reduction(+:l2_norm_resid,l2_norm_source) \
-                     reduction(+:mass)                         \
-                     reduction(max:delta_rho)
+#pragma omp parallel reduction(+:kin_eng,pot_eng,int_eng, mass) \
+                     reduction(max:Linf_norm)
 #endif
      for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
 
@@ -163,7 +159,7 @@ void Castro::scf_relaxation() {
 			  BL_TO_FORTRAN_ANYD(enthalpy[mfi]),
 			  AMREX_ZFILL(dx), omega, h_max,
 			  &kin_eng, &pot_eng, &int_eng, &mass,
-                          &delta_rho, &l2_norm_resid, &l2_norm_source);
+                          &Linf_norm);
 
      }
 
@@ -171,19 +167,14 @@ void Castro::scf_relaxation() {
      ParallelDescriptor::ReduceRealSum(pot_eng);
      ParallelDescriptor::ReduceRealSum(int_eng);
      ParallelDescriptor::ReduceRealSum(mass);
-     ParallelDescriptor::ReduceRealMax(delta_rho);
-     ParallelDescriptor::ReduceRealSum(l2_norm_resid);
-     ParallelDescriptor::ReduceRealSum(l2_norm_source);
-
-     Real l2_norm = l2_norm_resid / l2_norm_source;
+     ParallelDescriptor::ReduceRealMax(Linf_norm);
 
 
 
      // Now check to see if we're converged.
 
-     scf_check_convergence(kin_eng, pot_eng, int_eng,
-			   mass,
-			   delta_rho, l2_norm,
+     scf_check_convergence(kin_eng, pot_eng, int_eng, mass,
+			   Linf_norm,
 			   &is_relaxed, j);
 
      //	for (int k = finest_level-1; k >= 0; k--)
