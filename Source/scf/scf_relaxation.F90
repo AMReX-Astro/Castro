@@ -18,7 +18,7 @@ module scf_relaxation_module
 
 contains
 
-  subroutine scf_setup_relaxation(dx) bind(C)
+  subroutine scf_setup_relaxation(dx, rho_max, T_max) bind(C, name='scf_setup_relaxation')
 
     use amrex_constants_module, only: HALF, ONE, TWO
     use prob_params_module, only: problo, center, probhi
@@ -29,7 +29,8 @@ contains
 
     implicit none
 
-    real(rt) :: dx(3)
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(in), value :: rho_max, T_max
 
     real(rt) :: x, y, z
     integer  :: n
@@ -101,8 +102,8 @@ contains
 
     ! Convert the maximum densities into maximum enthalpies.
 
-    eos_state % T   = 1.0d7
-    eos_state % rho = 5.0d6
+    eos_state % T   = T_max
+    eos_state % rho = rho_max
     eos_state % xn  = 1.0d0 / nspec
 
     call eos(eos_input_rt, eos_state)

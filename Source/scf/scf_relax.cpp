@@ -16,9 +16,17 @@ void Castro::scf_relaxation() {
   int j = 1;
   int relax_max_iterations = 30;
 
-  const Real* dx   = parent->Geom(level).CellSize();
+  const Real* dx = parent->Geom(level).CellSize();
 
-  scf_setup_relaxation(dx);
+  // Do the initial relaxation setup. For this,
+  // we need to know what the maximum density
+  // on the grid currently is, so that we can
+  // enforce this later.
+
+  Real max_dens = S_new.max(Density);
+  Real max_temp = S_new.max(Temp);
+
+  scf_setup_relaxation(dx, max_dens, max_temp);
 
   // Get the phi MultiFab.
 
