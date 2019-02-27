@@ -55,7 +55,7 @@ contains
     scf_r_B(:) = center
 
     scf_r_A(1) = scf_r_A(1) + scf_d_A
-    scf_R_B(2) = scf_r_B(2) + scf_d_B
+    scf_R_B(3) = scf_r_B(3) + scf_d_B
 
     ! Locate the zone centers that bracket each point at the 
     ! lower left corner. Note that the INT function rounds down,
