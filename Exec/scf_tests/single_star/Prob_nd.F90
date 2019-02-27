@@ -17,7 +17,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   integer :: untin
   integer :: i
 
-  namelist /fortin/ density, diameter, ambient_dens
+  namelist /fortin/ density, radius, ambient_dens
 
   integer, parameter :: maxlen=127
   character :: probin*(maxlen)
@@ -32,9 +32,8 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
      probin(i:i) = char(name(i))
   end do
 
-  density  = 5.0e6_rt
-  diameter = 1.0e9_rt
-
+  density = 5.0e6_rt
+  radius  = 1.0e9_rt
   ambient_dens = 1.0e-8_rt
 
   ! Read namelists -- override the defaults
@@ -51,7 +50,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   use amrex_constants_module, only: ZERO, HALF
   use amrex_fort_module, only : rt => amrex_real
-  use probdata_module, only: diameter, density, ambient_dens
+  use probdata_module, only: radius, density, ambient_dens
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, &
                                  UEDEN, UEINT, UFS, UFA
   use network, only : nspec
@@ -85,7 +84,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
            ! Establish the initial guess: a uniform density sphere
 
-           if ((xx**2 + yy**2 + zz**2)**0.5 < diameter / 2) then
+           if ((xx**2 + yy**2 + zz**2)**0.5 < radius) then
               state(i,j,k,URHO) = density
            else
               state(i,j,k,URHO) = ambient_dens

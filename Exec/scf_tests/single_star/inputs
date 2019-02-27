@@ -30,6 +30,8 @@ castro.do_rotation = 1
 castro.rotational_period = 100.0
 
 castro.do_scf_initial_model = 1
+castro.scf_d_A = 1.0e9
+castro.scf_d_B = 9.e8
 
 # GRAVITY
 gravity.gravity_type = PoissonGrav # Full self-gravity with the Poisson equation
