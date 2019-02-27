@@ -38,30 +38,35 @@ void Castro::scf_relaxation() {
 
      // First step is to find the rotational frequency.
 
-     Real omegasq = 0.0;
+     Real phi_A = 0.0;
+     Real psi_A = 0.0;
+     Real phi_B = 0.0;
+     Real psi_B = 0.0;
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:omegasq)
+#pragma omp parallel reduction(+:phi_A, psi_A, phi_B, psi_B)
 #endif    	
      for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi) {
 
        const Box& box  = mfi.tilebox();
-       const int* lo   = box.loVect();
-       const int* hi   = box.hiVect();
 
-       Real osq = 0.0;
-
-       scf_get_omegasq(ARLIM_3D(lo), ARLIM_3D(hi),
-		       ARLIM_3D(domlo), ARLIM_3D(domhi),
-		       BL_TO_FORTRAN_3D(S_new[mfi]),
-		       BL_TO_FORTRAN_3D(phi[mfi]),
-		       ZFILL(dx), &time, &osq);
-
-       omegasq += osq;
+       scf_update_for_omegasq(AMREX_ARLIM_ANYD(box.loVect()), AMREX_ARLIM_ANYD(box.hiVect()),
+                              AMREX_ARLIM_ANYD(domlo), AMREX_ARLIM_ANYD(domhi),
+                              BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                              BL_TO_FORTRAN_ANYD(phi[mfi]),
+                              AMREX_ZFILL(dx),
+                              &phi_A, &psi_A, &phi_B, &psi_B);
 
      }
 
-     ParallelDescriptor::ReduceRealSum(omegasq);
+     ParallelDescriptor::ReduceRealSum(phi_A);
+     ParallelDescriptor::ReduceRealSum(psi_A);
+     ParallelDescriptor::ReduceRealSum(phi_B);
+     ParallelDescriptor::ReduceRealSum(psi_B);
+
+     // Now update the square of the rotation frequency, following Hachisu (Equation 16).
+
+     Real omegasq = -(phi_A - phi_B) / (psi_A - psi_B);
 
      if (omegasq < 0.0 && ParallelDescriptor::IOProcessor()) {
 	 std::cerr << "Omega squared = " << omegasq << " is negative in the relaxation step; aborting." << std::endl;

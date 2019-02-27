@@ -55,7 +55,7 @@ contains
     scf_r_B(:) = center
 
     scf_r_A(1) = scf_r_A(1) + scf_d_A
-    scf_R_B(3) = scf_r_B(3) + scf_d_B
+    scf_r_B(3) = scf_r_B(3) + scf_d_B
 
     ! Locate the zone centers that bracket each point at the 
     ! lower left corner. Note that the INT function rounds down,
@@ -138,16 +138,20 @@ contains
 
 
 
-  subroutine scf_get_omegasq(lo, hi, &
-                             domlo, domhi, &
-                             state, s_lo, s_hi, &
-                             phi, p_lo, p_hi, &
-                             dx, time, omegasq) bind(C, name='scf_get_omegasq')
+  ! Calculate the phi and psi factors that go into
+  ! updating the rotation frequency.
+  
+  subroutine scf_update_for_omegasq(lo, hi, &
+                                    domlo, domhi, &
+                                    state, s_lo, s_hi, &
+                                    phi, p_lo, p_hi, &
+                                    dx, &
+                                    phi_A, psi_A, phi_B, psi_B) bind(C, name='scf_update_for_omegasq')
 
-    use amrex_constants_module, only: ONE, TWO
+    use amrex_constants_module, only: HALF
     use meth_params_module, only: NVAR
-    use rotation_frequency_module, only: get_omega
     use castro_util_module, only: position
+    use prob_params_module, only: problo, center
 
     implicit none
 
@@ -155,16 +159,14 @@ contains
     integer,  intent(in   ) :: domlo(3), domhi(3)
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
     integer,  intent(in   ) :: p_lo(3), p_hi(3)
-    real(rt), intent(in   ) :: dx(3), time
+    real(rt), intent(in   ) :: dx(3)
     real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     real(rt), intent(in   ) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
-    real(rt), intent(inout) :: omegasq
+    real(rt), intent(inout) :: phi_A, phi_B, psi_A, psi_B
 
     integer  :: i, j, k
     integer  :: loc(3)
-    real(rt) :: theta2, theta3, omega(3), c(0:1,0:1,0:1), r(3)
-
-    omega = get_omega(time)
+    real(rt) :: omega(3), c(0:1,0:1,0:1), r(3), scale
 
     ! The below assumes we are rotating on the z-axis.
 
@@ -178,9 +180,14 @@ contains
              if (i .ge. lo(1) .and. j .ge. lo(2) .and. k .ge. lo(3) .and. &
                  i .le. hi(1) .and. j .le. hi(2) .and. k .le. hi(3)) then
 
-                r(:) = position(i, j, k)
+                r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
+                r(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
+                r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
 
-                omegasq = omegasq - c(i-loc(1),j-loc(2),k-loc(3)) * TWO * phi(i,j,k) / (r(1)**2 + r(2)**2)
+                scale = c(i-loc(1),j-loc(2),k-loc(3))
+
+                phi_A = phi_A + scale * phi(i,j,k)
+                psi_A = psi_A + scale * (-HALF * (r(1)**2 + r(2)**2))
 
              endif
 
@@ -196,11 +203,16 @@ contains
           do i = loc(1), loc(1) + 1
 
              if (i .ge. lo(1) .and. j .ge. lo(2) .and. k .ge. lo(3) .and. &
-                  i .le. hi(1) .and. j .le. hi(2) .and. k .le. hi(3)) then
+                 i .le. hi(1) .and. j .le. hi(2) .and. k .le. hi(3)) then
 
-                r(:) = position(i, j, k)
+                r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
+                r(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
+                r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
 
-                omegasq = omegasq - c(i-loc(1),j-loc(2),k-loc(3)) * TWO * phi(i,j,k) / (r(1)**2 + r(2)**2)
+                scale = c(i-loc(1),j-loc(2),k-loc(3))
+
+                phi_B = phi_B + scale * phi(i,j,k)
+                psi_B = psi_B + scale * (-HALF * (r(1)**2 + r(2)**2))
 
              endif
 
@@ -208,7 +220,7 @@ contains
        enddo
     enddo
 
-  end subroutine scf_get_omegasq
+  end subroutine scf_update_for_omegasq
 
 
 

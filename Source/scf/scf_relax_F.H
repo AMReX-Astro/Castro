@@ -1,12 +1,13 @@
 
   void scf_setup_relaxation(const amrex::Real* dx);
 
-  void scf_get_omegasq(const int* lo, const int* hi,
-		       const int* domlo, const int* domhi,
-		       BL_FORT_FAB_ARG_3D(state),
-		       BL_FORT_FAB_ARG_3D(phi),
-		       const amrex::Real* dx,  
-		       const amrex::Real* time, amrex::Real* omegasq);
+  void scf_update_for_omegasq(const int* lo, const int* hi,
+                              const int* domlo, const int* domhi,
+                              BL_FORT_FAB_ARG_3D(state),
+                              BL_FORT_FAB_ARG_3D(phi),
+                              const amrex::Real* dx,  
+                              amrex::Real* phi_A, amrex::Real* psi_A,
+                              amrex::Real* phi_B, amrex::Real* psi_B);
 
   void scf_get_bernoulli_const(const int* lo, const int* hi,
 			       const int* domlo, const int* domhi,
