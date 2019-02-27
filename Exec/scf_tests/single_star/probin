@@ -1,0 +1,13 @@
+&fortin
+  density      = 5.0d6
+  diameter     = 1.0d9
+  ambient_dens = 1.0d-8
+/
+
+&tagging
+  max_denerr_lev = 20
+  denerr = 1.0d0
+/
+
+&extern
+/
