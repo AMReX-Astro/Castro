@@ -17,7 +17,7 @@ void Castro::scf_relaxation() {
   int relax_max_iterations = 30;
 
   const Real* dx   = parent->Geom(level).CellSize();
-  
+
   scf_setup_relaxation(dx);
 
   // Get the phi MultiFab.
@@ -26,12 +26,12 @@ void Castro::scf_relaxation() {
 
   Real time = state[State_Type].curTime();
 
-  // Iterate until the system is relaxed by filling the level data 
+  // Iterate until the system is relaxed by filling the level data
   // and then doing a multilevel gravity solve.
 
   int is_relaxed = 0;
 
-  while ( j <= relax_max_iterations ) {
+  while (j <= relax_max_iterations) {
 
      // First step is to find the rotational frequency.
 
@@ -42,7 +42,7 @@ void Castro::scf_relaxation() {
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:phi_A, psi_A, phi_B, psi_B)
-#endif    	
+#endif
      for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi) {
 
        const Box& bx = mfi.tilebox();
@@ -103,7 +103,7 @@ void Castro::scf_relaxation() {
 
 
 
-     // Third step is to construct the enthalpy field and 
+     // Third step is to construct the enthalpy field and
      // find the maximum enthalpy for the star.
 
      Real h_max = 0.0;
@@ -113,7 +113,7 @@ void Castro::scf_relaxation() {
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(max:h_max)
-#endif    	
+#endif
      for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
 
        const Box& bx = mfi.tilebox();
@@ -173,7 +173,7 @@ void Castro::scf_relaxation() {
 
      // Now check to see if we're converged.
 
-     scf_check_convergence(kin_eng, pot_eng, int_eng, 
+     scf_check_convergence(kin_eng, pot_eng, int_eng,
 			   mass,
 			   delta_rho, l2_norm,
 			   &is_relaxed, j);
