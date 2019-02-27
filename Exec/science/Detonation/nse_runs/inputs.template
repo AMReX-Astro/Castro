@@ -33,6 +33,7 @@ castro.small_temp     = 1.e7
 
 castro.riemann_solver = 0
 
+castro.time_integration_method = @@method@@
 castro.sdc_iters = @@SDC_ITERS@@
 
 # TIME STEP CONTROL
