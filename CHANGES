@@ -1,5 +1,8 @@
 # changes since the last release
 
+  -- Fixed a minor long-standing bug in the simplified SDC implementation
+     involving incorrect indexing. This changes results slightly.
+
   -- a number of tests involving reactions have been moved from
      hydro_tests to reacting_tests
 
