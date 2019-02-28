@@ -69,19 +69,35 @@ void Castro::scf_relaxation() {
      ParallelDescriptor::ReduceRealSum(psi_B);
 
      // Now update the square of the rotation frequency, following Hachisu (Equation 16).
+     // Deal carefully with the special case where phi_A and phi_B are equal -- we assume
+     // this is the non-rotating case, and we want to handle that gracefully.
 
-     Real omegasq = -(phi_A - phi_B) / (psi_A - psi_B);
+     Real omegasq;
+     Real omega;
 
-     if (omegasq < 0.0 && ParallelDescriptor::IOProcessor()) {
-	 std::cerr << "Omega squared = " << omegasq << " is negative in the relaxation step; aborting." << std::endl;
-	 amrex::Error();
+     if (std::abs(phi_A - phi_B) / std::abs(phi_A) < 1.e-6) {
+
+         omegasq = 0.0;
+         omega = 0.0;
+         rotational_period = 0.0;
+         do_rotation = 0;
+
+     } else {
+
+         omegasq = -(phi_A - phi_B) / (psi_A - psi_B);
+
+         if (omegasq < 0.0 && ParallelDescriptor::IOProcessor()) {
+             std::cerr << "Omega squared = " << omegasq << " is negative in the relaxation step; aborting." << std::endl;
+             amrex::Error();
+         }
+
+         omega = sqrt(omegasq);
+
+         // Rotational period is 2 pi / omega.
+
+         rotational_period = 2.0 * M_PI / omega;
+
      }
-
-     Real omega = sqrt(omegasq);
-
-     // Rotational period is 2 pi / omega.
-
-     rotational_period = 2.0 * M_PI / omega;
 
      // Now save the updated rotational frequency in the Fortran module.
 
