@@ -488,7 +488,7 @@ Castro::get_react_source_prim(MultiFab& react_src, Real time, Real dt)
 
     // Now fill all of the ghost zones.
     Real cur_time = get_state_data(Simplified_SDC_React_Type).curTime();
-    AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), cur_time, Simplified_SDC_React_Type, 0, NUM_STATE);
+    AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), cur_time, Simplified_SDC_React_Type, 0, react_src.nComp());
 
 }
 #endif
