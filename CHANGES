@@ -1,5 +1,8 @@
 # changes since the last release
 
+  -- a number of tests involving reactions have been moved from
+     hydro_tests to reacting_tests
+
   -- The old spectral deferred corrections method has been renamed
      "simplified" SDC. It is accessed with time_integration_method = 3.
      This still requires building with USE_SDC = TRUE, and when building
