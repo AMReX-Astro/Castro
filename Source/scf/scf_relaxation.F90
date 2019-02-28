@@ -463,7 +463,7 @@ contains
        write(*,*) ""
        write(*,'(A,I2)')      "   Relaxation iterations completed: ", num_iterations
        write(*,'(A,ES8.2)')   "   L-infinity norm of residual (relative to old state): ", Linf_norm
-       write(*,'(A,f6.2)')    "   Rotational period (s): ", rot_period
+       write(*,'(A,ES8.2)')   "   Rotational period (s): ", rot_period
        write(*,'(A,ES8.2)')   "   Kinetic energy: ", kin_eng
        write(*,'(A,ES9.2)')   "   Potential energy: ", pot_eng
        write(*,'(A,ES8.2)')   "   Internal energy: ", int_eng
