@@ -31,7 +31,7 @@ castro.rotational_period = 100.0
 
 castro.do_scf_initial_model = 1
 castro.scf_d_A = 1.0e9
-castro.scf_d_B = 9.e8
+castro.scf_d_B = 9.0e8
 castro.scf_relax_tol = 1.e-6
 
 # GRAVITY
@@ -41,6 +41,9 @@ gravity.max_multipole_order = 6    # Multipole expansion includes terms up to r*
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing integrals
 amr.data_log          = grid_diag.out
+
+castro.v = 1
+amr.v = 1
 
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 1
