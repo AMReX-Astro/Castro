@@ -77,30 +77,52 @@ class Detonation:
         os.chdir(cwd)
 
         # precompute the velocity and the data profiles
-        self.v = self.get_velocity()
+        self.v, self.v_sigma = self.get_velocity()
         self.data = self.get_data()
+
+    def __lt__(self, other):
+        """sort by CFL number and resolution and then # of SDC
+        iterations"""
+        if self.cfl == other.cfl:
+            if self.nzones == other.nzones:
+                if self.niters is None:
+                    return True
+                elif other.niters is None:
+                    return False
+                else:
+                    return self.niters < other.niters
+            else:
+                return self.nzones < other.nzones
+        else:
+            return self.cfl < other.cfl
 
     def get_velocity(self):
         """look at the last 2 plotfiles and estimate the velocity by
         finite-differencing"""
 
-        f1 = self.files[-2]
-        p1 = Profile(os.path.join(self.name, f1))
+        vs = []
+        pairs = [(-2, -1), (-3, -1), (-3, -1)]
 
-        f2 = self.files[-1]
-        p2 = Profile(os.path.join(self.name, f2))
+        for i1, i2 in pairs:
+            f1 = self.files[i1]
+            p1 = Profile(os.path.join(self.name, f1))
 
-        # we'll do this by looking at 3 different temperature
-        # thresholds and averaging
-        T_ref = [2.e9, 3.e9, 4.e9]
-        v = 0.0
-        for T0 in T_ref:
-            x1 = p1.find_x_for_T(T0)
-            x2 = p2.find_x_for_T(T0)
-            v += (x1 - x2)/(p1.time - p2.time)
+            f2 = self.files[i2]
+            p2 = Profile(os.path.join(self.name, f2))
 
-        v /= len(T_ref)
-        return v
+            # we'll do this by looking at 3 different temperature
+            # thresholds and averaging
+            T_ref = [2.e9, 3.e9, 4.e9]
+
+            for T0 in T_ref:
+                x1 = p1.find_x_for_T(T0)
+                x2 = p2.find_x_for_T(T0)
+                vs.append((x1 - x2)/(p1.time - p2.time))
+
+        vs = np.array(vs)
+        v = np.mean(vs)
+        v_sigma = np.std(vs)
+        return v, v_sigma
 
     def get_data(self):
         """get the temperature and energy generation rate from the last
@@ -122,39 +144,40 @@ if __name__ == "__main__":
             print("run {} didn't produce output".format(run))
 
     print(len(runs))
+    runs.sort()
 
     # make a plot of speed vs. CFL, grouped by Strang, SDC2, SDC3,
-    # SDC4 for 1024 zones
-    strang = [q for q in runs if q.integrator == "Strang" and q.nzones == 1024]
-    strang.sort(key=operator.attrgetter("cfl"))
+    # SDC4 for the same resolution
+    nzones = set([q.nzones for q in runs])
+    for nz in nzones:
+        strang = [q for q in runs if q.integrator == "Strang" and q.nzones == nz]
+        sdc2 = [q for q in runs if q.integrator == "SDC" and q.niters == 2 and q.nzones == nz]
+        sdc3 = [q for q in runs if q.integrator == "SDC" and q.niters == 3 and q.nzones == nz]
+        sdc4 = [q for q in runs if q.integrator == "SDC" and q.niters == 4 and q.nzones == nz]
 
-    sdc2 = [q for q in runs if q.integrator == "SDC" and q.niters == 2 and q.nzones == 1024]
-    sdc2.sort(key=operator.attrgetter("cfl"))
+        fig = plt.figure(1)
+        fig.clear()
 
-    sdc3 = [q for q in runs if q.integrator == "SDC" and q.niters == 3 and q.nzones == 1024]
-    sdc3.sort(key=operator.attrgetter("cfl"))
+        ax = fig.add_subplot(111)
+        ax.errorbar([q.cfl for q in strang], [q.v for q in strang],
+                    yerr=[q.v_sigma for q in strang],
+                    marker="x", label="Strang")
+        ax.errorbar([q.cfl for q in sdc2], [q.v for q in sdc2],
+                    yerr=[q.v_sigma for q in sdc2],
+                    marker="o", label="SDC (2 iters)")
+        ax.errorbar([q.cfl for q in sdc3], [q.v for q in sdc3],
+                    yerr=[q.v_sigma for q in sdc3],
+                    marker="*", label="SDC (3 iters)")
+        ax.errorbar([q.cfl for q in sdc4], [q.v for q in sdc4],
+                    yerr=[q.v_sigma for q in sdc4],
+                    marker="^", label="SDC (4 iters)")
 
-    sdc4 = [q for q in runs if q.integrator == "SDC" and q.niters == 4 and q.nzones == 1024]
-    sdc4.sort(key=operator.attrgetter("cfl"))
+        ax.legend(frameon=False)
+        ax.set_xlabel("CFL")
+        ax.set_ylabel("velocity (cm/s)")
+        ax.set_title("number of zones: {}".format(nz))
 
-    fig = plt.figure(1)
-    fig.clear()
-
-    ax = fig.add_subplot(111)
-    ax.plot([q.cfl for q in strang], [q.v for q in strang],
-            marker="x", label="Strang")
-    ax.plot([q.cfl for q in sdc2], [q.v for q in sdc2],
-            marker="o", label="SDC (2 iters)")
-    ax.plot([q.cfl for q in sdc2], [q.v for q in sdc3],
-            marker="*", label="SDC (3 iters)")
-    ax.plot([q.cfl for q in sdc2], [q.v for q in sdc4],
-            marker="^", label="SDC (4 iters)")
-
-    ax.legend(frameon=False)
-    ax.set_xlabel("CFL")
-    ax.set_ylabel("velocity (cm/s)")
-
-    fig.savefig("speed_vs_cfl.png")
+        fig.savefig("speed_vs_cfl_{}.png".format(nz))
 
     # make a plot of speed vs. resolution, grouped by Strang, SDC2,
     # SDC3, SDC4 for CFL = 0.8
@@ -163,7 +186,56 @@ if __name__ == "__main__":
     sdc3 = [q for q in runs if q.integrator == "SDC" and q.niters == 3 and q.cfl == 0.8]
     sdc4 = [q for q in runs if q.integrator == "SDC" and q.niters == 4 and q.cfl == 0.8]
 
-    # make a plot of T, enuc vs. x for different Strang CFL
+    fig = plt.figure(1)
+    fig.clear()
+
+    ax = fig.add_subplot(111)
+    ax.errorbar([q.nzones for q in strang], [q.v for q in strang],
+                yerr=[q.v_sigma for q in strang],
+                marker="x", label="Strang")
+    ax.errorbar([q.nzones for q in sdc2], [q.v for q in sdc2],
+                yerr=[q.v_sigma for q in sdc2],
+                marker="o", label="SDC (2 iters)")
+    ax.errorbar([q.nzones for q in sdc3], [q.v for q in sdc3],
+                yerr=[q.v_sigma for q in sdc3],
+                marker="*", label="SDC (3 iters)")
+    ax.errorbar([q.nzones for q in sdc4], [q.v for q in sdc4],
+                yerr=[q.v_sigma for q in sdc4],
+                marker="^", label="SDC (4 iters)")
+
+    ax.legend(frameon=False)
+    ax.set_xlabel("# of zones")
+    ax.set_ylabel("velocity (cm/s)")
+
+    fig.savefig("speed_vs_nzones.png")
+
+    # make a plot of T, enuc vs. x for different Strang / SDC CFL
+    strang = [q for q in runs if q.integrator == "Strang" and q.nzones == 1024]
+    sdc = [q for q in runs if q.integrator == "SDC" and q.nzones == 1024 and q.niters == 2]
+
+    for dset, title, fname in [(strang, "Strang", "strang"), (sdc, "SDC (niters = 2)", "sdc_niter2")]:
+
+        fig, axs = plt.subplots(2, 1, figsize=(7, 10), constrained_layout=True)
+
+        ax1 = axs.flatten()[0]
+        ax2 = axs.flatten()[1]
+
+        for p in dset:
+            ax1.plot(p.data.x, p.data.T, label="CFL = {}".format(p.cfl))
+            ax2.plot(p.data.x, np.abs(p.data.enuc), label="CFL = {}".format(p.cfl))
+
+        ax1.legend(frameon=False)
+        ax1.set_ylabel("T [K]")
+        ax1.set_yscale("log")
+
+        ax2.legend(frameon=False)
+        ax2.set_xlabel("x [cm]")
+        ax2.set_ylabel("enuc [erg/g/s]")
+        ax2.set_yscale("log")
+        ax2.set_ylim(1.e14)
+
+        fig.suptitle("{}, nzones = 1024".format(title))
+        fig.savefig("profile_{}_1024.png".format(fname))
 
     # make a plot of T, enuc vs. x for different SDC CFL
 
