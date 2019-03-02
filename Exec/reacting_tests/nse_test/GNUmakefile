@@ -1,21 +1,19 @@
-PRECISION        = DOUBLE
-PROFILE          = FALSE
-DEBUG            = FALSE
-DIM              = 2
+PRECISION  = DOUBLE
+PROFILE    = FALSE
 
-COMP	         = gnu
+DEBUG      = FALSE
 
-USE_MPI          = TRUE
-USE_OMP          = FALSE
+DIM        = 1
 
-USE_GRAV         = TRUE
-USE_REACT        = TRUE
+COMP	   = gnu
 
-USE_OLDPLOTPER   = TRUE
+USE_MPI    = FALSE
 
-DIMENSION_AGNOSTIC = TRUE
+USE_REACT  = TRUE
 
 CASTRO_HOME = ../../..
+
+DIMENSION_AGNOSTIC = TRUE
 
 ifdef MICROPHYSICS_HOME
 
@@ -23,7 +21,9 @@ ifdef MICROPHYSICS_HOME
 EOS_DIR     := helmholtz
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/networks
-NETWORK_DIR := rprox
+NETWORK_DIR := aprox19
+
+INTEGRATOR_DIR := VODE
 
 else
 

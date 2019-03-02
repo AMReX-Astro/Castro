@@ -11,10 +11,10 @@ void
 Castro::strang_react_first_half(Real time, Real dt)
 {
 
-    // Sanity check: should only be in here if we're doing CTU.
+    // Sanity check: should only be in here if we're doing CTU or MOL.
 
-    if (time_integration_method != CornerTransportUpwind) {
-        amrex::Error("Strang reactions are only supported for the CTU advance.");
+    if (time_integration_method != CornerTransportUpwind && time_integration_method != MethodOfLines) {
+        amrex::Error("Strang reactions are only supported for the CTU and MOL advance.");
     }
 
     // Get the reactions MultiFab to fill in.
@@ -155,10 +155,10 @@ void
 Castro::strang_react_second_half(Real time, Real dt)
 {
 
-    // Sanity check: should only be in here if we're doing CTU.
+    // Sanity check: should only be in here if we're doing CTU or MOL.
 
-    if (time_integration_method != CornerTransportUpwind) {
-        amrex::Error("Strang reactions are only supported for the CTU advance.");
+    if (time_integration_method != CornerTransportUpwind && time_integration_method != MethodOfLines) {
+        amrex::Error("Strang reactions are only supported for the CTU and MOL advance.");
     }
 
     MultiFab& reactions = get_new_data(Reactions_Type);
@@ -266,10 +266,10 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 
     BL_PROFILE("Castro::react_state()");
 
-    // Sanity check: should only be in here if we're doing CTU.
+    // Sanity check: should only be in here if we're doing CTU or MOL.
 
-    if (time_integration_method != CornerTransportUpwind) {
-        amrex::Error("Strang reactions are only supported for the CTU advance.");
+    if (time_integration_method != CornerTransportUpwind && time_integration_method != MethodOfLines) {
+        amrex::Error("Strang reactions are only supported for the CTU and MOL advance.");
     }
 
     const Real strt_time = ParallelDescriptor::second();
