@@ -17,7 +17,7 @@
 			       BL_FORT_FAB_ARG_3D(state),
 			       BL_FORT_FAB_ARG_3D(phi),
                                BL_FORT_FAB_ARG_3D(psi),
-			       const amrex::Real* dx, const amrex::Real omega,
+			       const amrex::Real* dx,
 			       amrex::Real* bernoulli);
 
   void scf_construct_enthalpy(const int* lo, const int* hi,
@@ -25,19 +25,19 @@
 			      BL_FORT_FAB_ARG_3D(phi),
                               BL_FORT_FAB_ARG_3D(psi),
 			      BL_FORT_FAB_ARG_3D(enthalpy),
-			      const amrex::Real* dx, amrex::Real omega, amrex::Real bernoulli);
+			      const amrex::Real* dx, amrex::Real bernoulli);
 
   void scf_update_density(const int* lo, const int* hi,
 			  BL_FORT_FAB_ARG_3D(state),
 			  BL_FORT_FAB_ARG_3D(enthalpy),
-			  const amrex::Real* dx, amrex::Real omega, amrex::Real h_max,
+			  const amrex::Real* dx, amrex::Real h_max,
 			  amrex::Real* Linf_norm);
 
   void scf_diagnostics(const int* lo, const int* hi,
                        BL_FORT_FAB_ARG_3D(state),
                        BL_FORT_FAB_ARG_3D(phi),
                        BL_FORT_FAB_ARG_3D(psi),
-                       const amrex::Real* dx, amrex::Real omega,
+                       const amrex::Real* dx,
                        amrex::Real* kin_eng, amrex::Real* pot_eng, amrex::Real* int_eng, amrex::Real* mass);
 
   void scf_get_solar_mass(amrex::Real* M_solar);

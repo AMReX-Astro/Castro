@@ -106,28 +106,24 @@ void Castro::scf_relaxation() {
 
      // Now update the square of the rotation frequency, following Hachisu (Equation 16).
      // Deal carefully with the special case where phi_A and phi_B are equal -- we assume
-     // this is the non-rotating case, and we want to handle that gracefully.
-
-     Real omegasq;
-     Real omega;
+     // this is the non-rotating case, and we want to handle that gracefully. Since the
+     // rotation module knows to treat rotational_period = 0 as effectively disabling
+     // rotation, we'll use that approach.
 
      if (std::abs(phi_A - phi_B) / std::abs(phi_A) < 1.e-6) {
 
-         omegasq = 0.0;
-         omega = 0.0;
          rotational_period = 0.0;
-         do_rotation = 0;
 
      } else {
 
-         omegasq = -(phi_A - phi_B) / (psi_A - psi_B);
+         Real omegasq = -(phi_A - phi_B) / (psi_A - psi_B);
 
          if (omegasq < 0.0 && ParallelDescriptor::IOProcessor()) {
              std::cerr << "Omega squared = " << omegasq << " is negative in the relaxation step; aborting." << std::endl;
              amrex::Error();
          }
 
-         omega = sqrt(omegasq);
+         Real omega = sqrt(omegasq);
 
          // Rotational period is 2 pi / omega.
 
@@ -156,7 +152,7 @@ void Castro::scf_relaxation() {
 			       BL_TO_FORTRAN_ANYD(S_new[mfi]),
 			       BL_TO_FORTRAN_ANYD(phi[mfi]),
                                BL_TO_FORTRAN_ANYD(psi[mfi]),
-			       AMREX_ZFILL(dx), omega, &bernoulli);
+			       AMREX_ZFILL(dx), &bernoulli);
 
      }
 
@@ -182,7 +178,7 @@ void Castro::scf_relaxation() {
 			      BL_TO_FORTRAN_ANYD(phi[mfi]),
                               BL_TO_FORTRAN_ANYD(psi[mfi]),
 			      BL_TO_FORTRAN_ANYD(enthalpy[mfi]),
-			      AMREX_ZFILL(dx), omega, bernoulli);
+			      AMREX_ZFILL(dx), bernoulli);
 
      }
 
@@ -202,7 +198,7 @@ void Castro::scf_relaxation() {
        scf_update_density(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
 			  BL_TO_FORTRAN_ANYD(S_new[mfi]),
 			  BL_TO_FORTRAN_ANYD(enthalpy[mfi]),
-			  AMREX_ZFILL(dx), omega, h_max,
+			  AMREX_ZFILL(dx), h_max,
                           &Linf_norm);
 
      }
@@ -227,7 +223,7 @@ void Castro::scf_relaxation() {
                        BL_TO_FORTRAN_ANYD(S_new[mfi]),
                        BL_TO_FORTRAN_ANYD(phi[mfi]),
                        BL_TO_FORTRAN_ANYD(psi[mfi]),
-                       AMREX_ZFILL(dx), omega,
+                       AMREX_ZFILL(dx),
                        &kin_eng, &pot_eng, &int_eng, &mass);
 
      }
