@@ -46,6 +46,11 @@ void Castro::scf_relaxation() {
       amrex::Error("Polar radius must not be larger than equatorial radius for SCF relaxation.");
   }
 
+  // Grab the value for the solar mass, we'll need it later.
+
+  Real M_solar;
+  scf_get_solar_mass(&M_solar);
+
   // Do the initial relaxation setup.
 
   scf_setup_relaxation();
@@ -222,20 +227,44 @@ void Castro::scf_relaxation() {
      ParallelDescriptor::ReduceRealSum(int_eng);
      ParallelDescriptor::ReduceRealSum(mass);
 
+     Real virial_error = std::abs(2.0 * kin_eng + pot_eng + 3.0 * int_eng) / std::abs(pot_eng);
+
      // Now check to see if we're converged.
 
-     scf_check_convergence(kin_eng, pot_eng, int_eng, mass,
-			   Linf_norm,
-			   &is_relaxed, j);
+     int is_relaxed = 0;
+
+     if (Linf_norm < scf_relax_tol) {
+         is_relaxed = 1;
+     }
+
+     if (ParallelDescriptor::IOProcessor()) {
+
+         std::cout << std::endl << std::endl;
+         std::cout << "   Relaxation iterations completed: " << j << std::endl;
+         std::cout << "   L-infinity norm of residual (relative to old state): " << Linf_norm << std::endl;
+         std::cout << "   Rotational period (s): " << rotational_period << std::endl;
+         std::cout << "   Kinetic energy: " << kin_eng << std::endl;
+         std::cout << "   Potential energy: " << pot_eng << std::endl;
+         std::cout << "   Internal energy: " << int_eng << std::endl;
+         std::cout << "   Virial error: " << virial_error << std::endl;
+         std::cout << "   Mass: " << mass / M_solar << " solar masses" << std::endl;
+
+         if (is_relaxed == 1) {
+             std::cout << "  Relaxation completed!" << std::endl;
+         }
+
+         std::cout << std::endl << std::endl;
+
+     }
 
      //	for (int k = finest_level-1; k >= 0; k--)
      //	  getLevel(k).avgDown();
 
-    gravity->multilevel_solve_for_new_phi(level,finest_level);
+     gravity->multilevel_solve_for_new_phi(level,finest_level);
 
-    if (is_relaxed == 1) break;
+     if (is_relaxed == 1) break;
 
-    j++;
+     j++;
 
   }
 

@@ -408,51 +408,18 @@ contains
 
   end subroutine scf_diagnostics
 
-  
 
-  subroutine scf_check_convergence(kin_eng, pot_eng, int_eng, &
-                                   mass, Linf_norm, &
-                                   is_relaxed, num_iterations) bind(C, name='scf_check_convergence')
 
-    use meth_params_module, only: rot_period
-    use amrex_constants_module, only: TWO, THREE
+  subroutine scf_get_solar_mass(M_solar_out) bind(C, name="scf_get_solar_mass")
+
     use fundamental_constants_module, only: M_solar
-    use meth_params_module, only: scf_relax_tol
-    use amrex_paralleldescriptor_module, only: amrex_pd_ioprocessor
 
     implicit none
 
-    integer,  intent(inout) :: is_relaxed
-    integer,  intent(in   ), value :: num_iterations
-    real(rt), intent(in   ), value :: kin_eng, pot_eng, int_eng, mass
-    real(rt), intent(in   ), value :: Linf_norm
+    real(rt), intent(inout) :: M_solar_out
 
-    real(rt) :: virial_error
+    M_solar_out = M_solar
 
-    virial_error = abs(TWO * kin_eng + pot_eng + THREE * int_eng) / abs(pot_eng)
-
-    if (Linf_norm .lt. scf_relax_tol) then
-       is_relaxed = 1
-    endif
-
-    if (amrex_pd_ioprocessor()) then
-
-       write(*,*) ""
-       write(*,*) ""
-       write(*,'(A,I2)')      "   Relaxation iterations completed: ", num_iterations
-       write(*,'(A,ES8.2)')   "   L-infinity norm of residual (relative to old state): ", Linf_norm
-       write(*,'(A,ES8.2)')   "   Rotational period (s): ", rot_period
-       write(*,'(A,ES8.2)')   "   Kinetic energy: ", kin_eng
-       write(*,'(A,ES9.2)')   "   Potential energy: ", pot_eng
-       write(*,'(A,ES8.2)')   "   Internal energy: ", int_eng
-       write(*,'(A,ES9.3)')   "   Virial error: ", virial_error
-       write(*,'(A,f5.3,A)')  "   Mass: ", mass / M_solar, " solar masses"
-       if (is_relaxed .eq. 1) write(*,*) "  Relaxation completed!"
-       write(*,*) ""
-       write(*,*) ""
-
-    end if
-
-  end subroutine scf_check_convergence
+  end subroutine scf_get_solar_mass
 
 end module scf_relaxation_module

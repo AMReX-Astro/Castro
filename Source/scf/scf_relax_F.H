@@ -34,6 +34,4 @@
                        const amrex::Real* dx, amrex::Real omega,
                        amrex::Real* kin_eng, amrex::Real* pot_eng, amrex::Real* int_eng, amrex::Real* mass);
 
-  void scf_check_convergence(amrex::Real kin_eng, amrex::Real pot_eng, amrex::Real int_eng, amrex::Real mass,
-			     amrex::Real Linf_norm,
-			     int* is_relaxed, int num_iterations);
+  void scf_get_solar_mass(amrex::Real* M_solar);
