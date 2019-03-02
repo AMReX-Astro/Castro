@@ -155,7 +155,7 @@ contains
           do i = lo(1), hi(1)
              r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
-             if (all(r >= scf_r_A - HALF * dx) .and. all(r <= scf_r_A + HALF * dx)) then
+             if (all(abs(r - scf_r_A) <= HALF * dx)) then
 
                 scale = c(i-loc(1),j-loc(2),k-loc(3))
 
@@ -179,7 +179,7 @@ contains
           do i = lo(1), hi(1)
              r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
-             if (all(r >= scf_r_B - HALF * dx) .and. all(r <= scf_r_B + HALF * dx)) then
+             if (all(abs(r - scf_r_B) <= HALF * dx)) then
 
                 scale = c(i-loc(1),j-loc(2),k-loc(3))
 
@@ -233,7 +233,7 @@ contains
           do i = lo(1), hi(1)
              r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
-             if (all(r >= scf_r_A - HALF * dx) .and. all(r <= scf_r_A + HALF * dx)) then
+             if (all(abs(r - scf_r_A) <= HALF * dx)) then
 
                 scale = c(i-loc(1),j-loc(2),k-loc(3))
 
