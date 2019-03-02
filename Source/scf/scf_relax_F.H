@@ -18,8 +18,7 @@
 			      BL_FORT_FAB_ARG_3D(state),
 			      BL_FORT_FAB_ARG_3D(phi),
 			      BL_FORT_FAB_ARG_3D(enthalpy),
-			      const amrex::Real* dx, const amrex::Real omega,
-			      amrex::Real* bernoulli, amrex::Real* h_max);
+			      const amrex::Real* dx, amrex::Real omega, amrex::Real bernoulli);
 
   void scf_update_density(const int* lo, const int* hi,
 			  BL_FORT_FAB_ARG_3D(state),

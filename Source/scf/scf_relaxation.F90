@@ -214,8 +214,7 @@ contains
                                     state, s_lo, s_hi, &
                                     phi, p_lo, p_hi, &
                                     enthalpy, h_lo, h_hi, &
-                                    dx, omega, &
-                                    bernoulli, h_max) bind(C, name='scf_construct_enthalpy')
+                                    dx, omega, bernoulli) bind(C, name='scf_construct_enthalpy')
 
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO, M_PI
     use meth_params_module, only: NVAR
@@ -231,9 +230,7 @@ contains
     real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     real(rt), intent(in   ) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
     real(rt), intent(inout) :: enthalpy(h_lo(1):h_hi(1),h_lo(2):h_hi(2),h_lo(3):h_hi(3))
-    real(rt), intent(in   ) :: bernoulli
-    real(rt), intent(inout) :: h_max
-    real(rt), intent(in   ), value :: omega
+    real(rt), intent(in   ), value :: omega, bernoulli
 
     integer  :: i, j, k
     real(rt) :: r(3)
@@ -251,10 +248,6 @@ contains
              r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
              enthalpy(i,j,k) = bernoulli - phi(i,j,k) - omega**2 * (-HALF * (r(1)**2 + r(2)**2))
-
-             if (enthalpy(i,j,k) > h_max) then
-                h_max = enthalpy(i,j,k)
-             end if
 
           enddo
        enddo

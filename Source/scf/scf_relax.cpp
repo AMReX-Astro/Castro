@@ -152,13 +152,11 @@ void Castro::scf_relaxation() {
      // Third step is to construct the enthalpy field and
      // find the maximum enthalpy for the star.
 
-     Real h_max = 0.0;
-
      MultiFab enthalpy(grids, dmap, 1, 0);
      enthalpy.setVal(0.0);
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(max:h_max)
+#pragma omp parallel
 #endif
      for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
 
@@ -168,12 +166,11 @@ void Castro::scf_relaxation() {
 			      BL_TO_FORTRAN_ANYD(S_new[mfi]),
 			      BL_TO_FORTRAN_ANYD(phi[mfi]),
 			      BL_TO_FORTRAN_ANYD(enthalpy[mfi]),
-			      AMREX_ZFILL(dx), omega,
-			      &bernoulli, &h_max);
+			      AMREX_ZFILL(dx), omega, bernoulli);
 
      }
 
-     ParallelDescriptor::ReduceRealMax(h_max);
+     Real h_max = enthalpy.max(0);
 
      Real kin_eng = 0.0;
      Real pot_eng = 0.0;
