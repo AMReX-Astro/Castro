@@ -1,5 +1,5 @@
 &fortin
-  density      = 1.3435d6
+  density      = 1.0d6
   radius       = 1.0d9
   ambient_dens = 1.0d-8
 /
