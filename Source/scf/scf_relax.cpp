@@ -59,6 +59,10 @@ void Castro::scf_relaxation() {
 
   MultiFab& phi = get_new_data(PhiGrav_Type);
 
+  // Construct a local MultiFab for psi.
+
+  MultiFab psi(grids, dmap, 1, 0);
+
   Real time = state[State_Type].curTime();
 
   // Iterate until the system is relaxed by filling the level data
@@ -82,9 +86,14 @@ void Castro::scf_relaxation() {
 
        const Box& bx = mfi.tilebox();
 
+       scf_construct_psi(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+                         BL_TO_FORTRAN_ANYD(psi[mfi]),
+                         AMREX_ZFILL(dx));
+
        scf_update_for_omegasq(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                               BL_TO_FORTRAN_ANYD(S_new[mfi]),
                               BL_TO_FORTRAN_ANYD(phi[mfi]),
+                              BL_TO_FORTRAN_ANYD(psi[mfi]),
                               AMREX_ZFILL(dx),
                               &phi_A, &psi_A, &phi_B, &psi_B);
 
@@ -146,6 +155,7 @@ void Castro::scf_relaxation() {
        scf_get_bernoulli_const(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
 			       BL_TO_FORTRAN_ANYD(S_new[mfi]),
 			       BL_TO_FORTRAN_ANYD(phi[mfi]),
+                               BL_TO_FORTRAN_ANYD(psi[mfi]),
 			       AMREX_ZFILL(dx), omega, &bernoulli);
 
      }
@@ -170,6 +180,7 @@ void Castro::scf_relaxation() {
        scf_construct_enthalpy(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
 			      BL_TO_FORTRAN_ANYD(S_new[mfi]),
 			      BL_TO_FORTRAN_ANYD(phi[mfi]),
+                              BL_TO_FORTRAN_ANYD(psi[mfi]),
 			      BL_TO_FORTRAN_ANYD(enthalpy[mfi]),
 			      AMREX_ZFILL(dx), omega, bernoulli);
 
@@ -190,7 +201,6 @@ void Castro::scf_relaxation() {
 
        scf_update_density(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
 			  BL_TO_FORTRAN_ANYD(S_new[mfi]),
-			  BL_TO_FORTRAN_ANYD(phi[mfi]),
 			  BL_TO_FORTRAN_ANYD(enthalpy[mfi]),
 			  AMREX_ZFILL(dx), omega, h_max,
                           &Linf_norm);
@@ -216,7 +226,7 @@ void Castro::scf_relaxation() {
        scf_diagnostics(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                        BL_TO_FORTRAN_ANYD(S_new[mfi]),
                        BL_TO_FORTRAN_ANYD(phi[mfi]),
-                       BL_TO_FORTRAN_ANYD(enthalpy[mfi]),
+                       BL_TO_FORTRAN_ANYD(psi[mfi]),
                        AMREX_ZFILL(dx), omega,
                        &kin_eng, &pot_eng, &int_eng, &mass);
 

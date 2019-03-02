@@ -86,12 +86,52 @@ contains
 
 
 
+  ! Construct psi, the term that determines the rotation law.
+
+  subroutine scf_construct_psi(lo, hi, &
+                               psi, psi_lo, psi_hi, &
+                               dx) bind(C, name='scf_construct_psi')
+
+    use amrex_constants_module, only: HALF
+    use meth_params_module, only: NVAR
+    use prob_params_module, only: problo, center
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: psi_lo(3), psi_hi(3)
+    real(rt), intent(inout) :: psi(psi_lo(1):psi_hi(1),psi_lo(2):psi_hi(2),psi_lo(3):psi_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+
+    integer  :: i, j, k
+    real(rt) :: r(3)
+
+    ! The below assumes we are rotating on the z-axis.
+
+    do k = lo(3), hi(3)
+       r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
+       do j = lo(2), hi(2)
+          r(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
+          do i = lo(1), hi(1)
+             r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
+
+             psi(i,j,k) = -HALF * (r(1)**2 + r(2)**2)
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine scf_construct_psi
+
+
+
   ! Calculate the phi and psi factors that go into
   ! updating the rotation frequency.
-  
+
   subroutine scf_update_for_omegasq(lo, hi, &
                                     state, s_lo, s_hi, &
-                                    phi, p_lo, p_hi, &
+                                    phi, phi_lo, phi_hi, &
+                                    psi, psi_lo, psi_hi, &
                                     dx, &
                                     phi_A, psi_A, phi_B, psi_B) bind(C, name='scf_update_for_omegasq')
 
@@ -103,10 +143,12 @@ contains
 
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    integer,  intent(in   ) :: p_lo(3), p_hi(3)
+    integer,  intent(in   ) :: phi_lo(3), phi_hi(3)
+    integer,  intent(in   ) :: psi_lo(3), psi_hi(3)
     real(rt), intent(in   ) :: dx(3)
     real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in   ) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    real(rt), intent(in   ) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
+    real(rt), intent(in   ) :: psi(psi_lo(1):psi_hi(1),psi_lo(2):psi_hi(2),psi_lo(3):psi_hi(3))
     real(rt), intent(inout) :: phi_A, phi_B, psi_A, psi_B
 
     integer  :: i, j, k
@@ -133,7 +175,7 @@ contains
              scale = rr(1) * rr(2) * rr(3)
 
              phi_A = phi_A + scale * phi(i,j,k)
-             psi_A = psi_A + scale * (-HALF * (r(1)**2 + r(2)**2))
+             psi_A = psi_A + scale * psi(i,j,k)
 
           enddo
        enddo
@@ -152,7 +194,7 @@ contains
              scale = rr(1) * rr(2) * rr(3)
 
              phi_B = phi_B + scale * phi(i,j,k)
-             psi_B = psi_B + scale * (-HALF * (r(1)**2 + r(2)**2))
+             psi_B = psi_B + scale * psi(i,j,k)
 
           enddo
        enddo
@@ -164,7 +206,8 @@ contains
 
   subroutine scf_get_bernoulli_const(lo, hi, &
                                      state, s_lo, s_hi, &
-                                     phi, p_lo, p_hi, &
+                                     phi, phi_lo, phi_hi, &
+                                     psi, psi_lo, psi_hi, &
                                      dx, omega, bernoulli) bind(C, name='scf_get_bernoulli_const')
 
     use amrex_constants_module, only: ZERO, HALF
@@ -175,10 +218,12 @@ contains
 
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    integer,  intent(in   ) :: p_lo(3), p_hi(3)
+    integer,  intent(in   ) :: phi_lo(3), phi_hi(3)
+    integer,  intent(in   ) :: psi_lo(3), psi_hi(3)
     real(rt), intent(in   ) :: dx(3)
     real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in   ) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    real(rt), intent(in   ) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
+    real(rt), intent(in   ) :: psi(psi_lo(1):psi_hi(1),psi_lo(2):psi_hi(2),psi_lo(3):psi_hi(3))
     real(rt), intent(inout) :: bernoulli
     real(rt), intent(in   ), value :: omega
 
@@ -200,7 +245,7 @@ contains
 
              scale = rr(1) * rr(2) * rr(3)
 
-             bernoulli = bernoulli + scale * (phi(i,j,k) - omega**2 * (-HALF * (r(1)**2 + r(2)**2)))
+             bernoulli = bernoulli + scale * (phi(i,j,k) - omega**2 * psi(i,j,k))
 
           enddo
        enddo
@@ -212,7 +257,8 @@ contains
 
   subroutine scf_construct_enthalpy(lo, hi, &
                                     state, s_lo, s_hi, &
-                                    phi, p_lo, p_hi, &
+                                    phi, phi_lo, phi_hi, &
+                                    psi, psi_lo, psi_hi, &
                                     enthalpy, h_lo, h_hi, &
                                     dx, omega, bernoulli) bind(C, name='scf_construct_enthalpy')
 
@@ -224,11 +270,13 @@ contains
 
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    integer,  intent(in   ) :: p_lo(3), p_hi(3)
+    integer,  intent(in   ) :: phi_lo(3), phi_hi(3)
+    integer,  intent(in   ) :: psi_lo(3), psi_hi(3)
     integer,  intent(in   ) :: h_lo(3), h_hi(3)
     real(rt), intent(in   ) :: dx(3)
     real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in   ) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    real(rt), intent(in   ) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
+    real(rt), intent(in   ) :: psi(psi_lo(1):psi_hi(1),psi_lo(2):psi_hi(2),psi_lo(3):psi_hi(3))
     real(rt), intent(inout) :: enthalpy(h_lo(1):h_hi(1),h_lo(2):h_hi(2),h_lo(3):h_hi(3))
     real(rt), intent(in   ), value :: omega, bernoulli
 
@@ -247,7 +295,7 @@ contains
           do i = lo(1), hi(1)
              r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
-             enthalpy(i,j,k) = bernoulli - phi(i,j,k) - omega**2 * (-HALF * (r(1)**2 + r(2)**2))
+             enthalpy(i,j,k) = bernoulli - phi(i,j,k) - omega**2 * psi(i,j,k)
 
           enddo
        enddo
@@ -259,7 +307,6 @@ contains
 
   subroutine scf_update_density(lo, hi, &
                                 state, s_lo, s_hi, &
-                                phi, p_lo, p_hi, &
                                 enthalpy, h_lo, h_hi, &
                                 dx, omega, h_max, &
                                 Linf_norm) bind(C, name='scf_update_density')
@@ -276,11 +323,9 @@ contains
 
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    integer,  intent(in   ) :: p_lo(3), p_hi(3)
     integer,  intent(in   ) :: h_lo(3), h_hi(3)
     real(rt), intent(in   ) :: dx(3)
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in   ) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
     real(rt), intent(inout) :: enthalpy(h_lo(1):h_hi(1),h_lo(2):h_hi(2),h_lo(3):h_hi(3))
     real(rt), intent(inout) :: Linf_norm
     real(rt), intent(in   ), value :: omega, h_max
@@ -349,8 +394,8 @@ contains
 
   subroutine scf_diagnostics(lo, hi, &
                              state, s_lo, s_hi, &
-                             phi, p_lo, p_hi, &
-                             enthalpy, h_lo, h_hi, &
+                             phi, phi_lo, phi_hi, &
+                             psi, psi_lo, psi_hi, &
                              dx, omega, &
                              kin_eng, pot_eng, int_eng, mass) bind(C, name='scf_diagnostics')
 
@@ -365,17 +410,17 @@ contains
 
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    integer,  intent(in   ) :: p_lo(3), p_hi(3)
-    integer,  intent(in   ) :: h_lo(3), h_hi(3)
+    integer,  intent(in   ) :: phi_lo(3), phi_hi(3)
+    integer,  intent(in   ) :: psi_lo(3), psi_hi(3)
     real(rt), intent(in   ) :: dx(3)
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in   ) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
-    real(rt), intent(inout) :: enthalpy(h_lo(1):h_hi(1),h_lo(2):h_hi(2),h_lo(3):h_hi(3))
+    real(rt), intent(in   ) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
+    real(rt), intent(in   ) :: psi(psi_lo(1):psi_hi(1),psi_lo(2):psi_hi(2),psi_lo(3):psi_hi(3))
     real(rt), intent(inout) :: kin_eng, pot_eng, int_eng, mass
     real(rt), intent(in   ), value :: omega
 
     integer  :: i, j, k
-    real(rt) :: r(3), dV
+    real(rt) :: r(3), dV, dm
 
     type (eos_t) :: eos_state
 
@@ -388,11 +433,13 @@ contains
           do i = lo(1), hi(1)
              r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
-             mass = mass + state(i,j,k,URHO) * dV
+             dm = state(i,j,k,URHO) * dV
 
-             kin_eng = kin_eng + HALF * omega**2 * (r(1)**2 + r(2)**2) * state(i,j,k,URHO) * dV
+             mass = mass + dm
 
-             pot_eng = pot_eng + HALF * state(i,j,k,URHO) * phi(i,j,k) * dV
+             kin_eng = kin_eng - omega**2 * psi(i,j,k) * dm
+
+             pot_eng = pot_eng + HALF * phi(i,j,k) * dm
 
              eos_state%rho = state(i,j,k,URHO)
              eos_state%T   = state(i,j,k,UTEMP)
