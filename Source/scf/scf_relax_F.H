@@ -25,8 +25,14 @@
 			  BL_FORT_FAB_ARG_3D(phi),
 			  BL_FORT_FAB_ARG_3D(enthalpy),
 			  const amrex::Real* dx, amrex::Real omega, amrex::Real h_max,
-			  amrex::Real* kin_eng, amrex::Real* pot_eng, amrex::Real* int_eng, amrex::Real* mass,
 			  amrex::Real* Linf_norm);
+
+  void scf_diagnostics(const int* lo, const int* hi,
+                       BL_FORT_FAB_ARG_3D(state),
+                       BL_FORT_FAB_ARG_3D(phi),
+                       BL_FORT_FAB_ARG_3D(enthalpy),
+                       const amrex::Real* dx, amrex::Real omega,
+                       amrex::Real* kin_eng, amrex::Real* pot_eng, amrex::Real* int_eng, amrex::Real* mass);
 
   void scf_check_convergence(amrex::Real kin_eng, amrex::Real pot_eng, amrex::Real int_eng, amrex::Real mass,
 			     amrex::Real Linf_norm,

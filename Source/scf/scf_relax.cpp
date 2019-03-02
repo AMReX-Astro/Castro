@@ -172,17 +172,12 @@ void Castro::scf_relaxation() {
 
      Real h_max = enthalpy.max(0);
 
-     Real kin_eng = 0.0;
-     Real pot_eng = 0.0;
-     Real int_eng = 0.0;
-     Real mass = 0.0;
      Real Linf_norm = 0.0;
 
      // Finally, update the density using the enthalpy field.
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:kin_eng,pot_eng,int_eng, mass) \
-                     reduction(max:Linf_norm)
+#pragma omp parallel reduction(max:Linf_norm)
 #endif
      for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
 
@@ -193,8 +188,32 @@ void Castro::scf_relaxation() {
 			  BL_TO_FORTRAN_ANYD(phi[mfi]),
 			  BL_TO_FORTRAN_ANYD(enthalpy[mfi]),
 			  AMREX_ZFILL(dx), omega, h_max,
-			  &kin_eng, &pot_eng, &int_eng, &mass,
                           &Linf_norm);
+
+     }
+
+     ParallelDescriptor::ReduceRealMax(Linf_norm);
+
+     // Update diagnostic quantities.
+
+     Real kin_eng = 0.0;
+     Real pot_eng = 0.0;
+     Real int_eng = 0.0;
+     Real mass = 0.0;
+
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:kin_eng,pot_eng,int_eng,mass)
+#endif
+     for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
+
+       const Box& bx = mfi.tilebox();
+
+       scf_diagnostics(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+                       BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                       BL_TO_FORTRAN_ANYD(phi[mfi]),
+                       BL_TO_FORTRAN_ANYD(enthalpy[mfi]),
+                       AMREX_ZFILL(dx), omega,
+                       &kin_eng, &pot_eng, &int_eng, &mass);
 
      }
 
@@ -202,9 +221,6 @@ void Castro::scf_relaxation() {
      ParallelDescriptor::ReduceRealSum(pot_eng);
      ParallelDescriptor::ReduceRealSum(int_eng);
      ParallelDescriptor::ReduceRealSum(mass);
-     ParallelDescriptor::ReduceRealMax(Linf_norm);
-
-
 
      // Now check to see if we're converged.
 

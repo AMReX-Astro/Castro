@@ -262,14 +262,13 @@ contains
                                 phi, p_lo, p_hi, &
                                 enthalpy, h_lo, h_hi, &
                                 dx, omega, h_max, &
-                                kin_eng, pot_eng, int_eng, mass, &
                                 Linf_norm) bind(C, name='scf_update_density')
 
-    use amrex_constants_module, only: ZERO, HALF, ONE, TWO, M_PI
+    use amrex_constants_module, only: ZERO, HALF
     use meth_params_module, only: NVAR, URHO, UTEMP, UMX, UMY, UMZ, UEDEN, UEINT, UFS, &
                                   scf_temperature
     use network, only: nspec
-    use prob_params_module, only: problo, center, probhi
+    use prob_params_module, only: problo, center
     use eos_module, only: eos
     use eos_type_module, only: eos_input_th, eos_t
 
@@ -283,18 +282,14 @@ contains
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     real(rt), intent(in   ) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
     real(rt), intent(inout) :: enthalpy(h_lo(1):h_hi(1),h_lo(2):h_hi(2),h_lo(3):h_hi(3))
-    real(rt), intent(inout) :: kin_eng, pot_eng, int_eng, mass
     real(rt), intent(inout) :: Linf_norm
     real(rt), intent(in   ), value :: omega, h_max
 
     integer  :: i, j, k
     real(rt) :: r(3)
     real(rt) :: old_rho, drho
-    real(rt) :: dV
 
     type (eos_t) :: eos_state
-
-    dV = dx(1) * dx(2) * dx(3)
 
     do k = lo(3), hi(3)
        r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
@@ -317,10 +312,10 @@ contains
 
              if (enthalpy(i,j,k) > scf_enthalpy_min) then
 
-                eos_state % T   = scf_temperature
-                eos_state % h   = enthalpy(i,j,k)
-                eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) / state(i,j,k,URHO)
-                eos_state % rho = state(i,j,k,URHO) ! Initial guess for the EOS
+                eos_state%rho = state(i,j,k,URHO) ! Initial guess for the EOS
+                eos_state%T   = scf_temperature
+                eos_state%h   = enthalpy(i,j,k)
+                eos_state%xn  = state(i,j,k,UFS:UFS+nspec-1) / state(i,j,k,URHO)
 
                 call eos(eos_input_th, eos_state)
 
@@ -330,33 +325,88 @@ contains
 
              endif
 
-             state(i,j,k,URHO) = eos_state % rho
+             state(i,j,k,URHO)  = eos_state % rho
+             state(i,j,k,UTEMP) = eos_state % T
              state(i,j,k,UEINT) = eos_state % rho * eos_state % e
              state(i,j,k,UFS:UFS+nspec-1) = eos_state % rho * eos_state % xn
 
              state(i,j,k,UMX:UMZ) = ZERO
 
-             state(i,j,k,UEDEN) = state(i,j,k,UEINT) + HALF * (state(i,j,k,UMX)**2 + &
-                  state(i,j,k,UMY)**2 + state(i,j,k,UMZ)**2) / state(i,j,k,URHO)
+             state(i,j,k,UEDEN) = state(i,j,k,UEINT) + HALF * sum(state(i,j,k,UMX:UMZ)**2) / state(i,j,k,URHO)
 
-             ! Convergence tests and diagnostic quantities
+             ! Convergence test
 
              drho = abs( state(i,j,k,URHO) - old_rho ) / old_rho
              Linf_norm = max(Linf_norm, drho)
-
-             kin_eng = kin_eng + HALF * omega**2 * (r(1)**2 + r(2)**2) * state(i,j,k,URHO) * dV
-
-             pot_eng = pot_eng + HALF * state(i,j,k,URHO) * phi(i,j,k) * dV
-
-             int_eng = int_eng + eos_state % p * dV
-
-             mass = mass + state(i,j,k,URHO) * dV
 
           enddo
        enddo
     enddo
 
   end subroutine scf_update_density
+
+
+
+  subroutine scf_diagnostics(lo, hi, &
+                             state, s_lo, s_hi, &
+                             phi, p_lo, p_hi, &
+                             enthalpy, h_lo, h_hi, &
+                             dx, omega, &
+                             kin_eng, pot_eng, int_eng, mass) bind(C, name='scf_diagnostics')
+
+    use amrex_constants_module, only: HALF
+    use meth_params_module, only: NVAR, URHO, UTEMP, UFS
+    use network, only: nspec
+    use prob_params_module, only: problo, center
+    use eos_module, only: eos
+    use eos_type_module, only: eos_input_rt, eos_t
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    integer,  intent(in   ) :: p_lo(3), p_hi(3)
+    integer,  intent(in   ) :: h_lo(3), h_hi(3)
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt), intent(in   ) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    real(rt), intent(inout) :: enthalpy(h_lo(1):h_hi(1),h_lo(2):h_hi(2),h_lo(3):h_hi(3))
+    real(rt), intent(inout) :: kin_eng, pot_eng, int_eng, mass
+    real(rt), intent(in   ), value :: omega
+
+    integer  :: i, j, k
+    real(rt) :: r(3), dV
+
+    type (eos_t) :: eos_state
+
+    dV = dx(1) * dx(2) * dx(3)
+
+    do k = lo(3), hi(3)
+       r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
+       do j = lo(2), hi(2)
+          r(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
+          do i = lo(1), hi(1)
+             r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
+
+             mass = mass + state(i,j,k,URHO) * dV
+
+             kin_eng = kin_eng + HALF * omega**2 * (r(1)**2 + r(2)**2) * state(i,j,k,URHO) * dV
+
+             pot_eng = pot_eng + HALF * state(i,j,k,URHO) * phi(i,j,k) * dV
+
+             eos_state%rho = state(i,j,k,URHO)
+             eos_state%T   = state(i,j,k,UTEMP)
+             eos_state%xn  = state(i,j,k,UFS:UFS+nspec-1) / state(i,j,k,URHO)
+
+             call eos(eos_input_rt, eos_state)
+
+             int_eng = int_eng + eos_state%p * dV
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine scf_diagnostics
 
   
 
