@@ -79,29 +79,8 @@ contains
 
     ! Determine the tri-linear coefficients.
 
-    x = scf_rpos_A(1)
-    y = scf_rpos_A(2)
-    z = scf_rpos_A(3)
-    scf_c_A(0,0,0) = (ONE - x) * (ONE - y) * (ONE - z)
-    scf_c_A(1,0,0) = x         * (ONE - y) * (ONE - z)
-    scf_c_A(0,1,0) = (ONE - x) * y         * (ONE - z)
-    scf_c_A(1,1,0) = x         * y         * (ONE - z)
-    scf_c_A(0,0,1) = (ONE - x) * (ONE - y) * z
-    scf_c_A(1,0,1) = x         * (ONE - y) * z
-    scf_c_A(0,1,1) = (ONE - x) * y         * z
-    scf_c_A(1,1,1) = x         * y         * z
-
-    x = scf_rpos_B(1)
-    y = scf_rpos_B(2)
-    z = scf_rpos_B(3)
-    scf_c_B(0,0,0) = (ONE - x) * (ONE - y) * (ONE - z)
-    scf_c_B(1,0,0) = x         * (ONE - y) * (ONE - z)
-    scf_c_B(0,1,0) = (ONE - x) * y         * (ONE - z)
-    scf_c_B(1,1,0) = x         * y         * (ONE - z)
-    scf_c_B(0,0,1) = (ONE - x) * (ONE - y) * z
-    scf_c_B(1,0,1) = x         * (ONE - y) * z
-    scf_c_B(0,1,1) = (ONE - x) * y         * z
-    scf_c_B(1,1,1) = x         * y         * z
+    call trilinear_interpolation(scf_rpos_A, scf_c_A)
+    call trilinear_interpolation(scf_rpos_B, scf_c_B)
 
     ! Convert the maximum density into a maximum enthalpy.
 
@@ -480,5 +459,34 @@ contains
     end if
 
   end subroutine scf_check_convergence
+
+  ! Given a position (x, y, z) on [0, 1] between two zones,
+  ! calculate a trilinear interpolation between them.
+
+  subroutine trilinear_interpolation(r, c)
+
+    use amrex_constants_module, only: ONE
+
+    implicit none
+
+    real(rt), intent(in   ) :: r(3)
+    real(rt), intent(inout) :: c(0:1,0:1,0:1)
+
+    real(rt) :: x, y, z
+
+    x = r(1)
+    y = r(2)
+    z = r(3)
+
+    c(0,0,0) = (ONE - x) * (ONE - y) * (ONE - z)
+    c(1,0,0) = x         * (ONE - y) * (ONE - z)
+    c(0,1,0) = (ONE - x) * y         * (ONE - z)
+    c(1,1,0) = x         * y         * (ONE - z)
+    c(0,0,1) = (ONE - x) * (ONE - y) * z
+    c(1,0,1) = x         * (ONE - y) * z
+    c(0,1,1) = (ONE - x) * y         * z
+    c(1,1,1) = x         * y         * z
+
+  end subroutine trilinear_interpolation
 
 end module scf_relaxation_module
