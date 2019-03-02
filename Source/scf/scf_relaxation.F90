@@ -96,7 +96,7 @@ contains
                                     dx, &
                                     phi_A, psi_A, phi_B, psi_B) bind(C, name='scf_update_for_omegasq')
 
-    use amrex_constants_module, only: ZERO, HALF
+    use amrex_constants_module, only: ZERO, HALF, ONE
     use meth_params_module, only: NVAR
     use prob_params_module, only: problo, center
 
@@ -119,11 +119,11 @@ contains
     ! The below assumes we are rotating on the z-axis.
 
     do k = lo(3), hi(3)
-       r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
+       r(3) = problo(3) + (dble(k) + HALF) * dx(3)
        do j = lo(2), hi(2)
-          r(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
+          r(2) = problo(2) + (dble(j) + HALF) * dx(2)
           do i = lo(1), hi(1)
-             r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
+             r(1) = problo(1) + (dble(i) + HALF) * dx(1)
 
              ! Do a trilinear interpolation to find the contribution from
              ! this grid point. Limit so that only the nearest zone centers
@@ -131,9 +131,12 @@ contains
              ! distance from the target location is 0.5 * dx.
 
              rr = abs(r - scf_r_A) / dx
-             rr = merge(rr, ZERO, rr <= HALF)
 
-             scale = rr(1) * rr(2) * rr(3)
+             if (any(rr > ONE)) then
+                scale = ZERO
+             else
+                scale = (ONE - rr(1)) * (ONE - rr(2)) * (ONE - rr(3))
+             end if
 
              phi_A = phi_A + scale * phi(i,j,k)
              psi_A = psi_A + scale * psi(i,j,k)
@@ -143,16 +146,19 @@ contains
     enddo
 
     do k = lo(3), hi(3)
-       r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
+       r(3) = problo(3) + (dble(k) + HALF) * dx(3)
        do j = lo(2), hi(2)
-          r(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
+          r(2) = problo(2) + (dble(j) + HALF) * dx(2)
           do i = lo(1), hi(1)
-             r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
+             r(1) = problo(1) + (dble(i) + HALF) * dx(1)
 
              rr = abs(r - scf_r_B) / dx
-             rr = merge(rr, ZERO, rr <= HALF)
 
-             scale = rr(1) * rr(2) * rr(3)
+             if (any(rr > ONE)) then
+                scale = ZERO
+             else
+                scale = (ONE - rr(1)) * (ONE - rr(2)) * (ONE - rr(3))
+             end if
 
              phi_B = phi_B + scale * phi(i,j,k)
              psi_B = psi_B + scale * psi(i,j,k)
@@ -171,10 +177,9 @@ contains
                                      psi, psi_lo, psi_hi, &
                                      dx, bernoulli) bind(C, name='scf_get_bernoulli_const')
 
-    use amrex_constants_module, only: ZERO, HALF
+    use amrex_constants_module, only: ZERO, HALF, ONE
     use meth_params_module, only: NVAR
-    use prob_params_module, only: problo, center
-    use rotation_frequency_module, only: get_omega
+    use prob_params_module, only: problo
 
     implicit none
 
@@ -190,23 +195,24 @@ contains
 
     integer  :: i, j, k
     integer  :: loc(3)
-    real(rt) :: r(3), rr(3), omega(3), scale
-
-    omega = get_omega(ZERO)
+    real(rt) :: r(3), rr(3), scale
 
     ! The below assumes we are rotating on the z-axis.
 
     do k = lo(3), hi(3)
-       r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
+       r(3) = problo(3) + (dble(k) + HALF) * dx(3)
        do j = lo(2), hi(2)
-          r(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
+          r(2) = problo(2) + (dble(j) + HALF) * dx(2)
           do i = lo(1), hi(1)
-             r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
+             r(1) = problo(1) + (dble(i) + HALF) * dx(1)
 
              rr = abs(r - scf_r_A) / dx
-             rr = merge(rr, ZERO, rr <= HALF)
 
-             scale = rr(1) * rr(2) * rr(3)
+             if (any(rr > ONE)) then
+                scale = ZERO
+             else
+                scale = (ONE - rr(1)) * (ONE - rr(2)) * (ONE - rr(3))
+             end if
 
              bernoulli = bernoulli + scale * (phi(i,j,k) - omega(3)**2 * psi(i,j,k))
 
