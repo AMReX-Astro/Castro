@@ -7,7 +7,6 @@ module scf_relaxation_module
 
   ! Internal data for SCF relaxation
   
-  real(rt), save :: scf_h_max
   real(rt), save :: scf_r_A(3), scf_r_B(3)       ! Position of points A and B relative to system center
 
   type (eos_t), save :: ambient_state
@@ -45,15 +44,6 @@ contains
 
     scf_r_A(1) = scf_r_A(1) + scf_equatorial_radius
     scf_r_B(3) = scf_r_B(3) + scf_polar_radius
-
-    ! Convert the maximum density into a maximum enthalpy.
-
-    eos_state % rho = scf_maximum_density
-    eos_state % xn  = 1.0d0 / nspec
-
-    call eos(eos_input_rt, eos_state)
-
-    scf_h_max = eos_state % h
 
   end subroutine scf_setup_relaxation
 
