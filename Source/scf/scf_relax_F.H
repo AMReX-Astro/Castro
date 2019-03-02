@@ -1,5 +1,5 @@
 
-  void scf_setup_relaxation(const amrex::Real* dx);
+  void scf_setup_relaxation();
 
   void scf_update_for_omegasq(const int* lo, const int* hi,
                               BL_FORT_FAB_ARG_3D(state),

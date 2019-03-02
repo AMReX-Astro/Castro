@@ -48,7 +48,7 @@ void Castro::scf_relaxation() {
 
   // Do the initial relaxation setup.
 
-  scf_setup_relaxation(dx);
+  scf_setup_relaxation();
 
   // Get the phi MultiFab.
 

@@ -10,14 +10,12 @@ module scf_relaxation_module
   real(rt), save :: scf_h_max
   real(rt), save :: scf_enthalpy_min
   real(rt), save :: scf_r_A(3), scf_r_B(3)       ! Position of points A and B relative to system center
-  integer,  save :: scf_rloc_A(3), scf_rloc_B(3) ! Indices of the nearest zone to points A and B (rounded down to the lower left corner)
-  real(rt), save :: scf_rpos_A(3), scf_rpos_B(3) ! Position of points A and B relative to this lower left zone corner
 
   type (eos_t), save :: ambient_state
 
 contains
 
-  subroutine scf_setup_relaxation(dx) bind(C, name='scf_setup_relaxation')
+  subroutine scf_setup_relaxation() bind(C, name='scf_setup_relaxation')
 
     use amrex_constants_module, only: HALF, ONE, TWO
     use prob_params_module, only: problo, center, probhi
@@ -29,13 +27,6 @@ contains
 
     implicit none
 
-    real(rt), intent(in) :: dx(3)
-
-    real(rt) :: x, y, z
-    integer  :: n
-    integer  :: ncell(3)
-
-    real(rt) :: pos_l(3)
     type (eos_t) :: eos_state
 
     ! We need to fix two points to uniquely determine an equilibrium 
@@ -50,31 +41,6 @@ contains
 
     scf_r_A(1) = scf_r_A(1) + scf_equatorial_radius
     scf_r_B(3) = scf_r_B(3) + scf_polar_radius
-
-    ! These widths are given in physical units, so in general these
-    ! will be locations on the grid that are not coincident with a
-    ! corner.  If a location is at point (x, y, z), then we find the
-    ! eight zone centers that surround this point, and do a tri-linear
-    ! reconstruction to estimate the relative weight of each of the
-    ! eight zone centers in determining the value at that point.
-
-    ! First locate the zone centers that bracket each point at the 
-    ! lower left corner. Note that the INT function rounds down,
-    ! which is what we want here for the lower left.
-
-    ncell = NINT( (probhi - problo) / dx )
-
-    scf_rloc_A(:) = INT( (scf_r_A(:) + dx(:) / TWO) / dx(:)) + ncell / 2 - 1
-    scf_rloc_B(:) = INT( (scf_r_B(:) + dx(:) / TWO) / dx(:)) + ncell / 2 - 1
-
-    ! Obtain the location of these points relative to the cube surrounding them.
-    ! The lower left corner is at (0,0,0) and the upper right corner is at (1,1,1).
-
-    pos_l = (scf_rloc_A(:) - ncell / 2 + HALF) * dx(:)
-    scf_rpos_A(:) = (scf_r_A(:) - pos_l) / dx(:)
-
-    pos_l = (scf_rloc_B(:) - ncell / 2 + HALF) * dx(:)
-    scf_rpos_B(:) = (scf_r_B(:) - pos_l) / dx(:)
 
     ! Convert the maximum density into a maximum enthalpy.
 
@@ -140,7 +106,7 @@ contains
 
     integer  :: i, j, k
     integer  :: loc(3)
-    real(rt) :: r(3), scale, rr(3)
+    real(rt) :: r(3), rr(3), scale
 
     ! The below assumes we are rotating on the z-axis.
 
