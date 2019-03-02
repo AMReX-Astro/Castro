@@ -12,7 +12,6 @@ module scf_relaxation_module
   real(rt), save :: scf_r_A(3), scf_r_B(3)       ! Position of points A and B relative to system center
   integer,  save :: scf_rloc_A(3), scf_rloc_B(3) ! Indices of the nearest zone to points A and B (rounded down to the lower left corner)
   real(rt), save :: scf_rpos_A(3), scf_rpos_B(3) ! Position of points A and B relative to this lower left zone corner
-  real(rt), save :: scf_c_A(0:1,0:1,0:1), scf_c_B(0:1,0:1,0:1)  ! Interpolation coefficients for points
 
   type (eos_t), save :: ambient_state
 
@@ -76,11 +75,6 @@ contains
 
     pos_l = (scf_rloc_B(:) - ncell / 2 + HALF) * dx(:)
     scf_rpos_B(:) = (scf_r_B(:) - pos_l) / dx(:)
-
-    ! Determine the tri-linear coefficients.
-
-    call trilinear_interpolation(scf_rpos_A, scf_c_A)
-    call trilinear_interpolation(scf_rpos_B, scf_c_B)
 
     ! Convert the maximum density into a maximum enthalpy.
 
@@ -146,12 +140,13 @@ contains
 
     integer  :: i, j, k
     integer  :: loc(3)
-    real(rt) :: c(0:1,0:1,0:1), r(3), scale
+    real(rt) :: c(0:1,0:1,0:1), r(3), pos(3), scale
 
     ! The below assumes we are rotating on the z-axis.
 
     loc = scf_rloc_A
-    c = scf_c_A
+    pos = scf_rpos_A
+    call trilinear_interpolation(pos, c)
 
     do k = lo(3), hi(3)
        r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
@@ -176,7 +171,8 @@ contains
     enddo
 
     loc = scf_rloc_B
-    c = scf_c_B
+    pos = scf_rpos_B
+    call trilinear_interpolation(pos, c)
 
     do k = lo(3), hi(3)
        r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
@@ -226,12 +222,13 @@ contains
 
     integer  :: i, j, k
     integer  :: loc(3)
-    real(rt) :: c(0:1,0:1,0:1), r(3), scale
+    real(rt) :: c(0:1,0:1,0:1), r(3), pos(3), scale
 
     ! The below assumes we are rotating on the z-axis.
 
     loc = scf_rloc_A
-    c = scf_c_A
+    pos = scf_rpos_A
+    call trilinear_interpolation(pos, c)
 
     do k = lo(3), hi(3)
        r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
