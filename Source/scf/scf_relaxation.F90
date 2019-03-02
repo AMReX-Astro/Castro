@@ -86,45 +86,6 @@ contains
 
 
 
-  ! Construct psi, the term that determines the rotation law.
-
-  subroutine scf_construct_psi(lo, hi, &
-                               psi, psi_lo, psi_hi, &
-                               dx) bind(C, name='scf_construct_psi')
-
-    use amrex_constants_module, only: HALF
-    use meth_params_module, only: NVAR
-    use prob_params_module, only: problo, center
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: psi_lo(3), psi_hi(3)
-    real(rt), intent(inout) :: psi(psi_lo(1):psi_hi(1),psi_lo(2):psi_hi(2),psi_lo(3):psi_hi(3))
-    real(rt), intent(in   ) :: dx(3)
-
-    integer  :: i, j, k
-    real(rt) :: r(3)
-
-    ! The below assumes we are rotating on the z-axis.
-
-    do k = lo(3), hi(3)
-       r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
-       do j = lo(2), hi(2)
-          r(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
-          do i = lo(1), hi(1)
-             r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
-
-             psi(i,j,k) = -HALF * (r(1)**2 + r(2)**2)
-
-          enddo
-       enddo
-    enddo
-
-  end subroutine scf_construct_psi
-
-
-
   ! Calculate the phi and psi factors that go into
   ! updating the rotation frequency.
 

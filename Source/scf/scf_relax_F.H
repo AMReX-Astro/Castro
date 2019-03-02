@@ -1,10 +1,6 @@
 
   void scf_setup_relaxation();
 
-  void scf_construct_psi(const int* lo, const int* hi,
-                         BL_FORT_FAB_ARG_3D(psi),
-                         const amrex::Real* dx);
-
   void scf_update_for_omegasq(const int* lo, const int* hi,
                               BL_FORT_FAB_ARG_3D(state),
                               BL_FORT_FAB_ARG_3D(phi),

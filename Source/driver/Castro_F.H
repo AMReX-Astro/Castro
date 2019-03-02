@@ -632,6 +632,11 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(state),
      const amrex::Real* dx, const amrex::Real time);
 
+  void ca_fill_rotational_psi
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(psi),
+     const amrex::Real* dx, const amrex::Real time);
+
   void ca_rsrc
     (const int* lo, const int* hi,
      const int* domlo, const int* domhi,

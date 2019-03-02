@@ -51,6 +51,8 @@ void Castro::scf_relaxation() {
   Real M_solar;
   scf_get_solar_mass(&M_solar);
 
+  Real time = state[State_Type].curTime();
+
   // Do the initial relaxation setup.
 
   scf_setup_relaxation();
@@ -59,11 +61,23 @@ void Castro::scf_relaxation() {
 
   MultiFab& phi = get_new_data(PhiGrav_Type);
 
-  // Construct a local MultiFab for psi.
+  // Construct a local MultiFab for psi. This will not
+  // change over the loop iterations, so do it once now.
 
   MultiFab psi(grids, dmap, 1, 0);
 
-  Real time = state[State_Type].curTime();
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(psi,true); mfi.isValid(); ++mfi) {
+
+      const Box& bx = mfi.tilebox();
+
+      ca_fill_rotational_psi(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+                             BL_TO_FORTRAN_ANYD(psi[mfi]),
+                             AMREX_ZFILL(dx), time);
+
+  }
 
   // Iterate until the system is relaxed by filling the level data
   // and then doing a multilevel gravity solve.
@@ -85,10 +99,6 @@ void Castro::scf_relaxation() {
      for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi) {
 
        const Box& bx = mfi.tilebox();
-
-       scf_construct_psi(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                         BL_TO_FORTRAN_ANYD(psi[mfi]),
-                         AMREX_ZFILL(dx));
 
        scf_update_for_omegasq(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                               BL_TO_FORTRAN_ANYD(S_new[mfi]),
