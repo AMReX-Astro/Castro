@@ -140,13 +140,9 @@ contains
 
     integer  :: i, j, k
     integer  :: loc(3)
-    real(rt) :: c(0:1,0:1,0:1), r(3), pos(3), scale
+    real(rt) :: r(3), scale, rr(3)
 
     ! The below assumes we are rotating on the z-axis.
-
-    loc = scf_rloc_A
-    pos = scf_rpos_A
-    call trilinear_interpolation(pos, c)
 
     do k = lo(3), hi(3)
        r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
@@ -157,7 +153,11 @@ contains
 
              if (all(abs(r - scf_r_A) <= HALF * dx)) then
 
-                scale = c(i-loc(1),j-loc(2),k-loc(3))
+                ! Do a trilinear interpolation to find the contribution from
+                ! this grid point.
+
+                rr = abs(r - scf_r_A) / dx
+                scale = rr(1) * rr(2) * rr(3)
 
                 phi_A = phi_A + scale * phi(i,j,k)
                 psi_A = psi_A + scale * (-HALF * (r(1)**2 + r(2)**2))
@@ -168,10 +168,6 @@ contains
        enddo
     enddo
 
-    loc = scf_rloc_B
-    pos = scf_rpos_B
-    call trilinear_interpolation(pos, c)
-
     do k = lo(3), hi(3)
        r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
        do j = lo(2), hi(2)
@@ -181,7 +177,8 @@ contains
 
              if (all(abs(r - scf_r_B) <= HALF * dx)) then
 
-                scale = c(i-loc(1),j-loc(2),k-loc(3))
+                rr = abs(r - scf_r_B) / dx
+                scale = rr(1) * rr(2) * rr(3)
 
                 phi_B = phi_B + scale * phi(i,j,k)
                 psi_B = psi_B + scale * (-HALF * (r(1)**2 + r(2)**2))
@@ -218,13 +215,9 @@ contains
 
     integer  :: i, j, k
     integer  :: loc(3)
-    real(rt) :: c(0:1,0:1,0:1), r(3), pos(3), scale
+    real(rt) :: r(3), rr(3), scale
 
     ! The below assumes we are rotating on the z-axis.
-
-    loc = scf_rloc_A
-    pos = scf_rpos_A
-    call trilinear_interpolation(pos, c)
 
     do k = lo(3), hi(3)
        r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
@@ -235,7 +228,8 @@ contains
 
              if (all(abs(r - scf_r_A) <= HALF * dx)) then
 
-                scale = c(i-loc(1),j-loc(2),k-loc(3))
+                rr = abs(r - scf_r_A) / dx
+                scale = rr(1) * rr(2) * rr(3)
 
                 bernoulli = bernoulli + scale * (phi(i,j,k) - omega**2 * (-HALF * (r(1)**2 + r(2)**2)))
 
@@ -450,34 +444,5 @@ contains
     end if
 
   end subroutine scf_check_convergence
-
-  ! Given a position (x, y, z) on [0, 1] between two zones,
-  ! calculate a trilinear interpolation between them.
-
-  subroutine trilinear_interpolation(r, c)
-
-    use amrex_constants_module, only: ONE
-
-    implicit none
-
-    real(rt), intent(in   ) :: r(3)
-    real(rt), intent(inout) :: c(0:1,0:1,0:1)
-
-    real(rt) :: x, y, z
-
-    x = r(1)
-    y = r(2)
-    z = r(3)
-
-    c(0,0,0) = (ONE - x) * (ONE - y) * (ONE - z)
-    c(1,0,0) = x         * (ONE - y) * (ONE - z)
-    c(0,1,0) = (ONE - x) * y         * (ONE - z)
-    c(1,1,0) = x         * y         * (ONE - z)
-    c(0,0,1) = (ONE - x) * (ONE - y) * z
-    c(1,0,1) = x         * (ONE - y) * z
-    c(0,1,1) = (ONE - x) * y         * z
-    c(1,1,1) = x         * y         * z
-
-  end subroutine trilinear_interpolation
 
 end module scf_relaxation_module
