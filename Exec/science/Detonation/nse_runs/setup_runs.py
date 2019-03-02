@@ -7,7 +7,7 @@ import time
 
 CFL = [0.8, 0.4, 0.2, 0.1]
 SDC_ITERS = [2, 3, 4]
-NZONES = [512, 1024, 2048]
+NZONES = [256, 512, 1024, 2048]
 
 job_list = []
 
@@ -16,7 +16,7 @@ NEEDED_STRANG_FILES = ["helm_table.dat", "probin-det-x.SDC", "Castro1d.gnu.ex"]
 
 def setup_runs():
 
-    with open("inputs.template", "r") as tf:
+    with open("inputs.big.template", "r") as tf:
         template = tf.readlines()
 
     # setup the Strang runs
@@ -98,7 +98,11 @@ def do_run(name):
     cwd = os.getcwd()
     os.chdir(name)
 
-    run(command)
+    stdout, stderr, rc = run(command)
+
+    # add a file indicated the job is complete
+    with open("job_status", "w") as jf:
+        jf.write("completed\n")
 
     os.chdir(cwd)
 
@@ -107,5 +111,5 @@ if __name__ == "__main__":
     job_list = setup_runs()
 
     # do the runs
-    p = Pool(8)
+    p = Pool(16)
     p.map(do_run, job_list)
