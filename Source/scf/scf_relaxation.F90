@@ -90,7 +90,7 @@ contains
                                     dx, &
                                     phi_A, psi_A, phi_B, psi_B) bind(C, name='scf_update_for_omegasq')
 
-    use amrex_constants_module, only: HALF
+    use amrex_constants_module, only: ZERO, HALF
     use meth_params_module, only: NVAR
     use prob_params_module, only: problo, center
 
@@ -117,18 +117,18 @@ contains
           do i = lo(1), hi(1)
              r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
-             if (all(abs(r - scf_r_A) <= HALF * dx)) then
+             ! Do a trilinear interpolation to find the contribution from
+             ! this grid point. Limit so that only the nearest zone centers
+             ! can participate. This implies that the maximum allowable
+             ! distance from the target location is 0.5 * dx.
 
-                ! Do a trilinear interpolation to find the contribution from
-                ! this grid point.
+             rr = abs(r - scf_r_A) / dx
+             rr = merge(rr, ZERO, rr <= HALF)
 
-                rr = abs(r - scf_r_A) / dx
-                scale = rr(1) * rr(2) * rr(3)
+             scale = rr(1) * rr(2) * rr(3)
 
-                phi_A = phi_A + scale * phi(i,j,k)
-                psi_A = psi_A + scale * (-HALF * (r(1)**2 + r(2)**2))
-
-             endif
+             phi_A = phi_A + scale * phi(i,j,k)
+             psi_A = psi_A + scale * (-HALF * (r(1)**2 + r(2)**2))
 
           enddo
        enddo
@@ -141,15 +141,13 @@ contains
           do i = lo(1), hi(1)
              r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
-             if (all(abs(r - scf_r_B) <= HALF * dx)) then
+             rr = abs(r - scf_r_B) / dx
+             rr = merge(rr, ZERO, rr <= HALF)
 
-                rr = abs(r - scf_r_B) / dx
-                scale = rr(1) * rr(2) * rr(3)
+             scale = rr(1) * rr(2) * rr(3)
 
-                phi_B = phi_B + scale * phi(i,j,k)
-                psi_B = psi_B + scale * (-HALF * (r(1)**2 + r(2)**2))
-
-             endif
+             phi_B = phi_B + scale * phi(i,j,k)
+             psi_B = psi_B + scale * (-HALF * (r(1)**2 + r(2)**2))
 
           enddo
        enddo
@@ -164,7 +162,7 @@ contains
                                      phi, p_lo, p_hi, &
                                      dx, omega, bernoulli) bind(C, name='scf_get_bernoulli_const')
 
-    use amrex_constants_module, only: HALF, ONE, TWO, M_PI
+    use amrex_constants_module, only: ZERO, HALF
     use meth_params_module, only: NVAR
     use prob_params_module, only: problo, center
 
@@ -192,14 +190,12 @@ contains
           do i = lo(1), hi(1)
              r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
-             if (all(abs(r - scf_r_A) <= HALF * dx)) then
+             rr = abs(r - scf_r_A) / dx
+             rr = merge(rr, ZERO, rr <= HALF)
 
-                rr = abs(r - scf_r_A) / dx
-                scale = rr(1) * rr(2) * rr(3)
+             scale = rr(1) * rr(2) * rr(3)
 
-                bernoulli = bernoulli + scale * (phi(i,j,k) - omega**2 * (-HALF * (r(1)**2 + r(2)**2)))
-
-             endif
+             bernoulli = bernoulli + scale * (phi(i,j,k) - omega**2 * (-HALF * (r(1)**2 + r(2)**2)))
 
           enddo
        enddo
