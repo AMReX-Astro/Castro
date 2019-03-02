@@ -1,6 +1,10 @@
 
   void scf_setup_relaxation();
 
+  void scf_calculate_target_h_max(const int* lo, const int* hi,
+                                  BL_FORT_FAB_ARG_3D(state),
+                                  amrex::Real* target_h_max);
+
   void scf_update_for_omegasq(const int* lo, const int* hi,
                               BL_FORT_FAB_ARG_3D(state),
                               BL_FORT_FAB_ARG_3D(phi),
@@ -26,7 +30,8 @@
   void scf_update_density(const int* lo, const int* hi,
 			  BL_FORT_FAB_ARG_3D(state),
 			  BL_FORT_FAB_ARG_3D(enthalpy),
-			  const amrex::Real* dx, amrex::Real h_max,
+			  const amrex::Real* dx,
+                          amrex::Real actual_h_max, amrex::Real target_h_max,
 			  amrex::Real* Linf_norm);
 
   void scf_diagnostics(const int* lo, const int* hi,

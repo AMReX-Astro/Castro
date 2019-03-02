@@ -127,7 +127,6 @@ int         Castro::grown_factor = 1;
 int         Castro::star_at_center = -1;
 int         Castro::do_scf_initial_model = 0;
 amrex::Real Castro::scf_maximum_density = -1.e6;
-amrex::Real Castro::scf_temperature = -1.e9;
 amrex::Real Castro::scf_equatorial_radius = -1.e9;
 amrex::Real Castro::scf_polar_radius = -1.e9;
 amrex::Real Castro::scf_relax_tol = 1.e-3;

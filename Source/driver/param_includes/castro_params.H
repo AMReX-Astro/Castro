@@ -127,7 +127,6 @@ static int grown_factor;
 static int star_at_center;
 static int do_scf_initial_model;
 static amrex::Real scf_maximum_density;
-static amrex::Real scf_temperature;
 static amrex::Real scf_equatorial_radius;
 static amrex::Real scf_polar_radius;
 static amrex::Real scf_relax_tol;

@@ -127,7 +127,6 @@ pp.query("grown_factor", grown_factor);
 pp.query("star_at_center", star_at_center);
 pp.query("do_scf_initial_model", do_scf_initial_model);
 pp.query("scf_maximum_density", scf_maximum_density);
-pp.query("scf_temperature", scf_temperature);
 pp.query("scf_equatorial_radius", scf_equatorial_radius);
 pp.query("scf_polar_radius", scf_polar_radius);
 pp.query("scf_relax_tol", scf_relax_tol);

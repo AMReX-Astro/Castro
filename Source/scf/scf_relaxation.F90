@@ -20,7 +20,7 @@ contains
     use prob_params_module, only: problo, center, probhi
     use eos_module, only: eos
     use eos_type_module, only: eos_input_rt, eos_t
-    use meth_params_module, only: scf_maximum_density, scf_temperature, &
+    use meth_params_module, only: scf_maximum_density, &
                                   scf_equatorial_radius, scf_polar_radius
     use network, only: nspec
 
@@ -49,7 +49,6 @@ contains
     ! Convert the maximum density into a maximum enthalpy.
 
     eos_state % rho = scf_maximum_density
-    eos_state % T   = scf_temperature
     eos_state % xn  = 1.0d0 / nspec
 
     call eos(eos_input_rt, eos_state)
@@ -57,6 +56,49 @@ contains
     scf_h_max = eos_state % h
 
   end subroutine scf_setup_relaxation
+
+
+
+
+  ! Calculate the maximum allowable enthalpy on the domain.
+
+  subroutine scf_calculate_target_h_max(lo, hi, &
+                                        state, s_lo, s_hi, &
+                                        target_h_max) bind(C, name='scf_calculate_target_h_max')
+
+    use meth_params_module, only: NVAR, URHO, UTEMP, UFS, scf_maximum_density
+    use network, only: nspec
+    use eos_module, only: eos
+    use eos_type_module, only: eos_input_rt, eos_t
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt), intent(inout) :: target_h_max
+
+    integer  :: i, j, k
+
+    type (eos_t) :: eos_state
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             eos_state%rho = scf_maximum_density
+             eos_state%T   = state(i,j,k,UTEMP)
+             eos_state%xn  = state(i,j,k,UFS:UFS+nspec-1) / state(i,j,k,URHO)
+
+             call eos(eos_input_rt, eos_state)
+
+             target_h_max = max(target_h_max, eos_state%h)
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine scf_calculate_target_h_max
 
 
 
@@ -245,12 +287,11 @@ contains
   subroutine scf_update_density(lo, hi, &
                                 state, s_lo, s_hi, &
                                 enthalpy, h_lo, h_hi, &
-                                dx, h_max, &
+                                dx, actual_h_max, target_h_max, &
                                 Linf_norm) bind(C, name='scf_update_density')
 
     use amrex_constants_module, only: ZERO, HALF
-    use meth_params_module, only: NVAR, URHO, UTEMP, UMX, UMY, UMZ, UEDEN, UEINT, UFS, &
-                                  scf_temperature
+    use meth_params_module, only: NVAR, URHO, UTEMP, UMX, UMY, UMZ, UEDEN, UEINT, UFS
     use network, only: nspec
     use prob_params_module, only: problo, center
     use eos_module, only: eos
@@ -265,7 +306,7 @@ contains
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     real(rt), intent(inout) :: enthalpy(h_lo(1):h_hi(1),h_lo(2):h_hi(2),h_lo(3):h_hi(3))
     real(rt), intent(inout) :: Linf_norm
-    real(rt), intent(in   ), value :: h_max
+    real(rt), intent(in   ), value :: actual_h_max, target_h_max
 
     integer  :: i, j, k
     real(rt) :: old_rho, drho
@@ -286,14 +327,14 @@ contains
 
                 old_rho = state(i,j,k,URHO)
 
-                ! Rescale the enthalpy by the maximum value.
+                ! Rescale the enthalpy by the maximum allowed value.
 
-                enthalpy(i,j,k) = scf_h_max * (enthalpy(i,j,k) / h_max)
+                enthalpy(i,j,k) = target_h_max * (enthalpy(i,j,k) / actual_h_max)
 
                 eos_state%rho = state(i,j,k,URHO) ! Initial guess for the EOS
-                eos_state%T   = scf_temperature
-                eos_state%h   = enthalpy(i,j,k)
+                eos_state%T   = state(i,j,k,UTEMP)
                 eos_state%xn  = state(i,j,k,UFS:UFS+nspec-1) / state(i,j,k,URHO)
+                eos_state%h   = enthalpy(i,j,k)
 
                 call eos(eos_input_th, eos_state)
 

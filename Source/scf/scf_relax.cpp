@@ -20,14 +20,10 @@ void Castro::scf_relaxation() {
 
   // First do some sanity checks.
 
-  // Maximum density and temperature must be set.
+  // Maximum density must be set.
 
   if (scf_maximum_density <= 0) {
       amrex::Error("castro.scf_maximum_density must be set for SCF relaxation.");
-  }
-
-  if (scf_temperature <= 0) {
-      amrex::Error("castro.scf_temperature must be set for SCF relaxation.");
   }
 
   // Equatorial radius and polar radius must both
@@ -56,6 +52,41 @@ void Castro::scf_relaxation() {
   // Do the initial relaxation setup.
 
   scf_setup_relaxation();
+
+  // To do the relaxation loop, we need to know the target maximum
+  // enthalpy on the domain. So we'll loop through the grid and
+  // calculate what it should be, based on the density, temperature,
+  // and composition. We do not specify the latter two -- we assume
+  // that these are filled as desired in initdata. So, to get the
+  // maximum enthalpy, we'll loop through the grid, using the composition
+  // and temperature in each zone, combined with the requested maximum
+  // density, call the EOS to calculate the enthalpy for that combination,
+  // and then take the maximum of that. (Note that the current density on
+  // the grid is treated as an initial guess and does not need to reach
+  // the requested maximum.) The SCF procedure is only intended for a setup
+  // with uniform temperature and composition, so in that case this procedure
+  // should yield the same result as just picking a zone at random and using
+  // its temperature and composition. The reason for doing it this way is so
+  // that the user doesn't have to request temperature and composition in their
+  // inputs file (which is messy in general) -- they can tell us what composition
+  // they want by filling it in the initialization.
+
+  Real target_h_max = 0.0;
+
+#ifdef _OPENMP
+#pragma omp parallel reduction(max:target_h_max)
+#endif
+  for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
+
+      const Box& bx = mfi.tilebox();
+
+      scf_calculate_target_h_max(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+                                 BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                                 &target_h_max);
+
+  }
+
+  ParallelDescriptor::ReduceRealMax(target_h_max);
 
   // Get the phi and phi_rot MultiFabs.
 
@@ -209,7 +240,7 @@ void Castro::scf_relaxation() {
 
      }
 
-     Real h_max = enthalpy.max(0);
+     Real actual_h_max = enthalpy.max(0);
 
      Real Linf_norm = 0.0;
 
@@ -225,7 +256,7 @@ void Castro::scf_relaxation() {
        scf_update_density(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
 			  BL_TO_FORTRAN_ANYD(S_new[mfi]),
 			  BL_TO_FORTRAN_ANYD(enthalpy[mfi]),
-			  AMREX_ZFILL(dx), h_max,
+			  AMREX_ZFILL(dx), actual_h_max, target_h_max,
                           &Linf_norm);
 
      }
