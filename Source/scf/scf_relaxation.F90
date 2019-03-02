@@ -155,9 +155,9 @@ contains
           do i = lo(1), hi(1)
              r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
-             if (i >= loc(1) .and. i <= loc(1) + 1 .and. &
-                 j >= loc(2) .and. j <= loc(2) + 1 .and. &
-                 k >= loc(3) .and. k <= loc(3) + 1) then
+             if (r(1) >= scf_r_A(1) - HALF * dx(1) .and. r(1) <= scf_r_A(1) + HALF * dx(1) .and. &
+                 r(2) >= scf_r_A(2) - HALF * dx(2) .and. r(2) <= scf_r_A(2) + HALF * dx(2) .and. &
+                 r(3) >= scf_r_A(3) - HALF * dx(3) .and. r(3) <= scf_r_A(3) + HALF * dx(3)) then
 
                 scale = c(i-loc(1),j-loc(2),k-loc(3))
 
@@ -181,9 +181,9 @@ contains
           do i = lo(1), hi(1)
              r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
-             if (i >= loc(1) .and. i <= loc(1) + 1 .and. &
-                 j >= loc(2) .and. j <= loc(2) + 1 .and. &
-                 k >= loc(3) .and. k <= loc(3) + 1) then
+             if (r(1) >= scf_r_B(1) - HALF * dx(1) .and. r(1) <= scf_r_B(1) + HALF * dx(1) .and. &
+                 r(2) >= scf_r_B(2) - HALF * dx(2) .and. r(2) <= scf_r_B(2) + HALF * dx(2) .and. &
+                 r(3) >= scf_r_B(3) - HALF * dx(3) .and. r(3) <= scf_r_B(3) + HALF * dx(3)) then
 
                 scale = c(i-loc(1),j-loc(2),k-loc(3))
 
@@ -237,9 +237,9 @@ contains
           do i = lo(1), hi(1)
              r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
-             if (i >= loc(1) .and. i <= loc(1) + 1 .and. &
-                 j >= loc(2) .and. j <= loc(2) + 1 .and. &
-                 k >= loc(3) .and. k <= loc(3) + 1) then
+             if (r(1) >= scf_r_A(1) - HALF * dx(1) .and. r(1) <= scf_r_A(1) + HALF * dx(1) .and. &
+                 r(2) >= scf_r_A(2) - HALF * dx(2) .and. r(2) <= scf_r_A(2) + HALF * dx(2) .and. &
+                 r(3) >= scf_r_A(3) - HALF * dx(3) .and. r(3) <= scf_r_A(3) + HALF * dx(3)) then
 
                 scale = c(i-loc(1),j-loc(2),k-loc(3))
 
