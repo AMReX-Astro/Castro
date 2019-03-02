@@ -474,9 +474,9 @@ star_at_center               int          -1
 # Should we use SCF to construct the initial model?
 do_scf_initial_model         int           0                  y
 
-# Vanishing points of the enthalpy
-scf_d_A                      Real          1.e9               y
-scf_d_B                      Real          9.e8               y
+# Equatorial and polar radii of the star
+scf_equatorial_radius        Real          -1.e9              y
+scf_polar_radius             Real          -1.e9              y
 
 # Relaxation tolerance
 scf_relax_tol                Real          1.e-3              y

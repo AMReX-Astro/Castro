@@ -9,9 +9,9 @@ module scf_relaxation_module
   
   real(rt), save :: scf_h_max
   real(rt), save :: scf_enthalpy_min
-  integer,  save :: scf_rloc_A(3), scf_rloc_B(3) ! Indices of zones nearby to these points
-  real(rt), save :: scf_rpos_A(3), scf_rpos_B(3) ! Position of points A and B relative to lower left zone corner
   real(rt), save :: scf_r_A(3), scf_r_B(3)       ! Position of points A and B relative to system center
+  integer,  save :: scf_rloc_A(3), scf_rloc_B(3) ! Indices of the nearest zone to points A and B (rounded down to the lower left corner)
+  real(rt), save :: scf_rpos_A(3), scf_rpos_B(3) ! Position of points A and B relative to this lower left zone corner
   real(rt), save :: scf_c_A(0:1,0:1,0:1), scf_c_B(0:1,0:1,0:1)  ! Interpolation coefficients for points
 
   type (eos_t), save :: ambient_state
@@ -24,7 +24,7 @@ contains
     use prob_params_module, only: problo, center, probhi
     use eos_module, only: eos
     use eos_type_module, only: eos_input_rt, eos_t
-    use meth_params_module, only: scf_d_A, scf_d_B, scf_relax_tol
+    use meth_params_module, only: scf_equatorial_radius, scf_polar_radius
     use network, only: nspec
 
     implicit none
@@ -41,26 +41,29 @@ contains
 
     ! We need to fix two points to uniquely determine an equilibrium 
     ! configuration for a rotating star. We can do this by specifying
-    ! scf_d_A, the equatorial radius of the star, and scf_d_B, the
-    ! polar radius of the star. We give these widths in physical units,
-    ! so in general these will be locations on the grid that are not
-    ! coincident with a corner.  If a location is at point (x, y, z),
-    ! then we find the eight  zone centers that surround this point,
-    ! and do a tri-linear reconstruction to estimate the relative
-    ! weight of each of the eight zone centers in determining the
-    ! value at that point.
-
-    ncell = NINT( (probhi - problo) / dx )
+    ! scf_equatorial_radius, the equatorial radius of the star, and
+    ! scf_polar_radius, the polar radius of the star. In this configuration,
+    ! we assume that the rotation axis is the z-axis, so the equatorial
+    ! radius is along the xy-plane.
 
     scf_r_A(:) = center
     scf_r_B(:) = center
 
-    scf_r_A(1) = scf_r_A(1) + scf_d_A
-    scf_r_B(3) = scf_r_B(3) + scf_d_B
+    scf_r_A(1) = scf_r_A(1) + scf_equatorial_radius
+    scf_r_B(3) = scf_r_B(3) + scf_polar_radius
 
-    ! Locate the zone centers that bracket each point at the 
+    ! These widths are given in physical units, so in general these
+    ! will be locations on the grid that are not coincident with a
+    ! corner.  If a location is at point (x, y, z), then we find the
+    ! eight zone centers that surround this point, and do a tri-linear
+    ! reconstruction to estimate the relative weight of each of the
+    ! eight zone centers in determining the value at that point.
+
+    ! First locate the zone centers that bracket each point at the 
     ! lower left corner. Note that the INT function rounds down,
-    ! which is what we want here since we want the lower left.
+    ! which is what we want here for the lower left.
+
+    ncell = NINT( (probhi - problo) / dx )
 
     scf_rloc_A(:) = INT( (scf_r_A(:) + dx(:) / TWO) / dx(:)) + ncell / 2 - 1
     scf_rloc_B(:) = INT( (scf_r_B(:) + dx(:) / TWO) / dx(:)) + ncell / 2 - 1
@@ -74,7 +77,7 @@ contains
     pos_l = (scf_rloc_B(:) - ncell / 2 + HALF) * dx(:)
     scf_rpos_B(:) = (scf_r_B(:) - pos_l) / dx(:)
 
-    ! Determine the tri-linear coefficients
+    ! Determine the tri-linear coefficients.
 
     x = scf_rpos_A(1)
     y = scf_rpos_A(2)

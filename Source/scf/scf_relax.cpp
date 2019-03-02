@@ -18,6 +18,24 @@ void Castro::scf_relaxation() {
 
   const Real* dx = parent->Geom(level).CellSize();
 
+  // First do some sanity checks.
+
+  // Equatorial radius and polar radius must both
+  // be positive, and the polar radius cannot be
+  // larger than the equatorial radius.
+
+  if (scf_equatorial_radius <= 0) {
+      amrex::Error("Equatorial radius must be positive for SCF relaxation.");
+  }
+
+  if (scf_polar_radius <= 0) {
+      amrex::Error("Polar radius must be positive for SCF relaxation.");
+  }
+
+  if (scf_polar_radius > scf_equatorial_radius) {
+      amrex::Error("Polar radius must not be larger than equatorial radius for SCF relaxation.");
+  }
+
   // Do the initial relaxation setup. For this,
   // we need to know what the maximum density
   // on the grid currently is, so that we can

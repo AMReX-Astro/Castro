@@ -30,8 +30,8 @@ castro.do_rotation = 1
 castro.rotational_period = 100.0
 
 castro.do_scf_initial_model = 1
-castro.scf_d_A = 1.0e9
-castro.scf_d_B = 1.0e9
+castro.scf_equatorial_radius = 1.0e9
+castro.scf_polar_radius = 1.0e9
 castro.scf_relax_tol = 1.e-6
 
 # GRAVITY
