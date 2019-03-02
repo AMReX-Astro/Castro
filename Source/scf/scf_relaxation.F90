@@ -39,6 +39,11 @@ contains
     scf_r_A(:) = center
     scf_r_B(:) = center
 
+    ! Note that the choice of direction is arbitrary here: for the polar
+    ! radius we could fix the point at positive z or negative z, and for
+    ! the equatorial radius, we could use +/- x or y. Since the problem
+    ! is symmetric, it should not matter what we actually choose.
+
     scf_r_A(1) = scf_r_A(1) + scf_equatorial_radius
     scf_r_B(3) = scf_r_B(3) + scf_polar_radius
 
