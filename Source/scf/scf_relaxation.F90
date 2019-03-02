@@ -1,33 +1,25 @@
 module scf_relaxation_module
 
   use amrex_fort_module, only: rt => amrex_real
-  use eos_type_module, only: eos_t
 
   implicit none
 
   ! Internal data for SCF relaxation
-  
-  real(rt), save :: scf_r_A(3), scf_r_B(3)       ! Position of points A and B relative to system center
 
-  type (eos_t), save :: ambient_state
+  ! Position of points A and B relative to system center
+  real(rt), save :: scf_r_A(3), scf_r_B(3)
 
 contains
 
   subroutine scf_setup_relaxation() bind(C, name='scf_setup_relaxation')
 
-    use amrex_constants_module, only: HALF, ONE, TWO
-    use prob_params_module, only: problo, center, probhi
-    use eos_module, only: eos
-    use eos_type_module, only: eos_input_rt, eos_t
-    use meth_params_module, only: scf_maximum_density, &
-                                  scf_equatorial_radius, scf_polar_radius
-    use network, only: nspec
+    use meth_params_module, only: scf_equatorial_radius, scf_polar_radius
 
     implicit none
 
     type (eos_t) :: eos_state
 
-    ! We need to fix two points to uniquely determine an equilibrium 
+    ! We need to fix two points to uniquely determine an equilibrium
     ! configuration for a rotating star. We can do this by specifying
     ! scf_equatorial_radius, the equatorial radius of the star, and
     ! scf_polar_radius, the polar radius of the star. In this configuration,
@@ -104,7 +96,7 @@ contains
 
     use amrex_constants_module, only: ZERO, HALF, ONE
     use meth_params_module, only: NVAR
-    use prob_params_module, only: problo, center
+    use prob_params_module, only: problo
 
     implicit none
 
@@ -237,7 +229,6 @@ contains
                                     enthalpy, h_lo, h_hi, &
                                     dx, bernoulli) bind(C, name='scf_construct_enthalpy')
 
-    use amrex_constants_module, only: ZERO, HALF, ONE, TWO, M_PI
     use meth_params_module, only: NVAR
 
     implicit none
@@ -283,7 +274,6 @@ contains
     use amrex_constants_module, only: ZERO, HALF
     use meth_params_module, only: NVAR, URHO, UTEMP, UMX, UMY, UMZ, UEDEN, UEINT, UFS
     use network, only: nspec
-    use prob_params_module, only: problo, center
     use eos_module, only: eos
     use eos_type_module, only: eos_input_th, eos_t
 
@@ -359,10 +349,9 @@ contains
                              dx, &
                              kin_eng, pot_eng, int_eng, mass) bind(C, name='scf_diagnostics')
 
-    use amrex_constants_module, only: ZERO, HALF
+    use amrex_constants_module, only: HALF
     use meth_params_module, only: NVAR, URHO, UTEMP, UFS
     use network, only: nspec
-    use prob_params_module, only: problo, center
     use eos_module, only: eos
     use eos_type_module, only: eos_input_rt, eos_t
 
@@ -379,18 +368,15 @@ contains
     real(rt), intent(inout) :: kin_eng, pot_eng, int_eng, mass
 
     integer  :: i, j, k
-    real(rt) :: r(3), dV, dm
+    real(rt) :: dV, dm
 
     type (eos_t) :: eos_state
 
     dV = dx(1) * dx(2) * dx(3)
 
     do k = lo(3), hi(3)
-       r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
        do j = lo(2), hi(2)
-          r(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
           do i = lo(1), hi(1)
-             r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
              dm = state(i,j,k,URHO) * dV
 
