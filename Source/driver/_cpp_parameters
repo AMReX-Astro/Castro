@@ -474,6 +474,12 @@ star_at_center               int          -1
 # Should we use SCF to construct the initial model?
 do_scf_initial_model         int           0                  y
 
+# Maximum density on the domain
+scf_maximum_density          Real          -1.e6              y
+
+# Isothermal temperature
+scf_temperature              Real          -1.e9              y
+
 # Equatorial and polar radii of the star
 scf_equatorial_radius        Real          -1.e9              y
 scf_polar_radius             Real          -1.e9              y

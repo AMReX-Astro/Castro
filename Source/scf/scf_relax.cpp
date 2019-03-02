@@ -20,6 +20,16 @@ void Castro::scf_relaxation() {
 
   // First do some sanity checks.
 
+  // Maximum density and temperature must be set.
+
+  if (scf_maximum_density <= 0) {
+      amrex::Error("castro.scf_maximum_density must be set for SCF relaxation.");
+  }
+
+  if (scf_temperature <= 0) {
+      amrex::Error("castro.scf_temperature must be set for SCF relaxation.");
+  }
+
   // Equatorial radius and polar radius must both
   // be positive, and the polar radius cannot be
   // larger than the equatorial radius.
@@ -36,15 +46,9 @@ void Castro::scf_relaxation() {
       amrex::Error("Polar radius must not be larger than equatorial radius for SCF relaxation.");
   }
 
-  // Do the initial relaxation setup. For this,
-  // we need to know what the maximum density
-  // on the grid currently is, so that we can
-  // enforce this later.
+  // Do the initial relaxation setup.
 
-  Real max_dens = S_new.max(Density);
-  Real max_temp = S_new.max(Temp);
-
-  scf_setup_relaxation(dx, max_dens, max_temp);
+  scf_setup_relaxation(dx);
 
   // Get the phi MultiFab.
 

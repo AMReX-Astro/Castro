@@ -121,9 +121,11 @@ jobInfoFile << (Castro::bndry_func_thread_safe == 1 ? "    " : "[*] ") << "castr
 jobInfoFile << (Castro::grown_factor == 1 ? "    " : "[*] ") << "castro.grown_factor = " << Castro::grown_factor << std::endl;
 jobInfoFile << (Castro::star_at_center == -1 ? "    " : "[*] ") << "castro.star_at_center = " << Castro::star_at_center << std::endl;
 jobInfoFile << (Castro::do_scf_initial_model == 0 ? "    " : "[*] ") << "castro.do_scf_initial_model = " << Castro::do_scf_initial_model << std::endl;
+jobInfoFile << (Castro::scf_maximum_density == -1.e6 ? "    " : "[*] ") << "castro.scf_maximum_density = " << Castro::scf_maximum_density << std::endl;
+jobInfoFile << (Castro::scf_temperature == -1.e9 ? "    " : "[*] ") << "castro.scf_temperature = " << Castro::scf_temperature << std::endl;
 jobInfoFile << (Castro::scf_equatorial_radius == -1.e9 ? "    " : "[*] ") << "castro.scf_equatorial_radius = " << Castro::scf_equatorial_radius << std::endl;
 jobInfoFile << (Castro::scf_polar_radius == -1.e9 ? "    " : "[*] ") << "castro.scf_polar_radius = " << Castro::scf_polar_radius << std::endl;
-jobInfoFile << (Castro::scf_relax_tol == 1.e-4 ? "    " : "[*] ") << "castro.scf_relax_tol = " << Castro::scf_relax_tol << std::endl;
+jobInfoFile << (Castro::scf_relax_tol == 1.e-3 ? "    " : "[*] ") << "castro.scf_relax_tol = " << Castro::scf_relax_tol << std::endl;
 jobInfoFile << (Castro::do_special_tagging == 0 ? "    " : "[*] ") << "castro.do_special_tagging = " << Castro::do_special_tagging << std::endl;
 jobInfoFile << (Castro::spherical_star == 0 ? "    " : "[*] ") << "castro.spherical_star = " << Castro::spherical_star << std::endl;
 jobInfoFile << (Castro::verbose == 0 ? "    " : "[*] ") << "castro.verbose = " << Castro::verbose << std::endl;

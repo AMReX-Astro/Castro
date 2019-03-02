@@ -18,19 +18,19 @@ module scf_relaxation_module
 
 contains
 
-  subroutine scf_setup_relaxation(dx, rho_max, T_max) bind(C, name='scf_setup_relaxation')
+  subroutine scf_setup_relaxation(dx) bind(C, name='scf_setup_relaxation')
 
     use amrex_constants_module, only: HALF, ONE, TWO
     use prob_params_module, only: problo, center, probhi
     use eos_module, only: eos
     use eos_type_module, only: eos_input_rt, eos_t
-    use meth_params_module, only: scf_equatorial_radius, scf_polar_radius
+    use meth_params_module, only: scf_maximum_density, scf_temperature, &
+                                  scf_equatorial_radius, scf_polar_radius
     use network, only: nspec
 
     implicit none
 
     real(rt), intent(in) :: dx(3)
-    real(rt), intent(in), value :: rho_max, T_max
 
     real(rt) :: x, y, z
     integer  :: n
@@ -103,10 +103,10 @@ contains
     scf_c_B(0,1,1) = (ONE - x) * y         * z
     scf_c_B(1,1,1) = x         * y         * z
 
-    ! Convert the maximum densities into maximum enthalpies.
+    ! Convert the maximum density into a maximum enthalpy.
 
-    eos_state % T   = T_max
-    eos_state % rho = rho_max
+    eos_state % rho = scf_maximum_density
+    eos_state % T   = scf_temperature
     eos_state % xn  = 1.0d0 / nspec
 
     call eos(eos_input_rt, eos_state)
@@ -118,7 +118,7 @@ contains
     ! against trying to compute a corresponding temperature
     ! in zones where the enthalpy is just too low for convergence.
 
-    ambient_state % T   = 1.0d7
+    ambient_state % T   = scf_temperature
     ambient_state % rho = 1.0d-4
     ambient_state % xn  = 1.0d0 / nspec
 
@@ -342,7 +342,8 @@ contains
                                 Linf_norm) bind(C, name='scf_update_density')
 
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO, M_PI
-    use meth_params_module, only: NVAR, URHO, UTEMP, UMX, UMY, UMZ, UEDEN, UEINT, UFS
+    use meth_params_module, only: NVAR, URHO, UTEMP, UMX, UMY, UMZ, UEDEN, UEINT, UFS, &
+                                  scf_temperature
     use network, only: nspec
     use prob_params_module, only: problo, center, probhi
     use eos_module, only: eos
@@ -387,12 +388,12 @@ contains
              ! We only want to call the EOS for zones with enthalpy > 0,
              ! but for distances far enough from the center, the rotation
              ! term can overcome the other terms and make the enthalpy 
-             ! spuriously positive. So we'll only consider zones within 75%
-             ! of the distance from the center.
+             ! spuriously negative. Avoid this by checking against an
+             ! enthalpy floor.
 
              if (enthalpy(i,j,k) > scf_enthalpy_min) then
 
-                eos_state % T   = state(i,j,k,UTEMP)
+                eos_state % T   = scf_temperature
                 eos_state % h   = enthalpy(i,j,k)
                 eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) / state(i,j,k,URHO)
                 eos_state % rho = state(i,j,k,URHO) ! Initial guess for the EOS
