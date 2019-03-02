@@ -8,7 +8,6 @@ module scf_relaxation_module
   ! Internal data for SCF relaxation
   
   real(rt), save :: scf_h_max
-  real(rt), save :: scf_enthalpy_min
   real(rt), save :: scf_r_A(3), scf_r_B(3)       ! Position of points A and B relative to system center
 
   type (eos_t), save :: ambient_state
@@ -56,31 +55,6 @@ contains
     call eos(eos_input_rt, eos_state)
 
     scf_h_max = eos_state % h
-
-    ! Determine the lowest possible enthalpy that can be 
-    ! obtained by the EOS; this is useful for protecting
-    ! against trying to compute a corresponding temperature
-    ! in zones where the enthalpy is just too low for convergence.
-
-    ambient_state % T   = scf_temperature
-    ambient_state % rho = 1.0d-4
-    ambient_state % xn  = 1.0d0 / nspec
-
-    call eos(eos_input_rt, ambient_state)
-
-    eos_state = ambient_state
-
-    scf_enthalpy_min = 1.0d100
-
-    do while (eos_state % rho < 1.d11)
-
-       eos_state % rho = eos_state % rho * 1.1
-
-       call eos(eos_input_rt, eos_state)
-
-       if (eos_state % h < scf_enthalpy_min) scf_enthalpy_min = eos_state % h
-
-    enddo
 
   end subroutine scf_setup_relaxation
 
@@ -294,31 +268,27 @@ contains
     real(rt), intent(in   ), value :: h_max
 
     integer  :: i, j, k
-    real(rt) :: r(3)
     real(rt) :: old_rho, drho
 
     type (eos_t) :: eos_state
 
     do k = lo(3), hi(3)
-       r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
        do j = lo(2), hi(2)
-          r(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
           do i = lo(1), hi(1)
-             r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
-             old_rho = state(i,j,k,URHO)
+             ! We only want to call the EOS for zones with enthalpy > 0.
+             ! For distances far enough from the center, the rotation
+             ! term can overcome the other terms and make the enthalpy
+             ! spuriously negative. If the enthalpy is negative, we just
+             ! leave the zone alone -- this should be ambient material.
 
-             ! Rescale the enthalpy by the maximum value.
+             if (enthalpy(i,j,k) > ZERO) then
 
-             enthalpy(i,j,k) = scf_h_max * (enthalpy(i,j,k) / h_max)
+                old_rho = state(i,j,k,URHO)
 
-             ! We only want to call the EOS for zones with enthalpy > 0,
-             ! but for distances far enough from the center, the rotation
-             ! term can overcome the other terms and make the enthalpy 
-             ! spuriously negative. Avoid this by checking against an
-             ! enthalpy floor.
+                ! Rescale the enthalpy by the maximum value.
 
-             if (enthalpy(i,j,k) > scf_enthalpy_min) then
+                enthalpy(i,j,k) = scf_h_max * (enthalpy(i,j,k) / h_max)
 
                 eos_state%rho = state(i,j,k,URHO) ! Initial guess for the EOS
                 eos_state%T   = scf_temperature
@@ -327,25 +297,21 @@ contains
 
                 call eos(eos_input_th, eos_state)
 
-             else
+                state(i,j,k,URHO)  = eos_state % rho
+                state(i,j,k,UTEMP) = eos_state % T
+                state(i,j,k,UEINT) = eos_state % rho * eos_state % e
+                state(i,j,k,UFS:UFS+nspec-1) = eos_state % rho * eos_state % xn
 
-                eos_state = ambient_state
+                state(i,j,k,UMX:UMZ) = ZERO
 
-             endif
+                state(i,j,k,UEDEN) = state(i,j,k,UEINT) + HALF * sum(state(i,j,k,UMX:UMZ)**2) / state(i,j,k,URHO)
 
-             state(i,j,k,URHO)  = eos_state % rho
-             state(i,j,k,UTEMP) = eos_state % T
-             state(i,j,k,UEINT) = eos_state % rho * eos_state % e
-             state(i,j,k,UFS:UFS+nspec-1) = eos_state % rho * eos_state % xn
+                ! Convergence test
 
-             state(i,j,k,UMX:UMZ) = ZERO
+                drho = abs( state(i,j,k,URHO) - old_rho ) / old_rho
+                Linf_norm = max(Linf_norm, drho)
 
-             state(i,j,k,UEDEN) = state(i,j,k,UEINT) + HALF * sum(state(i,j,k,UMX:UMZ)**2) / state(i,j,k,URHO)
-
-             ! Convergence test
-
-             drho = abs( state(i,j,k,URHO) - old_rho ) / old_rho
-             Linf_norm = max(Linf_norm, drho)
+             end if
 
           enddo
        enddo
