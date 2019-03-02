@@ -57,12 +57,13 @@ void Castro::scf_relaxation() {
 
   scf_setup_relaxation();
 
-  // Get the phi MultiFab.
+  // Get the phi and phi_rot MultiFabs.
 
   MultiFab& phi = get_new_data(PhiGrav_Type);
+  MultiFab& phi_rot = get_new_data(Rotation_Type);
 
-  // Construct a local MultiFab for psi. This will not
-  // change over the loop iterations, so do it once now.
+  // Construct a local MultiFab for the rotational psi.
+  // This will not change over the loop iterations.
 
   MultiFab psi(grids, dmap, 1, 0);
 
@@ -145,6 +146,22 @@ void Castro::scf_relaxation() {
 
      set_rot_period(&rotational_period);
 
+     // With the updated period, we can construct the updated rotational
+     // potential, which will be used in the remaining steps below.
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+     for (MFIter mfi(phi_rot, true); mfi.isValid(); ++mfi) {
+
+         const Box& bx = mfi.tilebox();
+
+         ca_fill_rotational_potential(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+                                      BL_TO_FORTRAN_ANYD(phi_rot[mfi]),
+                                      dx, time);
+
+     }
+
 
 
      // Second step is to evaluate the Bernoulli constant.
@@ -161,7 +178,7 @@ void Castro::scf_relaxation() {
        scf_get_bernoulli_const(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
 			       BL_TO_FORTRAN_ANYD(S_new[mfi]),
 			       BL_TO_FORTRAN_ANYD(phi[mfi]),
-                               BL_TO_FORTRAN_ANYD(psi[mfi]),
+                               BL_TO_FORTRAN_ANYD(phi_rot[mfi]),
 			       AMREX_ZFILL(dx), &bernoulli);
 
      }
@@ -186,7 +203,7 @@ void Castro::scf_relaxation() {
        scf_construct_enthalpy(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
 			      BL_TO_FORTRAN_ANYD(S_new[mfi]),
 			      BL_TO_FORTRAN_ANYD(phi[mfi]),
-                              BL_TO_FORTRAN_ANYD(psi[mfi]),
+                              BL_TO_FORTRAN_ANYD(phi_rot[mfi]),
 			      BL_TO_FORTRAN_ANYD(enthalpy[mfi]),
 			      AMREX_ZFILL(dx), bernoulli);
 
@@ -232,7 +249,7 @@ void Castro::scf_relaxation() {
        scf_diagnostics(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                        BL_TO_FORTRAN_ANYD(S_new[mfi]),
                        BL_TO_FORTRAN_ANYD(phi[mfi]),
-                       BL_TO_FORTRAN_ANYD(psi[mfi]),
+                       BL_TO_FORTRAN_ANYD(phi_rot[mfi]),
                        AMREX_ZFILL(dx),
                        &kin_eng, &pot_eng, &int_eng, &mass);
 

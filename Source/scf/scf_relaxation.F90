@@ -174,7 +174,7 @@ contains
   subroutine scf_get_bernoulli_const(lo, hi, &
                                      state, s_lo, s_hi, &
                                      phi, phi_lo, phi_hi, &
-                                     psi, psi_lo, psi_hi, &
+                                     phi_rot, phr_lo, phr_hi, &
                                      dx, bernoulli) bind(C, name='scf_get_bernoulli_const')
 
     use amrex_constants_module, only: ZERO, HALF, ONE
@@ -186,11 +186,11 @@ contains
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
     integer,  intent(in   ) :: phi_lo(3), phi_hi(3)
-    integer,  intent(in   ) :: psi_lo(3), psi_hi(3)
+    integer,  intent(in   ) :: phr_lo(3), phr_hi(3)
     real(rt), intent(in   ) :: dx(3)
     real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     real(rt), intent(in   ) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
-    real(rt), intent(in   ) :: psi(psi_lo(1):psi_hi(1),psi_lo(2):psi_hi(2),psi_lo(3):psi_hi(3))
+    real(rt), intent(in   ) :: phi_rot(phr_lo(1):phr_hi(1),phr_lo(2):phr_hi(2),phr_lo(3):phr_hi(3))
     real(rt), intent(inout) :: bernoulli
 
     integer  :: i, j, k
@@ -214,7 +214,7 @@ contains
                 scale = (ONE - rr(1)) * (ONE - rr(2)) * (ONE - rr(3))
              end if
 
-             bernoulli = bernoulli + scale * (phi(i,j,k) - omega(3)**2 * psi(i,j,k))
+             bernoulli = bernoulli + scale * (phi(i,j,k) + phi_rot(i,j,k))
 
           enddo
        enddo
@@ -227,47 +227,38 @@ contains
   subroutine scf_construct_enthalpy(lo, hi, &
                                     state, s_lo, s_hi, &
                                     phi, phi_lo, phi_hi, &
-                                    psi, psi_lo, psi_hi, &
+                                    phi_rot, phr_lo, phr_hi, &
                                     enthalpy, h_lo, h_hi, &
                                     dx, bernoulli) bind(C, name='scf_construct_enthalpy')
 
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO, M_PI
     use meth_params_module, only: NVAR
-    use prob_params_module, only: problo, center, probhi
-    use rotation_frequency_module, only: get_omega
 
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
     integer,  intent(in   ) :: phi_lo(3), phi_hi(3)
-    integer,  intent(in   ) :: psi_lo(3), psi_hi(3)
+    integer,  intent(in   ) :: phr_lo(3), phr_hi(3)
     integer,  intent(in   ) :: h_lo(3), h_hi(3)
     real(rt), intent(in   ) :: dx(3)
     real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     real(rt), intent(in   ) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
-    real(rt), intent(in   ) :: psi(psi_lo(1):psi_hi(1),psi_lo(2):psi_hi(2),psi_lo(3):psi_hi(3))
+    real(rt), intent(in   ) :: phi_rot(phr_lo(1):phr_hi(1),phr_lo(2):phr_hi(2),phr_lo(3):phr_hi(3))
     real(rt), intent(inout) :: enthalpy(h_lo(1):h_hi(1),h_lo(2):h_hi(2),h_lo(3):h_hi(3))
     real(rt), intent(in   ), value :: bernoulli
 
     integer  :: i, j, k
-    real(rt) :: r(3), omega(3)
-
-    omega = get_omega(ZERO)
 
     ! The Bernoulli equation says that energy is conserved:
     ! enthalpy + gravitational potential + rotational potential = const
-    ! The rotational potential is equal to -1/2 | omega x r |^2.
     ! We already have the constant, so our goal is to construct the enthalpy field.
 
     do k = lo(3), hi(3)
-       r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
        do j = lo(2), hi(2)
-          r(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
           do i = lo(1), hi(1)
-             r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
-             enthalpy(i,j,k) = bernoulli - phi(i,j,k) - omega(3)**2 * psi(i,j,k)
+             enthalpy(i,j,k) = bernoulli - phi(i,j,k) - phi_rot(i,j,k)
 
           enddo
        enddo
@@ -367,7 +358,7 @@ contains
   subroutine scf_diagnostics(lo, hi, &
                              state, s_lo, s_hi, &
                              phi, phi_lo, phi_hi, &
-                             psi, psi_lo, psi_hi, &
+                             phi_rot, phr_lo, phr_hi, &
                              dx, &
                              kin_eng, pot_eng, int_eng, mass) bind(C, name='scf_diagnostics')
 
@@ -377,26 +368,23 @@ contains
     use prob_params_module, only: problo, center
     use eos_module, only: eos
     use eos_type_module, only: eos_input_rt, eos_t
-    use rotation_frequency_module, only: get_omega
 
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
     integer,  intent(in   ) :: phi_lo(3), phi_hi(3)
-    integer,  intent(in   ) :: psi_lo(3), psi_hi(3)
+    integer,  intent(in   ) :: phr_lo(3), phr_hi(3)
     real(rt), intent(in   ) :: dx(3)
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     real(rt), intent(in   ) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
-    real(rt), intent(in   ) :: psi(psi_lo(1):psi_hi(1),psi_lo(2):psi_hi(2),psi_lo(3):psi_hi(3))
+    real(rt), intent(in   ) :: phi_rot(phr_lo(1):phr_hi(1),phr_lo(2):phr_hi(2),phr_lo(3):phr_hi(3))
     real(rt), intent(inout) :: kin_eng, pot_eng, int_eng, mass
 
     integer  :: i, j, k
-    real(rt) :: r(3), omega(3), dV, dm
+    real(rt) :: r(3), dV, dm
 
     type (eos_t) :: eos_state
-
-    omega = get_omega(ZERO)
 
     dV = dx(1) * dx(2) * dx(3)
 
@@ -411,7 +399,7 @@ contains
 
              mass = mass + dm
 
-             kin_eng = kin_eng - omega(3)**2 * psi(i,j,k) * dm
+             kin_eng = kin_eng + phi_rot(i,j,k) * dm
 
              pot_eng = pot_eng + HALF * phi(i,j,k) * dm
 
