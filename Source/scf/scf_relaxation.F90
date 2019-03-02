@@ -174,16 +174,16 @@ contains
     loc = scf_rloc_A
     c = scf_c_A
 
-    do k = loc(3), loc(3) + 1
-       do j = loc(2), loc(2) + 1
-          do i = loc(1), loc(1) + 1
+    do k = lo(3), hi(3)
+       r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
+       do j = lo(2), hi(2)
+          r(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
+          do i = lo(1), hi(1)
+             r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
-             if (i .ge. lo(1) .and. j .ge. lo(2) .and. k .ge. lo(3) .and. &
-                 i .le. hi(1) .and. j .le. hi(2) .and. k .le. hi(3)) then
-
-                r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
-                r(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
-                r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
+             if (i >= loc(1) .and. i <= loc(1) + 1 .and. &
+                 j >= loc(2) .and. j <= loc(2) + 1 .and. &
+                 k >= loc(3) .and. k <= loc(3) + 1) then
 
                 scale = c(i-loc(1),j-loc(2),k-loc(3))
 
@@ -199,16 +199,16 @@ contains
     loc = scf_rloc_B
     c = scf_c_B
 
-    do k = loc(3), loc(3) + 1
-       do j = loc(2), loc(2) + 1
-          do i = loc(1), loc(1) + 1
+    do k = lo(3), hi(3)
+       r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
+       do j = lo(2), hi(2)
+          r(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
+          do i = lo(1), hi(1)
+             r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
-             if (i .ge. lo(1) .and. j .ge. lo(2) .and. k .ge. lo(3) .and. &
-                 i .le. hi(1) .and. j .le. hi(2) .and. k .le. hi(3)) then
-
-                r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
-                r(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
-                r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
+             if (i >= loc(1) .and. i <= loc(1) + 1 .and. &
+                 j >= loc(2) .and. j <= loc(2) + 1 .and. &
+                 k >= loc(3) .and. k <= loc(3) + 1) then
 
                 scale = c(i-loc(1),j-loc(2),k-loc(3))
 
@@ -254,16 +254,16 @@ contains
     loc = scf_rloc_A
     c = scf_c_A
 
-    do k = loc(3), loc(3) + 1
-       do j = loc(2), loc(2) + 1
-          do i = loc(1), loc(1) + 1
+    do k = lo(3), hi(3)
+       r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
+       do j = lo(2), hi(2)
+          r(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
+          do i = lo(1), hi(1)
+             r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
-             if (i .ge. lo(1) .and. j .ge. lo(2) .and. k .ge. lo(3) .and. &
-                 i .le. hi(1) .and. j .le. hi(2) .and. k .le. hi(3)) then
-
-                r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
-                r(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
-                r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
+             if (i >= loc(1) .and. i <= loc(1) + 1 .and. &
+                 j >= loc(2) .and. j <= loc(2) + 1 .and. &
+                 k >= loc(3) .and. k <= loc(3) + 1) then
 
                 scale = c(i-loc(1),j-loc(2),k-loc(3))
 
