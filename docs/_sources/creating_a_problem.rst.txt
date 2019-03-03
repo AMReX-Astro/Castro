@@ -147,8 +147,8 @@ The purpose of these files is:
       the hydrodynamics portion of the code in predicting the
       interface states.
 
-   -  ``ca_reactfill``: This handles boundary filling for
-      any ``Reactions_Type`` ``MultiFAB``s, which are sometimes used to interface
+   -  ``ca_reactfill``: This handles boundary filling for any ``Reactions_Type``
+      ``MultiFab``, which are sometimes used to interface
       with the nuclear burning module. It stores the normal state data
       in addition to components for the energy release and species change.
 

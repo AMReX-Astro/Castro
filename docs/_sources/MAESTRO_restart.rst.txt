@@ -46,48 +46,45 @@ List of Parameters
 
 Here are the additional parameters you must add to your inputs file.
 
-+-----------------+-----------------+-----------------+-----------------+
-| Parameter       | Definition      | Type            | Default         |
-+=================+=================+=================+=================+
-| **castro.MAESTR | name of the     | std::string     | must be set     |
-| O_plotfile**    | Maestro plotfil |                 |                 |
-|                 | e               |                 |                 |
-+-----------------+-----------------+-----------------+-----------------+
-| **castro.MAESTR | name of the     | std::string     | must be set     |
-| O_modelfile**   | Maestro “model_ |                 |                 |
-|                 | cc”             |                 |                 |
-|                 | file            |                 |                 |
-+-----------------+-----------------+-----------------+-----------------+
-| **castro.MAESTR | number of       | int             | must be set     |
-| O_npts_model**  | points in the   |                 |                 |
-|                 | Maestro model_c |                 |                 |
-|                 | c               |                 |                 |
-|                 | file            |                 |                 |
-+-----------------+-----------------+-----------------+-----------------+
-| **castro.MAESTR | name of the     | std::string     | must be set or  |
-| O_first_species | first species   |                 | else nothing    |
-| **              |                 |                 | will be read in |
-+-----------------+-----------------+-----------------+-----------------+
-| **castro.MAESTR | number of       | std::string     | NumSpec in      |
-| O_nspec**       | species in the  |                 | Castro          |
-|                 | Maestro plotfil |                 |                 |
-|                 | e               |                 |                 |
-+-----------------+-----------------+-----------------+-----------------+
-| **castro.MAESTR | controls how we | Real            | must be set     |
-| O_cutoff_densit | overwrite data  |                 |                 |
-| y**             | at the edge of  |                 |                 |
-|                 | the star        |                 |                 |
-+-----------------+-----------------+-----------------+-----------------+
-| **castro.MAESTR | determines how  | int             | must be set     |
-| O_init_type**   | we initialize   |                 |                 |
-|                 | the             |                 |                 |
-|                 | Castro state    |                 |                 |
-+-----------------+-----------------+-----------------+-----------------+
-| **castro.MAESTR | specifies       | int             | must be set     |
-| O_spherical**   | planar or       |                 |                 |
-|                 | spherical       |                 |                 |
-|                 | problem         |                 |                 |
-+-----------------+-----------------+-----------------+-----------------+
++-----------------------------------+------------------+-----------------+-----------------+
+| Parameter                         | Definition       | Type            | Default         |
++===================================+==================+=================+=================+
+| **castro.MAESTRO_plotfile**       | name of the      | std::string     | must be set     |
+|                                   | Maestro plotfile |                 |                 |
+|                                   |                  |                 |                 |
++-----------------------------------+------------------+-----------------+-----------------+
+| **castro.MAESTRO_modelfile**      | name of the      | std::string     | must be set     |
+|                                   | Maestro model_cc |                 |                 |
+|                                   | file             |                 |                 |
++-----------------------------------+------------------+-----------------+-----------------+
+| **castro.MAESTRO_npts_model**     | number of        | int             | must be set     |
+|                                   | points in the    |                 |                 |
+|                                   | Maestro model_cc |                 |                 |
+|                                   | file             |                 |                 |
++-----------------------------------+------------------+-----------------+-----------------+
+| **castro.MAESTRO_first_species**  | name of the      | std::string     | must be set or  |
+|                                   | first species    |                 | else nothing    |
+|                                   |                  |                 | will be read in |
++-----------------------------------+------------------+-----------------+-----------------+
+| **castro.MAESTRO_nspec**          | number of        | std::string     | NumSpec in      |
+|                                   | species in the   |                 | Castro          |
+|                                   | Maestro plotfile |                 |                 |
++-----------------------------------+------------------+-----------------+-----------------+
+| **castro.MAESTRO_cutoff_density** | controls how we  | Real            | must be set     |
+|                                   | overwrite data   |                 |                 |
+|                                   | at the edge of   |                 |                 |
+|                                   | the star         |                 |                 |
++-----------------------------------+------------------+-----------------+-----------------+
+| **castro.MAESTRO_init_type**      | determines how   | int             | must be set     |
+|                                   | we initialize    |                 |                 |
+|                                   | the              |                 |                 |
+|                                   | Castro state     |                 |                 |
++-----------------------------------+------------------+-----------------+-----------------+
+| **castro.MAESTRO_spherical**      | specifies        | int             | must be set     |
+|                                   | planar or        |                 |                 |
+|                                   | spherical        |                 |                 |
+|                                   | problem          |                 |                 |
++-----------------------------------+------------------+-----------------+-----------------+
 
 Examples of Usage
 -----------------

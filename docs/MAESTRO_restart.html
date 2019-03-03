@@ -8,8 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Restarting from Maestro &mdash; Castro 19.02
- documentation</title>
+  <title>Restarting from Maestro &mdash; Castro  documentation</title>
   
 
   
@@ -62,11 +61,6 @@
 
           
             
-            
-              <div class="version">
-                19.02
-
-              </div>
             
           
 
@@ -244,10 +238,10 @@ etarho_cc, tempbar_init.</p>
 <p>Here are the additional parameters you must add to your inputs file.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="25%" />
-<col width="25%" />
-<col width="25%" />
-<col width="25%" />
+<col width="40%" />
+<col width="21%" />
+<col width="20%" />
+<col width="20%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Parameter</th>
@@ -257,36 +251,28 @@ etarho_cc, tempbar_init.</p>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td><strong>castro.MAESTR
-O_plotfile</strong></td>
+<tr class="row-even"><td><strong>castro.MAESTRO_plotfile</strong></td>
 <td>name of the
-Maestro&nbsp;plotfil
-e</td>
+Maestro plotfile</td>
 <td>std::string</td>
 <td>must be set</td>
 </tr>
-<tr class="row-odd"><td><strong>castro.MAESTR
-O_modelfile</strong></td>
+<tr class="row-odd"><td><strong>castro.MAESTRO_modelfile</strong></td>
 <td>name of the
-Maestro&nbsp;“<a href="#id3"><span class="problematic" id="id4">model_</span></a>
-cc”
+Maestro model_cc
 file</td>
 <td>std::string</td>
 <td>must be set</td>
 </tr>
-<tr class="row-even"><td><strong>castro.MAESTR
-O_npts_model</strong></td>
+<tr class="row-even"><td><strong>castro.MAESTRO_npts_model</strong></td>
 <td>number of
 points in the
-Maestro&nbsp;model_c
-c
+Maestro model_cc
 file</td>
 <td>int</td>
 <td>must be set</td>
 </tr>
-<tr class="row-odd"><td><a href="#id1"><span class="problematic" id="id2">**</span></a>castro.MAESTR
-O_first_species
-**</td>
+<tr class="row-odd"><td><strong>castro.MAESTRO_first_species</strong></td>
 <td>name of the
 first species</td>
 <td>std::string</td>
@@ -294,19 +280,15 @@ first species</td>
 else nothing
 will be read in</td>
 </tr>
-<tr class="row-even"><td><strong>castro.MAESTR
-O_nspec</strong></td>
+<tr class="row-even"><td><strong>castro.MAESTRO_nspec</strong></td>
 <td>number of
 species in the
-Maestro&nbsp;plotfil
-e</td>
+Maestro plotfile</td>
 <td>std::string</td>
 <td>NumSpec in
 Castro</td>
 </tr>
-<tr class="row-odd"><td><strong>castro.MAESTR
-O_cutoff_densit
-y</strong></td>
+<tr class="row-odd"><td><strong>castro.MAESTRO_cutoff_density</strong></td>
 <td>controls how we
 overwrite data
 at the edge of
@@ -314,17 +296,15 @@ the star</td>
 <td>Real</td>
 <td>must be set</td>
 </tr>
-<tr class="row-even"><td><strong>castro.MAESTR
-O_init_type</strong></td>
+<tr class="row-even"><td><strong>castro.MAESTRO_init_type</strong></td>
 <td>determines how
 we initialize
 the
-Castro&nbsp;state</td>
+Castro state</td>
 <td>int</td>
 <td>must be set</td>
 </tr>
-<tr class="row-odd"><td><strong>castro.MAESTR
-O_spherical</strong></td>
+<tr class="row-odd"><td><strong>castro.MAESTRO_spherical</strong></td>
 <td>specifies
 planar or
 spherical

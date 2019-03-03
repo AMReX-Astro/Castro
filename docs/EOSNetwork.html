@@ -8,8 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Microphysics &mdash; Castro 19.02
- documentation</title>
+  <title>Microphysics &mdash; Castro  documentation</title>
   
 
   
@@ -62,11 +61,6 @@
 
           
             
-            
-              <div class="version">
-                19.02
-
-              </div>
             
           
 
@@ -369,22 +363,12 @@ supply, if they are not input, are:</p>
 <span class="math notranslate nohighlight">\(\Gamma_1 = d\log P / d\log \rho |_s\)</span></li>
 </ul>
 <p>Additionally the eos_input_re mode also needs to supply:</p>
-<ul>
-<li><p class="first">eos_state % cs: the adiabatic sound speed</p>
-</li>
-<li><dl class="first docutils">
-<dt>eos_state % dpdr_e: the derivative, :math:<a href="#id1"><span class="problematic" id="id2">`</span></a>partial</dt>
-<dd><p class="first last">p/partial rho <a href="#id3"><span class="problematic" id="id4">|</span></a>_e`—note that the specific internal energy, <span class="math notranslate nohighlight">\(e\)</span></p>
-</dd>
-</dl>
-<p>is held constant here.</p>
-</li>
-<li><dl class="first docutils">
-<dt>eos_state % dpde: the derivative, :math:<a href="#id5"><span class="problematic" id="id6">`</span></a>partial p /</dt>
-<dd><p class="first last">partial e <a href="#id7"><span class="problematic" id="id8">|</span></a>_rho`</p>
-</dd>
-</dl>
-</li>
+<ul class="simple">
+<li>eos_state % cs: the adiabatic sound speed</li>
+<li>eos_state % dpdr_e: the derivative, <span class="math notranslate nohighlight">\(\partial p/\partial \rho |_e\)</span>
+— note that the specific internal energy, <span class="math notranslate nohighlight">\(e\)</span>
+is held constant here.</li>
+<li>eos_state % dpde: the derivative, <span class="math notranslate nohighlight">\(\partial p / \partial e |_\rho\)</span></li>
 </ul>
 <p>For radiation hydro, the eos_input_rt model needs to supply:</p>
 <ul class="simple">
@@ -425,7 +409,7 @@ e_{X_k} &amp;=&amp; \left . \frac{\partial e }{\partial \bar{A}} \right |_{\rho,
 \end{aligned}\end{split}\]</div>
 </li>
 </ul>
-<p>(see <a class="reference internal" href="zreferences.html#maestro-iii" id="id9">[6]</a>, Appendix A).</p>
+<p>(see <a class="reference internal" href="zreferences.html#maestro-iii" id="id1">[6]</a>, Appendix A).</p>
 </div>
 </div>
 </div>

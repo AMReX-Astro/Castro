@@ -8,8 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Hydrodynamics &mdash; Castro 19.02
- documentation</title>
+  <title>Hydrodynamics &mdash; Castro  documentation</title>
   
 
   
@@ -62,11 +61,6 @@
 
           
             
-            
-              <div class="version">
-                19.02
-
-              </div>
             
           
 
@@ -354,12 +348,10 @@ source terms.  <code class="docutils literal notranslate"><span class="pre">NQSR
 present in <code class="docutils literal notranslate"><span class="pre">NQSRC</span></code>.</p>
 </div>
 <p>Table&nbsp;<a class="reference external" href="#table:primlist">[table:primlist]</a> gives the names of the primitive variable integer
-keys for accessing these arrays.</p>
-<p>accessing the primitive state vector. Note, unless otherwise
-specified the quantities without a subscript are “gas” only
-and those with the “tot” subscript are “gas + radiation”.</p>
-<blockquote>
-<div><table border="1" class="docutils">
+keys for accessing these arrays. Note, unless otherwise specified the quantities without a subscript
+are “gas” only and those with the “tot” subscript are “gas + radiation”.</p>
+<table border="1" class="docutils" id="id20">
+<caption><span class="caption-text">[table:primlist] The integer variable keys for accessing the primitive state vector.</span><a class="headerlink" href="#id20" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="33%" />
 <col width="34%" />
@@ -437,19 +429,16 @@ these)</td>
 </tr>
 </tbody>
 </table>
-</div></blockquote>
 </li>
 <li><p class="first">auxiliary primitive variables: these arrays are generally called
 qaux. The main difference between these and the regular
 primitive variables is that we do not attempt to do any
 reconstruction on their profiles. There are <code class="docutils literal notranslate"><span class="pre">NQAUX</span></code> quantities, indexed
-by the integer keys listed in table&nbsp;<a class="reference external" href="#table:qauxlist">[table:qauxlist]</a>.</p>
-<p>accessing the auxiliary primitive state vector, quax.
-Note, unless otherwise specified the quantities without a
-subscript are “gas” only and those with the “tot” subscript
-are “gas + radiation”.</p>
-<blockquote>
-<div><table border="1" class="docutils">
+by the integer keys listed in table&nbsp;<a class="reference external" href="#table:qauxlist">[table:qauxlist]</a>.
+Note, unless otherwise specified the quantities without a subscript are “gas”
+only and those with the “tot” subscript are “gas + radiation”.</p>
+<table border="1" class="docutils" id="id21">
+<caption><span class="caption-text">[table:qauxlist] The integer variable keys for accessing the auxiliary primitive state vector, quax.</span><a class="headerlink" href="#id21" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="33%" />
 <col width="33%" />
@@ -514,20 +503,17 @@ is defined)</td>
 </tr>
 </tbody>
 </table>
-</div></blockquote>
 </li>
 <li><p class="first">interface variables: these are the time-centered interface states
 returned by the Riemann solver. They are used to discretize some
 non-conservative terms in the equations. These arrays are generally
 called <code class="docutils literal notranslate"><span class="pre">q1</span></code>, <code class="docutils literal notranslate"><span class="pre">q2</span></code>, and <code class="docutils literal notranslate"><span class="pre">q3</span></code> for the x, y, and z
 interfaces respectively. There are <code class="docutils literal notranslate"><span class="pre">NGDNV</span></code> components accessed with
-the integer keys defined in table&nbsp;<a class="reference external" href="#table:gdlist">[table:gdlist]</a></p>
-<p>accessing the Godunov interface state vectors.
-Note, unless otherwise specified the quantities without a
-subscript are “gas” only and those with the “tot” subscript
-are “gas + radiation”.</p>
-<blockquote>
-<div><table border="1" class="docutils">
+the integer keys defined in table&nbsp;<a class="reference external" href="#table:gdlist">[table:gdlist]</a>
+Note, unless otherwise specified the quantities without a subscript are
+“gas” only and those with the “tot” subscript are “gas + radiation”.</p>
+<table border="1" class="docutils" id="id22">
+<caption><span class="caption-text">[table:gdlist] The integer variable keys for accessing the Godunov interface state vectors.</span><a class="headerlink" href="#id22" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="33%" />
 <col width="33%" />
@@ -595,7 +581,6 @@ defined)</td>
 </tr>
 </tbody>
 </table>
-</div></blockquote>
 </li>
 </ul>
 </div>
@@ -1468,14 +1453,14 @@ source terms appear in this formulation, which are written out in <a class="refe
 originated with <a class="reference internal" href="zreferences.html#papaloizoupringle" id="id18">[25]</a>.  The
 problem is initialized as a torus with constant specific angular
 momentum, as shown below:</p>
-<div class="figure" id="id20">
+<div class="figure" id="id23">
 <img alt="rotating torus initial density" src="_images/rotating_torus_00000_density.png" />
 <p class="caption"><span class="caption-text">Initial density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem with
 <span class="math notranslate nohighlight">\(64^3\)</span> zones.</span></p>
 </div>
 <p>For the standard hydrodynamics algorithm, the torus gets disrupted and
 spreads out into a disk:</p>
-<div class="figure" id="id21">
+<div class="figure" id="id24">
 <img alt="rotating torus normal hydro" src="_images/rotating_torus_00200_density.png" />
 <p class="caption"><span class="caption-text">Density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem after 200
 timesteps, using <span class="math notranslate nohighlight">\(64^3\)</span> zones.  Notice that the initial torus
@@ -1486,7 +1471,7 @@ has become disrupted into a disk.</span></p>
 </pre></div>
 </div>
 <p>in your <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.  With this enabled, we see that the torus remains intact:</p>
-<div class="figure" id="id22">
+<div class="figure" id="id25">
 <img alt="rotating torus with hybrid momentum" src="_images/rotating_torus_hybrid_00200_density.png" />
 <p class="caption"><span class="caption-text">Density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem after 200
 timesteps with the hybrid momentum algorithm, using <span class="math notranslate nohighlight">\(64^3\)</span>
