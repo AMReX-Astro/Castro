@@ -178,6 +178,7 @@ Castro::do_advance_ctu(Real time,
 
       int is_new=1;
       apply_source_to_state(is_new, S_new, new_source, dt);
+      clean_state(is_new, 0);
 
     } else {
 

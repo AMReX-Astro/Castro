@@ -2584,6 +2584,7 @@ Castro::reflux(int crse_level, int fine_level)
 
                 int is_new=1;
                 getLevel(lev).apply_source_to_state(is_new, S_new, source, -dt_advance);
+                getLevel(lev).clean_state(is_new, 0);
 
             }
 
@@ -2620,6 +2621,7 @@ Castro::reflux(int crse_level, int fine_level)
 
                 int is_new=1;
                 getLevel(lev).apply_source_to_state(is_new, S_new, source, dt_advance);
+                getLevel(lev).clean_state(is_new, 0);
 
             }
 
