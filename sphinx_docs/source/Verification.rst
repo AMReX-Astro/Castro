@@ -263,14 +263,13 @@ be modeled in 2-d Cartesian coordinates. A spherical blast wave can
 be modeled in 1-d spherical, 2-d axisymmetric (cylindrical :math:`r`-:math:`z`), or 3-d
 Cartesian coordinates. This provides a good test on the geometric
 factors in the hydrodynamics solver.
-We use a publically available code, sedov3.f
+We use a publically available code, ``sedov3.f``
 :cite:`timmes_sedov_code`, to generate the analytic solutions.
 
-The Castro implementation of the Sedov problem is in Exec/hydro_tests/Sedov.
-A number of different inputs/probin files are provided, corresponding
-to different Sedov/Castro geometries. The main ones are:
-
-[Table:Sod]
+The Castro implementation of the Sedov problem is ``in
+Exec/hydro_tests/Sedov/``.  A number of different inputs/probin files
+are provided, corresponding to different Sedov/Castro geometries. The
+main ones are:
 
 In the Sedov problem, the explosion energy, :math:`E_\mathrm{exp}` (in units
 of energy, not energy/mass or energy/volume)
@@ -296,8 +295,8 @@ spherical or cylindrical/axisymmetric Castro grids) to determine the
 initial state of the full zone.
 
 For these runs, we use :math:`\rho_\mathrm{ambient} = 1`,
-:math:`p_\mathrm{ambient} = 10^{-5}`, :math:`E_\mathrm{exp} = 1`, :math:`r_\mathrm{init}
- = 0.01`, and :math:`N_\mathrm{sub} = 10`. A base grid with 32 zones in each
+:math:`p_\mathrm{ambient} = 10^{-5}`, :math:`E_\mathrm{exp} = 1`, :math:`r_\mathrm{init} = 0.01`,
+and :math:`N_\mathrm{sub} = 10`. A base grid with 32 zones in each
 coordinate direction plus 3 levels of refinement is used (the finest
 mesh would coorespond to 256 zones in a coordinate direction). The
 domain runs from 0 to 1 in each coordinate direction.
@@ -318,18 +317,20 @@ profile can be extracted using the appropriate fsedov routine,
 as listed in Table \ `[table:fsedov] <#table:fsedov>`__. For example, to run and process
 the 2-d cylindrical Sedov explosion, one would do:
 
-#. in Exec/hydro_tests/Sedov, build the Castro executable in 2-d
+#. in ``Exec/hydro_tests/Sedov``, build the Castro executable in 2-d
 
-#. | run the spherical Sedov problem with Castro in 2-d cylindrical coordinates:
-   | ./Castro2d.Linux.Intel.Intel.ex inputs.2d.sph_in_cylcoords
+#. run the spherical Sedov problem with Castro in 2-d cylindrical coordinates::
 
-#. build the fsedov2d_sph_in_cylcoords tool in
-   Castro/Diagnostics/Sedov.
+    ./Castro2d.Linux.Intel.Intel.ex inputs.2d.sph_in_cylcoords
 
-#. | run fsedov2d_sph_in_cylcoords on the Castro output to generate 1-d radial
-     profiles:
-   | fsedov2d_sph_in_cylcoords.Linux.Intel.exe -s sedov_2d_sph_in_cyl.out :math:`\mathtt{\backslash}` 
-   | :math:`~~~~~`\ -p sedov_2d_sph_in_cyl_plt00246
+#. build the ``fsedov2d_sph_in_cylcoords`` tool in
+   ``Castro/Diagnostics/Sedov``.
+
+#. run ``fsedov2d_sph_in_cylcoords`` on the Castro output to generate 1-d radial
+     profiles::
+
+       fsedov2d_sph_in_cylcoords.Linux.Intel.exe -s sedov_2d_sph_in_cyl.out \
+          -p sedov_2d_sph_in_cyl_plt00246
 
 A similar procedure can be used for the 1-d and 3-d spherical Sedov
 explosions (with the output named sedov_1d_sph.out and
@@ -337,10 +338,11 @@ sedov_3d_sph.out respectively). Once this is done, the
 sedov_sph.gp gnuplot script can be used to make a plot comparing
 the 3 solutions to the analytic solution, spherical_sedov.dat.
 
-Figure \ `[fig:sedov_sph] <#fig:sedov_sph>`__ shows the comparison of the 3 Castro spherical Sedov explosion simulations to the analytic solution.
+Figure \ `[fig:sedov_sph] <#fig:sedov_sph>`__ shows the comparison of the 3 Castro spherical Sedov explosion simulations to the analytic solution.
 
 .. figure:: sedov_sph.png
    :alt: Sedov blast wave
+   :align: center
    :width: 5in
 
    Castro solution for the Sedov blast wave problem run in 1-d
@@ -352,6 +354,7 @@ Cylindrical Blast Wave
 
 .. figure:: sedov_cyl.png
    :alt: Sedov in 2-d
+   :align: center
    :width: 5in
 
    Castro solution for the Sedov blast wave problem run in 2-d
@@ -385,6 +388,7 @@ linear, old PPM, and new PPM. CFL=0.9. See Figure `[fig:RT] <#fig:RT>`__.
 
 .. figure:: RT_ppm_type.png
    :alt: Rayleigh-Taylor with different PPM types.
+   :align: center
    :width: 6.5in
 
    Rayleigh-Taylor with different PPM types.
@@ -453,6 +457,7 @@ Our implementation of this problem follows that of
 
 .. figure:: radiating_source.png
    :alt: radiatin source 
+   :align: center
    :width: 5in
 
    Castro solution for radiating source test problem. Heating and

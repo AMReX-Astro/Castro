@@ -100,13 +100,10 @@ several main data structures that hold the state.
       present in ``NQSRC``.  
 
    Table \ `[table:primlist] <#table:primlist>`__ gives the names of the primitive variable integer
-   keys for accessing these arrays.
+   keys for accessing these arrays. Note, unless otherwise specified the quantities without a subscript
+   are “gas” only and those with the “tot” subscript are “gas + radiation”.
 
-
-   .. table:: [table:primlist] The integer variable keys for
-   accessing the primitive state vector. Note, unless otherwise
-   specified the quantities without a subscript are “gas” only
-   and those with the “tot” subscript are “gas + radiation”.
+   .. table:: [table:primlist] The integer variable keys for accessing the primitive state vector.
 
       +-----------------------+------------------------+-----------------------+
       | **variable**          | **quantity**           | **note**              |
@@ -152,12 +149,10 @@ several main data structures that hold the state.
    primitive variables is that we do not attempt to do any
    reconstruction on their profiles. There are ``NQAUX`` quantities, indexed
    by the integer keys listed in table \ `[table:qauxlist] <#table:qauxlist>`__.
+   Note, unless otherwise specified the quantities without a subscript are “gas”
+   only and those with the “tot” subscript are “gas + radiation”.
 
-   .. table:: [table:qauxlist] The integer variable keys for
-   accessing the auxiliary primitive state vector, quax.
-   Note, unless otherwise specified the quantities without a
-   subscript are “gas” only and those with the “tot” subscript
-   are “gas + radiation”.
+   .. table:: [table:qauxlist] The integer variable keys for accessing the auxiliary primitive state vector, quax.
 
       +-----------------------+-----------------------+-----------------------+
       | **variable**          | **quantity**          | **note**              |
@@ -201,12 +196,10 @@ several main data structures that hold the state.
    called ``q1``, ``q2``, and ``q3`` for the x, y, and z
    interfaces respectively. There are ``NGDNV`` components accessed with
    the integer keys defined in table \ `[table:gdlist] <#table:gdlist>`__
+   Note, unless otherwise specified the quantities without a subscript are
+   “gas” only and those with the “tot” subscript are “gas + radiation”.
 
-   .. table:: [table:gdlist] The integer variable keys for
-   accessing the Godunov interface state vectors.
-   Note, unless otherwise specified the quantities without a
-   subscript are “gas” only and those with the “tot” subscript
-   are “gas + radiation”.
+   .. table:: [table:gdlist] The integer variable keys for accessing the Godunov interface state vectors.
 
       +-----------------------+-----------------------+-----------------------+
       | **variable**          | **quantity**          | **note**              |
