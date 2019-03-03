@@ -308,7 +308,7 @@ Castro::getSpecDiffusionTerm (Real time, MultiFab& state, MultiFab& SpecDiffTerm
        diffusion->applyop(level,Species,CrseSpec,SDT,coeffs);
 
        // Copy back into SpecDiffTerm from the temporary SDT
-       MultiFab::Copy(SpecDiffTerm, SDT, 0, ispec, 1, 1);
+       MultiFab::Copy(SpecDiffTerm, SDT, 0, ispec, 1, SpecDiffTerm.nGrow());
    }
 }
 #endif
