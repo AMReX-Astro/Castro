@@ -56,7 +56,7 @@ https://github.com/amrex-astro/Castro
 
 .. toctree::
 
-   references
+   zreferences
 
 Indices and tables
 ==================
