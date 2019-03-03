@@ -11,10 +11,10 @@ using namespace amrex;
 void
 Castro::construct_old_diff_source(MultiFab& source, MultiFab& state, Real time, Real dt)
 {
-    MultiFab TempDiffTerm(grids, dmap, 1, 1);
-    MultiFab SpecDiffTerm(grids, dmap, NumSpec, 1);
-    MultiFab ViscousTermforMomentum(grids, dmap, BL_SPACEDIM, 1);
-    MultiFab ViscousTermforEnergy(grids, dmap, 1, 1);
+    MultiFab TempDiffTerm(grids, dmap, 1, 0);
+    MultiFab SpecDiffTerm(grids, dmap, NumSpec, 0);
+    MultiFab ViscousTermforMomentum(grids, dmap, BL_SPACEDIM, 0);
+    MultiFab ViscousTermforEnergy(grids, dmap, 1, 0);
 
     add_temp_diffusion_to_source(source, state, TempDiffTerm, time);
 
@@ -27,10 +27,10 @@ Castro::construct_old_diff_source(MultiFab& source, MultiFab& state, Real time, 
 void
 Castro::construct_new_diff_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
-    MultiFab TempDiffTerm(grids, dmap, 1, 1);
-    MultiFab SpecDiffTerm(grids, dmap, NumSpec, 1);
-    MultiFab ViscousTermforMomentum(grids, dmap, BL_SPACEDIM, 1);
-    MultiFab ViscousTermforEnergy(grids, dmap, 1, 1);
+    MultiFab TempDiffTerm(grids, dmap, 1, 0);
+    MultiFab SpecDiffTerm(grids, dmap, NumSpec, 0);
+    MultiFab ViscousTermforMomentum(grids, dmap, BL_SPACEDIM, 0);
+    MultiFab ViscousTermforEnergy(grids, dmap, 1, 0);
 
     Real mult_factor = 0.5;
 
