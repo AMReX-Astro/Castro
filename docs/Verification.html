@@ -232,7 +232,7 @@ solver. For this problem, the exact solutions were computed with the
 exact Riemann solver from Toro <a class="reference internal" href="zreferences.html#toro-1997" id="id1">[4]</a>, Chapter 4.</p>
 <div class="section" id="sods-problem">
 <h4>Sod’s Problem<a class="headerlink" href="#sods-problem" title="Permalink to this headline">¶</a></h4>
-<p>The Sod problem <a class="reference internal" href="zreferences.html#sod-1978" id="id2">[26]</a> is a simple shock tube problem that
+<p>The Sod problem <a class="reference internal" href="zreferences.html#sod-1978" id="id2">[27]</a> is a simple shock tube problem that
 exhibits a shock, contact discontinuity, and a rarefaction wave.
 The initial conditions are:</p>
 <div class="math notranslate nohighlight">
@@ -477,7 +477,7 @@ fextract named test3x.out, test3y.out, and test3z.out.</p>
 test problem. A large amount of energy is placed into a very small
 volume, driving a spherical (or cylindrical in 2-d Cartesian
 coordinates) blast wave. Analytic solutions were found by Sedov
-<a class="reference internal" href="zreferences.html#sedov-1959" id="id5">[25]</a>.</p>
+<a class="reference internal" href="zreferences.html#sedov-1959" id="id5">[26]</a>.</p>
 <p>A cylindrical blast wave (e.g.&nbsp;a point explosion in a 2-d plane) can
 be modeled in 2-d Cartesian coordinates. A spherical blast wave can
 be modeled in 1-d spherical, 2-d axisymmetric (cylindrical <span class="math notranslate nohighlight">\(r\)</span>-<span class="math notranslate nohighlight">\(z\)</span>), or 3-d
@@ -495,7 +495,7 @@ is to be deposited into a single point, in a medium of uniform ambient
 density, <span class="math notranslate nohighlight">\(\rho_\mathrm{ambient}\)</span>, and pressure, <span class="math notranslate nohighlight">\(p_\mathrm{ambient}\)</span>.
 Initializing the problem can be difficult because the small volume is
 typically only a cell in extent. This can lead to grid imprinting in
-the solution. A standard solution (see for example <a class="reference internal" href="zreferences.html#omang-2006" id="id7">[23]</a>
+the solution. A standard solution (see for example <a class="reference internal" href="zreferences.html#omang-2006" id="id7">[24]</a>
 and the references therein)
 is to convert the explosion energy into a pressure contained within a
 certain volume, <span class="math notranslate nohighlight">\(V_\mathrm{init}\)</span>, of radius <span class="math notranslate nohighlight">\(r_\mathrm{init}\)</span> as</p>
@@ -648,7 +648,7 @@ heat it. If the gas is too hot, then it will radiate and cool. In
 each case, the gas energy and radiation field will evolve until
 thermal equilibrium is achieved.</p>
 <p>Our implementation of this problem follows that of
-<a class="reference internal" href="zreferences.html#swestymyra-2009" id="id11">[27]</a>.</p>
+<a class="reference internal" href="zreferences.html#swestymyra-2009" id="id11">[28]</a>.</p>
 <div class="figure" id="id21">
 <a class="reference internal image-reference" href="_images/radiating_source.png"><img alt="radiatin source" src="_images/radiating_source.png" style="width: 5in;" /></a>
 <p class="caption"><span class="caption-text">Castro solution for radiating source test problem. Heating and
@@ -670,7 +670,7 @@ An analytic solution exists <a class="reference internal" href="zreferences.html
 radiation energy as a function of energy group at a specified time and
 distance from the radiating sphere.</p>
 <p>Our implementation of this problem is in Exec/radiation_tests/RadSphere and
-follows that of <a class="reference internal" href="zreferences.html#swestymyra-2009" id="id13">[27]</a>. The routine that computes
+follows that of <a class="reference internal" href="zreferences.html#swestymyra-2009" id="id13">[28]</a>. The routine that computes
 the analytic solution is provided as analytic.f90.</p>
 <div class="figure" id="id22">
 <a class="reference internal image-reference" href="_images/radiating_sphere.png"><img alt="radiating sphere" src="_images/radiating_sphere.png" style="width: 5in;" /></a>
