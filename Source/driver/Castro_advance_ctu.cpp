@@ -95,7 +95,7 @@ Castro::do_advance_ctu(Real time,
       do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
 
       int is_new=1;
-      apply_source_to_state(is_new, S_new, old_source, dt, S_new.nGrow());
+      apply_source_to_state(is_new, S_new, old_source, dt);
 
       // Apply the old sources to the sources for the hydro.
       // Note that we are doing an add here, not a copy,
@@ -134,14 +134,7 @@ Castro::do_advance_ctu(Real time,
 
     // Sync up state after old sources and hydro source.
     int is_new=1;
-    frac_change = clean_state(is_new, Sborder, S_new.nGrow());
-
-    // If the state has ghost zones, sync them up now
-    // since the hydro source only works on the valid zones.
-
-    if (S_new.nGrow() > 0) {
-      expand_state(S_new, cur_time, 1, S_new.nGrow());
-    }
+    frac_change = clean_state(is_new, Sborder, 0);
 
 #ifndef AMREX_USE_CUDA
     // Check for NaN's.
@@ -184,12 +177,19 @@ Castro::do_advance_ctu(Real time,
       do_new_sources(new_source, Sborder, S_new, cur_time, dt, amr_iteration, amr_ncycle);
 
       int is_new=1;
-      apply_source_to_state(is_new, S_new, new_source, dt, S_new.nGrow());
+      apply_source_to_state(is_new, S_new, new_source, dt);
 
     } else {
 
       new_source.setVal(0.0, NUM_GROW);
 
+    }
+
+    // If the state has ghost zones, sync them up now
+    // since the hydro source only works on the valid zones.
+
+    if (S_new.nGrow() > 0) {
+      expand_state(S_new, cur_time, 1, S_new.nGrow());
     }
 
     // Do the second half of the reactions.
