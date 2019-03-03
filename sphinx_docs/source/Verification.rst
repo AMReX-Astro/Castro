@@ -296,8 +296,8 @@ spherical or cylindrical/axisymmetric Castro grids) to determine the
 initial state of the full zone.
 
 For these runs, we use :math:`\rho_\mathrm{ambient} = 1`,
-:math:`p_\mathrm{ambient} = 10^{-5}`, :math:`E_\mathrm{exp} = 1`, :math:`r_\mathrm{init}
- = 0.01`, and :math:`N_\mathrm{sub} = 10`. A base grid with 32 zones in each
+:math:`p_\mathrm{ambient} = 10^{-5}`, :math:`E_\mathrm{exp} = 1`, :math:`r_\mathrm{init} = 0.01`,
+and :math:`N_\mathrm{sub} = 10`. A base grid with 32 zones in each
 coordinate direction plus 3 levels of refinement is used (the finest
 mesh would coorespond to 256 zones in a coordinate direction). The
 domain runs from 0 to 1 in each coordinate direction.
