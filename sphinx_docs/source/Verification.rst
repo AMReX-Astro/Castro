@@ -41,19 +41,14 @@ The system is evolved until :math:`t = 0.2` s. Setups for 1-, 2-, and 3-d
 are provided. The following inputs files and probin files setup the
 Sod’s problem:
 
-.. raw:: latex
 
-   \centering
-
-+--------------+--------------+-----------------------------------------+
-| inputs-sod-x | probin-sod-x | Sod’s problem along :math:`x`-direction |
-+--------------+--------------+-----------------------------------------+
-| inputs-sod-y | probin-sod-y | Sod’s problem along :math:`y`-direction |
-+--------------+--------------+-----------------------------------------+
-| inputs-sod-z | probin-sod-z | Sod’s problem along :math:`z`-direction |
-+--------------+--------------+-----------------------------------------+
-
-[Table:Sod]
++------------------+------------------+-----------------------------------------+
+| ``inputs-sod-x`` | ``probin-sod-x`` | Sod’s problem along :math:`x`-direction |
++------------------+------------------+-----------------------------------------+
+| ``inputs-sod-y`` | ``probin-sod-y`` | Sod’s problem along :math:`y`-direction |
++------------------+------------------+-----------------------------------------+
+| ``inputs-sod-z`` | ``probin-sod-z`` | Sod’s problem along :math:`z`-direction |
++------------------+------------------+-----------------------------------------+
 
 For multi-dimensional runs, the directions transverse to the jump are
 kept constant. We use a CFL number of 0.9, an initial timestep shrink
@@ -62,9 +57,10 @@ the timestep can increase (castro.change_max) of 1.05.
 
 .. figure:: sod_3d.png
    :alt: sod problem
+   :align: center
    :width: 4.75in
 
-   Castro solution for Sod’s problem run in 3-d, with the newest ppm
+   Castro solution for Sod’s problem run in 3-d, with the newest ppm
    limiters, along the :math:`x`, :math:`y`, and :math:`z` axes. A
    coarse grid of 32 zones in the direction of propagation, with 2
    levels of refinement was used. The analytic solution appears as the
@@ -72,9 +68,10 @@ the timestep can increase (castro.change_max) of 1.05.
 
 .. figure:: sod_3d_ppm0.png
    :alt: sod problem
+   :align: center
    :width: 4.75in
 
-   Castro solution for Sod’s problem run in 3-d, with the
+   Castro solution for Sod’s problem run in 3-d, with the
    piecewise-linear Godunov method with limiters, along the :math:`x`,
    :math:`y`, and :math:`z` axes. A coarse grid of 32 zones in the
    direction of propagation, with 2 levels of refinement was used. The
@@ -90,29 +87,33 @@ shown for comparison.
 The Verification subdirectory includes the analytic solution for
 the Sod problem sod-exact.out, with :math:`\gamma = 1.4`. 1-d slices
 can be extracted from the Castro plotfile using the fextract tool
-from BoxLib/Tools/Postprocessing/F_Src/.
-The steps to generate this verification plot with Castro are:
+from ``amrex/Tools/Postprocessing/C_Src/``.
+The steps to generate this verification plot with Castro are:
 
-#. in Exec/hydro_tests/Sod, build the Castro executable in 3-d
+#. in ``Exec/hydro_tests/Sod``, build the Castro executable in 3-d
 
-#. | run the Sod problem with Castro in the :math:`x`, :math:`y`, and :math:`z` directions:
-   | ./Castro3d.Linux.Intel.Intel.ex inputs-sod-x
-   | ./Castro3d.Linux.Intel.Intel.ex inputs-sod-y
-   | ./Castro3d.Linux.Intel.Intel.ex inputs-sod-z
+#. run the Sod problem with Castro in the :math:`x`, :math:`y`, and :math:`z` directions::
 
-#. build the fextract tool in BoxLib/Tools/Postprocessing/F_Src/.
+    ./Castro3d.Linux.Intel.Intel.ex inputs-sod-x
+    ./Castro3d.Linux.Intel.Intel.ex inputs-sod-y
+    ./Castro3d.Linux.Intel.Intel.ex inputs-sod-z
 
-#. | run fextract on the Castro output to generate 1-d slices
-     through the output:
-   | fextract3d.Linux.Intel.exe -d 1 -s sodx.out -p sod_x_plt00034
-   | fextract3d.Linux.Intel.exe -d 2 -s sody.out -p sod_y_plt00034
-   | fextract3d.Linux.Intel.exe -d 3 -s sodz.out -p sod_z_plt00034
+#. build the fextract tool in ``amrex/Tools/Postprocessing/C_Src/`` .
 
-#. copy the sodx/y/z.out files into the Verification directory.
+#. run fextract on the Castro output to generate 1-d slices
+   through the output::
 
-#. | in Verification run the gnuplot script sod_3d.gp as:
-   | gnuplot sod_3d.gp
-   | This will produce the figure sod_3d.eps.
+    fextract3d.Linux.Intel.exe -d 1 -s sodx.out -p sod_x_plt00034
+    fextract3d.Linux.Intel.exe -d 2 -s sody.out -p sod_y_plt00034
+    fextract3d.Linux.Intel.exe -d 3 -s sodz.out -p sod_z_plt00034
+
+#. copy the sodx/y/z.out files into the ``Verification/`` directory.
+
+#. in ``Verification/`` run the gnuplot script ``sod_3d.gp`` as::
+
+    gnuplot sod_3d.gp
+
+   This will produce the figure ``sod_3d.eps``.
 
 Double Rarefaction
 ~~~~~~~~~~~~~~~~~~
@@ -145,28 +146,28 @@ Sod’s problem:
 
 
 +-----------------------+-----------------------+-----------------------+
-| inputs-test2-x        | probin-test2-x        | Double rarefaction    |
+| ``inputs-test2-x``    | ``probin-test2-x``    | Double rarefaction    |
 |                       |                       | problem along         |
 |                       |                       | :math:`x`-direction   |
 +-----------------------+-----------------------+-----------------------+
-| inputs-test2-y        | probin-test2-y        | Double rarefaction    |
+| ``inputs-test2-y``    | ``probin-test2-y``    | Double rarefaction    |
 |                       |                       | problem along         |
 |                       |                       | :math:`y`-direction   |
 +-----------------------+-----------------------+-----------------------+
-| inputs-test2-z        | probin-test2-z        | Double rarefaction    |
+| ``inputs-test2-z``    | ``probin-test2-z``    | Double rarefaction    |
 |                       |                       | problem along         |
 |                       |                       | :math:`z`-direction   |
 +-----------------------+-----------------------+-----------------------+
 
-[Table:Sod]
 
-We use a CFL number of 0.8, an initial
-timestep shrink (castro.init_shrink) of 0.1, and the maximum factor by which
-the timestep can increase (castro.change_max) of 1.05. The PPM
-solver with the new limiters are used.
+We use a CFL number of 0.8, an initial timestep shrink
+(``castro.init_shrink``) of 0.1, and the maximum factor by which the
+timestep can increase (``castro.change_max``) of 1.05. The PPM solver with
+the new limiters are used.
 
 .. figure:: test2_3d.png
    :alt: double rarefaction
+   :align: center
    :width: 5in
 
    Castro solution for the double rarefaction problem run in 3-d,
@@ -179,7 +180,7 @@ coordinate axes in 3-d, compared to the analytic solution.
 
 The comparison to the analytic solution follows the same procedure as
 described for the Sod’s problem above. The gnuplot script
-test2_3d.gp will generate the figure, from the 1-d slices created by
+``test2_3d.gp`` will generate the figure, from the 1-d slices created by
 fextract named test2x.out, test2y.out, and test2z.out.
 
 Strong Shock
@@ -206,34 +207,33 @@ The initial conditions are:
    \end{array}
 
 The gamma_law equation of state is used with :math:`\gamma = 1.4`.
-The system is evolved until :math:`t = 0.012` s. Setups for 1-, 2-, and 3-d
+The system is evolved until :math:`t = 0.012` s. Setups for 1-, 2-, and 3-d
 are provided. The following inputs files and probin files setup the
 Sod’s problem:
 
 
 +-----------------------+-----------------------+-----------------------+
-| inputs-test3-x        | probin-test3-x        | Strong shock problem  |
+| ``inputs-test3-x``    | ``probin-test3-x``    | Strong shock problem  |
 |                       |                       | along                 |
 |                       |                       | :math:`x`-direction   |
 +-----------------------+-----------------------+-----------------------+
-| inputs-test3-y        | probin-test3-y        | Strong shock problem  |
+| ``inputs-test3-y``    | ``probin-test3-y``    | Strong shock problem  |
 |                       |                       | along                 |
 |                       |                       | :math:`y`-direction   |
 +-----------------------+-----------------------+-----------------------+
-| inputs-test3-z        | probin-test3-z        | Strong shock problem  |
+| ``inputs-test3-z``    | ``probin-test3-z``    | Strong shock problem  |
 |                       |                       | along                 |
 |                       |                       | :math:`z`-direction   |
 +-----------------------+-----------------------+-----------------------+
 
-[Table:Sod]
-
 We use a CFL number of 0.9, an initial
-timestep shrink (castro.init_shrink) of 0.1, and the maximum factor by which
-the timestep can increase (castro.change_max) of 1.05. The PPM
+timestep shrink (``castro.init_shrink``) of 0.1, and the maximum factor by which
+the timestep can increase (``castro.change_max``) of 1.05. The PPM
 solver with the new limiters are used.
 
 .. figure:: test3_3d.png
    :alt: strong shock
+   :align: center
    :width: 5in
 
    Castro solution for the strong shock problem run in 3-d, along the
@@ -246,7 +246,7 @@ coordinate axes in 3-d, compared to the analytic solution.
 
 The comparison to the analytic solution follows the same procedure as
 described for the Sod’s problem above. The gnuplot script
-test3_3d.gp will generate the figure, from the 1-d slices created by
+``test3_3d.gp`` will generate the figure, from the 1-d slices created by
 fextract named test3x.out, test3y.out, and test3z.out.
 
 Sedov Problem
