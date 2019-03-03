@@ -220,7 +220,7 @@ explicit coupling of the burning and hydro is done. Within the
 Strang code path, there are two methods for doing the hydrodynamics,
 controlled by castro.do_ctu.<ul>
 <li>Corner-transport upwind (CTU): this implements the unsplit,
-characteristic tracing method of <a class="reference internal" href="zreferences.html#colella-1990" id="id1">[9]</a>.</li>
+characteristic tracing method of <a class="reference internal" href="zreferences.html#colella-1990" id="id1">[10]</a>.</li>
 <li>Method of lines (MOL): this discretizes the space part of
 our system without any characteristic tracing and uses an
 ODE integrator to advance the state. Multiple stages can be done,
@@ -466,7 +466,7 @@ intermediate state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(a)}\)
 <li><p class="first">sponge : the sponge is a damping term added to
 the momentum equation that is designed to drive the velocities to
 zero over some timescale. Our implementation of the sponge
-follows that of Maestro <a class="reference internal" href="zreferences.html#maestro-iii" id="id3">[5]</a></p>
+follows that of Maestro <a class="reference internal" href="zreferences.html#maestro-iii" id="id3">[6]</a></p>
 </li>
 <li><p class="first">external sources : users can define problem-specific sources
 in the <code class="docutils literal notranslate"><span class="pre">ext_src_?d.f90</span></code> file. Sources for the different
@@ -529,7 +529,7 @@ complex time-integration schemes.</p>
 the state after burning, <span class="math notranslate nohighlight">\(\Ub^\star\)</span> (<code class="docutils literal notranslate"><span class="pre">Sborder</span></code>). There
 are two approaches we use, the corner transport upwind (CTU) method
 that uses characteristic tracing as described in
-<a class="reference internal" href="zreferences.html#colella-1990" id="id4">[9]</a>, and a method-of-lines approach. The choice is
+<a class="reference internal" href="zreferences.html#colella-1990" id="id4">[10]</a>, and a method-of-lines approach. The choice is
 determined by the parameter castro.do_ctu.</p>
 <ol class="arabic">
 <li><p class="first">CTU method:</p>

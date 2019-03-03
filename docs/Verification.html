@@ -229,10 +229,10 @@ shock tube. The left and right primitive-variable states are specified
 and the solution evolves until a user-specified end time. For a simple
 discontinuity, the exact solution can be found from an exact Riemann
 solver. For this problem, the exact solutions were computed with the
-exact Riemann solver from Toro [toro:1997], Chapter 4.</p>
+exact Riemann solver from Toro <a class="reference internal" href="zreferences.html#toro-1997" id="id1">[4]</a>, Chapter 4.</p>
 <div class="section" id="sods-problem">
 <h4>Sod’s Problem<a class="headerlink" href="#sods-problem" title="Permalink to this headline">¶</a></h4>
-<p>The Sod problem [sod:1978] is a simple shock tube problem that
+<p>The Sod problem <a class="reference internal" href="zreferences.html#sod-1978" id="id2">[26]</a> is a simple shock tube problem that
 exhibits a shock, contact discontinuity, and a rarefaction wave.
 The initial conditions are:</p>
 <div class="math notranslate nohighlight">
@@ -253,41 +253,40 @@ are provided. The following inputs files and probin files setup the
 Sod’s problem:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="20%" />
-<col width="20%" />
-<col width="59%" />
+<col width="23%" />
+<col width="23%" />
+<col width="53%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td>inputs-sod-x</td>
-<td>probin-sod-x</td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">inputs-sod-x</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">probin-sod-x</span></code></td>
 <td>Sod’s problem along <span class="math notranslate nohighlight">\(x\)</span>-direction</td>
 </tr>
-<tr class="row-even"><td>inputs-sod-y</td>
-<td>probin-sod-y</td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">inputs-sod-y</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">probin-sod-y</span></code></td>
 <td>Sod’s problem along <span class="math notranslate nohighlight">\(y\)</span>-direction</td>
 </tr>
-<tr class="row-odd"><td>inputs-sod-z</td>
-<td>probin-sod-z</td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">inputs-sod-z</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">probin-sod-z</span></code></td>
 <td>Sod’s problem along <span class="math notranslate nohighlight">\(z\)</span>-direction</td>
 </tr>
 </tbody>
 </table>
-<p>[Table:Sod]</p>
 <p>For multi-dimensional runs, the directions transverse to the jump are
 kept constant. We use a CFL number of 0.9, an initial timestep shrink
 (castro.init_shrink) of 0.1, and the maximum factor by which
 the timestep can increase (castro.change_max) of 1.05.</p>
-<div class="figure" id="id14">
+<div class="figure align-center" id="id14">
 <a class="reference internal image-reference" href="_images/sod_3d.png"><img alt="sod problem" src="_images/sod_3d.png" style="width: 4.75in;" /></a>
-<p class="caption"><span class="caption-text">Castro&nbsp;solution for Sod’s problem run in 3-d, with the newest ppm
+<p class="caption"><span class="caption-text">Castro solution for Sod’s problem run in 3-d, with the newest ppm
 limiters, along the <span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span>, and <span class="math notranslate nohighlight">\(z\)</span> axes. A
 coarse grid of 32 zones in the direction of propagation, with 2
 levels of refinement was used. The analytic solution appears as the
 red line.</span></p>
 </div>
-<div class="figure" id="id15">
+<div class="figure align-center" id="id15">
 <a class="reference internal image-reference" href="_images/sod_3d_ppm0.png"><img alt="sod problem" src="_images/sod_3d_ppm0.png" style="width: 4.75in;" /></a>
-<p class="caption"><span class="caption-text">Castro&nbsp;solution for Sod’s problem run in 3-d, with the
+<p class="caption"><span class="caption-text">Castro solution for Sod’s problem run in 3-d, with the
 piecewise-linear Godunov method with limiters, along the <span class="math notranslate nohighlight">\(x\)</span>,
 <span class="math notranslate nohighlight">\(y\)</span>, and <span class="math notranslate nohighlight">\(z\)</span> axes. A coarse grid of 32 zones in the
 direction of propagation, with 2 levels of refinement was used. The
@@ -302,42 +301,42 @@ shown for comparison.</p>
 <p>The Verification subdirectory includes the analytic solution for
 the Sod problem sod-exact.out, with <span class="math notranslate nohighlight">\(\gamma = 1.4\)</span>. 1-d slices
 can be extracted from the Castro&nbsp;plotfile using the fextract tool
-from BoxLib/Tools/Postprocessing/F_Src/.
-The steps to generate this verification plot with Castro&nbsp;are:</p>
+from <code class="docutils literal notranslate"><span class="pre">amrex/Tools/Postprocessing/C_Src/</span></code>.
+The steps to generate this verification plot with Castro are:</p>
 <ol class="arabic">
-<li><p class="first">in Exec/hydro_tests/Sod, build the Castro&nbsp;executable in 3-d</p>
+<li><p class="first">in <code class="docutils literal notranslate"><span class="pre">Exec/hydro_tests/Sod</span></code>, build the Castro&nbsp;executable in 3-d</p>
 </li>
-<li><div class="first line-block">
-<div class="line">run the Sod problem with Castro&nbsp;in the <span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span>, and <span class="math notranslate nohighlight">\(z\)</span> directions:</div>
-<div class="line">./Castro3d.Linux.Intel.Intel.ex inputs-sod-x</div>
-<div class="line">./Castro3d.Linux.Intel.Intel.ex inputs-sod-y</div>
-<div class="line">./Castro3d.Linux.Intel.Intel.ex inputs-sod-z</div>
+<li><p class="first">run the Sod problem with Castro in the <span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span>, and <span class="math notranslate nohighlight">\(z\)</span> directions:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">Castro3d</span><span class="o">.</span><span class="n">Linux</span><span class="o">.</span><span class="n">Intel</span><span class="o">.</span><span class="n">Intel</span><span class="o">.</span><span class="n">ex</span> <span class="n">inputs</span><span class="o">-</span><span class="n">sod</span><span class="o">-</span><span class="n">x</span>
+<span class="o">./</span><span class="n">Castro3d</span><span class="o">.</span><span class="n">Linux</span><span class="o">.</span><span class="n">Intel</span><span class="o">.</span><span class="n">Intel</span><span class="o">.</span><span class="n">ex</span> <span class="n">inputs</span><span class="o">-</span><span class="n">sod</span><span class="o">-</span><span class="n">y</span>
+<span class="o">./</span><span class="n">Castro3d</span><span class="o">.</span><span class="n">Linux</span><span class="o">.</span><span class="n">Intel</span><span class="o">.</span><span class="n">Intel</span><span class="o">.</span><span class="n">ex</span> <span class="n">inputs</span><span class="o">-</span><span class="n">sod</span><span class="o">-</span><span class="n">z</span>
+</pre></div>
 </div>
 </li>
-<li><p class="first">build the fextract tool in BoxLib/Tools/Postprocessing/F_Src/.</p>
+<li><p class="first">build the fextract tool in <code class="docutils literal notranslate"><span class="pre">amrex/Tools/Postprocessing/C_Src/</span></code> .</p>
 </li>
-<li><div class="first line-block">
-<div class="line">run fextract on the Castro&nbsp;output to generate 1-d slices
-through the output:</div>
-<div class="line">fextract3d.Linux.Intel.exe -d 1 -s sodx.out -p sod_x_plt00034</div>
-<div class="line">fextract3d.Linux.Intel.exe -d 2 -s sody.out -p sod_y_plt00034</div>
-<div class="line">fextract3d.Linux.Intel.exe -d 3 -s sodz.out -p sod_z_plt00034</div>
+<li><p class="first">run fextract on the Castro output to generate 1-d slices
+through the output:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fextract3d</span><span class="o">.</span><span class="n">Linux</span><span class="o">.</span><span class="n">Intel</span><span class="o">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">d</span> <span class="mi">1</span> <span class="o">-</span><span class="n">s</span> <span class="n">sodx</span><span class="o">.</span><span class="n">out</span> <span class="o">-</span><span class="n">p</span> <span class="n">sod_x_plt00034</span>
+<span class="n">fextract3d</span><span class="o">.</span><span class="n">Linux</span><span class="o">.</span><span class="n">Intel</span><span class="o">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">d</span> <span class="mi">2</span> <span class="o">-</span><span class="n">s</span> <span class="n">sody</span><span class="o">.</span><span class="n">out</span> <span class="o">-</span><span class="n">p</span> <span class="n">sod_y_plt00034</span>
+<span class="n">fextract3d</span><span class="o">.</span><span class="n">Linux</span><span class="o">.</span><span class="n">Intel</span><span class="o">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">d</span> <span class="mi">3</span> <span class="o">-</span><span class="n">s</span> <span class="n">sodz</span><span class="o">.</span><span class="n">out</span> <span class="o">-</span><span class="n">p</span> <span class="n">sod_z_plt00034</span>
+</pre></div>
 </div>
 </li>
-<li><p class="first">copy the sodx/y/z.out files into the Verification directory.</p>
+<li><p class="first">copy the sodx/y/z.out files into the <code class="docutils literal notranslate"><span class="pre">Verification/</span></code> directory.</p>
 </li>
-<li><div class="first line-block">
-<div class="line">in Verification run the gnuplot script sod_3d.gp as:</div>
-<div class="line">gnuplot sod_3d.gp</div>
-<div class="line">This will produce the figure sod_3d.eps.</div>
+<li><p class="first">in <code class="docutils literal notranslate"><span class="pre">Verification/</span></code> run the gnuplot script <code class="docutils literal notranslate"><span class="pre">sod_3d.gp</span></code> as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gnuplot</span> <span class="n">sod_3d</span><span class="o">.</span><span class="n">gp</span>
+</pre></div>
 </div>
+<p>This will produce the figure <code class="docutils literal notranslate"><span class="pre">sod_3d.eps</span></code>.</p>
 </li>
 </ol>
 </div>
 <div class="section" id="double-rarefaction">
 <h4>Double Rarefaction<a class="headerlink" href="#double-rarefaction" title="Permalink to this headline">¶</a></h4>
 <p>The double rarefaction is the “Test 2” problem described by Toro
-[toro:1997], Chapter 6. In this test, the center of the domain
+<a class="reference internal" href="zreferences.html#toro-1997" id="id3">[4]</a>, Chapter 6. In this test, the center of the domain
 is evacuated as two rarefaction waves propagate in each direction, outward
 from the center. It is difficult to get the internal energy to
 behave at the center of the domain because we are creating a vacuum.
@@ -365,32 +364,31 @@ Sod’s problem:</p>
 <col width="33%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td>inputs-test2-x</td>
-<td>probin-test2-x</td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">inputs-test2-x</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">probin-test2-x</span></code></td>
 <td>Double rarefaction
 problem along
 <span class="math notranslate nohighlight">\(x\)</span>-direction</td>
 </tr>
-<tr class="row-even"><td>inputs-test2-y</td>
-<td>probin-test2-y</td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">inputs-test2-y</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">probin-test2-y</span></code></td>
 <td>Double rarefaction
 problem along
 <span class="math notranslate nohighlight">\(y\)</span>-direction</td>
 </tr>
-<tr class="row-odd"><td>inputs-test2-z</td>
-<td>probin-test2-z</td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">inputs-test2-z</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">probin-test2-z</span></code></td>
 <td>Double rarefaction
 problem along
 <span class="math notranslate nohighlight">\(z\)</span>-direction</td>
 </tr>
 </tbody>
 </table>
-<p>[Table:Sod]</p>
-<p>We use a CFL number of 0.8, an initial
-timestep shrink (castro.init_shrink) of 0.1, and the maximum factor by which
-the timestep can increase (castro.change_max) of 1.05. The PPM
-solver with the new limiters are used.</p>
-<div class="figure" id="id16">
+<p>We use a CFL number of 0.8, an initial timestep shrink
+(<code class="docutils literal notranslate"><span class="pre">castro.init_shrink</span></code>) of 0.1, and the maximum factor by which the
+timestep can increase (<code class="docutils literal notranslate"><span class="pre">castro.change_max</span></code>) of 1.05. The PPM solver with
+the new limiters are used.</p>
+<div class="figure align-center" id="id16">
 <a class="reference internal image-reference" href="_images/test2_3d.png"><img alt="double rarefaction" src="_images/test2_3d.png" style="width: 5in;" /></a>
 <p class="caption"><span class="caption-text">Castro solution for the double rarefaction problem run in 3-d,
 along the <span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span>, and <span class="math notranslate nohighlight">\(z\)</span> axes. A coarse grid
@@ -401,13 +399,13 @@ refinement was used. The analytic solution appears as the red line.</span></p>
 coordinate axes in 3-d, compared to the analytic solution.</p>
 <p>The comparison to the analytic solution follows the same procedure as
 described for the Sod’s problem above. The gnuplot script
-test2_3d.gp will generate the figure, from the 1-d slices created by
+<code class="docutils literal notranslate"><span class="pre">test2_3d.gp</span></code> will generate the figure, from the 1-d slices created by
 fextract named test2x.out, test2y.out, and test2z.out.</p>
 </div>
 <div class="section" id="strong-shock">
 <h4>Strong Shock<a class="headerlink" href="#strong-shock" title="Permalink to this headline">¶</a></h4>
 <p>The strong shock test is the “Test 3” problem described by Toro
-[toro:1997], Chapter 6. In this test, a large pressure jump
+<a class="reference internal" href="zreferences.html#toro-1997" id="id4">[4]</a>, Chapter 6. In this test, a large pressure jump
 at the initial interface creates a very strong rightward moving
 shock, followed very closely by a contact discontinuity.
 The initial conditions are:</p>
@@ -424,7 +422,7 @@ u_R = 0 \\
 p_R = 0.01
 \end{array}\end{split}\]</div>
 <p>The gamma_law equation of state is used with <span class="math notranslate nohighlight">\(\gamma = 1.4\)</span>.
-The system is evolved until <span class="math notranslate nohighlight">\(t = 0.012\)</span>&nbsp;s. Setups for 1-, 2-, and 3-d
+The system is evolved until <span class="math notranslate nohighlight">\(t = 0.012\)</span> s. Setups for 1-, 2-, and 3-d
 are provided. The following inputs files and probin files setup the
 Sod’s problem:</p>
 <table border="1" class="docutils">
@@ -434,32 +432,31 @@ Sod’s problem:</p>
 <col width="33%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td>inputs-test3-x</td>
-<td>probin-test3-x</td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">inputs-test3-x</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">probin-test3-x</span></code></td>
 <td>Strong shock problem
 along
 <span class="math notranslate nohighlight">\(x\)</span>-direction</td>
 </tr>
-<tr class="row-even"><td>inputs-test3-y</td>
-<td>probin-test3-y</td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">inputs-test3-y</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">probin-test3-y</span></code></td>
 <td>Strong shock problem
 along
 <span class="math notranslate nohighlight">\(y\)</span>-direction</td>
 </tr>
-<tr class="row-odd"><td>inputs-test3-z</td>
-<td>probin-test3-z</td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">inputs-test3-z</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">probin-test3-z</span></code></td>
 <td>Strong shock problem
 along
 <span class="math notranslate nohighlight">\(z\)</span>-direction</td>
 </tr>
 </tbody>
 </table>
-<p>[Table:Sod]</p>
 <p>We use a CFL number of 0.9, an initial
-timestep shrink (castro.init_shrink) of 0.1, and the maximum factor by which
-the timestep can increase (castro.change_max) of 1.05. The PPM
+timestep shrink (<code class="docutils literal notranslate"><span class="pre">castro.init_shrink</span></code>) of 0.1, and the maximum factor by which
+the timestep can increase (<code class="docutils literal notranslate"><span class="pre">castro.change_max</span></code>) of 1.05. The PPM
 solver with the new limiters are used.</p>
-<div class="figure" id="id17">
+<div class="figure align-center" id="id17">
 <a class="reference internal image-reference" href="_images/test3_3d.png"><img alt="strong shock" src="_images/test3_3d.png" style="width: 5in;" /></a>
 <p class="caption"><span class="caption-text">Castro solution for the strong shock problem run in 3-d, along the
 <span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span>, and <span class="math notranslate nohighlight">\(z\)</span> axes. A coarse grid of 32 zones
@@ -470,7 +467,7 @@ used. The analytic solution appears as the red line.</span></p>
 coordinate axes in 3-d, compared to the analytic solution.</p>
 <p>The comparison to the analytic solution follows the same procedure as
 described for the Sod’s problem above. The gnuplot script
-test3_3d.gp will generate the figure, from the 1-d slices created by
+<code class="docutils literal notranslate"><span class="pre">test3_3d.gp</span></code> will generate the figure, from the 1-d slices created by
 fextract named test3x.out, test3y.out, and test3z.out.</p>
 </div>
 </div>
@@ -480,14 +477,14 @@ fextract named test3x.out, test3y.out, and test3z.out.</p>
 test problem. A large amount of energy is placed into a very small
 volume, driving a spherical (or cylindrical in 2-d Cartesian
 coordinates) blast wave. Analytic solutions were found by Sedov
-[sedov:1959].</p>
+<a class="reference internal" href="zreferences.html#sedov-1959" id="id5">[25]</a>.</p>
 <p>A cylindrical blast wave (e.g.&nbsp;a point explosion in a 2-d plane) can
 be modeled in 2-d Cartesian coordinates. A spherical blast wave can
 be modeled in 1-d spherical, 2-d axisymmetric (cylindrical <span class="math notranslate nohighlight">\(r\)</span>-<span class="math notranslate nohighlight">\(z\)</span>), or 3-d
 Cartesian coordinates. This provides a good test on the geometric
 factors in the hydrodynamics solver.
 We use a publically available code, sedov3.f
-[timmes_sedov_code], to generate the analytic solutions.</p>
+<a class="reference internal" href="zreferences.html#timmes-sedov-code" id="id6">[19]</a>, to generate the analytic solutions.</p>
 <p>The Castro&nbsp;implementation of the Sedov problem is in Exec/hydro_tests/Sedov.
 A number of different inputs/probin files are provided, corresponding
 to different Sedov/Castro&nbsp;geometries. The main ones are:</p>
@@ -498,7 +495,7 @@ is to be deposited into a single point, in a medium of uniform ambient
 density, <span class="math notranslate nohighlight">\(\rho_\mathrm{ambient}\)</span>, and pressure, <span class="math notranslate nohighlight">\(p_\mathrm{ambient}\)</span>.
 Initializing the problem can be difficult because the small volume is
 typically only a cell in extent. This can lead to grid imprinting in
-the solution. A standard solution (see for example [omang:2006]
+the solution. A standard solution (see for example <a class="reference internal" href="zreferences.html#omang-2006" id="id7">[23]</a>
 and the references therein)
 is to convert the explosion energy into a pressure contained within a
 certain volume, <span class="math notranslate nohighlight">\(V_\mathrm{init}\)</span>, of radius <span class="math notranslate nohighlight">\(r_\mathrm{init}\)</span> as</p>
@@ -608,7 +605,7 @@ linear, old PPM, and new PPM. CFL=0.9. See Figure <a class="reference external" 
 <h2>Radiation Test Problems<a class="headerlink" href="#radiation-test-problems" title="Permalink to this headline">¶</a></h2>
 <p>There are two photon radiation solvers in Castro—a gray solver and a
 multigroup solver. The gray solver follows the algorithm outlined
-in [howellgreenough:2003]. We use the notation described in that
+in <a class="reference internal" href="zreferences.html#howellgreenough-2003" id="id10">[17]</a>. We use the notation described in that
 paper. In particular, the radiation energy equation takes the form
 of:</p>
 <div class="math notranslate nohighlight">
@@ -651,7 +648,7 @@ heat it. If the gas is too hot, then it will radiate and cool. In
 each case, the gas energy and radiation field will evolve until
 thermal equilibrium is achieved.</p>
 <p>Our implementation of this problem follows that of
-[swestymyra:2009].</p>
+<a class="reference internal" href="zreferences.html#swestymyra-2009" id="id11">[27]</a>.</p>
 <div class="figure" id="id21">
 <a class="reference internal image-reference" href="_images/radiating_source.png"><img alt="radiatin source" src="_images/radiating_source.png" style="width: 5in;" /></a>
 <p class="caption"><span class="caption-text">Castro solution for radiating source test problem. Heating and
@@ -669,11 +666,11 @@ frequency-dependent opacity makes the domain optically thin for high
 frequecies and optically thick for low frequency. At long times, the
 solution will be a combination of the blackbody radiation from the
 ambient medium plus the radiation that propagated from the hot sphere.
-An analytic solution exists [graziani:2008] which gives the
+An analytic solution exists <a class="reference internal" href="zreferences.html#graziani-2008" id="id12">[16]</a> which gives the
 radiation energy as a function of energy group at a specified time and
 distance from the radiating sphere.</p>
 <p>Our implementation of this problem is in Exec/radiation_tests/RadSphere and
-follows that of [swestymyra:2009]. The routine that computes
+follows that of <a class="reference internal" href="zreferences.html#swestymyra-2009" id="id13">[27]</a>. The routine that computes
 the analytic solution is provided as analytic.f90.</p>
 <div class="figure" id="id22">
 <a class="reference internal image-reference" href="_images/radiating_sphere.png"><img alt="radiating sphere" src="_images/radiating_sphere.png" style="width: 5in;" /></a>
