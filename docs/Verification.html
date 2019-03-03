@@ -477,12 +477,12 @@ be modeled in 2-d Cartesian coordinates. A spherical blast wave can
 be modeled in 1-d spherical, 2-d axisymmetric (cylindrical <span class="math notranslate nohighlight">\(r\)</span>-<span class="math notranslate nohighlight">\(z\)</span>), or 3-d
 Cartesian coordinates. This provides a good test on the geometric
 factors in the hydrodynamics solver.
-We use a publically available code, sedov3.f
+We use a publically available code, <code class="docutils literal notranslate"><span class="pre">sedov3.f</span></code>
 <a class="reference internal" href="zreferences.html#timmes-sedov-code" id="id6">[19]</a>, to generate the analytic solutions.</p>
-<p>The Castro&nbsp;implementation of the Sedov problem is in Exec/hydro_tests/Sedov.
-A number of different inputs/probin files are provided, corresponding
-to different Sedov/Castro&nbsp;geometries. The main ones are:</p>
-<p>[Table:Sod]</p>
+<p>The Castro&nbsp;implementation of the Sedov problem is <code class="docutils literal notranslate"><span class="pre">in</span>
+<span class="pre">Exec/hydro_tests/Sedov/</span></code>.  A number of different inputs/probin files
+are provided, corresponding to different Sedov/Castro&nbsp;geometries. The
+main ones are:</p>
 <p>In the Sedov problem, the explosion energy, <span class="math notranslate nohighlight">\(E_\mathrm{exp}\)</span> (in units
 of energy, not energy/mass or energy/volume)
 is to be deposited into a single point, in a medium of uniform ambient
@@ -523,22 +523,25 @@ profile can be extracted using the appropriate fsedov routine,
 as listed in Table&nbsp;<a class="reference external" href="#table:fsedov">[table:fsedov]</a>. For example, to run and process
 the 2-d cylindrical Sedov explosion, one would do:</p>
 <ol class="arabic">
-<li><p class="first">in Exec/hydro_tests/Sedov, build the Castro&nbsp;executable in 2-d</p>
+<li><p class="first">in <code class="docutils literal notranslate"><span class="pre">Exec/hydro_tests/Sedov</span></code>, build the Castro&nbsp;executable in 2-d</p>
 </li>
-<li><div class="first line-block">
-<div class="line">run the spherical Sedov problem with Castro&nbsp;in 2-d cylindrical coordinates:</div>
-<div class="line">./Castro2d.Linux.Intel.Intel.ex inputs.2d.sph_in_cylcoords</div>
+<li><p class="first">run the spherical Sedov problem with Castro&nbsp;in 2-d cylindrical coordinates:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">Castro2d</span><span class="o">.</span><span class="n">Linux</span><span class="o">.</span><span class="n">Intel</span><span class="o">.</span><span class="n">Intel</span><span class="o">.</span><span class="n">ex</span> <span class="n">inputs</span><span class="o">.</span><span class="mi">2</span><span class="n">d</span><span class="o">.</span><span class="n">sph_in_cylcoords</span>
+</pre></div>
 </div>
 </li>
-<li><p class="first">build the fsedov2d_sph_in_cylcoords tool in
-Castro/Diagnostics/Sedov.</p>
+<li><p class="first">build the <code class="docutils literal notranslate"><span class="pre">fsedov2d_sph_in_cylcoords</span></code> tool in
+<code class="docutils literal notranslate"><span class="pre">Castro/Diagnostics/Sedov</span></code>.</p>
 </li>
-<li><div class="first line-block">
-<div class="line">run fsedov2d_sph_in_cylcoords on the Castro&nbsp;output to generate 1-d radial
-profiles:</div>
-<div class="line">fsedov2d_sph_in_cylcoords.Linux.Intel.exe -s sedov_2d_sph_in_cyl.out <span class="math notranslate nohighlight">\(\mathtt{\backslash}\)</span></div>
-<div class="line"><span class="math notranslate nohighlight">\(~~~~~\)</span>-p sedov_2d_sph_in_cyl_plt00246</div>
+<li><dl class="first docutils">
+<dt>run <code class="docutils literal notranslate"><span class="pre">fsedov2d_sph_in_cylcoords</span></code> on the Castro&nbsp;output to generate 1-d radial</dt>
+<dd><p class="first">profiles:</p>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsedov2d_sph_in_cylcoords</span><span class="o">.</span><span class="n">Linux</span><span class="o">.</span><span class="n">Intel</span><span class="o">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">s</span> <span class="n">sedov_2d_sph_in_cyl</span><span class="o">.</span><span class="n">out</span> \
+   <span class="o">-</span><span class="n">p</span> <span class="n">sedov_2d_sph_in_cyl_plt00246</span>
+</pre></div>
 </div>
+</dd>
+</dl>
 </li>
 </ol>
 <p>A similar procedure can be used for the 1-d and 3-d spherical Sedov
@@ -546,8 +549,8 @@ explosions (with the output named sedov_1d_sph.out and
 sedov_3d_sph.out respectively). Once this is done, the
 sedov_sph.gp gnuplot script can be used to make a plot comparing
 the 3 solutions to the analytic solution, spherical_sedov.dat.</p>
-<p>Figure&nbsp;<a class="reference external" href="#fig:sedov_sph">[fig:sedov_sph]</a> shows the comparison of the 3 Castro&nbsp;spherical Sedov explosion simulations to the analytic solution.</p>
-<div class="figure" id="id16">
+<p>Figure&nbsp;<a class="reference external" href="#fig:sedov_sph">[fig:sedov_sph]</a> shows the comparison of the 3 Castro spherical Sedov explosion simulations to the analytic solution.</p>
+<div class="figure align-center" id="id16">
 <a class="reference internal image-reference" href="_images/sedov_sph.png"><img alt="Sedov blast wave" src="_images/sedov_sph.png" style="width: 5in;" /></a>
 <p class="caption"><span class="caption-text">Castro solution for the Sedov blast wave problem run in 1-d
 spherical, 2-d axisymmetric, and 3-d Cartesian coordinates.  Each
@@ -556,7 +559,7 @@ of these geometries produces a spherical Sedov explosion.</span></p>
 </div>
 <div class="section" id="cylindrical-blast-wave">
 <h4>Cylindrical Blast Wave<a class="headerlink" href="#cylindrical-blast-wave" title="Permalink to this headline">¶</a></h4>
-<div class="figure" id="id17">
+<div class="figure align-center" id="id17">
 <a class="reference internal image-reference" href="_images/sedov_cyl.png"><img alt="Sedov in 2-d" src="_images/sedov_cyl.png" style="width: 5in;" /></a>
 <p class="caption"><span class="caption-text">Castro solution for the Sedov blast wave problem run in 2-d
 Cartesian coordinates. This corresponds to a cylindrical Sedov
@@ -585,7 +588,7 @@ to smooth the transition between the high and low density material:</p>
 <span class="math notranslate nohighlight">\(\rho=1\)</span> on the lower half of the domain, and <span class="math notranslate nohighlight">\(\rho=2\)</span> on the upper
 half and no density perturbation. We run to <span class="math notranslate nohighlight">\(t=2.5\)</span> with piecewise
 linear, old PPM, and new PPM. CFL=0.9. See Figure <a class="reference external" href="#fig:RT">[fig:RT]</a>.</p>
-<div class="figure" id="id18">
+<div class="figure align-center" id="id18">
 <a class="reference internal image-reference" href="_images/RT_ppm_type.png"><img alt="Rayleigh-Taylor with different PPM types." src="_images/RT_ppm_type.png" style="width: 6.5in;" /></a>
 <p class="caption"><span class="caption-text">Rayleigh-Taylor with different PPM types.</span></p>
 </div>
@@ -642,7 +645,7 @@ each case, the gas energy and radiation field will evolve until
 thermal equilibrium is achieved.</p>
 <p>Our implementation of this problem follows that of
 <a class="reference internal" href="zreferences.html#swestymyra-2009" id="id9">[28]</a>.</p>
-<div class="figure" id="id19">
+<div class="figure align-center" id="id19">
 <a class="reference internal image-reference" href="_images/radiating_source.png"><img alt="radiatin source" src="_images/radiating_source.png" style="width: 5in;" /></a>
 <p class="caption"><span class="caption-text">Castro solution for radiating source test problem. Heating and
 cooling solutions are shown as a function of time, compared to the
