@@ -1211,7 +1211,7 @@ Castro::estTimeStep (Real dt_old)
     Real estdt_hydro = max_dt / cfl;
 
 #ifdef DIFFUSION
-    if (do_hydro or diffuse_temp or diffuse_enth)
+    if (do_hydro or diffuse_temp)
 #else
     if (do_hydro)
 #endif
@@ -1292,24 +1292,6 @@ Castro::estTimeStep (Real dt_old)
               {
                 const Box& box = mfi.tilebox();
                 ca_estdt_temp_diffusion(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
-                                        BL_TO_FORTRAN_ANYD(stateMF[mfi]),
-                                        ZFILL(dx),&dt);
-              }
-            estdt_hydro = std::min(estdt_hydro, dt);
-          }
-	}
-	if (diffuse_enth)
-	{
-#ifdef _OPENMP
-#pragma omp parallel reduction(min:estdt_hydro)
-#endif
-          {
-            Real dt = max_dt / cfl;
-
-            for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
-              {
-                const Box& box = mfi.tilebox();
-                ca_estdt_enth_diffusion(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
                                         BL_TO_FORTRAN_ANYD(stateMF[mfi]),
                                         ZFILL(dx),&dt);
               }
