@@ -42,6 +42,7 @@ https://github.com/amrex-astro/Castro
    EOSNetwork
    AMR
    ConvertCheckpoint
+   self_consistent_field
    MAESTRO_restart
    Verification
 
