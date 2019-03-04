@@ -6,31 +6,40 @@ Introduction
 ============
 
 The Hachisu self-consistent field (SCF) method is a way to generate
-equilibrium rotating (or non-rotating) initial configurations.
-It can generate single or multiple star systems, and can also
-generate a torus configuration. The SCF method was originally developed
-in the 1960s, but it was a variant proposed by Hachisu in 1986
-(:cite:`hachisu:1986a,hachisu:1986b`) that ended up becoming
-the most popular technique. The SCF method was originally developed
+equilibrium rotating (or non-rotating) initial configurations. It can
+generate single or multiple star systems. The SCF method was originally
+developed in the 1960s, but it was a variant proposed by Hachisu in 1986
+(:cite:`hachisu:1986a,hachisu:1986b`) that ended up becoming the
+most popular technique. The SCF method was originally developed
 for rapidly rotating single stars, but was soon extended to apply
 to rotating binary systems, and it has been applied to construct
 initial conditions by several groups studying binary white dwarf
-or neutron star systems
-(:cite:`newtohline:1997,swc:2000,motl:2002,dsouza:2006,motl:2007,even:2009`).
-
+or neutron star systems using several types of rotation laws
+(:cite:`newtohline:1997,swc:2000,motl:2002,dsouza:2006,motl:2007,even:2009,kadam:2018,yoshida:2018`).
+It has also been used for constructing toroidal configurations
+(:cite:`kim:2016`).
 The technique assumes a uniform temperature and composition (more generally,
 a barotropic equation of state), self-gravitation represented by the
-Poisson equation, and a well-defined rotation law (usually -- but not always --
-rigid-body rotation). The user is required to specify three quantities:
-the maximum density of the equilibrium star(s), and two points on the
-stellar surface. For a single star this is usually a point on the equator
-and a point on a pole. For a detached binary system this corresponds to the
-inner and outer points of the teardrop-shape configuration along the axis
-joining the binary.
+Poisson equation, and a well-defined rotation law (often rigid-body rotation).
+The user is required to specify three quantities: the maximum density of
+the equilibrium star(s), and two points on the stellar surface. For a
+single star this is usually a point on the equator and a point on a pole.
+For a detached binary system this corresponds to the inner and outer points
+of the teardrop-shape configuration along the axis joining the binary.
 
 At present we only support generating a single star using the Hachisu
 SCF method, but we plan to extend this in a later release to rotating
 toroidal configurations and binary star systems.
+
+We note that while the Hachisu SCF method iteratively solves the
+integral form of the Euler equations (essentially, it solves the Bernoulli
+equation from classical fluid dynamics), other approaches have been used
+in the literature. Usually these directly solve the coupled Poisson and
+Bernoulli equations rather than relying on indirect iterative coupling
+between them. See, for example, :cite:`eriguchi:1985,fujisawa:2015` and
+:cite:`clement:1974,aksenov:1994`. These alternative methods are generally
+more powerful and promise faster convergence, but are also more difficult
+to implement. See also :cite:`jackson:2005` for yet another approach.
 
 
 
@@ -56,8 +65,8 @@ with SCF:
 - ``castro.scf_relax_tol``: tolerance required for SCF convergence
 
 The first three options are required and must be set. One limitation of this
-method is that we cannot specify more natural parameters such as the total
-mass of the star.
+method is that (to our knowledge) there is no known way to specify more natural
+parameters such as the total mass of the star.
 
 
 Single Star Algorithm
