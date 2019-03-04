@@ -1557,13 +1557,12 @@ public:
 ///
 /// Add source terms to ``state``
 ///
-/// @param is_new   do we use new (0) or old (1) data?
 /// @param state    State
 /// @param source   Source terms
 /// @param dt       timestep
 /// @param ng       number of ghost cells
 ///
-    void apply_source_to_state (int is_new, amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng = 0);
+    void apply_source_to_state (amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng = 0);
 
 
 ///
