@@ -3232,16 +3232,12 @@ Castro::computeTemp(int is_new, int ng)
 
     // we need to make the data live at cell-centers first
 
-    // fill Stemp with S_new.  Note, expand_state can call
-    // clean_state, which in turn calls computeTemp, and we'd be
-    // circular, so we ensure that we skip the clean state by passing
-    // -1 in for the "iclean" flag.
-
+    // fill Stemp with S_new.
     // we only need 2 ghost cells here, then the make_cell_center
     // makes 1 ghost cell a valid center, we compute its temp, and
     // then the final average results only in interior temps valid
     Stemp.define(State.boxArray(), State.DistributionMap(), NUM_STATE, 2);
-    expand_state(Stemp, time, -1, Stemp.nGrow());
+    expand_state(Stemp, time, Stemp.nGrow());
 
     // store the Laplacian term for the internal energy
     Eint_lap.define(State.boxArray(), State.DistributionMap(), 1, 0);
@@ -3770,23 +3766,13 @@ Castro::build_interior_boundary_mask (int ng)
 // Fill a version of the state with ng ghost zones from the state data.
 
 void
-Castro::expand_state(MultiFab& S, Real time, int iclean, int ng)
+Castro::expand_state(MultiFab& S, Real time, int ng)
 {
   BL_PROFILE("Castro::expand_state()");
 
   // S is the multifab we are filling with State_Type StateData.
 
   AmrLevel::FillPatch(*this, S, ng, time, State_Type, 0, NUM_STATE);
-
-  // Now clean the data. Note that this is done after the FillPatch
-  // so that if we're FillPatching into a temporary array (i.e. Sborder)
-  // we don't change the underlying data. This should be done on
-  // all of the ghost zones. We'll optionally allow cleaning
-  // to be disabled with the iclean parameter.
-
-  if (iclean) {
-      clean_state(S, ng);
-  }
 
   BL_ASSERT(S.nGrow() >= ng);
 }

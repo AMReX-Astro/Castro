@@ -248,7 +248,8 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
       // for the CTU unsplit method, we always start with the old state
       Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
       const Real prev_time = state[State_Type].prevTime();
-      expand_state(Sborder, prev_time, 0, NUM_GROW);
+      expand_state(Sborder, prev_time, NUM_GROW);
+      clean_state(Sborder, NUM_GROW);
 
     } else if (time_integration_method == MethodOfLines) {
 
@@ -260,7 +261,8 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 	// first MOL stage
 	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
 	const Real prev_time = state[State_Type].prevTime();
-	expand_state(Sborder, prev_time, 0, NUM_GROW);
+	expand_state(Sborder, prev_time, NUM_GROW);
+        clean_state(Sborder, NUM_GROW);
 
       } else {
 
@@ -283,7 +285,8 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 
 	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
 	const Real new_time = state[State_Type].curTime();
-	expand_state(Sborder, new_time, 1, NUM_GROW);
+	expand_state(Sborder, new_time, NUM_GROW);
+        clean_state(Sborder, NUM_GROW);
 
       }
 

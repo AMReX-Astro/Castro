@@ -179,7 +179,8 @@ Castro::do_advance_mol (Real time,
   // since the hydro source only works on the valid zones.
 
   if (S_new.nGrow() > 0) {
-    expand_state(S_new, cur_time, 1, S_new.nGrow());
+    expand_state(S_new, cur_time, S_new.nGrow());
+    clean_state(S_new, S_new.nGrow());
   }
 
 #ifndef AMREX_USE_CUDA
@@ -196,10 +197,12 @@ Castro::do_advance_mol (Real time,
   // note: we need to have ghost cells here cause some sources (in
   // particular pdivU) need them.  Perhaps it would be easier to just
   // always require State_Type to have 1 ghost cell?
-  expand_state(Sborder, prev_time, 0, Sborder.nGrow());
+  expand_state(Sborder, prev_time, Sborder.nGrow());
+  clean_state(Sborder, Sborder.nGrow());
   do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
 
-  expand_state(Sborder, cur_time, 1, Sborder.nGrow());
+  expand_state(Sborder, cur_time, Sborder.nGrow());
+  clean_state(Sborder, Sborder.nGrow());
   do_old_sources(new_source, Sborder, cur_time, dt, amr_iteration, amr_ncycle);
 
 

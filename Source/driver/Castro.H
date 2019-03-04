@@ -1572,10 +1572,9 @@ public:
 ///
 /// @param S        MultiFab to be filled
 /// @param time     current time
-/// @param iclean   Should we clean the data after the fill?
 /// @param ng       number of ghost cells
 ///
-    void expand_state(amrex::MultiFab& S, amrex::Real time, int iclean, int ng);
+    void expand_state(amrex::MultiFab& S, amrex::Real time, int ng);
 
 #ifdef SELF_GRAVITY
 

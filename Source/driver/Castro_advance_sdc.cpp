@@ -69,7 +69,8 @@ Castro::do_advance_sdc (Real time,
     // FillPatch so it only pulls from the new MF -- this will not
     // work for multilevel.
     MultiFab::Copy(S_new, *(k_new[m]), 0, 0, S_new.nComp(), 0);
-    expand_state(Sborder, cur_time, 1, NUM_GROW);
+    expand_state(Sborder, cur_time, NUM_GROW);
+    clean_state(Sborder, NUM_GROW);
 
     // Construct the "old-time" sources from Sborder.  Since we are
     // working from Sborder, this will actually evaluate the sources
@@ -184,7 +185,7 @@ Castro::do_advance_sdc (Real time,
     // use a temporary storage
     // TODO: do we need a clean state here?
     MultiFab::Copy(S_new, *(k_new[m]), 0, 0, S_new.nComp(), 0);
-    expand_state(Sborder, cur_time, -1, Sborder.nGrow());
+    expand_state(Sborder, cur_time, Sborder.nGrow());
     construct_old_react_source(Sborder, *(R_old[m]));
   }
 #endif
@@ -204,10 +205,12 @@ Castro::do_advance_sdc (Real time,
   // note: we need to have ghost cells here cause some sources (in
   // particular pdivU) need them.  Perhaps it would be easier to just
   // always require State_Type to have 1 ghost cell?
-  expand_state(Sborder, prev_time, 0, Sborder.nGrow());
+  expand_state(Sborder, prev_time, Sborder.nGrow());
+  clean_state(Sborder, Sborder.nGrow());
   do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
 
-  expand_state(Sborder, cur_time, 1, Sborder.nGrow());
+  expand_state(Sborder, cur_time, Sborder.nGrow());
+  clean_state(Sborder, Sborder.nGrow());
   do_old_sources(new_source, Sborder, cur_time, dt, amr_iteration, amr_ncycle);
 
 
