@@ -130,8 +130,7 @@ Castro::do_advance_ctu(Real time,
 
 
     // Sync up state after old sources and hydro source.
-    int is_new=1;
-    frac_change = clean_state(is_new, Sborder, 0);
+    frac_change = clean_state(S_new, 0);
 
 #ifndef AMREX_USE_CUDA
     // Check for NaN's.
@@ -174,8 +173,7 @@ Castro::do_advance_ctu(Real time,
       do_new_sources(new_source, Sborder, S_new, cur_time, dt, amr_iteration, amr_ncycle);
 
       apply_source_to_state(S_new, new_source, dt);
-      int is_new=1;
-      clean_state(is_new, 0);
+      clean_state(S_new, 0);
 
     } else {
 

@@ -1541,8 +1541,9 @@ public:
 /// Update state to account for hybrid advection
 ///
 /// @param state    Current state
+/// @param ng       Number of ghost cells
 ///
-    void hybrid_sync(amrex::MultiFab& state);
+    void hybrid_sync(amrex::MultiFab& state, int ng);
 #endif
 
 
@@ -1567,21 +1568,11 @@ public:
 
 ///
 /// Fill a version of the state with ``ng`` ghost zones from the state data.
-///
-/// S is the multifab we are filling with ``State_Type`` ``StateData``,
-/// including a ghost cell fill at the end.  Before we do the fill,
-/// we do a ``clean_state`` on the ``State_Type data``.  iclean = 0 means
-/// clean the "old" time data, iclean = 1 means clean the "new time
-/// data", and iclean = 2 means clean both the old and new time data
-/// (in case we are interpolating in time).  For any other value, no
-/// cleaning is done
-
-// note: we don't clean ghost cells here, since we are doing a fill
-// right afterwards
+/// After we do the fill, optionally clean the data using the iclean parameter.
 ///
 /// @param S        MultiFab to be filled
 /// @param time     current time
-/// @param iclean   What data do we clean?
+/// @param iclean   Should we clean the data after the fill?
 /// @param ng       number of ghost cells
 ///
     void expand_state(amrex::MultiFab& S, amrex::Real time, int iclean, int ng);
@@ -1955,38 +1946,12 @@ protected:
 ///
 /// Given ``State_Type`` state data, perform a number of cleaning steps to make
 /// sure the data is sensible. The return value is the same as the return
-/// value of enforce_min_density.
-///
-/// @param is_new   do we use new (0) or old (1) data?
-/// @param state    State data
-/// @param ng       number of ghost cells
-///
-    amrex::Real clean_state (int is_new, amrex::MultiFab& state, int ng);
-
-///
-/// Given ``State_Type`` state data, perform a number of cleaning steps to make
-/// sure the data is sensible. The return value is the same as the return
-/// value of enforce_min_density.
-///
-/// this is the "preferred" clean_state interface -- it will work
-/// directly on the StateData.  ``is_new``=0 means the old data is used,
-/// ``is_new``=1 means the new data is used.
-///
-///
-/// @param is_new   do we use new (0) or old (1) data?
-/// @param ng       number of ghost cells
-///
-    amrex::Real clean_state (int is_new, int ng);
-
-
-///
-/// Given ``State_Type`` state data, perform a number of cleaning steps to make
-/// sure the data is sensible. The return value is the same as the return
 /// value of ::enforce_min_density.
 ///
 /// @param state    State data
+/// @param ng       number of ghost cells
 ///
-    amrex::Real clean_state (amrex::MultiFab& state);
+    amrex::Real clean_state (amrex::MultiFab& state, int ng);
 
 ///
 /// Average new state from ``level+1`` down to ``level``

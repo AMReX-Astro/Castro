@@ -145,7 +145,7 @@ Castro::strang_react_first_half(Real time, Real dt)
 
     // Ensure consistency in internal energy and recompute temperature.
 
-    clean_state(state);
+    clean_state(state, state.nGrow());
 
 }
 
@@ -253,8 +253,7 @@ Castro::strang_react_second_half(Real time, Real dt)
 
     }
 
-    int is_new = 1;
-    clean_state(is_new, state.nGrow());
+    clean_state(state, state.nGrow());
 
 }
 

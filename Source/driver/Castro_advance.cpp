@@ -112,8 +112,7 @@ Castro::advance (Real time,
 
                 MultiFab& S_new = get_new_data(State_Type);
 
-                int is_new=1;
-                clean_state(is_new, S_new.nGrow());
+                clean_state(S_new, S_new.nGrow());
 
                 // Compute the reactive source term for use in the next iteration.
 
@@ -280,8 +279,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 	  MultiFab::Saxpy(S_new, dt*a_mol[mol_iteration][i], *k_mol[i], 0, 0, S_new.nComp(), 0);
 
         // not sure if this is needed
-        int is_new=1;
-        clean_state(is_new, S_new.nGrow());
+        clean_state(S_new, S_new.nGrow());
 
 	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
 	const Real new_time = state[State_Type].curTime();
@@ -469,9 +467,8 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // trusted to respect the consistency between certain state variables
     // (e.g. UEINT and UEDEN) that we demand in every zone.
 
-    int is_new=0;
     MultiFab& S_old = get_old_data(State_Type);
-    clean_state(is_new, S_old.nGrow());
+    clean_state(S_old, S_old.nGrow());
 
     // Initialize the previous state data container now, so that we can
     // always ask if it has valid data.

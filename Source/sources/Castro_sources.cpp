@@ -438,7 +438,7 @@ Castro::get_react_source_prim(MultiFab& react_src, Real time, Real dt)
     MultiFab::Copy(S_noreact, S_old, 0, 0, NUM_STATE, ng);
     MultiFab::Saxpy(S_noreact, dt, A, 0, 0, NUM_STATE, ng);
 
-    clean_state(S_noreact);
+    clean_state(S_noreact, S_noreact.nGrow());
 
     // Compute its primitive counterpart, q*
 

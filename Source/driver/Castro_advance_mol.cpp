@@ -173,8 +173,7 @@ Castro::do_advance_mol (Real time,
     MultiFab::Saxpy(S_new, dt*b_mol[i], *k_mol[i], 0, 0, S_new.nComp(), 0);
 
   // define the temperature now
-  int is_new=1;
-  clean_state(is_new, S_new.nGrow());
+  clean_state(S_new, S_new.nGrow());
 
   // If the state has ghost zones, sync them up now
   // since the hydro source only works on the valid zones.
