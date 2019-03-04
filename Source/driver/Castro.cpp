@@ -2789,7 +2789,7 @@ Castro::enforce_min_density (MultiFab& state, int ng)
 
 	// Evaluate what the effective reset source was.
 
-	MultiFab::Subtract(reset_source, state, 0, 0, S_old.nComp(), 0);
+	MultiFab::Subtract(reset_source, state, 0, 0, state.nComp(), 0);
 
 	bool local = true;
 	Vector<Real> reset_update = evaluate_source_change(reset_source, 1.0, local);

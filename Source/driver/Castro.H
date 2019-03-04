@@ -1927,20 +1927,16 @@ protected:
     void enforce_consistent_e (amrex::MultiFab& S);
 
 ///
-/// This routine sets the density in ``S_new`` to be larger than the density floor.
-/// Note that it will operate everywhere on ``S_new``, including ghost zones.
-/// ``S_old`` is present so that, after the hydro call, we know what the old density
-/// was so that we have a reference for comparison. If you are calling it elsewhere
-/// and there's no meaningful reference state, just pass in the same MultiFab twice.
+/// This routine sets the density in ``state`` to be larger than the density floor.
+/// Note that it will operate everywhere on ``state``, including ghost zones.
 ///
 /// The return value is the the negative fractional change in the state that has the
 /// largest magnitude. If there is no reference state, this is meaningless.
 ///
-/// @param S_old        Old state
-/// @param S_new        New state
+/// @param state        state
 /// @param ng           number of ghost cells
 ///
-    amrex::Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new, int ng);
+    amrex::Real enforce_min_density (amrex::MultiFab& state, int ng);
 
 ///
 /// Given ``State_Type`` state data, perform a number of cleaning steps to make
