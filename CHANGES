@@ -1,5 +1,10 @@
 # changes since the last release
 
+  -- removed the code to extrapolate diffusion terms to ghost cells
+     as it is no longer necessary (#532)
+
+# 19.03
+
   -- Fixed a minor long-standing bug in the simplified SDC implementation
      involving incorrect indexing. This changes results slightly.
 

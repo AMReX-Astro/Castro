@@ -11,10 +11,10 @@ using namespace amrex;
 void
 Castro::construct_old_diff_source(MultiFab& source, MultiFab& state, Real time, Real dt)
 {
-    MultiFab TempDiffTerm(grids, dmap, 1, 1);
-    MultiFab SpecDiffTerm(grids, dmap, NumSpec, 1);
-    MultiFab ViscousTermforMomentum(grids, dmap, BL_SPACEDIM, 1);
-    MultiFab ViscousTermforEnergy(grids, dmap, 1, 1);
+    MultiFab TempDiffTerm(grids, dmap, 1, 0);
+    MultiFab SpecDiffTerm(grids, dmap, NumSpec, 0);
+    MultiFab ViscousTermforMomentum(grids, dmap, BL_SPACEDIM, 0);
+    MultiFab ViscousTermforEnergy(grids, dmap, 1, 0);
 
     add_temp_diffusion_to_source(source, state, TempDiffTerm, time);
 
@@ -27,10 +27,10 @@ Castro::construct_old_diff_source(MultiFab& source, MultiFab& state, Real time, 
 void
 Castro::construct_new_diff_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
-    MultiFab TempDiffTerm(grids, dmap, 1, 1);
-    MultiFab SpecDiffTerm(grids, dmap, NumSpec, 1);
-    MultiFab ViscousTermforMomentum(grids, dmap, BL_SPACEDIM, 1);
-    MultiFab ViscousTermforEnergy(grids, dmap, 1, 1);
+    MultiFab TempDiffTerm(grids, dmap, 1, 0);
+    MultiFab SpecDiffTerm(grids, dmap, NumSpec, 0);
+    MultiFab ViscousTermforMomentum(grids, dmap, BL_SPACEDIM, 0);
+    MultiFab ViscousTermforEnergy(grids, dmap, 1, 0);
 
     Real mult_factor = 0.5;
 
@@ -168,15 +168,6 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state, MultiFab& TempDiffTerm
 
    diffusion->applyop(level,Temperature,CrseTemp,TempDiffTerm,coeffs);
 
-   // Extrapolate to ghost cells
-   if (TempDiffTerm.nGrow() > 0) {
-       for (MFIter mfi(TempDiffTerm); mfi.isValid(); ++mfi)
-       {
-	   const Box& bx = mfi.validbox();
-	   ca_tempdiffextrap(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-			     BL_TO_FORTRAN_ANYD(TempDiffTerm[mfi]));
-       }
-   }
 }
 
 void
@@ -246,15 +237,6 @@ Castro::getEnthDiffusionTerm (Real time, MultiFab& state, MultiFab& DiffTerm)
 
    diffusion->applyop(level,Enthalpy,CrseEnth,DiffTerm,coeffs);
 
-   // Extrapolate to ghost cells
-   if (DiffTerm.nGrow() > 0) {
-       for (MFIter mfi(DiffTerm); mfi.isValid(); ++mfi)
-       {
-	   const Box& bx = mfi.validbox();
-	   ca_tempdiffextrap(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-			     BL_TO_FORTRAN_ANYD(DiffTerm[mfi]));
-       }
-   }
 }
 
 #if (BL_SPACEDIM == 1)
@@ -325,17 +307,8 @@ Castro::getSpecDiffusionTerm (Real time, MultiFab& state, MultiFab& SpecDiffTerm
 
        diffusion->applyop(level,Species,CrseSpec,SDT,coeffs);
 
-       // Extrapolate to ghost cells
-       if (SDT.nGrow() > 0) {
-           for (MFIter mfi(SDT); mfi.isValid(); ++mfi)
-           {
-	       const Box& bx = mfi.validbox();
-	       ca_tempdiffextrap(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				 BL_TO_FORTRAN_ANYD(SDT[mfi]));
-           }
-       }
        // Copy back into SpecDiffTerm from the temporary SDT
-       MultiFab::Copy(SpecDiffTerm, SDT, 0, ispec, 1, 1);
+       MultiFab::Copy(SpecDiffTerm, SDT, 0, ispec, 1, SpecDiffTerm.nGrow());
    }
 }
 #endif
@@ -417,15 +390,6 @@ Castro::getFirstViscousTerm (Real time, MultiFab& state, MultiFab& ViscousTerm)
    }
    diffusion->applyop(level,Vel,CrseVel,ViscousTerm,coeffs);
 
-   // Extrapolate to ghost cells
-   if (ViscousTerm.nGrow() > 0) {
-       for (MFIter mfi(ViscousTerm); mfi.isValid(); ++mfi)
-       {
-	   const Box& bx = mfi.validbox();
-	   ca_tempdiffextrap(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-			     BL_TO_FORTRAN_ANYD(ViscousTerm[mfi]));
-       }
-   }
 }
 
 void
@@ -483,15 +447,6 @@ Castro::getSecndViscousTerm (Real time, MultiFab& state, MultiFab& ViscousTerm)
    }
    diffusion->applyViscOp(level,Vel,CrseVel,ViscousTerm,coeffs);
 
-   // Extrapolate to ghost cells
-   if (ViscousTerm.nGrow() > 0) {
-       for (MFIter mfi(ViscousTerm); mfi.isValid(); ++mfi)
-       {
-	   const Box& bx = mfi.validbox();
-	   ca_tempdiffextrap(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-			     BL_TO_FORTRAN_ANYD(ViscousTerm[mfi]));
-       }
-   }
 }
 
 void
@@ -528,14 +483,5 @@ Castro::getViscousTermForEnergy (Real time, MultiFab& state, MultiFab& ViscousTe
 			    ZFILL(dx_fine),&coord_type);
    }
 
-   // Extrapolate to ghost cells
-   if (ViscousTerm.nGrow() > 0) {
-       for (MFIter mfi(ViscousTerm); mfi.isValid(); ++mfi)
-       {
-	   const Box& bx = mfi.validbox();
-	   ca_tempdiffextrap(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-			     BL_TO_FORTRAN_ANYD(ViscousTerm[mfi]));
-       }
-   }
 }
 #endif
