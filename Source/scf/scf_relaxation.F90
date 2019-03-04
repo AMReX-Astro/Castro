@@ -14,10 +14,9 @@ contains
   subroutine scf_setup_relaxation() bind(C, name='scf_setup_relaxation')
 
     use meth_params_module, only: scf_equatorial_radius, scf_polar_radius
+    use prob_params_Module, only: center
 
     implicit none
-
-    type (eos_t) :: eos_state
 
     ! We need to fix two points to uniquely determine an equilibrium
     ! configuration for a rotating star. We can do this by specifying
