@@ -1,5 +1,9 @@
 # changes since the last release
 
+  -- Avoided unnecessary calls to the EOS in the CTU advance. For
+     equations of state with iterative solvers (e.g. Helmholtz),
+     this changes results at the level of the EOS tolerance. (#537)
+
   -- removed the code to extrapolate diffusion terms to ghost cells
      as it is no longer necessary (#532)
 
