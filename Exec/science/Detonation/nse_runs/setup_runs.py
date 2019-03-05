@@ -5,19 +5,22 @@ import shlex
 from multiprocessing import Pool
 import time
 
-CFL = [0.8, 0.4, 0.2, 0.1]
-SDC_ITERS = [2, 3, 4]
-NZONES = [256, 512, 1024, 2048]
+CFL = [0.8, 0.4] #, 0.2, 0.1]
+SDC_ITERS = [2, 3] #, 4]
+NZONES = [256, 512] #, 1024, 2048]
 
 job_list = []
 
-NEEDED_SDC_FILES = ["helm_table.dat", "probin-det-x.SDC", "Castro1d.gnu.SDC.ex"]
-NEEDED_STRANG_FILES = ["helm_table.dat", "probin-det-x.SDC", "Castro1d.gnu.ex"]
+NEEDED_SDC_FILES = ["helm_table.dat", "probin.nse_test.sdc", "Castro1d.gnu.SDC.ex"]
+NEEDED_STRANG_FILES = ["helm_table.dat", "probin.nse_test.strang", "Castro1d.gnu.ex"]
 
 def setup_runs():
 
-    with open("inputs.big.template", "r") as tf:
-        template = tf.readlines()
+    with open("inputs.big.template.sdc", "r") as tf:
+        sdc_template = tf.readlines()
+
+    with open("inputs.big.template.strang", "r") as tf:
+        strang_template = tf.readlines()
 
     # setup the Strang runs
     for c in CFL:
@@ -36,7 +39,7 @@ def setup_runs():
 
             # write the inputs file
             with open("{}/inputs".format(odir), "w") as inpf:
-                for line in template:
+                for line in strang_template:
                     inpf.write(line.replace("@@CFL@@", str(c)).replace("@@NZONES@@", str(nz)).replace("@@SDC_ITERS@@", "1").replace("@@method@@", "0"))
 
             # copy the remaining files
@@ -63,7 +66,7 @@ def setup_runs():
 
                 # write the inputs file
                 with open("{}/inputs".format(odir), "w") as inpf:
-                    for line in template:
+                    for line in sdc_template:
                         inpf.write(line.replace("@@CFL@@", str(c)).replace("@@NZONES@@", str(nz)).replace("@@SDC_ITERS@@", str(niter)).replace("@@method@@", "3"))
 
                 # copy the remaining files

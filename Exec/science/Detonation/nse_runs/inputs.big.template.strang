@@ -1,6 +1,6 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 10000
-stop_time =  6.e-3
+stop_time =  4.e-3
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0 0 0
@@ -42,6 +42,8 @@ castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.05    # scale back initial timestep
 castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
 
+castro.use_retry = 1
+
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
@@ -66,4 +68,4 @@ amr.plot_per = 5.e-4
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
-amr.probin_file = probin-det-x.SDC
+amr.probin_file = probin.nse_test.strang
