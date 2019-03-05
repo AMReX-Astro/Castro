@@ -11,10 +11,6 @@
      It still does a similar type of timestep limiting, but quantitatively
      the timesteps it chooses will be different. (#538)
 
-  -- Avoided unnecessary calls to the EOS in the CTU advance. For
-     equations of state with iterative solvers (e.g. Helmholtz),
-     this changes results at the level of the EOS tolerance. (#537)
-
   -- removed the code to extrapolate diffusion terms to ghost cells
      as it is no longer necessary (#532)
 
