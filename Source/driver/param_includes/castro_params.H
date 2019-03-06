@@ -105,7 +105,6 @@ static amrex::Real retry_neg_dens_factor;
 static amrex::Real retry_subcycle_factor;
 static int use_post_step_regrid;
 static int max_subcycles;
-static int clamp_subcycles;
 static int sdc_iters;
 static amrex::Real dtnuc_e;
 static amrex::Real dtnuc_X;
