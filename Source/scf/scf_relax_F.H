@@ -1,5 +1,5 @@
 
-  void scf_setup_relaxation();
+  void scf_setup_relaxation(amrex::Real d_A, int axis_A, amrex::Real d_B, int axis_B);
 
   void scf_calculate_target_h_max(const int* lo, const int* hi,
                                   BL_FORT_FAB_ARG_3D(state),

@@ -189,8 +189,6 @@ module meth_params_module
   integer,  allocatable, save :: grown_factor
   integer,  allocatable, save :: do_scf_initial_model
   real(rt), allocatable, save :: scf_maximum_density
-  real(rt), allocatable, save :: scf_equatorial_radius
-  real(rt), allocatable, save :: scf_polar_radius
   real(rt), allocatable, save :: scf_relax_tol
   integer,  allocatable, save :: track_grid_losses
   character (len=:), allocatable, save :: gravity_type
@@ -312,8 +310,6 @@ attributes(managed) :: do_acc
 attributes(managed) :: grown_factor
 attributes(managed) :: do_scf_initial_model
 attributes(managed) :: scf_maximum_density
-attributes(managed) :: scf_equatorial_radius
-attributes(managed) :: scf_polar_radius
 attributes(managed) :: scf_relax_tol
 attributes(managed) :: track_grid_losses
 
@@ -430,8 +426,6 @@ attributes(managed) :: get_g_from_phi
   !$acc create(grown_factor) &
   !$acc create(do_scf_initial_model) &
   !$acc create(scf_maximum_density) &
-  !$acc create(scf_equatorial_radius) &
-  !$acc create(scf_polar_radius) &
   !$acc create(scf_relax_tol) &
   !$acc create(track_grid_losses) &
   !$acc create(const_grav) &
@@ -656,10 +650,6 @@ contains
     do_scf_initial_model = 0;
     allocate(scf_maximum_density)
     scf_maximum_density = -1.d6;
-    allocate(scf_equatorial_radius)
-    scf_equatorial_radius = -1.d9;
-    allocate(scf_polar_radius)
-    scf_polar_radius = -1.d9;
     allocate(scf_relax_tol)
     scf_relax_tol = 1.d-3;
     allocate(track_grid_losses)
@@ -756,8 +746,6 @@ contains
     call pp%query("grown_factor", grown_factor)
     call pp%query("do_scf_initial_model", do_scf_initial_model)
     call pp%query("scf_maximum_density", scf_maximum_density)
-    call pp%query("scf_equatorial_radius", scf_equatorial_radius)
-    call pp%query("scf_polar_radius", scf_polar_radius)
     call pp%query("scf_relax_tol", scf_relax_tol)
     call pp%query("track_grid_losses", track_grid_losses)
     call amrex_parmparse_destroy(pp)
@@ -791,9 +779,7 @@ contains
     !$acc device(implicit_rotation_update, rot_axis, use_point_mass) &
     !$acc device(point_mass, point_mass_fix_solution, do_acc) &
     !$acc device(grown_factor, do_scf_initial_model, scf_maximum_density) &
-    !$acc device(scf_equatorial_radius, scf_polar_radius, scf_relax_tol) &
-    !$acc device(track_grid_losses, const_grav) &
-    !$acc device(get_g_from_phi)
+    !$acc device(scf_relax_tol, track_grid_losses, const_grav, get_g_from_phi)
 
 
     ! now set the external BC flags
@@ -1126,12 +1112,6 @@ contains
     end if
     if (allocated(scf_maximum_density)) then
         deallocate(scf_maximum_density)
-    end if
-    if (allocated(scf_equatorial_radius)) then
-        deallocate(scf_equatorial_radius)
-    end if
-    if (allocated(scf_polar_radius)) then
-        deallocate(scf_polar_radius)
     end if
     if (allocated(scf_relax_tol)) then
         deallocate(scf_relax_tol)

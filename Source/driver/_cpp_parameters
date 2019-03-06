@@ -478,8 +478,8 @@ do_scf_initial_model         int           0                  y
 scf_maximum_density          Real          -1.e6              y
 
 # Equatorial and polar radii of the star constructed by SCF
-scf_equatorial_radius        Real          -1.e9              y
-scf_polar_radius             Real          -1.e9              y
+scf_equatorial_radius        Real          -1.e9
+scf_polar_radius             Real          -1.e9
 
 # SCF relaxation tolerance
 scf_relax_tol                Real          1.e-3              y

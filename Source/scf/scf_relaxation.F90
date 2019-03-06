@@ -11,30 +11,26 @@ module scf_relaxation_module
 
 contains
 
-  subroutine scf_setup_relaxation() bind(C, name='scf_setup_relaxation')
+  subroutine scf_setup_relaxation(d_A, axis_A, d_B, axis_B) bind(C, name='scf_setup_relaxation')
 
-    use meth_params_module, only: scf_equatorial_radius, scf_polar_radius
     use prob_params_Module, only: center
 
     implicit none
 
+    real(rt), intent(in), value :: d_A, d_B
+    integer,  intent(in), value :: axis_A, axis_B
+
     ! We need to fix two points to uniquely determine an equilibrium
-    ! configuration for a rotating star. We can do this by specifying
-    ! scf_equatorial_radius, the equatorial radius of the star, and
-    ! scf_polar_radius, the polar radius of the star. In this configuration,
-    ! we assume that the rotation axis is the z-axis, so the equatorial
-    ! radius is along the xy-plane.
+    ! configuration for a rotating star. We are provided the distance
+    ! from the center, and the axis we're measuring on.
 
     scf_r_A(:) = center
     scf_r_B(:) = center
 
-    ! Note that the choice of direction is arbitrary here: for the polar
-    ! radius we could fix the point at positive z or negative z, and for
-    ! the equatorial radius, we could use +/- x or y. Since the problem
-    ! is symmetric, it should not matter what we actually choose.
+    ! Note that the sign is somewhat arbitrary here.
 
-    scf_r_A(1) = scf_r_A(1) + scf_equatorial_radius
-    scf_r_B(3) = scf_r_B(3) + scf_polar_radius
+    scf_r_A(axis_A) = scf_r_A(axis_A) + d_A
+    scf_r_B(axis_B) = scf_r_B(axis_B) + d_B
 
   end subroutine scf_setup_relaxation
 

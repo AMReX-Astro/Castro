@@ -49,7 +49,7 @@ void Castro::scf_relaxation() {
 
     // Do the initial relaxation setup.
 
-    scf_setup_relaxation();
+    scf_setup_relaxation(scf_equatorial_radius, 1, scf_polar_radius, 3);
 
     // To do the relaxation loop, we need to know the target maximum
     // enthalpy on the domain. So we'll loop through the grid and
