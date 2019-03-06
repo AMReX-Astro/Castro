@@ -225,7 +225,7 @@ namespace: ``castro``
 
 **timestep control**
 
-.. index:: castro.fixed_dt, castro.initial_dt, castro.dt_cutoff, castro.max_dt, castro.cfl, castro.init_shrink, castro.change_max, castro.plot_per_is_exact, castro.small_plot_per_is_exact, castro.use_retry, castro.retry_tolerance, castro.retry_neg_dens_factor, castro.retry_subcycle_factor, castro.use_post_step_regrid, castro.max_subcycles, castro.clamp_subcycles, castro.sdc_iters
+.. index:: castro.fixed_dt, castro.initial_dt, castro.dt_cutoff, castro.max_dt, castro.cfl, castro.init_shrink, castro.change_max, castro.plot_per_is_exact, castro.small_plot_per_is_exact, castro.use_retry, castro.retry_tolerance, castro.retry_neg_dens_factor, castro.retry_subcycle_factor, castro.use_post_step_regrid, castro.max_subcycles, castro.sdc_iters
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -285,10 +285,6 @@ namespace: ``castro``
 | ``max_subcycles``                      | Do not permit more subcycled timesteps than this        | 10            |
 |                                        | parameter. Set to a negative value to disable this      |               |
 |                                        | criterion.                                              |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``clamp_subcycles``                    | If we do request more than the maximum number of        | 1             |
-|                                        | subcycles, should we fail, or should we clamp to that   |               |
-|                                        | maximum number and perform that many?                   |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``sdc_iters``                          | Number of iterations for the SDC advance.               | 2             |
 +----------------------------------------+---------------------------------------------------------+---------------+
