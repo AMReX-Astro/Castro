@@ -320,7 +320,7 @@ void Castro::scf_relaxation() {
 
         for (int lev = 0; lev <= finest_level; ++lev) {
 
-            Real actual_h_max = std::max(actual_h_max, enthalpy[lev]->max(0));
+            actual_h_max = std::max(actual_h_max, enthalpy[lev]->max(0));
 
         }
 
