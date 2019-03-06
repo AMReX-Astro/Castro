@@ -348,7 +348,7 @@ contains
                              dx, &
                              kin_eng, pot_eng, int_eng, mass) bind(C, name='scf_diagnostics')
 
-    use amrex_constants_module, only: HALF
+    use amrex_constants_module, only: ZERO, HALF
     use meth_params_module, only: NVAR, URHO, UTEMP, UFS
     use network, only: nspec
     use eos_module, only: eos
@@ -377,21 +377,25 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             dm = state(i,j,k,URHO) * dV
+             if (state(i,j,k,URHO) > ZERO) then
 
-             mass = mass + dm
+                dm = state(i,j,k,URHO) * dV
 
-             kin_eng = kin_eng + phi_rot(i,j,k) * dm
+                mass = mass + dm
 
-             pot_eng = pot_eng + HALF * phi(i,j,k) * dm
+                kin_eng = kin_eng + phi_rot(i,j,k) * dm
 
-             eos_state%rho = state(i,j,k,URHO)
-             eos_state%T   = state(i,j,k,UTEMP)
-             eos_state%xn  = state(i,j,k,UFS:UFS+nspec-1) / state(i,j,k,URHO)
+                pot_eng = pot_eng + HALF * phi(i,j,k) * dm
 
-             call eos(eos_input_rt, eos_state)
+                eos_state%rho = state(i,j,k,URHO)
+                eos_state%T   = state(i,j,k,UTEMP)
+                eos_state%xn  = state(i,j,k,UFS:UFS+nspec-1) / state(i,j,k,URHO)
 
-             int_eng = int_eng + eos_state%p * dV
+                call eos(eos_input_rt, eos_state)
+
+                int_eng = int_eng + eos_state%p * dV
+
+             end if
 
           enddo
        enddo

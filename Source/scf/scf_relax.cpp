@@ -128,14 +128,19 @@ void Castro::scf_relaxation() {
         enthalpy[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
     }
 
-    // Construct a local MultiFab for the main state data. We do
+    // Construct a local MultiFab for the state data. We do
     // this because we have to mask out the state several times
     // in the below calculation, and it's easiest to have a scratch
     // copy of the data to work with.
 
     Vector< std::unique_ptr<MultiFab> > state(n_levs);
+    Vector< std::unique_ptr<MultiFab> > phi(n_levs);
+    Vector< std::unique_ptr<MultiFab> > phi_rot(n_levs);
+
     for (int lev = 0; lev <= finest_level; ++lev) {
         state[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
+        phi[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
+        phi_rot[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
     }
 
     // Iterate until the system is relaxed by filling the level data
@@ -150,6 +155,8 @@ void Castro::scf_relaxation() {
         for (int lev = 0; lev <= finest_level; ++lev) {
 
             MultiFab::Copy((*state[lev]), getLevel(lev).get_new_data(State_Type), 0, 0, NUM_STATE, 0);
+            MultiFab::Copy((*phi[lev]), getLevel(lev).get_new_data(PhiGrav_Type), 0, 0, 1, 0);
+            MultiFab::Copy((*phi_rot[lev]), getLevel(lev).get_new_data(PhiRot_Type), 0, 0, 1, 0);
 
             if (lev < finest_level) {
                 const MultiFab& mask = getLevel(lev+1).build_fine_mask();
@@ -157,6 +164,9 @@ void Castro::scf_relaxation() {
                 for (int n = 0; n < NUM_STATE; ++n) {
                     MultiFab::Multiply((*state[lev]), mask, 0, n, 1, 0);
                 }
+
+                MultiFab::Multiply((*phi[lev]), mask, 0, 0, 1, 0);
+                MultiFab::Multiply((*phi_rot[lev]), mask, 0, 0, 1, 0);
             }
 
         }
@@ -170,8 +180,6 @@ void Castro::scf_relaxation() {
 
         for (int lev = 0; lev <= finest_level; ++lev) {
 
-            MultiFab& phi = getLevel(lev).get_new_data(PhiGrav_Type);
-
             const Real* dx = parent->Geom(lev).CellSize();
 
 #ifdef _OPENMP
@@ -183,7 +191,7 @@ void Castro::scf_relaxation() {
 
                 scf_update_for_omegasq(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                                        BL_TO_FORTRAN_ANYD((*state[lev])[mfi]),
-                                       BL_TO_FORTRAN_ANYD(phi[mfi]),
+                                       BL_TO_FORTRAN_ANYD((*phi[lev])[mfi]),
                                        BL_TO_FORTRAN_ANYD((*psi[lev])[mfi]),
                                        AMREX_ZFILL(dx),
                                        &phi_A, &psi_A, &phi_B, &psi_B);
@@ -203,7 +211,7 @@ void Castro::scf_relaxation() {
         // rotation module knows to treat rotational_period = 0 as effectively disabling
         // rotation, we'll use that approach.
 
-        if (std::abs(phi_A - phi_B) / std::abs(phi_A) < 1.e-6) {
+        if (std::abs(scf_polar_radius - scf_equatorial_radius) / std::abs(scf_equatorial_radius) < 1.e-6) {
 
             rotational_period = 0.0;
 
@@ -233,19 +241,17 @@ void Castro::scf_relaxation() {
 
         for (int lev = 0; lev <= finest_level; ++lev) {
 
-            MultiFab& phi_rot = getLevel(lev).get_new_data(PhiRot_Type);
-
             const Real* dx = parent->Geom(lev).CellSize();
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-            for (MFIter mfi(phi_rot, true); mfi.isValid(); ++mfi) {
+            for (MFIter mfi((*phi_rot[lev]), true); mfi.isValid(); ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
                 ca_fill_rotational_potential(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                             BL_TO_FORTRAN_ANYD(phi_rot[mfi]),
+                                             BL_TO_FORTRAN_ANYD((*phi_rot[lev])[mfi]),
                                              AMREX_ZFILL(dx), time);
 
             }
@@ -260,9 +266,6 @@ void Castro::scf_relaxation() {
 
         for (int lev = 0; lev <= finest_level; ++lev) {
 
-            MultiFab& phi = getLevel(lev).get_new_data(PhiGrav_Type);
-            MultiFab& phi_rot = getLevel(lev).get_new_data(PhiRot_Type);
-
             const Real* dx = parent->Geom(lev).CellSize();
 
 #ifdef _OPENMP
@@ -274,8 +277,8 @@ void Castro::scf_relaxation() {
 
                 scf_get_bernoulli_const(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                                         BL_TO_FORTRAN_ANYD((*state[lev])[mfi]),
-                                        BL_TO_FORTRAN_ANYD(phi[mfi]),
-                                        BL_TO_FORTRAN_ANYD(phi_rot[mfi]),
+                                        BL_TO_FORTRAN_ANYD((*phi[lev])[mfi]),
+                                        BL_TO_FORTRAN_ANYD((*phi_rot[lev])[mfi]),
                                         AMREX_ZFILL(dx), &bernoulli);
 
             }
@@ -293,9 +296,6 @@ void Castro::scf_relaxation() {
 
             enthalpy[lev]->setVal(0.0);
 
-            MultiFab& phi = getLevel(lev).get_new_data(PhiGrav_Type);
-            MultiFab& phi_rot = getLevel(lev).get_new_data(PhiRot_Type);
-
             const Real* dx = parent->Geom(lev).CellSize();
 
 #ifdef _OPENMP
@@ -307,8 +307,8 @@ void Castro::scf_relaxation() {
 
                 scf_construct_enthalpy(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                                        BL_TO_FORTRAN_ANYD((*state[lev])[mfi]),
-                                       BL_TO_FORTRAN_ANYD(phi[mfi]),
-                                       BL_TO_FORTRAN_ANYD(phi_rot[mfi]),
+                                       BL_TO_FORTRAN_ANYD((*phi[lev])[mfi]),
+                                       BL_TO_FORTRAN_ANYD((*phi_rot[lev])[mfi]),
                                        BL_TO_FORTRAN_ANYD((*enthalpy[lev])[mfi]),
                                        AMREX_ZFILL(dx), bernoulli);
 
@@ -355,6 +355,8 @@ void Castro::scf_relaxation() {
 
         for (int lev = 0; lev <= finest_level; ++lev) {
             MultiFab::Copy(getLevel(lev).get_new_data(State_Type), (*state[lev]), 0, 0, NUM_STATE, 0);
+            MultiFab::Copy(getLevel(lev).get_new_data(PhiGrav_Type), (*phi[lev]), 0, 0, 1, 0);
+            MultiFab::Copy(getLevel(lev).get_new_data(PhiRot_Type), (*phi_rot[lev]), 0, 0, 1, 0);
         }
 
         for (int lev = finest_level-1; lev >= 0; lev--) {
@@ -372,9 +374,6 @@ void Castro::scf_relaxation() {
 
         for (int lev = 0; lev <= finest_level; ++lev) {
 
-            MultiFab& phi = getLevel(lev).get_new_data(PhiGrav_Type);
-            MultiFab& phi_rot = getLevel(lev).get_new_data(PhiRot_Type);
-
             const Real* dx = parent->Geom(lev).CellSize();
 
 #ifdef _OPENMP
@@ -386,8 +385,8 @@ void Castro::scf_relaxation() {
 
                 scf_diagnostics(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                                 BL_TO_FORTRAN_ANYD((*state[lev])[mfi]),
-                                BL_TO_FORTRAN_ANYD(phi[mfi]),
-                                BL_TO_FORTRAN_ANYD(phi_rot[mfi]),
+                                BL_TO_FORTRAN_ANYD((*phi[lev])[mfi]),
+                                BL_TO_FORTRAN_ANYD((*phi_rot[lev])[mfi]),
                                 AMREX_ZFILL(dx),
                                 &kin_eng, &pot_eng, &int_eng, &mass);
 
