@@ -471,7 +471,7 @@ Castro::read_params ()
    // rotation and gravity have been compiled in.
 
 #if (!defined(GRAVITY) || !defined(ROTATION))
-   if (scf_do_initial_model) {
+   if (do_scf_initial_model) {
        amrex::Error("SCF initial model construction is only permitted if USE_GRAV=TRUE and USE_ROTATION=TRUE at compile time.");
    }
 #endif
@@ -2161,9 +2161,13 @@ Castro::post_init (Real stop_time)
 
     // If we're doing SCF initialization, do it here.
 
+#ifdef GRAVITY
+#ifdef ROTATION
     if (do_scf_initial_model) {
         scf_relaxation();
     }
+#endif
+#endif
 
         int nstep = parent->levelSteps(0);
 	Real dtlev = parent->dtLevel(0);
