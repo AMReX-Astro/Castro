@@ -84,6 +84,7 @@ void Castro::scf_relaxation() {
 
             scf_calculate_target_h_max(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                                        BL_TO_FORTRAN_ANYD(state[mfi]),
+                                       scf_maximum_density,
                                        &target_h_max);
 
         }

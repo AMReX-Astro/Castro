@@ -3,6 +3,7 @@
 
   void scf_calculate_target_h_max(const int* lo, const int* hi,
                                   BL_FORT_FAB_ARG_3D(state),
+                                  amrex::Real maximum_density,
                                   amrex::Real* target_h_max);
 
   void scf_update_for_omegasq(const int* lo, const int* hi,

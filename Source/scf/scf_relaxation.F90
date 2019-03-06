@@ -41,9 +41,10 @@ contains
 
   subroutine scf_calculate_target_h_max(lo, hi, &
                                         state, s_lo, s_hi, &
+                                        maximum_density, &
                                         target_h_max) bind(C, name='scf_calculate_target_h_max')
 
-    use meth_params_module, only: NVAR, URHO, UTEMP, UFS, scf_maximum_density
+    use meth_params_module, only: NVAR, URHO, UTEMP, UFS
     use network, only: nspec
     use eos_module, only: eos
     use eos_type_module, only: eos_input_rt, eos_t
@@ -54,6 +55,7 @@ contains
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
     real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     real(rt), intent(inout) :: target_h_max
+    real(rt), intent(in   ), value :: maximum_density
 
     integer  :: i, j, k
 
@@ -63,7 +65,7 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             eos_state%rho = scf_maximum_density
+             eos_state%rho = maximum_density
              eos_state%T   = state(i,j,k,UTEMP)
              eos_state%xn  = state(i,j,k,UFS:UFS+nspec-1) / state(i,j,k,URHO)
 

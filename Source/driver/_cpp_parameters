@@ -472,17 +472,17 @@ star_at_center               int          -1
 #-----------------------------------------------------------------------------
 
 # Should we use SCF to construct the initial model?
-do_scf_initial_model         int           0                  y
+do_scf_initial_model         int           0
 
 # Maximum density on the domain when using SCF
-scf_maximum_density          Real          -1.e6              y
+scf_maximum_density          Real          -1.e6
 
 # Equatorial and polar radii of the star constructed by SCF
 scf_equatorial_radius        Real          -1.e9
 scf_polar_radius             Real          -1.e9
 
 # SCF relaxation tolerance
-scf_relax_tol                Real          1.e-3              y
+scf_relax_tol                Real          1.e-3
 
 # Maximum number of SCF iterations
 scf_max_iterations           int           30
