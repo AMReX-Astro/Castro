@@ -1183,7 +1183,7 @@ contains
 
     implicit none
 
-    integer :: axis_1_in, axis_2_in, axis_3_in
+    integer, intent(inout) :: axis_1_in, axis_2_in, axis_3_in
 
     axis_1_in = axis_1
     axis_2_in = axis_2
@@ -1199,7 +1199,7 @@ contains
 
     implicit none
 
-    integer :: flag
+    integer, intent(inout) :: flag
 
     flag = 0
 

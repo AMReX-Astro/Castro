@@ -58,9 +58,9 @@ contains
 
     implicit none
 
-    double precision :: mass_1, mass_2
-    double precision :: com_1(3), com_2(3)
-    double precision :: L1(3), L2(3), L3(3)
+    double precision, intent(in   ), value :: mass_1, mass_2
+    double precision, intent(in   ) :: com_1(3), com_2(3)
+    double precision, intent(inout) :: L1(3), L2(3), L3(3)
     
     double precision :: r ! Distance from Lagrange point to primary
     double precision :: a ! Distance between secondary and primary
