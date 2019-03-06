@@ -319,8 +319,8 @@ contains
 
                 state(i,j,k,URHO)  = eos_state % rho
                 state(i,j,k,UTEMP) = eos_state % T
-                state(i,j,k,UEINT) = eos_state % rho * eos_state % e
-                state(i,j,k,UFS:UFS+nspec-1) = eos_state % rho * eos_state % xn
+                state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e
+                state(i,j,k,UFS:UFS+nspec-1) = state(i,j,k,URHO) * eos_state % xn
 
                 state(i,j,k,UMX:UMZ) = ZERO
 
