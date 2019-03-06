@@ -11,6 +11,7 @@ class Profile:
     """read a plotfile using yt and store the 1d profile for T and enuc"""
 
     def __init__(self, plotfile):
+        print(plotfile)
         ds = yt.load(plotfile)
 
         time = float(ds.current_time)
@@ -55,6 +56,7 @@ class Detonation:
         self.nzones = None
         self.integrator = None
         self.niters = None
+        self.dtnuce = None
 
         # read the meta data
         with open(os.path.join(name, "run.meta")) as mf:
@@ -68,6 +70,8 @@ class Detonation:
                     self.integrator = v
                 elif k == "niters":
                     self.niters = int(v)
+                elif k == "dtnuc_e":
+                    self.dtnuc_e = float(v)
 
         # find all the output (plot) files
         cwd = os.getcwd()
@@ -79,6 +83,9 @@ class Detonation:
         # precompute the velocity and the data profiles
         self.v, self.v_sigma = self.get_velocity()
         self.data = self.get_data()
+
+    def __repr__(self):
+        return self.name
 
     def __lt__(self, other):
         """sort by CFL number and resolution and then # of SDC
@@ -137,14 +144,15 @@ if __name__ == "__main__":
     run_dirs = glob.glob("det_s*")
     runs = []
     for run in run_dirs:
-        try:
-            runs.append(Detonation(run))
-        except IndexError:
-            # the run didn't produce output -- it might still be running?
-            print("run {} didn't produce output".format(run))
+        #try:
+        runs.append(Detonation(run))
+        #except IndexError:
+        #    # the run didn't produce output -- it might still be running?
+        #    print("run {} didn't produce output".format(run))
 
     print(len(runs))
     runs.sort()
+    print(runs)
 
     # make a plot of speed vs. CFL, grouped by Strang, SDC2, SDC3,
     # SDC4 for the same resolution
