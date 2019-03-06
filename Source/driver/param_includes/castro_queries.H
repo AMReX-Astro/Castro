@@ -130,6 +130,7 @@ pp.query("scf_maximum_density", scf_maximum_density);
 pp.query("scf_equatorial_radius", scf_equatorial_radius);
 pp.query("scf_polar_radius", scf_polar_radius);
 pp.query("scf_relax_tol", scf_relax_tol);
+pp.query("scf_max_iterations", scf_max_iterations);
 pp.query("do_special_tagging", do_special_tagging);
 pp.query("spherical_star", spherical_star);
 pp.query("v", verbose);

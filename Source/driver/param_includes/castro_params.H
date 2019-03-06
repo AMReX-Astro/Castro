@@ -130,6 +130,7 @@ static amrex::Real scf_maximum_density;
 static amrex::Real scf_equatorial_radius;
 static amrex::Real scf_polar_radius;
 static amrex::Real scf_relax_tol;
+static int scf_max_iterations;
 static int do_special_tagging;
 static int spherical_star;
 static int verbose;

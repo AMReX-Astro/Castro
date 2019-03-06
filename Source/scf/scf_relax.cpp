@@ -15,7 +15,6 @@ void Castro::scf_relaxation() {
     const int n_levs = finest_level + 1;
 
     int j = 1;
-    int relax_max_iterations = 30;
 
     // First do some sanity checks.
 
@@ -148,7 +147,7 @@ void Castro::scf_relaxation() {
 
     int is_relaxed = 0;
 
-    while (j <= relax_max_iterations) {
+    while (j <= scf_max_iterations) {
 
         // Copy in the state data. Mask it out on coarse levels.
 

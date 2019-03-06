@@ -130,6 +130,7 @@ amrex::Real Castro::scf_maximum_density = -1.e6;
 amrex::Real Castro::scf_equatorial_radius = -1.e9;
 amrex::Real Castro::scf_polar_radius = -1.e9;
 amrex::Real Castro::scf_relax_tol = 1.e-3;
+int         Castro::scf_max_iterations = 30;
 int         Castro::do_special_tagging = 0;
 int         Castro::spherical_star = 0;
 int         Castro::verbose = 0;

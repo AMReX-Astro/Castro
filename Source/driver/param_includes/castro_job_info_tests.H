@@ -125,6 +125,7 @@ jobInfoFile << (Castro::scf_maximum_density == -1.e6 ? "    " : "[*] ") << "cast
 jobInfoFile << (Castro::scf_equatorial_radius == -1.e9 ? "    " : "[*] ") << "castro.scf_equatorial_radius = " << Castro::scf_equatorial_radius << std::endl;
 jobInfoFile << (Castro::scf_polar_radius == -1.e9 ? "    " : "[*] ") << "castro.scf_polar_radius = " << Castro::scf_polar_radius << std::endl;
 jobInfoFile << (Castro::scf_relax_tol == 1.e-3 ? "    " : "[*] ") << "castro.scf_relax_tol = " << Castro::scf_relax_tol << std::endl;
+jobInfoFile << (Castro::scf_max_iterations == 30 ? "    " : "[*] ") << "castro.scf_max_iterations = " << Castro::scf_max_iterations << std::endl;
 jobInfoFile << (Castro::do_special_tagging == 0 ? "    " : "[*] ") << "castro.do_special_tagging = " << Castro::do_special_tagging << std::endl;
 jobInfoFile << (Castro::spherical_star == 0 ? "    " : "[*] ") << "castro.spherical_star = " << Castro::spherical_star << std::endl;
 jobInfoFile << (Castro::verbose == 0 ? "    " : "[*] ") << "castro.verbose = " << Castro::verbose << std::endl;
