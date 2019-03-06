@@ -365,7 +365,7 @@ void Castro::scf_relaxation() {
 
         gravity->multilevel_solve_for_new_phi(0, finest_level);
 
-        // Update diagnostic quantities. We only need to do this on level 0.
+        // Update diagnostic quantities.
 
         Real kin_eng = 0.0;
         Real pot_eng = 0.0;

@@ -302,7 +302,7 @@ contains
              ! spuriously negative. If the enthalpy is negative, we just
              ! leave the zone alone -- this should be ambient material.
 
-             if (enthalpy(i,j,k) > ZERO) then
+             if (enthalpy(i,j,k) > ZERO .and. state(i,j,k,URHO) > ZERO) then
 
                 old_rho = state(i,j,k,URHO)
 
