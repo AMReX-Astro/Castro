@@ -184,12 +184,11 @@ void Castro::scf_relaxation() {
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:phi_A, psi_A, phi_B, psi_B)
 #endif
-            for (MFIter mfi((*state[lev]), true); mfi.isValid(); ++mfi) {
+            for (MFIter mfi((*phi[lev]), true); mfi.isValid(); ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
                 scf_update_for_omegasq(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                       BL_TO_FORTRAN_ANYD((*state[lev])[mfi]),
                                        BL_TO_FORTRAN_ANYD((*phi[lev])[mfi]),
                                        BL_TO_FORTRAN_ANYD((*psi[lev])[mfi]),
                                        AMREX_ZFILL(dx),
@@ -270,12 +269,11 @@ void Castro::scf_relaxation() {
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:bernoulli)
 #endif
-            for (MFIter mfi((*state[lev]), true); mfi.isValid(); ++mfi) {
+            for (MFIter mfi((*phi[lev]), true); mfi.isValid(); ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
                 scf_get_bernoulli_const(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                        BL_TO_FORTRAN_ANYD((*state[lev])[mfi]),
                                         BL_TO_FORTRAN_ANYD((*phi[lev])[mfi]),
                                         BL_TO_FORTRAN_ANYD((*phi_rot[lev])[mfi]),
                                         AMREX_ZFILL(dx), &bernoulli);
@@ -300,12 +298,11 @@ void Castro::scf_relaxation() {
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-            for (MFIter mfi((*state[lev]), true); mfi.isValid(); ++mfi) {
+            for (MFIter mfi((*phi[lev]), true); mfi.isValid(); ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
                 scf_construct_enthalpy(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                       BL_TO_FORTRAN_ANYD((*state[lev])[mfi]),
                                        BL_TO_FORTRAN_ANYD((*phi[lev])[mfi]),
                                        BL_TO_FORTRAN_ANYD((*phi_rot[lev])[mfi]),
                                        BL_TO_FORTRAN_ANYD((*enthalpy[lev])[mfi]),

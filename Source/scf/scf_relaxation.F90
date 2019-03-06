@@ -87,7 +87,6 @@ contains
   ! updating the rotation frequency.
 
   subroutine scf_update_for_omegasq(lo, hi, &
-                                    state, s_lo, s_hi, &
                                     phi, phi_lo, phi_hi, &
                                     psi, psi_lo, psi_hi, &
                                     dx, &
@@ -100,11 +99,9 @@ contains
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
     integer,  intent(in   ) :: phi_lo(3), phi_hi(3)
     integer,  intent(in   ) :: psi_lo(3), psi_hi(3)
     real(rt), intent(in   ) :: dx(3)
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     real(rt), intent(in   ) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
     real(rt), intent(in   ) :: psi(psi_lo(1):psi_hi(1),psi_lo(2):psi_hi(2),psi_lo(3):psi_hi(3))
     real(rt), intent(inout) :: phi_A, phi_B, psi_A, psi_B
@@ -169,7 +166,6 @@ contains
 
 
   subroutine scf_get_bernoulli_const(lo, hi, &
-                                     state, s_lo, s_hi, &
                                      phi, phi_lo, phi_hi, &
                                      phi_rot, phr_lo, phr_hi, &
                                      dx, bernoulli) bind(C, name='scf_get_bernoulli_const')
@@ -181,11 +177,9 @@ contains
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
     integer,  intent(in   ) :: phi_lo(3), phi_hi(3)
     integer,  intent(in   ) :: phr_lo(3), phr_hi(3)
     real(rt), intent(in   ) :: dx(3)
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     real(rt), intent(in   ) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
     real(rt), intent(in   ) :: phi_rot(phr_lo(1):phr_hi(1),phr_lo(2):phr_hi(2),phr_lo(3):phr_hi(3))
     real(rt), intent(inout) :: bernoulli
@@ -222,7 +216,6 @@ contains
 
 
   subroutine scf_construct_enthalpy(lo, hi, &
-                                    state, s_lo, s_hi, &
                                     phi, phi_lo, phi_hi, &
                                     phi_rot, phr_lo, phr_hi, &
                                     enthalpy, h_lo, h_hi, &
@@ -233,12 +226,10 @@ contains
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
     integer,  intent(in   ) :: phi_lo(3), phi_hi(3)
     integer,  intent(in   ) :: phr_lo(3), phr_hi(3)
     integer,  intent(in   ) :: h_lo(3), h_hi(3)
     real(rt), intent(in   ) :: dx(3)
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     real(rt), intent(in   ) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
     real(rt), intent(in   ) :: phi_rot(phr_lo(1):phr_hi(1),phr_lo(2):phr_hi(2),phr_lo(3):phr_hi(3))
     real(rt), intent(inout) :: enthalpy(h_lo(1):h_hi(1),h_lo(2):h_hi(2),h_lo(3):h_hi(3))

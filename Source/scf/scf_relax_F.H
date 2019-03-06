@@ -6,7 +6,6 @@
                                   amrex::Real* target_h_max);
 
   void scf_update_for_omegasq(const int* lo, const int* hi,
-                              BL_FORT_FAB_ARG_3D(state),
                               BL_FORT_FAB_ARG_3D(phi),
                               BL_FORT_FAB_ARG_3D(psi),
                               const amrex::Real* dx,  
@@ -14,14 +13,12 @@
                               amrex::Real* phi_B, amrex::Real* psi_B);
 
   void scf_get_bernoulli_const(const int* lo, const int* hi,
-			       BL_FORT_FAB_ARG_3D(state),
 			       BL_FORT_FAB_ARG_3D(phi),
                                BL_FORT_FAB_ARG_3D(psi),
 			       const amrex::Real* dx,
 			       amrex::Real* bernoulli);
 
   void scf_construct_enthalpy(const int* lo, const int* hi,
-			      BL_FORT_FAB_ARG_3D(state),
 			      BL_FORT_FAB_ARG_3D(phi),
                               BL_FORT_FAB_ARG_3D(psi),
 			      BL_FORT_FAB_ARG_3D(enthalpy),
