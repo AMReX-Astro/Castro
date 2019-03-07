@@ -449,16 +449,17 @@ contains
     use eos_module, only : eos
     use eos_type_module, only : eos_t, eos_input_re
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, &
-         UEDEN, UEINT, UTEMP, &
-         QRHO, QU, QV, QW, &
-         QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
-         NQ, QC, QGAMC, QDPDR, QDPDE, NQAUX, &
+                                   UEDEN, UEINT, UTEMP, &
+                                   QRHO, QU, QV, QW, &
+                                   QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
+                                   NQ, QC, QGAMC, QGC, QDPDR, QDPDE, NQAUX, &
 #ifdef RADIATION
-         QCG, QGAMCG, QLAMS, &
-         QPTOT, QRAD, QRADHI, QREITOT, &
+                                   QCG, QGAMCG, QLAMS, &
+                                   QPTOT, QRAD, QRADHI, QREITOT, &
 #endif
-         npassive, upass_map, qpass_map, dual_energy_eta1, &
-         small_dens
+                                   npassive, upass_map, qpass_map, dual_energy_eta1, &
+                                   small_dens
+
     use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_error_module
 #ifdef ROTATION
@@ -599,6 +600,7 @@ contains
              q(i,j,k,QREINT) = eos_state % e * q(i,j,k,QRHO)
              q(i,j,k,QPRES)  = eos_state % p
              q(i,j,k,QGAME)  = q(i,j,k,QPRES) / q(i,j,k,QREINT) + ONE
+             q(i,j,k,QGC) = eos_state % gam1
 
              qaux(i,j,k,QDPDR)  = eos_state % dpdr_e
              qaux(i,j,k,QDPDE)  = eos_state % dpde
