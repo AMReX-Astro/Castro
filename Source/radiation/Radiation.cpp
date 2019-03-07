@@ -139,8 +139,8 @@ void Radiation::read_static_params()
   }
 
   // check that we're not using a single group solver if NGROUPS > 1
-  if (!do_multigroup && NGROUPS > 1) {
-      amrex::Error("NGROUPS > 1 but using single group solver");
+  if (!do_multigroup && Radiation::nGroups > 1) {
+      amrex::Error("Radiation::nGroups > 1 but using single group solver");
   }
 
   if (Radiation::SolverType == Radiation::MGFLDSolver) {
