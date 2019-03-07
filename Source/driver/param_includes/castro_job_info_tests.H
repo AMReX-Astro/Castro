@@ -100,7 +100,6 @@ jobInfoFile << (Castro::retry_neg_dens_factor == 1.e-1 ? "    " : "[*] ") << "ca
 jobInfoFile << (Castro::retry_subcycle_factor == 0.5 ? "    " : "[*] ") << "castro.retry_subcycle_factor = " << Castro::retry_subcycle_factor << std::endl;
 jobInfoFile << (Castro::use_post_step_regrid == 0 ? "    " : "[*] ") << "castro.use_post_step_regrid = " << Castro::use_post_step_regrid << std::endl;
 jobInfoFile << (Castro::max_subcycles == 10 ? "    " : "[*] ") << "castro.max_subcycles = " << Castro::max_subcycles << std::endl;
-jobInfoFile << (Castro::clamp_subcycles == 1 ? "    " : "[*] ") << "castro.clamp_subcycles = " << Castro::clamp_subcycles << std::endl;
 jobInfoFile << (Castro::sdc_iters == 2 ? "    " : "[*] ") << "castro.sdc_iters = " << Castro::sdc_iters << std::endl;
 jobInfoFile << (Castro::dtnuc_e == 1.e200 ? "    " : "[*] ") << "castro.dtnuc_e = " << Castro::dtnuc_e << std::endl;
 jobInfoFile << (Castro::dtnuc_X == 1.e200 ? "    " : "[*] ") << "castro.dtnuc_X = " << Castro::dtnuc_X << std::endl;

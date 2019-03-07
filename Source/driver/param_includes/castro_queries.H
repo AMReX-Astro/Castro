@@ -105,7 +105,6 @@ pp.query("retry_neg_dens_factor", retry_neg_dens_factor);
 pp.query("retry_subcycle_factor", retry_subcycle_factor);
 pp.query("use_post_step_regrid", use_post_step_regrid);
 pp.query("max_subcycles", max_subcycles);
-pp.query("clamp_subcycles", clamp_subcycles);
 pp.query("sdc_iters", sdc_iters);
 pp.query("dtnuc_e", dtnuc_e);
 pp.query("dtnuc_X", dtnuc_X);

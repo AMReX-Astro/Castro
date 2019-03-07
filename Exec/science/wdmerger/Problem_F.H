@@ -9,9 +9,9 @@ extern "C"
 
   void problem_restart(int* int_dir_name, int* len);
 
-  void wdcom(BL_FORT_FAB_ARG_3D(rho), 
-	     BL_FORT_FAB_ARG_3D(xmom), 
-	     BL_FORT_FAB_ARG_3D(ymom), 
+  void wdcom(BL_FORT_FAB_ARG_3D(rho),
+	     BL_FORT_FAB_ARG_3D(xmom),
+	     BL_FORT_FAB_ARG_3D(ymom),
 	     BL_FORT_FAB_ARG_3D(zmom),
 	     BL_FORT_FAB_ARG_3D(pmask),
 	     BL_FORT_FAB_ARG_3D(smask),
@@ -29,19 +29,19 @@ extern "C"
 				  BL_FORT_FAB_ARG_3D(smask),
 				  BL_FORT_FAB_ARG_3D(vol),
 				  const int* lo, const int* hi,
-				  const amrex::Real* dx,  
+				  const amrex::Real* dx,
 				  amrex::Real* volp, amrex::Real* vols,
 				  amrex::Real* rho_cutoff);
 
-  void get_single_star(int& flag);
+  void get_single_star(int* flag);
 
-  void set_star_data(const amrex::Real com_p[], const amrex::Real com_s[], 
-		     const amrex::Real vel_p[], const amrex::Real vel_s[], 
+  void set_star_data(const amrex::Real* com_p, const amrex::Real* com_s,
+		     const amrex::Real* vel_p, const amrex::Real* vel_s,
 		     const amrex::Real* mass_p, const amrex::Real* mass_s,
 		     const amrex::Real* t_ff_p, const amrex::Real* t_ff_s);
 
-  void get_star_data(amrex::Real com_p[], amrex::Real com_s[], 
-		     amrex::Real vel_p[], amrex::Real vel_s[], 
+  void get_star_data(amrex::Real* com_p, amrex::Real* com_s,
+		     amrex::Real* vel_p, amrex::Real* vel_s,
 		     amrex::Real* mass_p, amrex::Real* mass_s,
 		     amrex::Real* t_ff_p, amrex::Real* t_ff_s);
 
@@ -57,7 +57,7 @@ extern "C"
 				    const amrex::Real* dx, const amrex::Real* time,
 				    amrex::Real* Qtt);
 
-  void gw_strain_tensor(amrex::Real* h_plus_1, amrex::Real* h_cross_1, 
+  void gw_strain_tensor(amrex::Real* h_plus_1, amrex::Real* h_cross_1,
 			amrex::Real* h_plus_2, amrex::Real* h_cross_2,
 			amrex::Real* h_plus_3, amrex::Real* h_cross_3,
 			amrex::Real* Qtt, const amrex::Real* time);
@@ -67,9 +67,9 @@ extern "C"
 
   void update_center(const amrex::Real* time);
 
-  void get_omega_vec(const amrex::Real omega[], const amrex::Real& time);
+  void get_omega_vec(const amrex::Real* omega, const amrex::Real time);
 
-  void get_lagrange_points(const amrex::Real& mass_1, const amrex::Real& mass_2,
+  void get_lagrange_points(const amrex::Real mass_1, const amrex::Real mass_2,
 	                   const amrex::Real* com_1, const amrex::Real* com_2,
 			   amrex::Real* L1, amrex::Real* L2, amrex::Real* L3);
 
@@ -99,7 +99,7 @@ extern "C"
 
   void get_inertial_velocity(const amrex::Real* loc, const amrex::Real* vel, const amrex::Real* time, const amrex::Real* inertial_vel);
 
-  void get_axes(int& axis_1, int& axis_2, int& axis_3);
+  void get_axes(int* axis_1, int* axis_2, int* axis_3);
 
   void get_problem_number(int* problem);
 
