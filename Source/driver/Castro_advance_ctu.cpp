@@ -274,7 +274,13 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 
     // Do the retry if the suggested timestep is smaller than the actual one.
     // A user-specified tolerance parameter can be used here to prevent
-    // retries that are caused by small differences.
+    // retries that are caused by small differences. Note that we are going
+    // to intentionally ignore the actual suggested subcycle, and just go with
+    // retry_subcycle_factor * the current timestep. The reason is that shrinking
+    // the timestep by that factor will substantially change the evolution, and it
+    // could be enough to get the simulation to become sane again. If this is the
+    // case, we end up saving a lot of timesteps relative to the potentially very
+    // small timestep recommended by the above limiters.
 
     if (dt_sub * (1.0 + retry_tolerance) < std::min(dt, dt_subcycle) || burn_success != 1) {
 
