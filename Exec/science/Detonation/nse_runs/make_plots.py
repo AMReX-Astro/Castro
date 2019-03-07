@@ -144,11 +144,12 @@ if __name__ == "__main__":
     run_dirs = glob.glob("det_s*")
     runs = []
     for run in run_dirs:
-        #try:
-        runs.append(Detonation(run))
-        #except IndexError:
-        #    # the run didn't produce output -- it might still be running?
-        #    print("run {} didn't produce output".format(run))
+        try:
+            if not os.path.isfile(os.path.join(run, "Backtrace.0")):
+                runs.append(Detonation(run))
+        except IndexError:
+            # the run didn't produce output -- it might still be running?
+            print("run {} didn't produce output".format(run))
 
     print(len(runs))
     runs.sort()
