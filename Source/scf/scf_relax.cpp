@@ -93,55 +93,11 @@ void Castro::scf_relaxation() {
 
     ParallelDescriptor::ReduceRealMax(target_h_max);
 
-    // Construct a local MultiFab for the rotational psi.
-    // This will not change over the loop iterations.
-
     Vector< std::unique_ptr<MultiFab> > psi(n_levs);
-
-    for (int lev = 0; lev <= finest_level; ++lev) {
-
-        psi[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
-
-        const Real* dx = parent->Geom(lev).CellSize();
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-        for (MFIter mfi((*psi[lev]), true); mfi.isValid(); ++mfi) {
-
-            const Box& bx = mfi.tilebox();
-
-            ca_fill_rotational_psi(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                   BL_TO_FORTRAN_ANYD((*psi[lev])[mfi]),
-                                   AMREX_ZFILL(dx), time);
-
-        }
-
-    }
-
-    // Construct a local MultiFab for the enthalpy. It will
-    // not be filled until we begin the iterations.
-
     Vector< std::unique_ptr<MultiFab> > enthalpy(n_levs);
-
-    for (int lev = 0; lev <= finest_level; ++lev) {
-        enthalpy[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
-    }
-
-    // Construct a local MultiFab for the state data. We do
-    // this because we have to mask out the state several times
-    // in the below calculation, and it's easiest to have a scratch
-    // copy of the data to work with.
-
     Vector< std::unique_ptr<MultiFab> > state(n_levs);
     Vector< std::unique_ptr<MultiFab> > phi(n_levs);
     Vector< std::unique_ptr<MultiFab> > phi_rot(n_levs);
-
-    for (int lev = 0; lev <= finest_level; ++lev) {
-        state[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
-        phi[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
-        phi_rot[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
-    }
 
     // Iterate until the system is relaxed by filling the level data
     // and then doing a multilevel gravity solve.
@@ -149,6 +105,49 @@ void Castro::scf_relaxation() {
     int is_relaxed = 0;
 
     while (j <= scf_max_iterations) {
+
+        // Construct a local MultiFab for the rotational psi.
+        // This does not change over the loop iterations, but
+        // this (and the data to follow) must be constructed
+        // inside the loop on each iteration because of regrids.
+
+        for (int lev = 0; lev <= finest_level; ++lev) {
+
+            psi[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
+
+            const Real* dx = parent->Geom(lev).CellSize();
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+            for (MFIter mfi((*psi[lev]), true); mfi.isValid(); ++mfi) {
+
+                const Box& bx = mfi.tilebox();
+
+                ca_fill_rotational_psi(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+                                       BL_TO_FORTRAN_ANYD((*psi[lev])[mfi]),
+                                       AMREX_ZFILL(dx), time);
+
+            }
+
+        }
+
+        // Construct a local MultiFab for the enthalpy.
+
+        for (int lev = 0; lev <= finest_level; ++lev) {
+            enthalpy[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
+        }
+
+        // Construct a local MultiFab for the state data. We do
+        // this because we have to mask out the state several times
+        // in the below calculation, and it's easiest to have a scratch
+        // copy of the data to work with.
+
+        for (int lev = 0; lev <= finest_level; ++lev) {
+            state[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
+            phi[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
+            phi_rot[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
+        }
 
         // Copy in the state data. Mask it out on coarse levels.
 
@@ -359,6 +358,12 @@ void Castro::scf_relaxation() {
         for (int lev = finest_level-1; lev >= 0; lev--) {
             getLevel(lev).avgDown();
         }
+
+        // Since we've changed the density distribution on the grid, regrid.
+
+        parent->RegridOnly(time);
+
+        // Update the gravitational field -- only after we've completed cleaning up the state above.
 
         gravity->multilevel_solve_for_new_phi(0, finest_level);
 

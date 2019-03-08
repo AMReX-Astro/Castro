@@ -6,7 +6,7 @@
 
 &tagging
   max_denerr_lev = 20
-  denerr = 1.0d0
+  denerr = 1.0d6
 /
 
 &extern
