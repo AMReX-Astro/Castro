@@ -313,10 +313,12 @@ void Castro::scf_relaxation() {
         }
 
         Real actual_h_max = 0.0;
+        Real actual_rho_max = 0.0;
 
         for (int lev = 0; lev <= finest_level; ++lev) {
 
             actual_h_max = std::max(actual_h_max, enthalpy[lev]->max(0));
+            actual_rho_max = std::max(actual_rho_max, state[lev]->max(Density));
 
         }
 
@@ -338,7 +340,8 @@ void Castro::scf_relaxation() {
                 scf_update_density(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                                    BL_TO_FORTRAN_ANYD((*state[lev])[mfi]),
                                    BL_TO_FORTRAN_ANYD((*enthalpy[lev])[mfi]),
-                                   AMREX_ZFILL(dx), actual_h_max, target_h_max,
+                                   AMREX_ZFILL(dx), actual_rho_max,
+                                   actual_h_max, target_h_max,
                                    &Linf_norm);
 
             }

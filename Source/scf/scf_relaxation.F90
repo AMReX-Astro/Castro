@@ -256,7 +256,8 @@ contains
   subroutine scf_update_density(lo, hi, &
                                 state, s_lo, s_hi, &
                                 enthalpy, h_lo, h_hi, &
-                                dx, actual_h_max, target_h_max, &
+                                dx, actual_rho_max, &
+                                actual_h_max, target_h_max, &
                                 Linf_norm) bind(C, name='scf_update_density')
 
     use amrex_constants_module, only: ZERO, HALF
@@ -274,7 +275,7 @@ contains
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     real(rt), intent(inout) :: enthalpy(h_lo(1):h_hi(1),h_lo(2):h_hi(2),h_lo(3):h_hi(3))
     real(rt), intent(inout) :: Linf_norm
-    real(rt), intent(in   ), value :: actual_h_max, target_h_max
+    real(rt), intent(in   ), value :: actual_rho_max, actual_h_max, target_h_max
 
     integer  :: i, j, k
     real(rt) :: old_rho, drho
@@ -317,8 +318,15 @@ contains
 
                 ! Convergence test
 
+                ! Zones only participate in this test if they have a density
+                ! that is above a certain fraction of the peak, to avoid
+                ! oscillations in low density zones stalling convergence.
+
                 drho = abs( state(i,j,k,URHO) - old_rho ) / old_rho
-                Linf_norm = max(Linf_norm, drho)
+
+                if (state(i,j,k,URHO) / actual_rho_max > 1.0d-3) then
+                   Linf_norm = max(Linf_norm, drho)
+                end if
 
              end if
 

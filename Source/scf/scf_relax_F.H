@@ -28,7 +28,7 @@
   void scf_update_density(const int* lo, const int* hi,
 			  BL_FORT_FAB_ARG_3D(state),
 			  BL_FORT_FAB_ARG_3D(enthalpy),
-			  const amrex::Real* dx,
+			  const amrex::Real* dx, amrex::Real actual_rho_max,
                           amrex::Real actual_h_max, amrex::Real target_h_max,
 			  amrex::Real* Linf_norm);
 
