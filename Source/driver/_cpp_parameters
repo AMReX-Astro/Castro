@@ -306,11 +306,6 @@ use_post_step_regrid         int           0
 # Set to a negative value to disable this criterion.
 max_subcycles                int           10
 
-# If we do request more than the maximum number of subcycles,
-# should we fail, or should we clamp to that maximum number
-# and perform that many?
-clamp_subcycles              int           1
-
 # Number of iterations for the SDC advance.
 sdc_iters                    int           2
 
