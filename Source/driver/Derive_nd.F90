@@ -1415,7 +1415,7 @@ contains
 
     allocate(coeff_c(c_lo(1):c_hi(1), c_lo(2):c_hi(2), c_lo(3):c_hi(3)))
 
-    call ca_fill_temp_cond(lo, hi, &
+    call ca_fill_temp_cond(c_lo, c_hi, &
                            state, d_lo, d_hi, &
                            coeff_c, c_lo, c_hi)
 
