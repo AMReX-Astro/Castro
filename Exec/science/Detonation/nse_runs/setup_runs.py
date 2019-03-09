@@ -5,11 +5,11 @@ import shlex
 from multiprocessing import Pool
 import time
 
-CFL = [0.4, 0.2, 0.1, 0.05]
-SDC_ITERS = [2, 3, 4]
+CFL = [0.8, 0.4, 0.2, 0.1]
+SDC_ITERS = [2, 3]
 DTNUC_E = [1.e200, 0.5]
 
-NZONES = [1024, 2048, 4096]
+NZONES = [256, 512, 1024, 2048, 4096, 8192]
 
 job_list = []
 
@@ -18,16 +18,16 @@ NEEDED_STRANG_FILES = ["helm_table.dat", "probin.nse_test.strang", "Castro1d.gnu
 
 def setup_runs():
 
-    with open("inputs.big.template.sdc", "r") as tf:
+    with open("inputs.template.sdc", "r") as tf:
         sdc_template = tf.readlines()
 
-    with open("inputs.big.template.strang", "r") as tf:
+    with open("inputs.template.strang", "r") as tf:
         strang_template = tf.readlines()
 
     # setup the Strang runs
-    for dtn in DTNUC_E:
-        for c in CFL:
-            for nz in NZONES:
+    for nz in NZONES:
+        for dtn in DTNUC_E:
+            for c in CFL:
 
                 # don't do all the CFLs when using the nuc energy dt limiter
                 if dtn < 1.0 and c != CFL[0]:
@@ -57,8 +57,8 @@ def setup_runs():
 
 
     # setup the simplified SDC runs
-    for c in CFL:
-        for nz in NZONES:
+    for nz in NZONES:
+        for c in CFL:
             for niter in SDC_ITERS:
 
                 # make the output directory
