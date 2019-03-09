@@ -141,14 +141,16 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
      r(3) = problo(3) + delta(3) * (dble(k) + HALF)
 
      do j = lo(2), hi(2)
-        r(3) = problo(2) + delta(2) * (dble(j) + HALF)
+        r(2) = problo(2) + delta(2) * (dble(j) + HALF)
 
         do i = lo(1), hi(1)
-           r(3) = problo(1) + delta(1) * (dble(i) + HALF)
+           r(1) = problo(1) + delta(1) * (dble(i) + HALF)
 
            state(i,j,k,URHO) = rho0
 
            call analytic(r, ZERO, temp)
+
+           print *, i, j, k, r, temp
 
            state(i,j,k,UTEMP) = temp
 
