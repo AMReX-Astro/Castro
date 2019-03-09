@@ -1475,7 +1475,7 @@ contains
                 diff_term = diff_term + (kgradT_yhi - kgradT_ylo)/delta(2)
 #endif
 #if AMREX_SPACEDIM == 3
-                diff_term = diff_term + (kgradT_zhi = kgradT_zlo)/delta(3)&
+                diff_term = diff_term + (kgradT_zhi - kgradT_zlo)/delta(3)
 #endif
 
              else if (coord_type == 1) then

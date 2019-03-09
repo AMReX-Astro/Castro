@@ -33,7 +33,9 @@ contains
 #endif
     integer,  intent(in   ) :: rlo(3), rhi(3)
     integer,  intent(in   ) :: ecxlo(3), ecxhi(3)
+#if AMREX_SPACEDIM >= 2
     integer,  intent(in   ) :: ecylo(3), ecyhi(3)
+#endif
     real(rt), intent(inout) :: rhs(rlo(1):rhi(1),rlo(2):rhi(2),rlo(3):rhi(3))
     real(rt), intent(inout) :: ecx(ecxlo(1):ecxhi(1),ecxlo(2):ecxhi(2),ecxlo(3):ecxhi(3))
 #if AMREX_SPACEDIM >= 2
