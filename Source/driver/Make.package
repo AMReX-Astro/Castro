@@ -54,12 +54,7 @@ ifeq ($(USE_DIFFUSION), TRUE)
 endif
 
 ifdef NEED_MGUTIL
-  ifeq ($(DIM), 1)
-    ca_F90EXE_sources += MGutils_1d.F90
-  endif
-  ifeq ($(DIM), 2)
-    ca_F90EXE_sources += MGutils_2d.F90
-  endif
+  ca_F90EXE_sources += MGutils_nd.F90
 endif
 
 ca_F90EXE_sources += prob_params.F90

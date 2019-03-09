@@ -1959,22 +1959,23 @@ Gravity::applyMetricTerms(int level, MultiFab& Rhs, const Vector<MultiFab*>& coe
     for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
-	D_TERM(const Box& xbx = mfi.nodaltilebox(0);,
-	       const Box& ybx = mfi.nodaltilebox(1);,
-	       const Box& zbx = mfi.nodaltilebox(2););
+	const Box& xbx = mfi.nodaltilebox(0);
+#if AMREX_SPACEDIM >= 2
+        const Box& ybx = mfi.nodaltilebox(1);
+#endif
+
         // Modify Rhs and coeffs with the appropriate metric terms.
-        ca_apply_metric(bx.loVect(), bx.hiVect(),
-			D_DECL(xbx.loVect(),
-			       ybx.loVect(),
-			       zbx.loVect()),
-			D_DECL(xbx.hiVect(),
-			       ybx.hiVect(),
-			       zbx.hiVect()),
-			BL_TO_FORTRAN(Rhs[mfi]),
-			D_DECL(BL_TO_FORTRAN((*coeffs[0])[mfi]),
-			       BL_TO_FORTRAN((*coeffs[1])[mfi]),
-			       BL_TO_FORTRAN((*coeffs[2])[mfi])),
-			dx,&coord_type);
+        ca_apply_metric(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+		        AMREX_ARLIM_ANYD(xbx.loVect()), AMREX_ARLIM_ANYD(xbx.hiVect()),
+#if AMREX_SPACEDIM >= 2
+                        AMREX_ARLIM_ANYD(ybx.loVect()), AMREX_ARLIM_ANYD(ybx.hiVect()),
+#endif
+			BL_TO_FORTRAN_ANYD(Rhs[mfi]),
+			BL_TO_FORTRAN((*coeffs[0])[mfi]),
+#if AMREX_SPACEDIM >= 2
+                        BL_TO_FORTRAN((*coeffs[1])[mfi]),
+#endif
+			AMREX_ZFILL(dx), coord_type);
     }
 }
 
@@ -1989,8 +1990,9 @@ Gravity::unweight_cc(int level, MultiFab& cc)
     for (MFIter mfi(cc,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
-        ca_unweight_cc(bx.loVect(), bx.hiVect(),
-		       BL_TO_FORTRAN(cc[mfi]),dx,&coord_type);
+        ca_unweight_cc(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+		       BL_TO_FORTRAN_ANYD(cc[mfi]),
+                       AMREX_ZFILL(dx), coord_type);
     }
 }
 
@@ -2006,9 +2008,10 @@ Gravity::unweight_edges(int level, const Vector<MultiFab*>& edges)
 	for (MFIter mfi(*edges[idir],true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
-	    ca_unweight_edges(bx.loVect(), bx.hiVect(),
-			      BL_TO_FORTRAN((*edges[idir])[mfi]),
-			      dx,&coord_type,&idir);
+	    ca_unweight_edges(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+			      BL_TO_FORTRAN_ANYD((*edges[idir])[mfi]),
+			      AMREX_ZFILL(dx),
+                              coord_type, idir);
 	}
     }
 }
