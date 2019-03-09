@@ -78,6 +78,9 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state, MultiFab& TempDiffTerm
 
        FArrayBox coeff_cc;
 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
        for (MFIter mfi(grown_state, true); mfi.isValid(); ++mfi)
        {
 	   const Box& bx = mfi.tilebox();
