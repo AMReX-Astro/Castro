@@ -1557,13 +1557,12 @@ public:
 ///
 /// Add source terms to ``state``
 ///
-/// @param is_new   do we use new (0) or old (1) data?
 /// @param state    State
 /// @param source   Source terms
 /// @param dt       timestep
 /// @param ng       number of ghost cells
 ///
-    void apply_source_to_state (int is_new, amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng);
+    void apply_source_to_state (amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng);
 
 
 ///
@@ -1613,6 +1612,9 @@ public:
 #ifdef REACTIONS
     void construct_old_react_source(amrex::MultiFab& U_state, amrex::MultiFab& R_source);
 #endif
+
+// Hydrodynamics
+#include <Castro_hydro.H>
 
 #ifdef AMREX_PARTICLES
     static amrex::AmrTracerParticleContainer* theTracerPC () { return TracerPC; }
@@ -2063,11 +2065,6 @@ protected:
 /// Keep track of which AMR iteration we're on.
 ///
     int iteration;
-
-    //
-    // Hydrodynamics
-    //
-#include <Castro_hydro.H>
 
     //
     // Static data members.
