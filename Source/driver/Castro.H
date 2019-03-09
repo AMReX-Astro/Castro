@@ -1614,6 +1614,9 @@ public:
     void construct_old_react_source(amrex::MultiFab& U_state, amrex::MultiFab& R_source);
 #endif
 
+// Hydrodynamics
+#include <Castro_hydro.H>
+
 #ifdef AMREX_PARTICLES
     static amrex::AmrTracerParticleContainer* theTracerPC () { return TracerPC; }
 #endif
@@ -2063,11 +2066,6 @@ protected:
 /// Keep track of which AMR iteration we're on.
 ///
     int iteration;
-
-    //
-    // Hydrodynamics
-    //
-#include <Castro_hydro.H>
 
     //
     // Static data members.
