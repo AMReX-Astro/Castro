@@ -10,7 +10,7 @@
   idir = 1
 
   w_T = 5.d-4
-  center_T = 3.d-1
+  center_T = 0.1
 /
 
 &tagging
