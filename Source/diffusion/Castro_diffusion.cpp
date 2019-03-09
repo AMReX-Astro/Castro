@@ -62,19 +62,13 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state, MultiFab& TempDiffTerm
       std::cout << "Calculating diffusion term at time " << time << std::endl;
 
    // Fill coefficients at this level.
-   Vector<std::unique_ptr<MultiFab> >coeffs(BL_SPACEDIM);
-   Vector<std::unique_ptr<MultiFab> >coeffs_temporary(3); // This is what we pass to the dimension-agnostic Fortran
-   for (int dir = 0; dir < 3; dir++) {
-       if (dir < BL_SPACEDIM) {
-	   coeffs[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
-	   coeffs_temporary[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
-       } else {
-	   coeffs_temporary[dir].reset(new MultiFab(grids, dmap, 1, 0));
-       }
+   Vector<std::unique_ptr<MultiFab> > coeffs(AMREX_SPACEDIM);
+   for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+       coeffs[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
    }
 
    // Fill temperature at this level.
-   MultiFab Temperature(grids,dmap,1,1);
+   MultiFab Temperature(grids, dmap, 1, 1);
 
    {
        FillPatchIterator fpi(*this, state, 1, time, State_Type, 0, NUM_STATE);
@@ -82,25 +76,44 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state, MultiFab& TempDiffTerm
 
        MultiFab::Copy(Temperature, grown_state, Temp, 0, 1, 1);
 
-       for (MFIter mfi(grown_state); mfi.isValid(); ++mfi)
-       {
-	   const Box& bx = grids[mfi.index()];
+       FArrayBox coeff_cc;
 
-	   ca_fill_temp_cond(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+       for (MFIter mfi(grown_state, true); mfi.isValid(); ++mfi)
+       {
+	   const Box& bx = mfi.tilebox();
+
+           // Create an array for storing cell-centered conductivity data.
+           // It needs to have a ghost zone for the next step.
+
+           const Box& obx = amrex::grow(bx, 1);
+           coeff_cc.resize(obx, 1);
+           Elixir elix_coeff_cc = coeff_cc.elixir();
+
+#pragma gpu
+	   ca_fill_temp_cond(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
 			     BL_TO_FORTRAN_ANYD(grown_state[mfi]),
-			     BL_TO_FORTRAN_ANYD((*coeffs_temporary[0])[mfi]),
-			     BL_TO_FORTRAN_ANYD((*coeffs_temporary[1])[mfi]),
-			     BL_TO_FORTRAN_ANYD((*coeffs_temporary[2])[mfi]));
+                             BL_TO_FORTRAN_ANYD(coeff_cc));
+
+           // Now average the data to zone edges.
+
+           for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+
+               const Box& nbx = amrex::surroundingNodes(bx, idir);
+
+               const int idir_f = idir + 1;
+
+#pragma gpu
+               ca_average_coef_cc_to_ec(ARLIM_3D(nbx.loVect()), ARLIM_3D(nbx.hiVect()),
+                                        BL_TO_FORTRAN_ANYD(coeff_cc),
+                                        BL_TO_FORTRAN_ANYD((*coeffs[idir])[mfi]),
+                                        idir_f);
+
+           }
        }
    }
 
-   // Now copy the temporary array results back to the
-   // correctly dimensioned coeffs array.
-
-   for (int dir = 0; dir < BL_SPACEDIM; dir++)
-     MultiFab::Copy(*coeffs[dir], *coeffs_temporary[dir], 0, 0, 1, 0);
-
    MultiFab CrseTemp;
+
    if (level > 0) {
        // Fill temperature at next coarser level, if it exists.
        const BoxArray& crse_grids = getLevel(level-1).boxArray();
@@ -109,6 +122,6 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state, MultiFab& TempDiffTerm
        FillPatch(getLevel(level-1),CrseTemp,1,time,State_Type,Temp,1);
    }
 
-   diffusion->applyop(level,Temperature,CrseTemp,TempDiffTerm,coeffs);
+   diffusion->applyop(level, Temperature, CrseTemp, TempDiffTerm, coeffs);
 
 }

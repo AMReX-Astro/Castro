@@ -1,68 +1,57 @@
 module diffusion_module
 
-  use amrex_fort_module, only : rt => amrex_real
+  use amrex_fort_module, only: rt => amrex_real
+
   implicit none
 
   public
 
 contains
 
-
-  !> @brief This routine fills the thermal conductivity on the edges of a zone
-  !! by calling the cell-centered conductivity routine and averaging to
-  !! the interfaces
+  !> @brief This routine fills the thermal conductivity at zone centers
+  !! by calling the cell-centered conductivity routine
   !!
   !! @note Binds to C function ``ca_fill_temp_cond``
   !!
   !! @param[in] lo integer
   !! @param[in] s_lo integer
-  !! @param[in] cx_lo integer
+  !! @param[in] c_lo integer
   !! @param[in] state real(rt)
-  !! @param[inout] coefx real(rt)
-  !! @param[inout] coefy real(rt)
-  !! @param[inout] coefz real(rt)
+  !! @param[inout] coef real(rt)
   !!
-  subroutine ca_fill_temp_cond(lo,hi, &
-       state,s_lo,s_hi, &
-       coefx,cx_lo,cx_hi, &
-       coefy,cy_lo,cy_hi, &
-       coefz,cz_lo,cz_hi) &
-       bind(C, name="ca_fill_temp_cond")
+  subroutine ca_fill_temp_cond(lo, hi, &
+                               state, s_lo, s_hi, &
+                               coef, c_lo, c_hi) &
+                               bind(C, name="ca_fill_temp_cond")
 
-
-
-    use amrex_constants_module
+    use amrex_constants_module, only: ZERO
     use network, only: nspec, naux
     use meth_params_module, only : NVAR, URHO, UTEMP, UEINt, UFS, UFX, &
-         diffuse_cutoff_density, diffuse_cutoff_density_hi, diffuse_cond_scale_fac, &
-         small_temp
-    use prob_params_module, only : dg
-    use conductivity_module
-    use eos_type_module
-    use eos_module, only : eos
-    use amrex_fort_module, only : rt => amrex_real
+                                   diffuse_cutoff_density, diffuse_cutoff_density_hi, diffuse_cond_scale_fac, &
+                                   small_temp
+    use conductivity_module, only: conductivity
+    use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
+    use eos_module, only: eos
+
     implicit none
 
-    integer         , intent(in   ) :: lo(3), hi(3)
-    integer         , intent(in   ) :: s_lo(3), s_hi(3)
-    integer         , intent(in   ) :: cx_lo(3), cx_hi(3), cy_lo(3), cy_hi(3), cz_lo(3), cz_hi(3)
-    real(rt)        , intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt)        , intent(inout) :: coefx(cx_lo(1):cx_hi(1),cx_lo(2):cx_hi(2),cx_lo(3):cx_hi(3))
-    real(rt)        , intent(inout) :: coefy(cy_lo(1):cy_hi(1),cy_lo(2):cy_hi(2),cy_lo(3):cy_hi(3))
-    real(rt)        , intent(inout) :: coefz(cz_lo(1):cz_hi(1),cz_lo(2):cz_hi(2),cz_lo(3):cz_hi(3))
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    integer,  intent(in   ) :: c_lo(3), c_hi(3)
+    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt), intent(inout) :: coef(c_lo(1):c_hi(1),c_lo(2):c_hi(2),c_lo(3):c_hi(3))
 
     ! local variables
-    integer          :: i, j, k
-    real(rt)         :: coef_cc(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1)
+    integer  :: i, j, k
 
     type (eos_t) :: eos_state
     real(rt) :: multiplier
 
-    ! fill the cell-centered conductivity
+    !$gpu
 
-    do k = lo(3)-1*dg(3),hi(3)+1*dg(3)
-       do j = lo(2)-1*dg(2),hi(2)+1*dg(2)
-          do i = lo(1)-1*dg(1),hi(1)+1*dg(1)
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
              eos_state%rho    = state(i,j,k,URHO)
              eos_state%T      = state(i,j,k,UTEMP)   ! needed as an initial guess
@@ -88,36 +77,76 @@ contains
              else
                 eos_state % conductivity = ZERO
              endif
-             coef_cc(i,j,k) = diffuse_cond_scale_fac * eos_state % conductivity
-          enddo
-       enddo
-    enddo
-
-    ! average to the interfaces
-    do k = lo(3),hi(3)
-       do j = lo(2),hi(2)
-          do i = lo(1),hi(1)+1*dg(1)
-             coefx(i,j,k) = 0.5e0_rt * (coef_cc(i,j,k) + coef_cc(i-1*dg(1),j,k))
+             coef(i,j,k) = diffuse_cond_scale_fac * eos_state % conductivity
           end do
        end do
-    enddo
-
-    do k = lo(3),hi(3)
-       do j = lo(2),hi(2)+1*dg(2)
-          do i = lo(1),hi(1)
-             coefy(i,j,k) = 0.5e0_rt * (coef_cc(i,j,k) + coef_cc(i,j-1*dg(2),k))
-          end do
-       end do
-    enddo
-
-    do k = lo(3),hi(3)+1*dg(3)
-       do j = lo(2),hi(2)
-          do i = lo(1),hi(1)
-             coefz(i,j,k) = 0.5e0_rt * (coef_cc(i,j,k) + coef_cc(i,j,k-1*dg(3)))
-          end do
-       end do
-    enddo
+    end do
 
   end subroutine ca_fill_temp_cond
+
+
+
+  !> @brief This routine averages cell-centered conductivity coefficients to zone edges
+  !!
+  !! @note Binds to C function ``ca_average_coef_cc_to_ec``
+  !!
+  !! @param[in] lo integer
+  !! @param[in] c_lo integer
+  !! @param[in] e_lo integer
+  !! @param[in] coef_c real(rt)
+  !! @param[inout] coef_e real(rt)
+  !! @param[in] dir integer
+  !!
+  subroutine ca_average_coef_cc_to_ec(lo, hi, &
+                                      coef_c, c_lo, c_hi, &
+                                      coef_e, e_lo, e_hi, &
+                                      dir) bind(c, name="ca_average_coef_cc_to_ec")
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: c_lo(3), c_hi(3)
+    integer,  intent(in   ) :: e_lo(3), e_hi(3)
+    real(rt), intent(in   ) :: coef_c(c_lo(1):c_hi(1),c_lo(2):c_hi(2),c_lo(3):c_hi(3))
+    real(rt), intent(inout) :: coef_e(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3))
+    integer,  intent(in   ), value :: dir
+
+    integer :: i, j, k
+
+    !$gpu
+
+    if (dir == 1) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                coef_e(i,j,k) = 0.5e0_rt * (coef_c(i,j,k) + coef_c(i-1,j,k))
+             end do
+          end do
+       end do
+
+    else if (dir == 2) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                coef_e(i,j,k) = 0.5e0_rt * (coef_c(i,j,k) + coef_c(i,j-1,k))
+             end do
+          end do
+       end do
+
+    else
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                coef_e(i,j,k) = 0.5e0_rt * (coef_c(i,j,k) + coef_c(i,j,k-1))
+             end do
+          end do
+       end do
+
+    end if
+
+  end subroutine ca_average_coef_cc_to_ec
 
 end module diffusion_module

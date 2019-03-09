@@ -709,9 +709,13 @@ extern "C"
   void ca_fill_temp_cond
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(xcoeffs),
-     BL_FORT_FAB_ARG_3D(ycoeffs),
-     BL_FORT_FAB_ARG_3D(zcoeffs));
+     BL_FORT_FAB_ARG_3D(coeff_cc));
+
+  void ca_average_coef_cc_to_ec
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(coef_c),
+     BL_FORT_FAB_ARG_3D(coef_e),
+     const int idir);
 
   void ca_thermo_src
     (const int* lo, const int* hi,
