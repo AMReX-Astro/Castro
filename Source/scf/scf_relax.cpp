@@ -384,7 +384,8 @@ Castro::do_hscf_solve()
 
         // Since we've changed the density distribution on the grid, regrid.
 
-        parent->RegridOnly(time);
+        bool do_io = false;
+        parent->RegridOnly(time, do_io);
 
         // Update the gravitational field -- only after we've completed cleaning up the state above.
 
