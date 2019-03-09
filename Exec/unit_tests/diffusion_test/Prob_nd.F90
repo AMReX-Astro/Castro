@@ -47,7 +47,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
      center(1) = ZERO
   endif
 
-#if AMREX_SPACEDIM == 2
+#if AMREX_SPACEDIM >= 2
   center(2) = HALF*(problo(2)+probhi(2))
 #endif
 #if AMREX_SPACEDIM == 3
