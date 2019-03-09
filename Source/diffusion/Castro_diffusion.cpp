@@ -76,43 +76,47 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state, MultiFab& TempDiffTerm
 
        MultiFab::Copy(Temperature, grown_state, Temp, 0, 1, 1);
 
-       FArrayBox coeff_cc;
-
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-       for (MFIter mfi(grown_state, TilingIfNotGPU()); mfi.isValid(); ++mfi)
        {
-	   const Box& bx = mfi.tilebox();
+           FArrayBox coeff_cc;
 
-           // Create an array for storing cell-centered conductivity data.
-           // It needs to have a ghost zone for the next step.
+           for (MFIter mfi(grown_state, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+           {
 
-           const Box& obx = amrex::grow(bx, 1);
-           coeff_cc.resize(obx, 1);
-           Elixir elix_coeff_cc = coeff_cc.elixir();
+               const Box& bx = mfi.tilebox();
 
-#pragma gpu
-	   ca_fill_temp_cond(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-			     BL_TO_FORTRAN_ANYD(grown_state[mfi]),
-                             BL_TO_FORTRAN_ANYD(coeff_cc));
+               // Create an array for storing cell-centered conductivity data.
+               // It needs to have a ghost zone for the next step.
 
-           // Now average the data to zone edges.
-
-           for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
-
-               const Box& nbx = amrex::surroundingNodes(bx, idir);
-
-               const int idir_f = idir + 1;
+               const Box& obx = amrex::grow(bx, 1);
+               coeff_cc.resize(obx, 1);
+               Elixir elix_coeff_cc = coeff_cc.elixir();
 
 #pragma gpu
-               ca_average_coef_cc_to_ec(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                                        BL_TO_FORTRAN_ANYD(coeff_cc),
-                                        BL_TO_FORTRAN_ANYD((*coeffs[idir])[mfi]),
-                                        idir_f);
+               ca_fill_temp_cond(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+                                 BL_TO_FORTRAN_ANYD(grown_state[mfi]),
+                                 BL_TO_FORTRAN_ANYD(coeff_cc));
 
+               // Now average the data to zone edges.
+
+               for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+
+                   const Box& nbx = amrex::surroundingNodes(bx, idir);
+
+                   const int idir_f = idir + 1;
+
+#pragma gpu
+                   ca_average_coef_cc_to_ec(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+                                            BL_TO_FORTRAN_ANYD(coeff_cc),
+                                            BL_TO_FORTRAN_ANYD((*coeffs[idir])[mfi]),
+                                            idir_f);
+
+               }
            }
        }
+
    }
 
    MultiFab CrseTemp;
