@@ -1971,9 +1971,9 @@ Gravity::applyMetricTerms(int level, MultiFab& Rhs, const Vector<MultiFab*>& coe
                         AMREX_ARLIM_ANYD(ybx.loVect()), AMREX_ARLIM_ANYD(ybx.hiVect()),
 #endif
 			BL_TO_FORTRAN_ANYD(Rhs[mfi]),
-			BL_TO_FORTRAN((*coeffs[0])[mfi]),
+			BL_TO_FORTRAN_ANYD((*coeffs[0])[mfi]),
 #if AMREX_SPACEDIM >= 2
-                        BL_TO_FORTRAN((*coeffs[1])[mfi]),
+                        BL_TO_FORTRAN_ANYD((*coeffs[1])[mfi]),
 #endif
 			AMREX_ZFILL(dx), coord_type);
     }
