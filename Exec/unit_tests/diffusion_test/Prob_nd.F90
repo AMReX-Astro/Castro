@@ -150,8 +150,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
            call analytic(r, ZERO, temp)
 
-           print *, i, j, k, r, temp
-
            state(i,j,k,UTEMP) = temp
 
            ! compute the internal energy and temperature
