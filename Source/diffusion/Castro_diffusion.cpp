@@ -103,7 +103,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state, MultiFab& TempDiffTerm
                const int idir_f = idir + 1;
 
 #pragma gpu
-               ca_average_coef_cc_to_ec(ARLIM_3D(nbx.loVect()), ARLIM_3D(nbx.hiVect()),
+               ca_average_coef_cc_to_ec(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                                         BL_TO_FORTRAN_ANYD(coeff_cc),
                                         BL_TO_FORTRAN_ANYD((*coeffs[idir])[mfi]),
                                         idir_f);
