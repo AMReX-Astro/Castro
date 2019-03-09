@@ -93,9 +93,9 @@ Castro::do_advance_ctu(Real time,
     if (apply_sources()) {
 
       do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
-
-      int is_new=1;
-      apply_source_to_state(is_new, S_new, old_source, dt, 0);
+      apply_source_to_state(S_new, old_source, dt, 0);
+      int is_new = 1;
+      clean_state(is_new, 0);
 
       // Apply the old sources to the sources for the hydro.
       // Note that we are doing an add here, not a copy,
@@ -126,9 +126,9 @@ Castro::do_advance_ctu(Real time,
           return dt;
 
       construct_ctu_hydro_source(time, dt);
-      int is_new=1;
-      apply_source_to_state(is_new, S_new, hydro_source, dt, 0);
-
+      apply_source_to_state(S_new, hydro_source, dt, 0);
+      int is_new = 1;
+      clean_state(is_new, 0);
     }
 
 
@@ -176,8 +176,9 @@ Castro::do_advance_ctu(Real time,
 
       do_new_sources(new_source, Sborder, S_new, cur_time, dt, amr_iteration, amr_ncycle);
 
+      apply_source_to_state(S_new, new_source, dt, 0);
       int is_new=1;
-      apply_source_to_state(is_new, S_new, new_source, dt, 0);
+      clean_state(is_new, 0);
 
     } else {
 
