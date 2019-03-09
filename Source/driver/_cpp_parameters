@@ -357,15 +357,6 @@ T_guess                     Real           1.e8               y
 # enable thermal diffusion
 diffuse_temp                 int           0                  n     DIFFUSION
 
-# enable enthalpy diffusion
-diffuse_enth                 int           0                  n     DIFFUSION
-
-# enable species diffusion
-diffuse_spec                 int           0                  n     DIFFUSION
-
-# enable velocity diffusion
-diffuse_vel                  int           0                  n     DIFFUSION
-
 # set a cutoff density for diffusion -- we zero the term out below this density
 diffuse_cutoff_density       Real          -1.e200            y     DIFFUSION
 

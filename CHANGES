@@ -3,6 +3,10 @@
   -- removed the code to extrapolate diffusion terms to ghost cells
      as it is no longer necessary (#532)
 
+  -- we remove enthalpy diffusion (there were no known applications of
+     this) and species and velocity diffusion (they were 1-d only).
+     None of these routines were regularly tested.  (#534)
+
 # 19.03
 
   -- Fixed a minor long-standing bug in the simplified SDC implementation
