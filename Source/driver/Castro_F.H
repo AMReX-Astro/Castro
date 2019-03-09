@@ -733,9 +733,6 @@ extern "C"
   void ca_setgroup(const int& igroup);
 #endif
 
-/* hydrodynamics */
-#include <Castro_hydro_F.H>
-
 #ifdef __cplusplus
 }
 #endif
