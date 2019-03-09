@@ -339,19 +339,13 @@ namespace: ``castro``
 
 **diffusion**
 
-.. index:: castro.diffuse_temp, castro.diffuse_enth, castro.diffuse_spec, castro.diffuse_vel, castro.diffuse_cutoff_density, castro.diffuse_cutoff_density_hi, castro.diffuse_cond_scale_fac
+.. index:: castro.diffuse_temp, castro.diffuse_cutoff_density, castro.diffuse_cutoff_density_hi, castro.diffuse_cond_scale_fac
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
 | parameter                              | description                                             | default value |
 +========================================+=========================================================+===============+
 | ``diffuse_temp``                       | enable thermal diffusion                                | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_enth``                       | enable enthalpy diffusion                               | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_spec``                       | enable species diffusion                                | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``diffuse_vel``                        | enable velocity diffusion                               | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``diffuse_cutoff_density``             | set a cutoff density for diffusion -- we zero the term  | -1.e200       |
 |                                        | out below this density                                  |               |
