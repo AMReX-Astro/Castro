@@ -471,10 +471,6 @@ extern "C"
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
      const amrex::Real* dx, amrex::Real* dt);
-  void ca_estdt_enth_diffusion
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-     const amrex::Real* dx, amrex::Real* dt);
 #endif
 
 #ifdef RADIATION
@@ -717,40 +713,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(ycoeffs),
      BL_FORT_FAB_ARG_3D(zcoeffs));
 
-  void ca_fill_enth_cond
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(xcoeffs),
-     BL_FORT_FAB_ARG_3D(ycoeffs),
-     BL_FORT_FAB_ARG_3D(zcoeffs));
-
-  void ca_fill_spec_coeff
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-      BL_FORT_FAB_ARG_3D(xcoeffs),
-      BL_FORT_FAB_ARG_3D(ycoeffs),
-      BL_FORT_FAB_ARG_3D(zcoeffs));
-
-  void ca_fill_first_visc_coeff
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(xcoeffs),
-     BL_FORT_FAB_ARG_3D(ycoeffs),
-     BL_FORT_FAB_ARG_3D(zcoeffs));
-
-  void ca_fill_secnd_visc_coeff
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(xcoeffs),
-     BL_FORT_FAB_ARG_3D(ycoeffs),
-     BL_FORT_FAB_ARG_3D(zcoeffs));
-
-  void ca_compute_div_tau_u
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(div_tau_u),
-     const BL_FORT_FAB_ARG_3D(state),
-     const amrex::Real* dx, const int* coord_type);
-
   void ca_thermo_src
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state_old),
@@ -770,9 +732,6 @@ extern "C"
 #ifdef NEUTRINO
   void ca_setgroup(const int& igroup);
 #endif
-
-/* hydrodynamics */
-#include <Castro_hydro_F.H>
 
 #ifdef __cplusplus
 }
