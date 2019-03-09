@@ -1,5 +1,6 @@
 #include "Castro.H"
 #include "Castro_F.H"
+#include "Castro_hydro_F.H"
 
 #ifdef RADIATION
 #include "Radiation.H"
@@ -40,8 +41,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
   const Real *dx = geom.CellSize();
 
   MultiFab& S_new = get_new_data(State_Type);
-
-  //MultiFab& k_stage = *k_mol[mol_iteration];
 
 #ifdef RADIATION
   MultiFab& Er_new = get_new_data(Rad_Type);
@@ -219,6 +218,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #else
   // CUDA version
   // TODO: add radiation
+
+  MultiFab& k_stage = *k_mol[mol_iteration];
 
 #ifndef RADIATION
 
