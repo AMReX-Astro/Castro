@@ -131,8 +131,8 @@ Castro::advance (Real time,
 
         }
 
-    }
 #endif // AMREX_USE_CUDA
+    }
 
     // Optionally kill the job at this point, if we've detected a violation.
 
