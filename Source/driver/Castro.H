@@ -943,12 +943,17 @@ public:
 ///
     virtual void post_init (amrex::Real stop_time) override;
 
-///
-/// SCF initialization.
-///
 #ifdef GRAVITY
 #ifdef ROTATION
+///
+/// Initialize a model using the self-consistent field method.
+///
     void scf_relaxation();
+
+///
+/// Perform the Hachisu SCF method.
+///
+    void do_hscf_solve();
 #endif
 #endif
 

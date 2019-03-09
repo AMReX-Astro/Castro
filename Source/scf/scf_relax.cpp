@@ -11,11 +11,6 @@ void Castro::scf_relaxation() {
 
     AMREX_ASSERT(level == 0);
 
-    const int finest_level = parent->finestLevel();
-    const int n_levs = finest_level + 1;
-
-    int j = 1;
-
     // First do some sanity checks.
 
     // Maximum density must be set.
@@ -40,12 +35,33 @@ void Castro::scf_relaxation() {
         amrex::Error("Polar radius must not be larger than equatorial radius for SCF relaxation.");
     }
 
-    // Grab the value for the solar mass, we'll need it later.
+    // Now do the SCF solve.
 
-    Real M_solar;
-    scf_get_solar_mass(&M_solar);
+    do_hscf_solve();
 
-    Real time = getLevel(0).state[State_Type].curTime();
+    // Update the gravitational field. Since we don't need this
+    // during the iterations, we only do it once at the end.
+
+    for (int lev = 0; lev <= parent->finestLevel(); ++lev)
+    {
+        MultiFab& grav_new = getLevel(lev).get_new_data(Gravity_Type);
+        gravity->get_new_grav_vector(lev, grav_new, getLevel(lev).state[Gravity_Type].curTime());
+    }
+
+    // Perform a final pass to ensure we're consistent with AMR.
+
+    for (int lev = parent->finestLevel()-1; lev >= 0; --lev) {
+        getLevel(lev).avgDown();
+    }
+
+}
+
+void
+Castro::do_hscf_solve()
+{
+
+    const int finest_level = parent->finestLevel();
+    const int n_levs = finest_level + 1;
 
     // Do the initial relaxation setup.
 
@@ -104,7 +120,11 @@ void Castro::scf_relaxation() {
 
     int is_relaxed = 0;
 
+    int j = 1;
+
     while (j <= scf_max_iterations) {
+
+        Real time = getLevel(0).state[State_Type].curTime();
 
         // Construct a local MultiFab for the rotational psi.
         // This does not change over the loop iterations, but
@@ -358,7 +378,7 @@ void Castro::scf_relaxation() {
             MultiFab::Copy(getLevel(lev).get_new_data(PhiRot_Type), (*phi_rot[lev]), 0, 0, 1, 0);
         }
 
-        for (int lev = finest_level-1; lev >= 0; lev--) {
+        for (int lev = finest_level-1; lev >= 0; --lev) {
             getLevel(lev).avgDown();
         }
 
@@ -416,6 +436,11 @@ void Castro::scf_relaxation() {
 
         if (ParallelDescriptor::IOProcessor()) {
 
+            // Grab the value for the solar mass.
+
+            Real M_solar;
+            scf_get_solar_mass(&M_solar);
+
             std::cout << std::endl << std::endl;
             std::cout << "   Relaxation iterations completed: " << j << std::endl;
             std::cout << "   L-infinity norm of residual (relative to old state): " << Linf_norm << std::endl;
@@ -438,15 +463,6 @@ void Castro::scf_relaxation() {
 
         j++;
 
-    }
-
-    // Update the gravitational field. Since we don't need this
-    // during the iterations, we only do it once at the end.
-
-    for (int lev = 0; lev <= finest_level; ++lev)
-    {
-        MultiFab& grav_new = getLevel(lev).get_new_data(Gravity_Type);
-        gravity->get_new_grav_vector(lev, grav_new, time);
     }
 
 }
