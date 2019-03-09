@@ -81,7 +81,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state, MultiFab& TempDiffTerm
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-       for (MFIter mfi(grown_state, true); mfi.isValid(); ++mfi)
+       for (MFIter mfi(grown_state, TilingIfNotGPU()); mfi.isValid(); ++mfi)
        {
 	   const Box& bx = mfi.tilebox();
 
