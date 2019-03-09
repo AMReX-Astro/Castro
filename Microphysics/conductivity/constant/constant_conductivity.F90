@@ -19,6 +19,8 @@ contains
 
     implicit none
 
+    !$gpu
+
     type (eos_t), intent(inout) :: eos_state
 
     eos_state % conductivity = const_conductivity
