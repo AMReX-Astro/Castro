@@ -1,3 +1,5 @@
+#!/bin/env python3
+
 import glob
 import os
 import operator
@@ -6,12 +8,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import yt
+yt.funcs.mylog.setLevel(50)
 
 class Profile:
     """read a plotfile using yt and store the 1d profile for T and enuc"""
 
     def __init__(self, plotfile):
-        print(plotfile)
         ds = yt.load(plotfile)
 
         time = float(ds.current_time)
@@ -71,7 +73,9 @@ class Detonation:
                 elif k == "niters":
                     self.niters = int(v)
                 elif k == "dtnuc_e":
-                    self.dtnuc_e = float(v)
+                    # if the dtnuc_e is < 1, then we are limiting
+                    self.dtnuce = float(v) < 1
+
 
         # find all the output (plot) files
         cwd = os.getcwd()
@@ -151,7 +155,6 @@ if __name__ == "__main__":
             # the run didn't produce output -- it might still be running?
             print("run {} didn't produce output".format(run))
 
-    print(len(runs))
     runs.sort()
     print(runs)
 
@@ -190,7 +193,8 @@ if __name__ == "__main__":
 
     # make a plot of speed vs. resolution, grouped by Strang, SDC2,
     # SDC3, SDC4 for CFL = 0.8
-    strang = [q for q in runs if q.integrator == "Strang" and q.cfl == 0.8]
+    strang = [q for q in runs if q.integrator == "Strang" and q.cfl == 0.8 and q.dtnuce == False]
+    strang_limit = [q for q in runs if q.integrator == "Strang" and q.cfl == 0.8 and q.dtnuce == True]
     sdc2 = [q for q in runs if q.integrator == "SDC" and q.niters == 2 and q.cfl == 0.8]
     sdc3 = [q for q in runs if q.integrator == "SDC" and q.niters == 3 and q.cfl == 0.8]
     sdc4 = [q for q in runs if q.integrator == "SDC" and q.niters == 4 and q.cfl == 0.8]
@@ -202,6 +206,9 @@ if __name__ == "__main__":
     ax.errorbar([q.nzones for q in strang], [q.v for q in strang],
                 yerr=[q.v_sigma for q in strang],
                 marker="x", label="Strang")
+    ax.errorbar([q.nzones for q in strang_limit], [q.v for q in strang_limit],
+                yerr=[q.v_sigma for q in strang_limit],
+                marker="x", label=r"Strang (with energy $\Delta t$ limit)")
     ax.errorbar([q.nzones for q in sdc2], [q.v for q in sdc2],
                 yerr=[q.v_sigma for q in sdc2],
                 marker="o", label="SDC (2 iters)")
