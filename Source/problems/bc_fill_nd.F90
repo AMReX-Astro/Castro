@@ -30,8 +30,9 @@ contains
     integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
     integer,  intent(in   ) :: bc(dim,2,NVAR)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3),NVAR)
+    real(rt), intent(in   ), value :: time
 
     call amrex_filccn(lo, hi, adv, adv_lo, adv_hi, NVAR, domlo, domhi, delta, xlo, bc)
 
@@ -59,8 +60,9 @@ contains
     integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
     integer,  intent(in   ) :: bc(dim,2,1)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3))
+    real(rt), intent(in   ), value :: time
 
     call amrex_filccn(lo, hi, adv, adv_lo, adv_hi, 1, domlo, domhi, delta, xlo, bc)
 
@@ -86,8 +88,9 @@ contains
     integer,  intent(in   ) :: phi_lo(3), phi_hi(3)
     integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
+    real(rt), intent(in   ), value :: time
 
     call amrex_filccn(lo, hi, phi, phi_lo, phi_hi, 1, domlo, domhi, delta, xlo, bc)
 
@@ -107,8 +110,9 @@ contains
     integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
     integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
+    real(rt), intent(in   ), value :: time
 
     integer :: d
     integer :: bc_temp(dim,2)
@@ -144,8 +148,9 @@ contains
     integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
     integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
+    real(rt), intent(in   ), value :: time
 
     integer :: d
     integer :: bc_temp(dim,2)
@@ -181,8 +186,9 @@ contains
     integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
     integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
+    real(rt), intent(in   ), value :: time
 
     integer :: d
     integer :: bc_temp(dim,2)
@@ -220,8 +226,9 @@ contains
     integer,  intent(in   ) :: phi_lo(3), phi_hi(3)
     integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
+    real(rt), intent(in   ), value :: time
 
     integer :: d
     integer :: bc_temp(dim,2)
@@ -257,8 +264,9 @@ contains
     integer,  intent(in   ) :: rot_lo(3), rot_hi(3)
     integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3))
+    real(rt), intent(in   ), value :: time
 
     integer :: d
     integer :: bc_temp(dim,2)
@@ -294,8 +302,9 @@ contains
     integer,  intent(in   ) :: rot_lo(3), rot_hi(3)
     integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3))
+    real(rt), intent(in   ), value :: time
 
     integer :: d
     integer :: bc_temp(dim,2)
@@ -331,8 +340,9 @@ contains
     integer,  intent(in   ) :: rot_lo(3), rot_hi(3)
     integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3))
+    real(rt), intent(in   ), value :: time
 
     integer :: d
     integer :: bc_temp(dim,2)
@@ -371,6 +381,7 @@ contains
     integer,  intent(in   ) :: domlo(3), domhi(3)
     real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: react(react_lo(1):react_hi(1),react_lo(2):react_hi(2),react_lo(3):react_hi(3))
+    real(rt), intent(in   ), value :: time
 
     integer :: d
     integer :: bc_temp(dim,2)
@@ -408,8 +419,9 @@ contains
     integer,  intent(in   ) :: rad_lo(3), rad_hi(3)
     integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: rad(rad_lo(1):rad_hi(1),rad_lo(2):rad_hi(2),rad_lo(3):rad_hi(3))
+    real(rt), intent(in   ), value :: time
 
     integer :: d
     integer :: bc_temp(dim,2)
