@@ -8,21 +8,17 @@ extern "C"
 {
 #endif
 
-  void prepare_nvar_bc(const int* bc);
-
-  void prepare_bc(const int* bc);
-
   void generic_single_fill
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo);
+     const amrex::Real* dx, const amrex::Real* glo, const int* bc);
 
   void generic_multi_fill
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo);
+     const amrex::Real* dx, const amrex::Real* glo, const int* bc);
 
 #ifdef __cplusplus
 }

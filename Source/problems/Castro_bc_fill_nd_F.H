@@ -13,14 +13,14 @@ extern "C"
      BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real time);
+     const amrex::Real time, const int* bc);
 
   void denfill
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real time);
+     const amrex::Real time, const int* bc);
 
 #ifdef GRAVITY
   void phigravfill
@@ -28,28 +28,28 @@ extern "C"
      BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real time);
+     const amrex::Real time, const int* bc);
 
   void gravxfill
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real time);
+     const amrex::Real time, const int* bc);
 
   void gravyfill
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real time);
+     const amrex::Real time, const int* bc);
 
   void gravzfill
     (const int* lo, const int* hi
      BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real time);
+     const amrex::Real time, const int* bc);
 #endif
 
 #ifdef ROTATION
@@ -58,28 +58,28 @@ extern "C"
      BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real time);
+     const amrex::Real time, const int* bc);
 
   void rotxfill
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real time);
+     const amrex::Real time, const int* bc);
 
   void rotyfill
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real time);
+     const amrex::Real time, const int* bc);
 
   void rotzfill
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real time);
+     const amrex::Real time, const int* bc);
 #endif
 
 #ifdef REACTIONS
@@ -88,7 +88,7 @@ extern "C"
      BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real time);
+     const amrex::Real time, const int* bc);
 #endif
 
 #ifdef RADIATION
@@ -97,7 +97,7 @@ extern "C"
      BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real time);
+     const amrex::Real time, const int* bc);
 #endif
 
   inline void ca_nullfill

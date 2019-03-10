@@ -3,6 +3,10 @@
 
 #include <AMReX_BLFort.H>
 
+#ifdef AMREX_USE_CUDA
+#include <cuda_runtime_api.h>
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -51,6 +55,35 @@ extern "C"
         amrex::Gpu::Device::setNumThreadsMin(1, 1, 1);
     }
 #endif
+
+    // Return a pointer to bc valid for use in Fortran. For the CPU this is a no-op.
+
+    static int* prepare_bc(const int* bc, const int nvar, const int* lo, const int* hi, const int* domlo, const int* domhi)
+    {
+#ifdef AMREX_USE_CUDA
+        set_bc_launch_config(lo, hi, domlo, domhi);
+#endif
+
+#ifdef AMREX_USE_CUDA
+        int* bc_f;
+        AMREX_GPU_SAFE_CALL(cudaMalloc((void**) &bc_f, AMREX_SPACEDIM * 2 * nvar * sizeof(int)));
+        AMREX_GPU_SAFE_CALL(cudaMemcpy(bc_f, bc, AMREX_SPACEDIM * 2 * nvar * sizeof(int), cudaMemcpyHostToDevice));
+        return bc_f;
+#else
+        return bc;
+#endif
+    }
+
+    static void clean_bc(int* bc)
+    {
+#ifdef AMREX_USE_CUDA
+        AMREX_GPU_SAFE_CALL(cudaFree((void*) bc));
+#endif
+
+#ifdef AMREX_USE_CUDA
+        clean_bc_launch_config();
+#endif
+    }
 
     void ca_generic_single_fill
     (BL_FORT_FAB_ARG_3D(state),

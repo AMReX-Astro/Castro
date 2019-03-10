@@ -1,5 +1,6 @@
 
 #include <AMReX_BLFort.H>
+#include <Castro.H>
 #include <Castro_generic_fill.H>
 #include <Castro_generic_fill_F.H>
 
@@ -28,21 +29,15 @@ extern "C"
             hi[i] = adv_hi[i];
         }
 
-        prepare_bc(bc);
-
-#ifdef AMREX_USE_CUDA
-        set_bc_launch_config(lo, hi, domlo, domhi);
-#endif
+        int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
 
 #pragma gpu
         generic_single_fill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                             adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
                             AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-                            AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo));
+                            AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), bc_f);
 
-#ifdef AMREX_USE_CUDA
-        clean_bc_launch_config();
-#endif
+        clean_bc(bc_f);
     }
 
     void ca_generic_multi_fill(Real* adv, const int* adv_lo, const int* adv_hi,
@@ -57,21 +52,15 @@ extern "C"
             hi[i] = adv_hi[i];
         }
 
-        prepare_nvar_bc(bc);
-
-#ifdef AMREX_USE_CUDA
-        set_bc_launch_config(lo, hi, domlo, domhi);
-#endif
+        int* bc_f = prepare_bc(bc, Castro::numState(), lo, hi, domlo, domhi);
 
 #pragma gpu
         generic_multi_fill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                            adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
                            AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-                           AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo));
+                           AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), bc_f);
 
-#ifdef AMREX_USE_CUDA
-        clean_bc_launch_config();
-#endif
+        clean_bc(bc_f);
     }
 
 #ifdef __cplusplus
