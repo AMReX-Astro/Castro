@@ -1289,12 +1289,14 @@ Castro::estTimeStep (Real dt_old)
             Real dt = max_dt / cfl;
 
             for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
-              {
+            {
                 const Box& box = mfi.tilebox();
-                ca_estdt_temp_diffusion(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
+
+#pragma gpu
+                ca_estdt_temp_diffusion(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
                                         BL_TO_FORTRAN_ANYD(stateMF[mfi]),
-                                        ZFILL(dx),&dt);
-              }
+                                        AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MIN(&dt));
+            }
             estdt_hydro = std::min(estdt_hydro, dt);
           }
 	}
