@@ -15,7 +15,7 @@ contains
   ! All subroutines in this file must be threadsafe because they are called
   ! inside OpenMP parallel regions.
 
-  subroutine hypfill(adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
+  subroutine hypfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="hypfill")
 
     use amrex_filcc_module, only: amrex_filccn
 
@@ -25,36 +25,22 @@ contains
 
     include 'AMReX_bc_types.fi'
 
+    integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
     integer,  intent(in   ) :: bc(dim,2,NVAR)
     integer,  intent(in   ) :: domlo(3), domhi(3)
     real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3),NVAR)
 
-    call amrex_filccn(adv_lo, adv_hi, adv, adv_lo, adv_hi, NVAR, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(lo, hi, adv, adv_lo, adv_hi, NVAR, domlo, domhi, delta, xlo, bc)
 
+#ifndef AMREX_USE_CUDA
     ! process the external BCs here
     call ext_fill(adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
+#endif
 
   end subroutine hypfill
 
-
-  subroutine ca_hypfill(adv,adv_lo,adv_hi,domlo,domhi,delta,xlo,time,bc) &
-                        bind(C, name="ca_hypfill")
-
-    use meth_params_module, only: NVAR
-
-    implicit none
-
-    integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
-    integer,  intent(in   ) :: bc(dim,2,NVAR)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3),NVAR)
-
-    call hypfill(adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
-
-  end subroutine ca_hypfill
 
 
   subroutine denfill(adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
