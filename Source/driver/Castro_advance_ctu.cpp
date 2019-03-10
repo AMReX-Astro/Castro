@@ -102,7 +102,9 @@ Castro::do_advance_ctu(Real time,
       // in case we have already started with some source
       // terms (e.g. the source term predictor, or the SDC source).
 
-      AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
+      if (do_hydro) {
+          AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
+      }
 
     } else {
       old_source.setVal(0.0, NUM_GROW);
@@ -310,7 +312,9 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 
         // Reset the source term predictor.
 
-        sources_for_hydro.setVal(0.0, NUM_GROW);
+        if (do_hydro) {
+            sources_for_hydro.setVal(0.0, NUM_GROW);
+        }
 
         // Clear the contribution to the fluxes from this step.
 
@@ -450,7 +454,9 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
             // Reset the source term predictor.
             // This must come before the swap.
 
-            sources_for_hydro.setVal(0.0, NUM_GROW);
+            if (do_hydro) {
+                sources_for_hydro.setVal(0.0, NUM_GROW);
+            }
 
             if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1)
                 apply_source_term_predictor();
