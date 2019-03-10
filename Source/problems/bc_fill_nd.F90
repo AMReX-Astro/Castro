@@ -2,7 +2,6 @@ module bc_fill_module
 
   use amrex_fort_module, only: rt => amrex_real
   use meth_params_module, only: NVAR
-  use prob_params_module, only: dim
 
   implicit none
 
@@ -124,6 +123,8 @@ contains
     real(rt), intent(inout) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
     real(rt), intent(in   ), value :: time
 
+    !$gpu
+
     call amrex_filccn(lo, hi, phi, phi_lo, phi_hi, 1, domlo, domhi, delta, xlo, bc)
 
   end subroutine phigravfill
@@ -146,12 +147,14 @@ contains
     real(rt), intent(in   ), value :: time
 
     integer :: d
-    integer :: bc_temp(dim,2)
+    integer :: bc_temp(AMREX_SPACEDIM,2)
+
+    !$gpu
 
     ! handle an external BC via extrapolation here 
     bc_temp(:,:) = bc(:,:)
 
-    do d = 1, dim
+    do d = 1, AMREX_SPACEDIM
        if (bc(d,1) == EXT_DIR .and. grav_lo(d) < domlo(d)) then
           bc_temp(d,1) = FOEXTRAP
        end if
@@ -183,12 +186,14 @@ contains
     real(rt), intent(in   ), value :: time
 
     integer :: d
-    integer :: bc_temp(dim,2)
+    integer :: bc_temp(AMREX_SPACEDIM,2)
+
+    !$gpu
 
     ! handle an external BC via extrapolation here 
     bc_temp(:,:) = bc(:,:)
 
-    do d = 1, dim
+    do d = 1, AMREX_SPACEDIM
        if (bc(d,1) == EXT_DIR .and. grav_lo(d) < domlo(d)) then
           bc_temp(d,1) = FOEXTRAP
        end if
@@ -220,12 +225,14 @@ contains
     real(rt), intent(in   ), value :: time
 
     integer :: d
-    integer :: bc_temp(dim,2)
+    integer :: bc_temp(AMREX_SPACEDIM,2)
+
+    !$gpu
 
     ! handle an external BC via extrapolation here 
     bc_temp(:,:) = bc(:,:)
 
-    do d = 1, dim
+    do d = 1, AMREX_SPACEDIM
        if (bc(d,1) == EXT_DIR .and. grav_lo(d) < domlo(d)) then
           bc_temp(d,1) = FOEXTRAP
        end if
@@ -259,12 +266,14 @@ contains
     real(rt), intent(in   ), value :: time
 
     integer :: d
-    integer :: bc_temp(dim,2)
+    integer :: bc_temp(AMREX_SPACEDIM,2)
+
+    !$gpu
 
     ! handle an external BC via extrapolation here 
     bc_temp(:,:) = bc(:,:)
 
-    do d = 1, dim
+    do d = 1, AMREX_SPACEDIM
        if (bc(d,1) == EXT_DIR .and. phi_lo(d) < domlo(d)) then
           bc_temp(d,1) = FOEXTRAP
        end if
@@ -296,12 +305,14 @@ contains
     real(rt), intent(in   ), value :: time
 
     integer :: d
-    integer :: bc_temp(dim,2)
+    integer :: bc_temp(AMREX_SPACEDIM,2)
+
+    !$gpu
 
     ! handle an external BC via extrapolation here 
     bc_temp(:,:) = bc(:,:)
 
-    do d = 1, dim
+    do d = 1, AMREX_SPACEDIM
        if (bc(d,1) == EXT_DIR .and. rot_lo(d) < domlo(d)) then
           bc_temp(d,1) = FOEXTRAP
        end if
@@ -333,12 +344,14 @@ contains
     real(rt), intent(in   ), value :: time
 
     integer :: d
-    integer :: bc_temp(dim,2)
+    integer :: bc_temp(AMREX_SPACEDIM,2)
+
+    !$gpu
 
     ! handle an external BC via extrapolation here 
     bc_temp(:,:) = bc(:,:)
 
-    do d = 1, dim
+    do d = 1, AMREX_SPACEDIM
        if (bc(d,1) == EXT_DIR .and. rot_lo(d) < domlo(d)) then
           bc_temp(d,1) = FOEXTRAP
        end if
@@ -370,12 +383,14 @@ contains
     real(rt), intent(in   ), value :: time
 
     integer :: d
-    integer :: bc_temp(dim,2)
+    integer :: bc_temp(AMREX_SPACEDIM,2)
+
+    !$gpu
 
     ! handle an external BC via extrapolation here 
     bc_temp(:,:) = bc(:,:)
 
-    do d = 1, dim
+    do d = 1, AMREX_SPACEDIM
        if (bc(d,1) == EXT_DIR .and. rot_lo(d) < domlo(d)) then
           bc_temp(d,1) = FOEXTRAP
        end if
@@ -408,12 +423,14 @@ contains
     real(rt), intent(in   ), value :: time
 
     integer :: d
-    integer :: bc_temp(dim,2)
+    integer :: bc_temp(AMREX_SPACEDIM,2)
+
+    !$gpu
 
     ! handle an external BC via extrapolation here 
     bc_temp(:,:) = bc(:,:)
 
-    do d = 1, dim
+    do d = 1, AMREX_SPACEDIM
        if (bc(d,1) == EXT_DIR .and. react_lo(d) < domlo(d)) then
           bc_temp(d,1) = FOEXTRAP
        end if
@@ -447,12 +464,14 @@ contains
     real(rt), intent(in   ), value :: time
 
     integer :: d
-    integer :: bc_temp(dim,2)
+    integer :: bc_temp(AMREX_SPACEDIM,2)
+
+    !$gpu
 
     ! handle an external BC via extrapolation here 
     bc_temp(:,:) = bc(:,:)
 
-    do d = 1, dim
+    do d = 1, AMREX_SPACEDIM
        if (bc(d,1) == EXT_DIR .and. rad_lo(d) < domlo(d)) then
           bc_temp(d,1) = FOEXTRAP
        end if
