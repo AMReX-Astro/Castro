@@ -13,6 +13,8 @@ extern "C"
     // Note that these are called with dimension agnostic macros like
     // AMREX_ZFILL and AMREX_INT_ANYD already, so we should expect that
     // everything has three entries, not AMREX_SPACEDIM entries.
+    // We still choose to use the macros anyway below, for compatibility
+    // with the GPU pragma script.
 
     void ca_hypfill(Real* adv, const int* adv_lo, const int* adv_hi,
                     const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
@@ -26,7 +28,13 @@ extern "C"
             hi[i] = adv_hi[i];
         }
 
-        hypfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, dx, xlo, *time, bc);
+        prepare_nvar_bc(bc);
+
+#pragma gpu
+        hypfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
+                AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
+                AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time);
     }
 
     void ca_denfill(Real* adv, const int* adv_lo, const int* adv_hi,
@@ -41,7 +49,13 @@ extern "C"
             hi[i] = adv_hi[i];
         }
 
-        denfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, dx, xlo, *time, bc);
+        prepare_bc(bc);
+
+#pragma gpu
+        denfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
+                AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
+                AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time);
     }
 
 #ifdef GRAVITY
@@ -57,7 +71,9 @@ extern "C"
             hi[i] = phi_hi[i];
         }
 
-        phigravfill(lo, hi, phi, phi_lo, phi_hi, domlo, domhi, dx, xlo, *time, bc);
+        prepare_bc(bc);
+
+        phigravfill(lo, hi, phi, phi_lo, phi_hi, domlo, domhi, dx, xlo, *time);
     }
 
     void ca_gravxfill(Real* grav, const int* grav_lo, const int* grav_hi,
@@ -72,7 +88,9 @@ extern "C"
             hi[i] = grav_hi[i];
         }
 
-        gravxfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, dx, xlo, *time, bc);
+        prepare_bc(bc);
+
+        gravxfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, dx, xlo, *time);
     }
 
     void ca_gravyfill(Real* grav, const int* grav_lo, const int* grav_hi,
@@ -87,7 +105,9 @@ extern "C"
             hi[i] = grav_hi[i];
         }
 
-        gravyfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, dx, xlo, *time, bc);
+        prepare_bc(bc);
+
+        gravyfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, dx, xlo, *time);
     }
 
     void ca_gravzfill(Real* grav, const int* grav_lo, const int* grav_hi,
@@ -102,7 +122,9 @@ extern "C"
             hi[i] = grav_hi[i];
         }
 
-        gravzfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, dx, xlo, *time, bc);
+        prepare_bc(bc);
+
+        gravzfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, dx, xlo, *time);
     }
 #endif
 
@@ -119,7 +141,9 @@ extern "C"
             hi[i] = phi_hi[i];
         }
 
-        phirotfill(lo, hi, phi, phi_lo, phi_hi, domlo, domhi, dx, xlo, *time, bc);
+        prepare_bc(bc);
+
+        phirotfill(lo, hi, phi, phi_lo, phi_hi, domlo, domhi, dx, xlo, *time);
     }
 
     void ca_rotxfill(Real* rot, const int* rot_lo, const int* rot_hi,
@@ -134,7 +158,7 @@ extern "C"
             hi[i] = rot_hi[i];
         }
 
-        rotxfill(lo, hi, rot, rot_lo, rot_hi, domlo, domhi, dx, xlo, *time, bc);
+        rotxfill(lo, hi, rot, rot_lo, rot_hi, domlo, domhi, dx, xlo, *time);
     }
 
     void ca_rotyfill(Real* rot, const int* rot_lo, const int* rot_hi,
@@ -149,7 +173,9 @@ extern "C"
             hi[i] = rot_hi[i];
         }
 
-        rotyfill(lo, hi, rot, rot_lo, rot_hi, domlo, domhi, dx, xlo, *time, bc);
+        prepare_bc(bc);
+
+        rotyfill(lo, hi, rot, rot_lo, rot_hi, domlo, domhi, dx, xlo, *time);
     }
 
     void ca_rotzfill(Real* rot, const int* rot_lo, const int* rot_hi,
@@ -164,7 +190,9 @@ extern "C"
             hi[i] = rot_hi[i];
         }
 
-        rotzfill(lo, hi, rot, rot_lo, rot_hi, domlo, domhi, dx, xlo, *time, bc);
+        prepare_bc(bc);
+
+        rotzfill(lo, hi, rot, rot_lo, rot_hi, domlo, domhi, dx, xlo, *time);
     }
 #endif
 
@@ -181,7 +209,9 @@ extern "C"
             hi[i] = react_hi[i];
         }
 
-        reactfill(lo, hi, react, react_lo, react_hi, domlo, domhi, dx, xlo, *time, bc);
+        prepare_bc(bc);
+
+        reactfill(lo, hi, react, react_lo, react_hi, domlo, domhi, dx, xlo, *time);
     }
 #endif
 
@@ -198,7 +228,9 @@ extern "C"
             hi[i] = rad_hi[i];
         }
 
-        radfill(lo, hi, rad, rad_lo, rad_hi, domlo, domhi, dx, xlo, *time, bc);
+        prepare_bc(bc);
+
+        radfill(lo, hi, rad, rad_lo, rad_hi, domlo, domhi, dx, xlo, *time);
     }
 #endif
 
