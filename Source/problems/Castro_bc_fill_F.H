@@ -1,3 +1,6 @@
+#ifndef _Castro_bc_fill_F_H_
+#define _Castro_bc_fill_F_H_
+
 #include <AMReX_BLFort.H>
 
 #ifdef __cplusplus
@@ -128,4 +131,6 @@ extern "C"
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

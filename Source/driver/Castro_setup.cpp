@@ -11,6 +11,8 @@
 #include "Castro_bc_fill_F.H"
 #include "Castro_bc_fill.H"
 #endif
+#include "Castro_generic_fill_F.H"
+#include "Castro_generic_fill.H"
 #include <Derive_F.H>
 #include "Derive.H"
 #ifdef RADIATION

@@ -2,48 +2,15 @@ module bc_fill_module
 
   use amrex_fort_module, only: rt => amrex_real
   use meth_params_module, only: NVAR
+  use generic_fill_module, only: nvar_bc, bc
 
   implicit none
 
   include 'AMReX_bc_types.fi'
 
-  integer :: nvar_bc(AMREX_SPACEDIM, 2, NVAR)
-  integer :: bc(AMREX_SPACEDIM, 2)
-
   public
 
-#ifdef AMREX_USE_CUDA
-  attributes(managed) :: nvar_bc, bc
-#endif
-
 contains
-
-  subroutine prepare_nvar_bc(bc_in) bind(C, name="prepare_nvar_bc")
-
-    implicit none
-
-    integer, intent(in) :: bc_in(AMREX_SPACEDIM, 2, NVAR)
-
-    nvar_bc(:,:,:) = bc_in(:,:,:)
-
-  end subroutine prepare_nvar_bc
-
-
-
-  subroutine prepare_bc(bc_in) bind(C, name="prepare_bc")
-
-    implicit none
-
-    integer, intent(in) :: bc_in(AMREX_SPACEDIM, 2)
-
-    bc(:,:) = bc_in(:,:)
-
-  end subroutine prepare_bc
-
-
-
-  ! All subroutines in this file must be threadsafe because they are called
-  ! inside OpenMP parallel regions.
 
   subroutine hypfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time) bind(C, name="hypfill")
 

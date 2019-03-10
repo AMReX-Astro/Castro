@@ -1,13 +1,12 @@
+#ifndef _Castro_bc_fill_nd_F_H_
+#define _Castro_bc_fill_nd_F_H_
+
 #include <AMReX_BLFort.H>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-  void prepare_nvar_bc(const int* bc);
-
-  void prepare_bc(const int* bc);
     
   void hypfill
     (const int* lo, const int* hi,
@@ -114,4 +113,6 @@ extern "C"
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
