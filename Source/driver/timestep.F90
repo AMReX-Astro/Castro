@@ -293,32 +293,35 @@ contains
   !! @param[in] dx real(rt)
   !! @param[inout] dt real(rt)
   !!
-  subroutine ca_estdt_temp_diffusion(lo,hi,state,s_lo,s_hi,dx,dt) &
-       bind(C, name="ca_estdt_temp_diffusion")
+  subroutine ca_estdt_temp_diffusion(lo, hi, &
+                                     state, s_lo, s_hi, &
+                                     dx, dt) bind(C, name="ca_estdt_temp_diffusion")
 
     use network, only: nspec, naux
     use eos_module, only: eos
     use eos_type_module, only: eos_input_re, eos_t
     use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, UFS, UFX, &
-         diffuse_cutoff_density
+                                  diffuse_cutoff_density
     use prob_params_module, only: dim
     use amrex_constants_module, only : ONE, HALF
-    use conductivity_module, only : conductivity
-    use amrex_fort_module, only : rt => amrex_real
+    use conductivity_module, only: conductivity
+    use amrex_fort_module, only: rt => amrex_real, amrex_min
 
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: s_lo(3), s_hi(3)
-    real(rt), intent(in) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in) :: dx(3)
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt), intent(in   ) :: dx(3)
     real(rt), intent(inout) :: dt
 
-    real(rt)         :: dt1, dt2, dt3, rho_inv
-    integer          :: i, j, k
-    real(rt)         :: D
+    real(rt) :: dt1, dt2, dt3, rho_inv
+    integer  :: i, j, k
+    real(rt) :: D
 
     type (eos_t) :: eos_state
+
+    !$gpu
 
     ! dt < 0.5 dx**2 / D
     ! where D = k/(rho c_v), and k is the conductivity
@@ -361,7 +364,7 @@ contains
                    dt3 = dt1
                 endif
 
-                dt  = min(dt,dt1,dt2,dt3)
+                call amrex_min(dt, min(dt1,dt2,dt3))
 
              endif
 

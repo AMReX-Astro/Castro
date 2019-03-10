@@ -1376,18 +1376,18 @@ contains
 
 
   subroutine derdiffterm(diff,u_lo,u_hi,nd, &
-                            state,d_lo,d_hi,nc, &
-                            lo,hi,domlo,domhi,delta, &
-                            xlo) bind(C, name="derdiffterm")
+                         state,d_lo,d_hi,nc, &
+                         lo,hi,domlo,domhi,delta, &
+                         xlo) bind(C, name="derdiffterm")
     !
     ! This routine will calculate the thermal conductivity
     !
 
     use meth_params_module, only: UTEMP
-    use prob_params_module, only: problo, coord_type
-    use diffusion_module, only : ca_fill_temp_cond
-    use amrex_fort_module, only : rt => amrex_real
-    use amrex_constants_module, only : ZERO, HALF, ONE
+    use prob_params_module, only: problo, coord_type, dg
+    use diffusion_module, only: ca_fill_temp_cond, ca_average_coef_cc_to_ec
+    use amrex_fort_module, only: rt => amrex_real
+    use amrex_constants_module, only: ZERO, HALF, ONE
 
     implicit none
 
@@ -1400,23 +1400,58 @@ contains
     real(rt), intent(inout) :: diff(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
     real(rt), intent(in) :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
-    real(rt), allocatable  :: coeff_x(:,:,:), coeff_y(:,:,:), coeff_z(:,:,:)
+    real(rt), allocatable :: coeff_c(:,:,:), coeff_x(:,:,:), coeff_y(:,:,:), coeff_z(:,:,:)
     real(rt) :: diff_term
     real(rt) :: kgradT_xhi, kgradT_xlo, kgradT_yhi, kgradT_ylo, kgradT_zhi, kgradT_zlo
-    integer          :: i, j, k
+    integer  :: i, j, k
+    integer  :: c_lo(3), c_hi(3), x_lo(3), x_hi(3), y_lo(3), y_hi(3), z_lo(3), z_hi(3)
 
     real(rt) :: r, rp1, rm1
 
-    ! allocate space for edge-centered conductivities
-    allocate(coeff_x(d_lo(1):d_hi(1), d_lo(2):d_hi(2), d_lo(3):d_hi(3)))
-    allocate(coeff_y(d_lo(1):d_hi(1), d_lo(2):d_hi(2), d_lo(3):d_hi(3)))
-    allocate(coeff_z(d_lo(1):d_hi(1), d_lo(2):d_hi(2), d_lo(3):d_hi(3)))
+    ! allocate and fill cell-centered and edge-centered conductivities
 
-    call ca_fill_temp_cond(lo, hi, &
+    c_lo = lo - dg
+    c_hi = hi + dg
+
+    allocate(coeff_c(c_lo(1):c_hi(1), c_lo(2):c_hi(2), c_lo(3):c_hi(3)))
+
+    call ca_fill_temp_cond(c_lo, c_hi, &
                            state, d_lo, d_hi, &
-                           coeff_x, d_lo, d_hi, &
-                           coeff_y, d_lo, d_hi, &
-                           coeff_z, d_lo, d_hi)
+                           coeff_c, c_lo, c_hi)
+
+    x_lo = lo
+    x_hi = [hi(1)+1, hi(2), hi(3)]
+
+    allocate(coeff_x(x_lo(1):x_hi(1), x_lo(2):x_hi(2), x_lo(3):x_hi(3)))
+
+    call ca_average_coef_cc_to_ec(x_lo, x_hi, &
+                                  coeff_c, c_lo, c_hi, &
+                                  coeff_x, x_lo, x_hi, &
+                                  1)
+
+#if AMREX_SPACEDIM >= 2
+    y_lo = lo
+    y_hi = [hi(1), hi(2)+1, hi(3)]
+
+    allocate(coeff_y(y_lo(1):y_hi(1), y_lo(2):y_hi(2), y_lo(3):y_hi(3)))
+
+    call ca_average_coef_cc_to_ec(y_lo, y_hi, &
+                                  coeff_c, c_lo, c_hi, &
+                                  coeff_y, y_lo, y_hi, &
+                                  2)
+#endif
+
+#if AMREX_SPACEDIM == 3
+    z_lo = lo
+    z_hi = [hi(1), hi(2), hi(3)+1]
+
+    allocate(coeff_z(z_lo(1):z_hi(1), z_lo(2):z_hi(2), z_lo(3):z_hi(3)))
+
+    call ca_average_coef_cc_to_ec(z_lo, z_hi, &
+                                  coeff_c, c_lo, c_hi, &
+                                  coeff_z, z_lo, z_hi, &
+                                  3)
+#endif
 
     ! create the diff term
     do k = lo(3), hi(3)
@@ -1440,7 +1475,7 @@ contains
                 diff_term = diff_term + (kgradT_yhi - kgradT_ylo)/delta(2)
 #endif
 #if AMREX_SPACEDIM == 3
-                diff_term = diff_term + (kgradT_zhi = kgradT_zlo)/delta(3)&
+                diff_term = diff_term + (kgradT_zhi - kgradT_zlo)/delta(3)
 #endif
 
              else if (coord_type == 1) then
@@ -1468,8 +1503,14 @@ contains
        enddo
     enddo
 
-    deallocate(coeff_x, coeff_y, coeff_z)
-    
+    deallocate(coeff_x)
+#if AMREX_SPACEDIM >= 2
+    deallocate(coeff_y)
+#endif
+#if AMREX_SPACEDIM == 3
+    deallocate(coeff_z)
+#endif
+
   end subroutine derdiffterm
   
 #endif

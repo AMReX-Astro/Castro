@@ -50,17 +50,6 @@ public:
   void applyop(int level,amrex::MultiFab& Temperature,amrex::MultiFab& CrseTemp,
                amrex::MultiFab& DiffTerm, amrex::Vector<std::unique_ptr<amrex::MultiFab> >& temp_cond_coef);
 
-
-///
-/// @param level
-/// @param Vel
-/// @param CrseVel
-/// @param ViscTerm
-/// @param visc_coeff
-///
-  void applyViscOp(int level,amrex::MultiFab& Vel, amrex::MultiFab& CrseVel,
-                   amrex::MultiFab& ViscTerm, amrex::Vector<std::unique_ptr<amrex::MultiFab> >& visc_coeff);
-
   void make_mg_bc();
 
 protected:
@@ -90,17 +79,7 @@ protected:
 
 #include "diffusion_params.H"
 
-  static int   stencil_type;
-
 #if (BL_SPACEDIM < 3)
-
-///
-/// @param level
-/// @param Rhs
-/// @param coeffs
-///
-  void applyMetricTerms(int level,amrex::MultiFab& Rhs, amrex::Vector<std::unique_ptr<amrex::MultiFab> >& coeffs);
-
 ///
 /// @param level
 /// @param cc
@@ -124,17 +103,6 @@ protected:
 ///
   void applyop_mlmg(int level,amrex::MultiFab& Temperature,amrex::MultiFab& CrseTemp,
                     amrex::MultiFab& DiffTerm, amrex::Vector<std::unique_ptr<amrex::MultiFab> >& temp_cond_coef);
-
-
-///
-/// @param level
-/// @param Vel
-/// @param CrseVel
-/// @param ViscTerm
-/// @param visc_coeff
-///
-  void applyViscOp_mlmg(int level,amrex::MultiFab& Vel, amrex::MultiFab& CrseVel,
-                        amrex::MultiFab& ViscTerm, amrex::Vector<std::unique_ptr<amrex::MultiFab> >& visc_coeff);
 
 };
 #endif
