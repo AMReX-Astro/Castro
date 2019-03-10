@@ -1,0 +1,18 @@
+&fortin
+
+ diff_coeff = 1.0
+
+/
+
+&tagging
+  temperr = 1.1
+  tempgrad = 0.1
+  max_temperr_lev = 3
+  max_tempgrad_lev = 3
+/
+
+
+&extern
+  const_conductivity = 10.0
+  eos_assume_neutral = T
+/
