@@ -498,6 +498,40 @@ $(objEXETempDir)/AMReX_buildInfo.o: .FORCE
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.rules
 
+# Specialize rules for files that need register capping for CUDA.
+# This corresponds to what we do to AMReX_filcc_mod.F90 in AMReX.
+
+ifeq ($(USE_CUDA),TRUE)
+ifeq ($(USE_GPU_PRAGMA), TRUE)
+
+ifeq ($(DIMENSION_AGNOSTIC), TRUE)
+
+$(objEXETempDir)/Castro_bc_fill_nd.o: Castro_bc_fill_nd.cpp
+	@echo Compiling $(<F)
+	@if [ !-d $(objExeTempDir) ]; then mkdir -p $(objEXETempDir); fi
+	$(SILENT) $(CCACHE) $(CXX) $(patsubst -maxrregcount=$(CUDA_MAXREGCOUNT), -maxrregcount=128, $(CXXFLAGS)) $(FCPPFLAGS) $(fincludes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/Castro_bc_fill_nd.o
+
+$(objEXETempDir)/bc_fill_nd.o: bc_fill_nd.F90
+	@echo Compiling $(<F) ...
+	@if [ ! -d $(objEXETempDir) ]; then mkdir -p $(objEXETempDir); fi
+	@if [ ! -d $(srcTempDir) ]; then mkdir -p $(srcTempDir); fi
+	@$(SHELL) -ec 'cp $< $(srcTempDir)'
+	$(AMREX_HOME)/Tools/F_scripts/gpu_fortran.py --fortran "$(srcTempDir)/$(<F)"
+	$(SILENT) $(F90CACHE) $(F90) $(patsubst -Mcuda=maxregcount:$(CUDA_MAXREGCOUNT), -Mcuda=maxregcount:128, $(F90FLAGS)) -DBL_LANG_FORT -DAMREX_LANG_FORT $(FCPPFLAGS) $(fincludes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/bc_fill_nd.o
+
+$(objEXETempDir)/bc_ext_fill_nd.o: bc_ext_fill_nd.F90
+	@echo Compiling $(<F) ...
+	@if [ ! -d $(objEXETempDir) ]; then mkdir -p $(objEXETempDir); fi
+	@if [ ! -d $(srcTempDir) ]; then mkdir -p $(srcTempDir); fi
+	@$(SHELL) -ec 'cp $< $(srcTempDir)'
+	$(AMREX_HOME)/Tools/F_scripts/gpu_fortran.py --fortran "$(srcTempDir)/$(<F)"
+	$(SILENT) $(F90CACHE) $(F90) $(patsubst -Mcuda=maxregcount:$(CUDA_MAXREGCOUNT), -Mcuda=maxregcount:128, $(F90FLAGS)) -DBL_LANG_FORT -DAMREX_LANG_FORT $(FCPPFLAGS) $(fincludes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/bc_ext_fill_nd.o
+
+endif
+
+endif
+endif
+
 clean::
 	$(SILENT) $(RM) extern.F90
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
