@@ -2,6 +2,7 @@ module bc_fill_module
 
   use amrex_fort_module, only: rt => amrex_real
   use meth_params_module, only: NVAR
+  use amrex_filcc_module, only: amrex_filccn
 
   implicit none
 
@@ -13,7 +14,6 @@ contains
 
   subroutine hypfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="hypfill")
 
-    use amrex_filcc_module, only: amrex_filccn
 #ifndef AMREX_USE_CUDA
     use bc_ext_fill_module, only: ext_fill
 #endif
@@ -45,7 +45,6 @@ contains
 
   subroutine denfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="denfill")
 
-    use amrex_filcc_module, only: amrex_filccn
 #ifndef AMREX_USE_CUDA
     use bc_ext_fill_module, only: ext_denfill
 #endif
@@ -78,8 +77,6 @@ contains
 #ifdef GRAVITY
   subroutine phigravfill(lo, hi, phi, phi_lo, phi_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="phigravfill")
 
-    use amrex_filcc_module, only: amrex_filccn
-
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -101,8 +98,6 @@ contains
   
 
   subroutine gravxfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="gravxfill")
-
-    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
@@ -142,8 +137,6 @@ contains
 
   subroutine gravyfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="gravyfill")
 
-    use amrex_filcc_module, only: amrex_filccn
-
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -181,8 +174,6 @@ contains
 
 
   subroutine gravzfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="gravzfill")
-
-    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
@@ -224,8 +215,6 @@ contains
 #ifdef ROTATION
   subroutine phirotfill(lo, hi, phi, phi_lo, phi_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="phirotfill")
 
-    use amrex_filcc_module, only: amrex_filccn
-
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -263,8 +252,6 @@ contains
   
 
   subroutine rotxfill(lo, hi, rot, rot_lo, rot_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="rotxfill")
-
-    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
@@ -304,8 +291,6 @@ contains
 
   subroutine rotyfill(lo, hi, rot, rot_lo, rot_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="rotyfill")
 
-    use amrex_filcc_module, only: amrex_filccn
-
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -343,8 +328,6 @@ contains
 
 
   subroutine rotzfill(lo, hi, rot, rot_lo, rot_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="rotzfill")
-
-    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
@@ -385,8 +368,6 @@ contains
 #ifdef REACTIONS
   subroutine reactfill(lo, hi, react, react_lo, react_hi, domlo, domhi, delta, xlo) bind(C, name="reactfill")
 
-    use amrex_filcc_module, only: amrex_filccn
-
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -426,8 +407,6 @@ contains
 
 #ifdef RADIATION
   subroutine radfill(lo, hi, rad, rad_lo, rad_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="radfill")
-
-    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
