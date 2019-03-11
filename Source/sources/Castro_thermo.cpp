@@ -7,7 +7,8 @@ void
 Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state, Real time, Real dt)
 {
   // we only include p divU in method of lines integration
-  if (time_integration_method == CornerTransportUpwind) return;
+  if (time_integration_method == CornerTransportUpwind ||
+      time_integration_method == SimplifiedSpectralDeferredCorrections) return;
 
   MultiFab thermo_src(grids, dmap, NUM_STATE, 0);
 

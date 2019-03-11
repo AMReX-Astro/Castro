@@ -47,7 +47,8 @@ Castro::source_flag(int src)
 	    return false;
 
     case thermo_src:
-        if (time_integration_method == CornerTransportUpwind)
+        if (time_integration_method == CornerTransportUpwind ||
+            time_integration_method == SimplifiedSpectralDeferredCorrections)
           return false;
         else
           return true;
