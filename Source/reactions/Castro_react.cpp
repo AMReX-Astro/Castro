@@ -10,6 +10,7 @@ using namespace amrex;
 void
 Castro::strang_react_first_half(Real time, Real dt)
 {
+    BL_PROFILE("Castro::strang_react_first_half()");
 
     // Sanity check: should only be in here if we're doing CTU or MOL.
 
@@ -154,6 +155,7 @@ Castro::strang_react_first_half(Real time, Real dt)
 void
 Castro::strang_react_second_half(Real time, Real dt)
 {
+    BL_PROFILE("Castro::strang_react_second_half()");
 
     // Sanity check: should only be in here if we're doing CTU or MOL.
 

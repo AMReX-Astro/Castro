@@ -19,12 +19,12 @@ Castro::do_advance_ctu(Real time,
                        int  amr_ncycle)
 {
 
-  // this routine will advance the old state data (called S_old here)
-  // to the new time, for a single level.  The new data is called
-  // S_new here.  The update includes reactions (if we are not doing
-  // SDC), hydro, and the source terms.
+    // this routine will advance the old state data (called S_old here)
+    // to the new time, for a single level.  The new data is called
+    // S_new here.  The update includes reactions (if we are not doing
+    // SDC), hydro, and the source terms.
 
-    BL_PROFILE("Castro::do_advance()");
+    BL_PROFILE("Castro::do_advance_ctu()");
 
     const Real prev_time = state[State_Type].prevTime();
     const Real  cur_time = state[State_Type].curTime();
@@ -220,7 +220,7 @@ Castro::do_advance_ctu(Real time,
 bool
 Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle)
 {
-    BL_PROFILE("Castro::retry_advance()");
+    BL_PROFILE("Castro::retry_advance_ctu()");
 
     Real dt_sub = 1.e200;
 

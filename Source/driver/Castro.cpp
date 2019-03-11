@@ -1969,6 +1969,9 @@ void
 Castro::post_regrid (int lbase,
                      int new_finest)
 {
+
+    BL_PROFILE("Castro::post_regrid()");
+
     fine_mask.clear();
 
 #ifdef AMREX_PARTICLES
@@ -2172,6 +2175,9 @@ Castro::post_init (Real stop_time)
 void
 Castro::post_grown_restart ()
 {
+
+    BL_PROFILE("Castro::post_grown_restart()");
+    
     if (level > 0)
         return;
 
@@ -2268,6 +2274,8 @@ Castro::okToContinue ()
 void
 Castro::advance_aux(Real time, Real dt)
 {
+    BL_PROFILE("Castro::advance_aux()");
+    
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "... special update for auxiliary variables \n";
 
@@ -2318,6 +2326,8 @@ Castro::FluxRegCrseInit() {
 void
 Castro::FluxRegFineAdd() {
 
+    BL_PROFILE("Castro::FluxRegFineAdd()");
+    
     if (level == 0) return;
 
     for (int i = 0; i < BL_SPACEDIM; ++i)
@@ -3030,6 +3040,9 @@ Castro::derive (const std::string& name,
                 Real           time,
                 int            ngrow)
 {
+
+    BL_PROFILE("Castro::derive()");
+    
 #ifdef NEUTRINO
   if (name.substr(0,4) == "Neut") {
     // Extract neutrino energy group number from name string and
@@ -3059,6 +3072,9 @@ Castro::derive (const std::string& name,
                 MultiFab&      mf,
                 int            dcomp)
 {
+
+    BL_PROFILE("Castro::derive()");
+
 #ifdef NEUTRINO
   if (name.substr(0,4) == "Neut") {
     // Extract neutrino energy group number from name string and
@@ -3199,6 +3215,8 @@ Castro::reset_internal_energy(MultiFab& S_new)
 void
 Castro::computeTemp(int is_new, int ng)
 {
+
+  BL_PROFILE("Castro::computeTemp()");
 
   // this is the "preferred" computeTemp interface -- it will work
   // directly on StateData.  is_new=0 means the old data is used,
@@ -3366,6 +3384,8 @@ void
 Castro::computeTemp(MultiFab& State, int ng)
 {
 
+  BL_PROFILE("Castro::computeTemp()");
+    
   // this is the old version of computeTemp that works for an
   // arbitrary MF.  This will not work for 4th order hydr
   if (fourth_order) {
@@ -3455,6 +3475,8 @@ Castro::apply_source_term_predictor()
 void
 Castro::swap_state_time_levels(const Real dt)
 {
+
+    BL_PROFILE("Castro::swap_state_time_levels()");
 
     for (int k = 0; k < num_state_type; k++) {
 
