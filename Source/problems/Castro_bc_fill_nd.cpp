@@ -23,15 +23,19 @@ extern "C"
                     const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
                     const Real* time, const int* bc)
     {
-        int lo[3];
-        int hi[3];
+        int lo[3] = {0};
+        int hi[3] = {0};
 
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
             lo[i] = adv_lo[i];
             hi[i] = adv_hi[i];
         }
 
+#ifdef AMREX_USE_CUDA
         int* bc_f = prepare_bc(bc, Castro::numState(), lo, hi, domlo, domhi);
+#else
+        const int* bc_f = bc;
+#endif
 
 #pragma gpu
         hypfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -39,22 +43,28 @@ extern "C"
                 AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
                 AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
 
+#ifdef AMREX_USE_CUDA
         clean_bc(bc_f);
+#endif
     }
 
     void ca_denfill(Real* adv, const int* adv_lo, const int* adv_hi,
                     const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
                     const Real* time, const int* bc)
     {
-        int lo[3];
-        int hi[3];
+        int lo[3] = {0};
+        int hi[3] = {0};
 
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
             lo[i] = adv_lo[i];
             hi[i] = adv_hi[i];
         }
 
+#ifdef AMREX_USE_CUDA
         int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+#else
+        const int* bc_f = bc;
+#endif
 
 #pragma gpu
         denfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -62,7 +72,9 @@ extern "C"
                 AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
                 AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
 
+#ifdef AMREX_USE_CUDA
         clean_bc(bc_f);
+#endif
     }
 
 #ifdef GRAVITY
@@ -70,88 +82,112 @@ extern "C"
                         const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
                         const Real* time, const int* bc)
     {
-        int lo[3];
-        int hi[3];
+        int lo[3] = {0};
+        int hi[3] = {0};
 
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
             lo[i] = phi_lo[i];
             hi[i] = phi_hi[i];
         }
 
+#ifdef AMREX_USE_CUDA
         int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+#else
+        const int* bc_f = bc;
+#endif
 
         phigravfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                     phi, AMREX_INT_ANYD(phi_lo), AMREX_INT_ANYD(phi_hi),
                     AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
                     AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
 
+#ifdef AMREX_USE_CUDA
         clean_bc(bc_f);
+#endif
     }
 
     void ca_gravxfill(Real* grav, const int* grav_lo, const int* grav_hi,
                       const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
                       const Real* time, const int* bc)
     {
-        int lo[3];
-        int hi[3];
+        int lo[3] = {0};
+        int hi[3] = {0};
 
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
             lo[i] = grav_lo[i];
             hi[i] = grav_hi[i];
         }
 
+#ifdef AMREX_USE_CUDA
         int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+#else
+        const int* bc_f = bc;
+#endif
 
         gravxfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                   grav, AMREX_INT_ANYD(grav_lo), AMREX_INT_ANYD(grav_hi),
                   AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
                   AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
 
+#ifdef AMREX_USE_CUDA
         clean_bc(bc_f);
+#endif
     }
 
     void ca_gravyfill(Real* grav, const int* grav_lo, const int* grav_hi,
                       const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
                       const Real* time, const int* bc)
     {
-        int lo[3];
-        int hi[3];
+        int lo[3] = {0};
+        int hi[3] = {0};
 
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
             lo[i] = grav_lo[i];
             hi[i] = grav_hi[i];
         }
 
+#ifdef AMREX_USE_CUDA
         int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+#else
+        const int* bc_f = bc;
+#endif
 
         gravyfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                   grav, AMREX_INT_ANYD(grav_lo), AMREX_INT_ANYD(grav_hi),
                   AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
                   AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
 
+#ifdef AMREX_USE_CUDA
         clean_bc(bc_f);
+#endif
     }
 
     void ca_gravzfill(Real* grav, const int* grav_lo, const int* grav_hi,
                       const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
                       const Real* time, const int* bc)
     {
-        int lo[3];
-        int hi[3];
+        int lo[3] = {0};
+        int hi[3] = {0};
 
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
             lo[i] = grav_lo[i];
             hi[i] = grav_hi[i];
         }
 
+#ifdef AMREX_USE_CUDA
         int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+#else
+        const int* bc_f = bc;
+#endif
 
         gravzfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                   grav, AMREX_INT_ANYD(grav_lo), AMREX_INT_ANYD(grav_hi),
                   AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
                   AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
 
+#ifdef AMREX_USE_CUDA
         clean_bc(bc_f);
+#endif
     }
 #endif
 
@@ -160,136 +196,172 @@ extern "C"
                        const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
                        const Real* time, const int* bc)
     {
-        int lo[3];
-        int hi[3];
+        int lo[3] = {0};
+        int hi[3] = {0};
 
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
             lo[i] = phi_lo[i];
             hi[i] = phi_hi[i];
         }
 
+#ifdef AMREX_USE_CUDA
         int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+#else
+        const int* bc_f = bc;
+#endif
 
         phirotfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                    phi, AMREX_INT_ANYD(phi_lo), AMREX_INT_ANYD(phi_hi),
                    AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
                    AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
 
+#ifdef AMREX_USE_CUDA
         clean_bc(bc_f);
+#endif
     }
 
     void ca_rotxfill(Real* rot, const int* rot_lo, const int* rot_hi,
                      const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
                      const Real* time, const int* bc)
     {
-        int lo[3];
-        int hi[3];
+        int lo[3] = {0};
+        int hi[3] = {0};
 
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
             lo[i] = rot_lo[i];
             hi[i] = rot_hi[i];
         }
 
+#ifdef AMREX_USE_CUDA
         int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+#else
+        const int* bc_f = bc;
+#endif
 
         rotxfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                  rot, AMREX_INT_ANYD(rot_lo), AMREX_INT_ANYD(rot_hi),
                  AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
                  AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
 
+#ifdef AMREX_USE_CUDA
         clean_bc(bc_f);
+#endif
     }
 
     void ca_rotyfill(Real* rot, const int* rot_lo, const int* rot_hi,
                      const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
-                     const Real* time, const int* bc_f)
+                     const Real* time, const int* bc)
     {
-        int lo[3];
-        int hi[3];
+        int lo[3] = {0};
+        int hi[3] = {0};
 
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
             lo[i] = rot_lo[i];
             hi[i] = rot_hi[i];
         }
 
+#ifdef AMREX_USE_CUDA
         int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+#else
+        const int* bc_f = bc;
+#endif
 
         rotyfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                  rot, AMREX_INT_ANYD(rot_lo), AMREX_INT_ANYD(rot_hi),
                  AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
                  AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
 
+#ifdef AMREX_USE_CUDA
         clean_bc(bc_f);
+#endif
     }
 
     void ca_rotzfill(Real* rot, const int* rot_lo, const int* rot_hi,
                      const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
-                     const Real* time, const int* bc_f)
+                     const Real* time, const int* bc)
     {
-        int lo[3];
-        int hi[3];
+        int lo[3] = {0};
+        int hi[3] = {0};
 
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
             lo[i] = rot_lo[i];
             hi[i] = rot_hi[i];
         }
 
+#ifdef AMREX_USE_CUDA
         int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+#else
+        const int* bc_f = bc;
+#endif
 
         rotzfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                  rot, AMREX_INT_ANYD(rot_lo), AMREX_INT_ANYD(rot_hi),
                  AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
                  AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
 
+#ifdef AMREX_USE_CUDA
         clean_bc(bc_f);
+#endif
     }
 #endif
 
 #ifdef REACTIONS
     void ca_reactfill(Real* react, const int* react_lo, const int* react_hi,
                       const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
-                      const Real* time, const int* bc_f)
+                      const Real* time, const int* bc)
     {
-        int lo[3];
-        int hi[3];
+        int lo[3] = {0};
+        int hi[3] = {0};
 
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
             lo[i] = react_lo[i];
             hi[i] = react_hi[i];
         }
 
+#ifdef AMREX_USE_CUDA
         int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+#else
+        const int* bc_f = bc;
+#endif
 
         reactfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                   react, AMREX_INT_ANYD(react_lo), AMREX_INT_ANYD(react_hi),
                   AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
                   AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
 
+#ifdef AMREX_USE_CUDA
         clean_bc(bc_f);
+#endif
     }
 #endif
 
 #ifdef RADIATION
     void ca_radfill(Real* rad, const int* rad_lo, const int* rad_hi,
                     const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
-                    const Real* time, const int* bc_f)
+                    const Real* time, const int* bc)
     {
-        int lo[3];
-        int hi[3];
+        int lo[3] = {0};
+        int hi[3] = {0};
 
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
             lo[i] = rad_lo[i];
             hi[i] = rad_hi[i];
         }
 
+#ifdef AMREX_USE_CUDA
         int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+#else
+        const int* bc_f = bc;
+#endif
 
         radfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                 rad, AMREX_INT_ANYD(rad_lo), AMREX_INT_ANYD(rad_hi),
                 AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
                 AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
 
+#ifdef AMREX_USE_CUDA
         clean_bc(bc_f);
+#endif
     }
 #endif
 

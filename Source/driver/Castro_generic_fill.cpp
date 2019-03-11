@@ -21,15 +21,19 @@ extern "C"
                                 const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
                                 const Real* time, const int* bc)
     {
-        int lo[3];
-        int hi[3];
+        int lo[3] = {0};
+        int hi[3] = {0};
 
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
             lo[i] = adv_lo[i];
             hi[i] = adv_hi[i];
         }
 
+#ifdef AMREX_USE_CUDA
         int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+#else
+        const int* bc_f = bc;
+#endif
 
 #pragma gpu
         generic_single_fill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -37,22 +41,28 @@ extern "C"
                             AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
                             AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), bc_f);
 
+#ifdef AMREX_USE_CUDA
         clean_bc(bc_f);
+#endif
     }
 
     void ca_generic_multi_fill(Real* adv, const int* adv_lo, const int* adv_hi,
                                const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
                                const Real* time, const int* bc)
     {
-        int lo[3];
-        int hi[3];
+        int lo[3] = {0};
+        int hi[3] = {0};
 
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
             lo[i] = adv_lo[i];
             hi[i] = adv_hi[i];
         }
 
+#ifdef AMREX_USE_CUDA
         int* bc_f = prepare_bc(bc, Castro::numState(), lo, hi, domlo, domhi);
+#else
+        const int* bc_f = bc;
+#endif
 
 #pragma gpu
         generic_multi_fill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -60,7 +70,9 @@ extern "C"
                            AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
                            AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), bc_f);
 
+#ifdef AMREX_USE_CUDA
         clean_bc(bc_f);
+#endif
     }
 
 #ifdef __cplusplus
