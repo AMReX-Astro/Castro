@@ -8,7 +8,7 @@
      have been removed from the subroutine names, (2) the "time" parameter
      is passed by value, and (3) the (lo, hi) indices that are the target
      region to update the boundaries on are explicitly passed in as
-     the first two arguments.
+     the first two arguments. (#546)
 
   -- removed the code to extrapolate diffusion terms to ghost cells
      as it is no longer necessary (#532)
