@@ -288,13 +288,15 @@ with a brief inline description:</p>
 before their definition using the style:</p>
 <div class="code fortran highlight-default notranslate"><div class="highlight"><pre><span></span>!&gt; @brief Description of the function
 !!
-!! @param bar      Brief description of the variable
+!! @param bar      datatype,    Brief description of the variable
 subroutine foo(bar)
   ...
 </pre></div>
 </div>
-<p>Documentation for modules should be similarly formatted, with the comment block again
-coming <cite>before</cite> the module definition.</p>
+<p>Note that Doxygen does not automatically pick up the variable datatypes
+of Fortran functions (as it does for C++ functions), so we include these in the
+parameter list of the function’s docstring. Documentation for modules should
+be similarly formatted, with the comment block again coming <cite>before</cite> the module definition.</p>
 </li>
 </ul>
 </div>
