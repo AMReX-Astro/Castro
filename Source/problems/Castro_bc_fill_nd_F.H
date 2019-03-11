@@ -45,7 +45,7 @@ extern "C"
      const amrex::Real time, const int* bc);
 
   void gravzfill
-    (const int* lo, const int* hi
+    (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const amrex::Real* dx, const amrex::Real* glo,
