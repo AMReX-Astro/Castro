@@ -595,7 +595,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(grav),
 #endif
      BL_FORT_FAB_ARG_3D(source),
-     const amrex::Real* dx, const amrex::Real& dt, const amrex::Real* time);
+     const amrex::Real* dx, const amrex::Real dt, const amrex::Real time);
 
   void ca_corrgsrc
     (const int* lo, const int* hi,
@@ -613,7 +613,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(yflux),
      const BL_FORT_FAB_ARG_3D(zflux),
      const BL_FORT_FAB_ARG_3D(source),
-     const amrex::Real* dx, const amrex::Real& dt, const amrex::Real* time);
+     const amrex::Real* dx, const amrex::Real dt, const amrex::Real time);
 #endif
 
 #ifdef ROTATION

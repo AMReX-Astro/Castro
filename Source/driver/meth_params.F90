@@ -53,6 +53,11 @@ module meth_params_module
   integer, save, allocatable :: GDLAMS, GDERADS
 #endif
 
+  ! Numerical values corresponding to the gravity types
+#ifdef GRAVITY
+  integer, save, allocatable :: gravity_type_int
+#endif
+
   integer         , save :: numpts_1d
 
   real(rt)        , save, allocatable :: outflow_data_old(:,:)
@@ -86,6 +91,9 @@ module meth_params_module
   attributes(managed) :: GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
 #ifdef RADIATION
   attributes(managed) :: GDLAMS, GDERADS
+#endif
+#ifdef GRAVITY
+  attributes(managed) :: gravity_type_int
 #endif
   attributes(managed) :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 #endif
@@ -762,6 +770,22 @@ contains
     !$acc device(point_mass, point_mass_fix_solution, do_acc) &
     !$acc device(grown_factor, track_grid_losses, const_grav, get_g_from_phi)
 
+
+#ifdef GRAVITY
+    ! Set the gravity type integer
+
+    allocate(gravity_type_int)
+
+    if (gravity_type == "ConstantGrav") then
+       gravity_type_int = 0
+    else if (gravity_type == "MonopoleGrav") then
+       gravity_type_int = 1
+    else if (gravity_type == "PoissonGrav") then
+       gravity_type_int = 2
+    else
+       call amrex_error("Unknown gravity type")
+    end if
+#endif
 
     ! now set the external BC flags
     select case (xl_ext_bc_type)
