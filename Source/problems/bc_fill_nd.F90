@@ -383,7 +383,7 @@ contains
 
 
 #ifdef REACTIONS
-  subroutine reactfill(lo, hi, react, react_lo, react_hi, domlo, domhi, delta, xlo) bind(C, name="reactfill")
+  subroutine reactfill(lo, hi, react, react_lo, react_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="reactfill")
 
     use amrex_filcc_module, only: amrex_filccn
 
