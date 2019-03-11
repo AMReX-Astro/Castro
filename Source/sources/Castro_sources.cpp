@@ -46,6 +46,12 @@ Castro::source_flag(int src)
 	else
 	    return false;
 
+    case thermo_src:
+        if (time_integration_method == CornerTransportUpwind)
+          return false;
+        else
+          return true;
+
 #ifdef DIFFUSION
     case diff_src:
 	return true;
