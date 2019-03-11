@@ -2553,7 +2553,9 @@ Castro::reflux(int crse_level, int fine_level)
     // ghost zone fills like diffusion depend on the data in the
     // coarser levels.
 
-    if (update_sources_after_reflux) {
+    if (update_sources_after_reflux &&
+        (time_integration_method == CornerTransportUpwind ||
+         time_integration_method == SimplifiedSpectralDeferredCorrections)) {
 
 	for (int lev = fine_level; lev >= crse_level; --lev) {
 
