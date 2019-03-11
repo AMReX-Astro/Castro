@@ -27,6 +27,8 @@ state_nghost                 int           0
 do_reflux                    int           1
 
 # whether to re-compute new-time source terms after a reflux
+# Note: this only works for the CTU and simple-SDC time_integration_method
+# drivers
 update_sources_after_reflux  int           1
 
 # should we have state data for custom load-balancing weighting?
