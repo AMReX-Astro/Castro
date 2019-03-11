@@ -11,6 +11,8 @@ using namespace amrex;
 void
 Castro::construct_old_diff_source(MultiFab& source, MultiFab& state, Real time, Real dt)
 {
+    BL_PROFILE("Castro::construct_old_diff_source()");
+
     MultiFab TempDiffTerm(grids, dmap, 1, 0);
 
     add_temp_diffusion_to_source(source, state, TempDiffTerm, time);
@@ -20,6 +22,8 @@ Castro::construct_old_diff_source(MultiFab& source, MultiFab& state, Real time, 
 void
 Castro::construct_new_diff_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
+    BL_PROFILE("Castro::construct_new_diff_source()");
+
     MultiFab TempDiffTerm(grids, dmap, 1, 0);
 
     Real mult_factor = 0.5;
@@ -40,6 +44,8 @@ Castro::construct_new_diff_source(MultiFab& source, MultiFab& state_old, MultiFa
 void
 Castro::add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& state, MultiFab& DiffTerm, Real t, Real mult_factor)
 {
+    BL_PROFILE("Castro::add_temp_diffusion_to_sources()");
+
     // Define an explicit temperature update.
     DiffTerm.setVal(0.);
     if (diffuse_temp == 1) {

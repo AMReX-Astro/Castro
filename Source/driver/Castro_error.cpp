@@ -15,6 +15,9 @@ typedef StateDescriptor::BndryFunc BndryFunc;
 void
 Castro::ErrorSetUp ()
 {
+
+    BL_PROFILE("Castro::ErrorSetUp()");
+
     //
     // DEFINE ERROR ESTIMATION QUANTITIES
     //
