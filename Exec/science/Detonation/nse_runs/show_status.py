@@ -1,3 +1,5 @@
+#!/bin/env python3
+
 import glob
 import os
 import operator
@@ -86,6 +88,7 @@ class Detonation:
         self.data = self.get_data()
 
         self.end_time = self.data.time
+        self.nsteps = int(self.files[-1].split("plt")[1])
 
     def __repr__(self):
         return self.name
@@ -150,7 +153,7 @@ if __name__ == "__main__":
         try:
             if not os.path.isfile(os.path.join(run, "Backtrace.0")):
                 det = Detonation(run)
-                print("{:42} : t = {:8.5f}, v = {:15.8g} +/- {:15.8g}".format(run, det.end_time, det.v, det.v_sigma))
+                print("{:42} : t = {:8.5f}, # of steps = {:5}, v = {:15.8g} +/- {:15.8g}".format(run, det.end_time, det.nsteps, det.v, det.v_sigma))
 
         except IndexError:
             # the run didn't produce output -- it might still be running?

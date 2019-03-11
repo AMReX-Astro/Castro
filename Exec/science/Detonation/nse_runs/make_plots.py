@@ -1,3 +1,5 @@
+#!/bin/env python3
+
 import glob
 import os
 import operator
@@ -6,12 +8,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import yt
+yt.funcs.mylog.setLevel(50)
 
 class Profile:
     """read a plotfile using yt and store the 1d profile for T and enuc"""
 
     def __init__(self, plotfile):
-        print(plotfile)
         ds = yt.load(plotfile)
 
         time = float(ds.current_time)
@@ -71,7 +73,9 @@ class Detonation:
                 elif k == "niters":
                     self.niters = int(v)
                 elif k == "dtnuc_e":
-                    self.dtnuc_e = float(v)
+                    # if the dtnuc_e is < 1, then we are limiting
+                    self.dtnuce = float(v) < 1
+
 
         # find all the output (plot) files
         cwd = os.getcwd()
@@ -151,7 +155,6 @@ if __name__ == "__main__":
             # the run didn't produce output -- it might still be running?
             print("run {} didn't produce output".format(run))
 
-    print(len(runs))
     runs.sort()
     print(runs)
 
@@ -159,7 +162,7 @@ if __name__ == "__main__":
     # SDC4 for the same resolution
     nzones = set([q.nzones for q in runs])
     for nz in nzones:
-        strang = [q for q in runs if q.integrator == "Strang" and q.nzones == nz]
+        strang = [q for q in runs if q.integrator == "Strang" and q.nzones == nz and q.dtnuce == False]
         sdc2 = [q for q in runs if q.integrator == "SDC" and q.niters == 2 and q.nzones == nz]
         sdc3 = [q for q in runs if q.integrator == "SDC" and q.niters == 3 and q.nzones == nz]
         sdc4 = [q for q in runs if q.integrator == "SDC" and q.niters == 4 and q.nzones == nz]
@@ -168,18 +171,16 @@ if __name__ == "__main__":
         fig.clear()
 
         ax = fig.add_subplot(111)
-        ax.errorbar([q.cfl for q in strang], [q.v for q in strang],
-                    yerr=[q.v_sigma for q in strang],
-                    marker="x", label="Strang")
-        ax.errorbar([q.cfl for q in sdc2], [q.v for q in sdc2],
-                    yerr=[q.v_sigma for q in sdc2],
-                    marker="o", label="SDC (2 iters)")
-        ax.errorbar([q.cfl for q in sdc3], [q.v for q in sdc3],
-                    yerr=[q.v_sigma for q in sdc3],
-                    marker="*", label="SDC (3 iters)")
-        ax.errorbar([q.cfl for q in sdc4], [q.v for q in sdc4],
-                    yerr=[q.v_sigma for q in sdc4],
-                    marker="^", label="SDC (4 iters)")
+
+        dsets = [(strang, "Strang"),
+                 (sdc2, "SDC (2 iters)"),
+                 (sdc3, "SDC (3 iters)"),
+                 (sdc4, "SDC (4 iters)")]
+
+        for dset, label in dsets:
+            ax.errorbar([q.cfl for q in dset], [q.v for q in dset],
+                        yerr=[q.v_sigma for q in dset],
+                        marker="x", label=label)
 
         ax.legend(frameon=False)
         ax.set_xlabel("CFL")
@@ -190,33 +191,37 @@ if __name__ == "__main__":
 
     # make a plot of speed vs. resolution, grouped by Strang, SDC2,
     # SDC3, SDC4 for CFL = 0.8
-    strang = [q for q in runs if q.integrator == "Strang" and q.cfl == 0.8]
-    sdc2 = [q for q in runs if q.integrator == "SDC" and q.niters == 2 and q.cfl == 0.8]
-    sdc3 = [q for q in runs if q.integrator == "SDC" and q.niters == 3 and q.cfl == 0.8]
-    sdc4 = [q for q in runs if q.integrator == "SDC" and q.niters == 4 and q.cfl == 0.8]
+    cfls = set([q.cfl for q in runs])
+    for cfl in cfls:
+        strang = [q for q in runs if q.integrator == "Strang" and q.cfl == cfl and q.dtnuce == False]
+        # CFL doesn't matter for dtnuc_e
+        strang_limit = [q for q in runs if q.integrator == "Strang" and q.dtnuce == True]
+        sdc2 = [q for q in runs if q.integrator == "SDC" and q.niters == 2 and q.cfl == cfl]
+        sdc3 = [q for q in runs if q.integrator == "SDC" and q.niters == 3 and q.cfl == cfl]
+        sdc4 = [q for q in runs if q.integrator == "SDC" and q.niters == 4 and q.cfl == cfl]
 
-    fig = plt.figure(1)
-    fig.clear()
+        fig = plt.figure(1)
+        fig.clear()
 
-    ax = fig.add_subplot(111)
-    ax.errorbar([q.nzones for q in strang], [q.v for q in strang],
-                yerr=[q.v_sigma for q in strang],
-                marker="x", label="Strang")
-    ax.errorbar([q.nzones for q in sdc2], [q.v for q in sdc2],
-                yerr=[q.v_sigma for q in sdc2],
-                marker="o", label="SDC (2 iters)")
-    ax.errorbar([q.nzones for q in sdc3], [q.v for q in sdc3],
-                yerr=[q.v_sigma for q in sdc3],
-                marker="*", label="SDC (3 iters)")
-    ax.errorbar([q.nzones for q in sdc4], [q.v for q in sdc4],
-                yerr=[q.v_sigma for q in sdc4],
-                marker="^", label="SDC (4 iters)")
+        ax = fig.add_subplot(111)
 
-    ax.legend(frameon=False)
-    ax.set_xlabel("# of zones")
-    ax.set_ylabel("velocity (cm/s)")
+        dsets = [(strang, "Strang"),
+                 (strang_limit, r"Strang (with energy $\Delta t$ limit)"),
+                 (sdc2, "SDC (2 iters)"),
+                 (sdc3, "SDC (3 iters)"),
+                 (sdc4, "SDC (4 iters)")]
 
-    fig.savefig("speed_vs_nzones.png")
+        for dset, label in dsets:
+            ax.errorbar([q.nzones for q in dset], [q.v for q in dset],
+                        yerr=[q.v_sigma for q in dset],
+                        marker="x", label=label)
+
+        ax.legend(frameon=False)
+        ax.set_xlabel("# of zones")
+        ax.set_ylabel("velocity (cm/s)")
+        ax.set_title("CFL = {}".format(cfl))
+
+        fig.savefig("speed_vs_nzones_cfl{}.png".format(cfl))
 
     # make a plot of T, enuc vs. x for different Strang / SDC CFL
     strang = [q for q in runs if q.integrator == "Strang" and q.nzones == 1024]

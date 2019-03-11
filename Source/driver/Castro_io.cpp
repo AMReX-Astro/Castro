@@ -1239,7 +1239,7 @@ Castro::plotFileOutput(const std::string& dir,
     TheFullPath += BaseName;
     VisMF::Write(plotMF,TheFullPath,how,true);
 
-    if (track_grid_losses) {
+    if (track_grid_losses && level == 0) {
 
         // store diagnostic quantities
         std::ofstream DiagFile;

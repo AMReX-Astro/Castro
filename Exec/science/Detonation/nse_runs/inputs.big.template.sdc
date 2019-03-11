@@ -1,5 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 10000
+max_step = 100000
 stop_time =  3.e-3
 
 # PROBLEM SIZE & GEOMETRY

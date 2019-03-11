@@ -1,5 +1,6 @@
 #include "Castro.H"
 #include "Castro_F.H"
+#include "Castro_hydro_F.H"
 
 #ifdef RADIATION
 #include "Radiation.H"
@@ -50,8 +51,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   Real xang_lost = 0.;
   Real yang_lost = 0.;
   Real zang_lost = 0.;
-
-  BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
 
 #ifdef _OPENMP
 #ifdef RADIATION
