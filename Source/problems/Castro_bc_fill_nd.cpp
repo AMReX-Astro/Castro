@@ -96,6 +96,7 @@ extern "C"
         const int* bc_f = bc;
 #endif
 
+#pragma gpu
         phigravfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                     phi, AMREX_INT_ANYD(phi_lo), AMREX_INT_ANYD(phi_hi),
                     AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
@@ -124,6 +125,7 @@ extern "C"
         const int* bc_f = bc;
 #endif
 
+#pragma gpu
         gravxfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                   grav, AMREX_INT_ANYD(grav_lo), AMREX_INT_ANYD(grav_hi),
                   AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
@@ -152,6 +154,7 @@ extern "C"
         const int* bc_f = bc;
 #endif
 
+#pragma gpu
         gravyfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                   grav, AMREX_INT_ANYD(grav_lo), AMREX_INT_ANYD(grav_hi),
                   AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
@@ -180,6 +183,7 @@ extern "C"
         const int* bc_f = bc;
 #endif
 
+#pragma gpu
         gravzfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                   grav, AMREX_INT_ANYD(grav_lo), AMREX_INT_ANYD(grav_hi),
                   AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
@@ -210,6 +214,7 @@ extern "C"
         const int* bc_f = bc;
 #endif
 
+#pragma gpu
         phirotfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                    phi, AMREX_INT_ANYD(phi_lo), AMREX_INT_ANYD(phi_hi),
                    AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
@@ -238,6 +243,7 @@ extern "C"
         const int* bc_f = bc;
 #endif
 
+#pragma gpu
         rotxfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                  rot, AMREX_INT_ANYD(rot_lo), AMREX_INT_ANYD(rot_hi),
                  AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
@@ -266,6 +272,7 @@ extern "C"
         const int* bc_f = bc;
 #endif
 
+#pragma gpu
         rotyfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                  rot, AMREX_INT_ANYD(rot_lo), AMREX_INT_ANYD(rot_hi),
                  AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
@@ -294,6 +301,7 @@ extern "C"
         const int* bc_f = bc;
 #endif
 
+#pragma gpu
         rotzfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                  rot, AMREX_INT_ANYD(rot_lo), AMREX_INT_ANYD(rot_hi),
                  AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
@@ -324,6 +332,7 @@ extern "C"
         const int* bc_f = bc;
 #endif
 
+#pragma gpu
         reactfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                   react, AMREX_INT_ANYD(react_lo), AMREX_INT_ANYD(react_hi),
                   AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
@@ -354,6 +363,7 @@ extern "C"
         const int* bc_f = bc;
 #endif
 
+#pragma gpu
         radfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                 rad, AMREX_INT_ANYD(rad_lo), AMREX_INT_ANYD(rad_hi),
                 AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
