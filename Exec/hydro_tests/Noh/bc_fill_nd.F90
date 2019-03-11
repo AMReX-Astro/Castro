@@ -1,7 +1,6 @@
 module bc_fill_module
 
   use amrex_fort_module, only: rt => amrex_real
-  use amrex_filcc_module, only: amrex_filccn
 
   implicit none
 
@@ -11,6 +10,7 @@ contains
 
   subroutine hypfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="hypfill")
 
+    use amrex_filcc_module, only: amrex_filccn
     use amrex_constants_module, only: ONE, TWO
     use meth_params_module, only: NVAR, URHO, UTEMP, UMX, UMZ, UEDEN, UEINT, UFS
     use castro_util_module, only: position
@@ -80,6 +80,8 @@ contains
 
 
   subroutine denfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="denfill")
+
+    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 

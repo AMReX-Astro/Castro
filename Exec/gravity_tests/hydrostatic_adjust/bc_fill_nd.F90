@@ -1,7 +1,6 @@
 module bc_fill_module
 
   use amrex_fort_module, only : rt => amrex_real
-  use amrex_filcc_module, only: amrex_filccn
 
   implicit none
 
@@ -13,6 +12,7 @@ contains
 
   subroutine hypfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="hypfill")
 
+    use amrex_filcc_module, only: amrex_filccn
     use amrex_constants_module, only: ZERO, HALF
     use meth_params_module, only : NVAR, URHO, UEDEN, UMX, UMY, UMZ, UTEMP, UEINT, UFS
     use probdata_module, only: hse_rho_top, hse_t_top, hse_X_top, &
@@ -123,6 +123,8 @@ contains
 
   subroutine denfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="denfill")
 
+    use amrex_filcc_module, only: amrex_filccn
+
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
@@ -142,6 +144,8 @@ contains
 #ifdef GRAVITY
   subroutine gravxfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="gravxfill")
 
+    use amrex_filcc_module, only: amrex_filccn
+
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
@@ -159,6 +163,8 @@ contains
 
 
   subroutine gravyfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="gravyfill")
+
+    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
@@ -178,6 +184,8 @@ contains
 
   subroutine gravzfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="gravzfill")
 
+    use amrex_filcc_module, only: amrex_filccn
+
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
@@ -195,6 +203,8 @@ contains
 
 
   subroutine phigravfill(lo, hi, phi, phi_lo, phi_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="phigravfill")
+
+    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
