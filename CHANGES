@@ -1,5 +1,9 @@
 # changes since the last release
 
+  -- fixed a bug in the source term to (rho e) evolution when using
+     MOL or the new SDC integration (#543, #545) and also no longer
+     recompute the source terms after reflux for these methods (#549)
+
   -- removed the code to extrapolate diffusion terms to ghost cells
      as it is no longer necessary (#532)
 
