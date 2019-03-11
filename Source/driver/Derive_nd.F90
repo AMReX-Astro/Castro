@@ -1002,7 +1002,7 @@ contains
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-             logden(i,j,k,1) = dlog10(dat(i,j,k,1))
+             logden(i,j,k,1) = log10(dat(i,j,k,1))
           end do
        end do
     end do
