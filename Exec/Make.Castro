@@ -501,7 +501,7 @@ include $(AMREX_HOME)/Tools/GNUMake/Make.rules
 ifeq ($(USE_CUDA),TRUE)
 ifeq ($(USE_GPU_PRAGMA), TRUE)
 
-include Make.cuda_rules
+include $(TOP)/Exec/Make.cuda_rules
 
 endif
 endif
