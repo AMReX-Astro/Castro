@@ -39,6 +39,7 @@ contains
     use network, only : nspec
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
+    use prob_params_module, only : coord_type
 
     implicit none
 
@@ -55,6 +56,7 @@ contains
     integer :: i, j, k
 
     type(eos_t) :: eos_state_old, eos_state_new
+    real(rt) :: r, rp, rm
 
     !$gpu
 
@@ -62,11 +64,33 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
+             ! radius for non-Cartesian
+             rp = problo(1) + (dble(i) + 1.5_rt)*dx(1)
+             rm = problo(1) + (dble(i) - HALF)*dx(1)
+             r = HALF*(rm + rp)
+
              ! compute -div{U}
-             src(i,j,k,UEINT) = -FOURTH*((old_state(i+1,j,k,UMX)/old_state(i+1,j,k,URHO) + &
-                                          new_state(i+1,j,k,UMX)/new_state(i+1,j,k,URHO)) - &
-                                         (old_state(i-1,j,k,UMX)/old_state(i-1,j,k,URHO) + &
-                                          new_state(i-1,j,k,UMX)/new_state(i-1,j,k,URHO)))/dx(1)
+             if (coord_type == 0) then
+                src(i,j,k,UEINT) = -FOURTH*((old_state(i+1,j,k,UMX)/old_state(i+1,j,k,URHO) + &
+                                             new_state(i+1,j,k,UMX)/new_state(i+1,j,k,URHO)) - &
+                                            (old_state(i-1,j,k,UMX)/old_state(i-1,j,k,URHO) + &
+                                             new_state(i-1,j,k,UMX)/new_state(i-1,j,k,URHO)))/dx(1)
+
+             else if (coord_type == 1) then
+                ! axisymmetric
+                src(i,j,k,UEINT) = -FOURTH*(rp*(old_state(i+1,j,k,UMX)/old_state(i+1,j,k,URHO) + &
+                                                new_state(i+1,j,k,UMX)/new_state(i+1,j,k,URHO)) - &
+                                            rm*(old_state(i-1,j,k,UMX)/old_state(i-1,j,k,URHO) + &
+                                                new_state(i-1,j,k,UMX)/new_state(i-1,j,k,URHO)))/(r*dx(1))
+
+             else if (coord_type == 2) then
+                ! axisymmetric
+                src(i,j,k,UEINT) = -FOURTH*(rp**2*(old_state(i+1,j,k,UMX)/old_state(i+1,j,k,URHO) + &
+                                                   new_state(i+1,j,k,UMX)/new_state(i+1,j,k,URHO)) - &
+                                            rm**2*(old_state(i-1,j,k,UMX)/old_state(i-1,j,k,URHO) + &
+                                                   new_state(i-1,j,k,UMX)/new_state(i-1,j,k,URHO)))/(r**2*dx(1))
+             endif
+
 #if BL_SPACEDIM >= 2
              src(i,j,k,UEINT) = src(i,j,k,UEINT) - &
                                 FOURTH*((old_state(i,j+1,k,UMY)/old_state(i,j+1,k,URHO) + &
