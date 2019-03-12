@@ -151,6 +151,8 @@ Diffusion::applyop_mlmg (int level, MultiFab& Temperature,
                          MultiFab& CrseTemp, MultiFab& DiffTerm, 
                          Vector<std::unique_ptr<MultiFab> >& temp_cond_coef)
 {
+    BL_PROFILE("Diffusion::applyop_mlmg()");
+
     if (verbose && ParallelDescriptor::IOProcessor()) {
         std::cout << "   " << '\n';
         std::cout << "... compute diffusive term at level " << level << '\n';

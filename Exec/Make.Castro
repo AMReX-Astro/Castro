@@ -84,6 +84,7 @@ endif
 
 ifeq ($(USE_CUDA),TRUE)
   USE_GPU_PRAGMA = TRUE
+  DEFINES += -DCUDA
 endif
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
