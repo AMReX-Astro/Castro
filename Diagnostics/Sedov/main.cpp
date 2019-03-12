@@ -170,7 +170,7 @@ int main(int argc, char* argv[])
 				               imask.dataPtr(), mask_size, r1,
 				               dens_comp, xmom_comp, ymom_comp, pres_comp, rhoe_comp,
 				               dx_fine, level_dx.dataPtr(),
-				               yctr);
+				               xctr, yctr);
 
 			} else {
 				fextract2d_cyl(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),

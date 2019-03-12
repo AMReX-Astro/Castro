@@ -41,7 +41,7 @@ void fextract2d_sph(const int* lo, const int* hi,
                     const int ymom_comp,
                     const int pres_comp, const int rhoe_comp,
                     const amrex::Real dx_fine, const amrex::Real* dx,
-                    const amrex::Real yctr);
+                    const amrex::Real xctr, const amrex::Real yctr);
 
 void fextract3d_cyl(const int* lo, const int* hi,
                     BL_FORT_FAB_ARG_3D(p),const int* nc_p,

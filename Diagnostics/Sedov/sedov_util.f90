@@ -130,7 +130,7 @@ end subroutine fextract2d_cyl
 
 subroutine fextract2d_sph(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
      vel_bin, pres_bin, e_bin, volcount, imask, mask_size, r1,&
-     dens_comp, xmom_comp, ymom_comp, pres_comp, rhoe_comp, dx_fine, dx, yctr) &
+     dens_comp, xmom_comp, ymom_comp, pres_comp, rhoe_comp, dx_fine, dx, xctr, yctr) &
      bind(C, name='fextract2d_sph')
 
   use amrex_fort_module, only : rt => amrex_real
@@ -150,7 +150,7 @@ subroutine fextract2d_sph(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   integer, intent(in), value :: mask_size
   integer, intent(inout) :: imask(0:mask_size-1,0:mask_size-1)
   integer, intent(in), value :: r1, dens_comp, xmom_comp, ymom_comp, pres_comp, rhoe_comp
-  real(rt), intent(in), value :: dx_fine, yctr
+  real(rt), intent(in), value :: dx_fine, xctr, yctr
   real(rt), intent(in) :: dx(3)
 
   integer :: i, j, k, index
@@ -177,7 +177,7 @@ subroutine fextract2d_sph(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
         if ( any(imask(i*r1:(i+1)*r1-1, &
              j*r1:(j+1)*r1-1) .eq. 1) ) then
 
-           r_zone = sqrt((xx)**2 + (yy-yctr)**2)
+           r_zone = sqrt((xx-xctr)**2 + (yy-yctr)**2)
 
            index = r_zone/dx_fine
 
