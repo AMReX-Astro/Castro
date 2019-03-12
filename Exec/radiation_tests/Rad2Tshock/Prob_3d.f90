@@ -79,16 +79,30 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   real(rt)         :: xlo(3), xhi(3)
   
   integer :: i,j,k
-  real(rt)         :: xcell, rhoInv
+  real(rt)         :: length_cell,length_min, rhoInv
   type(eos_t) :: eos_state
-
+    
+  
   do k = lo(3), hi(3)  
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
-  
-           xcell = xmin  + delta(1) * (dble(i) + 0.5e0_rt)
+
+           !Provides the simulation to be run in the x,y,or z direction
+           !where length direction is the length side in a square prism  
+           if (idir == 1) then
+              length_cell = xmin + delta(1) * (dble(i) + 0.5e0_rt)
+           else if (idir == 2) then
+              length_cell = ymin + delta(2) * (dble(j) + 0.5e0_rt)
+           else if (idir == 3) then
+              length_cell = zmin + delta(3) * (dble(k) + 0.5e0_rt)
+           else
+              stop "Invalid Direction, input integer int_dir = [1,3] ."
+           endif
+
+          ! Old statement, replaced with conditional above. 
+          ! length_cell = length_min  + delta(1) * (dble(i) + 0.5e0_rt)
            
-           if (xcell < 0.e0_rt) then
+           if (length_cell < 0.e0_rt) then
               state(i,j,k,URHO) = rho0
            
               ! set the composition to be all in the first species
@@ -96,21 +110,42 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
               state(i,j,k,UFS  ) = state(i,j,k,URHO)
 
               state(i,j,k,UTEMP) = T0
-              state(i,j,k,UMX) = rho0*v0
-              state(i,j,k,UMY) = 0.0e0_rt
-              state(i,j,k,UMZ) = 0.0e0_rt
+              if (idir == 1) then 
+                 state(i,j,k,UMX) = rho0*v0
+                 state(i,j,k,UMY) = 0.0e0_rt
+                 state(i,j,k,UMZ) = 0.0e0_rt
+              else if (idir == 2) then
+                 state(i,j,k,UMX) = 0.0e0_rt
+                 state(i,j,k,UMY) = rho0*v0
+                 state(i,j,k,UMZ) = 0.0e0_rt
+              else if (idir == 3) then
+                 state(i,j,k,UMX) = 0.0e0_rt
+                 state(i,j,k,UMY) = 0.0e0_rt
+                 state(i,j,k,UMZ) = rho0*v0
+              end if
            else
               state(i,j,k,URHO) = rho1
         
               ! set the composition to be all in the first species
               state(i,j,k,UFS:UFS-1+nspec) = 0.e0_rt
               state(i,j,k,UFS  ) = state(i,j,k,URHO)
-
               state(i,j,k,UTEMP) = T1
-              state(i,j,k,UMX) = rho1*v1
-              state(i,j,k,UMY) = 0.0e0_rt
-              state(i,j,k,UMZ) = 0.0e0_rt
+
+              if (idir == 1) then
+                 state(i,j,k,UMX) = rho1*v1
+                 state(i,j,k,UMY) = 0.0e0_rt
+                 state(i,j,k,UMZ) = 0.0e0_rt
+              else if (idir == 2) then
+                 state(i,j,k,UMX) = 0.0e0_rt
+                 state(i,j,k,UMY) = rho1*v1
+                 state(i,j,k,UMZ) = 0.0e0_rt
+              else if (idir == 3) then
+                 state(i,j,k,UMX) = 0.0e0_rt
+                 state(i,j,k,UMY) = 0.0e0_rt
+                 state(i,j,k,UMZ) = rho1*v1
+              end if
            end if
+              
  
            if (naux > 0) then
               state(i,j,k,UFX) = state(i,j,k,URHO)        
@@ -163,15 +198,26 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
 
   ! local variables
   integer :: i, j, k, igroup
-  real(rt)         xcell, t
+  real(rt)         length_cell,length_min, t
 
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
 
-           xcell = xmin + delta(1) * (dble(i) + 0.5e0_rt)
-   
-           if (xcell < 0.e0_rt) then
+           !Provides the simulation to be run in the x,y,or z direction       
+           !where length direction is the length side in a square prism
+
+           if (idir == 1) then
+              length_cell = xmin + delta(1) * (dble(i) + 0.5e0_rt)
+           else if (idir == 2) then
+              length_cell = ymin + delta(2) * (dble(j) + 0.5e0_rt)
+           else if (idir == 3) then
+              length_cell = zmin + delta(3) * (dble(k) + 0.5e0_rt)
+           else
+              stop "Invalid Direction, input integer int_dir = [1,3] ."
+           endif
+           
+           if (length_cell < 0.e0_rt) then
               T = T0
            else
               T = T1

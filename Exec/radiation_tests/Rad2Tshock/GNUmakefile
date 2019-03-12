@@ -1,11 +1,11 @@
 COMP	   = gnu
 
-DIM        = 1
+DIM        = 3
 
 USE_MPI    = TRUE
 DEBUG      = FALSE
 
-PROFILE    = FALSE
+PROFILE    = TRUE
 
 USE_RAD = TRUE
 USE_NEUTRINO = FALSE
