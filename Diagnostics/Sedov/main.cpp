@@ -3,6 +3,8 @@
 // function of r, for comparison to the analytic solution.
 //
 #include <iostream>
+// #include <stringstream>
+#include <regex>
 #include "AMReX_DataServices.H"
 #include <Sedov_F.H>
 
@@ -15,8 +17,11 @@ std::string inputs_name = "";
 //
 void GetInputArgs (const int argc, char** argv,
                    string& pltfile, string& slcfile,
-                   double& xctr, double& yctr, double & zctr,
                    bool& sphr);
+
+string GetVarFromJobInfo (const string pltfile, const string varname);
+
+Vector<Real> GetCenter (const string pltfile);
 
 void PrintHelp ();
 
@@ -31,13 +36,14 @@ int main(int argc, char* argv[])
 
 	// Input arguments
 	string pltfile, slcfile;
-	double xctr = 0.0;
-	double yctr = 0.0;
-	double zctr = 0.0;
 	bool sphr = false;
 
-	GetInputArgs (argc, argv, pltfile, slcfile, xctr, yctr, zctr, sphr);
+	GetInputArgs (argc, argv, pltfile, slcfile, sphr);
 
+	auto center = GetCenter(pltfile);
+	double xctr = center[0];
+	double yctr = center[1];
+	double zctr = center[2];
 	// Start dataservices
 	DataServices::SetBatchMode();
 
@@ -271,7 +277,6 @@ int main(int argc, char* argv[])
 //
 void GetInputArgs ( const int argc, char** argv,
                     string& pltfile, string& slcfile,
-                    double& xctr, double& yctr, double& zctr,
                     bool &sphr)
 {
 
@@ -287,18 +292,6 @@ void GetInputArgs ( const int argc, char** argv,
 		else if ( !strcmp(argv[i], "-s") || !strcmp(argv[i],"--slicefile") )
 		{
 			slcfile = argv[++i];
-		}
-		else if ( !strcmp(argv[i],"--xctr") )
-		{
-			xctr = std::atof(argv[++i]);
-		}
-		else if ( !strcmp(argv[i],"--yctr") )
-		{
-			yctr = std::atof(argv[++i]);
-		}
-		else if ( !strcmp(argv[i],"--zctr") )
-		{
-			zctr = std::atof(argv[++i]);
 		}
 		else if ( !strcmp(argv[i],"--sphr") )
 		{
@@ -343,6 +336,48 @@ void GetInputArgs ( const int argc, char** argv,
 	Print() << std::endl;
 }
 
+///
+/// Gets the variable ``varname`` from the ``job_info`` file and returns as a
+/// string
+///
+string GetVarFromJobInfo (const string pltfile, const string varname) {
+	string filename = pltfile + "/job_info";
+	std::regex re("(?:[ \\t]*)" + varname + "\\s*:\\s*(.*)\\s*\\n");
+
+	std::smatch m;
+
+	std::ifstream jobfile(filename);
+	if (jobfile.is_open()) {
+		std::stringstream buf;
+		buf << jobfile.rdbuf();
+		string file_contents = buf.str();
+
+		if (std::regex_search(file_contents, m, re)) {
+			return m[1];
+		} else {
+			Print() << "Unable to find " << varname << " in job_info file!" << std::endl;
+		}
+	} else {
+		Print() << "Could not open job_info file!" << std::endl;
+	}
+
+	return "";
+}
+
+// Get the center from the job info file and return as a Real Vector
+Vector<Real> GetCenter (const string pltfile) {
+	auto center_str = GetVarFromJobInfo(pltfile, "center");
+
+	// split string
+	std::istringstream iss {center_str};
+	Vector<Real> center;
+
+	std::string s;
+	while (std::getline(iss, s, ','))
+		center.push_back(stod(s));
+
+	return center;
+}
 
 //
 // Print usage info
@@ -352,12 +387,6 @@ void PrintHelp ()
 	Print() << "\nusage: executable_name args"
 	        << "\nargs [-p|--pltfile]     plotfile : plot file directory (required)"
 	        << "\n     [-s|--slicefile] slice file : slice file          (required)"
-#if (AMREX_SPACEDIM >=2)
-	        << "\n     [--xctr]               xctr : central x coord     (non-cartesian only)"
-	        << "\n     [--yctr]               yctr : central y coord     (non-cartesian only)"
-#if (AMREX_SPACEDIM==3)
-	        << "\n     [--zctr]               zctr : central z coord     (non-cartesian only)"
-#endif
 	        << "\n     [--sphr]          spherical : spherical problem"
 #endif
 	        << "\n\n" << std::endl;
