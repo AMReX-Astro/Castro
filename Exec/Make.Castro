@@ -84,6 +84,7 @@ endif
 
 ifeq ($(USE_CUDA),TRUE)
   USE_GPU_PRAGMA = TRUE
+  DEFINES += -DCUDA
 endif
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
@@ -497,6 +498,14 @@ $(objEXETempDir)/AMReX_buildInfo.o: .FORCE
 #------------------------------------------------------------------------------
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.rules
+
+ifeq ($(USE_CUDA),TRUE)
+ifeq ($(USE_GPU_PRAGMA), TRUE)
+
+include $(TOP)/Exec/Make.cuda_rules
+
+endif
+endif
 
 clean::
 	$(SILENT) $(RM) extern.F90

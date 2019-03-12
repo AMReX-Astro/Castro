@@ -8,14 +8,14 @@
 using namespace amrex;
 
 void
-Castro::apply_source_to_state(int is_new, MultiFab& target_state, MultiFab& source, Real dt, int ng)
+Castro::apply_source_to_state(MultiFab& target_state, MultiFab& source, Real dt, int ng)
 {
+    BL_PROFILE("Castro::apply_source_to_state()");
+
     AMREX_ASSERT(source.nGrow() >= ng);
     AMREX_ASSERT(target_state.nGrow() >= ng);
 
     MultiFab::Saxpy(target_state, dt, source, 0, 0, NUM_STATE, ng);
-
-    clean_state(is_new, target_state.nGrow());
 }
 
 void
@@ -177,6 +177,8 @@ Castro::do_new_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
 void
 Castro::construct_old_source(int src, MultiFab& source, MultiFab& state_in, Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
+    BL_PROFILE("Castro::construct_old_source()");
+    
     BL_ASSERT(src >= 0 && src < num_src);
 
     switch(src) {
@@ -228,6 +230,8 @@ Castro::construct_old_source(int src, MultiFab& source, MultiFab& state_in, Real
 void
 Castro::construct_new_source(int src, MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
+    BL_PROFILE("Castro::construct_new_source()");
+
     BL_ASSERT(src >= 0 && src < num_src);
 
     switch(src) {
@@ -299,6 +303,8 @@ Vector<Real>
 Castro::evaluate_source_change(MultiFab& source, Real dt, bool local)
 {
 
+  BL_PROFILE("Castro::evaluate_source_change()");
+    
   Vector<Real> update(source.nComp(), 0.0);
 
   // Create a temporary array which will hold a single component
@@ -392,6 +398,7 @@ Castro::print_all_source_changes(Real dt, bool is_new)
 void
 Castro::sum_of_sources(MultiFab& source)
 {
+  BL_PROFILE("Castro::sum_of_sources()");
 
   // this computes advective_source + 1/2 (old source + new source)
   //
@@ -421,6 +428,9 @@ Castro::sum_of_sources(MultiFab& source)
 void
 Castro::get_react_source_prim(MultiFab& react_src, Real time, Real dt)
 {
+
+    BL_PROFILE("Castro::get_react_source_prim()");
+
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
@@ -488,7 +498,7 @@ Castro::get_react_source_prim(MultiFab& react_src, Real time, Real dt)
 
     // Now fill all of the ghost zones.
     Real cur_time = get_state_data(Simplified_SDC_React_Type).curTime();
-    AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), cur_time, Simplified_SDC_React_Type, 0, NUM_STATE);
+    AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), cur_time, Simplified_SDC_React_Type, 0, react_src.nComp());
 
 }
 #endif

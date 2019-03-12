@@ -1045,6 +1045,8 @@ public:
 
     static int numGrow();
 
+    static int numState();
+
 #ifdef REACTIONS
 ///
 /// React state through a single reaction timestep, saving reaction source terms to ``reactions`` MultiFab. This is the CTU version.
@@ -1557,13 +1559,12 @@ public:
 ///
 /// Add source terms to ``state``
 ///
-/// @param is_new   do we use new (0) or old (1) data?
 /// @param state    State
 /// @param source   Source terms
 /// @param dt       timestep
 /// @param ng       number of ghost cells
 ///
-    void apply_source_to_state (int is_new, amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng = 0);
+    void apply_source_to_state (amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng);
 
 
 ///
@@ -1613,6 +1614,9 @@ public:
 #ifdef REACTIONS
     void construct_old_react_source(amrex::MultiFab& U_state, amrex::MultiFab& R_source);
 #endif
+
+// Hydrodynamics
+#include <Castro_hydro.H>
 
 #ifdef AMREX_PARTICLES
     static amrex::AmrTracerParticleContainer* theTracerPC () { return TracerPC; }
@@ -2065,11 +2069,6 @@ protected:
     int iteration;
 
     //
-    // Hydrodynamics
-    //
-#include <Castro_hydro.H>
-
-    //
     // Static data members.
     //
 #include <castro_params.H>
@@ -2204,6 +2203,13 @@ int
 Castro::numGrow()
 {
     return NUM_GROW;
+}
+
+inline
+int
+Castro::numState()
+{
+    return NUM_STATE;
 }
 
 inline

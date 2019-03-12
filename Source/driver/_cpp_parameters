@@ -306,11 +306,6 @@ use_post_step_regrid         int           0
 # Set to a negative value to disable this criterion.
 max_subcycles                int           10
 
-# If we do request more than the maximum number of subcycles,
-# should we fail, or should we clamp to that maximum number
-# and perform that many?
-clamp_subcycles              int           1
-
 # Number of iterations for the SDC advance.
 sdc_iters                    int           2
 
@@ -361,15 +356,6 @@ T_guess                     Real           1.e8               y
 
 # enable thermal diffusion
 diffuse_temp                 int           0                  n     DIFFUSION
-
-# enable enthalpy diffusion
-diffuse_enth                 int           0                  n     DIFFUSION
-
-# enable species diffusion
-diffuse_spec                 int           0                  n     DIFFUSION
-
-# enable velocity diffusion
-diffuse_vel                  int           0                  n     DIFFUSION
 
 # set a cutoff density for diffusion -- we zero the term out below this density
 diffuse_cutoff_density       Real          -1.e200            y     DIFFUSION

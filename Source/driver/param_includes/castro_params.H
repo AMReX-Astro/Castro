@@ -5,9 +5,6 @@
 
 #ifdef DIFFUSION
 static int diffuse_temp;
-static int diffuse_enth;
-static int diffuse_spec;
-static int diffuse_vel;
 static amrex::Real diffuse_cutoff_density;
 static amrex::Real diffuse_cutoff_density_hi;
 static amrex::Real diffuse_cond_scale_fac;
@@ -105,7 +102,6 @@ static amrex::Real retry_neg_dens_factor;
 static amrex::Real retry_subcycle_factor;
 static int use_post_step_regrid;
 static int max_subcycles;
-static int clamp_subcycles;
 static int sdc_iters;
 static amrex::Real dtnuc_e;
 static amrex::Real dtnuc_X;

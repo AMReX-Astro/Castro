@@ -871,6 +871,12 @@ Castro::writeJobInfo (const std::string& dir)
 
   jobInfoFile << " Domain geometry info\n";
 
+  Real center[3];
+  ca_get_center(center);
+
+  jobInfoFile << "     center: " << center[0] << " , " << center[1] << " , " << center[2] << "\n";
+  jobInfoFile << "\n";
+
   jobInfoFile << "     geometry.is_periodic: ";
   for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
     jobInfoFile << geom.isPeriodic(dir) << " ";
@@ -1239,7 +1245,7 @@ Castro::plotFileOutput(const std::string& dir,
     TheFullPath += BaseName;
     VisMF::Write(plotMF,TheFullPath,how,true);
 
-    if (track_grid_losses) {
+    if (track_grid_losses && level == 0) {
 
         // store diagnostic quantities
         std::ofstream DiagFile;

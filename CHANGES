@@ -1,5 +1,30 @@
 # changes since the last release
 
+  -- Dimension agnostic problem setups have had the interface to the
+     physical boundary conditions changed (hypfill, denfill, etc.).
+     If your problem is dimension agnostic, please consult the new
+     interfaces in Source/problems/bc_fill_nd.F90 to understand how
+     to convert your problem. The changes are that (1) the "ca_" prefixes
+     have been removed from the subroutine names, (2) the "time" parameter
+     is passed by value, and (3) the (lo, hi) indices that are the target
+     region to update the boundaries on are explicitly passed in as
+     the first two arguments. (#546)
+
+  -- removed the code to extrapolate diffusion terms to ghost cells
+     as it is no longer necessary (#532)
+
+  -- we remove enthalpy diffusion (there were no known applications of
+     this) and species and velocity diffusion (they were 1-d only).
+     None of these routines were regularly tested.  (#534)
+
+# 19.03
+
+  -- Fixed a minor long-standing bug in the simplified SDC implementation
+     involving incorrect indexing. This changes results slightly.
+
+  -- a number of tests involving reactions have been moved from
+     hydro_tests to reacting_tests (#527)
+
   -- The old spectral deferred corrections method has been renamed
      "simplified" SDC. It is accessed with time_integration_method = 3.
      This still requires building with USE_SDC = TRUE, and when building
@@ -9,8 +34,8 @@
      of state (it is still single level only).  Artificial viscosity
      was also added.
 
-  -- A framework for a new spectral deferred corrections method
-     was added.  This will allow for higher-order time integration.
+  -- A framework for a new spectral deferred corrections method was
+     added.  This will allow for higher-order time integration. (#310)
 
   -- Fix a bug where the self_heat parameter was not being initialized
      for the burning timestep limiter (#521).
@@ -19,15 +44,15 @@
      species in the primitive variable state.  This is set via the
      _variables file, parsed by set_variables.py.  To allow for
      species sources, you need to set PRIM_SPECIES_HAVE_SOURCES.  This
-     is done currently for SDC.
+     is done currently for SDC. (#519)
 
   -- renamed QVAR to NQSRC to make it clear that this is the number of
      source terms for the primitive variable state.  We also fixed a
-     number of places where QVAR was used instead of NQ.
+     number of places where QVAR was used instead of NQ. (#517)
 
   -- A new runtime parameter, T_guess, was created.  This is used as
      the initial temperature guess when calling the EOS with inputs
-     other than rho, T, for the initial Newton iteration.
+     other than rho, T, for the initial Newton iteration. (#509)
 
   -- The CTU hydrodynamics driver has been rewritten in C++
      (#498)

@@ -134,28 +134,31 @@ extern "C"
 
   void ca_apply_metric
     (const int* lo, const int* hi,
-     D_DECL(const int* xlo, const int *ylo, const int *zlo),
-     D_DECL(const int* xhi, const int *yhi, const int *zhi),
-     BL_FORT_FAB_ARG(cc),
-     D_DECL(const BL_FORT_FAB_ARG(xedge),
-            const BL_FORT_FAB_ARG(yedge),
-            const BL_FORT_FAB_ARG(zedge)),
-            const amrex::Real* dx, const int* coord_type);
+     const int* xlo, const int* xhi,
+#if AMREX_SPACEDIM >= 2
+     const int* ylo, const int *yhi,
+#endif
+     BL_FORT_FAB_ARG_3D(cc),
+     const BL_FORT_FAB_ARG_3D(xedge),
+#if AMREX_SPACEDIM >= 2
+     const BL_FORT_FAB_ARG_3D(yedge),
+#endif
+     const amrex::Real* dx, const int coord_type);
 
   void ca_weight_cc
     (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG(cc),
-     const amrex::Real* dx, const int* coord_type);
+     BL_FORT_FAB_ARG_3D(cc),
+     const amrex::Real* dx, const int coord_type);
 
   void ca_unweight_cc
     (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG(cc),
-     const amrex::Real* dx, const int* coord_type);
+     BL_FORT_FAB_ARG_3D(cc),
+     const amrex::Real* dx, const int coord_type);
 
   void ca_unweight_edges
     (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG(edge),
-     const amrex::Real* dx, const int* coord_type, const int* idir);
+     BL_FORT_FAB_ARG_3D(edge),
+     const amrex::Real* dx, const int coord_type, const int idir);
 
 
 #ifdef HYBRID_MOMENTUM
@@ -201,266 +204,6 @@ extern "C"
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new),
      const int verbose);
 
-  void ca_generic_single_fill
-    (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real* time, const int* bc);
-
-  void ca_generic_multi_fill
-    (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real* time, const int* bc);
-
-#ifdef AMREX_DIMENSION_AGNOSTIC
-
-  void ca_hypfill
-    (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real* time, const int* bc);
-
-  void ca_denfill
-    (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real* time, const int* bc);
-
-  void ca_xmomfill
-    (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real* time, const int* bc);
-
-  void ca_ymomfill
-    (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real* time, const int* bc);
-
-  void ca_zmomfill
-    (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real* time, const int* bc);
-
-  void ca_zerofill
-    (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real* time, const int* bc);
-
-  void ca_default_fill
-    (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real* time, const int* bc);
-
-#ifdef RADIATION
-  void ca_radfill
-    (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real* time, const int* bc);
-#endif
-
-#ifdef REACTIONS
-  void ca_reactfill
-    (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real* time, const int* bc);
-#endif
-
-#ifdef SELF_GRAVITY
-  void ca_phigravfill
-    (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real* time, const int* bc);
-
-  void ca_gravxfill
-    (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real* time, const int* bc);
-
-  void ca_gravyfill
-    (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real* time, const int* bc);
-
-  void ca_gravzfill
-    (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real* time, const int* bc);
-#endif
-
-#ifdef ROTATION
-  void ca_phirotfill
-    (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real* time, const int* bc);
-
-  void ca_rotxfill
-    (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real* time, const int* bc);
-
-  void ca_rotyfill
-    (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real* time, const int* bc);
-
-  void ca_rotzfill
-    (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real* time, const int* bc);
-#endif
-
-  inline void ca_nullfill
-    (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real* time, const int* bc)
-#ifdef __cplusplus
-  { amrex::Abort("Not supposed to call ca_nullfill"); }
-#else
-    ;
-#endif
-
-#else
-
-  void ca_hypfill
-    (BL_FORT_FAB_ARG(state),
-     const int dlo[], const int dhi[],
-     const amrex::Real dx[], const amrex::Real glo[],
-     const amrex::Real* time, const int bc[]);
-
-  void ca_denfill
-    (BL_FORT_FAB_ARG(state),
-     const int dlo[], const int dhi[],
-     const amrex::Real dx[], const amrex::Real glo[],
-     const amrex::Real* time, const int bc[]);
-
-  void ca_xmomfill
-    (BL_FORT_FAB_ARG(state),
-     const int dlo[], const int dhi[],
-     const amrex::Real dx[], const amrex::Real glo[],
-     const amrex::Real* time, const int bc[]);
-
-  void ca_ymomfill
-    (BL_FORT_FAB_ARG(state),
-     const int dlo[], const int dhi[],
-     const amrex::Real dx[], const amrex::Real glo[],
-     const amrex::Real* time, const int bc[]);
-
-  void ca_zmomfill
-    (BL_FORT_FAB_ARG(state),
-     const int dlo[], const int dhi[],
-     const amrex::Real dx[], const amrex::Real glo[],
-     const amrex::Real* time, const int bc[]);
-
-  void ca_zerofill
-    (BL_FORT_FAB_ARG(state),
-     const int dlo[], const int dhi[],
-     const amrex::Real dx[], const amrex::Real glo[],
-     const amrex::Real* time, const int bc[]);
-
-  void ca_default_fill
-    (BL_FORT_FAB_ARG(state),
-     const int dlo[], const int dhi[],
-     const amrex::Real dx[], const amrex::Real glo[],
-     const amrex::Real* time, const int bc[]);
-
-#ifdef RADIATION
-  void ca_radfill
-    (BL_FORT_FAB_ARG(state),
-     const int dlo[], const int dhi[],
-     const amrex::Real dx[], const amrex::Real glo[],
-     const amrex::Real* time, const int bc[]);
-#endif
-
-#ifdef REACTIONS
-  void ca_reactfill
-    (BL_FORT_FAB_ARG(state),
-     const int dlo[], const int dhi[],
-     const amrex::Real dx[], const amrex::Real glo[],
-     const amrex::Real* time, const int bc[]);
-#endif
-
-#ifdef SELF_GRAVITY
-  void ca_phigravfill
-    (BL_FORT_FAB_ARG(state),
-     const int dlo[], const int dhi[],
-     const amrex::Real dx[], const amrex::Real glo[],
-     const amrex::Real* time, const int bc[]);
-
-  void ca_gravxfill
-    (BL_FORT_FAB_ARG(state),
-     const int dlo[], const int dhi[],
-     const amrex::Real dx[], const amrex::Real glo[],
-     const amrex::Real* time, const int bc[]);
-
-  void ca_gravyfill
-    (BL_FORT_FAB_ARG(state),
-     const int dlo[], const int dhi[],
-     const amrex::Real dx[], const amrex::Real glo[],
-     const amrex::Real* time, const int bc[]);
-
-  void ca_gravzfill
-    (BL_FORT_FAB_ARG(state),
-     const int dlo[], const int dhi[],
-     const amrex::Real dx[], const amrex::Real glo[],
-     const amrex::Real* time, const int bc[]);
-#endif
-
-#ifdef ROTATION
-  void ca_phirotfill
-    (BL_FORT_FAB_ARG(state),
-     const int dlo[], const int dhi[],
-     const amrex::Real dx[], const amrex::Real glo[],
-     const amrex::Real* time, const int bc[]);
-
-  void ca_rotxfill
-    (BL_FORT_FAB_ARG(state),
-     const int dlo[], const int dhi[],
-     const amrex::Real dx[], const amrex::Real glo[],
-     const amrex::Real* time, const int bc[]);
-
-  void ca_rotyfill
-    (BL_FORT_FAB_ARG(state),
-     const int dlo[], const int dhi[],
-     const amrex::Real dx[], const amrex::Real glo[],
-     const amrex::Real* time, const int bc[]);
-
-  void ca_rotzfill
-    (BL_FORT_FAB_ARG(state),
-     const int dlo[], const int dhi[],
-     const amrex::Real dx[], const amrex::Real glo[],
-     const amrex::Real* time, const int bc[]);
-#endif
-
-  inline void ca_nullfill
-    (BL_FORT_FAB_ARG(state),
-     const int dlo[], const int dhi[],
-     const amrex::Real dx[], const amrex::Real glo[],
-     const amrex::Real* time, const int bc[])
-#ifdef __cplusplus
-  { amrex::Abort("Not supposed to call ca_nullfill"); }
-#else
-    ;
-#endif
-
-#endif
-
   void ca_estdt
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
@@ -468,10 +211,6 @@ extern "C"
 
 #ifdef DIFFUSION
   void ca_estdt_temp_diffusion
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-     const amrex::Real* dx, amrex::Real* dt);
-  void ca_estdt_enth_diffusion
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
      const amrex::Real* dx, amrex::Real* dt);
@@ -596,7 +335,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(grav),
 #endif
      BL_FORT_FAB_ARG_3D(source),
-     const amrex::Real* dx, const amrex::Real& dt, const amrex::Real* time);
+     const amrex::Real* dx, const amrex::Real dt, const amrex::Real time);
 
   void ca_corrgsrc
     (const int* lo, const int* hi,
@@ -614,7 +353,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(yflux),
      const BL_FORT_FAB_ARG_3D(zflux),
      const BL_FORT_FAB_ARG_3D(source),
-     const amrex::Real* dx, const amrex::Real& dt, const amrex::Real* time);
+     const amrex::Real* dx, const amrex::Real dt, const amrex::Real time);
 #endif
 
 #ifdef ROTATION
@@ -713,43 +452,13 @@ extern "C"
   void ca_fill_temp_cond
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(xcoeffs),
-     BL_FORT_FAB_ARG_3D(ycoeffs),
-     BL_FORT_FAB_ARG_3D(zcoeffs));
+     BL_FORT_FAB_ARG_3D(coeff_cc));
 
-  void ca_fill_enth_cond
+  void ca_average_coef_cc_to_ec
     (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(xcoeffs),
-     BL_FORT_FAB_ARG_3D(ycoeffs),
-     BL_FORT_FAB_ARG_3D(zcoeffs));
-
-  void ca_fill_spec_coeff
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-      BL_FORT_FAB_ARG_3D(xcoeffs),
-      BL_FORT_FAB_ARG_3D(ycoeffs),
-      BL_FORT_FAB_ARG_3D(zcoeffs));
-
-  void ca_fill_first_visc_coeff
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(xcoeffs),
-     BL_FORT_FAB_ARG_3D(ycoeffs),
-     BL_FORT_FAB_ARG_3D(zcoeffs));
-
-  void ca_fill_secnd_visc_coeff
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(xcoeffs),
-     BL_FORT_FAB_ARG_3D(ycoeffs),
-     BL_FORT_FAB_ARG_3D(zcoeffs));
-
-  void ca_compute_div_tau_u
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(div_tau_u),
-     const BL_FORT_FAB_ARG_3D(state),
-     const amrex::Real* dx, const int* coord_type);
+     const BL_FORT_FAB_ARG_3D(coef_c),
+     BL_FORT_FAB_ARG_3D(coef_e),
+     const int idir);
 
   void ca_thermo_src
     (const int* lo, const int* hi,
@@ -770,9 +479,6 @@ extern "C"
 #ifdef NEUTRINO
   void ca_setgroup(const int& igroup);
 #endif
-
-/* hydrodynamics */
-#include <Castro_hydro_F.H>
 
 #ifdef __cplusplus
 }

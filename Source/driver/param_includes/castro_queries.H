@@ -5,9 +5,6 @@
 
 #ifdef DIFFUSION
 pp.query("diffuse_temp", diffuse_temp);
-pp.query("diffuse_enth", diffuse_enth);
-pp.query("diffuse_spec", diffuse_spec);
-pp.query("diffuse_vel", diffuse_vel);
 pp.query("diffuse_cutoff_density", diffuse_cutoff_density);
 pp.query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi);
 pp.query("diffuse_cond_scale_fac", diffuse_cond_scale_fac);
@@ -105,7 +102,6 @@ pp.query("retry_neg_dens_factor", retry_neg_dens_factor);
 pp.query("retry_subcycle_factor", retry_subcycle_factor);
 pp.query("use_post_step_regrid", use_post_step_regrid);
 pp.query("max_subcycles", max_subcycles);
-pp.query("clamp_subcycles", clamp_subcycles);
 pp.query("sdc_iters", sdc_iters);
 pp.query("dtnuc_e", dtnuc_e);
 pp.query("dtnuc_X", dtnuc_X);

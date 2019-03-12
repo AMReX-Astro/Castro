@@ -5,9 +5,6 @@
 
 #ifdef DIFFUSION
 int         Castro::diffuse_temp = 0;
-int         Castro::diffuse_enth = 0;
-int         Castro::diffuse_spec = 0;
-int         Castro::diffuse_vel = 0;
 amrex::Real Castro::diffuse_cutoff_density = -1.e200;
 amrex::Real Castro::diffuse_cutoff_density_hi = -1.e200;
 amrex::Real Castro::diffuse_cond_scale_fac = 1.0;
@@ -105,7 +102,6 @@ amrex::Real Castro::retry_neg_dens_factor = 1.e-1;
 amrex::Real Castro::retry_subcycle_factor = 0.5;
 int         Castro::use_post_step_regrid = 0;
 int         Castro::max_subcycles = 10;
-int         Castro::clamp_subcycles = 1;
 int         Castro::sdc_iters = 2;
 amrex::Real Castro::dtnuc_e = 1.e200;
 amrex::Real Castro::dtnuc_X = 1.e200;

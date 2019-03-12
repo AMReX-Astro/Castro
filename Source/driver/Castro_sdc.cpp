@@ -1,11 +1,14 @@
 #include "Castro.H"
 #include "Castro_F.H"
+#include "Castro_hydro_F.H"
 
 using namespace amrex;
 
 void
 Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
 
+  BL_PROFILE("Castro::do_sdc_update()");
+    
   // this routine needs to do the update from time node m to m+1
   //
   // We come in with:
@@ -155,6 +158,8 @@ void
 Castro::construct_old_react_source(amrex::MultiFab& U_state,
                                    amrex::MultiFab& R_source) {
 
+  BL_PROFILE("Castro::construct_old_react_source()");
+    
   // this routine simply fills R_source with the reactive source from
   // state U_state.  Note: it is required that U_state have atleast 2
   // valid ghost cells for 4th order.
