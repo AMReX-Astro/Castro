@@ -1045,6 +1045,8 @@ public:
 
     static int numGrow();
 
+    static int numState();
+
 #ifdef REACTIONS
 ///
 /// React state through a single reaction timestep, saving reaction source terms to ``reactions`` MultiFab. This is the CTU version.
@@ -2201,6 +2203,13 @@ int
 Castro::numGrow()
 {
     return NUM_GROW;
+}
+
+inline
+int
+Castro::numState()
+{
+    return NUM_STATE;
 }
 
 inline
