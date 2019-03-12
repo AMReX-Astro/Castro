@@ -780,8 +780,8 @@ contains
 
 
 
-  !>
-  !! @note Binds to C function ``ca_get_center``
+  !> @brief Get the current center of the problem.  This may not be the
+  !! center of the domain, due to any problem symmetries.
   !!
   !! @param[inout] center_out real(rt)
   !!
