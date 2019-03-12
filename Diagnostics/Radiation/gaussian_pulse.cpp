@@ -24,11 +24,13 @@ int main(int argc, char* argv[])
 
 	// Input arguments
 	string pltfile, slcfile;
-	double xctr = 0.0;
-	double yctr = 0.0;
 	int dir;
 
-	GetInputArgs(argc, argv, pltfile, slcfile, xctr, yctr, dir);
+	GetInputArgs(argc, argv, pltfile, slcfile dir);
+
+    auto center = GetCenter(pltfile);
+	double xctr = center[0];
+	double yctr = center[1];
 
 	Print() << "xctr = " << xctr << std::endl;
 	Print() << "yctr = " << yctr << std::endl;

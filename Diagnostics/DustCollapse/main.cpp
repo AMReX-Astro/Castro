@@ -12,6 +12,7 @@
 //              but this can be overridden with --{x,y,z}ctr.
 //
 #include <iostream>
+#include <regex>
 #include "AMReX_DataServices.H"
 #include <DustCollapse_F.H>
 
@@ -21,6 +22,10 @@ std::string inputs_name = "";
 
 template <typename T>
 Vector<size_t> sort_indexes(const Vector<T> &v);
+
+string GetVarFromJobInfo (const string pltfile, const string varname);
+
+Vector<Real> GetCenter (const string pltfile);
 
 int main(int argc, char* argv[])
 {
@@ -37,28 +42,12 @@ int main(int argc, char* argv[])
 	Print() << "\nUsing a density threshhold of half the maximum analytic density" << std::endl;
 
 	auto farg = 1;
-	Real xctr, yctr, zctr = 0.0;
 	bool profile = false;
 
 #if (AMREX_SPACEDIM >= 2)
 	auto j = 1;
 	while (j < argc) {
-		if ( !strcmp(argv[j], "--xctr")  )
-		{
-			xctr = atof(argv[++j]);
-			farg += 2;
-		}
-		else if ( !strcmp(argv[j], "--yctr")  )
-		{
-			yctr = atof(argv[++j]);
-			farg += 2;
-		}
-		else if ( !strcmp(argv[j], "--zctr")  )
-		{
-			zctr = atof(argv[++j]);
-			farg += 2;
-		}
-		else if ( !strcmp(argv[j], "--profile")  )
+		if ( !strcmp(argv[j], "--profile")  )
 		{
 			profile = true;;
 			farg++;
@@ -73,6 +62,11 @@ int main(int argc, char* argv[])
 	for (auto f = farg; f < argc; f++) {
 
 		string pltfile = argv[f];
+
+        auto center = GetCenter(pltfile);
+    	Real xctr = center[0];
+    	Real yctr = center[1];
+    	Real zctr = center[2];
 
 		// Start dataservices
 		DataServices::SetBatchMode();
@@ -277,7 +271,7 @@ int main(int argc, char* argv[])
 		// dump out profile file
 		if (profile) {
 			string outfile_name = pltfile;
-			
+
 			if (pltfile.back() == '/')
 			 	outfile_name += "prof.profile";
 			else
@@ -293,7 +287,7 @@ int main(int argc, char* argv[])
 			outfile << std::setw(w) << "r" << std::setw(w) << "density" << std::endl;
 
 			for (auto i = 0; i < nbins; i++)
-				outfile << std::setw(w) << r[i] << std::setw(w) << ens[i] << std::endl;
+				outfile << std::setw(w) << r[i] << std::setw(w) << dens[i] << std::endl;
 
 			outfile.close();
 
@@ -320,4 +314,47 @@ Vector<size_t> sort_indexes(const Vector<T> &v) {
 	});
 
 	return idx;
+}
+
+///
+/// Gets the variable ``varname`` from the ``job_info`` file and returns as a
+/// string
+///
+string GetVarFromJobInfo (const string pltfile, const string varname) {
+	string filename = pltfile + "/job_info";
+	std::regex re("(?:[ \\t]*)" + varname + "\\s*:\\s*(.*)\\s*\\n");
+
+	std::smatch m;
+
+	std::ifstream jobfile(filename);
+	if (jobfile.is_open()) {
+		std::stringstream buf;
+		buf << jobfile.rdbuf();
+		string file_contents = buf.str();
+
+		if (std::regex_search(file_contents, m, re)) {
+			return m[1];
+		} else {
+			Print() << "Unable to find " << varname << " in job_info file!" << std::endl;
+		}
+	} else {
+		Print() << "Could not open job_info file!" << std::endl;
+	}
+
+	return "";
+}
+
+// Get the center from the job info file and return as a Real Vector
+Vector<Real> GetCenter (const string pltfile) {
+	auto center_str = GetVarFromJobInfo(pltfile, "center");
+
+	// split string
+	std::istringstream iss {center_str};
+	Vector<Real> center;
+
+	std::string s;
+	while (std::getline(iss, s, ','))
+		center.push_back(stod(s));
+
+	return center;
 }

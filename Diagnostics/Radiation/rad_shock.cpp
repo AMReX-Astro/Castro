@@ -28,11 +28,9 @@ int main(int argc, char* argv[])
 	// Input arguments
 	string pltfile;
 	string slcfile;
-	double xctr = 0.0;
-	double yctr = 0.0;
 	int idir = 1;
 
-	GetInputArgs (argc, argv, pltfile, slcfile, xctr, yctr, idir);
+	GetInputArgs (argc, argv, pltfile, slcfile, idir);
 
 	Print() << "idir = " << idir << std::endl;
 
