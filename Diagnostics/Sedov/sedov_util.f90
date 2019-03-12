@@ -146,7 +146,7 @@ subroutine fextract2d_sph(lo, hi, p, plo, phi, nc_p, nbins, dens_bin, &
   real(rt), intent(inout) :: vel_bin(0:nbins-1)
   real(rt), intent(inout) :: pres_bin(0:nbins-1)
   real(rt), intent(inout) :: e_bin(0:nbins-1)
-  integer, intent(inout) :: volcount(0:nbins-1)
+  real(rt), intent(inout) :: volcount(0:nbins-1)
   integer, intent(in), value :: mask_size
   integer, intent(inout) :: imask(0:mask_size-1,0:mask_size-1)
   integer, intent(in), value :: r1, dens_comp, xmom_comp, ymom_comp, pres_comp, rhoe_comp

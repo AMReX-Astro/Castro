@@ -116,6 +116,7 @@ int main(int argc, char* argv[])
 	Vector<Real> pres_bin(nbins, 0.);
 	Vector<Real> e_bin(nbins, 0.);
 	Vector<int> ncount(nbins, 0);
+	Vector<Real> volcount(nbins, 0);
 
 	// r1 is the factor between the current level grid spacing and the
 	// FINEST level
@@ -166,7 +167,7 @@ int main(int argc, char* argv[])
 				               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
 				               nbins, dens_bin.dataPtr(),
 				               vel_bin.dataPtr(), pres_bin.dataPtr(),
-				               e_bin.dataPtr(), ncount.dataPtr(),
+				               e_bin.dataPtr(), volcount.dataPtr(),
 				               imask.dataPtr(), mask_size, r1,
 				               dens_comp, xmom_comp, ymom_comp, pres_comp, rhoe_comp,
 				               dx_fine, level_dx.dataPtr(),
@@ -212,13 +213,26 @@ int main(int argc, char* argv[])
 	}
 
 #if (AMREX_SPACEDIM >= 2)
-	//normalize
-	for (int i = 0; i < nbins; i++) {
-		if (ncount[i] != 0) {
-			dens_bin[i] /= ncount[i];
-			vel_bin[i] /= ncount[i];
-			pres_bin[i] /= ncount[i];
-			e_bin[i] /= ncount[i];
+
+	if (AMREX_SPACEDIM == 2 && sphr) {
+		//normalize
+		for (int i = 0; i < nbins; i++) {
+			if (volcount[i] != 0.0) {
+				dens_bin[i] /= volcount[i];
+				vel_bin[i] /= volcount[i];
+				pres_bin[i] /= volcount[i];
+				e_bin[i] /= volcount[i];
+			}
+		}
+	} else {
+		//normalize
+		for (int i = 0; i < nbins; i++) {
+			if (ncount[i] != 0) {
+				dens_bin[i] /= ncount[i];
+				vel_bin[i] /= ncount[i];
+				pres_bin[i] /= ncount[i];
+				e_bin[i] /= ncount[i];
+			}
 		}
 	}
 #endif
@@ -320,11 +334,11 @@ void GetInputArgs ( const int argc, char** argv,
 	Print() << "\nplotfile  = \"" << pltfile << "\"" << std::endl;
 	Print() << "slicefile = \"" << slcfile << "\"" << std::endl;
 #if (AMREX_SPACEDIM >= 2)
-    Print() << "xctr = " << xctr << std::endl;
-    Print() << "yctr = " << yctr << std::endl;
+	Print() << "xctr = " << xctr << std::endl;
+	Print() << "yctr = " << yctr << std::endl;
 #endif
 #if (AMREX_SPACEDIM == 3)
-    Print() << "zctr = " << zctr << std::endl;
+	Print() << "zctr = " << zctr << std::endl;
 #endif
 	Print() << std::endl;
 }
