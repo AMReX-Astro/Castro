@@ -4,6 +4,8 @@ Problems
 .. toctree::
    :maxdepth: 2
 
+   file/Castro__bc__fill_8H
+   file/Castro__bc__fill__nd_8H
    file/Castro__prob__err__list_8H
    file/Prob__1d_8f90
    file/Prob__2d_8f90
