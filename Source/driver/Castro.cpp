@@ -43,6 +43,10 @@
 #include <omp.h>
 #endif
 
+#ifdef AMREX_USE_CUDA
+#include <cuda_profiler_api.h>
+#endif
+
 using namespace amrex;
 
 bool         Castro::signalStopJob = false;
@@ -934,6 +938,12 @@ Castro::initData ()
     if (verbose && ParallelDescriptor::IOProcessor())
        std::cout << "Initializing the data at level " << level << std::endl;
 
+    // Don't profile for this code, since there will be a lot of host
+    // activity and GPU page faults that we're uninterested in.
+#ifdef AMREX_USE_CUDA
+    AMREX_GPU_SAFE_CALL(cudaProfilerStop());
+#endif
+
 #ifdef RADIATION
     // rad quantities are in the state even if (do_radiation == 0)
     MultiFab &Rad_new = get_new_data(Rad_Type);
@@ -1107,6 +1117,10 @@ Castro::initData ()
 #ifdef AMREX_PARTICLES
     if (level == 0)
 	init_particles();
+#endif
+
+#ifdef AMREX_USE_CUDA
+    AMREX_GPU_SAFE_CALL(cudaProfilerStart());
 #endif
 
     if (verbose && ParallelDescriptor::IOProcessor())
@@ -1969,6 +1983,9 @@ void
 Castro::post_regrid (int lbase,
                      int new_finest)
 {
+
+    BL_PROFILE("Castro::post_regrid()");
+
     fine_mask.clear();
 
 #ifdef AMREX_PARTICLES
@@ -2172,6 +2189,9 @@ Castro::post_init (Real stop_time)
 void
 Castro::post_grown_restart ()
 {
+
+    BL_PROFILE("Castro::post_grown_restart()");
+    
     if (level > 0)
         return;
 
@@ -2268,6 +2288,8 @@ Castro::okToContinue ()
 void
 Castro::advance_aux(Real time, Real dt)
 {
+    BL_PROFILE("Castro::advance_aux()");
+    
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "... special update for auxiliary variables \n";
 
@@ -2318,6 +2340,8 @@ Castro::FluxRegCrseInit() {
 void
 Castro::FluxRegFineAdd() {
 
+    BL_PROFILE("Castro::FluxRegFineAdd()");
+    
     if (level == 0) return;
 
     for (int i = 0; i < BL_SPACEDIM; ++i)
@@ -3032,6 +3056,9 @@ Castro::derive (const std::string& name,
                 Real           time,
                 int            ngrow)
 {
+
+    BL_PROFILE("Castro::derive()");
+    
 #ifdef NEUTRINO
   if (name.substr(0,4) == "Neut") {
     // Extract neutrino energy group number from name string and
@@ -3061,6 +3088,9 @@ Castro::derive (const std::string& name,
                 MultiFab&      mf,
                 int            dcomp)
 {
+
+    BL_PROFILE("Castro::derive()");
+
 #ifdef NEUTRINO
   if (name.substr(0,4) == "Neut") {
     // Extract neutrino energy group number from name string and
@@ -3201,6 +3231,8 @@ Castro::reset_internal_energy(MultiFab& S_new)
 void
 Castro::computeTemp(int is_new, int ng)
 {
+
+  BL_PROFILE("Castro::computeTemp()");
 
   // this is the "preferred" computeTemp interface -- it will work
   // directly on StateData.  is_new=0 means the old data is used,
@@ -3368,6 +3400,8 @@ void
 Castro::computeTemp(MultiFab& State, int ng)
 {
 
+  BL_PROFILE("Castro::computeTemp()");
+    
   // this is the old version of computeTemp that works for an
   // arbitrary MF.  This will not work for 4th order hydr
   if (fourth_order) {
@@ -3457,6 +3491,8 @@ Castro::apply_source_term_predictor()
 void
 Castro::swap_state_time_levels(const Real dt)
 {
+
+    BL_PROFILE("Castro::swap_state_time_levels()");
 
     for (int k = 0; k < num_state_type; k++) {
 

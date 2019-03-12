@@ -4,6 +4,16 @@
      MOL or the new SDC integration (#543, #545) and also no longer
      recompute the source terms after reflux for these methods (#549)
 
+  -- Dimension agnostic problem setups have had the interface to the
+     physical boundary conditions changed (hypfill, denfill, etc.).
+     If your problem is dimension agnostic, please consult the new
+     interfaces in Source/problems/bc_fill_nd.F90 to understand how
+     to convert your problem. The changes are that (1) the "ca_" prefixes
+     have been removed from the subroutine names, (2) the "time" parameter
+     is passed by value, and (3) the (lo, hi) indices that are the target
+     region to update the boundaries on are explicitly passed in as
+     the first two arguments. (#546)
+
   -- removed the code to extrapolate diffusion terms to ghost cells
      as it is no longer necessary (#532)
 

@@ -178,6 +178,8 @@ if __name__ == "__main__":
                  (sdc4, "SDC (4 iters)")]
 
         for dset, label in dsets:
+            if len(dset) == 0:
+                continue
             ax.errorbar([q.cfl for q in dset], [q.v for q in dset],
                         yerr=[q.v_sigma for q in dset],
                         marker="x", label=label)
@@ -212,6 +214,8 @@ if __name__ == "__main__":
                  (sdc4, "SDC (4 iters)")]
 
         for dset, label in dsets:
+            if len(dset) == 0:
+                continue
             ax.errorbar([q.nzones for q in dset], [q.v for q in dset],
                         yerr=[q.v_sigma for q in dset],
                         marker="x", label=label)

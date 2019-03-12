@@ -35,7 +35,7 @@ C++
 C++ to Fortran
 ==============
 
-* All C to Fortran interfaces should use the ISO C binding.  The 
+* All C to Fortran interfaces should use the ISO C binding.  The
   Fortran subroutine should use
 
   .. code:: fortran
@@ -77,7 +77,7 @@ A routines should use Doxygen style comments.
   .. code:: c++
 
      ///
-     /// Description of the function 
+     /// Description of the function
      ///
      /// @param bar       Brief description of the variable
      ///
@@ -97,9 +97,11 @@ A routines should use Doxygen style comments.
 
      !> @brief Description of the function
      !!
-     !! @param bar      Brief description of the variable
+     !! @param bar      datatype,    Brief description of the variable
      subroutine foo(bar)
        ...
 
-  Documentation for modules should be similarly formatted, with the comment block again
-  coming `before` the module definition.
+  Note that Doxygen does not automatically pick up the variable datatypes
+  of Fortran functions (as it does for C++ functions), so we include these in the
+  parameter list of the function's docstring. Documentation for modules should
+  be similarly formatted, with the comment block again coming `before` the module definition.

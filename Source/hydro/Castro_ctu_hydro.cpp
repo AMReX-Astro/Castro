@@ -52,8 +52,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   Real yang_lost = 0.;
   Real zang_lost = 0.;
 
-  BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
-
 #ifdef _OPENMP
 #ifdef RADIATION
 #pragma omp parallel reduction(max:nstep_fsp) \
