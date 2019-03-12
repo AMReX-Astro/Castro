@@ -509,6 +509,16 @@ Castro::Castro (Amr&            papa,
       material_lost_through_boundary_temp[i] = 0.0;
     }
 
+    // Coterminous AMR boundaries are not supported in Castro if we're doing refluxing.
+
+    if (do_hydro && do_reflux) {
+        for (int lev = 0; lev <= parent->maxLevel(); ++lev) {
+            if (parent->nErrorBuf(lev) == 0) {
+                amrex::Error("n_error_buf = 0 is unsupported when using hydro.");
+            }
+        }
+    }
+
 #ifdef SELF_GRAVITY
 
    // Initialize to zero here in case we run with do_grav = false.
