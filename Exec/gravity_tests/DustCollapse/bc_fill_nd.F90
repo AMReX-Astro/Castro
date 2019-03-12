@@ -35,7 +35,7 @@ contains
     real(rt) :: mom,momc
 
     ! Do this for all the variables, but we will overwrite the momenta below
-    call amrex_filccn(adv_lo, adv_hi, adv, adv_lo, adv_hi, NVAR, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(lo, hi, adv, adv_lo, adv_hi, NVAR, domlo, domhi, delta, xlo, bc)
 
 #if AMREX_SPACEDIM == 3
     if ( (bc(1,1,1) == EXT_DIR .or. bc(1,2,1) == EXT_DIR) .or.  &
