@@ -1,5 +1,4 @@
 module amrinfo_module
-
   ! This module contains information about the state of the Amr class in C++.
 
   use amrex_fort_module, only : rt => amrex_real

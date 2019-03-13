@@ -1,37 +1,21 @@
-!> @brief Functions for implementing the source terms to the internal energy
-!! equation, for those integration methods where we treat it as a
-!! source and do not explicitly discretize it in the conservative
-!! update.
 module thermo_sources
+    ! Functions for implementing the source terms to the internal energy
+    ! equation, for those integration methods where we treat it as a
+    ! source and do not explicitly discretize it in the conservative
+    ! update.
 
   implicit none
 
 contains
 
-  !> @brief  Compute thermodynamic sources for the internal energy equation.
-  !! At the moment, this is only the -p div{U} term in the internal energy
-  !! equation, and only for method-of-lines integration, including the new
-  !! SDC method (the `-` is because it is on the RHS of the equation)
-  !!
-  !! @param[in] lo  lower bounds of the box to operate on
-  !! @param[in] hi  upper bounds of the box to operate on
-  !! @param[in] old_state  the old-time hydrodynamic conserved state
-  !! @param[in] os_lo  lower bounds of the old_state array
-  !! @param[in] os_hi  upper bounds of the old_state array
-  !! @param[in] new_state  the new-time hydrodynamic conserved state
-  !! @param[in] ns_lo  lower bounds of the new_state array
-  !! @param[in] ns_hi  upper bounds of the new_state array
-  !! @param[inout] src  the source terms for the conserved variables
-  !! @param[in] src_lo  lower bounds of the src array
-  !! @param[in] src_hi  upper bounds of the src array
-  !! @param[in] problo  physical coordinates of the lower left corner of the domain
-  !! @param[in] dx  grid spacing
-  !! @param[in] time  current simulation time
-  !! @param[in] dt  current timestep
   subroutine ca_thermo_src(lo, hi, &
                            old_state, os_lo, os_hi, &
                            new_state, ns_lo, ns_hi, &
                            src, src_lo, src_hi, problo, dx, time, dt) bind(C, name="ca_thermo_src")
+   !  Compute thermodynamic sources for the internal energy equation.
+   ! At the moment, this is only the -p div{U} term in the internal energy
+   ! equation, and only for method-of-lines integration, including the new
+   ! SDC method (the `-` is because it is on the RHS of the equation)
 
     use amrex_constants_module, only: ZERO, HALF, FOURTH
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UFS, UEINT
@@ -43,15 +27,17 @@ contains
 
     implicit none
 
-    integer, intent(in) :: lo(3),hi(3)
-    integer, intent(in) :: os_lo(3),os_hi(3)
-    integer, intent(in) :: ns_lo(3),ns_hi(3)
-    integer, intent(in) :: src_lo(3),src_hi(3)
-    real(rt), intent(in) :: old_state(os_lo(1):os_hi(1),os_lo(2):os_hi(2),os_lo(3):os_hi(3),NVAR)
-    real(rt), intent(in) :: new_state(ns_lo(1):ns_hi(1),ns_lo(2):ns_hi(2),ns_lo(3):ns_hi(3),NVAR)
-    real(rt), intent(inout) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
-    real(rt), intent(in) :: problo(3),dx(3)
-    real(rt), intent(in), value :: time,dt
+    integer, intent(in) :: lo(3),hi(3)   ! bounds of the box to operate on
+    integer, intent(in) :: os_lo(3),os_hi(3)   ! bounds of the old_state array
+    integer, intent(in) :: ns_lo(3),ns_hi(3)   ! bounds of the new_state array
+    integer, intent(in) :: src_lo(3),src_hi(3)   ! bounds of the src array
+    real(rt), intent(in) :: old_state(os_lo(1):os_hi(1),os_lo(2):os_hi(2),os_lo(3):os_hi(3),NVAR)   ! the old-time hydrodynamic conserved state
+    real(rt), intent(in) :: new_state(ns_lo(1):ns_hi(1),ns_lo(2):ns_hi(2),ns_lo(3):ns_hi(3),NVAR)   ! the new-time hydrodynamic conserved state
+    real(rt), intent(inout) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)   ! the source terms for the conserved variables
+    real(rt), intent(in) :: problo(3)   ! physical coordinates of the lower left corner of the domain
+    real(rt), intent(in) :: dx(3)   ! grid spacing
+    real(rt), intent(in), value :: time   ! current simulation time
+    real(rt), intent(in), value :: dt   ! current timestep
 
     integer :: i, j, k
 

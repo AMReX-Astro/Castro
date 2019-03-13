@@ -1,5 +1,4 @@
 module derive_module
-
     ! All subroutines in this file must be threadsafe because they are called
     ! inside OpenMP parallel regions.
 

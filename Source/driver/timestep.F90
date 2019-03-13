@@ -12,14 +12,8 @@ contains
   subroutine ca_estdt(lo,hi,u,u_lo,u_hi,dx,dt) bind(C, name="ca_estdt")
     ! Courant-condition limited timestep
     !
-    ! @note Binds to C function ``ca_estdt``
-    !
-    ! @param[in] lo integer
-    ! @param[in] u_lo integer
-    ! @param[in] u real(rt)
-    ! @param[in] dx real(rt)
-    ! @param[inout] dt real(rt)
-    !
+    ! .. note::
+    !    Binds to C function ``ca_estdt``
 
     use network, only: nspec, naux
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, time_integration_method
@@ -129,20 +123,8 @@ contains
        bind(C, name="ca_estdt_burning")
     ! Reactions-limited timestep
     !
-    ! @note Binds to C function ``ca_estdt_burning``
-    !
-    ! @param[in] so_lo integer
-    ! @param[in] sn_lo integer
-    ! @param[in] ro_lo integer
-    ! @param[in] rn_lo integer
-    ! @param[in] lo integer
-    ! @param[in] sold real(rt)
-    ! @param[in] snew real(rt)
-    ! @param[in] rold real(rt)
-    ! @param[in] rnew real(rt)
-    ! @param[in] dx real(rt)
-    ! @param[inout] dt real(rt)
-
+    ! .. note::
+    !    Binds to C function ``ca_estdt_burning``
 
     use amrex_constants_module, only: HALF, ONE
     use network, only: nspec, naux, aion
@@ -286,14 +268,8 @@ contains
        dx, dt) bind(C, name="ca_estdt_temp_diffusion")
    ! Diffusion-limited timestep
    !
-   ! @note Binds to C function ``ca_estdt_temp_diffusion``
-   !
-   ! @param[in] lo integer
-   ! @param[in] s_lo integer
-   ! @param[in] state real(rt)
-   ! @param[in] dx real(rt)
-   ! @param[inout] dt real(rt)
-   !
+   ! .. note::
+   !    Binds to C function ``ca_estdt_temp_diffusion``
 
     use network, only: nspec, naux
     use eos_module, only: eos
@@ -384,7 +360,7 @@ contains
        bind(C, name="ca_check_timestep")
     ! Check whether the last timestep violated any of our stability criteria.
     ! If so, suggest a new timestep which would not.
-    
+
     use amrex_constants_module, only: HALF, ONE
     use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, UFS, UFX, UMX, UMZ, &
          cfl, do_hydro

@@ -561,7 +561,6 @@ contains
                                     q, q_lo, q_hi, nc, &
                                     q_bar, q_bar_lo, q_bar_hi, nc_bar) &
                                     bind(C, name="ca_make_fourth_average")
-
     ! this takes the cell-center q and the q constructed from the
     ! cell-average U (q_bar) and replaces the cell-center q with a
     ! proper 4th-order accurate cell-average
@@ -601,7 +600,6 @@ contains
                                       q, q_lo, q_hi, nc, &
                                       q_bar, q_bar_lo, q_bar_hi, nc_bar, ncomp) &
                                       bind(C, name="ca_make_fourth_average_n")
-
     ! this takes the cell-center q and the q constructed from the
     ! cell-average U (q_bar) and replaces the cell-center q with a
     ! proper 4th-order accurate cell-average
@@ -640,12 +638,11 @@ contains
   subroutine ca_make_fourth_in_place(lo, hi, &
                                      q, q_lo, q_hi, nc) &
                                      bind(C, name="ca_make_fourth_in_place")
-
-    use amrex_mempool_module, only : bl_allocate, bl_deallocate
-
     ! this takes the cell-center q and makes it a cell-average q, in
     ! place (e.g. q is overwritten by its average).  Note: this
     ! routine is not tile safe.
+
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
 
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
@@ -690,15 +687,14 @@ contains
   subroutine ca_make_fourth_in_place_n(lo, hi, &
                                        q, q_lo, q_hi, nc, ncomp) &
                                        bind(C, name="ca_make_fourth_in_place_n")
-
-    use amrex_mempool_module, only : bl_allocate, bl_deallocate
-
     ! this takes the cell-center q and makes it a cell-average q, in
     ! place (e.g. q is overwritten by its average).  Note: this
     ! routine is not tile safe.
 
     ! here ncomp is the component to update -- we expect this to come
     ! in 0-based from C++, so we add 1
+
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
 
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
@@ -738,4 +734,3 @@ contains
 
 
 end module fourth_order
-

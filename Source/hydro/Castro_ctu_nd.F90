@@ -1,5 +1,5 @@
 module ctu_module
-
+  !
   ! advection routines in support of the CTU unsplit advection scheme
 
   use amrex_constants_module
@@ -9,7 +9,7 @@ module ctu_module
   implicit none
 
 contains
-    
+
   subroutine ctu_ppm_states(lo, hi, &
        vlo, vhi, &
        q, qd_lo, qd_hi, &
@@ -40,25 +40,10 @@ contains
        dloga, dloga_lo, dloga_hi, &
 #endif
        domlo, domhi) bind(C, name="ctu_ppm_states")
-
     ! Compute the normal interface states by reconstructing
     ! the primitive variables using the piecewise parabolic method
     ! and doing characteristic tracing.  We do not apply the
     ! transverse terms here.
-    !
-    ! @param[in] q            (const)  input state, primitives
-    ! @param[in] qaux         (const)  auxiliary hydro data
-    ! @param[in] flatn        (const)  flattening parameter
-    ! @param[in] srcQ         (const)  primitive variable source
-    ! @param[in] dx           (const)  grid spacing in X, Y, Z direction
-    ! @param[in] dt           (const)  time stepsize
-    ! @param[inout] flux1        (modify) flux in X direction on X edges
-    ! @param[inout] flux2        (modify) flux in Y direction on Y edges
-    ! @param[inout] flux3        (modify) flux in Z direction on Z edges
-    ! @param[inout] q1           (modify) Godunov interface state in X
-    ! @param[inout] q2           (modify) Godunov interface state in Y
-    ! @param[inout] q3           (modify) Godunov interface state in Z
-    !
 
     use meth_params_module, only : NQSRC, NQ, NVAR, &
          QFS, QFX, QTEMP, QREINT, &
@@ -106,14 +91,14 @@ contains
 #if AMREX_SPACEDIM < 3
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
-    real(rt), intent(in) :: dx(3)
-    real(rt), intent(in), value :: dt
+    real(rt), intent(in) :: dx(3)   ! grid spacing in X, Y, Z direction
+    real(rt), intent(in), value :: dt    ! time stepsize
     integer, intent(in) :: domlo(3), domhi(3)
 
-    real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
-    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)
+    real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)   ! input state, primitives
+    real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)   ! auxiliary hydro data
+    real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))   ! flattening parameter
+    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)   ! primitive variable source
 
     real(rt), intent(inout) :: shk(sk_lo(1):sk_hi(1), sk_lo(2):sk_hi(2), sk_lo(3):sk_hi(3))
     real(rt), intent(inout) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:3,NQ)
@@ -401,26 +386,6 @@ contains
   end subroutine ctu_ppm_states
 
 
-  ! Compute the normal interface states by reconstructing
-  ! the primitive variables using piecewise linear slopes and doing
-  ! characteristic tracing.  We do not apply the transverse terms here.
-  !
-  ! @todo we can get rid of the the different temporary q Godunov
-  ! state arrays
-  !
-  ! @param[in] q            (const)  input state, primitives
-  ! @param[in] qaux         (const)  auxiliary hydro data
-  ! @param[in] flatn        (const)  flattening parameter
-  ! @param[in] srcQ         (const)  primitive variable source
-  ! @param[in] dx           (const)  grid spacing in X, Y, Z direction
-  ! @param[in] dt           (const)  time stepsize
-  ! @param[inout] flux1        (modify) flux in X direction on X edges
-  ! @param[inout] flux2        (modify) flux in Y direction on Y edges
-  ! @param[inout] flux3        (modify) flux in Z direction on Z edges
-  ! @param[inout] q1           (modify) Godunov interface state in X
-  ! @param[inout] q2           (modify) Godunov interface state in Y
-  ! @param[inout] q3           (modify) Godunov interface state in Z
-  !
   subroutine ctu_plm_states(lo, hi, &
        vlo, vhi, &
        q, qd_lo, qd_hi, &
@@ -444,6 +409,14 @@ contains
        dloga, dloga_lo, dloga_hi, &
 #endif
        domlo, domhi) bind(C, name="ctu_plm_states")
+    ! Compute the normal interface states by reconstructing
+    ! the primitive variables using piecewise linear slopes and doing
+    ! characteristic tracing.  We do not apply the transverse terms here.
+    !
+    ! .. todo::
+    !    we can get rid of the the different temporary q Godunov
+    !    state arrays
+    !
 
     use meth_params_module, only : NQSRC, NQ, NVAR, &
          QFS, QFX, QTEMP, QREINT, &
@@ -478,14 +451,14 @@ contains
 #if AMREX_SPACEDIM < 3
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
-    real(rt), intent(in) :: dx(3)
-    real(rt), intent(in), value :: dt
+    real(rt), intent(in) :: dx(3)   ! grid spacing in X, Y, Z direction
+    real(rt), intent(in), value :: dt   ! time stepsize
     integer, intent(in) :: domlo(3), domhi(3)
 
-    real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
-    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)
+    real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)   ! input state, primitives
+    real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)   ! auxiliary hydro data
+    real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))   ! flattening parameter
+    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)   ! primitive variable source
 
     real(rt), intent(inout) :: shk(sk_lo(1):sk_hi(1), sk_lo(2):sk_hi(2), sk_lo(3):sk_hi(3))
     real(rt), intent(inout) :: dq(dq_lo(1):dq_hi(1), dq_lo(2):dq_hi(2), dq_lo(3):dq_hi(3), NQ)

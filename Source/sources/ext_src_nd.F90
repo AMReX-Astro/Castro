@@ -1,27 +1,28 @@
 
-!> @brief Compute the external sources for all the conservative equations.
-!!
-!! This is called twice in the evolution:
-!!
-!! First, for the predictor, it is called with (old, old) states.
-!!
-!! This is also used in the first pass of the conservative update
-!! (adding dt * S there).
-!!
-!! Next we correct the source terms in the conservative update to
-!! time-center them.  Here we call ext_src(old, new), and then
-!! in time_center_source_terms we subtract off 1/2 of the first S
-!! and add 1/2 of the new S.
-!!
-!! Therefore, to get a properly time-centered source, generally
-!! speaking, you always want to use the "new" state here.  That
-!! will be the time n state in the first call and the n+1 in the
-!! second call.
-!!
+
 subroutine ca_ext_src(lo, hi,&
                       old_state, os_lo, os_hi,&
                       new_state, ns_lo, ns_hi,&
                       src, src_lo, src_hi, problo, dx, time, dt)
+    ! Compute the external sources for all the conservative equations.
+    !
+    ! This is called twice in the evolution:
+    !
+    ! First, for the predictor, it is called with (old, old) states.
+    !
+    ! This is also used in the first pass of the conservative update
+    ! (adding dt * S there).
+    !
+    ! Next we correct the source terms in the conservative update to
+    ! time-center them.  Here we call ext_src(old, new), and then
+    ! in time_center_source_terms we subtract off 1/2 of the first S
+    ! and add 1/2 of the new S.
+    !
+    ! Therefore, to get a properly time-centered source, generally
+    ! speaking, you always want to use the "new" state here.  That
+    ! will be the time n state in the first call and the n+1 in the
+    ! second call.
+    !
 
   use amrex_constants_module, only: ZERO
   use meth_params_module, only : NVAR

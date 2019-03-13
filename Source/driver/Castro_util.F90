@@ -89,11 +89,6 @@ contains
 
   subroutine ca_enforce_consistent_e(lo,hi,state,s_lo,s_hi) bind(c,name='ca_enforce_consistent_e')
     ! Enforces (rho E) = (rho e) + 1/2 rho (u^2 + v^2 + w^2)
-    !
-    ! @param[in] lo integer
-    ! @param[in] s_lo integer
-    ! @param[inout] state real(rt)
-    !
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT
     use amrex_constants_module, only: HALF, ONE
@@ -131,13 +126,6 @@ contains
   end subroutine ca_enforce_consistent_e
 
 
-
-
-  !
-  ! @param[in] lo integer
-  ! @param[in] u_lo integer
-  ! @param[inout] u real(rt)
-  !
   subroutine ca_reset_internal_e(lo,hi,u,u_lo,u_hi,verbose) bind(c,name='ca_reset_internal_e')
 
     use eos_module, only: eos
@@ -314,13 +302,6 @@ contains
   end subroutine ca_reset_internal_e
 
 
-
-
-  !
-  ! @param[in] lo integer
-  ! @param[in] s_lo integer
-  ! @param[inout] state real(rt)
-  !
   subroutine ca_compute_temp(lo,hi,state,s_lo,s_hi) bind(c,name='ca_compute_temp')
 
     use network, only: nspec, naux
@@ -397,12 +378,6 @@ contains
 
 
 
-
-  !
-  ! @param[in] lo integer
-  ! @param[in] state_lo integer
-  ! @param[in] state real(rt)
-  !
   subroutine ca_check_initial_species(lo, hi, state, state_lo, state_hi) bind(c,name='ca_check_initial_species')
 
     use network           , only: nspec
@@ -443,12 +418,6 @@ contains
 
 
 
-
-  !
-  ! @param[in] lo integer
-  ! @param[in] u_lo integer
-  ! @param[inout] u real(rt)
-  !
   subroutine ca_normalize_species(lo, hi, u, u_lo, u_hi) bind(c,name='ca_normalize_species')
 
     use network, only: nspec
@@ -494,9 +463,6 @@ contains
   function position_to_index(loc) result(index)
     ! Given 3D spatial coordinates, return the cell-centered zone indices closest to it.
     ! Optionally we can also be edge-centered in any of the directions.
-    !
-    ! @param[in] loc real(rt)
-    !
 
     use amrinfo_module, only: amr_level
     use prob_params_module, only: dx_level, dim
@@ -522,12 +488,6 @@ contains
     ! Note that Castro has no support for angular coordinates, so
     ! this function only provides Cartesian in 1D/2D/3D, Cylindrical (R-Z)
     ! in 2D, and Spherical in 1D.
-    !
-    ! @param[in] i integer
-    ! @param[in] j integer
-    ! @param[in] k integer
-    ! @param[in] dir integer
-    !
 
     use amrinfo_module, only: amr_level
     use amrex_constants_module, only: ZERO, ONE, TWO, M_PI, FOUR
@@ -664,11 +624,6 @@ contains
     ! Note that Castro has no support for angular coordinates, so
     ! this function only provides Cartesian in 1D/2D/3D, Cylindrical (R-Z)
     ! in 2D, and Spherical in 1D.
-    !
-    ! @param[in] i integer
-    ! @param[in] j integer
-    ! @param[in] k integer
-    !
 
     use amrinfo_module, only: amr_level
     use amrex_error_module
@@ -755,9 +710,6 @@ contains
 
   logical function is_domain_corner(idx) result(is_corner)
     ! Given an index, determine whether it is on a domain corner or not.
-    !
-    ! @param[in] idx integer
-    !
 
     use prob_params_module, only: domlo_level, domhi_level
     use amrinfo_module, only: amr_level
@@ -790,9 +742,6 @@ contains
   subroutine ca_get_center(center_out) bind(C, name="ca_get_center")
     ! Get the current center of the problem.  This may not be the
     ! center of the domain, due to any problem symmetries.
-    !
-    ! @param[inout] center_out real(rt)
-    !
 
     use prob_params_module, only: center
     use amrex_fort_module, only: rt => amrex_real
@@ -811,10 +760,8 @@ contains
 
   subroutine ca_set_center(center_in) bind(C, name="ca_set_center")
     !
-    ! @note Binds to C function ``ca_set_center``
-    !
-    ! @param[in] center_in real(rt)
-    !
+    ! .. note::
+    !    Binds to C function ``ca_set_center``
 
     use prob_params_module, only: center
     use amrex_fort_module, only: rt => amrex_real
@@ -834,12 +781,8 @@ contains
   subroutine ca_find_center(data,new_center,icen,dx,problo) &
        bind(C, name="ca_find_center")
     !
-    ! @note Binds to C function ``ca_find_center``
-    !
-    ! @param[inout] data real(rt)
-    ! @param[out] new_center real(rt)
-    ! @param[in] dx real(rt)
-    !
+    ! .. note::
+    !    Binds to C function ``ca_find_center``
 
     use amrex_constants_module, only: ZERO, HALF, TWO
     use prob_params_module, only: dg, dim
@@ -916,18 +859,8 @@ contains
        problo,numpts_1d) &
        bind(C, name="ca_compute_avgstate")
     !
-    ! @note Binds to C function ``ca_compute_avgstate``
-    !
-    ! @param[in] lo integer
-    ! @param[in] dx real(rt)
-    ! @param[in] numpts_1d integer
-    ! @param[inout] radial_state real(rt)
-    ! @param[inout] radial_vol real(rt)
-    ! @param[in] s_lo integer
-    ! @param[in] state real(rt)
-    ! @param[in] v_lo integer
-    ! @param[in] vol real(rt)
-    !
+    ! .. note::
+    !    Binds to C function ``ca_compute_avgstate``
 
     use meth_params_module, only: URHO, UMX, UMY, UMZ
     use prob_params_module, only: center, dim
@@ -1005,9 +938,6 @@ contains
 
 
   function linear_to_angular_momentum(loc, mom) result(ang_mom)
-      !
-      ! @param[in] loc real(rt)
-      !
 
     use amrex_fort_module, only: rt => amrex_real
 

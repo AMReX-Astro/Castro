@@ -41,7 +41,6 @@ contains
     use network, only : nspec, nspec_evolve
     use rpar_sdc_module
 
-
     implicit none
 
     real(rt), intent(in) :: dt_m
