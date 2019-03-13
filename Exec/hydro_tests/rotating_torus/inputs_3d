@@ -35,7 +35,6 @@ castro.hybrid_hydro = 1
 
 # THERMODYNAMICS
 
-castro.dual_energy_update_E_from_e = 0
 castro.dual_energy_eta1 = 1.0e-3
 castro.dual_energy_eta2 = 1.0e-4
 
