@@ -753,24 +753,18 @@ parameters castro.dual_energy_eta1, castro.dual_energy_eta2, and
 castro.dual_energy_eta3. We then consider the ratio <span class="math notranslate nohighlight">\(e_T / E\)</span>,
 the ratio of the internal energy (derived from the total energy) to
 the total energy. These parameters are used as follows:</p>
-<ul>
-<li><p class="first"><span class="math notranslate nohighlight">\(\eta_1\)</span>: If <span class="math notranslate nohighlight">\(e_T &gt; \eta_1 E\)</span>, then we use <span class="math notranslate nohighlight">\(e_T\)</span> for the purpose
+<ul class="simple">
+<li><span class="math notranslate nohighlight">\(\eta_1\)</span>: If <span class="math notranslate nohighlight">\(e_T &gt; \eta_1 E\)</span>, then we use <span class="math notranslate nohighlight">\(e_T\)</span> for the purpose
 of calculating the pressure in the hydrodynamics update. Otherwise,
 we use the <span class="math notranslate nohighlight">\(e\)</span> from the internal energy equation in our EOS call to
-get the pressure.</p>
-</li>
-<li><p class="first"><span class="math notranslate nohighlight">\(\eta_2\)</span>: At the end of each hydro advance, we examine whether
+get the pressure.</li>
+<li><span class="math notranslate nohighlight">\(\eta_2\)</span>: At the end of each hydro advance, we examine whether
 <span class="math notranslate nohighlight">\(e_T &gt; \eta_2 E\)</span>. If so, we reset <span class="math notranslate nohighlight">\(e\)</span> to be equal to <span class="math notranslate nohighlight">\(e_T\)</span>,
 discarding the results of the internal energy equation. Otherwise,
-we keep <span class="math notranslate nohighlight">\(e\)</span> as it is.</p>
-<p>Optionally we can also update <span class="math notranslate nohighlight">\(E\)</span> so that it gains the difference of
-the old and and new <span class="math notranslate nohighlight">\(e\)</span>, by setting
-castro.dual_energy_update_E_from_e to 1.</p>
-</li>
-<li><p class="first"><span class="math notranslate nohighlight">\(\eta_3\)</span>: Similar to <span class="math notranslate nohighlight">\(\eta_1\)</span>, if <span class="math notranslate nohighlight">\(e_T &gt; \eta_3 E\)</span>, we use
+we keep <span class="math notranslate nohighlight">\(e\)</span> as it is.</li>
+<li><span class="math notranslate nohighlight">\(\eta_3\)</span>: Similar to <span class="math notranslate nohighlight">\(\eta_1\)</span>, if <span class="math notranslate nohighlight">\(e_T &gt; \eta_3 E\)</span>, we use
 <span class="math notranslate nohighlight">\(e_T\)</span> for the purposes of our nuclear reactions, otherwise, we use
-<span class="math notranslate nohighlight">\(e\)</span>.</p>
-</li>
+<span class="math notranslate nohighlight">\(e\)</span>.</li>
 </ul>
 <p>Note that our version of the internal energy equation does not require
 an artificial viscosity, as used in some other hydrodynamics
