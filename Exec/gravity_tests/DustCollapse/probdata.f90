@@ -8,6 +8,6 @@ module probdata_module
 
   real(rt), save :: center_x, center_y, center_z
 
-  logical,  save :: is_3d_fullstar
+  integer, save :: nsub
 
 end module probdata_module

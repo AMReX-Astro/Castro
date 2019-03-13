@@ -5,7 +5,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   use amrex_error_module, only: amrex_error
   use probdata_module, only: rho_0, T_0, X_0, p_0, rho_ambient, T_ambient, &
                              r_old, r_old_s, r_0, smooth_delta, r_offset, offset_smooth_delta, &
-                             center_x, center_y, center_z
+                             center_x, center_y, center_z, nsub
   use eos_type_module, only: eos_t, eos_input_rp
   use eos_module, only: eos
   use network, only: nspec
@@ -23,7 +23,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   namelist /fortin/ &
        rho_0, r_0, r_old, p_0, rho_ambient, smooth_delta, &
-       center_x, center_y, center_z, r_offset, offset_smooth_delta
+       center_x, center_y, center_z, r_offset, offset_smooth_delta, nsub
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 127
@@ -47,6 +47,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   smooth_delta = 1.e-5_rt
   r_offset = ZERO
   offset_smooth_delta = 1.e0_rt
+  nsub = 5
 
   ! Read namelists in probin file
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
@@ -131,7 +132,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                        delta, xlo, xhi)
 
   use amrex_constants_module, only: ZERO, HALF, ONE
-  use probdata_module, only: rho_0, X_0, p_0, rho_ambient, r_0, smooth_delta, r_offset, offset_smooth_delta
+  use probdata_module, only: rho_0, X_0, p_0, rho_ambient, r_0, smooth_delta, r_offset, offset_smooth_delta, nsub
   use eos_type_module, only : eos_t, eos_input_rp
   use eos_module, only: eos
   use network, only: nspec
@@ -156,8 +157,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   integer  :: i, j, k, ii, jj, kk, n
 
   type (eos_t) :: eos_state
-
-  integer, parameter :: nsub = 5
 
 #if AMREX_SPACEDIM == 1
   volinv = ONE/dble(nsub)

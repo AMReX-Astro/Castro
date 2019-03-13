@@ -6,6 +6,7 @@
   r_offset = 1.0e8
   smooth_delta = 1.0e0 ! Effectively disables smoothing
   offset_smooth_delta = 1.0e0
+  nsub = 1
 
   center_x = 0.0d0
   center_y = 0.0d0
