@@ -39,6 +39,12 @@ Castro::pointmass_update(Real time, Real dt)
 
 	if (mass_change_at_center > 0.0)
         {
+
+            if (verbose > 1) {
+                amrex::Print() << "  Updating point mass from " << point_mass << ", by " << mass_change_at_center
+                               << ", to " << point_mass + mass_change_at_center << std::endl << std::endl;
+            }
+
 	    point_mass += mass_change_at_center;
 
 	    set_pointmass(&point_mass);
