@@ -3,8 +3,8 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module, only: ZERO, ONE
   use amrex_error_module, only: amrex_error
-  use probdata_module, only: rho_0, r_0, T_0, X_0, p_0, rho_ambient, T_ambient, &
-                             r_old, r_old_s, smooth_delta, &
+  use probdata_module, only: rho_0, T_0, X_0, p_0, rho_ambient, T_ambient, &
+                             r_old, r_old_s, r_0, smooth_delta, r_offset, offset_smooth_delta, &
                              center_x, center_y, center_z
   use eos_type_module, only: eos_t, eos_input_rp
   use eos_module, only: eos
@@ -23,7 +23,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   namelist /fortin/ &
        rho_0, r_0, r_old, p_0, rho_ambient, smooth_delta, &
-       center_x, center_y, center_z
+       center_x, center_y, center_z, r_offset, offset_smooth_delta
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 127
@@ -45,6 +45,8 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   p_0 = 1.e10_rt
   rho_ambient = 1.e0_rt
   smooth_delta = 1.e-5_rt
+  r_offset = ZERO
+  offset_smooth_delta = 1.e0_rt
 
   ! Read namelists in probin file
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
@@ -129,7 +131,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                        delta, xlo, xhi)
 
   use amrex_constants_module, only: ZERO, HALF, ONE
-  use probdata_module, only: rho_0, X_0, p_0, r_0, rho_ambient, smooth_delta
+  use probdata_module, only: rho_0, X_0, p_0, rho_ambient, r_0, smooth_delta, r_offset, offset_smooth_delta
   use eos_type_module, only : eos_t, eos_input_rp
   use eos_module, only: eos
   use network, only: nspec
@@ -193,8 +195,12 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
                     ! use a tanh profile to smooth the transition between rho_0
                     ! and rho_ambient
-                    rho_n = rho_0 - HALF*(rho_0 - rho_ambient)* &
-                         (ONE + tanh((dist - r_0)/smooth_delta))
+                    rho_n = rho_0 - HALF * (rho_0 - rho_ambient) * (ONE + tanh((dist - r_0)/smooth_delta))
+
+                    ! allow for the center to be empty
+                    if (r_offset > ZERO) then
+                       rho_n = rho_n - HALF * (rho_n - rho_ambient) * (ONE + tanh((r_offset - dist) / offset_smooth_delta))
+                    end if
 
                     avg_rho = avg_rho + rho_n
 
