@@ -1,5 +1,12 @@
 # changes since the last release
 
+  -- Using point-mass gravity no longer requires USE_POINTMASS = TRUE
+     in your makefile; USE_GRAV = TRUE is sufficient. However, to
+     compensate for this, you must now include castro.use_point_mass = 1
+     in your inputs file to enable the point mass. This input parameter
+     already existed, but was defaulted to 1 since it only mattered
+     if the compile flag was enabled. Now the default is 0.
+
   -- fixed a bug in the source term to (rho e) evolution when using
      MOL or the new SDC integration (#543, #545) and also no longer
      recompute the source terms after reflux for these methods (#549)
