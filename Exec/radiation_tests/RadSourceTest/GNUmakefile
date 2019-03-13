@@ -12,6 +12,9 @@ USE_NEUTRINO = FALSE
 
 CASTRO_HOME = ../../..
 
+# has the f90 routine ca_initgroups and group structure in probdata_module
+#HAS_INITGROUPS = TRUE
+
 EOS_DIR     := gamma_law
 
 NETWORK_DIR := general_null
@@ -19,9 +22,8 @@ NETWORK_INPUTS := gammalaw.net
 
 Opacity_dir := null
 
-# number of radiation groups -  this needs to correspond to radiation.nGroups in
-# the inputs file
-NGROUPS := 60
+# use radiation interpbndry
+RAD_INTERP = TRUE
 
 Bpack   := ./Make.package
 Blocs   := .
