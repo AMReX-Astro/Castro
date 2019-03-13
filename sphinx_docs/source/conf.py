@@ -49,27 +49,16 @@ def get_version():
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinx.ext.autodoc',
-    'sphinx.ext.mathjax',
-    'sphinx.ext.ifconfig',
-    'sphinx.ext.viewcode',
-    'sphinxcontrib.bibtex',
-    'sphinx.ext.autosummary',
-    'numpydoc',
-    'sphinx.ext.githubpages',
-    'breathe']
-
-breathe_projects = {
-    "castro":"../doxy_files/xml",
-    }
-
-breathe_default_project = "castro"
-
-breathe_default_members = ('members', 'undoc-members', 'protected-members',
-   'private-members')
-
-breathe_doxygen_config_options = { 'EXTRACT_ALL': 'YES',
-'SHOW_USED_FILES': 'YES', 'RECURSIVE': 'YES'
-    }
+              'sphinx.ext.mathjax',
+              'sphinx.ext.ifconfig',
+              'sphinx.ext.viewcode',
+              'sphinxcontrib.bibtex',
+              'sphinx.ext.autosummary',
+              'numpydoc',
+              'sphinx.ext.githubpages',
+              'breathe',
+              'sphinxfortran.fortran_domain',
+              'sphinxfortran.fortran_autodoc']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -127,9 +116,11 @@ with open('mathsymbols.tex', 'r') as f:
         macros = re.findall(r'\\newcommand{\\(.*?)}(\[(\d)\])?{(.+)}', line)
         for macro in macros:
             if len(macro[1]) == 0:
-                mathjax_config['TeX']['Macros'][macro[0]] = "{"+macro[3]+"}"
+                mathjax_config['TeX']['Macros'][macro[0]
+                                                ] = "{" + macro[3] + "}"
             else:
-                mathjax_config['TeX']['Macros'][macro[0]] = ["{"+macro[3]+"}", int(macro[2])]
+                mathjax_config['TeX']['Macros'][macro[0]] = [
+                    "{" + macro[3] + "}", int(macro[2])]
 
 
 # -- Options for HTML output ----------------------------------------------
@@ -154,8 +145,8 @@ html_static_path = ['_static']
 html_context = {
     'css_files': [
         '_static/theme_overrides.css',  # override wide tables in RTD theme
-        ],
-    }
+    ],
+}
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -225,3 +216,63 @@ texinfo_documents = [
      author, 'Castro', 'One line description of project.',
      'Miscellaneous'),
 ]
+
+# -- Options for breathe -------------------------------------------------
+
+breathe_projects = {
+    "castro": "../doxy_files/xml",
+}
+
+breathe_default_project = "castro"
+
+breathe_default_members = ('members', 'undoc-members', 'protected-members',
+                           'private-members')
+
+breathe_doxygen_config_options = {'EXTRACT_ALL': 'YES',
+                                  'SHOW_USED_FILES': 'YES', 'RECURSIVE': 'YES'
+                                  }
+
+# -- Options for sphinx-fortran -----------------------------------------
+
+fortran_src = [os.path.abspath('../../Source/diffusion'),
+               os.path.abspath('../../Source/driver'),
+               os.path.abspath('../../Source/gravity'),
+               os.path.abspath('../../Source/particles'),
+               os.path.abspath('../../Source/reactions'),
+               os.path.abspath('../../Source/rotation'),
+               os.path.abspath('../../Source/sources'),
+               os.path.abspath('../../Source/hydro')]
+
+fortran_excl = ['HABEC_1D.F90', 'HABEC_2D.F90',
+                'HABEC_3D.F90', 'RAD_1D.F90', 'RAD_2D.F90', 'RAD_3D.F90']
+
+# there's no easy way to exclude files from sphinx-fortran, so we're going to
+# do this by hand
+rad_path = '../../Source/radiation/'
+f_files = [os.path.abspath(rad_path + f) for f in os.listdir(rad_path)
+           if (f[-4:].lower() == '.f90' and f not in fortran_excl)]
+
+fortran_src += f_files
+
+
+prob_excl = ['bc_fill_3d.F90',
+             'problem_tagging_3d.f90',
+             'bc_ext_fill_3d.F90',
+             'Prob_1d.f90',
+             'Prob_3d.f90',
+             'bc_ext_fill_1d.F90',
+             'bc_fill_1d.F90',
+             'bc_ext_fill_2d.F90',
+             'problem_tagging_1d.f90',
+             'bc_fill_2d.F90',
+             'Prob_2d.f90',
+             'problem_tagging_2d.f90',
+             ]
+
+prob_path = '../../Source/problems/'
+f_files = [os.path.abspath(prob_path + f) for f in os.listdir(prob_path)
+           if (f[-4:].lower() == '.f90' and f not in prob_excl)]
+
+fortran_src += f_files
+
+fortran_ext = ['f90', 'F90']

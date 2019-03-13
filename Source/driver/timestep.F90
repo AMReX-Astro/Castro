@@ -9,18 +9,17 @@ module timestep_module
 contains
 
 
-  !> @brief Courant-condition limited timestep
-  !!
-  !! @note Binds to C function ``ca_estdt``
-  !!
-  !! @param[in] lo integer
-  !! @param[in] u_lo integer
-  !! @param[in] u real(rt)
-  !! @param[in] dx real(rt)
-  !! @param[inout] dt real(rt)
-  !!
   subroutine ca_estdt(lo,hi,u,u_lo,u_hi,dx,dt) bind(C, name="ca_estdt")
-
+    ! Courant-condition limited timestep
+    !
+    ! @note Binds to C function ``ca_estdt``
+    !
+    ! @param[in] lo integer
+    ! @param[in] u_lo integer
+    ! @param[in] u real(rt)
+    ! @param[in] dx real(rt)
+    ! @param[inout] dt real(rt)
+    !
 
     use network, only: nspec, naux
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, time_integration_method
@@ -122,28 +121,27 @@ contains
 
 #ifdef REACTIONS
 
-  !> @brief Reactions-limited timestep
-  !!
-  !! @note Binds to C function ``ca_estdt_burning``
-  !!
-  !! @param[in] so_lo integer
-  !! @param[in] sn_lo integer
-  !! @param[in] ro_lo integer
-  !! @param[in] rn_lo integer
-  !! @param[in] lo integer
-  !! @param[in] sold real(rt)
-  !! @param[in] snew real(rt)
-  !! @param[in] rold real(rt)
-  !! @param[in] rnew real(rt)
-  !! @param[in] dx real(rt)
-  !! @param[inout] dt real(rt)
-  !!
   subroutine ca_estdt_burning(lo, hi, sold, so_lo, so_hi, &
        snew, sn_lo, sn_hi, &
        rold, ro_lo, ro_hi, &
        rnew, rn_lo, rn_hi, &
        dx, dt_old, dt) &
        bind(C, name="ca_estdt_burning")
+    ! Reactions-limited timestep
+    !
+    ! @note Binds to C function ``ca_estdt_burning``
+    !
+    ! @param[in] so_lo integer
+    ! @param[in] sn_lo integer
+    ! @param[in] ro_lo integer
+    ! @param[in] rn_lo integer
+    ! @param[in] lo integer
+    ! @param[in] sold real(rt)
+    ! @param[in] snew real(rt)
+    ! @param[in] rold real(rt)
+    ! @param[in] rnew real(rt)
+    ! @param[in] dx real(rt)
+    ! @param[inout] dt real(rt)
 
 
     use amrex_constants_module, only: HALF, ONE
@@ -283,25 +281,25 @@ contains
 
 #ifdef DIFFUSION
 
-  !> @brief Diffusion-limited timestep
-  !!
-  !! @note Binds to C function ``ca_estdt_temp_diffusion``
-  !!
-  !! @param[in] lo integer
-  !! @param[in] s_lo integer
-  !! @param[in] state real(rt)
-  !! @param[in] dx real(rt)
-  !! @param[inout] dt real(rt)
-  !!
   subroutine ca_estdt_temp_diffusion(lo, hi, &
-                                     state, s_lo, s_hi, &
-                                     dx, dt) bind(C, name="ca_estdt_temp_diffusion")
+       state, s_lo, s_hi, &
+       dx, dt) bind(C, name="ca_estdt_temp_diffusion")
+   ! Diffusion-limited timestep
+   !
+   ! @note Binds to C function ``ca_estdt_temp_diffusion``
+   !
+   ! @param[in] lo integer
+   ! @param[in] s_lo integer
+   ! @param[in] state real(rt)
+   ! @param[in] dx real(rt)
+   ! @param[inout] dt real(rt)
+   !
 
     use network, only: nspec, naux
     use eos_module, only: eos
     use eos_type_module, only: eos_input_re, eos_t
     use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, UFS, UFX, &
-                                  diffuse_cutoff_density
+         diffuse_cutoff_density
     use prob_params_module, only: dim
     use amrex_constants_module, only : ONE, HALF
     use conductivity_module, only: conductivity
@@ -377,16 +375,16 @@ contains
 
 
   subroutine ca_check_timestep(lo, hi, s_old, so_lo, so_hi, &
-                               s_new, sn_lo, sn_hi, &
+       s_new, sn_lo, sn_hi, &
 #ifdef REACTIONS
-                               r_old, ro_lo, ro_hi, &
-                               r_new, rn_lo, rn_hi, &
+       r_old, ro_lo, ro_hi, &
+       r_new, rn_lo, rn_hi, &
 #endif
-                               dx, dt_old, dt_new) &
-                               bind(C, name="ca_check_timestep")
-
+       dx, dt_old, dt_new) &
+       bind(C, name="ca_check_timestep")
     ! Check whether the last timestep violated any of our stability criteria.
     ! If so, suggest a new timestep which would not.
+    
     use amrex_constants_module, only: HALF, ONE
     use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, UFS, UFX, UMX, UMZ, &
          cfl, do_hydro

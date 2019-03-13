@@ -683,12 +683,12 @@ contains
 #ifndef AMREX_USE_CUDA
     ! XLO
     if ( bc(1,1) == EXT_DIR .and. adv_lo(1) < domlo(1)) then
-       call amrex_error("We shoundn't be here (xlo denfill)")
+       call amrex_error("We should not be here (xlo denfill)")
     end if
 
     ! XHI
     if ( bc(1,2) == EXT_DIR .and. adv_hi(1) > domhi(1)) then
-       call amrex_error("We shoundn't be here (xhi denfill)")
+       call amrex_error("We should not be here (xhi denfill)")
     endif
 #endif
 

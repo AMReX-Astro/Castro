@@ -7,8 +7,9 @@ module generic_fill_module
 
 contains
 
-  ! Used for a generic fill of any StateData.
+
   subroutine generic_single_fill(lo, hi, state, s_lo, s_hi, domlo, domhi, delta, xlo, bc) bind(C, name="generic_single_fill")
+      ! Used for a generic fill of any StateData.
 
     use amrex_filcc_module, only: amrex_filccn
 

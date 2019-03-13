@@ -4,3 +4,4 @@ breathe
 sphinxcontrib_bibtex
 numpydoc
 more_itertools
+git+git://github.com/VACUMM/sphinx-fortran.git

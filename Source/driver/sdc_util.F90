@@ -25,7 +25,6 @@ contains
 
 #ifdef REACTIONS
   subroutine sdc_solve(dt_m, U_old, U_new, C, sdc_iteration)
-
     ! the purpose of this function is to solve the system
     ! U - dt R(U) = U_old + dt C
 
@@ -62,7 +61,7 @@ contains
 
     logical :: converged
 
-    integer, parameter :: lrw = 22 + 9*(nspec_evolve+2) + 2*(nspec_evolve+2)**2
+    ! integer, parameter :: lrw = 22 + 9*(nspec_evolve+2) + 2*(nspec_evolve+2)**2
     integer, parameter :: liw = 30 + nspec_evolve + 2
 
     real(rt) :: rwork(lrw)
@@ -269,7 +268,6 @@ contains
 
 
   subroutine f_ode(n, t, U, dUdt, rpar, ipar)
-
     ! this is the righthand side for the ODE system that we will use
     ! with VODE
 
@@ -321,7 +319,6 @@ contains
   end subroutine f_ode
 
   subroutine jac_ode(n, time, U, ml, mu, Jac, nrowpd, rpar, ipar)
-
     ! this is the Jacobian function for use with VODE
 
     use amrex_constants_module, only : ZERO, ONE
@@ -406,7 +403,6 @@ contains
   end subroutine jac_ode
 
   subroutine f_sdc(n, U, f, iflag, rpar)
-
     ! this is used by the Newton solve to compute the Jacobian via differencing
 
     use rpar_sdc_module
@@ -464,7 +460,6 @@ contains
   end subroutine f_sdc
 
   subroutine f_sdc_jac(n, U, f, Jac, ldjac, iflag, rpar)
-
     ! this is used with the Newton solve and returns f and the Jacobian
 
     use rpar_sdc_module
@@ -620,7 +615,6 @@ contains
                                         A_0_old, A0lo, A0hi, &
                                         A_1_old, A1lo, A1hi, &
                                         m_start) bind(C, name="ca_sdc_update_advection_o2")
-
     ! update k_m to k_n via advection -- this is a second-order accurate update
 
     use meth_params_module, only : NVAR
@@ -666,7 +660,6 @@ contains
                                         A_1_old, A1lo, A1hi, &
                                         A_2_old, A2lo, A2hi, &
                                         m_start) bind(C, name="ca_sdc_update_advection_o4")
-
     ! update k_m to k_n via advection -- this is a second-order accurate update
     ! dt is the total timestep from n to n+1
 
@@ -725,7 +718,7 @@ contains
        enddo
 
     else
-       call amrex_error("error in ca_sdc_update_advection_o4 -- shouldn't be here")
+       ! call amrex_error("error in ca_sdc_update_advection_o4 -- shouldn't be here")
     endif
 
   end subroutine ca_sdc_update_advection_o4
@@ -742,7 +735,6 @@ contains
                                R_2_old, R2lo, R2hi, &
                                C, Clo, Chi, &
                                m_start) bind(C, name="ca_sdc_compute_C4")
-
     ! compute the 'C' term for the 4th-order solve with reactions
     ! note: this 'C' is cell-averages
 
@@ -794,7 +786,7 @@ contains
                 C(i,j,k,:) = (A_m(i,j,k,:) - A_1_old(i,j,k,:)) - R_2_old(i,j,k,:) + integral
 
              else
-                call amrex_error("error in ca_sdc_compute_C4 -- shouldn't be here")
+                ! call amrex_error("error in ca_sdc_compute_C4 -- shouldn't be here")
              endif
 
           enddo
@@ -814,7 +806,6 @@ contains
                               R_1_old, R1lo, R1hi, &
                               sdc_iteration, &
                               m_start) bind(C, name="ca_sdc_update_o2")
-
     ! update k_m to k_n via advection -- this is a second-order accurate update
 
     use meth_params_module, only : NVAR
@@ -905,7 +896,6 @@ contains
                                       C, C_lo, C_hi, &
                                       sdc_iteration) &
                                       bind(C, name="ca_sdc_update_centers_o4")
-
     ! update k_m to k_n via advection -- this is a fourth-order accurate update
 
     use meth_params_module, only : NVAR
@@ -950,7 +940,6 @@ contains
                                         C, C_lo, C_hi, &
                                         R_new, R_lo, R_hi) &
                                         bind(C, name="ca_sdc_conservative_update")
-
     ! given <U>_old, <R>_new, and <C>, compute <U>_new
 
     use meth_params_module, only : NVAR
@@ -1026,6 +1015,7 @@ contains
                                      state, s_lo, s_hi, &
                                      R_store, rs_lo, rs_hi) &
                                      bind(C, name="ca_store_reaction_state")
+     ! copy the data from the last node's reactive source to the state data
 
     use meth_params_module, only : NVAR, URHO, UEDEN, UFS
     use network, only : nspec
@@ -1043,7 +1033,7 @@ contains
 
     integer :: i, j, k
 
-    ! copy the data from the last node's reactive source to the state data
+
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)

@@ -6,15 +6,15 @@ module interpolate_module
 contains
 
 
-  !> @brief given the array of model coordinates (model_r), and variable (model_var),
-  !! find the value of model_var at point r (var_r) using linear interpolation.
-  !! Eventually, we can do something fancier here.
-  !!
-  !! @param[in] r real(rt)
-  !! @param[in] npts_model integer
-  !! @param[in] model_r real(rt)
-  !!
   function interpolate(r, npts_model, model_r, model_var, iloc)
+    ! given the array of model coordinates (model_r), and variable (model_var),
+    ! find the value of model_var at point r (var_r) using linear interpolation.
+    ! Eventually, we can do something fancier here.
+    !
+    ! @param[in] r real(rt)
+    ! @param[in] npts_model integer
+    ! @param[in] model_r real(rt)
+    !
 
     use amrex_fort_module, only : rt => amrex_real
     real(rt)        , intent(in   ) :: r
@@ -88,17 +88,16 @@ contains
 
 
 
-  !> @brief given the array of model coordinates (model_r), and variable (model_var),
-  !! find the value of model_var at point r (var_r) using linear interpolation.
-  !! Eventually, we can do something fancier here.
-  !!
-  !! @param[out] interpolate real(rt)
-  !! @param[in] r real(rt)
-  !! @param[in] npts_model integer
-  !! @param[in] model_r real(rt)
-  !!
   subroutine interpolate_sub(interpolate, r, npts_model, model_r, model_var, iloc)
-
+    ! given the array of model coordinates (model_r), and variable (model_var),
+    ! find the value of model_var at point r (var_r) using linear interpolation.
+    ! Eventually, we can do something fancier here.
+    !
+    ! @param[out] interpolate real(rt)
+    ! @param[in] r real(rt)
+    ! @param[in] npts_model integer
+    ! @param[in] model_r real(rt)
+    !
 
     use amrex_fort_module, only : rt => amrex_real
     real(rt)        , intent(  out) :: interpolate
@@ -174,25 +173,24 @@ contains
 
 
 
-  !> @brief tri-linear interpolation; useful for EOS tables
-  !! this is stricly interpolation, so if the point (x,y,z) is outside
-  !! the bounds of model_x,model_y,model_z, then we abort
-  !!
-  !! @param[in] x real(rt)
-  !! @param[in] y real(rt)
-  !! @param[in] z real(rt)
-  !! @param[in] npts_x integer
-  !! @param[in] npts_y integer
-  !! @param[in] npts_z integer
-  !! @param[in] model_x real(rt)
-  !! @param[out] interp_var real(rt)
-  !! @param[out] derivs real(rt)
-  !! @param[out] error logical
-  !!
   subroutine tri_interpolate(x, y, z, npts_x, npts_y, npts_z, &
        model_x, model_y, model_z, model_var, &
        interp_var, derivs, error)
-
+    ! tri-linear interpolation; useful for EOS tables
+    ! this is stricly interpolation, so if the point (x,y,z) is outside
+    ! the bounds of model_x,model_y,model_z, then we abort
+    !
+    ! @param[in] x real(rt)
+    ! @param[in] y real(rt)
+    ! @param[in] z real(rt)
+    ! @param[in] npts_x integer
+    ! @param[in] npts_y integer
+    ! @param[in] npts_z integer
+    ! @param[in] model_x real(rt)
+    ! @param[out] interp_var real(rt)
+    ! @param[out] derivs real(rt)
+    ! @param[out] error logical
+    !
 
     use amrex_error_module
     use amrex_constants_module, only: ONE
@@ -266,12 +264,13 @@ contains
 
 
 
-  !>
-  !! @param[in] n integer
-  !! @param[in] x real(rt)
-  !! @param[in] xs real(rt)
-  !!
   function locate(x, n, xs)
+    !
+    ! @param[in] n integer
+    ! @param[in] x real(rt)
+    ! @param[in] xs real(rt)
+    !
+
     use amrex_fort_module, only : rt => amrex_real
     integer, intent(in) :: n
     real(rt)        , intent(in) :: x, xs(n)
@@ -305,13 +304,13 @@ contains
 
 
 
-  !>
-  !! @param[in] n integer
-  !! @param[in] x real(rt)
-  !! @param[in] xs real(rt)
-  !! @param[out] loc integer
-  !!
   subroutine locate_sub(x, n, xs, loc)
+    !
+    ! @param[in] n integer
+    ! @param[in] x real(rt)
+    ! @param[in] xs real(rt)
+    ! @param[out] loc integer
+    !
     use amrex_fort_module, only : rt => amrex_real
     integer,  intent(in   ) :: n
     real(rt), intent(in   ) :: x, xs(n)

@@ -1,5 +1,5 @@
-!> @brief advection routines in support of method of lines integration
-!!
+! advection routines in support of method of lines integration
+!
 subroutine ca_mol_single_stage(lo, hi, time, &
      domlo, domhi, &
      stage_weight, &
