@@ -28,6 +28,9 @@
      this) and species and velocity diffusion (they were 1-d only).
      None of these routines were regularly tested.  (#534)
 
+  -- the problem diagnostics in Castro/Diagnostics have been converted to
+     C++ to remain compatible with the AMReX build system.  
+
 # 19.03
 
   -- Fixed a minor long-standing bug in the simplified SDC implementation
