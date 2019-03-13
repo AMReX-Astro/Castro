@@ -103,8 +103,16 @@ contains
 
     ! This should be the cell whose lower left corner is at "center"
     icen = floor( (center(1)-problo(1))/dx(1) + eps)
+#if AMREX_SPACEDIM >= 2
     jcen = floor( (center(2)-problo(2))/dx(2) + eps)
+#else
+    jcen = 0
+#endif
+#if AMREX_SPACEDIM == 3
     kcen = floor( (center(3)-problo(3))/dx(3) + eps)
+#else
+    kcen = 0
+#endif
 
     ! Make sure we only count contributions from this grid
     istart = max(icen-box_size, lo(1))
@@ -158,8 +166,16 @@ contains
 
     ! This should be the cell whose lower left corner is at "center"
     icen = floor( (center(1)-problo(1))/dx(1) + eps)
+#if AMREX_SPACEDIM >= 2
     jcen = floor( (center(2)-problo(2))/dx(2) + eps)
+#else
+    jcen = 0
+#endif
+#if AMREX_SPACEDIM == 3
     kcen = floor( (center(3)-problo(3))/dx(3) + eps)
+#else
+    kcen = 0
+#endif
 
     ! Make sure we only count contributions from this grid
     istart = max(icen-box_size, lo(1))
