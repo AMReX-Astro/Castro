@@ -66,6 +66,9 @@ Fortran
 * Use the ``only`` clause in module ``use`` statements to explicitly
   make clear what is being accessed.
 
+* New Fortran files should have the .F90 file extension, not the .f90
+  file extension, so that they can be preprocessed.
+
 
 Documentation
 =============
