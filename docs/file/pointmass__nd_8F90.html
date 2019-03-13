@@ -1,0 +1,301 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File pointmass_nd.F90 &mdash; Castro 19.03
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File prescribe_grav_nd.f90" href="prescribe__grav__nd_8f90.html" />
+    <link rel="prev" title="File gravity_sources_nd.F90" href="gravity__sources__nd_8F90.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                19.03
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Plotfiles and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../gravity_files.html">Gravity</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="GR__Gravity__1d_8f90.html">File GR_Gravity_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GR__Gravity__2d_8f90.html">File GR_Gravity_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GR__Gravity__3d_8f90.html">File GR_Gravity_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity_8H.html">File Gravity.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity__1d_8f90.html">File Gravity_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity__2d_8f90.html">File Gravity_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity__3d_8f90.html">File Gravity_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity__nd_8f90.html">File Gravity_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gravity__sources__nd_8F90.html">File gravity_sources_nd.F90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File pointmass_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="prescribe__grav__nd_8f90.html">File prescribe_grav_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="prescribe__phi__nd_8F90.html">File prescribe_phi_nd.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../gravity_files.html">Gravity</a> &raquo;</li>
+        
+      <li>File pointmass_nd.F90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/pointmass__nd_8F90.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-pointmass-nd-f90">
+<h1>File pointmass_nd.F90<a class="headerlink" href="#file-pointmass-nd-f90" title="Permalink to this headline">¶</a></h1>
+<dl class="type">
+<dt id="_CPPv416pointmass_module">
+<span id="_CPPv316pointmass_module"></span><span id="_CPPv216pointmass_module"></span><span id="pointmass_module"></span><span class="target" id="namespacepointmass__module"></span><em class="property">namespace </em><code class="descname">pointmass_module</code><a class="headerlink" href="#_CPPv416pointmass_module" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt id="_CPPv4N16pointmass_module14pm_add_to_gravE2lo2hi10point_mass3phi6phi_lo6phi_hi4grav7grav_lo7grav_hi6problo2dx">
+<span id="_CPPv3N16pointmass_module14pm_add_to_gravE2lo2hi10point_mass3phi6phi_lo6phi_hi4grav7grav_lo7grav_hi6problo2dx"></span><span id="_CPPv2N16pointmass_module14pm_add_to_gravE2lo2hi10point_mass3phi6phi_lo6phi_hi4grav7grav_lo7grav_hi6problo2dx"></span><span id="pointmass_module::pm_add_to_grav__lo.hi.point_mass.phi.phi_lo.phi_hi.grav.grav_lo.grav_hi.problo.dx"></span><span class="target" id="namespacepointmass__module_1a6d6faeed4eaa9586e12b89b04d6de778"></span>subroutine <code class="descname">pm_add_to_grav</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N16pointmass_module14pm_add_to_gravE2lo2hi10point_mass3phi6phi_lo6phi_hi4grav7grav_lo7grav_hi6problo2dx" title="pointmass_module::pm_add_to_grav::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module14pm_add_to_gravE2lo2hi10point_mass3phi6phi_lo6phi_hi4grav7grav_lo7grav_hi6problo2dx" title="pointmass_module::pm_add_to_grav::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module14pm_add_to_gravE2lo2hi10point_mass3phi6phi_lo6phi_hi4grav7grav_lo7grav_hi6problo2dx" title="pointmass_module::pm_add_to_grav::point_mass">point_mass</a> <em>point_mass</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module14pm_add_to_gravE2lo2hi10point_mass3phi6phi_lo6phi_hi4grav7grav_lo7grav_hi6problo2dx" title="pointmass_module::pm_add_to_grav::phi">phi</a> <em>phi</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module14pm_add_to_gravE2lo2hi10point_mass3phi6phi_lo6phi_hi4grav7grav_lo7grav_hi6problo2dx" title="pointmass_module::pm_add_to_grav::phi_lo">phi_lo</a> <em>phi_lo</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module14pm_add_to_gravE2lo2hi10point_mass3phi6phi_lo6phi_hi4grav7grav_lo7grav_hi6problo2dx" title="pointmass_module::pm_add_to_grav::phi_hi">phi_hi</a> <em>phi_hi</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module14pm_add_to_gravE2lo2hi10point_mass3phi6phi_lo6phi_hi4grav7grav_lo7grav_hi6problo2dx" title="pointmass_module::pm_add_to_grav::grav">grav</a> <em>grav</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module14pm_add_to_gravE2lo2hi10point_mass3phi6phi_lo6phi_hi4grav7grav_lo7grav_hi6problo2dx" title="pointmass_module::pm_add_to_grav::grav_lo">grav_lo</a> <em>grav_lo</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module14pm_add_to_gravE2lo2hi10point_mass3phi6phi_lo6phi_hi4grav7grav_lo7grav_hi6problo2dx" title="pointmass_module::pm_add_to_grav::grav_hi">grav_hi</a> <em>grav_hi</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module14pm_add_to_gravE2lo2hi10point_mass3phi6phi_lo6phi_hi4grav7grav_lo7grav_hi6problo2dx" title="pointmass_module::pm_add_to_grav::problo">problo</a> <em>problo</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module14pm_add_to_gravE2lo2hi10point_mass3phi6phi_lo6phi_hi4grav7grav_lo7grav_hi6problo2dx" title="pointmass_module::pm_add_to_grav::dx">dx</a> <em>dx</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N16pointmass_module14pm_add_to_gravE2lo2hi10point_mass3phi6phi_lo6phi_hi4grav7grav_lo7grav_hi6problo2dx" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N16pointmass_module21pm_compute_delta_massE2lo2hi10delta_mass3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi3vol6vol_lo6vol_hi6problo2dx4time2dt">
+<span id="_CPPv3N16pointmass_module21pm_compute_delta_massE2lo2hi10delta_mass3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi3vol6vol_lo6vol_hi6problo2dx4time2dt"></span><span id="_CPPv2N16pointmass_module21pm_compute_delta_massE2lo2hi10delta_mass3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi3vol6vol_lo6vol_hi6problo2dx4time2dt"></span><span id="pointmass_module::pm_compute_delta_mass__lo.hi.delta_mass.uin.uin_lo.uin_hi.uout.uout_lo.uout_hi.vol.vol_lo.vol_hi.problo.dx.time.dt"></span><span class="target" id="namespacepointmass__module_1a8a7f7229f38c28964969331b6865b244"></span>subroutine <code class="descname">pm_compute_delta_mass</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N16pointmass_module21pm_compute_delta_massE2lo2hi10delta_mass3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi3vol6vol_lo6vol_hi6problo2dx4time2dt" title="pointmass_module::pm_compute_delta_mass::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module21pm_compute_delta_massE2lo2hi10delta_mass3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi3vol6vol_lo6vol_hi6problo2dx4time2dt" title="pointmass_module::pm_compute_delta_mass::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module21pm_compute_delta_massE2lo2hi10delta_mass3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi3vol6vol_lo6vol_hi6problo2dx4time2dt" title="pointmass_module::pm_compute_delta_mass::delta_mass">delta_mass</a> <em>delta_mass</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module21pm_compute_delta_massE2lo2hi10delta_mass3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi3vol6vol_lo6vol_hi6problo2dx4time2dt" title="pointmass_module::pm_compute_delta_mass::uin">uin</a> <em>uin</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module21pm_compute_delta_massE2lo2hi10delta_mass3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi3vol6vol_lo6vol_hi6problo2dx4time2dt" title="pointmass_module::pm_compute_delta_mass::uin_lo">uin_lo</a> <em>uin_lo</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module21pm_compute_delta_massE2lo2hi10delta_mass3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi3vol6vol_lo6vol_hi6problo2dx4time2dt" title="pointmass_module::pm_compute_delta_mass::uin_hi">uin_hi</a> <em>uin_hi</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module21pm_compute_delta_massE2lo2hi10delta_mass3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi3vol6vol_lo6vol_hi6problo2dx4time2dt" title="pointmass_module::pm_compute_delta_mass::uout">uout</a> <em>uout</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module21pm_compute_delta_massE2lo2hi10delta_mass3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi3vol6vol_lo6vol_hi6problo2dx4time2dt" title="pointmass_module::pm_compute_delta_mass::uout_lo">uout_lo</a> <em>uout_lo</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module21pm_compute_delta_massE2lo2hi10delta_mass3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi3vol6vol_lo6vol_hi6problo2dx4time2dt" title="pointmass_module::pm_compute_delta_mass::uout_hi">uout_hi</a> <em>uout_hi</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module21pm_compute_delta_massE2lo2hi10delta_mass3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi3vol6vol_lo6vol_hi6problo2dx4time2dt" title="pointmass_module::pm_compute_delta_mass::vol">vol</a> <em>vol</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module21pm_compute_delta_massE2lo2hi10delta_mass3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi3vol6vol_lo6vol_hi6problo2dx4time2dt" title="pointmass_module::pm_compute_delta_mass::vol_lo">vol_lo</a> <em>vol_lo</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module21pm_compute_delta_massE2lo2hi10delta_mass3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi3vol6vol_lo6vol_hi6problo2dx4time2dt" title="pointmass_module::pm_compute_delta_mass::vol_hi">vol_hi</a> <em>vol_hi</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module21pm_compute_delta_massE2lo2hi10delta_mass3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi3vol6vol_lo6vol_hi6problo2dx4time2dt" title="pointmass_module::pm_compute_delta_mass::problo">problo</a> <em>problo</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module21pm_compute_delta_massE2lo2hi10delta_mass3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi3vol6vol_lo6vol_hi6problo2dx4time2dt" title="pointmass_module::pm_compute_delta_mass::dx">dx</a> <em>dx</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module21pm_compute_delta_massE2lo2hi10delta_mass3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi3vol6vol_lo6vol_hi6problo2dx4time2dt" title="pointmass_module::pm_compute_delta_mass::time">time</a> <em>time</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module21pm_compute_delta_massE2lo2hi10delta_mass3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi3vol6vol_lo6vol_hi6problo2dx4time2dt" title="pointmass_module::pm_compute_delta_mass::dt">dt</a> <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N16pointmass_module21pm_compute_delta_massE2lo2hi10delta_mass3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi3vol6vol_lo6vol_hi6problo2dx4time2dt" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N16pointmass_module15pm_fix_solutionE2lo2hi3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi6problo2dx4time2dt">
+<span id="_CPPv3N16pointmass_module15pm_fix_solutionE2lo2hi3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi6problo2dx4time2dt"></span><span id="_CPPv2N16pointmass_module15pm_fix_solutionE2lo2hi3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi6problo2dx4time2dt"></span><span id="pointmass_module::pm_fix_solution__lo.hi.uin.uin_lo.uin_hi.uout.uout_lo.uout_hi.problo.dx.time.dt"></span><span class="target" id="namespacepointmass__module_1a4795236944f6d665b533bd4aebfc2e68"></span>subroutine <code class="descname">pm_fix_solution</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N16pointmass_module15pm_fix_solutionE2lo2hi3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi6problo2dx4time2dt" title="pointmass_module::pm_fix_solution::lo">lo</a> <em>lo</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module15pm_fix_solutionE2lo2hi3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi6problo2dx4time2dt" title="pointmass_module::pm_fix_solution::hi">hi</a> <em>hi</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module15pm_fix_solutionE2lo2hi3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi6problo2dx4time2dt" title="pointmass_module::pm_fix_solution::uin">uin</a> <em>uin</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module15pm_fix_solutionE2lo2hi3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi6problo2dx4time2dt" title="pointmass_module::pm_fix_solution::uin_lo">uin_lo</a> <em>uin_lo</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module15pm_fix_solutionE2lo2hi3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi6problo2dx4time2dt" title="pointmass_module::pm_fix_solution::uin_hi">uin_hi</a> <em>uin_hi</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module15pm_fix_solutionE2lo2hi3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi6problo2dx4time2dt" title="pointmass_module::pm_fix_solution::uout">uout</a> <em>uout</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module15pm_fix_solutionE2lo2hi3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi6problo2dx4time2dt" title="pointmass_module::pm_fix_solution::uout_lo">uout_lo</a> <em>uout_lo</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module15pm_fix_solutionE2lo2hi3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi6problo2dx4time2dt" title="pointmass_module::pm_fix_solution::uout_hi">uout_hi</a> <em>uout_hi</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module15pm_fix_solutionE2lo2hi3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi6problo2dx4time2dt" title="pointmass_module::pm_fix_solution::problo">problo</a> <em>problo</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module15pm_fix_solutionE2lo2hi3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi6problo2dx4time2dt" title="pointmass_module::pm_fix_solution::dx">dx</a> <em>dx</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module15pm_fix_solutionE2lo2hi3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi6problo2dx4time2dt" title="pointmass_module::pm_fix_solution::time">time</a> <em>time</em>, <a class="reference internal" href="#_CPPv4N16pointmass_module15pm_fix_solutionE2lo2hi3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi6problo2dx4time2dt" title="pointmass_module::pm_fix_solution::dt">dt</a> <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N16pointmass_module15pm_fix_solutionE2lo2hi3uin6uin_lo6uin_hi4uout7uout_lo7uout_hi6problo2dx4time2dt" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="prescribe__grav__nd_8f90.html" class="btn btn-neutral float-right" title="File prescribe_grav_nd.f90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="gravity__sources__nd_8F90.html" class="btn btn-neutral float-left" title="File gravity_sources_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
