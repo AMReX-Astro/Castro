@@ -1124,8 +1124,8 @@ void Radiation::MGFLD_compute_scattering(FArrayBox& kappa_s, const FArrayBox& st
     if (use_opacity_table_module) {
 	BL_FORT_PROC_CALL(CA_COMPUTE_SCATTERING, ca_compute_scattering)
 		(ARLIM_3D(kbox.loVect()), ARLIM_3D(kbox.hiVect()),
-		 BL_TO_FORTRAN_3D(kappa_s), 
-		 BL_TO_FORTRAN_3D(state));
+		 BL_TO_FORTRAN_ANYD(kappa_s), 
+		 BL_TO_FORTRAN_ANYD(state));
     } else {
 	BL_ASSERT(kappa_r_exp_p == 0.0 && kappa_p_exp_p == 0.0 && scattering_exp_p == 0.0);
 	if (const_kappa_r < 0.0) {
@@ -1137,7 +1137,7 @@ void Radiation::MGFLD_compute_scattering(FArrayBox& kappa_s, const FArrayBox& st
 	} else {
 	    BL_FORT_PROC_CALL(CA_COMPUTE_SCATTERING_2, ca_compute_scattering_2)
 		(ARLIM_3D(kbox.loVect()), ARLIM_3D(kbox.hiVect()),
-		 BL_TO_FORTRAN_3D(kappa_s), BL_TO_FORTRAN_3D(state),
+		 BL_TO_FORTRAN_ANYD(kappa_s), BL_TO_FORTRAN_ANYD(state),
 		 &const_kappa_p, &kappa_p_exp_m, &kappa_p_exp_n, 
 		 &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n,
 		 &prop_temp_floor, &kappa_r_floor);	 
@@ -1231,15 +1231,16 @@ void Radiation::inelastic_scattering(int level)
 		MGFLD_compute_scattering(kps, S_new[mfi]);
 
 		ca_inelastic_sct(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				 BL_TO_FORTRAN_3D(S_new[mfi]),
-				 BL_TO_FORTRAN_3D(Er_new[mfi]),
-				 BL_TO_FORTRAN_3D(kps),
+				 BL_TO_FORTRAN_ANYD(S_new[mfi]),
+				 BL_TO_FORTRAN_ANYD(Er_new[mfi]),
+				 BL_TO_FORTRAN_ANYD(kps),
 				 dt);		
 	    }
 	}
 
 	if (do_real_eos > 0) {
-	  castro->computeTemp(S_new, S_new.nGrow());
+          int is_new=1;
+	  castro->computeTemp(is_new, S_new.nGrow());
 	}
     }
 }

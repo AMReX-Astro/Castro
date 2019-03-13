@@ -27,6 +27,8 @@ state_nghost                 int           0
 do_reflux                    int           1
 
 # whether to re-compute new-time source terms after a reflux
+# Note: this only works for the CTU and simple-SDC time_integration_method
+# drivers
 update_sources_after_reflux  int           1
 
 # should we have state data for custom load-balancing weighting?
@@ -56,11 +58,19 @@ small_ener                   Real         -1.e200             y
 # permits hydro to be turned on and off for running pure rad problems
 do_hydro                     int          -1                  y
 
-# do we do the CTU unsplit method or a method-of-lines approach?
-do_ctu                       int           1                  y
+# how do we advance in time? 0 = CTU + Strang, 1 = MOL + Strang, 2 = SDC
+time_integration_method      int           0                  y
 
-# do we do fourth-order accurate MOL hydro?
+# do we do fourth-order accurate spatial reconstruction for hydro? (requires SDC or MOL integration)
 fourth_order                 int           0                  y
+
+# do we use a limiter with the fourth-order accurate reconstruction?
+limit_fourth_order           int           1                  y
+
+# should we use a reconstructed version of Gamma_1 in the Riemann
+# solver? or the default zone average (requires SDC or MOL
+# integration, since we do not trace)
+use_reconstructed_gamma1     int           0                  y
 
 # if true, define an additional source term
 add_ext_src                  int           0
@@ -80,11 +90,11 @@ ppm_type                     int           1                  y
 # reconstruction---see Zingale \& Katz 2015
 ppm_temp_fix                 int           0                  y
 
-# do we construct $\gamma_e = p/(\rho e) + 1$ and bring it
+# do we construct :math:`\gamma_e = p/(\rho e) + 1` and bring it
 # to the interfaces for additional thermodynamic information
-# (this is the Colella \& Glaz technique) or do we use $(\rho e)$
+# (this is the Colella \& Glaz technique) or do we use :math:`(\rho e)`
 # (the classic \castro\ behavior).  Note this also uses
-# $\tau = 1/\rho$ instead of $\rho$.
+# :math:`\tau = 1/\rho` instead of :math:`\rho`.
 ppm_predict_gammae           int           0                  y
 
 # do we use the reference state in evaluating the eigenvectors?
@@ -127,7 +137,7 @@ use_eos_in_riemann           int           0                  y
 use_flattening               int           1                  y
 
 # after we add the transverse correction to the interface states, replace
-# the predicted pressure with an EOS call (using $e$ and $\rho$).
+# the predicted pressure with an EOS call (using :math:`e` and :math:`\rho`).
 transverse_use_eos           int           0                  y
 
 # if the transverse interface state correction, if the new density is
@@ -135,15 +145,10 @@ transverse_use_eos           int           0                  y
 # values without the transverse correction.
 transverse_reset_density     int           1                  y
 
-# if the interface state for $(\rho e)$ is negative after we add the
-# transverse terms, then replace the interface value of $(\rho e)$
-# with a value constructed from the $(\rho e)$ evolution equation
+# if the interface state for :math:`(\rho e)` is negative after we add the
+# transverse terms, then replace the interface value of :math:`(\rho e)`
+# with a value constructed from the :math:`(\rho e)` evolution equation
 transverse_reset_rhoe        int           0                  y
-
-# Allow internal energy resets and temperature flooring to change the
-# total energy variable UEDEN in addition to the internal energy variable
-# UEINT.
-dual_energy_update_E_from_e  int           1                  y
 
 # Threshold value of (E - K) / E such that above eta1, the hydrodynamic
 # pressure is derived from E - K; otherwise, we use the internal energy
@@ -155,7 +160,7 @@ dual_energy_eta1             Real          1.0e0              y
 # remains unchanged.
 dual_energy_eta2             Real          1.0e-4             y
 
-# for the piecewise linear reconstruction, do we subtract off $(\rho g)$
+# for the piecewise linear reconstruction, do we subtract off :math:`(\rho g)`
 # from the pressure before limiting?
 use_pslope                   int           1                  y
 
@@ -170,9 +175,6 @@ limit_fluxes_on_small_dens   int           0                  y
 # 3 = Reset to the original zone state before the hydro update
 density_reset_method         int           1                  y
 
-# Whether or not to allow internal energy to be less than zero
-allow_negative_energy        int           0                  y
-
 # Whether or not to allow the internal energy to be less than the
 # internal energy corresponding to small\_temp
 allow_small_energy           int           1                  y
@@ -183,7 +185,7 @@ do_sponge                    int           0                  y
 # if we are using the sponge, whether to use the implicit solve for it
 sponge_implicit              int           1                  y
 
-# extrapolate the source terms (gravity and rotation) to $n+1/2$
+# extrapolate the source terms (gravity and rotation) to :math:`n+1/2`
 # timelevel for use in the interface state prediction
 source_term_predictor        int           0
 
@@ -225,6 +227,21 @@ hse_reflect_vels             int           0                  y
 # 1 = first order, 2 = second order TVD, 3 = 3rd order TVD, 4 = 4th order RK
 mol_order                    int           2                  y
 
+# integration order for SDC integration
+# valid options are 2 and 4
+sdc_order                    int           2                  y
+
+# which SDC nonlinear solver to use?  1 = Newton, 2 = VODE, 3 = VODE for first iter
+sdc_solver                   int           1                  y
+
+# which SDC nonlinear solver to use?  1 = Newton, 2 = VODE
+sdc_solver_tol               Real          1.e-6             y
+
+# do we solve for (rho e) or (rho E) in the SDC nonlinear solve?
+sdc_solve_for_rhoe           int           1                  y
+
+# do we use the analytic or numerical Jacobian?
+sdc_use_analytic_jac         int           1                  y
 
 #-----------------------------------------------------------------------------
 # category: timestep control
@@ -291,11 +308,6 @@ use_post_step_regrid         int           0
 # Set to a negative value to disable this criterion.
 max_subcycles                int           10
 
-# If we do request more than the maximum number of subcycles,
-# should we fail, or should we clamp to that maximum number
-# and perform that many?
-clamp_subcycles              int           1
-
 # Number of iterations for the SDC advance.
 sdc_iters                    int           2
 
@@ -305,32 +317,18 @@ sdc_iters                    int           2
 
 # Limit the timestep based on how much the burning can change the internal
 # energy of a zone. The timestep is equal to
-# {\tt dtnuc}  $\cdot\,(e / \dot{e})$.
+# ``dtnuc``  :math:`\cdot\,(e / \dot{e})`.
 dtnuc_e                      Real          1.e200             y
 
 # Limit the timestep based on how much the burning can change the species
 # mass fractions of a zone. The timestep is equal to
-# {\tt dtnuc}  $\cdot\,(X / \dot{X})$.
+# ``dtnuc``  :math:`\cdot\,(X / \dot{X})`.
 dtnuc_X                      Real          1.e200             y
 
 # If we are using the timestep limiter based on changes in $X$, set a threshold
 # on the species abundance below which the limiter is not applied. This helps
 # prevent the timestep from becoming very small due to changes in trace species.
 dtnuc_X_threshold            Real          1.e-3              y
-
-# limit the zone size based on how much the burning can change the internal
-# energy of a zone. The zone size on the finest level must be smaller than
-# {\tt dxnuc} $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the sound speed.
-# This ensures that the sound-crossing time is smaller than the
-# nuclear energy injection timescale.
-dxnuc                        Real          1.e200             y
-
-# Disable limiting based on dxnuc above this threshold. This allows zones that
-# have already ignited or are about to ignite to be de-refined.
-dxnuc_max                    Real          1.e200             y
-
-# Disable limiting based on dxnuc above this AMR level.
-max_dxnuc_lev                int           30                 y
 
 # permits reactions to be turned on and off -- mostly for efficiency's sake
 do_react                     int          -1                  y
@@ -350,6 +348,9 @@ react_rho_max                Real          1.e200             y
 # disable burning inside hydrodynamic shock regions
 disable_shock_burning        int           0                  y
 
+# initial guess for the temperature when inverting the EoS (e.g. when
+# calling eos_input_re)
+T_guess                     Real           1.e8               y
 
 #-----------------------------------------------------------------------------
 # category: diffusion
@@ -358,17 +359,13 @@ disable_shock_burning        int           0                  y
 # enable thermal diffusion
 diffuse_temp                 int           0                  n     DIFFUSION
 
-# enable enthalpy diffusion
-diffuse_enth                 int           0                  n     DIFFUSION
-
-# enable species diffusion
-diffuse_spec                 int           0                  n     DIFFUSION
-
-# enable velocity diffusion
-diffuse_vel                  int           0                  n     DIFFUSION
-
 # set a cutoff density for diffusion -- we zero the term out below this density
 diffuse_cutoff_density       Real          -1.e200            y     DIFFUSION
+
+# secondary cutoff density -- there will be a linear dropoff in the diffusion
+# coefficient between this and the primary cutoff density. This should be the
+# larger of the two
+diffuse_cutoff_density_hi    Real          -1.e200            y     DIFFUSION
 
 # scaling factor for conductivity
 diffuse_cond_scale_fac       Real          1.0                y     DIFFUSION
@@ -423,19 +420,19 @@ rot_source_type              int           4                  y        ROTATION
 # for better coupling of the Coriolis terms
 implicit_rotation_update     int           1                  y        ROTATION
 
-# the coordinate axis ($x=1$, $y=2$, $z=3$) for the rotation vector
+# the coordinate axis (:math:`x=1`, :math:`y=2`, :math:`z=3`) for the rotation vector
 rot_axis                     int           3                  y        ROTATION
 
 # include a central point mass
-use_point_mass               int           1                  y        POINTMASS
+use_point_mass               int           0                  y        GRAVITY
 
 # mass of the point mass
-point_mass                   Real          0.0                y        POINTMASS
+point_mass                   Real          0.0                y        GRAVITY
 
 # if we have a central point mass, we can prevent mass from building
 # up in the zones adjacent to it by keeping their density constant and
 # adding their mass to the point mass object
-point_mass_fix_solution      int           0                  y        POINTMASS
+point_mass_fix_solution      int           0                  y        GRAVITY
 
 #-----------------------------------------------------------------------------
 # category: parallelization
@@ -472,6 +469,12 @@ spherical_star               int           0
 # category: diagnostics, I/O
 #-----------------------------------------------------------------------------
 
+# verbosity level (higher numbers mean more output)
+(v, verbose)                 int           0
+
+# do we dump the old state into the checkpoint files too?
+dump_old                     bool          false
+
 # display warnings in Fortran90 routines
 print_fortran_warnings       int           (0, 1)
 
@@ -494,7 +497,7 @@ show_center_of_mass          int           0
 hard_cfl_limit               int           1
 
 # a string describing the simulation that will be copied into the
-# plotfile's {\tt job\_info} file
+# plotfile's ``job_info`` file
 job_name                     string        ""
 
 # write a final plotfile and checkpoint upon completion
@@ -532,10 +535,10 @@ do_tracer_particles          int           0       n      AMREX_PARTICLES
 # the name of an input file containing the total particle number and the initial position of each particle.
 particle_init_file           string        ""
 
-# the name of a file with new particles at restart 
+# the name of a file with new particles at restart
 particle_restart_file        string        ""
 
-# to restart from a checkpoint that was written with {\tt USE\_PARTICLES}=FALSE 
+# to restart from a checkpoint that was written with ``USE_PARTICLES`` =FALSE
 restart_from_nonparticle_chkfile     int      0
 
 # the name of timestamp files.
@@ -554,8 +557,8 @@ timestamp_temperature        int           0
 
 @namespace: gravity Gravity static
 
-# what type 
-gravity_type                 string        "fillme"
+# what type
+gravity_type                 string        "fillme"           y
 
 
 # if doing constant gravity, what is the acceleration
@@ -612,7 +615,7 @@ mlmg_nsolve                  int           0                  n
 
 # the level of verbosity for the diffusion solve (higher number means
 # more output)
-(v, verbose)                int            0                
+(v, verbose)                int            0
 
 # Use MLMG as the operator
 mlmg_maxorder                int           4                  n

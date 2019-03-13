@@ -11,12 +11,13 @@ contains
 
     use probdata_module
     use prob_params_module, only: center
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP, const_grav
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP, const_grav
     use interpolate_module
     use eos_module
     use eos_type_module
     use actual_eos_module, only : gamma_const
     use network, only: nspec
+    use amrex_constants_module, only : ZERO, HALF
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -139,7 +140,8 @@ contains
           do i=domlo(1)-1,adv_l1,-1
 
              ! zero transverse momentum
-             adv(i,j,UMY) = 0.e0_rt
+             adv(i,j,UMY) = ZERO
+             adv(i,j,UMZ) = ZERO
 
              if (boundary_type .eq. 1) then
                 ! extrapolate normal momentum
@@ -148,14 +150,14 @@ contains
              else
                 ! zero normal momentum
                 ! permits pi to pass through boundary
-                adv(i,j,UMX) = 0.e0_rt
+                adv(i,j,UMX) = ZERO
              end if
 
              adv(i,j,URHO) = density(j)
              adv(i,j,UFS) = adv(i,j,URHO)
              adv(i,j,UEINT) = eint(j)*adv(i,j,URHO)
              adv(i,j,UEDEN) = adv(i,j,UEINT) &
-                  + 0.5e0_rt*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
+                  + HALF*sum(adv(i,j,UMX:UMZ)**2)/adv(i,j,URHO)
              adv(i,j,UTEMP) = temp(j)
 
           end do
@@ -167,11 +169,12 @@ contains
     if ( bc(1,2,1).eq.EXT_DIR .and. adv_h1.gt.domhi(1)) then
 
        do j=adv_l2,adv_h2
-          y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5e0_rt)
+          y = xlo(2) + delta(2)*(float(j-adv_l2) + HALF)
           do i=domhi(1)+1,adv_h1
 
              ! zero transverse momentum
-             adv(i,j,UMY) = 0.e0_rt
+             adv(i,j,UMY) = ZERO
+             adv(i,j,UMZ) = ZERO
 
              if (boundary_type .eq. 1) then
                 ! extrapolate normal momentum
@@ -180,14 +183,14 @@ contains
              else
                 ! zero normal momentum
                 ! permits pi to pass through boundary
-                adv(i,j,UMX) = 0.e0_rt
+                adv(i,j,UMX) = ZERO
              end if
 
              adv(i,j,URHO) = density(j)
              adv(i,j,UFS) = adv(i,j,URHO)
              adv(i,j,UEINT) = eint(j)*adv(i,j,URHO)
              adv(i,j,UEDEN) = adv(i,j,UEINT) &
-                  + 0.5e0_rt*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
+                  + HALF*sum(adv(i,j,UMX:UMZ)**2)/adv(i,j,URHO)
              adv(i,j,UTEMP) = temp(j)
 
           end do
@@ -200,11 +203,12 @@ contains
     if ( bc(2,1,1).eq.EXT_DIR .and. adv_l2.lt.domlo(2)) then
        ! this do loop counts backwards since we want to work downward
        do j=domlo(2)-1,adv_l2,-1
-          y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5e0_rt)
+          y = xlo(2) + delta(2)*(float(j-adv_l2) + HALF)
           do i=adv_l1,adv_h1
 
              ! zero transverse momentum
-             adv(i,j,UMX) = 0.e0_rt
+             adv(i,j,UMX) = ZERO
+             adv(i,j,UMZ) = ZERO
 
              if (boundary_type .eq. 1) then
                 ! extrapolate normal momentum
@@ -213,14 +217,14 @@ contains
              else
                 ! zero normal momentum
                 ! permits pi to pass through boundary
-                adv(i,j,UMY) = 0.e0_rt
+                adv(i,j,UMY) = ZERO
              end if
 
              adv(i,j,URHO) = density(j)
              adv(i,j,UFS) = adv(i,j,URHO)
              adv(i,j,UEINT) = eint(j)*adv(i,j,URHO)
              adv(i,j,UEDEN) = adv(i,j,UEINT) &
-                  + 0.5e0_rt*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
+                  + HALF*sum(adv(i,j,UMX:UMZ)**2)/adv(i,j,URHO)
              adv(i,j,UTEMP) = temp(j)
 
           end do
@@ -230,11 +234,12 @@ contains
     !        YHI
     if ( bc(2,2,1).eq.EXT_DIR .and. adv_h2.gt.domhi(2)) then
        do j=domhi(2)+1,adv_h2
-          y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5e0_rt)
+          y = xlo(2) + delta(2)*(float(j-adv_l2) + HALF)
           do i=adv_l1,adv_h1
 
              ! zero transverse momentum
-             adv(i,j,UMX) = 0.e0_rt
+             adv(i,j,UMX) = ZERO
+             adv(i,j,UMZ) = ZERO
 
              if (boundary_type .eq. 1) then
                 ! extrapolate normal momentum
@@ -243,14 +248,14 @@ contains
              else
                 ! zero normal momentum
                 ! permits pi to pass through boundary
-                adv(i,j,UMY) = 0.e0_rt
+                adv(i,j,UMY) = ZERO
              end if
 
              adv(i,j,URHO) = density(j)
              adv(i,j,UFS) = adv(i,j,URHO)
              adv(i,j,UEINT) = eint(j)*adv(i,j,URHO)
              adv(i,j,UEDEN) = adv(i,j,UEINT) &
-                  + 0.5e0_rt*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
+                  + HALF*sum(adv(i,j,UMX:UMZ)**2)/adv(i,j,URHO)
              adv(i,j,UTEMP) = temp(j)
 
           end do
@@ -272,6 +277,8 @@ contains
     use meth_params_module, only : const_grav
 
     use amrex_fort_module, only : rt => amrex_real
+    use amrex_constants_module, only : ZERO, HALF
+
     implicit none
     
     include 'AMReX_bc_types.fi'
@@ -306,7 +313,7 @@ contains
                 adv(i,j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*y/ &
                      (gamma_const*pres_base) + 1.e0_rt)**(1.e0_rt/(gamma_const - 1.e0_rt))
              else
-                y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5e0_rt)
+                y = xlo(2) + delta(2)*(float(j-adv_l2) + HALF)
                 adv(i,j) = dens_base * exp(-y/H)
              end if
 
@@ -324,7 +331,7 @@ contains
                 adv(i,j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*y/ &
                      (gamma_const*pres_base) + 1.e0_rt)**(1.e0_rt/(gamma_const - 1.e0_rt))
              else
-                y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5e0_rt)
+                y = xlo(2) + delta(2)*(float(j-adv_l2) + HALF)
                 adv(i,j) = dens_base * exp(-y/H)
              end if
 
@@ -342,7 +349,7 @@ contains
                 adv(i,j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*y/ &
                      (gamma_const*pres_base) + 1.e0_rt)**(1.e0_rt/(gamma_const - 1.e0_rt))
              else
-                y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5e0_rt)
+                y = xlo(2) + delta(2)*(float(j-adv_l2) + HALF)
                 adv(i,j) = dens_base * exp(-y/H)
              end if
 
@@ -360,7 +367,7 @@ contains
                 adv(i,j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*y/ &
                      (gamma_const*pres_base) + 1.e0_rt)**(1.e0_rt/(gamma_const - 1.e0_rt))
              else
-                y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5e0_rt)
+                y = xlo(2) + delta(2)*(float(j-adv_l2) + HALF)
                 adv(i,j) = dens_base * exp(-y/H)
              end if
 

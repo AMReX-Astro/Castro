@@ -70,9 +70,9 @@ Castro::fill_ext_source (Real time, Real dt, MultiFab& state_old, MultiFab& stat
 #ifdef AMREX_DIMENSION_AGNOSTIC
         BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
 	  (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-	   BL_TO_FORTRAN_3D(state_old[mfi]),
-	   BL_TO_FORTRAN_3D(state_new[mfi]),
-	   BL_TO_FORTRAN_3D(ext_src[mfi]),
+	   BL_TO_FORTRAN_ANYD(state_old[mfi]),
+	   BL_TO_FORTRAN_ANYD(state_new[mfi]),
+	   BL_TO_FORTRAN_ANYD(ext_src[mfi]),
 	   ZFILL(prob_lo),ZFILL(dx),&time,&dt);
 #else
 	BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)

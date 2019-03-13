@@ -4,48 +4,53 @@ module riemann_module
   use amrex_constants_module
   use meth_params_module, only : NQ, NVAR, NQAUX, &
                                  URHO, UMX, UMY, UMZ, &
-                                 UEDEN, UEINT, UFS, UFX, &
+                                 UEDEN, UEINT, UFS, UFX, UTEMP, &
                                  QRHO, QU, QV, QW, &
                                  QPRES, QGAME, QREINT, QFS, QFX, &
-                                 QC, QGAMC, &
+                                 QC, QGAMC, QGC, &
                                  NGDNV, GDRHO, GDPRES, GDGAME, &
+
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, &
                                  GDERADS, QGAMCG, QLAMS, QREITOT, &
 #endif
                                  npassive, upass_map, qpass_map, &
                                  small_dens, small_pres, small_temp, &
-                                 use_eos_in_riemann
+                                 use_eos_in_riemann, use_reconstructed_gamma1
+
   use riemann_util_module
 
 #ifdef RADIATION
-    use rad_params_module, only : ngroups
+  use rad_params_module, only : ngroups
 #endif
 
   implicit none
 
   private
 
-  public :: riemanncg, riemannus, hllc, cmpflx, riemann_state
+  public :: riemanncg, riemannus, hllc, cmpflx, cmpflx_plus_godunov, riemann_state
 
   real(rt), parameter :: smallu = 1.e-12_rt
   real(rt), parameter :: small = 1.e-8_rt
 
 contains
 
-  subroutine cmpflx(qm, qp, qpd_lo, qpd_hi, &
-                    flx, flx_lo, flx_hi, &
-                    qgdnv, q_lo, q_hi, &
+  subroutine cmpflx_plus_godunov(lo, hi, &
+                                 qm, qm_lo, qm_hi, &
+                                 qp, qp_lo, qp_hi, nc, comp, &
+                                 flx, flx_lo, flx_hi, &
+                                 qint, q_lo, q_hi, &
 #ifdef RADIATION
-                    rflx, rflx_lo, rflx_hi, &
+                                 rflx, rflx_lo, rflx_hi, &
+                                 lambda_int, li_lo, li_hi, &
 #endif
-                    qaux, qa_lo, qa_hi, &
-                    shk, s_lo, s_hi, &
-                    idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, domlo, domhi)
+                                 qgdnv, qg_lo, qg_hi, &
+                                 qaux, qa_lo, qa_hi, &
+                                 shk, s_lo, s_hi, &
+                                 idir, domlo, domhi) bind(C, name="cmpflx_plus_godunov")
 
-    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use eos_module, only: eos
-    use eos_type_module, only: eos_t, eos_input_re
+    use eos_type_module, only: eos_t
     use network, only: nspec, naux
     use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
@@ -53,191 +58,168 @@ contains
 
     implicit none
 
-    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    ! note: lo, hi necessarily the limits of the valid (no ghost
+    ! cells) domain, but could be hi+1 in some dimensions.  We rely on
+    ! the caller to specific the interfaces over which to solve the
+    ! Riemann problems
+
+    integer, intent(in) :: lo(3), hi(3)
+
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
+    integer, intent(in) :: flx_lo(3), flx_hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
+    integer, intent(in) :: s_lo(3), s_hi(3)
+    integer, intent(in) :: qg_lo(3), qg_hi(3)
+
+    integer, intent(in), value :: idir
+
+    integer, intent(in) :: domlo(3),domhi(3)
+    integer, intent(in), value :: nc, comp
+
+    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ,nc)
+    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ,nc)
+
+    real(rt), intent(inout) :: flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR)
+    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+
+#ifdef RADIATION
+    integer, intent(in) :: rflx_lo(3), rflx_hi(3)
+    real(rt), intent(inout) :: rflx(rflx_lo(1):rflx_hi(1), rflx_lo(2):rflx_hi(2), rflx_lo(3):rflx_hi(3),0:ngroups-1)
+    integer, intent(in) :: li_lo(3), li_hi(3)
+    real(rt), intent(inout) :: lambda_int(li_lo(1),li_hi(1), li_lo(2):li_hi(2), li_lo(3):li_hi(3), 0:ngroups-1)
+#endif
+
+    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt), intent(in) ::  shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
+
+    real(rt), intent(inout) :: qgdnv(qg_lo(1):qg_hi(1), qg_lo(2):qg_hi(2), qg_lo(3):qg_hi(3), NGDNV)
+
+    !$gpu
+
+    call cmpflx(lo, hi, &
+                qm, qm_lo, qm_hi, &
+                qp, qp_lo, qp_hi, nc, comp, &
+                flx, flx_lo, flx_hi, &
+                qint, q_lo, q_hi, &
+#ifdef RADIATION
+                rflx, rflx_lo, rflx_hi, &
+                lambda_int, li_lo, li_hi, &
+#endif
+                qaux, qa_lo, qa_hi, &
+                shk, s_lo, s_hi, &
+                idir, domlo, domhi)
+
+    call ca_store_godunov_state(lo, hi, &
+                                qint, q_lo, q_hi, &
+#ifdef RADIATION
+                                lambda_int, li_lo, li_hi, &
+#endif
+                                qgdnv, qg_lo, qg_hi)
+
+  end subroutine cmpflx_plus_godunov
+
+  subroutine cmpflx(lo, hi, &
+                    qm, qm_lo, qm_hi, &
+                    qp, qp_lo, qp_hi, nc, comp, &
+                    flx, flx_lo, flx_hi, &
+                    qint, q_lo, q_hi, &
+#ifdef RADIATION
+                    rflx, rflx_lo, rflx_hi, &
+                    lambda_int, li_lo, li_hi, &
+#endif
+                    qaux, qa_lo, qa_hi, &
+                    shk, s_lo, s_hi, &
+                    idir, domlo, domhi)
+
+    use eos_module, only: eos
+    use eos_type_module, only: eos_t
+    use network, only: nspec, naux
+    use amrex_error_module
+    use amrex_fort_module, only : rt => amrex_real
+    use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver
+
+    implicit none
+
+    ! note: lo, hi necessarily the limits of the valid (no ghost
+    ! cells) domain, but could be hi+1 in some dimensions.  We rely on
+    ! the caller to specific the interfaces over which to solve the
+    ! Riemann problems
+
+    integer, intent(in) :: lo(3), hi(3)
+
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
     integer, intent(in) :: flx_lo(3), flx_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: s_lo(3), s_hi(3)
 
     integer, intent(in) :: idir
-    ! note: ilo, ihi, jlo, jhi are not necessarily the limits of the
-    ! valid (no ghost cells) domain, but could be hi+1 in some
-    ! dimensions.  We rely on the caller to specific the interfaces
-    ! over which to solve the Riemann problems
-    integer, intent(in) :: ilo, ihi, jlo, jhi, kc, kflux, k3d
+
     integer, intent(in) :: domlo(3),domhi(3)
+    integer, intent(in) :: nc, comp
 
-    ! note: qm, qp, q may come in as planes (all of x,y
-    ! zones but only 2 elements in the z dir) instead of being
-    ! dimensioned the same as the full box.  We index these with kc.
-    ! flux either comes in as planes (like qm, qp, ... above), or
-    ! comes in dimensioned as the full box.  We index the flux with
-    ! kflux -- this will be set correctly for the different cases.
+    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ,nc)
+    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ,nc)
 
-    real(rt), intent(inout) :: qm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
-    real(rt), intent(inout) :: qp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
-
-    real(rt), intent(inout) ::    flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR)
-    real(rt), intent(inout) ::   qgdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NGDNV)
+    real(rt), intent(inout) :: flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR)
+    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
 
 #ifdef RADIATION
     integer, intent(in) :: rflx_lo(3), rflx_hi(3)
     real(rt), intent(inout) :: rflx(rflx_lo(1):rflx_hi(1), rflx_lo(2):rflx_hi(2), rflx_lo(3):rflx_hi(3),0:ngroups-1)
+    integer, intent(in) :: li_lo(3), li_hi(3)
+    real(rt), intent(inout) :: lambda_int(li_lo(1),li_hi(1), li_lo(2):li_hi(2), li_lo(3):li_hi(3), 0:ngroups-1)
 #endif
 
-    ! qaux come in dimensioned as the full box, so we use k3d here to
-    ! index it in z
-
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-
     real(rt), intent(in) ::  shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
 
-    real(rt), pointer :: qint(:,:,:,:)
-    real(rt), pointer :: lambda_int(:,:,:,:)
+    real(rt) :: ql_zone(NQ), qr_zone(NQ), flx_zone(NVAR)
 
     ! local variables
 
-    integer i, j
+    integer i, j, k
 
     integer :: is_shock
     real(rt) :: cl, cr
     type (eos_t) :: eos_state
 
-#ifdef RADIATION
-#ifndef AMREX_USE_CUDA
-    if (hybrid_riemann == 1) then
-       call amrex_error("ERROR: hybrid Riemann not supported for radiation")
-    endif
+    !$gpu
 
-    if (riemann_solver > 0) then
-       call amrex_error("ERROR: only the CGF Riemann solver is supported for radiation")
-    endif
-#endif
-#endif
-
-#if BL_SPACEDIM == 1
-#ifndef AMREX_USE_CUDA
-    if (riemann_solver > 1) then
-       call amrex_error("ERROR: HLLC not implemented for 1-d")
-    endif
-#endif    
-#endif
-
-    if (ppm_temp_fix == 2) then
-       ! recompute the thermodynamics on the interface to make it
-       ! all consistent
-
-       ! we want to take the edge states of rho, p, and X, and get
-       ! new values for gamc and (rho e) on the edges that are
-       ! thermodynamically consistent.
-
-       do j = jlo, jhi
-          do i = ilo, ihi
-
-             ! this is an initial guess for iterations, since we
-             ! can't be certain that temp is on interfaces
-             eos_state % T = 10000.0e0_rt
-
-             ! minus state
-             eos_state % rho = qm(i,j,kc,QRHO)
-             eos_state % p   = qm(i,j,kc,QPRES)
-             eos_state % e   = qm(i,j,kc,QREINT)/qm(i,j,kc,QRHO)
-             eos_state % xn  = qm(i,j,kc,QFS:QFS+nspec-1)
-             eos_state % aux = qm(i,j,kc,QFX:QFX+naux-1)
-
-             call eos(eos_input_re, eos_state)
-
-             qm(i,j,kc,QREINT) = eos_state % e * eos_state % rho
-             qm(i,j,kc,QPRES)  = eos_state % p
-             !gamcm(i,j)        = eos_state % gam1
-
-          enddo
-       enddo
-
-       ! plus state
-       do j = jlo, jhi
-          do i = ilo, ihi
-
-             eos_state % rho = qp(i,j,kc,QRHO)
-             eos_state % p   = qp(i,j,kc,QPRES)
-             eos_state % e   = qp(i,j,kc,QREINT)/qp(i,j,kc,QRHO)
-             eos_state % xn  = qp(i,j,kc,QFS:QFS+nspec-1)
-             eos_state % aux = qp(i,j,kc,QFX:QFX+naux-1)
-
-             call eos(eos_input_re, eos_state)
-
-             qp(i,j,kc,QREINT) = eos_state % e * eos_state % rho
-             qp(i,j,kc,QPRES)  = eos_state % p
-             !gamcp(i,j)        = eos_state % gam1
-
-          enddo
-       enddo
-
-    endif
-
-    ! Solve Riemann problem
-    if (riemann_solver == 0) then
+    ! Solve Riemann problem to get the fluxes
+    if (riemann_solver == 0 .or. riemann_solver == 1) then
        ! Colella, Glaz, & Ferguson solver
 
-       call bl_allocate(qint, q_lo, q_hi, NQ)
+       call riemann_state(qm, qm_lo, qm_hi, &
+                          qp, qp_lo, qp_hi, nc, comp, &
+                          qint, q_lo, q_hi, &
 #ifdef RADIATION
-       call bl_allocate(lambda_int, q_lo, q_hi, ngroups)
+                          lambda_int, q_lo, q_hi, &
 #endif
+                          qaux, qa_lo, qa_hi, &
+                          idir, lo, hi, &
+                          domlo, domhi, .false.)
 
-       call riemannus(qm, qp, qpd_lo, qpd_hi, &
-                      qaux, qa_lo, qa_hi, &
-                      qint, q_lo, q_hi, &
-#ifdef RADIATION
-                      lambda_int, q_lo, q_hi, &
-#endif
-                      idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
-                      domlo, domhi)
-
-       call compute_flux_q(idir, qint, q_lo, q_hi, &
+       call compute_flux_q(lo, hi, &
+                           qint, q_lo, q_hi, &
                            flx, flx_lo, flx_hi, &
 #ifdef RADIATION
                            lambda_int, q_lo, q_hi, &
                            rflx, rflx_lo, rflx_hi, &
 #endif
-                           qgdnv, q_lo, q_hi, &
-                           ilo, ihi, jlo, jhi, kc, kflux, k3d)
-
-       call bl_deallocate(qint)
-#ifdef RADIATION
-       call bl_deallocate(lambda_int)
-#endif
-
-    elseif (riemann_solver == 1) then
-       ! Colella & Glaz solver
-
-#ifndef RADIATION
-       call bl_allocate(qint, q_lo, q_hi, NQ)
-
-       call riemanncg(qm, qp, qpd_lo, qpd_hi, &
-                      qaux, qa_lo, qa_hi, &
-                      qint, q_lo, q_hi, &
-                      idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
-                      domlo, domhi)
-
-       call compute_flux_q(idir, qint, q_lo, q_hi, &
-                           flx, flx_lo, flx_hi, &
-                           qgdnv, q_lo, q_hi, &
-                           ilo, ihi, jlo, jhi, kc, kflux, k3d)
-
-       call bl_deallocate(qint)
-#else
-#ifndef AMREX_USE_CUDA
-       call amrex_error("ERROR: CG solver does not support radiaiton")
-#endif
-#endif
+                           idir)
 
     elseif (riemann_solver == 2) then
        ! HLLC
-       call HLLC(qm, qp, qpd_lo, qpd_hi, &
+       call HLLC(qm, qm_lo, qm_hi, &
+                 qp, qp_lo, qp_hi, nc, comp, &
                  qaux, qa_lo, qa_hi, &
                  flx, flx_lo, flx_hi, &
-                 qgdnv, q_lo, q_hi, &
-                 idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
+                 qint, q_lo, q_hi, &
+                 idir, lo, hi, &
                  domlo, domhi)
 #ifndef AMREX_USE_CUDA
     else
@@ -249,98 +231,128 @@ contains
     if (hybrid_riemann == 1) then
        ! correct the fluxes using an HLL scheme if we are in a shock
        ! and doing the hybrid approach
-       do j = jlo, jhi
-          do i = ilo, ihi
-
-             select case (idir)
-             case (1)
-                is_shock = shk(i-1,j,k3d) + shk(i,j,k3d)
-             case (2)
-                is_shock = shk(i,j-1,k3d) + shk(i,j,k3d)
-             case (3)
-                is_shock = shk(i,j,k3d-1) + shk(i,j,k3d)
-             end select
-
-             if (is_shock >= 1) then
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
                 select case (idir)
                 case (1)
-                   cl = qaux(i-1,j,k3d,QC)
-                   cr = qaux(i,j,k3d,QC)
+                   is_shock = shk(i-1,j,k) + shk(i,j,k)
                 case (2)
-                   cl = qaux(i,j-1,k3d,QC)
-                   cr = qaux(i,j,k3d,QC)
+                   is_shock = shk(i,j-1,k) + shk(i,j,k)
                 case (3)
-                   cl = qaux(i,j,k3d-1,QC)
-                   cr = qaux(i,j,k3d,QC)
+                   is_shock = shk(i,j,k-1) + shk(i,j,k)
                 end select
 
-                call HLL(qm(i,j,kc,:), qp(i,j,kc,:), cl, cr, &
-                         idir, flx(i,j,kflux,:))
+                if (is_shock >= 1) then
 
-             endif
+                   select case (idir)
+                   case (1)
+                      cl = qaux(i-1,j,k,QC)
+                      cr = qaux(i,j,k,QC)
+                   case (2)
+                      cl = qaux(i,j-1,k,QC)
+                      cr = qaux(i,j,k,QC)
+                   case (3)
+                      cl = qaux(i,j,k-1,QC)
+                      cr = qaux(i,j,k,QC)
+                   end select
 
-          enddo
-       enddo
+                   ql_zone(:) = qm(i,j,k,:,comp)
+                   qr_zone(:) = qp(i,j,k,:,comp)
+                   call HLL(ql_zone, qr_zone, cl, cr, idir, flx_zone)
+                   flx(i,j,k,:) = flx_zone(:)
+                endif
+
+             end do
+          end do
+       end do
 
     endif
 
   end subroutine cmpflx
 
 
-  subroutine riemann_state(qm, qp, qpd_lo, qpd_hi, &
+
+  !> @brief just compute the hydrodynamic state on the interfaces
+  !! don't compute the fluxes
+  !!
+  !! @param[in] qpd_lo integer
+  !! @param[in] q_lo integer
+  !! @param[in] qa_lo integer
+  !! @param[in] idir integer
+  !! @param[in] lo integer
+  !! @param[in] domlo integer
+  !! @param[in] nc integer
+  !! @param[in] comp integer
+  !! @param[in] compute_gammas logical
+  !! @param[inout] qm real(rt)
+  !! @param[inout] qp real(rt)
+  !! @param[inout] qint real(rt)
+  !! @param[in] qaux real(rt)
+  !!
+  subroutine riemann_state(qm, qm_lo, qm_hi, &
+                           qp, qp_lo, qp_hi, nc, comp, &
                            qint, q_lo, q_hi, &
+#ifdef RADIATION
+                           lambda_int, l_lo, l_hi, &
+#endif
                            qaux, qa_lo, qa_hi, &
-                           idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, domlo, domhi)
+                           idir, lo, hi, domlo, domhi, compute_gammas)
 
-
-    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use network, only: nspec, naux
     use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
-    use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver
+    use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver, &
+                                   T_guess
 
     implicit none
 
-    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
 
     integer, intent(in) :: idir
-    ! note: ilo, ihi, jlo, jhi are not necessarily the limits of the
-    ! valid (no ghost cells) domain, but could be hi+1 in some
-    ! dimensions.  We rely on the caller to specific the interfaces
-    ! over which to solve the Riemann problems
-    integer, intent(in) :: ilo, ihi, jlo, jhi, kc, kflux, k3d
-    integer, intent(in) :: domlo(3),domhi(3)
+    ! note: lo, hi are not necessarily the limits of the valid (no
+    ! ghost cells) domain, but could be hi+1 in some dimensions.  We
+    ! rely on the caller to specific the interfaces over which to
+    ! solve the Riemann problems
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: domlo(3), domhi(3)
+    integer, intent(in) :: nc, comp
 
-    ! note: qm, qp, q may come in as planes (all of x,y
-    ! zones but only 2 elements in the z dir) instead of being
-    ! dimensioned the same as the full box.  We index these with kc.
-    ! flux either comes in as planes (like qm, qp, ... above), or
-    ! comes in dimensioned as the full box.  We index the flux with
-    ! kflux -- this will be set correctly for the different cases.
+    logical, intent(in), optional :: compute_gammas
 
-    real(rt), intent(inout) :: qm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
-    real(rt), intent(inout) :: qp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ,nc)
+    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ,nc)
 
     real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-
-    ! qaux come in dimensioned as the full box, so we use k3d here to
-    ! index it in z
+#ifdef RADIATION
+    integer, intent(in) :: l_lo(3), l_hi(3)
+    real(rt), intent(inout) :: lambda_int(l_lo(1):l_hi(1),l_lo(2):l_hi(2),l_lo(3):l_hi(3),0:ngroups-1)
+#endif
 
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), pointer :: lambda_int(:,:,:,:)
-
     ! local variables
 
-    integer i, j
+    integer i, j, k
 
     real(rt) :: cl, cr
     type (eos_t) :: eos_state
+
+    logical :: compute_interface_gamma
+
+    if (present(compute_gammas)) then
+       compute_interface_gamma = compute_gammas
+    else
+       compute_interface_gamma = .false.
+    endif
+
+    !$gpu
 
 #ifdef RADIATION
 #ifndef AMREX_USE_CUDA
@@ -354,7 +366,7 @@ contains
 #endif
 #endif
 
-#if BL_SPACEDIM == 1
+#if AMREX_SPACEDIM == 1
 #ifndef AMREX_USE_CUDA
     if (riemann_solver > 1) then
        call amrex_error("ERROR: HLLC not implemented for 1-d")
@@ -366,51 +378,59 @@ contains
        ! recompute the thermodynamics on the interface to make it
        ! all consistent
 
-       ! we want to take the edge states of rho, p, and X, and get
-       ! new values for gamc and (rho e) on the edges that are
+       ! we want to take the edge states of rho, e, and X, and get
+       ! new values for p on the edges that are
        ! thermodynamically consistent.
 
-       do j = jlo, jhi
-          do i = ilo, ihi
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
-             ! this is an initial guess for iterations, since we
-             ! can't be certain that temp is on interfaces
-             eos_state % T = 10000.0e0_rt
+                ! this is an initial guess for iterations, since we
+                ! can't be certain what temp is on interfaces
+                eos_state % T = T_guess
 
-             ! minus state
-             eos_state % rho = qm(i,j,kc,QRHO)
-             eos_state % p   = qm(i,j,kc,QPRES)
-             eos_state % e   = qm(i,j,kc,QREINT)/qm(i,j,kc,QRHO)
-             eos_state % xn  = qm(i,j,kc,QFS:QFS+nspec-1)
-             eos_state % aux = qm(i,j,kc,QFX:QFX+naux-1)
+                ! minus state
+                eos_state % rho = qm(i,j,k,QRHO,comp)
+                eos_state % p   = qm(i,j,k,QPRES,comp)
+                eos_state % e   = qm(i,j,k,QREINT,comp)/qm(i,j,k,QRHO,comp)
+                eos_state % xn  = qm(i,j,k,QFS:QFS+nspec-1,comp)
+                eos_state % aux = qm(i,j,k,QFX:QFX+naux-1,comp)
 
-             call eos(eos_input_re, eos_state)
+                call eos(eos_input_re, eos_state)
 
-             qm(i,j,kc,QREINT) = eos_state % e * eos_state % rho
-             qm(i,j,kc,QPRES)  = eos_state % p
-             !gamcm(i,j)        = eos_state % gam1
+                qm(i,j,k,QREINT,comp) = eos_state % e * eos_state % rho
+                qm(i,j,k,QPRES,comp)  = eos_state % p
+                !gamcm(i,j)        = eos_state % gam1
 
-          enddo
-       enddo
+             end do
+          end do
+       end do
 
-       ! plus state
-       do j = jlo, jhi
-          do i = ilo, ihi
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
-             eos_state % rho = qp(i,j,kc,QRHO)
-             eos_state % p   = qp(i,j,kc,QPRES)
-             eos_state % e   = qp(i,j,kc,QREINT)/qp(i,j,kc,QRHO)
-             eos_state % xn  = qp(i,j,kc,QFS:QFS+nspec-1)
-             eos_state % aux = qp(i,j,kc,QFX:QFX+naux-1)
+                ! this is an initial guess for iterations, since we
+                ! can't be certain what temp is on interfaces
+                eos_state % T = T_guess
 
-             call eos(eos_input_re, eos_state)
+                ! plus state
+                eos_state % rho = qp(i,j,k,QRHO,comp)
+                eos_state % p   = qp(i,j,k,QPRES,comp)
+                eos_state % e   = qp(i,j,k,QREINT,comp)/qp(i,j,k,QRHO,comp)
+                eos_state % xn  = qp(i,j,k,QFS:QFS+nspec-1,comp)
+                eos_state % aux = qp(i,j,k,QFX:QFX+naux-1,comp)
 
-             qp(i,j,kc,QREINT) = eos_state % e * eos_state % rho
-             qp(i,j,kc,QPRES)  = eos_state % p
-             !gamcp(i,j)        = eos_state % gam1
+                call eos(eos_input_re, eos_state)
 
-          enddo
-       enddo
+                qp(i,j,k,QREINT,comp) = eos_state % e * eos_state % rho
+                qp(i,j,k,QPRES,comp)  = eos_state % p
+                !gamcp(i,j)        = eos_state % gam1
+
+             end do
+          end do
+       end do
 
     endif
 
@@ -418,31 +438,25 @@ contains
     if (riemann_solver == 0) then
        ! Colella, Glaz, & Ferguson solver
 
-#ifdef RADIATION
-       call bl_allocate(lambda_int, q_lo, q_hi, ngroups)
-#endif
-
-       call riemannus(qm, qp, qpd_lo, qpd_hi, &
+       call riemannus(qm, qm_lo, qm_hi, &
+                      qp, qp_lo, qp_hi, nc, comp, &
                       qaux, qa_lo, qa_hi, &
                       qint, q_lo, q_hi, &
 #ifdef RADIATION
                       lambda_int, q_lo, q_hi, &
 #endif
-                      idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
-                      domlo, domhi)
-
-#ifdef RADIATION
-       call bl_deallocate(lambda_int)
-#endif
+                      idir, lo, hi, &
+                      domlo, domhi, compute_interface_gamma)
 
     elseif (riemann_solver == 1) then
        ! Colella & Glaz solver
 
 #ifndef RADIATION
-       call riemanncg(qm, qp, qpd_lo, qpd_hi, &
+       call riemanncg(qm, qm_lo, qm_hi, &
+                      qp, qp_lo, qp_hi, nc, comp, &
                       qaux, qa_lo, qa_hi, &
                       qint, q_lo, q_hi, &
-                      idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
+                      idir, lo, hi, &
                       domlo, domhi)
 #else
 #ifndef AMREX_USE_CUDA
@@ -460,66 +474,73 @@ contains
 
 
 
-  subroutine riemanncg(ql, qr, qpd_lo, qpd_hi, &
+
+  !> @brief this implements the approximate Riemann solver of Colella & Glaz
+  !! (1985)
+  !!
+  !! this version is dimension agnostic -- for 1- and 2-d, set kc,
+  !! kflux, and k3d to 0
+  !!
+  !! @param[in] qpd_lo integer
+  !! @param[in] qa_lo integer
+  !! @param[in] q_lo integer
+  !! @param[in] idir integer
+  !! @param[in] lo integer
+  !! @param[in] domlo integer
+  !! @param[in] nc integer
+  !! @param[in] comp integer
+  !! @param[in] ql real(rt)
+  !! @param[in] qr real(rt)
+  !! @param[in] qaux real(rt)
+  !! @param[inout] qint real(rt)
+  !!
+  subroutine riemanncg(ql, ql_lo, ql_hi, &
+                       qr, qr_lo, qr_hi, nc, comp, &
                        qaux, qa_lo, qa_hi, &
                        qint, q_lo, q_hi, &
-                       idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
+                       idir, lo, hi, &
                        domlo, domhi)
 
-    ! this implements the approximate Riemann solver of Colella & Glaz
-    ! (1985)
-
-    ! this version is dimension agnostic -- for 1- and 2-d, set kc,
-    ! kflux, and k3d to 0
-
     use amrex_error_module
+#ifndef AMREX_USE_CUDA
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
+#endif
     use prob_params_module, only : physbc_lo, physbc_hi, &
-                                   Symmetry, SlipWall, NoSlipWall, &
-                                   mom_flux_has_p
+         Symmetry, SlipWall, NoSlipWall
     use network, only : nspec, naux
     use eos_type_module
     use eos_module
     use meth_params_module, only : cg_maxiter, cg_tol, cg_blend
-    use riemann_util_module, only : wsqge, pstar_bisection
+#ifndef AMREX_USE_CUDA
+    use riemann_util_module, only : pstar_bisection
+#endif
+    use riemann_util_module, only : wsqge
 
     implicit none
 
-    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: ql_lo(3), ql_hi(3)
+    integer, intent(in) :: qr_lo(3), qr_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: idir, ilo, ihi, jlo, jhi
+    integer, intent(in) :: idir, lo(3), hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
+    integer, intent(in) :: nc, comp
 
-    real(rt), intent(in) :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
-    real(rt), intent(in) :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    real(rt), intent(in) :: ql(ql_lo(1):ql_hi(1),ql_lo(2):ql_hi(2),ql_lo(3):ql_hi(3),NQ,nc)
+    real(rt), intent(in) :: qr(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),NQ,nc)
 
     ! note: qaux comes in dimensioned as the fully box, so use k3d to
     ! index in z
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
 
-    integer, intent(in) :: kc, kflux, k3d
-
-    ! Note:
-    !
-    !  k3d: the k corresponding to the full 3d array -- it should be
-    !       used for print statements or tests against domlo, domhi,
-    !       etc
-    !
-    !  kc: the k corresponding to the 2-wide slab of k-planes, so in
-    !      this routine it takes values only of 1 or 2
-    !
-    ! qint, ql, and qr will always be indexed the same way
-    ! qaux is assumed to be a full 3-d array
-
-    integer :: i, j
+    integer :: i, j, k
     integer :: n, nqp, ipassive
 
     real(rt) :: ustar
     real(rt) :: rl, ul, v1l, v2l, pl, rel
     real(rt) :: rr, ur, v1r, v2r, pr, rer
-    real(rt) :: wl, wr, rhoetot
+    real(rt) :: wl, wr
 
     real(rt) :: rstar, cstar, pstar
     real(rt) :: ro, uo, po, co, gamco
@@ -543,15 +564,15 @@ contains
     real(rt) :: pstar_old
     real(rt) :: taul, taur, tauo
     real(rt) :: ustar_r, ustar_l, ustar_r_old, ustar_l_old
-    real(rt) :: pstarl, pstarc, pstaru, pfuncc, pfuncu
+    real(rt) :: pstarl, pstaru
 
     real(rt), parameter :: weakwv = 1.e-3_rt
 
+#ifndef AMREX_USE_CUDA
     real(rt), pointer :: pstar_hist(:), pstar_hist_extra(:)
+#endif
 
     type (eos_t) :: eos_state
-
-    real(rt), pointer :: us1d(:)
 
     real(rt) :: u_adv
 
@@ -559,7 +580,9 @@ contains
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
     real(rt) :: bnd_fac_x, bnd_fac_y, bnd_fac_z
 
-#ifndef AMREX_USE_CUDA 
+    !$gpu
+
+#ifndef AMREX_USE_CUDA
     if (cg_blend == 2 .and. cg_maxiter < 5) then
 
        call amrex_error("Error: need cg_maxiter >= 5 to do a bisection search on secant iteration failure.")
@@ -615,256 +638,237 @@ contains
        special_bnd_hi_x = .false.
     end if
 
-    bnd_fac_z = ONE
-    if (idir==3) then
-       if ( k3d == domlo(3)   .and. special_bnd_lo .or. &
-            k3d == domhi(3)+1 .and. special_bnd_hi ) then
-          bnd_fac_z = ZERO
-       end if
-    end if
 
     tol = cg_tol
     iter_max = cg_maxiter
 
+#ifndef AMREX_USE_CUDA
     call bl_allocate(pstar_hist, 1,iter_max)
     call bl_allocate(pstar_hist_extra, 1,2*iter_max)
-    call bl_allocate(us1d, ilo,ihi)
+#endif
 
-    do j = jlo, jhi
-
-       bnd_fac_y = ONE
-       if (idir == 2) then
-          if ( j == domlo(2)   .and. special_bnd_lo .or. &
-               j == domhi(2)+1 .and. special_bnd_hi ) then
-             bnd_fac_y = ZERO
+    do k = lo(3), hi(3)
+       bnd_fac_z = ONE
+       if (idir==3) then
+          if ( k == domlo(3)   .and. special_bnd_lo .or. &
+               k == domhi(3)+1 .and. special_bnd_hi ) then
+             bnd_fac_z = ZERO
           end if
        end if
 
-       do i = ilo, ihi
+       do j = lo(2), hi(2)
 
-          ! left state
-          rl = max(ql(i,j,kc,QRHO), small_dens)
+          bnd_fac_y = ONE
+          if (idir == 2) then
+             if ( j == domlo(2)   .and. special_bnd_lo .or. &
+                  j == domhi(2)+1 .and. special_bnd_hi ) then
+                bnd_fac_y = ZERO
+             end if
+          end if
 
-          ! pick left velocities based on direction
-          ul  = ql(i,j,kc,iu)
-          v1l = ql(i,j,kc,iv1)
-          v2l = ql(i,j,kc,iv2)
+          do i = lo(1), hi(1)
 
-          pl  = ql(i,j,kc,QPRES)
-          rel = ql(i,j,kc,QREINT)
-          gcl = qaux(i-sx,j-sy,k3d-sz,QGAMC)
+             ! left state
+             rl = max(ql(i,j,k,QRHO,comp), small_dens)
 
-          ! sometime we come in here with negative energy or pressure
-          ! note: reset both in either case, to remain thermo
-          ! consistent
-          if (rel <= ZERO .or. pl < small_pres) then
-#ifndef AMREX_USE_CUDA                  
-             print *, "WARNING: (rho e)_l < 0 or pl < small_pres in Riemann: ", rel, pl, small_pres
-#endif
+             pl  = ql(i,j,k,QPRES,comp)
+             rel = ql(i,j,k,QREINT,comp)
+             if (use_reconstructed_gamma1 == 1) then
+                gcl = ql(i,j,k,QGC,comp)
+             else
+                gcl = qaux(i-sx,j-sy,k-sz,QGAMC)
+             endif
 
-             eos_state % T   = small_temp
-             eos_state % rho = rl
-             eos_state % xn  = ql(i,j,kc,QFS:QFS-1+nspec)
-             eos_state % aux = ql(i,j,kc,QFX:QFX-1+naux)
+             ! pick left velocities based on direction
+             ul  = ql(i,j,k,iu,comp)
+             v1l = ql(i,j,k,iv1,comp)
+             v2l = ql(i,j,k,iv2,comp)
 
-             call eos(eos_input_rt, eos_state)
-
-             rel = rl*eos_state % e
-             pl  = eos_state % p
-             gcl = eos_state % gam1
-          endif
-
-          ! right state
-          rr = max(qr(i,j,kc,QRHO), small_dens)
-
-          ! pick right velocities based on direction
-          ur  = qr(i,j,kc,iu)
-          v1r = qr(i,j,kc,iv1)
-          v2r = qr(i,j,kc,iv2)
-
-          pr  = qr(i,j,kc,QPRES)
-          rer = qr(i,j,kc,QREINT)
-          gcr = qaux(i,j,k3d,QGAMC)
-
-          if (rer <= ZERO .or. pr < small_pres) then
+             ! sometime we come in here with negative energy or pressure
+             ! note: reset both in either case, to remain thermo
+             ! consistent
+             if (rel <= ZERO .or. pl < small_pres) then
 #ifndef AMREX_USE_CUDA
-             print *, "WARNING: (rho e)_r < 0 or pr < small_pres in Riemann: ", rer, pr, small_pres
+                print *, "WARNING: (rho e)_l < 0 or pl < small_pres in Riemann: ", rel, pl, small_pres
 #endif
 
-             eos_state % T   = small_temp
-             eos_state % rho = rr
-             eos_state % xn  = qr(i,j,kc,QFS:QFS-1+nspec)
-             eos_state % aux = qr(i,j,kc,QFX:QFX-1+naux)
+                eos_state % T   = small_temp
+                eos_state % rho = rl
+                eos_state % xn  = ql(i,j,k,QFS:QFS-1+nspec,comp)
+                eos_state % aux = ql(i,j,k,QFX:QFX-1+naux,comp)
 
-             call eos(eos_input_rt, eos_state)
+                call eos(eos_input_rt, eos_state)
 
-             rer = rr*eos_state % e
-             pr  = eos_state % p
-             gcr = eos_state % gam1
-          endif
-
-
-          ! common quantities
-          taul = ONE/rl
-          taur = ONE/rr
-
-          ! lagrangian sound speeds
-          clsql = gcl*pl*rl
-          clsqr = gcr*pr*rr
-
-          csmall = max( small, max( small*qaux(i,j,k3d,QC), small * qaux(i-sx,j-sy,k3d-sz,QC)) )
-          cavg = HALF*(qaux(i,j,k3d,QC) + qaux(i-sx,j-sy,k3d-sz,QC))
-
-          ! Note: in the original Colella & Glaz paper, they predicted
-          ! gamma_e to the interfaces using a special (non-hyperbolic)
-          ! evolution equation.  In Castro, we instead bring (rho e)
-          ! to the edges, so we construct the necessary gamma_e here from
-          ! what we have on the interfaces.
-          gamel = pl/rel + ONE
-          gamer = pr/rer + ONE
-
-          ! these should consider a wider average of the cell-centered
-          ! gammas
-          gmin = min(gamel, gamer, ONE, FOUR3RD)
-          gmax = max(gamel, gamer, TWO, FIVE3RD)
-
-          game_bar = HALF*(gamel + gamer)
-          gamc_bar = HALF*(gcl + gcr)
-
-          gdot = TWO*(ONE - game_bar/gamc_bar)*(game_bar - ONE)
-
-          wsmall = small_dens*csmall
-          wl = max(wsmall,sqrt(abs(clsql)))
-          wr = max(wsmall,sqrt(abs(clsqr)))
-
-          ! make an initial guess for pstar -- this is a two-shock
-          ! approximation
-          !pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
-          pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr)
-          pstar = max(pstar, small_pres)
-
-          ! get the shock speeds -- this computes W_s from CG Eq. 34
-          call wsqge(pl, taul, gamel, gdot,  &
-                     gamstar, pstar, wlsq, clsql, gmin, gmax)
-
-          call wsqge(pr, taur, gamer, gdot,  &
-                     gamstar, pstar, wrsq, clsqr, gmin, gmax)
-
-          pstar_old = pstar
-
-          wl = sqrt(wlsq)
-          wr = sqrt(wrsq)
-
-          ! R-H jump conditions give ustar across each wave -- these
-          ! should be equal when we are done iterating.  Our notation
-          ! here is a little funny, comparing to CG, ustar_l = u*_L and
-          ! ustar_r = u*_R.
-          ustar_l = ul - (pstar-pl)/wl
-          ustar_r = ur + (pstar-pr)/wr
-
-          ! revise our pstar guess
-          !pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
-          pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr)
-          pstar = max(pstar, small_pres)
-
-          ! secant iteration
-          converged = .false.
-          iter = 1
-          do while ((iter <= iter_max .and. .not. converged) .or. iter <= 2)
-
-             call wsqge(pl, taul, gamel, gdot,  &
-                        gamstar, pstar, wlsq, clsql, gmin, gmax)
-
-             call wsqge(pr, taur, gamer, gdot,  &
-                        gamstar, pstar, wrsq, clsqr, gmin, gmax)
-
-             ! NOTE: these are really the inverses of the wave speeds!
-             wl = ONE / sqrt(wlsq)
-             wr = ONE / sqrt(wrsq)
-
-             ustar_r_old = ustar_r
-             ustar_l_old = ustar_l
-
-             ustar_r = ur - (pr-pstar)*wr
-             ustar_l = ul + (pl-pstar)*wl
-
-             dpditer = abs(pstar_old-pstar)
-
-             ! Here we are going to do the Secant iteration version in
-             ! CG.  Note that what we call zp and zm here are not
-             ! actually the Z_p = |dp*/du*_p| defined in CG, by rather
-             ! simply |du*_p| (or something that looks like dp/Z!).
-             zp = abs(ustar_l - ustar_l_old)
-             if (zp - weakwv*cavg <= ZERO) then
-                zp = dpditer*wl
+                rel = rl*eos_state % e
+                pl  = eos_state % p
+                gcl = eos_state % gam1
              endif
 
-             zm = abs(ustar_r - ustar_r_old)
-             if (zm - weakwv*cavg <= ZERO) then
-                zm = dpditer*wr
+             ! right state
+             rr = max(qr(i,j,k,QRHO,comp), small_dens)
+
+             pr  = qr(i,j,k,QPRES,comp)
+             rer = qr(i,j,k,QREINT,comp)
+             if (use_reconstructed_gamma1 == 1) then
+                gcr = qr(i,j,k,QGC,comp)
+             else
+                gcr = qaux(i,j,k,QGAMC)
              endif
 
-             ! the new pstar is found via CG Eq. 18
-             denom = dpditer/max(zp+zm, small*cavg)
-             pstar_old = pstar
-             pstar = pstar - denom*(ustar_r - ustar_l)
+             ! pick right velocities based on direction
+             ur  = qr(i,j,k,iu,comp)
+             v1r = qr(i,j,k,iv1,comp)
+             v2r = qr(i,j,k,iv2,comp)
+
+             if (rer <= ZERO .or. pr < small_pres) then
+#ifndef AMREX_USE_CUDA
+                print *, "WARNING: (rho e)_r < 0 or pr < small_pres in Riemann: ", rer, pr, small_pres
+#endif
+
+                eos_state % T   = small_temp
+                eos_state % rho = rr
+                eos_state % xn  = qr(i,j,k,QFS:QFS-1+nspec,comp)
+                eos_state % aux = qr(i,j,k,QFX:QFX-1+naux,comp)
+
+                call eos(eos_input_rt, eos_state)
+
+                rer = rr*eos_state % e
+                pr  = eos_state % p
+                gcr = eos_state % gam1
+             endif
+
+
+             ! common quantities
+             taul = ONE/rl
+             taur = ONE/rr
+
+             ! lagrangian sound speeds
+             clsql = gcl*pl*rl
+             clsqr = gcr*pr*rr
+
+             csmall = max( small, max( small*qaux(i,j,k,QC), small * qaux(i-sx,j-sy,k-sz,QC)) )
+             cavg = HALF*(qaux(i,j,k,QC) + qaux(i-sx,j-sy,k-sz,QC))
+
+             ! Note: in the original Colella & Glaz paper, they predicted
+             ! gamma_e to the interfaces using a special (non-hyperbolic)
+             ! evolution equation.  In Castro, we instead bring (rho e)
+             ! to the edges, so we construct the necessary gamma_e here from
+             ! what we have on the interfaces.
+             gamel = pl/rel + ONE
+             gamer = pr/rer + ONE
+
+             ! these should consider a wider average of the cell-centered
+             ! gammas
+             gmin = min(gamel, gamer, ONE, FOUR3RD)
+             gmax = max(gamel, gamer, TWO, FIVE3RD)
+
+             game_bar = HALF*(gamel + gamer)
+             gamc_bar = HALF*(gcl + gcr)
+
+             gdot = TWO*(ONE - game_bar/gamc_bar)*(game_bar - ONE)
+
+             wsmall = small_dens*csmall
+             wl = max(wsmall,sqrt(abs(clsql)))
+             wr = max(wsmall,sqrt(abs(clsqr)))
+
+             ! make an initial guess for pstar -- this is a two-shock
+             ! approximation
+             !pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
+             pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr)
              pstar = max(pstar, small_pres)
 
-             err = abs(pstar - pstar_old)
-             if (err < tol*pstar) converged = .true.
+             ! get the shock speeds -- this computes W_s from CG Eq. 34
+             call wsqge(pl, taul, gamel, gdot,  &
+                  gamstar, pstar, wlsq, clsql, gmin, gmax)
 
-             pstar_hist(iter) = pstar
+             call wsqge(pr, taur, gamer, gdot,  &
+                  gamstar, pstar, wrsq, clsqr, gmin, gmax)
 
-             iter = iter + 1
+             pstar_old = pstar
 
-          enddo
+             wl = sqrt(wlsq)
+             wr = sqrt(wrsq)
 
-          ! If we failed to converge using the secant iteration, we can either
-          ! stop here; or, revert to the original two-shock estimate for pstar;
-          ! or do a bisection root find using the bounds established by the most
-          ! recent iterations.
+             ! R-H jump conditions give ustar across each wave -- these
+             ! should be equal when we are done iterating.  Our notation
+             ! here is a little funny, comparing to CG, ustar_l = u*_L and
+             ! ustar_r = u*_R.
+             ustar_l = ul - (pstar-pl)/wl
+             ustar_r = ur + (pstar-pr)/wr
 
-          if (.not. converged) then
+             ! revise our pstar guess
+             !pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
+             pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr)
+             pstar = max(pstar, small_pres)
 
-             if (cg_blend == 0) then
-                     
+             ! secant iteration
+             converged = .false.
+             iter = 1
+             do while ((iter <= iter_max .and. .not. converged) .or. iter <= 2)
+
+                call wsqge(pl, taul, gamel, gdot,  &
+                     gamstar, pstar, wlsq, clsql, gmin, gmax)
+
+                call wsqge(pr, taur, gamer, gdot,  &
+                     gamstar, pstar, wrsq, clsqr, gmin, gmax)
+
+                ! NOTE: these are really the inverses of the wave speeds!
+                wl = ONE / sqrt(wlsq)
+                wr = ONE / sqrt(wrsq)
+
+                ustar_r_old = ustar_r
+                ustar_l_old = ustar_l
+
+                ustar_r = ur - (pr-pstar)*wr
+                ustar_l = ul + (pl-pstar)*wl
+
+                dpditer = abs(pstar_old-pstar)
+
+                ! Here we are going to do the Secant iteration version in
+                ! CG.  Note that what we call zp and zm here are not
+                ! actually the Z_p = |dp*/du*_p| defined in CG, by rather
+                ! simply |du*_p| (or something that looks like dp/Z!).
+                zp = abs(ustar_l - ustar_l_old)
+                if (zp - weakwv*cavg <= ZERO) then
+                   zp = dpditer*wl
+                endif
+
+                zm = abs(ustar_r - ustar_r_old)
+                if (zm - weakwv*cavg <= ZERO) then
+                   zm = dpditer*wr
+                endif
+
+                ! the new pstar is found via CG Eq. 18
+                denom = dpditer/max(zp+zm, small*cavg)
+                pstar_old = pstar
+                pstar = pstar - denom*(ustar_r - ustar_l)
+                pstar = max(pstar, small_pres)
+
+                err = abs(pstar - pstar_old)
+                if (err < tol*pstar) converged = .true.
+
 #ifndef AMREX_USE_CUDA
-                print *, 'pstar history: '
-                do iter = 1, iter_max
-                   print *, iter, pstar_hist(iter)
-                enddo
-
-                print *, ' '
-                print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
-                print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
-                print *, 'cavg, smallc:', cavg, csmall
-                call amrex_error("ERROR: non-convergence in the Riemann solver")
+                pstar_hist(iter) = pstar
 #endif
-             else if (cg_blend == 1) then
 
-                pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr)
+                iter = iter + 1
 
-             else if (cg_blend == 2) then
+             enddo
 
-                ! first try to find a reasonable bounds
-                pstarl = minval(pstar_hist(iter_max-5:iter_max))
-                pstaru = maxval(pstar_hist(iter_max-5:iter_max))
+             ! If we failed to converge using the secant iteration, we
+             ! can either stop here; or, revert to the original
+             ! two-shock estimate for pstar; or do a bisection root
+             ! find using the bounds established by the most recent
+             ! iterations.
 
-                call pstar_bisection(pstarl, pstaru, &
-                                     ul, pl, taul, gamel, clsql, &
-                                     ur, pr, taur, gamer, clsqr, &
-                                     gdot, gmin, gmax, &
-                                     pstar, gamstar, converged, pstar_hist_extra)
+             if (.not. converged) then
 
-                if (.not. converged) then
-                        
+                if (cg_blend == 0) then
+
 #ifndef AMREX_USE_CUDA
                    print *, 'pstar history: '
                    do iter = 1, iter_max
                       print *, iter, pstar_hist(iter)
-                   enddo
-                   do iter = 1, 2 * iter_max
-                      print *, iter + iter_max, pstar_hist_extra(iter)
                    enddo
 
                    print *, ' '
@@ -873,229 +877,263 @@ contains
                    print *, 'cavg, smallc:', cavg, csmall
                    call amrex_error("ERROR: non-convergence in the Riemann solver")
 #endif
-                endif
+                else if (cg_blend == 1) then
 
-             else
+                   pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr)
+
+                else if (cg_blend == 2) then
+
+                   ! we don't store the history if we are in CUDA, so
+                   ! we can't do this
+#ifndef AMREX_USE_CUDA
+                   ! first try to find a reasonable bounds
+                   pstarl = minval(pstar_hist(iter_max-5:iter_max))
+                   pstaru = maxval(pstar_hist(iter_max-5:iter_max))
+
+                   call pstar_bisection(pstarl, pstaru, &
+                        ul, pl, taul, gamel, clsql, &
+                        ur, pr, taur, gamer, clsqr, &
+                        gdot, gmin, gmax, &
+                        pstar, gamstar, converged, pstar_hist_extra)
+
+                   if (.not. converged) then
+
+                      print *, 'pstar history: '
+                      do iter = 1, iter_max
+                         print *, iter, pstar_hist(iter)
+                      enddo
+                      do iter = 1, 2 * iter_max
+                         print *, iter + iter_max, pstar_hist_extra(iter)
+                      enddo
+
+                      print *, ' '
+                      print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
+                      print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
+                      print *, 'cavg, smallc:', cavg, csmall
+                      call amrex_error("ERROR: non-convergence in the Riemann solver")
+
+                   endif
+#endif
+                else
 
 #ifndef AMREX_USE_CUDA
-                call amrex_error("ERROR: unrecognized cg_blend option.")
+                   call amrex_error("ERROR: unrecognized cg_blend option.")
 #endif
+                endif
+
              endif
 
-          endif
+             ! we converged!  construct the single ustar for the region
+             ! between the left and right waves, using the updated wave speeds
+             ustar_r = ur - (pr-pstar)*wr  ! careful -- here wl, wr are 1/W
+             ustar_l = ul + (pl-pstar)*wl
 
-          ! we converged!  construct the single ustar for the region
-          ! between the left and right waves, using the updated wave speeds
-          ustar_r = ur - (pr-pstar)*wr  ! careful -- here wl, wr are 1/W
-          ustar_l = ul + (pl-pstar)*wl
+             ustar = HALF* (ustar_l + ustar_r)
 
-          ustar = HALF* (ustar_l + ustar_r)
+             ! for symmetry preservation, if ustar is really small, then we
+             ! set it to zero
+             if (abs(ustar) < smallu*HALF*(abs(ul) + abs(ur))) then
+                ustar = ZERO
+             endif
 
-          ! for symmetry preservation, if ustar is really small, then we
-          ! set it to zero
-          if (abs(ustar) < smallu*HALF*(abs(ul) + abs(ur))) then
-             ustar = ZERO
-          endif
+             ! sample the solution -- here we look first at the direction
+             ! that the contact is moving.  This tells us if we need to
+             ! worry about the L/L* states or the R*/R states.
+             if (ustar > ZERO) then
+                ro = rl
+                uo = ul
+                po = pl
+                tauo = taul
+                gamco = gcl
+                gameo = gamel
 
-          ! sample the solution -- here we look first at the direction
-          ! that the contact is moving.  This tells us if we need to
-          ! worry about the L/L* states or the R*/R states.
-          if (ustar > ZERO) then
-             ro = rl
-             uo = ul
-             po = pl
-             tauo = taul
-             gamco = gcl
-             gameo = gamel
+             else if (ustar < ZERO) then
+                ro = rr
+                uo = ur
+                po = pr
+                tauo = taur
+                gamco = gcr
+                gameo = gamer
 
-          else if (ustar < ZERO) then
-             ro = rr
-             uo = ur
-             po = pr
-             tauo = taur
-             gamco = gcr
-             gameo = gamer
-
-          else
-             ro = HALF*(rl+rr)
-             uo = HALF*(ul+ur)
-             po = HALF*(pl+pr)
-             tauo = HALF*(taul+taur)
-             gamco = HALF*(gcl+gcr)
-             gameo = HALF*(gamel + gamer)
-          endif
-
-          ! use tau = 1/rho as the independent variable here
-          ro = max(small_dens, ONE/tauo)
-          tauo = ONE/ro
-
-          co = sqrt(abs(gamco*po/ro))
-          co = max(csmall, co)
-          clsq = (co*ro)**2
-
-          ! now that we know which state (left or right) we need to worry
-          ! about, get the value of gamstar and wosq across the wave we
-          ! are dealing with.
-          call wsqge(po, tauo, gameo, gdot,   &
-                     gamstar, pstar, wosq, clsq, gmin, gmax)
-
-          sgnm = sign(ONE, ustar)
-
-          wo = sqrt(wosq)
-          dpjmp = pstar - po
-
-          ! is this max really necessary?
-          !rstar=max(ONE-ro*dpjmp/wosq, (gameo-ONE)/(gameo+ONE))
-          rstar = ONE - ro*dpjmp/wosq
-          rstar = ro/rstar
-          rstar = max(small_dens, rstar)
-
-          cstar = sqrt(abs(gamco*pstar/rstar))
-          cstar = max(cstar, csmall)
-
-          spout = co - sgnm*uo
-          spin = cstar - sgnm*ustar
-
-          !ushock = HALF*(spin + spout)
-          ushock = wo/ro - sgnm*uo
-
-          if (pstar-po >= ZERO) then
-             spin = ushock
-             spout = ushock
-          endif
-
-          !if (spout-spin == ZERO) then
-          !   scr = small*cavg
-          !else
-          !   scr = spout-spin
-          !endif
-          !frac = (ONE + (spout + spin)/scr)*HALF
-          !frac = max(ZERO,min(ONE,frac))
-
-          frac = HALF*(ONE + (spin + spout)/max(spout-spin, spin+spout, small*cavg))
-
-          ! the transverse velocity states only depend on the
-          ! direction that the contact moves
-          if (ustar > ZERO) then
-             qint(i,j,kc,iv1) = v1l
-             qint(i,j,kc,iv2) = v2l
-          else if (ustar < ZERO) then
-             qint(i,j,kc,iv1) = v1r
-             qint(i,j,kc,iv2) = v2r
-          else
-             qint(i,j,kc,iv1) = HALF*(v1l+v1r)
-             qint(i,j,kc,iv2) = HALF*(v2l+v2r)
-          endif
-
-          ! linearly interpolate between the star and normal state -- this covers the
-          ! case where we are inside the rarefaction fan.
-          qint(i,j,kc,QRHO) = frac*rstar + (ONE - frac)*ro
-          qint(i,j,kc,iu) = frac*ustar + (ONE - frac)*uo
-          qint(i,j,kc,QPRES) = frac*pstar + (ONE - frac)*po
-          qint(i,j,kc,QGAME) =  frac*gamstar + (ONE-frac)*gameo
-
-          ! now handle the cases where instead we are fully in the
-          ! star or fully in the original (l/r) state
-          if (spout < ZERO) then
-             qint(i,j,kc,QRHO) = ro
-             qint(i,j,kc,iu) = uo
-             qint(i,j,kc,QPRES) = po
-             qint(i,j,kc,QGAME) = gameo
-          endif
-
-          if (spin >= ZERO) then
-             qint(i,j,kc,QRHO) = rstar
-             qint(i,j,kc,iu) = ustar
-             qint(i,j,kc,QPRES) = pstar
-             qint(i,j,kc,QGAME) = gamstar
-          endif
-
-          qint(i,j,kc,QPRES) = max(qint(i,j,kc,QPRES), small_pres)
-
-          u_adv = qint(i,j,kc,iu)
-
-          ! Enforce that fluxes through a symmetry plane or wall are hard zero.
-          if ( special_bnd_lo_x .and. i ==  domlo(1) .or. &
-               special_bnd_hi_x .and. i ==  domhi(1)+1 ) then
-             bnd_fac_x = ZERO
-          else
-             bnd_fac_x = ONE
-          end if
-          u_adv = u_adv * bnd_fac_x*bnd_fac_y*bnd_fac_z
-
-          ! Compute fluxes, order as conserved state (not q)
-          qint(i,j,kc,iu) = u_adv
-
-          ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
-          qint(i,j,kc,QREINT) = qint(i,j,kc,QPRES)/(qint(i,j,kc,QGAME) - ONE)
-
-          us1d(i) = ustar
-       end do
-
-       ! advected quantities -- only the contact matters
-       do ipassive = 1, npassive
-          n  = upass_map(ipassive)
-          nqp = qpass_map(ipassive)
-
-          do i = ilo, ihi
-             if (us1d(i) > ZERO) then
-                qint(i,j,kc,nqp) = ql(i,j,kc,nqp)
-             else if (us1d(i) < ZERO) then
-                qint(i,j,kc,nqp) = qr(i,j,kc,nqp)
              else
-                qavg = HALF * (ql(i,j,kc,nqp) + qr(i,j,kc,nqp))
-                qint(i,j,kc,nqp) = qavg
+                ro = HALF*(rl+rr)
+                uo = HALF*(ul+ur)
+                po = HALF*(pl+pr)
+                tauo = HALF*(taul+taur)
+                gamco = HALF*(gcl+gcr)
+                gameo = HALF*(gamel + gamer)
              endif
-          enddo
 
-       enddo
-    enddo
+             ! use tau = 1/rho as the independent variable here
+             ro = max(small_dens, ONE/tauo)
+             tauo = ONE/ro
 
+             co = sqrt(abs(gamco*po/ro))
+             co = max(csmall, co)
+             clsq = (co*ro)**2
+
+             ! now that we know which state (left or right) we need to worry
+             ! about, get the value of gamstar and wosq across the wave we
+             ! are dealing with.
+             call wsqge(po, tauo, gameo, gdot,   &
+                  gamstar, pstar, wosq, clsq, gmin, gmax)
+
+             sgnm = sign(ONE, ustar)
+
+             wo = sqrt(wosq)
+             dpjmp = pstar - po
+
+             ! is this max really necessary?
+             !rstar=max(ONE-ro*dpjmp/wosq, (gameo-ONE)/(gameo+ONE))
+             rstar = ONE - ro*dpjmp/wosq
+             rstar = ro/rstar
+             rstar = max(small_dens, rstar)
+
+             cstar = sqrt(abs(gamco*pstar/rstar))
+             cstar = max(cstar, csmall)
+
+             spout = co - sgnm*uo
+             spin = cstar - sgnm*ustar
+
+             !ushock = HALF*(spin + spout)
+             ushock = wo/ro - sgnm*uo
+
+             if (pstar-po >= ZERO) then
+                spin = ushock
+                spout = ushock
+             endif
+
+             !if (spout-spin == ZERO) then
+             !   scr = small*cavg
+             !else
+             !   scr = spout-spin
+             !endif
+             !frac = (ONE + (spout + spin)/scr)*HALF
+             !frac = max(ZERO,min(ONE,frac))
+
+             frac = HALF*(ONE + (spin + spout)/max(spout-spin, spin+spout, small*cavg))
+
+             ! the transverse velocity states only depend on the
+             ! direction that the contact moves
+             if (ustar > ZERO) then
+                qint(i,j,k,iv1) = v1l
+                qint(i,j,k,iv2) = v2l
+             else if (ustar < ZERO) then
+                qint(i,j,k,iv1) = v1r
+                qint(i,j,k,iv2) = v2r
+             else
+                qint(i,j,k,iv1) = HALF*(v1l+v1r)
+                qint(i,j,k,iv2) = HALF*(v2l+v2r)
+             endif
+
+             ! linearly interpolate between the star and normal state -- this covers the
+             ! case where we are inside the rarefaction fan.
+             qint(i,j,k,QRHO) = frac*rstar + (ONE - frac)*ro
+             qint(i,j,k,iu) = frac*ustar + (ONE - frac)*uo
+             qint(i,j,k,QPRES) = frac*pstar + (ONE - frac)*po
+             qint(i,j,k,QGAME) = frac*gamstar + (ONE-frac)*gameo
+
+             ! now handle the cases where instead we are fully in the
+             ! star or fully in the original (l/r) state
+             if (spout < ZERO) then
+                qint(i,j,k,QRHO) = ro
+                qint(i,j,k,iu) = uo
+                qint(i,j,k,QPRES) = po
+                qint(i,j,k,QGAME) = gameo
+             endif
+
+             if (spin >= ZERO) then
+                qint(i,j,k,QRHO) = rstar
+                qint(i,j,k,iu) = ustar
+                qint(i,j,k,QPRES) = pstar
+                qint(i,j,k,QGAME) = gamstar
+             endif
+
+             qint(i,j,k,QPRES) = max(qint(i,j,k,QPRES), small_pres)
+
+             u_adv = qint(i,j,k,iu)
+
+             ! Enforce that fluxes through a symmetry plane or wall are hard zero.
+             if ( special_bnd_lo_x .and. i ==  domlo(1) .or. &
+                  special_bnd_hi_x .and. i ==  domhi(1)+1 ) then
+                bnd_fac_x = ZERO
+             else
+                bnd_fac_x = ONE
+             end if
+             u_adv = u_adv * bnd_fac_x*bnd_fac_y*bnd_fac_z
+
+             ! Compute fluxes, order as conserved state (not q)
+             qint(i,j,k,iu) = u_adv
+
+             ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
+             qint(i,j,k,QREINT) = qint(i,j,k,QPRES)/(qint(i,j,k,QGAME) - ONE)
+
+             ! advected quantities -- only the contact matters
+             do ipassive = 1, npassive
+                n  = upass_map(ipassive)
+                nqp = qpass_map(ipassive)
+
+                if (ustar > ZERO) then
+                   qint(i,j,k,nqp) = ql(i,j,k,nqp,comp)
+                else if (ustar < ZERO) then
+                   qint(i,j,k,nqp) = qr(i,j,k,nqp,comp)
+                else
+                   qavg = HALF * (ql(i,j,k,nqp,comp) + qr(i,j,k,nqp,comp))
+                   qint(i,j,k,nqp) = qavg
+                end if
+             end do
+
+          end do
+       end do
+    end do
+
+#ifndef AMREX_USE_CUDA
     call bl_deallocate(pstar_hist)
     call bl_deallocate(pstar_hist_extra)
-    call bl_deallocate(us1d)
+#endif
 
   end subroutine riemanncg
 
 
-  !===========================================================================
-  ! Colella, Glaz, and Ferguson solver
-  !
-  ! this is a 2-shock solver that uses a very simple approximation for the
-  ! star state, and carries an auxiliary jump condition for (rho e) to
-  ! deal with a real gas
-  !===========================================================================
-  subroutine riemannus(ql, qr, qpd_lo, qpd_hi, &
+  !> @brief Colella, Glaz, and Ferguson solver
+  !!
+  !! this is a 2-shock solver that uses a very simple approximation for the
+  !! star state, and carries an auxiliary jump condition for (rho e) to
+  !! deal with a real gas
+  subroutine riemannus(ql, ql_lo, ql_hi, &
+                       qr, qr_lo, qr_hi, nc, comp, &
                        qaux, qa_lo, qa_hi, &
                        qint, q_lo, q_hi, &
 #ifdef RADIATION
                        lambda_int, l_lo, l_hi, &
 #endif
-                       idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
-                       domlo, domhi)
+                       idir, lo, hi, &
+                       domlo, domhi, compute_interface_gamma)
 
-    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, &
-                                   Symmetry, SlipWall, NoSlipWall, &
-                                   mom_flux_has_p
+                                   Symmetry, SlipWall, NoSlipWall
     use eos_type_module, only : eos_t, eos_input_rp
     use eos_module, only : eos
     use network, only : nspec
+    use meth_params_module, only: T_guess
 
     implicit none
 
-    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: ql_lo(3), ql_hi(3)
+    integer, intent(in) :: qr_lo(3), qr_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: idir,ilo,ihi,jlo,jhi
+    integer, intent(in) :: idir, lo(3), hi(3)
     integer, intent(in) :: domlo(3),domhi(3)
+    integer, intent(in) :: nc, comp
 
 #ifdef RADIATION
     integer, intent(in) :: l_lo(3), l_hi(3)
 #endif
 
-    real(rt), intent(in) :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
-    real(rt), intent(in) :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    logical, intent(in) :: compute_interface_gamma
+    real(rt), intent(in) :: ql(ql_lo(1):ql_hi(1),ql_lo(2):ql_hi(2),ql_lo(3):ql_hi(3),NQ,nc)
+    real(rt), intent(in) :: qr(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),NQ,nc)
 
     ! note: qaux comes in dimensioned as the fully box, so use k3d to
     ! index in z
@@ -1104,24 +1142,14 @@ contains
 #ifdef RADIATION
     real(rt), intent(inout) :: lambda_int(l_lo(1):l_hi(1),l_lo(2):l_hi(2),l_lo(3):l_hi(3),0:ngroups-1)
 #endif
-    integer, intent(in) :: kc, kflux, k3d
 
-    ! Note:
-    !
-    !  k3d: the k corresponding to the full 3d array -- it should be
-    !       used for print statements or tests against domlo, domhi,
-    !       etc
-    !
-    !  kc: the k corresponding to the 2-wide slab of k-planes, so in
-    !      this routine it takes values only of 1 or 2
-
-    integer :: i, j
+    integer :: i, j, k
     integer :: n, nqp, ipassive
 
     real(rt) :: regdnv
     real(rt) :: rl, ul, v1l, v2l, pl, rel
     real(rt) :: rr, ur, v1r, v2r, pr, rer
-    real(rt) :: wl, wr, rhoetot, scr
+    real(rt) :: wl, wr, scr
     real(rt) :: rstar, cstar, estar, pstar, ustar
     real(rt) :: ro, uo, po, reo, co, gamco, entho, drho
     real(rt) :: sgnm, spin, spout, ushock, frac
@@ -1139,11 +1167,9 @@ contains
     real(rt) :: gamcgl, gamcgr
 #endif
 
-    real(rt), pointer :: us1d(:)
-
     real(rt) :: u_adv
 
-    integer :: iu, iv1, iv2, im1, im2, im3, sx, sy, sz
+    integer :: iu, iv1, iv2, im1, im2, im3
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
     real(rt) :: bnd_fac_x, bnd_fac_y, bnd_fac_z
     real(rt) :: wwinv, roinv, co2inv
@@ -1151,7 +1177,7 @@ contains
     type(eos_t) :: eos_state
     real(rt), dimension(nspec) :: xn
 
-    call bl_allocate(us1d,ilo,ihi)
+    !$gpu
 
     ! set integer pointers for the normal and transverse velocity and
     ! momentum
@@ -1163,9 +1189,6 @@ contains
        im1 = UMX
        im2 = UMY
        im3 = UMZ
-       sx = 1
-       sy = 0
-       sz = 0
     else if (idir == 2) then
        iu = QV
        iv1 = QU
@@ -1173,9 +1196,6 @@ contains
        im1 = UMY
        im2 = UMX
        im3 = UMZ
-       sx = 0
-       sy = 1
-       sz = 0
     else
        iu = QW
        iv1 = QU
@@ -1183,9 +1203,6 @@ contains
        im1 = UMZ
        im2 = UMX
        im3 = UMY
-       sx = 0
-       sy = 0
-       sz = 1
     end if
 
     special_bnd_lo = (physbc_lo(idir) == Symmetry &
@@ -1203,442 +1220,494 @@ contains
        special_bnd_hi_x = .false.
     end if
 
-    bnd_fac_z = ONE
-    if (idir == 3) then
-       if ( k3d == domlo(3)   .and. special_bnd_lo .or. &
-            k3d == domhi(3)+1 .and. special_bnd_hi ) then
-          bnd_fac_z = ZERO
-       end if
-    end if
+    do k = lo(3), hi(3)
 
-    do j = jlo, jhi
-
-       bnd_fac_y = ONE
-       if (idir == 2) then
-          if ( j == domlo(2)   .and. special_bnd_lo .or. &
-               j == domhi(2)+1 .and. special_bnd_hi ) then
-             bnd_fac_y = ZERO
+       bnd_fac_z = ONE
+       if (idir == 3) then
+          if ( k == domlo(3)   .and. special_bnd_lo .or. &
+               k == domhi(3)+1 .and. special_bnd_hi ) then
+             bnd_fac_z = ZERO
           end if
        end if
 
-       !dir$ ivdep
-       do i = ilo, ihi
+       do j = lo(2), hi(2)
 
-          ! ------------------------------------------------------------------
-          ! set the left and right states for this interface
-          ! ------------------------------------------------------------------
-
-#ifdef RADIATION
-          laml(:) = qaux(i-sx,j-sy,k3d-sz,QLAMS:QLAMS+ngroups-1)
-          lamr(:) = qaux(i,j,k3d,QLAMS:QLAMS+ngroups-1)
-#endif
-
-          rl = max(ql(i,j,kc,QRHO), small_dens)
-
-          ! pick left velocities based on direction
-          ul  = ql(i,j,kc,iu)
-          v1l = ql(i,j,kc,iv1)
-          v2l = ql(i,j,kc,iv2)
-
-#ifdef RADIATION
-          pl = ql(i,j,kc,qptot)
-          rel = ql(i,j,kc,qreitot)
-          erl(:) = ql(i,j,kc,qrad:qradhi)
-          pl_g = ql(i,j,kc,QPRES)
-          rel_g = ql(i,j,kc,QREINT)
-#else
-          pl  = max(ql(i,j,kc,QPRES ), small_pres)
-          rel = ql(i,j,kc,QREINT)
-#endif
-
-          rr = max(qr(i,j,kc,QRHO), small_dens)
-
-          ! pick right velocities based on direction
-          ur  = qr(i,j,kc,iu)
-          v1r = qr(i,j,kc,iv1)
-          v2r = qr(i,j,kc,iv2)
-
-#ifdef RADIATION
-          pr = qr(i,j,kc,qptot)
-          rer = qr(i,j,kc,qreitot)
-          err(:) = qr(i,j,kc,qrad:qradhi)
-          pr_g = qr(i,j,kc,QPRES)
-          rer_g = qr(i,j,kc,QREINT)
-#else
-          pr  = max(qr(i,j,kc,QPRES), small_pres)
-          rer = qr(i,j,kc,QREINT)
-#endif
-
-          ! ------------------------------------------------------------------
-          ! estimate the star state: pstar, ustar
-          ! ------------------------------------------------------------------
-
-          csmall = max( small, max( small * qaux(i,j,k3d,QC) , small * qaux(i-sx,j-sy,k3d-sz,QC))  )
-          cavg = HALF*(qaux(i,j,k3d,QC) + qaux(i-sx,j-sy,k3d-sz,QC))
-          gamcl = qaux(i-sx,j-sy,k3d-sz,QGAMC)
-          gamcr = qaux(i,j,k3d,QGAMC)
-#ifdef RADIATION
-          gamcgl = qaux(i-sx,j-sy,k3d-sz,QGAMCG)
-          gamcgr = qaux(i,j,k3d,QGAMCG)
-#endif
-
-          wsmall = small_dens*csmall
-
-          ! this is Castro I: Eq. 33
-          wl = max(wsmall, sqrt(abs(gamcl*pl*rl)))
-          wr = max(wsmall, sqrt(abs(gamcr*pr*rr)))
-
-          wwinv = ONE/(wl + wr)
-          pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))*wwinv
-          ustar = ((wl*ul + wr*ur) + (pl - pr))*wwinv
-
-          pstar = max(pstar, small_pres)
-
-          ! for symmetry preservation, if ustar is really small, then we
-          ! set it to zero
-          if (abs(ustar) < smallu*HALF*(abs(ul) + abs(ur))) then
-             ustar = ZERO
-          endif
-
-          ! ------------------------------------------------------------------
-          ! look at the contact to determine which region we are in
-          ! ------------------------------------------------------------------
-
-          ! this just determines which of the left or right states is still
-          ! in play.  We still need to look at the other wave to determine
-          ! if the star state or this state is on the interface.
-
-          if (ustar > ZERO) then
-             ro = rl
-             uo = ul
-             po = pl
-             reo = rel
-             gamco = gamcl
-#ifdef RADIATION
-             lambda = laml
-             po_g = pl_g
-             po_r(:) = erl(:) * lambda(:)
-             reo_r(:) = erl(:)
-             reo_g = rel_g
-             gamco_g = gamcgl
-#endif
-
-          else if (ustar < ZERO) then
-             ro = rr
-             uo = ur
-             po = pr
-             reo = rer
-             gamco = gamcr
-#ifdef RADIATION
-             lambda = lamr
-             po_g = pr_g
-             po_r(:) = err(:) * lambda(:)
-             reo_r(:) = err(:)
-             reo_g = rer_g
-             gamco_g = gamcgr
-#endif
-
-          else
-             ro = HALF*(rl + rr)
-             uo = HALF*(ul + ur)
-             po = HALF*(pl + pr)
-             reo = HALF*(rel + rer)
-             gamco = HALF*(gamcl + gamcr)
-#ifdef RADIATION
-             do g=0, ngroups-1
-                lambda(g) = 2.0e0_rt*(laml(g)*lamr(g))/(laml(g)+lamr(g)+1.e-50_rt)
-             end do
-
-             reo_r(:) = 0.5e0_rt*(erl(:) + err(:))
-             reo_g = 0.5e0_rt*(rel_g + rer_g)
-             po_r(:) = lambda(:) * reo_r(:)
-             gamco_g = 0.5e0_rt*(gamcgl + gamcgr)
-             po_g = 0.5*(pr_g + pl_g)
-#endif
-
-          endif
-
-          ro = max(small_dens, ro)
-
-          roinv = ONE/ro
-
-          co = sqrt(abs(gamco*po*roinv))
-          co = max(csmall,co)
-          co2inv = ONE/(co*co)
-
-          ! we can already deal with the transverse velocities -- they
-          ! only jump across the contact
-          if (ustar > ZERO) then
-             qint(i,j,kc,iv1) = v1l
-             qint(i,j,kc,iv2) = v2l
-
-          else if (ustar < ZERO) then
-             qint(i,j,kc,iv1) = v1r
-             qint(i,j,kc,iv2) = v2r
-
-          else
-             qint(i,j,kc,iv1) = HALF*(v1l+v1r)
-             qint(i,j,kc,iv2) = HALF*(v2l+v2r)
-          endif
-
-
-          ! ------------------------------------------------------------------
-          ! compute the rest of the star state
-          ! ------------------------------------------------------------------
-
-          drho = (pstar - po)*co2inv
-          rstar = ro + drho
-          rstar = max(small_dens, rstar)
-
-#ifdef RADIATION
-          estar_g = reo_g + drho*(reo_g + po_g)/ro
-          co_g = sqrt(abs(gamco_g*po_g/ro))
-          co_g = max(csmall, co_g)
-          pstar_g = po_g + drho*co_g**2
-          pstar_g = max(pstar_g, small_pres)
-          estar_r = reo_r(:) + drho*(reo_r(:) + po_r(:))/ro
-#else
-          entho = (reo + po)*roinv*co2inv
-          estar = reo + (pstar - po)*entho
-#endif
-          cstar = sqrt(abs(gamco*pstar/rstar))
-          cstar = max(cstar, csmall)
-
-          ! ------------------------------------------------------------------
-          ! finish sampling the solution
-          ! ------------------------------------------------------------------
-
-          ! look at the remaining wave to determine if the star state or the
-          ! 'o' state above is on the interface
-
-          sgnm = sign(ONE, ustar)
-
-          ! the values of u +/- c on either side of the non-contact
-          ! wave
-          spout = co - sgnm*uo
-          spin = cstar - sgnm*ustar
-
-          ! a simple estimate of the shock speed
-          ushock = HALF*(spin + spout)
-
-          if (pstar-po > ZERO) then
-             spin = ushock
-             spout = ushock
-          endif
-
-          if (spout-spin == ZERO) then
-             scr = small*cavg
-          else
-             scr = spout-spin
-          endif
-
-          ! interpolate for the case that we are in a rarefaction
-          frac = (ONE + (spout + spin)/scr)*HALF
-          frac = max(ZERO, min(ONE, frac))
-
-          qint(i,j,kc,QRHO) = frac*rstar + (ONE - frac)*ro
-          qint(i,j,kc,iu  ) = frac*ustar + (ONE - frac)*uo
-
-#ifdef RADIATION
-          pgdnv_t = frac*pstar + (1.e0_rt - frac)*po
-          pgdnv_g = frac*pstar_g + (1.e0_rt - frac)*po_g
-          regdnv_g = frac*estar_g + (1.e0_rt - frac)*reo_g
-          regdnv_r(:) = frac*estar_r(:) + (1.e0_rt - frac)*reo_r(:)
-#else
-          qint(i,j,kc,QPRES) = frac*pstar + (ONE - frac)*po
-          regdnv = frac*estar + (ONE - frac)*reo
-#endif
-
-          ! as it stands now, we set things assuming that the rarefaction
-          ! spans the interface.  We overwrite that here depending on the
-          ! wave speeds
-
-          ! look at the speeds on either side of the remaining wave
-          ! to determine which region we are in
-          if (spout < ZERO) then
-             ! the l or r state is on the interface
-             qint(i,j,kc,QRHO) = ro
-             qint(i,j,kc,iu  ) = uo
-#ifdef RADIATION
-             pgdnv_t = po
-             pgdnv_g = po_g
-             regdnv_g = reo_g
-             regdnv_r = reo_r(:)
-#else
-             qint(i,j,kc,QPRES) = po
-             regdnv = reo
-#endif
-          endif
-
-          if (spin >= ZERO) then
-             ! the star state is on the interface
-             qint(i,j,kc,QRHO) = rstar
-             qint(i,j,kc,iu  ) = ustar
-#ifdef RADIATION
-             pgdnv_t = pstar
-             pgdnv_g = pstar_g
-             regdnv_g = estar_g
-             regdnv_r = estar_r(:)
-#else
-             qint(i,j,kc,QPRES) = pstar
-             regdnv = estar
-#endif
-          endif
-
-
-#ifdef RADIATION
-          do g=0, ngroups-1
-             qint(i,j,kc,QRAD+g) = max(regdnv_r(g), 0.e0_rt)
-          end do
-
-          qint(i,j,kc,QGAME) = pgdnv_g/regdnv_g + ONE
-
-          qint(i,j,kc,QPRES) = pgdnv_g
-          qint(i,j,kc,QPTOT) = pgdnv_t
-          qint(i,j,kc,QREINT) = regdnv_g
-          qint(i,j,kc,QREITOT) = sum(regdnv_r(:)) + regdnv_g
-
-          lambda_int(i,j,kc,:) = lambda(:)
-
-#else
-          qint(i,j,kc,QGAME) = qint(i,j,kc,QPRES)/regdnv + ONE
-          qint(i,j,kc,QPRES) = max(qint(i,j,kc,QPRES),small_pres)
-          qint(i,j,kc,QREINT) = regdnv
-#endif
-
-
-          ! we are potentially thermodynamically inconsistent, fix that
-          ! here
-          if (use_eos_in_riemann == 1) then
-             ! we need to know the species -- they only jump across
-             ! the contact
-             if (ustar > ZERO) then
-                xn(:) = ql(i,j,kc,QFS:QFS-1+nspec)
-
-             else if (ustar < ZERO) then
-                xn(:) = qr(i,j,kc,QFS:QFS-1+nspec)
-             else
-                xn(:) = HALF*(ql(i,j,kc,QFS:QFS-1+nspec) + &
-                              qr(i,j,kc,QFS:QFS-1+nspec))
-             endif
-
-             eos_state % rho = qint(i,j,kc,QRHO)
-             eos_state % p = qint(i,j,kc,QPRES)
-             eos_state % xn(:) = xn(:)
-             eos_state % T = 1.e4  ! a guess
-
-             call eos(eos_input_rp, eos_state)
-
-             qint(i,j,kc,QGAME) = eos_state % p / (eos_state % rho * eos_state % e) + ONE
-             qint(i,j,kc,QREINT) = eos_state % rho * eos_state % e
-
-          endif
-
-
-          ! ------------------------------------------------------------------
-          ! compute the fluxes
-          ! ------------------------------------------------------------------
-
-          ! we just found the state on the interface, now we use this to
-          ! evaluate the fluxes
-
-          u_adv = qint(i,j,kc,iu)
-
-          ! Enforce that fluxes through a symmetry plane or wall are hard zero.
-          if ( special_bnd_lo_x .and. i==domlo(1) .or. &
-               special_bnd_hi_x .and. i==domhi(1)+1 ) then
-             bnd_fac_x = ZERO
-          else
-             bnd_fac_x = ONE
+          bnd_fac_y = ONE
+          if (idir == 2) then
+             if ( j == domlo(2)   .and. special_bnd_lo .or. &
+                  j == domhi(2)+1 .and. special_bnd_hi ) then
+                bnd_fac_y = ZERO
+             end if
           end if
-          u_adv = u_adv * bnd_fac_x*bnd_fac_y*bnd_fac_z
-
-          qint(i,j,kc,iu) = u_adv
-
-          ! store this for vectorization
-          us1d(i) = ustar
-
-       end do
-
-       ! passively advected quantities
-       do ipassive = 1, npassive
-          n  = upass_map(ipassive)
-          nqp = qpass_map(ipassive)
 
           !dir$ ivdep
-          do i = ilo, ihi
-             if (us1d(i) > ZERO) then
-                qint(i,j,kc,nqp) = ql(i,j,kc,nqp)
-             else if (us1d(i) < ZERO) then
-                qint(i,j,kc,nqp) = qr(i,j,kc,nqp)
+          do i = lo(1), hi(1)
+
+             ! ------------------------------------------------------------------
+             ! set the left and right states for this interface
+             ! ------------------------------------------------------------------
+
+#ifdef RADIATION
+             if (idir == 1) then
+                laml(:) = qaux(i-1,j,k,QLAMS:QLAMS+ngroups-1)
+                lamr(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
+             else if (idir == 2) then
+                laml(:) = qaux(i,j-1,k,QLAMS:QLAMS+ngroups-1)
+                lamr(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
              else
-                qavg = HALF * (ql(i,j,kc,nqp) + qr(i,j,kc,nqp))
-                qint(i,j,kc,nqp) = qavg
+                laml(:) = qaux(i,j,k-1,QLAMS:QLAMS+ngroups-1)
+                lamr(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
+             end if
+#endif
+
+             rl = max(ql(i,j,k,QRHO,comp), small_dens)
+
+             ! pick left velocities based on direction
+             ul  = ql(i,j,k,iu,comp)
+             v1l = ql(i,j,k,iv1,comp)
+             v2l = ql(i,j,k,iv2,comp)
+
+#ifdef RADIATION
+             pl = ql(i,j,k,qptot,comp)
+             rel = ql(i,j,k,qreitot,comp)
+             erl(:) = ql(i,j,k,qrad:qradhi,comp)
+             pl_g = ql(i,j,k,QPRES,comp)
+             rel_g = ql(i,j,k,QREINT,comp)
+#else
+             pl  = max(ql(i,j,k,QPRES,comp), small_pres)
+             rel = ql(i,j,k,QREINT,comp)
+#endif
+
+             rr = max(qr(i,j,k,QRHO,comp), small_dens)
+
+             ! pick right velocities based on direction
+             ur  = qr(i,j,k,iu,comp)
+             v1r = qr(i,j,k,iv1,comp)
+             v2r = qr(i,j,k,iv2,comp)
+
+#ifdef RADIATION
+             pr = qr(i,j,k,qptot,comp)
+             rer = qr(i,j,k,qreitot,comp)
+             err(:) = qr(i,j,k,qrad:qradhi,comp)
+             pr_g = qr(i,j,k,QPRES,comp)
+             rer_g = qr(i,j,k,QREINT,comp)
+#else
+             pr  = max(qr(i,j,k,QPRES,comp), small_pres)
+             rer = qr(i,j,k,QREINT,comp)
+#endif
+
+             ! ------------------------------------------------------------------
+             ! estimate the star state: pstar, ustar
+             ! ------------------------------------------------------------------
+
+             if (idir == 1) then
+                csmall = max( small, max( small * qaux(i,j,k,QC) , small * qaux(i-1,j,k,QC))  )
+                cavg = HALF*(qaux(i,j,k,QC) + qaux(i-1,j,k,QC))
+                gamcl = qaux(i-1,j,k,QGAMC)
+                gamcr = qaux(i,j,k,QGAMC)
+#ifdef RADIATION
+                gamcgl = qaux(i-1,j,k,QGAMCG)
+                gamcgr = qaux(i,j,k,QGAMCG)
+#endif
+             else if (idir == 2) then
+                csmall = max( small, max( small * qaux(i,j,k,QC) , small * qaux(i,j-1,k,QC))  )
+                cavg = HALF*(qaux(i,j,k,QC) + qaux(i,j-1,k,QC))
+                gamcl = qaux(i,j-1,k,QGAMC)
+                gamcr = qaux(i,j,k,QGAMC)
+#ifdef RADIATION
+                gamcgl = qaux(i,j-1,k,QGAMCG)
+                gamcgr = qaux(i,j,k,QGAMCG)
+#endif
+             else
+                csmall = max( small, max( small * qaux(i,j,k,QC) , small * qaux(i,j,k-1,QC))  )
+                cavg = HALF*(qaux(i,j,k,QC) + qaux(i,j,k-1,QC))
+                gamcl = qaux(i,j,k-1,QGAMC)
+                gamcr = qaux(i,j,k,QGAMC)
+#ifdef RADIATION
+                gamcgl = qaux(i,j,k-1,QGAMCG)
+                gamcgr = qaux(i,j,k,QGAMCG)
+#endif
+             end if
+
+#ifndef RADIATION
+             if (use_reconstructed_gamma1 == 1) then
+                gamcl = ql(i,j,k,QGC,comp)
+                gamcr = qr(i,j,k,QGC,comp)
+             else  if (compute_interface_gamma) then
+
+                ! we come in with a good p, rho, and X on the interfaces
+                ! -- use this to find the gamma used in the sound speed
+                eos_state % p = pl
+                eos_state % rho = rl
+                eos_state % xn(:) = ql(i,j,k,QFS:QFS-1+nspec,comp)
+                eos_state % T = 100.0 ! initial guess
+
+                call eos(eos_input_rp, eos_state)
+
+                gamcl = eos_state % gam1
+
+                eos_state % p = pr
+                eos_state % rho = rr
+                eos_state % xn(:) = qr(i,j,k,QFS:QFS-1+nspec,comp)
+                eos_state % T = 100.0 ! initial guess
+
+                call eos(eos_input_rp, eos_state)
+
+                gamcr = eos_state % gam1
              endif
-          enddo
+#endif
 
-       enddo
-    enddo
+             wsmall = small_dens*csmall
 
-    call bl_deallocate(us1d)
+             ! this is Castro I: Eq. 33
+             wl = max(wsmall, sqrt(abs(gamcl*pl*rl)))
+             wr = max(wsmall, sqrt(abs(gamcr*pr*rr)))
+
+             wwinv = ONE/(wl + wr)
+             pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))*wwinv
+             ustar = ((wl*ul + wr*ur) + (pl - pr))*wwinv
+
+             pstar = max(pstar, small_pres)
+
+             ! for symmetry preservation, if ustar is really small, then we
+             ! set it to zero
+             if (abs(ustar) < smallu*HALF*(abs(ul) + abs(ur))) then
+                ustar = ZERO
+             endif
+
+             ! ------------------------------------------------------------------
+             ! look at the contact to determine which region we are in
+             ! ------------------------------------------------------------------
+
+             ! this just determines which of the left or right states is still
+             ! in play.  We still need to look at the other wave to determine
+             ! if the star state or this state is on the interface.
+
+             if (ustar > ZERO) then
+                ro = rl
+                uo = ul
+                po = pl
+                reo = rel
+                gamco = gamcl
+#ifdef RADIATION
+                lambda = laml
+                po_g = pl_g
+                po_r(:) = erl(:) * lambda(:)
+                reo_r(:) = erl(:)
+                reo_g = rel_g
+                gamco_g = gamcgl
+#endif
+
+             else if (ustar < ZERO) then
+                ro = rr
+                uo = ur
+                po = pr
+                reo = rer
+                gamco = gamcr
+#ifdef RADIATION
+                lambda = lamr
+                po_g = pr_g
+                po_r(:) = err(:) * lambda(:)
+                reo_r(:) = err(:)
+                reo_g = rer_g
+                gamco_g = gamcgr
+#endif
+
+             else
+                ro = HALF*(rl + rr)
+                uo = HALF*(ul + ur)
+                po = HALF*(pl + pr)
+                reo = HALF*(rel + rer)
+                gamco = HALF*(gamcl + gamcr)
+#ifdef RADIATION
+                do g=0, ngroups-1
+                   lambda(g) = 2.0e0_rt*(laml(g)*lamr(g))/(laml(g)+lamr(g)+1.e-50_rt)
+                end do
+
+                reo_r(:) = 0.5e0_rt*(erl(:) + err(:))
+                reo_g = 0.5e0_rt*(rel_g + rer_g)
+                po_r(:) = lambda(:) * reo_r(:)
+                gamco_g = 0.5e0_rt*(gamcgl + gamcgr)
+                po_g = 0.5*(pr_g + pl_g)
+#endif
+
+             endif
+
+             ro = max(small_dens, ro)
+
+             roinv = ONE/ro
+
+             co = sqrt(abs(gamco*po*roinv))
+             co = max(csmall,co)
+             co2inv = ONE/(co*co)
+
+             ! we can already deal with the transverse velocities -- they
+             ! only jump across the contact
+             if (ustar > ZERO) then
+                qint(i,j,k,iv1) = v1l
+                qint(i,j,k,iv2) = v2l
+
+             else if (ustar < ZERO) then
+                qint(i,j,k,iv1) = v1r
+                qint(i,j,k,iv2) = v2r
+
+             else
+                qint(i,j,k,iv1) = HALF*(v1l+v1r)
+                qint(i,j,k,iv2) = HALF*(v2l+v2r)
+             endif
+
+
+             ! ------------------------------------------------------------------
+             ! compute the rest of the star state
+             ! ------------------------------------------------------------------
+
+             drho = (pstar - po)*co2inv
+             rstar = ro + drho
+             rstar = max(small_dens, rstar)
+
+#ifdef RADIATION
+             estar_g = reo_g + drho*(reo_g + po_g)/ro
+             co_g = sqrt(abs(gamco_g*po_g/ro))
+             co_g = max(csmall, co_g)
+             pstar_g = po_g + drho*co_g**2
+             pstar_g = max(pstar_g, small_pres)
+             estar_r = reo_r(:) + drho*(reo_r(:) + po_r(:))/ro
+#else
+             entho = (reo + po)*roinv*co2inv
+             estar = reo + (pstar - po)*entho
+#endif
+             cstar = sqrt(abs(gamco*pstar/rstar))
+             cstar = max(cstar, csmall)
+
+             ! ------------------------------------------------------------------
+             ! finish sampling the solution
+             ! ------------------------------------------------------------------
+
+             ! look at the remaining wave to determine if the star state or the
+             ! 'o' state above is on the interface
+
+             sgnm = sign(ONE, ustar)
+
+             ! the values of u +/- c on either side of the non-contact
+             ! wave
+             spout = co - sgnm*uo
+             spin = cstar - sgnm*ustar
+
+             ! a simple estimate of the shock speed
+             ushock = HALF*(spin + spout)
+
+             if (pstar-po > ZERO) then
+                spin = ushock
+                spout = ushock
+             endif
+
+             if (spout-spin == ZERO) then
+                scr = small*cavg
+             else
+                scr = spout-spin
+             endif
+
+             ! interpolate for the case that we are in a rarefaction
+             frac = (ONE + (spout + spin)/scr)*HALF
+             frac = max(ZERO, min(ONE, frac))
+
+             qint(i,j,k,QRHO) = frac*rstar + (ONE - frac)*ro
+             qint(i,j,k,iu  ) = frac*ustar + (ONE - frac)*uo
+
+#ifdef RADIATION
+             pgdnv_t = frac*pstar + (1.e0_rt - frac)*po
+             pgdnv_g = frac*pstar_g + (1.e0_rt - frac)*po_g
+             regdnv_g = frac*estar_g + (1.e0_rt - frac)*reo_g
+             regdnv_r(:) = frac*estar_r(:) + (1.e0_rt - frac)*reo_r(:)
+#else
+             qint(i,j,k,QPRES) = frac*pstar + (ONE - frac)*po
+             regdnv = frac*estar + (ONE - frac)*reo
+#endif
+
+             ! as it stands now, we set things assuming that the rarefaction
+             ! spans the interface.  We overwrite that here depending on the
+             ! wave speeds
+
+             ! look at the speeds on either side of the remaining wave
+             ! to determine which region we are in
+             if (spout < ZERO) then
+                ! the l or r state is on the interface
+                qint(i,j,k,QRHO) = ro
+                qint(i,j,k,iu  ) = uo
+#ifdef RADIATION
+                pgdnv_t = po
+                pgdnv_g = po_g
+                regdnv_g = reo_g
+                regdnv_r = reo_r(:)
+#else
+                qint(i,j,k,QPRES) = po
+                regdnv = reo
+#endif
+             endif
+
+             if (spin >= ZERO) then
+                ! the star state is on the interface
+                qint(i,j,k,QRHO) = rstar
+                qint(i,j,k,iu  ) = ustar
+#ifdef RADIATION
+                pgdnv_t = pstar
+                pgdnv_g = pstar_g
+                regdnv_g = estar_g
+                regdnv_r = estar_r(:)
+#else
+                qint(i,j,k,QPRES) = pstar
+                regdnv = estar
+#endif
+             endif
+
+
+#ifdef RADIATION
+             do g=0, ngroups-1
+                qint(i,j,k,QRAD+g) = max(regdnv_r(g), 0.e0_rt)
+             end do
+
+             qint(i,j,k,QGAME) = pgdnv_g/regdnv_g + ONE
+
+             qint(i,j,k,QPRES) = pgdnv_g
+             qint(i,j,k,QPTOT) = pgdnv_t
+             qint(i,j,k,QREINT) = regdnv_g
+             qint(i,j,k,QREITOT) = sum(regdnv_r(:)) + regdnv_g
+
+             lambda_int(i,j,k,:) = lambda(:)
+
+#else
+             qint(i,j,k,QGAME) = qint(i,j,k,QPRES)/regdnv + ONE
+             qint(i,j,k,QPRES) = max(qint(i,j,k,QPRES),small_pres)
+             qint(i,j,k,QREINT) = regdnv
+#endif
+
+
+             ! we are potentially thermodynamically inconsistent, fix that
+             ! here
+             if (use_eos_in_riemann == 1) then
+                ! we need to know the species -- they only jump across
+                ! the contact
+                if (ustar > ZERO) then
+                   xn(:) = ql(i,j,k,QFS:QFS-1+nspec,comp)
+
+                else if (ustar < ZERO) then
+                   xn(:) = qr(i,j,k,QFS:QFS-1+nspec,comp)
+                else
+                   xn(:) = HALF*(ql(i,j,k,QFS:QFS-1+nspec,comp) + &
+                        qr(i,j,k,QFS:QFS-1+nspec,comp))
+                endif
+
+                eos_state % rho = qint(i,j,k,QRHO)
+                eos_state % p = qint(i,j,k,QPRES)
+                eos_state % xn(:) = xn(:)
+                eos_state % T = T_guess
+
+                call eos(eos_input_rp, eos_state)
+
+                qint(i,j,k,QGAME) = eos_state % p / (eos_state % rho * eos_state % e) + ONE
+                qint(i,j,k,QREINT) = eos_state % rho * eos_state % e
+
+             endif
+
+
+             ! ------------------------------------------------------------------
+             ! compute the fluxes
+             ! ------------------------------------------------------------------
+
+             ! we just found the state on the interface, now we use this to
+             ! evaluate the fluxes
+
+             u_adv = qint(i,j,k,iu)
+
+             ! Enforce that fluxes through a symmetry plane or wall are hard zero.
+             if ( special_bnd_lo_x .and. i == domlo(1) .or. &
+                  special_bnd_hi_x .and. i == domhi(1)+1 ) then
+                bnd_fac_x = ZERO
+             else
+                bnd_fac_x = ONE
+             end if
+             u_adv = u_adv * bnd_fac_x*bnd_fac_y*bnd_fac_z
+
+             qint(i,j,k,iu) = u_adv
+
+             ! passively advected quantities
+             do ipassive = 1, npassive
+                n  = upass_map(ipassive)
+                nqp = qpass_map(ipassive)
+
+                if (ustar > ZERO) then
+                   qint(i,j,k,nqp) = ql(i,j,k,nqp,comp)
+                else if (ustar < ZERO) then
+                   qint(i,j,k,nqp) = qr(i,j,k,nqp,comp)
+                else
+                   qavg = HALF * (ql(i,j,k,nqp,comp) + qr(i,j,k,nqp,comp))
+                   qint(i,j,k,nqp) = qavg
+                end if
+             end do
+
+          end do
+
+       end do
+    end do
 
   end subroutine riemannus
 
 
-  subroutine HLLC(ql, qr, qpd_lo, qpd_hi, &
+  !> @brief this is an implementation of the HLLC solver described in Toro's
+  !! book.  it uses the simplest estimate of the wave speeds, since
+  !! those should work for a general EOS.  We also initially do the
+  !! CGF Riemann construction to get pstar and ustar, since we'll
+  !! need to know the pressure and velocity on the interface for the
+  !! pdV term in the internal energy update.
+  !!
+  !! @param[in] qpd_lo integer
+  !! @param[in] qa_lo integer
+  !! @param[in] uflx_lo integer
+  !! @param[in] q_lo integer
+  !! @param[in] idir integer
+  !! @param[in] lo integer
+  !! @param[in] domlo integer
+  !! @param[in] nc integer
+  !! @param[in] comp integer
+  !! @param[in] ql real(rt)
+  !! @param[in] qr real(rt)
+  !! @param[in] qaux real(rt)
+  !! @param[inout] uflx real(rt)
+  !! @param[inout] qgdnv real(rt)
+  !!
+  subroutine HLLC(ql, ql_lo, ql_hi, &
+                  qr, qr_lo, qr_hi, nc, comp, &
                   qaux, qa_lo, qa_hi, &
                   uflx, uflx_lo, uflx_hi, &
-                  qgdnv, q_lo, q_hi, &
-                  idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
+                  qint, q_lo, q_hi, &
+                  idir, lo, hi, &
                   domlo, domhi)
 
-
-    ! this is an implementation of the HLLC solver described in Toro's
-    ! book.  it uses the simplest estimate of the wave speeds, since
-    ! those should work for a general EOS.  We also initially do the
-    ! CGF Riemann construction to get pstar and ustar, since we'll
-    ! need to know the pressure and velocity on the interface for the
-    ! pdV term in the internal energy update.
-
-    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, &
-                                   Symmetry, SlipWall, NoSlipWall
+         Symmetry, SlipWall, NoSlipWall
 
     implicit none
 
-    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: ql_lo(3), ql_hi(3)
+    integer, intent(in) :: qr_lo(3), qr_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: uflx_lo(3), uflx_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: idir, ilo, ihi, jlo, jhi
+    integer, intent(in) :: idir, lo(3), hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
+    integer, intent(in) :: nc, comp
 
-    real(rt), intent(in) :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
-    real(rt), intent(in) :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    real(rt), intent(in) :: ql(ql_lo(1):ql_hi(1),ql_lo(2):ql_hi(2),ql_lo(3):ql_hi(3),NQ,nc)
+    real(rt), intent(in) :: qr(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),NQ,nc)
 
     ! note: qaux comes in dimensioned as the fully box, so use k3d to
     ! index in z
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
     real(rt), intent(inout) :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),uflx_lo(3):uflx_hi(3),NVAR)
-    real(rt), intent(inout) :: qgdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    integer, intent(in) :: kc, kflux, k3d
+    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
 
-    ! Note:
-    !
-    !  k3d: the k corresponding to the full 3d array -- it should be
-    !       used for print statements or tests against domlo, domhi,
-    !       etc
-    !
-    !  kc: the k corresponding to the 2-wide slab of k-planes, so in
-    !      this routine it takes values only of 1 or 2
-    !
-    !  kflux: used for indexing the uflx array -- in the initial calls
-    !         to cmpflx when uflx = {fx,fy,fxy,fyx,fz,fxz,fzx,fyz,fzy},
-    !         kflux = kc, but in later calls, when uflx = {flux1,flux2,flux3},
-    !         kflux = k3d
-
-    integer :: i, j
+    integer :: i, j, k
 
     real(rt) :: rgdnv, regdnv
     real(rt) :: rl, ul, v1l, v2l, pl, rel
@@ -1658,6 +1727,10 @@ contains
     real(rt) :: U_hllc_state(nvar), U_state(nvar), F_state(nvar)
     real(rt) :: S_l, S_r, S_c
 
+    real(rt) :: q_zone(NQ)
+
+    !$gpu
+
     if (idir == 1) then
        iu = QU
        iv1 = QV
@@ -1696,186 +1769,199 @@ contains
        special_bnd_hi_x = .false.
     end if
 
-    bnd_fac_z = 1
-    if (idir == 3) then
-       if ( k3d == domlo(3)   .and. special_bnd_lo .or. &
-            k3d == domhi(3)+1 .and. special_bnd_hi ) then
-          bnd_fac_z = 0
-       end if
-    end if
+    do k = lo(3), hi(3)
 
-    do j = jlo, jhi
-
-       bnd_fac_y = 1
-       if (idir == 2) then
-          if ( j == domlo(2)   .and. special_bnd_lo .or. &
-               j == domhi(2)+1 .and. special_bnd_hi ) then
-             bnd_fac_y = 0
+       bnd_fac_z = 1
+       if (idir == 3) then
+          if ( k == domlo(3)   .and. special_bnd_lo .or. &
+               k == domhi(3)+1 .and. special_bnd_hi ) then
+             bnd_fac_z = 0
           end if
        end if
 
-       !dir$ ivdep
-       do i = ilo, ihi
+       do j = lo(2), hi(2)
 
-          rl = max(ql(i,j,kc,QRHO), small_dens)
-
-          ! pick left velocities based on direction
-          ul  = ql(i,j,kc,iu)
-          v1l = ql(i,j,kc,iv1)
-          v2l = ql(i,j,kc,iv2)
-
-          pl  = max(ql(i,j,kc,QPRES ), small_pres)
-          rel = ql(i,j,kc,QREINT)
-
-          rr = max(qr(i,j,kc,QRHO), small_dens)
-
-          ! pick right velocities based on direction
-          ur  = qr(i,j,kc,iu)
-          v1r = qr(i,j,kc,iv1)
-          v2r = qr(i,j,kc,iv2)
-
-          pr  = max(qr(i,j,kc,QPRES), small_pres)
-          rer = qr(i,j,kc,QREINT)
-
-          ! now we essentially do the CGF solver to get p and u on the
-          ! interface, but we won't use these in any flux construction.
-          csmall = max( small, max(small * qaux(i,j,k3d,QC) , small * qaux(i-sx,j-sy,k3d-sz,QC)) )
-          cavg = HALF*(qaux(i,j,k3d,QC) + qaux(i-sx,j-sy,k3d-sz,QC))
-          gamcl = qaux(i-sx,j-sy,k3d-sz,QGAMC)
-          gamcr = qaux(i,j,k3d,QGAMC)
-
-          wsmall = small_dens*csmall
-          wl = max(wsmall, sqrt(abs(gamcl*pl*rl)))
-          wr = max(wsmall, sqrt(abs(gamcr*pr*rr)))
-
-          wwinv = ONE/(wl + wr)
-          pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))*wwinv
-          ustar = ((wl*ul + wr*ur) + (pl - pr))*wwinv
-
-          pstar = max(pstar, small_pres)
-          ! for symmetry preservation, if ustar is really small, then we
-          ! set it to zero
-          if (abs(ustar) < smallu*HALF*(abs(ul) + abs(ur))) then
-             ustar = ZERO
-          endif
-
-          if (ustar > ZERO) then
-             ro = rl
-             uo = ul
-             po = pl
-             reo = rel
-             gamco = gamcl
-
-          else if (ustar < ZERO) then
-             ro = rr
-             uo = ur
-             po = pr
-             reo = rer
-             gamco = gamcr
-          else
-             ro = HALF*(rl + rr)
-             uo = HALF*(ul + ur)
-             po = HALF*(pl + pr)
-             reo = HALF*(rel + rer)
-             gamco = HALF*(gamcl + gamcr)
-          endif
-          ro = max(small_dens, ro)
-
-          roinv = ONE/ro
-          co = sqrt(abs(gamco*po*roinv))
-          co = max(csmall, co)
-          co2inv = ONE/(co*co)
-
-          rstar = ro + (pstar - po)*co2inv
-          rstar = max(small_dens, rstar)
-
-          entho = (reo + po)*co2inv/ro
-          estar = reo + (pstar - po)*entho
-
-          cstar = sqrt(abs(gamco*pstar/rstar))
-          cstar = max(cstar, csmall)
-
-          sgnm = sign(ONE, ustar)
-          spout = co - sgnm*uo
-          spin = cstar - sgnm*ustar
-          ushock = HALF*(spin + spout)
-
-          if (pstar-po > ZERO) then
-             spin = ushock
-             spout = ushock
-          endif
-          if (spout-spin == ZERO) then
-             scr = small*cavg
-          else
-             scr = spout-spin
-          endif
-          frac = (ONE + (spout + spin)/scr)*HALF
-          frac = max(ZERO, min(ONE, frac))
-
-          rgdnv = frac*rstar + (ONE - frac)*ro
-          regdnv = frac*estar + (ONE - frac)*reo
-
-          qgdnv(i,j,kc,iu) = frac*ustar + (ONE - frac)*uo
-          qgdnv(i,j,kc,GDPRES) = frac*pstar + (ONE - frac)*po
-          qgdnv(i,j,kc,GDGAME) = qgdnv(i,j,kc,GDPRES)/regdnv + ONE
-
-
-          ! now we do the HLLC construction
-
-
-          ! Enforce that the fluxes through a symmetry plane or wall are hard zero.
-          if ( special_bnd_lo_x .and. i== domlo(1) .or. &
-               special_bnd_hi_x .and. i== domhi(1)+1 ) then
-             bnd_fac_x = 0
-          else
-             bnd_fac_x = 1
+          bnd_fac_y = 1
+          if (idir == 2) then
+             if ( j == domlo(2)   .and. special_bnd_lo .or. &
+                  j == domhi(2)+1 .and. special_bnd_hi ) then
+                bnd_fac_y = 0
+             end if
           end if
 
-          bnd_fac = bnd_fac_x*bnd_fac_y*bnd_fac_z
+          !dir$ ivdep
+          do i = lo(1), hi(1)
 
-          ! use the simplest estimates of the wave speeds
-          S_l = min(ul - sqrt(gamcl*pl/rl), ur - sqrt(gamcr*pr/rr))
-          S_r = max(ul + sqrt(gamcl*pl/rl), ur + sqrt(gamcr*pr/rr))
+             rl = max(ql(i,j,k,QRHO,comp), small_dens)
 
-          ! estimate of the contact speed -- this is Toro Eq. 10.8
-          S_c = (pr - pl + rl*ul*(S_l - ul) - rr*ur*(S_r - ur))/ &
-               (rl*(S_l - ul) - rr*(S_r - ur))
+             ! pick left velocities based on direction
+             ul  = ql(i,j,k,iu,comp)
+             v1l = ql(i,j,k,iv1,comp)
+             v2l = ql(i,j,k,iv2,comp)
 
-          if (S_r <= ZERO) then
-             ! R region
-             call cons_state(qr(i,j,kc,:), U_state)
-             call compute_flux(idir, bnd_fac, U_state, pr, F_state)
+             pl  = max(ql(i,j,k,QPRES,comp), small_pres)
+             rel = ql(i,j,k,QREINT,comp)
 
-          else if (S_r > ZERO .and. S_c <= ZERO) then
-             ! R* region
-             call cons_state(qr(i,j,kc,:), U_state)
-             call compute_flux(idir, bnd_fac, U_state, pr, F_state)
+             rr = max(qr(i,j,k,QRHO,comp), small_dens)
 
-             call HLLC_state(idir, S_r, S_c, qr(i,j,kc,:), U_hllc_state)
+             ! pick right velocities based on direction
+             ur  = qr(i,j,k,iu,comp)
+             v1r = qr(i,j,k,iv1,comp)
+             v2r = qr(i,j,k,iv2,comp)
 
-             ! correct the flux
-             F_state(:) = F_state(:) + S_r*(U_hllc_state(:) - U_state(:))
+             pr  = max(qr(i,j,k,QPRES,comp), small_pres)
+             rer = qr(i,j,k,QREINT,comp)
 
-          else if (S_c > ZERO .and. S_l < ZERO) then
-             ! L* region
-             call cons_state(ql(i,j,kc,:), U_state)
-             call compute_flux(idir, bnd_fac, U_state, pl, F_state)
+             ! now we essentially do the CGF solver to get p and u on the
+             ! interface, but we won't use these in any flux construction.
+             csmall = max( small, max(small * qaux(i,j,k,QC) , small * qaux(i-sx,j-sy,k-sz,QC)) )
+             cavg = HALF*(qaux(i,j,k,QC) + qaux(i-sx,j-sy,k-sz,QC))
 
-             call HLLC_state(idir, S_l, S_c, ql(i,j,kc,:), U_hllc_state)
+             if (use_reconstructed_gamma1 == 1) then
+                gamcl = ql(i,j,k,QGC,comp)
+                gamcr = qr(i,j,k,QGC,comp)
+             else
+                gamcl = qaux(i-sx,j-sy,k-sz,QGAMC)
+                gamcr = qaux(i,j,k,QGAMC)
+             endif
 
-             ! correct the flux
-             F_state(:) = F_state(:) + S_l*(U_hllc_state(:) - U_state(:))
+             wsmall = small_dens*csmall
+             wl = max(wsmall, sqrt(abs(gamcl*pl*rl)))
+             wr = max(wsmall, sqrt(abs(gamcr*pr*rr)))
 
-          else
-             ! L region
-             call cons_state(ql(i,j,kc,:), U_state)
-             call compute_flux(idir, bnd_fac, U_state, pl, F_state)
+             wwinv = ONE/(wl + wr)
+             pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))*wwinv
+             ustar = ((wl*ul + wr*ur) + (pl - pr))*wwinv
 
-          endif
+             pstar = max(pstar, small_pres)
+             ! for symmetry preservation, if ustar is really small, then we
+             ! set it to zero
+             if (abs(ustar) < smallu*HALF*(abs(ul) + abs(ur))) then
+                ustar = ZERO
+             endif
 
-          uflx(i,j,kflux,:) = F_state(:)
-       enddo
-    enddo
+             if (ustar > ZERO) then
+                ro = rl
+                uo = ul
+                po = pl
+                reo = rel
+                gamco = gamcl
+
+             else if (ustar < ZERO) then
+                ro = rr
+                uo = ur
+                po = pr
+                reo = rer
+                gamco = gamcr
+             else
+                ro = HALF*(rl + rr)
+                uo = HALF*(ul + ur)
+                po = HALF*(pl + pr)
+                reo = HALF*(rel + rer)
+                gamco = HALF*(gamcl + gamcr)
+             endif
+             ro = max(small_dens, ro)
+
+             roinv = ONE/ro
+             co = sqrt(abs(gamco*po*roinv))
+             co = max(csmall, co)
+             co2inv = ONE/(co*co)
+
+             rstar = ro + (pstar - po)*co2inv
+             rstar = max(small_dens, rstar)
+
+             entho = (reo + po)*co2inv/ro
+             estar = reo + (pstar - po)*entho
+
+             cstar = sqrt(abs(gamco*pstar/rstar))
+             cstar = max(cstar, csmall)
+
+             sgnm = sign(ONE, ustar)
+             spout = co - sgnm*uo
+             spin = cstar - sgnm*ustar
+             ushock = HALF*(spin + spout)
+
+             if (pstar-po > ZERO) then
+                spin = ushock
+                spout = ushock
+             endif
+             if (spout-spin == ZERO) then
+                scr = small*cavg
+             else
+                scr = spout-spin
+             endif
+             frac = (ONE + (spout + spin)/scr)*HALF
+             frac = max(ZERO, min(ONE, frac))
+
+             rgdnv = frac*rstar + (ONE - frac)*ro
+             regdnv = frac*estar + (ONE - frac)*reo
+
+             qint(i,j,k,iu) = frac*ustar + (ONE - frac)*uo
+             qint(i,j,k,QPRES) = frac*pstar + (ONE - frac)*po
+             qint(i,j,k,QGAME) = qint(i,j,k,QPRES)/regdnv + ONE
+
+
+             ! now we do the HLLC construction
+
+
+             ! Enforce that the fluxes through a symmetry plane or wall are hard zero.
+             if ( special_bnd_lo_x .and. i== domlo(1) .or. &
+                  special_bnd_hi_x .and. i== domhi(1)+1 ) then
+                bnd_fac_x = 0
+             else
+                bnd_fac_x = 1
+             end if
+
+             bnd_fac = bnd_fac_x*bnd_fac_y*bnd_fac_z
+
+             ! use the simplest estimates of the wave speeds
+             S_l = min(ul - sqrt(gamcl*pl/rl), ur - sqrt(gamcr*pr/rr))
+             S_r = max(ul + sqrt(gamcl*pl/rl), ur + sqrt(gamcr*pr/rr))
+
+             ! estimate of the contact speed -- this is Toro Eq. 10.8
+             S_c = (pr - pl + rl*ul*(S_l - ul) - rr*ur*(S_r - ur))/ &
+                  (rl*(S_l - ul) - rr*(S_r - ur))
+
+             if (S_r <= ZERO) then
+                ! R region
+                q_zone(:) = qr(i,j,k,:,comp)
+                call cons_state(q_zone, U_state)
+                call compute_flux(idir, bnd_fac, U_state, pr, F_state)
+
+             else if (S_r > ZERO .and. S_c <= ZERO) then
+                ! R* region
+                q_zone(:) = qr(i,j,k,:,comp)
+                call cons_state(q_zone, U_state)
+                call compute_flux(idir, bnd_fac, U_state, pr, F_state)
+
+                call HLLC_state(idir, S_r, S_c, q_zone, U_hllc_state)
+
+                ! correct the flux
+                F_state(:) = F_state(:) + S_r*(U_hllc_state(:) - U_state(:))
+
+             else if (S_c > ZERO .and. S_l < ZERO) then
+                ! L* region
+                q_zone(:) = ql(i,j,k,:,comp)
+                call cons_state(q_zone, U_state)
+                call compute_flux(idir, bnd_fac, U_state, pl, F_state)
+
+                call HLLC_state(idir, S_l, S_c, q_zone, U_hllc_state)
+
+                ! correct the flux
+                F_state(:) = F_state(:) + S_l*(U_hllc_state(:) - U_state(:))
+
+             else
+                ! L region
+                q_zone(:) = ql(i,j,k,:,comp)
+                call cons_state(q_zone, U_state)
+                call compute_flux(idir, bnd_fac, U_state, pl, F_state)
+
+             endif
+
+             uflx(i,j,k,:) = F_state(:)
+          end do
+       end do
+    end do
 
   end subroutine HLLC
 

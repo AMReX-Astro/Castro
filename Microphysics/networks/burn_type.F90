@@ -1,7 +1,12 @@
 module burn_type_module
 
-  use amrex_fort_module, only : rt => amrex_real
+#ifdef REACT_SPARSE_JACOBIAN
+  use actual_network, only: nspec, nspec_evolve, naux, NETWORK_SPARSE_JAC_NNZ
+#else
   use actual_network, only: nspec, nspec_evolve, naux
+#endif
+
+  use amrex_fort_module, only : rt => amrex_real
 
   implicit none
 
@@ -46,12 +51,17 @@ module burn_type_module
 
     ! The following are the actual integration data.
     ! To avoid potential incompatibilities we won't
-    ! include the integration vector y itself here.
+    ! include the integration array y itself here.
     ! It can be reconstructed from all of the above
     ! data, particularly xn, e, and T.
 
     real(rt) :: ydot(neqs)
+
+#ifdef REACT_SPARSE_JACOBIAN
+    real(rt) :: sparse_jac(NETWORK_SPARSE_JAC_NNZ)
+#else
     real(rt) :: jac(neqs, neqs)
+#endif
 
     ! Whether we are self-heating or not.
 
@@ -115,7 +125,12 @@ contains
     to_state % dcpdT = from_state % dcpdT
 
     to_state % ydot(1:neqs) = from_state % ydot(1:neqs)
+
+#ifdef REACT_SPARSE_JACOBIAN
+    to_state % sparse_jac(1:NETWORK_SPARSE_JAC_NNZ) = from_state % sparse_jac(1:NETWORK_SPARSE_JAC_NNZ)
+#else
     to_state % jac(1:neqs, 1:neqs) = from_state % jac(1:neqs, 1:neqs)
+#endif
 
     to_state % self_heat = from_state % self_heat
 
@@ -145,6 +160,8 @@ contains
 
     type (eos_t)  :: eos_state
     type (burn_t) :: burn_state
+
+    !$gpu
 
     burn_state % rho  = eos_state % rho
     burn_state % T    = eos_state % T
@@ -178,6 +195,8 @@ contains
     type (burn_t) :: burn_state
     type (eos_t)  :: eos_state
 
+    !$gpu
+
     eos_state % rho  = burn_state % rho
     eos_state % T    = burn_state % T
     eos_state % e    = burn_state % e
@@ -206,6 +225,8 @@ contains
     implicit none
 
     type (burn_t), intent(inout) :: state
+
+    !$gpu
 
     state % xn(:) = max(small_x, min(ONE, state % xn(:)))
     state % xn(:) = state % xn(:) / sum(state % xn(:))

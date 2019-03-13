@@ -1,5 +1,6 @@
 module eos_type_module
 
+  use amrex_error_module, only: amrex_error
   use amrex_fort_module, only : rt => amrex_real
   use network, only: nspec, naux
 
@@ -16,7 +17,7 @@ module eos_type_module
   integer, parameter :: eos_input_ph = 7  ! p, h are inputs
   integer, parameter :: eos_input_th = 8  ! T, h are inputs
 
-  ! these are used to allow for a generic interface to the 
+  ! these are used to allow for a generic interface to the
   ! root finding
   integer, parameter :: itemp = 1
   integer, parameter :: idens = 2
@@ -62,7 +63,7 @@ module eos_type_module
   !$acc create(mintemp, maxtemp, mindens, maxdens, minx, maxx, minye, maxye) &
   !$acc create(mine, maxe, minp, maxp, mins, maxs, minh, maxh)
 
-#ifdef CUDA
+#ifdef AMREX_USE_CUDA
   attributes(managed) :: mintemp
   attributes(managed) :: maxtemp
   attributes(managed) :: mindens
@@ -121,6 +122,7 @@ module eos_type_module
   ! dedZ     -- d energy/ d zbar
   ! dpde     -- d pressure / d energy |_rho
   ! dpdr_e   -- d pressure / d rho |_energy
+  ! conductivity -- thermal conductivity (in erg/cm/K/sec)
 
   type :: eos_t
 
@@ -172,19 +174,82 @@ module eos_type_module
     real(rt) :: dedZ
 #endif
 
+    real(rt) :: conductivity
+
   end type eos_t
 
 contains
+
+  ! Provides a copy subroutine for the eos_t type to
+  ! avoid derived type assignment (OpenACC and CUDA can't handle that)
+  subroutine copy_eos_t(to_eos, from_eos)
+
+    implicit none
+
+    type(eos_t) :: to_eos, from_eos
+
+    !$gpu
+
+    to_eos % rho = from_eos % rho
+    to_eos % T = from_eos % T
+    to_eos % p = from_eos % p
+    to_eos % e = from_eos % e
+    to_eos % h = from_eos % h
+    to_eos % s = from_eos % s
+    to_eos % xn(:) = from_eos % xn(:)
+    to_eos % aux(:) = from_eos % aux(:)
+
+    to_eos % dpdT = from_eos % dpdT
+    to_eos % dpdr = from_eos % dpdr
+    to_eos % dedT = from_eos % dedT
+    to_eos % dedr = from_eos % dedr
+    to_eos % dhdT = from_eos % dhdT
+    to_eos % dhdr = from_eos % dhdr
+    to_eos % dsdT = from_eos % dsdT
+    to_eos % dsdr = from_eos % dsdr
+    to_eos % dpde = from_eos % dpde
+    to_eos % dpdr_e = from_eos % dpdr_e
+
+    to_eos % cv = from_eos % cv
+    to_eos % cp = from_eos % cp
+    to_eos % xne = from_eos % xne
+    to_eos % xnp = from_eos % xnp
+    to_eos % eta = from_eos % eta
+    to_eos % pele = from_eos % pele
+    to_eos % ppos = from_eos % ppos
+    to_eos % mu = from_eos % mu
+    to_eos % mu_e = from_eos % mu_e
+    to_eos % y_e = from_eos % y_e
+
+    to_eos % gam1 = from_eos % gam1
+    to_eos % cs = from_eos % cs
+
+    to_eos % abar = from_eos % abar
+    to_eos % zbar = from_eos % zbar
+
+#ifdef EXTRA_THERMO
+    to_eos % dedX(:) = from_eos % dedX(:)
+    to_eos % dpdX(:) = from_eos % dpdX(:)
+    to_eos % dhdX(:) = from_eos % dhdX(:)
+    
+    to_eos % dpdA = from_eos % dpdA
+    to_eos % dpdZ = from_eos % dpdZ
+    to_eos % dedA = from_eos % dedA
+    to_eos % dedZ = from_eos % dedZ
+#endif
+
+    to_eos % conductivity = from_eos % conductivity
+
+  end subroutine copy_eos_t
+
 
   ! Given a set of mass fractions, calculate quantities that depend
   ! on the composition like abar and zbar.
 
   subroutine composition(state)
 
-    !$acc routine seq
-
     use amrex_constants_module, only: ONE
-    use network, only: aion, aion_inv, zion
+    use network, only: aion_inv, zion
 
     implicit none
 
@@ -210,8 +275,6 @@ contains
   ! Compute thermodynamic derivatives with respect to xn(:)
 
   subroutine composition_derivatives(state)
-
-    !$acc routine seq
 
     use amrex_constants_module, only: ZERO
     use network, only: aion, aion_inv, zion
@@ -249,8 +312,6 @@ contains
 
   subroutine normalize_abundances(state)
 
-    !$acc routine seq
-
     use amrex_constants_module, only: ONE
     use extern_probin_module, only: small_x
 
@@ -267,12 +328,9 @@ contains
   end subroutine normalize_abundances
 
 
-
   ! Ensure that inputs are within reasonable limits.
 
   subroutine clean_state(state)
-
-    !$acc routine seq
 
     implicit none
 
@@ -303,10 +361,7 @@ contains
   end subroutine print_state
 
 
-
   subroutine eos_get_small_temp(small_temp_out)
-
-    !$acc routine seq
 
     implicit none
 
@@ -322,8 +377,6 @@ contains
 
   subroutine eos_get_small_dens(small_dens_out)
 
-    !$acc routine seq
-
     implicit none
 
     real(rt), intent(out) :: small_dens_out
@@ -337,8 +390,6 @@ contains
 
 
   subroutine eos_get_max_temp(max_temp_out)
-
-    !$acc routine seq
 
     implicit none
 
@@ -354,8 +405,6 @@ contains
 
   subroutine eos_get_max_dens(max_dens_out)
 
-    !$acc routine seq
-
     implicit none
 
     real(rt), intent(out) :: max_dens_out
@@ -365,5 +414,91 @@ contains
     max_dens_out = maxdens
 
   end subroutine eos_get_max_dens
+
+
+  ! Check to see if variable ivar is a valid
+  ! independent variable for the given input
+  function eos_input_has_var(input, ivar) result(has)
+
+    implicit none
+
+    integer, intent(in) :: input, ivar
+    logical :: has
+
+    !$gpu
+
+    has = .false.
+    
+    select case (ivar)
+
+    case (itemp)
+
+       if (input == eos_input_rt .or. &
+           input == eos_input_tp .or. &
+           input == eos_input_th) then
+
+          has = .true.
+
+       endif
+
+    case (idens)
+
+       if (input == eos_input_rt .or. &
+           input == eos_input_rh .or. &
+           input == eos_input_rp .or. &
+           input == eos_input_re) then
+
+          has = .true.
+
+       endif
+
+    case (iener)
+
+       if (input == eos_input_re) then
+
+          has = .true.
+
+       endif
+       
+    case (ienth)
+
+       if (input == eos_input_rh .or. &
+           input == eos_input_ph .or. &
+           input == eos_input_th) then
+
+          has = .true.
+
+       endif
+
+    case (ientr)
+
+       if (input == eos_input_ps) then
+
+          has = .true.
+
+       endif
+
+    case (ipres)
+
+       if (input == eos_input_tp .or. &
+           input == eos_input_rp .or. &
+           input == eos_input_ps .or. &
+           input == eos_input_ph) then
+
+          has = .true.
+
+       endif
+
+    case default
+
+#ifdef AMREX_USE_CUDA
+       stop
+#else
+       call amrex_error("EOS: invalid independent variable")
+#endif
+
+    end select
+
+  end function eos_input_has_var
 
 end module eos_type_module

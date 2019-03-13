@@ -1,3 +1,226 @@
+# changes since the last release
+
+  -- Using point-mass gravity no longer requires USE_POINTMASS = TRUE
+     in your makefile; USE_GRAV = TRUE is sufficient. However, to
+     compensate for this, you must now include castro.use_point_mass = 1
+     in your inputs file to enable the point mass. This input parameter
+     already existed, but was defaulted to 1 since it only mattered
+     if the compile flag was enabled. Now the default is 0.
+
+  -- fixed a bug in the source term to (rho e) evolution when using
+     MOL or the new SDC integration (#543, #545) and also no longer
+     recompute the source terms after reflux for these methods (#549)
+
+  -- Dimension agnostic problem setups have had the interface to the
+     physical boundary conditions changed (hypfill, denfill, etc.).
+     If your problem is dimension agnostic, please consult the new
+     interfaces in Source/problems/bc_fill_nd.F90 to understand how
+     to convert your problem. The changes are that (1) the "ca_" prefixes
+     have been removed from the subroutine names, (2) the "time" parameter
+     is passed by value, and (3) the (lo, hi) indices that are the target
+     region to update the boundaries on are explicitly passed in as
+     the first two arguments. (#546)
+
+  -- removed the code to extrapolate diffusion terms to ghost cells
+     as it is no longer necessary (#532)
+
+  -- we remove enthalpy diffusion (there were no known applications of
+     this) and species and velocity diffusion (they were 1-d only).
+     None of these routines were regularly tested.  (#534)
+
+# 19.03
+
+  -- Fixed a minor long-standing bug in the simplified SDC implementation
+     involving incorrect indexing. This changes results slightly.
+
+  -- a number of tests involving reactions have been moved from
+     hydro_tests to reacting_tests (#527)
+
+  -- The old spectral deferred corrections method has been renamed
+     "simplified" SDC. It is accessed with time_integration_method = 3.
+     This still requires building with USE_SDC = TRUE, and when building
+     this way, the other time integration methods are unavailable.
+
+  -- The 4th order hydro was extended to support general equations
+     of state (it is still single level only).  Artificial viscosity
+     was also added.
+
+  -- A framework for a new spectral deferred corrections method was
+     added.  This will allow for higher-order time integration. (#310)
+
+  -- Fix a bug where the self_heat parameter was not being initialized
+     for the burning timestep limiter (#521).
+
+  -- By default, we no longer allocation storage for source terms to
+     species in the primitive variable state.  This is set via the
+     _variables file, parsed by set_variables.py.  To allow for
+     species sources, you need to set PRIM_SPECIES_HAVE_SOURCES.  This
+     is done currently for SDC. (#519)
+
+  -- renamed QVAR to NQSRC to make it clear that this is the number of
+     source terms for the primitive variable state.  We also fixed a
+     number of places where QVAR was used instead of NQ. (#517)
+
+  -- A new runtime parameter, T_guess, was created.  This is used as
+     the initial temperature guess when calling the EOS with inputs
+     other than rho, T, for the initial Newton iteration. (#509)
+
+  -- The CTU hydrodynamics driver has been rewritten in C++
+     (#498)
+
+  -- The input parameter castro.do_ctu has been renamed
+     castro.time_integration_method. The current legal values
+     are 0 (CTU, the default) and 1 (MOL).
+
+  -- fixed a bug in the ppm_temp_fix = 1 reconstruction -- we were not
+     doing the initial reconstruction of temperature
+
+# 19.02
+
+  -- The flux limiter used with the options limit_fluxes_on_low_dens
+     was not implemented correctly.  This has been fixed.  (PR #493)
+
+  -- the CTU hydro solver no longer does any allocation in any of the
+     support routines -- it is all done in the top-level
+     driver. (#455)
+
+  -- The CTU solver now makes explicit the range of cells looped over
+     in the transverse routines (#456)
+
+  -- The plotfile quantities divu and magvort were fixed in
+     axisymmetric coordinates and diff_term was fixed in all
+     geometries.  (#446, 448, 449, 472)
+
+  -- abar is a new derived variable (#470)
+
+  -- the job_info file now stores domain information (#451), and the
+     job_info files is also stored in checkpoints now too (#450)
+
+  -- we can now refine on enuc -- the nuclear energy generation rate.
+     This is controlled by the parameters (in the &tagging probin
+     namespace) enucerr, and max_enucerr_lev.  We also moved the dxnuc
+     tagging parameters from inputs to probin, where they are now
+     named dxnuc_min (formerly castro.dxnuc), dxnuc_max, and
+     max_dxnuc_lev.  (#364, #437, #473)
+
+  -- The diffusion cutoff now is a linear ramp instead of a
+     discontinous cutoff.  For densities less than
+     diffuse_cutoff_density_hi, the transport coefficient is scaled
+     linearly until the density reaches diffuse_cutoff_density, where
+     it is zero.
+
+# 19.01.4
+
+  -- fixed the .zenodo.json
+
+# 19.01
+
+  -- The User's Guide is now automatically built from the development
+     branch using travis.
+
+  -- we now store the job_info file in the checkpoints (#450)
+
+  -- we now automatically generate Doxygen docs along with the User's
+     Guide and have started adding docstrings throughout the
+     code. (#461)
+
+  -- The MG solver was optimized a bit (#464)
+
+# 18.12
+
+  -- fixed a bug in the CUDA version of the MOL integrator -- it was
+     setting the interface states incorrectly.
+
+  -- removed ppm_type = 2.  This was not used for science simulations
+     because it was never shown to be completely stable.  In the near
+     future, the full fourth order method will be merged which will be
+     a better replacement.
+
+  -- a bug was fixed in the 1-d SDC integration -- we were not
+     applying the reactive source terms to the hydrodynamics interface
+     prediction.
+
+  -- we now apply the source terms for PLM before the transverse
+     routines.  This is more consistent with the PPM version.
+
+  -- the angular momentum in the plotfile is not computed with respect
+     to the center array initialized in the probinit
+
+  -- fixed a bug in 2-d with rotation -- we were adding the source
+     terms to the out-of-plane velocity twice in the prediction of the
+     interface states, resulting in an overall first-order
+     approximation there.
+
+  -- fixed an issue that resulted in the custom knapsack distribution
+     map not generating a useful distribution map for the reactions.
+     Also, fixed an edge case where this custom distribution map could
+     cause a numerical overflow and code crash. (#382)
+
+  -- rewrote the reconstruction routines to eliminate temporary arrays
+     to make them GPU friendly
+
+  -- the documentation was converted to sphinx
+
+  -- changed the interface to the conductivity routines so the conductivity
+     is not part of eos_t (#431)
+
+
+# 18.11
+
+  -- we've restructured the CTU solver to no longer use a slab
+     approach in 3d.  This is in preparation for offloading the solver
+     to GPUs.
+
+  -- a few minor bugs were fixed in the transverse routines of the CTU
+     solver with radiation
+
+  -- simplified conductivity interface to match the eos interface by
+     moving the conductivity variable in the arguments into the eos
+     type.
+
+
+# 18.10
+
+  -- fixed handling of external BCs (#402)
+
+  -- unified some CUDA hydro solver code with the method-of-lines code
+
+  -- offloaded gravity source terms, rotation, reactions, and sponge
+     to GPUs with CUDA
+
+  -- merged the different dimensional versions of the CTU consup
+     routine into a single routine (#399)
+
+  -- removed the unsafe option "allow_negative_energy"
+
+
+# 18.09
+
+  -- we now only trace under sources that are non-zero, to save
+     computational expense.  (#381)
+
+  -- we now update T for consistency when we reset a small internal
+     energy, e (#384)
+
+  -- The parameter dual_energy_update_E_from_e has been removed,
+     and the default behavior is now that the total energy (E)
+     will not be changed when we reset the internal energy (e).
+     This will cause changes in simulation output. (#368)
+
+  -- The probin parameter eos_input_is_constant is now true by
+     default. This means that when calling the EOS in the mode
+     eos_input_re, the energy will not be updated after the EOS
+     call (e.g. by the Newton iteration scheme in Helmholtz).
+     This will cause changes in simulation output. (#368)
+
+  -- the problem-specific runtime parameters (probin) are now
+     written to the job_info file (#380)
+
+  -- we now skip the initial EOS call prior to the burn -- this
+     was redundant because we already did a clean_state (#377)
+
+  -- we now support recent versions of hypre (#373)
+
 # 18.08
 
   -- the old use_mlmg_solver parameters were removed -- this
@@ -9,8 +232,6 @@
      unnecessary. Also, the EOS call at the beginning of the burn was
      removed; this should provide a modest computational gain. Answers
      may change at the level of the EOS tolerance (#377).
-
-# 18.08
 
   -- The functionality that checks for a regrid at the end of
      the timestep will now apply all tagging criteria, not

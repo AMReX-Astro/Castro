@@ -7,18 +7,16 @@ module reactions_module
 
 contains
 
-#ifndef SDC
-
   subroutine ca_react_state(lo, hi, &
                             state, s_lo, s_hi, &
                             reactions, r_lo, r_hi, &
                             weights, w_lo, w_hi, &
                             mask, m_lo, m_hi, &
                             time, dt_react, strang_half, &
-                            success) bind(C, name="ca_react_state")
+                            failed) bind(C, name="ca_react_state")
 
     use network           , only : nspec, naux
-    use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, &
+    use meth_params_module, only : NVAR, URHO, UEDEN, UEINT, UTEMP, &
                                    UFS
 #if naux > 0
     use meth_params_module, only : UFX
@@ -49,19 +47,23 @@ contains
     real(rt), intent(inout) :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
     real(rt), intent(inout) :: weights(w_lo(1):w_hi(1),w_lo(2):w_hi(2),w_lo(3):w_hi(3))
     integer , intent(in   ) :: mask(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
-    real(rt), intent(in   ) :: time, dt_react
-    integer , intent(inout) :: success
+    real(rt), intent(in   ), value :: time, dt_react
+    real(rt) , intent(inout) :: failed
 
     integer          :: i, j, k, n
     real(rt)         :: rhoInv, delta_e, delta_rho_e, dx_min
-    integer, intent(in) :: strang_half
+    integer, intent(in), value :: strang_half
 
     type (burn_t) :: burn_state_in, burn_state_out
-    type (eos_t) :: eos_state_in, eos_state_out
+
+    ! This interface is currently unsupported with simplified SDC.
+#ifndef SDC
 
     ! Minimum zone width
 
     dx_min = minval(dx_level(1:dim, amr_level))
+
+    !$gpu
 
     !$acc data &
     !$acc copyin(lo, hi, r_lo, r_hi, s_lo, s_hi, m_lo, m_hi, dt_react, time) &
@@ -72,7 +74,7 @@ contains
 
     !$acc loop gang vector collapse(3) &
     !$acc private(rhoInv, delta_e, delta_rho_e) &
-    !$acc private(eos_state_in, eos_state_out, burn_state_in, burn_state_out) &
+    !$acc private(burn_state_in, burn_state_out) &
     !$acc private(i,j,k)
 
     do k = lo(3), hi(3)
@@ -140,7 +142,7 @@ contains
 
              if (.not. burn_state_out % success) then
 
-                success = 0
+                failed = 1.0
                 return
 
              end if
@@ -190,7 +192,7 @@ contains
                   j .ge. w_lo(2) .and. j .le. w_hi(2) .and. &
                   k .ge. w_lo(3) .and. k .le. w_hi(3) ) then
 
-                weights(i,j,k) = min(ONE, dble(burn_state_out % n_rhs + 2 * burn_state_out % n_jac))
+                weights(i,j,k) = max(ONE, dble(burn_state_out % n_rhs + 2 * burn_state_out % n_jac))
 
              endif
 
@@ -202,19 +204,19 @@ contains
 
     !$acc end data
 
+#endif
+
   end subroutine ca_react_state
 
-#else
+  ! Simplified SDC version
 
-  ! SDC version
-
-  subroutine ca_react_state(lo,hi, &
-                            uold,uo_lo,uo_hi, &
-                            unew,un_lo,un_hi, &
-                            asrc,as_lo,as_hi, &
-                            reactions,r_lo,r_hi, &
-                            mask,m_lo,m_hi, &
-                            time,dt_react,sdc_iter) bind(C, name="ca_react_state")
+  subroutine ca_react_state_simplified_sdc(lo,hi, &
+                                           uold,uo_lo,uo_hi, &
+                                           unew,un_lo,un_hi, &
+                                           asrc,as_lo,as_hi, &
+                                           reactions,r_lo,r_hi, &
+                                           mask,m_lo,m_hi, &
+                                           time,dt_react,sdc_iter) bind(C, name="ca_react_state_simplified_sdc")
 
     use network           , only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, &
@@ -225,9 +227,11 @@ contains
 #endif
     use integrator_module, only : integrator
     use amrex_constants_module, only : ZERO, HALF, ONE
+#ifdef SDC
     use sdc_type_module, only : sdc_t, SRHO, SMX, SMZ, SEDEN, SEINT, SFS
-
+#endif
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer , intent(in   ) :: lo(3), hi(3)
@@ -247,8 +251,11 @@ contains
     integer          :: i, j, k, n
     real(rt)         :: rhooInv, rhonInv, delta_e, delta_rho_e
 
-    type (sdc_t) :: burn_state_in, burn_state_out
+    ! This interface is currently only supported for simplified SDC.
 
+#ifdef SDC
+
+    type (sdc_t) :: burn_state_in, burn_state_out
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -341,9 +348,8 @@ contains
           enddo
        enddo
     enddo
-
-  end subroutine ca_react_state
-
 #endif
+
+  end subroutine ca_react_state_simplified_sdc
 
 end module reactions_module

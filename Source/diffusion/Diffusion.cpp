@@ -76,49 +76,6 @@ Diffusion::applyop (int level, MultiFab& Temperature,
     applyop_mlmg(level, Temperature, CrseTemp, DiffTerm, temp_cond_coef);
 }
 
-
-#if (BL_SPACEDIM == 1)
-void
-Diffusion::applyViscOp (int level, MultiFab& Vel, 
-                        MultiFab& CrseVel, MultiFab& ViscTerm, 
-                        Vector<std::unique_ptr<MultiFab> >& visc_coeff)
-{
-    applyViscOp_mlmg(level, Vel, CrseVel, ViscTerm, visc_coeff);
-}
-#endif
-
-#if (BL_SPACEDIM < 3)
-void
-Diffusion::applyMetricTerms(int level, MultiFab& Rhs, Vector<std::unique_ptr<MultiFab> >& coeffs)
-{
-    const Real* dx = parent->Geom(level).CellSize();
-    const int coord_type = Geometry::Coord();
-#ifdef _OPENMP
-#pragma omp parallel	  
-#endif
-    for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
-    {
-        const Box& bx = mfi.tilebox();
-	D_TERM(const Box xbx = mfi.nodaltilebox(0);,
-	       const Box ybx = mfi.nodaltilebox(1);,
-	       const Box zbx = mfi.nodaltilebox(2);)
-        // Modify Rhs and coeffs with the appropriate metric terms.
-        ca_apply_metric(bx.loVect(), bx.hiVect(),
-			D_DECL(xbx.loVect(),
-			       ybx.loVect(),
-			       zbx.loVect()),
-			D_DECL(xbx.hiVect(),
-			       ybx.hiVect(),
-			       zbx.hiVect()),
-			BL_TO_FORTRAN(Rhs[mfi]),
-			D_DECL(BL_TO_FORTRAN((*coeffs[0])[mfi]),
-			       BL_TO_FORTRAN((*coeffs[1])[mfi]),
-			       BL_TO_FORTRAN((*coeffs[2])[mfi])),
-			dx,&coord_type);
-    }
-}
-#endif
-
 #if (BL_SPACEDIM < 3)
 void
 Diffusion::weight_cc(int level, MultiFab& cc)
@@ -128,11 +85,14 @@ Diffusion::weight_cc(int level, MultiFab& cc)
 #ifdef _OPENMP
 #pragma omp parallel	  
 #endif
-    for (MFIter mfi(cc,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(cc, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
-        ca_weight_cc(bx.loVect(), bx.hiVect(),
-		     BL_TO_FORTRAN(cc[mfi]),dx,&coord_type);
+
+#pragma gpu
+        ca_weight_cc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+		     BL_TO_FORTRAN_ANYD(cc[mfi]),
+                     AMREX_REAL_ANYD(dx), coord_type);
     }
 }
 
@@ -144,11 +104,14 @@ Diffusion::unweight_cc(int level, MultiFab& cc)
 #ifdef _OPENMP
 #pragma omp parallel	  
 #endif
-    for (MFIter mfi(cc,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(cc, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
-        ca_unweight_cc(bx.loVect(), bx.hiVect(),
-		       BL_TO_FORTRAN(cc[mfi]),dx,&coord_type);
+
+#pragma gpu
+        ca_unweight_cc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+		       BL_TO_FORTRAN_ANYD(cc[mfi]),
+                       AMREX_REAL_ANYD(dx), coord_type);
     }
 }
 #endif
@@ -188,6 +151,8 @@ Diffusion::applyop_mlmg (int level, MultiFab& Temperature,
                          MultiFab& CrseTemp, MultiFab& DiffTerm, 
                          Vector<std::unique_ptr<MultiFab> >& temp_cond_coef)
 {
+    BL_PROFILE("Diffusion::applyop_mlmg()");
+
     if (verbose && ParallelDescriptor::IOProcessor()) {
         std::cout << "   " << '\n';
         std::cout << "... compute diffusive term at level " << level << '\n';
@@ -217,59 +182,4 @@ Diffusion::applyop_mlmg (int level, MultiFab& Temperature,
     MLMG mlmg(mlabec);
     mlmg.setVerbose(verbose);
     mlmg.apply({&DiffTerm}, {&Temperature});
-}
-
-void
-Diffusion::applyViscOp_mlmg (int level, MultiFab& Vel, 
-                            MultiFab& CrseVel, MultiFab& ViscTerm, 
-                            Vector<std::unique_ptr<MultiFab> >& visc_coeff)
-{
-    if (verbose && ParallelDescriptor::IOProcessor()) {
-        std::cout << "   " << '\n';
-        std::cout << "... compute second part of viscous term at level " << level << '\n';
-    }
-
-    const Geometry& geom = parent->Geom(level);
-    const BoxArray& ba = Vel.boxArray();
-    const DistributionMapping& dm = Vel.DistributionMap();
-    
-    MLABecLaplacian mlabec({geom}, {ba}, {dm},
-                           LPInfo().setMetricTerm(false).setMaxCoarseningLevel(0));
-    mlabec.setMaxOrder(mlmg_maxorder);
-
-    mlabec.setDomainBC(mlmg_lobc, mlmg_hibc);
-
-    // Here are computing (1/r^2) d/dr (const * d/dr(r^2 u))
-
-#if (BL_SPACEDIM < 3)
-    // Here we weight the Vel going into the FMG applyop
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
-	weight_cc(level, Vel);
-        if (level > 0) {
-            weight_cc(level, CrseVel);
-        }
-    }
-#endif
-
-    if (level > 0) {
-        const auto& rr = parent->refRatio(level-1);
-        mlabec.setCoarseFineBC(&CrseVel, rr[0]);
-    }
-    mlabec.setLevelBC(0, &Vel);
-
-    mlabec.setScalars(0.0, -1.0);
-    mlabec.setBCoeffs(0, {AMREX_D_DECL(visc_coeff[0].get(),
-                                       visc_coeff[1].get(),
-                                       visc_coeff[2].get())});
-
-    MLMG mlmg(mlabec);
-    mlmg.setVerbose(verbose);
-    mlmg.apply({&ViscTerm}, {&Vel});
-
-#if (BL_SPACEDIM < 3)
-    // Do this to unweight Res
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
-	unweight_cc(level, ViscTerm);
-    }
-#endif
 }

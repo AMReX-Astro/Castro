@@ -5,10 +5,8 @@
 
 #ifdef DIFFUSION
 int         Castro::diffuse_temp = 0;
-int         Castro::diffuse_enth = 0;
-int         Castro::diffuse_spec = 0;
-int         Castro::diffuse_vel = 0;
 amrex::Real Castro::diffuse_cutoff_density = -1.e200;
+amrex::Real Castro::diffuse_cutoff_density_hi = -1.e200;
 amrex::Real Castro::diffuse_cond_scale_fac = 1.0;
 #endif
 #ifdef AMREX_PARTICLES
@@ -25,11 +23,6 @@ int         Castro::rot_source_type = 4;
 int         Castro::implicit_rotation_update = 1;
 int         Castro::rot_axis = 3;
 #endif
-#ifdef POINTMASS
-int         Castro::use_point_mass = 1;
-amrex::Real Castro::point_mass = 0.0;
-int         Castro::point_mass_fix_solution = 0;
-#endif
 int         Castro::state_interp_order = 1;
 int         Castro::lin_limit_state_interp = 0;
 int         Castro::state_nghost = 0;
@@ -42,8 +35,10 @@ amrex::Real Castro::small_temp = -1.e200;
 amrex::Real Castro::small_pres = -1.e200;
 amrex::Real Castro::small_ener = -1.e200;
 int         Castro::do_hydro = -1;
-int         Castro::do_ctu = 1;
+int         Castro::time_integration_method = 0;
 int         Castro::fourth_order = 0;
+int         Castro::limit_fourth_order = 1;
+int         Castro::use_reconstructed_gamma1 = 0;
 int         Castro::add_ext_src = 0;
 int         Castro::hybrid_hydro = 0;
 int         Castro::ppm_type = 1;
@@ -61,14 +56,12 @@ int         Castro::use_flattening = 1;
 int         Castro::transverse_use_eos = 0;
 int         Castro::transverse_reset_density = 1;
 int         Castro::transverse_reset_rhoe = 0;
-int         Castro::dual_energy_update_E_from_e = 1;
 amrex::Real Castro::dual_energy_eta1 = 1.0e0;
 amrex::Real Castro::dual_energy_eta2 = 1.0e-4;
 int         Castro::use_pslope = 1;
 int         Castro::fix_mass_flux = 0;
 int         Castro::limit_fluxes_on_small_dens = 0;
 int         Castro::density_reset_method = 1;
-int         Castro::allow_negative_energy = 0;
 int         Castro::allow_small_energy = 1;
 int         Castro::do_sponge = 0;
 int         Castro::sponge_implicit = 1;
@@ -84,6 +77,11 @@ int         Castro::hse_zero_vels = 0;
 int         Castro::hse_interp_temp = 0;
 int         Castro::hse_reflect_vels = 0;
 int         Castro::mol_order = 2;
+int         Castro::sdc_order = 2;
+int         Castro::sdc_solver = 1;
+amrex::Real Castro::sdc_solver_tol = 1.e-6;
+int         Castro::sdc_solve_for_rhoe = 1;
+int         Castro::sdc_use_analytic_jac = 1;
 amrex::Real Castro::fixed_dt = -1.0;
 amrex::Real Castro::initial_dt = -1.0;
 amrex::Real Castro::dt_cutoff = 0.0;
@@ -99,20 +97,17 @@ amrex::Real Castro::retry_neg_dens_factor = 1.e-1;
 amrex::Real Castro::retry_subcycle_factor = 0.5;
 int         Castro::use_post_step_regrid = 0;
 int         Castro::max_subcycles = 10;
-int         Castro::clamp_subcycles = 1;
 int         Castro::sdc_iters = 2;
 amrex::Real Castro::dtnuc_e = 1.e200;
 amrex::Real Castro::dtnuc_X = 1.e200;
 amrex::Real Castro::dtnuc_X_threshold = 1.e-3;
-amrex::Real Castro::dxnuc = 1.e200;
-amrex::Real Castro::dxnuc_max = 1.e200;
-int         Castro::max_dxnuc_lev = 30;
 int         Castro::do_react = -1;
 amrex::Real Castro::react_T_min = 0.0;
 amrex::Real Castro::react_T_max = 1.e200;
 amrex::Real Castro::react_rho_min = 0.0;
 amrex::Real Castro::react_rho_max = 1.e200;
 int         Castro::disable_shock_burning = 0;
+amrex::Real Castro::T_guess = 1.e8;
 int         Castro::do_grav = -1;
 int         Castro::moving_center = 0;
 int         Castro::grav_source_type = 4;
@@ -123,6 +118,8 @@ int         Castro::grown_factor = 1;
 int         Castro::star_at_center = -1;
 int         Castro::do_special_tagging = 0;
 int         Castro::spherical_star = 0;
+int         Castro::verbose = 0;
+bool        Castro::dump_old = false;
 #ifdef AMREX_DEBUG
 int         Castro::print_fortran_warnings = 1;
 #else
@@ -142,3 +139,8 @@ std::string Castro::job_name = "";
 int         Castro::output_at_completion = 1;
 amrex::Real Castro::reset_checkpoint_time = -1.e200;
 int         Castro::reset_checkpoint_step = -1;
+#ifdef GRAVITY
+int         Castro::use_point_mass = 0;
+amrex::Real Castro::point_mass = 0.0;
+int         Castro::point_mass_fix_solution = 0;
+#endif

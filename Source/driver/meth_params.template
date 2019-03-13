@@ -9,7 +9,7 @@ module meth_params_module
 
   use amrex_error_module
   use amrex_fort_module, only: rt => amrex_real
-  use state_sizes_module, only : nadv, NQAUX, NVAR, NGDNV, NQ, QVAR
+  use state_sizes_module, only : nadv, NQAUX, NVAR, NGDNV, NQ, NQSRC
 
   implicit none
 
@@ -21,7 +21,7 @@ module meth_params_module
   integer, allocatable, save :: USHK
 
   ! primitive variables
-  integer, allocatable, save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
+  integer, allocatable, save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME, QGC
   integer, allocatable, save :: QGAMC, QC, QDPDR, QDPDE
 #ifdef RADIATION
   integer, allocatable, save :: QGAMCG, QCG, QLAMS
@@ -48,6 +48,11 @@ module meth_params_module
   integer, save, allocatable :: GDLAMS, GDERADS
 #endif
 
+  ! Numerical values corresponding to the gravity types
+#ifdef GRAVITY
+  integer, save, allocatable :: gravity_type_int
+#endif
+
   integer         , save :: numpts_1d
 
   real(rt)        , save, allocatable :: outflow_data_old(:,:)
@@ -56,8 +61,6 @@ module meth_params_module
   real(rt)        , save :: outflow_data_new_time
   logical         , save :: outflow_data_allocated
   real(rt)        , save :: max_dist
-
-  character(len=:), allocatable :: gravity_type
 
   ! these flags are for interpreting the EXT_DIR BCs
   integer, parameter :: EXT_UNDEFINED = -1
@@ -72,7 +75,7 @@ module meth_params_module
 #ifdef AMREX_USE_CUDA
   attributes(managed) :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
   attributes(managed) :: USHK
-  attributes(managed) :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
+  attributes(managed) :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME, QGC
   attributes(managed) :: QGAMC, QC, QDPDR, QDPDE
 #ifdef RADIATION
   attributes(managed) :: QGAMCG, QCG, QLAMS
@@ -84,6 +87,9 @@ module meth_params_module
 #ifdef RADIATION
   attributes(managed) :: GDLAMS, GDERADS
 #endif
+#ifdef GRAVITY
+  attributes(managed) :: gravity_type_int
+#endif
   attributes(managed) :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 #endif
 
@@ -91,7 +97,7 @@ module meth_params_module
   !$acc create(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS,UFX) &
   !$acc create(USHK) &
   !$acc create(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP) &
-  !$acc create(QC, QDPDR, QDPDE, QGAMC, QGAME) &
+  !$acc create(QC, QDPDR, QDPDE, QGAMC, QGAME, QGC) &
 #ifdef RADIATION
   !$acc create(QGAMCG, QCG, QLAMS) &
   !$acc create(QRAD, QRADHI, QPTOT, QREITOT) &
@@ -122,7 +128,7 @@ contains
 
     allocate(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX)
     allocate(USHK)
-    allocate(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME)
+    allocate(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME, QGC)
     allocate(QGAMC, QC, QDPDR, QDPDE)
 #ifdef RADIATION
     allocate(QGAMCG, QCG, QLAMS)
@@ -137,6 +143,22 @@ contains
 
     @@set_castro_params@@
 
+
+#ifdef GRAVITY
+    ! Set the gravity type integer
+
+    allocate(gravity_type_int)
+
+    if (gravity_type == "ConstantGrav") then
+       gravity_type_int = 0
+    else if (gravity_type == "MonopoleGrav") then
+       gravity_type_int = 1
+    else if (gravity_type == "PoissonGrav") then
+       gravity_type_int = 2
+    else
+       call amrex_error("Unknown gravity type")
+    end if
+#endif
 
     ! now set the external BC flags
     select case (xl_ext_bc_type)
@@ -204,7 +226,7 @@ contains
 
     deallocate(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX)
     deallocate(USHK)
-    deallocate(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME)
+    deallocate(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME, QGC)
     deallocate(QGAMC, QC, QDPDR, QDPDE)
 #ifdef RADIATION
     deallocate(QGAMCG, QCG, QLAMS)

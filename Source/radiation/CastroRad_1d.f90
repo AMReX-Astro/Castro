@@ -406,8 +406,7 @@ subroutine ca_estdt_rad(lo, hi, u,u_l1,u_h1, gpr,gpr_l1,gpr_h1, &
   use network, only : nspec, naux
   use eos_module, only : eos
   use eos_type_module, only : eos_t, eos_input_re
-  use meth_params_module, only : NVAR, URHO, UMX, UEINT, UTEMP, UFS, UFX, &
-       allow_negative_energy
+  use meth_params_module, only : NVAR, URHO, UMX, UEINT, UTEMP, UFS, UFX
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -433,13 +432,8 @@ subroutine ca_estdt_rad(lo, hi, u,u_l1,u_h1, gpr,gpr_l1,gpr_h1, &
      eos_state % xn  = u(i,UFS:UFS+nspec-1) * rhoInv
      eos_state % aux = u(i,UFX:UFX+naux-1) * rhoInv
 
-     ! Protect against negative e
-     if (eos_state % e .gt. 0.e0_rt .or. allow_negative_energy .eq. 1) then
-        call eos(eos_input_re, eos_state)
-        c = eos_state % cs
-     else
-        c = 0.e0_rt
-     end if
+     call eos(eos_input_re, eos_state)
+     c = eos_state % cs
 
      c = sqrt(c**2 + gpr(i)*rhoInv)
 

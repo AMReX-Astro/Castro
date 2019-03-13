@@ -26,7 +26,7 @@ contains
 
   ! a generic wrapper that calls the EOS and then the conductivity
 
-  subroutine conducteos(input, state, cond)
+  subroutine conducteos(input, state)
 
     use actual_conductivity_module
     use eos_type_module, only : eos_t
@@ -36,26 +36,26 @@ contains
 
     integer       , intent(in   ) :: input
     type (eos_t)  , intent(inout) :: state
-    real (kind=rt), intent(inout) :: cond
 
     ! call the EOS, passing through the arguments we called conducteos with
     call eos(input, state)
 
-    call actual_conductivity(state, cond)
+    call actual_conductivity(state)
 
   end subroutine conducteos
 
-  subroutine conductivity(state, cond)
+  subroutine conductivity(state)
 
     use actual_conductivity_module
     use eos_type_module, only : eos_t
 
     implicit none
 
-    type (eos_t)  , intent(inout) :: state
-    real (kind=rt), intent(inout) :: cond
+    !$gpu
 
-    call actual_conductivity(state, cond)
+    type (eos_t)  , intent(inout) :: state
+
+    call actual_conductivity(state)
 
   end subroutine conductivity
 

@@ -1,11 +1,7 @@
 module bc_fill_module
 
   use amrex_fort_module, only: rt => amrex_real
-  use amrex_filcc_module, only: amrex_filccn
-  use prob_params_module, only: dim
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-  use cuda_module, only: numBlocks, numThreads, cuda_stream
-#endif
+  use meth_params_module, only: NVAR
 
   implicit none
 
@@ -15,597 +11,457 @@ module bc_fill_module
 
 contains
 
-  ! All subroutines in this file must be threadsafe because they are called
-  ! inside OpenMP parallel regions.
+  subroutine hypfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="hypfill")
 
-  AMREX_LAUNCH subroutine hypfill(adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
-
-    use meth_params_module, only: NVAR
-    use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
     use amrex_filcc_module, only: amrex_filccn
+#ifndef AMREX_USE_CUDA
+    use bc_ext_fill_module, only: ext_fill
+#endif
 
     implicit none
 
     include 'AMReX_bc_types.fi'
 
+    integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
-    integer,  intent(in   ) :: bc(3,2,NVAR)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2, NVAR)
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3),NVAR)
+    real(rt), intent(in   ), value :: time
 
-    integer  :: blo(3), bhi(3)
+    !$gpu
 
-    call get_loop_bounds(blo, bhi, adv_lo, adv_hi)
+    call amrex_filccn(lo, hi, adv, adv_lo, adv_hi, NVAR, domlo, domhi, delta, xlo, bc)
 
-    call amrex_filccn(blo, bhi, adv, adv_lo, adv_hi, NVAR, domlo, domhi, delta, xlo, bc)
+#ifndef AMREX_USE_CUDA
+    ! process the external BCs here
+    call ext_fill(adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
+#endif
 
   end subroutine hypfill
 
 
-  subroutine ca_hypfill(adv,adv_lo,adv_hi,domlo,domhi,delta,xlo,time,bc) &
-                        bind(C, name="ca_hypfill")
 
-    use meth_params_module, only: NVAR
+  subroutine denfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="denfill")
 
-    implicit none
-
-    integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
-    integer,  intent(in   ) :: bc(dim,2,NVAR)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3),NVAR)
-
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-    attributes(device) :: adv, adv_lo, adv_hi, bc, delta, xlo, domlo, domhi, time
-#endif
-
-    call hypfill &
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-         <<<numBlocks, numThreads, 0, cuda_stream>>> &
-#endif
-         (adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
-
-  end subroutine ca_hypfill
-
-
-  AMREX_LAUNCH subroutine denfill(adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
-
-    use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
     use amrex_filcc_module, only: amrex_filccn
+#ifndef AMREX_USE_CUDA
+    use bc_ext_fill_module, only: ext_denfill
+#endif
 
     implicit none
 
     include 'AMReX_bc_types.fi'
 
+    integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
-    integer,  intent(in   ) :: bc(3,2,1)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3))
+    real(rt), intent(in   ), value :: time
 
-    integer :: blo(3), bhi(3)
+    !$gpu
 
-    call get_loop_bounds(blo, bhi, adv_lo, adv_hi)
+    call amrex_filccn(lo, hi, adv, adv_lo, adv_hi, 1, domlo, domhi, delta, xlo, bc)
 
-    call amrex_filccn(blo, bhi, adv, adv_lo, adv_hi, 1, domlo, domhi, delta, xlo, bc)
+#ifndef AMREX_USE_CUDA
+    ! process the external BCs here
+    call ext_denfill(adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
+#endif
 
   end subroutine denfill
 
 
-  subroutine ca_denfill(adv,adv_lo,adv_hi,domlo,domhi,delta,xlo,time,bc) &
-                        bind(C, name="ca_denfill")
-
-    implicit none
-
-    integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3))
-
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-    attributes(device) :: adv, adv_lo, adv_hi, bc, delta, xlo, time, domlo, domhi
-#endif
-
-    call denfill &
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-         <<<numBlocks, numThreads, 0, cuda_stream>>> &
-#endif
-         (adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
-
-  end subroutine ca_denfill
-
-
   
 #ifdef GRAVITY
-  AMREX_LAUNCH subroutine phigravfill(phi, phi_lo, phi_hi, domlo, domhi, delta, xlo, time, bc)
+  subroutine phigravfill(lo, hi, phi, phi_lo, phi_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="phigravfill")
 
-    use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
     use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
     include 'AMReX_bc_types.fi'
 
+    integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: phi_lo(3), phi_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
+    real(rt), intent(in   ), value :: time
 
-    integer :: blo(3), bhi(3), lo(3), hi(3)
+    !$gpu
 
-    call get_loop_bounds(blo, bhi, phi_lo, phi_hi)
-
-    call amrex_filccn(blo, bhi, phi, phi_lo, phi_hi, 1, domlo, domhi, delta, xlo, bc)
+    call amrex_filccn(lo, hi, phi, phi_lo, phi_hi, 1, domlo, domhi, delta, xlo, bc)
 
   end subroutine phigravfill
 
-
-  subroutine ca_phigravfill(phi,phi_lo,phi_hi,domlo,domhi,delta,xlo,time,bc) &
-                            bind(C, name="ca_phigravfill")
-
-    implicit none
-
-    integer,  intent(in   ) :: phi_lo(3), phi_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(inout) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
-
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-    attributes(device) :: phi, phi_lo, phi_hi, domlo, domhi, delta, xlo, time, bc
-#endif
-
-    call phigravfill &
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-         <<<numBlocks, numThreads, 0, cuda_stream>>> &
-#endif
-         (phi, phi_lo, phi_hi, domlo, domhi, delta, xlo, time, bc)
-
-  end subroutine ca_phigravfill
   
 
-  AMREX_LAUNCH subroutine gravxfill(grav,grav_lo,grav_hi,domlo,domhi,delta,xlo,time,bc)
+  subroutine gravxfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="gravxfill")
 
-    use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
     use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
     include 'AMReX_bc_types.fi'
 
+    integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
+    real(rt), intent(in   ), value :: time
 
-    integer :: blo(3), bhi(3)
+    integer :: d
+    integer :: bc_temp(AMREX_SPACEDIM,2)
 
-    call get_loop_bounds(blo, bhi, grav_lo, grav_hi)
+    !$gpu
 
-    call amrex_filccn(blo, bhi, grav, grav_lo, grav_hi, 1, domlo, domhi, delta, xlo, bc)
+    ! handle an external BC via extrapolation here 
+    bc_temp(:,:) = bc(:,:)
+
+    do d = 1, AMREX_SPACEDIM
+       if (bc(d,1) == EXT_DIR .and. grav_lo(d) < domlo(d)) then
+          bc_temp(d,1) = FOEXTRAP
+       end if
+
+       if (bc(d,2) == EXT_DIR .and. grav_hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
+       end if
+    end do
+
+    call amrex_filccn(lo, hi, grav, grav_lo, grav_hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
   end subroutine gravxfill
 
 
-  subroutine ca_gravxfill(grav,grav_lo,grav_hi,domlo,domhi,delta,xlo,time,bc) &
-                          bind(C, name="ca_gravxfill")
 
-    implicit none
+  subroutine gravyfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="gravyfill")
 
-    integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
-
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-    attributes(device) :: grav, grav_lo, grav_hi
-    attributes(device) :: domlo, domhi, delta, xlo, time, bc
-#endif
-
-    call gravxfill &
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-         <<<numBlocks, numThreads, 0, cuda_stream>>> &
-#endif
-         (grav, grav_lo, grav_hi, domlo, domhi, delta, xlo, time, bc)
-
-  end subroutine ca_gravxfill
-
-
-  AMREX_LAUNCH subroutine gravyfill(grav, grav_lo, grav_hi, domlo, domhi, delta, xlo, time, bc)
-
-    use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
     use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
     include 'AMReX_bc_types.fi'
 
+    integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
+    real(rt), intent(in   ), value :: time
 
-    integer :: blo(3), bhi(3)
+    integer :: d
+    integer :: bc_temp(AMREX_SPACEDIM,2)
 
-    call get_loop_bounds(blo, bhi, grav_lo, grav_hi)
+    !$gpu
 
-    call amrex_filccn(blo, bhi, grav, grav_lo, grav_hi, 1, domlo, domhi, delta, xlo, bc)
+    ! handle an external BC via extrapolation here 
+    bc_temp(:,:) = bc(:,:)
+
+    do d = 1, AMREX_SPACEDIM
+       if (bc(d,1) == EXT_DIR .and. grav_lo(d) < domlo(d)) then
+          bc_temp(d,1) = FOEXTRAP
+       end if
+
+       if (bc(d,2) == EXT_DIR .and. grav_hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
+       end if
+    end do
+
+    call amrex_filccn(lo, hi, grav, grav_lo, grav_hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
   end subroutine gravyfill
 
 
-  subroutine ca_gravyfill(grav,grav_lo,grav_hi,domlo,domhi,delta,xlo,time,bc) &
-                          bind(C, name="ca_gravyfill")
 
-    implicit none
+  subroutine gravzfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="gravzfill")
 
-    integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
-
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-    attributes(device) :: grav, grav_lo, grav_hi, domlo, domhi, delta, xlo, time, bc
-#endif
-
-    call gravyfill &
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-         <<<numBlocks, numThreads, 0, cuda_stream>>> &
-#endif
-         (grav, grav_lo, grav_hi, domlo, domhi, delta, xlo, time, bc)
-
-  end subroutine ca_gravyfill
-
-
-  AMREX_LAUNCH subroutine gravzfill(grav, grav_lo, grav_hi, domlo, domhi, delta, xlo, time, bc)
-
-    use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
     use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
     include 'AMReX_bc_types.fi'
 
+    integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
+    real(rt), intent(in   ), value :: time
 
-    integer :: blo(3), bhi(3)
+    integer :: d
+    integer :: bc_temp(AMREX_SPACEDIM,2)
 
-    call get_loop_bounds(blo, bhi, grav_lo, grav_hi)
+    !$gpu
 
-    call amrex_filccn(blo, bhi, grav, grav_lo, grav_hi, 1, domlo, domhi, delta, xlo, bc)
+    ! handle an external BC via extrapolation here 
+    bc_temp(:,:) = bc(:,:)
+
+    do d = 1, AMREX_SPACEDIM
+       if (bc(d,1) == EXT_DIR .and. grav_lo(d) < domlo(d)) then
+          bc_temp(d,1) = FOEXTRAP
+       end if
+
+       if (bc(d,2) == EXT_DIR .and. grav_hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
+       end if
+    end do
+
+    call amrex_filccn(lo, hi, grav, grav_lo, grav_hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
   end subroutine gravzfill
-
-
-  subroutine ca_gravzfill(grav,grav_lo,grav_hi,domlo,domhi,delta,xlo,time,bc) &
-                          bind(C, name="ca_gravzfill")
-
-    implicit none
-
-    integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
-
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-    attributes(device) :: grav, grav_lo, grav_hi, domlo, domhi, delta, xlo, time, bc
-#endif
-
-    call gravzfill &
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-         <<<numBlocks, numThreads, 0, cuda_stream>>> &
-#endif
-         (grav, grav_lo, grav_hi, domlo, domhi, delta, xlo, time, bc)
-
-  end subroutine ca_gravzfill
 #endif
 
   
 
 #ifdef ROTATION
-  AMREX_LAUNCH subroutine phirotfill(phi, phi_lo, phi_hi, domlo, domhi, delta, xlo, time, bc)
+  subroutine phirotfill(lo, hi, phi, phi_lo, phi_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="phirotfill")
 
-    use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
     use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
     include 'AMReX_bc_types.fi'
 
+    integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: phi_lo(3), phi_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
+    real(rt), intent(in   ), value :: time
 
-    integer :: blo(3), bhi(3)
+    integer :: d
+    integer :: bc_temp(AMREX_SPACEDIM,2)
 
-    call get_loop_bounds(blo, bhi, phi_lo, phi_hi)
+    !$gpu
 
-    call amrex_filccn(blo, bhi, phi, phi_lo, phi_hi, 1, domlo, domhi, delta, xlo, bc)
+    ! handle an external BC via extrapolation here 
+    bc_temp(:,:) = bc(:,:)
+
+    do d = 1, AMREX_SPACEDIM
+       if (bc(d,1) == EXT_DIR .and. phi_lo(d) < domlo(d)) then
+          bc_temp(d,1) = FOEXTRAP
+       end if
+
+       if (bc(d,2) == EXT_DIR .and. phi_hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
+       end if
+    end do
+
+    call amrex_filccn(lo, hi, phi, phi_lo, phi_hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
   end subroutine phirotfill
 
-
-  subroutine ca_phirotfill(phi,phi_lo,phi_hi,domlo,domhi,delta,xlo,time,bc) &
-                           bind(C, name="ca_phirotfill")
-
-    implicit none
-
-    integer,  intent(in   ) :: phi_lo(3), phi_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(inout) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
-
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-    attributes(device) :: phi, phi_lo, phi_hi, bc, domlo, domhi, delta, xlo, time
-#endif
-
-    call phirotfill &
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-         <<<numBlocks, numThreads, 0, cuda_stream>>> &
-#endif
-         (phi, phi_lo, phi_hi, domlo, domhi, delta, xlo, time, bc)
-
-  end subroutine ca_phirotfill
   
 
-  AMREX_LAUNCH subroutine rotxfill(rot, rot_lo, rot_hi, domlo, domhi, delta, xlo, time, bc)
+  subroutine rotxfill(lo, hi, rot, rot_lo, rot_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="rotxfill")
 
-    use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
     use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
     include 'AMReX_bc_types.fi'
 
+    integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: rot_lo(3), rot_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3))
+    real(rt), intent(in   ), value :: time
 
-    integer :: blo(3), bhi(3)
+    integer :: d
+    integer :: bc_temp(AMREX_SPACEDIM,2)
 
-    call get_loop_bounds(blo, bhi, rot_lo, rot_hi)
+    !$gpu
 
-    call amrex_filccn(blo, bhi, rot, rot_lo, rot_hi, 1, domlo, domhi, delta, xlo, bc)
+    ! handle an external BC via extrapolation here 
+    bc_temp(:,:) = bc(:,:)
+
+    do d = 1, AMREX_SPACEDIM
+       if (bc(d,1) == EXT_DIR .and. rot_lo(d) < domlo(d)) then
+          bc_temp(d,1) = FOEXTRAP
+       end if
+
+       if (bc(d,2) == EXT_DIR .and. rot_hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
+       end if
+    end do
+
+    call amrex_filccn(lo, hi, rot, rot_lo, rot_hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
   end subroutine rotxfill
 
 
-  subroutine ca_rotxfill(rot,rot_lo,rot_hi,domlo,domhi,delta,xlo,time,bc) &
-                         bind(C, name="ca_rotxfill")
 
-    implicit none
+  subroutine rotyfill(lo, hi, rot, rot_lo, rot_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="rotyfill")
 
-    integer,  intent(in   ) :: rot_lo(3), rot_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(inout) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3))
-
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-    attributes(device) :: rot, rot_lo, rot_hi, bc, domlo, domhi, delta, xlo, time
-#endif
-
-    call rotxfill &
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-         <<<numBlocks, numThreads, 0, cuda_stream>>> &
-#endif
-         (rot, rot_lo, rot_hi, domlo, domhi, delta, xlo, time, bc)
-
-  end subroutine ca_rotxfill
-
-
-  AMREX_LAUNCH subroutine rotyfill(rot, rot_lo, rot_hi, domlo, domhi, delta, xlo, time, bc)
-
-    use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
     use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
     include 'AMReX_bc_types.fi'
 
+    integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: rot_lo(3), rot_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3))
+    real(rt), intent(in   ), value :: time
 
-    integer :: blo(3), bhi(3)
+    integer :: d
+    integer :: bc_temp(AMREX_SPACEDIM,2)
 
-    call get_loop_bounds(blo, bhi, rot_lo, rot_hi)
+    !$gpu
 
-    call amrex_filccn(blo, bhi, rot, rot_lo, rot_hi, 1, domlo, domhi, delta, xlo, bc)
+    ! handle an external BC via extrapolation here 
+    bc_temp(:,:) = bc(:,:)
+
+    do d = 1, AMREX_SPACEDIM
+       if (bc(d,1) == EXT_DIR .and. rot_lo(d) < domlo(d)) then
+          bc_temp(d,1) = FOEXTRAP
+       end if
+
+       if (bc(d,2) == EXT_DIR .and. rot_hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
+       end if
+    end do
+
+    call amrex_filccn(lo, hi, rot, rot_lo, rot_hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
   end subroutine rotyfill
 
 
-  subroutine ca_rotyfill(rot,rot_lo,rot_hi,domlo,domhi,delta,xlo,time,bc) &
-                         bind(C, name="ca_rotyfill")
 
-    implicit none
+  subroutine rotzfill(lo, hi, rot, rot_lo, rot_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="rotzfill")
 
-    integer,  intent(in   ) :: rot_lo(3), rot_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(inout) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3))
-
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-    attributes(device) :: rot, rot_lo, rot_hi, bc, domlo, domhi, delta, xlo, time
-#endif
-
-    call rotyfill &
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-         <<<numBlocks, numThreads, 0, cuda_stream>>> &
-#endif
-         (rot, rot_lo, rot_hi, domlo, domhi, delta, xlo, time, bc)
-
-  end subroutine ca_rotyfill
-
-
-  AMREX_LAUNCH subroutine rotzfill(rot, rot_lo, rot_hi, domlo, domhi, delta, xlo, time, bc)
-
-    use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
     use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
     include 'AMReX_bc_types.fi'
 
+    integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: rot_lo(3), rot_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3))
+    real(rt), intent(in   ), value :: time
 
-    integer :: blo(3), bhi(3)
+    integer :: d
+    integer :: bc_temp(AMREX_SPACEDIM,2)
 
-    call get_loop_bounds(blo, bhi, rot_lo, rot_hi)
+    !$gpu
 
-    call amrex_filccn(blo, bhi, rot, rot_lo, rot_hi, 1, domlo, domhi, delta, xlo, bc)
+    ! handle an external BC via extrapolation here 
+    bc_temp(:,:) = bc(:,:)
+
+    do d = 1, AMREX_SPACEDIM
+       if (bc(d,1) == EXT_DIR .and. rot_lo(d) < domlo(d)) then
+          bc_temp(d,1) = FOEXTRAP
+       end if
+
+       if (bc(d,2) == EXT_DIR .and. rot_hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
+       end if
+    end do
+
+    call amrex_filccn(lo, hi, rot, rot_lo, rot_hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
   end subroutine rotzfill
-
-
-  subroutine ca_rotzfill(rot,rot_lo,rot_hi,domlo,domhi,delta,xlo,time,bc) &
-                         bind(C, name="ca_rotzfill")
-
-    implicit none
-
-    integer,  intent(in   ) :: rot_lo(3), rot_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(inout) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3))
-
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-    attributes(device) :: rot, rot_lo, rot_hi, bc, domlo, domhi, delta, xlo, time
-#endif
-
-    call rotzfill &
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-         <<<numBlocks, numThreads, 0, cuda_stream>>> &
-#endif
-         (rot, rot_lo, rot_hi, domlo, domhi, delta, xlo, time, bc)
-
-  end subroutine ca_rotzfill
 #endif  
 
 
 #ifdef REACTIONS
-  AMREX_LAUNCH subroutine reactfill(react, react_lo, react_hi, domlo, domhi, delta, xlo, bc)
+  subroutine reactfill(lo, hi, react, react_lo, react_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="reactfill")
 
-    use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
     use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
     include 'AMReX_bc_types.fi'
 
+    integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: react_lo(3), react_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
+    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
     real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: react(react_lo(1):react_hi(1),react_lo(2):react_hi(2),react_lo(3):react_hi(3))
+    real(rt), intent(in   ), value :: time
 
-    integer :: blo(3), bhi(3)
+    integer :: d
+    integer :: bc_temp(AMREX_SPACEDIM,2)
 
-    call get_loop_bounds(blo, bhi, react_lo, react_hi)
+    !$gpu
 
-    call amrex_filccn(blo, bhi, react, react_lo, react_hi, 1, domlo, domhi, delta, xlo, bc)
+    ! handle an external BC via extrapolation here 
+    bc_temp(:,:) = bc(:,:)
+
+    do d = 1, AMREX_SPACEDIM
+       if (bc(d,1) == EXT_DIR .and. react_lo(d) < domlo(d)) then
+          bc_temp(d,1) = FOEXTRAP
+       end if
+
+       if (bc(d,2) == EXT_DIR .and. react_hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
+       end if
+    end do
+
+    call amrex_filccn(lo, hi, react, react_lo, react_hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
   end subroutine reactfill
-
-
-  subroutine ca_reactfill(react,react_lo,react_hi,domlo,domhi,delta,xlo,time,bc) &
-                          bind(C, name="ca_reactfill")
-
-    implicit none
-
-    integer,  intent(in   ) :: react_lo(3), react_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(inout) :: react(react_lo(1):react_hi(1),react_lo(2):react_hi(2),react_lo(3):react_hi(3))
-
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-    attributes(device) :: react, react_lo, react_hi, bc, domlo, domhi, delta, xlo
-#endif
-
-    call reactfill &
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-         <<<numBlocks, numThreads, 0, cuda_stream>>> &
-#endif
-         (react, react_lo, react_hi, domlo, domhi, delta, xlo, bc)
-
-  end subroutine ca_reactfill
 #endif
 
 
 
 #ifdef RADIATION
-  AMREX_LAUNCH subroutine radfill(rad, rad_lo, rad_hi, domlo, domhi, delta, xlo, time, bc)
+  subroutine radfill(lo, hi, rad, rad_lo, rad_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="radfill")
 
-    use amrex_fort_module, only: rt => amrex_real, get_loop_bounds
     use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
     include 'AMReX_bc_types.fi'
 
+    integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: rad_lo(3), rad_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: rad(rad_lo(1):rad_hi(1),rad_lo(2):rad_hi(2),rad_lo(3):rad_hi(3))
+    real(rt), intent(in   ), value :: time
 
-    integer :: blo(3), bhi(3)
+    integer :: d
+    integer :: bc_temp(AMREX_SPACEDIM,2)
 
-    call get_loop_bounds(blo, bhi, rad_lo, rad_hi)
+    !$gpu
 
-    call amrex_filccn(blo, bhi, rad, rad_lo, rad_hi, 1, domlo, domhi, delta, xlo, bc)
+    ! handle an external BC via extrapolation here 
+    bc_temp(:,:) = bc(:,:)
+
+    do d = 1, AMREX_SPACEDIM
+       if (bc(d,1) == EXT_DIR .and. rad_lo(d) < domlo(d)) then
+          bc_temp(d,1) = FOEXTRAP
+       end if
+
+       if (bc(d,2) == EXT_DIR .and. rad_hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
+       end if
+    end do
+
+    call amrex_filccn(lo, hi, rad, rad_lo, rad_hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
   end subroutine radfill
-
-
-  subroutine ca_radfill(rad,rad_lo,rad_hi,domlo,domhi,delta,xlo,time,bc) &
-                        bind(C, name="ca_radfill")
-
-    implicit none
-
-    integer,  intent(in   ) :: rad_lo(3), rad_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(inout) :: rad(rad_lo(1):rad_hi(1),rad_lo(2):rad_hi(2),rad_lo(3):rad_hi(3))
-
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-    attributes(device) :: rad, rad_lo, rad_hi, bc, domlo, domhi, delta, xlo, time
-#endif
-
-    call radfill &
-#if (defined(AMREX_USE_CUDA) && !defined(AMREX_NO_DEVICE_LAUNCH))
-         <<<numBlocks, numThreads, 0, cuda_stream>>> &
-#endif
-         (rad, rad_lo, rad_hi, domlo, domhi, delta, xlo, time, bc)
-
-  end subroutine ca_radfill
 #endif
   
 end module bc_fill_module

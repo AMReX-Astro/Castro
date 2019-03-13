@@ -924,7 +924,8 @@ subroutine get_omega_vec(omega_in, time) bind(C,name='get_omega_vec')
 
   implicit none
 
-  double precision :: omega_in(3), time
+  double precision, intent(inout) :: omega_in(3)
+  double precision, intent(in   ), value :: time
 
   omega_in = get_omega(time)
 

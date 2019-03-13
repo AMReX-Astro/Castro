@@ -28,7 +28,9 @@ contains
     ! shut off the source term by setting omega = 0. Note that by default rot_axis == 3 for Cartesian
     ! coordinates and rot_axis == 2 for cylindrical coordinates.
 
-    omega = ZERO
+    !$gpu
+
+    omega(:) = ZERO
 
     if (coord_type == 0 .or. coord_type == 1) then
 
@@ -45,9 +47,9 @@ contains
        endif
 
     else
-
+#ifndef AMREX_USE_GPU
        call amrex_error("Error:: rotation_nd.f90 :: invalid coord_type")
-
+#endif
     endif
 
   end function get_omega
@@ -57,7 +59,7 @@ contains
   function get_domegadt(time) result(domegadt)
 
     use prob_params_module, only: coord_type
-    use meth_params_module, only: rot_period, rot_period_dot, rot_axis
+    use meth_params_module, only: rot_period, rot_period_dot
     use amrex_constants_module, only: ZERO, TWO, M_PI
 
     use amrex_fort_module, only : rt => amrex_real
@@ -68,7 +70,9 @@ contains
 
     real(rt)         :: curr_period, curr_omega(3)
 
-    domegadt = ZERO
+    !$gpu
+
+    domegadt(:) = ZERO
 
     if (coord_type == 0 .or. coord_type .eq. 1) then
 
@@ -85,9 +89,9 @@ contains
        endif
 
     else
-
+#ifndef AMREX_USE_GPU
        call amrex_error("Error:: rotation_nd.f90 :: unknown coord_type")
-
+#endif
     endif
 
   end function get_domegadt

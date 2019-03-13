@@ -6,55 +6,23 @@ module riemann_util_module
 
 contains
 
-  pure function bc_test(idir, i, j, domlo, domhi) result (f)
 
-    use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
-
-    integer, intent(in) :: idir, i, j, domlo(*), domhi(*)
-    integer :: f
-
-    ! Enforce that fluxes through a symmetry plane or wall are hard zero.
-    f = 1
-
-    if (idir == 1) then
-       if (i == domlo(1) .and. &
-            (physbc_lo(1) == Symmetry .or. &
-             physbc_lo(1) == SlipWall .or. &
-             physbc_lo(1) == NoSlipWall) ) then
-          f = 0
-       endif
-
-       if (i == domhi(1)+1 .and. &
-            (physbc_hi(1) == Symmetry .or. &
-             physbc_hi(1) == SlipWall .or. &
-             physbc_hi(1) == NoSlipWall) ) then
-          f = 0
-       endif
-    end if
-
-    if (idir == 2) then
-       if (j == domlo(2) .and. &
-            (physbc_lo(2) == Symmetry .or. &
-             physbc_lo(2) == SlipWall .or. &
-             physbc_lo(2) == NoSlipWall) ) then
-          f = 0
-       endif
-
-       if (j == domhi(2)+1 .and. &
-            (physbc_hi(2) == Symmetry .or. &
-             physbc_hi(2) == SlipWall .or. &
-             physbc_hi(2) == NoSlipWall) ) then
-          f = 0
-       end if
-    endif
-
-  end function bc_test
-
-
+  !> @brief compute the lagrangian wave speeds -- this is the approximate
+  !! version for the Colella & Glaz algorithm
+  !!
+  !! @param[in] p real(rt)
+  !! @param[in] v real(rt)
+  !! @param[in] gam real(rt)
+  !! @param[in] gdot real(rt)
+  !! @param[in] pstar real(rt)
+  !! @param[in] csq real(rt)
+  !! @param[in] gmin real(rt)
+  !! @param[in] gmax real(rt)
+  !! @param[out] wsq real(rt)
+  !! @param[out] gstar real(rt)
+  !!
   pure subroutine wsqge(p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax)
 
-    ! compute the lagrangian wave speeds -- this is the approximate
-    ! version for the Colella & Glaz algorithm
 
     real(rt)        , intent(in) :: p,v,gam,gdot,pstar,csq,gmin,gmax
     real(rt)        , intent(out) :: wsq, gstar
@@ -63,6 +31,8 @@ contains
     real(rt)        , parameter :: small = 1.e-7_rt
 
     real(rt)         :: alpha, beta
+
+    !$gpu
 
     ! First predict a value of game across the shock
 
@@ -90,18 +60,39 @@ contains
   end subroutine wsqge
 
 
-  pure subroutine pstar_bisection(pstar_lo, pstar_hi, &
-                                  ul, pl, taul, gamel, clsql, &
-                                  ur, pr, taur, gamer, clsqr, &
-                                  gdot, gmin, gmax, &
-                                  pstar, gamstar, converged, pstar_hist_extra)
 
-    ! we want to zero
-    ! f(p*) = u*_l(p*) - u*_r(p*)
-    ! we'll do bisection
-    !
-    ! this version is for the approximate Colella & Glaz 
-    ! version
+  !> @brief we want to zero
+  !! f(p*) = u*_l(p*) - u*_r(p*)
+  !! we'll do bisection
+  !!
+  !! this version is for the approximate Colella & Glaz
+  !! version
+  !!
+  !! @param[inout] pstar_lo real(rt)
+  !! @param[inout] pstar_hi real(rt)
+  !! @param[in] ul real(rt)
+  !! @param[in] pl real(rt)
+  !! @param[in] taul real(rt)
+  !! @param[in] gamel real(rt)
+  !! @param[in] clsql real(rt)
+  !! @param[in] ur real(rt)
+  !! @param[in] pr real(rt)
+  !! @param[in] taur real(rt)
+  !! @param[in] gamer real(rt)
+  !! @param[in] clsqr real(rt)
+  !! @param[in] gdot real(rt)
+  !! @param[in] gmin real(rt)
+  !! @param[in] gmax real(rt)
+  !! @param[out] pstar real(rt)
+  !! @param[out] gamstar real(rt)
+  !! @param[out] converged logical
+  !! @param[out] pstar_hist_extra real(rt)
+  !!
+  pure subroutine pstar_bisection(pstar_lo, pstar_hi, &
+       ul, pl, taul, gamel, clsql, &
+       ur, pr, taur, gamer, clsqr, &
+       gdot, gmin, gmax, &
+       pstar, gamstar, converged, pstar_hist_extra)
 
     use meth_params_module, only : cg_maxiter, cg_tol
 
@@ -121,10 +112,10 @@ contains
 
     ! lo bounds
     call wsqge(pl, taul, gamel, gdot,  &
-               gamstar, pstar_lo, wlsq, clsql, gmin, gmax)
+         gamstar, pstar_lo, wlsq, clsql, gmin, gmax)
 
     call wsqge(pr, taur, gamer, gdot,  &
-               gamstar, pstar_lo, wrsq, clsqr, gmin, gmax)
+         gamstar, pstar_lo, wrsq, clsqr, gmin, gmax)
 
     wl = ONE / sqrt(wlsq)
     wr = ONE / sqrt(wrsq)
@@ -137,10 +128,10 @@ contains
 
     ! hi bounds
     call wsqge(pl, taul, gamel, gdot,  &
-               gamstar, pstar_hi, wlsq, clsql, gmin, gmax)
+         gamstar, pstar_hi, wlsq, clsql, gmin, gmax)
 
     call wsqge(pr, taur, gamer, gdot,  &
-               gamstar, pstar_hi, wrsq, clsqr, gmin, gmax)
+         gamstar, pstar_hi, wrsq, clsqr, gmin, gmax)
 
     wl = ONE / sqrt(wlsq)
     wr = ONE / sqrt(wrsq)
@@ -159,10 +150,10 @@ contains
        pstar_hist_extra(iter) = pstar_c
 
        call wsqge(pl, taul, gamel, gdot,  &
-                  gamstar, pstar_c, wlsq, clsql, gmin, gmax)
+            gamstar, pstar_c, wlsq, clsql, gmin, gmax)
 
        call wsqge(pr, taur, gamer, gdot,  &
-                  gamstar, pstar_c, wrsq, clsqr, gmin, gmax)
+            gamstar, pstar_c, wrsq, clsqr, gmin, gmax)
 
        wl = ONE / sqrt(wlsq)
        wr = ONE / sqrt(wrsq)
@@ -192,28 +183,36 @@ contains
   end subroutine pstar_bisection
 
 
+
+  !>
+  !! @param[in] ql real(rt)
+  !! @param[inout] f real(rt)
+  !! @param[in] idir integer
+  !!
   subroutine HLL(ql, qr, cl, cr, idir, f)
 
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
-                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
-                                   npassive, upass_map, qpass_map
+    use meth_params_module, only : NQ, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
+         URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
+         npassive, upass_map, qpass_map
     use prob_params_module, only : mom_flux_has_p
 
     use amrex_fort_module, only : rt => amrex_real
-    real(rt)        , intent(in) :: ql(QVAR), qr(QVAR), cl, cr
-    real(rt)        , intent(inout) :: f(NVAR)
+    real(rt), intent(in) :: ql(NQ), qr(NQ), cl, cr
+    real(rt), intent(inout) :: f(NVAR)
     integer, intent(in) :: idir
 
     integer :: ivel, ivelt, iveltt, imom, imomt, imomtt
-    real(rt)         :: a1, a4, bd, bl, bm, bp, br
-    real(rt)         :: cavg, uavg
-    real(rt)         :: fl_tmp, fr_tmp
-    real(rt)         :: rhod, rhoEl, rhoEr, rhol_sqrt, rhor_sqrt
-    integer :: n, nq
+    real(rt) :: a1, a4, bd, bl, bm, bp, br
+    real(rt) :: cavg, uavg
+    real(rt) :: fl_tmp, fr_tmp
+    real(rt) :: rhod, rhoEl, rhoEr, rhol_sqrt, rhor_sqrt
+    integer :: n, nqs
 
     integer :: ipassive
 
     real(rt)        , parameter :: small = 1.e-10_rt
+
+    !$gpu
 
     select case (idir)
     case (1)
@@ -337,27 +336,37 @@ contains
     ! passively-advected scalar fluxes
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       nqs = qpass_map(ipassive)
 
-       fl_tmp = ql(QRHO)*ql(nq)*ql(ivel)
-       fr_tmp = qr(QRHO)*qr(nq)*qr(ivel)
+       fl_tmp = ql(QRHO)*ql(nqs)*ql(ivel)
+       fr_tmp = qr(QRHO)*qr(nqs)*qr(ivel)
 
-       f(n) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(nq) - ql(QRHO)*ql(nq))
+       f(n) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(nqs) - ql(QRHO)*ql(nqs))
     enddo
 
   end subroutine HLL
 
 
+
+  !>
+  !! @param[in] q real(rt)
+  !! @param[out] U real(rt)
+  !!
   pure subroutine cons_state(q, U)
 
-    use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QREINT, &
+    use meth_params_module, only: NQ, QRHO, QU, QV, QW, QREINT, &
          NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
+#ifdef SHOCK_VAR
+         USHK, &
+#endif
          npassive, upass_map, qpass_map
 
-    real(rt)        , intent(in)  :: q(QVAR)
+    real(rt)        , intent(in)  :: q(NQ)
     real(rt)        , intent(out) :: U(NVAR)
 
-    integer :: ipassive, n, nq
+    integer :: ipassive, n, nqs
+
+    !$gpu
 
     U(URHO) = q(QRHO)
 
@@ -374,28 +383,45 @@ contains
     ! checking happy
     U(UTEMP) = ZERO
 
+#ifdef SHOCK_VAR
+    U(USHK) = ZERO
+#endif
+
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
-       U(n) = q(QRHO)*q(nq)
+       nqs = qpass_map(ipassive)
+       U(n) = q(QRHO)*q(nqs)
     enddo
 
   end subroutine cons_state
 
 
+
+  !>
+  !! @param[in] idir integer
+  !! @param[in] S_k real(rt)
+  !! @param[in] S_c real(rt)
+  !! @param[in] q real(rt)
+  !! @param[out] U real(rt)
+  !!
   pure subroutine HLLC_state(idir, S_k, S_c, q, U)
 
-    use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QREINT, QPRES, &
+    use meth_params_module, only: NQ, QRHO, QU, QV, QW, QREINT, QPRES, &
          NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
+#ifdef SHOCK_VAR
+         USHK, &
+#endif
          npassive, upass_map, qpass_map
 
     integer, intent(in) :: idir
-    real(rt)        , intent(in)  :: S_k, S_c
-    real(rt)        , intent(in)  :: q(QVAR)
-    real(rt)        , intent(out) :: U(NVAR)
+    real(rt), intent(in)  :: S_k, S_c
+    real(rt), intent(in)  :: q(NQ)
+    real(rt), intent(out) :: U(NVAR)
 
     real(rt)         :: hllc_factor, u_k
-    integer :: ipassive, n, nq
+    integer :: ipassive, n, nqs
+
+    !$gpu
 
     if (idir == 1) then
        u_k = q(QU)
@@ -428,36 +454,45 @@ contains
 
     U(UTEMP) = ZERO  ! we don't evolve T
 
+#ifdef SHOCK_VAR
+    U(USHK) = ZERO
+#endif
+
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
-       U(n) = hllc_factor*q(nq)
+       nqs = qpass_map(ipassive)
+       U(n) = hllc_factor*q(nqs)
     enddo
 
   end subroutine HLLC_state
 
-  subroutine compute_flux_q(idir, qint, q_lo, q_hi, &
+  !> @brief given a primitive state, compute the flux in direction idir
+  !!
+  subroutine compute_flux_q(lo, hi, &
+                            qint, q_lo, q_hi, &
                             F, F_lo, F_hi, &
 #ifdef RADIATION
                             lambda, l_lo, l_hi, &
                             rF, rF_lo, rF_hi, &
 #endif
-                            qgdnv, qg_lo, qg_hi, &
-                            ilo, ihi, jlo, jhi, kc, kflux, k3d)
-
-    ! given a primitive state, compute the flux in direction idir
+                            idir, enforce_eos)
 
     use prob_params_module, only : mom_flux_has_p
     use meth_params_module, only : NQ, NVAR, NQAUX, &
                                    URHO, UMX, UMY, UMZ, &
-                                   UEDEN, UEINT, UFS, UFX, &
+                                   UEDEN, UEINT, UTEMP, &
+#ifdef SHOCK_VAR
+                                   USHK, &
+#endif
                                    QRHO, QU, QV, QW, &
-                                   QPRES, QGAME, QREINT, QFS, QFX, &
-                                   QC, QGAMC, &
-                                   NGDNV, GDRHO, GDPRES, GDGAME, &
+                                   QPRES, QGAME, QREINT, &
+                                   QC, QGAMC, QFS, &
+#ifdef HYBRID_MOMENTUM
+                                   NGDNV, GDPRES, GDGAME, &
                                    GDRHO, GDU, GDV, GDW, &
+#endif
 #ifdef RADIATION
-                                   qrad, fspace_type, &
+                                   QRAD, fspace_type, &
                                    GDERADS, GDLAMS, &
 #endif
                                    npassive, upass_map, qpass_map
@@ -468,6 +503,9 @@ contains
 #ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only : compute_hybrid_flux
 #endif
+    use eos_type_module, only : eos_t, eos_input_rp
+    use eos_module, only : eos
+    use network, only : nspec
 
     integer, intent(in) :: idir
     integer, intent(in) :: q_lo(3), q_hi(3)
@@ -476,24 +514,37 @@ contains
     integer, intent(in) :: l_lo(3), l_hi(3)
     integer, intent(in) :: rF_lo(3), rF_hi(3)
 #endif
-    integer, intent(in) :: qg_lo(3), qg_hi(3)
 
     real(rt), intent(in) :: qint(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
-    real(rt), intent(inout) :: qgdnv(qg_lo(1):qg_hi(1), qg_lo(2):qg_hi(2), qg_lo(3):qg_hi(3), NGDNV)
     real(rt), intent(out) :: F(F_lo(1):F_hi(1), F_lo(2):F_hi(2), F_lo(3):F_hi(3), NVAR)
 #ifdef RADIATION
     real(rt), intent(in) :: lambda(l_lo(1):l_hi(1), l_lo(2):l_hi(2), l_lo(3):l_hi(3), 0:ngroups-1)
     real(rt), intent(out) :: rF(rF_lo(1):rF_hi(1), rF_lo(2):rF_hi(2), rF_lo(3):rF_hi(3), 0:ngroups-1)
 #endif
-    integer, intent(in) :: ilo, ihi, jlo, jhi, kc, kflux, k3d
+    logical, intent(in), optional :: enforce_eos
+    integer, intent(in) :: lo(3), hi(3)
 
     integer :: iu, iv1, iv2, im1, im2, im3
     integer :: g, n, ipassive, nqp
-    real(rt) :: u_adv, rhoetot
+    real(rt) :: u_adv, rhoetot, rhoeint
     real(rt) :: eddf, f1
-    integer :: i, j
+    integer :: i, j, k
 
+#ifdef HYBRID_MOMENTUM
     real(rt) :: F_zone(NVAR), qgdnv_zone(NGDNV)
+#endif
+
+    logical :: do_eos
+    type(eos_t) :: eos_state
+
+    !$gpu
+
+    if (present(enforce_eos)) then
+       do_eos = enforce_eos
+    else
+       do_eos = .false.
+    endif
+
 
     if (idir == 1) then
        iu = QU
@@ -518,78 +569,181 @@ contains
        im3 = UMY
     end if
 
-    do j = jlo, jhi
-       do i = ilo, ihi
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
-          u_adv = qint(i,j,kc,iu)
+             u_adv = qint(i,j,k,iu)
 
-          ! Compute fluxes, order as conserved state (not q)
-          F(i,j,kflux,URHO) = qint(i,j,kc,QRHO)*u_adv
+             ! if we are enforcing the EOS, then take rho, p, and X, and
+             ! compute rhoe
+             if (do_eos) then
+                eos_state % rho = qint(i,j,k,QRHO)
+                eos_state % p = qint(i,j,k,QPRES)
+                eos_state % xn(:) = qint(i,j,k,QFS:QFS-1+nspec)
+                eos_state % T = 100.0  ! initial guess
+                call eos(eos_input_rp, eos_state)
+                rhoeint = qint(i,j,k,QRHO) * eos_state % e
+             else
+                rhoeint = qint(i,j,k,QREINT)
+             endif
 
-          F(i,j,kflux,im1) = F(i,j,kflux,URHO)*qint(i,j,kc,iu)
-          if (mom_flux_has_p(idir) % comp(im1)) then
-             F(i,j,kflux,im1) = F(i,j,kflux,im1) + qint(i,j,kc,QPRES)
-          endif
-          F(i,j,kflux,im2) = F(i,j,kflux,URHO)*qint(i,j,kc,iv1)
-          F(i,j,kflux,im3) = F(i,j,kflux,URHO)*qint(i,j,kc,iv2)
+             ! Compute fluxes, order as conserved state (not q)
+             F(i,j,k,URHO) = qint(i,j,k,QRHO)*u_adv
 
-          rhoetot = qint(i,j,kc,QREINT) + &
-               HALF*qint(i,j,kc,QRHO)*(qint(i,j,kc,iu)**2 + qint(i,j,kc,iv1)**2 + qint(i,j,kc,iv2)**2)
+             F(i,j,k,im1) = F(i,j,k,URHO)*qint(i,j,k,iu)
+             if (mom_flux_has_p(idir) % comp(im1)) then
+                F(i,j,k,im1) = F(i,j,k,im1) + qint(i,j,k,QPRES)
+             endif
+             F(i,j,k,im2) = F(i,j,k,URHO)*qint(i,j,k,iv1)
+             F(i,j,k,im3) = F(i,j,k,URHO)*qint(i,j,k,iv2)
 
-          F(i,j,kflux,UEDEN) = u_adv*(rhoetot + qint(i,j,kc,QPRES))
-          F(i,j,kflux,UEINT) = u_adv*qint(i,j,kc,QREINT)
+             rhoetot = rhoeint + &
+                  HALF*qint(i,j,k,QRHO)*(qint(i,j,k,iu)**2 + &
+                  qint(i,j,k,iv1)**2 + &
+                  qint(i,j,k,iv2)**2)
 
-#ifdef RADIATION
-          if (fspace_type == 1) then
-             do g=0,ngroups-1
-                eddf = Edd_factor(lambda(i,j,kc,g))
-                f1 = 0.5e0_rt*(1.e0_rt-eddf)
-                rF(i,j,kflux,g) = (1.e0_rt + f1) * qint(i,j,kc,QRAD+g) * u_adv
-             end do
-          else ! type 2
-             do g=0,ngroups-1
-                rF(i,j,kflux,g) = qint(i,j,kc,QRAD+g) * u_adv
-             end do
-          end if
+             F(i,j,k,UEDEN) = u_adv*(rhoetot + qint(i,j,k,QPRES))
+             F(i,j,k,UEINT) = u_adv*rhoeint
+
+             F(i,j,k,UTEMP) = ZERO
+#ifdef SHOCK_VAR
+             F(i,j,k,USHK) = ZERO
 #endif
 
-          ! passively advected quantities
-          do ipassive = 1, npassive
-             n  = upass_map(ipassive)
-             nqp = qpass_map(ipassive)
-
-             F(i,j,kflux,n) = F(i,j,kflux,URHO)*qint(i,j,kc,nqp)
-          enddo
-
-          ! store the subset of the Godunov state
-          qgdnv(i,j,kc,GDRHO) = qint(i,j,kc,QRHO)
-          qgdnv(i,j,kc,GDU) = qint(i,j,kc,QU)
-          qgdnv(i,j,kc,GDV) = qint(i,j,kc,QV)
-          qgdnv(i,j,kc,GDW) = qint(i,j,kc,QW)
-          qgdnv(i,j,kc,GDPRES) = qint(i,j,kc,QPRES)
-          qgdnv(i,j,kc,GDGAME) = qint(i,j,kc,QGAME)
 #ifdef RADIATION
-          qgdnv(i,j,kc,GDLAMS:GDLAMS-1+ngroups) = lambda(i,j,kc,:)
-          qgdnv(i,j,kc,GDERADS:GDERADS-1+ngroups) = qint(i,j,kc,QRAD:QRAD-1+ngroups)
+             if (fspace_type == 1) then
+                do g=0,ngroups-1
+                   eddf = Edd_factor(lambda(i,j,k,g))
+                   f1 = 0.5e0_rt*(1.e0_rt-eddf)
+                   rF(i,j,k,g) = (1.e0_rt + f1) * qint(i,j,k,QRAD+g) * u_adv
+                end do
+             else ! type 2
+                do g=0,ngroups-1
+                   rF(i,j,k,g) = qint(i,j,k,QRAD+g) * u_adv
+                end do
+             end if
 #endif
+
+             ! passively advected quantities
+             do ipassive = 1, npassive
+                n  = upass_map(ipassive)
+                nqp = qpass_map(ipassive)
+
+                F(i,j,k,n) = F(i,j,k,URHO)*qint(i,j,k,nqp)
+             end do
 
 #ifdef HYBRID_MOMENTUM
-          ! the hybrid routine uses the Godunov indices, not the full NQ state
-          F_zone(:) = F(i,j,kflux,:)
-          qgdnv_zone(:) = qgdnv(i,j,kc,:)
-          call compute_hybrid_flux(qgdnv_zone, F_zone, idir, [i, j, k3d])
-          F(i,j,kflux,:) = F_zone(:)
+
+             ! the hybrid routine uses the Godunov indices, not the full NQ state
+             qgdnv_zone(GDRHO) = qint(i,j,k,QRHO)
+             qgdnv_zone(GDU) = qint(i,j,k,QU)
+             qgdnv_zone(GDV) = qint(i,j,k,QV)
+             qgdnv_zone(GDW) = qint(i,j,k,QW)
+             qgdnv_zone(GDPRES) = qint(i,j,k,QPRES)
+             qgdnv_zone(GDGAME) = qint(i,j,k,QGAME)
+#ifdef RADIATION
+             qgdnv_zone(GDLAMS:GDLAMS-1+ngroups) = lambda(i,j,k,:)
+             qgdnv_zone(GDERADS:GDERADS-1+ngroups) = qint(i,j,k,QRAD:QRAD-1+ngroups)
 #endif
 
-       enddo
-    enddo
+             F_zone(:) = F(i,j,k,:)
+             call compute_hybrid_flux(qgdnv_zone, F_zone, idir, [i, j, k])
+             F(i,j,k,:) = F_zone(:)
+#endif
+          end do
+       end do
+    end do
 
   end subroutine compute_flux_q
 
+
+  !> @brief this copies the full interface state (NQ -- one for each primitive
+  !! variable) over to a smaller subset of size NGDNV for use later in the
+  !! hydro advancement.
+  !!
+  !! @param[in] lo integer
+  !! @param[in] hi integer
+  !! @param[in] qi_lo integer
+  !! @param[in] qi_hi integer
+  !! @param[in] qg_lo integer
+  !! @param[in] qg_hi integer
+  !! @param[in] qint real(rt)
+  !! @param[out] qgdnv real(rt)
+  !!
+  subroutine ca_store_godunov_state(lo, hi, &
+                                    qint, qi_lo, qi_hi, &
+#ifdef RADIATION
+                                    lambda, l_lo, l_hi, &
+#endif
+                                    qgdnv, qg_lo, qg_hi) bind(C, name="ca_store_godunov_state")
+
+    use meth_params_module, only : NQ, NVAR, NQAUX, &
+                                   URHO, &
+                                   QRHO, QU, QV, QW, &
+                                   QPRES, QGAME, &
+                                   NGDNV, GDRHO, GDPRES, GDGAME, &
+#ifdef RADIATION
+                                   QRAD, GDERADS, GDLAMS, &
+#endif
+                                   GDRHO, GDU, GDV, GDW
+
+#ifdef RADIATION
+    use rad_params_module, only : ngroups
+#endif
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: qi_lo(3), qi_hi(3)
+    integer, intent(in) :: qg_lo(3), qg_hi(3)
+    real(rt), intent(in) :: qint(qi_lo(1):qi_hi(1), qi_lo(2):qi_hi(2), qi_lo(3):qi_hi(3), NQ)
+#ifdef RADIATION
+    integer, intent(in) :: l_lo(3), l_hi(3)
+    real(rt), intent(in) :: lambda(l_lo(1):l_hi(1), l_lo(2):l_hi(2), l_lo(3):l_hi(3), 0:ngroups-1)
+#endif
+    real(rt), intent(inout) :: qgdnv(qg_lo(1):qg_hi(1), qg_lo(2):qg_hi(2), qg_lo(3):qg_hi(3), NGDNV)
+
+    integer :: i, j, k
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             ! the hybrid routine uses the Godunov indices, not the full NQ state
+             qgdnv(i,j,k,GDRHO) = qint(i,j,k,QRHO)
+             qgdnv(i,j,k,GDU) = qint(i,j,k,QU)
+             qgdnv(i,j,k,GDV) = qint(i,j,k,QV)
+             qgdnv(i,j,k,GDW) = qint(i,j,k,QW)
+             qgdnv(i,j,k,GDPRES) = qint(i,j,k,QPRES)
+             qgdnv(i,j,k,GDGAME) = qint(i,j,k,QGAME)
+#ifdef RADIATION
+             qgdnv(i,j,k,GDLAMS:GDLAMS-1+ngroups) = lambda(i,j,k,:)
+             qgdnv(i,j,k,GDERADS:GDERADS-1+ngroups) = qint(i,j,k,QRAD:QRAD-1+ngroups)
+#endif
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_store_godunov_state
+
+
+
+  !> @brief given a conserved state, compute the flux in direction idir
+  !!
+  !! @param[in] idir integer
+  !! @param[in] bnd_fac integer
+  !! @param[in] U real(rt)
+  !! @param[in] p real(rt)
+  !! @param[out] F real(rt)
+  !!
   pure subroutine compute_flux(idir, bnd_fac, U, p, F)
-    ! given a conserved state, compute the flux in direction idir
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
+#ifdef SHOCK_VAR
+         USHK, &
+#endif
          npassive, upass_map
     use prob_params_module, only : mom_flux_has_p
 
@@ -600,6 +754,8 @@ contains
 
     integer :: ipassive, n
     real(rt)         :: u_flx
+
+    !$gpu
 
     if (idir == 1) then
        u_flx = U(UMX)/U(URHO)
@@ -629,6 +785,10 @@ contains
     F(UEDEN) = (U(UEDEN) + p)*u_flx
 
     F(UTEMP) = ZERO
+
+#ifdef SHOCK_VAR
+    F(USHK) = ZERO
+#endif
 
     do ipassive = 1, npassive
        n = upass_map(ipassive)

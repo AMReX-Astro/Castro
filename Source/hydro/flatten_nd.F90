@@ -1,16 +1,15 @@
 module flatten_module
 
-  use amrex_mempool_module, only : bl_allocate, bl_deallocate
   use amrex_constants_module, only : ZERO
-
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
   private
 
-  public :: uflatten
+  public :: ca_uflatten
 #ifdef RADIATION
-  public :: rad_flatten
+  public :: ca_rad_flatten
 #endif
 
 contains
@@ -19,156 +18,11 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine uflatten(lo, hi, q, flatn, q_lo, q_hi, ipres)
-
-    ! here, ipres is the pressure variable we want to consider jumps on
-    ! passing it in allows
-    use meth_params_module, only : small_pres, QU, QV, QW, NQ
-    use prob_params_module, only : dg
-    use amrex_constants_module
-
-    use amrex_fort_module, only : rt => amrex_real
-    implicit none
-
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: ipres
-
-    real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt)        , intent(inout) :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-
-    integer :: i, j, k, ishft
-
-    real(rt)         :: denom, zeta, tst, tmp, ftmp
-
-    ! Local arrays
-    real(rt)        , pointer :: dp(:,:,:), z(:,:,:), chi(:,:,:)
-
-    ! Knobs for detection of strong shock
-    real(rt)        , parameter :: shktst = 0.33e0_rt, zcut1 = 0.75e0_rt, zcut2 = 0.85e0_rt, dzcut = ONE/(zcut2-zcut1)
-
-    call bl_allocate(dp ,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
-    call bl_allocate(z  ,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
-    call bl_allocate(chi,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
-
-    ! x-direction flattening coef
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          !dir$ ivdep
-          do i = lo(1)-1*dg(1),hi(1)+1*dg(1)
-             dp(i,j,k) = q(i+1*dg(1),j,k,ipres) - q(i-1*dg(1),j,k,ipres)
-             denom = max(small_pres, abs(q(i+2*dg(1),j,k,ipres) - q(i-2*dg(1),j,k,ipres)))
-             zeta = abs(dp(i,j,k))/denom
-             z(i,j,k) = min( ONE, max( ZERO, dzcut*(zeta - zcut1) ) )
-             if (q(i-1*dg(1),j,k,QU) - q(i+1*dg(1),j,k,QU) >= ZERO) then
-                tst = ONE
-             else
-                tst = ZERO
-             endif
-             tmp = min(q(i+1*dg(1),j,k,ipres), q(i-1*dg(1),j,k,ipres))
-             if ((abs(dp(i,j,k))/tmp) > shktst) then
-                chi(i,j,k) = tst
-             else
-                chi(i,j,k) = ZERO
-             endif
-          enddo
-          do i = lo(1), hi(1)
-             if(dp(i,j,k) > ZERO)then
-                ishft = 1
-             else
-                ishft = -1
-             endif
-             flatn(i,j,k) = ONE - &
-                  max(chi(i-ishft*dg(1),j,k)*z(i-ishft*dg(1),j,k), &
-                      chi(i,j,k)*z(i,j,k))
-          enddo
-       enddo
-    enddo
-
-    ! y-direction flattening coef
-    do k = lo(3), hi(3)
-       do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
-          !dir$ ivdep
-          do i = lo(1), hi(1)
-             dp(i,j,k) = q(i,j+1*dg(2),k,ipres) - q(i,j-1*dg(2),k,ipres)
-             denom = max(small_pres, abs(q(i,j+2*dg(2),k,ipres) - q(i,j-2*dg(2),k,ipres)))
-             zeta = abs(dp(i,j,k))/denom
-             z(i,j,k) = min( ONE, max( ZERO, dzcut*(zeta - zcut1) ) )
-             if (q(i,j-1*dg(2),k,QV) - q(i,j+1*dg(2),k,QV) >= ZERO) then
-                tst = ONE
-             else
-                tst = ZERO
-             endif
-             tmp = min(q(i,j+1*dg(2),k,ipres), q(i,j-1*dg(2),k,ipres))
-             if ((abs(dp(i,j,k))/tmp) > shktst) then
-                chi(i,j,k) = tst
-             else
-                chi(i,j,k) = ZERO
-             endif
-          enddo
-       end do
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             if(dp(i,j,k) > ZERO)then
-                ishft = 1
-             else
-                ishft = -1
-             endif
-             ftmp = ONE - &
-                  max(chi(i,j-ishft*dg(2),k)*z(i,j-ishft*dg(2),k), &
-                      chi(i,j,k)*z(i,j,k))
-             flatn(i,j,k) = min( flatn(i,j,k), ftmp )
-          enddo
-       enddo
-    enddo
-
-    ! z-direction flattening coef
-    do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
-       do j = lo(2), hi(2)
-          !dir$ ivdep
-          do i = lo(1), hi(1)
-             dp(i,j,k) = q(i,j,k+1*dg(3),ipres) - q(i,j,k-1*dg(3),ipres)
-             denom = max(small_pres, abs(q(i,j,k+2*dg(3),ipres) - q(i,j,k-2*dg(3),ipres)))
-             zeta = abs(dp(i,j,k))/denom
-             z(i,j,k) = min( ONE, max( ZERO, dzcut*(zeta - zcut1) ) )
-             if (q(i,j,k-1*dg(3),QW) - q(i,j,k+1*dg(3),QW) >= ZERO) then
-                tst = ONE
-             else
-                tst = ZERO
-             endif
-             tmp = min(q(i,j,k+1*dg(3),ipres), q(i,j,k-1*dg(3),ipres))
-             if ((abs(dp(i,j,k))/tmp) > shktst) then
-                chi(i,j,k) = tst
-             else
-                chi(i,j,k) = ZERO
-             endif
-          enddo
-       enddo
-    enddo
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             if(dp(i,j,k) > ZERO)then
-                ishft = 1
-             else
-                ishft = -1
-             endif
-             ftmp = ONE - &
-                  max(chi(i,j,k-ishft*dg(3))*z(i,j,k-ishft*dg(3)), &
-                      chi(i,j,k)*z(i,j,k))
-             flatn(i,j,k) = min( flatn(i,j,k), ftmp )
-          enddo
-       enddo
-    enddo
-
-    call bl_deallocate(dp )
-    call bl_deallocate(z  )
-    call bl_deallocate(chi)
-
-  end subroutine uflatten
-
 #ifdef RADIATION
-  subroutine rad_flatten(lo, hi, q, flatn, q_lo, q_hi)
+  subroutine ca_rad_flatten(lo, hi, &
+                            q, q_lo, q_hi, &
+                            flatn, f_lo, f_hi, &
+                            flatg, fg_lo, fg_hi) bind(C, name="ca_rad_flatten")
 
     use meth_params_module, only : QPRES, QU, QV, QW, flatten_pp_threshold, QPTOT, NQ
 
@@ -177,18 +31,23 @@ contains
 
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: f_lo(3), f_hi(3)
+    integer, intent(in) :: fg_lo(3), fg_hi(3)
 
     real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt)        , intent(inout) :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    real(rt)        , intent(inout) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
+    real(rt)        , intent(inout) :: flatg(fg_lo(1):fg_hi(1),fg_lo(2):fg_hi(2),fg_lo(3):fg_hi(3))
 
     integer :: i, j, k
 
-    real(rt)        , pointer :: flatg(:,:,:)
+    call ca_uflatten(lo, hi, &
+                     q, q_lo, q_hi, &
+                     flatn, f_lo, f_hi, QPRES)
 
-    call uflatten(lo, hi, q, flatn, q_lo, q_hi, QPTOT)
+    call ca_uflatten(lo, hi, &
+                     q, q_lo, q_hi, &
+                     flatg, fg_lo, fg_hi, QPTOT)
 
-    call bl_allocate(flatg, q_lo(1), q_hi(1), q_lo(2), q_hi(2), q_lo(3), q_hi(3))
-    call uflatten(lo, hi, q, flatg, q_lo, q_hi, QPRES)
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -211,9 +70,211 @@ contains
        end do
     end do
 
-    call bl_deallocate(flatg)
-
-  end subroutine rad_flatten
+  end subroutine ca_rad_flatten
 #endif
+
+
+  subroutine ca_uflatten(lo, hi, &
+                         q, q_lo, q_hi, &
+                         flatn, f_lo, f_hi, pres_comp) bind(c,name='ca_uflatten')
+
+    use amrex_constants_module, only: ZERO, ONE
+    use amrex_fort_module, only: rt => amrex_real
+    use meth_params_module, only: NQ, QU, QV, QW
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: q_lo(3), q_hi(3)
+    integer,  intent(in   ) :: f_lo(3), f_hi(3)
+    real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(inout) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
+    integer, intent(in), value :: pres_comp
+
+    integer :: i, j, k, ishft
+
+    real(rt), parameter :: small_pres = 1.e-200_rt
+
+    real(rt) :: denom, zeta, tst, tmp, ftmp
+    real(rt) :: dp, z, z2, chi, chi2
+
+    ! Knobs for detection of strong shock
+    real(rt), parameter :: shktst = 0.33e0_rt, zcut1 = 0.75e0_rt, zcut2 = 0.85e0_rt, dzcut = ONE/(zcut2-zcut1)
+
+    !$gpu
+
+    ! x-direction flattening coef
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             dp = q(i+1,j,k,pres_comp) - q(i-1,j,k,pres_comp)
+
+             if (dp .gt. ZERO) then
+                ishft = 1
+             else
+                ishft = -1
+             endif
+
+             denom = max(small_pres, abs(q(i+2,j,k,pres_comp)-q(i-2,j,k,pres_comp)))
+             zeta = abs(dp) / denom
+             z = min(ONE, max(ZERO, dzcut * (zeta - zcut1)))
+
+             if (q(i-1,j,k,QU)-q(i+1,j,k,QU) .ge. ZERO) then
+                tst = ONE
+             else
+                tst = ZERO
+             endif
+
+             tmp = min(q(i+1,j,k,pres_comp), q(i-1,j,k,pres_comp))
+
+             if ((abs(dp)/tmp) .gt. shktst) then
+                chi = tst
+             else
+                chi = ZERO
+             endif
+
+             dp = q(i+1-ishft,j,k,pres_comp) - q(i-1-ishft,j,k,pres_comp)
+
+             denom = max(small_pres, abs(q(i+2-ishft,j,k,pres_comp)-q(i-2-ishft,j,k,pres_comp)))
+             zeta = abs(dp) / denom
+             z2 = min(ONE, max(ZERO, dzcut * (zeta - zcut1)))
+
+             if (q(i-1-ishft,j,k,QU)-q(i+1-ishft,j,k,QU) .ge. ZERO) then
+                tst = ONE
+             else
+                tst = ZERO
+             endif
+
+             tmp = min(q(i+1-ishft,j,k,pres_comp), q(i-1-ishft,j,k,pres_comp))
+
+             if ((abs(dp)/tmp) .gt. shktst) then
+                chi2 = tst
+             else
+                chi2 = ZERO
+             endif
+
+             flatn(i,j,k) = ONE - max(chi2 * z2, chi * z)
+
+          end do
+       end do
+    end do
+
+#if AMREX_SPACEDIM >= 2
+    ! y-direction flattening coef
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             dp = q(i,j+1,k,pres_comp) - q(i,j-1,k,pres_comp)
+
+             if (dp .gt. ZERO) then
+                ishft = 1
+             else
+                ishft = -1
+             endif
+
+             denom = max(small_pres, abs(q(i,j+2,k,pres_comp)-q(i,j-2,k,pres_comp)))
+             zeta = abs(dp) / denom
+             z = min(ONE, max(ZERO, dzcut * (zeta - zcut1)))
+
+             if (q(i,j-1,k,QV)-q(i,j+1,k,QV) .ge. ZERO) then
+                tst = ONE
+             else
+                tst = ZERO
+             endif
+
+             tmp = min(q(i,j+1,k,pres_comp), q(i,j-1,k,pres_comp))
+             if ((abs(dp)/tmp) .gt. shktst) then
+                chi = tst
+             else
+                chi = ZERO
+             endif
+
+             dp = q(i,j+1-ishft,k,pres_comp) - q(i,j-1-ishft,k,pres_comp)
+
+             denom = max(small_pres, abs(q(i,j+2-ishft,k,pres_comp)-q(i,j-2-ishft,k,pres_comp)))
+             zeta = abs(dp) / denom
+             z2 = min(ONE, max(ZERO, dzcut * (zeta - zcut1)))
+
+             if (q(i,j-1-ishft,k,QV)-q(i,j+1-ishft,k,QV) .ge. ZERO) then
+                tst = ONE
+             else
+                tst = ZERO
+             endif
+
+             tmp = min(q(i,j+1-ishft,k,pres_comp), q(i,j-1-ishft,k,pres_comp))
+             if ((abs(dp)/tmp) .gt. shktst) then
+                chi2 = tst
+             else
+                chi2 = ZERO
+             endif
+
+             ftmp = ONE - max(chi2 * z2, chi * z)
+             flatn(i,j,k) = min(flatn(i,j,k), ftmp)
+
+          end do
+       end do
+    end do
+#endif
+
+#if AMREX_SPACEDIM == 3
+    ! z-direction flattening coef
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             dp = q(i,j,k+1,pres_comp) - q(i,j,k-1,pres_comp)
+
+             if(dp .gt. ZERO) then
+                ishft = 1
+             else
+                ishft = -1
+             endif
+
+             denom = max(small_pres, abs(q(i,j,k+2,pres_comp)-q(i,j,k-2,pres_comp)))
+             zeta = abs(dp) / denom
+             z = min(ONE, max(ZERO, dzcut * (zeta - zcut1)))
+
+             if (q(i,j,k-1,QW)-q(i,j,k+1,QW) .ge. ZERO) then
+                tst = ONE
+             else
+                tst = ZERO
+             endif
+
+             tmp = min(q(i,j,k+1,pres_comp),q(i,j,k-1,pres_comp))
+             if ((abs(dp)/tmp) .gt. shktst) then
+                chi = tst
+             else
+                chi = ZERO
+             endif
+
+             dp = q(i,j,k+1-ishft,pres_comp) - q(i,j,k-1-ishft,pres_comp)
+
+             denom = max(small_pres, abs(q(i,j,k+2-ishft,pres_comp)-q(i,j,k-2-ishft,pres_comp)))
+             zeta = abs(dp) / denom
+             z2 = min(ONE, max(ZERO, dzcut * (zeta - zcut1)))
+
+             if (q(i,j,k-1-ishft,QW)-q(i,j,k+1-ishft,QW) .ge. ZERO) then
+                tst = ONE
+             else
+                tst = ZERO
+             endif
+
+             tmp = min(q(i,j,k+1-ishft,pres_comp),q(i,j,k-1-ishft,pres_comp))
+             if ((abs(dp)/tmp) .gt. shktst) then
+                chi2 = tst
+             else
+                chi2 = ZERO
+             endif
+
+             ftmp = ONE - max(chi2 * z2, chi * z)
+             flatn(i,j,k) = min(flatn(i,j,k), ftmp)
+          enddo
+       enddo
+    enddo
+#endif
+
+  end subroutine ca_uflatten
 
 end module flatten_module

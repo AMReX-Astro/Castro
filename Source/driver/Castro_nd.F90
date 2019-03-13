@@ -1,3 +1,7 @@
+
+!>
+!! @note Binds to C function ``ca_network_init``
+!!
 subroutine ca_network_init() bind(C, name="ca_network_init")
 
   use network, only: network_init
@@ -13,6 +17,10 @@ subroutine ca_network_init() bind(C, name="ca_network_init")
 
 end subroutine ca_network_init
 
+
+!>
+!! @note Binds to C function ``ca_network_finalize``
+!!
 subroutine ca_network_finalize() bind(C, name="ca_network_finalize")
 
   use network, only: network_finalize
@@ -21,6 +29,10 @@ subroutine ca_network_finalize() bind(C, name="ca_network_finalize")
 
 end subroutine ca_network_finalize
 
+
+!>
+!! @note Binds to C function ``ca_eos_finalize``
+!!
 subroutine ca_eos_finalize() bind(C, name="ca_eos_finalize")
 
   use eos_module, only: eos_finalize
@@ -34,10 +46,16 @@ end subroutine ca_eos_finalize
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine ca_extern_init(name,namlen) bind(C, name="ca_extern_init")
 
-  ! initialize the external runtime parameters in
-  ! extern_probin_module
+!> @brief initialize the external runtime parameters in
+!! extern_probin_module
+!!
+!! @note Binds to C function ``ca_extern_init``
+!!
+!! @param[in] namlen integer
+!! @param[in] name integer
+!!
+subroutine ca_extern_init(name,namlen) bind(C, name="ca_extern_init")
 
   use amrex_fort_module, only: rt => amrex_real
 
@@ -54,6 +72,12 @@ end subroutine ca_extern_init
 ! ::: ----------------------------------------------------------------
 ! :::
 
+
+!>
+!! @note Binds to C function ``ca_get_num_spec``
+!!
+!! @param[out] nspec_out integer
+!!
 subroutine ca_get_num_spec(nspec_out) bind(C, name="ca_get_num_spec")
 
   use network, only: nspec
@@ -67,6 +91,12 @@ subroutine ca_get_num_spec(nspec_out) bind(C, name="ca_get_num_spec")
 
 end subroutine ca_get_num_spec
 
+
+!>
+!! @note Binds to C function ``ca_get_num_aux``
+!!
+!! @param[out] naux_out integer
+!!
 subroutine ca_get_num_aux(naux_out) bind(C, name="ca_get_num_aux")
 
   use network, only: naux
@@ -80,6 +110,12 @@ subroutine ca_get_num_aux(naux_out) bind(C, name="ca_get_num_aux")
 
 end subroutine ca_get_num_aux
 
+
+!>
+!! @note Binds to C function ``ca_get_num_adv``
+!!
+!! @param[out] nadv_out integer
+!!
 subroutine ca_get_num_adv(nadv_out) bind(C, name="ca_get_num_adv")
 
   use meth_params_module, only: nadv
@@ -97,6 +133,14 @@ end subroutine ca_get_num_adv
 ! ::: ----------------------------------------------------------------
 ! :::
 
+
+!>
+!! @note Binds to C function ``ca_get_spec_names``
+!!
+!! @param[in] ispec integer
+!! @param[inout] len integer
+!! @param[inout] spec_names integer
+!!
 subroutine ca_get_spec_names(spec_names,ispec,len) &
      bind(C, name="ca_get_spec_names")
 
@@ -124,6 +168,14 @@ end subroutine ca_get_spec_names
 ! ::: ----------------------------------------------------------------
 ! :::
 
+
+!>
+!! @note Binds to C function ``ca_get_spec_az``
+!!
+!! @param[in] ispec integer
+!! @param[inout] A real(rt)
+!! @param[inout] Z real(rt)
+!!
 subroutine ca_get_spec_az(ispec,A,Z) bind(C, name="ca_get_spec_az")
 
   use network, only: nspec, aion, zion
@@ -144,6 +196,14 @@ end subroutine ca_get_spec_az
 ! ::: ----------------------------------------------------------------
 ! :::
 
+
+!>
+!! @note Binds to C function ``ca_get_aux_names``
+!!
+!! @param[in] iaux integer
+!! @param[inout] len integer
+!! @param[inout] aux_names integer
+!!
 subroutine ca_get_aux_names(aux_names,iaux,len) &
      bind(C, name="ca_get_aux_names")
 
@@ -171,18 +231,30 @@ end subroutine ca_get_aux_names
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine ca_get_qvar(qvar_in) bind(C, name="ca_get_qvar")
 
-  use meth_params_module, only: QVAR
+!>
+!! @note Binds to C function ``ca_get_nqsrc``
+!!
+!! @param[inout] nqsrc_in integer
+!!
+subroutine ca_get_nqsrc(nqsrc_in) bind(C, name="ca_get_nqsrc")
+
+  use meth_params_module, only: NQSRC
 
   implicit none
 
-  integer, intent(inout) :: qvar_in
+  integer, intent(inout) :: nqsrc_in
 
-  qvar_in = QVAR
+  nqsrc_in = NQSRC
 
-end subroutine ca_get_qvar
+end subroutine ca_get_nqsrc
 
+
+!>
+!! @note Binds to C function ``ca_get_nq``
+!!
+!! @param[inout] nq_in integer
+!!
 subroutine ca_get_nq(nq_in) bind(C, name="ca_get_nq")
 
   use meth_params_module, only: NQ
@@ -195,6 +267,12 @@ subroutine ca_get_nq(nq_in) bind(C, name="ca_get_nq")
 
 end subroutine ca_get_nq
 
+
+!>
+!! @note Binds to C function ``ca_get_nqaux``
+!!
+!! @param[inout] nqaux_in integer
+!!
 subroutine ca_get_nqaux(nqaux_in) bind(C, name="ca_get_nqaux")
 
   use meth_params_module, only: NQAUX
@@ -207,6 +285,12 @@ subroutine ca_get_nqaux(nqaux_in) bind(C, name="ca_get_nqaux")
 
 end subroutine ca_get_nqaux
 
+
+!>
+!! @note Binds to C function ``ca_get_ngdnv``
+!!
+!! @param[inout] ngdnv_in integer
+!!
 subroutine ca_get_ngdnv(ngdnv_in) bind(C, name="ca_get_ngdnv")
 
   use meth_params_module, only: NGDNV
@@ -223,6 +307,54 @@ end subroutine ca_get_ngdnv
 ! ::: ----------------------------------------------------------------
 ! :::
 
+
+!>
+!! @note Binds to C function ``ca_amrinfo_init``
+!!
+subroutine ca_amrinfo_init() bind(C, name="ca_amrinfo_init")
+
+  use amrinfo_module, only: amr_level, amr_iteration, amr_ncycle, amr_time, amr_dt
+
+  allocate(amr_level)
+  amr_level = 0
+  allocate(amr_iteration)
+  amr_iteration = 0
+  allocate(amr_ncycle)
+  amr_ncycle = 0
+  allocate(amr_time)
+  amr_time = 0.0d0
+  allocate(amr_dt)
+  amr_dt = 0.0d0
+
+end subroutine ca_amrinfo_init
+
+
+!>
+!! @note Binds to C function ``ca_amrinfo_finalize``
+!!
+subroutine ca_amrinfo_finalize() bind(C, name="ca_amrinfo_finalize")
+
+  use amrinfo_module, only: amr_level, amr_iteration, amr_ncycle, amr_time, amr_dt
+
+  deallocate(amr_level)
+  deallocate(amr_iteration)
+  deallocate(amr_ncycle)
+  deallocate(amr_time)
+  deallocate(amr_dt)
+
+end subroutine ca_amrinfo_finalize
+
+
+
+!>
+!! @note Binds to C function ``ca_set_amr_info``
+!!
+!! @param[in] level_in integer
+!! @param[in] iteration_in integer
+!! @param[in] ncycle_in integer
+!! @param[in] time_in real(rt)
+!! @param[in] dt_in real(rt)
+!!
 subroutine ca_set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in) &
      bind(C, name="ca_set_amr_info")
 
@@ -261,9 +393,14 @@ end subroutine ca_set_amr_info
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine ca_get_method_params(nGrowHyp) bind(C, name="ca_get_method_params")
 
-  ! Passing data from f90 back to C++
+!> @brief Passing data from f90 back to C++
+!!
+!! @note Binds to C function ``ca_get_method_params``
+!!
+!! @param[out] ngrowHyp integer
+!!
+subroutine ca_get_method_params(nGrowHyp) bind(C, name="ca_get_method_params")
 
   use meth_params_module, only: NHYP
   use amrex_fort_module, only: rt => amrex_real
@@ -280,6 +417,13 @@ end subroutine ca_get_method_params
 ! ::: ----------------------------------------------------------------
 ! :::
 
+
+!>
+!! @note Binds to C function ``allocate_outflow_data``
+!!
+!! @param[in] np integer
+!! @param[in] nc integer
+!!
 subroutine allocate_outflow_data(np,nc) &
      bind(C, name="allocate_outflow_data")
 
@@ -302,10 +446,18 @@ end subroutine allocate_outflow_data
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
+
+!> @brief Passing data from C++ to f90
+!!
+!! @note Binds to C function ``set_old_outflow_data``
+!!
+!! @param[in] radial real(rt)
+!! @param[in] time real(rt)
+!! @param[in] np integer
+!! @param[in] nc integer
+!!
 subroutine set_old_outflow_data(radial,time,np,nc) &
      bind(C, name="set_old_outflow_data")
-
-  ! Passing data from C++ to f90
 
   use meth_params_module, only: outflow_data_old, outflow_data_old_time
   use amrex_fort_module, only: rt => amrex_real
@@ -329,10 +481,18 @@ end subroutine set_old_outflow_data
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
+
+!> @brief Passing data from C++ to f90
+!!
+!! @note Binds to C function ``set_new_outflow_data``
+!!
+!! @param[in] radial real(rt)
+!! @param[in] time real(rt)
+!! @param[in] np integer
+!! @param[in] nc integer
+!!
 subroutine set_new_outflow_data(radial,time,np,nc) &
      bind(C, name="set_new_outflow_data")
-
-  ! Passing data from C++ to f90
 
   use meth_params_module, only: outflow_data_new, outflow_data_new_time
   use amrex_fort_module, only: rt => amrex_real
@@ -356,10 +516,14 @@ end subroutine set_new_outflow_data
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
+
+!>
+!! @note Binds to C function ``swap_outflow_data``
+!!
 subroutine swap_outflow_data() bind(C, name="swap_outflow_data")
 
   use meth_params_module, only: outflow_data_new, outflow_data_new_time, &
-                                outflow_data_old, outflow_data_old_time
+       outflow_data_old, outflow_data_old_time
   use amrex_error_module
   use amrex_fort_module, only: rt => amrex_real
 
@@ -395,17 +559,32 @@ end subroutine swap_outflow_data
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine ca_set_method_params(dm, Density, Xmom, &
+subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
 #ifdef HYBRID_MOMENTUM
-                                Rmom, &
+     Rmom_in, &
 #endif
-                                Eden, Eint, Temp, &
-                                FirstAdv, FirstSpec, FirstAux, &
+     Eden_in, Eint_in, Temp_in, &
+     FirstAdv_in, FirstSpec_in, FirstAux_in, &
 #ifdef SHOCK_VAR
-                                Shock, &
+     Shock_in, &
 #endif
-                                gravity_type_in, gravity_type_len) &
-                                bind(C, name="ca_set_method_params")
+#ifdef MHD
+     QMAGX_in, QMAGY_in, QMAGZ_in, &
+#endif
+#ifdef RADIATION
+     QPTOT_in, QREITOT_in, QRAD_in, &
+#endif
+     QRHO_in, &
+     QU_in, QV_in, QW_in, &
+     QGAME_in, QGC_in, QPRES_in, QREINT_in, &
+     QTEMP_in, &
+     QFA_in, QFS_in, QFX_in, &
+#ifdef RADIATION
+     GDLAMS_in, GDERADS_in, &
+#endif
+     GDRHO_in, GDU_in, GDV_in, GDW_in, &
+     GDPRES_in, GDGAME_in) &
+     bind(C, name="ca_set_method_params")
 
   use meth_params_module
   use network, only : nspec, naux
@@ -419,15 +598,29 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
   implicit none
 
   integer, intent(in) :: dm
-  integer, intent(in) :: Density, Xmom, Eden, Eint, Temp, &
-                         FirstAdv, FirstSpec, FirstAux
+  integer, intent(in) :: Density_in, Xmom_in, Eden_in, Eint_in, Temp_in, &
+       FirstAdv_in, FirstSpec_in, FirstAux_in
 #ifdef SHOCK_VAR
-  integer, intent(in) :: Shock
+  integer, intent(in) :: Shock_in
 #endif
-  integer, intent(in) :: gravity_type_len
-  integer, intent(in) :: gravity_type_in(gravity_type_len)
+#ifdef MHD
+  integer, intent(in) :: QMAGX_in, QMAGY_in, QMAGZ_in
+#endif
+#ifdef RADIATION
+  integer, intent(in) :: QPTOT_in, QREITOT_in, QRAD_in
+#endif
+  integer, intent(in) :: QRHO_in
+  integer, intent(in) :: QU_in, QV_in, QW_in
+  integer, intent(in) :: QGAME_in, QGC_in, QPRES_in, QREINT_in
+  integer, intent(in) :: QTEMP_in
+  integer, intent(in) :: QFA_in, QFS_in, QFX_in
 #ifdef HYBRID_MOMENTUM
-  integer, intent(in) :: Rmom
+  integer, intent(in) :: Rmom_in
+#endif
+  integer, intent(in) :: GDRHO_in, GDU_in, GDV_in, GDW_in
+  integer, intent(in) :: GDPRES_in, GDGAME_in
+#ifdef RADIATION
+  integer, intent(in) :: GDLAMS_in, GDERADS_in
 #endif
 
   integer :: iadv, ispec
@@ -439,23 +632,39 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
   !---------------------------------------------------------------------
   ! set integer keys to index states
   !---------------------------------------------------------------------
-  call ca_set_godunov_indices()
+  call ca_set_godunov_indices( &
+#ifdef RADIATION
+       GDLAMS_in, GDERADS_in, &
+#endif
+       GDRHO_in, GDU_in, GDV_in, GDW_in, &
+       GDPRES_in, GDGAME_in)
 
   call ca_set_conserved_indices( &
 #ifdef HYBRID_MOMENTUM
-                                Rmom, Rmom+1, Rmom+2, &
+       Rmom_in, Rmom_in+1, Rmom_in+2, &
 #endif
 #ifdef SHOCK_VAR
-                                Shock, &
+       Shock_in, &
 #endif
-                                Density ,Xmom, Xmom+1, Xmom+2, &
-                                Eden, Eint, Temp, &
-                                FirstAdv, FirstSpec, FirstAux &
-                                )
+       Density_in ,Xmom_in, Xmom_in+1, Xmom_in+2, &
+       Eden_in, Eint_in, Temp_in, &
+       FirstAdv_in, FirstSpec_in, FirstAux_in &
+       )
 
   call ca_set_auxiliary_indices()
 
-  call ca_set_primitive_indices()
+  call ca_set_primitive_indices( &
+#ifdef MHD
+       QMAGX_in, QMAGY_in, QMAGZ_in, &
+#endif
+#ifdef RADIATION
+       QPTOT_in, QREITOT_in, QRAD_in, &
+#endif
+       QRHO_in, &
+       QU_in, QV_in, QW_in, &
+       QGAME_in, QGC_in, QPRES_in, QREINT_in, &
+       QTEMP_in, &
+       QFA_in, QFS_in, QFX_in)
 
   ! sanity check
 #ifndef AMREX_USE_CUDA
@@ -464,10 +673,10 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
   endif
 #endif
 
-  ! easy indexing for the passively advected quantities.  This
-  ! lets us loop over all groups (advected, species, aux)
-  ! in a single loop.
-  allocate(qpass_map(QVAR))
+  ! easy indexing for the passively advected quantities.  This lets us
+  ! loop over all groups (advected, species, aux) in a single loop.
+  ! Note: these sizes are the maximum size we expect for passives.
+  allocate(qpass_map(NQ))
   allocate(upass_map(NVAR))
 
   ! Transverse velocities
@@ -517,12 +726,6 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
 
   call bl_pd_is_ioproc(ioproc)
 
-  allocate(character(len=gravity_type_len) :: gravity_type)
-
-  do i = 1, gravity_type_len
-     gravity_type(i:i) = char(gravity_type_in(i))
-  enddo
-
 #ifdef ROTATION
   rot_vec = ZERO
   rot_vec(rot_axis) = ONE
@@ -564,14 +767,11 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
   ! Update device variables
 
   !$acc update &
-  !$acc device(NVAR) &
-  !$acc device(NQ) &
   !$acc device(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX) &
   !$acc device(USHK) &
-  !$acc device(QVAR) &
-  !$acc device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME) &
+  !$acc device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME, QGC) &
   !$acc device(QFA, QFS, QFX) &
-  !$acc device(NQAUX, QGAMC, QC, QDPDR, QDPDE) &
+  !$acc device(NQAUX, NQSRC, QGAMC, QC, QDPDR, QDPDE) &
 #ifdef RADIATION
   !$acc device(QGAMCG, QCG, QLAMS) &
 #endif
@@ -584,14 +784,28 @@ end subroutine ca_set_method_params
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
-                                 Interior_in, Inflow_in, Outflow_in, &
-                                 Symmetry_in, SlipWall_in, NoSlipWall_in, &
-                                 coord_type_in, &
-                                 problo_in, probhi_in, center_in) &
-                                 bind(C, name="ca_set_problem_params")
 
-  ! Passing data from C++ into f90
+!> @brief Passing data from C++ into f90
+!!
+!! @note Binds to C function ``ca_set_problem_params``
+!!
+!! @param[in] dm integer
+!! @param[in] physbc_lo_in integer
+!! @param[in] Interior_in integer
+!! @param[in] Inflow_in integer
+!! @param[in] Outflow_in integer
+!! @param[in] Symmetry_in integer
+!! @param[in] SlipWall_in integer
+!! @param[in] NoSlipWall_in integer
+!! @param[in] coord_type_in integer
+!! @param[in] problo_in real(rt)
+!!
+subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
+     Interior_in, Inflow_in, Outflow_in, &
+     Symmetry_in, SlipWall_in, NoSlipWall_in, &
+     coord_type_in, &
+     problo_in, probhi_in, center_in) &
+     bind(C, name="ca_set_problem_params")
 
   use amrex_constants_module, only: ZERO
   use amrex_error_module
@@ -630,6 +844,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   allocate(SlipWall)
   allocate(NoSlipWall)
 
+  allocate(coord_type)
   allocate(center(3))
   allocate(problo(3))
   allocate(probhi(3))
@@ -669,6 +884,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   endif
 #endif
 
+  allocate(mom_flux_has_p(3))
 
   ! sanity check on our allocations
 #ifndef AMREX_USE_CUDA
@@ -701,9 +917,24 @@ end subroutine ca_set_problem_params
 ! ::: ----------------------------------------------------------------
 ! :::
 
+
+!>
+!! @note Sometimes this routine can get called multiple
+!! times upon initialization; in this case, just to
+!! be safe, we'll deallocate and start again.
+!!
+!! @note Binds to C function ``ca_set_grid_info``
+!!
+!! @param[in] max_level_in integer
+!! @param[in] dx_level_in real(rt)
+!! @param[in] domlo_in integer
+!! @param[in] ref_ratio_in integer
+!! @param[in] n_error_buf_in integer
+!! @param[in] blocking_factor_in integer
+!!
 subroutine ca_set_grid_info(max_level_in, dx_level_in, domlo_in, domhi_in, &
-                            ref_ratio_in, n_error_buf_in, blocking_factor_in) &
-                            bind(C, name="ca_set_grid_info")
+     ref_ratio_in, n_error_buf_in, blocking_factor_in) &
+     bind(C, name="ca_set_grid_info")
 
   use prob_params_module, only: max_level, dx_level, domlo_level, domhi_level, n_error_buf, ref_ratio, blocking_factor
   use amrex_fort_module, only: rt => amrex_real
@@ -718,10 +949,6 @@ subroutine ca_set_grid_info(max_level_in, dx_level_in, domlo_in, domhi_in, &
   integer,  intent(in) :: blocking_factor_in(0:max_level_in)
 
   integer :: lev, dir
-
-  ! Sometimes this routine can get called multiple
-  ! times upon initialization; in this case, just to
-  ! be safe, we'll deallocate and start again.
 
   if (allocated(dx_level)) then
      deallocate(dx_level)
@@ -770,10 +997,16 @@ end subroutine ca_set_grid_info
 ! ::: ----------------------------------------------------------------
 ! :::
 
+
+!> @brief Initialize the tagging parameters
+!!
+!! @note Binds to C function ``ca_get_tagging_params``
+!!
+!! @param[in] namlen integer
+!! @param[in] name integer
+!!
 subroutine ca_get_tagging_params(name, namlen) &
      bind(C, name="ca_get_tagging_params")
-
-  ! Initialize the tagging parameters
 
   use tagging_module
   use amrex_error_module
@@ -801,14 +1034,16 @@ subroutine ca_get_tagging_params(name, namlen) &
        temperr, tempgrad, tempgrad_rel, &
        max_temperr_lev, max_tempgrad_lev, max_tempgrad_rel_lev, &
        raderr, radgrad, radgrad_rel, &
-       max_raderr_lev, max_radgrad_lev, max_radgrad_rel_lev
+       max_raderr_lev, max_radgrad_lev, max_radgrad_rel_lev, &
+       enucerr, max_enucerr_lev, &
+       dxnuc_min, dxnuc_max, max_dxnuc_lev
 
   ! Set namelist defaults
   denerr = 1.e20_rt
   dengrad = 1.e20_rt
   dengrad_rel = 1.e20_rt
-  max_denerr_lev = 10
-  max_dengrad_lev = 10
+  max_denerr_lev = -1
+  max_dengrad_lev = -1
   max_dengrad_rel_lev = -1
 
   enterr = 1.e20_rt
@@ -846,6 +1081,13 @@ subroutine ca_get_tagging_params(name, namlen) &
   max_radgrad_lev = -1
   max_radgrad_rel_lev = -1
 
+  enucerr = 1.e200_rt
+  max_enucerr_lev = -1
+
+  dxnuc_min = 1.e200_rt
+  dxnuc_max = 1.e200_rt
+  max_dxnuc_lev = -1
+
   ! create the filename
 #ifndef AMREX_USE_CUDA
   if (namlen > maxlen) then
@@ -882,9 +1124,15 @@ end subroutine ca_get_tagging_params
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params")
 
-  ! Initialize the sponge parameters
+!> @brief Initialize the sponge parameters
+!!
+!! @note Binds to C function ``ca_get_sponge_params``
+!!
+!! @param[in] namlen integer
+!! @param[in] name integer
+!!
+subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params")
 
   use sponge_module
   use amrex_error_module
@@ -964,8 +1212,8 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   close (unit=un)
 
   sponge_target_velocity = [sponge_target_x_velocity, &
-                            sponge_target_y_velocity, &
-                            sponge_target_z_velocity]
+       sponge_target_y_velocity, &
+       sponge_target_z_velocity]
 
   ! Sanity check
 
@@ -980,13 +1228,49 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
 #endif
 
 end subroutine ca_get_sponge_params
+
+
+!> @brief allocate sponge parameters
+!!
+!! @note Binds to C function ``ca_allocate_sponge_params``
+!!
+subroutine ca_allocate_sponge_params() bind(C, name="ca_allocate_sponge_params")
+
+  use sponge_module
+  allocate(sponge_lower_factor, sponge_upper_factor)
+  allocate(sponge_lower_radius, sponge_upper_radius)
+  allocate(sponge_lower_density, sponge_upper_density)
+  allocate(sponge_lower_pressure, sponge_upper_pressure)
+  allocate(sponge_target_velocity(3))
+  allocate(sponge_timescale)
+
+
+
+end subroutine ca_allocate_sponge_params
+
+
+!> @brief deallocate sponge parameters
+!!
+!! @note Binds to C function ``ca_deallocate_sponge_params``
+!!
+subroutine ca_deallocate_sponge_params() bind(C, name="ca_deallocate_sponge_params")
+
+  use sponge_module
+
+  deallocate(sponge_lower_factor, sponge_upper_factor)
+  deallocate(sponge_lower_radius, sponge_upper_radius)
+  deallocate(sponge_lower_density, sponge_upper_density)
+  deallocate(sponge_lower_pressure, sponge_upper_pressure)
+  deallocate(sponge_target_velocity)
+  deallocate(sponge_timescale)
+
+end subroutine ca_deallocate_sponge_params
 #endif
 
-#ifdef POINTMASS
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
+#ifdef GRAVITY
+!>
+!! @param[in] pointmass_in real(rt)
+!!
 subroutine set_pointmass(pointmass_in) bind(C, name='set_pointmass')
 
   use meth_params_module, only: point_mass

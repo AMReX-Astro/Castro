@@ -23,6 +23,11 @@ If you use Castro, we appreciate you citing the main code paper:
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
     }
 
+You should also cite the zenodo DOI for the code release.  A bibtex
+entry for the latest release can be found here:
+
+  https://doi.org/10.5281/zenodo.2301848
+
 
 If you use the radiation hydrodynamics capabilities, please additionally
 cite the following:
@@ -102,9 +107,9 @@ For performance numbers, please cite:
 
 
     @ARTICLE{2017arXiv171106203Z,
-       author = {{Zingale}, M. and {Almgren}, A.~S. and {Barrios Sazo}, M.~G. and 
-            {Beckner}, V.~E. and {Bell}, J.~B. and {Friesen}, B. and {Jacobs}, A.~M. and 
-            {Katz}, M.~P. and {Malone}, C.~M. and {Nonaka}, A.~J. and {Willcox}, D.~E. and 
+       author = {{Zingale}, M. and {Almgren}, A.~S. and {Barrios Sazo}, M.~G. and
+            {Beckner}, V.~E. and {Bell}, J.~B. and {Friesen}, B. and {Jacobs}, A.~M. and
+            {Katz}, M.~P. and {Malone}, C.~M. and {Nonaka}, A.~J. and {Willcox}, D.~E. and
             {Zhang}, W.},
         title = "{Meeting the Challenges of Modeling Astrophysical Thermonuclear Explosions: Castro, Maestro, and the AMReX Astrophysics Suite}",
       journal = {ArXiv e-prints},
@@ -117,6 +122,3 @@ For performance numbers, please cite:
        adsurl = {http://adsabs.harvard.edu/abs/2017arXiv171106203Z},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
     }
-
-
-

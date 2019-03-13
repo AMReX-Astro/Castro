@@ -7,7 +7,8 @@ void
 Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state, Real time, Real dt)
 {
   // we only include p divU in method of lines integration
-  if (do_ctu) return;
+  if (!(time_integration_method == MethodOfLines ||
+        time_integration_method == SpectralDeferredCorrections)) return;
 
   MultiFab thermo_src(grids, dmap, NUM_STATE, 0);
 
@@ -25,8 +26,10 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state, Real time
 void
 Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
+
   // we only include p divU in method of lines integration
-  if (do_ctu) return;
+  if (!(time_integration_method == MethodOfLines ||
+        time_integration_method == SpectralDeferredCorrections)) return;
 
   amrex::Abort("you should not get here!");
 }
@@ -50,10 +53,10 @@ Castro::fill_thermo_source (Real time, Real dt,
       const Box& bx = mfi.tilebox();
 
 #pragma gpu
-      ca_thermo_src(AMREX_ARLIM_ARG(bx.loVect()), AMREX_ARLIM_ARG(bx.hiVect()),
-                    BL_TO_FORTRAN_3D(state_old[mfi]),
-                    BL_TO_FORTRAN_3D(state_new[mfi]),
-                    BL_TO_FORTRAN_3D(thermo_src[mfi]),
-                    ZFILL(prob_lo),ZFILL(dx),time,dt);
+      ca_thermo_src(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                    BL_TO_FORTRAN_ANYD(state_old[mfi]),
+                    BL_TO_FORTRAN_ANYD(state_new[mfi]),
+                    BL_TO_FORTRAN_ANYD(thermo_src[mfi]),
+                    AMREX_REAL_ANYD(prob_lo),AMREX_REAL_ANYD(dx),time,dt);
     }
 }

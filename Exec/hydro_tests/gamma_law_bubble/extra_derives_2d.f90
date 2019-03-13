@@ -9,7 +9,7 @@ subroutine ca_derpi(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   use eos_type_module
   use actual_eos_module, only : gamma_const
   use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
-       allow_negative_energy, const_grav
+       const_grav
   use probdata_module, only: pres_base, dens_base, do_isentropic
   use prob_params_module, only: center
   use amrex_fort_module, only : rt => amrex_real
@@ -29,7 +29,7 @@ subroutine ca_derpi(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   real(rt)         H,z,xn(1), const
   real(rt)        , allocatable :: pressure(:), density(:), temp(:), eint(:)
 
-  type (eos_t) :: eos_state      
+  type (eos_t) :: eos_state
 
   ! first make a 1D initial model for the entire domain
   npts_1d = (2.e0_rt*center(2)+1.e-8_rt) / dx(2)
@@ -91,10 +91,9 @@ subroutine ca_derpi(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
         eos_state%T = u(i,j,UTEMP)
         eos_state%e = u(i,j,UEINT)*rhoInv
         eos_state%xn(:) = u(i,j,UFS:UFS-1+nspec)/u(i,j,URHO)
-        eos_state%aux(:) = u(i,j,UFX:UFX-1+naux)/u(i,j,URHO)            
+        eos_state%aux(:) = u(i,j,UFX:UFX-1+naux)/u(i,j,URHO)
 
-        ! Protect against negative internal energy
-        if (allow_negative_energy .eq. 0 .and. e .le. 0.e0_rt) then
+        if (e .le. 0.e0_rt) then
            call eos(eos_input_rt, eos_state)
            p(i,j,1) = eos_state%p
 
@@ -103,7 +102,6 @@ subroutine ca_derpi(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
            p(i,j,1) = eos_state%p
 
         end if
-
         p(i,j,1) = p(i,j,1) - pressure(j)
 
      enddo
@@ -122,10 +120,10 @@ subroutine ca_derpioverp0(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   use eos_type_module
   use actual_eos_module, only : gamma_const
   use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
-       allow_negative_energy, const_grav
+       const_grav
   use probdata_module, only: pres_base, dens_base, do_isentropic
   use prob_params_module, only: center
-  
+
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -143,7 +141,7 @@ subroutine ca_derpioverp0(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   real(rt)         H,z,xn(1), const
   real(rt)        , allocatable :: pressure(:), density(:), temp(:), eint(:)
 
-  type (eos_t) :: eos_state      
+  type (eos_t) :: eos_state
 
   ! first make a 1D initial model for the entire domain
   npts_1d = (2.e0_rt*center(2)+1.e-8_rt) / dx(2)
@@ -205,11 +203,10 @@ subroutine ca_derpioverp0(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
         eos_state%rho = u(i,j,URHO)
         eos_state%T = T
         eos_state%xn(:) = u(i,j,UFS:UFS-1+nspec)*rhoInv
-        eos_state%aux(:) = u(i,j,UFX:UFX-1+naux)*rhoInv    
+        eos_state%aux(:) = u(i,j,UFX:UFX-1+naux)*rhoInv
         eos_state%e = e
 
-        ! Protect against negative internal energy
-        if (allow_negative_energy .eq. 0 .and. e .le. 0.e0_rt) then
+        if (e .le. 0.e0_rt) then
            call eos(eos_input_rt, eos_state)
            p(i,j,1) = eos_state%p
 
@@ -218,7 +215,6 @@ subroutine ca_derpioverp0(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
            p(i,j,1) = eos_state%p
 
         end if
-
         p(i,j,1) = (p(i,j,1) - pressure(j)) / pressure(j)
 
      enddo
@@ -286,7 +282,7 @@ subroutine ca_dertpert(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   use meth_params_module, only : UTEMP, const_grav
   use probdata_module, only: pres_base, dens_base, do_isentropic
   use prob_params_module, only: center
-  
+
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -302,7 +298,7 @@ subroutine ca_dertpert(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   real(rt)         H,z,xn(1), const
   real(rt)        , allocatable :: pressure(:), density(:), temp(:), eint(:)
 
-  type (eos_t) :: eos_state      
+  type (eos_t) :: eos_state
 
   ! first make a 1D initial model for the entire domain
   npts_1d = (2.e0_rt*center(2)+1.e-8_rt) / dx(2)
@@ -364,4 +360,3 @@ subroutine ca_dertpert(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   enddo
 
 end subroutine ca_dertpert
-

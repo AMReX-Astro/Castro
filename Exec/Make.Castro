@@ -35,6 +35,12 @@ USE_ALL_CASTRO ?= TRUE
 
 USE_AMR_CORE ?= TRUE
 
+# hack for now -- CUDA processing doesn't respect functions blocked by
+# ifdefs, so we need to define EXTRA_THERMO
+ifeq ($(USE_CUDA),TRUE)
+  DEFINES += -DEXTRA_THERMO
+endif
+
 # backwards compatibility
 ifdef Network_dir
   ifndef NETWORK_DIR
@@ -74,6 +80,11 @@ endif
 
 ifeq ($(USE_SYSTEM_BLAS), TRUE)
   LIBRARIES += $(BLAS_LIBRARY)
+endif
+
+ifeq ($(USE_CUDA),TRUE)
+  USE_GPU_PRAGMA = TRUE
+  DEFINES += -DCUDA
 endif
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
@@ -130,17 +141,26 @@ ifeq ($(USE_GR), TRUE)
   DEFINES += -DGR_GRAV
 endif
 
-ifeq ($(USE_POINTMASS), TRUE)
-   DEFINES += -DPOINTMASS
-endif
-
 ifeq ($(USE_REACT), TRUE)
   Bdirs += Source/reactions
   DEFINES += -DREACTIONS
+  # we need the compositional derivatives for SDC
+  DEFINES += -DEXTRA_THERMO
+endif
+
+ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
+  DEFINES += -DREACT_SPARSE_JACOBIAN
+
+  # The following is sometimes useful to turn on for debugging sparse J indices
+  # (if a get/set/scale is called with (row, col) not in the sparse J, stop)
+  # Otherwise, set/scale do nothing, and get returns 0.
+  ifeq ($(USE_SPARSE_STOP_ON_OOB), TRUE)
+    DEFINES += -DSPARSE_STOP_ON_OOB
+  endif
 endif
 
 ifeq ($(USE_SDC), TRUE)
-  DEFINES += -DSDC
+  DEFINES += -DSDC -DPRIM_SPECIES_HAVE_SOURCES
 endif
 
 ifeq ($(USE_DIFFUSION), TRUE)
@@ -328,6 +348,10 @@ endif
 Bpack += $(foreach dir, $(EXTERN_CORE), $(dir)/Make.package)
 Blocs += $(foreach dir, $(EXTERN_CORE), $(dir))
 
+ifeq ($(USE_EXTRA_THERMO), TRUE)
+   DEFINES += -DEXTRA_THERMO
+endif
+
 
 #------------------------------------------------------------------------------
 # external libraries
@@ -392,23 +416,17 @@ endif
 
 EXTERN_PARAMETERS := $(shell $(AMREX_HOME)/Tools/F_scripts/findparams.py $(EXTERN_SEARCH))
 
-MANAGED_PROBIN_FLAG :=
-ifdef USE_CUDA
-  ifeq ($(USE_CUDA), TRUE)
-    MANAGED_PROBIN_FLAG := --managed
-  endif
-endif
 
 extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
 	$(AMREX_HOME)/Tools/F_scripts/write_probin.py \
            -t $(EXTERN_TEMPLATE) -o extern.F90 -n extern \
-           --pa "$(EXTERN_PARAMETERS)" $(MANAGED_PROBIN_FLAG)
+           --pa "$(EXTERN_PARAMETERS)" --managed
 
 #------------------------------------------------------------------------------
 # state variable info
 #-------------------------------------------------------------------------------
 set_conserved.H: set_indices.F90
-	echo "set_conserved.H will be generated at the same time as set_indices/F90"
+	echo "set_conserved.H will be generated at the same time as set_indices.F90"
 
 state_sizes.f90: set_indices.F90
 	echo "state_sizes.f90 will be generated at the same time as set_indices.F90"
@@ -477,10 +495,18 @@ $(objEXETempDir)/AMReX_buildInfo.o: .FORCE
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.rules
 
+ifeq ($(USE_CUDA),TRUE)
+ifeq ($(USE_GPU_PRAGMA), TRUE)
+
+include $(TOP)/Exec/Make.cuda_rules
+
+endif
+endif
+
 clean::
 	$(SILENT) $(RM) extern.F90
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
-	$(RM) set_conserved.H set_indices.F90 state_sizes.f90
+	$(RM) set_conserved.H set_primitive.H set_godunov.H set_indices.F90 state_sizes.f90
 
 # Older versions of CASTRO generated a "network.f90" file when using
 # the general_null network, which conflicts with our generalized

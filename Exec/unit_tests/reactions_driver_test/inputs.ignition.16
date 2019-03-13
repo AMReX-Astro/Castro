@@ -1,0 +1,58 @@
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+
+#PROBIN FILENAME
+amr.probin_file = probin.ignition.16
+
+max_step = 1
+stop_time = 0.1
+
+# PROBLEM SIZE & GEOMETRY
+geometry.is_periodic = 0       0      0
+geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
+geometry.prob_lo     = -1.0    -1.0   -1.0
+geometry.prob_hi     =  1.0     1.0    1.0
+
+castro.center        =  0.0     0.0    0.0
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+castro.lo_bc       =  3   3   3
+castro.hi_bc       =  3   3   3
+
+castro.hydro_tile_size = 16 16 16
+
+# WHICH PHYSICS
+castro.do_hydro  = 0
+castro.do_react  = 1
+castro.do_grav   = 0
+castro.do_sponge = 0
+
+castro.time_integration_method = 1
+
+castro.small_temp = 1.e6
+
+# DIAGNOSTICS & VERBOSITY
+castro.v              = 1       # verbosity in Castro.cpp
+amr.v                 = 1       # verbosity in Amr.cpp
+
+# REFINEMENT / REGRIDDING 
+amr.max_level        = 0        # maximum level number allowed
+amr.n_cell           = 16 16 16
+amr.max_grid_size    = 4096
+amr.blocking_factor  = 16
+amr.refine_grid_layout = 0
+
+
+# CHECKPOINT FILES
+# amr.check_file      = ignition_16_chk       # root name of checkpoint file
+# amr.check_int       = 1000      # number of timesteps between checkpoints
+amr.checkpoint_files_output = 0
+
+# PLOTFILES
+amr.plot_files_output = 1
+amr.plot_file        = ignition_16_plt      # root name of plotfile
+amr.plot_int         = 1        # number of timesteps between plotfiles
+# amr.derive_plot_vars = ALL

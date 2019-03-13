@@ -24,23 +24,24 @@
 
 # the primitive variable state
 @set: primitive NQ
-   density                None         QRHO      QVAR             1      None
-   x-velocity             None         QU        QVAR             1      None
-   y-velocity             None         QV        QVAR             1      None
-   z-velocity             None         QW        QVAR             1      None
-   gamma_e                None         QGAME     QVAR             1      None
-   pressure               None         QPRES     QVAR             1      None
-   rho-e                  None         QREINT    QVAR             1      None
-   B-x                    None         QMAGX     QVAR             1      MHD
-   B-y                    None         QMAGY     QVAR             1      MHD
-   B-z                    None         QMAGZ     QVAR             1      MHD
-   temperature            None         QTEMP     QVAR             1      None
-   advected               None         QFA       QVAR           nadv     None
-   species                None         QFS       QVAR           nspec    None
-   auxiliary              None         QFX       QVAR           naux     None
-   total-pressure         None         QPTOT     None             1      RADIATION
-   total-reint            None         QREITOT   None             1      RADIATION
-   radiation              None         QRAD      None           ngroups  RADIATION
+   density                QRHO         QRHO      NQSRC                                   1                 None
+   x-velocity             QU           QU        NQSRC                                   1                 None
+   y-velocity             QV           QV        NQSRC                                   1                 None
+   z-velocity             QW           QW        NQSRC                                   1                 None
+   gamma_e                QGAME        QGAME     NQSRC                                   1                 None
+   gamma_c                QGC          QGC       NQSRC                                   1                 None
+   pressure               QPRES        QPRES     NQSRC                                   1                 None
+   rho-e                  QREINT       QREINT    NQSRC                                   1                 None
+   B-x                    QMAGX        QMAGX     NQSRC                                   1                 MHD
+   B-y                    QMAGY        QMAGY     NQSRC                                   1                 MHD
+   B-z                    QMAGZ        QMAGZ     NQSRC                                   1                 MHD
+   temperature            QTEMP        QTEMP     NQSRC                                   1                 None
+   advected               QFA          QFA       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (nadv, NumAdv)      None
+   species                QFS          QFS       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (nspec, NumSpec)    None
+   auxiliary              QFX          QFX       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (naux, NumAux)      None
+   total-pressure         QPTOT        QPTOT     None                                    1                 RADIATION
+   total-reint            QREITOT      QREITOT   None                                    1                 RADIATION
+   radiation              QRAD         QRAD      None                                  (ngroups, NGROUPS)  RADIATION
 
 
 # the auxiliary quantities
@@ -56,13 +57,13 @@
 
 # godunov interface states
 @set: godunov NGDNV
-   density               None          GDRHO     None            1        None
-   x-velocity            None          GDU       None            1        None
-   y-velocity            None          GDV       None            1        None
-   z-velocity            None          GDW       None            1        None
-   pressure              None          GDPRES    None            1        None
-   gamma_e               None          GDGAME    None            1        None
-   flux-limiter          None          GDLAMS    None          ngroups    RADIATION
-   radiation             None          GDERADS   None          ngroups    RADIATION
+   density               GDRHO         GDRHO     None            1                   None
+   x-velocity            GDU           GDU       None            1                   None
+   y-velocity            GDV           GDV       None            1                   None
+   z-velocity            GDW           GDW       None            1                   None
+   pressure              GDPRES        GDPRES    None            1                   None
+   gamma_e               GDGAME        GDGAME    None            1                   None
+   flux-limiter          GDLAMS        GDLAMS    None          (ngroups, NGROUPS)    RADIATION
+   radiation             GDERADS       GDERADS   None          (ngroups, NGROUPS)    RADIATION
 
 

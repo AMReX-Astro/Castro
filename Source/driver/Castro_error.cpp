@@ -15,6 +15,9 @@ typedef StateDescriptor::BndryFunc BndryFunc;
 void
 Castro::ErrorSetUp ()
 {
+
+    BL_PROFILE("Castro::ErrorSetUp()");
+
     //
     // DEFINE ERROR ESTIMATION QUANTITIES
     //
@@ -39,6 +42,7 @@ Castro::ErrorSetUp ()
 
 #ifdef REACTIONS
     err_list.add("t_sound_t_enuc",0,ErrorRec::Special,ca_nucerror);
+    err_list.add("enuc",0,ErrorRec::Special,ca_enucerror);
 #endif
 
 #ifdef RADIATION

@@ -4,12 +4,21 @@ module sponge_module
 
   implicit none
 
-  real(rt), save :: sponge_lower_factor, sponge_upper_factor
-  real(rt), save :: sponge_lower_radius, sponge_upper_radius
-  real(rt), save :: sponge_lower_density, sponge_upper_density
-  real(rt), save :: sponge_lower_pressure, sponge_upper_pressure
-  real(rt), save :: sponge_target_velocity(3)
-  real(rt), save :: sponge_timescale
+  real(rt), allocatable, save :: sponge_lower_factor, sponge_upper_factor
+  real(rt), allocatable, save :: sponge_lower_radius, sponge_upper_radius
+  real(rt), allocatable, save :: sponge_lower_density, sponge_upper_density
+  real(rt), allocatable, save :: sponge_lower_pressure, sponge_upper_pressure
+  real(rt), allocatable, save :: sponge_target_velocity(:)
+  real(rt), allocatable, save :: sponge_timescale
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: sponge_lower_factor, sponge_upper_factor
+  attributes(managed) :: sponge_lower_radius, sponge_upper_radius
+  attributes(managed) :: sponge_lower_density, sponge_upper_density
+  attributes(managed) :: sponge_lower_pressure, sponge_upper_pressure
+  attributes(managed) :: sponge_target_velocity
+  attributes(managed) :: sponge_timescale
+#endif
 
   public
 
@@ -18,8 +27,8 @@ module sponge_module
 contains
 
   subroutine ca_sponge(lo,hi,state,state_lo,state_hi,source,src_lo,src_hi, &
-                       vol,vol_lo,vol_hi,dx,dt,time,mult_factor) &
-                       bind(C, name="ca_sponge")
+       vol,vol_lo,vol_hi,dx,dt,time,mult_factor) &
+       bind(C, name="ca_sponge")
 
     use prob_params_module,   only: problo, center
     use meth_params_module,   only: URHO, UMX, UMZ, UEDEN, NVAR
@@ -53,7 +62,9 @@ contains
     real(rt) :: src(NVAR)
     real(rt) :: local_state(NVAR)
 
-    src = ZERO
+    src(:) = ZERO
+
+    !$gpu
 
     do k = lo(3), hi(3)
        r(3) = problo(3) + dble(k + HALF) * dx(3) - center(3)
@@ -93,7 +104,7 @@ contains
 
 
 
-  real(rt) function update_factor(r, state, dt)
+  function update_factor(r, state, dt) result(fac)
 
     use amrex_constants_module, only: ZERO, HALF, ONE, M_PI
     use meth_params_module, only: sponge_implicit, NVAR, URHO, UTEMP, UFS, UFX
@@ -109,6 +120,9 @@ contains
     real(rt) :: delta_r, delta_rho, delta_p
     real(rt) :: alpha, sponge_factor
     type(eos_t) :: eos_state
+    real(rt) :: fac
+
+    !$gpu
 
     ! Radial distance between upper and lower boundaries.
 
@@ -145,7 +159,7 @@ contains
           sponge_factor = sponge_lower_factor
        else if (radius >= sponge_lower_radius .and. radius <= sponge_upper_radius) then
           sponge_factor = sponge_lower_factor + HALF * (sponge_upper_factor - sponge_lower_factor) * &
-                                                (ONE - cos(M_PI * (radius - sponge_lower_radius) / delta_r))
+               (ONE - cos(M_PI * (radius - sponge_lower_radius) / delta_r))
        else
           sponge_factor = sponge_upper_factor
        endif
@@ -165,7 +179,7 @@ contains
           sponge_factor = sponge_lower_factor
        else if (rho <= sponge_upper_density .and. rho >= sponge_lower_density) then
           sponge_factor = sponge_lower_factor + HALF * (sponge_upper_factor - sponge_lower_factor) * &
-                                                (ONE - cos(M_PI * (rho - sponge_upper_density) / delta_rho))
+               (ONE - cos(M_PI * (rho - sponge_upper_density) / delta_rho))
        else
           sponge_factor = sponge_upper_factor
        endif
@@ -194,7 +208,7 @@ contains
           sponge_factor = sponge_lower_factor
        else if (p <= sponge_upper_pressure .and. p >= sponge_lower_pressure) then
           sponge_factor = sponge_lower_factor + HALF * (sponge_upper_factor - sponge_lower_factor) * &
-                                                (ONE - cos(M_PI * (p - sponge_upper_pressure) / delta_p))
+               (ONE - cos(M_PI * (p - sponge_upper_pressure) / delta_p))
        else
           sponge_factor = sponge_upper_factor
        endif
@@ -213,9 +227,9 @@ contains
     ! which yields Sr = - (rho v) * (ONE - ONE / (ONE + alpha * sponge_factor)).
 
     if (sponge_implicit == 1) then
-       update_factor = -(ONE - ONE / (ONE + alpha * sponge_factor))
+       fac = -(ONE - ONE / (ONE + alpha * sponge_factor))
     else
-       update_factor = -alpha * sponge_factor
+       fac = -alpha * sponge_factor
     endif
 
   end function update_factor

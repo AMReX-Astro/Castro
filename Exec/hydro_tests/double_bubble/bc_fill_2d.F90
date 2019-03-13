@@ -11,10 +11,11 @@ contains
        bind(C, name="ca_hypfill")
 
     use probdata_module
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
+    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
     use interpolate_module
     use eos_module
     use network, only: nspec
+    use amrex_constants_module, only : ZERO, HALF
 
     use model_module
 
@@ -64,7 +65,8 @@ contains
           do i=domlo(1)-1,adv_l1,-1
 
              ! zero transverse momentum
-             adv(i,j,UMY) = 0.e0_rt
+             adv(i,j,UMY) = ZERO
+             adv(i,j,UMZ) = ZERO
 
              if (boundary_type .eq. 1) then
                 ! extrapolate normal momentum
@@ -73,14 +75,13 @@ contains
              else
                 ! zero normal momentum
                 ! permits pi to pass through boundary
-                adv(i,j,UMX) = 0.e0_rt
+                adv(i,j,UMX) = ZERO
              end if
 
              adv(i,j,URHO) = rho_model(j)
              adv(i,j,UFS:UFS-1+nspec) = adv(i,j,URHO)*xn_model(:)
              adv(i,j,UEINT) = e_model(j)*adv(i,j,URHO)
-             adv(i,j,UEDEN) = adv(i,j,UEINT) &
-                  + 0.5e0_rt*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
+             adv(i,j,UEDEN) = adv(i,j,UEINT) + HALF*sum(adv(i,j,UMX:UMZ)**2)/adv(i,j,URHO)
              adv(i,j,UTEMP) = T_model(j)
 
           end do
@@ -95,7 +96,8 @@ contains
           do i=domhi(1)+1,adv_h1
 
              ! zero transverse momentum
-             adv(i,j,UMY) = 0.e0_rt
+             adv(i,j,UMY) = ZERO
+             adv(i,j,UMZ) = ZERO
 
              if (boundary_type .eq. 1) then
                 ! extrapolate normal momentum
@@ -104,14 +106,13 @@ contains
              else
                 ! zero normal momentum
                 ! permits pi to pass through boundary
-                adv(i,j,UMX) = 0.e0_rt
+                adv(i,j,UMX) = ZERO
              end if
 
              adv(i,j,URHO) = rho_model(j)
              adv(i,j,UFS:UFS-1+nspec) = adv(i,j,URHO)*xn_model(:)
              adv(i,j,UEINT) = e_model(j)*adv(i,j,URHO)
-             adv(i,j,UEDEN) = adv(i,j,UEINT) &
-                  + 0.5e0_rt*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
+             adv(i,j,UEDEN) = adv(i,j,UEINT) + HALF*sum(adv(i,j,UMX:UMZ)**2)/adv(i,j,URHO)
              adv(i,j,UTEMP) = T_model(j)
 
           end do
@@ -127,7 +128,8 @@ contains
           do i=adv_l1,adv_h1
 
              ! zero transverse momentum
-             adv(i,j,UMX) = 0.e0_rt
+             adv(i,j,UMX) = ZERO
+             adv(i,j,UMZ) = ZERO
 
              if (boundary_type .eq. 1) then
                 ! extrapolate normal momentum
@@ -136,14 +138,13 @@ contains
              else
                 ! zero normal momentum
                 ! permits pi to pass through boundary
-                adv(i,j,UMY) = 0.e0_rt
+                adv(i,j,UMY) = ZERO
              end if
 
              adv(i,j,URHO) = rho_model(j)
              adv(i,j,UFS:UFS-1+nspec) = adv(i,j,URHO)*xn_model(:)
              adv(i,j,UEINT) = e_model(j)*adv(i,j,URHO)
-             adv(i,j,UEDEN) = adv(i,j,UEINT) &
-                  + 0.5e0_rt*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
+             adv(i,j,UEDEN) = adv(i,j,UEINT) + HALF*sum(adv(i,j,UMX:UMZ)**2)/adv(i,j,URHO)
              adv(i,j,UTEMP) = T_model(j)
 
           end do
@@ -156,7 +157,8 @@ contains
           do i=adv_l1,adv_h1
 
              ! zero transverse momentum
-             adv(i,j,UMX) = 0.e0_rt
+             adv(i,j,UMX) = ZERO
+             adv(i,j,UMZ) = ZERO
 
              if (boundary_type .eq. 1) then
                 ! extrapolate normal momentum
@@ -165,14 +167,14 @@ contains
              else
                 ! zero normal momentum
                 ! permits pi to pass through boundary
-                adv(i,j,UMY) = 0.e0_rt
+                adv(i,j,UMY) = ZERO
              end if
 
              adv(i,j,URHO) = rho_model(j)
              adv(i,j,UFS:UFS-1+nspec) = adv(i,j,URHO)*xn_model(:)
              adv(i,j,UEINT) = e_model(j)*adv(i,j,URHO)
              adv(i,j,UEDEN) = adv(i,j,UEINT) &
-                  + 0.5e0_rt*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
+                  + HALF*sum(adv(i,j,UMX:UMZ)**2)/adv(i,j,URHO)
              adv(i,j,UTEMP) = T_model(j)
 
           end do

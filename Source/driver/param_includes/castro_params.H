@@ -5,10 +5,8 @@
 
 #ifdef DIFFUSION
 static int diffuse_temp;
-static int diffuse_enth;
-static int diffuse_spec;
-static int diffuse_vel;
 static amrex::Real diffuse_cutoff_density;
+static amrex::Real diffuse_cutoff_density_hi;
 static amrex::Real diffuse_cond_scale_fac;
 #endif
 #ifdef AMREX_PARTICLES
@@ -25,11 +23,6 @@ static int rot_source_type;
 static int implicit_rotation_update;
 static int rot_axis;
 #endif
-#ifdef POINTMASS
-static int use_point_mass;
-static amrex::Real point_mass;
-static int point_mass_fix_solution;
-#endif
 static int state_interp_order;
 static int lin_limit_state_interp;
 static int state_nghost;
@@ -42,8 +35,10 @@ static amrex::Real small_temp;
 static amrex::Real small_pres;
 static amrex::Real small_ener;
 static int do_hydro;
-static int do_ctu;
+static int time_integration_method;
 static int fourth_order;
+static int limit_fourth_order;
+static int use_reconstructed_gamma1;
 static int add_ext_src;
 static int hybrid_hydro;
 static int ppm_type;
@@ -61,14 +56,12 @@ static int use_flattening;
 static int transverse_use_eos;
 static int transverse_reset_density;
 static int transverse_reset_rhoe;
-static int dual_energy_update_E_from_e;
 static amrex::Real dual_energy_eta1;
 static amrex::Real dual_energy_eta2;
 static int use_pslope;
 static int fix_mass_flux;
 static int limit_fluxes_on_small_dens;
 static int density_reset_method;
-static int allow_negative_energy;
 static int allow_small_energy;
 static int do_sponge;
 static int sponge_implicit;
@@ -84,6 +77,11 @@ static int hse_zero_vels;
 static int hse_interp_temp;
 static int hse_reflect_vels;
 static int mol_order;
+static int sdc_order;
+static int sdc_solver;
+static amrex::Real sdc_solver_tol;
+static int sdc_solve_for_rhoe;
+static int sdc_use_analytic_jac;
 static amrex::Real fixed_dt;
 static amrex::Real initial_dt;
 static amrex::Real dt_cutoff;
@@ -99,20 +97,17 @@ static amrex::Real retry_neg_dens_factor;
 static amrex::Real retry_subcycle_factor;
 static int use_post_step_regrid;
 static int max_subcycles;
-static int clamp_subcycles;
 static int sdc_iters;
 static amrex::Real dtnuc_e;
 static amrex::Real dtnuc_X;
 static amrex::Real dtnuc_X_threshold;
-static amrex::Real dxnuc;
-static amrex::Real dxnuc_max;
-static int max_dxnuc_lev;
 static int do_react;
 static amrex::Real react_T_min;
 static amrex::Real react_T_max;
 static amrex::Real react_rho_min;
 static amrex::Real react_rho_max;
 static int disable_shock_burning;
+static amrex::Real T_guess;
 static int do_grav;
 static int moving_center;
 static int grav_source_type;
@@ -123,6 +118,8 @@ static int grown_factor;
 static int star_at_center;
 static int do_special_tagging;
 static int spherical_star;
+static int verbose;
+static bool dump_old;
 static int print_fortran_warnings;
 static int print_update_diagnostics;
 static int track_grid_losses;
@@ -134,3 +131,8 @@ static std::string job_name;
 static int output_at_completion;
 static amrex::Real reset_checkpoint_time;
 static int reset_checkpoint_step;
+#ifdef GRAVITY
+static int use_point_mass;
+static amrex::Real point_mass;
+static int point_mass_fix_solution;
+#endif

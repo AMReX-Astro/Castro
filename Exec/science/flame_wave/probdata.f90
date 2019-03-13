@@ -2,14 +2,11 @@ module probdata_module
 
   use amrex_fort_module, only : rt => amrex_real
 
+  implicit none
+
   real(rt)        , save :: dtemp, x_half_max, x_half_width
 
   real(rt)        , save :: X_min, cutoff_density
-
-  logical, save :: hot_ash
-
-  ! lower boundary
-  logical         , save :: interp_BC, zero_vels
 
   integer, save :: nx_model
 
@@ -23,10 +20,10 @@ module probdata_module
   real (rt), save :: ash1_frac, ash2_frac, ash3_frac
 
   real (rt), save :: low_density_cutoff, smallx
-
-  logical, save :: index_base_from_temp
+  real (rt), save :: x_refine_distance
 
   integer, save :: max_hse_tagging_level
-  real (rt), save :: burn_tagging_min, burn_tagging_max
+  integer, save :: max_base_tagging_level
+
 
 end module probdata_module

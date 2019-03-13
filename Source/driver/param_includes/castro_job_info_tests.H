@@ -1,9 +1,7 @@
 #ifdef DIFFUSION
 jobInfoFile << (Castro::diffuse_temp == 0 ? "    " : "[*] ") << "castro.diffuse_temp = " << Castro::diffuse_temp << std::endl;
-jobInfoFile << (Castro::diffuse_enth == 0 ? "    " : "[*] ") << "castro.diffuse_enth = " << Castro::diffuse_enth << std::endl;
-jobInfoFile << (Castro::diffuse_spec == 0 ? "    " : "[*] ") << "castro.diffuse_spec = " << Castro::diffuse_spec << std::endl;
-jobInfoFile << (Castro::diffuse_vel == 0 ? "    " : "[*] ") << "castro.diffuse_vel = " << Castro::diffuse_vel << std::endl;
 jobInfoFile << (Castro::diffuse_cutoff_density == -1.e200 ? "    " : "[*] ") << "castro.diffuse_cutoff_density = " << Castro::diffuse_cutoff_density << std::endl;
+jobInfoFile << (Castro::diffuse_cutoff_density_hi == -1.e200 ? "    " : "[*] ") << "castro.diffuse_cutoff_density_hi = " << Castro::diffuse_cutoff_density_hi << std::endl;
 jobInfoFile << (Castro::diffuse_cond_scale_fac == 1.0 ? "    " : "[*] ") << "castro.diffuse_cond_scale_fac = " << Castro::diffuse_cond_scale_fac << std::endl;
 #endif
 #ifdef AMREX_PARTICLES
@@ -20,11 +18,6 @@ jobInfoFile << (Castro::rot_source_type == 4 ? "    " : "[*] ") << "castro.rot_s
 jobInfoFile << (Castro::implicit_rotation_update == 1 ? "    " : "[*] ") << "castro.implicit_rotation_update = " << Castro::implicit_rotation_update << std::endl;
 jobInfoFile << (Castro::rot_axis == 3 ? "    " : "[*] ") << "castro.rot_axis = " << Castro::rot_axis << std::endl;
 #endif
-#ifdef POINTMASS
-jobInfoFile << (Castro::use_point_mass == 1 ? "    " : "[*] ") << "castro.use_point_mass = " << Castro::use_point_mass << std::endl;
-jobInfoFile << (Castro::point_mass == 0.0 ? "    " : "[*] ") << "castro.point_mass = " << Castro::point_mass << std::endl;
-jobInfoFile << (Castro::point_mass_fix_solution == 0 ? "    " : "[*] ") << "castro.point_mass_fix_solution = " << Castro::point_mass_fix_solution << std::endl;
-#endif
 jobInfoFile << (Castro::state_interp_order == 1 ? "    " : "[*] ") << "castro.state_interp_order = " << Castro::state_interp_order << std::endl;
 jobInfoFile << (Castro::lin_limit_state_interp == 0 ? "    " : "[*] ") << "castro.lin_limit_state_interp = " << Castro::lin_limit_state_interp << std::endl;
 jobInfoFile << (Castro::state_nghost == 0 ? "    " : "[*] ") << "castro.state_nghost = " << Castro::state_nghost << std::endl;
@@ -37,8 +30,10 @@ jobInfoFile << (Castro::small_temp == -1.e200 ? "    " : "[*] ") << "castro.smal
 jobInfoFile << (Castro::small_pres == -1.e200 ? "    " : "[*] ") << "castro.small_pres = " << Castro::small_pres << std::endl;
 jobInfoFile << (Castro::small_ener == -1.e200 ? "    " : "[*] ") << "castro.small_ener = " << Castro::small_ener << std::endl;
 jobInfoFile << (Castro::do_hydro == -1 ? "    " : "[*] ") << "castro.do_hydro = " << Castro::do_hydro << std::endl;
-jobInfoFile << (Castro::do_ctu == 1 ? "    " : "[*] ") << "castro.do_ctu = " << Castro::do_ctu << std::endl;
+jobInfoFile << (Castro::time_integration_method == 0 ? "    " : "[*] ") << "castro.time_integration_method = " << Castro::time_integration_method << std::endl;
 jobInfoFile << (Castro::fourth_order == 0 ? "    " : "[*] ") << "castro.fourth_order = " << Castro::fourth_order << std::endl;
+jobInfoFile << (Castro::limit_fourth_order == 1 ? "    " : "[*] ") << "castro.limit_fourth_order = " << Castro::limit_fourth_order << std::endl;
+jobInfoFile << (Castro::use_reconstructed_gamma1 == 0 ? "    " : "[*] ") << "castro.use_reconstructed_gamma1 = " << Castro::use_reconstructed_gamma1 << std::endl;
 jobInfoFile << (Castro::add_ext_src == 0 ? "    " : "[*] ") << "castro.add_ext_src = " << Castro::add_ext_src << std::endl;
 jobInfoFile << (Castro::hybrid_hydro == 0 ? "    " : "[*] ") << "castro.hybrid_hydro = " << Castro::hybrid_hydro << std::endl;
 jobInfoFile << (Castro::ppm_type == 1 ? "    " : "[*] ") << "castro.ppm_type = " << Castro::ppm_type << std::endl;
@@ -56,14 +51,12 @@ jobInfoFile << (Castro::use_flattening == 1 ? "    " : "[*] ") << "castro.use_fl
 jobInfoFile << (Castro::transverse_use_eos == 0 ? "    " : "[*] ") << "castro.transverse_use_eos = " << Castro::transverse_use_eos << std::endl;
 jobInfoFile << (Castro::transverse_reset_density == 1 ? "    " : "[*] ") << "castro.transverse_reset_density = " << Castro::transverse_reset_density << std::endl;
 jobInfoFile << (Castro::transverse_reset_rhoe == 0 ? "    " : "[*] ") << "castro.transverse_reset_rhoe = " << Castro::transverse_reset_rhoe << std::endl;
-jobInfoFile << (Castro::dual_energy_update_E_from_e == 1 ? "    " : "[*] ") << "castro.dual_energy_update_E_from_e = " << Castro::dual_energy_update_E_from_e << std::endl;
 jobInfoFile << (Castro::dual_energy_eta1 == 1.0e0 ? "    " : "[*] ") << "castro.dual_energy_eta1 = " << Castro::dual_energy_eta1 << std::endl;
 jobInfoFile << (Castro::dual_energy_eta2 == 1.0e-4 ? "    " : "[*] ") << "castro.dual_energy_eta2 = " << Castro::dual_energy_eta2 << std::endl;
 jobInfoFile << (Castro::use_pslope == 1 ? "    " : "[*] ") << "castro.use_pslope = " << Castro::use_pslope << std::endl;
 jobInfoFile << (Castro::fix_mass_flux == 0 ? "    " : "[*] ") << "castro.fix_mass_flux = " << Castro::fix_mass_flux << std::endl;
 jobInfoFile << (Castro::limit_fluxes_on_small_dens == 0 ? "    " : "[*] ") << "castro.limit_fluxes_on_small_dens = " << Castro::limit_fluxes_on_small_dens << std::endl;
 jobInfoFile << (Castro::density_reset_method == 1 ? "    " : "[*] ") << "castro.density_reset_method = " << Castro::density_reset_method << std::endl;
-jobInfoFile << (Castro::allow_negative_energy == 0 ? "    " : "[*] ") << "castro.allow_negative_energy = " << Castro::allow_negative_energy << std::endl;
 jobInfoFile << (Castro::allow_small_energy == 1 ? "    " : "[*] ") << "castro.allow_small_energy = " << Castro::allow_small_energy << std::endl;
 jobInfoFile << (Castro::do_sponge == 0 ? "    " : "[*] ") << "castro.do_sponge = " << Castro::do_sponge << std::endl;
 jobInfoFile << (Castro::sponge_implicit == 1 ? "    " : "[*] ") << "castro.sponge_implicit = " << Castro::sponge_implicit << std::endl;
@@ -79,6 +72,11 @@ jobInfoFile << (Castro::hse_zero_vels == 0 ? "    " : "[*] ") << "castro.hse_zer
 jobInfoFile << (Castro::hse_interp_temp == 0 ? "    " : "[*] ") << "castro.hse_interp_temp = " << Castro::hse_interp_temp << std::endl;
 jobInfoFile << (Castro::hse_reflect_vels == 0 ? "    " : "[*] ") << "castro.hse_reflect_vels = " << Castro::hse_reflect_vels << std::endl;
 jobInfoFile << (Castro::mol_order == 2 ? "    " : "[*] ") << "castro.mol_order = " << Castro::mol_order << std::endl;
+jobInfoFile << (Castro::sdc_order == 2 ? "    " : "[*] ") << "castro.sdc_order = " << Castro::sdc_order << std::endl;
+jobInfoFile << (Castro::sdc_solver == 1 ? "    " : "[*] ") << "castro.sdc_solver = " << Castro::sdc_solver << std::endl;
+jobInfoFile << (Castro::sdc_solver_tol == 1.e-6 ? "    " : "[*] ") << "castro.sdc_solver_tol = " << Castro::sdc_solver_tol << std::endl;
+jobInfoFile << (Castro::sdc_solve_for_rhoe == 1 ? "    " : "[*] ") << "castro.sdc_solve_for_rhoe = " << Castro::sdc_solve_for_rhoe << std::endl;
+jobInfoFile << (Castro::sdc_use_analytic_jac == 1 ? "    " : "[*] ") << "castro.sdc_use_analytic_jac = " << Castro::sdc_use_analytic_jac << std::endl;
 jobInfoFile << (Castro::fixed_dt == -1.0 ? "    " : "[*] ") << "castro.fixed_dt = " << Castro::fixed_dt << std::endl;
 jobInfoFile << (Castro::initial_dt == -1.0 ? "    " : "[*] ") << "castro.initial_dt = " << Castro::initial_dt << std::endl;
 jobInfoFile << (Castro::dt_cutoff == 0.0 ? "    " : "[*] ") << "castro.dt_cutoff = " << Castro::dt_cutoff << std::endl;
@@ -94,20 +92,17 @@ jobInfoFile << (Castro::retry_neg_dens_factor == 1.e-1 ? "    " : "[*] ") << "ca
 jobInfoFile << (Castro::retry_subcycle_factor == 0.5 ? "    " : "[*] ") << "castro.retry_subcycle_factor = " << Castro::retry_subcycle_factor << std::endl;
 jobInfoFile << (Castro::use_post_step_regrid == 0 ? "    " : "[*] ") << "castro.use_post_step_regrid = " << Castro::use_post_step_regrid << std::endl;
 jobInfoFile << (Castro::max_subcycles == 10 ? "    " : "[*] ") << "castro.max_subcycles = " << Castro::max_subcycles << std::endl;
-jobInfoFile << (Castro::clamp_subcycles == 1 ? "    " : "[*] ") << "castro.clamp_subcycles = " << Castro::clamp_subcycles << std::endl;
 jobInfoFile << (Castro::sdc_iters == 2 ? "    " : "[*] ") << "castro.sdc_iters = " << Castro::sdc_iters << std::endl;
 jobInfoFile << (Castro::dtnuc_e == 1.e200 ? "    " : "[*] ") << "castro.dtnuc_e = " << Castro::dtnuc_e << std::endl;
 jobInfoFile << (Castro::dtnuc_X == 1.e200 ? "    " : "[*] ") << "castro.dtnuc_X = " << Castro::dtnuc_X << std::endl;
 jobInfoFile << (Castro::dtnuc_X_threshold == 1.e-3 ? "    " : "[*] ") << "castro.dtnuc_X_threshold = " << Castro::dtnuc_X_threshold << std::endl;
-jobInfoFile << (Castro::dxnuc == 1.e200 ? "    " : "[*] ") << "castro.dxnuc = " << Castro::dxnuc << std::endl;
-jobInfoFile << (Castro::dxnuc_max == 1.e200 ? "    " : "[*] ") << "castro.dxnuc_max = " << Castro::dxnuc_max << std::endl;
-jobInfoFile << (Castro::max_dxnuc_lev == 30 ? "    " : "[*] ") << "castro.max_dxnuc_lev = " << Castro::max_dxnuc_lev << std::endl;
 jobInfoFile << (Castro::do_react == -1 ? "    " : "[*] ") << "castro.do_react = " << Castro::do_react << std::endl;
 jobInfoFile << (Castro::react_T_min == 0.0 ? "    " : "[*] ") << "castro.react_T_min = " << Castro::react_T_min << std::endl;
 jobInfoFile << (Castro::react_T_max == 1.e200 ? "    " : "[*] ") << "castro.react_T_max = " << Castro::react_T_max << std::endl;
 jobInfoFile << (Castro::react_rho_min == 0.0 ? "    " : "[*] ") << "castro.react_rho_min = " << Castro::react_rho_min << std::endl;
 jobInfoFile << (Castro::react_rho_max == 1.e200 ? "    " : "[*] ") << "castro.react_rho_max = " << Castro::react_rho_max << std::endl;
 jobInfoFile << (Castro::disable_shock_burning == 0 ? "    " : "[*] ") << "castro.disable_shock_burning = " << Castro::disable_shock_burning << std::endl;
+jobInfoFile << (Castro::T_guess == 1.e8 ? "    " : "[*] ") << "castro.T_guess = " << Castro::T_guess << std::endl;
 jobInfoFile << (Castro::do_grav == -1 ? "    " : "[*] ") << "castro.do_grav = " << Castro::do_grav << std::endl;
 jobInfoFile << (Castro::moving_center == 0 ? "    " : "[*] ") << "castro.moving_center = " << Castro::moving_center << std::endl;
 jobInfoFile << (Castro::grav_source_type == 4 ? "    " : "[*] ") << "castro.grav_source_type = " << Castro::grav_source_type << std::endl;
@@ -118,6 +113,8 @@ jobInfoFile << (Castro::grown_factor == 1 ? "    " : "[*] ") << "castro.grown_fa
 jobInfoFile << (Castro::star_at_center == -1 ? "    " : "[*] ") << "castro.star_at_center = " << Castro::star_at_center << std::endl;
 jobInfoFile << (Castro::do_special_tagging == 0 ? "    " : "[*] ") << "castro.do_special_tagging = " << Castro::do_special_tagging << std::endl;
 jobInfoFile << (Castro::spherical_star == 0 ? "    " : "[*] ") << "castro.spherical_star = " << Castro::spherical_star << std::endl;
+jobInfoFile << (Castro::verbose == 0 ? "    " : "[*] ") << "castro.verbose = " << Castro::verbose << std::endl;
+jobInfoFile << (Castro::dump_old == false ? "    " : "[*] ") << "castro.dump_old = " << Castro::dump_old << std::endl;
 jobInfoFile << (Castro::print_fortran_warnings == 0 ? "    " : "[*] ") << "castro.print_fortran_warnings = " << Castro::print_fortran_warnings << std::endl;
 jobInfoFile << (Castro::print_update_diagnostics == 0 ? "    " : "[*] ") << "castro.print_update_diagnostics = " << Castro::print_update_diagnostics << std::endl;
 jobInfoFile << (Castro::track_grid_losses == 0 ? "    " : "[*] ") << "castro.track_grid_losses = " << Castro::track_grid_losses << std::endl;
@@ -129,3 +126,8 @@ jobInfoFile << (Castro::job_name == "" ? "    " : "[*] ") << "castro.job_name = 
 jobInfoFile << (Castro::output_at_completion == 1 ? "    " : "[*] ") << "castro.output_at_completion = " << Castro::output_at_completion << std::endl;
 jobInfoFile << (Castro::reset_checkpoint_time == -1.e200 ? "    " : "[*] ") << "castro.reset_checkpoint_time = " << Castro::reset_checkpoint_time << std::endl;
 jobInfoFile << (Castro::reset_checkpoint_step == -1 ? "    " : "[*] ") << "castro.reset_checkpoint_step = " << Castro::reset_checkpoint_step << std::endl;
+#ifdef GRAVITY
+jobInfoFile << (Castro::use_point_mass == 0 ? "    " : "[*] ") << "castro.use_point_mass = " << Castro::use_point_mass << std::endl;
+jobInfoFile << (Castro::point_mass == 0.0 ? "    " : "[*] ") << "castro.point_mass = " << Castro::point_mass << std::endl;
+jobInfoFile << (Castro::point_mass_fix_solution == 0 ? "    " : "[*] ") << "castro.point_mass_fix_solution = " << Castro::point_mass_fix_solution << std::endl;
+#endif

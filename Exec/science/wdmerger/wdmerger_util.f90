@@ -464,6 +464,8 @@ contains
 
     integer :: lev
 
+    double precision :: v_P_r, v_S_r, v_P_phi, v_S_phi, v_P, v_S
+
     omega = get_omega(ZERO)
 
     ! Safety check: ensure that if we have a symmetric lower boundary, that the
@@ -794,7 +796,7 @@ contains
     else
 
        if ( (probhi(1) - problo(1) < model_S % radius) .or. &
-            (probhi(2) - problo(2) < model_S % radius) ) then
+            (probhi(2) - problo(2) < 2 * model_S % radius) ) then
           call bl_error("Secondary does not fit inside the domain.")
        end if
 
@@ -1181,7 +1183,7 @@ contains
 
     implicit none
 
-    integer :: axis_1_in, axis_2_in, axis_3_in
+    integer, intent(inout) :: axis_1_in, axis_2_in, axis_3_in
 
     axis_1_in = axis_1
     axis_2_in = axis_2
@@ -1197,7 +1199,7 @@ contains
 
     implicit none
 
-    integer :: flag
+    integer, intent(inout) :: flag
 
     flag = 0
 

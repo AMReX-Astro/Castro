@@ -9,10 +9,8 @@ endif
 
 CEXE_sources += Castro_gravity.cpp
 
-ifeq ($(USE_POINTMASS), TRUE)
-  CEXE_sources += Castro_pointmass.cpp
-  ca_f90EXE_sources += pointmass_nd.f90
-endif
+CEXE_sources += Castro_pointmass.cpp
+ca_F90EXE_sources += pointmass_nd.F90
 
 ifeq ($(USE_GRAV), TRUE)
   ca_F90EXE_sources += prescribe_phi_nd.F90

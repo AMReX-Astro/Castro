@@ -13,12 +13,13 @@
 #
 #    * ca_set_primitive_indices: the primitive variable state
 #
-# 2. set_conserved.H
+# 2. set_conserved.H, set_primitive.H, set_godunov.H
 #
 #    This simply sets the C++ indices
 #
 
 import argparse
+import os
 import re
 
 HEADER = """
@@ -50,8 +51,14 @@ end subroutine check_equal
 
 """
 
+def split_pair(pair_string):
+    """given an option of the form "(val1, val2)", split it into val1 and
+    val2"""
+    return pair_string.replace("(", "").replace(")", "").replace(" ","").split(",")
+
 class Index(object):
     """an index that we want to set"""
+
     def __init__(self, name, f90_var, default_group=None, iset=None,
                  also_adds_to=None, count=1, cxx_var=None, ifdef=None):
         """ parameters:
@@ -74,7 +81,7 @@ class Index(object):
 
         # count may have different names in Fortran and C++
         if count.startswith("("):
-            self.count, self.count_cxx = count.replace("(", "").replace(")", "").split(",")
+            self.count, self.count_cxx = split_pair(count)
         else:
             self.count = count
             self.count_cxx = count
@@ -105,7 +112,7 @@ class Index(object):
             sstr += "  {} = {}\n".format(self.f90_var, val)
 
         if self.cxx_var is not None:
-            sstr += "  call check_equal({},{}+1)\n".format(self.f90_var, self.cxx_var)
+            sstr += "  call check_equal({},{}_in+1)\n".format(self.f90_var, self.cxx_var)
         if self.ifdef is not None:
             sstr += "#endif\n"
         sstr += "\n"
@@ -114,18 +121,26 @@ class Index(object):
     def get_cxx_set_string(self):
         """get the C++ code that sets the variable index and increments the
         counters"""
+
+        if self.iset == "primitive":
+            counter = "qcnt"
+        elif self.iset == "godunov":
+            counter = "gcnt"
+        else:
+            counter = "cnt"
+
         sstr = ""
         if self.ifdef is not None:
             sstr += "#ifdef {}\n".format(self.ifdef)
 
         if self.count != "1":
             sstr += "  if ({} > 0) {{\n".format(self.count_cxx)
-            sstr += "    {} = cnt;\n".format(self.cxx_var)
-            sstr += "    cnt += {};\n".format(self.count_cxx)
+            sstr += "    {} = {};\n".format(self.cxx_var, counter)
+            sstr += "    {} += {};\n".format(counter, self.count_cxx)
             sstr += "  }\n"
         else:
-            sstr += "  {} = cnt;\n".format(self.cxx_var)
-            sstr += "  cnt += {};\n".format(self.count_cxx)
+            sstr += "  {} = {};\n".format(self.cxx_var, counter)
+            sstr += "  {} += {};\n".format(counter, self.count_cxx)
 
         if self.ifdef is not None:
             sstr += "#endif\n"
@@ -165,10 +180,11 @@ class Counter(object):
 
     def get_set_string(self):
         """return the Fortran needed to set this as a parameter"""
-        return "integer, parameter :: {} = {}".format(self.name, self.get_value(offset=self.starting_val))
+        return "integer, parameter :: {} = {}".format(
+            self.name, self.get_value(offset=self.starting_val))
 
 
-def doit(variables_file, defines, nadv,
+def doit(variables_file, odir, defines, nadv,
          ngroups,
          n_neutrino_species, neutrino_groups):
 
@@ -205,8 +221,18 @@ def doit(variables_file, defines, nadv,
                 cxx_var = fields[1]
                 f90_var = fields[2]
                 adds_to = fields[3]
-                count = fields[4].replace(" ", "").strip()
+                count = fields[4]
                 ifdef = fields[5]
+
+                # we may be fed a pair of the form (SET, DEFINE),
+                # in which case we only add to SET if we define
+                # DEFINE
+                if adds_to.startswith("("):
+                    add_set, define = split_pair(adds_to)
+                    if not define in defines:
+                        adds_to = None
+                    else:
+                        adds_to = add_set
 
                 if adds_to == "None":
                     adds_to = None
@@ -229,7 +255,7 @@ def doit(variables_file, defines, nadv,
     all_counters = []
 
     # all these routines will live in a single file
-    with open("set_indices.F90", "w") as f:
+    with open(os.path.join(odir, "set_indices.F90"), "w") as f:
 
         f.write(HEADER)
         f.write(CHECK_EQUAL)
@@ -268,9 +294,9 @@ def doit(variables_file, defines, nadv,
                         if i.ifdef is not None:
                             sub += "#ifdef {}\n".format(i.ifdef)
                         if n == len(cxx_all)-1:
-                            sub += "           {} {} &\n".format(" "*len(subname), i.cxx_var)
+                            sub += "           {} {}_in &\n".format(" "*len(subname), i.cxx_var)
                         else:
-                            sub += "           {} {}, &\n".format(" "*len(subname), i.cxx_var)
+                            sub += "           {} {}_in, &\n".format(" "*len(subname), i.cxx_var)
                         if i.ifdef is not None:
                             sub += "#endif\n"
 
@@ -289,7 +315,7 @@ def doit(variables_file, defines, nadv,
                     continue
                 if i.ifdef is not None:
                     sub += "#ifdef {}\n".format(i.ifdef)
-                sub += "  integer, intent(in) :: {}\n".format(i.cxx_var)
+                sub += "  integer, intent(in) :: {}_in\n".format(i.cxx_var)
                 if i.ifdef is not None:
                     sub += "#endif\n"
             sub += "\n"
@@ -320,10 +346,11 @@ def doit(variables_file, defines, nadv,
                             ca.increment(i.count)
 
 
-                # for variables in the "conserved" set, it may be
-                # the case that the variable that defines the count is 0.
-                # We need to initialize it specially then.
-                if s == "conserved":
+                # for variables in the "conserved", primitive, or godunov, sets,
+                # it may be the case that the variable that defines
+                # the count is 0 (e.g. for nadv).  We need to
+                # initialize it specially then.
+                if s in ["conserved", "primitive", "godunov"]:
                     sub += i.get_set_string(val, set_default=0)
                 else:
                     sub += i.get_set_string(val)
@@ -339,7 +366,7 @@ def doit(variables_file, defines, nadv,
 
 
     # write the module containing the size of the sets
-    with open("state_sizes.f90", "w") as ss:
+    with open(os.path.join(odir, "state_sizes.f90"), "w") as ss:
         ss.write("module state_sizes_module\n")
         ss.write("   use network, only : nspec, naux\n")
         ss.write("   implicit none\n")
@@ -351,13 +378,27 @@ def doit(variables_file, defines, nadv,
         ss.write("end module state_sizes_module\n")
 
 
-    # write the C++ include
+    # write the C++ includes
     conserved_indices = [q for q in indices if q.iset == "conserved" and q.cxx_var is not None]
 
-    with open("set_conserved.H", "w") as f:
+    with open(os.path.join(odir, "set_conserved.H"), "w") as f:
         f.write("  int cnt = 0;\n")
         for c in conserved_indices:
             f.write(c.get_cxx_set_string())
+
+    primitive_indices = [q for q in indices if q.iset == "primitive" and q.cxx_var is not None]
+
+    with open(os.path.join(odir, "set_primitive.H"), "w") as f:
+        f.write("  int qcnt = 0;\n")
+        for p in primitive_indices:
+            f.write(p.get_cxx_set_string())
+
+    godunov_indices = [q for q in indices if q.iset == "godunov" and q.cxx_var is not None]
+
+    with open(os.path.join(odir, "set_godunov.H"), "w") as f:
+        f.write("  int gcnt = 0;\n")
+        for g in godunov_indices:
+            f.write(g.get_cxx_set_string())
 
 
 if __name__ == "__main__":
@@ -368,6 +409,8 @@ if __name__ == "__main__":
     # https://stackoverflow.com/questions/16174992/cant-get-argparse-to-read-quoted-string-with-dashes-in-it
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("--odir", type=str, default="",
+                        help="output directory")
     parser.add_argument("--defines", type=str, default="",
                         help="preprocessor defines to interpret")
     parser.add_argument("--nadv", type=int, default=0,
@@ -393,7 +436,11 @@ if __name__ == "__main__":
         for i in range(args.n_neutrino_species, len(neutrino_groups)):
             neutrino_groups[i] = 0
 
-    doit(args.variables_file[0], args.defines, args.nadv,
+
+    if args.odir != "" and not os.path.isdir(args.odir):
+        os.makedirs(args.odir)
+
+    doit(args.variables_file[0], args.odir, args.defines, args.nadv,
          args.ngroups,
          args.n_neutrino_species, neutrino_groups)
 

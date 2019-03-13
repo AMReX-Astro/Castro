@@ -26,9 +26,9 @@ contains
   ! NOTE: the hydrostatic boundary conditions here rely on
   ! constant gravity
 
-  AMREX_LAUNCH subroutine ext_fill(adv, adv_l1, adv_h1, &
-                                   domlo, domhi, delta, xlo, time, bc) &
-                                   bind(C, name="ext_fill")
+  subroutine ext_fill(adv, adv_l1, adv_h1, &
+                      domlo, domhi, delta, xlo, time, bc) &
+                      bind(C, name="ext_fill")
 
     use prob_params_module, only: problo
     use eos_module, only: eos

@@ -47,8 +47,8 @@ using namespace amrex;
 // 2: Source_Type was added to the checkpoint
 // 3: A ReactHeader file was generated and the maximum de/dt was stored there
 // 4: Reactions_Type added to checkpoint; ReactHeader functionality deprecated
-// 5: SDC_Source_Type and SDC_React_Type added to checkpoint
-// 6: SDC_Source_Type removed from Castro
+// 5: Simplified_SDC_Source_Type and Simplified_SDC_React_Type added to checkpoint
+// 6: Simplified_SDC_Source_Type removed from Castro
 
 namespace
 {
@@ -100,9 +100,31 @@ Castro::restart (Amr&     papa,
 
             lastDtPlotLimited = 1;
             dtHeaderFile >> lastDtBeforePlotLimiting;
+            dtHeaderFile.close();
 
         }
 
+    }
+
+    // Check if we have the same state variables
+
+    if (ParallelDescriptor::IOProcessor()) {
+
+      std::ifstream StateListFile;
+      std::string FullPathStateList = papa.theRestartFile();
+      FullPathStateList += "/state_names.txt";
+      StateListFile.open(FullPathStateList.c_str(), std::ios::in);
+
+      if (StateListFile.good()) {
+        std::string var;
+        for (int n = 0; n < NUM_STATE; n++) {
+          StateListFile >> var;
+          if (var != desc_lst[State_Type].name(n)) {
+            amrex::Error("state variables do not agree");
+          }
+        }
+        StateListFile.close();
+      }
     }
 
     ParallelDescriptor::Bcast(&lastDtPlotLimited, 1, ParallelDescriptor::IOProcessorNumber());
@@ -130,15 +152,18 @@ Castro::restart (Amr&     papa,
     }
 #endif
 
-#ifdef SDC
-    if (input_version < 6) { // old checkpoint with SDC_Source_Type
-        amrex::Abort("Cannot restart from this checkpoint when using SDC.");
+    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        if (input_version < 6) { // old checkpoint with SDC_Source_Type
+            amrex::Abort("Cannot restart from this checkpoint when using simplified SDC.");
+        }
     }
+
 #ifdef REACTIONS
-    if (input_version < 5) { // old checkpoint without SDC_React_Type
-      state[SDC_React_Type].restart(desc_lst[SDC_React_Type], state[State_Type]);
+    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        if (input_version < 5) { // old checkpoint without Simplified_SDC_React_Type
+            state[Simplified_SDC_React_Type].restart(desc_lst[Simplified_SDC_React_Type], state[State_Type]);
+        }
     }
-#endif
 #endif
 
     // For versions < 2, we didn't store all three components
@@ -157,7 +182,7 @@ Castro::restart (Amr&     papa,
 
       int ns = desc_lst[State_Type].nComp();
       int ng = desc_lst[State_Type].nExtra();
-      MultiFab* new_data = new MultiFab(grids,dmap,ns,ng);
+      MultiFab new_data(grids,dmap,ns,ng);
       MultiFab& chk_data = get_state_data(State_Type).newData();
 
 #if (BL_SPACEDIM == 1)
@@ -168,11 +193,11 @@ Castro::restart (Amr&     papa,
 
       for (int n = 0; n < ns; n++) {
 	if (n < Ymom)
-	  MultiFab::Copy(*new_data, chk_data, n,   n, 1, ng);
+	  MultiFab::Copy(new_data, chk_data, n,   n, 1, ng);
 	else if (n == Ymom || n == Zmom)
-	  new_data->setVal(0.0, n, 1, ng);
+	  new_data.setVal(0.0, n, 1, ng);
 	else
-	  MultiFab::Copy(*new_data, chk_data, n-2, n, 1, ng);
+	  MultiFab::Copy(new_data, chk_data, n-2, n, 1, ng);
       }
 
 #elif (BL_SPACEDIM == 2)
@@ -182,18 +207,18 @@ Castro::restart (Amr&     papa,
 
       for (int n = 0; n < ns; n++) {
 	if (n < Zmom)
-	  MultiFab::Copy(*new_data, chk_data, n,   n, 1, ng);
+	  MultiFab::Copy(new_data, chk_data, n,   n, 1, ng);
 	else if (n == Zmom)
-	  new_data->setVal(0.0, n, 1, ng);
+	  new_data.setVal(0.0, n, 1, ng);
 	else
-	  MultiFab::Copy(*new_data, chk_data, n-1, n, 1, ng);
+	  MultiFab::Copy(new_data, chk_data, n-1, n, 1, ng);
       }
 
 #endif
 
       // Now swap the pointers.
 
-      get_state_data(State_Type).replaceNewData(new_data);
+      get_state_data(State_Type).replaceNewData(std::move(new_data));
 
     }
  
@@ -319,12 +344,12 @@ Castro::restart (Amr&     papa,
        } else if (star_at_center == 1) {
 
           Box domain(geom.Domain());
-          int d,lo=0,hi=0;
+          int lo=0, hi=0;
           if (Geometry::IsRZ()) {
              if (grown_factor != 2) 
                 amrex::Abort("Must have grown_factor = 2");
 
-             d = 0;
+             int d = 0;
              int dlen =  domain.size()[d];
              lo = 0;
              hi = dlen/2;
@@ -374,7 +399,7 @@ Castro::restart (Amr&     papa,
 #ifdef AMREX_DIMENSION_AGNOSTIC
               BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
                 (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), ns,
-		 BL_TO_FORTRAN_3D(S_new[mfi]), ZFILL(dx),
+		 BL_TO_FORTRAN_ANYD(S_new[mfi]), ZFILL(dx),
 		 ZFILL(geom.ProbLo()), ZFILL(geom.ProbHi()));
 #else
 	      BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
@@ -442,9 +467,9 @@ Castro::restart (Amr&     papa,
         parent->setCumTime(reset_checkpoint_time);
 
         for (int n = 0; n < num_state_type; ++n) {
-            StateData& state = get_state_data(n);
-            state.setOldTimeLevel(reset_checkpoint_time-dt);
-            state.setNewTimeLevel(reset_checkpoint_time   );
+            StateData& cur_state = get_state_data(n);
+            cur_state.setOldTimeLevel(reset_checkpoint_time-dt);
+            cur_state.setNewTimeLevel(reset_checkpoint_time   );
         }
 
     }
@@ -483,13 +508,13 @@ Castro::set_state_in_checkpoint (Vector<int>& state_in_checkpoint)
       state_in_checkpoint[i] = 0;
     }
 #endif
-#ifdef SDC
 #ifdef REACTIONS
-    if (input_version < 5 && i == SDC_React_Type) {
-      // We are reading an old checkpoint with no SDC_React_Type
-      state_in_checkpoint[i] = 0;
+    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        if (input_version < 5 && i == Simplified_SDC_React_Type) {
+            // We are reading an old checkpoint with no Simplified_SDC_React_Type
+            state_in_checkpoint[i] = 0;
+        }
     }
-#endif
 #endif
   }
 }
@@ -522,6 +547,19 @@ Castro::checkPoint(const std::string& dir,
 
 	    CastroHeaderFile << "Checkpoint version: " << current_version << std::endl;
 	    CastroHeaderFile.close();
+
+            writeJobInfo(dir);
+
+            // output the list of state variables, so we can do a sanity check on restart
+            std::ofstream StateListFile;
+            std::string FullPathStateList = dir;
+            FullPathStateList += "/state_names.txt";
+            StateListFile.open(FullPathStateList.c_str(), std::ios::out);
+
+            for (int n = 0; n < NUM_STATE; n++) {
+              StateListFile << desc_lst[State_Type].name(n) << "\n";
+            }
+            StateListFile.close();
 	}
 
         // If we have limited this last timestep to hit a plot interval,
@@ -622,11 +660,12 @@ Castro::setPlotVariables ()
   for (int i = 0; i < desc_lst[Source_Type].nComp(); i++)
       parent->deleteStatePlotVar(desc_lst[Source_Type].name(i));
 
-#ifdef SDC
 #ifdef REACTIONS
-  for (int i = 0; i < desc_lst[SDC_React_Type].nComp(); i++)
-      parent->deleteStatePlotVar(desc_lst[SDC_React_Type].name(i));
-#endif
+  if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+      for (int i = 0; i < desc_lst[Simplified_SDC_React_Type].nComp(); i++) {
+          parent->deleteStatePlotVar(desc_lst[Simplified_SDC_React_Type].name(i));
+      }
+  }
 #endif
 
   ParmParse pp("castro");
@@ -695,6 +734,8 @@ Castro::writeJobInfo (const std::string& dir)
 #ifdef _OPENMP
   jobInfoFile << "number of threads:       " << omp_get_max_threads() << "\n";
 #endif
+  jobInfoFile << "\n";
+  jobInfoFile << "hydro tile size:         " << hydro_tile_size << "\n";
 
   jobInfoFile << "\n";
   jobInfoFile << "CPU time used since start of simulation (CPU-hours): " <<
@@ -825,6 +866,54 @@ Castro::writeJobInfo (const std::string& dir)
     jobInfoFile << "   -z: " << names_bc[lo_bc_out[2]] << "\n";
     jobInfoFile << "   +z: " << names_bc[hi_bc_out[2]] << "\n";
   }
+
+  jobInfoFile << "\n\n";
+
+  jobInfoFile << " Domain geometry info\n";
+
+  Real center[3];
+  ca_get_center(center);
+
+  jobInfoFile << "     center: " << center[0] << " , " << center[1] << " , " << center[2] << "\n";
+  jobInfoFile << "\n";
+
+  jobInfoFile << "     geometry.is_periodic: ";
+  for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
+    jobInfoFile << geom.isPeriodic(dir) << " ";
+  }
+  jobInfoFile << "\n";
+
+  jobInfoFile << "     geometry.coord_sys:   " << Geometry::Coord() << "\n";
+
+  jobInfoFile << "     geometry.prob_lo:     ";
+  for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
+    jobInfoFile << geom.ProbLo(dir) << " ";
+  }
+  jobInfoFile << "\n";
+
+  jobInfoFile << "     geometry.prob_hi:     ";
+  for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
+    jobInfoFile << geom.ProbHi(dir) << " ";
+  }
+  jobInfoFile << "\n";
+
+  jobInfoFile << "     amr.n_cell:           ";
+  const int*  domain_lo = geom.Domain().loVect();
+  const int*  domain_hi = geom.Domain().hiVect();
+  for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
+    jobInfoFile << domain_hi[dir] - domain_lo[dir] + 1 << " ";
+  }
+  jobInfoFile << "\n";
+
+  int max_level = parent->maxLevel();
+  jobInfoFile << "     amr.max_level:        " << max_level << "\n";
+
+  jobInfoFile << "     amr.ref_ratio:        ";
+  for (int lev = 1; lev <= max_level; lev++) {
+    IntVect ref_ratio = parent->refRatio(lev-1);
+    jobInfoFile << ref_ratio[0] << " ";
+  }
+  jobInfoFile << "\n";
 
   jobInfoFile << "\n\n";
 
@@ -1155,4 +1244,20 @@ Castro::plotFileOutput(const std::string& dir,
     std::string TheFullPath = FullPath;
     TheFullPath += BaseName;
     VisMF::Write(plotMF,TheFullPath,how,true);
+
+    if (track_grid_losses && level == 0) {
+
+        // store diagnostic quantities
+        std::ofstream DiagFile;
+        std::string FullPathDiagFile = dir;
+        FullPathDiagFile += "/Diagnostics";
+        DiagFile.open(FullPathDiagFile.c_str(), std::ios::out);
+
+        for (int i = 0; i < n_lost; i++)
+            DiagFile << std::setprecision(15) << material_lost_through_boundary_cumulative[i] << std::endl;
+
+        DiagFile.close();
+
+    }
+
 }
