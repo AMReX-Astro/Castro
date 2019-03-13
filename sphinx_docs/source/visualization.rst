@@ -1,16 +1,72 @@
-*************
-Visualization
-*************
+***************************
+Plotfiles and Visualization
+***************************
 
 There are a large number of tools that can be used to read in Castro
-or AMReX data and make plots. Here we give a brief overview of some of
-the tools as well as some examples.
+or AMReX data and make plots.  These tools all work from Castro
+plotfiles.  Here we give an overview of the variables in plotfiles and
+controlling their output, as well as some of the tools that can be used
+for visualization.
+
+
+Plotfile Outputting
+===================
+
+Castro has two levels of plotfiles, `regular` plotfiles and `small`
+plotfiles.  The idea behind this distinction is that we can output a
+small number of variables very frequently in the small plotfiles and
+output a large number (or all variables) less frequently.  This helps
+keep the data sizes down while allowing for fine-grained temporal
+analysis of important quantities.
+
+.. index:: amr.plot_files_output, amr.plotfile_on_restart, amr.write_plotfile_with_checkpoint
+
+A few general controls determines whether we want to output plotfiles and when:
+
+  * ``amr.plot_files_output`` : this is set to 1 to output plotfiles
+
+  * ``amr.plotfile_on_restart`` : set this to 1 to dump out a plotfile
+    immediately when we restart.
+
+  * ``amr.write_plotfile_with_checkpoint`` : always output a plotfile
+    when we dump a checkpoint file.
+
+.. index:: amr.plot_file, amr.plot_per, amr.plot_int
+
+The frequency of outputting and naming of regular plotfiles is
+controlled by:
+
+  * ``amr.plot_file`` : this is the base name for the plotfile,
+    e.g. ``plt``.
+
+  * ``amr.plot_per`` : this is the amount of simulation time between
+    plotfile output
+
+  * ``amr.plot_int`` this is the number of timesteps between plotfiles.
+    Set this to -1 to rely on the simulation-time-based outputting.
+
+.. index:: amr.small_plot_file, amr.small_plot_per, amr.small_plot_int
+
+Similarly, the frequency of outputting and naming of small plotfiles
+is controlled by:
+
+  * ``amr.small_plot_file`` : this is the base name for the small plotfile,
+    e.g. ``smallplt``.
+
+  * ``amr.small_plot_per`` : this is the amount of simulation time between
+    small plotfile output
+
+  * ``amr.small_plot_int`` this is the number of timesteps between small plotfiles.
+    Set this to -1 to rely on the simulation-time-based outputting.
+
 
 Controlling What’s in the PlotFile
 ==================================
 
+.. index:: amr.plot_vars, amr.derive_plot_vars
+
 There are a few options that can be set at runtime to control what
-variables appear in the plotfile.
+variables appear in the regular plotfile.
 
   * ``amr.plot_vars``: this controls which of the main
     state variables appear in the plotfile. The default is for all of
@@ -34,6 +90,18 @@ variables appear in the plotfile.
    or a subset by explicitly listing them, e.g.::
 
       amr.derive_plot_vars = entropy pressure
+
+   To not output any derived variable,s this is set to ``NONE``.
+
+.. index:: amr.small_plot_vars
+
+For small plotfiles, the controls that lists the variables is:
+
+  * ``amr.small_plot_vars`` : this is a list of which variables
+    to include in the small plotfile.
+
+  * ``amr.derive_small_plot_vars`` : this is a list of which derived
+    variables to include in the small plotfile.
 
 
 Plotfile Variables

@@ -32,6 +32,26 @@ thermodynamic variables, for example the entropy from the
 Sackur-Tetrode equation, are calculated in the gamma_law_general
 EOS inside the Microphysics repository.)
 
+Runtime Parameters
+------------------
+
+There are a number of reactions-related parameters that can be set at runtime
+in the inputs file. Reactions are enabled by setting::
+
+    castro.do_react = 1
+
+(Note: turning reactions off for problems where they're not required can help improve
+the efficiency).
+
+It is possible to set the maximum and minimum temperature and density for allowing
+reactions to occur in a zone using the parameters `castro.react_T_min`,
+`castro.react_T_max`, `castro.react_rho_min` and `castro.react_rho_max`.
+
+When inverting the EOS (e.g. by calling `eos_input_re`), an initial guess for
+the temperature is required. This guess is provided by the runtime parameter
+`castro.T_guess`, and should be set to a sensible value for each problem
+(it will vary depending on which EOS is used).
+
 EOS Interfaces and Parameters
 -----------------------------
 
@@ -175,12 +195,11 @@ Additionally the eos_input_re mode also needs to supply:
 
 -  eos_state % cs: the adiabatic sound speed
 
--  eos_state % dpdr_e: the derivative, :math:`\partial
-       p/\partial \rho |_e`—note that the specific internal energy, :math:`e`
+-  eos_state % dpdr_e: the derivative, :math:`\partial p/\partial \rho |_e`
+   — note that the specific internal energy, :math:`e`
    is held constant here.
 
--  eos_state % dpde: the derivative, :math:`\partial p /
-       \partial e |_\rho`
+-  eos_state % dpde: the derivative, :math:`\partial p / \partial e |_\rho`
 
 For radiation hydro, the eos_input_rt model needs to supply:
 

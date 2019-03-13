@@ -233,21 +233,21 @@ end subroutine ca_get_aux_names
 
 
 !>
-!! @note Binds to C function ``ca_get_qvar``
+!! @note Binds to C function ``ca_get_nqsrc``
 !!
-!! @param[inout] qvar_in integer
+!! @param[inout] nqsrc_in integer
 !!
-subroutine ca_get_qvar(qvar_in) bind(C, name="ca_get_qvar")
+subroutine ca_get_nqsrc(nqsrc_in) bind(C, name="ca_get_nqsrc")
 
-  use meth_params_module, only: QVAR
+  use meth_params_module, only: NQSRC
 
   implicit none
 
-  integer, intent(inout) :: qvar_in
+  integer, intent(inout) :: nqsrc_in
 
-  qvar_in = QVAR
+  nqsrc_in = NQSRC
 
-end subroutine ca_get_qvar
+end subroutine ca_get_nqsrc
 
 
 !>
@@ -576,9 +576,14 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
 #endif
      QRHO_in, &
      QU_in, QV_in, QW_in, &
-     QGAME_in, QPRES_in, QREINT_in, &
+     QGAME_in, QGC_in, QPRES_in, QREINT_in, &
      QTEMP_in, &
-     QFA_in, QFS_in, QFX_in) &
+     QFA_in, QFS_in, QFX_in, &
+#ifdef RADIATION
+     GDLAMS_in, GDERADS_in, &
+#endif
+     GDRHO_in, GDU_in, GDV_in, GDW_in, &
+     GDPRES_in, GDGAME_in) &
      bind(C, name="ca_set_method_params")
 
   use meth_params_module
@@ -606,11 +611,16 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
 #endif
   integer, intent(in) :: QRHO_in
   integer, intent(in) :: QU_in, QV_in, QW_in
-  integer, intent(in) :: QGAME_in, QPRES_in, QREINT_in
+  integer, intent(in) :: QGAME_in, QGC_in, QPRES_in, QREINT_in
   integer, intent(in) :: QTEMP_in
   integer, intent(in) :: QFA_in, QFS_in, QFX_in
 #ifdef HYBRID_MOMENTUM
   integer, intent(in) :: Rmom_in
+#endif
+  integer, intent(in) :: GDRHO_in, GDU_in, GDV_in, GDW_in
+  integer, intent(in) :: GDPRES_in, GDGAME_in
+#ifdef RADIATION
+  integer, intent(in) :: GDLAMS_in, GDERADS_in
 #endif
 
   integer :: iadv, ispec
@@ -622,7 +632,12 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   !---------------------------------------------------------------------
   ! set integer keys to index states
   !---------------------------------------------------------------------
-  call ca_set_godunov_indices()
+  call ca_set_godunov_indices( &
+#ifdef RADIATION
+       GDLAMS_in, GDERADS_in, &
+#endif
+       GDRHO_in, GDU_in, GDV_in, GDW_in, &
+       GDPRES_in, GDGAME_in)
 
   call ca_set_conserved_indices( &
 #ifdef HYBRID_MOMENTUM
@@ -647,7 +662,7 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
 #endif
        QRHO_in, &
        QU_in, QV_in, QW_in, &
-       QGAME_in, QPRES_in, QREINT_in, &
+       QGAME_in, QGC_in, QPRES_in, QREINT_in, &
        QTEMP_in, &
        QFA_in, QFS_in, QFX_in)
 
@@ -658,10 +673,10 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   endif
 #endif
 
-  ! easy indexing for the passively advected quantities.  This
-  ! lets us loop over all groups (advected, species, aux)
-  ! in a single loop.
-  allocate(qpass_map(QVAR))
+  ! easy indexing for the passively advected quantities.  This lets us
+  ! loop over all groups (advected, species, aux) in a single loop.
+  ! Note: these sizes are the maximum size we expect for passives.
+  allocate(qpass_map(NQ))
   allocate(upass_map(NVAR))
 
   ! Transverse velocities
@@ -754,9 +769,9 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   !$acc update &
   !$acc device(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX) &
   !$acc device(USHK) &
-  !$acc device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME) &
+  !$acc device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME, QGC) &
   !$acc device(QFA, QFS, QFX) &
-  !$acc device(NQAUX, QGAMC, QC, QDPDR, QDPDE) &
+  !$acc device(NQAUX, NQSRC, QGAMC, QC, QDPDR, QDPDE) &
 #ifdef RADIATION
   !$acc device(QGAMCG, QCG, QLAMS) &
 #endif
@@ -869,6 +884,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   endif
 #endif
 
+  allocate(mom_flux_has_p(3))
 
   ! sanity check on our allocations
 #ifndef AMREX_USE_CUDA

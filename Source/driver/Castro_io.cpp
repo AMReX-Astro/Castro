@@ -47,8 +47,8 @@ using namespace amrex;
 // 2: Source_Type was added to the checkpoint
 // 3: A ReactHeader file was generated and the maximum de/dt was stored there
 // 4: Reactions_Type added to checkpoint; ReactHeader functionality deprecated
-// 5: SDC_Source_Type and SDC_React_Type added to checkpoint
-// 6: SDC_Source_Type removed from Castro
+// 5: Simplified_SDC_Source_Type and Simplified_SDC_React_Type added to checkpoint
+// 6: Simplified_SDC_Source_Type removed from Castro
 
 namespace
 {
@@ -152,15 +152,18 @@ Castro::restart (Amr&     papa,
     }
 #endif
 
-#ifdef SDC
-    if (input_version < 6) { // old checkpoint with SDC_Source_Type
-        amrex::Abort("Cannot restart from this checkpoint when using SDC.");
+    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        if (input_version < 6) { // old checkpoint with SDC_Source_Type
+            amrex::Abort("Cannot restart from this checkpoint when using simplified SDC.");
+        }
     }
+
 #ifdef REACTIONS
-    if (input_version < 5) { // old checkpoint without SDC_React_Type
-      state[SDC_React_Type].restart(desc_lst[SDC_React_Type], state[State_Type]);
+    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        if (input_version < 5) { // old checkpoint without Simplified_SDC_React_Type
+            state[Simplified_SDC_React_Type].restart(desc_lst[Simplified_SDC_React_Type], state[State_Type]);
+        }
     }
-#endif
 #endif
 
     // For versions < 2, we didn't store all three components
@@ -505,13 +508,13 @@ Castro::set_state_in_checkpoint (Vector<int>& state_in_checkpoint)
       state_in_checkpoint[i] = 0;
     }
 #endif
-#ifdef SDC
 #ifdef REACTIONS
-    if (input_version < 5 && i == SDC_React_Type) {
-      // We are reading an old checkpoint with no SDC_React_Type
-      state_in_checkpoint[i] = 0;
+    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        if (input_version < 5 && i == Simplified_SDC_React_Type) {
+            // We are reading an old checkpoint with no Simplified_SDC_React_Type
+            state_in_checkpoint[i] = 0;
+        }
     }
-#endif
 #endif
   }
 }
@@ -657,11 +660,12 @@ Castro::setPlotVariables ()
   for (int i = 0; i < desc_lst[Source_Type].nComp(); i++)
       parent->deleteStatePlotVar(desc_lst[Source_Type].name(i));
 
-#ifdef SDC
 #ifdef REACTIONS
-  for (int i = 0; i < desc_lst[SDC_React_Type].nComp(); i++)
-      parent->deleteStatePlotVar(desc_lst[SDC_React_Type].name(i));
-#endif
+  if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+      for (int i = 0; i < desc_lst[Simplified_SDC_React_Type].nComp(); i++) {
+          parent->deleteStatePlotVar(desc_lst[Simplified_SDC_React_Type].name(i));
+      }
+  }
 #endif
 
   ParmParse pp("castro");
@@ -1234,4 +1238,20 @@ Castro::plotFileOutput(const std::string& dir,
     std::string TheFullPath = FullPath;
     TheFullPath += BaseName;
     VisMF::Write(plotMF,TheFullPath,how,true);
+
+    if (track_grid_losses && level == 0) {
+
+        // store diagnostic quantities
+        std::ofstream DiagFile;
+        std::string FullPathDiagFile = dir;
+        FullPathDiagFile += "/Diagnostics";
+        DiagFile.open(FullPathDiagFile.c_str(), std::ios::out);
+
+        for (int i = 0; i < n_lost; i++)
+            DiagFile << std::setprecision(15) << material_lost_through_boundary_cumulative[i] << std::endl;
+
+        DiagFile.close();
+
+    }
+
 }

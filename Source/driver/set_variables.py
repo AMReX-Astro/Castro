@@ -13,7 +13,7 @@
 #
 #    * ca_set_primitive_indices: the primitive variable state
 #
-# 2. set_conserved.H
+# 2. set_conserved.H, set_primitive.H, set_godunov.H
 #
 #    This simply sets the C++ indices
 #
@@ -51,6 +51,11 @@ end subroutine check_equal
 
 """
 
+def split_pair(pair_string):
+    """given an option of the form "(val1, val2)", split it into val1 and
+    val2"""
+    return pair_string.replace("(", "").replace(")", "").replace(" ","").split(",")
+
 class Index(object):
     """an index that we want to set"""
 
@@ -76,7 +81,7 @@ class Index(object):
 
         # count may have different names in Fortran and C++
         if count.startswith("("):
-            self.count, self.count_cxx = count.replace("(", "").replace(")", "").split(",")
+            self.count, self.count_cxx = split_pair(count)
         else:
             self.count = count
             self.count_cxx = count
@@ -119,6 +124,8 @@ class Index(object):
 
         if self.iset == "primitive":
             counter = "qcnt"
+        elif self.iset == "godunov":
+            counter = "gcnt"
         else:
             counter = "cnt"
 
@@ -214,8 +221,18 @@ def doit(variables_file, odir, defines, nadv,
                 cxx_var = fields[1]
                 f90_var = fields[2]
                 adds_to = fields[3]
-                count = fields[4].replace(" ", "").strip()
+                count = fields[4]
                 ifdef = fields[5]
+
+                # we may be fed a pair of the form (SET, DEFINE),
+                # in which case we only add to SET if we define
+                # DEFINE
+                if adds_to.startswith("("):
+                    add_set, define = split_pair(adds_to)
+                    if not define in defines:
+                        adds_to = None
+                    else:
+                        adds_to = add_set
 
                 if adds_to == "None":
                     adds_to = None
@@ -329,11 +346,11 @@ def doit(variables_file, odir, defines, nadv,
                             ca.increment(i.count)
 
 
-                # for variables in the "conserved" or primitive sets,
+                # for variables in the "conserved", primitive, or godunov, sets,
                 # it may be the case that the variable that defines
                 # the count is 0 (e.g. for nadv).  We need to
                 # initialize it specially then.
-                if s in ["conserved", "primitive"]:
+                if s in ["conserved", "primitive", "godunov"]:
                     sub += i.get_set_string(val, set_default=0)
                 else:
                     sub += i.get_set_string(val)
@@ -375,6 +392,13 @@ def doit(variables_file, odir, defines, nadv,
         f.write("  int qcnt = 0;\n")
         for p in primitive_indices:
             f.write(p.get_cxx_set_string())
+
+    godunov_indices = [q for q in indices if q.iset == "godunov" and q.cxx_var is not None]
+
+    with open(os.path.join(odir, "set_godunov.H"), "w") as f:
+        f.write("  int gcnt = 0;\n")
+        for g in godunov_indices:
+            f.write(g.get_cxx_set_string())
 
 
 if __name__ == "__main__":

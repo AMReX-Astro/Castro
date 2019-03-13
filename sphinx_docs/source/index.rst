@@ -7,6 +7,8 @@
 Castro: an adaptive mesh compressible hydrodynamics code
 ********************************************************
 
+https://github.com/amrex-astro/Castro
+
 .. toctree::
    :maxdepth: 1
    :caption: Castro basics
@@ -29,6 +31,7 @@ Castro: an adaptive mesh compressible hydrodynamics code
 
    build_system
    coding_conventions
+   debugging
    gpu_porting
    Hydrodynamics
    gravity
@@ -52,7 +55,7 @@ Castro: an adaptive mesh compressible hydrodynamics code
 
 .. toctree::
 
-   references
+   zreferences
 
 Indices and tables
 ==================

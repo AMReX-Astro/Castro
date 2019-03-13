@@ -16,11 +16,12 @@ contains
                        idir, q, q_lo, q_hi, &
                        qaux, qa_lo, qa_hi, &
                        dq, dq_lo, dq_hi, &
-                       qm, qp, qpd_lo, qpd_hi, &
-#if (AMREX_SPACEDIM < 3)
+                       qm, qm_lo, qm_hi, &
+                       qp, qp_lo, qp_hi, &
+#if AMREX_SPACEDIM < 3
                        dloga, dloga_lo, dloga_hi, &
 #endif
-                       SrcQ, src_lo, Src_hi, &
+                       SrcQ, src_lo, src_hi, &
                        vlo, vhi, domlo, domhi, &
                        dx, dt)
 
@@ -28,7 +29,7 @@ contains
     ! vlo and vhi are the bounds of the valid box (no ghost cells)
 
     use network, only : nspec, naux
-    use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, QC, &
+    use meth_params_module, only : NQ, NQAUX, NQSRC, QRHO, QU, QV, QW, QC, &
                                    QREINT, QPRES, &
                                    npassive, qpass_map, small_dens, small_pres, &
                                    ppm_type, fix_mass_flux
@@ -42,7 +43,8 @@ contains
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: dq_lo(3), dq_hi(3)
-    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
 #if (AMREX_SPACEDIM < 3)
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
@@ -56,13 +58,13 @@ contains
 
     real(rt), intent(in) ::  dq(dq_lo(1):dq_hi(1),dq_lo(2):dq_hi(2),dq_lo(3):dq_hi(3),NQ)
 
-    real(rt), intent(inout) :: qm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
-    real(rt), intent(inout) :: qp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
+    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
 
 #if (AMREX_SPACEDIM < 3)
     real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 #endif
-    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
+    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)
     real(rt), intent(in) :: dx(3), dt
 
     ! Local variables
@@ -87,6 +89,8 @@ contains
 
     integer :: QUN, QUT, QUTT
     real(rt) :: ref_fac, trace_fac1, trace_fac2, trace_fac3
+
+    !$gpu
 
     dtdx = dt/dx(idir)
 
@@ -334,7 +338,8 @@ contains
                    un = q(i,j,k,QUN)
                    spzero = merge(-ONE, un*dtdx, un >= ZERO)
                    acmprght = HALF*(-ONE - spzero)*dq(i,j,k,n)
-                   qp(i,j,k,n) = q(i,j,k,n) + acmprght + HALF*dt*srcQ(i,j,k,n)
+                   qp(i,j,k,n) = q(i,j,k,n) + acmprght
+                   if (n <= NQSRC) qp(i,j,k,n) = qp(i,j,k,n) + HALF*dt*srcQ(i,j,k,n)
                 endif
 
                 ! Left state
@@ -343,11 +348,14 @@ contains
                 acmpleft = HALF*(ONE - spzero )*dq(i,j,k,n)
 
                 if (idir == 1 .and. i <= vhi(1)) then
-                   qm(i+1,j,k,n) = q(i,j,k,n) + acmpleft + HALF*dt*srcQ(i,j,k,n)
+                   qm(i+1,j,k,n) = q(i,j,k,n) + acmpleft
+                   if (n <= NQSRC) qm(i+1,j,k,n) = qm(i+1,j,k,n) + HALF*dt*srcQ(i,j,k,n)
                 else if (idir == 2 .and. j <= vhi(2)) then
-                   qm(i,j+1,k,n) = q(i,j,k,n) + acmpleft + HALF*dt*srcQ(i,j,k,n)
+                   qm(i,j+1,k,n) = q(i,j,k,n) + acmpleft
+                   if (n <= NQSRC) qm(i,j+1,k,n) = qm(i,j+1,k,n) + HALF*dt*srcQ(i,j,k,n)
                 else if (idir == 3 .and. k <= vhi(3)) then
-                   qm(i,j,k+1,n) = q(i,j,k,n) + acmpleft + HALF*dt*srcQ(i,j,k,n)
+                   qm(i,j,k+1,n) = q(i,j,k,n) + acmpleft
+                   if (n <= NQSRC) qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*srcQ(i,j,k,n)
                 endif
              enddo
 

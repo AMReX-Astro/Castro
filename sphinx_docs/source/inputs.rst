@@ -404,7 +404,7 @@ The following parameters affect the timestep choice:
     step regardless of other settings (Real :math:`> 0`; unused if not set)
 
   * ``castro.dt_cutoff``: time step below which calculation
-   will abort (Real :math:`> 0`; default: 0.0)
+    will abort (Real :math:`> 0`; default: 0.0)
 
   * ``castro.hard_cfl_limit``: whether or not to abort the
     simulation if the hydrodynamics update creates velocities that
