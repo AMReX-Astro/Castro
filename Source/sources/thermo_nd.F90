@@ -84,7 +84,7 @@ contains
                                                 new_state(i-1,j,k,UMX)/new_state(i-1,j,k,URHO)))/(r*dx(1))
 
              else if (coord_type == 2) then
-                ! axisymmetric
+                ! spherical
                 src(i,j,k,UEINT) = -FOURTH*(rp**2*(old_state(i+1,j,k,UMX)/old_state(i+1,j,k,URHO) + &
                                                    new_state(i+1,j,k,UMX)/new_state(i+1,j,k,URHO)) - &
                                             rm**2*(old_state(i-1,j,k,UMX)/old_state(i-1,j,k,URHO) + &
