@@ -910,14 +910,12 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
     }
 #endif
 
-#ifdef POINTMASS
     Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(level));
     if (cs->using_point_mass()) {
         Real point_mass = cs->get_point_mass();
         MultiFab& phi = LevelData[level]->get_old_data(PhiGrav_Type);
         add_pointmass_to_gravity(level,phi,grav_vector,point_mass);
     }
-#endif
 }
 
 void
@@ -990,14 +988,12 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
     }
 #endif
 
-#ifdef POINTMASS
     Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(level));
     if (cs->using_point_mass()) {
         Real point_mass = cs->get_point_mass();
         MultiFab& phi = LevelData[level]->get_new_data(PhiGrav_Type);
         add_pointmass_to_gravity(level,phi,grav_vector,point_mass);
     }
-#endif
 }
 
 void
@@ -2089,7 +2085,6 @@ Gravity::set_mass_offset (Real time, bool multi_level)
     }
 }
 
-#ifdef POINTMASS
 void
 Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vector, Real point_mass)
 {
@@ -2112,7 +2107,6 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vect
     }
 
 }
-#endif
 
 #if (BL_SPACEDIM == 3)
 Real

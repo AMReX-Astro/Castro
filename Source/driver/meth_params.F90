@@ -302,13 +302,13 @@ attributes(managed) :: implicit_rotation_update
 #ifdef ROTATION
 attributes(managed) :: rot_axis
 #endif
-#ifdef POINTMASS
+#ifdef GRAVITY
 attributes(managed) :: use_point_mass
 #endif
-#ifdef POINTMASS
+#ifdef GRAVITY
 attributes(managed) :: point_mass
 #endif
-#ifdef POINTMASS
+#ifdef GRAVITY
 attributes(managed) :: point_mass_fix_solution
 #endif
 attributes(managed) :: do_acc
@@ -415,13 +415,13 @@ attributes(managed) :: get_g_from_phi
 #ifdef ROTATION
   !$acc create(rot_axis) &
 #endif
-#ifdef POINTMASS
+#ifdef GRAVITY
   !$acc create(use_point_mass) &
 #endif
-#ifdef POINTMASS
+#ifdef GRAVITY
   !$acc create(point_mass) &
 #endif
-#ifdef POINTMASS
+#ifdef GRAVITY
   !$acc create(point_mass_fix_solution) &
 #endif
   !$acc create(do_acc) &
@@ -502,14 +502,6 @@ contains
     implicit_rotation_update = 1;
     allocate(rot_axis)
     rot_axis = 3;
-#endif
-#ifdef POINTMASS
-    allocate(use_point_mass)
-    use_point_mass = 1;
-    allocate(point_mass)
-    point_mass = 0.0d0;
-    allocate(point_mass_fix_solution)
-    point_mass_fix_solution = 0;
 #endif
     allocate(difmag)
     difmag = 0.1d0;
@@ -647,6 +639,14 @@ contains
     grown_factor = 1;
     allocate(track_grid_losses)
     track_grid_losses = 0;
+#ifdef GRAVITY
+    allocate(use_point_mass)
+    use_point_mass = 0;
+    allocate(point_mass)
+    point_mass = 0.0d0;
+    allocate(point_mass_fix_solution)
+    point_mass_fix_solution = 0;
+#endif
 
     call amrex_parmparse_build(pp, "castro")
 #ifdef DIFFUSION
@@ -664,11 +664,6 @@ contains
     call pp%query("rot_source_type", rot_source_type)
     call pp%query("implicit_rotation_update", implicit_rotation_update)
     call pp%query("rot_axis", rot_axis)
-#endif
-#ifdef POINTMASS
-    call pp%query("use_point_mass", use_point_mass)
-    call pp%query("point_mass", point_mass)
-    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
 #endif
     call pp%query("difmag", difmag)
     call pp%query("small_dens", small_dens)
@@ -738,6 +733,11 @@ contains
     call pp%query("do_acc", do_acc)
     call pp%query("grown_factor", grown_factor)
     call pp%query("track_grid_losses", track_grid_losses)
+#ifdef GRAVITY
+    call pp%query("use_point_mass", use_point_mass)
+    call pp%query("point_mass", point_mass)
+    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
+#endif
     call amrex_parmparse_destroy(pp)
 
 

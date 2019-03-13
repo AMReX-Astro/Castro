@@ -160,7 +160,7 @@ Castro::advance (Real time,
 #endif
 #endif
 
-#ifdef POINTMASS
+#ifdef GRAVITY
     // Update the point mass.
     if (use_point_mass)
         pointmass_update(time, dt);

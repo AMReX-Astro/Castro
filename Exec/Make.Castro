@@ -141,10 +141,6 @@ ifeq ($(USE_GR), TRUE)
   DEFINES += -DGR_GRAV
 endif
 
-ifeq ($(USE_POINTMASS), TRUE)
-   DEFINES += -DPOINTMASS
-endif
-
 ifeq ($(USE_REACT), TRUE)
   Bdirs += Source/reactions
   DEFINES += -DREACTIONS

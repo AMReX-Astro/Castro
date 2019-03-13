@@ -424,15 +424,15 @@ implicit_rotation_update     int           1                  y        ROTATION
 rot_axis                     int           3                  y        ROTATION
 
 # include a central point mass
-use_point_mass               int           1                  y        POINTMASS
+use_point_mass               int           0                  y        GRAVITY
 
 # mass of the point mass
-point_mass                   Real          0.0                y        POINTMASS
+point_mass                   Real          0.0                y        GRAVITY
 
 # if we have a central point mass, we can prevent mass from building
 # up in the zones adjacent to it by keeping their density constant and
 # adding their mass to the point mass object
-point_mass_fix_solution      int           0                  y        POINTMASS
+point_mass_fix_solution      int           0                  y        GRAVITY
 
 #-----------------------------------------------------------------------------
 # category: parallelization

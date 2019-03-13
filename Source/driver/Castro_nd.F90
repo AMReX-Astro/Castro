@@ -1267,12 +1267,7 @@ subroutine ca_deallocate_sponge_params() bind(C, name="ca_deallocate_sponge_para
 end subroutine ca_deallocate_sponge_params
 #endif
 
-#ifdef POINTMASS
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
+#ifdef GRAVITY
 !>
 !! @param[in] pointmass_in real(rt)
 !!

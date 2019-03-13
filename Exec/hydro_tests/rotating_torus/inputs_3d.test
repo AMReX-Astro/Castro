@@ -41,10 +41,11 @@ castro.dual_energy_eta2 = 1.0e-4
 # GRAVITY
 
 castro.do_grav           = 1
-castro.point_mass        = 6.0e8
-castro.point_mass_fix_solution = 0
 gravity.gravity_type     = ConstantGrav
 gravity.const_grav       = 0.0
+castro.use_point_mass    = 1
+castro.point_mass        = 6.0e8
+castro.point_mass_fix_solution = 0
 
 # ROTATION
 

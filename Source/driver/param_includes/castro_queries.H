@@ -23,11 +23,6 @@ pp.query("rot_source_type", rot_source_type);
 pp.query("implicit_rotation_update", implicit_rotation_update);
 pp.query("rot_axis", rot_axis);
 #endif
-#ifdef POINTMASS
-pp.query("use_point_mass", use_point_mass);
-pp.query("point_mass", point_mass);
-pp.query("point_mass_fix_solution", point_mass_fix_solution);
-#endif
 pp.query("state_interp_order", state_interp_order);
 pp.query("lin_limit_state_interp", lin_limit_state_interp);
 pp.query("state_nghost", state_nghost);
@@ -136,3 +131,8 @@ pp.query("job_name", job_name);
 pp.query("output_at_completion", output_at_completion);
 pp.query("reset_checkpoint_time", reset_checkpoint_time);
 pp.query("reset_checkpoint_step", reset_checkpoint_step);
+#ifdef GRAVITY
+pp.query("use_point_mass", use_point_mass);
+pp.query("point_mass", point_mass);
+pp.query("point_mass_fix_solution", point_mass_fix_solution);
+#endif

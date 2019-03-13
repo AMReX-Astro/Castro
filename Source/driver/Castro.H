@@ -1499,8 +1499,15 @@ public:
 ///
     amrex::Real locSquaredSum (const std::string& name, amrex::Real time, int idir, bool local=false);
 
-#ifdef POINTMASS
+#ifdef GRAVITY
+///
+/// Are we using point mass gravity?
+///
     int using_point_mass ();
+
+///
+/// Return the value of the point mass.
+///
     amrex::Real get_point_mass ();
 #endif
 
@@ -2042,8 +2049,7 @@ protected:
     void write_center ();
 #endif
 
-#ifdef POINTMASS
-
+#ifdef GRAVITY
 ///
 /// @param time     current time
 /// @param dt       timestep
@@ -2264,7 +2270,7 @@ Castro::get_output_at_completion()
     return output_at_completion;
 }
 
-#ifdef POINTMASS
+#ifdef GRAVITY
 inline
 amrex::Real
 Castro::get_point_mass ()
@@ -2279,6 +2285,5 @@ Castro::using_point_mass ()
     return use_point_mass;
 }
 #endif
-
 
 #endif /*_Castro_H_*/
