@@ -11,7 +11,7 @@ CEXE_sources += Castro_gravity.cpp
 
 ifeq ($(USE_POINTMASS), TRUE)
   CEXE_sources += Castro_pointmass.cpp
-  ca_f90EXE_sources += pointmass_nd.f90
+  ca_F90EXE_sources += pointmass_nd.F90
 endif
 
 ifeq ($(USE_GRAV), TRUE)

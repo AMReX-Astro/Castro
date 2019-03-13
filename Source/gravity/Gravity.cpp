@@ -2093,20 +2093,24 @@ Gravity::set_mass_offset (Real time, bool multi_level)
 void
 Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vector, Real point_mass)
 {
-   const Real* dx     = parent->Geom(level).CellSize();
-   const Real* problo = parent->Geom(level).ProbLo();
+
+    const Real* dx     = parent->Geom(level).CellSize();
+    const Real* problo = parent->Geom(level).ProbLo();
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-   for (MFIter mfi(grav_vector,true); mfi.isValid(); ++mfi)
-   {
-       const Box& bx = mfi.growntilebox();
+    for (MFIter mfi(grav_vector, true); mfi.isValid(); ++mfi)
+    {
+        const Box& bx = mfi.growntilebox();
 
-       pm_add_to_grav(ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()),
-                      &point_mass,BL_TO_FORTRAN_ANYD(phi[mfi]),
-		      BL_TO_FORTRAN_ANYD(grav_vector[mfi]),
-                      ZFILL(problo),ZFILL(dx));
-   }
+#pragma gpu
+        pm_add_to_grav(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                       point_mass, BL_TO_FORTRAN_ANYD(phi[mfi]),
+                       BL_TO_FORTRAN_ANYD(grav_vector[mfi]),
+                       AMREX_REAL_ANYD(problo), AMREX_REAL_ANYD(dx));
+    }
+
 }
 #endif
 
