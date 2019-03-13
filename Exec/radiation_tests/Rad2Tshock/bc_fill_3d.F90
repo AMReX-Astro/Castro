@@ -55,11 +55,6 @@ contains
        etot1 = eint1 + 0.5*rho1*v1**2
     end if
 
-    !do n = 1,NVAR
-    !   call filcc(adv(adv_l1,adv_l2,adv_l3,n),adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
-    !              domlo,domhi,delta,xlo,bc(1,1,n))
-    !enddo
-
     !     The strategy here is to set Dirichlet condition for inflow and
     !     outflow boundaries, and let the Riemann solver sort out the
     !     proper upwinding.  However, this decision makes this routine
@@ -67,11 +62,13 @@ contains
     !     values in either case....how do we know it's Outflow?  We have
     !     to assume that the setup routines converted Outflow to FOEXTRAP.
 
-    if (idir == 1) then !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-       do n = 1,NVAR
-          call filcc(adv(adv_l1,adv_l2,adv_l3,n),adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
-               domlo,domhi,delta,xlo,bc(1,1,n))
-       end do
+
+    do n = 1,NVAR
+       call filcc(adv(adv_l1,adv_l2,adv_l3,n),adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
+            domlo,domhi,delta,xlo,bc(1,1,n))
+    end do
+    
+    if (idir == 1) then
        
        !XLO
         if ( bc(1,1,1).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
@@ -115,11 +112,7 @@ contains
            enddo
         end if
 
-      else if (idir == 2) then !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-       do n = 1,NVAR
-          call filcc(adv(adv_l1,adv_l2,adv_l3,n),adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
-               domlo,domhi,delta,xlo,bc(1,1,n))
-       end do         
+      else if (idir == 2) then 
          !YLO
         if ( bc(2,1,1).eq.EXT_DIR .and. adv_l2.lt.domlo(2)) then
            do k = adv_l3, adv_h3
@@ -162,11 +155,7 @@ contains
            enddo
         end if
 
-      else if (idir == 3) then !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-       do n = 1,NVAR
-          call filcc(adv(adv_l1,adv_l2,adv_l3,n),adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
-               domlo,domhi,delta,xlo,bc(1,1,n))
-       end do
+      else if (idir == 3) then 
          !ZLO
         if ( bc(3,1,1).eq.EXT_DIR .and. adv_l3.lt.domlo(3)) then
            do k = adv_l3, domlo(3)-1
@@ -240,7 +229,7 @@ contains
 
     call filcc(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3,domlo,domhi,delta,xlo,bc)
 
-      if (idir == 1) then !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      if (idir == 1) then 
         !     XLO
         if ( bc(1,1,1).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
            do k = adv_l3, adv_h3
@@ -263,7 +252,7 @@ contains
            enddo
         end if
 
-      else if (idir == 2) then !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      else if (idir == 2) then
         !     YLO
         if ( bc(2,1,1).eq.EXT_DIR .and. adv_l2.lt.domlo(2)) then
            do k = adv_l3, adv_h3
@@ -286,7 +275,7 @@ contains
            enddo
         end if
 
-      else if (idir == 3) then !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      else if (idir == 3) then 
         !     ZLO
         if ( bc(3,1,1).eq.EXT_DIR .and. adv_l3.lt.domlo(3)) then
            do k = adv_l3, domlo(3)-1

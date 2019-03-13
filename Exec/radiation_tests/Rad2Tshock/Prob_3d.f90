@@ -10,7 +10,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   integer name(namlen)
   real(rt)         problo(3), probhi(3)
   
-  integer untin,i
+  integer untin,i,idir
   
   ! build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter ::  maxlen = 256
@@ -35,7 +35,8 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   zmin = problo(3)
   zmax = probhi(3)  
-  
+
+  idir = 1
 end subroutine amrex_probinit
 
 ! ::: -----------------------------------------------------------
@@ -79,7 +80,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   real(rt)         :: xlo(3), xhi(3)
   
   integer :: i,j,k
-  real(rt)         :: length_cell,length_min, rhoInv
+  real(rt)         :: length_cell, rhoInv
   type(eos_t) :: eos_state
     
   
@@ -96,11 +97,10 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            else if (idir == 3) then
               length_cell = zmin + delta(3) * (dble(k) + 0.5e0_rt)
            else
-              stop "Invalid Direction, input integer int_dir = [1,3] ."
+              call amrex_error("Invalid direction please input idir = [1,3]")
            endif
 
-          ! Old statement, replaced with conditional above. 
-          ! length_cell = length_min  + delta(1) * (dble(i) + 0.5e0_rt)
+         
            
            if (length_cell < 0.e0_rt) then
               state(i,j,k,URHO) = rho0
@@ -198,7 +198,7 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
 
   ! local variables
   integer :: i, j, k, igroup
-  real(rt)         length_cell,length_min, t
+  real(rt)         length_cell, t
 
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
@@ -214,7 +214,7 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
            else if (idir == 3) then
               length_cell = zmin + delta(3) * (dble(k) + 0.5e0_rt)
            else
-              stop "Invalid Direction, input integer int_dir = [1,3] ."
+              call amrex_error("Invalid direction please input idir = [1,3]")
            endif
            
            if (length_cell < 0.e0_rt) then
