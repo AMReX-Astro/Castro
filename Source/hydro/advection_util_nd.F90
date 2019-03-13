@@ -1552,21 +1552,23 @@ contains
   ! :::
 
 
-  !> @brief this computes the *node-centered* divergence
+  !> @brief this computes the cell-centered p div(U) term from the
+  !! edge-centered Godunov state.  This is used in the internal energy
+  !! update
   !!
   subroutine calc_pdivu(lo, hi, &
-       q1, q1_lo, q1_hi, &
-       area1, a1_lo, a1_hi, &
+                        q1, q1_lo, q1_hi, &
+                        area1, a1_lo, a1_hi, &
 #if AMREX_SPACEDIM >= 2
-       q2, q2_lo, q2_hi, &
-       area2, a2_lo, a2_hi, &
+                        q2, q2_lo, q2_hi, &
+                        area2, a2_lo, a2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-       q3, q3_lo, q3_hi, &
-       area3, a3_lo, a3_hi, &
+                        q3, q3_lo, q3_hi, &
+                        area3, a3_lo, a3_hi, &
 #endif
-       vol, v_lo, v_hi, &
-       dx, pdivu, div_lo, div_hi)
+                        vol, v_lo, v_hi, &
+                        dx, pdivu, div_lo, div_hi)
 
     use meth_params_module, only : NQ, GDPRES, GDU, GDV, GDW
     use amrex_constants_module, only : HALF

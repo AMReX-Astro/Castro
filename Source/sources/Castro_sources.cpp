@@ -48,6 +48,13 @@ Castro::source_flag(int src)
 	else
 	    return false;
 
+    case thermo_src:
+        if (time_integration_method == MethodOfLines ||
+            time_integration_method == SpectralDeferredCorrections)
+          return true;
+        else
+          return false;
+
 #ifdef DIFFUSION
     case diff_src:
 	return true;

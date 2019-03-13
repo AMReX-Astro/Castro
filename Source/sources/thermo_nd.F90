@@ -1,13 +1,33 @@
-! compute thermodynamic sources for the conserved hydro equations.
-! At the moment, this is only the p div{U} term in the internal energy
-! equation, and only for method-of-lines integration
-
+!> @brief Functions for implementing the source terms to the internal energy
+!! equation, for those integration methods where we treat it as a
+!! source and do not explicitly discretize it in the conservative
+!! update.
 module thermo_sources
 
   implicit none
 
 contains
 
+  !> @brief  Compute thermodynamic sources for the internal energy equation.
+  !! At the moment, this is only the -p div{U} term in the internal energy
+  !! equation, and only for method-of-lines integration, including the new
+  !! SDC method (the `-` is because it is on the RHS of the equation)
+  !!
+  !! @param[in] lo  lower bounds of the box to operate on
+  !! @param[in] hi  upper bounds of the box to operate on
+  !! @param[in] old_state  the old-time hydrodynamic conserved state
+  !! @param[in] os_lo  lower bounds of the old_state array
+  !! @param[in] os_hi  upper bounds of the old_state array
+  !! @param[in] new_state  the new-time hydrodynamic conserved state
+  !! @param[in] ns_lo  lower bounds of the new_state array
+  !! @param[in] ns_hi  upper bounds of the new_state array
+  !! @param[inout] src  the source terms for the conserved variables
+  !! @param[in] src_lo  lower bounds of the src array
+  !! @param[in] src_hi  upper bounds of the src array
+  !! @param[in] problo  physical coordinates of the lower left corner of the domain
+  !! @param[in] dx  grid spacing
+  !! @param[in] time  current simulation time
+  !! @param[in] dt  current timestep
   subroutine ca_thermo_src(lo, hi, &
                            old_state, os_lo, os_hi, &
                            new_state, ns_lo, ns_hi, &
@@ -19,6 +39,7 @@ contains
     use network, only : nspec
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
+    use prob_params_module, only : coord_type
 
     implicit none
 
@@ -35,25 +56,50 @@ contains
     integer :: i, j, k
 
     type(eos_t) :: eos_state_old, eos_state_new
+    real(rt) :: r, rp, rm
 
     !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-             src(i,j,k,UEINT) = FOURTH*((old_state(i+1,j,k,UMX)/old_state(i+1,j,k,URHO) + &
-                                         new_state(i+1,j,k,UMX)/new_state(i+1,j,k,URHO)) - &
-                                        (old_state(i-1,j,k,UMX)/old_state(i-1,j,k,URHO) + &
-                                         new_state(i-1,j,k,UMX)/new_state(i-1,j,k,URHO)))/dx(1)
+
+             ! radius for non-Cartesian
+             rp = problo(1) + (dble(i) + 1.5_rt)*dx(1)
+             rm = problo(1) + (dble(i) - HALF)*dx(1)
+             r = HALF*(rm + rp)
+
+             ! compute -div{U}
+             if (coord_type == 0) then
+                src(i,j,k,UEINT) = -FOURTH*((old_state(i+1,j,k,UMX)/old_state(i+1,j,k,URHO) + &
+                                             new_state(i+1,j,k,UMX)/new_state(i+1,j,k,URHO)) - &
+                                            (old_state(i-1,j,k,UMX)/old_state(i-1,j,k,URHO) + &
+                                             new_state(i-1,j,k,UMX)/new_state(i-1,j,k,URHO)))/dx(1)
+
+             else if (coord_type == 1) then
+                ! axisymmetric
+                src(i,j,k,UEINT) = -FOURTH*(rp*(old_state(i+1,j,k,UMX)/old_state(i+1,j,k,URHO) + &
+                                                new_state(i+1,j,k,UMX)/new_state(i+1,j,k,URHO)) - &
+                                            rm*(old_state(i-1,j,k,UMX)/old_state(i-1,j,k,URHO) + &
+                                                new_state(i-1,j,k,UMX)/new_state(i-1,j,k,URHO)))/(r*dx(1))
+
+             else if (coord_type == 2) then
+                ! spherical
+                src(i,j,k,UEINT) = -FOURTH*(rp**2*(old_state(i+1,j,k,UMX)/old_state(i+1,j,k,URHO) + &
+                                                   new_state(i+1,j,k,UMX)/new_state(i+1,j,k,URHO)) - &
+                                            rm**2*(old_state(i-1,j,k,UMX)/old_state(i-1,j,k,URHO) + &
+                                                   new_state(i-1,j,k,UMX)/new_state(i-1,j,k,URHO)))/(r**2*dx(1))
+             endif
+
 #if BL_SPACEDIM >= 2
-             src(i,j,k,UEINT) = src(i,j,k,UEINT) + &
+             src(i,j,k,UEINT) = src(i,j,k,UEINT) - &
                                 FOURTH*((old_state(i,j+1,k,UMY)/old_state(i,j+1,k,URHO) + &
                                          new_state(i,j+1,k,UMY)/new_state(i,j+1,k,URHO)) - &
                                         (old_state(i,j-1,k,UMY)/old_state(i,j-1,k,URHO) + &
                                          new_state(i,j-1,k,UMY)/new_state(i,j-1,k,URHO)))/dx(2)
 #endif
 #if BL_SPACEDIM == 3
-             src(i,j,k,UEINT) = src(i,j,k,UEINT) + &
+             src(i,j,k,UEINT) = src(i,j,k,UEINT) - &
                                 FOURTH*((old_state(i,j,k+1,UMZ)/old_state(i,j,k+1,URHO) + &
                                          new_state(i,j,k+1,UMZ)/new_state(i,j,k+1,URHO)) - &
                                         (old_state(i,j,k-1,UMZ)/old_state(i,j,k-1,URHO) + &
@@ -74,6 +120,7 @@ contains
 
              call eos(eos_input_rt, eos_state_new)
 
+             ! final source term, -p div{U}
              src(i,j,k,UEINT) = HALF*(eos_state_old % p + eos_state_new % p)*src(i,j,k,UEINT)
 
           enddo

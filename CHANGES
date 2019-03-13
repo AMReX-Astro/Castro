@@ -1,5 +1,9 @@
 # changes since the last release
 
+  -- fixed a bug in the source term to (rho e) evolution when using
+     MOL or the new SDC integration (#543, #545) and also no longer
+     recompute the source terms after reflux for these methods (#549)
+
   -- Dimension agnostic problem setups have had the interface to the
      physical boundary conditions changed (hypfill, denfill, etc.).
      If your problem is dimension agnostic, please consult the new
