@@ -14,6 +14,6 @@ and fill in the following fields as best you can. -->
 
 ## PR checklist
 
-- [ ] I request that the test suite be run on this PR
-- [ ] I expect this will change answers in the test suite
-
+- [ ] test suite needs to be run on this PR
+- [ ] this PR will change answers in the test suite
+- [ ] all functions have docstrings as per the coding conventions
