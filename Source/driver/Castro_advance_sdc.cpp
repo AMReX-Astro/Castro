@@ -118,7 +118,7 @@ Castro::do_advance_sdc (Real time,
 
         // The individual source terms only calculate the source on the valid domain.
         // FillPatch to get valid data in the ghost zones.
-        AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), time, Source_Type, 0, NUM_STATE);
+        AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), node_time, Source_Type, 0, NUM_STATE);
 
       }
 #endif
