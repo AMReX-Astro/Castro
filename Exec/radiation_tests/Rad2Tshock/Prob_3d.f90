@@ -10,7 +10,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   integer name(namlen)
   real(rt)         problo(3), probhi(3)
   
-  integer untin,i,idir
+  integer untin,i
   
   ! build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter ::  maxlen = 256
