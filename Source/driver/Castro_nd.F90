@@ -55,10 +55,6 @@ subroutine ca_extern_init(name,namlen) bind(C, name="ca_extern_init")
     ! extern_probin_module
     !
     ! Binds to C function `ca_extern_init`
-    !
-    ! namlen integer
-    ! name integer
-    !
 
   use amrex_fort_module, only: rt => amrex_real
 
@@ -79,9 +75,6 @@ end subroutine ca_extern_init
 subroutine ca_get_num_spec(nspec_out) bind(C, name="ca_get_num_spec")
     !
     ! Binds to C function `ca_get_num_spec`
-    !
-    ! nspec_out integer
-    !
 
   use network, only: nspec
   use amrex_fort_module, only: rt => amrex_real
@@ -99,9 +92,6 @@ end subroutine ca_get_num_spec
 subroutine ca_get_num_aux(naux_out) bind(C, name="ca_get_num_aux")
     !
     ! Binds to C function `ca_get_num_aux`
-    !
-    ! naux_out integer
-    !
 
   use network, only: naux
   use amrex_fort_module, only: rt => amrex_real
@@ -119,9 +109,6 @@ end subroutine ca_get_num_aux
 subroutine ca_get_num_adv(nadv_out) bind(C, name="ca_get_num_adv")
     !
     ! Binds to C function `ca_get_num_adv`
-    !
-    ! nadv_out integer
-    !
 
   use meth_params_module, only: nadv
   use amrex_fort_module, only: rt => amrex_real
@@ -142,11 +129,6 @@ end subroutine ca_get_num_adv
 subroutine ca_get_spec_names(spec_names,ispec,len) &
      bind(C, name="ca_get_spec_names")
      ! Binds to C function `ca_get_spec_names`
-     !
-     ! ispec integer
-     ! len integer
-     ! spec_names integer
-     !
 
   use network, only: nspec, short_spec_names
   use amrex_fort_module, only: rt => amrex_real
@@ -177,11 +159,6 @@ end subroutine ca_get_spec_names
 subroutine ca_get_spec_az(ispec,A,Z) bind(C, name="ca_get_spec_az")
     !
     ! Binds to C function `ca_get_spec_az`
-    !
-    ! ispec integer
-    ! A real(rt)
-    ! Z real(rt)
-    !
 
   use network, only: nspec, aion, zion
   use amrex_fort_module, only: rt => amrex_real
@@ -207,11 +184,6 @@ subroutine ca_get_aux_names(aux_names,iaux,len) &
      bind(C, name="ca_get_aux_names")
      !
      ! Binds to C function `ca_get_aux_names`
-     !
-     ! iaux integer
-     ! len integer
-     ! aux_names integer
-     !
 
   use network, only: naux, short_aux_names
   use amrex_fort_module, only: rt => amrex_real
@@ -242,9 +214,6 @@ end subroutine ca_get_aux_names
 subroutine ca_get_nqsrc(nqsrc_in) bind(C, name="ca_get_nqsrc")
     !
     ! Binds to C function `ca_get_nqsrc`
-    !
-    ! nqsrc_in integer
-    !
 
   use meth_params_module, only: NQSRC
 
@@ -261,9 +230,6 @@ end subroutine ca_get_nqsrc
 subroutine ca_get_nq(nq_in) bind(C, name="ca_get_nq")
     !
     ! Binds to C function `ca_get_nq`
-    !
-    ! nq_in integer
-    !
 
   use meth_params_module, only: NQ
 
@@ -280,9 +246,6 @@ end subroutine ca_get_nq
 subroutine ca_get_nqaux(nqaux_in) bind(C, name="ca_get_nqaux")
     !
     ! Binds to C function `ca_get_nqaux`
-    !
-    ! nqaux_in integer
-    !
 
   use meth_params_module, only: NQAUX
 
@@ -298,9 +261,6 @@ end subroutine ca_get_nqaux
 subroutine ca_get_ngdnv(ngdnv_in) bind(C, name="ca_get_ngdnv")
     !
     ! Binds to C function `ca_get_ngdnv`
-    !
-    ! ngdnv_in integer
-    !
 
   use meth_params_module, only: NGDNV
 
@@ -411,9 +371,6 @@ subroutine ca_get_method_params(nGrowHyp) bind(C, name="ca_get_method_params")
     ! Passing data from f90 back to C++
     !
     ! Binds to C function `ca_get_method_params`
-    !
-    ! ngrowHyp integer
-    !
 
   use meth_params_module, only: NHYP
   use amrex_fort_module, only: rt => amrex_real
@@ -436,10 +393,6 @@ subroutine allocate_outflow_data(np,nc) &
      bind(C, name="allocate_outflow_data")
      !
      ! Binds to C function `allocate_outflow_data`
-     !
-     ! np integer
-     ! nc integer
-     !
 
   use meth_params_module, only: outflow_data_old, outflow_data_new, outflow_data_allocated
   use amrex_fort_module, only: rt => amrex_real
@@ -467,12 +420,6 @@ subroutine set_old_outflow_data(radial,time,np,nc) &
      ! Passing data from C++ to f90
      !
      ! Binds to C function `set_old_outflow_data`
-     !
-     ! radial real(rt)
-     ! time real(rt)
-     ! np integer
-     ! nc integer
-     !
 
   use meth_params_module, only: outflow_data_old, outflow_data_old_time
   use amrex_fort_module, only: rt => amrex_real
@@ -503,12 +450,6 @@ subroutine set_new_outflow_data(radial,time,np,nc) &
      ! Passing data from C++ to f90
      !
      ! Binds to C function `set_new_outflow_data`
-     !
-     ! radial real(rt)
-     ! time real(rt)
-     ! np integer
-     ! nc integer
-     !
 
   use meth_params_module, only: outflow_data_new, outflow_data_new_time
   use amrex_fort_module, only: rt => amrex_real
@@ -812,18 +753,6 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
      ! Passing data from C++ into f90
      !
      ! Binds to C function `ca_set_problem_params`
-     !
-     ! dm integer
-     ! physbc_lo_in integer
-     ! Interior_in integer
-     ! Inflow_in integer
-     ! Outflow_in integer
-     ! Symmetry_in integer
-     ! SlipWall_in integer
-     ! NoSlipWall_in integer
-     ! coord_type_in integer
-     ! problo_in real(rt)
-     !
 
   use amrex_constants_module, only: ZERO
   use amrex_error_module
@@ -946,14 +875,6 @@ subroutine ca_set_grid_info(max_level_in, dx_level_in, domlo_in, domhi_in, &
      ! be safe, we'll deallocate and start again.
      !
      ! Binds to C function `ca_set_grid_info`
-     !
-     ! max_level_in integer
-     ! dx_level_in real(rt)
-     ! domlo_in integer
-     ! ref_ratio_in integer
-     ! n_error_buf_in integer
-     ! blocking_factor_in integer
-     !
 
   use prob_params_module, only: max_level, dx_level, domlo_level, domhi_level, n_error_buf, ref_ratio, blocking_factor
   use amrex_fort_module, only: rt => amrex_real
@@ -1023,10 +944,6 @@ subroutine ca_get_tagging_params(name, namlen) &
      ! Initialize the tagging parameters
      !
      ! Binds to C function `ca_get_tagging_params`
-     !
-     ! namlen integer
-     ! name integer
-     !
 
   use tagging_module
   use amrex_error_module
@@ -1150,10 +1067,6 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
     ! Initialize the sponge parameters
     !
     ! Binds to C function `ca_get_sponge_params`
-    !
-    ! namlen integer
-    ! name integer
-    !
 
   use sponge_module
   use amrex_error_module

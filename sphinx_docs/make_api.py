@@ -18,7 +18,7 @@ import re
 # directory of the source files
 rootdir = "../Source"
 
-outfile_path = "source/filelist.rst"
+filelist_path = "source/filelist.rst"
 
 
 def strip_directives(filename, filepath, outpath):
@@ -26,7 +26,7 @@ def strip_directives(filename, filepath, outpath):
     Read in file, remove all preprocessor directives and output
     """
 
-    r = re.compile(r"^#.*$")
+    r = re.compile(r"^#.*$\n")
 
     with open(os.path.join(filepath, filename)) as infile:
         txt = infile.read()
@@ -65,14 +65,19 @@ def fortran_apidoc(filename, filepath):
 
         last_pos = 0
 
-        for m in r.finditer(txt[last_pos:]):
+        m = re.search(r, txt)
+
+        while m is not None:
             # module, subroutine, program or function?
             element = m.group(1)
 
             # name of thing
             name = m.group(2).lower()
 
-            title_name = name.replace('_', '\_') + ' ' + element
+            title_name = name.replace('_', '\_')
+
+            if element != "module":
+                title_name += ' ' + element
 
             if element == "module":
                 output_data += """{}
@@ -109,11 +114,13 @@ def fortran_apidoc(filename, filepath):
 
             # now find the end of the module/subroutine/function/program
             r_end = re.compile(
-                r"^[\t ]*end {} {}".format(element, m.group(2)), re.M)
+                r"^[\t ]*end {} {}[\t ]*$".format(element, m.group(2)), re.M)
 
             end_match = re.search(r_end, txt)
 
             last_pos = end_match.end()
+
+            m = re.search(r, txt[last_pos:])
 
     with open(rst_name, 'w') as rst_file:
 
@@ -122,7 +129,7 @@ def fortran_apidoc(filename, filepath):
 
 if __name__ == "__main__":
 
-    with open(outfile_path, 'w') as outfile:
+    with open(filelist_path, 'w') as outfile:
 
         output_data = """File list
 =========

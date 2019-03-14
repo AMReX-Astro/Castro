@@ -234,45 +234,6 @@ breathe_doxygen_config_options = {'EXTRACT_ALL': 'YES',
 
 # -- Options for sphinx-fortran -----------------------------------------
 
-fortran_src = [os.path.abspath('../../Source/diffusion'),
-               os.path.abspath('../../Source/driver'),
-               os.path.abspath('../../Source/gravity'),
-               os.path.abspath('../../Source/particles'),
-               os.path.abspath('../../Source/reactions'),
-               os.path.abspath('../../Source/rotation'),
-               os.path.abspath('../../Source/sources'),
-               os.path.abspath('../../Source/hydro')]
-
-fortran_excl = ['HABEC_1D.F90', 'HABEC_2D.F90',
-                'HABEC_3D.F90', 'RAD_1D.F90', 'RAD_2D.F90', 'RAD_3D.F90']
-
-# there's no easy way to exclude files from sphinx-fortran, so we're going to
-# do this by hand
-rad_path = '../../Source/radiation/'
-f_files = [os.path.abspath(rad_path + f) for f in os.listdir(rad_path)
-           if (f[-4:].lower() == '.f90' and f not in fortran_excl)]
-
-fortran_src += f_files
-
-
-prob_excl = ['bc_fill_3d.F90',
-             'problem_tagging_3d.f90',
-             'bc_ext_fill_3d.F90',
-             'Prob_1d.f90',
-             'Prob_3d.f90',
-             'bc_ext_fill_1d.F90',
-             'bc_fill_1d.F90',
-             'bc_ext_fill_2d.F90',
-             'problem_tagging_1d.f90',
-             'bc_fill_2d.F90',
-             'Prob_2d.f90',
-             'problem_tagging_2d.f90',
-             ]
-
-prob_path = '../../Source/problems/'
-f_files = [os.path.abspath(prob_path + f) for f in os.listdir(prob_path)
-           if (f[-4:].lower() == '.f90' and f not in prob_excl)]
-
-fortran_src += f_files
+fortran_src = [os.path.abspath('preprocessed_files')]
 
 fortran_ext = ['f90', 'F90']
