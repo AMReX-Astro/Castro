@@ -80,8 +80,8 @@ Castro::do_advance_mol (Real time,
       // we'll reuse sources_for_hydro for this memory buffer at the moment
 
       for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
-        const Box& bx = mfi.tilebox();
-        ca_make_cell_center(BL_TO_FORTRAN_BOX(bx),
+        const Box& gbx = mfi.growntilebox(1);
+        ca_make_cell_center(BL_TO_FORTRAN_BOX(gbx),
                             BL_TO_FORTRAN_FAB(Sborder[mfi]),
                             BL_TO_FORTRAN_FAB(sources_for_hydro[mfi]));
 

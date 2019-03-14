@@ -81,9 +81,39 @@ Castro::do_advance_sdc (Real time,
 #endif
 
     if (apply_sources()) {
+#ifndef AMREX_USE_CUDA
+      if (fourth_order) {
+        // if we are 4th order, convert to cell-center Sborder -> Sborder_cc
+        // we'll reuse sources_for_hydro for this memory buffer at the moment
+
+        for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+          const Box& gbx = mfi.growntilebox(1);
+          ca_make_cell_center(BL_TO_FORTRAN_BOX(gbx),
+                              BL_TO_FORTRAN_FAB(Sborder[mfi]),
+                              BL_TO_FORTRAN_FAB(sources_for_hydro[mfi]));
+
+        }
+      }
 
       // we pass in the stage time here
-      do_old_sources(old_source, Sborder, node_time, dt, amr_iteration, amr_ncycle);
+      if (fourth_order) {
+        do_old_sources(old_source, sources_for_hydro, time, dt, amr_iteration, amr_ncycle);
+
+        // Note: this filled the ghost cells for us, so we can now convert to
+        // cell averages.  This loop cannot be tiled.
+        for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+          const Box& bx = mfi.tilebox();
+          ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
+                                  BL_TO_FORTRAN_FAB(old_source[mfi]));
+        }
+
+        // now that we redid these, redo the ghost fill
+        AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), time, Source_Type, 0, NUM_STATE);
+
+      } else {
+        do_old_sources(old_source, Sborder, node_time, dt, amr_iteration, amr_ncycle);
+      }
+#endif
 
       // hack: copy the source to the new data too, so fillpatch doesn't have to
       // worry about time
