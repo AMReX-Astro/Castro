@@ -99,6 +99,9 @@ Castro::do_advance_sdc (Real time,
       if (fourth_order) {
         do_old_sources(old_source, sources_for_hydro, time, dt, amr_iteration, amr_ncycle);
 
+        // fill the ghost cells for the sources
+        AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), time, Source_Type, 0, NUM_STATE);
+
         // Note: this filled the ghost cells for us, so we can now convert to
         // cell averages.  This loop cannot be tiled.
         for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
@@ -112,6 +115,11 @@ Castro::do_advance_sdc (Real time,
 
       } else {
         do_old_sources(old_source, Sborder, node_time, dt, amr_iteration, amr_ncycle);
+
+        // The individual source terms only calculate the source on the valid domain.
+        // FillPatch to get valid data in the ghost zones.
+        AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), time, Source_Type, 0, NUM_STATE);
+
       }
 #endif
 
@@ -236,10 +244,11 @@ Castro::do_advance_sdc (Real time,
   // always require State_Type to have 1 ghost cell?
   expand_state(Sborder, prev_time, 0, Sborder.nGrow());
   do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
+  AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NUM_STATE);
 
   expand_state(Sborder, cur_time, 1, Sborder.nGrow());
   do_old_sources(new_source, Sborder, cur_time, dt, amr_iteration, amr_ncycle);
-
+  AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), cur_time, Source_Type, 0, NUM_STATE);
 
   finalize_do_advance(time, dt, amr_iteration, amr_ncycle);
 

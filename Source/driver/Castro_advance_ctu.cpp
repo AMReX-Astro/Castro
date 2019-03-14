@@ -93,6 +93,7 @@ Castro::do_advance_ctu(Real time,
     if (apply_sources()) {
 
       do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
+      AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NUM_STATE);
       apply_source_to_state(S_new, old_source, dt, 0);
       int is_new = 1;
       clean_state(is_new, 0);
