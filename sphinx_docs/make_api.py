@@ -21,6 +21,22 @@ rootdir = "../Source"
 outfile_path = "source/filelist.rst"
 
 
+def strip_directives(filename, filepath, outpath):
+    """
+    Read in file, remove all preprocessor directives and output
+    """
+
+    r = re.compile(r"^#.*$")
+
+    with open(os.path.join(filepath, filename)) as infile:
+        txt = infile.read()
+
+        outtxt = re.sub(r, '', txt)
+
+        with open(os.path.join(outpath, filename), 'w') as outfile:
+            outfile.write(outtxt)
+
+
 def fortran_apidoc(filename, filepath):
     """
     Generate the sphinx-fortran boilerplate for the Fortran file filename.
@@ -76,8 +92,6 @@ def fortran_apidoc(filename, filepath):
 
             elif element == "subroutine":
 
-                continue
-
                 output_data += """{}
 {}
 
@@ -104,8 +118,6 @@ def fortran_apidoc(filename, filepath):
     with open(rst_name, 'w') as rst_file:
 
         rst_file.write(output_data)
-
-
 
 
 if __name__ == "__main__":
