@@ -72,7 +72,7 @@ contains
                                    uin, uin_lo, uin_hi, &
                                    uout, uout_lo, uout_hi, &
                                    vol,  vol_lo, vol_hi, &
-                                   problo,dx,time,dt) &
+                                   problo, dx, time, dt) &
                                    bind(C, name="pm_compute_delta_mass")
 
     use meth_params_module, only: NVAR, URHO
@@ -89,13 +89,16 @@ contains
     real(rt), intent(in   ) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
     real(rt), intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     real(rt), intent(in   ) :: problo(3), dx(3)
-    real(rt), intent(in   ) :: time, dt
+    real(rt), intent(in   ), value :: time, dt
 
     real(rt)           :: eps
-    integer            :: ii,icen,istart,iend
-    integer            :: jj,jcen,jstart,jend
-    integer            :: kk,kcen,kstart,kend
+    integer            :: icen, istart, iend
+    integer            :: jcen, jstart, jend
+    integer            :: kcen, kstart, kend
+    integer            :: i, j, k
     integer, parameter :: box_size = 2
+
+    !$gpu
 
     ! This is just a small number to keep precision issues from making
     !   icen,jcen,kcen one cell too low.
@@ -123,10 +126,18 @@ contains
     jend = min(jcen+box_size-1, hi(2))
     kend = min(kcen+box_size-1, hi(3))
 
-    do kk = kstart, kend
-       do jj = jstart, jend
-          do ii = istart, iend
-             delta_mass = delta_mass + vol(ii,jj,kk) * (uout(ii,jj,kk,URHO)-uin(ii,jj,kk,URHO))
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             if (i >= istart .and. i <= iend .and. &
+                 j >= jstart .and. j <= jend .and. &
+                 k >= kstart .and. k <= kend) then
+
+                delta_mass = delta_mass + vol(i,j,k) * (uout(i,j,k,URHO)-uin(i,j,k,URHO))
+
+             end if
+
           end do
        end do
     end do
@@ -155,10 +166,13 @@ contains
     real(rt), intent(in   ), value :: time, dt
 
     real(rt)           :: eps
-    integer            :: ii,icen,istart,iend
-    integer            :: jj,jcen,jstart,jend
-    integer            :: kk,kcen,kstart,kend
+    integer            :: icen, istart, iend
+    integer            :: jcen, jstart, jend
+    integer            :: kcen, kstart, kend
+    integer            :: i, j, k
     integer, parameter :: box_size = 2
+
+    !$gpu
 
     ! This is just a small number to keep precision issues from making
     !   icen,jcen,kcen one cell too low.
@@ -186,10 +200,18 @@ contains
     jend = min(jcen+box_size-1, hi(2))
     kend = min(kcen+box_size-1, hi(3))
 
-    do kk = kstart, kend
-       do jj = jstart, jend
-          do ii = istart, iend
-             uout(ii,jj,kk,:) = uin(ii,jj,kk,:)
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             if (i >= istart .and. i <= iend .and. &
+                 j >= jstart .and. j <= jend .and. &
+                 k >= kstart .and. k <= kend) then
+
+                uout(i,j,k,:) = uin(i,j,k,:)
+
+             end if
+
           end do
        end do
     end do
