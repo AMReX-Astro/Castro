@@ -6,10 +6,10 @@ geometry.is_periodic = 0 0 0
 
 geometry.coord_sys = 0  # 0 => cart, 1 => RZ, 2 => Spherical
 
-geometry.prob_lo   =   -4000. 0.0    0.0
-geometry.prob_hi   =    2000. 187.5  187.5
+geometry.prob_lo   =    0.0   -4000. 0.0 
+geometry.prob_hi   =    187.5 2000. 187.5 
 
-amr.n_cell   = 256  8  8
+amr.n_cell   = 8 256  8
 
 # REFINEMENT / REGRIDDING
 amr.max_level       = 4       # maximum level number allowed
@@ -22,13 +22,13 @@ amr.n_proper        = 1       # default value
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
 # CHECKPOINT FILES
-amr.check_file      = chk     # root name of checkpoint file
+amr.check_file      = chk_y_     # root name of checkpoint file
 amr.check_int       = 1000      # number of timesteps between checkpoints
 
 # PLOTFILES
-amr.plot_files_output       = 0 # suppress plot files
-amr.plot_file       = plt_
-amr.plot_int        = 10     # number of timesteps between plot files
+amr.plot_files_output       = 1 #Don't? suppress plot files
+amr.plot_file       = plt_y_
+amr.plot_int        = 100     # number of timesteps between plot files
 amr.derive_plot_vars = ALL
 
 
@@ -44,8 +44,8 @@ amr.grid_log        = grdlog  # name of grid logging file
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  1    4    4
-castro.hi_bc       =  1    4    4
+castro.lo_bc       =  4    1    4
+castro.hi_bc       =  4    1    4
 
 # WHICH PHYSICS
 castro.do_grav        = 0
@@ -103,8 +103,8 @@ radiation.v               = 2    # verbosity
 # 101 = LO_DIRICHLET           102 = LO_NEUMANN
 # 104 = LO_MARSHAK             105 = LO_SANCHEZ_POMRANING
 
-radiation.lo_bc     = 101 102 102
-radiation.hi_bc     = 101 102 102
+radiation.lo_bc     = 102 101 102
+radiation.hi_bc     = 102 101 102
 
 # For each boundary, we can specify either a constant boundary value
 # or use a Fortran function FORT_RADBNDRY to specify values that vary
@@ -121,8 +121,8 @@ radiation.hi_bcflag = 0 0 0
 # 104 = LO_MARSHAK             bcval is incident flux
 # 105 = LO_SANCHEZ_POMRANING   bcval is incident flux
 
-radiation.lo_bcval = 7.5657313567241239e-7   0.0 0.0
-radiation.hi_bcval = 0.0040567429273323397   0.0 0.0
+radiation.lo_bcval = 0.0 7.5657313567241239e-7   0.0
+radiation.hi_bcval = 0.0 0.0040567429273323397   0.0
 
 radiation.do_real_eos = 1
 
