@@ -68,6 +68,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use network, only : nspec, naux
   use eos_module, only : eos
   use eos_type_module, only : eos_t, eos_input_rt
+  use amrex_error_module
   
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -185,6 +186,7 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
   use fundamental_constants_module, only: a_rad
   use rad_params_module, only : xnu
   use blackbody_module, only : BGroup
+  use amrex_error_module
   
   use amrex_fort_module, only : rt => amrex_real
   implicit none
