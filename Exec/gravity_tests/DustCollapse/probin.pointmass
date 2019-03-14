@@ -1,6 +1,6 @@
 &fortin
   rho_0 = 1.0d7
-  p_0   = 1.0d-6
+  p_0   = 1.0d8
   rho_ambient = 1.0d-4
   r_0   = 4.0e8
   r_offset = 1.0e8
