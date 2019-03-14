@@ -7,6 +7,13 @@
      already existed, but was defaulted to 1 since it only mattered
      if the compile flag was enabled. Now the default is 0.
 
+  -- Also, a couple bugs in the point-mass gravity have been fixed.
+     The algorithm was not correct in 1D and 2D, and this has been
+     resolved. And the point mass value was not being preserved across
+     restarts, which is an issue if you're using point_mass_fix_solution
+     to update the point mass value as mass accretes to the center of
+     the domain. This has been fixed as well.
+
   -- fixed a bug in the source term to (rho e) evolution when using
      MOL or the new SDC integration (#543, #545) and also no longer
      recompute the source terms after reflux for these methods (#549)
