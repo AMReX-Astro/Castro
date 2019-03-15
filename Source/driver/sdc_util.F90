@@ -60,7 +60,7 @@ contains
 
     logical :: converged
 
-    ! integer, parameter :: lrw = 22 + 9*(nspec_evolve+2) + 2*(nspec_evolve+2)**2
+    integer, parameter :: lrw = 22 + 9*(nspec_evolve+2) + 2*(nspec_evolve+2)**2
     integer, parameter :: liw = 30 + nspec_evolve + 2
 
     real(rt) :: rwork(lrw)
@@ -717,7 +717,7 @@ contains
        enddo
 
     else
-       ! call amrex_error("error in ca_sdc_update_advection_o4 -- shouldn't be here")
+       call amrex_error("error in ca_sdc_update_advection_o4 -- should not be here")
     endif
 
   end subroutine ca_sdc_update_advection_o4
@@ -785,7 +785,7 @@ contains
                 C(i,j,k,:) = (A_m(i,j,k,:) - A_1_old(i,j,k,:)) - R_2_old(i,j,k,:) + integral
 
              else
-                ! call amrex_error("error in ca_sdc_compute_C4 -- shouldn't be here")
+                call amrex_error("error in ca_sdc_compute_C4 -- should not be here")
              endif
 
           enddo

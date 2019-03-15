@@ -28,6 +28,24 @@ def strip_directives(filename, filepath, outpath):
             outfile.write(outtxt)
 
 
+def delete_lines(filename, filepath):
+    """
+    For some reason sphinx-fortran does not like these lines, so we're going to
+    delete them out by hand in the preprocessed files
+    """
+
+    if filename == 'sdc_util.F90':
+        txt = ""
+        with open(os.path.join(filepath, filename)) as infile:
+            txt = infile.read()
+
+        txt = txt.replace("integer, parameter :: lrw = 22 + 9*(nspec_evolve+2) + 2*(nspec_evolve+2)**2",
+                          "")
+
+        with open(os.path.join(filepath, filename), 'w') as outfile:
+            outfile.write(txt)
+
+
 if __name__ == "__main__":
 
     excl_files = ['HABEC_1D.F90', 'HABEC_2D.F90', 'HABEC_3D.F90', 'RAD_1D.F90', 'RAD_2D.F90', 'RAD_3D.F90', 'bc_fill_3d.F90',
@@ -57,3 +75,4 @@ if __name__ == "__main__":
         for f in sorted(os.listdir(os.path.join(rootdir, subdir))):
             if ((f[-2:] == ".H" and f[-4:] != "_F.H") or f[-4:] == ".F90" or f[-4:] == ".f90") and f not in excl_files:
                 strip_directives(f, os.path.join(rootdir, subdir), outdir)
+                delete_lines(f, outdir)
