@@ -1,7 +1,7 @@
-! These routines do the characteristic tracing under the parabolic
-! profiles in each zone to the edge / half-time.
-
 module trace_ppm_module
+  !
+  ! These routines do the characteristic tracing under the parabolic
+  ! profiles in each zone to the edge / half-time.
 
   use prob_params_module, only : dg
   use amrex_error_module
@@ -32,7 +32,6 @@ contains
 #endif
                        vlo, vhi, domlo, domhi, &
                        dx, dt)
-
     ! here, lo and hi are the range we loop over -- this can include ghost cells
     ! vlo and vhi are the bounds of the valid box (no ghost cells)
 

@@ -8,21 +8,15 @@ module diffusion_module
 
 contains
 
-  !> @brief This routine fills the thermal conductivity at zone centers
-  !! by calling the cell-centered conductivity routine
-  !!
-  !! @note Binds to C function ``ca_fill_temp_cond``
-  !!
-  !! @param[in] lo integer
-  !! @param[in] s_lo integer
-  !! @param[in] c_lo integer
-  !! @param[in] state real(rt)
-  !! @param[inout] coef real(rt)
-  !!
   subroutine ca_fill_temp_cond(lo, hi, &
                                state, s_lo, s_hi, &
                                coef, c_lo, c_hi) &
                                bind(C, name="ca_fill_temp_cond")
+    ! This routine fills the thermal conductivity at zone centers
+    ! by calling the cell-centered conductivity routine
+    !
+    ! .. note::
+    !    Binds to C function ``ca_fill_temp_cond``
 
     use amrex_constants_module, only: ZERO
     use network, only: nspec, naux
@@ -35,7 +29,7 @@ contains
 
     implicit none
 
-    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: lo(3), hi(3) ! lower limit
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
     integer,  intent(in   ) :: c_lo(3), c_hi(3)
     real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
@@ -84,23 +78,14 @@ contains
 
   end subroutine ca_fill_temp_cond
 
-
-
-  !> @brief This routine averages cell-centered conductivity coefficients to zone edges
-  !!
-  !! @note Binds to C function ``ca_average_coef_cc_to_ec``
-  !!
-  !! @param[in] lo integer
-  !! @param[in] c_lo integer
-  !! @param[in] e_lo integer
-  !! @param[in] coef_c real(rt)
-  !! @param[inout] coef_e real(rt)
-  !! @param[in] dir integer
-  !!
   subroutine ca_average_coef_cc_to_ec(lo, hi, &
                                       coef_c, c_lo, c_hi, &
                                       coef_e, e_lo, e_hi, &
                                       dir) bind(c, name="ca_average_coef_cc_to_ec")
+    ! This routine averages cell-centered conductivity coefficients to zone edges
+    !
+    ! .. note::
+    !    Binds to C function ``ca_average_coef_cc_to_ec``
 
     implicit none
 

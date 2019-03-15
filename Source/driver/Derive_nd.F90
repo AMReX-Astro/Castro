@@ -1,4 +1,6 @@
 module derive_module
+    ! All subroutines in this file must be threadsafe because they are called
+    ! inside OpenMP parallel regions.
 
   use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
@@ -8,9 +10,8 @@ module derive_module
   public
 
 contains
-  
-! All subroutines in this file must be threadsafe because they are called
-! inside OpenMP parallel regions.
+
+
 
   subroutine derstate(state,s_lo,s_hi,nv, &
                          dat,d_lo,d_hi,nc,lo,hi,domlo, &
@@ -21,7 +22,7 @@ contains
     !
     use amrex_fort_module, only : rt => amrex_real
 
-    implicit none 
+    implicit none
 
     integer, intent(in)     :: lo(3), hi(3)
     integer, intent(in), value :: nv, nc
@@ -36,7 +37,7 @@ contains
 
     !$gpu
 
-#ifndef AMREX_USE_CUDA    
+#ifndef AMREX_USE_CUDA
     if (nv .ne. 3) then
        print *,'... confusion in derstate ... nv should be 3 but is ',nv
        call amrex_error('Error:: Derive_nd.f90 :: derstate')
@@ -250,7 +251,7 @@ contains
     !
     use amrex_fort_module, only : rt => amrex_real
 
-    implicit none 
+    implicit none
 
     integer, intent(in)    :: lo(3), hi(3)
     integer, intent(in), value :: ng, nc
@@ -550,9 +551,10 @@ contains
   subroutine dereint1(e,e_lo,e_hi,ncomp_e, &
                          u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
                          domhi,dx,xlo) bind(C, name="dereint1")
+     ! Compute internal energy from (rho E).
 
     use amrex_constants_module, only : ONE, HALF
-    use meth_params_module, only: URHO, UMX, UMY, UMZ, UEDEN 
+    use meth_params_module, only: URHO, UMX, UMY, UMZ, UEDEN
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -570,9 +572,6 @@ contains
     integer          :: i, j, k
 
     !$gpu
-
-
-    ! Compute internal energy from (rho E).
 
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
@@ -593,6 +592,7 @@ contains
   subroutine dereint2(e,e_lo,e_hi,ncomp_e, &
                          u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
                          domhi,dx,xlo) bind(C, name="dereint2")
+     ! Compute internal energy from (rho e).
 
     use meth_params_module, only: URHO, UEINT
     use amrex_fort_module, only : rt => amrex_real
@@ -611,8 +611,6 @@ contains
     integer          :: i, j, k
 
     !$gpu
-
-    ! Compute internal energy from (rho e).
 
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
@@ -841,7 +839,7 @@ contains
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
-    
+
     integer, intent(in), value :: ncomp_t, ncomp_u
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: t_lo(3), t_hi(3)
@@ -1011,13 +1009,12 @@ contains
 
 
 
-  subroutine dermagvort(vort,v_lo,v_hi,nv, & 
+  subroutine dermagvort(vort,v_lo,v_hi,nv, &
                            dat,d_lo,d_hi,nc,lo,hi,domlo, &
                            domhi,delta,xlo) bind(C, name="dermagvort")
-    
     !
     ! This routine will calculate vorticity
-    !     
+    !
 
     use amrex_constants_module, only : ZERO, HALF, ONE
     use prob_params_module, only: dg, problo, coord_type
@@ -1512,7 +1509,7 @@ contains
 #endif
 
   end subroutine derdiffterm
-  
+
 #endif
 
 end module derive_module
